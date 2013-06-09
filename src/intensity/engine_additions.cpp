@@ -65,7 +65,7 @@ int CLogicEntity::getAnimationFrame()
 
 model* CLogicEntity::getModel()
 {
-#ifdef CLIENT
+#ifndef SERVER
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return NULL;
@@ -78,7 +78,7 @@ model* CLogicEntity::getModel()
 
 void CLogicEntity::setModel(const char *name)
 {
-#ifdef CLIENT
+#ifndef SERVER
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
@@ -211,7 +211,7 @@ void CLogicEntity::setSound(const char *snd)
 
     sndname = snd;
 
-#ifdef CLIENT
+#ifndef SERVER
     stopmapsound(staticEntity);
     if(camera1->o.dist(staticEntity->o) < staticEntity->attr[1])
       {
@@ -487,7 +487,7 @@ void LogicSystem::setupExtent(int ref, int type)
 
 void LogicSystem::setupCharacter(int ref)
 {
-//    #ifdef CLIENT
+//    #ifndef SERVER
 //        assert(0); // until we figure this out
 //    #endif
 
@@ -504,7 +504,7 @@ void LogicSystem::setupCharacter(int ref)
     int cn = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
     logger::log(logger::DEBUG, "(a) cn: %d\r\n", cn);
 
-    #ifdef CLIENT
+    #ifndef SERVER
         logger::log(logger::DEBUG, "client numbers: %d, %d\r\n", ClientSystem::playerNumber, cn);
 
         if (uid == ClientSystem::uniqueId) {
@@ -520,7 +520,7 @@ void LogicSystem::setupCharacter(int ref)
 
     assert(cn >= 0);
 
-    #ifdef CLIENT
+    #ifndef SERVER
     // If this is the player. There should already have been created an fpsent for this client,
     // which we can fetch with the valid client #
     logger::log(logger::DEBUG, "UIDS: in ClientSystem %d, and given to us%d\r\n", ClientSystem::uniqueId, uid);
@@ -572,7 +572,7 @@ void LogicSystem::dismantleExtent(int ref)
     logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uid);
 
     extentity* extent = getLogicEntity(uid)->staticEntity;
-#ifdef CLIENT
+#ifndef SERVER
     if (extent->type == ET_SOUND) stopmapsound(extent);
 #endif
     removeentity(extent);
@@ -589,7 +589,7 @@ void LogicSystem::dismantleCharacter(int ref)
     int cn = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
     luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
 
-    #ifdef CLIENT
+    #ifndef SERVER
     if (cn == ClientSystem::playerNumber)
         logger::log(logger::DEBUG, "Not dismantling own client\r\n", cn);
     else

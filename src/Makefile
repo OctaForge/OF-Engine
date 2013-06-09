@@ -264,7 +264,7 @@ endif
 ####################
 
 CLIENT_CXXFLAGS := $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti -DCLIENT \
+	-fsigned-char -fno-exceptions -fno-rtti \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS) \
 	-DBINARY_ARCH_STR=\"$(TARGET_BINARCH)\" -DBINARY_OS_STR=\"$(TARGET_BINOS)\"
 
@@ -570,7 +570,6 @@ depend:
 		-Ifpsgame \
 		-Iintensity \
 		-Ioctaforge \
-		-DCLIENT \
 		-p$$\(OBJDIR\)/client/ \
 		$(subst .o,.cpp,$(CLIENT_OBJ))
 

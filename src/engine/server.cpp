@@ -444,7 +444,7 @@ void flushserver(bool force)
 
 void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 {
-#ifdef CLIENT
+#ifndef SERVER
     bool disconnected = false;
 #endif
     loopv(clients) if(clients[i]->type==ST_LOCAL) 
@@ -452,12 +452,12 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
         if (cn != -1 && cn != clients[i]->num) continue; // INTENSITY: if cn given, only process that one
         server::localdisconnect(i);
         delclient(clients[i]);
-#ifdef CLIENT
+#ifndef SERVER
         disconnected = true;
 #endif
     }
 
-#ifdef CLIENT // INTENSITY: Added this
+#ifndef SERVER // INTENSITY: Added this
     if(!disconnected) return;
     game::gamedisconnect(cleanup);
     mainmenu = 1;
@@ -490,7 +490,7 @@ void rundedicatedserver()
     dedicatedserver = false;
 }
 
-#if defined(WIN32) && defined(CLIENT)
+#if defined(WIN32) && !defined(SERVER)
 static char *parsecommandline(const char *src, vector<char *> &args)
 {
     char *buf = new char[strlen(src) + 1], *dst = buf;

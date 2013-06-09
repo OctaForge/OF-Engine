@@ -8,7 +8,7 @@
 
 #include "network_system.h"
 
-#ifdef CLIENT
+#ifndef SERVER
     #include "client_system.h"
 #endif
 
@@ -229,7 +229,7 @@ namespace game
 
     void moveControlledEntities()
     {
-#ifdef CLIENT
+#ifndef SERVER
         if (ClientSystem::playerLogicEntity)
         {
             lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
@@ -308,14 +308,14 @@ namespace game
 
         if(!curtime)
         {
-#ifdef CLIENT
+#ifndef SERVER
             gets2c();
             if(player1->clientnum>=0) c2sinfo();
 #endif
             return;
         }
 
-#ifdef CLIENT
+#ifndef SERVER
         bool runWorld = ClientSystem::scenarioStarted();
 #else
         bool runWorld = (lua::L != NULL);
@@ -327,7 +327,7 @@ namespace game
 
         if (runWorld)
         {
-            #ifdef CLIENT
+            #ifndef SERVER
                 game::otherplayers(curtime); // Server doesn't need smooth interpolation of other players
             #endif
 
@@ -339,7 +339,7 @@ namespace game
                 CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
                 if (!entity || entity->isNone()) continue;
 
-                #ifdef CLIENT
+                #ifndef SERVER
                     // Ragdolls
                     int anim = entity->getAnimation();
                     if (fpsEntity->ragdoll && !(anim&ANIM_RAGDOLL))
@@ -355,7 +355,7 @@ namespace game
             LogicSystem::manageActions(curtime);
         }
 
-#ifdef CLIENT
+#ifndef SERVER
         //================================================================
         // Get messages - *AFTER* otherplayers, which applies smoothness,
         // and after actions, since gets2c may destroy the engine
@@ -368,7 +368,7 @@ namespace game
         // Send network updates, last for least lag
         //============================================
 
-#ifdef CLIENT
+#ifndef SERVER
         // clientnum might be -1, if we have yet to get S2C telling us our clientnum, i.e., we are only partially connected
         if(player1->clientnum>=0) c2sinfo(); //player1, // do this last, to reduce the effective frame lag
 #else // SERVER
@@ -379,7 +379,7 @@ namespace game
     void spawnplayer(fpsent *d)   // place at random spawn. also used by monsters!
     {
         spawnstate(d);
-        #ifdef CLIENT
+        #ifndef SERVER
             d->state = spectator ? CS_SPECTATOR : (d==player1 && editmode ? CS_EDITING : CS_ALIVE);
         #else // SERVER
             d->state = CS_ALIVE;
@@ -419,7 +419,7 @@ namespace game
             return NULL;
         }
 
-#ifdef CLIENT // INTENSITY
+#ifndef SERVER // INTENSITY
         if(cn == player1->clientnum)
         {
             player1->uniqueId = -5412; // Wipe uniqueId of new client
@@ -440,7 +440,7 @@ namespace game
 
     fpsent *getclient(int cn)   // ensure valid entity
     {
-#ifdef CLIENT // INTENSITY
+#ifndef SERVER // INTENSITY
         if(cn == player1->clientnum) return player1;
 #endif
         return clients.inrange(cn) ? clients[cn] : NULL;
@@ -471,7 +471,7 @@ namespace game
     void initclient()
     {
         player1 = spawnstate(new fpsent);
-#ifdef CLIENT
+#ifndef SERVER
         players.add(player1);
 #endif
     }
@@ -498,7 +498,7 @@ namespace game
 //        clearprojectiles();
 //        clearbouncers();
 
-#ifdef CLIENT
+#ifndef SERVER
         spawnplayer(player1);
         disablezoom();
 #endif
@@ -555,7 +555,7 @@ namespace game
         return cname;
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void drawhudmodel(fpsent *d, int anim, float speed = 0, int base = 0)
     {
         logger::log(logger::WARNING, "Rendering hudmodel is deprecated for now\r\n");
@@ -583,7 +583,7 @@ namespace game
 
     void particletrack(physent *owner, vec &o, vec &d)
     {
-#ifdef CLIENT
+#ifndef SERVER
         if(owner->type!=ENT_PLAYER) return;
 //        fpsent *pl = (fpsent *)owner;
         float dist = o.dist(d);

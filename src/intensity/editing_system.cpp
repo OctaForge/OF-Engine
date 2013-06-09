@@ -60,7 +60,7 @@ namespace EditingSystem
 
     void newent(const char *cl, const char *sd, vec fp)
     {
-        #ifdef CLIENT
+        #ifndef SERVER
             fp.mul(    FAR_PLACING_FACTOR);
             vec cp = ClientSystem::playerLogicEntity->dynamicEntity->o;
             cp.mul(1 - FAR_PLACING_FACTOR);
@@ -75,7 +75,7 @@ namespace EditingSystem
     void newent(const char *cl, const char *sd) {
         newent(cl, sd, saved_pos);
     }
-    #ifdef CLIENT
+    #ifndef SERVER
     ICOMMAND(newent, "ss", (char *cl, char *sd),
         newent(cl, sd, worldpos));
     LUAICOMMAND(new_entity, {
@@ -315,7 +315,7 @@ CLogicEntity *getSelectedEntity()
 
 }
 
-#ifdef CLIENT
+#ifndef SERVER
 ICOMMAND(save_mouse_position, "", (), EditingSystem::saved_pos = worldpos);
 LUAICOMMAND(save_mouse_position, {
     EditingSystem::saved_pos = worldpos;

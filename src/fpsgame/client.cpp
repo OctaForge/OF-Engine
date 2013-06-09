@@ -12,7 +12,7 @@
 #include "network_system.h"
 #include "targeting.h"
 
-#ifdef CLIENT
+#ifndef SERVER
     #include "of_localserver.h"
     extern int enthover;
     extern int freecursor, freeeditcursor;
@@ -59,7 +59,7 @@ namespace game
     {
         connected = true;
         remote = _remote;
-#ifdef CLIENT
+#ifndef SERVER
         if(editmode) toggleedit();
 #endif
     }
@@ -75,7 +75,7 @@ namespace game
 //        loopv(players) clientdisconnected(i, false); Kripken: When we disconnect, we should shut down anyhow...
         logger::log(logger::WARNING, "Not doing normal Sauer disconnecting of other clients\r\n");
 
-        #ifdef CLIENT
+        #ifndef SERVER
             ClientSystem::onDisconnect();
         #else
             assert(0); // What to do...?
@@ -88,7 +88,7 @@ namespace game
 
     bool allowedittoggle()
     {
-#ifdef CLIENT
+#ifndef SERVER
         if(editmode) return true;
         if (!ClientSystem::isAdmin())
         {
@@ -107,11 +107,11 @@ namespace game
     {
         MessageSystem::send_EditModeC2S(on);
 //        addmsg(N_EDITMODE, "ri", on ? 1 : 0);
-#ifdef CLIENT
+#ifndef SERVER
         disablezoom();
 #endif
 
-        #ifdef CLIENT
+        #ifndef SERVER
             enthover = -1; // Would be nice if sauer did this, but it doesn't... so without it you still hover on a nonseen edit ent
         #endif
     }
@@ -222,7 +222,7 @@ namespace game
 
     void toserver(char *text)
     {
-#ifdef CLIENT
+#ifndef SERVER
         if (ClientSystem::scenarioStarted())
 #endif // XXX - Need a similar check for NPCs on the server, if/when we have them
         {
@@ -238,7 +238,7 @@ namespace game
 
 //        if(d->state==CS_ALIVE || d->state==CS_EDITING) // Kripken: We handle death differently.
 //        {
-#ifdef CLIENT // If not logged in, or scenario not started, no need to send positions to self server (even can be buggy that way)
+#ifndef SERVER // If not logged in, or scenario not started, no need to send positions to self server (even can be buggy that way)
         if (ClientSystem::loggedIn && ClientSystem::scenarioStarted())
 #else // SERVER
         if (d->uniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
@@ -254,7 +254,7 @@ namespace game
             info.generateFrom(d);
             info.applyToBuffer(q);
 
-#ifdef CLIENT
+#ifndef SERVER
     #if (SERVER_DRIVEN_PLAYERS == 0)
             sendclientpacket(q.finalize(), 0, d->clientnum); // Disable this to stop client from updating server with position
     #endif
@@ -294,7 +294,7 @@ namespace game
         if(totalmillis - lastupdate < 33 && !force) return;    // don't update faster than the rate
         lastupdate = totalmillis;
 
-#ifdef CLIENT
+#ifndef SERVER
         if (ClientSystem::scenarioStarted())
             sendposition(player1);
 
@@ -314,7 +314,7 @@ namespace game
 
     void updatepos(fpsent *d)
     {
-#ifdef CLIENT
+#ifndef SERVER
         // Only the client cares if other clients overlap him. NPCs on the server don't mind.
         // update the position of other clients in the game in our world
         // don't care if he's in the scenery or other players,
@@ -421,7 +421,7 @@ namespace game
                 getstring(text, p);
                 /* FIXME: hack attack - add filtering method into the string class */
                 filtertext(text, text);
-#ifdef CLIENT
+#ifndef SERVER
                 if(d->state!=CS_SPECTATOR)
                     particle_textcopy(d->abovehead(), text, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
                 if (chat_sound[0])
@@ -461,7 +461,7 @@ namespace game
                 sel.cx = getint(p); sel.cxs = getint(p); sel.cy = getint(p), sel.cys = getint(p); // Why "," here and not all ;?
                 sel.corner = getint(p);
                 int dir, mode, mat, filter;
-                #ifdef CLIENT
+                #ifndef SERVER
                     int tex, newtex, allfaces, insel;
                 #endif
                 ivec moveo;
@@ -469,7 +469,7 @@ namespace game
                 {
                     case N_EDITF: dir = getint(p); mode = getint(p); if(sel.validate()) mpeditface(dir, mode, sel, false); break;
                     case N_EDITT:
-                        #ifdef CLIENT
+                        #ifndef SERVER
                             tex = getint(p); allfaces = getint(p); if(sel.validate()) mpedittex(tex, allfaces, sel, false); break;
                         #else // SERVER
                             getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (a)\r\n"); break;
@@ -480,7 +480,7 @@ namespace game
                     case N_PASTE: if(d && sel.validate()) mppaste(d->edit, sel, false); break;
                     case N_ROTATE: dir = getint(p); if(sel.validate()) mprotate(dir, sel, false); break;
                     case N_REPLACE:
-                        #ifdef CLIENT
+                        #ifndef SERVER
                             tex = getint(p); newtex = getint(p); insel = getint(p); if(sel.validate()) mpreplacetex(tex, newtex, insel>0, sel, false); break;
                         #else // SERVER
                             getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (b)\r\n"); break;
@@ -491,7 +491,7 @@ namespace game
             }
             case N_REMIP:
             {
-              #ifdef CLIENT
+              #ifndef SERVER
                 if(!d) return;
                 conoutf("%s remipped", colorname(d));
                 mpremip(false);
@@ -526,7 +526,7 @@ assert(0);
             default:
             {
                 logger::log(logger::INFO, "Client: Handling a non-typical message: %d\r\n", type);
-#ifdef CLIENT
+#ifndef SERVER
                 if (!MessageSystem::MessageManager::receive(type, ClientSystem::playerNumber, cn, p))
 #else
                 if (!MessageSystem::MessageManager::receive(type, 0, cn, p)) // Server's internal client is num '0'
@@ -543,7 +543,7 @@ assert(0);
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     ICOMMAND(map, "s", (char *name), {
         if (!name || !name[0])
             local_server::stop();
@@ -560,7 +560,7 @@ assert(0);
 
         mode = 0;
         gamemode = mode;
-#ifdef CLIENT
+#ifndef SERVER
         if(editmode) toggleedit();
 #endif
         if((gamemode==1 && !name[0]) || (!load_world(name) && remote)) 
@@ -596,7 +596,7 @@ assert(0);
 
     void edittrigger(const selinfo &sel, int op, int arg1, int arg2, int arg3)
     {
-#ifdef CLIENT
+#ifndef SERVER
         if(!ClientSystem::isAdmin())
         {
             logger::log(logger::WARNING, "vartrigger invalid\r\n");

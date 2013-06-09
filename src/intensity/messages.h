@@ -12,7 +12,7 @@ struct PersonalServerMessage : MessageType
 {
     PersonalServerMessage() : MessageType(1001, "PersonalServerMessage") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -54,7 +54,7 @@ struct YourUniqueId : MessageType
 {
     YourUniqueId() : MessageType(1004, "YourUniqueId") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -68,7 +68,7 @@ struct LoginResponse : MessageType
 {
     LoginResponse() : MessageType(1005, "LoginResponse") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -82,7 +82,7 @@ struct PrepareForNewScenario : MessageType
 {
     PrepareForNewScenario() : MessageType(1006, "PrepareForNewScenario") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -110,7 +110,7 @@ struct NotifyAboutCurrentScenario : MessageType
 {
     NotifyAboutCurrentScenario() : MessageType(1008, "NotifyAboutCurrentScenario") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -204,7 +204,7 @@ struct NotifyNumEntities : MessageType
 {
     NotifyNumEntities() : MessageType(1015, "NotifyNumEntities") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -218,7 +218,7 @@ struct AllActiveEntitiesSent : MessageType
 {
     AllActiveEntitiesSent() : MessageType(1016, "AllActiveEntitiesSent") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -272,7 +272,7 @@ struct LogicEntityRemoval : MessageType
 {
     LogicEntityRemoval() : MessageType(1020, "LogicEntityRemoval") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -286,7 +286,7 @@ struct ExtentCompleteNotification : MessageType
 {
     ExtentCompleteNotification() : MessageType(1021, "ExtentCompleteNotification") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -300,7 +300,7 @@ struct InitS2C : MessageType
 {
     InitS2C() : MessageType(1022, "InitS2C") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -328,7 +328,7 @@ struct SoundToClients : MessageType
 {
     SoundToClients() : MessageType(1024, "SoundToClients") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -342,7 +342,7 @@ struct MapSoundToClients : MessageType
 {
     MapSoundToClients() : MessageType(1025, "MapSoundToClients") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -356,7 +356,7 @@ struct SoundToClientsByName : MessageType
 {
     SoundToClientsByName() : MessageType(1026, "SoundToClientsByName") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -370,7 +370,7 @@ struct SoundStopToClientsByName : MessageType
 {
     SoundStopToClientsByName() : MessageType(1027, "SoundStopToClientsByName") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -438,7 +438,7 @@ struct ParticleSplashToClients : MessageType
 {
     ParticleSplashToClients() : MessageType(1032, "ParticleSplashToClients") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -452,7 +452,7 @@ struct ParticleSplashRegularToClients : MessageType
 {
     ParticleSplashRegularToClients() : MessageType(1033, "ParticleSplashRegularToClients") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -480,7 +480,7 @@ struct NotifyPrivateEditMode : MessageType
 {
     NotifyPrivateEditMode() : MessageType(1035, "NotifyPrivateEditMode") { };
 
-#ifdef CLIENT
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };

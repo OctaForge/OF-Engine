@@ -446,7 +446,7 @@ COMMAND(clearmodel, "s");
 
 bool modeloccluded(const vec &center, float radius)
 {
-#ifdef CLIENT
+#ifndef SERVER
     int br = int(radius*2)+1;
     return pvsoccluded(ivec(int(center.x-radius), int(center.y-radius), int(center.z-radius)), ivec(br, br, br)) ||
            bboccluded(ivec(int(center.x-radius), int(center.y-radius), int(center.z-radius)), ivec(br, br, br));

@@ -160,7 +160,7 @@ void QuantizedInfo::applyToEntity(fpsent *d)
     }
     #endif
 
-    #ifdef CLIENT
+    #ifndef SERVER
     float oldyaw = d->yaw, oldpitch = d->pitch;
     #endif
 
@@ -196,7 +196,7 @@ void QuantizedInfo::applyToEntity(fpsent *d)
         d->mapDefinedPositionData = mapDefinedPositionData;
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     vec oldpos(d->o);
 #endif
 
@@ -222,7 +222,7 @@ void QuantizedInfo::applyToEntity(fpsent *d)
         updatephysstate(d);
         game::updatepos(d);
     }
-    #ifdef CLIENT // No need to smooth for server, and certainly no need to double smooth before getting to other clients
+    #ifndef SERVER // No need to smooth for server, and certainly no need to double smooth before getting to other clients
     if(game::smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < game::smoothdist)
     {
         d->newpos = d->o;

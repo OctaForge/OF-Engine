@@ -2095,7 +2095,7 @@ void interppos(physent *pl)
 
 void moveplayer(physent *pl, int moveres, bool local)
 {
-#ifdef CLIENT
+#ifndef SERVER
     // INTENSITY: Don't move an entity not fully set up yet
     if (!pl || !LogicSystem::getLogicEntity(pl)) return;
 

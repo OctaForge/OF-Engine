@@ -1148,7 +1148,7 @@ void resetmap()
 {
     clearoverrides();
     clearmapsounds();
-#ifdef CLIENT
+#ifndef SERVER
     resetblendmap();
     clearlights();
     clearpvs();
@@ -1193,7 +1193,7 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
-#ifdef CLIENT
+#ifndef SERVER
     lua::push_external("gui_clear"); lua_call(lua::L, 0, 0);
 #endif
 
@@ -1232,7 +1232,7 @@ bool enlargemap(bool force)
 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
-#ifdef CLIENT
+#ifndef SERVER
     enlargeblendmap();
 #endif
 
@@ -1276,7 +1276,7 @@ void shrinkmap()
     vector<extentity *> &ents = entities::getents();
     loopv(ents) ents[i]->o.sub(offset.tovec());
 
-#ifdef CLIENT
+#ifndef SERVER
     shrinkblendmap(octant);
 #endif
 

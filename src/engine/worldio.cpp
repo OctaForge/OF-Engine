@@ -5,7 +5,7 @@
 
 // INTENSITY
 #include "message_system.h"
-#ifdef CLIENT
+#ifndef SERVER
     #include "client_system.h"
 #endif
 #include "of_world.h"
@@ -495,7 +495,7 @@ void loadvslots(stream *f, int numvslots)
 
 bool save_world(const char *mname, bool nolms)
 {
-#ifdef CLIENT
+#ifndef SERVER
     if (!mname || !mname[0]) mname = game::getclientmap();
     setmapfilenames(mname[0] ? mname : "untitled");
     if(savebak) backup(ogzname, bakname);
@@ -790,7 +790,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     renderprogress(0, "validating...");
     validatec(worldroot, hdr.worldsize>>1);
 
-#ifdef CLIENT // INTENSITY: Server doesn't need lightmaps, pvs and blendmap (and current code for server wouldn't clean
+#ifndef SERVER // INTENSITY: Server doesn't need lightmaps, pvs and blendmap (and current code for server wouldn't clean
               //            them up if we did read them, so would have a leak)
     if(!failed)
     {
@@ -815,7 +815,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 //    mapcrc = f->getcrc(); // INTENSITY: We use our own signatures
     delete f;
 
-#ifdef CLIENT
+#ifndef SERVER
         lua::push_external("gui_clear"); lua_call(lua::L, 0, 0);
 #endif
 
@@ -824,7 +824,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if (lua::L) world::run_mapscript();
     identflags &= ~IDF_OVERRIDDEN;
    
-#ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities
+#ifndef SERVER // INTENSITY: Stop, finish loading later when we have all the entities
     renderprogress(0, "requesting entities...");
     logger::log(logger::DEBUG, "Requesting active entities...\r\n");
     MessageSystem::send_ActiveEntitiesRequest(ClientSystem::currScenarioCode); // Ask for the NPCs and other players, which are not part of the map proper
@@ -846,7 +846,7 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     loadprogress = 0;
 
     game::preload();
-#ifdef CLIENT
+#ifndef SERVER
     flushpreloadedmodels();
 #endif
 

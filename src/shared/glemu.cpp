@@ -267,7 +267,7 @@ namespace gle
 
 /* OF: GL lua stuff */
 
-#ifdef CLIENT
+#ifndef SERVER
 LUAICOMMAND(gle_begin, { gle::begin((uint)luaL_checkinteger(L, 1)); return 0; });
 LUAICOMMAND(gle_end, { lua_pushinteger(L, gle::end()); return 1; });
 LUAICOMMAND(gle_disable, { gle::disable(); return 0; });

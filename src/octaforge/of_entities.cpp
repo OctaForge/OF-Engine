@@ -350,7 +350,7 @@ namespace entities
     DYNENTVEC(falling, falling)
     #undef DYNENTVEC
 
-#ifdef CLIENT
+#ifndef SERVER
     LUAICOMMAND(get_target_entity_uid, {
         if (TargetingControl::targetLogicEntity &&
            !TargetingControl::targetLogicEntity->isNone()) {

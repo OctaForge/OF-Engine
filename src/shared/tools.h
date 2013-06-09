@@ -423,7 +423,7 @@ static inline bool htcmp(int x, int y)
     return x==y;
 }
 
-#ifdef CLIENT
+#ifndef SERVER
 static inline uint hthash(GLuint key)
 {
     return key;
@@ -1274,7 +1274,7 @@ struct stream
     template<class T> T getlil() { return lilswap(get<T>()); }
     template<class T> T getbig() { return bigswap(get<T>()); }
 
-#ifdef CLIENT
+#ifndef SERVER
     SDL_RWops *rwops();
 #endif
 };

@@ -505,7 +505,7 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files, int filte
     return dirs;
 }
 
-#ifdef CLIENT
+#ifndef SERVER
 static Sint64 rwopsseek(SDL_RWops *rw, Sint64 pos, int whence)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;

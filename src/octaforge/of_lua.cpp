@@ -5,7 +5,7 @@
 #include "of_lua.h"
 #include "of_tools.h"
 
-#ifdef CLIENT
+#ifndef SERVER
     #include "client_system.h"
     #include "targeting.h"
 #endif
@@ -182,7 +182,7 @@ namespace lua
 
     void setup_binds()
     {
-#ifdef CLIENT
+#ifndef SERVER
         lua_pushboolean(L,  true); lua_setglobal(L, "CLIENT");
         lua_pushboolean(L, false); lua_setglobal(L, "SERVER");
 #else

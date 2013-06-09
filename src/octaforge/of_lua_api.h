@@ -10,7 +10,7 @@ namespace game
     fpsent *followingplayer();
 }
 
-#ifdef CLIENT
+#ifndef SERVER
 VARP(blood, 0, 1, 1);
 #endif
 
@@ -96,7 +96,7 @@ namespace lapi_binds
     }
 #endif
 
-#ifdef CLIENT
+#ifndef SERVER
     int _lua_requestprivedit(lua_State *L) {
         MessageSystem::send_RequestPrivateEditMode();
         return 0;
@@ -113,7 +113,7 @@ namespace lapi_binds
 
     /* input */
 
-#ifdef CLIENT
+#ifndef SERVER
     int _lua_set_targeted_entity(lua_State *L) {
         if (TargetingControl::targetLogicEntity)
             delete TargetingControl::targetLogicEntity;
@@ -232,7 +232,7 @@ namespace lapi_binds
 
     /* network */
 
-#ifdef CLIENT
+#ifndef SERVER
     int _lua_connect(lua_State *L) {
         ClientSystem::connect(luaL_checkstring(L, 1), luaL_checkinteger(L, 2));
         return 0;
@@ -300,7 +300,7 @@ namespace lapi_binds
         return 1;
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     int _lua_do_upload(lua_State *L) {
         renderprogress(0.1f, "compiling scripts ..");
 
@@ -332,7 +332,7 @@ namespace lapi_binds
 
     /* particles */
 
-#ifdef CLIENT
+#ifndef SERVER
     int _lua_adddecal(lua_State *L) {
         adddecal(luaL_checkinteger(L, 1),
             vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
@@ -466,7 +466,7 @@ namespace lapi_binds
     LAPI_EMPTY(particle_text)
 #endif
 
-#ifdef CLIENT
+#ifndef SERVER
     int _lua_gettargetpos(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
         vec o(TargetingControl::targetPosition);
@@ -533,7 +533,7 @@ namespace lapi_binds
         return 1;
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     int _lua_hasmap(lua_State *L) {
         lua_pushboolean(L, local_server::is_running());
         return 1;

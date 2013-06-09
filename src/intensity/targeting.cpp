@@ -8,7 +8,7 @@
 
 #include "targeting.h"
 
-#ifdef CLIENT
+#ifndef SERVER
 #include "client_system.h"
 
 void TargetingControl::setupOrientation()

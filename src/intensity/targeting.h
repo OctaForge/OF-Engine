@@ -8,7 +8,7 @@
 
 struct TargetingControl
 {
-#ifdef CLIENT
+#ifndef SERVER
     static void setupOrientation();
 
     //! Contains the position where the mouse cursor is aiming. Equal to worldposition in general, unless hovering
@@ -28,7 +28,7 @@ struct TargetingControl
     //! Find the logic entity that the ray from->to intersects, and is not 'targeter' (the entity casting the ray, typically)
     static void intersectClosest(vec &from, vec &to, physent *targeter, float& dist, CLogicEntity *&entity);
 
-#ifdef CLIENT
+#ifndef SERVER
     //! Sets or unsets the state of letting the mouse 'target' entities, i.e., mark them
     //! in a visual manner and let clicking affect that entity
     static void setMouseTargeting(bool on);

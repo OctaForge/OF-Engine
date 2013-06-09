@@ -3,7 +3,7 @@
 #include "engine.h"
 #include "game.h" // INTENSITY: Need this for fpsent, below
 
-#ifdef CLIENT
+#ifndef SERVER
     #include "client_system.h" // INTENSITY
 #endif
 
@@ -17,7 +17,7 @@ int connmillis = 0, connattempts = 0, discmillis = 0;
 
 bool multiplayer(bool msg)
 {
-#ifdef CLIENT // INTENSITY
+#ifndef SERVER // INTENSITY
     bool val = !ClientSystem::editingAlone; // INTENSITY
 #else // SERVER - the old sauer code
     bool val = curpeer || hasnonlocalclients();
@@ -72,7 +72,7 @@ VARP(connectport, 0, 0, 0xFFFF);
 
 void connectserv(const char *servername, int serverport, const char *serverpassword)
 {
-#ifdef CLIENT
+#ifndef SERVER
     if(connpeer)
     {
         conoutf("aborting connection attempt");
@@ -136,7 +136,7 @@ void disconnect(bool async, bool cleanup)
         discmillis = 0;
         conoutf("disconnected");
         game::gamedisconnect(cleanup);
-#ifdef CLIENT
+#ifndef SERVER
         mainmenu = 1;
 #endif
     }
@@ -221,7 +221,7 @@ void gets2c()           // get updates from the server
             break;
          
         case ENET_EVENT_TYPE_RECEIVE:
-#if CLIENT // INTENSITY
+#ifndef SERVER // INTENSITY
             if(discmillis) conoutf("attempting to disconnect...");
             else localservertoclient(event.channelID, event.packet);
             enet_packet_destroy(event.packet);

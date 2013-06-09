@@ -16,7 +16,7 @@
 #include "network_system.h"
 #include "message_system.h"
 
-#ifdef CLIENT
+#ifndef SERVER
     #include "client_system.h"
 #endif
 #include "of_world.h"
@@ -498,7 +498,7 @@ namespace server
                     return;
                 }
 
-#ifdef CLIENT
+#ifndef SERVER
                 if ( !isRunningCurrentScenario(sender) ) break; // Silently ignore info from previous scenario
 #endif
 
@@ -700,7 +700,7 @@ namespace server
     // it leaves the entity on the stack and returns true or leaves nothing and returns false.
     bool createluaEntity(int cn, const char *_class, const char *uname)
     {
-#ifdef CLIENT
+#ifndef SERVER
         assert(0);
         return false;
 #else // SERVER

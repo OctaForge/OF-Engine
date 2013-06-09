@@ -8,7 +8,7 @@
 #include "engine.h"
 #include "game.h"
 
-#ifdef CLIENT
+#ifndef SERVER
     #include "targeting.h"
 #endif
 
@@ -76,7 +76,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void PersonalServerMessage::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
@@ -202,7 +202,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void YourUniqueId::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type YourUniqueId (1004)\r\n");
@@ -266,7 +266,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void LoginResponse::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LoginResponse (1005)\r\n");
@@ -334,7 +334,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void PrepareForNewScenario::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
@@ -417,7 +417,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void NotifyAboutCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyAboutCurrentScenario (1008)\r\n");
@@ -788,7 +788,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void NotifyNumEntities::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyNumEntities (1015)\r\n");
@@ -847,7 +847,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void AllActiveEntitiesSent::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type AllActiveEntitiesSent (1016)\r\n");
@@ -984,7 +984,7 @@ namespace MessageSystem
             lua_createtable(lua::L, 0, 0);
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
             {
-                #ifdef CLIENT
+                #ifndef SERVER
                     // If this is the player, validate it is the clientNumber we already have
                     if (otherUniqueId == ClientSystem::uniqueId)
                     {
@@ -1014,7 +1014,7 @@ namespace MessageSystem
         lua_insert  (lua::L, -2);
         lua_pushstring(lua::L, stateData);
         lua_call(lua::L, 2, 0);
-        #ifdef CLIENT
+        #ifndef SERVER
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
             {
@@ -1111,7 +1111,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void LogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LogicEntityRemoval (1020)\r\n");
@@ -1174,7 +1174,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void ExtentCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
@@ -1264,7 +1264,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void InitS2C::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type InitS2C (1022)\r\n");
@@ -1279,7 +1279,7 @@ namespace MessageSystem
             disconnect();
             return;
         }
-        #ifdef CLIENT
+        #ifndef SERVER
             fpsent *player1 = game::player1;
         #else
             assert(0);
@@ -1287,7 +1287,7 @@ namespace MessageSystem
         #endif
         player1->clientnum = explicitClientNumber; // we are now fully connected
                                                    // Kripken: Well, sauer would be, we still need more...
-        #ifdef CLIENT
+        #ifndef SERVER
         ClientSystem::login(explicitClientNumber); // Finish the login process, send server our user/pass. NPCs need not do this.
         #endif
     }
@@ -1367,7 +1367,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void SoundToClients::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundToClients (1024)\r\n");
@@ -1442,7 +1442,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void MapSoundToClients::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
@@ -1514,7 +1514,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void SoundToClientsByName::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundToClientsByName (1026)\r\n");
@@ -1584,7 +1584,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void SoundStopToClientsByName::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundStopToClientsByName (1027)\r\n");
@@ -1805,7 +1805,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void ParticleSplashToClients::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashToClients (1032)\r\n");
@@ -1870,7 +1870,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void ParticleSplashRegularToClients::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashRegularToClients (1033)\r\n");
@@ -1956,7 +1956,7 @@ namespace MessageSystem
         }
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     void NotifyPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyPrivateEditMode (1035)\r\n");

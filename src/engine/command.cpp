@@ -1058,7 +1058,7 @@ static void compilelookup(vector<uint> &code, const char *&p, int ltype)
                         case 'r': compileident(code); numargs++; break;
                         case '$': compileident(code, id); numargs++; break;
                         case 'N': compileint(code, -1); numargs++; break;
-#ifdef CLIENT
+#ifndef SERVER
                         case 'D': comtype = CODE_COMD; numargs++; break;
 #endif
                         case 'C': comtype = CODE_COMC; numargs = 1; goto endfmt;
@@ -1397,7 +1397,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                     case 'r': if(more) more = compilearg(code, p, VAL_IDENT); if(!more) { if(rep) break; compileident(code); fakeargs++; } numargs++; break;
                     case '$': compileident(code, id); numargs++; break;
                     case 'N': compileint(code, numargs-fakeargs); numargs++; break;
-#ifdef CLIENT
+#ifndef SERVER
                     case 'D': comtype = CODE_COMD; numargs++; break;
 #endif
                     case 'C': comtype = CODE_COMC; if(more) while(numargs < MAXARGS && (more = compilearg(code, p, VAL_ANY))) numargs++; numargs = 1; goto endfmt;
@@ -1631,7 +1631,7 @@ static inline void callcommand(ident *id, tagval *args, int numargs, bool lookup
         case 'r': if(++i >= numargs) { if(rep) break; args[i].setident(dummyident); fakeargs++; } else forceident(args[i]); break;
         case '$': if(++i < numargs) freearg(args[i]); args[i].setident(id); break;
         case 'N': if(++i < numargs) freearg(args[i]); args[i].setint(lookup ? -1 : i-fakeargs); break;
-#ifdef CLIENT
+#ifndef SERVER
         case 'D': if(++i < numargs) freearg(args[i]); args[i].setint(addreleaseaction(conc(args, i, true, id->name)) ? 1 : 0); fakeargs++; break;
 #endif
         case 'C': { i = max(i+1, numargs); vector<char> buf; ((comfun1)id->fun)(conc(buf, args, i, true)); goto cleanup; }
@@ -1901,7 +1901,7 @@ static const uint *runcode(const uint *code, tagval &result)
            
             case CODE_COM|RET_NULL: case CODE_COM|RET_STR: case CODE_COM|RET_FLOAT: case CODE_COM|RET_INT:
                 id = identmap[op>>8];
-#ifdef CLIENT
+#ifndef SERVER
             callcom:
 #endif
                 forcenull(result);
@@ -1910,7 +1910,7 @@ static const uint *runcode(const uint *code, tagval &result)
                 freeargs(args, numargs, 0);
                 forcearg(result, op&CODE_RET_MASK);
                 continue;
-#ifdef CLIENT
+#ifndef SERVER
             case CODE_COMD|RET_NULL: case CODE_COMD|RET_STR: case CODE_COMD|RET_FLOAT: case CODE_COMD|RET_INT:
                 id = identmap[op>>8];
                 args[numargs].setint(addreleaseaction(conc(args, numargs, true, id->name)) ? 1 : 0);
@@ -2276,7 +2276,7 @@ bool validateblock(const char *s)
     return brakdepth == 0;
 }
 
-#ifdef CLIENT
+#ifndef SERVER
 static inline bool sortidents(ident *x, ident *y)
 {
     return strcmp(x->name, y->name) < 0;

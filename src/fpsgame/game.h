@@ -107,7 +107,7 @@ struct fpsent : dynent
                { name[0] = team[0] = info[0] = 0; respawn(); }
     ~fpsent()
     {
-#ifdef CLIENT
+#ifndef SERVER
         freeeditinfo(edit);
 #endif
      }

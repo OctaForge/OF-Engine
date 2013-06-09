@@ -119,7 +119,7 @@ void cancelsel()
 
 void toggleedit(bool force)
 {
-#ifdef CLIENT
+#ifndef SERVER
     if(!force)
     {
         if(!isconnected()) return;
@@ -297,7 +297,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         od  = dimension(orient),
         odc = dimcoord(orient);
 
-    #ifdef CLIENT
+    #ifndef SERVER
         lua::push_external("cursor_exists");
         lua_call(lua::L, 0, 1);
         bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
@@ -502,7 +502,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
 
 void tryedit()
 {
-#ifdef CLIENT // CubeCreate
+#ifndef SERVER // CubeCreate
     extern int hidehud;
     if(!editmode || hidehud || mainmenu) return;
     if(blendpaintmode) trypaintblendmap();
@@ -554,7 +554,7 @@ void commitchanges(bool force)
     resetclipplanes();
     entitiesinoctanodes();
     inbetweenframes = false;
-#ifdef CLIENT
+#ifndef SERVER
     octarender();
 #endif
     inbetweenframes = true;
@@ -2296,7 +2296,7 @@ void rendertexturepanel(int w, int h)
 
 /* OF */
 
-#ifdef CLIENT
+#ifndef SERVER
 LUAICOMMAND(slot_fill_texlist, {
     filltexlist();
     return 0;

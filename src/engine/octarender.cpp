@@ -1435,7 +1435,7 @@ void octarender()                               // creates va s for all leaf cub
 
 void precachetextures()
 {
-#ifdef CLIENT
+#ifndef SERVER
     resetbgload(); /* OctaForge: see below for bgload */
 #endif
 
@@ -1451,7 +1451,7 @@ void precachetextures()
         lookupvslot(texs[i]);
     }
 
-#ifdef CLIENT
+#ifndef SERVER
     dobgload(true); /* OctaForge: lookuptexture just queues, now, so here we need to flush all the requests */
 #endif
 
@@ -1468,14 +1468,14 @@ void allchanged(bool load)
     entitiesinoctanodes();
     tjoints.setsize(0);
     if(filltjoints) findtjoints();
-#ifdef CLIENT
+#ifndef SERVER
     octarender();
 #endif
     if(load) precachetextures();
     setupmaterials();
     clearshadowcache();
     updatevabbs(true);
-#ifdef CLIENT
+#ifndef SERVER
     if(load) 
     {
         genshadowmeshes();

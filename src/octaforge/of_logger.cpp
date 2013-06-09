@@ -100,7 +100,7 @@ namespace logger
         }
 #endif
 
-#ifdef CLIENT
+#ifndef SERVER
         if (level == ERROR) {
             conoutf(CON_ERROR, "[[%s]] - %s", level_s, buf);
         }
