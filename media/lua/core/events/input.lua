@@ -17,6 +17,7 @@ local msg = require("core.network.msg")
 local signal = require("core.events.signal")
 
 local emit = signal.emit
+local ents
 
 --[[! Function: input_mouse_move
     Set this external if you want to override the default behavior. The default
@@ -35,6 +36,7 @@ if CLIENT then
     it sets the "yawing" property on the player to "dir".
 ]]
 set_external("input_yaw", function(dir, down)
+    if not ents then ents = require("core.entities.ents") end
     ents.get_player():set_attr("yawing", dir)
 end)
 
@@ -43,6 +45,7 @@ end)
     it sets the "pitching" property on the player to "dir".
 ]]
 set_external("input_pitch", function(dir, down)
+    if not ents then ents = require("core.entities.ents") end
     ents.get_player():set_attr("pitching", dir)
 end)
 
@@ -51,6 +54,7 @@ end)
     it sets the "move" property on the player to "dir".
 ]]
 set_external("input_move", function(dir, down)
+    if not ents then ents = require("core.entities.ents") end
     ents.get_player():set_attr("move", dir)
 end)
 
@@ -59,6 +63,7 @@ end)
     it sets the "strafe" property on the player to "dir".
 ]]
 set_external("input_strafe", function(dir, down)
+    if not ents then ents = require("core.entities.ents") end
     ents.get_player():set_attr("strafe", dir)
 end)
 
@@ -67,6 +72,7 @@ end)
     calls the method "jump" on the player, passing "down" as an argument.
 ]]
 set_external("input_jump", function(down)
+    if not ents then ents = require("core.entities.ents") end
     ents.get_player():jump(down)
 end)
 
@@ -76,6 +82,7 @@ end)
     as an argument.
 ]]
 set_external("input_crouch", function(down)
+    if not ents then ents = require("core.entities.ents") end
     ents.get_player():crouch(down)
 end)
 

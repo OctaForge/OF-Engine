@@ -18,8 +18,9 @@
 ]]
 
 local library = require("core.lua.library")
+print("LIB", library, library.current)
 
-#log(DEBUG, "Initializing library version " .. library.current)
+--#log(DEBUG, "Initializing library version " .. library.current)
 
 #log(DEBUG, ":: Plugin system.")
 library.include("plugins")

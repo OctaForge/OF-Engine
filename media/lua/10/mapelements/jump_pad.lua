@@ -3,6 +3,7 @@ local model = require("core.engine.model")
 local frame = require("core.events.frame")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
+local ents = require("core.entities.ents")
 
 module("jump_pad", package.seeall)
 

@@ -1,6 +1,7 @@
 local library = require("core.lua.library")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
+local ents = require("core.entities.ents")
 
 library.include("firing")
 

@@ -55,6 +55,7 @@ _V = setmetatable({
         _C.var_set(name, value)
     end
 })
+set_external("vars_get", function() return _V end)
 
 return {
     PERSIST  = VAR_PERSIST,

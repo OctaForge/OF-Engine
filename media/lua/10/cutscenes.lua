@@ -18,6 +18,7 @@ local camera = require("core.engine.camera")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
+local ents = require("core.entities.ents")
 
 --[[!
     Package: cutscenes

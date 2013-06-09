@@ -14,6 +14,8 @@
         This file provides basic geometry utilities.
 ]]
 
+local ents = require("core.entities.ents")
+
 --[[!
     Package: geometry
     A module containing various utility functions for rays, collisions

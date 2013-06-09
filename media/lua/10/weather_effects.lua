@@ -15,6 +15,7 @@
 ]]
 
 local frame = require("core.events.frame")
+local ents = require("core.entities.ents")
 
 --[[!
     Package: weather_effects

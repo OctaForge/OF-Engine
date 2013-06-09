@@ -88,7 +88,7 @@ M.gen_mapscript_env = function()
     env_package.path = package.path
     -- safety? bah, we don't need no stinkin' safety
     return setmetatable({
-        require = env_require
+        --require = env_require
     }, { __index = _G })
 end
 set_external("mapscript_gen_env", M.gen_mapscript_env)

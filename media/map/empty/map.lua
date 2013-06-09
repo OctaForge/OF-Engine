@@ -2,6 +2,7 @@
 -- author: q66 <quaker66@gmail.com>
 
 local library = require("core.lua.library")
+local ents = require("core.entities.ents")
 
 -- Use library version "10"
 library.use("10")

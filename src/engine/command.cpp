@@ -16,9 +16,9 @@ VARN(numargs, _numargs, MAXARGS, 0, 0);
 void ident::changed() {
     if (fun) fun();
     if (!(flags&IDF_SIGNAL)) return;
-    lua_getglobal  (lua::L, "signal"); lua_getfield(lua::L, -1, "emit");
-    lua_remove     (lua::L, -2);
-    lua_getglobal  (lua::L, "_V");
+    lua::push_external("signal_emit");
+    lua::push_external("vars_get");
+    lua_call(lua::L, 0, 1);
     lua_pushstring (lua::L, name);
     lua_pushliteral(lua::L, "_changed");
     lua_concat     (lua::L, 2);

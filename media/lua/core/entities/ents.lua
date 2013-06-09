@@ -452,9 +452,7 @@ M.load = function()
     if not el then
         #log(DEBUG, "ents.load: nothing to read")
     else
-        print("DES", el)
         entities = deserialize(el)
-        print("ENTS", entities)
     end
 
     if #storage_sauer > 0 then

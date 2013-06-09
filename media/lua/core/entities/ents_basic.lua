@@ -20,11 +20,10 @@ local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
+local ents = require("core.entities.ents")
 local msg = require("core.network.msg")
 
-local M = ents
-
-local Entity = M.Entity
+local Entity = ents.Entity
 
 local band, bor, bnot, lsh, rsh = math.band, math.bor, math.bnot, math.lsh, 
     math.rsh
@@ -98,14 +97,14 @@ local Physical_Entity = Entity:clone {
     ]]
     get_center = function(self) end
 }
-M.Physical_Entity = Physical_Entity
+ents.Physical_Entity = Physical_Entity
 
 --[[! Class: Local_Animation_Action
     Action that starts, sets its actor's animation to its local_animation
     property, runs, ends and sets back the old animation. Not too useful
     alone, but can be used for inheriting.
 ]]
-M.Local_Animation_Action = actions.Action:clone {
+ents.Local_Animation_Action = actions.Action:clone {
     name = "Local_Animation_Action",
 
     --[[! Function: start
@@ -521,7 +520,7 @@ local Character = Physical_Entity:clone {
     ]]
     get_render_flags = CLIENT and function(self, hudpass, needhud)
         local flags = model.render_flags.FULLBRIGHT
-        if self ~= M.get_player() then
+        if self ~= ents.get_player() then
             flags = bor(model.render_flags.CULL_VFC,
                 model.render_flags.CULL_OCCLUDED,
                 model.render_flags.CULL_QUERY)
@@ -642,7 +641,7 @@ local Character = Physical_Entity:clone {
         return origin
     end
 }
-M.Character = Character
+ents.Character = Character
 
 --[[! Function: physics_collide_client
     An external called when two clients collide. Takes both entities. By
@@ -678,7 +677,7 @@ local Player = Character:clone {
         self:set_attr("hud_model_name", "")
     end or nil
 }
-M.Player = Player
+ents.Player = Player
 
 ents.register_class(Character)
 ents.register_class(Player)
@@ -844,7 +843,7 @@ local Static_Entity = Physical_Entity:clone {
         return 4
     end
 }
-M.Static_Entity = Static_Entity
+ents.Static_Entity = Static_Entity
 
 --[[! Function: entity_get_edit_info
     An external. Returns ent.edit_icon, ent:get_edit_color().
@@ -886,7 +885,7 @@ local Marker = Static_Entity:clone {
         ent:set_attr("position", self:get_attr("position"))
     end
 }
-M.Marker = Marker
+ents.Marker = Marker
 
 --[[! Class: Oriented_Marker
     A generic (oriented) marker with a wide variety of uses. Can be used as
@@ -923,7 +922,7 @@ local Oriented_Marker = Static_Entity:clone {
             self:get_attr("pitch"))
     end
 }
-M.Oriented_Marker = Oriented_Marker
+ents.Oriented_Marker = Oriented_Marker
 
 local lightflags = setmetatable({
     [0] = "dynamic shadow (0)",
@@ -986,7 +985,7 @@ local Light = Static_Entity:clone {
             lightflags[self:get_attr("flags")])
     end
 }
-M.Light = Light
+ents.Light = Light
 
 --[[! Class: Spot_Light
     A spot light. It's attached to the nearest <Light>. It has just one
@@ -1023,7 +1022,7 @@ local Spot_Light = Static_Entity:clone {
         return format("radius: %d", self:get_attr("radius"))
     end
 }
-M.Spot_Light = Spot_Light
+ents.Spot_Light = Spot_Light
 
 --[[! Class: Envmap
     An environment map entity class. Things reflecting on their surface using
@@ -1054,7 +1053,7 @@ local Envmap = Static_Entity:clone {
         return format("radius: %d", self:get_attr("radius"))
     end
 }
-M.Envmap = Envmap
+ents.Envmap = Envmap
 
 --[[! Class: Sound
     An ambient sound in the world. Repeats the given sound at entity position.
@@ -1102,7 +1101,7 @@ local Sound = Static_Entity:clone {
             self:get_attr("volume"), self:get_attr("sound_name"))
     end
 }
-M.Sound = Sound
+ents.Sound = Sound
 
 --[[! Class: Particle_Effect
     A particle effect entity class. It has four properties. They all default
@@ -1242,7 +1241,7 @@ local Particle_Effect = Static_Entity:clone {
         return 0
     end
 }
-M.Particle_Effect = Particle_Effect
+ents.Particle_Effect = Particle_Effect
 
 --[[! Class: Mapmodel
     A model in the world. All properties default to 0. On mapmodels and all
@@ -1284,7 +1283,7 @@ local Mapmodel = Static_Entity:clone {
         return 0
     end
 }
-M.Mapmodel = Mapmodel
+ents.Mapmodel = Mapmodel
 
 --[[! Function: physics_collide_mapmodel
     An external called when a client collides with a mapmodel. Takes the
@@ -1345,7 +1344,7 @@ local Obstacle = Static_Entity:clone {
         return 0
     end
 }
-M.Obstacle = Obstacle
+ents.Obstacle = Obstacle
 
 --[[! Function: physics_collide_area
     An external called when a client collides with an area. Takes the

@@ -1,4 +1,5 @@
 local svars = require("core.entities.svars")
+local ents = require("core.entities.ents")
 
 module("world_sequences", package.seeall)
 

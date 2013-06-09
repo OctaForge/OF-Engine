@@ -3,6 +3,7 @@ local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
+local ents = require("core.entities.ents")
 
 module("world_notices", package.seeall)
 

@@ -20,6 +20,9 @@ local current_frame_time = 1
 local last_millis        = 0
 local queued_actions     = {}
 
+local require = require
+local ents
+
 --[[! Function: handle_frame
     Executed per frame from C++. It handles the current frame, meaning
     it first flushes the global action queue (see <queue_global_action>),
@@ -28,6 +31,7 @@ local queued_actions     = {}
     activated entities. External as "frame_handle".
 ]]
 local handle_frame = function(seconds, lastmillis)
+    if not ents then ents = require("core.entities.ents") end
     local get_ents = ents.get_all
 
     #log(INFO, "frame.handle_frame: New frame")

@@ -3,6 +3,7 @@
 -- author: q66 <quaker66@gmail.com>
 
 local edit = require("core.engine.edit")
+local ents = require("core.entities.ents")
 
 -- Create a custom player class
 myplayer = ents.Player:clone { name = "myplayer" }
