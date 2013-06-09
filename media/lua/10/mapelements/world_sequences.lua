@@ -1,3 +1,5 @@
+local svars = require("core.entities.svars")
+
 module("world_sequences", package.seeall)
 
 plugins = {

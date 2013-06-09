@@ -20,6 +20,7 @@ local msg = require("core.network.msg")
 local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
+local svars = require("core.entities.svars")
 
 local filter, filter_map, map, sort, keys, concat, find, serialize, deserialize
     = table.filter, table.filter_map, table.map, table.sort, table.keys,

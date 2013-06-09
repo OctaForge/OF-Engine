@@ -3,6 +3,7 @@ local model = require("core.engine.model")
 local msg = require("core.network.msg")
 local frame = require("core.events.frame")
 local signal = require("core.events.signal")
+local svars = require("core.entities.svars")
 
 module("game_manager", package.seeall)
 

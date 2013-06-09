@@ -19,6 +19,7 @@ local model = require("core.engine.model")
 local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
+local svars = require("core.entities.svars")
 local msg = require("core.network.msg")
 
 local M = ents

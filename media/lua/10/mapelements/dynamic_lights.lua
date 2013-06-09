@@ -1,3 +1,5 @@
+local svars = require("core.entities.svars")
+
 module("dynamic_lights", package.seeall)
 
 dynamic_light = ents.register_class(plugins.bake(ents.Marker, {{

@@ -14,7 +14,7 @@
 ]]
 
 #log(DEBUG, ":::: State variables.")
-svars = require("core.entities.svars")
+require("core.entities.svars")
 
 #log(DEBUG, ":::: Entities.")
 ents = require("core.entities.ents")

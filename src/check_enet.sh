@@ -25,14 +25,6 @@ CHECK_FUNC() {
     if [ $? -eq 0 ]; then printf " $2"; rm check_func; fi
 }
 
-CHECK_TYPE() {
-    echo "$1" > check_type.h
-    echo "$2" >> check_type.h
-    $CC $CFLAGS check_type.c -DTEST_TYPE=$3 -o check_type 2>/dev/null
-    if [ $? -eq 0 ]; then printf " $4"; rm check_type; fi
-    rm check_type.h
-}
-
 CHECK_FUNC gethostbyaddr_r -DHAS_GETHOSTBYADDR_R
 CHECK_FUNC gethostbyname_r -DHAS_GETHOSTBYNAME_R
 CHECK_FUNC poll -DHAS_POLL

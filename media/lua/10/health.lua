@@ -2,6 +2,7 @@ local sound = require("core.engine.sound")
 local model = require("core.engine.model")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
+local svars = require("core.entities.svars")
 
 module("health", package.seeall)
 

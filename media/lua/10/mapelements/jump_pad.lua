@@ -2,6 +2,7 @@ local sound = require("core.engine.sound")
 local model = require("core.engine.model")
 local frame = require("core.events.frame")
 local signal = require("core.events.signal")
+local svars = require("core.entities.svars")
 
 module("jump_pad", package.seeall)
 

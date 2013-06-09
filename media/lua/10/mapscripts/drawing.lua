@@ -8,6 +8,7 @@
 local input = require("core.engine.input")
 local var = require("core.lua.var")
 local signal = require("core.events.signal")
+local svars = require("core.entities.svars")
 
 -- set up "shoot mode" variable aloas, which will be persistent.
 -- you can then toggle shooting and drawing from the console using this.
