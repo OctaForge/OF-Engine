@@ -335,7 +335,7 @@ State_String = State_Variable:clone {
 }
 M.State_String = State_String
 
-local ctable = createtable
+local ctable = _C.table_create
 local getmt, setmt = getmetatable, setmetatable
 local newproxy = newproxy
 

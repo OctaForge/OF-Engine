@@ -28,14 +28,14 @@ local ents
 ]]
 local input_mouse_move
 
-local get_ext, set_ext = get_external, set_external
+local get_ext, set_ext = _C.external_get, _C.external_set
 
 if CLIENT then
 --[[! Function: input_yaw
     An external triggered on yaw change. Override as needed. By default
     it sets the "yawing" property on the player to "dir".
 ]]
-set_external("input_yaw", function(dir, down)
+set_ext("input_yaw", function(dir, down)
     if not ents then ents = require("core.entities.ents") end
     ents.get_player():set_attr("yawing", dir)
 end)
@@ -44,7 +44,7 @@ end)
     An external triggered on pitch change. Override as needed. By default
     it sets the "pitching" property on the player to "dir".
 ]]
-set_external("input_pitch", function(dir, down)
+set_ext("input_pitch", function(dir, down)
     if not ents then ents = require("core.entities.ents") end
     ents.get_player():set_attr("pitching", dir)
 end)
@@ -53,7 +53,7 @@ end)
     An external triggered during movement. Override as needed. By default
     it sets the "move" property on the player to "dir".
 ]]
-set_external("input_move", function(dir, down)
+set_ext("input_move", function(dir, down)
     if not ents then ents = require("core.entities.ents") end
     ents.get_player():set_attr("move", dir)
 end)
@@ -62,7 +62,7 @@ end)
     An external triggered during strafing. Override as needed. By default
     it sets the "strafe" property on the player to "dir".
 ]]
-set_external("input_strafe", function(dir, down)
+set_ext("input_strafe", function(dir, down)
     if not ents then ents = require("core.entities.ents") end
     ents.get_player():set_attr("strafe", dir)
 end)
@@ -71,7 +71,7 @@ end)
     An external triggered when the player jumps. Override as needed. By default
     calls the method "jump" on the player, passing "down" as an argument.
 ]]
-set_external("input_jump", function(down)
+set_ext("input_jump", function(down)
     if not ents then ents = require("core.entities.ents") end
     ents.get_player():jump(down)
 end)
@@ -81,7 +81,7 @@ end)
     By default calls the method "crouch" on the player, passing "down"
     as an argument.
 ]]
-set_external("input_crouch", function(down)
+set_ext("input_crouch", function(down)
     if not ents then ents = require("core.entities.ents") end
     ents.get_player():crouch(down)
 end)
@@ -108,7 +108,7 @@ end)
     by default returns false, which means the above external will trigger
     a server request.
 ]]
-set_external("input_click_client", function(btn, down, x, y, z, ent, cx, cy)
+set_ext("input_click_client", function(btn, down, x, y, z, ent, cx, cy)
     if ent and ent.click then
         return ent:click(btn, down, x, y, z, cx, cy)
     end
@@ -123,7 +123,7 @@ if SERVER then
     it tries to call the same method on the entity as above but on the server.
     Return values of this one are ignored.
 ]]
-set_external("input_click_server", function(btn, dn, x, y, z, ent)
+set_ext("input_click_server", function(btn, dn, x, y, z, ent)
     if ent and ent.click then
         return ent:click(btn, down, x, y, z)
     end

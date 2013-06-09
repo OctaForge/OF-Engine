@@ -20,6 +20,8 @@
 local var = require("core.lua.var")
 local signal = require("core.events.signal")
 
+local set_external = _C.external_set
+
 local var_get, var_set = var.get, var.set
 
 -- external locals

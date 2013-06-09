@@ -91,6 +91,6 @@ M.gen_mapscript_env = function()
         --require = env_require
     }, { __index = _G })
 end
-set_external("mapscript_gen_env", M.gen_mapscript_env)
+_C.external_set("mapscript_gen_env", M.gen_mapscript_env)
 
 return M

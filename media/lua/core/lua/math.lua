@@ -529,7 +529,7 @@ vec3_mt.__len = vec3_mt.__index.length
 Vec3 = ffi.metatype("vec3_t", vec3_mt)
 math.Vec3 = Vec3
 math.__Vec3_mt = vec3_mt
-set_external("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
+_C.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
 
 local vec4_mt
 --[[! Struct: math.Vec4
@@ -701,4 +701,4 @@ vec4_mt.__len = vec4_mt.__index.length
 Vec4 = ffi.metatype("vec4_t", vec4_mt)
 math.Vec4 = Vec4
 math.__Vec4_mt = vec4_mt
-set_external("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
+_C.external_set("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)

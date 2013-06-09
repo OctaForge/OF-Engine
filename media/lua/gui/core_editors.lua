@@ -920,7 +920,7 @@ M.Field = register_class("Field", Text_Editor, {
 local textediting   = nil
 local refreshrepeat = 0
 
-set_external("input_text", function(str)
+_C.external_set("input_text", function(str)
     if not textediting then return false end
     local filter = textediting.keyfilter
     if not filter then

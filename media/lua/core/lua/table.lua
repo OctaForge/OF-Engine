@@ -14,7 +14,7 @@
         the table module.
 ]]
 
-local ctable = createtable
+local ctable = _C.table_create
 local pairs, ipairs = pairs, ipairs
 local type, setmetatable = type, setmetatable
 local rawget, rawset = rawget, rawset
@@ -378,7 +378,7 @@ local serialize = function(val, kwargs, stream, simplifier)
     end
 end
 table.serialize = serialize
-set_external("table_serialize", serialize)
+_C.external_set("table_serialize", serialize)
 
 local lex_get = function(ls)
     while true do
@@ -556,7 +556,7 @@ table.deserialize = function(s)
     if not r then return nil, v end
     return v
 end
-set_external("table_deserialize", table.deserialize)
+_C.external_set("table_deserialize", table.deserialize)
 
 local sift_down = function(tbl, l, s, e, fun)
     local root = s

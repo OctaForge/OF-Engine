@@ -60,7 +60,7 @@ local handle_frame = function(seconds, lastmillis)
         end
     end
 end
-set_external("frame_handle", handle_frame)
+_C.external_set("frame_handle", handle_frame)
 
 return {
     --[[! Function: get_frame

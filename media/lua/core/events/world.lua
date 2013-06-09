@@ -16,6 +16,8 @@
 local edit = require("core.engine.edit")
 local signal = require("core.events.signal")
 
+local set_external = _C.external_set
+
 local emit = signal.emit
 
 --[[! Function: physics_off_map

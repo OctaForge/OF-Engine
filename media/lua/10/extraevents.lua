@@ -137,6 +137,8 @@ action_delayed = actions.Action:clone {
     end
 }
 
+local set_external = _C.external_set
+
 action_input_capture_plugin = {
     name = "action_input_capture",
 

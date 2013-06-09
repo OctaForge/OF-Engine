@@ -307,6 +307,8 @@ local Action_System_MT = {
     }
 }
 
+local createtable = _C.table_create
+
 local Action_System = function(parent)
     return setmetatable({
         parent  = parent,

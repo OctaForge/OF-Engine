@@ -23,6 +23,8 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local msg = require("core.network.msg")
 
+local set_external = _C.external_set
+
 local Entity = ents.Entity
 
 local band, bor, bnot, lsh, rsh = math.band, math.bor, math.bnot, math.lsh, 

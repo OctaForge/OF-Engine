@@ -146,7 +146,7 @@ player_rocket_launcher = firing.register_gun(
 -- When middle mouse button is clicked, change to next color.
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
 if CLIENT then
-    set_external("input_click_client", function(btn, down, x, y, z, ent, cx, cy)
+    _C.external_set("input_click_client", function(btn, down, x, y, z, ent, cx, cy)
         if ent and ent.click then
             return ent:click(btn, down, x, y, z, cx, cy)
         end

@@ -23,6 +23,8 @@ local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local var = require("core.lua.var")
 
+local set_external = _C.external_set
+
 local filter, filter_map, map, sort, keys, concat, find, serialize, deserialize
     = table.filter, table.filter_map, table.map, table.sort, table.keys,
       table.concat, table.find, table.serialize, table.deserialize

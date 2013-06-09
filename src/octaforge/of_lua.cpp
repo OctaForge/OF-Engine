@@ -38,10 +38,10 @@ namespace lua
 
     void setup_binds();
 
-    static int create_table(lua_State *L) {
+    LUAICOMMAND(table_create, {
         lua_createtable(L, luaL_optinteger(L, 1, 0), luaL_optinteger(L, 2, 0));
         return 1;
-    }
+    });
 
     static hashtable<const char*, int> externals;
 
@@ -58,7 +58,7 @@ namespace lua
         return push_external(L, name);
     }
 
-    static int set_external(lua_State *L) {
+    LUAICOMMAND(external_set, {
         const char *name = luaL_checkstring(L, 1);
         int *ref = externals.access(name);
         if  (ref) {
@@ -73,9 +73,9 @@ namespace lua
         lua_pushvalue(L, 2);
         externals.access(name, luaL_ref(L, LUA_REGISTRYINDEX));
         return 1;
-    }
+    });
 
-    static int unset_external(lua_State *L) {
+    LUAICOMMAND(external_unset, {
         const char *name = luaL_checkstring(L, 1);
         int *ref = externals.access(name);
         if (!ref) {
@@ -88,12 +88,12 @@ namespace lua
         luaL_unref(L, LUA_REGISTRYINDEX, *ref);
         lua_pushboolean(L, externals.remove(name));
         return 1;
-    }
+    });
 
-    static int get_external(lua_State *L) {
+    LUAICOMMAND(external_get, {
         if (!push_external(luaL_checkstring(L, 1))) lua_pushnil(L);
         return 1;
-    }
+    });
 
     struct Reg {
         const char *name;
@@ -162,15 +162,6 @@ namespace lua
         lua_concat  (L,  8);
         lua_setfield(L, -2, "path"); lua_pop(L, 1);
 
-        lua_pushcfunction(L, create_table);
-        lua_setglobal    (L, "createtable");
-        lua_pushcfunction(L,  set_external);
-        lua_setglobal    (L, "set_external");
-        lua_pushcfunction(L,  unset_external);
-        lua_setglobal    (L, "unset_external");
-        lua_pushcfunction(L,  get_external);
-        lua_setglobal    (L, "get_external");
-
         setup_binds();
     }
 
@@ -198,7 +189,6 @@ namespace lua
         lua_pushboolean(L, false); lua_setglobal(L, "CLIENT");
         lua_pushboolean(L,  true); lua_setglobal(L, "SERVER");
 #endif
-        lua_pushinteger(L, OF_CFG_VERSION); lua_setglobal(L, "OF_CFG_VERSION");
 
         assert(funs);
         lua_newuserdata(L, 0);                 /* _C */

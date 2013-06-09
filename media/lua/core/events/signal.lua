@@ -124,6 +124,6 @@ M.emit = function(self, name, ...)
 
     return ncalled
 end
-set_external("signal_emit", M.emit)
+_C.external_set("signal_emit", M.emit)
 
 return M
