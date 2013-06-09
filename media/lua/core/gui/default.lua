@@ -13,6 +13,8 @@
         Some default menus.
 ]]
 
+local signal = require("core.events.signal")
+
 local world = gui.get_world()
 
 world:new_window("changes", gui.Window, function(win)

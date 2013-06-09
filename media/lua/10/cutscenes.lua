@@ -15,6 +15,8 @@
 ]]
 
 local camera = require("core.engine.camera")
+local actions = require("core.events.actions")
+local signal = require("core.events.signal")
 
 --[[!
     Package: cutscenes

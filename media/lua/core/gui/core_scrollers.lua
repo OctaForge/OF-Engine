@@ -14,6 +14,7 @@
 ]]
 
 local frame = require("core.events.frame")
+local signal = require("core.events.signal")
 
 local band  = math.band
 local bnot  = math.bnot

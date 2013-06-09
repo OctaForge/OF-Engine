@@ -14,6 +14,7 @@
 ]]
 
 local msg = require("core.network.msg")
+local signal = require("core.events.signal")
 
 local emit = signal.emit
 

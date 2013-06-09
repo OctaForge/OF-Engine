@@ -1,3 +1,5 @@
+local signal = require("core.events.signal")
+
 local world = gui.get_world()
 
 gui.Button.states = {

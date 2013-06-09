@@ -1,3 +1,5 @@
+local actions = require("core.events.actions")
+
 module("extraevents", package.seeall)
 
 repeating_timer = table.Object:clone {

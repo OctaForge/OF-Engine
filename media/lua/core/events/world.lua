@@ -14,6 +14,7 @@
 ]]
 
 local edit = require("core.engine.edit")
+local signal = require("core.events.signal")
 
 local emit = signal.emit
 

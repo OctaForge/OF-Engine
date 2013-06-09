@@ -1,4 +1,5 @@
 local library = require("core.lua.library")
+local signal = require("core.events.signal")
 
 library.include("firing")
 

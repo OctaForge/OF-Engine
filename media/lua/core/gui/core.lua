@@ -18,6 +18,7 @@
 ]]
 
 local var = require("core.lua.var")
+local signal = require("core.events.signal")
 
 -- external locals
 local band  = math.band

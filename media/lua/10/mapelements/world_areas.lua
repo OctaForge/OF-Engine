@@ -1,3 +1,6 @@
+local actions = require("core.events.actions")
+local signal = require("core.events.signal")
+
 module("world_areas", package.seeall)
 
 active = nil

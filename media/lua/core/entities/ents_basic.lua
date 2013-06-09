@@ -17,6 +17,8 @@
 local sound = require("core.engine.sound")
 local model = require("core.engine.model")
 local frame = require("core.events.frame")
+local actions = require("core.events.actions")
+local signal = require("core.events.signal")
 local msg = require("core.network.msg")
 
 local M = ents

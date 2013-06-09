@@ -1,5 +1,6 @@
 local camera = require("core.engine.camera")
 local frame = require("core.events.frame")
+local signal = require("core.events.signal")
 local library = require("core.lua.library")
 
 library.include("mapelements.world_areas")

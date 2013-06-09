@@ -1,4 +1,5 @@
 local sound = require("core.engine.sound")
+local signal = require("core.events.signal")
 
 module("teleporter", package.seeall)
 
