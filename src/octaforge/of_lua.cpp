@@ -136,22 +136,17 @@ namespace lua
         lua_getglobal(L, "package");
 
         /* home directory paths */
-        lua_pushfstring(
-            L, ";%smedia%c?%cinit.lua",
-            homedir, PATHDIV, PATHDIV
-        );
-        lua_pushfstring(
-            L, ";%smedia%c?.lua",
-            homedir, PATHDIV
-        );
-        lua_pushfstring(
-            L, ";%smedia%clua%c?%cinit.lua",
-            homedir, PATHDIV, PATHDIV, PATHDIV
-        );
-        lua_pushfstring(
-            L, ";%smedia%clua%c?.lua",
-            homedir, PATHDIV, PATHDIV
-        );
+#ifndef WIN32
+        lua_pushfstring(L, ";%smedia/?/init.lua", homedir);
+        lua_pushfstring(L, ";%smedia/?.lua", homedir);
+        lua_pushfstring(L, ";%smedia/lua/?/init.lua", homedir);
+        lua_pushfstring(L, ";%smedia/lua/?.lua", homedir);
+#else
+        lua_pushfstring(L, ";%smedia\\?\\init.lua", homedir);
+        lua_pushfstring(L, ";%smedia\\?.lua", homedir);
+        lua_pushfstring(L, ";%smedia\\lua\\?\\init.lua", homedir);
+        lua_pushfstring(L, ";%smedia\\lua\\?.lua", homedir);
+#endif
 
         /* root paths */
         lua_pushliteral(L, ";./media/?/init.lua");
