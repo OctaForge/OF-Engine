@@ -19,9 +19,8 @@
 
 local frame = require("core.events.frame")
 
-local tostring, tointeger, tonumber, toboolean, abs, round, floor, rawget
-    = tostring, tointeger, tonumber, toboolean, math.abs, math.round,
-      math.floor, rawget
+local tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
+    math.abs, math.round, math.floor, rawget
 
 local M = {}
 
@@ -278,8 +277,8 @@ M.State_Variable = State_Variable
 State_Integer = State_Variable:clone {
     name = "State_Integer",
 
-    to_wire   = function(self, val) return tostring (val) end,
-    from_wire = function(self, val) return tointeger(val) end
+    to_wire   = function(self, val) return tostring(val) end,
+    from_wire = function(self, val) return floor(tonumber(val)) end
 }
 M.State_Integer = State_Integer
 
@@ -306,7 +305,7 @@ State_Boolean = State_Variable:clone {
     name = "State_Boolean",
 
     to_wire   = function(self, val) return tostring (val) end,
-    from_wire = function(self, val) return toboolean(val) end
+    from_wire = function(self, val) return val == "true" and true or false end
 }
 M.State_Boolean = State_Boolean
 
@@ -609,7 +608,7 @@ State_Array_Integer = State_Array:clone {
     name = "State_Array_Integer",
 
     to_wire_item   = tostring,
-    from_wire_item = tointeger
+    from_wire_item = function(v) return floor(tonumber(v)) end
 }
 M.State_Array_Integer = State_Array_Integer
 

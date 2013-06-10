@@ -17,6 +17,8 @@
 
 local msg = require("core.network.msg")
 
+local hextorgb = require("core.lua.conv").hex_to_rgb
+
 --[[!
     Package: effects
     This module contains effect interface,

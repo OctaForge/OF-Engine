@@ -10,105 +10,36 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Extends the abilities of the "to*" functions. The conversion algorithms
+        Provides color conversion functions. The conversion algorithms
         for rgb <=> hs{v,l} taken from http://mjijackson.com/2008/02/rgb-to-hs
         -an -rgb-to-hsv-color-model-conversion-algorithms-in-javascript.
-
-        The naming conventions match Lua's here (as the extend the globally
-        available functions).
 ]]
 
-local _tonumber = tonumber
+local M = {}
 
---[[! Function: tonumber
-    Extends the abilities of tonumber, it can now convert boolean values
-    (true matches 1, false 0).
-]]
-tonumber = function(value, base)
-    return (type(value) == "boolean")
-        and (value and 1 or 0)
-        or _tonumber(value, base)
-end
-
---[[! Function: tointeger
-    Same as tonumber, but floors the result.
-]]
-tointeger = function(value)
-    return math.floor(tonumber(value))
-end
-
---[[! Function: toboolean
-    Converts a value to boolean. Non-zero numerical values will produce true,
-    zero false. String value "true" converts to true, any other to false.
-    Booleans remain unchanged. Any other value results in false.
-]]
-toboolean = function(value)
-    return (type(value) == "number"  and value ~= 0      or false)
-        or (type(value) == "string"  and value == "true" or false)
-        or (type(value) == "boolean" and value           or false)
-        or false
-end
-
---[[! Function: tocalltable
-    Converts a function to callable table. Retains semantics, allows storage
-    of other data in itself.
-]]
-tocalltable = function(value)
-    return setmetatable({}, {
-        __call = function(self, ...) return value(...) end
-    })
-end
-
---[[! Function: tovec3
-    Converts a table value to OF-defined Vec3 from the math module. The table
-    has to contain the appropriate named members (x, y, z, only x is checked).
-    If the x member fails to be a number, it is treated as an array (x is the
-    first index, y second, z third). If the value doesn't fulfill any of these
-    conditions, further behavior remains undefined.
-]]
-tovec3 = function(value)
-    return (type(v.x) == "number")
-        and math.Vec3(v)
-        or  math.Vec3(v[1], v[2], v[3])
-end
-
---[[! Function: tovec3
-    Converts a table value to OF-defined Vec4 from the math module. The table
-    has to contain the appropriate named members (x, y, z, w, only x is
-    checked). If the x member fails to be a number, it is treated as an
-    array (x is the first index, y second, z third, w fourth). If the
-    value doesn't fulfill any of these conditions, further behavior
-    remains undefined.
-]]
-tovec4 = function(value)
-    return (type(v.x) == "number")
-        and math.Vec4(v)
-        or  math.Vec4(v[1], v[2], v[3], v[4])
-end
-
---[[! Function: hextorgb
+--[[! Function: hex_to_rgb
     Converts an integral value to be treated as hexadecimal color code to
     r, g, b values (ranging 0-255). Returns three separate values.
 ]]
-hextorgb = function(hex)
+M.hex_to_rgb = function(hex)
     local band = math.band
     local rsh  = math.rsh
     return rsh(hex, 16), band(rsh(hex, 8), 0xFF), band(hex, 0xFF)
 end
 
---[[! Function: rgbtohex
+--[[! Function: rgb_to_hex
     Converts r, g, b color values (0-255) to a hexadecimal color code.
 ]]
-rgbtohex = function(r, g, b)
+M.rgb_to_hex = function(r, g, b)
     local lsh = math.lsh
     return math.bor(b, lsh(g, 8), lsh(r, 16))
 end
 
---[[! Function: rgbtohsl
+--[[! Function: rgb_to_hsl
     Takes the r, g, b values (0-255) and returns the matching h, s, l
     values (0-1).
 ]]
-rgbtohsl = function(r, g, b)
+M.rgb_to_hsl = function(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
     local mx = math.max(r, g, b)
     local mn = math.min(r, g, b)
@@ -130,11 +61,11 @@ rgbtohsl = function(r, g, b)
     return h, s, l
 end
 
---[[! Function: rgbtohsv
+--[[! Function: rgb_to_hsv
     Takes the r, g, b values (0-255) and returns the matching h, s, v
     values (0-1).
 ]]
-rgbtohsv = function(r, g, b)
+M.rgb_to_hsv = function(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
     local mx = math.max(r, g, b)
     local mn = math.min(r, g, b)
@@ -156,11 +87,11 @@ rgbtohsv = function(r, g, b)
     return h, s, v
 end
 
---[[! Function: hsltorgb
+--[[! Function: hsl_to_rgb
     Takes the h, s, l values (0-1) and returns the matching r, g, b
     values (0-255).
 ]]
-hsltorgb = function(h, s, l)
+M.hsl_to_rgb = function(h, s, l)
     local r, g, b
 
     if s == 0 then
@@ -188,11 +119,11 @@ hsltorgb = function(h, s, l)
     return (r * 255), (g * 255), (b * 255)
 end
 
---[[! Function: hsvtorgb
+--[[! Function: hsv_to_rgb
     Takes the h, s, v values (0-1) and returns the matching r, g, b
     values (0-255).
 ]]
-hsvtorgb = function(h, s, v)
+M.hsv_to_rgb = function(h, s, v)
     local r, g, b
 
     local i = math.floor(h * 6)
@@ -217,3 +148,5 @@ hsvtorgb = function(h, s, v)
 
     return (r * 255), (g * 255), (b * 255)
 end
+
+return M

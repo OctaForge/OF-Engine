@@ -20,7 +20,7 @@ local current_frame_time = 1
 local last_millis        = 0
 local queued_actions     = {}
 
-local require = require
+local require, setmetatable = require, setmetatable
 local ents
 
 --[[! Function: handle_frame
@@ -61,6 +61,10 @@ local handle_frame = function(seconds, lastmillis)
     end
 end
 _C.external_set("frame_handle", handle_frame)
+
+local tocalltable = function(v)
+    return setmetatable({}, { __call = function(_, ...) return v(...) end })
+end
 
 return {
     --[[! Function: get_frame

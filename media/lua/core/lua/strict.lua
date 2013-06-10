@@ -25,7 +25,6 @@ if not mt then
     setmetatable(_G, mt)
 end
 
-_STRICT = true
 mt.__declared = {}
 
 local what = function()
@@ -34,7 +33,7 @@ local what = function()
 end
 
 mt.__newindex = function(self, name, value)
-    if _STRICT and not mt.__declared[name] then
+    if not mt.__declared[name] then
         local w = what()
         if w ~= "main" and w ~= "C" then
             error("assignment of undeclared variable '" .. name .. "'", 2)

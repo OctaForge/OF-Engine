@@ -184,7 +184,7 @@ plugin = {
     visual_pain_effect = function(self, health)
         local pos = self:get_attr("position"):copy()
         pos.z = pos.z + self:get_attr("eye_height") - 4
-        effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self:get_attr("blood_color"), 2.96)
+        effects.splash(effects.PARTICLE.BLOOD, math.floor(tonumber((self.old_health - health) / 3)), 1000, pos, self:get_attr("blood_color"), 2.96)
         effects.decal(effects.DECAL.BLOOD, self:get_attr("position"), math.Vec3(0, 0, 1), 7, self:get_attr("blood_color"))
         --if self == ents.get_player() then effects.client_damage(0, self.old_health - health) end
     end,

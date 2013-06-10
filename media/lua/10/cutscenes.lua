@@ -21,6 +21,8 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local var = require("core.lua.var")
 
+local rgbtohex = require("core.lua.conv").rgb_to_hex
+
 --[[!
     Package: cutscenes
     A cutscene system for OctaForge. This one is fully scripted (no C++ code
