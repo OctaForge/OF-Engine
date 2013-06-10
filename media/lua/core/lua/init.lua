@@ -11,12 +11,6 @@
 
     About: Purpose
         OctaForge standard library loader (Lua extensions).
-
-        Exposes "min", "max", "clamp", "abs", "floor", "ceil", "round" and the
-        bitwise functions from math and the util module into globals, as they
-        are widely used and the default syntax is way too verbose. The bitwise
-        functions are globally named "bitlsh", "bitrsh", "bitor", "bitand" and
-        "bitnot".
 ]]
 
 #log(DEBUG, ":::: Strict mode.")
@@ -45,22 +39,3 @@ require("core.lua.util")
 
 #log(DEBUG, ":::: Environment support.")
 require("core.lua.env")
-
--- Useful functionality exposed into globals
-
-max   = math.max
-min   = math.min
-abs   = math.abs
-floor = math.floor
-ceil  = math.ceil
-round = math.round
-clamp = math.clamp
-
-bitlsh  = math.lsh
-bitrsh  = math.rsh
-
-bitor  = math.bor
-bitxor = math.bxor
-bitand = math.band
-
-bitnot = math.bnot

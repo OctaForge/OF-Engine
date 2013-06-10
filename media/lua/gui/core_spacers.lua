@@ -16,6 +16,7 @@
 
 local max = math.max
 local min = math.min
+local abs = math.abs
 local var = require("core.lua.var")
 local var_get = var.get
 

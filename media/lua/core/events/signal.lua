@@ -16,7 +16,7 @@
 
 local type = type
 local rawget, rawset = rawget, rawset
-local clamp = clamp
+local clamp = math.clamp
 local tfind = table.find
 
 local M = {}

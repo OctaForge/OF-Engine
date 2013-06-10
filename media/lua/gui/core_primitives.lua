@@ -26,6 +26,7 @@ local blsh  = math.lsh
 local brsh  = math.rsh
 local max   = math.max
 local min   = math.min
+local abs   = math.abs
 local clamp = math.clamp
 local floor = math.floor
 local ceil  = math.ceil

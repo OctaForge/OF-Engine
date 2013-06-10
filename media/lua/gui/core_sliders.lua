@@ -20,6 +20,7 @@ local band  = math.band
 local bnot  = math.bnot
 local max   = math.max
 local min   = math.min
+local abs   = math.abs
 local clamp = math.clamp
 local round = math.round
 local _C    = _G["_C"]

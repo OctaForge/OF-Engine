@@ -23,6 +23,7 @@ local band  = math.band
 local blsh  = math.lsh
 local max   = math.max
 local min   = math.min
+local abs   = math.abs
 local clamp = math.clamp
 local floor = math.floor
 local _C    = _G["_C"]
