@@ -23,7 +23,7 @@ local VAR_OVERRIDE = math.lsh(1, 1)
 local VAR_HEX      = math.lsh(1, 2)
 local VAR_READONLY = math.lsh(1, 3)
 
-return {
+local M = {
     PERSIST  = VAR_PERSIST,
     OVERRIDE = VAR_OVERRIDE,
     HEX      = VAR_HEX,
@@ -59,3 +59,9 @@ return {
         end
     end
 }
+
+_C.external_set("var_get_table", function()
+    return M
+end)
+
+return M

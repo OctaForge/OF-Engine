@@ -153,4 +153,9 @@ require("core.engine")
 if dbg then log(DEBUG, "Initializing base (deprecated).") end
 require("core.base")
 
+if not package.loaded["gui"] then
+    if dbg then log(DEBUG, "Initializing GUI") end
+    require("gui")
+end
+
 if dbg then log(DEBUG, "Core scripting initialization complete.") end
