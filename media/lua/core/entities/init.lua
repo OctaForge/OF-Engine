@@ -17,7 +17,7 @@
 require("core.entities.svars")
 
 #log(DEBUG, ":::: Entities.")
-ents = require("core.entities.ents")
+require("core.entities.ents")
 
 #log(DEBUG, ":::: Entities: basic set.")
 require("core.entities.ents_basic")
