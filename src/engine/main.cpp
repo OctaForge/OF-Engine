@@ -324,7 +324,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
     gle::colorf(1, 1, 1);
 
-    float fh = 0.075f*min(w, h), fw = fh*10,
+    float fh = 0.060f*min(w, h), fw = fh*15,
           fx = renderedframe ? w - fw - fh/4 : 0.5f*(w - fw), 
           fy = renderedframe ? fh/4 : h - fh*1.5f;
     settexture("media/interface/loading_frame", 3);
@@ -373,7 +373,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     if(text)
     {
         int tw = text_width(text);
-        float tsz = bh*0.5f/FONTH;
+        float tsz = bh*0.6f/FONTH;
         if(tw*tsz > mw) tsz = mw/tw;
         pushhudmatrix();
         hudmatrix.translate(bx+sw, by + (bh - FONTH*tsz)/2, 0);

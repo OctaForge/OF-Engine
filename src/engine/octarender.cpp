@@ -433,7 +433,7 @@ void reduceslope(ivec &n)
 }
 
 // [rotation][orient]
-extern const vec orientation_tangent [6][6] =
+extern const vec orientation_tangent[6][6] =
 {
     { vec( 0,  1,  0), vec( 0, -1,  0), vec(-1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0) },
     { vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0, -1,  0), vec( 0,  1,  0) },
@@ -442,7 +442,7 @@ extern const vec orientation_tangent [6][6] =
     { vec( 0, -1,  0), vec( 0,  1,  0), vec( 1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0) },
     { vec( 0,  1,  0), vec( 0, -1,  0), vec(-1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0) }
 };
-extern const vec orientation_binormal[6][6] =
+extern const vec orientation_bitangent[6][6] =
 {
     { vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0, -1,  0), vec( 0,  1,  0) },
     { vec( 0, -1,  0), vec( 0,  1,  0), vec( 1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0) },
@@ -665,7 +665,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
             t.sub(vec(n).mul(n.dot(t))).normalize();
             v.norm = bvec(n);
             v.tangent = bvec(t);
-            v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][orient]) < 0 ? 0 : 255;
+            v.bitangent = vec().cross(n, t).dot(orientation_bitangent[vslot.rotation][orient]) < 0 ? 0 : 255;
         }
         else if(texture != DEFAULT_SKY)
         {
@@ -675,7 +675,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
             t.sub(vec(n).mul(n.dot(t))).normalize();
             v.norm = bvec(n);
             v.tangent = bvec(t);
-            v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][orient]) < 0 ? 0 : 255;
+            v.bitangent = vec().cross(n, t).dot(orientation_bitangent[vslot.rotation][orient]) < 0 ? 0 : 255;
         }
         else
         {
@@ -1443,7 +1443,18 @@ void precachetextures()
     loopv(valist)
     {
         vtxarray *va = valist[i];
-        loopj(va->texs + va->blends) if(texs.find(va->eslist[j].texture) < 0) texs.add(va->eslist[j].texture);
+        loopj(va->texs + va->blends) 
+        {
+            int tex = va->eslist[j].texture;
+            if(texs.find(tex) < 0) 
+            {
+                texs.add(tex);
+
+                VSlot &vslot = lookupvslot(tex, false);
+                if(vslot.layer && texs.find(vslot.layer) < 0) texs.add(vslot.layer);
+                if(vslot.decal && texs.find(vslot.decal) < 0) texs.add(vslot.decal);
+            }
+        }
     }
     loopv(texs)
     {

@@ -1273,15 +1273,32 @@ static void changebatchtmus(renderstate &cur, int pass, geombatch &b)
     if(changed) glActiveTexture_(GL_TEXTURE0);
 }
 
+static inline void bindslottex(renderstate &cur, int type, Texture *tex)
+{
+    if(cur.textures[type] != tex->id)
+    {
+        glActiveTexture_(GL_TEXTURE0 + type);
+        glBindTexture(GL_TEXTURE_2D, cur.textures[type] = tex->id);
+    }
+}
+
 static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 {
     if(pass==RENDERPASS_GBUFFER || pass==RENDERPASS_RSM)
     {
-        GLuint diffusetex = slot.sts.empty() ? notexture->id : slot.sts[0].t->id;
-        if(cur.textures[0]!=diffusetex)
-            glBindTexture(GL_TEXTURE_2D, cur.textures[0] = diffusetex);
+        Texture *diffuse = slot.sts.empty() ? notexture : slot.sts[0].t;
+        bindslottex(cur, TEX_DIFFUSE, diffuse);
 
-        if(msaasamples && pass == RENDERPASS_GBUFFER) GLOBALPARAMF(hashid, (vslot.index));
+        if(pass == RENDERPASS_GBUFFER)
+        {
+            if(msaasamples) GLOBALPARAMF(hashid, (vslot.index));
+
+            if(slot.shader->type&SHADER_TRIPLANAR)
+            {
+                float scale = TEX_SCALE/vslot.scale;
+                GLOBALPARAMF(texgenscale, (scale/diffuse->xs, scale/diffuse->ys)); 
+            }
+        }     
     }
 
     if(cur.alphaing)
@@ -1312,24 +1329,38 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
         Slot::Tex &t = slot.sts[j];
         switch(t.type)
         {
-            case TEX_ENVMAP:
-                if(t.t && cur.textures[t.type] != t.t->id)
-                {
-                    glActiveTexture_(GL_TEXTURE0 + t.type);
-                    glBindTexture(GL_TEXTURE_CUBE_MAP, cur.textures[t.type] = t.t->id);
-                }
-                break;
+            case TEX_ENVMAP: 
+                if(!t.t) break;
+                // fall-through
             case TEX_NORMAL:
             case TEX_GLOW:
-            case TEX_DECAL:
-                if(cur.textures[t.type] != t.t->id)
-                {
-                    glActiveTexture_(GL_TEXTURE0 + t.type);
-                    glBindTexture(GL_TEXTURE_2D, cur.textures[t.type] = t.t->id);
-                }
+                bindslottex(cur, t.type, t.t);
                 break;
         }
     }
+
+    if(pass == RENDERPASS_GBUFFER && vslot.decal)
+    {
+        VSlot &decal = lookupvslot(vslot.decal);
+        loopvj(decal.slot->sts)
+        {
+            Slot::Tex &t = decal.slot->sts[j];
+            switch(t.type)
+            {
+                case TEX_DIFFUSE:
+                    if(slot.shader->type&SHADER_TRIPLANAR)
+                    {
+                        float scale = TEX_SCALE/decal.scale;
+                        GLOBALPARAMF(decalscale, (scale/t.t->xs, scale/t.t->ys));
+                    }
+                    // fall-through
+                case TEX_NORMAL:
+                    bindslottex(cur, TEX_DECAL + t.type, t.t);
+                    break;
+            }
+        }
+    }
+
     glActiveTexture_(GL_TEXTURE0);
 
     cur.slot = &slot;

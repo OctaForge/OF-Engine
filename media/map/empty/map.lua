@@ -25,7 +25,7 @@ library.include("guns.rocket_launcher")
 library.include("weather_effects")
 
 -- default skybox
-require("core.lua.var").set_var("skybox", "remus/sky01")
+require("core.lua.var").set("skybox", "remus/sky01")
 
 -- use drawing mode on empty map
 library.include("mapscripts.drawing")

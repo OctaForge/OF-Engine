@@ -1,6 +1,6 @@
 // script binding functionality
 
-enum { VAL_NULL = 0, VAL_INT, VAL_FLOAT, VAL_STR, VAL_ANY, VAL_CODE, VAL_MACRO, VAL_IDENT };
+enum { VAL_NULL = 0, VAL_INT, VAL_FLOAT, VAL_STR, VAL_ANY, VAL_CODE, VAL_MACRO, VAL_IDENT, VAL_CSTR, VAL_CANY };
 
 enum
 {
@@ -20,10 +20,12 @@ enum
     CODE_IDENT, CODE_IDENTU, CODE_IDENTARG,
     CODE_COM, CODE_COMD, CODE_COMC, CODE_COMV,
     CODE_CONC, CODE_CONCW, CODE_CONCM, CODE_DOWN,
-    CODE_SVAR, CODE_SVAR1,
+    CODE_SVAR, CODE_SVARM, CODE_SVAR1,
     CODE_IVAR, CODE_IVAR1, CODE_IVAR2, CODE_IVAR3,
     CODE_FVAR, CODE_FVAR1,
-    CODE_LOOKUP, CODE_LOOKUPU, CODE_LOOKUPARG, CODE_ALIAS, CODE_ALIASU, CODE_ALIASARG, CODE_CALL, CODE_CALLU, CODE_CALLARG,
+    CODE_LOOKUP, CODE_LOOKUPU, CODE_LOOKUPARG, 
+    CODE_LOOKUPM, CODE_LOOKUPMU, CODE_LOOKUPMARG,
+    CODE_ALIAS, CODE_ALIASU, CODE_ALIASARG, CODE_CALL, CODE_CALLU, CODE_CALLARG,
     CODE_PRINT,
     CODE_LOCAL,
 
@@ -57,6 +59,7 @@ struct identval
         char *s;    // ID_SVAR, VAL_STR
         const uint *code; // VAL_CODE
         ident *id;  // VAL_IDENT
+        const char *cstr; // VAL_CSTR
     };
 };
 
@@ -70,6 +73,7 @@ struct tagval : identval
     void setnull() { type = VAL_NULL; i = 0; }
     void setcode(const uint *val) { type = VAL_CODE; code = val; }
     void setmacro(const uint *val) { type = VAL_MACRO; code = val; }
+    void setcstr(const char *val) { type = VAL_CSTR; cstr = val; }
     void setident(ident *val) { type = VAL_IDENT; id = val; }
 
     const char *getstr() const;
@@ -189,6 +193,8 @@ struct ident
     int getint() const;
     const char *getstr() const;
     void getval(tagval &v) const;
+    void getcstr(tagval &v) const;
+    void getcval(tagval &v) const;
 };
 
 static inline bool htcmp(const char *key, const ident &id) { return !strcmp(key, id.name); }
@@ -221,7 +227,7 @@ static inline const char *getstr(const identval &v, int type)
 {
     switch(type)
     {
-        case VAL_STR: case VAL_MACRO: return v.s;
+        case VAL_STR: case VAL_MACRO: case VAL_CSTR: return v.s;
         case VAL_INT: return intstr(v.i);
         case VAL_FLOAT: return floatstr(v.f);
         default: return "";
@@ -236,7 +242,7 @@ static inline int getint(const identval &v, int type)
     {
         case VAL_INT: return v.i;
         case VAL_FLOAT: return int(v.f);
-        case VAL_STR: case VAL_MACRO: return parseint(v.s); 
+        case VAL_STR: case VAL_MACRO: case VAL_CSTR: return parseint(v.s); 
         default: return 0;
     }
 }
@@ -249,7 +255,7 @@ static inline float getfloat(const identval &v, int type)
     {
         case VAL_FLOAT: return v.f;
         case VAL_INT: return float(v.i);
-        case VAL_STR: case VAL_MACRO: return parsefloat(v.s);
+        case VAL_STR: case VAL_MACRO: case VAL_CSTR: return parsefloat(v.s);
         default: return 0.0f;
     }
 }
@@ -260,7 +266,31 @@ inline void ident::getval(tagval &v) const
 {
     switch(valtype)
     {
-        case VAL_STR: case VAL_MACRO: v.setstr(newstring(val.s)); break;
+        case VAL_STR: case VAL_MACRO: case VAL_CSTR: v.setstr(newstring(val.s)); break;
+        case VAL_INT: v.setint(val.i); break;
+        case VAL_FLOAT: v.setfloat(val.f); break;
+        default: v.setnull(); break;
+    }
+}
+
+inline void ident::getcstr(tagval &v) const
+{
+    switch(valtype)
+    {
+        case VAL_MACRO: v.setmacro(val.code); break;
+        case VAL_STR: case VAL_CSTR: v.setcstr(val.s); break;
+        case VAL_INT: v.setstr(newstring(intstr(val.i))); break;
+        case VAL_FLOAT: v.setstr(newstring(floatstr(val.f))); break;
+        default: v.setcstr(""); break;
+    }
+}
+
+inline void ident::getcval(tagval &v) const
+{
+    switch(valtype)
+    {
+        case VAL_MACRO: v.setmacro(val.code); break;
+        case VAL_STR: case VAL_CSTR: v.setcstr(val.s); break;
         case VAL_INT: v.setint(val.i); break;
         case VAL_FLOAT: v.setfloat(val.f); break;
         default: v.setnull(); break;
