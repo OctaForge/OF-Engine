@@ -927,7 +927,7 @@ local Oriented_Marker = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("yaw: %d, pitch: %d", self:get_attr("yaw"),
+        return format("yaw :\f2 %d \f7| pitch :\f2 %d", self:get_attr("yaw"),
             self:get_attr("pitch"))
     end
 }
@@ -988,7 +988,8 @@ local Light = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("r: %d, g: %d, b: %d, radius: %d, flags: %s",
+        return format("r :\f2 %d \f7| g :\f2 %d \f7| b :\f2 %d\n\f7"
+            .. "radius :\f2 %d \f7| flags :\f2 %s",
             self:get_attr("red"), self:get_attr("green"),
             self:get_attr("blue"), self:get_attr("radius"),
             lightflags[self:get_attr("flags")])
@@ -1028,7 +1029,7 @@ local Spot_Light = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("radius: %d", self:get_attr("radius"))
+        return format("radius :\f2 %d", self:get_attr("radius"))
     end
 }
 ents.Spot_Light = Spot_Light
@@ -1059,7 +1060,7 @@ local Envmap = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("radius: %d", self:get_attr("radius"))
+        return format("radius :\f2 %d", self:get_attr("radius"))
     end
 }
 ents.Envmap = Envmap
@@ -1105,7 +1106,8 @@ local Sound = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format('radius: %d, size: %d, volume: %d\nname: "%s"',
+        return format("radius :\f2 %d \f7| size :\f2 %d \f7| volume :\f2 %d"
+            .. "\n\f7name :\f2 %s",
             self:get_attr("radius"), self:get_attr("size"),
             self:get_attr("volume"), self:get_attr("sound_name"))
     end
@@ -1229,15 +1231,18 @@ local Particle_Effect = Static_Entity:clone {
         local pt = self:get_attr("particle_type")
         if pt == 0 or pt == 4 or pt == 7 or pt == 8 or pt == 9 or pt == 10
         or pt == 11 or pt == 12 or pt == 13 then
-            return format("pt: %d, a: %d b: %d c: 0x%.6X d: %d", pt,
+            return format("pt :\f2 %d \f7| a :\f2 %d \f7| b :\f2 %d \f7|"
+                .. " c :\f2 0x%.6X \f7| d :\f2 %d", pt,
                 self:get_attr("a"), self:get_attr("b"), self:get_attr("c"),
                 self:get_attr("d"))
         elseif pt == 3 then
-            return format("pt: %d, a: %d b: 0x%.6X c: %d d: %d", pt,
+            return format("pt :\f2 %d \f7| a :\f2 %d \f7| b :\f2 0x%.6X \f7|"
+                .. " c :\f2 %d \f7| d :\f2 %d", pt,
                 self:get_attr("a"), self:get_attr("b"), self:get_attr("c"),
                 self:get_attr("d"))
         elseif pt == 5 or pt == 6 then
-            return format("pt: %d, a: %d b: 0x%.6X c: 0x%.6X d: %d", pt,
+            return format("pt :\f2 %d \f7| a :\f2 %d \f7| b :\f2 0x%.6X \f7|"
+                .. " c :\f2 0x%.6X \f7| d :\f2 %d", pt,
                 self:get_attr("a"), self:get_attr("b"), self:get_attr("c"),
                 self:get_attr("d"))
         end
@@ -1279,7 +1284,8 @@ local Mapmodel = Static_Entity:clone {
     },
 
     get_edit_info = function(self)
-        return format('yaw: %d, pitch: %d, roll: %d, scale: %d\nname: "%s"',
+        return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d \f7|"
+            .. " scale :\f2 %d\n\f7name :\f2 %s",
             self:get_attr("yaw"), self:get_attr("pitch"),
             self:get_attr("roll"), self:get_attr("scale"),
             self:get_attr("model_name"))
@@ -1339,8 +1345,8 @@ local Obstacle = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("yaw: %d, pitch: %d, roll: %d, "
-            .. "a: %d, b: %d, c: %d, solid: %d",
+        return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
+            .. "a :\f2 %d \f7| b :\f2 %d \f7| c :\f2 %d \f7| solid :\f2 %d",
             self:get_attr("yaw"),  self:get_attr("pitch"),
             self:get_attr("roll"), self:get_attr("a"),
             self:get_attr("b"),    self:get_attr("c"), self:get_attr("solid"))

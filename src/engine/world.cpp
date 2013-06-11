@@ -1002,7 +1002,7 @@ void printent(extentity &e, char *buf) {
     const char *info = lua_tostring(lua::L, -1);
     const char *name = lua_tostring(lua::L, -2); lua_pop(lua::L, 2);
     if (!info || !info[0]) formatstring(buf)("%s", name);
-    else formatstring(buf)("%s (%s)", name, info);
+    else formatstring(buf)("%s\n\f7%s", info, name);
 }
 
 void nearestent()
