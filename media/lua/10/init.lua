@@ -17,18 +17,16 @@
     Section: Extension library 1.0 initialization
 ]]
 
-local library = require("core.lua.library")
-
-#log(DEBUG, "Initializing library version " .. library.current)
+#log(DEBUG, "Initializing library version 1.0")
 
 #log(DEBUG, ":: Plugin system.")
-library.include("plugins")
+require("10.plugins")
 
 #log(DEBUG, ":: Game manager.")
-library.include("game_manager")
+require("10.game_manager")
 
 #log(DEBUG, ":: Extra events.")
-library.include("extraevents")
+require("10.extraevents")
 
 #log(DEBUG, ":: Health.")
-library.include("health")
+require("10.health")

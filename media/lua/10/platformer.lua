@@ -1,12 +1,11 @@
 local camera = require("core.engine.camera")
 local frame = require("core.events.frame")
 local signal = require("core.events.signal")
-local library = require("core.lua.library")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local var = require("core.lua.var")
 
-library.include("mapelements.world_areas")
+require("10.mapelements.world_areas")
 
 module("platformer", package.seeall)
 

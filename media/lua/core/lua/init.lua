@@ -31,9 +31,6 @@ require("core.lua.var")
 #log(DEBUG, ":::: Type conversions.")
 require("core.lua.conv")
 
-#log(DEBUG, ":::: Library.")
-require("core.lua.library")
-
 #log(DEBUG, ":::: Utilities.")
 require("core.lua.util")
 

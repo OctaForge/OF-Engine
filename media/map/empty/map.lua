@@ -1,36 +1,35 @@
 -- OctaForge empty map
 -- author: q66 <quaker66@gmail.com>
 
-local library = require("core.lua.library")
 local ents = require("core.entities.ents")
 
 -- Use library version "10"
-library.use("10")
+require("10")
 
 -- more modules
-library.include("cutscenes")
-library.include("firing")
-library.include("projectiles")
-library.include("mapelements.jump_pad")
-library.include("mapelements.teleporter")
-library.include("mapelements.dynamic_lights")
-library.include("mapelements.world_areas")
-library.include("mapelements.world_notices")
-library.include("mapelements.world_sequences")
-library.include("platformer")
-library.include("guns.chaingun")
-library.include("guns.rocket_launcher")
+require("10.cutscenes")
+require("10.firing")
+require("10.projectiles")
+require("10.mapelements.jump_pad")
+require("10.mapelements.teleporter")
+require("10.mapelements.dynamic_lights")
+require("10.mapelements.world_areas")
+require("10.mapelements.world_notices")
+require("10.mapelements.world_sequences")
+require("10.platformer")
+require("10.guns.chaingun")
+require("10.guns.rocket_launcher")
 
 -- rain
-library.include("weather_effects")
+require("10.weather_effects")
 
 -- default skybox
 require("core.lua.var").set("skybox", "remus/sky01")
 
 -- use drawing mode on empty map
-library.include("mapscripts.drawing")
---library.include("mapscripts.sine_curve")
---library.include("mapscripts.sine_flower")
+require("10.mapscripts.drawing")
+--require("10.mapscripts.sine_curve")
+--require("10.mapscripts.sine_flower")
 
 -- this is how you initialize game manager
 game_manager.setup({
