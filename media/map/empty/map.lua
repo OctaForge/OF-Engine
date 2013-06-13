@@ -23,8 +23,6 @@ require("core.lua.var").set("skybox", "remus/sky01")
 
 -- use drawing mode on empty map
 require("10.mapscripts.drawing")
---require("10.mapscripts.sine_curve")
---require("10.mapscripts.sine_flower")
 
 -- this is how you initialize game manager
 game_manager.setup({
