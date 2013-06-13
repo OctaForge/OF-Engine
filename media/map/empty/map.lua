@@ -12,13 +12,14 @@ require("10.firing")
 require("10.projectiles")
 require("10.mapelements.jump_pad")
 require("10.mapelements.teleporter")
-require("10.mapelements.dynamic_lights")
 require("10.mapelements.world_areas")
 require("10.mapelements.world_notices")
 require("10.mapelements.world_sequences")
 require("10.platformer")
 require("10.guns.chaingun")
 require("10.guns.rocket_launcher")
+
+require("extra.entities.lights")
 
 -- rain
 require("10.weather_effects")

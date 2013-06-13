@@ -1,5 +1,4 @@
---[[!
-    File: lua/core/entities/ents_basic.lua
+--[[! File: lua/core/entities/ents_basic.lua
 
     About: Author
         q66 <quaker66@gmail.com>

@@ -1,5 +1,4 @@
---[[!
-    File: lua/core/entities/svars.lua
+--[[! File: lua/core/entities/svars.lua
 
     About: Author
         q66 <quaker66@gmail.com>
