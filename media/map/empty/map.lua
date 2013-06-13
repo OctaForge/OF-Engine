@@ -18,9 +18,6 @@ require("10.guns.rocket_launcher")
 
 require("extra.entities.lights")
 
--- rain
-require("10.weather_effects")
-
 -- default skybox
 require("core.lua.var").set("skybox", "remus/sky01")
 
