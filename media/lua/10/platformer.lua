@@ -5,8 +5,6 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local var = require("core.lua.var")
 
-require("10.mapelements.world_areas")
-
 module("platformer", package.seeall)
 
 function vec3_from_axis(axis)
@@ -184,7 +182,7 @@ function do_mousemove(yaw, pitch)
 end
 
 axis_switcher = ents.register_class(plugins.bake(ents.Obstacle, {
-    world_areas.plugin,
+    --world_areas.plugin,
     {
         properties = {
             platform_axises = svars.State_Array(),

@@ -1340,7 +1340,7 @@ local Obstacle = Static_Entity:clone {
         self:set_attr("a", 10)
         self:set_attr("b", 10)
         self:set_attr("c", 10)
-        self:set_attr("solid", 1)
+        self:set_attr("solid", 0)
     end,
 
     get_edit_info = function(self)
