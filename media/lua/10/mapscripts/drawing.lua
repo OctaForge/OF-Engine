@@ -23,8 +23,6 @@ end
 ents.register_class(plugins.bake(
     ents.Player, {
         game_manager.player_plugin,
--- enable for platformer game
---      platformer.plugin,
         firing.plugins.protocol,
         firing.plugins.player,
         health.plugin,
@@ -165,11 +163,6 @@ if not SERVER then
         end
     end)
 end
-
--- enable for platformer game
--- do_movement  = platformer.do_movement
--- do_strafe    = platformer.do_strafe
--- do_mousemove = platformer.do_mousemove
 
 -- Notify the engine that we're overriding player by setting engine variable
 var.set("player_class", "game_player")

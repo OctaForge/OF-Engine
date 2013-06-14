@@ -12,7 +12,6 @@ require("10.firing")
 require("10.projectiles")
 require("10.mapelements.jump_pad")
 require("10.mapelements.teleporter")
-require("10.platformer")
 require("10.guns.chaingun")
 require("10.guns.rocket_launcher")
 
