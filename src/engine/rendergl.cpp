@@ -4,7 +4,7 @@
 
 #include "targeting.h" // INTENSITY
 
-bool hasVAO = false, hasTR = false, hasTSW = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasS3TC = false, hasFXT1 = false, hasAF = false, hasFBB = false, hasFBMS = false, hasTMS = false, hasMSS = false, hasFBMSBS = false, hasNVFBMSC = false, hasNVTMS = false, hasUBO = false, hasMBR = false, hasDB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false, hasDBGO = false, hasGPU4 = false, hasGPU5 = false, hasEAL = false;
+bool hasVAO = false, hasTR = false, hasTSW = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasS3TC = false, hasFXT1 = false, hasLATC = false, hasRGTC = false, hasAF = false, hasFBB = false, hasFBMS = false, hasTMS = false, hasMSS = false, hasFBMSBS = false, hasNVFBMSC = false, hasNVTMS = false, hasUBO = false, hasMBR = false, hasDB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false, hasDBGO = false, hasGPU4 = false, hasGPU5 = false, hasEAL = false;
 bool mesa = false, intel = false, ati = false, nvidia = false;
 
 int hasstencil = 0;
@@ -502,7 +502,7 @@ void gl_checkextensions()
 
     if(glversion >= 300)
     {
-        hasTF = hasTRG = hasPF = hasGPU4 = true;
+        hasTF = hasTRG = hasRGTC = hasPF = hasGPU4 = true;
 
         glClampColor_ = (PFNGLCLAMPCOLORPROC)getprocaddress("glClampColor");
         hasCBF = true;
@@ -518,6 +518,11 @@ void gl_checkextensions()
         {
             hasTRG = true;
             if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_rg extension.");
+        }
+        if(hasext("GL_ARB_texture_compression_rgtc") || hasext("GL_EXT_texture_compression_rgtc"))
+        {
+            hasRGTC = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_compression_rgtc extension.");
         }
         if(hasext("GL_EXT_packed_float"))
         {
@@ -701,6 +706,11 @@ void gl_checkextensions()
         hasFXT1 = true;
         if(mesa) usetexcompress = max(usetexcompress, 1);
         if(dbgexts) conoutf(CON_INIT, "Using GL_3DFX_texture_compression_FXT1.");
+    }
+    if(hasext("GL_EXT_texture_compression_latc"))
+    {
+        hasLATC = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_texture_compression_latc extension.");
     }
 
     if(hasext("GL_EXT_texture_filter_anisotropic"))

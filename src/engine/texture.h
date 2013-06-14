@@ -526,7 +526,13 @@ struct Texture
     bool mipmap, canreduce;
     GLuint id;
     uchar *alphamask;
+
+    Texture() : alphamask(NULL) {}
+
+    int swizzle() const { extern bool hasTRG, hasTSW; return hasTRG && !hasTSW ? (bpp==1 ? 0 : (bpp==2 ? 1 : -1)) : -1; } 
 };
+
+#define SETSWIZZLE(name, tex) SETVARIANT(name, (tex) ? (tex)->swizzle() : -1, 0)
 
 enum
 {
@@ -698,7 +704,7 @@ struct cubemapside
     bool flipx, flipy, swapxy;
 };
 
-extern cubemapside cubemapsides[6];
+extern const cubemapside cubemapsides[6];
 extern Texture *notexture;
 extern Shader *nullshader, *hudshader, *hudnotextureshader, *nocolorshader, *foggedshader, *foggednotextureshader, *ldrshader, *ldrnotextureshader, *stdworldshader, *rsmworldshader;
 extern int maxvsuniforms, maxfsuniforms;

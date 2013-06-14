@@ -680,6 +680,7 @@ static void gengenericvariant(Shader &s, const char *sname, const char *vs, cons
 
 static void genswizzle(Shader &s, const char *sname, const char *ps, int row = 0)
 {
+    if(!hasTRG || hasTSW) return;
     static const int pragmalen = strlen("#pragma CUBE2_swizzle");
     const char *pspragma = strstr(ps, "#pragma CUBE2_swizzle");
     if(!pspragma) return;
@@ -1172,9 +1173,9 @@ void addslotparam(const char *name, float x, float y, float z, float w)
     slotparams.add(param);
 }
 
-ICOMMAND(setuniformparam, "sffff", (char *name, float *x, float *y, float *z, float *w), addslotparam(name, *x, *y, *z, *w));
-ICOMMAND(setshaderparam, "sffff", (char *name, float *x, float *y, float *z, float *w), addslotparam(name, *x, *y, *z, *w));
-ICOMMAND(defuniformparam, "sffff", (char *name, float *x, float *y, float *z, float *w), addslotparam(name, *x, *y, *z, *w));
+ICOMMAND(setuniformparam, "sfFFf", (char *name, float *x, float *y, float *z, float *w), addslotparam(name, *x, *y, *z, *w));
+ICOMMAND(setshaderparam, "sfFFf", (char *name, float *x, float *y, float *z, float *w), addslotparam(name, *x, *y, *z, *w));
+ICOMMAND(defuniformparam, "sfFFf", (char *name, float *x, float *y, float *z, float *w), addslotparam(name, *x, *y, *z, *w));
 
 #define NUMPOSTFXBINDS 10
 
@@ -1468,8 +1469,7 @@ LUAICOMMAND(shader_hud_set, {
 
 LUAICOMMAND(shader_hud_set_variant, {
     Texture *tex = luachecktexture(L, 1);
-    hudshader->setvariant(hasTRG ? (tex->bpp==1 ? 0 : (tex->bpp==2 ? 1 : -1))
-        : -1, 0);
+    hudshader->setvariant(tex->swizzle(), 0);
     return 0;
 });
 

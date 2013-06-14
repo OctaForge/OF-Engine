@@ -1867,7 +1867,7 @@ void vshaderparam(const char *name, float *x, float *y, float *z, float *w)
     }
     mpeditvslot(ds, allfaces, sel, true);
 }
-COMMAND(vshaderparam, "sffff");
+COMMAND(vshaderparam, "sfFFf");
  
 void mpedittex(int tex, int allfaces, selinfo &sel, bool local)
 {

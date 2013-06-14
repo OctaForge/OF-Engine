@@ -736,7 +736,7 @@ bool addcommand(const char *name, identfun fun, const char *args, int flags)
     bool limit = true;
     for(const char *fmt = args; *fmt; fmt++) switch(*fmt)
     {
-        case 'i': case 'b': case 'f': case 't': case 'T': case 'N': case 'D': if(numargs < MAXARGS) numargs++; break;
+        case 'i': case 'b': case 'f': case 'F': case 't': case 'T': case 'N': case 'D': if(numargs < MAXARGS) numargs++; break;
         case 'S': case 's': case 'e': case 'r': case '$': if(numargs < MAXARGS) { argmask |= 1<<numargs; numargs++; } break;
         case '1': case '2': case '3': case '4': if(numargs < MAXARGS) fmt -= *fmt-'0'+1; break;
         case 'C': case 'V': limit = false; break;
@@ -819,53 +819,67 @@ static char *conc(vector<char> &buf, tagval *v, int n, bool space, const char *p
     return buf.getbuf();
 }
 
-char *conc(tagval *v, int n, bool space, const char *prefix = NULL)
+static char *conc(tagval *v, int n, bool space, const char *prefix, int prefixlen)
 {
-    int len = space ? max(prefix ? n : n-1, 0) : 0, prefixlen = 0;
     static int vlen[MAXARGS];
-    if(prefix) { prefixlen = strlen(prefix); len += prefixlen; }
-    loopi(n) switch(v[i].type)
+    static char numbuf[3*MAXSTRLEN];
+    int len = prefixlen, numlen = 0, i = 0;
+    for(; i < n; i++) switch(v[i].type)
     {
         case VAL_MACRO: len += (vlen[i] = v[i].code[-1]>>8); break;
         case VAL_STR: case VAL_CSTR: len += (vlen[i] = int(strlen(v[i].s))); break;
-        default:
-        {
-            vector<char> buf;
-            buf.reserve(max(len, MAXSTRLEN));
-            if(prefix) 
-            {
-                buf.put(prefix, prefixlen);
-                if(space) buf.add(' ');
-            }
-            loopj(i)
-            {
-                buf.put(v[j].s, vlen[j]);
-                if(space) buf.add(' ');
-            }
-            conc(buf, &v[i], n-i, space);
-            if(buf.length() < buf.capacity()/2) return newstring(buf.getbuf(), buf.length()-1);
-            char *str = buf.getbuf();
-            buf.disown();
-            return str;
-        }
+        case VAL_INT:
+            if(numlen + MAXSTRLEN > int(sizeof(numbuf))) goto overflow; 
+            intformat(&numbuf[numlen], v[i].i);
+            numlen += (vlen[i] = strlen(&numbuf[numlen]));   
+            break;
+        case VAL_FLOAT:
+            if(numlen + MAXSTRLEN > int(sizeof(numbuf))) goto overflow;
+            floatformat(&numbuf[numlen], v[i].f);
+            numlen += (vlen[i] = strlen(&numbuf[numlen]));
+            break;
+        default: vlen[i] = 0; break;
     }
-    char *buf = newstring(len);
-    int offset = 0;
+overflow:
+    if(space) len += max(prefix ? i : i-1, 0);
+    char *buf = newstring(len + numlen);
+    int offset = 0, numoffset = 0;
     if(prefix)
     {
         memcpy(buf, prefix, prefixlen);
         offset += prefixlen;
-        if(space && n) buf[offset++] = ' ';
+        if(space && i) buf[offset++] = ' ';
     }
-    loopi(n)
+    loopj(i)
     {
-        memcpy(&buf[offset], v[i].s, vlen[i]);
-        offset += vlen[i];
-        if(i==n-1) break;
+        if(v[j].type == VAL_INT || v[j].type == VAL_FLOAT)
+        {
+            memcpy(&buf[offset], &numbuf[numoffset], vlen[j]); 
+            numoffset += vlen[j];
+        }
+        else if(vlen[j]) memcpy(&buf[offset], v[j].s, vlen[j]);
+        offset += vlen[j];
+        if(j==i-1) break;
         if(space) buf[offset++] = ' ';
     }
     buf[offset] = '\0';
+    if(i < n)
+    {
+        char *morebuf = conc(&v[i], n-i, space, buf, offset);
+        delete[] buf;
+        return morebuf;
+    }
     return buf;
+}
+
+static inline char *conc(tagval *v, int n, bool space)
+{
+    return conc(v, n, space, NULL, 0);
+}
+
+static inline char *conc(tagval *v, int n, bool space, const char *prefix)
+{
+    return conc(v, n, space, prefix, strlen(prefix));
 }
 
 static inline void skipcomments(const char *&p)
@@ -1105,6 +1119,7 @@ static void compilelookup(vector<uint> &code, const char *&p, int ltype)
                         case 'i': compileint(code); numargs++; break;         
                         case 'b': compileint(code, INT_MIN); numargs++; break;
                         case 'f': compilefloat(code); numargs++; break;
+                        case 'F': code.add(CODE_DUP|RET_FLOAT); numargs++; break;
                         case 'T':
                         case 't': compilenull(code); numargs++; break;
                         case 'e': compileblock(code); numargs++; break;
@@ -1468,6 +1483,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                     case 'i': if(more) more = compilearg(code, p, VAL_INT); if(!more) { if(rep) break; compileint(code); fakeargs++; } numargs++; break;
                     case 'b': if(more) more = compilearg(code, p, VAL_INT); if(!more) { if(rep) break; compileint(code, INT_MIN); fakeargs++; } numargs++; break;
                     case 'f': if(more) more = compilearg(code, p, VAL_FLOAT); if(!more) { if(rep) break; compilefloat(code); fakeargs++; } numargs++; break; 
+                    case 'F': if(more) more = compilearg(code, p, VAL_FLOAT); if(!more) { if(rep) break; code.add(CODE_DUP|RET_FLOAT); fakeargs++; } numargs++; break; 
                     case 'T':
                     case 't': if(more) more = compilearg(code, p, *fmt == 't' ? VAL_CANY : VAL_ANY); if(!more) { if(rep) break; compilenull(code); fakeargs++; } numargs++; break;
                     case 'e': if(more) more = compilearg(code, p, VAL_CODE); if(!more) { if(rep) break; compileblock(code); fakeargs++; } numargs++; break;
@@ -1685,6 +1701,7 @@ static inline void callcommand(ident *id, tagval *args, int numargs, bool lookup
         case 'i': if(++i >= numargs) { if(rep) break; args[i].setint(0); fakeargs++; } else forceint(args[i]); break;
         case 'b': if(++i >= numargs) { if(rep) break; args[i].setint(INT_MIN); fakeargs++; } else forceint(args[i]); break;
         case 'f': if(++i >= numargs) { if(rep) break; args[i].setfloat(0.0f); fakeargs++; } else forcefloat(args[i]); break;
+        case 'F': if(++i >= numargs) { if(rep) break; args[i].setfloat(args[i-1].getfloat()); fakeargs++; } else forcefloat(args[i]); break;
         case 'S': if(++i >= numargs) { if(rep) break; args[i].setstr(newstring("")); fakeargs++; } else forcestr(args[i]); break;
         case 's': if(++i >= numargs) { if(rep) break; args[i].setcstr(""); fakeargs++; } else forcestr(args[i]); break;
         case 'T':
@@ -1810,6 +1827,11 @@ static const uint *runcode(const uint *code, tagval &result)
             case CODE_VALI|RET_INT: args[numargs++].setint(int(op)>>8); continue;
             case CODE_VAL|RET_FLOAT: args[numargs++].setfloat(*(const float *)code++); continue;
             case CODE_VALI|RET_FLOAT: args[numargs++].setfloat(float(int(op)>>8)); continue;
+
+            case CODE_DUP|RET_NULL: args[numargs-1].getval(args[numargs]); numargs++; continue;
+            case CODE_DUP|RET_INT: args[numargs].setint(args[numargs-1].getint()); numargs++; continue;
+            case CODE_DUP|RET_FLOAT: args[numargs].setfloat(args[numargs-1].getfloat()); numargs++; continue;
+            case CODE_DUP|RET_STR: args[numargs].setstr(newstring(args[numargs-1].getstr())); numargs++; continue;
 
             case CODE_FORCE|RET_STR: forcestr(args[numargs-1]); continue;
             case CODE_FORCE|RET_INT: forceint(args[numargs-1]); continue;
@@ -2435,7 +2457,7 @@ static int retidx = 0;
 const char *intstr(int v)
 {
     retidx = (retidx + 1)%4;
-    formatstring(retbuf[retidx])("%d", v);
+    intformat(retbuf[retidx], v);
     return retbuf[retidx];
 }
 
@@ -2447,7 +2469,7 @@ void intret(int v)
 const char *floatstr(float v)
 {
     retidx = (retidx + 1)%4;
-    formatstring(retbuf[retidx])(v==int(v) ? "%.1f" : "%.7g", v);
+    floatformat(retbuf[retidx], v);
     return retbuf[retidx];
 }
 
@@ -2889,6 +2911,8 @@ ICOMMAND(loopfiles, "rsse", (ident *id, char *dir, char *ext, uint *body),
     }
     if(files.length()) poparg(*id);
 });
+
+ICOMMAND(findfile, "s", (char *name), intret(findfile(name, "e") ? 1 : 0)); 
 
 struct sortitem
 {

@@ -116,8 +116,7 @@ enum
     PT_ICON      = 1<<19,
     PT_NOTEX     = 1<<20,
     PT_SHADER    = 1<<21,
-    PT_GREY      = 1<<22,
-    PT_GREYALPHA = 1<<23,
+    PT_SWIZZLE   = 1<<22,
     PT_FLIP      = PT_HFLIP | PT_VFLIP | PT_ROT
 };
 
@@ -187,6 +186,11 @@ struct partrenderer
 
     virtual void seedemitter(particleemitter &pe, const vec &o, const vec &d, int fade, float size, int gravity)
     {
+    }
+
+    virtual void preload()
+    {
+        if(texname && !tex) tex = textureload(texname, texclamp);
     }
 
     //blend = 0 => remove it
@@ -336,11 +340,7 @@ struct listrenderer : partrenderer
     void render() 
     {
         startrender();
-        if(texname)
-        {
-            if(!tex) tex = textureload(texname, texclamp);
-            glBindTexture(GL_TEXTURE_2D, tex->id);
-        }
+        if(tex) glBindTexture(GL_TEXTURE_2D, tex->id);
         
         for(listparticle **prev = &list, *p = list; p; p = *prev)
         {   
@@ -494,7 +494,7 @@ static textrenderer texts;
 struct iconrenderer: listrenderer {
     Texture *prevtex;
 
-    iconrenderer(int type = 0): listrenderer(type|PT_LERP|PT_SHADER), prevtex(NULL) {}
+    iconrenderer(int type = 0): listrenderer(type|PT_LERP), prevtex(NULL) {}
 
     void startrender() {
         prevtex = NULL;
@@ -509,13 +509,7 @@ struct iconrenderer: listrenderer {
     void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts) {
         Texture *tex = p->tex;
         if (!tex) return;
-
         if (tex != prevtex) {
-            if (!prevtex || tex->bpp != prevtex->bpp) {
-                particleshader->setvariant(hasTRG ? (tex->bpp==1 ? 0 :
-                    (tex->bpp==2 ? 1 : -1)) : -1, 0);
-                LOCALPARAMF(colorscale, (ldrscale, ldrscale, ldrscale, 1));
-            }
             glBindTexture(GL_TEXTURE_2D, tex->id);
             prevtex = tex;
         }
@@ -833,7 +827,6 @@ struct varenderer : partrenderer
     
     void render()
     {   
-        if(!tex) tex = textureload(texname, texclamp);
         glBindTexture(GL_TEXTURE_2D, tex->id);
 
         glBindBuffer_(GL_ARRAY_BUFFER, vbo);
@@ -873,11 +866,11 @@ struct softquadrenderer : quadrenderer
 
 static partrenderer *parts[] = 
 {
-    new quadrenderer("<grey>media/particle/blood", PT_GREY|PT_PART|PT_FLIP|PT_MOD|PT_RND4, DECAL_BLOOD), // blood spats (note: rgb is inverted) 
+    new quadrenderer("<grey>media/particle/blood", PT_PART|PT_FLIP|PT_MOD|PT_RND4, DECAL_BLOOD), // blood spats (note: rgb is inverted) 
     new trailrenderer("media/particle/base", PT_TRAIL|PT_LERP),                            // water, entity
-    new quadrenderer("<grey>media/particle/smoke", PT_GREYALPHA|PT_PART|PT_FLIP|PT_LERP),  // smoke
-    new quadrenderer("<grey>media/particle/steam", PT_GREY|PT_PART|PT_FLIP),               // steam
-    new quadrenderer("<grey>media/particle/flames", PT_GREY|PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT),   // flame on - no flipping please, they have orientation
+    new quadrenderer("<grey>media/particle/smoke", PT_PART|PT_FLIP|PT_LERP),  // smoke
+    new quadrenderer("<grey>media/particle/steam", PT_PART|PT_FLIP),               // steam
+    new quadrenderer("<grey>media/particle/flames", PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT),   // flame on - no flipping please, they have orientation
     new quadrenderer("media/particle/ball1", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball1
     new quadrenderer("media/particle/ball2", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball2
     new quadrenderer("media/particle/ball3", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball3
@@ -966,7 +959,7 @@ void renderparticles()
     
     bool rendered = false;
     uint lastflags = PT_LERP|PT_SHADER, flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER;
-    if(hasTRG) flagmask |= PT_GREY|PT_GREYALPHA;
+    int lastswizzle = -1;
    
     loopi(sizeof(parts)/sizeof(parts[0]))
     {
@@ -986,7 +979,11 @@ void renderparticles()
             glActiveTexture_(GL_TEXTURE0);
         }
         
-        uint flags = p->type & flagmask, changedbits = (flags ^ lastflags);
+        p->preload();
+
+        uint flags = p->type & flagmask, changedbits = flags ^ lastflags;
+        int swizzle = p->tex ? p->tex->swizzle() : -1;
+        if(swizzle != lastswizzle) changedbits |= PT_SWIZZLE;
         if(changedbits)
         {
             if(changedbits&PT_LERP) { if(flags&PT_LERP) resetfogcolor(); else zerofogcolor(); }
@@ -998,17 +995,17 @@ void renderparticles()
             }
             if(!(flags&PT_SHADER))
             {
-                if(changedbits&(PT_SOFT|PT_NOTEX|PT_SHADER|PT_GREY|PT_GREYALPHA))
+                if(changedbits&(PT_SOFT|PT_NOTEX|PT_SHADER|PT_SWIZZLE))
                 {
                     if(flags&PT_SOFT && softparticles)
                     {
-                        particlesoftshader->setvariant(hasTRG ? (flags&PT_GREY ? 0 : (flags&PT_GREYALPHA ? 1 : -1)) : -1, 0);
+                        particlesoftshader->setvariant(swizzle, 0);
                         LOCALPARAMF(softparams, (-1.0f/softparticleblend, 0, 0));
                     }
                     else if(flags&PT_NOTEX) particlenotextureshader->set();
-                    else particleshader->setvariant(hasTRG ? (flags&PT_GREY ? 0 : (flags&PT_GREYALPHA ? 1 : -1)) : -1, 0);
+                    else particleshader->setvariant(swizzle, 0);
                 }
-                if(changedbits&(PT_BRIGHT|PT_SOFT|PT_NOTEX|PT_SHADER|PT_GREY|PT_GREYALPHA))
+                if(changedbits&(PT_BRIGHT|PT_SOFT|PT_NOTEX|PT_SHADER|PT_SWIZZLE))
                 {
                     float colorscale = ldrscale;
                     if(flags&PT_BRIGHT) colorscale *= particlebright;
@@ -1016,6 +1013,7 @@ void renderparticles()
                 }
             }
             lastflags = flags;        
+            lastswizzle = swizzle; 
         }
         p->render();
     }

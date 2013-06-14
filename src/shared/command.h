@@ -11,6 +11,7 @@ enum
     CODE_EXIT,
     CODE_VAL,
     CODE_VALI,
+    CODE_DUP,
     CODE_MACRO,
     CODE_BOOL,
     CODE_BLOCK,
@@ -80,6 +81,7 @@ struct tagval : identval
     int getint() const;
     float getfloat() const;
     bool getbool() const;
+    void getval(tagval &r) const;
 
     void cleanup();
 };
@@ -192,7 +194,7 @@ struct ident
     float getfloat() const;
     int getint() const;
     const char *getstr() const;
-    void getval(tagval &v) const;
+    void getval(tagval &r) const;
     void getcstr(tagval &v) const;
     void getcval(tagval &v) const;
 };
@@ -222,6 +224,9 @@ static inline float parsefloat(const char *s)
     double val = strtod(s, &end);
     return val || end==s || (*end!='x' && *end!='X') ? float(val) : float(parseint(s));
 }
+
+static inline void intformat(char *buf, int v) { formatstring(buf)("%d", v); }
+static inline void floatformat(char *buf, float v) { formatstring(buf)(v==int(v) ? "%.1f" : "%.7g", v); }
 
 static inline const char *getstr(const identval &v, int type) 
 {
@@ -262,16 +267,19 @@ static inline float getfloat(const identval &v, int type)
 inline float tagval::getfloat() const { return ::getfloat(*this, type); }
 inline float ident::getfloat() const { return ::getfloat(val, valtype); } 
 
-inline void ident::getval(tagval &v) const
+static inline void getval(const identval &v, int type, tagval &r)
 {
-    switch(valtype)
+    switch(type)
     {
-        case VAL_STR: case VAL_MACRO: case VAL_CSTR: v.setstr(newstring(val.s)); break;
-        case VAL_INT: v.setint(val.i); break;
-        case VAL_FLOAT: v.setfloat(val.f); break;
-        default: v.setnull(); break;
+        case VAL_STR: case VAL_MACRO: case VAL_CSTR: r.setstr(newstring(v.s)); break;
+        case VAL_INT: r.setint(v.i); break;
+        case VAL_FLOAT: r.setfloat(v.f); break;
+        default: r.setnull(); break;
     }
 }
+
+inline void tagval::getval(tagval &r) const { ::getval(*this, type, r); }
+inline void ident::getval(tagval &r) const { ::getval(val, valtype, r); }
 
 inline void ident::getcstr(tagval &v) const
 {

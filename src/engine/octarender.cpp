@@ -452,7 +452,7 @@ extern const vec orientation_bitangent[6][6] =
     { vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  1,  0), vec( 0, -1,  0) }
 };
 
-void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numverts, int convex, int tj)
+void addtris(VSlot &vslot, int orient, const sortkey &key, vertex *verts, int *index, int numverts, int convex, int tj)
 {
     int &total = key.tex==DEFAULT_SKY ? vc.skytris : vc.worldtris;
     int edge = orient*(MAXFACEVERTS+1);
@@ -520,7 +520,7 @@ void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numv
                     vt.tc.lerp(v1.tc, v2.tc, offset);
                     vt.norm.lerp(v1.norm, v2.norm, offset);
                     vt.tangent.lerp(v1.tangent, v2.tangent, offset);
-                    vt.bitangent = v1.bitangent;
+                    vt.bitangent = v1.bitangent == v2.bitangent ? v1.bitangent : (orientation_bitangent[vslot.rotation][orient].scalartriple(vt.norm.tovec(), vt.tangent.tovec()) < 0 ? 0 : 255);
                     int i2 = vc.addvert(vt);
                     if(i2 < 0) return;
                     if(i1 >= 0)
@@ -662,20 +662,20 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
         if(vinfo && vinfo[k].norm)
         {
             vec n = decodenormal(vinfo[k].norm), t = orientation_tangent[vslot.rotation][orient];
-            t.sub(vec(n).mul(n.dot(t))).normalize();
+            t.project(n).normalize();
             v.norm = bvec(n);
             v.tangent = bvec(t);
-            v.bitangent = vec().cross(n, t).dot(orientation_bitangent[vslot.rotation][orient]) < 0 ? 0 : 255;
+            v.bitangent = orientation_bitangent[vslot.rotation][orient].scalartriple(n, t) < 0 ? 0 : 255;
         }
         else if(texture != DEFAULT_SKY)
         {
             if(!k) guessnormals(pos, numverts, normals);
             const vec &n = normals[k];
             vec t = orientation_tangent[vslot.rotation][orient];
-            t.sub(vec(n).mul(n.dot(t))).normalize();
+            t.project(n).normalize();
             v.norm = bvec(n);
             v.tangent = bvec(t);
-            v.bitangent = vec().cross(n, t).dot(orientation_bitangent[vslot.rotation][orient]) < 0 ? 0 : 255;
+            v.bitangent = orientation_bitangent[vslot.rotation][orient].scalartriple(n, t) < 0 ? 0 : 255;
         }
         else
         {
@@ -694,7 +694,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
     }
 
     sortkey key(texture, vslot.scroll.iszero() ? 7 : orient, layer&LAYER_BOTTOM ? layer : LAYER_TOP, envmap, alpha ? (vslot.refractscale > 0 ? ALPHA_REFRACT : (vslot.alphaback ? ALPHA_BACK : ALPHA_FRONT)) : NO_ALPHA);
-    addtris(key, orient, verts, index, numverts, convex, tj);
+    addtris(vslot, orient, key, verts, index, numverts, convex, tj);
 
     if(grassy) 
     {

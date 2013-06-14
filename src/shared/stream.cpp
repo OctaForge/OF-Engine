@@ -414,6 +414,7 @@ const char *findfile(const char *filename, const char *mode)
         formatstring(s)("%s%s", pf.dir, filename);
         if(fileexists(s, mode)) return s;
     }
+    if(mode[0]=='e') return NULL;
     return filename;
 }
 

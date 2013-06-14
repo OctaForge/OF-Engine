@@ -80,9 +80,9 @@ void draw_envbox_face(float s0, float t0, int x0, int y0, int z0,
                       float s1, float t1, int x1, int y1, int z1,
                       float s2, float t2, int x2, int y2, int z2,
                       float s3, float t3, int x3, int y3, int z3,
-                      GLuint texture)
+                      Texture *tex)
 {
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindTexture(GL_TEXTURE_2D, (tex ? tex : notexture)->id);
     gle::begin(GL_TRIANGLE_STRIP);
     gle::attribf(x3, y3, z3); gle::attribf(s3, t3);
     gle::attribf(x2, y2, z2); gle::attribf(s2, t2);
@@ -105,37 +105,37 @@ void draw_envbox(int w, float z1clip = 0.0f, float z2clip = 1.0f, int faces = 0x
         draw_envbox_face(1.0f, v2,  -w, -w, z2,
                          0.0f, v2,  -w,  w, z2,
                          0.0f, v1,  -w,  w, z1,
-                         1.0f, v1,  -w, -w, z1, sky[0] ? sky[0]->id : notexture->id);
+                         1.0f, v1,  -w, -w, z1, sky[0]);
 
     if(faces&0x02)
         draw_envbox_face(0.0f, v1, w, -w, z1,
                          1.0f, v1, w,  w, z1,
                          1.0f, v2, w,  w, z2,
-                         0.0f, v2, w, -w, z2, sky[1] ? sky[1]->id : notexture->id);
+                         0.0f, v2, w, -w, z2, sky[1]);
 
     if(faces&0x04)
         draw_envbox_face(0.0f, v1, -w, -w, z1,
                          1.0f, v1,  w, -w, z1,
                          1.0f, v2,  w, -w, z2,
-                         0.0f, v2, -w, -w, z2, sky[2] ? sky[2]->id : notexture->id);
+                         0.0f, v2, -w, -w, z2, sky[2]);
 
     if(faces&0x08)
         draw_envbox_face(0.0f, v1,  w,  w, z1,
                          1.0f, v1, -w,  w, z1,
                          1.0f, v2, -w,  w, z2,
-                         0.0f, v2,  w,  w, z2, sky[3] ? sky[3]->id : notexture->id);
+                         0.0f, v2,  w,  w, z2, sky[3]);
 
     if(z1clip <= 0 && faces&0x10)
         draw_envbox_face(1.0f, 1.0f, -w,  w,  -w,
                          1.0f, 0.0f,  w,  w,  -w,
                          0.0f, 0.0f,  w, -w,  -w,
-                         0.0f, 1.0f, -w, -w,  -w, sky[4] ? sky[4]->id : notexture->id);
+                         0.0f, 1.0f, -w, -w,  -w, sky[4]);
 
     if(z2clip >= 1 && faces&0x20)
         draw_envbox_face(1.0f, 1.0f,  w,  w, w,
                          1.0f, 0.0f, -w,  w, w,
                          0.0f, 0.0f, -w, -w, w,
-                         0.0f, 1.0f,  w, -w, w, sky[5] ? sky[5]->id : notexture->id);
+                         0.0f, 1.0f,  w, -w, w, sky[5]);
 
     gle::disable();
 }
@@ -143,7 +143,7 @@ void draw_envbox(int w, float z1clip = 0.0f, float z2clip = 1.0f, int faces = 0x
 void draw_env_overlay(int w, Texture *overlay = NULL, float tx = 0, float ty = 0)
 {
     float z = w*cloudheight, tsz = 0.5f*(1-cloudfade)/cloudscale, psz = w*(1-cloudfade);
-    glBindTexture(GL_TEXTURE_2D, overlay ? overlay->id : notexture->id);
+    glBindTexture(GL_TEXTURE_2D, (overlay ? overlay : notexture)->id);
     vec color = vec::hexcolor(cloudcolor);
     gle::color(color, cloudalpha);
     gle::defvertex();
@@ -404,10 +404,10 @@ void drawskybox(int farplane)
    
     if(ldrscale < 1 && (skyboxoverbrightmin != 1 || (skyboxoverbright > 1 && skyboxoverbrightthreshold < 1)))
     {
-        SETSHADER(skyboxoverbright);
+        SETSWIZZLE(skyboxoverbright, sky[0]);
         LOCALPARAMF(overbrightparams, (skyboxoverbrightmin, max(skyboxoverbright, skyboxoverbrightmin), skyboxoverbrightthreshold));
     }
-    else SETSHADER(skybox);
+    else SETSWIZZLE(skybox, sky[0]);
 
     if(clampsky) glDepthRange(1, 1);
 
@@ -426,10 +426,10 @@ void drawskybox(int farplane)
         drawfogdome(farplane);
     }
    
-    SETSHADER(skybox); 
-
     if(cloudbox[0])
     {
+        SETSWIZZLE(skybox, clouds[0]);
+
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -448,6 +448,8 @@ void drawskybox(int farplane)
 
     if(cloudlayer[0] && cloudheight)
     {
+        SETSWIZZLE(skybox, cloudoverlay);
+
         glDisable(GL_CULL_FACE);
 
         glEnable(GL_BLEND);
