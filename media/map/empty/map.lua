@@ -7,7 +7,6 @@ local ents = require("core.entities.ents")
 require("10")
 
 -- more modules
-require("10.cutscenes")
 require("10.firing")
 require("10.projectiles")
 require("10.mapelements.jump_pad")
