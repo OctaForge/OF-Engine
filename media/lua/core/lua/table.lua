@@ -683,7 +683,7 @@ table.Object = {
             __tostring = self.__inst_tostring or self.__tostring
         }
         setmetatable(r, r)
-        if self.__init then self.__init(r, ...)end
+        if self.__init then self.__init(r, ...) end
 
         -- if we don't allow metamethod inheritance, don't bother copying
         -- improves performance where appropriate

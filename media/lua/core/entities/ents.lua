@@ -144,7 +144,7 @@ local register_plugins = function(cl, plugins)
     local cldata = {}
     local properties
 
-    local clname = tostring(cl)
+    local clname = cl.name
     for i, slot in ipairs(slots) do
         local slotname = modprefix .. clname .. slot
         assert(not cl[slotname])
@@ -209,7 +209,7 @@ end
     element is found, it's ignored.
 ]]
 M.register_class = function(cl, plugins)
-    local cn = tostring(cl)
+    local cn = cl.name
 
     #log(DEBUG, "ents.register_class: " .. cn)
 
@@ -259,7 +259,7 @@ M.register_class = function(cl, plugins)
     for i = 1, #sv_names do
         local name = sv_names[i]
         local var  = pt[name]
-        #log(DEBUG, "    " .. name .. " (" .. tostring(var) .. ")")
+        #log(DEBUG, "    " .. name .. " (" .. var.name .. ")")
         var:register(name, cl)
     end
 
@@ -329,7 +329,7 @@ end
     Returns an array of entities with a common class.
 ]]
 M.get_by_class = function(cl)
-    return storage_by_class[tostring(cl)] or {}
+    return storage_by_class[cl] or {}
 end
 
 local vg = var.get
@@ -378,11 +378,11 @@ M.get_by_distance = function(pos, kwargs)
         return e:get_attr("position"):copy()
     end
 
-    if type(cl) == "table" then cl = tostring(cl) end
+    if type(cl) == "table" then cl = cl.name end
 
     local ret = {}
     for uid, ent in pairs(storage) do
-        if (not cl or cl == tostring(ent)) and (not tg or ent:has_tag(tg)) then
+        if (not cl or cl == ent.name) and (not tg or ent:has_tag(tg)) then
             local dist = #(pos - fn(ent))
             if dist <= md then
                 ret[#ret + 1] = { ent, dist }
@@ -409,14 +409,14 @@ end
 local add = function(cn, uid, kwargs, new)
     uid = uid or 1337
 
-    #log(DEBUG, "ents.add: " .. tostring(cn) .. " (" .. uid .. ")")
+    local cl = type(cn) == "table" and cn or class_storage[cn]
+
+    #log(DEBUG, "ents.add: " .. cl.name .. " (" .. uid .. ")")
     assert(not storage[uid])
 
     if uid > highest_uid then
         highest_uid = uid
     end
-
-    local cl = type(cn) == "table" and cn or class_storage[cn]
 
     local r = cl()
     if not (SERVER and new) then
@@ -660,7 +660,7 @@ M.save = function()
 
     for uid, entity in pairs(storage) do
         if entity:get_attr("persistent") then
-            local en = tostring(entity)
+            local en = entity.name
             #log(DEBUG, "    " .. uid .. ", " .. en)
             r[#r + 1] = serialize({ uid, en, entity:build_sdata() })
         end
@@ -833,7 +833,7 @@ Entity = table.Object:clone {
 
         #log(DEBUG, "Entity.build_sdata: " .. tcn .. ", " .. tostring(comp))
 
-        local r, sn = {}, tostring(self)
+        local r, sn = {}, self.name
         for k, var in pairs(self.__proto) do
             if is_svar(var) and var.has_history
             and not (tcn >= 0 and not var:should_send(self, tcn)) then
@@ -872,7 +872,7 @@ Entity = table.Object:clone {
 
         self.initialized = true
 
-        local sn = tostring(self)
+        local sn = self.name
         for k, v in pairs(raw) do
             k = tonumber(k) and ids_to_names[sn][k] or k
             #log(DEBUG, "    " .. k .. " = " .. tostring(v))
@@ -938,7 +938,7 @@ Entity = table.Object:clone {
         end
 
         if not self.sauer_type then
-            #log(DEBUG, "Entity.activate: non-sauer entity: "..tostring(self))
+            #log(DEBUG, "Entity.activate: non-sauer entity: " .. self.name)
             _C.setup_nonsauer(self)
             if SERVER then
                 self:flush_queued_svar_changes()
@@ -1023,7 +1023,7 @@ Entity = table.Object:clone {
             -- TODO: supress sending of the same val, at least for some SVs
             msg.send(var.reliable and _C.statedata_changerequest
                 or _C.statedata_changerequest_unreliable,
-                self.uid, names_to_ids[tostring(self)][var.name],
+                self.uid, names_to_ids[self.name][var.name],
                 var:to_wire(val))
         end
 
@@ -1083,7 +1083,7 @@ Entity = table.Object:clone {
                 nil, var.reliable and _C.statedata_update
                     or _C.statedata_update_unreliable,
                 self.uid,
-                names_to_ids[tostring(self)][key],
+                names_to_ids[self.name][key],
                 var:to_wire(val),
                 (var.client_set and actor_uid and actor_uid ~= -1)
                     and storage[actor_uid].cn or msg.ALL_CLIENTS
@@ -1122,7 +1122,7 @@ Entity = table.Object:clone {
         local uid = self.uid
         #log(DEBUG, "Entity.send_notification_full: " .. cn .. ", " .. uid)
 
-        local scn, sname = self.cn, tostring(self)
+        local scn, sname = self.cn, self.name
         for i = 1, #cns do
             local n = cns[i]
             msg.send(n, _C.le_notification_complete,
@@ -1378,7 +1378,7 @@ set_external("player_init", init_player)
 M.set_sdata = function(uid, kpid, value, auid)
     local ent = storage[uid]
     if ent then
-        local key = ids_to_names[tostring(ent)][kpid]
+        local key = ids_to_names[ent.name][kpid]
         #log(DEBUG, "set_sdata: " .. uid .. ", " .. kpid .. ", " .. key)
         ent:set_sdata(key, value, auid)
     end

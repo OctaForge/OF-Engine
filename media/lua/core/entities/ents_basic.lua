@@ -798,7 +798,7 @@ local Static_Entity = Physical_Entity:clone {
         #log(DEBUG, "Static_Entity.send_notification_full: "
         #    .. cn .. ", " .. uid)
 
-        local scn, sname = self.cn, tostring(self)
+        local scn, sname = self.cn, self.name
         for i = 1, #cns do
             local n = cns[i]
             msg.send(n, _C.extent_notification_complete, uid, sname,

@@ -126,7 +126,7 @@ State_Variable = table.Object:clone {
     ]]
     register = function(self, name, cl)
         #log(DEBUG, "State_Variable: register(" .. name
-        #    .. ", " .. tostring(cl) .. ")")
+        #    .. ", " .. cl.name .. ")")
 
         self.name = name
         cl["_SV_" .. name] = self
@@ -175,7 +175,7 @@ State_Variable = table.Object:clone {
     write_tests = function(self, ent)
         if ent.deactivated then
             assert(false, "Writing a field " .. self.name ..
-                 " of a deactivated entity " .. tostring(ent) ..
+                 " of a deactivated entity " .. ent.name ..
                  "(" .. ent.uid .. ")")
         end
 
@@ -303,7 +303,7 @@ M.State_Float = State_Float
 State_Boolean = State_Variable:clone {
     name = "State_Boolean",
 
-    to_wire   = function(self, val) return tostring (val) end,
+    to_wire   = function(self, val) return tostring(val) end,
     from_wire = function(self, val) return val == "true" and true or false end
 }
 M.State_Boolean = State_Boolean
@@ -892,7 +892,7 @@ State_Variable_Alias = State_Variable:clone {
     ]]
     register = function(self, name, cl)
         #log(DEBUG, "State_Variable_Alias: register(" .. name
-        #    .. ", " .. tostring(cl) .. ")")
+        #    .. ", " .. cl.name .. ")")
 
         self.name = name
         local tg = cl["_SV_" .. self.target_name]
