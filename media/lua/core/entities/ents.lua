@@ -128,17 +128,97 @@ M.clear_network_data = function(cn)
     end
 end
 
+local plugin_slots   = { "init", "activate", "deactivate", "run", "render" }
+local plugin_slotset = {
+    ["init"] = true, ["activate"] = true, ["deactivate"] = true,
+    ["run" ] = true, ["render"  ] = true
+}
+
+local ipairs, pairs = ipairs, pairs
+local assert, type = assert, type
+
+local modprefix = "_PLUGINS_"
+
+local register_plugins = function(cl, plugins)
+    #log(DEBUG, "ents.register_class: registering plugins")
+    local cldata = {}
+    local properties
+
+    local clname = tostring(cl)
+    for i, slot in ipairs(slots) do
+        local slotname = modprefix .. clname .. slot
+        assert(not cl[slotname])
+
+        local cltbl = { cl[slot] }
+        for j, plugin in ipairs(plugins) do
+            local sl = plugin[slot]
+            if sl then cltbl[#cltbl + 1] = sl end
+        end
+
+        if not (#cltbl == 0 or (#cltbl == 1 and cltbl[1] == cl[slot])) then
+            cldata[slotname] = cltbl
+            cldata[slot] = function(...)
+                for i, fn in ipairs(cltbl) do fn(...) end
+            end
+        end
+    end
+
+    for i, plugin in ipairs(plugins) do
+        for name, elem in pairs(plugin) do
+            if not plugin_slotset[name] then
+                if name == "properties" then
+                    assert(type(elem) == "table")
+                    if not properties then
+                        properties = elem
+                    else
+                        for propn, propv in pairs(elem) do
+                            properties[propn] = propv
+                        end
+                    end
+                else
+                    cldata[name] = elem
+                end
+            end
+        end
+    end
+
+    local ret = cl:clone(cldata)
+    ret.name       = cl.name
+    ret.properties = properties
+    return ret
+end
+
 --[[! Function: register_class
-    Registers an entity class. Returns the class. Generates protocol data
-    for its properties.
+    Registers an entity class. Returns the class. Generates protocol data for
+    its properties and registers these. Allows an optional second argument,
+    "plugins" - it's an array of plugins to inject into the entity class
+    (before the actual registration, so that the plugins can provide
+    their own state variables).
+
+    A plugin is pretty much an associative table of things to inject. It
+    can contain slots - those are functions or callable values with keys
+    "init", "activate", "deactivate", "run", "render" - slots never override
+    elements of the same name in the original class, instead they're called
+    after it in the order of plugin array. Then it can contain any non-slot
+    member, those are overriden without checking (the last plugin takes
+    priority). Plugins can provide their own state variables via the
+    "properties" table, like entities. The "properties" tables of plugins
+    are all merged together and the last plugin takes priority.
+
+    Note that plugins can NOT change the entity class name. If any such
+    element is found, it's ignored.
 ]]
-M.register_class = function(cl)
+M.register_class = function(cl, plugins)
     local cn = tostring(cl)
 
     #log(DEBUG, "ents.register_class: " .. cn)
 
     assert(not class_storage[cn],
         "an entity class with the same name already exists")
+
+    if plugins then
+        cl = register_plugins(cl, plugins)
+    end
 
     class_storage[cn] = cl
 
