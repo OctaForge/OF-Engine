@@ -655,27 +655,6 @@ end
 -- Object system -
 ------------------
 
--- operator overloading
-local Meta = {
-    -- mathematic operators
-    "__unm",
-    "__add",
-    "__sub",
-    "__mul",
-    "__div",
-    "__pow",
-    "__concat",
-    "__eq",
-    "__lt",
-    "__le",
-
-    -- other metamethods
-    "__tostring",
-    "__gc",
-    "__mode",
-    "__metatable"
-}
-
 table.Object = {
     __call = function(self, ...)
         local r = {
@@ -684,16 +663,6 @@ table.Object = {
         }
         setmetatable(r, r)
         if self.__init then self.__init(r, ...) end
-
-        -- if we don't allow metamethod inheritance, don't bother copying
-        -- improves performance where appropriate
-        if self.__inherit_meta then
-            for i = 1, #Meta do
-                local k, v = Meta[i], self[k]
-                if v then r[k] = v end
-            end
-        end
-
         return r
     end,
 
@@ -701,15 +670,6 @@ table.Object = {
         tbl = tbl or {}
         tbl.__index, tbl.__proto, tbl.__call = self, self, self.__call
         if not tbl.__tostring then tbl.__tostring = self.__tostring end
-
-        -- see above
-        if self.__inherit_meta then
-            for i = 1, #Meta do
-                local k, v = Meta[i], self[k]
-                if v then tbl[k] = v end
-            end
-        end
-
         setmetatable(tbl, tbl)
         return tbl
     end,
