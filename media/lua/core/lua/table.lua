@@ -240,7 +240,6 @@ local function serialize_fn(v, stream, kwargs, simp, tables, indent)
         if mline then stream("\n") end
         local first = true
         local n = 0
-        local simp = kwargs.simplifier
         for k, v in (arr and ipairs or pairs)(v) do
             if first then first = false
             else
