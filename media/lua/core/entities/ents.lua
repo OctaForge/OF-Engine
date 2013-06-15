@@ -183,21 +183,22 @@ local register_plugins = function(cl, plugins, name)
     end
 
     local ret = cl:clone(cldata)
-    ret.name        = name
-    ret.properties  = properties
-    ret.__raw_class = cl
-    ret.__plugins   = plugins
+    ret.name           = name
+    ret.properties     = properties
+    ret.__raw_class    = cl
+    ret.__parent_class = cl.__proto
+    ret.__plugins      = plugins
     return ret
 end
 
 --[[! Function: register_class
     Registers an entity class. The registered class is always a clone of
     the given class. You can access the original class via the __raw_class
-    member of the new clone. This also generates protocol data for its
-    properties and registers these. Allows an optional second argument,
-    "plugins" - it's an array of plugins to inject into the entity class
-    (before the actual registration, so that the plugins can provide their
-    own state variables).
+    member of the new clone. You can access the parent of __raw_class using
+    __parent_class. This also generates protocol data for its properties and
+    registers these. Allows an optional second argument, "plugins" - it's an
+    array of plugins to inject into the entity class (before the actual
+    registration, so that the plugins can provide their own state variables).
 
     Because this is a special clone, do NOT derive from it. Instead derive
     from __raw_class. This function doesn't return anything for a reason.
@@ -241,7 +242,11 @@ M.register_class = function(cl, plugins, name)
     if plugins then
         cl = register_plugins(cl, plugins, name)
     else
-        cl = cl:clone { name = name, __raw_class = cl.__proto }
+        cl = cl:clone {
+            name = name,
+            __raw_class = cl,
+            __parent_class = cl.__proto
+        }
     end
 
     class_storage[name] = cl
