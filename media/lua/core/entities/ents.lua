@@ -186,6 +186,7 @@ local register_plugins = function(cl, plugins, name)
     ret.name        = name
     ret.properties  = properties
     ret.__raw_class = cl
+    ret.__plugins   = plugins
     return ret
 end
 
@@ -211,6 +212,8 @@ end
     priority). Plugins can provide their own state variables via the
     "properties" table, like entities. The "properties" tables of plugins
     are all merged together and the last plugin takes priority.
+
+    The original plugin array is accessible from the clone as __plugins.
 
     There can be also an optional third argument, which specifies the entity
     class name. If not given, it's taken from the given class - its "name"
