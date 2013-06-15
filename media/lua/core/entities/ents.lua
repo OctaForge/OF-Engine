@@ -190,8 +190,8 @@ local register_plugins = function(cl, plugins, name)
 end
 
 --[[! Function: register_class
-    Registers an entity class. Returns the class - it's always a clone of
-    the given class. You can access the given class via the __raw_class
+    Registers an entity class. The registered class is always a clone of
+    the given class. You can access the original class via the __raw_class
     member of the new clone. This also generates protocol data for its
     properties and registers these. Allows an optional second argument,
     "plugins" - it's an array of plugins to inject into the entity class
@@ -199,7 +199,8 @@ end
     own state variables).
 
     Because this is a special clone, do NOT derive from it. Instead derive
-    from __raw_class.
+    from __raw_class. This function doesn't return anything for a reason.
+    If you really need this special clone, use <get_class>.
 
     A plugin is pretty much an associative table of things to inject. It
     can contain slots - those are functions or callable values with keys
@@ -282,13 +283,14 @@ M.register_class = function(cl, plugins, name)
         #log(DEBUG, "    " .. name .. " (" .. var.name .. ")")
         var:register(name, cl)
     end
-
-    return cl
 end
 
 --[[! Function: get_class
     Returns the entity class with the given name. If it doesn't exist,
     logs an error message and returns nil. External as "entity_class_get".
+
+    Use with caution! See <register_class> for the possible dangers of
+    using this. It's still useful sometimes, so it's in the API.
 ]]
 local get_class = function(cn)
     local  t = class_storage[cn]
