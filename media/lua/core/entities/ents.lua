@@ -139,7 +139,7 @@ local assert, type = assert, type
 
 local modprefix = "_PLUGINS_"
 
-local register_plugins = function(cl, plugins)
+local register_plugins = function(cl, plugins, name)
     #log(DEBUG, "ents.register_class: registering plugins")
     local cldata = {}
     local properties
@@ -183,17 +183,23 @@ local register_plugins = function(cl, plugins)
     end
 
     local ret = cl:clone(cldata)
-    ret.name       = cl.name
-    ret.properties = properties
+    ret.name        = name
+    ret.properties  = properties
+    ret.__raw_class = cl
     return ret
 end
 
 --[[! Function: register_class
-    Registers an entity class. Returns the class. Generates protocol data for
-    its properties and registers these. Allows an optional second argument,
+    Registers an entity class. Returns the class - it's always a clone of
+    the given class. You can access the given class via the __raw_class
+    member of the new clone. This also generates protocol data for its
+    properties and registers these. Allows an optional second argument,
     "plugins" - it's an array of plugins to inject into the entity class
-    (before the actual registration, so that the plugins can provide
-    their own state variables).
+    (before the actual registration, so that the plugins can provide their
+    own state variables).
+
+    Because this is a special clone, do NOT derive from it. Instead derive
+    from __raw_class.
 
     A plugin is pretty much an associative table of things to inject. It
     can contain slots - those are functions or callable values with keys
@@ -205,22 +211,36 @@ end
     "properties" table, like entities. The "properties" tables of plugins
     are all merged together and the last plugin takes priority.
 
+    There can be also an optional third argument, which specifies the entity
+    class name. If not given, it's taken from the given class - its "name"
+    member. Assuming no plugins are given, the name can also be the second
+    argument in place of plugins.
+
     Note that plugins can NOT change the entity class name. If any such
     element is found, it's ignored.
 ]]
-M.register_class = function(cl, plugins)
-    local cn = cl.name
+M.register_class = function(cl, plugins, name)
+    if not name then
+        if type(plugins) == "string" then
+            name, plugins = plugins, nil
+        else
+            name = cl.name
+        end
+    end
+    assert(name)
 
-    #log(DEBUG, "ents.register_class: " .. cn)
+    #log(DEBUG, "ents.register_class: " .. name)
 
-    assert(not class_storage[cn],
+    assert(not class_storage[name],
         "an entity class with the same name already exists")
 
     if plugins then
-        cl = register_plugins(cl, plugins)
+        cl = register_plugins(cl, plugins, name)
+    else
+        cl = cl:clone { name = name, __raw_class = cl.__proto }
     end
 
-    class_storage[cn] = cl
+    class_storage[name] = cl
 
     -- table of properties
     local pt = {}
@@ -253,7 +273,7 @@ M.register_class = function(cl, plugins)
     #log(DEBUG, "ents.register_class: generating protocol data for { "
     #    .. concat(sv_names, ", ") .. " }")
 
-    gen_network_data(cn, sv_names)
+    gen_network_data(name, sv_names)
 
     #log(DEBUG, "ents.register_class: registering state variables")
     for i = 1, #sv_names do

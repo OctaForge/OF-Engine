@@ -104,14 +104,14 @@ plugin = {
 
     decide_animation = function(self, ...)
         if self:get_attr("health") > 0 then
-            return self.__proto.__proto.decide_animation(self, ...)
+            return self.__raw_class.__proto.decide_animation(self, ...)
         else
             return math.bor(DYING, model.anims.RAGDOLL)
         end
     end,
 
     get_animation = function(self, ...)
-        local ret = self.__proto.__proto.get_animation(self, ...)
+        local ret = self.__raw_class.__proto.get_animation(self, ...)
 
         -- clean up if not dead
         if self:get_attr("health") > 0 and (ret == DYING or ret == math.bor(DYING, model.anims.RAGDOLL)) then
@@ -227,10 +227,9 @@ deadly_area_trigger_plugin = {
     end or nil
 }
 
-deadly_area = ents.register_class(
-    plugins.bake(
-        ents.Obstacle,
-        { deadly_area_trigger_plugin },
-        "deadly_area"
-    )
+deadly_area = plugins.bake(
+    ents.Obstacle,
+    { deadly_area_trigger_plugin },
+    "deadly_area"
 )
+ents.register_class(deadly_area)
