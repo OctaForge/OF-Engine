@@ -10,14 +10,20 @@ module("game_manager", package.seeall)
 
 player_plugin = {
     properties = {
-        team = svars.State_String()
+        team = svars.State_String(),
+        spawn_stage = svars.State_Integer()
     },
 
     init = function(self)
         self:set_attr("team", "") -- empty until set
     end,
 
+    respawn = function(self)
+        self:set_attr("spawn_stage", 1)
+    end,
+
     activate = function(self)
+        signal.connect(self, "spawn_stage_changed", self.on_spawn_stage)
         if SERVER then
             get_singleton():pick_team(self)
             signal.connect(self,"pre_deactivate", function(self)
@@ -30,6 +36,44 @@ player_plugin = {
             end)
         end
     end,
+
+    on_spawn_stage = function(self, stage, auid)
+        if stage == 1 then
+            if not SERVER then
+                self:set_attr("spawn_stage", 2)
+            end
+        elseif stage == 2 then
+            if SERVER then
+                if auid == self.uid then
+                    if self.default_model_name then
+                        self:set_attr("model_name", "")
+                    end
+                    self:set_attr("animation", math.bor(model.anims.IDLE, model.anims.LOOP))
+                    self:set_attr("spawn_stage", 3)
+                end
+                self:cancel_sdata_update()
+            end
+        elseif stage == 3 then
+            if not SERVER and self == ents.get_player() then
+                signal.emit(self, "client_respawn")
+                self:set_attr("spawn_stage", 4)
+            end
+        elseif stage == 4 then
+            if SERVER then
+                self:set_attr("can_move", true)
+
+                if  self.default_model_name then
+                    self:set_attr("model_name", self.default_model_name)
+                end
+                if  self.default_hud_model_name then
+                    self:set_attr("hud_model_name", self.default_hud_model_name)
+                end
+
+                self:set_attr("spawn_stage", 0)
+                self:cancel_sdata_update()
+            end
+        end
+    end
 }
 
 function setup(plugins_add)

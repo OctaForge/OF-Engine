@@ -11,32 +11,13 @@ local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 
--- set up "shoot mode" variable aloas, which will be persistent.
--- you can then toggle shooting and drawing from the console using this.
--- because it's persistent, your last state (drawing / shooting) will
--- be saved and applied the next run.
-if not var.get("shoot_mode") then
-    var.new("shoot_mode", var.INT, 0, 0, 1, var.PERSIST)
-end
-
 -- Register our custom player entity class into storage
 ents.register_class(ents.Player, {
     game_manager.player_plugin,
-    firing.plugins.protocol,
-    firing.plugins.player,
-    health.plugin,
-    projectiles.plugin,
-    chaingun.chaingun.plugin,
     {
         properties = {
             new_mark = svars.State_Array_Float { client_set = true, has_history = false }
         },
-
-        -- player gun indexes and current gun
-        init = function(self)
-            self:set_attr("gun_indexes", { player_chaingun, player_rocket_launcher })
-            self:set_attr("current_gun_index", player_chaingun)
-        end,
 
         -- Switches color in entity
         next_color = function(self)
@@ -128,15 +109,6 @@ ents.register_class(ents.Player, {
     }
 }, "game_player")
 
--- set up a chaingun (non-projectile, repeating)
-player_chaingun        = firing.register_gun(
-    chaingun.chaingun(), "chaingun"
-)
--- and a rocket launcher (projectile, non-repeating)
-player_rocket_launcher = firing.register_gun(
-    rocket_launcher.rocket_launcher(), "rocket_launcher"
-)
-
 -- Override clientside click method.
 -- When left mouse button is clicked, set pressing to down, and disable stop_batch.
 -- When middle mouse button is clicked, change to next color.
@@ -147,10 +119,6 @@ if not SERVER then
             return ent:click(btn, down, x, y, z, cx, cy)
         end
 
-        if var.get("shoot_mode") == 1 then
-            return firing.click(btn, down, x, y, z, ent, cx, cy)
-        end
-    
         if btn == 1 then
             ents.get_player().pressing   = down
             ents.get_player().stop_batch = false

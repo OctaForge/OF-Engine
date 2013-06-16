@@ -21,6 +21,3 @@
 
 #log(DEBUG, ":: Game manager.")
 require("10.game_manager")
-
-#log(DEBUG, ":: Health.")
-require("10.health")

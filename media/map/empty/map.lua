@@ -7,12 +7,8 @@ local ents = require("core.entities.ents")
 require("10")
 
 -- more modules
-require("10.firing")
-require("10.projectiles")
 require("10.mapelements.jump_pad")
 require("10.mapelements.teleporter")
-require("10.guns.chaingun")
-require("10.guns.rocket_launcher")
 
 require("extra.entities.lights")
 
@@ -23,7 +19,7 @@ require("core.lua.var").set("skybox", "remus/sky01")
 require("10.mapscripts.drawing")
 
 -- this is how you initialize game manager
-game_manager.setup({ projectiles.plugin })
+game_manager.setup()
 
 -- this function will run on server only (condition inside it)
 -- it loads the entities into server storage and sends to clients
