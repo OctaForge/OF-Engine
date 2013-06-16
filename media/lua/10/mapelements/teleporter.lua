@@ -40,8 +40,4 @@ plugin = {
     end,
 }
 
-ents.register_class(plugins.bake(
-    ents.Obstacle,
-    { plugin },
-    "teleporter"
-))
+ents.register_class(ents.Obstacle, { plugin }, "teleporter")

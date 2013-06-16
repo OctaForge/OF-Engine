@@ -227,9 +227,4 @@ deadly_area_trigger_plugin = {
     end or nil
 }
 
-deadly_area = plugins.bake(
-    ents.Obstacle,
-    { deadly_area_trigger_plugin },
-    "deadly_area"
-)
-ents.register_class(deadly_area)
+ents.register_class(ents.Obstacle, { deadly_area_trigger_plugin }, "deadly_area")

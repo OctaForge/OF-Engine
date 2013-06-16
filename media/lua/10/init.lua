@@ -19,9 +19,6 @@
 
 #log(DEBUG, "Initializing library version 1.0")
 
-#log(DEBUG, ":: Plugin system.")
-require("10.plugins")
-
 #log(DEBUG, ":: Game manager.")
 require("10.game_manager")
 

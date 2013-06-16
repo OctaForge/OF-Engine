@@ -78,8 +78,4 @@ plugin = {
     end
 }
 
-ents.register_class(plugins.bake(
-    ents.Obstacle,
-    { plugin },
-    "jump_pad"
-))
+ents.register_class(ents.Obstacle, { plugin }, "jump_pad")

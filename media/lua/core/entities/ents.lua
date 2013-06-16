@@ -145,7 +145,7 @@ local register_plugins = function(cl, plugins, name)
     local properties
 
     local clname = cl.name
-    for i, slot in ipairs(slots) do
+    for i, slot in ipairs(plugin_slots) do
         local slotname = modprefix .. clname .. slot
         assert(not cl[slotname])
 
