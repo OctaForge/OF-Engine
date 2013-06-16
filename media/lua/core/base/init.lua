@@ -18,9 +18,6 @@
 -- see world metatable below
 local gravity
 
-#log(DEBUG, ":: Geometry interface.")
-require("core.base.base_geometry")
-
 #log(DEBUG, ":: Effects.")
 require("core.base.base_effects")
 
