@@ -33,9 +33,9 @@ plugin = {
         signal.connect(self, "collision", self.client_on_collision)
     end or nil,
 
-    run = (not SERVER) and function(self, seconds)
+    run = (not SERVER) and function(self, millis)
         if  self.player_delay > 0 then
-            self.player_delay = self.player_delay - seconds
+            self.player_delay = self.player_delay - millis
         end
     end or nil,
 
@@ -45,7 +45,7 @@ plugin = {
 
         -- do not trigger many times each jump
         if self.player_delay > 0 then return nil end
-           self.player_delay = 0.1
+           self.player_delay = 100
 
         -- throw collider up
         collider:set_attr("velocity", self:get_attr("jump_velocity"):to_array())
@@ -66,7 +66,7 @@ plugin = {
         )
         local yaw
         if self:get_attr("pad_rotate") then
-            yaw = -(frame.get_time() * 120) % 360
+            yaw = -(frame.get_time() * 0.12) % 360
         end
 
         model.render(

@@ -389,7 +389,7 @@ void LogicSystem::manageActions(long millis)
 
     if (lua::L) {
         lua::push_external("frame_handle");
-        lua_pushnumber (lua::L, double(millis) / 1000.0f);
+        lua_pushinteger(lua::L, millis);
         lua_pushinteger(lua::L, lastmillis);
         lua_call       (lua::L,  2, 0);
     }

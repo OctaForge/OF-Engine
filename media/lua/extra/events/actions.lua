@@ -58,13 +58,13 @@ M.Action_Parallel = Action:clone {
         addition of another condition (the number of systems must be
         zero - the action won't finish until everything is done).
     ]]
-    run = function(self, seconds)
+    run = function(self, millis)
         local systems = filter(self.action_systems, function(i, actsys)
-            actsys:run(seconds)
+            actsys:run(millis)
             return #actsys:get() ~= 0
         end)
         self.action_systems = systems
-        return Action.run(self, seconds) and #systems == 0
+        return Action.run(self, millis) and #systems == 0
     end,
 
     --[[! Function: finish

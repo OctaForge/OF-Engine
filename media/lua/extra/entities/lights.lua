@@ -56,8 +56,8 @@ local Dynamic_Light = Marker:clone {
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
     ]]
-    run = (not SERVER) and function(self, seconds)
-        Marker.run(self, seconds)
+    run = (not SERVER) and function(self, millis)
+        Marker.run(self, millis)
         local pos = self:get_attr("position")
         _C.adddynlight(pos.x, pos.y, pos.z, self:get_attr("radius"),
             self:get_attr("red") / 255, self:get_attr("green") / 255,
@@ -67,31 +67,32 @@ local Dynamic_Light = Marker:clone {
 M.Dynamic_Light = Dynamic_Light
 
 local max, random = math.max, math.random
+local floor = math.floor
 local flash_flag = math.lsh(1, 2)
 
 --[[! Class: Flickering_Light
     A flickering light entity type derived from <Dynamic_Light>. This one
-    is registered.
+    is registered. Delays are in milliseconds.
 
     Properties (all <svars.State_Float>):
         probability - the flicker probability (from 0 to 1, defaults to 0.5)
-        min_delay - the minimal flicker delay (in seconds, defaults to 0.1)
-        max_delay - the maximal flicker delay (in seconds, defaults to 0.3)
+        min_delay - the minimal flicker delay (defaults to 100)
+        max_delay - the maximal flicker delay (defaults to 300)
 ]]
 M.Flickering_Light = Dynamic_Light:clone {
     name = "Flickering_Light",
 
     properties = {
         probability = svars.State_Float(),
-        min_delay   = svars.State_Float(),
-        max_delay   = svars.State_Float(),
+        min_delay   = svars.State_Integer(),
+        max_delay   = svars.State_Integer(),
     },
 
     init = function(self, uid, kwargs)
         Dynamic_Light.init(self, uid, kwargs)
         self:set_attr("probability", 0.5)
-        self:set_attr("min_delay",   0.1)
-        self:set_attr("max_delay",   0.3)
+        self:set_attr("min_delay",   100)
+        self:set_attr("max_delay",   300)
     end,
 
     activate = (not SERVER) and function(self, kwargs)
@@ -99,16 +100,16 @@ M.Flickering_Light = Dynamic_Light:clone {
         self.delay = 0
     end or nil,
 
-    run = (not SERVER) and function(self, seconds)
-        local d = self.delay - seconds
+    run = (not SERVER) and function(self, millis)
+        local d = self.delay - millis
         if  d <= 0 then
-            d = max(random() * self:get_attr("max_delay"),
+            d = max(floor(random() * self:get_attr("max_delay")),
                 self:get_attr("min_delay"))
             if random() < self:get_attr("probability") then
                 local pos = self:get_attr("position")
                 _C.adddynlight(pos.x, pos.y, pos.z, self:get_attr("radius"),
                     self:get_attr("red") / 255, self:get_attr("green") / 255,
-                    self:get_attr("blue") / 255, d * 1000, 0, flash_flag,
+                    self:get_attr("blue") / 255, d, 0, flash_flag,
                     0, 0, 0, 0)
             end
         end

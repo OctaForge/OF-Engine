@@ -484,7 +484,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         if not scroll then return nil end
 
         scroll:scroll_h(self.arrow_dir * self.arrow_speed *
-            frame.get_frame_time())
+            (frame.get_frame_time() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)
@@ -573,7 +573,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         if not scroll then return nil end
 
         scroll:scroll_v(self.arrow_dir * self.arrow_speed *
-            frame.get_frame_time())
+            (frame.get_frame_time() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)

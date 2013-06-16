@@ -36,7 +36,7 @@ local Action = table.Object:clone {
         of actor.
 
         Kwargs:
-            seconds_left - Specifies how many seconds are left before the
+            millis_left - Specifies how many milliseconds are left before the
             action ends. By default it's 0.
 
             animation - If specified, the action will change the actor's
@@ -65,8 +65,8 @@ local Action = table.Object:clone {
         self.finished   = false
         self.start_time = _C.get_current_time()
 
-        self.seconds_left = (self.seconds_left) or
-            kwargs.seconds_left or 0
+        self.millis_left = (self.millis_left) or
+            kwargs.millis_left or 0
 
         self.animation    = (self.animation == nil) and
             kwargs.animation or false
@@ -103,7 +103,7 @@ local Action = table.Object:clone {
     start = function(self)
     end,
 
-    priv_run = function(self, seconds)
+    priv_run = function(self, millis)
         if type(self.actor) == "table" and self.actor.deactivated then
             self.priv_finish(self)
             return true
@@ -123,7 +123,7 @@ local Action = table.Object:clone {
         if self.parallel_to == false then
             #log(INFO, "Executing action " .. self.name)
 
-            local finished = self.run(self, seconds)
+            local finished = self.run(self, millis)
             if    finished then
                 self.priv_finish(self)
             end
@@ -147,26 +147,26 @@ local Action = table.Object:clone {
         always at the end of your custom "run", like this:
 
         (start code)
-            Foo.run = function(self, seconds)
+            Foo.run = function(self, millis)
                 echo("run")
-                return self.__proto.__proto.run(self, seconds)
+                return self.__proto.__proto.run(self, millis)
             end
         (end)
 
         Basically, the "almost nothing" it does is that it decrements
-        the "seconds_left" property appropriately and returns true if
-        the action has ended (that is, if "seconds_left" is lower or
+        the "millis_left" property appropriately and returns true if
+        the action has ended (that is, if "millis_left" is lower or
         equal zero) and false otherwise.
 
         Of course, there are exceptions like the never ending action
         where you don't want to run this, but generally you should.
 
-        The "seconds" argument specifies the amount of time to simulate
-        this iteration in seconds.
+        The "millis" argument specifies the amount of time to simulate
+        this iteration in milliseconds.
     ]]
-    run = function(self, seconds)
-        self.seconds_left = self.seconds_left - seconds
-        return (self.seconds_left <= 0)
+    run = function(self, millis)
+        self.millis_left = self.millis_left - millis
+        return (self.millis_left <= 0)
     end,
 
     priv_finish = function(self)
@@ -207,9 +207,9 @@ local Infinite_Action = Action:clone {
 
     --[[! Function: run
         One of the exceptional cases of the "run" method; it always returns
-        false because it doesn't manipulate "seconds_left".
+        false because it doesn't manipulate "millis_left".
     ]]
-    run = function(self, seconds)
+    run = function(self, millis)
         return false
     end
 }
@@ -253,7 +253,7 @@ local Single_Action = Action:clone {
         Another of the exceptional cases. This runs the command initialized
         in the constructor and returns true (so that it finishes).
     ]]
-    run = function(self, seconds)
+    run = function(self, millis)
         self.command(self)
         return true
     end
@@ -265,7 +265,7 @@ local Action_System_MT = {
             return sys.actions
         end,
 
-        run = function(sys, seconds)
+        run = function(sys, millis)
             local acts = table.filter(sys.actions,
                 function(i, v) return not v.finished end)
             sys.actions = acts
@@ -275,7 +275,7 @@ local Action_System_MT = {
                 #log(INFO, table.concat { "Executing ", act.name })
 
                 -- keep the removal for the next frame
-                act:priv_run(seconds)
+                act:priv_run(millis)
             end
         end,
 

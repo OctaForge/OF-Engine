@@ -788,10 +788,10 @@ Entity = table.Object:clone {
         Called per-frame unless <per_frame> is false. All inherited classes
         must call this in their own overrides. The argument specifies how
         long to manage the action system (how much will the counters change
-        internally), specified in seconds (usually a fraction of a second).
+        internally), specified in milliseconds.
     ]]
-    run = function(self, seconds)
-        self.action_system:run(seconds)
+    run = function(self, millis)
+        self.action_system:run(millis)
     end,
 
     --[[! Function: queue_action

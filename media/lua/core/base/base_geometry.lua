@@ -263,13 +263,13 @@ end
         thing - the thing.
         elasticity - how elastic the bounces are, at 1, all the energy is
         conserved, at 0, all of it is lost.
-        seconds - how long to simulate in seconds.
+        millis - how long to simulate in milliseconds.
 
     Returns:
         true if all is fine, false if unavoidable collision occured
         that cannot be bounced from.
 ]]
-function bounce(thing, elasticity, friction, seconds)
+function bounce(thing, elasticity, friction, millis)
     local function fallback()
         -- we failed to bounce, just go in the reverse direction
         -- from the last ok spot - better than something more embarassing
@@ -286,7 +286,7 @@ function bounce(thing, elasticity, friction, seconds)
 
     elasticity = elasticity or 0.9
 
-    if seconds == 0 or thing:get_attr("velocity"):length() == 0 then
+    if millis == 0 or thing:get_attr("velocity"):length() == 0 then
         return true
     end
 
@@ -304,7 +304,7 @@ function bounce(thing, elasticity, friction, seconds)
     }, thing.last_safe and thing.last_safe[1] or nil }
 
     local old_position = thing:get_attr("position"):copy()
-    local movement     = thing:get_attr("velocity"):mul_new(seconds)
+    local movement     = thing:get_attr("velocity"):mul_new(millis / 1000)
     thing:get_attr("position"):add(movement)
 
     if not is_colliding(thing_get_position(), thing:get_attr("radius"),
@@ -332,7 +332,7 @@ function bounce(thing, elasticity, friction, seconds)
     thing.ignore) then
         return fallback()
     end
-    thing:set_attr("velocity", movement:mul(1 / seconds))
+    thing:set_attr("velocity", movement:mul(1000 / millis))
 
     return true
 end

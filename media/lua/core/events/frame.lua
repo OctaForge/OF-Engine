@@ -16,7 +16,7 @@
 
 local current_frame      = 0
 local current_time       = 0
-local current_frame_time = 1
+local current_frame_time = 0
 local last_millis        = 0
 local queued_actions     = {}
 
@@ -30,7 +30,7 @@ local ents
     <get_frame_time>, <get_last_millis>) and then runs on all available
     activated entities. External as "frame_handle".
 ]]
-local handle_frame = function(seconds, lastmillis)
+local handle_frame = function(millis, lastmillis)
     if not ents then ents = require("core.entities.ents") end
     local get_ents = ents.get_all
 
@@ -42,8 +42,8 @@ local handle_frame = function(seconds, lastmillis)
 
     for i = 1, #queue do queue[i]() end
 
-    current_time       = current_time + seconds
-    current_frame_time = seconds
+    current_time       = current_time + millis
+    current_frame_time = millis
     last_millis        = lastmillis
 
     #log(INFO, "frame.handle_frame: Acting on entities")
@@ -56,7 +56,7 @@ local handle_frame = function(seconds, lastmillis)
         end
 
         if not skip then
-            entity:run(seconds)
+            entity:run(millis)
         end
     end
 end
@@ -75,14 +75,15 @@ return {
     end,
 
     --[[! Function: get_time
-        Returns the number of seconds elapsed since the scripting system init.
+        Returns the number of milliseconds elapsed since the scripting
+        system init.
     ]]
     get_time = function()
         return current_time
     end,
 
     --[[! Function: get_frame_time
-        Returns the current frame time in seconds.
+        Returns the current frame time in milliseconds.
     ]]
     get_frame_time = function()
         return current_frame_time
@@ -90,8 +91,7 @@ return {
 
     --[[! Function: get_last_millis
         Returns the number of milliseconds since the last counter reset.
-        If you want the total time, see <get_time>. Note that you'll have
-        to multiply it by 1000 to get milliseconds.
+        If you want the total time, see <get_time>.
     ]]
     get_last_millis = function()
         return last_millis
@@ -113,7 +113,7 @@ return {
         Caches a function by a delay. That comes in handy if you need to
         execute something frequently, but not necessarily every frame.
 
-        Takes the function (or a callable table) and a delay in seconds.
+        Takes the function (or a callable table) and a delay in milliseconds.
         Returns a function that you can further call every frame (or nil
         if a wrong argument is passed).
     ]]
