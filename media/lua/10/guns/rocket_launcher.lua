@@ -74,7 +74,7 @@ rocket = projectiles.projectile:clone {
     end
 }
 
-action_rocket_fire = extraevents.action_parallel:clone {
+action_rocket_fire = require("extra.events.actions").Action_Parallel:clone {
     name = "action_rocket_fire",
     can_multiply_queue = false
 }
@@ -88,17 +88,9 @@ rocket_launcher = projectiles.gun:clone {
     handle_client_effect = function(
         self, shooter, origin_position, target_position, target_entity
     )
-        local action_performer = shooter.should_act
-            and shooter
-            or game_manager.get_singleton()
-
-        local action_adder = shooter.should_act
-            and shooter.queue_action
-            or action_performer.add_action_parallel
-
-        action_adder(action_performer, action_rocket_fire({
+        shooter:queue_action(action_rocket_fire({
             firing.action_shoot1({ seconds_left = 1 }),
-            extraevents.action_delayed(function()
+            _C.sleep(200, function()
                 if not health.is_valid_target(shooter) then
                     return nil
                 end
@@ -148,7 +140,7 @@ rocket_launcher = projectiles.gun:clone {
                     )
                     self:do_recoil(shooter, 40)
                 end
-            end, { seconds_left = 0.2 })
+            end)
         }))
     end
 }

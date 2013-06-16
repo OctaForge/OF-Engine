@@ -23,10 +23,7 @@ require("core.lua.var").set("skybox", "remus/sky01")
 require("10.mapscripts.drawing")
 
 -- this is how you initialize game manager
-game_manager.setup({
-    projectiles.plugin,
-    extraevents.actions_parallel_plugin
-})
+game_manager.setup({ projectiles.plugin })
 
 -- this function will run on server only (condition inside it)
 -- it loads the entities into server storage and sends to clients

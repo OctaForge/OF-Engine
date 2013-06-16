@@ -659,7 +659,7 @@ table.Object = {
     __call = function(self, ...)
         local r = {
             __index = self, __proto = self, __call = self.__call,
-            __tostring = self.__inst_tostring or self.__tostring
+            __tostring = self.__tostring
         }
         setmetatable(r, r)
         if self.__init then self.__init(r, ...) end

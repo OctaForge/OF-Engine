@@ -3,6 +3,8 @@ local model = require("core.engine.model")
 local edit = require("core.engine.edit")
 local ents = require("core.entities.ents")
 
+local timers = require("extra.events.timers")
+
 require("10.firing")
 
 module("projectiles", package.seeall)
@@ -77,7 +79,7 @@ projectile = table.Object:clone {
 
         self.target_entity = target_entity
 
-        self.physics_frame_timer = extraevents.repeating_timer(self.physics_frame_size, true)
+        self.physics_frame_timer = timers.Timer(self.physics_frame_size, true)
 
         if owner then
             self.yaw = owner:get_attr("yaw")

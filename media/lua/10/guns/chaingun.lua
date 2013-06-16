@@ -2,6 +2,8 @@ local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 
+local timers = require("extra.events.timers")
+
 require("10.firing")
 
 module("chaingun", package.seeall)
@@ -108,13 +110,11 @@ chaingun.plugin = {
                 value = value and health.is_valid_target(self)
 
                 if not self.chaingun_firing and value then
-                    self.chaingun_firing_timer
-                        = extraevents.repeating_timer(chaingun.firing_rate)
+                    self.chaingun_firing_timer = timers.Timer(chaingun.firing_rate)
                     self.chaingun_firing_timer:prime()
 
                     if self.controlled_here then
-                        self.chaingun_protocol_timer
-                            = extraevents.repeating_timer(chaingun.protocol_rate)
+                        self.chaingun_protocol_timer = timers.Timer(chaingun.protocol_rate)
                     end
                 end
 

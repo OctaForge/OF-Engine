@@ -85,11 +85,11 @@ local Action = table.Object:clone {
             (self.parallel_to == nil) and kwargs.parallel_to or false
     end,
 
-    --[[! Function: __inst_tostring
-        Overloaded so that tostring(x) where x is an action instance simply
+    --[[! Function: __tostring
+        Overloaded so that tostring(x) where x is an action simply
         returns the name ("Action" for the base action).
     ]]
-    __inst_tostring = function(self) return self.name end,
+    __tostring = function(self) return self.name end,
 
     priv_start = function(self)
         self.begun = true

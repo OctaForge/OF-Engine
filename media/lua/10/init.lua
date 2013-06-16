@@ -25,8 +25,5 @@ require("10.plugins")
 #log(DEBUG, ":: Game manager.")
 require("10.game_manager")
 
-#log(DEBUG, ":: Extra events.")
-require("10.extraevents")
-
 #log(DEBUG, ":: Health.")
 require("10.health")
