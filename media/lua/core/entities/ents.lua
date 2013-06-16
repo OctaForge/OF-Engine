@@ -1316,18 +1316,18 @@ end)
 
 --[[! Function: entity_get_attached
     An external. Calls get_attached_next on the given entity first, if that
-    returns a valid value then it returns the given entity and the attached
-    entity. Otherwise calls get_attached_prev and if that returns, it returns
-    the result and the entity. If that also fails, returns nil.
+    returns then this returns true + the attached entities, otherwise calls
+    get_attached_prev and if that returns, then this returns false + the
+    attached entities, if that also fails then it returns nil.
 ]]
 set_external("entity_get_attached", function(ent)
-    local ea = ent:get_attached_next()
-    if ea then
-        return ent, ea
+    local ents = { ent:get_attached_next() }
+    if #ents > 0 then
+        return true, unpack(ents)
     end
-    ea = ent:get_attached_prev()
-    if ea then
-        return ea, ent
+    ents = { ent:get_attached_prev() }
+    if #ents > 0 then
+        return false, unpack(ents)
     end
 end)
 

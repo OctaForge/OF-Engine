@@ -8,8 +8,8 @@ require("10")
 
 -- more modules
 require("10.mapelements.jump_pad")
-require("10.mapelements.teleporter")
 
+require("extra.entities.teleporters")
 require("extra.entities.lights")
 
 -- default skybox

@@ -695,28 +695,32 @@ void renderentradius(extentity &e, bool color)
         default:
         attach:
             CLogicEntity *el = LogicSystem::getLogicEntity(e);
-            if (!el) break;
+            if (!el || !el->staticEntity) break;
 
+            int onstack = lua_gettop(lua::L);
             lua::push_external("entity_get_attached");
             lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
-            lua_call(lua::L, 1, 2);
-            if (lua_isnil(lua::L, -2)) { lua_pop(lua::L, 2); break; }
-
-            CLogicEntity *a1 = NULL, *a2 = NULL;
-
-            lua_getfield(lua::L, -2, "uid");
-            a1 = LogicSystem::getLogicEntity(lua_tointeger(lua::L, -1));
-            lua_pop(lua::L, 1);
-
-            if (!a1 || !a1->staticEntity) break;
-            if (!lua_isnil(lua::L, -1)) {
-                lua_getfield(lua::L, -1, "uid");
-                a2 = LogicSystem::getLogicEntity(lua_tointeger(lua::L, -1));
-                lua_pop(lua::L, 1);
+            lua_call(lua::L, 1, LUA_MULTRET);
+            int nrets = lua_gettop(lua::L) - onstack;
+            if (nrets == 0 || lua_isnil(lua::L, -nrets)) {
+                lua_pop(lua::L, nrets);
+                break;
             }
-
             if (color) gle::colorf(0, 1, 1);
-            renderentattachment(*a1->staticEntity, a2 ? a2->staticEntity : NULL);
+            bool b = lua_toboolean(lua::L, -nrets);
+            for (int i = (-nrets) + 1; i < 0; ++i) {
+                lua_getfield(lua::L, i, "uid");
+                CLogicEntity *ea = LogicSystem::getLogicEntity(
+                    lua_tointeger(lua::L, -1));
+                lua_pop(lua::L, 1);
+                if (!ea || !ea->staticEntity) continue;
+                if (!b) {
+                    renderentattachment(*ea->staticEntity, el->staticEntity);
+                } else {
+                    renderentattachment(*el->staticEntity, ea->staticEntity);
+                }
+            }
+            lua_pop(lua::L, nrets);
             break;
     }
 }
