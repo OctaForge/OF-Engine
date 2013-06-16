@@ -6,9 +6,6 @@ local ents = require("core.entities.ents")
 -- Use library version "10"
 require("10")
 
--- more modules
-require("10.mapelements.jump_pad")
-
 require("extra.entities.teleporters")
 require("extra.entities.lights")
 

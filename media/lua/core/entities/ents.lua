@@ -440,6 +440,10 @@ local add = function(cn, uid, kwargs, new)
     uid = uid or 1337
 
     local cl = type(cn) == "table" and cn or class_storage[cn]
+    if not cl then
+        #log(ERROR, "ents.add: no such entity class:" .. tostring(cn))
+        assert(false)
+    end
 
     #log(DEBUG, "ents.add: " .. cl.name .. " (" .. uid .. ")")
     assert(not storage[uid])
