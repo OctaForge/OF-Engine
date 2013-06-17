@@ -11,7 +11,6 @@
 
     About: Purpose
         Lua signal system. Allows connecting and further emitting signals.
-        Available as "signal".
 ]]
 
 local type = type

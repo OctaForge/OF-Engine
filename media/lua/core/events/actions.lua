@@ -10,12 +10,12 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Accessible as "actions". Actions are basically classes that are
-        stored in an action queue (called action system). You can queue new
-        actions and those will run for example for a period of time, depending
-        on the action type. They're used to for example queue a player
-        animation for a few seconds, or to trigger a world event at
-        some specific point. They have numerous uses generally.
+        Actions are basically classes that are stored in an action queue
+        (called action system). You can queue new actions and those will
+        run for example for a period of time, depending on the action type.
+        They're used to for example queue a player animation for a few seconds,
+        or to trigger a world event at some specific point. They have numerous
+        uses generally.
 ]]
 
 --[[! Class: Action

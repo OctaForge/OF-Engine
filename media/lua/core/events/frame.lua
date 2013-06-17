@@ -11,7 +11,6 @@
 
     About: Purpose
         Handles a single main loop frame from the scripting system.
-        Further accessible as "frame".
 ]]
 
 local current_frame      = 0
