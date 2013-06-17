@@ -3,8 +3,7 @@
 
 local ents = require("core.entities.ents")
 
--- Use library version "10"
-require("10")
+local game_manager = require("extra.game_manager")
 
 require("extra.entities.teleporters")
 require("extra.entities.lights")

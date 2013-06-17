@@ -11,6 +11,8 @@ local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 
+local game_manager = require("extra.game_manager")
+
 -- Register our custom player entity class into storage
 ents.register_class(ents.Player, {
     game_manager.player_plugin,
