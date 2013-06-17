@@ -12,7 +12,7 @@ require("extra.entities.lights")
 require("core.lua.var").set("skybox", "remus/sky01")
 
 -- use drawing mode on empty map
-require("10.mapscripts.drawing")
+require("extra.mapscripts.drawing")
 
 -- this is how you initialize game manager
 game_manager.setup()

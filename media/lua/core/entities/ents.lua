@@ -152,7 +152,9 @@ local register_plugins = function(cl, plugins, name)
         local cltbl = { cl[slot] }
         for j, plugin in ipairs(plugins) do
             local sl = plugin[slot]
-            if sl then cltbl[#cltbl + 1] = sl end
+            local tp = type(sl)
+            if sl and tp == "function" or tp == "table" or tp == "userdata"
+            then cltbl[#cltbl + 1] = sl end
         end
 
         if not (#cltbl == 0 or (#cltbl == 1 and cltbl[1] == cl[slot])) then
