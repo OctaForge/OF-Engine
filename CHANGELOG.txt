@@ -1,3 +1,39 @@
+2013-06-17 - 0.2.3 beta 4
+
+    * Changes in default texture scaling - textures now render at quarter
+      of their size (where it fit once before, it fits four times now)
+    * Default texture scaling adjustable with a map var
+    * Correct behavior of model bounding boxes when adjusting pitch/roll
+    * The sauer attr system is not limited to 5 attributes anymore
+    * Scripted vectors now use native __new constructors
+    * OF no longer needs luajit with 5.2 features (proxy objects are used to
+      work around the lack of __len on tables)
+    * Pitch and roll for obstacles
+    * Particles now support 24bit colors instead of just 16bit
+    * Functional newent for manual use
+    * From tesseract: triplanar texturing and decal shaders, cubescript
+      optimizations and other improvements
+    * Reorganized namespaces - they're always explicit now
+    * Modules don't use globals anymore - instead you require() them where
+      you need them
+    * Removed _V (use the var module)
+    * The _C interface to core API is now read only (via userdata - can never
+      be modified from scripts)
+    * Removed the CLIENT variable, check for client via "not SERVER"
+    * Removed the library module - you can use require() with any library
+      right away to include modules
+    * More improvements in the editing HUD
+    * Removed the 10/ library - some of the scripts are replaced in extra/
+      using new APIs, some are not replaced yet
+    * Removed the remains of deprecated scripts (except effects.lua which
+      is still awaiting replacement)
+    * A plugin system is now builtin in ents.register_class
+    * The scripting modules now work with milliseconds instead of seconds
+      everywhere (for example in entity run() methods and in actions)
+    * Better user defined entity linking - you can now link an entity
+      with multiple other ones
+    * Smaller adjustments and lots of bug fixes
+
 2013-06-03 - 0.2.2 beta 3
 
     * Reorganized entity structure inside the engine

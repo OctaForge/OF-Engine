@@ -729,6 +729,7 @@ void gl_checkextensions()
     }
     else if(hasext("GL_AMD_texture_texture4"))
     {
+        hasT4 = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_AMD_texture_texture4 extension.");
     }
     if(hasTG || hasT4) usetexgather = 1;

@@ -594,9 +594,7 @@ M.load = function()
             [1] = "Light",           [2] = "Mapmodel",
             [3] = "Oriented_Marker", [4] = "Envmap",
             [5] = "Particle_Effect", [6] = "Sound",
-            [7] = "Spot_Light",
-
-            [19] = "teleporter", [20] = "World_Marker", [23] = "jump_pad"
+            [7] = "Spot_Light"
         }
 
         for i = 1, #storage_sauer do
@@ -645,28 +643,6 @@ M.load = function()
                     ent.attr4, ent.attr5 = nil, nil
                 elseif et == 3 then
                     ent.tags = "[start_]"
-                elseif et == 23 then
-                    ent.attr1, ent.attr2, ent.attr3, ent.attr4
-                        = "0", "-1", "0", "0"
-                    ent.pad_model, ent.pad_rotate, ent.pad_pitch, ent.pad_sound
-                        = "", "false", "0", ""
-                    ent.model_name, ent.jump_velocity
-                        = "areatrigger", ("[%f|%f|%f]"):format(
-                            attr3 * 10, attr2 * 10, attr1 * 12.5)
-                elseif et == 19 then
-                    ent.attr1, ent.attr3, ent.attr4 = "0", "0", "0"
-                    ent.destination, ent.sound_name = tostring(attr1), ""
-                    if attr2 < 0 then
-                        ent.model_name = "areatrigger"
-                    else
-                        if #im > attr2 then
-                            ent.model_name, ent.attr2 = im[attr2 + 1], "-1"
-                        else
-                            ent.model_name = "@REPLACE@"
-                        end
-                    end
-                elseif et == 20 then
-                    ent.attr2, ent.tags = "0", ("[teledest_%i]"):format(attr2)
                 end
 
                 huid = huid + 1
