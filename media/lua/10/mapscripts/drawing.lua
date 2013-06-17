@@ -132,6 +132,3 @@ end
 
 -- Notify the engine that we're overriding player by setting engine variable
 var.set("player_class", "game_player")
-
--- This way you can disable gravity, not needed, default value is 200
--- world.gravity = 0

@@ -1522,7 +1522,7 @@ set_external("gui_update", function()
         local first = ul[1]
         local t = type(first)
         if t == "string" then
-            _V[first] = ul[2]
+            var_set(first, ul[2])
         elseif t == "function" then
             first(unpack(ul, 2))
         else
@@ -1621,7 +1621,7 @@ local needsapply = {}
 var.new("applydialog", var.INT, 0, 1, 1, var.PERSIST)
 
 set_external("change_add", function(desc, ctype)
-    if _V["applydialog"] == 0 then return nil end
+    if var_get("applydialog") == 0 then return nil end
 
     for i, v in pairs(needsapply) do
         if v.desc == desc then return nil end
