@@ -137,22 +137,6 @@ namespace lapi_binds
         return 0;
     }
 
-    int _lua_particle_splash_toclients(lua_State *L) {
-        send_ParticleSplashToClients(luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
-            luaL_checkinteger(L, 4), luaL_checknumber(L, 5),
-            luaL_checknumber(L, 6), luaL_checknumber(L, 7));
-        return 0;
-    }
-
-    int _lua_particle_regularsplash_toclients(lua_State *L) {
-        send_ParticleSplashRegularToClients(luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
-            luaL_checkinteger(L, 4), luaL_checknumber(L, 5),
-            luaL_checknumber(L, 6), luaL_checknumber(L, 7));
-        return 0;
-    }
-
     int _lua_sound_toclients_byname(lua_State *L) {
         const char *sn = luaL_checkstring(L, 5);
         send_SoundToClientsByName(luaL_checkinteger(L, 1),
@@ -608,8 +592,6 @@ namespace lapi_binds
 
     /* messages */
     LAPI_REG(personal_servmsg);
-    LAPI_REG(particle_splash_toclients);
-    LAPI_REG(particle_regularsplash_toclients);
     LAPI_REG(sound_toclients_byname);
     LAPI_REG(sound_toclients);
     LAPI_REG(statedata_changerequest);

@@ -170,8 +170,7 @@ end
 
 --[[!
     Function: splash
-    Spawns a splash emitter. If ran on server,
-    a message gets sent to all clients.
+    Spawns a splash emitter.
 
     Parameters:
         particle_type - particle type (<PARTICLE>).
@@ -188,29 +187,20 @@ function splash(
     color, size, radius, gravity,
     regular_fade, flags, fast_splash, grow
 )
-    if SERVER then
-        msg.send(
-            msg.ALL_CLIENTS, _C.particle_splash_toclients,
-            particle_type, num, fade * 1000,
-            pos.x, pos.y, pos.z
-        ) -- TODO: last 4 params
-    else
-        color   = color   or 0xFFFFFF
-        size    = size    or 1.0
-        radius  = radius  or 150
-        gravity = gravity or 2
+    color   = color   or 0xFFFFFF
+    size    = size    or 1.0
+    radius  = radius  or 150
+    gravity = gravity or 2
 
-        _C.particle_splash(
-            particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
-            color, size, radius, gravity
-        )
-    end
+    _C.particle_splash(
+        particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
+        color, size, radius, gravity
+    )
 end
 
 --[[!
     Function: regular_splash
-    Spawns a regular splash emitter. If ran on server,
-    a message gets sent to all clients.
+    Spawns a regular splash emitter.
 
     Parameters:
         particle_type - particle type (<PARTICLE>).
@@ -227,23 +217,15 @@ function regular_splash(
     particle_type, num, fade, pos,
     color, size, radius, gravity, delay
 )
-    if SERVER then
-        msg.send(
-            msg.ALL_CLIENTS, _C.particle_regularsplash_toclients,
-            particle_type, num, fade * 1000,
-            pos.x, pos.y, pos.z
-        ) -- TODO: last 5 params
-    else
-        color   = color   or 0xFFFFFF
-        size    = size    or 1.0
-        radius  = radius  or 150
-        gravity = gravity or 2
+    color   = color   or 0xFFFFFF
+    size    = size    or 1.0
+    radius  = radius  or 150
+    gravity = gravity or 2
 
-        _C.regular_particle_splash(
-            particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
-            color, size, radius, gravity, delay
-        )
-    end
+    _C.regular_particle_splash(
+        particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
+        color, size, radius, gravity, delay
+    )
 end
 
 --[[!

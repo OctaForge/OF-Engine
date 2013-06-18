@@ -15,6 +15,7 @@
         base library.
 ]]
 
+if not SERVER then
 #log(DEBUG, ":: Effects.")
 require("core.base.base_effects")
-
+end

@@ -432,34 +432,6 @@ struct DoClick : MessageType
 void send_DoClick(int button, int down, float x, float y, float z, int uniqueId);
 
 
-// ParticleSplashToClients
-
-struct ParticleSplashToClients : MessageType
-{
-    ParticleSplashToClients() : MessageType(1032, "ParticleSplashToClients") { };
-
-#ifndef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_ParticleSplashToClients(int clientNumber, int _type, int num, int fade, float x, float y, float z);
-
-
-// ParticleSplashRegularToClients
-
-struct ParticleSplashRegularToClients : MessageType
-{
-    ParticleSplashRegularToClients() : MessageType(1033, "ParticleSplashRegularToClients") { };
-
-#ifndef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_ParticleSplashRegularToClients(int clientNumber, int _type, int num, int fade, float x, float y, float z);
-
-
 // RequestPrivateEditMode
 
 struct RequestPrivateEditMode : MessageType
