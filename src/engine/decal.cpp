@@ -619,4 +619,17 @@ void adddecal(int type, const vec &center, const vec &surface, float radius, con
     decalrenderer &d = *decals[type];
     d.adddecal(center, surface, radius, color, info);
 }
- 
+
+LUAICOMMAND(adddecal, {
+    adddecal(luaL_checkinteger(L, 1),
+        vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
+            luaL_checknumber(L, 4)),
+        vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
+            luaL_checknumber(L, 7)),
+        luaL_checknumber(L, 8),
+        bvec((uchar)luaL_checkinteger(L, 9),
+             (uchar)luaL_checkinteger(L, 10),
+             (uchar)luaL_checkinteger(L, 11)),
+        luaL_checkinteger(L, 12));
+    return 0;
+});

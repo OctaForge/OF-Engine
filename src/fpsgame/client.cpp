@@ -419,11 +419,20 @@ namespace game
             {
                 if(!d) return;
                 getstring(text, p);
-                /* FIXME: hack attack - add filtering method into the string class */
                 filtertext(text, text);
 #ifndef SERVER
-                if(d->state!=CS_SPECTATOR)
-                    particle_textcopy(d->abovehead(), text, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
+                if (d->state!=CS_SPECTATOR && lua::push_external("particle_draw_text")) {
+                    const vec &o = d->abovehead();
+                    lua_pushstring (lua::L, text);
+                    lua_pushnumber (lua::L, o.x);
+                    lua_pushnumber (lua::L, o.y);
+                    lua_pushnumber (lua::L, o.z);
+                    lua_pushinteger(lua::L, 0x32FF64);
+                    lua_pushinteger(lua::L, 2000);
+                    lua_pushnumber (lua::L, 4.0f);
+                    lua_pushinteger(lua::L, -8);
+                    lua_call(lua::L, 8, 0);
+                }
                 if (chat_sound[0])
                     playsoundname(chat_sound);
 #endif

@@ -10,10 +10,6 @@ namespace game
     fpsent *followingplayer();
 }
 
-#ifndef SERVER
-VARP(blood, 0, 1, 1);
-#endif
-
 extern float GRAVITY;
 extern physent *hitplayer;
 
@@ -314,142 +310,6 @@ namespace lapi_binds
     LAPI_EMPTY(restart_map)
 #endif
 
-    /* particles */
-
-#ifndef SERVER
-    int _lua_adddecal(lua_State *L) {
-        adddecal(luaL_checkinteger(L, 1),
-            vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
-                luaL_checknumber(L, 4)),
-            vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
-                luaL_checknumber(L, 7)),
-            luaL_checknumber(L, 8),
-            bvec((uchar)luaL_checkinteger(L, 9),
-                 (uchar)luaL_checkinteger(L, 10),
-                 (uchar)luaL_checkinteger(L, 11)),
-            luaL_checkinteger(L, 12));
-        return 0;
-    }
-
-    int _lua_particle_splash(lua_State *L) {
-        int type = luaL_checkinteger(L, 1);
-        if (type == PART_BLOOD && !blood) return 0;
-        particle_splash(type, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
-            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-                luaL_checknumber(L, 6)),
-            luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
-            luaL_checkinteger(L, 9), luaL_checkinteger(L, 10));
-        return 0;
-    }
-
-    int _lua_regular_particle_splash(lua_State *L) {
-        int type = luaL_checkinteger(L, 1);
-        if (type == PART_BLOOD && !blood) return 0;
-        regular_particle_splash(
-            type, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
-            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-                luaL_checknumber(L, 6)),
-            luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
-            luaL_checkinteger(L, 9), luaL_checkinteger(L, 10),
-            luaL_checkinteger(L, 11));
-        return 0;
-    }
-
-    int _lua_particle_fireball(lua_State *L) {
-        particle_fireball(vec(luaL_checknumber(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-            luaL_checknumber(L, 4), luaL_checkinteger(L, 5),
-            luaL_checkinteger(L, 6), luaL_checkinteger(L, 7),
-            luaL_checknumber(L, 8));
-        return 0;
-    }
-
-    int _lua_particle_flare(lua_State *L) {
-        int uid = luaL_checkinteger(L, 11);
-        if (uid < 0) {
-            particle_flare(vec(luaL_checknumber(L, 1),
-                luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-                vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-                    luaL_checknumber(L, 6)),
-                luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-                luaL_checkinteger(L, 9), luaL_checknumber(L, 10), NULL);
-        } else {
-            CLogicEntity *o = LogicSystem::getLogicEntity(uid);
-            assert(o->dynamicEntity);
-
-            particle_flare(vec(luaL_checknumber(L, 1),
-                luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-                vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-                    luaL_checknumber(L, 6)),
-                luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-                luaL_checkinteger(L, 9), luaL_checknumber(L, 10),
-                (fpsent*)(o->dynamicEntity));
-        }
-        return 0;
-    }
-
-    int _lua_particle_trail(lua_State *L) {
-        particle_trail(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-            vec(luaL_checknumber(L, 3), luaL_checknumber(L, 4),
-                luaL_checknumber(L, 5)),
-            vec(luaL_checknumber(L, 6), luaL_checknumber(L, 7),
-                luaL_checknumber(L, 8)), luaL_checkinteger(L, 9),
-            luaL_checknumber(L, 10), luaL_checkinteger(L, 11));
-        return 0;
-    }
-
-    int _lua_particle_flame(lua_State *L) {
-        regular_particle_flame(luaL_checkinteger(L, 1),
-            vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
-                luaL_checknumber(L, 4)),
-            luaL_checknumber(L, 5), luaL_checknumber(L, 6),
-            luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-            luaL_checknumber(L, 9), luaL_checknumber(L, 10),
-            luaL_checknumber(L, 11), luaL_checkinteger(L, 12)
-        );
-        return 0;
-    }
-
-    int _lua_adddynlight(lua_State *L) {
-        queuedynlight(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-            luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
-            vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
-                luaL_checknumber(L, 7)),
-            luaL_checkinteger(L, 8), luaL_checkinteger(L, 9),
-            luaL_checkinteger(L, 10), luaL_checknumber(L, 11),
-            vec(luaL_checknumber(L, 12), luaL_checknumber(L, 13),
-                luaL_checknumber(L, 14)), NULL);
-        return 0;
-    }
-
-    int _lua_particle_meter(lua_State *L) {
-        particle_meter(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-            luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
-            luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
-        return 0;
-    }
-
-    int _lua_particle_text(lua_State *L) {
-        particle_textcopy(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-            luaL_checknumber(L, 3)), luaL_checkstring(L, 4),
-            luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
-            luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
-            luaL_checknumber(L, 9));
-        return 0;
-    }
-#else
-    LAPI_EMPTY(adddecal)
-    LAPI_EMPTY(particle_splash)
-    LAPI_EMPTY(regular_particle_splash)
-    LAPI_EMPTY(particle_fireball)
-    LAPI_EMPTY(particle_flare)
-    LAPI_EMPTY(particle_trail)
-    LAPI_EMPTY(particle_flame)
-    LAPI_EMPTY(adddynlight)
-    LAPI_EMPTY(particle_meter)
-    LAPI_EMPTY(particle_text)
-#endif
-
 #ifndef SERVER
     int _lua_gettargetpos(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
@@ -618,18 +478,6 @@ namespace lapi_binds
     LAPI_REG(getfollow);
     LAPI_REG(do_upload);
     LAPI_REG(restart_map);
-
-    /* particles */
-    LAPI_REG(adddecal);
-    LAPI_REG(particle_splash);
-    LAPI_REG(regular_particle_splash);
-    LAPI_REG(particle_fireball);
-    LAPI_REG(particle_flare);
-    LAPI_REG(particle_trail);
-    LAPI_REG(particle_flame);
-    LAPI_REG(adddynlight);
-    LAPI_REG(particle_meter);
-    LAPI_REG(particle_text);
 
     /* world */
     LAPI_REG(gettargetpos);

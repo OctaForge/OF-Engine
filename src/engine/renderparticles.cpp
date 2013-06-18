@@ -154,6 +154,8 @@ struct partvert
 #define COLLIDERADIUS 8.0f
 #define COLLIDEERROR 1.0f
 
+void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color = bvec(0xFF, 0xFF, 0xFF), int info = 0);
+
 struct partrenderer
 {
     Texture *tex;
@@ -878,7 +880,7 @@ void particleinit()
     if(!particletextshader) particletextshader = lookupshaderbyname("particletext");
 
     parts.growbuf(22);
-    parts.add(new quadrenderer("<grey>media/particle/blood", PT_PART|PT_FLIP|PT_MOD|PT_RND4, DECAL_BLOOD)); // blood spats (note: rgb is inverted) 
+    parts.add(new quadrenderer("<grey>media/particle/blood", PT_PART|PT_FLIP|PT_MOD|PT_RND4, 1)); // blood spats (note: rgb is inverted) 
     parts.add(new trailrenderer("media/particle/base", PT_TRAIL|PT_LERP));                            // water, entity
     parts.add(new quadrenderer("<grey>media/particle/smoke", PT_PART|PT_FLIP|PT_LERP));  // smoke
     parts.add(new quadrenderer("<grey>media/particle/steam", PT_PART|PT_FLIP));               // steam
@@ -1294,6 +1296,24 @@ void regular_particle_flame(int type, const vec &p, float radius, float height, 
     regularflame(type, p, radius, height, color, density, scale, speed, fade, gravity);
 }
 
+enum
+{
+    PART_BLOOD = 0,
+    PART_WATER,
+    PART_SMOKE,
+    PART_STEAM,
+    PART_FLAME,
+    PART_FIREBALL1, PART_FIREBALL2, PART_FIREBALL3,
+    PART_STREAK, PART_LIGHTNING,
+    PART_EXPLOSION, PART_EXPLOSION_BLUE,
+    PART_SPARK, PART_EDIT,
+    PART_SNOW,
+    PART_MUZZLE_FLASH1, PART_MUZZLE_FLASH2, PART_MUZZLE_FLASH3,
+    PART_TEXT,
+    PART_METER, PART_METER_VS,
+    PART_LENS_FLARE
+};
+
 static void makeparticles(entity &e) 
 {
     switch(e.attr[0])
@@ -1375,7 +1395,7 @@ static void makeparticles(entity &e)
             if(!editmode)
             {
                 defformatstring(ds)("particles %d?", e.attr[0]);
-                particle_textcopy(e.o, ds, PART_TEXT, 1, 0x6496FF, 2.0f);
+                particle_textcopy(e.o, ds, PART_TEXT, 1, 0x6496FF, 2.0f, 0);
             }
             break;
     }
@@ -1455,7 +1475,7 @@ void updateparticles()
             lua::push_external("entity_get_class_name");
             lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
             lua_call(lua::L, 1, 1);
-            particle_textcopy(e.o, lua_tostring(lua::L, -1), PART_TEXT, 1, 0xFF4B19, 2.0f);
+            particle_textcopy(e.o, lua_tostring(lua::L, -1), PART_TEXT, 1, 0xFF4B19, 2.0f, 0);
             lua_pop(lua::L, 1);
         }
         loopv(ents)
@@ -1476,9 +1496,116 @@ void updateparticles()
             const char *icon = lua_tostring(lua::L, -2);
             lua_pop(lua::L, 2);
 
-            particle_textcopy(e.o, name, PART_TEXT, 1, 0x1EC850, 2.0f);
+            particle_textcopy(e.o, name, PART_TEXT, 1, 0x1EC850, 2.0f, 0);
             particle *part = newparticle(e.o, vec(0, 0, 0), 0, PART_EDIT, color, editpartsize);
             part->tex = textureload(icon);
         }
     }
 }
+
+LUAICOMMAND(particle_splash, {
+    int type = luaL_checkinteger(L, 1);
+    particle_splash(type, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
+        vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+            luaL_checknumber(L, 6)),
+        luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
+        luaL_checkinteger(L, 9), luaL_checkinteger(L, 10));
+    return 0;
+});
+
+LUAICOMMAND(regular_particle_splash, {
+    int type = luaL_checkinteger(L, 1);
+    regular_particle_splash(
+        type, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
+        vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+            luaL_checknumber(L, 6)),
+        luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
+        luaL_checkinteger(L, 9), luaL_checkinteger(L, 10),
+        luaL_checkinteger(L, 11));
+    return 0;
+});
+
+LUAICOMMAND(particle_fireball, {
+    particle_fireball(vec(luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+        luaL_checknumber(L, 4), luaL_checkinteger(L, 5),
+        luaL_checkinteger(L, 6), luaL_checkinteger(L, 7),
+        luaL_checknumber(L, 8));
+    return 0;
+});
+
+LUAICOMMAND(particle_flare, {
+    int uid = luaL_checkinteger(L, 11);
+    if (uid < 0) {
+        particle_flare(vec(luaL_checknumber(L, 1),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                luaL_checknumber(L, 6)),
+            luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+            luaL_checkinteger(L, 9), luaL_checknumber(L, 10), NULL);
+    } else {
+        CLogicEntity *o = LogicSystem::getLogicEntity(uid);
+        assert(o->dynamicEntity);
+
+        particle_flare(vec(luaL_checknumber(L, 1),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                luaL_checknumber(L, 6)),
+            luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+            luaL_checkinteger(L, 9), luaL_checknumber(L, 10),
+            o->dynamicEntity);
+    }
+    return 0;
+});
+
+LUAICOMMAND(particle_trail, {
+    particle_trail(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+        vec(luaL_checknumber(L, 3), luaL_checknumber(L, 4),
+            luaL_checknumber(L, 5)),
+        vec(luaL_checknumber(L, 6), luaL_checknumber(L, 7),
+            luaL_checknumber(L, 8)), luaL_checkinteger(L, 9),
+        luaL_checknumber(L, 10), luaL_checkinteger(L, 11));
+    return 0;
+});
+
+LUAICOMMAND(particle_flame, {
+    regular_particle_flame(luaL_checkinteger(L, 1),
+        vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
+            luaL_checknumber(L, 4)),
+        luaL_checknumber(L, 5), luaL_checknumber(L, 6),
+        luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+        luaL_checknumber(L, 9), luaL_checknumber(L, 10),
+        luaL_checknumber(L, 11), luaL_checkinteger(L, 12)
+    );
+    return 0;
+});
+
+LUAICOMMAND(adddynlight, {
+    queuedynlight(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
+        vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
+            luaL_checknumber(L, 7)),
+        luaL_checkinteger(L, 8), luaL_checkinteger(L, 9),
+        luaL_checkinteger(L, 10), luaL_checknumber(L, 11),
+        vec(luaL_checknumber(L, 12), luaL_checknumber(L, 13),
+            luaL_checknumber(L, 14)), NULL);
+    return 0;
+});
+
+LUAICOMMAND(particle_meter, {
+    particle_meter(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
+        luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
+        luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+        luaL_checknumber(L, 9));
+    return 0;
+});
+
+LUAICOMMAND(particle_text, {
+    particle_textcopy(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3)), luaL_checkstring(L, 4),
+        luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
+        luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
+        luaL_checkinteger(L, 9));
+    return 0;
+});
