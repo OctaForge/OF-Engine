@@ -567,22 +567,20 @@ struct decalrenderer
     }
 };
 
-decalrenderer decals[] =
-{
-    decalrenderer("<grey>media/particle/scorch", DF_ROTATE, 500),
-    decalrenderer("<grey>media/particle/blood", DF_RND4|DF_ROTATE|DF_INVMOD),
-    decalrenderer("<grey>media/particle/bullet", DF_OVERBRIGHT)
-};
+static vector<decalrenderer> decals;
 
 void initdecals()
 {
     if(initing) return;
-    loopi(sizeof(decals)/sizeof(decals[0])) decals[i].init(maxdecaltris);
+    decals.add(decalrenderer("<grey>media/particle/scorch", DF_ROTATE, 500));
+    decals.add(decalrenderer("<grey>media/particle/blood", DF_RND4|DF_ROTATE|DF_INVMOD));
+    decals.add(decalrenderer("<grey>media/particle/bullet", DF_OVERBRIGHT));
+    loopv(decals) decals[i].init(maxdecaltris);
 }
 
 void cleardecals()
 {
-    loopi(sizeof(decals)/sizeof(decals[0])) decals[i].cleardecals();
+    loopv(decals) decals[i].cleardecals();
 }
 
 VARNP(decals, showdecals, 0, 1, 1);
@@ -590,7 +588,7 @@ VARNP(decals, showdecals, 0, 1, 1);
 void renderdecals()
 {
     bool rendered = false;
-    loopi(sizeof(decals)/sizeof(decals[0]))
+    loopv(decals)
     {
         decalrenderer &d = decals[i];
         d.clearfadeddecals();
@@ -610,7 +608,7 @@ void renderdecals()
 
 void cleanupdecals()
 {
-    loopi(sizeof(decals)/sizeof(decals[0])) decals[i].cleanup();
+    loopv(decals) decals[i].cleanup();
 }
 
 VARP(maxdecaldistance, 1, 512, 10000);

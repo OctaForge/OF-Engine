@@ -137,10 +137,6 @@ VAR(has_mouse_target, 0, 0, 1);
 void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 {
     targetLogicEntity = NULL;
-
-    if (logger::should_log(logger::INFO))
-        particle_splash(0, 50, 100, worldpos); // Kripken: Show some sparkles where the mouse points - for debug
-
     if (!editmode && !forceEntityCheck)
     {
         TargetingControl::targetLogicEntity = NULL;

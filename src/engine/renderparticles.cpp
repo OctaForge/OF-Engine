@@ -864,31 +864,7 @@ struct softquadrenderer : quadrenderer
     }
 };
 
-static partrenderer *parts[] = 
-{
-    new quadrenderer("<grey>media/particle/blood", PT_PART|PT_FLIP|PT_MOD|PT_RND4, DECAL_BLOOD), // blood spats (note: rgb is inverted) 
-    new trailrenderer("media/particle/base", PT_TRAIL|PT_LERP),                            // water, entity
-    new quadrenderer("<grey>media/particle/smoke", PT_PART|PT_FLIP|PT_LERP),  // smoke
-    new quadrenderer("<grey>media/particle/steam", PT_PART|PT_FLIP),               // steam
-    new quadrenderer("<grey>media/particle/flames", PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT),   // flame on - no flipping please, they have orientation
-    new quadrenderer("media/particle/ball1", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball1
-    new quadrenderer("media/particle/ball2", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball2
-    new quadrenderer("media/particle/ball3", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball3
-    new taperenderer("media/particle/flare", PT_TAPE|PT_BRIGHT),                            // streak
-    &lightnings,                                                                                   // lightning
-    &fireballs,                                                                                    // explosion fireball
-    &bluefireballs,                                                                                // bluish explosion fireball
-    new quadrenderer("media/particle/spark", PT_PART|PT_FLIP|PT_BRIGHT),                    // sparks
-    &icons,                                                                                          // edit mode entities
-    new quadrenderer("media/particle/snow", PT_PART|PT_FLIP|PT_RND4, -1),                  // colliding snow
-    new quadrenderer("media/particle/muzzleflash1", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
-    new quadrenderer("media/particle/muzzleflash2", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
-    new quadrenderer("media/particle/muzzleflash3", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
-    &texts,                                                                                        // text
-    &meters,                                                                                       // meter
-    &metervs,                                                                                      // meter vs.
-    &flares                                                                                        // lens flares - must be done last
-};
+static vector<partrenderer*> parts;
 
 VARFP(maxparticles, 10, 4000, 10000, particleinit());
 VARFP(fewparticles, 10, 100, 10000, particleinit());
@@ -900,23 +876,48 @@ void particleinit()
     if(!particlenotextureshader) particlenotextureshader = lookupshaderbyname("particlenotexture");
     if(!particlesoftshader) particlesoftshader = lookupshaderbyname("particlesoft");
     if(!particletextshader) particletextshader = lookupshaderbyname("particletext");
-    loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
+
+    parts.growbuf(22);
+    parts.add(new quadrenderer("<grey>media/particle/blood", PT_PART|PT_FLIP|PT_MOD|PT_RND4, DECAL_BLOOD)); // blood spats (note: rgb is inverted) 
+    parts.add(new trailrenderer("media/particle/base", PT_TRAIL|PT_LERP));                            // water, entity
+    parts.add(new quadrenderer("<grey>media/particle/smoke", PT_PART|PT_FLIP|PT_LERP));  // smoke
+    parts.add(new quadrenderer("<grey>media/particle/steam", PT_PART|PT_FLIP));               // steam
+    parts.add(new quadrenderer("<grey>media/particle/flames", PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT));   // flame on - no flipping please, they have orientation
+    parts.add(new quadrenderer("media/particle/ball1", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball1
+    parts.add(new quadrenderer("media/particle/ball2", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball2
+    parts.add(new quadrenderer("media/particle/ball3", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball3
+    parts.add(new taperenderer("media/particle/flare", PT_TAPE|PT_BRIGHT));                            // streak
+    parts.add(&lightnings);                                                                                   // lightning
+    parts.add(&fireballs);                                                                                    // explosion fireball
+    parts.add(&bluefireballs);                                                                                // bluish explosion fireball
+    parts.add(new quadrenderer("media/particle/spark", PT_PART|PT_FLIP|PT_BRIGHT));                    // sparks
+    parts.add(&icons);                                                                                          // edit mode entities
+    parts.add(new quadrenderer("media/particle/snow", PT_PART|PT_FLIP|PT_RND4, -1));                  // colliding snow
+    parts.add(new quadrenderer("media/particle/muzzleflash1", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
+    parts.add(new quadrenderer("media/particle/muzzleflash2", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
+    parts.add(new quadrenderer("media/particle/muzzleflash3", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
+    parts.add(&texts);                                                                                        // text
+    parts.add(&meters);                                                                                       // meter
+    parts.add(&metervs);                                                                                      // meter vs.
+    parts.add(&flares);                                                                                        // lens flares - must be done last
+
+    loopv(parts) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
 }
 
 void clearparticles()
 {   
-    loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->reset();
+    loopv(parts) parts[i]->reset();
     clearparticleemitters();
 }   
 
 void cleanupparticles()
 {
-    loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->cleanup();
+    loopv(parts) parts[i]->cleanup();
 }
 
 void removetrackedparticles(physent *owner)
 {
-    loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->resettracked(owner);
+    loopv(parts) parts[i]->resettracked(owner);
 }
 
 VAR(debugparticles, 0, 0, 1);
@@ -926,14 +927,14 @@ void renderparticles()
     //want to debug BEFORE the lastpass render (that would delete particles)
     if(debugparticles)
     {
-        int n = sizeof(parts)/sizeof(parts[0]);
+        int n = parts.length();
         hudmatrix.ortho(0, FONTH*n*2*vieww/float(viewh), FONTH*n*2, 0, -1, 1); // squeeze into top-left corner
         resethudmatrix();
         hudshader->set();
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
-        loopi(n) 
+        loopi(n)
         {
             int type = parts[i]->type;
             const char *title = parts[i]->texname ? strrchr(parts[i]->texname, '/')+1 : NULL;
@@ -952,20 +953,17 @@ void renderparticles()
         glEnable(GL_DEPTH_TEST);
     }
 
-    loopi(sizeof(parts)/sizeof(parts[0])) 
-    {
-        parts[i]->update();
-    }
-    
+    loopv(parts) parts[i]->update();
+
     bool rendered = false;
     uint lastflags = PT_LERP|PT_SHADER, flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER;
     int lastswizzle = -1;
-   
-    loopi(sizeof(parts)/sizeof(parts[0]))
+
+    loopv(parts)
     {
         partrenderer *p = parts[i];
         if(!p->haswork()) continue;
-    
+
         if(!rendered)
         {
             rendered = true;
