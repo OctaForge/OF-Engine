@@ -567,20 +567,20 @@ struct decalrenderer
     }
 };
 
-static vector<decalrenderer> decals;
+static vector<decalrenderer*> decals;
 
 void initdecals()
 {
     if(initing) return;
-    decals.add(decalrenderer("<grey>media/particle/scorch", DF_ROTATE, 500));
-    decals.add(decalrenderer("<grey>media/particle/blood", DF_RND4|DF_ROTATE|DF_INVMOD));
-    decals.add(decalrenderer("<grey>media/particle/bullet", DF_OVERBRIGHT));
-    loopv(decals) decals[i].init(maxdecaltris);
+    decals.add(new decalrenderer("<grey>media/particle/scorch", DF_ROTATE, 500));
+    decals.add(new decalrenderer("<grey>media/particle/blood", DF_RND4|DF_ROTATE|DF_INVMOD));
+    decals.add(new decalrenderer("<grey>media/particle/bullet", DF_OVERBRIGHT));
+    loopv(decals) decals[i]->init(maxdecaltris);
 }
 
 void cleardecals()
 {
-    loopv(decals) decals[i].cleardecals();
+    loopv(decals) decals[i]->cleardecals();
 }
 
 VARNP(decals, showdecals, 0, 1, 1);
@@ -590,7 +590,7 @@ void renderdecals()
     bool rendered = false;
     loopv(decals)
     {
-        decalrenderer &d = decals[i];
+        decalrenderer &d = *decals[i];
         d.clearfadeddecals();
         d.fadeindecals();
         d.fadeoutdecals();
@@ -608,15 +608,15 @@ void renderdecals()
 
 void cleanupdecals()
 {
-    loopv(decals) decals[i].cleanup();
+    loopv(decals) decals[i]->cleanup();
 }
 
 VARP(maxdecaldistance, 1, 512, 10000);
 
 void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color, int info)
 {
-    if(!showdecals || type<0 || (size_t)type>=sizeof(decals)/sizeof(decals[0]) || center.dist(camera1->o) - radius > maxdecaldistance) return;
-    decalrenderer &d = decals[type];
+    if(!showdecals || type<0 || type >= decals.length() || center.dist(camera1->o) - radius > maxdecaldistance) return;
+    decalrenderer &d = *decals[type];
     d.adddecal(center, surface, radius, color, info);
 }
  
