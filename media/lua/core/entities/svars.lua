@@ -17,9 +17,10 @@
 ]]
 
 local frame = require("core.events.frame")
+local math2 = require("core.lua.math")
 
 local tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
-    math.abs, math.round, math.floor, rawget
+    math.abs, math2.round, math.floor, rawget
 
 local M = {}
 
@@ -625,8 +626,8 @@ State_Array_Float = State_Array:clone {
 }
 M.State_Array_Float = State_Array_Float
 
-local Vec3 = math.Vec3
-local vec3_index = math.__Vec3_mt.__index
+local Vec3 = math2.Vec3
+local vec3_index = math2.__Vec3_mt.__index
 
 --[[! Class: Vec3_Surrogate
     See <Array_Surrogate>. The only difference is that instead of emulating
@@ -732,8 +733,8 @@ Vec3_Surrogate = {
 }
 M.Vec3_Surrogate = Vec3_Surrogate
 
-local Vec4 = math.Vec4
-local vec4_index = math.__Vec4_mt.__index
+local Vec4 = math2.Vec4
+local vec4_index = math2.__Vec4_mt.__index
 
 --[[! Class: Vec4_Surrogate
     See <Array_Surrogate>. The only difference is that instead of emulating

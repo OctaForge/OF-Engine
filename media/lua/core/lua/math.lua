@@ -10,8 +10,7 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Lua math module extensions. Functions are inserted directly into the
-        math module.
+        Lua math extensions.
 ]]
 
 local bit = require("bit")
@@ -19,49 +18,56 @@ local bit = require("bit")
 local type = type
 local floor, min, max, abs = math.floor, math.min, math.max, math.abs
 local pow, sqrt = math.pow, math.sqrt
+local atan2, asin = math.atan2, math.asin
+local sin, cos, rad, deg = math.sin, math.cos, math.rad, math.deg
 
---[[! Function: math.round
+local Vec3, Vec4
+
+local M = {}
+
+--[[! Function: round
     Rounds a given number and returns it. The second argument can be used to
     specify the number of places past the floating point, defaulting to 0
     (rounding to integers).
 ]]
-math.round = function(v, d)
+M.round = function(v, d)
     local m = 10 ^ (d or 0)
     return floor(v * m + 0.5) / m
 end
 
---[[! Function: math.clamp
+--[[! Function: clamp
     Clamps a number value given by the first argument between third and
     second argument. Globally available.
 ]]
-math.clamp = function(val, low, high)
+M.clamp = function(val, low, high)
     return max(low, min(val, high))
 end
 
---[[! Function: math.lerp
+--[[! Function: lerp
     Performs a linear interpolation between the two
     numerical values, given a weight.
 ]]
-math.lerp = function(first, other, weight)
+M.lerp = function(first, other, weight)
     return first + weight * (other - first)
 end
 
---[[! Function: math.magnet
+--[[! Function: magnet
     If the distance between the two numerical values is in given radius,
     the second value is returned, otherwise the first is returned.
 ]]
-math.magnet = function(value, other, radius)
+M.magnet = function(value, other, radius)
     return (abs(value - other) <= radius) and other or value
 end
 
---[[! Function: math.distance
+--[[! Function: distance
     Returns a distance between two <Vec3>.
 ]]
-math.distance = function(a, b)
+local distance = function(a, b)
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2))
 end
+M.distance = distance
 
---[[! Function: math.normalize_angle
+--[[! Function: normalize_angle
     Normalizes an angle to be within +-180 degrees of some value.
     Useful to know if we need to turn left or right in order to be
     closer to something (we just need to check the sign, after normalizing
@@ -70,48 +76,32 @@ end
     For example, for angle 100 and rel_to 300, this function returns 460
     (as 460 is within 180 degrees of 300, but 100 isn't).
 ]]
-math.normalize_angle = function(angle, rel_to)
-    while angle < (rel_to - 180.0) do
-          angle =  angle  + 360.0
-    end
-
-    while angle > (rel_to + 180.0) do
-          angle =  angle  - 360.0
-    end
-
+local normalize_angle = function(angle, rel_to)
+    while angle < (rel_to - 180.0) do angle = angle + 360.0 end
+    while angle > (rel_to + 180.0) do angle = angle - 360.0 end
     return angle
 end
+M.normalize_angle = normalize_angle
 
---[[! Function: math.floor_distance
+--[[! Function: floor_distance
     By default returns the distance to the floor below some given
     position, with maximal distance equal to max_dist. If radius
     is given, it finds the distance to the highest floor in given
     radius. If the fourth optional argument is true, it finds the
     lowest floor instead of highest floor.
 ]]
-math.floor_distance = function(pos, max_dist, radius, lowest)
+M.floor_distance = function(pos, max_dist, radius, lowest)
     local rt = _C.ray_floor(pos.x, pos.y, pos.z, max_dist)
+    if not radius then return rt end
 
-    if not radius then
-        return rt
-    end
+    local tbl = { -radius / 2, 0, radius / 2 }
 
-    local tbl = {
-       -radius / 2, 0,
-        radius / 2
-    }
-
-    local f = math.min
-    if lowest then
-        f = math.max
-    end
+    local f = min
+    if lowest then f = max end
 
     for x = 1, #tbl do
         for y = 1, #tbl do
-            local o = pos:add_new(math.Vec3(
-                tbl[x],
-                tbl[y], 0
-            ))
+            local o = pos:add_new(Vec3(tbl[x], tbl[y], 0))
             rt = f(rt, _C.ray_floor(o.x, o.y, o.z, max_dist))
         end
     end
@@ -119,81 +109,67 @@ math.floor_distance = function(pos, max_dist, radius, lowest)
     return rt
 end
 
---[[! Function: math.is_los
+--[[! Function: is_los
     Returns true is the line between two given positions is clear
     (if there are no obstructions). Returns false otherwise.
 ]]
-math.is_los = function(o, d)
+M.is_los = function(o, d)
     return _C.ray_los(o.x, o.y, o.z, d.x, d.y, d.z)
 end
 
---[[! Function: math.yaw_to
+--[[! Function: yaw_to
     Calculates the yaw from an origin to a target. Done on 2D data only.
     If the last "reverse" argument is given as true, it calculates away
     from the target. Returns the yaw.
 ]]
-math.yaw_to = function(origin, target, reverse)
-    return (reverse
-        and math.yaw_to(target, origin)
-        or  math.deg(-(math.atan2(target.x - origin.x, target.y - origin.y)))
-    )
+local function yaw_to(origin, target, reverse)
+    return reverse and yaw_to(target, origin)
+        or deg(-(atan2(target.x - origin.x, target.y - origin.y)))
 end
+M.yaw_to = yaw_to
 
---[[! Function: math.pitch_to
+--[[! Function: pitch_to
     Calculates the pitch from an origin to a target. Done on 2D data only.
     If the last "reverse" argument is given as true, it calculates away
     from the target. Returns the pitch.
 ]]
-math.pitch_to = function(origin, target, reverse)
-    return (reverse
-        and math.pitch_to(target, origin)
-        or (
-            360.0 * (
-                math.asin(
-                    (target.z - origin.z) / math.distance(origin, target)
-                )
-            ) / (2.0 * math.pi)
-        )
-    )
+local function pitch_to(origin, target, reverse)
+    return reverse and pitch_to(target, origin)
+        or deg(asin((target.z - origin.z) / distance(origin, target)))
 end
+M.pitch_to = pitch_to
 
---[[! Function: math.compare_yaw
+--[[! Function: compare_yaw
     Checks if the yaw between two points is within acceptable error range.
     Useful to see whether a character is facing closely enough to the target,
     for example. Returns true if it is within the range, false otherwise.
 ]]
-math.compare_yaw = function(origin, target, yaw, acceptable)
-    return (math.abs(
-        math.normalize_angle(
-            math.yaw_to(origin, target), yaw
-        ) - yaw
-    ) <= acceptable)
+M.compare_yaw = function(origin, target, yaw, acceptable)
+    return abs(normalize_angle(yaw_to(origin, target), yaw) - yaw)
+        <= acceptable
 end
 
---[[! Function: math.compare_pitch
+--[[! Function: compare_pitch
     Checks if the pitch between two points is within acceptable error range.
     Useful to see whether a character is facing closely enough to the target,
     for example. Returns true if it is within the range, false otherwise.
 ]]
-math.compare_pitch = function(origin, target, pitch, acceptable)
-    return (math.abs(
-        math.normalize_angle(
-            math.pitch_to(origin, target), pitch
-        ) - pitch
-    ) <= acceptable)
+M.compare_pitch = function(origin, target, pitch, acceptable)
+    return abs(normalize_angle(pitch_to(origin, target), pitch) - pitch)
+        <= acceptable
 end
 
---[[! Function: math.is_nan
+--[[! Function: is_nan
     Returns true if the given value is nan, false otherwise.
 ]]
-math.is_nan = function(n)
+M.is_nan = function(n)
     return (n ~= n)
 end
 
---[[! Function: math.is_inf
+--[[! Function: is_inf
     Returns true if the given value is infinite, false otherwise.
 ]]
-math.is_inf = function(n)
+M.is_inf = function(n)
     return (n == 1/0)
 end
 
@@ -208,22 +184,18 @@ ffi.cdef [[
 local new, sizeof, istype, C = ffi.new, ffi.sizeof, ffi.istype, ffi.C
 local type = type
 local format = string.format
-local sqrt, abs = math.sqrt, math.abs
-local sin, cos, rad = math.sin, math.cos, math.rad
-local deg, asin, atan2 = math.deg, math.asin, math.atan2
 
-local vec3_mt
---[[! Struct: math.Vec3
+--[[! Struct: Vec3
     A standard 3 component vector with x, y, z components. A function
     "new_vec3" is externally available. Internally it's a FFI struct.
 
     (start code)
-        a = math.Vec3(5, 10, 15)
+        a = Vec3(5, 10, 15)
         echo(a.x)
     (end)
 ]]
-local Vec3
-vec3_mt = {
+Vec3 = nil
+local vec3_mt = {
     --[[! Constructor: __new
         You can construct a vec3 either by passing another vec3, a table
         convertible to vec3 (an array of 3 elements or an associative array
@@ -457,23 +429,22 @@ vec3_mt.__sub = vec3_mt.__index.sub_new
 vec3_mt.__mul = vec3_mt.__index.mul_new
 vec3_mt.__len = vec3_mt.__index.length
 Vec3 = ffi.metatype("vec3_t", vec3_mt)
-math.Vec3 = Vec3
-math.__Vec3_mt = vec3_mt
+M.Vec3 = Vec3
+M.__Vec3_mt = vec3_mt
 _C.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
 
-local vec4_mt
---[[! Struct: math.Vec4
+--[[! Struct: Vec4
     A standard 4 component vector with x, y, z components.
-    Similar to <math.Vec3> and contains exactly the same
+    Similar to <Vec3> and contains exactly the same
     methods, with additions documented here. A function
     "new_vec4" is externally available.
 
     (start code)
-        a = math.Vec4(5, 10, 15, 20)
+        a = Vec4(5, 10, 15, 20)
         echo(a.x)
     (end)
 ]]
-local Vec4
+Vec4 = nil
 vec4_mt = {
     __new = function(ct, x, y, z, w)
         if istype(ct, x) then
@@ -629,6 +600,8 @@ vec4_mt.__sub = vec4_mt.__index.sub_new
 vec4_mt.__mul = vec4_mt.__index.mul_new
 vec4_mt.__len = vec4_mt.__index.length
 Vec4 = ffi.metatype("vec4_t", vec4_mt)
-math.Vec4 = Vec4
-math.__Vec4_mt = vec4_mt
+M.Vec4 = Vec4
+M.__Vec4_mt = vec4_mt
 _C.external_set("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
+
+return M

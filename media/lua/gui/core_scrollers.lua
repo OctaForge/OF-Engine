@@ -14,6 +14,7 @@
 ]]
 
 local frame = require("core.events.frame")
+local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
 local bit = require("bit")
@@ -23,7 +24,7 @@ local bnot  = bit.bnot
 local blsh  = bit.lshift
 local max   = math.max
 local min   = math.min
-local clamp = math.clamp
+local clamp = math2.clamp
 local emit  = signal.emit
 
 local M = require("gui.core")

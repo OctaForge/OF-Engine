@@ -23,7 +23,7 @@ local sound_toclients = _C.sound_toclients
 local sound_toclients_byname = _C.sound_toclients_byname
 local sound_stop = _C.soundstop_toclients_byname
 
-local vec3 = math.Vec3
+local vec3 = require("core.lua.math").Vec3
 
 return {
     --[[! Function: play

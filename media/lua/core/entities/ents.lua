@@ -28,7 +28,7 @@ local filter, filter_map, map, sort, keys, concat, find, serialize, deserialize
     = table.filter, table.filter_map, table.map, table.sort, table.keys,
       table.concat, table.find, table.serialize, table.deserialize
 
-local Vec3, emit = math.Vec3, signal.emit
+local Vec3, emit = require("core.lua.math").Vec3, signal.emit
 local max, floor = math.max, math.floor
 local pairs = pairs
 local assert = assert

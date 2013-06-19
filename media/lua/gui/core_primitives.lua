@@ -15,6 +15,7 @@
 
 local model = require("core.engine.model")
 local var = require("core.lua.var")
+local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
 local var_get = var.get
@@ -29,7 +30,7 @@ local brsh  = bit.rshift
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
-local clamp = math.clamp
+local clamp = math2.clamp
 local floor = math.floor
 local ceil  = math.ceil
 local _C    = _G["_C"]

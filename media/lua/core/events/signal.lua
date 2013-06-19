@@ -13,9 +13,11 @@
         Lua signal system. Allows connecting and further emitting signals.
 ]]
 
+local math2 = require("core.lua.math")
+
 local type = type
 local rawget, rawset = rawget, rawset
-local clamp = math.clamp
+local clamp = math2.clamp
 local tfind = table.find
 
 local M = {}

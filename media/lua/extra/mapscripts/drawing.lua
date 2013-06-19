@@ -25,7 +25,7 @@ local ents = require("core.entities.ents")
 local game_manager = require("extra.game_manager")
 
 local connect = signal.connect
-local Vec4 = math.Vec4
+local Vec4 = require("core.lua.math").Vec4
 local ipairs = ipairs
 
 local colors = {

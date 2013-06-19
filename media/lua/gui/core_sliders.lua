@@ -14,6 +14,7 @@
 ]]
 
 local var = require("core.lua.var")
+local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
 local bit = require("bit")
@@ -23,8 +24,8 @@ local bnot  = bit.bnot
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
-local clamp = math.clamp
-local round = math.round
+local clamp = math2.clamp
+local round = math2.round
 local _C    = _G["_C"]
 local emit  = signal.emit
 

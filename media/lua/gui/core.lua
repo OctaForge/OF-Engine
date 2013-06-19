@@ -18,6 +18,7 @@
 ]]
 
 local var = require("core.lua.var")
+local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
 local set_external = _C.external_set
@@ -33,7 +34,7 @@ local bnot  = bit.bnot
 local blsh  = bit.lshift
 local max   = math.max
 local min   = math.min
-local clamp = math.clamp
+local clamp = math2.clamp
 local floor = math.floor
 local ceil  = math.ceil
 local _C    = _G["_C"]
