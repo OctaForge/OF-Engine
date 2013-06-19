@@ -16,6 +16,8 @@
 local edit = require("core.engine.edit")
 local signal = require("core.events.signal")
 
+local bit = require("bit")
+
 local set_external = _C.external_set
 
 local emit = signal.emit
@@ -33,7 +35,7 @@ set_external("physics_off_map", function(ent) end)
 ]]
 set_external("physics_in_deadly", function(ent, mat) end)
 
-local bor, lsh = math.bor, math.lsh
+local bor, lsh = bit.bor, bit.lshift
 
 -- flags for physics_state_change
 local FLAG_WATER = lsh(1, 0)

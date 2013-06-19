@@ -13,6 +13,8 @@
         Lua model API.
 ]]
 
+local bit = require("bit")
+
 local M = {}
 
 local ran = _C.model_register_anim
@@ -38,13 +40,13 @@ M.anims = {
     MAPMODEL = ran "mapmodel",
 
     INDEX = 0x7F,
-    LOOP = math.lsh(1, 7),
-    START = math.lsh(1, 8),
-    END = math.lsh(1, 9),
-    REVERSE = math.lsh(1, 10),
+    LOOP = bit.lshift(1, 7),
+    START = bit.lshift(1, 8),
+    END = bit.lshift(1, 9),
+    REVERSE = bit.lshift(1, 10),
     SECONDARY = 11,
 
-    RAGDOLL = math.lsh(1, 27)
+    RAGDOLL = bit.lshift(1, 27)
 }
 
 --[[! Variable: render_flags
@@ -55,10 +57,10 @@ M.anims = {
     flag, NOBATCH disables batching on the model.
 ]]
 M.render_flags = {
-    CULL_VFC = math.lsh(1, 0), CULL_DIST = math.lsh(1, 1),
-    CULL_OCCLUDED = math.lsh(1, 2), CULL_QUERY = math.lsh(1, 3),
-    FULLBRIGHT = math.lsh(1, 4), NORENDER = math.lsh(1, 5),
-    MAPMODEL = math.lsh(1, 6), NOBATCH = math.lsh(1, 7)
+    CULL_VFC = bit.lshift(1, 0), CULL_DIST = bit.lshift(1, 1),
+    CULL_OCCLUDED = bit.lshift(1, 2), CULL_QUERY = bit.lshift(1, 3),
+    FULLBRIGHT = bit.lshift(1, 4), NORENDER = bit.lshift(1, 5),
+    MAPMODEL = bit.lshift(1, 6), NOBATCH = bit.lshift(1, 7)
 }
 
 --[[! Function: register_anim

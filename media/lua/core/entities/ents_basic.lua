@@ -22,12 +22,14 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local msg = require("core.network.msg")
 
+local bit = require("bit")
+
 local set_external = _C.external_set
 
 local Entity = ents.Entity
 
-local band, bor, bnot, lsh, rsh = math.band, math.bor, math.bnot, math.lsh, 
-    math.rsh
+local band, bor, bnot, lsh, rsh = bit.band, bit.bor, bit.bnot, bit.lshift, 
+    bit.rshift
 local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
 local connect, emit = signal.connect, signal.emit
 local format = string.format

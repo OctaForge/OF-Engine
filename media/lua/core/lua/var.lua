@@ -14,14 +14,16 @@
         access and setting.
 ]]
 
+local bit = require("bit")
+
 local VAR_I = 0
 local VAR_F = 1
 local VAR_S = 2
 
-local VAR_PERSIST  = math.lsh(1, 0)
-local VAR_OVERRIDE = math.lsh(1, 1)
-local VAR_HEX      = math.lsh(1, 2)
-local VAR_READONLY = math.lsh(1, 3)
+local VAR_PERSIST  = bit.lshift(1, 0)
+local VAR_OVERRIDE = bit.lshift(1, 1)
+local VAR_HEX      = bit.lshift(1, 2)
+local VAR_READONLY = bit.lshift(1, 3)
 
 local M = {
     PERSIST  = VAR_PERSIST,

@@ -24,11 +24,13 @@ local set_external = _C.external_set
 
 local var_get, var_set = var.get, var.set
 
+local bit = require("bit")
+
 -- external locals
-local band  = math.band
-local bor   = math.bor
-local bnot  = math.bnot
-local blsh  = math.lsh
+local band  = bit.band
+local bor   = bit.bor
+local bnot  = bit.bnot
+local blsh  = bit.lshift
 local max   = math.max
 local min   = math.min
 local clamp = math.clamp

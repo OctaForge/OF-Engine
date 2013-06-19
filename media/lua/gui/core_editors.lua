@@ -19,8 +19,10 @@ local ffi = require("ffi")
 
 local var_get = var.get
 
-local band  = math.band
-local blsh  = math.lsh
+local bit = require("bit")
+
+local band  = bit.band
+local blsh  = bit.lshift
 local max   = math.max
 local min   = math.min
 local abs   = math.abs

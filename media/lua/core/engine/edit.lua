@@ -13,6 +13,8 @@
         Editing functions including procedural geometry generation.
 ]]
 
+local bit = require("bit")
+
 local M = {}
 
 --[[! Variable: MATERIAL_AIR
@@ -23,42 +25,42 @@ M.MATERIAL_AIR = 0
 --[[! Variable: MATERIAL_WATER
     Represents the "water" material.
 ]]
-M.MATERIAL_WATER = math.lsh(1, 2)
+M.MATERIAL_WATER = bit.lshift(1, 2)
 
 --[[! Variable: MATERIAL_LAVA
     Represents the "lava" material.
 ]]
-M.MATERIAL_LAVA = math.lsh(2, 2)
+M.MATERIAL_LAVA = bit.lshift(2, 2)
 
 --[[! Variable: MATERIAL_GLASS
     Represents the "glass" material.
 ]]
-M.MATERIAL_GLASS = math.lsh(3, 2)
+M.MATERIAL_GLASS = bit.lshift(3, 2)
 
 --[[! Variable: MATERIAL_NOCLIP
     Represents the "noclip" material.
 ]]
-M.MATERIAL_NOCLIP = math.lsh(1, 5)
+M.MATERIAL_NOCLIP = bit.lshift(1, 5)
 
 --[[! Variable: MATERIAL_CLIP
     Represents the "clip" material.
 ]]
-M.MATERIAL_CLIP = math.lsh(2, 5)
+M.MATERIAL_CLIP = bit.lshift(2, 5)
 
 --[[! Variable: MATERIAL_GAMECLIP
     Represents the "gameclip" material.
 ]]
-M.MATERIAL_GAMECLIP = math.lsh(3, 5)
+M.MATERIAL_GAMECLIP = bit.lshift(3, 5)
 
 --[[! Variable: MATERIAL_DEATH
     Represents the "death" material.
 ]]
-M.MATERIAL_DEATH = math.lsh(1, 8)
+M.MATERIAL_DEATH = bit.lshift(1, 8)
 
 --[[! Variable: MATERIAL_ALPHA
     Represents the "alpha" material.
 ]]
-M.MATERIAL_ALPHA = math.lsh(4, 8)
+M.MATERIAL_ALPHA = bit.lshift(4, 8)
 
 --[[! Variable: MATERIAL_INDEX_SHIFT ]]
 M.MATERIAL_INDEX_SHIFT = 0
@@ -73,16 +75,16 @@ M.MATERIAL_CLIP_SHIFT = 5
 M.MATERIAL_FLAG_SHIFT = 8
 
 --[[! Variable: MATERIALF_INDEX ]]
-M.MATERIALF_INDEX = math.lsh(3, 0)
+M.MATERIALF_INDEX = bit.lshift(3, 0)
 
 --[[! Variable: MATERIALF_VOLUME ]]
-M.MATERIALF_VOLUME = math.lsh(7, 2)
+M.MATERIALF_VOLUME = bit.lshift(7, 2)
 
 --[[! Variable: MATERIALF_CLIP ]]
-M.MATERIALF_CLIP = math.lsh(7, 5)
+M.MATERIALF_CLIP = bit.lshift(7, 5)
 
 --[[! Variable: MATERIALF_FLAGS ]]
-M.MATERIALF_FLAGS = math.lsh(255, 8)
+M.MATERIALF_FLAGS = bit.lshift(255, 8)
 
 --[[! Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered

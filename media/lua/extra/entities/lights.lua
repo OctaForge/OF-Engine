@@ -16,6 +16,8 @@
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 
+local bit = require("bit")
+
 local M = {}
 
 local Marker = ents.Marker
@@ -68,7 +70,7 @@ M.Dynamic_Light = Dynamic_Light
 
 local max, random = math.max, math.random
 local floor = math.floor
-local flash_flag = math.lsh(1, 2)
+local flash_flag = bit.lshift(1, 2)
 
 --[[! Class: Flickering_Light
     A flickering light entity type derived from <Dynamic_Light>. This one

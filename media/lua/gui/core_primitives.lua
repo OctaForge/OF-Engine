@@ -19,11 +19,13 @@ local signal = require("core.events.signal")
 
 local var_get = var.get
 
-local band  = math.band
-local bor   = math.bor
-local bnot  = math.bnot
-local blsh  = math.lsh
-local brsh  = math.rsh
+local bit = require("bit")
+
+local band  = bit.band
+local bor   = bit.bor
+local bnot  = bit.bnot
+local blsh  = bit.lshift
+local brsh  = bit.rshift
 local max   = math.max
 local min   = math.min
 local abs   = math.abs

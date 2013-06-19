@@ -16,9 +16,11 @@
 local frame = require("core.events.frame")
 local signal = require("core.events.signal")
 
-local band  = math.band
-local bnot  = math.bnot
-local blsh  = math.lsh
+local bit = require("bit")
+
+local band  = bit.band
+local bnot  = bit.bnot
+local blsh  = bit.lshift
 local max   = math.max
 local min   = math.min
 local clamp = math.clamp

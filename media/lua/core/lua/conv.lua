@@ -17,13 +17,14 @@
 
 local M = {}
 
+local bit = require("bit")
+local band, bor, lsh, rsh = bit.band, bit.bor, bit.lshift, bit.rshift
+
 --[[! Function: hex_to_rgb
     Converts an integral value to be treated as hexadecimal color code to
     r, g, b values (ranging 0-255). Returns three separate values.
 ]]
 M.hex_to_rgb = function(hex)
-    local band = math.band
-    local rsh  = math.rsh
     return rsh(hex, 16), band(rsh(hex, 8), 0xFF), band(hex, 0xFF)
 end
 
@@ -31,8 +32,7 @@ end
     Converts r, g, b color values (0-255) to a hexadecimal color code.
 ]]
 M.rgb_to_hex = function(r, g, b)
-    local lsh = math.lsh
-    return math.bor(b, lsh(g, 8), lsh(r, 16))
+    return bor(b, lsh(g, 8), lsh(r, 16))
 end
 
 --[[! Function: rgb_to_hsl

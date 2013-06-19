@@ -110,8 +110,10 @@ local gl = {
 }
 M.gl = gl
 
-local bor  = math.bor
-local blsh = math.lsh
+local bit = require("bit")
+
+local bor  = bit.bor
+local blsh = bit.lshift
 
 local scancode_to_keycode = function(x) return bor(x, blsh(1, 30)) end
 local char_to_byte = string.byte

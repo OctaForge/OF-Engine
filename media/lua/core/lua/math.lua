@@ -16,52 +16,18 @@
 
 local bit = require("bit")
 
---[[! Function: math.lsh
-    Bitwise left shift of a by b (both arguments are integral). Globally
-    available as "bitlsh".
-]]
-math.lsh = bit.lshift
-
---[[! Function: math.rsh
-    Bitwise right shift of a by b (both arguments are integral). Globally
-    available as "bitrsh".
-]]
-math.rsh = bit.rshift
-
---[[! Function: math.bor
-    Bitwise OR of variable number of integral arguments. Globally available
-    as "bitor".
-]]
-math.bor = bit.bor
-
---[[! Function: math.bxor
-    Bitwise XOR of variable number of integral arguments. Globally available
-    as "bitxor".
-]]
-math.bxor = bit.bxor
-
---[[! Function: math.band
-    Bitwise AND of variable number of integral arguments. Globally available
-    as "bitand".
-]]
-math.band = bit.band
-
---[[! Function: math.bnot
-    Bitwise NOT of an integral argument. Globally available as "bitnot".
-]]
-math.bnot = bit.bnot
+local type = type
+local floor, min, max, abs = math.floor, math.min, math.max, math.abs
+local pow, sqrt = math.pow, math.sqrt
 
 --[[! Function: math.round
-    Rounds a given number and returns it. Globally available. The second
-    argument can be used to specify the number of places past the floating
-    point, defaulting to 0 (rounding to integers).
+    Rounds a given number and returns it. The second argument can be used to
+    specify the number of places past the floating point, defaulting to 0
+    (rounding to integers).
 ]]
 math.round = function(v, d)
     local m = 10 ^ (d or 0)
-    return (type(v) == "number"
-        and math.floor(v * m + 0.5) / m
-        or nil
-    )
+    return floor(v * m + 0.5) / m
 end
 
 --[[! Function: math.clamp
@@ -69,15 +35,7 @@ end
     second argument. Globally available.
 ]]
 math.clamp = function(val, low, high)
-    return math.max(low, math.min(val, high))
-end
-
---[[! Function: math.sign
-    Returns a sign of a numerical value
-    (-1 for < 0, 0 for 0 and 1 for > 0).
-]]
-math.sign = function(v)
-    return (v < 0 and -1 or (v > 0 and 1 or 0))
+    return max(low, min(val, high))
 end
 
 --[[! Function: math.lerp
@@ -93,42 +51,14 @@ end
     the second value is returned, otherwise the first is returned.
 ]]
 math.magnet = function(value, other, radius)
-    return (math.abs(value - other) <= radius) and other or value
-end
-
---[[! Function: math.frandom
-    Returns a pseudo-random floating point value in the bounds of min and max.
-]]
-math.frandom = function(_min, _max)
-    return math.random() * (_max - _min) + _min
-end
-
---[[! Function: math.norm_vec3
-    Returns a normalized <Vec3> of random components from -1 to 1.
-]]
-math.norm_vec3 = function()
-    local ret = nil
-
-    while not ret or ret:length() == 0 do
-        ret = math.Vec3(
-            math.frandom(-1, 1),
-            math.frandom(-1, 1),
-            math.frandom(-1, 1)
-        )
-    end
-
-    return ret:normalize()
+    return (abs(value - other) <= radius) and other or value
 end
 
 --[[! Function: math.distance
     Returns a distance between two <Vec3>.
 ]]
 math.distance = function(a, b)
-    return math.sqrt(
-        math.pow(a.x - b.x, 2) +
-        math.pow(a.y - b.y, 2) +
-        math.pow(a.z - b.z, 2)
-    )
+    return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2))
 end
 
 --[[! Function: math.normalize_angle
