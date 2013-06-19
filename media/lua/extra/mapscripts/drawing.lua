@@ -95,10 +95,11 @@ local Game_Player = Player:clone {
 
         for i, mark in ipairs(marks) do
             if last and mark and mark.x >= 0 and last.x >= 0 then
-                effects.flare(effects.PARTICLE.STREAK, last, mark, 0, mark.w,
-                    1.0)
-                effects.flare(effects.PARTICLE.STREAK, mark, last, 0, mark.w,
-                    1.0)
+                -- 8 == STREAK
+                _C.particle_flare(8, mark.x, mark.y, mark.z,
+                    last.x, last.y, last.z, mark.w, 0, 1, -1)
+                _C.particle_flare(8, last.x, last.y, last.z,
+                    mark.x, mark.y, mark.z, mark.w, 0, 1, -1)
             end
             last = mark
         end
@@ -107,8 +108,9 @@ local Game_Player = Player:clone {
         local conb = #marks  > 0 and    marks[#marks - 1]
 
         if conb and not self.stop_batch then
-            effects.splash(effects.PARTICLE.SPARK, 10, 0.15,
-                marks[#marks - 1], marks[#marks - 1].w, 1.0, 25, 1)
+            local mark = marks[#marks - 1]
+            _C.particle_splash(12, mark.x, mark.y, mark.z, 25, 10, mark.w,
+                150, 1, 1, 0) -- 12 == SPARK
         end
 
         if self.pressing then

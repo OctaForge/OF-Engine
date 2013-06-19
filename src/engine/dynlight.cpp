@@ -220,3 +220,15 @@ void queuedynlight(const vec &o, float radius, const vec &color, int fade, int p
     d.spot = spot;
     dynlight_queue.add(d);
 }
+
+LUAICOMMAND(adddynlight, {
+    queuedynlight(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
+        vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
+            luaL_checknumber(L, 7)),
+        luaL_checkinteger(L, 8), luaL_checkinteger(L, 9),
+        luaL_checkinteger(L, 10), luaL_checknumber(L, 11),
+        vec(luaL_checknumber(L, 12), luaL_checknumber(L, 13),
+            luaL_checknumber(L, 14)), NULL);
+    return 0;
+});

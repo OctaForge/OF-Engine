@@ -131,16 +131,16 @@ struct particle
     float size;
     union
     {
-        const char *text;         // will call delete[] on this only if it starts with an @
+        const char *text;
         float val;
-        Texture *tex; /* OF */
+        Texture *tex;
         physent *owner;
         struct
         {
             uchar color2[3];
             uchar progress;
         };
-    }; 
+    };
 };
 
 struct partvert
@@ -471,7 +471,7 @@ struct textrenderer : listrenderer
 
     void killpart(listparticle *p)
     {
-        if(p->text && p->flags&1) delete[] p->text;
+        if(p->text) delete[] p->text;
     }
 
     void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts)
@@ -858,14 +858,6 @@ typedef varenderer<PT_TRAIL> trailrenderer;
 #include "lensflare.h"
 #include "lightning.h"
 
-struct softquadrenderer : quadrenderer
-{
-    softquadrenderer(const char *texname, int type, int collide = 0)
-        : quadrenderer(texname, type|PT_SOFT, collide)
-    {
-    }
-};
-
 static vector<partrenderer*> parts;
 
 VARFP(maxparticles, 10, 4000, 10000, particleinit());
@@ -1042,6 +1034,25 @@ static inline particle *newparticle(const vec &o, const vec &d, int fade, int ty
     return parts[type]->addpart(o, d, fade, color, size, gravity);
 }
 
+LUAICOMMAND(particle_new, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    float dx = luaL_checknumber(L, 5);
+    float dy = luaL_checknumber(L, 6);
+    float dz = luaL_checknumber(L, 7);
+    int color = luaL_checkinteger(L, 8);
+    int fade = luaL_checkinteger(L, 9);
+    float size = luaL_checknumber(L, 10);
+    int gravity = luaL_checkinteger(L, 11);
+    newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade, type, color, size,
+        gravity);
+    lua_pushboolean(L, true);
+    return 1;
+});
+
 VARP(maxparticledistance, 256, 1024, 4096);
 
 static void splash(int type, int color, int radius, int num, int fade, const vec &p, float size, int gravity)
@@ -1066,77 +1077,142 @@ static void splash(int type, int color, int radius, int num, int fade, const vec
     }
 }
 
+LUAICOMMAND(particle_splash_unbounded, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    int radius = luaL_checkinteger(L, 5);
+    int num = luaL_checkinteger(L, 6);
+    int color = luaL_checkinteger(L, 7);
+    int fade = luaL_checkinteger(L, 8);
+    float size = luaL_checknumber(L, 9);
+    int gravity = luaL_checkinteger(L, 10);
+    splash(type, color, radius, num, fade, vec(ox, oy, oz), size, gravity);
+    lua_pushboolean(L, true);
+    return 1;
+});
+
 static void regularsplash(int type, int color, int radius, int num, int fade, const vec &p, float size, int gravity, int delay = 0) 
 {
     if(!emit_particles() || (delay > 0 && rnd(delay) != 0)) return;
     splash(type, color, radius, num, fade, p, size, gravity);
 }
 
-bool canaddparticles()
-{
-    return true;
-}
-
-void regular_particle_splash(int type, int num, int fade, const vec &p, int color, float size, int radius, int gravity, int delay) 
-{
-    if(!canaddparticles()) return;
-    regularsplash(type, color, radius, num, fade, p, size, gravity, delay);
-}
-
-void particle_splash(int type, int num, int fade, const vec &p, int color, float size, int radius, int gravity) 
-{
-    if(!canaddparticles()) return;
-    splash(type, color, radius, num, fade, p, size, gravity);
-}
+LUAICOMMAND(particle_splash, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    int radius = luaL_checkinteger(L, 5);
+    int num = luaL_checkinteger(L, 6);
+    int color = luaL_checkinteger(L, 7);
+    int fade = luaL_checkinteger(L, 8);
+    float size = luaL_checknumber(L, 9);
+    int gravity = luaL_checkinteger(L, 10);
+    int delay = luaL_checkinteger(L, 11);
+    regularsplash(type, color, radius, num, fade, vec(ox, oy, oz), size,
+        gravity, delay);
+    lua_pushboolean(L, true);
+    return 1;
+});
 
 VARP(maxtrail, 1, 500, 10000);
 
-void particle_trail(int type, int fade, const vec &s, const vec &e, int color, float size, int gravity)
-{
-    if(!canaddparticles()) return;
+LUAICOMMAND(particle_trail, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    float dx = luaL_checknumber(L, 5);
+    float dy = luaL_checknumber(L, 6);
+    float dz = luaL_checknumber(L, 7);
+    int color = luaL_checkinteger(L, 8);
+    int fade = luaL_checkinteger(L, 9);
+    float size = luaL_checknumber(L, 10);
+    int gravity = luaL_checkinteger(L, 11);
+
+    vec s(ox, oy, oz);
+    vec e(dx, dy, dz);
     vec v;
     float d = e.dist(s, v);
     int steps = clamp(int(d*2), 1, maxtrail);
     v.div(steps);
     vec p = s;
-    loopi(steps)
-    {
+    loopi(steps) {
         p.add(v);
-        vec tmp = vec(float(rnd(11)-5), float(rnd(11)-5), float(rnd(11)-5));
-        newparticle(p, tmp, rnd(fade)+fade, type, color, size, gravity);
+        vec tmp = vec(float(rnd(11) - 5), float(rnd(11) - 5),
+            float(rnd(11) - 5));
+        newparticle(p, tmp, rnd(fade) + fade, type, color, size, gravity);
     }
-}
+    lua_pushboolean(L, true);
+    return 1;
+});
 
 VARP(particletext, 0, 1, 1);
 VARP(maxparticletextdistance, 0, 128, 10000);
 
-void particle_text(const vec &s, const char *t, int type, int fade, int color, float size, int gravity)
-{
-    if(!canaddparticles()) return;
-    if(!particletext || camera1->o.dist(s) > maxparticletextdistance) return;
-    particle *p = newparticle(s, vec(0, 0, 1), fade, type, color, size, gravity);
-    p->text = t;
-}
-
 void particle_textcopy(const vec &s, const char *t, int type, int fade, int color, float size, int gravity)
 {
-    if(!canaddparticles()) return;
     if(!particletext || camera1->o.dist(s) > maxparticletextdistance) return;
     particle *p = newparticle(s, vec(0, 0, 1), fade, type, color, size, gravity);
     p->text = newstring(t);
-    p->flags = 1;
 }
+
+LUAICOMMAND(particle_text, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    size_t slen;
+    const char *text = luaL_checklstring(L, 5, &slen);
+    int color = luaL_checkinteger(L, 6);
+    int fade = luaL_checkinteger(L, 7);
+    float size = luaL_checknumber(L, 8);
+    int gravity = luaL_checkinteger(L, 9);
+
+    vec s(ox, oy, oz);
+    if(!particletext || camera1->o.dist(s) > maxparticletextdistance) {
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    particle *p = newparticle(s, vec(0, 0, 1), fade, type,
+        color, size, gravity);
+    p->text = newstring(text, slen);
+
+    lua_pushboolean(L, true);
+    return 1;
+});
 
 void particle_icon(const vec &s, int ix, int iy, int type, int fade, int color, float size, int gravity)
 {
-    if(!canaddparticles()) return;
     particle *p = newparticle(s, vec(0, 0, 1), fade, type, color, size, gravity);
     p->flags |= ix | (iy<<2);
 }
 
+LUAICOMMAND(particle_icon, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    int ix = luaL_checkinteger(L, 5);
+    int iy = luaL_checkinteger(L, 6);
+    int color = luaL_checkinteger(L, 7);
+    int fade = luaL_checkinteger(L, 8);
+    float size = luaL_checknumber(L, 9);
+    int gravity = luaL_checkinteger(L, 10);
+    particle_icon(vec(ox, oy, oz), ix, iy, type, fade, color, size, gravity);
+    lua_pushboolean(L, true);
+    return 1;
+});
+
 void particle_meter(const vec &s, float val, int type, int fade, int color, int color2, float size)
 {
-    if(!canaddparticles()) return;
     particle *p = newparticle(s, vec(0, 0, 1), fade, type, color, size);
     p->color2[0] = color2>>16;
     p->color2[1] = (color2>>8)&0xFF;
@@ -1144,19 +1220,64 @@ void particle_meter(const vec &s, float val, int type, int fade, int color, int 
     p->progress = clamp(int(val*100), 0, 100);
 }
 
-void particle_flare(const vec &p, const vec &dest, int fade, int type, int color, float size, physent *owner)
-{
-    if(!canaddparticles()) return;
-    newparticle(p, dest, fade, type, color, size)->owner = owner;
-}
+LUAICOMMAND(particle_meter, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    float val = luaL_checknumber(L, 5);
+    int color = luaL_checkinteger(L, 6);
+    int color2 = luaL_checkinteger(L, 7);
+    int fade = luaL_checkinteger(L, 8);
+    float size = luaL_checknumber(L, 9);
+    particle_meter(vec(ox, oy, oz), val, type, fade, color, color2, size);
+    lua_pushboolean(L, true);
+    return 1;
+});
 
-void particle_fireball(const vec &dest, float maxsize, int type, int fade, int color, float size)
-{
-    if(!canaddparticles()) return;
+LUAICOMMAND(particle_flare, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    float dx = luaL_checknumber(L, 5);
+    float dy = luaL_checknumber(L, 6);
+    float dz = luaL_checknumber(L, 7);
+    int color = luaL_checkinteger(L, 8);
+    int fade = luaL_checkinteger(L, 9);
+    float size = luaL_checknumber(L, 10);
+    int uid = lua_tointeger(L, 11);
+    physent *owner = NULL;
+    if (uid > 0) {
+        CLogicEntity *o = LogicSystem::getLogicEntity(uid);
+        assert(o->dynamicEntity);
+        owner = o->dynamicEntity;
+    }
+    newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade,
+        type, color, size)->owner = owner;
+    lua_pushboolean(L, true);
+    return 1;
+});
+
+LUAICOMMAND(particle_fireball, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    int color = luaL_checkinteger(L, 5);
+    int fade = luaL_checkinteger(L, 6);
+    float size = luaL_checknumber(L, 7);
+    float maxsize = luaL_checknumber(L, 8);
     float growth = maxsize - size;
     if(fade < 0) fade = int(growth*20);
-    newparticle(dest, vec(0, 0, 1), fade, type, color, size)->val = growth;
-}
+    newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade,
+        type, color, size)->val = growth;
+    lua_pushboolean(L, true);
+    return 1;
+});
 
 //dir = 0..6 where 0=up
 static inline vec offsetvec(vec o, int dir, int dist) 
@@ -1275,7 +1396,27 @@ void regularshape(int type, int radius, int color, int dir, int num, int fade, c
     }
 }
 
-void regularflame(int type, const vec &p, float radius, float height, int color, int density = 3, float scale = 2.0f, float speed = 200.0f, float fade = 600.0f, int gravity = -15) // INTENSITY: Removed 'static', to make accessible elsewhere
+LUAICOMMAND(particle_shape, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    int radius = luaL_checkinteger(L, 5);
+    int dir = luaL_checkinteger(L, 6);
+    int num = luaL_checkinteger(L, 7);
+    int color = luaL_checkinteger(L, 8);
+    int fade = luaL_checkinteger(L, 9);
+    float size = luaL_checknumber(L, 10);
+    int gravity = luaL_checkinteger(L, 11);
+    int vel = luaL_checkinteger(L, 12);
+    regularshape(type, radius, color, dir, num, fade, vec(ox, oy, oz),
+        size, gravity, vel);
+    lua_pushboolean(L, true);
+    return 1;
+});
+
+void regularflame(int type, const vec &p, float radius, float height, int color, int density = 3, float scale = 2.0f, float speed = 200.0f, float fade = 600.0f, int gravity = -15)
 {
     if(!emit_particles()) return;
     
@@ -1290,11 +1431,25 @@ void regularflame(int type, const vec &p, float radius, float height, int color,
     }
 }
 
-void regular_particle_flame(int type, const vec &p, float radius, float height, int color, int density, float scale, float speed, float fade, int gravity)
-{
-    if(!canaddparticles()) return;
-    regularflame(type, p, radius, height, color, density, scale, speed, fade, gravity);
-}
+LUAICOMMAND(particle_flame, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    float radius = luaL_checknumber(L, 5);
+    float height = luaL_checknumber(L, 6);
+    int density = luaL_checkinteger(L, 7);
+    int color = luaL_checkinteger(L, 8);
+    float fade = luaL_checknumber(L, 9);
+    float scale = luaL_checknumber(L, 10);
+    float speed = luaL_checknumber(L, 11);
+    int gravity = luaL_checkinteger(L, 12);
+    regularflame(type, vec(ox, oy, oz), radius, height, color, density,
+        scale, speed, fade, gravity);
+    lua_pushboolean(L, true);
+    return 1;
+});
 
 enum
 {
@@ -1502,110 +1657,3 @@ void updateparticles()
         }
     }
 }
-
-LUAICOMMAND(particle_splash, {
-    int type = luaL_checkinteger(L, 1);
-    particle_splash(type, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
-        vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-            luaL_checknumber(L, 6)),
-        luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
-        luaL_checkinteger(L, 9), luaL_checkinteger(L, 10));
-    return 0;
-});
-
-LUAICOMMAND(regular_particle_splash, {
-    int type = luaL_checkinteger(L, 1);
-    regular_particle_splash(
-        type, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
-        vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-            luaL_checknumber(L, 6)),
-        luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
-        luaL_checkinteger(L, 9), luaL_checkinteger(L, 10),
-        luaL_checkinteger(L, 11));
-    return 0;
-});
-
-LUAICOMMAND(particle_fireball, {
-    particle_fireball(vec(luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-        luaL_checknumber(L, 4), luaL_checkinteger(L, 5),
-        luaL_checkinteger(L, 6), luaL_checkinteger(L, 7),
-        luaL_checknumber(L, 8));
-    return 0;
-});
-
-LUAICOMMAND(particle_flare, {
-    int uid = luaL_checkinteger(L, 11);
-    if (uid < 0) {
-        particle_flare(vec(luaL_checknumber(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-                luaL_checknumber(L, 6)),
-            luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-            luaL_checkinteger(L, 9), luaL_checknumber(L, 10), NULL);
-    } else {
-        CLogicEntity *o = LogicSystem::getLogicEntity(uid);
-        assert(o->dynamicEntity);
-
-        particle_flare(vec(luaL_checknumber(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-                luaL_checknumber(L, 6)),
-            luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-            luaL_checkinteger(L, 9), luaL_checknumber(L, 10),
-            o->dynamicEntity);
-    }
-    return 0;
-});
-
-LUAICOMMAND(particle_trail, {
-    particle_trail(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-        vec(luaL_checknumber(L, 3), luaL_checknumber(L, 4),
-            luaL_checknumber(L, 5)),
-        vec(luaL_checknumber(L, 6), luaL_checknumber(L, 7),
-            luaL_checknumber(L, 8)), luaL_checkinteger(L, 9),
-        luaL_checknumber(L, 10), luaL_checkinteger(L, 11));
-    return 0;
-});
-
-LUAICOMMAND(particle_flame, {
-    regular_particle_flame(luaL_checkinteger(L, 1),
-        vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
-            luaL_checknumber(L, 4)),
-        luaL_checknumber(L, 5), luaL_checknumber(L, 6),
-        luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-        luaL_checknumber(L, 9), luaL_checknumber(L, 10),
-        luaL_checknumber(L, 11), luaL_checkinteger(L, 12)
-    );
-    return 0;
-});
-
-LUAICOMMAND(adddynlight, {
-    queuedynlight(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
-        vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
-            luaL_checknumber(L, 7)),
-        luaL_checkinteger(L, 8), luaL_checkinteger(L, 9),
-        luaL_checkinteger(L, 10), luaL_checknumber(L, 11),
-        vec(luaL_checknumber(L, 12), luaL_checknumber(L, 13),
-            luaL_checknumber(L, 14)), NULL);
-    return 0;
-});
-
-LUAICOMMAND(particle_meter, {
-    particle_meter(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
-        luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
-        luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-        luaL_checknumber(L, 9));
-    return 0;
-});
-
-LUAICOMMAND(particle_text, {
-    particle_textcopy(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3)), luaL_checkstring(L, 4),
-        luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
-        luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
-        luaL_checkinteger(L, 9));
-    return 0;
-});
