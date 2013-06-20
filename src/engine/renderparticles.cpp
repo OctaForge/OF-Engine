@@ -969,9 +969,92 @@ typedef varenderer<PT_TRAIL> trailrenderer;
 #include "lightning.h"
 
 static vector<partrenderer*> parts;
+static hashtable<const char*, int> partmap;
+
+static bool get_renderer(lua_State *L, const char *name) {
+    int *id = partmap.access(name);
+    if (id) {
+        lua_pushinteger(L, *id);
+        lua_pushboolean(L, false);
+        return true;
+    }
+    return false;
+}
 
 VARFP(maxparticles, 10, 4000, 10000, particleinit());
 VARFP(fewparticles, 10, 100, 10000, particleinit());
+
+static void register_renderer(lua_State *L, const char *s, partrenderer *rd) {
+    int n = parts.length();
+    partmap.access(s, n);
+    parts.add(rd);
+    rd->init(rd->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
+    lua_pushinteger(L, n);
+    lua_pushboolean(L, true);
+}
+
+#define REGISTER_VARENDERER(name) \
+LUAICOMMAND(particle_register_renderer_##name, { \
+    const char *name = luaL_checkstring(L, 1); \
+    if (get_renderer(L, name)) return 2; \
+    const char *path = luaL_checkstring(L, 2); \
+    int flags   = luaL_checkinteger(L, 3); \
+    int collide = luaL_optinteger(L, 4, 0); \
+    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name); \
+    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path); \
+    register_renderer(L, name, new name##renderer(path, flags, collide)); \
+    return 2; \
+})
+
+REGISTER_VARENDERER(quad)
+REGISTER_VARENDERER(tape)
+REGISTER_VARENDERER(trail)
+#undef REGISTER_VARENDERER
+
+LUAICOMMAND(particle_register_renderer_fireball, {
+    const char *name = luaL_checkstring(L, 1);
+    if (get_renderer(L, name)) return 2;
+    const char *path = luaL_checkstring(L, 2);
+    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
+    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path);
+    register_renderer(L, name, new fireballrenderer(path));
+    return 2;
+})
+
+#define REGISTER_PATHRENDERER(name) \
+LUAICOMMAND(particle_register_renderer_##name, { \
+    const char *name = luaL_checkstring(L, 1); \
+    if (get_renderer(L, name)) return 2; \
+    const char *path = luaL_checkstring(L, 2); \
+    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name); \
+    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path); \
+    register_renderer(L, name, new name##renderer(path)); \
+    return 2; \
+})
+
+REGISTER_PATHRENDERER(fireball)
+REGISTER_PATHRENDERER(lightning)
+#undef REGISTER_PATHRENDERER
+
+LUAICOMMAND(particle_register_renderer_flare, {
+    const char *name = luaL_checkstring(L, 1);
+    if (get_renderer(L, name)) return 2;
+    const char *path = luaL_checkstring(L, 2);
+    int maxflares = luaL_checkinteger(L, 3);
+    int flags = luaL_optinteger(L, 4, 0);
+    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
+    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path);
+    register_renderer(L, name, new flarerenderer(path, maxflares, flags));
+    return 2;
+})
+
+LUAICOMMAND(particle_get_renderer, {
+    const char *s = luaL_checkstring(L, 1);
+    int *id = partmap.access(s);
+    if (!id) return 0;
+    lua_pushinteger(L, *id);
+    return 1;
+})
 
 void particleinit() 
 {
@@ -981,7 +1064,12 @@ void particleinit()
     if(!particlesoftshader) particlesoftshader = lookupshaderbyname("particlesoft");
     if(!particletextshader) particletextshader = lookupshaderbyname("particletext");
 
+    if (parts.length()) return;
     parts.growbuf(22);
+    parts.add(&texts);
+    parts.add(&icons);
+    parts.add(&meters);
+    parts.add(&metervs);
     parts.add(new quadrenderer("<grey>media/particle/blood", PT_PART|PT_FLIP|PT_MOD|PT_RND4, 1)); // blood spats (note: rgb is inverted) 
     parts.add(new trailrenderer("media/particle/base", PT_TRAIL|PT_LERP));                            // water, entity
     parts.add(new quadrenderer("<grey>media/particle/smoke", PT_PART|PT_FLIP|PT_LERP));  // smoke
@@ -995,14 +1083,10 @@ void particleinit()
     parts.add(&fireballs);                                                                                    // explosion fireball
     parts.add(&bluefireballs);                                                                                // bluish explosion fireball
     parts.add(new quadrenderer("media/particle/spark", PT_PART|PT_FLIP|PT_BRIGHT));                    // sparks
-    parts.add(&icons);                                                                                          // edit mode entities
     parts.add(new quadrenderer("media/particle/snow", PT_PART|PT_FLIP|PT_RND4, -1));                  // colliding snow
     parts.add(new quadrenderer("media/particle/muzzleflash1", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
     parts.add(new quadrenderer("media/particle/muzzleflash2", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
     parts.add(new quadrenderer("media/particle/muzzleflash3", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
-    parts.add(&texts);                                                                                        // text
-    parts.add(&meters);                                                                                       // meter
-    parts.add(&metervs);                                                                                      // meter vs.
     parts.add(&flares);                                                                                        // lens flares - must be done last
 
     loopv(parts) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
@@ -1022,6 +1106,13 @@ void cleanupparticles()
 void removetrackedparticles(physent *owner)
 {
     loopv(parts) parts[i]->resettracked(owner);
+}
+
+void deleteparticles() {
+    clearparticles();
+    cleanupparticles();
+    parts.deletecontents();
+    partmap.clear();
 }
 
 VAR(debugparticles, 0, 0, 1);
@@ -1563,7 +1654,11 @@ LUAICOMMAND(particle_flame, {
 
 enum
 {
-    PART_BLOOD = 0,
+    PART_TEXT = 0,
+    PART_ICON,
+    PART_METER,
+    PART_METER_VS,
+    PART_BLOOD,
     PART_WATER,
     PART_SMOKE,
     PART_STEAM,
@@ -1571,11 +1666,9 @@ enum
     PART_FIREBALL1, PART_FIREBALL2, PART_FIREBALL3,
     PART_STREAK, PART_LIGHTNING,
     PART_EXPLOSION, PART_EXPLOSION_BLUE,
-    PART_SPARK, PART_EDIT,
+    PART_SPARK,
     PART_SNOW,
     PART_MUZZLE_FLASH1, PART_MUZZLE_FLASH2, PART_MUZZLE_FLASH3,
-    PART_TEXT,
-    PART_METER, PART_METER_VS,
     PART_LENS_FLARE
 };
 
@@ -1762,7 +1855,7 @@ void updateparticles()
             lua_pop(lua::L, 2);
 
             particle_textcopy(e.o, name, PART_TEXT, 1, 0x1EC850, 2.0f, 0);
-            particle *part = newparticle(e.o, vec(0, 0, 0), 0, PART_EDIT, color, editpartsize);
+            particle *part = newparticle(e.o, vec(0, 0, 0), 0, PART_ICON, color, editpartsize);
             part->tex = textureload(icon);
         }
     }

@@ -449,8 +449,7 @@ LUAICOMMAND(model_register_anim, {
         lua_pushinteger(L, *a);
         lua_pushboolean(L, false);
         return 2;
-    }
-    else if (lua_anims.length() > ANIM_ALL) return 0;
+    } else if (lua_anims.length() > ANIM_ALL) return 0;
     /* pin it */
     lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, s);
     int n = lua_anims.length();
@@ -471,13 +470,5 @@ LUAICOMMAND(model_get_anim, {
 
 void clearanims() {
     lua_anims.setsize(0);
-    loopi(animmap.size) {
-        for (hashtable<const char*, int>::chain *c = animmap.chains[i]; c;) {
-            const char *s = c->elem.key;
-            c = c->next;
-            lua_pushnil(lua::L); lua_setfield(lua::L, LUA_REGISTRYINDEX, s);
-        }
-    }
     animmap.clear();
 }
-LUAICOMMAND(model_clear_anims, { clearanims(); return 0; });

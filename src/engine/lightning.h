@@ -81,8 +81,8 @@ static void renderlightning(Texture *tex, const vec &o, const vec &d, float sz)
 
 struct lightningrenderer : listrenderer
 {
-    lightningrenderer()
-        : listrenderer("media/particle/lightning", 2, PT_LIGHTNING|PT_BRIGHT|PT_TRACK)
+    lightningrenderer(const char *texname)
+        : listrenderer(texname, 2, PT_LIGHTNING|PT_BRIGHT|PT_TRACK)
     {}
 
     void startrender()
@@ -120,5 +120,5 @@ struct lightningrenderer : listrenderer
         renderlightning(tex, o, d, size);
     }
 };
-static lightningrenderer lightnings;
+static lightningrenderer lightnings("media/particle/lightning");
 
