@@ -10,8 +10,7 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Lua string module extensions. Functions are inserted directly
-        into the string module.
+        Lua string module extensions.
 ]]
 
 --[[! Function: string.split

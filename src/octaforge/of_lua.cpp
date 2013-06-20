@@ -117,21 +117,7 @@ namespace lua
 
         L = luaL_newstate();
         lua_atpanic(L, panic);
-
-        #define MODOPEN(name) \
-            lua_pushcfunction(L, luaopen_##name); \
-            lua_call(L, 0, 0);
-
-        MODOPEN(base)
-        MODOPEN(table)
-        MODOPEN(string)
-        MODOPEN(math)
-        MODOPEN(package)
-        MODOPEN(debug)
-        MODOPEN(os)
-        MODOPEN(io)
-        MODOPEN(ffi)
-        MODOPEN(bit)
+        luaL_openlibs(L);
 
         lua_getglobal(L, "package");
 
