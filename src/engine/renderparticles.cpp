@@ -111,12 +111,13 @@ enum
     PT_HFLIP     = 1<<14,
     PT_VFLIP     = 1<<15,
     PT_ROT       = 1<<16,
-    PT_CULL      = 1<<17,
-    PT_FEW       = 1<<18,
-    PT_ICON      = 1<<19,
-    PT_NOTEX     = 1<<20,
-    PT_SHADER    = 1<<21,
-    PT_SWIZZLE   = 1<<22,
+    PT_FEW       = 1<<17,
+    PT_ICON      = 1<<18,
+    PT_NOTEX     = 1<<19,
+    PT_SHRINK    = 1<<20,
+    PT_GROW      = 1<<21,
+    PT_SHADER    = 1<<22,
+    PT_SWIZZLE   = 1<<23,
     PT_FLIP      = PT_HFLIP | PT_VFLIP | PT_ROT
 };
 
@@ -196,7 +197,7 @@ struct partrenderer
     }
 
     //blend = 0 => remove it
-    void calc(particle *p, int &blend, int &ts, vec &o, vec &d)
+    void calc(particle *p, int &blend, int &ts, float &size, vec &o, vec &d)
     {
         o = p->o;
         d = p->d;
@@ -205,17 +206,33 @@ struct partrenderer
         {
             ts = 1;
             blend = 255;
+            size = p->size;
         }
         else
         {
             ts = lastmillis-p->millis;
             blend = max(255 - (ts<<8)/p->fade, 0);
-            if(p->gravity)
+            int weight = p->gravity;
+            /* RE */
+            if((type&PT_SHRINK || type&PT_GROW) && p->fade >= 50)
+            {
+                float amt = clamp(ts/float(p->fade), 0.0f, 1.0f);
+                if(type&PT_SHRINK)
+                {
+                    if(type&PT_GROW) { if ((amt *= 2) > 1) amt = 2 - amt; amt *= amt; }
+                    else amt = 1 - (amt * amt);
+                }
+                else amt *= amt;
+                size = p->size * amt;
+                if(weight) weight += weight * (p->size - size);
+            }
+            else size = p->size;
+            if(weight)
             {
                 if(ts > p->fade) ts = p->fade;
                 float t = ts;
                 o.add(vec(d).mul(t/5000.0f));
-                o.z -= t*t/(2.0f * 5000.0f * p->gravity);
+                o.z -= t*t/(2.0f * 5000.0f * weight);
             }
             if(collide && o.z < p->val)
             {
@@ -228,7 +245,7 @@ struct partrenderer
                         p->val = collidez+COLLIDEERROR;
                     else 
                     {
-                        adddecal(collide, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*p->size, p->color, type&PT_RND4 ? (p->flags>>5)&3 : 0);
+                        adddecal(collide, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*size, p->color, type&PT_RND4 ? (p->flags>>5)&3 : 0);
                         blend = 0;
                     }
                 }
@@ -337,7 +354,7 @@ struct listrenderer : partrenderer
     
     virtual void startrender() = 0;
     virtual void endrender() = 0;
-    virtual void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts) = 0;
+    virtual void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size) = 0;
 
     void render() 
     {
@@ -348,10 +365,11 @@ struct listrenderer : partrenderer
         {   
             vec o, d;
             int blend, ts;
-            calc(p, blend, ts, o, d);
+            float size;
+            calc(p, blend, ts, size, o, d);
             if(blend > 0) 
             {
-                renderpart(p, o, d, blend, ts);
+                renderpart(p, o, d, blend, ts, size);
 
                 if(p->fade > 5)
                 {
@@ -390,10 +408,10 @@ struct meterrenderer : listrenderer
          glEnable(GL_BLEND);
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts)
+    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
     {
         int basetype = type&0xFF;
-        float scale = FONTH*p->size/80.0f, right = 8, left = p->progress/100.0f*right;
+        float scale = FONTH*size/80.0f, right = 8, left = p->progress/100.0f*right;
         matrix3x4 m(vec4(camright.x, -camup.x, -camdir.x, o.x),
                     vec4(camright.y, -camup.y, -camdir.y, o.y),
                     vec4(camright.z, -camup.z, -camdir.z, o.z));
@@ -474,9 +492,9 @@ struct textrenderer : listrenderer
         if(p->text) delete[] p->text;
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts)
+    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
     {
-        float scale = p->size/80.0f, xoff = -text_width(p->text)/2, yoff = 0;
+        float scale = size/80.0f, xoff = -text_width(p->text)/2, yoff = 0;
         if((type&0xFF)==PT_TEXTUP) { xoff += detrnd((size_t)p, 100)-50; yoff -= detrnd((size_t)p, 101); }
 
         matrix3x4 m(vec4(camright.x, -camup.x, -camdir.x, o.x),
@@ -508,7 +526,7 @@ struct iconrenderer: listrenderer {
         gle::disable();
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts) {
+    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size) {
         Texture *tex = p->tex;
         if (!tex) return;
         if (tex != prevtex) {
@@ -518,7 +536,7 @@ struct iconrenderer: listrenderer {
         matrix3x4 m(vec4(camright.x, -camup.x, -camdir.x, o.x),
                     vec4(camright.y, -camup.y, -camdir.y, o.y),
                     vec4(camright.z, -camup.z, -camdir.z, o.z));
-        m.scale(p->size);
+        m.scale(size);
         m.translate(-0.5f, -0.5f, 0);
 
         gle::color(p->color, blend);
@@ -737,8 +755,9 @@ struct varenderer : partrenderer
     {
         vec o, d;
         int blend, ts;
+        float size;
 
-        calc(p, blend, ts, o, d);
+        calc(p, blend, ts, size, o, d);
         if(blend <= 1 || p->fade <= 5) p->fade = -1; //mark to remove on next pass (i.e. after render)
 
         modifyblend<T>(o, blend);
@@ -788,8 +807,8 @@ struct varenderer : partrenderer
         else if(type&PT_MOD) SETMODCOLOR;
         else loopi(4) vs[i].alpha = blend;
 
-        if(type&PT_ROT) genrotpos<T>(o, d, p->size, ts, p->gravity, vs, (p->flags>>2)&0x1F);
-        else genpos<T>(o, d, p->size, ts, p->gravity, vs);
+        if(type&PT_ROT) genrotpos<T>(o, d, size, ts, p->gravity, vs, (p->flags>>2)&0x1F);
+        else genpos<T>(o, d, size, ts, p->gravity, vs);
     }
 
     void genverts()

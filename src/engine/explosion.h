@@ -306,11 +306,11 @@ struct fireballrenderer : listrenderer
         pe.extendbb(o, (size+1+pe.ent->attr[1])*WOBBLE); 
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts)
+    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
     {
         float pmax = p->val,
-              size = p->fade ? float(ts)/p->fade : 1,
-              psize = p->size + pmax * size;
+              size2 = p->fade ? float(ts)/p->fade : 1,
+              psize = size2 + pmax * size;
 
         if(isfoggedsphere(psize*WOBBLE, p->o)) return;
 
@@ -354,8 +354,8 @@ struct fireballrenderer : listrenderer
         LOCALPARAM(explosionmatrix, m);
 
         LOCALPARAM(center, o);
-        LOCALPARAMF(animstate, (size, psize, pmax, lastmillis/1000.0f));
-        if(2*(p->size + pmax)*WOBBLE >= softexplosionblend)
+        LOCALPARAMF(animstate, (size2, psize, pmax, lastmillis/1000.0f));
+        if(2*(size + pmax)*WOBBLE >= softexplosionblend)
         {
             LOCALPARAMF(softparams, (-1.0f/softexplosionblend, 0, inside ? blend/(2*255.0f) : 0));
         }
