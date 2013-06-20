@@ -13,6 +13,10 @@
         Misc widgets.
 ]]
 
+local table2 = require("core.lua.table")
+
+local find = table2.find
+
 local M = require("gui.core")
 local world = M.get_world()
 
@@ -69,7 +73,7 @@ M.Mover = register_class("Mover", Object, {
             return self:target(cx, cy) and self
         end
         local c = w.parent.children
-        local n = table.find(c, w)
+        local n = find(c, w)
         local l = #c
         if n ~= l then c[l], c[n] = w, c[l] end
         return self:target(cx, cy) and self

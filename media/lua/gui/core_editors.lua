@@ -15,6 +15,7 @@
 
 local var = require("core.lua.var")
 local math2 = require("core.lua.math")
+local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 local ffi = require("ffi")
 
@@ -543,7 +544,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                 lines = { unpack(lines, 1, maxy) }
             end
             if maxx > -1 then
-                lines = table.map(lines, function(line)
+                lines = table2.map(lines, function(line)
                     return line:sub(1, maxx)
                 end)
             end

@@ -22,11 +22,13 @@ local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local var = require("core.lua.var")
 
+local table2 = require("core.lua.table")
+
 local set_external = _C.external_set
 
-local filter, filter_map, map, sort, keys, concat, find, serialize, deserialize
-    = table.filter, table.filter_map, table.map, table.sort, table.keys,
-      table.concat, table.find, table.serialize, table.deserialize
+local filter, filter_map, map, sort, concat, find, serialize, deserialize
+    = table2.filter, table2.filter_map, table2.map, table2.sort,
+      table.concat, table2.find, table2.serialize, table2.deserialize
 
 local Vec3, emit = require("core.lua.math").Vec3, signal.emit
 local max, floor = math.max, math.floor
@@ -255,6 +257,7 @@ M.register_class = function(cl, plugins, name)
 
     -- table of properties
     local pt = {}
+    local sv_names = {}
 
     local base = cl
     while base do
@@ -263,6 +266,7 @@ M.register_class = function(cl, plugins, name)
             for n, v in pairs(props) do
                 if not pt[n] and svars.is_svar(v) then
                     pt[n] = v
+                    sv_names[#sv_names + 1] = n
                 end
             end
         end
@@ -270,7 +274,6 @@ M.register_class = function(cl, plugins, name)
         base = base.__proto
     end
 
-    local sv_names = keys(pt)
     sort(sv_names, function(n, m)
         if is_svar_alias(pt[n]) and not is_svar_alias(pt[m]) then
             return false
@@ -392,7 +395,7 @@ end or nil
         tag - a tag the entities must have.
         sort - by default, the resulting array is sorted by distance
         from lowest to highest. This can be either a function (passed
-        to table.sort, refer to its documentation), a boolean value
+        to core.lua.table.sort, refer to its documentation), a boolean value
         false (which means it won't be sorted) or nil (which means
         it will be sorted using the default method).
         pos_fun - a function taking an entity and returning a position
@@ -703,7 +706,7 @@ set_external("entities_save_all", M.save)
         will be saved during map save; if not, it's only temporary (and it
         will disappear when the map ends)
 ]]
-Entity = table.Object:clone {
+Entity = table2.Object:clone {
     name = "Entity",
 
     --[[! Variable: per_frame
@@ -1453,13 +1456,14 @@ set_external("entity_new", M.new)
 ]]
 M.send = SERVER and function(cn)
     #log(DEBUG, "Sending active entities to " .. cn)
-    local uids = keys(storage)
+    local nents, uids = 0, {}
+    for uid, _ in pairs(storage) do
+        nents = nents + 1
+        uids[nents] = uid
+    end
     sort(uids)
-
-    local n = #uids
-    msg.send(cn, _C.notify_numents, n)
-
-    for i = 1, n do
+    msg.send(cn, _C.notify_numents, nents)
+    for i = 1, nents do
         storage[uids[i]]:send_notification_full(cn)
     end
 end or nil

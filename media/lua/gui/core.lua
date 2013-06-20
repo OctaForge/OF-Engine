@@ -19,6 +19,7 @@
 
 local var = require("core.lua.var")
 local math2 = require("core.lua.math")
+local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 
 local set_external = _C.external_set
@@ -444,7 +445,7 @@ local Object, Window
     Each widget class also contains an "instances" table storing a set
     of all instances of the widget class.
 ]]
-Object = register_class("Object", table.Object, {
+Object = register_class("Object", table2.Object, {
     --[[! Constructor: __init
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting
@@ -1642,7 +1643,7 @@ local CHANGE_SHADERS = blsh(1, 2)
 local changes_clear = function(ctype)
     ctype = ctype or bor(CHANGE_GFX, CHANGE_SOUND, CHANGE_SHADERS)
 
-    needsapply = table.filter(needsapply, function(i, v)
+    needsapply = table2.filter(needsapply, function(i, v)
         if band(v.ctype, ctype) == 0 then
             return true
         end
@@ -1678,7 +1679,7 @@ M.changes_apply = function()
 end
 
 M.changes_get = function()
-    return table.map(needsapply, function(v) return v.desc end)
+    return table2.map(needsapply, function(v) return v.desc end)
 end
 
 --[[! Function: get_world

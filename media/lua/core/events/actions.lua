@@ -18,12 +18,15 @@
         uses generally.
 ]]
 
+local table2 = require("core.lua.table")
+local filter = table2.filter
+
 --[[! Class: Action
     Provides the base action object other actions can inherit from.
     Takes care of the basic action infrastructure. It doesn't really
     do anything, though.
 ]]
-local Action = table.Object:clone {
+local Action = table2.Object:clone {
     name = "Action",
 
     --[[! Constructor: __init
@@ -266,7 +269,7 @@ local Action_System_MT = {
         end,
 
         run = function(sys, millis)
-            local acts = table.filter(sys.actions,
+            local acts = filter(sys.actions,
                 function(i, v) return not v.finished end)
             sys.actions = acts
 

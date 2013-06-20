@@ -13,6 +13,8 @@
         Handles a single main loop frame from the scripting system.
 ]]
 
+local table2 = require("core.lua.table")
+
 local current_frame      = 0
 local current_time       = 0
 local current_frame_time = 0
@@ -21,6 +23,8 @@ local queued_actions     = {}
 
 local require, setmetatable = require, setmetatable
 local ents
+
+local copy = table2.copy
 
 --[[! Function: handle_frame
     Executed per frame from C++. It handles the current frame, meaning
@@ -36,7 +40,7 @@ local handle_frame = function(millis, lastmillis)
     #log(INFO, "frame.handle_frame: New frame")
     current_frame = current_frame + 1
 
-    local queue = table.copy(queued_actions)
+    local queue = copy(queued_actions)
     queued_actions = {}
 
     for i = 1, #queue do queue[i]() end

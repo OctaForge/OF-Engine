@@ -20,7 +20,7 @@ local M = {}
     it yourself using the provided methods. That makes it flexible for various
     scenarios (where the timing is not managed by the general event loop).
 ]]
-M.Timer = table.Object:clone {
+M.Timer = require("core.lua.table").Object:clone {
     name = "Timer",
 
     --[[! Constructor: __init

@@ -14,6 +14,7 @@
 ]]
 
 local actions = require("core.events.actions")
+local table2 = require("core.lua.table")
 
 local M = {}
 
@@ -21,7 +22,7 @@ local Action = actions.Action
 local Action_System = actions.Action_System
 
 local ipairs = ipairs
-local filter = table.filter
+local filter = table2.filter
 
 --[[! Class: Action_Parallel
     A container action that executes its actions in parallel. It's not

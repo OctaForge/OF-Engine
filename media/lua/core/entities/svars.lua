@@ -18,6 +18,7 @@
 
 local frame = require("core.events.frame")
 local math2 = require("core.lua.math")
+local table2 = require("core.lua.table")
 
 local tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
     math.abs, math2.round, math.floor, rawget
@@ -56,7 +57,7 @@ end
     Provides a base object for a state variable. Specialized svar types
     clone this and define their own methods.
 ]]
-State_Variable = table.Object:clone {
+State_Variable = table2.Object:clone {
     name = "State_Variable",
 
     --[[! Function: __tostring
@@ -309,7 +310,7 @@ State_Boolean = State_Variable:clone {
 }
 M.State_Boolean = State_Boolean
 
-local ts, td = table.serialize, table.deserialize
+local ts, td = table2.serialize, table2.deserialize
 
 --[[! Class: State_Table
     Specialization of <State_Variable> for table values. Overrides
@@ -446,7 +447,7 @@ Array_Surrogate = {
 }
 M.Array_Surrogate = Array_Surrogate
 
-local tc, tcc, map = table.copy, table.concat, table.map
+local tc, tcc, map = table2.copy, table.concat, table2.map
 
 --[[! Class: State_Array
     Specialization of <State_Variable> for arrays. Uses <Array_Surrogate>

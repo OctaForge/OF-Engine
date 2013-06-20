@@ -14,11 +14,12 @@
 ]]
 
 local math2 = require("core.lua.math")
+local table2 = require("core.lua.table")
 
 local type = type
 local rawget, rawset = rawget, rawset
 local clamp = math2.clamp
-local tfind = table.find
+local tfind = table2.find
 
 local M = {}
 

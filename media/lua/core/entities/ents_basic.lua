@@ -21,6 +21,7 @@ local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local msg = require("core.network.msg")
+local table2 = require("core.lua.table")
 
 local bit = require("bit")
 
@@ -793,7 +794,7 @@ local Static_Entity = Physical_Entity:clone {
         local acn = msg.ALL_CLIENTS
         cn = cn or acn
 
-        local cns = (cn == acn) and table.map(ents.get_players(), function(p)
+        local cns = (cn == acn) and table2.map(ents.get_players(), function(p)
             return p.cn end) or { cn }
 
         local uid = self.uid
@@ -989,7 +990,7 @@ local Light = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("r :\f2 %d \f7| g :\f2 %d \f7| b :\f2 %d\n\f7"
+        return format("red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
             .. "radius :\f2 %d \f7| flags :\f2 %s",
             self:get_attr("red"), self:get_attr("green"),
             self:get_attr("blue"), self:get_attr("radius"),

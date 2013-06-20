@@ -10,9 +10,10 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Lua table module extensions. Functions are inserted directly into
-        the table module.
+        Lua table module extensions.
 ]]
+
+local M = {}
 
 local ctable = _C.table_create
 local pairs, ipairs = pairs, ipairs
@@ -23,13 +24,13 @@ local tconc = table.concat
 local pcall = pcall
 local floor, log = math.floor, math.log
 
---[[! Function: table.is_array
+--[[! Function: is_array
     Checks whether a given table is an array (that is, contains only a
     consecutive sequence of values with indexes from 1 to #table). If
     there is any non-array element found, returns false. Otherwise
     returns true.
 ]]
-table.is_array = function(t)
+M.is_array = function(t)
     local i = 0
     while t[i + 1] do i = i + 1 end
     for _ in pairs(t) do
@@ -38,9 +39,9 @@ table.is_array = function(t)
     return i == 0
 end
 
-local is_array = table.is_array
+local is_array = M.is_array
 
---[[! Function: table.map
+--[[! Function: map
     Performs conversion on each item of the table. Takes the table and a
     function taking one argument (which is the item value) and returning
     some other value. The returned value will then replace the value
@@ -51,19 +52,19 @@ local is_array = table.is_array
         -- table of numbers
         foo = { bar = 5, baz = 10 }
         -- table of strings
-        bar = table.map(foo, function(v) return tostring(v) end)
+        bar = map(foo, function(v) return tostring(v) end)
     (end)
 ]]
-table.map = function(t, f)
+M.map = function(t, f)
     local r = {}
     for i, v in pairs(t) do r[i] = f(v) end
     return r
 end
 
---[[! Function: table.merge
+--[[! Function: merge
     Merges two arrays. Contents of the other come after those of the first one.
 ]]
-table.merge = function(ta, tb)
+M.merge = function(ta, tb)
     local l1, l2 = #ta, #tb
     local r = ctable(l1 + l2)
     for i = 1, l1 do r[#r + 1] = ta[i] end
@@ -71,28 +72,28 @@ table.merge = function(ta, tb)
     return r
 end
 
---[[! Function: table.merge_maps
+--[[! Function: merge_maps
     Merges two associative arrays (maps). When a key overlaps, the latter
     value is preferred.
 ]]
-table.merge_maps = function(ta, tb)
+M.merge_maps = function(ta, tb)
     local r = {}
     for a, b in pairs(ta) do r[a] = b end
     for a, b in pairs(tb) do r[a] = b end
     return r
 end
 
---[[! Function: table.copy
+--[[! Function: copy
     Returns a copy of the given table. Doesn't copy tables inside (only
     primitives are copied, no reference types).
 ]]
-table.copy = function(t)
+M.copy = function(t)
     local r = ctable(#t)
     for a, b in pairs(t) do r[a] = b end
     return r
 end
 
---[[! Function: table.filter
+--[[! Function: filter
     Filters an array. Takes the array and a function returning true if the
     passed value should be a part of the returned array and false if it
     shouldn't. The function takes two arguments, the index and the value.
@@ -102,7 +103,7 @@ end
         -- a table to filter
         foo = { 5, 10, 15, 20 }
         -- the filtered table, contains just 5, 10, 20
-        bar = table.filter(foo, function(k, v)
+        bar = filter(foo, function(k, v)
             if v == 15 then
                 return false
             else
@@ -111,13 +112,13 @@ end
         end)
     (end)
 ]]
-table.filter = function(t, f)
+M.filter = function(t, f)
     local r = {}
     for i = 1, #t do if f(i, t[i]) then r[#r + 1] = t[i] end end
     return r
 end
 
---[[! Function: table.filter_map
+--[[! Function: filter_map
     The same as the filter function above. The difference is that it works
     on an associative array (map). That means it doesn't work with length,
     but instead with key/value pairs.
@@ -126,7 +127,7 @@ end
         -- a table to filter
         foo = { a = 5, b = 10, c = 15, d = 20 }
         -- the filtered table, contains just key/value pairs a, b, d
-        bar = table.filter_map(foo, function(k, v)
+        bar = filter_map(foo, function(k, v)
             if k == "c" then
                 return false
             else
@@ -135,40 +136,22 @@ end
         end)
     (end)
 ]]
-table.filter_map = function(t, f)
+M.filter_map = function(t, f)
     local r = {}
     for a, b in pairs(t) do if f(a, b) then r[a] = b end end
     return r
 end
 
---[[! Function: table.find
+--[[! Function: find
     Finds a key of a value in the given table. The first argument is the
     table, the second argument is the value. Returns the key, or nil if
     nothing is found.
 ]]
-table.find = function(t, v)
+M.find = function(t, v)
     for a, b in pairs(t) do if v == b then return a end end
 end
 
---[[! Function: table.keys
-    Returns an array of table keys. See also <table.values>.
-]]
-table.keys = function(t)
-    local r = ctable(#t)
-    for a, b in pairs(t) do r[#r + 1] = a end
-    return r
-end
-
---[[! Function: table.keys
-    Returns an array of table values. See also <table.keys>.
-]]
-table.values = function(t)
-    local r = ctable(#t)
-    for a, b in pairs(t) do r[#r + 1] = b end
-    return r
-end
-
---[[! Function: table.foldr
+--[[! Function: foldr
     Performs a right fold on a table (array). The first argument
     is the table, followed by the predicate and a default value.
     If the default value is not provided, it defaults to the
@@ -177,10 +160,10 @@ end
 
     (start code)
         local a = { 5, 10, 15, 20 }
-        assert(table.foldr(a, function(a, b) return a + b end) == 50)
+        assert(foldr(a, function(a, b) return a + b end) == 50)
     (end)
 ]]
-table.foldr = function(t, fun, z)
+M.foldr = function(t, fun, z)
     local idx = 1
     if not z then
         z   = t[1]
@@ -193,10 +176,10 @@ table.foldr = function(t, fun, z)
     return z
 end
 
---[[! Function: table.foldl
+--[[! Function: foldl
     See above. Performs a left fold on a table.
 ]]
-table.foldl = function(t, fun, z)
+M.foldl = function(t, fun, z)
     local len = #t
     if not z then
         z   = t[len]
@@ -303,7 +286,7 @@ local defkwp = {
     optimize_keys = true
 }
 
---[[! Function: table.serialize
+--[[! Function: serialize
     Serializes a given table, returning a string containing a literal
     representation of the table. It tries to be compact by default so it
     avoids whitespace and newlines. Arrays and associative arrays are
@@ -376,7 +359,7 @@ local serialize = function(val, kwargs, stream, simplifier)
         end
     end
 end
-table.serialize = serialize
+M.serialize = serialize
 _C.external_set("table_serialize", serialize)
 
 local lex_get = function(ls)
@@ -538,7 +521,7 @@ local function parse(ls)
     end
 end
 
---[[! Function: table.deserialize
+--[[! Function: deserialize
     Takes a previously serialized table and converts it back to the original.
     Uses a simple tokenizer and a recursive descent parser to build the result,
     so it's safe (doesn't evaluate anything). The input can also be a callable
@@ -546,7 +529,7 @@ end
     External as "table_deserialize". This returns the deserialized value on
     success and nil + the error message on failure.
 ]]
-table.deserialize = function(s)
+M.deserialize = function(s)
     local stream = (type(s) == "string") and s:gmatch(".") or s
     local ls = { curr = stream(), rdr = stream, linenum = 1 }
     local r, v = pcall(lex_get, ls)
@@ -555,7 +538,7 @@ table.deserialize = function(s)
     if not r then return nil, v end
     return v
 end
-_C.external_set("table_deserialize", table.deserialize)
+_C.external_set("table_deserialize", M.deserialize)
 
 local sift_down = function(tbl, l, s, e, fun)
     local root = s
@@ -632,9 +615,9 @@ end
 
 local defaultcmp = function(a, b) return a < b end
 
---[[! Function: table.sort
-    Replaces the original table.sort. Normally it behaves exactly like
-    table.sort (takes a table, optionally a comparison function and
+--[[! Function: sort
+    A substitute for the original table.sort. Normally it behaves exactly
+    like table.sort (takes a table, optionally a comparison function and
     sorts the table in-place), but it also takes two other arguments
     specifying from where to where to sort the table (the starting
     and ending indexes, both are inclusive). Under LuaJIT it's also
@@ -646,7 +629,7 @@ local defaultcmp = function(a, b) return a < b end
     sort to sort small sublists (10 elements and smaller). The
     quicksort part uses a median of three pivot.
 ]]
-table.sort = function(tbl, fun, l, r)
+M.sort = function(tbl, fun, l, r)
     l, r = l or 1, r or #tbl
     return introsort(tbl, l, r, fun or defaultcmp)
 end
@@ -655,7 +638,7 @@ end
 -- Object system -
 ------------------
 
-table.Object = {
+M.Object = {
     __call = function(self, ...)
         local r = {
             __index = self, __proto = self, __call = self.__call,
@@ -689,3 +672,5 @@ table.Object = {
         return ("Object: %s"):format(self.name or "unnamed")
     end
 }
+
+return M
