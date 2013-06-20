@@ -22,6 +22,9 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local msg = require("core.network.msg")
 local table2 = require("core.lua.table")
+local var = require("core.lua.var")
+
+local var_get = var.get
 
 local bit = require("bit")
 
@@ -36,6 +39,8 @@ local connect, emit = signal.connect, signal.emit
 local format = string.format
 local abs = math.abs
 local tconc = table.concat
+local min, max = math.min, math.max
+local clamp = require("core.lua.math").clamp
 
 local set_attachments = _C.set_attachments
 
@@ -1116,6 +1121,127 @@ local Sound = Static_Entity:clone {
 }
 ents.Sound = Sound
 
+local PART_TEXT = 0
+local PART_ICON = 1
+local PART_METER = 2
+local PART_METER_VS = 3
+local PART_BLOOD = 4
+local PART_WATER = 5
+local PART_SMOKE = 6
+local PART_STEAM = 7
+local PART_FLAME = 8
+local PART_FIREBALL1 = 9
+local PART_FIREBALL2 = 10
+local PART_FIREBALL3 = 11
+local PART_STREAK = 12
+local PART_LIGHTNING = 13
+local PART_EXPLOSION = 14
+local PART_EXPLOSION_BLUE = 15
+local PART_SPARK = 16
+local PART_SNOW = 17
+local PART_MUZZLE_FLASH1 = 18
+local PART_MUZZLE_FLASH2 = 19
+local PART_MUZZLE_FLASH3 = 20
+local PART_LENS_FLARE = 21
+
+local typemap = { PART_STREAK, -1, -1, PART_LIGHTNING, -1, PART_STEAM,
+    PART_WATER, -1, -1, PART_SNOW }
+local sizemap = { 0.28, 0, 0, 1, 0, 2.4, 0.6, 0, 0, 0.5 }
+local gravmap = { 0, 0, 0, 0, 0, -20, 2, 0, 0, 20 }
+
+local part_draw_1 = function(pt, x, y, z, a1, a2, a3, a4)
+    local tp = typemap[pt - 3]
+    local sz = sizemap[pt - 3]
+    local gv = gravmap[pt - 3]
+    if a1 >= 256 then
+        _C.particle_shape(tp, x, y, z, max(1 + a2, 1), a1 - 256, 5, a3,
+            a4 > 0 and min(a4, 10000) or 200, sz, gv, 200)
+    else
+        local dx, dy, dz = _C.particle_offset_vec(x, y, z, a1, max(1 + a2, 0))
+        _C.particle_new(tp, x, y, z, dx, dy, dz, a3, 1, sz, gv)
+    end
+end
+
+local part_draw_2 = function(pt, x, y, z, a1, a2, a3, a4)
+    _C.particle_meter(pt == 5 and PART_METER or PART_METER_VS, x, y, z,
+        a1 / 100, a2, a3, 1, 2)
+end
+
+local part_draw_3 = function(pt, x, y, z, a1, a2, a3, a4)
+    _C.particle_lensflare(PART_LENS_FLARE, x, y, z,
+        band(pt, 0x02) ~= 0, band(pt, 0x01) ~= 0, a1)
+end
+
+local part_draw_default = function(pt, x, y, z, a1, a2, a3, a4)
+    if var_get("editing") == 0 then
+        _C.particle_text(PART_TEXT, x, y, z, ("particles %d?"):format(pt),
+            0x6496FF, 1, 2, 0)
+    end
+end
+
+local rand = math.random
+
+local part_draw_tbl = setmetatable({
+    -- fire and smoke - radius, height, rgb
+    [0] = function(pt, x, y, z, a1, a2, a3, a4)
+        local radius = a1 ~= 0 and a1 / 100 or 1.5
+        local height = a2 ~= 0 and a2 / 100 or 0.5
+        _C.particle_flame(PART_FLAME, x, y, z, radius, height, 3,
+            a3 ~= 0 and a3 or 0x903020, 600, 2, 200, -15)
+        _C.particle_flame(PART_SMOKE, x, y, z + 4 * min(radius, height),
+            radius, height, 1, 0x303020, 2000, 4, 100, -20)
+    end,
+    -- steam vent - dir
+    [1] = function(pt, x, y, z, a1, a2, a3, a4)
+        x, y, z = _C.particle_offset_vec(x, y, z, a1, rand(9))
+        _C.particle_splash(PART_STEAM, x, y, z, 50, 1, 0x897661,
+            200, 2.4, -20, 0)
+    end,
+    -- water fountain - dir
+    [2] = function(pt, x, y, z, a1, a2, a3, a4)
+        local color
+        if a2 > 0 then color = a2
+        elseif a2 == 0 then
+            color = var_get("waterfallcolor")
+            if color == 0 then color = var_get("watercolor") end
+        else
+            local mat = clamp(-a2, 2, 4)
+            color = var_get("water" .. mat .. "fallcolor")
+            if color == 0 then color = var_get("water" .. mat .. "color") end
+        end
+        x, y, z = _C.particle_offset_vec(x, y, z, a1, rand(9))
+        _C.particle_splash(PART_WATER, x, y, z, 150, 4, color, 200, 0.6, 2, 0)
+    end,
+    -- fireball - size, rgb
+    [3] = function(pt, x, y, z, a1, a2, a3, a4)
+        _C.particle_new(PART_EXPLOSION, x, y, z, 0, 0, 1, a2, 1, 4, 0)
+            :set_val(1 + a1)
+    end,
+    [4] = part_draw_1, -- tape - dir, length, rgb
+    [7] = part_draw_1, -- lightning
+    [9] = part_draw_1, -- steam
+    [10] = part_draw_1, -- water
+    [13] = part_draw_1, -- snow
+    [5] = part_draw_2, -- meter - percent, rgb, rgb2
+    [6] = part_draw_2, -- metervs
+    -- flame - radius, height, rgb
+    [11] = function(pt, x, y, z, a1, a2, a3, a4)
+        _C.particle_flame(PART_FLAME, x, y, z, a1 / 100, a2 / 100, 3, a3,
+            600, 2, 200, -15)
+    end,
+    -- smoke plume - radius, height, rgb
+    [12] = function(pt, x, y, z, a1, a2, a3, a4)
+        _C.particle_flame(PART_SMOKE, x, y, z, a1 / 100, a2 / 100, 1, a3,
+            2000, 4, 100, -20)
+    end,
+    [32] = part_draw_3,
+    [33] = part_draw_3,
+    [34] = part_draw_3,
+    [35] = part_draw_3
+}, {
+    __index = function() return part_draw_default end
+})
+
 --[[! Class: Particle_Effect
     A particle effect entity class. It has four properties. They all default
     to 0.
@@ -1255,9 +1381,22 @@ local Particle_Effect = Static_Entity:clone {
     ]]
     get_edit_drop_height = function(self)
         return 0
+    end,
+
+    part_draw = function(self)
+        local attr1 = self:get_attr("particle_type")
+        local attr2 = self:get_attr("a")
+        local attr3 = self:get_attr("b")
+        local attr4 = self:get_attr("c")
+        local attr5 = self:get_attr("d")
+        local pos = self:get_attr("position")
+        part_draw_tbl[attr1](attr1, pos.x, pos.y, pos.z,
+            attr2, attr3, attr4, attr5)
     end
 }
 ents.Particle_Effect = Particle_Effect
+
+set_external("particle_draw_entity", Particle_Effect.part_draw)
 
 --[[! Class: Mapmodel
     A model in the world. All properties default to 0. On mapmodels and all
