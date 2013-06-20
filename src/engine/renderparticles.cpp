@@ -1011,16 +1011,6 @@ REGISTER_VARENDERER(tape)
 REGISTER_VARENDERER(trail)
 #undef REGISTER_VARENDERER
 
-LUAICOMMAND(particle_register_renderer_fireball, {
-    const char *name = luaL_checkstring(L, 1);
-    if (get_renderer(L, name)) return 2;
-    const char *path = luaL_checkstring(L, 2);
-    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
-    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path);
-    register_renderer(L, name, new fireballrenderer(path));
-    return 2;
-})
-
 #define REGISTER_PATHRENDERER(name) \
 LUAICOMMAND(particle_register_renderer_##name, { \
     const char *name = luaL_checkstring(L, 1); \
@@ -1045,6 +1035,15 @@ LUAICOMMAND(particle_register_renderer_flare, {
     lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
     lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path);
     register_renderer(L, name, new flarerenderer(path, maxflares, flags));
+    return 2;
+})
+
+LUAICOMMAND(particle_register_renderer_meter, {
+    const char *name = luaL_checkstring(L, 1);
+    if (get_renderer(L, name)) return 2;
+    int flags = luaL_optinteger(L, 2, 0);
+    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
+    register_renderer(L, name, new meterrenderer(flags));
     return 2;
 })
 
