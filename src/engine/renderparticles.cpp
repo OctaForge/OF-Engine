@@ -1063,7 +1063,7 @@ void particleinit()
     if(!particlesoftshader) particlesoftshader = lookupshaderbyname("particlesoft");
     if(!particletextshader) particletextshader = lookupshaderbyname("particletext");
 
-    if (parts.length()) return;
+    if (parts.length()) goto partinit;
     parts.growbuf(22);
     parts.add(&texts);
     parts.add(&icons);
@@ -1088,6 +1088,7 @@ void particleinit()
     parts.add(new quadrenderer("media/particle/muzzleflash3", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
     parts.add(&flares);                                                                                        // lens flares - must be done last
 
+partinit:
     loopv(parts) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
 }
 
