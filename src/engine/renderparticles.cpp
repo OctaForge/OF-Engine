@@ -129,13 +129,12 @@ struct particle
     int gravity, fade, millis;
     bvec color;
     uchar flags;
-    float size;
+    float size, val;
+    physent *owner;
     union
     {
         const char *text;
-        float val;
         Texture *tex;
-        physent *owner;
         struct
         {
             uchar color2[3];
@@ -143,6 +142,72 @@ struct particle
         };
     };
 };
+
+/* can be changed into something more sophisticated when multiple
+ * metatables are needed, for now there is just one
+ */
+static particle *luacheckpart(lua_State *L, int idx) {
+    particle **part = (particle**)luaL_checkudata(L, idx, "Particle");
+    luaL_argcheck(L, part != NULL, idx, "'Particle' expected");
+    return *part;
+}
+
+#define PART_ACCESSOR(field, func, setfunc) \
+static int particle_get_##field(lua_State *L) { \
+    particle *part = luacheckpart(L, 1); \
+    lua_push##func(L, part->field); \
+    return 1; \
+} \
+static int particle_set_##field(lua_State *L) { \
+    particle *part = luacheckpart(L, 1); \
+    part->field = luaL_check##setfunc(L, 2); \
+    return 0; \
+}
+
+PART_ACCESSOR(gravity, integer, integer)
+PART_ACCESSOR(fade, integer, integer)
+PART_ACCESSOR(size, number, number)
+PART_ACCESSOR(val, number, number)
+
+static int particle_get_owner(lua_State *L) {
+    particle *part = luacheckpart(L, 1);
+    if (!part->owner) { lua_pushnil(L); return 1; }
+    CLogicEntity *ent = LogicSystem::getLogicEntity(part->owner);
+    if (!ent) { lua_pushnil(L); return 1; }
+    lua_rawgeti(L, LUA_REGISTRYINDEX, ent->lua_ref);
+    return 1;
+}
+static int particle_set_owner(lua_State *L) {
+    particle *part = luacheckpart(L, 1);
+    lua::push_external(L, "entity_get_attr");
+    lua_pushvalue(L, 2);
+    lua_pushliteral(L, "uid");
+    lua_call(L, 2, 1);
+    int uid = lua_tointeger(L, -1); lua_pop(L, 1);
+    CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
+    assert(ent && ent->dynamicEntity);
+    part->owner = ent->dynamicEntity;
+    return 0;
+}
+
+#define PART_VEC_ACCESSOR(prefix, field) \
+static int particle_get_##prefix##field(lua_State *L) { \
+    particle *part = luacheckpart(L, 1); \
+    lua_pushnumber(L, part->prefix.field); \
+    return 1; \
+} \
+static int particle_set_##prefix##field(lua_State *L) { \
+    particle *part = luacheckpart(L, 1); \
+    part->prefix.field = luaL_checknumber(L, 2); \
+    return 0; \
+}
+
+PART_VEC_ACCESSOR(o, x)
+PART_VEC_ACCESSOR(o, y)
+PART_VEC_ACCESSOR(o, z)
+PART_VEC_ACCESSOR(d, x)
+PART_VEC_ACCESSOR(d, y)
+PART_VEC_ACCESSOR(d, z)
 
 struct partvert
 {
@@ -186,6 +251,31 @@ struct partrenderer
     virtual bool haswork() = 0;
     virtual int count() = 0; //for debug
     virtual void cleanup() {}
+
+#define PART_MT_FIELD(field) \
+    lua_pushcfunction(L, particle_get_##field); \
+    lua_setfield(L, -2, "get_" #field); \
+    lua_pushcfunction(L, particle_set_##field); \
+    lua_setfield(L, -2, "set_" #field);
+
+    virtual void set_part_mt(lua_State *L) {
+        if (luaL_newmetatable(L, "Particle")) {
+            lua_createtable(L, 0, 0);
+            PART_MT_FIELD(gravity)
+            PART_MT_FIELD(fade)
+            PART_MT_FIELD(size)
+            PART_MT_FIELD(val)
+            PART_MT_FIELD(owner)
+            PART_MT_FIELD(ox)
+            PART_MT_FIELD(oy)
+            PART_MT_FIELD(oz)
+            PART_MT_FIELD(dx)
+            PART_MT_FIELD(dy)
+            PART_MT_FIELD(dz)
+            lua_setfield(L, -2, "__index");
+        }
+        lua_setmetatable(L, -2);
+    }
 
     virtual void seedemitter(particleemitter &pe, const vec &o, const vec &d, int fade, float size, int gravity)
     {
@@ -334,11 +424,12 @@ struct listrenderer : partrenderer
         p->millis = lastmillis + emitoffset;
         p->color = bvec(color>>16, (color>>8)&0xFF, color&0xFF);
         p->size = size;
+        p->val  = 0;
         p->owner = NULL;
         p->flags = 0;
         return p;
     }
-    
+
     int count() 
     {
         int num = 0;
@@ -1055,7 +1146,7 @@ static inline particle *newparticle(const vec &o, const vec &d, int fade, int ty
 
 LUAICOMMAND(particle_new, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    if (!parts.inrange(type)) { lua_pushnil(L); return 1; }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
@@ -1066,9 +1157,9 @@ LUAICOMMAND(particle_new, {
     int fade = luaL_checkinteger(L, 9);
     float size = luaL_checknumber(L, 10);
     int gravity = luaL_checkinteger(L, 11);
-    newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade, type, color, size,
-        gravity);
-    lua_pushboolean(L, true);
+    *((particle**)lua_newuserdata(L, sizeof(void*))) = newparticle(
+        vec(ox, oy, oz), vec(dx, dy, dz), fade, type, color, size, gravity);
+    parts[type]->set_part_mt(L);
     return 1;
 });
 
@@ -1676,3 +1767,5 @@ void updateparticles()
         }
     }
 }
+
+#undef PART_MT_FIELD
