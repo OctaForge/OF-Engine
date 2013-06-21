@@ -114,9 +114,9 @@ struct lightningrenderer : listrenderer
     {
         blend = min(blend<<2, 255);
         if(type&PT_MOD) //multiply alpha into color
-            gle::colorub((p->color.r*blend)>>8, (p->color.g*blend)>>8, (p->color.b*blend)>>8);
+            gle::colorf((int(p->color.r*blend*255)>>8)/255.0f, (int(p->color.g*blend*255)>>8)/255.0f, (int(p->color.b*blend*255)>>8)/255.0f);
         else
-            gle::color(p->color, blend);
+            gle::color(p->color, blend / 255.0f);
         renderlightning(tex, o, d, size);
     }
 };

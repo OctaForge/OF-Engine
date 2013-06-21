@@ -21,6 +21,9 @@ local var = require("core.lua.var")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
+local conv = require("core.lua.conv")
+
+local hextorgb = conv.hex_to_rgb
 
 local game_manager = require("extra.game_manager")
 
@@ -95,11 +98,12 @@ local Game_Player = Player:clone {
 
         for i, mark in ipairs(marks) do
             if last and mark and mark.x >= 0 and last.x >= 0 then
+                local r, g, b = hextorgb(mark.w)
                 -- 12 == STREAK
                 _C.particle_flare(12, mark.x, mark.y, mark.z,
-                    last.x, last.y, last.z, mark.w, 0, 1, -1)
+                    last.x, last.y, last.z, r, g, b, 0, 1, -1)
                 _C.particle_flare(12, last.x, last.y, last.z,
-                    mark.x, mark.y, mark.z, mark.w, 0, 1, -1)
+                    mark.x, mark.y, mark.z, r, g, b, 0, 1, -1)
             end
             last = mark
         end
@@ -109,7 +113,8 @@ local Game_Player = Player:clone {
 
         if conb and not self.stop_batch then
             local mark = marks[#marks - 1]
-            _C.particle_splash(16, mark.x, mark.y, mark.z, 25, 10, mark.w,
+            local r, g, b = hextorgb(mark.w)
+            _C.particle_splash(16, mark.x, mark.y, mark.z, 25, 10, r, g, b,
                 150, 1, 1, 0) -- 16 == SPARK
         end
 

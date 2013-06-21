@@ -23,6 +23,9 @@ local ents = require("core.entities.ents")
 local msg = require("core.network.msg")
 local table2 = require("core.lua.table")
 local var = require("core.lua.var")
+local conv = require("core.lua.conv")
+
+local hextorgb = conv.hex_to_rgb
 
 local var_get = var.get
 
@@ -826,11 +829,11 @@ local Static_Entity = Physical_Entity:clone {
 
     --[[! Function: get_edit_color
         Returns the color of the entity icon in edit mode. If an invalid
-        value is returned, it defaults to 0xFFFFFF (white). This is useful
+        value is returned, it defaults to 255, 255, 255 (white). This is useful
         for e.g. light entity that is colored.
     ]]
     get_edit_color = function(self)
-        return 0xFFFFFF
+        return 255, 255, 255
     end,
 
     --[[! Function: get_edit_info
@@ -990,8 +993,8 @@ local Light = Static_Entity:clone {
     end,
 
     get_edit_color = function(self)
-        return bor(self:get_attr("blue"), lsh(self:get_attr("green"), 8),
-            lsh(self:get_attr("red"), 16))
+        return self:get_attr("red"), self:get_attr("green"),
+            self:get_attr("blue")
     end,
 
     get_edit_info = function(self)
@@ -1030,9 +1033,8 @@ local Spot_Light = Static_Entity:clone {
 
     get_edit_color = function(self)
         local ent = self:get_attached_entity()
-        if not ent then return 0xFFFFFF end
-        return bor(ent:get_attr("blue"), lsh(ent:get_attr("green"), 8),
-            lsh(ent:get_attr("red"), 16))
+        if not ent then return 255, 255, 255 end
+        return ent:get_attr("red"), ent:get_attr("green"), ent:get_attr("blue")
     end,
 
     get_edit_info = function(self)
@@ -1153,29 +1155,33 @@ local part_draw_1 = function(pt, x, y, z, a1, a2, a3, a4)
     local tp = typemap[pt - 3]
     local sz = sizemap[pt - 3]
     local gv = gravmap[pt - 3]
+    local r, g, b = hextorgb(a3)
     if a1 >= 256 then
-        _C.particle_shape(tp, x, y, z, max(1 + a2, 1), a1 - 256, 5, a3,
+        _C.particle_shape(tp, x, y, z, max(1 + a2, 1), a1 - 256, 5, r, g, b,
             a4 > 0 and min(a4, 10000) or 200, sz, gv, 200)
     else
         local dx, dy, dz = _C.particle_offset_vec(x, y, z, a1, max(1 + a2, 0))
-        _C.particle_new(tp, x, y, z, dx, dy, dz, a3, 1, sz, gv)
+        _C.particle_new(tp, x, y, z, dx, dy, dz, r, g, b, 1, sz, gv)
     end
 end
 
 local part_draw_2 = function(pt, x, y, z, a1, a2, a3, a4)
+    local r, g, b = hextorgb(a2)
+    local r2, g2, b2 = hextorgb(a3)
     _C.particle_meter(pt == 5 and PART_METER or PART_METER_VS, x, y, z,
-        a1 / 100, a2, a3, 1, 2)
+        a1 / 100, r, g, b, r2, g2, b2, 1, 2)
 end
 
 local part_draw_3 = function(pt, x, y, z, a1, a2, a3, a4)
+    local r, g, b = hextorgb(a1)
     _C.particle_lensflare(PART_LENS_FLARE, x, y, z,
-        band(pt, 0x02) ~= 0, band(pt, 0x01) ~= 0, a1)
+        band(pt, 0x02) ~= 0, band(pt, 0x01) ~= 0, r, g, b)
 end
 
 local part_draw_default = function(pt, x, y, z, a1, a2, a3, a4)
     if var_get("editing") == 0 then
         _C.particle_text(PART_TEXT, x, y, z, ("particles %d?"):format(pt),
-            0x6496FF, 1, 2, 0)
+            0x64, 0x96, 0xFF, 1, 2, 0)
     end
 end
 
@@ -1186,15 +1192,16 @@ local part_draw_tbl = setmetatable({
     [0] = function(pt, x, y, z, a1, a2, a3, a4)
         local radius = a1 ~= 0 and a1 / 100 or 1.5
         local height = a2 ~= 0 and a2 / 100 or 0.5
+        local r, g, b = hextorgb(a3 ~= 0 and a3 or 0x903020)
         _C.particle_flame(PART_FLAME, x, y, z, radius, height, 3,
-            a3 ~= 0 and a3 or 0x903020, 600, 2, 200, -15)
+            r, g, b, 600, 2, 200, -15)
         _C.particle_flame(PART_SMOKE, x, y, z + 4 * min(radius, height),
-            radius, height, 1, 0x303020, 2000, 4, 100, -20)
+            radius, height, 1, 0x30, 0x30, 0x20, 2000, 4, 100, -20)
     end,
     -- steam vent - dir
     [1] = function(pt, x, y, z, a1, a2, a3, a4)
         x, y, z = _C.particle_offset_vec(x, y, z, a1, rand(9))
-        _C.particle_splash(PART_STEAM, x, y, z, 50, 1, 0x897661,
+        _C.particle_splash(PART_STEAM, x, y, z, 50, 1, 0x89, 0x76, 0x61,
             200, 2.4, -20, 0)
     end,
     -- water fountain - dir
@@ -1210,11 +1217,14 @@ local part_draw_tbl = setmetatable({
             if color == 0 then color = var_get("water" .. mat .. "color") end
         end
         x, y, z = _C.particle_offset_vec(x, y, z, a1, rand(9))
-        _C.particle_splash(PART_WATER, x, y, z, 150, 4, color, 200, 0.6, 2, 0)
+        local r, g, b = hextorgb(color)
+        _C.particle_splash(PART_WATER, x, y, z, 150, 4, r, g, b,
+            200, 0.6, 2, 0)
     end,
     -- fireball - size, rgb
     [3] = function(pt, x, y, z, a1, a2, a3, a4)
-        _C.particle_new(PART_EXPLOSION, x, y, z, 0, 0, 1, a2, 1, 4, 0)
+        local r, g, b = hextorgb(a2)
+        _C.particle_new(PART_EXPLOSION, x, y, z, 0, 0, 1, r, g, b, 1, 4, 0)
             :set_val(1 + a1)
     end,
     [4] = part_draw_1, -- tape - dir, length, rgb
@@ -1226,13 +1236,15 @@ local part_draw_tbl = setmetatable({
     [6] = part_draw_2, -- metervs
     -- flame - radius, height, rgb
     [11] = function(pt, x, y, z, a1, a2, a3, a4)
-        _C.particle_flame(PART_FLAME, x, y, z, a1 / 100, a2 / 100, 3, a3,
-            600, 2, 200, -15)
+        local r, g, b = hextorgb(a3)
+        _C.particle_flame(PART_FLAME, x, y, z, a1 / 100, a2 / 100, 3,
+            r, g, b, 600, 2, 200, -15)
     end,
     -- smoke plume - radius, height, rgb
     [12] = function(pt, x, y, z, a1, a2, a3, a4)
-        _C.particle_flame(PART_SMOKE, x, y, z, a1 / 100, a2 / 100, 1, a3,
-            2000, 4, 100, -20)
+        local r, g, b = hextorgb(a3)
+        _C.particle_flame(PART_SMOKE, x, y, z, a1 / 100, a2 / 100, 1,
+            r, g, b, 2000, 4, 100, -20)
     end,
     [32] = part_draw_3,
     [33] = part_draw_3,

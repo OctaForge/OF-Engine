@@ -24,7 +24,7 @@ struct flare
 {
     vec o, center;
     float size;
-    uchar color[3];
+    float color[3];
     bool sparkle;
 };
 
@@ -39,7 +39,7 @@ struct flarerenderer : partrenderer
     flare *flares;
 
     flarerenderer(const char *texname, int maxflares, int flags = 0)
-        : partrenderer(texname, 3, PT_FLARE||PT_SPECIAL|flags), maxflares(maxflares), shinetime(0)
+        : partrenderer(texname, 3, PT_FLARE|PT_SPECIAL|flags), maxflares(maxflares), shinetime(0)
     {
         flares = new flare[maxflares];
     }
@@ -48,7 +48,7 @@ struct flarerenderer : partrenderer
         numflares = 0;
     }
 
-    void newflare(vec &o,  const vec &center, uchar r, uchar g, uchar b, float mod, float size, bool sun, bool sparkle)
+    void newflare(vec &o,  const vec &center, float r, float g, float b, float mod, float size, bool sun, bool sparkle)
     {
         if(numflares >= maxflares) return;
         //occlusion check (neccessary as depth testing is turned off)
@@ -60,9 +60,9 @@ struct flarerenderer : partrenderer
         f.o = o;
         f.center = center;
         f.size = size;
-        f.color[0] = uchar(r*mod);
-        f.color[1] = uchar(g*mod);
-        f.color[2] = uchar(b*mod);
+        f.color[0] = r*mod;
+        f.color[1] = g*mod;
+        f.color[2] = b*mod;
         f.sparkle = sparkle;
     }
 
@@ -139,13 +139,13 @@ struct flarerenderer : partrenderer
         glBindTexture(GL_TEXTURE_2D, tex->id);
         gle::defattrib(gle::ATTRIB_VERTEX, 3, GL_FLOAT);
         gle::defattrib(gle::ATTRIB_TEXCOORD0, 2, GL_FLOAT);
-        gle::defattrib(gle::ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE); 
+        gle::defattrib(gle::ATTRIB_COLOR, 4, GL_FLOAT); 
         gle::begin(GL_QUADS);
         loopi(numflares)
         {
             const flare &f = flares[i];
             vec axis = vec(f.o).sub(f.center);
-            uchar color[4] = {f.color[0], f.color[1], f.color[2], 255};
+            float color[4] = {f.color[0], f.color[1], f.color[2], 1.0f};
             loopj(f.sparkle?12:9)
             {
                 const flaretype &ft = flaretypes[j];
@@ -156,9 +156,9 @@ struct flarerenderer : partrenderer
                 {
                     shinetime = (shinetime + 1) % 10;
                     tex = 6+shinetime;
-                    color[0] = 0;
-                    color[1] = 0;
-                    color[2] = 0;
+                    color[0] = 0.0f;
+                    color[1] = 0.0f;
+                    color[2] = 0.0f;
                     color[-ft.type-1] = f.color[-ft.type-1]; //only want a single channel
                 }
                 color[3] = ft.alpha;
@@ -166,16 +166,16 @@ struct flarerenderer : partrenderer
                 float tx = tsz*(tex&0x03), ty = tsz*((tex>>2)&0x03);
                 gle::attribf(o.x+(-camright.x+camup.x)*sz, o.y+(-camright.y+camup.y)*sz, o.z+(-camright.z+camup.z)*sz);
                     gle::attribf(tx,     ty+tsz);                                       
-                    gle::attribv<4, uchar>(color);
+                    gle::attribv<4, float>(color);
                 gle::attribf(o.x+( camright.x+camup.x)*sz, o.y+( camright.y+camup.y)*sz, o.z+( camright.z+camup.z)*sz);
                     gle::attribf(tx+tsz, ty+tsz);
-                    gle::attribv<4, uchar>(color);
+                    gle::attribv<4, float>(color);
                 gle::attribf(o.x+( camright.x-camup.x)*sz, o.y+( camright.y-camup.y)*sz, o.z+( camright.z-camup.z)*sz);
                     gle::attribf(tx+tsz, ty);
-                    gle::attribv<4, uchar>(color);
+                    gle::attribv<4, float>(color);
                 gle::attribf(o.x+(-camright.x-camup.x)*sz, o.y+(-camright.y-camup.y)*sz, o.z+(-camright.z-camup.z)*sz);
                     gle::attribf(tx,     ty);
-                    gle::attribv<4, uchar>(color);
+                    gle::attribv<4, float>(color);
             }
         }
         gle::end();

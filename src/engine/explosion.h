@@ -364,7 +364,7 @@ struct fireballrenderer : listrenderer
             LOCALPARAMF(softparams, (0, -1, inside ? blend/(2*255.0f) : 0));
         }
 
-        drawexplosion(inside, p->color.r*ldrscaleb, p->color.g*ldrscaleb, p->color.b*ldrscaleb, blend/255.0f);
+        drawexplosion(inside, p->color.r*ldrscale, p->color.g*ldrscale, p->color.b*ldrscale, blend/255.0f);
     }
 };
 static fireballrenderer fireballs("media/particle/explosion"), bluefireballs("media/particle/plasma");

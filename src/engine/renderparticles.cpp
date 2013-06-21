@@ -133,7 +133,7 @@ struct particle
 {
     vec o, d;
     int gravity, fade, millis;
-    bvec color;
+    vec color;
     uchar flags;
     float size, val;
     physent *owner;
@@ -143,7 +143,7 @@ struct particle
         Texture *tex;
         struct
         {
-            uchar color2[3];
+            float color2[3];
             uchar progress;
         };
     };
@@ -219,14 +219,14 @@ struct partvert
 {
     vec pos;
     float u, v;
-    bvec color;
-    uchar alpha;
+    vec color;
+    float alpha;
 };
 
 #define COLLIDERADIUS 8.0f
 #define COLLIDEERROR 1.0f
 
-void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color = bvec(0xFF, 0xFF, 0xFF), int info = 0);
+void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color = bvec(255, 255, 255), int info = 0);
 
 struct partrenderer
 {
@@ -250,8 +250,8 @@ struct partrenderer
 
     virtual void init(int n) { }
     virtual void reset() = 0;
-    virtual void resettracked(physent *owner) { }   
-    virtual particle *addpart(const vec &o, const vec &d, int fade, int r, int g, int b, float size, int gravity = 0) = 0;    
+    virtual void resettracked(physent *owner) { }
+    virtual particle *addpart(const vec &o, const vec &d, int fade, int r, int g, int b, float size, int gravity = 0) = 0;
     virtual void update() { }
     virtual void render() = 0;
     virtual bool haswork() = 0;
@@ -341,7 +341,7 @@ struct partrenderer
                         p->val = collidez+COLLIDEERROR;
                     else 
                     {
-                        adddecal(collide, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*size, p->color, type&PT_RND4 ? (p->flags>>5)&3 : 0);
+                        adddecal(collide, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*size, bvec(p->color.x * 255, p->color.y * 255, p->color.z * 255), type&PT_RND4 ? (p->flags>>5)&3 : 0);
                         blend = 0;
                     }
                 }
@@ -428,7 +428,7 @@ struct listrenderer : partrenderer
         p->gravity = gravity;
         p->fade = fade;
         p->millis = lastmillis + emitoffset;
-        p->color = bvec(r, g, b);
+        p->color = vec(r / 255.0f, g / 255.0f, b / 255.0f);
         p->size = size;
         p->val  = 0;
         p->owner = NULL;
@@ -529,7 +529,7 @@ struct meterrenderer : listrenderer
             gle::end();
         }
 
-        if(basetype==PT_METERVS) gle::colorub(p->color2[0], p->color2[1], p->color2[2]);
+        if(basetype==PT_METERVS) gle::colorf(p->color2[0], p->color2[1], p->color2[2]);
         else gle::colorf(0, 0, 0);
         gle::begin(GL_TRIANGLE_STRIP);
         loopk(10)
@@ -601,7 +601,8 @@ struct textrenderer : listrenderer
         m.translate(xoff, yoff, 50);
 
         textmatrix = &m;
-        draw_text(p->text, 0, 0, p->color.r, p->color.g, p->color.b, blend);
+        draw_text(p->text, 0, 0, p->color.r * 255, p->color.g * 255,
+            p->color.b * 255, blend);
         textmatrix = NULL;
     } 
 };
@@ -637,7 +638,7 @@ struct iconrenderer: listrenderer {
         m.scale(size);
         m.translate(-0.5f, -0.5f, 0);
 
-        gle::color(p->color, blend);
+        gle::color(p->color, blend / 255.0f);
         gle::begin(GL_TRIANGLE_STRIP);
         gle::attrib(m.transform(vec2(0, 0))); gle::attribf(0, 0);
         gle::attrib(m.transform(vec2(1, 0))); gle::attribf(1, 0);
@@ -822,7 +823,7 @@ struct varenderer : partrenderer
         p->gravity = gravity;
         p->fade = fade;
         p->millis = lastmillis + emitoffset;
-        p->color = bvec(r, g, b);
+        p->color = vec(r / 255.0f, g / 255.0f, b / 255.0f);
         p->size = size;
         p->owner = NULL;
         p->flags = 0x80 | (rndmask ? rnd(0x80) & rndmask : 0);
@@ -895,15 +896,17 @@ struct varenderer : partrenderer
 
             #define SETCOLOR(r, g, b, a) \
             do { \
-                uchar col[4] = { uchar(r), uchar(g), uchar(b), uchar(a) }; \
+                float col[4] = { r, g, b, a }; \
                 loopi(4) memcpy(vs[i].color.v, col, sizeof(col)); \
             } while(0) 
-            #define SETMODCOLOR SETCOLOR((p->color[0]*blend)>>8, (p->color[1]*blend)>>8, (p->color[2]*blend)>>8, 255)
+            #define SETMODCOLOR SETCOLOR((int(p->color[0]*blend*255)>>8)/255.0f,\
+                (int(p->color[1]*blend*255)>>8)/255.0f, \
+                (int(p->color[2]*blend*255)>>8)/255.0f, 1.0f)
             if(type&PT_MOD) SETMODCOLOR;
-            else SETCOLOR(p->color[0], p->color[1], p->color[2], blend);
+            else SETCOLOR(p->color[0], p->color[1], p->color[2], blend / 255.0f);
         }
         else if(type&PT_MOD) SETMODCOLOR;
-        else loopi(4) vs[i].alpha = blend;
+        else loopi(4) vs[i].alpha = blend / 255.0f;
 
         if(type&PT_ROT) genrotpos<T>(o, d, size, ts, p->gravity, vs, (p->flags>>2)&0x1F);
         else genpos<T>(o, d, size, ts, p->gravity, vs);
@@ -952,7 +955,8 @@ struct varenderer : partrenderer
         const partvert *ptr = 0;
         gle::vertexpointer(sizeof(partvert), &ptr->pos);
         gle::texcoord0pointer(sizeof(partvert), &ptr->u);
-        gle::colorpointer(sizeof(partvert), &ptr->color);
+        gle::colorpointer(sizeof(partvert), &ptr->color, GL_FLOAT, 4);
+
         gle::enablevertex();
         gle::enabletexcoord0();
         gle::enablecolor();
@@ -1462,9 +1466,9 @@ LUAICOMMAND(particle_meter, {
     float size = luaL_checknumber(L, 13);
     particle *p = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         r, g, b, size);
-    p->color2[0] = r2;
-    p->color2[1] = g2;
-    p->color2[2] = b2;
+    p->color2[0] = r2 / 255.0f;
+    p->color2[1] = g2 / 255.0f;
+    p->color2[2] = b2 / 255.0f;
     p->progress = clamp(int(val*100), 0, 100);
     lua_pushboolean(L, true);
     return 1;
@@ -1533,7 +1537,8 @@ LUAICOMMAND(particle_lensflare, {
     int g = luaL_checkinteger(L, 8);
     int b = luaL_checkinteger(L, 9);
     vec o(ox, oy, oz);
-    ((flarerenderer*)parts[type])->addflare(o, r, g, b, sun, sparkle);
+    ((flarerenderer*)parts[type])->addflare(o, r / 255.0f, g / 255.0f,
+        b / 255.0f, sun, sparkle);
     lua_pushboolean(L, true);
     return 1;
 })
