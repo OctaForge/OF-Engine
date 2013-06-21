@@ -596,26 +596,22 @@ M.load = function()
         local sn = {
             [1] = "Light",           [2] = "Mapmodel",
             [3] = "Oriented_Marker", [4] = "Envmap",
-            [5] = "Particle_Effect", [6] = "Sound",
-            [7] = "Spot_Light"
+            [6] = "Sound",           [7] = "Spot_Light"
         }
 
         for i = 1, #storage_sauer do
             local e = storage_sauer[i]
             local et = e[1]
+            local o, attr1, attr2, attr3, attr4, attr5
+                = e[2], e[3], e[4], e[5], e[6], e[7]
             if sn[et] then
-                local o, attr1, attr2, attr3, attr4, attr5
-                    = e[2], e[3], e[4], e[5], e[6], e[7]
-
                 entities[#entities + 1] = {
                     huid, sn[et], {
                         attr1 = tostring(attr1), attr2 = tostring(attr2),
                         attr3 = tostring(attr3), attr4 = tostring(attr4),
                         attr5 = tostring(attr5),
 
-                        radius = "0", position = ("[%i|%i|%i]"):format(
-                            o.x, o.y, o.z),
-
+                        position = ("[%i|%i|%i]"):format(o.x, o.y, o.z),
                         animation = "130", model_name = "", attachments = "[]",
                         tags = "[]", persistent = "true"
                     }
@@ -649,6 +645,10 @@ M.load = function()
                 end
 
                 huid = huid + 1
+            else
+                #log(WARNING, ("unsupported sauer entity: %d: (%f, %f, %f) "
+                #   .. "%d %d %d %d %d"):format(et, o.x, o.y, o.z, attr1,
+                #   attr2, attr3, attr4, attr5))
             end
         end
 
