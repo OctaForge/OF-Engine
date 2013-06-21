@@ -279,10 +279,10 @@ static void deleteexplosions()
 
 static const float WOBBLE = 1.25f;
 
-struct fireballrenderer : listrenderer
+struct fireballrenderer : regularlistrenderer
 {
     fireballrenderer(const char *texname)
-        : listrenderer(texname, 0, PT_FIREBALL|PT_SHADER)
+        : regularlistrenderer(texname, 0, PT_FIREBALL|PT_SHADER)
     {}
 
     void startrender()
@@ -306,7 +306,7 @@ struct fireballrenderer : listrenderer
         pe.extendbb(o, (size+1+pe.ent->attr[1])*WOBBLE); 
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
+    void renderpart(regularlistparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
     {
         float pmax = p->val,
               size2 = p->fade ? float(ts)/p->fade : 1,

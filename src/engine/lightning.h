@@ -79,10 +79,10 @@ static void renderlightning(Texture *tex, const vec &o, const vec &d, float sz)
     gle::end();
 }
 
-struct lightningrenderer : listrenderer
+struct lightningrenderer : regularlistrenderer
 {
     lightningrenderer(const char *texname)
-        : listrenderer(texname, 2, PT_LIGHTNING|PT_BRIGHT|PT_TRACK)
+        : regularlistrenderer(texname, 2, PT_LIGHTNING|PT_BRIGHT|PT_TRACK)
     {}
 
     void startrender()
@@ -110,7 +110,7 @@ struct lightningrenderer : listrenderer
         pe.extendbb(d, size);
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
+    void renderpart(regularlistparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
     {
         blend = min(blend<<2, 255);
         if(type&PT_MOD) //multiply alpha into color

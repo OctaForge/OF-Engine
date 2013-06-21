@@ -129,23 +129,16 @@ enum
 
 const char *partnames[] = { "part", "tape", "trail", "text", "textup", "meter", "metervs", "fireball", "lightning", "flare" };
 
-struct particle
-{
+struct particle {
     vec o, d;
     int gravity, fade, millis;
     vec color;
     uchar flags;
     float size, val;
     physent *owner;
-    union
-    {
+    union {
         const char *text;
         Texture *tex;
-        struct
-        {
-            float color2[3];
-            uchar progress;
-        };
     };
 };
 
@@ -351,17 +344,21 @@ struct partrenderer
     }
 };
 
-struct listparticle : particle
+template<typename T>
+struct listparticle: particle
 {   
-    listparticle *next;
+    T *next;
 };
+
+struct regularlistparticle: listparticle<regularlistparticle> {};
 
 VARP(outlinemeters, 0, 0, 1);
 
+template<typename T>
 struct listrenderer : partrenderer
 {
-    static listparticle *parempty;
-    listparticle *list;
+    static T *parempty;
+    T *list;
 
     listrenderer(const char *texname, int texclamp, int type, int collide = 0) 
         : partrenderer(texname, texclamp, type, collide), list(NULL)
@@ -376,14 +373,14 @@ struct listrenderer : partrenderer
     {
     }
 
-    virtual void killpart(listparticle *p)
+    virtual void killpart(T *p)
     {
     }
 
-    void reset()  
+    void reset()
     {
         if(!list) return;
-        listparticle *p = list;
+        T *p = list;
         for(;;)
         {
             killpart(p);
@@ -398,7 +395,7 @@ struct listrenderer : partrenderer
     void resettracked(physent *owner) 
     {
         if(!(type&PT_TRACK)) return;
-        for(listparticle **prev = &list, *cur = list; cur; cur = *prev)
+        for(T **prev = &list, *cur = list; cur; cur = *prev)
         {
             if(!owner || cur->owner==owner) 
             {
@@ -409,17 +406,17 @@ struct listrenderer : partrenderer
             else prev = &cur->next;
         }
     }
-    
-    particle *addpart(const vec &o, const vec &d, int fade, int r, int g, int b, float size, int gravity) 
+
+    T *addlistpart(const vec &o, const vec &d, int fade, int r, int g, int b, float size, int gravity) 
     {
         if(!parempty)
         {
-            listparticle *ps = new listparticle[256];
+            T *ps = new T[256];
             loopi(255) ps[i].next = &ps[i+1];
             ps[255].next = parempty;
             parempty = ps;
         }
-        listparticle *p = parempty;
+        T *p = parempty;
         parempty = p->next;
         p->next = list;
         list = p;
@@ -436,10 +433,14 @@ struct listrenderer : partrenderer
         return p;
     }
 
+    virtual particle *addpart(const vec &o, const vec &d, int fade, int r, int g, int b, float size, int gravity) {
+        return listrenderer<T>::addlistpart(o, d, fade, r, g, b, size, gravity);
+    }
+
     int count() 
     {
         int num = 0;
-        listparticle *lp;
+        T *lp;
         for(lp = list; lp; lp = lp->next) num++;
         return num;
     }
@@ -451,14 +452,14 @@ struct listrenderer : partrenderer
     
     virtual void startrender() = 0;
     virtual void endrender() = 0;
-    virtual void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size) = 0;
+    virtual void renderpart(T *p, const vec &o, const vec &d, int blend, int ts, float size) = 0;
 
     void render() 
     {
         startrender();
         if(tex) glBindTexture(GL_TEXTURE_2D, tex->id);
         
-        for(listparticle **prev = &list, *p = list; p; p = *prev)
+        for(T **prev = &list, *p = list; p; p = *prev)
         {   
             vec o, d;
             int blend, ts;
@@ -485,12 +486,19 @@ struct listrenderer : partrenderer
     }
 };
 
-listparticle *listrenderer::parempty = NULL;
+template<typename T> T *listrenderer<T>::parempty = NULL;
 
-struct meterrenderer : listrenderer
+typedef listrenderer<regularlistparticle> regularlistrenderer;
+
+struct meterparticle: listparticle<meterparticle> {
+    vec color2;
+    uchar progress;
+};
+
+struct meterrenderer : listrenderer<meterparticle>
 {
     meterrenderer(int type)
-        : listrenderer(type|PT_NOTEX|PT_LERP|PT_SPECIAL)
+        : listrenderer<meterparticle>(type|PT_NOTEX|PT_LERP|PT_SPECIAL)
     {}
 
     void startrender()
@@ -505,7 +513,14 @@ struct meterrenderer : listrenderer
          glEnable(GL_BLEND);
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
+    particle *addpart(const vec &o, const vec &d, int fade, int r, int g, int b, float size, int gravity) {
+        meterparticle *part = listrenderer<meterparticle>::addlistpart(o, d, fade, r, g, b, size, gravity);
+        part->color2 = vec(0);
+        part->progress = 0;
+        return part;
+    }
+
+    void renderpart(meterparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
     {
         int basetype = type&0xFF;
         float scale = FONTH*size/80.0f, right = 8, left = p->progress/100.0f*right;
@@ -529,7 +544,7 @@ struct meterrenderer : listrenderer
             gle::end();
         }
 
-        if(basetype==PT_METERVS) gle::colorf(p->color2[0], p->color2[1], p->color2[2]);
+        if(basetype==PT_METERVS) gle::colorf(p->color2.x, p->color2.y, p->color2.z);
         else gle::colorf(0, 0, 0);
         gle::begin(GL_TRIANGLE_STRIP);
         loopk(10)
@@ -568,10 +583,10 @@ struct meterrenderer : listrenderer
 };
 static meterrenderer meters(PT_METER), metervs(PT_METERVS);
 
-struct textrenderer : listrenderer
+struct textrenderer : regularlistrenderer
 {
     textrenderer(int type = 0)
-        : listrenderer(type|PT_TEXT|PT_LERP|PT_SHADER|PT_SPECIAL)
+        : regularlistrenderer(type|PT_TEXT|PT_LERP|PT_SHADER|PT_SPECIAL)
     {}
 
     void startrender()
@@ -584,12 +599,12 @@ struct textrenderer : listrenderer
         textshader = NULL;
     }
 
-    void killpart(listparticle *p)
+    void killpart(regularlistparticle *p)
     {
         if(p->text) delete[] p->text;
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
+    void renderpart(regularlistparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
     {
         float scale = size/80.0f, xoff = -text_width(p->text)/2, yoff = 0;
         if((type&0xFF)==PT_TEXTUP) { xoff += detrnd((size_t)p, 100)-50; yoff -= detrnd((size_t)p, 101); }
@@ -609,11 +624,11 @@ struct textrenderer : listrenderer
 static textrenderer texts;
 
 /* OF */
-struct iconrenderer: listrenderer {
+struct iconrenderer: regularlistrenderer {
     Texture *prevtex;
 
     iconrenderer(int type = 0):
-        listrenderer(type|PT_ICON|PT_LERP|PT_SPECIAL), prevtex(NULL) {}
+        regularlistrenderer(type|PT_ICON|PT_LERP|PT_SPECIAL), prevtex(NULL) {}
 
     void startrender() {
         prevtex = NULL;
@@ -625,7 +640,7 @@ struct iconrenderer: listrenderer {
         gle::disable();
     }
 
-    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, float size) {
+    void renderpart(regularlistparticle *p, const vec &o, const vec &d, int blend, int ts, float size) {
         Texture *tex = p->tex;
         if (!tex) return;
         if (tex != prevtex) {
@@ -1462,11 +1477,9 @@ LUAICOMMAND(particle_meter, {
     int b2 = luaL_checkinteger(L, 11);
     int fade = luaL_checkinteger(L, 12);
     float size = luaL_checknumber(L, 13);
-    particle *p = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
-        r, g, b, size);
-    p->color2[0] = r2 / 255.0f;
-    p->color2[1] = g2 / 255.0f;
-    p->color2[2] = b2 / 255.0f;
+    meterparticle *p = (meterparticle*)newparticle(vec(ox, oy, oz),
+        vec(0, 0, 1), fade, type, r, g, b, size);
+    p->color2 = vec(r2 / 255.0f, g2 / 255.0f, b2 / 255.0f);
     p->progress = clamp(int(val*100), 0, 100);
     lua_pushboolean(L, true);
     return 1;
