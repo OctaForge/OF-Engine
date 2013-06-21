@@ -102,6 +102,7 @@ enum
     PT_FIREBALL,
     PT_LIGHTNING,
     PT_FLARE,
+    PT_TYPEMASK, // must be last, used as a bit mask
 
     PT_MOD       = 1<<8,
     PT_RND4      = 1<<9,
@@ -1001,7 +1002,7 @@ LUAICOMMAND(particle_register_renderer_##name, { \
     const char *name = luaL_checkstring(L, 1); \
     if (get_renderer(L, name)) return 2; \
     const char *path = luaL_checkstring(L, 2); \
-    int flags   = luaL_checkinteger(L, 3); \
+    int flags   = luaL_checkinteger(L, 3) & (~PT_TYPEMASK); \
     int collide = luaL_optinteger(L, 4, 0); \
     lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name); \
     lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path); \
@@ -1034,7 +1035,7 @@ LUAICOMMAND(particle_register_renderer_flare, {
     if (get_renderer(L, name)) return 2;
     const char *path = luaL_checkstring(L, 2);
     int maxflares = luaL_checkinteger(L, 3);
-    int flags = luaL_optinteger(L, 4, 0);
+    int flags = luaL_optinteger(L, 4, 0) & (~PT_TYPEMASK);
     lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
     lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path);
     register_renderer(L, name, new flarerenderer(path, maxflares, flags));
@@ -1044,7 +1045,7 @@ LUAICOMMAND(particle_register_renderer_flare, {
 LUAICOMMAND(particle_register_renderer_meter, {
     const char *name = luaL_checkstring(L, 1);
     if (get_renderer(L, name)) return 2;
-    int flags = luaL_optinteger(L, 2, 0);
+    int flags = luaL_optinteger(L, 2, 0) & (~PT_TYPEMASK);
     lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
     register_renderer(L, name, new meterrenderer(flags));
     return 2;
