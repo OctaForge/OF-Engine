@@ -1295,23 +1295,6 @@ static void splash(int type, int color, int radius, int num, int fade, const vec
     }
 }
 
-LUAICOMMAND(particle_splash_unbounded, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    int radius = luaL_checkinteger(L, 5);
-    int num = luaL_checkinteger(L, 6);
-    int color = luaL_checkinteger(L, 7);
-    int fade = luaL_checkinteger(L, 8);
-    float size = luaL_checknumber(L, 9);
-    int gravity = luaL_checkinteger(L, 10);
-    splash(type, color, radius, num, fade, vec(ox, oy, oz), size, gravity);
-    lua_pushboolean(L, true);
-    return 1;
-});
-
 LUAICOMMAND(particle_splash, {
     PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
@@ -1325,7 +1308,8 @@ LUAICOMMAND(particle_splash, {
     float size = luaL_checknumber(L, 9);
     int gravity = luaL_checkinteger(L, 10);
     int delay = luaL_checkinteger(L, 11);
-    if (!emit_particles() || (delay > 0 && rnd(delay) != 0)) {
+    if ((!lua_toboolean(L, 12) && !emit_particles())
+    || (delay > 0 && rnd(delay) != 0)) {
         lua_pushboolean(L, true);
         return 1;
     }
@@ -1557,104 +1541,6 @@ LUAICOMMAND(particle_offset_vec, {
  * 24..26 flat plane
  * +32 to inverse direction
  */
-void regularshape(int type, int radius, int color, int dir, int num, int fade, const vec &p, float size, int gravity, int vel = 200)
-{
-    if(!emit_particles()) return;
-    
-    int basetype = parts[type]->type&0xFF;
-    bool flare = (basetype == PT_TAPE) || (basetype == PT_LIGHTNING),
-         inv = (dir&0x20)!=0, taper = (dir&0x40)!=0 && !seedemitter;
-    dir &= 0x1F;
-    loopi(num)
-    {
-        vec to, from;
-        if(dir < 12) 
-        { 
-            const vec2 &sc = sincos360[rnd(360)];
-            to[dir%3] = sc.y*radius;
-            to[(dir+1)%3] = sc.x*radius;
-            to[(dir+2)%3] = 0.0;
-            to.add(p);
-            if(dir < 3) //circle
-                from = p;
-            else if(dir < 6) //cylinder
-            {
-                from = to;
-                to[(dir+2)%3] += radius;
-                from[(dir+2)%3] -= radius;
-            }
-            else //cone
-            {
-                from = p;
-                to[(dir+2)%3] += (dir < 9)?radius:(-radius);
-            }
-        }
-        else if(dir < 15) //plane
-        { 
-            to[dir%3] = float(rnd(radius<<4)-(radius<<3))/8.0;
-            to[(dir+1)%3] = float(rnd(radius<<4)-(radius<<3))/8.0;
-            to[(dir+2)%3] = radius;
-            to.add(p);
-            from = to;
-            from[(dir+2)%3] -= 2*radius;
-        }
-        else if(dir < 21) //line
-        {
-            if(dir < 18) 
-            {
-                to[dir%3] = float(rnd(radius<<4)-(radius<<3))/8.0;
-                to[(dir+1)%3] = 0.0;
-            } 
-            else 
-            {
-                to[dir%3] = 0.0;
-                to[(dir+1)%3] = float(rnd(radius<<4)-(radius<<3))/8.0;
-            }
-            to[(dir+2)%3] = 0.0;
-            to.add(p);
-            from = to;
-            to[(dir+2)%3] += radius;  
-        } 
-        else if(dir < 24) //sphere
-        {   
-            to = vec(PI2*float(rnd(1000))/1000.0, PI*float(rnd(1000)-500)/1000.0).mul(radius); 
-            to.add(p);
-            from = p;
-        }
-        else if(dir < 27) // flat plane
-        {
-            to[dir%3] = float(rndscale(2*radius)-radius);
-            to[(dir+1)%3] = float(rndscale(2*radius)-radius);
-            to[(dir+2)%3] = 0.0;
-            to.add(p);
-            from = to; 
-        }
-        else from = to = p; 
-
-        if(inv) swap(from, to);
-
-        if(taper)
-        {
-            float dist = clamp(from.dist2(camera1->o)/maxparticledistance, 0.0f, 1.0f);
-            if(dist > 0.2f)
-            {
-                dist = 1 - (dist - 0.2f)/0.8f;
-                if(rnd(0x10000) > dist*dist*0xFFFF) continue;
-            }
-        }
- 
-        if(flare)
-            newparticle(from, to, rnd(fade*3)+1, type, color, size, gravity);
-        else 
-        {  
-            vec d = vec(to).sub(from).rescale(vel); //velocity
-            particle *n = newparticle(from, d, rnd(fade*3)+1, type, color, size, gravity);
-            if(parts[type]->collide)
-                n->val = from.z - raycube(from, vec(0, 0, -1), parts[type]->collide >= 0 ? COLLIDERADIUS : max(from.z, 0.0f), RAY_CLIPMAT) + (parts[type]->collide >= 0 ? COLLIDEERROR : 0);
-        }
-    }
-}
-
 LUAICOMMAND(particle_shape, {
     PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
@@ -1669,8 +1555,97 @@ LUAICOMMAND(particle_shape, {
     float size = luaL_checknumber(L, 10);
     int gravity = luaL_checkinteger(L, 11);
     int vel = luaL_checkinteger(L, 12);
-    regularshape(type, radius, color, dir, num, fade, vec(ox, oy, oz),
-        size, gravity, vel);
+    vec p(ox, oy, oz);
+
+    if (!lua_toboolean(L, 13) && !emit_particles()) {
+        lua_pushboolean(L, true);
+        return 1;
+    }
+
+    int basetype = parts[type]->type&0xFF;
+    bool flare = (basetype == PT_TAPE) || (basetype == PT_LIGHTNING);
+    bool inv   = (dir & 0x20) != 0;
+    bool taper = (dir & 0x40) != 0 && !seedemitter;
+    dir &= 0x1F;
+
+    loopi(num) {
+        vec to;
+        vec from;
+        if (dir < 12) {
+            const vec2 &sc = sincos360[rnd(360)];
+            to[ dir      % 3] = sc.y*radius;
+            to[(dir + 1) % 3] = sc.x*radius;
+            to[(dir + 2) % 3] = 0.0;
+            to.add(p);
+            if (dir < 3) from = p; /* circle */
+            else if (dir < 6) { /* cylinder */
+                from = to;
+                to  [(dir + 2) % 3] += radius;
+                from[(dir + 2) % 3] -= radius;
+            }
+            else { /* cone */
+                from = p;
+                to[(dir + 2) % 3] += (dir < 9) ? radius : (-radius);
+            }
+        } else if (dir < 15) { /* plane */
+            to[ dir      % 3] = float(rnd(radius << 4) - (radius << 3)) / 8.0;
+            to[(dir + 1) % 3] = float(rnd(radius << 4) - (radius << 3)) / 8.0;
+            to[(dir + 2) % 3] = radius;
+            to.add(p);
+            from = to;
+            from [(dir + 2) % 3] -= 2 * radius;
+        } else if (dir < 21) { /* line */
+            if (dir < 18) {
+                to[ dir      % 3] = float(rnd(radius << 4) - (radius << 3))
+                    / 8.0;
+                to[(dir + 1) % 3] = 0.0;
+            } else {
+                to[ dir      % 3] = 0.0;
+                to[(dir + 1) % 3] = float(rnd(radius << 4) - (radius << 3))
+                    / 8.0;
+            }
+            to[(dir + 2) % 3] = 0.0;
+            to.add(p);
+            from = to;
+            to[(dir + 2) % 3] += radius;
+        } else if (dir < 24) { /* sphere */
+            to = vec(PI2 * float(rnd(1000)) / 1000.0,
+                PI * float(rnd(1000) - 500) / 1000.0).mul(radius); 
+            to.add(p);
+            from = p;
+        } else if (dir < 27) { /* flat plane */
+            to[ dir      % 3] = float(rndscale(2 * radius) - radius);
+            to[(dir + 1) % 3] = float(rndscale(2 * radius) - radius);
+            to[(dir + 2) % 3] = 0.0;
+            to.add(p);
+            from = to;
+        } else from = to = p;
+
+        if (inv) swap(from, to);
+        if (taper) {
+            float dist = clamp(from.dist2(camera1->o) / maxparticledistance,
+                0.0f, 1.0f);
+            if (dist > 0.2f) {
+                dist = 1 - (dist - 0.2f) / 0.8f;
+                if (rnd(0x10000) > dist * dist * 0xFFFF) continue;
+            }
+        }
+
+        if (flare) {
+            newparticle(from, to, rnd(fade*3)+1, type, color, size, gravity);
+        } else {
+            vec d = vec(to).sub(from).rescale(vel); /* velocity */
+            particle *n = newparticle(from, d, rnd(fade * 3) + 1, type, color,
+                size, gravity);
+            if (parts[type]->collide) {
+                n->val = from.z - raycube(from, vec(0, 0, -1),
+                    (parts[type]->collide >= 0 ? COLLIDERADIUS
+                        : max(from.z, 0.0f)), RAY_CLIPMAT)
+                +  (parts[type]->collide >= 0 ? COLLIDEERROR : 0);
+            }
+        }
+    }
+
     lua_pushboolean(L, true);
     return 1;
 });
@@ -1690,7 +1665,10 @@ LUAICOMMAND(particle_flame, {
     float speed = luaL_checknumber(L, 11);
     int gravity = luaL_checkinteger(L, 12);
 
-    if(!emit_particles()) { lua_pushboolean(L, true); return 1; }
+    if (!lua_toboolean(L, 13) && !emit_particles()) {
+        lua_pushboolean(L, true);
+        return 1;
+    }
 
     float size = scale * min(radius, height);
     vec v(0, 0, min(1.0f, height) * speed);
