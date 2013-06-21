@@ -96,6 +96,7 @@ enum
     PT_TRAIL,
     PT_TEXT,
     PT_TEXTUP,
+    PT_ICON,
     PT_METER,
     PT_METERVS,
     PT_FIREBALL,
@@ -112,7 +113,7 @@ enum
     PT_VFLIP     = 1<<15,
     PT_ROT       = 1<<16,
     PT_FEW       = 1<<17,
-    PT_ICON      = 1<<18,
+    PT_ICONF     = 1<<18,
     PT_NOTEX     = 1<<19,
     PT_SHRINK    = 1<<20,
     PT_GROW      = 1<<21,
@@ -607,7 +608,7 @@ struct iconrenderer: listrenderer {
     Texture *prevtex;
 
     iconrenderer(int type = 0):
-        listrenderer(type|PT_LERP|PT_SPECIAL), prevtex(NULL) {}
+        listrenderer(type|PT_ICON|PT_LERP|PT_SPECIAL), prevtex(NULL) {}
 
     void startrender() {
         prevtex = NULL;
@@ -881,7 +882,7 @@ struct varenderer : partrenderer
                     if(p->flags&0x02) swap(v1, v2);
                 });
             } 
-            else if(type&PT_ICON)
+            else if(type&PT_ICONF)
             {
                 float tx = 0.25f*(p->flags&3), ty = 0.25f*((p->flags>>2)&3);
                 SETTEXCOORDS(tx, tx + 0.25f, ty, ty + 0.25f, {});
@@ -1403,9 +1404,9 @@ void particle_icon(const vec &s, int ix, int iy, int type, int fade, int color, 
     p->flags |= ix | (iy<<2);
 }
 
-LUAICOMMAND(particle_icon, {
+LUAICOMMAND(particle_icon_generic, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_ICON) {
+    if (!parts.inrange(type) || !(parts[type]->type&PT_ICONF)) {
         lua_pushboolean(L, false); return 1;
     }
     float ox = luaL_checknumber(L, 2);
@@ -1418,6 +1419,25 @@ LUAICOMMAND(particle_icon, {
     float size = luaL_checknumber(L, 9);
     int gravity = luaL_checkinteger(L, 10);
     particle_icon(vec(ox, oy, oz), ix, iy, type, fade, color, size, gravity);
+    lua_pushboolean(L, true);
+    return 1;
+});
+
+LUAICOMMAND(particle_icon, {
+    int type = luaL_checkinteger(L, 1);
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_ICON) {
+        lua_pushboolean(L, false); return 1;
+    }
+    float ox = luaL_checknumber(L, 2);
+    float oy = luaL_checknumber(L, 3);
+    float oz = luaL_checknumber(L, 4);
+    const char *icon = luaL_checkstring(L, 5);
+    int color = luaL_checkinteger(L, 6);
+    int fade = luaL_checkinteger(L, 7);
+    float size = luaL_checknumber(L, 8);
+    int gravity = luaL_checkinteger(L, 9);
+    newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type, color, size,
+        gravity)->tex = textureload(icon);
     lua_pushboolean(L, true);
     return 1;
 });
