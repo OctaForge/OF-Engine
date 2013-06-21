@@ -568,13 +568,51 @@ struct decalrenderer
 };
 
 static vector<decalrenderer*> decals;
+static hashtable<const char*, int> decalmap;
+
+static bool get_renderer(lua_State *L, const char *name) {
+    int *id = decalmap.access(name);
+    if (id) {
+        lua_pushinteger(L, *id);
+        lua_pushboolean(L, false);
+        return true;
+    }
+    return false;
+}
+
+static void register_renderer(lua_State *L, const char *s, decalrenderer *rd) {
+    int n = decals.length();
+    decalmap.access(s, n);
+    decals.add(rd);
+    rd->init(maxdecaltris);
+    lua_pushinteger(L, n);
+    lua_pushboolean(L, true);
+}
+
+LUAICOMMAND(decal_register_renderer, {
+    const char *name = luaL_checkstring(L, 1);
+    if (get_renderer(L, name)) return 2;
+    const char *path = luaL_checkstring(L, 2);
+    int flags   = luaL_optinteger(L, 3, 0);
+    int fadein  = luaL_optinteger(L, 4, 0);
+    int fadeout = luaL_optinteger(L, 5, 1000);
+    int timeout = luaL_optinteger(L, 6, -1);
+    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
+    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path);
+    register_renderer(L, name, new decalrenderer(path, flags, fadein,
+        fadeout, timeout));
+    return 2;
+});
 
 void initdecals()
 {
-    if(initing) return;
+    if (initing) return;
+    if (decals.length()) goto decalinit;
     decals.add(new decalrenderer("<grey>media/particle/scorch", DF_ROTATE, 500));
     decals.add(new decalrenderer("<grey>media/particle/blood", DF_RND4|DF_ROTATE|DF_INVMOD));
     decals.add(new decalrenderer("<grey>media/particle/bullet", DF_OVERBRIGHT));
+
+decalinit:
     loopv(decals) decals[i]->init(maxdecaltris);
 }
 
@@ -611,6 +649,13 @@ void cleanupdecals()
     loopv(decals) decals[i]->cleanup();
 }
 
+void deletedecals() {
+    cleardecals();
+    cleanupdecals();
+    decals.deletecontents();
+    decalmap.clear();
+}
+
 VARP(maxdecaldistance, 1, 512, 10000);
 
 void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color, int info)
@@ -620,16 +665,20 @@ void adddecal(int type, const vec &center, const vec &surface, float radius, con
     d.adddecal(center, surface, radius, color, info);
 }
 
-LUAICOMMAND(adddecal, {
-    adddecal(luaL_checkinteger(L, 1),
-        vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
-            luaL_checknumber(L, 4)),
-        vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
-            luaL_checknumber(L, 7)),
-        luaL_checknumber(L, 8),
-        bvec((uchar)luaL_checkinteger(L, 9),
-             (uchar)luaL_checkinteger(L, 10),
-             (uchar)luaL_checkinteger(L, 11)),
-        luaL_checkinteger(L, 12));
-    return 0;
-});
+LUAICOMMAND(decal_add, {
+    int type = luaL_checkinteger(L, 1);
+    if (!decals.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    float cx = luaL_checknumber(L, 2);
+    float cy = luaL_checknumber(L, 3);
+    float cz = luaL_checknumber(L, 4);
+    float sx = luaL_checknumber(L, 5);
+    float sy = luaL_checknumber(L, 6);
+    float sz = luaL_checknumber(L, 7);
+    int color = luaL_checkinteger(L, 8);
+    float radius = luaL_checknumber(L, 9);
+    int info = luaL_optinteger(L, 10, 0);
+    adddecal(type, vec(cx, cy, cz), vec(sx, sy, sz), radius,
+        bvec(color >> 16, (color >> 8) & 0xFF, color & 0xFF), info);
+    lua_pushboolean(L, true);
+    return 1;
+})
