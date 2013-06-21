@@ -755,7 +755,7 @@ struct varenderer : partrenderer
     GLuint vbo;
 
     varenderer(const char *texname, int type, int collide = 0) 
-        : partrenderer(texname, 3, type, collide),
+        : partrenderer(texname, 3, type|T, collide),
           verts(NULL), parts(NULL), maxparts(0), numparts(0), lastupdate(-1), rndmask(0), vbo(0)
     {
         if(type & PT_HFLIP) rndmask |= 0x01;
@@ -1070,14 +1070,14 @@ void particleinit()
     parts.add(&meters);
     parts.add(&metervs);
     parts.add(new quadrenderer("<grey>media/particle/blood", PT_PART|PT_FLIP|PT_MOD|PT_RND4, 1)); // blood spats (note: rgb is inverted) 
-    parts.add(new trailrenderer("media/particle/base", PT_TRAIL|PT_LERP));                            // water, entity
+    parts.add(new trailrenderer("media/particle/base", PT_LERP));                            // water, entity
     parts.add(new quadrenderer("<grey>media/particle/smoke", PT_PART|PT_FLIP|PT_LERP));  // smoke
     parts.add(new quadrenderer("<grey>media/particle/steam", PT_PART|PT_FLIP));               // steam
     parts.add(new quadrenderer("<grey>media/particle/flames", PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT));   // flame on - no flipping please, they have orientation
     parts.add(new quadrenderer("media/particle/ball1", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball1
     parts.add(new quadrenderer("media/particle/ball2", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball2
     parts.add(new quadrenderer("media/particle/ball3", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball3
-    parts.add(new taperenderer("media/particle/flare", PT_TAPE|PT_BRIGHT));                            // streak
+    parts.add(new taperenderer("media/particle/flare", PT_BRIGHT));                            // streak
     parts.add(&lightnings);                                                                                   // lightning
     parts.add(&fireballs);                                                                                    // explosion fireball
     parts.add(&bluefireballs);                                                                                // bluish explosion fireball
@@ -1324,7 +1324,9 @@ VARP(maxtrail, 1, 500, 10000);
 
 LUAICOMMAND(particle_trail, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    if (!parts.inrange(type) || !(parts[type]->type&PT_TRAIL)) {
+        lua_pushboolean(L, false); return 1;
+    }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
@@ -1365,7 +1367,9 @@ void particle_textcopy(const vec &s, const char *t, int type, int fade, int colo
 
 LUAICOMMAND(particle_text, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    if (!parts.inrange(type) || !(parts[type]->type&PT_TEXT)) {
+        lua_pushboolean(L, false); return 1;
+    }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
@@ -1397,7 +1401,9 @@ void particle_icon(const vec &s, int ix, int iy, int type, int fade, int color, 
 
 LUAICOMMAND(particle_icon, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    if (!parts.inrange(type) || !(parts[type]->type&PT_ICON)) {
+        lua_pushboolean(L, false); return 1;
+    }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
@@ -1423,7 +1429,9 @@ void particle_meter(const vec &s, float val, int type, int fade, int color, int 
 
 LUAICOMMAND(particle_meter, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    if (!parts.inrange(type) || !(parts[type]->type&(PT_METER|PT_METERVS))) {
+        lua_pushboolean(L, false); return 1;
+    }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
@@ -1464,7 +1472,9 @@ LUAICOMMAND(particle_flare, {
 
 LUAICOMMAND(particle_fireball, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    if (!parts.inrange(type) || !(parts[type]->type&PT_FIREBALL)) {
+        lua_pushboolean(L, false); return 1;
+    }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
@@ -1482,7 +1492,9 @@ LUAICOMMAND(particle_fireball, {
 
 LUAICOMMAND(particle_lensflare, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
+    if (!parts.inrange(type) || !(parts[type]->type&PT_FLARE)) {
+        lua_pushboolean(L, false); return 1;
+    }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
