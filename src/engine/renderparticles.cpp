@@ -136,10 +136,6 @@ struct particle {
     uchar flags;
     float size, val;
     physent *owner;
-    union {
-        const char *text;
-        Texture *tex;
-    };
 };
 
 /* can be changed into something more sophisticated when multiple
@@ -583,10 +579,14 @@ struct meterrenderer : listrenderer<meterparticle>
 };
 static meterrenderer meters(PT_METER), metervs(PT_METERVS);
 
-struct textrenderer : regularlistrenderer
+struct textparticle: listparticle<textparticle> {
+    const char *text;
+};
+
+struct textrenderer : listrenderer<textparticle>
 {
     textrenderer(int type = 0)
-        : regularlistrenderer(type|PT_TEXT|PT_LERP|PT_SHADER|PT_SPECIAL)
+        : listrenderer<textparticle>(type|PT_TEXT|PT_LERP|PT_SHADER|PT_SPECIAL)
     {}
 
     void startrender()
@@ -599,12 +599,12 @@ struct textrenderer : regularlistrenderer
         textshader = NULL;
     }
 
-    void killpart(regularlistparticle *p)
+    void killpart(textparticle *p)
     {
         if(p->text) delete[] p->text;
     }
 
-    void renderpart(regularlistparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
+    void renderpart(textparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
     {
         float scale = size/80.0f, xoff = -text_width(p->text)/2, yoff = 0;
         if((type&0xFF)==PT_TEXTUP) { xoff += detrnd((size_t)p, 100)-50; yoff -= detrnd((size_t)p, 101); }
@@ -623,12 +623,15 @@ struct textrenderer : regularlistrenderer
 };
 static textrenderer texts;
 
-/* OF */
-struct iconrenderer: regularlistrenderer {
+struct iconparticle: listparticle<iconparticle> {
+    Texture *tex;
+};
+
+struct iconrenderer: listrenderer<iconparticle> {
     Texture *prevtex;
 
     iconrenderer(int type = 0):
-        regularlistrenderer(type|PT_ICON|PT_LERP|PT_SPECIAL), prevtex(NULL) {}
+        listrenderer<iconparticle>(type|PT_ICON|PT_LERP|PT_SPECIAL), prevtex(NULL) {}
 
     void startrender() {
         prevtex = NULL;
@@ -640,7 +643,7 @@ struct iconrenderer: regularlistrenderer {
         gle::disable();
     }
 
-    void renderpart(regularlistparticle *p, const vec &o, const vec &d, int blend, int ts, float size) {
+    void renderpart(iconparticle *p, const vec &o, const vec &d, int blend, int ts, float size) {
         Texture *tex = p->tex;
         if (!tex) return;
         if (tex != prevtex) {
@@ -1382,7 +1385,7 @@ VARP(maxparticletextdistance, 0, 128, 10000);
 void particle_textcopy(const vec &s, const char *t, int type, int fade, int r, int g, int b, float size, int gravity)
 {
     if(!particletext || camera1->o.dist(s) > maxparticletextdistance) return;
-    particle *p = newparticle(s, vec(0, 0, 1), fade, type, r, g, b, size, gravity);
+    textparticle *p = (textparticle*)newparticle(s, vec(0, 0, 1), fade, type, r, g, b, size, gravity);
     p->text = newstring(t);
 }
 
@@ -1408,7 +1411,7 @@ LUAICOMMAND(particle_text, {
         lua_pushboolean(L, true);
         return 1;
     }
-    particle *p = newparticle(s, vec(0, 0, 1), fade, type,
+    textparticle *p = (textparticle*)newparticle(s, vec(0, 0, 1), fade, type,
         r, g, b, size, gravity);
     p->text = newstring(text, slen);
 
@@ -1454,8 +1457,8 @@ LUAICOMMAND(particle_icon, {
     int fade = luaL_checkinteger(L, 9);
     float size = luaL_checknumber(L, 10);
     int gravity = luaL_checkinteger(L, 11);
-    newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type, r, g, b, size,
-        gravity)->tex = textureload(icon);
+    ((iconparticle*)newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
+        r, g, b, size, gravity))->tex = textureload(icon);
     lua_pushboolean(L, true);
     return 1;
 });
@@ -1835,8 +1838,8 @@ void updateparticles()
             lua_pop(lua::L, 4);
 
             particle_textcopy(e.o, name, PART_TEXT, 1, 0x1E, 0xC8, 0x50, 2.0f, 0);
-            particle *part = newparticle(e.o, vec(0, 0, 0), 0, PART_ICON, r, g, b, editpartsize);
-            part->tex = textureload(icon);
+            ((iconparticle*)newparticle(e.o, vec(0, 0, 0), 0, PART_ICON,
+                r, g, b, editpartsize))->tex = textureload(icon);
         }
     }
 }
