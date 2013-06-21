@@ -660,9 +660,8 @@ VARP(maxdecaldistance, 1, 512, 10000);
 
 void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color, int info)
 {
-    if(!showdecals || type<0 || type >= decals.length() || center.dist(camera1->o) - radius > maxdecaldistance) return;
-    decalrenderer &d = *decals[type];
-    d.adddecal(center, surface, radius, color, info);
+    if(!showdecals || !decals.inrange(type) || center.dist(camera1->o) - radius > maxdecaldistance) return;
+    decals[type]->adddecal(center, surface, radius, color, info);
 }
 
 LUAICOMMAND(decal_add, {
