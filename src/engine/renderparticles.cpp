@@ -1692,7 +1692,7 @@ LUAICOMMAND(particle_flame, {
 enum { PART_TEXT = 0, PART_ICON };
 
 static void makeparticles(const extentity &e) {
-    lua::push_external("particle_draw_entity");
+    lua::push_external("particle_entity_emit");
     CLogicEntity *le = LogicSystem::getLogicEntity(e);
     assert(le);
     lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);

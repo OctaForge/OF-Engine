@@ -1243,14 +1243,8 @@ local part_draw_tbl = setmetatable({
 })
 
 --[[! Class: Particle_Effect
-    A particle effect entity class. It has four properties. They all default
-    to 0.
-
-    Properties:
-        attr1 - the type of the particle effect (alias "particle_effect").
-        attr2 - alias "value1", effect specific.
-        attr3 - alias "value2", effect specific.
-        attr4 - alias "value3", effect specific.
+    A particle effect entity class. You can derive from this to create
+    your own effects.
 
     Particle types (and their values):
 
@@ -1333,17 +1327,15 @@ local part_draw_tbl = setmetatable({
 local Particle_Effect = Static_Entity:clone {
     name = "Particle_Effect",
 
-    edit_icon = "media/interface/icon/edit_particles",
-
+    edit_icon  = "media/interface/icon/edit_particles",
     sauer_type = 7,
-    attr_num   = 5,
 
     properties = {
-        attr1 = gen_attr(1, "particle_type"),
-        attr2 = gen_attr(2, "a"),
-        attr3 = gen_attr(3, "b"),
-        attr4 = gen_attr(4, "c"),
-        attr5 = gen_attr(5, "d")
+        particle_type = svars.State_Integer(),
+        a = svars.State_Integer(),
+        b = svars.State_Integer(),
+        c = svars.State_Integer(),
+        d = svars.State_Integer()
     },
 
     init = function(self, uid, kwargs)
@@ -1383,7 +1375,10 @@ local Particle_Effect = Static_Entity:clone {
         return 0
     end,
 
-    part_draw = function(self)
+    --[[! Function: emit_particles
+        A particle emitter entry point. Overload as needed.
+    ]]
+    emit_particles = function(self)
         local attr1 = self:get_attr("particle_type")
         local attr2 = self:get_attr("a")
         local attr3 = self:get_attr("b")
@@ -1396,7 +1391,9 @@ local Particle_Effect = Static_Entity:clone {
 }
 ents.Particle_Effect = Particle_Effect
 
-set_external("particle_draw_entity", Particle_Effect.part_draw)
+set_external("particle_entity_emit", function(e)
+    e:emit_particles()
+end)
 
 --[[! Class: Mapmodel
     A model in the world. All properties default to 0. On mapmodels and all
