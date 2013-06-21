@@ -1312,12 +1312,6 @@ LUAICOMMAND(particle_splash_unbounded, {
     return 1;
 });
 
-static void regularsplash(int type, int color, int radius, int num, int fade, const vec &p, float size, int gravity, int delay = 0) 
-{
-    if(!emit_particles() || (delay > 0 && rnd(delay) != 0)) return;
-    splash(type, color, radius, num, fade, p, size, gravity);
-}
-
 LUAICOMMAND(particle_splash, {
     PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
@@ -1331,8 +1325,11 @@ LUAICOMMAND(particle_splash, {
     float size = luaL_checknumber(L, 9);
     int gravity = luaL_checkinteger(L, 10);
     int delay = luaL_checkinteger(L, 11);
-    regularsplash(type, color, radius, num, fade, vec(ox, oy, oz), size,
-        gravity, delay);
+    if (!emit_particles() || (delay > 0 && rnd(delay) != 0)) {
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    splash(type, color, radius, num, fade, vec(ox, oy, oz), size, gravity);
     lua_pushboolean(L, true);
     return 1;
 });
@@ -1410,12 +1407,6 @@ LUAICOMMAND(particle_text, {
     return 1;
 });
 
-void particle_icon(const vec &s, int ix, int iy, int type, int fade, int color, float size, int gravity)
-{
-    particle *p = newparticle(s, vec(0, 0, 1), fade, type, color, size, gravity);
-    p->flags |= ix | (iy<<2);
-}
-
 LUAICOMMAND(particle_icon_generic, {
     PART_GET_TYPE(type);
     if (!parts.inrange(type) || !(parts[type]->type&PT_ICONF)) {
@@ -1430,7 +1421,9 @@ LUAICOMMAND(particle_icon_generic, {
     int fade = luaL_checkinteger(L, 8);
     float size = luaL_checknumber(L, 9);
     int gravity = luaL_checkinteger(L, 10);
-    particle_icon(vec(ox, oy, oz), ix, iy, type, fade, color, size, gravity);
+    particle *p = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
+        color, size, gravity);
+    p->flags |= ix | (iy<<2);
     lua_pushboolean(L, true);
     return 1;
 });
@@ -1454,15 +1447,6 @@ LUAICOMMAND(particle_icon, {
     return 1;
 });
 
-void particle_meter(const vec &s, float val, int type, int fade, int color, int color2, float size)
-{
-    particle *p = newparticle(s, vec(0, 0, 1), fade, type, color, size);
-    p->color2[0] = color2>>16;
-    p->color2[1] = (color2>>8)&0xFF;
-    p->color2[2] = color2&0xFF;
-    p->progress = clamp(int(val*100), 0, 100);
-}
-
 LUAICOMMAND(particle_meter, {
     PART_GET_TYPE(type);
     if (!parts.inrange(type) || !(parts[type]->type&(PT_METER|PT_METERVS))) {
@@ -1476,7 +1460,12 @@ LUAICOMMAND(particle_meter, {
     int color2 = luaL_checkinteger(L, 7);
     int fade = luaL_checkinteger(L, 8);
     float size = luaL_checknumber(L, 9);
-    particle_meter(vec(ox, oy, oz), val, type, fade, color, color2, size);
+    particle *p = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
+        color, size);
+    p->color2[0] = color2>>16;
+    p->color2[1] = (color2>>8)&0xFF;
+    p->color2[2] = color2&0xFF;
+    p->progress = clamp(int(val*100), 0, 100);
     lua_pushboolean(L, true);
     return 1;
 });
@@ -1686,21 +1675,6 @@ LUAICOMMAND(particle_shape, {
     return 1;
 });
 
-void regularflame(int type, const vec &p, float radius, float height, int color, int density = 3, float scale = 2.0f, float speed = 200.0f, float fade = 600.0f, int gravity = -15)
-{
-    if(!emit_particles()) return;
-    
-    float size = scale * min(radius, height);
-    vec v(0, 0, min(1.0f, height)*speed);
-    loopi(density)
-    {
-        vec s = p;        
-        s.x += rndscale(radius*2.0f)-radius;
-        s.y += rndscale(radius*2.0f)-radius;
-        newparticle(s, v, rnd(max(int(fade*height), 1))+1, type, color, size, gravity);
-    }
-}
-
 LUAICOMMAND(particle_flame, {
     PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
@@ -1715,8 +1689,19 @@ LUAICOMMAND(particle_flame, {
     float scale = luaL_checknumber(L, 10);
     float speed = luaL_checknumber(L, 11);
     int gravity = luaL_checkinteger(L, 12);
-    regularflame(type, vec(ox, oy, oz), radius, height, color, density,
-        scale, speed, fade, gravity);
+
+    if(!emit_particles()) { lua_pushboolean(L, true); return 1; }
+
+    float size = scale * min(radius, height);
+    vec v(0, 0, min(1.0f, height) * speed);
+    vec p(ox, oy, oz);
+    loopi(density) {
+        vec s = p;        
+        s.x += rndscale(radius*2.0f)-radius;
+        s.y += rndscale(radius*2.0f)-radius;
+        newparticle(s, v, rnd(max(int(fade * height), 1)) + 1, type, color,
+            size, gravity);
+    }
     lua_pushboolean(L, true);
     return 1;
 });
