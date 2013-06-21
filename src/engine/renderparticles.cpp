@@ -899,9 +899,7 @@ struct varenderer : partrenderer
                 float col[4] = { r, g, b, a }; \
                 loopi(4) memcpy(vs[i].color.v, col, sizeof(col)); \
             } while(0) 
-            #define SETMODCOLOR SETCOLOR((int(p->color[0]*blend*255)>>8)/255.0f,\
-                (int(p->color[1]*blend*255)>>8)/255.0f, \
-                (int(p->color[2]*blend*255)>>8)/255.0f, 1.0f)
+            #define SETMODCOLOR SETCOLOR(p->color[0]*blend/255.0f, p->color[1]*blend/255.0f, p->color[2]*blend/255.0f, 1.0f)
             if(type&PT_MOD) SETMODCOLOR;
             else SETCOLOR(p->color[0], p->color[1], p->color[2], blend / 255.0f);
         }

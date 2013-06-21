@@ -109,7 +109,7 @@ struct decalrenderer
         else
         {
             color = d.color;
-            if(flags&(DF_ADD|DF_INVMOD)) loopk(3) color[k] = ((int(color[k]*255)*alpha)>>8)/255.0f;
+            if(flags&(DF_ADD|DF_INVMOD)) loopk(3) color[k] = color[k]*alpha/255.0f;
         }
 
         decalvert *vert = &verts[d.startvert],
