@@ -118,6 +118,7 @@ enum
     PT_GROW      = 1<<21,
     PT_SHADER    = 1<<22,
     PT_SWIZZLE   = 1<<23,
+    PT_SPECIAL   = 1<<24, // can't be created directly from scripting
     PT_FLIP      = PT_HFLIP | PT_VFLIP | PT_ROT
 };
 
@@ -484,7 +485,7 @@ listparticle *listrenderer::parempty = NULL;
 struct meterrenderer : listrenderer
 {
     meterrenderer(int type)
-        : listrenderer(type|PT_NOTEX|PT_LERP)
+        : listrenderer(type|PT_NOTEX|PT_LERP|PT_SPECIAL)
     {}
 
     void startrender()
@@ -565,7 +566,7 @@ static meterrenderer meters(PT_METER), metervs(PT_METERVS);
 struct textrenderer : listrenderer
 {
     textrenderer(int type = 0)
-        : listrenderer(type|PT_TEXT|PT_LERP|PT_SHADER)
+        : listrenderer(type|PT_TEXT|PT_LERP|PT_SHADER|PT_SPECIAL)
     {}
 
     void startrender()
@@ -605,7 +606,8 @@ static textrenderer texts;
 struct iconrenderer: listrenderer {
     Texture *prevtex;
 
-    iconrenderer(int type = 0): listrenderer(type|PT_LERP), prevtex(NULL) {}
+    iconrenderer(int type = 0):
+        listrenderer(type|PT_LERP|PT_SPECIAL), prevtex(NULL) {}
 
     void startrender() {
         prevtex = NULL;
@@ -1237,7 +1239,9 @@ static inline particle *newparticle(const vec &o, const vec &d, int fade, int ty
 
 LUAICOMMAND(particle_new, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type)) { lua_pushnil(L); return 1; }
+    if (!parts.inrange(type) || parts[type]->type&PT_SPECIAL) {
+        lua_pushnil(L); return 1;
+    }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
@@ -1324,7 +1328,7 @@ VARP(maxtrail, 1, 500, 10000);
 
 LUAICOMMAND(particle_trail, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type) || !(parts[type]->type&PT_TRAIL)) {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TRAIL) {
         lua_pushboolean(L, false); return 1;
     }
     float ox = luaL_checknumber(L, 2);
@@ -1367,7 +1371,7 @@ void particle_textcopy(const vec &s, const char *t, int type, int fade, int colo
 
 LUAICOMMAND(particle_text, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type) || !(parts[type]->type&PT_TEXT)) {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TEXT) {
         lua_pushboolean(L, false); return 1;
     }
     float ox = luaL_checknumber(L, 2);
@@ -1401,7 +1405,7 @@ void particle_icon(const vec &s, int ix, int iy, int type, int fade, int color, 
 
 LUAICOMMAND(particle_icon, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type) || !(parts[type]->type&PT_ICON)) {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_ICON) {
         lua_pushboolean(L, false); return 1;
     }
     float ox = luaL_checknumber(L, 2);
@@ -1472,7 +1476,7 @@ LUAICOMMAND(particle_flare, {
 
 LUAICOMMAND(particle_fireball, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type) || !(parts[type]->type&PT_FIREBALL)) {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FIREBALL) {
         lua_pushboolean(L, false); return 1;
     }
     float ox = luaL_checknumber(L, 2);
@@ -1492,7 +1496,7 @@ LUAICOMMAND(particle_fireball, {
 
 LUAICOMMAND(particle_lensflare, {
     int type = luaL_checkinteger(L, 1);
-    if (!parts.inrange(type) || !(parts[type]->type&PT_FLARE)) {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FLARE) {
         lua_pushboolean(L, false); return 1;
     }
     float ox = luaL_checknumber(L, 2);
