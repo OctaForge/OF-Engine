@@ -226,7 +226,7 @@ struct partvert
 #define COLLIDERADIUS 8.0f
 #define COLLIDEERROR 1.0f
 
-void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color = bvec(255, 255, 255), int info = 0);
+void adddecal(int type, const vec &center, const vec &surface, float radius, const vec &color = vec(1.0f, 1.0f, 1.0f), int info = 0);
 
 struct partrenderer
 {
@@ -341,7 +341,7 @@ struct partrenderer
                         p->val = collidez+COLLIDEERROR;
                     else 
                     {
-                        adddecal(collide, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*size, bvec(p->color.x * 255, p->color.y * 255, p->color.z * 255), type&PT_RND4 ? (p->flags>>5)&3 : 0);
+                        adddecal(collide, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*size, p->color, type&PT_RND4 ? (p->flags>>5)&3 : 0);
                         blend = 0;
                     }
                 }

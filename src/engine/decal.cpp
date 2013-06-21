@@ -4,14 +4,14 @@ struct decalvert
 {
     vec pos;
     float u, v;
-    bvec color;
+    vec color;
     uchar alpha;
 };
 
 struct decalinfo
 {
     int millis;
-    bvec color;
+    vec color;
     ushort startvert, endvert;
 };
 
@@ -101,15 +101,15 @@ struct decalrenderer
 
     void fadedecal(decalinfo &d, uchar alpha)
     {
-        bvec color;
+        vec color;
         if(flags&DF_OVERBRIGHT)
         {
-            color = bvec(128, 128, 128);
+            color = vec(0.5f, 0.5f, 0.5f);
         }
         else
         {
             color = d.color;
-            if(flags&(DF_ADD|DF_INVMOD)) loopk(3) color[k] = uchar((int(color[k])*int(alpha))>>8);
+            if(flags&(DF_ADD|DF_INVMOD)) loopk(3) color[k] = ((int(color[k]*255)*alpha)>>8)/255.0f;
         }
 
         decalvert *vert = &verts[d.startvert],
@@ -268,7 +268,7 @@ struct decalrenderer
         const decalvert *ptr = 0;
         gle::vertexpointer(sizeof(decalvert), &ptr->pos);
         gle::texcoord0pointer(sizeof(decalvert), &ptr->u);
-        gle::colorpointer(sizeof(decalvert), &ptr->color);
+        gle::colorpointer(sizeof(decalvert), &ptr->color, GL_FLOAT, 4);
 
         glDrawArrays(GL_TRIANGLES, startvert, count);
         if(endvert < startvert) 
@@ -294,9 +294,9 @@ struct decalrenderer
     ivec bborigin, bbsize;
     vec decalcenter, decalnormal, decaltangent, decalbitangent;
     float decalradius, decalu, decalv;
-    bvec decalcolor;
+    vec decalcolor;
 
-    void adddecal(const vec &center, const vec &dir, float radius, const bvec &color, int info)
+    void adddecal(const vec &center, const vec &dir, float radius, const vec &color, int info)
     {
         int isz = int(ceil(radius));
         bborigin = ivec(center).sub(isz);
@@ -331,7 +331,7 @@ struct decalrenderer
         if(endvert==dstart) return;
 
         decalinfo &d = newdecal();
-        d.color = hdr && !(flags&DF_INVMOD) ? bvec(color).shr(1) : color;
+        d.color = hdr && !(flags&DF_INVMOD) ? ivec(vec(color).mul(255)).shr(1).tovec().div(255) : color;
         d.millis = lastmillis;
         d.startvert = dstart;
         d.endvert = endvert;
@@ -658,7 +658,7 @@ void deletedecals() {
 
 VARP(maxdecaldistance, 1, 512, 10000);
 
-void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color, int info)
+void adddecal(int type, const vec &center, const vec &surface, float radius, const vec &color, int info)
 {
     if(!showdecals || !decals.inrange(type) || center.dist(camera1->o) - radius > maxdecaldistance) return;
     decals[type]->adddecal(center, surface, radius, color, info);
@@ -678,11 +678,13 @@ LUAICOMMAND(decal_add, {
     float sx = luaL_checknumber(L, 5);
     float sy = luaL_checknumber(L, 6);
     float sz = luaL_checknumber(L, 7);
-    int color = luaL_checkinteger(L, 8);
-    float radius = luaL_checknumber(L, 9);
-    int info = luaL_optinteger(L, 10, 0);
+    int r = luaL_checkinteger(L, 8);
+    int g = luaL_checkinteger(L, 9);
+    int b = luaL_checkinteger(L, 10);
+    float radius = luaL_checknumber(L, 11);
+    int info = luaL_optinteger(L, 12, 0);
     adddecal(type, vec(cx, cy, cz), vec(sx, sy, sz), radius,
-        bvec(color >> 16, (color >> 8) & 0xFF, color & 0xFF), info);
+        vec(r / 255.0f, g / 255.0f, b / 255.0f), info);
     lua_pushboolean(L, true);
     return 1;
 })
