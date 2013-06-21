@@ -666,7 +666,12 @@ void adddecal(int type, const vec &center, const vec &surface, float radius, con
 }
 
 LUAICOMMAND(decal_add, {
-    int type = luaL_checkinteger(L, 1);
+    int type;
+    if (lua_isnumber(L, 1)) type = lua_tointeger(L, 1);
+    else {
+        int *tp = decalmap.access(luaL_checkstring(L, 1));
+        type = tp ? *tp : -1;
+    }
     if (!decals.inrange(type)) { lua_pushboolean(L, false); return 1; }
     float cx = luaL_checknumber(L, 2);
     float cy = luaL_checknumber(L, 3);

@@ -1242,8 +1242,16 @@ static inline particle *newparticle(const vec &o, const vec &d, int fade, int ty
     return parts[type]->addpart(o, d, fade, color, size, gravity);
 }
 
+#define PART_GET_TYPE(type) \
+    int type; \
+    if (lua_isnumber(L, 1)) type = lua_tointeger(L, 1); \
+    else { \
+        int *tp = partmap.access(luaL_checkstring(L, 1)); \
+        type = tp ? *tp : -1; \
+    }
+
 LUAICOMMAND(particle_new, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type) || parts[type]->type&PT_SPECIAL) {
         lua_pushnil(L); return 1;
     }
@@ -1288,7 +1296,7 @@ static void splash(int type, int color, int radius, int num, int fade, const vec
 }
 
 LUAICOMMAND(particle_splash_unbounded, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
@@ -1311,7 +1319,7 @@ static void regularsplash(int type, int color, int radius, int num, int fade, co
 }
 
 LUAICOMMAND(particle_splash, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
@@ -1332,7 +1340,7 @@ LUAICOMMAND(particle_splash, {
 VARP(maxtrail, 1, 500, 10000);
 
 LUAICOMMAND(particle_trail, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TRAIL) {
         lua_pushboolean(L, false); return 1;
     }
@@ -1375,7 +1383,7 @@ void particle_textcopy(const vec &s, const char *t, int type, int fade, int colo
 }
 
 LUAICOMMAND(particle_text, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TEXT) {
         lua_pushboolean(L, false); return 1;
     }
@@ -1409,7 +1417,7 @@ void particle_icon(const vec &s, int ix, int iy, int type, int fade, int color, 
 }
 
 LUAICOMMAND(particle_icon_generic, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type) || !(parts[type]->type&PT_ICONF)) {
         lua_pushboolean(L, false); return 1;
     }
@@ -1428,7 +1436,7 @@ LUAICOMMAND(particle_icon_generic, {
 });
 
 LUAICOMMAND(particle_icon, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_ICON) {
         lua_pushboolean(L, false); return 1;
     }
@@ -1456,7 +1464,7 @@ void particle_meter(const vec &s, float val, int type, int fade, int color, int 
 }
 
 LUAICOMMAND(particle_meter, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type) || !(parts[type]->type&(PT_METER|PT_METERVS))) {
         lua_pushboolean(L, false); return 1;
     }
@@ -1474,7 +1482,7 @@ LUAICOMMAND(particle_meter, {
 });
 
 LUAICOMMAND(particle_flare, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
@@ -1499,7 +1507,7 @@ LUAICOMMAND(particle_flare, {
 });
 
 LUAICOMMAND(particle_fireball, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FIREBALL) {
         lua_pushboolean(L, false); return 1;
     }
@@ -1519,7 +1527,7 @@ LUAICOMMAND(particle_fireball, {
 });
 
 LUAICOMMAND(particle_lensflare, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FLARE) {
         lua_pushboolean(L, false); return 1;
     }
@@ -1659,7 +1667,7 @@ void regularshape(int type, int radius, int color, int dir, int num, int fade, c
 }
 
 LUAICOMMAND(particle_shape, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
@@ -1694,7 +1702,7 @@ void regularflame(int type, const vec &p, float radius, float height, int color,
 }
 
 LUAICOMMAND(particle_flame, {
-    int type = luaL_checkinteger(L, 1);
+    PART_GET_TYPE(type);
     if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
@@ -1712,6 +1720,8 @@ LUAICOMMAND(particle_flame, {
     lua_pushboolean(L, true);
     return 1;
 });
+
+#undef PART_GET_TYPE
 
 enum { PART_TEXT = 0, PART_ICON };
 
