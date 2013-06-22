@@ -1839,9 +1839,9 @@ void updateparticles()
             const char *name = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
 
             lua_call(lua::L, 1, 4);
-            float r = lua_tonumber(lua::L, -1);
+            float r = lua_tonumber(lua::L, -3);
             float g = lua_tonumber(lua::L, -2);
-            float b = lua_tonumber(lua::L, -3);
+            float b = lua_tonumber(lua::L, -1);
             const char *icon = lua_tostring(lua::L, -4);
             lua_pop(lua::L, 4);
 
