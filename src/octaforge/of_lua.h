@@ -9,6 +9,10 @@ namespace lua
     void reset        ();
     bool push_external(const char *name);
     bool push_external(lua_State *L, const char *name);
+    void pin_string   (const char *str);
+    void unpin_string (const char *str);
+    void pin_string   (lua_State *L, const char *str);
+    void unpin_string (lua_State *L, const char *str);
 }
 
 #define LUACOMMAND(name, fun) \

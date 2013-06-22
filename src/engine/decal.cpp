@@ -597,8 +597,7 @@ LUAICOMMAND(decal_register_renderer, {
     int fadein  = luaL_optinteger(L, 4, 0);
     int fadeout = luaL_optinteger(L, 5, 1000);
     int timeout = luaL_optinteger(L, 6, -1);
-    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
-    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path);
+    lua::pin_string(L, name); lua::pin_string(L, path);
     register_renderer(L, name, new decalrenderer(path, flags, fadein,
         fadeout, timeout));
     return 2;
@@ -652,7 +651,15 @@ void cleanupdecals()
 void deletedecals() {
     cleardecals();
     cleanupdecals();
-    decals.deletecontents();
+    while (decals.length()) {
+        decalrenderer *rd = decals.pop();
+        lua::unpin_string(rd->texname);
+        delete rd;
+    }
+    enumeratekt(decalmap, const char*, name, int, value, {
+        lua::unpin_string(name);
+        (void)value; /* supress warnings */
+    });
     decalmap.clear();
 }
 

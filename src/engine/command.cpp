@@ -188,9 +188,8 @@ tagval noret = nullval, *commandret = &noret;
 void clear_command() {
     enumerate(idents, ident, i, {
         if (i.flags&IDF_ALLOC) {
-            /* unpin the name */
-            lua_pushnil(lua::L);
-            lua_setfield(lua::L, LUA_REGISTRYINDEX, i.name);
+            /* can touch this, possibly */
+            lua::unpin_string(i.name);
             switch (i.type) {
                 case ID_VAR:  delete i.storage.i; break;
                 case ID_FVAR: delete i.storage.f; break;
@@ -3361,9 +3360,7 @@ LUAICOMMAND(var_new, {
     }
 
     /* can't touch this */
-    lua_pushvalue(L, 1);
-    lua_setfield(L, LUA_REGISTRYINDEX, name);
-
+    lua::pin_string(L, name);
     lua_pushboolean(L, true); return 1;
 });
 

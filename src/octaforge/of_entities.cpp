@@ -451,7 +451,7 @@ LUAICOMMAND(model_register_anim, {
         return 2;
     } else if (lua_anims.length() > ANIM_ALL) return 0;
     /* pin it */
-    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, s);
+    lua::pin_string(L, s);
     int n = lua_anims.length();
     animmap.access(s, n);
     lua_anims.add(n);
@@ -470,5 +470,9 @@ LUAICOMMAND(model_get_anim, {
 
 void clearanims() {
     lua_anims.setsize(0);
+    enumeratekt(animmap, const char*, name, int, value, {
+        lua::unpin_string(name);
+        (void)value; /* supress warnings */
+    });
     animmap.clear();
 }

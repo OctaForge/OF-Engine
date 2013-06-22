@@ -1028,8 +1028,7 @@ LUAICOMMAND(particle_register_renderer_##name, { \
     const char *path = luaL_checkstring(L, 2); \
     int flags   = luaL_checkinteger(L, 3) & (~PT_CLEARMASK); \
     int collide = luaL_optinteger(L, 4, 0); \
-    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name); \
-    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path); \
+    lua::pin_string(L, name); lua::pin_string(L, path); \
     register_renderer(L, name, new name##renderer(path, flags, collide)); \
     return 2; \
 })
@@ -1044,8 +1043,7 @@ LUAICOMMAND(particle_register_renderer_##name, { \
     const char *name = luaL_checkstring(L, 1); \
     if (get_renderer(L, name)) return 2; \
     const char *path = luaL_checkstring(L, 2); \
-    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name); \
-    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path); \
+    lua::pin_string(L, name); lua::pin_string(L, path); \
     register_renderer(L, name, new name##renderer(path)); \
     return 2; \
 })
@@ -1060,8 +1058,7 @@ LUAICOMMAND(particle_register_renderer_flare, {
     const char *path = luaL_checkstring(L, 2);
     int maxflares = luaL_checkinteger(L, 3);
     int flags = luaL_optinteger(L, 4, 0) & (~PT_CLEARMASK);
-    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
-    lua_pushvalue(L, 2); lua_setfield(L, LUA_REGISTRYINDEX, path);
+    lua::pin_string(L, name); lua::pin_string(L, path);
     register_renderer(L, name, new flarerenderer(path, maxflares, flags));
     return 2;
 })
@@ -1070,7 +1067,7 @@ LUAICOMMAND(particle_register_renderer_meter, {
     const char *name = luaL_checkstring(L, 1);
     if (get_renderer(L, name)) return 2;
     int flags = luaL_optinteger(L, 2, 0) & (~PT_CLEARMASK);
-    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
+    lua::pin_string(L, name);
     register_renderer(L, name, new meterrenderer(flags));
     return 2;
 })
@@ -1139,7 +1136,15 @@ void removetrackedparticles(physent *owner)
 void deleteparticles() {
     clearparticles();
     cleanupparticles();
-    parts.deletecontents();
+    while (parts.length()) {
+        partrenderer *rd = parts.pop();
+        if (rd->texname) lua::unpin_string(rd->texname);
+        delete rd;
+    }
+    enumeratekt(partmap, const char*, name, int, value, {
+        lua::unpin_string(name);
+        (void)value; /* supress warnings */
+    });
     partmap.clear();
 }
 
