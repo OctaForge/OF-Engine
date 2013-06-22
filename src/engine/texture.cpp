@@ -723,9 +723,9 @@ const GLint *swizzlemask(GLenum format)
 void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLenum format, GLenum target, bool swizzle)
 {
     glBindTexture(target, tnum);
-    glTexParameteri(target, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    if(target!=GL_TEXTURE_1D) glTexParameteri(target, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    if(target==GL_TEXTURE_3D) glTexParameteri(target, GL_TEXTURE_WRAP_R, clamp&4 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : (clamp&0x100 ? GL_MIRRORED_REPEAT : GL_REPEAT));
+    if(target!=GL_TEXTURE_1D) glTexParameteri(target, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : (clamp&0x200 ? GL_MIRRORED_REPEAT : GL_REPEAT));
+    if(target==GL_TEXTURE_3D) glTexParameteri(target, GL_TEXTURE_WRAP_R, clamp&4 ? GL_CLAMP_TO_EDGE : (clamp&0x400 ? GL_MIRRORED_REPEAT : GL_REPEAT));
     if(target==GL_TEXTURE_2D && hasAF && min(aniso, hwmaxaniso) > 0 && filter > 1) glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(aniso, hwmaxaniso));
     glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter && bilinear ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(target, GL_TEXTURE_MIN_FILTER,
@@ -1320,7 +1320,7 @@ static vec parsevec(const char *arg)
 VAR(usedds, 0, 1, 1);
 VAR(dbgdds, 0, 0, 1);
 
-static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, bool msg = true, int *compress = NULL)
+static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, bool msg = true, int *compress = NULL, int *wrap = NULL)
 {
     const char *cmds = NULL, *file = tname;
 
@@ -1423,6 +1423,10 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         {
             if(compress) *compress = -1;
         }
+        else if(!strncmp(cmd, "mirror", len))
+        {
+            if(wrap) *wrap |= 0x300;
+        }
         else if(!strncmp(cmd, "thumbnail", len))
         {
             int w = atoi(arg[0]), h = atoi(arg[1]);
@@ -1464,7 +1468,7 @@ Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
     if(t) return t;
     int compress = 0;
     ImageData s;
-    if(texturedata(s, tname, NULL, msg, &compress)) return newtexture(NULL, tname, s, clamp, mipit, false, false, compress);
+    if(texturedata(s, tname, NULL, msg, &compress, &clamp)) return newtexture(NULL, tname, s, clamp, mipit, false, false, compress);
     return notexture;
 }
 
@@ -2090,9 +2094,9 @@ static void texcombine(Slot &s, int index, Slot::Tex &t, bool forceload = false)
     key.add('\0');
     t.t = textures.access(key.getbuf());
     if(t.t) return;
-    int compress = 0;
+    int compress = 0, wrap = 0;
     ImageData ts;
-    if(!texturedata(ts, NULL, &t, true, &compress)) { t.t = notexture; return; }
+    if(!texturedata(ts, NULL, &t, true, &compress, &wrap)) { t.t = notexture; return; }
     switch(t.type)
     {
         case TEX_DIFFUSE:
@@ -2115,7 +2119,7 @@ static void texcombine(Slot &s, int index, Slot::Tex &t, bool forceload = false)
             if(ts.bpp < 3) swizzleimage(ts);
             break;
     }
-    t.t = newtexture(NULL, key.getbuf(), ts, 0, true, true, true, compress);
+    t.t = newtexture(NULL, key.getbuf(), ts, wrap, true, true, true, compress);
 }
 
 static Slot &loadslot(Slot &s, bool forceload)
