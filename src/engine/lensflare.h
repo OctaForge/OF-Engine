@@ -24,7 +24,7 @@ struct flare
 {
     vec o, center;
     float size;
-    float color[3];
+    vec color;
     bool sparkle;
 };
 
@@ -48,7 +48,7 @@ struct flarerenderer : partrenderer
         numflares = 0;
     }
 
-    void newflare(vec &o,  const vec &center, float r, float g, float b, float mod, float size, bool sun, bool sparkle)
+    void newflare(vec &o,  const vec &center, const vec &color, float mod, float size, bool sun, bool sparkle)
     {
         if(numflares >= maxflares) return;
         //occlusion check (neccessary as depth testing is turned off)
@@ -60,13 +60,11 @@ struct flarerenderer : partrenderer
         f.o = o;
         f.center = center;
         f.size = size;
-        f.color[0] = r*mod;
-        f.color[1] = g*mod;
-        f.color[2] = b*mod;
+        f.color = vec(color).mul(mod);
         f.sparkle = sparkle;
     }
 
-    void addflare(vec &o, float r, float g, float b, bool sun, bool sparkle)
+    void addflare(vec &o, const vec &color, bool sun, bool sparkle)
     {
         //frustrum + fog check
         if(isvisiblesphere(0.0f, o) > (sun?VFC_FOGGED:VFC_FULL_VISIBLE)) return;
@@ -85,7 +83,7 @@ struct flarerenderer : partrenderer
             if(mod < 0.0f) return;
             size = flaresize / 5.0f;
         }
-        newflare(o, center, r, g, b, mod, size, sun, sparkle);
+        newflare(o, center, color, mod, size, sun, sparkle);
     }
 
     void makelightflares()
@@ -119,7 +117,7 @@ struct flarerenderer : partrenderer
                 mod = (radius-len)/radius;
                 size = flaresize / 5.0f;
             }
-            newflare(e.o, center, e.attr[1], e.attr[2], e.attr[3], mod, size, sun, sun);
+            newflare(e.o, center, vec(e.attr[1], e.attr[2], e.attr[3]).div(255.0f), mod, size, sun, sun);
         }
     }
 
@@ -184,7 +182,7 @@ struct flarerenderer : partrenderer
     }
 
     //square per round hole - use addflare(..) instead
-    particle *addpart(const vec &o, const vec &d, int fade, float r, float g, float b, float size, int gravity = 0) { return NULL; }
+    particle *addpart(const vec &o, const vec &d, int fade, const vec &color, float size, int gravity = 0) { return NULL; }
 };
 static flarerenderer flares("<grey>media/particle/lensflares.png", 64);
 
