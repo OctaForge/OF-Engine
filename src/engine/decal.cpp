@@ -678,13 +678,13 @@ LUAICOMMAND(decal_add, {
     float sx = luaL_checknumber(L, 5);
     float sy = luaL_checknumber(L, 6);
     float sz = luaL_checknumber(L, 7);
-    int r = luaL_checkinteger(L, 8);
-    int g = luaL_checkinteger(L, 9);
-    int b = luaL_checkinteger(L, 10);
+    float r = luaL_checknumber(L, 8);
+    float g = luaL_checknumber(L, 9);
+    float b = luaL_checknumber(L, 10);
     float radius = luaL_checknumber(L, 11);
     int info = luaL_optinteger(L, 12, 0);
     adddecal(type, vec(cx, cy, cz), vec(sx, sy, sz), radius,
-        vec(r / 255.0f, g / 255.0f, b / 255.0f), info);
+        vec(r, g, b), info);
     lua_pushboolean(L, true);
     return 1;
 })

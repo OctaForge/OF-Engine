@@ -110,13 +110,13 @@ struct lightningrenderer : regularlistrenderer
         pe.extendbb(d, size);
     }
 
-    void renderpart(regularlistparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
+    void renderpart(regularlistparticle *p, const vec &o, const vec &d, float blend, int ts, float size)
     {
-        blend = min(blend<<2, 255);
+        blend = min(int(blend*255)<<2, 255)/255.0f;
         if(type&PT_MOD) //multiply alpha into color
-            gle::colorf(p->color.r*blend/255.0f, p->color.g*blend/255.0f, p->color.b*blend/255.0f);
+            gle::colorf(p->color.r*blend, p->color.g*blend, p->color.b*blend);
         else
-            gle::color(p->color, blend / 255.0f);
+            gle::color(p->color, blend);
         renderlightning(tex, o, d, size);
     }
 };

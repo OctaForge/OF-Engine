@@ -66,7 +66,7 @@ struct flarerenderer : partrenderer
         f.sparkle = sparkle;
     }
 
-    void addflare(vec &o, uchar r, uchar g, uchar b, bool sun, bool sparkle)
+    void addflare(vec &o, float r, float g, float b, bool sun, bool sparkle)
     {
         //frustrum + fog check
         if(isvisiblesphere(0.0f, o) > (sun?VFC_FOGGED:VFC_FULL_VISIBLE)) return;
@@ -184,7 +184,7 @@ struct flarerenderer : partrenderer
     }
 
     //square per round hole - use addflare(..) instead
-    particle *addpart(const vec &o, const vec &d, int fade, int r, int g, int b, float size, int gravity = 0) { return NULL; }
+    particle *addpart(const vec &o, const vec &d, int fade, float r, float g, float b, float size, int gravity = 0) { return NULL; }
 };
 static flarerenderer flares("<grey>media/particle/lensflares.png", 64);
 

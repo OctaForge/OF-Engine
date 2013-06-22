@@ -306,7 +306,7 @@ struct fireballrenderer : regularlistrenderer
         pe.extendbb(o, (size+1+pe.ent->attr[1])*WOBBLE); 
     }
 
-    void renderpart(regularlistparticle *p, const vec &o, const vec &d, int blend, int ts, float size)
+    void renderpart(regularlistparticle *p, const vec &o, const vec &d, float blend, int ts, float size)
     {
         float pmax = p->val,
               size2 = p->fade ? float(ts)/p->fade : 1,
@@ -357,14 +357,14 @@ struct fireballrenderer : regularlistrenderer
         LOCALPARAMF(animstate, (size2, psize, pmax, lastmillis/1000.0f));
         if(2*(size + pmax)*WOBBLE >= softexplosionblend)
         {
-            LOCALPARAMF(softparams, (-1.0f/softexplosionblend, 0, inside ? blend/(2*255.0f) : 0));
+            LOCALPARAMF(softparams, (-1.0f/softexplosionblend, 0, inside ? blend/2 : 0));
         }
         else
         {
-            LOCALPARAMF(softparams, (0, -1, inside ? blend/(2*255.0f) : 0));
+            LOCALPARAMF(softparams, (0, -1, inside ? blend/2 : 0));
         }
 
-        drawexplosion(inside, p->color.r*ldrscale, p->color.g*ldrscale, p->color.b*ldrscale, blend/255.0f);
+        drawexplosion(inside, p->color.r*ldrscale, p->color.g*ldrscale, p->color.b*ldrscale, blend);
     }
 };
 static fireballrenderer fireballs("media/particle/explosion"), bluefireballs("media/particle/plasma");
