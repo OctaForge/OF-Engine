@@ -291,6 +291,10 @@ else
 	CLIENT_LDFLAGS += `sdl2-config --libs` -lSDL2_image -lSDL2_mixer -lz -lGL
 	ifeq ($(TARGET_SYS),Linux)
 		CLIENT_LDFLAGS += -ldl -lrt
+	else
+	ifneq (,$(findstring GNU,$(TARGET_SYS)))
+		CLIENT_LDFLAGS += -ldl -lrt
+	endif
 	endif
 	ifeq ($(TARGET_SYS),SunOS)
 		CLIENT_LDFLAGS += -lsocket -lnsl

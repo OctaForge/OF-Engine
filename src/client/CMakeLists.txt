@@ -12,7 +12,7 @@ elseif(OF_TARGET_WINDOWS)
         ws2_32 winmm)
 endif()
 
-if(OF_TARGET_LINUX)
+if(OF_TARGET_LINUX OR ${CMAKE_SYSTEM_NAME} MATCHES "GNU")
     set(EXTRA_LIBS ${EXTRA_LIBS} dl rt)
 elseif(OF_TARGET_SOLARIS)
     set(EXTRA_LIBS ${EXTRA_LIBS} socket nsl)
