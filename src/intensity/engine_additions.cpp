@@ -46,8 +46,6 @@ int CLogicEntity::getType()
         return LE_NONE;
 }
 
-extern vector<mapmodelinfo> mapmodels; // KLUDGE
-
 int CLogicEntity::getAnimation()
 {
     return animation;

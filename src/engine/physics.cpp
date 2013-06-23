@@ -923,7 +923,7 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
             if (!areacollide(d, dir, cutoff, el)) return false;
             continue;
         }
-        model *m = el->getModel(); //loadmodel(NULL, e.attr[1]);
+        model *m = el->getModel();
         if(!m || !m->collide) continue;
         vec center, radius;
         m->collisionbox(center, radius);

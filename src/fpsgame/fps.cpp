@@ -476,19 +476,6 @@ namespace game
 #endif
     }
 
-/*
-        const char *mdls[] =
-        {
-            "gibc", "gibh",
-            "projectiles/grenade", "projectiles/rocket",
-            "debris/debris01", "debris/debris02", "debris/debris03", "debris/debris04",
-            "barreldebris/debris01", "barreldebris/debris02", "barreldebris/debris03", "barreldebris/debris04"
-        };
-        loopi(sizeof(mdls)/sizeof(mdls[0]))
-        {
-            loadmodel(mdls[i], -1, true);
-        }
-*/
     void preload() { }; // We use our own preloading system, but need to add the above projectiles etc.
 
     void startmap(const char *name)   // called just after a map load

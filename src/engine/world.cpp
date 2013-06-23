@@ -96,7 +96,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     oe.mapmodels.add(id);
                     break;
                 case ET_MAPMODEL:
-                    if(LogicSystem::getLogicEntity(e)->getModel()) //loadmodel(NULL, entities::getents()[id]->attr[1])) // INTENSITY: Get model from our system
+                    if(LogicSystem::getLogicEntity(e)->getModel())
                     {
                         if(va)
                         {
@@ -127,7 +127,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     oe.mapmodels.removeobj(id);
                     break;
                 case ET_MAPMODEL:
-                    if(LogicSystem::getLogicEntity(e)->getModel()) // loadmodel(NULL, entities::getents()[id]->attr[1])) // INTENSITY: Get model from our system
+                    if(LogicSystem::getLogicEntity(e)->getModel())
                     {
                         oe.mapmodels.removeobj(id);
                         if(va)

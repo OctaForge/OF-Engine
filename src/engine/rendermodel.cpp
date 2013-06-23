@@ -319,29 +319,6 @@ void rdanimjoints(int *on)
 }
 COMMAND(rdanimjoints, "i");
 
-// mapmodels
-
-vector<mapmodelinfo> mapmodels;
-
-void mmodel(char *name)
-{
-    mapmodelinfo &mmi = mapmodels.add();
-    copystring(mmi.name, name);
-    mmi.m = NULL;
-}
-
-void mapmodelreset(int *n) 
-{ 
-    if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
-    mapmodels.shrink(clamp(*n, 0, mapmodels.length())); 
-}
-
-mapmodelinfo *getmminfo(int i) { return /*mapmodels.inrange(i) ? &mapmodels[i] :*/ NULL; } // INTENSITY
-const char *mapmodelname(int i) { return /*mapmodels.inrange(i) ? mapmodels[i].name :*/ NULL; } // INTENSITY
-
-COMMAND(mapmodelreset, "i");
-ICOMMAND(nummapmodels, "", (), { intret(mapmodels.length()); });
-
 // model registry
 
 hashtable<const char *, model *> mdllookup;
@@ -360,7 +337,7 @@ void flushpreloadedmodels(bool msg)
     loopv(preloadmodels)
     {
         loadprogress = float(i+1)/preloadmodels.length();
-        model *m = loadmodel(preloadmodels[i], -1, msg);
+        model *m = loadmodel(preloadmodels[i], msg);
         if(!m) { if(msg) conoutf(CON_WARN, "could not load model: %s", preloadmodels[i]); }
         else
         {
@@ -372,15 +349,8 @@ void flushpreloadedmodels(bool msg)
     loadprogress = 0;
 }
 
-model *loadmodel(const char *name, int i, bool msg)
+model *loadmodel(const char *name, bool msg)
 {
-    if(!name)
-    {
-        if(!mapmodels.inrange(i)) return NULL;
-        mapmodelinfo &mmi = mapmodels[i];
-        if(mmi.m) return mmi.m;
-        name = mmi.name;
-    }
     model **mm = mdllookup.access(name);
     model *m;
     if(mm) m = *mm;
@@ -404,7 +374,6 @@ model *loadmodel(const char *name, int i, bool msg)
         if(!m) return NULL;
         mdllookup.access(m->name(), m);
     }
-    if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
 }
 
@@ -423,7 +392,6 @@ void clearmodel(char *name)
     if (!name || !name[0]) return;
     model **m = mdllookup.access(name);
     if(!m) { conoutf("model %s is not loaded", name); return; }
-    loopv(mapmodels) if(mapmodels[i].m==*m) mapmodels[i].m = NULL;
     mdllookup.remove(name);
     (*m)->cleanup();
     delete *m;
@@ -923,7 +891,7 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
 
 void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float size, float trans)
 {
-    model *m = loadmodel(mdl); 
+    model *m = loadmodel(mdl);
     if(!m) return;
 
     vec center, bbradius;
