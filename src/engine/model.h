@@ -21,10 +21,11 @@ struct model
     virtual int type() const = 0;
     virtual BIH *setBIH() { return 0; }
     virtual void gentris(vector<BIH::tri> *tris) { } // INTENSITY: Made this 'public' by putting it here
-    virtual bool envmapped() { return false; }
+    virtual bool envmapped() const { return false; }
     virtual bool skeletal() const { return false; }
     virtual bool animated() const { return false; }
     virtual bool pitched() const { return true; }
+    virtual bool alphatested() const { return false; }
 
     virtual void setshader(Shader *shader) {}
     virtual void setenvmap(float envmapmin, float envmapmax, Texture *envmap) {}
@@ -36,6 +37,7 @@ struct model
     virtual void setfullbright(float fullbright) {}
     virtual void setcullface(bool cullface) {}
 
+    virtual void genshadowmesh(vector<vec> &tris, const matrix3x4 &orient) {}
     virtual void preloadBIH() { if(!bih) setBIH(); }
     virtual void preloadshaders() {}
     virtual void preloadmeshes() {}

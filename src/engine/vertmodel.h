@@ -98,6 +98,16 @@ struct vertmodel : animmodel
             }
         }
 
+        void genshadowmesh(vector<vec> &out, const matrix3x4 &m)
+        {
+            loopj(numtris)
+            {
+                out.add(m.transform(verts[tris[j].vert[0]].pos));
+                out.add(m.transform(verts[tris[j].vert[1]].pos));
+                out.add(m.transform(verts[tris[j].vert[2]].pos));
+            }
+        }
+
         static inline bool comparevert(vvertff &w, int j, tcvert &tc, vert &v)
         {
             return tc.u==w.u && tc.v==w.v && v.pos==w.pos;

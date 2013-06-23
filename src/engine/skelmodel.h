@@ -250,6 +250,16 @@ struct skelmodel : animmodel
             }
         }
 
+        void genshadowmesh(vector<vec> &out, const matrix3x4 &m)
+        {
+            loopj(numtris)
+            {
+                out.add(m.transform(verts[tris[j].vert[0]].pos));
+                out.add(m.transform(verts[tris[j].vert[1]].pos));
+                out.add(m.transform(verts[tris[j].vert[2]].pos));
+            }
+        }
+
         static inline bool comparevert(vvert &w, int j, vert &v)
         {
             return v.u==w.u && v.v==w.v && v.pos==w.pos;
