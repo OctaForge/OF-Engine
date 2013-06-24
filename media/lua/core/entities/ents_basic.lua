@@ -829,11 +829,11 @@ local Static_Entity = Physical_Entity:clone {
 
     --[[! Function: get_edit_color
         Returns the color of the entity icon in edit mode. If an invalid
-        value is returned, it defaults to 1, 1, 1 (white). This is useful
-        for e.g. light entity that is colored.
+        value is returned, it defaults to 255, 255, 255 (white). This is
+        useful for e.g. light entity that is colored.
     ]]
     get_edit_color = function(self)
-        return 1, 1, 1
+        return 255, 255, 255
     end,
 
     --[[! Function: get_edit_info
@@ -993,8 +993,8 @@ local Light = Static_Entity:clone {
     end,
 
     get_edit_color = function(self)
-        return self:get_attr("red") / 255, self:get_attr("green") / 255,
-            self:get_attr("blue") / 255
+        return self:get_attr("red"), self:get_attr("green"),
+            self:get_attr("blue")
     end,
 
     get_edit_info = function(self)
@@ -1034,8 +1034,7 @@ local Spot_Light = Static_Entity:clone {
     get_edit_color = function(self)
         local ent = self:get_attached_entity()
         if not ent then return 255, 255, 255 end
-        return ent:get_attr("red") / 255, ent:get_attr("green") / 255,
-            ent:get_attr("blue") / 255
+        return ent:get_attr("red"), ent:get_attr("green"), ent:get_attr("blue")
     end,
 
     get_edit_info = function(self)
