@@ -237,18 +237,11 @@ static inline void text_pos(const char *str, int cursor, int &cx, int &cy, int m
     cy = int(cyf);
 }
 
-// renderva
-enum
-{
-    DL_SHRINK = 1<<0,
-    DL_EXPAND = 1<<1,
-    DL_FLASH  = 1<<2
-};
-
-extern void adddynlight  (const vec &o, float radius, const vec &color, int fade = 0, int peak = 0, int flags = 0, float initradius = 0, const vec &initcolor = vec(0, 0, 0), physent *owner = NULL, const vec &dir = vec(0, 0, 0), int spot = 0);
-extern void queuedynlight(const vec &o, float radius, const vec &color, int fade = 0, int peak = 0, int flags = 0, float initradius = 0, const vec &initcolor = vec(0, 0, 0), physent *owner = NULL, const vec &dir = vec(0, 0, 0), int spot = 0);
-extern void dynlightreaching(const vec &target, vec &color, vec &dir, bool hud = false);
+// dynlight
 extern void removetrackeddynlights(physent *owner = NULL);
+
+// renderparticles
+extern void removetrackedparticles(physent *owner = NULL);
 
 // rendergl
 extern physent *camera1;

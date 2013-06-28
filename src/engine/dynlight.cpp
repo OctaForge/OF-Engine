@@ -1,6 +1,12 @@
 #include "engine.h"
 
-VARNP(dynlights, usedynlights, 0, 1, 1);
+enum
+{
+    DL_SHRINK = 1<<0,
+    DL_EXPAND = 1<<1,
+    DL_FLASH  = 1<<2
+};
+
 VARP(dynlightdist, 0, 1024, 10000);
 
 struct dynlight
@@ -66,9 +72,8 @@ struct dynlight_queued
 };
 vector<dynlight_queued> dynlight_queue;
 
-void adddynlight(const vec &o, float radius, const vec &color, int fade, int peak, int flags, float initradius, const vec &initcolor, physent *owner, const vec &dir, int spot)
+void adddynlight(const vec &o, float radius, const vec &color, int fade = 0, int peak = 0, int flags = 0, float initradius = 0, const vec &initcolor = vec(0, 0, 0), physent *owner = NULL, const vec &dir = vec(0, 0, 0), int spot = 0)
 {
-    if(!usedynlights) return;
     if(o.dist(camera1->o) > dynlightdist || radius <= 0) return;
 
     int insert = 0, expire = fade + peak + lastmillis;
@@ -110,7 +115,7 @@ void updatedynlights()
     loopv(dynlight_queue)
     {
         dynlight_queued &d = dynlight_queue[i];
-        adddynlight(d.o, d.radius, d.color, d.fade, d.peak, d.flags, d.initradius, d.initcolor, d.owner);
+        adddynlight(d.o, d.radius, d.color, d.fade, d.peak, d.flags, d.initradius, d.initcolor, d.owner, d.dir, d.spot);
     }
     dynlight_queue.setsize(0);
 
@@ -126,7 +131,6 @@ void updatedynlights()
 int finddynlights()
 {
     closedynlights.setsize(0);
-    if(!usedynlights) return 0;
     physent e;
     e.type = ENT_CAMERA;
     e.collidetype = COLLIDE_AABB;
@@ -160,50 +164,6 @@ bool getdynlight(int n, vec &o, float &radius, vec &color, vec &dir, int &spot)
     return true;
 }
 
-void dynlightreaching(const vec &target, vec &color, vec &dir, bool hud)
-{
-    vec dyncolor(0, 0, 0);//, dyndir(0, 0, 0);
-    loopv(dynlights)
-    {
-        dynlight &d = dynlights[i];
-        if(d.curradius<=0) continue;
-
-        vec ray(target);
-        ray.sub(hud ? d.hud : d.o);
-        float mag = ray.squaredlen();
-        if(mag >= d.curradius*d.curradius) continue;
-
-        float intensity = 1 - sqrtf(mag)/d.curradius;
-        if(d.spot > 0)
-        {
-            float maxatten = sincos360[d.spot].x, spotatten = (ray.dot(d.dir) - maxatten) / (1 - maxatten);
-            if(spotatten <= 0) continue;
-            intensity *= spotatten;
-        }
-
-        vec color = d.curcolor;
-        color.mul(intensity);
-        dyncolor.add(color);
-        //dyndir.add(ray.mul(intensity/mag));
-    }
-#if 0
-    if(!dyndir.iszero())
-    {
-        dyndir.normalize();
-        float x = dyncolor.magnitude(), y = color.magnitude();
-        if(x+y>0)
-        {
-            dir.mul(x);
-            dyndir.mul(y); 
-            dir.add(dyndir).div(x+y);
-            if(dir.iszero()) dir = vec(0, 0, 1);
-            else dir.normalize();
-        }
-    }
-#endif
-    color.add(dyncolor);
-}
-
 void queuedynlight(const vec &o, float radius, const vec &color, int fade, int peak, int flags, float initradius, const vec &initcolor, physent *owner, const vec &dir, int spot)
 {
     dynlight_queued d;
@@ -221,14 +181,65 @@ void queuedynlight(const vec &o, float radius, const vec &color, int fade, int p
     dynlight_queue.add(d);
 }
 
-LUAICOMMAND(adddynlight, {
-    queuedynlight(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
-        vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
-            luaL_checknumber(L, 7)),
-        luaL_checkinteger(L, 8), luaL_checkinteger(L, 9),
-        luaL_checkinteger(L, 10), luaL_checknumber(L, 11),
-        vec(luaL_checknumber(L, 12), luaL_checknumber(L, 13),
-            luaL_checknumber(L, 14)), NULL);
-    return 0;
-});
+#define DYNLIGHT_GET_OWNER(owner, num) \
+    physent *owner = NULL; \
+    if (!lua_isnoneornil(L, num)) { \
+        lua::push_external(L, "entity_get_attr"); \
+        lua_pushvalue(L, num); \
+        lua_pushliteral(L, "uid"); \
+        lua_call(L, 2, 1); \
+        int uid = lua_tointeger(L, -1); lua_pop(L, 1); \
+        CLogicEntity *ent = LogicSystem::getLogicEntity(uid); \
+        assert(ent && ent->dynamicEntity); \
+        owner = ent->dynamicEntity; \
+    }
+
+LUAICOMMAND(dynlight_add, {
+    float ox = luaL_checknumber(L, 1);
+    float oy = luaL_checknumber(L, 2);
+    float oz = luaL_checknumber(L, 3);
+    float radius = luaL_checknumber(L, 4);
+    float r = luaL_checknumber(L, 5);
+    float g = luaL_checknumber(L, 6);
+    float b = luaL_checknumber(L, 7);
+    int fade = luaL_optinteger(L, 8, 0);
+    int peak = luaL_optinteger(L, 9, 0);
+    int flags = luaL_optinteger(L, 10, 0);
+    float initradius = luaL_optnumber(L, 11, 0.0f);
+    float ir = luaL_optnumber(L, 12, 0.0f);
+    float ig = luaL_optnumber(L, 13, 0.0f);
+    float ib = luaL_optnumber(L, 14, 0.0f);
+    DYNLIGHT_GET_OWNER(owner, 15);
+    queuedynlight(vec(ox, oy, oz), radius, vec(r, g, b), fade, peak, flags,
+        initradius, vec(ir, ig, ib), owner, vec(0, 0, 0), 0);
+    lua_pushboolean(L, true);
+    return 1;
+})
+
+LUAICOMMAND(dynlight_add_spot, {
+    float ox = luaL_checknumber(L, 1);
+    float oy = luaL_checknumber(L, 2);
+    float oz = luaL_checknumber(L, 3);
+    float dx = luaL_checknumber(L, 4);
+    float dy = luaL_checknumber(L, 5);
+    float dz = luaL_checknumber(L, 6);
+    float radius = luaL_checknumber(L, 7);
+    int spot = luaL_checkinteger(L, 8);
+    float r = luaL_checknumber(L, 9);
+    float g = luaL_checknumber(L, 10);
+    float b = luaL_checknumber(L, 11);
+    int fade = luaL_optinteger(L, 12, 0);
+    int peak = luaL_optinteger(L, 13, 0);
+    int flags = luaL_optinteger(L, 14, 0);
+    float initradius = luaL_optnumber(L, 15, 0.0f);
+    float ir = luaL_optnumber(L, 16, 0.0f);
+    float ig = luaL_optnumber(L, 17, 0.0f);
+    float ib = luaL_optnumber(L, 18, 0.0f);
+    DYNLIGHT_GET_OWNER(owner, 19);
+    queuedynlight(vec(ox, oy, oz), radius, vec(r, g, b), fade, peak, flags,
+        initradius, vec(ir, ig, ib), owner, vec(dx, dy, dz), spot);
+    lua_pushboolean(L, true);
+    return 1;
+})
+
+#undef DYNLIGHT_GET_OWNER

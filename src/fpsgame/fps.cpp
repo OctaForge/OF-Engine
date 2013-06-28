@@ -460,9 +460,10 @@ namespace game
         if(!d) return;
         if(notify && d->name[0]) conoutf("player %s disconnected", colorname(d));
 //        removeweapons(d);
-//        removetrackedparticles(d);
-//        removetrackeddynlights(d);
-
+#ifndef SERVER
+        removetrackedparticles(d);
+        removetrackeddynlights(d);
+#endif
         players.removeobj(d);
         DELETEP(clients[cn]);
         cleardynentcache();
