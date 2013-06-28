@@ -1276,7 +1276,10 @@ static inline particle *newparticle(const vec &o, const vec &d, int fade, int ty
         type = tp ? *tp : -1; \
     }
 
+bool canaddparticles() { return !minimized; }
+
 LUAICOMMAND(particle_new, {
+    if (!canaddparticles()) { lua_pushnil(L); return 1; }
     PART_GET_TYPE(type);
     if (!parts.inrange(type) || parts[type]->type&PT_SPECIAL) {
         lua_pushnil(L); return 1;
@@ -1303,6 +1306,7 @@ VARP(maxparticledistance, 256, 1024, 4096);
 
 static void splash(int type, const vec &color, int radius, int num, int fade, const vec &p, float size, int gravity)
 {
+    if (!canaddparticles()) return;
     if(camera1->o.dist(p) > maxparticledistance && !seedemitter) return;
     float collidez = parts[type]->collide ? p.z - raycube(p, vec(0, 0, -1), COLLIDERADIUS, RAY_CLIPMAT) + (parts[type]->collide >= 0 ? COLLIDEERROR : 0) : -1; 
     int fmin = 1;
@@ -1369,6 +1373,7 @@ LUAICOMMAND(particle_trail, {
     float size = luaL_checknumber(L, 12);
     int gravity = luaL_checkinteger(L, 13);
 
+    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
     vec s(ox, oy, oz);
     vec e(dx, dy, dz);
     vec v;
@@ -1392,6 +1397,7 @@ VARP(maxparticletextdistance, 0, 128, 10000);
 
 void particle_textcopy(const vec &s, const char *t, int type, int fade, const vec &color, float size, int gravity)
 {
+    if (!canaddparticles()) return;
     if(!particletext || camera1->o.dist(s) > maxparticletextdistance) return;
     textparticle *p = (textparticle*)newparticle(s, vec(0, 0, 1), fade, type, color, size, gravity);
     p->text = newstring(t);
@@ -1413,6 +1419,8 @@ LUAICOMMAND(particle_text, {
     int fade = luaL_checkinteger(L, 9);
     float size = luaL_checknumber(L, 10);
     int gravity = luaL_checkinteger(L, 11);
+
+    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
 
     vec s(ox, oy, oz);
     if(!particletext || camera1->o.dist(s) > maxparticletextdistance) {
@@ -1443,6 +1451,7 @@ LUAICOMMAND(particle_icon_generic, {
     int fade = luaL_checkinteger(L, 10);
     float size = luaL_checknumber(L, 11);
     int gravity = luaL_checkinteger(L, 12);
+    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
     particle *p = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
     p->flags |= ix | (iy<<2);
@@ -1465,6 +1474,7 @@ LUAICOMMAND(particle_icon, {
     int fade = luaL_checkinteger(L, 9);
     float size = luaL_checknumber(L, 10);
     int gravity = luaL_checkinteger(L, 11);
+    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
     ((iconparticle*)newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity))->tex = textureload(icon);
     lua_pushboolean(L, true);
@@ -1488,6 +1498,7 @@ LUAICOMMAND(particle_meter, {
     int b2 = luaL_checknumber(L, 11);
     int fade = luaL_checkinteger(L, 12);
     float size = luaL_checknumber(L, 13);
+    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
     meterparticle *p = (meterparticle*)newparticle(vec(ox, oy, oz),
         vec(0, 0, 1), fade, type, vec(r, g, b), size);
     p->color2 = vec(r2, g2, b2);
@@ -1517,6 +1528,7 @@ LUAICOMMAND(particle_flare, {
         assert(o->dynamicEntity);
         owner = o->dynamicEntity;
     }
+    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
     newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade,
         type, vec(r, g, b), size)->owner = owner;
     lua_pushboolean(L, true);
@@ -1537,6 +1549,7 @@ LUAICOMMAND(particle_fireball, {
     int fade = luaL_checkinteger(L, 8);
     float size = luaL_checknumber(L, 9);
     float maxsize = luaL_checknumber(L, 10);
+    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
     float growth = maxsize - size;
     if(fade < 0) fade = int(growth*20);
     newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade,
@@ -1558,6 +1571,7 @@ LUAICOMMAND(particle_lensflare, {
     float r = luaL_checknumber(L, 7);
     float g = luaL_checknumber(L, 8);
     float b = luaL_checknumber(L, 9);
+    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
     vec o(ox, oy, oz);
     ((flarerenderer*)parts[type])->addflare(o, vec(r, g, b), sun, sparkle);
     lua_pushboolean(L, true);
@@ -1604,13 +1618,13 @@ LUAICOMMAND(particle_shape, {
     float size = luaL_checknumber(L, 12);
     int gravity = luaL_checkinteger(L, 13);
     int vel = luaL_checkinteger(L, 14);
-    vec p(ox, oy, oz);
 
-    if (!lua_toboolean(L, 15) && !emit_particles()) {
+    if (!canaddparticles() || (!lua_toboolean(L, 15) && !emit_particles())) {
         lua_pushboolean(L, true);
         return 1;
     }
 
+    vec p(ox, oy, oz);
     int basetype = parts[type]->type&0xFF;
     bool flare = (basetype == PT_TAPE) || (basetype == PT_LIGHTNING);
     bool inv   = (dir & 0x20) != 0;
@@ -1717,7 +1731,7 @@ LUAICOMMAND(particle_flame, {
     float speed = luaL_checknumber(L, 13);
     int gravity = luaL_checkinteger(L, 14);
 
-    if (!lua_toboolean(L, 15) && !emit_particles()) {
+    if (!canaddparticles() || (!lua_toboolean(L, 15) && !emit_particles())) {
         lua_pushboolean(L, true);
         return 1;
     }
