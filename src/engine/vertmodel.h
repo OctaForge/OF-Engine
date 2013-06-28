@@ -255,7 +255,7 @@ struct vertmodel : animmodel
     struct tag
     {
         char *name;
-        matrix3x4 transform;
+        matrix3x4 matrix;
 
         tag() : name(NULL) {}
         ~tag() { DELETEA(name); }
@@ -297,23 +297,56 @@ struct vertmodel : animmodel
             return -1;
         }
 
+        bool addtag(const char *name, const matrix3x4 &matrix)
+        {
+            int idx = findtag(name);
+            if(idx >= 0)
+            {
+                if(!testtags) return false;
+                loopi(numframes)
+                {
+                    tag &t = tags[i*numtags + idx];
+                    t.matrix = matrix;
+                }
+            }
+            else
+            {
+                tag *newtags = new tag[(numtags+1)*numframes];
+                loopi(numframes)
+                {
+                    tag *dst = &newtags[(numtags+1)*i], *src = &tags[numtags*i];
+                    if(!i)
+                    {
+                        loopj(numtags) swap(dst[j].name, src[j].name);
+                        dst[numtags].name = newstring(name);
+                    }
+                    loopj(numtags) dst[j].matrix = src[j].matrix;    
+                    dst[numtags].matrix = matrix;
+                }
+                if(tags) delete[] tags;
+                tags = newtags;
+                numtags++;
+            }
+            return true;
+        }
+
         int totalframes() const { return numframes; }
 
         void concattagtransform(part *p, int i, const matrix3x4 &m, matrix3x4 &n)
         {
-            n.mul(m, tags[i].transform);
+            n.mul(m, tags[i].matrix);
         }
 
         void calctagmatrix(part *p, int i, const animstate &as, glmatrix &matrix)
         {
-            const matrix3x4 &tag1 = tags[as.cur.fr1*numtags + i].transform, 
-                            &tag2 = tags[as.cur.fr2*numtags + i].transform;
+            const matrix3x4 &tag1 = tags[as.cur.fr1*numtags + i].matrix, 
+                            &tag2 = tags[as.cur.fr2*numtags + i].matrix;
             matrix3x4 tag;
             tag.lerp(tag1, tag2, as.cur.t);
             if(as.interp<1)
             {
-                const matrix3x4 &tag1p = tags[as.prev.fr1*numtags + i].transform, 
-                                &tag2p = tags[as.prev.fr2*numtags + i].transform;
+                const matrix3x4 &tag1p = tags[as.prev.fr1*numtags + i].matrix, 
+                                &tag2p = tags[as.prev.fr2*numtags + i].matrix;
                 matrix3x4 tagp;
                 tagp.lerp(tag1p, tag2p, as.prev.t);
                 tag.lerp(tagp, tag, as.interp);
@@ -483,6 +516,7 @@ template<class MDL> struct vertloader : modelloader<MDL>
 
 template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmesh>
 {
+    typedef struct MDL::vertmeshgroup meshgroup;
     typedef struct MDL::part part;
     typedef struct MDL::skin skin;
 
@@ -499,7 +533,19 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
         if(!mdl.meshes) conoutf("could not load %s", filename);
         else mdl.initskins();
     }
-    
+   
+    static void settag(char *tagname, float *tx, float *ty, float *tz, float *rx, float *ry, float *rz)
+    {
+        if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
+        part &mdl = *(part *)MDL::loading->parts.last();
+        float cx = *rx ? cosf(*rx/2*RAD) : 1, sx = *rx ? sinf(*rx/2*RAD) : 0,
+              cy = *ry ? cosf(*ry/2*RAD) : 1, sy = *ry ? sinf(*ry/2*RAD) : 0,
+              cz = *rz ? cosf(*rz/2*RAD) : 1, sz = *rz ? sinf(*rz/2*RAD) : 0;
+        matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)),
+                    vec(*tx, *ty, *tz));
+        ((meshgroup *)mdl.meshes)->addtag(tagname, m);
+    }
+ 
     static void setpitch(float *pitchscale, float *pitchoffset, float *pitchmin, float *pitchmax)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
@@ -534,6 +580,7 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
     vertcommands()
     {
         if(MDL::multiparted()) this->modelcommand(loadpart, "load", "sf"); 
+        this->modelcommand(settag, "tag", "sffffff");
         this->modelcommand(setpitch, "pitch", "ffff");
         if(MDL::cananimate()) this->modelcommand(setanim, "anim", "siiff");
     }

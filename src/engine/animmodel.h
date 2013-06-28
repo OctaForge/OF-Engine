@@ -3,6 +3,7 @@ VARP(envmapmodels, 0, 1, 1);
 VARP(glowmodels, 0, 1, 1);
 VARP(bumpmodels, 0, 1, 1);
 VARP(fullbrightmodels, 0, 0, 200);
+VAR(testtags, 0, 0, 1);
 
 struct animmodel : model
 {
@@ -167,7 +168,7 @@ struct animmodel : model
 
             if(as->cur.anim&ANIM_NOSKIN)
             {
-                if(alphatest > 0 && s->type&Texture::ALPHA)
+                if(alphatest > 0 && s->type&Texture::ALPHA && owner->model->alphashadow)
                 {
                     if(s!=lasttex)
                     {

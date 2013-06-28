@@ -944,12 +944,12 @@ local Oriented_Marker = Static_Entity:clone {
 ents.Oriented_Marker = Oriented_Marker
 
 local lightflags = setmetatable({
-    [0] = "dynamic shadow (0)",
-    [1] = "no shadow (1)",
-    [2] = "static shadow (2)"
+    [0] = "dynamic (0)",
+    [1] = "none (1)",
+    [2] = "static (2)"
 }, {
     __index = function(self, i)
-        if i < 0 then return "light off (< 0)" else return "unknown (> 2)" end
+        return ("invalid (%d)"):format(i)
     end
 })
 
@@ -958,14 +958,14 @@ local lightflags = setmetatable({
     entity types that are e.g. triggered, flickering and so on.
 
     Properties:
-        attr1 - light radius. (0 to N, alias "radius", default 100)
+        attr1 - light radius. (0 to N, alias "radius", default 100 - 0 or
+        lower means the light is off)
         attr2 - red value (can be any range, even negative - typical values
         are 0 to 255, negative values make a negative light, alias "red",
         default 128)
         attr3 - green value (alias "green", default 128)
         attr4 - blue value (alias "blue", default 128)
-        attr5 - flags, -1 turns off the light, 0 gives it a dynamic shadow,
-        1 disables the shadow, 2 makes the shadow static (default 0)
+        attr5 - shadow type, 0 means dnyamic, 1 disabled, 2 static (default 0).
 ]]
 local Light = Static_Entity:clone {
     name = "Light",
@@ -980,7 +980,7 @@ local Light = Static_Entity:clone {
         attr2 = gen_attr(2, "red"),
         attr3 = gen_attr(3, "green"),
         attr4 = gen_attr(4, "blue"),
-        attr5 = gen_attr(5, "flags")
+        attr5 = gen_attr(5, "shadow")
     },
 
     init = function(self, uid, kwargs)
@@ -989,7 +989,7 @@ local Light = Static_Entity:clone {
         self:set_attr("green", 128)
         self:set_attr("blue", 128)
         self:set_attr("radius", 100)
-        self:set_attr("flags", 0)
+        self:set_attr("shadow", 0)
     end,
 
     get_edit_color = function(self)
@@ -999,10 +999,10 @@ local Light = Static_Entity:clone {
 
     get_edit_info = function(self)
         return format("red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
-            .. "radius :\f2 %d \f7| flags :\f2 %s",
+            .. "radius :\f2 %d \f7| shadow :\f2 %s",
             self:get_attr("red"), self:get_attr("green"),
             self:get_attr("blue"), self:get_attr("radius"),
-            lightflags[self:get_attr("flags")])
+            lightflags[self:get_attr("shadow")])
     end
 }
 ents.Light = Light

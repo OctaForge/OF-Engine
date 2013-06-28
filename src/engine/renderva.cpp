@@ -2122,7 +2122,7 @@ static void genshadowmeshmapmodels(shadowmesh &m, int sides, shadowdrawinfo draw
         CLogicEntity *et = LogicSystem::getLogicEntity(e.uniqueId);
         if (!et) continue;
         model *mm = et->theModel;
-        if(!mm || mm->animated() || mm->alphatested()) continue;
+        if(!mm || !mm->shadow || mm->animated() || (mm->alphashadow && mm->alphatested())) continue;
 
         matrix3x4 orient;
         orient.identity();
