@@ -1026,7 +1026,7 @@ LUAICOMMAND(particle_register_renderer_##name, { \
     const char *name = luaL_checkstring(L, 1); \
     if (get_renderer(L, name)) return 2; \
     const char *path = luaL_checkstring(L, 2); \
-    int flags   = luaL_checkinteger(L, 3) & (~PT_CLEARMASK); \
+    int flags   = luaL_optinteger(L, 3, 0) & (~PT_CLEARMASK); \
     int collide = luaL_optinteger(L, 4, 0); \
     lua::pin_string(L, name); lua::pin_string(L, path); \
     register_renderer(L, name, new name##renderer(path, flags, collide)); \
