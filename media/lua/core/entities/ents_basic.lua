@@ -1114,9 +1114,11 @@ local Sound = Static_Entity:clone {
 
     activate = (not SERVER) and function(self, ...)
         Static_Entity.activate(self, ...)
-        connect(self, "sound_name_changed", function(self, val)
-            _C.sound_stop_map(self)
-        end)
+        local f = _C.sound_stop_map
+        connect(self, "sound_name_changed", f)
+        connect(self, "radius_changed", f)
+        connect(self, "size_changed", f)
+        connect(self, "volume_changed", f)
     end or nil,
 
     get_edit_info = function(self)
