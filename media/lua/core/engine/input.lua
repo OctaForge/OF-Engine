@@ -13,6 +13,8 @@
         Several input-related functions in the "input" module.
 ]]
 
+if SERVER then return {} end
+
 local frame = require("core.events.frame")
 
 local vec3 = require("core.lua.math").Vec3

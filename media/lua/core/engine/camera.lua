@@ -14,6 +14,8 @@
         one frame only.
 ]]
 
+if SERVER then return {} end
+
 return {
     --[[! Function: get
         Gets information about the camera. Returns its position (as a vec3)

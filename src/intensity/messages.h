@@ -307,35 +307,6 @@ struct InitS2C : MessageType
 
 void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion);
 
-
-// SoundToServer
-
-struct SoundToServer : MessageType
-{
-    SoundToServer() : MessageType(1023, "SoundToServer") { };
-
-#ifdef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_SoundToServer(int soundId);
-
-
-// SoundToClients
-
-struct SoundToClients : MessageType
-{
-    SoundToClients() : MessageType(1024, "SoundToClients") { };
-
-#ifndef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_SoundToClients(int clientNumber, int soundId, int originalClientNumber);
-
-
 // MapSoundToClients
 
 struct MapSoundToClients : MessageType
@@ -348,35 +319,6 @@ struct MapSoundToClients : MessageType
 };
 
 void send_MapSoundToClients(int clientNumber, const char* soundName, int entityUniqueId);
-
-
-// SoundToClientsByName
-
-struct SoundToClientsByName : MessageType
-{
-    SoundToClientsByName() : MessageType(1026, "SoundToClientsByName") { };
-
-#ifndef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_SoundToClientsByName(int clientNumber, float x, float y, float z, const char* soundName, int originalClientNumber);
-
-
-// SoundStopToClientsByName
-
-struct SoundStopToClientsByName : MessageType
-{
-    SoundStopToClientsByName() : MessageType(1027, "SoundStopToClientsByName") { };
-
-#ifndef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_SoundStopToClientsByName(int clientNumber, int volume, const char* soundName, int originalClientNumber);
-
 
 // EditModeC2S
 

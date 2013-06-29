@@ -133,20 +133,6 @@ namespace lapi_binds
         return 0;
     }
 
-    int _lua_sound_toclients_byname(lua_State *L) {
-        const char *sn = luaL_checkstring(L, 5);
-        send_SoundToClientsByName(luaL_checkinteger(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3),
-            luaL_checknumber(L, 4), sn ? sn : "", luaL_checkinteger(L, 6));
-        return 0;
-    }
-
-    int _lua_sound_toclients(lua_State *L) {
-        send_SoundToClients(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-            luaL_checkinteger(L, 3));
-        return 0;
-    }
-
     int _lua_statedata_changerequest(lua_State *L) {
         const char *val = luaL_optstring(L, 3, "");
         send_StateDataChangeRequest(luaL_checkinteger(L, 1),
@@ -452,8 +438,6 @@ namespace lapi_binds
 
     /* messages */
     LAPI_REG(personal_servmsg);
-    LAPI_REG(sound_toclients_byname);
-    LAPI_REG(sound_toclients);
     LAPI_REG(statedata_changerequest);
     LAPI_REG(statedata_changerequest_unreliable);
     LAPI_REG(notify_numents);
