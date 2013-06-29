@@ -124,7 +124,7 @@ namespace entities
 
     LUAICOMMAND(set_attachments, {
         LUA_GET_ENT(entity, "_C.setattachments", return 0)
-        entity->setAttachments(lua_tostring(L, 2));
+        entity->setAttachments(L);
         return 0;
     });
 
@@ -439,6 +439,12 @@ LUAICOMMAND(model_get_anim, {
     lua_pushinteger(L, *a);
     return 1;
 });
+
+int getanimid(const char *name) {
+    int *a = animmap.access(name);
+    if (!a) return 0;
+    return *a;
+}
 
 void clearanims() {
     lua_anims.setsize(0);

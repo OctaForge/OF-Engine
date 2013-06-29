@@ -44,6 +44,7 @@ local abs = math.abs
 local tconc = table.concat
 local min, max = math.min, math.max
 local clamp = require("core.lua.math").clamp
+local map = table2.map
 
 local set_attachments = _C.set_attachments
 
@@ -71,9 +72,11 @@ local Physical_Entity = Entity:clone {
         model_name  = svars.State_String  { setter = "_C.set_model_name"   },
         attachments = svars.State_Array   {
             setter = function(self, val)
-                return set_attachments(self, tconc(val))
+                return set_attachments(self, map(val, function(str)
+                    return str:split(",")
+                end))
             end
-        } 
+        }
     },
 
     init = SERVER and function(self, uid, kwargs)
@@ -802,7 +805,7 @@ local Static_Entity = Physical_Entity:clone {
         local acn = msg.ALL_CLIENTS
         cn = cn or acn
 
-        local cns = (cn == acn) and table2.map(ents.get_players(), function(p)
+        local cns = (cn == acn) and map(ents.get_players(), function(p)
             return p.cn end) or { cn }
 
         local uid = self.uid

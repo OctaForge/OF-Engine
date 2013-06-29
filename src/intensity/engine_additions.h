@@ -87,7 +87,7 @@ struct CLogicEntity
     void setModel(const char *name);
 
     //! Updates the attachments based on lua information. Refreshes what is needed in Sauer
-    void setAttachments(const char *at);
+    void setAttachments(lua_State *L);
 
     //! Updates the animation based on lua information. Refreshes what is needed in Sauer. In particular sets the start time.
     void setAnimation(int _animation);

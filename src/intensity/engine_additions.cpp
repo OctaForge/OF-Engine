@@ -93,90 +93,78 @@ void CLogicEntity::setModel(const char *name)
 #endif
 }
 
-void CLogicEntity::setAttachments(const char *at)
-{
-    logger::log(logger::DEBUG, "CLogicEntity::setAttachments: %s\r\n", at);
+static const char *pin_str_ret(lua_State *L, const char *inp, size_t off = 0) {
+    lua_pushstring(L, inp + off);
+    const char *str = lua_tostring(L, -1);
+    lua::pin_string(L, str); lua_pop(L, 1);
+    return str;
+}
 
+int getanimid(const char *name);
+
+void CLogicEntity::setAttachments(lua_State *L) {
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
 
     // Clean out old data
-    for (int i = 0; attachments[i].tag; i++)
-    {
-        delete[] attachments[i].tag;
-        delete[] attachments[i].name;
+    for (int i = 0; attachments[i].tag; i++) {
+        lua::unpin_string(L, attachments[i].tag);
+        lua::unpin_string(L, attachments[i].name);
     }
 
-    // Generate new data
-    int num = 0, i = 0;
-    char *curr = NULL, *name = NULL, *tag = NULL;
-    char *data = newstring(at);
-    char * pch = strchr(data, '|');
-
-    while (pch)
-    {
-        num++;
-        pch = strchr(pch + 1, '|');
-    }
-    /* Because it'd be 1 even with no attachments. */
-    if (strcmp(at, "")) num++;
-
-    assert(num <= MAX_ATTACHMENTS);
-
-    pch = strtok(data, "|");
-    while (pch)
-    {
-        curr = newstring(pch);
-        if (!strchr(curr, ','))
-        {
-            name = NULL;
-            tag  = curr;
+    size_t num = lua_objlen(L, -1);
+    for (size_t i = 0; i < num; ++i) {
+        lua_rawgeti(L, -1, i + 1);
+        const char *name = NULL, *tag = NULL;
+        int anim, narr = lua_objlen(L, -1);
+        switch (narr) {
+            case 0: lua_pop(L, 1); break;
+            case 1: {
+                lua_rawgeti(L, -1, 1);
+                tag  = lua_tostring(L, -1); lua_pop(L, 2);
+                name = "";
+                anim = 0;
+                goto attachment;
+            }
+            case 2: {
+                lua_rawgeti(L, -1, 1);
+                lua_rawgeti(L, -2, 2);
+                tag  = lua_tostring(L, -2);
+                name = lua_tostring(L, -1); lua_pop(L, 3);
+                anim = 0;
+                goto attachment;
+            }
+            default: {
+                lua_rawgeti(L, -1, 1);
+                lua_rawgeti(L, -2, 2);
+                anim = ANIM_LOOP;
+                for (int i = 3; i <= narr; ++i) {
+                    lua_rawgeti(L, -3, i);
+                    anim |= getanimid(lua_tostring(L, -1));
+                    lua_pop(L, 1);
+                }
+                lua_pop(L, 3);
+                goto attachment;
+            }
+            attachment: {
+                if (tag[0] == '*') {
+                    attachmentPositions[i] = vec(0, 0, 0);
+                    attachments[i].pos = &attachmentPositions[i];
+                } else {
+                    attachments[i].pos = NULL;
+                }
+                attachments[i].tag  = pin_str_ret(L, tag, tag[0] == '*');
+                attachments[i].name = pin_str_ret(L, name);
+                attachments[i].anim = anim;
+                attachments[i].basetime = startTime;
+                break;
+            }
         }
-        else
-        {
-            tag  = strtok(curr, ",");
-            name = strtok(NULL, ",");
-        }
-
-        /* Tags starting with a '*' indicate this is a position marker */
-        if (strlen(tag) >= 1 && tag[0] == '*')
-        {
-            tag++;
-            attachments[i].pos = &attachmentPositions[i];
-            /* Initialize, as if the attachment doesn't exist in the model,
-             * we don't want NaNs and such causing crashes
-             */
-            attachmentPositions[i] = vec(0, 0, 0);
-        }
-        else attachments[i].pos = NULL;
-
-        attachments[i].tag  = newstring(tag);
-        attachments[i].name = name ? newstring(name) : newstring("");
-        /* attachments[i].anim = ANIM_VWEP | ANIM_LOOP;
-         * This will become important if/when we have animated attachments
-         */
-        attachments[i].basetime = 0;
-
-        logger::log(
-            logger::DEBUG,
-            "Adding attachment: %s - %s\r\n",
-            attachments[i].name,
-            attachments[i].tag
-        );
-
-        delete[] curr;
-
-        pch = strtok(NULL, "|");
-        i++;
     }
 
-    /* tag=null as well - probably not needed (order reversed with following line) */
     attachments[num].tag  = NULL;
-    /* Null name element at the end, for sauer to know to stop */
     attachments[num].name = NULL;
-
-    delete[] data;
 }
 
 void CLogicEntity::setAnimation(int _animation)
@@ -341,10 +329,9 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
     CLogicEntity *ptr = logicEntities[uniqueId];
     logicEntities.remove(uniqueId);
 
-    for (int i = 0; ptr->attachments[i].tag; i++)
-    {
-        delete[] ptr->attachments[i].tag;
-        delete[] ptr->attachments[i].name;
+    for (int i = 0; ptr->attachments[i].tag; i++) {
+        lua::unpin_string(ptr->attachments[i].tag);
+        lua::unpin_string(ptr->attachments[i].name);
     }
 
     luaL_unref(lua::L, LUA_REGISTRYINDEX, ptr->lua_ref);
