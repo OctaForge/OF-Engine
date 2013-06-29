@@ -307,19 +307,6 @@ struct InitS2C : MessageType
 
 void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion);
 
-// MapSoundToClients
-
-struct MapSoundToClients : MessageType
-{
-    MapSoundToClients() : MessageType(1025, "MapSoundToClients") { };
-
-#ifndef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_MapSoundToClients(int clientNumber, const char* soundName, int entityUniqueId);
-
 // EditModeC2S
 
 struct EditModeC2S : MessageType

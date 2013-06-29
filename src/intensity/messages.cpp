@@ -1293,77 +1293,6 @@ namespace MessageSystem
     }
 #endif
 
-
-// MapSoundToClients
-
-    void send_MapSoundToClients(int clientNumber, const char* soundName, int entityUniqueId)
-    {
-        int exclude = -1; // Set this to clientNumber to not send to
-
-        logger::log(logger::DEBUG, "Sending a message of type MapSoundToClients (1025)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "isi", 1025, soundName, entityUniqueId);
-
-            }
-        }
-    }
-
-#ifndef SERVER
-    void MapSoundToClients::receive(int receiver, int sender, ucharbuf &p)
-    {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
-
-        char soundName[MAXTRANS];
-        getstring(soundName, p);
-        int entityUniqueId = getint(p);
-
-        CLogicEntity *entity = LogicSystem::getLogicEntity(entityUniqueId);
-        if (entity)
-        {
-            extentity *e = entity->staticEntity;
-            stopmapsound(e);
-            if(camera1->o.dist(e->o) < e->attr[1])
-            {
-                if(!e->visible) playmapsound(soundName, e, e->attr[3], -1);
-                else if(e->visible) stopmapsound(e);
-            }
-        }
-    }
-#endif
-
 // EditModeC2S
 
     void send_EditModeC2S(int mode)
@@ -1628,7 +1557,6 @@ void MessageManager::registerAll()
     registerMessageType( new LogicEntityRemoval() );
     registerMessageType( new ExtentCompleteNotification() );
     registerMessageType( new InitS2C() );
-    registerMessageType( new MapSoundToClients() );
     registerMessageType( new EditModeC2S() );
     registerMessageType( new EditModeS2C() );
     registerMessageType( new RequestMap() );

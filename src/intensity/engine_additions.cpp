@@ -211,13 +211,6 @@ void CLogicEntity::setSound(const char *snd)
 
 #ifndef SERVER
     stopmapsound(staticEntity);
-    if(camera1->o.dist(staticEntity->o) < staticEntity->attr[1])
-      {
-        if(!staticEntity->visible) playmapsound(sndname, staticEntity, staticEntity->attr[3], -1);
-        else if(staticEntity->visible) stopmapsound(staticEntity);
-      }
-#else
-    MessageSystem::send_MapSoundToClients(-1, snd, LogicSystem::getUniqueId(staticEntity));
 #endif
 }
 
