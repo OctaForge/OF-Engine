@@ -197,28 +197,6 @@ void CLogicEntity::setAnimation(int _animation)
                             // leading to a negative number and segfaults in finding frame data
 }
 
-void CLogicEntity::setSound(const char *snd)
-{
-    logger::log(logger::DEBUG, "setSound: %s\r\n", snd);
-
-    // This is important as this is called before setupExtent.
-    if ((!this) || !staticEntity)
-        return;
-
-    logger::log(logger::DEBUG, "(2) setSound: %s\r\n", snd);
-
-    sndname = snd;
-
-#ifndef SERVER
-    stopmapsound(staticEntity);
-#endif
-}
-
-const char *CLogicEntity::getSound()
-{
-    return sndname;
-}
-
 vec& CLogicEntity::getAttachmentPosition(const char *tag)
 {
     // If last actual render - which actually calculated the attachment positions - was recent

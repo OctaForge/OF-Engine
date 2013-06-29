@@ -669,7 +669,7 @@ void renderentradius(extentity &e, bool color)
 
         case ET_SOUND:
             if(color) gle::colorf(0, 1, 1);
-            renderentsphere(e, e.attr[1]);
+            renderentsphere(e, e.attr[0]);
             goto attach; /* OF */
 
         case ET_ENVMAP:

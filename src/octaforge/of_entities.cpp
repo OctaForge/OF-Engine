@@ -122,34 +122,6 @@ namespace entities
         return 0;
     });
 
-    LUAICOMMAND(set_sound_name, {
-        const char *name = "";
-        if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
-        LUA_GET_ENT(entity, "_C.setsoundname", return 0)
-        logger::log(logger::DEBUG, "_C.setsoundname(%d, \"%s\")\n",
-            entity->getUniqueId(), name);
-        entity->setSound(name);
-        return 0;
-    });
-
-    LUAICOMMAND(set_sound_volume, {
-        LUA_GET_ENT(entity, "_C.setsoundvol", return 0)
-        int vol = luaL_checkinteger(L, 2);
-        logger::log(logger::DEBUG, "_C.setsoundvol(%i)\n", vol);
-
-        if (!entity->sndname) return 0;
-
-        extentity *ext = entity->staticEntity;
-        assert(ext);
-
-        if (!world::loading) removeentity(ext);
-        ext->attr[3] = vol;
-        if (!world::loading) addentity(ext);
-
-        entity->setSound(entity->sndname);
-        return 0;
-    });
-
     LUAICOMMAND(set_attachments, {
         LUA_GET_ENT(entity, "_C.setattachments", return 0)
         entity->setAttachments(lua_tostring(L, 2));

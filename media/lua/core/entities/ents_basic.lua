@@ -1096,12 +1096,10 @@ local Sound = Static_Entity:clone {
     attr_num   = 3,
 
     properties = {
-        attr1 = gen_attr(2, "radius"),
-        attr2 = gen_attr(3, "size"),
-        attr3 = gen_attr(4, "volume"),
-        sound_name = svars.State_String {
-            setter = "_C.set_sound_name"
-        }
+        attr1 = gen_attr(1, "radius"),
+        attr2 = gen_attr(2, "size"),
+        attr3 = gen_attr(3, "volume"),
+        sound_name = svars.State_String()
     },
 
     init = function(self, uid, kwargs)
@@ -1114,14 +1112,30 @@ local Sound = Static_Entity:clone {
         self:set_attr("sound_name", "")
     end,
 
+    activate = (not SERVER) and function(self, ...)
+        Static_Entity.activate(self, ...)
+        connect(self, "sound_name_changed", function(self, val)
+            _C.sound_stop_map(self)
+        end)
+    end or nil,
+
     get_edit_info = function(self)
         return format("radius :\f2 %d \f7| size :\f2 %d \f7| volume :\f2 %d"
             .. "\n\f7name :\f2 %s",
             self:get_attr("radius"), self:get_attr("size"),
             self:get_attr("volume"), self:get_attr("sound_name"))
+    end,
+
+    sound_play = function(self)
+        _C.sound_play_map(self, self:get_attr("sound_name"),
+            self:get_attr("volume"))
     end
 }
 ents.Sound = Sound
+
+set_external("sound_play_map", function(ent)
+    ent:sound_play()
+end)
 
 local PART_TEXT = 0
 local PART_ICON = 1

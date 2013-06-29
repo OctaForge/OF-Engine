@@ -44,9 +44,6 @@ struct CLogicEntity
     //! Whether this entity can move on its own volition
     bool canMove;
 
-    //! Sound name of this entity
-    const char *sndname;
-
 //    int currAnimationFrame; //!< Saved from sauer's rendering system, used so we know which bounding box to use, for per-frame models
 //    int                    lastBIHFrame;       // So we know if we need a new BIH or not, when frames change BUGGY, TODO: Implement fix
 
@@ -86,14 +83,8 @@ struct CLogicEntity
     //! Returns the model used to render this entity
     model* getModel();
 
-    //! returns the sound used for this entity
-    const char *getSound();
-
     //! Updates the model based on lua information. Refreshes what is needed in Sauer
     void setModel(const char *name);
-
-    //! Updates the sound based on lua information. Refreshes what is needed in Sauer
-    void setSound(const char *snd);
 
     //! Updates the attachments based on lua information. Refreshes what is needed in Sauer
     void setAttachments(const char *at);

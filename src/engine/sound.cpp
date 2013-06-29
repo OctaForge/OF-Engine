@@ -318,14 +318,6 @@ void clearmapsounds()
     mapsounds.setsize(0);
 }
 
-/* OF */
-int playmapsound(const char *s, extentity *ent, int vol, int loops) {
-    if (!vol) vol = 100;
-    int id = findsound(s, vol, mapsounds, mapslots);
-    if(id < 0) id = addsound(s, vol, 0, mapsounds, mapslots);
-    return playsound(id, NULL, ent, SND_MAP, loops, 0, -1, 0, -1);
-}
-
 void stopmapsound(extentity *e)
 {
     loopv(channels)
@@ -348,8 +340,12 @@ void checkmapsounds()
         if(e.type!=ET_SOUND) continue;
         if(camera1->o.dist(e.o) < e.attr[0])
         {
-            // INTENSITY: use LogicEntity system to get the sound file; don't register sounds in mapscript.
-            if(!e.visible) playmapsound(LogicSystem::getLogicEntity(e)->getSound(), &e, e.attr[2], -1);
+            if(!e.visible) {
+                lua::push_external("sound_play_map");
+                lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
+                    LogicSystem::getLogicEntity(e)->lua_ref);
+                lua_call(lua::L, 1, 0);
+            }
         }
         else if(e.visible) stopmapsound(&e);
     }
@@ -773,28 +769,54 @@ void stop_sound_by_id(int id) {
 }
 
 LUAICOMMAND(sound_play, {
-    if (lua_isnumber(L, 1)) {
-        playsound(luaL_checkinteger(L, 1));
+    float x = luaL_checknumber(L, 2); float y = luaL_checknumber(L, 3);
+    float z = luaL_checknumber(L, 4);
+    if (x || y || z) {
+        vec loc(x, y, z);
+        playsoundname(luaL_checkstring(L, 1), &loc,
+            luaL_optinteger(L, 5, 100));
     } else {
-        float x = luaL_checknumber(L, 2); float y = luaL_checknumber(L, 3);
-        float z = luaL_checknumber(L, 4);
-        if (x || y || z) {
-            vec loc(x, y, z);
-            playsoundname(luaL_checkstring(L, 1), &loc,
-                luaL_optinteger(L, 5, 100));
-        } else {
-            playsoundname(luaL_checkstring(L, 1), NULL,
-                luaL_optinteger(L, 5, 100));
-        }
+        playsoundname(luaL_checkstring(L, 1), NULL,
+            luaL_optinteger(L, 5, 100));
     }
     return 0;
 });
+
+LUAICOMMAND(sound_play_map, {
+    LUA_GET_ENT(entity, "_C.sound_play_map", {
+        lua_pushboolean(L, false);
+        return 1;
+    });
+    const char *s = luaL_checkstring(L, 2);
+    int vol   = luaL_optinteger(L, 3, 100);
+    int loops = luaL_optinteger(L, 4, -1);
+    if (!vol) vol = 100;
+    extentity *ent = entity->staticEntity;
+    assert(ent);
+    int id = findsound(s, vol, mapsounds, mapslots);
+    if(id < 0) id = addsound(s, vol, 0, mapsounds, mapslots);
+    lua_pushboolean(L, playsound(id, NULL, ent, SND_MAP,
+        loops, 0, -1, 0, -1) >= 0);
+    return 1;
+})
 
 LUAICOMMAND(sound_stop, {
     stop_sound_by_id(get_sound_id(luaL_checkstring(L, 1),
         luaL_optinteger(L, 2, 100)));
     return 0;
 });
+
+LUAICOMMAND(sound_stop_map, {
+    LUA_GET_ENT(entity, "_C.sound_stop_map", {
+        lua_pushboolean(L, false);
+        return 1;
+    });
+    extentity *ent = entity->staticEntity;
+    assert(ent);
+    stopmapsound(ent);
+    lua_pushboolean(L, true);
+    return 1;
+})
 
 LUAICOMMAND(sound_preload_map, {
     const char *n = luaL_checkstring(L, 1);

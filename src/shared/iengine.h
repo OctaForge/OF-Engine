@@ -297,7 +297,6 @@ enum
 /* OF: modified */
 extern int playsound(int n, const vec *loc = NULL, extentity *ent = NULL, int flags = 0, int loops = 0, int fade = 0, int chanid = -1, int radius = 0, int expire = -1);
 extern int playsoundname(const char *s, const vec *loc = NULL, int vol = 0, int flags = 0, int loops = 0, int fade = 0, int chanid = -1, int radius = 0, int expire = -1);
-extern int playmapsound(const char *s, extentity *ent = NULL, int vol = 0, int loops = 0);
 extern void stopmapsound(extentity *e);
 extern int get_sound_id(const char *s, int vol = 0);
 extern void stop_sound_by_id(int id);
