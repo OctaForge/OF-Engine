@@ -1106,9 +1106,7 @@ local Sound = Static_Entity:clone {
         Static_Entity.init(self, uid, kwargs)
         self:set_attr("radius", 100)
         self:set_attr("size", 0)
-        if not self:get_attr("volume") then
-            self:set_attr("volume", 100)
-        end
+        self:set_attr("volume", 100)
         self:set_attr("sound_name", "")
     end,
 
@@ -1128,7 +1126,7 @@ local Sound = Static_Entity:clone {
             self:get_attr("volume"), self:get_attr("sound_name"))
     end,
 
-    sound_play = function(self)
+    play_sound = function(self)
         _C.sound_play_map(self, self:get_attr("sound_name"),
             self:get_attr("volume"))
     end
@@ -1136,7 +1134,7 @@ local Sound = Static_Entity:clone {
 ents.Sound = Sound
 
 set_external("sound_play_map", function(ent)
-    ent:sound_play()
+    ent:play_sound()
 end)
 
 local PART_TEXT = 0
