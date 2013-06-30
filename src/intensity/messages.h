@@ -59,7 +59,7 @@ struct YourUniqueId : MessageType
 #endif
 };
 
-void send_YourUniqueId(int clientNumber, int uniqueId);
+void send_YourUniqueId(int clientNumber, int uid);
 
 
 // LoginResponse
@@ -155,7 +155,7 @@ struct StateDataUpdate : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 };
 
-void send_StateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, const char* value, int originalClientNumber);
+void send_StateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber);
 
 
 // StateDataChangeRequest
@@ -169,7 +169,7 @@ struct StateDataChangeRequest : MessageType
 #endif
 };
 
-void send_StateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value);
+void send_StateDataChangeRequest(int uid, int keyProtocolId, const char* value);
 
 
 // UnreliableStateDataUpdate
@@ -181,7 +181,7 @@ struct UnreliableStateDataUpdate : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 };
 
-void send_UnreliableStateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, const char* value, int originalClientNumber);
+void send_UnreliableStateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber);
 
 
 // UnreliableStateDataChangeRequest
@@ -195,7 +195,7 @@ struct UnreliableStateDataChangeRequest : MessageType
 #endif
 };
 
-void send_UnreliableStateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value);
+void send_UnreliableStateDataChangeRequest(int uid, int keyProtocolId, const char* value);
 
 
 // NotifyNumEntities
@@ -263,7 +263,7 @@ struct RequestLogicEntityRemoval : MessageType
 #endif
 };
 
-void send_RequestLogicEntityRemoval(int uniqueId);
+void send_RequestLogicEntityRemoval(int uid);
 
 
 // LogicEntityRemoval
@@ -277,7 +277,7 @@ struct LogicEntityRemoval : MessageType
 #endif
 };
 
-void send_LogicEntityRemoval(int clientNumber, int uniqueId);
+void send_LogicEntityRemoval(int clientNumber, int uid);
 
 
 // ExtentCompleteNotification
@@ -358,7 +358,7 @@ struct DoClick : MessageType
 #endif
 };
 
-void send_DoClick(int button, int down, float x, float y, float z, int uniqueId);
+void send_DoClick(int button, int down, float x, float y, float z, int uid);
 
 
 // RequestPrivateEditMode

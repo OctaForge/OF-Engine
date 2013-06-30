@@ -215,7 +215,7 @@ namespace game
             // Enable this to let server drive client movement
             lua::push_external("entity_set_attr");
             lua::push_external("entity_get");
-            lua_pushinteger(lua::L, d->uniqueId);
+            lua_pushinteger(lua::L, d->uid);
             lua_call       (lua::L, 1, 1);
             lua_pushliteral(lua::L, "position");
             lua::push_external("entity_get_attr");
@@ -422,7 +422,7 @@ namespace game
 #ifndef SERVER // INTENSITY
         if(cn == player1->clientnum)
         {
-            player1->uid = -5412; // Wipe uniqueId of new client
+            player1->uid = -5412; // Wipe uid of new client
             return player1;
         }
 #endif

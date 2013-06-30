@@ -146,7 +146,7 @@ namespace MessageSystem
             server::setAdmin(sender, true);
             send_LoginResponse(sender, true, true);
         #else // CLIENT, during a localconnect
-            ClientSystem::uniqueId = 9999; // Dummy safe uniqueId value for localconnects. Just set it here, brute force
+            ClientSystem::uniqueId = 9999; // Dummy safe uid value for localconnects. Just set it here, brute force
             // Notify client of results of login
             send_LoginResponse(sender, true, true);
         #endif
@@ -155,15 +155,15 @@ namespace MessageSystem
 
 // YourUniqueId
 
-    void send_YourUniqueId(int clientNumber, int uniqueId)
+    void send_YourUniqueId(int clientNumber, int uid)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
         logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)\r\n");
         INDENT_LOG(logger::DEBUG);
 
-                 // Remember this client's unique ID. Done here so always in sync with the client's belief about its uniqueId.
-        server::getUniqueId(clientNumber) = uniqueId;
+                 // Remember this client's unique ID. Done here so always in sync with the client's belief about its uid.
+        server::getUniqueId(clientNumber) = uid;
 
 
         int start, finish;
@@ -196,7 +196,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "rii", 1004, uniqueId);
+                sendf(clientNumber, MAIN_CHANNEL, "rii", 1004, uid);
 
             }
         }
@@ -207,10 +207,10 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type YourUniqueId (1004)\r\n");
 
-        int uniqueId = getint(p);
+        int uid = getint(p);
 
-        logger::log(logger::DEBUG, "Told my unique ID: %d\r\n", uniqueId);
-        ClientSystem::uniqueId = uniqueId;
+        logger::log(logger::DEBUG, "Told my unique ID: %d\r\n", uid);
+        ClientSystem::uniqueId = uid;
     }
 #endif
 
@@ -525,7 +525,7 @@ namespace MessageSystem
 
 // StateDataUpdate
 
-    void send_StateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, const char* value, int originalClientNumber)
+    void send_StateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -565,7 +565,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riiisi", 1011, uniqueId, keyProtocolId, value, originalClientNumber);
+                sendf(clientNumber, MAIN_CHANNEL, "riiisi", 1011, uid, keyProtocolId, value, originalClientNumber);
 
             }
         }
@@ -575,7 +575,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type StateDataUpdate (1011)\r\n");
 
-        int uniqueId = getint(p);
+        int uid = getint(p);
         int keyProtocolId = getint(p);
         char value[MAXTRANS];
         getstring(value, p);
@@ -583,7 +583,7 @@ namespace MessageSystem
 
         #ifdef SERVER
             #define STATE_DATA_UPDATE \
-                uniqueId = uniqueId;  /* Prevent warnings */ \
+                uid = uid;  /* Prevent warnings */ \
                 keyProtocolId = keyProtocolId; \
                 originalClientNumber = originalClientNumber; \
                 return; /* We do send this to the NPCs sometimes, as it is sent during their creation (before they are fully */ \
@@ -592,13 +592,13 @@ namespace MessageSystem
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
+                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uid, keyProtocolId, value); \
                 \
                 if (!LogicSystem::initialized) \
                     return; \
                 \
                 lua::push_external("entity_set_sdata"); \
-                lua_pushinteger(lua::L, uniqueId); \
+                lua_pushinteger(lua::L, uid); \
                 lua_pushinteger(lua::L, keyProtocolId); \
                 lua_pushstring (lua::L, value); \
                 lua_call       (lua::L, 3, 0);
@@ -609,7 +609,7 @@ namespace MessageSystem
 
 // StateDataChangeRequest
 
-    void send_StateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value)
+    void send_StateDataChangeRequest(int uid, int keyProtocolId, const char* value)
     {        // This isn't a perfect way to differentiate transient state data changes from permanent ones
         // that justify saying 'changes were made', but for now it will do. Note that even checking
         // for changes to persistent entities is not enough - transient changes on them are generally
@@ -623,7 +623,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "Sending a message of type StateDataChangeRequest (1012)\r\n");
         INDENT_LOG(logger::DEBUG);
 
-        game::addmsg(1012, "riis", uniqueId, keyProtocolId, value);
+        game::addmsg(1012, "riis", uid, keyProtocolId, value);
     }
 
 #ifdef SERVER
@@ -631,7 +631,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type StateDataChangeRequest (1012)\r\n");
 
-        int uniqueId = getint(p);
+        int uid = getint(p);
         int keyProtocolId = getint(p);
         char value[MAXTRANS];
         getstring(value, p);
@@ -645,7 +645,7 @@ namespace MessageSystem
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
         lua::push_external("entity_set_sdata"); \
-        lua_pushinteger(lua::L, uniqueId); \
+        lua_pushinteger(lua::L, uid); \
         lua_pushinteger(lua::L, keyProtocolId); \
         lua_pushstring (lua::L, value); \
         lua_pushinteger(lua::L, actorUniqueId); \
@@ -656,7 +656,7 @@ namespace MessageSystem
 
 // UnreliableStateDataUpdate
 
-    void send_UnreliableStateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, const char* value, int originalClientNumber)
+    void send_UnreliableStateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -696,7 +696,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "iiisi", 1013, uniqueId, keyProtocolId, value, originalClientNumber);
+                sendf(clientNumber, MAIN_CHANNEL, "iiisi", 1013, uid, keyProtocolId, value, originalClientNumber);
 
             }
         }
@@ -706,7 +706,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataUpdate (1013)\r\n");
 
-        int uniqueId = getint(p);
+        int uid = getint(p);
         int keyProtocolId = getint(p);
         char value[MAXTRANS];
         getstring(value, p);
@@ -718,12 +718,12 @@ namespace MessageSystem
 
 // UnreliableStateDataChangeRequest
 
-    void send_UnreliableStateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value)
+    void send_UnreliableStateDataChangeRequest(int uid, int keyProtocolId, const char* value)
     {
         logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)\r\n");
         INDENT_LOG(logger::DEBUG);
 
-        game::addmsg(1014, "iis", uniqueId, keyProtocolId, value);
+        game::addmsg(1014, "iis", uid, keyProtocolId, value);
     }
 
 #ifdef SERVER
@@ -731,7 +731,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataChangeRequest (1014)\r\n");
 
-        int uniqueId = getint(p);
+        int uid = getint(p);
         int keyProtocolId = getint(p);
         char value[MAXTRANS];
         getstring(value, p);
@@ -1034,13 +1034,13 @@ namespace MessageSystem
 
 // RequestLogicEntityRemoval
 
-    void send_RequestLogicEntityRemoval(int uniqueId)
+    void send_RequestLogicEntityRemoval(int uid)
     {        EditingSystem::madeChanges = true;
 
         logger::log(logger::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)\r\n");
         INDENT_LOG(logger::DEBUG);
 
-        game::addmsg(1019, "ri", uniqueId);
+        game::addmsg(1019, "ri", uid);
     }
 
 #ifdef SERVER
@@ -1048,7 +1048,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestLogicEntityRemoval (1019)\r\n");
 
-        int uniqueId = getint(p);
+        int uid = getint(p);
 
         if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
@@ -1059,14 +1059,14 @@ namespace MessageSystem
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         lua::push_external("entity_remove");
-        lua_pushinteger(lua::L, uniqueId);
+        lua_pushinteger(lua::L, uid);
         lua_call       (lua::L, 1, 0);
     }
 #endif
 
 // LogicEntityRemoval
 
-    void send_LogicEntityRemoval(int clientNumber, int uniqueId)
+    void send_LogicEntityRemoval(int clientNumber, int uid)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -1105,7 +1105,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "rii", 1020, uniqueId);
+                sendf(clientNumber, MAIN_CHANNEL, "rii", 1020, uid);
 
             }
         }
@@ -1116,12 +1116,12 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LogicEntityRemoval (1020)\r\n");
 
-        int uniqueId = getint(p);
+        int uid = getint(p);
 
         if (!LogicSystem::initialized)
             return;
         lua::push_external("entity_remove");
-        lua_pushinteger(lua::L, uniqueId);
+        lua_pushinteger(lua::L, uid);
         lua_call       (lua::L, 1, 0);
     }
 #endif
@@ -1410,12 +1410,12 @@ namespace MessageSystem
 
 // DoClick
 
-    void send_DoClick(int button, int down, float x, float y, float z, int uniqueId)
+    void send_DoClick(int button, int down, float x, float y, float z, int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type DoClick (1031)\r\n");
         INDENT_LOG(logger::DEBUG);
 
-        game::addmsg(1031, "riiiiii", button, down, int(x*DMF), int(y*DMF), int(z*DMF), uniqueId);
+        game::addmsg(1031, "riiiiii", button, down, int(x*DMF), int(y*DMF), int(z*DMF), uid);
     }
 
 #ifdef SERVER
@@ -1428,13 +1428,13 @@ namespace MessageSystem
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        int uniqueId = getint(p);
+        int uid = getint(p);
 
         if (!world::scenario_code[0]) return;
         if (!server::isRunningCurrentScenario(sender)) return; // Silently ignore info from previous scenario
 
         CLogicEntity *entity = NULL;
-        if (uniqueId != -1) entity = LogicSystem::getLogicEntity(uniqueId);
+        if (uid != -1) entity = LogicSystem::getLogicEntity(uid);
 
         assert(lua::push_external("input_click_server"));
         lua_pushinteger(lua::L, button);
