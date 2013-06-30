@@ -31,7 +31,7 @@ struct CLogicEntity
 
     //! For attachments that are position markers, the positions go here XXX: Note that current these are readable only clientside
     //! as they require a call to rendering
-    vector<vec> attachment_positions;
+    hashtable<const char*, vec> attachment_positions;
 
     //! The current animation for this entity
     int animation;
@@ -41,9 +41,6 @@ struct CLogicEntity
 
     //! Whether this entity can move on its own volition
     bool canMove;
-
-//    int currAnimationFrame; //!< Saved from sauer's rendering system, used so we know which bounding box to use, for per-frame models
-//    int                    lastBIHFrame;       // So we know if we need a new BIH or not, when frames change BUGGY, TODO: Implement fix
 
     CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), nonSauer(false), uniqueId(-8),
         theModel(NULL), animation(0), startTime(0), rendermillis(0)

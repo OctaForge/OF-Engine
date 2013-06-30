@@ -108,7 +108,7 @@ void CLogicEntity::setAttachments(lua_State *L) {
         if (attachments[i].name) lua::unpin_string(L, attachments[i].name);
     }
     attachments.setsize(0);
-    attachment_positions.setsize(0);
+    attachment_positions.clear();
 
     size_t num = lua_objlen(L, -1);
     for (size_t i = 0; i < num; ++i) {
@@ -120,9 +120,9 @@ void CLogicEntity::setAttachments(lua_State *L) {
                 lua_rawgeti(L, -1, 1);
                 const char *tag = lua_tostring(L, -1); lua_pop(L, 2);
                 if (tag[0] == '*') {
-                    attachment_positions.add(vec(0, 0, 0));
-                    attachments.add(modelattach(pin_str_ret(L, tag, 1),
-                        &attachment_positions.last()));
+                    vec *pos = attachment_positions.access(tag + 1);
+                    attachments.add(modelattach(pin_str_ret(L, tag, 1), pos ?
+                        pos : &attachment_positions.access(tag + 1, vec(0))));
                 } else {
                     attachments.add(modelattach(pin_str_ret(L, tag),
                         pin_str_ret(L, "")));
@@ -135,9 +135,10 @@ void CLogicEntity::setAttachments(lua_State *L) {
                 const char *tag  = lua_tostring(L, -2);
                 const char *name = lua_tostring(L, -1); lua_pop(L, 3);
                 if (tag[0] == '*') {
-                    attachment_positions.add(vec(0, 0, 0));
+                    vec *pos = attachment_positions.access(tag + 1);
                     modelattach &a = attachments.add(modelattach(pin_str_ret(L,
-                        tag, 1), &attachment_positions.last()));
+                        tag, 1), pos ? pos : &attachment_positions.access(tag
+                            + 1, vec(0))));
                     a.name = pin_str_ret(L, name);
                 } else {
                     attachments.add(modelattach(pin_str_ret(L, tag),
@@ -172,14 +173,9 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
 {
     // If last actual render - which actually calculated the attachment positions - was recent
     // enough, use that data
-    if (abs(lastmillis - rendermillis) < 500)
-    {
-        // TODO: Use a hash table. But, if just 1-4 attachments, then fast enough for now as is
-        for (int i = 0; i < attachments.length() - 1; i++)
-        {
-            if (!strcmp(attachments[i].tag, tag))
-                return attachment_positions[i];
-        }
+    if (abs(lastmillis - rendermillis) < 500) {
+        vec *pos = attachment_positions.access(tag);
+        if (pos) return *pos;
     }
     static vec missing; // Returned if no such tag, or no recent attachment position info. Note: Only one of these, static!
     if (getType() == LE_DYNAMIC) {
