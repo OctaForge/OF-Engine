@@ -2,8 +2,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-#define MAX_ATTACHMENTS 20
-
 //! An entity in the scenario, something that can act or be acted upon. Note that most of the
 //! logic occurs on the server; LogicEntity is just for minimal client-side logic.
 //!
@@ -29,11 +27,11 @@ struct CLogicEntity
     model* theModel;
 
     //! The attachments for this entity
-    modelattach attachments[MAX_ATTACHMENTS+2];
+    vector<modelattach> attachments;
 
     //! For attachments that are position markers, the positions go here XXX: Note that current these are readable only clientside
     //! as they require a call to rendering
-    vec attachmentPositions[MAX_ATTACHMENTS];
+    vector<vec> attachment_positions;
 
     //! The current animation for this entity
     int animation;
@@ -49,16 +47,16 @@ struct CLogicEntity
 
     CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), nonSauer(false), uniqueId(-8),
         theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
-        { attachments[0].tag = attachments[0].name = NULL; };
+        { attachments.add(modelattach()); };
     CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), nonSauer(false), uniqueId(-8),
         theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
-        { attachments[0].tag = attachments[0].name = NULL; };
+        { attachments.add(modelattach()); };
     CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), nonSauer(false), uniqueId(-8),
         theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
-        { attachments[0].tag = attachments[0].name = NULL; };
+        { attachments.add(modelattach()); };
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL), nonSauer(true),
         uniqueId(_uniqueId), theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
-        { attachments[0].tag = attachments[0].name = NULL; }; // This is a non-Sauer LE
+        { attachments.add(modelattach()); }; // This is a non-Sauer LE
 
     //! Returns the unique ID for this entity
     int   getUniqueId();

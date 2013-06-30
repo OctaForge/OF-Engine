@@ -108,63 +108,51 @@ void CLogicEntity::setAttachments(lua_State *L) {
         return;
 
     // Clean out old data
-    for (int i = 0; attachments[i].tag; i++) {
+    for (int i = 0; i < attachments.length() - 1; i++) {
         lua::unpin_string(L, attachments[i].tag);
         lua::unpin_string(L, attachments[i].name);
     }
+    attachments.setsize(0);
+    attachment_positions.setsize(0);
 
     size_t num = lua_objlen(L, -1);
     for (size_t i = 0; i < num; ++i) {
         lua_rawgeti(L, -1, i + 1);
-        const char *name = NULL, *tag = NULL;
-        int anim, narr = lua_objlen(L, -1);
+        int narr = lua_objlen(L, -1);
         switch (narr) {
-            case 0: lua_pop(L, 1); break;
+            case 0: default: lua_pop(L, 1); break;
             case 1: {
                 lua_rawgeti(L, -1, 1);
-                tag  = lua_tostring(L, -1); lua_pop(L, 2);
-                name = "";
-                anim = 0;
-                goto attachment;
+                const char *tag = lua_tostring(L, -1); lua_pop(L, 2);
+                if (tag[0] == '*') {
+                    attachment_positions.add(vec(0, 0, 0));
+                    attachments.add(modelattach(pin_str_ret(L, tag, 1),
+                        &attachment_positions.last()));
+                } else {
+                    attachments.add(modelattach(pin_str_ret(L, tag),
+                        pin_str_ret(L, "")));
+                }
+                break;
             }
             case 2: {
                 lua_rawgeti(L, -1, 1);
                 lua_rawgeti(L, -2, 2);
-                tag  = lua_tostring(L, -2);
-                name = lua_tostring(L, -1); lua_pop(L, 3);
-                anim = 0;
-                goto attachment;
-            }
-            default: {
-                lua_rawgeti(L, -1, 1);
-                lua_rawgeti(L, -2, 2);
-                anim = ANIM_LOOP;
-                for (int i = 3; i <= narr; ++i) {
-                    lua_rawgeti(L, -3, i);
-                    anim |= getanimid(lua_tostring(L, -1));
-                    lua_pop(L, 1);
-                }
-                lua_pop(L, 3);
-                goto attachment;
-            }
-            attachment: {
+                const char *tag  = lua_tostring(L, -2);
+                const char *name = lua_tostring(L, -1); lua_pop(L, 3);
                 if (tag[0] == '*') {
-                    attachmentPositions[i] = vec(0, 0, 0);
-                    attachments[i].pos = &attachmentPositions[i];
+                    attachment_positions.add(vec(0, 0, 0));
+                    modelattach &a = attachments.add(modelattach(pin_str_ret(L,
+                        tag, 1), &attachment_positions.last()));
+                    a.name = pin_str_ret(L, name);
                 } else {
-                    attachments[i].pos = NULL;
+                    attachments.add(modelattach(pin_str_ret(L, tag),
+                        pin_str_ret(L, name)));
                 }
-                attachments[i].tag  = pin_str_ret(L, tag, tag[0] == '*');
-                attachments[i].name = pin_str_ret(L, name);
-                attachments[i].anim = anim;
-                attachments[i].basetime = startTime;
                 break;
             }
         }
     }
-
-    attachments[num].tag  = NULL;
-    attachments[num].name = NULL;
+    attachments.add(modelattach());
 }
 
 void CLogicEntity::setAnimation(int _animation)
@@ -192,10 +180,10 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
     if (abs(lastmillis - lastActualRenderMillis) < 500)
     {
         // TODO: Use a hash table. But, if just 1-4 attachments, then fast enough for now as is
-        for (int i = 0; attachments[i].tag; i++)
+        for (int i = 0; i < attachments.length() - 1; i++)
         {
             if (!strcmp(attachments[i].tag, tag))
-                return attachmentPositions[i];
+                return attachment_positions[i];
         }
     }
     static vec missing; // Returned if no such tag, or no recent attachment position info. Note: Only one of these, static!

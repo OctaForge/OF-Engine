@@ -1141,7 +1141,7 @@ LUAICOMMAND(model_render, {
         luaL_checknumber(L, 5), luaL_checknumber(L, 6)),
         luaL_checknumber(L, 7), luaL_checknumber(L, 8),
         luaL_checknumber(L, 9), luaL_checkinteger(L, 10), fp,
-        entity->attachments, luaL_checkinteger(L, 11), 0, 1,
+        entity->attachments.getbuf(), luaL_checkinteger(L, 11), 0, 1,
         luaL_optnumber(L, 12, 1.0f));
     return 0;
 });
