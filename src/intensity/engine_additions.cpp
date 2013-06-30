@@ -110,7 +110,7 @@ void CLogicEntity::setAttachments(lua_State *L) {
     // Clean out old data
     for (int i = 0; i < attachments.length() - 1; i++) {
         lua::unpin_string(L, attachments[i].tag);
-        lua::unpin_string(L, attachments[i].name);
+        if (attachments[i].name) lua::unpin_string(L, attachments[i].name);
     }
     attachments.setsize(0);
     attachment_positions.setsize(0);
@@ -319,7 +319,7 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
 
     for (int i = 0; ptr->attachments[i].tag; i++) {
         lua::unpin_string(ptr->attachments[i].tag);
-        lua::unpin_string(ptr->attachments[i].name);
+        if (ptr->attachments[i].name) lua::unpin_string(ptr->attachments[i].name);
     }
 
     luaL_unref(lua::L, LUA_REGISTRYINDEX, ptr->lua_ref);
