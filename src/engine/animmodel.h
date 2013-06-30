@@ -927,12 +927,6 @@ struct animmodel : model
 
             if(!(anim&ANIM_REUSE)) 
             {
-                /* OF */
-                if (d) {
-                    CLogicEntity *ent = LogicSystem::getLogicEntity(d);
-                    if (ent) ent->rendermillis = lastmillis;
-                }
-
                 loopv(links)
                 {
                     linkedpart &link = links[i];
@@ -941,7 +935,10 @@ struct animmodel : model
                     matrixpos++;
                     matrixstack[matrixpos].mul(matrixstack[matrixpos-1], link.matrix);
 
-                    if(link.pos) *link.pos = matrixstack[matrixpos].gettranslation();
+                    if(link.pos) {
+                        *link.pos = matrixstack[matrixpos].gettranslation();
+                        *((int*)(link.pos + 1)) = lastmillis; /* OF */
+                    }
 
                     if(!link.p)
                     {

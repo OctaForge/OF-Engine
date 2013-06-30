@@ -11,6 +11,14 @@
 //!
 //! LogicEntities have unique IDs. These are unique in a module (but not a map - entities can
 //! move between maps).
+
+struct entlinkpos {
+    vec pos;
+    int millis;
+    entlinkpos(const vec &pos = vec(0), int millis = 0):
+        pos(pos), millis(millis) {}
+};
+
 struct CLogicEntity
 {
     enum {LE_DYNAMIC, LE_STATIC, LE_NONSAUER}; //!< Possible types for a logic entity, correspond to Sauer types
@@ -27,7 +35,7 @@ struct CLogicEntity
 
     //! For attachments that are position markers, the positions go here XXX: Note that current these are readable only clientside
     //! as they require a call to rendering
-    hashtable<const char*, vec> attachment_positions;
+    hashtable<const char*, entlinkpos> attachment_positions;
 
     //! The current animation for this entity
     int animation;
@@ -39,16 +47,16 @@ struct CLogicEntity
     bool canMove;
 
     CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8),
-        animation(0), startTime(0), rendermillis(0)
+        animation(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), uniqueId(-8),
-        animation(0), startTime(0), rendermillis(0)
+        animation(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), uniqueId(-8),
-        animation(0), startTime(0), rendermillis(0)
+        animation(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL),
-        uniqueId(_uniqueId), animation(0), startTime(0), rendermillis(0)
+        uniqueId(_uniqueId), animation(0), startTime(0)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
 
     //! Returns the unique ID for this entity
@@ -73,8 +81,6 @@ struct CLogicEntity
     void setAnimation(int _animation);
 
     vec& getAttachmentPosition(const char *tag);
-
-    int rendermillis;
 };
 
 //! The main storage for LogicEntities and management of them. All entities appear in the central list
