@@ -846,7 +846,7 @@ void delent()
 
     loopv(entgroup) entfocus(
         entgroup[i],
-        MessageSystem::send_RequestLogicEntityRemoval(e.uniqueId)
+        MessageSystem::send_RequestLogicEntityRemoval(e.uid)
     );
 
     entcancel();
@@ -1079,7 +1079,7 @@ void enttype(char *type, int *numargs) {
     if (*numargs >= 1) {
         groupedit(
             vec pos(e.o);
-            MessageSystem::send_RequestLogicEntityRemoval(e.uniqueId);
+            MessageSystem::send_RequestLogicEntityRemoval(e.uid);
             MessageSystem::send_NewEntityRequest(type, pos.x, pos.y, pos.z,
                 "{}");
         );

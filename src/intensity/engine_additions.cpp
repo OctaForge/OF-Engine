@@ -297,7 +297,7 @@ CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
 
 CLogicEntity *LogicSystem::getLogicEntity(const extentity &extent)
 {
-    return getLogicEntity(extent.uniqueId);
+    return getLogicEntity(extent.uid);
 }
 
 
@@ -308,7 +308,7 @@ CLogicEntity *LogicSystem::getLogicEntity(physent* entity)
 
 int LogicSystem::getUniqueId(extentity* staticEntity)
 {
-    return staticEntity->uniqueId;
+    return staticEntity->uid;
 }
 
 int LogicSystem::getUniqueId(physent* dynamicEntity)
@@ -327,7 +327,7 @@ void LogicSystem::setUniqueId(extentity* staticEntity, int uniqueId)
         assert(0);
     }
 
-    staticEntity->uniqueId = uniqueId;
+    staticEntity->uid = uniqueId;
 }
 
 // TODO: Use this whereever it should be used
