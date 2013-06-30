@@ -927,8 +927,11 @@ struct animmodel : model
 
             if(!(anim&ANIM_REUSE)) 
             {
-                if (d && LogicSystem::getLogicEntity(d)) // INTENSITY
-                    LogicSystem::getLogicEntity(d)->noteActualRender(); // INTENSITY
+                /* OF */
+                if (d) {
+                    CLogicEntity *ent = LogicSystem::getLogicEntity(d);
+                    if (ent) ent->rendermillis = lastmillis;
+                }
 
                 loopv(links)
                 {

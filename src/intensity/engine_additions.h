@@ -46,16 +46,16 @@ struct CLogicEntity
 //    int                    lastBIHFrame;       // So we know if we need a new BIH or not, when frames change BUGGY, TODO: Implement fix
 
     CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), nonSauer(false), uniqueId(-8),
-        theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
+        theModel(NULL), animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
     CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), nonSauer(false), uniqueId(-8),
-        theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
+        theModel(NULL), animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
     CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), nonSauer(false), uniqueId(-8),
-        theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
+        theModel(NULL), animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL), nonSauer(true),
-        uniqueId(_uniqueId), theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
+        uniqueId(_uniqueId), theModel(NULL), animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
 
     //! Returns the unique ID for this entity
@@ -74,10 +74,6 @@ struct CLogicEntity
     //! When the current animation started
     int getStartTime();
 
-    //! The current index to the relevant animation frame for the entity. Needed both for rendering and for bounding-box
-    //! calculation of per-frame models, which is also needed on the server
-    int getAnimationFrame();
-
     //! Returns the model used to render this entity
     model* getModel();
 
@@ -95,18 +91,11 @@ struct CLogicEntity
 
     vec& getAttachmentPosition(const char *tag);
 
-    //! Called when we actually render the model. Only such actual renders will calculate
-    //! attachment positions, for example. This does not occur if not facing the entity.
-    void noteActualRender();
-
-private:
-    int lastActualRenderMillis;
+    int rendermillis;
 };
 
 //! The main storage for LogicEntities and management of them. All entities appear in the central list
 //! of logic entities here, as well as other scenario-wide data.
-
-#define EMPTY_STATEDATA "-"
 
 struct LogicSystem
 {

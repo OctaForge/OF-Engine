@@ -56,11 +56,6 @@ int CLogicEntity::getStartTime()
     return startTime;
 }
 
-int CLogicEntity::getAnimationFrame()
-{
-    return 0; /* DEPRECATED for now */
-}
-
 model* CLogicEntity::getModel()
 {
 #ifndef SERVER
@@ -177,7 +172,7 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
 {
     // If last actual render - which actually calculated the attachment positions - was recent
     // enough, use that data
-    if (abs(lastmillis - lastActualRenderMillis) < 500)
+    if (abs(lastmillis - rendermillis) < 500)
     {
         // TODO: Use a hash table. But, if just 1-4 attachments, then fast enough for now as is
         for (int i = 0; i < attachments.length() - 1; i++)
@@ -208,12 +203,6 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
     }
     return missing;
 }
-
-void CLogicEntity::noteActualRender()
-{
-    lastActualRenderMillis = lastmillis;
-}
-
 
 //=========================
 // LogicSystem
@@ -317,7 +306,7 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
     CLogicEntity *ptr = logicEntities[uniqueId];
     logicEntities.remove(uniqueId);
 
-    for (int i = 0; ptr->attachments[i].tag; i++) {
+    for (int i = 0; i < ptr->attachments.length() - 1; i++) {
         lua::unpin_string(ptr->attachments[i].tag);
         if (ptr->attachments[i].name) lua::unpin_string(ptr->attachments[i].name);
     }
