@@ -22,8 +22,7 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
             return false;
         case ET_MAPMODEL:
         {
-            CLogicEntity *entity = LogicSystem::getLogicEntity(e); // INTENSITY
-            model *m = entity ? entity->getModel() : NULL; // INTENSITY
+            model *m = e.m; // INTENSITY
             if(m)
             {
                 vec center, radius;
@@ -96,7 +95,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     oe.mapmodels.add(id);
                     break;
                 case ET_MAPMODEL:
-                    if(LogicSystem::getLogicEntity(e)->getModel())
+                    if(e.m)
                     {
                         if(va)
                         {
@@ -127,7 +126,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     oe.mapmodels.removeobj(id);
                     break;
                 case ET_MAPMODEL:
-                    if(LogicSystem::getLogicEntity(e)->getModel())
+                    if(e.m)
                     {
                         oe.mapmodels.removeobj(id);
                         if(va)
@@ -482,10 +481,9 @@ void entrotate(int *cw)
 void entselectionbox(const entity &e, vec &eo, vec &es) 
 {
     extentity* _e = (extentity*)&e; // INTENSITY
-    CLogicEntity *entity = LogicSystem::getLogicEntity(*_e); // INTENSITY
 
     model *m = NULL;
-    if(e.type == ET_MAPMODEL && (m = entity->getModel())) // INTENSITY
+    if(e.type == ET_MAPMODEL && (m = _e->m)) // INTENSITY
     {
         m->collisionbox(eo, es);
         if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; eo.mul(scale); es.mul(scale); }
@@ -864,8 +862,7 @@ bool dropentity(entity &e, int drop = -1)
     if(e.type == ET_MAPMODEL)
     {
         extentity& ext = *((extentity*)&e); // INTENSITY
-        CLogicEntity *entity = LogicSystem::getLogicEntity(ext); // INTENSITY
-        model *m = entity ? entity->getModel() : NULL; // INTENSITY
+        model *m = ext.m; // INTENSITY
         if(m)
         {
             vec center;

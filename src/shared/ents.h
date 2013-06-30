@@ -12,6 +12,8 @@ struct entity                                   // persistent map entity
     uchar type;                                 // type is one of the above
 };
 
+struct model;
+
 struct extentity : entity                       // part of the entity that doesn't get saved to disk
 {
     enum
@@ -26,9 +28,10 @@ struct extentity : entity                       // part of the entity that doesn
     uchar spawned, inoctanode, visible, flags;  // the only dynamic state of a map entity
     extentity *attached, *attached_next; /* OF: attached_next */
 
-    int uniqueId; // Kripken: Added this
+    model *m;
+    int uniqueId;
 
-    extentity() : visible(false), flags(0), attached(NULL), attached_next(NULL), uniqueId(-1) {}
+    extentity() : visible(false), flags(0), attached(NULL), attached_next(NULL), m(NULL), uniqueId(-1) {}
 };
 
 #define MAXENTS 10000

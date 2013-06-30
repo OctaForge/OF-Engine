@@ -56,38 +56,6 @@ int CLogicEntity::getStartTime()
     return startTime;
 }
 
-model* CLogicEntity::getModel()
-{
-#ifndef SERVER
-    // This is important as this is called before setupExtent.
-    if ((!this) || (!staticEntity && !dynamicEntity))
-        return NULL;
-
-    return theModel;
-#else
-    return NULL;
-#endif
-}
-
-void CLogicEntity::setModel(const char *name)
-{
-#ifndef SERVER
-    // This is important as this is called before setupExtent.
-    if ((!this) || (!staticEntity && !dynamicEntity))
-        return;
-
-    if (staticEntity)
-        removeentity(staticEntity);
-
-    if (strcmp(name, "")) theModel = loadmodel(name);
-
-    logger::log(logger::DEBUG, "CLE:setModel: %s (%p)\r\n", name, (void*)theModel);
-
-    if (staticEntity)
-        addentity(staticEntity);
-#endif
-}
-
 static const char *pin_str_ret(lua_State *L, const char *inp, size_t off = 0) {
     lua_pushstring(L, inp + off);
     const char *str = lua_tostring(L, -1);
@@ -183,8 +151,8 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
     } else {
         if (staticEntity->type == ET_MAPMODEL) {
             vec center, radius;
-            if (theModel) {
-                theModel->collisionbox(center, radius);
+            if (staticEntity->m) {
+                staticEntity->m->collisionbox(center, radius);
                 if (staticEntity->attr[3] > 0) {
                     float scale = staticEntity->attr[3] / 100.0f;
                     center.mul(scale); radius.mul(scale);

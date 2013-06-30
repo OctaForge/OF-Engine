@@ -260,8 +260,7 @@ BIH::BIH(vector<tri> *t)
 
 bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist, int mode, float &dist)
 {
-    CLogicEntity *entity = LogicSystem::getLogicEntity(e); // INTENSITY
-    model *m = entity ? entity->getModel() : NULL; // INTENSITY
+    model *m = e.m;
     if(!m) return false;
     if(mode&RAY_SHADOW)
     {

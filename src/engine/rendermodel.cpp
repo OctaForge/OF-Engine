@@ -412,9 +412,8 @@ void clearmodel(char *name)
         lua_getfield(lua::L, -1, "uid");
         int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
         CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
-        if (ent && ent->theModel == *m) {
-            ent->theModel = _new;
-        }
+        extentity *e = ent ? ent->staticEntity : NULL;
+        if (e && e->m == *m) e->m = _new;
         lua_pop(lua::L, 1);
     }
 }
@@ -855,7 +854,8 @@ void clearbatchedmapmodels()
 void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
 {
     if(!e) return;
-    model *m = e->getModel();
+    model *m = e->staticEntity->m;
+    if(!m) return;
 
     vec center, bbradius;
     m->boundbox(center, bbradius);

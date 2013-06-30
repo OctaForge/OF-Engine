@@ -118,7 +118,13 @@ namespace entities
         LUA_GET_ENT(entity, "_C.setmodelname", return 0)
         logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")\n",
             entity->getUniqueId(), name);
-        entity->setModel(name);
+#ifndef SERVER
+        extentity *ext = entity->staticEntity;
+        if (!ext) return 0;
+        removeentity(ext);
+        if (name[0]) ext->m = loadmodel(name);
+        addentity(ext);
+#endif
         return 0;
     });
 

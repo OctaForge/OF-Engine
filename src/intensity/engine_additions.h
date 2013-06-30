@@ -23,9 +23,6 @@ struct CLogicEntity
 
     int lua_ref; //!< this is lua reference number for this logic entity
 
-    //! The model (mesh) for this entity
-    model* theModel;
-
     //! The attachments for this entity
     vector<modelattach> attachments;
 
@@ -43,16 +40,16 @@ struct CLogicEntity
     bool canMove;
 
     CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), nonSauer(false), uniqueId(-8),
-        theModel(NULL), animation(0), startTime(0), rendermillis(0)
+        animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
     CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), nonSauer(false), uniqueId(-8),
-        theModel(NULL), animation(0), startTime(0), rendermillis(0)
+        animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
     CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), nonSauer(false), uniqueId(-8),
-        theModel(NULL), animation(0), startTime(0), rendermillis(0)
+        animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL), nonSauer(true),
-        uniqueId(_uniqueId), theModel(NULL), animation(0), startTime(0), rendermillis(0)
+        uniqueId(_uniqueId), animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
 
     //! Returns the unique ID for this entity
@@ -70,12 +67,6 @@ struct CLogicEntity
 
     //! When the current animation started
     int getStartTime();
-
-    //! Returns the model used to render this entity
-    model* getModel();
-
-    //! Updates the model based on lua information. Refreshes what is needed in Sauer
-    void setModel(const char *name);
 
     //! Updates the attachments based on lua information. Refreshes what is needed in Sauer
     void setAttachments(lua_State *L);
