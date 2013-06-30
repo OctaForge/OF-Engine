@@ -856,6 +856,7 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     if(!e) return;
     model *m = e->staticEntity->m;
     if(!m) return;
+    modelattach *a = e->attachments.length() > 1 ? e->attachments.getbuf() : NULL;
 
     vec center, bbradius;
     m->boundbox(center, bbradius);
@@ -877,6 +878,12 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     else if(flags&(MDL_CULL_VFC|MDL_CULL_DIST|MDL_CULL_OCCLUDED) && cullmodel(m, center, radius, flags))
         return;
 
+    if(a) for(int i = 0; a[i].tag; i++)
+    {
+        if(a[i].name) a[i].m = loadmodel(a[i].name);
+        //if(a[i].m && a[i].m->type()!=m->type()) a[i].m = NULL;
+    }
+
     batchedmodel &b = batchedmodels.add();
     b.query = modelquery;
     b.pos = o;
@@ -893,7 +900,8 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     b.flags = flags | MDL_MAPMODEL;
     b.visible = visible;
     b.d = NULL;
-    b.attached = -1;
+    b.attached = a ? modelattached.length() : -1;
+    if(a) for(int i = 0;; i++) { modelattached.add(a[i]); if(!a[i].tag) break; }
     addbatchedmodel(m, b, batchedmodels.length()-1);
 }
 
