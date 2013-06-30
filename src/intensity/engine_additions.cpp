@@ -26,11 +26,8 @@ int CLogicEntity::getUniqueId()
             return LogicSystem::getUniqueId(dynamicEntity);
         case LE_STATIC:
             return LogicSystem::getUniqueId(staticEntity);
-        case LE_NONSAUER:
-            return uniqueId; // This can be made to work for the others, if we ensure that uniqueId is set. Would be faster
         default:
-            assert(0 && "getting the unique ID of a NONE logic entity!\r\n");
-            return -1;
+            return uniqueId; // This can be made to work for the others, if we ensure that uniqueId is set. Would be faster
     };
 }
 
@@ -40,10 +37,8 @@ int CLogicEntity::getType()
         return LE_DYNAMIC;
     else if (staticEntity != NULL)
         return LE_STATIC;
-    else if (nonSauer)
-        return LE_NONSAUER;
     else
-        return LE_NONE;
+        return LE_NONSAUER;
 }
 
 int CLogicEntity::getAnimation()
@@ -251,13 +246,8 @@ CLogicEntity *LogicSystem::registerLogicEntity(extentity* entity)
 void LogicSystem::registerLogicEntityNonSauer(int uniqueId)
 {
     CLogicEntity *newEntity = new CLogicEntity(uniqueId);
-
-    newEntity->nonSauer = true; // Set as non-Sauer
-
     logger::log(logger::DEBUG, "adding non-Sauer entity %d\r\n", uniqueId);
-
     registerLogicEntity(newEntity);
-
 //    return newEntity;
 }
 

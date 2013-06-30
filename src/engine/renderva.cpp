@@ -406,7 +406,7 @@ extern bool getentboundingbox(extentity &e, ivec &o, ivec &r);
 static inline void rendermapmodel(extentity &e)
 {
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
-    if (!entity || entity->isNone())
+    if (!entity)
     {
         logger::log(logger::ERROR, "Trying to show a missing mapmodel\r\n");
         logger::log(logger::ERROR, "                                  %d\r\n", LogicSystem::getUniqueId(&e));

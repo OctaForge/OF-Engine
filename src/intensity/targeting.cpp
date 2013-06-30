@@ -156,7 +156,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
                                                TargetingControl::targetLogicEntity);
 
             // If not edit mode, ignore the player itself
-            if (!editmode && TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone() &&
+            if (!editmode && TargetingControl::targetLogicEntity &&
                 TargetingControl::targetLogicEntity->getUniqueId() == ClientSystem::uniqueId)
             {
                 // Try to see if the player was the sole cause of collision - move it away, test, then move it back
@@ -172,7 +172,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
                 ClientSystem::playerLogicEntity->dynamicEntity->o = save;
             }
 
-            has_mouse_target = int(TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone());
+            has_mouse_target = TargetingControl::targetLogicEntity != NULL;
 
             if (has_mouse_target)
             {

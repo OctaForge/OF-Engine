@@ -307,7 +307,7 @@ namespace lapi_binds
     int _lua_gettargetent(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
         CLogicEntity *target = TargetingControl::targetLogicEntity;
-        if (target && !target->isNone() && target->lua_ref != LUA_REFNIL) {
+        if (target && target->lua_ref != LUA_REFNIL) {
             lua_rawgeti(L, LUA_REGISTRYINDEX, target->lua_ref);
             return 1;
         }

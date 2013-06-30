@@ -857,7 +857,7 @@ void mouse##num##click() { \
     lua_pushnumber (lua::L, pos.x); \
     lua_pushnumber (lua::L, pos.y); \
     lua_pushnumber (lua::L, pos.z); \
-    if (tle && !tle->isNone()) { \
+    if (tle) { \
         lua_rawgeti(lua::L, LUA_REGISTRYINDEX, tle->lua_ref); \
     } else { \
         lua_pushnil(lua::L); \

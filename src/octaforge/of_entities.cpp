@@ -147,7 +147,7 @@ namespace entities
 
     LUAICOMMAND(set_can_move, {
         LUA_GET_ENT(entity, "_C.setcanmove", return 0)
-        entity->setCanMove(lua_toboolean(L, 2));
+        entity->canMove = lua_toboolean(L, 2);
         return 0;
     });
 
@@ -330,8 +330,7 @@ namespace entities
 
 #ifndef SERVER
     LUAICOMMAND(get_target_entity_uid, {
-        if (TargetingControl::targetLogicEntity &&
-           !TargetingControl::targetLogicEntity->isNone()) {
+        if (TargetingControl::targetLogicEntity) {
             lua_pushinteger(L, TargetingControl::targetLogicEntity->
                 getUniqueId());
             return 1;
@@ -358,7 +357,7 @@ namespace entities
 
     LUAICOMMAND(get_selected_entity, {
         CLogicEntity *ret = EditingSystem::getSelectedEntity();
-        if (ret && !ret->isNone() && ret->lua_ref != LUA_REFNIL)
+        if (ret && ret->lua_ref != LUA_REFNIL)
             lua_rawgeti(L, LUA_REGISTRYINDEX, ret->lua_ref);
         else
             lua_pushnil(L);

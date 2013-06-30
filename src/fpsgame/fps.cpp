@@ -194,7 +194,7 @@ namespace game
             }
 
             // Ignore intentions to move, if immobile
-            if ( !LogicSystem::getLogicEntity(d)->getCanMove() )
+            if ( !LogicSystem::getLogicEntity(d)->canMove )
                 d->turn_move = d->move = d->look_updown_move = d->strafe = d->jumping = 0;
 
             if(d->state==CS_ALIVE || d->state==CS_EDITING)
@@ -247,7 +247,7 @@ namespace game
                 );
 
                 // Ignore intentions to move, if immobile
-                if ( !ClientSystem::playerLogicEntity->getCanMove() )
+                if ( !ClientSystem::playerLogicEntity->canMove )
                 {
                     player1->turn_move = player1->move = player1->look_updown_move = player1->strafe = player1->jumping = 0;
                 }
@@ -337,7 +337,7 @@ namespace game
             {
                 fpsent* fpsEntity = game::players[i];
                 CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
-                if (!entity || entity->isNone()) continue;
+                if (!entity) continue;
 
                 #ifndef SERVER
                     // Ragdolls

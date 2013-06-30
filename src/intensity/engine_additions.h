@@ -13,12 +13,11 @@
 //! move between maps).
 struct CLogicEntity
 {
-    enum { LE_NONE, LE_DYNAMIC, LE_STATIC, LE_NONSAUER}; //!< Possible types for a logic entity, correspond to Sauer types
+    enum {LE_DYNAMIC, LE_STATIC, LE_NONSAUER}; //!< Possible types for a logic entity, correspond to Sauer types
 
     physent*   dynamicEntity;      //!< Only one of dynamicEntity and staticEntity should be not null, corresponding to the type
     extentity* staticEntity;       //!< Only one of dynamicEntity and staticEntity should be not null, corresponding to the type
 
-    bool nonSauer; //!< Whether this is a Sauer (dynamic or static), or a non-Sauer (something non-Sauer related) entity
     int uniqueId; //!< Only used for nonSauer
 
     int lua_ref; //!< this is lua reference number for this logic entity
@@ -39,16 +38,16 @@ struct CLogicEntity
     //! Whether this entity can move on its own volition
     bool canMove;
 
-    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), nonSauer(false), uniqueId(-8),
+    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8),
         animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
-    CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), nonSauer(false), uniqueId(-8),
+    CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), uniqueId(-8),
         animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
-    CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), nonSauer(false), uniqueId(-8),
+    CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), uniqueId(-8),
         animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); };
-    CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL), nonSauer(true),
+    CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL),
         uniqueId(_uniqueId), animation(0), startTime(0), rendermillis(0)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
 
@@ -58,7 +57,6 @@ struct CLogicEntity
     //! Returns the type, i.e., dynamic (player, NPC - physent/fpsent), or static (mapmodel). In the future, also lights, etc.
     int   getType();
 
-    bool  isNone()    { return getType() == LE_NONE;    };
     bool  isDynamic() { return getType() == LE_DYNAMIC; };
     bool  isStatic()  { return getType() == LE_STATIC;  };
 
@@ -73,9 +71,6 @@ struct CLogicEntity
 
     //! Updates the animation based on lua information. Refreshes what is needed in Sauer. In particular sets the start time.
     void setAnimation(int _animation);
-
-    bool getCanMove() { return canMove; };
-    void setCanMove(bool value) { canMove = value; };
 
     vec& getAttachmentPosition(const char *tag);
 
