@@ -611,7 +611,7 @@ void server_init()//int argc, char* argv[])
     fpsEntity->serverControlled = true; // Mark this as not controlled by server, so we don't try to actually do anything with it
                                         // After all it doesn't really exist
 
-    fpsEntity->uniqueId = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
+    fpsEntity->uid = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
     server::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
 }
 

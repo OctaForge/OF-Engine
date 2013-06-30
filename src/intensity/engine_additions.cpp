@@ -313,7 +313,7 @@ int LogicSystem::getUniqueId(extentity* staticEntity)
 
 int LogicSystem::getUniqueId(physent* dynamicEntity)
 {
-    return ((fpsent*)dynamicEntity)->uniqueId;
+    return ((fpsent*)dynamicEntity)->uid;
 }
 
 // TODO: Use this whereever it should be used
@@ -343,7 +343,7 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
         assert(0);
     }
 
-    ((fpsent*)dynamicEntity)->uniqueId = uniqueId;
+    ((fpsent*)dynamicEntity)->uid = uniqueId;
 }
 
 void LogicSystem::setupExtent(int ref, int type)
@@ -419,7 +419,7 @@ void LogicSystem::setupCharacter(int ref)
         fpsEntity = game::getclient(cn);
 
         // Wipe clean the uid set for the fpsent, so we can re-use it.
-        fpsEntity->uniqueId = -77;
+        fpsEntity->uid = -77;
     }
     else
     #endif

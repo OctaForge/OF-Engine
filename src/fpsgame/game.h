@@ -95,7 +95,7 @@ struct fpsent : dynent
     //! would make sense for maps to consider that value the initialized value).
     unsigned int mapDefinedPositionData;
 
-    int uniqueId;
+    int uid;
 
     fpsent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), ai(NULL)
                                                                       , lastServerUpdate(0)
@@ -103,7 +103,7 @@ struct fpsent : dynent
                                                                       , serverControlled(false)
 #endif
                                                                       , physsteps(0), physframetime(5), lastphysframe(0), lastPhysicsPosition(0,0,0)
-                                                                      , mapDefinedPositionData(0), uniqueId(-821)
+                                                                      , mapDefinedPositionData(0), uid(-821)
                { name[0] = team[0] = info[0] = 0; respawn(); }
     ~fpsent()
     {

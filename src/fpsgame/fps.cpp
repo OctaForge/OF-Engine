@@ -164,14 +164,14 @@ namespace game
             fpsent *d = players[i];
             if(d == player1 || d->ai) continue;
 
-            if (d->uniqueId < 0) continue;
+            if (d->uid < 0) continue;
 
             #ifdef SERVER
                 if (d->serverControlled)
                     continue; // On the server, 'other players' are only PCs
             #endif
 
-            logger::log(logger::INFO, "otherplayers: moving %d from %f,%f,%f\r\n", d->uniqueId, d->o.x, d->o.y, d->o.z);
+            logger::log(logger::INFO, "otherplayers: moving %d from %f,%f,%f\r\n", d->uid, d->o.x, d->o.y, d->o.z);
 
             // TODO: Currently serverside physics for otherplayers run like clientside physics - if
             // there is *ANY* lag, run physics. But we can probably save a lot of CPU on the server
@@ -240,7 +240,7 @@ namespace game
             if (b)
             {
                 logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.\r\n",
-                    player1->uniqueId, (void*)player1,
+                    player1->uid, (void*)player1,
                     player1->o.x,
                     player1->o.y,
                     player1->o.z
@@ -277,7 +277,7 @@ namespace game
         loopv(players)
         {
             fpsent* npc = players[i];
-            if (!npc->serverControlled || npc->uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
+            if (!npc->serverControlled || npc->uid == DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
                 continue;
 
             // We do this so lua need not worry in the NPC behaviour code
@@ -422,7 +422,7 @@ namespace game
 #ifndef SERVER // INTENSITY
         if(cn == player1->clientnum)
         {
-            player1->uniqueId = -5412; // Wipe uniqueId of new client
+            player1->uid = -5412; // Wipe uniqueId of new client
             return player1;
         }
 #endif

@@ -241,7 +241,7 @@ namespace game
 #ifndef SERVER // If not logged in, or scenario not started, no need to send positions to self server (even can be buggy that way)
         if (ClientSystem::loggedIn && ClientSystem::scenarioStarted())
 #else // SERVER
-        if (d->uniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
+        if (d->uid != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
 #endif
         {
             logger::log(logger::INFO, "sendpacketclient: Sending for client %d: %f,%f,%f\r\n",
@@ -303,7 +303,7 @@ namespace game
         loopv(players)
         {
             fpsent *d = players[i];
-            if (d->serverControlled && d->uniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
+            if (d->serverControlled && d->uid != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
             {
                 sendposition(d);
             }

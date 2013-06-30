@@ -295,7 +295,7 @@ namespace entities
 
         logger::log(
             logger::INFO, "(%i).setdynent0(%f, %f, %f)",
-            d->uniqueId, d->o.x, d->o.y, d->o.z
+            d->uid, d->o.x, d->o.y, d->o.z
         );
         return 0;
     });

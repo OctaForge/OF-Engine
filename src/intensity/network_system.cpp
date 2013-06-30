@@ -155,7 +155,7 @@ void QuantizedInfo::applyToEntity(fpsent *d)
     #ifdef SERVER
     if(d->serverControlled) // Server does not need to update positions of its own NPCs. TODO: Don't even send to here.
     {
-        logger::log(logger::INFO, "Not applying position update for server NPC: (uid: %d , addr %d):\r\n", d->uniqueId, d != NULL);
+        logger::log(logger::INFO, "Not applying position update for server NPC: (uid: %d , addr %d):\r\n", d->uid, d != NULL);
         return;
     }
     #endif
