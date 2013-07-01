@@ -9,8 +9,6 @@
 struct TargetingControl
 {
 #ifndef SERVER
-    static void setupOrientation();
-
     //! Contains the position where the mouse cursor is aiming. Equal to worldposition in general, unless hovering
     //! on an entity
     static vec targetPosition;

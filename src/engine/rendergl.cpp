@@ -1033,6 +1033,7 @@ LUAICOMMAND(camera_get, {
 
 vec worldpos, camdir, camright, camup;
 
+/* lamiae */
 void setcammatrix()
 {
     // move from RH to Z-up LH quake style worldspace
@@ -1042,35 +1043,38 @@ void setcammatrix()
     cammatrix.rotate_around_z(camera1->yaw*-RAD);
     cammatrix.translate(vec(camera1->o).neg());
 
-    /* OF */
-    TargetingControl::setupOrientation();
-/*
     cammatrix.transposedtransformnormal(vec(viewmatrix.b), camdir);
     cammatrix.transposedtransformnormal(vec(viewmatrix.a).neg(), camright);
     cammatrix.transposedtransformnormal(vec(viewmatrix.c), camup);
 
-    if(!drawtex)
-    {
-        if(raycubepos(camera1->o, camdir, worldpos, 0, RAY_CLIPMAT|RAY_SKIPFIRST) == -1)
-            worldpos = vec(camdir).mul(2*worldsize).add(camera1->o); //otherwise 3dgui won't work when outside of map
+    camprojmatrix.mul(projmatrix, cammatrix);
+    invcammatrix.invert(cammatrix);
+    invprojmatrix.invert(projmatrix);
+    invcamprojmatrix.invert(camprojmatrix);
+
+    if (!drawtex) {
+        lua::push_external("cursor_get_position");
+        lua_call(lua::L, 0, 2);
+
+        float x = lua_tonumber(lua::L, -2);
+        float y = lua_tonumber(lua::L, -1);
+        lua_pop(lua::L, 2);
+
+        vec dir1 = invcamprojmatrix.perspectivetransform(vec(x*2-1, 1-2*y, 2-1));
+        vec dir2 = invcamprojmatrix.perspectivetransform(vec(x*2-1, 1-2*y, -1));
+
+        dir1.sub(dir2).normalize();
+        if (raycubepos(camera1->o, dir1, worldpos, 0, RAY_CLIPMAT|RAY_SKIPFIRST) == -1)
+            worldpos = vec(camdir).mul(2 * worldsize).add(camera1->o);
     }
-*/
 }
 
 void setcamprojmatrix(bool init = true, bool flush = false)
 {
     if(init) setcammatrix();
+    else camprojmatrix.mul(projmatrix, cammatrix);
 
     jitteraa(init);
-
-    camprojmatrix.mul(projmatrix, cammatrix);
-
-    if(init)
-    {
-        invcammatrix.invert(cammatrix);
-        invprojmatrix.invert(projmatrix);
-        invcamprojmatrix.invert(camprojmatrix);
-    }
 
     GLOBALPARAM(camprojmatrix, camprojmatrix);
     GLOBALPARAM(lineardepthscale, projmatrix.lineardepthscale()); //(invprojmatrix.c.z, invprojmatrix.d.z));

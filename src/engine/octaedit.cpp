@@ -289,9 +289,10 @@ extern float rayent(const vec &o, const vec &ray, float radius, int mode, int si
 VAR(gridlookup, 0, 0, 1);
 VAR(passthroughcube, 0, 1, 1);
 
-VARP(showselgrid, 0, 1, 1); /* lamiae */
+/* lamiae */
+VARP(showselgrid, 0, 1, 1);
 
-void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so can edit in thirdperson
+void rendereditcursor()
 {
     int d   = dimension(sel.orient),
         od  = dimension(orient),
@@ -309,11 +310,13 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
     bool hovering = false;
     hmapsel = false;
 
+    vec dir = vec(worldpos).sub(camera1->o).normalize();
+
     if(moving)
-    {       
+    {
         ivec e;
         static vec v, handle;
-        editmoveplane(sel.o.tovec(), camdir, od, sel.o[D[od]]+odc*sel.grid*sel.s[D[od]], handle, v, !havesel);
+        editmoveplane(sel.o.tovec(), dir, od, sel.o[D[od]]+odc*sel.grid*sel.s[D[od]], handle, v, !havesel);
         if(!havesel)
         {
             v.add(handle);
@@ -325,73 +328,73 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         sel.o[R[od]] = e[R[od]];
         sel.o[C[od]] = e[C[od]];
     }
-    else 
+    else
     if(entmoving)
     {
-        entdrag(camdir);       
+        entdrag(dir);
     }
     else
-    {  
+    {
         ivec w;
         float sdist = 0, wdist = 0, t;
         int entorient = 0, ent = -1;
-       
-        wdist = rayent(camera1->o, camdir, 1e16f, 
+
+        wdist = rayent(camera1->o, dir, 1e16f,
                        (editmode && showmat ? RAY_EDITMAT : 0)   // select cubes first
                        | (!dragging && entediting ? RAY_ENTS : 0)
-                       | RAY_SKIPFIRST 
+                       | RAY_SKIPFIRST
                        | (passthroughcube==1 ? RAY_PASS : 0), gridsize, entorient, ent);
-     
+
         if((havesel || dragging) && !passthroughsel && !hmapedit)     // now try selecting the selection
-            if(rayrectintersect(sel.o.tovec(), vec(sel.s.tovec()).mul(sel.grid), camera1->o, camdir, sdist, orient))
+            if(rayrectintersect(sel.o.tovec(), vec(sel.s.tovec()).mul(sel.grid), camera1->o, dir, sdist, orient))
             {   // and choose the nearest of the two
-                if(sdist < wdist) 
+                if(sdist < wdist)
                 {
                     wdist = sdist;
                     ent   = -1;
                 }
             }
-       
+
         if((hovering = hoveringonent(hidecursor ? -1 : ent, entorient)))
         {
-           if(!havesel) 
+           if(!havesel)
            {
                selchildcount = 0;
                selchildmat = -1;
                sel.s = ivec(0, 0, 0);
            }
         }
-        else 
+        else
         {
-            vec w = vec(camdir).mul(wdist+0.05f).add(camera1->o);
+            vec w = vec(dir).mul(wdist+0.05f).add(camera1->o);
             if(!insideworld(w))
             {
-                loopi(3) wdist = min(wdist, ((camdir[i] > 0 ? worldsize : 0) - camera1->o[i]) / camdir[i]);
-                w = vec(camdir).mul(wdist-0.05f).add(camera1->o);
+                loopi(3) wdist = min(wdist, ((dir[i] > 0 ? worldsize : 0) - camera1->o[i]) / dir[i]);
+                w = vec(dir).mul(wdist-0.05f).add(camera1->o);
                 if(!insideworld(w))
                 {
                     wdist = 0;
                     loopi(3) w[i] = clamp(camera1->o[i], 0.0f, float(worldsize));
                 }
             }
-            cube *c = &lookupcube(int(w.x), int(w.y), int(w.z));            
+            cube *c = &lookupcube(int(w.x), int(w.y), int(w.z));
             if(gridlookup && !dragging && !moving && !havesel && hmapedit!=1) gridsize = lusize;
             int mag = lusize / gridsize;
             normalizelookupcube(int(w.x), int(w.y), int(w.z));
-            if(sdist == 0 || sdist > wdist) rayrectintersect(lu.tovec(), vec(gridsize), camera1->o, camdir, t=0, orient); // just getting orient     
+            if(sdist == 0 || sdist > wdist) rayrectintersect(lu.tovec(), vec(gridsize), camera1->o, dir, t=0, orient); // just getting orient
             cur = lu;
             cor = vec(w).mul(2).div(gridsize);
             od = dimension(orient);
             d = dimension(sel.orient);
-            
-            if(hmapedit==1 && dimcoord(horient) == (camdir[dimension(horient)]<0))
+
+            if(hmapedit==1 && dimcoord(horient) == (dir[dimension(horient)]<0))
             {
-                hmapsel = isheightmap(horient, dimension(horient), false, c);     
+                hmapsel = isheightmap(horient, dimension(horient), false, c);
                 if(hmapsel)
                     od = dimension(orient = horient);
             }
 
-            if(dragging) 
+            if(dragging)
             {
                 updateselection();
                 sel.cx   = min(cor[R[d]], lastcor[R[d]]);
@@ -433,7 +436,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
             selchildcount = 0;
             selchildmat = -1;
             countselchild(worldroot, ivec(0, 0, 0), worldsize/2);
-            if(mag>=1 && selchildcount==1) 
+            if(mag>=1 && selchildcount==1)
             {
                 selchildmat = c->material;
                 if(mag>1) selchildcount = -mag;
@@ -443,12 +446,12 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
-    
-    // cursors    
+
+    // cursors
 
     ldrnotextureshader->set();
 
-    renderentselection(camera1->o, camdir, entmoving!=0);
+    renderentselection(camera1->o, dir, entmoving!=0);
 
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
 
@@ -458,7 +461,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
             gle::colorub(0, hmapsel ? 255 : 40, 0);
         else
             gle::colorub(120,120,120);
-        boxs(orient, lu.tovec(), vec(lusize));
+            boxs(orient, lu.tovec(), vec(lusize));
     }
 
     // selections
@@ -474,16 +477,15 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         co[R[d]] += 0.5f*(sel.cx*gridsize);
         co[C[d]] += 0.5f*(sel.cy*gridsize);
         cs[R[d]]  = 0.5f*(sel.cxs*gridsize);
-        cs[C[d]]  = 0.5f*(sel.cys*gridsize);       
+        cs[C[d]]  = 0.5f*(sel.cys*gridsize);
         cs[D[d]] *= gridsize;
         boxs(sel.orient, co, cs);
         if(hmapedit==1)         // 3D selection box
             gle::colorub(0,120,0);
-        else 
+        else
             gle::colorub(0,0,120);
         boxs3D(sel.o.tovec(), sel.s.tovec(), sel.grid);
 
-        /* lamiae */
         if (showselgrid)
         {
             vec a, b;
@@ -494,7 +496,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
             (a=sel.o.tovec()).z=0; (b=sel.s.tovec()).z=worldsize/sel.grid; boxs3D(a, b, sel.grid);
         }
     }
-   
+
     disablepolygonoffset(GL_POLYGON_OFFSET_LINE);
 
     glDisable(GL_BLEND);
