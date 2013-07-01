@@ -26,7 +26,7 @@ local ran = _C.model_register_anim
     SWIM, EDIT, LAG, MAPMODEL.
 
     Then there are modifiers, INDEX, LOOP, START, END, REVERSE, SECONDARY
-    that you won't find much use for and a special anim type RAGDOLL.
+    that you won't find much use for.
 ]]
 M.anims = {
     IDLE = ran "idle", FORWARD = ran "forward", BACKWARD = ran "backward",
@@ -39,14 +39,12 @@ M.anims = {
     CROUCH_SWIM = ran "crouch_swim", EDIT = ran "edit", LAG = ran "lag",
     MAPMODEL = ran "mapmodel",
 
-    INDEX = 0x7F,
-    LOOP = bit.lshift(1, 7),
-    START = bit.lshift(1, 8),
-    END = bit.lshift(1, 9),
-    REVERSE = bit.lshift(1, 10),
-    SECONDARY = 11,
-
-    RAGDOLL = bit.lshift(1, 27)
+    INDEX = 0xFFF,
+    LOOP = bit.lshift(1, 12),
+    START = bit.lshift(1, 13),
+    END = bit.lshift(1, 14),
+    REVERSE = bit.lshift(1, 15),
+    SECONDARY = 16
 }
 
 --[[! Variable: render_flags
@@ -103,13 +101,15 @@ local mrender = _C.model_render
 
 --[[! Function: render
     Renders a model. Takes the entity which owns the model, the model name
-    (relative to media/model), animation (see above), position (vec3), yaw,
-    pitch, roll, flags (see render_flags), basetime (start_time) and trans
-    (which is model transparency that ranges from 0 to 1 and defaults to 1).
+    (relative to media/model), animation (see above), animation flags,
+    position (vec3), yaw, pitch, roll, flags (see render_flags), basetime
+    (start_time) and trans (which is model transparency that ranges from 0
+    to 1 and defaults to 1).
 ]]
-M.render = function(ent, mdl, anim, pos, yaw, pitch, roll, flags, btime, trans)
-    mrender(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll, flags,
-        btime, trans)
+M.render = function(ent, mdl, anim, animflags, pos, yaw, pitch, roll, flags,
+btime, trans)
+    mrender(ent, mdl, anim, animflags, pos.x, pos.y, pos.z, yaw, pitch, roll,
+        flags, btime, trans)
 end
 
 --[[! Function: get_bounding_box

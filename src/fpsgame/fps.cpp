@@ -252,7 +252,7 @@ namespace game
                     player1->turn_move = player1->move = player1->look_updown_move = player1->strafe = player1->jumping = 0;
                 }
 
-//                if(player1->ragdoll && !(player1->anim&ANIMFLAG_RAGDOLL)) cleanragdoll(player1); XXX Needed? See below
+//                if(player1->ragdoll && !(player1->animflags&ANIMFLAG_RAGDOLL)) cleanragdoll(player1); XXX Needed? See below
                 crouchplayer(player1, 10, true);
 #if (SERVER_DRIVEN_PLAYERS == 0)
                 moveplayer(player1, 10, true); // Disable this to stop play from moving by client command
@@ -341,12 +341,12 @@ namespace game
 
                 #ifndef SERVER
                     // Ragdolls
-                    int anim = entity->getAnimation();
-                    if (fpsEntity->ragdoll && !(anim&ANIMFLAG_RAGDOLL))
+                    int animflags = entity->getAnimationFlags();
+                    if (fpsEntity->ragdoll && !(animflags&ANIMFLAG_RAGDOLL))
                     {
                         cleanragdoll(fpsEntity);
                     }
-                    if (fpsEntity->ragdoll && (anim&ANIMFLAG_RAGDOLL))
+                    if (fpsEntity->ragdoll && (animflags&ANIMFLAG_RAGDOLL))
                     {
                         moveragdoll(fpsEntity);
                     }

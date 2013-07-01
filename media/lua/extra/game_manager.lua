@@ -167,7 +167,8 @@ local Game_Manager = ents.Entity:clone {
         player:set_attr("position", { 512, 512, 571 })
     end,
 
-    set_local_animation = function(self) end
+    set_local_animation = function(self) end,
+    set_local_animation_flags = function(self) end
 }
 
 local assert = assert

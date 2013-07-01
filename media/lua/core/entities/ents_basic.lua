@@ -54,6 +54,8 @@ local set_attachments = _C.set_attachments
 
     Properties:
         animation [<svars.State_Integer>] - the entity's current animation.
+        animation_flags [<svars.State_Integer>] - the entity's current anim
+        flags.
         start_time [<svars.State_Integer>] - an internal property used e.g.
         when rendering models.
         model_name [<svars.State_String>] - name of the model associated with
@@ -67,6 +69,9 @@ local Physical_Entity = Entity:clone {
     properties = {
         animation = svars.State_Integer {
             setter = "_C.set_animation", client_set = true
+        },
+        animation_flags = svars.State_Integer {
+            setter = "_C.set_animflags", client_set = true
         },
         start_time  = svars.State_Integer { getter = "_C.get_start_time"   },
         model_name  = svars.State_String  { setter = "_C.set_model_name"   },
@@ -85,6 +90,7 @@ local Physical_Entity = Entity:clone {
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
         self:set_attr("animation", bor(model.anims.IDLE, model.anims.LOOP))
+        self:set_attr("animation_flags", 0)
     end or nil,
 
     activate = SERVER and function(self, kwargs)
@@ -105,6 +111,16 @@ local Physical_Entity = Entity:clone {
         self.svar_values["animation"] = anim
     end,
 
+    --[[! Function: set_local_animation_flags
+        Sets the animation_flags property locally, without notifying the other
+        side. Useful when allowing actions to animate the entity (as we mostly
+        don't need the changes to reflect elsewhere).
+    ]]
+    set_local_animation_flags = function(self, animflags)
+        _C.set_animflags(self, animflags)
+        self.svar_values["animation_flags"] = animflags
+    end,
+
     --[[! Function: set_local_model_name
         Sets the model name property locally, without notifying the other side.
     ]]
@@ -123,8 +139,9 @@ ents.Physical_Entity = Physical_Entity
 
 --[[! Class: Local_Animation_Action
     Action that starts, sets its actor's animation to its local_animation
-    property, runs, ends and sets back the old animation. Not too useful
-    alone, but can be used for inheriting.
+    property (and optionally animation_flags to local_animation_flags), runs,
+    ends and sets back the old animation (and flags). Not too useful alone,
+    but can be used for inheriting.
 ]]
 ents.Local_Animation_Action = actions.Action:clone {
     name = "Local_Animation_Action",
@@ -136,7 +153,9 @@ ents.Local_Animation_Action = actions.Action:clone {
     start = function(self)
         local ac = self.actor
         self.old_animation = ac:get_attr("animation")
+        self.old_animflags = ac:get_attr("animation_flags")
         ac:set_local_animation(self.local_animation)
+        ac:set_local_animation_flags(self.local_animation_flags or 0)
     end,
 
     --[[! Function: finish
@@ -146,6 +165,10 @@ ents.Local_Animation_Action = actions.Action:clone {
         local ac = self.actor
         if ac:get_attr("animation") == self.local_animation then
             ac:set_local_animation(self.old_animation)
+        end
+        local lanimflags = self.local_animation_flags
+        if lanimflags and ac:get_attr("animation_flags") == lanimflags then
+            ac:set_local_animation_flags(self.old_animflags)
         end
     end
 }
@@ -517,8 +540,8 @@ local Character = Physical_Entity:clone {
 
             local cr = self:get_attr("crouching")
 
-            local anim = self:decide_animation(state, pstate, mv, sf, cr, vel,
-                fall, iw, tia)
+            local anim, animflags = self:decide_animation(state, pstate, mv,
+                sf, cr, vel, fall, iw, tia)
             local flags = self:get_render_flags(hudpass, needhud)
 
             if not ra then
@@ -526,8 +549,8 @@ local Character = Physical_Entity:clone {
                 self.render_args = ra
             end
 
-            ra[2], ra[3], ra[4], ra[5], ra[6], ra[7], ra[8], ra[9] =
-                mdn, anim, o, yaw, pitch, roll, flags, bt
+            ra[2], ra[3], ra[4], ra[5], ra[6], ra[7], ra[8], ra[9], ra[10] =
+                mdn, anim, animflags, o, yaw, pitch, roll, flags, bt
             self.render_args_timestamp = fr
         end
         if (ra and ra[2] ~= "") then model.render(unpack(ra)) end
@@ -553,7 +576,8 @@ local Character = Physical_Entity:clone {
     --[[! Function: decide_animation
         Decides the current animation for the character. Starts with
         <get_animation>, then adjusts it to take things like moving,
-        strafing, swimming etc into account.
+        strafing, swimming etc into account. Returns the animation
+        and animation flags (by default 0).
 
         Passed arguments are client_state, physical_state, move, strafe,
         crouching, velocity, falling, in_liquid and time_in_air (same as the
@@ -639,7 +663,7 @@ local Character = Physical_Entity:clone {
             anim = bor(anim, lsh(bor(model.anims.IDLE, model.anims.LOOP),
                 model.anims.SECONDARY))
         end
-        return anim
+        return anim, 0
     end or nil,
 
     --[[! Function: get_center

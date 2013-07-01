@@ -46,6 +46,10 @@ int CLogicEntity::getAnimation()
     return animation;
 }
 
+int CLogicEntity::getAnimationFlags() {
+    return animflags;
+}
+
 int CLogicEntity::getStartTime()
 {
     return startTime;
@@ -131,6 +135,13 @@ void CLogicEntity::setAnimation(int _animation)
                             // because otherwise the starttime may be
                             // LATER than lastmillis, while sauer's animation system does lastmillis-basetime,
                             // leading to a negative number and segfaults in finding frame data
+}
+
+void CLogicEntity::setAnimationFlags(int _animflags)
+{
+    if ((!this) || (!staticEntity && !dynamicEntity))
+        return;
+    animflags = _animflags;
 }
 
 vec& CLogicEntity::getAttachmentPosition(const char *tag)

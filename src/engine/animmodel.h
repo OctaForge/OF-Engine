@@ -16,12 +16,13 @@ struct animmodel : model
 
     struct animpos
     {
-        int anim, fr1, fr2;
+        int anim, animflags, fr1, fr2;
         float t;
 
         void setframes(const animinfo &info)
         {
             anim = info.anim;
+            animflags = info.animflags;
             if(info.range<=1) 
             {
                 fr1 = 0;
@@ -29,7 +30,7 @@ struct animmodel : model
             }
             else
             {
-                int time = info.anim&ANIMFLAG_SETTIME ? info.basetime : lastmillis-info.basetime;
+                int time = info.animflags&ANIMFLAG_SETTIME ? info.basetime : lastmillis-info.basetime;
                 fr1 = (int)(time/info.speed); // round to full frames
                 t = (time-fr1*info.speed)/info.speed; // progress of the frame, value from 0.0f to 1.0f
             }
@@ -98,7 +99,7 @@ struct animmodel : model
             GLOBALPARAMF(transparent, (transparent));
 
             if(fullbright) GLOBALPARAMF(fullbright, (0.0f, fullbright));
-            else GLOBALPARAMF(fullbright, (1.0f, as->cur.anim&ANIMFLAG_FULLBRIGHT ? 0.5f*fullbrightmodels/100.0f : 0.0f));
+            else GLOBALPARAMF(fullbright, (1.0f, as->cur.animflags&ANIMFLAG_FULLBRIGHT ? 0.5f*fullbrightmodels/100.0f : 0.0f));
 
             float curglow = glow;
             if(glowpulse > 0)
@@ -166,7 +167,7 @@ struct animmodel : model
 
             Texture *s = tex;
 
-            if(as->cur.anim&ANIMFLAG_NOSKIN)
+            if(as->cur.animflags&ANIMFLAG_NOSKIN)
             {
                 if(alphatest > 0 && s->type&Texture::ALPHA && owner->model->alphashadow)
                 {
@@ -176,12 +177,12 @@ struct animmodel : model
                         lasttex = s;
                     }
                     setshaderparams(b, as, false, true, false);
-                    /*if(as->cur.anim&ANIM_SHADOW)*/ 
+                    /*if(as->cur.animflags&ANIMFLAG_SHADOW)*/ 
                     SETMODELSHADER(b, alphashadowmodel); 
                 }
                 else
                 {
-                    /*if(as->cur.anim&ANIM_SHADOW)*/ 
+                    /*if(as->cur.animflags&ANIMFLAG_SHADOW)*/ 
                     SETMODELSHADER(b, shadowmodel);
                 }
                 return;
@@ -518,12 +519,12 @@ struct animmodel : model
     struct linkedpart
     {
         part *p;
-        int tag, anim, basetime;
+        int tag, anim, animflags, basetime;
         vec translate;
         vec *pos;
         glmatrix matrix;
 
-        linkedpart() : p(NULL), tag(-1), anim(-1), basetime(0), translate(0, 0, 0), pos(NULL) {}
+        linkedpart() : p(NULL), tag(-1), anim(-1), animflags(0), basetime(0), translate(0, 0, 0), pos(NULL) {}
     };
 
     struct part
@@ -593,18 +594,19 @@ struct animmodel : model
             }
         }
 
-        bool link(part *p, const char *tag, const vec &translate = vec(0, 0, 0), int anim = -1, int basetime = 0, vec *pos = NULL)
+        bool link(part *p, const char *tag, const vec &translate = vec(0, 0, 0), int anim = -1, int animflags = 0, int basetime = 0, vec *pos = NULL)
         {
             int i = meshes ? meshes->findtag(tag) : -1;
             if(i<0)
             {
-                loopv(links) if(links[i].p && links[i].p->link(p, tag, translate, anim, basetime, pos)) return true;
+                loopv(links) if(links[i].p && links[i].p->link(p, tag, translate, anim, animflags, basetime, pos)) return true;
                 return false;
             }
             linkedpart &l = links.add();
             l.p = p;
             l.tag = i;
             l.anim = anim;
+            l.animflags = animflags;
             l.basetime = basetime;
             l.translate = translate;
             l.pos = pos;
@@ -667,19 +669,20 @@ struct animmodel : model
             if(meshes) meshes->preload(this);
         }
 
-        virtual void getdefaultanim(animinfo &info, int anim, uint varseed, dynent *d)
+        virtual void getdefaultanim(animinfo &info, int anim, int animflags, uint varseed, dynent *d)
         {
             info.frame = 0;
             info.range = 1;
         }
 
-        bool calcanim(int animpart, int anim, int basetime, int basetime2, dynent *d, int interp, animinfo &info, int &aitime)
+        bool calcanim(int animpart, int anim, int animflags, int basetime, int basetime2, dynent *d, int interp, animinfo &info, int &aitime)
         {
             uint varseed = uint((size_t)d);
             info.anim = anim;
+            info.animflags = animflags;
             info.basetime = basetime;
             info.varseed = varseed;
-            info.speed = anim&ANIMFLAG_SETSPEED ? basetime2 : 100.0f;
+            info.speed = animflags&ANIMFLAG_SETSPEED ? basetime2 : 100.0f;
             if((anim&ANIM_INDEX)==ANIM_ALL)
             {
                 info.frame = 0;
@@ -714,16 +717,16 @@ struct animmodel : model
                     info.range = spec->range;
                     if(spec->speed>0) info.speed = 1000.0f/spec->speed;
                 }
-                else getdefaultanim(info, anim, uint(varseed + info.basetime), d);
+                else getdefaultanim(info, anim, animflags, uint(varseed + info.basetime), d);
             }
 
             info.anim &= (1<<ANIM_SECONDARY)-1;
-            info.anim |= anim&ANIM_FLAGS;
+            info.animflags |= animflags;
             if((info.anim&ANIM_CLAMP) != ANIM_CLAMP)
             {
                 if(info.anim&(ANIM_LOOP|ANIM_START|ANIM_END))
                 {
-                    info.anim &= ~ANIMFLAG_SETTIME;
+                    info.animflags &= ~ANIMFLAG_SETTIME;
                     if(!info.basetime) info.basetime = -((int)(size_t)d&0xFFF);
                 }
                 if(info.anim&(ANIM_START|ANIM_END))
@@ -744,7 +747,7 @@ struct animmodel : model
                 animinterpinfo &ai = d->animinterp[interp];
                 if((info.anim&ANIM_CLAMP)==ANIM_CLAMP) aitime = min(aitime, int(info.range*info.speed*0.5e-3f));
                 void *ak = meshes->animkey();
-                if(d->ragdoll && !(anim&ANIMFLAG_RAGDOLL)) 
+                if(d->ragdoll && !(animflags&ANIMFLAG_RAGDOLL)) 
                 {
                     ai.prev.range = ai.cur.range = 0;
                     ai.lastswitch = -1;
@@ -760,25 +763,25 @@ struct animmodel : model
                     ai.cur = info;
                     ai.lastswitch = lastmillis;
                 }
-                else if(info.anim&ANIMFLAG_SETTIME) ai.cur.basetime = info.basetime;
+                else if(info.animflags&ANIMFLAG_SETTIME) ai.cur.basetime = info.basetime;
                 ai.lastmodel = ak;
             }
             return true;
         }
 
-        void intersect(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, const vec &o, const vec &ray)
+        void intersect(int anim, int animflags, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, const vec &o, const vec &ray)
         {
             animstate as[MAXANIMPARTS];
-            intersect(anim, basetime, basetime2, pitch, axis, forward, d, o, ray, as);
+            intersect(anim, animflags, basetime, basetime2, pitch, axis, forward, d, o, ray, as);
         }
 
-        void intersect(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, const vec &o, const vec &ray, animstate *as)
+        void intersect(int anim, int animflags, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, const vec &o, const vec &ray, animstate *as)
         {
-            if(!(anim&ANIMFLAG_REUSE)) loopi(numanimparts)
+            if(!(animflags&ANIMFLAG_REUSE)) loopi(numanimparts)
             {
                 animinfo info;
                 int interp = d && index+numanimparts<=MAXANIMPARTS ? index+i : -1, aitime = animationinterpolationtime;
-                if(!calcanim(i, anim, basetime, basetime2, d, interp, info, aitime)) return;
+                if(!calcanim(i, anim, animflags, basetime, basetime2, d, interp, info, aitime)) return;
                 animstate &p = as[i];
                 p.owner = this;
                 p.cur.setframes(info);
@@ -800,8 +803,8 @@ struct animmodel : model
             matrixstack[matrixpos].transposedtransformnormal(axis, oaxis);
             float pitchamount = pitchscale*pitch + pitchoffset;
             if(pitchmin || pitchmax) pitchamount = clamp(pitchamount, pitchmin, pitchmax);
-            if(as->cur.anim&ANIMFLAG_NOPITCH || (as->interp < 1 && as->prev.anim&ANIMFLAG_NOPITCH))
-                pitchamount *= (as->cur.anim&ANIMFLAG_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.anim&ANIMFLAG_NOPITCH ? 0 : 1-as->interp);
+            if(as->cur.animflags&ANIMFLAG_NOPITCH || (as->interp < 1 && as->prev.animflags&ANIMFLAG_NOPITCH))
+                pitchamount *= (as->cur.animflags&ANIMFLAG_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.animflags&ANIMFLAG_NOPITCH ? 0 : 1-as->interp);
             if(pitchamount)
             {
                 ++matrixpos;
@@ -825,7 +828,7 @@ struct animmodel : model
             intersectscale = resize;
             meshes->intersect(as, pitch, oaxis, oforward, d, this, oo, oray);
 
-            if(!(anim&ANIMFLAG_REUSE))
+            if(!(animflags&ANIMFLAG_REUSE))
             {
                 loopv(links)
                 {
@@ -839,11 +842,11 @@ struct animmodel : model
                     int nanim = anim, nbasetime = basetime, nbasetime2 = basetime2;
                     if(link.anim>=0)
                     {
-                        nanim = link.anim | (anim&ANIM_FLAGS);
+                        nanim = link.anim;
                         nbasetime = link.basetime;
                         nbasetime2 = 0;
                     }
-                    link.p->intersect(nanim, nbasetime, nbasetime2, pitch, axis, forward, d, o, ray);
+                    link.p->intersect(nanim, animflags | link.animflags, nbasetime, nbasetime2, pitch, axis, forward, d, o, ray);
 
                     matrixpos--;
                 }
@@ -852,19 +855,19 @@ struct animmodel : model
             matrixpos = oldpos;
         }
 
-        void render(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d)
+        void render(int anim, int animflags, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d)
         {
             animstate as[MAXANIMPARTS];
-            render(anim, basetime, basetime2, pitch, axis, forward, d, as);
+            render(anim, animflags, basetime, basetime2, pitch, axis, forward, d, as);
         }
 
-        void render(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, animstate *as)
+        void render(int anim, int animflags, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, animstate *as)
         {
-            if(!(anim&ANIMFLAG_REUSE)) loopi(numanimparts)
+            if(!(animflags&ANIMFLAG_REUSE)) loopi(numanimparts)
             {
                 animinfo info;
                 int interp = d && index+numanimparts<=MAXANIMPARTS ? index+i : -1, aitime = animationinterpolationtime;
-                if(!calcanim(i, anim, basetime, basetime2, d, interp, info, aitime)) return;
+                if(!calcanim(i, anim, animflags, basetime, basetime2, d, interp, info, aitime)) return;
                 animstate &p = as[i];
                 p.owner = this;
                 p.cur.setframes(info);
@@ -886,8 +889,8 @@ struct animmodel : model
             matrixstack[matrixpos].transposedtransformnormal(axis, oaxis);
             float pitchamount = pitchscale*pitch + pitchoffset;
             if(pitchmin || pitchmax) pitchamount = clamp(pitchamount, pitchmin, pitchmax);
-            if(as->cur.anim&ANIMFLAG_NOPITCH || (as->interp < 1 && as->prev.anim&ANIMFLAG_NOPITCH))
-                pitchamount *= (as->cur.anim&ANIMFLAG_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.anim&ANIMFLAG_NOPITCH ? 0 : 1-as->interp);
+            if(as->cur.animflags&ANIMFLAG_NOPITCH || (as->interp < 1 && as->prev.animflags&ANIMFLAG_NOPITCH))
+                pitchamount *= (as->cur.animflags&ANIMFLAG_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.animflags&ANIMFLAG_NOPITCH ? 0 : 1-as->interp);
             if(pitchamount)
             {
                 ++matrixpos;
@@ -905,14 +908,14 @@ struct animmodel : model
             }
             matrixstack[matrixpos].transposedtransformnormal(forward, oforward);
 
-            if(!(anim&ANIMFLAG_NORENDER))
+            if(!(animflags&ANIMFLAG_NORENDER))
             {
                 glmatrix modelmatrix;
                 modelmatrix.mul(shadowmapping ? shadowmatrix : aamaskmatrix, matrixstack[matrixpos]);
                 if(resize!=1) modelmatrix.scale(resize);
                 GLOBALPARAM(modelmatrix, modelmatrix);
 
-                if(!(anim&ANIMFLAG_NOSKIN))
+                if(!(animflags&ANIMFLAG_NOSKIN))
                 {
                     GLOBALPARAM(oworld, glmatrix3x3(matrixstack[matrixpos]));
                 
@@ -925,7 +928,7 @@ struct animmodel : model
 
             meshes->render(as, pitch, oaxis, oforward, d, this);
 
-            if(!(anim&ANIMFLAG_REUSE)) 
+            if(!(animflags&ANIMFLAG_REUSE)) 
             {
                 loopv(links)
                 {
@@ -949,11 +952,11 @@ struct animmodel : model
                     int nanim = anim, nbasetime = basetime, nbasetime2 = basetime2;
                     if(link.anim>=0)
                     {
-                        nanim = link.anim | (anim&ANIM_FLAGS);
+                        nanim = link.anim;
                         nbasetime = link.basetime;
                         nbasetime2 = 0;
                     }
-                    link.p->render(nanim, nbasetime, nbasetime2, pitch, axis, forward, d);
+                    link.p->render(nanim, animflags | link.animflags, nbasetime, nbasetime2, pitch, axis, forward, d);
 
                     matrixpos--;
                 }
@@ -994,7 +997,7 @@ struct animmodel : model
 
     virtual int linktype(animmodel *m, part *p) const { return LINK_TAG; }
 
-    void intersect(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, modelattach *a, const vec &o, const vec &ray)
+    void intersect(int anim, int animflags, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, modelattach *a, const vec &o, const vec &ray)
     {
         if(!loaded) return;
 
@@ -1012,7 +1015,7 @@ struct animmodel : model
                 switch(linktype(m, p))
                 {
                     case LINK_TAG:
-                        p->index = link(p, a[i].tag, vec(0, 0, 0), a[i].anim, a[i].basetime, a[i].pos) ? index : -1;
+                        p->index = link(p, a[i].tag, vec(0, 0, 0), a[i].anim, a[i].animflags, a[i].basetime, a[i].pos) ? index : -1;
                         break;
 
                     case LINK_COOP:
@@ -1027,7 +1030,7 @@ struct animmodel : model
         }
 
         animstate as[MAXANIMPARTS];
-        parts[0]->intersect(anim, basetime, basetime2, pitch, axis, forward, d, o, ray, as);
+        parts[0]->intersect(anim, animflags, basetime, basetime2, pitch, axis, forward, d, o, ray, as);
 
         for(int i = 1; i < parts.length(); i++)
         {
@@ -1035,11 +1038,11 @@ struct animmodel : model
             switch(linktype(this, p))
             {
                 case LINK_COOP:
-                    p->intersect(anim, basetime, basetime2, pitch, axis, forward, d, o, ray);
+                    p->intersect(anim, animflags, basetime, basetime2, pitch, axis, forward, d, o, ray);
                     break;
 
                 case LINK_REUSE:            
-                    p->intersect(anim | ANIMFLAG_REUSE, basetime, basetime2, pitch, axis, forward, d, o, ray, as);
+                    p->intersect(anim, animflags | ANIMFLAG_REUSE, basetime, basetime2, pitch, axis, forward, d, o, ray, as);
                     break;
             }
         }
@@ -1057,12 +1060,12 @@ struct animmodel : model
                     break;
 
                 case LINK_COOP:
-                    p->intersect(anim, basetime, basetime2, pitch, axis, forward, d, o, ray);
+                    p->intersect(anim, animflags, basetime, basetime2, pitch, axis, forward, d, o, ray);
                     p->index = 0;
                     break;
 
                 case LINK_REUSE:
-                    p->intersect(anim | ANIMFLAG_REUSE, basetime, basetime2, pitch, axis, forward, d, o, ray, as);
+                    p->intersect(anim, animflags | ANIMFLAG_REUSE, basetime, basetime2, pitch, axis, forward, d, o, ray, as);
                     break;
             }
         }
@@ -1071,7 +1074,7 @@ struct animmodel : model
     static int intersectresult, intersectmode;
     static float intersectdist, intersectscale;
 
-    int intersect(int anim, int basetime, int basetime2, const vec &pos, float yaw, float pitch, float roll, dynent *d, modelattach *a, float size, const vec &o, const vec &ray, float &dist, int mode)
+    int intersect(int anim, int animflags, int basetime, int basetime2, const vec &pos, float yaw, float pitch, float roll, dynent *d, modelattach *a, float size, const vec &o, const vec &ray, float &dist, int mode)
     {
         if(!loaded) return -1;
 
@@ -1079,7 +1082,7 @@ struct animmodel : model
 
         matrixpos = 0;
         matrixstack[0].identity();
-        if(!d || !d->ragdoll || anim&ANIMFLAG_RAGDOLL)
+        if(!d || !d->ragdoll || animflags&ANIMFLAG_RAGDOLL)
         {
             float secs = lastmillis/1000.0f;
             yaw += spinyaw*secs;
@@ -1108,13 +1111,13 @@ struct animmodel : model
         intersectmode = mode;
         intersectdist = dist;
 
-        intersect(anim, basetime, basetime2, pitch, axis, forward, d, a, o, ray);
+        intersect(anim, animflags, basetime, basetime2, pitch, axis, forward, d, a, o, ray);
 
         if(intersectresult >= 0) dist = intersectdist;
         return intersectresult;
     }
 
-    void render(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, modelattach *a)
+    void render(int anim, int animflags, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, modelattach *a)
     {
         if(!loaded) return;
 
@@ -1129,14 +1132,14 @@ struct animmodel : model
                 animmodel *m = (animmodel *)a[i].m;
                 if(!m || !m->loaded)
                 {
-                    if(a[i].pos) link(NULL, a[i].tag, vec(0, 0, 0), 0, 0, a[i].pos);
+                    if(a[i].pos) link(NULL, a[i].tag, vec(0, 0, 0), 0, 0, 0, a[i].pos);
                     continue;
                 }
                 part *p = m->parts[0];
                 switch(linktype(m, p))
                 {
                     case LINK_TAG:
-                        p->index = link(p, a[i].tag, vec(0, 0, 0), a[i].anim, a[i].basetime, a[i].pos) ? index : -1;
+                        p->index = link(p, a[i].tag, vec(0, 0, 0), a[i].anim, a[i].animflags, a[i].basetime, a[i].pos) ? index : -1;
                         break;
 
                     case LINK_COOP:
@@ -1151,7 +1154,7 @@ struct animmodel : model
         }
 
         animstate as[MAXANIMPARTS];
-        parts[0]->render(anim, basetime, basetime2, pitch, axis, forward, d, as);
+        parts[0]->render(anim, animflags, basetime, basetime2, pitch, axis, forward, d, as);
 
         for(int i = 1; i < parts.length(); i++)
         {
@@ -1159,11 +1162,11 @@ struct animmodel : model
             switch(linktype(this, p))
             {
                 case LINK_COOP:
-                    p->render(anim, basetime, basetime2, pitch, axis, forward, d);
+                    p->render(anim, animflags, basetime, basetime2, pitch, axis, forward, d);
                     break;
 
                 case LINK_REUSE:
-                    p->render(anim | ANIMFLAG_REUSE, basetime, basetime2, pitch, axis, forward, d, as);
+                    p->render(anim, animflags | ANIMFLAG_REUSE, basetime, basetime2, pitch, axis, forward, d, as);
                     break;
             }
         }
@@ -1185,18 +1188,18 @@ struct animmodel : model
                     break;
 
                 case LINK_COOP:
-                    p->render(anim, basetime, basetime2, pitch, axis, forward, d);
+                    p->render(anim, animflags, basetime, basetime2, pitch, axis, forward, d);
                     p->index = 0;
                     break;
 
                 case LINK_REUSE:
-                    p->render(anim | ANIMFLAG_REUSE, basetime, basetime2, pitch, axis, forward, d, as); 
+                    p->render(anim, animflags | ANIMFLAG_REUSE, basetime, basetime2, pitch, axis, forward, d, as); 
                     break;
             }
         }
     }
 
-    void render(int anim, int basetime, int basetime2, const vec &o, float yaw, float pitch, float roll, dynent *d, modelattach *a, float size, float trans)
+    void render(int anim, int animflags, int basetime, int basetime2, const vec &o, float yaw, float pitch, float roll, dynent *d, modelattach *a, float size, float trans)
     {
         if(!loaded) return;
 
@@ -1204,7 +1207,7 @@ struct animmodel : model
 
         matrixpos = 0;
         matrixstack[0].identity();
-        if(!d || !d->ragdoll || anim&ANIMFLAG_RAGDOLL)
+        if(!d || !d->ragdoll || animflags&ANIMFLAG_RAGDOLL)
         {
             float secs = lastmillis/1000.0f;
             yaw += spinyaw*secs;
@@ -1230,14 +1233,14 @@ struct animmodel : model
 
         sizescale = size;
 
-        if(anim&ANIMFLAG_NORENDER)
+        if(animflags&ANIMFLAG_NORENDER)
         {
-            render(anim, basetime, basetime2, pitch, axis, forward, d, a);
+            render(anim, animflags, basetime, basetime2, pitch, axis, forward, d, a);
             if(d) d->lastrendered = lastmillis;
             return;
         }
 
-        if(!(anim&ANIMFLAG_NOSKIN))
+        if(!(animflags&ANIMFLAG_NOSKIN))
         {
             transparent = trans;
 
@@ -1256,7 +1259,7 @@ struct animmodel : model
             enabledepthoffset = true;
         }
 
-        render(anim, basetime, basetime2, pitch, axis, forward, d, a);
+        render(anim, animflags, basetime, basetime2, pitch, axis, forward, d, a);
 
         if(d) d->lastrendered = lastmillis;
     }
@@ -1346,10 +1349,10 @@ struct animmodel : model
         return bih;
     }
 
-    bool link(part *p, const char *tag, const vec &translate = vec(0, 0, 0), int anim = -1, int basetime = 0, vec *pos = NULL)
+    bool link(part *p, const char *tag, const vec &translate = vec(0, 0, 0), int anim = -1, int animflags = 0, int basetime = 0, vec *pos = NULL)
     {
         if(parts.empty()) return false;
-        return parts[0]->link(p, tag, translate, anim, basetime, pos);
+        return parts[0]->link(p, tag, translate, anim, animflags, basetime, pos);
     }
 
     bool unlink(part *p)

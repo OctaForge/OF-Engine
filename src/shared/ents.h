@@ -119,35 +119,35 @@ struct physent                                  // base entity type, can be affe
     }
 };
 
-#define ANIM_ALL         0x7F
-#define ANIM_INDEX       0x7F
-#define ANIM_LOOP        (1<<7)
-#define ANIM_START       (1<<8)
-#define ANIM_END         (1<<9)
-#define ANIM_REVERSE     (1<<10)
+#define ANIM_ALL         0xFFF
+#define ANIM_INDEX       0xFFF
+#define ANIM_LOOP        (1<<12)
+#define ANIM_START       (1<<13)
+#define ANIM_END         (1<<14)
+#define ANIM_REVERSE     (1<<15)
 #define ANIM_CLAMP       (ANIM_START|ANIM_END)
-#define ANIM_DIR         0x780
-#define ANIM_SECONDARY   11
-#define ANIMFLAG_NOSKIN      (1<<22)
-#define ANIMFLAG_SETTIME     (1<<23)
-#define ANIMFLAG_FULLBRIGHT  (1<<24)
-#define ANIMFLAG_REUSE       (1<<25)
-#define ANIMFLAG_NORENDER    (1<<26)
-#define ANIMFLAG_RAGDOLL     (1<<27)
-#define ANIMFLAG_SETSPEED    (1<<28)
-#define ANIMFLAG_NOPITCH     (1<<29)
-#define ANIM_FLAGS       (0xFF<<22)
+#define ANIM_DIR         0xF000
+#define ANIM_SECONDARY   16
+
+#define ANIMFLAG_NOSKIN      (1<<0)
+#define ANIMFLAG_SETTIME     (1<<1)
+#define ANIMFLAG_FULLBRIGHT  (1<<2)
+#define ANIMFLAG_REUSE       (1<<3)
+#define ANIMFLAG_NORENDER    (1<<4)
+#define ANIMFLAG_RAGDOLL     (1<<5)
+#define ANIMFLAG_SETSPEED    (1<<6)
+#define ANIMFLAG_NOPITCH     (1<<7)
 
 struct animinfo // description of a character's animation
 {
-    int anim, frame, range, basetime;
+    int anim, animflags, frame, range, basetime;
     float speed;
     uint varseed;
 
-    animinfo() : anim(0), frame(0), range(0), basetime(0), speed(100.0f), varseed(0) { }
+    animinfo() : anim(0), animflags(0), frame(0), range(0), basetime(0), speed(100.0f), varseed(0) { }
 
-    bool operator==(const animinfo &o) const { return frame==o.frame && range==o.range && (anim&(ANIMFLAG_SETTIME|ANIM_DIR))==(o.anim&(ANIMFLAG_SETTIME|ANIM_DIR)) && (anim&ANIMFLAG_SETTIME || basetime==o.basetime) && speed==o.speed; }
-    bool operator!=(const animinfo &o) const { return frame!=o.frame || range!=o.range || (anim&(ANIMFLAG_SETTIME|ANIM_DIR))!=(o.anim&(ANIMFLAG_SETTIME|ANIM_DIR)) || (!(anim&ANIMFLAG_SETTIME) && basetime!=o.basetime) || speed!=o.speed; }
+    bool operator==(const animinfo &o) const { return frame==o.frame && range==o.range && (anim&ANIM_DIR)==(o.anim&ANIM_DIR) && (animflags&ANIMFLAG_SETTIME)==(o.animflags&ANIMFLAG_SETTIME) && (animflags&ANIMFLAG_SETTIME || basetime==o.basetime) && speed==o.speed; }
+    bool operator!=(const animinfo &o) const { return frame!=o.frame || range!=o.range || (anim&ANIM_DIR)!=(o.anim&ANIM_DIR) && (animflags&ANIMFLAG_SETTIME)!=(o.animflags&ANIMFLAG_SETTIME) || (!(animflags&ANIMFLAG_SETTIME) && basetime!=o.basetime) || speed!=o.speed; }
 };
 
 struct animinterpinfo // used for animation blending of animated characters

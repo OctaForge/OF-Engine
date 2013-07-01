@@ -612,7 +612,8 @@ M.load = function()
                         attr5 = tostring(attr5),
 
                         position = ("[%i|%i|%i]"):format(o.x, o.y, o.z),
-                        animation = "130", model_name = "", attachments = "[]",
+                        animation = "130", animation_flags = "0",
+                        model_name = "", attachments = "[]",
                         tags = "[]", persistent = "true"
                     }
                 }

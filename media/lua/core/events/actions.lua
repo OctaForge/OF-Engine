@@ -44,6 +44,7 @@ local Action = table2.Object:clone {
 
             animation - If specified, the action will change the actor's
             animation during its execution. One of the model.anims constants.
+            animation_flags - See above, for animation flags.
 
             allow_multiple - A boolean value specifying whether multiple
             actions of the same type can be present in one action system.
@@ -73,6 +74,8 @@ local Action = table2.Object:clone {
 
         self.animation    = (self.animation == nil) and
             kwargs.animation or false
+        self.animation_flags = (self.animation_flags == nil) and
+            kwargs.animation_flags or false
 
         self.actor = false
 
@@ -119,6 +122,14 @@ local Action = table2.Object:clone {
                 self.last_animation = self.actor:get_attr("animation")
                 if  self.actor:get_attr("animation") ~= self.animation then
                     self.actor:set_attr("animation", self.animation)
+                end
+            end
+            if self.animation_flags ~= false then
+                self.last_animflags = self.actor:get_attr("animation_flags")
+                if self.actor:get_attr("animation_flags")
+                ~= self.animation_flags then
+                    self.actor:set_attr("animation_flags",
+                        self.animation_flags)
                 end
             end
         end
@@ -178,6 +189,12 @@ local Action = table2.Object:clone {
         if self.animation and self.last_animation ~= nil then
             if  self.actor:get_attr("animation") ~= self.last_animation then
                 self.actor:set_attr("animation", self.last_animation)
+            end
+        end
+        if self.animation_flags and self.last_animflags ~= nil then
+            if self.actor:get_attr("animation_flags")
+            ~= self.last_animflags then
+                self.actor:set_attr("animation_flags", self.last_animflags)
             end
         end
 

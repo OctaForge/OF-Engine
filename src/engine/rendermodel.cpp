@@ -434,7 +434,7 @@ struct batchedmodel
 {
     vec pos, center;
     float radius, yaw, pitch, roll, sizescale, transparent;
-    int anim, basetime, basetime2, flags, attached;
+    int anim, animflags, basetime, basetime2, flags, attached;
     union
     {
         int visible;
@@ -483,14 +483,14 @@ static inline void renderbatchedmodel(model *m, batchedmodel &b)
     modelattach *a = NULL;
     if(b.attached>=0) a = &modelattached[b.attached];
 
-    int anim = b.anim;
-    if(shadowmapping > SM_REFLECT) anim |= ANIMFLAG_NOSKIN;
+    int animflags = b.animflags;
+    if(shadowmapping > SM_REFLECT) animflags |= ANIMFLAG_NOSKIN;
     else
     {
-        if(b.flags&MDL_FULLBRIGHT) anim |= ANIMFLAG_FULLBRIGHT;
+        if(b.flags&MDL_FULLBRIGHT) animflags |= ANIMFLAG_FULLBRIGHT;
     }
 
-    m->render(anim, b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.roll, b.d, a, b.sizescale, b.transparent);
+    m->render(b.anim, animflags, b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.roll, b.d, a, b.sizescale, b.transparent);
 }
 
 VARP(maxmodelradiusdistance, 10, 200, 1000);
@@ -851,7 +851,7 @@ void clearbatchedmapmodels()
     batchedmodels.setsize(len);
 }
 
-void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
+void rendermapmodel(CLogicEntity *e, int anim, int animflags, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
 {
     if(!e) return;
     model *m = e->staticEntity->m;
@@ -890,6 +890,7 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     b.center = center;
     b.radius = radius;
     b.anim = anim;
+    b.animflags = animflags;
     b.yaw = yaw;
     b.pitch = pitch;
     b.roll = roll;
@@ -905,7 +906,7 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     addbatchedmodel(m, b, batchedmodels.length()-1);
 }
 
-void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float size, float trans)
+void rendermodel(const char *mdl, int anim, int animflags, const vec &o, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float size, float trans)
 {
     model *m = loadmodel(mdl);
     if(!m) return;
@@ -928,7 +929,7 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
     }
     radius *= size;
 
-    if(flags&MDL_NORENDER) anim |= ANIMFLAG_NORENDER;
+    if(flags&MDL_NORENDER) animflags |= ANIMFLAG_NORENDER;
 
     if(a) for(int i = 0; a[i].tag; i++)
     {
@@ -961,8 +962,8 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
         }
         m->startrender();
         setaamask(true);
-        if(flags&MDL_FULLBRIGHT) anim |= ANIMFLAG_FULLBRIGHT;
-        m->render(anim, basetime, basetime2, o, yaw, pitch, roll, d, a, size);
+        if(flags&MDL_FULLBRIGHT) animflags |= ANIMFLAG_FULLBRIGHT;
+        m->render(anim, animflags, basetime, basetime2, o, yaw, pitch, roll, d, a, size);
         m->endrender();
         if(flags&MDL_CULL_QUERY && d->query) endquery(d->query);
         return;
@@ -974,6 +975,7 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
     b.center = center;
     b.radius = radius;
     b.anim = anim;
+    b.animflags = animflags;
     b.yaw = yaw;
     b.pitch = pitch;
     b.roll = roll;
@@ -989,7 +991,7 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
     addbatchedmodel(m, b, batchedmodels.length()-1);
 }
 
-int intersectmodel(const char *mdl, int anim, const vec &pos, float yaw, float pitch, float roll, const vec &o, const vec &ray, float &dist, int mode, dynent *d, modelattach *a, int basetime, int basetime2, float size)
+int intersectmodel(const char *mdl, int anim, int animflags, const vec &pos, float yaw, float pitch, float roll, const vec &o, const vec &ray, float &dist, int mode, dynent *d, modelattach *a, int basetime, int basetime2, float size)
 {
     model *m = loadmodel(mdl);
     if(!m) return -1;
@@ -997,7 +999,7 @@ int intersectmodel(const char *mdl, int anim, const vec &pos, float yaw, float p
     {
         if(a[i].name) a[i].m = loadmodel(a[i].name);
     }
-    return m->intersect(anim, basetime, basetime2, pos, yaw, pitch, roll, d, a, size, o, ray, dist, mode);
+    return m->intersect(anim, animflags, basetime, basetime2, pos, yaw, pitch, roll, d, a, size, o, ray, dist, mode);
 }
 
 void abovemodel(vec &o, const char *mdl)
@@ -1078,8 +1080,8 @@ VARP(ragdoll, 0, 1, 1);
 
 static int oldtp = -1;
 
-void preparerd(lua_State *L, int& anim, CLogicEntity *self) {
-    if (anim&ANIMFLAG_RAGDOLL) {
+void preparerd(lua_State *L, int anim, int& animflags, CLogicEntity *self) {
+    if (animflags&ANIMFLAG_RAGDOLL) {
         //if (!ragdoll || loadmodel(mdl);
         fpsent *fp = (fpsent*)self->dynamicEntity;
 
@@ -1091,7 +1093,7 @@ void preparerd(lua_State *L, int& anim, CLogicEntity *self) {
         }
 
         if (fp->ragdoll || !ragdoll) {
-            anim &= ~ANIMFLAG_RAGDOLL;
+            animflags &= ~ANIMFLAG_RAGDOLL;
             lua_rawgeti    (L, LUA_REGISTRYINDEX, self->lua_ref);
             lua_getfield   (L, -1, "set_local_animation");
             lua_insert     (L, -2);
@@ -1137,7 +1139,8 @@ LUAICOMMAND(model_render, {
     LUA_GET_ENT(entity, "_C.rendermodel", return 0)
 
     int anim = luaL_checkinteger(L, 3);
-    preparerd(L, anim, entity);
+    int animflags = luaL_checkinteger(L, 4);
+    preparerd(L, anim, animflags, entity);
     fpsent *fp = NULL;
 
     if (entity->dynamicEntity)
@@ -1145,12 +1148,13 @@ LUAICOMMAND(model_render, {
     else
         fp = getproxyfpsent(L, entity);
 
-    rendermodel(luaL_checkstring(L, 2), anim, vec(luaL_checknumber(L, 4),
-        luaL_checknumber(L, 5), luaL_checknumber(L, 6)),
-        luaL_checknumber(L, 7), luaL_checknumber(L, 8),
-        luaL_checknumber(L, 9), luaL_checkinteger(L, 10), fp,
-        entity->attachments.getbuf(), luaL_checkinteger(L, 11), 0, 1,
-        luaL_optnumber(L, 12, 1.0f));
+    rendermodel(luaL_checkstring(L, 2), anim, animflags,
+        vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
+            luaL_checknumber(L, 7)),
+        luaL_checknumber(L, 8), luaL_checknumber(L, 9),
+        luaL_checknumber(L, 10), luaL_checkinteger(L, 11), fp,
+        entity->attachments.getbuf(), luaL_checkinteger(L, 12), 0, 1,
+        luaL_optnumber(L, 13, 1.0f));
     return 0;
 });
 
@@ -1220,6 +1224,7 @@ LUAICOMMAND(model_preview_start, {
 LUAICOMMAND(model_preview, {
     const char *mdl = luaL_checkstring(L, 1);
     int anim = luaL_checkinteger(L, 2);
+    int animflags = luaL_checkinteger(L, 3);
     model *m = loadmodel(mdl);
     if (m) {
         vec center; vec radius;
@@ -1229,11 +1234,11 @@ LUAICOMMAND(model_preview, {
         vec o(-center.x, dist - center.y, -0.1f * dist - center.z);
 
         vector<modelattach> attach;
-        int len = lua_objlen(L, 3);
+        int len = lua_objlen(L, 4);
         if (len) {
             attach.reserve(len);
             for (int i = 1; i <= len; ++i) {
-                lua_rawgeti(L,  3, i); /* attachments[i] */
+                lua_rawgeti(L,  4, i); /* attachments[i] */
                 lua_rawgeti(L, -1, 1); /* attachments[i][1] */
                 lua_rawgeti(L, -2, 2); /* attachments[i][2] */
                 attach.add(modelattach(lua_tostring(L, -2),
@@ -1243,7 +1248,7 @@ LUAICOMMAND(model_preview, {
             attach.add(modelattach());
         }
         dynent ent;
-        rendermodel(mdl, anim, o, yaw, 0, 0, 0, &ent, attach.getbuf(), 0, 0, 1);
+        rendermodel(mdl, anim, animflags, o, yaw, 0, 0, 0, &ent, attach.getbuf(), 0, 0, 1);
     }
     return 0;
 });

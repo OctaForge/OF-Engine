@@ -106,6 +106,12 @@ namespace entities
         return 0;
     });
 
+    LUAICOMMAND(set_animflags, {
+        LUA_GET_ENT(entity, "_C.setanimflags", return 0)
+        entity->setAnimationFlags(luaL_checkinteger(L, 2));
+        return 0;
+    });
+
     LUAICOMMAND(get_start_time, {
         LUA_GET_ENT(entity, "_C.getstarttime", return 0)
         lua_pushinteger(L, entity->getStartTime());

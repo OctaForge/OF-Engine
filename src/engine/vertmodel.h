@@ -408,7 +408,7 @@ struct vertmodel : animmodel
         {
             vvert *vverts = 0;
             bindpos(ebuf, vc.vbuf, &vverts->pos, vertsize);
-            if(as->cur.anim&ANIMFLAG_NOSKIN)
+            if(as->cur.animflags&ANIMFLAG_NOSKIN)
             {
                 if(enablenormals) disablenormals();
                 if(enabletangents) disabletangents();
@@ -455,7 +455,7 @@ struct vertmodel : animmodel
 
         void render(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p)
         {
-            if(as->cur.anim&ANIMFLAG_NORENDER)
+            if(as->cur.animflags&ANIMFLAG_NORENDER)
             {
                 loopv(p->links) calctagmatrix(p, p->links[i].tag, *as, p->links[i].matrix);
                 return;

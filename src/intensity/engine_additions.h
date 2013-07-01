@@ -38,7 +38,7 @@ struct CLogicEntity
     hashtable<const char*, entlinkpos> attachment_positions;
 
     //! The current animation for this entity
-    int animation;
+    int animation, animflags;
 
     //! The start time of the current animation for this entity
     int startTime;
@@ -47,16 +47,16 @@ struct CLogicEntity
     bool canMove;
 
     CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8),
-        animation(0), startTime(0)
+        animation(0), animflags(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), uniqueId(-8),
-        animation(0), startTime(0)
+        animation(0), animflags(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), uniqueId(-8),
-        animation(0), startTime(0)
+        animation(0), animflags(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL),
-        uniqueId(_uniqueId), animation(0), startTime(0)
+        uniqueId(_uniqueId), animation(0), animflags(0), startTime(0)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
 
     //! Returns the unique ID for this entity
@@ -70,6 +70,7 @@ struct CLogicEntity
 
     //! The sauer code for the current running animation
     int  getAnimation();
+    int  getAnimationFlags();
 
     //! When the current animation started
     int getStartTime();
@@ -79,6 +80,7 @@ struct CLogicEntity
 
     //! Updates the animation based on lua information. Refreshes what is needed in Sauer. In particular sets the start time.
     void setAnimation(int _animation);
+    void setAnimationFlags(int animflags);
 
     vec& getAttachmentPosition(const char *tag);
 };

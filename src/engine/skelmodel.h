@@ -981,8 +981,8 @@ struct skelmodel : animmodel
                 if(b.pitchscale) { angle = b.pitchscale*pitch + b.pitchoffset; if(b.pitchmin || b.pitchmax) angle = clamp(angle, b.pitchmin, b.pitchmax); } \
                 else if(b.correctindex >= 0) angle = pitchcorrects[b.correctindex].pitchangle; \
                 else continue; \
-                if(as->cur.anim&ANIMFLAG_NOPITCH || (as->interp < 1 && as->prev.anim&ANIMFLAG_NOPITCH)) \
-                    angle *= (as->cur.anim&ANIMFLAG_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.anim&ANIMFLAG_NOPITCH ? 0 : 1-as->interp); \
+                if(as->cur.animflags&ANIMFLAG_NOPITCH || (as->interp < 1 && as->prev.animflags&ANIMFLAG_NOPITCH)) \
+                    angle *= (as->cur.animflags&ANIMFLAG_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.animflags&ANIMFLAG_NOPITCH ? 0 : 1-as->interp); \
                 rotbody; \
             }
 
@@ -1431,7 +1431,7 @@ struct skelmodel : animmodel
         {
             vvertn *vverts = 0;
             bindpos(ebuf, vc.vbuf, &vverts->pos, vertsize);
-            if(as->cur.anim&ANIMFLAG_NOSKIN)
+            if(as->cur.animflags&ANIMFLAG_NOSKIN)
             {
                 if(enablenormals) disablenormals();
                 if(enabletangents) disabletangents();
@@ -1610,7 +1610,7 @@ struct skelmodel : animmodel
 
             if(skel->shouldcleanup()) skel->cleanup();
 
-            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, as->cur.anim&ANIMFLAG_RAGDOLL || !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
+            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, as->cur.animflags&ANIMFLAG_RAGDOLL || !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
 
             intersect(hitdata, p, sc, o, ray);
 
@@ -1640,7 +1640,7 @@ struct skelmodel : animmodel
 
             if(!skel->numframes)
             {
-                if(!(as->cur.anim&ANIMFLAG_NORENDER))
+                if(!(as->cur.animflags&ANIMFLAG_NORENDER))
                 {
                     if(!vbocache->vbuf) genvbo(norms, tangents, *vbocache);
                     bindvbo(as, p, *vbocache);
@@ -1655,8 +1655,8 @@ struct skelmodel : animmodel
                 return;
             }
 
-            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, as->cur.anim&ANIMFLAG_RAGDOLL || !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
-            if(!(as->cur.anim&ANIMFLAG_NORENDER))
+            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, as->cur.animflags&ANIMFLAG_RAGDOLL || !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
+            if(!(as->cur.animflags&ANIMFLAG_NORENDER))
             {
                 int owner = &sc-&skel->skelcache[0];
                 vbocacheentry &vc = skel->usegpuskel ? *vbocache : checkvbocache(sc, owner);
@@ -1701,7 +1701,7 @@ struct skelmodel : animmodel
 
             skel->calctags(p, &sc);
 
-            if(as->cur.anim&ANIMFLAG_RAGDOLL && skel->ragdoll && !d->ragdoll)
+            if(as->cur.animflags&ANIMFLAG_RAGDOLL && skel->ragdoll && !d->ragdoll)
             {
                 d->ragdoll = new ragdolldata(skel->ragdoll, p->model->scale);
                 if(matskel) skel->initmatragdoll(*d->ragdoll, sc, p);
