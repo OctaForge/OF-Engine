@@ -128,14 +128,14 @@ struct physent                                  // base entity type, can be affe
 #define ANIM_CLAMP       (ANIM_START|ANIM_END)
 #define ANIM_DIR         0x780
 #define ANIM_SECONDARY   11
-#define ANIM_NOSKIN      (1<<22)
-#define ANIM_SETTIME     (1<<23)
-#define ANIM_FULLBRIGHT  (1<<24)
-#define ANIM_REUSE       (1<<25)
-#define ANIM_NORENDER    (1<<26)
-#define ANIM_RAGDOLL     (1<<27)
-#define ANIM_SETSPEED    (1<<28)
-#define ANIM_NOPITCH     (1<<29)
+#define ANIMFLAG_NOSKIN      (1<<22)
+#define ANIMFLAG_SETTIME     (1<<23)
+#define ANIMFLAG_FULLBRIGHT  (1<<24)
+#define ANIMFLAG_REUSE       (1<<25)
+#define ANIMFLAG_NORENDER    (1<<26)
+#define ANIMFLAG_RAGDOLL     (1<<27)
+#define ANIMFLAG_SETSPEED    (1<<28)
+#define ANIMFLAG_NOPITCH     (1<<29)
 #define ANIM_FLAGS       (0xFF<<22)
 
 struct animinfo // description of a character's animation
@@ -146,8 +146,8 @@ struct animinfo // description of a character's animation
 
     animinfo() : anim(0), frame(0), range(0), basetime(0), speed(100.0f), varseed(0) { }
 
-    bool operator==(const animinfo &o) const { return frame==o.frame && range==o.range && (anim&(ANIM_SETTIME|ANIM_DIR))==(o.anim&(ANIM_SETTIME|ANIM_DIR)) && (anim&ANIM_SETTIME || basetime==o.basetime) && speed==o.speed; }
-    bool operator!=(const animinfo &o) const { return frame!=o.frame || range!=o.range || (anim&(ANIM_SETTIME|ANIM_DIR))!=(o.anim&(ANIM_SETTIME|ANIM_DIR)) || (!(anim&ANIM_SETTIME) && basetime!=o.basetime) || speed!=o.speed; }
+    bool operator==(const animinfo &o) const { return frame==o.frame && range==o.range && (anim&(ANIMFLAG_SETTIME|ANIM_DIR))==(o.anim&(ANIMFLAG_SETTIME|ANIM_DIR)) && (anim&ANIMFLAG_SETTIME || basetime==o.basetime) && speed==o.speed; }
+    bool operator!=(const animinfo &o) const { return frame!=o.frame || range!=o.range || (anim&(ANIMFLAG_SETTIME|ANIM_DIR))!=(o.anim&(ANIMFLAG_SETTIME|ANIM_DIR)) || (!(anim&ANIMFLAG_SETTIME) && basetime!=o.basetime) || speed!=o.speed; }
 };
 
 struct animinterpinfo // used for animation blending of animated characters

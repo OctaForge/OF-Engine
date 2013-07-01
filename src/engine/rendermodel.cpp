@@ -484,10 +484,10 @@ static inline void renderbatchedmodel(model *m, batchedmodel &b)
     if(b.attached>=0) a = &modelattached[b.attached];
 
     int anim = b.anim;
-    if(shadowmapping > SM_REFLECT) anim |= ANIM_NOSKIN;
+    if(shadowmapping > SM_REFLECT) anim |= ANIMFLAG_NOSKIN;
     else
     {
-        if(b.flags&MDL_FULLBRIGHT) anim |= ANIM_FULLBRIGHT;
+        if(b.flags&MDL_FULLBRIGHT) anim |= ANIMFLAG_FULLBRIGHT;
     }
 
     m->render(anim, b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.roll, b.d, a, b.sizescale, b.transparent);
@@ -928,7 +928,7 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
     }
     radius *= size;
 
-    if(flags&MDL_NORENDER) anim |= ANIM_NORENDER;
+    if(flags&MDL_NORENDER) anim |= ANIMFLAG_NORENDER;
 
     if(a) for(int i = 0; a[i].tag; i++)
     {
@@ -961,7 +961,7 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
         }
         m->startrender();
         setaamask(true);
-        if(flags&MDL_FULLBRIGHT) anim |= ANIM_FULLBRIGHT;
+        if(flags&MDL_FULLBRIGHT) anim |= ANIMFLAG_FULLBRIGHT;
         m->render(anim, basetime, basetime2, o, yaw, pitch, roll, d, a, size);
         m->endrender();
         if(flags&MDL_CULL_QUERY && d->query) endquery(d->query);
@@ -1079,7 +1079,7 @@ VARP(ragdoll, 0, 1, 1);
 static int oldtp = -1;
 
 void preparerd(lua_State *L, int& anim, CLogicEntity *self) {
-    if (anim&ANIM_RAGDOLL) {
+    if (anim&ANIMFLAG_RAGDOLL) {
         //if (!ragdoll || loadmodel(mdl);
         fpsent *fp = (fpsent*)self->dynamicEntity;
 
@@ -1091,7 +1091,7 @@ void preparerd(lua_State *L, int& anim, CLogicEntity *self) {
         }
 
         if (fp->ragdoll || !ragdoll) {
-            anim &= ~ANIM_RAGDOLL;
+            anim &= ~ANIMFLAG_RAGDOLL;
             lua_rawgeti    (L, LUA_REGISTRYINDEX, self->lua_ref);
             lua_getfield   (L, -1, "set_local_animation");
             lua_insert     (L, -2);
