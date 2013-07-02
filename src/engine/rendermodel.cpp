@@ -1139,10 +1139,10 @@ LUAICOMMAND(model_render, {
 
     lua_pushinteger(L, 1);
     lua_gettable(L, 3);
-    int panim = lua_tointeger(L, -1);
+    int panim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR);
     lua_pushinteger(L, 2);
     lua_gettable(L, 3);
-    int sanim = lua_tointeger(L, -1); lua_pop(L, 2);
+    int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR); lua_pop(L, 2);
 
     animval anim(sanim ? panim | sanim << ANIM_SECONDARY : panim,
         luaL_checkinteger(L, 4));
@@ -1232,10 +1232,10 @@ LUAICOMMAND(model_preview, {
 
     lua_pushinteger(L, 1);
     lua_gettable(L, 2);
-    int panim = lua_tointeger(L, -1);
+    int panim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR);
     lua_pushinteger(L, 2);
     lua_gettable(L, 2);
-    int sanim = lua_tointeger(L, -1); lua_pop(L, 2);
+    int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR); lua_pop(L, 2);
 
     animval anim(sanim ? panim | sanim << ANIM_SECONDARY : panim,
         luaL_checkinteger(L, 3));

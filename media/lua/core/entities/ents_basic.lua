@@ -167,10 +167,10 @@ local Character = Entity:clone {
     properties = {
         animation = svars.State_Array_Integer {
             setter = function(self, val)
-                local pv = val[1] or 0
+                local pv = band(val[1] or 0, 0xFFFF)
                 local sv = val[2]
                 _C.set_animation(self, sv and bor(pv,
-                    lsh(sv, model.anims.SECONDARY)) or pv)
+                    lsh(band(sv, 0xFFFF), model.anims.SECONDARY)) or pv)
             end, client_set = true
         },
         animation_flags = svars.State_Integer {
@@ -591,10 +591,10 @@ local Character = Entity:clone {
         don't need the changes to reflect elsewhere).
     ]]
     set_local_animation = function(self, anim)
-        local pv = anim[1] or 0
+        local pv = band(anim[1] or 0, 0xFFFF)
         local sv = anim[2]
         _C.set_animation(self, sv and bor(pv,
-            lsh(sv, model.anims.SECONDARY)) or pv)
+            lsh(band(sv, 0xFFFF), model.anims.SECONDARY)) or pv)
         self.svar_values["animation"] = anim
     end,
 
@@ -1412,10 +1412,10 @@ local Mapmodel = Static_Entity:clone {
     properties = {
         animation = svars.State_Array_Integer {
             setter = function(self, val)
-                local pv = val[1] or 0
+                local pv = band(val[1] or 0, 0xFFFF)
                 local sv = val[2]
                 _C.set_animation(self, sv and bor(pv,
-                    lsh(sv, model.anims.SECONDARY)) or pv)
+                    lsh(band(sv, 0xFFFF), model.anims.SECONDARY)) or pv)
             end, client_set = true
         },
         animation_flags = svars.State_Integer {
