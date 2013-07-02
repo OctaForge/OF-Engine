@@ -79,7 +79,7 @@ void setaavelocityparams(GLenum tmu)
     if(tqaaframe) reproject.jitter(jitter.x, jitter.y);
     LOCALPARAM(reprojectmatrix, reproject);
     float maxvel = sqrtf(vieww*vieww + viewh*viewh)/tqaareproject;
-    LOCALPARAMF(maxvelocity, (maxvel, 1/maxvel, tqaareprojectscale));
+    LOCALPARAMF(maxvelocity, maxvel, 1/maxvel, tqaareprojectscale);
     if(tmu!=GL_TEXTURE0) glActiveTexture_(GL_TEXTURE0);
 }
 
@@ -128,7 +128,7 @@ void resolvetqaa(GLuint outfbo)
     if(tqaamovemask)
     {
         SETSHADER(tqaaresolvemasked);
-        LOCALPARAMF(movemaskscale, (1/float(1<<tqaamovemaskreduce)));
+        LOCALPARAMF(movemaskscale, 1/float(1<<tqaamovemaskreduce));
     }
     else SETSHADER(tqaaresolve);
     glBindTexture(GL_TEXTURE_RECTANGLE, tqaacurtex);
@@ -178,7 +178,7 @@ void loadfxaashaders()
     if(fxaagreenluma || tqaa) opts[optslen++] = 'g';
     opts[optslen] = '\0';
 
-    defformatstring(fxaaname)("fxaa%d%s", fxaaquality, opts);
+    defformatstring(fxaaname, "fxaa%d%s", fxaaquality, opts);
     fxaashader = generateshader(fxaaname, "fxaashaders %d \"%s\"", fxaaquality, opts);
 }
 
@@ -255,10 +255,10 @@ void loadsmaashaders(bool split = false)
     }
     opts[optslen] = '\0';
 
-    defformatstring(lumaedgename)("SMAALumaEdgeDetection%d%s", smaaquality, opts);
-    defformatstring(coloredgename)("SMAAColorEdgeDetection%d%s", smaaquality, opts);
-    defformatstring(blendweightname)("SMAABlendingWeightCalculation%d%s", smaaquality, opts);
-    defformatstring(neighborhoodname)("SMAANeighborhoodBlending%d%s", smaaquality, opts);
+    defformatstring(lumaedgename, "SMAALumaEdgeDetection%d%s", smaaquality, opts);
+    defformatstring(coloredgename, "SMAAColorEdgeDetection%d%s", smaaquality, opts);
+    defformatstring(blendweightname, "SMAABlendingWeightCalculation%d%s", smaaquality, opts);
+    defformatstring(neighborhoodname, "SMAANeighborhoodBlending%d%s", smaaquality, opts);
     smaalumaedgeshader = lookupshaderbyname(lumaedgename);
     smaacoloredgeshader = lookupshaderbyname(coloredgename);
     smaablendweightshader = lookupshaderbyname(blendweightname);
@@ -741,7 +741,7 @@ void setaamask(bool on)
     if(aamask) aamaskmatrix.mul(nojittermatrix, cammatrix);
     else aamaskmatrix = camprojmatrix;
 
-    GLOBALPARAMF(aamask, (aamask ? 1.0f : 0.0f));
+    GLOBALPARAMF(aamask, aamask ? 1.0f : 0.0f);
 }
 
 bool multisampledaa()

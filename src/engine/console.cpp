@@ -59,7 +59,7 @@ int rendercommand(int x, int y, int w)
 {
     if(commandmillis < 0) return 0;
 
-    defformatstring(s)("%s %s", commandprompt ? commandprompt : ">", commandbuf);
+    defformatstring(s, "%s %s", commandprompt ? commandprompt : ">", commandbuf);
     int width, height;
     text_bounds(s, width, height, w);
     y -= height;
@@ -534,7 +534,7 @@ bool consolekey(int code, bool isdown)
             case SDLK_TAB:
                 if(commandflags&CF_COMPLETE)
                 {
-                    complete(commandbuf, commandflags&CF_EXECUTE ? "/" : NULL);
+                    complete(commandbuf, sizeof(commandbuf), commandflags&CF_EXECUTE ? "/" : NULL);
                     if(commandpos>=0 && commandpos>=(int)strlen(commandbuf)) commandpos = -1;
                 }
                 break;
@@ -619,7 +619,7 @@ static inline bool sortbinds(keym *x, keym *y)
 
 void writebinds(stream *f)
 {
-    static const char *cmds[3] = { "bind", "specbind", "editbind" };
+    static const char * const cmds[3] = { "bind", "specbind", "editbind" };
     vector<keym *> binds;
     enumerate(keyms, keym, km, binds.add(&km));
     binds.sort(sortbinds);
@@ -687,7 +687,7 @@ static hashtable<fileskey, filesval *> completefiles;
 static hashtable<char *, filesval *> completions;
 
 int completesize = 0;
-string lastcomplete;
+char *lastcomplete = NULL;
 
 void resetcomplete() { completesize = 0; }
 
@@ -742,63 +742,54 @@ void addlistcomplete(char *command, char *list)
 COMMANDN(complete, addfilecomplete, "sss");
 COMMANDN(listcomplete, addlistcomplete, "ss");
 
-void complete(char *s, const char *cmdprefix)
+void complete(char *s, int maxlen, const char *cmdprefix)
 {
     int cmdlen = 0;
     if(cmdprefix)
     {
         cmdlen = strlen(cmdprefix);
-        if(strncmp(s, cmdprefix, cmdlen))
-        {
-            defformatstring(cmd)("%s%s", cmdprefix, s);
-            copystring(s, cmd);
-        }
+        if(strncmp(s, cmdprefix, cmdlen)) prependstring(s, cmdprefix, maxlen);
     }
     if(!s[cmdlen]) return;
-    if(!completesize) { completesize = (int)strlen(&s[cmdlen]); lastcomplete[0] = '\0'; }
+    if(!completesize) { completesize = (int)strlen(&s[cmdlen]); DELETEA(lastcomplete); }
 
     filesval *f = NULL;
     if(completesize)
     {
         char *end = strchr(&s[cmdlen], ' ');
-        if(end)
-        {
-            string command;
-            copystring(command, &s[cmdlen], min(size_t(end-&s[cmdlen]+1), sizeof(command)));
-            filesval **hasfiles = completions.access(command);
-            if(hasfiles) f = *hasfiles;
-        }
+        if(end) f = completions.find(stringslice(&s[cmdlen], size_t(end-&s[cmdlen])), NULL);
     }
 
     const char *nextcomplete = NULL;
-    string prefix;
     if(f) // complete using filenames
     {
         int commandsize = strchr(&s[cmdlen], ' ')+1-s;
-        copystring(prefix, s, min(size_t(commandsize+1), sizeof(prefix)));
         f->update();
         loopv(f->files)
         {
             if(strncmp(f->files[i], &s[commandsize], completesize+cmdlen-commandsize)==0 &&
-               strcmp(f->files[i], lastcomplete) > 0 && (!nextcomplete || strcmp(f->files[i], nextcomplete) < 0))
+               (!lastcomplete || strcmp(f->files[i], lastcomplete) > 0) && (!nextcomplete || strcmp(f->files[i], nextcomplete) < 0))
                 nextcomplete = f->files[i];
         }
+        cmdprefix = s;
+        cmdlen = commandsize;
     }
     else // complete using command names
     {
-        if(cmdprefix) copystring(prefix, cmdprefix); else prefix[0] = '\0';
         enumerate(idents, ident, id,
             if(strncmp(id.name, &s[cmdlen], completesize)==0 &&
-               strcmp(id.name, lastcomplete) > 0 && (!nextcomplete || strcmp(id.name, nextcomplete) < 0))
+               (!lastcomplete || strcmp(id.name, lastcomplete) > 0) && (!nextcomplete || strcmp(id.name, nextcomplete) < 0))
                 nextcomplete = id.name;
         );
     }
+    DELETEA(lastcomplete);
     if(nextcomplete)
     {
-        formatstring(s)("%s%s", prefix, nextcomplete);
-        copystring(lastcomplete, nextcomplete);
+        cmdlen = min(cmdlen, maxlen-1);
+        if(cmdlen) memmove(s, cmdprefix, cmdlen);
+        copystring(&s[cmdlen], nextcomplete, maxlen-cmdlen);
+        lastcomplete = newstring(nextcomplete);
     }
-    else lastcomplete[0] = '\0';
 }
 
 static inline bool sortcompletions(const char *x, const char *y)

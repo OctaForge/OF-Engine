@@ -40,7 +40,7 @@ void getmapfilenames(const char *fname, const char *cname, char *pakname, char *
         copystring(cfgname, name);
     }
     if(strpbrk(fname, "/\\")) copystring(mapname, fname);
-    else formatstring(mapname)("map/%s", fname);
+    else nformatstring(mapname, MAXSTRLEN, "map/%s", fname);
     cutogz(mapname);
 }
 
@@ -51,11 +51,11 @@ void setmapfilenames(const char *fname, const char *cname = 0)
     string pakname, mapname, mcfgname;
     getmapfilenames(fname, cname, pakname, mapname, mcfgname);
 
-    formatstring(ogzname)("media/%s.ogz", mapname);
-    if(savebak==1) formatstring(bakname)("media/%s.BAK", mapname);
-    else formatstring(bakname)("media/%s_%d.BAK", mapname, totalmillis);
-    formatstring(cfgname)("media/%s/%s.cfg", pakname, mcfgname);
-    formatstring(picname)("media/%s", mapname);
+    formatstring(ogzname, "media/%s.ogz", mapname);
+    if(savebak==1) formatstring(bakname, "media/%s.BAK", mapname);
+    else formatstring(bakname, "media/%s_%d.BAK", mapname, totalmillis);
+    formatstring(cfgname, "media/%s/%s.cfg", pakname, mcfgname);
+    formatstring(picname, "media/%s", mapname);
 
     path(ogzname);
     path(bakname);
@@ -71,7 +71,7 @@ void mapcfgname()
     string pakname, mapname, mcfgname;
     getmapfilenames(mname, NULL, pakname, mapname, mcfgname);
 
-    defformatstring(cfgname)("media/%s/%s.lua", pakname, mcfgname);
+    defformatstring(cfgname, "media/%s/%s.lua", pakname, mcfgname);
     path(cfgname);
 
     result(cfgname);
@@ -87,7 +87,7 @@ void backup(char *name, char *backupname)
     rename(findfile(name, "wb"), backupfile);
 }
 
-enum { OCTSAV_CHILDREN = 0, OCTSAV_EMPTY, OCTSAV_SOLID, OCTSAV_NORMAL, OCTSAV_LODCUBE };
+enum { OCTSAV_CHILDREN = 0, OCTSAV_EMPTY, OCTSAV_SOLID, OCTSAV_NORMAL };
 
 #define LM_PACKW 512
 #define LM_PACKH 512
@@ -131,8 +131,7 @@ void savec(cube *c, const ivec &o, int size, stream *f, bool nolms)
                 }
             }
 
-            if(c[i].children) f->putchar(oflags | OCTSAV_LODCUBE);
-            else if(isempty(c[i])) f->putchar(oflags | OCTSAV_EMPTY);
+            if(isempty(c[i])) f->putchar(oflags | OCTSAV_EMPTY);
             else if(isentirelysolid(c[i])) f->putchar(oflags | OCTSAV_SOLID);
             else
             {
@@ -219,8 +218,6 @@ void savec(cube *c, const ivec &o, int size, stream *f, bool nolms)
                     }
                 }
             }
-
-            if(c[i].children) savec(c[i].children, co, size>>1, f, nolms);
         }
     }
 }
@@ -229,7 +226,6 @@ cube *loadchildren(stream *f, const ivec &co, int size, bool &failed);
 
 void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
 {
-    bool haschildren = false;
     int octsav = f->getchar();
     switch(octsav&0x7)
     {
@@ -237,9 +233,8 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
             c.children = loadchildren(f, co, size>>1, failed);
             return;
 
-        case OCTSAV_LODCUBE: haschildren = true;    break;
-        case OCTSAV_EMPTY:  emptyfaces(c);          break;
-        case OCTSAV_SOLID:  solidfaces(c);          break;
+        case OCTSAV_EMPTY:  emptyfaces(c);        break;
+        case OCTSAV_SOLID:  solidfaces(c);        break;
         case OCTSAV_NORMAL: f->read(c.edges, 12); break;
         default: failed = true; return;
     }
@@ -335,8 +330,6 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
             }
         }
     }    
-
-    c.children = (haschildren ? loadchildren(f, co, size>>1, failed) : NULL);
 }
 
 cube *loadchildren(stream *f, const ivec &co, int size, bool &failed)
@@ -866,7 +859,7 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
 
     printf("\r\n\r\n[[MAP LOADING]] - Success.\r\n"); // INTENSITY
 #ifdef SERVER
-    defformatstring(path)("%s%s", homedir, SERVER_READYFILE);
+    defformatstring(path, "%s%s", homedir, SERVER_READYFILE);
     tools::fempty(path);
 #endif
 
@@ -875,11 +868,11 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
 
 void writeobj(char *name)
 {
-    defformatstring(fname)("%s.obj", name);
+    defformatstring(fname, "%s.obj", name);
     stream *f = openfile(path(fname), "w"); 
     if(!f) return;
     f->printf("# obj file of Cube 2 level\n\n");
-    defformatstring(mtlname)("%s.mtl", name);
+    defformatstring(mtlname, "%s.mtl", name);
     path(mtlname);
     f->printf("mtllib %s\n\n", mtlname); 
     extern vector<vtxarray *> valist;

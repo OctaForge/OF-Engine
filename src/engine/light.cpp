@@ -359,7 +359,7 @@ void check_calclight_canceled()
 void show_calclight_progress()
 {
     float bar1 = float(lightprogress) / float(allocnodes);
-    defformatstring(text1)("%d%%", int(bar1 * 100));
+    defformatstring(text1, "%d%%", int(bar1 * 100));
 
     renderprogress(bar1, text1);
 }

@@ -62,7 +62,7 @@ namespace world
         if (num_expected_entities > 0) {
             float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
             if (loading) {
-                defformatstring(buf)("received entity %d ...", num_received_entities);
+                defformatstring(buf, "received entity %d ...", num_received_entities);
                 renderprogress(val, buf);
             }
         }
@@ -85,7 +85,7 @@ namespace world
             if  (*it == '4' || *it == '-') continue;
 
             r = (int)floor(rndscale(1) * 16);
-            formatstring(tmp)("%x", (*it == 'x') ? r : ((r&0x3)|0x8));
+            formatstring(tmp, "%x", (*it == 'x') ? r : ((r&0x3)|0x8));
             *it = tmp[0];
         }
     }
@@ -138,7 +138,7 @@ namespace world
         copystring(tmp, curr_map_id);
         tmp[strlen(curr_map_id) - 7] = '\0';
 
-        defformatstring(buf)("%smedia%c%s%c%s", homedir, PATHDIV, tmp,
+        defformatstring(buf, "%smedia%c%s%c%s", homedir, PATHDIV, tmp,
             PATHDIV, fname);
 
         lua::push_external("entities_save_all");
@@ -146,7 +146,7 @@ namespace world
         const char *data = lua_tostring(lua::L, -1);
         lua_pop(lua::L, 1);
         if (fileexists(buf, "r")) {
-            defformatstring(buff)("%s-%d.bak", buf, (int)time(0));
+            defformatstring(buff, "%s-%d.bak", buf, (int)time(0));
             tools::fcopy(buf, buff);
         }
 
@@ -166,8 +166,8 @@ namespace world
         copystring(aloc, curr_map_id);
         aloc[strlen(curr_map_id) - 7] = '\0';
 
-        defformatstring(buf)("media%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
-        formatstring(mapfile_path)("%s%s", homedir, buf);
+        defformatstring(buf, "media%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
+        formatstring(mapfile_path, "%s%s", homedir, buf);
 
         if (fileexists(mapfile_path, "r")) {
             return mapfile_path;

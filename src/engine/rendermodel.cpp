@@ -367,7 +367,7 @@ model *loadmodel(const char *name, bool msg)
         if(!name[0] || loadingmodel) return NULL;
         if(msg)
         {
-            defformatstring(filename)("media/model/%s", name);
+            defformatstring(filename, "media/model/%s", name);
             renderprogress(loadprogress, filename);
         }
         loopi(NUMMODELTYPES)
@@ -1019,7 +1019,7 @@ ICOMMAND(findanims, "s", (char *name),
     string num;
     loopv(anims)
     {
-        formatstring(num)("%d", anims[i]);
+        formatstring(num, "%d", anims[i]);
         if(i > 0) buf.add(' ');
         buf.put(num, strlen(num));
     }
@@ -1049,8 +1049,8 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&mas
         ifnoload(tex, makerelpath(maltdir, name "", prefix, cmd)) return; \
     }
    
-    defformatstring(mdir)("media/model/%s", dir);
-    defformatstring(maltdir)("media/model/%s", altdir);
+    defformatstring(mdir, "media/model/%s", dir);
+    defformatstring(maltdir, "media/model/%s", altdir);
     masks = notexture;
     tryload(skin, NULL, NULL, "skin");
     tryload(masks, NULL, NULL, "masks");

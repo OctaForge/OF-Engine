@@ -10,13 +10,13 @@ VARP(particlesize, 20, 100, 500);
 VARP(softparticles, 0, 1, 1);
 VARP(softparticleblend, 1, 8, 64);
     
-// Check emit_particles() to limit the rate that paricles can be emitted for models/sparklies
+// Check canemitparticles() to limit the rate that paricles can be emitted for models/sparklies
 // Automatically stops particles being emitted when paused or in reflective drawing
 VARP(emitmillis, 1, 17, 1000);
 static int lastemitframe = 0, emitoffset = 0;
 static bool canemit = false, regenemitters = false;
 
-static bool emit_particles()
+static bool canemitparticles()
 {
     return canemit || emitoffset;
 }
@@ -950,11 +950,11 @@ struct varenderer : partrenderer
         }
     }
 
-    void update()
+    void genvbo()
     {
         if(lastmillis == lastupdate && vbo) return;
         lastupdate = lastmillis;
-      
+
         genverts();
 
         if(!vbo) glGenBuffers_(1, &vbo);
@@ -963,9 +963,11 @@ struct varenderer : partrenderer
         glBufferSubData_(GL_ARRAY_BUFFER, 0, numparts*4*sizeof(partvert), verts);
         glBindBuffer_(GL_ARRAY_BUFFER, 0);
     }
-    
+
     void render()
-    {   
+    {
+        genvbo();
+
         glBindTexture(GL_TEXTURE_2D, tex->id);
 
         glBindBuffer_(GL_ARRAY_BUFFER, vbo);
@@ -1009,8 +1011,8 @@ static bool get_renderer(lua_State *L, const char *name) {
     return false;
 }
 
-VARFP(maxparticles, 10, 4000, 10000, particleinit());
-VARFP(fewparticles, 10, 100, 10000, particleinit());
+VARFP(maxparticles, 10, 4000, 10000, initparticles());
+VARFP(fewparticles, 10, 100, 10000, initparticles());
 
 static void register_renderer(lua_State *L, const char *s, partrenderer *rd) {
     int n = parts.length();
@@ -1080,7 +1082,7 @@ LUAICOMMAND(particle_get_renderer, {
     return 1;
 })
 
-void particleinit() 
+void initparticles() 
 {
     if(initing) return;
     if(!particleshader) particleshader = lookupshaderbyname("particle");
@@ -1115,6 +1117,11 @@ void particleinit()
 
 partinit:
     loopv(parts) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
+    loopv(parts) {
+        loadprogress = float(i + 1) / parts.length();
+        parts[i]->preload();
+    }
+    loadprogress = 0;
 }
 
 void clearparticles()
@@ -1174,14 +1181,12 @@ void renderparticles()
             if(type&PT_FLIP) concatstring(info, "f,");
             if(parts[i]->collide) concatstring(info, "c,");
             if(info[0]) info[strlen(info)-1] = '\0';
-            defformatstring(ds)("%d\t%s(%s) %s", parts[i]->count(), partnames[type&0xFF], info, title ? title : "");
+            defformatstring(ds, "%d\t%s(%s) %s", parts[i]->count(), partnames[type&0xFF], info, title ? title : "");
             draw_text(ds, FONTH, (i+n/2)*FONTH);
         }
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
     }
-
-    loopv(parts) parts[i]->update();
 
     bool rendered = false;
     uint lastflags = PT_LERP|PT_SHADER, flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER;
@@ -1204,8 +1209,6 @@ void renderparticles()
             else glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
             glActiveTexture_(GL_TEXTURE0);
         }
-        
-        p->preload();
 
         uint flags = p->type & flagmask, changedbits = flags ^ lastflags;
         int swizzle = p->tex ? p->tex->swizzle() : -1;
@@ -1226,7 +1229,7 @@ void renderparticles()
                     if(flags&PT_SOFT && softparticles)
                     {
                         particlesoftshader->setvariant(swizzle, 0);
-                        LOCALPARAMF(softparams, (-1.0f/softparticleblend, 0, 0));
+                        LOCALPARAMF(softparams, -1.0f/softparticleblend, 0, 0);
                     }
                     else if(flags&PT_NOTEX) particlenotextureshader->set();
                     else particleshader->setvariant(swizzle, 0);
@@ -1235,10 +1238,10 @@ void renderparticles()
                 {
                     float colorscale = ldrscale;
                     if(flags&PT_BRIGHT) colorscale *= particlebright;
-                    LOCALPARAMF(colorscale, (colorscale, colorscale, colorscale, 1));
+                    LOCALPARAMF(colorscale, colorscale, colorscale, colorscale, 1);
                 }
             }
-            lastflags = flags;        
+            lastflags = flags;
             lastswizzle = swizzle; 
         }
         p->render();
@@ -1342,7 +1345,7 @@ LUAICOMMAND(particle_splash, {
     float size = luaL_checknumber(L, 11);
     int gravity = luaL_checkinteger(L, 12);
     int delay = luaL_checkinteger(L, 13);
-    if ((!lua_toboolean(L, 14) && !emit_particles())
+    if ((!lua_toboolean(L, 14) && !canemitparticles())
     || (delay > 0 && rnd(delay) != 0)) {
         lua_pushboolean(L, true);
         return 1;
@@ -1619,7 +1622,7 @@ LUAICOMMAND(particle_shape, {
     int gravity = luaL_checkinteger(L, 13);
     int vel = luaL_checkinteger(L, 14);
 
-    if (!canaddparticles() || (!lua_toboolean(L, 15) && !emit_particles())) {
+    if (!canaddparticles() || (!lua_toboolean(L, 15) && !canemitparticles())) {
         lua_pushboolean(L, true);
         return 1;
     }
@@ -1731,7 +1734,7 @@ LUAICOMMAND(particle_flame, {
     float speed = luaL_checknumber(L, 13);
     int gravity = luaL_checkinteger(L, 14);
 
-    if (!canaddparticles() || (!lua_toboolean(L, 15) && !emit_particles())) {
+    if (!canaddparticles() || (!lua_toboolean(L, 15) && !canemitparticles())) {
         lua_pushboolean(L, true);
         return 1;
     }
@@ -1780,11 +1783,13 @@ void seedparticles()
     }
 }
 
-FVARFP(editpartsize, 0.0f, 4.0f, 100.0f, particleinit());
+FVARFP(editpartsize, 0.0f, 4.0f, 100.0f, initparticles());
 
 void updateparticles()
 {
     if(regenemitters) addparticleemitters();
+
+    if(minimized) { canemit = false; return; }
 
     if(lastmillis - lastemitframe >= emitmillis)
     {
@@ -1793,7 +1798,7 @@ void updateparticles()
     }
     else canemit = false;
    
-    flares.makelightflares();
+    loopv(parts) parts[i]->update();
 
     if(!editmode || showparticles) 
     {

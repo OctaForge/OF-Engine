@@ -48,7 +48,7 @@ namespace lapi_binds
         if (strlen(p) >= 2 && p[0] == '.' && (p[1] == '/' || p[1] == '\\')) {
             copystring(buf, world::get_mapfile_path(p + 2));
         } else {
-            formatstring(buf)("media%c%s", PATHDIV, p);
+            formatstring(buf, "media%c%s", PATHDIV, p);
         }
 
         if (!(loaded = loadfile(path(buf, true), NULL))) {
@@ -65,7 +65,7 @@ namespace lapi_binds
     int _lua_npcadd(lua_State *L) {
         int cn = localconnect();
 
-        defformatstring(buf)("Bot.%d", cn);
+        defformatstring(buf, "Bot.%d", cn);
         logger::log(logger::DEBUG, "New NPC with client number: %i\n", cn);
 
         const char *cl = luaL_checkstring(L, 1);
@@ -373,14 +373,14 @@ namespace lapi_binds
 #endif
 
     int _lua_get_map_preview_filename(lua_State *L) {
-        defformatstring(buf)("media%cmap%c%s%cpreview.png", PATHDIV, PATHDIV,
+        defformatstring(buf, "media%cmap%c%s%cpreview.png", PATHDIV, PATHDIV,
             luaL_checkstring(L, 1), PATHDIV);
         if (fileexists(buf, "r")) {
             lua_pushstring(L, buf);
             return 1;
         }
 
-        defformatstring(buff)("%s%s", homedir, buf);
+        defformatstring(buff, "%s%s", homedir, buf);
         if (fileexists(buff, "r")) {
             lua_pushstring(L, buff);
             return 1;

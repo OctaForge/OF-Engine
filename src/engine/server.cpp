@@ -283,7 +283,7 @@ void disconnect_client(int n, int reason)
     enet_peer_disconnect(clients[n]->peer, reason);
     server::clientdisconnect(n);
     delclient(clients[n]);
-    defformatstring(s)("client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
+    defformatstring(s, "client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
     logoutf("%s", s);
     server::sendservmsg(s);
 }

@@ -326,7 +326,7 @@ float raycube(const vec &o, const vec &ray, float radius, int mode, int size, ex
     }
 }
 
-// optimized version for lightmap shadowing... every cycle here counts!!!
+// optimized version for light shadowing... every cycle here counts!!!
 float shadowray(const vec &o, const vec &ray, float radius, int mode, extentity *t)
 {
     INITRAYCUBE;
@@ -344,62 +344,6 @@ float shadowray(const vec &o, const vec &ray, float radius, int mode, extentity 
         {
             if(isentirelysolid(c)) return c.texture[side]==DEFAULT_SKY && mode&RAY_SKIPSKY ? radius : dist;
             const clipplanes &p = getclipplanes(c, lo, 1<<lshift, false, 1);
-            INTERSECTPLANES(side = p.side[i], goto nextcube);
-            INTERSECTBOX(side = (i<<1) + 1 - lsizemask[i], goto nextcube);
-            if(exitdist >= 0) return c.texture[side]==DEFAULT_SKY && mode&RAY_SKIPSKY ? radius : dist+max(enterdist+0.1f, 0.0f);
-        }
-
-    nextcube:
-        FINDCLOSEST(side = O_RIGHT - lsizemask.x, side = O_FRONT - lsizemask.y, side = O_TOP - lsizemask.z);
-
-        if(dist>=radius) return dist;
-
-        UPOCTREE(return radius);
-    }
-}
-
-// thread safe version
-
-struct ShadowRayCache
-{
-    clipplanes clipcache[MAXCLIPPLANES];
-    int version;
-
-    ShadowRayCache() : version(-1) {}
-};
-
-ShadowRayCache *newshadowraycache() { return new ShadowRayCache; }
-
-void freeshadowraycache(ShadowRayCache *&cache) { delete cache; cache = NULL; }
-
-void resetshadowraycache(ShadowRayCache *cache) 
-{ 
-    cache->version++;
-    if(!cache->version)
-    {
-        memset(cache->clipcache, 0, sizeof(cache->clipcache));
-        cache->version = 1;
-    }
-}
-
-float shadowray(ShadowRayCache *cache, const vec &o, const vec &ray, float radius, int mode, extentity *t)
-{
-    INITRAYCUBE;
-    CHECKINSIDEWORLD;
-
-    int side = O_BOTTOM, x = int(v.x), y = int(v.y), z = int(v.z);
-    for(;;)
-    {
-        DOWNOCTREE(shadowent, true);
-
-        cube &c = *lc;
-        ivec lo(x&(~0<<lshift), y&(~0<<lshift), z&(~0<<lshift));
-
-        if(!isempty(c) && !(c.material&MAT_ALPHA))
-        {
-            if(isentirelysolid(c)) return c.texture[side]==DEFAULT_SKY && mode&RAY_SKIPSKY ? radius : dist;
-            clipplanes &p = cache->clipcache[int(&c - worldroot)&(MAXCLIPPLANES-1)];
-            if(p.owner != &c || p.version != cache->version) { p.owner = &c; p.version = cache->version; genclipplanes(c, lo.x, lo.y, lo.z, 1<<lshift, p, false); }
             INTERSECTPLANES(side = p.side[i], goto nextcube);
             INTERSECTBOX(side = (i<<1) + 1 - lsizemask[i], goto nextcube);
             if(exitdist >= 0) return c.texture[side]==DEFAULT_SKY && mode&RAY_SKIPSKY ? radius : dist+max(enterdist+0.1f, 0.0f);
@@ -1851,7 +1795,7 @@ void dropenttofloor(entity *e)
 
 void phystest()
 {
-    static const char *states[] = {"float", "fall", "slide", "slope", "floor", "step up", "step down", "bounce"};
+    static const char * const states[] = {"float", "fall", "slide", "slope", "floor", "step up", "step down", "bounce"};
     printf ("PHYS(pl): %s, air %d, floor: (%f, %f, %f), vel: (%f, %f, %f), g: (%f, %f, %f)\n", states[player->physstate], player->timeinair, player->floor.x, player->floor.y, player->floor.z, player->vel.x, player->vel.y, player->vel.z, player->falling.x, player->falling.y, player->falling.z);
     printf ("PHYS(cam): %s, air %d, floor: (%f, %f, %f), vel: (%f, %f, %f), g: (%f, %f, %f)\n", states[camera1->physstate], camera1->timeinair, camera1->floor.x, camera1->floor.y, camera1->floor.z, camera1->vel.x, camera1->vel.y, camera1->vel.z, camera1->falling.x, camera1->falling.y, camera1->falling.z);
 }

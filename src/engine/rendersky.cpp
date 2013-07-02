@@ -19,7 +19,7 @@ void loadsky(const char *basename, Texture *texs[6])
         else
         {
             /* OF */
-            defformatstring(ext)("_%s", side);
+            defformatstring(ext, "_%s", side);
             concatstring(name, ext);
             texs[i] = textureload(name, 3, true, false);
         }
@@ -405,7 +405,7 @@ void drawskybox(int farplane)
     if(ldrscale < 1 && (skyboxoverbrightmin != 1 || (skyboxoverbright > 1 && skyboxoverbrightthreshold < 1)))
     {
         SETSWIZZLE(skyboxoverbright, sky[0]);
-        LOCALPARAMF(overbrightparams, (skyboxoverbrightmin, max(skyboxoverbright, skyboxoverbrightmin), skyboxoverbrightthreshold));
+        LOCALPARAMF(overbrightparams, skyboxoverbrightmin, max(skyboxoverbright, skyboxoverbrightmin), skyboxoverbrightthreshold);
     }
     else SETSWIZZLE(skybox, sky[0]);
 

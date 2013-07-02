@@ -72,7 +72,7 @@ namespace game
         string buf;
         copystring(buf, world::curr_map_id);
         buf[strlen(world::curr_map_id) - 7] = '\0';
-        formatstring(clientmap)("%s/map", buf);
+        formatstring(clientmap, "%s/map", buf);
         return clientmap;
     }
 
@@ -539,7 +539,7 @@ namespace game
         if(!name) name = (char*)scriptname(d);
         const char* color = (d != player1) ? "" : "\f1";
         static string cname;
-        formatstring(cname)("%s%s", color, name);
+        formatstring(cname, "%s%s", color, name);
         return cname;
     }
 

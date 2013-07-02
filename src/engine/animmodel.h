@@ -91,15 +91,15 @@ struct animmodel : model
          
         void setshaderparams(mesh *m, const animstate *as, bool masked, bool alphatested = false, bool skinned = true)
         {
-            GLOBALPARAMF(texscroll, (scrollu*lastmillis/1000.0f, scrollv*lastmillis/1000.0f));
-            if(alphatested) GLOBALPARAMF(alphatest, (alphatest));
+            GLOBALPARAMF(texscroll, scrollu*lastmillis/1000.0f, scrollv*lastmillis/1000.0f);
+            if(alphatested) GLOBALPARAMF(alphatest, alphatest);
 
             if(!skinned) return;
-                
-            GLOBALPARAMF(transparent, (transparent));
 
-            if(fullbright) GLOBALPARAMF(fullbright, (0.0f, fullbright));
-            else GLOBALPARAMF(fullbright, (1.0f, as->cur.anim.flags&ANIMFLAG_FULLBRIGHT ? 0.5f*fullbrightmodels/100.0f : 0.0f));
+            GLOBALPARAMF(transparent, transparent);
+
+            if(fullbright) GLOBALPARAMF(fullbright, 0.0f, fullbright);
+            else GLOBALPARAMF(fullbright, 1.0f, as->cur.anim.flags&ANIMFLAG_FULLBRIGHT ? 0.5f*fullbrightmodels/100.0f : 0.0f);
 
             float curglow = glow;
             if(glowpulse > 0)
@@ -108,8 +108,8 @@ struct animmodel : model
                 curpulse -= floor(curpulse);
                 curglow += glowdelta*2*fabs(curpulse - 0.5f);
             }
-            GLOBALPARAMF(maskscale, (spec*lightmodels, curglow*glowmodels));
-            if(envmaptmu>=0 && envmapmax>0) GLOBALPARAMF(envmapscale, (envmapmin-envmapmax, envmapmax));
+            GLOBALPARAMF(maskscale, spec*lightmodels, curglow*glowmodels);
+            if(envmaptmu>=0 && envmapmax>0) GLOBALPARAMF(envmapscale, envmapmin-envmapmax, envmapmax);
         }
 
         Shader *loadshader(bool shouldenvmap, bool masked, bool alphatested)
@@ -1583,7 +1583,7 @@ template<class MDL, class MESH> struct modelcommands
     static void setdir(char *name)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
-        formatstring(MDL::dir)("media/model/%s", name);
+        formatstring(MDL::dir, "media/model/%s", name);
     }
 
     #define loopmeshes(meshname, m, body) \
@@ -1697,7 +1697,7 @@ template<class MDL, class MESH> struct modelcommands
  
     template<class F> void modelcommand(F *fun, const char *suffix, const char *args)
     {
-        defformatstring(name)("%s%s", MDL::formatname(), suffix);
+        defformatstring(name, "%s%s", MDL::formatname(), suffix);
         addcommand(newstring(name), (void (*)())fun, args);
     }
 

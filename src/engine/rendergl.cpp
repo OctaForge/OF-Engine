@@ -991,7 +991,7 @@ ICOMMAND(getcampitch, "", (), floatret(camera1->pitch));
 ICOMMAND(getcamroll, "", (), floatret(camera1->roll));
 ICOMMAND(getcampos, "", (), 
 {
-    defformatstring(pos)("%s %s %s", floatstr(camera1->o.x), floatstr(camera1->o.y), floatstr(camera1->o.z));
+    defformatstring(pos, "%s %s %s", floatstr(camera1->o.x), floatstr(camera1->o.y), floatstr(camera1->o.z));
     result(pos);
 });
 
@@ -1925,7 +1925,7 @@ static void setfog(int fogmat, float below = 0, float blend = 1, int abovemat = 
     curfogcolor.mul(ldrscale);
 
     GLOBALPARAM(fogcolor, curfogcolor);
-    GLOBALPARAMF(fogparams, (start, end, 1/(end - start)));
+    GLOBALPARAMF(fogparams, start, end, 1/(end - start));
 }
 
 static void blendfogoverlay(int fogmat, float below, float blend, vec &overlay)
@@ -2083,9 +2083,9 @@ void drawminimap()
 
     ldrscale = 1;
     ldrscaleb = ldrscale/255;
-    GLOBALPARAMF(ldrscale, (ldrscale));
+    GLOBALPARAMF(ldrscale, ldrscale);
     GLOBALPARAM(camera, camera1->o);
-    GLOBALPARAMF(millis, (lastmillis/1000.0f));
+    GLOBALPARAMF(millis, lastmillis/1000.0f);
 
     visiblecubes(false);
     collectlights();
@@ -2179,9 +2179,9 @@ void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapsi
 
     ldrscale = 1;
     ldrscaleb = ldrscale/255;
-    GLOBALPARAMF(ldrscale, (ldrscale));
+    GLOBALPARAMF(ldrscale, ldrscale);
     GLOBALPARAM(camera, camera1->o);
-    GLOBALPARAMF(millis, (lastmillis/1000.0f));
+    GLOBALPARAMF(millis, lastmillis/1000.0f);
 
     visiblecubes();
     GLERROR;
@@ -2277,9 +2277,9 @@ namespace modelpreview
         ldrscale = 1;
         ldrscaleb = ldrscale/255;
 
-        GLOBALPARAMF(ldrscale, (ldrscale));
+        GLOBALPARAMF(ldrscale, ldrscale);
         GLOBALPARAM(camera, camera1->o);
-        GLOBALPARAMF(millis, (lastmillis/1000.0f));
+        GLOBALPARAMF(millis, lastmillis/1000.0f);
 
         projmatrix.perspective(fovy, aspect, nearplane, farplane);
         setcamprojmatrix();
@@ -2360,9 +2360,9 @@ void gl_drawframe(int w, int h)
 
     ldrscale = hdr ? 0.5f : 1;
     ldrscaleb = ldrscale/255;
-    GLOBALPARAMF(ldrscale, (ldrscale));
+    GLOBALPARAMF(ldrscale, ldrscale);
     GLOBALPARAM(camera, camera1->o);
-    GLOBALPARAMF(millis, (lastmillis/1000.0f));
+    GLOBALPARAMF(millis, lastmillis/1000.0f);
 
     visiblecubes();
   
@@ -2482,7 +2482,7 @@ void drawcrosshair(int w, int h)
         string cr = "media/interface/hud/crosshair";
         if (lua::push_external("gui_get_crosshair")) {
             lua_call(lua::L, 0, 1);
-            formatstring(cr)("media/interface/hud/%s", lua_tostring(lua::L, -1));
+            formatstring(cr, "media/interface/hud/%s", lua_tostring(lua::L, -1));
             lua_pop(lua::L, 1);
         }
         crosshair = textureload(cr);

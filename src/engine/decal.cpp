@@ -65,10 +65,14 @@ struct decalrenderer
         }
         decals = new decalinfo[tris];
         maxdecals = tris;
-        tex = textureload(texname, 3);
         maxverts = tris*3 + 3;
         availverts = maxverts - 3; 
         verts = new decalvert[maxverts];
+    }
+
+    void preload()
+    {
+        tex = textureload(texname, 3);
     }
 
     int hasdecals()
@@ -251,7 +255,7 @@ struct decalrenderer
 
             SETSWIZZLE(decal, tex);
             float colorscale = flags&DF_SATURATE ? 2 : 1; 
-            LOCALPARAMF(colorscale, (colorscale, colorscale, colorscale, 1));
+            LOCALPARAMF(colorscale, colorscale, colorscale, colorscale, 1);
         }
 
         glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -613,6 +617,11 @@ void initdecals()
 
 decalinit:
     loopv(decals) decals[i]->init(maxdecaltris);
+    loopv(decals) {
+        loadprogress = float(i + 1) / decals.length();
+        decals[i]->preload();
+    }
+    loadprogress = 0;
 }
 
 void cleardecals()

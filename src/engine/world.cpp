@@ -996,15 +996,15 @@ COMMAND(entcopy, "");
 COMMAND(entpaste, "");
 
 /* OF */
-void printent(extentity &e, char *buf) {
+void printent(extentity &e, char *buf, int len) {
     lua::push_external("entity_get_edit_info");
     lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
         LogicSystem::getLogicEntity(e)->lua_ref);
     lua_call(lua::L, 1, 2);
     const char *info = lua_tostring(lua::L, -1);
     const char *name = lua_tostring(lua::L, -2); lua_pop(lua::L, 2);
-    if (!info || !info[0]) formatstring(buf)("%s", name);
-    else formatstring(buf)("%s\n\f7%s", info, name);
+    if (!info || !info[0]) nformatstring(buf, len, "%s", name);
+    else nformatstring(buf, len, "%s\n\f7%s", info, name);
 }
 
 void nearestent()
@@ -1031,7 +1031,7 @@ ICOMMAND(enthavesel,"",  (), addimplicit(intret(entgroup.length())));
 ICOMMAND(entselect, "e", (uint *body), if(!noentedit()) addgroup(e.type != ET_EMPTY && entgroup.find(n)<0 && executebool(body)));
 ICOMMAND(entloop,   "e", (uint *body), if(!noentedit()) addimplicit(groupeditloop(((void)e, execute(body)))));
 ICOMMAND(insel,     "",  (), entfocus(efocus, intret(pointinsel(sel, e.o))));
-ICOMMAND(entget,    "",  (), entfocus(efocus, string s; printent(e, s); result(s)));
+ICOMMAND(entget,    "",  (), entfocus(efocus, string s; printent(e, s, sizeof(s)); result(s)));
 ICOMMAND(entindex,  "",  (), intret(efocus));
 COMMAND(nearestent, "");
 

@@ -207,7 +207,7 @@ void startmusic(char *name, char *cmd)
     stopmusic();
     if(soundvol && musicvol && *name)
     {
-        defformatstring(file)("media/%s", name);
+        defformatstring(file, "media/%s", name);
         path(file);
         if(loadmusic(file))
         {
@@ -451,7 +451,7 @@ static bool loadsoundslot(soundslot &slot, bool msg = false)
     string filename;
     loopi(sizeof(exts)/sizeof(exts[0]))
     {
-        formatstring(filename)("media/sound/%s%s", slot.sample->name, exts[i]);
+        formatstring(filename, "media/sound/%s%s", slot.sample->name, exts[i]);
         if(msg && !i) renderprogress(0, filename);
         path(filename);
         slot.sample->chunk = loadwav(filename);
@@ -701,7 +701,7 @@ void initmumble()
             if(mumbleinfo) wcsncpy(mumbleinfo->name, L"Tesseract", 256);
         }
     #elif defined(_POSIX_SHARED_MEMORY_OBJECTS)
-        defformatstring(shmname)("/MumbleLink.%d", getuid());
+        defformatstring(shmname, "/MumbleLink.%d", getuid());
         mumblelink = shm_open(shmname, O_RDWR, 0);
         if(mumblelink >= 0)
         {
@@ -820,7 +820,7 @@ LUAICOMMAND(sound_stop_map, {
 
 LUAICOMMAND(sound_preload_map, {
     const char *n = luaL_checkstring(L, 1);
-    defformatstring(buf)("preloading sound '%s' ...", n);
+    defformatstring(buf, "preloading sound '%s' ...", n);
     renderprogress(0, buf);
     lua_pushinteger(L, preloadmapsound(n, luaL_optinteger(L, 2, 100)));
     return 1;
@@ -828,7 +828,7 @@ LUAICOMMAND(sound_preload_map, {
 
 LUAICOMMAND(sound_preload_game, {
     const char *n = luaL_checkstring(L, 1);
-    defformatstring(buf)("preloading sound '%s' ...", n);
+    defformatstring(buf, "preloading sound '%s' ...", n);
     renderprogress(0, buf);
     lua_pushinteger(L, preloadgamesound(n, luaL_optinteger(L, 2, 100)));
     return 1;

@@ -92,7 +92,7 @@ bool resolverwait(const char *name, ENetAddress *address)
 {
     if(resolverthreads.empty()) resolverinit();
 
-    defformatstring(text)("resolving %s... (esc to abort)", name);
+    defformatstring(text, "resolving %s... (esc to abort)", name);
     renderprogress(0, text);
 
     SDL_LockMutex(resolvermutex);

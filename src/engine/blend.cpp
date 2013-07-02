@@ -682,7 +682,7 @@ void dumpblendtexs()
         if(!bt.size || !bt.valid) continue;
         ImageData temp(bt.size, bt.size, 1, blendtexs[i].data);
         const char *map = game::getclientmap(), *name = strrchr(map, '/');
-        defformatstring(buf)("blendtex_%s_%d.png", name ? name+1 : map, i);
+        defformatstring(buf, "blendtex_%s_%d.png", name ? name+1 : map, i);
         savepng(buf, temp, true);
     }
 }
@@ -778,7 +778,7 @@ void bindblendtexture(const ivec &p)
     {
         BlendTexture &bt = blendtexs[i];
         int tsize = 1<<min(worldscale, 12);
-        GLOBALPARAMF(blendmapparams, (bt.x, bt.y, 1.0f/tsize, 1.0f/tsize));
+        GLOBALPARAMF(blendmapparams, bt.x, bt.y, 1.0f/tsize, 1.0f/tsize);
         glBindTexture(GL_TEXTURE_2D, bt.tex);
         break;
     }

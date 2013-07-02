@@ -593,8 +593,8 @@ void renderblendbrush(GLuint tex, float x, float y, float w, float h)
     glBindTexture(GL_TEXTURE_2D, tex);
     gle::color(vec::hexcolor(blendbrushcolor), 0.25f);
 
-    LOCALPARAMF(texgenS, (1.0f/w, 0, 0, -x/w));
-    LOCALPARAMF(texgenT, (0, 1.0f/h, 0, -y/h));
+    LOCALPARAMF(texgenS, 1.0f/w, 0, 0, -x/w);
+    LOCALPARAMF(texgenT, 0, 1.0f/h, 0, -y/h);
 
     vtxarray *prev = NULL;
     for(vtxarray *va = visibleva; va; va = va->next) if(va->texs && va->occluded < OCCLUDE_GEOM)
@@ -1294,12 +1294,12 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 
         if(pass == RENDERPASS_GBUFFER)
         {
-            if(msaasamples) GLOBALPARAMF(hashid, (vslot.index));
+            if(msaasamples) GLOBALPARAMF(hashid, vslot.index);
 
             if(slot.shader->type&SHADER_TRIPLANAR)
             {
                 float scale = TEX_SCALE/vslot.scale;
-                GLOBALPARAMF(texgenscale, (scale/diffuse->xs, scale/diffuse->ys)); 
+                GLOBALPARAMF(texgenscale, scale/diffuse->xs, scale/diffuse->ys); 
             }
         }     
     }
@@ -1311,20 +1311,20 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
         {
             cur.colorscale = vslot.colorscale;
             cur.alphascale = alpha;
-            GLOBALPARAMF(colorparams, (alpha*vslot.colorscale.x, alpha*vslot.colorscale.y, alpha*vslot.colorscale.z, alpha));
+            GLOBALPARAMF(colorparams, alpha*vslot.colorscale.x, alpha*vslot.colorscale.y, alpha*vslot.colorscale.z, alpha);
         }
         if(cur.alphaing > 1 && vslot.refractscale > 0 && (cur.refractscale != vslot.refractscale || cur.refractcolor != vslot.refractcolor))
         {
             cur.refractscale = vslot.refractscale;
             cur.refractcolor = vslot.refractcolor;
             float refractscale = 0.5f/ldrscale*(1-alpha);
-            GLOBALPARAMF(refractparams, (vslot.refractcolor.x*refractscale, vslot.refractcolor.y*refractscale, vslot.refractcolor.z*refractscale, vslot.refractscale*viewh));
+            GLOBALPARAMF(refractparams, vslot.refractcolor.x*refractscale, vslot.refractcolor.y*refractscale, vslot.refractcolor.z*refractscale, vslot.refractscale*viewh);
         }
     }
     else if(cur.colorscale != vslot.colorscale)
     {
         cur.colorscale = vslot.colorscale;
-        GLOBALPARAMF(colorparams, (vslot.colorscale.x, vslot.colorscale.y, vslot.colorscale.z, 1));
+        GLOBALPARAMF(colorparams, vslot.colorscale.x, vslot.colorscale.y, vslot.colorscale.z, 1);
     }
 
     loopvj(slot.sts)
@@ -1354,7 +1354,7 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
                     if(slot.shader->type&SHADER_TRIPLANAR)
                     {
                         float scale = TEX_SCALE/decal.scale;
-                        GLOBALPARAMF(decalscale, (scale/t.t->xs, scale/t.t->ys));
+                        GLOBALPARAMF(decalscale, scale/t.t->xs, scale/t.t->ys);
                     }
                     // fall-through
                 case TEX_NORMAL:
@@ -1579,8 +1579,8 @@ void cleanupva()
 void setupgeom(renderstate &cur)
 {
     glActiveTexture_(GL_TEXTURE0);
-    GLOBALPARAMF(colorparams, (1, 1, 1, 1));
-    GLOBALPARAMF(blendlayer, (1.0f));
+    GLOBALPARAMF(colorparams, 1, 1, 1, 1);
+    GLOBALPARAMF(blendlayer, 1.0f);
 }
 
 void cleanupgeom(renderstate &cur)
@@ -1590,8 +1590,6 @@ void cleanupgeom(renderstate &cur)
 }
 
 VAR(oqgeom, 0, 1, 1);
-
-extern void renderradiancehints();
 
 void rendergeom()
 {
@@ -1701,7 +1699,7 @@ void rendergeom()
         glBlendFunc(GL_ONE, GL_ONE);
         maskgbuffer("cng");
 
-        GLOBALPARAMF(blendlayer, (0.0f));
+        GLOBALPARAMF(blendlayer, 0.0f);
         cur.texgenorient = -1;
         for(vtxarray *va = visibleva; va; va = va->next) if(va->blends && va->occluded < OCCLUDE_GEOM && va->curvfc != VFC_FOGGED)
         {
@@ -1794,7 +1792,7 @@ void renderrsmgeom(bool dyntex)
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
 
-        GLOBALPARAMF(blendlayer, (0.0f));
+        GLOBALPARAMF(blendlayer, 0.0f);
         cur.texgenorient = -1;
         for(vtxarray *va = shadowva; va; va = va->rnext) if(va->blends)
         {

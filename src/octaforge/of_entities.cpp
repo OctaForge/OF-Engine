@@ -418,7 +418,7 @@ void findanims(const char *pattern, vector<int> &anims)
     });
     string num;
     loopi(ANIM_ALL + 1) {
-        formatstring(num)("%d", i);
+        formatstring(num, "%d", i);
         if (matchanim(num, pattern)) anims.add(i);
     }
     anims.sort();

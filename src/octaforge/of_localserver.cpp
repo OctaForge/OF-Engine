@@ -126,7 +126,7 @@ namespace local_server {
     }
 
     bool is_ready() {
-        defformatstring(path)("%s%s", homedir, SERVER_READYFILE);
+        defformatstring(path, "%s%s", homedir, SERVER_READYFILE);
         if (fileexists(path, "r")) {
             tools::fdel(path);
             return true;

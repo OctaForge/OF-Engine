@@ -246,7 +246,7 @@ namespace server
         if(!name) name = ci->name;
         if(name[0] && !duplicatename(ci, name)) return name;
         static string cname;
-        formatstring(cname)("%s \fs\f5(%d)\fr", name, ci->clientnum);
+        formatstring(cname, "%s \fs\f5(%d)\fr", name, ci->clientnum);
         return cname;
     }   
 

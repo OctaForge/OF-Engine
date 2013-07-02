@@ -152,7 +152,7 @@ namespace lua
 
     void load_module(const char *name)
     {
-        defformatstring(p)("%s%c%s.lua", mod_dir, PATHDIV, name);
+        defformatstring(p, "%s%c%s.lua", mod_dir, PATHDIV, name);
         logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
         if (luaL_loadfile(L, p) || lua_pcall(L, 0, 0, 0)) {
             fatal("%s", lua_tostring(L, -1));

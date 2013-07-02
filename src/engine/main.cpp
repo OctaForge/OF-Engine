@@ -933,7 +933,7 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     EXCEPTION_RECORD *er = ep->ExceptionRecord;
     CONTEXT *context = ep->ContextRecord;
     string out, t;
-    formatstring(out)("Tesseract Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
+    formatstring(out, "Tesseract Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
 #ifdef _AMD64_
     STACKFRAME64 sf = {{context->Rip, 0, AddrModeFlat}, {}, {context->Rbp, 0, AddrModeFlat}, {context->Rsp, 0, AddrModeFlat}, 0};
@@ -961,7 +961,7 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
 #endif
         {
             char *del = strrchr(line.FileName, '\\');
-            formatstring(t)("%s - %s [%d]\n", sym.Name, del ? del + 1 : line.FileName, line.LineNumber);
+            formatstring(t, "%s - %s [%d]\n", sym.Name, del ? del + 1 : line.FileName, line.LineNumber);
             concatstring(out, t);
         }
     }
@@ -1247,7 +1247,7 @@ int main(int argc, char **argv)
     initlog("init: shaders");
     initgbuffer();
     loadshaders();
-    particleinit();
+    initparticles();
     initdecals();
 
     identflags |= IDF_PERSIST;

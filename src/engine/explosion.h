@@ -237,7 +237,7 @@ static void drawexplosion(bool inside, float r, float g, float b, float a)
     }
     if(!explosion2d)
     {
-        LOCALPARAMF(side, (inside ? -1 : 1));
+        LOCALPARAMF(side, inside ? -1 : 1);
         loopi(inside ? 2 : 1)
         {
             gle::colorf(r, g, b, i ? a/2 : a);
@@ -250,14 +250,14 @@ static void drawexplosion(bool inside, float r, float g, float b, float a)
     loopi(inside ? 2 : 1)
     {
         gle::colorf(r, g, b, i ? a/2 : a);
-        LOCALPARAMF(side, (1));
+        LOCALPARAMF(side, 1);
         if(i) glDepthFunc(GL_GEQUAL);
         if(inside)
         {
             glCullFace(GL_FRONT);
             hemisphere::draw();
             glCullFace(GL_BACK);
-            LOCALPARAMF(side, (-1));
+            LOCALPARAMF(side, -1);
         }
         hemisphere::draw();
         if(i) glDepthFunc(GL_LESS);
@@ -344,8 +344,8 @@ struct fireballrenderer : regularlistrenderer
             s.rotate(rotangle*-RAD, rotdir);
             t.rotate(rotangle*-RAD, rotdir);
 
-            LOCALPARAMF(texgenS, (0.5f*s.x, 0.5f*s.y, 0.5f*s.z, 0.5f));
-            LOCALPARAMF(texgenT, (0.5f*t.x, 0.5f*t.y, 0.5f*t.z, 0.5f));
+            LOCALPARAMF(texgenS, 0.5f*s.x, 0.5f*s.y, 0.5f*s.z, 0.5f);
+            LOCALPARAMF(texgenT, 0.5f*t.x, 0.5f*t.y, 0.5f*t.z, 0.5f);
         }
 
         m.rotate(rotangle*RAD, vec(-rotdir.x, rotdir.y, -rotdir.z));
@@ -354,14 +354,14 @@ struct fireballrenderer : regularlistrenderer
         LOCALPARAM(explosionmatrix, m);
 
         LOCALPARAM(center, o);
-        LOCALPARAMF(animstate, (size2, psize, pmax, lastmillis/1000.0f));
+        LOCALPARAMF(animstate, size2, psize, pmax, lastmillis/1000.0f);
         if(2*(size + pmax)*WOBBLE >= softexplosionblend)
         {
-            LOCALPARAMF(softparams, (-1.0f/softexplosionblend, 0, inside ? blend/2 : 0));
+            LOCALPARAMF(softparams, -1.0f/softexplosionblend, 0, inside ? blend/2 : 0);
         }
         else
         {
-            LOCALPARAMF(softparams, (0, -1, inside ? blend/2 : 0));
+            LOCALPARAMF(softparams, 0, -1, inside ? blend/2 : 0);
         }
 
         drawexplosion(inside, p->color.r*ldrscale, p->color.g*ldrscale, p->color.b*ldrscale, blend);
