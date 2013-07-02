@@ -104,7 +104,7 @@ M.Action_Local_Animation = Action:clone {
     ]]
     start = function(self)
         local ac = self.actor
-        self.old_animation = ac:get_attr("animation")
+        self.old_animation = ac:get_attr("animation"):to_array()
         self.old_animflags = ac:get_attr("animation_flags")
         ac:set_local_animation(self.local_animation)
         ac:set_local_animation_flags(self.local_animation_flags or 0)
@@ -115,7 +115,9 @@ M.Action_Local_Animation = Action:clone {
     ]]
     finish = function(self)
         local ac = self.actor
-        if ac:get_attr("animation") == self.local_animation then
+        local anim = ac:get_attr("animation"):to_array()
+        local lanim = self.local_animation
+        if anim[1] == lanim[1] and anim[2] == lanim[2] then
             ac:set_local_animation(self.old_animation)
         end
         local lanimflags = self.local_animation_flags

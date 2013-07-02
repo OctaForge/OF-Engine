@@ -75,7 +75,8 @@ local FLAG_BELOWGROUND = lsh(2, 4)
         lagged - client_state == LAGGED.
 
     Properties:
-        animation [<svars.State_Integer>] - the entity's current animation.
+        animation [<svars.State_Array_Integer>] - the entity's current
+        animation.
         animation_flags [<svars.State_Integer>] - the entity's current anim
         flags.
         start_time [<svars.State_Integer>] - an internal property used for
@@ -164,8 +165,13 @@ local Character = Entity:clone {
     },
 
     properties = {
-        animation = svars.State_Integer {
-            setter = "_C.set_animation", client_set = true
+        animation = svars.State_Array_Integer {
+            setter = function(self, val)
+                local pv = val[1] or 0
+                local sv = val[2]
+                _C.set_animation(self, sv and bor(pv,
+                    lsh(sv, model.anims.SECONDARY)) or pv)
+            end, client_set = true
         },
         animation_flags = svars.State_Integer {
             setter = "_C.set_animflags", client_set = true
@@ -327,7 +333,7 @@ local Character = Entity:clone {
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
-        self:set_attr("animation", bor(model.anims.IDLE, model.anims.LOOP))
+        self:set_attr("animation", { bor(model.anims.IDLE, model.anims.LOOP) })
         self:set_attr("animation_flags", 0)
 
         self.cn = kwargs and kwargs.cn or -1
@@ -493,6 +499,10 @@ local Character = Entity:clone {
     decide_animation = (not SERVER) and function(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
         local anim = self:get_attr("animation")
+        local pa = anim[1]
+        local sa = anim[2]
+        if sa then pa = bor(pa, lsh(sa, model.anims.SECONDARY)) end
+        anim = pa
 
         -- editing or spectator
         if state == 4 or state == 5 then
@@ -600,7 +610,10 @@ local Character = Entity:clone {
         don't need the changes to reflect elsewhere).
     ]]
     set_local_animation = function(self, anim)
-        _C.set_animation(self, anim)
+        local pv = anim[1] or 0
+        local sv = anim[2]
+        _C.set_animation(self, sv and bor(pv,
+            lsh(sv, model.anims.SECONDARY)) or pv)
         self.svar_values["animation"] = anim
     end,
 
@@ -1392,7 +1405,8 @@ end)
     signal with the collider entity passed as an argument when collided.
 
     Properties:
-        animation [<svars.State_Integer>] - the mapmodel's current animation.
+        animation [<svars.State_Array_Integer>] - the mapmodel's current
+        animation.
         animation_flags [<svars.State_Integer>] - the mapmodel's current anim
         flags.
         start_time [<svars.State_Integer>] - an internal property used for
@@ -1415,8 +1429,13 @@ local Mapmodel = Static_Entity:clone {
     attr_num   = 4,
 
     properties = {
-        animation = svars.State_Integer {
-            setter = "_C.set_animation", client_set = true
+        animation = svars.State_Array_Integer {
+            setter = function(self, val)
+                local pv = val[1] or 0
+                local sv = val[2]
+                _C.set_animation(self, sv and bor(pv,
+                    lsh(sv, model.anims.SECONDARY)) or pv)
+            end, client_set = true
         },
         animation_flags = svars.State_Integer {
             setter = "_C.set_animflags", client_set = true
@@ -1442,7 +1461,7 @@ local Mapmodel = Static_Entity:clone {
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
-        self:set_attr("animation", bor(model.anims.IDLE, model.anims.LOOP))
+        self:set_attr("animation", { bor(model.anims.IDLE, model.anims.LOOP) })
         self:set_attr("animation_flags", 0)
     end or nil,
 
@@ -1469,26 +1488,17 @@ local Mapmodel = Static_Entity:clone {
     --[[! Function: set_local_animation
         See <Character.set_local_animation>.
     ]]
-    set_local_animation = function(self, anim)
-        _C.set_animation(self, anim)
-        self.svar_values["animation"] = anim
-    end,
+    set_local_animation = Character.set_local_animation,
 
     --[[! Function: set_local_animation_flags
         See <Character.set_local_animation_flags>.
     ]]
-    set_local_animation_flags = function(self, animflags)
-        _C.set_animflags(self, animflags)
-        self.svar_values["animation_flags"] = animflags
-    end,
+    set_local_animation_flags = Character.set_local_animation_flags,
 
     --[[! Function: set_local_model_name
         See <Character.set_local_model_name>.
     ]]
-    set_local_model_name = function(self, mname)
-        _C.set_model_name(self, mname)
-        self.svar_values["model_name"] = mname
-    end
+    set_local_model_name = Character.set_local_model_name
 }
 ents.Mapmodel = Mapmodel
 
