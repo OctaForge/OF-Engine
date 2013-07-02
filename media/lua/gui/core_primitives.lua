@@ -780,8 +780,8 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     Derived from <Filler>. Represents a 3D model preview. Has several
     properties, the most important being model, which is the model path
     (identical to mapmodel paths). Another property is anim, which is
-    a model animation represented as an integer (see the model and
-    animation API) - you only provide a primary and a optionally a
+    a model animation represented as an array of integers (see the model
+    and animation API) - you only provide a primary and a optionally a
     secondary animation, the widget takes care of looping. The third
     property is attachments. It's an array of tag-attachment pairs.
 ]]
@@ -791,11 +791,11 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         self.model = kwargs.model
 
         local a = kwargs.anim
-        local aprim = bor(band(a, model.anims.INDEX), model.anims.LOOP)
-        local asec  = band(brsh(a, 8), model.anims.INDEX)
-        if asec ~= 0 then asec = bor(asec, model.anims.LOOP) end
+        local aprim = bor(a[1], model.anims.LOOP)
+        local asec  = a[2]
+        if asec and asec ~= 0 then asec = bor(asec, model.anims.LOOP) end
 
-        self.anim = bor(aprim, blsh(asec, model.anims.SECONDARY))
+        self.anim = { aprim, asec }
         self.attachments = kwargs.attachments or {}
 
         return Filler.__init(self, kwargs)

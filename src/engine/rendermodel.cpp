@@ -1137,7 +1137,15 @@ fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
 LUAICOMMAND(model_render, {
     LUA_GET_ENT(entity, "_C.rendermodel", return 0)
 
-    animval anim(luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+    lua_pushinteger(L, 1);
+    lua_gettable(L, 3);
+    int panim = lua_tointeger(L, -1);
+    lua_pushinteger(L, 2);
+    lua_gettable(L, 3);
+    int sanim = lua_tointeger(L, -1); lua_pop(L, 2);
+
+    animval anim(sanim ? panim | sanim << ANIM_SECONDARY : panim,
+        luaL_checkinteger(L, 4));
     preparerd(L, anim, entity);
     fpsent *fp = NULL;
 
@@ -1221,7 +1229,17 @@ LUAICOMMAND(model_preview_start, {
 
 LUAICOMMAND(model_preview, {
     const char *mdl = luaL_checkstring(L, 1);
-    animval anim(luaL_checkinteger(L, 2), luaL_checkinteger(L, 3));
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, 2);
+    int panim = lua_tointeger(L, -1);
+    lua_pushinteger(L, 2);
+    lua_gettable(L, 2);
+    int sanim = lua_tointeger(L, -1); lua_pop(L, 2);
+
+    animval anim(sanim ? panim | sanim << ANIM_SECONDARY : panim,
+        luaL_checkinteger(L, 3));
+
     model *m = loadmodel(mdl);
     if (m) {
         vec center; vec radius;

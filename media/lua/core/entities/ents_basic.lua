@@ -490,7 +490,7 @@ local Character = Entity:clone {
         Decides the current animation for the character. Starts with
         <get_animation>, then adjusts it to take things like moving,
         strafing, swimming etc into account. Returns the animation
-        and animation flags (by default 0).
+        (an array) and animation flags (by default 0).
 
         Passed arguments are client_state, physical_state, move, strafe,
         crouching, velocity, falling, in_liquid and time_in_air (same as the
@@ -499,88 +499,69 @@ local Character = Entity:clone {
     decide_animation = (not SERVER) and function(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
         local anim = self:get_attr("animation")
-        local pa = anim[1]
-        local sa = anim[2]
-        if sa then pa = bor(pa, lsh(sa, model.anims.SECONDARY)) end
-        anim = pa
+        local panim = anim[1] or 0
+        local sanim = anim[2] or 0
 
         -- editing or spectator
         if state == 4 or state == 5 then
-            anim = bor(model.anims.EDIT, model.anims.LOOP)
+            panim = bor(model.anims.EDIT, model.anims.LOOP)
         -- lagged
         elseif state == 3 then
-            anim = bor(model.anims.LAG, model.anims.LOOP)
+            panim = bor(model.anims.LAG, model.anims.LOOP)
         else
             -- in water and floating or falling
             if inwater ~= 0 and pstate <= 1 then
-                anim = bor(anim, lsh(
-                    bor(((move or strafe) or ((vel.z + falling.z) > 0))
-                        and model.anims.SWIM or model.anims.SINK,
-                    model.anims.LOOP),
-                    model.anims.SECONDARY))
+                sanim = bor(((move or strafe) or ((vel.z + falling.z) > 0))
+                    and model.anims.SWIM or model.anims.SINK,
+                model.anims.LOOP)
             -- jumping animation
             elseif tinair > 250 then
-                anim = bor(anim, lsh(bor(model.anims.JUMP, model.anims.END),
-                    model.anims.SECONDARY))
+                sanim = bor(model.anims.JUMP, model.anims.END)
             -- moving or strafing
             elseif move ~= 0 or strafe ~= 0 then
                 if move > 0 then
-                    anim = bor(anim, lsh(bor(model.anims.FORWARD,
-                        model.anims.LOOP), model.anims.SECONDARY))
+                    sanim = bor(model.anims.FORWARD, model.anims.LOOP)
                 elseif strafe ~= 0 then
-                    anim = bor(anim, lsh(bor((strafe > 0 and model.anims.LEFT
-                        or model.anims.RIGHT), model.anims.LOOP),
-                        model.anims.SECONDARY))
+                    sanim = bor((strafe > 0 and model.anims.LEFT
+                        or model.anims.RIGHT), model.anims.LOOP)
                 elseif move < 0 then
-                    anim = bor(anim, lsh(bor(model.anims.BACKWARD,
-                        model.anims.LOOP), model.anims.SECONDARY))
+                    sanim = bor(model.anims.BACKWARD, model.anims.LOOP)
                 end
             end
 
             if crouching ~= 0 then
-                local v = band(rsh(anim, model.anims.SECONDARY),
-                    model.anims.INDEX)
+                local v = band(sanim, model.anims.INDEX)
                 if v == model.anims.IDLE then
-                    anim = band(anim, bnot(lsh(model.anims.INDEX,
-                        model.anims.SECONDARY)))
-                    anim = bor(anim, lsh(model.anims.CROUCH,
-                        model.anims.SECONDARY))
+                    sanim = band(sanim, bnot(model.anims.INDEX))
+                    sanim = bor(sanim, model.anims.CROUCH)
                 elseif v == model.anims.JUMP then
-                    anim = band(anim, bnot(lsh(model.anims.INDEX,
-                        model.anims.SECONDARY)))
-                    anim = bor(anim, lsh(model.anims.CROUCH_JUMP,
-                        model.anims.SECONDARY))
+                    sanim = band(sanim, bnot(model.anims.INDEX))
+                    sanim = bor(sanim, model.anims.CROUCH_JUMP)
                 elseif v == model.anims.SWIM then
-                    anim = band(anim, bnot(lsh(model.anims.INDEX,
-                        model.anims.SECONDARY)))
-                    anim = bor(anim, lsh(model.anims.CROUCH_SWIM,
-                        model.anims.SECONDARY))
+                    sanim = band(sanim, bnot(model.anims.INDEX))
+                    sanim = bor(sanim, model.anims.CROUCH_SWIM)
                 elseif v == model.anims.SINK then
-                    anim = band(anim, bnot(lsh(model.anims.INDEX,
-                        model.anims.SECONDARY)))
-                    anim = bor(anim, lsh(model.anims.CROUCH_SINK,
-                        model.anims.SECONDARY))
+                    sanim = band(sanim, bnot(model.anims.INDEX))
+                    sanim = bor(sanim, model.anims.CROUCH_SINK)
                 elseif v == 0 then
-                    anim = bor(anim, lsh(bor(model.anims.CROUCH,
-                        model.anims.LOOP), model.anims.SECONDARY))
+                    sanim = bor(model.anims.CROUCH, model.anims.LOOP)
                 elseif v == model.anims.FORWARD or v == model.anims.BACKWARD
                 or v == model.anims.LEFT or v == model.anims.RIGHT then
-                    anim = anim + lsh((model.anims.CROUCH_FORWARD
-                        - model.anims.FORWARD), model.anims.SECONDARY)
+                    sanim = sanim + model.anims.CROUCH_FORWARD
+                        - model.anims.FORWARD
                 end
             end
 
-            if band(anim, model.anims.INDEX) == model.anims.IDLE and
-            band(rsh(anim, model.anims.SECONDARY), model.anims.INDEX) ~= 0 then
-                anim = rsh(anim, model.anims.SECONDARY)
+            if band(panim, model.anims.INDEX) == model.anims.IDLE and
+               band(sanim, model.anims.INDEX) ~= 0 then
+                panim = sanim
             end
         end
 
-        if band(rsh(anim, model.anims.SECONDARY), model.anims.INDEX) == 0 then
-            anim = bor(anim, lsh(bor(model.anims.IDLE, model.anims.LOOP),
-                model.anims.SECONDARY))
+        if band(sanim, model.anims.INDEX) == 0 then
+            sanim = bor(model.anims.IDLE, model.anims.LOOP)
         end
-        return anim, 0
+        return { panim, sanim }, 0
     end or nil,
 
     --[[! Function: get_center
