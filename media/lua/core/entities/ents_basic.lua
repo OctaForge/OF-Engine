@@ -48,131 +48,6 @@ local map = table2.map
 
 local set_attachments = _C.set_attachments
 
---[[! Class: Physical_Entity
-    Represents a base for every entity that has some kind of physical
-    representation in the world. This entity class never gets registered.
-
-    Properties:
-        animation [<svars.State_Integer>] - the entity's current animation.
-        animation_flags [<svars.State_Integer>] - the entity's current anim
-        flags.
-        start_time [<svars.State_Integer>] - an internal property used e.g.
-        when rendering models.
-        model_name [<svars.State_String>] - name of the model associated with
-        this entity.
-        attachments [<svars.State_Array>] - an array of model attachments.
-        Those are strings in format "tagname,attachmentname".
-]]
-local Physical_Entity = Entity:clone {
-    name = "Physical_Entity",
-
-    properties = {
-        animation = svars.State_Integer {
-            setter = "_C.set_animation", client_set = true
-        },
-        animation_flags = svars.State_Integer {
-            setter = "_C.set_animflags", client_set = true
-        },
-        start_time  = svars.State_Integer { getter = "_C.get_start_time"   },
-        model_name  = svars.State_String  { setter = "_C.set_model_name"   },
-        attachments = svars.State_Array   {
-            setter = function(self, val)
-                return set_attachments(self, map(val, function(str)
-                    return str:split(",")
-                end))
-            end
-        }
-    },
-
-    init = SERVER and function(self, uid, kwargs)
-        Entity.init(self, uid, kwargs)
-
-        self:set_attr("model_name", "")
-        self:set_attr("attachments", {})
-        self:set_attr("animation", bor(model.anims.IDLE, model.anims.LOOP))
-        self:set_attr("animation_flags", 0)
-    end or nil,
-
-    activate = SERVER and function(self, kwargs)
-        #log(DEBUG, "Physical_Entity.activate")
-        Entity.activate(self, kwargs)
-
-        self:set_attr("model_name", self:get_attr("model_name"))
-        #log(DEBUG, "Physical_Entity.activate complete")
-    end or nil,
-
-    --[[! Function: set_local_animation
-        Sets the animation property locally, without notifying the other side.
-        Useful when allowing actions to animate the entity (as we mostly
-        don't need the changes to reflect elsewhere).
-    ]]
-    set_local_animation = function(self, anim)
-        _C.set_animation(self, anim)
-        self.svar_values["animation"] = anim
-    end,
-
-    --[[! Function: set_local_animation_flags
-        Sets the animation_flags property locally, without notifying the other
-        side. Useful when allowing actions to animate the entity (as we mostly
-        don't need the changes to reflect elsewhere).
-    ]]
-    set_local_animation_flags = function(self, animflags)
-        _C.set_animflags(self, animflags)
-        self.svar_values["animation_flags"] = animflags
-    end,
-
-    --[[! Function: set_local_model_name
-        Sets the model name property locally, without notifying the other side.
-    ]]
-    set_local_model_name = function(self, mname)
-        _C.set_model_name(self, mname)
-        self.svar_values["model_name"] = mname
-    end,
-
-    --[[! Function: get_center
-        See <Character.get_center>. This does nothing, serving simply
-        as a getter registration placeholder.
-    ]]
-    get_center = function(self) end
-}
-ents.Physical_Entity = Physical_Entity
-
---[[! Class: Local_Animation_Action
-    Action that starts, sets its actor's animation to its local_animation
-    property (and optionally animation_flags to local_animation_flags), runs,
-    ends and sets back the old animation (and flags). Not too useful alone,
-    but can be used for inheriting.
-]]
-ents.Local_Animation_Action = actions.Action:clone {
-    name = "Local_Animation_Action",
-
-    --[[! Function: start
-        Gives its actor the new animation. Uses
-        <Physical_Entity.set_local_animation>.
-    ]]
-    start = function(self)
-        local ac = self.actor
-        self.old_animation = ac:get_attr("animation")
-        self.old_animflags = ac:get_attr("animation_flags")
-        ac:set_local_animation(self.local_animation)
-        ac:set_local_animation_flags(self.local_animation_flags or 0)
-    end,
-
-    --[[! Function: finish
-        Resets the animation back.
-    ]]
-    finish = function(self)
-        local ac = self.actor
-        if ac:get_attr("animation") == self.local_animation then
-            ac:set_local_animation(self.old_animation)
-        end
-        local lanimflags = self.local_animation_flags
-        if lanimflags and ac:get_attr("animation_flags") == lanimflags then
-            ac:set_local_animation_flags(self.old_animflags)
-        end
-    end
-}
-
 -- physics state flags
 local MASK_MAT = 0x3
 local FLAG_WATER = lsh(1, 0)
@@ -200,6 +75,15 @@ local FLAG_BELOWGROUND = lsh(2, 4)
         lagged - client_state == LAGGED.
 
     Properties:
+        animation [<svars.State_Integer>] - the entity's current animation.
+        animation_flags [<svars.State_Integer>] - the entity's current anim
+        flags.
+        start_time [<svars.State_Integer>] - an internal property used for
+        animation timing.
+        model_name [<svars.State_String>] - name of the model associated with
+        this entity.
+        attachments [<svars.State_Array>] - an array of model attachments.
+        Those are strings in format "tagname,attachmentname".
         character_name [<svars.State_String>] - name of the character.
         facing_speed [<svars.State_Integer>] - how fast can the character
         change facing (yaw/pitch) in degrees per second. Defaults to 120.
@@ -254,7 +138,7 @@ local FLAG_BELOWGROUND = lsh(2, 4)
         time_in_air [<svars.State_Integer>] - time in milliseconds spent in
         the air (TODO: unsigned).
 ]]
-local Character = Physical_Entity:clone {
+local Character = Entity:clone {
     name = "Character",
 
     -- so that it isn't nonsauer
@@ -280,6 +164,22 @@ local Character = Physical_Entity:clone {
     },
 
     properties = {
+        animation = svars.State_Integer {
+            setter = "_C.set_animation", client_set = true
+        },
+        animation_flags = svars.State_Integer {
+            setter = "_C.set_animflags", client_set = true
+        },
+        start_time  = svars.State_Integer { getter = "_C.get_start_time"   },
+        model_name  = svars.State_String  { setter = "_C.set_model_name"   },
+        attachments = svars.State_Array   {
+            setter = function(self, val)
+                return set_attachments(self, map(val, function(str)
+                    return str:split(",")
+                end))
+            end
+        },
+
         character_name = svars.State_String(),
         facing_speed   = svars.State_Integer(),
 
@@ -423,7 +323,12 @@ local Character = Physical_Entity:clone {
     get_lagged = function(self) return self:get_attr("client_state") == 3 end,
 
     init = SERVER and function(self, uid, kwargs)
-        Physical_Entity.init(self, uid, kwargs)
+        Entity.init(self, uid, kwargs)
+
+        self:set_attr("model_name", "")
+        self:set_attr("attachments", {})
+        self:set_attr("animation", bor(model.anims.IDLE, model.anims.LOOP))
+        self:set_attr("animation_flags", 0)
 
         self.cn = kwargs and kwargs.cn or -1
         self:set_attr("character_name", "none")
@@ -451,11 +356,13 @@ local Character = Physical_Entity:clone {
         assert(self.cn >= 0)
         _C.setup_character(self)
 
-        Physical_Entity.activate(self, kwargs)
+        Entity.activate(self, kwargs)
+
+        self:set_attr("model_name", self:get_attr("model_name"))
 
         self:flush_queued_svar_changes()
     end or function(self, kwargs)
-        Physical_Entity.activate(self, kwargs)
+        Entity.activate(self, kwargs)
 
         self.cn = kwargs and kwargs.cn or -1
         _C.setup_character(self)
@@ -492,7 +399,7 @@ local Character = Physical_Entity:clone {
 
     deactivate = function(self)
         _C.destroy_character(self)
-        Physical_Entity.deactivate(self)
+        Entity.deactivate(self)
     end,
 
     --[[! Function: render
@@ -685,6 +592,34 @@ local Character = Physical_Entity:clone {
     ]]
     get_targeting_origin = function(self, origin)
         return origin
+    end,
+
+    --[[! Function: set_local_animation
+        Sets the animation property locally, without notifying the other side.
+        Useful when allowing actions to animate the entity (as we mostly
+        don't need the changes to reflect elsewhere).
+    ]]
+    set_local_animation = function(self, anim)
+        _C.set_animation(self, anim)
+        self.svar_values["animation"] = anim
+    end,
+
+    --[[! Function: set_local_animation_flags
+        Sets the animation_flags property locally, without notifying the other
+        side. Useful when allowing actions to animate the entity (as we mostly
+        don't need the changes to reflect elsewhere).
+    ]]
+    set_local_animation_flags = function(self, animflags)
+        _C.set_animflags(self, animflags)
+        self.svar_values["animation_flags"] = animflags
+    end,
+
+    --[[! Function: set_local_model_name
+        Sets the model name property locally, without notifying the other side.
+    ]]
+    set_local_model_name = function(self, mname)
+        _C.set_model_name(self, mname)
+        self.svar_values["model_name"] = mname
     end
 }
 ents.Character = Character
@@ -741,7 +676,7 @@ local gen_attr = function(i, name)
 end
 
 --[[! Class: Static_Entity
-    A base for any static entity. Inherits from <Physical_Entity>. Unlike
+    A base for any static entity. Inherits from <Entity>. Unlike
     dynamic entities (such as <Character>), static entities usually don't
     invoke their "run" method per frame. To re-enable that, set the
     per_frame member to true (false by default for efficiency).
@@ -759,7 +694,7 @@ end
         attr4 [<svars.State_Integer>] - the fourth "sauer" entity attribute.
         attr5 [<svars.State_Integer>] - the fifth "sauer" entity attribute.
 ]]
-local Static_Entity = Physical_Entity:clone {
+local Static_Entity = Entity:clone {
     name = "Static_Entity",
 
     --[[! Variable: edit_icon
@@ -784,7 +719,7 @@ local Static_Entity = Physical_Entity:clone {
         kwargs = kwargs or {}
         kwargs.persistent = true
 
-        Physical_Entity.init(self, uid, kwargs)
+        Entity.init(self, uid, kwargs)
         if not kwargs.position then
             self:set_attr("position", { 511, 512, 513 })
         else
@@ -802,7 +737,7 @@ local Static_Entity = Physical_Entity:clone {
         kwargs = kwargs or {}
 
         #log(DEBUG, "Static_Entity.activate")
-        Physical_Entity.activate(self, kwargs)
+        Entity.activate(self, kwargs)
 
         #log(DEBUG, "Static_Entity: extent setup")
         _C.setup_extent(self, self.sauer_type)
@@ -817,12 +752,12 @@ local Static_Entity = Physical_Entity:clone {
         end
     end or function(self, kwargs)
         _C.setup_extent(self, self.sauer_type)
-        return Physical_Entity.activate(self, kwargs)
+        return Entity.activate(self, kwargs)
     end,
 
     deactivate = function(self)
         _C.destroy_extent(self)
-        return Physical_Entity.deactivate(self)
+        return Entity.deactivate(self)
     end,
 
     send_notification_full = SERVER and function(self, cn)
@@ -1452,11 +1387,20 @@ set_external("particle_entity_emit", function(e)
 end)
 
 --[[! Class: Mapmodel
-    A model in the world. All properties default to 0. On mapmodels and all
+    A model in the world. All attrs default to 0. On mapmodels and all
     entity types derived from mapmodels, the engine emits the "collision"
     signal with the collider entity passed as an argument when collided.
 
     Properties:
+        animation [<svars.State_Integer>] - the mapmodel's current animation.
+        animation_flags [<svars.State_Integer>] - the mapmodel's current anim
+        flags.
+        start_time [<svars.State_Integer>] - an internal property used for
+        animation timing.
+        model_name [<svars.State_String>] - name of the model associated with
+        this mapmodel.
+        attachments [<svars.State_Array>] - an array of model attachments.
+        Those are strings in format "tagname,attachmentname".
         attr1 - the model yaw, alias "yaw".
         attr2 - the model pitch, alias "pitch".
         attr3 - the model roll, alias "roll".
@@ -1471,11 +1415,41 @@ local Mapmodel = Static_Entity:clone {
     attr_num   = 4,
 
     properties = {
+        animation = svars.State_Integer {
+            setter = "_C.set_animation", client_set = true
+        },
+        animation_flags = svars.State_Integer {
+            setter = "_C.set_animflags", client_set = true
+        },
+        start_time  = svars.State_Integer { getter = "_C.get_start_time"   },
+        model_name  = svars.State_String  { setter = "_C.set_model_name"   },
+        attachments = svars.State_Array   {
+            setter = function(self, val)
+                return set_attachments(self, map(val, function(str)
+                    return str:split(",")
+                end))
+            end
+        },
+
         attr1 = gen_attr(1, "yaw"),
         attr2 = gen_attr(2, "pitch"),
         attr3 = gen_attr(3, "roll"),
         attr4 = gen_attr(4, "scale")
     },
+
+    init = SERVER and function(self, uid, kwargs)
+        Static_Entity.init(self, uid, kwargs)
+
+        self:set_attr("model_name", "")
+        self:set_attr("attachments", {})
+        self:set_attr("animation", bor(model.anims.IDLE, model.anims.LOOP))
+        self:set_attr("animation_flags", 0)
+    end or nil,
+
+    activate = SERVER and function(self, kwargs)
+        Static_Entity.activate(self, kwargs)
+        self:set_attr("model_name", self:get_attr("model_name"))
+    end or nil,
 
     get_edit_info = function(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d \f7|"
@@ -1490,6 +1464,30 @@ local Mapmodel = Static_Entity:clone {
     ]]
     get_edit_drop_height = function(self)
         return 0
+    end,
+
+    --[[! Function: set_local_animation
+        See <Character.set_local_animation>.
+    ]]
+    set_local_animation = function(self, anim)
+        _C.set_animation(self, anim)
+        self.svar_values["animation"] = anim
+    end,
+
+    --[[! Function: set_local_animation_flags
+        See <Character.set_local_animation_flags>.
+    ]]
+    set_local_animation_flags = function(self, animflags)
+        _C.set_animflags(self, animflags)
+        self.svar_values["animation_flags"] = animflags
+    end,
+
+    --[[! Function: set_local_model_name
+        See <Character.set_local_model_name>.
+    ]]
+    set_local_model_name = function(self, mname)
+        _C.set_model_name(self, mname)
+        self.svar_values["model_name"] = mname
     end
 }
 ents.Mapmodel = Mapmodel

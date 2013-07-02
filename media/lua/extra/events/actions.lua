@@ -89,4 +89,40 @@ M.Action_Parallel = Action:clone {
     end
 }
 
+--[[! Class: Action_Local_Animation
+    Action that starts, sets its actor's animation to its local_animation
+    property (and optionally animation_flags to local_animation_flags), runs,
+    ends and sets back the old animation (and flags). Not too useful alone,
+    but can be used for inheriting.
+]]
+M.Action_Local_Animation = Action:clone {
+    name = "Action_Local_Animation",
+
+    --[[! Function: start
+        Gives its actor the new animation. Uses the set_local_animation
+        method of an entity.
+    ]]
+    start = function(self)
+        local ac = self.actor
+        self.old_animation = ac:get_attr("animation")
+        self.old_animflags = ac:get_attr("animation_flags")
+        ac:set_local_animation(self.local_animation)
+        ac:set_local_animation_flags(self.local_animation_flags or 0)
+    end,
+
+    --[[! Function: finish
+        Resets the animation back.
+    ]]
+    finish = function(self)
+        local ac = self.actor
+        if ac:get_attr("animation") == self.local_animation then
+            ac:set_local_animation(self.old_animation)
+        end
+        local lanimflags = self.local_animation_flags
+        if lanimflags and ac:get_attr("animation_flags") == lanimflags then
+            ac:set_local_animation_flags(self.old_animflags)
+        end
+    end
+}
+
 return M
