@@ -313,17 +313,18 @@ struct model;
 struct modelattach
 {
     const char *tag, *name;
-    int anim, animflags, basetime;
+    animval anim;
+    int basetime;
     vec *pos;
     model *m;
 
-    modelattach() : tag(NULL), name(NULL), anim(-1), animflags(0), basetime(0), pos(NULL), m(NULL) {}
-    modelattach(const char *tag, const char *name, int anim = -1, int animflags = 0, int basetime = 0) : tag(tag), name(name), anim(anim), animflags(animflags), basetime(basetime), pos(NULL), m(NULL) {}
-    modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), anim(-1), animflags(0), basetime(0), pos(pos), m(NULL) {}
+    modelattach() : tag(NULL), name(NULL), anim(animval(-1)), basetime(0), pos(NULL), m(NULL) {}
+    modelattach(const char *tag, const char *name, animval anim = animval(-1), int basetime = 0) : tag(tag), name(name), anim(anim), basetime(basetime), pos(NULL), m(NULL) {}
+    modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), anim(animval(-1)), basetime(0), pos(pos), m(NULL) {}
 };
 
-extern void rendermodel(const char *mdl, int anim, int animflags, const vec &o, float yaw = 0, float pitch = 0, float roll = 0, int cull = MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float size = 1, float trans = 1);
-extern int intersectmodel(const char *mdl, int anim, int animflags, const vec &pos, float yaw, float pitch, float roll, const vec &o, const vec &ray, float &dist, int mode = 0, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float size = 1);
+extern void rendermodel(const char *mdl, animval anim, const vec &o, float yaw = 0, float pitch = 0, float roll = 0, int cull = MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float size = 1, float trans = 1);
+extern int intersectmodel(const char *mdl, animval anim, const vec &pos, float yaw, float pitch, float roll, const vec &o, const vec &ray, float &dist, int mode = 0, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float size = 1);
 extern void abovemodel(vec &o, const char *mdl);
 extern void interpolateorientation(dynent *d, float &interpyaw, float &interppitch);
 extern void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity); // INTENSITY: Added entity

@@ -38,7 +38,7 @@ struct CLogicEntity
     hashtable<const char*, entlinkpos> attachment_positions;
 
     //! The current animation for this entity
-    int animation, animflags;
+    animval anim;
 
     //! The start time of the current animation for this entity
     int startTime;
@@ -46,17 +46,16 @@ struct CLogicEntity
     //! Whether this entity can move on its own volition
     bool canMove;
 
-    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8),
-        animation(0), animflags(0), startTime(0)
+    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8), startTime(0)
         { attachments.add(modelattach()); };
-    CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), uniqueId(-8),
-        animation(0), animflags(0), startTime(0)
+    CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity),
+        staticEntity(NULL), uniqueId(-8), startTime(0)
         { attachments.add(modelattach()); };
-    CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), uniqueId(-8),
-        animation(0), animflags(0), startTime(0)
+    CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL),
+        staticEntity(_staticEntity), uniqueId(-8), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL),
-        uniqueId(_uniqueId), animation(0), animflags(0), startTime(0)
+        uniqueId(_uniqueId), startTime(0)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
 
     //! Returns the unique ID for this entity
@@ -79,8 +78,8 @@ struct CLogicEntity
     void setAttachments(lua_State *L);
 
     //! Updates the animation based on lua information. Refreshes what is needed in Sauer. In particular sets the start time.
-    void setAnimation(int _animation);
-    void setAnimationFlags(int animflags);
+    void setAnimation(int anim);
+    void setAnimationFlags(int aflags);
 
     vec& getAttachmentPosition(const char *tag);
 };

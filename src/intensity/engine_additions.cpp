@@ -43,11 +43,11 @@ int CLogicEntity::getType()
 
 int CLogicEntity::getAnimation()
 {
-    return animation;
+    return anim.anim;
 }
 
 int CLogicEntity::getAnimationFlags() {
-    return animflags;
+    return anim.flags;
 }
 
 int CLogicEntity::getStartTime()
@@ -119,17 +119,17 @@ void CLogicEntity::setAttachments(lua_State *L) {
     attachments.add(modelattach());
 }
 
-void CLogicEntity::setAnimation(int _animation)
+void CLogicEntity::setAnimation(int _anim)
 {
-    logger::log(logger::DEBUG, "setAnimation: %d\r\n", _animation);
+    logger::log(logger::DEBUG, "setAnimation: %d\r\n", _anim);
 
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
 
-    logger::log(logger::DEBUG, "(2) setAnimation: %d\r\n", _animation);
+    logger::log(logger::DEBUG, "(2) setAnimation: %d\r\n", _anim);
 
-    animation = _animation;
+    anim.anim = _anim;
     startTime = lastmillis; // tools::currtime(); XXX Do NOT want the actual time! We
                             // need 'lastmillis', sauer's clock, which doesn't advance *inside* frames,
                             // because otherwise the starttime may be
@@ -137,11 +137,11 @@ void CLogicEntity::setAnimation(int _animation)
                             // leading to a negative number and segfaults in finding frame data
 }
 
-void CLogicEntity::setAnimationFlags(int _animflags)
+void CLogicEntity::setAnimationFlags(int aflags)
 {
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
-    animflags = _animflags;
+    anim.flags = aflags;
 }
 
 vec& CLogicEntity::getAttachmentPosition(const char *tag)

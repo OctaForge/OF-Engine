@@ -138,16 +138,22 @@ struct physent                                  // base entity type, can be affe
 #define ANIMFLAG_SETSPEED    (1<<6)
 #define ANIMFLAG_NOPITCH     (1<<7)
 
+struct animval { /* the animation value */
+    int anim, flags;
+    animval(int anim = 0, int flags = 0): anim(anim), flags(flags) {}
+};
+
 struct animinfo // description of a character's animation
 {
-    int anim, animflags, frame, range, basetime;
+    animval anim;
+    int frame, range, basetime;
     float speed;
     uint varseed;
 
-    animinfo() : anim(0), animflags(0), frame(0), range(0), basetime(0), speed(100.0f), varseed(0) { }
+    animinfo() : frame(0), range(0), basetime(0), speed(100.0f), varseed(0) { }
 
-    bool operator==(const animinfo &o) const { return frame==o.frame && range==o.range && (anim&ANIM_DIR)==(o.anim&ANIM_DIR) && (animflags&ANIMFLAG_SETTIME)==(o.animflags&ANIMFLAG_SETTIME) && (animflags&ANIMFLAG_SETTIME || basetime==o.basetime) && speed==o.speed; }
-    bool operator!=(const animinfo &o) const { return frame!=o.frame || range!=o.range || (anim&ANIM_DIR)!=(o.anim&ANIM_DIR) && (animflags&ANIMFLAG_SETTIME)!=(o.animflags&ANIMFLAG_SETTIME) || (!(animflags&ANIMFLAG_SETTIME) && basetime!=o.basetime) || speed!=o.speed; }
+    bool operator==(const animinfo &o) const { return frame==o.frame && range==o.range && (anim.anim&ANIM_DIR)==(o.anim.anim&ANIM_DIR) && (anim.flags&ANIMFLAG_SETTIME)==(o.anim.flags&ANIMFLAG_SETTIME) && (anim.flags&ANIMFLAG_SETTIME || basetime==o.basetime) && speed==o.speed; }
+    bool operator!=(const animinfo &o) const { return frame!=o.frame || range!=o.range || (anim.anim&ANIM_DIR)!=(o.anim.anim&ANIM_DIR) && (anim.flags&ANIMFLAG_SETTIME)!=(o.anim.flags&ANIMFLAG_SETTIME) || (!(anim.flags&ANIMFLAG_SETTIME) && basetime!=o.basetime) || speed!=o.speed; }
 };
 
 struct animinterpinfo // used for animation blending of animated characters
