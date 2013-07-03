@@ -28,5 +28,11 @@ require("core.engine.model")
 #log(DEBUG, ":::: Lights.")
 require("core.engine.lights")
 
+#log(DEBUG, ":::: Decals.")
+require("core.engine.decals")
+
+#log(DEBUG, ":::: Particles.")
+require("core.engine.particles")
+
 #log(DEBUG, ":::: Editing.")
 require("core.engine.edit")

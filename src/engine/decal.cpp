@@ -607,6 +607,14 @@ LUAICOMMAND(decal_register_renderer, {
     return 2;
 });
 
+LUAICOMMAND(decal_get_renderer, {
+    const char *name = luaL_checkstring(L, 1);
+    int *id = decalmap.access(name);
+    if (!id) return 0;
+    lua_pushinteger(L, *id);
+    return 1;
+})
+
 void initdecals()
 {
     if (initing) return;
@@ -694,10 +702,10 @@ LUAICOMMAND(decal_add, {
     float sx = luaL_checknumber(L, 5);
     float sy = luaL_checknumber(L, 6);
     float sz = luaL_checknumber(L, 7);
-    float r = luaL_checknumber(L, 8);
-    float g = luaL_checknumber(L, 9);
-    float b = luaL_checknumber(L, 10);
-    float radius = luaL_checknumber(L, 11);
+    float radius = luaL_checknumber(L, 8);
+    float r = luaL_checknumber(L, 9);
+    float g = luaL_checknumber(L, 10);
+    float b = luaL_checknumber(L, 11);
     int info = luaL_optinteger(L, 12, 0);
     adddecal(type, vec(cx, cy, cz), vec(sx, sy, sz), radius,
         vec(r, g, b), info);
