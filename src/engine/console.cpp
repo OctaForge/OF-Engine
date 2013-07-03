@@ -757,7 +757,7 @@ void complete(char *s, int maxlen, const char *cmdprefix)
     if(completesize)
     {
         char *end = strchr(&s[cmdlen], ' ');
-        if(end) f = completions.find(stringslice(&s[cmdlen], size_t(end-&s[cmdlen])), NULL);
+        if(end) f = completions.find(stringslice(&s[cmdlen], int(end-&s[cmdlen])), NULL);
     }
 
     const char *nextcomplete = NULL;
