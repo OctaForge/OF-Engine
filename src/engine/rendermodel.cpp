@@ -1144,8 +1144,7 @@ LUAICOMMAND(model_render, {
     lua_gettable(L, 3);
     int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR); lua_pop(L, 2);
 
-    animval anim(sanim ? panim | sanim << ANIM_SECONDARY : panim,
-        luaL_checkinteger(L, 4));
+    animval anim(panim | (sanim << ANIM_SECONDARY), luaL_checkinteger(L, 4));
     preparerd(L, anim, entity);
     fpsent *fp = NULL;
 
@@ -1237,8 +1236,7 @@ LUAICOMMAND(model_preview, {
     lua_gettable(L, 2);
     int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR); lua_pop(L, 2);
 
-    animval anim(sanim ? panim | sanim << ANIM_SECONDARY : panim,
-        luaL_checkinteger(L, 3));
+    animval anim(panim | (sanim << ANIM_SECONDARY), luaL_checkinteger(L, 3));
 
     model *m = loadmodel(mdl);
     if (m) {

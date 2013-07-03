@@ -102,7 +102,16 @@ namespace entities
 
     LUAICOMMAND(set_animation, {
         LUA_GET_ENT(entity, "_C.setanim", return 0)
-        entity->setAnimation(luaL_checkinteger(L, 2));
+
+        lua_pushinteger(L, 1);
+        lua_gettable(L, 2);
+        int panim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR);
+        lua_pushinteger(L, 2);
+        lua_gettable(L, 2);
+        int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR);
+        lua_pop(L, 2);
+
+        entity->setAnimation(panim | (sanim << ANIM_SECONDARY));
         return 0;
     });
 

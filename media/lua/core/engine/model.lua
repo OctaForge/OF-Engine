@@ -25,8 +25,8 @@ local ran = _C.model_register_anim
     CROUCH_FORAWRD, CROUCH_BACKWARD, CROUCH_LEFT, CROUCH_RIGHT, JUMP, SINK,
     SWIM, EDIT, LAG, MAPMODEL.
 
-    Then there are modifiers, INDEX, LOOP, START, END, REVERSE, SECONDARY
-    that you won't find much use for.
+    There are also modifiers, INDEX, LOOP, START, END and REVERSE. You can
+    use them with bitwise OR to control the animation.
 ]]
 M.anims = {
     IDLE = ran "idle", FORWARD = ran "forward", BACKWARD = ran "backward",
@@ -43,8 +43,7 @@ M.anims = {
     LOOP = bit.lshift(1, 12),
     START = bit.lshift(1, 13),
     END = bit.lshift(1, 14),
-    REVERSE = bit.lshift(1, 15),
-    SECONDARY = 16
+    REVERSE = bit.lshift(1, 15)
 }
 
 --[[! Variable: render_flags
