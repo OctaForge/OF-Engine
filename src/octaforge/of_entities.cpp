@@ -117,7 +117,8 @@ namespace entities
 
     LUAICOMMAND(set_animflags, {
         LUA_GET_ENT(entity, "_C.setanimflags", return 0)
-        entity->setAnimationFlags(luaL_checkinteger(L, 2));
+        entity->setAnimationFlags((luaL_checkinteger(L, 2)
+            << ANIM_FLAGSHIFT) & ANIM_FLAGS);
         return 0;
     });
 

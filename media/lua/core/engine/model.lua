@@ -39,11 +39,12 @@ M.anims = {
     CROUCH_SWIM = ran "crouch_swim", EDIT = ran "edit", LAG = ran "lag",
     MAPMODEL = ran "mapmodel",
 
-    INDEX = 0xFFF,
-    LOOP = bit.lshift(1, 12),
-    START = bit.lshift(1, 13),
-    END = bit.lshift(1, 14),
-    REVERSE = bit.lshift(1, 15)
+    INDEX = 0x1FF,
+    LOOP = bit.lshift(1, 9),
+    CLAMP = bit.lshift(1, 10),
+    REVERSE = bit.lshift(1, 11),
+    START = bit.bor(bit.lshift(1, 9), bit.lshift(1, 10)),
+    END = bit.bor(bit.lshift(1, 9), bit.lshift(1, 10), bit.lshift(1, 11))
 }
 
 --[[! Variable: render_flags
@@ -62,11 +63,10 @@ M.render_flags = {
 
 --[[! Function: register_anim
     Registers an animation of the given name. Returns the animation number
-    that you can then use. Currently up to 4095 animations can be registered.
-    If an animation of the same name already exists, it just returns its
-    number. It also returns a second boolean value that is true when the
-    animation was actually newly registered and false when it just re-returned
-    an already existing animation.
+    that you can then use. If an animation of the same name already exists,
+    it just returns its number. It also returns a second boolean value that
+    is true when the animation was actually newly registered and false when
+    it just re-returned an already existing animation.
 ]]
 M.register_anim = ran
 

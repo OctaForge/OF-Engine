@@ -38,7 +38,7 @@ struct CLogicEntity
     hashtable<const char*, entlinkpos> attachment_positions;
 
     //! The current animation for this entity
-    animval anim;
+    int anim, animflags;
 
     //! The start time of the current animation for this entity
     int startTime;
@@ -46,16 +46,16 @@ struct CLogicEntity
     //! Whether this entity can move on its own volition
     bool canMove;
 
-    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8), startTime(0)
+    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8), anim(0), animflags(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity),
-        staticEntity(NULL), uniqueId(-8), startTime(0)
+        staticEntity(NULL), uniqueId(-8), anim(0), animflags(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL),
-        staticEntity(_staticEntity), uniqueId(-8), startTime(0)
+        staticEntity(_staticEntity), uniqueId(-8), anim(0), animflags(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL),
-        uniqueId(_uniqueId), startTime(0)
+        uniqueId(_uniqueId), anim(0), animflags(0), startTime(0)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
 
     //! Returns the unique ID for this entity

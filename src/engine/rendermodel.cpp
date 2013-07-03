@@ -434,8 +434,7 @@ struct batchedmodel
 {
     vec pos, center;
     float radius, yaw, pitch, roll, sizescale, transparent;
-    animval anim;
-    int basetime, basetime2, flags, attached;
+    int anim, basetime, basetime2, flags, attached;
     union
     {
         int visible;
@@ -484,14 +483,14 @@ static inline void renderbatchedmodel(model *m, batchedmodel &b)
     modelattach *a = NULL;
     if(b.attached>=0) a = &modelattached[b.attached];
 
-    int aflags = b.anim.flags;
-    if(shadowmapping > SM_REFLECT) aflags |= ANIMFLAG_NOSKIN;
+    int anim = b.anim;
+    if(shadowmapping > SM_REFLECT) anim |= ANIM_NOSKIN;
     else
     {
-        if(b.flags&MDL_FULLBRIGHT) aflags |= ANIMFLAG_FULLBRIGHT;
+        if(b.flags&MDL_FULLBRIGHT) anim |= ANIM_FULLBRIGHT;
     }
 
-    m->render(animval(b.anim.anim, aflags), b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.roll, b.d, a, b.sizescale, b.transparent);
+    m->render(anim, b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.roll, b.d, a, b.sizescale, b.transparent);
 }
 
 VARP(maxmodelradiusdistance, 10, 200, 1000);
@@ -852,7 +851,7 @@ void clearbatchedmapmodels()
     batchedmodels.setsize(len);
 }
 
-void rendermapmodel(CLogicEntity *e, animval anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
+void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
 {
     if(!e) return;
     model *m = e->staticEntity->m;
@@ -906,7 +905,7 @@ void rendermapmodel(CLogicEntity *e, animval anim, const vec &o, float yaw, floa
     addbatchedmodel(m, b, batchedmodels.length()-1);
 }
 
-void rendermodel(const char *mdl, animval anim, const vec &o, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float size, float trans)
+void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float size, float trans)
 {
     model *m = loadmodel(mdl);
     if(!m) return;
@@ -929,7 +928,7 @@ void rendermodel(const char *mdl, animval anim, const vec &o, float yaw, float p
     }
     radius *= size;
 
-    if(flags&MDL_NORENDER) anim.flags |= ANIMFLAG_NORENDER;
+    if(flags&MDL_NORENDER) anim |= ANIM_NORENDER;
 
     if(a) for(int i = 0; a[i].tag; i++)
     {
@@ -962,7 +961,7 @@ void rendermodel(const char *mdl, animval anim, const vec &o, float yaw, float p
         }
         m->startrender();
         setaamask(true);
-        if(flags&MDL_FULLBRIGHT) anim.flags |= ANIMFLAG_FULLBRIGHT;
+        if(flags&MDL_FULLBRIGHT) anim |= ANIM_FULLBRIGHT;
         m->render(anim, basetime, basetime2, o, yaw, pitch, roll, d, a, size);
         m->endrender();
         if(flags&MDL_CULL_QUERY && d->query) endquery(d->query);
@@ -990,7 +989,7 @@ void rendermodel(const char *mdl, animval anim, const vec &o, float yaw, float p
     addbatchedmodel(m, b, batchedmodels.length()-1);
 }
 
-int intersectmodel(const char *mdl, animval anim, const vec &pos, float yaw, float pitch, float roll, const vec &o, const vec &ray, float &dist, int mode, dynent *d, modelattach *a, int basetime, int basetime2, float size)
+int intersectmodel(const char *mdl, int anim, const vec &pos, float yaw, float pitch, float roll, const vec &o, const vec &ray, float &dist, int mode, dynent *d, modelattach *a, int basetime, int basetime2, float size)
 {
     model *m = loadmodel(mdl);
     if(!m) return -1;
@@ -1079,8 +1078,8 @@ VARP(ragdoll, 0, 1, 1);
 
 static int oldtp = -1;
 
-void preparerd(lua_State *L, animval &anim, CLogicEntity *self) {
-    if (anim.flags&ANIMFLAG_RAGDOLL) {
+void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
+    if (anim&ANIM_RAGDOLL) {
         //if (!ragdoll || loadmodel(mdl);
         fpsent *fp = (fpsent*)self->dynamicEntity;
 
@@ -1092,11 +1091,15 @@ void preparerd(lua_State *L, animval &anim, CLogicEntity *self) {
         }
 
         if (fp->ragdoll || !ragdoll) {
-            anim.flags &= ~ANIMFLAG_RAGDOLL;
+            anim &= ~ANIM_RAGDOLL;
             lua_rawgeti    (L, LUA_REGISTRYINDEX, self->lua_ref);
             lua_getfield   (L, -1, "set_local_animation");
+            lua_pushvalue  (L, -2);
+            lua_pushinteger(L, anim & (ANIM_INDEX | ANIM_DIR));
+            lua_call       (L,  2, 0);
+            lua_getfield   (L, -1, "set_local_animation_flags");
             lua_insert     (L, -2);
-            lua_pushinteger(L, anim.anim);
+            lua_pushinteger(L, (anim & ANIM_FLAGS) >> ANIM_FLAGSHIFT);
             lua_call       (L,  2, 0);
         }
     } else {
@@ -1144,7 +1147,8 @@ LUAICOMMAND(model_render, {
     lua_gettable(L, 3);
     int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR); lua_pop(L, 2);
 
-    animval anim(panim | (sanim << ANIM_SECONDARY), luaL_checkinteger(L, 4));
+    int anim = panim | (sanim << ANIM_SECONDARY)
+        | ((luaL_checkinteger(L, 4) << ANIM_FLAGSHIFT) & ANIM_FLAGS);
     preparerd(L, anim, entity);
     fpsent *fp = NULL;
 
@@ -1236,7 +1240,8 @@ LUAICOMMAND(model_preview, {
     lua_gettable(L, 2);
     int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR); lua_pop(L, 2);
 
-    animval anim(panim | (sanim << ANIM_SECONDARY), luaL_checkinteger(L, 3));
+    int anim = panim | (sanim << ANIM_SECONDARY)
+        | ((luaL_checkinteger(L, 3) << ANIM_FLAGSHIFT) & ANIM_FLAGS);
 
     model *m = loadmodel(mdl);
     if (m) {
