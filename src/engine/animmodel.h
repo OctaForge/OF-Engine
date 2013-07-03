@@ -539,7 +539,7 @@ struct animmodel : model
         int numanimparts;
         float pitchscale, pitchoffset, pitchmin, pitchmax;
 
-        part() : meshes(NULL), numanimparts(1), pitchscale(1), pitchoffset(0), pitchmin(0), pitchmax(0)
+        part(animmodel *model, int index = 0) : model(model), index(index), meshes(NULL), numanimparts(1), pitchscale(1), pitchoffset(0), pitchmin(0), pitchmax(0)
         {
         }
         virtual ~part()
@@ -551,6 +551,11 @@ struct animmodel : model
             if(meshes) meshes->cleanup();
         }
 
+        void disablepitch()
+        {
+            pitchscale = pitchoffset = pitchmin = pitchmax = 0;
+        }
+        
         void calcbb(vec &bbmin, vec &bbmax, const matrix3x4 &m)
         {
             matrix3x4 t = m;
@@ -781,7 +786,7 @@ struct animmodel : model
 
         void intersect(animval anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, const vec &o, const vec &ray, animstate *as)
         {
-            if(!(anim.flags&ANIMFLAG_REUSE)) loopi(numanimparts)
+            if(anim.anim != (int)ANIM_REUSE) loopi(numanimparts)
             {
                 animinfo info;
                 int interp = d && index+numanimparts<=MAXANIMPARTS ? index+i : -1, aitime = animationinterpolationtime;
@@ -832,7 +837,7 @@ struct animmodel : model
             intersectscale = resize;
             meshes->intersect(as, pitch, oaxis, oforward, d, this, oo, oray);
 
-            if(!(anim.flags&ANIMFLAG_REUSE))
+            if(anim.anim != (int)ANIM_REUSE)
             {
                 loopv(links)
                 {
@@ -867,7 +872,7 @@ struct animmodel : model
 
         void render(animval anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, animstate *as)
         {
-            if(!(anim.flags&ANIMFLAG_REUSE)) loopi(numanimparts)
+            if(anim.anim != (int)ANIM_REUSE) loopi(numanimparts)
             {
                 animinfo info;
                 int interp = d && index+numanimparts<=MAXANIMPARTS ? index+i : -1, aitime = animationinterpolationtime;
@@ -932,7 +937,7 @@ struct animmodel : model
 
             meshes->render(as, pitch, oaxis, oforward, d, this);
 
-            if(!(anim.flags&ANIMFLAG_REUSE)) 
+            if(anim.anim != (int)ANIM_REUSE) 
             {
                 loopv(links)
                 {
@@ -1051,7 +1056,7 @@ struct animmodel : model
                     break;
 
                 case LINK_REUSE:            
-                    p->intersect(animval(anim.anim, anim.flags | ANIMFLAG_REUSE), basetime, basetime2, pitch, axis, forward, d, o, ray, as);
+                    p->intersect(animval(ANIM_REUSE, anim.flags), basetime, basetime2, pitch, axis, forward, d, o, ray, as);
                     break;
             }
         }
@@ -1074,7 +1079,7 @@ struct animmodel : model
                     break;
 
                 case LINK_REUSE:
-                    p->intersect(animval(anim.anim, anim.flags | ANIMFLAG_REUSE), basetime, basetime2, pitch, axis, forward, d, o, ray, as);
+                    p->intersect(animval(ANIM_REUSE, anim.flags), basetime, basetime2, pitch, axis, forward, d, o, ray, as);
                     break;
             }
         }
@@ -1175,7 +1180,7 @@ struct animmodel : model
                     break;
 
                 case LINK_REUSE:
-                    p->render(animval(anim.anim, anim.flags | ANIMFLAG_REUSE), basetime, basetime2, pitch, axis, forward, d, as);
+                    p->render(animval(ANIM_REUSE, anim.flags), basetime, basetime2, pitch, axis, forward, d, as);
                     break;
             }
         }
@@ -1202,7 +1207,7 @@ struct animmodel : model
                     break;
 
                 case LINK_REUSE:
-                    p->render(animval(anim.anim, anim.flags | ANIMFLAG_REUSE), basetime, basetime2, pitch, axis, forward, d, as); 
+                    p->render(animval(ANIM_REUSE, anim.flags), basetime, basetime2, pitch, axis, forward, d, as); 
                     break;
             }
         }
@@ -1295,6 +1300,13 @@ struct animmodel : model
         loopv(parts) parts[i]->cleanup();
     }
 
+    part &addpart()
+    {
+        part *p = new part(this, parts.length());
+        parts.add(p);
+        return *p;
+    }
+    
     void initmatrix(matrix3x4 &m)
     {
         m.identity();

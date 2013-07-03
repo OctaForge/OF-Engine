@@ -128,15 +128,15 @@ struct physent                                  // base entity type, can be affe
 #define ANIM_CLAMP       (ANIM_START|ANIM_END)
 #define ANIM_DIR         0xF000
 #define ANIM_SECONDARY   16
+#define ANIM_REUSE       0xFFFFFFFF
 
 #define ANIMFLAG_NOSKIN      (1<<0)
 #define ANIMFLAG_SETTIME     (1<<1)
 #define ANIMFLAG_FULLBRIGHT  (1<<2)
-#define ANIMFLAG_REUSE       (1<<3)
-#define ANIMFLAG_NORENDER    (1<<4)
-#define ANIMFLAG_RAGDOLL     (1<<5)
-#define ANIMFLAG_SETSPEED    (1<<6)
-#define ANIMFLAG_NOPITCH     (1<<7)
+#define ANIMFLAG_NORENDER    (1<<3)
+#define ANIMFLAG_RAGDOLL     (1<<4)
+#define ANIMFLAG_SETSPEED    (1<<5)
+#define ANIMFLAG_NOPITCH     (1<<6)
 
 struct animval { /* the animation value */
     int anim, flags;
