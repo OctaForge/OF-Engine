@@ -76,7 +76,7 @@ soundchannel &newchannel(int n, soundslot *slot, const vec *loc = NULL, extentit
     if(ent)
     {
         loc = &ent->o;
-        ent->visible = true;
+        ent->flags |= EF_SOUND;
     }
     while(!channels.inrange(n)) channels.add(channels.length());
     soundchannel &chan = channels[n];
@@ -98,7 +98,7 @@ void freechannel(int n)
     if(!channels.inrange(n) || !channels[n].inuse) return;
     soundchannel &chan = channels[n];
     chan.inuse = false;
-    if(chan.ent) chan.ent->visible = false;
+    if(chan.ent) chan.ent->flags &= EF_SOUND;
 }
 
 void syncchannel(soundchannel &chan)
@@ -340,14 +340,14 @@ void checkmapsounds()
         if(e.type!=ET_SOUND) continue;
         if(camera1->o.dist(e.o) < e.attr[0])
         {
-            if(!e.visible) {
+            if(!(e.flags&EF_SOUND)) {
                 lua::push_external("sound_play_map");
                 lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
                     LogicSystem::getLogicEntity(e)->lua_ref);
                 lua_call(lua::L, 1, 0);
             }
         }
-        else if(e.visible) stopmapsound(&e);
+        else if(e.flags&EF_SOUND) stopmapsound(&e);
     }
 }
 

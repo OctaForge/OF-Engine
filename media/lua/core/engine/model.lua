@@ -21,14 +21,15 @@ local ran = _C.model_register_anim
 
 --[[! Variable: anims
     An enumeration of all basic (pre-defined) animations available in the
-    engine. Possible values are IDLE, FORWARD, BACKWARD, LEFT, RIGHT, CROUCH,
-    CROUCH_FORAWRD, CROUCH_BACKWARD, CROUCH_LEFT, CROUCH_RIGHT, JUMP, SINK,
-    SWIM, EDIT, LAG, MAPMODEL.
+    engine. Possible values are MAPMODEL, IDLE, FORWARD, BACKWARD, LEFT, RIGHT,
+    CROUCH, CROUCH_FORAWRD, CROUCH_BACKWARD, CROUCH_LEFT, CROUCH_RIGHT, JUMP,
+    SINK, SWIM, EDIT, LAG, MAPMODEL.
 
     There are also modifiers, INDEX, LOOP, START, END and REVERSE. You can
     use them with bitwise OR to control the animation.
 ]]
 M.anims = {
+    MAPMODEL = ran "mapmodel",
     IDLE = ran "idle", FORWARD = ran "forward", BACKWARD = ran "backward",
     LEFT = ran "left", RIGHT = ran "right", CROUCH = ran "crouch",
     CROUCH_FORWARD = ran "crouch_forward",
@@ -37,7 +38,6 @@ M.anims = {
     JUMP = ran "jump", SINK = ran "sink", SWIM = ran "swim",
     CROUCH_JUMP = ran "crouch_jump", CROUCH_SINK = ran "crouch_sink",
     CROUCH_SWIM = ran "crouch_swim", EDIT = ran "edit", LAG = ran "lag",
-    MAPMODEL = ran "mapmodel",
 
     INDEX = 0x1FF,
     LOOP = bit.lshift(1, 9),

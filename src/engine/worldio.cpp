@@ -724,8 +724,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         while (e.attr.length() < getattrnum(e.type)) e.attr.add(0);
         f->getchar();
 
-        e.spawned = false;
-        e.inoctanode = false;
         if (!samegame)
         {
             if(eif > 0) f->seek(eif, SEEK_CUR);

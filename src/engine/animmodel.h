@@ -752,7 +752,7 @@ struct animmodel : model
                 animinterpinfo &ai = d->animinterp[interp];
                 if((info.anim&(ANIM_LOOP|ANIM_CLAMP))==ANIM_CLAMP) aitime = min(aitime, int(info.range*info.speed*0.5e-3f));
                 void *ak = meshes->animkey();
-                if(d->ragdoll && !(anim&ANIM_RAGDOLL)) 
+                if(d->ragdoll) 
                 {
                     ai.prev.range = ai.cur.range = 0;
                     ai.lastswitch = -1;
@@ -1092,7 +1092,7 @@ struct animmodel : model
 
         matrixpos = 0;
         matrixstack[0].identity();
-        if(!d || !d->ragdoll || anim&ANIM_RAGDOLL)
+        if(!d || !d->ragdoll)
         {
             float secs = lastmillis/1000.0f;
             yaw += spinyaw*secs;
@@ -1217,7 +1217,7 @@ struct animmodel : model
 
         matrixpos = 0;
         matrixstack[0].identity();
-        if(!d || !d->ragdoll || anim&ANIM_RAGDOLL)
+        if(!d || !d->ragdoll)
         {
             float secs = lastmillis/1000.0f;
             yaw += spinyaw*secs;

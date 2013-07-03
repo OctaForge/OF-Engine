@@ -913,19 +913,26 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
     vec center, bbradius;
     m->boundbox(center, bbradius);
     float radius = bbradius.magnitude();
-    if(d && d->ragdoll)
+    if(d)
     {
-        radius = max(radius, d->ragdoll->radius);
-        center = d->ragdoll->center;
+        if(d->ragdoll)
+        {
+            if(anim&ANIM_RAGDOLL && d->ragdoll->millis >= basetime)
+            {
+                radius = max(radius, d->ragdoll->radius);
+                center = d->ragdoll->center;
+                goto hasboundbox;
+            }
+            DELETEP(d->ragdoll); 
+        }
+        if(anim&ANIM_RAGDOLL) flags &= ~(MDL_CULL_VFC | MDL_CULL_OCCLUDED | MDL_CULL_QUERY); 
     }
-    else
-    {
-        center.mul(size);
-        if(roll) center.rotate_around_y(-roll*RAD);
-        if(pitch && m->pitched()) center.rotate_around_x(pitch*RAD);
-        center.rotate_around_z(yaw*RAD);
-        center.add(o);
-    }
+    center.mul(size);
+    if(roll) center.rotate_around_y(-roll*RAD);
+    if(pitch && m->pitched()) center.rotate_around_x(pitch*RAD);
+    center.rotate_around_z(yaw*RAD);
+    center.add(o);
+hasboundbox:
     radius *= size;
 
     if(flags&MDL_NORENDER) anim |= ANIM_NORENDER;
@@ -993,6 +1000,7 @@ int intersectmodel(const char *mdl, int anim, const vec &pos, float yaw, float p
 {
     model *m = loadmodel(mdl);
     if(!m) return -1;
+    if(d && d->ragdoll && (!(anim&ANIM_RAGDOLL) || d->ragdoll->millis < basetime)) DELETEP(d->ragdoll);
     if(a) for(int i = 0; a[i].tag; i++)
     {
         if(a[i].name) a[i].m = loadmodel(a[i].name);
