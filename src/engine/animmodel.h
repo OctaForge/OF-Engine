@@ -535,7 +535,7 @@ struct animmodel : model
         meshgroup *meshes;
         vector<linkedpart> links;
         vector<skin> skins;
-        vector<animspec> *anims[MAXANIMPARTS];
+        vector<vector<animspec> > *anims[MAXANIMPARTS];
         int numanimparts;
         float pitchscale, pitchoffset, pitchmin, pitchmax;
 
@@ -545,7 +545,7 @@ struct animmodel : model
         }
         virtual ~part()
         {
-            loopk(MAXANIMPARTS) DELETEA(anims[k]);
+            loopk(MAXANIMPARTS) DELETEP(anims[k]);
         }
 
         virtual void cleanup()
@@ -675,6 +675,13 @@ struct animmodel : model
             info.range = 1;
         }
 
+        /* OF */
+        vector<animspec> &get_speclist(int ap, int idx) {
+            vector<vector<animspec> > &lst = *anims[ap];
+            while (!lst.inrange(idx)) lst.add();
+            return lst[idx];
+        }
+
         bool calcanim(int animpart, animval anim, int basetime, int basetime2, dynent *d, int interp, animinfo &info, int &aitime)
         {
             uint varseed = uint((size_t)d);
@@ -693,12 +700,12 @@ struct animmodel : model
                 if(anims[animpart])
                 {
                     int nanims = lua_anims.length();
-                    vector<animspec> &primary = anims[animpart][anim.anim&ANIM_INDEX];
-                    if(&primary < &anims[animpart][nanims] && primary.length()) spec = &primary[uint(varseed + basetime)%primary.length()];
+                    vector<animspec> &primary = get_speclist(animpart, anim.anim&ANIM_INDEX);
+                    if(&primary < &get_speclist(animpart, nanims) && primary.length()) spec = &primary[uint(varseed + basetime)%primary.length()];
                     if((anim.anim>>ANIM_SECONDARY)&(ANIM_INDEX|ANIM_DIR))
                     {
-                        vector<animspec> &secondary = anims[animpart][(anim.anim>>ANIM_SECONDARY)&ANIM_INDEX];
-                        if(&secondary < &anims[animpart][nanims] && secondary.length())
+                        vector<animspec> &secondary = get_speclist(animpart, (anim.anim>>ANIM_SECONDARY)&ANIM_INDEX);
+                        if(&secondary < &get_speclist(animpart, nanims) && secondary.length())
                         {
                             animspec &spec2 = secondary[uint(varseed + basetime2)%secondary.length()];
                             if(!spec || spec2.priority > spec->priority)
@@ -972,8 +979,8 @@ struct animmodel : model
                 conoutf("invalid frame %d, range %d in model %s", frame, range, model->loadname);
                 return;
             }
-            if(!anims[animpart]) anims[animpart] = new vector<animspec>[ANIM_ALL+1]; // INTENSITY: Was NUMANIMS. We allow 128 animations.
-            animspec &spec = anims[animpart][num].add();
+            if(!anims[animpart]) anims[animpart] = new vector<vector<animspec> >;
+            animspec &spec = get_speclist(animpart, num).add();
             spec.frame = frame;
             spec.range = range;
             spec.speed = speed;
