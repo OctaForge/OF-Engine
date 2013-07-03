@@ -535,17 +535,15 @@ struct animmodel : model
         meshgroup *meshes;
         vector<linkedpart> links;
         vector<skin> skins;
-        vector<vector<animspec> > *anims[MAXANIMPARTS];
+        vector<vector<animspec> > anims[MAXANIMPARTS];
         int numanimparts;
         float pitchscale, pitchoffset, pitchmin, pitchmax;
 
         part() : meshes(NULL), numanimparts(1), pitchscale(1), pitchoffset(0), pitchmin(0), pitchmax(0)
         {
-            loopk(MAXANIMPARTS) anims[k] = NULL;
         }
         virtual ~part()
         {
-            loopk(MAXANIMPARTS) DELETEP(anims[k]);
         }
 
         virtual void cleanup()
@@ -675,13 +673,6 @@ struct animmodel : model
             info.range = 1;
         }
 
-        /* OF */
-        vector<animspec> &get_speclist(int ap, int idx) {
-            vector<vector<animspec> > &lst = *anims[ap];
-            while (!lst.inrange(idx)) lst.add();
-            return lst[idx];
-        }
-
         bool calcanim(int animpart, animval anim, int basetime, int basetime2, dynent *d, int interp, animinfo &info, int &aitime)
         {
             uint varseed = uint((size_t)d);
@@ -697,22 +688,29 @@ struct animmodel : model
             else 
             {
                 animspec *spec = NULL;
-                if(anims[animpart])
+                if(anims[animpart].length())
                 {
-                    int nanims = lua_anims.length();
-                    vector<animspec> &primary = get_speclist(animpart, anim.anim&ANIM_INDEX);
-                    if(&primary < &get_speclist(animpart, nanims) && primary.length()) spec = &primary[uint(varseed + basetime)%primary.length()];
+                    size_t primaryidx = anim.anim&ANIM_INDEX;
+                    if(anims[animpart].inrange(primaryidx))
+                    {
+                        vector<animspec> &primary = anims[animpart][primaryidx];
+                        if(primary.length()) spec = &primary[uint(varseed + basetime)%primary.length()];
+                    }
                     if((anim.anim>>ANIM_SECONDARY)&(ANIM_INDEX|ANIM_DIR))
                     {
-                        vector<animspec> &secondary = get_speclist(animpart, (anim.anim>>ANIM_SECONDARY)&ANIM_INDEX);
-                        if(&secondary < &get_speclist(animpart, nanims) && secondary.length())
+                        size_t secondaryidx = (anim.anim>>ANIM_SECONDARY)&ANIM_INDEX;
+                        if(anims[animpart].inrange(secondaryidx))
                         {
-                            animspec &spec2 = secondary[uint(varseed + basetime2)%secondary.length()];
-                            if(!spec || spec2.priority > spec->priority)
+                            vector<animspec> &secondary = anims[animpart][secondaryidx];
+                            if(secondary.length())
                             {
-                                spec = &spec2;
-                                info.anim.anim >>= ANIM_SECONDARY;
-                                info.basetime = basetime2;
+                                animspec &spec2 = secondary[uint(varseed + basetime2)%secondary.length()];
+                                if(!spec || spec2.priority > spec->priority)
+                                {
+                                    spec = &spec2;
+                                    info.anim.anim >>= ANIM_SECONDARY;
+                                    info.basetime = basetime2;
+                                }
                             }
                         }
                     }
@@ -973,14 +971,19 @@ struct animmodel : model
 
         void setanim(int animpart, int num, int frame, int range, float speed, int priority = 0)
         {
-            if(animpart<0 || animpart>=MAXANIMPARTS) return;
+            if(animpart<0 || animpart>=MAXANIMPARTS || num<0) return;
             if(frame<0 || range<=0 || !meshes || !meshes->hasframes(frame, range))
             {
                 conoutf("invalid frame %d, range %d in model %s", frame, range, model->loadname);
                 return;
             }
-            if(!anims[animpart]) anims[animpart] = new vector<vector<animspec> >;
-            animspec &spec = get_speclist(animpart, num).add();
+            vector<vector<animspec> > &lst = anims[animpart];
+            if(lst.length() <= num)
+            {
+                lst.reserve(num+1 - lst.length());
+                while(lst.length() <= num) lst.add();
+            }
+            animspec &spec = lst[num].add();
             spec.frame = frame;
             spec.range = range;
             spec.speed = speed;
@@ -989,7 +992,7 @@ struct animmodel : model
 
         bool animated() const
         {
-            loopi(MAXANIMPARTS) if(anims[i]) return true;
+            loopi(MAXANIMPARTS) if(anims[i].length()) return true;
             return false;
         }
     };
