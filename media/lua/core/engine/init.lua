@@ -25,5 +25,8 @@ require("core.engine.sound")
 #log(DEBUG, ":::: Models.")
 require("core.engine.model")
 
+#log(DEBUG, ":::: Lights.")
+require("core.engine.lights")
+
 #log(DEBUG, ":::: Editing.")
 require("core.engine.edit")

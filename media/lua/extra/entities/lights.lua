@@ -15,8 +15,9 @@
 
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
+local lights = require("core.engine.lights")
 
-local bit = require("bit")
+local light_add = lights.add
 
 local M = {}
 
@@ -61,7 +62,7 @@ local Dynamic_Light = Marker:clone {
     run = (not SERVER) and function(self, millis)
         Marker.run(self, millis)
         local pos = self:get_attr("position")
-        _C.dynlight_add(pos.x, pos.y, pos.z, self:get_attr("radius"),
+        light_add(pos, self:get_attr("radius"),
             self:get_attr("red") / 255, self:get_attr("green") / 255,
             self:get_attr("blue") / 255)
     end or nil
@@ -70,7 +71,7 @@ M.Dynamic_Light = Dynamic_Light
 
 local max, random = math.max, math.random
 local floor = math.floor
-local flash_flag = bit.lshift(1, 2)
+local flash_flag = lights.flags.FLASH
 
 --[[! Class: Flickering_Light
     A flickering light entity type derived from <Dynamic_Light>. This one
@@ -109,7 +110,7 @@ M.Flickering_Light = Dynamic_Light:clone {
                 self:get_attr("min_delay"))
             if random() < self:get_attr("probability") then
                 local pos = self:get_attr("position")
-                _C.dynlight_add(pos.x, pos.y, pos.z, self:get_attr("radius"),
+                light_add(pos, self:get_attr("radius"),
                     self:get_attr("red") / 255, self:get_attr("green") / 255,
                     self:get_attr("blue") / 255, d, 0, flash_flag)
             end
