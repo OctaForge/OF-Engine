@@ -1058,7 +1058,7 @@ LUAICOMMAND(particle_register_renderer_flare, {
     const char *name = luaL_checkstring(L, 1);
     if (get_renderer(L, name)) return 2;
     const char *path = luaL_checkstring(L, 2);
-    int maxflares = luaL_checkinteger(L, 3);
+    int maxflares = luaL_optinteger(L, 3, 64);
     int flags = luaL_optinteger(L, 4, 0) & (~PT_CLEARMASK);
     lua::pin_string(L, name); lua::pin_string(L, path);
     register_renderer(L, name, new flarerenderer(path, maxflares, flags));
@@ -1068,7 +1068,8 @@ LUAICOMMAND(particle_register_renderer_flare, {
 LUAICOMMAND(particle_register_renderer_meter, {
     const char *name = luaL_checkstring(L, 1);
     if (get_renderer(L, name)) return 2;
-    int flags = luaL_optinteger(L, 2, 0) & (~PT_CLEARMASK);
+    int flags = (lua_toboolean(L, 2) ? PT_METERVS : PT_METER)
+        | (luaL_optinteger(L, 3, 0) & (~PT_CLEARMASK));
     lua::pin_string(L, name);
     register_renderer(L, name, new meterrenderer(flags));
     return 2;
@@ -1360,9 +1361,7 @@ VARP(maxtrail, 1, 500, 10000);
 
 LUAICOMMAND(particle_trail, {
     PART_GET_TYPE(type);
-    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TRAIL) {
-        lua_pushboolean(L, false); return 1;
-    }
+    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
