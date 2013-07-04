@@ -1731,7 +1731,7 @@ LUAICOMMAND(particle_flame, {
     float r = luaL_checknumber(L, 7);
     float g = luaL_checknumber(L, 8);
     float b = luaL_checknumber(L, 9);
-    float fade = luaL_checknumber(L, 10);
+    int fade = luaL_checkinteger(L, 10);
     int density = luaL_checkinteger(L, 11);
     float scale = luaL_checknumber(L, 12);
     float speed = luaL_checknumber(L, 13);
