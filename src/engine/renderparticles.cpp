@@ -276,9 +276,9 @@ struct partrenderer
     {
     }
 
-    virtual void preload()
+    virtual void preload(bool force = false)
     {
-        if(texname && !tex) tex = textureload(texname, texclamp);
+        if(texname && (force || !tex)) tex = textureload(texname, texclamp);
     }
 
     //blend = 0 => remove it
@@ -1887,3 +1887,4 @@ void updateparticles()
 }
 
 #undef PART_MT_FIELD
+#undef PART_GET_OWNER
