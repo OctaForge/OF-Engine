@@ -108,10 +108,10 @@ return {
     get_renderer = _C.particle_get_renderer,
 
     --[[! Function: new
-        Spawns a new generic particle, given a type (renderer ID), position,
-        direction/target (depends on the renderer type), color (three floats
-        typically from 0 to 1, can go out of bounds), fade time (in millis),
-        size (float) and optionally gravity (defaults to 0).
+        Spawns a new generic particle, given a type (renderer ID), origin
+        position, target position, color (three floats typically from 0 to 1,
+        can go out of bounds), fade time (in millis), size (float) and
+        optionally gravity (defaults to 0).
     ]]
     new = function(tp, o, d, r, g, b, fade, size, gravity)
         _C.particle_new(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
