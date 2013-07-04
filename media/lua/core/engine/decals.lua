@@ -49,7 +49,7 @@ return {
     get_renderer = _C.decal_get_renderer,
 
     --[[! Function: add
-        Creates a decal, given its type (the integer returned by renderer
+        Creates a decal given its type (the integer returned by renderer
         registration), center position (anything with x, y, z will do),
         surface normal (again, a vec3), radius, color and optionally an
         "info" parameter that decides the corner used (number from 0 to
