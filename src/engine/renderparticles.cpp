@@ -1584,19 +1584,6 @@ LUAICOMMAND(particle_lensflare, {
     return 1;
 })
 
-//dir = 0..6 where 0=up
-LUAICOMMAND(particle_offset_vec, {
-    vec v(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3));
-    int dir  = luaL_checkinteger(L, 4);
-    int dist = luaL_checkinteger(L, 5);
-    v[(2 + dir) % 3] += (dir > 2) ? (-dist) : dist;
-    lua_pushnumber(L, v.x);
-    lua_pushnumber(L, v.y);
-    lua_pushnumber(L, v.z);
-    return 3;
-})
-
 /* Experiments in shapes...
  * dir: (where dir%3 is similar to offsetvec with 0=up)
  * 0..2 circle

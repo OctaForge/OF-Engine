@@ -1113,6 +1113,13 @@ local typemap = { PART_STREAK, -1, -1, PART_LIGHTNING, -1, PART_STEAM,
 local sizemap = { 0.28, 0, 0, 1, 0, 2.4, 0.6, 0, 0, 0.5 }
 local gravmap = { 0, 0, 0, 0, 0, -20, 2, 0, 0, 20 }
 
+local cmap = { "x", "y", "z" }
+local offset_vec = function(v, dir, dist)
+    local e = cmap[(3 + dir) % 4]
+    v[e] = v[e] + ((dir > 2) and -dist or dist)
+    return v
+end
+
 local part_draw_1 = function(pt, x, y, z, a1, a2, a3, a4)
     local tp = typemap[pt - 3]
     local sz = sizemap[pt - 3]
@@ -1122,8 +1129,8 @@ local part_draw_1 = function(pt, x, y, z, a1, a2, a3, a4)
         _C.particle_shape(tp, x, y, z, max(1 + a2, 1), a1 - 256, 5, r / 255,
             g / 255, b / 255, a4 > 0 and min(a4, 10000) or 200, sz, gv, 200)
     else
-        local dx, dy, dz = _C.particle_offset_vec(x, y, z, a1, max(1 + a2, 0))
-        _C.particle_new(tp, x, y, z, dx, dy, dz, r / 255, g / 255, b / 255,
+        local d = offset_vec({ x = x, y = y, z = z }, a1, max(1 + a2, 0))
+        _C.particle_new(tp, x, y, z, d.x, d.y, d.z, r / 255, g / 255, b / 255,
             1, sz, gv)
     end
 end
@@ -1165,9 +1172,9 @@ local part_draw_tbl = setmetatable({
     end,
     -- steam vent - dir
     [1] = function(pt, x, y, z, a1, a2, a3, a4)
-        x, y, z = _C.particle_offset_vec(x, y, z, a1, rand(9))
-        _C.particle_splash(PART_STEAM, x, y, z, 50, 1, 0x89 / 255, 0x76 / 255,
-            0x61 / 255, 200, 2.4, -20, 0)
+        local d = offset_vec({ x = x, y = y, z = z }, a1, rand(9))
+        _C.particle_splash(PART_STEAM, d.x, d.y, d.z, 50, 1,
+            0x89 / 255, 0x76 / 255, 0x61 / 255, 200, 2.4, -20, 0)
     end,
     -- water fountain - dir
     [2] = function(pt, x, y, z, a1, a2, a3, a4)
@@ -1181,9 +1188,9 @@ local part_draw_tbl = setmetatable({
             color = var_get("water" .. mat .. "fallcolor")
             if color == 0 then color = var_get("water" .. mat .. "color") end
         end
-        x, y, z = _C.particle_offset_vec(x, y, z, a1, rand(9))
+        local d = offset_vec({ x = x, y = y, z = z }, a1, rand(9))
         local r, g, b = hextorgb(color)
-        _C.particle_splash(PART_WATER, x, y, z, 150, 4, r / 255, g / 255,
+        _C.particle_splash(PART_WATER, d.x, d.y, d.z, 150, 4, r / 255, g / 255,
             b / 255, 200, 0.6, 2, 0)
     end,
     -- fireball - size, rgb
