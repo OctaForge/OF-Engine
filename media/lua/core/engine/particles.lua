@@ -105,5 +105,7 @@ return {
         Given a name, returns the id of the renderer of that name
         or nothing (if no such renderer exists).
     ]]
-    get_renderer = _C.particle_get_renderer
+    get_renderer = _C.particle_get_renderer,
+
+    
 }
