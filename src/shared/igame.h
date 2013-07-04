@@ -52,8 +52,8 @@ namespace game
     extern void particletrack(physent *owner, vec &o, vec &d);
     extern void dynlighttrack(physent *owner, vec &o, vec &hud);
     extern bool needminimap();
-} 
- 
+}
+
 namespace server
 {
     extern void *newclientinfo();

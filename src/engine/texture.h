@@ -80,20 +80,20 @@ struct SlotShaderParamState : LocalShaderParamState
     float val[4];
 
     SlotShaderParamState() {}
-    SlotShaderParamState(const SlotShaderParam &p) 
-    { 
-        name = p.name; 
-        loc = -1; 
+    SlotShaderParamState(const SlotShaderParam &p)
+    {
+        name = p.name;
+        loc = -1;
         size = 1;
-        format = GL_FLOAT_VEC4; 
-        memcpy(val, p.val, sizeof(val)); 
+        format = GL_FLOAT_VEC4;
+        memcpy(val, p.val, sizeof(val));
     }
 };
 
-enum 
-{ 
-    SHADER_DEFAULT    = 0, 
-    SHADER_WORLD      = 1<<0, 
+enum
+{
+    SHADER_DEFAULT    = 0,
+    SHADER_WORLD      = 1<<0,
     SHADER_ENVMAP     = 1<<1,
     SHADER_REFRACT    = 1<<2,
     SHADER_OPTION     = 1<<3,
@@ -154,7 +154,7 @@ struct Shader
     vector<AttribLoc> attriblocs;
     vector<FragDataLoc> fragdatalocs;
 
-    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(NULL), type(SHADER_DEFAULT), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL) 
+    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(NULL), type(SHADER_DEFAULT), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL)
     {
         loopi(MAXSHADERDETAIL) fastshader[i] = this;
     }
@@ -177,7 +177,7 @@ struct Shader
         if(!used) { allocparams(slot); used = true; }
         loopv(globalparams) globalparams[i].flush();
     }
-     
+
     bool hasoption(int row)
     {
         if(!detailshader || detailshader->variants[row].empty()) return false;
@@ -189,11 +189,11 @@ struct Shader
     void setvariant_(int col, int row, Shader *fallbackshader)
     {
         Shader *s = fallbackshader;
-        for(col = min(col, detailshader->variants[row].length()-1); col >= 0; col--) 
-            if(!(detailshader->variants[row][col]->type&SHADER_INVALID)) 
-            { 
-                s = detailshader->variants[row][col]; 
-                break; 
+        for(col = min(col, detailshader->variants[row].length()-1); col >= 0; col--)
+            if(!(detailshader->variants[row][col]->type&SHADER_INVALID))
+            {
+                s = detailshader->variants[row][col];
+                break;
             }
         if(lastshader!=s) s->bindprograms();
     }
@@ -232,7 +232,7 @@ struct Shader
     {
         if(lastshader!=detailshader) detailshader->bindprograms();
     }
- 
+
     void set()
     {
         if(!this || !detailshader) return;
@@ -250,7 +250,7 @@ struct Shader
 
     bool compile();
     void cleanup(bool invalid = false);
-    
+
     static int uniformlocversion();
 };
 
@@ -300,7 +300,7 @@ struct GlobalShaderParam
     void set(const ivec &v, int w = 0) { seti(v.x, v.y, v.z, w); }
     void set(const ivec2 &v, int z = 0, int w = 0) { seti(v.x, v.y, z, w); }
     void set(const ivec4 &v) { seti(v.x, v.y, v.z, v.w); }
- 
+
     template<class T>
     T *reserve(int n = 1) { return (T *)resolve()->buf; }
 };
@@ -394,10 +394,10 @@ struct LocalShaderParam
 #define LOCALPARAMF(name, ...) do { static LocalShaderParam param( #name ); param.setf(__VA_ARGS__); } while(0)
 #define LOCALPARAMI(name, ...) do { static LocalShaderParam param( #name ); param.seti(__VA_ARGS__); } while(0)
 #define LOCALPARAMV(name, vals, num) do { static LocalShaderParam param( #name ); param.setv(vals, num); } while(0)
-#define GLOBALPARAM(name, vals) do { static GlobalShaderParam param( #name ); param.set(vals); } while(0) 
-#define GLOBALPARAMF(name, ...) do { static GlobalShaderParam param( #name ); param.setf(__VA_ARGS__); } while(0) 
-#define GLOBALPARAMI(name, ...) do { static GlobalShaderParam param( #name ); param.seti(__VA_ARGS__); } while(0) 
-#define GLOBALPARAMV(name, vals, num) do { static GlobalShaderParam param( #name ); param.setv(vals, num); } while(0) 
+#define GLOBALPARAM(name, vals) do { static GlobalShaderParam param( #name ); param.set(vals); } while(0)
+#define GLOBALPARAMF(name, ...) do { static GlobalShaderParam param( #name ); param.setf(__VA_ARGS__); } while(0)
+#define GLOBALPARAMI(name, ...) do { static GlobalShaderParam param( #name ); param.seti(__VA_ARGS__); } while(0)
+#define GLOBALPARAMV(name, vals, num) do { static GlobalShaderParam param( #name ); param.setv(vals, num); } while(0)
 
 #define SETSHADER(name) \
     do { \
@@ -424,16 +424,16 @@ struct ImageData
         : data(NULL), owner(NULL), freefunc(NULL)
     {}
 
-    
-    ImageData(int nw, int nh, int nbpp, int nlevels = 1, int nalign = 0, GLenum ncompressed = GL_FALSE) 
-    { 
-        setdata(NULL, nw, nh, nbpp, nlevels, nalign, ncompressed); 
+
+    ImageData(int nw, int nh, int nbpp, int nlevels = 1, int nalign = 0, GLenum ncompressed = GL_FALSE)
+    {
+        setdata(NULL, nw, nh, nbpp, nlevels, nalign, ncompressed);
     }
 
     ImageData(int nw, int nh, int nbpp, uchar *data)
         : owner(NULL), freefunc(NULL)
-    { 
-        setdata(data, nw, nh, nbpp); 
+    {
+        setdata(data, nw, nh, nbpp);
     }
 
     ImageData(SDL_Surface *s) { wrap(s); }
@@ -451,9 +451,9 @@ struct ImageData
         data = ndata ? ndata : new uchar[calcsize()];
         if(!ndata) { owner = this; freefunc = NULL; }
     }
-  
+
     int calclevelsize(int level) const { return ((max(w>>level, 1)+align-1)/align)*((max(h>>level, 1)+align-1)/align)*bpp; }
- 
+
     int calcsize() const
     {
         if(!align) return w*h*bpp;
@@ -513,10 +513,10 @@ struct Texture
         IMAGE      = 0,
         CUBEMAP    = 1,
         TYPE       = 0xFF,
-        
+
         STUB       = 1<<8,
         TRANSIENT  = 1<<9,
-        COMPRESSED = 1<<10, 
+        COMPRESSED = 1<<10,
         ALPHA      = 1<<11,
         FLAGS      = 0xFF00
     };
@@ -529,7 +529,7 @@ struct Texture
 
     Texture() : alphamask(NULL) {}
 
-    int swizzle() const { extern bool hasTRG, hasTSW; return hasTRG && !hasTSW ? (bpp==1 ? 0 : (bpp==2 ? 1 : -1)) : -1; } 
+    int swizzle() const { extern bool hasTRG, hasTSW; return hasTRG && !hasTSW ? (bpp==1 ? 0 : (bpp==2 ? 1 : -1)) : -1; }
 };
 
 #define SETSWIZZLE(name, tex) SETVARIANT(name, (tex) ? (tex)->swizzle() : -1, 0)
@@ -540,7 +540,7 @@ enum
     TEX_NORMAL,
     TEX_GLOW,
     TEX_ENVMAP,
-    
+
     TEX_SPEC,
     TEX_DEPTH,
     TEX_UNKNOWN,
@@ -548,22 +548,22 @@ enum
     TEX_DECAL = TEX_SPEC
 };
 
-enum 
-{ 
-    VSLOT_SHPARAM = 0, 
-    VSLOT_SCALE, 
-    VSLOT_ROTATION, 
-    VSLOT_OFFSET, 
-    VSLOT_SCROLL, 
-    VSLOT_LAYER, 
+enum
+{
+    VSLOT_SHPARAM = 0,
+    VSLOT_SCALE,
+    VSLOT_ROTATION,
+    VSLOT_OFFSET,
+    VSLOT_SCROLL,
+    VSLOT_LAYER,
     VSLOT_ALPHA,
     VSLOT_COLOR,
     VSLOT_RESERVED, // used by RE
     VSLOT_REFRACT,
     VSLOT_DECAL,
-    VSLOT_NUM 
+    VSLOT_NUM
 };
-   
+
 struct VSlot
 {
     Slot *slot;
@@ -583,9 +583,9 @@ struct VSlot
     vec refractcolor;
 
     VSlot(Slot *slot = NULL, int index = -1) : slot(slot), next(NULL), index(index), changed(0)
-    { 
+    {
         reset();
-        if(slot) addvariant(slot); 
+        if(slot) addvariant(slot);
     }
 
     void addvariant(Slot *slot);
@@ -636,7 +636,7 @@ struct Slot
     Texture *grasstex, *thumbnail;
 
     Slot(int index = -1) : index(index), variants(NULL), autograss(NULL) { reset(); }
-    
+
     void reset()
     {
         smooth = -1;
@@ -655,7 +655,7 @@ struct Slot
         loaded = false;
         grasstex = NULL;
         thumbnail = NULL;
-        loopv(sts) 
+        loopv(sts)
         {
             Tex &t = sts[i];
             t.t = NULL;

@@ -13,7 +13,7 @@ static int parsedigits(ushort *digits, int maxlen, const char *s)
         if(isalpha(c)) c = toupper(c) - 'A' + 10;
         else if(isdigit(c)) c -= '0';
         else return 0;
-        digits[i/(2*sizeof(ushort))] |= c<<(4*(i%(2*sizeof(ushort)))); 
+        digits[i/(2*sizeof(ushort))] |= c<<(4*(i%(2*sizeof(ushort))));
     }
     return len;
 }
@@ -42,8 +42,8 @@ template<int BI_DIGITS> struct bigint
 
     void zero() { len = 0; }
 
-    void print(FILE *out) const 
-    { 
+    void print(FILE *out) const
+    {
         vector<char> buf;
         printdigits(buf);
         buf.add('\0');
@@ -225,9 +225,9 @@ struct gfield : gfint
     gfield(const char *s) : gfint(s) {}
 
     template<int Y_DIGITS> gfield(const bigint<Y_DIGITS> &y) : gfint(y) {}
-    
+
     template<int Y_DIGITS> gfield &operator=(const bigint<Y_DIGITS> &y)
-    { 
+    {
         gfint::operator=(y);
         return *this;
     }
@@ -240,12 +240,12 @@ struct gfield : gfint
     }
     template<int Y_DIGITS> gfield &add(const bigint<Y_DIGITS> &y) { return add(*this, y); }
 
-    template<int X_DIGITS> gfield &mul2(const bigint<X_DIGITS> &x) { return add(x, x); } 
+    template<int X_DIGITS> gfield &mul2(const bigint<X_DIGITS> &x) { return add(x, x); }
     gfield &mul2() { return mul2(*this); }
 
-    template<int X_DIGITS> gfield &div2(const bigint<X_DIGITS> &x) 
+    template<int X_DIGITS> gfield &div2(const bigint<X_DIGITS> &x)
     {
-        if(hasbit(0)) { gfint::add(x, P); rshift(1); } 
+        if(hasbit(0)) { gfint::add(x, P); rshift(1); }
         else rshift(x, 1);
         return *this;
     }
@@ -332,10 +332,10 @@ struct gfield : gfint
     {
         gfield a(x);
         if(y.hasbit(0)) *this = a;
-        else 
-        { 
-            len = 1; 
-            digits[0] = 1; 
+        else
+        {
+            len = 1;
+            digits[0] = 1;
             if(!y.len) return *this;
         }
         for(int i = 1, j = y.numbits(); i < j; i++)
@@ -346,7 +346,7 @@ struct gfield : gfint
         return *this;
     }
     template<int Y_DIGITS> gfield &pow(const bigint<Y_DIGITS> &y) { return pow(*this, y); }
-    
+
     bool invert(const gfield &x)
     {
         if(!x.len) return false;
@@ -358,9 +358,9 @@ struct gfield : gfint
             {
                 ushift++;
                 if(A.hasbit(ashift))
-                { 
-                    if(ashift) { A.rshift(ashift); ashift = 0; } 
-                    A.add(P); 
+                {
+                    if(ashift) { A.rshift(ashift); ashift = 0; }
+                    A.add(P);
                 }
                 ashift++;
             }
@@ -371,9 +371,9 @@ struct gfield : gfint
             {
                 vshift++;
                 if(C.hasbit(cshift))
-                { 
-                    if(cshift) { C.rshift(cshift); cshift = 0; } 
-                    C.add(P); 
+                {
+                    if(cshift) { C.rshift(cshift); cshift = 0; }
+                    C.add(P);
                 }
                 cshift++;
             }
@@ -390,13 +390,13 @@ struct gfield : gfint
                 v.sub(v, u);
                 if(C < A) C.add(P);
                 C.sub(A);
-            }    
+            }
         }
         if(C >= P) gfint::sub(C, P);
         else { len = C.len; memcpy(digits, C.digits, len*sizeof(digit)); }
         ASSERT(*this < P);
         return true;
-    }    
+    }
     void invert() { invert(*this); }
 
     template<int X_DIGITS> static int legendre(const bigint<X_DIGITS> &x)
@@ -423,7 +423,7 @@ struct gfield : gfint
             case 0: len = 0; return true;
             case -1: return false;
             default: pow(x, Padd1div4); return true;
-        } 
+        }
 #endif
     }
     bool sqrt() { return sqrt(*this); }
@@ -488,7 +488,7 @@ struct ecjacobian
         x.square(b).sub(f.mul(c, e.square(a)));
         y.sub(f, x).sub(x).mul(b).sub(e.mul(a).mul(d)).div2();
     }
- 
+
     template<int Q_DIGITS> void mul(const ecjacobian &p, const bigint<Q_DIGITS> q)
     {
         *this = origin;
@@ -519,7 +519,7 @@ struct ecjacobian
         if(y.hasbit(0) != ybit) y.neg();
         return true;
     }
-   
+
     void print(vector<char> &buf)
     {
         normalize();

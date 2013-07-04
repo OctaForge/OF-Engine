@@ -11,7 +11,7 @@ struct md5weight
     int joint;
     float bias;
     vec pos;
-};  
+};
 
 struct md5vert
 {
@@ -78,7 +78,7 @@ struct md5 : skelmodel, skelloader<md5>
                 loopj(v.count)
                 {
                     md5weight &w = weightinfo[v.start+j];
-                    sorted = c.addweight(sorted, w.bias, w.joint); 
+                    sorted = c.addweight(sorted, w.bias, w.joint);
                 }
                 c.finalize(sorted);
                 vv.blend = addblendcombo(c);
@@ -97,7 +97,7 @@ struct md5 : skelmodel, skelloader<md5>
                 if(strstr(buf, "// meshes:"))
                 {
                     char *start = strchr(buf, ':')+1;
-                    if(*start==' ') start++; 
+                    if(*start==' ') start++;
                     char *end = start + strlen(start)-1;
                     while(end >= start && isspace(*end)) end--;
                     name = newstring(start, end+1-start);
@@ -105,7 +105,7 @@ struct md5 : skelmodel, skelloader<md5>
                 else if(strstr(buf, "shader"))
                 {
                     char *start = strchr(buf, '"'), *end = start ? strchr(start+1, '"') : NULL;
-                    if(start && end) 
+                    if(start && end)
                     {
                         char *texname = newstring(start+1, end-(start+1));
                         part *p = loading->parts.last();
@@ -117,7 +117,7 @@ struct md5 : skelmodel, skelloader<md5>
                 }
                 else if(sscanf(buf, " numverts %d", &numverts)==1)
                 {
-                    numverts = max(numverts, 0);        
+                    numverts = max(numverts, 0);
                     if(numverts)
                     {
                         vertinfo = new md5vert[numverts];
@@ -153,7 +153,7 @@ struct md5 : skelmodel, skelloader<md5>
 
     struct md5meshgroup : skelmeshgroup
     {
-        md5meshgroup() 
+        md5meshgroup()
         {
         }
 
@@ -196,11 +196,11 @@ struct md5 : skelmodel, skelloader<md5>
                         while(*curbuf && curname < &name[sizeof(name)-1])
                         {
                             char c = *curbuf++;
-                            if(c == '"') break; 
+                            if(c == '"') break;
                             if(isspace(c) && !allowspace) break;
                             *curname++ = c;
-                        } 
-                        *curname = '\0'; 
+                        }
+                        *curname = '\0';
                         if(sscanf(curbuf, " %d ( %f %f %f ) ( %f %f %f )",
                             &parent, &j.pos.x, &j.pos.y, &j.pos.z,
                             &j.orient.x, &j.orient.y, &j.orient.z)==7)
@@ -208,9 +208,9 @@ struct md5 : skelmodel, skelloader<md5>
                             j.pos.y = -j.pos.y;
                             j.orient.x = -j.orient.x;
                             j.orient.z = -j.orient.z;
-                            if(basejoints.length()<skel->numbones) 
+                            if(basejoints.length()<skel->numbones)
                             {
-                                if(!skel->bones[basejoints.length()].name) 
+                                if(!skel->bones[basejoints.length()].name)
                                     skel->bones[basejoints.length()].name = newstring(name);
                                 skel->bones[basejoints.length()].parent = parent;
                             }
@@ -234,11 +234,11 @@ struct md5 : skelmodel, skelloader<md5>
                     }
                 }
             }
-        
-            if(skel->shared <= 1) 
+
+            if(skel->shared <= 1)
             {
                 skel->linkchildren();
-                loopv(basejoints) 
+                loopv(basejoints)
                 {
                     boneinfo &b = skel->bones[i];
                     b.base = dualquat(basejoints[i].orient, basejoints[i].pos);
@@ -254,7 +254,7 @@ struct md5 : skelmodel, skelloader<md5>
                 else m.buildnorms();
                 m.cleanup();
             }
-            
+
             sortblendcombos();
 
             delete f;
@@ -370,7 +370,7 @@ struct md5 : skelmodel, skelloader<md5>
                         if(h.parent >= 0) frame[i].mul(skel->bones[h.parent].base, dualquat(frame[i]));
                         frame[i].fixantipodal(skel->framebones[i]);
                     }
-                }    
+                }
             }
 
             DELETEA(animdata);
@@ -384,10 +384,10 @@ struct md5 : skelmodel, skelloader<md5>
             name = newstring(meshfile);
 
             if(!loadmesh(meshfile, smooth)) return false;
-            
+
             return true;
         }
-    };            
+    };
 
     meshgroup *loadmeshes(const char *name, va_list args)
     {
@@ -428,17 +428,17 @@ struct md5 : skelmodel, skelloader<md5>
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
-        else // md5 without configuration, try default tris and skin 
+        else // md5 without configuration, try default tris and skin
         {
             identflags |= IDF_PERSIST;
-            if(!loaddefaultparts()) 
+            if(!loaddefaultparts())
             {
                 loading = NULL;
                 return false;
             }
             loading = NULL;
         }
-        loopv(parts) 
+        loopv(parts)
         {
             skelpart *p = (skelpart *)parts[i];
             p->endanimparts();

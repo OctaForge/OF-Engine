@@ -120,7 +120,7 @@ namespace game
     {
         char *end;
         int n = strtol(arg, &end, 10);
-        if(*arg && !*end) 
+        if(*arg && !*end)
         {
             if(n!=player1->clientnum && !players.inrange(n)) return -1;
             return n;
@@ -375,7 +375,7 @@ namespace game
         {   // Kripken: channel 0 is just positions, for as-fast-as-possible position updates. We do not want to change this.
             //          channel 1 is used by essentially all the fps game logic events
             //          channel 2: a binary file is received, a map or a demo
-            case 0: 
+            case 0:
                 parsepositions(p);
                 break;
 
@@ -572,7 +572,7 @@ assert(0);
 #ifndef SERVER
         if(editmode) toggleedit();
 #endif
-        if((gamemode==1 && !name[0]) || (!load_world(name) && remote)) 
+        if((gamemode==1 && !name[0]) || (!load_world(name) && remote))
         {
             emptymap(0, true, name);
         }
@@ -582,12 +582,12 @@ assert(0);
     {
         logger::log(logger::INFO, "Client: Requesting map: %s\r\n", name);
     }
-        
+
     void gotoplayer(const char *arg)
     {
         if(player1->state!=CS_SPECTATOR && player1->state!=CS_EDITING) return;
         int i = parseplayer(arg);
-        if(i>=0 && i!=player1->clientnum) 
+        if(i>=0 && i!=player1->clientnum)
         {
             fpsent *d = getclient(i);
             if(!d) return;

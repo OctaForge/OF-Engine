@@ -13,7 +13,7 @@ struct vertmodel : animmodel
         GLuint vbuf;
         animstate as;
         int millis;
- 
+
         vbocacheentry() : vbuf(0) { as.cur.fr1 = as.prev.fr1 = -1; }
     };
 
@@ -53,7 +53,7 @@ struct vertmodel : animmodel
         void buildnorms(bool areaweight = true)
         {
             loopk(((vertmeshgroup *)group)->numframes)
-                mesh::buildnorms(&verts[k*numverts], numverts, tris, numtris, areaweight); 
+                mesh::buildnorms(&verts[k*numverts], numverts, tris, numtris, areaweight);
         }
 
         void calctangents(bool areaweight = true)
@@ -160,7 +160,7 @@ struct vertmodel : animmodel
             loopi(numtris)
             {
                 tri &t = tris[i];
-                loopj(3) 
+                loopj(3)
                 {
                     int index = t.vert[j];
                     tcvert &tc = tcverts[index];
@@ -209,7 +209,7 @@ struct vertmodel : animmodel
         {
             const vert * RESTRICT vert1 = &verts[as.cur.fr1 * numverts],
                        * RESTRICT vert2 = &verts[as.cur.fr2 * numverts],
-                       * RESTRICT pvert1 = as.interp<1 ? &verts[as.prev.fr1 * numverts] : NULL, 
+                       * RESTRICT pvert1 = as.interp<1 ? &verts[as.prev.fr1 * numverts] : NULL,
                        * RESTRICT pvert2 = as.interp<1 ? &verts[as.prev.fr2 * numverts] : NULL;
             #define ipvert(attrib)   v.attrib.lerp(vert1[i].attrib, vert2[i].attrib, as.cur.t)
             #define ipbvert(attrib)  v.attrib.lerp(bvert1[i].attrib, bvert2[i].attrib, as.cur.t)
@@ -225,7 +225,7 @@ struct vertmodel : animmodel
             {
                 const bumpvert * RESTRICT bvert1 = &bumpverts[as.cur.fr1 * numverts],
                                * RESTRICT bvert2 = &bumpverts[as.cur.fr2 * numverts],
-                               * RESTRICT bpvert1 = as.interp<1 ? &bumpverts[as.prev.fr1 * numverts] : NULL, 
+                               * RESTRICT bpvert1 = as.interp<1 ? &bumpverts[as.prev.fr1 * numverts] : NULL,
                                * RESTRICT bpvert2 = as.interp<1 ? &bumpverts[as.prev.fr2 * numverts] : NULL;
                 if(as.interp<1) iploop(vvertbump, { ipvertp(pos); ipvertp(norm); ipbvertp(tangent); v.bitangent = bvert1[i].bitangent; })
                 else iploop(vvertbump, { ipvert(pos); ipvert(norm); ipbvert(tangent); v.bitangent = bvert1[i].bitangent; })
@@ -276,7 +276,7 @@ struct vertmodel : animmodel
         int vlen, vertsize;
         uchar *vdata;
 
-        vertmeshgroup() : numframes(0), tags(NULL), numtags(0), edata(NULL), ebuf(0), vnorms(false), vtangents(false), vlen(0), vertsize(0), vdata(NULL) 
+        vertmeshgroup() : numframes(0), tags(NULL), numtags(0), edata(NULL), ebuf(0), vnorms(false), vtangents(false), vlen(0), vertsize(0), vdata(NULL)
         {
         }
 
@@ -284,7 +284,7 @@ struct vertmodel : animmodel
         {
             DELETEA(tags);
             if(ebuf) glDeleteBuffers_(1, &ebuf);
-            loopi(MAXVBOCACHE) 
+            loopi(MAXVBOCACHE)
             {
                 if(vbocache[i].vbuf) glDeleteBuffers_(1, &vbocache[i].vbuf);
             }
@@ -320,7 +320,7 @@ struct vertmodel : animmodel
                         loopj(numtags) swap(dst[j].name, src[j].name);
                         dst[numtags].name = newstring(name);
                     }
-                    loopj(numtags) dst[j].matrix = src[j].matrix;    
+                    loopj(numtags) dst[j].matrix = src[j].matrix;
                     dst[numtags].matrix = matrix;
                 }
                 if(tags) delete[] tags;
@@ -339,13 +339,13 @@ struct vertmodel : animmodel
 
         void calctagmatrix(part *p, int i, const animstate &as, glmatrix &matrix)
         {
-            const matrix3x4 &tag1 = tags[as.cur.fr1*numtags + i].matrix, 
+            const matrix3x4 &tag1 = tags[as.cur.fr1*numtags + i].matrix,
                             &tag2 = tags[as.cur.fr2*numtags + i].matrix;
             matrix3x4 tag;
             tag.lerp(tag1, tag2, as.cur.t);
             if(as.interp<1)
             {
-                const matrix3x4 &tag1p = tags[as.prev.fr1*numtags + i].matrix, 
+                const matrix3x4 &tag1p = tags[as.prev.fr1*numtags + i].matrix,
                                 &tag2p = tags[as.prev.fr2*numtags + i].matrix;
                 matrix3x4 tagp;
                 tagp.lerp(tag1p, tag2p, as.prev.t);
@@ -373,8 +373,8 @@ struct vertmodel : animmodel
                 DELETEA(vdata);
                 vdata = new uchar[vlen*vertsize];
                 loopv(meshes) ((vertmesh *)meshes[i])->filltc(vdata, vertsize);
-            } 
-            else 
+            }
+            else
             {
                 glBindBuffer_(GL_ARRAY_BUFFER, vc.vbuf);
                 #define GENVBO(type) \
@@ -387,7 +387,7 @@ struct vertmodel : animmodel
                 int numverts = 0, htlen = 128;
                 loopv(meshes) numverts += ((vertmesh *)meshes[i])->numverts;
                 while(htlen < numverts) htlen *= 2;
-                if(numverts*4 > htlen*3) htlen *= 2; 
+                if(numverts*4 > htlen*3) htlen *= 2;
                 int *htdata = new int[htlen];
                 memset(htdata, -1, htlen*sizeof(int));
                 if(tangents) GENVBO(vvertbump);
@@ -413,8 +413,8 @@ struct vertmodel : animmodel
                 if(enablenormals) disablenormals();
                 if(enabletangents) disabletangents();
 
-                if(p->alphatested()) bindtc(&vverts->u, vertsize);              
-                else if(enabletc) disabletc();              
+                if(p->alphatested()) bindtc(&vverts->u, vertsize);
+                else if(enabletc) disabletc();
             }
             else
             {
@@ -423,7 +423,7 @@ struct vertmodel : animmodel
 
                 if(vtangents) bindtangents(&((vvertbump *)vverts)->tangent.x, vertsize);
                 else if(enabletangents) disabletangents();
-                
+
                 bindtc(&vverts->u, vertsize);
             }
             if(enablebones) disablebones();
@@ -482,17 +482,17 @@ struct vertmodel : animmodel
                 {
                     vc->as = *as;
                     vc->millis = lastmillis;
-                    loopv(meshes) 
+                    loopv(meshes)
                     {
                         vertmesh &m = *(vertmesh *)meshes[i];
                         m.interpverts(*as, norms, tangents, vdata + m.voffset*vertsize, p->skins[i]);
                     }
                     glBindBuffer_(GL_ARRAY_BUFFER, vc->vbuf);
-                    glBufferData_(GL_ARRAY_BUFFER, vlen*vertsize, vdata, GL_STREAM_DRAW);    
+                    glBufferData_(GL_ARRAY_BUFFER, vlen*vertsize, vdata, GL_STREAM_DRAW);
                 }
                 vc->millis = lastmillis;
             }
-        
+
             bindvbo(as, p, *vc);
             loopv(meshes)
             {
@@ -500,7 +500,7 @@ struct vertmodel : animmodel
                 p->skins[i].bind(m, as);
                 m->render(as, p->skins[i], *vc);
             }
-            
+
             loopv(p->links) calctagmatrix(p, p->links[i].tag, *as, p->links[i].matrix);
         }
     };
@@ -530,7 +530,7 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
         if(!mdl.meshes) conoutf("could not load %s", filename);
         else mdl.initskins();
     }
-   
+
     static void settag(char *tagname, float *tx, float *ty, float *tz, float *rx, float *ry, float *rz)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
@@ -542,12 +542,12 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
                     vec(*tx, *ty, *tz));
         ((meshgroup *)mdl.meshes)->addtag(tagname, m);
     }
- 
+
     static void setpitch(float *pitchscale, float *pitchoffset, float *pitchmin, float *pitchmax)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *MDL::loading->parts.last();
-    
+
         mdl.pitchscale = *pitchscale;
         mdl.pitchoffset = *pitchoffset;
         if(*pitchmin || *pitchmax)
@@ -576,7 +576,7 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
 
     vertcommands()
     {
-        if(MDL::multiparted()) this->modelcommand(loadpart, "load", "sf"); 
+        if(MDL::multiparted()) this->modelcommand(loadpart, "load", "sf");
         this->modelcommand(settag, "tag", "sffffff");
         this->modelcommand(setpitch, "pitch", "ffff");
         if(MDL::cananimate()) this->modelcommand(setanim, "anim", "siiff");

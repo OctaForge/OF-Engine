@@ -86,7 +86,7 @@ void resolverstop(resolverthread &rt)
     rt.query = NULL;
     rt.starttime = 0;
     SDL_UnlockMutex(resolvermutex);
-} 
+}
 
 bool resolverwait(const char *name, ENetAddress *address)
 {
@@ -100,10 +100,10 @@ bool resolverwait(const char *name, ENetAddress *address)
     SDL_CondSignal(querycond);
     int starttime = SDL_GetTicks(), timeout = 0;
     bool resolved = false;
-    for(;;) 
+    for(;;)
     {
         SDL_CondWaitTimeout(resultcond, resolvermutex, 250);
-        loopv(resolverresults) if(resolverresults[i].query == name) 
+        loopv(resolverresults) if(resolverresults[i].query == name)
         {
             address->host = resolverresults[i].address.host;
             resolverresults.remove(i);
@@ -111,11 +111,11 @@ bool resolverwait(const char *name, ENetAddress *address)
             break;
         }
         if(resolved) break;
-    
+
         timeout = SDL_GetTicks() - starttime;
         renderprogress(min(float(timeout)/RESOLVERLIMIT, 1.0f), text);
         if(interceptkey(SDLK_ESCAPE)) timeout = RESOLVERLIMIT + 1;
-        if(timeout > RESOLVERLIMIT) break;    
+        if(timeout > RESOLVERLIMIT) break;
     }
     if(!resolved && timeout > RESOLVERLIMIT)
     {

@@ -26,7 +26,7 @@ struct avisegmentinfo
     stream::offset offset, videoindexoffset, soundindexoffset;
     int firstindex;
     uint videoindexsize, soundindexsize, indexframes, videoframes, soundframes;
-    
+
     avisegmentinfo() {}
     avisegmentinfo(stream::offset offset, int firstindex) : offset(offset), videoindexoffset(0), soundindexoffset(0), firstindex(firstindex), videoindexsize(0), soundindexsize(0), indexframes(0), videoframes(0), soundframes(0) {}
 };
@@ -39,19 +39,19 @@ struct aviwriter
     stream::offset totalsize;
     const uint videow, videoh, videofps;
     string filename;
- 
+
     int soundfrequency, soundchannels;
     Uint16 soundformat;
-    
+
     vector<aviindexentry> index;
     vector<avisegmentinfo> segments;
-    
+
     stream::offset fileframesoffset, fileextframesoffset, filevideooffset, filesoundoffset, superindexvideooffset, superindexsoundoffset;
-    
+
     enum { MAX_CHUNK_DEPTH = 16, MAX_SUPER_INDEX = 1024 };
     stream::offset chunkoffsets[MAX_CHUNK_DEPTH];
     int chunkdepth;
-    
+
     aviindexentry &addindex(int frame, int type, int size)
     {
         avisegmentinfo &seg = segments.last();
@@ -63,12 +63,12 @@ struct aviwriter
         }
         return index.insert(i + 1, aviindexentry(frame, type, size, uint(totalsize - chunkoffsets[chunkdepth])));
     }
-    
-    double filespaceguess() 
+
+    double filespaceguess()
     {
         return double(totalsize);
     }
-       
+
     void startchunk(const char *fcc, uint size = 0)
     {
         f->write(fcc, 4);
@@ -77,14 +77,14 @@ struct aviwriter
         chunkoffsets[++chunkdepth] = totalsize;
         totalsize += size;
     }
-    
+
     void listchunk(const char *fcc, const char *lfcc)
     {
         startchunk(fcc);
         f->write(lfcc, 4);
         totalsize += 4;
     }
-    
+
     void endchunk()
     {
         assert(chunkdepth >= 0);
@@ -101,7 +101,7 @@ struct aviwriter
         if(size & 1) { f->putchar(0x00); totalsize++; }
         endchunk();
     }
-        
+
     void writechunk(const char *fcc, const void *data, uint len) // simplify startchunk()/endchunk() to avoid f->seek()
     {
         f->write(fcc, 4);
@@ -110,7 +110,7 @@ struct aviwriter
         totalsize += 4 + 4 + len;
         if(len & 1) { f->putchar(0x00); totalsize++; }
     }
-    
+
     void close()
     {
         if(!f) return;
@@ -168,18 +168,18 @@ struct aviwriter
         }
 
         f->seek(0, SEEK_END);
-        
+
         DELETEP(f);
     }
-    
+
     aviwriter(const char *name, uint w, uint h, uint fps, bool sound) : f(NULL), yuv(NULL), videoframes(0), totalsize(0), videow(w&~1), videoh(h&~1), videofps(fps), soundfrequency(0),soundchannels(0),soundformat(0)
     {
         copystring(filename, name);
         path(filename);
         if(!strrchr(filename, '.')) concatstring(filename, ".avi");
-        
+
         extern bool nosound; // sound.cpp
-        if(sound && !nosound) 
+        if(sound && !nosound)
         {
             Mix_QuerySpec(&soundfrequency, &soundformat, &soundchannels);
             const char *desc;
@@ -196,24 +196,24 @@ struct aviwriter
             if(dbgmovie) conoutf(CON_DEBUG, "soundspec: %dhz %s x %d", soundfrequency, desc, soundchannels);
         }
     }
-    
+
     ~aviwriter()
     {
         close();
         if(yuv) delete [] yuv;
     }
-    
+
     bool open()
     {
         f = openfile(filename, "wb");
         if(!f) return false;
-        
+
         chunkdepth = -1;
-        
+
         listchunk("RIFF", "AVI ");
-        
+
         listchunk("LIST", "hdrl");
-        
+
         startchunk("avih", 56);
         f->putlil<uint>(1000000 / videofps); // microsecsperframe
         f->putlil<uint>(0); // maxbytespersec
@@ -228,9 +228,9 @@ struct aviwriter
         f->putlil<uint>(videoh); // video height
         loopi(4) f->putlil<uint>(0); // reserved
         endchunk(); // avih
-        
+
         listchunk("LIST", "strl");
-        
+
         startchunk("strh", 56);
         f->write("vids", 4); // fcctype
         f->write("I420", 4); // fcchandler
@@ -250,7 +250,7 @@ struct aviwriter
         f->putlil<ushort>(videow); // frame right
         f->putlil<ushort>(videoh); // frame bottom
         endchunk(); // strh
-        
+
         startchunk("strf", 40);
         f->putlil<uint>(40); //headersize
         f->putlil<uint>(videow); // width
@@ -264,7 +264,7 @@ struct aviwriter
         f->putlil<uint>(0); // colorsused
         f->putlil<uint>(0); // colorsrequired
         endchunk(); // strf
-       
+
         startchunk("indx", 24 + 16*MAX_SUPER_INDEX);
         superindexvideooffset = f->tell();
         f->putlil<ushort>(4); // longs per entry
@@ -307,13 +307,13 @@ struct aviwriter
         endchunk(); // vprp
 
         endlistchunk(); // LIST strl
-                
+
         if(soundfrequency > 0)
         {
             const int bps = (soundformat==AUDIO_U8 || soundformat == AUDIO_S8) ? 1 : 2;
-            
+
             listchunk("LIST", "strl");
-            
+
             startchunk("strh", 56);
             f->write("auds", 4); // fcctype
             f->putlil<uint>(1); // fcchandler - normally 4cc, but audio is a special case
@@ -333,7 +333,7 @@ struct aviwriter
             f->putlil<ushort>(0); // frame right
             f->putlil<ushort>(0); // frame bottom
             endchunk(); // strh
-            
+
             startchunk("strf", 18);
             f->putlil<ushort>(1); // format (uncompressed PCM)
             f->putlil<ushort>(soundchannels); // channels
@@ -364,7 +364,7 @@ struct aviwriter
 
             endlistchunk(); // LIST strl
         }
-       
+
         listchunk("LIST", "odml");
         startchunk("dmlh", 4);
         fileextframesoffset = f->tell();
@@ -376,16 +376,16 @@ struct aviwriter
         const char *software = "Tesseract";
         writechunk("ISFT", software, strlen(software)+1);
         endlistchunk(); // LIST INFO
-        
+
         endlistchunk(); // LIST hdrl
-        
+
         nextsegment();
- 
+
         return true;
     }
-  
-    static inline void boxsample(const uchar *src, const uint stride, 
-                                 const uint area, const uint w, uint h, 
+
+    static inline void boxsample(const uchar *src, const uint stride,
+                                 const uint area, const uint w, uint h,
                                  const uint xlow, const uint xhigh, const uint ylow, const uint yhigh,
                                  uint &bdst, uint &gdst, uint &rdst)
     {
@@ -400,9 +400,9 @@ struct aviwriter
         bt = ylow*(bt + ((src[0]*xlow + end[0]*xhigh)>>12));
         gt = ylow*(gt + ((src[1]*xlow + end[1]*xhigh)>>12));
         rt = ylow*(rt + ((src[2]*xlow + end[2]*xhigh)>>12));
-        if(h) 
+        if(h)
         {
-            for(src += stride, end += stride; --h; src += stride, end += stride)  
+            for(src += stride, end += stride; --h; src += stride, end += stride)
             {
                 uint b = 0, g = 0, r = 0;
                 for(const uchar *cur = &src[4]; cur < end; cur += 4)
@@ -430,7 +430,7 @@ struct aviwriter
         gdst = (gt*area)>>24;
         rdst = (rt*area)>>24;
     }
- 
+
     void scaleyuv(const uchar *pixels, uint srcw, uint srch)
     {
         const int flip = -1;
@@ -443,10 +443,10 @@ struct aviwriter
         const uint stride = srcw<<2;
         srcw &= ~1;
         srch &= ~1;
-        const uint wfrac = (srcw<<12)/videow, hfrac = (srch<<12)/videoh, 
+        const uint wfrac = (srcw<<12)/videow, hfrac = (srch<<12)/videoh,
                    area = ((ullong)planesize<<12)/(srcw*srch + 1),
                    dw = videow*wfrac, dh = videoh*hfrac;
-  
+
         for(uint y = 0; y < dh;)
         {
             uint yn = y + hfrac - 1, yi = y>>12, h = (yn>>12) - yi, ylow = ((yn|(-int(h)>>24))&0xFFFU) + 1 - (y&0xFFFU), yhigh = (yn&0xFFFU) + 1;
@@ -503,7 +503,7 @@ struct aviwriter
 
         const uint stride = videow<<2;
         const uchar *src = pixels, *yend = src + videoh*stride;
-        while(src < yend)    
+        while(src < yend)
         {
             const uchar *src2 = src + stride, *xend = src2;
             uchar *ydst = yplane, *ydst2 = yplane + ystride, *udst = uplane, *vdst = vplane;
@@ -530,7 +530,7 @@ struct aviwriter
                 *vdst++ = ((128<<12) + 450*r - 377*g - 73*b)>>12;
 
                 src += 8;
-                src2 += 8; 
+                src2 += 8;
             }
             src = src2;
             yplane += 2*ystride;
@@ -560,7 +560,7 @@ struct aviwriter
                 *ydst++ = src[4];
                 *ydst2++ = src2[0];
                 *ydst2++ = src2[4];
- 
+
                 *udst++ = (uint(src[1]) + uint(src[5]) + uint(src2[1]) + uint(src2[5])) >> 2;
                 *vdst++ = (uint(src[2]) + uint(src[6]) + uint(src2[2]) + uint(src2[6])) >> 2;
 
@@ -603,16 +603,16 @@ struct aviwriter
                 endianswap((short *)data, framesize/2);
                 break;
         }
-       
+
         if(totalsize - segments.last().offset + framesize > 1000*1000*1000 && !nextsegment()) return false;
- 
+
         addindex(frame, 1, framesize);
-    
+
         writechunk("01wb", data, framesize);
 
         return true;
     }
-   
+
 
     enum
     {
@@ -631,8 +631,8 @@ struct aviwriter
         for(int i = seg.firstindex; i < index.length(); i++)
         {
             aviindexentry &e = index[i];
-            if(e.type) soundframes++; 
-            else 
+            if(e.type) soundframes++;
+            else
             {
                 if(i == seg.firstindex || e.offset != index[i-1].offset)
                     videoframes++;
@@ -703,7 +703,7 @@ struct aviwriter
 
     bool nextsegment()
     {
-        if(segments.length()) 
+        if(segments.length())
         {
             if(segments.length() >= MAX_SUPER_INDEX) return false;
             flushsegment();
@@ -713,14 +713,14 @@ struct aviwriter
         segments.add(avisegmentinfo(chunkoffsets[chunkdepth], index.length()));
         return true;
     }
-  
+
     bool writevideoframe(const uchar *pixels, uint srcw, uint srch, int format, uint frame)
     {
         if(frame < videoframes) return true;
-        
+
         switch(format)
         {
-            case VID_RGB: 
+            case VID_RGB:
                 if(srcw != videow || srch != videoh) scaleyuv(pixels, srcw, srch);
                 else encodeyuv(pixels);
                 break;
@@ -738,7 +738,7 @@ struct aviwriter
 
         return true;
     }
-    
+
 };
 
 VAR(movieaccelblit, 0, 0, 1);
@@ -750,24 +750,24 @@ FVARP(movieminquality, 0, 0, 1);
 namespace recorder
 {
     static enum { REC_OK = 0, REC_USERHALT, REC_TOOSLOW, REC_FILERROR } state = REC_OK;
-    
+
     static aviwriter *file = NULL;
     static int starttime = 0;
-    
+
     static int stats[1000];
     static int statsindex = 0;
     static uint dps = 0; // dropped frames per sample
-    
+
     enum { MAXSOUNDBUFFERS = 128 }; // sounds queue up until there is a video frame, so at low fps you'll need a bigger queue
     struct soundbuffer
     {
         uchar *sound;
         uint size, maxsize;
         uint frame;
-        
+
         soundbuffer() : sound(NULL), maxsize(0) {}
         ~soundbuffer() { cleanup(); }
-        
+
         void load(uchar *stream, uint len, uint fnum)
         {
             if(len > maxsize)
@@ -780,14 +780,14 @@ namespace recorder
             frame = fnum;
             memcpy(sound, stream, len);
         }
-        
+
         void cleanup() { DELETEA(sound); maxsize = 0; }
     };
     static queue<soundbuffer, MAXSOUNDBUFFERS> soundbuffers;
     static SDL_mutex *soundlock = NULL;
-    
+
     enum { MAXVIDEOBUFFERS = 2 }; // double buffer
-    struct videobuffer 
+    struct videobuffer
     {
         uchar *video;
         uint w, h, bpp, frame;
@@ -805,7 +805,7 @@ namespace recorder
             video = new uchar[w*h*bpp];
             format = -1;
         }
-         
+
         void cleanup() { DELETEA(video); }
     };
     static queue<videobuffer, MAXVIDEOBUFFERS> videobuffers;
@@ -820,7 +820,7 @@ namespace recorder
     static SDL_cond *shouldencode = NULL, *shouldread = NULL;
 
     bool isrecording() { return file != NULL; }
-    
+
     float calcquality()
     {
         return 1.0f - float(dps)/float(dps+file->videofps); // strictly speaking should lock to read dps - 1.0=perfect, 0.5=half of frames are beingdropped
@@ -834,7 +834,7 @@ namespace recorder
     int videoencoder(void *data) // runs on a separate thread
     {
         for(int numvid = 0, numsound = 0;;)
-        {   
+        {
             SDL_LockMutex(videolock);
             for(; numvid > 0; numvid--) videobuffers.remove();
             SDL_CondSignal(shouldread);
@@ -843,7 +843,7 @@ namespace recorder
             videobuffer &m = videobuffers.removing();
             numvid++;
             SDL_UnlockMutex(videolock);
-            
+
             if(file->soundfrequency > 0)
             {
                 // chug data from lock protected buffer to avoid holding lock while writing to file
@@ -861,7 +861,7 @@ namespace recorder
                     if(!file->writesound(s.sound, s.size, s.frame)) state = REC_FILERROR;
                 }
             }
-            
+
             int duplicates = m.frame - (int)file->videoframes + 1;
             if(duplicates > 0) // determine how many frames have been dropped over the sample window
             {
@@ -873,17 +873,17 @@ namespace recorder
             //printf("frame %d->%d (%d dps): sound = %d bytes\n", file->videoframes, nextframenum, dps, m.soundlength);
             if(calcquality() < movieminquality) state = REC_TOOSLOW;
             else if(!file->writevideoframe(m.video, m.w, m.h, m.format, m.frame)) state = REC_FILERROR;
-            
+
             m.frame = ~0U;
         }
-        
+
         return 0;
     }
-    
+
     void soundencoder(void *udata, Uint8 *stream, int len) // callback occurs on a separate thread
     {
         SDL_LockMutex(soundlock);
-        if(soundbuffers.full()) 
+        if(soundbuffers.full())
         {
             if(movieminquality >= 1) state = REC_TOOSLOW;
         }
@@ -895,38 +895,38 @@ namespace recorder
         }
         SDL_UnlockMutex(soundlock);
     }
-    
-    void start(const char *filename, int videofps, int videow, int videoh, bool sound) 
+
+    void start(const char *filename, int videofps, int videow, int videoh, bool sound)
     {
         if(file) return;
-       
+
         useshaderbyname("moviergb");
         useshaderbyname("movieyuv");
         useshaderbyname("moviey");
         useshaderbyname("movieu");
         useshaderbyname("moviev");
- 
+
         int fps, bestdiff, worstdiff;
         getfps(fps, bestdiff, worstdiff);
         if(videofps > fps) conoutf(CON_WARN, "frame rate may be too low to capture at %d fps", videofps);
-        
+
         if(videow%2) videow += 1;
         if(videoh%2) videoh += 1;
 
         file = new aviwriter(filename, videow, videoh, videofps, sound);
-        if(!file->open()) 
-        { 
+        if(!file->open())
+        {
             conoutf(CON_ERROR, "unable to create file %s", filename);
             DELETEP(file);
             return;
         }
         conoutf("movie recording to: %s %dx%d @ %dfps%s", file->filename, file->videow, file->videoh, file->videofps, (file->soundfrequency>0)?" + sound":"");
-        
+
         starttime = gettime();
         loopi(file->videofps) stats[i] = 0;
         statsindex = 0;
         dps = 0;
-        
+
         lastframe = ~0U;
         videobuffers.clear();
         loopi(MAXVIDEOBUFFERS)
@@ -935,17 +935,17 @@ namespace recorder
             videobuffers.data[i].init(w, h, 4);
             videobuffers.data[i].frame = ~0U;
         }
-        
+
         soundbuffers.clear();
-        
+
         soundlock = SDL_CreateMutex();
         videolock = SDL_CreateMutex();
         shouldencode = SDL_CreateCond();
         shouldread = SDL_CreateCond();
-        thread = SDL_CreateThread(videoencoder, "video encoder", NULL); 
+        thread = SDL_CreateThread(videoencoder, "video encoder", NULL);
         if(file->soundfrequency > 0) Mix_SetPostMix(soundencoder, NULL);
     }
-    
+
     void cleanup()
     {
         if(scalefb) { glDeleteFramebuffers_(1, &scalefb); scalefb = 0; }
@@ -960,11 +960,11 @@ namespace recorder
         if(!file) return;
         if(state == REC_OK) state = REC_USERHALT;
         if(file->soundfrequency > 0) Mix_SetPostMix(NULL, NULL);
-        
+
         SDL_LockMutex(videolock); // wakeup thread enough to kill it
         SDL_CondSignal(shouldencode);
         SDL_UnlockMutex(videolock);
-        
+
         SDL_WaitThread(thread, NULL); // block until thread is finished
 
         cleanup();
@@ -980,14 +980,14 @@ namespace recorder
         soundlock = videolock = NULL;
         shouldencode = shouldread = NULL;
         thread = NULL;
- 
+
         static const char * const mesgs[] = { "ok", "stopped", "computer too slow", "file error"};
         conoutf("movie recording halted: %s, %d frames", mesgs[state], file->videoframes);
-        
+
         DELETEP(file);
         state = REC_OK;
     }
-  
+
     void readbuffer(videobuffer &m, uint nextframe)
     {
         bool accelyuv = movieaccelyuv && !(m.w%8),
@@ -1025,7 +1025,7 @@ namespace recorder
                 glBindRenderbuffer_(GL_RENDERBUFFER, 0);
                 glBindFramebuffer_(GL_FRAMEBUFFER, 0);
             }
-                     
+
             if(tw < (uint)screenw || th < (uint)screenh)
             {
                 glBindFramebuffer_(GL_READ_FRAMEBUFFER, 0);
@@ -1059,13 +1059,13 @@ namespace recorder
             }
             if(accelyuv)
             {
-                glBindFramebuffer_(GL_FRAMEBUFFER, encodefb); 
-                glBindTexture(GL_TEXTURE_RECTANGLE, scaletex[0]); 
+                glBindFramebuffer_(GL_FRAMEBUFFER, encodefb);
+                glBindTexture(GL_TEXTURE_RECTANGLE, scaletex[0]);
                 glViewport(0, 0, m.w/4, m.h); SETSHADER(moviey); screenquadflipped(m.w, m.h);
                 glViewport(m.w/4, 0, m.w/8, m.h/2); SETSHADER(movieu); screenquadflipped(m.w, m.h);
                 glViewport(m.w/4, m.h/2, m.w/8, m.h/2); SETSHADER(moviev); screenquadflipped(m.w, m.h);
                 const uint planesize = m.w * m.h;
-                glPixelStorei(GL_PACK_ALIGNMENT, texalign(m.video, m.w/4, 4)); 
+                glPixelStorei(GL_PACK_ALIGNMENT, texalign(m.video, m.w/4, 4));
                 glReadPixels(0, 0, m.w/4, m.h, GL_BGRA, GL_UNSIGNED_BYTE, m.video);
                 glPixelStorei(GL_PACK_ALIGNMENT, texalign(&m.video[planesize], m.w/8, 4));
                 glReadPixels(m.w/4, 0, m.w/8, m.h/2, GL_BGRA, GL_UNSIGNED_BYTE, &m.video[planesize]);
@@ -1084,7 +1084,7 @@ namespace recorder
         }
         else glReadPixels(0, 0, m.w, m.h, GL_BGRA, GL_UNSIGNED_BYTE, m.video);
     }
- 
+
     bool readbuffer()
     {
         if(!file) return false;
@@ -1129,7 +1129,7 @@ namespace recorder
         else if(totalsize >= 1e6) { totalsize /= 1e6; unit = "MB"; }
         else totalsize /= 1e3;
 
-        draw_textf("recorded %.1f%s %d%%", w*3-10*FONTH, h*3-FONTH-FONTH*3/2, totalsize, unit, int(calcquality()*100)); 
+        draw_textf("recorded %.1f%s %d%%", w*3-10*FONTH, h*3-FONTH-FONTH*3/2, totalsize, unit, int(calcquality()*100));
 
         glDisable(GL_BLEND);
     }

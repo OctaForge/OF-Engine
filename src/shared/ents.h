@@ -74,7 +74,7 @@ struct physent                                  // base entity type, can be affe
     uchar physstate;                            // one of PHYS_* above
     uchar state, editstate;                     // one of CS_* above
     uchar type;                                 // one of ENT_* above
-    uchar collidetype;                          // one of COLLIDE_* above           
+    uchar collidetype;                          // one of COLLIDE_* above
 
     bool blocked, moving;                       // used by physics to signal ai
     physent *onplayer;
@@ -87,7 +87,7 @@ struct physent                                  // base entity type, can be affe
                blocked(false), moving(true),
                onplayer(NULL), lastmove(0), lastmoveattempt(0)
                { reset(); }
-              
+
     void resetinterp()
     {
         newpos = o;
@@ -186,8 +186,8 @@ struct dynent : physent                         // animated characters, or chara
     int lastrendered;
 
     dynent() : ragdoll(NULL), query(NULL), lastrendered(0)
-    { 
-        reset(); 
+    {
+        reset();
     }
 
     virtual ~dynent() // OF: virtual
@@ -197,13 +197,13 @@ struct dynent : physent                         // animated characters, or chara
         if(ragdoll) cleanragdoll(this);
 #endif
     }
-               
+
     virtual void stopmoving() // OF: virtual
     {
         k_left = k_right = k_up = k_down = jumping = false;
         move = strafe = crouching = 0;
     }
-        
+
     virtual void reset() // OF: virtual
     {
         physent::reset();

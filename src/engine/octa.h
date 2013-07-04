@@ -45,7 +45,7 @@ enum
     LAYER_BOTTOM = (1<<6),
 
     LAYER_BLEND  = LAYER_TOP|LAYER_BOTTOM,
-    
+
     MAXFACEVERTS = 15
 };
 
@@ -181,7 +181,7 @@ struct cubeext
     uchar maxverts;          // allocated space for verts
 
     vertinfo *verts() { return (vertinfo *)(this+1); }
-};  
+};
 
 struct cube
 {

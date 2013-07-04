@@ -118,9 +118,9 @@ namespace server
             lua_pushinteger(lua::L, uniqueId);
             lua_call       (lua::L, 1, 0);
         }
-        
+
         delete (clientinfo *)ci;
-    } 
+    }
 
     clientinfo *getinfo(int n)
     {
@@ -202,17 +202,17 @@ namespace server
 
         arenaservmode() : arenaround(0) {}
 
-        bool canspawn(clientinfo *ci, bool connecting = false) 
-        { 
+        bool canspawn(clientinfo *ci, bool connecting = false)
+        {
             if(connecting && nonspectators(ci->clientnum)<=1) return true;
-            return false; 
+            return false;
         }
 
         void reset(bool empty)
         {
             arenaround = 0;
         }
-    
+
         void update()
         {
         }
@@ -221,13 +221,13 @@ namespace server
     servmode *smode = NULL;
 
     void *newinfo() { return new clientinfo; }
-    void deleteinfo(void *ci) { delete (clientinfo *)ci; } 
+    void deleteinfo(void *ci) { delete (clientinfo *)ci; }
     int getUniqueIdFromInfo(void *ci) { return ((clientinfo *)ci)->uniqueId; }
 
     void sendservmsg(const char *s) { sendf(-1, 1, "ris", N_SERVMSG, s); }
 
-    void resetitems() 
-    { 
+    void resetitems()
+    {
     }
 
     void changemap(const char *s, int mode)
@@ -248,7 +248,7 @@ namespace server
         static string cname;
         formatstring(cname, "%s \fs\f5(%d)\fr", name, ci->clientnum);
         return cname;
-    }   
+    }
 
     int checktype(int type, clientinfo *ci)
     {
@@ -277,7 +277,7 @@ namespace server
                     return -1;
                 }
             }
-            if(type < N_EDITENT || type > N_EDITVAR || !editmode) 
+            if(type < N_EDITENT || type > N_EDITVAR || !editmode)
             {
                 if(++ci->overflow >= 200) return -2;
             }
@@ -374,8 +374,8 @@ namespace server
                 if(psize && (pkt[i].posoff<0 || psize-ci.position.length()>0))
                 {
                     // Kripken: Trickery with offsets here prevents relaying back to the same client. Ditto below
-                    packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+ci.position.length()], 
-                                                pkt[i].posoff<0 ? psize : psize-ci.position.length(), 
+                    packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+ci.position.length()],
+                                                pkt[i].posoff<0 ? psize : psize-ci.position.length(),
                                                 ENET_PACKET_FLAG_NO_ALLOCATE);
 
                     logger::log(logger::INFO, "Sending positions packet to %d\r\n", ci.clientnum);
@@ -388,8 +388,8 @@ namespace server
 
                 if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
                 {
-                    packet = enet_packet_create(&ws.messages[pkt[i].msgoff<0 ? 0 : pkt[i].msgoff+pkt[i].msglen], 
-                                                pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen, 
+                    packet = enet_packet_create(&ws.messages[pkt[i].msgoff<0 ? 0 : pkt[i].msgoff+pkt[i].msglen],
+                                                pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen,
                                                 (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
 
                     logger::log(logger::INFO, "Sending messages packet to %d\r\n", ci.clientnum);
@@ -401,7 +401,7 @@ namespace server
 
             }
 
-            // Kripken: Do this, if we sent to this client or if not - either way. Note that the only reason 
+            // Kripken: Do this, if we sent to this client or if not - either way. Note that the only reason
             // Sauer does this in this loop and not elsewhere is so that we can do the index trickery above to prevent
             // relaying back to the same client
             ci.position.setsize(0);
@@ -409,14 +409,14 @@ namespace server
         }
 
         reliablemessages = false;
-        if(!ws.uses) 
+        if(!ws.uses)
         {
             delete &ws;
             return false;
         }
-        else 
+        else
         {
-            worldstates.add(&ws); 
+            worldstates.add(&ws);
             return true;
         }
     }
@@ -567,17 +567,17 @@ namespace server
             case N_PASTE:
                 if(ci->state.state!=CS_SPECTATOR) sendclipboard(ci);
                 goto genericmsg;
-    
+
             case N_CLIPBOARD:
             {
-                int unpacklen = getint(p), packlen = getint(p); 
+                int unpacklen = getint(p), packlen = getint(p);
                 ci->cleanclipboard(false);
                 if(ci->state.state==CS_SPECTATOR)
                 {
                     if(packlen > 0) p.subbuf(packlen);
                     break;
                 }
-                if(packlen <= 0 || packlen > (1<<16) || unpacklen <= 0) 
+                if(packlen <= 0 || packlen > (1<<16) || unpacklen <= 0)
                 {
                     if(packlen > 0) p.subbuf(packlen);
                     packlen = unpacklen = 0;
@@ -586,12 +586,12 @@ namespace server
                 putint(q, N_CLIPBOARD);
                 putint(q, ci->clientnum);
                 putint(q, unpacklen);
-                putint(q, packlen); 
+                putint(q, packlen);
                 if(packlen > 0) p.get(q.subbuf(packlen).buf, packlen);
                 ci->clipboard = q.finalize();
                 ci->clipboard->referenceCount++;
                 break;
-            } 
+            }
 
             /* TODO: expose this */
             case N_SERVCMD:
@@ -653,7 +653,7 @@ namespace server
         smapname[0] = '\0';
         resetitems();
     }
-   
+
     void localconnect(int n)
     {
         clientinfo *ci = (clientinfo *)getinfo(n);
@@ -823,8 +823,8 @@ namespace server
         return DISC_NONE;
     }
 
-    void clientdisconnect(int n) 
-    { 
+    void clientdisconnect(int n)
+    {
         logger::log(logger::DEBUG, "server::clientdisconnect: %d\r\n", n);
         INDENT_LOG(logger::DEBUG);
 

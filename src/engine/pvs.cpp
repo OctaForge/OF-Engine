@@ -661,7 +661,7 @@ struct pvsworker
         {
             int hide = children[7].flags&PVS_HIDE_BB;
             loopi(7) if((children[i].flags&PVS_HIDE_BB)!=hide) canreduce = false;
-            if(canreduce) 
+            if(canreduce)
             {
                 p.flags = (p.flags & ~PVS_HIDE_BB) | hide;
                 p.children = 0;
@@ -675,7 +675,7 @@ struct pvsworker
         }
         return false;
     }
-    
+
     vector<uchar> outbuf;
 
     bool serializepvs(pvsnode &p, int storage = -1)
@@ -693,7 +693,7 @@ struct pvsworker
         if(storage>=0)
         {
             for(; i < 8; i++)
-            {   
+            {
                 pvsnode &child = children[i];
                 if(child.flags&PVS_HIDE_BB) leafvalues |= 1<<i;
                 else if(child.children) break;
@@ -899,7 +899,7 @@ static inline bool isallclip(cube *c)
     }
     return true;
 }
-   
+
 static int countviewcells(cube *c, const ivec &co, int size, int threshold)
 {
     int count = 0;
@@ -1004,7 +1004,7 @@ VARN(waterpvs, usewaterpvs, 0, 1, 1);
 void setviewcell(const vec &p)
 {
     if(!usepvs) curpvs = NULL;
-    else if(lockedpvs) 
+    else if(lockedpvs)
     {
         curpvs = lockedpvs;
         curwaterpvs = lockedwaterpvs;
@@ -1142,7 +1142,7 @@ void genpvs(int *viewcellsize)
     check_genpvs_progress = false;
     SDL_TimerID timer = 0;
     int numthreads = pvsthreads > 0 ? pvsthreads : numcpus;
-    if(numthreads<=1) 
+    if(numthreads<=1)
     {
         pvsworkers.add(new pvsworker);
         timer = SDL_AddTimer(500, genpvs_timer, NULL);
@@ -1172,7 +1172,7 @@ void genpvs(int *viewcellsize)
             SDL_UnlockMutex(viewcellmutex);
             show_genpvs_progress(unique, processed);
             if(!remaining) break;
-        }        
+        }
         SDL_LockMutex(viewcellmutex);
         viewcellrequests.setsize(0);
         SDL_UnlockMutex(viewcellmutex);
@@ -1184,12 +1184,12 @@ void genpvs(int *viewcellsize)
     pvscompress.clear();
 
     Uint32 end = SDL_GetTicks();
-    if(genpvs_canceled) 
+    if(genpvs_canceled)
     {
         clearpvs();
         conoutf("genpvs aborted");
     }
-    else conoutf("generated %d unique view cells totaling %.1f kB and averaging %d B (%.1f seconds)", 
+    else conoutf("generated %d unique view cells totaling %.1f kB and averaging %d B (%.1f seconds)",
             pvs.length(), pvsbuf.length()/1024.0f, pvsbuf.length()/max(pvs.length(), 1), (end - start) / 1000.0f);
 }
 
@@ -1197,7 +1197,7 @@ COMMAND(genpvs, "i");
 
 void pvsstats()
 {
-    conoutf("%d unique view cells totaling %.1f kB and averaging %d B",          
+    conoutf("%d unique view cells totaling %.1f kB and averaging %d B",
         pvs.length(), pvsbuf.length()/1024.0f, pvsbuf.length()/max(pvs.length(), 1));
 }
 
@@ -1252,7 +1252,7 @@ bool pvsoccludedsphere(const vec &center, float radius)
     bbradius.sub(bborigin);
     return pvsoccluded(curpvs, bborigin, bbradius);
 }
- 
+
 bool waterpvsoccluded(int height)
 {
     if(!curwaterpvs) return false;

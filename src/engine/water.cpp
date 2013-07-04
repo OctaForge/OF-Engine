@@ -87,13 +87,13 @@ void renderwaterfog(int mat, float surface)
     else glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
     glActiveTexture_(GL_TEXTURE0);
 
-    vec p[4] = 
+    vec p[4] =
     {
         invcamprojmatrix.perspectivetransform(vec(-1, -1, -1)),
         invcamprojmatrix.perspectivetransform(vec(-1, 1, -1)),
         invcamprojmatrix.perspectivetransform(vec(1, -1, -1)),
         invcamprojmatrix.perspectivetransform(vec(1, 1, -1))
-    }; 
+    };
     float bz = surface + camera1->o.z + (vertwater ? WATER_AMPLITUDE : 0),
           syl = p[1].z > p[0].z ? 2*(bz - p[0].z)/(p[1].z - p[0].z) - 1 : 1,
           syr = p[3].z > p[2].z ? 2*(bz - p[2].z)/(p[3].z - p[2].z) - 1 : 1;
@@ -218,7 +218,7 @@ VERTWN(vertln, {
 }
 
 void rendervertwater(uint subdiv, int xo, int yo, int z, uint size, int mat)
-{   
+{
     wx1 = xo;
     wy1 = yo;
     wx2 = wx1 + size,
@@ -300,7 +300,7 @@ uint renderwaterlod(int x, int y, int z, uint size, int mat)
                 if(subdiv2 >= size) rendervertwater(childsize, x + childsize, y, z, childsize, mat);
                 if(subdiv3 >= size) rendervertwater(childsize, x + childsize, y + childsize, z, childsize, mat);
                 if(subdiv4 >= size) rendervertwater(childsize, x, y + childsize, z, childsize, mat);
-            } 
+            }
         }
         return minsubdiv;
     }
@@ -342,7 +342,7 @@ static inline void renderwater(const materialsurface &m, int mat = MAT_WATER)
 void renderlava(const materialsurface &m, Texture *tex, float scale)
 {
     lavaxk = 8.0f/(tex->xs*scale);
-    lavayk = 8.0f/(tex->ys*scale); 
+    lavayk = 8.0f/(tex->ys*scale);
     lavascroll = lastmillis/1000.0f;
     renderwater(m, MAT_LAVA);
 }
@@ -564,7 +564,7 @@ void renderlava()
             glActiveTexture_(GL_TEXTURE0);
 
             vector<materialsurface> &surfs = lavafallsurfs[k];
-            loopv(surfs) 
+            loopv(surfs)
             {
                 materialsurface &m = surfs[i];
                 renderwaterfall(m, 0.1f, &matnormals[m.orient]);
@@ -591,7 +591,7 @@ void renderwaterfalls()
         wfscroll = 16.0f*lastmillis/1000.0f;
         wfxscale = TEX_SCALE/(tex->xs*wslot.scale);
         wfyscale = TEX_SCALE/(tex->ys*wslot.scale);
-  
+
         bvec color = getwaterfallcolorv(k), refractcolor = getwaterfallrefractcolorv(k);
         if(color.iszero()) color = getwatercolorv(k);
         if(refractcolor.iszero()) refractcolor = getwaterrefractcolorv(k);
@@ -601,10 +601,10 @@ void renderwaterfalls()
         GLOBALPARAMF(waterfallcolor, color.x*colorscale, color.y*colorscale, color.z*colorscale);
         GLOBALPARAMF(waterfallrefract, refractcolor.x*refractscale, refractcolor.y*refractscale, refractcolor.z*refractscale, refract*viewh);
         GLOBALPARAMF(waterfallspec, 0.5f*spec/100.0f);
- 
+
         if(waterfallenv) SETSHADER(waterfallenv);
         else SETSHADER(waterfall);
- 
+
         glBindTexture(GL_TEXTURE_2D, tex->id);
         glActiveTexture_(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, wslot.sts.inrange(2) ? (wslot.sts.inrange(3) ? wslot.sts[3].t->id : notexture->id) : (wslot.sts.inrange(1) ? wslot.sts[1].t->id : notexture->id));
@@ -615,7 +615,7 @@ void renderwaterfalls()
         }
         glActiveTexture_(GL_TEXTURE0);
 
-        loopv(surfs) 
+        loopv(surfs)
         {
             materialsurface &m = surfs[i];
             renderwaterfall(m, 0.1f, &matnormals[m.orient]);

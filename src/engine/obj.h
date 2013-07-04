@@ -111,7 +111,7 @@ struct obj : vertmodel, vertloader<obj>
                         for(;;)
                         {
                             while(isspace(*c)) c++;
-                            if(!*c) break; 
+                            if(!*c) break;
                             ivec vkey(-1, -1, -1);
                             loopi(3)
                             {
@@ -187,7 +187,7 @@ struct obj : vertmodel, vertloader<obj>
     }
 
     bool load()
-    { 
+    {
         if(loaded) return true;
         formatstring(dir, "media/model/%s", loadname);
         defformatstring(cfgname, "media/model/%s/obj.cfg", loadname);

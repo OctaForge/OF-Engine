@@ -51,7 +51,7 @@ namespace game
             return;
         }
         int cur = following >= 0 ? following : (dir < 0 ? players.length() - 1 : 0);
-        loopv(players) 
+        loopv(players)
         {
             cur = (cur + dir + players.length()) % players.length();
             if(players[cur])
@@ -108,7 +108,7 @@ namespace game
     void setupcamera()
     {
         fpsent *target = followingplayer();
-        if(target) 
+        if(target)
         {
             player1->yaw = target->yaw;    // Kripken: needed?
             player1->pitch = target->state==CS_DEAD ? 0 : target->pitch; // Kripken: needed?
@@ -270,7 +270,7 @@ namespace game
         }
         else
             logger::log(logger::INFO, "Player does not yet exist, or scenario not started, do not run moveplayer() etc.\r\n");
-        
+
 #else // SERVER
     #if 1
         // Loop over NPCs we control, moving and sending their info c2sinfo for each.
@@ -392,7 +392,7 @@ namespace game
     {
     }
 
-    bool canjump() 
+    bool canjump()
     {
         return true; // Handled ourselves elsewhere
     }
@@ -578,7 +578,7 @@ namespace game
         o = vec(0,0,0); //pl->muzzle;
         if(dist <= 0) d = o;
         else
-        { 
+        {
             vecfromyawpitch(owner->yaw, owner->pitch, 1, 0, d);
             float newdist = raycube(owner->o, d, dist, RAY_CLIPMAT|RAY_ALPHAPOLY);
             d.mul(min(newdist, dist)).add(owner->o);
@@ -592,7 +592,7 @@ namespace game
     {
         // Generally not used, as we fork emptymap, but useful to clear and resize
     }
- 
+
     // any data written into this vector will get saved with the map data. Must take care to do own versioning, and endianess if applicable. Will not get called when loading maps from other games, so provide defaults.
     void writegamedata(vector<char> &extras) {}
     void readgamedata(vector<char> &extras) {}

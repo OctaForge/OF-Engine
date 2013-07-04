@@ -1,7 +1,7 @@
 #include "engine.h"
 
 bvec ambientcolor(0x19, 0x19, 0x19);
-HVARFR(ambient, 1, 0x191919, 0xFFFFFF, 
+HVARFR(ambient, 1, 0x191919, 0xFFFFFF,
 {
     if(ambient <= 255) ambient |= (ambient<<8) | (ambient<<16);
     ambientcolor = bvec((ambient>>16)&0xFF, (ambient>>8)&0xFF, ambient&0xFF);
@@ -32,12 +32,12 @@ extern void setsunlightdir();
 FVARFR(sunlightyaw, 0, 0, 360, setsunlightdir());
 FVARFR(sunlightpitch, -90, 90, 90, setsunlightdir());
 
-void setsunlightdir() 
-{ 
-    sunlightdir = vec(sunlightyaw*RAD, sunlightpitch*RAD); 
+void setsunlightdir()
+{
+    sunlightdir = vec(sunlightyaw*RAD, sunlightpitch*RAD);
     loopk(3) if(fabs(sunlightdir[k]) < 1e-5f) sunlightdir[k] = 0;
     sunlightdir.normalize();
-    setupsunlight(); 
+    setupsunlight();
 }
 
 void setupsunlight()
@@ -150,7 +150,7 @@ bool PackNode::insert(ushort &tx, ushort &ty, ushort tw, ushort th)
                         child2->insert(tx, ty, tw, th);
         available = max(child1->available, child2->available);
         if(!available) discardchildren();
-        return inserted;    
+        return inserted;
     }
     if(w == tw && h == th)
     {
@@ -159,7 +159,7 @@ bool PackNode::insert(ushort &tx, ushort &ty, ushort tw, ushort th)
         ty = y;
         return true;
     }
-    
+
     if(w - tw > h - th)
     {
         child1 = new PackNode(x, y, tw, h);
@@ -195,7 +195,7 @@ void PackNode::reserve(ushort tx, ushort ty, ushort tw, ushort th)
         else split = w - max(dx2, 0);
         if(w - split <= 0)
         {
-            w = split; 
+            w = split;
             available = min(w, h);
             if(dy > 0) reserve(tx, ty, tw, th);
             else if(tx <= x && tx + tw >= x + w) available = 0;
@@ -248,7 +248,7 @@ static void clearsurfaces(cube *c)
     {
         if(c[i].ext)
         {
-            loopj(6) 
+            loopj(6)
             {
                 surfaceinfo &surf = c[i].ext->surfaces[j];
                 if(!surf.used()) continue;
@@ -265,7 +265,7 @@ static void clearsurfaces(cube *c)
                         v.norm = 0;
                     }
                 }
-            } 
+            }
         }
         if(c[i].children) clearsurfaces(c[i].children);
     }
@@ -311,7 +311,7 @@ void clearlightcache(int id)
 const vector<int> &checklightcache(int x, int y)
 {
     x >>= lightcachesize;
-    y >>= lightcachesize; 
+    y >>= lightcachesize;
     lightcacheentry &lce = lightcache[LIGHTCACHEHASH(x, y)];
     if(lce.x == x && lce.y == y) return lce.lights;
 
@@ -512,7 +512,7 @@ static void calcsurfaces(cube *c, const ivec &co, int size)
             if(c[i].ext)
             {
                 loopj(6) c[i].ext->surfaces[j].clear();
-            }    
+            }
             int usefacemask = 0;
             loopj(6) if(c[i].texture[j] != DEFAULT_SKY && (!(c[i].merged&(1<<j)) || (c[i].ext && c[i].ext->surfaces[j].numverts&MAXFACEVERTS)))
             {
@@ -560,7 +560,7 @@ static bool previewblends(cube *c, const ivec &co, int size, const ivec &bo, con
             ext->va = NULL;
             invalidatemerges(c[i], co, size, true);
         }
-        if(c[i].children ? previewblends(c[i].children, o, size/2, bo, bs) : previewblends(c[i], o, size))  
+        if(c[i].children ? previewblends(c[i].children, o, size/2, bo, bs) : previewblends(c[i], o, size))
         {
             changed = true;
             ext = c[i].ext;
@@ -580,7 +580,7 @@ void previewblends(const ivec &bo, const ivec &bs)
     if(previewblends(worldroot, ivec(0, 0, 0), worldsize/2, bo, bs))
         commitchanges(true);
 }
-                            
+
 extern int filltjoints;
 
 static Uint32 calclighttimer(Uint32 interval, void *param)
@@ -653,13 +653,13 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
         extentity &e = *ents[lights[i]];
         if(e.type != ET_LIGHT || e.attr[0] <= 0)
             continue;
-    
+
         vec ray(target);
         ray.sub(e.o);
         float mag = ray.magnitude();
         if(mag >= float(e.attr[0]))
             continue;
-    
+
         if(mag < 1e-4f) ray = vec(0, 0, -1);
         else
         {
@@ -681,12 +681,12 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
         //{
         //    conoutf(CON_DEBUG, "%d - %f %f", i, intensity, mag);
         //}
- 
+
         vec lightcol = vec(e.attr[1], e.attr[2], e.attr[3]).mul(1.0f/255);
         color.add(vec(lightcol).mul(intensity));
         dir.add(vec(ray).mul(-intensity*lightcol.x*lightcol.y*lightcol.z));
     }
-    if(sunlight && shadowray(target, sunlightdir, 1e16f, RAY_SHADOW | RAY_POLY, t) > 1e15f) 
+    if(sunlight && shadowray(target, sunlightdir, 1e16f, RAY_SHADOW | RAY_POLY, t) > 1e15f)
     {
         vec lightcol = vec(sunlightcolor.x, sunlightcolor.y, sunlightcolor.z).mul(sunlightscale/255);
         color.add(lightcol);

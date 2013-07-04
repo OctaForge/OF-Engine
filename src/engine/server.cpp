@@ -116,7 +116,7 @@ void conoutf(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     conoutfv(CON_INFO, fmt, args);
-    va_end(args); 
+    va_end(args);
 }
 #endif
 
@@ -134,7 +134,7 @@ struct client                   // server side version of "dynent" type
 vector<client *> clients;
 
 ENetHost *serverhost = NULL;
-int laststatus = 0; 
+int laststatus = 0;
 ENetSocket lansock = ENET_SOCKET_NULL;
 
 int localclients = 0, nonlocalclients = 0;
@@ -249,7 +249,7 @@ ENetPacket *sendf(int cn, int chan, const char *format, ...)
             break;
         }
 
-        case 'i': 
+        case 'i':
         {
             int n = isdigit(*format) ? *format++-'0' : 1;
             loopi(n) putint(p, va_arg(args, int));
@@ -348,7 +348,7 @@ uint totalsecs = 0;
 void updatetime()
 {
     static int lastsec = 0;
-    if(totalmillis - lastsec >= 1000) 
+    if(totalmillis - lastsec >= 1000)
     {
         int cursecs = (totalmillis - lastsec) / 1000;
         totalsecs += cursecs;
@@ -358,16 +358,16 @@ void updatetime()
 
 void serverslice(bool dedicated, uint timeout)   // main server update, called from main loop in sp, or from below in dedicated server
 {
-    if(!serverhost) 
+    if(!serverhost)
     {
         server::serverupdate();
         server::sendpackets();
         return;
     }
-       
+
     // below is network only
 
-    if(dedicated) 
+    if(dedicated)
     {
         int millis = (int)enet_time_get();
         curtime = millis - totalmillis;
@@ -375,7 +375,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
         updatetime();
     }
     server::serverupdate();
-    
+
     ENetEvent event;
     bool serviced = false;
     while(!serviced)
@@ -406,7 +406,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
                 break;
             }
-            case ENET_EVENT_TYPE_DISCONNECT: 
+            case ENET_EVENT_TYPE_DISCONNECT:
             {
                 client *c = (client *)event.peer->data;
                 if(!c) break;
@@ -447,7 +447,7 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 #ifndef SERVER
     bool disconnected = false;
 #endif
-    loopv(clients) if(clients[i]->type==ST_LOCAL) 
+    loopv(clients) if(clients[i]->type==ST_LOCAL)
     {
         if (cn != -1 && cn != clients[i]->num) continue; // INTENSITY: if cn given, only process that one
         server::localdisconnect(i);
@@ -533,7 +533,7 @@ bool servererror(bool dedicated, const char *desc)
         fatal("%s", desc);
     return false;
 }
-  
+
 bool setuplistenserver(bool dedicated)
 {
     ENetAddress address = { ENET_HOST_ANY, enet_uint16(serverport <= 0 ? server::serverport() : serverport) };
@@ -578,7 +578,7 @@ bool serveroption(char *opt)
         case 'u': setvar("serveruprate", atoi(opt+2)); return true;
         case 'c': maxclients = atoi(opt+2); return true;
         case 'i': setsvar("serverip", opt+2); return true;
-        case 'j': setvar("serverport", atoi(opt+2)); return true; 
+        case 'j': setvar("serverport", atoi(opt+2)); return true;
         default: return false;
     }
 }
@@ -620,7 +620,7 @@ void serverkeepalive();
 void server_runslice()
 {
     /* Keep connection alive?
-     * 
+     *
     clientkeepalive();
     serverkeepalive();*/
 
@@ -691,7 +691,7 @@ int main(int argc, char **argv)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
         {
-            case 'q': 
+            case 'q':
             {
                 dir = sethomedir(&argv[i][2]);
                 break;

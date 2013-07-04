@@ -281,7 +281,7 @@ void renderao()
         if(msaasamples) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msdepthtex);
         else glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
     }
-    else 
+    else
     {
         if(msaasamples) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msnormaltex);
         else glBindTexture(GL_TEXTURE_RECTANGLE, gnormaltex);
@@ -359,7 +359,7 @@ void setupscale(int sw, int sh, int w, int h)
     scalew = w;
     scaleh = h;
 
-    loopi(gscalecubic ? 2 : 1) 
+    loopi(gscalecubic ? 2 : 1)
     {
         if(!scaletex[i]) glGenTextures(1, &scaletex[i]);
         if(!scalefbo[i]) glGenFramebuffers_(1, &scalefbo[i]);
@@ -378,7 +378,7 @@ void setupscale(int sw, int sh, int w, int h)
     glBindFramebuffer_(GL_FRAMEBUFFER, 0);
 
     useshaderbyname("scalelinear");
-    if(gscalecubic) 
+    if(gscalecubic)
     {
         useshaderbyname("scalecubicx");
         useshaderbyname("scalecubicy");
@@ -389,7 +389,7 @@ GLuint shouldscale()
 {
     return scalefbo[0];
 }
-     
+
 void doscale(int w, int h)
 {
     if(!scaletex[0]) return;
@@ -420,7 +420,7 @@ void doscale(int w, int h)
 
     endtimer(scaletimer);
 }
-   
+
 VARFP(glineardepth, 0, 0, 3, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
 VAR(gdepthformat, 1, 0, 0);
 VARFP(msaa, 0, 0, 16, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
@@ -473,7 +473,7 @@ void initgbuffer()
     int lineardepth = glineardepth;
     if(msaasamples)
     {
-        if(msaamaxdepthtexsamples < msaasamples) 
+        if(msaamaxdepthtexsamples < msaasamples)
         {
             if(msaalineardepth > 0) lineardepth = msaalineardepth;
             else if(!lineardepth) lineardepth = 1;
@@ -589,7 +589,7 @@ void setupmsbuffer(int w, int h)
     GLenum depthformat = gdepthformat ? depthformats[gdepthformat-1] : (msaadepthstencil && hasDS ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msdepthtex);
     texms(depthformat, w, h, fixed);
- 
+
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, mscolortex);
     texms(GL_RGBA8, w, h, fixed);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msnormaltex);
@@ -611,7 +611,7 @@ void setupmsbuffer(int w, int h)
     msaacolorsamples = colorsamples;
 
     memset(msaapositions, 0, sizeof(msaapositions));
-    if(fixed) loopi(msaasamples) 
+    if(fixed) loopi(msaasamples)
     {
         GLfloat vals[2];
         glGetMultisamplefv_(GL_SAMPLE_POSITION, i, vals);
@@ -962,7 +962,7 @@ void processldr(GLuint outfbo, int aa)
     }
     glBindTexture(GL_TEXTURE_RECTANGLE, hdrtex);
     screenquad(vieww, viewh);
-    
+
     endtimer(ldrtimer);
 }
 
@@ -1175,10 +1175,10 @@ void processhdr(GLuint outfbo, int aa)
     else
     {
         bool blit = false, stencil = false;
-        if(msaatonemapblit && (!aa || !outfbo)) 
-        { 
-            blit = true; 
-            if(msaatonemapstencil && stencilformat) stencil = true; 
+        if(msaatonemapblit && (!aa || !outfbo))
+        {
+            blit = true;
+            if(msaatonemapstencil && stencilformat) stencil = true;
         }
         else if(msaatonemapstencil && stencilformat)
         {
@@ -1195,7 +1195,7 @@ void processhdr(GLuint outfbo, int aa)
         glBindTexture(GL_TEXTURE_RECTANGLE, b0tex);
         glActiveTexture_(GL_TEXTURE0);
 
-        if(stencil) 
+        if(stencil)
         {
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
             glEnable(GL_STENCIL_TEST);
@@ -1218,14 +1218,14 @@ void processhdr(GLuint outfbo, int aa)
         else switch(aa)
         {
             case AA_LUMA: SETVARIANT(msaatonemapluma, 0, 0); break;
-            case AA_VELOCITY: 
+            case AA_VELOCITY:
                 SETVARIANT(msaatonemapvelocity, 0, 0);
                 setaavelocityparams(GL_TEXTURE3);
                 break;
             default: SETVARIANT(msaatonemap, 0, 0); break;
         }
         screenquad(vieww, viewh, b0w, b0h);
-   
+
         if(stencil) glDisable(GL_STENCIL_TEST);
 
         if(blit)
@@ -1236,19 +1236,19 @@ void processhdr(GLuint outfbo, int aa)
         }
 
         if((blit || stencil) && !outfbo)
-        { 
+        {
             glBindFramebuffer_(GL_FRAMEBUFFER, outfbo);
             glViewport(0, 0, vieww, viewh);
             if(!blit) SETSHADER(hdrnop);
             else switch(aa)
             {
                 case AA_LUMA: SETSHADER(hdrnopluma); break;
-                case AA_VELOCITY: 
-                    SETSHADER(hdrnopvelocity); 
+                case AA_VELOCITY:
+                    SETSHADER(hdrnopvelocity);
                     setaavelocityparams(GL_TEXTURE3);
                     break;
                 default: SETSHADER(hdrnop); break;
-            }    
+            }
             glBindTexture(GL_TEXTURE_RECTANGLE, blit ? refracttex : hdrtex);
             screenquad(vieww, viewh);
         }
@@ -2140,7 +2140,7 @@ Shader *loaddeferredlightshader(const char *type = NULL)
 
 void loaddeferredlightshaders()
 {
-    if(msaasamples) 
+    if(msaasamples)
     {
         string opts;
         if(hasMSS) copystring(opts, "MS");
@@ -3252,7 +3252,7 @@ void rendercsmshadowmaps()
     shadowradius = fabs(csm.lightview.project_bb(worldmax, worldmin));
 
     float polyfactor = csmpolyfactor, polyoffset = csmpolyoffset;
-    if(smfilter > 2) { polyfactor = csmpolyfactor2; polyoffset = csmpolyoffset2; } 
+    if(smfilter > 2) { polyfactor = csmpolyfactor2; polyoffset = csmpolyoffset2; }
     if(polyfactor || polyoffset)
     {
         glPolygonOffset(polyfactor, polyoffset);
@@ -3315,16 +3315,16 @@ int calcshadowinfo(const extentity &e, vec &origin, float &radius, vec &spotloc,
         spotloc = e.o;
         spotangle = 0;
     }
-   
+
     lod *= smminsize;
     int size = clamp(int(ceil((lod * shadowatlaspacker.w) / SHADOWATLAS_SIZE)), 1, shadowatlaspacker.w / w);
     bias = border / float(size - border);
 
     return type;
 }
-   
+
 glmatrix shadowmatrix;
- 
+
 void rendershadowmaps()
 {
     float polyfactor = smpolyfactor, polyoffset = smpolyoffset;
@@ -3548,7 +3548,7 @@ void rendertransparent()
 
     if(stencilformat) glEnable(GL_STENCIL_TEST);
 
-    glmatrix raymatrix(vec(-0.5f*vieww*projmatrix.a.x, 0, 0.5f*vieww), 
+    glmatrix raymatrix(vec(-0.5f*vieww*projmatrix.a.x, 0, 0.5f*vieww),
                        vec(0, -0.5f*viewh*projmatrix.b.y, 0.5f*viewh));
     raymatrix.mul(cammatrix);
     GLOBALPARAM(raymatrix, raymatrix);
@@ -3820,12 +3820,12 @@ void shademodelpreview(int x, int y, int w, int h, bool background, bool scissor
     {
         screenquad(vieww, viewh);
 
-        glBindFramebuffer_(GL_FRAMEBUFFER, 0); 
+        glBindFramebuffer_(GL_FRAMEBUFFER, 0);
         glViewport(x, y, w, h);
         glBindTexture(GL_TEXTURE_RECTANGLE, scaletex[0]);
         SETSHADER(scalelinear);
     }
-    
+
     if(!background)
     {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -3837,7 +3837,7 @@ void shademodelpreview(int x, int y, int w, int h, bool background, bool scissor
     if(!background) glDisable(GL_BLEND);
 
     GLERROR;
-    
+
     glViewport(0, 0, screenw, screenh);
 }
 

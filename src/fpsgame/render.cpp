@@ -9,7 +9,7 @@
 #include "client_system.h"
 
 namespace game
-{      
+{
     void rendergame()
     {
         if (!ClientSystem::loggedIn) // If not logged in remotely, do not render, because entities lack all the fields like model_name

@@ -103,12 +103,12 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
         address.host = ENET_HOST_BROADCAST;
     }
 
-    if(!clienthost) 
+    if(!clienthost)
         clienthost = enet_host_create(NULL, 2, server::numchannels(), rate*1024, rate*1024);
 
     if(clienthost)
     {
-        connpeer = enet_host_connect(clienthost, &address, server::numchannels(), 0); 
+        connpeer = enet_host_connect(clienthost, &address, server::numchannels(), 0);
         enet_host_flush(clienthost);
         connmillis = totalmillis;
         connattempts = 0;
@@ -119,7 +119,7 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
 
 void disconnect(bool async, bool cleanup)
 {
-    if(curpeer) 
+    if(curpeer)
     {
         if(!discmillis)
         {
@@ -198,7 +198,7 @@ void gets2c()           // get updates from the server
     {
         conoutf("attempting to connect...");
         connmillis = totalmillis;
-        ++connattempts; 
+        ++connattempts;
         if(connattempts > 3)
         {
             conoutf("\f3could not connect to server");
@@ -210,7 +210,7 @@ void gets2c()           // get updates from the server
     switch(event.type)
     {
         case ENET_EVENT_TYPE_CONNECT:
-            disconnect(false, false); 
+            disconnect(false, false);
             localdisconnect(false);
             curpeer = connpeer;
             connpeer = NULL;
@@ -219,7 +219,7 @@ void gets2c()           // get updates from the server
             if(rate) setrate(rate);
             game::gameconnect(true);
             break;
-         
+
         case ENET_EVENT_TYPE_RECEIVE:
 #ifndef SERVER // INTENSITY
             if(discmillis) conoutf("attempting to disconnect...");

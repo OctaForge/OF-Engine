@@ -6,11 +6,11 @@ bool BIH::triintersect(tri &t, const vec &o, const vec &ray, float maxdist, floa
     p.cross(ray, t.c);
     float det = t.b.dot(p);
     if(det == 0) return false;
-    vec r(o); 
+    vec r(o);
     r.sub(t.a);
-    float u = r.dot(p) / det; 
+    float u = r.dot(p) / det;
     if(u < 0 || u > 1) return false;
-    vec q; 
+    vec q;
     q.cross(r, t.b);
     float v = ray.dot(q) / det;
     if(v < 0 || u + v > 1) return false;
@@ -85,7 +85,7 @@ inline bool BIH::traverse(const vec &o, const vec &ray, const vec &invray, float
                         save.tmin = max(tmin, farsplit);
                         save.tmax = tmax;
                     }
-                    else 
+                    else
                     {
                         if(traverse(o, ray, invray, maxdist, dist, mode, &nodes[curnode->childindex(nearidx)], tmin, min(tmax, nearsplit))) return true;
                         curnode = &nodes[curnode->childindex(faridx)];
@@ -125,13 +125,13 @@ inline bool BIH::traverse(const vec &o, const vec &ray, float maxdist, float &di
     if(tmin >= maxdist || tmin>=tmax) return false;
     tmax = min(tmax, maxdist);
 
-    return BIH::traverse(o, ray, invray, maxdist, dist, mode, &nodes[0], tmin, tmax); 
+    return BIH::traverse(o, ray, invray, maxdist, dist, mode, &nodes[0], tmin, tmax);
 }
 
 void BIH::build(vector<BIHNode> &buildnodes, ushort *indices, int numindices, const vec &vmin, const vec &vmax, int depth)
 {
     maxdepth = max(maxdepth, depth);
-   
+
     int axis = 2;
     loopk(2) if(vmax[k] - vmin[k] > vmax[axis] - vmin[axis]) axis = k;
 
@@ -148,17 +148,17 @@ void BIH::build(vector<BIHNode> &buildnodes, ushort *indices, int numindices, co
             tri &tri = tris[indices[left]];
             float amin = min(tri.a[axis], min(tri.b[axis], tri.c[axis])),
                   amax = max(tri.a[axis], max(tri.b[axis], tri.c[axis]));
-            if(max(split - amin, 0.0f) > max(amax - split, 0.0f)) 
+            if(max(split - amin, 0.0f) > max(amax - split, 0.0f))
             {
                 ++left;
                 splitleft = max(splitleft, amax);
                 leftmin.min(tri.a).min(tri.b).min(tri.c);
                 leftmax.max(tri.a).max(tri.b).max(tri.c);
             }
-            else 
-            {    
-                --right; 
-                swap(indices[left], indices[right]); 
+            else
+            {
+                --right;
+                swap(indices[left], indices[right]);
                 splitright = min(splitright, amin);
                 rightmin.min(tri.a).min(tri.b).min(tri.c);
                 rightmax.max(tri.a).max(tri.b).max(tri.c);
@@ -168,7 +168,7 @@ void BIH::build(vector<BIHNode> &buildnodes, ushort *indices, int numindices, co
         axis = (axis+1)%3;
     }
 
-    if(!left || right==numindices) 
+    if(!left || right==numindices)
     {
         leftmin = rightmin = vec(1e16f, 1e16f, 1e16f);
         leftmax = rightmax = vec(-1e16f, -1e16f, -1e16f);
@@ -178,13 +178,13 @@ void BIH::build(vector<BIHNode> &buildnodes, ushort *indices, int numindices, co
         loopi(numindices)
         {
             tri &tri = tris[indices[i]];
-            if(i < left) 
+            if(i < left)
             {
                 splitleft = max(splitleft, max(tri.a[axis], max(tri.b[axis], tri.c[axis])));
                 leftmin.min(tri.a).min(tri.b).min(tri.c);
                 leftmax.max(tri.a).max(tri.b).max(tri.c);
             }
-            else 
+            else
             {
                 splitright = min(splitright, min(tri.a[axis], min(tri.b[axis], tri.c[axis])));
                 rightmin.min(tri.a).min(tri.b).min(tri.c);
@@ -206,7 +206,7 @@ void BIH::build(vector<BIHNode> &buildnodes, ushort *indices, int numindices, co
     }
 
     if(numindices-right==1) buildnodes[node].child[1] = (1<<15) | (left==1 ? 1<<14 : 0) | indices[right];
-    else 
+    else
     {
         buildnodes[node].child[1] = (left==1 ? 1<<14 : 0) | buildnodes.length();
         build(buildnodes, &indices[right], numindices-right, rightmin, rightmax, depth+1);
@@ -217,7 +217,7 @@ BIH::BIH(vector<tri> *t)
   : maxdepth(0), numnodes(0), nodes(NULL), numtris(0), tris(NULL), noclip(NULL), bbmin(1e16f, 1e16f, 1e16f), bbmax(-1e16f, -1e16f, -1e16f)
 {
     numtris = t[0].length() + t[1].length();
-    if(!numtris) return; 
+    if(!numtris) return;
 
     tris = new tri[numtris];
     noclip = &tris[t[0].length()];
@@ -230,7 +230,7 @@ BIH::BIH(vector<tri> *t)
         bbmin.min(tri.a).min(tri.b).min(tri.c);
         bbmax.max(tri.a).max(tri.b).max(tri.c);
     }
-    
+
     radius = max(max(max(fabs(bbmin.x), fabs(bbmin.y)), fabs(bbmin.z)),
                  max(max(fabs(bbmax.x), fabs(bbmax.y)), fabs(bbmax.z)));
     radius *= radius;
@@ -274,7 +274,7 @@ bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist
     float v = mo.dot(mray), inside = m->bih->radius - mo.squaredlen();
     if((inside < 0 && v > 0) || inside + v*v < 0) return false;
     int yaw = e.attr[0], pitch = e.attr[1], roll = e.attr[2]; // OF
-    if(yaw != 0) 
+    if(yaw != 0)
     {
         const vec2 &rot = sincosmod360(-yaw);
         mo.rotate_around_z(rot);

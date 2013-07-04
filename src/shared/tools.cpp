@@ -14,7 +14,7 @@ static int tmpidx = 0;
 char *tempformatstring(const char *fmt, ...)
 {
     tmpidx = (tmpidx+1)%4;
-    char *buf = tmpstr[tmpidx];    
+    char *buf = tmpstr[tmpidx];
 
     va_list v;
     va_start(v, fmt);
@@ -26,9 +26,9 @@ char *tempformatstring(const char *fmt, ...)
 
 ////////////////////////// rnd numbers ////////////////////////////////////////
 
-#define N (624)             
-#define M (397)                
-#define K (0x9908B0DFU)       
+#define N (624)
+#define M (397)
+#define K (0x9908B0DFU)
 
 static uint state[N];
 static int next = N;

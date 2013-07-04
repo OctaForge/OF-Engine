@@ -248,7 +248,7 @@ static bool checkseries(const char *s, const char *name, int low, int high)
     while(*s && !isdigit(*s)) ++s;
     if(!*s) return false;
     int n = 0;
-    while(isdigit(*s)) n = n*10 + (*s++ - '0');    
+    while(isdigit(*s)) n = n*10 + (*s++ - '0');
     return n >= low && n <= high;
 }
 
@@ -264,7 +264,7 @@ void parseglexts()
         glGetIntegerv(GL_NUM_EXTENSIONS, &numexts);
         loopi(numexts)
         {
-            const char *ext = (const char *)glGetStringi_(GL_EXTENSIONS, i); 
+            const char *ext = (const char *)glGetStringi_(GL_EXTENSIONS, i);
             const char *str = newstring(ext);
             glexts[str] = str;
         }
@@ -282,11 +282,11 @@ void parseglexts()
             {
                 const char *str = newstring(ext, size_t(exts-ext));
                 glexts[str] = str;
-            } 
+            }
         }
     }
 }
-      
+
 bool hasext(const char *ext)
 {
     return glexts.access(ext)!=NULL;
@@ -480,7 +480,7 @@ void gl_checkextensions()
         vacubesize = 64;
         oqfrags = 0;
     }
- 
+
     if(glversion >= 300 || hasext("GL_ARB_vertex_array_object"))
     {
         glBindVertexArray_ =    (PFNGLBINDVERTEXARRAYPROC)   getprocaddress("glBindVertexArray");
@@ -762,7 +762,7 @@ void gl_checkextensions()
     if(glversion >= 330)
     {
         hasTSW = hasEAL = true;
-    }        
+    }
     else
     {
         if(hasext("GL_ARB_texture_swizzle") || hasext("GL_EXT_texture_swizzle"))
@@ -819,7 +819,7 @@ ICOMMAND(glext, "s", (char *ext), intret(hasext(ext) ? 1 : 0));
 struct timer
 {
     enum { MAXQUERY = 4 };
- 
+
     const char *name;
     bool gpu;
     GLuint query[MAXQUERY];
@@ -835,7 +835,7 @@ extern int usetimers;
 
 timer *findtimer(const char *name, bool gpu)
 {
-    loopv(timers) if(!strcmp(timers[i].name, name) && timers[i].gpu == gpu) 
+    loopv(timers) if(!strcmp(timers[i].name, name) && timers[i].gpu == gpu)
     {
         timerorder.removeobj(i);
         timerorder.add(i);
@@ -846,14 +846,14 @@ timer *findtimer(const char *name, bool gpu)
     t.name = name;
     t.gpu = gpu;
     memset(t.query, 0, sizeof(t.query));
-    if(gpu) glGenQueries_(timer::MAXQUERY, t.query); 
+    if(gpu) glGenQueries_(timer::MAXQUERY, t.query);
     t.waiting = 0;
     t.starttime = 0;
     t.result = -1;
     t.print = -1;
     return &t;
 }
- 
+
 timer *begintimer(const char *name, bool gpu)
 {
     if(!usetimers || inbetweenframes || (gpu && !hasTQ)) return NULL;
@@ -878,7 +878,7 @@ void endtimer(timer *t)
     }
     else t->result = max(float(getclockmillis() - t->starttime), 0.0f);
 }
-           
+
 void synctimers()
 {
     timercycle = (timercycle + 1) % timer::MAXQUERY;
@@ -914,7 +914,7 @@ void cleanuptimers()
 VARFN(timer, usetimers, 0, 0, 1, cleanuptimers());
 VAR(frametimer, 0, 0, 1);
 int framemillis = 0; // frame time (ie does not take into account the swap)
-     
+
 void printtimers(int conw, int conh)
 {
     if(!frametimer && !usetimers) return;
@@ -938,11 +938,11 @@ void printtimers(int conw, int conh)
     }
     if(totalmillis - lastprint >= 200) lastprint = totalmillis;
 }
-         
+
 void gl_resize(int w, int h)
 {
     glViewport(0, 0, w, h);
-    
+
     vieww = w;
     viewh = h;
 }
@@ -961,7 +961,7 @@ void gl_init(int w, int h)
     glDisable(GL_STENCIL_TEST);
     glStencilFunc(GL_ALWAYS, 0, ~0);
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-    
+
     glEnable(GL_LINE_SMOOTH);
     //glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
@@ -989,7 +989,7 @@ VAR(wireframe, 0, 0, 1);
 ICOMMAND(getcamyaw, "", (), floatret(camera1->yaw));
 ICOMMAND(getcampitch, "", (), floatret(camera1->pitch));
 ICOMMAND(getcamroll, "", (), floatret(camera1->roll));
-ICOMMAND(getcampos, "", (), 
+ICOMMAND(getcampos, "", (),
 {
     defformatstring(pos, "%s %s %s", floatstr(camera1->o.x), floatstr(camera1->o.y), floatstr(camera1->o.z));
     result(pos);
@@ -1012,7 +1012,7 @@ LUAICOMMAND(camera_get_roll, {
 LUAICOMMAND(camera_get_position, {
     lua::push_external(L, "new_vec3");
     const vec& o = camera1->o;
-    lua_pushnumber(L, o.x); 
+    lua_pushnumber(L, o.x);
     lua_pushnumber(L, o.y);
     lua_pushnumber(L, o.z);
     lua_call(L, 3, 1);
@@ -1021,7 +1021,7 @@ LUAICOMMAND(camera_get_position, {
 LUAICOMMAND(camera_get, {
     lua::push_external(L, "new_vec3");
     const vec& o = camera1->o;
-    lua_pushnumber(L, o.x); 
+    lua_pushnumber(L, o.x);
     lua_pushnumber(L, o.y);
     lua_pushnumber(L, o.z);
     lua_call(L, 3, 1);
@@ -1090,7 +1090,7 @@ void resethudmatrix()
     hudmatrixpos = 0;
     GLOBALPARAM(hudmatrix, hudmatrix);
 }
- 
+
 void pushhudmatrix()
 {
     if(hudmatrixpos >= 0 && hudmatrixpos < int(sizeof(hudmatrixstack)/sizeof(hudmatrixstack[0]))) hudmatrixstack[hudmatrixpos] = hudmatrix;
@@ -1106,13 +1106,13 @@ void flushhudmatrix(bool flushparams)
 void pophudmatrix(bool flush, bool flushparams)
 {
     --hudmatrixpos;
-    if(hudmatrixpos >= 0 && hudmatrixpos < int(sizeof(hudmatrixstack)/sizeof(hudmatrixstack[0]))) 
+    if(hudmatrixpos >= 0 && hudmatrixpos < int(sizeof(hudmatrixstack)/sizeof(hudmatrixstack[0])))
     {
         hudmatrix = hudmatrixstack[hudmatrixpos];
         if(flush) flushhudmatrix(flushparams);
     }
 }
- 
+
 int vieww = -1, viewh = -1;
 float curfov = 100, curavatarfov = 65, fovy, aspect;
 int farplane;
@@ -1155,16 +1155,16 @@ void computezoom()
         oldavatarfov = zoom > 0 ? avatarfov : avatarzoomfov,
         newavatarfov = zoom > 0 ? avatarzoomfov : avatarfov;
     float t = zoomvel ? float(zoomvel - (totalmillis - zoommillis)) / zoomvel : 0;
-    if(t <= 0) 
+    if(t <= 0)
     {
-        if(!zoomvel && fabs(newfov - curfov) >= 1) 
+        if(!zoomvel && fabs(newfov - curfov) >= 1)
         {
             curfov = newfov;
             curavatarfov = newavatarfov;
         }
         zoom = max(zoom, 0);
     }
-    else 
+    else
     {
         curfov = oldfov*t + newfov*(1 - t);
         curavatarfov = oldavatarfov*t + newavatarfov*(1 - t);
@@ -1209,12 +1209,12 @@ void mousemove(int dx, int dy)
     float cursens = sensitivity, curaccel = mouseaccel;
     if(zoom)
     {
-        if(zoomautosens) 
+        if(zoomautosens)
         {
             cursens = float(sensitivity*zoomfov)/fov;
             curaccel = float(mouseaccel*zoomfov)/fov;
         }
-        else 
+        else
         {
             cursens = zoomsens;
             curaccel = zoomaccel;
@@ -1557,7 +1557,7 @@ void enablepolygonoffset(GLenum type)
         glEnable(type);
         return;
     }
-    
+
     projmatrix = nojittermatrix;
     nooffsetmatrix = projmatrix;
     projmatrix.d.z += depthoffset * projmatrix.c.z;
@@ -1571,8 +1571,8 @@ void disablepolygonoffset(GLenum type)
         glDisable(type);
         return;
     }
-   
-    projmatrix = nooffsetmatrix; 
+
+    projmatrix = nooffsetmatrix;
     setcamprojmatrix(false, true);
 }
 
@@ -2105,7 +2105,7 @@ void drawminimap()
         rendergbuffer(false);
         shademinimap();
     }
-        
+
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
@@ -2117,7 +2117,7 @@ void drawminimap()
     camera1 = oldcamera;
     drawtex = 0;
 
-    readhdr(size, size, GL_RGB5, GL_UNSIGNED_BYTE, NULL, GL_TEXTURE_2D, minimaptex); 
+    readhdr(size, size, GL_RGB5, GL_UNSIGNED_BYTE, NULL, GL_TEXTURE_2D, minimaptex);
     setuptexparameters(minimaptex, NULL, 3, 1, GL_RGB5, GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -2159,7 +2159,7 @@ void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapsi
     }
     else fogmat = MAT_AIR;
     setfog(abovemat);
-    
+
     float oldaspect = aspect, oldfovy = fovy, oldfov = curfov, oldldrscale = ldrscale, oldldrscaleb = ldrscaleb;
     int oldfarplane = farplane, oldvieww = vieww, oldviewh = viewh;
     curfov = fovy = 90;
@@ -2200,7 +2200,7 @@ void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapsi
         setfog(fogmat, fogbelow, 1, abovemat);
 
         renderwaterfog(fogmat, fogbelow);
-    
+
         setfog(fogmat, fogbelow, clamp(fogbelow, 0.0f, 1.0f), abovemat);
     }
 
@@ -2264,8 +2264,8 @@ namespace modelpreview
         oldfov = curfov;
         oldldrscale = ldrscale;
         oldldrscaleb = ldrscaleb;
-        oldfarplane = farplane; 
-        oldvieww = vieww; 
+        oldfarplane = farplane;
+        oldvieww = vieww;
         oldviewh = viewh;
 
         aspect = w/float(h);
@@ -2328,7 +2328,7 @@ void gl_drawframe(int w, int h)
     else { vieww = w; viewh = h; }
     aspect = forceaspect ? forceaspect : vieww/float(viewh);
     fovy = 2*atan2(tan(curfov/2*RAD), aspect)/RAD;
-    
+
     float fogmargin = 1 + WATER_AMPLITUDE + nearplane;
     int fogmat = lookupmaterial(vec(camera1->o.x, camera1->o.y, camera1->o.z - fogmargin))&(MATF_VOLUME|MATF_INDEX), abovemat = MAT_AIR;
     float fogbelow = 0;
@@ -2341,7 +2341,7 @@ void gl_drawframe(int w, int h)
         }
         else fogmat = abovemat;
     }
-    else fogmat = MAT_AIR;    
+    else fogmat = MAT_AIR;
     setfog(abovemat);
     //setfog(fogmat, fogbelow, 1, abovemat);
 
@@ -2365,9 +2365,9 @@ void gl_drawframe(int w, int h)
     GLOBALPARAMF(millis, lastmillis/1000.0f);
 
     visiblecubes();
-  
+
     if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
- 
+
     rendergbuffer();
 
     if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -2375,7 +2375,7 @@ void gl_drawframe(int w, int h)
 
     renderao();
     GLERROR;
- 
+
     // render grass after AO to avoid disturbing shimmering patterns
     generategrass();
     rendergrass();
@@ -2422,7 +2422,7 @@ void gl_drawframe(int w, int h)
         rendereditcursor();
         glDepthMask(GL_TRUE);
     }
-        
+
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
@@ -2478,7 +2478,7 @@ void drawcrosshair(int w, int h)
         lua_pop(lua::L, 2);
     }
     else
-    { 
+    {
         string cr = "media/interface/hud/crosshair";
         if (lua::push_external("gui_get_crosshair")) {
             lua_call(lua::L, 0, 1);
@@ -2514,7 +2514,7 @@ void gl_drawhud(int w, int h)
     hudmatrix.ortho(0, w, h, 0, -1, 1);
     resethudmatrix();
     hudshader->set();
-    
+
     gle::colorf(1, 1, 1);
 
     debuglights();
@@ -2604,12 +2604,12 @@ void gl_drawhud(int w, int h)
                         int tw, th;
                         text_bounds(gameinfo, tw, th);
                         th += FONTH-1; th -= th%FONTH;
-                        roffset += max(th, FONTH);    
+                        roffset += max(th, FONTH);
                         draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+tw), conh-FONTH/2-roffset);
                     }
                     DELETEA(gameinfo);
                 }
-            } 
+            }
 
             pophudmatrix();
         }

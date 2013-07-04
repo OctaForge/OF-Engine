@@ -62,10 +62,10 @@ struct md3 : vertmodel, vertloader<md3>
             lilswap(&header.version, 1);
             lilswap(&header.flags, 9);
             if(strncmp(header.id, "IDP3", 4) != 0 || header.version != 15) // header check
-            { 
+            {
                 delete f;
-                conoutf("md3: corrupted header"); 
-                return false; 
+                conoutf("md3: corrupted header");
+                return false;
             }
 
             name = newstring(path);
@@ -82,11 +82,11 @@ struct md3 : vertmodel, vertloader<md3>
                 md3meshheader mheader;
                 f->seek(mesh_offset, SEEK_SET);
                 f->read(&mheader, sizeof(md3meshheader));
-                lilswap(&mheader.flags, 10); 
+                lilswap(&mheader.flags, 10);
 
                 m.name = newstring(mheader.name);
-               
-                m.numtris = mheader.numtriangles; 
+
+                m.numtris = mheader.numtriangles;
                 m.tris = new tri[m.numtris];
                 f->seek(mesh_offset + mheader.ofs_triangles, SEEK_SET);
                 loopj(m.numtris)
@@ -99,12 +99,12 @@ struct md3 : vertmodel, vertloader<md3>
 
                 m.numverts = mheader.numvertices;
                 m.tcverts = new tcvert[m.numverts];
-                f->seek(mesh_offset + mheader.ofs_uv , SEEK_SET); 
+                f->seek(mesh_offset + mheader.ofs_uv , SEEK_SET);
                 f->read(m.tcverts, m.numverts*2*sizeof(float)); // read the UV data
                 lilswap(&m.tcverts[0].u, 2*m.numverts);
-                
+
                 m.verts = new vert[numframes*m.numverts];
-                f->seek(mesh_offset + mheader.ofs_vertices, SEEK_SET); 
+                f->seek(mesh_offset + mheader.ofs_vertices, SEEK_SET);
                 loopj(numframes*m.numverts)
                 {
                     md3vertex v;
@@ -167,7 +167,7 @@ struct md3 : vertmodel, vertloader<md3>
             return true;
         }
     };
-    
+
     meshgroup *loadmeshes(const char *name, va_list args)
     {
         md3meshgroup *group = new md3meshgroup;

@@ -56,7 +56,7 @@ enum
 #define PROTOCOL_VERSION 1 // bump when protocol changes
 
 struct fpsent : dynent
-{   
+{
     int weight;                         // affects the effectiveness of hitpush
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
