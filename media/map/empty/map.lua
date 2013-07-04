@@ -7,6 +7,7 @@ local game_manager = require("extra.game_manager")
 
 require("extra.entities.teleporters")
 require("extra.entities.lights")
+require("extra.entities.particles")
 
 -- default skybox
 require("core.lua.var").set("skybox", "remus/sky01")
