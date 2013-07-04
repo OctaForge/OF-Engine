@@ -1491,7 +1491,7 @@ LUAICOMMAND(particle_meter, {
     float ox = luaL_checknumber(L, 2);
     float oy = luaL_checknumber(L, 3);
     float oz = luaL_checknumber(L, 4);
-    float val = luaL_checknumber(L, 5);
+    int val = luaL_checkinteger(L, 5);
     float r = luaL_checknumber(L, 6);
     float g = luaL_checknumber(L, 7);
     float b = luaL_checknumber(L, 8);
@@ -1504,7 +1504,7 @@ LUAICOMMAND(particle_meter, {
     meterparticle *p = (meterparticle*)newparticle(vec(ox, oy, oz),
         vec(0, 0, 1), fade, type, vec(r, g, b), size);
     p->color2 = vec(r2, g2, b2);
-    p->progress = clamp(int(val*100), 0, 100);
+    p->progress = clamp(val, 0, 100);
     lua_pushboolean(L, true);
     return 1;
 });
@@ -1523,12 +1523,16 @@ LUAICOMMAND(particle_flare, {
     float b = luaL_checknumber(L, 10);
     int fade = luaL_checkinteger(L, 11);
     float size = luaL_checknumber(L, 12);
-    int uid = lua_tointeger(L, 13);
     physent *owner = NULL;
-    if (uid > 0) {
-        CLogicEntity *o = LogicSystem::getLogicEntity(uid);
-        assert(o->dynamicEntity);
-        owner = o->dynamicEntity;
+    if (!lua_isnoneornil(L, 13)) {
+        lua::push_external(L, "entity_get_attr");
+        lua_pushvalue(L, 13);
+        lua_pushliteral(L, "uid");
+        lua_call(L, 2, 1);
+        int uid = lua_tointeger(L, -1); lua_pop(L, 1);
+        CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
+        assert(ent && ent->dynamicEntity);
+        owner = ent->dynamicEntity;
     }
     if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
     newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade,

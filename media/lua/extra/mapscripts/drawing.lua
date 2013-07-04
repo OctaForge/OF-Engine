@@ -24,7 +24,7 @@ local ents = require("core.entities.ents")
 local conv = require("core.lua.conv")
 local particles = require("core.engine.particles")
 
-local splash = particles.splash
+local splash, flare = particles.splash, particles.flare
 
 local hextorgb = conv.hex_to_rgb
 
@@ -109,10 +109,8 @@ local Game_Player = Player:clone {
             if last and mark and mark.x >= 0 and last.x >= 0 then
                 local r, g, b = hextorgb(mark.w)
                 -- 12 == STREAK
-                _C.particle_flare(12, mark.x, mark.y, mark.z, last.x, last.y,
-                    last.z, r / 255, g / 255, b / 255, 0, 1, -1)
-                _C.particle_flare(12, last.x, last.y, last.z, mark.x, mark.y,
-                    mark.z, r / 255, g / 255, b / 255, 0, 1, -1)
+                flare(12, mark, last, r / 255, g / 255, b / 255, 0, 1)
+                flare(12, last, mark, r / 255, g / 255, b / 255, 0, 1)
             end
             last = mark
         end

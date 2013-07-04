@@ -128,5 +128,39 @@ return {
     splash = function(tp, o, rad, num, r, g, b, fade, size, gravity, delay, un)
         _C.particle_splash(tp, o.x, o.y, o.z, rad, num, r, g, b, fade, size,
             gravity or 0, delay or 0, un)
+    end,
+
+    trail = function(tp, o, d, r, g, b, fade, size, gravity)
+        _C.particle_trail(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
+            size, gravity or 0)
+    end,
+
+    text = function(tp, o, text, r, g, b, fade, size, gravity)
+        _C.particle_text(tp, o.x, o.y, o.z, text, r, g, b, fade, size,
+            gravity or 0)
+    end,
+
+    icon_generic = function(tp, o, ix, iy, r, g, b, fade, size, gravity)
+        _C.particle_icon_generic(tp, o.x, o.y, o.z, ix, iy, r, g, b, fade,
+            size, gravity or 0)
+    end,
+
+    icon = function(tp, o, itex, r, g, b, fade, size, gravity)
+        _C.particle_icon(tp, o.x, o.y, o.z, itex, r, g, b, fade, size,
+            gravity or 0)
+    end,
+
+    meter = function(tp, o, val, r, g, b, fade, size)
+        _C.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, 0, 0, 0, fade, size)
+    end,
+
+    meter_vs = function(tp, o, val, r, g, b, r2, g2, b2, fade, size)
+        _C.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, r2, g2, b2, fade,
+            size)
+    end,
+
+    flare = function(tp, o, d, r, g, b, fade, size, owner)
+        _C.particle_flare(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
+            size, owner)
     end
 }
