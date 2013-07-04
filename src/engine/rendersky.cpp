@@ -196,17 +196,17 @@ namespace dome
         vec pos;
         uchar color[4];
 
-	    vert() {}
-	    vert(const vec &pos, const bvec &fcolor, float alpha) : pos(pos)
-	    {
-		    memcpy(color, fcolor.v, 3);
-		    color[3] = uchar(alpha*255);
-	    }
-	    vert(const vert &v0, const vert &v1) : pos(vec(v0.pos).add(v1.pos).normalize())
-	    {
+        vert() {}
+        vert(const vec &pos, const bvec &fcolor, float alpha) : pos(pos)
+        {
+            memcpy(color, fcolor.v, 3);
+            color[3] = uchar(alpha*255);
+        }
+        vert(const vert &v0, const vert &v1) : pos(vec(v0.pos).add(v1.pos).normalize())
+        {
             memcpy(color, v0.color, 4);
             if(v0.pos.z != v1.pos.z) color[3] += uchar((v1.color[3] - v0.color[3]) * (pos.z - v0.pos.z) / (v1.pos.z - v0.pos.z));
-	    }
+        }
     } *verts = NULL;
     GLushort *indices = NULL;
     int numverts = 0, numindices = 0, capindices = 0;
@@ -312,7 +312,7 @@ namespace dome
 
     void cleanup()
     {
-	    numverts = numindices = 0;
+        numverts = numindices = 0;
         if(vbuf) { glDeleteBuffers_(1, &vbuf); vbuf = 0; }
         if(ebuf) { glDeleteBuffers_(1, &ebuf); ebuf = 0; }
     }
@@ -468,10 +468,10 @@ void drawskybox(int farplane)
         glEnable(GL_CULL_FACE);
     }
 
-	if(fogdomemax && fogdomeclouds)
-	{
+    if(fogdomemax && fogdomeclouds)
+    {
         drawfogdome(farplane);
-	}
+    }
 
     if(clampsky) glDepthRange(0, 1);
 

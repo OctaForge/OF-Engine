@@ -381,9 +381,9 @@ bool subdividecube(cube &c, bool fullcheck, bool brighten)
 {
     if(c.children) return true;
     if(c.ext) memset(c.ext->surfaces, 0, sizeof(c.ext->surfaces));
-	if(isempty(c) || isentirelysolid(c))
+    if(isempty(c) || isentirelysolid(c))
     {
-		c.children = newcubes(isempty(c) ? F_EMPTY : F_SOLID, c.material);
+        c.children = newcubes(isempty(c) ? F_EMPTY : F_SOLID, c.material);
         loopi(8)
         {
             loopl(6) c.children[i].texture[l] = c.texture[l];

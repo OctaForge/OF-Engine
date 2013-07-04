@@ -164,7 +164,7 @@ void initsound()
         if(sound) conoutf(CON_ERROR, "sound init failed (SDL_mixer): %s", Mix_GetError());
         return;
     }
-	Mix_AllocateChannels(soundchans);
+    Mix_AllocateChannels(soundchans);
     Mix_ChannelFinished(freechannel);
     maxchannels = soundchans;
     nosound = false;

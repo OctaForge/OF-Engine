@@ -443,8 +443,8 @@ undoblock *copyundoents(undoblock *u)
     loopi(u->numents)
         entadd(e[i].i);
     undoblock *c = newundoent();
-   	loopi(u->numents) if(e[i].e.type==ET_EMPTY)
-		entgroup.removeobj(e[i].i);
+       loopi(u->numents) if(e[i].e.type==ET_EMPTY)
+        entgroup.removeobj(e[i].i);
     return c;
 }
 
