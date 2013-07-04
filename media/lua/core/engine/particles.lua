@@ -107,5 +107,26 @@ return {
     ]]
     get_renderer = _C.particle_get_renderer,
 
-    
+    --[[! Function: new
+        Spawns a new generic particle, given a type (renderer ID), position,
+        direction/target (depends on the renderer type), color (three floats
+        typically from 0 to 1, can go out of bounds), fade time (in millis),
+        size (float) and optionally gravity (defaults to 0).
+    ]]
+    new = function(tp, o, d, r, g, b, fade, size, gravity)
+        _C.particle_new(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
+            size, gravity or 0)
+    end,
+
+    --[[! Function: splash
+        Spawns a splash particle effect, given a type, position, radius
+        (an integer), number of particles, color, fade time, size and
+        optionally gravity (defaults to 0), delay (defaults to 0) and
+        a boolean that makes the splash unbounded when true (always
+        keeps spawning particles).
+    ]]
+    splash = function(tp, o, rad, num, r, g, b, fade, size, gravity, delay, un)
+        _C.particle_splash(tp, o.x, o.y, o.z, rad, num, r, g, b, fade, size,
+            gravity or 0, delay or 0, un)
+    end
 }
