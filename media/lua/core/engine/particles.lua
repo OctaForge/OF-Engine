@@ -162,5 +162,23 @@ return {
     flare = function(tp, o, d, r, g, b, fade, size, owner)
         _C.particle_flare(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
             size, owner)
+    end,
+
+    fireball = function(tp, o, r, g, b, fade, size, maxsize)
+        _C.particle_fireball(tp, o.x, o.y, o.z, r, g, b, fade, size, maxsize)
+    end,
+
+    lens_flare = function(tp, o, sun, sparkle, r, g, b)
+        _C.particle_lensflare(tp, o.x, o.y, o.z, sun, sparkle, r, g, b)
+    end,
+
+    shape = function(tp, o, rad, dir, num, r, g, b, fade, size, gravity, vel)
+        _C.particle_shape(tp, o.x, o.y, o.z, rad, dir, num, r, g, b, fade,
+            size, gravity or 0, vel or 200)
+    end,
+
+    flame = function(tp, o, rad, h, r, g, b, fade, dens, scale, speed, grav)
+        _C.particle_flame(tp, o.x, o.y, o.z, rad, h, r, g, b, fade or 600,
+            dens or 3, scale or 2, speed or 200, grav or -15)
     end
 }

@@ -1157,11 +1157,11 @@ local part_draw_tbl = setmetatable({
         local radius = a1 ~= 0 and a1 / 100 or 1.5
         local height = a2 ~= 0 and a2 / 100 or 0.5
         local r, g, b = hextorgb(a3 ~= 0 and a3 or 0x903020)
-        _C.particle_flame(PART_FLAME, x, y, z, radius, height, 3,
-            r / 255, g / 255, b / 255, 600, 2, 200, -15)
+        _C.particle_flame(PART_FLAME, x, y, z, radius, height,
+            r / 255, g / 255, b / 255, 600, 3, 2, 200, -15)
         _C.particle_flame(PART_SMOKE, x, y, z + 4 * min(radius, height),
-            radius, height, 1, 0x30 / 255, 0x30 / 255, 0x20 / 255,
-            2000, 4, 100, -20)
+            radius, height, 0x30 / 255, 0x30 / 255, 0x20 / 255,
+            2000, 1, 4, 100, -20)
     end,
     -- steam vent - dir
     [1] = function(pt, x, y, z, a1, a2, a3, a4)
@@ -1202,14 +1202,14 @@ local part_draw_tbl = setmetatable({
     -- flame - radius, height, rgb
     [11] = function(pt, x, y, z, a1, a2, a3, a4)
         local r, g, b = hextorgb(a3)
-        _C.particle_flame(PART_FLAME, x, y, z, a1 / 100, a2 / 100, 3,
-            r / 255, g / 255, b / 255, 600, 2, 200, -15)
+        _C.particle_flame(PART_FLAME, x, y, z, a1 / 100, a2 / 100,
+            r / 255, g / 255, b / 255, 600, 3, 2, 200, -15)
     end,
     -- smoke plume - radius, height, rgb
     [12] = function(pt, x, y, z, a1, a2, a3, a4)
         local r, g, b = hextorgb(a3)
-        _C.particle_flame(PART_SMOKE, x, y, z, a1 / 100, a2 / 100, 1,
-            r / 255, g / 255, b / 255, 2000, 4, 100, -20)
+        _C.particle_flame(PART_SMOKE, x, y, z, a1 / 100, a2 / 100,
+            r / 255, g / 255, b / 255, 2000, 1, 4, 100, -20)
     end,
     [32] = part_draw_3,
     [33] = part_draw_3,

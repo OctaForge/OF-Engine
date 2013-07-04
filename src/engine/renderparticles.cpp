@@ -1728,16 +1728,16 @@ LUAICOMMAND(particle_flame, {
     float oz = luaL_checknumber(L, 4);
     float radius = luaL_checknumber(L, 5);
     float height = luaL_checknumber(L, 6);
-    int density = luaL_checkinteger(L, 7);
-    float r = luaL_checknumber(L, 8);
-    float g = luaL_checknumber(L, 9);
-    float b = luaL_checknumber(L, 10);
-    float fade = luaL_checknumber(L, 11);
+    float r = luaL_checknumber(L, 7);
+    float g = luaL_checknumber(L, 8);
+    float b = luaL_checknumber(L, 9);
+    float fade = luaL_checknumber(L, 10);
+    int density = luaL_checkinteger(L, 11);
     float scale = luaL_checknumber(L, 12);
     float speed = luaL_checknumber(L, 13);
     int gravity = luaL_checkinteger(L, 14);
 
-    if (!canaddparticles() || (!lua_toboolean(L, 15) && !canemitparticles())) {
+    if (!canaddparticles() || !canemitparticles()) {
         lua_pushboolean(L, true);
         return 1;
     }
