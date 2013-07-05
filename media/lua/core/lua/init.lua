@@ -25,9 +25,6 @@ require("core.lua.table")
 #log(DEBUG, ":::: Lua extensions: math")
 require("core.lua.math")
 
-#log(DEBUG, ":::: Engine variables.")
-require("core.lua.var")
-
 #log(DEBUG, ":::: Type conversions.")
 require("core.lua.conv")
 

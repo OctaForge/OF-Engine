@@ -17,7 +17,7 @@
 
 
 local input = require("core.engine.input")
-local var = require("core.lua.var")
+local var = require("core.engine.var")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")

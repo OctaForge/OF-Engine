@@ -13,7 +13,7 @@
         Text editor and fields.
 ]]
 
-local var = require("core.lua.var")
+local var = require("core.engine.var")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
 local signal = require("core.events.signal")

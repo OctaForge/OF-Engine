@@ -22,7 +22,7 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local msg = require("core.network.msg")
 local table2 = require("core.lua.table")
-local var = require("core.lua.var")
+local var = require("core.engine.var")
 local conv = require("core.lua.conv")
 
 local hextorgb = conv.hex_to_rgb

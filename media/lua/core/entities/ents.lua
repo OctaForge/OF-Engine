@@ -20,7 +20,7 @@ local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
-local var = require("core.lua.var")
+local var = require("core.engine.var")
 
 local table2 = require("core.lua.table")
 

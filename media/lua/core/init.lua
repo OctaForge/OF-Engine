@@ -144,11 +144,11 @@ require("core.network")
 if dbg then log(DEBUG, ":: Event system.") end
 require("core.events")
 
-if dbg then log(DEBUG, ":: Entity system.") end
-require("core.entities")
-
 if dbg then log(DEBUG, ":: Engine system.") end
 require("core.engine")
+
+if dbg then log(DEBUG, ":: Entity system.") end
+require("core.entities")
 
 if not package.loaded["gui"] then
     if dbg then log(DEBUG, "Initializing GUI") end

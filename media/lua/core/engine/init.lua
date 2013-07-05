@@ -13,6 +13,9 @@
         OctaForge standard library loader (Engine system).
 ]]
 
+#log(DEBUG, ":::: Engine variables.")
+require("core.engine.var")
+
 #log(DEBUG, ":::: Input.")
 require("core.engine.input")
 
