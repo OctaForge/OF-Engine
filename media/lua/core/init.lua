@@ -82,28 +82,26 @@ end)
 ]]
 cubescript = _C.cubescript
 
-local dbg = log.should_log(log.DEBUG)
+log.log(log.DEBUG, "Initializing the core library.")
 
-if dbg then log.log(log.DEBUG, "Initializing the core library.") end
-
-if dbg then log.log(log.DEBUG, ":: Lua extensions.") end
+log.log(log.DEBUG, ":: Lua extensions.")
 require("core.lua")
 
-if dbg then log.log(log.DEBUG, ":: Network system.") end
+log.log(log.DEBUG, ":: Network system.")
 require("core.network")
 
-if dbg then log.log(log.DEBUG, ":: Event system.") end
+log.log(log.DEBUG, ":: Event system.")
 require("core.events")
 
-if dbg then log.log(log.DEBUG, ":: Engine system.") end
+log.log(log.DEBUG, ":: Engine system.")
 require("core.engine")
 
-if dbg then log.log(log.DEBUG, ":: Entity system.") end
+log.log(log.DEBUG, ":: Entity system.")
 require("core.entities")
 
 if not package.loaded["gui"] then
-    if dbg then log.log(log.DEBUG, "Initializing GUI") end
+    log.log(log.DEBUG, "Initializing GUI")
     require("gui")
 end
 
-if dbg then log.log(log.DEBUG, "Core scripting initialization complete.") end
+log.log(log.DEBUG, "Core scripting initialization complete.")
