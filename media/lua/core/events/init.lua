@@ -13,17 +13,19 @@
         OctaForge standard library loader (Event system).
 ]]
 
-#log(DEBUG, ":::: Frame handling.")
+local log = require("core.logger")
+
+log.log(log.DEBUG, ":::: Frame handling.")
 require("core.events.frame")
 
-#log(DEBUG, ":::: Signal system.")
+log.log(log.DEBUG, ":::: Signal system.")
 require("core.events.signal")
 
-#log(DEBUG, ":::: Action system.")
+log.log(log.DEBUG, ":::: Action system.")
 require("core.events.actions")
 
-#log(DEBUG, ":::: World events.")
+log.log(log.DEBUG, ":::: World events.")
 require("core.events.world")
 
-#log(DEBUG, ":::: Input events.")
+log.log(log.DEBUG, ":::: Input events.")
 require("core.events.input")

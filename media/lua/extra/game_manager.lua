@@ -16,6 +16,8 @@
 
 local M = {}
 
+local log = require("core.logger")
+
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
@@ -162,8 +164,8 @@ local Game_Manager = ents.Entity:clone {
             starts[rand(1, #starts)]:place_entity(player)
             return nil
         end
-        #log(WARNING, ('player start not found (\"%s\"), '
-        #    .. 'placing player elsewhere'):format(st))
+        log.log(log.WARNING, ('player start not found (\"%s\"), '
+            .. 'placing player elsewhere'):format(st))
         player:set_attr("position", { 512, 512, 571 })
     end,
 

@@ -13,6 +13,10 @@
         Implements a basic entity set. Injects directly into the "ents" module.
 ]]
 
+local logging = require("core.logger")
+local log = logging.log
+local DEBUG = logging.DEBUG
+
 local sound = require("core.engine.sound")
 local model = require("core.engine.model")
 local frame = require("core.events.frame")
@@ -737,7 +741,7 @@ local Static_Entity = Entity:clone {
     },
 
     init = function(self, uid, kwargs)
-        #log(DEBUG, "Static_Entity.init")
+        --@D log(DEBUG, "Static_Entity.init")
 
         kwargs = kwargs or {}
         kwargs.persistent = true
@@ -753,19 +757,19 @@ local Static_Entity = Entity:clone {
             })
         end
 
-        #log(DEBUG, "Static_Entity.init complete")
+        --@D log(DEBUG, "Static_Entity.init complete")
     end,
 
     activate = SERVER and function(self, kwargs)
         kwargs = kwargs or {}
 
-        #log(DEBUG, "Static_Entity.activate")
+        --@D log(DEBUG, "Static_Entity.activate")
         Entity.activate(self, kwargs)
 
-        #log(DEBUG, "Static_Entity: extent setup")
+        --@D log(DEBUG, "Static_Entity: extent setup")
         _C.setup_extent(self, self.sauer_type)
 
-        #log(DEBUG, "Static_Entity: flush")
+        --@D log(DEBUG, "Static_Entity: flush")
         self:flush_queued_svar_changes()
 
         self:set_attr("position", self:get_attr("position"))
@@ -791,8 +795,8 @@ local Static_Entity = Entity:clone {
             return p.cn end) or { cn }
 
         local uid = self.uid
-        #log(DEBUG, "Static_Entity.send_notification_full: "
-        #    .. cn .. ", " .. uid)
+        --@D log(DEBUG, "Static_Entity.send_notification_full: "
+        --@D     .. cn .. ", " .. uid)
 
         local scn, sname = self.cn, self.name
         for i = 1, #cns do
@@ -801,7 +805,7 @@ local Static_Entity = Entity:clone {
                 self:build_sdata({ target_cn = n, compressed = true }))
         end
 
-        #log(DEBUG, "Static_Entity.send_notification_full: done")
+        --@D log(DEBUG, "Static_Entity.send_notification_full: done")
     end or nil,
 
     --[[! Function: get_center

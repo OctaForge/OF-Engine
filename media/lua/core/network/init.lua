@@ -15,5 +15,7 @@
         Everything networking related.
 ]]
 
-#log(DEBUG, ":::: Messages.")
+local log = require("core.logger")
+
+log.log(log.DEBUG, ":::: Messages.")
 require("core.network.msg")

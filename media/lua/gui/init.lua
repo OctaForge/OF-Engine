@@ -13,7 +13,9 @@
         OctaForge standard library loader (GUI system).
 ]]
 
-#log(DEBUG, ":::: Core UI implementation.")
+local log = require("core.logger")
+
+log.log(log.DEBUG, ":::: Core UI implementation.")
 
 require("gui.core")
 require("gui.core_containers")

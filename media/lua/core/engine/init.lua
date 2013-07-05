@@ -13,29 +13,31 @@
         OctaForge standard library loader (Engine system).
 ]]
 
-#log(DEBUG, ":::: Engine variables.")
+local log = require("core.logger")
+
+log.log(log.DEBUG, ":::: Engine variables.")
 require("core.engine.var")
 
-#log(DEBUG, ":::: Input.")
+log.log(log.DEBUG, ":::: Input.")
 require("core.engine.input")
 
-#log(DEBUG, ":::: Camera.")
+log.log(log.DEBUG, ":::: Camera.")
 require("core.engine.camera")
 
-#log(DEBUG, ":::: Sound.")
+log.log(log.DEBUG, ":::: Sound.")
 require("core.engine.sound")
 
-#log(DEBUG, ":::: Models.")
+log.log(log.DEBUG, ":::: Models.")
 require("core.engine.model")
 
-#log(DEBUG, ":::: Lights.")
+log.log(log.DEBUG, ":::: Lights.")
 require("core.engine.lights")
 
-#log(DEBUG, ":::: Decals.")
+log.log(log.DEBUG, ":::: Decals.")
 require("core.engine.decals")
 
-#log(DEBUG, ":::: Particles.")
+log.log(log.DEBUG, ":::: Particles.")
 require("core.engine.particles")
 
-#log(DEBUG, ":::: Editing.")
+log.log(log.DEBUG, ":::: Editing.")
 require("core.engine.edit")

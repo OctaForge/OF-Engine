@@ -45,32 +45,13 @@ end
 
 --debug.sethook(trace, "c")
 
-INFO    = 0
-DEBUG   = 1
-WARNING = 2
-ERROR   = 3
+_C.log(1, "Initializing logging.")
 
-_C.log(DEBUG, "Initializing logging.")
-
---[[! Function: log
-    Logs some text into the console with a given level. By default, OF
-    uses the "WARNING" level. You can change it on engine startup.
-
-    Takes the log level and the text.
-
-    Levels:
-        INFO - Use for often repeating output that is not by default of much
-        use. Tend to use DEBUG instead of this, however.
-        DEBUG - Use for the usual debugging output.
-        WARNING - This level is usually displayed by default.
-        ERROR - Use for serious error messages, displayed always. Printed into
-        the in-engine console too, unlike all others.
-]]
-log = _C.log
+local log = require("core.logger")
 
 local io_open, load, error = io.open, load, error
 local pp_loader = function(fname, modname)
-    local prevlevel
+    if not _C.should_log(1) then return nil end
     local file = io_open(fname, "rb")
     local f, err = load(function()
         local  line = file:read("*L")
@@ -78,30 +59,7 @@ local pp_loader = function(fname, modname)
             file:close()
             return nil
         end
-        local lvl, rst = line:match("^%s*#log%s*%(([A-Z]+),%s*(.+)$")
-        if lvl then
-            prevlevel = _G[lvl]
-            if _C.should_log(prevlevel) then
-                local a, b = line:find("^%s*#")
-                return line:sub(b + 1)
-            else
-                return "--" .. line
-            end
-        elseif prevlevel then
-            local a, b = line:find("^%s*#")
-            if a then
-                if _C.should_log(prevlevel) then
-                    return line:sub(b + 1)
-                else
-                    return "--" .. line
-                end
-            else
-                prevlevel = nil
-                return line
-            end
-        else
-            return line
-        end
+        return (line:match("^%s*--@D (.+)$")) or line
     end, "@" .. fname)
     if not f then
         error("error loading module '" .. modname .. "' from file '"
@@ -118,41 +76,34 @@ table.insert(package.loaders, 2, function(modname)
     return pp_loader(v, modname)
 end)
 
---[[! Function: echo
-    Displays some text into both consoles (in-engine and terminal). Takes
-    only the text, there is no logging level, no changes are made to the
-    text. It's printed as it's given.
-]]
-echo = _C.echo
-
 --[[! Function: cubescript
     Executes the given cubescript string. Returns the return value of the
     cubescript expression.
 ]]
 cubescript = _C.cubescript
 
-local dbg = _C.should_log(DEBUG)
+local dbg = log.should_log(log.DEBUG)
 
-if dbg then log(DEBUG, "Initializing the core library.") end
+if dbg then log.log(log.DEBUG, "Initializing the core library.") end
 
-if dbg then log(DEBUG, ":: Lua extensions.") end
+if dbg then log.log(log.DEBUG, ":: Lua extensions.") end
 require("core.lua")
 
-if dbg then log(DEBUG, ":: Network system.") end
+if dbg then log.log(log.DEBUG, ":: Network system.") end
 require("core.network")
 
-if dbg then log(DEBUG, ":: Event system.") end
+if dbg then log.log(log.DEBUG, ":: Event system.") end
 require("core.events")
 
-if dbg then log(DEBUG, ":: Engine system.") end
+if dbg then log.log(log.DEBUG, ":: Engine system.") end
 require("core.engine")
 
-if dbg then log(DEBUG, ":: Entity system.") end
+if dbg then log.log(log.DEBUG, ":: Entity system.") end
 require("core.entities")
 
 if not package.loaded["gui"] then
-    if dbg then log(DEBUG, "Initializing GUI") end
+    if dbg then log.log(log.DEBUG, "Initializing GUI") end
     require("gui")
 end
 
-if dbg then log(DEBUG, "Core scripting initialization complete.") end
+if dbg then log.log(log.DEBUG, "Core scripting initialization complete.") end

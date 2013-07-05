@@ -16,6 +16,11 @@
         various types and new svar types are easily implementable.
 ]]
 
+local logging = require("core.logger")
+local log = logging.log
+local DEBUG = logging.DEBUG
+local INFO  = logging.INFO
+
 local frame = require("core.events.frame")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
@@ -98,7 +103,7 @@ State_Variable = table2.Object:clone {
             for better performance (we don't always have to query).
     ]]
     __init = function(self, kwargs)
-        #log(INFO, "State_Variable: init")
+        --@D log(INFO, "State_Variable: init")
 
         kwargs = kwargs or {}
 
@@ -127,8 +132,8 @@ State_Variable = table2.Object:clone {
         _SV_GUI_ (if gui_name is not defined, regular name is used).
     ]]
     register = function(self, name, cl)
-        #log(DEBUG, "State_Variable: register(" .. name
-        #    .. ", " .. cl.name .. ")")
+        --@D log(DEBUG, "State_Variable: register(" .. name
+        --@D     .. ", " .. cl.name .. ")")
 
         self.name = name
         cl["_SV_" .. name] = self
@@ -136,12 +141,12 @@ State_Variable = table2.Object:clone {
         assert(self.getter)
         assert(self.setter)
 
-        #log(DEBUG, "State_Variable: register: getter/setter")
+        --@D log(DEBUG, "State_Variable: register: getter/setter")
         define_accessors(cl, name, self.getter, self.setter, self)
 
         local an = self.alt_name
         if an then
-            #log(DEBUG, "State_Variable: register: alt getter/setter")
+            --@D log(DEBUG, "State_Variable: register: alt getter/setter")
             cl["_SV_" .. an] = self
             define_accessors(cl, an, self.getter, self.setter, self)
         end
@@ -200,7 +205,7 @@ State_Variable = table2.Object:clone {
         var:read_tests(self)
 
         local vn = var.name
-        #log(INFO, "State_Variable: getter: " .. vn)
+        --@D log(INFO, "State_Variable: getter: " .. vn)
 
         local fr = frame.get_frame()
 
@@ -211,7 +216,7 @@ State_Variable = table2.Object:clone {
             return self.svar_values[vn]
         end
 
-        #log(INFO, "State_Variable: getter: getter function")
+        --@D log(INFO, "State_Variable: getter: getter function")
 
         local val = var.getter_fun(self)
 
@@ -362,7 +367,7 @@ Array_Surrogate = {
         and "variable", assigned using the provided arguments.
     ]]
     new = function(self, ent, var)
-        #log(INFO, "Array_Surrogate: new: " .. var.name)
+        --@D log(INFO, "Array_Surrogate: new: " .. var.name)
         local rawt = { entity = ent, variable = var }
         rawt.rawt = rawt -- yay! cycles!
         local ret = newproxy(true)
@@ -492,7 +497,7 @@ State_Array = State_Variable:clone {
         is given, it copies the table before setting it.
     ]]
     setter = function(self, val, var)
-        #log(INFO, "State_Array: setter: " .. tostring(val))
+        --@D log(INFO, "State_Array: setter: " .. tostring(val))
         var:write_tests(self)
 
         self:set_sdata(var.name,
@@ -540,7 +545,7 @@ State_Array = State_Variable:clone {
     ]]
     get_raw = function(self, ent)
         local vn = self.name
-        #log(INFO, "State_Array: get_raw: " .. vn)
+        --@D log(INFO, "State_Array: get_raw: " .. vn)
 
         if not self.getter_fun then
             return ent.svar_values[vn] or {}
@@ -554,7 +559,7 @@ State_Array = State_Variable:clone {
             return ent.svar_values[vn]
         end
 
-        #log(INFO, "State_Array: get_raw: getter function")
+        --@D log(INFO, "State_Array: get_raw: getter function")
 
         local val = self.getter_fun(ent)
 
@@ -578,7 +583,7 @@ State_Array = State_Variable:clone {
         the surrogate.
     ]]
     get_item = function(self, ent, idx)
-        #log(INFO, "State_Array: get_item: " .. idx)
+        --@D log(INFO, "State_Array: get_item: " .. idx)
         return self:get_raw(ent)[idx]
     end,
 
@@ -587,7 +592,8 @@ State_Array = State_Variable:clone {
         an update on all clients by setting the state data on the entity.
     ]]
     set_item = function(self, ent, idx, val)
-        #log(INFO, "State_Array: set_item: " .. idx .. ", " .. tostring(val))
+        --@D log(INFO, "State_Array: set_item: " .. idx .. ", "
+        --@D     .. tostring(val))
 
         local a = self:get_raw(ent)
         if type(val) == "string" then
@@ -642,7 +648,7 @@ Vec3_Surrogate = {
         and "variable", assigned using the provided arguments.
     ]]
     new = function(self, ent, var)
-        #log(INFO, "Vec3_Surrogate: new: " .. var.name)
+        --@D log(INFO, "Vec3_Surrogate: new: " .. var.name)
         local rawt = { entity = ent, variable = var }
         rawt.rawt = rawt
         local ret = newproxy(true)
@@ -749,7 +755,7 @@ Vec4_Surrogate = {
         and "variable", assigned using the provided arguments.
     ]]
     new = function(self, ent, var)
-        #log(INFO, "Vec4_Surrogate: new: " .. var.name)
+        --@D log(INFO, "Vec4_Surrogate: new: " .. var.name)
         local rawt = { entity = ent, variable = var }
         rawt.rawt = rawt
         local ret = newproxy(true)
@@ -893,14 +899,14 @@ State_Variable_Alias = State_Variable:clone {
         pointing to the target var.
     ]]
     register = function(self, name, cl)
-        #log(DEBUG, "State_Variable_Alias: register(" .. name
-        #    .. ", " .. cl.name .. ")")
+        --@D log(DEBUG, "State_Variable_Alias: register(" .. name
+        --@D     .. ", " .. cl.name .. ")")
 
         self.name = name
         local tg = cl["_SV_" .. self.target_name]
         cl["_SV_" .. name] = tg
 
-        #log(DEBUG, "State_Variable_Alias: register: getter/setter")
+        --@D log(DEBUG, "State_Variable_Alias: register: getter/setter")
         define_accessors(cl, name, self.getter, self.setter, self)
     end
 }

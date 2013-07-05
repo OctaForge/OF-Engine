@@ -13,6 +13,7 @@
         Reusable teleporter entities.
 ]]
 
+local log = require("core.logger")
 local sound = require("core.engine.sound")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
@@ -67,7 +68,7 @@ M.Teleporter = Obstacle:clone {
         if dest <= 0 then return nil end
         local dests = get_by_tag("teledest_" .. dest)
         if #dests == 0 then
-            #log(ERROR, "No teledest found.")
+            log.log(log.ERROR, "No teledest found.")
             return nil
         end
         dests[rand(1, #dests)]:place_entity(collider)

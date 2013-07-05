@@ -13,6 +13,7 @@
         Lua math extensions.
 ]]
 
+local log = require("core.logger")
 local bit = require("bit")
 
 local type = type
@@ -240,7 +241,7 @@ local vec3_mt = {
             if    len ~= 0 then
                 self:mul(1 / len)
             else
-                log(ERROR, "Can't normalize a vector of zero length.")
+                log.log(log.ERROR, "Can't normalize a vector of zero length.")
             end
             return self
         end,

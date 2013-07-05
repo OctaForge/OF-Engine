@@ -13,20 +13,22 @@
         OctaForge standard library loader (Lua extensions).
 ]]
 
-#log(DEBUG, ":::: Strict mode.")
+local log = require("core.logger")
+
+log.log(log.DEBUG, ":::: Strict mode.")
 require("core.lua.strict")
 
-#log(DEBUG, ":::: Lua extensions: string")
+log.log(log.DEBUG, ":::: Lua extensions: string")
 require("core.lua.string")
 
-#log(DEBUG, ":::: Lua extensions: table")
+log.log(log.DEBUG, ":::: Lua extensions: table")
 require("core.lua.table")
 
-#log(DEBUG, ":::: Lua extensions: math")
+log.log(log.DEBUG, ":::: Lua extensions: math")
 require("core.lua.math")
 
-#log(DEBUG, ":::: Type conversions.")
+log.log(log.DEBUG, ":::: Type conversions.")
 require("core.lua.conv")
 
-#log(DEBUG, ":::: Environment support.")
+log.log(log.DEBUG, ":::: Environment support.")
 require("core.lua.env")

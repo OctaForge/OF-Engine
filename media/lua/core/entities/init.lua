@@ -13,11 +13,13 @@
         OctaForge standard library loader (Entity system).
 ]]
 
-#log(DEBUG, ":::: State variables.")
+local log = require("core.logger")
+
+log.log(log.DEBUG, ":::: State variables.")
 require("core.entities.svars")
 
-#log(DEBUG, ":::: Entities.")
+log.log(log.DEBUG, ":::: Entities.")
 require("core.entities.ents")
 
-#log(DEBUG, ":::: Entities: basic set.")
+log.log(log.DEBUG, ":::: Entities: basic set.")
 require("core.entities.ents_basic")

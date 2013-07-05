@@ -13,6 +13,10 @@
         Handles a single main loop frame from the scripting system.
 ]]
 
+local logging = require("core.logger")
+local log = logging.log
+local INFO = logging.INFO
+
 local table2 = require("core.lua.table")
 
 local current_frame      = 0
@@ -37,7 +41,7 @@ local handle_frame = function(millis, lastmillis)
     if not ents then ents = require("core.entities.ents") end
     local get_ents = ents.get_all
 
-    #log(INFO, "frame.handle_frame: New frame")
+    --@D log(INFO, "frame.handle_frame: New frame")
     current_frame = current_frame + 1
 
     local queue = copy(queued_actions)
@@ -49,7 +53,7 @@ local handle_frame = function(millis, lastmillis)
     current_frame_time = millis
     last_millis        = lastmillis
 
-    #log(INFO, "frame.handle_frame: Acting on entities")
+    --@D log(INFO, "frame.handle_frame: Acting on entities")
 
     for uid, entity in pairs(get_ents()) do
         local skip = false

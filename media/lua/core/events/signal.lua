@@ -13,6 +13,7 @@
         Lua signal system. Allows connecting and further emitting signals.
 ]]
 
+local log = require("core.logger")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
 
@@ -50,7 +51,7 @@ local M = {}
 ]]
 M.connect = function(self, name, callback)
     if type(callback) ~= "function" then
-        #log(ERROR, "Not connecting non-function callback: " .. name)
+        log.log(log.ERROR, "Not connecting non-function callback: " .. name)
         return nil
     end
     local clistn = "_sig_conn_" .. name

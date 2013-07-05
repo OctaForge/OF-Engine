@@ -15,6 +15,7 @@
         colors.
 ]]
 
+local log = require("core.logger")
 
 local input = require("core.engine.input")
 local var = require("core.engine.var")
@@ -80,7 +81,7 @@ local Game_Player = Player:clone {
             self.color_id = 1
         end
         self.color = colors[self.color_id]
-        echo(("color switch: 0x%.6X"):format(self.color))
+        log.echo(("color switch: 0x%.6X"):format(self.color))
     end,
 
     reset_mark = function(self)
