@@ -10,7 +10,8 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Various types of particle effects.
+        Various types of particle effects. All of the entity types here
+        derive from <ents.Particle_Effect>.
 ]]
 
 local ents = require("core.entities.ents")
@@ -46,40 +47,17 @@ local PART_MUZZLE_FLASH1 = 18
 local PART_MUZZLE_FLASH2 = 19
 local PART_MUZZLE_FLASH3 = 20
 local PART_LENS_FLARE = 21
---[[
-local typemap = { PART_STREAK, -1, -1, PART_LIGHTNING, -1, PART_STEAM,
-    PART_WATER, -1, -1, PART_SNOW }
-local sizemap = { 0.28, 0, 0, 1, 0, 2.4, 0.6, 0, 0, 0.5 }
-local gravmap = { 0, 0, 0, 0, 0, -20, 2, 0, 0, 20 }
-
-
-local part_draw_1 = function(pt, x, y, z, a1, a2, a3, a4)
-    local tp = typemap[pt - 3]
-    local sz = sizemap[pt - 3]
-    local gv = gravmap[pt - 3]
-    local r, g, b = hextorgb(a3)
-    if a1 >= 256 then
-        _C.particle_shape(tp, x, y, z, max(1 + a2, 1), a1 - 256, 5, r / 255,
-            g / 255, b / 255, a4 > 0 and min(a4, 10000) or 200, sz, gv, 200)
-    else
-        local d = offset_vec({ x = x, y = y, z = z }, a1, max(1 + a2, 0))
-        _C.particle_new(tp, x, y, z, d.x, d.y, d.z, r / 255, g / 255, b / 255,
-            1, sz, gv)
-    end
-end
-
-local rand = math.random
-
-local part_draw_tbl = {
-    [4] = part_draw_1, -- tape - dir, length, rgb
-    [7] = part_draw_1, -- lightning
-    [9] = part_draw_1, -- steam
-    [10] = part_draw_1, -- water
-    [13] = part_draw_1, -- snow
-}
-]]
 
 local cmap = { "x", "y", "z" }
+
+--[[! Function: offset_vec
+    Given an object with members x, y, z (that are numbers), a direction
+    (0 to 5 where 0 is up) and distance, this adds or subtracts the distance
+    to the vector component given by the direction. 0 is z with addition,
+    1 is x with addition, 2 is y with addition, 3 is z with subtraction,
+    4 is x with subtraction, 5 is y with subtraction.
+    
+]]
 local offset_vec = function(v, dir, dist)
     local e = cmap[((2 + dir) % 3) + 1]
     v[e] = v[e] + ((dir > 2) and -dist or dist)
@@ -87,6 +65,10 @@ local offset_vec = function(v, dir, dist)
 end
 M.offset_vec = offset_vec
 
+--[[! Class: Fire_Effect
+    A regular fire effect. Has properties radius (default 1.5), height
+    (default 0.5), red, green, blue (integers, default 0x90, 0x30, 0x20).
+]]
 M.Fire_Effect = Particle_Effect:clone {
     name = "Fire_Effect",
 
@@ -121,6 +103,10 @@ M.Fire_Effect = Particle_Effect:clone {
     end
 }
 
+--[[! Class: Steam_Effect
+    A steam effect. Has one property, direction, which is passed to
+    <offset_vec> directly.
+]]
 M.Steam_Effect = Particle_Effect:clone {
     name = "Steam_Effect",
 
