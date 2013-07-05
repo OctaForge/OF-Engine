@@ -22,23 +22,20 @@ local min, rand = math.min, math.random
 local format = string.format
 
 local flame, splash = particles.flame, particles.splash
+local pflags = particles.flags
+local quadrenderer = particles.register_renderer_quad
 local Particle_Effect = ents.Particle_Effect
 
 local M = {}
 
-local PART_TEXT = 0
-local PART_ICON = 1
-local PART_METER = 2
-local PART_METER_VS = 3
-local PART_BLOOD = 4
-local PART_WATER = 5
-local PART_SMOKE = 6
-local PART_STEAM = 7
-local PART_FLAME = 8
-local PART_FIREBALL1 = 9
-local PART_FIREBALL2 = 10
-local PART_FIREBALL3 = 11
-local PART_STREAK = 12
+local SMOKE, FLAME, STEAM
+if not SERVER then
+    SMOKE = quadrenderer("smoke", "media/particle/smoke",
+        bit.bor(pflags.FLIP, pflags.LERP))
+    FLAME = quadrenderer("flame", "media/particle/flames",
+        bit.bor(pflags.HFLIP, pflags.RND4, pflags.BRIGHT))
+    STEAM = quadrenderer("steam", "media/particle/steam", pflags.FLIP)
+end
 
 local cmap = { "x", "y", "z" }
 
@@ -102,8 +99,8 @@ M.Fire_Effect = Particle_Effect:clone {
         local pos = self:get_attr("position")
         local spos = { x = pos.x, y = pos.y,
             z = pos.z + 4 * min(radius, height) }
-        flame(PART_FLAME, pos, radius, height, r / 255, g / 255, b / 255)
-        flame(PART_SMOKE, spos, radius, height, 0x30 / 255, 0x30 / 255,
+        flame(FLAME, pos, radius, height, r / 255, g / 255, b / 255)
+        flame(SMOKE, spos, radius, height, 0x30 / 255, 0x30 / 255,
             0x20 / 255, 2000, 1, 4, 100, -20)
     end
 }
@@ -132,7 +129,7 @@ M.Steam_Effect = Particle_Effect:clone {
         local dir = self:get_attr("direction")
         local pos = self:get_attr("position")
         local d = offset_vec({ x = pos.x, y = pos.y, z = pos.z }, dir, rand(9))
-        splash(PART_STEAM, d, 50, 1, 0x89 / 255, 0x76 / 255, 0x61 / 255,
+        splash(STEAM, d, 50, 1, 0x89 / 255, 0x76 / 255, 0x61 / 255,
             200, 2.4, -20)
     end
 }

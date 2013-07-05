@@ -10,12 +10,13 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Lua particle API.
+        Lua particle API. Works on the client.
 ]]
 
 local bit = require("bit")
 
 local M = {}
+if SERVER then return M end
 
 --[[! Variable: flags
     The flags available during particle renderer registration. Use bitwise
@@ -46,12 +47,22 @@ local flags = {
 flags.FLIP = bit.bor(flags.HFLIP, flags.VFLIP, flags.ROT)
 M.flags = flags
 
+--[[! Variable: renderers
+    Contains two predefined renderers that are mandatory - TEXT and ICON.
+]]
+local renderers = {
+    TEXT = _C.particle_register_renderer_text("text"),
+    ICON = _C.particle_register_renderer_icon("icon")
+}
+M.renderers = renderers
+
 --[[! Function: register_renderer_quad
     Registers a "quad renderer" (a renderer that draws individual textures)
     given a name (arbitrary), a texture path and optionally flags
     (see <flags>) and the id of the decal that gets spawned if the
     particle collides with geometry (happens on particles with gravity,
-    such as snow).
+    such as snow). The id can be -1 - in such case the particles will
+    collide but won't spawn any decal.
 
     Returns two values - a particle renderer id (which you will use when
     spawning particles) and a boolean value that is false if a renderer

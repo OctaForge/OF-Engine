@@ -10,8 +10,10 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Lua decal API.
+        Lua decal API. Works on the client.
 ]]
+
+if SERVER then return {} end
 
 local bit = require("bit")
 

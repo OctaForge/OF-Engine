@@ -577,7 +577,6 @@ struct meterrenderer : listrenderer<meterparticle>
         gle::end();
     }
 };
-static meterrenderer meters(PT_METER), metervs(PT_METERVS);
 
 struct textparticle: listparticle<textparticle> {
     const char *text;
@@ -621,7 +620,6 @@ struct textrenderer : listrenderer<textparticle>
         textmatrix = NULL;
     }
 };
-static textrenderer texts;
 
 struct iconparticle: listparticle<iconparticle> {
     Texture *tex;
@@ -665,7 +663,6 @@ struct iconrenderer: listrenderer<iconparticle> {
         gle::end();
     }
 };
-static iconrenderer icons;
 
 template<int T>
 static inline void modifyblend(const vec &o, int &blend)
@@ -1019,6 +1016,7 @@ static void register_renderer(lua_State *L, const char *s, partrenderer *rd) {
     partmap.access(s, n);
     parts.add(rd);
     rd->init(rd->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
+    rd->preload();
     lua_pushinteger(L, n);
     lua_pushboolean(L, true);
 }
@@ -1105,28 +1103,6 @@ void initparticles()
     if(!particlesoftshader) particlesoftshader = lookupshaderbyname("particlesoft");
     if(!particletextshader) particletextshader = lookupshaderbyname("particletext");
 
-    if (parts.length()) goto partinit;
-    parts.growbuf(22);
-    parts.add(&texts);
-    parts.add(&icons);
-    parts.add(&meters);
-    parts.add(&metervs);
-    parts.add(new quadrenderer("<grey>media/particle/blood", PT_PART|PT_FLIP|PT_MOD|PT_RND4, 1)); // blood spats (note: rgb is inverted)
-    parts.add(new trailrenderer("media/particle/base", PT_LERP));                            // water, entity
-    parts.add(new quadrenderer("<grey>media/particle/smoke", PT_PART|PT_FLIP|PT_LERP));  // smoke
-    parts.add(new quadrenderer("<grey>media/particle/steam", PT_PART|PT_FLIP));               // steam
-    parts.add(new quadrenderer("<grey>media/particle/flames", PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT));   // flame on - no flipping please, they have orientation
-    parts.add(new quadrenderer("media/particle/ball1", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball1
-    parts.add(new quadrenderer("media/particle/ball2", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball2
-    parts.add(new quadrenderer("media/particle/ball3", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball3
-    parts.add(new taperenderer("media/particle/flare", PT_BRIGHT));                            // streak
-    parts.add(new quadrenderer("media/particle/spark", PT_PART|PT_FLIP|PT_BRIGHT));                    // sparks
-    parts.add(new quadrenderer("media/particle/snow", PT_PART|PT_FLIP|PT_RND4, -1));                  // colliding snow
-    parts.add(new quadrenderer("media/particle/muzzleflash1", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
-    parts.add(new quadrenderer("media/particle/muzzleflash2", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
-    parts.add(new quadrenderer("media/particle/muzzleflash3", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
-
-partinit:
     loopv(parts) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
     loopv(parts) {
         loadprogress = float(i + 1) / parts.length();

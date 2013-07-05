@@ -618,12 +618,6 @@ LUAICOMMAND(decal_get_renderer, {
 void initdecals()
 {
     if (initing) return;
-    if (decals.length()) goto decalinit;
-    decals.add(new decalrenderer("<grey>media/particle/scorch", DF_ROTATE, 500));
-    decals.add(new decalrenderer("<grey>media/particle/blood", DF_RND4|DF_ROTATE|DF_INVMOD));
-    decals.add(new decalrenderer("<grey>media/particle/bullet", DF_OVERBRIGHT));
-
-decalinit:
     loopv(decals) decals[i]->init(maxdecaltris);
     loopv(decals) {
         loadprogress = float(i + 1) / decals.length();

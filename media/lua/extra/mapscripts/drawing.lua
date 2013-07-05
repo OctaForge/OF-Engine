@@ -23,8 +23,11 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local conv = require("core.lua.conv")
 local particles = require("core.engine.particles")
+local bit = require("bit")
 
 local splash, flare = particles.splash, particles.flare
+local quadrenderer, taperenderer = particles.register_renderer_quad,
+    particles.register_renderer_tape
 
 local hextorgb = conv.hex_to_rgb
 
@@ -39,6 +42,14 @@ local colors = {
 }
 
 local Player = ents.Player
+
+local SPARK, STREAK
+if not SERVER then
+    SPARK = quadrenderer("spark", "media/particle/spark",
+        bit.bor(particles.flags.FLIP, particles.flags.BRIGHT))
+    STREAK = taperenderer("streak", "media/particle/flare",
+        particles.flags.BRIGHT)
+end
 
 --[[! Class: Game_Player
     This serves as a base for our player. It defines all the basic entry
@@ -108,9 +119,8 @@ local Game_Player = Player:clone {
         for i, mark in ipairs(marks) do
             if last and mark and mark.x >= 0 and last.x >= 0 then
                 local r, g, b = hextorgb(mark.w)
-                -- 12 == STREAK
-                flare(12, mark, last, r / 255, g / 255, b / 255, 0, 1)
-                flare(12, last, mark, r / 255, g / 255, b / 255, 0, 1)
+                flare(STREAK, mark, last, r / 255, g / 255, b / 255, 0, 1)
+                flare(STREAK, last, mark, r / 255, g / 255, b / 255, 0, 1)
             end
             last = mark
         end
@@ -121,8 +131,7 @@ local Game_Player = Player:clone {
         if conb and not self.stop_batch then
             local mark = marks[#marks - 1]
             local r, g, b = hextorgb(mark.w)
-            -- 13 == SPARK
-            splash(13, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
+            splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
         end
 
         if self.pressing then
