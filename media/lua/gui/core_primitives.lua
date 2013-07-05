@@ -776,6 +776,8 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     set_slot = gen_setter "slot"
 })
 
+local animctl = model.anim_control
+
 --[[! Struct: Model_Viewer
     Derived from <Filler>. Represents a 3D model preview. Has several
     properties, the most important being model, which is the model path
@@ -791,9 +793,9 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         self.model = kwargs.model
 
         local a = kwargs.anim
-        local aprim = bor(a[1], model.anims.LOOP)
+        local aprim = bor(a[1], animctl["loop"])
         local asec  = a[2]
-        if asec and asec ~= 0 then asec = bor(asec, model.anims.LOOP) end
+        if asec and asec ~= 0 then asec = bor(asec, animctl["loop"]) end
 
         self.anim = { aprim, asec }
         self.attachments = kwargs.attachments or {}

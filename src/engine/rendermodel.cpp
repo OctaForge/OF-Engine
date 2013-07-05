@@ -1016,7 +1016,7 @@ void abovemodel(vec &o, const char *mdl)
 }
 
 /* OF */
-extern void findanims(const char *pattern, vector<int> &anims);
+void findanims(const char *pattern, vector<int> &anims);
 
 ICOMMAND(findanims, "s", (char *name),
 {
@@ -1283,3 +1283,86 @@ LUAICOMMAND(model_preview_end, {
     modelpreview::end();
     return 0;
 });
+
+vector<int> lua_anims;
+static hashtable<const char*, int> animmap;
+
+bool matchanim(const char *name, const char *pattern)
+{
+    for(;; pattern++)
+    {
+        const char *s = name;
+        char c;
+        for(;; pattern++)
+        {
+            c = *pattern;
+            if(!c || c=='|') break;
+            else if(c=='*') 
+            {
+                if(!*s || iscubespace(*s)) break;
+                do s++; while(*s && !iscubespace(*s));
+            }
+            else if(c!=*s) break;
+            else s++;
+        }
+        if(!*s && (!c || c=='|')) return true;
+        pattern = strchr(pattern, '|');
+        if(!pattern) break;
+    }
+    return false;
+}
+
+void findanims(const char *pattern, vector<int> &anims)
+{
+    enumeratekt(animmap, const char*, s, int, v, {
+        if (matchanim(s, pattern)) anims.add(v);
+    });
+    string num;
+    loopi(ANIM_ALL + 1) {
+        formatstring(num, "%d", i);
+        if (matchanim(num, pattern)) anims.add(i);
+    }
+    anims.sort();
+}
+
+LUAICOMMAND(model_register_anim, {
+    /* don't let it overflow */
+    const char *s = luaL_checkstring(L, 1);
+    int *a = animmap.access(s);
+    if (a) {
+        lua_pushinteger(L, *a);
+        lua_pushboolean(L, false);
+        return 2;
+    } else if (lua_anims.length() > ANIM_ALL) return 0;
+    /* pin it */
+    lua::pin_string(L, s);
+    int n = lua_anims.length();
+    animmap.access(s, n);
+    lua_anims.add(n);
+    lua_pushinteger(L, n);
+    lua_pushboolean(L, true);
+    return 2;
+});
+
+LUAICOMMAND(model_get_anim, {
+    const char *s = luaL_checkstring(L, 1);
+    int *a = animmap.access(s);
+    if (!a) return 0;
+    lua_pushinteger(L, *a);
+    return 1;
+});
+
+int getanimid(const char *name) {
+    int *a = animmap.access(name);
+    if (!a) return 0;
+    return *a;
+}
+
+void clearanims() {
+    lua_anims.setsize(0);
+    enumeratekt(animmap, const char*, name, int, value, {
+        lua::unpin_string(name);
+        (void)value; /* supress warnings */
+    });
+    animmap.clear();
+}

@@ -16,36 +16,49 @@
 local bit = require("bit")
 
 local M = {}
+if SERVER then return M end
 
 local ran = _C.model_register_anim
 
 --[[! Variable: anims
     An enumeration of all basic (pre-defined) animations available in the
-    engine. Possible values are MAPMODEL, IDLE, FORWARD, BACKWARD, LEFT, RIGHT,
-    CROUCH, CROUCH_FORAWRD, CROUCH_BACKWARD, CROUCH_LEFT, CROUCH_RIGHT, JUMP,
-    SINK, SWIM, EDIT, LAG, MAPMODEL.
+    engine. Possible values are "mapmodel", "idle", "forward", "backward",
+    "left", "right", "crouch", "crouch_(forward,backward,left,right)", "jump",
+    "sink", "swim", "crouch_(jump,sink,swim)", "edit", "lag".
 
-    There are also modifiers, INDEX, LOOP, START, END and REVERSE. You can
-    use them with bitwise OR to control the animation.
+    There is also "index", which can be used with bitwise AND to retrieve
+    just the animation from a combined animation/control integer.
 ]]
 M.anims = {
-    MAPMODEL = ran "mapmodel",
-    IDLE = ran "idle", FORWARD = ran "forward", BACKWARD = ran "backward",
-    LEFT = ran "left", RIGHT = ran "right", CROUCH = ran "crouch",
-    CROUCH_FORWARD = ran "crouch_forward",
-    CROUCH_BACKWARD = ran "crouch_backward",
-    CROUCH_LEFT = ran "crouch_left", CROUCH_RIGHT = ran "crouch_right",
-    JUMP = ran "jump", SINK = ran "sink", SWIM = ran "swim",
-    CROUCH_JUMP = ran "crouch_jump", CROUCH_SINK = ran "crouch_sink",
-    CROUCH_SWIM = ran "crouch_swim", EDIT = ran "edit", LAG = ran "lag",
+    mapmodel = ran "mapmodel",
+    idle = ran "idle", forward = ran "forward", backward = ran "backward",
+    left = ran "left", right = ran "right", crouch = ran "crouch",
+    crouch_forward = ran "crouch_forward",
+    crouch_backward = ran "crouch_backward",
+    crouch_left = ran "crouch_left", crouch_right = ran "crouch_right",
+    jump = ran "jump", sink = ran "sink", swim = ran "swim",
+    crouch_jump = ran "crouch_jump", crouch_sink = ran "crouch_sink",
+    crouch_swim = ran "crouch_swim", edit = ran "edit", lag = ran "lag",
 
-    INDEX = 0x1FF,
-    LOOP = bit.lshift(1, 9),
-    CLAMP = bit.lshift(1, 10),
-    REVERSE = bit.lshift(1, 11),
-    START = bit.bor(bit.lshift(1, 9), bit.lshift(1, 10)),
-    END = bit.bor(bit.lshift(1, 9), bit.lshift(1, 10), bit.lshift(1, 11))
+    ["index"] = 0x1FF
 }
+
+local ac = {
+    loop    = bit.lshift(1, 9),
+    clamp   = bit.lshift(1, 10),
+    reverse = bit.lshift(1, 11)
+}
+ac["looprev" ] = bit.bor(ac.loop, ac.reverse)
+ac["clamprev"] = bit.bor(ac.clamp, ac.reverse)
+ac["start"   ] = bit.bor(ac.loop, ac.clamp)
+ac["end"     ] = bit.bor(ac.loop, ac.clamp, ac.reverse)
+
+--[[! Variable: anim_control
+    Provides means to control the animation direction and looping. Use
+    with bitwise OR. Contains "loop", "clamp", "reverse", "looprev",
+    "clamprev", "start", "end".
+]]
+M.anim_control = ac
 
 --[[! Variable: render_flags
     Contains flags for model rendering. CULL_VFC is a view frustrum culling

@@ -43,7 +43,8 @@ local Action = table2.Object:clone {
             action ends. By default it's 0.
 
             animation - If specified, the action will change the actor's
-            animation during its execution. An array of model.anims constants.
+            animation during its execution. An array of strings in format
+            "animname,dir".
             animation_flags - See above, for animation flags.
 
             allow_multiple - A boolean value specifying whether multiple

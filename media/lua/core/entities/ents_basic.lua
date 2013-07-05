@@ -59,6 +59,30 @@ local MASK_GROUND = 0x30
 local FLAG_ABOVEGROUND = lsh(1, 4)
 local FLAG_BELOWGROUND = lsh(2, 4)
 
+local animctl = model.anim_control
+local anims = model.anims
+
+local csetanim = _C.set_animation
+local setanim = SERVER and function(self, v)
+    csetanim(self, { 0 })
+end or function(self, v)
+    local panim = v[1]
+    if panim then
+        local xy = panim:split(",")
+        panim = bor(model.get_anim(xy[1]), animctl[xy[2]] or 0)
+    else
+        panim = 0
+    end
+    local sanim = v[2]
+    if sanim then
+        local xy = panim:split(",")
+        sanim = bor(model.get_anim(xy[1]), animctl[xy[2]] or 0)
+    else
+        sanim = 0
+    end
+    csetanim(self, { panim, sanim })
+end
+
 --[[! Class: Character
     Represents the base class for any character (NPC, player etc.). Players
     use the <Player> entity class that inherits from this one.
@@ -75,8 +99,9 @@ local FLAG_BELOWGROUND = lsh(2, 4)
         lagged - client_state == LAGGED.
 
     Properties:
-        animation [<svars.State_Array_Integer>] - the entity's current
-        animation.
+        animation [<svars.State_Array>] - the entity's current animation.
+        It's an array of strings in format "animname,dir" and defaults
+        to "idle,loop".
         animation_flags [<svars.State_Integer>] - the entity's current anim
         flags.
         start_time [<svars.State_Integer>] - an internal property used for
@@ -165,7 +190,7 @@ local Character = Entity:clone {
     },
 
     properties = {
-        animation = svars.State_Array_Integer {
+        animation = svars.State_Array {
             setter = "_C.set_animation", client_set = true
         },
         animation_flags = svars.State_Integer {
@@ -328,7 +353,7 @@ local Character = Entity:clone {
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
-        self:set_attr("animation", { bor(model.anims.IDLE, model.anims.LOOP) })
+        self:set_attr("animation", { "idle,loop" })
         self:set_attr("animation_flags", 0)
 
         self.cn = kwargs and kwargs.cn or -1
@@ -494,67 +519,79 @@ local Character = Entity:clone {
     decide_animation = (not SERVER) and function(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
         local anim = self:get_attr("animation")
-        local panim = anim[1] or 0
-        local sanim = anim[2] or 0
+        local panim = anim[1]
+        if panim then
+            local xy = panim:split(",")
+            panim = bor(model.get_anim(xy[1]), animctl[xy[2]] or 0)
+        else
+            panim = 0
+        end
+        local sanim = anim[2]
+        if sanim then
+            local xy = panim:split(",")
+            sanim = bor(model.get_anim(xy[1]), animctl[xy[2]] or 0)
+        else
+            sanim = 0
+        end
 
         -- editing or spectator
         if state == 4 or state == 5 then
-            panim = bor(model.anims.EDIT, model.anims.LOOP)
+            panim = bor(anims["edit"], animctl["loop"])
         -- lagged
         elseif state == 3 then
-            panim = bor(model.anims.LAG, model.anims.LOOP)
+            panim = bor(anims["lag"], animctl["loop"])
         else
             -- in water and floating or falling
             if inwater ~= 0 and pstate <= 1 then
                 sanim = bor(((move or strafe) or ((vel.z + falling.z) > 0))
-                    and model.anims.SWIM or model.anims.SINK,
-                model.anims.LOOP)
+                    and anims["swim"] or anims["sink"],
+                animctl["loop"])
             -- jumping animation
             elseif tinair > 250 then
-                sanim = bor(model.anims.JUMP, model.anims.END)
+                sanim = bor(anims["jump"], animctl["end"])
             -- moving or strafing
             elseif move ~= 0 or strafe ~= 0 then
                 if move > 0 then
-                    sanim = bor(model.anims.FORWARD, model.anims.LOOP)
+                    sanim = bor(anims["forward"], animctl["loop"])
                 elseif strafe ~= 0 then
-                    sanim = bor((strafe > 0 and model.anims.LEFT
-                        or model.anims.RIGHT), model.anims.LOOP)
+                    sanim = bor((strafe > 0 and anims["left"]
+                        or anims["right"]), animctl["loop"])
                 elseif move < 0 then
-                    sanim = bor(model.anims.BACKWARD, model.anims.LOOP)
+                    sanim = bor(anims["backward"], animctl["loop"])
                 end
             end
 
             if crouching ~= 0 then
-                local v = band(sanim, model.anims.INDEX)
-                if v == model.anims.IDLE then
-                    sanim = band(sanim, bnot(model.anims.INDEX))
-                    sanim = bor(sanim, model.anims.CROUCH)
-                elseif v == model.anims.JUMP then
-                    sanim = band(sanim, bnot(model.anims.INDEX))
-                    sanim = bor(sanim, model.anims.CROUCH_JUMP)
-                elseif v == model.anims.SWIM then
-                    sanim = band(sanim, bnot(model.anims.INDEX))
-                    sanim = bor(sanim, model.anims.CROUCH_SWIM)
-                elseif v == model.anims.SINK then
-                    sanim = band(sanim, bnot(model.anims.INDEX))
-                    sanim = bor(sanim, model.anims.CROUCH_SINK)
+                local v = band(sanim, anims["index"])
+                if v == anims["idle"] then
+                    sanim = band(sanim, bnot(anims["index"]))
+                    sanim = bor(sanim, anims["crouch"])
+                elseif v == anims["jump"] then
+                    sanim = band(sanim, bnot(anims["index"]))
+                    sanim = bor(sanim, anims["crouch_jump"])
+                elseif v == anims["swim"] then
+                    sanim = band(sanim, bnot(anims["index"]))
+                    sanim = bor(sanim, anims["crouch_swim"])
+                elseif v == anims["sink"] then
+                    sanim = band(sanim, bnot(anims["index"]))
+                    sanim = bor(sanim, anims["crouch_sink"])
                 elseif v == 0 then
-                    sanim = bor(model.anims.CROUCH, model.anims.LOOP)
-                elseif v == model.anims.FORWARD or v == model.anims.BACKWARD
-                or v == model.anims.LEFT or v == model.anims.RIGHT then
-                    sanim = sanim + model.anims.CROUCH_FORWARD
-                        - model.anims.FORWARD
+                    sanim = bor(anims["crouch"], animctl["loop"])
+                elseif v == anims["forward"] or v == anims["backward"]
+                or v == anims["left"] or v == anims["right"] then
+                    sanim = sanim + anims["crouch_forward"]
+                        - anims["forward"]
                 end
             end
 
-            if band(panim, model.anims.INDEX) == model.anims.IDLE and
-               band(sanim, model.anims.INDEX) ~= 0 then
+            if band(panim, anims["index"]) == anims["idle"] and
+               band(sanim, anims["index"]) ~= 0 then
                 panim = sanim
             end
         end
 
-        if band(sanim, model.anims.INDEX) == 0 then
-            sanim = bor(model.anims.IDLE, model.anims.LOOP)
+        if band(sanim, anims["index"]) == 0 then
+            sanim = bor(anims["idle"], animctl["loop"])
         end
         return { panim, sanim }, 0
     end or nil,
@@ -1120,8 +1157,8 @@ end)
     signal with the collider entity passed as an argument when collided.
 
     Properties:
-        animation [<svars.State_Array_Integer>] - the mapmodel's current
-        animation.
+        animation [<svars.State_Array>] - the mapmodel's current animation.
+        See <Character>.
         animation_flags [<svars.State_Integer>] - the mapmodel's current anim
         flags.
         start_time [<svars.State_Integer>] - an internal property used for
@@ -1144,7 +1181,7 @@ local Mapmodel = Static_Entity:clone {
     attr_num   = 4,
 
     properties = {
-        animation = svars.State_Array_Integer {
+        animation = svars.State_Array {
             setter = "_C.set_animation", client_set = true
         },
         animation_flags = svars.State_Integer {
@@ -1171,7 +1208,7 @@ local Mapmodel = Static_Entity:clone {
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
-        self:set_attr("animation", { bor(model.anims.IDLE, model.anims.LOOP) })
+        self:set_attr("animation", { "idle,loop" })
         self:set_attr("animation_flags", 0)
     end or nil,
 
