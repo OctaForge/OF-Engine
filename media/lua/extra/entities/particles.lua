@@ -17,7 +17,7 @@ local ents = require("core.entities.ents")
 local svars = require("core.entities.svars")
 local particles = require("core.engine.particles")
 
-local min = math.min
+local min, rand = math.min, math.random
 
 local flame = particles.flame
 local Particle_Effect = ents.Particle_Effect
@@ -52,12 +52,6 @@ local typemap = { PART_STREAK, -1, -1, PART_LIGHTNING, -1, PART_STEAM,
 local sizemap = { 0.28, 0, 0, 1, 0, 2.4, 0.6, 0, 0, 0.5 }
 local gravmap = { 0, 0, 0, 0, 0, -20, 2, 0, 0, 20 }
 
-local cmap = { "x", "y", "z" }
-local offset_vec = function(v, dir, dist)
-    local e = cmap[(3 + dir) % 4]
-    v[e] = v[e] + ((dir > 2) and -dist or dist)
-    return v
-end
 
 local part_draw_1 = function(pt, x, y, z, a1, a2, a3, a4)
     local tp = typemap[pt - 3]
@@ -74,77 +68,25 @@ local part_draw_1 = function(pt, x, y, z, a1, a2, a3, a4)
     end
 end
 
-local part_draw_2 = function(pt, x, y, z, a1, a2, a3, a4)
-    local r, g, b = hextorgb(a2)
-    local r2, g2, b2 = hextorgb(a3)
-    _C.particle_meter(pt == 5 and PART_METER or PART_METER_VS, x, y, z,
-        a1 / 100, r / 255, g / 255, b / 255, r2 / 255,
-        g2 / 255, b2 / 255, 1, 2)
-end
-
-local part_draw_3 = function(pt, x, y, z, a1, a2, a3, a4)
-    local r, g, b = hextorgb(a1)
-    _C.particle_lensflare(PART_LENS_FLARE, x, y, z,
-        band(pt, 0x02) ~= 0, band(pt, 0x01) ~= 0, r / 255, g / 255, b / 255)
-end
-
 local rand = math.random
 
 local part_draw_tbl = {
-    -- steam vent - dir
-    [1] = function(pt, x, y, z, a1, a2, a3, a4)
-        local d = offset_vec({ x = x, y = y, z = z }, a1, rand(9))
-        _C.particle_splash(PART_STEAM, d.x, d.y, d.z, 50, 1,
-            0x89 / 255, 0x76 / 255, 0x61 / 255, 200, 2.4, -20, 0)
-    end,
-    -- water fountain - dir
-    [2] = function(pt, x, y, z, a1, a2, a3, a4)
-        local color
-        if a2 > 0 then color = a2
-        elseif a2 == 0 then
-            color = var_get("waterfallcolor")
-            if color == 0 then color = var_get("watercolor") end
-        else
-            local mat = clamp(-a2, 2, 4)
-            color = var_get("water" .. mat .. "fallcolor")
-            if color == 0 then color = var_get("water" .. mat .. "color") end
-        end
-        local d = offset_vec({ x = x, y = y, z = z }, a1, rand(9))
-        local r, g, b = hextorgb(color)
-        _C.particle_splash(PART_WATER, d.x, d.y, d.z, 150, 4, r / 255, g / 255,
-            b / 255, 200, 0.6, 2, 0)
-    end,
-    -- fireball - size, rgb
-    [3] = function(pt, x, y, z, a1, a2, a3, a4)
-        local r, g, b = hextorgb(a2)
-        _C.particle_new(PART_EXPLOSION, x, y, z, 0, 0, 1, r / 255, g / 255,
-            b / 255, 1, 4, 0):set_val(1 + a1)
-    end,
     [4] = part_draw_1, -- tape - dir, length, rgb
     [7] = part_draw_1, -- lightning
     [9] = part_draw_1, -- steam
     [10] = part_draw_1, -- water
     [13] = part_draw_1, -- snow
-    [5] = part_draw_2, -- meter - percent, rgb, rgb2
-    [6] = part_draw_2, -- metervs
-    -- flame - radius, height, rgb
-    [11] = function(pt, x, y, z, a1, a2, a3, a4)
-        local r, g, b = hextorgb(a3)
-        _C.particle_flame(PART_FLAME, x, y, z, a1 / 100, a2 / 100,
-            r / 255, g / 255, b / 255, 600, 3, 2, 200, -15)
-    end,
-    -- smoke plume - radius, height, rgb
-    [12] = function(pt, x, y, z, a1, a2, a3, a4)
-        local r, g, b = hextorgb(a3)
-        _C.particle_flame(PART_SMOKE, x, y, z, a1 / 100, a2 / 100,
-            r / 255, g / 255, b / 255, 2000, 1, 4, 100, -20)
-    end,
-    [32] = part_draw_3,
-    [33] = part_draw_3,
-    [34] = part_draw_3,
-    [35] = part_draw_3
 }
 ]]
+
+local cmap = { "x", "y", "z" }
+local offset_vec = function(v, dir, dist)
+    local e = cmap[((2 + dir) % 3) + 1]
+    v[e] = v[e] + ((dir > 2) and -dist or dist)
+    return v
+end
+M.offset_vec = offset_vec
+
 M.Fire_Effect = Particle_Effect:clone {
     name = "Fire_Effect",
 
@@ -179,6 +121,28 @@ M.Fire_Effect = Particle_Effect:clone {
     end
 }
 
+M.Steam_Effect = Particle_Effect:clone {
+    name = "Steam_Effect",
+
+    properties = {
+        direction = svars.State_Integer()
+    },
+
+    init = function(self, uid, kwargs)
+        Particle_Effect.init(self, uid, kwargs)
+        self:set_attr("direction", 0)
+    end,
+
+    emit_particles = function(self)
+        local dir = self:get_attr("direction")
+        local pos = self:get_attr("position")
+        local d = offset_vec({ x = pos.x, y = pos.y, z = pos.z }, dir, rand(9))
+        _C.particle_splash(PART_STEAM, d.x, d.y, d.z, 50, 1,
+            0x89 / 255, 0x76 / 255, 0x61 / 255, 200, 2.4, -20, 0)
+    end
+}
+
 ents.register_class(M.Fire_Effect)
+ents.register_class(M.Steam_Effect)
 
 return M
