@@ -121,8 +121,8 @@ local Game_Player = Player:clone {
         if conb and not self.stop_batch then
             local mark = marks[#marks - 1]
             local r, g, b = hextorgb(mark.w)
-            -- 16 == SPARK
-            splash(16, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
+            -- 13 == SPARK
+            splash(13, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
         end
 
         if self.pressing then

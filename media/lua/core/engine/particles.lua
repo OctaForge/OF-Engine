@@ -93,6 +93,18 @@ M.register_renderer_lightning = _C.particle_register_renderer_lightning
 ]]
 M.register_renderer_flare = _C.particle_register_renderer_flare
 
+--[[! Function: register_renderer_text
+    Registers a text renderer given a name and optionally flags.
+    Look above for more information.
+]]
+M.register_renderer_text = _C.particle_register_renderer_text
+
+--[[! Function: register_renderer_icon
+    Registers an icon renderer given a name and optionally flags.
+    Look above for more information.
+]]
+M.register_renderer_icon = _C.particle_register_renderer_icon
+
 --[[! Function: register_renderer_meter
     Registers a progress meter renderer given a name and a boolean
     specifying whether it's a two-color or one-color meter (if it's

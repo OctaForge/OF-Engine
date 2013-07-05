@@ -1065,6 +1065,20 @@ LUAICOMMAND(particle_register_renderer_flare, {
     return 2;
 })
 
+#define REGISTER_FLAGRENDERER(name) \
+LUAICOMMAND(particle_register_renderer_##name, { \
+    const char *name = luaL_checkstring(L, 1); \
+    if (get_renderer(L, name)) return 2; \
+    int flags = luaL_optinteger(L, 3, 0) & (~PT_CLEARMASK); \
+    lua::pin_string(L, name); \
+    register_renderer(L, name, new name##renderer(flags)); \
+    return 2; \
+})
+
+REGISTER_FLAGRENDERER(text)
+REGISTER_FLAGRENDERER(icon)
+#undef REGISTER_FLAGRENDERER
+
 LUAICOMMAND(particle_register_renderer_meter, {
     const char *name = luaL_checkstring(L, 1);
     if (get_renderer(L, name)) return 2;
@@ -1106,15 +1120,11 @@ void initparticles()
     parts.add(new quadrenderer("media/particle/ball2", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball2
     parts.add(new quadrenderer("media/particle/ball3", PT_PART|PT_FEW|PT_BRIGHT));                     // fireball3
     parts.add(new taperenderer("media/particle/flare", PT_BRIGHT));                            // streak
-    parts.add(&lightnings);                                                                                   // lightning
-    parts.add(&fireballs);                                                                                    // explosion fireball
-    parts.add(&bluefireballs);                                                                                // bluish explosion fireball
     parts.add(new quadrenderer("media/particle/spark", PT_PART|PT_FLIP|PT_BRIGHT));                    // sparks
     parts.add(new quadrenderer("media/particle/snow", PT_PART|PT_FLIP|PT_RND4, -1));                  // colliding snow
     parts.add(new quadrenderer("media/particle/muzzleflash1", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
     parts.add(new quadrenderer("media/particle/muzzleflash2", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
     parts.add(new quadrenderer("media/particle/muzzleflash3", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK)); // muzzle flash
-    parts.add(&flares);                                                                                        // lens flares - must be done last
 
 partinit:
     loopv(parts) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);

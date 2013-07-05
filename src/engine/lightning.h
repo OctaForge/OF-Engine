@@ -117,5 +117,3 @@ struct lightningrenderer : regularlistrenderer
         renderlightning(tex, o, d, size);
     }
 };
-static lightningrenderer lightnings("media/particle/lightning");
-

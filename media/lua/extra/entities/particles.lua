@@ -39,15 +39,6 @@ local PART_FIREBALL1 = 9
 local PART_FIREBALL2 = 10
 local PART_FIREBALL3 = 11
 local PART_STREAK = 12
-local PART_LIGHTNING = 13
-local PART_EXPLOSION = 14
-local PART_EXPLOSION_BLUE = 15
-local PART_SPARK = 16
-local PART_SNOW = 17
-local PART_MUZZLE_FLASH1 = 18
-local PART_MUZZLE_FLASH2 = 19
-local PART_MUZZLE_FLASH3 = 20
-local PART_LENS_FLARE = 21
 
 local cmap = { "x", "y", "z" }
 
