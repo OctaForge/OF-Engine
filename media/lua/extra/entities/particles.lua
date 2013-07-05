@@ -20,7 +20,7 @@ local particles = require("core.engine.particles")
 
 local min, rand = math.min, math.random
 
-local flame = particles.flame
+local flame, splash = particles.flame, particles.splash
 local Particle_Effect = ents.Particle_Effect
 
 local M = {}
@@ -123,8 +123,8 @@ M.Steam_Effect = Particle_Effect:clone {
         local dir = self:get_attr("direction")
         local pos = self:get_attr("position")
         local d = offset_vec({ x = pos.x, y = pos.y, z = pos.z }, dir, rand(9))
-        _C.particle_splash(PART_STEAM, d.x, d.y, d.z, 50, 1,
-            0x89 / 255, 0x76 / 255, 0x61 / 255, 200, 2.4, -20, 0)
+        splash(PART_STEAM, d, 50, 1, 0x89 / 255, 0x76 / 255, 0x61 / 255,
+            200, 2.4, -20)
     end
 }
 
