@@ -28,13 +28,23 @@ local Particle_Effect = ents.Particle_Effect
 
 local M = {}
 
-local SMOKE, FLAME, STEAM
-if not SERVER then
-    SMOKE = quadrenderer("smoke", "media/particle/smoke",
-        bit.bor(pflags.FLIP, pflags.LERP))
-    FLAME = quadrenderer("flame", "media/particle/flames",
-        bit.bor(pflags.HFLIP, pflags.RND4, pflags.BRIGHT))
-    STEAM = quadrenderer("steam", "media/particle/steam", pflags.FLIP)
+--[[! Variable: renderers
+    Provides some extra renderers - "smoke", "flame" and "steam" used
+    by the effect entities. On the client only, on the server this is nil.
+]]
+local renderers
+
+if SERVER then
+    renderers = {}
+else
+    renderers = {
+        smoke = quadrenderer("smoke", "media/particle/smoke",
+            bit.bor(pflags.FLIP, pflags.LERP)),
+        flame = quadrenderer("flame", "media/particle/flames",
+            bit.bor(pflags.HFLIP, pflags.RND4, pflags.BRIGHT)),
+        steam = quadrenderer("steam", "media/particle/steam", pflags.FLIP)
+    }
+    M.renderers = renderers
 end
 
 local cmap = { "x", "y", "z" }
@@ -53,6 +63,8 @@ local offset_vec = function(v, dir, dist)
     return v
 end
 M.offset_vec = offset_vec
+
+local SMOKE, FLAME = renderers.smoke, renderers.flame
 
 --[[! Class: Fire_Effect
     A regular fire effect. Has properties radius (default 1.5), height
@@ -104,6 +116,8 @@ M.Fire_Effect = Particle_Effect:clone {
             0x20 / 255, 2000, 1, 4, 100, -20)
     end
 }
+
+local STEAM = renderers.steam
 
 --[[! Class: Steam_Effect
     A steam effect. Has one property, direction, which is passed to

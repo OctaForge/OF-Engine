@@ -48,11 +48,11 @@ flags.FLIP = bit.bor(flags.HFLIP, flags.VFLIP, flags.ROT)
 M.flags = flags
 
 --[[! Variable: renderers
-    Contains two predefined renderers that are mandatory - TEXT and ICON.
+    Contains two predefined renderers that are mandatory - "text" and "icon".
 ]]
 local renderers = {
-    TEXT = _C.particle_register_renderer_text("text"),
-    ICON = _C.particle_register_renderer_icon("icon")
+    text = _C.particle_register_renderer_text("text"),
+    icon = _C.particle_register_renderer_icon("icon")
 }
 M.renderers = renderers
 
