@@ -10,7 +10,7 @@ require("extra.entities.lights")
 require("extra.entities.particles")
 
 -- default skybox
-require("core.lua.var").set("skybox", "remus/sky01")
+require("core.engine.var").set("skybox", "remus/sky01")
 
 -- use drawing mode on empty map
 require("extra.mapscripts.drawing")

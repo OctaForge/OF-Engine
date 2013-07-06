@@ -24,6 +24,10 @@
 #undef LAPI_EMPTY
 #undef LAPI_REG
 
+void deleteparticles();
+void deletedecals();
+void clearanims();
+
 namespace lua
 {
     lua_State *L = NULL;
@@ -184,8 +188,6 @@ namespace lua
             lua_pushcfunction(L, reg.fun);
             lua_setfield(L, -2, reg.name);
         }
-        delete funs;
-        funs = NULL;
         lua_setfield(L, -2, "__index");        /* _C, C_mt */
         lua_pushinteger(L, numfields);         /* _C, C_mt, C_num */
         lua_pushcclosure(L, capi_tostring, 1); /* _C, C_mt, C_tostring */
@@ -200,7 +202,21 @@ namespace lua
         load_module("init");
     }
 
-    void reset() {}
+    void reset() {
+#ifndef SERVER
+        deleteparticles();
+        deletedecals();
+        clearanims();
+#endif
+        externals.clear();
+        clearsleep(false, true);
+        lua_close(L);
+        L = NULL;
+        init();
+#ifndef SERVER
+        tools::execfile("config/menus.lua");
+#endif
+    }
 
 #define PINHDR \
     lua_pushliteral(L, "__pinstrs");       /* k1 */ \

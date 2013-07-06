@@ -165,7 +165,7 @@ void clear_command() {
     enumerate(idents, ident, i, {
         if (i.flags&IDF_ALLOC) {
             /* can touch this, possibly */
-            lua::unpin_string(i.name);
+            DELETEA(i.name);
             switch (i.type) {
                 case ID_VAR:  delete i.storage.i; break;
                 case ID_FVAR: delete i.storage.f; break;
@@ -3310,16 +3310,18 @@ void checksleep(int millis) {
     }
 }
 
-void clearsleep(bool clearoverrides) {
+void clearsleep(bool clearoverrides, bool lua) {
     int len = 0;
     loopv(sleepcmds) {
         sleepcmd &s = sleepcmds[i];
-        if (s.kind == SLEEP_CS && s.cmd.s) {
+        if (s.kind == SLEEP_CS && !lua && s.cmd.s) {
             if (clearoverrides && !(s.flags&IDF_OVERRIDDEN)) {
                 sleepcmds[len++] = s;
             } else {
                 delete[] s.cmd.s;
             }
+        } else if (s.kind == SLEEP_CS && lua) {
+            sleepcmds[len++] = s;
         } else if (s.kind == SLEEP_LUA && s.cmd.i != LUA_REFNIL) {
             if (clearoverrides && !(s.flags&IDF_OVERRIDDEN)) {
                 sleepcmds[len++] = s;
@@ -3386,13 +3388,15 @@ LUAICOMMAND(var_reset, {
 });
 
 LUAICOMMAND(var_new, {
-    const char *name = luaL_checkstring(L, 1);
-    if (!name || !name[0]) {
+    size_t len;
+    const char *nm = luaL_checklstring(L, 1, &len);
+    if (!nm || !nm[0]) {
         lua_pushboolean(L, false); return 1;
-    } else if (getident(name)) {
-        logger::log(logger::ERROR, "variable %s already exists\n", name);
+    } else if (getident(nm)) {
+        logger::log(logger::ERROR, "variable %s already exists\n", nm);
         lua_pushboolean(L, false); return 1;
     }
+    char *name = newstring(nm, len);
     int type = luaL_checkinteger(L, 2);
     switch (type) {
         case ID_VAR: {
@@ -3414,9 +3418,6 @@ LUAICOMMAND(var_new, {
         }
         default: lua_pushboolean(L, false); return 1;
     }
-
-    /* can't touch this */
-    lua::pin_string(L, name);
     lua_pushboolean(L, true); return 1;
 });
 
