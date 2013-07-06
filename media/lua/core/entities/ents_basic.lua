@@ -195,7 +195,7 @@ local Character = Entity:clone {
 
     properties = {
         animation = svars.State_Array {
-            setter = "_C.set_animation", client_set = true
+            setter = setanim, client_set = true
         },
         animation_flags = svars.State_Integer {
             setter = "_C.set_animflags", client_set = true
@@ -627,7 +627,7 @@ local Character = Entity:clone {
         don't need the changes to reflect elsewhere).
     ]]
     set_local_animation = function(self, anim)
-        _C.set_animation(self, anim)
+        setanim(self, anim)
         self.svar_values["animation"] = anim
     end,
 
@@ -1186,7 +1186,7 @@ local Mapmodel = Static_Entity:clone {
 
     properties = {
         animation = svars.State_Array {
-            setter = "_C.set_animation", client_set = true
+            setter = setanim, client_set = true
         },
         animation_flags = svars.State_Integer {
             setter = "_C.set_animflags", client_set = true
