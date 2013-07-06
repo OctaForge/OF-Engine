@@ -7,6 +7,7 @@ namespace lua
     bool reg_fun      (const char *name, lua_CFunction fun);
     void init         (const char *dir = "media/lua/core");
     void reset        ();
+    void close        ();
     bool push_external(const char *name);
     bool push_external(lua_State *L, const char *name);
     void pin_string   (const char *str);

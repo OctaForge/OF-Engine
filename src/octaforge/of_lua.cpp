@@ -218,6 +218,11 @@ namespace lua
 #endif
     }
 
+    void close() {
+        lua_close(L);
+        delete funs;
+    }
+
 #define PINHDR \
     lua_pushliteral(L, "__pinstrs");       /* k1 */ \
     lua_rawget     (L, LUA_REGISTRYINDEX); /* v1 */ \

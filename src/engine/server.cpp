@@ -754,6 +754,7 @@ int main(int argc, char **argv)
         }
     }
 
+    lua::close();
     logger::log(logger::WARNING, "Stopping main server.");
 
     return 0;

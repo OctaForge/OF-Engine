@@ -27,6 +27,7 @@ void cleanup()
     extern void clear_console(); clear_console();
     extern void clear_mdls();    clear_mdls();
     extern void clear_sound();   clear_sound();
+    lua::close();
     closelogfile();
     SDL_Quit();
 }
