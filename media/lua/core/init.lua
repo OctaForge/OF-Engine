@@ -45,6 +45,16 @@ end
 
 --debug.sethook(trace, "c")
 
+local ploaded = package.loaded
+
+local loaded = {
+}
+
+setmetatable(ploaded, {
+    __index = loaded,
+    __newindex = function(self, n, v) loaded[n] = v end
+})
+
 _C.log(1, "Initializing logging.")
 
 local log = require("core.logger")
@@ -99,9 +109,15 @@ require("core.engine")
 log.log(log.DEBUG, ":: Entity system.")
 require("core.entities")
 
-if not package.loaded["gui"] then
+if not rawget(ploaded, "gui") then
+    -- we need to load gui into the main table
+    local mt = getmetatable(ploaded)
+    setmetatable(ploaded, { __index = loaded })
+
     log.log(log.DEBUG, "Initializing GUI")
     require("gui")
+
+    setmetatable(ploaded, mt)
 end
 
 log.log(log.DEBUG, "Core scripting initialization complete.")
