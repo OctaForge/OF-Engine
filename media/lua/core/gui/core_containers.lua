@@ -1,4 +1,4 @@
---[[! File: lua/gui/core_widgets.lua
+--[[! File: lua/core/gui/core_widgets.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -18,7 +18,7 @@ local min = math.min
 
 local createtable = _C.table_create
 
-local M = require("gui.core")
+local M = require("core.gui.core")
 local world = M.get_world()
 
 -- consts

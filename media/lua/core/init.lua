@@ -100,6 +100,6 @@ log.log(log.DEBUG, ":: Entity system.")
 require("core.entities")
 
 log.log(log.DEBUG, ":: GUI.")
-require("gui")
+require("core.gui")
 
 log.log(log.DEBUG, "Core scripting initialization complete.")

@@ -1,4 +1,4 @@
---[[! File: lua/gui/core_widgets.lua
+--[[! File: lua/core/gui/core_widgets.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -36,7 +36,7 @@ local ceil  = math.ceil
 local _C    = _G["_C"]
 local emit  = signal.emit
 
-local M = require("gui.core")
+local M = require("core.gui.core")
 local world = M.get_world()
 
 -- consts

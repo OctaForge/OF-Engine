@@ -1,4 +1,4 @@
---[[! File: lua/gui/core_misc.lua
+--[[! File: lua/core/gui/core_misc.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -17,7 +17,7 @@ local table2 = require("core.lua.table")
 
 local find = table2.find
 
-local M = require("gui.core")
+local M = require("core.gui.core")
 local world = M.get_world()
 
 -- input event management

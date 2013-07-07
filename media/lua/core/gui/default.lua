@@ -1,4 +1,4 @@
---[[! File: lua/gui/default.lua
+--[[! File: lua/core/gui/default.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -14,7 +14,7 @@
 ]]
 
 local signal = require("core.events.signal")
-local gui = require("gui.core")
+local gui = require("core.gui.core")
 
 local world = gui.get_world()
 

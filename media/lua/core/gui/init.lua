@@ -1,4 +1,4 @@
---[[! File: lua/gui/init.lua
+--[[! File: lua/core/gui/init.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -17,14 +17,14 @@ local log = require("core.logger")
 
 log.log(log.DEBUG, ":::: Core UI implementation.")
 
-require("gui.core")
-require("gui.core_containers")
-require("gui.core_spacers")
-require("gui.core_primitives")
-require("gui.core_scrollers")
-require("gui.core_sliders")
-require("gui.core_buttons")
-require("gui.core_editors")
-require("gui.core_misc")
+require("core.gui.core")
+require("core.gui.core_containers")
+require("core.gui.core_spacers")
+require("core.gui.core_primitives")
+require("core.gui.core_scrollers")
+require("core.gui.core_sliders")
+require("core.gui.core_buttons")
+require("core.gui.core_editors")
+require("core.gui.core_misc")
 
-require("gui.default")
+require("core.gui.default")

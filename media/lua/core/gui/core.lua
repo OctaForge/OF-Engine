@@ -1,4 +1,4 @@
---[[! File: lua/gui/core.lua
+--[[! File: lua/core/gui/core.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -46,7 +46,7 @@ local tinsert = table.insert
 
 local M = {}
 
-local consts = require("gui.constants")
+local consts = require("core.gui.constants")
 
 --[[! Variable: gl
     Forwarded from the "constants" module.

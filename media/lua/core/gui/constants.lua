@@ -1,4 +1,4 @@
---[[! File: lua/gui/constants.lua
+--[[! File: lua/core/gui/constants.lua
 
     About: Author
         q66 <quaker66@gmail.com>
