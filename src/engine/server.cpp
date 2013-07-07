@@ -515,6 +515,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 {
     vector<char *> args;
     char *buf = parsecommandline(GetCommandLine(), args);
+    SDL_SetMainReady();
     int status = SDL_main(args.length()-1, args.getbuf());
     delete[] buf;
     exit(status);

@@ -508,8 +508,8 @@ void restorevsync()
     if(glcontext) SDL_GL_SetSwapInterval(vsync ? (vsynctear ? -1 : 1) : 0);
 }
 
-VARF(vsync, 0, 0, 1, restorevsync());
-VARF(vsynctear, 0, 0, 1, { if(vsync) restorevsync(); });
+VARFP(vsync, 0, 0, 1, restorevsync());
+VARFP(vsynctear, 0, 0, 1, { if(vsync) restorevsync(); });
 
 VAR(dbgmodes, 0, 0, 1);
 

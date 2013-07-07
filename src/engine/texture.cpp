@@ -2,6 +2,7 @@
 
 #include "engine.h"
 #include "of_world.h"
+#include "SDL_image.h"
 
 template<int S>
 static void halvetexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst)

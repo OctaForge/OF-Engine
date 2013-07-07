@@ -36,7 +36,7 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
                 rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]); // OF
                 o = e.o;
                 o.add(center);
-                r = radius;
+                r = radius.max(entselradius);
                 r.add(1);
                 o.sub(r);
                 r.mul(2);
@@ -55,7 +55,7 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
             vec center = vec(0, 0, 0), radius = vec(a, b, c);
             rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]);
             o.add(center);
-            r = radius;
+            r = radius.max(entselradius);
             r.add(1);
             o.sub(r);
             r.mul(2);
@@ -488,6 +488,7 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
         m->collisionbox(eo, es);
         if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; eo.mul(scale); es.mul(scale); }
         rotatebb(eo, es, e.attr[0], e.attr[1], e.attr[2]); // OF
+        es.max(entselradius);
         eo.add(e.o);
     }
     else if(e.type == ET_OBSTACLE && e.attr[3] && e.attr[4] && e.attr[5]) /* OF */
@@ -495,6 +496,7 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
         eo = vec(0, 0, 0);
         es = vec(e.attr[3], e.attr[4], e.attr[5]);
         rotatebb(eo, es, e.attr[0], e.attr[1], e.attr[2]);
+        es.max(entselradius);
         eo.add(e.o);
     }
     else
