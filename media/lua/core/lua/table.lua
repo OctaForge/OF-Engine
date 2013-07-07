@@ -192,7 +192,7 @@ M.foldl = function(t, fun, z)
     return z
 end
 
-local escape_string = string.escape
+local escape_string = require("core.lua.string").escape
 
 local function serialize_fn(v, stream, kwargs, simp, tables, indent)
     if simp then
