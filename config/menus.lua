@@ -20,7 +20,8 @@ gui.Button.states = {
     }
 }
 
-_G["test_update_states"] = function()
+--[[
+local test_states = function()
     gui.Button:update_class_states {
         default = gui.Rectangle {
             min_w = 0.2, min_h = 0.05, r = 64, g = 32, b = 192,
@@ -39,9 +40,10 @@ _G["test_update_states"] = function()
     }
 end
 
-_G["append_hud"] = function()
+local append_hud = function()
     gui.get_hud():append(gui.Rectangle { r = 255, b = 0, g = 0, min_w = 0.3, min_h = 0.4 }, function(r) r:align(-1, 0) end)
 end
+]]
 
 local i = 0
 

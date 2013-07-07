@@ -446,7 +446,7 @@ _C.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
     (end)
 ]]
 Vec4 = nil
-vec4_mt = {
+local vec4_mt = {
     __new = function(ct, x, y, z, w)
         if istype(ct, x) then
             local ret = new(ct)
