@@ -1435,7 +1435,7 @@ end
     An engine variable specifying the mouse cursor sensitivity. Ranges from
     0.001 to 1000 and defaults to 1.
 ]]
-var.new("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
+var.new_checked("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
 
 local cursor_mode = function()
     return var_get("editing") == 0 and var_get("freecursor")
@@ -1622,7 +1622,7 @@ local needsapply = {}
     An engine variable that controls whether the "apply" dialog will show
     on changes that need restart of some engine subsystem. Defaults to 1.
 ]]
-var.new("applydialog", var.INT, 0, 1, 1, var.PERSIST)
+var.new_checked("applydialog", var.INT, 0, 1, 1, var.PERSIST)
 
 set_external("change_add", function(desc, ctype)
     if var_get("applydialog") == 0 then return nil end

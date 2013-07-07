@@ -845,7 +845,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
     to 40. You can change this to tweak the font scale and thus the whole UI
     scale.
 ]]
-var.new("uitextrows", var.INT, 1, 40, 200, var.PERSIST)
+var.new_checked("uitextrows", var.INT, 1, 40, 200, var.PERSIST)
 
 --[[! Struct: Label
     A regular label. Has several properties - text (the label, a string),

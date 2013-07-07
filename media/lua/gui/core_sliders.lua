@@ -79,10 +79,7 @@ local Slider = register_class("Slider", Object, {
         if kwargs.var then
             local varn = kwargs.var
             self.var = varn
-
-            if not var.exists(varn) then
-                var.new(varn, var.INT, self.value)
-            end
+            var.new_checked(varn, var.INT, self.value)
             local mn, mx = var.get_min(varn), var.get_max(varn)
             self.min_value = clamp(self.min_value, mn, mx)
             self.max_value = clamp(self.max_value, mn, mx)

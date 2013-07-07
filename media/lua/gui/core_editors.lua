@@ -853,10 +853,7 @@ M.Field = register_class("Field", Text_Editor, {
         if kwargs.var then
             local varn = kwargs.var
             self.var = varn
-
-            if not var.exists(varn) then
-                var.new(varn, var.STRING, self.value)
-            end
+            var.new_checked(varn, var.STRING, self.value)
         end
 
         return Text_Editor.__init(self, kwargs)

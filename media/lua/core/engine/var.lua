@@ -47,6 +47,12 @@ local M = {
     exists       = _C.var_exists,
     emits        = _C.var_emits,
 
+    new_checked = function(varn, ...)
+        if not _C.var_exists(varn) then
+            _C.var_new(varn, ...)
+        end
+    end,
+
     __connect = function(self, name)
         local  vn = name:match("(.+)_changed$")
         if not vn then return nil end
