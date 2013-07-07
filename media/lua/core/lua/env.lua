@@ -28,7 +28,6 @@ local loadfile  = loadfile
 local assert    = assert
 local type      = type
 local tconc     = table.concat
-local pp_loader = pp_loader
 
 env_package.loaders = {
     function(modname)
@@ -38,11 +37,7 @@ env_package.loaders = {
         end
         return v
     end,
-    function(modname)
-        local  v, err = spath(modname, env_package.path)
-        if not v then return err end
-        return pp_loader(v, modname)
-    end
+    function(modname) return package.loaders[2](modname, env_package.path) end
 }
 
 local find_loader = function(modname)

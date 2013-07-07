@@ -50,7 +50,11 @@ _C.log(1, "Initializing logging.")
 local log = require("core.logger")
 
 local io_open, load, error = io.open, load, error
-local pp_loader = function(fname, modname)
+local spath = package.searchpath
+
+table.insert(package.loaders, 2, function(modname, ppath)
+    local  fname, err = spath(modname, ppath or package.path)
+    if not fname then return err end
     if not _C.should_log(1) then return nil end
     local file = io_open(fname, "rb")
     local f, err = load(function()
@@ -66,14 +70,6 @@ local pp_loader = function(fname, modname)
             .. fname .. "':\n" .. err, 2)
     end
     return f
-end
-_G["pp_loader"] = pp_loader
-
-local spath = package.searchpath
-table.insert(package.loaders, 2, function(modname)
-    local  v, err = spath(modname, package.path)
-    if not v then return err end
-    return pp_loader(v, modname)
 end)
 
 --[[! Function: cubescript
