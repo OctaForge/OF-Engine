@@ -15,9 +15,6 @@
 
 local log = require("core.logger")
 
-log.log(log.DEBUG, ":::: Strict mode.")
-require("core.lua.strict")
-
 log.log(log.DEBUG, ":::: Lua extensions: string")
 require("core.lua.string")
 

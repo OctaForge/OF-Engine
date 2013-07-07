@@ -15,6 +15,20 @@
         the core library only.
 ]]
 
+--[[! Variable: _G
+    The metatable on _G is overriden in that manner it doesn't allow creation
+    of global variables (and usage of global variables that don't exist) using
+    the regular way (assignment).
+]]
+setmetatable(_G, {
+    __newindex = function(self, n)
+        error("attempt to create a global variable '" .. n .. "'")
+    end,
+    __index = function(self, n)
+        error("attempt to use a global variable '" .. n .. "'")
+    end
+})
+
 -- init a random seed
 math.randomseed(os.time())
 
@@ -30,7 +44,7 @@ math.randomseed(os.time())
         debug.sethook(trace, "c")
     (end)
 ]]
-function trace (event, line)
+local trace = function(event, line)
     local s = debug.getinfo(2, "nSl")
     print("DEBUG:")
     print("    " .. tostring(s.name))
@@ -76,7 +90,7 @@ end)
     Executes the given cubescript string. Returns the return value of the
     cubescript expression.
 ]]
-cubescript = _C.cubescript
+rawset(_G, "cubescript", _C.cubescript)
 
 log.log(log.DEBUG, "Initializing the core library.")
 
