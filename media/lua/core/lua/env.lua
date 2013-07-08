@@ -19,13 +19,10 @@ local env_package = {
     preload = {}
 }
 
-local spath     = package.searchpath
-local open      = io.open
-local loadfile  = loadfile
-local assert    = assert
-local type      = type
-local setfenv   = setfenv
-local tconc     = table.concat
+local assert  = assert
+local type    = type
+local setfenv = setfenv
+local tconc   = table.concat
 
 env_package.loaders = {
     function(modname)
