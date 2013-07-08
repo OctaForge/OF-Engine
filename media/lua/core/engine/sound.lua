@@ -15,7 +15,9 @@
 
 if SERVER then return {} end
 
-local play = _C.sound_play
+local capi = require("capi")
+
+local play = capi.sound_play
 local vec3 = require("core.lua.math").Vec3
 
 return {
@@ -33,17 +35,17 @@ return {
         Stops a sound. Accepts the sound name and its volume (which defaults
         to 100).
     ]]
-    stop = _C.sound_stop,
+    stop = capi.sound_stop,
 
     --[[! Function: preload_map
         Preloads a map sound so that it doesn't have to be loaded on the fly
         later. That leads to better performance.
     ]]
-    preload_map = _C.sound_preload_map,
+    preload_map = capi.sound_preload_map,
 
     --[[! Function: preload_game
         Preloads a game sound so that it doesn't have to be loaded on the fly
         later. That leads to better performance.
     ]]
-    preload_game = _C.sound_preload_game
+    preload_game = capi.sound_preload_game
 }

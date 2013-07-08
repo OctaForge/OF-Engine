@@ -16,6 +16,7 @@
         various types and new svar types are easily implementable.
 ]]
 
+local capi = require("capi")
 local logging = require("core.logger")
 local log = logging.log
 local DEBUG = logging.DEBUG
@@ -153,15 +154,6 @@ State_Variable = table2.Object:clone {
         cl["_SV_GUI_" .. (self.gui_name or name)] = self
 
         local gf, sf = self.getter_fun, self.setter_fun
-
-        -- strings: late binding, sometimes useful
-        if type(gf) == "string" then
-            self.getter_fun = loadstring("return " .. gf)()
-        end
-
-        if type(sf) == "string" then
-            self.setter_fun = loadstring("return " .. sf)()
-        end
     end,
 
     --[[! Function: read_tests
@@ -340,7 +332,7 @@ State_String = State_Variable:clone {
 }
 M.State_String = State_String
 
-local ctable = _C.table_create
+local ctable = capi.table_create
 local getmt, setmt = getmetatable, setmetatable
 local newproxy = newproxy
 

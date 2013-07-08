@@ -13,6 +13,7 @@
         Lua math extensions.
 ]]
 
+local capi = require("capi")
 local log = require("core.logger")
 
 local type = type
@@ -91,7 +92,7 @@ M.normalize_angle = normalize_angle
     lowest floor instead of highest floor.
 ]]
 M.floor_distance = function(pos, max_dist, radius, lowest)
-    local rt = _C.ray_floor(pos.x, pos.y, pos.z, max_dist)
+    local rt = capi.ray_floor(pos.x, pos.y, pos.z, max_dist)
     if not radius then return rt end
 
     local tbl = { -radius / 2, 0, radius / 2 }
@@ -102,7 +103,7 @@ M.floor_distance = function(pos, max_dist, radius, lowest)
     for x = 1, #tbl do
         for y = 1, #tbl do
             local o = pos:add_new(Vec3(tbl[x], tbl[y], 0))
-            rt = f(rt, _C.ray_floor(o.x, o.y, o.z, max_dist))
+            rt = f(rt, capi.ray_floor(o.x, o.y, o.z, max_dist))
         end
     end
 
@@ -114,7 +115,7 @@ end
     (if there are no obstructions). Returns false otherwise.
 ]]
 M.is_los = function(o, d)
-    return _C.ray_los(o.x, o.y, o.z, d.x, d.y, d.z)
+    return capi.ray_los(o.x, o.y, o.z, d.x, d.y, d.z)
 end
 
 --[[! Function: yaw_to
@@ -431,7 +432,7 @@ vec3_mt.__len = vec3_mt.__index.length
 Vec3 = ffi.metatype("vec3_t", vec3_mt)
 M.Vec3 = Vec3
 M.__Vec3_mt = vec3_mt
-_C.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
+capi.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
 
 --[[! Struct: Vec4
     A standard 4 component vector with x, y, z components.
@@ -602,6 +603,6 @@ vec4_mt.__len = vec4_mt.__index.length
 Vec4 = ffi.metatype("vec4_t", vec4_mt)
 M.Vec4 = Vec4
 M.__Vec4_mt = vec4_mt
-_C.external_set("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
+capi.external_set("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
 
 return M

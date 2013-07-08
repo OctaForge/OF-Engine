@@ -13,6 +13,7 @@
         Primitive widgets - rectangles, images, labels...
 ]]
 
+local capi = require("capi")
 local model = require("core.engine.model")
 local var = require("core.engine.var")
 local math2 = require("core.lua.math")
@@ -31,7 +32,6 @@ local abs   = math.abs
 local clamp = math2.clamp
 local floor = math.floor
 local ceil  = math.ceil
-local _C    = _G["_C"]
 local emit  = signal.emit
 
 local M = require("core.gui.core")
@@ -88,23 +88,23 @@ M.Rectangle = register_class("Rectangle", Filler, {
     draw = function(self, sx, sy)
         local w, h, solid = self.w, self.h, self.solid
 
-        if not solid then _C.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
-        _C.shader_hudnotexture_set()
-        _C.gle_color4ub(self.r, self.g, self.b, self.a)
+        if not solid then capi.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+        capi.shader_hudnotexture_set()
+        capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        _C.gle_defvertex(2)
-        _C.gle_begin(gl.TRIANGLE_STRIP)
+        capi.gle_defvertex(2)
+        capi.gle_begin(gl.TRIANGLE_STRIP)
 
-        _C.gle_attrib2f(sx,     sy)
-        _C.gle_attrib2f(sx + w, sy)
-        _C.gle_attrib2f(sx,     sy + h)
-        _C.gle_attrib2f(sx + w, sy + h)
+        capi.gle_attrib2f(sx,     sy)
+        capi.gle_attrib2f(sx + w, sy)
+        capi.gle_attrib2f(sx,     sy + h)
+        capi.gle_attrib2f(sx + w, sy + h)
 
-        _C.gle_end()
-        _C.gle_color4f(1, 1, 1, 1)
-        _C.shader_hud_set()
+        capi.gle_end()
+        capi.gle_color4f(1, 1, 1, 1)
+        capi.shader_hud_set()
         if not solid then
-            _C.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            capi.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
 
         return Filler.draw(self, sx, sy)
@@ -128,7 +128,7 @@ M.Rectangle = register_class("Rectangle", Filler, {
 
 local check_alpha_mask = function(tex, x, y)
     if not tex:get_alphamask() then
-        _C.texture_load_alpha_mask(tex)
+        capi.texture_load_alpha_mask(tex)
         if not tex:get_alphamask() then
             return true
         end
@@ -162,14 +162,14 @@ end
 local Image = register_class("Image", Filler, {
     __init = function(self, kwargs)
         kwargs    = kwargs or {}
-        local tex = kwargs.file and _C.texture_load(kwargs.file)
+        local tex = kwargs.file and capi.texture_load(kwargs.file)
 
         local af = kwargs.alt_file
-        if (not tex or _C.texture_is_notexture(tex)) and af then
-            tex = _C.texture_load(af)
+        if (not tex or capi.texture_is_notexture(tex)) and af then
+            tex = capi.texture_load(af)
         end
 
-        self.texture = tex or _C.texture_get_notexture()
+        self.texture = tex or capi.texture_get_notexture()
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
 
@@ -193,9 +193,9 @@ local Image = register_class("Image", Filler, {
         texture this holds.
     ]]
     set_tex = function(self, file, alt)
-        local tex = _C.texture_load(file)
-        if _C.texture_is_notexture(tex) and alt then
-              tex = _C.texture_load(alt)
+        local tex = capi.texture_load(file)
+        if capi.texture_is_notexture(tex) and alt then
+              tex = capi.texture_load(alt)
         end
         self.texture = tex
     end,
@@ -217,23 +217,23 @@ local Image = register_class("Image", Filler, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        _C.shader_hud_set_variant(tex)
-        _C.gl_bind_texture(tex)
+        capi.shader_hud_set_variant(tex)
+        capi.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.r, self.g, self.b, self.a)
+        capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        _C.gle_defvertex(2)
-        _C.gle_deftexcoord0(2)
-        _C.gle_begin(gl.TRIANGLE_STRIP)
+        capi.gle_defvertex(2)
+        capi.gle_deftexcoord0(2)
+        capi.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.w, self.h)
-        _C.gle_end()
+        capi.gle_end()
 
         return Object.draw(self, sx, sy)
     end,
@@ -334,24 +334,24 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        _C.shader_hud_set_variant(tex)
-        _C.gl_bind_texture(tex)
+        capi.shader_hud_set_variant(tex)
+        capi.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.r, self.g, self.b, self.a)
+        capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        _C.gle_defvertex(2)
-        _C.gle_deftexcoord0(2)
-        _C.gle_begin(gl.TRIANGLE_STRIP)
+        capi.gle_defvertex(2)
+        capi.gle_deftexcoord0(2)
+        capi.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.w, self.h,
             self.crop_x, self.crop_y, self.crop_w, self.crop_h)
-        _C.gle_end()
+        capi.gle_end()
 
         return Object.draw(self, sx, sy)
     end,
@@ -416,21 +416,21 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        _C.shader_hud_set_variant(tex)
-        _C.gl_bind_texture(tex)
+        capi.shader_hud_set_variant(tex)
+        capi.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.r, self.g, self.b, self.a)
+        capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        _C.gle_defvertex(2)
-        _C.gle_deftexcoord0(2)
-        _C.gle_begin(gl.QUADS)
+        capi.gle_defvertex(2)
+        capi.gle_deftexcoord0(2)
+        capi.gle_begin(gl.QUADS)
 
         local mw, mh, pw, ph = self.min_w, self.min_h, self.w, self.h
 
@@ -475,7 +475,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
             if  ty >= 1 then break end
         end
 
-        _C.gle_end()
+        capi.gle_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -534,21 +534,21 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        _C.shader_hud_set_variant(tex)
-        _C.gl_bind_texture(tex)
+        capi.shader_hud_set_variant(tex)
+        capi.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.r, self.g, self.b, self.a)
+        capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        _C.gle_defvertex(2)
-        _C.gle_deftexcoord0(2)
-        _C.gle_begin(gl.QUADS)
+        capi.gle_defvertex(2)
+        capi.gle_deftexcoord0(2)
+        capi.gle_begin(gl.QUADS)
 
         local vy, ty = sy, 0
         for i = 1, 3 do
@@ -572,7 +572,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
             vy, ty = vy + vh, ty + th
         end
 
-        _C.gle_end()
+        capi.gle_end()
 
         return Object.draw(self, sx, sy)
     end,
@@ -620,17 +620,17 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        _C.shader_hud_set_variant(tex)
-        _C.gl_bind_texture(tex)
+        capi.shader_hud_set_variant(tex)
+        capi.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.r, self.g, self.b, self.a)
+        capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
         local pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
 
@@ -638,9 +638,9 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         -- repeat with clamped textures
         if tex:get_clamp() ~= 0 then
             local dx, dy = 0, 0
-            _C.gle_defvertex(2)
-            _C.gle_deftexcoord0(2)
-            _C.gle_begin(gl.QUADS)
+            capi.gle_defvertex(2)
+            capi.gle_deftexcoord0(2)
+            capi.gle_begin(gl.QUADS)
             while dx < pw do
                 while dy < ph do
                     local dw, dh = min(tw, pw - dx), min(th, ph - dy)
@@ -649,13 +649,13 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
                 end
                 dx, dy = dy + tw, 0
             end
-            _C.gle_end()
+            capi.gle_end()
         else
-            _C.gle_defvertex(2)
-            _C.gle_deftexcoord0(2)
-            _C.gle_begin(gl.TRIANGLE_STRIP)
+            capi.gle_defvertex(2)
+            capi.gle_deftexcoord0(2)
+            capi.gle_begin(gl.TRIANGLE_STRIP)
             quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
-            _C.gle_end()
+            capi.gle_end()
         end
 
         return Object.draw(self, sx, sy)
@@ -680,8 +680,8 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.file = kwargs.file
-        self.texture = kwargs.fallback and _C.texture_load(kwargs.fallback)
-            or _C.texture_get_notexture()
+        self.texture = kwargs.fallback and capi.texture_load(kwargs.fallback)
+            or capi.texture_get_notexture()
 
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
@@ -696,7 +696,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
 
     load = function(self, force)
         if self.loaded then return nil end
-        local tex = _C.thumbnail_load(self.file, force)
+        local tex = capi.thumbnail_load(self.file, force)
         if tex then
             self.loaded = true
             self.texture = tex
@@ -739,7 +739,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     ]]
     set_fallback = function(self, fallback)
         if self.loaded then return nil end
-        if fallback then self.texture = _C.texture_load(fallback) end
+        if fallback then self.texture = capi.texture_load(fallback) end
     end
 })
 
@@ -761,12 +761,12 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     ]]
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
-        if    o or not _C.slot_exists(self.slot) then return o end
-        return _C.slot_check_vslot(self.slot) and self or nil
+        if    o or not capi.slot_exists(self.slot) then return o end
+        return capi.slot_check_vslot(self.slot) and self or nil
     end,
 
     draw = function(self, sx, sy)
-        _C.texture_draw_slot(self.slot, self.w, self.h, sx, sy)
+        capi.texture_draw_slot(self.slot, self.w, self.h, sx, sy)
         return Object.draw(self, sx, sy)
     end,
 
@@ -802,9 +802,9 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        _C.gl_blend_disable()
+        capi.gl_blend_disable()
         local csl = #clip_stack > 0
-        if csl then _C.gl_scissor_disable() end
+        if csl then capi.gl_scissor_disable() end
 
         local screenw, ww, ws = var_get("scr_w"), world.w, world.size
         local w, h = self.w, self.h
@@ -814,17 +814,17 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         local y  = ceil((1 - (h + sy)) * ws)
         local dy = ceil(h * ws)
 
-        _C.gle_disable()
-        _C.model_preview_start(x, y, dx, dy, csl)
-        _C.model_preview(self.model, self.anim, self.attachments)
+        capi.gle_disable()
+        capi.model_preview_start(x, y, dx, dy, csl)
+        capi.model_preview(self.model, self.anim, self.attachments)
         if csl then clip_area_scissor() end
-        _C.model_preview_end()
+        capi.model_preview_end()
 
-        _C.shader_hud_set()
-        _C.gle_defvertex(2)
-        _C.gle_deftexcoord0(2)
-        _C.gl_blend_enable()
-        if csl then _C.gl_scissor_enable() end
+        capi.shader_hud_set()
+        capi.gle_defvertex(2)
+        capi.gle_deftexcoord0(2)
+        capi.gl_blend_enable()
+        if csl then capi.gl_scissor_enable() end
         return Object.draw(self, sx, sy)
     end,
 
@@ -878,18 +878,18 @@ M.Label = register_class("Label", Object, {
     end,
 
     draw = function(self, sx, sy)
-        _C.hudmatrix_push()
+        capi.hudmatrix_push()
 
         local k = self:draw_scale()
-        _C.hudmatrix_scale(k, k, 1)
-        _C.hudmatrix_flush()
+        capi.hudmatrix_scale(k, k, 1)
+        capi.hudmatrix_flush()
 
         local w = self.wrap
-        _C.text_draw(self.text, sx / k, sy / k,
+        capi.text_draw(self.text, sx / k, sy / k,
             self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
 
-        _C.gle_color4f(1, 1, 1, 1)
-        _C.hudmatrix_pop()
+        capi.gle_color4f(1, 1, 1, 1)
+        capi.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end,
@@ -899,7 +899,7 @@ M.Label = register_class("Label", Object, {
 
         local k = self:draw_scale()
 
-        local w, h = _C.text_get_bounds(self.text,
+        local w, h = capi.text_get_bounds(self.text,
             self.wrap <= 0 and -1 or self.wrap / k)
 
         if self.wrap <= 0 then
@@ -968,16 +968,16 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         if not val then return Object.draw(self, sx, sy) end
 
         local k = self.scale_saved
-        _C.hudmatrix_push()
-        _C.hudmatrix_scale(k, k, 1)
-        _C.hudmatrix_flush()
+        capi.hudmatrix_push()
+        capi.hudmatrix_scale(k, k, 1)
+        capi.hudmatrix_flush()
 
         local w = self.wrap
-        _C.text_draw(val or "", sx / k, sy / k,
+        capi.text_draw(val or "", sx / k, sy / k,
             self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
 
-        _C.gle_color4f(1, 1, 1, 1)
-        _C.hudmatrix_pop()
+        capi.gle_color4f(1, 1, 1, 1)
+        capi.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end,
@@ -993,7 +993,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         local k = self:draw_scale()
         self.scale_saved = k
 
-        local w, h = _C.text_get_bounds(val or "",
+        local w, h = capi.text_get_bounds(val or "",
             self.wrap <= 0 and -1 or self.wrap / k)
 
         if self.wrap <= 0 then

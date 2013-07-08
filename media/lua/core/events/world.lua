@@ -16,7 +16,7 @@
 local edit = require("core.engine.edit")
 local signal = require("core.events.signal")
 
-local set_external = _C.external_set
+local set_external = require("capi").external_set
 
 local emit = signal.emit
 

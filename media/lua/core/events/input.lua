@@ -13,6 +13,7 @@
         Registers several input events.
 ]]
 
+local capi = require("capi")
 local msg = require("core.network.msg")
 local signal = require("core.events.signal")
 
@@ -28,7 +29,7 @@ local ents
 ]]
 local input_mouse_move
 
-local get_ext, set_ext = _C.external_get, _C.external_set
+local get_ext, set_ext = capi.external_get, capi.external_set
 
 if not SERVER then
 --[[! Function: input_yaw
@@ -97,7 +98,7 @@ end)
 ]]
 set_ext("input_click", function(btn, down, x, y, z, ent, cx, cy)
     if not get_ext("input_click_client")(btn, down, x, y, z, ent, cx, cy) then
-        msg.send(_C.do_click, btn, down, x, y, z, ent and ent.uid or -1)
+        msg.send(capi.do_click, btn, down, x, y, z, ent and ent.uid or -1)
     end
 end)
 

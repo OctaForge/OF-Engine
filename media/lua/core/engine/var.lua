@@ -14,6 +14,8 @@
         access and setting.
 ]]
 
+local capi = require("capi")
+
 local VAR_I = 0
 local VAR_F = 1
 local VAR_S = 2
@@ -33,40 +35,40 @@ local M = {
     FLOAT  = VAR_F,
     STRING = VAR_S,
 
-    reset        = _C.var_reset,
-    new          = _C.var_new,
-    set          = _C.var_set,
-    get          = _C.var_get,
-    get_min      = _C.var_get_min,
-    get_max      = _C.var_get_max,
-    get_def      = _C.var_get_def,
-    get_type     = _C.var_get_type,
-    is_hex       = _C.var_is_hex,
-    exists       = _C.var_exists,
-    emits        = _C.var_emits,
+    reset        = capi.var_reset,
+    new          = capi.var_new,
+    set          = capi.var_set,
+    get          = capi.var_get,
+    get_min      = capi.var_get_min,
+    get_max      = capi.var_get_max,
+    get_def      = capi.var_get_def,
+    get_type     = capi.var_get_type,
+    is_hex       = capi.var_is_hex,
+    exists       = capi.var_exists,
+    emits        = capi.var_emits,
 
     new_checked = function(varn, ...)
-        if not _C.var_exists(varn) then
-            _C.var_new(varn, ...)
+        if not capi.var_exists(varn) then
+            capi.var_new(varn, ...)
         end
     end,
 
     __connect = function(self, name)
         local  vn = name:match("(.+)_changed$")
         if not vn then return nil end
-        _C.var_emits(vn, true)
+        capi.var_emits(vn, true)
     end,
 
     __disconnect = function(self, name, id, scount)
         if scount == 0 then
             local  vn = name:match("(.+)_changed$")
             if not vn then return nil end
-            _C.var_emits(vn, false)
+            capi.var_emits(vn, false)
         end
     end
 }
 
-_C.external_set("var_get_table", function()
+capi.external_set("var_get_table", function()
     return M
 end)
 

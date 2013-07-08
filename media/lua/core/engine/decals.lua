@@ -15,6 +15,8 @@
 
 if SERVER then return {} end
 
+local capi = require("capi")
+
 return {
     --[[! Variable: flags
         The flags available during decal renderer registration. Use bitwise
@@ -40,13 +42,13 @@ return {
         it simply returns the id of the already registered renderer)
         and true otherwise.
     ]]
-    register_renderer = _C.decal_register_renderer,
+    register_renderer = capi.decal_register_renderer,
 
     --[[! Function: get_renderer
         Given a name, returns the id of the renderer of that name or
         nothing (if no such renderer exists).
     ]]
-    get_renderer = _C.decal_get_renderer,
+    get_renderer = capi.decal_get_renderer,
 
     --[[! Function: add
         Creates a decal given its type (the integer returned by renderer
@@ -56,6 +58,7 @@ return {
         3).
     ]]
     add = function(tp, op, sp, rad, r, g, b, inf)
-        _C.decal_add(tp, op.x, op.y, op.z, sp.x, sp.y, sp.z, rad, r, g, b, inf)
+        capi.decal_add(tp, op.x, op.y, op.z, sp.x, sp.y, sp.z, rad, r, g, b,
+            inf)
     end
 }

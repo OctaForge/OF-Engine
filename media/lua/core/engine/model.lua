@@ -16,7 +16,9 @@
 local M = {}
 if SERVER then return M end
 
-local ran = _C.model_register_anim
+local capi = require("capi")
+
+local ran = capi.model_register_anim
 
 --[[! Variable: anims
     An enumeration of all basic (pre-defined) animations available in the
@@ -85,7 +87,7 @@ M.register_anim = ran
     Returns the animation number for the given animation name. If no such
     animation exists, returns nil.
 ]]
-M.get_anim = _C.model_get_anim
+M.get_anim = capi.model_get_anim
 
 --[[! Function: find_anims
     Finds animations whose names match the given pattern. It's a regular
@@ -93,21 +95,21 @@ M.get_anim = _C.model_get_anim
     returns an array of all animation numbers that match the input. The
     result is sorted.
 ]]
-local find_anims = _C.model_find_anims
+local find_anims = capi.model_find_anims
 
 --[[! Function: clear
     Clears a model with a name given by the argument (which is relative
     to media/model) and reloads.
 ]]
-M.clear = _C.model_clear
+M.clear = capi.model_clear
 
 --[[! Function: preload
     Adds a model into the preload queue for faster loading. Name is
     again relative to media/model.
 ]]
-M.preload = _C.model_preload
+M.preload = capi.model_preload
 
-local mrender = _C.model_render
+local mrender = capi.model_render
 
 --[[! Function: render
     Renders a model. Takes the entity which owns the model, the model name
@@ -126,13 +128,13 @@ end
     Returns the bounding box of the given model as two vec3, center and
     radius.
 ]]
-M.get_bounding_box = _C.model_get_boundbox
+M.get_bounding_box = capi.model_get_boundbox
 
 --[[! Function: get_collision_box
     Returns the collision box of the given model as two vec3, center and
     radius.
 ]]
-M.get_collision_box = _C.model_get_collisionbox
+M.get_collision_box = capi.model_get_collisionbox
 
 --[[! Function: get_mesh
     Returns the mesh information about the given model as a table.
@@ -141,6 +143,6 @@ M.get_collision_box = _C.model_get_collisionbox
     The triangles are associative arrays with members a, b, c where a,
     b, c are vec3.
 ]]
-M.get_mesh = _C.model_get_mesh
+M.get_mesh = capi.model_get_mesh
 
 return M

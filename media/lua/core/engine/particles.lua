@@ -16,6 +16,8 @@
 local M = {}
 if SERVER then return M end
 
+local capi = require("capi")
+
 --[[! Variable: flags
     The flags available during particle renderer registration. Use bitwise
     OR to combine them. They include MOD (multiplied), RND4 (picks one of
@@ -49,8 +51,8 @@ M.flags = flags
     Contains two predefined renderers that are mandatory - "text" and "icon".
 ]]
 local renderers = {
-    text = _C.particle_register_renderer_text("text"),
-    icon = _C.particle_register_renderer_icon("icon")
+    text = capi.particle_register_renderer_text("text"),
+    icon = capi.particle_register_renderer_icon("icon")
 }
 M.renderers = renderers
 
@@ -69,50 +71,50 @@ M.renderers = renderers
     and true otherwise. This applies for all renderer registration
     functions, not only this one.
 ]]
-M.register_renderer_quad = _C.particle_register_renderer_quad
+M.register_renderer_quad = capi.particle_register_renderer_quad
 
 --[[! Function: register_renderer_tape
     Registers a tape renderer. The parameters are the same.
     Look above for more information.
 ]]
-M.register_renderer_tape = _C.particle_register_renderer_tape
+M.register_renderer_tape = capi.particle_register_renderer_tape
 
 --[[! Function: register_renderer_trail
     Registers a trail renderer. The parameters are the same.
     Look above for more information.
 ]]
-M.register_renderer_trail = _C.particle_register_renderer_trail
+M.register_renderer_trail = capi.particle_register_renderer_trail
 
 --[[! Function: register_renderer_fireball
     Registers a fireball renderer given a name and a texture path.
     Look above for more information.
 ]]
-M.register_renderer_fireball = _C.particle_register_renderer_fireball
+M.register_renderer_fireball = capi.particle_register_renderer_fireball
 
 --[[! Function: register_renderer_lightning
     Registers a lightning renderer given a name and a texture path.
     Look above for more information.
 ]]
-M.register_renderer_lightning = _C.particle_register_renderer_lightning
+M.register_renderer_lightning = capi.particle_register_renderer_lightning
 
 --[[! Function: register_renderer_flare
     Registers a lens flare renderer given a name, a texture path
     and optionally a maximum flare count (defaults to 64) and flags.
     Look above for more information.
 ]]
-M.register_renderer_flare = _C.particle_register_renderer_flare
+M.register_renderer_flare = capi.particle_register_renderer_flare
 
 --[[! Function: register_renderer_text
     Registers a text renderer given a name and optionally flags.
     Look above for more information.
 ]]
-M.register_renderer_text = _C.particle_register_renderer_text
+M.register_renderer_text = capi.particle_register_renderer_text
 
 --[[! Function: register_renderer_icon
     Registers an icon renderer given a name and optionally flags.
     Look above for more information.
 ]]
-M.register_renderer_icon = _C.particle_register_renderer_icon
+M.register_renderer_icon = capi.particle_register_renderer_icon
 
 --[[! Function: register_renderer_meter
     Registers a progress meter renderer given a name and a boolean
@@ -121,13 +123,13 @@ M.register_renderer_icon = _C.particle_register_renderer_icon
     it has one color, foreground, on black) and optionally flags.
     Look above for more information.
 ]]
-M.register_renderer_meter = _C.particle_register_renderer_meter
+M.register_renderer_meter = capi.particle_register_renderer_meter
 
 --[[! Function: get_renderer
     Given a name, returns the id of the renderer of that name
     or nothing (if no such renderer exists).
 ]]
-M.get_renderer = _C.particle_get_renderer
+M.get_renderer = capi.particle_get_renderer
 
 --[[! Function: new
     Spawns a new generic particle given a type (renderer ID), origin
@@ -141,7 +143,7 @@ M.get_renderer = _C.particle_get_renderer
     Returns the particle object on which you can further set properties.
 ]]
 M.new = function(tp, o, d, r, g, b, fade, size, gravity, owner)
-    _C.particle_new(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
+    capi.particle_new(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
         size, gravity or 0)
 end
 
@@ -157,8 +159,8 @@ end
 ]]
 M.splash = function(tp, o, rad, num, r, g, b, fade, size, gravity, delay,
 owner, un)
-    return _C.particle_splash(tp, o.x, o.y, o.z, rad, num, r, g, b, fade, size,
-        gravity or 0, delay or 0, owner, un)
+    return capi.particle_splash(tp, o.x, o.y, o.z, rad, num, r, g, b, fade,
+        size, gravity or 0, delay or 0, owner, un)
 end
 
 --[[! Function: trail
@@ -167,8 +169,8 @@ end
     (defaults to 0) and owner (defaults to nil).
 ]]
 M.trail = function(tp, o, d, r, g, b, fade, size, gravity, owner)
-    return _C.particle_trail(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
-        size, gravity or 0, owner)
+    return capi.particle_trail(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b,
+        fade, size, gravity or 0, owner)
 end
 
 --[[! Function: text
@@ -177,7 +179,7 @@ end
     owner (defaults to nil).
 ]]
 M.text = function(tp, o, text, r, g, b, fade, size, gravity, owner)
-    return _C.particle_text(tp, o.x, o.y, o.z, text, r, g, b, fade, size,
+    return capi.particle_text(tp, o.x, o.y, o.z, text, r, g, b, fade, size,
         gravity or 0, owner)
 end
 
@@ -189,8 +191,8 @@ end
     owner (defaults to nil).
 ]]
 M.icon_generic = function(tp, o, ix, iy, r, g, b, fade, size, gravity, owner)
-    return _C.particle_icon_generic(tp, o.x, o.y, o.z, ix, iy, r, g, b, fade,
-        size, gravity or 0, owner)
+    return capi.particle_icon_generic(tp, o.x, o.y, o.z, ix, iy, r, g, b,
+        fade, size, gravity or 0, owner)
 end
 
 --[[! Function: icon
@@ -199,7 +201,7 @@ end
     gravity (defaults to 0) and owner (defaults to nil).
 ]]
 M.icon = function(tp, o, itex, r, g, b, fade, size, gravity, owner)
-    return _C.particle_icon(tp, o.x, o.y, o.z, itex, r, g, b, fade, size,
+    return capi.particle_icon(tp, o.x, o.y, o.z, itex, r, g, b, fade, size,
         gravity or 0, owner)
 end
 
@@ -209,8 +211,8 @@ end
     (defaults to nil). The background will be black here.
 ]]
 M.meter = function(tp, o, val, r, g, b, fade, size, owner)
-    return _C.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, 0, 0, 0, fade,
-        size, owner)
+    return capi.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, 0, 0, 0,
+        fade, size, owner)
 end
 
 --[[! Function: meter_vs
@@ -218,8 +220,8 @@ end
     specifying the foreground and the latter the background.
 ]]
 M.meter_vs = function(tp, o, val, r, g, b, r2, g2, b2, fade, size, owner)
-    return _C.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, r2, g2, b2, fade,
-        size, owner)
+    return capi.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, r2, g2, b2,
+        fade, size, owner)
 end
 
 --[[! Function: flare
@@ -227,8 +229,8 @@ end
     position, color, fade time, size and optionally owner (defaults to nil).
 ]]
 M.flare = function(tp, o, d, r, g, b, fade, size, owner)
-    return _C.particle_flare(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
-        size, owner)
+    return capi.particle_flare(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b,
+        fade, size, owner)
 end
 
 --[[! Function: fireball
@@ -236,8 +238,8 @@ end
     owner (defaults to nil), this creates a fireball effect.
 ]]
 M.fireball = function(tp, o, r, g, b, fade, size, msize, owner)
-    return _C.particle_fireball(tp, o.x, o.y, o.z, r, g, b, fade, size, msize,
-        owner)
+    return capi.particle_fireball(tp, o.x, o.y, o.z, r, g, b, fade, size,
+        msize, owner)
 end
 
 --[[! Function: lens_flare
@@ -246,7 +248,7 @@ end
     boolean specifying whether to display a sparkle center and color.
 ]]
 M.lens_flare = function(tp, o, sun, sparkle, r, g, b)
-    return _C.particle_lensflare(tp, o.x, o.y, o.z, sun, sparkle, r, g, b)
+    return capi.particle_lensflare(tp, o.x, o.y, o.z, sun, sparkle, r, g, b)
 end
 
 --[[! Function: shape
@@ -264,7 +266,7 @@ end
     actual direction - 0 is x, 1 is y, 2 is z (up).
 ]]
 M.shape = function(tp, o, rad, dir, num, r, g, b, fade, size, grav, vel, owner)
-    return _C.particle_shape(tp, o.x, o.y, o.z, rad, dir, num, r, g, b, fade,
+    return capi.particle_shape(tp, o.x, o.y, o.z, rad, dir, num, r, g, b, fade,
         size, grav or 0, vel or 200, owner)
 end
 
@@ -275,7 +277,7 @@ end
     to 200), gravity (defaults to 15) and owner (defaults to nil).
 ]]
 M.flame = function(tp, o, rad, h, r, g, b, fade, dens, sc, speed, grav, owner)
-    return _C.particle_flame(tp, o.x, o.y, o.z, rad, h, r, g, b, fade or 600,
+    return capi.particle_flame(tp, o.x, o.y, o.z, rad, h, r, g, b, fade or 600,
         dens or 3, sc or 2, speed or 200, grav or -15, owner)
 end
 

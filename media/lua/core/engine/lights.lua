@@ -15,6 +15,8 @@
         or something else).
 ]]
 
+local capi = require("capi")
+
 return {
     --[[! Variable: flags
         Provides the available flags for <add> and <add_spot>. Includes
@@ -39,7 +41,7 @@ return {
         with x, y and z. The function returns true.
     ]]
     add = function(pos, rad, r, g, b, fade, peak, flags, irad, ir, ig, ib, own)
-        _C.dynlight_add(pos.x, pos.y, pos.z, rad, r, g, b, fade, peak,
+        capi.dynlight_add(pos.x, pos.y, pos.z, rad, r, g, b, fade, peak,
             flags, irad, ir, ig, ib, own)
     end,
 
@@ -52,7 +54,7 @@ return {
     ]]
     add_spot = function(from, dir, rad, spot, r, g, b, fade, peak, flags, irad,
     ir, ig, ib, own)
-        _C.dynlight_add_spot(from.x, from.y, from.z, dir.x, dir.y, dir.z,
+        capi.dynlight_add_spot(from.x, from.y, from.z, dir.x, dir.y, dir.z,
             rad, spot, r, g, b, fade, peak, flags, irad, ir, ig, ib, own)
     end
 }

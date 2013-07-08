@@ -13,9 +13,11 @@
         Lua table module extensions.
 ]]
 
+local capi = require("capi")
+
 local M = {}
 
-local ctable = _C.table_create
+local ctable = capi.table_create
 local pairs, ipairs = pairs, ipairs
 local type, setmetatable = type, setmetatable
 local rawget, rawset = rawget, rawset
@@ -360,7 +362,7 @@ local serialize = function(val, kwargs, stream, simplifier)
     end
 end
 M.serialize = serialize
-_C.external_set("table_serialize", serialize)
+capi.external_set("table_serialize", serialize)
 
 local lex_get = function(ls)
     while true do
@@ -538,7 +540,7 @@ M.deserialize = function(s)
     if not r then return nil, v end
     return v
 end
-_C.external_set("table_deserialize", M.deserialize)
+capi.external_set("table_deserialize", M.deserialize)
 
 local sift_down = function(tbl, l, s, e, fun)
     local root = s

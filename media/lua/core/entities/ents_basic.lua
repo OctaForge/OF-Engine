@@ -13,6 +13,7 @@
         Implements a basic entity set. Injects directly into the "ents" module.
 ]]
 
+local capi = require("capi")
 local logging = require("core.logger")
 local log = logging.log
 local DEBUG = logging.DEBUG
@@ -33,7 +34,7 @@ local hextorgb = conv.hex_to_rgb
 
 local var_get = var.get
 
-local set_external = _C.external_set
+local set_external = capi.external_set
 
 local Entity = ents.Entity
 
@@ -48,7 +49,7 @@ local min, max = math.min, math.max
 local clamp = require("core.lua.math").clamp
 local map = table2.map
 
-local set_attachments = _C.set_attachments
+local set_attachments = capi.set_attachments
 
 -- physics state flags
 local MASK_MAT = 0x3
@@ -64,7 +65,7 @@ local FLAG_BELOWGROUND = lsh(2, 4)
 local animctl = model.anim_control
 local anims = model.anims
 
-local csetanim = _C.set_animation
+local csetanim = capi.set_animation
 local setanim = SERVER and function(self, v)
     csetanim(self, { 0 })
 end or function(self, v)
@@ -196,10 +197,10 @@ local Character = Entity:clone {
             setter = setanim, client_set = true
         },
         animation_flags = svars.State_Integer {
-            setter = "_C.set_animflags", client_set = true
+            setter = capi.set_animflags, client_set = true
         },
-        start_time  = svars.State_Integer { getter = "_C.get_start_time"   },
-        model_name  = svars.State_String  { setter = "_C.set_model_name"   },
+        start_time  = svars.State_Integer { getter = capi.get_start_time   },
+        model_name  = svars.State_String  { setter = capi.set_model_name   },
         attachments = svars.State_Array   {
             setter = function(self, val)
                 return set_attachments(self, map(val, function(str)
@@ -212,108 +213,108 @@ local Character = Entity:clone {
         facing_speed   = svars.State_Integer(),
 
         movement_speed = svars.State_Float {
-            getter = "_C.get_maxspeed", setter = "_C.set_maxspeed"
+            getter = capi.get_maxspeed, setter = capi.set_maxspeed
         },
         yaw = svars.State_Float {
-            getter = "_C.get_yaw", setter = "_C.set_yaw",
+            getter = capi.get_yaw, setter = capi.set_yaw,
             custom_sync = true
         },
         pitch = svars.State_Float {
-            getter = "_C.get_pitch", setter = "_C.set_pitch",
+            getter = capi.get_pitch, setter = capi.set_pitch,
             custom_sync = true
         },
         roll = svars.State_Float {
-            getter = "_C.get_roll", setter = "_C.set_roll",
+            getter = capi.get_roll, setter = capi.set_roll,
             custom_sync = true
         },
         move = svars.State_Integer {
-            getter = "_C.get_move", setter = "_C.set_move",
+            getter = capi.get_move, setter = capi.set_move,
             custom_sync = true
         },
         strafe = svars.State_Integer {
-            getter = "_C.get_strafe", setter = "_C.set_strafe",
+            getter = capi.get_strafe, setter = capi.set_strafe,
             custom_sync = true
         },
         yawing = svars.State_Integer {
-            getter = "_C.get_yawing", setter = "_C.set_yawing",
+            getter = capi.get_yawing, setter = capi.set_yawing,
             custom_sync = true
         },
         pitching = svars.State_Integer {
-            getter = "_C.get_pitching", setter = "_C.set_pitching",
+            getter = capi.get_pitching, setter = capi.set_pitching,
             custom_sync = true
         },
         crouching = svars.State_Integer {
-            getter = "_C.get_crouching", setter = "_C.set_crouching",
+            getter = capi.get_crouching, setter = capi.set_crouching,
             custom_sync = true
         },
         jumping = svars.State_Boolean {
-            getter = "_C.get_jumping", setter = "_C.set_jumping",
+            getter = capi.get_jumping, setter = capi.set_jumping,
             custom_sync = true
         },
         position = svars.State_Vec3 {
-            getter = "_C.get_dynent_position",
-            setter = "_C.set_dynent_position",
+            getter = capi.get_dynent_position,
+            setter = capi.set_dynent_position,
             custom_sync = true
         },
         velocity = svars.State_Vec3 {
-            getter = "_C.get_dynent_velocity",
-            setter = "_C.set_dynent_velocity",
+            getter = capi.get_dynent_velocity,
+            setter = capi.set_dynent_velocity,
             custom_sync = true
         },
         falling = svars.State_Vec3 {
-            getter = "_C.get_dynent_falling",
-            setter = "_C.set_dynent_falling",
+            getter = capi.get_dynent_falling,
+            setter = capi.set_dynent_falling,
             custom_sync = true
         },
         radius = svars.State_Float {
-            getter = "_C.get_radius", setter = "_C.set_radius"
+            getter = capi.get_radius, setter = capi.set_radius
         },
         above_eye = svars.State_Float {
-            getter = "_C.get_aboveeye", setter = "_C.set_aboveeye"
+            getter = capi.get_aboveeye, setter = capi.set_aboveeye
         },
         eye_height = svars.State_Float {
-            getter = "_C.get_eyeheight", setter = "_C.set_eyeheight"
+            getter = capi.get_eyeheight, setter = capi.set_eyeheight
         },
         max_height = svars.State_Float {
-            getter = "_C.get_maxheight", setter = "_C.set_maxheight"
+            getter = capi.get_maxheight, setter = capi.set_maxheight
         },
         crouch_height = svars.State_Float {
-            getter = "_C.get_crouchheight", setter = "_C.set_crouchheight"
+            getter = capi.get_crouchheight, setter = capi.set_crouchheight
         },
         crouch_time = svars.State_Integer {
-            getter = "_C.get_crouchtime", setter = "_C.set_crouchtime"
+            getter = capi.get_crouchtime, setter = capi.set_crouchtime
         },
         jump_velocity = svars.State_Float {
-            getter = "_C.get_jumpvel", setter = "_C.set_jumpvel"
+            getter = capi.get_jumpvel, setter = capi.set_jumpvel
         },
         gravity = svars.State_Float {
-            getter = "_C.get_gravity", setter = "_C.set_gravity"
+            getter = capi.get_gravity, setter = capi.set_gravity
         },
         blocked = svars.State_Boolean {
-            getter = "_C.get_blocked", setter = "_C.set_blocked"
+            getter = capi.get_blocked, setter = capi.set_blocked
         },
         can_move = svars.State_Boolean {
-            setter = "_C.set_can_move", client_set = true
+            setter = capi.set_can_move, client_set = true
         },
         map_defined_position_data = svars.State_Integer {
-            getter = "_C.get_mapdefinedposdata",
-            setter = "_C.set_mapdefinedposdata",
+            getter = capi.get_mapdefinedposdata,
+            setter = capi.set_mapdefinedposdata,
             custom_sync = true
         },
         client_state = svars.State_Integer {
-            getter = "_C.get_clientstate", setter = "_C.set_clientstate",
+            getter = capi.get_clientstate, setter = capi.set_clientstate,
             custom_sync = true
         },
         physical_state = svars.State_Integer {
-            getter = "_C.get_physstate", setter = "_C.set_physstate",
+            getter = capi.get_physstate, setter = capi.set_physstate,
             custom_sync = true
         },
         in_liquid = svars.State_Integer {
-            getter = "_C.get_inwater", setter = "_C.set_inwater",
+            getter = capi.get_inwater, setter = capi.set_inwater,
             custom_sync = true
         },
         time_in_air = svars.State_Integer {
-            getter = "_C.get_timeinair", setter = "_C.set_timeinair",
+            getter = capi.get_timeinair, setter = capi.set_timeinair,
             custom_sync = true
         },
 
@@ -345,8 +346,8 @@ local Character = Entity:clone {
         end
     end,
 
-    get_plag = _C.get_plag,
-    get_ping = _C.get_ping,
+    get_plag = capi.get_plag,
+    get_ping = capi.get_ping,
     get_editing = function(self) return self:get_attr("client_state") == 4 end,
     get_lagged = function(self) return self:get_attr("client_state") == 3 end,
 
@@ -382,7 +383,7 @@ local Character = Entity:clone {
     activate = SERVER and function(self, kwargs)
         self.cn = kwargs and kwargs.cn or -1
         assert(self.cn >= 0)
-        _C.setup_character(self)
+        capi.setup_character(self)
 
         Entity.activate(self, kwargs)
 
@@ -393,7 +394,7 @@ local Character = Entity:clone {
         Entity.activate(self, kwargs)
 
         self.cn = kwargs and kwargs.cn or -1
-        _C.setup_character(self)
+        capi.setup_character(self)
 
         self.render_args_timestamp = -1
 
@@ -426,7 +427,7 @@ local Character = Entity:clone {
     end,
 
     deactivate = function(self)
-        _C.destroy_character(self)
+        capi.destroy_character(self)
         Entity.deactivate(self)
     end,
 
@@ -635,7 +636,7 @@ local Character = Entity:clone {
         don't need the changes to reflect elsewhere).
     ]]
     set_local_animation_flags = function(self, animflags)
-        _C.set_animflags(self, animflags)
+        capi.set_animflags(self, animflags)
         self.svar_values["animation_flags"] = animflags
     end,
 
@@ -643,7 +644,7 @@ local Character = Entity:clone {
         Sets the model name property locally, without notifying the other side.
     ]]
     set_local_model_name = function(self, mname)
-        _C.set_model_name(self, mname)
+        capi.set_model_name(self, mname)
         self.svar_values["model_name"] = mname
     end
 }
@@ -688,8 +689,8 @@ ents.Player = Player
 ents.register_class(Character)
 ents.register_class(Player)
 
-local c_get_attr = _C.get_attr
-local c_set_attr = _C.set_attr
+local c_get_attr = capi.get_attr
+local c_set_attr = capi.set_attr
 
 local gen_attr = function(i, name)
     i = i - 1
@@ -733,8 +734,8 @@ local Static_Entity = Entity:clone {
 
     properties = {
         position = svars.State_Vec3 {
-            getter = "_C.get_extent_position",
-            setter = "_C.set_extent_position"
+            getter = capi.get_extent_position,
+            setter = capi.set_extent_position
         }
     },
 
@@ -765,7 +766,7 @@ local Static_Entity = Entity:clone {
         Entity.activate(self, kwargs)
 
         --@D log(DEBUG, "Static_Entity: extent setup")
-        _C.setup_extent(self, self.sauer_type)
+        capi.setup_extent(self, self.sauer_type)
 
         --@D log(DEBUG, "Static_Entity: flush")
         self:flush_queued_svar_changes()
@@ -776,12 +777,12 @@ local Static_Entity = Entity:clone {
             self:set_attr(an, self:get_attr(an))
         end
     end or function(self, kwargs)
-        _C.setup_extent(self, self.sauer_type)
+        capi.setup_extent(self, self.sauer_type)
         return Entity.activate(self, kwargs)
     end,
 
     deactivate = function(self)
-        _C.destroy_extent(self)
+        capi.destroy_extent(self)
         return Entity.deactivate(self)
     end,
 
@@ -799,7 +800,7 @@ local Static_Entity = Entity:clone {
         local scn, sname = self.cn, self.name
         for i = 1, #cns do
             local n = cns[i]
-            msg.send(n, _C.extent_notification_complete, uid, sname,
+            msg.send(n, capi.extent_notification_complete, uid, sname,
                 self:build_sdata({ target_cn = n, compressed = true }))
         end
 
@@ -837,7 +838,7 @@ local Static_Entity = Entity:clone {
         works with.
     ]]
     get_attached_entity = function(self)
-        return _C.get_attached_entity(self)
+        return capi.get_attached_entity(self)
     end,
 
     --[[! Function: get_edit_drop_height
@@ -1099,7 +1100,7 @@ local Sound = Static_Entity:clone {
 
     activate = (not SERVER) and function(self, ...)
         Static_Entity.activate(self, ...)
-        local f = _C.sound_stop_map
+        local f = capi.sound_stop_map
         connect(self, "sound_name_changed", f)
         connect(self, "radius_changed", f)
         connect(self, "size_changed", f)
@@ -1114,7 +1115,7 @@ local Sound = Static_Entity:clone {
     end,
 
     play_sound = function(self)
-        _C.sound_play_map(self, self:get_attr("sound_name"),
+        capi.sound_play_map(self, self:get_attr("sound_name"),
             self:get_attr("volume"))
     end
 }
@@ -1187,10 +1188,10 @@ local Mapmodel = Static_Entity:clone {
             setter = setanim, client_set = true
         },
         animation_flags = svars.State_Integer {
-            setter = "_C.set_animflags", client_set = true
+            setter = capi.set_animflags, client_set = true
         },
-        start_time  = svars.State_Integer { getter = "_C.get_start_time"   },
-        model_name  = svars.State_String  { setter = "_C.set_model_name"   },
+        start_time  = svars.State_Integer { getter = capi.get_start_time   },
+        model_name  = svars.State_String  { setter = capi.set_model_name   },
         attachments = svars.State_Array   {
             setter = function(self, val)
                 return set_attachments(self, map(val, function(str)

@@ -13,6 +13,7 @@
         Some default menus.
 ]]
 
+local capi = require("capi")
 local signal = require("core.events.signal")
 local gui = require("core.gui.core")
 
@@ -59,14 +60,14 @@ world:new_window("changes", gui.Window, function(win)
 end)
 
 world:new_window("textures", gui.Window, function(win)
-    _C.slot_fill_texlist()
+    capi.slot_fill_texlist()
     win:append(gui.Rectangle { r = 0, g = 0, b = 0, a = 192,
     min_w = 0.3, min_h = 0.2 }, function(r)
         r:clamp(true, true, true, true)
         win:append(gui.V_Box { padding = 0.01 }, function(box)
             box:append(gui.Label { text = "Textures" })
             box:append(gui.Table { columns = 9, padding = 0.01 }, function(t)
-                for i = 1, _C.slot_get_count() do
+                for i = 1, capi.slot_get_count() do
                     t:append(gui.Button(), function(btn)
                         btn:update_state("default",
                             btn:update_state("hovering",
@@ -74,7 +75,7 @@ world:new_window("textures", gui.Window, function(win)
                                     slot = i - 1, min_w = 0.095,
                                     min_h = 0.095 })))
                         signal.connect(btn, "click", function()
-                            _C.slot_set(i - 1)
+                            capi.slot_set(i - 1)
                         end)
                     end)
                 end

@@ -16,7 +16,7 @@
 local max = math.max
 local min = math.min
 
-local createtable = _C.table_create
+local createtable = require("capi").table_create
 
 local M = require("core.gui.core")
 local world = M.get_world()

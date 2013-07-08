@@ -91,7 +91,7 @@ world:new_window("main", gui.Window, function(win)
     end)
 end)
 
-_C.cubescript([[ bind ESCAPE [ lua [
+cubescript [[ bind ESCAPE [ lua [
     local world = require("core.gui.core").get_world()
     if not world:hide_window("main") then world:show_window("main") end
-] ] ]])
+] ] ]]

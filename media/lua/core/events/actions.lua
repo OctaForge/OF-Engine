@@ -18,6 +18,7 @@
         uses generally.
 ]]
 
+local capi = require("capi")
 local logging = require("core.logger")
 local log = logging.log
 local INFO = logging.INFO
@@ -73,7 +74,7 @@ local Action = table2.Object:clone {
 
         self.begun      = false
         self.finished   = false
-        self.start_time = _C.get_current_time()
+        self.start_time = capi.get_current_time()
 
         self.millis_left = (self.millis_left) or
             kwargs.millis_left or 0
@@ -338,7 +339,7 @@ local Action_System_MT = {
     }
 }
 
-local createtable = _C.table_create
+local createtable = capi.table_create
 
 local Action_System = function(parent)
     return setmetatable({

@@ -15,6 +15,7 @@
         entity types have their own modules.
 ]]
 
+local capi = require("capi")
 local logging = require("core.logger")
 local log = logging.log
 local DEBUG   = logging.DEBUG
@@ -31,7 +32,7 @@ local var = require("core.engine.var")
 
 local table2 = require("core.lua.table")
 
-local set_external = _C.external_set
+local set_external = capi.external_set
 
 local filter, filter_map, map, sort, concat, find, serialize, deserialize
     = table2.filter, table2.filter_map, table2.map, table2.sort,
@@ -576,7 +577,7 @@ M.load = function()
     if not SERVER then return nil end
 
     --@D log(DEBUG, "ents.load: reading")
-    local el = _C.readfile("./entities.lua")
+    local el = capi.readfile("./entities.lua")
 
     local entities = {}
     if not el then
@@ -589,7 +590,7 @@ M.load = function()
         --@D log(DEBUG, "ents.load: loading sauer entities")
         --@D log(DEBUG, "    reading import.lua for imported models and sounds")
 
-        local il, im, is = _C.readfile("./import.lua"), {}, {}
+        local il, im, is = capi.readfile("./import.lua"), {}, {}
         if il then
             local it = deserialize(il)
             local itm, its = it.models, it.sounds
@@ -769,12 +770,12 @@ Entity = table2.Object:clone {
     ]]
     deactivate = function(self)
         self:clear_actions()
-        _C.unregister_entity(self.uid)
+        capi.unregister_entity(self.uid)
 
         self.deactivated = true
 
         if SERVER then
-            msg.send(msg.ALL_CLIENTS, _C.le_removal, self.uid)
+            msg.send(msg.ALL_CLIENTS, capi.le_removal, self.uid)
         end
     end,
 
@@ -964,7 +965,7 @@ Entity = table2.Object:clone {
 
         if not self.sauer_type then
             --@D log(DEBUG, "Entity.activate: non-sauer entity: " .. self.name)
-            _C.setup_nonsauer(self)
+            capi.setup_nonsauer(self)
             if SERVER then
                 self:flush_queued_svar_changes()
             end
@@ -1046,8 +1047,8 @@ Entity = table2.Object:clone {
         if not nfh and not csfh then
             --@D log(DEBUG, "    sending server request/notification.")
             -- TODO: supress sending of the same val, at least for some SVs
-            msg.send(var.reliable and _C.statedata_changerequest
-                or _C.statedata_changerequest_unreliable,
+            msg.send(var.reliable and capi.statedata_changerequest
+                or capi.statedata_changerequest_unreliable,
                 self.uid, names_to_ids[self.name][var.name],
                 var:to_wire(val))
         end
@@ -1105,8 +1106,8 @@ Entity = table2.Object:clone {
             end
 
             local args = {
-                nil, var.reliable and _C.statedata_update
-                    or _C.statedata_update_unreliable,
+                nil, var.reliable and capi.statedata_update
+                    or capi.statedata_update_unreliable,
                 self.uid,
                 names_to_ids[self.name][key],
                 var:to_wire(val),
@@ -1150,7 +1151,7 @@ Entity = table2.Object:clone {
         local scn, sname = self.cn, self.name
         for i = 1, #cns do
             local n = cns[i]
-            msg.send(n, _C.le_notification_complete,
+            msg.send(n, capi.le_notification_complete,
                 scn and scn or acn, uid, sname, self:build_sdata(
                     { target_cn = n, compressed = true }))
         end
@@ -1472,7 +1473,7 @@ M.send = SERVER and function(cn)
         uids[nents] = uid
     end
     sort(uids)
-    msg.send(cn, _C.notify_numents, nents)
+    msg.send(cn, capi.notify_numents, nents)
     for i = 1, nents do
         storage[uids[i]]:send_notification_full(cn)
     end

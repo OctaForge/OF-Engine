@@ -59,7 +59,9 @@ end
 
 --debug.sethook(trace, "c")
 
-_C.log(1, "Initializing logging.")
+local capi = require("capi")
+
+capi.log(1, "Initializing logging.")
 
 local log = require("core.logger")
 
@@ -69,7 +71,7 @@ local spath = package.searchpath
 table.insert(package.loaders, 2, function(modname, ppath)
     local  fname, err = spath(modname, ppath or package.path)
     if not fname then return err end
-    if not _C.should_log(1) then return nil end
+    if not capi.should_log(1) then return nil end
     local file = io_open(fname, "rb")
     local f, err = load(function()
         local  line = file:read("*L")
@@ -90,7 +92,7 @@ end)
     Executes the given cubescript string. Returns the return value of the
     cubescript expression.
 ]]
-rawset(_G, "cubescript", _C.cubescript)
+rawset(_G, "cubescript", capi.cubescript)
 
 log.log(log.DEBUG, "Initializing the core library.")
 

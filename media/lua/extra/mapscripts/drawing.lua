@@ -148,7 +148,7 @@ local Game_Player = Player:clone {
 ents.register_class(Game_Player, { game_manager.player_plugin })
 
 if not SERVER then
-    _C.external_set("input_click_client",
+    require("capi").external_set("input_click_client",
         function(btn, down, x, y, z, ent, cx, cy)
             if ent and ent.click then
                 return ent:click(btn, down, x, y, z, cx, cy)

@@ -127,6 +127,6 @@ M.emit = function(self, name, ...)
 
     return ncalled
 end
-_C.external_set("signal_emit", M.emit)
+require("capi").external_set("signal_emit", M.emit)
 
 return M

@@ -13,6 +13,8 @@
         A logger module.
 ]]
 
+local capi = require("capi")
+
 local M = {}
 
 --[[! Variable: INFO ]]
@@ -41,19 +43,19 @@ M.ERROR = 3
         ERROR - Use for serious error messages, displayed always. Printed into
         the in-engine console.
 ]]
-M.log = _C.log
+M.log = capi.log
 
 --[[! Function: echo
     Displays some text into both consoles (in-engine and terminal). Takes
     only the text, there is no logging level, no changes are made to the
     text. It's printed as it's given.
 ]]
-M.echo = _C.echo
+M.echo = capi.echo
 
 --[[! Function: should_log
     Given a log level, this returns true if that level should be logged
     and false otherwise.
 ]]
-M.should_log = _C.should_log
+M.should_log = capi.should_log
 
 return M

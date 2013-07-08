@@ -16,7 +16,7 @@
 local M = {}
 
 local env_package = {
-    preload = {}
+    preload = { capi = package.preload.capi }
 }
 
 local assert  = assert
@@ -135,7 +135,8 @@ local eloaded = {
     ["bit"      ] = ploaded["bit"      ],
     ["coroutine"] = ploaded["coroutine"],
     ["math"     ] = ploaded["math"     ],
-    ["table"    ] = ploaded["table"    ]
+    ["table"    ] = ploaded["table"    ],
+    ["capi"     ] = ploaded["capi"     ]
 }
 env_package.loaded = eloaded
 
@@ -151,7 +152,6 @@ local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
     end
     if not mod then
         env["_G"] = env
-        env["_C"] = _C
         env["SERVER"] = SERVER
         env["require"] = gen_require(env)
         env_package.loaded["_G"] = env
@@ -181,8 +181,8 @@ end
     doesn't have string.dump and a stripped down version of the os module
     containing functions clock, date, difftime and time.
 
-    The environment also contains the special variables SERVER and _C and
-    it inherits the metatable of _G.
+    The environment also contains the special variable SERVER and inherits
+    the metatable of _G.
 
     All the core.* modules that are preloaded outside are preloaded inside
     as well.
@@ -191,6 +191,6 @@ M.gen_mapscript_env = function()
     env_package.path = package.path
     return gen_envtable(env_structure, {}, env_replacements)
 end
-_C.external_set("mapscript_gen_env", M.gen_mapscript_env)
+require("capi").external_set("mapscript_gen_env", M.gen_mapscript_env)
 
 return M

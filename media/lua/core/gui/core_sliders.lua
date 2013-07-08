@@ -13,6 +13,7 @@
         Sliders for the OF GUI.
 ]]
 
+local capi = require("capi")
 local var = require("core.engine.var")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
@@ -24,7 +25,6 @@ local min   = math.min
 local abs   = math.abs
 local clamp = math2.clamp
 local round = math2.round
-local _C    = _G["_C"]
 local emit  = signal.emit
 
 local M = require("core.gui.core")
@@ -193,7 +193,7 @@ local Slider = register_class("Slider", Object, {
     end,
 
     arrow_scroll = function(self)
-        local tmillis = _C.get_millis(true)
+        local tmillis = capi.get_millis(true)
         if (self.last_step + self.step_time) > tmillis then
             return nil
         end

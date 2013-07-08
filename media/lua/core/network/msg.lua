@@ -47,7 +47,7 @@ end
 M.show_client_message = SERVER and function(cn, title, text)
     cn = type(cn) == "table" and cn.cn or cn
     assert(cn)
-    send(cn, _C.personal_servmsg, title, text)
+    send(cn, require("capi").personal_servmsg, title, text)
 end or nil
 
 return M

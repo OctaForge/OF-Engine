@@ -169,6 +169,11 @@ namespace lua
         return 1;
     }
 
+    static int capi_get(lua_State *L) {
+        lua_pushvalue(L, lua_upvalueindex(1));
+        return 1;
+    }
+
     void setup_binds()
     {
 #ifndef SERVER
@@ -179,6 +184,7 @@ namespace lua
         lua_setglobal(L, "SERVER");
 
         assert(funs);
+        lua_getfield(L, LUA_REGISTRYINDEX, "_PRELOAD");
         lua_newuserdata(L, 0);                 /* _C */
         lua_createtable(L, 0, 2);              /* _C, C_mt */
         int numfields = funs->length();
@@ -195,10 +201,8 @@ namespace lua
         lua_pushboolean(L, 0);                 /* _C, C_mt, C_metatable */
         lua_setfield(L, -2, "__metatable");    /* _C, C_mt */
         lua_setmetatable(L, -2);               /* _C */
-        lua_getfield (L, LUA_REGISTRYINDEX, "_LOADED");
-        lua_pushvalue(L, -2); lua_setfield (L, -2, "_C");
-        lua_pop      (L,  1);
-        lua_setglobal(L, "_C");
+        lua_pushcclosure(L, capi_get, 1);      /* C_get */
+        lua_setfield(L, -2, "capi");
         load_module("init");
     }
 

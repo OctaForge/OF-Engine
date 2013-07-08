@@ -13,6 +13,8 @@
         Editing functions including procedural geometry generation.
 ]]
 
+local capi = require("capi")
+
 local M = {}
 
 --[[! Variable: MATERIAL_AIR
@@ -90,19 +92,19 @@ M.MATERIALF_FLAGS = bit.lshift(255, 8)
     serverside. Takes the entity class name the bot should be. Returns the bot
     entity.
 ]]
-M.add_npc = _C.npcadd
+M.add_npc = capi.npcadd
 
 --[[! Function: delete_npc
     Deletes a bot. Takes the entity, returns nothing. Purely serverside.
 ]]
-M.delete_npc = _C.npcdel
+M.delete_npc = capi.npcdel
 
 --[[! Function: new_entity
     Creates a new entity on the position where the edit cursor is aiming.
     Takes the entity class name as an argument. Also callable from cubescript
     as newent. Clientside.
 ]]
-M.new_entity = _C.new_entity
+M.new_entity = capi.new_entity
 
 --[[! Function: get_material
     Returns what material is on the position given by the argument.
@@ -111,13 +113,13 @@ M.new_entity = _C.new_entity
     <MATERIAL_CLIP>.
 ]]
 M.get_material = function(o)
-    return _C.getmat(o.x, o.y, o.z)
+    return capi.getmat(o.x, o.y, o.z)
 end
 
 --[[! Function: erase_geometry
     Clears all the map geometry.
 ]]
-M.erase_geometry = _C.edit_erase_geometry
+M.erase_geometry = capi.edit_erase_geometry
 
 --[[! Function: create_cube
     Creates a cube with the given parameters. Please note that not all
@@ -130,13 +132,13 @@ M.erase_geometry = _C.edit_erase_geometry
     The coordinates also have to fit in the world, so mapsize. Takes the x,
     y, z coordinates and the gridsize (which is 1<<gridpower).
 ]]
-M.create_cube = _C.edit_create_cube
+M.create_cube = capi.edit_create_cube
 
 --[[! Function: delete_cube
     Parameters and rules are the same as for <create_cube>, but it actually
     deletes cubes instead of creating.
 ]]
-M.delete_cube = _C.edit_delete_cube
+M.delete_cube = capi.edit_delete_cube
 
 --[[! Function: set_cube_texture
     First 4 arguments are the same as in <create_cube>, the fifth argument is
@@ -154,18 +156,18 @@ M.delete_cube = _C.edit_delete_cube
         4 - bottom of the cube
         5 - top of the cube
 ]]
-M.set_cube_texture = _C.edit_set_cube_texture
+M.set_cube_texture = capi.edit_set_cube_texture
 
 --[[! Function: set_cube_material
     First 4 arguments are the same as in <create_cube>, the fifth argument is
     the material index, see <get_material>. See also <set_cube_texture>.
 ]]
-M.set_cube_material = _C.edit_set_cube_material
+M.set_cube_material = capi.edit_set_cube_material
 
 --[[! Function: set_cube_color
     See above. The last 3 arguments are the color components (from 0 to 1).
 ]]
-M.set_cube_color = _C.edit_set_cube_color
+M.set_cube_color = capi.edit_set_cube_color
 
 --[[! Function: push_cube_corner
     First 5 arguments are the same with <set_cube_texture>, the sixth argument
@@ -176,6 +178,6 @@ M.set_cube_color = _C.edit_set_cube_color
     is bottom-right when facing them directly (that is, when we see the texture
     in the right orientation).
 ]]
-M.push_cube_corner = _C.edit_push_cube_corner
+M.push_cube_corner = capi.edit_push_cube_corner
 
 return M
