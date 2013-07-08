@@ -1,3 +1,48 @@
+2013-07-08 - 0.2.4 beta 5
+
+    * Removed some serverside code regarding particles and sounds - use state
+      variables and draw directly on the client instead
+    * Removed the old "effects" module for particles
+    * Separated module extensions - math, string and table stuff is no longer
+      injected into their respective core modules
+    * Lua API to register particle renderers and create various effects
+    * Lua API to register decal renderers and spawn decals
+    * Particles and decals now store color channels separately rather than
+      in a single int so that it's possible to go out of the standard range
+      of 1 byte
+    * New C++ API for Lua string pinning
+    * Cleaned up mapmodel system
+    * New Lua API for dynlights
+    * Mapsounds are managed from Lua side
+    * Improved model attachment system that works for mapmodels, characters
+      and any other model type
+    * Low level entity system cleanups
+    * Expanded the number of user definable animations from 128 to 512
+    * Separated animation and animation flags from Lua perspective
+    * The animation state variable is now an array of strings so that
+      you don't have to know the integer ids and so that you don't have
+      to use bitwise operations for secondary anims
+    * High level particle effect and decal module in the core library
+    * Removed the original particle effect entity type and instead introduced
+      a new system where each particle effect has its own unique entity,
+      those can be created from Lua
+    * Removed all predefined particle effect types - you can define them
+      on your own
+    * Logging is now contained within its own module, no globals
+    * GUI is now moved to the core namespace
+    * The Lua state is now destroyed after you close the map and re-created,
+      so you can start another map without restarting the engine
+    * Mapscripts are now sandboxed so that they can't access unsafe APIs,
+      they have their own module system
+    * You can no longer create new global variables the standard way (without
+      using rawset) - store your vars as locals and expose via modules
+    * Cleaned up preprocessing loader so that the input without preprocessing
+      is valid Lua code
+    * The core C API is now a module as well, initially stored in
+      package.preload
+    * Various other cleanups and reorganizations - refer to git commits
+      for more information
+
 2013-06-17 - 0.2.3 beta 4
 
     * Changes in default texture scaling - textures now render at quarter
