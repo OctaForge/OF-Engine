@@ -152,8 +152,6 @@ State_Variable = table2.Object:clone {
             define_accessors(cl, an, self.getter, self.setter, self)
         end
         cl["_SV_GUI_" .. (self.gui_name or name)] = self
-
-        local gf, sf = self.getter_fun, self.setter_fun
     end,
 
     --[[! Function: read_tests
