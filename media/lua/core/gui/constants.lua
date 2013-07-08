@@ -110,8 +110,6 @@ local gl = {
 }
 M.gl = gl
 
-local bit = require("bit")
-
 local bor  = bit.bor
 local blsh = bit.lshift
 

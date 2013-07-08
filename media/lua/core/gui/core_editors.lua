@@ -21,8 +21,6 @@ local ffi = require("ffi")
 
 local var_get = var.get
 
-local bit = require("bit")
-
 local band  = bit.band
 local blsh  = bit.lshift
 local max   = math.max

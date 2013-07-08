@@ -15,8 +15,6 @@
 
 if SERVER then return {} end
 
-local bit = require("bit")
-
 return {
     --[[! Variable: flags
         The flags available during decal renderer registration. Use bitwise

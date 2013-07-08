@@ -24,7 +24,6 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local conv = require("core.lua.conv")
 local particles = require("core.engine.particles")
-local bit = require("bit")
 
 local splash, flare = particles.splash, particles.flare
 local quadrenderer, taperenderer = particles.register_renderer_quad,

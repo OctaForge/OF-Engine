@@ -14,8 +14,6 @@
         access and setting.
 ]]
 
-local bit = require("bit")
-
 local VAR_I = 0
 local VAR_F = 1
 local VAR_S = 2

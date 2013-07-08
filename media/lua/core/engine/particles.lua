@@ -13,8 +13,6 @@
         Lua particle API. Works on the client.
 ]]
 
-local bit = require("bit")
-
 local M = {}
 if SERVER then return M end
 

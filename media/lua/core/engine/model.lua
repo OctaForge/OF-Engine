@@ -13,8 +13,6 @@
         Lua model API.
 ]]
 
-local bit = require("bit")
-
 local M = {}
 if SERVER then return M end
 

@@ -13,8 +13,6 @@
         Editing functions including procedural geometry generation.
 ]]
 
-local bit = require("bit")
-
 local M = {}
 
 --[[! Variable: MATERIAL_AIR

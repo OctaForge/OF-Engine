@@ -15,8 +15,6 @@
         or something else).
 ]]
 
-local bit = require("bit")
-
 return {
     --[[! Variable: flags
         Provides the available flags for <add> and <add_spot>. Includes

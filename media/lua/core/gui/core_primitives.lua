@@ -20,8 +20,6 @@ local signal = require("core.events.signal")
 
 local var_get = var.get
 
-local bit = require("bit")
-
 local band  = bit.band
 local bor   = bit.bor
 local bnot  = bit.bnot

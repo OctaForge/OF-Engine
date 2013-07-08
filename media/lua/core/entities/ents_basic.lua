@@ -33,8 +33,6 @@ local hextorgb = conv.hex_to_rgb
 
 local var_get = var.get
 
-local bit = require("bit")
-
 local set_external = _C.external_set
 
 local Entity = ents.Entity

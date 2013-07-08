@@ -17,7 +17,6 @@
 
 local M = {}
 
-local bit = require("bit")
 local band, bor, lsh, rsh = bit.band, bit.bor, bit.lshift, bit.rshift
 
 --[[! Function: hex_to_rgb

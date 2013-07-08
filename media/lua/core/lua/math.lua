@@ -14,7 +14,6 @@
 ]]
 
 local log = require("core.logger")
-local bit = require("bit")
 
 local type = type
 local floor, min, max, abs = math.floor, math.min, math.max, math.abs

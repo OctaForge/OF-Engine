@@ -17,8 +17,6 @@ local var = require("core.engine.var")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
-local bit = require("bit")
-
 local band  = bit.band
 local bnot  = bit.bnot
 local max   = math.max

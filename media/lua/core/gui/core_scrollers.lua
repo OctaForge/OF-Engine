@@ -17,8 +17,6 @@ local frame = require("core.events.frame")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
-local bit = require("bit")
-
 local band  = bit.band
 local bnot  = bit.bnot
 local blsh  = bit.lshift
