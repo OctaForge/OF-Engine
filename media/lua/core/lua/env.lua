@@ -74,6 +74,76 @@ local env_require = function(modname)
     return loaded[modname]
 end
 
+local env_structure = {
+    ["assert"      ] = true,
+    ["coroutine"   ] = true,
+    ["cubescript"  ] = true,
+    ["error"       ] = true,
+    ["getmetatable"] = true,
+    ["ipairs"      ] = true,
+    ["math"        ] = true,
+    ["next"        ] = true,
+    ["os"          ] = {
+        ["clock"   ] = true,
+        ["date"    ] = true,
+        ["difftime"] = true,
+        ["time"    ] = true
+    },
+    ["pairs"       ] = true,
+    ["pcall"       ] = true,
+    ["print"       ] = true,
+    ["rawequal"    ] = true,
+    ["rawget"      ] = true,
+    ["rawlen"      ] = true,
+    ["rawset"      ] = true,
+    ["require"     ] = true,
+    ["select"      ] = true,
+    ["setmetatable"] = true,
+    ["string"      ] = {
+        ["byte"    ] = true,
+        ["char"    ] = true,
+        ["find"    ] = true,
+        ["format"  ] = true,
+        ["gmatch"  ] = true,
+        ["gsub"    ] = true,
+        ["len"     ] = true,
+        ["lower"   ] = true,
+        ["match"   ] = true,
+        ["rep"     ] = true,
+        ["reverse" ] = true,
+        ["sub"     ] = true,
+        ["upper"   ] = true
+    },
+    ["table"       ] = true,
+    ["tonumber"    ] = true,
+    ["tostring"    ] = true,
+    ["type"        ] = true,
+    ["unpack"      ] = true,
+    ["xpcall"      ] = true
+}
+
+local getmetatable = getmetatable
+local env_replacements = {
+    ["getmetatable"] = function(tbl)
+        return type(tbl) == "table" and getmetatable(tbl) or nil
+    end
+}
+
+local gen_envtable; gen_envtable = function(tbl, env, repl, mod)
+    env = env or {}
+    repl = repl or env_replacements
+    for k, v in pairs(tbl or env_structure) do
+        if v == true then
+            env[k] = repl and repl[k] or (mod or _G)[k]
+        elseif type(v) == "table" then
+            env[k] = {}
+            gen_envtable(v, env[k], env_replacements[k], (mod or _G)[k])
+        end
+    end
+    if not mod then env["_G"] = env end
+    return env
+end
+
 --[[! Function: gen_mapscript_env
     Generates an environment for the mapscript. It's isolated from the outside
     world to some degree, providing some safety against potentially malicious
@@ -81,10 +151,7 @@ end
 ]]
 M.gen_mapscript_env = function()
     env_package.path = package.path
-    -- safety? bah, we don't need no stinkin' safety
-    return setmetatable({
-        --require = env_require
-    }, { __index = _G })
+    return gen_envtable()
 end
 _C.external_set("mapscript_gen_env", M.gen_mapscript_env)
 
