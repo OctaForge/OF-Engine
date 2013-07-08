@@ -513,64 +513,6 @@ local Text_Editor = register_class("Text_Editor", Object, {
         end
     end,
 
-    set_file = function(self, filename)
-        self.filename = filename
-    end,
-
-    get_file = function(self)
-        return self.filename
-    end,
-
-    load_file = function(self, fn)
-        if fn then
-            self.filename = path(fn, true) -- XXX
-        end
-
-        if not self.filename then return nil end
-
-        self.cx = 0
-        self.cy = 0
-
-        self:mark(false)
-        self.lines = {}
-
-        local f = io.open(self.filename, "r")
-        if    f then
-            local maxx, maxy = self.maxx, self.maxy
-            local lines = f:read("*all"):split("\n")
-            if maxy > -1 and #lines > maxy then
-                lines = { unpack(lines, 1, maxy) }
-            end
-            if maxx > -1 then
-                lines = table2.map(lines, function(line)
-                    return line:sub(1, maxx)
-                end)
-            end
-            f:close()
-            self.lines = lines
-        end
-        if #lines == 0 then
-            lines = { "" }
-        end
-    end,
-
-    save_file = function(self, fn)
-        if fn then
-            self.filename = path(fn, true) -- XXX
-        end
-
-        if not self.filename then return nil end
-
-        local  f = io.open(self.filename, "w")
-        if not f then return nil end
-        local lines = self.lines
-        for i = 1, #lines do
-            f:write(lines[i])
-            f:write("\n")
-        end
-        f:close()
-    end,
-
     hit = function(self, hitx, hity, dragged)
         local max_width = self.line_wrap and self.pixel_width or -1
         local h = 0
@@ -604,11 +546,6 @@ local Text_Editor = register_class("Text_Editor", Object, {
             slines = slines - 1
         end
         return slines
-    end,
-
-    exec = function(sel)
-        assert(pcall(assert(loadstring(sel and self:selection_to_string() or
-            self:to_string()))))
     end,
 
     copy = function(self)
