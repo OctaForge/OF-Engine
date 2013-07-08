@@ -2506,7 +2506,7 @@ VAR(aaenvmap, 0, 2, 4);
 
 GLuint genenvmap(const vec &o, int envmapsize, int blur)
 {
-    int rendersize = 1<<(envmapsize+aaenvmap), sizelimit = min(hwcubetexsize, min(vieww, viewh));
+    int rendersize = 1<<(envmapsize+aaenvmap), sizelimit = min(hwcubetexsize, min(gw, gh));
     if(maxtexsize) sizelimit = min(sizelimit, maxtexsize);
     while(rendersize > sizelimit) rendersize /= 2;
     int texsize = min(rendersize, 1<<envmapsize);

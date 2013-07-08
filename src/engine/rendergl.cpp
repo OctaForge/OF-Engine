@@ -2023,7 +2023,7 @@ void drawminimap()
     GLERROR;
     setupframe(screenw, screenh);
 
-    int size = 1<<minimapsize, sizelimit = min(hwtexsize, min(vieww, viewh));
+    int size = 1<<minimapsize, sizelimit = min(hwtexsize, min(gw, gh));
     while(size > sizelimit) size /= 2;
     if(!minimaptex) glGenTextures(1, &minimaptex);
 
