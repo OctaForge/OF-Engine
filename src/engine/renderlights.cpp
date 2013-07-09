@@ -2668,7 +2668,6 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
 
                     if(hasDBT && depthtestlights > 1) glDepthBounds_(sz1*0.5f + 0.5f, sz2*0.5f + 0.5f);
 
-                    // FIXME: render light geometry here
                     lightquad(sz1);
 
                     lightpassesused++;

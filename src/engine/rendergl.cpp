@@ -788,7 +788,7 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_debug_output extension.");
     }
 
-    extern int gdepthstencil, glineardepth, msaalineardepth, lighttilebatch, batchsunlight, lighttilestrip, smgather;
+    extern int gdepthstencil, glineardepth, msaalineardepth, lighttilebatch, batchsunlight, smgather;
     if(ati)
     {
         //conoutf(CON_WARN, "WARNING: ATI cards may show garbage in skybox. (use \"/ati_skybox_bug 1\" to fix)");
@@ -800,7 +800,6 @@ void gl_checkextensions()
     }
     else if(nvidia)
     {
-        lighttilestrip = 0;
     }
     else if(intel)
     {
