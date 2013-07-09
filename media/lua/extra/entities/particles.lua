@@ -55,7 +55,6 @@ local cmap = { "x", "y", "z" }
     to the vector component given by the direction. 0 is z with addition,
     1 is x with addition, 2 is y with addition, 3 is z with subtraction,
     4 is x with subtraction, 5 is y with subtraction.
-    
 ]]
 local offset_vec = function(v, dir, dist)
     local e = cmap[((2 + dir) % 3) + 1]
