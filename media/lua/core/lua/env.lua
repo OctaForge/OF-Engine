@@ -140,13 +140,16 @@ local eloaded = {
 }
 env_package.loaded = eloaded
 
+local rawget = rawget
+
 local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
     for k, v in pairs(tbl) do
         if v == true then
-            env[k] = rp and rp[k] or (mod or _G)[k]
+            env[k] = rp and rp[k] or (mod and mod[k] or rawget(_G, k))
         elseif type(v) == "table" then
             env[k] = {}
-            gen_envtable(v, env[k], rp and rp[k] or nil, (mod or _G)[k])
+            gen_envtable(v, env[k], rp and rp[k] or nil,
+                (mod and mod[k] or rawget(_G, k)))
             eloaded[k] = env[k]
         end
     end
