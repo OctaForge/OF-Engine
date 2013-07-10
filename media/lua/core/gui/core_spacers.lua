@@ -17,8 +17,8 @@
 local max = math.max
 local min = math.min
 local abs = math.abs
-local var = require("core.engine.var")
-local var_get = var.get
+local cs = require("core.engine.cubescript")
+local var_get = cs.var_get
 
 local M = require("core.gui.core")
 local world = M.get_world()

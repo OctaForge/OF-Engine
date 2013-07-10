@@ -15,8 +15,8 @@
 
 local log = require("core.logger")
 
-log.log(log.DEBUG, ":::: Engine variables.")
-require("core.engine.var")
+log.log(log.DEBUG, ":::: Cubescript utilities.")
+require("core.engine.cubescript")
 
 log.log(log.DEBUG, ":::: Input.")
 require("core.engine.input")

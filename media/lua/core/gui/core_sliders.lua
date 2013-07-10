@@ -14,7 +14,7 @@
 ]]
 
 local capi = require("capi")
-local var = require("core.engine.var")
+local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
@@ -77,8 +77,8 @@ local Slider = register_class("Slider", Object, {
         if kwargs.var then
             local varn = kwargs.var
             self.var = varn
-            var.new_checked(varn, var.INT, self.value)
-            local mn, mx = var.get_min(varn), var.get_max(varn)
+            cs.var_new_checked(varn, cs.var_type.int, self.value)
+            local mn, mx = cs.var_get_min(varn), cs.var_get_max(varn)
             self.min_value = clamp(self.min_value, mn, mx)
             self.max_value = clamp(self.max_value, mn, mx)
         end

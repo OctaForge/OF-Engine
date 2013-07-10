@@ -15,11 +15,11 @@
 
 local capi = require("capi")
 local model = require("core.engine.model")
-local var = require("core.engine.var")
+local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
-local var_get = var.get
+local var_get = cs.var_get
 
 local band  = bit.band
 local bor   = bit.bor
@@ -843,7 +843,8 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
     to 40. You can change this to tweak the font scale and thus the whole UI
     scale.
 ]]
-var.new_checked("uitextrows", var.INT, 1, 40, 200, var.PERSIST)
+cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
+    cs.var_flags.PERSIST)
 
 --[[! Struct: Label
     A regular label. Has several properties - text (the label, a string),

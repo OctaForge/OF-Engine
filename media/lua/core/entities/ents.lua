@@ -28,7 +28,7 @@ local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
-local var = require("core.engine.var")
+local cs = require("core.engine.cubescript")
 
 local table2 = require("core.lua.table")
 
@@ -375,7 +375,7 @@ M.get_by_class = function(cl)
     return storage_by_class[cl] or {}
 end
 
-local vg = var.get
+local vg = cs.var_get
 
 --[[! Function: get_players
     Gets an array of players (all of the currently set player class).

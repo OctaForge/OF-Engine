@@ -14,13 +14,13 @@
 ]]
 
 local capi = require("capi")
-local var = require("core.engine.var")
+local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 local ffi = require("ffi")
 
-local var_get = var.get
+local var_get = cs.var_get
 
 local band  = bit.band
 local blsh  = bit.lshift
@@ -790,7 +790,7 @@ M.Field = register_class("Field", Text_Editor, {
         if kwargs.var then
             local varn = kwargs.var
             self.var = varn
-            var.new_checked(varn, var.STRING, self.value)
+            cs.var_new_checked(varn, cs.var_type.string, self.value)
         end
 
         return Text_Editor.__init(self, kwargs)

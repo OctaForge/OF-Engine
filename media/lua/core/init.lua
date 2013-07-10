@@ -88,12 +88,6 @@ table.insert(package.loaders, 2, function(modname, ppath)
     return f
 end)
 
---[[! Function: cubescript
-    Executes the given cubescript string. Returns the return value of the
-    cubescript expression.
-]]
-rawset(_G, "cubescript", capi.cubescript)
-
 log.log(log.DEBUG, "Initializing the core library.")
 
 log.log(log.DEBUG, ":: Lua extensions.")

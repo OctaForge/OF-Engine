@@ -16,7 +16,7 @@
 local M = {}
 
 local env_package = {
-    preload = { capi = package.preload.capi }
+    preload = {}
 }
 
 local assert  = assert
@@ -77,7 +77,6 @@ local env_structure = {
     ["assert"      ] = true,
     ["bit"         ] = true,
     ["coroutine"   ] = true,
-    ["cubescript"  ] = true,
     ["error"       ] = true,
     ["getmetatable"] = true,
     ["ipairs"      ] = true,
@@ -135,8 +134,7 @@ local eloaded = {
     ["bit"      ] = ploaded["bit"      ],
     ["coroutine"] = ploaded["coroutine"],
     ["math"     ] = ploaded["math"     ],
-    ["table"    ] = ploaded["table"    ],
-    ["capi"     ] = ploaded["capi"     ]
+    ["table"    ] = ploaded["table"    ]
 }
 env_package.loaded = eloaded
 
@@ -172,12 +170,12 @@ end
     world to some degree, providing some safety against potentially malicious
     code. Externally available as "mapscript_gen_env".
 
-    The new environment contains the following global functions: assert,
-    cubescript, error, getmetatable (modified so that it can get only table
-    metatables), ipairs, next, pairs, pcall, print, rawequal, rawget, rawlen,
-    rawset, require (custom version without C module loading and with modified
-    loaded table), select, setmetatable, tonumber, tostring, type, unpack,
-    xpcall.
+    The new environment contains the following global functions: assert, error,
+    getmetatable (modified so that it can get only table metatables), ipairs,
+    next, pairs, pcall, print, rawequal, rawget, rawlen (when LuaJIT is built
+    with 5.2 features), rawset, require (custom version without C module
+    loading and with modified loaded table), select, setmetatable, tonumber,
+    tostring, type, unpack, xpcall.
 
     The new environment contains the following default modules: bit, coroutine,
     math, table. It also contains a modified version of the string module that

@@ -18,7 +18,8 @@
 local log = require("core.logger")
 
 local input = require("core.engine.input")
-local var = require("core.engine.var")
+local inputev = require("core.events.input")
+local cs = require("core.engine.cubescript")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
@@ -148,20 +149,19 @@ local Game_Player = Player:clone {
 ents.register_class(Game_Player, { game_manager.player_plugin })
 
 if not SERVER then
-    require("capi").external_set("input_click_client",
-        function(btn, down, x, y, z, ent, cx, cy)
-            if ent and ent.click then
-                return ent:click(btn, down, x, y, z, cx, cy)
-            end
-            if btn == 1 then
-                ents.get_player().pressing   = down
-                ents.get_player().stop_batch = false
-            elseif btn == 2 and down then
-                ents.get_player():reset_mark()
-            elseif btn == 3 and down then
-                ents.get_player():next_color()
-            end
-        end)
+    inputev.set_event("click", function(btn, down, x, y, z, ent, cx, cy)
+        if ent and ent.click then
+            return ent:click(btn, down, x, y, z, cx, cy)
+        end
+        if btn == 1 then
+            ents.get_player().pressing   = down
+            ents.get_player().stop_batch = false
+        elseif btn == 2 and down then
+            ents.get_player():reset_mark()
+        elseif btn == 3 and down then
+            ents.get_player():next_color()
+        end
+    end)
 end
 
-var.set("player_class", "Game_Player")
+cs.var_set("player_class", "Game_Player")

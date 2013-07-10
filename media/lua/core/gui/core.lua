@@ -18,14 +18,14 @@
 ]]
 
 local capi = require("capi")
-local var = require("core.engine.var")
+local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 
 local set_external = capi.external_set
 
-local var_get, var_set = var.get, var.set
+local var_get, var_set = cs.var_get, cs.var_set
 
 -- external locals
 local band  = bit.band
@@ -71,7 +71,7 @@ local update_later = {}
     variable name and the value to set.
 ]]
 local update_var = function(varn, val)
-    if not var.exists(varn) then
+    if not cs.var_exists(varn) then
         return nil
     end
     update_later[#update_later + 1] = { varn, val }
@@ -1433,7 +1433,7 @@ end
     An engine variable specifying the mouse cursor sensitivity. Ranges from
     0.001 to 1000 and defaults to 1.
 ]]
-var.new_checked("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
+cs.var_new_checked("cursorsensitivity", cs.var_type.float, 0.001, 1, 1000)
 
 local cursor_mode = function()
     return var_get("editing") == 0 and var_get("freecursor")
@@ -1620,7 +1620,8 @@ local needsapply = {}
     An engine variable that controls whether the "apply" dialog will show
     on changes that need restart of some engine subsystem. Defaults to 1.
 ]]
-var.new_checked("applydialog", var.INT, 0, 1, 1, var.PERSIST)
+cs.var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
+    cs.var_flags.PERSIST)
 
 set_external("change_add", function(desc, ctype)
     if var_get("applydialog") == 0 then return nil end
@@ -1664,15 +1665,15 @@ M.changes_apply = function()
     end
 
     if band(changetypes, CHANGE_GFX) ~= 0 then
-        update_later[#update_later + 1] = { cubescript, "resetgl" }
+        update_later[#update_later + 1] = { cs.execute, "resetgl" }
     end
 
     if band(changetypes, CHANGE_SOUND) ~= 0 then
-        update_later[#update_later + 1] = { cubescript, "resetsound" }
+        update_later[#update_later + 1] = { cs.execute, "resetsound" }
     end
 
     if band(changetypes, CHANGE_SHADERS) ~= 0 then
-        update_later[#update_later + 1] = { cubescript, "resetshaders" }
+        update_later[#update_later + 1] = { cs.execute, "resetshaders" }
     end
 end
 
