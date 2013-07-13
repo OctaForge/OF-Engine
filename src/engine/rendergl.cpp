@@ -938,19 +938,16 @@ void printtimers(int conw, int conh)
     if(totalmillis - lastprint >= 200) lastprint = totalmillis;
 }
 
-void gl_resize(int w, int h)
+void gl_resize()
 {
-    glViewport(0, 0, w, h);
-
-    vieww = w;
-    viewh = h;
+    glViewport(0, 0, screenw, screenh);
 }
 
-void gl_init(int w, int h)
+void gl_init()
 {
     GLERROR;
 
-    gl_resize(w, h);
+    gl_resize();
 
     glClearColor(0, 0, 0, 0);
     glClearDepth(1);
@@ -2020,7 +2017,7 @@ void drawminimap()
     drawtex = DRAWTEX_MINIMAP;
 
     GLERROR;
-    setupframe(screenw, screenh);
+    setupframe();
 
     int size = 1<<minimapsize, sizelimit = min(hwtexsize, min(gw, gh));
     while(size > sizelimit) size /= 2;
@@ -2242,7 +2239,7 @@ namespace modelpreview
         modelpreview::background = background;
         modelpreview::scissor = scissor;
 
-        setupgbuffer(screenw, screenh);
+        setupgbuffer();
 
         useshaderbyname("modelpreview");
 
@@ -2314,18 +2311,16 @@ namespace modelpreview
     }
 }
 
-extern void gl_drawhud(int w, int h);
-
 int xtraverts, xtravertsva;
 
-void gl_drawframe(int w, int h)
+void gl_drawframe()
 {
     synctimers();
 
     GLuint scalefbo = shouldscale();
     if(scalefbo) { vieww = gw; viewh = gh; }
-    else { vieww = w; viewh = h; }
-    aspect = forceaspect ? forceaspect : vieww/float(viewh);
+    else { vieww = screenw; viewh = screenh; }
+    aspect = forceaspect ? forceaspect : screenw/float(screenh);
     fovy = 2*atan2(tan(curfov/2*RAD), aspect)/RAD;
 
     float fogmargin = 1 + WATER_AMPLITUDE + nearplane;
@@ -2429,14 +2424,14 @@ void gl_drawframe(int w, int h)
 
     doaa(setuppostfx(vieww, viewh, scalefbo), processhdr);
     renderpostfx(scalefbo);
-    if(scalefbo) { vieww = w; viewh = h; doscale(vieww, viewh); }
+    if(scalefbo) doscale();
 
     lua::push_external("gui_render"); lua_call(lua::L, 0, 0);
 
-    gl_drawhud(vieww, viewh);
+    gl_drawhud();
 }
 
-void gl_drawmainmenu(int w, int h)
+void gl_drawmainmenu()
 {
     xtravertsva = xtraverts = glde = gbatches = vtris = vverts = 0;
 
@@ -2444,7 +2439,7 @@ void gl_drawmainmenu(int w, int h)
 
     lua::push_external("gui_render"); lua_call(lua::L, 0, 0);
 
-    gl_drawhud(w, h);
+    gl_drawhud();
 }
 
 VAR(hidestats, 0, 0, 1);
@@ -2504,8 +2499,9 @@ VAR(statrate, 1, 200, 1000);
 
 FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
-void gl_drawhud(int w, int h)
+void gl_drawhud()
 {
+    int w = screenw, h = screenh;
     if(forceaspect) w = int(ceil(h*forceaspect));
 
     gettextres(w, h);
@@ -2579,7 +2575,7 @@ void gl_drawhud(int w, int h)
                 abovehud -= FONTH;
                 draw_textf("cube %s%d%s", FONTH/2, abovehud, selchildcount<0 ? "1/" : "", abs(selchildcount), showmat && selchildmat > 0 ? getmaterialdesc(selchildmat, ": ") : "");
 
-                char *editinfo = executestr("edithud");
+                char *editinfo = execidentstr("edithud");
                 if(editinfo)
                 {
                     if(editinfo[0])
@@ -2593,9 +2589,9 @@ void gl_drawhud(int w, int h)
                     DELETEA(editinfo);
                 }
             }
-            else if(identexists("gamehud"))
+            else
             {
-                char *gameinfo = executestr("gamehud");
+                char *gameinfo = execidentstr("gamehud");
                 if(gameinfo)
                 {
                     if(gameinfo[0])

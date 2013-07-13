@@ -314,17 +314,19 @@ M.clip_area_is_fully_clipped = clip_area_is_fully_clipped
 ]]
 local clip_area_scissor = function(self)
     self = self or clip_stack[#clip_stack]
-    local scr_w, scr_h = var_get("scr_w"), var_get("scr_h")
+    local screenw, screenh = var_get("screenw"), var_get("screenh")
 
-    local margin = max((scr_w / scr_h - 1) / 2, 0)
+    local margin = max((screenw / screenh - 1) / 2, 0)
 
     local sx1, sy1, sx2, sy2 =
-        clamp(floor((self[1] + margin) / (1 + 2 * margin) * scr_w), 0, scr_w),
-        clamp(floor( self[2] * scr_h), 0, scr_h),
-        clamp(ceil ((self[3] + margin) / (1 + 2 * margin) * scr_w), 0, scr_w),
-        clamp(ceil ( self[4] * scr_h), 0, scr_h)
+        clamp(floor((self[1] + margin) / (1 + 2 * margin) * screenw),
+            0, screenw),
+        clamp(floor( self[2] * screenh), 0, screenh),
+        clamp(ceil ((self[3] + margin) / (1 + 2 * margin) * screenw),
+            0, screenw),
+        clamp(ceil ( self[4] * screenh), 0, screenh)
 
-    capi.gl_scissor(sx1, scr_h - sy2, sx2 - sx1, sy2 - sy1)
+    capi.gl_scissor(sx1, screenh - sy2, sx2 - sx1, sy2 - sy1)
 end
 M.clip_area_scissor = clip_area_scissor
 
@@ -1301,7 +1303,7 @@ local World = register_class("World", Object, {
     layout = function(self)
         Object.layout(self)
 
-        local sw, sh = var_get("scr_w"), var_get("scr_h")
+        local sw, sh = var_get("screenw"), var_get("screenh")
         self.size = sh
         local faspect = var_get("aspect")
         if faspect ~= 0 then sw = ceil(sh * faspect) end
@@ -1444,8 +1446,8 @@ set_external("cursor_move", function(dx, dy)
     local cmode = cursor_mode()
     if cmode == 2 or (world:grabs_input() and cmode >= 1) then
         local scale = 500 / var_get("cursorsensitivity")
-        cursor_x = clamp(cursor_x + dx * (var_get("scr_h")
-            / (var_get("scr_w") * scale)), 0, 1)
+        cursor_x = clamp(cursor_x + dx * (var_get("screenh")
+            / (var_get("screenw") * scale)), 0, 1)
         cursor_y = clamp(cursor_y + dy / scale, 0, 1)
         if cmode == 2 then
             if cursor_x ~= 1 and cursor_x ~= 0 then dx = 0 end

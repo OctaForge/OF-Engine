@@ -111,10 +111,10 @@ M.Filler = register_class("Filler", Object, {
         local min_h = self.min_h
 
         if  min_w < 0 then
-            min_w = abs(min_w) / var_get("scr_h")
+            min_w = abs(min_w) / var_get("screenh")
         end
         if  min_h < 0 then
-            min_h = abs(min_h) / var_get("scr_h")
+            min_h = abs(min_h) / var_get("screenh")
         end
 
         if  min_w == -1 then

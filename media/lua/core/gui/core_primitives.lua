@@ -245,10 +245,10 @@ local Image = register_class("Image", Filler, {
         local min_h = self.min_h
 
         if  min_w < 0 then
-            min_w = abs(min_w) / var_get("scr_h")
+            min_w = abs(min_w) / var_get("screenh")
         end
         if  min_h < 0 then
-            min_h = abs(min_h) / var_get("scr_h")
+            min_h = abs(min_h) / var_get("screenh")
         end
 
         if  min_w == -1 then
@@ -259,7 +259,7 @@ local Image = register_class("Image", Filler, {
         end
 
         if  min_w == 0 or min_h == 0 then
-            local tex, scrh = self.texture, var_get("scr_h")
+            local tex, scrh = self.texture, var_get("screenh")
             if  min_w == 0 then
                 min_w = tex:get_w() / scrh
             end
@@ -806,7 +806,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         local csl = #clip_stack > 0
         if csl then capi.gl_scissor_disable() end
 
-        local screenw, ww, ws = var_get("scr_w"), world.w, world.size
+        local screenw, ww, ws = var_get("screenw"), world.w, world.size
         local w, h = self.w, self.h
 
         local x = floor((sx + world.margin) * screenw / ww)

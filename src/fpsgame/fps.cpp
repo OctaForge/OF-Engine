@@ -492,7 +492,7 @@ namespace game
 #endif
 //        if(*name) conoutf(CON_GAMEINFO, "\f2game mode is %s", fpsserver::modestr(gamemode));
 
-        //if(identexists("mapstart")) execute("mapstart");
+        //execident("mapstart");
 
 #ifdef SERVER
         server::resetScenario();
