@@ -1091,7 +1091,7 @@ void enttype(char *type, int *numargs) {
             LogicSystem::getLogicEntity(e)->lua_ref);
         lua_call(lua::L, 1, 1);
         const char *str = lua_tostring(lua::L, -1); lua_pop(lua::L, -1);
-        result(str);
+        result(str ? str : "");
     })
 }
 
@@ -1113,7 +1113,7 @@ void entattr(char *attr, char *val, int *numargs) {
         lua_pushstring(lua::L, attr);
         lua_call(lua::L, 2, 1);
         const char *str = lua_tostring(lua::L, -1); lua_pop(lua::L, -1);
-        result(str);
+        result(str ? str : "");
     });
 }
 
