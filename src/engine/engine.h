@@ -35,13 +35,15 @@ struct font
 {
     struct charinfo
     {
-        short x, y, w, h, offsetx, offsety, advance, tex;
+        float x, y, w, h, offsetx, offsety, advance;
+        int tex;
     };
 
     char *name;
     vector<Texture *> texs;
     vector<charinfo> chars;
     int charoffset, defaultw, defaulth, scale;
+    float bordermin, bordermax, outlinemin, outlinemax;
 
     font() : name(NULL) {}
     ~font() { DELETEA(name); }
@@ -545,8 +547,8 @@ extern void clearsleep(bool clearoverrides = true, bool lua = false);
 // console
 extern void processkey(int code, bool isdown);
 extern void processtextinput(const char *str, int len);
-extern int rendercommand(int x, int y, int w);
-extern int renderconsole(int w, int h, int abovehud);
+extern float rendercommand(float x, float y, float w);
+extern float renderconsole(float w, float h, float abovehud);
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
 extern void conoutf(int type, const char *s, ...) PRINTFARGS(2, 3);
 extern void resetcomplete();

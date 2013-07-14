@@ -44,7 +44,7 @@ namespace game
     extern void renderavatar();
     extern void writegamedata(vector<char> &extras);
     extern void readgamedata(vector<char> &extras);
-    extern int clipconsole(int w, int h);
+    extern float clipconsole(float w, float h);
     extern void setupcamera();
     extern bool detachcamera();
     extern bool collidecamera();

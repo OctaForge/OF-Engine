@@ -511,15 +511,15 @@ server: $(ENET_OBJB) $(SERVER_OBJB)
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -o $(SERVER_BIN) \
 	$(ENET_OBJB) $(SERVER_OBJB) $(SERVER_LDFLAGS) $(LDFLAGS)
 
-$(OBJDIR)/cube2font.o: shared/cube2font.c
-	$(E) " CC cube2font.o"
+$(OBJDIR)/tessfont.o: shared/tessfont.c
+	$(E) " CC tessfont.o"
 	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) \
 	-c -o $@ $< `freetype-config --cflags`
 
-cube2font: $(OBJDIR)/cube2font.o
-	$(E) " LD cube2font"
-	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -o cube2font \
-	$(OBJDIR)/cube2font.o `freetype-config --libs` -lz
+tessfont: $(OBJDIR)/tessfont.o
+	$(E) " LD tessfont"
+	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -o tessfont \
+	$(OBJDIR)/tessfont.o `freetype-config --libs` -lz
 
 # amalgamated build
 # warning: requires lots of virtual memory (and takes long to compile).

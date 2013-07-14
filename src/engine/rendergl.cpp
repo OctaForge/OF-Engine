@@ -2517,7 +2517,7 @@ void gl_drawhud()
     glEnable(GL_BLEND);
     hudshader->set();
 
-    int conw = int(w/conscale), conh = int(h/conscale), abovehud = conh - FONTH;
+    float conw = w/conscale, conh = h/conscale, abovehud = conh - FONTH;
     if(!hidehud && !mainmenu)
     {
         if(!hidestats)
@@ -2613,7 +2613,7 @@ void gl_drawhud()
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             game::gameplayhud(w, h);
-            abovehud = min(abovehud, int(conh*game::abovegameplayhud()));
+            abovehud = min(abovehud, conh*game::abovegameplayhud());
         }
 
         rendertexturepanel(w, h);

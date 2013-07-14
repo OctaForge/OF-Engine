@@ -623,7 +623,7 @@ namespace game
         return "";
     }
 
-    int clipconsole(int w, int h)
+    float clipconsole(float w, float h)
     {
         return 0;
     }

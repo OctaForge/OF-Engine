@@ -1167,8 +1167,8 @@ static void compilelookup(vector<uint> &code, const char *&p, int ltype)
             ident *id = newident(lookup, IDF_UNKNOWN);
             if(id) switch(id->type)
             {
-                case ID_VAR: 
-                    code.add(CODE_IVAR|retcodeint(ltype)|(id->index<<8)); 
+                case ID_VAR:
+                    code.add(CODE_IVAR|retcodeint(ltype)|(id->index<<8));
                     switch(ltype)
                     {
                         case VAL_POP: code.pop(); break;
@@ -1176,8 +1176,8 @@ static void compilelookup(vector<uint> &code, const char *&p, int ltype)
                         case VAL_IDENT: code.add(CODE_IDENTU); break;
                     }
                     return;
-                case ID_FVAR: 
-                    code.add(CODE_FVAR|retcodefloat(ltype)|(id->index<<8)); 
+                case ID_FVAR:
+                    code.add(CODE_FVAR|retcodefloat(ltype)|(id->index<<8));
                     switch(ltype)
                     {
                         case VAL_POP: code.pop(); break;
@@ -1526,10 +1526,10 @@ static bool compilearg(vector<uint> &code, const char *&p, int wordtype, strings
             {
                 case VAL_POP:
                 {
-                    const char *s = p;    
+                    const char *s = p;
                     p = parseword(p);
                     return p != s;
-                }        
+                }
                 case VAL_COND:
                 {
                     char *s = cutword(p);
@@ -1667,7 +1667,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                     break;
                 case ID_DO:
                     if(more) more = compilearg(code, p, VAL_CODE);
-                    code.add((more ? CODE_DO : CODE_NULL) | retcodeany(rettype)); 
+                    code.add((more ? CODE_DO : CODE_NULL) | retcodeany(rettype));
                     break;
                 case ID_IF:
                     if(more) more = compilearg(code, p, VAL_CANY);
@@ -1717,7 +1717,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                 case ID_OR:
                     if(more) more = compilearg(code, p, VAL_COND);
                     if(!more) { compileint(code, id->type == ID_AND ? 1 : 0); code.add(CODE_RESULT | retcodeany(rettype)); }
-                    else 
+                    else
                     {
                         numargs++;
                         int start = code.length(), end = start;
@@ -1834,7 +1834,7 @@ static inline void forcecond(tagval &v)
             break;
     }
 }
-                
+
 void keepcode(uint *code)
 {
     if(!code) return;
@@ -2003,7 +2003,7 @@ static inline void addreleaseaction(ident *id, tagval *args, int numargs)
     else args[numargs].setint(0);
 }
 #endif
-     
+
 static inline void callcommand(ident *id, tagval *args, int numargs, bool lookup = false)
 {
     int i = -1, fakeargs = 0;
@@ -2250,13 +2250,13 @@ static const uint *runcode(const uint *code, tagval &result)
                 tagval &arg = args[numargs-1];
                 switch(arg.type)
                 {
-                    case VAL_STR: case VAL_MACRO: case VAL_CSTR: 
-                        if(arg.s[0]) 
-                        { 
+                    case VAL_STR: case VAL_MACRO: case VAL_CSTR:
+                        if(arg.s[0])
+                        {
                             vector<uint> buf;
-                            buf.reserve(64); 
-                            compilemain(buf, arg.s); 
-                            freearg(arg); 
+                            buf.reserve(64);
+                            compilemain(buf, arg.s);
+                            freearg(arg);
                             arg.setcode(buf.getbuf()+1);
                             buf.disown();
                         }
@@ -2760,7 +2760,7 @@ bool execidentbool(const char *name, bool noid)
     ident *id = idents.access(name);
     return id ? executebool(id, NULL, 0) : noid;
 }
-    
+
 bool execfile(const char *cfgfile, bool msg)
 {
     string s;
@@ -3451,7 +3451,7 @@ ICOMMANDK(&&, ID_AND, "E1V", (tagval *args, int numargs),
     if(!numargs) intret(1);
     else loopi(numargs)
     {
-        if(i) freearg(*commandret); 
+        if(i) freearg(*commandret);
         if(args[i].type == VAL_CODE) executeret(args[i].code, *commandret);
         else *commandret = args[i];
         if(!getbool(*commandret)) break;
@@ -3464,7 +3464,7 @@ ICOMMANDK(||, ID_OR, "E1V", (tagval *args, int numargs),
     {
         if(i) freearg(*commandret);
         if(args[i].type == VAL_CODE) executeret(args[i].code, *commandret);
-        else *commandret = args[i]; 
+        else *commandret = args[i];
         if(getbool(*commandret)) break;
     }
 });
