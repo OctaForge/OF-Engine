@@ -46,6 +46,12 @@ inline void *operator new[](size_t, void *p) { return p; }
 inline void operator delete(void *, void *) {}
 inline void operator delete[](void *, void *) {}
 
+template<typename T> struct dtor_ptr {
+    T *ptr; void (*freecb)(T*);
+    dtor_ptr(T *ptr, void (*freecb)(T*)): ptr(ptr), freecb(freecb) {}
+    ~dtor_ptr() { freecb(ptr); }
+};
+
 #ifdef swap
 #undef swap
 #endif
