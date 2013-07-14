@@ -513,13 +513,13 @@ server: $(ENET_OBJB) $(SERVER_OBJB)
 
 $(OBJDIR)/tessfont.o: shared/tessfont.c
 	$(E) " CC tessfont.o"
-	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) \
+	$(Q) $(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) \
 	-c -o $@ $< `freetype-config --cflags`
 
 tessfont: $(OBJDIR)/tessfont.o
 	$(E) " LD tessfont"
-	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -o tessfont \
-	$(OBJDIR)/tessfont.o `freetype-config --libs` -lz
+	$(Q) $(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -o tessfont \
+	$(OBJDIR)/tessfont.o `freetype-config --libs` -lz -lm
 
 # amalgamated build
 # warning: requires lots of virtual memory (and takes long to compile).
