@@ -22,10 +22,10 @@
 ]]
 setmetatable(_G, {
     __newindex = function(self, n)
-        error("attempt to create a global variable '" .. n .. "'")
+        error("attempt to create a global variable '" .. n .. "'", 2)
     end,
     __index = function(self, n)
-        error("attempt to use a global variable '" .. n .. "'")
+        error("attempt to use a global variable '" .. n .. "'", 2)
     end
 })
 
