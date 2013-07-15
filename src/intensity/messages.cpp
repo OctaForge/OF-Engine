@@ -1,5 +1,3 @@
-
-
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
@@ -19,7 +17,6 @@
 #include "of_world.h"
 #include "of_tools.h"
 
-/* Abuse generation from template for now */
 void force_network_flush();
 namespace server
 {
@@ -29,58 +26,46 @@ namespace server
 namespace MessageSystem
 {
 
-// PersonalServerMessage
+    void send_AnyMessage(int clientNumber, int chan, bool toDummyServer, bool toNPCs, ENetPacket *packet, int exclude=-1) {
+        INDENT_LOG(logger::DEBUG);
+
+        int start, finish;
+        if (clientNumber == -1) 
+            start = 0, finish = getnumclients();            // send to all
+        else
+            start = clientNumber, finish = clientNumber+1;  // send to one
+
+        for (int clientNumber = start; clientNumber < finish; clientNumber++) {
+            if (clientNumber == exclude) continue;
+            #ifdef SERVER
+                int testUniqueId = server::getUniqueId(clientNumber);
+                fpsent* fpsEntity = game::getclient(clientNumber);
+                bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
+
+                if (testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) {
+                    if (!toDummyServer) return;
+                } else {
+                    if (serverControlled & !toNPCs) return;
+                }
+                logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+            #endif
+            sendpacket(clientNumber, chan, packet, -1);
+        }
+
+        if(!packet->referenceCount) enet_packet_destroy(packet);
+    }
+
+    // PersonalServerMessage
 
     void send_PersonalServerMessage(int clientNumber, const char* title, const char* content)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type PersonalServerMessage (1001)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riss", 1001, title, content);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riss", 1001, title, content));
     }
 
 #ifndef SERVER
     void PersonalServerMessage::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
-
         char title[MAXTRANS];
         getstring(title, p);
         char content[MAXTRANS];
@@ -107,8 +92,6 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestServerMessageToAll::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestServerMessageToAll (1002)\r\n");
-
         char message[MAXTRANS];
         getstring(message, p);
 
@@ -129,9 +112,6 @@ namespace MessageSystem
 #ifdef SERVER
     void LoginRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LoginRequest (1003)\r\n");
-
-
         #ifdef SERVER
             if (!world::scenario_code[0])
             {
@@ -157,56 +137,14 @@ namespace MessageSystem
 
     void send_YourUniqueId(int clientNumber, int uid)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-                 // Remember this client's unique ID. Done here so always in sync with the client's belief about its uid.
         server::getUniqueId(clientNumber) = uid;
-
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "rii", 1004, uid);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("rii", 1004, uid));
     }
 
 #ifndef SERVER
     void YourUniqueId::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type YourUniqueId (1004)\r\n");
-
         int uid = getint(p);
 
         logger::log(logger::DEBUG, "Told my unique ID: %d\r\n", uid);
@@ -219,58 +157,17 @@ namespace MessageSystem
 
     void send_LoginResponse(int clientNumber, bool success, bool local)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-                 // If logged in OK, this is the time to create a lua logic entity for the client. Also adds to internal FPSClient
         if (success) if (server::createluaEntity(clientNumber)) {
             lua_pop(lua::L, 1);
         }
 
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riii", 1005, success, local);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riii", 1005, success, local));
     }
 
 #ifndef SERVER
     void LoginResponse::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LoginResponse (1005)\r\n");
-
         bool success = getint(p);
         bool local = getint(p);
 
@@ -291,54 +188,13 @@ namespace MessageSystem
 
     void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type PrepareForNewScenario (1006)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "ris", 1006, scenarioCode);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("ris", 1006, scenarioCode));
     }
 
 #ifndef SERVER
     void PrepareForNewScenario::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
-
         char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
@@ -364,8 +220,6 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestCurrentScenario (1007)\r\n");
-
 
         if (!world::scenario_code[0]) return;
         world::send_curr_map(sender);
@@ -376,52 +230,13 @@ namespace MessageSystem
 
     void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riss", 1008, mid, sc);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riss", 1008, mid, sc));
     }
 
 #ifndef SERVER
     void NotifyAboutCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyAboutCurrentScenario (1008)\r\n");
-
         char mid[MAXTRANS];
         getstring(mid, p);
         char sc[MAXTRANS];
@@ -446,9 +261,6 @@ namespace MessageSystem
 #ifdef SERVER
     void RestartMap::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RestartMap (1009)\r\n");
-
-
         if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
         {
@@ -474,8 +286,6 @@ namespace MessageSystem
 #ifdef SERVER
     void NewEntityRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NewEntityRequest (1010)\r\n");
-
         char _class[MAXTRANS];
         getstring(_class, p);
         float x = float(getint(p))/DMF;
@@ -527,54 +337,14 @@ namespace MessageSystem
 
     void send_StateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type StateDataUpdate (1011)\r\n");
         INDENT_LOG(logger::DEBUG);
 
-                 exclude = originalClientNumber;
-
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (true && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riiisi", 1011, uid, keyProtocolId, value, originalClientNumber);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, true, buildf("riiisi", 1011, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
     }
 
     void StateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type StateDataUpdate (1011)\r\n");
-
         int uid = getint(p);
         int keyProtocolId = getint(p);
         char value[MAXTRANS];
@@ -629,8 +399,6 @@ namespace MessageSystem
 #ifdef SERVER
     void StateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type StateDataChangeRequest (1012)\r\n");
-
         int uid = getint(p);
         int keyProtocolId = getint(p);
         char value[MAXTRANS];
@@ -658,54 +426,13 @@ namespace MessageSystem
 
     void send_UnreliableStateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataUpdate (1013)\r\n");
-        INDENT_LOG(logger::DEBUG);
 
-                 exclude = originalClientNumber;
-
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (true && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "iiisi", 1013, uid, keyProtocolId, value, originalClientNumber);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, true, buildf("iiisi", 1013, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
     }
 
     void UnreliableStateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataUpdate (1013)\r\n");
-
         int uid = getint(p);
         int keyProtocolId = getint(p);
         char value[MAXTRANS];
@@ -729,8 +456,6 @@ namespace MessageSystem
 #ifdef SERVER
     void UnreliableStateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataChangeRequest (1014)\r\n");
-
         int uid = getint(p);
         int keyProtocolId = getint(p);
         char value[MAXTRANS];
@@ -745,54 +470,13 @@ namespace MessageSystem
 
     void send_NotifyNumEntities(int clientNumber, int num)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type NotifyNumEntities (1015)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "rii", 1015, num);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("rii", 1015, num));
     }
 
 #ifndef SERVER
     void NotifyNumEntities::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyNumEntities (1015)\r\n");
-
         int num = getint(p);
 
         world::set_num_expected_entities(num);
@@ -804,53 +488,13 @@ namespace MessageSystem
 
     void send_AllActiveEntitiesSent(int clientNumber)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "ri", 1016);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("ri", 1016));
     }
 
 #ifndef SERVER
     void AllActiveEntitiesSent::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type AllActiveEntitiesSent (1016)\r\n");
         ClientSystem::finishLoadWorld();
     }
 #endif
@@ -869,8 +513,6 @@ namespace MessageSystem
 #ifdef SERVER
     void ActiveEntitiesRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ActiveEntitiesRequest (1017)\r\n");
-
         char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
@@ -912,53 +554,12 @@ namespace MessageSystem
 
     void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type LogicEntityCompleteNotification (1018)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (true && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, true, buildf("riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData));
     }
 
     void LogicEntityCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LogicEntityCompleteNotification (1018)\r\n");
-
         int otherClientNumber = getint(p);
         int otherUniqueId = getint(p);
         char otherClass[MAXTRANS];
@@ -1046,8 +647,6 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestLogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestLogicEntityRemoval (1019)\r\n");
-
         int uid = getint(p);
 
         if (!world::scenario_code[0]) return;
@@ -1068,54 +667,13 @@ namespace MessageSystem
 
     void send_LogicEntityRemoval(int clientNumber, int uid)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type LogicEntityRemoval (1020)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "rii", 1020, uid);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("rii", 1020, uid));
     }
 
 #ifndef SERVER
     void LogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LogicEntityRemoval (1020)\r\n");
-
         int uid = getint(p);
 
         if (!LogicSystem::initialized)
@@ -1131,54 +689,13 @@ namespace MessageSystem
 
     void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type ExtentCompleteNotification (1021)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riiss", 1021, otherUniqueId, otherClass, stateData);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riiss", 1021, otherUniqueId, otherClass, stateData));
     }
 
 #ifndef SERVER
     void ExtentCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
-
         int otherUniqueId = getint(p);
         char otherClass[MAXTRANS];
         getstring(otherClass, p);
@@ -1221,54 +738,13 @@ namespace MessageSystem
 
     void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type InitS2C (1022)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riii", 1022, explicitClientNumber, protocolVersion);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riii", 1022, explicitClientNumber, protocolVersion));
     }
 
 #ifndef SERVER
     void InitS2C::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type InitS2C (1022)\r\n");
-
         int explicitClientNumber = getint(p);
         int protocolVersion = getint(p);
 
@@ -1306,8 +782,6 @@ namespace MessageSystem
 #ifdef SERVER
     void EditModeC2S::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type EditModeC2S (1028)\r\n");
-
         int mode = getint(p);
 
         if (!world::scenario_code[0] || !server::isRunningCurrentScenario(sender)) return;
@@ -1319,54 +793,13 @@ namespace MessageSystem
 
     void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)\r\n");
-        INDENT_LOG(logger::DEBUG);
 
-                 exclude = otherClientNumber;
-
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (true && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riii", 1029, otherClientNumber, mode);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, true, false, buildf("riii", 1029, otherClientNumber, mode), otherClientNumber);
     }
 
     void EditModeS2C::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type EditModeS2C (1029)\r\n");
-
         int otherClientNumber = getint(p);
         int mode = getint(p);
 
@@ -1400,9 +833,6 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestMap::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestMap (1030)\r\n");
-
-
         if (!world::scenario_code[0]) return;
         world::send_curr_map(sender);
     }
@@ -1421,8 +851,6 @@ namespace MessageSystem
 #ifdef SERVER
     void DoClick::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type DoClick (1031)\r\n");
-
         int button = getint(p);
         int down = getint(p);
         float x = float(getint(p))/DMF;
@@ -1464,9 +892,6 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestPrivateEditMode (1034)\r\n");
-
-
         if (!world::scenario_code[0]) return;
         send_NotifyPrivateEditMode(sender);
     }
@@ -1476,55 +901,13 @@ namespace MessageSystem
 
     void send_NotifyPrivateEditMode(int clientNumber)
     {
-        int exclude = -1; // Set this to clientNumber to not send to
-
         logger::log(logger::DEBUG, "Sending a message of type NotifyPrivateEditMode (1035)\r\n");
-        INDENT_LOG(logger::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = game::getclient(clientNumber);
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "ri", 1035);
-
-            }
-        }
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("ri", 1035));
     }
 
 #ifndef SERVER
     void NotifyPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
     {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyPrivateEditMode (1035)\r\n");
-
-
         conoutf("Server: You are now in private edit mode");
         ClientSystem::editingAlone = true;
     }
