@@ -267,8 +267,9 @@ ENetPacket *buildfva(const char *format, va_list args, int *exclude)
         }
     }
     va_end(args);
-    p.growth = 0; // prevent destruction of packet through packetbuf
-    return p.finalize();
+    ENetPacket *pa = p.finalize();
+    p.packet = NULL;
+    return pa;
 }
 
 ENetPacket *buildf(const char *format, ...)
