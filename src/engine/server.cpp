@@ -227,7 +227,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
     }
 }
 
-ENetPacket *buildfva(const char *format, va_list args, int *exclude)
+ENetPacket *buildfva(const char *format, va_list args, int &exclude)
 {
     bool reliable = false;
     if(*format=='r') { reliable = true; ++format; }
@@ -235,7 +235,7 @@ ENetPacket *buildfva(const char *format, va_list args, int *exclude)
     while(*format) switch(*format++)
     {
         case 'x':
-            *exclude = va_arg(args, int);
+            exclude = va_arg(args, int);
             break;
 
         case 'v':
@@ -278,7 +278,7 @@ ENetPacket *buildf(const char *format, ...)
 
     va_list args;
     va_start(args, format);
-    ENetPacket *packet = buildfva(format, args, &exclude);
+    ENetPacket *packet = buildfva(format, args, exclude);
     va_end(args);
 
     return packet;
@@ -290,7 +290,7 @@ ENetPacket *sendf(int cn, int chan, const char *format, ...)
     va_start(args, format);
 
     int exclude = -1;
-    ENetPacket *packet = buildfva(format, args, &exclude);
+    ENetPacket *packet = buildfva(format, args, exclude);
     sendpacket(cn, chan, packet, exclude);
 
     va_end(args);
