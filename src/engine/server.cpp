@@ -227,18 +227,15 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
     }
 }
 
-ENetPacket *sendf(int cn, int chan, const char *format, ...)
+ENetPacket *buildfva(const char *format, va_list args, int *exclude)
 {
-    int exclude = -1;
     bool reliable = false;
     if(*format=='r') { reliable = true; ++format; }
     packetbuf p(MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
-    va_list args;
-    va_start(args, format);
     while(*format) switch(*format++)
     {
         case 'x':
-            exclude = va_arg(args, int);
+            *exclude = va_arg(args, int);
             break;
 
         case 'v':
@@ -270,9 +267,38 @@ ENetPacket *sendf(int cn, int chan, const char *format, ...)
         }
     }
     va_end(args);
-    ENetPacket *packet = p.finalize();
+    p.growth = 0; // prevent destruction of packet through packetbuf
+    return p.finalize();
+}
+
+ENetPacket *buildf(const char *format, ...)
+{
+    int exclude = -1;
+
+    va_list args;
+    va_start(args, format);
+    ENetPacket *packet = buildfva(format, args, &exclude);
+    va_end(args);
+
+    return packet;
+}
+
+ENetPacket *sendf(int cn, int chan, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+
+    int exclude = -1;
+    ENetPacket *packet = buildfva(format, args, &exclude);
     sendpacket(cn, chan, packet, exclude);
-    return packet->referenceCount > 0 ? packet : NULL;
+
+    va_end(args);
+
+    if (packet->referenceCount)
+        return packet;
+
+    enet_packet_destroy(packet);
+    return 0;
 }
 
 const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };

@@ -46,16 +46,15 @@ void MessageManager::registerMessageType(MessageType *newMessageType)
 
 bool MessageManager::receive(int type, int receiver, int sender, ucharbuf &p)
 {
-    logger::log(logger::DEBUG, "MessageSystem: Trying to handle a message, type/sender:: %d/%d\r\n", type, sender);
-    INDENT_LOG(logger::DEBUG);
-
-    if (messageTypes.access(type) == NULL)
-    {
-        logger::log(logger::DEBUG, "Message type not found in our extensions to Sauer: %d\r\n", type);
+    if (messageTypes.access(type) == NULL) {
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type %d from %d: Type not found in our extensions to Sauer\r\n", type, sender);
         return false; // This isn't one of our messages, hopefully it's a sauer one
     }
 
     MessageType *message_type = messageTypes[type];
+    logger::log(logger::DEBUG,     "MessageSystem: Receiving a message of type %d from %d: %s\r\n", type, sender, message_type->type_name);
+    INDENT_LOG(logger::DEBUG);
+
     message_type->receive(receiver, sender, p);
 
     logger::log(logger::DEBUG, "MessageSystem: message successfully handled\r\n");
