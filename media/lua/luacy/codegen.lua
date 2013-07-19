@@ -4,7 +4,6 @@
     Available under the terms of the MIT license.
 ]]
 
-local lexer = require("core.luacy.lexer")
 local tconc = table.concat
 local space = " "
 

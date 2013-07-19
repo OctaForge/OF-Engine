@@ -4,8 +4,8 @@
     Available under the terms of the MIT license.
 ]]
 
-local lexer = require("core.luacy.lexer")
-local codegen = require("core.luacy.codegen")
+local lexer = require("luacy.lexer")
+local codegen = require("luacy.codegen")
 
 local tconc = table.concat
 

@@ -61,9 +61,10 @@ end
 
 local capi = require("capi")
 
+
 capi.log(1, "Initializing logging.")
 
-local parse = require("core.luacy.parser").parse
+local parse = require("luacy").parse
 
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
