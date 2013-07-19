@@ -12,60 +12,18 @@ local tconc = table.concat
 local syntax_error = lexer.syntax_error
 local iskw = lexer.is_keyword
 
-local strchar = string.char
-
-local bytemap = {}
-for i = 0, 255 do bytemap[i] = strchar(i) end
-
-local BYTE_MAX = 255
-
--- copy here for fast optimized lookups
-local Tokens = {
-    ["and"     ] = 256, ["break"   ] = 257, ["continue"] = 258,
-    ["debug"   ] = 259, ["do"      ] = 260, ["else"    ] = 261,
-    ["elseif"  ] = 262, ["end"     ] = 263, ["false"   ] = 264,
-    ["for"     ] = 265, ["function"] = 266, ["goto"    ] = 267,
-    ["if"      ] = 268, ["in"      ] = 269, ["local"   ] = 270,
-    ["nil"     ] = 271, ["not"     ] = 272, ["or"      ] = 273,
-    ["repeat"  ] = 274, ["return"  ] = 275, ["then"    ] = 276,
-    ["true"    ] = 277, ["until"   ] = 278, ["while"   ] = 279,
-
-    [".."] = 280, ["..."] = 281, ["=="] = 282, [">="] = 283,
-    ["<="] = 284, ["~=" ] = 285, ["!="] = 286, ["::"] = 287,
-    ["{:"] = 288, [":}" ] = 289, ["^^"] = 290, ["<<"] = 291,
-    [">>"] = 292, [">>>"] = 293,
-
-    ["<number>"] = 294, ["<string>"] = 295, ["<name>"] = 296, ["<eof>"] = 297
-}
-
-local Token_Arr = {
-    "and", "break", "continue", "debug", "do", "else", "elseif", "end",
-    "false", "for", "function", "goto", "if", "in", "local", "nil", "not",
-    "or", "repeat", "return", "then", "true", "until", "while",
-
-    "..", "...", "==", ">=", "<=", "~=", "!=", "::", "{:", ":}", "^^", "<<",
-    ">>", ">>>",
-
-    "<number>", "<string>", "<name>", "<eof>"
-}
-
-local toktostr = function(tok)
-    return (tok <= 255) and bytemap[tok] or Token_Arr[tok - BYTE_MAX]
-end
-
 local assert_tok = function(ls, tok)
-    local n = ls.token.id
+    local n = ls.token.name
     if tok == n then return nil end
-    syntax_error(ls, "'" .. toktostr(tok) .. "' expected")
+    syntax_error(ls, "'" .. tok .. "' expected")
 end
 
 local Name_Keywords = {
-    [Tokens["<name>"]]   = true, [Tokens["goto"]]  = true,
-    [Tokens["continue"]] = true, [Tokens["debug"]] = true
+    ["<name>"] = true, ["goto"] = true, ["continue"] = true, ["debug"] = true
 }
 
 local assert_name = function(ls)
-    local n = ls.token.id
+    local n = ls.token.name
     if not Name_Keywords[n] then
         syntax_error(ls, "'<name>' expected")
     end
@@ -73,7 +31,7 @@ end
 
 local assert_append = function(ls, cs, tok, ...)
     assert_tok(ls, tok)
-    cs:append(toktostr(tok), ...)
+    cs:append(tok, ...)
 end
 
 local assert_next = function(ls, tok)
@@ -82,12 +40,12 @@ local assert_next = function(ls, tok)
 end
 
 local check_match = function(ls, a, b, line)
-    if not ls.token.id == a then
+    if not ls.token.name == a then
         if line == ls.line_number then
-            syntax_error(ls, "'" .. toktostr(ls.token.id) .. "' expected")
+            syntax_error(ls, "'" .. ls.token.name .. "' expected")
         else
-            syntax_error(ls, "'" .. toktostr(a) .. "' expected (to close '"
-                .. toktostr(b) .. "' at line " .. line .. ")")
+            syntax_error(ls, "'" .. a .. "' expected (to close '" .. b
+                .. "' at line " .. line .. ")")
         end
     end
 end
@@ -95,31 +53,24 @@ end
 local loopstack = {}
 
 local Binary_Ops = {
-    [Tokens["or"]] = 1, [Tokens["and"]] = 2,
-
-    [Tokens["<="]] = 3, [Tokens[">="]] = 3, [60] = 3, [62] = 3, -- <, >
-    [Tokens["=="]] = 3, [Tokens["~="]] = 3, [Tokens["!="]] = 3,
-
-    [Tokens[".."]] = 4,
-
-    [Tokens["^^"]] = 6, [124] = 5, [38] = 7, -- |, &
-    [Tokens["<<"]] = 8, [Tokens[">>"]] = 8, [Tokens[">>>"]] = 8,
-
-    [43] = 9,  [45] = 9,             -- +, -
-    [42] = 10, [47] = 10, [37] = 10, -- *, /, %
-
+    ["or"] = 1,  ["and"] = 2,
+    ["<" ] = 3,  ["<=" ] = 3,  [">"  ] = 3, [">="] = 3,
+    ["=="] = 3,  ["~=" ] = 3,  ["!=" ] = 3,
+    [".."] = 4,
+    ["|" ] = 5,  ["^^" ] = 6,  ["&"  ] = 7,
+    ["<<"] = 8,  [">>" ] = 8,  [">>>"] = 8,
+    ["+" ] = 9,  ["-"  ] = 9,
+    ["*" ] = 10, ["/"  ] = 10, ["%"  ] = 10,
     -- unary here --
-
-    [94] = 12 -- ^
+    ["^" ] = 12
 }
 
 local Right_Ass = {
-    [Tokens[".."]] = true, [94] = true -- ^
+    [".."] = true, ["^"] = true
 }
 
--- -, ~, #
 local Unary_Ops = {
-    [45] = 11, [Tokens["not"]] = 11, [126] = 11, [35] = 11
+    ["-"] = 11, ["not"] = 11, ["~"] = 11, ["#"] = 11
 }
 
 local parse_expr
@@ -129,8 +80,8 @@ local parse_expr_list = function(ls, cs)
     local tok = ls.token
     while true do
         parse_expr(ls, cs)
-        if tok.id == 44 then -- ,
-            cs:append(",")
+        if tok.name == "," then
+            cs:append(tok.name)
             ls:get()
         else
             break
@@ -141,17 +92,17 @@ end
 local parse_arg_list = function(ls, cs)
     local tok = ls.token
     while true do
-        if tok.id == Tokens["..."] then
-            cs:append("...")
+        if tok.name == "..." then
+            cs:append(tok.name)
             ls:get()
             break
-        elseif not Name_Keywords[tok.id] then
+        elseif not Name_Keywords[tok.name] then
             syntax_error(ls, "<name> or '...' expected")
         end
-        cs:append(tok.value or toktostr(tok.id), true)
+        cs:append(tok.value or tok.name, true)
         ls:get()
-        if tok.id == 44 then -- ,
-            cs:append(",")
+        if tok.name == "," then
+            cs:append(tok.name)
             ls:get()
         else
             break
@@ -159,43 +110,45 @@ local parse_arg_list = function(ls, cs)
     end
 end
 
+local tstart, tend = "{", "}"
+
 local parse_table = function(ls, cs)
     local line = ls.line_number
     local tok = ls.token
-    cs:append("{")
+    cs:append(tstart)
     ls:get()
-    local tid = tok.id
+    local tn = tok.name
     while true do
-        if tid == 125 then break -- }
-        elseif Name_Keywords[tid] then
+        if tn == tend then break
+        elseif Name_Keywords[tn] then
             local line = ls.line_number
-            if ls:lookahead() == 61 then -- =
-                cs:append(tok.value or toktostr(tid), true, line)
+            if ls:lookahead() == "=" then
+                cs:append(tok.value or tn, true, line)
                 ls:get()
                 cs:append("=")
                 ls:get()
             end
             parse_expr(ls, cs)
-        elseif tid == 91 then -- [
-            cs:append("[")
+        elseif tn == "[" then
+            cs:append(tn)
             ls:get()
             parse_expr(ls, cs)
-            assert_append(ls, cs, 93) -- ]
+            assert_append(ls, cs, "]")
             ls:get()
-            assert_append(ls, cs, 61) -- =
+            assert_append(ls, cs, "=")
             ls:get()
             parse_expr(ls, cs)
         else
             parse_expr(ls, cs)
         end
-        tid = tok.id
-        if tid ~= 44 and tid ~= 59 then break end -- , ;
-        cs:append(toktostr(tid))
+        tn = tok.name
+        if tn ~= "," and tn ~= ";" then break end
+        cs:append(tn)
         ls:get()
-        tid = tok.id
+        tn = tok.name
     end
-    check_match(ls, 125, 123, line) -- } {
-    cs:append("}")
+    check_match(ls, tend, tstart, line)
+    cs:append(tend)
     ls:get()
 end
 
@@ -208,22 +161,22 @@ local parse_enum = function(ls, cs)
     cs:append(name)
     cs:append(")")
     ls:get()
-    local tid = tok.id
+    local tn = tok.name
     local tracked = { name }
     cs.tracked = tracked
     cs:append("local", true)
     cs:append(pname, true)
     cs:append("= 0;")
     while true do
-        if tid == Tokens[":}"] then break end
+        if tn == ":}" then break end
         assert_name(ls)
-        local field = tok.value or toktostr(tok.id)
+        local field = tok.value or tok.name
         tracked[field] = true
         local line = ls.line_number
         ls:get()
         cs:append(pname, true, line)
         cs:append("=", nil, line)
-        if tok.id == 61 then -- =
+        if tok.name == "=" then
             ls:get()
             parse_expr(ls, cs)
             line = cs.last_append
@@ -238,54 +191,54 @@ local parse_enum = function(ls, cs)
         cs:append("=", nil, line)
         cs:append(pname, true, line)
         cs:append(";", nil, line)
-        tid = tok.id
-        if tid ~= 44 and tid ~= 59 then break end -- , ;
-        tid = ls:get()
+        tn = tok.name
+        if tn ~= "," and tn ~= ";" then break end
+        tn = ls:get()
     end
     cs.tracked = nil
     cs:append("return", true)
     cs:append(name, true)
-    check_match(ls, Tokens[":}"], Tokens["{:"], line)
+    check_match(ls, ":}", "{:", line)
     cs:append(" end)({})")
     ls:get()
 end
 
 local parse_function_body = function(ls, cs, line)
-    assert_append(ls, cs, 40) -- (
+    assert_append(ls, cs, "(")
     ls:get()
-    if ls.token.id ~= 41 then parse_arg_list(ls, cs) end -- )
-    assert_append(ls, cs, 41)
+    if ls.token.name ~= ")" then parse_arg_list(ls, cs) end
+    assert_append(ls, cs, ")")
     ls:get()
     loopstack[#loopstack + 1] = false
     parse_chunk(ls, cs)
-    check_match(ls, Tokens["end"], Tokens["function"], line)
+    check_match(ls, "end", "function", line)
     cs:append("end", true)
     ls:get()
 end
 
 local parse_call = function(ls, cs)
     local tok = ls.token
-    local tid = tok.id
-    if tid == 40 then -- (
+    local tn = tok.name
+    if tn == "(" then
         local line = ls.line_number
         if line ~= ls.last_line then syntax_error(ls,
             "ambiguous syntax (function call x new statement)")
         end
-        cs:append("(")
+        cs:append(tn)
         ls:get()
-        tid = tok.id
-        if tid == 41 then -- )
-            cs:append(")")
+        tn = tok.name
+        if tn == ")" then
+            cs:append(tn)
             ls:get()
         else
             parse_expr_list(ls, cs)
-            check_match(ls, 41, 40, line)
+            check_match(ls, ")", "(", line)
             cs:append(")")
             ls:get()
         end
-    elseif tid == 123 then -- {
+    elseif tn == "{" then
         parse_table(ls, cs)
-    elseif tid == Tokens["<string>"] then
+    elseif tn == "<string>" then
         cs:append(tok.value)
         ls:get()
     else
@@ -295,18 +248,18 @@ end
 
 local parse_prefix_expr = function(ls, cs)
     local tok = ls.token
-    local tid = tok.id
-    if tid == 40 then -- (
+    local tn = tok.name
+    if tn == "(" then
         local line = ls.line_number
         cs:append("(")
         ls:get()
         parse_expr(ls, cs)
-        check_match(ls, 41, 40, line)
+        check_match(ls, ")", "(", line)
         cs:append(")")
         ls:get()
-    elseif Name_Keywords[tid] then
+    elseif Name_Keywords[tn] then
         local tracked = cs.tracked
-        local varn = tok.value or toktostr(tid)
+        local varn = tok.value or tn
         if tracked and tracked[varn] then
             cs:append("(")
             cs:append(tracked[1], true)
@@ -327,26 +280,26 @@ local parse_primary_expr = function(ls, cs)
     local tok = ls.token
     local call = false
     while true do
-        local id = tok.id
-        if id == 46 or id == 58 then -- ., :
-            cs:append(toktostr(id))
+        local nm = tok.name
+        if nm == "." or nm == ":" then
+            cs:append(nm)
             ls:get()
             assert_name(ls)
-            cs:append(tok.value or toktostr(tok.id), true)
+            cs:append(tok.value or tok.name, true)
             ls:get()
             call = false
-            if id == 58 then
+            if nm == ":" then
                 parse_call(ls, cs)
                 call = true
             end
-        elseif id == 91 then -- [
-            cs:append("[")
+        elseif nm == "[" then
+            cs:append(nm)
             ls:get()
             parse_expr(ls, cs)
-            assert_append(ls, cs, 93) -- ]
+            assert_append(ls, cs, "]")
             ls:get()
             call = false
-        elseif id == 40 or id == Tokens["<string>"] or id == 123 then -- (, {
+        elseif nm == "(" or nm == "<string>" or nm == "{" then
             parse_call(ls, cs)
             call = true
         else
@@ -358,43 +311,43 @@ end
 local parse_subexpr
 
 local sexps = {
-    [Tokens["<number>"]] = function(ls, cs)
+    ["<number>"] = function(ls, cs)
         cs:append("(")
         cs:append(ls.token.value)
         cs:append(")")
         ls:get()
     end,
-    [Tokens["<string>"]] = function(ls, cs)
+    ["<string>"] = function(ls, cs)
         cs:append(ls.token.value)
         ls:get()
     end,
-    [Tokens["nil"]] = function(ls, cs)
-        cs:append(toktostr(ls.token.id), true)
+    ["nil"] = function(ls, cs)
+        cs:append(ls.token.name, true)
         ls:get()
     end,
-    [123] = parse_table, -- {
-    [Tokens["{:"]] = parse_enum,
-    [Tokens["function"]] = function(ls, cs)
+    ["{"] = parse_table,
+    ["{:"] = parse_enum,
+    ["function"] = function(ls, cs)
         local line = ls.line_number
         cs:append("function", true)
         ls:get()
         parse_function_body(ls, cs, line)
     end,
-    [124] = function(ls, cs) -- |
+    ["|"] = function(ls, cs)
         local tok = ls.token
         cs:append("function", true)
         cs:append("(")
         ls:get()
-        if tok.id ~= 124 then parse_arg_list(ls, cs) end
-        assert_tok(ls, 124)
+        if tok.name ~= "|" then parse_arg_list(ls, cs) end
+        assert_tok(ls, "|")
         cs:append(")")
         ls:get()
         loopstack[#loopstack + 1] = false
-        if tok.id == Tokens["do"] then
+        if tok.name == "do" then
             local line = ls.line_number
             ls:get()
             parse_chunk(ls, cs)
-            check_match(ls, Tokens["end"], Tokens["do"], line)
+            check_match(ls, "end", "do", line)
             cs:append("end", true)
             ls:get()
         else
@@ -403,18 +356,18 @@ local sexps = {
             cs:append("end", true)
         end
     end,
-    [Tokens["if"]] = function(ls, cs)
+    ["if"] = function(ls, cs)
         local tok = ls.token
         cs:append("(")
         ls:get()
         parse_expr(ls, cs)
-        assert_tok(ls, Tokens["then"])
+        assert_tok(ls, "then")
         cs:append("and", true)
         ls:get()
         cs:append("{")
         parse_expr(ls, cs)
         cs:append("}", nil, cs.last_append)
-        if tok.id == Tokens["else"] then
+        if tok.name == "else" then
             cs:append("or", true)
             ls:get()
             cs:append("{")
@@ -428,19 +381,19 @@ local sexps = {
         cs:append(")[1]", nil, cs.last_append)
     end
 }
-sexps[Tokens["true" ]] = sexps[Tokens["nil"]]
-sexps[Tokens["false"]] = sexps[Tokens["nil"]]
-sexps[Tokens["..."  ]] = sexps[Tokens["nil"]]
+sexps["true" ] = sexps["nil"]
+sexps["false"] = sexps["nil"]
+sexps["..."  ] = sexps["nil"]
 
 local bitunops = {
-    [126] = "bit.bnot" -- ~
+    ["~"] = "bit.bnot"
 }
 
 local parse_simple_expr = function(ls, cs)
-    local tid = ls.token.id
-    local unp = Unary_Ops[tid]
+    local tn = ls.token.name
+    local unp = Unary_Ops[tn]
     if unp then
-        local bitun = bitunops[tid]
+        local bitun = bitunops[tn]
         if bitun then
             cs:append(bitun, true)
             cs:append("(")
@@ -448,24 +401,22 @@ local parse_simple_expr = function(ls, cs)
             parse_subexpr(ls, cs, unp)
             cs:append(")", cs.last_append)
         else
-            local str = toktostr(tid)
-            cs:append(str, iskw(str))
+            cs:append(tn, iskw(tn))
             ls:get()
             parse_subexpr(ls, cs, unp)
         end
     else
-        (sexps[tid] or parse_primary_expr)(ls, cs)
+        (sexps[tn] or parse_primary_expr)(ls, cs)
     end
 end
 
 local op_to_lua = {
-    [Tokens["!="]] = "~="
+    ["!="] = "~="
 }
 
 local bitops = {
-    [Tokens["^^" ]] = "bxor",   [38] = "band", [124] = "bor",
-    [Tokens["<<" ]] = "lshift", [Tokens[">>"]] = "rshift",
-    [Tokens[">>>"]] = "arshift"
+    ["&" ] = "band",   ["|" ] = "bor",    ["^^" ] = "bxor",
+    ["<<"] = "lshift", [">>"] = "rshift", [">>>"] = "arshift"
 }
 
 local tinsert = table.insert
@@ -505,7 +456,7 @@ parse_subexpr = function(ls, cs, mp)
     local nln  = ln and #ln + 1 or 1
     parse_simple_expr(ls, cs)
     while true do
-        local op = tok.id
+        local op = tok.name
         local p = Binary_Ops[op]
         if not op or not p or p < mp then break end
         local bitop, nins = use_bitop(cs, op)
@@ -516,8 +467,7 @@ parse_subexpr = function(ls, cs, mp)
             cs:append(",")
         else
             cs_insert(cs, ln or cs.lines[line], nln, "(")
-            local opstr = toktostr(op)
-            cs:append(op_to_lua[op] or opstr, iskw(opstr))
+            cs:append(op_to_lua[op] or op, iskw(op))
         end
         ls:get()
         parse_subexpr(ls, cs, Right_Ass[op] and p or p + 1)
@@ -533,10 +483,10 @@ local parse_name_list = function(ls, cs)
     local tok = ls.token
     while true do
         assert_name(ls)
-        cs:append(tok.value or toktostr(tok.id), true)
+        cs:append(tok.value or tok.name, true)
         ls:get()
-        if tok.id == 44 then -- ,
-            cs:append(",")
+        if tok.name == "," then
+            cs:append(tok.name)
             ls:get()
         else
             break
@@ -545,9 +495,8 @@ local parse_name_list = function(ls, cs)
 end
 
 local block_follow = {
-    [Tokens["else" ]] = true, [Tokens["elseif"]] = true,
-    [Tokens["end"  ]] = true, [Tokens["until" ]] = true,
-    [Tokens["<eof>"]] = true
+    ["else" ] = true, ["elseif"] = true, ["end"] = true,
+    ["until"] = true, ["<eof>" ] = true
 }
 
 local parse_stat
@@ -555,10 +504,10 @@ local parse_stat
 parse_chunk = function(ls, cs)
     local last = false
     local tok = ls.token
-    while not last and not block_follow[tok.id] do
+    while not last and not block_follow[tok.name] do
         last = parse_stat(ls, cs)
-        if tok.id == 59 then -- ;
-            cs:append(";")
+        if tok.name == ";" then
+            cs:append(tok.name)
             ls:get()
         end
     end
@@ -566,17 +515,17 @@ end
 
 local parse_assignment = function(ls, cs)
     local tok = ls.token
-    if tok.id == 44 then -- ,
-        cs:append(",")
+    if tok.name == "," then
+        cs:append(tok.name)
         ls:get()
         while true do
             parse_primary_expr(ls, cs)
-            if tok.id ~= 44 then break end
-            cs:append(",")
+            if tok.name ~= "," then break end
+            cs:append(tok.name)
             ls:get()
         end
     end
-    assert_append(ls, cs, 61) -- =
+    assert_append(ls, cs, "=")
     ls:get()
     parse_expr_list(ls, cs)
 end
@@ -585,7 +534,7 @@ local parse_break_stat = function(ls, cs)
     if not loopstack[#loopstack] then
         syntax_error(ls, "no loop to break")
     end
-    cs:append("break", true)
+    cs:append(ls.token.name, true)
     ls:get()
 end
 
@@ -601,41 +550,43 @@ end
 
 local parse_goto_stat = function(ls, cs)
     local tok = ls.token
-    cs:append("goto", true)
+    cs:append(tok.name, true)
     ls:get()
     assert_name(ls)
-    cs:append(tok.value or toktostr(tok.id), true)
+    cs:append(tok.value or tok.name, true)
     ls:get()
 end
 
 local parse_while_stat = function(ls, cs, line)
+    local tok = ls.token
     local lbl = "___loop_end"
     loopstack[#loopstack + 1] = lbl
-    cs:append("while", true)
+    cs:append(tok.name, true)
     ls:get()
     parse_expr(ls, cs)
-    assert_append(ls, cs, Tokens["do"], true)
+    assert_append(ls, cs, "do", true)
     ls:get()
     parse_chunk(ls, cs)
-    check_match(ls, Tokens["end"], Tokens["while"], line)
+    check_match(ls, "end", "while", line)
     cs:append("::")
     cs:append(lbl)
     cs:append("::")
-    cs:append("end", true)
+    cs:append(tok.name, true)
     ls:get()
 end
 
 local parse_repeat_stat = function(ls, cs, line)
+    local tok = ls.token
     local lbl = "___loop_end"
     loopstack[#loopstack + 1] = lbl
-    cs:append("repeat", true)
+    cs:append(tok.name, true)
     ls:get()
     parse_chunk(ls, cs)
-    check_match(ls, Tokens["until"], Tokens["repeat"], line)
+    check_match(ls, "until", "repeat", line)
     cs:append("::")
     cs:append(lbl)
     cs:append("::")
-    cs:append("until", true)
+    cs:append(tok.name, true)
     ls:get()
     parse_expr(ls, cs)
 end
@@ -644,29 +595,29 @@ local parse_for_stat = function(ls, cs, line)
     local tok = ls.token
     local lbl = "___loop_end"
     loopstack[#loopstack + 1] = lbl
-    cs:append("for", true)
+    cs:append(tok.name, true)
     ls:get()
     assert_name(ls)
-    cs:append(tok.value or toktostr(tok.id), true)
+    cs:append(tok.value or tok.name, true)
     ls:get()
-    if tok.id == 61 then -- =
-        cs:append("=")
+    if tok.name == "=" then
+        cs:append(tok.name)
         ls:get()
         parse_expr(ls, cs)
-        assert_append(ls, cs, 44) -- ,
+        assert_append(ls, cs, ",")
         ls:get()
         parse_expr(ls, cs)
-        if tok.id == 44 then
+        if tok.name == "," then
             cs:append(",")
             ls:get()
             parse_expr(ls, cs)
         end
-    elseif tok.id == 44 or tok.id == Tokens["in"] then
-        if tok.id == 44 then
+    elseif tok.name == "," or tok.name == "in" then
+        if tok.name == "," then
             cs:append(",")
             ls:get()
             parse_name_list(ls, cs)
-            assert_tok(ls, Tokens["in"])
+            assert_tok(ls, "in")
         end
         cs:append("in", true)
         ls:get()
@@ -674,55 +625,57 @@ local parse_for_stat = function(ls, cs, line)
     else
         syntax_error(ls, "'=' or 'in' expected")
     end
-    assert_append(ls, cs, Tokens["do"], true)
+    assert_append(ls, cs, "do", true)
     ls:get()
     parse_chunk(ls, cs)
-    check_match(ls, Tokens["end"], Tokens["for"], line)
+    check_match(ls, "end", "for", line)
     cs:append("::")
     cs:append(lbl)
     cs:append("::")
-    cs:append("end", true)
+    cs:append(tok.name, true)
     ls:get()
 end
 
 local parse_if_stat = function(ls, cs, line)
-    cs:append("if", true)
+    local tok = ls.token
+    cs:append(tok.name, true)
     ls:get()
     local tok = ls.token
     parse_expr(ls, cs)
-    assert_append(ls, cs, Tokens["then"], true)
+    assert_append(ls, cs, "then", true)
     ls:get()
     parse_chunk(ls, cs)
-    while tok.id == Tokens["elseif"] do
-        cs:append("elseif", true)
+    while tok.name == "elseif" do
+        cs:append(tok.name, true)
         ls:get()
         parse_expr(ls, cs)
-        assert_append(ls, cs, Tokens["then"], true)
+        assert_append(ls, cs, "then", true)
         ls:get()
         parse_chunk(ls, cs)
     end
-    if tok.id == Tokens["else"] then
-        cs:append("else", true)
+    if tok.name == "else" then
+        cs:append(tok.name, true)
         ls:get()
         parse_chunk(ls, cs)
     end
-    check_match(ls, Tokens["end"], Tokens["if"], line)
-    cs:append("end", true)
+    check_match(ls, "end", "if", line)
+    cs:append(tok.name, true)
     ls:get()
 end
 
 local parse_local_function_stat = function(ls, cs, line)
     local tok = ls.token
     assert_name(ls)
-    cs:append(tok.value or toktostr(tok.id), true)
+    cs:append(tok.value or tok.name, true)
     ls:get()
     parse_function_body(ls, cs, line)
 end
 
 local parse_local_stat = function(ls, cs)
     parse_name_list(ls, cs)
-    if ls.token.id == 61 then -- =
-        cs:append("=")
+    local tok = ls.token
+    if tok.name == "=" then
+        cs:append(tok.name)
         ls:get()
         parse_expr_list(ls, cs)
     end
@@ -731,16 +684,16 @@ end
 local parse_function_stat = function(ls, cs)
     local tok = ls.token
     local line = ls.line_number
-    cs:append("function", true)
+    cs:append(tok.name, true)
     ls:get()
     assert_name(ls)
-    cs:append(tok.value or toktostr(tok.id), true)
+    cs:append(tok.value or tok.name, true)
     ls:get()
-    if tok.id == 58 or tok.id == 46 then -- :, .
-        cs:append(toktostr(tok.id))
+    if tok.name == ":" or tok.name == "." then
+        cs:append(tok.name)
         ls:get()
         assert_name(ls)
-        cs:append(tok.value or toktostr(tok.id), true)
+        cs:append(tok.value or tok.name, true)
         ls:get()
     end
     parse_function_body(ls, cs, line)
@@ -754,9 +707,9 @@ end
 
 local parse_return_stat = function(ls, cs)
     local tok = ls.token
-    cs:append("return", true)
+    cs:append(tok.name, true)
     ls:get()
-    if tok.id == 59 or block_follow[tok.id] then -- ;
+    if tok.name == ";" or block_follow[tok.name] then
         return true
     end
     parse_expr_list(ls, cs)
@@ -764,63 +717,64 @@ local parse_return_stat = function(ls, cs)
 end
 
 local stat_opts = {
-    [Tokens["if"]] = parse_if_stat,
-    [Tokens["while"]] = parse_while_stat,
-    [Tokens["do"]] = function(ls, cs, line)
-        cs:append("do", true)
+    ["if"] = parse_if_stat,
+    ["while"] = parse_while_stat,
+    ["do"] = function(ls, cs, line)
+        local tok = ls.token
+        cs:append(tok.name, true)
         ls:get()
         parse_chunk(ls, cs)
-        check_match(ls, Tokens["end"], Tokens["do"], line)
-        cs:append("end", true)
+        check_match(ls, "end", "do", line)
+        cs:append(tok.name, true)
         ls:get()
     end,
-    [Tokens["for"]] = parse_for_stat,
-    [Tokens["repeat"]] = parse_repeat_stat,
-    [Tokens["function"]] = parse_function_stat,
-    [Tokens["local"]] = function(ls, cs)
+    ["for"] = parse_for_stat,
+    ["repeat"] = parse_repeat_stat,
+    ["function"] = parse_function_stat,
+    ["local"] = function(ls, cs)
         local tok = ls.token
-        cs:append("local", true)
+        cs:append(tok.name, true)
         ls:get()
-        if tok.id == Tokens["function"] then
+        if tok.name == "function" then
             local line = ls.line_number
-            cs:append("function", true)
+            cs:append(tok.name, true)
             ls:get()
             return parse_local_function_stat(ls, cs, line)
         else
             return parse_local_stat(ls, cs)
         end
     end,
-    [Tokens["return"]] = parse_return_stat,
-    [Tokens["break"]] = parse_break_stat,
-    [Tokens["continue"]] = function(ls, cs)
+    ["return"] = parse_return_stat,
+    ["break"] = parse_break_stat,
+    ["continue"] = function(ls, cs)
         local lah = ls:lookahead()
-        if lah == 59 or block_follow[lah] then -- ;
+        if lah == ";" or block_follow[lah] then
             parse_cont_stat(ls, cs)
         else
             parse_expr_stat(ls, cs)
         end
     end,
-    [Tokens["goto"]] = function(ls, cs)
-        ((ls:lookahead() == Tokens["<name>"]) and parse_goto_stat
+    ["goto"] = function(ls, cs)
+        ((ls:lookahead() == "<name>") and parse_goto_stat
             or parse_expr_stat)(ls, cs)
     end,
-    [Tokens["debug"]] = function(ls, cs)
+    ["debug"] = function(ls, cs)
         local lah = ls:lookahead()
-        if lah == Tokens["then"] then
+        if lah == "then" then
             cs.enabled = cs.debug
             ls:get()
             ls:get()
             parse_stat(ls, cs)
             cs.enabled = true
-        elseif lah == Tokens["do"] then
+        elseif lah == "do" then
             cs.enabled = cs.debug
             ls:get()
             cs:append("do", true)
             ls:get()
             local line = ls.line_number
             parse_chunk(ls, cs)
-            check_match(ls, Tokens["end"], Tokens["do"], line)
-            cs:append("end", true)
+            check_match(ls, "end", "do", line)
+            cs:append(ls.token.name, true)
             ls:get()
             cs.enabled = true
         else
@@ -830,7 +784,7 @@ local stat_opts = {
 }
 
 parse_stat = function(ls, cs)
-    return (stat_opts[ls.token.id] or parse_expr_stat)(ls, cs, ls.line_number)
+    (stat_opts[ls.token.name] or parse_expr_stat)(ls, cs, ls.line_number)
 end
 
 local parse = function(fname, input, debug)
@@ -840,7 +794,6 @@ local parse = function(fname, input, debug)
     ls:get()
     loopstack[#loopstack + 1] = false
     parse_chunk(ls, cs)
-    assert_tok(ls, Tokens["<eof>"])
     return cs:build()
 end
 

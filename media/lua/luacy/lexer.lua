@@ -35,8 +35,6 @@ else
     end
 end
 
-local BYTE_MAX = 255
-
 local Tokens = {
     ["and"     ] = 256, ["break"   ] = 257, ["continue"] = 258,
     ["debug"   ] = 259, ["do"      ] = 260, ["else"    ] = 261,
@@ -49,21 +47,8 @@ local Tokens = {
 
     [".."] = 280, ["..."] = 281, ["=="] = 282, [">="] = 283,
     ["<="] = 284, ["~=" ] = 285, ["!="] = 286, ["::"] = 287,
-    ["{:"] = 288, [":}" ] = 289, ["^^"] = 290, ["<<"] = 291,
-    [">>"] = 292, [">>>"] = 293,
-
-    ["<number>"] = 294, ["<string>"] = 295, ["<name>"] = 296, ["<eof>"] = 297
-}
-
-local Token_Arr = {
-    "and", "break", "continue", "debug", "do", "else", "elseif", "end",
-    "false", "for", "function", "goto", "if", "in", "local", "nil", "not",
-    "or", "repeat", "return", "then", "true", "until", "while",
-
-    "..", "...", "==", ">=", "<=", "~=", "!=", "::", "{:", ":}", "^^", "<<",
-    ">>", ">>>",
-
-    "<number>", "<string>", "<name>", "<eof>"
+    ["{:"] = 288, [":}" ] = 289, ["^^"] = 300, ["<<"] = 301,
+    [">>"] = 302, [">>>"] = 303
 }
 
 local is_newline = function(c)
@@ -105,7 +90,7 @@ local lex_error = function(ls, msg, tok)
 end
 
 local syntax_error = function(ls, msg)
-    lex_error(ls, msg, ls.token.value or Token_Arr[ls.token.id - BYTE_MAX])
+    lex_error(ls, msg, ls.token.value or ls.token.name)
 end
 
 local next_char = function(ls)
@@ -298,7 +283,7 @@ local lextbl = {
     [32] = function(ls) next_char(ls) end, -- space
     [45] = function(ls) -- -
         local c = next_char(ls)
-        if c ~= 45 then return 45 end
+        if c ~= 45 then return "-" end
         c = next_char(ls)
         if c == 91 then -- [
             local sep = skip_sep(ls, {})
@@ -314,59 +299,59 @@ local lextbl = {
         local sep = skip_sep(ls, buf)
         if sep >= 0 then
             read_long_string(ls, tok, sep, buf)
-            return Tokens["<string>"]
-        elseif sep == -1 then return 91
+            return "<string>"
+        elseif sep == -1 then return "["
         else lex_error(ls, "invalid long string delimiter", tconc(buf)) end
     end,
     [61] = function(ls) -- =
         local c = next_char(ls)
-        if c ~= 61 then return 61
-        else next_char(ls); return Tokens["=="] end
+        if c ~= 61 then return "="
+        else next_char(ls); return "==" end
     end,
     [60] = function(ls) -- <
         local c = next_char(ls)
-        if     c == 60 then next_char(ls); return Tokens["<<"]
-        elseif c == 61 then next_char(ls); return Tokens["<="]
-        else return 60 end
+        if     c == 60 then next_char(ls); return "<<"
+        elseif c == 61 then next_char(ls); return "<="
+        else return "<" end
     end,
     [62] = function(ls) -- >
         local c = next_char(ls)
         if c == 62 then
             c = next_char(ls)
-            if c ~= 62 then return Tokens[">>"]
-            else next_char(ls); return Tokens[">>>"] end
-        elseif c == 61 then next_char(ls); return Tokens[">="]
-        else return 62 end
+            if c ~= 62 then return ">>"
+            else next_char(ls); return ">>>" end
+        elseif c == 61 then next_char(ls); return ">="
+        else return ">" end
     end,
     [126] = function(ls) -- ~
         local c = next_char(ls)
-        if c ~= 61 then return 126
-        else next_char(ls); return Tokens["~="] end
+        if c ~= 61 then return "~"
+        else next_char(ls); return "~=" end
     end,
     [33] = function(ls) -- !
         local c = next_char(ls)
-        if c ~= 61 then return 33
-        else next_char(ls); return Tokens["!="] end
+        if c ~= 61 then return "!"
+        else next_char(ls); return "!=" end
     end,
     [94] = function(ls) -- ^
         local c = next_char(ls)
-        if c ~= 94 then return 94
-        else next_char(ls); return Tokens["^^"] end
+        if c ~= 94 then return "^"
+        else next_char(ls); return "^^" end
     end,
     [123] = function(ls) -- {
         local c = next_char(ls)
-        if c ~= 58 then return 123 -- :
-        else next_char(ls); return Tokens["{:"] end
+        if c ~= 58 then return "{" -- :
+        else next_char(ls); return "{:" end
     end,
     [58] = function(ls) -- :
         local c = next_char(ls)
-        if     c == 125 then next_char(ls); return Tokens[":}"] -- }
-        elseif c == 58 then next_char(ls); return Tokens["::"]
-        else return 58 end
+        if     c == 125 then next_char(ls); return ":}" -- }
+        elseif c == 58 then next_char(ls); return "::"
+        else return ":" end
     end,
     [34] = function(ls, tok) -- "
         read_string(ls, tok)
-        return Tokens["<string>"]
+        return "<string>"
     end,
     [46] = function(ls, tok) -- .
         local c = next_char(ls)
@@ -374,19 +359,19 @@ local lextbl = {
             c = next_char(ls)
             if c == 46 then
                 next_char(ls)
-                return Tokens["..."]
+                return "..."
             else
-                return Tokens[".."]
+                return ".."
             end
         elseif not is_digit(c) then
-            return 46
+            return "."
         end
         read_number(ls, tok, { "." })
-        return Tokens["<number>"]
+        return "<number>"
     end,
     [48] = function(ls, tok) -- 0
         read_number(ls, tok, {})
-        return Tokens["<number>"]
+        return "<number>"
     end
 }
 lextbl[13] = lextbl[10] -- CR, LF
@@ -414,15 +399,14 @@ local lex_default = function(ls, tok)
             if not c then break end
         until not (c == 95 or is_alnum(c))
         local str = tconc(buf)
-        local tid = Tokens[str]
-        if tid then
-            return tid
+        if Tokens[str] then
+            return str
         else
             tok.value = str
-            return Tokens["<name>"]
+            return "<name>"
         end
     else
-        local c = ls.current
+        local c = bytemap[ls.current]
         next_char(ls)
         return c
     end
@@ -431,7 +415,7 @@ end
 local lex = function(ls, tok)
     while true do
         local c = ls.current
-        if c == nil then return Tokens["<eof>"] end
+        if c == nil then return "<eof>" end
         local v = (lextbl[c] or lex_default)(ls, tok)
         if v then return v end
     end
@@ -443,22 +427,22 @@ local State_MT = {
             ls.last_line = ls.line_number
 
             local tok, lah = ls.token, ls.ltoken
-            if lah.id then
-                tok.id, tok.value = lah.id, lah.value
-                lah.id, lah.value = nil, nil
+            if lah.name then
+                tok.name, tok.value = lah.name, lah.value
+                lah.name, lah.value = nil, nil
             else
                 tok.value = nil
-                tok.id = lex(ls, tok)
+                tok.name = lex(ls, tok)
             end
-            return tok.id
+            return tok.name
         end,
 
         lookahead = function(ls)
             local lah = ls.ltoken
-            assert(not lah.id)
-            local id = lex(ls, lah)
-            lah.id = id
-            return id
+            assert(not lah.name)
+            local name = lex(ls, lah)
+            lah.name = name
+            return name
         end
     }
 }
@@ -505,8 +489,5 @@ end
 return {
     init = init,
     syntax_error = syntax_error,
-    is_keyword = function(kw)
-        local ret = Tokens[kw]
-        return ret ~= nil and ret < Tokens[".."]
-    end
+    is_keyword = function(kw) return Tokens[kw] ~= nil end
 }
