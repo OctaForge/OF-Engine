@@ -433,7 +433,7 @@ M.get_by_distance = function(pos, kwargs)
         end
     end
 
-    if sr ~= false then
+    if sr != false then
         sort(ret, sr or function(a, b) return a[2] < b[2] end)
     end
     return ret
@@ -528,7 +528,7 @@ M.remove = function(uid)
     for k, v in pairs(class_storage) do
         if e:is_a(v) then
             storage_by_class[k] = filter_map(storage_by_class[k],
-                function(a, b) return (b ~= e) end)
+                function(a, b) return (b != e) end)
         end
     end
 
@@ -822,7 +822,7 @@ Entity = table2.Object:clone {
         if not self:has_tag(tag) then return nil end
         self:set_attr("tags", filter(self:get_attr("tags"):to_array(),
             function(i, t)
-                return t ~= tag
+                return t != tag
             end))
     end,
 
@@ -832,7 +832,7 @@ Entity = table2.Object:clone {
     ]]
     has_tag = function(self, tag)
         debug then log(DEBUG, "Entity: has_tag (" .. tag .. ")")
-        return find(self:get_attr("tags"):to_array(), tag) ~= nil
+        return find(self:get_attr("tags"):to_array(), tag) != nil
     end,
 
     --[[! Function: build_sdata
@@ -865,7 +865,7 @@ Entity = table2.Object:clone {
             and not (tcn >= 0 and not var:should_send(self, tcn)) then
                 local name = var.name
                 local val = self:get_attr(name)
-                if val ~= nil then
+                if val != nil then
                     local wval = var:to_wire(val)
                     debug then log(DEBUG, "    adding " .. name .. ": "
                         .. wval)
@@ -894,7 +894,7 @@ Entity = table2.Object:clone {
         debug then log(DEBUG, "Entity.set_sdata_full: " .. self.uid .. ", "
             .. sdata)
 
-        sdata = sdata:sub(1, 1) ~= "{" and "{" .. sdata .. "}" or sdata
+        sdata = sdata:sub(1, 1) != "{" and "{" .. sdata .. "}" or sdata
         local raw = deserialize(sdata)
         assert(type(raw) == "table")
 
@@ -1022,7 +1022,7 @@ Entity = table2.Object:clone {
             update. The local update first calls <sdata_changed> and then
             triggers the _changed signal (before the setting). The new
             value is passed to the signal during the emit along with a
-            boolean equaling to actor_uid ~= -1.
+            boolean equaling to actor_uid != -1.
 
         Server:
             Takes 5 arguments (self, key, vactor, actor_uid, iop). The
@@ -1042,7 +1042,7 @@ Entity = table2.Object:clone {
         local csfh = var.custom_sync and self.controlled_here
         local cset = var.client_set
 
-        local nfh = actor_uid ~= -1
+        local nfh = actor_uid != -1
 
         -- from client-side script, send a server request unless the var
         -- is controlled here (synced using some other method)
@@ -1081,7 +1081,7 @@ Entity = table2.Object:clone {
             return nil
         end
 
-        if actor_uid and actor_uid ~= -1 then
+        if actor_uid and actor_uid != -1 then
             val = var:from_wire(val)
             if not var.client_write then
                 log(ERROR, "Entity.set_sdata: client " .. actor_uid
@@ -1114,7 +1114,7 @@ Entity = table2.Object:clone {
                 self.uid,
                 names_to_ids[self.name][key],
                 var:to_wire(val),
-                (var.client_set and actor_uid and actor_uid ~= -1)
+                (var.client_set and actor_uid and actor_uid != -1)
                     and storage[actor_uid].cn or msg.ALL_CLIENTS
             }
 
@@ -1215,7 +1215,7 @@ Entity = table2.Object:clone {
         local var = self["_SV_GUI_" .. prop]
         if not var or not var.has_history then return nil end
         local val = self:get_attr(var.name)
-        if val ~= nil then
+        if val != nil then
             return var:to_wire(val)
         end
     end,
@@ -1232,7 +1232,7 @@ Entity = table2.Object:clone {
             if is_svar(var) and var.has_history then
                 local name = var.name
                 local val = self:get_attr(name)
-                if val ~= nil then
+                if val != nil then
                     r[#r + 1] = { var.gui_name or name, var:to_wire(val) }
                 end
             end

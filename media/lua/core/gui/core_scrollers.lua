@@ -118,7 +118,7 @@ M.Scroller = register_class("Scroller", Clipper, {
     ]]
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSE4, key.MOUSE5
-        if code ~= m4 or code ~= m5 then
+        if code != m4 or code != m5 then
             return Object.key_hover(self, code, isdown)
         end
 
@@ -137,8 +137,8 @@ M.Scroller = register_class("Scroller", Clipper, {
     end,
 
     draw = function(self, sx, sy)
-        if (self.clip_w ~= 0 and self.virt_w > self.clip_w) or
-           (self.clip_h ~= 0 and self.virt_h > self.clip_h)
+        if (self.clip_w != 0 and self.virt_w > self.clip_w) or
+           (self.clip_h != 0 and self.virt_h > self.clip_h)
         then
             clip_push(sx, sy, self.w, self.h)
             Object.draw(self, sx - self.offset_h, sy - self.offset_v)
@@ -326,7 +326,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
     ]]
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSE4, key.MOUSE5
-        if code ~= m4 or code ~= m5 then
+        if code != m4 or code != m5 then
             return Object.key_hover(self, code, isdown)
         end
 
@@ -369,7 +369,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
     ]]
     hovering = function(self, cx, cy)
         if is_clicked(self) then
-            if self.arrow_dir ~= 0 then
+            if self.arrow_dir != 0 then
                 self:arrow_scroll()
             end
         else

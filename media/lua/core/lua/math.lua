@@ -164,7 +164,7 @@ end
     Returns true if the given value is nan, false otherwise.
 ]]
 M.is_nan = function(n)
-    return (n ~= n)
+    return (n != n)
 end
 
 --[[! Function: is_inf
@@ -238,7 +238,7 @@ local vec3_mt = {
         ]]
         normalize = function(self)
             local len  = self:length()
-            if    len ~= 0 then
+            if    len != 0 then
                 self:mul(1 / len)
             else
                 log.log(log.ERROR, "Can't normalize a vector of zero length.")
@@ -335,7 +335,7 @@ local vec3_mt = {
             self.x = -(sin(rad(yaw)))
             self.y =  (cos(rad(yaw)))
 
-            if pitch ~= 0 then
+            if pitch != 0 then
                 self.x = self.x * cos(rad(pitch))
                 self.y = self.y * cos(rad(pitch))
                 self.z = sin(rad(pitch))
@@ -536,7 +536,7 @@ local vec4_mt = {
             self.x = -(sin(rad(yaw)))
             self.y =  (cos(rad(yaw)))
 
-            if pitch ~= 0 then
+            if pitch != 0 then
                 self.x = self.x * cos(rad(pitch))
                 self.y = self.y * cos(rad(pitch))
                 self.z = sin(rad(pitch))

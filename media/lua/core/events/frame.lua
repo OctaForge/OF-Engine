@@ -129,7 +129,7 @@ return {
             fun = tocalltable(fun)
         end
 
-        if type(fun) ~= "table" then
+        if type(fun) != "table" then
             return nil
         end
 
@@ -154,12 +154,12 @@ return {
             fun = tocalltable(fun)
         end
 
-        if type(fun) ~= "table" then
+        if type(fun) != "table" then
             return nil
         end
 
         return function(...)
-            if fun.last_frame ~= current_frame then
+            if fun.last_frame != current_frame then
                 fun.last_cached_val = fun(...)
                 fun.last_frame = current_frame
             end

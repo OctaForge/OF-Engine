@@ -200,20 +200,20 @@ local loop_children = function(self, fun)
     if st then
         local s = self:choose_state()
 
-        if s ~= self.current_state then
+        if s != self.current_state then
             self.current_state = s
         end
 
         local w = st[s]
         if w then
             local r = fun(w)
-            if r ~= nil then return r end
+            if r != nil then return r end
         end
     end
 
     for i = 1, #ch do
         local r = fun(ch[i])
-        if    r ~= nil then return r end
+        if    r != nil then return r end
     end
 end
 M.loop_children = loop_children
@@ -230,20 +230,20 @@ local loop_children_r = function(self, fun)
 
     for i = #ch, 1, -1 do
         local r = fun(ch[i])
-        if    r ~= nil then return r end
+        if    r != nil then return r end
     end
 
     if st then
         local s = self:choose_state()
 
-        if s ~= self.current_state then
+        if s != self.current_state then
             self.current_state = s
         end
 
         local w = st[s]
         if w then
             local r = fun(w)
-            if r ~= nil then return r end
+            if r != nil then return r end
         end
     end
 end
@@ -262,7 +262,7 @@ local loop_in_children = function(self, cx, cy, fun)
 
         if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
             local r = fun(o, ox, oy)
-            if    r ~= nil then return r end
+            if    r != nil then return r end
         end
     end)
 end
@@ -278,7 +278,7 @@ local loop_in_children_r = function(self, cx, cy, fun)
 
         if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
             local r = fun(o, ox, oy)
-            if    r ~= nil then return r end
+            if    r != nil then return r end
         end
     end)
 end
@@ -728,14 +728,14 @@ Object = register_class("Object", table2.Object, {
             y = py + ph - h
         end
 
-        if band(a, CLAMP_MASK) ~= 0 then
-            if band(a, CLAMP_LEFT ) ~= 0 then x = px end
-            if band(a, CLAMP_RIGHT) ~= 0 then
+        if band(a, CLAMP_MASK) != 0 then
+            if band(a, CLAMP_LEFT ) != 0 then x = px end
+            if band(a, CLAMP_RIGHT) != 0 then
                 w = px + pw - x
             end
 
-            if band(a, CLAMP_BOTTOM) ~= 0 then y = py end
-            if band(a, CLAMP_TOP   ) ~= 0 then
+            if band(a, CLAMP_BOTTOM) != 0 then y = py end
+            if band(a, CLAMP_TOP   ) != 0 then
                 h = py + ph - y
             end
         end
@@ -894,7 +894,7 @@ Object = register_class("Object", table2.Object, {
     find_child = function(self, otype, name, recurse, exclude)
         recurse = (recurse == nil) and true or recurse
         local o = loop_children(self, function(o)
-            if o ~= exclude and o.type == otype and
+            if o != exclude and o.type == otype and
             (not name or name == o.obj_name) then
                 return o
             end
@@ -902,9 +902,9 @@ Object = register_class("Object", table2.Object, {
         if o then return o end
         if recurse then
             o = loop_children(self, function(o)
-                if o ~= exclude then
+                if o != exclude then
                     local found = o:find_child(otype, name)
-                    if    found ~= nil then return found end
+                    if    found != nil then return found end
                 end
             end)
         end
@@ -918,14 +918,14 @@ Object = register_class("Object", table2.Object, {
         local ch = ret or {}
         recurse = (recurse == nil) and true or recurse
         loop_children(self, function(o)
-            if o ~= exclude and o.type == otype and
+            if o != exclude and o.type == otype and
             (not name or name == o.obj_name) then
                 ch[#ch + 1] = o
             end
         end)
         if recurse then
             loop_children(self, function(o)
-                if o ~= exclude then
+                if o != exclude then
                     o:find_child(otype, name, true, nil, ch)
                 end
             end)
@@ -1075,8 +1075,8 @@ Object = register_class("Object", table2.Object, {
             return 0, 0, 0, 0
         end
 
-        return band(a, CLAMP_LEFT  ) ~= 0, band(a, CLAMP_RIGHT) ~= 0,
-               band(a, CLAMP_BOTTOM) ~= 0, band(a, CLAMP_TOP) ~= 0
+        return band(a, CLAMP_LEFT  ) != 0, band(a, CLAMP_RIGHT) != 0,
+               band(a, CLAMP_BOTTOM) != 0, band(a, CLAMP_TOP) != 0
     end,
 
     --[[! Function: set_floating ]]
@@ -1138,7 +1138,7 @@ Object = register_class("Object", table2.Object, {
         local  w = self.window
         if not w then
             w = self.parent
-            while w and w.type ~= Window.type do
+            while w and w.type != Window.type do
                 w = w.parent
             end
             self.window = w
@@ -1306,7 +1306,7 @@ local World = register_class("World", Object, {
         local sw, sh = var_get("screenw"), var_get("screenh")
         self.size = sh
         local faspect = var_get("aspect")
-        if faspect ~= 0 then sw = ceil(sh * faspect) end
+        if faspect != 0 then sw = ceil(sh * faspect) end
 
         local margin = max((sw/sh - 1) / 2, 0)
         self.x = -margin
@@ -1391,7 +1391,7 @@ local World = register_class("World", Object, {
         local old = self:find_child(Window.type, name, false)
         if old then self:remove(old) end
         self.windows[name](false) -- set visible to false
-        return old ~= nil
+        return old != nil
     end,
 
     --[[! Function: replace_in_window
@@ -1450,8 +1450,8 @@ set_external("cursor_move", function(dx, dy)
             / (var_get("screenw") * scale)), 0, 1)
         cursor_y = clamp(cursor_y + dy / scale, 0, 1)
         if cmode == 2 then
-            if cursor_x ~= 1 and cursor_x ~= 0 then dx = 0 end
-            if cursor_y ~= 1 and cursor_y ~= 0 then dy = 0 end
+            if cursor_x != 1 and cursor_x != 0 then dx = 0 end
+            if cursor_y != 1 and cursor_y != 0 then dy = 0 end
             return false, dx, dy
         end
         return true, dx, dy
@@ -1505,7 +1505,7 @@ end)
 local draw_hud = false
 
 set_external("gui_clear", function()
-    if  var_get("mainmenu") ~= 0 and capi.isconnected() then
+    if  var_get("mainmenu") != 0 and capi.isconnected() then
         var_set("mainmenu", 0, true, false) -- no clamping, readonly var
         world:destroy_children()
         if draw_hud then
@@ -1538,7 +1538,7 @@ set_external("gui_update", function()
 
     local mm = var_get("mainmenu")
 
-    if mm ~= 0 and not world:window_visible("main") and
+    if mm != 0 and not world:window_visible("main") and
     not capi.isconnected(true) then
         world:show_window("main")
     end
@@ -1578,7 +1578,7 @@ end)
 
 set_external("gui_render", function()
     local w = world
-    if draw_hud or #w.children ~= 0 then
+    if draw_hud or #w.children != 0 then
         capi.hudmatrix_ortho(w.x, w.x + w.w, w.y + w.h, w.y, -1, 1)
         capi.hudmatrix_reset()
         capi.shader_hud_set()
@@ -1666,15 +1666,15 @@ M.changes_apply = function()
         changetypes = bor(changetypes, v.ctype)
     end
 
-    if band(changetypes, CHANGE_GFX) ~= 0 then
+    if band(changetypes, CHANGE_GFX) != 0 then
         update_later[#update_later + 1] = { cs.execute, "resetgl" }
     end
 
-    if band(changetypes, CHANGE_SOUND) ~= 0 then
+    if band(changetypes, CHANGE_SOUND) != 0 then
         update_later[#update_later + 1] = { cs.execute, "resetsound" }
     end
 
-    if band(changetypes, CHANGE_SHADERS) ~= 0 then
+    if band(changetypes, CHANGE_SHADERS) != 0 then
         update_later[#update_later + 1] = { cs.execute, "resetshaders" }
     end
 end

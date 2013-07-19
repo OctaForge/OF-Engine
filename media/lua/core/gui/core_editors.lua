@@ -142,7 +142,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
         local sx, sy, ex, ey
 
         local  n = #self.lines
-        assert(n ~= 0)
+        assert(n != 0)
 
         local cx, cy, mx, my = self.cx, self.cy, self.mx, self.my
 
@@ -161,13 +161,13 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
         self.cx, self.cy, self.mx, self.my = cx, cy, mx, my
 
-        return ((sx ~= ex) or (sy ~= ey)), sx, sy, ex, ey
+        return ((sx != ex) or (sy != ey)), sx, sy, ex, ey
     end,
 
     -- also ensures that cy is always within lines[] and cx is valid
     current_line = function(self)
         local  n = #self.lines
-        assert(n ~= 0)
+        assert(n != 0)
 
         if     self.cy <  0 then self.cy = 0
         elseif self.cy >= n then self.cy = n - 1 end
@@ -627,7 +627,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
     reset_value = function(self)
         local ival = self.init_value
-        if ival and ival ~= self.lines[1] then
+        if ival and ival != self.lines[1] then
             self:edit_clear(ival)
         end
     end,
@@ -849,7 +849,7 @@ M.Field = register_class("Field", Text_Editor, {
     ]]
     reset_value = function(self)
         local str = self.value
-        if self.lines[1] ~= str then self:edit_clear(str) end
+        if self.lines[1] != str then self:edit_clear(str) end
     end,
 
     --[[! Function: set_value ]]
@@ -875,7 +875,7 @@ capi.external_set("input_text", function(str)
 end)
 
 M.set_text_handler(function(focused)
-    local wastextediting = (textediting ~= nil)
+    local wastextediting = (textediting != nil)
 
     if textediting and not is_focused(textediting) then
         textediting:commit()
@@ -887,8 +887,8 @@ M.set_text_handler(function(focused)
         textediting = focused
     end
 
-    if refreshrepeat ~= 0 or (textediting ~= nil) ~= wastextediting then
-        local c = textediting ~= nil
+    if refreshrepeat != 0 or (textediting != nil) != wastextediting then
+        local c = textediting != nil
         capi.input_textinput(c, blsh(1, 1)) -- TI_GUI
         capi.input_keyrepeat(c, blsh(1, 1)) -- KR_GUI
         refreshrepeat = 0

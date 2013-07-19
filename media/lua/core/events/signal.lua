@@ -50,7 +50,7 @@ local M = {}
     (end)
 ]]
 M.connect = function(self, name, callback)
-    if type(callback) ~= "function" then
+    if type(callback) != "function" then
         log.log(log.ERROR, "Not connecting non-function callback: " .. name)
         return nil
     end
@@ -90,7 +90,7 @@ M.disconnect = function(self, name, id)
             if cb then cb(self, name) end
             return 0
         end
-        if type(id) ~= "number" then
+        if type(id) != "number" then
             id = tfind(clist, id)
         end
         if id and id <= #clist then

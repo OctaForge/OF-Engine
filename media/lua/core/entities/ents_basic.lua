@@ -403,12 +403,12 @@ local Character = Entity:clone {
             if val == 0 then return nil end
             self:set_attr("physics_trigger", 0)
 
-            local pos = (self ~= ents.get_player())
+            local pos = (self != ents.get_player())
                 and self:get_attr("position") or nil
 
             local lst = band(val, MASK_LIQUID)
             if lst == FLAG_ABOVELIQUID then
-                if band(val, MASK_MAT) ~= FLAG_LAVA then
+                if band(val, MASK_MAT) != FLAG_LAVA then
                     sound.play("yo_frankie/amb_waterdrip_2.wav", pos)
                 end
             elseif lst == FLAG_BELOWLIQUID then
@@ -448,7 +448,7 @@ local Character = Entity:clone {
 
         local ra = self.render_args
         local fr = frame.get_frame()
-        if self.render_args_timestamp ~= fr then
+        if self.render_args_timestamp != fr then
             local state = self:get_attr("client_state")
             -- spawning or spectator
             if state == 5 or state == 2 then return nil end
@@ -489,7 +489,7 @@ local Character = Entity:clone {
                 mdn, anim, animflags, o, yaw, pitch, roll, flags, bt
             self.render_args_timestamp = fr
         end
-        if (ra and ra[2] ~= "") then model.render(unpack(ra)) end
+        if (ra and ra[2] != "") then model.render(unpack(ra)) end
     end or nil,
 
     --[[! Function: get_render_flags
@@ -501,7 +501,7 @@ local Character = Entity:clone {
     ]]
     get_render_flags = (not SERVER) and function(self, hudpass, needhud)
         local flags = model.render_flags.FULLBRIGHT
-        if self ~= ents.get_player() then
+        if self != ents.get_player() then
             flags = bor(model.render_flags.CULL_VFC,
                 model.render_flags.CULL_OCCLUDED,
                 model.render_flags.CULL_QUERY)
@@ -545,7 +545,7 @@ local Character = Entity:clone {
             panim = bor(anims["lag"], animctl["loop"])
         else
             -- in water and floating or falling
-            if inwater ~= 0 and pstate <= 1 then
+            if inwater != 0 and pstate <= 1 then
                 sanim = bor(((move or strafe) or ((vel.z + falling.z) > 0))
                     and anims["swim"] or anims["sink"],
                 animctl["loop"])
@@ -553,10 +553,10 @@ local Character = Entity:clone {
             elseif tinair > 250 then
                 sanim = bor(anims["jump"], animctl["end"])
             -- moving or strafing
-            elseif move ~= 0 or strafe ~= 0 then
+            elseif move != 0 or strafe != 0 then
                 if move > 0 then
                     sanim = bor(anims["forward"], animctl["loop"])
-                elseif strafe ~= 0 then
+                elseif strafe != 0 then
                     sanim = bor((strafe > 0 and anims["left"]
                         or anims["right"]), animctl["loop"])
                 elseif move < 0 then
@@ -564,7 +564,7 @@ local Character = Entity:clone {
                 end
             end
 
-            if crouching ~= 0 then
+            if crouching != 0 then
                 local v = band(sanim, anims["index"])
                 if v == anims["idle"] then
                     sanim = band(sanim, bnot(anims["index"]))
@@ -588,7 +588,7 @@ local Character = Entity:clone {
             end
 
             if band(panim, anims["index"]) == anims["idle"] and
-               band(sanim, anims["index"]) ~= 0 then
+               band(sanim, anims["index"]) != 0 then
                 panim = sanim
             end
         end

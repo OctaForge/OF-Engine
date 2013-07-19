@@ -32,8 +32,7 @@ env_package.loaders = {
         end
         return v
     end,
-    package.loaders[2],
-    package.loaders[3]
+    package.loaders[2]
 }
 
 local find_loader = function(modname, env)
@@ -55,14 +54,14 @@ end
 local gen_require = function(env)
     return function(modname)
         local v = env_package.loaded[modname]
-        if v ~= nil then return v end
+        if v != nil then return v end
         local  loader, err = find_loader(modname, env)
         if not loader then
             error(err, 2)
         end
         local ret    = loader(modname)
         local loaded = env_package.loaded
-        if ret ~= nil then
+        if ret != nil then
             loaded[modname] = ret
             return ret
         elseif loaded[modname] == nil then

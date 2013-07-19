@@ -388,7 +388,7 @@ Array_Surrogate = {
             return Array_Surrogate[name] or rawget(self.rawt, name)
         end
         local i = floor(n)
-        if i ~= n then
+        if i != n then
             return Array_Surrogate[name] or rawget(self.rawt, name)
         end
 
@@ -407,7 +407,7 @@ Array_Surrogate = {
         local n = tonumber(name)
         if not n then return rawset(self.rawt, name, val) end
         local i = floor(n)
-        if i ~= n then return rawset(self.rawt, name, val) end
+        if i != n then return rawset(self.rawt, name, val) end
 
         local v = self.variable
         v:set_item(self.entity, i, val)

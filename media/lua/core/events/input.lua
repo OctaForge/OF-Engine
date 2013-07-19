@@ -192,7 +192,7 @@ M.set_event = function(en, fun)
     end
     assert(type(fun) == "function")
     local ret = get_ext(en)
-    if old == true and en ~= "input_mouse_move" then event_map[en] = ret end
+    if old == true and en != "input_mouse_move" then event_map[en] = ret end
     set_ext(en, fun)
     return ret
 end

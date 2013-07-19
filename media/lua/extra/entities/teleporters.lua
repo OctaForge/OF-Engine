@@ -73,7 +73,7 @@ M.Teleporter = Obstacle:clone {
         end
         dests[rand(1, #dests)]:place_entity(collider)
         local sn = self:get_attr("sound_name")
-        if sn ~= "" then play(sn) end
+        if sn != "" then play(sn) end
     end,
 
     get_attached_next = function(self)

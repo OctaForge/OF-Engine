@@ -208,7 +208,7 @@ local Slider = register_class("Slider", Object, {
     ]]
     hovering = function(self, cx, cy)
         if is_clicked(self) then
-            if self.arrow_dir ~= 0 then
+            if self.arrow_dir != 0 then
                 self:arrow_scroll()
             end
         else

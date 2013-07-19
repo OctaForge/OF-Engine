@@ -196,7 +196,7 @@ M.Table = register_class("Table", Object, {
             end
         end)
 
-        if column ~= 1 then
+        if column != 1 then
             p_h = p_h + heights[row]
         end
 
@@ -275,8 +275,8 @@ M.Clipper = register_class("Clipper", Object, {
 
         local cw, ch = self.clip_w, self.clip_h
 
-        if cw ~= 0 then self.w = min(self.w, cw) end
-        if ch ~= 0 then self.h = min(self.h, ch) end
+        if cw != 0 then self.w = min(self.w, cw) end
+        if ch != 0 then self.h = min(self.h, ch) end
     end,
 
     adjust_children = function(self)
@@ -286,7 +286,7 @@ M.Clipper = register_class("Clipper", Object, {
     draw = function(self, sx, sy)
         local cw, ch = self.clip_w, self.clip_h
 
-        if (cw ~= 0 and self.virt_w > cw) or (ch ~= 0 and self.virt_h > ch)
+        if (cw != 0 and self.virt_w > cw) or (ch != 0 and self.virt_h > ch)
         then
             clip_push(sx, sy, self.w, self.h)
             Object.draw(self, sx, sy)

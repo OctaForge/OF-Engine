@@ -75,7 +75,7 @@ M.Mover = register_class("Mover", Object, {
         local c = w.parent.children
         local n = find(c, w)
         local l = #c
-        if n ~= l then c[l], c[n] = w, c[l] end
+        if n != l then c[l], c[n] = w, c[l] end
         return self:target(cx, cy) and self
     end,
 

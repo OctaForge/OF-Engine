@@ -139,7 +139,7 @@ local check_alpha_mask = function(tex, x, y)
                    clamp(floor(y * ys), 0, ys - 1)
 
     local m = tex:get_alphamask(ty * ((xs + 7) / 8))
-    if band(m, blsh(1, tx % 8)) ~= 0 then
+    if band(m, blsh(1, tx % 8)) != 0 then
         return true
     end
 
@@ -220,10 +220,10 @@ local Image = register_class("Image", Filler, {
         capi.shader_hud_set_variant(tex)
         capi.gl_bind_texture(tex)
 
-        if minf and minf ~= 0 then
+        if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf ~= 0 then
+        if magf and magf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -337,10 +337,10 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         capi.shader_hud_set_variant(tex)
         capi.gl_bind_texture(tex)
 
-        if minf and minf ~= 0 then
+        if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf ~= 0 then
+        if magf and magf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -419,10 +419,10 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         capi.shader_hud_set_variant(tex)
         capi.gl_bind_texture(tex)
 
-        if minf and minf ~= 0 then
+        if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf ~= 0 then
+        if magf and magf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -434,8 +434,8 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
 
         local mw, mh, pw, ph = self.min_w, self.min_h, self.w, self.h
 
-        local splitw = (mw ~= 0 and min(mw, pw) or pw) / 2
-        local splith = (mh ~= 0 and min(mh, ph) or ph) / 2
+        local splitw = (mw != 0 and min(mw, pw) or pw) / 2
+        local splith = (mh != 0 and min(mh, ph) or ph) / 2
         local vy, ty = sy, 0
 
         for i = 1, 3 do
@@ -537,10 +537,10 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         capi.shader_hud_set_variant(tex)
         capi.gl_bind_texture(tex)
 
-        if minf and minf ~= 0 then
+        if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf ~= 0 then
+        if magf and magf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -623,10 +623,10 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         capi.shader_hud_set_variant(tex)
         capi.gl_bind_texture(tex)
 
-        if minf and minf ~= 0 then
+        if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf ~= 0 then
+        if magf and magf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -636,7 +636,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
 
         -- we cannot use the built in OpenGL texture
         -- repeat with clamped textures
-        if tex:get_clamp() ~= 0 then
+        if tex:get_clamp() != 0 then
             local dx, dy = 0, 0
             capi.gle_defvertex(2)
             capi.gle_deftexcoord0(2)
@@ -793,7 +793,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         local a = kwargs.anim
         local aprim = bor(a[1], animctl["loop"])
         local asec  = a[2]
-        if asec and asec ~= 0 then asec = bor(asec, animctl["loop"]) end
+        if asec and asec != 0 then asec = bor(asec, animctl["loop"]) end
 
         self.anim = { aprim, asec }
         self.attachments = kwargs.attachments or {}

@@ -63,14 +63,12 @@ local capi = require("capi")
 
 capi.log(1, "Initializing logging.")
 
-local log = require("core.logger")
+local parse = require("core.luacy.parser").parse
 
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
 
-local parse = require("core.luacy.parser").parse
-
-table.insert(package.loaders, 2, function(modname, ppath)
+package.loaders[2] = function(modname, ppath)
     local  fname, err = spath(modname, ppath or package.path)
     if not fname then return err end
     local file = io_open(fname, "rb")
@@ -83,7 +81,9 @@ table.insert(package.loaders, 2, function(modname, ppath)
             .. fname .. "':\n" .. err, 2)
     end
     return f
-end)
+end
+
+local log = require("core.logger")
 
 log.log(log.DEBUG, "Initializing the core library.")
 

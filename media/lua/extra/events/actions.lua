@@ -62,7 +62,7 @@ M.Action_Parallel = Action:clone {
     run = function(self, millis)
         local systems = filter(self.action_systems, function(i, actsys)
             actsys:run(millis)
-            return #actsys:get() ~= 0
+            return #actsys:get() != 0
         end)
         self.action_systems = systems
         return Action.run(self, millis) and #systems == 0

@@ -125,19 +125,19 @@ local Action = table2.Object:clone {
         if not self.begun then
             self.priv_start(self)
 
-            if self.animation ~= false then
+            if self.animation != false then
                 self.last_animation = self.actor:get_attr("animation")
                     :to_array()
                 local sanim = self.animation
                 local aanim = self.actor:get_attr("animation")
-                if sanim[1] ~= aanim[1] or sanim[2] ~= aanim[2] then
+                if sanim[1] != aanim[1] or sanim[2] != aanim[2] then
                     self.actor:set_attr("animation", sanim)
                 end
             end
-            if self.animation_flags ~= false then
+            if self.animation_flags != false then
                 self.last_animflags = self.actor:get_attr("animation_flags")
                 if self.actor:get_attr("animation_flags")
-                ~= self.animation_flags then
+                != self.animation_flags then
                     self.actor:set_attr("animation_flags",
                         self.animation_flags)
                 end
@@ -196,16 +196,16 @@ local Action = table2.Object:clone {
     priv_finish = function(self)
         self.finished = true
 
-        if self.animation and self.last_animation ~= nil then
+        if self.animation and self.last_animation != nil then
             local lanim = self.last_animation
             local aanim = self.actor:get_attr("animation")
-            if lanim[1] ~= aanim[1] or lanim[2] ~= aanim[2] then
+            if lanim[1] != aanim[1] or lanim[2] != aanim[2] then
                 self.actor:set_attr("animation", lanim)
             end
         end
-        if self.animation_flags and self.last_animflags ~= nil then
+        if self.animation_flags and self.last_animflags != nil then
             if self.actor:get_attr("animation_flags")
-            ~= self.last_animflags then
+            != self.last_animflags then
                 self.actor:set_attr("animation_flags", self.last_animflags)
             end
         end

@@ -372,7 +372,7 @@ local lex_get = function(ls)
         if c == "\n" or c == "\r" then
             local prev = c
             c = ls.rdr()
-            if (c == "\n" or c == "\r") and c ~= prev then
+            if (c == "\n" or c == "\r") and c != prev then
                 c = ls.rdr()
             end
             ls.curr = c
@@ -396,7 +396,7 @@ local lex_get = function(ls)
             local d = ls.curr
             ls.curr = ls.rdr()
             local buf = {}
-            while ls.curr ~= d do
+            while ls.curr != d do
                 local c = ls.curr
                 if c == nil then
                     error(("%d: unfinished string near '<eos>'")
@@ -479,7 +479,7 @@ end
 
 local function assert_tok(ls, tok, ...)
     if not tok then return nil end
-    if ls.tname ~= tok then
+    if ls.tname != tok then
         error(("%d: unexpected symbol near '%s'"):format(ls.linenum,
             ls.tname), 0)
     end
@@ -517,7 +517,7 @@ local function parse(ls)
             else
                 tbl[#tbl + 1] = parse(ls)
             end
-        until (ls.tname ~= "," and ls.tname ~= ";") or not lex_get(ls)
+        until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
         assert_tok(ls, "}")
         return tbl
     end
@@ -553,7 +553,7 @@ local sift_down = function(tbl, l, s, e, fun)
         if child + 1 <= e and fun(tbl[swap], tbl[child + 1]) then
             swap = child + 1
         end
-        if swap ~= root then
+        if swap != root then
             tbl[root], tbl[swap] = tbl[swap], tbl[root]
             root = swap
         else
