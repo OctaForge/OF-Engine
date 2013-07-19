@@ -120,10 +120,10 @@ local enum2 = {:
 Enumeration tables don't follow the same syntax sugar when it comes to calls
 as regular tables.
 
-## Alternative syntax for inequality
+## New syntax for inequality
 
-You can now use `!=` as an alternative for `~=`. That's useful particularly
-on certain keyboard layouts where you don't have direct access to `~`.
+You should now use `!=` instead of `~=`. The old version still works, but it's
+there purely to provide Lua source compatibility.
 
 ## Debug statement
 
@@ -157,7 +157,7 @@ from lowest to highest.
     <td>and</td><td>left</td>
   </tr>
   <tr>
-    <td>==, ~=, !=, &lt;, &lt;=, &gt;, &gt;=</td><td>left</td>
+    <td>==, !=, &lt;, &lt;=, &gt;, &gt;=</td><td>left</td>
   </tr>
   <tr>
     <td>..</td><td>right</td>
