@@ -37,13 +37,13 @@ local init = function(ls, debug)
         expand = function(cs, num)
             local lines = cs.lines
             while #lines < num do
-                lines[#lines + 1] = { "" }
+                lines[#lines + 1] = {}
             end
         end,
         build = function(cs)
             local lines = cs.lines
             for i = 1, #lines do
-                lines[i] = tconc(lines[i], "")
+                lines[i] = tconc(lines[i])
             end
             return tconc(lines, "\n")
         end
