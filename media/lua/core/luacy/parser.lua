@@ -70,7 +70,7 @@ local Right_Ass = {
 }
 
 local Unary_Ops = {
-    ["-"] = 11, ["not"] = 11, ["!"] = 11, ["#"] = 11
+    ["-"] = 11, ["not"] = 11, ["~"] = 11, ["#"] = 11
 }
 
 local parse_expr
@@ -383,7 +383,7 @@ sexps["false"] = sexps["nil"]
 sexps["..."  ] = sexps["nil"]
 
 local bitunops = {
-    ["!"] = "bit.bnot"
+    ["~"] = "bit.bnot"
 }
 
 local parse_simple_expr = function(ls, cs)
