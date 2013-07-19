@@ -449,7 +449,6 @@ local use_bitop = function(cs, bitop)
 end
 
 parse_subexpr = function(ls, cs, mp)
-    mp = mp or 1
     local tok  = ls.token
     local line = ls.line_number
     local ln   = cs.lines[line]
@@ -476,7 +475,7 @@ parse_subexpr = function(ls, cs, mp)
 end
 
 parse_expr = function(ls, cs)
-    parse_subexpr(ls, cs)
+    parse_subexpr(ls, cs, 1)
 end
 
 local parse_name_list = function(ls, cs)
@@ -502,15 +501,15 @@ local block_follow = {
 local parse_stat
 
 parse_chunk = function(ls, cs)
-    local last = false
     local tok = ls.token
-    while not last and not block_follow[tok.name] do
-        last = parse_stat(ls, cs)
+    if block_follow[tok.name] then return nil end
+    repeat
+        local last = parse_stat(ls, cs)
         if tok.name == ";" then
             cs:append(tok.name)
             ls:get()
         end
-    end
+    until last or block_follow[tok.name]
 end
 
 local parse_assignment = function(ls, cs)
@@ -755,8 +754,11 @@ local stat_opts = {
         end
     end,
     ["goto"] = function(ls, cs)
-        ((ls:lookahead() == "<name>") and parse_goto_stat
-            or parse_expr_stat)(ls, cs)
+        if ls:lookahead() == "<name>" then
+            return parse_goto_stat(ls, cs)
+        else
+            return parse_expr_stat(ls, cs)
+        end
     end,
     ["debug"] = function(ls, cs)
         local lah = ls:lookahead()
@@ -784,7 +786,12 @@ local stat_opts = {
 }
 
 parse_stat = function(ls, cs)
-    (stat_opts[ls.token.name] or parse_expr_stat)(ls, cs, ls.line_number)
+    local opt = stat_opts[ls.token.name]
+    if opt then
+        return opt(ls, cs, ls.line_number)
+    else
+        return parse_expr_stat(ls, cs)
+    end
 end
 
 local parse = function(fname, input, debug)

@@ -416,7 +416,10 @@ local lex = function(ls, tok)
     while true do
         local c = ls.current
         if c == nil then return "<eof>" end
-        local v = (lextbl[c] or lex_default)(ls, tok)
+        local opt = lextbl[c]
+        local v
+        if opt then v = opt(ls, tok)
+        else        v = lex_default(ls, tok) end
         if v then return v end
     end
 end

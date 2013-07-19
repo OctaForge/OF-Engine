@@ -6,6 +6,7 @@
 
 local tconc = table.concat
 local space = " "
+local tinsert = table.insert
 
 local init = function(ls, debug)
     return {
@@ -13,29 +14,25 @@ local init = function(ls, debug)
         lines = {},
         debug = debug,
         enabled = true,
-        generate = function(cs, tp, line, ...)
-            generators[tp](cs, line or cs.ls.line_number, ...)
-        end,
         append = function(cs, str, idkw, line)
             line = line or cs.ls.line_number
-            if idkw == true then idkw = line end
             cs.last_append = line
             local lines = cs.lines
             if #lines < line then
                 cs:expand(line)
             end
             if not cs.enabled then return nil end
-            local ln = lines[line]
+            if idkw == true then idkw = line end
             if idkw then
                 if cs.was_idkw == idkw then
-                    ln[#ln + 1] = space
+                    tinsert(lines[line], space)
                 else
                     cs.was_idkw = idkw
                 end
             else
                 cs.was_idkw = nil
             end
-            ln[#ln + 1] = str
+            tinsert(lines[line], str)
         end,
         expand = function(cs, num)
             local lines = cs.lines
