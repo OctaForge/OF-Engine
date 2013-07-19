@@ -9,11 +9,12 @@ local tonumber = tonumber
 local assert = assert
 local strchar = string.char
 
+local bytemap = {}
+for i = 0, 255 do bytemap[i] = strchar(i) end
+
 local strstream
 if package.preload["ffi"] then
     local ffi = require("ffi")
-    local bytemap = {}
-    for i = 0, 255 do bytemap[i] = strchar(i) end
     strstream = function(str)
         local len = #str
         local cstr = ffi.new("char[?]", len + 1, str)
@@ -21,63 +22,63 @@ if package.preload["ffi"] then
         return function()
             i = i + 1
             if i >= len then return nil end
-            return bytemap[cstr[i]]
+            return cstr[i]
         end
     end
 else
     strstream = function(str)
-        return str:gmatch(".")
+        local i = 0
+        return function()
+            i = i + 1
+            return str:byte(i)
+        end
     end
 end
 
-local Keywords = {
-    ["and"     ] = true, ["break"   ] = true, ["continue"] = true,
-    ["debug"   ] = true, ["do"      ] = true, ["else"    ] = true,
-    ["elseif"  ] = true, ["end"     ] = true, ["false"   ] = true,
-    ["for"     ] = true, ["function"] = true, ["goto"    ] = true,
-    ["if"      ] = true, ["in"      ] = true, ["local"   ] = true,
-    ["nil"     ] = true, ["not"     ] = true, ["or"      ] = true,
-    ["repeat"  ] = true, ["return"  ] = true, ["then"    ] = true,
-    ["true"    ] = true, ["until"   ] = true, ["while"   ] = true
-}
+local Tokens = {
+    ["and"     ] = 256, ["break"   ] = 257, ["continue"] = 258,
+    ["debug"   ] = 259, ["do"      ] = 260, ["else"    ] = 261,
+    ["elseif"  ] = 262, ["end"     ] = 263, ["false"   ] = 264,
+    ["for"     ] = 265, ["function"] = 266, ["goto"    ] = 267,
+    ["if"      ] = 268, ["in"      ] = 269, ["local"   ] = 270,
+    ["nil"     ] = 271, ["not"     ] = 272, ["or"      ] = 273,
+    ["repeat"  ] = 274, ["return"  ] = 275, ["then"    ] = 276,
+    ["true"    ] = 277, ["until"   ] = 278, ["while"   ] = 279,
 
--- protected from the GC this way
-local tokens = { "..", "...", "==", ">=", "<=", "~=", "::",
-    "<number>", "<name>", "<string>", "<eof>"
+    [".."] = 280, ["..."] = 281, ["=="] = 282, [">="] = 283,
+    ["<="] = 284, ["~=" ] = 285, ["!="] = 286, ["::"] = 287,
+    ["{:"] = 288, [":}" ] = 289, ["^^"] = 300, ["<<"] = 301,
+    [">>"] = 302, [">>>"] = 303
 }
 
 local is_newline = function(c)
-    return c == "\n" or c == "\r"
+    return c == 10 or c == 13 -- LF CR
 end
 
 local is_white = function(c)
-    return c == " " or c == "\t" or c == "\f" or c == "\v"
+    return c == 32 or c == 9 or c == 11 or c == 12 -- space, \t, \v, \f
 end
 
-local is_alpha = function(ch)
-    if not ch then return false end
-    local   i = ch:byte()
-    return (i >= 65 and i <= 90) or (i >= 97 and i <= 122)
+local is_alpha = function(c)
+    if not c then return false end
+    return (c >= 65 and c <= 90) or (c >= 97 and c <= 122)
 end
 
-local is_alnum = function(ch)
-    if not ch then return false end
-    local   i = ch:byte()
-    return (i >= 48 and i <= 57) or (i >= 65 and i <= 90)
-        or (i >= 97 and i <= 122)
+local is_alnum = function(c)
+    if not c then return false end
+    return (c >= 48 and c <= 57) or (c >= 65 and c <= 90)
+        or (c >= 97 and c <= 122)
 end
 
-local is_digit = function(ch)
-    if not ch then return false end
-    local   i = ch:byte()
-    return (i >= 48 and i <= 57)
+local is_digit = function(c)
+    if not c then return false end
+    return (c >= 48 and c <= 57)
 end
 
-local is_hex_digit = function(ch)
-    if not ch then return false end
-    local i = ch:byte()
-    return (i >= 48 and i <= 57) or (i >= 65 and i <= 70)
-        or (i >= 97 and i <= 102)
+local is_hex_digit = function(c)
+    if not c then return false end
+    return (c >= 48 and c <= 57) or (c >= 65 and c <= 70)
+        or (c >= 97 and c <= 102)
 end
 
 local lex_error = function(ls, msg, tok)
@@ -110,27 +111,27 @@ local next_line = function(ls, cs)
 end
 
 local read_number = function(ls, tok, buf)
-    local exp = { "E", "e" }
+    local exp = { 69, 101 } -- E, e
     local first = ls.current
     assert(is_digit(first))
-    buf[#buf + 1] = first
+    buf[#buf + 1] = bytemap[first]
     local c = next_char(ls)
-    if first == "0" and (c == "X" or c == "x") then
-        buf[#buf + 1] = c
+    if first == 48 and (c == 88 or c == 120) then -- 0, X, x
+        buf[#buf + 1] = bytemap[c]
         c = next_char(ls)
-        exp = { "P", "p" }
+        exp = { 80, 112 } -- P, p
     end
     while true do
         if c == exp[1] or c == exp[2] then
-            buf[#buf + 1] = c
+            buf[#buf + 1] = bytemap[c]
             c = next_char(ls)
-            if c == "+" or c == "-" then
-                buf[#buf + 1] = c
+            if c == 43 or c == 45 then -- +, -
+                buf[#buf + 1] = bytemap[c]
                 c = next_char(ls)
             end
         end
-        if is_hex_digit(c) or c == "." then
-            buf[#buf + 1] = c
+        if is_hex_digit(c) or c == 46 then -- .
+            buf[#buf + 1] = bytemap[c]
             c = next_char(ls)
         else
             break
@@ -147,11 +148,12 @@ end
 local skip_sep = function(ls, buf)
     local cnt = 0
     local s = ls.current
-    assert(s == "[" or s == "]")
-    buf[#buf + 1] = s
+    assert(s == 91 or s == 93) -- [ ]
+    buf[#buf + 1] = bytemap[s]
     local c = next_char(ls)
-    while c == "=" do
-        buf[#buf + 1] = c
+    local eqs = bytemap[61]
+    while c == 61 do -- =
+        buf[#buf + 1] = eqs
         c = next_char(ls)
         cnt = cnt + 1
     end
@@ -161,25 +163,25 @@ end
 local read_long_string = function(ls, tok, sep, buf)
     buf = buf or {}
     local c = ls.current
-    if tok then buf[#buf + 1] = c end
+    if tok then buf[#buf + 1] = bytemap[c] end
     c = next_char(ls)
     if is_newline(c) then c = next_line(ls) end
     while true do
         if not c then
             lex_error(ls, tok and "unfinished long string"
                 or "unfinished long comment", "<eof>")
-        elseif c == "]" then
+        elseif c == 93 then -- ]
             if skip_sep(ls, buf) == sep then
-                if tok then buf[#buf + 1] = ls.current end
+                if tok then buf[#buf + 1] = bytemap[ls.current] end
                 c = next_char(ls)
                 break
             end
             c = ls.current
-        elseif c == "\n" or c == "\r" then
-            if tok then buf[#buf + 1] = "\n" end
+        elseif is_newline(c) then
+            if tok then buf[#buf + 1] = bytemap[10] end -- LF
             c = next_line(ls)
         else
-            if tok then buf[#buf + 1] = c end
+            if tok then buf[#buf + 1] = bytemap[c] end
             c = next_char(ls)
         end
     end
@@ -192,12 +194,15 @@ end
 
 local read_hex_esc = function(ls)
     local buf = { "0x" }
+    local err = "x"
     for i = 2, 3 do
         local c = next_char(ls)
         if not is_hex_digit(c) then
-            esc_error(ls, "x" .. c, "hexadecimal digit expected")
+            esc_error(ls, err, "hexadecimal digit expected")
         end
-        buf[i] = c
+        local x = bytemap[c]
+        err = err .. x
+        buf[i] = x
     end
     return "\\" .. tonumber(tconc(buf))
 end
@@ -206,7 +211,7 @@ local read_dec_esc = function(ls)
     local buf = {}
     local c = ls.current
     for i = 1, 3 do
-        buf[i] = c
+        buf[i] = bytemap[c]
         c = next_char(ls)
         if not is_digit(c) then break end
     end
@@ -219,39 +224,39 @@ local read_dec_esc = function(ls)
 end
 
 local esc_opts = {
-    ["a"] = "\\a",
-    ["b"] = "\\b",
-    ["f"] = "\\f",
-    ["n"] = "\\n",
-    ["r"] = "\\r",
-    ["t"] = "\\t",
-    ["v"] = "\\v"
+    [97] = "\\a",
+    [98] = "\\b",
+    [102] = "\\f",
+    [110] = "\\n",
+    [114] = "\\r",
+    [116] = "\\t",
+    [118] = "\\v"
 }
 
 local read_string = function(ls, tok)
     local delim = ls.current
-    local buf = { delim }
+    local buf = { bytemap[delim] }
     local c = next_char(ls)
     while c ~= delim do
         if not c then lex_error(ls, "unfinished string", "<eof>")
-        elseif c == "\n" or c == "\r" then
+        elseif is_newline(c) then
             lex_error(ls, "unfinished string", tconc(buf))
-        elseif c == "\\" then
+        elseif c == 92 then -- \
             c = next_char(ls)
             local esc = esc_opts[c]
             if esc then
                 buf[#buf + 1] = esc
                 c = next_char(ls)
-            elseif c == "x" then
+            elseif c == 120 then -- x
                 buf[#buf + 1] = read_hex_esc(ls)
                 c = next_char(ls)
-            elseif c == "\n" or c == "\r" then
+            elseif is_newline(c) then
                 c = next_line(ls)
                 buf[#buf + 1] = "\\\n"
-            elseif c == "\\" or c == '"' or c == "'" then
-                buf[#buf + 1] = "\\" .. c
+            elseif c == 92 or c == 34 or c == 39 then -- \, ", '
+                buf[#buf + 1] = "\\" .. bytemap[c]
                 c = next_char(ls)
-            elseif c == "z" then
+            elseif c == 122 then -- z
                 c = next_char(ls)
                 while is_white(c) do
                     c = (is_newline(c) and next_line or next_char)(ls)
@@ -264,23 +269,23 @@ local read_string = function(ls, tok)
                 c = ls.current
             end
         else
-            buf[#buf + 1] = c
+            buf[#buf + 1] = bytemap[c]
             c = next_char(ls)
         end
     end
-    buf[#buf + 1] = c
+    buf[#buf + 1] = bytemap[c]
     next_char(ls)
     tok.value = tconc(buf)
 end
 
 local lextbl = {
-    ["\n"] = function(ls) next_line(ls) end,
-    [" " ] = function(ls) next_char(ls) end,
-    ["-" ] = function(ls)
+    [10] = function(ls) next_line(ls) end, -- LF
+    [32] = function(ls) next_char(ls) end, -- space
+    [45] = function(ls) -- -
         local c = next_char(ls)
-        if c ~= "-" then return "-" end
+        if c ~= 45 then return "-" end
         c = next_char(ls)
-        if c == "[" then
+        if c == 91 then -- [
             local sep = skip_sep(ls, {})
             if sep >= 0 then
                 read_long_string(ls, nil, sep)
@@ -289,7 +294,7 @@ local lextbl = {
         end
         while ls.current and not is_newline(ls.current) do next_char(ls) end
     end,
-    ["["] = function(ls, tok)
+    [91] = function(ls, tok) -- [
         local buf = {}
         local sep = skip_sep(ls, buf)
         if sep >= 0 then
@@ -298,61 +303,61 @@ local lextbl = {
         elseif sep == -1 then return "["
         else lex_error(ls, "invalid long string delimiter", tconc(buf)) end
     end,
-    ["="] = function(ls)
+    [61] = function(ls) -- =
         local c = next_char(ls)
-        if c ~= "=" then return "="
+        if c ~= 61 then return "="
         else next_char(ls); return "==" end
     end,
-    ["<"] = function(ls)
+    [60] = function(ls) -- <
         local c = next_char(ls)
-        if     c == "<" then next_char(ls); return "<<"
-        elseif c == "=" then next_char(ls); return "<="
+        if     c == 60 then next_char(ls); return "<<"
+        elseif c == 61 then next_char(ls); return "<="
         else return "<" end
     end,
-    [">"] = function(ls)
+    [62] = function(ls) -- >
         local c = next_char(ls)
-        if c == ">" then
+        if c == 62 then
             c = next_char(ls)
-            if c ~= ">" then return ">>"
+            if c ~= 62 then return ">>"
             else next_char(ls); return ">>>" end
-        elseif c == "=" then next_char(ls); return ">="
+        elseif c == 61 then next_char(ls); return ">="
         else return ">" end
     end,
-    ["~"] = function(ls)
+    [126] = function(ls) -- ~
         local c = next_char(ls)
-        if c ~= "=" then return "~"
+        if c ~= 61 then return "~"
         else next_char(ls); return "~=" end
     end,
-    ["!"] = function(ls)
+    [33] = function(ls) -- !
         local c = next_char(ls)
-        if c ~= "=" then return "!"
+        if c ~= 61 then return "!"
         else next_char(ls); return "!=" end
     end,
-    ["^"] = function(ls)
+    [94] = function(ls) -- ^
         local c = next_char(ls)
-        if c ~= "^" then return "^"
+        if c ~= 94 then return "^"
         else next_char(ls); return "^^" end
     end,
-    ["{"] = function(ls)
+    [123] = function(ls) -- {
         local c = next_char(ls)
-        if c ~= ":" then return "{"
+        if c ~= 58 then return "{" -- :
         else next_char(ls); return "{:" end
     end,
-    [":"] = function(ls)
+    [58] = function(ls) -- :
         local c = next_char(ls)
-        if     c == "}" then next_char(ls); return ":}"
-        elseif c == ":" then next_char(ls); return "::"
+        if     c == 125 then next_char(ls); return ":}" -- }
+        elseif c == 58 then next_char(ls); return "::"
         else return ":" end
     end,
-    ['"'] = function(ls, tok)
+    [34] = function(ls, tok) -- "
         read_string(ls, tok)
         return "<string>"
     end,
-    ["."] = function(ls, tok)
+    [46] = function(ls, tok) -- .
         local c = next_char(ls)
-        if c == "." then
+        if c == 46 then
             c = next_char(ls)
-            if c == "." then
+            if c == 46 then
                 next_char(ls)
                 return "..."
             else
@@ -364,44 +369,44 @@ local lextbl = {
         read_number(ls, tok, { "." })
         return "<number>"
     end,
-    ["0"] = function(ls, tok)
+    [48] = function(ls, tok) -- 0
         read_number(ls, tok, {})
         return "<number>"
     end
 }
-lextbl["\r"] = lextbl["\n"]
-lextbl["\f"] = lextbl[" "]
-lextbl["\t"] = lextbl[" "]
-lextbl["\v"] = lextbl[" "]
-lextbl["'" ] = lextbl['"']
-lextbl["1" ] = lextbl["0"]
-lextbl["2" ] = lextbl["0"]
-lextbl["3" ] = lextbl["0"]
-lextbl["4" ] = lextbl["0"]
-lextbl["5" ] = lextbl["0"]
-lextbl["6" ] = lextbl["0"]
-lextbl["7" ] = lextbl["0"]
-lextbl["8" ] = lextbl["0"]
-lextbl["9" ] = lextbl["0"]
+lextbl[13] = lextbl[10] -- CR, LF
+lextbl[12] = lextbl[32] -- \f, space
+lextbl[9 ] = lextbl[32] -- \t
+lextbl[11] = lextbl[32] -- \v
+lextbl[39] = lextbl[34] -- ', "
+lextbl[49] = lextbl[48] -- 1, 0
+lextbl[50] = lextbl[48] -- 2
+lextbl[51] = lextbl[48] -- 3
+lextbl[52] = lextbl[48] -- 4
+lextbl[53] = lextbl[48] -- 5
+lextbl[54] = lextbl[48] -- 6
+lextbl[55] = lextbl[48] -- 7
+lextbl[56] = lextbl[48] -- 8
+lextbl[57] = lextbl[48] -- 9
 
 local lex_default = function(ls, tok)
     local c = ls.current
-    if c == "_" or is_alpha(c) then
+    if c == 95 or is_alpha(c) then -- _
         local buf = {}
         repeat
-            buf[#buf + 1] = c
+            buf[#buf + 1] = bytemap[c]
             c = next_char(ls)
             if not c then break end
-        until not (c == "_" or is_alnum(c))
+        until not (c == 95 or is_alnum(c))
         local str = tconc(buf)
-        if Keywords[str] then
+        if Tokens[str] then
             return str
         else
             tok.value = str
             return "<name>"
         end
     else
-        local c = ls.current
+        local c = bytemap[ls.current]
         next_char(ls)
         return c
     end
@@ -454,13 +459,13 @@ end
 
 local skip_shebang = function(rdr)
     local c = skip_bom(rdr)
-    if c == "#" then
+    if c == 35 then -- #
         repeat
             c = rdr()
-        until c == "\n" or c == "\r" or not c
+        until not c or is_newline(c)
         local e = c
         c = rdr()
-        if (e == "\n" and c == "\r") or (e == "\r" and c == "\n") then
+        if (e == 10 and c == 13) or (e == 13 and c == 10) then -- LF, CR
             c = rdr()
         end
     end
@@ -484,5 +489,5 @@ end
 return {
     init = init,
     syntax_error = syntax_error,
-    is_keyword = function(kw) return Keywords[kw] end
+    is_keyword = function(kw) return Tokens[kw] ~= nil end
 }

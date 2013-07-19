@@ -317,6 +317,10 @@ local sexps = {
         cs:append(")")
         ls:get()
     end,
+    ["<string>"] = function(ls, cs)
+        cs:append(ls.token.value)
+        ls:get()
+    end,
     ["nil"] = function(ls, cs)
         cs:append(ls.token.name, true)
         ls:get()
@@ -377,7 +381,6 @@ local sexps = {
         cs:append(")[1]", nil, cs.last_append)
     end
 }
-sexps["<string>"] = sexps["<number>"]
 sexps["true" ] = sexps["nil"]
 sexps["false"] = sexps["nil"]
 sexps["..."  ] = sexps["nil"]
