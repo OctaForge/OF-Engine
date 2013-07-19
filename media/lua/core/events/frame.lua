@@ -41,7 +41,7 @@ local handle_frame = function(millis, lastmillis)
     if not ents then ents = require("core.entities.ents") end
     local get_ents = ents.get_all
 
-    --@D log(INFO, "frame.handle_frame: New frame")
+    debug then log(INFO, "frame.handle_frame: New frame")
     current_frame = current_frame + 1
 
     local queue = copy(queued_actions)
@@ -53,7 +53,7 @@ local handle_frame = function(millis, lastmillis)
     current_frame_time = millis
     last_millis        = lastmillis
 
-    --@D log(INFO, "frame.handle_frame: Acting on entities")
+    debug then log(INFO, "frame.handle_frame: Acting on entities")
 
     for uid, entity in pairs(get_ents()) do
         local skip = false

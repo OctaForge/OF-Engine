@@ -145,14 +145,14 @@ local Action = table2.Object:clone {
         end
 
         if self.parallel_to == false then
-            --@D log(INFO, "Executing action " .. self.name)
+            debug then log(INFO, "Executing action " .. self.name)
 
             local finished = self.run(self, millis)
             if    finished then
                 self.priv_finish(self)
             end
 
-            --@D log(INFO, "    finished: " .. tostring(finished))
+            debug then log(INFO, "    finished: " .. tostring(finished))
             return finished
         else
             if  self.parallel_to.finished then
@@ -304,7 +304,7 @@ local Action_System_MT = {
 
             if #acts > 0 then
                 local act = acts[1]
-                --@D log(INFO, table.concat { "Executing ", act.name })
+                debug then log(INFO, table.concat { "Executing ", act.name })
 
                 -- keep the removal for the next frame
                 act:priv_run(millis)

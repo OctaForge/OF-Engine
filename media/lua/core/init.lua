@@ -68,19 +68,16 @@ local log = require("core.logger")
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
 
+local parse = require("core.luacy.parser").parse
+
 table.insert(package.loaders, 2, function(modname, ppath)
     local  fname, err = spath(modname, ppath or package.path)
     if not fname then return err end
-    if not capi.should_log(1) then return nil end
     local file = io_open(fname, "rb")
-    local f, err = load(function()
-        local  line = file:read("*L")
-        if not line then
-            file:close()
-            return nil
-        end
-        return (line:match("^%s*--@D (.+)$")) or line
-    end, "@" .. fname)
+    local toparse = file:read("*all")
+    file:close()
+    local parsed  = parse(fname, toparse, capi.should_log(1))
+    local f, err  = load(parsed, "@" .. fname)
     if not f then
         error("error loading module '" .. modname .. "' from file '"
             .. fname .. "':\n" .. err, 2)

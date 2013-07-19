@@ -111,7 +111,7 @@ local is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
     and <ids_to_names>.
 ]]
 local gen_network_data = function(cn, names)
-    --@D log(DEBUG, "ents.generate_network_data: " .. cn)
+    debug then log(DEBUG, "ents.generate_network_data: " .. cn)
     sort(names)
 
     local ntoi, iton = {}, {}
@@ -130,10 +130,10 @@ M.gen_network_data = gen_network_data
 ]]
 M.clear_network_data = function(cn)
     if cn == nil then
-        --@D log(DEBUG, "ents.clear_network_data")
+        debug then log(DEBUG, "ents.clear_network_data")
         names_to_ids, ids_to_names = {}, {}
     else
-        --@D log(DEBUG, "ents.clear_network_data: " .. cn)
+        debug then log(DEBUG, "ents.clear_network_data: " .. cn)
         names_to_ids[cn], ids_to_names[cn] = nil, nil
     end
 end
@@ -150,7 +150,7 @@ local assert, type = assert, type
 local modprefix = "_PLUGINS_"
 
 local register_plugins = function(cl, plugins, name)
-    --@D log(DEBUG, "ents.register_class: registering plugins")
+    debug then log(DEBUG, "ents.register_class: registering plugins")
     local cldata = {}
     local properties
 
@@ -246,7 +246,7 @@ M.register_class = function(cl, plugins, name)
     end
     assert(name)
 
-    --@D log(DEBUG, "ents.register_class: " .. name)
+    debug then log(DEBUG, "ents.register_class: " .. name)
 
     assert(not class_storage[name],
         "an entity class with the same name already exists")
@@ -292,16 +292,16 @@ M.register_class = function(cl, plugins, name)
         return n < m
     end)
 
-    --@D log(DEBUG, "ents.register_class: generating protocol data for { "
-    --@D    .. concat(sv_names, ", ") .. " }")
+    debug then log(DEBUG, "ents.register_class: generating protocol data for "
+        .. "{ " .. concat(sv_names, ", ") .. " }")
 
     gen_network_data(name, sv_names)
 
-    --@D log(DEBUG, "ents.register_class: registering state variables")
+    debug then log(DEBUG, "ents.register_class: registering state variables")
     for i = 1, #sv_names do
         local name = sv_names[i]
         local var  = pt[name]
-        --@D log(DEBUG, "    " .. name .. " (" .. var.name .. ")")
+        debug then log(DEBUG, "    " .. name .. " (" .. var.name .. ")")
         var:register(name, cl)
     end
 end
@@ -337,10 +337,10 @@ end
 M.get = function(uid)
     local r = storage[uid]
     if r then
-        --@D log(DEBUG, "ents.get: success (" .. uid .. ")")
+        debug then log(DEBUG, "ents.get: success (" .. uid .. ")")
         return r
     else
-        --@D log(DEBUG, "ents.get: no such entity (" .. uid .. ")")
+        debug then log(DEBUG, "ents.get: no such entity (" .. uid .. ")")
     end
 end
 set_external("entity_get", M.get)
@@ -458,7 +458,7 @@ local add = function(cn, uid, kwargs, new)
         assert(false)
     end
 
-    --@D log(DEBUG, "ents.add: " .. cl.name .. " (" .. uid .. ")")
+    debug then log(DEBUG, "ents.add: " .. cl.name .. " (" .. uid .. ")")
     assert(not storage[uid])
 
     if uid > highest_uid then
@@ -486,9 +486,9 @@ local add = function(cn, uid, kwargs, new)
         end
     end
 
-    --@D log(DEBUG, "ents.add: activate")
+    debug then log(DEBUG, "ents.add: activate")
     r:activate(kwargs)
-    --@D log(DEBUG, "ents.add: activated")
+    debug then log(DEBUG, "ents.add: activated")
     return r
 end
 M.add = add
@@ -514,7 +514,7 @@ set_external("entity_add_sauer", add_sauer)
     External as "entity_remove".
 ]]
 M.remove = function(uid)
-    --@D log(DEBUG, "ents.remove: " .. uid)
+    debug then log(DEBUG, "ents.remove: " .. uid)
 
     local e = storage[uid]
     if not e then
@@ -576,19 +576,19 @@ set_external("entities_remove_all", M.remove_all)
 M.load = function()
     if not SERVER then return nil end
 
-    --@D log(DEBUG, "ents.load: reading")
+    debug then log(DEBUG, "ents.load: reading")
     local el = capi.readfile("./entities.lua")
 
     local entities = {}
     if not el then
-        --@D log(DEBUG, "ents.load: nothing to read")
+        debug then log(DEBUG, "ents.load: nothing to read")
     else
         entities = deserialize(el)
     end
 
     if #storage_sauer > 0 then
-        --@D log(DEBUG, "ents.load: loading sauer entities")
-        --@D log(DEBUG, "    reading import.lua for imported models and sounds")
+        debug then log(DEBUG, "ents.load: loading sauer entities:\n"
+            .. "    reading import.lua for imported models and sounds")
 
         local il, im, is = capi.readfile("./import.lua"), {}, {}
         if il then
@@ -665,14 +665,14 @@ M.load = function()
         storage_sauer = {}
     end
 
-    --@D log(DEBUG, "ents.load: loading all entities")
+    debug then log(DEBUG, "ents.load: loading all entities")
     for i = 1, #entities do
         local e = entities[i]
         local uid, cn = e[1], e[2]
-        --@D log(DEBUG, "    " .. uid .. ", " .. cn)
+        debug then log(DEBUG, "    " .. uid .. ", " .. cn)
         add(cn, uid, { sdata = serialize(e[3]) })
     end
-    --@D log(DEBUG, "ents.load: done")
+    debug then log(DEBUG, "ents.load: done")
 end
 
 --[[! Function: save
@@ -681,17 +681,17 @@ end
 ]]
 M.save = function()
     local r = {}
-    --@D log(DEBUG, "ents.save: saving")
+    debug then log(DEBUG, "ents.save: saving")
 
     for uid, entity in pairs(storage) do
         if entity:get_attr("persistent") then
             local en = entity.name
-            --@D log(DEBUG, "    " .. uid .. ", " .. en)
+            debug then log(DEBUG, "    " .. uid .. ", " .. en)
             r[#r + 1] = serialize({ uid, en, entity:build_sdata() })
         end
     end
 
-    --@D log(DEBUG, "ents.save: done")
+    debug then log(DEBUG, "ents.save: done")
     return "{\n" .. concat(r, ",\n") .. "\n}\n"
 end
 set_external("entities_save_all", M.save)
@@ -749,7 +749,7 @@ Entity = table2.Object:clone {
         de-deactivates the entity, triggers svar setup and locks.
     ]]
     setup = function(self)
-        --@D log(DEBUG, "Entity: setup")
+        debug then log(DEBUG, "Entity: setup")
 
         if self.setup_complete then return nil end
 
@@ -817,7 +817,7 @@ Entity = table2.Object:clone {
         Removes the given tag. Checks for its existence first.
     ]]
     remove_tag = function(self, tag)
-        --@D log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
+        debug then log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
         if not self:has_tag(tag) then return nil end
         self:set_attr("tags", filter(self:get_attr("tags"):to_array(),
@@ -831,7 +831,7 @@ Entity = table2.Object:clone {
         found, false if not found.
     ]]
     has_tag = function(self, tag)
-        --@D log(DEBUG, "Entity: has_tag (" .. tag .. ")")
+        debug then log(DEBUG, "Entity: has_tag (" .. tag .. ")")
         return find(self:get_attr("tags"):to_array(), tag) ~= nil
     end,
 
@@ -856,8 +856,8 @@ Entity = table2.Object:clone {
                         kwargs.compressed or false
         end
 
-        --@D log(DEBUG, "Entity.build_sdata: " .. tcn .. ", "
-        --@D     .. tostring(comp))
+        debug then log(DEBUG, "Entity.build_sdata: " .. tcn .. ", "
+            .. tostring(comp))
 
         local r, sn = {}, self.name
         for k, var in pairs(self.__proto) do
@@ -867,22 +867,23 @@ Entity = table2.Object:clone {
                 local val = self:get_attr(name)
                 if val ~= nil then
                     local wval = var:to_wire(val)
-                    --@D log(DEBUG, "    adding " .. name .. ": " .. wval)
+                    debug then log(DEBUG, "    adding " .. name .. ": "
+                        .. wval)
                     local key = (not comp) and name
                         or tonumber(names_to_ids[sn][name])
                     r[key] = wval
-                    --@D log(DEBUG, "    currently " .. serialize(r))
+                    debug then log(DEBUG, "    currently " .. serialize(r))
                 end
             end
         end
 
-        --@D log(DEBUG, "Entity.build_sdata result: " .. serialize(r))
+        debug then log(DEBUG, "Entity.build_sdata result: " .. serialize(r))
         if not comp then
             return r
         end
 
         r = serialize(r)
-        --@D log(DEBUG, "Entity.build_sdata compressed: " .. r)
+        debug then log(DEBUG, "Entity.build_sdata compressed: " .. r)
         return r:sub(2, #r - 1)
     end,
 
@@ -890,7 +891,8 @@ Entity = table2.Object:clone {
         Updates the complete state data on an entity from serialized input.
     ]]
     set_sdata_full = function(self, sdata)
-        --@D log(DEBUG, "Entity.set_sdata_full: " .. self.uid .. ", " .. sdata)
+        debug then log(DEBUG, "Entity.set_sdata_full: " .. self.uid .. ", "
+            .. sdata)
 
         sdata = sdata:sub(1, 1) ~= "{" and "{" .. sdata .. "}" or sdata
         local raw = deserialize(sdata)
@@ -901,11 +903,11 @@ Entity = table2.Object:clone {
         local sn = self.name
         for k, v in pairs(raw) do
             k = tonumber(k) and ids_to_names[sn][k] or k
-            --@D log(DEBUG, "    " .. k .. " = " .. tostring(v))
+            debug then log(DEBUG, "    " .. k .. " = " .. tostring(v))
             self:set_sdata(k, v, nil, true)
-            --@D log(DEBUG, "    ... done.")
+            debug then log(DEBUG, "    ... done.")
         end
-        --@D log(DEBUG, "Entity.set_sdata_full: complete")
+        debug then log(DEBUG, "Entity.set_sdata_full: complete")
     end,
 
     --[[! Function: entity_setup
@@ -915,14 +917,14 @@ Entity = table2.Object:clone {
     ]]
     entity_setup = SERVER and function(self)
         if not self.initialized then
-            --@D log(DEBUG, "Entity.entity_setup: setup")
+            debug then log(DEBUG, "Entity.entity_setup: setup")
             self:setup()
 
             self.svar_change_queue = {}
             self.svar_change_queue_complete = false
 
             self.initialized = true
-            --@D log(DEBUG, "Entity.entity_setup: setup complete")
+            debug then log(DEBUG, "Entity.entity_setup: setup complete")
         end
     end or nil,
 
@@ -935,7 +937,7 @@ Entity = table2.Object:clone {
         it can be used for more things.
     ]]
     init = SERVER and function(self, uid, kwargs)
-        --@D log(DEBUG, "Entity.init: " .. uid)
+        debug then log(DEBUG, "Entity.init: " .. uid)
         assert(type(uid) == "number")
 
         self.uid = uid
@@ -956,7 +958,7 @@ Entity = table2.Object:clone {
         a <set_sdata_full> happens.
     ]]
     activate = function(self, kwargs)
-        --@D log(DEBUG, "Entity.activate")
+        debug then log(DEBUG, "Entity.activate")
         if SERVER then
             self:entity_setup()
         else
@@ -964,7 +966,8 @@ Entity = table2.Object:clone {
         end
 
         if not self.sauer_type then
-            --@D log(DEBUG, "Entity.activate: non-sauer entity: " .. self.name)
+            debug then log(DEBUG, "Entity.activate: non-sauer entity: "
+                .. self.name)
             capi.setup_nonsauer(self)
             if SERVER then
                 self:flush_queued_svar_changes()
@@ -993,9 +996,9 @@ Entity = table2.Object:clone {
         local sfun = var.setter_fun
         if not sfun then return nil end
         if not (SERVER and self.svar_change_queue) then
-            --@D log(INFO, "Calling setter function for " .. name)
+            debug then log(INFO, "Calling setter function for " .. name)
             sfun(self, val)
-            --@D log(INFO, "Setter called")
+            debug then log(INFO, "Setter called")
 
             self.svar_values[name] = val
             self.svar_value_timestamps[name] = frame.get_frame()
@@ -1032,8 +1035,8 @@ Entity = table2.Object:clone {
             are triggered in the same manner.
     ]]
     set_sdata = (not SERVER) and function(self, key, val, actor_uid)
-        --@D log(DEBUG, "Entity.set_sdata: " .. key .. " = " .. serialize(val)
-        --@D     .. " for " .. self.uid)
+        debug then log(DEBUG, "Entity.set_sdata: " .. key .. " = "
+            .. serialize(val) .. " for " .. self.uid)
 
         local var  = self["_SV_" .. key]
         local csfh = var.custom_sync and self.controlled_here
@@ -1045,7 +1048,7 @@ Entity = table2.Object:clone {
         -- is controlled here (synced using some other method)
         -- if this variable is set on the client, send a notification
         if not nfh and not csfh then
-            --@D log(DEBUG, "    sending server request/notification.")
+            debug then log(DEBUG, "    sending server request/notification.")
             -- TODO: supress sending of the same val, at least for some SVs
             msg.send(var.reliable and capi.statedata_changerequest
                 or capi.statedata_changerequest_unreliable,
@@ -1055,7 +1058,7 @@ Entity = table2.Object:clone {
 
         -- from a server or set clientside, update now
         if nfh or cset or csfh then
-            --@D log(INFO, "    local update")
+            debug then log(INFO, "    local update")
             -- from the server, in wire format
             if nfh then
                 val = var:from_wire(val)
@@ -1067,8 +1070,8 @@ Entity = table2.Object:clone {
             self.svar_values[key] = val
         end
     end or function(self, key, val, actor_uid, iop)
-        --@D log(DEBUG, "Entity.set_sdata: " .. key .. " = " .. serialize(val)
-        --@D     .. " for " .. self.uid)
+        debug then log(DEBUG, "Entity.set_sdata: " .. key .. " = "
+            .. serialize(val) .. " for " .. self.uid)
 
         local var = self["_SV_" .. key]
 
@@ -1097,7 +1100,7 @@ Entity = table2.Object:clone {
         end
 
         self.svar_values[key] = val
-        --@D log(INFO, "Entity.set_sdata: new sdata: " .. tostring(val))
+        debug then log(INFO, "Entity.set_sdata: new sdata: " .. tostring(val))
 
         local csfh = var.custom_sync and self.controlled_here
         if not iop and var.client_read and not csfh then
@@ -1146,7 +1149,8 @@ Entity = table2.Object:clone {
             return p.cn end) or { cn }
 
         local uid = self.uid
-        --@D log(DEBUG, "Entity.send_notification_full: " .. cn .. ", " .. uid)
+        debug then log(DEBUG, "Entity.send_notification_full: " .. cn .. ", "
+            .. uid)
 
         local scn, sname = self.cn, self.name
         for i = 1, #cns do
@@ -1156,7 +1160,7 @@ Entity = table2.Object:clone {
                     { target_cn = n, compressed = true }))
         end
 
-        --@D log(DEBUG, "Entity.send_notification_full: done")
+        debug then log(DEBUG, "Entity.send_notification_full: done")
     end or nil,
 
     --[[! Function: queue_svar_change
@@ -1178,9 +1182,9 @@ Entity = table2.Object:clone {
 
         for k, v in pairs(changes) do
             local rv = self.svar_values[k]
-            --@D log(DEBUG, "Entity: flushing queued svar change: "
-            --@D     .. k .. " == " .. tostring(v) .. " (real: "
-            --@D     .. tostring(rv) .. ")")
+            debug then log(DEBUG, "Entity: flushing queued svar change: "
+                .. k .. " == " .. tostring(v) .. " (real: "
+                .. tostring(rv) .. ")")
             self:set_attr(k, rv)
         end
 
@@ -1339,7 +1343,7 @@ end)
     method on each entity (if defined). Clientside only.
 ]]
 local render = (not SERVER) and function(tp)
-    --@D log(INFO, "game_render")
+    debug then log(INFO, "game_render")
     local  player = player_entity
     if not player then return nil end
 
@@ -1364,7 +1368,7 @@ set_external("game_render", render)
     Clientside only.
 ]]
 local render_hud = (not SERVER) and function()
-    --@D log(INFO, "game_render_hud")
+    debug then log(INFO, "game_render_hud")
     local  player = player_entity
     if not player then return nil end
 
@@ -1381,7 +1385,7 @@ set_external("game_render_hud", render_hud)
 ]]
 local init_player = (not SERVER) and function(uid)
     assert(uid)
-    --@D log(DEBUG, "Initializing player with uid " .. uid)
+    debug then log(DEBUG, "Initializing player with uid " .. uid)
 
     player_entity = storage[uid]
     assert(player_entity)
@@ -1405,7 +1409,8 @@ M.set_sdata = function(uid, kpid, value, auid)
     local ent = storage[uid]
     if ent then
         local key = ids_to_names[ent.name][kpid]
-        --@D log(DEBUG, "set_sdata: " .. uid .. ", " .. kpid .. ", " .. key)
+        debug then log(DEBUG, "set_sdata: " .. uid .. ", " .. kpid .. ", "
+            .. key)
         ent:set_sdata(key, value, auid)
     end
 end
@@ -1417,22 +1422,22 @@ set_external("entity_set_sdata", M.set_sdata)
     entities are initialized). External as scene_is_ready.
 !]]
 M.scene_is_ready = (not SERVER) and function()
-    --@D log(INFO, "Scene ready?")
+    debug then log(INFO, "Scene ready?")
 
     if player_entity == nil then
-        --@D log(INFO, "...not ready, player entity missing.")
+        debug then log(INFO, "...not ready, player entity missing.")
         return false
     end
 
-    --@D log(INFO, "...player ready, trying other entities.")
+    debug then log(INFO, "...player ready, trying other entities.")
     for uid, ent in pairs(storage) do
         if not ent.initialized then
-            --@D log(INFO, "...entity " .. uid .. " not ready.")
+            debug then log(INFO, "...entity " .. uid .. " not ready.")
             return false
         end
     end
 
-    --@D log(INFO, "...yes!")
+    debug then log(INFO, "...yes!")
     return true
 end or nil
 set_external("scene_is_ready", M.scene_is_ready)
@@ -1442,7 +1447,8 @@ set_external("scene_is_ready", M.scene_is_ready)
     by one. Serverside. External as "entity_gen_uid".
 ]]
 local gen_uid = SERVER and function()
-    --@D log(DEBUG, "Generating an UID, last highest UID: " .. highest_uid)
+    debug then log(DEBUG, "Generating an UID, last highest UID: "
+        .. highest_uid)
     return highest_uid + 1
 end or nil
 M.gen_uid = gen_uid
@@ -1455,7 +1461,7 @@ set_external("entity_gen_uid", gen_uid)
 ]]
 M.new = SERVER and function(cl, kwargs, fuid)
     fuid = fuid or gen_uid()
-    --@D log(DEBUG, "New entity: " .. fuid)
+    debug then log(DEBUG, "New entity: " .. fuid)
     return add(cl, fuid, kwargs, true)
 end or nil
 set_external("entity_new", M.new)
@@ -1466,7 +1472,7 @@ set_external("entity_new", M.new)
     Works only serverside. External as "entities_send_all".
 ]]
 M.send = SERVER and function(cn)
-    --@D log(DEBUG, "Sending active entities to " .. cn)
+    debug then log(DEBUG, "Sending active entities to " .. cn)
     local nents, uids = 0, {}
     for uid, _ in pairs(storage) do
         nents = nents + 1
