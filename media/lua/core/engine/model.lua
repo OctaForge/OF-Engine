@@ -26,7 +26,7 @@ local ran = capi.model_register_anim
     "left", "right", "crouch", "crouch_(forward,backward,left,right)", "jump",
     "sink", "swim", "crouch_(jump,sink,swim)", "edit", "lag".
 
-    There is also "index", which can be used with bitwise AND to retrieve
+    There is also INDEX, which can be used with bitwise AND to retrieve
     just the animation from a combined animation/control integer.
 ]]
 M.anims = {
@@ -40,25 +40,22 @@ M.anims = {
     crouch_jump = ran "crouch_jump", crouch_sink = ran "crouch_sink",
     crouch_swim = ran "crouch_swim", edit = ran "edit", lag = ran "lag",
 
-    ["index"] = 0x1FF
+    INDEX = 0x1FF
 }
 
-local ac = {:
-    loop    = 1 << 9,
-    clamp   = 1 << 10,
-    reverse = 1 << 11
-:}
-ac["looprev" ] = ac.loop  | ac.reverse
-ac["clamprev"] = ac.clamp | ac.reverse
-ac["start"   ] = ac.loop  | ac.clamp
-ac["end"     ] = ac.loop  | ac.clamp | ac.reverse
-
 --[[! Variable: anim_control
-    Provides means to control the animation direction and looping. Use
-    with bitwise OR. Contains "loop", "clamp", "reverse", "looprev",
-    "clamprev", "start", "end".
+    Provides means to control the animation direction and looping. Contains
+    LOOP, CLAMP, REVERSE, LOOPERV, CLAMPREV, START, END.
 ]]
-M.anim_control = ac
+M.anim_control = {:
+    LOOP     = 1 << 9,
+    CLAMP    = 1 << 10,
+    REVERSE  = 1 << 11,
+    LOOPREV  = LOOP  | REVERSE,
+    CLAMPREV = CLAMP | REVERSE,
+    START    = LOOP  | CLAMP,
+    END      = LOOP  | CLAMP | REVERSE
+:}
 
 --[[! Variable: render_flags
     Contains flags for model rendering. CULL_VFC is a view frustrum culling

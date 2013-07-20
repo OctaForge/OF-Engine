@@ -60,7 +60,13 @@ local MASK_GROUND = 0x30
 local FLAG_ABOVEGROUND = 1 << 4
 local FLAG_BELOWGROUND = 2 << 4
 
-local animctl = model.anim_control
+local animctl   = model.anim_control
+local animctl_l = {}
+if not SERVER then
+    for k, v in pairs(animctl) do
+        animctl_l[k:lower()] = v
+    end
+end
 local anims = model.anims
 
 local csetanim = capi.set_animation
@@ -70,14 +76,14 @@ end or function(self, v)
     local panim = v[1]
     if panim then
         local xy = panim:split(",")
-        panim = model.get_anim(xy[1]) | (animctl[xy[2]] or 0)
+        panim = model.get_anim(xy[1]) | (animctl_l[xy[2]] or 0)
     else
         panim = 0
     end
     local sanim = v[2]
     if sanim then
         local xy = panim:split(",")
-        sanim = model.get_anim(xy[1]) | (animctl[xy[2]] or 0)
+        sanim = model.get_anim(xy[1]) | (animctl_l[xy[2]] or 0)
     else
         sanim = 0
     end
@@ -523,75 +529,75 @@ local Character = Entity:clone {
         local panim = anim[1]
         if panim then
             local xy = panim:split(",")
-            panim = model.get_anim(xy[1]) | (animctl[xy[2]] or 0)
+            panim = model.get_anim(xy[1]) | (animctl_l[xy[2]] or 0)
         else
             panim = 0
         end
         local sanim = anim[2]
         if sanim then
             local xy = panim:split(",")
-            sanim = model.get_anim(xy[1]) | (animctl[xy[2]] or 0)
+            sanim = model.get_anim(xy[1]) | (animctl_l[xy[2]] or 0)
         else
             sanim = 0
         end
 
         -- editing or spectator
         if state == 4 or state == 5 then
-            panim = anims["edit"] | animctl["loop"]
+            panim = anims.edit | animctl.LOOP
         -- lagged
         elseif state == 3 then
-            panim = anims["lag"] | animctl["loop"]
+            panim = anims.lag | animctl.LOOP
         else
             -- in water and floating or falling
             if inwater != 0 and pstate <= 1 then
                 sanim = (((move or strafe) or ((vel.z + falling.z) > 0))
-                    and anims["swim"] or anims["sink"]) | animctl["loop"]
+                    and anims.swim or anims.sink) | animctl.LOOP
             -- jumping animation
             elseif tinair > 250 then
-                sanim = anims["jump"] | animctl["end"]
+                sanim = anims.jump | animctl.END
             -- moving or strafing
             elseif move != 0 or strafe != 0 then
                 if move > 0 then
-                    sanim = anims["forward"] | animctl["loop"]
+                    sanim = anims.forward | animctl.LOOP
                 elseif strafe != 0 then
-                    sanim = (strafe > 0 and anims["left"]
-                        or anims["right"]) | animctl["loop"]
+                    sanim = (strafe > 0 and anims.left
+                        or anims.right) | animctl.LOOP
                 elseif move < 0 then
-                    sanim = anims["backward"] | animctl["loop"]
+                    sanim = anims.backward | animctl.LOOP
                 end
             end
 
             if crouching != 0 then
-                local v = sanim & anims["index"]
-                if v == anims["idle"] then
-                    sanim = sanim & ~anims["index"]
-                    sanim = sanim | anims["crouch"]
-                elseif v == anims["jump"] then
-                    sanim = sanim & ~anims["index"]
-                    sanim = sanim | anims["crouch_jump"]
-                elseif v == anims["swim"] then
-                    sanim = sanim & ~anims["index"]
-                    sanim = sanim | anims["crouch_swim"]
-                elseif v == anims["sink"] then
-                    sanim = sanim & ~anims["index"]
-                    sanim = sanim | anims["crouch_sink"]
+                local v = sanim & anims.INDEX
+                if v == anims.idle then
+                    sanim = sanim & ~anims.INDEX
+                    sanim = sanim | anims.crouch
+                elseif v == anims.jump then
+                    sanim = sanim & ~anims.INDEX
+                    sanim = sanim | anims.crouch_jump
+                elseif v == anims.swim then
+                    sanim = sanim & ~anims.INDEX
+                    sanim = sanim | anims.crouch_swim
+                elseif v == anims.sink then
+                    sanim = sanim & ~anims.INDEX
+                    sanim = sanim | anims.crouch_sink
                 elseif v == 0 then
-                    sanim = anims["crouch"] | animctl["loop"]
-                elseif v == anims["forward"] or v == anims["backward"]
-                or v == anims["left"] or v == anims["right"] then
-                    sanim = sanim + anims["crouch_forward"]
-                        - anims["forward"]
+                    sanim = anims.crouch | animctl.LOOP
+                elseif v == anims.forward or v == anims.backward
+                or v == anims.left or v == anims.right then
+                    sanim = sanim + anims.crouch_forward
+                        - anims.forward
                 end
             end
 
-            if (panim & anims["index"]) == anims["idle"] and
-               (sanim & anims["index"]) != 0 then
+            if (panim & anims.INDEX) == anims.idle and
+               (sanim & anims.INDEX) != 0 then
                 panim = sanim
             end
         end
 
-        if (sanim & anims["index"]) == 0 then
-            sanim = anims["idle"] | animctl["loop"]
+        if (sanim & anims.INDEX) == 0 then
+            sanim = anims.idle | animctl.LOOP
         end
         return { panim, sanim }, 0
     end or nil,
