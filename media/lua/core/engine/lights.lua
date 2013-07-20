@@ -23,11 +23,11 @@ return {
         SHRINK (shrinking light), EXPAND (expanding light) and FLASH
         (flashing light).
     ]]
-    flags = {
-        SHRINK = bit.lshift(1, 0),
-        EXPAND = bit.lshift(1, 1),
-        FLASH  = bit.lshift(1, 2)
-    },
+    flags = {:
+        SHRINK = 1 << 0,
+        EXPAND = 1 << 1,
+        FLASH  = 1 << 2
+    :},
 
     --[[! Function: add
         Creates a light at the given position, with the given radius and

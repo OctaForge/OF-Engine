@@ -43,15 +43,15 @@ M.anims = {
     ["index"] = 0x1FF
 }
 
-local ac = {
-    loop    = bit.lshift(1, 9),
-    clamp   = bit.lshift(1, 10),
-    reverse = bit.lshift(1, 11)
-}
-ac["looprev" ] = bit.bor(ac.loop, ac.reverse)
-ac["clamprev"] = bit.bor(ac.clamp, ac.reverse)
-ac["start"   ] = bit.bor(ac.loop, ac.clamp)
-ac["end"     ] = bit.bor(ac.loop, ac.clamp, ac.reverse)
+local ac = {:
+    loop    = 1 << 9,
+    clamp   = 1 << 10,
+    reverse = 1 << 11
+:}
+ac["looprev" ] = ac.loop  | ac.reverse
+ac["clamprev"] = ac.clamp | ac.reverse
+ac["start"   ] = ac.loop  | ac.clamp
+ac["end"     ] = ac.loop  | ac.clamp | ac.reverse
 
 --[[! Variable: anim_control
     Provides means to control the animation direction and looping. Use

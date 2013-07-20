@@ -29,23 +29,22 @@ local capi = require("capi")
     (particle will keep shrinking), GROW (particle will keep growing),
     FLIP (a combination of HFLIP, VFLIP and ROT).
 ]]
-local flags = {
-    MOD    = bit.lshift(1, 8),
-    RND4   = bit.lshift(1, 9),
-    LERP   = bit.lshift(1, 10),
-    TRACK  = bit.lshift(1, 11),
-    BRIGHT = bit.lshift(1, 12),
-    SOFT   = bit.lshift(1, 13),
-    HFLIP  = bit.lshift(1, 14),
-    VFLIP  = bit.lshift(1, 15),
-    ROT    = bit.lshift(1, 16),
-    FEW    = bit.lshift(1, 17),
-    ICON   = bit.lshift(1, 18),
-    SHRINK = bit.lshift(1, 19),
-    GROW   = bit.lshift(1, 20)
-}
-flags.FLIP = bit.bor(flags.HFLIP, flags.VFLIP, flags.ROT)
-M.flags = flags
+M.flags = {:
+    MOD    = 1 << 8,
+    RND4   = 1 << 9,
+    LERP   = 1 << 10,
+    TRACK  = 1 << 11,
+    BRIGHT = 1 << 12,
+    SOFT   = 1 << 13,
+    HFLIP  = 1 << 14,
+    VFLIP  = 1 << 15,
+    ROT    = 1 << 16,
+    FEW    = 1 << 17,
+    ICON   = 1 << 18,
+    SHRINK = 1 << 19,
+    GROW   = 1 << 20,
+    FLIP   = HFLIP | VFLIP
+:}
 
 --[[! Variable: renderers
     Contains two predefined renderers that are mandatory - "text" and "icon".

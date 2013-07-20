@@ -38,8 +38,6 @@ local set_external = capi.external_set
 
 local Entity = ents.Entity
 
-local band, bor, bnot, lsh, rsh = bit.band, bit.bor, bit.bnot, bit.lshift, 
-    bit.rshift
 local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
 local connect, emit = signal.connect, signal.emit
 local format = string.format
@@ -53,14 +51,14 @@ local set_attachments = capi.set_attachments
 
 -- physics state flags
 local MASK_MAT = 0x3
-local FLAG_WATER = lsh(1, 0)
-local FLAG_LAVA  = lsh(2, 0)
+local FLAG_WATER = 1 << 0
+local FLAG_LAVA  = 2 << 0
 local MASK_LIQUID = 0xC
-local FLAG_ABOVELIQUID = lsh(1, 2)
-local FLAG_BELOWLIQUID = lsh(2, 2)
+local FLAG_ABOVELIQUID = 1 << 2
+local FLAG_BELOWLIQUID = 2 << 2
 local MASK_GROUND = 0x30
-local FLAG_ABOVEGROUND = lsh(1, 4)
-local FLAG_BELOWGROUND = lsh(2, 4)
+local FLAG_ABOVEGROUND = 1 << 4
+local FLAG_BELOWGROUND = 2 << 4
 
 local animctl = model.anim_control
 local anims = model.anims
@@ -72,14 +70,14 @@ end or function(self, v)
     local panim = v[1]
     if panim then
         local xy = panim:split(",")
-        panim = bor(model.get_anim(xy[1]), animctl[xy[2]] or 0)
+        panim = model.get_anim(xy[1]) | (animctl[xy[2]] or 0)
     else
         panim = 0
     end
     local sanim = v[2]
     if sanim then
         local xy = panim:split(",")
-        sanim = bor(model.get_anim(xy[1]), animctl[xy[2]] or 0)
+        sanim = model.get_anim(xy[1]) | (animctl[xy[2]] or 0)
     else
         sanim = 0
     end
@@ -406,18 +404,18 @@ local Character = Entity:clone {
             local pos = (self != ents.get_player())
                 and self:get_attr("position") or nil
 
-            local lst = band(val, MASK_LIQUID)
+            local lst = val & MASK_LIQUID
             if lst == FLAG_ABOVELIQUID then
-                if band(val, MASK_MAT) != FLAG_LAVA then
+                if (val & MASK_MAT) != FLAG_LAVA then
                     sound.play("yo_frankie/amb_waterdrip_2.wav", pos)
                 end
             elseif lst == FLAG_BELOWLIQUID then
-                sound.play(band(val, MASK_MAT) == FLAG_LAVA
+                sound.play((val & MASK_MAT) == FLAG_LAVA
                     and "yo_frankie/DeathFlash.wav"
                     or "yo_frankie/watersplash2.wav", pos)
             end
 
-            local gst = band(val, MASK_GROUND)
+            local gst = val & MASK_GROUND
             if gst == FLAG_ABOVEGROUND then
                 sound.play(self:get_attr("jumping_sound"), pos)
             elseif gst == FLAG_BELOWGROUND then
@@ -502,9 +500,9 @@ local Character = Entity:clone {
     get_render_flags = (not SERVER) and function(self, hudpass, needhud)
         local flags = model.render_flags.FULLBRIGHT
         if self != ents.get_player() then
-            flags = bor(model.render_flags.CULL_VFC,
-                model.render_flags.CULL_OCCLUDED,
-                model.render_flags.CULL_QUERY)
+            flags = model.render_flags.CULL_VFC
+                | model.render_flags.CULL_OCCLUDED
+                | model.render_flags.CULL_QUERY
         end
         return flags
     end or nil,
@@ -525,61 +523,60 @@ local Character = Entity:clone {
         local panim = anim[1]
         if panim then
             local xy = panim:split(",")
-            panim = bor(model.get_anim(xy[1]), animctl[xy[2]] or 0)
+            panim = model.get_anim(xy[1]) | (animctl[xy[2]] or 0)
         else
             panim = 0
         end
         local sanim = anim[2]
         if sanim then
             local xy = panim:split(",")
-            sanim = bor(model.get_anim(xy[1]), animctl[xy[2]] or 0)
+            sanim = model.get_anim(xy[1]) | (animctl[xy[2]] or 0)
         else
             sanim = 0
         end
 
         -- editing or spectator
         if state == 4 or state == 5 then
-            panim = bor(anims["edit"], animctl["loop"])
+            panim = anims["edit"] | animctl["loop"]
         -- lagged
         elseif state == 3 then
-            panim = bor(anims["lag"], animctl["loop"])
+            panim = anims["lag"] | animctl["loop"]
         else
             -- in water and floating or falling
             if inwater != 0 and pstate <= 1 then
-                sanim = bor(((move or strafe) or ((vel.z + falling.z) > 0))
-                    and anims["swim"] or anims["sink"],
-                animctl["loop"])
+                sanim = (((move or strafe) or ((vel.z + falling.z) > 0))
+                    and anims["swim"] or anims["sink"]) | animctl["loop"]
             -- jumping animation
             elseif tinair > 250 then
-                sanim = bor(anims["jump"], animctl["end"])
+                sanim = anims["jump"] | animctl["end"]
             -- moving or strafing
             elseif move != 0 or strafe != 0 then
                 if move > 0 then
-                    sanim = bor(anims["forward"], animctl["loop"])
+                    sanim = anims["forward"] | animctl["loop"]
                 elseif strafe != 0 then
-                    sanim = bor((strafe > 0 and anims["left"]
-                        or anims["right"]), animctl["loop"])
+                    sanim = (strafe > 0 and anims["left"]
+                        or anims["right"]) | animctl["loop"]
                 elseif move < 0 then
-                    sanim = bor(anims["backward"], animctl["loop"])
+                    sanim = anims["backward"] | animctl["loop"]
                 end
             end
 
             if crouching != 0 then
-                local v = band(sanim, anims["index"])
+                local v = sanim & anims["index"]
                 if v == anims["idle"] then
-                    sanim = band(sanim, bnot(anims["index"]))
-                    sanim = bor(sanim, anims["crouch"])
+                    sanim = sanim & ~anims["index"]
+                    sanim = sanim | anims["crouch"]
                 elseif v == anims["jump"] then
-                    sanim = band(sanim, bnot(anims["index"]))
-                    sanim = bor(sanim, anims["crouch_jump"])
+                    sanim = sanim & ~anims["index"]
+                    sanim = sanim | anims["crouch_jump"]
                 elseif v == anims["swim"] then
-                    sanim = band(sanim, bnot(anims["index"]))
-                    sanim = bor(sanim, anims["crouch_swim"])
+                    sanim = sanim & ~anims["index"]
+                    sanim = sanim | anims["crouch_swim"]
                 elseif v == anims["sink"] then
-                    sanim = band(sanim, bnot(anims["index"]))
-                    sanim = bor(sanim, anims["crouch_sink"])
+                    sanim = sanim & ~anims["index"]
+                    sanim = sanim | anims["crouch_sink"]
                 elseif v == 0 then
-                    sanim = bor(anims["crouch"], animctl["loop"])
+                    sanim = anims["crouch"] | animctl["loop"]
                 elseif v == anims["forward"] or v == anims["backward"]
                 or v == anims["left"] or v == anims["right"] then
                     sanim = sanim + anims["crouch_forward"]
@@ -587,14 +584,14 @@ local Character = Entity:clone {
                 end
             end
 
-            if band(panim, anims["index"]) == anims["idle"] and
-               band(sanim, anims["index"]) != 0 then
+            if (panim & anims["index"]) == anims["idle"] and
+               (sanim & anims["index"]) != 0 then
                 panim = sanim
             end
         end
 
-        if band(sanim, anims["index"]) == 0 then
-            sanim = bor(anims["idle"], animctl["loop"])
+        if (sanim & anims["index"]) == 0 then
+            sanim = anims["idle"] | animctl["loop"]
         end
         return { panim, sanim }, 0
     end or nil,

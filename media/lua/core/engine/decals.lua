@@ -23,14 +23,14 @@ return {
         OR to combine them. They include RND4 (picks one of four corners),
         ROTATE, INVMOD, OVERBRIGHT, ADD, SATURATE.
     ]]
-    flags = {
-        RND4       = bit.lshift(1, 0),
-        ROTATE     = bit.lshift(1, 1),
-        INVMOD     = bit.lshift(1, 2),
-        OVERBRIGHT = bit.lshift(1, 3),
-        ADD        = bit.lshift(1, 4),
-        SATURATE   = bit.lshift(1, 5)
-    },
+    flags = {:
+        RND4       = 1 << 0,
+        ROTATE     = 1 << 1,
+        INVMOD     = 1 << 2,
+        OVERBRIGHT = 1 << 3,
+        ADD        = 1 << 4,
+        SATURATE   = 1 << 5
+    :},
 
     --[[! Function: register_renderer
         Given a name (you can select any you want), a decal texture path
