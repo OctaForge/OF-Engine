@@ -53,10 +53,10 @@ It uses `^^` for bitwise XOR because `^` is already exponentiaton.
     <td>&lt;&lt;</td><td>left shift</td><td>bit.lshift</td>
   </tr>
   <tr>
-    <td>&gt;&gt;</td><td>right shift</td><td>bit.rshift</td>
+    <td>&gt;&gt;</td><td>arithmetic right shift</td><td>bit.arshift</td>
   </tr>
   <tr>
-    <td>&gt;&gt;&gt;</td><td>arithmetic right shift</td><td>bit.arshift</td>
+    <td>&gt;&gt;&gt;</td><td>logical right shift</td><td>bit.rshift</td>
   </tr>
 </table>
 

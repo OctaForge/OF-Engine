@@ -421,8 +421,8 @@ local op_to_lua = {
 }
 
 local bitops = {
-    ["&" ] = "band",   ["|" ] = "bor",    ["^^" ] = "bxor",
-    ["<<"] = "lshift", [">>"] = "rshift", [">>>"] = "arshift"
+    ["&" ] = "band",   ["|" ] = "bor",     ["^^" ] = "bxor",
+    ["<<"] = "lshift", [">>"] = "arshift", [">>>"] = "rshift"
 }
 
 local tinsert = table.insert
