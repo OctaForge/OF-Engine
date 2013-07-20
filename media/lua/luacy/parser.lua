@@ -483,11 +483,13 @@ parse_expr = function(ls, cs)
     parse_subexpr(ls, cs, 1)
 end
 
-local parse_name_list = function(ls, cs)
+local parse_name_list = function(ls, cs, list)
     local tok = ls.token
     while true do
         assert_name(ls)
-        cs:append_kw(tok.value or tok.name)
+        local v = tok.value or tok.name
+        if list then list[#list + 1] = v end
+        cs:append_kw(v)
         ls:get()
         if tok.name == "," then
             cs:append(tok.name)
@@ -496,6 +498,7 @@ local parse_name_list = function(ls, cs)
             break
         end
     end
+    return list
 end
 
 local block_follow = {
@@ -675,13 +678,31 @@ local parse_local_function_stat = function(ls, cs, line)
     parse_function_body(ls, cs, line)
 end
 
+local prepn = function(names, name)
+    local ret = {}
+    for i = 1, #names do
+        ret[i] = tconc { name, ".", names[i] }
+    end
+    return ret
+end
+
 local parse_local_stat = function(ls, cs)
-    parse_name_list(ls, cs)
+    local ns = parse_name_list(ls, cs, {})
     local tok = ls.token
     if tok.name == "=" then
         cs:append(tok.name)
         ls:get()
         parse_expr_list(ls, cs)
+    elseif tok.name == "in" then
+        cs:append(";do local ___local_in=")
+        ls:get()
+        parse_expr(ls, cs)
+        local pos = cs.last_append
+        local nlist, ilist = tconc(ns, ","),
+            tconc(prepn(ns, "___local_in"), ",")
+        cs:append(";" .. nlist, pos + 1)
+        cs:append("=", pos + 2)
+        cs:append(ilist .. " end;", pos + 3)
     end
 end
 

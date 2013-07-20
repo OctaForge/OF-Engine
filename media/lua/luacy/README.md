@@ -140,6 +140,33 @@ end
 If it's a debug build, the debug keyword will be removed in the result. If
 not, all debug statements will be removed from the resulting code.
 
+## Binary literals
+
+Numbers can now be specified as binary literals. Underscores are allowed
+(for readability). Examples include `0b1111` or `0b1100_1111`.
+
+## Syntactic sugar for table member locals
+
+Caching of functions from various modules in locals sometimes gets tedious.
+You can now use:
+
+```lua
+local gsub, gmatch, find in string
+```
+
+as syntactic sugar for:
+
+```lua
+local gsub, gmatch, find
+do
+    local tmp = string
+    gsub, gmatch, find = tmp.gsub, tmp.gmatch, tmp.find
+end
+```
+
+The temporary is created because the part that is `string` here can be any
+expression and we don't want this to evaluate more than once.
+
 ## Operator precedence
 
 Here is an operator precedence table for all operators in Luacy. It's the

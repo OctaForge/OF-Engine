@@ -6,6 +6,7 @@
 
 local tconc = table.concat
 local tonumber = tonumber
+local tostring = tostring
 local assert = assert
 local strchar = string.char
 
@@ -113,16 +114,38 @@ local next_line = function(ls, cs)
     return c
 end
 
-local read_number = function(ls, tok, buf)
+local read_binary_number = function(ls, tok)
+    local c = ls.current
+    local buf = {}
+    while c == 48 or c == 49 or c == 95 do -- 0, 1, _
+        if c ~= 95 then
+            buf[#buf + 1] = bytemap[c]
+        end
+        c = next_char(ls)
+    end
+    local str = tconc(buf)
+    local num = tonumber(str, 2)
+    if not num then
+        lex_error(ls, "malformed number", "0b" .. str)
+    end
+    tok.value = tostring(num)
+end
+
+local read_number = function(ls, tok, buf, allow_bin)
     local exp = { 69, 101 } -- E, e
     local first = ls.current
     assert(is_digit(first))
     buf[#buf + 1] = bytemap[first]
     local c = next_char(ls)
-    if first == 48 and (c == 88 or c == 120) then -- 0, X, x
-        buf[#buf + 1] = bytemap[c]
-        c = next_char(ls)
-        exp = { 80, 112 } -- P, p
+    if first == 48 then -- 0
+        if c == 88 or c == 120 then -- X, x
+            buf[#buf + 1] = bytemap[c]
+            c = next_char(ls)
+            exp = { 80, 112 } -- P, p
+        elseif allow_bin and (c == 66 or c == 98) then -- B, b
+            next_char(ls)
+            return read_binary_number(ls, tok)
+        end
     end
     while true do
         if c == exp[1] or c == exp[2] then
@@ -373,7 +396,7 @@ local lextbl = {
         return "<number>"
     end,
     [48] = function(ls, tok) -- 0
-        read_number(ls, tok, {})
+        read_number(ls, tok, {}, true)
         return "<number>"
     end
 }
