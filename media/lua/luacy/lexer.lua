@@ -35,20 +35,20 @@ else
     end
 end
 
-local Tokens = {
-    ["and"     ] = 256, ["break"   ] = 257, ["continue"] = 258,
-    ["debug"   ] = 259, ["do"      ] = 260, ["else"    ] = 261,
-    ["elseif"  ] = 262, ["end"     ] = 263, ["false"   ] = 264,
-    ["for"     ] = 265, ["function"] = 266, ["goto"    ] = 267,
-    ["if"      ] = 268, ["in"      ] = 269, ["local"   ] = 270,
-    ["nil"     ] = 271, ["not"     ] = 272, ["or"      ] = 273,
-    ["repeat"  ] = 274, ["return"  ] = 275, ["then"    ] = 276,
-    ["true"    ] = 277, ["until"   ] = 278, ["while"   ] = 279,
+local Keywords = {
+    ["and"     ] = true, ["break"   ] = true, ["continue"] = true,
+    ["debug"   ] = true, ["do"      ] = true, ["else"    ] = true,
+    ["elseif"  ] = true, ["end"     ] = true, ["false"   ] = true,
+    ["for"     ] = true, ["function"] = true, ["goto"    ] = true,
+    ["if"      ] = true, ["in"      ] = true, ["local"   ] = true,
+    ["nil"     ] = true, ["not"     ] = true, ["or"      ] = true,
+    ["repeat"  ] = true, ["return"  ] = true, ["then"    ] = true,
+    ["true"    ] = true, ["until"   ] = true, ["while"   ] = true
+}
 
-    [".."] = 280, ["..."] = 281, ["=="] = 282, [">="] = 283,
-    ["<="] = 284, ["~=" ] = 285, ["!="] = 286, ["::"] = 287,
-    ["{:"] = 288, [":}" ] = 289, ["^^"] = 300, ["<<"] = 301,
-    [">>"] = 302, [">>>"] = 303
+local Tokens = {
+    "..", "...", "==", ">=", "<=", "~=" , "!=", "::", "{:", ":}" , "^^", "<<",
+    ">>", ">>>", "<name>", "<string>", "<number>", "<eof>"
 }
 
 local is_newline = function(c)
@@ -402,7 +402,7 @@ local lex_default = function(ls, tok)
             if not c then break end
         until not (c == 95 or is_alnum(c))
         local str = tconc(buf)
-        if Tokens[str] then
+        if Keywords[str] then
             return str
         else
             tok.value = str
@@ -502,7 +502,6 @@ return {
     init = init,
     syntax_error = syntax_error,
     is_keyword = function(kw)
-        local v = Tokens[kw]
-        return v ~= nil and v < Tokens[".."]
+        return Keywords[kw] ~= nil
     end
 }
