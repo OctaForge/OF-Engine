@@ -43,7 +43,7 @@ M.flags = {:
     ICON   = 1 << 18,
     SHRINK = 1 << 19,
     GROW   = 1 << 20,
-    FLIP   = HFLIP | VFLIP
+    FLIP   = HFLIP | VFLIP | ROT
 :}
 
 --[[! Variable: renderers
