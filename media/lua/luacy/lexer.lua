@@ -106,6 +106,9 @@ local next_line = function(ls, cs)
     if is_newline(c) and c ~= old then
         c = next_char(ls)
     end
+    if ls.queue_line then
+        ls.queued_line = (ls.queued_line or 0) + 1
+    end
     ls.line_number = ls.line_number + 1
     return c
 end
@@ -431,6 +434,8 @@ local State_MT = {
 
             local tok, lah = ls.token, ls.ltoken
             if lah.name then
+                local ql = ls.queued_line
+                if ql then ls.line_number = ls.line_number + ql end
                 tok.name, tok.value = lah.name, lah.value
                 lah.name, lah.value = nil, nil
             else
@@ -441,9 +446,13 @@ local State_MT = {
         end,
 
         lookahead = function(ls)
+            ls.queue_line = true
             local lah = ls.ltoken
             assert(not lah.name)
             local name = lex(ls, lah)
+            ls.queue_line = false
+            local ql = ls.queued_line
+            if ql then ls.line_number = ls.line_number - ql end
             lah.name = name
             return name
         end

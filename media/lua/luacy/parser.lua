@@ -121,9 +121,8 @@ local parse_table = function(ls, cs)
     while true do
         if tn == tend then break
         elseif Name_Keywords[tn] then
-            local line = ls.line_number
             if ls:lookahead() == "=" then
-                cs:append(tok.value or tn, true, line)
+                cs:append(tok.value or tn, true)
                 ls:get()
                 cs:append("=")
                 ls:get()
@@ -172,25 +171,24 @@ local parse_enum = function(ls, cs)
         assert_name(ls)
         local field = tok.value or tok.name
         tracked[field] = true
-        local line = ls.line_number
-        ls:get()
-        cs:append(pname, true, line)
-        cs:append("=", nil, line)
-        if tok.name == "=" then
+        cs:append(pname, true)
+        cs:append("=", nil)
+        if ls:lookahead() == "=" then
+            ls:get()
             ls:get()
             parse_expr(ls, cs)
-            line = cs.last_append
         else
-            cs:append(pname, true, line)
-            cs:append("+ 1", true, line)
+            cs:append(pname, true)
+            cs:append("+ 1", true)
+            ls:get()
         end
-        cs:append(";", nil, line)
-        cs:append(name, true, line)
-        cs:append(".", nil, line)
-        cs:append(field, true, line)
-        cs:append("=", nil, line)
-        cs:append(pname, true, line)
-        cs:append(";", nil, line)
+        cs:append(";")
+        cs:append(name, true)
+        cs:append(".")
+        cs:append(field, true)
+        cs:append("=")
+        cs:append(pname, true)
+        cs:append(";")
         tn = tok.name
         if tn ~= "," and tn ~= ";" then break end
         tn = ls:get()
@@ -399,7 +397,7 @@ local parse_simple_expr = function(ls, cs)
             cs:append("(")
             ls:get()
             parse_subexpr(ls, cs, unp)
-            cs:append(")", cs.last_append)
+            cs:append(")", nil, cs.last_append)
         else
             cs:append(tn, iskw(tn))
             ls:get()
@@ -420,39 +418,35 @@ local bitops = {
 }
 
 local tinsert = table.insert
-local cs_insert = function(cs, tbl, idx, val)
-    if not cs.enabled then return nil end
-    tinsert(tbl, idx, val)
-end
 
 local use_bitop = function(cs, bitop)
     if not cs.enabled then return "", 0 end
     local  bo = bitops[bitop]
     if not bo then return nil end
-    local firstl = cs.lines[1]
+    local buf = cs.buffer
     local bit_loaded = cs.bit_loaded
     local nins = 0
     if not bit_loaded then
         bit_loaded = {}
         cs.bit_loaded = bit_loaded
-        tinsert(firstl, 1, 'local bit = require(\"bit\");')
+        tinsert(buf, 1, 'local bit = require(\"bit\");')
         nins = 1
     end
     local varn = bit_loaded[bitop]
     if not varn then
         varn = "___bit_" .. bo
         bit_loaded[bitop] = varn
-        tinsert(firstl, 2, tconc { "local ", varn, " = ", "bit.", bo, ";" })
+        tinsert(buf, 2, tconc { "local ", varn, " = ", "bit.", bo, ";" })
         nins = nins + 1
     end
-    return varn, nins
+    if nins > 0 then cs:offset_saved(nins) end
+    return varn
 end
 
 parse_subexpr = function(ls, cs, mp)
     local tok  = ls.token
     local line = ls.line_number
-    local ln   = cs.lines[line]
-    local nln  = ln and #ln + 1 or 1
+    cs:save()
     parse_simple_expr(ls, cs)
     while true do
         local op = tok.name
@@ -460,18 +454,17 @@ parse_subexpr = function(ls, cs, mp)
         if not op or not p or p < mp then break end
         local bitop, nins = use_bitop(cs, op)
         if bitop then
-            local idx = nln
-            if line == 1 then idx = idx + nins end
-            cs_insert(cs, ln or cs.lines[line], idx, "(" .. bitop .. ")(")
+            cs:append("(" .. bitop .. ")(", nil, true)
             cs:append(",")
         else
-            cs_insert(cs, ln or cs.lines[line], nln, "(")
+            cs:append("(", nil, true)
             cs:append(op_to_lua[op] or op, iskw(op))
         end
         ls:get()
         parse_subexpr(ls, cs, Right_Ass[op] and p or p + 1)
         cs:append(")", nil, cs.last_append)
     end
+    cs:unsave()
 end
 
 parse_expr = function(ls, cs)
