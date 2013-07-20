@@ -364,19 +364,18 @@ local sexps = {
         ls:get()
         cs:append("{")
         parse_expr(ls, cs)
-        cs:append("}", nil, cs.last_append)
+        cs:append("}")
         if tok.name == "else" then
             cs:append("or", true)
             ls:get()
             cs:append("{")
             parse_expr(ls, cs)
-            cs:append("}", nil, cs.last_append)
+            cs:append("}")
         else
-            local lastapp = cs.last_append
-            cs:append("or", true, lastapp)
-            cs:append("{}", nil, lastapp)
+            cs:append("or", true)
+            cs:append("{}")
         end
-        cs:append(")[1]", nil, cs.last_append)
+        cs:append(")[1]")
     end
 }
 sexps["true" ] = sexps["nil"]
@@ -397,7 +396,7 @@ local parse_simple_expr = function(ls, cs)
             cs:append("(")
             ls:get()
             parse_subexpr(ls, cs, unp)
-            cs:append(")", nil, cs.last_append)
+            cs:append(")")
         else
             cs:append(tn, iskw(tn))
             ls:get()
@@ -454,15 +453,15 @@ parse_subexpr = function(ls, cs, mp)
         if not op or not p or p < mp then break end
         local bitop, nins = use_bitop(cs, op)
         if bitop then
-            cs:append("(" .. bitop .. ")(", nil, true)
+            cs:append_saved("(" .. bitop .. ")(", nil, true)
             cs:append(",")
         else
-            cs:append("(", nil, true)
+            cs:append_saved("(", nil, true)
             cs:append(op_to_lua[op] or op, iskw(op))
         end
         ls:get()
         parse_subexpr(ls, cs, Right_Ass[op] and p or p + 1)
-        cs:append(")", nil, cs.last_append)
+        cs:append(")")
     end
     cs:unsave()
 end
