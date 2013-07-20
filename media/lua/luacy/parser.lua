@@ -29,9 +29,14 @@ local assert_name = function(ls)
     end
 end
 
-local assert_append = function(ls, cs, tok, ...)
+local assert_append = function(ls, cs, tok)
     assert_tok(ls, tok)
-    cs:append(tok, ...)
+    cs:append(tok)
+end
+
+local assert_append_kw = function(ls, cs, tok)
+    assert_tok(ls, tok)
+    cs:append_kw(tok)
 end
 
 local assert_next = function(ls, tok)
@@ -99,7 +104,7 @@ local parse_arg_list = function(ls, cs)
         elseif not Name_Keywords[tok.name] then
             syntax_error(ls, "<name> or '...' expected")
         end
-        cs:append(tok.value or tok.name, true)
+        cs:append_kw(tok.value or tok.name)
         ls:get()
         if tok.name == "," then
             cs:append(tok.name)
@@ -122,7 +127,7 @@ local parse_table = function(ls, cs)
         if tn == tend then break
         elseif Name_Keywords[tn] then
             if ls:lookahead() == "=" then
-                cs:append(tok.value or tn, true)
+                cs:append_kw(tok.value or tn)
                 ls:get()
                 cs:append("=")
                 ls:get()
@@ -163,39 +168,39 @@ local parse_enum = function(ls, cs)
     local tn = tok.name
     local tracked = { name }
     cs.tracked = tracked
-    cs:append("local", true)
-    cs:append(pname, true)
+    cs:append_kw("local")
+    cs:append_kw(pname)
     cs:append("= 0;")
     while true do
         if tn == ":}" then break end
         assert_name(ls)
         local field = tok.value or tok.name
         tracked[field] = true
-        cs:append(pname, true)
-        cs:append("=", nil)
+        cs:append_kw(pname)
+        cs:append("=")
         if ls:lookahead() == "=" then
             ls:get()
             ls:get()
             parse_expr(ls, cs)
         else
-            cs:append(pname, true)
-            cs:append("+ 1", true)
+            cs:append_kw(pname)
+            cs:append("+1")
             ls:get()
         end
         cs:append(";")
-        cs:append(name, true)
+        cs:append_kw(name)
         cs:append(".")
-        cs:append(field, true)
+        cs:append_kw(field)
         cs:append("=")
-        cs:append(pname, true)
+        cs:append_kw(pname)
         cs:append(";")
         tn = tok.name
         if tn ~= "," and tn ~= ";" then break end
         tn = ls:get()
     end
     cs.tracked = nil
-    cs:append("return", true)
-    cs:append(name, true)
+    cs:append_kw("return")
+    cs:append_kw(name)
     check_match(ls, ":}", "{:", line)
     cs:append(" end)({})")
     ls:get()
@@ -210,7 +215,7 @@ local parse_function_body = function(ls, cs, line)
     loopstack[#loopstack + 1] = false
     parse_chunk(ls, cs)
     check_match(ls, "end", "function", line)
-    cs:append("end", true)
+    cs:append_kw("end")
     ls:get()
 end
 
@@ -260,12 +265,12 @@ local parse_prefix_expr = function(ls, cs)
         local varn = tok.value or tn
         if tracked and tracked[varn] then
             cs:append("(")
-            cs:append(tracked[1], true)
+            cs:append_kw(tracked[1])
             cs:append(".")
-            cs:append(varn, true)
+            cs:append_kw(varn)
             cs:append(")")
         else
-            cs:append(varn, true)
+            cs:append_kw(varn)
         end
         ls:get()
     else
@@ -283,7 +288,7 @@ local parse_primary_expr = function(ls, cs)
             cs:append(nm)
             ls:get()
             assert_name(ls)
-            cs:append(tok.value or tok.name, true)
+            cs:append_kw(tok.value or tok.name)
             ls:get()
             call = false
             if nm == ":" then
@@ -320,20 +325,20 @@ local sexps = {
         ls:get()
     end,
     ["nil"] = function(ls, cs)
-        cs:append(ls.token.name, true)
+        cs:append_kw(ls.token.name)
         ls:get()
     end,
     ["{"] = parse_table,
     ["{:"] = parse_enum,
     ["function"] = function(ls, cs)
         local line = ls.line_number
-        cs:append("function", true)
+        cs:append_kw("function")
         ls:get()
         parse_function_body(ls, cs, line)
     end,
     ["|"] = function(ls, cs)
         local tok = ls.token
-        cs:append("function", true)
+        cs:append_kw("function")
         cs:append("(")
         ls:get()
         if tok.name ~= "|" then parse_arg_list(ls, cs) end
@@ -346,12 +351,12 @@ local sexps = {
             ls:get()
             parse_chunk(ls, cs)
             check_match(ls, "end", "do", line)
-            cs:append("end", true)
+            cs:append_kw("end")
             ls:get()
         else
-            cs:append("return", true)
+            cs:append_kw("return")
             parse_expr(ls, cs)
-            cs:append("end", true)
+            cs:append_kw("end")
         end
     end,
     ["if"] = function(ls, cs)
@@ -360,19 +365,19 @@ local sexps = {
         ls:get()
         parse_expr(ls, cs)
         assert_tok(ls, "then")
-        cs:append("and", true)
+        cs:append_kw("and")
         ls:get()
         cs:append("{")
         parse_expr(ls, cs)
         cs:append("}")
         if tok.name == "else" then
-            cs:append("or", true)
+            cs:append_kw("or")
             ls:get()
             cs:append("{")
             parse_expr(ls, cs)
             cs:append("}")
         else
-            cs:append("or", true)
+            cs:append_kw("or")
             cs:append("{}")
         end
         cs:append(")[1]")
@@ -392,13 +397,17 @@ local parse_simple_expr = function(ls, cs)
     if unp then
         local bitun = bitunops[tn]
         if bitun then
-            cs:append(bitun, true)
+            cs:append_kw(bitun)
             cs:append("(")
             ls:get()
             parse_subexpr(ls, cs, unp)
             cs:append(")")
         else
-            cs:append(tn, iskw(tn))
+            if iskw(tn) then
+                cs:append_kw(tn)
+            else
+                cs:append(tn)
+            end
             ls:get()
             parse_subexpr(ls, cs, unp)
         end
@@ -453,11 +462,15 @@ parse_subexpr = function(ls, cs, mp)
         if not op or not p or p < mp then break end
         local bitop, nins = use_bitop(cs, op)
         if bitop then
-            cs:append_saved("(" .. bitop .. ")(", nil, true)
+            cs:append_saved("(" .. bitop .. ")(", true)
             cs:append(",")
         else
-            cs:append_saved("(", nil, true)
-            cs:append(op_to_lua[op] or op, iskw(op))
+            cs:append_saved("(", true)
+            if iskw(op) then
+                cs:append_kw(op_to_lua[op] or op)
+            else
+                cs:append(op_to_lua[op] or op)
+            end
         end
         ls:get()
         parse_subexpr(ls, cs, Right_Ass[op] and p or p + 1)
@@ -474,7 +487,7 @@ local parse_name_list = function(ls, cs)
     local tok = ls.token
     while true do
         assert_name(ls)
-        cs:append(tok.value or tok.name, true)
+        cs:append_kw(tok.value or tok.name)
         ls:get()
         if tok.name == "," then
             cs:append(tok.name)
@@ -525,7 +538,7 @@ local parse_break_stat = function(ls, cs)
     if not loopstack[#loopstack] then
         syntax_error(ls, "no loop to break")
     end
-    cs:append(ls.token.name, true)
+    cs:append_kw(ls.token.name)
     ls:get()
 end
 
@@ -534,17 +547,17 @@ local parse_cont_stat = function(ls, cs)
     if not lbl then
         syntax_error(ls, "no loop to continue")
     end
-    cs:append("goto", true)
-    cs:append(lbl, true)
+    cs:append_kw("goto")
+    cs:append_kw(lbl)
     ls:get()
 end
 
 local parse_goto_stat = function(ls, cs)
     local tok = ls.token
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
     assert_name(ls)
-    cs:append(tok.value or tok.name, true)
+    cs:append_kw(tok.value or tok.name)
     ls:get()
 end
 
@@ -552,17 +565,17 @@ local parse_while_stat = function(ls, cs, line)
     local tok = ls.token
     local lbl = "___loop_end"
     loopstack[#loopstack + 1] = lbl
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
     parse_expr(ls, cs)
-    assert_append(ls, cs, "do", true)
+    assert_append_kw(ls, cs, "do")
     ls:get()
     parse_chunk(ls, cs)
     check_match(ls, "end", "while", line)
     cs:append("::")
     cs:append(lbl)
     cs:append("::")
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
 end
 
@@ -570,14 +583,14 @@ local parse_repeat_stat = function(ls, cs, line)
     local tok = ls.token
     local lbl = "___loop_end"
     loopstack[#loopstack + 1] = lbl
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
     parse_chunk(ls, cs)
     check_match(ls, "until", "repeat", line)
     cs:append("::")
     cs:append(lbl)
     cs:append("::")
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
     parse_expr(ls, cs)
 end
@@ -586,10 +599,10 @@ local parse_for_stat = function(ls, cs, line)
     local tok = ls.token
     local lbl = "___loop_end"
     loopstack[#loopstack + 1] = lbl
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
     assert_name(ls)
-    cs:append(tok.value or tok.name, true)
+    cs:append_kw(tok.value or tok.name)
     ls:get()
     if tok.name == "=" then
         cs:append(tok.name)
@@ -610,54 +623,54 @@ local parse_for_stat = function(ls, cs, line)
             parse_name_list(ls, cs)
             assert_tok(ls, "in")
         end
-        cs:append("in", true)
+        cs:append_kw("in")
         ls:get()
         parse_expr_list(ls, cs)
     else
         syntax_error(ls, "'=' or 'in' expected")
     end
-    assert_append(ls, cs, "do", true)
+    assert_append_kw(ls, cs, "do")
     ls:get()
     parse_chunk(ls, cs)
     check_match(ls, "end", "for", line)
     cs:append("::")
     cs:append(lbl)
     cs:append("::")
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
 end
 
 local parse_if_stat = function(ls, cs, line)
     local tok = ls.token
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
     local tok = ls.token
     parse_expr(ls, cs)
-    assert_append(ls, cs, "then", true)
+    assert_append_kw(ls, cs, "then")
     ls:get()
     parse_chunk(ls, cs)
     while tok.name == "elseif" do
-        cs:append(tok.name, true)
+        cs:append_kw(tok.name)
         ls:get()
         parse_expr(ls, cs)
-        assert_append(ls, cs, "then", true)
+        assert_append_kw(ls, cs, "then")
         ls:get()
         parse_chunk(ls, cs)
     end
     if tok.name == "else" then
-        cs:append(tok.name, true)
+        cs:append_kw(tok.name)
         ls:get()
         parse_chunk(ls, cs)
     end
     check_match(ls, "end", "if", line)
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
 end
 
 local parse_local_function_stat = function(ls, cs, line)
     local tok = ls.token
     assert_name(ls)
-    cs:append(tok.value or tok.name, true)
+    cs:append_kw(tok.value or tok.name)
     ls:get()
     parse_function_body(ls, cs, line)
 end
@@ -675,16 +688,16 @@ end
 local parse_function_stat = function(ls, cs)
     local tok = ls.token
     local line = ls.line_number
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
     assert_name(ls)
-    cs:append(tok.value or tok.name, true)
+    cs:append_kw(tok.value or tok.name)
     ls:get()
     if tok.name == ":" or tok.name == "." then
         cs:append(tok.name)
         ls:get()
         assert_name(ls)
-        cs:append(tok.value or tok.name, true)
+        cs:append_kw(tok.value or tok.name)
         ls:get()
     end
     parse_function_body(ls, cs, line)
@@ -698,7 +711,7 @@ end
 
 local parse_return_stat = function(ls, cs)
     local tok = ls.token
-    cs:append(tok.name, true)
+    cs:append_kw(tok.name)
     ls:get()
     if tok.name == ";" or block_follow[tok.name] then
         return true
@@ -712,11 +725,11 @@ local stat_opts = {
     ["while"] = parse_while_stat,
     ["do"] = function(ls, cs, line)
         local tok = ls.token
-        cs:append(tok.name, true)
+        cs:append_kw(tok.name)
         ls:get()
         parse_chunk(ls, cs)
         check_match(ls, "end", "do", line)
-        cs:append(tok.name, true)
+        cs:append_kw(tok.name)
         ls:get()
     end,
     ["for"] = parse_for_stat,
@@ -724,11 +737,11 @@ local stat_opts = {
     ["function"] = parse_function_stat,
     ["local"] = function(ls, cs)
         local tok = ls.token
-        cs:append(tok.name, true)
+        cs:append_kw(tok.name)
         ls:get()
         if tok.name == "function" then
             local line = ls.line_number
-            cs:append(tok.name, true)
+            cs:append_kw(tok.name)
             ls:get()
             return parse_local_function_stat(ls, cs, line)
         else
@@ -763,12 +776,12 @@ local stat_opts = {
         elseif lah == "do" then
             cs.enabled = cs.debug
             ls:get()
-            cs:append("do", true)
+            cs:append_kw("do")
             ls:get()
             local line = ls.line_number
             parse_chunk(ls, cs)
             check_match(ls, "end", "do", line)
-            cs:append(ls.token.name, true)
+            cs:append_kw(ls.token.name)
             ls:get()
             cs.enabled = true
         else

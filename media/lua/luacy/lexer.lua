@@ -501,5 +501,8 @@ end
 return {
     init = init,
     syntax_error = syntax_error,
-    is_keyword = function(kw) return Tokens[kw] ~= nil end
+    is_keyword = function(kw)
+        local v = Tokens[kw]
+        return v ~= nil and v < Tokens[".."]
+    end
 }
