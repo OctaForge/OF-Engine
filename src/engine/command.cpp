@@ -1033,13 +1033,17 @@ static inline void compilenull(vector<uint> &code)
     code.add(CODE_VALI|RET_NULL);
 }
 
+static uint emptyblock[VAL_ANY][2] =
+{
+    { CODE_START + 0x100, CODE_EXIT|RET_NULL },
+    { CODE_START + 0x100, CODE_EXIT|RET_INT },
+    { CODE_START + 0x100, CODE_EXIT|RET_FLOAT },
+    { CODE_START + 0x100, CODE_EXIT|RET_STR }
+};
+
 static inline void compileblock(vector<uint> &code)
 {
-    int start = code.length();
-    code.add(CODE_BLOCK);
-    code.add(CODE_OFFSET|((start+2)<<8));
-    code.add(CODE_EXIT);
-    code[start] |= uint(code.length() - (start + 1))<<8;
+    code.add(CODE_EMPTY);
 }
 
 static void compilestatements(vector<uint> &code, const char *&p, int rettype, int brak = '\0');
@@ -1050,8 +1054,16 @@ static inline const char *compileblock(vector<uint> &code, const char *p, int re
     code.add(CODE_BLOCK);
     code.add(CODE_OFFSET|((start+2)<<8));
     if(p) compilestatements(code, p, VAL_ANY, brak);
-    code.add(CODE_EXIT|rettype);
-    code[start] |= uint(code.length() - (start + 1))<<8;
+    if(code.length() > start + 2)
+    {
+        code.add(CODE_EXIT|rettype);
+        code[start] |= uint(code.length() - (start + 1))<<8;
+    }
+    else
+    {
+        code.setsize(start);
+        code.add(CODE_EMPTY|rettype);
+    }
     return p;
 }
 
@@ -1139,7 +1151,7 @@ static inline void compileval(vector<uint> &code, int wordtype, const stringslic
         case VAL_FLOAT: compilefloat(code, word); break;
         case VAL_INT: compileint(code, word); break;
         case VAL_COND: if(word.len) compileblock(code, word.str); else compilenull(code); break;
-        case VAL_CODE: compileblock(code, word.str, RET_STR); break;
+        case VAL_CODE: compileblock(code, word.str); break;
         case VAL_IDENT: compileident(code, word); break;
         default: break;
     }
@@ -1483,7 +1495,7 @@ static bool compilearg(vector<uint> &code, const char *&p, int wordtype, strings
                 case VAL_CODE:
                 {
                     char *s = cutstring(p);
-                    compileblock(code, s, RET_STR);
+                    compileblock(code, s);
                     delete[] s;
                     break;
                 }
@@ -1546,7 +1558,7 @@ static bool compilearg(vector<uint> &code, const char *&p, int wordtype, strings
                 {
                     char *s = cutword(p);
                     if(!s) return false;
-                    compileblock(code, s, RET_STR);
+                    compileblock(code, s);
                     delete[] s;
                     return true;
                 }
@@ -1685,11 +1697,12 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                         {
                             int start2 = code.length();
                             more = compilearg(code, p, VAL_CODE);
+                            uint inst1 = code[start1], op1 = inst1&CODE_OP_MASK;
                             if(!more)
                             {
-                                if((code[start1]&0xFF) == CODE_BLOCK)
+                                if(op1 == CODE_BLOCK)
                                 {
-                                    uint len1 = code[start1]>>8;
+                                    uint len1 = inst1>>8;
                                     code[start1] = (len1<<8) | CODE_JUMP_FALSE;
                                     code[start1+1] = CODE_ENTER_RESULT;
                                     code[start1+len1] = (code[start1+len1]&~CODE_RET_MASK) | retcodeany(rettype);
@@ -1702,14 +1715,23 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                             }
                             else
                             {
-                                if((code[start1]&0xFF) == CODE_BLOCK && (code[start2]&0xFF) == CODE_BLOCK)
+                                uint inst2 = code[start2], op2 = inst2&CODE_OP_MASK;
+                                if(op1 == CODE_BLOCK && op2 == CODE_BLOCK)
                                 {
-                                    uint len1 = code[start1]>>8, len2 = code[start2]>>8;
+                                    uint len1 = inst1>>8, len2 = inst2>>8;
                                     code[start1] = ((start2-start1)<<8) | CODE_JUMP_FALSE;
                                     code[start1+1] = CODE_ENTER_RESULT;
                                     code[start1+len1] = (code[start1+len1]&~CODE_RET_MASK) | retcodeany(rettype);
                                     code[start2] = (len2<<8) | CODE_JUMP;
                                     code[start2+1] = CODE_ENTER_RESULT;
+                                    code[start2+len2] = (code[start2+len2]&~CODE_RET_MASK) | retcodeany(rettype);
+                                }
+                                else if(op1 == CODE_EMPTY && op2 == CODE_BLOCK)
+                                {
+                                    uint len2 = inst2>>8;
+                                    code[start1] = CODE_NULL | (inst2&CODE_RET_MASK);
+                                    code[start2] = (len2<<8) | CODE_JUMP_TRUE;
+                                    code[start2+1] = CODE_ENTER_RESULT; 
                                     code[start2+len2] = (code[start2+len2]&~CODE_RET_MASK) | retcodeany(rettype);
                                 }
                                 else code.add(CODE_COM|retcodeany(rettype)|(id->index<<8));
@@ -2035,8 +2057,7 @@ static inline void callcommand(ident *id, tagval *args, int numargs, bool lookup
             if(++i >= numargs)
             {
                 if(rep) break;
-                static uint buf[2] = { CODE_START + 0x100, CODE_EXIT };
-                args[i].setcode(buf);
+                args[i].setcode(emptyblock[VAL_NULL]+1);
                 fakeargs++;
             }
             else forcecode(args[i]);
@@ -2239,6 +2260,10 @@ static const uint *runcode(const uint *code, tagval &result)
                 freeargs(args, numargs, 0);
                 continue;
 
+            case CODE_EMPTY|RET_NULL: args[numargs++].setcode(emptyblock[VAL_NULL]+1); break;
+            case CODE_EMPTY|RET_STR: args[numargs++].setcode(emptyblock[VAL_STR]+1); break;
+            case CODE_EMPTY|RET_INT: args[numargs++].setcode(emptyblock[VAL_INT]+1); break;
+            case CODE_EMPTY|RET_FLOAT: args[numargs++].setcode(emptyblock[VAL_FLOAT]+1); break;
             case CODE_BLOCK:
             {
                 uint len = op>>8;
