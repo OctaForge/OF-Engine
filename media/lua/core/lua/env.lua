@@ -154,7 +154,7 @@ local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
         env["_G"] = env
         env["SERVER"] = SERVER
         env["require"] = gen_require(env)
-        env_package.loaded["_G"] = env
+        eloaded["_G"] = env
         for k, v in pairs(ploaded) do
             if k:match("core%..+") or k:match("luacy%..+") then
                 eloaded[k] = v

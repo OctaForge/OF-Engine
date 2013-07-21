@@ -75,14 +75,63 @@ package.loaders[2] = function(modname, ppath)
     local file = io_open(fname, "rb")
     local toparse = file:read("*all")
     file:close()
-    local parsed  = parse(fname, toparse, capi.should_log(1))
-    local f, err  = load(parsed, "@" .. fname)
+    local chunkname = "@" .. fname
+    local parsed  = parse(chunkname, toparse, capi.should_log(1))
+    local f, err  = load(parsed, chunkname)
     if not f then
         error("error loading module '" .. modname .. "' from file '"
             .. fname .. "':\n" .. err, 2)
     end
     return f
 end
+
+local loadfile, dofile = loadfile, dofile
+local tconc, type = table.concat, type
+local assert, pcall = assert, pcall
+local io_read = io.read
+
+local load_new = function(ld, chunkname, mode, env)
+    if type(ld) ~= "string" then
+        local buf = {}
+        local ret = ld()
+        while ret do
+            buf[#buf + 1] = ret
+            ret = ld()
+        end
+        ld = tconc(buf)
+    end
+    local ret, parsed = pcall(parse, chunkname, ld, capi.should_log(1))
+    if not ret then return nil, parsed end
+    return load(parsed, chunkname, mode, env)
+end
+
+local read_file = function(fname)
+    if not fname then
+        return io_read("*all"), "=stdin"
+    end
+    local  file, err = io_open(fname, "rb")
+    if not file then return file, err end
+    local cont = file:read("*all")
+    file:close()
+    return cont, "@" .. fname
+end
+
+local loadfile_new = function(fname, mode, env)
+    local  file, chunkname = read_file(fname)
+    if not file then return file, chunkname end
+    local ret, parsed = pcall(parse, chunkname, file, capi.should_log(1))
+    if not ret then return nil, parsed end
+    return load(parsed, chunkname, mode, env)
+end
+
+rawset(_G, "load",       load_new)
+rawset(_G, "loadstring", load_new)
+rawset(_G, "loadfile",   loadfile_new)
+rawset(_G, "dofile", function(fname)
+    local  func, err = loadfile_new(fname)
+    if not func then error(err, 0) end
+    return func()
+end)
 
 local log = require("core.logger")
 
