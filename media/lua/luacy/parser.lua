@@ -387,42 +387,10 @@ sexps["true" ] = sexps["nil"]
 sexps["false"] = sexps["nil"]
 sexps["..."  ] = sexps["nil"]
 
-local bitunops = {
-    ["~"] = "bit.bnot"
-}
-
-local parse_simple_expr = function(ls, cs)
-    local tn = ls.token.name
-    local unp = Unary_Ops[tn]
-    if unp then
-        local bitun = bitunops[tn]
-        if bitun then
-            cs:append_kw(bitun)
-            cs:append("(")
-            ls:get()
-            parse_subexpr(ls, cs, unp)
-            cs:append(")")
-        else
-            if iskw(tn) then
-                cs:append_kw(tn)
-            else
-                cs:append(tn)
-            end
-            ls:get()
-            parse_subexpr(ls, cs, unp)
-        end
-    else
-        (sexps[tn] or parse_primary_expr)(ls, cs)
-    end
-end
-
-local op_to_lua = {
-    ["!="] = "~="
-}
-
 local bitops = {
     ["&" ] = "band",   ["|" ] = "bor",     ["^^" ] = "bxor",
-    ["<<"] = "lshift", [">>"] = "arshift", [">>>"] = "rshift"
+    ["<<"] = "lshift", [">>"] = "arshift", [">>>"] = "rshift",
+    ["~" ] = "bnot"
 }
 
 local tinsert = table.insert
@@ -450,6 +418,34 @@ local use_bitop = function(cs, bitop)
     if nins > 0 then cs:offset_saved(nins) end
     return varn, nins
 end
+
+local parse_simple_expr = function(ls, cs)
+    local tn = ls.token.name
+    local unp = Unary_Ops[tn]
+    if unp then
+        local bitun = use_bitop(cs, tn)
+        if bitun then
+            cs:append("(" .. bitun .. ")(")
+            ls:get()
+            parse_subexpr(ls, cs, unp)
+            cs:append(")")
+        else
+            if iskw(tn) then
+                cs:append_kw(tn)
+            else
+                cs:append(tn)
+            end
+            ls:get()
+            parse_subexpr(ls, cs, unp)
+        end
+    else
+        (sexps[tn] or parse_primary_expr)(ls, cs)
+    end
+end
+
+local op_to_lua = {
+    ["!="] = "~="
+}
 
 parse_subexpr = function(ls, cs, mp)
     local tok  = ls.token
