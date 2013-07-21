@@ -47,7 +47,7 @@ local Player = ents.Player
 local SPARK, STREAK
 if not SERVER then
     SPARK = quadrenderer("spark", "media/particle/spark",
-        bit.bor(particles.flags.FLIP, particles.flags.BRIGHT))
+        particles.flags.FLIP | particles.flags.BRIGHT)
     STREAK = taperenderer("streak", "media/particle/flare",
         particles.flags.BRIGHT)
 end

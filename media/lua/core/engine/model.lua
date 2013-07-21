@@ -64,12 +64,11 @@ M.anim_control = {:
     the model fullbright, NORENDER disables rendering, MAPMODEL is a mapmodel
     flag, NOBATCH disables batching on the model.
 ]]
-M.render_flags = {
-    CULL_VFC = bit.lshift(1, 0), CULL_DIST = bit.lshift(1, 1),
-    CULL_OCCLUDED = bit.lshift(1, 2), CULL_QUERY = bit.lshift(1, 3),
-    FULLBRIGHT = bit.lshift(1, 4), NORENDER = bit.lshift(1, 5),
-    MAPMODEL = bit.lshift(1, 6), NOBATCH = bit.lshift(1, 7)
-}
+M.render_flags = {:
+    CULL_VFC   = 1 << 0, CULL_DIST  = 1 << 1, CULL_OCCLUDED = 1 << 2,
+    CULL_QUERY = 1 << 3, FULLBRIGHT = 1 << 4, NORENDER      = 1 << 5,
+    MAPMODEL   = 1 << 6, NOBATCH    = 1 << 7
+:}
 
 --[[! Function: register_anim
     Registers an animation of the given name. Returns the animation number

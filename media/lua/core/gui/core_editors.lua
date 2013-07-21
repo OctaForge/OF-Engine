@@ -22,8 +22,6 @@ local ffi = require("ffi")
 
 local var_get = cs.var_get
 
-local band  = bit.band
-local blsh  = bit.lshift
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
@@ -889,8 +887,8 @@ M.set_text_handler(function(focused)
 
     if refreshrepeat != 0 or (textediting != nil) != wastextediting then
         local c = textediting != nil
-        capi.input_textinput(c, blsh(1, 1)) -- TI_GUI
-        capi.input_keyrepeat(c, blsh(1, 1)) -- KR_GUI
+        capi.input_textinput(c, 1 << 1) -- TI_GUI
+        capi.input_keyrepeat(c, 1 << 1) -- KR_GUI
         refreshrepeat = 0
     end
 end)

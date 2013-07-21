@@ -17,9 +17,6 @@ local frame = require("core.events.frame")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
-local band  = bit.band
-local bnot  = bit.bnot
-local blsh  = bit.lshift
 local max   = math.max
 local min   = math.min
 local clamp = math2.clamp
@@ -523,7 +520,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
             (max(sw - 2 * as, 0) - btn.w) / (1 - scroll:get_h_scale()) or 1
 
         btn.x = as + scroll:get_h_offset() * bscale
-        btn.adjust = band(btn.adjust, bnot(ALIGN_HMASK))
+        btn.adjust = btn.adjust & ~ALIGN_HMASK
 
         Object.adjust_children(self)
     end,
@@ -614,7 +611,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
             (max(sh - 2 * as, 0) - btn.h) / (1 - scroll:get_v_scale()) or 1
 
         btn.y = as + scroll:get_v_offset() * bscale
-        btn.adjust = band(btn.adjust, bnot(ALIGN_VMASK))
+        btn.adjust = btn.adjust & ~ALIGN_VMASK
 
         Object.adjust_children(self)
     end,

@@ -21,11 +21,6 @@ local signal = require("core.events.signal")
 
 local var_get = cs.var_get
 
-local band  = bit.band
-local bor   = bit.bor
-local bnot  = bit.bnot
-local blsh  = bit.lshift
-local brsh  = bit.rshift
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
@@ -273,7 +268,7 @@ local check_alpha_mask = function(tex, x, y)
                    clamp(floor(y * ys), 0, ys - 1)
 
     local m = tex:get_alphamask(ty * ((xs + 7) / 8))
-    if band(m, blsh(1, tx % 8)) != 0 then
+    if (m & (1 << (tx % 8))) != 0 then
         return true
     end
 
@@ -925,9 +920,9 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         self.model = kwargs.model
 
         local a = kwargs.anim
-        local aprim = bor(a[1], animctl.LOOP)
+        local aprim = a[1] | animctl.LOOP
         local asec  = a[2]
-        if asec and asec != 0 then asec = bor(asec, animctl.LOOP) end
+        if asec and asec != 0 then asec |= animctl.LOOP end
 
         self.anim = { aprim, asec }
         self.attachments = kwargs.attachments or {}

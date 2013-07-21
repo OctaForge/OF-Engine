@@ -39,9 +39,9 @@ if SERVER then
 else
     renderers = {
         smoke = quadrenderer("smoke", "media/particle/smoke",
-            bit.bor(pflags.FLIP, pflags.LERP)),
+            pflags.FLIP | pflags.LERP),
         flame = quadrenderer("flame", "media/particle/flames",
-            bit.bor(pflags.HFLIP, pflags.RND4, pflags.BRIGHT)),
+            pflags.HFLIP | pflags.RND4 | pflags.BRIGHT),
         steam = quadrenderer("steam", "media/particle/steam", pflags.FLIP)
     }
     M.renderers = renderers

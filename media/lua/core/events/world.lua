@@ -33,15 +33,13 @@ set_external("physics_off_map", function(ent) end)
 ]]
 set_external("physics_in_deadly", function(ent, mat) end)
 
-local bor, lsh = bit.bor, bit.lshift
-
 -- flags for physics_state_change
-local FLAG_WATER = lsh(1, 0)
-local FLAG_LAVA  = lsh(2, 0)
-local FLAG_ABOVELIQUID = lsh(1, 2)
-local FLAG_BELOWLIQUID = lsh(2, 2)
-local FLAG_ABOVEGROUND = lsh(1, 4)
-local FLAG_BELOWGROUND = lsh(2, 4)
+local FLAG_WATER = 1 << 0
+local FLAG_LAVA  = 2 << 0
+local FLAG_ABOVELIQUID = 1 << 2
+local FLAG_BELOWLIQUID = 2 << 2
+local FLAG_ABOVEGROUND = 1 << 4
+local FLAG_BELOWGROUND = 2 << 4
 
 --[[! Function: physics_state_change
     Called when a client changes their physical state. Takes the client
@@ -60,20 +58,20 @@ set_external("physics_state_change", function(ent, loc, flevel, llevel, mat)
 
     local flags = 0
     if mat == edit.MATERIAL_WATER then
-        flags = bor(flags, FLAG_WATER)
+        flags |= FLAG_WATER
     elseif mat == edit.MATERIAL_LAVA then
-        flags = bor(flags, FLAG_LAVA)
+        flags |= FLAG_LAVA
     end
 
     if llevel > 0 then -- liquid level
-        flags = bor(flags, FLAG_ABOVELIQUID)
+        flags |= FLAG_ABOVELIQUID
     elseif llevel < 0 then
-        flags = bor(flags, FLAG_BELOWLIQUID)
+        flags |= FLAG_BELOWLIQUID
     end
     if flevel > 0 then -- floor level
-        flags = bor(flags, FLAG_ABOVEGROUND)
+        flags |= FLAG_ABOVEGROUND
     elseif flevel < 0 then
-        flags = bor(flags, FLAG_BELOWGROUND)
+        flags |= FLAG_BELOWGROUND
     end
     if flags != 0 then ent:set_attr("physics_trigger", flags) end
 end)

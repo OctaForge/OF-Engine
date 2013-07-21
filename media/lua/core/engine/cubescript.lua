@@ -54,12 +54,12 @@ M.var_type = {
     In a "safe" environment (run within a mapscript), PERSIST has no effect,
     OVERRIDE is implicit and HEX and READONLY will still work.
 ]]
-M.var_flags = {
-    PERSIST  = bit.lshift(1, 0),
-    OVERRIDE = bit.lshift(1, 1),
-    HEX      = bit.lshift(1, 2),
-    READONLY = bit.lshift(1, 3)
-}
+M.var_flags = {:
+    PERSIST  = 1 << 0,
+    OVERRIDE = 1 << 1,
+    HEX      = 1 << 2,
+    READONLY = 1 << 3
+:}
 
 --[[! Function: var_reset
     Resets an engine variable of the given name.

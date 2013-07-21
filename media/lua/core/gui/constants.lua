@@ -110,10 +110,7 @@ local gl = {
 }
 M.gl = gl
 
-local bor  = bit.bor
-local blsh = bit.lshift
-
-local scancode_to_keycode = function(x) return bor(x, blsh(1, 30)) end
+local scancode_to_keycode = function(x) return (x | (1 << 30)) end
 local char_to_byte = string.byte
 
 --[[! Variable: scancode
@@ -656,7 +653,7 @@ M.key = key
 --[[! Variable: mod
     Contains a list of key modifier constants mapping to SDL's KMOD_*.
 ]]
-local mod = {
+local mod = {:
     NONE     = 0x0000,
     LSHIFT   = 0x0001,
     RSHIFT   = 0x0002,
@@ -670,11 +667,11 @@ local mod = {
     CAPS     = 0x2000,
     MODE     = 0x4000,
     RESERVED = 0x8000,
-    SHIFT    = bor(0x0001, 0x0002),
-    CTRL     = bor(0x0040, 0x0080),
-    ALT      = bor(0x0100, 0x0200),
-    GUI      = bor(0x0400, 0x0800)
-}
+    SHIFT    = LSHIFT | RSHIFT,
+    CTRL     = LCTRL  | RCTRL,
+    ALT      = LALT   | RALT,
+    GUI      = LGUI   | RGUI
+:}
 M.mod = mod
 
 return M

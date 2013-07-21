@@ -18,8 +18,6 @@ local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
-local band  = bit.band
-local bnot  = bit.bnot
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
@@ -356,7 +354,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
         btn.w = max(btn.w, width / steps)
         btn.x = as + (width - btn.w) * curstep / steps
-        btn.adjust = band(btn.adjust, bnot(ALIGN_HMASK))
+        btn.adjust = btn.adjust & ~ALIGN_HMASK
 
         Object.adjust_children(self)
     end,
@@ -418,7 +416,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
 
         btn.h = max(btn.h, height / steps)
         btn.y = as + (height - btn.h) * curstep / steps
-        btn.adjust = band(btn.adjust, bnot(ALIGN_VMASK))
+        btn.adjust = btn.adjust & ~ALIGN_VMASK
 
         Object.adjust_children(self)
     end,
