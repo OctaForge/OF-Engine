@@ -47,9 +47,13 @@ local Keywords = {
     ["true"    ] = true, ["until"   ] = true, ["while"   ] = true
 }
 
+-- protected from the gc
 local Tokens = {
     "..", "...", "==", ">=", "<=", "~=" , "!=", "::", "{:", ":}" , "^^", "<<",
-    ">>", ">>>", "<name>", "<string>", "<number>", "<eof>"
+    ">>", ">>>", "<name>", "<string>", "<number>", "<eof>",
+
+    "..=", "|=", "&=", "^^=", "<<=", ">>=", ">>>=", "+=", "-=", "*=", "/=",
+    "%=", "^="
 }
 
 local is_newline = function(c)
@@ -186,25 +190,32 @@ local skip_sep = function(ls, buf)
     return c == s and cnt or ((-cnt) - 1)
 end
 
-local read_long_string = function(ls, tok, sep, buf)
-    buf = buf or {}
-    local c = ls.current
-    if tok then buf[#buf + 1] = bytemap[c] end
-    c = next_char(ls)
+local read_long_string = function(ls, tok, sep)
+    local buf = { '"' }
+    local c = next_char(ls)
     if is_newline(c) then c = next_line(ls) end
     while true do
         if not c then
             lex_error(ls, tok and "unfinished long string"
                 or "unfinished long comment", "<eof>")
         elseif c == 93 then -- ]
-            if skip_sep(ls, buf) == sep then
-                if tok then buf[#buf + 1] = bytemap[ls.current] end
+            local tbuf = {}
+            if skip_sep(ls, tbuf) == sep then
+                buf[#buf + 1] = '"'
                 c = next_char(ls)
                 break
+            else
+                buf[#buf + 1] = tconc(tbuf)
             end
             c = ls.current
+        elseif tok and c == 34 then -- "
+            buf[#buf + 1] = '\\"'
+            c = next_char(ls)
+        elseif tok and c == 92 then -- \
+            buf[#buf + 1] = "\\\\"
+            c = next_char(ls)
         elseif is_newline(c) then
-            if tok then buf[#buf + 1] = bytemap[10] end -- LF
+            if tok then buf[#buf + 1] = "\\n" end
             c = next_line(ls)
         else
             if tok then buf[#buf + 1] = bytemap[c] end
@@ -278,7 +289,7 @@ local read_string = function(ls, tok)
                 c = next_char(ls)
             elseif is_newline(c) then
                 c = next_line(ls)
-                buf[#buf + 1] = "\\\n"
+                buf[#buf + 1] = "\\n"
             elseif c == 92 or c == 34 or c == 39 then -- \, ", '
                 buf[#buf + 1] = "\\" .. bytemap[c]
                 c = next_char(ls)
@@ -309,7 +320,10 @@ local lextbl = {
     [32] = function(ls) next_char(ls) end, -- space
     [45] = function(ls) -- -
         local c = next_char(ls)
-        if c ~= 45 then return "-" end
+        if c == 61 then -- =
+            next_char(ls)
+            return "-="
+        elseif c ~= 45 then return "-" end
         c = next_char(ls)
         if c == 91 then -- [
             local sep = skip_sep(ls, {})
@@ -322,9 +336,9 @@ local lextbl = {
     end,
     [91] = function(ls, tok) -- [
         local buf = {}
-        local sep = skip_sep(ls, buf)
+        local sep = skip_sep(ls, {})
         if sep >= 0 then
-            read_long_string(ls, tok, sep, buf)
+            read_long_string(ls, tok, sep)
             return "<string>"
         elseif sep == -1 then return "["
         else lex_error(ls, "invalid long string delimiter", tconc(buf)) end
@@ -336,7 +350,10 @@ local lextbl = {
     end,
     [60] = function(ls) -- <
         local c = next_char(ls)
-        if     c == 60 then next_char(ls); return "<<"
+        if c == 60 then
+            c = next_char(ls)
+            if c ~= 61 then return "<<"
+            else next_char(ls); return "<<=" end
         elseif c == 61 then next_char(ls); return "<="
         else return "<" end
     end,
@@ -344,8 +361,16 @@ local lextbl = {
         local c = next_char(ls)
         if c == 62 then
             c = next_char(ls)
-            if c ~= 62 then return ">>"
-            else next_char(ls); return ">>>" end
+            if c == 62 then
+                c = next_char(ls)
+                if c ~= 61 then return ">>>"
+                else next_char(ls); return ">>>=" end
+            elseif c == 61 then
+                next_char(ls)
+                return ">>="
+            else
+                return ">>"
+            end
         elseif c == 61 then next_char(ls); return ">="
         else return ">" end
     end,
@@ -361,13 +386,51 @@ local lextbl = {
     end,
     [94] = function(ls) -- ^
         local c = next_char(ls)
-        if c ~= 94 then return "^"
-        else next_char(ls); return "^^" end
+        if c == 64 then -- =
+            next_char(ls)
+            return "^="
+        elseif c == 94 then -- ^
+            c = next_char(ls)
+            if c ~= 61 then return "^^"
+            else next_char(ls); return "^^=" end
+        else
+            return "^"
+        end
     end,
     [123] = function(ls) -- {
         local c = next_char(ls)
         if c ~= 58 then return "{" -- :
         else next_char(ls); return "{:" end
+    end,
+    [37] = function(ls) -- %
+        local c = next_char(ls)
+        if c ~= 61 then return "%"
+        else next_char(ls); return "%=" end
+    end,
+    [38] = function(ls) -- &
+        local c = next_char(ls)
+        if c ~= 61 then return "&"
+        else next_char(ls); return "&=" end
+    end,
+    [42] = function(ls) -- *
+        local c = next_char(ls)
+        if c ~= 61 then return "*"
+        else next_char(ls); return "*=" end
+    end,
+    [43] = function(ls) -- +
+        local c = next_char(ls)
+        if c ~= 61 then return "+"
+        else next_char(ls); return "+=" end
+    end,
+    [47] = function(ls) -- /
+        local c = next_char(ls)
+        if c ~= 61 then return "/"
+        else next_char(ls); return "/=" end
+    end,
+    [124] = function(ls) -- |
+        local c = next_char(ls)
+        if c ~= 61 then return "|"
+        else next_char(ls); return "|=" end
     end,
     [58] = function(ls) -- :
         local c = next_char(ls)
@@ -386,6 +449,9 @@ local lextbl = {
             if c == 46 then
                 next_char(ls)
                 return "..."
+            elseif c == 61 then -- =
+                next_char(ls)
+                return "..="
             else
                 return ".."
             end

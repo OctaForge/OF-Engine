@@ -448,7 +448,7 @@ local use_bitop = function(cs, bitop)
         nins = nins + 1
     end
     if nins > 0 then cs:offset_saved(nins) end
-    return varn
+    return varn, nins
 end
 
 parse_subexpr = function(ls, cs, mp)
@@ -460,7 +460,7 @@ parse_subexpr = function(ls, cs, mp)
         local op = tok.name
         local p = Binary_Ops[op]
         if not op or not p or p < mp then break end
-        local bitop, nins = use_bitop(cs, op)
+        local bitop = use_bitop(cs, op)
         if bitop then
             cs:append_saved("(" .. bitop .. ")(", true)
             cs:append(",")
@@ -520,7 +520,16 @@ parse_chunk = function(ls, cs)
     until last or block_follow[tok.name]
 end
 
-local parse_assignment = function(ls, cs)
+local assops = {
+    ["+="] = "+", ["-="] = "-", ["*="] = "*", ["/="] = "/", ["%="] = "%",
+    ["^="] = "^", ["..="] = "..",
+
+    ["&=" ] = "&",  ["|=" ] = "|",  ["^^=" ] = "^^",
+    ["<<="] = "<<", [">>="] = ">>", [">>>="] = ">>>"
+}
+
+local parse_assignment = function(ls, cs, buflen)
+    local nbuflen = #cs.buffer
     local tok = ls.token
     if tok.name == "," then
         cs:append(tok.name)
@@ -530,6 +539,37 @@ local parse_assignment = function(ls, cs)
             if tok.name ~= "," then break end
             cs:append(tok.name)
             ls:get()
+        end
+    else
+        -- bitop stuff from expr parsing above
+        local aop = assops[tok.name]
+        if aop then
+            cs:append("=")
+            local bitop, nins = use_bitop(cs, aop)
+            if nins and nins > 0 then
+                buflen  = buflen  + nins
+                nbuflen = nbuflen + nins
+            end
+            if bitop then
+                cs:append(bitop .. "(")
+            end
+            local buffer = cs.buffer
+            local wasspace = false
+            for i = buflen + 1, nbuflen do
+                local c = buffer[i]
+                if c == "\n" then
+                    if not wasspace then cs:append(" ") end
+                    wasspace = true
+                else
+                    cs:append(c)
+                    wasspace = false
+                end
+            end
+            cs:append(bitop and "," or aop)
+            ls:get()
+            parse_expr(ls, cs)
+            if bitop then cs:append(")") end
+            return nil
         end
     end
     assert_append(ls, cs, "=")
@@ -725,8 +765,9 @@ local parse_function_stat = function(ls, cs)
 end
 
 local parse_expr_stat = function(ls, cs)
+    local buflen = #cs.buffer
     if not parse_primary_expr(ls, cs) then
-        parse_assignment(ls, cs)
+        parse_assignment(ls, cs, buflen)
     end
 end
 

@@ -167,6 +167,25 @@ end
 The temporary is created because the part that is `string` here can be any
 expression and we don't want this to evaluate more than once.
 
+## Compound assignment statements
+
+You can now use:
+
+```lua
+foo += bar
+```
+
+in place of:
+
+```lua
+foo = foo + bar
+```
+
+Note that this doesn't support multiple assignment (there is just one
+operand on the left and on the right). The supported operators are listed
+in the table below. You can form them simply by appending `=` to the regular
+version.
+
 ## Operator precedence
 
 Here is an operator precedence table for all operators in Luacy. It's the
@@ -175,42 +194,42 @@ from lowest to highest.
 
 <table>
   <tr>
-    <th>Operator</th><th>Associativity</th>
+    <th>Operator</th><th>Associativity</th><th>Assignment variant</th>
   </tr>
   <tr>
-    <td>or</td><td>left</td>
+    <td>or</td><td>left</td><td>no</td>
   </tr>
   <tr>
-    <td>and</td><td>left</td>
+    <td>and</td><td>left</td><td>no</td>
   </tr>
   <tr>
-    <td>==, !=, &lt;, &lt;=, &gt;, &gt;=</td><td>left</td>
+    <td>==, !=, &lt;, &lt;=, &gt;, &gt;=</td><td>left</td><td>no</td>
   </tr>
   <tr>
-    <td>..</td><td>right</td>
+    <td>..</td><td>right</td><td>yes</td>
   </tr>
   <tr>
-    <td>|</td><td>left</td>
+    <td>|</td><td>left</td><td>yes</td>
   </tr>
   <tr>
-    <td>^^</td><td>left</td>
+    <td>^^</td><td>left</td><td>yes</td>
   </tr>
   <tr>
-    <td>&amp;</td><td>left</td>
+    <td>&amp;</td><td>left</td><td>yes</td>
   </tr>
   <tr>
-    <td>&lt;&lt;, &gt;&gt;, &gt;&gt;&gt;</td><td>left</td>
+    <td>&lt;&lt;, &gt;&gt;, &gt;&gt;&gt;</td><td>left</td><td>yes</td>
   </tr>
   <tr>
-    <td>+, -</td><td>left</td>
+    <td>+, -</td><td>left</td><td>yes</td>
   </tr>
   <tr>
-    <td>*, /, %</td><td>left</td>
+    <td>*, /, %</td><td>left</td><td>yes</td>
   </tr>
   <tr>
-    <td>-, not, ~, #</td><td>unary</td>
+    <td>-, not, ~, #</td><td>unary</td><td>no</td>
   </tr>
   <tr>
-    <td>^</td><td>right</td>
+    <td>^</td><td>right</td><td>yes</td>
   </tr>
 </table>
