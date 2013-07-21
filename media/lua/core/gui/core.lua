@@ -28,10 +28,6 @@ local set_external = capi.external_set
 local var_get, var_set = cs.var_get, cs.var_set
 
 -- external locals
-local band  = bit.band
-local bor   = bit.bor
-local bnot  = bit.bnot
-local blsh  = bit.lshift
 local max   = math.max
 local min   = math.min
 local clamp = math2.clamp
@@ -132,10 +128,10 @@ local ALIGN_RIGHT   = 3
 
 local ALIGN_VMASK   = 0xC
 local ALIGN_VSHIFT  = 2
-local ALIGN_VNONE   = blsh(0, 2)
-local ALIGN_BOTTOM  = blsh(1, 2)
-local ALIGN_VCENTER = blsh(2, 2)
-local ALIGN_TOP     = blsh(3, 2)
+local ALIGN_VNONE   = 0 << 2
+local ALIGN_BOTTOM  = 1 << 2
+local ALIGN_VCENTER = 2 << 2
+local ALIGN_TOP     = 3 << 2
 
 local CLAMP_MASK    = 0xF0
 local CLAMP_LEFT    = 0x10
@@ -143,7 +139,7 @@ local CLAMP_RIGHT   = 0x20
 local CLAMP_BOTTOM  = 0x40
 local CLAMP_TOP     = 0x80
 
-local NO_ADJUST     = bor(ALIGN_HNONE, ALIGN_VNONE)
+local NO_ADJUST     = ALIGN_HNONE | ALIGN_VNONE
 
 local wtypes_by_name = {}
 local wtypes_by_type = {}
@@ -463,7 +459,7 @@ Object = register_class("Object", table2.Object, {
 
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
 
-        self.adjust = bor(ALIGN_HCENTER, ALIGN_VCENTER)
+        self.adjust = ALIGN_HCENTER | ALIGN_VCENTER
 
         -- alignment and clamping
         local align_h = kwargs.align_h or 0
@@ -708,7 +704,7 @@ Object = register_class("Object", table2.Object, {
         local x, y, w, h, a = self.x, self.y,
             self.w, self.h, self.adjust
 
-        local adj = band(a, ALIGN_HMASK)
+        local adj = a & ALIGN_HMASK
 
         if adj == ALIGN_LEFT then
             x = px
@@ -718,7 +714,7 @@ Object = register_class("Object", table2.Object, {
             x = px + pw - w
         end
 
-        adj = band(a, ALIGN_VMASK)
+        adj = a & ALIGN_VMASK
 
         if adj == ALIGN_BOTTOM then
             y = py
@@ -728,14 +724,14 @@ Object = register_class("Object", table2.Object, {
             y = py + ph - h
         end
 
-        if band(a, CLAMP_MASK) != 0 then
-            if band(a, CLAMP_LEFT ) != 0 then x = px end
-            if band(a, CLAMP_RIGHT) != 0 then
+        if (a & CLAMP_MASK) != 0 then
+            if (a & CLAMP_LEFT ) != 0 then x = px end
+            if (a & CLAMP_RIGHT) != 0 then
                 w = px + pw - x
             end
 
-            if band(a, CLAMP_BOTTOM) != 0 then y = py end
-            if band(a, CLAMP_TOP   ) != 0 then
+            if (a & CLAMP_BOTTOM) != 0 then y = py end
+            if (a & CLAMP_TOP   ) != 0 then
                 h = py + ph - y
             end
         end
@@ -1031,9 +1027,9 @@ Object = register_class("Object", table2.Object, {
         right).
     ]]
     align = function(self, h, v)
-        self.adjust = bor(band(self.adjust, bnot(ALIGN_MASK)),
-            blsh(clamp(h, -1, 1) + 2, ALIGN_HSHIFT),
-            blsh(clamp(v, -1, 1) + 2, ALIGN_VSHIFT))
+        self.adjust = (self.adjust & ~ALIGN_MASK)
+            | ((clamp(h, -1, 1) + 2) << ALIGN_HSHIFT)
+            | ((clamp(v, -1, 1) + 2) << ALIGN_VSHIFT)
     end,
 
     --[[! Function: clamp
@@ -1041,11 +1037,11 @@ Object = register_class("Object", table2.Object, {
         clamping. The values can be either true or false.
     ]]
     clamp = function(self, l, r, b, t)
-        self.adjust = bor(band(self.adjust, bnot(CLAMP_MASK)),
-            l and CLAMP_LEFT   or 0,
-            r and CLAMP_RIGHT  or 0,
-            b and CLAMP_BOTTOM or 0,
-            t and CLAMP_TOP    or 0)
+        self.adjust = (self.adjust & ~CLAMP_MASK)
+            | (l and CLAMP_LEFT   or 0)
+            | (r and CLAMP_RIGHT  or 0)
+            | (b and CLAMP_BOTTOM or 0)
+            | (t and CLAMP_TOP    or 0)
     end,
 
     --[[! Function: get_alignment
@@ -1054,11 +1050,11 @@ Object = register_class("Object", table2.Object, {
     ]]
     get_alignment = function(self)
         local a   = self.adjust
-        local adj = band(a, ALIGN_HMASK)
+        local adj = a & ALIGN_HMASK
         local hal = (adj == ALIGN_LEFT) and -1 or
             (adj == ALIGN_HCENTER and 0 or 1)
 
-        adj = band(a, ALIGN_VMASK)
+        adj = a & ALIGN_VMASK
         local val = (adj == ALIGN_BOTTOM) and 1 or
             (adj == ALIGN_VCENTER and 0 or -1)
 
@@ -1070,13 +1066,13 @@ Object = register_class("Object", table2.Object, {
     ]]
     get_clamping = function(self)
         local a   = self.adjust
-        local adj = band(a, CLAMP_MASK)
+        local adj = a & CLAMP_MASK
         if    adj == 0 then
             return 0, 0, 0, 0
         end
 
-        return band(a, CLAMP_LEFT  ) != 0, band(a, CLAMP_RIGHT) != 0,
-               band(a, CLAMP_BOTTOM) != 0, band(a, CLAMP_TOP) != 0
+        return (a & CLAMP_LEFT  ) != 0, (a & CLAMP_RIGHT) != 0,
+               (a & CLAMP_BOTTOM) != 0, (a & CLAMP_TOP  ) != 0
     end,
 
     --[[! Function: set_floating ]]
@@ -1611,6 +1607,7 @@ set_external("gui_render", function()
             tooltip:draw(x, y)
         end
 
+        capi.gl_blend_disable()
         capi.gl_scissor_disable()
         capi.gle_disable()
     end
@@ -1637,19 +1634,19 @@ set_external("change_add", function(desc, ctype)
     if win then win() end
 end)
 
-local CHANGE_GFX     = blsh(1, 0)
-local CHANGE_SOUND   = blsh(1, 1)
-local CHANGE_SHADERS = blsh(1, 2)
+local CHANGE_GFX     = 1 << 0
+local CHANGE_SOUND   = 1 << 1
+local CHANGE_SHADERS = 1 << 2
 
 local changes_clear = function(ctype)
-    ctype = ctype or bor(CHANGE_GFX, CHANGE_SOUND, CHANGE_SHADERS)
+    ctype = ctype or (CHANGE_GFX | CHANGE_SOUND | CHANGE_SHADERS)
 
     needsapply = table2.filter(needsapply, function(i, v)
-        if band(v.ctype, ctype) == 0 then
+        if (v.ctype & ctype) == 0 then
             return true
         end
 
-        v.ctype = band(v.ctype, bnot(ctype))
+        v.ctype = (v.ctype & ~ctype)
         if v.ctype == 0 then
             return false
         end
@@ -1663,18 +1660,18 @@ M.changes_clear = changes_clear
 M.changes_apply = function()
     local changetypes = 0
     for i, v in pairs(needsapply) do
-        changetypes = bor(changetypes, v.ctype)
+        changetypes = changetypes | v.ctype
     end
 
-    if band(changetypes, CHANGE_GFX) != 0 then
+    if (changetypes & CHANGE_GFX) != 0 then
         update_later[#update_later + 1] = { cs.execute, "resetgl" }
     end
 
-    if band(changetypes, CHANGE_SOUND) != 0 then
+    if (changetypes & CHANGE_SOUND) != 0 then
         update_later[#update_later + 1] = { cs.execute, "resetsound" }
     end
 
-    if band(changetypes, CHANGE_SHADERS) != 0 then
+    if (changetypes & CHANGE_SHADERS) != 0 then
         update_later[#update_later + 1] = { cs.execute, "resetshaders" }
     end
 end

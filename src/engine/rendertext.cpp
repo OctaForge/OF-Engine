@@ -238,6 +238,8 @@ static float draw_char(Texture *&tex, int c, float x, float y, float scale)
     return scale*info.advance;
 }
 
+VARP(textbright, 0, 85, 100);
+
 //stack[sp] is current color index
 static void text_color(char c, char *stack, int size, int &sp, bvec color, int a)
 {
@@ -263,6 +265,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case '7': color = bvec(255, 255, 255); break;   // white
             // provided color: everything else
         }
+        if(textbright != 100) color.scale(textbright, 100);
         gle::color(color, a);
     }
 }
@@ -385,8 +388,9 @@ void draw_text(const char *str, float left, float top, int r, int g, int b, int 
     #define TEXTCHAR(idx) draw_char(tex, c, left+x, top+y, scale); x += cw;
     #define TEXTWORD TEXTWORDSKELETON
     char colorstack[10];
-    colorstack[0] = 'c'; //indicate user color
+    colorstack[0] = '\0'; //indicate user color
     bvec color(r, g, b);
+    if(textbright != 100) color.scale(textbright, 100);
     int colorpos = 0;
     float cx = -FONTW, cy = 0;
     bool usecolor = true;
@@ -412,7 +416,11 @@ void draw_text(const char *str, float left, float top, int r, int g, int b, int 
         xtraverts += gle::end();
     }
     gle::disable();
-    if(oldshader == hudshader->detailshader) oldshader->bindprograms();
+    if(oldshader == hudshader->detailshader) 
+    {
+        oldshader->bindprograms();
+        gle::colorf(1, 1, 1);
+    }
     #undef TEXTINDEX
     #undef TEXTWHITE
     #undef TEXTLINE
