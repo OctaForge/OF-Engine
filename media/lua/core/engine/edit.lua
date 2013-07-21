@@ -17,74 +17,36 @@ local capi = require("capi")
 
 local M = {}
 
---[[! Variable: MATERIAL_AIR
-    Represents the "air" material (no material).
+-- undocumented, not exposed for the time being
+local matf = {:
+    INDEX_SHIFT  = 0,
+    VOLUME_SHIFT = 2,
+    CLIP_SHIFT   = 5,
+    FLAG_SHIFT   = 8,
+
+    INDEX  = 3 << INDEX_SHIFT,
+    VOLUME = 7 << VOLUME_SHIFT,
+    CLIP   = 7 << CLIP_SHIFT,
+    FLAGS  = 0xFF << FLAG_SHIFT
+:}
+
+--[[! Variable: material
+    Represents material ids present in the engine. Contains values AIR,
+    WATER, LAVA, GLASS, NOCLIP, CLIP, GAMECLIP, DEATH and ALPHA.
 ]]
-M.MATERIAL_AIR = 0
+M.material = {:
+    AIR      = 0,
+    WATER    = 1 << matf.VOLUME_SHIFT,
+    LAVA     = 2 << matf.VOLUME_SHIFT,
+    GLASS    = 3 << matf.VOLUME_SHIFT,
 
---[[! Variable: MATERIAL_WATER
-    Represents the "water" material.
-]]
-M.MATERIAL_WATER = bit.lshift(1, 2)
+    NOCLIP   = 1 << matf.CLIP_SHIFT,
+    CLIP     = 2 << matf.CLIP_SHIFT,
+    GAMECLIP = 3 << matf.CLIP_SHIFT,
 
---[[! Variable: MATERIAL_LAVA
-    Represents the "lava" material.
-]]
-M.MATERIAL_LAVA = bit.lshift(2, 2)
-
---[[! Variable: MATERIAL_GLASS
-    Represents the "glass" material.
-]]
-M.MATERIAL_GLASS = bit.lshift(3, 2)
-
---[[! Variable: MATERIAL_NOCLIP
-    Represents the "noclip" material.
-]]
-M.MATERIAL_NOCLIP = bit.lshift(1, 5)
-
---[[! Variable: MATERIAL_CLIP
-    Represents the "clip" material.
-]]
-M.MATERIAL_CLIP = bit.lshift(2, 5)
-
---[[! Variable: MATERIAL_GAMECLIP
-    Represents the "gameclip" material.
-]]
-M.MATERIAL_GAMECLIP = bit.lshift(3, 5)
-
---[[! Variable: MATERIAL_DEATH
-    Represents the "death" material.
-]]
-M.MATERIAL_DEATH = bit.lshift(1, 8)
-
---[[! Variable: MATERIAL_ALPHA
-    Represents the "alpha" material.
-]]
-M.MATERIAL_ALPHA = bit.lshift(4, 8)
-
---[[! Variable: MATERIAL_INDEX_SHIFT ]]
-M.MATERIAL_INDEX_SHIFT = 0
-
---[[! Variable: MATERIAL_VOLUME_SHIFT ]]
-M.MATERIAL_VOLUME_SHIFT = 2
-
---[[! Variable: MATERIAL_CLIP_SHIFT ]]
-M.MATERIAL_CLIP_SHIFT = 5
-
---[[! Variable: MATERIAL_FLAG_SHIFT ]]
-M.MATERIAL_FLAG_SHIFT = 8
-
---[[! Variable: MATERIALF_INDEX ]]
-M.MATERIALF_INDEX = bit.lshift(3, 0)
-
---[[! Variable: MATERIALF_VOLUME ]]
-M.MATERIALF_VOLUME = bit.lshift(7, 2)
-
---[[! Variable: MATERIALF_CLIP ]]
-M.MATERIALF_CLIP = bit.lshift(7, 5)
-
---[[! Variable: MATERIALF_FLAGS ]]
-M.MATERIALF_FLAGS = bit.lshift(255, 8)
+    DEATH    = 1 << matf.FLAG_SHIFT,
+    ALPHA    = 4 << matf.FLAG_SHIFT
+:}
 
 --[[! Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered
@@ -108,9 +70,7 @@ M.new_entity = capi.new_entity
 
 --[[! Function: get_material
     Returns what material is on the position given by the argument.
-    Materials are represented by <MATERIAL_AIR>, <MATERIAL_WATER>,
-    <MATERIAL_LAVA>, <MATERIAL_GLASS>, <MATERIAL_NOCLIP> and
-    <MATERIAL_CLIP>.
+    Materials are represented by <material> fields.
 ]]
 M.get_material = function(o)
     return capi.getmat(o.x, o.y, o.z)

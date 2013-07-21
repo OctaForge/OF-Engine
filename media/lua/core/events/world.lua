@@ -57,9 +57,9 @@ set_external("physics_state_change", function(ent, loc, flevel, llevel, mat)
     if SERVER then return nil end
 
     local flags = 0
-    if mat == edit.MATERIAL_WATER then
+    if mat == edit.material.WATER then
         flags |= FLAG_WATER
-    elseif mat == edit.MATERIAL_LAVA then
+    elseif mat == edit.material.LAVA then
         flags |= FLAG_LAVA
     end
 
