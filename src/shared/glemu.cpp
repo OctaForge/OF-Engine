@@ -273,7 +273,14 @@ LUAICOMMAND(gle_end, { lua_pushinteger(L, gle::end()); return 1; });
 LUAICOMMAND(gle_disable, { gle::disable(); return 0; });
 
 #define EAPI_GLE_DEFATTRIB(name) \
-    LUAICOMMAND(gle_def##name, { gle::def##name(luaL_checkinteger(L, 1), GL_FLOAT); return 0; });
+    LUAICOMMAND(gle_def##name##f, { gle::def##name(luaL_checkinteger(L, 1), GL_FLOAT); return 0; }); \
+    LUAICOMMAND(gle_def##name##d, { gle::def##name(luaL_checkinteger(L, 1), GL_DOUBLE); return 0; }); \
+    LUAICOMMAND(gle_def##name##b, { gle::def##name(luaL_checkinteger(L, 1), GL_BYTE); return 0; }); \
+    LUAICOMMAND(gle_def##name##ub, { gle::def##name(luaL_checkinteger(L, 1), GL_UNSIGNED_BYTE); return 0; }); \
+    LUAICOMMAND(gle_def##name##s, { gle::def##name(luaL_checkinteger(L, 1), GL_SHORT); return 0; }); \
+    LUAICOMMAND(gle_def##name##us, { gle::def##name(luaL_checkinteger(L, 1), GL_UNSIGNED_SHORT); return 0; }); \
+    LUAICOMMAND(gle_def##name##i, { gle::def##name(luaL_checkinteger(L, 1), GL_INT); return 0; }); \
+    LUAICOMMAND(gle_def##name##ui, { gle::def##name(luaL_checkinteger(L, 1), GL_UNSIGNED_INT); return 0; });
 
 EAPI_GLE_DEFATTRIB(vertex)
 EAPI_GLE_DEFATTRIB(color)

@@ -708,7 +708,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
                 capi.shader_hudnotexture_set()
                 capi.gle_color3ub(0xA0, 0x80, 0x80)
-                capi.gle_defvertex(2)
+                capi.gle_defvertexf(2)
                 capi.gle_begin(gl.QUADS)
                 if psy == pey then
                     capi.gle_attrib2f(x + psx, y + psy)
@@ -754,7 +754,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                 local fontw = var_get("fontw")
                 capi.shader_hudnotexture_set()
                 capi.gle_color3ub(0x80, 0xA0, 0x80)
-                capi.gle_defvertex(2)
+                capi.gle_defvertexf(2)
                 capi.gle_begin(gl.gl.TRIANGLE_STRIP)
                 capi.gle_attrib2f(x,                y + h + fonth)
                 capi.gle_attrib2f(x,                y + h + height)

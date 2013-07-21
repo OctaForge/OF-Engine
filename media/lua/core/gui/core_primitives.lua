@@ -64,9 +64,9 @@ local Filler = M.Filler
     and solid, which is a boolean value specifying whether the rectangle
     is solid - that is, if it's just a regular color fill or whether it
     modulates the color of the thing underneath. The color/alpha values
-    defautl to 255, solid defaults to true.
+    default to 255, solid defaults to true.
 ]]
-M.Color_Filler = register_class("Color_Filler", Filler, {
+local Color_Filler = register_class("Color_Filler", Filler, {
     __init = function(self, kwargs)
         kwargs       = kwargs or {}
         self.solid = kwargs.solid == false and false or true
@@ -78,13 +78,6 @@ M.Color_Filler = register_class("Color_Filler", Filler, {
         return Filler.__init(self, kwargs)
     end,
 
-    --[[! Function: target
-        Color_Fillers are targetable.
-    ]]
-    target = function(self, cx, cy)
-        return Object.target(self, cx, cy) or self
-    end,
-
     draw = function(self, sx, sy)
         local w, h, solid = self.w, self.h, self.solid
 
@@ -92,7 +85,7 @@ M.Color_Filler = register_class("Color_Filler", Filler, {
         capi.shader_hudnotexture_set()
         capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        capi.gle_defvertex(2)
+        capi.gle_defvertexf(2)
         capi.gle_begin(gl.TRIANGLE_STRIP)
 
         capi.gle_attrib2f(sx,     sy)
@@ -112,6 +105,147 @@ M.Color_Filler = register_class("Color_Filler", Filler, {
 
     --[[! Function: set_solid ]]
     set_solid = gen_setter "solid",
+
+    --[[! Function: set_r ]]
+    set_r = gen_setter "r",
+
+    --[[! Function: set_g ]]
+    set_g = gen_setter "g",
+
+    --[[! Function: set_b ]]
+    set_b = gen_setter "b",
+
+    --[[! Function: set_a ]]
+    set_a = gen_setter "a"
+})
+M.Color_Filler = Color_Filler
+
+--[[! Struct: Gradient
+    Derived from <Color_Filler>. It's a gradient, not solid color fill
+    like <Color_Filler>. Properties r2, g2, b2, a2 represent the other
+    color (and all default to 255). The property "horizontal" makes the
+    gradient horizontal (default is vertical). Other properties are
+    inherited from <Color_Filler>.
+]]
+M.Gradient = register_class("Gradient", Color_Filler, {
+    __init = function(self, kwargs)
+        Color_Filler.__init(self, kwargs)
+        self.horizontal = kwargs.horizontal
+        self.r2 = kwargs.r2 or 255
+        self.g2 = kwargs.g2 or 255
+        self.b2 = kwargs.b2 or 255
+        self.a2 = kwargs.a2 or 255
+    end,
+
+    draw = function(self, sx, sy)
+        local w, h, solid, horizontal in self
+        local r, r2, g, g2, b, b2, a, a2 in self
+
+        if not solid then capi.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+        capi.shader_hudnotexture_set()
+
+        capi.gle_defvertexf(2)
+        capi.gle_defcolorub(4)
+        capi.gle_begin(gl.TRIANGLE_STRIP)
+
+        capi.gle_attrib2f(sx, sy)
+        if horizontal then
+            capi.gle_attrib4ub(r2, g2, b2, a2)
+        else
+            capi.gle_attrib4ub(r, g, b, a)
+        end
+        capi.gle_attrib2f(sx + w, sy)     capi.gle_attrib4ub(r,  g,  b,  a)
+        capi.gle_attrib2f(sx,     sy + h) capi.gle_attrib4ub(r2, g2, b2, a2)
+        capi.gle_attrib2f(sx + w, sy + h)
+        if horizontal then
+            capi.gle_attrib4ub(r, g, b, a)
+        else
+            capi.gle_attrib4ub(r2, g2, b2, a2)
+        end
+
+        capi.gle_end()
+        capi.shader_hud_set()
+        if not solid then
+            capi.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+        end
+
+        return Filler.draw(self, sx, sy)
+    end,
+
+    --[[! Function: set_horizontal ]]
+    set_horizontal = gen_setter "horizontal",
+
+    --[[! Function: set_r2 ]]
+    set_r2 = gen_setter "r2",
+
+    --[[! Function: set_g2 ]]
+    set_g2 = gen_setter "g2",
+
+    --[[! Function: set_b2 ]]
+    set_b2 = gen_setter "b2",
+
+    --[[! Function: set_a2 ]]
+    set_a2 = gen_setter "a2"
+})
+
+--[[! Struct: Outline
+    Derived from <Filler>. Represents an outline. Has properties r,
+    g, b, a (that default to 255 and represent the outline color) and
+    "thickness" which is a floating point number representing the outline
+    width (defaults to 0).
+]]
+M.Outline = register_class("Outline", Filler, {
+    __init = function(self, kwargs)
+        kwargs         = kwargs or {}
+        self.thickness = kwargs.thickness or 0
+        self.r         = kwargs.r or 255
+        self.g         = kwargs.g or 255
+        self.b         = kwargs.b or 255
+        self.a         = kwargs.a or 255
+
+        return Filler.__init(self, kwargs)
+    end,
+
+    draw = function(self, sx, sy)
+        local w,h, thickness in self
+
+        capi.shader_hudnotexture_set()
+        capi.gle_color4ub(self.r, self.g, self.b, self.a)
+
+        capi.gle_defvertexf(2)
+        capi.gle_begin(gl.QUADS)
+
+        local tw, th = min(thickness, w / 2), min(thickness, h / 2)
+        -- top
+        capi.gle_attrib2f(sx,          sy)
+        capi.gle_attrib2f(sx + w,      sy)
+        capi.gle_attrib2f(sx + w - tw, sy + th)
+        capi.gle_attrib2f(sx +     tw, sy + th)
+        -- bottom
+        capi.gle_attrib2f(sx + tw,     sy + h - th)
+        capi.gle_attrib2f(sx + w - tw, sy + h - th)
+        capi.gle_attrib2f(sx + w,      sy + h)
+        capi.gle_attrib2f(sx,          sy + h)
+        -- left
+        capi.gle_attrib2f(sx,      sy)
+        capi.gle_attrib2f(sx + tw, sy +     th)
+        capi.gle_attrib2f(sx + tw, sy + h - th)
+        capi.gle_attrib2f(sx,      sy + h)
+        -- right
+        capi.gle_attrib2f(sx + w - tw, sy + th)
+        capi.gle_attrib2f(sx + w,      sy)
+        capi.gle_attrib2f(sx + w,      sy + h)
+        capi.gle_attrib2f(sx + w - tw, sy + h - th)
+
+        capi.gle_end()
+        capi.gle_color4f(1, 1, 1, 1)
+        capi.shader_hud_set()
+
+        return Filler.draw(self, sx, sy)
+    end,
+
+    --[[! Function: set_thickness ]]
+    set_thickness = gen_setter "thickness",
 
     --[[! Function: set_r ]]
     set_r = gen_setter "r",
@@ -229,8 +363,8 @@ local Image = register_class("Image", Filler, {
 
         capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        capi.gle_defvertex(2)
-        capi.gle_deftexcoord0(2)
+        capi.gle_defvertexf(2)
+        capi.gle_deftexcoord0f(2)
         capi.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.w, self.h)
         capi.gle_end()
@@ -346,8 +480,8 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
 
         capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        capi.gle_defvertex(2)
-        capi.gle_deftexcoord0(2)
+        capi.gle_defvertexf(2)
+        capi.gle_deftexcoord0f(2)
         capi.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.w, self.h,
             self.crop_x, self.crop_y, self.crop_w, self.crop_h)
@@ -428,8 +562,8 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
 
         capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        capi.gle_defvertex(2)
-        capi.gle_deftexcoord0(2)
+        capi.gle_defvertexf(2)
+        capi.gle_deftexcoord0f(2)
         capi.gle_begin(gl.QUADS)
 
         local mw, mh, pw, ph = self.min_w, self.min_h, self.w, self.h
@@ -546,8 +680,8 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
 
         capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        capi.gle_defvertex(2)
-        capi.gle_deftexcoord0(2)
+        capi.gle_defvertexf(2)
+        capi.gle_deftexcoord0f(2)
         capi.gle_begin(gl.QUADS)
 
         local vy, ty = sy, 0
@@ -638,8 +772,8 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         -- repeat with clamped textures
         if tex:get_clamp() != 0 then
             local dx, dy = 0, 0
-            capi.gle_defvertex(2)
-            capi.gle_deftexcoord0(2)
+            capi.gle_defvertexf(2)
+            capi.gle_deftexcoord0f(2)
             capi.gle_begin(gl.QUADS)
             while dx < pw do
                 while dy < ph do
@@ -651,8 +785,8 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
             end
             capi.gle_end()
         else
-            capi.gle_defvertex(2)
-            capi.gle_deftexcoord0(2)
+            capi.gle_defvertexf(2)
+            capi.gle_deftexcoord0f(2)
             capi.gle_begin(gl.TRIANGLE_STRIP)
             quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
             capi.gle_end()
@@ -821,8 +955,8 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         capi.model_preview_end()
 
         capi.shader_hud_set()
-        capi.gle_defvertex(2)
-        capi.gle_deftexcoord0(2)
+        capi.gle_defvertexf(2)
+        capi.gle_deftexcoord0f(2)
         capi.gl_blend_enable()
         if csl then capi.gl_scissor_enable() end
         return Object.draw(self, sx, sy)

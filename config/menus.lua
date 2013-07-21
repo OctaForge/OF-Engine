@@ -4,13 +4,17 @@ local gui = require("core.gui.core")
 local world = gui.get_world()
 
 gui.Button.states = {
-    default = gui.Color_Filler {
-        min_w = 0.2, min_h = 0.05, r = 255, g = 255, b = 0,
+    default = gui.Gradient {
+        min_w = 0.2, min_h = 0.05,
+        r = 255, g = 255, b = 0,
+        r2 = 0, g2 = 255, b2 = 255,
+        horizontal = true,
         gui.Label { text = "Idle" }
     },
 
-    hovering = gui.Color_Filler {
-        min_w = 0.2, min_h = 0.05, r = 255, g = 0, b = 0,
+    hovering = gui.Outline {
+        thickness = 0.005,
+        r = 0, g = 0, b = 255, min_w = 0.2, min_h = 0.05,
         gui.Label { text = "Hovering" }
     },
 
