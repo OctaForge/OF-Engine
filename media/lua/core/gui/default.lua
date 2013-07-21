@@ -20,7 +20,7 @@ local gui = require("core.gui.core")
 local world = gui.get_world()
 
 world:new_window("changes", gui.Window, function(win)
-    win:append(gui.Rectangle { r = 0, g = 0, b = 0, a = 192,
+    win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,
     min_w = 0.3, min_h = 0.2 }, function(r)
         r:clamp(true, true, true, true)
         win:append(gui.V_Box { padding = 0.01 }, function(box)
@@ -33,7 +33,7 @@ world:new_window("changes", gui.Window, function(win)
                 hb:append(gui.Button(), function(btn)
                     btn:update_state("default",
                         btn:update_state("hovering",
-                            btn:update_state("clicked", gui.Rectangle {
+                            btn:update_state("clicked", gui.Color_Filler {
                                 r = 64, g = 64, b = 64,
                                 min_w = 0.2, min_h = 0.05,
                                 gui.Label { text = "OK" } })))
@@ -45,7 +45,7 @@ world:new_window("changes", gui.Window, function(win)
                 hb:append(gui.Button(), function(btn)
                     btn:update_state("default",
                         btn:update_state("hovering",
-                            btn:update_state("clicked", gui.Rectangle {
+                            btn:update_state("clicked", gui.Color_Filler {
                                 r = 64, g = 64, b = 64,
                                 min_w = 0.2, min_h = 0.05,
                                 gui.Label { text = "Cancel" } })))
@@ -61,7 +61,7 @@ end)
 
 world:new_window("textures", gui.Window, function(win)
     capi.slot_fill_texlist()
-    win:append(gui.Rectangle { r = 0, g = 0, b = 0, a = 192,
+    win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,
     min_w = 0.3, min_h = 0.2 }, function(r)
         r:clamp(true, true, true, true)
         win:append(gui.V_Box { padding = 0.01 }, function(box)
@@ -83,7 +83,7 @@ world:new_window("textures", gui.Window, function(win)
             box:append(gui.Button(), function(btn)
                 btn:update_state("default",
                     btn:update_state("hovering",
-                        btn:update_state("clicked", gui.Rectangle {
+                        btn:update_state("clicked", gui.Color_Filler {
                             r = 64, g = 64, b = 64,
                             min_w = 0.2, min_h = 0.05,
                             gui.Label { text = "Close" } })))

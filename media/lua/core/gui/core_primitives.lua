@@ -58,7 +58,7 @@ local gen_setter = M.gen_setter
 
 local Filler = M.Filler
 
---[[! Struct: Rectangle
+--[[! Struct: Color_Filler
     Derived from <Filler>. Represents a regular rectangle. Has properties
     r (red, 0-255), g (green, 0-255), b (blue, 0-255), a (alpha, 0-255)
     and solid, which is a boolean value specifying whether the rectangle
@@ -66,7 +66,7 @@ local Filler = M.Filler
     modulates the color of the thing underneath. The color/alpha values
     defautl to 255, solid defaults to true.
 ]]
-M.Rectangle = register_class("Rectangle", Filler, {
+M.Color_Filler = register_class("Color_Filler", Filler, {
     __init = function(self, kwargs)
         kwargs       = kwargs or {}
         self.solid = kwargs.solid == false and false or true
@@ -79,7 +79,7 @@ M.Rectangle = register_class("Rectangle", Filler, {
     end,
 
     --[[! Function: target
-        Rectangles are targetable.
+        Color_Fillers are targetable.
     ]]
     target = function(self, cx, cy)
         return Object.target(self, cx, cy) or self
@@ -152,7 +152,7 @@ end
     filename assuming file fails) - those are not saved in the object and
     six other properties - min_filter, mag_filter (see GL_TEXTURE_MIN_FILTER
     and GL_TEXTURE_MAG_FILTER as well as the filters later in this module),
-    r, g, b, a (see <Rectangle>).
+    r, g, b, a (see <Color_Filler>).
 
     Negative min_w and min_h values are in pixels.
 
@@ -850,7 +850,7 @@ cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     A regular label. Has several properties - text (the label, a string),
     scale (the scale, defaults to 1, which is the base scale), wrap (text
     wrapping, defaults to -1 - not wrapped, otherwis a size), r, g, b, a
-    (see <Rectangle> for these).
+    (see <Color_Filler> for these).
 ]]
 M.Label = register_class("Label", Object, {
     __init = function(self, kwargs)
