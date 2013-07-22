@@ -45,9 +45,9 @@ local assert_next = function(ls, tok)
 end
 
 local check_match = function(ls, a, b, line)
-    if not ls.token.name == a then
+    if ls.token.name ~= a then
         if line == ls.line_number then
-            syntax_error(ls, "'" .. ls.token.name .. "' expected")
+            syntax_error(ls, "'" .. a .. "' expected")
         else
             syntax_error(ls, "'" .. a .. "' expected (to close '" .. b
                 .. "' at line " .. line .. ")")

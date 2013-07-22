@@ -98,6 +98,9 @@ local load_new = function(ld, chunkname, mode, env)
             ret = ld()
         end
         ld = tconc(buf)
+        chunkname = chunkname or "=(load)"
+    else
+        chunkname = chunkname or ld
     end
     local ret, parsed = pcall(parse, chunkname, ld, capi.should_log(1))
     if not ret then return nil, parsed end
