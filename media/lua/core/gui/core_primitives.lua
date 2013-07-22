@@ -883,42 +883,38 @@ M.Thumbnail = register_class("Thumbnail", Image, {
 
 --[[! Struct: Slot_Viewer
     Derived from <Filler>. Represents a texture slot thumbnail, for example
-    in a texture selector. Has one property, slot, which is the texture slot
-    id. Regular thumbnail rules and delays are followed like in <Thumbnail>.
+    in a texture selector. Has one property, index, which is the texture slot
+    index (starting with 0). Regular thumbnail rules and delays are followed
+    like in <Thumbnail>.
 ]]
 M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.slot = kwargs.slot or 0
+        self.index = kwargs.index or 0
 
         return Filler.__init(self, kwargs)
     end,
 
-    --[[! Function: target
-        Slot viewers are targetable assuming the slot exists.
-    ]]
     target = function(self, cx, cy)
-        local o = Object.target(self, cx, cy)
-        if    o or not capi.slot_exists(self.slot) then return o end
-        return capi.slot_check_vslot(self.slot) and self or nil
+        return Object.target(self, cx, cy) or self
     end,
 
     draw = function(self, sx, sy)
-        capi.texture_draw_slot(self.slot, self.w, self.h, sx, sy)
+        capi.texture_draw_slot(self.index, self.w, self.h, sx, sy)
         return Object.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_slot ]]
-    set_slot = gen_setter "slot"
+    --[[! Function: set_index ]]
+    set_index = gen_setter "index"
 })
 
 --[[! Class: VSlot_Viewer
     Similar to <Slot_Viewer>, but previews vslots. It has the same
-    properties, however the "slot" property is used for vslot lookup.
+    properties, however the "index" property is used for vslot lookup.
 ]]
 M.VSlot_Viewer = register_class("VSlot_Viewer", M.Slot_Viewer, {
     draw = function(self, sx, sy)
-        capi.texture_draw_vslot(self.slot, self.w, self.h, sx, sy)
+        capi.texture_draw_vslot(self.index, self.w, self.h, sx, sy)
         return Object.draw(self, sx, sy)
     end
 })

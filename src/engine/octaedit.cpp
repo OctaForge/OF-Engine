@@ -2326,15 +2326,25 @@ void rendertexturepanel(int w, int h)
 /* OF */
 
 #ifndef SERVER
-LUAICOMMAND(slot_fill_texlist, {
+LUAICOMMAND(slot_set, {
+    int n = luaL_checkinteger(L, 1);
+    if (!vslots.inrange(n) || noedit()) return 0;
     filltexlist();
+    edittex(n);
     return 0;
 });
 
-LUAICOMMAND(slot_set, {
-    int n = luaL_checkinteger(L, 1);
-    if (!noedit() && texmru.inrange(n)) edittex(texmru[n]);
-    return 0;
+LUAICOMMAND(slot_texmru_num, {
+    filltexlist();
+    lua_pushinteger(L, texmru.length());
+    return 1;
+});
+
+LUAICOMMAND(slot_texmru, {
+    int idx = luaL_checkinteger(L, 1);
+    filltexlist();
+    lua_pushinteger(L, texmru.inrange(idx) ? texmru[idx] : idx);
+    return 1;
 });
 
 LUAICOMMAND(slot_get_count, {
@@ -2344,6 +2354,17 @@ LUAICOMMAND(slot_get_count, {
 
 LUAICOMMAND(slot_exists, {
     lua_pushboolean(L, texmru.inrange((int)luaL_checkinteger(L, 1)));
+    return 1;
+});
+
+LUAICOMMAND(slot_get_name, {
+    int tex = luaL_checkinteger(L, 1);
+    int subslot = luaL_optinteger(L, 2, 0);
+    if (tex < 0) return 0;
+    VSlot &vslot = lookupvslot(tex, false);
+    Slot &slot = *vslot.slot;
+    if(!slot.sts.inrange(subslot)) return 0;
+    lua_pushstring(L, slot.sts[subslot].name);
     return 1;
 });
 

@@ -60,7 +60,6 @@ world:new_window("changes", gui.Window, function(win)
 end)
 
 world:new_window("textures", gui.Window, function(win)
-    capi.slot_fill_texlist()
     win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,
     min_w = 0.3, min_h = 0.2 }, function(r)
         r:clamp(true, true, true, true)
@@ -72,7 +71,7 @@ world:new_window("textures", gui.Window, function(win)
                         btn:update_state("default",
                             btn:update_state("hovering",
                                 btn:update_state("clicked", gui.Slot_Viewer {
-                                    slot = i - 1, min_w = 0.095,
+                                    index = i - 1, min_w = 0.095,
                                     min_h = 0.095 })))
                         signal.connect(btn, "click", function()
                             capi.slot_set(i - 1)
