@@ -1660,7 +1660,7 @@ M.changes_clear = changes_clear
 M.changes_apply = function()
     local changetypes = 0
     for i, v in pairs(needsapply) do
-        changetypes = changetypes | v.ctype
+        changetypes |= v.ctype
     end
 
     if (changetypes & CHANGE_GFX) != 0 then

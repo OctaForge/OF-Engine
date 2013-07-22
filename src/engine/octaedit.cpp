@@ -1883,7 +1883,7 @@ void mpedittex(int tex, int allfaces, selinfo &sel, bool local)
     loopselxyz(edittexcube(c, tex, allfaces ? -1 : sel.orient, findrep));
 }
 
-void filltexlist()
+static void filltexlist()
 {
     if(texmru.length()!=vslots.length())
     {
@@ -1978,7 +1978,7 @@ void getseltex()
 
 void gettexname(int *tex, int *subslot)
 {
-    if(noedit(true) || *tex<0) return;
+    if(*tex<0) return;
     VSlot &vslot = lookupvslot(*tex, false);
     Slot &slot = *vslot.slot;
     if(!slot.sts.inrange(*subslot)) return;
@@ -1991,6 +1991,7 @@ COMMAND(getcurtex, "");
 COMMAND(getseltex, "");
 ICOMMAND(getreptex, "", (), { if(!noedit()) intret(vslots.inrange(reptex) ? reptex : -1); });
 COMMAND(gettexname, "ii");
+ICOMMAND(texmru, "b", (int *idx), { filltexlist(); intret(texmru.inrange(*idx) ? texmru[*idx] : texmru.length()); });
 
 void replacetexcube(cube &c, int oldtex, int newtex)
 {

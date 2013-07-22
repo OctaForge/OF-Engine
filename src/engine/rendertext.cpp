@@ -285,7 +285,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
         {\
             float cw = scale*curfont->chars[c-curfont->charoffset].advance;\
             if(cw <= 0) continue;\
-            if(maxwidth != -1)\
+            if(maxwidth >= 0)\
             {\
                 int j = i;\
                 float w = cw;\
@@ -302,8 +302,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
                 if(x + w > maxwidth && j!=0) { TEXTLINE(j-1) x = 0; y += FONTH; }\
                 TEXTWORD\
             }\
-            else\
-            { TEXTCHAR(i) }\
+            else { TEXTCHAR(i) }\
         }\
     }
 

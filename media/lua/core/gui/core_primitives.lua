@@ -209,7 +209,7 @@ M.Outline = register_class("Outline", Filler, {
 
         capi.gle_defvertexf(2)
 
-        if thickness == 0 then
+        if thickness <= 0 then
             capi.gle_begin(gl.LINE_LOOP)
             capi.gle_attrib2f(sx,     sy)
             capi.gle_attrib2f(sx + w, sy)

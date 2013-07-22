@@ -193,8 +193,8 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
         gle::colorf(1, 1, 1);
         settexture("media/interface/background", 0);
-        float bu = w*0.67f/256.0f + backgroundu, bv = h*0.67f/256.0f + backgroundv;
-        bgquad(0, 0, w, h, 0, 0, bu, bv);
+        float bu = w*0.67f/256.0f, bv = h*0.67f/256.0f;
+        bgquad(0, 0, w, h, backgroundu, backgroundv, bu, bv);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #if 0
