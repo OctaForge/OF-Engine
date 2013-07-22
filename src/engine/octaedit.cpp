@@ -1986,6 +1986,7 @@ void gettexname(int *tex, int *subslot)
 }
 
 COMMANDN(edittex, edittex_, "i");
+ICOMMAND(settex, "i", (int *tex), { if(!vslots.inrange(*tex) || noedit()) return; filltexlist(); edittex(*tex); }); 
 COMMAND(gettex, "");
 COMMAND(getcurtex, "");
 COMMAND(getseltex, "");
