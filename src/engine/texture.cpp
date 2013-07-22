@@ -3435,107 +3435,106 @@ LUAICOMMAND(texture_load_alpha_mask, {
 VAR(thumbtime, 0, 25, 1000);
 static int lastthumbnail = 0;
 
-static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float sx, float sy) {
-    Texture *tex = notexture, *glowtex = NULL, *layertex = NULL, *decaltex = NULL;
+static void quad(float x, float y, float w, float h, const vec2 tc[4])
+{
+    gle::defvertex(2);
+    gle::deftexcoord0();
+    gle::begin(GL_TRIANGLE_STRIP);
+    gle::attribf(x+w, y);   gle::attrib(tc[1]);
+    gle::attribf(x,   y);   gle::attrib(tc[0]);
+    gle::attribf(x+w, y+h); gle::attrib(tc[2]);
+    gle::attribf(x,   y+h); gle::attrib(tc[3]);
+    gle::end();
+}
+
+static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float x, float y) {
+    if (slot.sts.empty()) return;
     VSlot *layer = NULL, *decal = NULL;
+    Texture *t = NULL, *glowtex = NULL, *layertex = NULL, *decaltex = NULL;
     if (slot.loaded) {
-        tex = slot.sts[0].t;
-        if (tex == notexture) return;
+        t = slot.sts[0].t;
+        if (t == notexture) return;
+        Slot &slot = *vslot.slot;
         if (slot.texmask&(1<<TEX_GLOW)) {
-            loopv(slot.sts) if(slot.sts[i].type==TEX_GLOW)
-            { glowtex = slot.sts[i].t; break; }
+            loopvj(slot.sts) if (slot.sts[j].type==TEX_GLOW) {
+                glowtex = slot.sts[j].t; break;
+            }
         }
         if (vslot.layer) {
             layer = &lookupvslot(vslot.layer);
-            if(!layer->slot->sts.empty())
-                layertex = layer->slot->sts[0].t;
+            if (!layer->slot->sts.empty()) layertex = layer->slot->sts[0].t;
         }
         if (vslot.decal) {
             decal = &lookupvslot(vslot.decal);
-            if (!decal->slot->sts.empty())
-                decaltex = decal->slot->sts[0].t;
+            if (!decal->slot->sts.empty()) decaltex = decal->slot->sts[0].t;
         }
+    } else {
+        if (!slot.thumbnail) {
+            if(totalmillis - lastthumbnail < thumbtime) return;
+            loadthumbnail(slot);
+            lastthumbnail = totalmillis;
+        }
+        if (slot.thumbnail != notexture) t = slot.thumbnail;
+        else return;
     }
-    else if(slot.thumbnail && slot.thumbnail != notexture) tex = slot.thumbnail;
-    float xt = min(1.0f, tex->xs/(float)tex->ys), yt = min(1.0f, tex->ys/(float)tex->xs);
-
+    SETSHADER(hudrgb);
     vec2 tc[4] = { vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1) };
     int xoff = vslot.offset.x, yoff = vslot.offset.y;
     if (vslot.rotation) {
-        if ((vslot.rotation&5) == 1) { swap(xoff, yoff); loopk(4) swap(tc[k].x, tc[k].y); }
-        if (vslot.rotation >= 2 && vslot.rotation <= 4) { xoff *= -1; loopk(4) tc[k].x *= -1; }
-        if (vslot.rotation <= 2 || vslot.rotation == 5) { yoff *= -1; loopk(4) tc[k].y *= -1; }
+        if ((vslot.rotation & 5) == 1) {
+            swap(xoff, yoff); loopk(4) swap(tc[k].x, tc[k].y);
+        }
+        if (vslot.rotation >= 2 && vslot.rotation <= 4) {
+            xoff *= -1; loopk(4) tc[k].x *= -1;
+        }
+        if (vslot.rotation <= 2 || vslot.rotation == 5) {
+            yoff *= -1; loopk(4) tc[k].y *= -1;
+        }
     }
-    loopk(4) { tc[k].x = tc[k].x/xt - float(xoff)/tex->xs; tc[k].y = tc[k].y/yt - float(yoff)/tex->ys; }
-
-    if (slot.loaded) SETSHADER(hudrgb);
-    else hudshader->setvariant(tex->swizzle(), 0);
-
-    glBindTexture(GL_TEXTURE_2D, tex->id);
-
+    float xt = min(1.0f, t->xs/float(t->ys)),
+          yt = min(1.0f, t->ys/float(t->xs));
+    loopk(4) {
+        tc[k].x = tc[k].x/xt - float(xoff)/t->xs;
+        tc[k].y = tc[k].y/yt - float(yoff)/t->ys;
+    }
+    glBindTexture(GL_TEXTURE_2D, t->id);
     if (slot.loaded) gle::color(vslot.colorscale);
-    else gle::colorf(1, 1, 1);
-    gle::begin(GL_TRIANGLE_STRIP);
-    gle::attribf(sx  , sy  ); gle::attrib(tc[0]);
-    gle::attribf(sx+w, sy  ); gle::attrib(tc[1]);
-    gle::attribf(sx  , sy+h); gle::attrib(tc[3]);
-    gle::attribf(sx+w, sy+h); gle::attrib(tc[2]);
-    gle::end();
-
+    quad(x, y, w, h, tc);
     if (decaltex) {
         glBindTexture(GL_TEXTURE_2D, decaltex->id);
-        gle::begin(GL_TRIANGLE_STRIP);
-        gle::attribf(sx,     sy    ); gle::attrib(tc[0]);
-        gle::attribf(sx+w/2, sy    ); gle::attrib(tc[1]);
-        gle::attribf(sx,     sy+h/2); gle::attrib(tc[3]);
-        gle::attribf(sx+w/2, sy+h/2); gle::attrib(tc[2]);
-        gle::end();
+        quad(x + w/2, y + h/2, w/2, h/2, tc);
     }
     if (glowtex) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         glBindTexture(GL_TEXTURE_2D, glowtex->id);
         gle::color(vslot.glowcolor);
-        gle::begin(GL_TRIANGLE_STRIP);
-        gle::attribf(sx  , sy  ); gle::attrib(tc[0]);
-        gle::attribf(sx+w, sy  ); gle::attrib(tc[1]);
-        gle::attribf(sx  , sy+h); gle::attrib(tc[3]);
-        gle::attribf(sx+w, sy+h); gle::attrib(tc[2]);
-        gle::end();
+        quad(x, y, w, h, tc);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
-    if (layertex) {
+    if(layertex) {
         glBindTexture(GL_TEXTURE_2D, layertex->id);
         gle::color(layer->colorscale);
-        gle::begin(GL_TRIANGLE_STRIP);
-        gle::attribf(sx+w/2, sy+h/2); gle::attrib(tc[0]);
-        gle::attribf(sx+w,   sy+h/2); gle::attrib(tc[1]);
-        gle::attribf(sx+w/2, sy+h  ); gle::attrib(tc[3]);
-        gle::attribf(sx+w,   sy+h  ); gle::attrib(tc[2]);
-        gle::end();
+        quad(x, y, w/2, h/2, tc);
     }
     gle::colorf(1, 1, 1);
+    hudshader->set();
 }
 
 LUAICOMMAND(texture_draw_slot, {
-    int slotnum = luaL_checkinteger(L, 1);
-    float w  = luaL_checknumber(L, 2); float h  = luaL_checknumber(L, 3);
-    float sx = luaL_checknumber(L, 4); float sy = luaL_checknumber(L, 5);
-    if (texmru.inrange(slotnum))
-    {
-        VSlot &vslot = lookupvslot(texmru[slotnum], false);
-        Slot &slot = *vslot.slot;
-        if (slot.sts.length())
-        {
-            if(slot.loaded || slot.thumbnail)
-                drawslot(slot, vslot, w, h, sx, sy);
+    int index = luaL_checkinteger(L, 1);
+    float w = luaL_checknumber(L, 2); float h = luaL_checknumber(L, 3);
+    float x = luaL_checknumber(L, 4); float y = luaL_checknumber(L, 5);
+    Slot &slot = lookupslot(index, false);
+    drawslot(slot, *slot.variants, w, h, x, y);
+    return 0;
+});
 
-            else if (totalmillis-lastthumbnail >= thumbtime)
-            {
-                loadthumbnail(slot);
-                lastthumbnail = totalmillis;
-            }
-        }
-    }
+LUAICOMMAND(texture_draw_vslot, {
+    int index = luaL_checkinteger(L, 1);
+    float w = luaL_checknumber(L, 2); float h = luaL_checknumber(L, 3);
+    float x = luaL_checknumber(L, 4); float y = luaL_checknumber(L, 5);
+    VSlot &vslot = lookupvslot(index, false);
+    drawslot(*vslot.slot, vslot, w, h, x, y);
     return 0;
 });
 

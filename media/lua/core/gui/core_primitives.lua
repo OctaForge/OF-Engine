@@ -912,6 +912,17 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     set_slot = gen_setter "slot"
 })
 
+--[[! Class: VSlot_Viewer
+    Similar to <Slot_Viewer>, but previews vslots. It has the same
+    properties, however the "slot" property is used for vslot lookup.
+]]
+M.VSlot_Viewer = register_class("VSlot_Viewer", M.Slot_Viewer, {
+    draw = function(self, sx, sy)
+        capi.texture_draw_vslot(self.slot, self.w, self.h, sx, sy)
+        return Object.draw(self, sx, sy)
+    end
+})
+
 local animctl = model.anim_control
 
 --[[! Struct: Model_Viewer
