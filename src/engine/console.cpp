@@ -978,3 +978,8 @@ LUAICOMMAND(input_textinput, {
     textinput(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
     return 0;
 });
+
+LUAICOMMAND(input_get_key_name, {
+    lua_pushstring(L, getkeyname(luaL_checkinteger(L, 1)));
+    return 1;
+});

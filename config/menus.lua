@@ -75,6 +75,15 @@ world:new_window("main", gui.Window, function(win)
                 end
             })
 
+            local ed, lbl
+            b:append(gui.H_Box(), function(b)
+                b:append(gui.Field { length = 50, value = "butts" }, function(x)
+                    x:clamp(true, true, true, true)
+                    ed = x
+                end)
+                b:append(gui.Label { text = "none" }, function(l) lbl = l end)
+            end)
+
             b:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, function(s)
                 s:append(gui.H_Box(), function(b)
                     b:append(gui.Button { label = "A button" }, function(b)
@@ -83,7 +92,7 @@ world:new_window("main", gui.Window, function(win)
                         })
                         b.tooltip:append(gui.Label { text = "A tooltip" })
                         signal.connect(b, "click", function()
-                            echo "you clicked a button"
+                            lbl:set_text(ed.value)
                         end)
                     end)
                     b:append(gui.Spacer { pad_h = 0.005 }, function(s)

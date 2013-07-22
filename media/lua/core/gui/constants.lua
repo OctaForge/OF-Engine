@@ -390,7 +390,7 @@ local key = {
     UNKNOWN = 0,
 
     RETURN = char_to_byte('\r'),
-    ESCAPE = char_to_byte('\033'),
+    ESCAPE = 27,
     BACKSPACE = char_to_byte('\b'),
     TAB = char_to_byte('\t'),
     SPACE = char_to_byte(' '),

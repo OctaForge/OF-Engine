@@ -37,6 +37,7 @@ local gl, key = M.gl, M.key
 
 -- input event management
 local is_clicked, is_focused = M.is_clicked, M.is_focused
+local set_focus = M.set_focus
 
 -- widget types
 local register_class = M.register_class
@@ -47,9 +48,7 @@ local Object = M.get_class("Object")
 -- setters
 local gen_setter = M.gen_setter
 
--- editor support
-local get_textediting, set_textediting
-    = M.get_textediting, M.set_textediting
+local mod = require("core.gui.constants").mod
 
 --[[! Struct: Text_Editor
     Implements a text editor widget. It's a basic editor that supports
@@ -106,10 +105,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
     end,
 
     clear = function(self)
-        if self == get_textediting() then
-            set_textediting()
-        end
-        refreshrepeat = refreshrepeat + 1
+        self:set_focus(nil)
         return Object:clear()
     end,
 
@@ -131,6 +127,11 @@ local Text_Editor = register_class("Text_Editor", Object, {
     select_all = function(self)
         self.cx, self.cy = 0, 0
         self.mx, self.my = 1 / 0, 1 / 0
+    end,
+
+    is_empty = function(self)
+        local lines = self.lines
+        return #lines == 1 and lines[1] == ""
     end,
 
     -- constrain results to within buffer - s = start, e = end, return true if
@@ -573,7 +574,9 @@ local Text_Editor = register_class("Text_Editor", Object, {
         return self:target(cx, cy) and self
     end,
 
-    commit = function(self) end,
+    commit = function(self)
+        self:set_focus(nil)
+    end,
 
     hovering = function(self, cx, cy)
         if is_clicked(self) and is_focused(self) then
@@ -589,8 +592,16 @@ local Text_Editor = register_class("Text_Editor", Object, {
         end
     end,
 
+    set_focus = function(self, ed)
+        if is_focused(ed) then return nil end
+        set_focus(ed)
+        local ati = ed and ed:allow_text_input()
+        capi.input_textinput(ati, 1 << 1) -- TI_GUI
+        capi.input_keyrepeat(ati, 1 << 1) -- KR_GUI
+    end,
+
     clicked = function(self, cx, cy)
-        set_focus(self)
+        self:set_focus(self)
         self:mark()
         self.offset_h = cx
         self.offset_v = cy
@@ -613,13 +624,39 @@ local Text_Editor = register_class("Text_Editor", Object, {
         if Object.key(self, code, isdown) then return true end
         if not is_focused(self) then return false end
 
-        if code == key.ESCAPE or ((code == key.RETURN
-        or code == key.KP_ENTER or code == key.TAB) and self.maxy == 1) then
-            set_focus(nil)
+        if code == key.ESCAPE then
+            if isdown then self:set_focus(nil) end
+            return true
+        elseif code == key.RETURN or code == key.TAB then
+            if self.maxy == 1 then
+                if isdown then self:commit() end
+                return true
+            end
+        elseif code == key.KP_ENTER then
+            if isdown then self:commit() end
             return true
         end
-
         if isdown then self:edit_key(code) end
+        return true
+    end,
+
+    allow_text_input = function(self) return true end,
+
+    text_input = function(self, str)
+        if Object.text_input(self, str) then return true end
+        if not is_focused(self) or not self:allow_text_input() then
+            return false
+        end
+        local filter = self.keyfilter
+        if not filter then
+            self:insert(str)
+        else
+            local buf = {}
+            for ch in str:gmatch(".") do
+                if filter:find(ch) then buf[#buf + 1] = ch end
+            end
+            self:insert(table.concat(buf))
+        end
         return true
     end,
 
@@ -783,6 +820,7 @@ M.Text_Editor = Text_Editor
 M.Field = register_class("Field", Text_Editor, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
+        kwargs.height = kwargs.height or 0
 
         self.value = kwargs.value or ""
         if kwargs.var then
@@ -795,6 +833,7 @@ M.Field = register_class("Field", Text_Editor, {
     end,
 
     commit = function(self)
+        Text_Editor.commit(self)
         local val = self.lines[1]
         self.value = val
         -- trigger changed signal
@@ -812,35 +851,6 @@ M.Field = register_class("Field", Text_Editor, {
         return self:key(code, isdown) or Object.key_hover(self, code, isdown)
     end,
 
-    --[[! Function: key
-        An input key handler. If a key call on Object returns true, it just
-        returns that. If the widget is not focused, it returns false. Otherwise
-        it tries to handle the escape key (unsets focus), the enter and tab
-        keys (those update the value) and then it tries <Text_Editor.key>.
-        Returns true in any case unless it returns false in the beginning.
-    ]]
-    key = function(self, code, isdown)
-        if Object.key(self, code, isdown) then return true end
-        if not is_focused(self) then return false end
-
-        if code == key.ESCAPE then
-            set_focus(nil)
-            return true
-        elseif code == key.KP_ENTER or
-               code == key.RETURN   or
-               code == key.TAB
-        then
-            self:commit()
-            set_focus(nil)
-            return true
-        end
-
-        if isdown then
-            self:edit_key(code)
-        end
-        return true
-    end,
-
     --[[! Function: reset_value
         Resets the field value to the last saved value, effectively canceling
         any sort of unsaved changes.
@@ -854,41 +864,29 @@ M.Field = register_class("Field", Text_Editor, {
     set_value = gen_setter "value"
 })
 
-local textediting   = nil
-local refreshrepeat = 0
+--[[! Struct: Key_Field
+    Derived from <Field>. Represents a keyfield - it catches keypresses and
+    inserts key names. Useful when creating an e.g. keybinding GUI.
+]]
+M.Key_Field = register_class("Key_Field", M.Field, {
+    allow_text_input = function(self) return false end,
 
-capi.external_set("input_text", function(str)
-    if not textediting then return false end
-    local filter = textediting.keyfilter
-    if not filter then
-        textediting:insert(str)
-    else
-        local buf = {}
-        for ch in str:gmatch(".") do
-            if filter:find(ch) then buf[#buf + 1] = ch end
+    key_insert = function(self, code)
+        local keyname = capi.input_get_key_name(code)
+        if keyname then
+            if not self:is_empty() then self:insert(" ") end
+            self:insert(keyname)
         end
-        textediting:insert(table.concat(buf))
-    end
-    return true
-end)
+    end,
 
-M.set_text_handler(function(focused)
-    local wastextediting = (textediting != nil)
-
-    if textediting and not is_focused(textediting) then
-        textediting:commit()
+    --[[! Function: key_raw
+        Overloaded. Commits on the escape key, inserts the name otherwise.
+    ]]
+    key_raw = function(code, isdown)
+        if Object.key_raw(code, isdown) then return true end
+        if not is_focused(self) or not isdown then return false end
+        if code == key.ESCAPE then self:commit()
+        else self:key_insert(code) end
+        return true
     end
-
-    if not focused or not focused:is_field() then
-        textediting = nil
-    else
-        textediting = focused
-    end
-
-    if refreshrepeat != 0 or (textediting != nil) != wastextediting then
-        local c = textediting != nil
-        capi.input_textinput(c, 1 << 1) -- TI_GUI
-        capi.input_keyrepeat(c, 1 << 1) -- KR_GUI
-        refreshrepeat = 0
-    end
-end)
+})

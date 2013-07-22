@@ -779,6 +779,30 @@ Object = register_class("Object", table2.Object, {
         end) or false
     end,
 
+    --[[! Function: key_raw
+        A "raw" key handler that is used in the very beginning of the keypress
+        handler. By default, it iterates the children (backwards), tries
+        key_raw on each and if that returns true, it returns true too,
+        otherwise it goes on (if nothing returned true, it returns false).
+        If this returns false, the keypress handler continues normally.
+    ]]
+    key_raw = function(self, code, isdown)
+        return loop_children_r(self, function(o)
+            if o:key_raw(code, isdown) then return true end
+        end) or false
+    end,
+
+    --[[! Function: text_input
+        Called on text input on the widget. Returns true of the input was
+        accepted and false otherwise. The default version loops children
+        (backwards) and tries on each until it hits true.
+    ]]
+    text_input = function(self, str)
+        return loop_children_r(self, function(o)
+            if o:text_input(str) then return true end
+        end) or false
+    end,
+
     --[[! Function: key_hover
         Similar to above. Occurs on mouse scroll events and on arrow
         key presses on the focused or hovering widget. Those keys do not
@@ -1476,7 +1500,7 @@ end)
 
 set_external("input_keypress", function(code, isdown)
     if not cursor_exists() then return false end
-
+    if world:key_raw(code, isdown) then return true end
     if code == key.MOUSE5 or code == key.MOUSE4 or
        code == key.LEFT   or code == key.RIGHT  or
        code == key.DOWN   or code == key.UP
@@ -1498,6 +1522,10 @@ set_external("input_keypress", function(code, isdown)
     return world:key(code, isdown)
 end)
 
+set_external("input_text", function(str)
+    return world:text_input(str)
+end)
+
 local draw_hud = false
 
 set_external("gui_clear", function()
@@ -1510,9 +1538,6 @@ set_external("gui_clear", function()
         end
     end
 end)
-
-local text_handler
-M.set_text_handler = function(f) text_handler = f end
 
 set_external("gui_update", function()
     local i = 1
@@ -1568,7 +1593,6 @@ set_external("gui_update", function()
         end
     end
 
-    if text_handler then text_handler(focused) end
     prev_cx, prev_cy = cursor_x, cursor_y
 end)
 
