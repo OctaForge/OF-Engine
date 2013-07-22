@@ -1,3 +1,38 @@
+2013-07-22 - 0.2.5 beta 6
+
+    * More module cleanups - no extra globals except SERVER remain now
+    * Cubescript optimizations
+    * Scalable font rendering using signed distance fields (including fragment
+      shader outlines and possibility for all kinds of font effects)
+    * Resolution changes in fullscreen no longer result in display mode
+      change (instead the engine stretches to native resolution)
+    * Deduplicated and cleaned up message passing code
+    * Introduction of the Luacy compiler for Lua scripts, featuring:
+      * bitwise operators (&, |, ^^, ~, <<, >>, >>>)
+      * If expression (if cond then expr1 else expr2)
+      * Continue statement for loops
+      * Short lambda expressions (|arglist| retexpr or |arglist| do block end)
+      * Enumerations ({: contents :}), members auto-increment like an enum
+        (they start with 1), you can reference previously defined enum members
+        directly
+      * New inequality syntax (!= instead of ~=, the old form remains for
+        compatibility)
+      * Debug statement for clean performant debug logging (debug then stat,
+        debug do block end)
+      * Binary literals (including underscore support for readability)
+      * Syntactic sugar for table member locals (local foo, bar in baz instead
+        of local foo, bar = baz.foo, baz.bar)
+      * Compound assignment statements (foo += bar instead of foo = foo + bar,
+        supports all bitwise and arithmetic operators plus the concat operator)
+    * A gradient widget for the UI
+    * An outline widget for the UI (with adjustable thickness, including a
+      simple line)
+    * A revamped text input system for the UI, no longer requiring text editor
+      handlers
+    * Keyfield widget for potential keybind UI
+    * Separate slot and vslot viewer widgets
+    * Lots of fixes and cleanups
+
 2013-07-08 - 0.2.4 beta 5
 
     * Removed some serverside code regarding particles and sounds - use state
