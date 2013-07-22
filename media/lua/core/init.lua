@@ -61,7 +61,6 @@ end
 
 local capi = require("capi")
 
-
 capi.log(1, "Initializing logging.")
 
 local parse = require("luacy").parse
@@ -124,9 +123,27 @@ local loadfile_new = function(fname, mode, env)
     return load(parsed, chunkname, mode, env)
 end
 
-rawset(_G, "load",       load_new)
+--[[! Function: load
+    Replaces the default "load" with a version that uses the Luacy compiler.
+    Fully compatible with LuaJIT "load".
+]]
+rawset(_G, "load", load_new)
+
+--[[! Function: loadstring
+    An alias for "load".
+]]
 rawset(_G, "loadstring", load_new)
-rawset(_G, "loadfile",   loadfile_new)
+
+--[[! Function: loadfile
+    Replaces the default "loadfile" with a version that uses the Luacy
+    compiler. Fully compatible wih LuaJIT "loadfile".
+]]
+rawset(_G, "loadfile", loadfile_new)
+
+--[[! Function: dofile
+    Replaces the default "dofile" with a version that uses the Luacy
+    compiler. Fully compatible wih LuaJIT "dofile".
+]]
 rawset(_G, "dofile", function(fname)
     local  func, err = loadfile_new(fname)
     if not func then error(err, 0) end

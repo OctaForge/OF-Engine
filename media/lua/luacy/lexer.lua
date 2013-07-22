@@ -86,8 +86,29 @@ local is_hex_digit = function(c)
         or (c >= 97 and c <= 102)
 end
 
+local max_custom_len = 79
+local max_fname_len = 72
+local max_str_len = 63
+
+local source_to_msg = function(source)
+    local c = source:sub(1, 1)
+    local srclen = #source
+    if c == "@" then
+        if srclen <= (max_fname_len + 1) then
+            return source:sub(2)
+        else
+            return "..." .. source:sub(srclen - max_fname_len + 1)
+        end
+    elseif c == "=" then
+        return source:sub(2, max_custom_len + 1)
+    else
+        return '[string "' .. source:sub(1, max_str_len)
+            .. ((srclen > max_str_len) and '..."]' or '"]')
+    end
+end
+
 local lex_error = function(ls, msg, tok)
-    msg = ("%s:%d: %s"):format(ls.source, ls.line_number, msg)
+    msg = ("%s:%d: %s"):format(source_to_msg(ls.source), ls.line_number, msg)
     if tok then
         msg = msg .. " near '" .. tok .. "'"
     end
@@ -573,14 +594,14 @@ local skip_shebang = function(rdr)
     return c
 end
 
-local init = function(fname, input)
+local init = function(chunkname, input)
     local reader  = type(input) == "string" and strstream(input) or input
     local current = skip_shebang(reader)
     return setmetatable({
         reader      = reader,
         token       = { name = nil, value = nil },
         ltoken      = { name = nil, value = nil },
-        source      = fname,
+        source      = chunkname,
         current     = current,
         line_number = 1,
         last_line   = 1

@@ -857,8 +857,8 @@ parse_stat = function(ls, cs)
     end
 end
 
-local parse = function(fname, input, debug)
-    local ls = lexer.init(fname, input)
+local parse = function(chunkname, input, debug)
+    local ls = lexer.init(chunkname, input)
     local cs = codegen.init(ls, debug)
     ls.cs = cs
     ls:get()
