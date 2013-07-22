@@ -13,7 +13,7 @@ gui.Button.states = {
     },
 
     hovering = gui.Outline {
-        thickness = 0.005,
+        thickness = 0,
         r = 0, g = 0, b = 255, min_w = 0.2, min_h = 0.05,
         gui.Label { text = "Hovering" }
     },

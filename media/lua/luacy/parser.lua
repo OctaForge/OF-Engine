@@ -823,6 +823,17 @@ local stat_opts = {
             return parse_expr_stat(ls, cs)
         end
     end,
+    ["::"] = function(ls, cs)
+        local tok = ls.token
+        cs:append("::")
+        ls:get()
+        assert_name(ls)
+        cs:append(tok.value or tok.name)
+        ls:get()
+        assert_append(ls, cs, "::")
+        ls:get()
+        print("done", tok.name)
+    end,
     ["debug"] = function(ls, cs)
         local lah = ls:lookahead()
         if lah == "then" then

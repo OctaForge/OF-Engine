@@ -208,31 +208,40 @@ M.Outline = register_class("Outline", Filler, {
         capi.gle_color4ub(self.r, self.g, self.b, self.a)
 
         capi.gle_defvertexf(2)
-        capi.gle_begin(gl.QUADS)
 
-        local tw, th = min(thickness, w / 2), min(thickness, h / 2)
-        -- top
-        capi.gle_attrib2f(sx,          sy)
-        capi.gle_attrib2f(sx + w,      sy)
-        capi.gle_attrib2f(sx + w - tw, sy + th)
-        capi.gle_attrib2f(sx +     tw, sy + th)
-        -- bottom
-        capi.gle_attrib2f(sx + tw,     sy + h - th)
-        capi.gle_attrib2f(sx + w - tw, sy + h - th)
-        capi.gle_attrib2f(sx + w,      sy + h)
-        capi.gle_attrib2f(sx,          sy + h)
-        -- left
-        capi.gle_attrib2f(sx,      sy)
-        capi.gle_attrib2f(sx + tw, sy +     th)
-        capi.gle_attrib2f(sx + tw, sy + h - th)
-        capi.gle_attrib2f(sx,      sy + h)
-        -- right
-        capi.gle_attrib2f(sx + w - tw, sy + th)
-        capi.gle_attrib2f(sx + w,      sy)
-        capi.gle_attrib2f(sx + w,      sy + h)
-        capi.gle_attrib2f(sx + w - tw, sy + h - th)
+        if thickness == 0 then
+            capi.gle_begin(gl.LINE_LOOP)
+            capi.gle_attrib2f(sx,     sy)
+            capi.gle_attrib2f(sx + w, sy)
+            capi.gle_attrib2f(sx + w, sy + h)
+            capi.gle_attrib2f(sx,     sy + h)
+            capi.gle_end()
+        else
+            capi.gle_begin(gl.QUADS)
+            local tw, th = min(thickness, w / 2), min(thickness, h / 2)
+            -- top
+            capi.gle_attrib2f(sx,          sy)
+            capi.gle_attrib2f(sx + w,      sy)
+            capi.gle_attrib2f(sx + w - tw, sy + th)
+            capi.gle_attrib2f(sx +     tw, sy + th)
+            -- bottom
+            capi.gle_attrib2f(sx + tw,     sy + h - th)
+            capi.gle_attrib2f(sx + w - tw, sy + h - th)
+            capi.gle_attrib2f(sx + w,      sy + h)
+            capi.gle_attrib2f(sx,          sy + h)
+            -- left
+            capi.gle_attrib2f(sx,      sy)
+            capi.gle_attrib2f(sx + tw, sy +     th)
+            capi.gle_attrib2f(sx + tw, sy + h - th)
+            capi.gle_attrib2f(sx,      sy + h)
+            -- right
+            capi.gle_attrib2f(sx + w - tw, sy + th)
+            capi.gle_attrib2f(sx + w,      sy)
+            capi.gle_attrib2f(sx + w,      sy + h)
+            capi.gle_attrib2f(sx + w - tw, sy + h - th)
+            capi.gle_end()
+        end
 
-        capi.gle_end()
         capi.gle_color4f(1, 1, 1, 1)
         capi.shader_hud_set()
 
