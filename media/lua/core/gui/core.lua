@@ -1479,10 +1479,10 @@ end
 set_external("cursor_move", function(dx, dy)
     local cmode = cursor_mode()
     if cmode == 2 or (world:grabs_input() and cmode >= 1) then
-        local scale = 500 / var_get("cursorsensitivity")
-        cursor_x = clamp(cursor_x + dx * (var_get("screenh")
-            / (var_get("screenw") * scale)), 0, 1)
-        cursor_y = clamp(cursor_y + dy / scale, 0, 1)
+        local cursorsens = var_get("cursorsensitivity")
+        local scrw, scrh = var_get("screenw"), var_get("screenh")
+        cursor_x = clamp(cursor_x + dx * cursorsens / scrw, 0, 1)
+        cursor_y = clamp(cursor_y + dy * cursorsens / scrh, 0, 1)
         if cmode == 2 then
             if cursor_x != 1 and cursor_x != 0 then dx = 0 end
             if cursor_y != 1 and cursor_y != 0 then dy = 0 end
