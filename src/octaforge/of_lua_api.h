@@ -286,6 +286,7 @@ namespace lapi_binds
         world::export_ents("entities.lua");
         return 0;
     }
+    ICOMMAND(savemap, "", (), { _lua_do_upload(lua::L); });
 
     int _lua_restart_map(lua_State *L) {
         MessageSystem::send_RestartMap();
