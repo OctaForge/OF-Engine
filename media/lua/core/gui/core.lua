@@ -1581,7 +1581,7 @@ set_external("gui_update", function()
     if not draw_hud and mm == 0 then draw_hud = true end
 
     if cursor_exists() then
-        local w, h = world.w, world.h
+        local w, h, ms = world.w, world.h, world.max_scale
 
         hovering = world.hover(world, cursor_x * w, cursor_y * h)
         if  hovering then
@@ -1590,7 +1590,8 @@ set_external("gui_update", function()
 
         -- hacky
         if  clicked then
-            clicked:pressing((cursor_x - prev_cx) * w, (cursor_y - prev_cy))
+            clicked:pressing((cursor_x - prev_cx) * w / ms,
+                (cursor_y - prev_cy) / ms)
         end
     else
         hovering, clicked = nil, nil
