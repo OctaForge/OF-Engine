@@ -703,14 +703,16 @@ int main(int argc, char **argv)
 
     setlogfile(NULL);
 
+#ifdef WIN32
+#define OF_CHDIR _chdir
+#else
+#define OF_CHDIR chdir
+#endif
     /* make sure the path is correct */
     if (!fileexists("config", "r")) {
-#ifdef WIN32
-        _chdir("..");
-#else
-        chdir("..");
-#endif
+        if (OF_CHDIR("..")) fatal("unable to change directory!");
     }
+#undef OF_CHDIR
 
     char *loglevel  = (char*)"WARNING";
     char *map_asset = NULL;
