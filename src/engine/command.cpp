@@ -1707,7 +1707,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                                     code[start1+1] = CODE_ENTER_RESULT;
                                     code[start1+len1] = (code[start1+len1]&~CODE_RET_MASK) | retcodeany(rettype);
                                 }
-                                else 
+                                else
                                 {
                                     compileblock(code);
                                     code.add(CODE_COM|retcodeany(rettype)|(id->index<<8));
@@ -1731,7 +1731,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                                     uint len2 = inst2>>8;
                                     code[start1] = CODE_NULL | (inst2&CODE_RET_MASK);
                                     code[start2] = (len2<<8) | CODE_JUMP_TRUE;
-                                    code[start2+1] = CODE_ENTER_RESULT; 
+                                    code[start2+1] = CODE_ENTER_RESULT;
                                     code[start2+len2] = (code[start2+len2]&~CODE_RET_MASK) | retcodeany(rettype);
                                 }
                                 else code.add(CODE_COM|retcodeany(rettype)|(id->index<<8));

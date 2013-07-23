@@ -1986,13 +1986,17 @@ void gettexname(int *tex, int *subslot)
 }
 
 COMMANDN(edittex, edittex_, "i");
-ICOMMAND(settex, "i", (int *tex), { if(!vslots.inrange(*tex) || noedit()) return; filltexlist(); edittex(*tex); }); 
+ICOMMAND(settex, "i", (int *tex), { if(!vslots.inrange(*tex) || noedit()) return; filltexlist(); edittex(*tex); });
 COMMAND(gettex, "");
 COMMAND(getcurtex, "");
 COMMAND(getseltex, "");
 ICOMMAND(getreptex, "", (), { if(!noedit()) intret(vslots.inrange(reptex) ? reptex : -1); });
 COMMAND(gettexname, "ii");
 ICOMMAND(texmru, "b", (int *idx), { filltexlist(); intret(texmru.inrange(*idx) ? texmru[*idx] : texmru.length()); });
+#ifndef SERVER
+ICOMMAND(numvslots, "", (), intret(vslots.length()));
+ICOMMAND(numslots, "", (), intret(slots.length()));
+#endif
 
 void replacetexcube(cube &c, int oldtex, int newtex)
 {
@@ -2349,6 +2353,11 @@ LUAICOMMAND(slot_texmru, {
 
 LUAICOMMAND(slot_get_count, {
     lua_pushinteger(L, slots.length());
+    return 1;
+});
+
+LUAICOMMAND(slot_get_count_v, {
+    lua_pushinteger(L, vslots.length());
     return 1;
 });
 

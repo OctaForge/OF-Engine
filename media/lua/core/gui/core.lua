@@ -304,28 +304,6 @@ local clip_area_is_fully_clipped = function(self, x, y, w, h)
 end
 M.clip_area_is_fully_clipped = clip_area_is_fully_clipped
 
---[[! Function: clip_area_scissors
-    Scissors an area given a clip area. If nothing is given, the area
-    last in the clip stack is used.
-]]
-local clip_area_scissor = function(self)
-    self = self or clip_stack[#clip_stack]
-    local screenw, screenh = var_get("screenw"), var_get("screenh")
-
-    local margin = max((screenw / screenh - 1) / 2, 0)
-
-    local sx1, sy1, sx2, sy2 =
-        clamp(floor((self[1] + margin) / (1 + 2 * margin) * screenw),
-            0, screenw),
-        clamp(floor( self[2] * screenh), 0, screenh),
-        clamp(ceil ((self[3] + margin) / (1 + 2 * margin) * screenw),
-            0, screenw),
-        clamp(ceil ( self[4] * screenh), 0, screenh)
-
-    capi.gl_scissor(sx1, screenh - sy2, sx2 - sx1, sy2 - sy1)
-end
-M.clip_area_scissor = clip_area_scissor
-
 --[[! Function: clip_push
     Pushes a clip area into the clip stack and scissors.
 ]]
@@ -367,6 +345,20 @@ local is_fully_clipped = function(x, y, w, h)
     return clip_area_is_fully_clipped(clip_stack[l], x, y, w, h)
 end
 M.is_fully_clipped = is_fully_clipped
+
+--[[! Function: clip_area_scissor
+    Scissors an area given a clip area. If nothing is given, the area
+    last in the clip stack is used.
+]]
+local clip_area_scissor = function(self)
+    self = self or clip_stack[#clip_stack]
+    local screenw, screenh = var_get("screenw"), var_get("screenh")
+
+    local sx1, sy1, sx2, sy2 =
+        world:calc_scissor(self[1], self[2], self[3], self[4])
+    capi.gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
+end
+M.clip_area_scissor = clip_area_scissor
 
 --[[! Function: draw_quad
     An utility function for drawing quads, takes x, y, w, h and optionally
@@ -1259,6 +1251,8 @@ local World = register_class("World", Object, {
     __init = function(self)
         self.windows = {}
         self.size, self.margin = 0, 0
+        self.max_scale = 1
+        self.px, self.py, self.px2, self.py2 = 0, 0, 0, 0
         return Object.__init(self)
     end,
 
@@ -1336,6 +1330,26 @@ local World = register_class("World", Object, {
         self.margin = margin
 
         self:adjust_children()
+    end,
+
+    projection = function(self)
+        local x, y, w, h in self
+        local scale = max(h / self.max_scale, 1)
+        local px  = (x     - 0.5) * scale + 0.5
+        local px2 = (x + w - 0.5) * scale + 0.5
+        local py  = (y     - 0.5) * scale + 0.5
+        local py2 = (y + h - 0.5) * scale + 0.5
+        self.px, self.px2, self.py, self.py2 = px, px2, py, py2
+        capi.hudmatrix_ortho(px, px2, py2, py, -1, 1)
+    end,
+
+    calc_scissor = function(self, x1, y1, x2, y2)
+        local scrw, scrh = var_get("screenw"), var_get("screenh")
+        local px, px2, py, py2 in self
+        return clamp(floor((x1 - px) / (px2 - px) * scrw),        0, scrw),
+               clamp(floor(scrh - (y2 - py) / (py2 - py) * scrh), 0, scrh),
+               clamp(ceil ((x2 - px) / (px2 - px) * scrw),        0, scrw),
+               clamp(ceil (scrh - (y1 - py) / (py2 - py) * scrh), 0, scrh)
     end,
 
     --[[! Function: build_window
@@ -1599,7 +1613,7 @@ end)
 set_external("gui_render", function()
     local w = world
     if draw_hud or #w.children != 0 then
-        capi.hudmatrix_ortho(w.x, w.x + w.w, w.y + w.h, w.y, -1, 1)
+        w:projection()
         capi.hudmatrix_reset()
         capi.shader_hud_set()
 
@@ -1635,6 +1649,10 @@ set_external("gui_render", function()
         capi.gl_scissor_disable()
         capi.gle_disable()
     end
+end)
+
+set_external("gui_limitscale", function(scale)
+    world.max_scale = scale
 end)
 
 local needsapply = {}
