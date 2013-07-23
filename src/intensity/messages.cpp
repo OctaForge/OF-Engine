@@ -43,9 +43,9 @@ namespace MessageSystem
                 bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
                 if (testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) {
-                    if (!toDummyServer) return;
+                    if (!toDummyServer) continue;
                 } else {
-                    if (serverControlled & !toNPCs) return;
+                    if (serverControlled && !toNPCs) continue;
                 }
                 logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
             #endif
