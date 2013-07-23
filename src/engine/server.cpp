@@ -697,7 +697,6 @@ int main(int argc, char **argv)
     dummyTexture.mipmap = 0;
     dummyTexture.canreduce = 0;
     dummyTexture.id = -1;
-    dummyTexture.alphamask = new uchar[100]; // Whatever
 
     notexture = &dummyTexture;
 
