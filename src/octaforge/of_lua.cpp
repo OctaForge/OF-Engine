@@ -103,14 +103,25 @@ namespace lua
         const char *name;
         lua_CFunction fun;
     };
-    typedef vector<Reg> cfuns;
-    static cfuns *funs = NULL;
+    typedef vector<Reg> apifuns;
+    static apifuns *funs = NULL;
+
+    struct CReg {
+        const char *name, *sig;
+        void *fun;
+    };
+    typedef vector<CReg> capifuns;
+    static capifuns *cfuns = NULL;
 
     bool reg_fun(const char *name, lua_CFunction fun) {
-        if (!funs) {
-            funs = new cfuns;
-        }
+        if (!funs) funs = new apifuns;
         funs->add((Reg){ name, fun });
+        return true;
+    }
+
+    bool reg_cfun(const char *name, const char *sig, void *fun) {
+        if (!cfuns) cfuns = new capifuns;
+        cfuns->add((CReg){ name, sig, fun });
         return true;
     }
 
@@ -191,14 +202,37 @@ namespace lua
         assert(funs);
         lua_getfield(L, LUA_REGISTRYINDEX, "_PRELOAD");
         int numfields = funs->length();
-        lua_createtable(L, numfields, 0);      /* _C */
+        int numcfields = cfuns ? cfuns->length() : 0;
+        int tnf = numfields + numcfields;
+        lua_createtable(L, tnf, 0);
         for (int i = 0; i < numfields; ++i) {
-            const Reg& reg = (*funs)[i];
+            const Reg &reg = (*funs)[i];
             lua_pushcfunction(L, reg.fun);
             lua_setfield(L, -2, reg.name);
         }
+        lua_getglobal(L, "require");
+        lua_pushliteral(L, "ffi");
+        lua_call(L, 1, 1);
+        lua_getfield(L, -1, "cdef");
+        lua_pushliteral(L, "typedef unsigned char uchar;\n"
+                           "typedef unsigned short ushort;\n"
+                           "typedef unsigned int uint;\n"
+                           "typedef signed long long int llong;\n"
+                           "typedef unsigned long long int ullong;\n");
+        lua_call(L, 1, 0);
+        lua_getfield(L, -1, "cast");
+        lua_replace(L, -2);
+        for (int i = 0; i < numcfields; ++i) {
+            const CReg &reg = (*cfuns)[i];     /* cast */
+            lua_pushvalue(L, -1);              /* cast, cast */
+            lua_pushstring(L, reg.sig);        /* cast, cast, sig */
+            lua_pushlightuserdata(L, reg.fun); /* cast, cast, sig, udata */
+            lua_call(L, 2, 1);                 /* cast, fptr */
+            lua_setfield(L, -3, reg.name);     /* cast */
+        }
+        lua_pop(L, 1);
         lua_createtable(L, 0, 2);              /* _C, C_mt */
-        lua_pushinteger(L, numfields);         /* _C, C_mt, C_num */
+        lua_pushinteger(L, tnf);               /* _C, C_mt, C_num */
         lua_pushcclosure(L, capi_tostring, 1); /* _C, C_mt, C_tostring */
         lua_setfield(L, -2, "__tostring");     /* _C, C_mt */
         lua_pushcfunction(L, capi_newindex);   /* _C, C_mt, C_newindex */
@@ -230,6 +264,7 @@ namespace lua
     void close() {
         lua_close(L);
         delete funs;
+        delete cfuns;
     }
 
 #define PINHDR \

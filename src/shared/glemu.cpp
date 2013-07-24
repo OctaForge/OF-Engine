@@ -268,19 +268,19 @@ namespace gle
 /* OF: GL lua stuff */
 
 #ifndef SERVER
-LUAICOMMAND(gle_begin, { gle::begin((uint)luaL_checkinteger(L, 1)); return 0; });
-LUAICOMMAND(gle_end, { lua_pushinteger(L, gle::end()); return 1; });
-LUAICOMMAND(gle_disable, { gle::disable(); return 0; });
+CLUACOMMAND(gle_begin, void, (uint), gle::begin);
+CLUACOMMAND(gle_end, int, (), gle::end);
+CLUACOMMAND(gle_disable, void, (), gle::disable);
 
 #define EAPI_GLE_DEFATTRIB(name) \
-    LUAICOMMAND(gle_def##name##f, { gle::def##name(luaL_checkinteger(L, 1), GL_FLOAT); return 0; }); \
-    LUAICOMMAND(gle_def##name##d, { gle::def##name(luaL_checkinteger(L, 1), GL_DOUBLE); return 0; }); \
-    LUAICOMMAND(gle_def##name##b, { gle::def##name(luaL_checkinteger(L, 1), GL_BYTE); return 0; }); \
-    LUAICOMMAND(gle_def##name##ub, { gle::def##name(luaL_checkinteger(L, 1), GL_UNSIGNED_BYTE); return 0; }); \
-    LUAICOMMAND(gle_def##name##s, { gle::def##name(luaL_checkinteger(L, 1), GL_SHORT); return 0; }); \
-    LUAICOMMAND(gle_def##name##us, { gle::def##name(luaL_checkinteger(L, 1), GL_UNSIGNED_SHORT); return 0; }); \
-    LUAICOMMAND(gle_def##name##i, { gle::def##name(luaL_checkinteger(L, 1), GL_INT); return 0; }); \
-    LUAICOMMAND(gle_def##name##ui, { gle::def##name(luaL_checkinteger(L, 1), GL_UNSIGNED_INT); return 0; });
+    CLUAICOMMAND(gle_def##name##f, void, (int type), gle::def##name(type, GL_FLOAT);); \
+    CLUAICOMMAND(gle_def##name##d, void, (int type), gle::def##name(type, GL_DOUBLE);); \
+    CLUAICOMMAND(gle_def##name##b, void, (int type), gle::def##name(type, GL_BYTE);); \
+    CLUAICOMMAND(gle_def##name##ub, void, (int type), gle::def##name(type, GL_UNSIGNED_BYTE);); \
+    CLUAICOMMAND(gle_def##name##s, void, (int type), gle::def##name(type, GL_SHORT);); \
+    CLUAICOMMAND(gle_def##name##us, void, (int type), gle::def##name(type, GL_UNSIGNED_SHORT);); \
+    CLUAICOMMAND(gle_def##name##i, void, (int type), gle::def##name(type, GL_INT);); \
+    CLUAICOMMAND(gle_def##name##ui, void, (int type), gle::def##name(type, GL_UNSIGNED_INT););
 
 EAPI_GLE_DEFATTRIB(vertex)
 EAPI_GLE_DEFATTRIB(color)
@@ -288,78 +288,39 @@ EAPI_GLE_DEFATTRIB(texcoord0)
 EAPI_GLE_DEFATTRIB(texcoord1)
 
 #define EAPI_GLE_INITATTRIB(name) \
-    LUAICOMMAND(gle_##name##1f, { \
-        gle::name##f(luaL_checknumber(L, 1)); \
-        return 0; \
-    }); \
-    LUAICOMMAND(gle_##name##2f, { \
-        gle::name##f(luaL_checknumber(L, 1), \
-                        luaL_checknumber(L, 2)); \
-        return 0; \
-    }); \
-    LUAICOMMAND(gle_##name##3f, { \
-        gle::name##f(luaL_checknumber(L, 1), \
-                        luaL_checknumber(L, 2), \
-                        luaL_checknumber(L, 3)); \
-        return 0; \
-    }); \
-    LUAICOMMAND(gle_##name##4f, { \
-        gle::name##f(luaL_checknumber(L, 1), \
-                        luaL_checknumber(L, 2), \
-                        luaL_checknumber(L, 3), \
-                        luaL_checknumber(L, 4)); \
-        return 0; \
-    });
+    CLUAICOMMAND(gle_##name##1f, void, (float x), gle::name##f(x);); \
+    CLUAICOMMAND(gle_##name##2f, void, (float x, float y), gle::name##f(x);); \
+    CLUAICOMMAND(gle_##name##3f, void, (float x, float y, float z), \
+        gle::name##f(x);); \
+    CLUAICOMMAND(gle_##name##4f, void, (float x, float y, float z, float w), \
+        gle::name##f(x););
 
 EAPI_GLE_INITATTRIB(vertex)
 EAPI_GLE_INITATTRIB(color)
 EAPI_GLE_INITATTRIB(texcoord0)
 EAPI_GLE_INITATTRIB(texcoord1)
 
-LUAICOMMAND(gle_color3ub, {
-    gle::colorub((uchar)luaL_checkinteger(L, 1),
-                    (uchar)luaL_checkinteger(L, 2),
-                    (uchar)luaL_checkinteger(L, 3));
-    return 0;
-});
-LUAICOMMAND(gle_color4ub, {
-    gle::colorub((uchar)luaL_checkinteger(L, 1),
-                    (uchar)luaL_checkinteger(L, 2),
-                    (uchar)luaL_checkinteger(L, 3),
-                    (uchar)luaL_checkinteger(L, 4));
-    return 0;
-});
+CLUAICOMMAND(gle_color3ub, void, (uchar r, uchar g, uchar b), \
+    gle::colorub(r, g, b););
+CLUAICOMMAND(gle_color4ub, void, (uchar r, uchar g, uchar b, uchar a), \
+    gle::colorub(r, g, b, a););
 
-#define EAPI_GLE_ATTRIB(suffix, type, cast) \
-    LUAICOMMAND(gle_attrib##1##suffix, { \
-        gle::attrib##suffix((cast)luaL_check##type(L, 1)); \
-        return 0; \
-    }); \
-    LUAICOMMAND(gle_attrib##2##suffix, { \
-        gle::attrib##suffix((cast)luaL_check##type(L, 1), \
-                               (cast)luaL_check##type(L, 2)); \
-        return 0; \
-    }); \
-    LUAICOMMAND(gle_attrib##3##suffix, { \
-        gle::attrib##suffix((cast)luaL_check##type(L, 1), \
-                               (cast)luaL_check##type(L, 2), \
-                               (cast)luaL_check##type(L, 3)); \
-        return 0; \
-    }); \
-    LUAICOMMAND(gle_attrib##4##suffix, { \
-        gle::attrib##suffix((cast)luaL_check##type(L, 1), \
-                               (cast)luaL_check##type(L, 2), \
-                               (cast)luaL_check##type(L, 3), \
-                               (cast)luaL_check##type(L, 4)); \
-        return 0; \
-    });
+#define EAPI_GLE_ATTRIB(suffix, type) \
+    CLUAICOMMAND(gle_attrib##1##suffix, void, (type x), \
+        gle::attrib##suffix(x);); \
+    CLUAICOMMAND(gle_attrib##2##suffix, void, (type x, type y), \
+        gle::attrib##suffix(x, y);); \
+    CLUAICOMMAND(gle_attrib##3##suffix, void, (type x, type y, type z), \
+        gle::attrib##suffix(x, y, z);); \
+    CLUAICOMMAND(gle_attrib##4##suffix, void, (type x, type y, type z, type w), \
+        gle::attrib##suffix(x, y, z, w););
 
-EAPI_GLE_ATTRIB(f, number, float)
-EAPI_GLE_ATTRIB(d, number, double)
-EAPI_GLE_ATTRIB(b, int, char)
-EAPI_GLE_ATTRIB(ub, int, uchar)
-EAPI_GLE_ATTRIB(s, int, short)
-EAPI_GLE_ATTRIB(us, int, ushort)
-EAPI_GLE_ATTRIB(i, int, int)
-EAPI_GLE_ATTRIB(ui, int, uint)
+EAPI_GLE_ATTRIB(f, float)
+EAPI_GLE_ATTRIB(d, double)
+EAPI_GLE_ATTRIB(b, char)
+EAPI_GLE_ATTRIB(ub, uchar)
+EAPI_GLE_ATTRIB(s, short)
+EAPI_GLE_ATTRIB(us, ushort)
+EAPI_GLE_ATTRIB(i, int)
+EAPI_GLE_ATTRIB(ui, uint)
 #endif

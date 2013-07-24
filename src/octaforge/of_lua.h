@@ -5,6 +5,7 @@ namespace lua
 {
     extern lua_State *L;
     bool reg_fun      (const char *name, lua_CFunction fun);
+    bool reg_cfun     (const char *name, const char *sig, void *fun);
     void init         (const char *dir = "media/lua/core");
     void reset        ();
     void close        ();
@@ -31,6 +32,21 @@ namespace lua
     }
 
 #define LUAICOMMAND(name, body) LUAICOMMANDN(name, L, body)
+
+#define CLUACOMMAND(nm, rett, argt, fun) \
+    static bool __dummyc_##nm = lua::reg_cfun(#nm, #rett "(*)" #argt, \
+        (void*)fun);
+
+#define CLUAICOMMAND(nm, rett, argt, body) \
+    template<int N> struct _lcfn_##nm; \
+    template<> struct _lcfn_##nm<__LINE__> { \
+        static bool init; static rett fun argt; \
+    }; \
+    bool _lcfn_##nm<__LINE__>::init = lua::reg_cfun(#nm, #rett "(*)" #argt, \
+         (void*)_lcfn_##nm<__LINE__>::fun); \
+    rett _lcfn_##nm<__LINE__>::fun argt { \
+        body; \
+    }
 
 #define LUA_GET_ENT(name, _log, retexpr) \
     lua_getfield(L, 1, "uid"); \
