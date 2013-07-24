@@ -169,6 +169,11 @@ namespace lua
         return 1;
     }
 
+    static int capi_newindex(lua_State *L) {
+        luaL_error(L, "attempt to write into the C API");
+        return 0;
+    }
+
     static int capi_get(lua_State *L) {
         lua_pushvalue(L, lua_upvalueindex(1));
         return 1;
@@ -185,20 +190,20 @@ namespace lua
 
         assert(funs);
         lua_getfield(L, LUA_REGISTRYINDEX, "_PRELOAD");
-        lua_newuserdata(L, 0);                 /* _C */
-        lua_createtable(L, 0, 2);              /* _C, C_mt */
         int numfields = funs->length();
-        lua_createtable(L, numfields, 0);      /* _C, C_mt, C_tbl */
+        lua_createtable(L, numfields, 0);      /* _C */
         for (int i = 0; i < numfields; ++i) {
             const Reg& reg = (*funs)[i];
             lua_pushcfunction(L, reg.fun);
             lua_setfield(L, -2, reg.name);
         }
-        lua_setfield(L, -2, "__index");        /* _C, C_mt */
+        lua_createtable(L, 0, 2);              /* _C, C_mt */
         lua_pushinteger(L, numfields);         /* _C, C_mt, C_num */
         lua_pushcclosure(L, capi_tostring, 1); /* _C, C_mt, C_tostring */
         lua_setfield(L, -2, "__tostring");     /* _C, C_mt */
-        lua_pushboolean(L, 0);                 /* _C, C_mt, C_metatable */
+        lua_pushcfunction(L, capi_newindex);   /* _C, C_mt, C_newindex */
+        lua_setfield(L, -2, "__newindex");     /* _C, C_mt */
+        lua_pushboolean(L, false);             /* _C, C_mt, C_metatable */
         lua_setfield(L, -2, "__metatable");    /* _C, C_mt */
         lua_setmetatable(L, -2);               /* _C */
         lua_pushcclosure(L, capi_get, 1);      /* C_get */
