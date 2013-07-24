@@ -164,15 +164,6 @@ namespace lua
         lua_newtable(L);
         lua_setfield(L, LUA_REGISTRYINDEX, "__pinstrs");
 
-        /* load luacy early on */
-        lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
-        lua_getglobal(L, "require");
-        lua_pushliteral(L, "luacy");
-        lua_call(L, 1, 1);
-        lua_getfield(L, -1, "parse");
-        lua_setfield(L, LUA_REGISTRYINDEX, "luacy_parse");
-        lua_pop(L, 2);
-
         setup_binds();
     }
 
@@ -257,6 +248,16 @@ namespace lua
         lua_setmetatable(L, -2);               /* _C */
         lua_pushcclosure(L, capi_get, 1);      /* C_get */
         lua_setfield(L, -2, "capi");
+
+        /* load luacy early on */
+        lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
+        lua_getglobal(L, "require");
+        lua_pushliteral(L, "luacy");
+        lua_call(L, 1, 1);
+        lua_getfield(L, -1, "parse");
+        lua_setfield(L, LUA_REGISTRYINDEX, "luacy_parse");
+        lua_pop(L, 2);
+
         load_module("init");
     }
 
