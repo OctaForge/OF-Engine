@@ -1,3 +1,5 @@
+#include <errno.h>
+
 #include "cube.h"
 #include "engine.h"
 #include "game.h"
@@ -162,6 +164,15 @@ namespace lua
         lua_newtable(L);
         lua_setfield(L, LUA_REGISTRYINDEX, "__pinstrs");
 
+        /* load luacy early on */
+        lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
+        lua_getglobal(L, "require");
+        lua_pushliteral(L, "luacy");
+        lua_call(L, 1, 1);
+        lua_getfield(L, -1, "parse");
+        lua_setfield(L, LUA_REGISTRYINDEX, "luacy_parse");
+        lua_pop(L, 2);
+
         setup_binds();
     }
 
@@ -169,7 +180,7 @@ namespace lua
     {
         defformatstring(p, "%s%c%s.lua", mod_dir, PATHDIV, name);
         logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
-        if (luaL_loadfile(L, p) || lua_pcall(L, 0, 0, 0)) {
+        if (load_file(L, p) || lua_pcall(L, 0, 0, 0)) {
             fatal("%s", lua_tostring(L, -1));
         }
     }
@@ -305,4 +316,83 @@ namespace lua
     void unpin_string(const char *str) {
         unpin_string(L, str);
     }
+
+    struct reads {
+        const char *str;
+        size_t size;
+    };
+
+    static const char *read_str(lua_State *L, void *data, size_t *size) {
+        reads *rd = (reads*)data;
+        (void)L;
+        if (rd->size == 0) return NULL;
+        *size = rd->size;
+        rd->size = 0;
+        return rd->str;
+    }
+
+    static int err_file(lua_State *L, const char *what, int fnameidx) {
+        const char *errstr = strerror(errno);
+        const char *fname = lua_tostring(L, fnameidx) + 1;
+        lua_pushfstring(L, "cannot %s %s: %s", what, fname, errstr);
+        lua_remove(L, fnameidx);
+        return LUA_ERRFILE;
+    }
+
+    int load_file(lua_State *L, const char *fname) {
+        int fnameidx = lua_gettop(L) + 1;
+        vector<char> buf;
+        if (!fname) {
+            lua_pushliteral(L, "=stdin");
+            char buff[1024];
+            size_t nread;
+            while ((nread = fread(buff, 1, sizeof(buff), stdin))) {
+                buf.reserve(nread);
+                memcpy(buf.getbuf() + buf.length(), buff, nread);
+                buf.advance(nread);
+            }
+        } else {
+            lua_pushfstring(L, "@%s", fname);
+            FILE *f = fopen(fname, "rb");
+            if (!f) return err_file(L, "open", fnameidx);
+            fseek(f, 0, SEEK_END);
+            size_t size = ftell(f);
+            buf.growbuf(size);
+            rewind(f);
+            size_t asize = fread(buf.getbuf(), 1, size, f);
+            if (size != asize) {
+                fclose(f);
+                return err_file(L, "read", fnameidx);
+            }
+            buf.advance(asize);
+            fclose(f);
+        }
+        lua_getfield(L, LUA_REGISTRYINDEX, "luacy_parse");
+        lua_pushvalue(L, fnameidx);
+        lua_pushlstring(L, buf.getbuf(), buf.length());
+        lua_pushboolean(L, logger::should_log(logger::DEBUG));
+        int ret = lua_pcall(L, 3, 1, 0);
+        if (ret) return ret;
+        reads rd;
+        rd.str = lua_tolstring(L, -1, &rd.size);
+        const char *fn = lua_tostring(L, fnameidx);
+        lua_pop(L, 2);
+        return lua_load(L, read_str, &rd, fn);
+    }
+
+    int load_string(lua_State *L, const char *str) {
+        lua_getfield(L, LUA_REGISTRYINDEX, "luacy_parse");
+        lua_pushstring(L, str);
+        lua_pushvalue(L, -1);
+        lua_pushboolean(L, logger::should_log(logger::DEBUG));
+        int ret = lua_pcall(L, 3, 1, 0);
+        if (ret) return ret;
+        reads rd;
+        rd.str = lua_tolstring(L, -1, &rd.size);
+        lua_pop(L, 1);
+        return lua_load(L, read_str, &rd, str);
+    }
+
+    int load_file  (const char *fname) { return load_file  (L, fname); }
+    int load_string(const char *str)   { return load_string(L, str); }
 } /* end namespace lua */

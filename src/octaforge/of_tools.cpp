@@ -167,7 +167,7 @@ namespace tools
             }
             return false;
         }
-        if (luaL_loadstring(lua::L, buf) || lua_pcall(lua::L, 0, 0, 0)) {
+        if (lua::load_string(buf) || lua_pcall(lua::L, 0, 0, 0)) {
             if (msg) {
                 logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
             }

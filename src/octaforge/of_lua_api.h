@@ -270,7 +270,7 @@ namespace lapi_binds
     int _lua_do_upload(lua_State *L) {
         renderprogress(0.1f, "compiling scripts ..");
 
-        if (luaL_loadfile(L, world::get_mapscript_filename()))
+        if (lua::load_file(L, world::get_mapscript_filename()))
         {
             assert(lua::push_external(L, "gui_show_message"));
             lua_pushliteral(L, "Compilation failed");

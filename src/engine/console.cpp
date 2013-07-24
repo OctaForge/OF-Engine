@@ -361,7 +361,7 @@ struct hline
     {
         if (flags&CF_EXECUTE && buf[0] == '/') {
             if (buf[1] == '/') {
-                if (luaL_loadstring(lua::L, buf + 2) || lua_pcall(lua::L, 0, 0, 0)) {
+                if (lua::load_string(buf + 2) || lua_pcall(lua::L, 0, 0, 0)) {
                     logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
                     lua_pop(lua::L, 1);
                 }

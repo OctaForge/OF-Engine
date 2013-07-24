@@ -3765,7 +3765,7 @@ LUAICOMMAND(sleep_clear, {
 });
 
 ICOMMAND(lua, "s", (char *str), {
-    if (luaL_loadstring(lua::L, str)) {
+    if (lua::load_string(str)) {
         lua_error(lua::L);
     }
     lua_call(lua::L, 0, 1);

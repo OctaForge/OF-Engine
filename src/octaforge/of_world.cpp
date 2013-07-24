@@ -183,7 +183,7 @@ namespace world
     void run_mapscript() {
         int oldflags = identflags;
         identflags |= IDF_SAFE;
-        if (luaL_loadfile(lua::L, get_mapscript_filename()))
+        if (lua::load_file(get_mapscript_filename()))
             fatal("%s", lua_tostring(lua::L, -1));
         lua::push_external("mapscript_gen_env");
         lua_call(lua::L, 0, 1);
