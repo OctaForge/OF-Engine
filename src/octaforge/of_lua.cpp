@@ -190,6 +190,21 @@ namespace lua
         return 1;
     }
 
+    static void setup_ffi(lua_State *L) {
+        lua_getglobal(L, "require");
+        lua_pushliteral(L, "ffi");
+        lua_call(L, 1, 1);
+        lua_getfield(L, -1, "cdef");
+        lua_pushliteral(L, "typedef unsigned char uchar;\n"
+                           "typedef unsigned short ushort;\n"
+                           "typedef unsigned int uint;\n"
+                           "typedef signed long long int llong;\n"
+                           "typedef unsigned long long int ullong;\n");
+        lua_call(L, 1, 0);
+        lua_getfield(L, -1, "cast");
+        lua_replace(L, -2);
+    }
+
     void setup_binds()
     {
 #ifndef SERVER
@@ -210,18 +225,7 @@ namespace lua
             lua_pushcfunction(L, reg.fun);
             lua_setfield(L, -2, reg.name);
         }
-        lua_getglobal(L, "require");
-        lua_pushliteral(L, "ffi");
-        lua_call(L, 1, 1);
-        lua_getfield(L, -1, "cdef");
-        lua_pushliteral(L, "typedef unsigned char uchar;\n"
-                           "typedef unsigned short ushort;\n"
-                           "typedef unsigned int uint;\n"
-                           "typedef signed long long int llong;\n"
-                           "typedef unsigned long long int ullong;\n");
-        lua_call(L, 1, 0);
-        lua_getfield(L, -1, "cast");
-        lua_replace(L, -2);
+        setup_ffi(L);
         for (int i = 0; i < numcfields; ++i) {
             const CReg &reg = (*cfuns)[i];     /* cast */
             lua_pushvalue(L, -1);              /* cast, cast */
