@@ -356,7 +356,7 @@ local Image = register_class("Image", Filler, {
                                 self.mag_filter, self.texture
 
         capi.shader_hud_set_variant(tex)
-        capi.gl_bind_texture(tex)
+        capi.gl_bind_texture(tex:get_id())
 
         if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -473,7 +473,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
                                 self.mag_filter, self.texture
 
         capi.shader_hud_set_variant(tex)
-        capi.gl_bind_texture(tex)
+        capi.gl_bind_texture(tex:get_id())
 
         if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -555,7 +555,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
                                 self.mag_filter, self.texture
 
         capi.shader_hud_set_variant(tex)
-        capi.gl_bind_texture(tex)
+        capi.gl_bind_texture(tex:get_id())
 
         if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -673,7 +673,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
                                 self.mag_filter, self.texture
 
         capi.shader_hud_set_variant(tex)
-        capi.gl_bind_texture(tex)
+        capi.gl_bind_texture(tex:get_id())
 
         if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -759,7 +759,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
                                 self.mag_filter, self.texture
 
         capi.shader_hud_set_variant(tex)
-        capi.gl_bind_texture(tex)
+        capi.gl_bind_texture(tex:get_id())
 
         if minf and minf != 0 then
             capi.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)

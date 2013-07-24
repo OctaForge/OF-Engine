@@ -2655,53 +2655,30 @@ void cleanupgl()
 
 /* OF: extra Lua APIs */
 
-LUAICOMMAND(gl_scissor_enable,  { glEnable(GL_SCISSOR_TEST);  return 0; });
-LUAICOMMAND(gl_scissor_disable, { glDisable(GL_SCISSOR_TEST); return 0; });
+CLUAICOMMAND(gl_scissor_enable, void, (), glEnable(GL_SCISSOR_TEST););
+CLUAICOMMAND(gl_scissor_disable, void, (), glDisable(GL_SCISSOR_TEST););
 
-LUAICOMMAND(gl_scissor, {
-    glScissor(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-              luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
-    return 0;
-});
+CLUACOMMAND(gl_scissor, void, (int, int, int, int), glScissor);
 
-LUAICOMMAND(gl_blend_enable,  { glEnable(GL_BLEND);  return 0; });
-LUAICOMMAND(gl_blend_disable, { glDisable(GL_BLEND); return 0; });
+CLUAICOMMAND(gl_blend_enable, void, (), glEnable(GL_BLEND););
+CLUAICOMMAND(gl_blend_disable, void, (), glDisable(GL_BLEND););
 
-LUAICOMMAND(gl_blend_func, {
-    glBlendFunc((uint)luaL_checkinteger(L, 1), (uint)luaL_checkinteger(L, 2));
-    return 0;
-});
+CLUACOMMAND(gl_blend_func, void, (uint, uint), glBlendFunc);
 
-LUAICOMMAND(gl_bind_texture, {
-    glBindTexture(GL_TEXTURE_2D, luachecktexture(L, 1)->id); return 0;
-});
+CLUAICOMMAND(gl_bind_texture, void, (int id), glBindTexture(GL_TEXTURE_2D,
+    id););
 
-LUAICOMMAND(gl_texture_param, {
-    glTexParameteri(GL_TEXTURE_2D, (uint)luaL_checkinteger(L, 1),
-        luaL_checkinteger(L, 2));
-    return 0;
-});
+CLUAICOMMAND(gl_texture_param, void, (uint pname, int param),
+    glTexParameteri(GL_TEXTURE_2D, pname, param););
 
-LUAICOMMAND(hudmatrix_push, { pushhudmatrix (); return 0; });
-LUAICOMMAND(hudmatrix_pop, { pophudmatrix  (); return 0; });
-LUAICOMMAND(hudmatrix_flush, { flushhudmatrix(); return 0; });
-LUAICOMMAND(hudmatrix_reset, { resethudmatrix(); return 0; });
+CLUACOMMAND(hudmatrix_push,  void, (), pushhudmatrix);
+CLUAICOMMAND(hudmatrix_pop,   void, (), pophudmatrix(););
+CLUAICOMMAND(hudmatrix_flush, void, (), flushhudmatrix(););
+CLUACOMMAND(hudmatrix_reset, void, (), resethudmatrix);
 
-LUAICOMMAND(hudmatrix_translate, {
-    hudmatrix.translate(vec(luaL_checknumber(L, 1),
-                            luaL_checknumber(L, 2),
-                            luaL_checknumber(L, 3)));
-    return 0;
-});
-LUAICOMMAND(hudmatrix_scale, {
-    hudmatrix.scale(vec(luaL_checknumber(L, 1),
-                        luaL_checknumber(L, 2),
-                        luaL_checknumber(L, 3)));
-    return 0;
-});
-LUAICOMMAND(hudmatrix_ortho, {
-    hudmatrix.ortho(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-                    luaL_checknumber(L, 3), luaL_checknumber(L, 4),
-                    luaL_checknumber(L, 5), luaL_checknumber(L, 6));
-    return 0;
-});
+CLUAICOMMAND(hudmatrix_translate, void, (float x, float y, float z),
+    hudmatrix.translate(vec(x, y, z)););
+CLUAICOMMAND(hudmatrix_scale, void, (float x, float y, float z),
+    hudmatrix.scale(vec(x, y, z)););
+CLUAICOMMAND(hudmatrix_ortho, void, (float l, float r, float b, float t,
+    float zn, float zf), hudmatrix.ortho(l, r, b, t, zn, zf););
