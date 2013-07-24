@@ -23,6 +23,10 @@ local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 
+local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
+gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
+hudmatrix_ortho, hudmatrix_reset, shader_hud_set, isconnected in capi
+
 local set_external = capi.external_set
 
 local var_get, var_set = cs.var_get, cs.var_set
@@ -309,7 +313,7 @@ M.clip_area_is_fully_clipped = clip_area_is_fully_clipped
 ]]
 local clip_push = function(x, y, w, h)
     local l = #clip_stack
-    if    l == 0 then capi.gl_scissor_enable() end
+    if    l == 0 then gl_scissor_enable() end
 
     local c = { x, y, x + w, y + h }
 
@@ -329,7 +333,7 @@ local clip_pop = function()
     tremove(clip_stack)
 
     local l = #clip_stack
-    if    l == 0 then capi.gl_scissor_disable()
+    if    l == 0 then gl_scissor_disable()
     else clip_area_scissor(clip_stack[l])
     end
 end
@@ -356,7 +360,7 @@ local clip_area_scissor = function(self)
 
     local sx1, sy1, sx2, sy2 =
         world:calc_scissor(self[1], self[2], self[3], self[4])
-    capi.gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
+    gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
 end
 M.clip_area_scissor = clip_area_scissor
 
@@ -366,10 +370,10 @@ M.clip_area_scissor = clip_area_scissor
 ]]
 local quad = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    capi.gle_attrib2f(x,     y)     capi.gle_attrib2f(tx,      ty)
-    capi.gle_attrib2f(x + w, y)     capi.gle_attrib2f(tx + tw, ty)
-    capi.gle_attrib2f(x + w, y + h) capi.gle_attrib2f(tx + tw, ty + th)
-    capi.gle_attrib2f(x,     y + h) capi.gle_attrib2f(tx,      ty + th)
+    gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
+    gle_attrib2f(x + w, y)     gle_attrib2f(tx + tw, ty)
+    gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
+    gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
 end
 M.draw_quad = quad
 
@@ -379,10 +383,10 @@ M.draw_quad = quad
 ]]
 local quadtri = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    capi.gle_attrib2f(x,     y)     capi.gle_attrib2f(tx,      ty)
-    capi.gle_attrib2f(x + w, y)     capi.gle_attrib2f(tx + tw, ty)
-    capi.gle_attrib2f(x,     y + h) capi.gle_attrib2f(tx,      ty + th)
-    capi.gle_attrib2f(x + w, y + h) capi.gle_attrib2f(tx + tw, ty + th)
+    gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
+    gle_attrib2f(x + w, y)     gle_attrib2f(tx + tw, ty)
+    gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
+    gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
 end
 M.draw_quadtri = quadtri
 
@@ -1344,7 +1348,7 @@ local World = register_class("World", Object, {
     projection = function(self)
         local px, px2, py, py2 = self:calc_projection(self.max_scale)
         self.px, self.px2, self.py, self.py2 = px, px2, py, py2
-        capi.hudmatrix_ortho(px, px2, py2, py, -1, 1)
+        hudmatrix_ortho(px, px2, py2, py, -1, 1)
     end,
 
     calc_scissor = function(self, x1, y1, x2, y2)
@@ -1547,7 +1551,7 @@ end)
 local draw_hud = false
 
 set_external("gui_clear", function()
-    if  var_get("mainmenu") != 0 and capi.isconnected() then
+    if  var_get("mainmenu") != 0 and isconnected() then
         var_set("mainmenu", 0, true, false) -- no clamping, readonly var
         world:destroy_children()
         if draw_hud then
@@ -1578,7 +1582,7 @@ set_external("gui_update", function()
     local mm = var_get("mainmenu")
 
     if mm != 0 and not world:window_visible("main") and
-    not capi.isconnected(true) then
+    not isconnected(true) then
         world:show_window("main")
     end
 
@@ -1619,13 +1623,13 @@ set_external("gui_render", function()
     local w = world
     if draw_hud or #w.children != 0 then
         w:projection()
-        capi.hudmatrix_reset()
-        capi.shader_hud_set()
+        hudmatrix_reset()
+        shader_hud_set()
 
-        capi.gl_blend_enable()
-        capi.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+        gl_blend_enable()
+        gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-        capi.gle_color3f(1, 1, 1)
+        gle_color3f(1, 1, 1)
         w:draw()
 
         local tooltip = hovering and hovering.tooltip
@@ -1649,15 +1653,15 @@ set_external("gui_render", function()
 
         if draw_hud then
             local px, px2, py, py2 = w:calc_projection(1)
-            capi.hudmatrix_ortho(px, px2, py2, py, -1, 1)
-            capi.hudmatrix_reset()
-            capi.shader_hud_set()
+            hudmatrix_ortho(px, px2, py2, py, -1, 1)
+            hudmatrix_reset()
+            shader_hud_set()
             hud:draw()
         end
 
-        capi.gl_blend_disable()
-        capi.gl_scissor_disable()
-        capi.gle_disable()
+        gl_blend_disable()
+        gl_scissor_disable()
+        gle_disable()
     end
 end)
 

@@ -20,6 +20,13 @@ local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 local ffi = require("ffi")
 
+local clipboard_set_text, clipboard_get_text, clipboard_has_text, text_draw,
+text_get_bounds, text_get_position, text_is_visible, input_is_modifier_pressed,
+input_textinput, input_keyrepeat, input_get_key_name, hudmatrix_push,
+hudmatrix_translate, hudmatrix_flush, hudmatrix_scale, hudmatrix_pop,
+shader_hudnotexture_set, shader_hud_set, gle_color3ub, gle_defvertexf,
+gle_begin, gle_end, gle_attrib2f in capi
+
 local var_get = cs.var_get
 
 local max   = math.max
@@ -95,7 +102,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
         self.lines = { kwargs.value or "" }
 
         if length < 0 and height <= 0 then
-            local w, h = capi.text_get_bounds(self.lines[1], self.pixel_width)
+            local w, h = text_get_bounds(self.lines[1], self.pixel_width)
             self.pixel_height = h
         else
             self.pixel_height = var_get("fonth") * max(height, 1)
@@ -290,7 +297,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
     movement_mark = function(self)
         self:scroll_on_screen()
-        if capi.input_is_modifier_pressed(mod.SHIFT) then
+        if input_is_modifier_pressed(mod.SHIFT) then
             if not self:region() then self:mark(true) end
         else
             self:mark(false)
@@ -302,7 +309,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
         self.scrolly = clamp(self.scrolly, 0, self.cy)
         local h = 0
         for i = self.cy + 1, self.scrolly + 1, -1 do
-            local width, height = capi.text_get_bounds(self.lines[i],
+            local width, height = text_get_bounds(self.lines[i],
                 self.line_wrap and self.pixel_width or -1)
             if h + height > self.pixel_height then
                 self.scrolly = i
@@ -324,10 +331,10 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self:movement_mark()
             if self.line_wrap then
                 local str = self:current_line()
-                local x, y = capi.text_get_position(str, self.cx + 1,
+                local x, y = text_get_position(str, self.cx + 1,
                     self.pixel_width)
                 if y > 0 then
-                    self.cx = capi.text_is_visible(str, x, y - FONTH,
+                    self.cx = text_is_visible(str, x, y - FONTH,
                         self.pixel_width)
                     self:scroll_on_screen()
                     return nil
@@ -339,13 +346,13 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self:movement_mark()
             if self.line_wrap then
                 local str = self:current_line()
-                local x, y = capi.text_get_position(str, self.cx,
+                local x, y = text_get_position(str, self.cx,
                     self.pixel_width)
-                local width, height = capi.text_get_bounds(str,
+                local width, height = text_get_bounds(str,
                     self.pixel_width)
                 y = y + var_get("fonth")
                 if y < height then
-                    self.cx = capi.text_is_visible(str, x, y, self.pixel_width)
+                    self.cx = text_is_visible(str, x, y, self.pixel_width)
                     self:scroll_on_screen()
                     return nil
                 end
@@ -358,7 +365,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self.scrolly = self.scrolly + 3
         elseif code == key.PAGEUP then
             self:movement_mark()
-            if capi.input_is_modifier_pressed(mod_keys) then
+            if input_is_modifier_pressed(mod_keys) then
                 self.cy = 0
             else
                 self.cy = self.cy - self.pixel_height / var_get("fonth")
@@ -366,7 +373,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self:scroll_on_screen()
         elseif code == key.PAGEDOWN then
             self:movement_mark()
-            if capi.input_is_modifier_pressed(mod_keys) then
+            if input_is_modifier_pressed(mod_keys) then
                 self.cy = 1 / 0
             else
                 self.cy = self.cy + self.pixel_height / var_get("fonth")
@@ -375,14 +382,14 @@ local Text_Editor = register_class("Text_Editor", Object, {
         elseif code == key.HOME then
             self:movement_mark()
             self.cx = 0
-            if capi.input_is_modifier_pressed(mod_keys) then
+            if input_is_modifier_pressed(mod_keys) then
                 self.cy = 0
             end
             self:scroll_on_screen()
         elseif code == key.END then
             self:movement_mark()
             self.cx = 1 / 0
-            if capi.input_is_modifier_pressed(mod_keys) then
+            if input_is_modifier_pressed(mod_keys) then
                 self.cy = 1 / 0
             end
             self:scroll_on_screen()
@@ -444,7 +451,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             local b, sx, sy, ex, ey = self:region()
             if b then
                 for i = sy, ey do
-                    if capi.input_is_modifier_pressed(mod.SHIFT) then
+                    if input_is_modifier_pressed(mod.SHIFT) then
                         local rem = 0
                         for j = 1, min(4, #self.lines[i + 1]) do
                             if self.lines[i + 1]:sub(j, j) == " " then
@@ -467,7 +474,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                         if i == self.cy then self.cx = self.cx + 1 end
                     end
                 end
-            elseif capi.input_is_modifier_pressed(mod.SHIFT) then
+            elseif input_is_modifier_pressed(mod.SHIFT) then
                 if self.cx > 0 then
                     local cy = self.cy
                     local lines = self.lines
@@ -488,13 +495,13 @@ local Text_Editor = register_class("Text_Editor", Object, {
             end
             self:scroll_on_screen()
         elseif code == key.A then
-            if not capi.input_is_modifier_pressed(mod_keys) then
+            if not input_is_modifier_pressed(mod_keys) then
                 return nil
             end
             self:select_all()
             self:scroll_on_screen()
         elseif code == key.C or code == key.X then
-            if not capi.input_is_modifier_pressed(mod_keys)
+            if not input_is_modifier_pressed(mod_keys)
             or not self:region() then
                 return nil
             end
@@ -502,7 +509,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             if code == key.X then self:del() end
             self:scroll_on_screen()
         elseif code == key.V then
-            if not capi.input_is_modifier_pressed(mod_keys) then
+            if not input_is_modifier_pressed(mod_keys) then
                 return nil
             end
             self:paste()
@@ -516,11 +523,11 @@ local Text_Editor = register_class("Text_Editor", Object, {
         local max_width = self.line_wrap and self.pixel_width or -1
         local h = 0
         for i = self.scrolly + 1, #self.lines do
-            local width, height = capi.text_get_bounds(self.lines[i],
+            local width, height = text_get_bounds(self.lines[i],
                 max_width)
             if h + height > self.pixel_height then break end
             if hity >= h and hity <= h + height then
-                local x = capi.text_is_visible(self.lines[i], hitx, hity - h,
+                local x = text_is_visible(self.lines[i], hitx, hity - h,
                     max_width)
                 if dragged then
                     self.mx, self.my = x, i - 1
@@ -538,7 +545,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
         local slines = #self.lines
         local ph = self.pixel_height
         while slines > 0 and ph > 0 do
-            local width, height = capi.text_get_bounds(self.lines[slines],
+            local width, height = text_get_bounds(self.lines[slines],
                 max_width)
             if height > ph then break end
             ph = ph - height
@@ -550,13 +557,13 @@ local Text_Editor = register_class("Text_Editor", Object, {
     copy = function(self)
         if not self:region() then return nil end
         local str = self:selection_to_string()
-        if str then capi.clipboard_set_text(str) end
+        if str then clipboard_set_text(str) end
     end,
 
     paste = function(self)
-        if not capi.clipboard_has_text() then return false end
+        if not clipboard_has_text() then return false end
         if self:region() then self:del() end
-        local  str = capi.clipboard_get_text()
+        local  str = clipboard_get_text()
         if not str then return false end
         self:insert(str)
         return true
@@ -596,8 +603,8 @@ local Text_Editor = register_class("Text_Editor", Object, {
         if is_focused(ed) then return nil end
         set_focus(ed)
         local ati = ed and ed:allow_text_input()
-        capi.input_textinput(ati, 1 << 1) -- TI_GUI
-        capi.input_keyrepeat(ati, 1 << 1) -- KR_GUI
+        input_textinput(ati, 1 << 1) -- TI_GUI
+        input_keyrepeat(ati, 1 << 1) -- KR_GUI
     end,
 
     clicked = function(self, cx, cy)
@@ -675,7 +682,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
         end
 
         if self.line_wrap and self.maxy == 1 then
-            local w, h = capi.text_get_bounds(self.lines[1], self.pixel_width)
+            local w, h = text_get_bounds(self.lines[1], self.pixel_width)
             self.pixel_height = h
         end
 
@@ -688,12 +695,12 @@ local Text_Editor = register_class("Text_Editor", Object, {
     end,
 
     draw = function(self, sx, sy)
-        capi.hudmatrix_push()
+        hudmatrix_push()
 
-        capi.hudmatrix_translate(sx, sy, 0)
+        hudmatrix_translate(sx, sy, 0)
         local s = self.scale / (var_get("fonth") * var_get("uitextrows"))
-        capi.hudmatrix_scale(s, s, 1)
-        capi.hudmatrix_flush()
+        hudmatrix_scale(s, s, 1)
+        hudmatrix_flush()
 
         local x, y, hit = var_get("fontw") / 2, 0, is_focused(self)
         local max_width = self.line_wrap and self.pixel_width or -1
@@ -703,14 +710,14 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
         if selection then
             -- convert from cursor coords into pixel coords
-            local psx, psy = capi.text_get_position(self.lines[sy + 1], sx,
+            local psx, psy = text_get_position(self.lines[sy + 1], sx,
                 max_width)
-            local pex, pey = capi.text_get_position(self.lines[ey + 1], ex,
+            local pex, pey = text_get_position(self.lines[ey + 1], ex,
                 max_width)
             local maxy = #self.lines
             local h = 0
             for i = self.scrolly + 1, maxy do
-                local width, height = capi.text_get_bounds(self.lines[i],
+                local width, height = text_get_bounds(self.lines[i],
                     max_width)
                 if h + height > self.pixel_height then
                     maxy = i
@@ -741,45 +748,45 @@ local Text_Editor = register_class("Text_Editor", Object, {
                     pex = self.pixel_width
                 end
 
-                capi.shader_hudnotexture_set()
-                capi.gle_color3ub(0xA0, 0x80, 0x80)
-                capi.gle_defvertexf(2)
-                capi.gle_begin(gl.QUADS)
+                shader_hudnotexture_set()
+                gle_color3ub(0xA0, 0x80, 0x80)
+                gle_defvertexf(2)
+                gle_begin(gl.QUADS)
                 if psy == pey then
-                    capi.gle_attrib2f(x + psx, y + psy)
-                    capi.gle_attrib2f(x + pex, y + psy)
-                    capi.gle_attrib2f(x + pex, y + pey + fonth)
-                    capi.gle_attrib2f(x + psx, y + pey + fonth)
+                    gle_attrib2f(x + psx, y + psy)
+                    gle_attrib2f(x + pex, y + psy)
+                    gle_attrib2f(x + pex, y + pey + fonth)
+                    gle_attrib2f(x + psx, y + pey + fonth)
                 else
-                    capi.gle_attrib2f(x + psx,              y + psy)
-                    capi.gle_attrib2f(x + psx,              y + psy + fonth)
-                    capi.gle_attrib2f(x + self.pixel_width, y + psy + fonth)
-                    capi.gle_attrib2f(x + self.pixel_width, y + psy)
+                    gle_attrib2f(x + psx,              y + psy)
+                    gle_attrib2f(x + psx,              y + psy + fonth)
+                    gle_attrib2f(x + self.pixel_width, y + psy + fonth)
+                    gle_attrib2f(x + self.pixel_width, y + psy)
                     if (pey - psy) > fonth then
-                        capi.gle_attrib2f(x, y + psy + fonth)
-                        capi.gle_attrib2f(x + self.pixel_width,
+                        gle_attrib2f(x, y + psy + fonth)
+                        gle_attrib2f(x + self.pixel_width,
                                         y + psy + fonth)
-                        capi.gle_attrib2f(x + self.pixel_width, y + pey)
-                        capi.gle_attrib2f(x, y + pey)
+                        gle_attrib2f(x + self.pixel_width, y + pey)
+                        gle_attrib2f(x, y + pey)
                     end
-                    capi.gle_attrib2f(x,       y + pey)
-                    capi.gle_attrib2f(x,       y + pey + fonth)
-                    capi.gle_attrib2f(x + pex, y + pey + fonth)
-                    capi.gle_attrib2f(x + pex, y + pey)
+                    gle_attrib2f(x,       y + pey)
+                    gle_attrib2f(x,       y + pey + fonth)
+                    gle_attrib2f(x + pex, y + pey + fonth)
+                    gle_attrib2f(x + pex, y + pey)
                 end
-                capi.gle_end()
-                capi.shader_hud_set()
+                gle_end()
+                shader_hud_set()
             end
         end
 
         local h = 0
         for i = self.scrolly + 1, #self.lines do
-            local width, height = capi.text_get_bounds(self.lines[i],
+            local width, height = text_get_bounds(self.lines[i],
                 max_width)
             if h + height > self.pixel_height then
                 break
             end
-            capi.text_draw(self.password and ("*"):rep(#self.lines[i])
+            text_draw(self.password and ("*"):rep(#self.lines[i])
                 or self.lines[i], x, y + h, 255, 255, 255, 255,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
@@ -787,21 +794,21 @@ local Text_Editor = register_class("Text_Editor", Object, {
             -- line wrap indicator
             if self.line_wrap and height > fonth then
                 local fontw = var_get("fontw")
-                capi.shader_hudnotexture_set()
-                capi.gle_color3ub(0x80, 0xA0, 0x80)
-                capi.gle_defvertexf(2)
-                capi.gle_begin(gl.gl.TRIANGLE_STRIP)
-                capi.gle_attrib2f(x,                y + h + fonth)
-                capi.gle_attrib2f(x,                y + h + height)
-                capi.gle_attrib2f(x - fontw / 2, y + h + fonth)
-                capi.gle_attrib2f(x - fontw / 2, y + h + height)
-                capi.gle_end()
-                capi.shader_hud_set()
+                shader_hudnotexture_set()
+                gle_color3ub(0x80, 0xA0, 0x80)
+                gle_defvertexf(2)
+                gle_begin(gl.gl.TRIANGLE_STRIP)
+                gle_attrib2f(x,                y + h + fonth)
+                gle_attrib2f(x,                y + h + height)
+                gle_attrib2f(x - fontw / 2, y + h + fonth)
+                gle_attrib2f(x - fontw / 2, y + h + height)
+                gle_end()
+                shader_hud_set()
             end
             h = h + height
         end
 
-        capi.hudmatrix_pop()
+        hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end,
@@ -872,7 +879,7 @@ M.Key_Field = register_class("Key_Field", M.Field, {
     allow_text_input = function(self) return false end,
 
     key_insert = function(self, code)
-        local keyname = capi.input_get_key_name(code)
+        local keyname = input_get_key_name(code)
         if keyname then
             if not self:is_empty() then self:insert(" ") end
             self:insert(keyname)

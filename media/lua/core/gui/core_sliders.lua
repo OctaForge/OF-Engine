@@ -18,6 +18,8 @@ local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
+local get_millis in capi
+
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
@@ -191,7 +193,7 @@ local Slider = register_class("Slider", Object, {
     end,
 
     arrow_scroll = function(self)
-        local tmillis = capi.get_millis(true)
+        local tmillis = get_millis(true)
         if (self.last_step + self.step_time) > tmillis then
             return nil
         end
