@@ -1332,13 +1332,17 @@ local World = register_class("World", Object, {
         self:adjust_children()
     end,
 
-    projection = function(self)
+    calc_projection = function(self, ms)
         local x, y, w, h in self
-        local scale = max(h / self.max_scale, 1)
-        local px  = (x     - 0.5) * scale + 0.5
-        local px2 = (x + w - 0.5) * scale + 0.5
-        local py  = (y     - 0.5) * scale + 0.5
-        local py2 = (y + h - 0.5) * scale + 0.5
+        local scale = max(h / ms, 1)
+        return (x     - 0.5) * scale + 0.5,
+               (x + w - 0.5) * scale + 0.5,
+               (y     - 0.5) * scale + 0.5,
+               (y + h - 0.5) * scale + 0.5
+    end,
+
+    projection = function(self)
+        local px, px2, py, py2 = self:calc_projection(self.max_scale)
         self.px, self.px2, self.py, self.py2 = px, px2, py, py2
         capi.hudmatrix_ortho(px, px2, py2, py, -1, 1)
     end,
@@ -1622,9 +1626,6 @@ set_external("gui_render", function()
         capi.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
         capi.gle_color3f(1, 1, 1)
-
-        if draw_hud then hud:draw() end
-
         w:draw()
 
         local tooltip = hovering and hovering.tooltip
@@ -1644,6 +1645,14 @@ set_external("gui_render", function()
             end
 
             tooltip:draw(x, y)
+        end
+
+        if draw_hud then
+            local px, px2, py, py2 = w:calc_projection(1)
+            capi.hudmatrix_ortho(px, px2, py2, py, -1, 1)
+            capi.hudmatrix_reset()
+            capi.shader_hud_set()
+            hud:draw()
         end
 
         capi.gl_blend_disable()
