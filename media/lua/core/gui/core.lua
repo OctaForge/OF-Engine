@@ -1255,8 +1255,6 @@ local World = register_class("World", Object, {
     __init = function(self)
         self.windows = {}
         self.size, self.margin = 0, 0
-        self.max_scale = 1
-        self.px, self.py, self.px2, self.py2 = 0, 0, 0, 0
         return Object.__init(self)
     end,
 
@@ -1336,30 +1334,18 @@ local World = register_class("World", Object, {
         self:adjust_children()
     end,
 
-    calc_projection = function(self, ms)
-        local x, y, w, h in self
-        local maxy = 0
-        loop_children(self, |o| do maxy = max(maxy, o.y + o.h) end)
-        local scale = max(maxy / (h * ms), 1)
-        return (x     - 0.5) * scale + 0.5,
-               (x + w - 0.5) * scale + 0.5,
-               (y     - 0.5) * scale + 0.5,
-               (y + h - 0.5) * scale + 0.5
-    end,
-
     projection = function(self)
-        local px, px2, py, py2 = self:calc_projection(self.max_scale)
-        self.px, self.px2, self.py, self.py2 = px, px2, py, py2
-        hudmatrix_ortho(px, px2, py2, py, -1, 1)
+        local x, y, w, h in self
+        hudmatrix_ortho(x, x + w, y + h, y, -1, 1)
     end,
 
     calc_scissor = function(self, x1, y1, x2, y2)
         local scrw, scrh = var_get("screenw"), var_get("screenh")
-        local px, px2, py, py2 in self
-        return clamp(floor((x1 - px) / (px2 - px) * scrw),        0, scrw),
-               clamp(floor(scrh - (y2 - py) / (py2 - py) * scrh), 0, scrh),
-               clamp(ceil ((x2 - px) / (px2 - px) * scrw),        0, scrw),
-               clamp(ceil (scrh - (y1 - py) / (py2 - py) * scrh), 0, scrh)
+        local x, y, w, h in self
+        return clamp(floor((x1 - x) / w * scrw),        0, scrw),
+               clamp(floor(scrh - (y2 - y) / h * scrh), 0, scrh),
+               clamp(ceil ((x2 - x) / w * scrw),        0, scrw),
+               clamp(ceil (scrh - (y1 - y) / h * scrh), 0, scrh)
     end,
 
     --[[! Function: build_window
@@ -1654,10 +1640,6 @@ set_external("gui_render", function()
         end
 
         if draw_hud then
-            local px, px2, py, py2 = w:calc_projection(1)
-            hudmatrix_ortho(px, px2, py2, py, -1, 1)
-            hudmatrix_reset()
-            shader_hud_set()
             hud:draw()
         end
 
@@ -1665,10 +1647,6 @@ set_external("gui_render", function()
         gl_scissor_disable()
         gle_disable()
     end
-end)
-
-set_external("gui_limitscale", function(scale)
-    world.max_scale = scale
 end)
 
 local needsapply = {}

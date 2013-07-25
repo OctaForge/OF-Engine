@@ -2122,7 +2122,7 @@ void drawminimap()
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindFramebuffer_(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, vieww, viewh);
+    glViewport(0, 0, screenw, screenh);
 }
 
 void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side)
@@ -2517,7 +2517,7 @@ void gl_drawhud()
     glEnable(GL_BLEND);
     hudshader->set();
 
-    float conw = w/conscale, conh = h/conscale, abovehud = conh - FONTH, limitgui = abovehud;
+    float conw = w/conscale, conh = h/conscale, abovehud = conh - FONTH;
     if(!hidehud && !mainmenu)
     {
         if(!hidestats)
@@ -2568,7 +2568,6 @@ void gl_drawhud()
                 abovehud -= 2*FONTH;
                 draw_textf("wtr:%dk(%d%%) wvt:%dk(%d%%) evt:%dk eva:%dk", FONTH/2, abovehud, wtris/1024, curstats[0], wverts/1024, curstats[1], curstats[2], curstats[3]);
                 draw_textf("ond:%d va:%d gl:%d(%d) oq:%d pvs:%d", FONTH/2, abovehud+FONTH, allocnodes*8, allocva, curstats[4], curstats[5], curstats[6], getnumviewcells());
-                limitgui = abovehud;
             }
 
             if(editmode)
@@ -2614,15 +2613,11 @@ void gl_drawhud()
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             game::gameplayhud(w, h);
-            limitgui = abovehud = min(abovehud, conh*game::abovegameplayhud());
+            abovehud = min(abovehud, conh*game::abovegameplayhud());
         }
 
         rendertexturepanel(w, h);
     }
-
-    lua::push_external("gui_limitscale");
-    lua_pushnumber(lua::L, (2*limitgui - conh) / conh);
-    lua_call(lua::L, 1, 0);
 
     pushhudmatrix();
     hudmatrix.scale(conscale, conscale, 1);

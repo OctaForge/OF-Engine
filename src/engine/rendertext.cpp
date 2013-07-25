@@ -299,7 +299,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
                     if(cw <= 0 || w + cw > maxwidth) break;\
                     w += cw;\
                 }\
-                if(x + w > maxwidth && j!=0) { TEXTLINE(j-1) x = 0; y += FONTH; }\
+                if(x + w > maxwidth && x > 0) { TEXTLINE(j-1) x = 0; y += FONTH; }\
                 TEXTWORD\
             }\
             else { TEXTCHAR(i) }\
@@ -410,7 +410,7 @@ void draw_text(const char *str, float left, float top, int r, int g, int b, int 
     if(cursor >= 0 && (totalmillis/250)&1)
     {
         gle::color(color, a);
-        if(maxwidth != -1 && cx >= maxwidth) { cx = 0; cy += FONTH; }
+        if(maxwidth >= 0 && cx >= maxwidth && cx > 0) { cx = 0; cy += FONTH; }
         draw_char(tex, '_', left+cx, top+cy, scale);
         xtraverts += gle::end();
     }
