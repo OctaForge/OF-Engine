@@ -193,73 +193,80 @@ M.Gradient = register_class("Gradient", Color_Filler, {
     set_a2 = gen_setter "a2"
 })
 
---[[! Struct: Outline
-    Derived from <Filler>. Represents an outline. Has properties r,
-    g, b, a (that default to 255 and represent the outline color) and
-    "thickness" which is a floating point number representing the outline
-    width (defaults to 0).
+--[[! Struct: Line
+    Derived from <Filler>. Represents a line. Has properties r, g, b and a
+    (that default to 255 and represent the line color).
 ]]
-M.Outline = register_class("Outline", Filler, {
+M.Line = register_class("Line", Filler, {
     __init = function(self, kwargs)
-        kwargs         = kwargs or {}
-        self.thickness = kwargs.thickness or 0
-        self.r         = kwargs.r or 255
-        self.g         = kwargs.g or 255
-        self.b         = kwargs.b or 255
-        self.a         = kwargs.a or 255
-
+        kwargs = kwargs or {}
+        self.r = kwargs.r or 255
+        self.g = kwargs.g or 255
+        self.b = kwargs.b or 255
+        self.a = kwargs.a or 255
         return Filler.__init(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
-        local w,h, thickness in self
+        local w, h in self
 
         shader_hudnotexture_set()
         gle_color4ub(self.r, self.g, self.b, self.a)
-
         gle_defvertexf(2)
-
-        if thickness <= 0 then
-            gle_begin(gl.LINE_LOOP)
-            gle_attrib2f(sx,     sy)
-            gle_attrib2f(sx + w, sy)
-            gle_attrib2f(sx + w, sy + h)
-            gle_attrib2f(sx,     sy + h)
-            gle_end()
-        else
-            gle_begin(gl.QUADS)
-            local tw, th = min(thickness, w / 2), min(thickness, h / 2)
-            -- top
-            gle_attrib2f(sx,          sy)
-            gle_attrib2f(sx + w,      sy)
-            gle_attrib2f(sx + w - tw, sy + th)
-            gle_attrib2f(sx +     tw, sy + th)
-            -- bottom
-            gle_attrib2f(sx + tw,     sy + h - th)
-            gle_attrib2f(sx + w - tw, sy + h - th)
-            gle_attrib2f(sx + w,      sy + h)
-            gle_attrib2f(sx,          sy + h)
-            -- left
-            gle_attrib2f(sx,      sy)
-            gle_attrib2f(sx + tw, sy +     th)
-            gle_attrib2f(sx + tw, sy + h - th)
-            gle_attrib2f(sx,      sy + h)
-            -- right
-            gle_attrib2f(sx + w - tw, sy + th)
-            gle_attrib2f(sx + w,      sy)
-            gle_attrib2f(sx + w,      sy + h)
-            gle_attrib2f(sx + w - tw, sy + h - th)
-            gle_end()
-        end
-
+        gle_begin(gl.LINE_LOOP)
+        gle_attrib2f(sx,     sy)
+        gle_attrib2f(sx + w, sy + h)
+        gle_end()
         gle_color4f(1, 1, 1, 1)
         shader_hud_set()
 
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_thickness ]]
-    set_thickness = gen_setter "thickness",
+    --[[! Function: set_r ]]
+    set_r = gen_setter "r",
+
+    --[[! Function: set_g ]]
+    set_g = gen_setter "g",
+
+    --[[! Function: set_b ]]
+    set_b = gen_setter "b",
+
+    --[[! Function: set_a ]]
+    set_a = gen_setter "a"
+})
+
+--[[! Struct: Outline
+    Derived from <Filler>. Represents an outline. Has properties r,
+    g, b and a (that default to 255 and represent the outline color).
+]]
+M.Outline = register_class("Outline", Filler, {
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.r = kwargs.r or 255
+        self.g = kwargs.g or 255
+        self.b = kwargs.b or 255
+        self.a = kwargs.a or 255
+        return Filler.__init(self, kwargs)
+    end,
+
+    draw = function(self, sx, sy)
+        local w, h in self
+
+        shader_hudnotexture_set()
+        gle_color4ub(self.r, self.g, self.b, self.a)
+        gle_defvertexf(2)
+        gle_begin(gl.LINE_LOOP)
+        gle_attrib2f(sx,     sy)
+        gle_attrib2f(sx + w, sy)
+        gle_attrib2f(sx + w, sy + h)
+        gle_attrib2f(sx,     sy + h)
+        gle_end()
+        gle_color4f(1, 1, 1, 1)
+        shader_hud_set()
+
+        return Filler.draw(self, sx, sy)
+    end,
 
     --[[! Function: set_r ]]
     set_r = gen_setter "r",
@@ -957,27 +964,18 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        gl_blend_disable()
+        local w, h in self
         local csl = #clip_stack > 0
         if csl then gl_scissor_disable() end
-
-        local screenw, ww, ws = var_get("screenw"), world.w, world.size
-        local w, h = self.w, self.h
-
-        local x = floor((sx + world.margin) * screenw / ww)
-        local dx = ceil(w * screenw / ww)
-        local y  = ceil((1 - (h + sy)) * ws)
-        local dy = ceil(h * ws)
-
+        local sx1, sy1, sx2, sy2 = world:calc_scissor(sx, sy, sx + w, sy + h)
+        gl_blend_disable()
         gle_disable()
-        model_preview_start(x, y, dx, dy, csl)
+        model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         model_preview(self.model, self.anim, self.attachments)
         if csl then clip_area_scissor() end
         model_preview_end()
-
         shader_hud_set()
-        gle_defvertexf(2)
-        gle_deftexcoord0f(2)
+        gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         gl_blend_enable()
         if csl then gl_scissor_enable() end
         return Object.draw(self, sx, sy)
