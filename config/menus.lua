@@ -4,16 +4,12 @@ local gui = require("core.gui.core")
 local world = gui.get_world()
 
 gui.Button.states = {
-    default = gui.Gradient {
-        min_w = 0.2, min_h = 0.05,
-        r = 255, g = 255, b = 0,
-        r2 = 0, g2 = 255, b2 = 255,
-        horizontal = true,
+    default = gui.Outline {
+        r = 0, g = 0, b = 0, min_w = 0.2, min_h = 0.05,
         gui.Label { text = "Idle" }
     },
 
     hovering = gui.Outline {
-        thickness = 0,
         r = 0, g = 0, b = 255, min_w = 0.2, min_h = 0.05,
         gui.Label { text = "Hovering" }
     },
@@ -53,7 +49,27 @@ local i = 0
 
 world:new_window("main", gui.Window, |win| do
     win:set_floating(true)
-    win:append(gui.Color_Filler { r = 96, g = 96, b = 255, a = 128 }, |r| do
+    win:append(gui.Filler {
+        gui.H_Box {
+            clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+            gui.Gradient { min_w = 0.15, min_h = 0.05, horizontal = true,
+                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+                r2 = 255, g2 = 0, b2 = 0, r = 255, g = 255, b = 0
+            },
+            gui.Gradient { min_w = 0.15, min_h = 0.05, horizontal = true,
+                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+                r2 = 255, g2 = 255, b2 = 0, r = 0, g = 255, b = 0
+            },
+            gui.Gradient { min_w = 0.15, min_h = 0.05, horizontal = true,
+                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+                r2 = 0, g2 = 255, b2 = 0, r = 0, g = 0, b = 255
+            },
+            gui.Gradient { min_w = 0.15, min_h = 0.05, horizontal = true,
+                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+                r2 = 0, g2 = 0, b2 = 255, r = 143, g = 0, b = 255
+            }
+        }
+    }, |r| do
         r:align(0, 0)
         r:append(gui.V_Box(), |b| do
             b:clamp(true, true, true, true)
@@ -77,7 +93,7 @@ world:new_window("main", gui.Window, |win| do
 
             local ed, lbl
             b:append(gui.H_Box(), |b| do
-                b:append(gui.Field { length = 50, value = "butts" }, |x|do
+                b:append(gui.Field { length = 30, value = "butts" }, |x|do
                     x:clamp(true, true, true, true)
                     ed = x
                 end)
