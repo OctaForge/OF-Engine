@@ -1993,6 +1993,13 @@ COMMAND(getseltex, "");
 ICOMMAND(getreptex, "", (), { if(!noedit()) intret(vslots.inrange(reptex) ? reptex : -1); });
 COMMAND(gettexname, "ii");
 ICOMMAND(texmru, "b", (int *idx), { filltexlist(); intret(texmru.inrange(*idx) ? texmru[*idx] : texmru.length()); });
+ICOMMAND(looptexmru, "re", (ident *id, uint *body),
+{
+    loopstart(id, stack);
+    filltexlist();
+    loopv(texmru) { loopiter(id, stack, texmru[i]); execute(body); }
+    loopend(id, stack);
+});
 #ifndef SERVER
 ICOMMAND(numvslots, "", (), intret(vslots.length()));
 ICOMMAND(numslots, "", (), intret(slots.length()));

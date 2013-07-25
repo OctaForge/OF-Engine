@@ -65,7 +65,7 @@ world:new_window("textures", gui.Window, function(win)
         r:clamp(true, true, true, true)
         win:append(gui.V_Box { padding = 0.01 }, function(box)
             box:append(gui.Label { text = "Textures" })
-            box:append(gui.Table { columns = 9, padding = 0.01 }, function(t)
+            box:append(gui.Grid { columns = 9, padding = 0.01 }, function(t)
                 for i = 1, capi.slot_get_count() do
                     t:append(gui.Button(), function(btn)
                         btn:update_state("default",

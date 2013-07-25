@@ -129,14 +129,13 @@ M.V_Box = register_class("V_Box", Object, {
     set_padding = gen_setter "padding"
 }, M.H_Box.type)
 
---[[! Struct: Table
-    A table is a grid of elements. It has two properties, columns (specifies
-    the number of columns the table will have at max) and again padding (which
-    has the same meaning as in boxes). As you append, the children will
-    automatically position themselves according to the max number of
-    columns.
+--[[! Struct: Grid
+    A grid of elements. It has two properties, columns (specifies the number
+    of columns the table will have at max) and again padding (which has the
+    same meaning as in boxes). As you append, the children will automatically
+    position themselves according to the max number of columns.
 ]]
-M.Table = register_class("Table", Object, {
+M.Grid = register_class("Grid", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.columns = kwargs.columns or 0

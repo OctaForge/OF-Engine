@@ -2959,6 +2959,40 @@ ICOMMANDK(do, ID_DO, "e", (uint *body), executeret(body, *commandret));
 ICOMMANDK(if, ID_IF, "tee", (tagval *cond, uint *t, uint *f), executeret(getbool(*cond) ? t : f, *commandret));
 ICOMMAND(?, "tTT", (tagval *cond, tagval *t, tagval *f), result(*(getbool(*cond) ? t : f)));
 
+ICOMMAND(pushif, "rTe", (ident *id, tagval *v, uint *code),
+{
+    if(id->type != ID_ALIAS || id->index < MAXARGS) return;
+    if(getbool(*v))
+    {
+        identstack stack;
+        pusharg(*id, *v, stack);
+        v->type = VAL_NULL;
+        id->flags &= ~IDF_UNKNOWN;
+        executeret(code, *commandret);
+        poparg(*id);
+    }
+});
+
+void loopiter(ident *id, identstack &stack, tagval &v)
+{
+    if(id->stack != &stack)
+    {
+        pusharg(*id, v, stack);
+        id->flags &= ~IDF_UNKNOWN;
+    }
+    else
+    {
+        if(id->valtype == VAL_STR) delete[] id->val.s;
+        cleancode(*id);
+        id->setval(v);
+    }
+}
+
+void loopend(ident *id, identstack &stack)
+{
+    if(id->stack == &stack) poparg(*id);
+}
+
 static inline void setiter(ident &id, int i, identstack &stack)
 {
     if(i)
@@ -3019,7 +3053,7 @@ char *loopconc(ident *id, int n, uint *body, bool space)
         s.put(vstr, len);
         freearg(v);
     }
-    poparg(*id);
+    if(n > 0) poparg(*id);
     s.add('\0');
     return newstring(s.getbuf(), s.length()-1);
 }

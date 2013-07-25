@@ -1338,7 +1338,9 @@ local World = register_class("World", Object, {
 
     calc_projection = function(self, ms)
         local x, y, w, h in self
-        local scale = max(h / ms, 1)
+        local maxy = 0
+        loop_children(self, |o| do maxy = max(maxy, o.y + o.h) end)
+        local scale = max(maxy / (h * ms), 1)
         return (x     - 0.5) * scale + 0.5,
                (x + w - 0.5) * scale + 0.5,
                (y     - 0.5) * scale + 0.5,
