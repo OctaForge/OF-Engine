@@ -300,9 +300,9 @@ EAPI_GLE_INITATTRIB(color)
 EAPI_GLE_INITATTRIB(texcoord0)
 EAPI_GLE_INITATTRIB(texcoord1)
 
-CLUAICOMMAND(gle_color3ub, void, (uchar r, uchar g, uchar b), \
+CLUAICOMMAND(gle_color3ub, void, (uchar r, uchar g, uchar b),
     gle::colorub(r, g, b););
-CLUAICOMMAND(gle_color4ub, void, (uchar r, uchar g, uchar b, uchar a), \
+CLUAICOMMAND(gle_color4ub, void, (uchar r, uchar g, uchar b, uchar a),
     gle::colorub(r, g, b, a););
 
 #define EAPI_GLE_ATTRIB(suffix, type) \
