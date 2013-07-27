@@ -1676,11 +1676,15 @@ set_external("gui_update", function()
                 end
             end
             local hmenu = hovering.menu
-            if    hmenu then
-                  hmenu.is_menu = true
-                  hmenu.parent = hovering
-                  if nhov > 0 then msl = msl + 1 end
-                  menustack[msl] = hmenu
+            if  hmenu then
+                hmenu.is_menu = true
+                hmenu.parent = hovering
+                if nhov > 0 then
+                    msl += 1
+                else
+                    menustack, msl = {}, 1
+                end
+                menustack[msl] = hmenu
             end
         end
     end
