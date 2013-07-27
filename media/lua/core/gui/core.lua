@@ -1513,7 +1513,31 @@ set_external("cursor_get_position", function()
     end
 end)
 
-local click_menu = nil
+local menustack = {}
+
+local menu_click = function(o, cx, cy)
+    cx = cx - world.margin
+    local ox, oy = cx - o.x, cy - o.y
+    if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
+        local cl = o:click(ox, oy)
+        if cl == o then click_x, click_y = ox, oy end
+        return true, cl
+    else
+        return false
+    end
+end
+
+local menu_hover = function(o, cx, cy)
+    cx = cx - world.margin
+    local ox, oy = cx - o.x, cy - o.y
+    if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
+        local cl = o:hover(ox, oy)
+        if cl == o then hover_x, hover_y = ox, oy end
+        return true, cl
+    else
+        return false
+    end
+end
 
 set_external("input_keypress", function(code, isdown)
     if not cursor_exists() then return false end
@@ -1530,26 +1554,25 @@ set_external("input_keypress", function(code, isdown)
         if isdown then
             local cx, cy = cursor_x * world.w, cursor_y * world.h
             local clicked_try
-            if click_menu then
-                local cx = cx - world.margin
-                local o = click_menu
-                local ox, oy = cx - o.x, cy - o.y
-                if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-                    local cl = o:click(ox, oy)
-                    if cl == 0 then
-                        click_x, click_y = ox, oy
+            local ck, cl
+            if #menustack > 0 then
+                for i = 1, #menustack do
+                    ck, cl = menu_click(menustack[i], cx, cy)
+                    if ck then
+                        clicked_try = cl
+                        break
                     end
-                    clicked_try = cl
-                else
-                    click_menu = nil
                 end
+                if not ck then menustack = {} end
             end
             clicked = clicked_try or world:click(cx, cy)
             if clicked then
-                if not clicked_try then
-                    click_menu = clicked.menu
-                    if  click_menu then
-                        click_menu.parent = clicked
+                if not ck then
+                    local cm = clicked.menu
+                    if cm then
+                        menustack[1] = cm
+                        cm.is_menu = true
+                        cm.parent = clicked
                     end
                 end
                 clicked:clicked(click_x, click_y)
@@ -1607,23 +1630,22 @@ set_external("gui_update", function()
 
     if not draw_hud and mm == 0 then draw_hud = true end
 
+    local nhov = 0
     if cursor_exists() then
         local w, h = world.w, world.h
         local cx, cy = cursor_x * w, cursor_y * h
         local hovering_try
-        if click_menu then
-            local cx = cx - world.margin
-            local o = click_menu
-            local ox, oy = cx - o.x, cy - o.y
-            if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-                local cl = o:hover(ox, oy)
-                if cl == 0 then
-                    hover_x, hover_y = ox, oy
+        if #menustack > 0 then
+            for i = 1, #menustack do
+                local hk, hl = menu_hover(menustack[i], cx, cy)
+                if hk then
+                    hovering_try = hl
+                    if hl then nhov = i end
+                    break
                 end
-                hovering_try = cl
             end
         end
-        hovering = hovering_try or world:hover(cursor_x * w, cursor_y * h)
+        hovering = hovering_try or world:hover(cx, cy)
         if  hovering then
             hovering:hovering(hover_x, hover_y)
         end
@@ -1638,6 +1660,7 @@ set_external("gui_update", function()
 
     world:layout()
 
+    local msl = #menustack
     if hovering then
         local tooltip = hovering.tooltip
         if    tooltip then
@@ -1645,18 +1668,28 @@ set_external("gui_update", function()
               tooltip:layout()
               tooltip:adjust_children()
         end
-        if click_menu then
+        if msl > 0 then
+            if nhov > 0 then
+                while msl > nhov do
+                    menustack[msl] = nil
+                    msl = msl - 1
+                end
+            end
             local hmenu = hovering.menu
             if    hmenu then
+                  hmenu.is_menu = true
                   hmenu.parent = hovering
-                  click_menu = hmenu
+                  if nhov > 0 then msl = msl + 1 end
+                  menustack[msl] = hmenu
             end
         end
     end
 
-    if  click_menu then
-        click_menu:layout()
-        click_menu:adjust_children()
+    if msl > 0 then
+        for i = 1, msl do
+            menustack[i]:layout()
+            menustack[i]:adjust_children()
+        end
     end
 
     if draw_hud then hud:layout() end
@@ -1677,17 +1710,26 @@ set_external("gui_render", function()
         gle_color3f(1, 1, 1)
         w:draw()
 
-        if click_menu then
-            local cp = click_menu.parent
-            local cmx, cmy = cp.x, cp.y
-            local cpp = cp.parent
-            while cpp do
-                cmx, cmy = cmx + cpp.x, cmy + cpp.y
-                cpp = cpp.parent
+        local msl = #menustack
+        if msl > 0 then
+            local prevo
+            for i = 1, msl do
+                local o = menustack[i]
+                local op = o.parent
+                local omx, omy = op.x, op.y
+                local opp = op.parent
+                while opp and (i == 1 or opp != prevo) do
+                    omx, omy, opp = omx + opp.x, omy + opp.y, opp.parent
+                end
+                if i != 1 then
+                    omx, omy = omx + opp.x + op.w, omy + opp.y
+                else
+                    omy += op.h
+                end
+                o.x, o.y = omx, omy
+                o:draw(omx, omy)
+                prevo = o
             end
-            cmy = cmy + cp.h
-            click_menu.x, click_menu.y = cmx, cmy
-            click_menu:draw(cmx, cmy)
         end
 
         local tooltip = hovering and hovering.tooltip
