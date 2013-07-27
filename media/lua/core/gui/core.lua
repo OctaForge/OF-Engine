@@ -415,7 +415,8 @@ local Object, Window
 
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of objects), floating (whether the object is freely
-    movable), parent (the parent object), states, tooltip (an object).
+    movable), parent (the parent object), states, tooltip (an object),
+    menu (an object).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -425,8 +426,8 @@ local Object, Window
     emit signals so you can handle extra events. That is typically documented.
 
     Several properties can be initialized via kwargs (align_h, align_v,
-    clamp_l, clamp_r, clamp_b, clamp_t, floating, states, signals, tooltip
-    and init, which is a function called at the end of the constructor
+    clamp_l, clamp_r, clamp_b, clamp_t, floating, states, signals, tooltip,
+    menu and init, which is a function called at the end of the constructor
     if it exists). Array members of kwargs are children.
 
     Widgets can have states - they're named references to objects and
@@ -523,8 +524,9 @@ Object = register_class("Object", table2.Object, {
             end
         end
 
-        -- tooltip? widget specific
+        -- tooltip, menu? widget specific
         self.tooltip = kwargs.tooltip or false
+        self.menu    = kwargs.menu    or false
 
         -- and init
         if  kwargs.init then
@@ -1101,6 +1103,9 @@ Object = register_class("Object", table2.Object, {
     --[[! Function: set_tooltip ]]
     set_tooltip = gen_setter "tooltip",
 
+    --[[! Function: set_menu ]]
+    set_menu = gen_setter "menu",
+
     --[[! Function: insert
         Given a position in the children list, an object and optionally a
         function, this inserts the given object in the position and calls
@@ -1508,6 +1513,8 @@ set_external("cursor_get_position", function()
     end
 end)
 
+local click_menu = nil
+
 set_external("input_keypress", function(code, isdown)
     if not cursor_exists() then return false end
     if world:key_raw(code, isdown) then return true end
@@ -1521,8 +1528,15 @@ set_external("input_keypress", function(code, isdown)
         return false
     elseif code == key.MOUSE1 then
         if isdown then
+            click_menu = nil
             clicked = world:click(cursor_x * world.w, cursor_y * world.h)
-            if clicked then clicked:clicked(click_x, click_y) end
+            if clicked then
+                click_menu = clicked.menu
+                if  click_menu then
+                    click_menu.parent = clicked
+                end
+                clicked:clicked(click_x, click_y)
+            end
         else
             clicked = nil
         end
@@ -1593,15 +1607,29 @@ set_external("gui_update", function()
     end
 
     world:layout()
-    if draw_hud then hud:layout() end
 
     if hovering then
         local tooltip = hovering.tooltip
         if    tooltip then
+              tooltip.parent = hovering
               tooltip:layout()
               tooltip:adjust_children()
         end
+        if click_menu then
+            local hmenu = hovering.menu
+            if    hmenu then
+                  hmenu.parent = hovering
+                  click_menu = hmenu
+            end
+        end
     end
+
+    if  click_menu then
+        click_menu:layout()
+        click_menu:adjust_children()
+    end
+
+    if draw_hud then hud:layout() end
 
     prev_cx, prev_cy = cursor_x, cursor_y
 end)
@@ -1618,6 +1646,19 @@ set_external("gui_render", function()
 
         gle_color3f(1, 1, 1)
         w:draw()
+
+        if click_menu then
+            local cp = click_menu.parent
+            local cmx, cmy = cp.x, cp.y
+            local cpp = cp.parent
+            while cpp do
+                cmx, cmy = cmx + cpp.x, cmy + cpp.y
+                cpp = cpp.parent
+            end
+            cmy = cmy + cp.h
+            click_menu.x, click_menu.y = cmx, cmy
+            click_menu:draw(cmx, cmy)
+        end
 
         local tooltip = hovering and hovering.tooltip
         if    tooltip then

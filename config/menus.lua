@@ -5,17 +5,17 @@ local world = gui.get_world()
 
 gui.Button.states = {
     default = gui.Outline {
-        r = 0, g = 0, b = 0, min_w = 0.2, min_h = 0.05,
+        r = 0, g = 0, b = 0, min_w = 0.2, min_h = 0.03,
         gui.Label { text = "Idle" }
     },
 
     hovering = gui.Outline {
-        r = 0, g = 0, b = 255, min_w = 0.2, min_h = 0.05,
+        r = 0, g = 0, b = 255, min_w = 0.2, min_h = 0.03,
         gui.Label { text = "Hovering" }
     },
 
     clicked = gui.Color_Filler {
-        min_w = 0.2, min_h = 0.05, r = 255, g = 0, b = 255,
+        min_w = 0.2, min_h = 0.03, r = 255, g = 0, b = 255,
         gui.Label { text = "Clicked" }
     }
 }
@@ -82,6 +82,25 @@ world:new_window("main", gui.Window, |win| do
                     end)
                 end)
             end)
+
+            b:append(gui.H_Box(), |b| do
+                b:append(gui.Button(), |b| do
+                    b:set_menu(gui.Color_Filler {
+                        min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192
+                    })
+                end)
+                b:append(gui.Button(), |b| do
+                    b:set_menu(gui.Color_Filler {
+                        min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
+                    })
+                end)
+                b:append(gui.Button(), |b| do
+                    b:set_menu(gui.Color_Filler {
+                        min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
+                    })
+                end)
+            end)
+
             b:append(gui.Label { text = "This is some transparent text", a = 100 })
             b:append(gui.Label { text = "Different text", r = 255, g = 0, b = 0 })
             b:append(gui.Eval_Label {
