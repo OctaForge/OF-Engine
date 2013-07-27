@@ -86,7 +86,8 @@ world:new_window("main", gui.Window, |win| do
             b:append(gui.H_Box(), |b| do
                 b:append(gui.Button(), |b| do
                     b:set_menu(gui.Color_Filler {
-                        min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192
+                        min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
+                        gui.Button()
                     })
                 end)
                 b:append(gui.Button(), |b| do

@@ -1528,12 +1528,29 @@ set_external("input_keypress", function(code, isdown)
         return false
     elseif code == key.MOUSE1 then
         if isdown then
-            click_menu = nil
-            clicked = world:click(cursor_x * world.w, cursor_y * world.h)
+            local cx, cy = cursor_x * world.w, cursor_y * world.h
+            local clicked_try
+            if click_menu then
+                local cx = cx - world.margin
+                local o = click_menu
+                local ox, oy = cx - o.x, cy - o.y
+                if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
+                    local cl = o:click(ox, oy)
+                    if cl == 0 then
+                        click_x, click_y = ox, oy
+                    end
+                    clicked_try = cl
+                else
+                    click_menu = nil
+                end
+            end
+            clicked = clicked_try or world:click(cx, cy)
             if clicked then
-                click_menu = clicked.menu
-                if  click_menu then
-                    click_menu.parent = clicked
+                if not clicked_try then
+                    click_menu = clicked.menu
+                    if  click_menu then
+                        click_menu.parent = clicked
+                    end
                 end
                 clicked:clicked(click_x, click_y)
             end
@@ -1592,10 +1609,23 @@ set_external("gui_update", function()
 
     if cursor_exists() then
         local w, h = world.w, world.h
-
-        hovering = world.hover(world, cursor_x * w, cursor_y * h)
+        local cx, cy = cursor_x * w, cursor_y * h
+        local hovering_try
+        if click_menu then
+            local cx = cx - world.margin
+            local o = click_menu
+            local ox, oy = cx - o.x, cy - o.y
+            if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
+                local cl = o:hover(ox, oy)
+                if cl == 0 then
+                    hover_x, hover_y = ox, oy
+                end
+                hovering_try = cl
+            end
+        end
+        hovering = hovering_try or world:hover(cursor_x * w, cursor_y * h)
         if  hovering then
-            hovering.hovering(hovering, hover_x, hover_y)
+            hovering:hovering(hover_x, hover_y)
         end
 
         -- hacky
