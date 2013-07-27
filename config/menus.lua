@@ -90,14 +90,21 @@ world:new_window("main", gui.Window, |win| do
                         gui.V_Box {
                             gui.Button {
                                 menu = gui.Color_Filler {
-                                    min_w = 0.2, min_h = 0.3, r = 0, g = 192, b = 0,
-                                    a = 192
+                                    min_w = 0.2, min_h = 0.3, r = 0, g = 192,
+                                    b = 0, a = 192,
+                                    gui.Button {
+                                        menu = gui.Color_Filler {
+                                            min_w = 0.2, min_h = 0.3, r = 192,
+                                            g = 192, b = 0, a = 192,
+                                            gui.Label { text = "Butts!" }
+                                        }
+                                    }
                                 }
                             },
                             gui.Button {
                                 menu = gui.Color_Filler {
-                                    min_w = 0.2, min_h = 0.3, r = 0, g = 0, b = 192,
-                                    a = 192
+                                    min_w = 0.2, min_h = 0.3, r = 0, g = 0,
+                                    b = 192, a = 192
                                 }
                             }
                         }
