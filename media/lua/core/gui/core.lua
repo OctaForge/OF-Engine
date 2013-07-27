@@ -1717,18 +1717,35 @@ set_external("gui_render", function()
         local msl = #menustack
         if msl > 0 then
             local prevo
+            local md = 1 + w.margin
             for i = 1, msl do
                 local o = menustack[i]
                 local op = o.parent
+                local ow, opw = o.w, op.w
                 local omx, omy = op.x, op.y
                 local opp = op.parent
                 while opp and (i == 1 or opp != prevo) do
                     omx, omy, opp = omx + opp.x, omy + opp.y, opp.parent
                 end
                 if i != 1 then
-                    omx, omy = omx + opp.x + op.w, omy + opp.y
+                    omx, omy = omx + opp.x, omy + opp.y
+                    if (omx + opw + ow) > md then
+                        omx -= opw
+                    else
+                        omx += opw
+                    end
                 else
                     omy += op.h
+                    if (omx + ow) > md then
+                        if (omx + opw) > md then
+                            omx = md - ow
+                        else
+                            omx -= ow - opw
+                        end
+                    end
+                end
+                if (omx + ow) > md then
+                    omx -= ow
                 end
                 o.x, o.y = omx, omy
                 o:draw(omx, omy)
