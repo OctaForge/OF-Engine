@@ -289,7 +289,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                 len = self.maxx - 1
             end
             if self.cx <= len then
-                self.lines[self.cy + 1] = current:insert(self.cx, ch)
+                self.lines[self.cy + 1] = current:insert(self.cx + 1, ch)
                 self.cx = self.cx + 1
             end
         end
