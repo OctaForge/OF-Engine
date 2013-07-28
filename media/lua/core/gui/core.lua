@@ -1747,13 +1747,22 @@ set_external("gui_render", function()
                 end
                 if i != 1 then
                     omx, omy = omx + opp.x, omy + opp.y
+                    local oh = o.h
+                    if omy + oh > 1 then
+                        omy -= oh - op.h
+                    end
                     if (omx + opw + ow) > md then
                         omx -= opw
                     else
                         omx += opw
                     end
                 else
-                    omy += op.h
+                    local oh, oph = o.h, op.h
+                    if omy + oph + oh > 1 then
+                        omy -= oh
+                    else
+                        omy += oph
+                    end
                     if (omx + ow) > md then
                         if (omx + opw) > md then
                             omx = md - ow
