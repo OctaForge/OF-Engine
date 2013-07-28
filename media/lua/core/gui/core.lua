@@ -1556,7 +1556,7 @@ set_external("input_keypress", function(code, isdown)
             local clicked_try
             local ck, cl
             if #menustack > 0 then
-                for i = 1, #menustack do
+                for i = #menustack, 1, -1 do
                     ck, cl = menu_click(menustack[i], cx, cy)
                     if ck then
                         clicked_try = cl
@@ -1565,7 +1565,11 @@ set_external("input_keypress", function(code, isdown)
                 end
                 if not ck then menustack = {} end
             end
-            clicked = clicked_try or world:click(cx, cy)
+            if ck then
+                clicked = clicked_try
+            else
+                clicked = world:click(cx, cy)
+            end
             if clicked then
                 if not ck then
                     local cm = clicked.menu
@@ -1635,9 +1639,10 @@ set_external("gui_update", function()
         local w, h = world.w, world.h
         local cx, cy = cursor_x * w, cursor_y * h
         local hovering_try
+        local hk, hl
         if #menustack > 0 then
-            for i = 1, #menustack do
-                local hk, hl = menu_hover(menustack[i], cx, cy)
+            for i = #menustack, 1, -1 do
+                hk, hl = menu_hover(menustack[i], cx, cy)
                 if hk then
                     hovering_try = hl
                     if hl then nhov = i end
@@ -1645,7 +1650,11 @@ set_external("gui_update", function()
                 end
             end
         end
-        hovering = hovering_try or world:hover(cx, cy)
+        if hk then
+            hovering = hovering_try
+        else
+            hovering = world:hover(cx, cy)
+        end
         if  hovering then
             hovering:hovering(hover_x, hover_y)
         end
