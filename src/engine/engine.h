@@ -614,7 +614,7 @@ extern void entitiesinoctanodes();
 extern void attachentities();
 extern void attachentity(extentity &e);
 extern void freeoctaentities(cube &c);
-extern bool pointinsel(selinfo &sel, vec &o);
+extern bool pointinsel(const selinfo &sel, const vec &o);
 extern int  getattrnum(int type); /* OF */
 
 extern void resetmap();

@@ -312,7 +312,7 @@ bool noentedit()
     return !entediting;
 }
 
-bool pointinsel(selinfo &sel, vec &o)
+bool pointinsel(const selinfo &sel, const vec &o)
 {
     return(o.x <= sel.o.x+sel.s.x*sel.grid
         && o.x >= sel.o.x
@@ -513,16 +513,16 @@ VAR(entmovingshadow, 0, 1, 1);
 
 extern void boxs(int orient, vec o, const vec &s);
 extern void boxs3D(const vec &o, vec s, int g);
-extern void editmoveplane(const vec &o, const vec &ray, int d, float off, vec &handle, vec &dest, bool first);
+extern bool editmoveplane(const vec &o, const vec &ray, int d, float off, vec &handle, vec &dest, bool first);
 
-bool initentdragging = true;
+int entmoving = 0;
 
 void entdrag(const vec &ray)
 {
     if(noentedit() || !haveselent()) return;
 
     float r = 0, c = 0;
-    static vec v, handle;
+    static vec dest, handle;
     vec eo, es;
     int d = dimension(entorient),
         dc= dimcoord(entorient);
@@ -530,20 +530,21 @@ void entdrag(const vec &ray)
     entfocus(entgroup.last(),
         entselectionbox(e, eo, es);
 
-        editmoveplane(e.o, ray, d, eo[d] + (dc ? es[d] : 0), handle, v, initentdragging);
+        if(!editmoveplane(e.o, ray, d, eo[d] + (dc ? es[d] : 0), handle, dest, entmoving==1))
+            return;
 
-        ivec g(v);
+        ivec g = dest;
         int z = g[d]&(~(sel.grid-1));
         g.add(sel.grid/2).mask(~(sel.grid-1));
         g[d] = z;
 
-        r = (entselsnap ? g[R[d]] : v[R[d]]) - e.o[R[d]];
-        c = (entselsnap ? g[C[d]] : v[C[d]]) - e.o[C[d]];
+        r = (entselsnap ? g[R[d]] : dest[R[d]]) - e.o[R[d]];
+        c = (entselsnap ? g[C[d]] : dest[C[d]]) - e.o[C[d]];
     );
 
-    if(initentdragging) makeundoent();
+    if(entmoving==1) makeundoent();
     groupeditpure(e.o[R[d]] += r; e.o[C[d]] += c);
-    initentdragging = false;
+    entmoving = 2;
 }
 
 VAR(showentradius, 0, 1, 1);
@@ -789,16 +790,35 @@ bool hoveringonent(int ent, int orient)
 }
 
 VAR(entitysurf, 0, 0, 1);
-VARF(entmoving, 0, 0, 2,
-    if(enthover < 0 || noentedit())
-        entmoving = 0;
-    else if(entmoving == 1)
-        entmoving = enttoggle(enthover);
-    else if(entmoving == 2 && entgroup.find(enthover) < 0)
-        entadd(enthover);
-    if(entmoving > 0)
-        initentdragging = true;
-);
+
+ICOMMAND(entadd, "", (),
+{
+    if(enthover >= 0 && !noentedit())
+    {
+        if(entgroup.find(enthover) < 0) entadd(enthover); 
+        if(entmoving > 1) entmoving = 1;
+    }
+});
+ 
+ICOMMAND(enttoggle, "", (),
+{
+    if(enthover < 0 || noentedit() || !enttoggle(enthover)) { entmoving = 0; intret(0); }
+    else { if(entmoving > 1) entmoving = 1; intret(1); }
+});
+
+ICOMMAND(entmoving, "b", (int *n),
+{
+    if(*n >= 0)
+    {
+        if(!*n || enthover < 0 || noentedit()) entmoving = 0;
+        else
+        {
+            if(entgroup.find(enthover) < 0) { entadd(enthover); entmoving = 1; }
+            else if(!entmoving) entmoving = 1;
+        }
+    }
+    intret(entmoving);
+});  
 
 void entpush(int *dir)
 {
