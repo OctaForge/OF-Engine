@@ -87,14 +87,14 @@ local cursor_x, cursor_y, prev_cx, prev_cy = 0.5, 0.5, 0.5, 0.5
     Given an object this function returns true if that object is clicked
     and false if not.
 ]]
-local is_clicked = function(o) return (o == clicked) end
+local is_clicked = function(o) return (o == clicked) or o.force_clicked end
 M.is_clicked = is_clicked
 
 --[[! Function: is_hovering
     Given an object this function returns true if that object is being
     hovered on and false otherwise.
 ]]
-local is_hovering = function(o) return (o == hovering) end
+local is_hovering = function(o) return (o == hovering) or o.force_hovering end
 M.is_hovering = is_hovering
 
 --[[! Function: is_clicked
@@ -199,11 +199,6 @@ local loop_children = function(self, fun)
 
     if st then
         local s = self:choose_state()
-
-        if s != self.current_state then
-            self.current_state = s
-        end
-
         local w = st[s]
         if w then
             local r = fun(w)
@@ -235,11 +230,6 @@ local loop_children_r = function(self, fun)
 
     if st then
         local s = self:choose_state()
-
-        if s != self.current_state then
-            self.current_state = s
-        end
-
         local w = st[s]
         if w then
             local r = fun(w)
@@ -416,7 +406,8 @@ local Object, Window
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of objects), floating (whether the object is freely
     movable), parent (the parent object), states, tooltip (an object),
-    menu (an object).
+    menu (an object) and menu_no_highlight (makes the widget that spawned a
+    menu stop being highlighted when the menu is open).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -427,8 +418,8 @@ local Object, Window
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, states, signals, tooltip,
-    menu and init, which is a function called at the end of the constructor
-    if it exists). Array members of kwargs are children.
+    menu, menu_no_highlight and init, which is a function called at the
+    end of the constructor if it exists). Array members of kwargs are children.
 
     Widgets can have states - they're named references to objects and
     are widget type specific. For example a button could have states
@@ -493,7 +484,6 @@ Object = register_class("Object", table2.Object, {
         self.children = ch
 
         -- states
-        self.current_state = nil
         local states = {}
 
         local ks = kwargs.states
@@ -527,6 +517,7 @@ Object = register_class("Object", table2.Object, {
         -- tooltip, menu? widget specific
         self.tooltip = kwargs.tooltip or false
         self.menu    = kwargs.menu    or false
+        self.menu_no_highlight = kwargs.menu_no_highlight or false
 
         -- and init
         if  kwargs.init then
@@ -645,7 +636,7 @@ Object = register_class("Object", table2.Object, {
         Given an associative array of states, it calls <update_state>
         for each.
     ]]
-    update_class_states = function(self, states)
+    update_states = function(self, states)
         for k, v in pairs(states) do
             self:update_state(k, v)
         end
@@ -1106,6 +1097,9 @@ Object = register_class("Object", table2.Object, {
     --[[! Function: set_menu ]]
     set_menu = gen_setter "menu",
 
+    --[[! Function: set_menu_no_highlight ]]
+    set_menu_no_highlight = gen_setter "menu_no_highlight",
+
     --[[! Function: insert
         Given a position in the children list, an object and optionally a
         function, this inserts the given object in the position and calls
@@ -1539,6 +1533,17 @@ local menu_hover = function(o, cx, cy)
     end
 end
 
+local tremove = table.remove
+local menus_drop = function(n)
+    local msl = #menustack
+    n = n or msl
+    for i = msl, msl - n + 1, -1 do
+        local o = tremove(menustack)
+        local op = o.parent
+        op.force_clicked, op.force_hovering = false, false
+    end
+end
+
 set_external("input_keypress", function(code, isdown)
     if not cursor_exists() then return false end
     if world:key_raw(code, isdown) then return true end
@@ -1563,7 +1568,7 @@ set_external("input_keypress", function(code, isdown)
                         break
                     end
                 end
-                if not ck then menustack = {} end
+                if not ck then menus_drop() end
             end
             if ck then
                 clicked = clicked_try
@@ -1679,10 +1684,9 @@ set_external("gui_update", function()
         end
         if msl > 0 then
             if nhov > 0 then
-                while msl > nhov do
-                    menustack[msl] = nil
-                    msl = msl - 1
-                end
+                local nd = msl - nhov
+                if nd > 0 then menus_drop(nd) end
+                msl = nhov
             end
             local hmenu = hovering.menu
             if  hmenu then
@@ -1691,7 +1695,8 @@ set_external("gui_update", function()
                 if nhov > 0 then
                     msl += 1
                 else
-                    menustack, msl = {}, 1
+                    menus_drop()
+                    msl = 1
                 end
                 menustack[msl] = hmenu
             end
@@ -1730,6 +1735,13 @@ set_external("gui_render", function()
             for i = 1, msl do
                 local o = menustack[i]
                 local op = o.parent
+                if not op.menu_no_highlight then
+                    if i == 1 then
+                        op.force_clicked = true
+                    else
+                        op.force_hovering = true
+                    end
+                end
                 local ow, opw = o.w, op.w
                 local omx, omy = op.x, op.y
                 local opp = op.parent

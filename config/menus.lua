@@ -111,6 +111,7 @@ world:new_window("main", gui.Window, |win| do
                     })
                 end)
                 b:append(gui.Button(), |b| do
+                    b:set_menu_no_highlight(true)
                     b:set_menu(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
                     })
