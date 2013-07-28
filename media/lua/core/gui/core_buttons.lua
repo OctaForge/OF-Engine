@@ -18,6 +18,7 @@ local world = M.get_world()
 
 -- input event management
 local is_clicked, is_hovering = M.is_clicked, M.is_hovering
+local has_menu = M.has_menu
 
 -- widget types
 local register_class = M.register_class
@@ -56,6 +57,16 @@ local Button = register_class("Button", Object, {
     end
 })
 M.Button = Button
+
+--[[! Struct: Menu_Button
+    Like <Button>, but adds a new state, "menu", when a menu is currently
+    opened using this button.
+]]
+M.Menu_Button = register_class("Menu_Button", Button, {
+    choose_state = function(self)
+        return has_menu(self) and "menu" or Button.choose_state(self)
+    end
+})
 
 --[[! Struct: Conditional_Button
     Derived from Button. It's similar, but provides more states - more

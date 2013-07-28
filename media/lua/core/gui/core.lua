@@ -84,25 +84,32 @@ local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local cursor_x, cursor_y, prev_cx, prev_cy = 0.5, 0.5, 0.5, 0.5
 
 --[[! Function: is_clicked
-    Given an object this function returns true if that object is clicked
-    and false if not.
+    Given an object, this function returns true if that object is clicked
+    and false otherwise.
 ]]
-local is_clicked = function(o) return (o == clicked) or o.force_clicked end
+local is_clicked = function(o) return (o == clicked) end
 M.is_clicked = is_clicked
 
 --[[! Function: is_hovering
-    Given an object this function returns true if that object is being
+    Given an object, this function returns true if that object is being
     hovered on and false otherwise.
 ]]
-local is_hovering = function(o) return (o == hovering) or o.force_hovering end
+local is_hovering = function(o) return (o == hovering) end
 M.is_hovering = is_hovering
 
 --[[! Function: is_clicked
-    Given an object this function returns true if that object is focused
-    and false if not.
+    Given an object, this function returns true if that object is focused
+    and false otherwise.
 ]]
 local is_focused = function(o) return (o == focused) end
 M.is_focused = is_focused
+
+--[[! Function: has_menu
+    Given an object, this function return true if that object has a menu
+    opened and false otherwise.
+]]
+local has_menu = function(o) return o.has_menu == true end
+M.has_menu = has_menu
 
 --[[! Function: set_focus
     Gives the given GUI object focus.
@@ -405,9 +412,8 @@ local Object, Window
 
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of objects), floating (whether the object is freely
-    movable), parent (the parent object), states, tooltip (an object),
-    menu (an object) and menu_no_highlight (makes the widget that spawned a
-    menu stop being highlighted when the menu is open).
+    movable), parent (the parent object), states, tooltip (an object)
+    and menu (an object).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -418,8 +424,8 @@ local Object, Window
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, states, signals, tooltip,
-    menu, menu_no_highlight and init, which is a function called at the
-    end of the constructor if it exists). Array members of kwargs are children.
+    menu and init, which is a function called at the end of the constructor
+    if it exists). Array members of kwargs are children.
 
     Widgets can have states - they're named references to objects and
     are widget type specific. For example a button could have states
@@ -517,7 +523,6 @@ Object = register_class("Object", table2.Object, {
         -- tooltip, menu? widget specific
         self.tooltip = kwargs.tooltip or false
         self.menu    = kwargs.menu    or false
-        self.menu_no_highlight = kwargs.menu_no_highlight or false
 
         -- and init
         if  kwargs.init then
@@ -1097,9 +1102,6 @@ Object = register_class("Object", table2.Object, {
     --[[! Function: set_menu ]]
     set_menu = gen_setter "menu",
 
-    --[[! Function: set_menu_no_highlight ]]
-    set_menu_no_highlight = gen_setter "menu_no_highlight",
-
     --[[! Function: insert
         Given a position in the children list, an object and optionally a
         function, this inserts the given object in the position and calls
@@ -1539,8 +1541,7 @@ local menus_drop = function(n)
     n = n or msl
     for i = msl, msl - n + 1, -1 do
         local o = tremove(menustack)
-        local op = o.parent
-        op.force_clicked, op.force_hovering = false, false
+        o.parent.has_menu = false
     end
 end
 
@@ -1582,6 +1583,7 @@ set_external("input_keypress", function(code, isdown)
                         menustack[1] = cm
                         cm.is_menu = true
                         cm.parent = clicked
+                        clicked.has_menu = true
                     end
                 end
                 clicked:clicked(click_x, click_y)
@@ -1699,6 +1701,7 @@ set_external("gui_update", function()
                     msl = 1
                 end
                 menustack[msl] = hmenu
+                hovering.has_menu = true
             end
         end
     end
@@ -1735,13 +1738,7 @@ set_external("gui_render", function()
             for i = 1, msl do
                 local o = menustack[i]
                 local op = o.parent
-                if not op.menu_no_highlight then
-                    if i == 1 then
-                        op.force_clicked = true
-                    else
-                        op.force_hovering = true
-                    end
-                end
+                op.has_menu = true
                 local ow, opw = o.w, op.w
                 local omx, omy = op.x, op.y
                 local opp = op.parent

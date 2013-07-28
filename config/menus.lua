@@ -20,6 +20,16 @@ gui.Button.states = {
     }
 }
 
+gui.Menu_Button.states = {
+    default  = gui.Button.states.default,
+    hovering = gui.Button.states.hovering,
+    clicked  = gui.Button.states.clicked,
+    menu = gui.Color_Filler {
+        r = 255, g = 255, b = 255, a = 192, min_w = 0.2, min_h = 0.03,
+        gui.Label { text = "Menu opened" }
+    }
+}
+
 --[[
 local test_states = function()
     gui.Button:update_class_states {
@@ -84,15 +94,15 @@ world:new_window("main", gui.Window, |win| do
             end)
 
             b:append(gui.H_Box(), |b| do
-                b:append(gui.Button(), |b| do
+                b:append(gui.Menu_Button(), |b| do
                     b:set_menu(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
                         gui.V_Box {
-                            gui.Button {
+                            gui.Menu_Button {
                                 menu = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 192,
                                     b = 0, a = 192,
-                                    gui.Button {
+                                    gui.Menu_Button {
                                         menu = gui.Color_Filler {
                                             min_w = 0.2, min_h = 0.3, r = 192,
                                             g = 192, b = 0, a = 192,
@@ -101,7 +111,7 @@ world:new_window("main", gui.Window, |win| do
                                     }
                                 }
                             },
-                            gui.Button {
+                            gui.Menu_Button {
                                 menu = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 0,
                                     b = 192, a = 192
@@ -110,13 +120,12 @@ world:new_window("main", gui.Window, |win| do
                         }
                     })
                 end)
-                b:append(gui.Button(), |b| do
-                    b:set_menu_no_highlight(true)
+                b:append(gui.Menu_Button(), |b| do
                     b:set_menu(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
                     })
                 end)
-                b:append(gui.Button(), |b| do
+                b:append(gui.Menu_Button(), |b| do
                     b:set_menu(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
                     })
