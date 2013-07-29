@@ -3,30 +3,43 @@ local gui = require("core.gui.core")
 
 local world = gui.get_world()
 
-gui.Button.states = {
-    default = gui.Outline {
-        r = 0, g = 0, b = 0, min_w = 0.2, min_h = 0.03,
-        gui.Label { text = "Idle" }
-    },
+gui.Button.variants = {
+    default = {
+        default = gui.Outline {
+            r = 0, g = 0, b = 0, min_w = 0.2, min_h = 0.03,
+            gui.Label { text = "Idle" }
+        },
 
-    hovering = gui.Outline {
-        r = 0, g = 0, b = 255, min_w = 0.2, min_h = 0.03,
-        gui.Label { text = "Hovering" }
-    },
+        hovering = gui.Outline {
+            r = 0, g = 0, b = 255, min_w = 0.2, min_h = 0.03,
+            gui.Label { text = "Hovering" }
+        },
 
-    clicked = gui.Color_Filler {
-        min_w = 0.2, min_h = 0.03, r = 255, g = 0, b = 255,
-        gui.Label { text = "Clicked" }
+        clicked = gui.Color_Filler {
+            min_w = 0.2, min_h = 0.03, r = 255, g = 0, b = 255,
+            gui.Label { text = "Clicked" }
+        }
     }
 }
 
-gui.Menu_Button.states = {
-    default  = gui.Button.states.default,
-    hovering = gui.Button.states.hovering,
-    clicked  = gui.Button.states.clicked,
-    menu = gui.Color_Filler {
-        r = 255, g = 255, b = 255, a = 192, min_w = 0.2, min_h = 0.03,
-        gui.Label { text = "Menu opened" }
+gui.Menu_Button.variants = {
+    default = {
+        default  = gui.Button.variants.default.default,
+        hovering = gui.Button.variants.default.hovering,
+        clicked  = gui.Button.variants.default.clicked,
+        menu = gui.Color_Filler {
+            r = 0, g = 0, b = 0, a = 192, min_w = 0.2, min_h = 0.03,
+            gui.Label { text = "Menu opened" }
+        }
+    },
+    submenu = {
+        default  = gui.Button.variants.default.default,
+        hovering = gui.Button.variants.default.hovering,
+        clicked  = gui.Button.variants.default.clicked,
+        menu = gui.Color_Filler {
+            r = 0, g = 0, b = 0, a = 192, min_w = 0.2, min_h = 0.03,
+            gui.Label { text = "Submenu opened" }
+        }
     }
 }
 
@@ -107,15 +120,18 @@ world:new_window("main", gui.Window, |win| do
                                             min_w = 0.2, min_h = 0.3, r = 192,
                                             g = 192, b = 0, a = 192,
                                             gui.Label { text = "Butts!" }
-                                        }
+                                        },
+                                        variant = "submenu"
                                     }
-                                }
+                                },
+                                variant = "submenu"
                             },
                             gui.Menu_Button {
                                 menu = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 0,
                                     b = 192, a = 192
-                                }
+                                },
+                                variant = "submenu"
                             }
                         }
                     })

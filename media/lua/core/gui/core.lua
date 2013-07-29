@@ -202,11 +202,15 @@ M.get_class = get_class
 ]]
 local loop_children = function(self, fun)
     local ch = self.children
+    local vr = self.vstates
     local st = self.states
 
-    if st then
+    if st or vr then
         local s = self:choose_state()
-        local w = st[s]
+        local  w = st and st[s]
+        if not w then
+            w = vr and vr[s]
+        end
         if w then
             local r = fun(w)
             if r != nil then return r end
@@ -228,6 +232,7 @@ M.loop_children = loop_children
 ]]
 local loop_children_r = function(self, fun)
     local ch = self.children
+    local vr = self.vstates
     local st = self.states
 
     for i = #ch, 1, -1 do
@@ -237,7 +242,10 @@ local loop_children_r = function(self, fun)
 
     if st then
         local s = self:choose_state()
-        local w = st[s]
+        local  w = st and st[s]
+        if not w then
+            w = vr and vr[s]
+        end
         if w then
             local r = fun(w)
             if r != nil then return r end
@@ -412,8 +420,8 @@ local Object, Window
 
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of objects), floating (whether the object is freely
-    movable), parent (the parent object), states, tooltip (an object)
-    and menu (an object).
+    movable), parent (the parent object), variant, variants, states, tooltip
+    (an object) and menu (an object).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -423,14 +431,24 @@ local Object, Window
     emit signals so you can handle extra events. That is typically documented.
 
     Several properties can be initialized via kwargs (align_h, align_v,
-    clamp_l, clamp_r, clamp_b, clamp_t, floating, states, signals, tooltip,
-    menu and init, which is a function called at the end of the constructor
-    if it exists). Array members of kwargs are children.
+    clamp_l, clamp_r, clamp_b, clamp_t, floating, variant, states, signals,
+    tooltip, menu and init, which is a function called at the end of the
+    constructor if it exists). Array members of kwargs are children.
 
-    Widgets can have states - they're named references to objects and
-    are widget type specific. For example a button could have states
+    Widgets instances can have states - they're named references to objects
+    and are widget type specific. For example a button could have states
     "default" and "clicked", each being a reference to different
     appareance of a button depending on its state.
+
+    For widget-global behavior, there are "variants". Variants are named.
+    They store different kinds of states. For example variant "foo" could
+    store specifically themed states and variant "bar" differently themed
+    states.
+
+    When selecting the current state of a widget instance, it first tries
+    the "states" member (which is local to the widget instance). If such
+    state is found, it's used. Otherwise the global "variants" table is
+    tried, getting the variant self.variant (or "default" if none).
 
     Each widget class also contains an "instances" table storing a set
     of all instances of the widget class.
@@ -491,7 +509,6 @@ Object = register_class("Object", table2.Object, {
 
         -- states
         local states = {}
-
         local ks = kwargs.states
         if ks then
             for k, v in pairs(ks) do
@@ -499,19 +516,8 @@ Object = register_class("Object", table2.Object, {
                 states[k].parent = self
             end
         end
-
-        local dstates = rawget(self.__proto, "states")
-        if dstates then
-            for k, v in pairs(dstates) do
-                if not states[k] then
-                    local cl = v:deep_clone()
-                    states[k] = cl
-                    cl.parent = self
-                end
-            end
-        end
-
         self.states = states
+        self:set_variant(kwargs.variant)
 
         -- and connect signals
         if kwargs.signals then
@@ -571,30 +577,54 @@ Object = register_class("Object", table2.Object, {
         return cl
     end,
 
+    --[[! Function: set_variant
+        Sets the variant this widget instance uses. If not provided, "default"
+        is set implicitly.
+    ]]
+    set_variant = function(self, variant)
+        self.variant = variant
+        local vstates = {}
+        local dstates = rawget(self.__proto, "variants")
+        dstates = dstates and dstates[variant or "default"] or nil
+        if dstates then
+            for k, v in pairs(dstates) do
+                local cl = v:deep_clone()
+                vstates[k] = cl
+                cl.parent = self
+            end
+        end
+        self.vstates = vstates
+    end,
+
     --[[! Function: update_class_state
         Call on the widget class. Takes the state name and the state
-        object and updates it on the class and on every instance of
-        the class. Destroys the old state of that name (if any) on the
-        class and on every instance. If the instance already uses a different
-        state (custom), it's left alone.
+        object and optionally variant (defaults to "default") and updates it
+        on the class and on every instance of the class. Destroys the old state
+        of that name (if any) on the class and on every instance. If the
+        instance already uses a different state (custom), it's left alone.
 
         Using this you can update the look of all widgets of certain type
         with ease.
     ]]
-    update_class_state = function(self, sname, sval)
-        local states = rawget(self, "states")
-        if not states then
-            states = {}
-            rawset(self, "states", states)
+    update_class_state = function(self, sname, sval, variant)
+        variant = variant or "default"
+        local dstates = rawget(self, "variants")
+        if not dstates then
+            dstates = {}
+            rawset(self, "variants", dstates)
         end
-
-        local oldstate = states[sname]
-        states[sname] = sval
+        local variant = dstates[variant]
+        if not variant then
+            variant = {}
+            dstates[variant] = variant
+        end
+        local oldstate = variant[sname]
+        variant[sname] = sval
 
         local insts = rawget(self, "instances")
         if insts then for v in pairs(insts) do
-            local sts = v.states
-            if sts then
+            local sts = v.vstates
+            if sts and v.variant == variant then
                 local st = sts[sname]
                 -- update only on widgets actually using the default state
                 if st and st.__proto == oldstate then
@@ -611,12 +641,12 @@ Object = register_class("Object", table2.Object, {
     end,
 
     --[[! Function: update_class_states
-        Given an associative array of states, it calls <update_class_state>
-        for each.
+        Given an associative array of states (and optionally variant), it
+        calls <update_class_state> for each.
     ]]
-    update_class_states = function(self, states)
+    update_class_states = function(self, states, variant)
         for k, v in pairs(states) do
-            self:update_class_state(k, v)
+            self:update_class_state(k, v, variant)
         end
     end,
 
