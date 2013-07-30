@@ -34,7 +34,7 @@ local loop_children, loop_children_r = M.loop_children, M.loop_children_r
 local clip_push, clip_pop = M.clip_push, M.clip_pop
 
 -- base widgets
-local Object = M.get_class("Object")
+local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -45,11 +45,11 @@ local gen_setter = M.gen_setter
     the padding between the items (the actual width is width of items
     extended by (nitems-1)*padding).
 ]]
-M.H_Box = register_class("H_Box", Object, {
+M.H_Box = register_class("H_Box", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding = kwargs.padding or 0
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     layout = function(self)
@@ -88,11 +88,11 @@ M.H_Box = register_class("H_Box", Object, {
 --[[! Struct: V_Box
     See <H_Box>. This is a vertical variant.
 ]]
-M.V_Box = register_class("V_Box", Object, {
+M.V_Box = register_class("V_Box", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding = kwargs.padding or 0
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     layout = function(self)
@@ -135,13 +135,13 @@ M.V_Box = register_class("V_Box", Object, {
     same meaning as in boxes). As you append, the children will automatically
     position themselves according to the max number of columns.
 ]]
-M.Grid = register_class("Grid", Object, {
+M.Grid = register_class("Grid", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.columns = kwargs.columns or 0
         self.padding = kwargs.padding or 0
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     layout = function(self)
@@ -255,7 +255,7 @@ M.Grid = register_class("Grid", Object, {
 --[[! Struct: Clipper
     Clips the children inside of it by clip_w and clip_h.
 ]]
-M.Clipper = register_class("Clipper", Object, {
+M.Clipper = register_class("Clipper", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.clip_w = kwargs.clip_w or 0
@@ -263,11 +263,11 @@ M.Clipper = register_class("Clipper", Object, {
         self.virt_w = 0
         self.virt_h = 0
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
     
         self.virt_w = self.w
         self.virt_h = self.h
@@ -279,7 +279,7 @@ M.Clipper = register_class("Clipper", Object, {
     end,
 
     adjust_children = function(self)
-        Object.adjust_children(self, 0, 0, self.virt_w, self.virt_h)
+        Widget.adjust_children(self, 0, 0, self.virt_w, self.virt_h)
     end,
 
     draw = function(self, sx, sy)
@@ -288,10 +288,10 @@ M.Clipper = register_class("Clipper", Object, {
         if (cw != 0 and self.virt_w > cw) or (ch != 0 and self.virt_h > ch)
         then
             clip_push(sx, sy, self.w, self.h)
-            Object.draw(self, sx, sy)
+            Widget.draw(self, sx, sy)
             clip_pop()
         else
-            return Object.draw(self, sx, sy)
+            return Widget.draw(self, sx, sy)
         end
     end,
 

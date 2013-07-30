@@ -27,7 +27,7 @@ local is_clicked, clear_focus = M.is_clicked, M.clear_focus
 local register_class = M.register_class
 
 -- base widgets
-local Object = M.get_class("Object")
+local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -38,11 +38,11 @@ local gen_setter = M.gen_setter
     a value that can be evaluated as true, the "true" state is set, otherwise
     the "false" state is set.
 ]]
-M.Conditional = register_class("Conditional", Object, {
+M.Conditional = register_class("Conditional", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.condition = kwargs.condition
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     choose_state = function(self)
@@ -54,7 +54,7 @@ M.Conditional = register_class("Conditional", Object, {
 })
 
 --[[! Struct: Mover
-    An object using which you can move windows. The window must have the
+    A widget using which you can move windows. The window must have the
     floating property set to true or it won't move. It doesn't have any
     appearance or states, those are defined by its children.
 
@@ -62,7 +62,7 @@ M.Conditional = register_class("Conditional", Object, {
     moving the current window to the top. That means you don't have to care
     about re-stacking them.
 ]]
-M.Mover = register_class("Mover", Object, {
+M.Mover = register_class("Mover", Widget, {
     hover = function(self, cx, cy)
         return self:target(cx, cy) and self
     end,
@@ -115,7 +115,7 @@ M.Mover = register_class("Mover", Object, {
     pressing = function(self, cx, cy)
         local  w = self:get_window()
         if not w then
-            return Object.pressing(self, cx, cy)
+            return Widget.pressing(self, cx, cy)
         end
         if w and w.floating and is_clicked(self) and self:can_move() then
             w.fx, w.x = w.fx + cx, w.x + cx

@@ -24,17 +24,17 @@ local has_menu = M.has_menu
 local register_class = M.register_class
 
 -- base widgets
-local Object = M.get_class("Object")
+local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
 
 --[[! Struct: Button
     A button has three states, "default", "hovering" and "clicked". On click
-    it emits the "click" signal on itself (which is handled by <Object>, the
+    it emits the "click" signal on itself (which is handled by <Widget>, the
     button itself doesn't do anything).
 ]]
-local Button = register_class("Button", Object, {
+local Button = register_class("Button", Widget, {
     choose_state = function(self)
         return is_clicked(self) and "clicked" or
             (is_hovering(self) and "hovering" or "default")
@@ -93,7 +93,7 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
     ]]
     clicked = function(self, cx, cy)
         if self.condition and self:p_condition() then
-            Object.clicked(self, cx, cy)
+            Widget.clicked(self, cx, cy)
         end
     end,
 

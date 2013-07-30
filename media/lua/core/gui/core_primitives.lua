@@ -56,7 +56,7 @@ local clip_push, clip_pop = M.clip_push, M.clip_pop
 local quad, quadtri = M.draw_quad, M.draw_quadtri
 
 -- base widgets
-local Object = M.get_class("Object")
+local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -304,7 +304,7 @@ end
 --[[! Struct: Image
     Derived from Filler. Represents a basic image with basic stretching.
     Has two kwargs properties - file (the filename), alt_file (alternative
-    filename assuming file fails) - those are not saved in the object and
+    filename assuming file fails) - those are not saved in the widget and
     six other properties - min_filter, mag_filter (see GL_TEXTURE_MIN_FILTER
     and GL_TEXTURE_MAG_FILTER as well as the filters later in this module),
     r, g, b, a (see <Color_Filler>).
@@ -360,7 +360,7 @@ local Image = register_class("Image", Filler, {
         completely transparent).
     ]]
     target = function(self, cx, cy)
-        local o = Object.target(self, cx, cy)
+        local o = Widget.target(self, cx, cy)
         if    o then return o end
 
         local tex = self.texture
@@ -390,11 +390,11 @@ local Image = register_class("Image", Filler, {
         quadtri(sx, sy, self.w, self.h)
         gle_end()
 
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
 
         local min_w = self.min_w
         local min_h = self.min_h
@@ -476,7 +476,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
     end,
 
     target = function(self, cx, cy)
-        local o = Object.target(self, cx, cy)
+        local o = Widget.target(self, cx, cy)
         if    o then return o end
 
         local tex = self.texture
@@ -508,7 +508,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
             self.crop_x, self.crop_y, self.crop_w, self.crop_h)
         gle_end()
 
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     --[[! Function: set_crop_x ]]
@@ -547,7 +547,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
 ]]
 M.Stretched_Image = register_class("Stretched_Image", Image, {
     target = function(self, cx, cy)
-        local o = Object.target(self, cx, cy)
+        local o = Widget.target(self, cx, cy)
         if    o then return o end
         if self.texture:get_bpp() < 32 then return self end
 
@@ -632,7 +632,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
 
         gle_end()
 
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end
 })
 
@@ -654,7 +654,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
     end,
 
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
 
         local sb = self.screen_border
         self.w = max(self.w, 2 * sb)
@@ -662,7 +662,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
     end,
 
     target = function(self, cx, cy)
-        local o = Object.target(self, cx, cy)
+        local o = Widget.target(self, cx, cy)
         if    o then return o end
 
         local tex = self.texture
@@ -729,7 +729,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
 
         gle_end()
 
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     --[[! Function: set_tex_border ]]
@@ -758,7 +758,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
     end,
 
     target = function(self, cx, cy)
-        local o = Object.target(self, cx, cy)
+        local o = Widget.target(self, cx, cy)
         if    o then return o end
 
         local tex = self.texture
@@ -813,7 +813,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
             gle_end()
         end
 
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     --[[! Function: set_tile_w ]]
@@ -913,12 +913,12 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     end,
 
     target = function(self, cx, cy)
-        return Object.target(self, cx, cy) or self
+        return Widget.target(self, cx, cy) or self
     end,
 
     draw = function(self, sx, sy)
         texture_draw_slot(self.index, self.w, self.h, sx, sy)
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     --[[! Function: set_index ]]
@@ -932,7 +932,7 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
 M.VSlot_Viewer = register_class("VSlot_Viewer", M.Slot_Viewer, {
     draw = function(self, sx, sy)
         texture_draw_vslot(self.index, self.w, self.h, sx, sy)
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end
 })
 
@@ -978,7 +978,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         gl_blend_enable()
         if csl then gl_scissor_enable() end
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     --[[! Function: set_model ]]
@@ -1005,7 +1005,7 @@ cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     wrapping, defaults to -1 - not wrapped, otherwis a size), r, g, b, a
     (see <Color_Filler> for these).
 ]]
-M.Label = register_class("Label", Object, {
+M.Label = register_class("Label", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -1017,14 +1017,14 @@ M.Label = register_class("Label", Object, {
         self.b     = kwargs.b or 255
         self.a     = kwargs.a or 255
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     --[[! Function: target
         Labels are always targetable.
     ]]
     target = function(self, cx, cy)
-        return Object.target(self, cx, cy) or self
+        return Widget.target(self, cx, cy) or self
     end,
 
     draw_scale = function(self)
@@ -1045,11 +1045,11 @@ M.Label = register_class("Label", Object, {
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
 
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
 
         local k = self:draw_scale()
 
@@ -1091,7 +1091,7 @@ M.Label = register_class("Label", Object, {
     See <Label>. Instead of the property "text", there is "func", which is
     a callable value that returns the text to display.
 ]]
-M.Eval_Label = register_class("Eval_Label", Object, {
+M.Eval_Label = register_class("Eval_Label", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -1103,14 +1103,14 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         self.b     = kwargs.b or 255
         self.a     = kwargs.a or 255
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     --[[! Function: target
         Labels are always targetable.
     ]]
     target = function(self, cx, cy)
-        return Object.target(self, cx, cy) or self
+        return Widget.target(self, cx, cy) or self
     end,
 
     draw_scale = function(self)
@@ -1119,7 +1119,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
 
     draw = function(self, sx, sy)
         local  val = self.val_saved
-        if not val then return Object.draw(self, sx, sy) end
+        if not val then return Widget.draw(self, sx, sy) end
 
         local k = self.scale_saved
         hudmatrix_push()
@@ -1133,11 +1133,11 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
 
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
 
         local  cmd = self.func
         if not cmd then return nil end

@@ -40,7 +40,7 @@ local is_clicked, is_hovering = M.is_clicked, M.is_hovering
 local register_class = M.register_class
 
 -- base widgets
-local Object = M.get_class("Object")
+local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -67,7 +67,7 @@ local Slider_Button
     at all though. If you do, the min and max values will be bound
     to the variable.
 ]]
-local Slider = register_class("Slider", Object, {
+local Slider = register_class("Slider", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_value = kwargs.min_value or 0
@@ -90,7 +90,7 @@ local Slider = register_class("Slider", Object, {
         self.last_step = 0
         self.arrow_dir = 0
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     --[[! Function: do_step
@@ -148,7 +148,7 @@ local Slider = register_class("Slider", Object, {
             return true
         end
 
-        return Object.key_hover(self, code, isdown)
+        return Widget.key_hover(self, code, isdown)
     end,
 
     choose_direction = function(self, cx, cy)
@@ -160,7 +160,7 @@ local Slider = register_class("Slider", Object, {
         hover instead.
     ]]
     hover = function(self, cx, cy)
-        return Object.hover(self, cx, cy) or
+        return Widget.hover(self, cx, cy) or
                      (self:target(cx, cy) and self)
     end,
 
@@ -169,7 +169,7 @@ local Slider = register_class("Slider", Object, {
         click instead.
     ]]
     click = function(self, cx, cy)
-        return Object.click(self, cx, cy) or
+        return Widget.click(self, cx, cy) or
                      (self:target(cx, cy) and self)
     end,
 
@@ -189,7 +189,7 @@ local Slider = register_class("Slider", Object, {
             self:hovering(cx, cy)
         end
 
-        return Object.clicked(self, cx, cy)
+        return Widget.clicked(self, cx, cy)
     end,
 
     arrow_scroll = function(self)
@@ -249,12 +249,12 @@ M.Slider = Slider
 
     A slider button has three states, "default", "hovering" and "clicked".
 ]]
-Slider_Button = register_class("Slider_Button", Object, {
+Slider_Button = register_class("Slider_Button", Widget, {
     __init = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     choose_state = function(self)
@@ -282,14 +282,14 @@ Slider_Button = register_class("Slider_Button", Object, {
         self.offset_h = cx
         self.offset_v = cy
 
-        return Object.clicked(self, cx, cy)
+        return Widget.clicked(self, cx, cy)
     end,
 
     layout = function(self)
         local lastw = self.w
         local lasth = self.h
 
-        Object.layout(self)
+        Widget.layout(self)
 
         if is_clicked(self) then
             self.w = lastw
@@ -358,7 +358,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
         btn.x = as + (width - btn.w) * curstep / steps
         btn.adjust = btn.adjust & ~ALIGN_HMASK
 
-        Object.adjust_children(self)
+        Widget.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
@@ -420,7 +420,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
         btn.y = as + (height - btn.h) * curstep / steps
         btn.adjust = btn.adjust & ~ALIGN_VMASK
 
-        Object.adjust_children(self)
+        Widget.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)

@@ -84,41 +84,41 @@ local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local cursor_x, cursor_y, prev_cx, prev_cy = 0.5, 0.5, 0.5, 0.5
 
 --[[! Function: is_clicked
-    Given an object, this function returns true if that object is clicked
+    Given a widget, this function returns true if that widget is clicked
     and false otherwise.
 ]]
 local is_clicked = function(o) return (o == clicked) end
 M.is_clicked = is_clicked
 
 --[[! Function: is_hovering
-    Given an object, this function returns true if that object is being
+    Given a widget, this function returns true if that widget is being
     hovered on and false otherwise.
 ]]
 local is_hovering = function(o) return (o == hovering) end
 M.is_hovering = is_hovering
 
 --[[! Function: is_clicked
-    Given an object, this function returns true if that object is focused
+    Given a widget, this function returns true if that widget is focused
     and false otherwise.
 ]]
 local is_focused = function(o) return (o == focused) end
 M.is_focused = is_focused
 
 --[[! Function: has_menu
-    Given an object, this function return true if that object has a menu
+    Given a widget, this function return true if that widget has a menu
     opened and false otherwise.
 ]]
 local has_menu = function(o) return o.has_menu == true end
 M.has_menu = has_menu
 
 --[[! Function: set_focus
-    Gives the given GUI object focus.
+    Gives the given GUI widget focus.
 ]]
 local set_focus = function(o) focused = o end
 M.set_focus = set_focus
 
 --[[! Function: clear_focus
-    Given an object, this function clears all focus from it (that is,
+    Given a widget, this function clears all focus from it (that is,
     clicked, hovering, focused).
 ]]
 local clear_focus = function(o)
@@ -159,9 +159,9 @@ local lastwtype = 0
 
 --[[! Function: register_class
     Registers a widget class. Takes the widget class name, its base (if
-    not given, Object), its body (empty if not given, otherwise regular
+    not given, Widget), its body (empty if not given, otherwise regular
     object body like with clone operation) and optionally a forced type
-    (by default assigns the object a new type available under the "type"
+    (by default assigns the widget a new type available under the "type"
     field, using this you can override it and make it set a specific
     value). Returns the widget class.
 ]]
@@ -412,16 +412,16 @@ local orient = {
 }
 M.orient = orient
 
-local Object, Window
+local Widget, Window
 
---[[! Struct: Object
+--[[! Struct: Widget
     The basic widget class every other derives from. Provides everything
     needed for a working widget class, but doesn't do anything by itself.
 
     Basic properties are x, y, w, h, adjust (clamping and alignment),
-    children (an array of objects), floating (whether the object is freely
-    movable), parent (the parent object), variant, variants, states, tooltip
-    (an object) and menu (an object).
+    children (an array of widgets), floating (whether the widget is freely
+    movable), parent (the parent widget), variant, variants, states, tooltip
+    (a widget) and menu (a widget).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -435,7 +435,7 @@ local Object, Window
     tooltip, menu and init, which is a function called at the end of the
     constructor if it exists). Array members of kwargs are children.
 
-    Widgets instances can have states - they're named references to objects
+    Widgets instances can have states - they're named references to widgets
     and are widget type specific. For example a button could have states
     "default" and "clicked", each being a reference to different
     appareance of a button depending on its state.
@@ -453,7 +453,7 @@ local Object, Window
     Each widget class also contains an "instances" table storing a set
     of all instances of the widget class.
 ]]
-Object = register_class("Object", table2.Object, {
+Widget = register_class("Widget", table2.Object, {
     --[[! Constructor: __init
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting
@@ -598,7 +598,7 @@ Object = register_class("Object", table2.Object, {
 
     --[[! Function: update_class_state
         Call on the widget class. Takes the state name and the state
-        object and optionally variant (defaults to "default") and updates it
+        widget and optionally variant (defaults to "default") and updates it
         on the class and on every instance of the class. Destroys the old state
         of that name (if any) on the class and on every instance. If the
         instance already uses a different state (custom), it's left alone.
@@ -651,8 +651,8 @@ Object = register_class("Object", table2.Object, {
     end,
 
     --[[! Function: update_state
-        Given the state name an an object, this sets the state of that name
-        for the individual object (unlike <update_class_state>). That is
+        Given the state name an a widget, this sets the state of that name
+        for the individual widget (unlike <update_class_state>). That is
         useful when you need widgets with custom appearance but you don't
         want all widgets to have it. This function destroys the old state
         if any.
@@ -678,8 +678,8 @@ Object = register_class("Object", table2.Object, {
     end,
 
     --[[! Function: state_changed
-        Called with the state name and the state object everytime
-        <update_state> or <update_class_state> updates an object's state.
+        Called with the state name and the state widget everytime
+        <update_state> or <update_class_state> updates a widget's state.
         Useful for widget class and instance specific things such as updating
         labels on buttons. By default does nothing.
     ]]
@@ -1014,9 +1014,9 @@ Object = register_class("Object", table2.Object, {
 
     --[[! Function: replace
         Given a tag name, finds a tag of that name in the children, destroys
-        all children of that tag and appends the given object to the tag.
+        all children of that tag and appends the given widget to the tag.
         Optionally calls a function given as the last argument with the
-        object being the sole argument of it.
+        widget being the sole argument of it.
     ]]
     replace = function(self, tname, obj, fun)
         local tag = self:find_child(Tag.type, tname)
@@ -1028,7 +1028,7 @@ Object = register_class("Object", table2.Object, {
     end,
 
     --[[! Function: remove
-        Removes the given object from the widget's children. Alternatively,
+        Removes the given widget from the widget's children. Alternatively,
         the argument can be the index of the child in the list. Returns true
         on success and false on failure.
     ]]
@@ -1133,9 +1133,9 @@ Object = register_class("Object", table2.Object, {
     set_menu = gen_setter "menu",
 
     --[[! Function: insert
-        Given a position in the children list, an object and optionally a
-        function, this inserts the given object in the position and calls
-        the function with the object as an argument.
+        Given a position in the children list, a widget and optionally a
+        function, this inserts the given widget in the position and calls
+        the function with the widget as an argument.
     ]]
     insert = function(self, pos, obj, fun)
         tinsert(self.children, pos, obj)
@@ -1145,9 +1145,9 @@ Object = register_class("Object", table2.Object, {
     end,
 
     --[[! Function: append
-        Given an object and optionally a function, this inserts the given
-        object in the end of the child list and calls the function with the
-        object as an argument.
+        Given a widget and optionally a function, this inserts the given
+        widget in the end of the child list and calls the function with the
+        widget as an argument.
     ]]
     append = function(self, obj, fun)
         local children = self.children
@@ -1158,9 +1158,9 @@ Object = register_class("Object", table2.Object, {
     end,
 
     --[[! Function: prepend
-        Given an object and optionally a function, this inserts the given
-        object in the beginning of the child list and calls the function
-        with the object as an argument.
+        Given a widget and optionally a function, this inserts the given
+        widget in the beginning of the child list and calls the function
+        with the widget as an argument.
     ]]
     prepend = function(self, obj, fun)
         tinsert(self.children, 1, obj)
@@ -1194,15 +1194,15 @@ Object = register_class("Object", table2.Object, {
     end
 })
 
---[[! Struct: Named_Object
-    Named objects are regular objects thave have a name under the property
+--[[! Struct: Named_Widget
+    Named widgets are regular widgets thave have a name under the property
     obj_name. The name can be passed via constructor kwargs as "name".
 ]]
-local Named_Object = register_class("Named_Object", Object, {
+local Named_Widget = register_class("Named_Widget", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.obj_name = kwargs.name
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     --[[! Function: set_obj_name ]]
@@ -1210,17 +1210,17 @@ local Named_Object = register_class("Named_Object", Object, {
 })
 
 --[[! Struct: Tag
-    Tags are special named objects. They can contain more objects. They're
+    Tags are special named widgets. They can contain more widgets. They're
     particularly useful when looking up certain part of a GUI structure or
     replacing something inside without having to iterate through and finding
     it manually.
 ]]
-local Tag = register_class("Tag", Named_Object)
+local Tag = register_class("Tag", Named_Widget)
 M.Tag = Tag
 
 --[[! Struct: Window
     This is a regular window. It's nothing more than a special case of named
-    object. You can derive custom window types from this (see <Overlay>) but
+    widget. You can derive custom window types from this (see <Overlay>) but
     you have to make sure the widget type stays the same (pass Window.type
     as the last argument to <register_class>).
 
@@ -1231,12 +1231,12 @@ M.Tag = Tag
     and you can click, hover etc. in it only in free cursor mode (useful
     for windows that are always shown in say, editing mode).
 ]]
-Window = register_class("Window", Named_Object, {
+Window = register_class("Window", Named_Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         local ig = kwargs.input_grab
         self.input_grab = ig == nil and true or ig
-        return Named_Object.__init(self, kwargs)
+        return Named_Widget.__init(self, kwargs)
     end,
 
     grabs_input = function(self) return self.input_grab end,
@@ -1268,7 +1268,7 @@ local Overlay = register_class("Overlay", Window, {
 M.Overlay = Overlay
 
 --[[! Struct: World
-    A world is a structure that derives from <Object> and holds windows.
+    A world is a structure that derives from <Widget> and holds windows.
     It defines the base for calculating dimensions of child widgets as
     well as input hooks. It also provides some window management functions.
     By default the system creates one default world that holds all the
@@ -1276,17 +1276,17 @@ M.Overlay = Overlay
     worlds for different purposes (e.g. in-game GUI on a surface) but
     that is not supported at this point.
 
-    It adds a property to Object, margin. It specifies the left/right margin
+    It adds a property to Widget, margin. It specifies the left/right margin
     compared to the height. For example if the aspect ratio is 16:10, then
     the world width is 1.6 and height is 1 and thus margin is 0.3
     ((1.6 - 1) / 2). If the width is actually lower than the height,
     the margin is 0.
 ]]
-local World = register_class("World", Object, {
+local World = register_class("World", Widget, {
     __init = function(self)
         self.windows = {}
         self.size, self.margin = 0, 0
-        return Object.__init(self)
+        return Widget.__init(self)
     end,
 
     --[[! Function: grabs_input
@@ -1343,12 +1343,12 @@ local World = register_class("World", Object, {
     end,
 
     --[[! Function: layout
-        First calls layout on <Object>, then calculates x, y, w, h of the
+        First calls layout on <Widget>, then calculates x, y, w, h of the
         world. Takes forced aspect (via the forceaspect engine variable)
         into consideration. Then adjusts children.
     ]]
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
 
         local sw, sh = var_get("screenw"), var_get("screenh")
         self.size = sh
@@ -1456,7 +1456,7 @@ local World = register_class("World", Object, {
     end,
 
     --[[! Function: replace_in_window
-        Given a window name, a tag name, an object and a function, this
+        Given a window name, a tag name, a widget and a function, this
         finds a window of that name (if it doesn't exist it returns false)
         in the children and then returns win:replace(tname, obj, fun). It's
         merely a little wrapper for convenience.
@@ -1480,7 +1480,7 @@ world = World()
 
 local hud = Overlay { name = "hud" }
 hud.layout = function(self)
-    Object.layout(self)
+    Widget.layout(self)
     self.x, self.y, self.w, self.h = world.x, world.y, world.w, world.h
     self:adjust_children()
 end
@@ -1907,7 +1907,7 @@ M.changes_get = function()
 end
 
 --[[! Function: get_world
-    Gets the default GUI world object.
+    Gets the default GUI world widget.
 ]]
 M.get_world = function()
     return world

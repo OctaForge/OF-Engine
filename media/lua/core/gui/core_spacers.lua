@@ -33,22 +33,22 @@ local loop_children, loop_children_r = M.loop_children, M.loop_children_r
 local clip_push, clip_pop = M.clip_push, M.clip_pop
 
 -- base widgets
-local Object = M.get_class("Object")
+local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
 
 --[[! Struct: Spacer
-    A spacer will give an object a horizontal padding (pad_h) and a vertical
+    A spacer will give a widget a horizontal padding (pad_h) and a vertical
     padding (pad_v). There is no other meaning to it.
 ]]
-M.Spacer = register_class("Spacer", Object, {
+M.Spacer = register_class("Spacer", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.pad_h = kwargs.pad_h or 0
         self.pad_v = kwargs.pad_v or 0
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     layout = function(self)
@@ -70,7 +70,7 @@ M.Spacer = register_class("Spacer", Object, {
 
     adjust_children = function(self)
         local ph, pv = self.pad_h, self.pad_v
-        Object.adjust_children(self, ph, pv, self.w - 2 * ph,
+        Widget.adjust_children(self, ph, pv, self.w - 2 * ph,
             self.h - 2 * pv)
     end,
 
@@ -93,7 +93,7 @@ M.Spacer = register_class("Spacer", Object, {
     When true, it'll clip children inside - that's useful for, say, embedded
     floating windows.
 ]]
-M.Filler = register_class("Filler", Object, {
+M.Filler = register_class("Filler", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_w = kwargs.min_w or 0
@@ -101,11 +101,11 @@ M.Filler = register_class("Filler", Object, {
 
         self.clip_children = kwargs.clip_children or false
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
 
         local min_w = self.min_w
         local min_h = self.min_h
@@ -133,16 +133,16 @@ M.Filler = register_class("Filler", Object, {
         surfaces (when they should be invisible).
     ]]
     target = function(self, cx, cy)
-        return Object.target(self, cx, cy) or self
+        return Widget.target(self, cx, cy) or self
     end,
 
     draw = function(self, sx, sy)
         if self.clip_children then
             clip_push(sx, sy, self.w, self.h)
-            Object.draw(self, sx, sy)
+            Widget.draw(self, sx, sy)
             clip_pop()
         else
-            return Object.draw(self, sx, sy)
+            return Widget.draw(self, sx, sy)
         end
     end,
 
@@ -157,19 +157,19 @@ M.Filler = register_class("Filler", Object, {
 })
 
 --[[! Struct: Offsetter
-    Offsets an object by offset_h and offset_v properties.
+    Offsets a widget by offset_h and offset_v properties.
 ]]
-M.Offsetter = register_class("Offsetter", Object, {
+M.Offsetter = register_class("Offsetter", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.offset_h = kwargs.offset_h or 0
         self.offset_v = kwargs.offset_v or 0
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
 
         local oh, ov = self.offset_h, self.offset_v
 
@@ -184,7 +184,7 @@ M.Offsetter = register_class("Offsetter", Object, {
 
     adjust_children = function(self)
         local oh, ov = self.offset_h, self.offset_v
-        Object.adjust_children(self, oh, ov, self.w - oh, self.h - ov)
+        Widget.adjust_children(self, oh, ov, self.w - oh, self.h - ov)
     end,
 
     --[[! Function: set_offset_h ]]

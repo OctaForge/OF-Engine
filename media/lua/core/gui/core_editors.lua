@@ -50,7 +50,7 @@ local set_focus = M.set_focus
 local register_class = M.register_class
 
 -- base widgets
-local Object = M.get_class("Object")
+local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -63,7 +63,7 @@ local mod = require("core.gui.constants").mod
     and so on. It supports copy-paste that interacts with native system
     clipboard. It doesn't have any states.
 ]]
-local Text_Editor = register_class("Text_Editor", Object, {
+local Text_Editor = register_class("Text_Editor", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -108,12 +108,12 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self.pixel_height = var_get("fonth") * max(height, 1)
         end
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     clear = function(self)
         self:set_focus(nil)
-        return Object:clear()
+        return Widget:clear()
     end,
 
     edit_clear = function(self, init)
@@ -570,7 +570,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
     end,
 
     target = function(self, cx, cy)
-        return Object.target(self, cx, cy) or self
+        return Widget.target(self, cx, cy) or self
     end,
 
     hover = function(self, cx, cy)
@@ -613,7 +613,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
         self.offset_h = cx
         self.offset_v = cy
 
-        return Object.clicked(self, cx, cy)
+        return Widget.clicked(self, cx, cy)
     end,
 
     key_hover = function(self, code, isdown)
@@ -624,11 +624,11 @@ local Text_Editor = register_class("Text_Editor", Object, {
             if isdown then self:edit_key(code) end
             return true
         end
-        return Object.key_hover(self, code, isdown)
+        return Widget.key_hover(self, code, isdown)
     end,
 
     key = function(self, code, isdown)
-        if Object.key(self, code, isdown) then return true end
+        if Widget.key(self, code, isdown) then return true end
         if not is_focused(self) then return false end
 
         if code == key.ESCAPE then
@@ -650,7 +650,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
     allow_text_input = function(self) return true end,
 
     text_input = function(self, str)
-        if Object.text_input(self, str) then return true end
+        if Widget.text_input(self, str) then return true end
         if not is_focused(self) or not self:allow_text_input() then
             return false
         end
@@ -675,7 +675,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
     end,
 
     layout = function(self)
-        Object.layout(self)
+        Widget.layout(self)
 
         if not is_focused(self) then
             self:reset_value()
@@ -810,7 +810,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
         hudmatrix_pop()
 
-        return Object.draw(self, sx, sy)
+        return Widget.draw(self, sx, sy)
     end,
 
     is_field = function() return true end
@@ -852,10 +852,10 @@ M.Field = register_class("Field", Text_Editor, {
 
     --[[! Function: key_hover
         Here it just tries to call <key>. If that returns false, it just
-        returns Object.key_hover(self, code, isdown).
+        returns Widget.key_hover(self, code, isdown).
     ]]
     key_hover = function(self, code, isdown)
-        return self:key(code, isdown) or Object.key_hover(self, code, isdown)
+        return self:key(code, isdown) or Widget.key_hover(self, code, isdown)
     end,
 
     --[[! Function: reset_value
@@ -890,7 +890,7 @@ M.Key_Field = register_class("Key_Field", M.Field, {
         Overloaded. Commits on the escape key, inserts the name otherwise.
     ]]
     key_raw = function(code, isdown)
-        if Object.key_raw(code, isdown) then return true end
+        if Widget.key_raw(code, isdown) then return true end
         if not is_focused(self) or not isdown then return false end
         if code == key.ESCAPE then self:commit()
         else self:key_insert(code) end

@@ -38,7 +38,7 @@ local register_class = M.register_class
 local clip_push, clip_pop = M.clip_push, M.clip_pop
 
 -- base widgets
-local Object = M.get_class("Object")
+local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -84,7 +84,7 @@ M.Scroller = register_class("Scroller", Clipper, {
             self.virt_w, self.virt_h
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
-        return Object.target(self, cx + oh, cy + ov)
+        return Widget.target(self, cx + oh, cy + ov)
     end,
 
     hover = function(self, cx, cy)
@@ -97,7 +97,7 @@ M.Scroller = register_class("Scroller", Clipper, {
         end
 
         self.can_scroll = true
-        return Object.hover(self, cx + oh, cy + ov) or self
+        return Widget.hover(self, cx + oh, cy + ov) or self
     end,
 
     click = function(self, cx, cy)
@@ -105,7 +105,7 @@ M.Scroller = register_class("Scroller", Clipper, {
             self.virt_w, self.virt_h
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
-        return Object.click(self, cx + oh, cy + ov)
+        return Widget.click(self, cx + oh, cy + ov)
     end,
 
     --[[! Function: key_hover
@@ -116,7 +116,7 @@ M.Scroller = register_class("Scroller", Clipper, {
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSE4, key.MOUSE5
         if code != m4 or code != m5 then
-            return Object.key_hover(self, code, isdown)
+            return Widget.key_hover(self, code, isdown)
         end
 
         local  sb = self.v_scrollbar or self.h_scrollbar
@@ -138,15 +138,15 @@ M.Scroller = register_class("Scroller", Clipper, {
            (self.clip_h != 0 and self.virt_h > self.clip_h)
         then
             clip_push(sx, sy, self.w, self.h)
-            Object.draw(self, sx - self.offset_h, sy - self.offset_v)
+            Widget.draw(self, sx - self.offset_h, sy - self.offset_v)
             clip_pop()
         else
-            return Object.draw(self, sx, sy)
+            return Widget.draw(self, sx, sy)
         end
     end,
 
     --[[! Function: bind_h_scrollbar
-        Binds a horizontal scrollbar object to the scroller. It sets up both
+        Binds a horizontal scrollbar widget to the scroller. It sets up both
         sides appropriately. You can do this from the scrollbar side as well.
         Calling with nil unlinks the scrollbar and returns it.
     ]]
@@ -162,7 +162,7 @@ M.Scroller = register_class("Scroller", Clipper, {
     end,
 
     --[[! Function: bind_v_scrollbar
-        Binds a vertical scrollbar object to the scroller. It sets up both
+        Binds a vertical scrollbar widget to the scroller. It sets up both
         sides appropriately. You can do this from the scrollbar side as well.
         Calling with nil unlinks the scrollbar and returns it.
     ]]
@@ -266,7 +266,7 @@ local Scroll_Button
     the scrollbar) and arrow_speed (mouse scroll is by 0.2 * arrow_speed,
     arrow scroll is by frame_time * arrow_speed), both of which default to 0.
 ]]
-local Scrollbar = register_class("Scrollbar", Object, {
+local Scrollbar = register_class("Scrollbar", Widget, {
     orient = -1,
 
     __init = function(self, kwargs)
@@ -275,7 +275,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
         self.arrow_speed = kwargs.arrow_speed or 0
         self.arrow_dir   = 0
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     --[[! Function: clear
@@ -284,7 +284,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
     ]]
     clear = function(self)
         self:bind_scroller()
-        return Object.clear(self)
+        return Widget.clear(self)
     end,
 
     --[[! Function: bind_scroller
@@ -303,7 +303,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
         Scrollbars can be hovered on.
     ]]
     hover = function(self, cx, cy)
-        return Object.hover(self, cx, cy) or self
+        return Widget.hover(self, cx, cy) or self
     end,
 
     --[[! Function: hover
@@ -311,7 +311,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
         to be clicked on.
     ]]
     click = function(self, cx, cy)
-        return Object.click(self, cx, cy) or
+        return Widget.click(self, cx, cy) or
                      (self:target(cx, cy) and self or nil)
     end,
 
@@ -324,7 +324,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSE4, key.MOUSE5
         if code != m4 or code != m5 then
-            return Object.key_hover(self, code, isdown)
+            return Widget.key_hover(self, code, isdown)
         end
 
         local  sc = self.scroller
@@ -355,7 +355,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
             self:hovering(cx, cy)
         end
 
-        return Object.clicked(self, cx, cy)
+        return Widget.clicked(self, cx, cy)
     end,
 
     arrow_scroll = function(self) end,
@@ -397,12 +397,12 @@ M.Scrollbar = Scrollbar
 
     A scroll button has three states, "default", "hovering" and "clicked".
 ]]
-Scroll_Button = register_class("Scroll_Button", Object, {
+Scroll_Button = register_class("Scroll_Button", Widget, {
     __init = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
 
-        return Object.__init(self, kwargs)
+        return Widget.__init(self, kwargs)
     end,
 
     choose_state = function(self)
@@ -429,7 +429,7 @@ Scroll_Button = register_class("Scroll_Button", Object, {
         self.offset_h = cx
         self.offset_v = cy
 
-        return Object.clicked(self, cx, cy)
+        return Widget.clicked(self, cx, cy)
     end
 })
 M.Scroll_Button = Scroll_Button
@@ -522,7 +522,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         btn.x = as + scroll:get_h_offset() * bscale
         btn.adjust = btn.adjust & ~ALIGN_HMASK
 
-        Object.adjust_children(self)
+        Widget.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
@@ -613,7 +613,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         btn.y = as + scroll:get_v_offset() * bscale
         btn.adjust = btn.adjust & ~ALIGN_VMASK
 
-        Object.adjust_children(self)
+        Widget.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
