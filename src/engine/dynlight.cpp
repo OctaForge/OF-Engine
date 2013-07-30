@@ -133,7 +133,6 @@ int finddynlights()
     closedynlights.setsize(0);
     physent e;
     e.type = ENT_CAMERA;
-    e.collidetype = COLLIDE_AABB;
     loopvj(dynlights)
     {
         dynlight &d = dynlights[j];

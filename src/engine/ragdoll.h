@@ -237,7 +237,6 @@ struct ragdolldata
             vertent()
             {
                 type = ENT_BOUNCE;
-                collidetype = COLLIDE_AABB;
                 radius = xradius = yradius = eyeheight = aboveeye = 1;
             }
         } v;
