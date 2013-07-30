@@ -16,9 +16,9 @@ namespace lua
     void pin_string   (lua_State *L, const char *str);
     void unpin_string (lua_State *L, const char *str);
     int load_file     (const char *fname);
-    int load_string   (const char *str);
+    int load_string   (const char *str, const char *ch = NULL);
     int load_file     (lua_State *L, const char *fname);
-    int load_string   (lua_State *L, const char *str);
+    int load_string   (lua_State *L, const char *str, const char *ch = NULL);
 }
 
 #define LUACOMMAND(name, fun) \

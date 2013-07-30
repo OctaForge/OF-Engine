@@ -381,7 +381,7 @@ namespace lua
         return lua_load(L, read_str, &rd, fn);
     }
 
-    int load_string(lua_State *L, const char *str) {
+    int load_string(lua_State *L, const char *str, const char *ch) {
         lua_getfield(L, LUA_REGISTRYINDEX, "luacy_parse");
         lua_pushstring(L, str);
         lua_pushvalue(L, -1);
@@ -391,9 +391,11 @@ namespace lua
         reads rd;
         rd.str = lua_tolstring(L, -1, &rd.size);
         lua_pop(L, 1);
-        return lua_load(L, read_str, &rd, str);
+        return lua_load(L, read_str, &rd, ch ? ch : str);
     }
 
-    int load_file  (const char *fname) { return load_file  (L, fname); }
-    int load_string(const char *str)   { return load_string(L, str); }
+    int load_file  (const char *fname) { return load_file(L, fname); }
+    int load_string(const char *str, const char *ch) {
+        return load_string(L, str, ch);
+    }
 } /* end namespace lua */

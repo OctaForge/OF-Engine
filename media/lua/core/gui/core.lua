@@ -217,6 +217,11 @@ local loop_children = function(self, fun)
         end
     end
 
+    for i = 1, #vr do
+        local r = fun(vr[i])
+        if    r != nil then return r end
+    end
+
     for i = 1, #ch do
         local r = fun(ch[i])
         if    r != nil then return r end
@@ -237,6 +242,11 @@ local loop_children_r = function(self, fun)
 
     for i = #ch, 1, -1 do
         local r = fun(ch[i])
+        if    r != nil then return r end
+    end
+
+    for i = #vr, 1, -1 do
+        local r = fun(vr[i])
         if    r != nil then return r end
     end
 
@@ -546,11 +556,15 @@ Widget = register_class("Widget", table2.Object, {
 
         local children = self.children
         if children then
-            for i = 1, #children do
-                local ch = children[i]
-                ch:clear()
-            end
-            self.children = nil
+            for k, v in ipairs(children) do v:clear() end
+        end
+        local states = self.states
+        if states then
+            for k, v in pairs(states) do v:clear() end
+        end
+        local vstates = self.vstates
+        if vstates then
+            for k, v in pairs(vstates) do v:clear() end
         end
 
         emit(self, "destroy")

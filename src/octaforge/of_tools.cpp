@@ -167,7 +167,8 @@ namespace tools
             }
             return false;
         }
-        if (lua::load_string(buf) || lua_pcall(lua::L, 0, 0, 0)) {
+        defformatstring(chunk, "@%s", cfgfile);
+        if (lua::load_string(buf,  chunk) || lua_pcall(lua::L, 0, 0, 0)) {
             if (msg) {
                 logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
             }

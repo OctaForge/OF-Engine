@@ -63,11 +63,12 @@ M.H_Box = register_class("H_Box", Widget, {
             self.w = self.w + o.w
             self.h = max(self.h, o.y + o.h)
         end)
-        self.w = self.w + self.padding * max(#self.children - 1, 0)
+        self.w = self.w + self.padding * max(#self.vstates +
+            #self.children - 1, 0)
     end,
 
     adjust_children = function(self)
-        if #self.children == 0 then
+        if #self.children == 0 and #self.vstates == 0 then
             return nil
         end
 
@@ -107,11 +108,12 @@ M.V_Box = register_class("V_Box", Widget, {
             self.h = self.h + o.h
             self.w = max(self.w, o.x + o.w)
         end)
-        self.h = self.h + self.padding * max(#self.children - 1, 0)
+        self.h = self.h + self.padding * max(#self.vstates +
+            #self.children - 1, 0)
     end,
 
     adjust_children = function(self)
-        if #self.children == 0 then
+        if #self.children == 0 and #self.vstates == 0 then
             return nil
         end
 
@@ -204,7 +206,7 @@ M.Grid = register_class("Grid", Widget, {
     end,
 
     adjust_children = function(self)
-        if #self.children == 0 then
+        if #self.children == 0 and #self.vstates == 0 then
             return nil
         end
         
