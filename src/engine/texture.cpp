@@ -2465,7 +2465,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
 Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient)
 {
     string pname;
-    copystring(pname, makerelpath("media/skybox", name));
+    copystring(pname, makerelpath("media/sky", name));
     path(pname);
     Texture *t = NULL;
     if(!strchr(pname, '*'))

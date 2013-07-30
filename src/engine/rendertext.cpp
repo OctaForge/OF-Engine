@@ -263,7 +263,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case '5': color = bvec(192,  64, 192); break;   // magenta
             case '6': color = bvec(255, 128,   0); break;   // orange
             case '7': color = bvec(255, 255, 255); break;   // white
-            // provided color: everything else
+            default: gle::color(color, a); return;          // provided color: everything else
         }
         if(textbright != 100) color.scale(textbright, 100);
         gle::color(color, a);

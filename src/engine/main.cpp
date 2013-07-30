@@ -1220,8 +1220,8 @@ int main(int argc, char **argv)
     execfile("config/keymap.cfg");
     execfile("config/stdedit.cfg");
     tools::execfile("config/menus.lua");
-    execfile("config/brush.cfg");
-    execfile("mybrushes.cfg");
+    execfile("config/heightmap.cfg");
+    execfile("config/blendbrush.cfg");
     if (game::savedservers()) execfile(game::savedservers(), false);
 
     identflags |= IDF_PERSIST;

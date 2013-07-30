@@ -14,7 +14,21 @@ SVARR(player_class, "Player"); /* OF: overridable pcclass */
 VAR(octaentsize, 0, 128, 1024);
 VAR(entselradius, 0, 2, 10);
 
-bool getentboundingbox(extentity &e, ivec &o, ivec &r)
+static inline void mmboundbox(const extentity &e, model *m, vec &center, vec &radius)
+{
+    m->boundbox(center, radius);
+    if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; center.mul(scale); radius.mul(scale); }
+    rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]);
+}
+
+static inline void mmcollisionbox(const extentity &e, model *m, vec &center, vec &radius)
+{
+    m->collisionbox(center, radius);
+    if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; center.mul(scale); radius.mul(scale); }
+    rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]);
+}
+
+bool getentboundingbox(const extentity &e, ivec &o, ivec &r)
 {
     switch(e.type)
     {
@@ -26,46 +40,34 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
             if(m)
             {
                 vec center, radius;
-                m->boundbox(center, radius);
-                if(e.attr[3] > 0)
-                {
-                    float scale = e.attr[3]/100.0f;
-                    center.mul(scale);
-                    radius.mul(scale);
-                }
-                rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]); // OF
-                o = e.o;
-                o.add(center);
-                r = radius.max(entselradius);
-                r.add(1);
-                o.sub(r);
-                r.mul(2);
+                mmboundbox(e, m, center, radius);
+                center.add(e.o);
+                radius.max(entselradius);
+                o = vec(center).sub(radius);
+                r = vec(center).add(radius).add(1);
                 break;
             }
         }
         case ET_OBSTACLE: /* OF */
         {
-            o = e.o;
             int a = e.attr[3], b = e.attr[4], c = e.attr[5];
             if (!a || !b || !c) {
-                o.sub(entselradius);
-                r.x = r.y = r.z = entselradius*2;
+                o = vec(e.o).sub(entselradius);
+                r = vec(e.o).add(entselradius+1);
                 break;
             }
             vec center = vec(0, 0, 0), radius = vec(a, b, c);
             rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]);
-            o.add(center);
-            r = radius.max(entselradius);
-            r.add(1);
-            o.sub(r);
-            r.mul(2);
+            center.add(e.o);
+            radius.max(entselradius);
+            o = vec(center).sub(radius);
+            r = vec(center).add(radius).add(1);
             break;
         }
         // invisible mapmodels use entselradius
         default:
-            o = e.o;
-            o.sub(entselradius);
-            r.x = r.y = r.z = entselradius*2;
+            o = vec(e.o).sub(entselradius);
+            r = vec(e.o).add(entselradius+1);
             break;
     }
     return true;
@@ -103,11 +105,8 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                             if(oe.mapmodels.empty()) va->mapmodels.add(&oe);
                         }
                         oe.mapmodels.add(id);
-                        loopk(3)
-                        {
-                            oe.bbmin[k] = min(oe.bbmin[k], max(oe.o[k], bo[k]));
-                            oe.bbmax[k] = max(oe.bbmax[k], min(oe.o[k]+size, bo[k]+br[k]));
-                        }
+                        oe.bbmin.min(bo).max(oe.o);
+                        oe.bbmax.max(br).min(ivec(oe.o).add(oe.size));
                         break;
                     }
                     // invisible mapmodel
@@ -141,17 +140,14 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                         {
                             extentity &e = *ents[oe.mapmodels[j]];
                             ivec eo, er;
-                            if(getentboundingbox(e, eo, er)) loopk(3)
+                            if(getentboundingbox(e, eo, er))
                             {
-                                oe.bbmin[k] = min(oe.bbmin[k], eo[k]);
-                                oe.bbmax[k] = max(oe.bbmax[k], eo[k]+er[k]);
+                                oe.bbmin.min(eo);
+                                oe.bbmax.max(er);
                             }
                         }
-                        loopk(3)
-                        {
-                            oe.bbmin[k] = max(oe.bbmin[k], oe.o[k]);
-                            oe.bbmax[k] = min(oe.bbmax[k], oe.o[k]+size);
-                        }
+                        oe.bbmin.max(oe.o);
+                        oe.bbmax.min(ivec(oe.o).add(oe.size));
                         break;
                     }
                     // invisible mapmodel
@@ -196,7 +192,7 @@ static bool modifyoctaent(int flags, int id, extentity &e)
     {
         int leafsize = octaentsize, limit = max(r.x, max(r.y, r.z));
         while(leafsize < limit) leafsize *= 2;
-        int diff = ~(leafsize-1) & ((o.x^(o.x+r.x))|(o.y^(o.y+r.y))|(o.z^(o.z+r.z)));
+        int diff = ~(leafsize-1) & ((o.x^r.x)|(o.y^r.y)|(o.z^r.z));
         if(diff && (limit > octaentsize/2 || diff < leafsize*2)) leafsize *= 2;
         modifyoctaentity(flags, id, e, worldroot, ivec(0, 0, 0), worldsize>>1, o, r, leafsize);
     }
@@ -278,8 +274,8 @@ void findents(int low, int high, bool notspawned, const vec &pos, const vec &rad
 {
     vec invradius(1/radius.x, 1/radius.y, 1/radius.z);
     ivec bo = vec(pos).sub(radius).sub(1),
-         br = vec(radius).add(1).mul(2);
-    int diff = (bo.x^(bo.x+br.x)) | (bo.y^(bo.y+br.y)) | (bo.z^(bo.z+br.z)) | octaentsize,
+         br = vec(pos).add(radius).add(1);
+    int diff = (bo.x^br.x) | (bo.y^br.y) | (bo.z^br.z) | octaentsize,
         scale = worldscale-1;
     if(diff&~((1<<scale)-1) || uint(bo.x|bo.y|bo.z|(bo.x+br.x)|(bo.y+br.y)|(bo.z+br.z)) >= uint(worldsize))
     {
@@ -485,9 +481,7 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
     model *m = NULL;
     if(e.type == ET_MAPMODEL && (m = _e->m)) // INTENSITY
     {
-        m->collisionbox(eo, es);
-        if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; eo.mul(scale); es.mul(scale); }
-        rotatebb(eo, es, e.attr[0], e.attr[1], e.attr[2]); // OF
+        mmcollisionbox(*_e, m, eo, es);
         es.max(entselradius);
         eo.add(e.o);
     }
@@ -795,11 +789,11 @@ ICOMMAND(entadd, "", (),
 {
     if(enthover >= 0 && !noentedit())
     {
-        if(entgroup.find(enthover) < 0) entadd(enthover); 
+        if(entgroup.find(enthover) < 0) entadd(enthover);
         if(entmoving > 1) entmoving = 1;
     }
 });
- 
+
 ICOMMAND(enttoggle, "", (),
 {
     if(enthover < 0 || noentedit() || !enttoggle(enthover)) { entmoving = 0; intret(0); }
@@ -818,7 +812,7 @@ ICOMMAND(entmoving, "b", (int *n),
         }
     }
     intret(entmoving);
-});  
+});
 
 void entpush(int *dir)
 {
@@ -888,9 +882,7 @@ bool dropentity(entity &e, int drop = -1)
         if(m)
         {
             vec center;
-            m->boundbox(center, radius);
-            if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; center.mul(scale); radius.mul(scale); }
-            rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]); // OF
+            mmboundbox(ext, m, center, radius);
             radius.x += fabs(center.x);
             radius.y += fabs(center.y);
         }

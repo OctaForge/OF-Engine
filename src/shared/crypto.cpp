@@ -299,7 +299,7 @@ template<int BI_DIGITS> struct bigint
     {
         copyshrinkdigits(y, n/BI_DIGIT_BITS);
     }
-    
+
     template<int X_DIGITS, int Y_DIGITS> bigint &mul(const bigint<X_DIGITS> &x, const bigint<Y_DIGITS> &y)
     {
         if(!x.len || !y.len) { len = 0; return *this; }
@@ -364,9 +364,9 @@ template<int BI_DIGITS> struct bigint
     }
     void zerobits(int i, int n)
     {
-        zerodigits(i/BI_DIGIT_BITS, n/BI_DIGIT_BITS); 
+        zerodigits(i/BI_DIGIT_BITS, n/BI_DIGIT_BITS);
     }
-    
+
     template<int Y_DIGITS> void copydigits(int to, const bigint<Y_DIGITS> &y, int from, int n)
     {
         int avail = min(y.len-from, n);
@@ -531,7 +531,7 @@ struct gfield : gfint
                 s.copybits(96, result, 352, 160);
                 s.shrinkdigits(GF_DIGITS);
                 add(s); add(s); // S1
-            
+
                 if(result.morebits(384))
                 {
                     //s.zerobits(0, 96);
@@ -546,11 +546,11 @@ struct gfield : gfint
             s.copybits(192, result, 448, 64);
             s.shrinkdigits(GF_DIGITS);
             add(s); // S3
-           
+
             s.copybits(0, result, 288, 96);
             s.copybits(96, result, 416, 96);
             s.dupbits(192, 96, 32);
-            s.copybits(224, result, 256, 32); 
+            s.copybits(224, result, 256, 32);
             s.shrinkdigits(GF_DIGITS);
             add(s); // S4
 
