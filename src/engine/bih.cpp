@@ -415,9 +415,6 @@ static inline bool triboxoverlap(const vec &radius, const vec &a, const vec &ab,
     return true;
 }
 
-extern vec wall;
-extern bool inside;
-
 template<>
 inline void BIH::tricollide<COLLIDE_ELLIPSE>(const tri &t, physent *d, const vec &dir, float cutoff, const vec &center, const vec &radius, const matrix3x3 &orient, float &dist, const vec &bo, const vec &br)
 {
@@ -430,7 +427,7 @@ inline void BIH::tricollide<COLLIDE_ELLIPSE>(const tri &t, physent *d, const vec
           pdist = (n.dot(vec(center).sub(t.a)) - fabs(n.dot(zr))) * nmag;
     if(pdist <= dist) return;
 
-    inside = true;
+    collideinside = true;
 
     n = orient.transform(n).mul(nmag);
 
@@ -445,7 +442,7 @@ inline void BIH::tricollide<COLLIDE_ELLIPSE>(const tri &t, physent *d, const vec
     }
 
     dist = pdist;
-    wall = n;
+    collidewall = n;
 }
 
 template<>
@@ -463,7 +460,7 @@ inline void BIH::tricollide<COLLIDE_OBB>(const tri &t, physent *d, const vec &di
     pdist = (pdist - r)*nmag;
     if(pdist <= dist) return;
 
-    inside = true;
+    collideinside = true;
 
     n.mul(nmag);
 
@@ -478,7 +475,7 @@ inline void BIH::tricollide<COLLIDE_OBB>(const tri &t, physent *d, const vec &di
     }
 
     dist = pdist;
-    wall = n;
+    collidewall = n;
 }
 
 template<int C, class M>
@@ -568,7 +565,6 @@ bool BIH::ellipsecollide(physent *d, const vec &dir, float cutoff, const vec &o,
        bo.x - br.x > bbmax.x || bo.y - br.y > bbmax.y || bo.z - br.z > bbmax.z)
         return false;
 
-    wall = vec(0, 0, 0);
     float dist = -1e10f;
     collide<COLLIDE_ELLIPSE>(d, dir, cutoff, bo, radius, orient, dist, &nodes[0], bo, br);
     return dist > -1e9f;
@@ -600,12 +596,11 @@ bool BIH::boxcollide(physent *d, const vec &dir, float cutoff, const vec &o, int
     dorient.setyaw(d->yaw*RAD);
     orient.mul(dorient);
 
-    wall = vec(0, 0, 0);
     float dist = -1e10f;
     collide<COLLIDE_OBB>(d, dorient.transform(dir).rescale(1), cutoff, center, radius, matrix3x4(orient, dorient.transform(center).neg()), dist, &nodes[0], bo, br);
     if(dist > -1e9f)
     {
-        wall = dorient.transposedtransform(wall);
+        collidewall = dorient.transposedtransform(collidewall);
         return true;
     }
     return false;

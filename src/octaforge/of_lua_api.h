@@ -11,7 +11,7 @@ namespace game
 }
 
 extern float GRAVITY;
-extern physent *hitplayer;
+extern physent *collideplayer;
 
 namespace lapi_binds
 {
@@ -336,14 +336,14 @@ namespace lapi_binds
         tester.radius    = tester.xradius = tester.yradius = r;
         tester.eyeheight = tester.aboveeye  = r;
 
-        if (!collide(&tester, vec(0))) {
+        if (collide(&tester, vec(0))) {
             if (ignore && ignore->isDynamic() &&
-                ignore->dynamicEntity == hitplayer
+                ignore->dynamicEntity == collideplayer
             ) {
                 vec save = ignore->dynamicEntity->o;
                 avoidcollision(ignore->dynamicEntity, vec(1), &tester, 0.1f);
 
-                bool ret = !collide(&tester, vec(0));
+                bool ret = collide(&tester, vec(0));
                 ignore->dynamicEntity->o = save;
 
                 lua_pushboolean(L, ret);

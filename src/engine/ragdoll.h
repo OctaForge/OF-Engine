@@ -395,8 +395,6 @@ void ragdolldata::tryunstick(float speed)
     }
 }
 
-extern vec wall;
-
 void ragdolldata::updatepos()
 {
     loopv(skel->verts)
@@ -409,7 +407,7 @@ void ragdolldata::updatepos()
             else
             {
                 vec dir = vec(v.newpos).sub(v.oldpos);
-                if(dir.dot(wall) < 0) v.oldpos = vec(v.pos).sub(dir.reflect(wall));
+                if(dir.dot(collidewall) < 0) v.oldpos = vec(v.pos).sub(dir.reflect(collidewall));
                 v.collided = true;
             }
         }
@@ -483,7 +481,7 @@ void ragdolldata::move(dynent *pl, float ts)
         if(v.collided)
         {
             v.pos = v.oldpos;
-            v.oldpos.sub(dir.reflect(wall));
+            v.oldpos.sub(dir.reflect(collidewall));
             collisions++;
         }
     }

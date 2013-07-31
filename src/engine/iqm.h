@@ -187,9 +187,9 @@ struct iqm : skelmodel, skelloader<iqm>
                     }
                 }
                 int fv = im.first_vertex;
-                float *mpos = vpos + 3*fv, 
-                      *mnorm = vnorm ? vnorm + 3*fv : NULL, 
-                      *mtan = vtan ? vtan + 4*fv : NULL, 
+                float *mpos = vpos + 3*fv,
+                      *mnorm = vnorm ? vnorm + 3*fv : NULL,
+                      *mtan = vtan ? vtan + 4*fv : NULL,
                       *mtc = vtc ? vtc + 2*fv : NULL;
                 uchar *mindex = vindex ? vindex + 4*fv : NULL, *mweight = vweight ? vweight + 4*fv : NULL;
                 loopj(im.num_vertexes)
@@ -197,11 +197,11 @@ struct iqm : skelmodel, skelloader<iqm>
                     vert &v = m->verts[j];
                     v.pos = vec(mpos[0], -mpos[1], mpos[2]);
                     mpos += 3;
-                    if(mtc) 
-                    { 
-                        v.u = mtc[0]; 
-                        v.v = mtc[1]; 
-                        mtc += 2; 
+                    if(mtc)
+                    {
+                        v.u = mtc[0];
+                        v.v = mtc[1];
+                        mtc += 2;
                     }
                     else v.u = v.v = 0;
                     if(mnorm)

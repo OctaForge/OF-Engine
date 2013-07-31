@@ -659,9 +659,9 @@ ents.Character = Character
     one as an argument. The client we're testing collisions against gets
     the first emit.
 ]]
-set_external("physics_collide_client", function(cl1, cl2)
-    emit(cl1, "collision", cl2)
-    emit(cl2, "collision", cl1)
+set_external("physics_collide_client", function(cl1, cl2, dx, dy, dz)
+    emit(cl1, "collision", cl2, dx, dy, dz)
+    emit(cl2, "collision", cl1, dx, dy, dz)
 end)
 
 --[[! Class: Player
