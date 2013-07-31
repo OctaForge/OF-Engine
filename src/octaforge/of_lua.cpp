@@ -375,10 +375,16 @@ namespace lua
         int ret = lua_pcall(L, 3, 1, 0);
         if (ret) return ret;
         reads rd;
-        rd.str = lua_tolstring(L, -1, &rd.size);
-        const char *fn = lua_tostring(L, fnameidx);
+        const char *lstr = lua_tolstring(L, -1, &rd.size);
+        rd.str = newstring(lstr, rd.size);
+        size_t s;
+        const char *fnl = lua_tolstring(L, fnameidx, &s);
+        const char *fn = newstring(fnl, s);
         lua_pop(L, 2);
-        return lua_load(L, read_str, &rd, fn);
+        ret = lua_load(L, read_str, &rd, fn);
+        delete[] rd.str;
+        delete[] fn;
+        return ret;
     }
 
     int load_string(lua_State *L, const char *str, const char *ch) {
@@ -389,9 +395,12 @@ namespace lua
         int ret = lua_pcall(L, 3, 1, 0);
         if (ret) return ret;
         reads rd;
-        rd.str = lua_tolstring(L, -1, &rd.size);
+        const char *lstr = lua_tolstring(L, -1, &rd.size);
+        rd.str = newstring(lstr, rd.size);
         lua_pop(L, 1);
-        return lua_load(L, read_str, &rd, ch ? ch : str);
+        ret = lua_load(L, read_str, &rd, ch ? ch : rd.str);
+        delete[] rd.str;
+        return ret;
     }
 
     int load_file  (const char *fname) { return load_file(L, fname); }
