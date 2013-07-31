@@ -252,8 +252,8 @@ struct animmodel : model
         }
 
         virtual void calcbb(vec &bbmin, vec &bbmax, const matrix3x4 &m) {}
-        virtual void gentris(Texture *tex, vector<BIH::tri> *out, const matrix3x4 &m) {}
-        virtual void genshadowmesh(vector<vec> &tris, const matrix3x4 &m) {}
+        virtual void genBIH(Texture *tex, vector<BIH::tri> *out, const matrix3x4 &m) {}
+        virtual void genshadowmesh(vector<triangle> &tris, const matrix3x4 &m) {}
 
         virtual void setshader(Shader *s)
         {
@@ -402,12 +402,12 @@ struct animmodel : model
             loopv(meshes) meshes[i]->calcbb(bbmin, bbmax, m);
         }
 
-        void gentris(vector<skin> &skins, vector<BIH::tri> *tris, const matrix3x4 &m)
+        void genBIH(vector<skin> &skins, vector<BIH::tri> *tris, const matrix3x4 &m)
         {
-            loopv(meshes) meshes[i]->gentris(skins[i].tex && skins[i].tex->type&Texture::ALPHA ? skins[i].tex : NULL, tris, m);
+            loopv(meshes) meshes[i]->genBIH(skins[i].tex && skins[i].tex->type&Texture::ALPHA ? skins[i].tex : NULL, tris, m);
         }
 
-        void genshadowmesh(vector<vec> &tris, const matrix3x4 &m)
+        void genshadowmesh(vector<triangle> &tris, const matrix3x4 &m)
         {
             loopv(meshes) meshes[i]->genshadowmesh(tris, m);
         }
@@ -568,21 +568,21 @@ struct animmodel : model
             }
         }
 
-        void gentris(vector<BIH::tri> *tris, const matrix3x4 &m)
+        void genBIH(vector<BIH::tri> *tris, const matrix3x4 &m)
         {
             matrix3x4 t = m;
             t.scale(model->scale);
-            meshes->gentris(skins, tris, t);
+            meshes->genBIH(skins, tris, t);
             loopv(links)
             {
                 matrix3x4 n;
                 meshes->concattagtransform(this, links[i].tag, m, n);
                 n.translate(links[i].translate, model->scale);
-                links[i].p->gentris(tris, n);
+                links[i].p->genBIH(tris, n);
             }
         }
 
-        void genshadowmesh(vector<vec> &tris, const matrix3x4 &m)
+        void genshadowmesh(vector<triangle> &tris, const matrix3x4 &m)
         {
             matrix3x4 t = m;
             t.scale(model->scale);
@@ -1312,12 +1312,12 @@ struct animmodel : model
         m.translate(translate, scale);
     }
 
-    void gentris(vector<BIH::tri> *tris)
+    void genBIH(vector<BIH::tri> *tris)
     {
         if(parts.empty()) return;
         matrix3x4 m;
         initmatrix(m);
-        parts[0]->gentris(tris, m);
+        parts[0]->genBIH(tris, m);
         for(int i = 1; i < parts.length(); i++)
         {
             part *p = parts[i];
@@ -1325,13 +1325,13 @@ struct animmodel : model
             {
                 case LINK_COOP:
                 case LINK_REUSE:
-                    p->gentris(tris, m);
+                    p->genBIH(tris, m);
                     break;
             }
         }
     }
 
-    void genshadowmesh(vector<vec> &tris, const matrix3x4 &orient)
+    void genshadowmesh(vector<triangle> &tris, const matrix3x4 &orient)
     {
         if(parts.empty()) return;
         matrix3x4 m;
@@ -1361,7 +1361,7 @@ struct animmodel : model
     {
         if(bih) return bih;
         vector<BIH::tri> tris[2];
-        gentris(tris);
+        genBIH(tris);
         bih = new BIH(tris);
         return bih;
     }

@@ -53,7 +53,7 @@ enum { PHYS_FLOAT = 0, PHYS_FALL, PHYS_SLIDE, PHYS_SLOPE, PHYS_FLOOR, PHYS_STEP_
 
 enum { ENT_PLAYER = 0, ENT_CAMERA, ENT_BOUNCE };
 
-enum { COLLIDE_ELLIPSE = 0, COLLIDE_OBB };
+enum { COLLIDE_NONE = 0, COLLIDE_ELLIPSE, COLLIDE_OBB, COLLIDE_TRI };
 
 struct physent                                  // base entity type, can be affected by physics
 {

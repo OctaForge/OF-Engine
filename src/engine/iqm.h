@@ -131,6 +131,8 @@ struct iqm : skelmodel, skelloader<iqm>
                     case IQM_BLENDWEIGHTS: if(va.format != IQM_UBYTE || va.size != 4) return false; vweight = (uchar *)&buf[va.offset]; break;
                 }
             }
+            if(!vpos) return false;
+
             iqmtriangle *tris = (iqmtriangle *)&buf[hdr.ofs_triangles];
             iqmmesh *imeshes = (iqmmesh *)&buf[hdr.ofs_meshes];
             iqmjoint *joints = (iqmjoint *)&buf[hdr.ofs_joints];
@@ -172,43 +174,71 @@ struct iqm : skelmodel, skelloader<iqm>
                 meshes.add(m);
                 m->name = newstring(&str[im.name]);
                 m->numverts = im.num_vertexes;
+                int noblend = -1;
                 if(m->numverts)
                 {
                     m->verts = new vert[m->numverts];
                     if(vtan) m->bumpverts = new bumpvert[m->numverts];
+                    if(!vindex || !vweight)
+                    {
+                        blendcombo c;
+                        c.finalize(0);
+                        noblend = m->addblendcombo(c);
+                    }
                 }
+                int fv = im.first_vertex;
+                float *mpos = vpos + 3*fv, 
+                      *mnorm = vnorm ? vnorm + 3*fv : NULL, 
+                      *mtan = vtan ? vtan + 4*fv : NULL, 
+                      *mtc = vtc ? vtc + 2*fv : NULL;
+                uchar *mindex = vindex ? vindex + 4*fv : NULL, *mweight = vweight ? vweight + 4*fv : NULL;
                 loopj(im.num_vertexes)
                 {
-                    int fj = j + im.first_vertex;
                     vert &v = m->verts[j];
-                    loopk(3) v.pos[k] = vpos[3*fj + k];
-                    v.pos.y = -v.pos.y;
-                    v.u = vtc[2*fj + 0];
-                    v.v = vtc[2*fj + 1];
-                    if(vnorm)
+                    v.pos = vec(mpos[0], -mpos[1], mpos[2]);
+                    mpos += 3;
+                    if(mtc) 
+                    { 
+                        v.u = mtc[0]; 
+                        v.v = mtc[1]; 
+                        mtc += 2; 
+                    }
+                    else v.u = v.v = 0;
+                    if(mnorm)
                     {
-                        loopk(3) v.norm[k] = vnorm[3*fj + k];
-                        v.norm.y = -v.norm.y;
-                        if(vtan)
+                        v.norm = vec(mnorm[0], -mnorm[1], mnorm[2]);
+                        mnorm += 3;
+                        if(mtan)
                         {
                             bumpvert &bv = m->bumpverts[j];
-                            loopk(3) bv.tangent[k] = vtan[4*fj + k];
-                            bv.tangent.y = -bv.tangent.y;
-                            bv.bitangent = vtan[4*fj + 3];
+                            bv.tangent = vec(mtan[0], -mtan[1], mtan[2]);
+                            bv.bitangent = mtan[3];
+                            mtan += 4;
                         }
                     }
-                    blendcombo c;
-                    int sorted = 0;
-                    if(vindex && vweight) loopk(4) sorted = c.addweight(sorted, vweight[4*fj + k], vindex[4*fj + k]);
-                    c.finalize(sorted);
-                    v.blend = m->addblendcombo(c);
+                    else v.norm = vec(0, 0, 0);
+                    if(noblend < 0)
+                    {
+                        blendcombo c;
+                        int sorted = 0;
+                        loopk(4) sorted = c.addweight(sorted, mweight[k], mindex[k]);
+                        mweight += 4;
+                        mindex += 4;
+                        c.finalize(sorted);
+                        v.blend = m->addblendcombo(c);
+                    }
+                    else v.blend = noblend;
                 }
                 m->numtris = im.num_triangles;
                 if(m->numtris) m->tris = new tri[m->numtris];
+                iqmtriangle *mtris = tris + im.first_triangle;
                 loopj(im.num_triangles)
                 {
-                    int fj = j + im.first_triangle;
-                    loopk(3) m->tris[j].vert[k] = tris[fj].vertex[k] - im.first_vertex;
+                    tri &t = m->tris[j];
+                    t.vert[0] = mtris->vertex[0] - fv;
+                    t.vert[1] = mtris->vertex[1] - fv;
+                    t.vert[2] = mtris->vertex[2] - fv;
+                    ++mtris;
                 }
                 if(!m->numtris || !m->numverts)
                 {

@@ -58,7 +58,7 @@ COMMAND(mdlcullface, "i");
 void mdlcollide(int *collide)
 {
     checkmdl;
-    loadingmodel->collide = *collide!=0;
+    loadingmodel->collide = *collide!=0 ? (loadingmodel->collide ? loadingmodel->collide : COLLIDE_OBB) : COLLIDE_NONE;
 }
 
 COMMAND(mdlcollide, "i");
@@ -66,10 +66,18 @@ COMMAND(mdlcollide, "i");
 void mdlellipsecollide(int *collide)
 {
     checkmdl;
-    loadingmodel->ellipsecollide = *collide!=0;
+    loadingmodel->collide = *collide!=0 ? COLLIDE_ELLIPSE : COLLIDE_NONE;
 }
 
 COMMAND(mdlellipsecollide, "i");
+
+void mdltricollide(int *collide)
+{
+    checkmdl;
+    loadingmodel->collide = *collide!=0 ? COLLIDE_TRI : COLLIDE_NONE;
+}
+
+COMMAND(mdltricollide, "i");
 
 void mdlspec(float *percent)
 {
@@ -1053,7 +1061,7 @@ void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSI
     if(!m) return;
     vec center, radius;
     m->collisionbox(center, radius);
-    if(!m->ellipsecollide) d->collidetype = COLLIDE_OBB;
+    if(m->collide != COLLIDE_ELLIPSE) d->collidetype = COLLIDE_OBB;
     d->xradius   = radius.x + fabs(center.x);
     d->yradius   = radius.y + fabs(center.y);
     d->radius    = d->collidetype==COLLIDE_OBB ? sqrtf(d->xradius*d->xradius + d->yradius*d->yradius) : max(d->xradius, d->yradius);

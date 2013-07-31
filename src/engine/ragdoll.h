@@ -376,7 +376,7 @@ void ragdolldata::tryunstick(float speed)
         vert &v = verts[i];
         if(v.stuck)
         {
-            if(!collidevert(v.pos, vec(0, 0, 0), skel->verts[i].radius)) { stuck++; continue; }
+            if(collidevert(v.pos, vec(0, 0, 0), skel->verts[i].radius)) { stuck++; continue; }
             v.stuck = false;
         }
         unstuck.add(v.pos);
@@ -405,7 +405,7 @@ void ragdolldata::updatepos()
         if(v.weight)
         {
             v.newpos.div(v.weight);
-            if(collidevert(v.newpos, vec(v.newpos).sub(v.pos), skel->verts[i].radius)) v.pos = v.newpos;
+            if(!collidevert(v.newpos, vec(v.newpos).sub(v.pos), skel->verts[i].radius)) v.pos = v.newpos;
             else
             {
                 vec dir = vec(v.newpos).sub(v.oldpos);
@@ -479,7 +479,7 @@ void ragdolldata::move(dynent *pl, float ts)
         vert &v = verts[i];
         if(v.pos.z < 0) { v.pos.z = 0; v.oldpos = v.pos; collisions++; }
         vec dir = vec(v.pos).sub(v.oldpos);
-        v.collided = !collidevert(v.pos, dir, skel->verts[i].radius);
+        v.collided = collidevert(v.pos, dir, skel->verts[i].radius);
         if(v.collided)
         {
             v.pos = v.oldpos;
