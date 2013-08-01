@@ -120,35 +120,29 @@ extern void entselectionbox(const entity &e, vec &eo, vec &es);
 float hitentdist;
 int hitent, hitorient;
 
-static float disttoent(octaentities *oc, octaentities *last, const vec &o, const vec &ray, float radius, int mode, extentity *t)
+static float disttoent(octaentities *oc, const vec &o, const vec &ray, float radius, int mode, extentity *t)
 {
     vec eo, es;
-    int orient;
+    int orient = -1;
     float dist = 1e16f, f = 0.0f;
-    if(oc == last) return dist;
     const vector<extentity *> &ents = entities::getents();
 
     #define entintersect(mask, type, func) {\
-        if((mode&(mask))==(mask)) \
+        if((mode&(mask))==(mask)) loopv(oc->type) \
         { \
-            loopv(oc->type) \
-                if(!last || last->type.find(oc->type[i])<0) \
-                { \
-                    extentity &e = *ents[oc->type[i]]; \
-                    if(!(e.flags&EF_OCTA) || &e==t) continue; \
-                    func; \
-                    if(f<dist && f>0) \
-                    { \
-                        hitentdist = dist = f; \
-                        hitent = oc->type[i]; \
-                        hitorient = orient; \
-                    } \
-                } \
+            extentity &e = *ents[oc->type[i]]; \
+            if(!(e.flags&EF_OCTA) || &e==t) continue; \
+            func; \
+            if(f<dist && f>0) \
+            { \
+                hitentdist = dist = f; \
+                hitent = oc->type[i]; \
+                hitorient = orient; \
+            } \
         } \
     }
 
     entintersect(RAY_POLY, mapmodels,
-        orient = 0; // FIXME, not set
         if(!mmintersect(e, o, ray, radius, mode, f)) continue;
     );
 
@@ -188,12 +182,11 @@ static float disttooutsideent(const vec &o, const vec &ray, float radius, int mo
 }
 
 // optimized shadow version
-static float shadowent(octaentities *oc, octaentities *last, const vec &o, const vec &ray, float radius, int mode, extentity *t)
+static float shadowent(octaentities *oc, const vec &o, const vec &ray, float radius, int mode, extentity *t)
 {
     float dist = 1e16f, f = 0.0f;
-    if(oc == last) return dist;
     const vector<extentity *> &ents = entities::getents();
-    loopv(oc->mapmodels) if(!last || last->mapmodels.find(oc->mapmodels[i])<0)
+    loopv(oc->mapmodels)
     {
         extentity &e = *ents[oc->mapmodels[i]];
         if(!(e.flags&EF_OCTA) || &e==t) continue;
@@ -204,7 +197,6 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
 }
 
 #define INITRAYCUBE \
-    octaentities *oclast = NULL; \
     float dist = 0, dent = mode&RAY_BB ? 1e16f : 1e14f; \
     vec v(o), invray(ray.x ? 1/ray.x : 1e16f, ray.y ? 1/ray.y : 1e16f, ray.z ? 1/ray.z : 1e16f); \
     cube *levels[20]; \
@@ -241,14 +233,13 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
             lc += octastep(x, y, z, lshift); \
             if(lc->ext && lc->ext->ents && lshift < elvl) \
             { \
-                float edist = disttoent(lc->ext->ents, oclast, o, ray, radius, mode, t); \
+                float edist = disttoent(lc->ext->ents, o, ray, radius, mode, t); \
                 if(edist < 1e15f) \
                 { \
                     if(earlyexit) return min(edist, dist); \
                     elvl = lshift; \
                     dent = min(dent, edist); \
                 } \
-                oclast = lc->ext->ents; \
             } \
             if(lc->children==NULL) break; \
             lc = lc->children; \
@@ -361,6 +352,7 @@ float rayent(const vec &o, const vec &ray, float radius, int mode, int size, int
 {
     hitent = -1;
     hitentdist = radius;
+    hitorient = -1;
     float dist = raycube(o, ray, radius, mode, size);
     if((mode&RAY_ENTS) == RAY_ENTS)
     {
@@ -836,10 +828,15 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         }
         model *m = e.m;
         if(!m || !m->collide) continue;
+
+        vec center, radius;
+        float rejectradius = m->collisionbox(center, radius), scale = e.attr[3] > 0 ? e.attr[3]/100.0f : 1;
+        center.mul(scale);
+        if(d->o.reject(vec(e.o).add(center), d->radius + rejectradius*scale)) continue;
+
         int yaw = e.attr[0], pitch = e.attr[1], roll = e.attr[2]; // OF
         if(m->collide == COLLIDE_TRI || testtricol)
         {
-            float scale = e.attr[3] > 0 ? e.attr[3]/100.0f : 1;
             if(!m->bih && !m->setBIH()) continue;
             switch(testtricol ? testtricol : d->collidetype)
             {
@@ -854,9 +851,7 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         }
         else
         {
-            vec center, radius;
-            m->collisionbox(center, radius);
-            if(e.attr[3] > 0) { float scale = e.attr[3]/100.f; center.mul(scale); radius.mul(scale); }
+            radius.mul(scale);
             switch(d->collidetype)
             {
                 case COLLIDE_ELLIPSE:

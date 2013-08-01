@@ -114,7 +114,7 @@ namespace mpr
         float left() const { return ent->o.x - ent->radius; }
         float right() const { return ent->o.x + ent->radius; }
         float back() const { return ent->o.y - ent->radius; }
-        float front() const { return ent->o.z + ent->radius; }
+        float front() const { return ent->o.y + ent->radius; }
         float bottom() const { return ent->o.z - ent->eyeheight; }
         float top() const { return ent->o.z + ent->aboveeye; }
     };
