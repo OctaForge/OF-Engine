@@ -203,8 +203,8 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-        float lh = 0.5f*min(w, h), lw = lh,
-              lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh/3.0f);
+        float lh = 0.5f*min(w, h), lw = lh*2,
+              lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
         settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>media/interface/logo_1024" : "<premul>media/interface/logo", 3);
         bgquad(lx, ly, lw, lh);
 
