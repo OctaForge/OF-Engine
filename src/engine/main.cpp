@@ -197,14 +197,14 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         bgquad(0, 0, w, h, backgroundu, backgroundv, bu, bv);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#if 0
-        settexture("media/interface/shadow.png", 3);
+
+        settexture("media/interface/shadow", 3);
         bgquad(0, 0, w, h);
 
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-#endif
-        float lh = 0.5f*min(w, h), lw = lh*2,
-              lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
+
+        float lh = 0.5f*min(w, h), lw = lh,
+              lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh/3.0f);
         settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>media/interface/logo_1024" : "<premul>media/interface/logo", 3);
         bgquad(lx, ly, lw, lh);
 
