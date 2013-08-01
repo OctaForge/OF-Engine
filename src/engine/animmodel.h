@@ -502,7 +502,7 @@ struct animmodel : model
 
     meshgroup *sharemeshes(const char *name, ...)
     {
-        static hashtable<const char *, meshgroup *> meshgroups;
+        static hashnameset<meshgroup *> meshgroups;
         if(!meshgroups.access(name))
         {
             va_list args;
@@ -510,7 +510,7 @@ struct animmodel : model
             meshgroup *group = loadmeshes(name, args);
             va_end(args);
             if(!group) return NULL;
-            meshgroups[group->name] = group;
+            meshgroups.add(group);
         }
         return meshgroups[name];
     }
@@ -975,7 +975,7 @@ struct animmodel : model
             if(animpart<0 || animpart>=MAXANIMPARTS || num<0) return;
             if(frame<0 || range<=0 || !meshes || !meshes->hasframes(frame, range))
             {
-                conoutf("invalid frame %d, range %d in model %s", frame, range, model->loadname);
+                conoutf("invalid frame %d, range %d in model %s", frame, range, model->name);
                 return;
             }
             vector<vector<animspec> > &lst = anims[animpart];
@@ -1009,8 +1009,6 @@ struct animmodel : model
 
     void intersect(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, modelattach *a, const vec &o, const vec &ray)
     {
-        if(!loaded) return;
-
         int numtags = 0;
         if(a)
         {
@@ -1020,7 +1018,7 @@ struct animmodel : model
                 numtags++;
 
                 animmodel *m = (animmodel *)a[i].m;
-                if(!m || !m->loaded) continue;
+                if(!m) continue;
                 part *p = m->parts[0];
                 switch(linktype(m, p))
                 {
@@ -1060,7 +1058,7 @@ struct animmodel : model
         if(a) for(int i = numtags-1; i >= 0; i--)
         {
             animmodel *m = (animmodel *)a[i].m;
-            if(!m || !m->loaded) continue;
+            if(!m) continue;
             part *p = m->parts[0];
             switch(linktype(m, p))
             {
@@ -1086,8 +1084,6 @@ struct animmodel : model
 
     int intersect(int anim, int basetime, int basetime2, const vec &pos, float yaw, float pitch, float roll, dynent *d, modelattach *a, float size, const vec &o, const vec &ray, float &dist, int mode)
     {
-        if(!loaded) return -1;
-
         vec axis(1, 0, 0), forward(0, 1, 0);
 
         matrixpos = 0;
@@ -1129,8 +1125,6 @@ struct animmodel : model
 
     void render(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, modelattach *a)
     {
-        if(!loaded) return;
-
         int numtags = 0;
         if(a)
         {
@@ -1140,7 +1134,7 @@ struct animmodel : model
                 numtags++;
 
                 animmodel *m = (animmodel *)a[i].m;
-                if(!m || !m->loaded)
+                if(!m)
                 {
                     if(a[i].pos) link(NULL, a[i].tag, vec(0, 0, 0), 0, 0, a[i].pos);
                     continue;
@@ -1184,7 +1178,7 @@ struct animmodel : model
         if(a) for(int i = numtags-1; i >= 0; i--)
         {
             animmodel *m = (animmodel *)a[i].m;
-            if(!m || !m->loaded)
+            if(!m)
             {
                 if(a[i].pos) unlink(NULL);
                 continue;
@@ -1211,8 +1205,6 @@ struct animmodel : model
 
     void render(int anim, int basetime, int basetime2, const vec &o, float yaw, float pitch, float roll, dynent *d, modelattach *a, float size, float trans)
     {
-        if(!loaded) return;
-
         vec axis(1, 0, 0), forward(0, 1, 0);
 
         matrixpos = 0;
@@ -1274,22 +1266,16 @@ struct animmodel : model
         if(d) d->lastrendered = lastmillis;
     }
 
-    bool loaded;
-    char *loadname;
     vector<part *> parts;
 
-    animmodel(const char *name) : loaded(false)
+    animmodel(const char *name) : model(name) 
     {
-        loadname = newstring(name);
     }
 
-    virtual ~animmodel()
+    ~animmodel()
     {
-        delete[] loadname;
         parts.deletecontents();
     }
-
-    const char *name() const { return loadname; }
 
     void cleanup()
     {
@@ -1704,7 +1690,7 @@ template<class MDL, class MESH> struct modelcommands
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
         if(!MDL::loading->parts.inrange(*parent) || !MDL::loading->parts.inrange(*child)) { conoutf("no models loaded to link"); return; }
-        if(!MDL::loading->parts[*parent]->link(MDL::loading->parts[*child], tagname, vec(*x, *y, *z))) conoutf("could not link model %s", MDL::loading->loadname);
+        if(!MDL::loading->parts[*parent]->link(MDL::loading->parts[*child], tagname, vec(*x, *y, *z))) conoutf("could not link model %s", MDL::loading->name);
     }
 
     template<class F> void modelcommand(F *fun, const char *suffix, const char *args)

@@ -3,7 +3,7 @@
 
 #include "engine.h"
 
-hashset<ident> idents; // contains ALL vars/commands/aliases
+hashnameset<ident> idents; // contains ALL vars/commands/aliases
 vector<ident *> identmap;
 ident *dummyident = NULL;
 
@@ -1116,7 +1116,7 @@ static inline bool getbool(const char *s)
         case '0':
         {
             char *end;
-            int val = strtol((char *)s, &end, 0);
+            int val = int(strtoul((char *)s, &end, 0));
             if(val) return true;
             switch(*end)
             {
@@ -1647,7 +1647,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                 case VAL_CANY:
                 {
                     char *end = (char *)idname.str;
-                    int val = int(strtol(idname.str, &end, 0));
+                    int val = int(strtoul(idname.str, &end, 0));
                     if(end < idname.end()) compilestr(code, idname, rettype==VAL_CANY);
                     else compileint(code, val);
                     break;

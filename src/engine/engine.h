@@ -522,7 +522,7 @@ extern void abortconnect();
 extern void clientkeepalive();
 
 // command
-extern hashset<ident> idents;
+extern hashnameset<ident> idents;
 
 extern void clearoverrides();
 extern void writecfg(const char *name = NULL);

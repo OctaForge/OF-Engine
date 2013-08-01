@@ -235,7 +235,7 @@ COMMAND(mdlextendbb, "fff");
 void mdlname()
 {
     checkmdl;
-    result(loadingmodel->name());
+    result(loadingmodel->name);
 }
 
 COMMAND(mdlname, "");
@@ -322,12 +322,13 @@ COMMAND(rdanimjoints, "i");
 
 // model registry
 
-hashtable<const char *, model *> mdllookup;
+hashnameset<model *> models;
 vector<const char *> preloadmodels;
+hashset<char *> failedmodels;
 
 void preloadmodel(const char *name)
 {
-    if(!name || !name[0] || mdllookup.access(name)) return;
+    if(!name || !name[0] || models.access(name)) return;
     preloadmodels.add(newstring(name));
 }
 
@@ -352,12 +353,12 @@ void flushpreloadedmodels(bool msg)
 
 model *loadmodel(const char *name, bool msg)
 {
-    model **mm = mdllookup.access(name);
+    model **mm = models.access(name);
     model *m;
     if(mm) m = *mm;
     else
     {
-        if(!name[0] || loadingmodel) return NULL;
+        if(!name[0] || loadingmodel || failedmodels.find(name, NULL)) return NULL;
         if(msg)
         {
             defformatstring(filename, "media/model/%s", name);
@@ -372,28 +373,32 @@ model *loadmodel(const char *name, bool msg)
             DELETEP(m);
         }
         loadingmodel = NULL;
-        if(!m) return NULL;
-        mdllookup.access(m->name(), m);
+        if(!m) 
+        {
+            failedmodels.add(newstring(name));
+            return NULL;
+        }
+        models.access(m->name, m);
     }
     return m;
 }
 
-void clear_mdls()
+void clear_models()
 {
-    enumerate(mdllookup, model *, m, delete m);
+    enumerate(models, model *, m, delete m);
 }
 
 void cleanupmodels()
 {
-    enumerate(mdllookup, model *, m, m->cleanup());
+    enumerate(models, model *, m, m->cleanup());
 }
 
 void clearmodel(char *name)
 {
     if (!name || !name[0]) return;
-    model **m = mdllookup.access(name);
+    model **m = models.access(name);
     if(!m) { conoutf("model %s is not loaded", name); return; }
-    mdllookup.remove(name);
+    models.remove(name);
     (*m)->cleanup();
     delete *m;
     conoutf("cleared model %s", name);
@@ -873,7 +878,6 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     if(a) for(int i = 0; a[i].tag; i++)
     {
         if(a[i].name) a[i].m = loadmodel(a[i].name);
-        //if(a[i].m && a[i].m->type()!=m->type()) a[i].m = NULL;
     }
 
     batchedmodel &b = batchedmodels.add();

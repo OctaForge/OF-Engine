@@ -653,7 +653,7 @@ void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll)
 }
 
 template<class E, class M>
-static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, const vec &center, const vec &radius, float yaw, float pitch, float roll)
+static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, const vec &center, const vec &radius, int yaw, int pitch, int roll)
 {
     E entvol(d);
     M mdlvol(e.o, center, radius, yaw, pitch, roll);
@@ -1172,7 +1172,7 @@ bool collide(physent *d, const vec &dir, float cutoff, bool playercol)
 {
     collideinside = false;
     collideplayer = NULL;
-    collidewall.x = collidewall.y = collidewall.z = 0;
+    collidewall = vec(0, 0, 0);
     ivec bo(int(d->o.x-d->radius), int(d->o.y-d->radius), int(d->o.z-d->eyeheight)),
          bs(int(d->o.x+d->radius), int(d->o.y+d->radius), int(d->o.z+d->aboveeye));
     bs.add(1);  // guard space for rounding errors

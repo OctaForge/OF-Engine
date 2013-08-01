@@ -265,8 +265,7 @@ void parseglexts()
         loopi(numexts)
         {
             const char *ext = (const char *)glGetStringi_(GL_EXTENSIONS, i);
-            const char *str = newstring(ext);
-            glexts[str] = str;
+            glexts.add(newstring(ext));
         }
     }
     else
@@ -278,11 +277,7 @@ void parseglexts()
             if(!*exts) break;
             const char *ext = exts;
             while(*exts && *exts != ' ') exts++;
-            if(exts > ext)
-            {
-                const char *str = newstring(ext, size_t(exts-ext));
-                glexts[str] = str;
-            }
+            if(exts > ext) glexts.add(newstring(ext, size_t(exts-ext)));
         }
     }
 }
