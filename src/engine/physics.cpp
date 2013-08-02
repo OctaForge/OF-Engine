@@ -844,14 +844,10 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         }
         model *m = e.collide;
         if(!m) {
-#ifdef SERVER
-            continue;
-#else
             if (!e.m) continue;
             if (e.m->collidemodel) m = loadmodel(e.m->collidemodel);
             if (!m) m = e.m;
             e.collide = m;
-#endif
         }
         int  mcol = e.m->collide;
         if (!mcol) continue;

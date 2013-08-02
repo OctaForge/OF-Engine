@@ -9,6 +9,10 @@ int showmat       = 0;
 int outline       = 0;
 int glversion     = 0;
 int texdefscale   = 0;
+int maxvsuniforms = 0;
+int shadowmapping = 0;
+
+int xtravertsva;
 
 void serverkeepalive()
 {
@@ -22,6 +26,11 @@ Texture *notexture = NULL;
 Shader *Shader::lastshader = NULL;
 void Shader::allocparams(Slot*) { assert(0); }
 void Shader::bindprograms() { assert(0); };
+int Shader::uniformlocversion() { return 0; };
+
+int GlobalShaderParamState::nextversion = 0;
+void GlobalShaderParamState::resetversions() {}
+GlobalShaderParamState *getglobalparam(const char *name) { return NULL; };
 
 void renderprogress(float bar, const char *text, GLuint tex, bool background)
 {
@@ -77,7 +86,10 @@ int isvisiblesphere(float rad, const vec &cv) { return 0; };
 Shader *lookupshaderbyname(const char *name) { return NULL; };
 Shader *useshaderbyname(const char *name) { return NULL; };
 ushort closestenvmap(int orient, int x, int y, int z, int size) { return 0; };
+ushort closestenvmap(const vec &o) { return 0; };
+GLuint lookupenvmap(ushort emid) { return 0; };
 void loadalphamask(Texture *t) { };
+Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient) { return notexture; };
 
 vector<VSlot *> vslots;
 
@@ -117,12 +129,15 @@ void genmatsurfs(const cube &c, int cx, int cy, int cz, int size, vector<materia
 void resetqueries() { };
 void initenvmaps() { };
 int optimizematsurfs(materialsurface *matbuf, int matsurfs) { return 0; };
+void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks) {};
 
-glmatrix hudmatrix;
+glmatrix hudmatrix, aamaskmatrix, shadowmatrix;
 
 void pushhudmatrix() {};
 void flushhudmatrix(bool flushparams) {};
 void pophudmatrix(bool flush, bool flushparams) {};
+
+void findanims(const char *pattern, vector<int> &anims) {};
 
 #ifdef WINDOWS // needs stubs too, works for now
 #include "GL/gl.h"
@@ -159,6 +174,8 @@ PFNGLDRAWRANGEELEMENTSPROC        glDrawRangeElements_        = NULL;
 PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_  = NULL;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
 PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;
+PFNGLGETUNIFORMLOCATIONPROC       glGetUniformLocation_       = NULL;
+PFNGLACTIVETEXTUREPROC            glActiveTexture_            = NULL;
 #else
 void glDeleteBuffers(GLsizei n, const GLuint *buffers) {};
 void glGenBuffers(GLsizei n, GLuint *buffers) {};
@@ -183,6 +200,8 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, G
 void glEnableVertexAttribArray(GLuint index) {}
 void glDisableVertexAttribArray(GLuint index) {}
 void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer) {};
+GLint glGetUniformLocation(GLuint program, const GLchar *name) { return 0; };
+void glActiveTexture(GLenum texture) {};
 #endif
 
 PFNGLGENVERTEXARRAYSPROC          glGenVertexArrays_          = NULL;

@@ -429,6 +429,7 @@ bool modeloccluded(const vec &center, float radius)
 #endif
 }
 
+#ifndef SERVER
 struct batchedmodel
 {
     vec pos, center;
@@ -1359,3 +1360,4 @@ void clearanims() {
     });
     animmap.clear();
 }
+#endif
