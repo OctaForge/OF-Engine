@@ -838,6 +838,9 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
 
     loadprogress = 0;
 
+#ifndef SERVER
+    preloadusedmapmodels(true);
+#endif
     game::preload();
 #ifndef SERVER
     flushpreloadedmodels();

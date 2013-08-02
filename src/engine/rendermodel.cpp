@@ -355,6 +355,38 @@ void flushpreloadedmodels(bool msg)
     loadprogress = 0;
 }
 
+void preloadusedmapmodels(bool msg, bool bih) {
+    vector<extentity *> &ents = entities::getents();
+    vector<extentity *> used;
+    loopv(ents) {
+        extentity *e = ents[i];
+        if (e->type != ET_MAPMODEL || !e->m) continue;
+        used.add(e);
+    }
+
+    vector<const char *> col;
+    loopv(used) {
+        loadprogress = float(i + 1) / used.length();
+        extentity &e = *used[i];
+        model *m = e.m;
+        if (bih) m->preloadBIH();
+        m->preloadmeshes();
+        m->preloadshaders();
+        if (m->collidemodel && col.htfind(m->collidemodel) < 0)
+            col.add(m->collidemodel);
+    }
+
+    loopv(col) {
+        loadprogress = float(i + 1) / col.length();
+        model *m = loadmodel(col[i], msg);
+        if (!m) {  if (msg) conoutf(CON_WARN,
+            "could not load collide model: %s", col[i]);
+        } else if (!m->bih) m->setBIH();
+    }
+
+    loadprogress = 0;
+}
+
 model *loadmodel(const char *name, bool msg)
 {
     model **mm = models.access(name);
