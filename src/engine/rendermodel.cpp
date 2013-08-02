@@ -71,13 +71,17 @@ void mdlellipsecollide(int *collide)
 
 COMMAND(mdlellipsecollide, "i");
 
-void mdltricollide(int *collide)
+void mdltricollide(char *collide)
 {
     checkmdl;
-    loadingmodel->collide = *collide!=0 ? COLLIDE_TRI : COLLIDE_NONE;
+    DELETEA(loadingmodel->collidemodel);
+    char *end = NULL;
+    int val = strtol(collide, &end, 0);
+    if(*end) { val = 1; loadingmodel->collidemodel = newstring(collide); }
+    loadingmodel->collide = val ? COLLIDE_TRI : COLLIDE_NONE;
 }
 
-COMMAND(mdltricollide, "i");
+COMMAND(mdltricollide, "s");
 
 void mdlspec(float *percent)
 {
@@ -328,7 +332,7 @@ hashset<char *> failedmodels;
 
 void preloadmodel(const char *name)
 {
-    if(!name || !name[0] || models.access(name)) return;
+    if(!name || !name[0] || models.access(name) || preloadmodels.htfind(name) >= 0) return;
     preloadmodels.add(newstring(name));
 }
 
@@ -373,7 +377,7 @@ model *loadmodel(const char *name, bool msg)
             DELETEP(m);
         }
         loadingmodel = NULL;
-        if(!m) 
+        if(!m)
         {
             failedmodels.add(newstring(name));
             return NULL;
@@ -396,23 +400,21 @@ void cleanupmodels()
 void clearmodel(char *name)
 {
     if (!name || !name[0]) return;
-    model **m = models.access(name);
+    model *m = models.find(name, NULL);
     if(!m) { conoutf("model %s is not loaded", name); return; }
     models.remove(name);
-    (*m)->cleanup();
-    delete *m;
+    m->cleanup();
+    delete m;
     conoutf("cleared model %s", name);
 
     model *_new = loadmodel(name);
-    lua::push_external("entities_get_all"); lua_call(lua::L, 0, 1);
-    lua_pushnil(lua::L);
-    while (lua_next(lua::L, -2)) {
-        lua_getfield(lua::L, -1, "uid");
-        int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
-        CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
-        extentity *e = ent ? ent->staticEntity : NULL;
-        if (e && e->m == *m) e->m = _new;
-        lua_pop(lua::L, 1);
+    const vector<extentity *> &ents = entities::getents();
+    loopv(ents) {
+        extentity &e = *ents[i];
+        if (e.m == m) {
+            e.m = _new;
+            e.collide = NULL;
+        }
     }
 }
 COMMAND(clearmodel, "s");

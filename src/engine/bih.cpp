@@ -1,5 +1,7 @@
 #include "engine.h"
 
+extern vec hitsurface;
+
 bool BIH::triintersect(const tri &t, const vec &o, const vec &ray, float maxdist, float &dist, int mode)
 {
     vec p;
@@ -22,6 +24,11 @@ bool BIH::triintersect(const tri &t, const vec &o, const vec &ray, float maxdist
         int si = clamp(int(t.tex->xs * (t.tc[0] + u*(t.tc[2] - t.tc[0]) + v*(t.tc[4] - t.tc[0]))), 0, t.tex->xs-1),
             ti = clamp(int(t.tex->ys * (t.tc[1] + u*(t.tc[3] - t.tc[1]) + v*(t.tc[5] - t.tc[1]))), 0, t.tex->ys-1);
         if(!(t.tex->alphamask[ti*((t.tex->xs+7)/8) + si/8] & (1<<(si%8)))) return false;
+    }
+    if(!(mode&RAY_SHADOW))
+    {
+        hitsurface.cross(t.b, t.c).normalize();
+        if(hitsurface.dot(ray) > 0) hitsurface.neg();
     }
     dist = f;
     return true;
@@ -293,6 +300,12 @@ bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist
     if(m->bih->traverse(mo, mray, maxdist ? maxdist : 1e16f, dist, mode))
     {
         if(scale > 0) dist *= scale/100.0f;
+        if(!(mode&RAY_SHADOW))
+        {
+            if(roll != 0) hitsurface.rotate_around_y(sincosmod360(-roll));
+            if(pitch != 0) hitsurface.rotate_around_x(sincosmod360(pitch));
+            if(yaw != 0) hitsurface.rotate_around_z(sincosmod360(yaw));
+        }
         return true;
     }
     return false;
@@ -348,23 +361,23 @@ static inline float trisegmentdistance(const vec &n, const vec &a, const vec &ab
     if(pq.scalartriple(pa, pb) > 0) // P outside AB
     {
         dist = segmentdistance(a, b, p, pq);
-        if(pq.scalartriple(qb, qa) <= 0) dist = min(dist, (float)fabs(n.dot(qa))/n.squaredlen()); // Q inside AB
-        else if(pq.scalartriple(qc, qb) > 0) dist = min(dist, segmentdistance(b, c, p, pq)); // Q outside BC
+        if(pq.scalartriple(qc, qb) > 0) dist = min(dist, segmentdistance(b, c, p, pq)); // Q outside BC
         else if(pq.scalartriple(qa, qc) > 0) dist = min(dist, segmentdistance(c, a, p, pq)); // Q outside CA
+        else if(pq.scalartriple(qb, qa) <= 0) dist = min(dist, (float)fabs(n.dot(qa))/n.squaredlen()); // Q inside AB
     }
     else if(pq.scalartriple(pb, pc) > 0) // P outside BC
     {
         dist = segmentdistance(b, c, p, pq);
-        if(pq.scalartriple(qc, qb) <= 0) dist = min(dist, (float)fabs(n.dot(qa))/n.squaredlen()); // Q inside BC
-        else if(pq.scalartriple(qa, qc) > 0) dist = min(dist, segmentdistance(c, a, p, pq)); // Q outside CA
+        if(pq.scalartriple(qa, qc) > 0) dist = min(dist, segmentdistance(c, a, p, pq)); // Q outside CA
         else if(pq.scalartriple(qb, qa) > 0) dist = min(dist, segmentdistance(a, b, p, pq)); // Q outside AB
+        else if(pq.scalartriple(qc, qb) <= 0) dist = min(dist, (float)fabs(n.dot(qa))/n.squaredlen()); // Q inside BC
     }
     else if(pq.scalartriple(pc, pa) > 0) // P outside CA
     {
         dist = segmentdistance(c, a, p, pq);
-        if(pq.scalartriple(qa, qc) <= 0) dist = min(dist, (float)fabs(n.dot(qa))/n.squaredlen()); // Q inside CA
-        else if(pq.scalartriple(qb, qa) > 0) dist = min(dist, segmentdistance(a, b, p, pq)); // Q outside AB
+        if(pq.scalartriple(qb, qa) > 0) dist = min(dist, segmentdistance(a, b, p, pq)); // Q outside AB
         else if(pq.scalartriple(qc, qb) > 0) dist = min(dist, segmentdistance(b, c, p, pq)); // Q outside BC
+        else if(pq.scalartriple(qa, qc) <= 0) dist = min(dist, (float)fabs(n.dot(qa))/n.squaredlen()); // Q inside CA
     }
     else if(pq.scalartriple(qb, qa) > 0) dist = min(segmentdistance(a, b, p, pq), n.dot(pa)); // Q outside AB
     else if(pq.scalartriple(qc, qb) > 0) dist = min(segmentdistance(b, c, p, pq), n.dot(pa)); // Q outside BC
