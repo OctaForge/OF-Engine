@@ -496,24 +496,18 @@ Widget = register_class("Widget", table2.Object, {
         self:align(align_h, align_v)
         self:clamp(clamp_l, clamp_r, clamp_b, clamp_t)
 
-        -- children
-        local ch = {}
-
-        -- default children
-        local dchildren = rawget(self.__proto, "children")
-        if dchildren then
-            for i, v in ipairs(dchildren) do
-                local ic = v.init_clone
-                v = v:deep_clone(self)
-                ch[#ch + 1] = v
-                v.parent = self
-                if ic then ic(v, self) end
+        if kwargs.signals then
+            for k, v in pairs(kwargs.signals) do
+                signal.connect(self, k, v)
             end
         end
 
-        -- custom children
+        self.tooltip = kwargs.tooltip or false
+        self.menu    = kwargs.menu    or false
+
+        local ch = {}
         for i, v in ipairs(kwargs) do
-            ch[#ch + 1] = v
+            ch[i] = v
             v.parent = self
         end
 
@@ -530,17 +524,6 @@ Widget = register_class("Widget", table2.Object, {
         end
         self.states = states
         self:set_variant(kwargs.variant)
-
-        -- and connect signals
-        if kwargs.signals then
-            for k, v in pairs(kwargs.signals) do
-                signal.connect(self, k, v)
-            end
-        end
-
-        -- tooltip, menu? widget specific
-        self.tooltip = kwargs.tooltip or false
-        self.menu    = kwargs.menu    or false
 
         -- and init
         if  kwargs.init then
