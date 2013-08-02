@@ -504,10 +504,10 @@ Widget = register_class("Widget", table2.Object, {
         if dchildren then
             for i, v in ipairs(dchildren) do
                 local ic = v.init_clone
-                v = v:deep_clone()
+                v = v:deep_clone(self)
                 ch[#ch + 1] = v
                 v.parent = self
-                if ic then ic(v) end
+                if ic then ic(v, self) end
             end
         end
 
@@ -582,16 +582,16 @@ Widget = register_class("Widget", table2.Object, {
         for default widget class states, where we need to clone
         these per-instance.
     ]]
-    deep_clone = function(self, initc)
+    deep_clone = function(self, obj, initc)
         local ch, rch = {}, self.children
         local cl = self:clone { children = ch }
         for i = 1, #rch do
             local c = rch[i]
             local ic = initc and c.init_clone or nil
-            local chcl = c:deep_clone(true)
+            local chcl = c:deep_clone(obj, true)
             chcl.parent = cl
             ch[i] = chcl
-            if ic then ic(chcl) end
+            if ic then ic(chcl, obj) end
         end
         return cl
     end,
@@ -608,10 +608,10 @@ Widget = register_class("Widget", table2.Object, {
         if dstates then
             for k, v in pairs(dstates) do
                 local ic = v.init_clone
-                local cl = v:deep_clone()
+                local cl = v:deep_clone(self)
                 vstates[k] = cl
                 cl.parent = self
-                if ic then ic(v) end
+                if ic then ic(cl, self) end
             end
         end
         self.vstates = vstates
@@ -650,11 +650,11 @@ Widget = register_class("Widget", table2.Object, {
                 -- update only on widgets actually using the default state
                 if st and st.__proto == oldstate then
                     local ic = sval.init_clone
-                    local nst = sval:deep_clone()
+                    local nst = sval:deep_clone(v)
                     nst.parent = v
                     sts[sname] = nst
                     st:clear()
-                    if ic then ic(nst) end
+                    if ic then ic(nst, v) end
                     v:state_changed(sname, nst)
                 end
             end
