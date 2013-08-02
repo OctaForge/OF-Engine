@@ -503,9 +503,11 @@ Widget = register_class("Widget", table2.Object, {
         local dchildren = rawget(self.__proto, "children")
         if dchildren then
             for i, v in ipairs(dchildren) do
+                local ic = v.init_clone
                 v = v:deep_clone()
                 ch[#ch + 1] = v
                 v.parent = self
+                if ic then ic(v) end
             end
         end
 
@@ -580,13 +582,16 @@ Widget = register_class("Widget", table2.Object, {
         for default widget class states, where we need to clone
         these per-instance.
     ]]
-    deep_clone = function(self)
+    deep_clone = function(self, initc)
         local ch, rch = {}, self.children
         local cl = self:clone { children = ch }
         for i = 1, #rch do
-            local chcl = rch[i]:deep_clone()
+            local c = rch[i]
+            local ic = initc and c.init_clone or nil
+            local chcl = c:deep_clone(true)
             chcl.parent = cl
             ch[i] = chcl
+            if ic then ic(chcl) end
         end
         return cl
     end,
@@ -602,9 +607,11 @@ Widget = register_class("Widget", table2.Object, {
         dstates = dstates and dstates[variant or "default"] or nil
         if dstates then
             for k, v in pairs(dstates) do
+                local ic = v.init_clone
                 local cl = v:deep_clone()
                 vstates[k] = cl
                 cl.parent = self
+                if ic then ic(v) end
             end
         end
         self.vstates = vstates
@@ -642,10 +649,12 @@ Widget = register_class("Widget", table2.Object, {
                 local st = sts[sname]
                 -- update only on widgets actually using the default state
                 if st and st.__proto == oldstate then
+                    local ic = sval.init_clone
                     local nst = sval:deep_clone()
                     nst.parent = v
                     sts[sname] = nst
                     st:clear()
+                    if ic then ic(nst) end
                     v:state_changed(sname, nst)
                 end
             end
