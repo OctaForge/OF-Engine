@@ -87,7 +87,7 @@ ICOMMAND(moving, "b", (int *n),
 {
     if(*n >= 0)
     {
-        if(!*n || (moving<=1 && !pointinsel(sel, cur.tovec().add(1)))) moving = 0;
+        if(!*n || (moving<=1 && !pointinsel(sel, vec(cur).add(1)))) moving = 0;
         else if(!moving) moving = 1;
     }
     intret(moving);
@@ -156,11 +156,10 @@ bool noedit(bool view, bool msg)
 {
     if(!editmode) { if(msg) conoutf(CON_ERROR, "operation only allowed in edit mode"); return true; }
     if(view || haveselent()) return false;
-    float r = 1.0f;
-    vec o = sel.o.tovec(), s = sel.s.tovec();
-    s.mul(float(sel.grid) / 2.0f);
+    vec o(sel.o), s(sel.s);
+    s.mul(sel.grid / 2.0f);
     o.add(s);
-    r = float(max(s.x, max(s.y, s.z)));
+    float r = max(s.x, s.y, s.z);
     bool viewable = (isvisiblesphere(r, o) != VFC_NOT_VISIBLE);
     if(!viewable && msg) conoutf(CON_ERROR, "selection not in view");
     return !viewable;
@@ -320,12 +319,12 @@ void rendereditcursor()
     if(moving)
     {
         static vec dest, handle;
-        if(editmoveplane(sel.o.tovec(), dir, od, sel.o[D[od]]+odc*sel.grid*sel.s[D[od]], handle, dest, moving==1))
+        if(editmoveplane(vec(sel.o), dir, od, sel.o[D[od]]+odc*sel.grid*sel.s[D[od]], handle, dest, moving==1))
         {
             if(moving==1)
             {
                 dest.add(handle);
-                handle = ivec(handle).mask(~(sel.grid-1)).tovec();
+                handle = vec(ivec(handle).mask(~(sel.grid-1)));
                 dest.sub(handle);
                 moving = 2;
             }
@@ -351,7 +350,7 @@ void rendereditcursor()
                        | (passthroughcube==1 ? RAY_PASS : 0), gridsize, entorient, ent);
 
         if((havesel || dragging) && !passthroughsel && !hmapedit)     // now try selecting the selection
-            if(rayboxintersect(sel.o.tovec(), vec(sel.s.tovec()).mul(sel.grid), camera1->o, dir, sdist, orient))
+            if(rayboxintersect(vec(sel.o), vec(sel.s).mul(sel.grid), camera1->o, camdir, sdist, orient))
             {   // and choose the nearest of the two
                 if(sdist < wdist)
                 {
@@ -386,7 +385,7 @@ void rendereditcursor()
             if(gridlookup && !dragging && !moving && !havesel && hmapedit!=1) gridsize = lusize;
             int mag = lusize / gridsize;
             normalizelookupcube(int(w.x), int(w.y), int(w.z));
-            if(sdist == 0 || sdist > wdist) rayboxintersect(lu.tovec(), vec(gridsize), camera1->o, dir, t=0, orient); // just getting orient
+            if(sdist == 0 || sdist > wdist) rayboxintersect(vec(lu), vec(gridsize), camera1->o, dir, t=0, orient); // just getting orient
             cur = lu;
             cor = vec(w).mul(2).div(gridsize);
             od = dimension(orient);
@@ -466,7 +465,7 @@ void rendereditcursor()
             gle::colorub(0, hmapsel ? 255 : 40, 0);
         else
             gle::colorub(120,120,120);
-            boxs(orient, lu.tovec(), vec(lusize));
+        boxs(orient, vec(lu), vec(lusize));
     }
 
     // selections
@@ -474,9 +473,9 @@ void rendereditcursor()
     {
         d = dimension(sel.orient);
         gle::colorub(50,50,50);   // grid
-        boxsgrid(sel.orient, sel.o.tovec(), sel.s.tovec(), sel.grid);
+        boxsgrid(sel.orient, vec(sel.o), vec(sel.s), sel.grid);
         gle::colorub(200,0,0);    // 0 reference
-        boxs3D(sel.o.tovec().sub(0.5f*min(gridsize*0.25f, 2.0f)), vec(min(gridsize*0.25f, 2.0f)), 1);
+        boxs3D(vec(sel.o).sub(0.5f*min(gridsize*0.25f, 2.0f)), vec(min(gridsize*0.25f, 2.0f)), 1);
         gle::colorub(200,200,200);// 2D selection box
         vec co(sel.o.v), cs(sel.s.v);
         co[R[d]] += 0.5f*(sel.cx*gridsize);
@@ -489,16 +488,16 @@ void rendereditcursor()
             gle::colorub(0,120,0);
         else
             gle::colorub(0,0,120);
-        boxs3D(sel.o.tovec(), sel.s.tovec(), sel.grid);
+        boxs3D(vec(sel.o), vec(sel.s), sel.grid);
 
         if (showselgrid)
         {
             vec a, b;
             gle::colorub(40, 40, 80);
             //note that vector b is multiplied by g (aka, sel.grid) inside the function, so undo that here
-            (a=sel.o.tovec()).x=0; (b=sel.s.tovec()).x=worldsize/sel.grid; boxs3D(a, b, sel.grid);
-            (a=sel.o.tovec()).y=0; (b=sel.s.tovec()).y=worldsize/sel.grid; boxs3D(a, b, sel.grid);
-            (a=sel.o.tovec()).z=0; (b=sel.s.tovec()).z=worldsize/sel.grid; boxs3D(a, b, sel.grid);
+            (a=vec(sel.o)).x=0; (b=vec(sel.s)).x=worldsize/sel.grid; boxs3D(a, b, sel.grid);
+            (a=vec(sel.o)).y=0; (b=vec(sel.s)).y=worldsize/sel.grid; boxs3D(a, b, sel.grid);
+            (a=vec(sel.o)).z=0; (b=vec(sel.s)).z=worldsize/sel.grid; boxs3D(a, b, sel.grid);
         }
     }
 

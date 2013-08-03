@@ -431,8 +431,8 @@ static void calcsurfaces(cube &c, const ivec &co, int size, int usefacemask, int
             if(usefaces&2) curlitverts[numverts++].set(v[(order+3)&3].mul(size).add(vo));
         }
 
-        vec pos[MAXFACEVERTS], n[MAXFACEVERTS], po = ivec(co).mask(~0xFFF).tovec();
-        loopj(numverts) pos[j] = curlitverts[j].getxyz().tovec().mul(1.0f/8).add(po);
+        vec pos[MAXFACEVERTS], n[MAXFACEVERTS], po(ivec(co).mask(~0xFFF));
+        loopj(numverts) pos[j] = vec(curlitverts[j].getxyz()).mul(1.0f/8).add(po);
 
         int smooth = vslot.slot->smooth;
         plane planes[2];

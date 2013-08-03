@@ -45,8 +45,8 @@ struct particleemitter
     {
         center = vec(bbmin).add(bbmax).mul(0.5f);
         radius = bbmin.dist(bbmax)/2;
-        cullmin = ivec(int(floor(bbmin.x)), int(floor(bbmin.y)), int(floor(bbmin.z)));
-        cullmax = ivec(int(ceil(bbmax.x)), int(ceil(bbmax.y)), int(ceil(bbmax.z)));
+        cullmin = ivec::floor(bbmin);
+        cullmax = ivec::ceil(bbmax);
         if(dbgpseed) conoutf(CON_DEBUG, "radius: %f, maxfade: %d", radius, maxfade);
     }
 

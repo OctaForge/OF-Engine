@@ -500,7 +500,7 @@ void addtris(VSlot &vslot, int orient, const sortkey &key, vertex *verts, int *i
                 int origin = int(min(v1.pos[axis], v2.pos[axis])*8)&~0x7FFF,
                     offset1 = (int(v1.pos[axis]*8) - origin) / d[axis],
                     offset2 = (int(v2.pos[axis]*8) - origin) / d[axis];
-                vec o = vec(v1.pos).sub(d.tovec().mul(offset1/8.0f));
+                vec o = vec(v1.pos).sub(vec(d).mul(offset1/8.0f));
                 float doffset = 1.0f / (offset2 - offset1);
 
                 if(i1 < 0) for(;;)
@@ -515,12 +515,12 @@ void addtris(VSlot &vslot, int orient, const sortkey &key, vertex *verts, int *i
                     if(t.edge != cedge) break;
                     float offset = (t.offset - offset1) * doffset;
                     vertex vt;
-                    vt.pos = d.tovec().mul(t.offset/8.0f).add(o);
+                    vt.pos = vec(d).mul(t.offset/8.0f).add(o);
                     vt.reserved = 0;
                     vt.tc.lerp(v1.tc, v2.tc, offset);
                     vt.norm.lerp(v1.norm, v2.norm, offset);
                     vt.tangent.lerp(v1.tangent, v2.tangent, offset);
-                    vt.bitangent = v1.bitangent == v2.bitangent ? v1.bitangent : (orientation_bitangent[vslot.rotation][orient].scalartriple(vt.norm.tovec(), vt.tangent.tovec()) < 0 ? 0 : 255);
+                    vt.bitangent = v1.bitangent == v2.bitangent ? v1.bitangent : (orientation_bitangent[vslot.rotation][orient].scalartriple(vt.norm.tonormal(), vt.tangent.tonormal()) < 0 ? 0 : 255);
                     int i2 = vc.addvert(vt);
                     if(i2 < 0) return;
                     if(i1 >= 0)
@@ -880,8 +880,8 @@ void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
         if(numverts)
         {
             verts = c.ext->verts() + c.ext->surfaces[i].verts;
-            vec vo = ivec(x, y, z).mask(~0xFFF).tovec();
-            loopj(numverts) pos[j] = verts[j].getxyz().tovec().mul(1.0f/8).add(vo);
+            vec vo(ivec(x, y, z).mask(~0xFFF));
+            loopj(numverts) pos[j] = vec(verts[j].getxyz()).mul(1.0f/8).add(vo);
             if(!flataxisface(c, i)) convex = faceconvexity(verts, numverts, size);
         }
         else
@@ -891,10 +891,10 @@ void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
             if(!flataxisface(c, i)) convex = faceconvexity(v);
             int order = vis&4 || convex < 0 ? 1 : 0;
             vec vo(x, y, z);
-            pos[numverts++] = v[order].tovec().mul(size/8.0f).add(vo);
-            if(vis&1) pos[numverts++] = v[order+1].tovec().mul(size/8.0f).add(vo);
-            pos[numverts++] = v[order+2].tovec().mul(size/8.0f).add(vo);
-            if(vis&2) pos[numverts++] = v[(order+3)&3].tovec().mul(size/8.0f).add(vo);
+            pos[numverts++] = vec(v[order]).mul(size/8.0f).add(vo);
+            if(vis&1) pos[numverts++] = vec(v[order+1]).mul(size/8.0f).add(vo);
+            pos[numverts++] = vec(v[order+2]).mul(size/8.0f).add(vo);
+            if(vis&2) pos[numverts++] = vec(v[(order+3)&3]).mul(size/8.0f).add(vo);
         }
 
         VSlot &vslot = lookupvslot(c.texture[i], true),
@@ -1135,7 +1135,7 @@ void addmergedverts(int level, const ivec &o)
 {
     vector<mergedface> &mfl = vamerges[level];
     if(mfl.empty()) return;
-    vec vo = ivec(o).mask(~0xFFF).tovec();
+    vec vo(ivec(o).mask(~0xFFF));
     vec pos[MAXFACEVERTS];
     loopv(mfl)
     {

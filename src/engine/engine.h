@@ -302,7 +302,7 @@ static inline bool sphereinsidespot(const vec &dir, int spot, const vec &center,
 }
 static inline bool bbinsidespot(const vec &origin, const vec &dir, int spot, const ivec &bbmin, const ivec &bbmax)
 {
-    vec radius = ivec(bbmax).sub(bbmin).tovec().mul(0.5f), center = bbmin.tovec().add(radius);
+    vec radius = vec(ivec(bbmax).sub(bbmin)).mul(0.5f), center = vec(bbmin).add(radius);
     return sphereinsidespot(dir, spot, center.sub(origin), radius.magnitude());
 }
 

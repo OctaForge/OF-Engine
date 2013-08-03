@@ -252,7 +252,18 @@ struct animmodel : model
         }
 
         virtual void calcbb(vec &bbmin, vec &bbmax, const matrix3x4 &m) {}
-        virtual void genBIH(Texture *tex, vector<BIH::tri> *out, const matrix3x4 &m) {}
+
+        virtual void genBIH(BIH::mesh &m) {}
+        void genBIH(skin &s, vector<BIH::mesh> &bih, const matrix3x4 &t)
+        {
+            BIH::mesh &m = bih.add();
+            m.xform = t;
+            m.tex = s.tex;
+            if(s.tex && s.tex->type&Texture::ALPHA) m.flags |= BIH::MESH_ALPHA;
+            if(noclip) m.flags |= BIH::MESH_NOCLIP;
+            genBIH(m);
+        }
+
         virtual void genshadowmesh(vector<triangle> &tris, const matrix3x4 &m) {}
 
         virtual void setshader(Shader *s)
@@ -402,9 +413,9 @@ struct animmodel : model
             loopv(meshes) meshes[i]->calcbb(bbmin, bbmax, m);
         }
 
-        void genBIH(vector<skin> &skins, vector<BIH::tri> *tris, const matrix3x4 &m)
+        void genBIH(vector<skin> &skins, vector<BIH::mesh> &bih, const matrix3x4 &m)
         {
-            loopv(meshes) meshes[i]->genBIH(skins[i].tex && skins[i].tex->type&Texture::ALPHA ? skins[i].tex : NULL, tris, m);
+            loopv(meshes) meshes[i]->genBIH(skins[i], bih, m);
         }
 
         void genshadowmesh(vector<triangle> &tris, const matrix3x4 &m)
@@ -568,17 +579,17 @@ struct animmodel : model
             }
         }
 
-        void genBIH(vector<BIH::tri> *tris, const matrix3x4 &m)
+        void genBIH(vector<BIH::mesh> &bih, const matrix3x4 &m)
         {
             matrix3x4 t = m;
             t.scale(model->scale);
-            meshes->genBIH(skins, tris, t);
+            meshes->genBIH(skins, bih, t);
             loopv(links)
             {
                 matrix3x4 n;
                 meshes->concattagtransform(this, links[i].tag, m, n);
                 n.translate(links[i].translate, model->scale);
-                links[i].p->genBIH(tris, n);
+                links[i].p->genBIH(bih, n);
             }
         }
 
@@ -1298,12 +1309,12 @@ struct animmodel : model
         m.translate(translate, scale);
     }
 
-    void genBIH(vector<BIH::tri> *tris)
+    void genBIH(vector<BIH::mesh> &bih)
     {
         if(parts.empty()) return;
         matrix3x4 m;
         initmatrix(m);
-        parts[0]->genBIH(tris, m);
+        parts[0]->genBIH(bih, m);
         for(int i = 1; i < parts.length(); i++)
         {
             part *p = parts[i];
@@ -1311,7 +1322,7 @@ struct animmodel : model
             {
                 case LINK_COOP:
                 case LINK_REUSE:
-                    p->genBIH(tris, m);
+                    p->genBIH(bih, m);
                     break;
             }
         }
@@ -1346,9 +1357,9 @@ struct animmodel : model
     BIH *setBIH()
     {
         if(bih) return bih;
-        vector<BIH::tri> tris[2];
-        genBIH(tris);
-        bih = new BIH(tris);
+        vector<BIH::mesh> meshes;
+        genBIH(meshes);
+        bih = new BIH(meshes);
         return bih;
     }
 
@@ -1489,6 +1500,12 @@ struct animmodel : model
         radius.mul(0.5f);
         center = bbmin;
         center.add(radius);
+    }
+
+    void calctransform(matrix3x4 &m)
+    {
+        initmatrix(m);
+        m.scale(scale);
     }
 
     static bool enabletc, enablecullface, enablenormals, enabletangents, enablebones, enabledepthoffset;

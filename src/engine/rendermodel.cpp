@@ -369,7 +369,10 @@ void preloadusedmapmodels(bool msg, bool bih) {
         loadprogress = float(i + 1) / used.length();
         extentity &e = *used[i];
         model *m = e.m;
-        if (bih) m->preloadBIH();
+        if (bih)
+            m->preloadBIH();
+        else if (m->collide == COLLIDE_TRI && !m->collidemodel && m->bih)
+            m->setBIH();
         m->preloadmeshes();
         m->preloadshaders();
         if (m->collidemodel && col.htfind(m->collidemodel) < 0)
@@ -1218,36 +1221,6 @@ LUAICOMMAND(model_render, {
 
 SMDLBOX(boundbox)
 SMDLBOX(collisionbox)
-
-#define TRIFIELD(n) \
-    lua::push_external(L, "new_vec3"); \
-    lua_pushnumber(L, bt.n.x); \
-    lua_pushnumber(L, bt.n.y); \
-    lua_pushnumber(L, bt.n.z); \
-    lua_call      (L, 3, 1); \
-    lua_setfield  (L, -2, #n);
-
-LUAICOMMAND(model_get_mesh, {
-    model *mdl = loadmodel(luaL_checkstring(L, 1));
-    if   (!mdl) return 0;
-
-    vector<BIH::tri> tris2[2];
-    mdl->gentris(tris2);
-    vector<BIH::tri>& tris = tris2[0];
-
-    lua_createtable (L, tris.length(), 0);
-    for (int i = 0; i < tris.length(); ++i) {
-        BIH::tri& bt = tris[i];
-        lua_pushinteger(L, i + 1); /* key   */
-        lua_createtable(L, 0, 3);  /* value */
-
-        TRIFIELD(a)
-        TRIFIELD(b)
-        TRIFIELD(c)
-        lua_settable(L, -3);
-    }
-    return 1;
-});
 
 LUAICOMMAND(model_preload, { preloadmodel(luaL_checkstring(L, 1)); return 0; });
 LUAICOMMAND(model_clear, { clearmodel((char*)luaL_checkstring(L, 1)); return 0; });

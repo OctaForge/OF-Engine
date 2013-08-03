@@ -639,7 +639,7 @@ void renderblendbrush(GLuint tex, float x, float y, float w, float h)
 
 int calcbbsidemask(const ivec &bbmin, const ivec &bbmax, const vec &lightpos, float lightradius, float bias)
 {
-    vec pmin = bbmin.tovec().sub(lightpos).div(lightradius), pmax = bbmax.tovec().sub(lightpos).div(lightradius);
+    vec pmin = vec(bbmin).sub(lightpos).div(lightradius), pmax = vec(bbmax).sub(lightpos).div(lightradius);
     int mask = 0x3F;
     float dp1 = pmax.x + pmax.y, dn1 = pmax.x - pmin.y, ap1 = fabs(dp1), an1 = fabs(dn1),
           dp2 = pmin.x + pmin.y, dn2 = pmin.x - pmax.y, ap2 = fabs(dp2), an2 = fabs(dn2);
@@ -1746,8 +1746,8 @@ int dynamicshadowvabounds(int mask, vec &bbmin, vec &bbmax)
     int vis = 0;
     for(vtxarray *va = shadowva; va; va = va->rnext) if(va->shadowmask&mask && va->dyntexs)
     {
-        bbmin.min(va->geommin.tovec());
-        bbmax.max(va->geommax.tovec());
+        bbmin.min(vec(va->geommin));
+        bbmax.max(vec(va->geommax));
         vis++;
     }
     return vis;

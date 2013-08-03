@@ -220,33 +220,19 @@ struct skelmodel : animmodel
             loopj(numverts)
             {
                 vec v = m.transform(verts[j].pos);
-                loopi(3)
-                {
-                    bbmin[i] = min(bbmin[i], v[i]);
-                    bbmax[i] = max(bbmax[i], v[i]);
-                }
+                bbmin.min(v);
+                bbmax.max(v);
             }
         }
 
-        void genBIH(Texture *tex, vector<BIH::tri> *out, const matrix3x4 &m)
+        void genBIH(BIH::mesh &m)
         {
-            loopj(numtris)
-            {
-                BIH::tri &t = out[noclip ? 1 : 0].add();
-                t.tex = tex;
-                vert &av = verts[tris[j].vert[0]],
-                     &bv = verts[tris[j].vert[1]],
-                     &cv = verts[tris[j].vert[2]];
-                t.a = m.transform(av.pos);
-                t.b = m.transform(bv.pos);
-                t.c = m.transform(cv.pos);
-                t.tc[0] = av.u;
-                t.tc[1] = av.v;
-                t.tc[2] = bv.u;
-                t.tc[3] = bv.v;
-                t.tc[4] = cv.u;
-                t.tc[5] = cv.v;
-            }
+            m.tris = (const ushort *)tris;
+            m.numtris = numtris;
+            m.pos = (const uchar *)&verts->pos;
+            m.posstride = sizeof(vert);
+            m.tc = (const uchar *)&verts->u;
+            m.tcstride = sizeof(vert);
         }
 
         void genshadowmesh(vector<triangle> &out, const matrix3x4 &m)

@@ -55,6 +55,10 @@ static inline uint hthash(const vec2 &k)
     return v + (v>>12);
 }
 
+struct ivec;
+struct usvec;
+struct svec;
+
 struct vec
 {
     union
@@ -72,6 +76,9 @@ struct vec
     explicit vec(const float *v) : x(v[0]), y(v[1]), z(v[2]) {}
     explicit vec(const vec2 &v, float z = 0) : x(v.x), y(v.y), z(z) {}
     explicit vec(const vec4 &v);
+    explicit vec(const ivec &v);
+    explicit vec(const usvec &v);
+    explicit vec(const svec &v);
 
     vec(float yaw, float pitch) : x(-sinf(yaw)*cosf(pitch)), y(cosf(yaw)*cosf(pitch)), z(sinf(pitch)) {}
 
@@ -88,6 +95,7 @@ struct vec
     float dot2(const vec2 &o) const { return x*o.x + y*o.y; }
     float dot2(const vec &o) const { return x*o.x + y*o.y; }
     float dot(const vec &o) const { return x*o.x + y*o.y + z*o.z; }
+    float squaredot(const vec &o) const { float k = dot(o); return k*k; }
     float absdot(const vec &o) const { return fabs(x*o.x) + fabs(y*o.y) + fabs(z*o.z); }
     float zdot(const vec &o) const { return z*o.z; }
     vec &mul(const vec &o)   { x *= o.x; y *= o.y; z *= o.z; return *this; }
@@ -566,6 +574,7 @@ struct matrix3x3
         b = vec(txy + twz, 1 - (txx + tzz), tyz - twx);
         c = vec(txz - twy, tyz + twx, 1 - (txx + tyy));
     }
+    explicit matrix3x3(const matrix3x4 &m);
     explicit matrix3x3(const glmatrix &m);
 
     void mul(const matrix3x3 &m, const matrix3x3 &n)
@@ -608,6 +617,29 @@ struct matrix3x3
         a = vec(m.a.x, m.b.x, m.c.x);
         b = vec(m.a.y, m.b.y, m.c.y);
         c = vec(m.a.z, m.b.z, m.c.z);
+    }
+
+    void invert(const matrix3x3 &o)
+    {
+        transpose(o);
+        a.mul(1/a.squaredlen());
+        b.mul(1/b.squaredlen());
+        c.mul(1/c.squaredlen());
+    }
+    void invert() { invert(matrix3x3(*this)); }
+
+    void normalize()
+    {
+        a.mul(1/a.magnitude());
+        b.mul(1/b.magnitude());
+        c.mul(1/c.magnitude());
+    }
+
+    void scale(float k)
+    {
+        a.mul(k);
+        b.mul(k);
+        c.mul(k);
     }
 
     void rotate(float angle, const vec &axis)
@@ -815,19 +847,31 @@ struct matrix3x4
         c = vec4(0, 0, 1, 0);
     }
 
-    void mul(const matrix3x4 &m, const matrix3x4 &n)
+    template<class M>
+    void mul(const matrix3x4 &m, const M &n)
     {
         a = vec4(n.a).mul(m.a.x).add(vec4(n.b).mul(m.a.y)).add(vec4(n.c).mul(m.a.z)).addw(m.a.w);
         b = vec4(n.a).mul(m.b.x).add(vec4(n.b).mul(m.b.y)).add(vec4(n.c).mul(m.b.z)).addw(m.b.w);
         c = vec4(n.a).mul(m.c.x).add(vec4(n.b).mul(m.c.y)).add(vec4(n.c).mul(m.c.z)).addw(m.c.w);
     }
-    void mul(const matrix3x4 &n) { mul(*this, n); }
+    template<class M>
+    void mul(const M &n) { mul(*this, n); }
 
-    void mul(const matrix3x3 &rot, const vec &trans, const matrix3x4 &o)
+    template<class M>
+    void mul(const matrix3x3 &m, const M &n)
     {
-        a = vec4(o.a).mul(rot.a.x).add(vec4(o.b).mul(rot.a.y)).add(vec4(o.c).mul(rot.a.z)).addw(trans.x);
-        b = vec4(o.a).mul(rot.b.x).add(vec4(o.b).mul(rot.b.y)).add(vec4(o.c).mul(rot.b.z)).addw(trans.y);
-        c = vec4(o.a).mul(rot.c.x).add(vec4(o.b).mul(rot.c.y)).add(vec4(o.c).mul(rot.c.z)).addw(trans.z);
+        a = vec4(n.a).mul(m.a.x).add(vec4(n.b).mul(m.a.y)).add(vec4(n.c).mul(m.a.z));
+        b = vec4(n.a).mul(m.b.x).add(vec4(n.b).mul(m.b.y)).add(vec4(n.c).mul(m.b.z));
+        c = vec4(n.a).mul(m.c.x).add(vec4(n.b).mul(m.c.y)).add(vec4(n.c).mul(m.c.z));
+    }
+
+    template<class M>
+    void mul(const matrix3x3 &rot, const vec &trans, const M &o)
+    {
+        mul(rot, o);
+        a.addw(trans.x);
+        b.addw(trans.y);
+        c.addw(trans.z);
     }
 
     void mulorient(const matrix3x3 &m)
@@ -870,6 +914,15 @@ struct matrix3x4
         b = vec4(n.a).mul(m.a.y).add(vec4(n.b).mul(m.b.y)).add(vec4(n.c).mul(m.c.y)).subw(ty);
         c = vec4(n.a).mul(m.a.z).add(vec4(n.b).mul(m.b.z)).add(vec4(n.c).mul(m.c.z)).subw(tz);
     }
+
+    void invert(const matrix3x4 &o)
+    {
+        transpose(o);
+        a.mul(1/a.dot3(a));
+        b.mul(1/b.dot3(b));
+        c.mul(1/c.dot3(c));
+    }
+    void invert() { invert(matrix3x4(*this)); }
 
     void rotate(float angle, const vec &d)
     {
@@ -944,6 +997,8 @@ inline dualquat::dualquat(const matrix3x4 &m) : real(m)
     dual.z =  0.5f*( m.a.w*real.y - m.b.w*real.x + m.c.w*real.w);
     dual.w = -0.5f*( m.a.w*real.x + m.b.w*real.y + m.c.w*real.z);
 }
+
+inline matrix3x3::matrix3x3(const matrix3x4 &m) : a(m.a), b(m.b), c(m.c) {}
 
 struct plane : vec
 {
@@ -1099,7 +1154,8 @@ struct ivec
     }
     explicit ivec(const ivec4 &v);
     explicit ivec(const ivec2 &v, int z = 0);
-    vec tovec() const { return vec(x, y, z); }
+    explicit ivec(const usvec &v);
+    explicit ivec(const svec &v);
 
     int &operator[](int i)       { return v[i]; }
     int  operator[](int i) const { return v[i]; }
@@ -1129,7 +1185,12 @@ struct ivec
     ivec &cross(const ivec &a, const ivec &b) { x = a.y*b.z-a.z*b.y; y = a.z*b.x-a.x*b.z; z = a.x*b.y-a.y*b.x; return *this; }
     int dot(const ivec &o) const { return x*o.x + y*o.y + z*o.z; }
     float dist(const plane &p) const { return x*p.x + y*p.y + z*p.z + p.offset; }
+
+    static inline ivec floor(const vec &o) { return ivec(int(::floor(o.x)), int(::floor(o.y)), int(::floor(o.z))); }
+    static inline ivec ceil(const vec &o) { return ivec(int(::ceil(o.x)), int(::ceil(o.y)), int(::ceil(o.z))); }
 };
+
+inline vec::vec(const ivec &v) : x(v.x), y(v.y), z(v.z) {}
 
 static inline bool htcmp(const ivec &x, const ivec &y)
 {
@@ -1245,7 +1306,7 @@ struct bvec
 
     bool iszero() const { return x==0 && y==0 && z==0; }
 
-    vec tovec() const { return vec(x*(2.0f/255.0f)-1.0f, y*(2.0f/255.0f)-1.0f, z*(2.0f/255.0f)-1.0f); }
+    vec tonormal() const { return vec(x*(2.0f/255.0f)-1.0f, y*(2.0f/255.0f)-1.0f, z*(2.0f/255.0f)-1.0f); }
 
     bvec &normalize()
     {
@@ -1269,6 +1330,40 @@ struct bvec
     static bvec fromcolor(const vec &v) { return bvec(uchar(v.x*255.0f), uchar(v.y*255.0f), uchar(v.z*255.0f)); }
     vec tocolor() const { return vec(x*(1.0f/255.0f), y*(1.0f/255.0f), z*(1.0f/255.0f)); }
 };
+
+struct usvec
+{
+    union
+    {
+        struct { ushort x, y, z; };
+        ushort v[3];
+    };
+
+    ushort &operator[](int i) { return v[i]; }
+    ushort operator[](int i) const { return v[i]; }
+};
+
+inline vec::vec(const usvec &v) : x(v.x), y(v.y), z(v.z) {}
+inline ivec::ivec(const usvec &v) : x(v.x), y(v.y), z(v.z) {}
+
+struct svec
+{
+    union
+    {
+        struct { short x, y, z; };
+        short v[3];
+    };
+
+    svec() {}
+    svec(short x, short y, short z) : x(x), y(y), z(z) {}
+    svec(const ivec &v) : x(v.x), y(v.y), z(v.z) {}
+
+    short &operator[](int i) { return v[i]; }
+    short operator[](int i) const { return v[i]; }
+};
+
+inline vec::vec(const svec &v) : x(v.x), y(v.y), z(v.z) {}
+inline ivec::ivec(const svec &v) : x(v.x), y(v.y), z(v.z) {}
 
 struct glmatrix
 {

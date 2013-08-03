@@ -277,7 +277,7 @@ void findents(int low, int high, bool notspawned, const vec &pos, const vec &rad
          br = vec(pos).add(radius).add(1);
     int diff = (bo.x^br.x) | (bo.y^br.y) | (bo.z^br.z) | octaentsize,
         scale = worldscale-1;
-    if(diff&~((1<<scale)-1) || uint(bo.x|bo.y|bo.z|(bo.x+br.x)|(bo.y+br.y)|(bo.z+br.z)) >= uint(worldsize))
+    if(diff&~((1<<scale)-1) || uint(bo.x|bo.y|bo.z|br.x|br.y|br.z) >= uint(worldsize))
     {
         findents(worldroot, ivec(0, 0, 0), 1<<scale, bo, br, low, high, notspawned, pos, invradius, found);
         return;
@@ -429,7 +429,7 @@ vec getselpos()
     vector<extentity *> &ents = entities::getents();
     if(entgroup.length() && ents.inrange(entgroup[0])) return ents[entgroup[0]]->o;
     if(ents.inrange(enthover)) return ents[enthover]->o;
-    return sel.o.tovec();
+    return vec(sel.o);
 }
 
 undoblock *copyundoents(undoblock *u)
@@ -902,7 +902,7 @@ bool dropentity(entity &e, int drop = -1)
             cx = (sel.cx ? 1 : -1) * sel.grid / 2;
             cy = (sel.cy ? 1 : -1) * sel.grid / 2;
         }
-        e.o = sel.o.tovec();
+        e.o = vec(sel.o);
         int d = dimension(sel.orient), dc = dimcoord(sel.orient);
         e.o[R[d]] += sel.grid / 2 + cx;
         e.o[C[d]] += sel.grid / 2 + cy;
@@ -960,7 +960,7 @@ void entcopy()
     entcopygrid = sel.grid;
     entcopybuf.shrink(0);
     loopv(entgroup)
-        entfocus(entgroup[i], entcopybuf.add(e).o.sub(sel.o.tovec()));
+        entfocus(entgroup[i], entcopybuf.add(e).o.sub(vec(sel.o)));
 }
 
 void entpaste()
@@ -973,8 +973,7 @@ void entpaste()
     loopv(entcopybuf)
     {
         extentity &c = entcopybuf[i]; // INTENSITY: extentity, for uniqueID
-        vec o(c.o);
-        o.mul(m).add(sel.o.tovec());
+        vec o = vec(c.o).mul(m).add(vec(sel.o));
 
         // INTENSITY: Create entity using new system
         CLogicEntity *entity = LogicSystem::getLogicEntity(c);
@@ -1290,7 +1289,7 @@ void shrinkmap()
 
     ivec offset(octant, 0, 0, 0, worldsize);
     vector<extentity *> &ents = entities::getents();
-    loopv(ents) ents[i]->o.sub(offset.tovec());
+    loopv(ents) ents[i]->o.sub(vec(offset));
 
 #ifndef SERVER
     shrinkblendmap(octant);

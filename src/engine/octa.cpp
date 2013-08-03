@@ -1131,7 +1131,7 @@ void calcvert(const cube &c, int x, int y, int z, int size, ivec &v, int i, bool
 
 void calcvert(const cube &c, int x, int y, int z, int size, vec &v, int i, bool solid)
 {
-    if(solid) v = cubecoords[i].tovec(); else gencubevert(c, i, v);
+    if(solid) v = vec(cubecoords[i]); else gencubevert(c, i, v);
     v.mul(size/8.0f).add(vec(x, y, z));
 }
 

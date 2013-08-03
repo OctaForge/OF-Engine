@@ -906,11 +906,8 @@ void writeobj(char *name)
                 if(key.x == verts.length())
                 {
                     verts.add(pos);
-                    loopl(3)
-                    {
-                        bbmin[l] = min(bbmin[l], pos[l]);
-                        bbmax[l] = max(bbmax[l], pos[l]);
-                    }
+                    bbmin.min(pos);
+                    bbmax.max(pos);
                 }
                 key.y = sharetc.access(tc, texcoords.length());
                 if(key.y == texcoords.length()) texcoords.add(tc);
@@ -963,8 +960,125 @@ void writeobj(char *name)
         f->printf("\n");
     }
     delete f;
+
+    conoutf("generated model %s", fname); 
 }
 
 COMMAND(writeobj, "s");
+
+void writecollideobj(char *name)
+{
+    extern bool havesel;
+    extern selinfo sel;
+    if(!havesel)
+    {
+        conoutf(CON_ERROR, "geometry for collide model not selected");
+        return;
+    }
+    vector<extentity *> &ents = entities::getents();
+    extentity *mm = NULL;
+    loopv(entgroup)
+    {
+        extentity &e = *ents[entgroup[i]];
+        if(e.type != ET_MAPMODEL || !pointinsel(sel, e.o)) continue;
+        mm = &e;
+        break;
+    }  
+    if(!mm) loopv(ents)
+    {
+        extentity &e = *ents[i];
+        if(e.type != ET_MAPMODEL || !pointinsel(sel, e.o)) continue;
+        mm = &e;
+        break;
+    }
+    if(!mm)
+    {
+        conoutf(CON_ERROR, "could not find map model in selection");
+        return;
+    }
+    model *m = mm->m;
+    if(!m)
+    {
+        conoutf(CON_ERROR, "could not get map model for entity %d", mm->uid);
+        return;
+    }
+
+    matrix3x4 xform;
+    m->calctransform(xform);
+    float scale = mm->attr[3] > 0 ? mm->attr[3]/100.0f : 1;
+    int yaw = mm->attr[0], pitch = mm->attr[1], roll = mm->attr[2];
+    matrix3x3 orient;
+    orient.identity();
+    if(scale != 1) orient.scale(scale);
+    if(yaw) orient.rotate_around_z(sincosmod360(yaw));
+    if(pitch) orient.rotate_around_x(sincosmod360(pitch));
+    if(roll) orient.rotate_around_y(sincosmod360(-roll));
+    xform.mul(orient, mm->o, matrix3x4(xform));
+    xform.invert();
+
+    ivec selmin = sel.o, selmax = ivec(sel.s).mul(sel.grid).add(sel.o);
+    extern vector<vtxarray *> valist;
+    vector<vec> verts;
+    hashtable<vec, int> shareverts;
+    vector<int> tris;
+    loopv(valist)
+    {
+        vtxarray &va = *valist[i];
+        if(va.geommin.x > selmax.x || va.geommin.y > selmax.y || va.geommin.z > selmax.z ||
+           va.geommax.x < selmin.x || va.geommax.y < selmin.y || va.geommax.z < selmin.z)
+            continue;
+        if(!va.edata || !va.vdata) continue;
+        ushort *edata = va.edata + va.eoffset;
+        vertex *vdata = va.vdata;
+        ushort *idx = edata;
+        loopj(va.texs)
+        {
+            elementset &es = va.eslist[j];
+            for(int k = 0; k < es.length; k += 3)
+            {
+                const vec &v0 = vdata[idx[k]].pos, &v1 = vdata[idx[k+1]].pos, &v2 = vdata[idx[k+2]].pos;
+                if(v0.x > selmax.x || v0.y > selmax.y || v0.z > selmax.z || 
+                   v0.x < selmin.x || v0.y < selmin.y || v0.z < selmin.z ||
+                   v1.x > selmax.x || v1.y > selmax.y || v1.z > selmax.z || 
+                   v1.x < selmin.x || v1.y < selmin.y || v1.z < selmin.z ||
+                   v2.x > selmax.x || v2.y > selmax.y || v2.z > selmax.z || 
+                   v2.x < selmin.x || v2.y < selmin.y || v2.z < selmin.z)
+                    continue;
+                int i0 = shareverts.access(v0, verts.length());
+                if(i0 == verts.length()) verts.add(v0);
+                tris.add(i0);
+                int i1 = shareverts.access(v1, verts.length());
+                if(i1 == verts.length()) verts.add(v1);
+                tris.add(i1);
+                int i2 = shareverts.access(v2, verts.length());
+                if(i2 == verts.length()) verts.add(v2);
+                tris.add(i2);
+            }
+            idx += es.length;
+        }
+    }
+
+    defformatstring(fname, "%s.obj", name);
+    stream *f = openfile(path(fname), "w");
+    if(!f) return;
+    f->printf("# obj file of Cube 2 collide model\n\n");
+    loopv(verts)
+    {
+        vec v = xform.transform(verts[i]);
+        if(v.y != floor(v.y)) f->printf("v %.3f ", -v.y); else f->printf("v %d ", int(-v.y));
+        if(v.z != floor(v.z)) f->printf("%.3f ", v.z); else f->printf("%d ", int(v.z));
+        if(v.x != floor(v.x)) f->printf("%.3f\n", v.x); else f->printf("%d\n", int(v.x));
+    }
+    f->printf("\n");
+    for(int i = 0; i < tris.length(); i += 3)
+       f->printf("f %d %d %d\n", tris[i+2]+1, tris[i+1]+1, tris[i]+1);
+    f->printf("\n");
+            
+    delete f;
+
+    conoutf("generated collide model %s", fname);
+}
+
+COMMAND(writecollideobj, "s");
 
 ICOMMAND(export_entities, "s", (char *fn), world::export_ents(fn));
