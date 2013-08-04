@@ -771,21 +771,21 @@ template <class T> struct vector
         for(int i = 1; i < ulen; i++) if(htcmp(buf[i-1], buf[i])) \
         { \
             int n = i; \
-            while(++i < ulen) if(!htcmp(buf[i-1], buf[i])) { overwrite; buf[n++] = buf[i]; } \
+            while(++i < ulen) if(!htcmp(buf[n-1], buf[i])) { overwrite; n++; } \
             cleanup; \
             break; \
         }
     void unique() // contents must be initially sorted
     {
-        UNIQUE( , setsize(n)); 
+        UNIQUE(buf[n] = buf[i], setsize(n));
     }
     void uniquedeletecontents()
     {
-        UNIQUE(delete buf[n], deletecontents(n));
+        UNIQUE(swap(buf[n], buf[i]), deletecontents(n));
     }
     void uniquedeletearrays()
     {
-        UNIQUE(delete[] buf[n], deletearrays(n));
+        UNIQUE(swap(buf[n], buf[i]), deletearrays(n));
     }
     #undef UNIQUE
 };

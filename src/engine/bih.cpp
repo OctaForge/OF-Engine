@@ -10,8 +10,8 @@ bool BIH::triintersect(const mesh &m, const tri &t, const vec &mo, const vec &mr
     if(v < 0 || v > adet) return false;
     float w = -e.dot(b);
     if(w < 0 || v + w > adet) return false;
-    float f = r.dot(n);
-    if(f < 0 || f > maxdist*adet || !adet) return false;
+    float f = r.dot(n)*m.scale;
+    if(f < 0 || f> maxdist*adet || !adet) return false;
     float invdet = 1/adet;
     if(m.flags&MESH_ALPHA && (mode&RAY_ALPHAPOLY)==RAY_ALPHAPOLY && (m.tex->alphamask || (loadalphamask(m.tex), m.tex->alphamask)))
     {

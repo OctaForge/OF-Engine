@@ -265,7 +265,7 @@ struct animmodel : model
             m.xform = t;
             m.tex = s.tex;
             if(canrender) m.flags |= BIH::MESH_RENDER;
-            if(cancollide) m.flags |= BIH::MESH_COLLIDE; 
+            if(cancollide) m.flags |= BIH::MESH_COLLIDE;
             if(s.tex && s.tex->type&Texture::ALPHA) m.flags |= BIH::MESH_ALPHA;
             if(noclip) m.flags |= BIH::MESH_NOCLIP;
             genBIH(m);
@@ -1759,7 +1759,7 @@ template<class MDL, class MESH> struct modelcommands
             modelcommand(setshader, "shader", "ss");
             modelcommand(setscroll, "scroll", "sff");
             modelcommand(setnoclip, "noclip", "si");
-            modelcommand(settricollide, "tricollide", "s"); 
+            modelcommand(settricollide, "tricollide", "s");
         }
         if(MDL::multiparted()) modelcommand(setlink, "link", "iisfff");
     }
