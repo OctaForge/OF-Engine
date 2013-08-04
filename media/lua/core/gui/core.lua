@@ -38,6 +38,7 @@ local clamp = math2.clamp
 local floor = math.floor
 local ceil  = math.ceil
 local emit  = signal.emit
+local pairs, ipairs = pairs, ipairs
 
 local tremove = table.remove
 local tinsert = table.insert
@@ -460,6 +461,16 @@ local Widget, Window
     state is found, it's used. Otherwise the global "variants" table is
     tried, getting the variant self.variant (or "default" if none).
 
+    Along with "variants", the global widget class can contain "properties".
+    These allow to define per-variant special attributes for widgets (each
+    comes with a setter that emits the appropriate signal). The tablle
+    "properties" maps a variant name to an array of property names.
+
+    Note that you can't override existing properties (as in, either self[name]
+    or self["set_" .. name] exists) and if you set a different variant, all
+    custom properties are discarded and replaced. Properties starting with an
+    underscore are not allowed (reserved for private fields).
+
     The property "container" is a reference to another widget that is used
     as a target for appending/prepending/insertion and is fully optional.
 
@@ -545,7 +556,7 @@ Widget = register_class("Widget", table2.Object, {
         menu and tooltip if present (and if self is their parent).
     ]]
     clear = function(self)
-        if self.cleared then return nil end
+        if self._cleared then return nil end
         clear_focus(self)
 
         local children = self.children
@@ -573,7 +584,7 @@ Widget = register_class("Widget", table2.Object, {
             insts[self] = nil
         end
 
-        self.cleared = true
+        self._cleared = true
     end,
 
     --[[! Function: deep_clone
@@ -603,15 +614,15 @@ Widget = register_class("Widget", table2.Object, {
     set_variant = function(self, variant)
         self.variant = variant
         local vstates = {}
+        local old_vstates = self.vstates
+        if old_vstates then
+            for k, v in pairs(old_vstates) do
+                v:clear()
+            end
+        end
         local dstates = rawget(self.__proto, "variants")
         dstates = dstates and dstates[variant or "default"] or nil
         if dstates then
-            local old_vstates = self.vstates
-            if old_vstates then
-                for k, v in pairs(old_vstates) do
-                    v:clear()
-                end
-            end
             for k, v in pairs(dstates) do
                 local ic = v.init_clone
                 local cl = v:deep_clone(self)
@@ -620,9 +631,24 @@ Widget = register_class("Widget", table2.Object, {
                 if ic then ic(cl, self) end
             end
         end
+        local oldprops = self.defprops
+        if oldprops then for i, v in ipairs(oldprops) do
+            self["set_" .. v], self[v] = nil, nil
+        end end
+        local defprops = {}
+        local props = rawget(self.__proto, "properties")
+        props = props and props[variant or "default"] or nil
+        if props then for i, v in ipairs(props) do
+            local nm = "set_" .. v
+            assert(v:sub(1, 1) != "_", "invalid property " .. v)
+            assert(not self[nm] and self[v] == nil,
+                "cannot override existing property " .. v)
+            self[nm] = gen_setter(v)
+        end end
         local cont = self.container
-        if cont and cont.cleared then self.container = nil end
-        self.vstates = vstates
+        if cont and cont._cleared then self.container = nil end
+        self.vstates  = vstates
+        self.defprops = defprops
     end,
 
     --[[! Function: update_class_state
@@ -668,7 +694,7 @@ Widget = register_class("Widget", table2.Object, {
                 end
             end
             local cont = v.container
-            if cont and cont.cleared then v.container = nil end
+            if cont and cont._cleared then v.container = nil end
         end end
     end,
 
@@ -696,7 +722,7 @@ Widget = register_class("Widget", table2.Object, {
         states[state] = obj
         obj.parent = self
         local cont = self.container
-        if cont and cont.cleared then self.container = nil end
+        if cont and cont._cleared then self.container = nil end
         self:state_changed(state, obj)
         return obj
     end,
@@ -1168,6 +1194,9 @@ Widget = register_class("Widget", table2.Object, {
 
     --[[! Function: set_container ]]
     set_container = gen_setter "container",
+
+    --[[! Function: set_init_clone ]]
+    set_init_clone = gen_setter "init_clone",
 
     --[[! Function: insert
         Given a position in the children list, a widget and optionally a
