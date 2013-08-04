@@ -431,7 +431,7 @@ local Widget, Window
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of widgets), floating (whether the widget is freely
     movable), parent (the parent widget), variant, variants, states, tooltip
-    (a widget) and menu (a widget).
+    (a widget), menu (a widget) and container (a widget).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -442,8 +442,8 @@ local Widget, Window
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, variant, states, signals,
-    tooltip, menu and init, which is a function called at the end of the
-    constructor if it exists). Array members of kwargs are children.
+    tooltip, menu, container and init, which is a function called at the end
+    of the constructor if it exists). Array members of kwargs are children.
 
     Widgets instances can have states - they're named references to widgets
     and are widget type specific. For example a button could have states
@@ -459,6 +459,9 @@ local Widget, Window
     the "states" member (which is local to the widget instance). If such
     state is found, it's used. Otherwise the global "variants" table is
     tried, getting the variant self.variant (or "default" if none).
+
+    The property "container" is a reference to another widget that is used
+    as a target for appending/prepending/insertion and is fully optional.
 
     Each widget class also contains an "instances" table storing a set
     of all instances of the widget class.
@@ -538,9 +541,11 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: clear
         Clears a widget including its children recursively. Calls the
         "destroy" signal. Removes itself from its widget class' instances
-        set.
+        set. Does nothing if already cleared. Also clears the container,
+        menu and tooltip if present (and if self is their parent).
     ]]
     clear = function(self)
+        if self.cleared then return nil end
         clear_focus(self)
 
         local children = self.children
@@ -556,11 +561,19 @@ Widget = register_class("Widget", table2.Object, {
             for k, v in pairs(vstates) do v:clear() end
         end
 
+        local container, menu, tooltip in self
+        self.container, self.menu, self.tooltip = nil, nil, nil
+        if container and container.parent == self then container:clear() end
+        if menu      and menu.parent      == self then      menu:clear() end
+        if tooltip   and tooltip.parent   == self then   tooltip:clear() end
+
         emit(self, "destroy")
         local insts = rawget(self.__proto, "instances")
         if insts then
             insts[self] = nil
         end
+
+        self.cleared = true
     end,
 
     --[[! Function: deep_clone
@@ -593,6 +606,12 @@ Widget = register_class("Widget", table2.Object, {
         local dstates = rawget(self.__proto, "variants")
         dstates = dstates and dstates[variant or "default"] or nil
         if dstates then
+            local old_vstates = self.vstates
+            if old_vstates then
+                for k, v in pairs(old_vstates) do
+                    v:clear()
+                end
+            end
             for k, v in pairs(dstates) do
                 local ic = v.init_clone
                 local cl = v:deep_clone(self)
@@ -601,6 +620,8 @@ Widget = register_class("Widget", table2.Object, {
                 if ic then ic(cl, self) end
             end
         end
+        local cont = self.container
+        if cont and cont.cleared then self.container = nil end
         self.vstates = vstates
     end,
 
@@ -628,6 +649,7 @@ Widget = register_class("Widget", table2.Object, {
         end
         local oldstate = variant[sname]
         variant[sname] = sval
+        oldstate:clear()
 
         local insts = rawget(self, "instances")
         if insts then for v in pairs(insts) do
@@ -645,9 +667,9 @@ Widget = register_class("Widget", table2.Object, {
                     v:state_changed(sname, nst)
                 end
             end
+            local cont = v.container
+            if cont and cont.cleared then v.container = nil end
         end end
-
-        oldstate:clear()
     end,
 
     --[[! Function: update_class_states
@@ -673,6 +695,8 @@ Widget = register_class("Widget", table2.Object, {
         if ostate then ostate:clear() end
         states[state] = obj
         obj.parent = self
+        local cont = self.container
+        if cont and cont.cleared then self.container = nil end
         self:state_changed(state, obj)
         return obj
     end,
@@ -1142,13 +1166,20 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: set_menu ]]
     set_menu = gen_setter "menu",
 
+    --[[! Function: set_container ]]
+    set_container = gen_setter "container",
+
     --[[! Function: insert
         Given a position in the children list, a widget and optionally a
         function, this inserts the given widget in the position and calls
-        the function with the widget as an argument.
+        the function with the widget as an argument. Finally, the last
+        argument allows you to enforce insertion into the "real" children
+        array instead of a custom container (even if it's defined).
     ]]
-    insert = function(self, pos, obj, fun)
-        tinsert(self.children, pos, obj)
+    insert = function(self, pos, obj, fun, force_ch)
+        local children = force_ch and self.children
+            or (self.container or self).children
+        tinsert(children, pos, obj)
         obj.parent = self
         if fun then fun(obj) end
         return obj
@@ -1157,10 +1188,13 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: append
         Given a widget and optionally a function, this inserts the given
         widget in the end of the child list and calls the function with the
-        widget as an argument.
+        widget as an argument. Finally, the last argument allows you to
+        enforce insertion into the "real" children array instead of a custom
+        container (even if it's defined).
     ]]
-    append = function(self, obj, fun)
-        local children = self.children
+    append = function(self, obj, fun, force_ch)
+        local children = force_ch and self.children
+            or (self.container or self).children
         children[#children + 1] = obj
         obj.parent = self
         if fun then fun(obj) end
@@ -1170,10 +1204,14 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: prepend
         Given a widget and optionally a function, this inserts the given
         widget in the beginning of the child list and calls the function
-        with the widget as an argument.
+        with the widget as an argument. Finally, the last argument allows
+        you to enforce insertion into the "real" children array instead of
+        a custom container (even if it's defined).
     ]]
-    prepend = function(self, obj, fun)
-        tinsert(self.children, 1, obj)
+    prepend = function(self, obj, fun, force_ch)
+        local children = force_ch and self.children
+            or (self.container or self).children
+        tinsert(children, 1, obj)
         obj.parent = self
         if fun then fun(obj) end
         return obj
