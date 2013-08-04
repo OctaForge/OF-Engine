@@ -520,6 +520,8 @@ Widget = register_class("Widget", table2.Object, {
         self.tooltip = kwargs.tooltip or false
         self.menu    = kwargs.menu    or false
 
+        self.init_clone = kwargs.init_clone
+
         local ch = {}
         for i, v in ipairs(kwargs) do
             ch[i] = v
@@ -542,7 +544,21 @@ Widget = register_class("Widget", table2.Object, {
             end
         end
         self.states = states
-        self:set_variant(kwargs.variant)
+
+        local variant = kwargs.variant
+
+        -- extra kwargs
+        local props = rawget(self.__proto, "properties")
+        props = props and props[variant or "default"] or nil
+        if props then for i, v in ipairs(props) do
+            assert(v:sub(1, 1) != "_", "invalid property " .. v)
+            assert(not self["set_" .. v] and self[v] == nil,
+                "cannot override existing property " .. v)
+            self[v] = kwargs[v]
+        end end
+
+        -- disable asserts, already checked above
+        self:set_variant(variant, true)
 
         -- and init
         if  kwargs.init then
@@ -612,7 +628,7 @@ Widget = register_class("Widget", table2.Object, {
         Sets the variant this widget instance uses. If not provided, "default"
         is set implicitly.
     ]]
-    set_variant = function(self, variant)
+    set_variant = function(self, variant, disable_asserts)
         self.variant = variant
         local vstates = {}
         local old_vstates = self.vstates
@@ -641,9 +657,11 @@ Widget = register_class("Widget", table2.Object, {
         props = props and props[variant or "default"] or nil
         if props then for i, v in ipairs(props) do
             local nm = "set_" .. v
-            assert(v:sub(1, 1) != "_", "invalid property " .. v)
-            assert(not self[nm] and self[v] == nil,
-                "cannot override existing property " .. v)
+            if not disable_asserts then
+                assert(v:sub(1, 1) != "_", "invalid property " .. v)
+                assert(not self[nm] and self[v] == nil,
+                    "cannot override existing property " .. v)
+            end
             self[nm] = gen_setter(v)
         end end
         local cont = self.container
@@ -1789,7 +1807,7 @@ set_external("gui_update", function()
         hovering, clicked = nil, nil
     end
 
-    if wvsibile then world:layout() end
+    if wvisible then world:layout() end
 
     local msl = #menustack
     if hovering then

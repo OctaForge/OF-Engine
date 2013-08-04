@@ -7,19 +7,41 @@ gui.Button.variants = {
     default = {
         default = gui.Outline {
             r = 0, g = 0, b = 0, min_w = 0.2, min_h = 0.03,
-            gui.Label { text = "Idle" }
+            init_clone = function(self, btn)
+                local lbl = gui.Label { text = btn.label }
+                signal.connect(btn, "label_changed", function(btn, text)
+                    lbl:set_text(text)
+                end)
+                self:append(lbl)
+            end
         },
 
         hovering = gui.Outline {
             r = 0, g = 0, b = 255, min_w = 0.2, min_h = 0.03,
-            gui.Label { text = "Hovering" }
+            init_clone = function(self, btn)
+                local lbl = gui.Label { text = btn.label }
+                signal.connect(btn, "label_changed", function(btn, text)
+                    lbl:set_text(text)
+                end)
+                self:append(lbl)
+            end
         },
 
         clicked = gui.Color_Filler {
             min_w = 0.2, min_h = 0.03, r = 255, g = 0, b = 255,
-            gui.Label { text = "Clicked" }
+            init_clone = function(self, btn)
+                local lbl = gui.Label { text = btn.label }
+                signal.connect(btn, "label_changed", function(btn, text)
+                    lbl:set_text(text)
+                end)
+                self:append(lbl)
+            end
         }
     }
+}
+
+gui.Button.properties = {
+    default = { "label" }
 }
 
 gui.Menu_Button.variants = {
@@ -41,6 +63,11 @@ gui.Menu_Button.variants = {
             gui.Label { text = "Submenu opened" }
         }
     }
+}
+
+gui.Menu_Button.properties = {
+    default = { "label" },
+    submenu = { "label" }
 }
 
 --[[
@@ -107,15 +134,17 @@ world:new_window("main", gui.Window, |win| do
             end)
 
             b:append(gui.H_Box(), |b| do
-                b:append(gui.Menu_Button(), |b| do
+                b:append(gui.Menu_Button { label = "Menu 1" }, |b| do
                     b:set_menu(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
                         gui.V_Box {
                             gui.Menu_Button {
+                                label = "Submenu 1",
                                 menu = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 192,
                                     b = 0, a = 192,
                                     gui.Menu_Button {
+                                        label = "Subsubmenu 1",
                                         menu = gui.Color_Filler {
                                             min_w = 0.2, min_h = 0.3, r = 192,
                                             g = 192, b = 0, a = 192,
@@ -127,6 +156,7 @@ world:new_window("main", gui.Window, |win| do
                                 variant = "submenu"
                             },
                             gui.Menu_Button {
+                                label = "Submenu 2",
                                 menu = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 0,
                                     b = 192, a = 192
@@ -136,12 +166,12 @@ world:new_window("main", gui.Window, |win| do
                         }
                     })
                 end)
-                b:append(gui.Menu_Button(), |b| do
+                b:append(gui.Menu_Button { label = "Menu 2" }, |b| do
                     b:set_menu(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
                     })
                 end)
-                b:append(gui.Menu_Button(), |b| do
+                b:append(gui.Menu_Button { label = "Menu 3" }, |b| do
                     b:set_menu(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
                     })
