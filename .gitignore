@@ -1,10 +1,12 @@
+.gitattributes
 *.o
 *.so
 *.dll
 *.a
 *.lib
-OF_Client*
-OF_Server*
+*.bak
+client_*
+server_*
 out
 *~
 .directory
