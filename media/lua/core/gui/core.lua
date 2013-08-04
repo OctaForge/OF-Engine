@@ -506,6 +506,7 @@ Widget = register_class("Widget", table2.Object, {
         local clamp_t = kwargs.clamp_t or false
 
         self.floating = kwargs.floating or false
+        self.visible  = (kwargs.visible != false) and true or false
 
         self:align(align_h, align_v)
         self:clamp(clamp_l, clamp_r, clamp_b, clamp_t)
@@ -845,7 +846,7 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     target = function(self, cx, cy)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c = o:target(ox, oy)
+            local c = o.visible and o:target(ox, oy) or nil
             if c then return c end
         end)
     end,
@@ -859,7 +860,7 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     key = function(self, code, isdown)
         return loop_children_r(self, function(o)
-            if o:key(code, isdown) then return true end
+            if o.visible and o:key(code, isdown) then return true end
         end) or false
     end,
 
@@ -872,7 +873,7 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     key_raw = function(self, code, isdown)
         return loop_children_r(self, function(o)
-            if o:key_raw(code, isdown) then return true end
+            if o.visible and o:key_raw(code, isdown) then return true end
         end) or false
     end,
 
@@ -883,7 +884,7 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     text_input = function(self, str)
         return loop_children_r(self, function(o)
-            if o:text_input(str) then return true end
+            if o.visible and o:text_input(str) then return true end
         end) or false
     end,
 
@@ -893,9 +894,9 @@ Widget = register_class("Widget", table2.Object, {
         react otherwise.
     ]]
     key_hover = function(self, code, isdown)
-        local p = self.parent
-        if p then return p:key_hover(code, isdown) end
-        return false
+        return loop_children_r(self, function(o)
+            if o.visible and o:key_hover(code, isdown) then return true end
+        end) or false
     end,
 
     --[[! Function: draw
@@ -913,7 +914,8 @@ Widget = register_class("Widget", table2.Object, {
             local oy = o.y
             local ow = o.w
             local oh = o.h
-            if not is_fully_clipped(sx + ox, sy + oy, ow, oh) then
+            if not is_fully_clipped(sx + ox, sy + oy, ow, oh)
+            and o.visible then
                 o:draw(sx + ox, sy + oy)
             end
         end)
@@ -930,7 +932,7 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     hover = function(self, cx, cy)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c  = o:hover(ox, oy)
+            local c  = o.visible and o:hover(ox, oy) or nil
             if    c == o then
                 hover_x = ox
                 hover_y = oy
@@ -961,7 +963,7 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     click = function(self, cx, cy)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c  = o:click(ox, oy)
+            local c  = o.visible and o:click(ox, oy) or nil
             if    c == o then
                 click_x = ox
                 click_y = oy
@@ -1185,6 +1187,9 @@ Widget = register_class("Widget", table2.Object, {
 
     --[[! Function: set_floating ]]
     set_floating = gen_setter "floating",
+
+    --[[! Function: set_visible ]]
+    set_visible = gen_setter "visible",
 
     --[[! Function: set_tooltip ]]
     set_tooltip = gen_setter "tooltip",
@@ -1653,7 +1658,7 @@ local menus_drop = function(n)
 end
 
 set_external("input_keypress", function(code, isdown)
-    if not cursor_exists() then return false end
+    if not cursor_exists() or not world.visible then return false end
     if world:key_raw(code, isdown) then return true end
     if code == key.MOUSE5 or code == key.MOUSE4 or
        code == key.LEFT   or code == key.RIGHT  or
@@ -1747,9 +1752,12 @@ set_external("gui_update", function()
     end
 
     if not draw_hud and mm == 0 then draw_hud = true end
+    if draw_hud then draw_hud = hud.visible end
+
+    local wvisible = world.visible
 
     local nhov = 0
-    if cursor_exists() then
+    if cursor_exists() and wvisible then
         local w, h = world.w, world.h
         local cx, cy = cursor_x * w, cursor_y * h
         local hovering_try
@@ -1781,7 +1789,7 @@ set_external("gui_update", function()
         hovering, clicked = nil, nil
     end
 
-    world:layout()
+    if wvsibile then world:layout() end
 
     local msl = #menustack
     if hovering then
@@ -1827,7 +1835,7 @@ end)
 
 set_external("gui_render", function()
     local w = world
-    if draw_hud or #w.children != 0 then
+    if draw_hud or (w.visible and #w.children != 0) then
         w:projection()
         hudmatrix_reset()
         shader_hud_set()
