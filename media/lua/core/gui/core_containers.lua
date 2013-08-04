@@ -54,31 +54,29 @@ M.H_Box = register_class("H_Box", Widget, {
 
     layout = function(self)
         self.w, self.h = 0, 0
-
+        local subw = 0
         loop_children(self, function(o)
-            o.x = self.w
+            o.x = subw
             o.y = 0
             o:layout()
-
-            self.w = self.w + o.w
+            subw += o.w
             self.h = max(self.h, o.y + o.h)
         end)
-        self.w = self.w + self.padding * max(#self.vstates +
+        self.w = subw + self.padding * max(#self.vstates +
             #self.children - 1, 0)
+        self.subw = subw
     end,
 
     adjust_children = function(self)
-        if #self.children == 0 and #self.vstates == 0 then
-            return nil
-        end
-
-        local offset = 0
+        local nchildren, nvstates = #self.children, #self.vstates
+        if nchildren == 0 and nvstates == 0 then return nil end
+        local offset, space = 0, (self.w - self.subw) / max(nvstates +
+            nchildren - 1, 1)
         loop_children(self, function(o)
             o.x = offset
-            offset = offset + o.w
-
+            offset += o.w
             o:adjust_layout(o.x, 0, o.w, self.h)
-            offset = offset + self.padding
+            offset += space
         end)
     end,
 
@@ -97,33 +95,30 @@ M.V_Box = register_class("V_Box", Widget, {
     end,
 
     layout = function(self)
-        self.w = 0
-        self.h = 0
-
+        self.w, self.h = 0, 0
+        local subh = 0
         loop_children(self, function(o)
             o.x = 0
-            o.y = self.h
+            o.y = subh
             o:layout()
-
-            self.h = self.h + o.h
+            subh += o.h
             self.w = max(self.w, o.x + o.w)
         end)
-        self.h = self.h + self.padding * max(#self.vstates +
+        self.h = subh + self.padding * max(#self.vstates +
             #self.children - 1, 0)
+        self.subh = subh
     end,
 
     adjust_children = function(self)
-        if #self.children == 0 and #self.vstates == 0 then
-            return nil
-        end
-
-        local offset = 0
+        local nchildren, nvstates = #self.children, #self.vstates
+        if nchildren == 0 and nvstates == 0 then return nil end
+        local offset, space = 0, (self.h - self.subh) / max(nvstates +
+            nchildren - 1, 1)
         loop_children(self, function(o)
             o.y = offset
-            offset = offset + o.h
-
+            offset += o.h
             o:adjust_layout(0, o.y, self.w, o.h)
-            offset = offset + self.padding
+            offset += space
         end)
     end,
 
@@ -142,7 +137,6 @@ M.Grid = register_class("Grid", Widget, {
         kwargs = kwargs or {}
         self.columns = kwargs.columns or 0
         self.padding = kwargs.padding or 0
-
         return Widget.__init(self, kwargs)
     end,
 
@@ -156,13 +150,13 @@ M.Grid = register_class("Grid", Widget, {
         loop_children(self, function(o)
             o:layout()
 
-            if #widths < column then
+            if #widths <= column then
                 widths[#widths + 1] = o.w
             elseif o.w > widths[column] then
                 widths[column] = o.w
             end
 
-            if #heights < row then
+            if #heights <= row then
                 heights[#heights + 1] = o.h
             elseif o.h > heights[row] then
                 heights[row] = o.h
@@ -174,60 +168,22 @@ M.Grid = register_class("Grid", Widget, {
             end
         end)
 
-        local p_w, p_h = 0, 0
-        column, row    = 1, 1
-
-        local offset = 0
-
-        loop_children(self, function(o)
-            o.x = offset
-            o.y = p_h
-
-            local wc, hr = widths[column], heights[row]
-            o:adjust_layout(offset, p_h, wc, hr)
-            offset = offset + wc
-
-            p_w = max(p_w, offset)
-            column = (column % columns) + 1
-
-            if column == 1 then
-                offset = 0
-                p_h = p_h + hr
-                row = row + 1
-            end
-        end)
-
-        if column != 1 then
-            p_h = p_h + heights[row]
-        end
-
-        self.w = p_w + padding * max(#widths  - 1, 0)
-        self.h = p_h + padding * max(#heights - 1, 0)
+        local subw, subh = 0, 0
+        for i = 1, #widths  do subw +=  widths[i] end
+        for i = 1, #heights do subh += heights[i] end
+        self.w = subw + padding * max(#widths  - 1, 0)
+        self.h = subh + padding * max(#heights - 1, 0)
+        self.subw, self.subh = subw, subh
     end,
 
     adjust_children = function(self)
-        if #self.children == 0 and #self.vstates == 0 then
-            return nil
-        end
-        
+        if #self.children == 0 and #self.vstates == 0 then return nil end
         local widths, heights = self.widths, self.heights
-        local columns = self.columns
-
-        local cspace = self.w
-        local rspace = self.h
-
-        for i = 1, #widths do
-            cspace = cspace - widths[i]
-        end
-        for i = 1, #heights do
-            rspace = rspace - heights[i]
-        end
-
-        cspace = cspace / max(#widths  - 1, 1)
-        rspace = rspace / max(#heights - 1, 1)
-
         local column , row     = 1, 1
         local offsetx, offsety = 0, 0
+        local cspace = (self.w - self.subw) / max(#widths  - 1, 1)
+        local rspace = (self.h - self.subh) / max(#heights - 1, 1)
+        local columns = self.columns
 
         loop_children(self, function(o)
             o.x = offsetx
