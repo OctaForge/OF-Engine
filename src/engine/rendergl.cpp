@@ -45,7 +45,7 @@ PFNGLGETMULTISAMPLEFVPROC      glGetMultisamplefv_      = NULL;
 PFNGLSAMPLEMASKIPROC           glSampleMaski_           = NULL;
 
 // GL_ARB_sample_shading
-PFNGLMINSAMPLESHADINGARBPROC glMinSampleShading_ = NULL;
+PFNGLMINSAMPLESHADINGPROC glMinSampleShading_ = NULL;
 
 // GL_NV_framebuffer_multisample_coverage
 PFNGLRENDERBUFFERSTORAGEMULTISAMPLECOVERAGENVPROC glRenderbufferStorageMultisampleCoverageNV_ = NULL;
@@ -667,12 +667,6 @@ void gl_checkextensions()
         hasTMS = true;
         if(glversion < 320 && dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_multisample extension.");
     }
-    if(hasext("GL_ARB_sample_shading"))
-    {
-        glMinSampleShading_ = (PFNGLMINSAMPLESHADINGARBPROC)getprocaddress("glMinSampleShadingARB");
-        hasMSS = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_sample_shading extension.");
-    }
     if(hasext("GL_EXT_framebuffer_multisample_blit_scaled"))
     {
         hasFBMSBS = true;
@@ -747,25 +741,6 @@ void gl_checkextensions()
        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_texture_filter_anisotropic extension.");
     }
 
-    if(hasext("GL_ARB_texture_gather"))
-    {
-        hasTG = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_gather extension.");
-    }
-    else if(hasext("GL_AMD_texture_texture4"))
-    {
-        hasT4 = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_AMD_texture_texture4 extension.");
-    }
-    if(hasTG || hasT4) usetexgather = 1;
-
-    if(hasext("GL_ARB_gpu_shader5"))
-    {
-        if(!intel) usetexgather = 2;
-        hasGPU5 = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_gpu_shader5 extension.");
-    }
-
     if(hasext("GL_EXT_depth_bounds_test"))
     {
         glDepthBounds_ = (PFNGLDEPTHBOUNDSEXTPROC) getprocaddress("glDepthBoundsEXT");
@@ -801,6 +776,40 @@ void gl_checkextensions()
             if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_explicit_attrib_location extension.");
         }
     }
+
+    if(glversion >= 400)
+    {
+        hasTG = hasGPU5 = true;
+
+        glMinSampleShading_ = (PFNGLMINSAMPLESHADINGPROC)getprocaddress("glMinSampleShading");
+        hasMSS = true;
+    }
+    else
+    {
+        if(hasext("GL_ARB_texture_gather"))
+        {
+            hasTG = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_gather extension.");
+        }
+        else if(hasext("GL_AMD_texture_texture4"))
+        {
+            hasT4 = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_AMD_texture_texture4 extension.");
+        }
+        if(hasext("GL_ARB_gpu_shader5"))
+        {
+            hasGPU5 = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_gpu_shader5 extension.");
+        }
+        if(hasext("GL_ARB_sample_shading"))
+        {
+            glMinSampleShading_ = (PFNGLMINSAMPLESHADINGPROC)getprocaddress("glMinSampleShadingARB");
+            hasMSS = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_sample_shading extension.");
+        }
+    }
+    if(hasTG || hasT4) usetexgather = 1;
+    if(hasTG && hasGPU5 && !intel) usetexgather = 2;
 
     if(hasext("GL_ARB_debug_output"))
     {

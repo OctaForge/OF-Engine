@@ -1437,17 +1437,33 @@ void landing(physent *d, vec &dir, const vec &floor, bool collided)
     d->floor = floor;
 }
 
-bool findfloor(physent *d, bool collided, const vec &obstacle, bool &slide, vec &floor)
+bool findfloor(physent *d, const vec &dir, bool collided, const vec &obstacle, bool &slide, vec &floor)
 {
     bool found = false;
     vec moved(d->o);
     d->o.z -= 0.1f;
     if(collide(d, vec(0, 0, -1), d->physstate == PHYS_SLOPE || d->physstate == PHYS_STEP_DOWN ? SLOPEZ : FLOORZ))
     {
-        floor = collidewall;
-        found = true;
+        if(d->physstate == PHYS_STEP_UP && d->floor != collidewall)
+        {
+            vec old(d->o), checkfloor(collidewall), checkdir = vec(dir).projectxydir(checkfloor).rescale(dir.magnitude());
+            d->o.add(checkdir);
+            if(!collide(d, checkdir))
+            {
+                floor = checkfloor;
+                found = true;
+                goto foundfloor;
+            }
+            d->o = old;
+        }
+        else
+        {
+            floor = collidewall;
+            found = true;
+            goto foundfloor;
+        }
     }
-    else if(collided && obstacle.z >= SLOPEZ)
+    if(collided && obstacle.z >= SLOPEZ)
     {
         floor = obstacle;
         found = true;
@@ -1469,6 +1485,7 @@ bool findfloor(physent *d, bool collided, const vec &obstacle, bool &slide, vec 
             if(floor.z >= SLOPEZ && floor.z < 1.0f) found = true;
         }
     }
+foundfloor:
     if(collided && (!found || obstacle.z > floor.z))
     {
         floor = obstacle;
@@ -1528,7 +1545,7 @@ bool move(physent *d, vec &dir)
     }
     vec floor(0, 0, 0);
     bool slide = collided,
-         found = findfloor(d, collided, obstacle, slide, floor);
+         found = findfloor(d, dir, collided, obstacle, slide, floor);
     if(slide || (!collided && floor.z > 0 && floor.z < WALLZ))
     {
         slideagainst(d, dir, slide ? obstacle : floor, found, slidecollide);

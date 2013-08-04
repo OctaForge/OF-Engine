@@ -117,7 +117,7 @@ inline bool BIH::traverse(const vec &o, const vec &ray, float maxdist, float &di
     loopi(nummeshes)
     {
         mesh &m = meshes[i];
-        if(!(mode&RAY_SHADOW) && m.flags&MESH_NOCLIP) continue;
+        if(!(m.flags&MESH_RENDER) || (!(mode&RAY_SHADOW) && m.flags&MESH_NOCLIP)) continue;
         float t1 = (m.bbmin.x - o.x)*invray.x,
               t2 = (m.bbmax.x - o.x)*invray.x,
               tmin, tmax;
@@ -488,8 +488,8 @@ inline void BIH::tricollide<COLLIDE_ELLIPSE>(const mesh &m, const tri &t, physen
         zdir = vec(orient.c).mul(m.invscale*m.invscale*(radius.z - radius.x));
     if(trisegmentdistance(a, b, c, vec(center).sub(zdir), vec(center).add(zdir)) > m.invscale*m.invscale*radius.x*radius.x) return;
 
-    float pdist = (t.normal.dot(vec(center).sub(a)) - fabs(t.normal.dot(zdir)))*m.scale;
-    if(pdist <= dist) return;
+    float pdist = (t.normal.dot(vec(center).sub(a)) - fabs(t.normal.dot(zdir)))*m.scale - radius.x;
+    if(pdist > 0 || pdist <= dist) return;
 
     collideinside = true;
 
@@ -637,7 +637,7 @@ bool BIH::ellipsecollide(physent *d, const vec &dir, float cutoff, const vec &o,
     loopi(nummeshes)
     {
         mesh &m = meshes[i];
-        if(m.flags&MESH_NOCLIP) continue;
+        if(!(m.flags&MESH_COLLIDE) || m.flags&MESH_NOCLIP) continue;
         matrix3x4 morient;
         morient.mul(orient, m.xform);
         collide<COLLIDE_ELLIPSE>(m, d, dir, cutoff, m.invxform.transform(bo), radius, morient, dist, &nodes[m.nodes], icenter, iradius);
@@ -680,7 +680,7 @@ bool BIH::boxcollide(physent *d, const vec &dir, float cutoff, const vec &o, int
     loopi(nummeshes)
     {
         mesh &m = meshes[i];
-        if(m.flags&MESH_NOCLIP) continue;
+        if(!(m.flags&MESH_COLLIDE) || m.flags&MESH_NOCLIP) continue;
         matrix3x4 morient;
         morient.mul(dorient, m.xform);
         collide<COLLIDE_OBB>(m, d, ddir, cutoff, center, radius, morient, dist, &nodes[m.nodes], icenter, iradius);

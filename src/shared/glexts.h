@@ -167,15 +167,6 @@ extern PFNGLTEXIMAGE3DMULTISAMPLEPROC glTexImage3DMultisample_;
 extern PFNGLGETMULTISAMPLEFVPROC      glGetMultisamplefv_;
 extern PFNGLSAMPLEMASKIPROC           glSampleMaski_;
 
-// GL_ARB_sample_shading
-#ifndef GL_ARB_sample_shading
-#define GL_ARB_sample_shading 1
-#define GL_SAMPLE_SHADING_ARB             0x8C36
-#define GL_MIN_SAMPLE_SHADING_VALUE_ARB   0x8C37
-typedef void (APIENTRYP PFNGLMINSAMPLESHADINGARBPROC) (GLclampf value);
-#endif
-extern PFNGLMINSAMPLESHADINGARBPROC glMinSampleShading_;
-
 // GL_EXT_framebuffer_multisample_blit_scaled
 #ifndef GL_EXT_framebuffer_multisample_blit_scaled
 #define GL_EXT_framebuffer_multisample_blit_scaled 1
@@ -682,4 +673,14 @@ extern PFNGLISVERTEXARRAYPROC      glIsVertexArray_;
 #define GL_TEXTURE_SWIZZLE_A              0x8E45
 #define GL_TEXTURE_SWIZZLE_RGBA           0x8E46
 #endif
+
+#ifndef GL_VERSION_4_0
+#define GL_VERSION_4_0 1
+#define GL_SAMPLE_SHADING                 0x8C36
+#define GL_MIN_SAMPLE_SHADING_VALUE       0x8C37
+typedef void (APIENTRYP PFNGLMINSAMPLESHADINGPROC) (GLfloat value);
+#endif
+
+// GL_ARB_sample_shading
+extern PFNGLMINSAMPLESHADINGPROC glMinSampleShading_;
 

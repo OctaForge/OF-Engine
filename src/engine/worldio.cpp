@@ -961,7 +961,7 @@ void writeobj(char *name)
     }
     delete f;
 
-    conoutf("generated model %s", fname); 
+    conoutf("generated model %s", fname);
 }
 
 COMMAND(writeobj, "s");
@@ -983,7 +983,7 @@ void writecollideobj(char *name)
         if(e.type != ET_MAPMODEL || !pointinsel(sel, e.o)) continue;
         mm = &e;
         break;
-    }  
+    }
     if(!mm) loopv(ents)
     {
         extentity &e = *ents[i];
@@ -1037,11 +1037,11 @@ void writecollideobj(char *name)
             for(int k = 0; k < es.length; k += 3)
             {
                 const vec &v0 = vdata[idx[k]].pos, &v1 = vdata[idx[k+1]].pos, &v2 = vdata[idx[k+2]].pos;
-                if(v0.x > selmax.x || v0.y > selmax.y || v0.z > selmax.z || 
+                if(v0.x > selmax.x || v0.y > selmax.y || v0.z > selmax.z ||
                    v0.x < selmin.x || v0.y < selmin.y || v0.z < selmin.z ||
-                   v1.x > selmax.x || v1.y > selmax.y || v1.z > selmax.z || 
+                   v1.x > selmax.x || v1.y > selmax.y || v1.z > selmax.z ||
                    v1.x < selmin.x || v1.y < selmin.y || v1.z < selmin.z ||
-                   v2.x > selmax.x || v2.y > selmax.y || v2.z > selmax.z || 
+                   v2.x > selmax.x || v2.y > selmax.y || v2.z > selmax.z ||
                    v2.x < selmin.x || v2.y < selmin.y || v2.z < selmin.z)
                     continue;
                 int i0 = shareverts.access(v0, verts.length());
@@ -1073,7 +1073,7 @@ void writecollideobj(char *name)
     for(int i = 0; i < tris.length(); i += 3)
        f->printf("f %d %d %d\n", tris[i+2]+1, tris[i+1]+1, tris[i]+1);
     f->printf("\n");
-            
+
     delete f;
 
     conoutf("generated collide model %s", fname);

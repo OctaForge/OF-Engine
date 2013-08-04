@@ -17,7 +17,7 @@ struct BIH
         vec normal;
     };
 
-    enum { MESH_NOCLIP = 1<<1, MESH_ALPHA = 1<<2 };
+    enum { MESH_RENDER = 1<<1, MESH_NOCLIP = 1<<2, MESH_ALPHA = 1<<3, MESH_COLLIDE = 1<<4 };
 
     struct mesh
     {

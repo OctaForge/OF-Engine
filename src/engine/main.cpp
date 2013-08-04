@@ -581,7 +581,7 @@ void setupscreen()
     SDL_SetWindowMinimumSize(screen, SCR_MINW, SCR_MINH);
     SDL_SetWindowMaximumSize(screen, SCR_MAXW, SCR_MAXH);
 
-    static const struct { int major, minor; } coreversions[] = { { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 } };
+    static const struct { int major, minor; } coreversions[] = { { 4, 0 }, { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 } };
     loopi(sizeof(coreversions)/sizeof(coreversions[0]))
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, coreversions[i].major);

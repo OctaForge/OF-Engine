@@ -4,6 +4,11 @@ VARP(glowmodels, 0, 1, 1);
 VARP(bumpmodels, 0, 1, 1);
 VARP(fullbrightmodels, 0, 0, 200);
 VAR(testtags, 0, 0, 1);
+VARF(dbgcolmesh, 0, 0, 1,
+{
+    extern void cleanupmodels();
+    cleanupmodels();
+});
 
 struct animmodel : model
 {
@@ -88,7 +93,7 @@ struct animmodel : model
         bool tangents() const { return bumpmapped(); }
         bool alphatested() const { return alphatest > 0 && tex->type&Texture::ALPHA; }
 
-        void setshaderparams(mesh *m, const animstate *as, bool masked, bool alphatested = false, bool skinned = true)
+        void setshaderparams(mesh &m, const animstate *as, bool masked, bool alphatested = false, bool skinned = true)
         {
             GLOBALPARAMF(texscroll, scrollu*lastmillis/1000.0f, scrollv*lastmillis/1000.0f);
             if(alphatested) GLOBALPARAMF(alphatest, alphatest);
@@ -129,7 +134,7 @@ struct animmodel : model
                     if(decal) LOADMODELSHADER(decalname, decalalphaname); \
                     else LOADMODELSHADER(name, alphaname); \
                 } while(0)
-            #define SETMODELSHADER(m, name) DOMODELSHADER(name, (m)->setshader(name##shader))
+            #define SETMODELSHADER(m, name) DOMODELSHADER(name, (m).setshader(name##shader))
             if(shadowmapping == SM_REFLECT) LOADMODELSHADER(rsmmodel, rsmalphamodel);
             else if(shader) return shader;
             else if(bumpmapped())
@@ -154,12 +159,12 @@ struct animmodel : model
             loadshader(shouldenvmap, masks!=notexture && (lightmodels || glowmodels || shouldenvmap), shouldalphatest);
         }
 
-        void setshader(mesh *m, const animstate *as, bool masked, bool alphatested = false)
+        void setshader(mesh &m, const animstate *as, bool masked, bool alphatested = false)
         {
-            m->setshader(loadshader(envmaptmu>=0 && envmapmax>0, masked, alphatested));
+            m.setshader(loadshader(envmaptmu>=0 && envmapmax>0, masked, alphatested));
         }
 
-        void bind(mesh *b, const animstate *as)
+        void bind(mesh &b, const animstate *as)
         {
             if(!cullface && enablecullface) { glDisable(GL_CULL_FACE); enablecullface = false; }
             else if(cullface && !enablecullface) { glEnable(GL_CULL_FACE); enablecullface = true; }
@@ -240,9 +245,9 @@ struct animmodel : model
     {
         meshgroup *group;
         char *name;
-        bool noclip;
+        bool cancollide, canrender, noclip;
 
-        mesh() : group(NULL), name(NULL), noclip(false)
+        mesh() : group(NULL), name(NULL), cancollide(true), canrender(true), noclip(false)
         {
         }
 
@@ -259,6 +264,8 @@ struct animmodel : model
             BIH::mesh &m = bih.add();
             m.xform = t;
             m.tex = s.tex;
+            if(canrender) m.flags |= BIH::MESH_RENDER;
+            if(cancollide) m.flags |= BIH::MESH_COLLIDE; 
             if(s.tex && s.tex->type&Texture::ALPHA) m.flags |= BIH::MESH_ALPHA;
             if(noclip) m.flags |= BIH::MESH_NOCLIP;
             genBIH(m);
@@ -408,19 +415,27 @@ struct animmodel : model
         virtual int findtag(const char *name) { return -1; }
         virtual void concattagtransform(part *p, int i, const matrix3x4 &m, matrix3x4 &n) {}
 
-        void calcbb(vec &bbmin, vec &bbmax, const matrix3x4 &m)
+        #define looprendermeshes(type, name, body) do { \
+            loopv(meshes) \
+            { \
+                type &name = *(type *)meshes[i]; \
+                if(name.canrender || dbgcolmesh) { body; } \
+            } \
+        } while(0)
+
+        void calcbb(vec &bbmin, vec &bbmax, const matrix3x4 &t)
         {
-            loopv(meshes) meshes[i]->calcbb(bbmin, bbmax, m);
+            looprendermeshes(mesh, m, m.calcbb(bbmin, bbmax, t));
         }
 
-        void genBIH(vector<skin> &skins, vector<BIH::mesh> &bih, const matrix3x4 &m)
+        void genBIH(vector<skin> &skins, vector<BIH::mesh> &bih, const matrix3x4 &t)
         {
-            loopv(meshes) meshes[i]->genBIH(skins[i], bih, m);
+            loopv(meshes) meshes[i]->genBIH(skins[i], bih, t);
         }
 
-        void genshadowmesh(vector<triangle> &tris, const matrix3x4 &m)
+        void genshadowmesh(vector<triangle> &tris, const matrix3x4 &t)
         {
-            loopv(meshes) meshes[i]->genshadowmesh(tris, m);
+            looprendermeshes(mesh, m, m.genshadowmesh(tris, t));
         }
 
         virtual void *animkey() { return this; }
@@ -1607,7 +1622,7 @@ template<class MDL, class MESH> struct modelcommands
         formatstring(MDL::dir, "media/model/%s", name);
     }
 
-    #define loopmeshes(meshname, m, body) \
+    #define loopmeshes(meshname, m, body) do { \
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; } \
         part &mdl = *MDL::loading->parts.last(); \
         if(!mdl.meshes) return; \
@@ -1618,7 +1633,8 @@ template<class MDL, class MESH> struct modelcommands
             { \
                 body; \
             } \
-        }
+        } \
+    } while(0)
 
     #define loopskins(meshname, s, body) loopmeshes(meshname, m, { skin &s = mdl.skins[i]; body; })
 
@@ -1703,6 +1719,15 @@ template<class MDL, class MESH> struct modelcommands
         loopmeshes(meshname, m, m.noclip = *noclip!=0);
     }
 
+    static void settricollide(char *meshname)
+    {
+        bool init = true;
+        loopmeshes("*", m, { if(!m.cancollide) init = false; });
+        if(init) loopmeshes("*", m, m.cancollide = false);
+        loopmeshes(meshname, m, { m.cancollide = true; m.canrender = false; });
+        MDL::loading->collide = COLLIDE_TRI;
+    }
+
     static void setlink(int *parent, int *child, char *tagname, float *x, float *y, float *z)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
@@ -1734,6 +1759,7 @@ template<class MDL, class MESH> struct modelcommands
             modelcommand(setshader, "shader", "ss");
             modelcommand(setscroll, "scroll", "sff");
             modelcommand(setnoclip, "noclip", "si");
+            modelcommand(settricollide, "tricollide", "s"); 
         }
         if(MDL::multiparted()) modelcommand(setlink, "link", "iisfff");
     }

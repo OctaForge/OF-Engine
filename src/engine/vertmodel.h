@@ -356,10 +356,10 @@ struct vertmodel : animmodel
             vlen = 0;
             if(numframes>1)
             {
-                loopv(meshes) vlen += ((vertmesh *)meshes[i])->genvbo(idxs, vlen);
+                looprendermeshes(vertmesh, m, vlen += m.genvbo(idxs, vlen));
                 DELETEA(vdata);
                 vdata = new uchar[vlen*vertsize];
-                loopv(meshes) ((vertmesh *)meshes[i])->filltc(vdata, vertsize);
+                looprendermeshes(vertmesh, m, m.filltc(vdata, vertsize));
             }
             else
             {
@@ -368,11 +368,11 @@ struct vertmodel : animmodel
                     do \
                     { \
                         vector<type> vverts; \
-                        loopv(meshes) vlen += ((vertmesh *)meshes[i])->genvbo(idxs, vlen, vverts, htdata, htlen); \
+                        looprendermeshes(vertmesh, m, vlen += m.genvbo(idxs, vlen, vverts, htdata, htlen)); \
                         glBufferData_(GL_ARRAY_BUFFER, vverts.length()*sizeof(type), vverts.getbuf(), GL_STATIC_DRAW); \
                     } while(0)
                 int numverts = 0, htlen = 128;
-                loopv(meshes) numverts += ((vertmesh *)meshes[i])->numverts;
+                looprendermeshes(vertmesh, m, numverts += m.numverts);
                 while(htlen < numverts) htlen *= 2;
                 if(numverts*4 > htlen*3) htlen *= 2;
                 int *htdata = new int[htlen];
@@ -469,11 +469,10 @@ struct vertmodel : animmodel
                 {
                     vc->as = *as;
                     vc->millis = lastmillis;
-                    loopv(meshes)
+                    looprendermeshes(vertmesh, m,
                     {
-                        vertmesh &m = *(vertmesh *)meshes[i];
                         m.interpverts(*as, norms, tangents, vdata + m.voffset*vertsize, p->skins[i]);
-                    }
+                    });
                     glBindBuffer_(GL_ARRAY_BUFFER, vc->vbuf);
                     glBufferData_(GL_ARRAY_BUFFER, vlen*vertsize, vdata, GL_STREAM_DRAW);
                 }
@@ -481,12 +480,11 @@ struct vertmodel : animmodel
             }
 
             bindvbo(as, p, *vc);
-            loopv(meshes)
+            looprendermeshes(vertmesh, m,
             {
-                vertmesh *m = (vertmesh *)meshes[i];
                 p->skins[i].bind(m, as);
-                m->render(as, p->skins[i], *vc);
-            }
+                m.render(as, p->skins[i], *vc);
+            });
 
             loopv(p->links) calctagmatrix(p, p->links[i].tag, *as, p->links[i].matrix);
         }
