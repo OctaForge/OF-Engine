@@ -2990,11 +2990,6 @@ bool validateblock(const char *s)
 }
 
 #ifndef SERVER
-static inline bool sortidents(ident *x, ident *y)
-{
-    return strcmp(x->name, y->name) < 0;
-}
-
 void writecfg(const char *name)
 {
     stream *f = openutf8file(path(name && name[0] ? name : "config/saved.cfg", true), "w");
@@ -3002,7 +2997,7 @@ void writecfg(const char *name)
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have config/defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     vector<ident *> ids;
     enumerate(idents, ident, id, ids.add(&id));
-    ids.sort(sortidents);
+    ids.sortname();
     loopv(ids)
     {
         ident &id = *ids[i];
@@ -3537,29 +3532,11 @@ ICOMMAND(loopfiles, "rsse", (ident *id, char *dir, char *ext, uint *body),
     identstack stack;
     vector<char *> files;
     listfiles(dir, ext[0] ? ext : NULL, files);
-    loopvrev(files)
-    {
-        char *file = files[i];
-        bool redundant = false;
-        loopj(i) if(!strcmp(files[j], file)) { redundant = true; break; }
-        if(redundant) delete[] files.removeunordered(i);
-    }
+    files.sort();
+    files.uniquedeletearrays();
     loopv(files)
     {
-        char *file = files[i];
-        if(i)
-        {
-            if(id->valtype == VAL_STR) delete[] id->val.s;
-            else id->valtype = VAL_STR;
-            id->val.s = file;
-        }
-        else
-        {
-            tagval t;
-            t.setstr(file);
-            pusharg(*id, t, stack);
-            id->flags &= ~IDF_UNKNOWN;
-        }
+        setiter(*id, files[i], stack);
         execute(body);
     }
     if(files.length()) poparg(*id);
@@ -3570,6 +3547,8 @@ ICOMMAND(findfile, "s", (char *name), intret(findfile(name, "e") ? 1 : 0));
 struct sortitem
 {
     const char *str, *quotestart, *quoteend;
+
+    int quotelength() const { return int(quoteend-quotestart); }
 };
 
 struct sortfun
@@ -3589,7 +3568,7 @@ struct sortfun
     }
 };
 
-void sortlist(char *list, ident *x, ident *y, uint *body)
+void sortlist(char *list, ident *x, ident *y, uint *body, uint *unique)
 {
     if(x == y || x->type != ID_ALIAS || y->type != ID_ALIAS) return;
 
@@ -3602,7 +3581,7 @@ void sortlist(char *list, ident *x, ident *y, uint *body)
         cstr[end - list] = '\0';
         sortitem item = { &cstr[start - list], quotestart, quoteend };
         items.add(item);
-        total += int(quoteend - quotestart);
+        total += item.quotelength();
     }
 
     identstack xstack, ystack;
@@ -3612,11 +3591,23 @@ void sortlist(char *list, ident *x, ident *y, uint *body)
     sortfun f = { x, y, body };
     items.sort(f);
 
+    int totalunique = total, numunique = items.length(); 
+    if(items.length() && (*unique&CODE_OP_MASK) != CODE_EXIT)
+    {
+        totalunique = items[0].quotelength();
+        numunique = 1;
+        for(int i = 1; i < items.length(); i++)
+        {
+            sortitem &item = items[i];
+            if(f(items[i-1], item)) item.quotestart = NULL;
+            else { totalunique += item.quotelength(); numunique++; }
+        }
+    }
     poparg(*x);
     poparg(*y);
 
     char *sorted = cstr;
-    int sortedlen = total + max(items.length() - 1, 0);
+    int sortedlen = totalunique + max(numunique - 1, 0);
     if(clen < sortedlen)
     {
         delete[] cstr;
@@ -3627,7 +3618,8 @@ void sortlist(char *list, ident *x, ident *y, uint *body)
     loopv(items)
     {
         sortitem &item = items[i];
-        int len = int(item.quoteend - item.quotestart);
+        if(!item.quotestart) continue;
+        int len = item.quotelength();
         if(i) sorted[offset++] = ' ';
         memcpy(&sorted[offset], item.quotestart, len);
         offset += len;
@@ -3636,7 +3628,7 @@ void sortlist(char *list, ident *x, ident *y, uint *body)
 
     commandret->setstr(sorted);
 }
-COMMAND(sortlist, "srre");
+COMMAND(sortlist, "srree");
 
 ICOMMAND(+, "ii", (int *a, int *b), intret(*a + *b));
 ICOMMAND(*, "ii", (int *a, int *b), intret(*a * *b));
