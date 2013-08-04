@@ -23,22 +23,20 @@ local btnv = {}
 gui.Button.variants   = { default = btnv }
 gui.Button.properties = { default = { "label" } }
 
-local btnv_init_clone = function(self, btn)
+local btnv_init_clone = |self, btn| do
     local lbl = gui.Label { text = btn.label }
     self:append(lbl)
-    signal.connect(btn, "label_changed", function(b, t) lbl:set_text(t) end)
+    signal.connect(btn, "label_changed", |b, t| do lbl:set_text(t) end)
 end
 
-local btn_build_variant = function(r, g, b)
-    return gui.Gradient {
-        r = 0, g = 0, b = 0, r2 = 48, g2 = 48, b2 = 48,
-        gui.Outline {
-            r = r, g = g, b = b, gui.Spacer {
-                pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
-            }
+local btn_build_variant = |r, g, b| gui.Gradient {
+    r = 0, g = 0, b = 0, r2 = 48, g2 = 48, b2 = 48,
+    gui.Outline {
+        r = r, g = g, b = b, gui.Spacer {
+            pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
         }
     }
-end
+}
 
 btnv["default" ] = btn_build_variant(255, 255, 255)
 btnv["hovering"] = btn_build_variant(225, 225, 225)
