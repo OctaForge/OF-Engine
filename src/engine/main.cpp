@@ -1219,7 +1219,7 @@ int main(int argc, char **argv)
 
     execfile("config/keymap.cfg");
     execfile("config/stdedit.cfg");
-    tools::execfile("config/menus.lua");
+    tools::execfile("config/menu.lua");
     execfile("config/heightmap.cfg");
     execfile("config/blendbrush.cfg");
     if (game::savedservers()) execfile(game::savedservers(), false);
@@ -1227,9 +1227,9 @@ int main(int argc, char **argv)
     identflags |= IDF_PERSIST;
 
     initing = INIT_LOAD;
-    if(!execfile("config/config.cfg", false))
+    if(!execfile("config/saved.cfg", false))
     {
-        execfile("config/defaults.cfg");
+        execfile("config/default.cfg");
         writecfg("config/restore.cfg");
     }
     execfile("config/autoexec.cfg");

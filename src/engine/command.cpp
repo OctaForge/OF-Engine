@@ -2997,7 +2997,7 @@ static inline bool sortidents(ident *x, ident *y)
 
 void writecfg(const char *name)
 {
-    stream *f = openutf8file(path(name && name[0] ? name : "config/config.cfg", true), "w");
+    stream *f = openutf8file(path(name && name[0] ? name : "config/saved.cfg", true), "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have config/defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     vector<ident *> ids;
