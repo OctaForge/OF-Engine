@@ -612,15 +612,15 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     deep_clone = function(self, obj, initc)
         local ch, rch = {}, self.children
+        local ic = initc and self.init_clone or nil
         local cl = self:clone { children = ch }
         for i = 1, #rch do
             local c = rch[i]
-            local ic = initc and c.init_clone or nil
             local chcl = c:deep_clone(obj, true)
             chcl.parent = cl
             ch[i] = chcl
-            if ic then ic(chcl, obj) end
         end
+        if ic then ic(cl, obj) end
         return cl
     end,
 
