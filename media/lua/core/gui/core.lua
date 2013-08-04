@@ -513,6 +513,10 @@ Widget = register_class("Widget", table2.Object, {
 
         self.children = ch
 
+        if  kwargs.pre_init then
+            kwargs.pre_init(self)
+        end
+
         -- states
         local states = {}
         local ks = kwargs.states
