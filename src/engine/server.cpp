@@ -790,7 +790,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
     SDL_SetMainReady();
     int status = SDL_main(args.length()-1, args.getbuf());
 #else
-    server_main(args.length()-1, args.getbuf());
+    int status = server_main(args.length()-1, args.getbuf());
 #endif
     delete[] buf;
     exit(status);
