@@ -107,7 +107,7 @@ namespace local_server {
             BINARY_ARCH_STR ".exe";
 #endif
         char buf[4096];
-        const char *cptr = buf;
+        char *cptr = buf;
 
         defformatstring(a1, "-g%s", logger::names[logger::current_level]);
         defformatstring(a2, "-l%s", server_log_file);
