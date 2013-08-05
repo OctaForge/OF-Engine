@@ -1,3 +1,34 @@
+2013-08-05 - 0.2.6 beta 7
+
+    * Savemap command
+    * Faster bindings - allow C-Lua functions to be bound via C function
+      pointers and then called using the FFI for better performance
+    * Core Lua library organization changes
+    * UI improvements:
+      * New widget: Line
+      * New feature: universal dropdown menus and submenus and a Menu_Button
+        widget
+      * New feature: variants (to create differently styled global versions
+        of widgets)
+      * New feature: global state children initializers
+      * New feature: containers (allows you to specify a custom widget that'll
+        act as a children container for another widget)
+      * New feature: widget visibility
+      * Started UI theming
+      * Optimized grid and box widgets
+      * Cleanups and fixes
+    * New menu background and logo, tweaked font settings
+    * Tesseract: accurate per triangle mapmodel collisions including collision
+      meshes
+    * Updated and renamed configuration files
+    * Windows: make the server a GUI application so that it doesn't spawn
+      a cmd window everytime you run a map
+    * Updated local server runner that uses fork/exec on un*x and CreateProcess
+      on Windows instead of popen
+    * Tesseract: OpenGL 4 core support
+    * Used mapmodel preloading
+    * Server build now includes rendermodel for correct serverside physics
+
 2013-07-22 - 0.2.5 beta 6
 
     * More module cleanups - no extra globals except SERVER remain now
