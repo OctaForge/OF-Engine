@@ -33,6 +33,10 @@
 #include "of_localserver.h"
 #include "client_system.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 void trydisconnect(bool local);
 
 _SVAR(server_log_file, server_log_file, "out_server.log", IDF_READONLY);
@@ -46,9 +50,6 @@ namespace local_server {
 
     bool ready   = false;
     bool started = false;
-
-    /* get this into use at some point to make this server runner better. */
-    FILE *popen_out = NULL;
 
     bool is_running() {
         return ready;
@@ -77,50 +78,47 @@ namespace local_server {
         }
     }
 
+    static void build_args(const char *map, vector<char*> &args) {
+        args.add(newstring("bin_unix/server_" BINARY_OS_STR "_"
+            BINARY_ARCH_STR));
+        defformatstring(arg, "-g%s", logger::names[logger::current_level]);
+        args.add(newstring(arg));
+        formatstring(arg, "-mmap/%s.tar.gz", map);
+        args.add(newstring(arg));
+        copystring(arg, "-shutdown-if-idle");
+        args.add(newstring(arg));
+        copystring(arg, "-shutdown-if-empty");
+        args.add(newstring(arg));
+        args.add(NULL);
+    }
+
     void run(const char *map) {
         if (started) {
             conoutf("Stopping old server instance ..");
             stop();
         }
         conoutf("Starting server, please wait ..");
+        if (!fork()) {
+            vector<char*> args;
+            build_args(map, args);
 
-        char buf[1024]; /* should be perfectly enough here */
-#if defined(WIN32) && !defined(__GNUC__)
-        _snprintf(buf, sizeof(buf),
-#else
-        snprintf(buf, sizeof(buf),
-#endif
-            "%s -g%s -mmap/%s.tar.gz -shutdown-if-idle -shutdown-if-empty "
-            ">\"%s%s\" 2>&1",
-#if defined(WIN64)
-            "bin_win64\\server_" BINARY_OS_STR "_" BINARY_ARCH_STR ".exe",
-#elif defined(WIN32)
-            "bin_win32\\server_" BINARY_OS_STR "_" BINARY_ARCH_STR ".exe",
-#else
-            "bin_unix/server_" BINARY_OS_STR "_" BINARY_ARCH_STR,
-#endif
-            logger::names[logger::current_level], map, homedir,
-            server_log_file);
+            defformatstring(logfile, "%s%s", homedir, server_log_file);
+            int fd = open(logfile, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
+            dup2(fd, 1); /* stdout */
+            dup2(fd, 2); /* stderr */
+            close(fd);
 
-#ifdef WIN32
-        popen_out = _popen(buf, "r");
-#else
-        popen_out =  popen(buf, "r");
-#endif
+            execv(args[0], args.getbuf());
+            args.deletearrays();
+            exit(0);
+        }
 
         started = true;
     }
 
     void stop() {
         if (!started) return;
-
         trydisconnect(false);
-#ifdef WIN32
-        _pclose(popen_out);
-#else
-         pclose(popen_out);
-#endif
-
         last_connect_trial = num_trials = 0;
         ready = started = false;
     }
