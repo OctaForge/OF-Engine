@@ -69,7 +69,7 @@ namespace local_server {
 
             if (num_trials == 20) {
                 logger::log(logger::ERROR,
-                    "Failed to start server. See %s for more information.\n",
+                    "Failed to start server. See %s for more information.",
                     server_log_file);
             }
 

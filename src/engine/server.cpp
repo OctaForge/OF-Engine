@@ -456,7 +456,7 @@ void force_network_flush()
 {
     if (!serverhost)
     {
-        logger::log(logger::ERROR, "Trying to force_flush, but no serverhost yet\r\n");
+        logger::log(logger::ERROR, "Trying to force_flush, but no serverhost yet");
         return;
     }
 
@@ -742,13 +742,13 @@ int main(int argc, char **argv)
     lua::init();
     server_init();
 
-    logger::log(logger::DEBUG, "Running first slice.\n");
+    logger::log(logger::DEBUG, "Running first slice.");
     while (!should_quit)
     {
         server_runslice();
         if (map_asset)
         {
-            logger::log(logger::DEBUG, "Setting map to %s ..\n", map_asset);
+            logger::log(logger::DEBUG, "Setting map to %s ..", map_asset);
             world::set_map(map_asset);
             map_asset = NULL;
         }

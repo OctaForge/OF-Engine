@@ -66,14 +66,14 @@ namespace game
 
     void gamedisconnect(bool cleanup)
     {
-        logger::log(logger::DEBUG, "client.h: gamedisconnect()\r\n");
+        logger::log(logger::DEBUG, "client.h: gamedisconnect()");
 //        if(remote) stopfollowing(); Kripken
         connected = false;
         player1->clientnum = -1;
         player1->lifesequence = 0;
         spectator = false;
 //        loopv(players) clientdisconnected(i, false); Kripken: When we disconnect, we should shut down anyhow...
-        logger::log(logger::WARNING, "Not doing normal Sauer disconnecting of other clients\r\n");
+        logger::log(logger::WARNING, "Not doing normal Sauer disconnecting of other clients");
 
         #ifndef SERVER
             ClientSystem::onDisconnect();
@@ -153,7 +153,7 @@ namespace game
 
     void addmsg(int type, const char *fmt, ...)
     {
-        logger::log(logger::INFO, "Client: ADDMSG: adding a message of type %d\r\n", type);
+        logger::log(logger::INFO, "Client: ADDMSG: adding a message of type %d", type);
 
         if(!connected) return;
         static uchar buf[MAXTRANS];
@@ -234,7 +234,7 @@ namespace game
 
     void sendposition(fpsent *d, bool reliable)
     {
-        logger::log(logger::INFO, "sendposition?, %d)\r\n", curtime);
+        logger::log(logger::INFO, "sendposition?, %d)", curtime);
 
 //        if(d->state==CS_ALIVE || d->state==CS_EDITING) // Kripken: We handle death differently.
 //        {
@@ -244,7 +244,7 @@ namespace game
         if (d->uid != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
 #endif
         {
-            logger::log(logger::INFO, "sendpacketclient: Sending for client %d: %f,%f,%f\r\n",
+            logger::log(logger::INFO, "sendpacketclient: Sending for client %d: %f,%f,%f",
                                          d->clientnum, d->o.x, d->o.y, d->o.z);
 
             // send position updates separately so as to not stall out aiming
@@ -289,7 +289,7 @@ namespace game
     {
         static int lastupdate = -1000;
 
-        logger::log(logger::INFO, "c2sinfo: %d,%d\r\n", totalmillis, lastupdate);
+        logger::log(logger::INFO, "c2sinfo: %d,%d", totalmillis, lastupdate);
 
         if(totalmillis - lastupdate < 33 && !force) return;    // don't update faster than the rate
         lastupdate = totalmillis;
@@ -369,7 +369,7 @@ namespace game
     {
         if(p.packet->flags&ENET_PACKET_FLAG_UNSEQUENCED) return;
 
-        logger::log(logger::INFO, "Client: Receiving packet, channel: %d\r\n", chan);
+        logger::log(logger::INFO, "Client: Receiving packet, channel: %d", chan);
 
         switch(chan)
         {   // Kripken: channel 0 is just positions, for as-fast-as-possible position updates. We do not want to change this.
@@ -403,7 +403,7 @@ namespace game
         while(p.remaining())
         {
           type = getint(p);
-          logger::log(logger::INFO, "Client: Parsing a message of type %d\r\n", type);
+          logger::log(logger::INFO, "Client: Parsing a message of type %d", type);
           switch(type)
           { // Kripken: Mangling sauer indentation as little as possible
 
@@ -461,7 +461,7 @@ namespace game
             {
 //                if(!d) return; Kripken: We can get edit commands from the server, which has no 'd' to speak of XXX FIXME - might be buggy
 
-                logger::log(logger::DEBUG, "Edit command intercepted in client.h\r\n");
+                logger::log(logger::DEBUG, "Edit command intercepted in client.h");
 
                 selinfo sel;
                 sel.o.x = getint(p); sel.o.y = getint(p); sel.o.z = getint(p);
@@ -481,7 +481,7 @@ namespace game
                         #ifndef SERVER
                             tex = getint(p); allfaces = getint(p); if(sel.validate()) mpedittex(tex, allfaces, sel, false); break;
                         #else // SERVER
-                            getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (a)\r\n"); break;
+                            getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (a)"); break;
                         #endif
                     case N_EDITM: mat = getint(p); filter = getint(p); if(sel.validate()) mpeditmat(mat, filter, sel, false); break;
                     case N_FLIP: if(sel.validate()) mpflip(sel, false); break;
@@ -492,7 +492,7 @@ namespace game
                         #ifndef SERVER
                             tex = getint(p); newtex = getint(p); insel = getint(p); if(sel.validate()) mpreplacetex(tex, newtex, insel>0, sel, false); break;
                         #else // SERVER
-                            getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (b)\r\n"); break;
+                            getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (b)"); break;
                         #endif
                     case N_DELCUBE: if(sel.validate())mpdelcube(sel, false); break;
                 }
@@ -534,7 +534,7 @@ assert(0);
 
             default:
             {
-                logger::log(logger::INFO, "Client: Handling a non-typical message: %d\r\n", type);
+                logger::log(logger::INFO, "Client: Handling a non-typical message: %d", type);
 #ifndef SERVER
                 if (!MessageSystem::MessageManager::receive(type, ClientSystem::playerNumber, cn, p))
 #else
@@ -565,7 +565,7 @@ assert(0);
 
     void changemap(const char *name, int mode)        // forced map change from the server // Kripken : TODO: Deprecated, Remove
     {
-        logger::log(logger::INFO, "Client: Changing map: %s\r\n", name);
+        logger::log(logger::INFO, "Client: Changing map: %s", name);
 
         mode = 0;
         gamemode = mode;
@@ -580,7 +580,7 @@ assert(0);
 
     void changemap(const char *name)
     {
-        logger::log(logger::INFO, "Client: Requesting map: %s\r\n", name);
+        logger::log(logger::INFO, "Client: Requesting map: %s", name);
     }
 
     void gotoplayer(const char *arg)
@@ -608,7 +608,7 @@ assert(0);
 #ifndef SERVER
         if(!ClientSystem::isAdmin())
         {
-            logger::log(logger::WARNING, "vartrigger invalid\r\n");
+            logger::log(logger::WARNING, "vartrigger invalid");
             return;
         }
 #endif

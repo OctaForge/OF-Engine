@@ -58,7 +58,7 @@ namespace lua
     lua_pop(L, 1); \
     CLogicEntity *name = LogicSystem::getLogicEntity(uid); \
     if (!name) { \
-        logger::log(logger::ERROR, "Cannot find CLE for entity %i (%s).\n", \
+        logger::log(logger::ERROR, "Cannot find CLE for entity %i (%s).", \
             uid, _log); \
         retexpr; \
     }

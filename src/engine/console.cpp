@@ -362,7 +362,7 @@ struct hline
         if (flags&CF_EXECUTE && buf[0] == '/') {
             if (buf[1] == '/') {
                 if (lua::load_string(buf + 2) || lua_pcall(lua::L, 0, 0, 0)) {
-                    logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
+                    logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
                     lua_pop(lua::L, 1);
                 }
             } else {
@@ -834,7 +834,7 @@ VARP(freeeditcursor, 0, 1, 2);
 #define MOUSECLICK(num) \
 void mouse##num##click() { \
     bool down = (addreleaseaction(newstring(QUOT(mouse##num##click))) != 0); \
-    logger::log(logger::INFO, "mouse click: %i (down: %i)\n", num, down); \
+    logger::log(logger::INFO, "mouse click: %i (down: %i)", num, down); \
 \
     if (!(lua::L && ClientSystem::scenarioStarted())) \
         return; \

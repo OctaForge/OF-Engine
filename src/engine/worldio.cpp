@@ -819,10 +819,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
 #ifndef SERVER // INTENSITY: Stop, finish loading later when we have all the entities
     renderprogress(0, "requesting entities...");
-    logger::log(logger::DEBUG, "Requesting active entities...\r\n");
+    logger::log(logger::DEBUG, "Requesting active entities...");
     MessageSystem::send_ActiveEntitiesRequest(ClientSystem::currScenarioCode); // Ask for the NPCs and other players, which are not part of the map proper
 #else // SERVER
-    logger::log(logger::DEBUG, "Finishing loading of the world...\r\n");
+    logger::log(logger::DEBUG, "Finishing loading of the world...");
     finish_load_world();
 #endif
 
@@ -855,10 +855,10 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
 
     startmap(cname ? cname : mname);
 
-    logger::log(logger::DEBUG, "load_world complete.\r\n"); // INTENSITY
+    logger::log(logger::DEBUG, "load_world complete."); // INTENSITY
     world::loading = false; // INTENSITY
 
-    printf("\r\n\r\n[[MAP LOADING]] - Success.\r\n"); // INTENSITY
+    printf("\r\n\r\n[[MAP LOADING]] - Success."); // INTENSITY
 #ifdef SERVER
     defformatstring(path, "%s%s", homedir, SERVER_READYFILE);
     tools::fempty(path);

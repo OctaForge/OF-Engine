@@ -170,7 +170,7 @@ namespace tools
         defformatstring(chunk, "@%s", cfgfile);
         if (lua::load_string(buf,  chunk) || lua_pcall(lua::L, 0, 0, 0)) {
             if (msg) {
-                logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
+                logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
             }
             lua_pop(lua::L, 1);
             delete[] buf;

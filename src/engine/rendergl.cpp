@@ -1362,7 +1362,7 @@ LUAICOMMAND(camera_force, {
 });
 
 void position_camera(physent* camera1) {
-    logger::log(logger::INFO, "position_camera\n");
+    logger::log(logger::INFO, "position_camera");
     INDENT_LOG(logger::INFO);
 
     if (force_flags) {

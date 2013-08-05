@@ -47,7 +47,7 @@ namespace MessageSystem
                 } else {
                     if (serverControlled && !toNPCs) continue;
                 }
-                logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))", clientNumber, testUniqueId, serverControlled);
             #endif
             sendpacket(clientNumber, chan, packet, -1);
         }
@@ -59,7 +59,7 @@ namespace MessageSystem
 
     void send_PersonalServerMessage(int clientNumber, const char* title, const char* content)
     {
-        logger::log(logger::DEBUG, "Sending a message of type PersonalServerMessage (1001)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type PersonalServerMessage (1001)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riss", 1001, title, content));
     }
 
@@ -83,7 +83,7 @@ namespace MessageSystem
 
     void send_RequestServerMessageToAll(const char* message)
     {
-        logger::log(logger::DEBUG, "Sending a message of type RequestServerMessageToAll (1002)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type RequestServerMessageToAll (1002)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1002, "rs", message);
@@ -103,7 +103,7 @@ namespace MessageSystem
 
     void send_LoginRequest()
     {
-        logger::log(logger::DEBUG, "Sending a message of type LoginRequest (1003)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type LoginRequest (1003)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1003, "r");
@@ -137,7 +137,7 @@ namespace MessageSystem
 
     void send_YourUniqueId(int clientNumber, int uid)
     {
-        logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)");
         server::getUniqueId(clientNumber) = uid;
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("rii", 1004, uid));
     }
@@ -147,7 +147,7 @@ namespace MessageSystem
     {
         int uid = getint(p);
 
-        logger::log(logger::DEBUG, "Told my unique ID: %d\r\n", uid);
+        logger::log(logger::DEBUG, "Told my unique ID: %d", uid);
         ClientSystem::uniqueId = uid;
     }
 #endif
@@ -157,7 +157,7 @@ namespace MessageSystem
 
     void send_LoginResponse(int clientNumber, bool success, bool local)
     {
-        logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)");
         if (success) if (server::createluaEntity(clientNumber)) {
             lua_pop(lua::L, 1);
         }
@@ -174,10 +174,10 @@ namespace MessageSystem
         if (success)
         {
             ClientSystem::finishLogin(local); // This player will be known as 'uniqueID' in the current module
-            conoutf("Login was successful.\r\n");
+            conoutf("Login was successful.");
             send_RequestCurrentScenario();
         } else {
-            conoutf("Login failure. Please check your username and password.\r\n");
+            conoutf("Login failure. Please check your username and password.");
             disconnect();
         }
     }
@@ -188,7 +188,7 @@ namespace MessageSystem
 
     void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode)
     {
-        logger::log(logger::DEBUG, "Sending a message of type PrepareForNewScenario (1006)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type PrepareForNewScenario (1006)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("ris", 1006, scenarioCode));
     }
 
@@ -211,7 +211,7 @@ namespace MessageSystem
 
     void send_RequestCurrentScenario()
     {
-        logger::log(logger::DEBUG, "Sending a message of type RequestCurrentScenario (1007)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type RequestCurrentScenario (1007)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1007, "r");
@@ -230,7 +230,7 @@ namespace MessageSystem
 
     void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc)
     {
-        logger::log(logger::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riss", 1008, mid, sc));
     }
 
@@ -252,7 +252,7 @@ namespace MessageSystem
 
     void send_RestartMap()
     {
-        logger::log(logger::DEBUG, "Sending a message of type RestartMap (1009)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type RestartMap (1009)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1009, "r");
@@ -264,7 +264,7 @@ namespace MessageSystem
         if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
         {
-            logger::log(logger::WARNING, "Non-admin tried to restart the map\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to restart the map");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot restart the map");
             return;
         }
@@ -277,7 +277,7 @@ namespace MessageSystem
     void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData)
     {        EditingSystem::madeChanges = true;
 
-        logger::log(logger::DEBUG, "Sending a message of type NewEntityRequest (1010)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type NewEntityRequest (1010)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1010, "rsiiis", _class, int(x*DMF), int(y*DMF), int(z*DMF), stateData);
@@ -297,7 +297,7 @@ namespace MessageSystem
         if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
         {
-            logger::log(logger::WARNING, "Non-admin tried to add an entity\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to add an entity");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot create entities");
             return;
         }
@@ -311,7 +311,7 @@ namespace MessageSystem
         }
         lua_pop(lua::L, 1);
         // Add entity
-        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
+        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         // Create
         lua::push_external("entity_new");
@@ -328,7 +328,7 @@ namespace MessageSystem
         lua_getfield(lua::L, -1, "uid");
         int newuid = lua_tointeger(lua::L, -1);
         lua_pop(lua::L, 2);
-        logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
+        logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f)",
                                       newuid, _class, x, y, z);
     }
 #endif
@@ -337,7 +337,7 @@ namespace MessageSystem
 
     void send_StateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
     {
-        logger::log(logger::DEBUG, "Sending a message of type StateDataUpdate (1011)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type StateDataUpdate (1011)");
         INDENT_LOG(logger::DEBUG);
 
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, true, buildf("riiisi", 1011, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
@@ -362,7 +362,7 @@ namespace MessageSystem
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uid, keyProtocolId, value); \
+                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s", uid, keyProtocolId, value); \
                 \
                 if (!LogicSystem::initialized) \
                     return; \
@@ -390,7 +390,7 @@ namespace MessageSystem
         if (editmode)
             EditingSystem::madeChanges = true;
 
-        logger::log(logger::DEBUG, "Sending a message of type StateDataChangeRequest (1012)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type StateDataChangeRequest (1012)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1012, "riis", uid, keyProtocolId, value);
@@ -408,7 +408,7 @@ namespace MessageSystem
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
-        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
+        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s", actorUniqueId, keyProtocolId, value); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
@@ -426,7 +426,7 @@ namespace MessageSystem
 
     void send_UnreliableStateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
     {
-        logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataUpdate (1013)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataUpdate (1013)");
 
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, true, buildf("iiisi", 1013, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
     }
@@ -447,7 +447,7 @@ namespace MessageSystem
 
     void send_UnreliableStateDataChangeRequest(int uid, int keyProtocolId, const char* value)
     {
-        logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1014, "iis", uid, keyProtocolId, value);
@@ -470,7 +470,7 @@ namespace MessageSystem
 
     void send_NotifyNumEntities(int clientNumber, int num)
     {
-        logger::log(logger::DEBUG, "Sending a message of type NotifyNumEntities (1015)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type NotifyNumEntities (1015)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("rii", 1015, num));
     }
 
@@ -488,7 +488,7 @@ namespace MessageSystem
 
     void send_AllActiveEntitiesSent(int clientNumber)
     {
-        logger::log(logger::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("ri", 1016));
     }
 
@@ -504,7 +504,7 @@ namespace MessageSystem
 
     void send_ActiveEntitiesRequest(const char* scenarioCode)
     {
-        logger::log(logger::DEBUG, "Sending a message of type ActiveEntitiesRequest (1017)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type ActiveEntitiesRequest (1017)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1017, "rs", scenarioCode);
@@ -522,7 +522,7 @@ namespace MessageSystem
             server::setClientScenario(sender, scenarioCode);
             if ( !server::isRunningCurrentScenario(sender) )
             {
-                logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
+                logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s",
                     sender, scenarioCode
                 );
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
@@ -554,7 +554,7 @@ namespace MessageSystem
 
     void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
-        logger::log(logger::DEBUG, "Sending a message of type LogicEntityCompleteNotification (1018)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type LogicEntityCompleteNotification (1018)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, true, buildf("riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData));
     }
 
@@ -573,7 +573,7 @@ namespace MessageSystem
         #endif
         if (!LogicSystem::initialized)
             return;
-        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
+        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s", otherClientNumber, otherUniqueId, otherClass);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
@@ -589,7 +589,7 @@ namespace MessageSystem
                     // If this is the player, validate it is the clientNumber we already have
                     if (otherUniqueId == ClientSystem::uniqueId)
                     {
-                        logger::log(logger::DEBUG, "This is the player's entity (%d), validating client num: %d,%d\r\n",
+                        logger::log(logger::DEBUG, "This is the player's entity (%d), validating client num: %d,%d",
                             otherUniqueId, otherClientNumber, ClientSystem::playerNumber);
                         assert(otherClientNumber == ClientSystem::playerNumber);
                     }
@@ -601,15 +601,15 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
-                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
+                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring", otherUniqueId, otherClass);
                 return;
             }
         } else
-            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
+            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create", entity != NULL, entity->getUniqueId(),
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData);
+        logger::log(logger::DEBUG, "Updating stateData with: %s", stateData);
         lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
         lua_getfield(lua::L, -1, "set_sdata_full");
         lua_insert  (lua::L, -2);
@@ -619,7 +619,7 @@ namespace MessageSystem
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
             {
-                logger::log(logger::DEBUG, "Linking player information, uid: %d\r\n", otherUniqueId);
+                logger::log(logger::DEBUG, "Linking player information, uid: %d", otherUniqueId);
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
@@ -638,7 +638,7 @@ namespace MessageSystem
     void send_RequestLogicEntityRemoval(int uid)
     {        EditingSystem::madeChanges = true;
 
-        logger::log(logger::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1019, "ri", uid);
@@ -652,7 +652,7 @@ namespace MessageSystem
         if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
         {
-            logger::log(logger::WARNING, "Non-admin tried to remove an entity\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to remove an entity");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot remove entities");
             return;
         }
@@ -667,7 +667,7 @@ namespace MessageSystem
 
     void send_LogicEntityRemoval(int clientNumber, int uid)
     {
-        logger::log(logger::DEBUG, "Sending a message of type LogicEntityRemoval (1020)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type LogicEntityRemoval (1020)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("rii", 1020, uid));
     }
 
@@ -689,7 +689,7 @@ namespace MessageSystem
 
     void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
-        logger::log(logger::DEBUG, "Sending a message of type ExtentCompleteNotification (1021)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type ExtentCompleteNotification (1021)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riiss", 1021, otherUniqueId, otherClass, stateData));
     }
 
@@ -704,13 +704,13 @@ namespace MessageSystem
 
         if (!LogicSystem::initialized)
             return;
-        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s\n", otherUniqueId, otherClass);
+        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s", otherUniqueId, otherClass);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
+            logger::log(logger::DEBUG, "Creating new active LogicEntity");
             lua::push_external("entity_add");
             lua_pushstring (lua::L, otherClass);
             lua_pushinteger(lua::L, otherUniqueId);
@@ -718,11 +718,11 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else
-            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
+            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create", entity != NULL, entity->getUniqueId(),
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        logger::log(logger::DEBUG, "Updating stateData\r\n");
+        logger::log(logger::DEBUG, "Updating stateData");
         lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
         lua_getfield(lua::L, -1, "set_sdata_full");
         lua_insert  (lua::L, -2);
@@ -738,7 +738,7 @@ namespace MessageSystem
 
     void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
     {
-        logger::log(logger::DEBUG, "Sending a message of type InitS2C (1022)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type InitS2C (1022)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riii", 1022, explicitClientNumber, protocolVersion));
     }
 
@@ -748,7 +748,7 @@ namespace MessageSystem
         int explicitClientNumber = getint(p);
         int protocolVersion = getint(p);
 
-        logger::log(logger::DEBUG, "client.h: N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
+        logger::log(logger::DEBUG, "client.h: N_INITS2C gave us cn/protocol: %d/%d", explicitClientNumber, protocolVersion);
         if(protocolVersion != PROTOCOL_VERSION)
         {
             conoutf(CON_ERROR, "You are using a different network protocol (you: %d, server: %d)", PROTOCOL_VERSION, protocolVersion);
@@ -773,7 +773,7 @@ namespace MessageSystem
 
     void send_EditModeC2S(int mode)
     {
-        logger::log(logger::DEBUG, "Sending a message of type EditModeC2S (1028)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type EditModeC2S (1028)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1028, "ri", mode);
@@ -793,7 +793,7 @@ namespace MessageSystem
 
     void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode)
     {
-        logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)");
 
         send_AnyMessage(clientNumber, MAIN_CHANNEL, true, false, buildf("riii", 1029, otherClientNumber, mode), otherClientNumber);
     }
@@ -824,7 +824,7 @@ namespace MessageSystem
 
     void send_RequestMap()
     {
-        logger::log(logger::DEBUG, "Sending a message of type RequestMap (1030)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type RequestMap (1030)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1030, "r");
@@ -842,7 +842,7 @@ namespace MessageSystem
 
     void send_DoClick(int button, int down, float x, float y, float z, int uid)
     {
-        logger::log(logger::DEBUG, "Sending a message of type DoClick (1031)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type DoClick (1031)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1031, "riiiiii", button, down, int(x*DMF), int(y*DMF), int(z*DMF), uid);
@@ -883,7 +883,7 @@ namespace MessageSystem
 
     void send_RequestPrivateEditMode()
     {
-        logger::log(logger::DEBUG, "Sending a message of type RequestPrivateEditMode (1034)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type RequestPrivateEditMode (1034)");
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1034, "r");
@@ -901,7 +901,7 @@ namespace MessageSystem
 
     void send_NotifyPrivateEditMode(int clientNumber)
     {
-        logger::log(logger::DEBUG, "Sending a message of type NotifyPrivateEditMode (1035)\r\n");
+        logger::log(logger::DEBUG, "Sending a message of type NotifyPrivateEditMode (1035)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("ri", 1035));
     }
 

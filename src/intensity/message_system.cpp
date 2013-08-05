@@ -15,7 +15,7 @@ namespace MessageSystem
 
 void MessageType::receive(int receiver, int sender, ucharbuf &p)
 {
-    logger::log(logger::ERROR, "Trying to receive a message, but no handler present: %s (%d)\r\n", type_name, type_code);
+    logger::log(logger::ERROR, "Trying to receive a message, but no handler present: %s (%d)", type_name, type_code);
     assert(0);
 }
 
@@ -35,7 +35,7 @@ MessageManager::MessageMap &MessageManager::messageTypes = storage.data;
 
 void MessageManager::registerMessageType(MessageType *newMessageType)
 {
-    logger::log(logger::DEBUG, "MessageSystem: Registering message %s (%d)\r\n",
+    logger::log(logger::DEBUG, "MessageSystem: Registering message %s (%d)",
                                  newMessageType->type_name,
                                  newMessageType->type_code);
 
@@ -47,17 +47,17 @@ void MessageManager::registerMessageType(MessageType *newMessageType)
 bool MessageManager::receive(int type, int receiver, int sender, ucharbuf &p)
 {
     if (messageTypes.access(type) == NULL) {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type %d from %d: Type not found in our extensions to Sauer\r\n", type, sender);
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type %d from %d: Type not found in our extensions to Sauer", type, sender);
         return false; // This isn't one of our messages, hopefully it's a sauer one
     }
 
     MessageType *message_type = messageTypes[type];
-    logger::log(logger::DEBUG,     "MessageSystem: Receiving a message of type %d from %d: %s\r\n", type, sender, message_type->type_name);
+    logger::log(logger::DEBUG,     "MessageSystem: Receiving a message of type %d from %d: %s", type, sender, message_type->type_name);
     INDENT_LOG(logger::DEBUG);
 
     message_type->receive(receiver, sender, p);
 
-    logger::log(logger::DEBUG, "MessageSystem: message successfully handled\r\n");
+    logger::log(logger::DEBUG, "MessageSystem: message successfully handled");
 
     return true;
 }

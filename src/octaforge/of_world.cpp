@@ -114,7 +114,7 @@ namespace world
         memcpy(buf + len - 7, "/map", 5);
 
         if (!load_world(buf)) {
-            logger::log(logger::ERROR, "Failed to load world!\n");
+            logger::log(logger::ERROR, "Failed to load world!");
             return false;
         }
 
@@ -152,7 +152,7 @@ namespace world
 
         FILE *f = fopen(buf, "w");
         if  (!f) {
-            logger::log(logger::ERROR, "Cannot open file %s for writing.\n",
+            logger::log(logger::ERROR, "Cannot open file %s for writing.",
                 buf);
             return;
         }

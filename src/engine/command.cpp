@@ -3985,7 +3985,7 @@ LUAICOMMAND(var_new, {
     if (!nm || !nm[0]) {
         lua_pushboolean(L, false); return 1;
     } else if (getident(nm)) {
-        logger::log(logger::ERROR, "variable %s already exists\n", nm);
+        logger::log(logger::ERROR, "variable %s already exists", nm);
         lua_pushboolean(L, false); return 1;
     }
     char *name = newstring(nm, len);

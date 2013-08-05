@@ -185,7 +185,7 @@ void TargetingControl::calcPhysicsFrames(physent *entity)
 
     fpsent* fpsEntity = (fpsent*)entity;
 
-    logger::log(logger::INFO, "physicsframe() lastmillis: %d  curtime: %d  lastphysframe: %d\r\n", lastmillis, curtime, fpsEntity->lastphysframe);
+    logger::log(logger::INFO, "physicsframe() lastmillis: %d  curtime: %d  lastphysframe: %d", lastmillis, curtime, fpsEntity->lastphysframe);
 
     // If no previous physframe - this is the first time - then don't bother
     // running physics, wait for that first frame. Or else we might run
@@ -214,11 +214,11 @@ void TargetingControl::calcPhysicsFrames(physent *entity)
 
     if (fpsEntity->physsteps * fpsEntity->physframetime > 2000)
     {
-        logger::log(logger::WARNING, "Trying to run over 2 seconds of physics prediction at once for %d: %d/%d (%d fps) (diff: %d ; %d, %d). Aborting physics for this round.\r\n", fpsEntity->uid, fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff, lastmillis, fpsEntity->lastphysframe - (fpsEntity->physsteps * fpsEntity->physframetime));
+        logger::log(logger::WARNING, "Trying to run over 2 seconds of physics prediction at once for %d: %d/%d (%d fps) (diff: %d ; %d, %d). Aborting physics for this round.", fpsEntity->uid, fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff, lastmillis, fpsEntity->lastphysframe - (fpsEntity->physsteps * fpsEntity->physframetime));
         fpsEntity->physsteps = 1; // If we had a ton of physics to run - like, say, after 19 seconds of lightmap calculations -
                                   // then just give up, don't run all that physics, do just one frame. Back to normal next time, after all.
     }
 
-    logger::log(logger::INFO, "physicsframe() Decided on physframetime/physsteps: %d/%d (%d fps) (diff: %d)\r\n", fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff);
+    logger::log(logger::INFO, "physicsframe() Decided on physframetime/physsteps: %d/%d (%d fps) (diff: %d)", fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff);
 }
 

@@ -34,7 +34,7 @@ void ClientSystem::connect(const char *host, int port)
 
 void ClientSystem::login(int clientNumber)
 {
-    logger::log(logger::DEBUG, "ClientSystem::login()\r\n");
+    logger::log(logger::DEBUG, "ClientSystem::login()");
 
     playerNumber = clientNumber;
 
@@ -46,7 +46,7 @@ void ClientSystem::finishLogin(bool local)
     editingAlone = local;
     loggedIn = true;
 
-    logger::log(logger::DEBUG, "Now logged in, with unique_ID: %d\r\n", uniqueId);
+    logger::log(logger::DEBUG, "Now logged in, with unique_ID: %d", uniqueId);
 }
 
 void ClientSystem::doDisconnect()
@@ -72,7 +72,7 @@ void ClientSystem::onDisconnect()
 bool ClientSystem::scenarioStarted()
 {
     if (!_mapCompletelyReceived)
-        logger::log(logger::INFO, "Map not completely received, so scenario not started\r\n");
+        logger::log(logger::INFO, "Map not completely received, so scenario not started");
 
     // If not already started, test if indeed started
     if (_mapCompletelyReceived && !_scenarioStarted)

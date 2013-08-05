@@ -1074,7 +1074,7 @@ int main(int argc, char **argv)
     int dedicated = 0;
     char *load = NULL, *initscript = NULL;
 
-    #define initlog(s) logger::log(logger::INIT, "%s\n", s)
+    #define initlog(s) logger::log(logger::INIT, "%s", s)
 
     initing = INIT_RESET;
 
@@ -1241,10 +1241,10 @@ int main(int argc, char **argv)
     game::loadconfigs();
     initing = NOT_INITING;
 
-    initlog("Registering messages\n");
+    initlog("messages");
     MessageSystem::MessageManager::registerAll();
 
-    initlog("init: shaders");
+    initlog("shaders");
     initgbuffer();
     loadshaders();
     initparticles();
@@ -1252,7 +1252,7 @@ int main(int argc, char **argv)
 
     identflags |= IDF_PERSIST;
 
-    initlog("init: mainloop");
+    initlog("mainloop");
 
     if(load)
     {

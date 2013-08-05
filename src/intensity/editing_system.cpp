@@ -130,11 +130,11 @@ bool checkCubeCoords(int x, int y, int z, int gridsize)
 
 void createCube(int x, int y, int z, int gridsize)
 {
-    logger::log(logger::DEBUG, "createCube: %d,%d,%d  --  %d\r\n", x, y, z, gridsize);
+    logger::log(logger::DEBUG, "createCube: %d,%d,%d  --  %d", x, y, z, gridsize);
 
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        logger::log(logger::ERROR, "Bad cube coordinates to createCube: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to createCube: %d,%d,%d : %d", x, y, z, gridsize);
         return;
     }
 
@@ -168,7 +168,7 @@ void deleteCube(int x, int y, int z, int gridsize)
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        logger::log(logger::ERROR, "Bad cube coordinates to createCube: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to createCube: %d,%d,%d : %d", x, y, z, gridsize);
         return;
     }
 
@@ -192,7 +192,7 @@ void setCubeTexture(int x, int y, int z, int gridsize, int face, int texture)
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        logger::log(logger::ERROR, "Bad cube coordinates to setCubeTexture: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to setCubeTexture: %d,%d,%d : %d", x, y, z, gridsize);
         return;
     }
 
@@ -218,7 +218,7 @@ void setCubeMaterial(int x, int y, int z, int gridsize, int material)
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        logger::log(logger::ERROR, "Bad cube coordinates to setCubeMaterial: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to setCubeMaterial: %d,%d,%d : %d", x, y, z, gridsize);
         return;
     }
 
@@ -242,7 +242,7 @@ void setCubeColor(int x, int y, int z, int gridsize, float r, float g, float b)
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        logger::log(logger::ERROR, "Bad cube coordinates to setCubeMaterial: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to setCubeMaterial: %d,%d,%d : %d", x, y, z, gridsize);
         return;
     }
 
@@ -283,7 +283,7 @@ void pushCubeCorner(int x, int y, int z, int gridsize, int face, int corner, int
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        logger::log(logger::ERROR, "Bad cube coordinates to pushCubeCorner: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to pushCubeCorner: %d,%d,%d : %d", x, y, z, gridsize);
         return;
     }
 

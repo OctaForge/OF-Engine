@@ -132,7 +132,7 @@ namespace entities
         const char *name = "";
         if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
         LUA_GET_ENT(entity, "_C.setmodelname", return 0)
-        logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")\n",
+        logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")",
             entity->getUniqueId(), name);
         extentity *ext = entity->staticEntity;
         if (!ext) return 0;
@@ -200,7 +200,7 @@ namespace entities
         extentity *ext = entity->staticEntity;
         assert(ext);
         logger::log(logger::INFO,
-            "_C.getextent0(%d): x: %f, y: %f, z: %f\n",
+            "_C.getextent0(%d): x: %f, y: %f, z: %f",
             entity->getUniqueId(), ext->o.x, ext->o.y, ext->o.z);
         lua_createtable(L, 3, 0);
         lua_pushnumber(L, ext->o.x); lua_rawseti(L, -2, 1);

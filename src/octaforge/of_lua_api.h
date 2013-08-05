@@ -19,7 +19,7 @@ namespace lapi_binds
 
     int _lua_log(lua_State *L) {
         logger::log((logger::loglevel)luaL_checkinteger(L, 1),
-            "%s\n", luaL_checkstring(L, 2));
+            "%s", luaL_checkstring(L, 2));
         return 0;
     }
 
@@ -66,7 +66,7 @@ namespace lapi_binds
         int cn = localconnect();
 
         defformatstring(buf, "Bot.%d", cn);
-        logger::log(logger::DEBUG, "New NPC with client number: %i\n", cn);
+        logger::log(logger::DEBUG, "New NPC with client number: %i", cn);
 
         const char *cl = luaL_checkstring(L, 1);
         /* returns true  == 1 when there is an entity on the stack
@@ -82,12 +82,12 @@ namespace lapi_binds
     }
 #else
     int _lua_npcadd(lua_State *L) {
-        logger::log(logger::ERROR, "_C.npcadd: server-only function.\n");
+        logger::log(logger::ERROR, "_C.npcadd: server-only function.");
         return 0;
     }
 
     int _lua_npcdel(lua_State *L) {
-        logger::log(logger::ERROR, "_C.npcdel: server-only function.\n");
+        logger::log(logger::ERROR, "_C.npcdel: server-only function.");
         return 0;
     }
 #endif

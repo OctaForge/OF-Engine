@@ -106,7 +106,7 @@ namespace logger
         }
         else
 #endif
-        printf("[[%s]] - %s", level_s, buf);
+        logoutf("[[%s]] - %s", level_s, buf);
         if (buf != sbuf) {
             delete[] buf;
         }
