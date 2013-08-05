@@ -92,10 +92,9 @@ namespace local_server {
             defformatstring(a1, "-g%s", logger::names[logger::current_level]);
             defformatstring(a2, "-l%s", server_log_file);
             defformatstring(a3, "-mmap/%s.tar.gz", map);
-            const char *a4 = "-shutdown-if-idle";
-            const char *a5 = "-shutdown-if-empty";
 
-            execl(a0, a0, a1, a2, a3, a4, a5, (char*)NULL);
+            execl(a0, a0, a1, a2, a3, "-shutdown-if-idle",
+                "-shutdown-if-empty", (char*)NULL);
             exit(0);
         }
 #else
