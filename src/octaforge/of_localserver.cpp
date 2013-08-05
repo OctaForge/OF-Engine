@@ -78,35 +78,64 @@ namespace local_server {
         }
     }
 
-    static void build_args(const char *map, vector<char*> &args) {
-        args.add(newstring("bin_unix/server_" BINARY_OS_STR "_"
-            BINARY_ARCH_STR));
-        defformatstring(arg, "-g%s", logger::names[logger::current_level]);
-        args.add(newstring(arg));
-        formatstring(arg, "-l%s", server_log_file);
-        args.add(newstring(arg));
-        formatstring(arg, "-mmap/%s.tar.gz", map);
-        args.add(newstring(arg));
-        copystring(arg, "-shutdown-if-idle");
-        args.add(newstring(arg));
-        copystring(arg, "-shutdown-if-empty");
-        args.add(newstring(arg));
-        args.add(NULL);
-    }
-
     void run(const char *map) {
         if (started) {
             conoutf("Stopping old server instance ..");
             stop();
         }
         conoutf("Starting server, please wait ..");
+#ifndef WIN32
         if (!fork()) {
-            vector<char*> args;
-            build_args(map, args);
-            execv(args[0], args.getbuf());
-            args.deletearrays();
+            const char *a0 = "bin_unix/server_" BINARY_OS_STR "_"
+                BINARY_ARCH_STR;
+
+            defformatstring(a1, "-g%s", logger::names[logger::current_level]);
+            defformatstring(a2, "-l%s", server_log_file);
+            defformatstring(a3, "-mmap/%s.tar.gz", map);
+            const char *a4 = "-shutdown-if-idle";
+            const char *a5 = "-shutdown-if-empty";
+
+            execl(a0, a0, a1, a2, a3, a4, a5, (char*)NULL);
             exit(0);
         }
+#else
+#ifdef WIN64
+        const char *exe = "bin_win64\\server_" BINARY_OS_STR "_"
+            BINARY_ARCH_STR ".exe";
+#else
+        const char *exe = "bin_win32\\server_" BINARY_OS_STR "_"
+            BINARY_ARCH_STR ".exe";
+#endif
+        char buf[4096];
+        const char *cptr = buf;
+
+        defformatstring(a1, "-g%s", logger::names[logger::current_level]);
+        defformatstring(a2, "-l%s", server_log_file);
+        defformatstring(a3, "-mmap/%s.tar.gz", map);
+        const char a4[] = "-shutdown-if-idle";
+        const char a5[] = "-shutdown-if-empty";
+
+        size_t len = strlen(a1);
+        memcpy(cptr, a1, len); cptr += len; *(cptr++) = ' ';
+        len = strlen(a2);
+        memcpy(cptr, a2, len); cptr += len; *(cptr++) = ' ';
+        len = strlen(a3);
+        memcpy(cptr, a3, len); cptr += len; *(cptr++) = ' ';
+        len = sizeof(a4) - 1;
+        memcpy(cptr, a4, len); cptr += len; *(cptr++) = ' ';
+        len = sizeof(a5) - 1;
+        memcpy(cptr, a5, len); cptr += len; *cptr = '\0';
+
+        STARTUPINFO si;
+        PROCESS_INFORMATION pi;
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        ZeroMemory(&si, sizeof(pi));
+
+        CreateProcess(exe, buf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+#endif
 
         started = true;
     }
