@@ -517,39 +517,6 @@ void rundedicatedserver()
     dedicatedserver = false;
 }
 
-#if defined(WIN32) && !defined(SERVER)
-static char *parsecommandline(const char *src, vector<char *> &args)
-{
-    char *buf = new char[strlen(src) + 1], *dst = buf;
-    for(;;)
-    {
-        while(isspace(*src)) src++;
-        if(!*src) break;
-        args.add(dst);
-        for(bool quoted = false; *src && (quoted || !isspace(*src)); src++)
-        {
-            if(*src != '"') *dst++ = *src;
-            else if(dst > buf && src[-1] == '\\') dst[-1] = '"';
-            else quoted = !quoted;
-        }
-        *dst++ = '\0';
-    }
-    args.add(NULL);
-    return buf;
-}
-
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
-{
-    vector<char *> args;
-    char *buf = parsecommandline(GetCommandLine(), args);
-    SDL_SetMainReady();
-    int status = SDL_main(args.length()-1, args.getbuf());
-    delete[] buf;
-    exit(status);
-    return 0;
-}
-#endif
-
 bool servererror(bool dedicated, const char *desc)
 {
     if(!dedicated)
@@ -681,7 +648,11 @@ void server_runslice()
     }
 }
 
+#ifdef WIN32
+int server_main(int argc, char **argv)
+#else
 int main(int argc, char **argv)
+#endif
 {
     // Pre-initializations
     static Texture dummyTexture;
@@ -790,3 +761,39 @@ int main(int argc, char **argv)
 }
 #endif
 
+#ifdef WIN32
+static char *parsecommandline(const char *src, vector<char *> &args)
+{
+    char *buf = new char[strlen(src) + 1], *dst = buf;
+    for(;;)
+    {
+        while(isspace(*src)) src++;
+        if(!*src) break;
+        args.add(dst);
+        for(bool quoted = false; *src && (quoted || !isspace(*src)); src++)
+        {
+            if(*src != '"') *dst++ = *src;
+            else if(dst > buf && src[-1] == '\\') dst[-1] = '"';
+            else quoted = !quoted;
+        }
+        *dst++ = '\0';
+    }
+    args.add(NULL);
+    return buf;
+}
+
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
+{
+    vector<char *> args;
+    char *buf = parsecommandline(GetCommandLine(), args);
+#ifndef SERVER
+    SDL_SetMainReady();
+    int status = SDL_main(args.length()-1, args.getbuf());
+#else
+    server_main(args.length()-1, args.getbuf());
+#endif
+    delete[] buf;
+    exit(status);
+    return 0;
+}
+#endif
