@@ -22,6 +22,7 @@ local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
+local logger = require("core.logger")
 
 local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
@@ -1551,7 +1552,12 @@ local World = register_class("World", Widget, {
     hide_window = function(self, name)
         local old = self:find_child(Window.type, name, false)
         if old then self:remove(old) end
-        self.windows[name](false) -- set visible to false
+        local win = self.windows[name]
+        if not win then
+            logger.log(logger.ERROR, "no such window: " .. name)
+            return false
+        end
+        win(false) -- set visible to false
         return old != nil
     end,
 

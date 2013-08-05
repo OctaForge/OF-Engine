@@ -149,7 +149,13 @@ world:new_window("main", gui.Window, |win| do
     end)
 end)
 
-require("core.engine.cubescript").execute([[ bind ESCAPE [ lua [
+require("core.engine.cubescript").execute([=[
+toggleui = [lua [
     local world = require("core.gui.core").get_world()
-    if not world:hide_window("main") then world:show_window("main") end
-] ] ]])
+    if not world:hide_window(@(escape $arg1)) then
+        world:show_window(@(escape $arg1))
+    end
+]]
+
+bind ESCAPE [toggleui main]
+]=])

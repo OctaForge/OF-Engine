@@ -82,7 +82,7 @@ world:new_window("changes", gui.Window, function(win)
     end)
 end)
 
-world:new_window("textures", gui.Window, function(win)
+world:new_window("texture", gui.Window, function(win)
     win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,
     min_w = 0.3, min_h = 0.2 }, function(r)
         r:clamp(true, true, true, true)
@@ -110,7 +110,7 @@ world:new_window("textures", gui.Window, function(win)
                             min_w = 0.2, min_h = 0.05,
                             gui.Label { text = "Close" } })))
                 signal.connect(btn, "click", function()
-                    world:hide_window("textures")
+                    world:hide_window("texture")
                 end)
             end)
         end)
