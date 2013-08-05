@@ -83,6 +83,8 @@ namespace local_server {
             BINARY_ARCH_STR));
         defformatstring(arg, "-g%s", logger::names[logger::current_level]);
         args.add(newstring(arg));
+        formatstring(arg, "-l%s", server_log_file);
+        args.add(newstring(arg));
         formatstring(arg, "-mmap/%s.tar.gz", map);
         args.add(newstring(arg));
         copystring(arg, "-shutdown-if-idle");
@@ -101,13 +103,6 @@ namespace local_server {
         if (!fork()) {
             vector<char*> args;
             build_args(map, args);
-
-            defformatstring(logfile, "%s%s", homedir, server_log_file);
-            int fd = open(logfile, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
-            dup2(fd, 1); /* stdout */
-            dup2(fd, 2); /* stderr */
-            close(fd);
-
             execv(args[0], args.getbuf());
             args.deletearrays();
             exit(0);

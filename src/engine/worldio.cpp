@@ -858,7 +858,7 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     logger::log(logger::DEBUG, "load_world complete."); // INTENSITY
     world::loading = false; // INTENSITY
 
-    printf("\r\n\r\n[[MAP LOADING]] - Success."); // INTENSITY
+    logoutf("[[MAP LOADING]] - Success."); // INTENSITY
 #ifdef SERVER
     defformatstring(path, "%s%s", homedir, SERVER_READYFILE);
     tools::fempty(path);

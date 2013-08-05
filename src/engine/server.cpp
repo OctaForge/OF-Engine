@@ -583,8 +583,6 @@ vector<const char *> gameargs;
 #ifdef SERVER
 void server_init()//int argc, char* argv[])
 {
-    setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
-    setlogfile(NULL);
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     atexit(enet_deinitialize);
     enet_time_set(0);
@@ -671,6 +669,7 @@ int main(int argc, char **argv)
 
     notexture = &dummyTexture;
 
+    setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
     setlogfile(NULL);
 
 #ifdef WIN32
@@ -714,6 +713,7 @@ int main(int argc, char **argv)
         {
             case 'q': break;
             case 'g': logoutf("Setting logging level %s", &argv[i][2]); loglevel = &argv[i][2]; break;
+            case 'l': logoutf("Setting log file: %s", &argv[i][2]); setlogfile(&argv[i][2]); break;
             case 'm': logoutf("Setting map %s", &argv[i][2]); map_asset = &argv[i][2]; break;
             default:
             {
