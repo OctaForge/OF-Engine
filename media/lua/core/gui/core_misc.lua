@@ -16,6 +16,7 @@
 local table2 = require("core.lua.table")
 
 local find = table2.find
+local tremove = table.remove
 
 local M = require("core.gui.core")
 local world = M.get_world()
@@ -75,7 +76,7 @@ M.Mover = register_class("Mover", Widget, {
         local c = w.parent.children
         local n = find(c, w)
         local l = #c
-        if n != l then c[l], c[n] = w, c[l] end
+        if n != l then c[l] = tremove(c, n) end
         return self:target(cx, cy) and self
     end,
 
