@@ -1441,11 +1441,12 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
     return true;
 }
 
-void loadalphamask(Texture *t)
+uchar *loadalphamask(Texture *t)
 {
-    if(t->alphamask || (t->type&(Texture::ALPHA|Texture::COMPRESSED)) != Texture::ALPHA) return;
+    if(t->alphamask) return t->alphamask;
+    if((t->type&(Texture::ALPHA|Texture::COMPRESSED)) != Texture::ALPHA) return NULL;
     ImageData s;
-    if(!texturedata(s, t->name, NULL, false) || !s.data || s.compressed) return;
+    if(!texturedata(s, t->name, NULL, false) || !s.data || s.compressed) return NULL;
     t->alphamask = new uchar[s.h * ((s.w+7)/8)];
     uchar *srcrow = s.data, *dst = t->alphamask-1;
     loop(y, s.h)
@@ -1460,6 +1461,7 @@ void loadalphamask(Texture *t)
         }
         srcrow += s.pitch;
     }
+    return t->alphamask;
 }
 
 Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
@@ -1838,9 +1840,9 @@ static void fixinsidefaces(cube *c, const ivec &o, int size, int tex)
 {
     loopi(8)
     {
-        ivec co(i, o.x, o.y, o.z, size);
+        ivec co(i, o, size);
         if(c[i].children) fixinsidefaces(c[i].children, co, size>>1, tex);
-        else loopj(6) if(!visibletris(c[i], j, co.x, co.y, co.z, size))
+        else loopj(6) if(!visibletris(c[i], j, co, size))
             c[i].texture[j] = tex;
     }
 }
@@ -2616,9 +2618,9 @@ ushort closestenvmap(const vec &o)
     return minemid;
 }
 
-ushort closestenvmap(int orient, int x, int y, int z, int size)
+ushort closestenvmap(int orient, const ivec &co, int size)
 {
-    vec loc(x, y, z);
+    vec loc(co);
     int dim = dimension(orient);
     if(dimcoord(orient)) loc[dim] += size;
     loc[R[dim]] += size/2;
@@ -3190,12 +3192,12 @@ SVARP(screenshotdir, "screenshot");
 void screenshot(char *filename)
 {
     static string buf;
-    int format = -1;
+    int format = -1, dirlen = 0;
     copystring(buf, screenshotdir);
     if(screenshotdir[0])
     {
-        int len = strlen(buf);
-        if(buf[len] != '/' && buf[len] != '\\' && len+1 < (int)sizeof(buf)) { buf[len] = '/'; buf[len+1] = '\0'; }
+        dirlen = strlen(buf);
+        if(buf[dirlen] != '/' && buf[dirlen] != '\\' && dirlen+1 < (int)sizeof(buf)) { buf[dirlen++] = '/'; buf[dirlen] = '\0'; }
         const char *dir = findfile(buf, "w");
         if(!fileexists(dir, "w")) createdir(dir);
     }
@@ -3218,7 +3220,7 @@ void screenshot(char *filename)
             concatstring(buf, "_");
             concatstring(buf, map);
         }
-        for(char *s = buf; *s; s++) if(iscubespace(*s) || *s == '/' || *s == '\\') *s = '-';
+        for(char *s = &buf[dirlen]; *s; s++) if(iscubespace(*s) || *s == '/' || *s == '\\') *s = '-';
     }
     if(format < 0)
     {

@@ -20,7 +20,7 @@ static inline clipplanes &getclipplanes(const cube &c, const ivec &o, int size, 
     {
         p.owner = &c;
         p.version = clipcacheversion+offset;
-        genclipplanes(c, o.x, o.y, o.z, size, p, collide);
+        genclipplanes(c, o, size, p, collide);
     }
     return p;
 }
@@ -127,7 +127,7 @@ static float disttoent(octaentities *oc, const vec &o, const vec &ray, float rad
 {
     vec eo, es;
     int orient = -1;
-    float dist = 1e16f, f = 0.0f;
+    float dist = radius, f = 0.0f;
     const vector<extentity *> &ents = entities::getents();
 
     #define entintersect(mask, type, func) {\
@@ -136,7 +136,7 @@ static float disttoent(octaentities *oc, const vec &o, const vec &ray, float rad
             extentity &e = *ents[oc->type[i]]; \
             if(!(e.flags&EF_OCTA) || &e==t) continue; \
             func; \
-            if(f<dist && f>0) \
+            if(f<dist && f>0 && vec(ray).mul(f).add(o).insidebb(oc->o, oc->size)) \
             { \
                 hitentdist = dist = f; \
                 hitent = oc->type[i]; \
@@ -166,7 +166,7 @@ static float disttooutsideent(const vec &o, const vec &ray, float radius, int mo
 {
     vec eo, es;
     int orient;
-    float dist = 1e16f, f = 0.0f;
+    float dist = radius, f = 0.0f;
     const vector<extentity *> &ents = entities::getents();
     loopv(outsideents)
     {
@@ -187,7 +187,7 @@ static float disttooutsideent(const vec &o, const vec &ray, float radius, int mo
 // optimized shadow version
 static float shadowent(octaentities *oc, const vec &o, const vec &ray, float radius, int mode, extentity *t)
 {
-    float dist = 1e16f, f = 0.0f;
+    float dist = radius, f = 0.0f;
     const vector<extentity *> &ents = entities::getents();
     loopv(oc->mapmodels)
     {
@@ -200,11 +200,11 @@ static float shadowent(octaentities *oc, const vec &o, const vec &ray, float rad
 }
 
 #define INITRAYCUBE \
-    float dist = 0, dent = mode&RAY_BB ? 1e16f : 1e14f; \
+    float dist = 0, dent = radius > 0 ? radius : 1e16f; \
     vec v(o), invray(ray.x ? 1/ray.x : 1e16f, ray.y ? 1/ray.y : 1e16f, ray.z ? 1/ray.z : 1e16f); \
     cube *levels[20]; \
     levels[worldscale] = worldroot; \
-    int lshift = worldscale, elvl = worldscale; \
+    int lshift = worldscale, elvl = mode&RAY_BB ? worldscale : 0; \
     ivec lsizemask(invray.x>0 ? 1 : 0, invray.y>0 ? 1 : 0, invray.z>0 ? 1 : 0); \
 
 #define CHECKINSIDEWORLD \
@@ -236,10 +236,10 @@ static float shadowent(octaentities *oc, const vec &o, const vec &ray, float rad
             lc += octastep(x, y, z, lshift); \
             if(lc->ext && lc->ext->ents && lshift < elvl) \
             { \
-                float edist = disttoent(lc->ext->ents, o, ray, radius, mode, t); \
-                if(edist < 1e15f) \
+                float edist = disttoent(lc->ext->ents, o, ray, dent, mode, t); \
+                if(edist < dent) \
                 { \
-                    if(earlyexit) return min(edist, dist); \
+                    earlyexit return min(edist, dist); \
                     elvl = lshift; \
                     dent = min(dent, edist); \
                 } \
@@ -285,7 +285,7 @@ float raycube(const vec &o, const vec &ray, float radius, int mode, int size, ex
     int closest = -1, x = int(v.x), y = int(v.y), z = int(v.z);
     for(;;)
     {
-        DOWNOCTREE(disttoent, mode&RAY_SHADOW);
+        DOWNOCTREE(disttoent, if(mode&RAY_SHADOW));
 
         int lsize = 1<<lshift;
 
@@ -341,7 +341,7 @@ float shadowray(const vec &o, const vec &ray, float radius, int mode, extentity 
     int side = O_BOTTOM, x = int(v.x), y = int(v.y), z = int(v.z);
     for(;;)
     {
-        DOWNOCTREE(shadowent, true);
+        DOWNOCTREE(shadowent, );
 
         cube &c = *lc;
         ivec lo(x&(~0<<lshift), y&(~0<<lshift), z&(~0<<lshift));
@@ -1138,7 +1138,7 @@ static inline bool octacollide(physent *d, const vec &dir, float cutoff, const i
     loopoctabox(cor, size, bo, bs)
     {
         if(c[i].ext && c[i].ext->ents) if(mmcollide(d, dir, cutoff, *c[i].ext->ents)) return true;
-        ivec o(i, cor.x, cor.y, cor.z, size);
+        ivec o(i, cor, size);
         if(c[i].children)
         {
             if(octacollide(d, dir, cutoff, bo, bs, c[i].children, o, size>>1)) return true;

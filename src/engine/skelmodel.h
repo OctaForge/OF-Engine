@@ -227,7 +227,7 @@ struct skelmodel : animmodel
 
         void genBIH(BIH::mesh &m)
         {
-            m.tris = (const ushort *)tris;
+            m.tris = (const BIH::tri *)tris;
             m.numtris = numtris;
             m.pos = (const uchar *)&verts->pos;
             m.posstride = sizeof(vert);

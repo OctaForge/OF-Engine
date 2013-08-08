@@ -68,7 +68,7 @@ vtxarray *visibleva = NULL;
 
 void clearshadowcache() {}
 
-void calcmatbb(vtxarray *va, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs) {}
+void calcmatbb(vtxarray *va, const ivec &co, int size, vector<materialsurface> &matsurfs) {}
 
 void clearmapsounds() { };
 void clearparticles() { };
@@ -85,10 +85,10 @@ void writebinds(stream *f) { };
 int isvisiblesphere(float rad, const vec &cv) { return 0; };
 Shader *lookupshaderbyname(const char *name) { return NULL; };
 Shader *useshaderbyname(const char *name) { return NULL; };
-ushort closestenvmap(int orient, int x, int y, int z, int size) { return 0; };
+ushort closestenvmap(int orient, const ivec &co, int size) { return 0; };
 ushort closestenvmap(const vec &o) { return 0; };
 GLuint lookupenvmap(ushort emid) { return 0; };
-void loadalphamask(Texture *t) { };
+uchar *loadalphamask(Texture *t) { return NULL; };
 Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient) { return notexture; };
 
 vector<VSlot *> vslots;
@@ -125,7 +125,7 @@ void setupmaterials(int start, int len) { };
 int findmaterial(const char *name) { return 0; };
 void enablepolygonoffset(GLenum type) { };
 void disablepolygonoffset(GLenum type) { };
-void genmatsurfs(const cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs) { };
+void genmatsurfs(const cube &c, const ivec &co, int size, vector<materialsurface> &matsurfs) { };
 void resetqueries() { };
 void initenvmaps() { };
 int optimizematsurfs(materialsurface *matbuf, int matsurfs) { return 0; };

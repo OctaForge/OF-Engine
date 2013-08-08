@@ -2,8 +2,9 @@
 
 extern vec hitsurface;
 
-bool BIH::triintersect(const mesh &m, const tri &t, const vec &mo, const vec &mray, float maxdist, float &dist, int mode)
+bool BIH::triintersect(const mesh &m, int tidx, const vec &mo, const vec &mray, float maxdist, float &dist, int mode)
 {
+    const tri &t = m.tris[tidx];
     vec a = m.getpos(t.vert[0]), b = m.getpos(t.vert[1]).sub(a), c = m.getpos(t.vert[2]).sub(a),
         n = vec().cross(b, c), r = vec(mo).sub(a), e = vec().cross(r, mray);
     float det = mray.dot(n), adet = fabs(det), v = e.dot(c);
@@ -11,9 +12,9 @@ bool BIH::triintersect(const mesh &m, const tri &t, const vec &mo, const vec &mr
     float w = -e.dot(b);
     if(w < 0 || v + w > adet) return false;
     float f = r.dot(n)*m.scale;
-    if(f < 0 || f> maxdist*adet || !adet) return false;
+    if(f < 0 || f > maxdist*adet || !adet) return false;
     float invdet = 1/adet;
-    if(m.flags&MESH_ALPHA && (mode&RAY_ALPHAPOLY)==RAY_ALPHAPOLY && (m.tex->alphamask || (loadalphamask(m.tex), m.tex->alphamask)))
+    if(m.flags&MESH_ALPHA && (mode&RAY_ALPHAPOLY)==RAY_ALPHAPOLY && (m.tex->alphamask || loadalphamask(m.tex)))
     {
         vec2 at = m.gettc(t.vert[0]), bt = m.gettc(t.vert[1]).sub(at).mul(v*invdet), ct = m.gettc(t.vert[2]).sub(at).mul(w*invdet);
         at.add(bt).add(ct);
@@ -23,7 +24,7 @@ bool BIH::triintersect(const mesh &m, const tri &t, const vec &mo, const vec &mr
     }
     if(!(mode&RAY_SHADOW))
     {
-        hitsurface = m.xformnorm.transform(t.normal);
+        hitsurface = m.xformnorm.transform(n).normalize();
         if(det > 0) hitsurface.neg();
     }
     dist = f*invdet;
@@ -55,25 +56,25 @@ inline bool BIH::traverse(const mesh &m, const vec &o, const vec &ray, const vec
             {
                 if(!curnode->isleaf(faridx))
                 {
-                    curnode = &nodes[curnode->childindex(faridx)];
+                    curnode += curnode->childindex(faridx);
                     tmin = max(tmin, farsplit);
                     continue;
                 }
-                else if(triintersect(m, tris[curnode->childindex(faridx)], mo, mray, maxdist, dist, mode)) return true;
+                else if(triintersect(m, curnode->childindex(faridx), mo, mray, maxdist, dist, mode)) return true;
             }
         }
         else if(curnode->isleaf(nearidx))
         {
-            if(triintersect(m, tris[curnode->childindex(nearidx)], mo, mray, maxdist, dist, mode)) return true;
+            if(triintersect(m, curnode->childindex(nearidx), mo, mray, maxdist, dist, mode)) return true;
             if(farsplit < tmax)
             {
                 if(!curnode->isleaf(faridx))
                 {
-                    curnode = &nodes[curnode->childindex(faridx)];
+                    curnode += curnode->childindex(faridx);
                     tmin = max(tmin, farsplit);
                     continue;
                 }
-                else if(triintersect(m, tris[curnode->childindex(faridx)], mo, mray, maxdist, dist, mode)) return true;
+                else if(triintersect(m, curnode->childindex(faridx), mo, mray, maxdist, dist, mode)) return true;
             }
         }
         else
@@ -85,21 +86,21 @@ inline bool BIH::traverse(const mesh &m, const vec &o, const vec &ray, const vec
                     if(stacksize < int(sizeof(stack)/sizeof(stack[0])))
                     {
                         traversestate &save = stack[stacksize++];
-                        save.node = &nodes[curnode->childindex(faridx)];
+                        save.node = curnode + curnode->childindex(faridx);
                         save.tmin = max(tmin, farsplit);
                         save.tmax = tmax;
                     }
                     else
                     {
-                        if(traverse(m, o, ray, invray, maxdist, dist, mode, &nodes[curnode->childindex(nearidx)], tmin, min(tmax, nearsplit))) return true;
-                        curnode = &nodes[curnode->childindex(faridx)];
+                        if(traverse(m, o, ray, invray, maxdist, dist, mode, curnode + curnode->childindex(nearidx), tmin, min(tmax, nearsplit))) return true;
+                        curnode += curnode->childindex(faridx);
                         tmin = max(tmin, farsplit);
                         continue;
                     }
                 }
-                else if(triintersect(m, tris[curnode->childindex(faridx)], mo, mray, maxdist, dist, mode)) return true;
+                else if(triintersect(m, curnode->childindex(faridx), mo, mray, maxdist, dist, mode)) return true;
             }
-            curnode = &nodes[curnode->childindex(nearidx)];
+            curnode += curnode->childindex(nearidx);
             tmax = min(tmax, nearsplit);
             continue;
         }
@@ -129,12 +130,12 @@ inline bool BIH::traverse(const vec &o, const vec &ray, float maxdist, float &di
         t2 = (m.bbmax.z - o.z)*invray.z;
         if(invray.z > 0) { tmin = max(tmin, t1); tmax = min(tmax, t2); } else { tmin = max(tmin, t2); tmax = min(tmax, t1); }
         tmax = min(tmax, maxdist);
-        if(tmin < tmax && traverse(m, o, ray, invray, maxdist, dist, mode, &nodes[m.nodes], tmin, tmax)) return true;
+        if(tmin < tmax && traverse(m, o, ray, invray, maxdist, dist, mode, m.nodes, tmin, tmax)) return true;
     }
     return false;
 }
 
-void BIH::build(vector<node> &buildnodes, ushort *indices, int numindices, const ivec &vmin, const ivec &vmax)
+void BIH::build(mesh &m, ushort *indices, int numindices, const ivec &vmin, const ivec &vmax)
 {
     int axis = 2;
     loopk(2) if(vmax[k] - vmin[k] > vmax[axis] - vmin[axis]) axis = k;
@@ -144,12 +145,12 @@ void BIH::build(vector<node> &buildnodes, ushort *indices, int numindices, const
     int left, right;
     loopk(3)
     {
-        leftmin = rightmin = vec(INT_MAX, INT_MAX, INT_MAX);
-        leftmax = rightmax = vec(INT_MIN, INT_MIN, INT_MIN);
+        leftmin = rightmin = ivec(INT_MAX, INT_MAX, INT_MAX);
+        leftmax = rightmax = ivec(INT_MIN, INT_MIN, INT_MIN);
         int split = (vmax[axis] + vmin[axis])/2;
         for(left = 0, right = numindices, splitleft = SHRT_MIN, splitright = SHRT_MAX; left < right;)
         {
-            tri &tri = tris[indices[left]];
+            const tribb &tri = m.tribbs[indices[left]];
             ivec trimin = ivec(tri.center).sub(ivec(tri.radius)),
                  trimax = ivec(tri.center).add(ivec(tri.radius));
             int amin = trimin[axis], amax = trimax[axis];
@@ -175,14 +176,14 @@ void BIH::build(vector<node> &buildnodes, ushort *indices, int numindices, const
 
     if(!left || right==numindices)
     {
-        leftmin = rightmin = vec(INT_MAX, INT_MAX, INT_MAX);
-        leftmax = rightmax = vec(INT_MIN, INT_MIN, INT_MIN);
+        leftmin = rightmin = ivec(INT_MAX, INT_MAX, INT_MAX);
+        leftmax = rightmax = ivec(INT_MIN, INT_MIN, INT_MIN);
         left = right = numindices/2;
         splitleft = SHRT_MIN;
         splitright = SHRT_MAX;
         loopi(numindices)
         {
-            tri &tri = tris[indices[i]];
+            const tribb &tri = m.tribbs[indices[i]];
             ivec trimin = ivec(tri.center).sub(ivec(tri.radius)),
                  trimax = ivec(tri.center).add(ivec(tri.radius));
             if(i < left)
@@ -200,28 +201,28 @@ void BIH::build(vector<node> &buildnodes, ushort *indices, int numindices, const
         }
     }
 
-    int node = buildnodes.length();
-    buildnodes.add();
-    buildnodes[node].split[0] = short(splitleft);
-    buildnodes[node].split[1] = short(splitright);
+    int offset = m.numnodes++;
+    node &curnode = m.nodes[offset];
+    curnode.split[0] = short(splitleft);
+    curnode.split[1] = short(splitright);
 
-    if(left==1) buildnodes[node].child[0] = (axis<<14) | indices[0];
+    if(left==1) curnode.child[0] = (axis<<14) | indices[0];
     else
     {
-        buildnodes[node].child[0] = (axis<<14) | buildnodes.length();
-        build(buildnodes, indices, left, leftmin, leftmax);
+        curnode.child[0] = (axis<<14) | (m.numnodes - offset);
+        build(m, indices, left, leftmin, leftmax);
     }
 
-    if(numindices-right==1) buildnodes[node].child[1] = (1<<15) | (left==1 ? 1<<14 : 0) | indices[right];
+    if(numindices-right==1) curnode.child[1] = (1<<15) | (left==1 ? 1<<14 : 0) | indices[right];
     else
     {
-        buildnodes[node].child[1] = (left==1 ? 1<<14 : 0) | buildnodes.length();
-        build(buildnodes, &indices[right], numindices-right, rightmin, rightmax);
+        curnode.child[1] = (left==1 ? 1<<14 : 0) | (m.numnodes - offset);
+        build(m, &indices[right], numindices-right, rightmin, rightmax);
     }
 }
 
 BIH::BIH(vector<mesh> &buildmeshes)
-  : meshes(NULL), nummeshes(0), nodes(NULL), numnodes(0), tris(NULL), numtris(0), bbmin(1e16f, 1e16f, 1e16f), bbmax(-1e16f, -1e16f, -1e16f), center(0, 0, 0), radius(0), entradius(0)
+  : meshes(NULL), nummeshes(0), nodes(NULL), numnodes(0), tribbs(NULL), numtris(0), bbmin(1e16f, 1e16f, 1e16f), bbmax(-1e16f, -1e16f, -1e16f), center(0, 0, 0), radius(0), entradius(0)
 {
     if(buildmeshes.empty()) return;
     loopv(buildmeshes) numtris += buildmeshes[i].numtris;
@@ -230,8 +231,8 @@ BIH::BIH(vector<mesh> &buildmeshes)
     nummeshes = buildmeshes.length();
     meshes = new mesh[nummeshes];
     memcpy(meshes, buildmeshes.getbuf(), sizeof(mesh)*buildmeshes.length());
-    tris = new tri[numtris];
-    tri *dsttri = tris;
+    tribbs = new tribb[numtris];
+    tribb *dsttri = tribbs;
     loopi(nummeshes)
     {
         mesh &m = meshes[i];
@@ -242,12 +243,12 @@ BIH::BIH(vector<mesh> &buildmeshes)
         m.invxform.invert(m.xform);
         m.invxformnorm = matrix3x3(m.invxform);
         m.invxformnorm.normalize();
-        const ushort *srctri = m.tris;
+        m.tribbs = dsttri;
+        const tri *srctri = m.tris;
         vec mmin(1e16f, 1e16f, 1e16f), mmax(-1e16f, -1e16f, -1e16f);
         loopj(m.numtris)
         {
-            memcpy(dsttri->vert, srctri, 3*sizeof(ushort));
-            vec s0 = m.getpos(srctri[0]), s1 = m.getpos(srctri[1]), s2 = m.getpos(srctri[2]),
+            vec s0 = m.getpos(srctri->vert[0]), s1 = m.getpos(srctri->vert[1]), s2 = m.getpos(srctri->vert[2]),
                 v0 = m.xform.transform(s0), v1 = m.xform.transform(s1), v2 = m.xform.transform(s2),
                 vmin = vec(v0).min(v1).min(v2),
                 vmax = vec(v0).max(v1).max(v2);
@@ -256,8 +257,7 @@ BIH::BIH(vector<mesh> &buildmeshes)
             ivec imin = ivec::floor(vmin), imax = ivec::ceil(vmax);
             dsttri->center = ivec(imin).add(imax).div(2);
             dsttri->radius = ivec(imax).sub(imin).add(1).div(2);
-            dsttri->normal.cross(s0, s1, s2).normalize();
-            srctri += 3;
+            ++srctri;
             ++dsttri;
         }
         m.bbmin = mmin;
@@ -270,28 +270,26 @@ BIH::BIH(vector<mesh> &buildmeshes)
     radius = vec(bbmax).sub(bbmin).mul(0.5f).magnitude();
     entradius = max(bbmin.squaredlen(), bbmax.squaredlen());
 
-    vector<node> buildnodes;
-    ushort *indices = new ushort[numtris], *curindex = indices;
-    loopi(numtris) indices[i] = i;
+    nodes = new node[numtris];
+    node *curnode = nodes;
+    ushort *indices = new ushort[numtris];
     loopi(nummeshes)
     {
         mesh &m = meshes[i];
-        m.nodes = buildnodes.length();
-        build(buildnodes, curindex, m.numtris, ivec::floor(m.bbmin), ivec::ceil(m.bbmax));
-        curindex += m.numtris;
+        m.nodes = curnode;
+        loopj(m.numtris) indices[j] = j;
+        build(m, indices, m.numtris, ivec::floor(m.bbmin), ivec::ceil(m.bbmax));
+        curnode += m.numnodes;
     }
     delete[] indices;
-
-    numnodes = buildnodes.length();
-    nodes = new node[numnodes];
-    memcpy(nodes, buildnodes.getbuf(), numnodes*sizeof(node));
+    numnodes = int(curnode - nodes);
 }
 
 BIH::~BIH()
 {
     delete[] meshes;
     delete[] nodes;
-    delete[] tris;
+    delete[] tribbs;
 }
 
 bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist, int mode, float &dist)
@@ -477,23 +475,27 @@ static inline bool triboxoverlap(const vec &radius, const vec &a, const vec &b, 
 }
 
 template<>
-inline void BIH::tricollide<COLLIDE_ELLIPSE>(const mesh &m, const tri &t, physent *d, const vec &dir, float cutoff, const vec &center, const vec &radius, const matrix3x4 &orient, float &dist, const ivec &bo, const ivec &br)
+inline void BIH::tricollide<COLLIDE_ELLIPSE>(const mesh &m, int tidx, physent *d, const vec &dir, float cutoff, const vec &center, const vec &radius, const matrix3x4 &orient, float &dist, const ivec &bo, const ivec &br)
 {
-    if(abs(bo.x - t.center.x) > br.x + t.radius.x ||
-       abs(bo.y - t.center.y) > br.y + t.radius.y ||
-       abs(bo.z - t.center.z) > br.z + t.radius.z)
+    const tribb &bb = m.tribbs[tidx];
+    if(abs(bo.x - bb.center.x) > br.x + bb.radius.x ||
+       abs(bo.y - bb.center.y) > br.y + bb.radius.y ||
+       abs(bo.z - bb.center.z) > br.z + bb.radius.z)
         return;
 
+    const tri &t = m.tris[tidx];
     vec a = m.getpos(t.vert[0]), b = m.getpos(t.vert[1]), c = m.getpos(t.vert[2]),
         zdir = vec(orient.c).mul(m.invscale*m.invscale*(radius.z - radius.x));
     if(trisegmentdistance(a, b, c, vec(center).sub(zdir), vec(center).add(zdir)) > m.invscale*m.invscale*radius.x*radius.x) return;
 
-    float pdist = (t.normal.dot(vec(center).sub(a)) - fabs(t.normal.dot(zdir)))*m.scale - radius.x;
+    vec n;
+    n.cross(a, b, c).normalize();
+    float pdist = (n.dot(vec(center).sub(a)) - fabs(n.dot(zdir)))*m.scale - radius.x;
     if(pdist > 0 || pdist <= dist) return;
 
     collideinside = true;
 
-    vec n = orient.transformnormal(t.normal).mul(m.invscale);
+    n = orient.transformnormal(n).mul(m.invscale);
 
     if(!dir.iszero())
     {
@@ -510,17 +512,20 @@ inline void BIH::tricollide<COLLIDE_ELLIPSE>(const mesh &m, const tri &t, physen
 }
 
 template<>
-inline void BIH::tricollide<COLLIDE_OBB>(const mesh &m, const tri &t, physent *d, const vec &dir, float cutoff, const vec &center, const vec &radius, const matrix3x4 &orient, float &dist, const ivec &bo, const ivec &br)
+inline void BIH::tricollide<COLLIDE_OBB>(const mesh &m, int tidx, physent *d, const vec &dir, float cutoff, const vec &center, const vec &radius, const matrix3x4 &orient, float &dist, const ivec &bo, const ivec &br)
 {
-    if(abs(bo.x - t.center.x) > br.x + t.radius.x ||
-       abs(bo.y - t.center.y) > br.y + t.radius.y ||
-       abs(bo.z - t.center.z) > br.z + t.radius.z)
+    const tribb &bb = m.tribbs[tidx];
+    if(abs(bo.x - bb.center.x) > br.x + bb.radius.x ||
+       abs(bo.y - bb.center.y) > br.y + bb.radius.y ||
+       abs(bo.z - bb.center.z) > br.z + bb.radius.z)
         return;
 
+    const tri &t = m.tris[tidx];
     vec a = orient.transform(m.getpos(t.vert[0])), b = orient.transform(m.getpos(t.vert[1])), c = orient.transform(m.getpos(t.vert[2]));
     if(!triboxoverlap(radius, a, b, c)) return;
 
-    vec n = orient.transformnormal(t.normal).mul(m.invscale);
+    vec n;
+    n.cross(a, b, c).normalize();
     float pdist = -n.dot(a), r = radius.absdot(n);
     if(fabs(pdist) > r) return;
 
@@ -562,23 +567,23 @@ inline void BIH::collide(const mesh &m, physent *d, const vec &dir, float cutoff
             {
                 if(!curnode->isleaf(faridx))
                 {
-                    curnode = &nodes[curnode->childindex(faridx)];
+                    curnode += curnode->childindex(faridx);
                     continue;
                 }
-                else tricollide<C>(m, tris[curnode->childindex(faridx)], d, dir, cutoff, center, radius, orient, dist, bo, br);
+                else tricollide<C>(m, curnode->childindex(faridx), d, dir, cutoff, center, radius, orient, dist, bo, br);
             }
         }
         else if(curnode->isleaf(nearidx))
         {
-            tricollide<C>(m, tris[curnode->childindex(nearidx)], d, dir, cutoff, center, radius, orient, dist, bo, br);
+            tricollide<C>(m, curnode->childindex(nearidx), d, dir, cutoff, center, radius, orient, dist, bo, br);
             if(farsplit <= 0)
             {
                 if(!curnode->isleaf(faridx))
                 {
-                    curnode = &nodes[curnode->childindex(faridx)];
+                    curnode += curnode->childindex(faridx);
                     continue;
                 }
-                else tricollide<C>(m, tris[curnode->childindex(faridx)], d, dir, cutoff, center, radius, orient, dist, bo, br);
+                else tricollide<C>(m, curnode->childindex(faridx), d, dir, cutoff, center, radius, orient, dist, bo, br);
             }
         }
         else
@@ -589,18 +594,18 @@ inline void BIH::collide(const mesh &m, physent *d, const vec &dir, float cutoff
                 {
                     if(stacksize < int(sizeof(stack)/sizeof(stack[0])))
                     {
-                        stack[stacksize++] = &nodes[curnode->childindex(faridx)];
+                        stack[stacksize++] = curnode + curnode->childindex(faridx);
                     }
                     else
                     {
                         collide<C>(m, d, dir, cutoff, center, radius, orient, dist, &nodes[curnode->childindex(nearidx)], bo, br);
-                        curnode = &nodes[curnode->childindex(faridx)];
+                        curnode += curnode->childindex(faridx);
                         continue;
                     }
                 }
-                else tricollide<C>(m, tris[curnode->childindex(faridx)], d, dir, cutoff, center, radius, orient, dist, bo, br);
+                else tricollide<C>(m, curnode->childindex(faridx), d, dir, cutoff, center, radius, orient, dist, bo, br);
             }
-            curnode = &nodes[curnode->childindex(nearidx)];
+            curnode += curnode->childindex(nearidx);
             continue;
         }
         if(stacksize <= 0) return;
@@ -640,7 +645,7 @@ bool BIH::ellipsecollide(physent *d, const vec &dir, float cutoff, const vec &o,
         if(!(m.flags&MESH_COLLIDE) || m.flags&MESH_NOCLIP) continue;
         matrix3x4 morient;
         morient.mul(orient, m.xform);
-        collide<COLLIDE_ELLIPSE>(m, d, dir, cutoff, m.invxform.transform(bo), radius, morient, dist, &nodes[m.nodes], icenter, iradius);
+        collide<COLLIDE_ELLIPSE>(m, d, dir, cutoff, m.invxform.transform(bo), radius, morient, dist, m.nodes, icenter, iradius);
     }
     return dist > -1e9f;
 }
@@ -683,7 +688,7 @@ bool BIH::boxcollide(physent *d, const vec &dir, float cutoff, const vec &o, int
         if(!(m.flags&MESH_COLLIDE) || m.flags&MESH_NOCLIP) continue;
         matrix3x4 morient;
         morient.mul(dorient, m.xform);
-        collide<COLLIDE_OBB>(m, d, ddir, cutoff, center, radius, morient, dist, &nodes[m.nodes], icenter, iradius);
+        collide<COLLIDE_OBB>(m, d, ddir, cutoff, center, radius, morient, dist, m.nodes, icenter, iradius);
     }
     if(dist > -1e9f)
     {

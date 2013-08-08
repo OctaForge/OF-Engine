@@ -266,7 +266,7 @@ struct animmodel : model
             m.tex = s.tex;
             if(canrender) m.flags |= BIH::MESH_RENDER;
             if(cancollide) m.flags |= BIH::MESH_COLLIDE;
-            if(s.tex && s.tex->type&Texture::ALPHA) m.flags |= BIH::MESH_ALPHA;
+            if(s.tex && (s.tex->type&(Texture::ALPHA|Texture::COMPRESSED)) == Texture::ALPHA) m.flags |= BIH::MESH_ALPHA;
             if(noclip) m.flags |= BIH::MESH_NOCLIP;
             genBIH(m);
         }

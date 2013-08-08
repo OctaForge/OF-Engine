@@ -211,7 +211,7 @@ cube &blockcube(int x, int y, int z, const block3 &b, int rgrid) // looks up a w
     ivec s(dim, x*b.grid, y*b.grid, dc*(b.s[dim]-1)*b.grid);
     s.add(b.o);
     if(dc) s[dim] -= z*b.grid; else s[dim] += z*b.grid;
-    return lookupcube(s.x, s.y, s.z, rgrid);
+    return lookupcube(s, rgrid);
 }
 
 #define loopxy(b)        loop(y,(b).s[C[dimension((b).orient)]]) loop(x,(b).s[R[dimension((b).orient)]])
@@ -230,7 +230,7 @@ void countselchild(cube *c, const ivec &cor, int size)
     ivec ss = ivec(sel.s).mul(sel.grid);
     loopoctaboxsize(cor, size, sel.o, ss)
     {
-        ivec o(i, cor.x, cor.y, cor.z, size);
+        ivec o(i, cor, size);
         if(c[i].children) countselchild(c[i].children, o, size/2);
         else
         {
@@ -244,13 +244,13 @@ void countselchild(cube *c, const ivec &cor, int size)
     }
 }
 
-void normalizelookupcube(int x, int y, int z)
+void normalizelookupcube(const ivec &o)
 {
     if(lusize>gridsize)
     {
-        lu.x += (x-lu.x)/gridsize*gridsize;
-        lu.y += (y-lu.y)/gridsize*gridsize;
-        lu.z += (z-lu.z)/gridsize*gridsize;
+        lu.x += (o.x-lu.x)/gridsize*gridsize;
+        lu.y += (o.y-lu.y)/gridsize*gridsize;
+        lu.z += (o.z-lu.z)/gridsize*gridsize;
     }
     else if(gridsize>lusize)
     {
@@ -381,10 +381,10 @@ void rendereditcursor()
                     loopi(3) w[i] = clamp(camera1->o[i], 0.0f, float(worldsize));
                 }
             }
-            cube *c = &lookupcube(int(w.x), int(w.y), int(w.z));
+            cube *c = &lookupcube(w);
             if(gridlookup && !dragging && !moving && !havesel && hmapedit!=1) gridsize = lusize;
             int mag = lusize / gridsize;
-            normalizelookupcube(int(w.x), int(w.y), int(w.z));
+            normalizelookupcube(w);
             if(sdist == 0 || sdist > wdist) rayboxintersect(vec(lu), vec(gridsize), camera1->o, dir, t=0, orient); // just getting orient
             cur = lu;
             cor = vec(w).mul(2).div(gridsize);
@@ -523,7 +523,7 @@ void readychanges(const ivec &bbmin, const ivec &bbmax, cube *c, const ivec &cor
 {
     loopoctabox(cor, size, bbmin, bbmax)
     {
-        ivec o(i, cor.x, cor.y, cor.z, size);
+        ivec o(i, cor, size);
         if(c[i].ext)
         {
             if(c[i].ext->va)             // removes va s so that octarender will recreate
@@ -1100,7 +1100,7 @@ namespace hmap
 
     ICOMMAND(hmapcancel, "", (), cancel());
     ICOMMAND(hmapselect, "", (),
-        int t = lookupcube(cur.x, cur.y, cur.z).texture[orient];
+        int t = lookupcube(cur).texture[orient];
         int i = textures.find(t);
         if(i<0)
             textures.add(t);
@@ -1168,7 +1168,7 @@ namespace hmap
     {
         t[d] += dcr*f*gridsize;
         if(t[d] > nz || t[d] < mz) return NULL;
-        cube *c = &lookupcube(t.x, t.y, t.z, gridsize);
+        cube *c = &lookupcube(t, gridsize);
         if(c->children) forcemip(*c, false);
         discardchildren(*c, true);
         if(!isheightmap(sel.orient, d, true, c)) return NULL;
@@ -1956,7 +1956,7 @@ void getcurtex()
 void getseltex()
 {
     if(noedit(true)) return;
-    cube &c = lookupcube(sel.o.x, sel.o.y, sel.o.z, -sel.grid);
+    cube &c = lookupcube(sel.o, -sel.grid);
     if(c.children || isempty(c)) return;
     intret(c.texture[sel.orient]);
 }

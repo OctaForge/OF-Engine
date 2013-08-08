@@ -108,7 +108,7 @@ void savec(cube *c, const ivec &o, int size, stream *f, bool nolms)
 
     loopi(8)
     {
-        ivec co(i, o.x, o.y, o.z, size);
+        ivec co(i, o, size);
         if(c[i].children)
         {
             f->putchar(OCTSAV_CHILDREN);
@@ -176,7 +176,7 @@ void savec(cube *c, const ivec &o, int size, stream *f, bool nolms)
                         }
                         else
                         {
-                            int vis = visibletris(c[i], j, co.x, co.y, co.z, size);
+                            int vis = visibletris(c[i], j, co, size);
                             if(vis&4 || faceconvexity(c[i], j) < 0) vertmask |= 0x01;
                             if(layerverts < 4 && vis&2) vertmask |= 0x02;
                         }
@@ -337,7 +337,7 @@ cube *loadchildren(stream *f, const ivec &co, int size, bool &failed)
     cube *c = newcubes();
     loopi(8)
     {
-        loadc(f, c[i], ivec(i, co.x, co.y, co.z, size), size, failed);
+        loadc(f, c[i], ivec(i, co, size), size, failed);
         if(failed) break;
     }
     return c;
@@ -1037,12 +1037,7 @@ void writecollideobj(char *name)
             for(int k = 0; k < es.length; k += 3)
             {
                 const vec &v0 = vdata[idx[k]].pos, &v1 = vdata[idx[k+1]].pos, &v2 = vdata[idx[k+2]].pos;
-                if(v0.x > selmax.x || v0.y > selmax.y || v0.z > selmax.z ||
-                   v0.x < selmin.x || v0.y < selmin.y || v0.z < selmin.z ||
-                   v1.x > selmax.x || v1.y > selmax.y || v1.z > selmax.z ||
-                   v1.x < selmin.x || v1.y < selmin.y || v1.z < selmin.z ||
-                   v2.x > selmax.x || v2.y > selmax.y || v2.z > selmax.z ||
-                   v2.x < selmin.x || v2.y < selmin.y || v2.z < selmin.z)
+                if(!v0.insidebb(selmin, selmax) || !v1.insidebb(selmin, selmax) || !v2.insidebb(selmin, selmax))
                     continue;
                 int i0 = shareverts.access(v0, verts.length());
                 if(i0 == verts.length()) verts.add(v0);

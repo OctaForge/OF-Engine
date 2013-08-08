@@ -33,6 +33,7 @@ enum // cube empty-space materials
     MAT_GAMECLIP = 3 << MATF_CLIP_SHIFT,  // game specific clip material
 
     MAT_DEATH    = 1 << MATF_FLAG_SHIFT,  // force player suicide
+    MAT_NOGI     = 2 << MATF_FLAG_SHIFT,  // disable global illumination
     MAT_ALPHA    = 4 << MATF_FLAG_SHIFT   // alpha blended
 };
 
