@@ -1003,7 +1003,7 @@ cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     A regular label. Has several properties - text (the label, a string),
     font (the font, a string, optional), scale (the scale, defaults to 1,
     which is the base scale), wrap (text wrapping, defaults to -1 - not
-    wrapped, otherwis a size), r, g, b, a (see <Color_Filler> for these).
+    wrapped, otherwise a size), r, g, b, a (see <Color_Filler> for these).
 ]]
 M.Label = register_class("Label", Widget, {
     __init = function(self, kwargs)
@@ -1033,10 +1033,7 @@ M.Label = register_class("Label", Widget, {
     end,
 
     draw = function(self, sx, sy)
-        local font = self.font
-        if  font then
-            font = text_set_font(font)
-        end
+        local font = text_set_font(self.font)
         hudmatrix_push()
 
         local k = self:draw_scale()
@@ -1049,7 +1046,7 @@ M.Label = register_class("Label", Widget, {
 
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
-        if font then text_set_font(font) end
+        text_set_font(font)
 
         return Widget.draw(self, sx, sy)
     end,
@@ -1057,10 +1054,7 @@ M.Label = register_class("Label", Widget, {
     layout = function(self)
         Widget.layout(self)
 
-        local font = self.font
-        if  font then
-            font = text_set_font(font)
-        end
+        local font = text_set_font(self.font)
         local k = self:draw_scale()
 
         local w, h = text_get_bounds(self.text,
@@ -1073,7 +1067,7 @@ M.Label = register_class("Label", Widget, {
         end
 
         self.h = max(self.h, h * k)
-        if font then text_set_font(font) end
+        text_set_font(font)
     end,
 
     --[[! Function: set_text ]]

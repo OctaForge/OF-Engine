@@ -480,12 +480,9 @@ LUAICOMMAND(text_draw, {
     return 0;
 });
 
-LUAICOMMAND(text_set_font, {
+CLUAICOMMAND(text_set_font, const char*, (const char *fnt), {
+    if (!fnt || !fnt[0]) return NULL;
     font *f = curfont;
-    setfont(luaL_checkstring(L, 1));
-    if (f) {
-        lua_pushstring(L, f->name);
-        return 1;
-    }
-    return 0;
+    setfont(fnt);
+    return f->name;
 });
