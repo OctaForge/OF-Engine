@@ -479,3 +479,13 @@ LUAICOMMAND(text_draw, {
         luaL_checkinteger(L, 9));
     return 0;
 });
+
+LUAICOMMAND(text_set_font, {
+    font *f = curfont;
+    setfont(luaL_checkstring(L, 1));
+    if (f) {
+        lua_pushstring(L, f->name);
+        return 1;
+    }
+    return 0;
+});

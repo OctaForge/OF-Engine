@@ -27,7 +27,7 @@ texture_get_notexture, thumbnail_load, texture_draw_slot, texture_draw_vslot,
 gl_blend_disable, gl_blend_enable, gl_scissor_disable, gl_scissor_enable,
 gle_disable, model_preview_start, model_preview, model_preview_end,
 hudmatrix_push, hudmatrix_scale, hudmatrix_flush, hudmatrix_pop, text_draw,
-text_get_bounds in capi
+text_get_bounds, text_set_font in capi
 
 local var_get = cs.var_get
 
@@ -1001,15 +1001,16 @@ cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
 
 --[[! Struct: Label
     A regular label. Has several properties - text (the label, a string),
-    scale (the scale, defaults to 1, which is the base scale), wrap (text
-    wrapping, defaults to -1 - not wrapped, otherwis a size), r, g, b, a
-    (see <Color_Filler> for these).
+    font (the font, a string, optional), scale (the scale, defaults to 1,
+    which is the base scale), wrap (text wrapping, defaults to -1 - not
+    wrapped, otherwis a size), r, g, b, a (see <Color_Filler> for these).
 ]]
 M.Label = register_class("Label", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
         self.text  = kwargs.text  or ""
+        self.font  = kwargs.font  or nil
         self.scale = kwargs.scale or  1
         self.wrap  = kwargs.wrap  or -1
         self.r     = kwargs.r or 255
@@ -1032,6 +1033,10 @@ M.Label = register_class("Label", Widget, {
     end,
 
     draw = function(self, sx, sy)
+        local font = self.font
+        if  font then
+            font = text_set_font(font)
+        end
         hudmatrix_push()
 
         local k = self:draw_scale()
@@ -1044,6 +1049,7 @@ M.Label = register_class("Label", Widget, {
 
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
+        if font then text_set_font(font) end
 
         return Widget.draw(self, sx, sy)
     end,
@@ -1051,6 +1057,10 @@ M.Label = register_class("Label", Widget, {
     layout = function(self)
         Widget.layout(self)
 
+        local font = self.font
+        if  font then
+            font = text_set_font(font)
+        end
         local k = self:draw_scale()
 
         local w, h = text_get_bounds(self.text,
@@ -1063,10 +1073,14 @@ M.Label = register_class("Label", Widget, {
         end
 
         self.h = max(self.h, h * k)
+        if font then text_set_font(font) end
     end,
 
     --[[! Function: set_text ]]
     set_text = gen_setter "text",
+
+    --[[! Function: set_font ]]
+    set_font = gen_setter "font",
 
     --[[! Function: set_scale ]]
     set_scale = gen_setter "scale",
