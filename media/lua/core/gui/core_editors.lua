@@ -35,6 +35,7 @@ local abs   = math.abs
 local clamp = math2.clamp
 local floor = math.floor
 local emit  = signal.emit
+local tostring = tostring
 
 local M = require("core.gui.core")
 local world = M.get_world()
@@ -805,8 +806,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             if h + height > self.pixel_height then
                 break
             end
-            text_draw(self.password and ("*"):rep(#self.lines[i])
-                or self.lines[i], x, y + h, 255, 255, 255, 255,
+            text_draw(tostring(self.password and ("*"):rep(#self.lines[i])
+                or self.lines[i]), x, y + h, 255, 255, 255, 255,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
             local fonth = var_get("fonth")

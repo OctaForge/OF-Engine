@@ -465,19 +465,16 @@ LUAICOMMAND(text_get_positionf, {
     return 2;
 });
 
-LUAICOMMAND(text_is_visible, {
-    lua_pushinteger(L, text_visible(luaL_checkstring(L, 1),
-        luaL_checknumber(L, 2), luaL_checknumber(L, 3),
-        luaL_checkinteger(L, 4)));
-    return 1;
+CLUAICOMMAND(text_is_visible, int, (const char *text, float hitx, float hity,
+int maxw), {
+    if (!text || !text[0]) return 0;
+    return text_visible(text, hitx, hity, maxw);
 });
 
-LUAICOMMAND(text_draw, {
-    draw_text(luaL_checkstring(L, 1), luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5),
-        luaL_checkinteger(L, 6), luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-        luaL_checkinteger(L, 9));
-    return 0;
+CLUAICOMMAND(text_draw, void, (const char *text, float left, float top,
+int r, int g, int b, int a, int cursor, int maxw), {
+    if (!text || !text[0]) return;
+    draw_text(text, left, top, r, g, b, a, cursor, maxw);
 });
 
 CLUAICOMMAND(text_set_font, const char*, (const char *fnt), {
