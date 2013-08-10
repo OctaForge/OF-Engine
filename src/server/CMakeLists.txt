@@ -31,6 +31,7 @@ else()
         ../intensity/engine_additions
         ../engine/octa
         ../engine/physics
+        ../engine/rendermodel
         ../engine/bih
         ../shared/geom
         ../shared/glemu
