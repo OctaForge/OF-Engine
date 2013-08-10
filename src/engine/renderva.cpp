@@ -1673,8 +1673,7 @@ void rendergeom()
         if(geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER);
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs && va->occluded >= OCCLUDE_GEOM)
         {
-            if((va->parent && va->parent->occluded >= OCCLUDE_BB) ||
-                    (va->query && checkquery(va->query)))
+            if((va->parent && va->parent->occluded >= OCCLUDE_BB) || (va->query && checkquery(va->query)))
             {
                 va->occluded = OCCLUDE_BB;
                 continue;

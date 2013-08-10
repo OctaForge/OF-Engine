@@ -618,11 +618,12 @@ void dosmaa(GLuint outfbo = 0, bool split = false)
 
     if(tqaa) packtqaa();
 
-    int cleardepth = msaasamples ? GL_DEPTH_BUFFER_BIT | ((gdepthstencil && hasDS) || gstencil ? GL_STENCIL_BUFFER_BIT : 0) : 0;
+    int cleardepth = msaasamples ? GL_DEPTH_BUFFER_BIT | (ghasstencil > 1 ? GL_STENCIL_BUFFER_BIT : 0) : 0;
+    bool stencil = smaastencil && ghasstencil > (msaasamples ? 1 : 0);
     loop(pass, split ? 2 : 1)
     {
         glBindFramebuffer_(GL_FRAMEBUFFER, smaafbo[1]);
-        if(smaadepthmask || smaastencil)
+        if(smaadepthmask || stencil)
         {
             glClearColor(0, 0, 0, 0);
             glClear(GL_COLOR_BUFFER_BIT | (!pass ? cleardepth : 0));
@@ -634,7 +635,7 @@ void dosmaa(GLuint outfbo = 0, bool split = false)
             float depthval = cleardepth ? 0.25f*(pass+1) : 1;
             glDepthRange(depthval, depthval);
         }
-        else if(smaastencil && ((gdepthstencil && hasDS) || gstencil))
+        else if(stencil)
         {
             glEnable(GL_STENCIL_TEST);
             glStencilFunc(GL_ALWAYS, 0x10*(pass+1), ~0);
@@ -651,12 +652,12 @@ void dosmaa(GLuint outfbo = 0, bool split = false)
             glDepthFunc(GL_EQUAL);
             glDepthMask(GL_FALSE);
         }
-        else if(smaastencil && ((gdepthstencil && hasDS) || gstencil))
+        else if(stencil)
         {
             glStencilFunc(GL_EQUAL, 0x10*(pass+1), ~0);
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         }
-        if(smaadepthmask || smaastencil) glClear(GL_COLOR_BUFFER_BIT);
+        if(smaadepthmask || stencil) glClear(GL_COLOR_BUFFER_BIT);
         smaablendweightshader->set();
         vec4 subsamples(0, 0, 0, 0);
         if(tqaa && split) subsamples = tqaaframe&1 ? (pass != smaasubsampleorder ? vec4(6, 4, 2, 4) : vec4(3, 5, 1, 4)) : (pass != smaasubsampleorder ? vec4(4, 6, 2, 3) : vec4(5, 3, 1, 3));
@@ -682,7 +683,7 @@ void dosmaa(GLuint outfbo = 0, bool split = false)
             glDepthFunc(GL_LESS);
             glDepthRange(0, 1);
         }
-        else if(smaastencil && ((gdepthstencil && hasDS) || gstencil)) glDisable(GL_STENCIL_TEST);
+        else if(stencil) glDisable(GL_STENCIL_TEST);
     }
 
     glBindFramebuffer_(GL_FRAMEBUFFER, tqaa ? tqaafbo[0] : outfbo);

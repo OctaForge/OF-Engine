@@ -248,8 +248,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
                 pophudmatrix();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }
-            settexture("media/interface/mapshot_frame", 3);
-            bgquad(x, y, sz, sz);
             if(mapname)
             {
                 float tw = text_widthf(mapname),
@@ -567,9 +565,7 @@ void setupscreen()
         winw = desktopw;
         winh = desktoph;
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-#ifdef WIN32
         initwindowpos = true;
-#endif
     }
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

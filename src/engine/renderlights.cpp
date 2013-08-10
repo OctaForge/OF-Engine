@@ -423,15 +423,17 @@ void doscale()
 
 VARFP(glineardepth, 0, 0, 3, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
 VAR(gdepthformat, 1, 0, 0);
+VARF(gstencil, 0, 0, 1, cleanupgbuffer());
+VARF(gdepthstencil, 0, 2, 2, cleanupgbuffer());
+VAR(ghasstencil, 1, 0, 0);
 VARFP(msaa, 0, 0, 16, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
 VARFP(csaa, 0, 0, 16, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
-VARF(msaadepthstencil, 0, 1, 1, cleanupgbuffer());
+VARF(msaadepthstencil, 0, 2, 2, cleanupgbuffer());
 VARF(msaastencil, 0, 0, 1, cleanupgbuffer());
 VARF(msaaedgedetect, 0, 1, 1, cleanupgbuffer());
 VARFP(msaalineardepth, -1, -1, 3, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
 VARFP(msaatonemap, 0, 0, 1, cleanupgbuffer());
 VARF(msaatonemapblit, 0, 0, 1, cleanupgbuffer());
-VARF(msaatonemapstencil, 0, 0, 1, cleanupgbuffer());
 VAR(msaamaxsamples, 1, 0, 0);
 VAR(msaamaxdepthtexsamples, 1, 0, 0);
 VAR(msaamaxcolortexsamples, 1, 0, 0);
@@ -524,14 +526,14 @@ void bindmsdepth()
     if(gdepthformat)
     {
         glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msdepthrb);
-        if(msaadepthstencil && hasDS) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, msdepthrb);
-        else if(msaastencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, msstencilrb);
+        if(ghasstencil > 1) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, msdepthrb);
+        else if(ghasstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, msstencilrb);
     }
     else
     {
         glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, msdepthtex, 0);
-        if(msaadepthstencil && hasDS) glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, msdepthtex, 0);
-        else if(msaastencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, msstencilrb);
+        if(ghasstencil > 1) glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, msdepthtex, 0);
+        else if(ghasstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, msstencilrb);
     }
 }
 
@@ -563,8 +565,8 @@ void setupmsbuffer(int w, int h)
 
     maskgbuffer("cngd");
 
-    if(msaadepthstencil && hasDS) stencilformat = GL_DEPTH24_STENCIL8;
-    else if(msaastencil) stencilformat = GL_STENCIL_INDEX8;
+    ghasstencil = (msaadepthstencil > 1 || (msaadepthstencil && gdepthformat)) && hasDS ? 2 : (msaastencil ? 1 : 0);
+    stencilformat = ghasstencil > 1 ? GL_DEPTH24_STENCIL8 : (ghasstencil ? GL_STENCIL_INDEX8 : 0);
 
     GLenum fixed = hasMSS && multisampledaa() ? GL_TRUE : GL_FALSE;
 
@@ -572,11 +574,11 @@ void setupmsbuffer(int w, int h)
     {
         if(!msdepthrb) glGenRenderbuffers_(1, &msdepthrb);
         glBindRenderbuffer_(GL_RENDERBUFFER, msdepthrb);
-        rbms(msaadepthstencil && hasDS ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT, w, h);
+        rbms(ghasstencil > 1 ? stencilformat : GL_DEPTH_COMPONENT, w, h);
         glBindRenderbuffer_(GL_RENDERBUFFER, 0);
         fixed = GL_TRUE; // spec requires fixed sample locations if renderbuffers are used with textures
     }
-    if(msaastencil && (!msaadepthstencil || !hasDS))
+    if(ghasstencil == 1)
     {
         if(!msstencilrb) glGenRenderbuffers_(1, &msstencilrb);
         glBindRenderbuffer_(GL_RENDERBUFFER, msstencilrb);
@@ -586,7 +588,7 @@ void setupmsbuffer(int w, int h)
     }
 
     static const GLenum depthformats[] = { GL_RGBA8, GL_R16F, GL_R32F };
-    GLenum depthformat = gdepthformat ? depthformats[gdepthformat-1] : (msaadepthstencil && hasDS ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT);
+    GLenum depthformat = gdepthformat ? depthformats[gdepthformat-1] : (ghasstencil > 1 ? stencilformat : GL_DEPTH_COMPONENT);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msdepthtex);
     texms(depthformat, w, h, fixed);
 
@@ -678,14 +680,14 @@ void bindgdepth()
     if(gdepthformat || msaasamples)
     {
         glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gdepthrb);
-        if((msaasamples ? msaadepthstencil : gdepthstencil) && hasDS) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gdepthrb);
-        else if(msaasamples ? hasMSS && msaatonemap && msaatonemapstencil && msaastencil : gstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gstencilrb);
+        if(ghasstencil > 1) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gdepthrb);
+        else if(!msaasamples || ghasstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gstencilrb);
     }
     else
     {
         glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_RECTANGLE, gdepthtex, 0);
-        if(gdepthstencil && hasDS) glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_RECTANGLE, gdepthtex, 0);
-        else if(gstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gstencilrb);
+        if(ghasstencil > 1) glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_RECTANGLE, gdepthtex, 0);
+        else if(ghasstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gstencilrb);
     }
 }
 
@@ -710,7 +712,8 @@ void setupgbuffer()
     gh = sh;
 
     hdrformat = gethdrformat(hdr ? hdrprec : 0);
-    stencilformat = 0;
+    ghasstencil = (gdepthstencil > 1 || (gdepthstencil && gdepthformat)) && hasDS ? 2 : (gstencil ? 1 : 0);
+    stencilformat = ghasstencil > 1 ? GL_DEPTH24_STENCIL8 : (ghasstencil ? GL_STENCIL_INDEX8 : 0);
 
     if(msaasamples) setupmsbuffer(gw, gh);
 
@@ -721,10 +724,10 @@ void setupgbuffer()
     {
         if(!gdepthrb) glGenRenderbuffers_(1, &gdepthrb);
         glBindRenderbuffer_(GL_RENDERBUFFER, gdepthrb);
-        glRenderbufferStorage_(GL_RENDERBUFFER, (msaasamples ? msaadepthstencil : gdepthstencil) && hasDS ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT, gw, gh);
+        glRenderbufferStorage_(GL_RENDERBUFFER, ghasstencil > 1 ? stencilformat : GL_DEPTH_COMPONENT, gw, gh);
         glBindRenderbuffer_(GL_RENDERBUFFER, 0);
     }
-    if(msaasamples ? hasMSS && msaatonemap && msaatonemapstencil && msaastencil && (!hasDS || !msaadepthstencil) : gstencil && (!hasDS || !gdepthstencil))
+    if(!msaasamples && ghasstencil == 1)
     {
         if(!gstencilrb) glGenRenderbuffers_(1, &gstencilrb);
         glBindRenderbuffer_(GL_RENDERBUFFER, gstencilrb);
@@ -744,11 +747,8 @@ void setupgbuffer()
 
         maskgbuffer("cngd");
 
-        if(gdepthstencil && hasDS) stencilformat = GL_DEPTH24_STENCIL8;
-        else if(gstencil) stencilformat = GL_STENCIL_INDEX8;
-
         static const GLenum depthformats[] = { GL_RGBA8, GL_R16F, GL_R32F };
-        GLenum depthformat = gdepthformat ? depthformats[gdepthformat-1] : (gdepthstencil && hasDS ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT);
+        GLenum depthformat = gdepthformat ? depthformats[gdepthformat-1] : (ghasstencil > 1 ? stencilformat : GL_DEPTH_COMPONENT);
         createtexture(gdepthtex, gw, gh, NULL, 3, 0, depthformat, GL_TEXTURE_RECTANGLE);
 
         createtexture(gcolortex, gw, gh, NULL, 3, 0, GL_RGBA8, GL_TEXTURE_RECTANGLE);
@@ -833,8 +833,6 @@ void resolvemsaacolor(int w = vieww, int h = viewh)
     endtimer(resolvetimer);
 }
 
-VARF(gstencil, 0, 0, 1, cleanupgbuffer());
-VARF(gdepthstencil, 0, 1, 1, cleanupgbuffer());
 FVAR(bloomthreshold, 1e-3f, 0.8f, 1e3f);
 FVARP(bloomscale, 0, 1.0f, 1e3f);
 VARP(bloomblur, 0, 7, 7);
@@ -1174,45 +1172,14 @@ void processhdr(GLuint outfbo, int aa)
     }
     else
     {
-        bool blit = false, stencil = false;
-        if(msaatonemapblit && (!aa || !outfbo))
-        {
-            blit = true;
-            if(msaatonemapstencil && stencilformat) stencil = true;
-        }
-        else if(msaatonemapstencil && stencilformat)
-        {
-            stencil = true;
-            glBindFramebuffer_(GL_READ_FRAMEBUFFER, mshdrfbo);
-            glBindFramebuffer_(GL_DRAW_FRAMEBUFFER, hdrfbo);
-            glBlitFramebuffer_(0, 0, vieww, viewh, 0, 0, vieww, viewh, GL_STENCIL_BUFFER_BIT, GL_NEAREST);
-        }
+        bool blit = msaatonemapblit && (!aa || !outfbo);
 
-        glBindFramebuffer_(GL_FRAMEBUFFER, blit ? msrefractfbo : (stencil && !outfbo ? hdrfbo : outfbo));
+        glBindFramebuffer_(GL_FRAMEBUFFER, blit ? msrefractfbo : outfbo);
         glViewport(0, 0, vieww, viewh);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, mshdrtex);
         glActiveTexture_(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_RECTANGLE, b0tex);
         glActiveTexture_(GL_TEXTURE0);
-
-        if(stencil)
-        {
-            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-            glEnable(GL_STENCIL_TEST);
-            glStencilFunc(GL_EQUAL, 0, 0x08);
-            switch(aa)
-            {
-                case AA_LUMA: SETSHADER(msaatonemapluma); break;
-                case AA_VELOCITY:
-                    SETSHADER(msaatonemapvelocity);
-                    setaavelocityparams(GL_TEXTURE3);
-                    break;
-                default: SETSHADER(msaatonemap); break;
-            }
-            screenquad(vieww, viewh, b0w, b0h);
-
-            glStencilFunc(GL_EQUAL, 0x08, 0x08);
-        }
 
         if(blit) SETSHADER(msaatonemapsample);
         else switch(aa)
@@ -1226,31 +1193,29 @@ void processhdr(GLuint outfbo, int aa)
         }
         screenquad(vieww, viewh, b0w, b0h);
 
-        if(stencil) glDisable(GL_STENCIL_TEST);
-
         if(blit)
         {
             glBindFramebuffer_(GL_READ_FRAMEBUFFER, msrefractfbo);
             glBindFramebuffer_(GL_DRAW_FRAMEBUFFER, aa || !outfbo ? refractfbo : outfbo);
             glBlitFramebuffer_(0, 0, vieww, viewh, 0, 0, vieww, viewh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-        }
 
-        if((blit || stencil) && !outfbo)
-        {
-            glBindFramebuffer_(GL_FRAMEBUFFER, outfbo);
-            glViewport(0, 0, vieww, viewh);
-            if(!blit) SETSHADER(hdrnop);
-            else switch(aa)
+            if(!outfbo)
             {
-                case AA_LUMA: SETSHADER(hdrnopluma); break;
-                case AA_VELOCITY:
-                    SETSHADER(hdrnopvelocity);
-                    setaavelocityparams(GL_TEXTURE3);
-                    break;
-                default: SETSHADER(hdrnop); break;
+                glBindFramebuffer_(GL_FRAMEBUFFER, outfbo);
+                glViewport(0, 0, vieww, viewh);
+                if(!blit) SETSHADER(hdrnop);
+                else switch(aa)
+                {
+                    case AA_LUMA: SETSHADER(hdrnopluma); break;
+                    case AA_VELOCITY:
+                        SETSHADER(hdrnopvelocity);
+                        setaavelocityparams(GL_TEXTURE3);
+                        break;
+                    default: SETSHADER(hdrnop); break;
+                }
+                glBindTexture(GL_TEXTURE_RECTANGLE, refracttex);
+                screenquad(vieww, viewh);
             }
-            glBindTexture(GL_TEXTURE_RECTANGLE, blit ? refracttex : hdrtex);
-            screenquad(vieww, viewh);
         }
     }
 
@@ -1439,6 +1404,8 @@ void viewrh()
 
 PackNode shadowatlaspacker(0, 0, SHADOWATLAS_SIZE, SHADOWATLAS_SIZE);
 
+extern int smminradius;
+
 struct lightinfo
 {
     float sx1, sy1, sx2, sy2, sz1, sz2;
@@ -1465,6 +1432,8 @@ struct lightinfo
         spotx.rescale(spotscale);
         spoty.rescale(spotscale);
     }
+
+    bool noshadow() const { return flags&L_NOSHADOW || radius <= smminradius; }
 };
 
 struct shadowcachekey
@@ -1642,9 +1611,52 @@ VAR(lightpassesused, 1, 0, 0);
 
 int shadowmapping = 0;
 
+struct lightstrip
+{
+    int x, y, w;
+
+    bool inside(int tx1, int ty1, int tx2, int ty2, const uint *tilemask) const
+    {
+        return x + w > tx1 && x < tx2 && y >= ty1 && y < ty2 && (!tilemask || (tilemask[y]>>x)&((1<<w)-1));
+    }
+};
+
+struct lightbatch
+{
+    int band;
+    vector<int> lights;
+    vector<lightstrip> strips;
+
+    void reset()
+    {
+        lights.setsize(0);
+        strips.setsize(0);
+    }
+
+    bool inside(int tx1, int ty1, int tx2, int ty2, const uint *tilemask) const
+    {
+        if(!tx1 && !ty1 && tx2 >= lighttilew && ty2 >= lighttileh && !tilemask) return true;
+        loopv(strips) if(strips[i].inside(tx1, ty1, tx2, ty2, tilemask)) return true;
+        return false;
+    }
+};
+
+static inline uint hthash(const lightbatch *l)
+{
+    uint h = 0;
+    loopv(l->lights) h = ((h<<8)+h)^l->lights[i];
+    return h;
+}
+
+static inline bool htcmp(const lightbatch *x, const lightbatch *y)
+{
+    return x->band == y->band && x->lights.length() == y->lights.length() && !memcmp(x->lights.getbuf(), y->lights.getbuf(), x->lights.length()*sizeof(int));
+}
+
 vector<lightinfo> lights;
 vector<int> lightorder;
-vector<int> lighttiles[LIGHTTILE_MAXH][LIGHTTILE_MAXW];
+lightbatch lighttiles[LIGHTTILE_MAXH][LIGHTTILE_MAXW];
+vector<lightbatch *> lightbatches;
 vector<shadowmapinfo> shadowmaps;
 
 void clearshadowcache()
@@ -2145,7 +2157,7 @@ void loaddeferredlightshaders()
     {
         string opts;
         if(hasMSS) copystring(opts, "MS");
-        else formatstring(opts, (msaadepthstencil && hasDS) || msaastencil || !msaaedgedetect ? "MR%d" : "MRT%d", msaasamples);
+        else formatstring(opts, ghasstencil || !msaaedgedetect ? "MR%d" : "MRT%d", msaasamples);
         deferredmsaasampleshader = loaddeferredlightshader(opts);
         deferredmsaapixelshader = loaddeferredlightshader("M");
         deferredlightshader = deferredmsaapixelshader;
@@ -2158,6 +2170,8 @@ static inline bool sortlights(int x, int y)
     const lightinfo &xl = lights[x], &yl = lights[y];
     if(!xl.spot) { if(yl.spot) return true; }
     else if(!yl.spot) return false;
+    if(!xl.noshadow()) { if(yl.noshadow()) return true; }
+    else if(!yl.noshadow()) return false;
     if(xl.sz1 < yl.sz1) return true;
     else if(xl.sz1 > yl.sz1) return false;
     return xl.dist - xl.radius < yl.dist - yl.radius;
@@ -2208,7 +2222,7 @@ void resetlights()
 
     lights.setsize(0);
     lightorder.setsize(0);
-    loopi(LIGHTTILE_MAXH) loopj(LIGHTTILE_MAXW) lighttiles[i][j].setsize(0);
+    loopi(LIGHTTILE_MAXH) loopj(LIGHTTILE_MAXW) lighttiles[i][j].reset();
 
     shadowmaps.setsize(0);
     shadowatlaspacker.reset();
@@ -2282,16 +2296,25 @@ VAR(batchsunlight, 0, 1, 1);
 FVAR(lightradiustweak, 1, 1.11f, 2);
 
 VAR(lighttilestrip, 0, 1, 1);
-VAR(lighttilestripthreshold, 1, 8, 8);
+VAR(lighttilebands, 0, 1, LIGHTTILE_MAXH);
+VAR(lighttilescissor, 0, 0, 1);
 
-static inline void lightquad(float z = -1)
+static inline void lightquad(float z = -1, float sx1 = -1, float sy1 = -1, float sx2 = 1, float sy2 = 1)
 {
     gle::begin(GL_TRIANGLE_STRIP);
-    gle::attribf( 1, -1, z);
-    gle::attribf(-1, -1, z);
-    gle::attribf( 1,  1, z);
-    gle::attribf(-1,  1, z);
+    gle::attribf(sx2, sy1, z);
+    gle::attribf(sx1, sy1, z);
+    gle::attribf(sx2, sy2, z);
+    gle::attribf(sx1, sy2, z);
     gle::end();
+}
+
+static inline void lightquads(float z, float sx1, float sy1, float sx2, float sy2)
+{
+    gle::attribf(sx1, sy2, z);
+    gle::attribf(sx2, sy2, z);
+    gle::attribf(sx2, sy1, z);
+    gle::attribf(sx1, sy1, z);
 }
 
 void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 = 1, const uint *tilemask = NULL, int stencilmask = 0, int msaapass = 0)
@@ -2301,7 +2324,7 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
 
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
-    glEnable(GL_SCISSOR_TEST);
+    if(lighttilescissor || !lighttilebatch) glEnable(GL_SCISSOR_TEST);
 
     bool depth = true;
     if(!depthtestlights) { glDisable(GL_DEPTH_TEST); depth = false; }
@@ -2390,9 +2413,13 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
         else glStencilFunc(GL_ALWAYS, 0x08, ~0);
         if(depthtestlights && depth) { glDisable(GL_DEPTH_TEST); depth = false; }
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
         SETSHADER(msaaedgedetect);
-        lightquad();
+        if(lighttilescissor || !lighttilebatch)
+        {
+            glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
+            lightquad();
+        }
+        else lightquad(-1, (tx1*2.0f)/vieww-1.0f, (ty1*2.0f)/viewh-1.0f, (tx2*2.0f)/vieww-1.0f, (ty2*2.0f)/viewh-1.0f);
         glStencilFunc(GL_EQUAL, stencilmask, ~0);
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -2411,9 +2438,13 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
         int tx1 = max(int(floor((bsx1*0.5f+0.5f)*vieww)), 0), ty1 = max(int(floor((bsy1*0.5f+0.5f)*viewh)), 0),
             tx2 = min(int(ceil((bsx2*0.5f+0.5f)*vieww)), vieww), ty2 = min(int(ceil((bsy2*0.5f+0.5f)*viewh)), viewh);
         s->set();
-        glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
         if(depthtestlights && depth) { glDisable(GL_DEPTH_TEST); depth = false; }
-        lightquad();
+        if(lighttilescissor || !lighttilebatch)
+        {
+            glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
+            lightquad();
+        }
+        else lightquad(-1, (tx1*2.0f)/vieww-1.0f, (ty1*2.0f)/viewh-1.0f, (tx2*2.0f)/vieww-1.0f, (ty2*2.0f)/viewh-1.0f);
         lightpassesused++;
     }
 
@@ -2434,7 +2465,7 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
         gle::vertexpointer(sizeof(vec), lightsphereverts);
         gle::enablevertex();
 
-        if(hasDC && depthclamplights) glEnable(GL_DEPTH_CLAMP_NV);
+        if(hasDC && depthclamplights) glEnable(GL_DEPTH_CLAMP);
 
         bool outside = true;
         loopv(lightorder)
@@ -2537,152 +2568,137 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
             glCullFace(GL_BACK);
         }
 
-        if(hasDC && depthclamplights) glDisable(GL_DEPTH_CLAMP_NV);
+        if(hasDC && depthclamplights) glDisable(GL_DEPTH_CLAMP);
 
         gle::disablevertex();
         glBindBuffer_(GL_ARRAY_BUFFER, 0);
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
-    else for(int y = bty1; y < bty2; y++) if(!tilemask || tilemask[y])
+    else loopv(lightbatches)
     {
-        int skips[LIGHTTILE_MAXW] = {0};
-        for(int x = btx1; x < btx2; x++) if(!tilemask || tilemask[y]&(1<<x))
+        lightbatch *batch = lightbatches[i];
+        if(batch->inside(btx1, bty1, btx2, bty2, tilemask)) for(int offset = 0;;)
         {
-            vector<int> &tile = lighttiles[y][x];
-            if(tile.empty() ? sunpass || skips[x] : skips[x] >= tile.length()) continue;
-            for(int i = skips[x];;)
+            int n = min(batch->lights.length() - offset, lighttilebatch);
+            bool shadowmap = false, spotlight = false;
+            if(n)
             {
-                int n = min(tile.length() - i, lighttilebatch);
-                bool shadowmap = false, spotlight = false;
-                if(n > 0)
+                lightinfo &l = lights[batch->lights[offset]];
+                shadowmap = l.shadowmap >= 0;
+                spotlight = l.spot > 0;
+            }
+            float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1, sz1 = 1, sz2 = -1;
+            loopj(n)
+            {
+                lightinfo &l = lights[batch->lights[offset+j]];
+                if((l.shadowmap >= 0) != shadowmap || (l.spot > 0) != spotlight) { n = j; break; }
+                lightposv[j] = vec4(l.o.x, l.o.y, l.o.z, 1.0f/l.radius);
+                lightcolorv[j] = vec(l.color.x*lightscale, l.color.y*lightscale, l.color.z*lightscale);
+                if(spotlight)
                 {
-                    lightinfo &l = lights[tile[i]];
-                    shadowmap = l.shadowmap >= 0;
-                    spotlight = l.spot > 0;
+                    float maxatten = sincos360[l.spot].x;
+                    spotparamsv[j] = vec4(l.dir, maxatten).div(1 - maxatten);
                 }
-                loopj(n)
+                if(shadowmap)
                 {
-                    lightinfo &l = lights[tile[i+j]];
-                    if((l.shadowmap >= 0) != shadowmap || (l.spot > 0) != spotlight) { n = j; break; }
-                }
-
-                int striplength = 1;
-                if(lighttilestrip && n >= min(min(lighttilebatch, lighttilestripthreshold), tile.length() - i))
-                {
-                    for(int k = x+1; k < btx2; k++)
-                    {
-                        vector<int> &striptile = lighttiles[y][k];
-                        if((tilemask && !(tilemask[y]&(1<<k))) ||
-                           skips[k] != i ||
-                           striptile.length() < i+n ||
-                           (n > 0 && memcmp(&tile[i], &striptile[i], n*sizeof(int))) ||
-                           n < min(min(lighttilebatch, lighttilestripthreshold), striptile.length()-i))
-                            break;
-                        skips[k] = max(i+n, 1);
-                        striplength++;
-                    }
-                }
-
-                float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1, sz1 = 1, sz2 = -1;
-                loopj(n)
-                {
-                    lightinfo &l = lights[tile[i+j]];
-                    lightposv[j] = vec4(l.o.x, l.o.y, l.o.z, 1.0f/l.radius);
-                    lightcolorv[j] = vec(l.color.x*lightscale, l.color.y*lightscale, l.color.z*lightscale);
+                    shadowmapinfo &sm = shadowmaps[l.shadowmap];
+                    float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3,
+                          bias = (smfilter > 2 ? smbias2 : smbias) * (smcullside ? 1 : -1) * smnearclip * (1024.0f / sm.size);
+                    int border = smfilter > 2 ? smborder2 : smborder;
                     if(spotlight)
                     {
+                        spotxv[j] = l.spotx;
+                        spotyv[j] = l.spoty;
                         float maxatten = sincos360[l.spot].x;
-                        spotparamsv[j] = vec4(l.dir, maxatten).div(1 - maxatten);
+                        shadowparamsv[j] = vec4(
+                            0.5f * sm.size / (1 - maxatten),
+                            (-smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias) / (1 - maxatten),
+                            sm.size,
+                            0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
                     }
-                    if(shadowmap)
+                    else
                     {
-                        shadowmapinfo &sm = shadowmaps[l.shadowmap];
-                        float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3,
-                              bias = (smfilter > 2 ? smbias2 : smbias) * (smcullside ? 1 : -1) * smnearclip * (1024.0f / sm.size);
-                        int border = smfilter > 2 ? smborder2 : smborder;
-                        if(spotlight)
-                        {
-                            spotxv[j] = l.spotx;
-                            spotyv[j] = l.spoty;
-                            float maxatten = sincos360[l.spot].x;
-                            shadowparamsv[j] = vec4(
-                                0.5f * sm.size / (1 - maxatten),
-                                (-smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias) / (1 - maxatten),
-                                sm.size,
-                                0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
-                        }
-                        else
-                        {
-                            shadowparamsv[j] = vec4(
-                                0.5f * (sm.size - border),
-                                -smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias,
-                                sm.size,
-                                0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
-                        }
-                        shadowoffsetv[j] = vec2(sm.x + 0.5f*sm.size, sm.y + 0.5f*sm.size);
+                        shadowparamsv[j] = vec4(
+                            0.5f * (sm.size - border),
+                            -smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias,
+                            sm.size,
+                            0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
                     }
-                    sx1 = min(sx1, l.sx1);
-                    sy1 = min(sy1, l.sy1);
-                    sx2 = max(sx2, l.sx2);
-                    sy2 = max(sy2, l.sy2);
-                    sz1 = min(sz1, l.sz1);
-                    sz2 = max(sz2, l.sz2);
+                    shadowoffsetv[j] = vec2(sm.x + 0.5f*sm.size, sm.y + 0.5f*sm.size);
                 }
-                if(!i && !sunpass) { sx1 = sy1 = sz1 = -1; sx2 = sy2 = sz2 = 1; }
-                else if(sx1 >= sx2 || sy1 >= sy2 || sz1 >= sz2)
+                sx1 = min(sx1, l.sx1);
+                sy1 = min(sy1, l.sy1);
+                sx2 = max(sx2, l.sx2);
+                sy2 = max(sy2, l.sy2);
+                sz1 = min(sz1, l.sz1);
+                sz2 = max(sz2, l.sz2);
+            }
+            if(n)
+            {
+                s->setvariant(n-1, (shadowmap ? 1 : 0) + (offset || sunpass ? 2 : 0) + (spotlight ? 4 : 0));
+                lightpos.setv(lightposv, n);
+                lightcolor.setv(lightcolorv, n);
+                if(spotlight) spotparams.setv(spotparamsv, n);
+                if(shadowmap)
                 {
-                    i += n;
-                    if(i >= tile.length()) break;
-                    continue;
-                }
-
-                if(n)
-                {
-                    s->setvariant(n-1, (shadowmap ? 1 : 0) + (i || sunpass ? 2 : 0) + (spotlight ? 4 : 0));
-                    lightpos.setv(lightposv, n);
-                    lightcolor.setv(lightcolorv, n);
-                    if(spotlight) spotparams.setv(spotparamsv, n);
-                    if(shadowmap)
+                    if(spotlight)
                     {
-                        if(spotlight)
-                        {
-                            spotx.setv(spotxv, n);
-                            spoty.setv(spotyv, n);
-                        }
-                        shadowparams.setv(shadowparamsv, n);
-                        shadowoffset.setv(shadowoffsetv, n);
+                        spotx.setv(spotxv, n);
+                        spoty.setv(spotyv, n);
                     }
+                    shadowparams.setv(shadowparamsv, n);
+                    shadowoffset.setv(shadowoffsetv, n);
                 }
-                else s->set();
+            }
+            else s->set();
 
-                sx1 = max(sx1, bsx1);
-                sy1 = max(sy1, bsy1);
-                sx2 = min(sx2, bsx2);
-                sy2 = min(sy2, bsy2);
-                if(sx1 < sx2 && sy1 < sy2)
+            if(!offset && !sunpass) { sx1 = sy1 = sz1 = -1; sx2 = sy2 = sz2 = 1; }
+            sx1 = max(sx1, bsx1);
+            sy1 = max(sy1, bsy1);
+            sx2 = min(sx2, bsx2);
+            sy2 = min(sy2, bsy2);
+            if(hasDBT && depthtestlights > 1) glDepthBounds_(sz1*0.5f + 0.5f, sz2*0.5f + 0.5f);
+            if(!lighttilescissor) gle::begin(GL_QUADS);
+            if(sx1 < sx2 && sy1 < sy2 && sz1 < sz2) loopvj(batch->strips)
+            {
+                lightstrip &s = batch->strips[j];
+                if(s.y >= bty1 && s.y < bty2) for(int x = max(s.x, btx1), end = min(s.x + s.w, btx2); x < end;)
                 {
-                    int tx1 = max(int(floor((sx1*0.5f+0.5f)*vieww)), ((x*lighttilevieww)/lighttilew)*lighttilealignw),
-                        ty1 = max(int(floor((sy1*0.5f+0.5f)*viewh)), ((y*lighttileviewh)/lighttileh)*lighttilealignh),
-                        tx2 = min(int(ceil((sx2*0.5f+0.5f)*vieww)), min((((x+striplength)*lighttilevieww)/lighttilew)*lighttilealignw, vieww)),
-                        ty2 = min(int(ceil((sy2*0.5f+0.5f)*viewh)), min((((y+1)*lighttileviewh)/lighttileh)*lighttilealignh, viewh));
-                    glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
-
-                    if(hasDBT && depthtestlights > 1) glDepthBounds_(sz1*0.5f + 0.5f, sz2*0.5f + 0.5f);
-
-                    lightquad(sz1);
-
+                    int start;
+                    if(tilemask)
+                    {
+                        while(x < end && !(tilemask[s.y]&(1<<x))) x++;
+                        if(x >= end) break;
+                        start = x;
+                        do ++x; while(x < end && tilemask[s.y]&(1<<x));
+                    }
+                    else
+                    {
+                        start = x;
+                        x = end;
+                    }
+                    int tx1 = max(int(floor((sx1*0.5f+0.5f)*vieww)), ((start*lighttilevieww)/lighttilew)*lighttilealignw),
+                        ty1 = max(int(floor((sy1*0.5f+0.5f)*viewh)), ((s.y*lighttileviewh)/lighttileh)*lighttilealignh),
+                        tx2 = min(int(ceil((sx2*0.5f+0.5f)*vieww)), min(((x*lighttilevieww)/lighttilew)*lighttilealignw, vieww)),
+                        ty2 = min(int(ceil((sy2*0.5f+0.5f)*viewh)), min((((s.y+1)*lighttileviewh)/lighttileh)*lighttilealignh, viewh));
+                    if(lighttilescissor)
+                    {
+                        glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
+                        lightquad(sz1);
+                    }
+                    else lightquads(sz1, (tx1*2.0f)/vieww-1.0f, (ty1*2.0f)/viewh-1.0f, (tx2*2.0f)/vieww-1.0f, (ty2*2.0f)/viewh-1.0f);
                     lightpassesused++;
                 }
-
-                i += n;
-                if(i >= tile.length()) break;
             }
+            if(!lighttilescissor) gle::end();
+            offset += n;
+            if(offset >= batch->lights.length()) break;
         }
     }
 
     gle::disable();
 
-    glDisable(GL_SCISSOR_TEST);
+    if(lighttilescissor || !lighttilebatch) glDisable(GL_SCISSOR_TEST);
     glDisable(GL_BLEND);
 
     if(!depthtestlights) glEnable(GL_DEPTH_TEST);
@@ -2814,7 +2830,7 @@ void collectlights()
     {
         int idx = lightorder[i];
         lightinfo &l = lights[idx];
-        if(l.flags&L_NOSHADOW || l.radius <= smminradius || l.radius >= worldsize) continue;
+        if(l.noshadow() || l.radius >= worldsize) continue;
         vec bbmin, bbmax;
         if(l.spot > 0)
         {
@@ -2861,11 +2877,12 @@ static inline void addlighttiles(const lightinfo &l, int idx)
 {
     int tx1, ty1, tx2, ty2;
     calctilebounds(l.sx1, l.sy1, l.sx2, l.sy2, tx1, ty1, tx2, ty2);
-    for(int y = ty1; y < ty2; y++) for(int x = tx1; x < tx2; x++) { lighttiles[y][x].add(idx); lighttilesused++; }
+    for(int y = ty1; y < ty2; y++) for(int x = tx1; x < tx2; x++) { lighttiles[y][x].lights.add(idx); lighttilesused++; }
 }
 
 VAR(lightsvisible, 1, 0, 0);
 VAR(lightsoccluded, 1, 0, 0);
+VARN(lightbatches, lightbatchesused, 1, 0, 0);
 
 void packlights()
 {
@@ -2877,7 +2894,7 @@ void packlights()
     {
         int idx = lightorder[i];
         lightinfo &l = lights[idx];
-        if(l.flags&L_NOSHADOW || l.radius <= smminradius) continue;
+        if(l.noshadow()) continue;
         if(l.query && l.query->owner == &l && checkquery(l.query)) continue;
 
         float prec = smprec, lod;
@@ -2910,7 +2927,7 @@ void packlights()
         lightinfo &l = lights[idx];
         if(l.shadowmap >= 0) continue;
 
-        if(!(l.flags&L_NOSHADOW) && !smnoshadow && l.radius > smminradius)
+        if(!l.noshadow() && !smnoshadow)
         {
             if(l.query && l.query->owner == &l && checkquery(l.query)) { lightsoccluded++; continue; }
             float prec = smprec, lod;
@@ -2938,6 +2955,32 @@ void packlights()
     }
 
     lightsvisible = lightorder.length() - lightsoccluded;
+
+    static hashset<lightbatch *> batcher(128);
+    batcher.clear();
+    lightbatches.setsize(0);
+    loop(y, lighttileh)
+    {
+        lightbatch *prevbatch = NULL;
+        int band = lighttilebands && lighttilebands < lighttileh ? (y * lighttilebands) / lighttileh : y;
+        loop(x, lighttilew)
+        {
+            lightbatch &tile = lighttiles[y][x];
+            tile.band = band;
+            lightbatch *batch = batcher.add(&tile);
+            if(batch != prevbatch)
+            {
+                if(batch == &tile) lightbatches.add(batch);
+                lightstrip &strip = batch->strips.add();
+                strip.x = x;
+                strip.y = y;
+                strip.w = 1;
+            }
+            else batch->strips.last().w++;
+            if(lighttilestrip) prevbatch = batch;
+        }
+    }
+    lightbatchesused = lightbatches.length();
 }
 
 static inline void nogiquad(int x, int y, int w, int h)
@@ -3630,7 +3673,7 @@ void rendertransparent()
     else glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
     glActiveTexture_(GL_TEXTURE0);
 
-    if(stencilformat) glEnable(GL_STENCIL_TEST);
+    if(ghasstencil) glEnable(GL_STENCIL_TEST);
 
     glmatrix raymatrix(vec(-0.5f*vieww*projmatrix.a.x, 0, 0.5f*vieww),
                        vec(0, -0.5f*viewh*projmatrix.b.y, 0.5f*viewh));
@@ -3679,7 +3722,7 @@ void rendertransparent()
         }
 
         glBindFramebuffer_(GL_FRAMEBUFFER, msaasamples ? msfbo : gfbo);
-        if(stencilformat)
+        if(ghasstencil)
         {
             glStencilFunc(GL_ALWAYS, layer+1, ~0);
             glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -3727,7 +3770,7 @@ void rendertransparent()
         if(msaasamples)
         {
             glBindFramebuffer_(GL_FRAMEBUFFER, mshdrfbo);
-            if(stencilformat)
+            if(ghasstencil)
             {
                 if(!msaaedgedetect)
                 {
@@ -3742,7 +3785,7 @@ void rendertransparent()
         else
         {
             glBindFramebuffer_(GL_FRAMEBUFFER, hdrfbo);
-            if(stencilformat)
+            if(ghasstencil)
             {
                 glStencilFunc(GL_EQUAL, layer+1, ~0);
                 glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -3751,7 +3794,7 @@ void rendertransparent()
         }
     }
 
-    if(stencilformat) glDisable(GL_STENCIL_TEST);
+    if(ghasstencil) glDisable(GL_STENCIL_TEST);
 
     endtimer(transtimer);
 }
@@ -3778,7 +3821,7 @@ void preparegbuffer(bool depthclear)
         maskgbuffer("cng");
     }
     if(gcolorclear) glClearColor(0, 0, 0, 0);
-    glClear((depthclear ? GL_DEPTH_BUFFER_BIT : 0)|(gcolorclear ? GL_COLOR_BUFFER_BIT : 0)|(depthclear && stencilformat ? GL_STENCIL_BUFFER_BIT : 0));
+    glClear((depthclear ? GL_DEPTH_BUFFER_BIT : 0)|(gcolorclear ? GL_COLOR_BUFFER_BIT : 0)|(depthclear && ghasstencil ? GL_STENCIL_BUFFER_BIT : 0));
     if(gdepthformat && gdepthclear) maskgbuffer("cngd");
     if(drawtex) glDisable(GL_SCISSOR_TEST);
 
@@ -3933,7 +3976,7 @@ void shadegbuffer()
 
     if(msaasamples)
     {
-        if(stencilformat && msaaedgedetect)
+        if(ghasstencil && msaaedgedetect)
         {
             glEnable(GL_STENCIL_TEST);
             loopi(2) renderlights(-1, -1, 1, 1, NULL, 0, i+1);

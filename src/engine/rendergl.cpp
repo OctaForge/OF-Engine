@@ -4,7 +4,7 @@
 
 #include "targeting.h" // INTENSITY
 
-bool hasVAO = false, hasTR = false, hasTSW = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasS3TC = false, hasFXT1 = false, hasLATC = false, hasRGTC = false, hasAF = false, hasFBB = false, hasFBMS = false, hasTMS = false, hasMSS = false, hasFBMSBS = false, hasNVFBMSC = false, hasNVTMS = false, hasUBO = false, hasMBR = false, hasDB2 = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false, hasDBGO = false, hasGPU4 = false, hasGPU5 = false, hasEAL = false;
+bool hasVAO = false, hasTR = false, hasTSW = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasS3TC = false, hasFXT1 = false, hasLATC = false, hasRGTC = false, hasAF = false, hasFBB = false, hasFBMS = false, hasTMS = false, hasMSS = false, hasFBMSBS = false, hasNVFBMSC = false, hasNVTMS = false, hasUBO = false, hasMBR = false, hasDB2 = false, hasDBB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false, hasDBGO = false, hasGPU4 = false, hasGPU5 = false, hasEAL = false, hasCR = false, hasOQ2 = false;
 bool mesa = false, intel = false, ati = false, nvidia = false;
 
 int hasstencil = 0;
@@ -46,6 +46,12 @@ PFNGLSAMPLEMASKIPROC           glSampleMaski_           = NULL;
 
 // GL_ARB_sample_shading
 PFNGLMINSAMPLESHADINGPROC glMinSampleShading_ = NULL;
+
+// GL_ARB_draw_buffers_blend
+PFNGLBLENDEQUATIONIPROC         glBlendEquationi_         = NULL;
+PFNGLBLENDEQUATIONSEPARATEIPROC glBlendEquationSeparatei_ = NULL;
+PFNGLBLENDFUNCIPROC             glBlendFunci_             = NULL;
+PFNGLBLENDFUNCSEPARATEIPROC     glBlendFuncSeparatei_     = NULL;
 
 // GL_NV_framebuffer_multisample_coverage
 PFNGLRENDERBUFFERSTORAGEMULTISAMPLECOVERAGENVPROC glRenderbufferStorageMultisampleCoverageNV_ = NULL;
@@ -189,6 +195,10 @@ PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation_ = NULL;
 PFNGLCOLORMASKIPROC glColorMaski_ = NULL;
 PFNGLENABLEIPROC    glEnablei_    = NULL;
 PFNGLDISABLEIPROC   glDisablei_   = NULL;
+
+// GL_NV_conditional_render
+PFNGLBEGINCONDITIONALRENDERPROC glBeginConditionalRender_ = NULL;
+PFNGLENDCONDITIONALRENDERPROC   glEndConditionalRender_   = NULL;
 
 // GL_ARB_uniform_buffer_object
 PFNGLGETUNIFORMINDICESPROC       glGetUniformIndices_       = NULL;
@@ -520,9 +530,13 @@ void gl_checkextensions()
         hasCBF = true;
 
         glColorMaski_ = (PFNGLCOLORMASKIPROC)getprocaddress("glColorMaski");
-        glEnablei_ =    (PFNGLENABLEIPROC)getprocaddress("glEnablei");
-        glDisablei_ =   (PFNGLENABLEIPROC)getprocaddress("glDisablei");
+        glEnablei_ =    (PFNGLENABLEIPROC)   getprocaddress("glEnablei");
+        glDisablei_ =   (PFNGLENABLEIPROC)   getprocaddress("glDisablei");
         hasDB2 = true;
+
+        glBeginConditionalRender_ = (PFNGLBEGINCONDITIONALRENDERPROC)getprocaddress("glBeginConditionalRender");
+        glEndConditionalRender_ =   (PFNGLENDCONDITIONALRENDERPROC)  getprocaddress("glEndConditionalRender");
+        hasCR = true;
     }
     else
     {
@@ -561,10 +575,17 @@ void gl_checkextensions()
         if(hasext("GL_EXT_draw_buffers2"))
         {
             glColorMaski_ = (PFNGLCOLORMASKIPROC)getprocaddress("glColorMaskIndexedEXT");
-            glEnablei_ =    (PFNGLENABLEIPROC)getprocaddress("glEnableIndexedEXT");
-            glDisablei_ =   (PFNGLENABLEIPROC)getprocaddress("glDisableIndexedEXT");
+            glEnablei_ =    (PFNGLENABLEIPROC)   getprocaddress("glEnableIndexedEXT");
+            glDisablei_ =   (PFNGLENABLEIPROC)   getprocaddress("glDisableIndexedEXT");
             hasDB2 = true;
             if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_draw_buffers2 extension.");
+        }
+        if(hasext("GL_NV_conditional_render"))
+        {
+            glBeginConditionalRender_ = (PFNGLBEGINCONDITIONALRENDERPROC)getprocaddress("glBeginConditionalRenderNV");
+            glEndConditionalRender_ =   (PFNGLENDCONDITIONALRENDERPROC)  getprocaddress("glEndConditionalRenderNV");
+            hasCR = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_NV_conditional_render extension.");
         }
     }
 
@@ -761,7 +782,7 @@ void gl_checkextensions()
 
     if(glversion >= 330)
     {
-        hasTSW = hasEAL = true;
+        hasTSW = hasEAL = hasOQ2 = true;
     }
     else
     {
@@ -775,6 +796,11 @@ void gl_checkextensions()
             hasEAL = true;
             if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_explicit_attrib_location extension.");
         }
+        if(hasext("GL_ARB_occlusion_query2"))
+        {
+            hasOQ2 = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_occlusion_query2 extension.");
+        }
     }
 
     if(glversion >= 400)
@@ -783,6 +809,12 @@ void gl_checkextensions()
 
         glMinSampleShading_ = (PFNGLMINSAMPLESHADINGPROC)getprocaddress("glMinSampleShading");
         hasMSS = true;
+
+        glBlendEquationi_ =         (PFNGLBLENDEQUATIONIPROC)        getprocaddress("glBlendEquationi");
+        glBlendEquationSeparatei_ = (PFNGLBLENDEQUATIONSEPARATEIPROC)getprocaddress("glBlendEquationSeparatei");
+        glBlendFunci_ =             (PFNGLBLENDFUNCIPROC)            getprocaddress("glBlendFunci");
+        glBlendFuncSeparatei_ =     (PFNGLBLENDFUNCSEPARATEIPROC)    getprocaddress("glBlendFuncSeparatei");
+        hasDBB = true;
     }
     else
     {
@@ -807,6 +839,15 @@ void gl_checkextensions()
             hasMSS = true;
             if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_sample_shading extension.");
         }
+        if(hasext("GL_ARB_draw_buffers_blend"))
+        {
+            glBlendEquationi_ =         (PFNGLBLENDEQUATIONIPROC)        getprocaddress("glBlendEquationiARB");
+            glBlendEquationSeparatei_ = (PFNGLBLENDEQUATIONSEPARATEIPROC)getprocaddress("glBlendEquationSeparateiARB");
+            glBlendFunci_ =             (PFNGLBLENDFUNCIPROC)            getprocaddress("glBlendFunciARB");
+            glBlendFuncSeparatei_ =     (PFNGLBLENDFUNCSEPARATEIPROC)    getprocaddress("glBlendFuncSeparateiARB");
+            hasDBB = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_draw_buffers_blend extension.");
+        }
     }
     if(hasTG || hasT4) usetexgather = 1;
     if(hasTG && hasGPU5 && !intel) usetexgather = 2;
@@ -822,12 +863,12 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_debug_output extension.");
     }
 
-    extern int gdepthstencil, glineardepth, msaalineardepth, lighttilebatch, batchsunlight, smgather;
+    extern int msaadepthstencil, gdepthstencil, glineardepth, msaalineardepth, lighttilebatch, batchsunlight, smgather;
     if(ati)
     {
         //conoutf(CON_WARN, "WARNING: ATI cards may show garbage in skybox. (use \"/ati_skybox_bug 1\" to fix)");
         msaalineardepth = 1; // reading back from depth-stencil still buggy on newer cards, and requires stencil for MSAA
-        gdepthstencil = 0; // some older ATI GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
+        msaadepthstencil = gdepthstencil = 1; // some older ATI GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
         if(checkseries(renderer, "Radeon HD", 4000, 5199)) ati_pf_bug = 1;
         // On Catalyst 10.2, issuing an occlusion query on the first draw using a given cubemap texture causes a nasty crash
         ati_cubemap_bug = 1;
@@ -837,9 +878,6 @@ void gl_checkextensions()
     }
     else if(intel)
     {
-#ifdef WIN32
-        gdepthstencil = 0; // workaround for buggy stencil on windows ivy bridge driver
-#endif
         glineardepth = 1; // causes massive slowdown in windows driver (and sometimes in linux driver) if not using linear depth
         lighttilebatch = 4;
         if(mesa) batchsunlight = 0; // causes massive slowdown in linux driver
