@@ -80,7 +80,7 @@ void setsurfaces(cube &c, const surfaceinfo *surfs, const vertinfo *verts, int n
 void setsurface(cube &c, int orient, const surfaceinfo &src, const vertinfo *srcverts, int numsrcverts) { };
 void brightencube(cube &c) { };
 Texture *textureload(const char *name, int clamp, bool mipit, bool msg) { return notexture; };
-void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool restore, bool force) { };
+void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool force) { };
 void writebinds(stream *f) { };
 int isvisiblesphere(float rad, const vec &cv) { return 0; };
 Shader *lookupshaderbyname(const char *name) { return NULL; };

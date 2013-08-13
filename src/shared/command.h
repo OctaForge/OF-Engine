@@ -331,6 +331,8 @@ inline void ident::getcval(tagval &v) const
 #define VARF(name, min, cur, max, body) _VARF(name, name, min, cur, max, body, 0)
 #define VARFP(name, min, cur, max, body) _VARF(name, name, min, cur, max, body, IDF_PERSIST)
 #define VARFR(name, min, cur, max, body) _VARF(name, name, min, cur, max, body, IDF_OVERRIDE)
+#define VARFNP(name, global, min, cur, max, body) _VARF(name, global, min, cur, max, body, IDF_PERSIST)
+#define VARFNR(name, global, min, cur, max, body) _VARF(name, global, name, min, cur, max, body, IDF_OVERRIDE)
 
 #define _HVAR(name, global, min, cur, max, persist)  int global = variable(#name, min, cur, max, &global, NULL, persist | IDF_HEX)
 #define HVARN(name, global, min, cur, max) _HVAR(name, global, min, cur, max, 0)
@@ -344,6 +346,8 @@ inline void ident::getcval(tagval &v) const
 #define HVARF(name, min, cur, max, body) _HVARF(name, name, min, cur, max, body, 0)
 #define HVARFP(name, min, cur, max, body) _HVARF(name, name, min, cur, max, body, IDF_PERSIST)
 #define HVARFR(name, min, cur, max, body) _HVARF(name, name, min, cur, max, body, IDF_OVERRIDE)
+#define HVARFNP(name, global, min, cur, max, body) _HVARF(name, global, min, cur, max, body, IDF_PERSIST)
+#define HVARFNR(name, global, min, cur, max, body) _HVARF(name, global, name, min, cur, max, body, IDF_OVERRIDE)
 
 #define _FVAR(name, global, min, cur, max, persist) float global = fvariable(#name, min, cur, max, &global, NULL, persist)
 #define FVARN(name, global, min, cur, max) _FVAR(name, global, min, cur, max, 0)
@@ -357,6 +361,8 @@ inline void ident::getcval(tagval &v) const
 #define FVARF(name, min, cur, max, body) _FVARF(name, name, min, cur, max, body, 0)
 #define FVARFP(name, min, cur, max, body) _FVARF(name, name, min, cur, max, body, IDF_PERSIST)
 #define FVARFR(name, min, cur, max, body) _FVARF(name, name, min, cur, max, body, IDF_OVERRIDE)
+#define FVARFNP(name, global, min, cur, max, body) _FVARF(name, global, min, cur, max, body, IDF_PERSIST)
+#define FVARFNR(name, global, min, cur, max, body) _FVARF(name, global, name, min, cur, max, body, IDF_OVERRIDE)
 
 #define _SVAR(name, global, cur, persist) char *global = svariable(#name, cur, &global, NULL, persist)
 #define SVARN(name, global, cur) _SVAR(name, global, cur, 0)
@@ -370,6 +376,8 @@ inline void ident::getcval(tagval &v) const
 #define SVARF(name, cur, body) _SVARF(name, name, cur, body, 0)
 #define SVARFP(name, cur, body) _SVARF(name, name, cur, body, IDF_PERSIST)
 #define SVARFR(name, cur, body) _SVARF(name, name, cur, body, IDF_OVERRIDE)
+#define SVARFNP(name, global, cur, body) _SVARF(name, global, cur, body, IDF_PERSIST)
+#define SVARFNR(name, global, cur, body) _SVARF(name, global, cur, body, IDF_OVERRIDE)
 
 // anonymous inline commands, uses nasty template trick with line numbers to keep names unique
 // OF: unsafe variants

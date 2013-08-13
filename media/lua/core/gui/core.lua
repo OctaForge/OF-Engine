@@ -26,7 +26,8 @@ local logger = require("core.logger")
 
 local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
-hudmatrix_ortho, hudmatrix_reset, shader_hud_set, isconnected in capi
+hudmatrix_ortho, hudmatrix_reset, shader_hud_set, hud_get_w, hud_get_h,
+hud_get_ss_x, hud_get_ss_y, hud_get_so_x, hud_get_so_y, isconnected in capi
 
 local set_external = capi.external_set
 
@@ -373,8 +374,6 @@ M.is_fully_clipped = is_fully_clipped
 ]]
 local clip_area_scissor = function(self)
     self = self or clip_stack[#clip_stack]
-    local screenw, screenh = var_get("screenw"), var_get("screenh")
-
     local sx1, sy1, sx2, sy2 =
         world:calc_scissor(self[1], self[2], self[3], self[4])
     gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
@@ -1387,6 +1386,8 @@ local World = register_class("World", Widget, {
     __init = function(self)
         self.windows = {}
         self.size, self.margin = 0, 0
+        self.ss_x, self.ss_y = 1, 1
+        self.so_x, self.so_y = 0, 0
         return Widget.__init(self)
     end,
 
@@ -1451,7 +1452,7 @@ local World = register_class("World", Widget, {
     layout = function(self)
         Widget.layout(self)
 
-        local sw, sh = var_get("screenw"), var_get("screenh")
+        local sw, sh = hud_get_w(), hud_get_h()
         self.size = sh
         local faspect = var_get("aspect")
         if faspect != 0 then sw = ceil(sh * faspect) end
@@ -1469,15 +1470,20 @@ local World = register_class("World", Widget, {
     projection = function(self)
         local x, y, w, h in self
         hudmatrix_ortho(x, x + w, y + h, y, -1, 1)
+        hudmatrix_reset()
+        self.ss_x, self.ss_y = hud_get_ss_x(), hud_get_ss_y()
+        self.so_x, self.so_y = hud_get_so_x(), hud_get_so_y()
     end,
 
     calc_scissor = function(self, x1, y1, x2, y2)
-        local scrw, scrh = var_get("screenw"), var_get("screenh")
-        local x, y, w, h in self
-        return clamp(floor((x1 - x) / w * scrw),        0, scrw),
-               clamp(floor(scrh - (y2 - y) / h * scrh), 0, scrh),
-               clamp(ceil ((x2 - x) / w * scrw),        0, scrw),
-               clamp(ceil (scrh - (y1 - y) / h * scrh), 0, scrh)
+        local hudw, hudh = hud_get_w(), hud_get_h()
+        local x, y, w, h, ss_x, ss_y, so_x, so_y in self
+        local s1_x, s1_y = (x1 * ss_x + so_x), (y2 * ss_y + so_y)
+        local s2_x, s2_y = (x2 * ss_x + so_x), (y1 * ss_y + so_y)
+        return clamp(floor(s1_x * hudw), 0, hudw),
+               clamp(floor(s1_y * hudh), 0, hudh),
+               clamp(ceil (s2_x * hudw), 0, hudw),
+               clamp(ceil (s2_y * hudh), 0, hudh)
     end,
 
     --[[! Function: build_window
@@ -1598,11 +1604,12 @@ M.get_hud = function()
     return hud
 end
 
---[[! Variable: cursorsensitivity
+--[[! Variable: uisensitivity
     An engine variable specifying the mouse cursor sensitivity. Ranges from
     0.001 to 1000 and defaults to 1.
 ]]
-cs.var_new_checked("cursorsensitivity", cs.var_type.float, 0.001, 1, 1000)
+cs.var_new_checked("uisensitivity", cs.var_type.float, 0.0001, 1, 10000,
+    cs.var_flags.PERSIST)
 
 local cursor_mode = function()
     return var_get("editing") == 0 and var_get("freecursor")
@@ -1612,10 +1619,10 @@ end
 set_external("cursor_move", function(dx, dy)
     local cmode = cursor_mode()
     if cmode == 2 or (world:grabs_input() and cmode >= 1) then
-        local cursorsens = var_get("cursorsensitivity")
-        local scrw, scrh = var_get("screenw"), var_get("screenh")
-        cursor_x = clamp(cursor_x + dx * cursorsens / scrw, 0, 1)
-        cursor_y = clamp(cursor_y + dy * cursorsens / scrh, 0, 1)
+        local uisens = var_get("uisensitivity")
+        local hudw, hudh = hud_get_w(), hud_get_h()
+        cursor_x = clamp(cursor_x + dx * uisens / hudw, 0, 1)
+        cursor_y = clamp(cursor_y + dy * uisens / hudh, 0, 1)
         if cmode == 2 then
             if cursor_x != 1 and cursor_x != 0 then dx = 0 end
             if cursor_y != 1 and cursor_y != 0 then dy = 0 end
@@ -1861,7 +1868,6 @@ set_external("gui_render", function()
     local w = world
     if draw_hud or (w.visible and #w.children != 0) then
         w:projection()
-        hudmatrix_reset()
         shader_hud_set()
 
         gl_blend_enable()

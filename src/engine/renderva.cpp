@@ -450,16 +450,21 @@ void rendermapmodels()
             if(!rendered)
             {
                 rendered = true;
-                oe->query = doquery && oe->distance>0 && !(++skipoq%oqmm) ? newquery(oe) : NULL;
-                if(oe->query) startmodelquery(oe->query);
+                if(!viewidx)
+                {
+                    oe->query = doquery && oe->distance>0 && !(++skipoq%oqmm) ? newquery(oe) : NULL;
+                    if(oe->query) startmodelquery(oe->query);
+                }
             }
             rendermapmodel(e);
             e.flags &= ~EF_RENDER;
         }
-        if(rendered && oe->query) endmodelquery();
+        if(rendered && !viewidx && oe->query) endmodelquery();
     }
     rendermapmodelbatches();
     resetmodelbatches();
+
+    if(viewidx) return;
 
     bool queried = false;
     for(octaentities *oe = visiblemms; oe; oe = oe->next) if(oe->distance<0)
@@ -1613,7 +1618,21 @@ void rendergeom()
     resetbatches();
 
     int blends = 0;
-    if(doOQ)
+    if(viewidx)
+    {
+        for(vtxarray *va = visibleva; va; va = va->next) if(va->texs && va->occluded < OCCLUDE_GEOM)
+        {
+            if(pvsoccluded(va->geommin, va->geommax))
+            {
+                va->occluded = OCCLUDE_GEOM;
+                continue;
+            }
+            blends += va->blends;
+            renderva(cur, va, RENDERPASS_GBUFFER);
+        }
+        if(geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER);
+    }
+    else if(doOQ)
     {
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs)
         {
@@ -1696,6 +1715,7 @@ void rendergeom()
             va->query = NULL;
             va->occluded = pvsoccluded(va->geommin, va->geommax) ? OCCLUDE_GEOM : OCCLUDE_NOTHING;
             if(va->occluded >= OCCLUDE_GEOM) continue;
+            blends += va->blends;
             renderva(cur, va, RENDERPASS_GBUFFER);
         }
         if(geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER);
@@ -1728,7 +1748,7 @@ void rendergeom()
 
     cleanupgeom(cur);
 
-    if(!doOQ && drawtex != DRAWTEX_MINIMAP)
+    if((viewidx || !doOQ) && drawtex != DRAWTEX_MINIMAP)
     {
         glFlush();
         if(cur.colormask) { cur.colormask = false; glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); }

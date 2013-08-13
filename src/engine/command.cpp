@@ -1145,9 +1145,9 @@ static inline void compileval(vector<uint> &code, int wordtype, const stringslic
 {
     switch(wordtype)
     {
-        case VAL_CANY:
+        case VAL_CANY: if(word.len) compilestr(code, word, true); else compilenull(code); break;
         case VAL_CSTR: compilestr(code, word, true); break;
-        case VAL_ANY:
+        case VAL_ANY: if(word.len) compilestr(code, word); else compilenull(code); break;
         case VAL_STR: compilestr(code, word); break;
         case VAL_FLOAT: compilefloat(code, word); break;
         case VAL_INT: compileint(code, word); break;

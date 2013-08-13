@@ -1470,6 +1470,14 @@ struct glmatrix
     void scale(const vec &v) { scale(v.x, v.y, v.z); }
     void scale(float n) { scale(n, n, n); }
 
+    void scalexy(float x, float y)
+    {
+        a.x *= x; a.y *= y;
+        b.x *= x; b.y *= y;
+        c.x *= x; c.y *= y;
+        d.x *= x; d.y *= y;
+    }
+
     void scalez(float k)
     {
         a.z *= k;

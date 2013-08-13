@@ -27,7 +27,7 @@ texture_get_notexture, thumbnail_load, texture_draw_slot, texture_draw_vslot,
 gl_blend_disable, gl_blend_enable, gl_scissor_disable, gl_scissor_enable,
 gle_disable, model_preview_start, model_preview, model_preview_end,
 hudmatrix_push, hudmatrix_scale, hudmatrix_flush, hudmatrix_pop, text_draw,
-text_get_bounds, text_set_font in capi
+text_get_bounds, text_set_font, hud_get_h in capi
 
 local var_get = cs.var_get
 
@@ -401,10 +401,10 @@ local Image = register_class("Image", Filler, {
         local min_h = self.min_h
 
         if  min_w < 0 then
-            min_w = abs(min_w) / var_get("screenh")
+            min_w = abs(min_w) / hud_get_h()
         end
         if  min_h < 0 then
-            min_h = abs(min_h) / var_get("screenh")
+            min_h = abs(min_h) / hud_get_h()
         end
 
         if  min_w == -1 then
@@ -415,7 +415,7 @@ local Image = register_class("Image", Filler, {
         end
 
         if  min_w == 0 or min_h == 0 then
-            local tex, scrh = self.texture, var_get("screenh")
+            local tex, scrh = self.texture, hud_get_h()
             if  min_w == 0 then
                 min_w = tex:get_w() / scrh
             end

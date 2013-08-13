@@ -239,7 +239,7 @@ void initao()
 void viewao()
 {
     if(!ao) return;
-    int w = min(screenw, screenh)/2, h = (w*screenh)/screenw;
+    int w = min(hudw, hudh)/2, h = (w*hudh)/hudw;
     SETSHADER(hudrect);
     gle::colorf(1, 1, 1);
     glBindTexture(GL_TEXTURE_RECTANGLE, aotex[2] ? aotex[2] : aotex[0]);
@@ -390,7 +390,7 @@ GLuint shouldscale()
     return scalefbo[0];
 }
 
-void doscale()
+void doscale(GLuint outfbo)
 {
     if(!scaletex[0]) return;
 
@@ -399,20 +399,20 @@ void doscale()
     if(gscalecubic)
     {
         glBindFramebuffer_(GL_FRAMEBUFFER, scalefbo[1]);
-        glViewport(0, 0, gw, screenh);
+        glViewport(0, 0, gw, hudh);
         glBindTexture(GL_TEXTURE_RECTANGLE, scaletex[0]);
         SETSHADER(scalecubicy);
         screenquad(gw, gh);
-        glBindFramebuffer_(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, screenw, screenh);
+        glBindFramebuffer_(GL_FRAMEBUFFER, outfbo);
+        glViewport(0, 0, hudw, hudh);
         glBindTexture(GL_TEXTURE_RECTANGLE, scaletex[1]);
         SETSHADER(scalecubicx);
-        screenquad(gw, screenh);
+        screenquad(gw, hudh);
     }
     else
     {
-        glBindFramebuffer_(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, screenw, screenh);
+        glBindFramebuffer_(GL_FRAMEBUFFER, outfbo);
+        glViewport(0, 0, hudw, hudh);
         glBindTexture(GL_TEXTURE_RECTANGLE, scaletex[0]);
         SETSHADER(scalelinear);
         screenquad(gw, gh);
@@ -700,7 +700,7 @@ void setupgbuffer()
         sh = max((renderh*gscale + 99)/100, 1);
     }
 
-    if(gw == sw && gh == sh && ((sw >= screenw && sh >= screenh) || (scalew == screenw && scaleh == screenh))) return;
+    if(gw == sw && gh == sh && ((sw >= hudw && sh >= hudh) || (scalew == hudw && scaleh == hudh))) return;
 
     cleanupscale();
     cleanupbloom();
@@ -796,7 +796,7 @@ void setupgbuffer()
 
     glBindFramebuffer_(GL_FRAMEBUFFER, 0);
 
-    if(gw < screenw || gh < screenh) setupscale(gw, gh, screenw, screenh);
+    if(gw < hudw || gh < hudh) setupscale(gw, gh, hudw, hudh);
 }
 
 void cleanupgbuffer()
@@ -1226,7 +1226,7 @@ VAR(debugdepth, 0, 0, 1);
 
 void viewdepth()
 {
-    int w = min(screenw, screenh)/2, h = (w*screenh)/screenw;
+    int w = min(hudw, hudh)/2, h = (w*hudh)/hudw;
     SETSHADER(hudrect);
     gle::colorf(1, 1, 1);
     glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
@@ -1237,7 +1237,7 @@ VAR(debugrefract, 0, 0, 1);
 
 void viewrefract()
 {
-    int w = min(screenw, screenh)/2, h = (w*screenh)/screenw;
+    int w = min(hudw, hudh)/2, h = (w*hudh)/hudw;
     SETSHADER(hudrect);
     gle::colorf(1, 1, 1);
     glBindTexture(GL_TEXTURE_RECTANGLE, refracttex);
@@ -1374,7 +1374,7 @@ VARFP(gi, 0, 1, 1, { cleardeferredlightshaders(); cleanupradiancehints(); });
 VAR(debugrsm, 0, 0, 2);
 void viewrsm()
 {
-    int w = min(screenw, screenh)/2, h = (w*screenh)/screenw, x = screenw-w, y = screenh-h;
+    int w = min(hudw, hudh)/2, h = (w*hudh)/hudw, x = hudw-w, y = hudh-h;
     SETSHADER(hudrect);
     gle::colorf(1, 1, 1);
     glBindTexture(GL_TEXTURE_RECTANGLE, debugrsm == 2 ? rsmnormaltex : rsmcolortex);
@@ -1384,7 +1384,7 @@ void viewrsm()
 VAR(debugrh, 0, 0, RH_MAXSPLITS*(128 + 2));
 void viewrh()
 {
-    int w = min(screenw, screenh)/2, h = (w*screenh)/screenw, x = screenw-w, y = screenh-h;
+    int w = min(hudw, hudh)/2, h = (w*hudh)/hudw, x = hudw-w, y = hudh-h;
     SETSHADER(hud3d);
     gle::colorf(1, 1, 1);
     glBindTexture(GL_TEXTURE_3D, rhtex[1]);
@@ -1514,7 +1514,7 @@ static inline bool usesmcomparemode() { return !usegatherforsm() || (hasTG && ha
 
 void viewshadowatlas()
 {
-    int w = min(screenw, screenh)/2, h = (w*screenh)/screenw, x = screenw-w, y = screenh-h;
+    int w = min(hudw, hudh)/2, h = (w*hudh)/hudw, x = hudw-w, y = hudh-h;
     float tw = 1, th = 1;
     if(shadowatlastarget == GL_TEXTURE_RECTANGLE)
     {
@@ -2727,8 +2727,8 @@ void viewlightscissor()
                 lightinfo &l = lights[j];
                 if(l.sx1 >= l.sx2 || l.sy1 >= l.sy2 || l.sz1 >= l.sz2) break;
                 gle::colorf(l.color.x/255, l.color.y/255, l.color.z/255);
-                float x1 = (l.sx1+1)/2*screenw, x2 = (l.sx2+1)/2*screenw,
-                      y1 = (1-l.sy1)/2*screenh, y2 = (1-l.sy2)/2*screenh;
+                float x1 = (l.sx1+1)/2*hudw, x2 = (l.sx2+1)/2*hudw,
+                      y1 = (1-l.sy1)/2*hudh, y2 = (1-l.sy2)/2*hudh;
                 gle::begin(GL_TRIANGLE_STRIP);
                 gle::attribf(x1, y1);
                 gle::attribf(x2, y1);
@@ -3675,8 +3675,9 @@ void rendertransparent()
 
     if(ghasstencil) glEnable(GL_STENCIL_TEST);
 
-    glmatrix raymatrix(vec(-0.5f*vieww*projmatrix.a.x, 0, 0.5f*vieww),
-                       vec(0, -0.5f*viewh*projmatrix.b.y, 0.5f*viewh));
+
+    glmatrix raymatrix(vec(-0.5f*vieww*projmatrix.a.x, 0, 0.5f*vieww - 0.5f*vieww*projmatrix.c.x),
+                       vec(0, -0.5f*viewh*projmatrix.b.y, 0.5f*viewh - 0.5f*viewh*projmatrix.c.y));
     raymatrix.mul(cammatrix);
     GLOBALPARAM(raymatrix, raymatrix);
     GLOBALPARAM(linearworldmatrix, linearworldmatrix);
@@ -3916,7 +3917,7 @@ void shademodelpreview(int x, int y, int w, int h, bool background, bool scissor
 {
     GLERROR;
 
-    glBindFramebuffer_(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer_(GL_FRAMEBUFFER, ovr::lensfbo[viewidx]);
     glViewport(x, y, w, h);
 
     if(msaasamples) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, mscolortex);
@@ -3953,7 +3954,7 @@ void shademodelpreview(int x, int y, int w, int h, bool background, bool scissor
 
     GLERROR;
 
-    glViewport(0, 0, screenw, screenh);
+    glViewport(0, 0, hudw, hudh);
 }
 
 void shadegbuffer()
@@ -3991,7 +3992,7 @@ void shadegbuffer()
     endtimer(shcputimer);
 }
 
-void setupframe()
+void setuplights()
 {
     GLERROR;
     setupgbuffer();

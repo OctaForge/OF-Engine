@@ -1186,6 +1186,9 @@ void resetmap()
 void startmap(const char *name)
 {
     game::startmap(name);
+#ifndef SERVER
+    ovr::reset();
+#endif
 }
 
 bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main empty world creation routine

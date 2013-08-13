@@ -23,6 +23,9 @@ local var_get = cs.var_get
 local M = require("core.gui.core")
 local world = M.get_world()
 
+local capi = require("capi")
+local hud_get_h = capi.hud_get_h
+
 -- widget types
 local register_class = M.register_class
 
@@ -111,10 +114,10 @@ M.Filler = register_class("Filler", Widget, {
         local min_h = self.min_h
 
         if  min_w < 0 then
-            min_w = abs(min_w) / var_get("screenh")
+            min_w = abs(min_w) / hud_get_h()
         end
         if  min_h < 0 then
-            min_h = abs(min_h) / var_get("screenh")
+            min_h = abs(min_h) / hud_get_h()
         end
 
         if  min_w == -1 then

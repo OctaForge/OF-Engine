@@ -29,12 +29,14 @@ void cleanup()
     extern void clear_sound();   clear_sound();
     lua::close();
     closelogfile();
+    ovr::destroy();
     SDL_Quit();
 }
 
+extern void writeinitcfg();
+
 void quit()                     // normal exit
 {
-    extern void writeinitcfg();
     writeinitcfg();
 
     abortconnect();
@@ -75,7 +77,7 @@ void fatal(const char *s, ...)    // failure exit
 }
 
 SDL_Window *screen = NULL;
-int screenw = 0, screenh = 0, renderw = 0, renderh = 0, desktopw = 0, desktoph = 0;
+int screenw = 0, screenh = 0, desktopw = 0, desktoph = 0;
 SDL_GLContext glcontext = NULL;
 
 int curtime = 0, totalmillis = 1, lastmillis = 1;
@@ -142,12 +144,6 @@ Texture *backgroundmapshot = NULL;
 string backgroundmapname = "";
 char *backgroundmapinfo = NULL;
 
-void restorebackground()
-{
-    if(renderedframe) return;
-    renderbackground(backgroundcaption[0] ? backgroundcaption : NULL, backgroundmapshot, backgroundmapname[0] ? backgroundmapname : NULL, backgroundmapinfo, true);
-}
-
 void bgquad(float x, float y, float w, float h, float tx = 0, float ty = 0, float tw = 1, float th = 1)
 {
     gle::begin(GL_TRIANGLE_STRIP);
@@ -158,17 +154,8 @@ void bgquad(float x, float y, float w, float h, float tx = 0, float ty = 0, floa
     gle::end();
 }
 
-void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool restore, bool force)
+void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo)
 {
-    if(!inbetweenframes && !force) return;
-
-    stopsounds(); // stop sounds while loading
-
-    int w = screenw, h = screenh;
-    getbackgroundres(w, h);
-    if(forceaspect) w = int(ceil(h*forceaspect));
-    gettextres(w, h);
-
     static int lastupdate = -1, lastw = -1, lasth = -1;
     static float backgroundu = 0, backgroundv = 0;
     if((renderedframe && !mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
@@ -182,137 +169,161 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     }
     else if(lastupdate != lastmillis) lastupdate = lastmillis;
 
-    loopi(restore ? 1 : 3)
+    hudmatrix.ortho(0, w, h, 0, -1, 1);
+    resethudmatrix();
+    hudshader->set();
+
+    gle::defvertex(2);
+    gle::deftexcoord0();
+
+    gle::colorf(1, 1, 1);
+    settexture("media/interface/background", 0);
+    float bu = w*0.67f/256.0f, bv = h*0.67f/256.0f;
+    bgquad(0, 0, w, h, backgroundu, backgroundv, bu, bv);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    settexture("media/interface/shadow", 3);
+    bgquad(0, 0, w, h);
+
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+    float lh = 0.5f*min(w, h), lw = lh*2,
+          lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
+    settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (hudw > 1280 || hudh > 800) ? "<premul>media/interface/logo_1024" : "<premul>media/interface/logo", 3);
+    bgquad(lx, ly, lw, lh);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if(caption)
     {
-        hudmatrix.ortho(0, w, h, 0, -1, 1);
-        resethudmatrix();
-        hudshader->set();
-
-        gle::defvertex(2);
-        gle::deftexcoord0();
-
-        gle::colorf(1, 1, 1);
-        settexture("media/interface/background", 0);
-        float bu = w*0.67f/256.0f, bv = h*0.67f/256.0f;
-        bgquad(0, 0, w, h, backgroundu, backgroundv, bu, bv);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        settexture("media/interface/shadow", 3);
-        bgquad(0, 0, w, h);
-
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-        float lh = 0.5f*min(w, h), lw = lh*2,
-              lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
-        settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>media/interface/logo_1024" : "<premul>media/interface/logo", 3);
-        bgquad(lx, ly, lw, lh);
-
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        if(caption)
+        int tw = text_width(caption);
+        float tsz = 0.04f*min(w, h)/FONTH,
+              tx = 0.5f*(w - tw*tsz), ty = h - 0.075f*1.5f*min(w, h) - 1.25f*FONTH*tsz;
+        pushhudmatrix();
+        hudmatrix.translate(tx, ty, 0);
+        hudmatrix.scale(tsz, tsz, 1);
+        flushhudmatrix();
+        draw_text(caption, 0, 0);
+        pophudmatrix();
+    }
+    if(mapshot || mapname)
+    {
+        float infowidth = 12*FONTH, sz = 0.35f*min(w, h), msz = (0.75f*min(w, h) - sz)/(infowidth + FONTH), x = 0.5f*(w-sz), y = ly+lh - sz/15;
+        if(mapinfo)
         {
-            int tw = text_width(caption);
-            float tsz = 0.04f*min(w, h)/FONTH,
-                  tx = 0.5f*(w - tw*tsz), ty = h - 0.075f*1.5f*min(w, h) - 1.25f*FONTH*tsz;
+            float mw, mh;
+            text_boundsf(mapinfo, mw, mh, infowidth);
+            x -= 0.5f*(mw*msz + FONTH*msz);
+        }
+        if(mapshot && mapshot!=notexture)
+        {
+            glBindTexture(GL_TEXTURE_2D, mapshot->id);
+            bgquad(x, y, sz, sz);
+        }
+        else
+        {
+            float qw, qh;
+            text_boundsf("?", qw, qh);
+            float qsz = sz*0.5f/max(qw, qh);
             pushhudmatrix();
-            hudmatrix.translate(tx, ty, 0);
+            hudmatrix.translate(x + 0.5f*(sz - qw*qsz), y + 0.5f*(sz - qh*qsz), 0);
+            hudmatrix.scale(qsz, qsz, 1);
+            flushhudmatrix();
+            draw_text("?", 0, 0);
+            pophudmatrix();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        if(mapname)
+        {
+            float tw = text_widthf(mapname),
+                  tsz = sz/(8*FONTH),
+                  tx = 0.9f*sz - tw*tsz, ty = 0.9f*sz - FONTH*tsz;
+            if(tx < 0.1f*sz) { tsz = 0.1f*sz/tw; tx = 0.1f; }
+            pushhudmatrix();
+            hudmatrix.translate(x+tx, y+ty, 0);
             hudmatrix.scale(tsz, tsz, 1);
             flushhudmatrix();
-            draw_text(caption, 0, 0);
+            draw_text(mapname, 0, 0);
             pophudmatrix();
         }
-        if(mapshot || mapname)
+        if(mapinfo)
         {
-            float infowidth = 12*FONTH, sz = 0.35f*min(w, h), msz = (0.75f*min(w, h) - sz)/(infowidth + FONTH), x = 0.5f*(w-sz), y = ly+lh - sz/15;
-            if(mapinfo)
-            {
-                float mw, mh;
-                text_boundsf(mapinfo, mw, mh, infowidth);
-                x -= 0.5f*(mw*msz + FONTH*msz);
-            }
-            if(mapshot && mapshot!=notexture)
-            {
-                glBindTexture(GL_TEXTURE_2D, mapshot->id);
-                bgquad(x, y, sz, sz);
-            }
-            else
-            {
-                float qw, qh;
-                text_boundsf("?", qw, qh);
-                float qsz = sz*0.5f/max(qw, qh);
-                pushhudmatrix();
-                hudmatrix.translate(x + 0.5f*(sz - qw*qsz), y + 0.5f*(sz - qh*qsz), 0);
-                hudmatrix.scale(qsz, qsz, 1);
-                flushhudmatrix();
-                draw_text("?", 0, 0);
-                pophudmatrix();
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
-            if(mapname)
-            {
-                float tw = text_widthf(mapname),
-                      tsz = sz/(8*FONTH),
-                      tx = 0.9f*sz - tw*tsz, ty = 0.9f*sz - FONTH*tsz;
-                if(tx < 0.1f*sz) { tsz = 0.1f*sz/tw; tx = 0.1f; }
-                pushhudmatrix();
-                hudmatrix.translate(x+tx, y+ty, 0);
-                hudmatrix.scale(tsz, tsz, 1);
-                flushhudmatrix();
-                draw_text(mapname, 0, 0);
-                pophudmatrix();
-            }
-            if(mapinfo)
-            {
-                pushhudmatrix();
-                hudmatrix.translate(x+sz+FONTH*msz, y, 0);
-                hudmatrix.scale(msz, msz, 1);
-                flushhudmatrix();
-                draw_text(mapinfo, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, -1, infowidth);
-                pophudmatrix();
-            }
-        }
-        glDisable(GL_BLEND);
-
-        gle::disable();
-
-        if(!restore) swapbuffers();
-    }
-
-    if(!restore)
-    {
-        renderedframe = false;
-        copystring(backgroundcaption, caption ? caption : "");
-        backgroundmapshot = mapshot;
-        copystring(backgroundmapname, mapname ? mapname : "");
-        if(mapinfo != backgroundmapinfo)
-        {
-            DELETEA(backgroundmapinfo);
-            if(mapinfo) backgroundmapinfo = newstring(mapinfo);
+            pushhudmatrix();
+            hudmatrix.translate(x+sz+FONTH*msz, y, 0);
+            hudmatrix.scale(msz, msz, 1);
+            flushhudmatrix();
+            draw_text(mapinfo, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, -1, infowidth);
+            pophudmatrix();
         }
     }
+    glDisable(GL_BLEND);
+
+    gle::disable();
 }
 
-float loadprogress = 0;
-
-void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
+void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool force)
 {
-    if(!inbetweenframes || drawtex) return;
+    if(!inbetweenframes && !force) return;
 
-    clientkeepalive();      // make sure our connection doesn't time out while loading maps etc.
+    stopsounds(); // stop sounds while loading
 
-    renderbackground(NULL, backgroundmapshot, NULL, NULL, true, true); // INTENSITY
-
-    #ifdef __APPLE__
-    interceptkey(SDLK_UNKNOWN); // keep the event queue awake to avoid 'beachball' cursor
-    #endif
-
-    if(background) restorebackground();
-
-    int w = screenw, h = screenh;
+    int w = hudw, h = hudh;
     if(forceaspect) w = int(ceil(h*forceaspect));
     getbackgroundres(w, h);
     gettextres(w, h);
 
+    if(force)
+    {
+        renderbackgroundview(w, h, caption, mapshot, mapname, mapinfo);
+        return;
+    }
+
+    loopi(3)
+    {
+        if(ovr::enabled)
+        {
+            aspect = forceaspect ? forceaspect : hudw/float(hudh);
+            for(viewidx = 0; viewidx < 2; viewidx++, hudx += hudw)
+            {
+                if(!i)
+                {
+                    glBindFramebuffer_(GL_FRAMEBUFFER, ovr::lensfbo[viewidx]);
+                    glViewport(0, 0, hudw, hudh);
+                    glClearColor(0, 0, 0, 0);
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    renderbackgroundview(w, h, caption, mapshot, mapname, mapinfo);
+                }
+                ovr::warp();
+            }
+            viewidx = 0;
+            hudx = 0;
+        }
+        else renderbackgroundview(w, h, caption, mapshot, mapname, mapinfo);
+        swapbuffers();
+    }
+
+    renderedframe = false;
+    copystring(backgroundcaption, caption ? caption : "");
+    backgroundmapshot = mapshot;
+    copystring(backgroundmapname, mapname ? mapname : "");
+    if(mapinfo != backgroundmapinfo)
+    {
+        DELETEA(backgroundmapinfo);
+        if(mapinfo) backgroundmapinfo = newstring(mapinfo);
+    }
+}
+
+void restorebackground(int w, int h)
+{
+    if(renderedframe) return;
+    renderbackgroundview(w, h, backgroundcaption[0] ? backgroundcaption : NULL, backgroundmapshot, backgroundmapname[0] ? backgroundmapname : NULL, backgroundmapinfo);
+}
+
+float loadprogress = 0;
+
+void renderprogressview(int w, int h, float bar, const char *text, GLuint tex)   // also used during loading
+{
     hudmatrix.ortho(0, w, h, 0, -1, 1);
     resethudmatrix();
     hudshader->set();
@@ -397,7 +408,47 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     }
 
     gle::disable();
+}
 
+void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
+{
+    if(!inbetweenframes || drawtex) return;
+    clientkeepalive();      // make sure our connection doesn't time out while loading maps etc.
+    renderbackground(NULL, backgroundmapshot, NULL, NULL, true); // INTENSITY
+
+    #ifdef __APPLE__
+    interceptkey(SDLK_UNKNOWN); // keep the event queue awake to avoid 'beachball' cursor
+    #endif
+
+    int w = hudw, h = hudh;
+    if(forceaspect) w = int(ceil(h*forceaspect));
+    getbackgroundres(w, h);
+    gettextres(w, h);
+
+    if(ovr::enabled)
+    {
+        aspect = forceaspect ? forceaspect : hudw/float(hudh);
+        for(viewidx = 0; viewidx < 2; viewidx++, hudx += hudw)
+        {
+            glBindFramebuffer_(GL_FRAMEBUFFER, ovr::lensfbo[viewidx]);
+            glViewport(0, 0, hudw, hudh);
+            if(background)
+            {
+                glClearColor(0, 0, 0, 0);
+                glClear(GL_COLOR_BUFFER_BIT);
+                restorebackground(w, h);
+            }
+            renderprogressview(w, h, bar, text, tex);
+            ovr::warp();
+        }
+        viewidx = 0;
+        hudx = 0;
+    }
+    else
+    {
+        if(background) restorebackground(w, h);
+        renderprogressview(w, h, bar, text, tex);
+    }
     swapbuffers();
 }
 
@@ -471,7 +522,9 @@ void setfullscreen(bool enable)
         SDL_SetWindowSize(screen, scr_w, scr_h);
         if(initwindowpos)
         {
-            SDL_SetWindowPosition(screen, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            int winx = SDL_WINDOWPOS_CENTERED, winy = SDL_WINDOWPOS_CENTERED;
+            if(ovr::enabled) winx = winy = 0;
+            SDL_SetWindowPosition(screen, winx, winy);
             initwindowpos = false;
         }
     }
@@ -487,16 +540,8 @@ void screenres(int w, int h)
     {
         scr_w = min(scr_w, desktopw);
         scr_h = min(scr_h, desktoph);
-        if(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN)
-        {
-            renderw = min(scr_w, screenw);
-            renderh = min(scr_h, screenh);
-            gl_resize();
-        }
-        else
-        {
-            SDL_SetWindowSize(screen, scr_w, scr_h);
-        }
+        if(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN) gl_resize();
+        else SDL_SetWindowSize(screen, scr_w, scr_h);
     }
     else
     {
@@ -559,7 +604,7 @@ void setupscreen()
     scr_w = min(scr_w, desktopw);
     scr_h = min(scr_h, desktoph);
 
-    int winw = scr_w, winh = scr_h, flags = SDL_WINDOW_RESIZABLE;
+    int winx = SDL_WINDOWPOS_UNDEFINED, winy = SDL_WINDOWPOS_UNDEFINED, winw = scr_w, winh = scr_h, flags = SDL_WINDOW_RESIZABLE;
     if(fullscreen)
     {
         winw = desktopw;
@@ -567,11 +612,12 @@ void setupscreen()
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         initwindowpos = true;
     }
+    if(ovr::enabled) winx = winy = 0;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
-    screen = SDL_CreateWindow("OctaForge", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winw, winh, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS | flags);
+    screen = SDL_CreateWindow("OctaForge", winx, winy, winw, winh, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS | flags);
     if(!screen) fatal("failed to create OpenGL window: %s", SDL_GetError());
 
     SDL_SetWindowMinimumSize(screen, SCR_MINW, SCR_MINH);
@@ -598,6 +644,8 @@ void setupscreen()
     SDL_GetWindowSize(screen, &screenw, &screenh);
     renderw = min(scr_w, screenw);
     renderh = min(scr_h, screenh);
+    hudw = screenw;
+    hudh = screenh;
 
     restorevsync();
 }
@@ -609,16 +657,6 @@ void resetgl()
     lua_call       (lua::L, 1, 0);
     renderbackground("resetting OpenGL");
 
-    extern void cleanupva();
-    extern void cleanupparticles();
-    extern void cleanupdecals();
-    extern void cleanupsky();
-    extern void cleanupmodels();
-    extern void cleanuptextures();
-    extern void cleanupblendmap();
-    extern void cleanuplights();
-    extern void cleanupshaders();
-    extern void cleanupgl();
     recorder::cleanup();
     cleanupva();
     cleanupparticles();
@@ -637,9 +675,6 @@ void resetgl()
 
     gl_init();
 
-    extern void reloadfonts();
-    extern void reloadtextures();
-    extern void reloadshaders();
     inbetweenframes = false;
     if(!reloadtexture(*notexture) ||
        !reloadtexture("<premul>media/interface/logo") ||
@@ -828,8 +863,6 @@ void checkinput()
                             scr_w = clamp(screenw, SCR_MINW, SCR_MAXW);
                             scr_h = clamp(screenh, SCR_MINH, SCR_MAXH);
                         }
-                        renderw = min(scr_w, screenw);
-                        renderh = min(scr_h, screenh);
                         gl_resize();
                         break;
                 }
@@ -1288,6 +1321,7 @@ int main(int argc, char **argv)
         updatetime();
 
         checkinput();
+        ovr::update();
         lua::push_external("gui_update");
         lua_call(lua::L, 0, 0);
         tryedit();
@@ -1308,16 +1342,11 @@ int main(int argc, char **argv)
 
         if(minimized) continue;
 
-        if(!mainmenu && ClientSystem::scenarioStarted()) setupframe();
+        gl_setupframe();
 
         inbetweenframes = false;
 
-        if(mainmenu) gl_drawmainmenu();
-        else
-        {
-            // INTENSITY: If we have all the data we need from the server to run the game, then we can actually draw
-            if (ClientSystem::scenarioStarted()) gl_drawframe();
-        }
+        gl_drawframe();
         swapbuffers();
         renderedframe = inbetweenframes = true;
 
