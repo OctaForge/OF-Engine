@@ -1698,6 +1698,12 @@ bool calcspherescissor(const vec &center, float size, float &sx1, float &sy1, fl
         float cz = e.x/e.z, drt = sqrtf(dx)/size;
         CHECKPLANE(x, -, focaldist/aspect, sx1, sx2);
         CHECKPLANE(x, +, focaldist/aspect, sx1, sx2);
+        if(ovr::enabled)
+        {
+            float offset = (viewidx ? -1 : 1) * ovr::distortoffset;
+            if(sx1 > -1) sx1 += offset;
+            if(sx2 < 1) sx2 += offset;
+        }
     }
     if(dy > 0)
     {
@@ -2727,7 +2733,7 @@ void gl_setupframe(bool force)
     hudw = screenw;
     hudh = screenh;
     ovr::setup();
-    if((mainmenu || !ClientSystem::scenarioStarted()) && !force) return;
+    if(!force) return;
     setuplights();
 }
 

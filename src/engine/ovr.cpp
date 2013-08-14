@@ -15,11 +15,22 @@ namespace ovr
 
     VARFN(ovr, enabled, 0, 0, 1,
     {
-        ovr::cleanup();
+        cleanup();
         cleanupgbuffer();
         if(enabled && !enable()) enabled = 0;
         if(!enabled) disable();
     });
+
+    VARP(ovrautofov, 0, 0, 1);
+    FVAR(ovrhuddist, 0.01f, 1, 100);
+    FVAR(ovrhudfov, 10, 75, 150);
+
+    VARFP(ovrscale, 0, 0, 1, { cleanup(); cleanupgbuffer(); });
+    VARFP(ovralignx, -1, -1, 1, { cleanup(); cleanupgbuffer(); });
+    VARFP(ovraligny, -1, -1, 1, { cleanup(); cleanupgbuffer(); });
+
+    FVAR(ovrviewoffsetscale, 0, 8, 1e3f);
+    VAR(ovrdistort, 0, 1, 1);
 
 #ifndef HAS_OVR
     void init() {}
@@ -59,9 +70,6 @@ namespace ovr
                      r2*hmdinfo.DistortionK[3])));
     }
 
-    FVAR(ovrhuddist, 0.01f, 1, 100);
-    FVAR(ovrhudfov, 10, 75, 150);
-
     void ortho(glmatrix &m, float dist, float fov)
     {
         if(dist <= 0) dist = ovrhuddist;
@@ -74,9 +82,6 @@ namespace ovr
               offset = hmdinfo.HResolution * (0.5f*distortoffset + shift/distortscale);
         m.jitter((viewidx ? -1 : 1)*offset/hudw, 0);
     }
-
-    FVAR(ovrviewoffsetscale, 0, 8, 1e3f);
-    VAR(ovrdistort, 0, 1, 1);
 
     void getorient()
     {
@@ -95,8 +100,6 @@ namespace ovr
         getorient();
         modifyorient(yaw - lastyaw, pitch - lastpitch);
     }
-
-    VARP(ovrautofov, 0, 0, 1);
 
     void recalc()
     {
@@ -125,8 +128,16 @@ namespace ovr
     void setup()
     {
         if(!enabled) return;
-        renderw /= 2;
-        hudw /= 2;
+        if(ovrscale)
+        {
+            hudw = hudw/2;
+            renderw = renderw/2;
+        }
+        else
+        {
+            hudw = renderw = hmdinfo.HResolution/2;
+            hudh = renderh = hmdinfo.VResolution;
+        }
         recalc();
         if(hudw == lensw && hudh == lensh) return;
         lensw = hudw;
@@ -147,10 +158,23 @@ namespace ovr
         }
         glBindFramebuffer_(GL_FRAMEBUFFER, 0);
         useshaderbyname("ovrwarp");
+        loopi(3)
+        {
+            glBindFramebuffer_(GL_FRAMEBUFFER, 0);
+            glViewport(0, 0, screenw, screenh);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT);
+            SDL_GL_SwapWindow(screen);
+        }
     }
 
     void cleanup()
     {
+        if(lensfbo[0])
+        {
+            glBindFramebuffer_(GL_FRAMEBUFFER, 0);
+            glViewport(0, 0, screenw, screenh);
+        }
         loopi(2)
         {
             if(lensfbo[i]) { glDeleteFramebuffers_(1, &lensfbo[i]); lensfbo[i] = 0; }
@@ -161,14 +185,29 @@ namespace ovr
 
     void warp()
     {
+        int x = hudx, y = 0, w = hudw, h = hudh;
+        if(ovrscale)
+        {
+            x = viewidx*(screenw/2);
+            w = screenw/2;
+            h = screenh;
+        }
+        else
+        {
+            if(ovralignx > 0) x += max(screenw - 2*hudw, 0);
+            else if(!ovralignx) x += max(screenw - 2*hudw, 0)/2;
+            if(ovraligny < 0) y += max(screenh - hudh, 0);
+            else if(!ovraligny) y += max(screenh - hudh, 0)/2;
+        }
+        if(x >= screenw || y >= screenh) return;
         glBindFramebuffer_(GL_FRAMEBUFFER, 0);
-        glViewport(hudx, hudy, hudw, hudh);
+        glViewport(x, y, min(w, screenw - x), min(h, screenh - y));
         glBindTexture(GL_TEXTURE_RECTANGLE, lenstex[viewidx]);
         SETSHADER(ovrwarp);
         LOCALPARAMF(lenscenter, (1 + (viewidx ? -1 : 1)*distortoffset)*0.5f*hudw, 0.5f*hudh);
         LOCALPARAMF(lensscale, 2.0f/hudw, 2.0f/(hudh*aspect), 0.5f*hudw/distortscale, 0.5f*hudh*aspect/distortscale);
         LOCALPARAMF(distortk, hmdinfo.DistortionK[0], hmdinfo.DistortionK[1], hmdinfo.DistortionK[2], hmdinfo.DistortionK[3]);
-        screenquad(hudw, hudh);
+        screenquad(min(w, screenw - x)/float(w)*hudw, min(h, screenh - y)/float(h)*hudh);
     }
 
     void disable()

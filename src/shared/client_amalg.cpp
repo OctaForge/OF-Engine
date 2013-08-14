@@ -6,7 +6,7 @@
  */
 
 #include "engine/engine.h"
-#include "fpsgame/game.h"
+#include "game/game.h"
 
 #include "octaforge/of_tools.cpp"
 #include "engine/blend.cpp"
@@ -15,11 +15,11 @@
 #include "intensity/messages.cpp"
 #include "intensity/message_system.cpp"
 #include "intensity/client_system.cpp"
-#include "fpsgame/fps.cpp"
-#include "fpsgame/server.cpp"
-#include "fpsgame/client.cpp"
-#include "fpsgame/render.cpp"
-#include "fpsgame/weapon.cpp"
+#include "game/fps.cpp"
+#include "game/server.cpp"
+#include "game/client.cpp"
+#include "game/render.cpp"
+#include "game/weapon.cpp"
 #include "shared/tools.cpp"
 #include "shared/geom.cpp"
 #include "shared/glemu.cpp"

@@ -1,7 +1,7 @@
 find_package(OpenGL REQUIRED)
 find_package(ZLIB REQUIRED)
 
-include_directories(. shared engine fpsgame intensity octaforge enet/include)
+include_directories(. shared engine game intensity octaforge enet/include)
 link_directories(${CMAKE_SOURCE_DIR}/src/enet)
 add_subdirectory(enet)
 

@@ -20,9 +20,9 @@ else()
         ../shared/tools
         ../engine/command
         ../engine/server
-        ../fpsgame/fps
-        ../fpsgame/server
-        ../fpsgame/client
+        ../game/game
+        ../game/server
+        ../game/client
         ../intensity/message_system
         ../intensity/server_system
         ../intensity/messages

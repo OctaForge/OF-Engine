@@ -6,16 +6,16 @@
  */
 
 #include "engine/engine.h"
-#include "fpsgame/game.h"
+#include "game/game.h"
 
 #include "octaforge/of_tools.cpp"
 #include "intensity/editing_system.cpp"
 #include "shared/tools.cpp"
 #include "engine/command.cpp"
 #include "engine/server.cpp"
-#include "fpsgame/fps.cpp"
-#include "fpsgame/server.cpp"
-#include "fpsgame/client.cpp"
+#include "game/fps.cpp"
+#include "game/server.cpp"
+#include "game/client.cpp"
 #include "intensity/message_system.cpp"
 #include "intensity/server_system.cpp"
 #include "intensity/messages.cpp"

@@ -695,7 +695,8 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     copystring(gametype, "fps");
     bool samegame = true;
     int len = f->getchar();
-    f->read(gametype, len+1);
+    if (len >= 0) f->read(gametype, len+1);
+    gametype[max(len, 0)] = '\0';
     if(strcmp(gametype, game::gameident())!=0)
     {
         samegame = false;

@@ -29,11 +29,11 @@ else()
         ../intensity/messages
         ../intensity/message_system
         ../intensity/client_system
-        ../fpsgame/fps
-        ../fpsgame/server
-        ../fpsgame/client
-        ../fpsgame/render
-        ../fpsgame/weapon
+        ../game/game
+        ../game/server
+        ../game/client
+        ../game/render
+        ../game/weapon
         ../shared/tools
         ../shared/geom
         ../shared/glemu
