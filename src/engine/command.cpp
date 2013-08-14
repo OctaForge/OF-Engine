@@ -3825,19 +3825,19 @@ ICOMMAND(error, "C", (char *s), conoutf(CON_ERROR, "%s", s));
 ICOMMAND(strstr, "ss", (char *a, char *b), { char *s = strstr(a, b); intret(s ? s-a : -1); });
 ICOMMAND(strlen, "s", (char *s), intret(strlen(s)));
 
-char *strreplace(const char *s, const char *oldval, const char *newval)
+char *strreplace(const char *s, const char *oldval, const char *newval, const char *newval2)
 {
     vector<char> buf;
 
     int oldlen = strlen(oldval);
     if(!oldlen) return newstring(s);
-    for(;;)
+    for(int i = 0;; i++)
     {
         const char *found = strstr(s, oldval);
         if(found)
         {
             while(s < found) buf.add(*s++);
-            for(const char *n = newval; *n; n++) buf.add(*n);
+            for(const char *n = i&1 ? newval2 : newval; *n; n++) buf.add(*n);
             s = found + oldlen;
         }
         else
@@ -3849,7 +3849,7 @@ char *strreplace(const char *s, const char *oldval, const char *newval)
     }
 }
 
-ICOMMAND(strreplace, "sss", (char *s, char *o, char *n), commandret->setstr(strreplace(s, o, n)));
+ICOMMAND(strreplace, "ssss", (char *s, char *o, char *n, char *n2), commandret->setstr(strreplace(s, o, n, n2[0] ? n2 : n)));
 
 ICOMMAND(getmillis, "i", (int *total), intret(*total ? totalmillis : lastmillis));
 
