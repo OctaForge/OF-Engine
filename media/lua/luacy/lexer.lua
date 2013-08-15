@@ -157,42 +157,45 @@ local read_binary_number = function(ls, tok)
 end
 
 local read_number = function(ls, tok, buf, allow_bin)
-    local exp = { 69, 101 } -- E, e
-    local first = ls.current
-    assert(is_digit(first))
-    buf[#buf + 1] = bytemap[first]
-    local c = next_char(ls)
-    if first == 48 then -- 0
-        if c == 88 or c == 120 then -- X, x
-            buf[#buf + 1] = bytemap[c]
-            c = next_char(ls)
-            exp = { 80, 112 } -- P, p
-        elseif allow_bin and (c == 66 or c == 98) then -- B, b
+    local c = ls.current
+    assert(is_digit(c))
+    if c == 48 then
+        buf[#buf + 1] = bytemap[c]
+        c = next_char(ls)
+        if allow_bin and (c == 66 or c == 98) then -- B, b
             next_char(ls)
             return read_binary_number(ls, tok)
         end
     end
-    while true do
-        if c == exp[1] or c == exp[2] then
+    while is_digit(c) or c == 46 do -- .
+        buf[#buf + 1] = bytemap[c]
+        c = next_char(ls)
+    end
+    if c == 69 or c == 101 then -- E, e
+        buf[#buf + 1] = bytemap[c]
+        c = next_char(ls)
+        if c == 43 or c == 45 then -- +, -
             buf[#buf + 1] = bytemap[c]
             c = next_char(ls)
-            if c == 43 or c == 45 then -- +, -
-                buf[#buf + 1] = bytemap[c]
-                c = next_char(ls)
-            end
         end
-        if is_hex_digit(c) or c == 46 then -- .
-            buf[#buf + 1] = bytemap[c]
-            c = next_char(ls)
-        else
-            break
-        end
+    end
+    while is_alnum(c) or c == 95 do -- _
+        buf[#buf + 1] = bytemap[c]
+        c = next_char(ls)
     end
     local str = tconc(buf)
-    if not tonumber(str) then
+    local teststr = str
+    if buf[#buf] == "i" then
+        buf[#buf] = nil
+        teststr = tconc(buf)
+    else
+        local s = str:match("^(.+)[uU][lL][lL]$")
+               or str:match("^(.+)[lL][lL]$")
+        if s then teststr = s end
+    end
+    if not tonumber(teststr) then
         lex_error(ls, "malformed number", str)
     end
-    -- keep it in string form - passed to lua directly
     tok.value = str
 end
 
