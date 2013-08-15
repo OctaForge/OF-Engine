@@ -14,6 +14,7 @@
         to geom.h in the core engine plus extensions.
 ]]
 
+local capi = require("capi")
 local ffi = require("ffi")
 
 local gen_vec2 = function(tp, sf, mt)
@@ -77,6 +78,7 @@ M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
     __div = function(self, o) return self:div_new(o) end,
     __add = function(self, o) return self:add_new(o) end,
     __sub = function(self, o) return self:sub_new(o) end,
+    __len = function(self) return self:magnitude() end,
     __index = {
         from_ffi_array = function(self, o)
             return ffi_new(self, o[0], o[1])
@@ -197,6 +199,10 @@ M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
             self.x, self.y = clamp(self.x, l, h), clamp(self.y, l, h)
             return self
         end,
+        dist = function(self, o)
+            local dx, dy = self.x - o.x, self.y - o.y
+            return sqrt(dx ^ 2 + dy ^ 2)
+        end,
         lerp = function(self, a, b, t)
             if not t then a, b, t = self, a, b end
             self.x, self.y = a.x + (b.x - a.x) * t,
@@ -243,6 +249,7 @@ M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
     __div = function(self, o) return self:div_new(o) end,
     __add = function(self, o) return self:add_new(o) end,
     __sub = function(self, o) return self:sub_new(o) end,
+    __len = function(self) return self:magnitude() end,
     __index = {
         from_ffi_array = function(self, o)
             return ffi_new(self, o[0], o[1], o[2])
@@ -600,7 +607,7 @@ M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
     }
 })
 
-M.Vec4, M.Vec4_mt = gen_vec4("double", "d", {
+local Vec4, Vec4_mt = gen_vec4("double", "d", {
     __new = function(self, x, y, z, w)
         if type(x) == "number" then
             if not y and not z and not w then
@@ -623,6 +630,7 @@ M.Vec4, M.Vec4_mt = gen_vec4("double", "d", {
     __div = function(self, o) return self:div_new(o) end,
     __add = function(self, o) return self:add_new(o) end,
     __sub = function(self, o) return self:sub_new(o) end,
+    __len = function(self) return self:magnitude() end,
     __index = {
         from_ffi_array = function(self, o)
             return ffi_new(self, o[0], o[1], o[2], o[3])
@@ -822,6 +830,14 @@ M.Vec4, M.Vec4_mt = gen_vec4("double", "d", {
                 clamp(self.y, l, h), clamp(self.z, l, h), clamp(self.w, l. h)
             return self
         end,
+        dist = function(self, o)
+            local dx, dy, dz = self.x - o.x, self.y - o.y, self.z - o.z
+            return sqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
+        end,
+        dist2 = function(self, o)
+            local dx, dy = self.x - o.x, self.y - o.y
+            return sqrt(dx ^ 2 + dy ^ 2)
+        end,
         rotate_around_z = function(self, c, s)
             if type(c) == "number" then
                 if not s then
@@ -866,5 +882,8 @@ M.Vec4, M.Vec4_mt = gen_vec4("double", "d", {
         end
     }
 })
+M.Vec4, M.Vec4_mt = Vec4, Vec4_mt
+
+capi.external_set("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
 
 return M

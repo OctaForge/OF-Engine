@@ -35,7 +35,7 @@ local hextorgb = conv.hex_to_rgb
 local game_manager = require("extra.game_manager")
 
 local connect = signal.connect
-local Vec4 = require("core.lua.math").Vec4
+local Vec4 = require("core.lua.geom").Vec4
 local ipairs = ipairs
 
 local colors = {
@@ -139,7 +139,7 @@ local Game_Player = Player:clone {
             local newp = input.get_target_position()
             local topl = self:get_attr("position"):sub_new(newp)
             newp:add(topl:normalize())
-            if newb or not marks[#marks - 1]:is_close_to(newp, 5) then
+            if newb or marks[#marks - 1]:dist(newp) > 5 then
                 self:set_attr("new_mark", newp:to_array())
             end
         end

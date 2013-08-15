@@ -34,8 +34,7 @@ local M = {}
 
 local State_Variable, State_Variable_Alias, State_Integer, State_Float,
       State_Boolean, State_Table, State_String, Array_Surrogate, State_Array,
-      State_Array_Integer, State_Array_Float, Vec3_Surrogate, Vec4_Surrogate,
-      State_Vec3, State_Vec4
+      State_Array_Integer, State_Array_Float, Vec3_Surrogate, State_Vec3
 
 --[[! Function: is_svar
     Checks whether the given value is a state variable.
@@ -727,117 +726,6 @@ Vec3_Surrogate = {
 }
 M.Vec3_Surrogate = Vec3_Surrogate
 
-local Vec4 = math2.Vec4
-local vec4_index = math2.__Vec4_mt.__index
-
---[[! Class: Vec4_Surrogate
-    See <Array_Surrogate>. The only difference is that instead of emulating
-    an array, it emulates <math.Vec4>.
-]]
-Vec4_Surrogate = {
-    name = "Vec4_Surrogate",
-
-    --[[! Constructor: new
-        Constructs the vec4 surrogate. Defines its members "entity"
-        and "variable", assigned using the provided arguments.
-    ]]
-    new = function(self, ent, var)
-        debug then log(INFO, "Vec4_Surrogate: new: " .. var.name)
-        local rawt = { entity = ent, variable = var }
-        rawt.rawt = rawt
-        local ret = newproxy(true)
-        local mt  = getmt(ret)
-        mt.__tostring = self.__tostring
-        mt.__index    = setmt(rawt, self)
-        mt.__newindex = self.__newindex
-        mt.__len      = self.__len
-        return ret
-    end,
-
-    --[[! Function: __tostring
-        Makes surrogate objects return their names on tostring.
-    ]]
-    __tostring = function(self)
-        return self.name
-    end,
-
-    --[[! Function: __index
-        Called each time you index a vec4 surrogate. Works similarly to
-        <Vec3_Surrogate.__index>. Valid indexes are x, y, z, w, 1, 2, 3, 4.
-    ]]
-    __index = function(self, n)
-        if n == "x" or n == 1 then
-            local v = self.variable
-            return v:get_item(self.entity, 1)
-        elseif n == "y" or n == 2 then
-            local v = self.variable
-            return v:get_item(self.entity, 2)
-        elseif n == "z" or n == 3 then
-            local v = self.variable
-            return v:get_item(self.entity, 3)
-        elseif n == "w" or n == 4 then
-            local v = self.variable
-            return v:get_item(self.entity, 4)
-        end
-        return Vec4_Surrogate[n] or rawget(self.rawt, n)
-    end,
-
-    --[[! Function: __newindex
-        Called each time you set an index on a vec3 surrogate. Works similarly
-        to <Vec3_Surrogate.__newindex>. Valid indexes are x, y, z, w,
-        1, 2, 3, 4.
-    ]]
-    __newindex = function(self, n, val)
-        if n == "x" or n == 1 then
-            local v = self.variable
-            v:set_item(self.entity, 1, val)
-        elseif n == "y" or n == 2 then
-            local v = self.variable
-            v:set_item(self.entity, 2, val)
-        elseif n == "z" or n == 3 then
-            local v = self.variable
-            v:set_item(self.entity, 3, val)
-        elseif n == "w" or n == 4 then
-            local v = self.variable
-            v:set_item(self.entity, 4, val)
-        else
-            rawset(self.rawt, n, val)
-        end
-    end,
-
-    --[[! Function: __len
-        See <Array_Surrogate.__len>. In this case always returns 4.
-    ]]
-    __len = function(self)
-        return 4
-    end,
-
-    copy = function(self)
-        return Vec4(self.x, self.y, self.z, self.w)
-    end,
-
-    length = vec4_index.length,
-    normalize = vec4_index.normalize,
-    cap = vec4_index.cap,
-    sub_new = vec4_index.sub_new,
-    add_new = vec4_index.add_new,
-    mul_new = vec4_index.mul_new,
-    sub = vec4_index.sub,
-    add = vec4_index.add,
-    mul = vec4_index.mul,
-    to_array = vec4_index.to_array,
-    from_yaw_pitch = vec4_index.from_yaw_pitch,
-    to_yaw_pitch = vec4_index.to_yaw_pitch,
-    to_yaw_pitch_roll = vec4_index.to_yaw_pitch_roll,
-    is_close_to = vec4_index.is_close_to,
-    dot_product = vec4_index.dot_product,
-    cross_product = vec4_index.cross_product,
-    project_along_surface = vec4_index.project_along_surface,
-    lerp = vec4_index.lerp,
-    is_zero = vec4_index.is_zero
-}
-M.Vec4_Surrogate = Vec4_Surrogate
-
 --[[! Class: State_Vec3
     A specialization of <State_Array_Float>, providing its own surrogate,
     <Vec3_Surrogate>. Other than that, no changes are made.
@@ -847,16 +735,6 @@ State_Vec3 = State_Array_Float:clone {
     surrogate = Vec3_Surrogate
 }
 M.State_Vec3 = State_Vec3
-
---[[! Class: State_Vec4
-    A specialization of <State_Array_Float>, providing its own surrogate,
-    <Vec4_Surrogate>. Other than that, no changes are made.
-]]
-State_Vec4 = State_Array_Float:clone {
-    name = "State_Vec4",
-    surrogate = Vec3_Surrogate
-}
-M.State_Vec4 = State_Vec4
 
 --[[! Class: State_Variable_Alias
     Aliases a state variable. Aliases are always registered last so that
