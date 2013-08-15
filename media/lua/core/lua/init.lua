@@ -24,6 +24,9 @@ require("core.lua.table")
 log.log(log.DEBUG, ":::: Lua extensions: math")
 require("core.lua.math")
 
+log.log(log.DEBUG, ":::: Lua extensions: geom")
+require("core.lua.geom")
+
 log.log(log.DEBUG, ":::: Type conversions.")
 require("core.lua.conv")
 
