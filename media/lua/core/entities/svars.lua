@@ -723,11 +723,7 @@ Vec3_Surrogate = {
     cross_product = vec3_index.cross_product,
     project_along_surface = vec3_index.project_along_surface,
     lerp = vec3_index.lerp,
-    is_zero = vec3_index.is_zero,
-
-    __sub = vec3_index.sub_new,
-    __add = vec3_index.add_new,
-    __mul = vec3_index.mul_new
+    is_zero = vec3_index.is_zero
 }
 M.Vec3_Surrogate = Vec3_Surrogate
 
@@ -838,11 +834,7 @@ Vec4_Surrogate = {
     cross_product = vec4_index.cross_product,
     project_along_surface = vec4_index.project_along_surface,
     lerp = vec4_index.lerp,
-    is_zero = vec4_index.is_zero,
-
-    __sub = vec4_index.sub_new,
-    __add = vec4_index.add_new,
-    __mul = vec4_index.mul_new
+    is_zero = vec4_index.is_zero
 }
 M.Vec4_Surrogate = Vec4_Surrogate
 
