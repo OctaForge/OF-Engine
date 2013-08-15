@@ -34,7 +34,7 @@ local M = {}
 
 local State_Variable, State_Variable_Alias, State_Integer, State_Float,
       State_Boolean, State_Table, State_String, Array_Surrogate, State_Array,
-      State_Array_Integer, State_Array_Float, Vec3_Surrogate, State_Vec3
+      State_Array_Integer, State_Array_Float, State_Vec3
 
 --[[! Function: is_svar
     Checks whether the given value is a state variable.
@@ -623,94 +623,13 @@ State_Array_Float = State_Array:clone {
 }
 M.State_Array_Float = State_Array_Float
 
-local Vec3 = geom.Vec3
-local vec3_index = geom.Vec3_mt.__index
-
-local ntoi2 = { x = 1, y = 2 }
-local ntoi3 = { x = 1, y = 2, z = 3, r = 1, g = 2, b = 3 }
-local ntoi4 = { x = 1, y = 2, z = 3, w = 4, r = 1, g = 2, b = 3, a = 4 }
-
---[[! Class: Vec3_Surrogate
-    See <Array_Surrogate>. The only difference is that instead of emulating
-    an array, it emulates <math.Vec3>.
-]]
-Vec3_Surrogate = {
-    name = "Vec3_Surrogate",
-
-    --[[! Constructor: new
-        Constructs the vec3 surrogate. Defines its members "entity"
-        and "variable", assigned using the provided arguments.
-    ]]
-    new = function(self, ent, var)
-        debug then log(INFO, "Vec3_Surrogate: new: " .. var.name)
-        local rawt = { entity = ent, variable = var }
-        rawt.rawt = rawt
-        local ret = newproxy(true)
-        local mt  = getmt(ret)
-        mt.__tostring = self.__tostring
-        mt.__index    = setmt(rawt, self)
-        mt.__newindex = self.__newindex
-        mt.__len      = self.__len
-        return ret
-    end,
-
-    --[[! Function: __tostring
-        Makes surrogate objects return their names on tostring.
-    ]]
-    __tostring = function(self)
-        return self.name
-    end,
-
-    --[[! Function: __index
-        Called each time you index a vec3 surrogate. Works similarly to
-        <Array_Surrogate.__index>. Valid indexes are x, y, z, 1, 2, 3.
-    ]]
-    __index = function(self, n)
-        local i = ntoi3[n]
-        if i then return self.variable:get_item(self.entity, i) end
-        return Vec3_Surrogate[n] or rawget(self.rawt, n)
-    end,
-
-    --[[! Function: __newindex
-        Called each time you set an index on a vec3 surrogate. Works similarly
-        to <Array_Surrogate.__newindex>. Valid indexes are x, y, z, 1, 2, 3.
-    ]]
-    __newindex = function(self, n, val)
-        local i = ntoi3[n]
-        if i then return self.variable:set_item(self.entity, i, val) end
-        rawset(self.rawt, n, val)
-    end,
-
-    --[[! Function: __len
-        See <Array_Surrogate.__len>. In this case always returns 3.
-    ]]
-    __len = function(self)
-        return 3
-    end,
-
-    copy = function(self)
-        return Vec3(self.x, self.y, self.z)
-    end,
-
-    length = vec3_index.length,
-    normalize = vec3_index.normalize,
-    sub_new = vec3_index.sub_new,
-    add_new = vec3_index.add_new,
-    mul_new = vec3_index.mul_new,
-    sub = vec3_index.sub,
-    add = vec3_index.add,
-    mul = vec3_index.mul,
-    to_array = vec3_index.to_array
-}
-M.Vec3_Surrogate = Vec3_Surrogate
-
 --[[! Class: State_Vec3
     A specialization of <State_Array_Float>, providing its own surrogate,
     <Vec3_Surrogate>. Other than that, no changes are made.
 ]]
 State_Vec3 = State_Array_Float:clone {
     name = "State_Vec3",
-    surrogate = Vec3_Surrogate
+    surrogate = geom.Vec3_Surrogate
 }
 M.State_Vec3 = State_Vec3
 

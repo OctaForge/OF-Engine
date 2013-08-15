@@ -222,7 +222,7 @@ local Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("double", "d", {
         end
     }
 })
-M.Vec2, M.Vec2_mt = Vec2, Vec2_mt
+M.Vec2 = Vec2
 
 local Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("double", "d", {
     __new = function(self, x, y, z)
@@ -599,7 +599,7 @@ local Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("double", "d", {
         end
     }
 })
-M.Vec3, M.Vec3_mt = Vec3, Vec3_mt
+M.Vec3 = Vec3
 
 local Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("double", "d", {
     __new = function(self, x, y, z, w)
@@ -872,10 +872,64 @@ local Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("double", "d", {
         end
     }
 })
-M.Vec4, M.Vec4_mt = Vec4, Vec4_mt
+M.Vec4 = Vec4
 
 capi.external_set("new_vec2", function(x, y) return Vec2(x, y) end)
 capi.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
 capi.external_set("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
+
+local newproxy = newproxy
+local getmt, setmt = getmetatable, setmetatable
+
+local ntoi2 = { x = 1, y = 2 }
+local ntoi3 = { x = 1, y = 2, z = 3, r = 1, g = 2, b = 3 }
+local ntoi4 = { x = 1, y = 2, z = 3, w = 4, r = 1, g = 2, b = 3, a = 4 }
+
+local gen_vec_surrogate = function(name, base, ltable)
+    local surrtbl
+    surrtbl = {
+        name = name,
+        new = function(self, ent, var)
+            debug then log(INFO, name .. ": new: " .. var.name)
+            local rawt = { entity = ent, variable = var }
+            rawt.rawt = rawt
+            local ret = newproxy(true)
+            local mt = getmt(ret)
+            mt.__tostring = self.__tostring
+            mt.__index    = setmt(rawt, self)
+            mt.__newindex = self.__newindex
+            mt.__eq, mt.__len, mt.__mul, mt.__div, mt.__add, mt.__sub
+                = base.__eq, base.__len, base.__mul, base.__div, base.__add,
+                  base.__sub
+            return ret
+        end,
+        __tostring = (ltable.w and function(self)
+            return ("%s <%f, %f, %f, %f>"):format(name, self.x, self.y,
+                self.z, self.w)
+        end or (ltable.z and function(self)
+            return ("%s <%f, %f, %f>"):format(name, self.x, self.y, self.z)
+        end or function(self)
+            return ("%s <%f, %f>"):format(name, self.x, self.y)
+        end)),
+        __index = function(self, n)
+            local i = ltable[n]
+            if i then return self.variable:get_item(self.entity, i) end
+            return surrtbl[n] or rawget(self.rawt, n)
+        end,
+        __newindex = function(self, n, val)
+            local i = ltable[n]
+            if i then return self.variable:set_item(self.entity, i, val) end
+            rawset(self.rawt, n, val)
+        end
+    }
+    for k, v in pairs(base.__index) do
+        if not k:match("^from_.+$") then surrtbl[k] = v end
+    end
+    return surrtbl
+end
+
+M.Vec2_Surrogate = gen_vec_surrogate("Vec2_Surrogate", Vec2_mt, ntoi2)
+M.Vec3_Surrogate = gen_vec_surrogate("Vec3_Surrogate", Vec3_mt, ntoi3)
+M.Vec4_Surrogate = gen_vec_surrogate("Vec4_Surrogate", Vec4_mt, ntoi4)
 
 return M
