@@ -694,22 +694,13 @@ Vec3_Surrogate = {
 
     length = vec3_index.length,
     normalize = vec3_index.normalize,
-    cap = vec3_index.cap,
     sub_new = vec3_index.sub_new,
     add_new = vec3_index.add_new,
     mul_new = vec3_index.mul_new,
     sub = vec3_index.sub,
     add = vec3_index.add,
     mul = vec3_index.mul,
-    to_array = vec3_index.to_array,
-    from_yaw_pitch = vec3_index.from_yaw_pitch,
-    to_yaw_pitch = vec3_index.to_yaw_pitch,
-    is_close_to = vec3_index.is_close_to,
-    dot_product = vec3_index.dot_product,
-    cross_product = vec3_index.cross_product,
-    project_along_surface = vec3_index.project_along_surface,
-    lerp = vec3_index.lerp,
-    is_zero = vec3_index.is_zero
+    to_array = vec3_index.to_array
 }
 M.Vec3_Surrogate = Vec3_Surrogate
 
