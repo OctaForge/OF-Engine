@@ -657,12 +657,15 @@ extern int batcheddynamicmodelbounds(int mask, vec &bbmin, vec &bbmax);
 extern void cleanupmodels();
 
 // renderparticles
+extern int particlelayers;
+
 extern void initparticles();
 extern void clearparticles();
 extern void clearparticleemitters();
 extern void seedparticles();
 extern void updateparticles();
-extern void renderparticles();
+extern void debugparticles();
+extern void renderparticles(bool mainpass = true);
 extern void cleanupparticles();
 
 // decal

@@ -2481,23 +2481,24 @@ void gl_drawview()
 
     if(fogmat) setfog(fogmat, fogbelow, 1, abovemat);
 
-    extern int outline;
-    if(!wireframe && editmode && outline) renderoutline();
-    GLERROR;
-
-    rendereditmaterials();
-    GLERROR;
-
-    renderparticles();
-    GLERROR;
-
-    extern int hidehud;
-    if(editmode && !hidehud)
+    if(editmode)
     {
-        glDepthMask(GL_FALSE);
-        renderblendbrush();
-        rendereditcursor();
-        glDepthMask(GL_TRUE);
+        extern int outline;
+        if(!wireframe && outline) renderoutline();
+        GLERROR;
+        rendereditmaterials();
+        GLERROR;
+        renderparticles();
+        GLERROR;
+
+        extern int hidehud;
+        if(!hidehud)
+        {
+            glDepthMask(GL_FALSE);
+            renderblendbrush();
+            rendereditcursor();
+            glDepthMask(GL_TRUE);
+        }
     }
 
     glDisable(GL_CULL_FACE);
@@ -2541,7 +2542,7 @@ void drawcrosshair(int w, int h)
     if(windowhit)
     {
         static Texture *cursor = NULL;
-        if(!cursor) cursor = textureload("media/interface/guicursor", 3, true);
+        if(!cursor) cursor = textureload("media/interface/cursor", 3, true);
         crosshair = cursor;
         chsize = cursorsize*w/900.0f;
         lua::push_external("cursor_get_position");
@@ -2595,6 +2596,9 @@ void gl_drawhud()
     debuglights();
 
     glEnable(GL_BLEND);
+
+    debugparticles();
+
     hudshader->set();
 
     float conw = w/conscale, conh = h/conscale, abovehud = conh - FONTH;

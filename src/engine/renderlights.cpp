@@ -3629,7 +3629,13 @@ void rendertransparent()
     int hasalphavas = findalphavas();
     int hasmats = findmaterials();
     bool hasmodels = transmdlsx1 < transmdlsx2 && transmdlsy1 < transmdlsy2;
-    if(!hasalphavas && !hasmats && !hasmodels) return;
+    if(!hasalphavas && !hasmats && !hasmodels)
+    {
+        if(!editmode) renderparticles(true);
+        return;
+    }
+
+    if(!editmode && particlelayers && ghasstencil) renderparticles(false);
 
     timer *transtimer = begintimer("transparent");
 
@@ -3675,7 +3681,6 @@ void rendertransparent()
 
     if(ghasstencil) glEnable(GL_STENCIL_TEST);
 
-
     glmatrix raymatrix(vec(-0.5f*vieww*projmatrix.a.x, 0, 0.5f*vieww - 0.5f*vieww*projmatrix.c.x),
                        vec(0, -0.5f*viewh*projmatrix.b.y, 0.5f*viewh - 0.5f*viewh*projmatrix.c.y));
     raymatrix.mul(cammatrix);
@@ -3683,7 +3688,7 @@ void rendertransparent()
     GLOBALPARAM(linearworldmatrix, linearworldmatrix);
 
     uint tiles[LIGHTTILE_MAXH];
-    float sx1, sy1, sx2, sy2;
+    float allsx1 = 1, allsy1 = 1, allsx2 = -1, allsy2 = -1, sx1, sy1, sx2, sy2;
 
     loop(layer, 4)
     {
@@ -3721,6 +3726,11 @@ void rendertransparent()
         default:
             continue;
         }
+
+        allsx1 = min(allsx1, sx1);
+        allsy1 = min(allsy1, sy1);
+        allsx2 = max(allsx2, sx2);
+        allsy2 = max(allsy2, sy2);
 
         glBindFramebuffer_(GL_FRAMEBUFFER, msaasamples ? msfbo : gfbo);
         if(ghasstencil)
@@ -3798,6 +3808,27 @@ void rendertransparent()
     if(ghasstencil) glDisable(GL_STENCIL_TEST);
 
     endtimer(transtimer);
+
+    if(editmode) return;
+
+    if(particlelayers && ghasstencil)
+    {
+        bool scissor = allsx1 > -1 || allsy1 > -1 || allsx2 < 1 || allsy2 < 1;
+        if(scissor)
+        {
+            int x1 = int(floor((allsx1*0.5f+0.5f)*vieww)), y1 = int(floor((allsy1*0.5f+0.5f)*viewh)),
+                x2 = int(ceil((allsx2*0.5f+0.5f)*vieww)), y2 = int(ceil((allsy2*0.5f+0.5f)*viewh));
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(x1, y1, x2 - x1, y2 - y1);
+        }
+        glStencilFunc(GL_NOTEQUAL, 0, 0x07);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        glEnable(GL_STENCIL_TEST);
+        renderparticles(true);
+        glDisable(GL_STENCIL_TEST);
+        if(scissor) glDisable(GL_SCISSOR_TEST);
+    }
+    else renderparticles(true);
 }
 
 VAR(gdepthclear, 0, 1, 1);

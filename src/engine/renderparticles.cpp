@@ -4,6 +4,7 @@
 
 Shader *particleshader = NULL, *particlenotextureshader = NULL, *particlesoftshader = NULL, *particletextshader = NULL;
 
+VARP(particlelayers, 0, 1, 1);
 FVARP(particlebright, 0, 2, 100);
 VARP(particlesize, 20, 100, 500);
 
@@ -14,7 +15,7 @@ VARP(softparticleblend, 1, 8, 64);
 // Automatically stops particles being emitted when paused or in reflective drawing
 VARP(emitmillis, 1, 17, 1000);
 static int lastemitframe = 0, emitoffset = 0;
-static bool canemit = false, regenemitters = false;
+static bool canemit = false, regenemitters = false, canstep = false;
 
 static bool canemitparticles()
 {
@@ -224,6 +225,7 @@ struct partrenderer
     int texclamp;
     uint type;
     int collide;
+    string info;
 
     partrenderer(const char *texname, int texclamp, int type, int collide = 0)
         : tex(NULL), texname(texname), texclamp(texclamp), type(type), collide(collide)
@@ -319,7 +321,7 @@ struct partrenderer
                 o.add(vec(d).mul(t/5000.0f));
                 o.z -= t*t/(2.0f * 5000.0f * weight);
             }
-            if(collide && o.z < p->val)
+            if(collide && o.z < p->val && canstep)
             {
                 if(collide >= 0)
                 {
@@ -336,6 +338,24 @@ struct partrenderer
                 }
                 else blend = 0;
             }
+        }
+    }
+
+    void debuginfo()
+    {
+        formatstring(info, "%d\t%s(", count(), partnames[type&0xFF]);
+        if(type&PT_LERP) concatstring(info, "l,");
+        if(type&PT_MOD) concatstring(info, "m,");
+        if(type&PT_RND4) concatstring(info, "r,");
+        if(type&PT_TRACK) concatstring(info, "t,");
+        if(type&PT_FLIP) concatstring(info, "f,");
+        if(collide) concatstring(info, "c,");
+        int len = strlen(info);
+        info[len-1] = info[len-1] == ',' ? ')' : '\0';
+        if(texname)
+        {
+            const char *title = strrchr(texname, '/')+1;
+            if(title) concformatstring(info, ": %s", title);
         }
     }
 };
@@ -450,34 +470,34 @@ struct listrenderer : partrenderer
     virtual void endrender() = 0;
     virtual void renderpart(T *p, const vec &o, const vec &d, float blend, int ts, float size) = 0;
 
+    bool renderpart(T *p)
+    {
+        vec o, d;
+        int blend, ts;
+        float size;
+        calc(p, blend, ts, size, o, d);
+        if(blend <= 0) return false;
+        renderpart(p, o, d, blend / 255.0f, ts, size);
+        return p->fade > 5;
+    }
+
     void render()
     {
         startrender();
         if(tex) glBindTexture(GL_TEXTURE_2D, tex->id);
 
-        for(T **prev = &list, *p = list; p; p = *prev)
+        if(canstep) for(T **prev = &list, *p = list; p; p = *prev)
         {
-            vec o, d;
-            int blend, ts;
-            float size;
-            calc(p, blend, ts, size, o, d);
-            if(blend > 0)
-            {
-                renderpart(p, o, d, blend / 255.0f, ts, size);
-
-                if(p->fade > 5)
-                {
-                    prev = &p->next;
-                    continue;
-                }
+            if(renderpart(p)) prev = &p->next;
+            else
+            { // remove
+                *prev = p->next;
+                p->next = parempty;
+                killpart(p);
+                parempty = p;
             }
-            //remove
-            *prev = p->next;
-            p->next = parempty;
-            killpart(p);
-            parempty = p;
         }
-
+        else for(T *p = list; p; p = p->next) renderpart(p);
         endrender();
     }
 };
@@ -1142,38 +1162,25 @@ void deleteparticles() {
     partmap.clear();
 }
 
-VAR(debugparticles, 0, 0, 1);
+VARN(debugparticles, dbgparts, 0, 0, 1);
 
-void renderparticles()
+void debugparticles()
 {
-    //want to debug BEFORE the lastpass render (that would delete particles)
-    if(debugparticles)
-    {
-        int n = parts.length();
-        hudmatrix.ortho(0, FONTH*n*2*vieww/float(viewh), FONTH*n*2, 0, -1, 1); // squeeze into top-left corner
-        resethudmatrix();
-        hudshader->set();
+    if(!dbgparts) return;
+    int n = sizeof(parts)/sizeof(parts[0]);
+    pushhudmatrix();
+    hudmatrix.ortho(0, FONTH*n*2*vieww/float(viewh), FONTH*n*2, 0, -1, 1); // squeeze into top-left corner
+    flushhudmatrix();
+    loopi(n) draw_text(parts[i]->info, FONTH, (i+n/2)*FONTH);
+    pophudmatrix();
+}
 
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        loopi(n)
-        {
-            int type = parts[i]->type;
-            const char *title = parts[i]->texname ? strrchr(parts[i]->texname, '/')+1 : NULL;
-            string info = "";
-            if(type&PT_LERP) concatstring(info, "l,");
-            if(type&PT_MOD) concatstring(info, "m,");
-            if(type&PT_RND4) concatstring(info, "r,");
-            if(type&PT_TRACK) concatstring(info, "t,");
-            if(type&PT_FLIP) concatstring(info, "f,");
-            if(parts[i]->collide) concatstring(info, "c,");
-            if(info[0]) info[strlen(info)-1] = '\0';
-            defformatstring(ds, "%d\t%s(%s) %s", parts[i]->count(), partnames[type&0xFF], info, title ? title : "");
-            draw_text(ds, FONTH, (i+n/2)*FONTH);
-        }
-        glDisable(GL_BLEND);
-        glEnable(GL_DEPTH_TEST);
-    }
+void renderparticles(bool mainpass)
+{
+    canstep = mainpass;
+
+    //want to debug BEFORE the lastpass render (that would delete particles)
+    if(dbgparts && mainpass) loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->debuginfo();
 
     bool rendered = false;
     uint lastflags = PT_LERP|PT_SHADER, flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER;

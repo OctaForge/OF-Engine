@@ -179,6 +179,16 @@ template<size_t N> inline void formatstring(char (&d)[N], const char *fmt, ...)
     va_end(v);
 }
 
+template<size_t N> inline void concformatstring(char (&d)[N], const char *fmt, ...) PRINTFARGS(2, 3);
+template<size_t N> inline void concformatstring(char (&d)[N], const char *fmt, ...)
+{
+    va_list v;
+    va_start(v, fmt);
+    int len = strlen(d);
+    vformatstring(d + len, fmt, v, int(N) - len);
+    va_end(v);
+}
+
 extern char *tempformatstring(const char *fmt, ...) PRINTFARGS(1, 2);
 
 #define defformatstring(d,...) string d; formatstring(d, __VA_ARGS__)
@@ -1183,45 +1193,6 @@ struct unionfind
     }
 };
 
-template <class T, int SIZE> struct ringbuf
-{
-    int index, len;
-    T data[SIZE];
-
-    ringbuf() { clear(); }
-
-    void clear()
-    {
-        index = len = 0;
-    }
-
-    bool empty() const { return !len; }
-    int length() const { return len; }
-
-    T &add()
-    {
-        T &t = data[index];
-        index++;
-        if(index >= SIZE) index -= SIZE;
-        if(len < SIZE) len++;
-        return t;
-    }
-
-    T &add(const T &e) { return add() = e; }
-
-    T &operator[](int i)
-    {
-        i += index - len;
-        return data[i < 0 ? i + SIZE : i%SIZE];
-    }
-
-    const T &operator[](int i) const
-    {
-        i += index - len;
-        return data[i < 0 ? i + SIZE : i%SIZE];
-    }
-};
-
 template <class T, int SIZE> struct queue
 {
     int head, tail, len;
@@ -1235,29 +1206,50 @@ template <class T, int SIZE> struct queue
     bool empty() const { return !len; }
     bool full() const { return len == SIZE; }
 
+    bool inrange(size_t i) const { return i<size_t(len); }
+    bool inrange(int i) const { return i>=0 && i<len; }
+
     T &added() { return data[tail > 0 ? tail-1 : SIZE-1]; }
     T &added(int offset) { return data[tail-offset > 0 ? tail-offset-1 : tail-offset-1 + SIZE]; }
     T &adding() { return data[tail]; }
     T &adding(int offset) { return data[tail+offset >= SIZE ? tail+offset - SIZE : tail+offset]; }
     T &add()
     {
-        ASSERT(len < SIZE);
         T &t = data[tail];
-        tail = (tail + 1)%SIZE;
-        len++;
+        tail++;
+        if(tail >= SIZE) tail -= SIZE;
+        if(len < SIZE) len++;
         return t;
+    }
+    T &add(const T &e) { return add() = e; }
+
+    T &pop()
+    {
+        tail--;
+        if(tail < 0) tail += SIZE;
+        len--;
+        return data[tail];
     }
 
     T &removing() { return data[head]; }
     T &removing(int offset) { return data[head+offset >= SIZE ? head+offset - SIZE : head+offset]; }
     T &remove()
     {
-        ASSERT(len > 0);
         T &t = data[head];
-        head = (head + 1)%SIZE;
+        head++;
+        if(head >= SIZE) head -= SIZE;
         len--;
         return t;
     }
+
+    T &operator[](int offset) { return removing(offset); }
+    const T &operator[](int offset) const { return removing(offset); }
+};
+
+template <class T, int SIZE> struct reversequeue : queue<T, SIZE>
+{
+    T &operator[](int offset) { return queue<T, SIZE>::added(offset); }
+    const T &operator[](int offset) const { return queue<T, SIZE>::added(offset); }
 };
 
 inline char *newstring(size_t l)                { return new char[l+1]; }
