@@ -432,6 +432,5 @@ vec3_mt.__len = vec3_mt.__index.length
 Vec3 = ffi.metatype("vec3_t", vec3_mt)
 M.Vec3 = Vec3
 M.__Vec3_mt = vec3_mt
-capi.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
 
 return M

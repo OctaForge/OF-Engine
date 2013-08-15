@@ -58,7 +58,7 @@ local iton = { [0] = "x", [1] = "y", [2] = "z" }
 
 local M = {}
 
-M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
+local Vec2, Vec2_mt = gen_vec2("double", "d", {
     __new = function(self, x, y)
         if type(x) == "number" then
             if not y then
@@ -226,8 +226,9 @@ M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
         end
     }
 })
+M.Vec2, M.Vec2_mt = Vec2, Vec2_mt
 
-M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
+local Vec3, Vec3_mt = gen_vec3("double", "d", {
     __new = function(self, x, y, z)
         if type(x) == "number" then
             if not y and not z then
@@ -606,6 +607,7 @@ M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
         end
     }
 })
+M.Vec3, M.Vec3_mt = Vec3, Vec3_mt
 
 local Vec4, Vec4_mt = gen_vec4("double", "d", {
     __new = function(self, x, y, z, w)
@@ -884,6 +886,8 @@ local Vec4, Vec4_mt = gen_vec4("double", "d", {
 })
 M.Vec4, M.Vec4_mt = Vec4, Vec4_mt
 
+capi.external_set("new_vec2", function(x, y) return Vec2(x, y) end)
+capi.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
 capi.external_set("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
 
 return M
