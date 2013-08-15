@@ -34,7 +34,8 @@ local M = {}
 
 local State_Variable, State_Variable_Alias, State_Integer, State_Float,
       State_Boolean, State_Table, State_String, Array_Surrogate, State_Array,
-      State_Array_Integer, State_Array_Float, State_Vec3
+      State_Array_Integer, State_Array_Float, State_Vec2, State_Vec3,
+      State_Vec4
 
 --[[! Function: is_svar
     Checks whether the given value is a state variable.
@@ -623,6 +624,16 @@ State_Array_Float = State_Array:clone {
 }
 M.State_Array_Float = State_Array_Float
 
+--[[! Class: State_Vec2
+    A specialization of <State_Array_Float>, providing its own surrogate,
+    <Vec2_Surrogate>. Other than that, no changes are made.
+]]
+State_Vec2 = State_Array_Float:clone {
+    name = "State_Vec2",
+    surrogate = geom.Vec2_Surrogate
+}
+M.State_Vec2 = State_Vec2
+
 --[[! Class: State_Vec3
     A specialization of <State_Array_Float>, providing its own surrogate,
     <Vec3_Surrogate>. Other than that, no changes are made.
@@ -632,6 +643,16 @@ State_Vec3 = State_Array_Float:clone {
     surrogate = geom.Vec3_Surrogate
 }
 M.State_Vec3 = State_Vec3
+
+--[[! Class: State_Vec4
+    A specialization of <State_Array_Float>, providing its own surrogate,
+    <Vec4_Surrogate>. Other than that, no changes are made.
+]]
+State_Vec4 = State_Array_Float:clone {
+    name = "State_Vec4",
+    surrogate = geom.Vec4_Surrogate
+}
+M.State_Vec4 = State_Vec4
 
 --[[! Class: State_Variable_Alias
     Aliases a state variable. Aliases are always registered last so that
