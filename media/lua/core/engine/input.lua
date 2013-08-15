@@ -18,7 +18,7 @@ if SERVER then return {} end
 local capi = require("capi")
 local frame = require("core.events.frame")
 
-local vec3 = require("core.lua.math").Vec3
+local vec3 = require("core.lua.geom").Vec3
 
 return {
     --[[! Function: get_target_entity

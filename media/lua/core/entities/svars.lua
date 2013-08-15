@@ -623,8 +623,8 @@ State_Array_Float = State_Array:clone {
 }
 M.State_Array_Float = State_Array_Float
 
-local Vec3 = math2.Vec3
-local vec3_index = math2.__Vec3_mt.__index
+local Vec3 = geom.Vec3
+local vec3_index = geom.Vec3_mt.__index
 
 local ntoi2 = { x = 1, y = 2 }
 local ntoi3 = { x = 1, y = 2, z = 3, r = 1, g = 2, b = 3 }

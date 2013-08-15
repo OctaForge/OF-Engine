@@ -18,7 +18,7 @@ if SERVER then return {} end
 local capi = require("capi")
 
 local play = capi.sound_play
-local vec3 = require("core.lua.math").Vec3
+local vec3 = require("core.lua.geom").Vec3
 
 return {
     --[[! Function: play
@@ -27,7 +27,7 @@ return {
     ]]
     play = function(name, pos, volume)
         if not name then return nil end
-        pos = pos or vec3(0, 0, 0)
+        pos = pos or vec3(0)
         play(name, pos.x, pos.y, pos.z, volume)
     end,
 

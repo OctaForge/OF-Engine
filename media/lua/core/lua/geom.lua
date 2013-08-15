@@ -46,7 +46,7 @@ local gen_vec4 = function(tp, sf, mt)
     return ffi.metatype("vec4" .. sf .. "_t", mt), mt
 end
 
-local ffi_new, ffi_typeof = ffi.new, ffi.typeof
+local ffi_new = ffi.new
 local type = type
 local sin, cos, abs, min, max, sqrt, floor = math.sin, math.cos, math.abs,
     math.min, math.max, math.sqrt, math.floor
@@ -58,7 +58,7 @@ local iton = { [0] = "x", [1] = "y", [2] = "z" }
 
 local M = {}
 
-local Vec2, Vec2_mt = gen_vec2("double", "d", {
+local Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("double", "d", {
     __new = function(self, x, y)
         if type(x) == "number" then
             if not y then
@@ -88,7 +88,7 @@ local Vec2, Vec2_mt = gen_vec2("double", "d", {
         end,
 
         copy = function(self)
-            return ffi_typeof(self)(self.x, self.y)
+            return Vec2(self.x, self.y)
         end,
         to_array = function(self)
             return { self.x, self.y }
@@ -140,35 +140,31 @@ local Vec2, Vec2_mt = gen_vec2("double", "d", {
             return self
         end,
         mul_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x * o, self.y * o)
+                return Vec2(self.x * o, self.y * o)
             else
-                return tp(self.x * o.x, self.y * o.y)
+                return Vec2(self.x * o.x, self.y * o.y)
             end
         end,
         div_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x / o, self.y / o)
+                return Vec2(self.x / o, self.y / o)
             else
-                return tp(self.x / o.x, self.y / o.y)
+                return Vec2(self.x / o.x, self.y / o.y)
             end
         end,
         add_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x + o, self.y + o)
+                return Vec2(self.x + o, self.y + o)
             else
-                return tp(self.x + o.x, self.y + o.y)
+                return Vec2(self.x + o.x, self.y + o.y)
             end
         end,
         sub_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x - o, self.y - o)
+                return Vec2(self.x - o, self.y - o)
             else
-                return tp(self.x - o.x, self.y - o.y)
+                return Vec2(self.x - o.x, self.y - o.y)
             end
         end,
         neg = function(self)
@@ -228,7 +224,7 @@ local Vec2, Vec2_mt = gen_vec2("double", "d", {
 })
 M.Vec2, M.Vec2_mt = Vec2, Vec2_mt
 
-local Vec3, Vec3_mt = gen_vec3("double", "d", {
+local Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("double", "d", {
     __new = function(self, x, y, z)
         if type(x) == "number" then
             if not y and not z then
@@ -274,7 +270,7 @@ local Vec3, Vec3_mt = gen_vec3("double", "d", {
         end,
 
         copy = function(self)
-            return ffi_typeof(self)(self.x, self.y, self.z)
+            return Vec3(self.x, self.y, self.z)
         end,
         to_array = function(self)
             return { self.x, self.y, self.z }
@@ -347,35 +343,31 @@ local Vec3, Vec3_mt = gen_vec3("double", "d", {
             return self
         end,
         mul_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x * o, self.y * o, self.z * o)
+                return Vec3(self.x * o, self.y * o, self.z * o)
             else
-                return tp(self.x * o.x, self.y * o.y, self.z * o.z)
+                return Vec3(self.x * o.x, self.y * o.y, self.z * o.z)
             end
         end,
         div_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x / o, self.y / o, self.z / o)
+                return Vec3(self.x / o, self.y / o, self.z / o)
             else
-                return tp(self.x / o.x, self.y / o.y, self.z / o.z)
+                return Vec3(self.x / o.x, self.y / o.y, self.z / o.z)
             end
         end,
         add_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x + o, self.y + o, self.z + o)
+                return Vec3(self.x + o, self.y + o, self.z + o)
             else
-                return tp(self.x + o.x, self.y + o.y, self.z + o.z)
+                return Vec3(self.x + o.x, self.y + o.y, self.z + o.z)
             end
         end,
         sub_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x - o, self.y - o, self.z - o)
+                return Vec3(self.x - o, self.y - o, self.z - o)
             else
-                return tp(self.x - o.x, self.y - o.y, self.z - o.z)
+                return Vec3(self.x - o.x, self.y - o.y, self.z - o.z)
             end
         end,
         neg2 = function(self)
@@ -609,7 +601,7 @@ local Vec3, Vec3_mt = gen_vec3("double", "d", {
 })
 M.Vec3, M.Vec3_mt = Vec3, Vec3_mt
 
-local Vec4, Vec4_mt = gen_vec4("double", "d", {
+local Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("double", "d", {
     __new = function(self, x, y, z, w)
         if type(x) == "number" then
             if not y and not z and not w then
@@ -645,7 +637,7 @@ local Vec4, Vec4_mt = gen_vec4("double", "d", {
         end,
 
         copy = function(self)
-            return ffi_typeof(self)(self.x, self.y, self.z, self.w)
+            return Vec4(self.x, self.y, self.z, self.w)
         end,
         to_array = function(self)
             return { self.x, self.y, self.z, self.w }
@@ -759,38 +751,34 @@ local Vec4, Vec4_mt = gen_vec4("double", "d", {
             return self
         end,
         mul_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x * o, self.y * o, self.z * o, self.w * o)
+                return Vec4(self.x * o, self.y * o, self.z * o, self.w * o)
             else
-                return tp(self.x * o.x, self.y * o.y, self.z * o.z,
+                return Vec4(self.x * o.x, self.y * o.y, self.z * o.z,
                     self.w * o.w)
             end
         end,
         div_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x / o, self.y / o, self.z / o, self.w / o)
+                return Vec4(self.x / o, self.y / o, self.z / o, self.w / o)
             else
-                return tp(self.x / o.x, self.y / o.y, self.z / o.z,
+                return Vec4(self.x / o.x, self.y / o.y, self.z / o.z,
                     self.w / o.w)
             end
         end,
         add_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x + o, self.y + o, self.z + o, self.w + o)
+                return Vec4(self.x + o, self.y + o, self.z + o, self.w + o)
             else
-                return tp(self.x + o.x, self.y + o.y, self.z + o.z,
+                return Vec4(self.x + o.x, self.y + o.y, self.z + o.z,
                     self.w + o.w)
             end
         end,
         sub_new = function(self, o)
-            local tp = ffi_typeof(self)
             if type(o) == "number" then
-                return tp(self.x - o, self.y - o, self.z - o, self.w - o)
+                return Vec4(self.x - o, self.y - o, self.z - o, self.w - o)
             else
-                return tp(self.x - o.x, self.y - o.y, self.z - o.z,
+                return Vec4(self.x - o.x, self.y - o.y, self.z - o.z,
                     self.w - o.w)
             end
         end,
