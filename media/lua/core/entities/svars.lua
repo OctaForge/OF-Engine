@@ -626,6 +626,10 @@ M.State_Array_Float = State_Array_Float
 local Vec3 = math2.Vec3
 local vec3_index = math2.__Vec3_mt.__index
 
+local ntoi2 = { x = 1, y = 2 }
+local ntoi3 = { x = 1, y = 2, z = 3, r = 1, g = 2, b = 3 }
+local ntoi4 = { x = 1, y = 2, z = 3, w = 4, r = 1, g = 2, b = 3, a = 4 }
+
 --[[! Class: Vec3_Surrogate
     See <Array_Surrogate>. The only difference is that instead of emulating
     an array, it emulates <math.Vec3>.
@@ -662,16 +666,8 @@ Vec3_Surrogate = {
         <Array_Surrogate.__index>. Valid indexes are x, y, z, 1, 2, 3.
     ]]
     __index = function(self, n)
-        if n == "x" or n == 1 then
-            local v = self.variable
-            return v:get_item(self.entity, 1)
-        elseif n == "y" or n == 2 then
-            local v = self.variable
-            return v:get_item(self.entity, 2)
-        elseif n == "z" or n == 3 then
-            local v = self.variable
-            return v:get_item(self.entity, 3)
-        end
+        local i = ntoi3[n]
+        if i then return self.variable:get_item(self.entity, i) end
         return Vec3_Surrogate[n] or rawget(self.rawt, n)
     end,
 
@@ -680,18 +676,9 @@ Vec3_Surrogate = {
         to <Array_Surrogate.__newindex>. Valid indexes are x, y, z, 1, 2, 3.
     ]]
     __newindex = function(self, n, val)
-        if n == "x" or n == 1 then
-            local v = self.variable
-            v:set_item(self.entity, 1, val)
-        elseif n == "y" or n == 2 then
-            local v = self.variable
-            v:set_item(self.entity, 2, val)
-        elseif n == "z" or n == 3 then
-            local v = self.variable
-            v:set_item(self.entity, 3, val)
-        else
-            rawset(self.rawt, n, val)
-        end
+        local i = ntoi3[n]
+        if i then return self.variable:set_item(self.entity, i, val) end
+        rawset(self.rawt, n, val)
     end,
 
     --[[! Function: __len
