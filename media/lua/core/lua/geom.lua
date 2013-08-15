@@ -89,6 +89,9 @@ M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
         copy = function(self)
             return ffi_typeof(self)(self.x, self.y)
         end,
+        to_array = function(self)
+            return { self.x, self.y }
+        end,
         get_nth = function(self, n) return self[n - 1] end,
         set_nth = function(self, n, v) self[n - 1] = v end,
         is_zero = function(self) return self.x == 0 and self.y == 0 end,
@@ -265,6 +268,9 @@ M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
 
         copy = function(self)
             return ffi_typeof(self)(self.x, self.y, self.z)
+        end,
+        to_array = function(self)
+            return { self.x, self.y, self.z }
         end,
         get_nth = function(self, n) return self[n - 1] end,
         set_nth = function(self, n, v) self[n - 1] = v end,
@@ -630,6 +636,9 @@ M.Vec4, M.Vec4_mt = gen_vec4("double", "d", {
 
         copy = function(self)
             return ffi_typeof(self)(self.x, self.y, self.z, self.w)
+        end,
+        to_array = function(self)
+            return { self.x, self.y, self.z, self.w }
         end,
         get_nth = function(self, n) return self[n - 1] end,
         set_nth = function(self, n, v) self[n - 1] = v end,
