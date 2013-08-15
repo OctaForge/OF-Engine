@@ -18,11 +18,10 @@ local ffi = require("ffi")
 
 local gen_vec2 = function(tp, sf, mt)
     ffi.cdef(([[
-        typedef union vec2%s_t {
-            struct { %s x, y; };
-            %s v[2];
+        typedef struct vec2%s_t {
+            %s x, y;
         } vec2%s_t;
-    ]]):format(sf, tp, tp, sf))
+    ]]):format(sf, tp, sf))
     return ffi.metatype("vec2" .. sf .. "_t", mt), mt
 end
 
@@ -31,9 +30,8 @@ local gen_vec3 = function(tp, sf, mt)
         typedef union vec3%s_t {
             struct { %s x, y, z; };
             struct { %s r, g, b; };
-            %s v[3];
         } vec3%s_t;
-    ]]):format(sf, tp, tp, tp, sf))
+    ]]):format(sf, tp, tp, sf))
     return ffi.metatype("vec3" .. sf .. "_t", mt), mt
 end
 
@@ -42,9 +40,8 @@ local gen_vec4 = function(tp, sf, mt)
         typedef union vec4%s_t {
             struct { %s x, y, z, w; };
             struct { %s r, g, b, a; };
-            %s v[4];
         } vec4%s_t;
-    ]]):format(sf, tp, tp, tp, sf))
+    ]]):format(sf, tp, tp, sf))
     return ffi.metatype("vec4" .. sf .. "_t", mt), mt
 end
 
@@ -221,6 +218,8 @@ M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
         end
     }
 })
+
+local iton = { [0] = "x", [1] = "y", [2] = "z" }
 
 M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
     __new = function(self, x, y, z)
@@ -549,9 +548,9 @@ M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
             local i = (abs(d.x) > abs(d.y))
                 and (abs(d.x) > abs(d.z) and 0 or 2)
                  or (abs(d.y) > abs(d.z) and 1 or 2)
-            self.v[i] = d.v[(i + 1) % 3]
-            self.v[(i + 1) % 3] = -d.v[i]
-            self.v[(i + 2) % 3] = 0
+            self[iton[i]] = d[iton[(i + 1) % 3]]
+            self[iton[(i + 1) % 3]] = -d[iton[i]]
+            self[iton[(i + 2) % 3]] = 0
             return self
         end,
         orthonormalize = function(self, s, t)
@@ -576,11 +575,12 @@ M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
             end
             local sqrdist = 0
             for i = 0, 2 do
-                if self.v[i] < min.v[i] then
-                    local delta = self.v[i] - min.v[i]
+                local n = iton[i]
+                if self[n] < min[n] then
+                    local delta = self[n] - min[n]
                     sqrdist = sqrdist + delta ^ 2
-                elseif self.v[i] > max.v[i] then
-                    local delta = max.v[i] - self.v[i]
+                elseif self[n] > max[n] then
+                    local delta = max[n] - self[n]
                     sqrdist = sqrdist + delta ^ 2
                 end
             end
@@ -866,3 +866,5 @@ M.Vec4, M.Vec4_mt = gen_vec4("double", "d", {
         end
     }
 })
+
+return M

@@ -24,6 +24,7 @@ local INFO  = logging.INFO
 
 local frame = require("core.events.frame")
 local math2 = require("core.lua.math")
+local geom  = require("core.lua.geom")
 local table2 = require("core.lua.table")
 
 local tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
