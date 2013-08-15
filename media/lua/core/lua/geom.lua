@@ -53,6 +53,8 @@ local clamp = function(v, l, h)
     return max(l, min(v, h))
 end
 
+local iton = { [0] = "x", [1] = "y", [2] = "z" }
+
 local M = {}
 
 M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
@@ -89,8 +91,8 @@ M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
         to_array = function(self)
             return { self.x, self.y }
         end,
-        get_nth = function(self, n) return self[n - 1] end,
-        set_nth = function(self, n, v) self[n - 1] = v end,
+        get_nth = function(self, n) return self[iton[n - 1]] end,
+        set_nth = function(self, n, v) self[iton[n - 1]] = v end,
         is_zero = function(self) return self.x == 0 and self.y == 0 end,
         dot = function(self, o) return self.x * o.x + self.y * o.y end,
         dot_abs = function(self, o)
@@ -219,8 +221,6 @@ M.Vec2, M.Vec2_mt = gen_vec2("double", "d", {
     }
 })
 
-local iton = { [0] = "x", [1] = "y", [2] = "z" }
-
 M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
     __new = function(self, x, y, z)
         if type(x) == "number" then
@@ -271,8 +271,8 @@ M.Vec3, M.Vec3_mt = gen_vec3("double", "d", {
         to_array = function(self)
             return { self.x, self.y, self.z }
         end,
-        get_nth = function(self, n) return self[n - 1] end,
-        set_nth = function(self, n, v) self[n - 1] = v end,
+        get_nth = function(self, n) return self[iton[n - 1]] end,
+        set_nth = function(self, n, v) self[iton[n - 1]] = v end,
         is_zero = function(self)
             return self.x == 0 and self.y == 0 and self.z == 0
         end,
@@ -640,8 +640,8 @@ M.Vec4, M.Vec4_mt = gen_vec4("double", "d", {
         to_array = function(self)
             return { self.x, self.y, self.z, self.w }
         end,
-        get_nth = function(self, n) return self[n - 1] end,
-        set_nth = function(self, n, v) self[n - 1] = v end,
+        get_nth = function(self, n) return self[iton[n - 1]] end,
+        set_nth = function(self, n, v) self[iton[n - 1]] = v end,
         is_zero = function(self)
             return self.x == 0 and self.y == 0 and self.z == 0 and self.w == 0
         end,
