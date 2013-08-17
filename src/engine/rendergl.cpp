@@ -2580,6 +2580,8 @@ VAR(statrate, 1, 200, 1000);
 
 FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
+bool fullconsole_visible();
+
 void gl_drawhud()
 {
     int w = hudw, h = hudh;
@@ -2707,7 +2709,7 @@ void gl_drawhud()
     hudmatrix.scale(conscale, conscale, 1);
     flushhudmatrix();
     abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);
-    if(!hidehud && !executebool("uivisible fullconsole")) renderconsole(conw, conh, abovehud - FONTH/2);
+    if(!hidehud && !fullconsole_visible()) renderconsole(conw, conh, abovehud - FONTH/2);
     pophudmatrix();
 
     drawcrosshair(w, h);

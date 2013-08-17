@@ -1757,6 +1757,10 @@ set_external("gui_clear", function()
     end
 end)
 
+set_external("gui_visible", function(wname)
+    return world:window_visible(wname)
+end)
+
 set_external("gui_update", function()
     local i = 1
     while true do

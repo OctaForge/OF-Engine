@@ -77,6 +77,14 @@ HVARP(miniconfilter, 0, 0, 0xFFFFFF);
 
 int conskip = 0, miniconskip = 0;
 
+bool fullconsole_visible() {
+    lua::push_external("gui_visible");
+    lua_pushstring(lua::L, "fullconsole");
+    lua_call(lua::L, 1, 1);
+    bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
+    return b;
+}
+
 void setconskip(int &skip, int filter, int n)
 {
     int offset = abs(n), dir = n < 0 ? -1 : 1;
@@ -93,7 +101,7 @@ void setconskip(int &skip, int filter, int n)
     }
 }
 
-ICOMMAND(conskip, "i", (int *n), setconskip(conskip, executebool("uivisible fullconsole") ? fullconfilter : confilter, *n));
+ICOMMAND(conskip, "i", (int *n), setconskip(conskip, fullconsole_visible() ? fullconfilter : confilter, *n));
 ICOMMAND(miniconskip, "i", (int *n), setconskip(miniconskip, miniconfilter, *n));
 
 ICOMMAND(clearconsole, "", (), { while(conlines.length()) delete[] conlines.pop().line; });
