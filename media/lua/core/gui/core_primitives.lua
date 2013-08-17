@@ -1102,8 +1102,17 @@ M.Triangle = register_class("Triangle", Shape, {
     A regular circle that derives from <Shape>. Its radius is determined
     by min_w and min_h (same conventions as on <Filler> apply when it comes
     to widget bounds and the larger one is used to determine radius).
+    It features one additional property called "sides". It defaults to 15
+    and specifies the number of sides the circle will have (as it's not a
+    perfect circle).
 ]]
 M.Circle = register_class("Circle", Shape, {
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.sides = kwargs.sides or 15
+        return Shape.__init(self, kwargs)
+    end,
+
     draw = function(self, sx, sy)
         shader_hudnotexture_set()
         gle_color4ub(self.r, self.g, self.b, self.a)
@@ -1113,7 +1122,7 @@ M.Circle = register_class("Circle", Shape, {
         local center = Vec2(sx + radius, sy + radius)
         if self.style == Shape.OUTLINE then
             gle_begin(gl.LINE_LOOP)
-            for angle = 0, 359, 360 / 15 do
+            for angle = 0, 359, 360 / self.sides do
                 gle_attrib2f(sincos360(angle):mul_new(radius)
                     :add(center):unpack())
             end
@@ -1122,7 +1131,8 @@ M.Circle = register_class("Circle", Shape, {
             gle_begin(gl.TRIANGLE_FAN)
             gle_attrib2f(center.x,          center.y)
             gle_attrib2f(center.x + radius, center.y)
-            for angle = (360 / 15), 359, 360/15 do
+            local sides = self.sides
+            for angle = (360 / sides), 359, 360 / sides do
                 local p = sincos360(angle):mul_new(radius):add(center)
                 gle_attrib2f(p:unpack())
                 gle_attrib2f(p:unpack())
@@ -1133,7 +1143,10 @@ M.Circle = register_class("Circle", Shape, {
         gle_color4f(1, 1, 1, 1)
         shader_hud_set()
         return Shape.draw(self, sx, sy)
-    end
+    end,
+
+    --[[! Function: set_sides ]]
+    set_sides = gen_setter "sides"
 })
 
 --[[! Variable: uitextrows
