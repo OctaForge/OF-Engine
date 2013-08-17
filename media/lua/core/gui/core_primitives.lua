@@ -18,6 +18,7 @@ local model = require("core.engine.model")
 local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
+local geom = require("core.lua.geom")
 
 local gl_blend_func, shader_hudnotexture_set, shader_hud_set, gl_bind_texture,
 gl_texture_param, shader_hud_set_variant, gle_begin, gle_end, gle_defvertexf,
@@ -39,6 +40,10 @@ local floor = math.floor
 local ceil  = math.ceil
 local emit  = signal.emit
 local tostring = tostring
+
+local Vec2 = geom.Vec2
+local sincosmod360 = geom.sin_cos_mod_360
+local sincos360 = geom.sin_cos_360
 
 local M = require("core.gui.core")
 local world = M.get_world()
@@ -990,6 +995,145 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
 
     --[[! Function: set_attachments ]]
     set_attachments = gen_setter "attachments"
+})
+
+--[[! Struct: Shape
+    Represents a generic shape that derives from <Filler>. It has one extra
+    property called "style" which can have values Shape.SOLID and
+    Shape.OUTLINE. It also has color properties, r, g, b, a.
+]]
+local Shape = register_class("Shape", Filler, {
+    SOLID   = 0,
+    OUTLINE = 1,
+
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.style = kwargs.style or 0
+        self.r     = kwargs.r or 255
+        self.g     = kwargs.g or 255
+        self.b     = kwargs.b or 255
+        self.a     = kwargs.a or 255
+        return Filler.__init(self, kwargs)
+    end,
+
+    --[[! Function: set_style ]]
+    set_style = gen_setter "style",
+
+    --[[! Function: set_r ]]
+    set_r = gen_setter "r",
+
+    --[[! Function: set_g ]]
+    set_g = gen_setter "g",
+
+    --[[! Function: set_b ]]
+    set_b = gen_setter "b",
+
+    --[[! Function: set_a ]]
+    set_a = gen_setter "a"
+})
+M.Shape = Shape
+
+--[[! Struct: Triangle
+    A regular triangle that derives from <Shape>. Features an extra property,
+    "angle". Its width and height is determined by min_w and min_h (same
+    conventions as on <Filler> apply).
+]]
+M.Triangle = register_class("Triangle", Shape, {
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.angle = kwargs.angle or 0
+        return Shape.__init(self, kwargs)
+    end,
+
+    layout = function(self)
+        Widget.layout(self)
+
+        local w, h = self.min_w, self.min_h
+        local angle = self.angle
+
+        if w < 0 then w = abs(w) / hud_get_h() end
+        if h < 0 then h = abs(h) / hud_get_h() end
+        if w == -1 then w = world.w end
+        if h == -1 then h = 1 end
+
+        local a = Vec2(0, -h * 2 / 3)
+        local b = Vec2(-w / 2, h / 3)
+        local c = Vec2( w / 2, h / 3)
+
+        if angle != 0 then
+            local rot = sincosmod360(-angle)
+            a:rotate_around_z(rot)
+            b:rotate_around_z(rot)
+            c:rotate_around_z(rot)
+        end
+
+        local bbmin = Vec2(a):min(b):min(c)
+        a:sub(bbmin)
+        b:sub(bbmin)
+        c:sub(bbmin)
+        local bbmax = Vec2(a):max(b):max(c)
+
+        self.ta, self.tb, self.tc = a, b, c
+
+        self.w = max(self.w, bbmax.x)
+        self.h = max(self.h, bbmax.y)
+    end,
+
+    draw = function(self, sx, sy)
+        shader_hudnotexture_set()
+        gle_color4ub(self.r, self.g, self.b, self.a)
+        gle_defvertexf(2)
+        gle_color4ub(self.r, self.g, self.b, self.a)
+        gle_begin(self.style == Shape.OUTLINE and gl.LINE_LOOP or gl.TRIANGLES)
+        gle_attrib2f(Vec2(sx, sy):add(self.ta):unpack())
+        gle_attrib2f(Vec2(sx, sy):add(self.tb):unpack())
+        gle_attrib2f(Vec2(sx, sy):add(self.tc):unpack())
+        gle_end()
+        gle_color4f(1, 1, 1, 1)
+        shader_hud_set()
+        return Shape.draw(self, sx, sy)
+    end,
+
+    --[[! Function: set_angle ]]
+    set_angle = gen_setter "angle"
+})
+
+--[[! Struct: Circle
+    A regular circle that derives from <Shape>. Its radius is determined
+    by min_w and min_h (same conventions as on <Filler> apply when it comes
+    to widget bounds and the larger one is used to determine radius).
+]]
+M.Circle = register_class("Circle", Shape, {
+    draw = function(self, sx, sy)
+        shader_hudnotexture_set()
+        gle_color4ub(self.r, self.g, self.b, self.a)
+        gle_defvertexf(2)
+        local w, h = self.w, self.h
+        local radius = ((w > h) and w or h) / 2
+        local center = Vec2(sx + radius, sy + radius)
+        if self.style == Shape.OUTLINE then
+            gle_begin(gl.LINE_LOOP)
+            for angle = 0, 359, 360 / 15 do
+                gle_attrib2f(sincos360(angle):mul_new(radius)
+                    :add(center):unpack())
+            end
+            gle_end()
+        else
+            gle_begin(gl.TRIANGLE_FAN)
+            gle_attrib2f(center.x,          center.y)
+            gle_attrib2f(center.x + radius, center.y)
+            for angle = (360 / 15), 359, 360/15 do
+                local p = sincos360(angle):mul_new(radius):add(center)
+                gle_attrib2f(p:unpack())
+                gle_attrib2f(p:unpack())
+            end
+            gle_attrib2f(center.x + radius, center.y)
+            gle_end()
+        end
+        gle_color4f(1, 1, 1, 1)
+        shader_hud_set()
+        return Shape.draw(self, sx, sy)
+    end
 })
 
 --[[! Variable: uitextrows
