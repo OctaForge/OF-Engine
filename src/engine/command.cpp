@@ -4004,6 +4004,10 @@ ICOMMAND(lua, "s", (char *str), {
         const char *s = lua_tostring(lua::L, -1);
         lua_pop(lua::L, 1);
         result(s);
+    } else if (lua_isboolean(lua::L, -1)) {
+        bool b = lua_toboolean(lua::L, -1);
+        lua_pop(lua::L, 1);
+        intret(b);
     } else {
         lua_pop(lua::L, 1);
     }

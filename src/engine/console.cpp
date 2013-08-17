@@ -53,9 +53,6 @@ void conoutf(int type, const char *fmt, ...)
     va_end(args);
 }
 
-VAR(fullconsole, 0, 0, 1);
-ICOMMAND(toggleconsole, "", (), { fullconsole ^= 1; });
-
 float rendercommand(float x, float y, float w)
 {
     if(commandmillis < 0) return 0;
@@ -96,7 +93,7 @@ void setconskip(int &skip, int filter, int n)
     }
 }
 
-ICOMMAND(conskip, "i", (int *n), setconskip(conskip, fullconsole ? fullconfilter : confilter, *n));
+ICOMMAND(conskip, "i", (int *n), setconskip(conskip, executebool("uivisible fullconsole") ? fullconfilter : confilter, *n));
 ICOMMAND(miniconskip, "i", (int *n), setconskip(miniconskip, miniconfilter, *n));
 
 ICOMMAND(clearconsole, "", (), { while(conlines.length()) delete[] conlines.pop().line; });
@@ -142,20 +139,25 @@ float drawconlines(int conskip, int confade, float conwidth, float conheight, fl
     return y+conoff;
 }
 
-float renderconsole(float w, float h, float abovehud)                   // render buffer taking into account time & scrolling
+float renderfullconsole(float w, float h)
 {
-    float conpad = fullconsole ? 0 : FONTH/4,
-          conoff = fullconsole ? FONTH : FONTH/3,
-          conheight = min(fullconsole ? ((h*fullconsize/100)/FONTH)*FONTH : FONTH*consize, h - 2*(conpad + conoff)),
-          conwidth = w - 2*(conpad + conoff) - (fullconsole ? 0 : game::clipconsole(w, h));
+    float conpad = FONTH/2,
+          conheight = h - 2*conpad,
+          conwidth = w - 2*conpad;
+    drawconlines(conskip, 0, conwidth, conheight, conpad, fullconfilter);
+    return conheight + 2*conpad;
+}
+CLUACOMMAND(console_render_full, float, (float, float), renderfullconsole);
 
-    //extern void consolebox(float x1, float y1, float x2, float y2);
-    //if(fullconsole) consolebox(conpad, conpad, conwidth+conpad+2*conoff, conheight+conpad+2*conoff);
-
-    float y = drawconlines(conskip, fullconsole ? 0 : confade, conwidth, conheight, conpad+conoff, fullconsole ? fullconfilter : confilter);
-    if(!fullconsole && (miniconsize && miniconwidth))
-        drawconlines(miniconskip, miniconfade, (miniconwidth*(w - 2*(conpad + conoff)))/100, min(float(FONTH*miniconsize), abovehud - y), conpad+conoff, miniconfilter, abovehud, -1);
-    return fullconsole ? conheight + 2*(conpad + conoff) : y;
+float renderconsole(float w, float h, float abovehud)
+{
+    float conpad = FONTH/2,
+          conheight = min(float(FONTH*consize), h - 2*conpad),
+          conwidth = w - 2*conpad - game::clipconsole(w, h);
+    float y = drawconlines(conskip, confade, conwidth, conheight, conpad, confilter);
+    if(miniconsize && miniconwidth)
+        drawconlines(miniconskip, miniconfade, (miniconwidth*(w - 2*conpad))/100, min(float(FONTH*miniconsize), abovehud - y), conpad, miniconfilter, abovehud, -1);
+    return y;
 }
 
 // keymap is defined externally in keymap.cfg

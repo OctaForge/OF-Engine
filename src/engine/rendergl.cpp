@@ -2707,8 +2707,7 @@ void gl_drawhud()
     hudmatrix.scale(conscale, conscale, 1);
     flushhudmatrix();
     abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);
-    extern int fullconsole;
-    if(!hidehud || fullconsole) renderconsole(conw, conh, abovehud - FONTH/2);
+    if(!hidehud && !executebool("uivisible fullconsole")) renderconsole(conw, conh, abovehud - FONTH/2);
     pophudmatrix();
 
     drawcrosshair(w, h);
