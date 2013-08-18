@@ -1609,11 +1609,6 @@ local World = register_class("World", Widget, {
 world = World()
 
 local hud = Overlay { name = "hud" }
-hud.layout = function(self)
-    Widget.layout(self)
-    self.x, self.y, self.w, self.h = world.x, world.y, world.w, world.h
-    self:adjust_children()
-end
 
 --[[! Function: get_hud
     Returns the HUD overlay.
@@ -1905,7 +1900,11 @@ set_external("gui_update", function()
         end
     end
 
-    if draw_hud then hud:layout() end
+    if draw_hud then
+        hud:layout()
+        hud.x, hud.y, hud.w, hud.h = world.x, world.y, world.w, world.h
+        hud:adjust_children()
+    end
 
     prev_cx, prev_cy = cursor_x, cursor_y
 end)
