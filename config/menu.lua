@@ -150,7 +150,7 @@ world:new_window("main", gui.Window, |win| do
     end)
 end)
 
-world:new_window("fullconsole", gui.Window, |win| do
+world:new_window("fullconsole", gui.Overlay, |win| do
     win:clamp(true, true, false, false)
     win:align(0, -1)
     win:append(gui.Console {
@@ -160,26 +160,35 @@ world:new_window("fullconsole", gui.Window, |win| do
     end)
 end)
 
+world:new_window("editstats", gui.Overlay, |win| do
+    win:align(-1, 1)
+    win:append(gui.Filler { min_w = 0.4 })
+    win:append(gui.V_Box(), |box| do
+    end)
+end)
+
 cs.execute([=[
-toggleui = [lua [
-    local world = require("core.gui.core").get_world()
-    if not world:hide_window(@(escape $arg1)) then
-        world:show_window(@(escape $arg1))
-    end
+showui = [lua [
+    require("core.gui.core").get_world():show_window(@(escape $arg1))
 ]]
-holdui = [lua [
-    local world = require("core.gui.core").get_world()
-    @(if (= $arg2 0) [result [
-        world:hide_window(@(escape @arg1))
-    ]] [result [
-        world:show_window(@(escape @arg1))
-    ]])
+hideui = [lua [
+    require("core.gui.core").get_world():hide_window(@(escape $arg1))
 ]]
+toggleui = [
+    if (! (hideui $arg1)) [showui $arg1] []
+]
+holdui = [
+    if (! $arg2) [hideui $arg1] [showui $arg1]
+]
 uivisible = [lua [
     return require("core.gui.core").get_world():window_visible(@(escape $arg1))
 ]]
 
 toggleconsole = [toggleui fullconsole]
+
+edittoggled = [
+   if $editing [showui editstats] [hideui editstats]
+]
 
 bind ESCAPE [toggleui main]
 ]=])
