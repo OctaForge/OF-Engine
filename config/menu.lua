@@ -153,7 +153,11 @@ end)
 world:new_window("fullconsole", gui.Window, |win| do
     win:clamp(true, true, false, false)
     win:align(0, -1)
-    win:append(gui.Console {})
+    win:append(gui.Console {
+        min_h = || cs.var_get("fullconsize") / 100
+    }, |con| do
+        con:clamp(true, true, false, false)
+    end)
 end)
 
 cs.execute([=[

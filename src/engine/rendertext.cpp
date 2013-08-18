@@ -166,6 +166,14 @@ void gettextres(int &w, int &h)
         }
     }
 }
+LUAICOMMAND(text_get_res, {
+    int w = luaL_checkinteger(L, 1);
+    int h = luaL_checkinteger(L, 2);
+    gettextres(w, h);
+    lua_pushinteger(L, w);
+    lua_pushinteger(L, h);
+    return 2;
+})
 
 float text_widthf(const char *str)
 {

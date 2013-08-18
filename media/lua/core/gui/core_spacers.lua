@@ -91,6 +91,8 @@ M.Spacer = register_class("Spacer", Widget, {
     it'll take the full height (1). It's invisible.
 
     Negative min_w and min_h values are in pixels.
+    They can also be functions, in which case their return value is used
+    (the widget is passed as an argument for the call).
 
     There is also the clip_children boolean property defaulting to false.
     When true, it'll clip children inside - that's useful for, say, embedded
@@ -112,6 +114,8 @@ M.Filler = register_class("Filler", Widget, {
 
         local min_w = self.min_w
         local min_h = self.min_h
+        if type(min_w) == "function" then min_w = min_w(self) end
+        if type(min_h) == "function" then min_h = min_h(self) end
 
         if  min_w < 0 then
             min_w = abs(min_w) / hud_get_h()

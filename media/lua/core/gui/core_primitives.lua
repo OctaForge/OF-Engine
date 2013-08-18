@@ -27,8 +27,9 @@ gle_attrib2f, texture_load, texture_load_alpha_mask, texture_is_notexture,
 texture_get_notexture, thumbnail_load, texture_draw_slot, texture_draw_vslot,
 gl_blend_disable, gl_blend_enable, gl_scissor_disable, gl_scissor_enable,
 gle_disable, model_preview_start, model_preview, model_preview_end,
-hudmatrix_push, hudmatrix_scale, hudmatrix_flush, hudmatrix_pop, text_draw,
-text_get_bounds, text_set_font, hud_get_h in capi
+hudmatrix_push, hudmatrix_scale, hudmatrix_flush, hudmatrix_pop,
+hudmatrix_translate, text_draw, text_get_bounds, text_set_font, hud_get_h,
+console_render_full in capi
 
 local var_get = cs.var_get
 
@@ -40,6 +41,7 @@ local floor = math.floor
 local ceil  = math.ceil
 local emit  = signal.emit
 local tostring = tostring
+local type = type
 
 local Vec2 = geom.Vec2
 local sincosmod360 = geom.sin_cos_mod_360
@@ -316,6 +318,8 @@ end
     r, g, b, a (see <Color_Filler>).
 
     Negative min_w and min_h values are in pixels.
+    They can also be functions, in which case their return value is used
+    (the widget is passed as an argument for the call).
 
     Images are basically containers for texture objects. Texture objects
     are low-level and documented elsewhere.
@@ -404,6 +408,8 @@ local Image = register_class("Image", Filler, {
 
         local min_w = self.min_w
         local min_h = self.min_h
+        if type(min_w) == "function" then min_w = min_w(self) end
+        if type(min_h) == "function" then min_h = min_h(self) end
 
         if  min_w < 0 then
             min_w = abs(min_w) / hud_get_h()
@@ -429,6 +435,7 @@ local Image = register_class("Image", Filler, {
             end
         end
 
+        self._min_w, self._min_h = min_w, min_h
         self.w = max(self.w, min_w)
         self.h = max(self.h, min_h)
     end,
@@ -557,8 +564,8 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         if    o then return o end
         if self.texture:get_bpp() < 32 then return self end
 
-        local mx, my, mw, mh, pw, ph = 0, 0, self.min_w, self.min_h,
-                                             self.w,     self.h
+        local mx, my, mw, mh, pw, ph = 0, 0, self._min_w, self._min_h,
+                                             self.w,      self.h
 
         if     pw <= mw          then mx = cx / pw
         elseif cx <  mw / 2      then mx = cx / mw
@@ -593,7 +600,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         gle_deftexcoord0f(2)
         gle_begin(gl.QUADS)
 
-        local mw, mh, pw, ph = self.min_w, self.min_h, self.w, self.h
+        local mw, mh, pw, ph = self._min_w, self._min_h, self.w, self.h
 
         local splitw = (mw != 0 and min(mw, pw) or pw) / 2
         local splith = (mh != 0 and min(mh, ph) or ph) / 2
@@ -997,6 +1004,27 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
     set_attachments = gen_setter "attachments"
 })
 
+--[[! Struct: Console
+    A full console widget that derives from <Filler>. Its bounds are determined
+    by filler's min_w and min_h.
+]]
+M.Console = register_class("Console", Filler, {
+    draw_scale = function(self)
+        return var_get("uicontextscale") / var_get("fonth")
+    end,
+
+    draw = function(self, sx, sy)
+        local k = self:draw_scale()
+        hudmatrix_push()
+        hudmatrix_translate(sx, sy, 0)
+        hudmatrix_scale(k, k, 1)
+        hudmatrix_flush()
+        console_render_full(self.w / k, self.h / k)
+        hudmatrix_pop()
+        return Filler.draw(self, sx, sy)
+    end
+})
+
 --[[! Struct: Shape
     Represents a generic shape that derives from <Filler>. It has one extra
     property called "style" which can have values Shape.SOLID and
@@ -1049,6 +1077,8 @@ M.Triangle = register_class("Triangle", Shape, {
         Widget.layout(self)
 
         local w, h = self.min_w, self.min_h
+        if type(w) == "function" then w = w(self) end
+        if type(h) == "function" then h = h(self) end
         local angle = self.angle
 
         if w < 0 then w = abs(w) / hud_get_h() end
@@ -1149,14 +1179,6 @@ M.Circle = register_class("Circle", Shape, {
     set_sides = gen_setter "sides"
 })
 
---[[! Variable: uitextrows
-    Specifies how many rows of text of scale 1 can fit on the screen. Defaults
-    to 40. You can change this to tweak the font scale and thus the whole UI
-    scale.
-]]
-cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
-    cs.var_flags.PERSIST)
-
 --[[! Struct: Label
     A regular label. Has several properties - text (the label, a string),
     font (the font, a string, optional), scale (the scale, defaults to 1,
@@ -1187,7 +1209,7 @@ M.Label = register_class("Label", Widget, {
     end,
 
     draw_scale = function(self)
-        return self.scale / (var_get("fonth") * var_get("uitextrows"))
+        return (self.scale * var_get("uitextscale")) / var_get("fonth")
     end,
 
     draw = function(self, sx, sy)

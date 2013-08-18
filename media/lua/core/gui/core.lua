@@ -27,7 +27,8 @@ local logger = require("core.logger")
 local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
 hudmatrix_ortho, hudmatrix_reset, shader_hud_set, hud_get_w, hud_get_h,
-hud_get_ss_x, hud_get_ss_y, hud_get_so_x, hud_get_so_y, isconnected in capi
+hud_get_ss_x, hud_get_ss_y, hud_get_so_x, hud_get_so_y, isconnected,
+text_get_res in capi
 
 local set_external = capi.external_set
 
@@ -1757,6 +1758,27 @@ set_external("gui_clear", function()
     end
 end)
 
+--[[! Variable: uitextrows
+    Specifies how many rows of text of scale 1 can fit on the screen. Defaults
+    to 40. You can change this to tweak the font scale and thus the whole UI
+    scale.
+]]
+cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
+    cs.var_flags.PERSIST)
+
+cs.var_new("uitextscale", cs.var_type.float, 1, 0, 0)
+cs.var_new("uicontextscale", cs.var_type.float, 1, 0, 0)
+
+local calc_text_scale = function()
+    var_set("uitextscale", 1 / var_get("uitextrows"), false, false)
+    local tw, th = hud_get_w(), hud_get_h()
+    local forceaspect = var_get("aspect")
+    if forceaspect != 0 then tw = ceil(th * forceaspect) end
+    tw, th = text_get_res(tw, th)
+    var_set("uicontextscale", (var_get("fonth") * var_get("conscale")) / th,
+        false, false)
+end
+
 set_external("gui_visible", function(wname)
     return world:window_visible(wname)
 end)
@@ -1790,6 +1812,8 @@ set_external("gui_update", function()
     if draw_hud then draw_hud = hud.visible end
 
     local wvisible = world.visible
+
+    calc_text_scale()
 
     local nhov = 0
     if cursor_exists() and wvisible then

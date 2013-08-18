@@ -718,7 +718,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         hudmatrix_push()
 
         hudmatrix_translate(sx, sy, 0)
-        local s = self.scale / (var_get("fonth") * var_get("uitextrows"))
+        local s = (self.scale * var_get("uitextscale")) / var_get("fonth")
         hudmatrix_scale(s, s, 1)
         hudmatrix_flush()
 
