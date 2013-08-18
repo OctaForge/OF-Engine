@@ -1337,13 +1337,21 @@ Window = register_class("Window", Named_Widget, {
         kwargs = kwargs or {}
         local ig = kwargs.input_grab
         self.input_grab = ig == nil and true or ig
+        self.above_hud = kwargs.above_hud or false
         return Named_Widget.__init(self, kwargs)
     end,
 
     grabs_input = function(self) return self.input_grab end,
 
+    calc_above_hud = function(self)
+        return 1 - (self.y * world.ss_y + world.so_y)
+    end,
+
     --[[! Function: set_input_grab ]]
-    set_input_grab = gen_setter "input_grab"
+    set_input_grab = gen_setter "input_grab",
+
+    --[[! Function: set_above_hud ]]
+    set_above_hud = gen_setter "above_hud"
 })
 M.Window = Window
 
@@ -1586,6 +1594,15 @@ local World = register_class("World", Widget, {
     ]]
     window_visible = function(self, name)
         return self.windows[name](true)
+    end,
+
+    above_hud = function(self)
+        local y, ch = 1, self.children
+        for i = 1, #ch do
+            local w = ch[i]
+            if w.above_hud then y = min(y, w:calc_above_hud()) end
+        end
+        return y
     end
 })
 
@@ -1980,6 +1997,10 @@ set_external("gui_render", function()
         gl_scissor_disable()
         gle_disable()
     end
+end)
+
+set_external("gui_above_hud", function()
+    return world:above_hud()
 end)
 
 local needsapply = {}

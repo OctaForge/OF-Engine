@@ -150,24 +150,40 @@ world:new_window("main", gui.Window, |win| do
     end)
 end)
 
+local var_get = cs.var_get
+
 world:new_window("fullconsole", gui.Overlay, |win| do
     win:clamp(true, true, false, false)
     win:align(0, -1)
     win:append(gui.Console {
-        min_h = || cs.var_get("fullconsize") / 100
+        min_h = || var_get("fullconsize") / 100
     }, |con| do
         con:clamp(true, true, false, false)
     end)
 end)
 
+local cs_execute = cs.execute
+
+cs_execute([=[
+    edithudline1 = [edithud]
+    edithudline2 = [format "cube %1%2" $selchildcount (if $showmat [selchildmat ": "])]
+    edithudline3 = [format "wtr:%1k(%2%%) wvt:%3k(%4%%) evt:%5k eva:%6k" $editstatwtr $editstatvtr $editstatwvt $editstatvvt $editstatevt $editstateva]
+    edithudline4 = [format "ond:%1 va:%2 gl:%3(%4) oq:%5 pvs:%6" $editstatocta $editstatva $editstatglde $editstatgeombatch $editstatoq $editstatpvs]
+    getedithud = [ concatword (edithudline1) "^f7^n" (edithudline2) "^n" (edithudline3) "^n" (edithudline4) ]
+]=])
+
 world:new_window("editstats", gui.Overlay, |win| do
     win:align(-1, 1)
-    win:append(gui.Filler { min_w = 0.4 })
+    win:set_above_hud(true)
     win:append(gui.V_Box(), |box| do
+        box:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02 }, |sp| do
+            sp:append(gui.Eval_Label { scale = 1,
+                func = || cs_execute("getedithud") }):align(-1, 0)
+        end)
     end)
 end)
 
-cs.execute([=[
+cs_execute([=[
 showui = [lua [
     require("core.gui.core").get_world():show_window(@(escape $arg1))
 ]]

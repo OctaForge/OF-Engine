@@ -1184,6 +1184,9 @@ M.Circle = register_class("Circle", Shape, {
     font (the font, a string, optional), scale (the scale, defaults to 1,
     which is the base scale), wrap (text wrapping, defaults to -1 - not
     wrapped, otherwise a size), r, g, b, a (see <Color_Filler> for these).
+
+    If the scale is negative, it uses console text scaling multiplier instead
+    of regular one.
 ]]
 M.Label = register_class("Label", Widget, {
     __init = function(self, kwargs)
@@ -1209,7 +1212,12 @@ M.Label = register_class("Label", Widget, {
     end,
 
     draw_scale = function(self)
-        return (self.scale * var_get("uitextscale")) / var_get("fonth")
+        local scale = self.scale
+        if scale < 0 then
+            return (-scale * var_get("uicontextscale")) / var_get("fonth")
+        else
+            return (scale * var_get("uitextscale")) / var_get("fonth")
+        end
     end,
 
     draw = function(self, sx, sy)
@@ -1302,7 +1310,12 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
     end,
 
     draw_scale = function(self)
-        return self.scale / (var_get("fonth") * var_get("uitextrows"))
+        local scale = self.scale
+        if scale < 0 then
+            return (-scale * var_get("uicontextscale")) / var_get("fonth")
+        else
+            return (scale * var_get("uitextscale")) / var_get("fonth")
+        end
     end,
 
     draw = function(self, sx, sy)
@@ -1329,7 +1342,7 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
 
         local  cmd = self.func
         if not cmd then return nil end
-        local val = cmd()
+        local val = cmd(self)
         self.val_saved = val
 
         local k = self:draw_scale()

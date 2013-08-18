@@ -1738,7 +1738,7 @@ template<class MDL, class MESH> struct modelcommands
     template<class F> void modelcommand(F *fun, const char *suffix, const char *args)
     {
         defformatstring(name, "%s%s", MDL::formatname(), suffix);
-        addcommand(newstring(name), (void (*)())fun, args);
+        addcommand(newstring(name), (identfun)fun, args);
     }
 
     modelcommands()

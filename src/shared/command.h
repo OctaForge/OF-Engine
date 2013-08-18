@@ -97,12 +97,13 @@ struct identstack
 
 union identvalptr
 {
+    void *p;  // ID_*VAR
     int *i;   // ID_VAR
     float *f; // ID_FVAR
     char **s; // ID_SVAR
 };
 
-typedef void (__cdecl *identfun)();
+typedef void (__cdecl *identfun)(ident *id);
 
 extern int identflags;
 
@@ -326,7 +327,7 @@ inline void ident::getcval(tagval &v) const
 #define VAR(name, min, cur, max) _VAR(name, name, min, cur, max, 0)
 #define VARP(name, min, cur, max) _VAR(name, name, min, cur, max, IDF_PERSIST)
 #define VARR(name, min, cur, max) _VAR(name, name, min, cur, max, IDF_OVERRIDE)
-#define _VARF(name, global, min, cur, max, body, persist)  void var_##name(); int global = variable(#name, min, cur, max, &global, var_##name, persist); void var_##name() { body; }
+#define _VARF(name, global, min, cur, max, body, persist)  void var_##name(ident *id); int global = variable(#name, min, cur, max, &global, var_##name, persist); void var_##name(ident *id) { body; }
 #define VARFN(name, global, min, cur, max, body) _VARF(name, global, min, cur, max, body, 0)
 #define VARF(name, min, cur, max, body) _VARF(name, name, min, cur, max, body, 0)
 #define VARFP(name, min, cur, max, body) _VARF(name, name, min, cur, max, body, IDF_PERSIST)
@@ -341,7 +342,7 @@ inline void ident::getcval(tagval &v) const
 #define HVAR(name, min, cur, max) _HVAR(name, name, min, cur, max, 0)
 #define HVARP(name, min, cur, max) _HVAR(name, name, min, cur, max, IDF_PERSIST)
 #define HVARR(name, min, cur, max) _HVAR(name, name, min, cur, max, IDF_OVERRIDE)
-#define _HVARF(name, global, min, cur, max, body, persist)  void var_##name(); int global = variable(#name, min, cur, max, &global, var_##name, persist | IDF_HEX); void var_##name() { body; }
+#define _HVARF(name, global, min, cur, max, body, persist)  void var_##name(ident *id); int global = variable(#name, min, cur, max, &global, var_##name, persist | IDF_HEX); void var_##name(ident *id) { body; }
 #define HVARFN(name, global, min, cur, max, body) _HVARF(name, global, min, cur, max, body, 0)
 #define HVARF(name, min, cur, max, body) _HVARF(name, name, min, cur, max, body, 0)
 #define HVARFP(name, min, cur, max, body) _HVARF(name, name, min, cur, max, body, IDF_PERSIST)
@@ -356,7 +357,7 @@ inline void ident::getcval(tagval &v) const
 #define FVAR(name, min, cur, max) _FVAR(name, name, min, cur, max, 0)
 #define FVARP(name, min, cur, max) _FVAR(name, name, min, cur, max, IDF_PERSIST)
 #define FVARR(name, min, cur, max) _FVAR(name, name, min, cur, max, IDF_OVERRIDE)
-#define _FVARF(name, global, min, cur, max, body, persist) void var_##name(); float global = fvariable(#name, min, cur, max, &global, var_##name, persist); void var_##name() { body; }
+#define _FVARF(name, global, min, cur, max, body, persist) void var_##name(ident *id); float global = fvariable(#name, min, cur, max, &global, var_##name, persist); void var_##name(ident *id) { body; }
 #define FVARFN(name, global, min, cur, max, body) _FVARF(name, global, min, cur, max, body, 0)
 #define FVARF(name, min, cur, max, body) _FVARF(name, name, min, cur, max, body, 0)
 #define FVARFP(name, min, cur, max, body) _FVARF(name, name, min, cur, max, body, IDF_PERSIST)
@@ -371,7 +372,7 @@ inline void ident::getcval(tagval &v) const
 #define SVAR(name, cur) _SVAR(name, name, cur, 0)
 #define SVARP(name, cur) _SVAR(name, name, cur, IDF_PERSIST)
 #define SVARR(name, cur) _SVAR(name, name, cur, IDF_OVERRIDE)
-#define _SVARF(name, global, cur, body, persist) void var_##name(); char *global = svariable(#name, cur, &global, var_##name, persist); void var_##name() { body; }
+#define _SVARF(name, global, cur, body, persist) void var_##name(ident *id); char *global = svariable(#name, cur, &global, var_##name, persist); void var_##name(ident *id) { body; }
 #define SVARFN(name, global, cur, body) _SVARF(name, global, cur, body, 0)
 #define SVARF(name, cur, body) _SVARF(name, name, cur, body, 0)
 #define SVARFP(name, cur, body) _SVARF(name, name, cur, body, IDF_PERSIST)
