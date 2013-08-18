@@ -83,7 +83,7 @@ end
 M.update_var = update_var
 
 -- initialized after World is created
-local world, clicked, hovering, focused
+local world, projection, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local cursor_x, cursor_y, prev_cx, prev_cy = 0.5, 0.5, 0.5, 0.5
 
@@ -376,7 +376,7 @@ M.is_fully_clipped = is_fully_clipped
 local clip_area_scissor = function(self)
     self = self or clip_stack[#clip_stack]
     local sx1, sy1, sx2, sy2 =
-        world:calc_scissor(self[1], self[2], self[3], self[4])
+        projection:calc_scissor(self[1], self[2], self[3], self[4])
     gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
 end
 M.clip_area_scissor = clip_area_scissor
@@ -423,6 +423,76 @@ local orient = {
     HORIZONTAL = 0, VERTICAL = 1
 }
 M.orient = orient
+
+local Projection = table2.Object:clone {
+    __init = function(self, obj)
+        self.obj = obj
+        self.px, self.py, self.pw, self.ph = 0, 0, 0, 0
+    end,
+
+    calc = function(self)
+        local aspect = hud_get_w() / hud_get_h()
+        local obj = self.obj
+        local ph = max(max(obj.h, obj.w / aspect), 1)
+        local pw = aspect * ph
+        self.px, self.py = world.x, world.y
+        self.pw, self.ph = pw, ph
+        return pw, ph
+    end,
+
+    adjust_layout = function(self)
+        self.obj:adjust_layout(0, 0, self:calc())
+    end,
+
+    projection = function(self)
+        local px, py, pw, ph in self
+        hudmatrix_ortho(px, px + pw, py + ph, py, -1, 1)
+        hudmatrix_reset()
+        self.ss_x, self.ss_y = hud_get_ss_x(), hud_get_ss_y()
+        self.so_x, self.so_y = hud_get_so_x(), hud_get_so_y()
+    end,
+
+    calc_scissor = function(self, x1, y1, x2, y2)
+        local sscale  = Vec2(self.ss_x, self.ss_y)
+        local soffset = Vec2(self.so_x, self.so_y)
+        local s1 = Vec2(x1, y2):mul(sscale):add(soffset)
+        local s2 = Vec2(x2, y1):mul(sscale):add(soffset)
+        return clamp(floor(s1.x * hudw), 0, hudw),
+               clamp(floor(s1.y * hudh), 0, hudh),
+               clamp(ceil (s2.x * hudw), 0, hudw),
+               clamp(ceil (s2.y * hudh), 0, hudh)
+    end,
+
+    draw = function(self, sx, sy)
+        projection = self
+        self:projection()
+        shader_hud_set()
+
+        gl_blend_enable()
+        gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+        gle_color3f(1, 1, 1)
+
+        self.obj:draw(sx, sy)
+
+        gl_blend_disable()
+        projection = nil
+    end,
+
+    calc_above_hud = function(self)
+        return 1 - (self.obj.y * self.ss_y + self.so_y)
+    end
+}
+
+local get_projection = function(o)
+    if not o then return projection end
+    local proj = o.projection
+    if proj then return proj end
+    proj = Projection(o)
+    o.projection = proj
+    return proj
+end
+
+M.get_projection = get_projection
 
 local Widget, Window
 
@@ -1343,10 +1413,6 @@ Window = register_class("Window", Named_Widget, {
 
     grabs_input = function(self) return self.input_grab end,
 
-    calc_above_hud = function(self)
-        return 1 - (self.y * world.ss_y + world.so_y)
-    end,
-
     --[[! Function: set_input_grab ]]
     set_input_grab = gen_setter "input_grab",
 
@@ -1394,9 +1460,7 @@ M.Overlay = Overlay
 local World = register_class("World", Widget, {
     __init = function(self)
         self.windows = {}
-        self.size, self.margin = 0, 0
-        self.ss_x, self.ss_y = 1, 1
-        self.so_x, self.so_y = 0, 0
+        self.margin = 0
         return Widget.__init(self)
     end,
 
@@ -1453,16 +1517,34 @@ local World = register_class("World", Widget, {
         end
     end,
 
+    adjust_children = function(self)
+        loop_children(self, function(o)
+            projection = get_projection(o)
+            o.projection:adjust_layout()
+            projection = nil
+        end)
+    end,
+
     --[[! Function: layout
         First calls layout on <Widget>, then calculates x, y, w, h of the
         world. Takes forced aspect (via the forceaspect engine variable)
         into consideration. Then adjusts children.
     ]]
     layout = function(self)
-        Widget.layout(self)
+        self.w = 0
+        self.h = 0
+
+        loop_children(self, function(o)
+            o.x = 0
+            o.y = 0
+            projection = get_projection(o)
+            o:layout()
+            projection = nil
+            self.w = max(self.w, o.x + o.w)
+            self.h = max(self.h, o.y + o.h)
+        end)
 
         local sw, sh = hud_get_w(), hud_get_h()
-        self.size = sh
         local faspect = var_get("aspect")
         if faspect != 0 then sw = ceil(sh * faspect) end
 
@@ -1476,23 +1558,20 @@ local World = register_class("World", Widget, {
         self:adjust_children()
     end,
 
-    projection = function(self)
-        local x, y, w, h in self
-        hudmatrix_ortho(x, x + w, y + h, y, -1, 1)
-        hudmatrix_reset()
-        self.ss_x, self.ss_y = hud_get_ss_x(), hud_get_ss_y()
-        self.so_x, self.so_y = hud_get_so_x(), hud_get_so_y()
-    end,
+    draw = function(self, sx, sy)
+        sx = sx or self.x
+        sy = sy or self.y
 
-    calc_scissor = function(self, x1, y1, x2, y2)
-        local hudw, hudh = hud_get_w(), hud_get_h()
-        local x, y, w, h, ss_x, ss_y, so_x, so_y in self
-        local s1_x, s1_y = (x1 * ss_x + so_x), (y2 * ss_y + so_y)
-        local s2_x, s2_y = (x2 * ss_x + so_x), (y1 * ss_y + so_y)
-        return clamp(floor(s1_x * hudw), 0, hudw),
-               clamp(floor(s1_y * hudh), 0, hudh),
-               clamp(ceil (s2_x * hudw), 0, hudw),
-               clamp(ceil (s2_y * hudh), 0, hudh)
+        loop_children(self, function(o)
+            local ox = o.x
+            local oy = o.y
+            local ow = o.w
+            local oh = o.h
+            if not is_fully_clipped(sx + ox, sy + oy, ow, oh)
+            and o.visible then
+                o.projection:draw(sx + ox, sy + oy)
+            end
+        end)
     end,
 
     --[[! Function: build_window
@@ -1600,7 +1679,9 @@ local World = register_class("World", Widget, {
         local y, ch = 1, self.children
         for i = 1, #ch do
             local w = ch[i]
-            if w.above_hud then y = min(y, w:calc_above_hud()) end
+            if w.above_hud then
+                y = min(y, get_projection(w):calc_above_hud())
+            end
         end
         return y
     end
@@ -1868,8 +1949,11 @@ set_external("gui_update", function()
         local tooltip = hovering.tooltip
         if    tooltip then
               tooltip.parent = hovering
+              projection = get_projection(tooltip)
               tooltip:layout()
+              projection:calc()
               tooltip:adjust_children()
+              projection = nil
         end
         if msl > 0 then
             if nhov > 0 then
@@ -1895,15 +1979,21 @@ set_external("gui_update", function()
 
     if msl > 0 then
         for i = 1, msl do
+            projection = get_projection(menustack[i])
             menustack[i]:layout()
+            projection:calc()
             menustack[i]:adjust_children()
+            projection = nil
         end
     end
 
     if draw_hud then
+        projection = get_projection(hud)
         hud:layout()
         hud.x, hud.y, hud.w, hud.h = world.x, world.y, world.w, world.h
+        projection:calc()
         hud:adjust_children()
+        projection = nil
     end
 
     prev_cx, prev_cy = cursor_x, cursor_y
@@ -1912,15 +2002,7 @@ end)
 set_external("gui_render", function()
     local w = world
     if draw_hud or (w.visible and #w.children != 0) then
-        w:projection()
-        shader_hud_set()
-
-        gl_blend_enable()
-        gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
-        gle_color3f(1, 1, 1)
         w:draw()
-
         local msl = #menustack
         if msl > 0 then
             local prevo
@@ -1965,7 +2047,7 @@ set_external("gui_render", function()
                     omx -= ow
                 end
                 o.x, o.y = omx, omy
-                o:draw(omx, omy)
+                o.projection:draw(omx, omy)
                 prevo = o
             end
         end
@@ -1986,15 +2068,12 @@ set_external("gui_render", function()
                 if y < 0 then y = 0 end
             end
 
-            tooltip:draw(x, y)
+            tooltip.projection:draw(x, y)
         end
 
         if draw_hud then
-            hud:draw()
+            hud.projection:draw(hud.x, hud.y)
         end
-
-        gl_blend_disable()
-        gl_scissor_disable()
         gle_disable()
     end
 end)

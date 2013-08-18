@@ -63,6 +63,9 @@ local clip_push, clip_pop = M.clip_push, M.clip_pop
 -- primitive drawing
 local quad, quadtri = M.draw_quad, M.draw_quadtri
 
+-- projection
+local get_projection = M.get_projection
+
 -- base widgets
 local Widget = M.get_class("Widget")
 
@@ -980,7 +983,8 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         local w, h in self
         local csl = #clip_stack > 0
         if csl then gl_scissor_disable() end
-        local sx1, sy1, sx2, sy2 = world:calc_scissor(sx, sy, sx + w, sy + h)
+        local sx1, sy1, sx2, sy2 = get_projection():calc_scissor(sx, sy,
+            sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
