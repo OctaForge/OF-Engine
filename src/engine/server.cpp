@@ -120,6 +120,8 @@ void conoutf(const char *fmt, ...)
 }
 #endif
 
+#define DEFAULTCLIENTS 8
+
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 struct client                   // server side version of "dynent" type
@@ -192,6 +194,9 @@ void cleanupserver()
     if(lansock != ENET_SOCKET_NULL) enet_socket_destroy(lansock);
     lansock = ENET_SOCKET_NULL;
 }
+
+VARF(maxclients, 0, DEFAULTCLIENTS, MAXCLIENTS, { if(!maxclients) maxclients = DEFAULTCLIENTS; });
+VARF(maxdupclients, 0, 0, MAXCLIENTS, { if(serverhost) serverhost->duplicatePeers = maxdupclients ? maxdupclients : MAXCLIENTS; });
 
 void process(ENetPacket *packet, int sender, int chan);
 //void disconnect_client(int n, int reason);
@@ -357,9 +362,7 @@ static int serverinfointercept(ENetHost *host, ENetEvent *event)
     return 1;
 }
 
-#define DEFAULTCLIENTS 6
-
-int uprate = 0, maxclients = DEFAULTCLIENTS;
+int uprate = 0;
 const char *ip = "";
 
 #ifdef SERVER // INTENSITY: Added server
@@ -546,6 +549,7 @@ bool setuplistenserver(bool dedicated)
         logger::log(logger::ERROR, "***!!! could not create server host (awaiting manual restart) !!!***");
         return false;
     }
+    serverhost->duplicatePeers = maxdupclients ? maxdupclients : MAXCLIENTS;
     loopi(maxclients) serverhost->peers[i].data = NULL;
     serverhost->intercept = serverinfointercept;
     return true;
@@ -555,7 +559,10 @@ void initserver(bool listen, bool dedicated)
 {
     if (dedicated) execfile("config/server-init.cfg", false);
 
-    if(listen) setuplistenserver(dedicated);
+    if(listen) {
+        dedicatedserver = dedicated;
+        setuplistenserver(dedicated);
+    }
 
     server::serverinit();
 

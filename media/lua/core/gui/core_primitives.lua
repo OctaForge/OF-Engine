@@ -1025,14 +1025,19 @@ M.Console = register_class("Console", Filler, {
     end
 })
 
+local SOLID    = 0
+local OUTLINE  = 1
+local MODULATE = 2
+
 --[[! Struct: Shape
     Represents a generic shape that derives from <Filler>. It has one extra
-    property called "style" which can have values Shape.SOLID and
-    Shape.OUTLINE. It also has color properties, r, g, b, a.
+    property called "style" which can have values Shape.SOLID, Shape.OUTLINE
+    and Shape.MODULATE. It also has color properties, r, g, b, a.
 ]]
 local Shape = register_class("Shape", Filler, {
-    SOLID   = 0,
-    OUTLINE = 1,
+    SOLID    = SOLID,
+    OUTLINE  = OUTLINE,
+    MODULATE = MODULATE,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1110,17 +1115,22 @@ M.Triangle = register_class("Triangle", Shape, {
     end,
 
     draw = function(self, sx, sy)
+        local style = self.style
+        if style == MODULATE then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
         gle_color4ub(self.r, self.g, self.b, self.a)
         gle_defvertexf(2)
         gle_color4ub(self.r, self.g, self.b, self.a)
-        gle_begin(self.style == Shape.OUTLINE and gl.LINE_LOOP or gl.TRIANGLES)
+        gle_begin(style == OUTLINE and gl.LINE_LOOP or gl.TRIANGLES)
         gle_attrib2f(Vec2(sx, sy):add(self.ta):unpack())
         gle_attrib2f(Vec2(sx, sy):add(self.tb):unpack())
         gle_attrib2f(Vec2(sx, sy):add(self.tc):unpack())
         gle_end()
         gle_color4f(1, 1, 1, 1)
         shader_hud_set()
+        if style == MODULATE then
+            gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+        end
         return Shape.draw(self, sx, sy)
     end,
 
@@ -1131,7 +1141,7 @@ M.Triangle = register_class("Triangle", Shape, {
 --[[! Struct: Circle
     A regular circle that derives from <Shape>. Its radius is determined
     by min_w and min_h (same conventions as on <Filler> apply when it comes
-    to widget bounds and the larger one is used to determine radius).
+    to widget bounds and the smaller one is used to determine radius).
     It features one additional property called "sides". It defaults to 15
     and specifies the number of sides the circle will have (as it's not a
     perfect circle).
@@ -1144,13 +1154,13 @@ M.Circle = register_class("Circle", Shape, {
     end,
 
     draw = function(self, sx, sy)
+        local style = self.style
         shader_hudnotexture_set()
         gle_color4ub(self.r, self.g, self.b, self.a)
         gle_defvertexf(2)
-        local w, h = self.w, self.h
-        local radius = ((w > h) and w or h) / 2
+        local radius = min(self.w, self.h) / 2
         local center = Vec2(sx + radius, sy + radius)
-        if self.style == Shape.OUTLINE then
+        if style == OUTLINE then
             gle_begin(gl.LINE_LOOP)
             for angle = 0, 359, 360 / self.sides do
                 gle_attrib2f(sincos360(angle):mul_new(radius)
@@ -1158,6 +1168,7 @@ M.Circle = register_class("Circle", Shape, {
             end
             gle_end()
         else
+            if style == MODULATE then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
             gle_begin(gl.TRIANGLE_FAN)
             gle_attrib2f(center.x,          center.y)
             gle_attrib2f(center.x + radius, center.y)
@@ -1169,6 +1180,9 @@ M.Circle = register_class("Circle", Shape, {
             end
             gle_attrib2f(center.x + radius, center.y)
             gle_end()
+            if style == MODULATE then
+                gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            end
         end
         gle_color4f(1, 1, 1, 1)
         shader_hud_set()

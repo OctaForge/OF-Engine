@@ -59,9 +59,6 @@ namespace game
     {
         connected = true;
         remote = _remote;
-#ifndef SERVER
-        if(editmode) toggleedit();
-#endif
     }
 
     void gamedisconnect(bool cleanup)
@@ -70,6 +67,9 @@ namespace game
 //        if(remote) stopfollowing(); Kripken
         connected = false;
         player1->clientnum = -1;
+#ifndef SERVER
+        if(editmode) toggleedit();
+#endif
         player1->lifesequence = 0;
         spectator = false;
 //        loopv(players) clientdisconnected(i, false); Kripken: When we disconnect, we should shut down anyhow...

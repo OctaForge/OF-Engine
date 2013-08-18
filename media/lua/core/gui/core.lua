@@ -1765,6 +1765,7 @@ end)
 local draw_hud = false
 
 set_external("gui_clear", function()
+    var_set("hidechanges", 0)
     if  var_get("mainmenu") != 0 and isconnected() then
         var_set("mainmenu", 0, true, false) -- no clamping, readonly var
         world:destroy_children()
@@ -1787,13 +1788,13 @@ cs.var_new("uitextscale", cs.var_type.float, 1, 0, 0)
 cs.var_new("uicontextscale", cs.var_type.float, 1, 0, 0)
 
 local calc_text_scale = function()
-    var_set("uitextscale", 1 / var_get("uitextrows"), false, false)
+    var_set("uitextscale", 1 / var_get("uitextrows"), true, false)
     local tw, th = hud_get_w(), hud_get_h()
     local forceaspect = var_get("aspect")
     if forceaspect != 0 then tw = ceil(th * forceaspect) end
     tw, th = text_get_res(tw, th)
     var_set("uicontextscale", (var_get("fonth") * var_get("conscale")) / th,
-        false, false)
+        true, false)
 end
 
 set_external("gui_visible", function(wname)
@@ -2011,6 +2012,7 @@ local needsapply = {}
 ]]
 cs.var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
     cs.var_flags.PERSIST)
+cs.var_new("hidechanges", cs.var_type.int, 0, 0, 1)
 
 set_external("change_add", function(desc, ctype)
     if var_get("applydialog") == 0 then return nil end
@@ -2021,7 +2023,7 @@ set_external("change_add", function(desc, ctype)
 
     needsapply[#needsapply + 1] = { ctype = ctype, desc = desc }
     local win = world:get_window("changes")
-    if win then win() end
+    if win and (var_get("hidechanges") == 0) then win() end
 end)
 
 local CHANGE_GFX     = 1 << 0
