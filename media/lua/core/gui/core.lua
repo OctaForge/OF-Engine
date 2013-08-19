@@ -1343,26 +1343,7 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: is_field
         Returns true if this widget is a textual field, by default false.
     ]]
-    is_field = function() return false end,
-
-    --[[! Function: get_window
-        Gets the window this widget belongs to. Windows return themselves.
-        Overlays are windows too.
-    ]]
-    get_window = function(self)
-        if self.type == Window.type then
-            return self
-        end
-        local  w = self.window
-        if not w then
-            w = self.parent
-            while w and w.type != Window.type do
-                w = w.parent
-            end
-            self.window = w
-        end
-        return w
-    end
+    is_field = function() return false end
 })
 
 --[[! Struct: Named_Widget

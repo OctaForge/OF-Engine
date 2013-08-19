@@ -62,17 +62,24 @@ M.Conditional = register_class("Conditional", Widget, {
     If you have multiple movable windows, the mover will take care of
     moving the current window to the top. That means you don't have to care
     about re-stacking them.
+
+    It has one property called "window" which is a reference to the window
+    this mover belongs to. Without it, it won't work.
 ]]
 M.Mover = register_class("Mover", Widget, {
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.window = kwargs.window
+        return Widget.__init(self, kwargs)
+    end,
+
     hover = function(self, cx, cy)
         return self:target(cx, cy) and self
     end,
 
     click = function(self, cx, cy)
-        local  w = self:get_window()
-        if not w then
-            return self:target(cx, cy) and self
-        end
+        local  w = self.window
+        if not w then return self:target(cx, cy) and self end
         local c = w.parent.children
         local n = find(c, w)
         local l = #c
@@ -84,14 +91,11 @@ M.Mover = register_class("Mover", Widget, {
         local wp = self.window.parent
 
         -- no parent means world; we don't need checking for non-mdi windows
-        if not wp.parent then
-            return true
-        end
+        if not wp.parent then return true end
 
         local rx, ry, p = self.x, self.y, wp
         while p do
-            rx = rx + p.x
-            ry = ry + p.y
+            rx, ry = rx + p.x, ry + py
             local  pp = p.parent
             if not pp then break end
             p    = pp
@@ -114,13 +118,14 @@ M.Mover = register_class("Mover", Widget, {
     end,
 
     pressing = function(self, cx, cy)
-        local  w = self:get_window()
-        if not w then
-            return Widget.pressing(self, cx, cy)
-        end
+        local  w = self.window
+        if not w then return Widget.pressing(self, cx, cy) end
         if w and w.floating and is_clicked(self) and self:can_move() then
             w.fx, w.x = w.fx + cx, w.x + cx
             w.fy, w.y = w.fy + cy, w.y + cy
         end
-    end
+    end,
+
+    --[[! Function: set_window ]]
+    set_window = gen_setter "window"
 })

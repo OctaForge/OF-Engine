@@ -57,7 +57,7 @@ world:new_window("main", gui.Window, |win| do
         r:align(0, 0)
         r:append(gui.V_Box(), |b| do
             b:clamp(true, true, true, true)
-            b:append(gui.Mover(), |mover| do
+            b:append(gui.Mover { window = win }, |mover| do
                 mover:clamp(true, true, true, true)
                 mover:append(gui.Color_Filler { r = 255, g = 0, b = 0, a = 200, min_h = 0.03 }, |r| do
                     r:clamp(true, true, true, true)
