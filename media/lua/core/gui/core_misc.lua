@@ -33,6 +33,9 @@ local Widget = M.get_class("Widget")
 -- setters
 local gen_setter = M.gen_setter
 
+-- projection
+local get_projection = M.get_projection
+
 --[[! Struct: Conditional
     Conditional has two states, "true" and "false". It has a property,
     "condition", which is a function. If that function exists and returns
@@ -94,7 +97,7 @@ M.Mover = register_class("Mover", Widget, {
         if not wp.parent then return true end
 
         local rx, ry, p = self.x, self.y, wp
-        while p do
+        while true do
             rx, ry = rx + p.x, ry + py
             local  pp = p.parent
             if not pp then break end
@@ -117,10 +120,28 @@ M.Mover = register_class("Mover", Widget, {
         return true
     end,
 
+    find_projection = function(self)
+        local proj = self._projection
+        if proj then return proj end
+        local  w = self.window
+        if not w then return nil end
+        proj = w.projection
+        while not proj do
+            w = w.parent
+            if not w then break end
+            proj = w.projection
+        end
+        if not proj then return nil end
+        self._projection = proj
+        return proj
+    end,
+
     pressing = function(self, cx, cy)
         local  w = self.window
         if not w then return Widget.pressing(self, cx, cy) end
         if w and w.floating and is_clicked(self) and self:can_move() then
+            local proj = self:find_projection()
+            if proj then cx, cy = cx * proj.ph, cy * proj.ph end
             w.fx, w.x = w.fx + cx, w.x + cx
             w.fy, w.y = w.fy + cy, w.y + cy
         end
