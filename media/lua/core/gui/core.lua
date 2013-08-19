@@ -1520,7 +1520,7 @@ local World = register_class("World", Widget, {
     adjust_children = function(self)
         loop_children(self, function(o)
             projection = get_projection(o)
-            o.projection:adjust_layout()
+            projection:adjust_layout()
             projection = nil
         end)
     end,
@@ -2046,6 +2046,8 @@ set_external("gui_render", function()
                 if (omx + ow) > md then
                     omx -= ow
                 end
+                local wm = -world.margin
+                omx, omy = max(omx, wm), max(omy, wm)
                 o.x, o.y = omx, omy
                 o.projection:draw(omx, omy)
                 prevo = o
@@ -2067,7 +2069,8 @@ set_external("gui_render", function()
                 y = y - th + 0.02
                 if y < 0 then y = 0 end
             end
-
+            x, y = max(x, left), max(y, left)
+            tooltip.x, tooltip.y = x, y
             tooltip.projection:draw(x, y)
         end
 
