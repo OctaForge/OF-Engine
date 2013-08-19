@@ -14,7 +14,6 @@
 ]]
 
 local M = require("core.gui.core")
-local world = M.get_world()
 
 -- input event management
 local is_clicked, is_hovering = M.is_clicked, M.is_hovering

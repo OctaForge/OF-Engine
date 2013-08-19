@@ -48,7 +48,6 @@ local sincosmod360 = geom.sin_cos_mod_360
 local sincos360 = geom.sin_cos_360
 
 local M = require("core.gui.core")
-local world = M.get_world()
 
 -- consts
 local gl = M.gl
@@ -414,19 +413,12 @@ local Image = register_class("Image", Filler, {
         if type(min_w) == "function" then min_w = min_w(self) end
         if type(min_h) == "function" then min_h = min_h(self) end
 
-        if  min_w < 0 then
-            min_w = abs(min_w) / hud_get_h()
-        end
-        if  min_h < 0 then
-            min_h = abs(min_h) / hud_get_h()
-        end
+        if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
+        if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
 
-        if  min_w == -1 then
-            min_w = world.w
-        end
-        if  min_h == -1 then
-            min_h = 1
-        end
+        local proj = get_projection()
+        if min_w == -1 then min_w = proj.pw end
+        if min_h == -1 then min_h = proj.ph end
 
         if  min_w == 0 or min_h == 0 then
             local tex, scrh = self.texture, hud_get_h()
@@ -1092,8 +1084,10 @@ M.Triangle = register_class("Triangle", Shape, {
 
         if w < 0 then w = abs(w) / hud_get_h() end
         if h < 0 then h = abs(h) / hud_get_h() end
-        if w == -1 then w = world.w end
-        if h == -1 then h = 1 end
+
+        local proj = get_projection()
+        if w == -1 then w = proj.pw end
+        if h == -1 then h = proj.ph end
 
         local a = Vec2(0, -h * 2 / 3)
         local b = Vec2(-w / 2, h / 3)

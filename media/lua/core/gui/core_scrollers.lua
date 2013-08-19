@@ -23,7 +23,6 @@ local clamp = math2.clamp
 local emit  = signal.emit
 
 local M = require("core.gui.core")
-local world = M.get_world()
 
 -- consts
 local key = M.key

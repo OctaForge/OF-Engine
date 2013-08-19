@@ -21,7 +21,6 @@ local cs = require("core.engine.cubescript")
 local var_get = cs.var_get
 
 local M = require("core.gui.core")
-local world = M.get_world()
 
 local capi = require("capi")
 local hud_get_h = capi.hud_get_h
@@ -40,6 +39,9 @@ local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
+
+-- projection
+local get_projection = M.get_projection
 
 --[[! Struct: Spacer
     A spacer will give a widget a horizontal padding (pad_h) and a vertical
@@ -117,19 +119,12 @@ M.Filler = register_class("Filler", Widget, {
         if type(min_w) == "function" then min_w = min_w(self) end
         if type(min_h) == "function" then min_h = min_h(self) end
 
-        if  min_w < 0 then
-            min_w = abs(min_w) / hud_get_h()
-        end
-        if  min_h < 0 then
-            min_h = abs(min_h) / hud_get_h()
-        end
+        if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
+        if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
 
-        if  min_w == -1 then
-            min_w = world.w
-        end
-        if  min_h == -1 then
-            min_h = 1
-        end
+        local proj = get_projection()
+        if min_w == -1 then min_w = proj.pw end
+        if min_h == -1 then min_h = proj.ph end
 
         self.w = max(self.w, min_w)
         self.h = max(self.h, min_h)

@@ -28,7 +28,6 @@ local round = math2.round
 local emit  = signal.emit
 
 local M = require("core.gui.core")
-local world = M.get_world()
 
 -- consts
 local key = M.key

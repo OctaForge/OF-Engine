@@ -19,7 +19,6 @@ local min = math.min
 local createtable = require("capi").table_create
 
 local M = require("core.gui.core")
-local world = M.get_world()
 
 -- consts
 local gl, key = M.gl, M.key

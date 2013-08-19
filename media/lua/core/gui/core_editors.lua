@@ -38,7 +38,6 @@ local emit  = signal.emit
 local tostring = tostring
 
 local M = require("core.gui.core")
-local world = M.get_world()
 
 -- consts
 local gl, key = M.gl, M.key
