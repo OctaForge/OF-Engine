@@ -95,7 +95,7 @@ static inline float vadist(vtxarray *va, const vec &p)
 
 static vtxarray *vasort[VASORTSIZE];
 
-void addvisibleva(vtxarray *va)
+static inline void addvisibleva(vtxarray *va)
 {
     float dist = vadist(va, camera1->o);
     va->distance = int(dist); /*cv.dist(camera1->o) - va->size*SQRT3/2*/
@@ -126,26 +126,37 @@ void sortvisiblevas()
     }
 }
 
-void findvisiblevas(vector<vtxarray *> &vas, bool resetocclude = false)
+template<bool fullvis, bool resetocclude>
+static inline void findvisiblevas(vector<vtxarray *> &vas)
 {
     loopv(vas)
     {
         vtxarray &v = *vas[i];
-        int prevvfc = resetocclude ? VFC_NOT_VISIBLE : v.curvfc;
-        v.curvfc = isvisiblecube(v.o, v.size);
-        if(v.curvfc!=VFC_NOT_VISIBLE)
+        int prevvfc = v.curvfc;
+        v.curvfc = fullvis ? VFC_FULL_VISIBLE : isvisiblecube(v.o, v.size);
+        if(v.curvfc != VFC_NOT_VISIBLE)
         {
             if(pvsoccluded(v.o, v.size))
             {
                 v.curvfc += PVS_FULL_VISIBLE - VFC_FULL_VISIBLE;
                 continue;
             }
-            addvisibleva(&v);
-            if(v.children.length()) findvisiblevas(v.children, prevvfc>=VFC_NOT_VISIBLE);
-            if(prevvfc>=VFC_NOT_VISIBLE)
+            bool resetchildren = resetocclude || prevvfc >= VFC_NOT_VISIBLE;
+            if(resetchildren)
             {
                 v.occluded = !v.texs ? OCCLUDE_GEOM : OCCLUDE_NOTHING;
                 v.query = NULL;
+            }
+            addvisibleva(&v);
+            if(v.children.length())
+            {
+                if(fullvis || v.curvfc == VFC_FULL_VISIBLE)
+                {
+                    if(resetchildren) findvisiblevas<true, true>(v.children);
+                    else findvisiblevas<true, false>(v.children);
+                }
+                else if(resetchildren) findvisiblevas<false, true>(v.children);
+                else findvisiblevas<false, false>(v.children);
             }
         }
     }
@@ -154,7 +165,7 @@ void findvisiblevas(vector<vtxarray *> &vas, bool resetocclude = false)
 void findvisiblevas()
 {
     memset(vasort, 0, sizeof(vasort));
-    findvisiblevas(varoot);
+    findvisiblevas<false, false>(varoot);
     sortvisiblevas();
 }
 

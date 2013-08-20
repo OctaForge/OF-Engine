@@ -2836,7 +2836,7 @@ void executeret(const char *p, tagval &result)
     if(int(code[0]) >= 0x100) code.disown();
 }
 
-void executeret(ident *id, tagval *args, int numargs, tagval &result)
+void executeret(ident *id, tagval *args, int numargs, bool lookup, tagval &result)
 {
     result.setnull();
     ++rundepth;
@@ -2853,9 +2853,9 @@ void executeret(ident *id, tagval *args, int numargs, tagval &result)
             {
                 tagval buf[MAXARGS];
                 memcpy(buf, args, numargs*sizeof(tagval));
-                callcommand(id, buf, numargs);
+                callcommand(id, buf, numargs, lookup);
             }
-            else callcommand(id, args, numargs);
+            else callcommand(id, args, numargs, lookup);
             numargs = 0;
             break;
         case ID_VAR:
@@ -2904,19 +2904,19 @@ char *executestr(const char *p)
     return result.s;
 }
 
-char *executestr(ident *id, tagval *args, int numargs)
+char *executestr(ident *id, tagval *args, int numargs, bool lookup)
 {
     tagval result;
-    executeret(id, args, numargs, result);
+    executeret(id, args, numargs, lookup, result);
     if(result.type == VAL_NULL) return NULL;
     forcestr(result);
     return result.s;
 }
 
-char *execidentstr(const char *name)
+char *execidentstr(const char *name, bool lookup)
 {
     ident *id = idents.access(name);
-    return id ? executestr(id, NULL, 0) : NULL;
+    return id ? executestr(id, NULL, 0, lookup) : NULL;
 }
 
 int execute(const uint *code)
@@ -2941,19 +2941,52 @@ int execute(const char *p)
     return i;
 }
 
-int execute(ident *id, tagval *args, int numargs)
+int execute(ident *id, tagval *args, int numargs, bool lookup)
 {
     tagval result;
-    executeret(id, args, numargs, result);
+    executeret(id, args, numargs, lookup, result);
     int i = result.getint();
     freearg(result);
     return i;
 }
 
-int execident(const char *name, int noid)
+int execident(const char *name, int noid, bool lookup)
 {
     ident *id = idents.access(name);
-    return id ? execute(id, NULL, 0) : noid;
+    return id ? execute(id, NULL, 0, lookup) : noid;
+}
+
+float executefloat(const uint *code)
+{
+    tagval result;
+    runcode(code, result);
+    float f = result.getfloat();
+    freearg(result);
+    return f;
+}
+
+float executefloat(const char *p)
+{
+    tagval result;
+    executeret(p, result);
+    float f = result.getfloat();
+    freearg(result);
+    return f;
+}
+
+float executefloat(ident *id, tagval *args, int numargs, bool lookup)
+{
+    tagval result;
+    executeret(id, args, numargs, lookup, result);
+    float f = result.getfloat();
+    freearg(result);
+    return f;
+}
+
+float execidentfloat(const char *name, float noid, bool lookup)
+{
+    ident *id = idents.access(name);
+    return id ? executefloat(id, NULL, 0, lookup) : noid;
 }
 
 bool executebool(const uint *code)
@@ -2974,19 +3007,19 @@ bool executebool(const char *p)
     return b;
 }
 
-bool executebool(ident *id, tagval *args, int numargs)
+bool executebool(ident *id, tagval *args, int numargs, bool lookup)
 {
     tagval result;
-    executeret(id, args, numargs, result);
+    executeret(id, args, numargs, lookup, result);
     bool b = getbool(result);
     freearg(result);
     return b;
 }
 
-bool execidentbool(const char *name, bool noid)
+bool execidentbool(const char *name, bool noid, bool lookup)
 {
     ident *id = idents.access(name);
-    return id ? executebool(id, NULL, 0) : noid;
+    return id ? executebool(id, NULL, 0, lookup) : noid;
 }
 
 bool execfile(const char *cfgfile, bool msg)
