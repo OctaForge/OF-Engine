@@ -95,10 +95,12 @@ M.Mover = register_class("Mover", Widget, {
         local wp = win.parent
 
         -- no parent means world; we don't need checking for non-mdi windows
-        if not wp.parent then return win end
+        if not wp.parent then return get_projection(win) end
 
+        local proj = nil
         local rx, ry, p = self.x, self.y, wp
         while true do
+            if not proj then proj = get_projection(p, true) end
             rx, ry = rx + p.x, ry + py
             local  pp = p.parent
             if not pp then break end
@@ -111,17 +113,15 @@ M.Mover = register_class("Mover", Widget, {
             return nil
         end
 
-        local  wch = p.children
-        return wch[#wch]
+        return proj
     end,
 
     pressing = function(self, cx, cy)
         local  w = self.window
         if not w then return Widget.pressing(self, cx, cy) end
         if w and w.floating and is_clicked(self) then
-            local win = self:can_move()
-            if not win then return nil end
-            local proj = get_projection(win)
+            local  proj = self:can_move()
+            if not proj then return nil end
             cx, cy = cx * proj.pw, cy * proj.ph
             w.fx, w.x = w.fx + cx, w.x + cx
             w.fy, w.y = w.fy + cy, w.y + cy

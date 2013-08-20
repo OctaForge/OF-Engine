@@ -483,10 +483,10 @@ local Projection = table2.Object:clone {
     end
 }
 
-local get_projection = function(o)
+local get_projection = function(o, nonew)
     if not o then return projection end
     local proj = o._projection
-    if proj then return proj end
+    if proj or nonew then return proj end
     proj = Projection(o)
     o._projection = proj
     return proj
