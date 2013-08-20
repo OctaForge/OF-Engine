@@ -1465,8 +1465,9 @@ local World = register_class("World", Widget, {
         local ch = self.children
         for i = #ch, 1, -1 do
             local o = ch[i]
-            local ox = cx - o.x
-            local oy = cy - o.y
+            local proj = get_projection(o)
+            local ox = cx * proj.pw - o.x
+            local oy = cy * proj.ph - o.y
             if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
                 local c  = o:hover(ox, oy)
                 if    c == o then
@@ -1485,8 +1486,9 @@ local World = register_class("World", Widget, {
         local ch = self.children
         for i = #ch, 1, -1 do
             local o = ch[i]
-            local ox = cx - o.x
-            local oy = cy - o.y
+            local proj = get_projection(o)
+            local ox = cx * proj.pw - o.x
+            local oy = cy * proj.ph - o.y
             if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
                 local c  = o:click(ox, oy)
                 if    c == o then
@@ -1731,7 +1733,8 @@ local menustack = {}
 
 local menu_click = function(o, cx, cy)
     cx = cx - world.margin
-    local ox, oy = cx - o.x, cy - o.y
+    local proj = get_projection(o)
+    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:click(ox, oy)
         if cl == o then click_x, click_y = ox, oy end
@@ -1743,7 +1746,8 @@ end
 
 local menu_hover = function(o, cx, cy)
     cx = cx - world.margin
-    local ox, oy = cx - o.x, cy - o.y
+    local proj = get_projection(o)
+    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:hover(ox, oy)
         if cl == o then hover_x, hover_y = ox, oy end
@@ -1776,12 +1780,11 @@ set_external("input_keypress", function(code, isdown)
         return false
     elseif code == key.MOUSE1 then
         if isdown then
-            local cx, cy = cursor_x * world.w, cursor_y * world.h
             local clicked_try
             local ck, cl
             if #menustack > 0 then
                 for i = #menustack, 1, -1 do
-                    ck, cl = menu_click(menustack[i], cx, cy)
+                    ck, cl = menu_click(menustack[i], cursor_x, cursor_y)
                     if ck then
                         clicked_try = cl
                         break
@@ -1792,7 +1795,7 @@ set_external("input_keypress", function(code, isdown)
             if ck then
                 clicked = clicked_try
             else
-                clicked = world:click(cx, cy)
+                clicked = world:click(cursor_x, cursor_y)
             end
             if clicked then
                 if not ck then
@@ -1892,13 +1895,11 @@ set_external("gui_update", function()
 
     local nhov = 0
     if cursor_exists() and wvisible then
-        local w, h = world.w, world.h
-        local cx, cy = cursor_x * w, cursor_y * h
         local hovering_try
         local hk, hl
         if #menustack > 0 then
             for i = #menustack, 1, -1 do
-                hk, hl = menu_hover(menustack[i], cx, cy)
+                hk, hl = menu_hover(menustack[i], cursor_x, cursor_y)
                 if hk then
                     hovering_try = hl
                     if hl then nhov = i end
@@ -1909,7 +1910,7 @@ set_external("gui_update", function()
         if hk then
             hovering = hovering_try
         else
-            hovering = world:hover(cx, cy)
+            hovering = world:hover(cursor_x, cursor_y)
         end
         if  hovering then
             hovering:hovering(hover_x, hover_y)
@@ -1917,7 +1918,7 @@ set_external("gui_update", function()
 
         -- hacky
         if  clicked then
-            clicked:pressing((cursor_x - prev_cx) * w, (cursor_y - prev_cy))
+            clicked:pressing(cursor_x - prev_cx, cursor_y - prev_cy)
         end
     else
         hovering, clicked = nil, nil

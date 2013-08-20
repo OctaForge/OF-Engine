@@ -122,7 +122,7 @@ M.Mover = register_class("Mover", Widget, {
             local win = self:can_move()
             if not win then return nil end
             local proj = get_projection(win)
-            if proj then cx, cy = cx * proj.ph, cy * proj.ph end
+            if proj then cx, cy = cx * proj.pw, cy * proj.ph end
             w.fx, w.x = w.fx + cx, w.x + cx
             w.fy, w.y = w.fy + cy, w.y + cy
         end
