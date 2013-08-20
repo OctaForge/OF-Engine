@@ -1550,7 +1550,7 @@ local World = register_class("World", Widget, {
             local oh = o.h
             if not is_fully_clipped(sx + ox, sy + oy, ow, oh)
             and o.visible then
-                o.projection:draw(sx + ox, sy + oy)
+                get_projection(o):draw(sx + ox, sy + oy)
             end
         end)
     end,
@@ -2030,7 +2030,7 @@ set_external("gui_render", function()
                 local wm = -world.margin
                 omx, omy = max(omx, wm), max(omy, wm)
                 o.x, o.y = omx, omy
-                o.projection:draw(omx, omy)
+                get_projection(o):draw(omx, omy)
                 prevo = o
             end
         end
@@ -2052,11 +2052,11 @@ set_external("gui_render", function()
             end
             x, y = max(x, left), max(y, left)
             tooltip.x, tooltip.y = x, y
-            tooltip.projection:draw(x, y)
+            get_projection(tooltip):draw(x, y)
         end
 
         if draw_hud then
-            hud.projection:draw(hud.x, hud.y)
+            get_projection(hud):draw(hud.x, hud.y)
         end
         gle_disable()
     end

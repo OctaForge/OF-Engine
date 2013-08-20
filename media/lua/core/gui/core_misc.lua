@@ -91,10 +91,11 @@ M.Mover = register_class("Mover", Widget, {
     end,
 
     can_move = function(self, cx, cy)
-        local wp = self.window.parent
+        local win = self.window
+        local wp = win.parent
 
         -- no parent means world; we don't need checking for non-mdi windows
-        if not wp.parent then return true end
+        if not wp.parent then return win end
 
         local rx, ry, p = self.x, self.y, wp
         while true do
@@ -104,43 +105,23 @@ M.Mover = register_class("Mover", Widget, {
             p    = pp
         end
 
-        -- world has no parents :( but here we can re-use it
-        local w = p.w
-        -- transform x position of the cursor (which ranges from 0 to 1)
-        -- into proper UI positions (that are dependent on screen width)
-        --local cx = cursor_x * w - (w - 1) / 2
-        --local cy = cursor_y
-
         if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) then
             -- avoid bugs; stop moving when cursor is outside
             clear_focus(self)
-            return false
+            return nil
         end
 
-        return true
-    end,
-
-    find_projection = function(self)
-        local proj = self._projection
-        if proj then return proj end
-        local  w = self.window
-        if not w then return nil end
-        proj = w.projection
-        while not proj do
-            w = w.parent
-            if not w then break end
-            proj = w.projection
-        end
-        if not proj then return nil end
-        self._projection = proj
-        return proj
+        local  wch = p.children
+        return wch[#wch]
     end,
 
     pressing = function(self, cx, cy)
         local  w = self.window
         if not w then return Widget.pressing(self, cx, cy) end
-        if w and w.floating and is_clicked(self) and self:can_move() then
-            local proj = self:find_projection()
+        if w and w.floating and is_clicked(self) then
+            local win = self:can_move()
+            if not win then return nil end
+            local proj = get_projection(win)
             if proj then cx, cy = cx * proj.ph, cy * proj.ph end
             w.fx, w.x = w.fx + cx, w.x + cx
             w.fy, w.y = w.fy + cy, w.y + cy
