@@ -1514,19 +1514,6 @@ local World = register_class("World", Widget, {
         into consideration. Then adjusts children.
     ]]
     layout = function(self)
-        self.w = 0
-        self.h = 0
-
-        loop_children(self, function(o)
-            o.x = 0
-            o.y = 0
-            projection = get_projection(o)
-            o:layout()
-            projection = nil
-            self.w = max(self.w, o.x + o.w)
-            self.h = max(self.h, o.y + o.h)
-        end)
-
         local sw, sh = hud_get_w(), hud_get_h()
         local faspect = var_get("aspect")
         if faspect != 0 then sw = ceil(sh * faspect) end
@@ -1537,6 +1524,13 @@ local World = register_class("World", Widget, {
         self.w = 2 * margin + 1
         self.h = 1
         self.margin = margin
+
+        loop_children(self, function(o)
+            o.x, o.y = 0, 0
+            projection = get_projection(o)
+            o:layout()
+            projection = nil
+        end)
 
         self:adjust_children()
     end,
