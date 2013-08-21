@@ -28,8 +28,8 @@ texture_get_notexture, thumbnail_load, texture_draw_slot, texture_draw_vslot,
 gl_blend_disable, gl_blend_enable, gl_scissor_disable, gl_scissor_enable,
 gle_disable, model_preview_start, model_preview, model_preview_end,
 hudmatrix_push, hudmatrix_scale, hudmatrix_flush, hudmatrix_pop,
-hudmatrix_translate, text_draw, text_get_bounds, text_set_font, hud_get_h,
-console_render_full in capi
+hudmatrix_translate, text_draw, text_get_bounds, text_font_push,
+text_font_pop, text_font_set, hud_get_h, console_render_full in capi
 
 local var_get = cs.var_get
 
@@ -1233,7 +1233,8 @@ M.Label = register_class("Label", Widget, {
     end,
 
     draw = function(self, sx, sy)
-        local font = text_set_font(self.font)
+        text_font_push()
+        text_font_set(self.font)
         hudmatrix_push()
 
         local k = self:draw_scale()
@@ -1246,7 +1247,7 @@ M.Label = register_class("Label", Widget, {
 
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
-        text_set_font(font)
+        text_font_pop()
 
         return Widget.draw(self, sx, sy)
     end,
@@ -1254,7 +1255,8 @@ M.Label = register_class("Label", Widget, {
     layout = function(self)
         Widget.layout(self)
 
-        local font = text_set_font(self.font)
+        text_font_push()
+        text_font_set(self.font)
         local k = self:draw_scale()
 
         local w, h = text_get_bounds(self.text,
@@ -1267,7 +1269,7 @@ M.Label = register_class("Label", Widget, {
         end
 
         self.h = max(self.h, h * k)
-        text_set_font(font)
+        text_font_pop()
     end,
 
     --[[! Function: set_text ]]

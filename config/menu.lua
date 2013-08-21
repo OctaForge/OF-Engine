@@ -123,7 +123,7 @@ world:new_window("main", gui.Window, |win| do
 
             local ed, lbl
             b:append(gui.H_Box(), |b| do
-                b:append(gui.Field { length = 30, value = "butts" }, |x|do
+                b:append(gui.Field { length = -30, value = "butts" }, |x|do
                     x:clamp(true, true, true, true)
                     ed = x
                 end)

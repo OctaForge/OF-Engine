@@ -486,9 +486,10 @@ int r, int g, int b, int a, int cursor, int maxw), {
     draw_text(text, left, top, r, g, b, a, cursor, maxw);
 });
 
-CLUAICOMMAND(text_set_font, const char*, (const char *fnt), {
-    if (!fnt || !fnt[0]) return NULL;
-    font *f = curfont;
+CLUACOMMAND(text_font_push, void, (), pushfont);
+CLUACOMMAND(text_font_pop, bool, (), popfont);
+
+CLUAICOMMAND(text_font_set, void, (const char *fnt), {
+    if (!fnt || !fnt[0]) return;
     setfont(fnt);
-    return f->name;
 });
