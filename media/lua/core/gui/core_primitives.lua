@@ -1240,7 +1240,8 @@ M.Label = register_class("Label", Widget, {
         hudmatrix_flush()
 
         local w = self.wrap
-        text_draw(tostring(self.text), sx / k, sy / k,
+        local text = tostring(self.text)
+        text_draw(text, sx / k, sy / k,
             self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
 
         gle_color4f(1, 1, 1, 1)
@@ -1336,7 +1337,8 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
         hudmatrix_flush()
 
         local w = self.wrap
-        text_draw(tostring(val) or "", sx / k, sy / k,
+        local text = tostring(val) or ""
+        text_draw(text, sx / k, sy / k,
             self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
 
         gle_color4f(1, 1, 1, 1)
