@@ -152,9 +152,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     region = function(self)
         local sx, sy, ex, ey
 
-        local  n = #self.lines
-        assert(n != 0)
-
+        local n = #self.lines
         local cx, cy, mx, my = self.cx, self.cy, self.mx, self.my
 
         if  cy < 0 then
@@ -741,6 +739,96 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_pop()
     end,
 
+    draw_selection = function(self, max_width)
+        local selection, sx, sy, ex, ey = self:region()
+        if not selection then return nil end
+        local max_width = self.line_wrap and self.pixel_width or -1
+        -- convert from cursor coords into pixel coords
+        local psx, psy = text_get_position(self.lines[sy + 1], sx,
+            max_width)
+        local pex, pey = text_get_position(self.lines[ey + 1], ex,
+            max_width)
+        local maxy = #self.lines
+        local h = 0
+        for i = self.scrolly + 1, maxy do
+            local width, height = text_get_bounds(self.lines[i],
+                max_width)
+            if h + height > self.pixel_height then
+                maxy = i
+                break
+            end
+            if i == sy + 1 then
+                psy = psy + h
+            end
+            if i == ey + 1 then
+                pey = pey + h
+                break
+            end
+            h = h + height
+        end
+        maxy = maxy - 1
+
+        if ey >= self.scrolly and sy <= maxy then
+            local fonth = var_get("fonth")
+            -- crop top/bottom within window
+            if  sy < self.scrolly then
+                sy = self.scrolly
+                psy = 0
+                psx = 0
+            end
+            if  ey > maxy then
+                ey = maxy
+                pey = self.pixel_height - fonth
+                pex = self.pixel_width
+            end
+
+            shader_hudnotexture_set()
+            gle_color3ub(0xA0, 0x80, 0x80)
+            gle_defvertexf(2)
+            gle_begin(gl.QUADS)
+            local x = var_get("fontw") / 2
+            if psy == pey then
+                gle_attrib2f(x + psx, psy)
+                gle_attrib2f(x + pex, psy)
+                gle_attrib2f(x + pex, pey + fonth)
+                gle_attrib2f(x + psx, pey + fonth)
+            else
+                gle_attrib2f(x + psx,              psy)
+                gle_attrib2f(x + psx,              psy + fonth)
+                gle_attrib2f(x + self.pixel_width, psy + fonth)
+                gle_attrib2f(x + self.pixel_width, psy)
+                if (pey - psy) > fonth then
+                    gle_attrib2f(x, psy + fonth)
+                    gle_attrib2f(x + self.pixel_width, psy + fonth)
+                    gle_attrib2f(x + self.pixel_width, pey)
+                    gle_attrib2f(x, pey)
+                end
+                gle_attrib2f(x,       pey)
+                gle_attrib2f(x,       pey + fonth)
+                gle_attrib2f(x + pex, pey + fonth)
+                gle_attrib2f(x + pex, pey)
+            end
+            gle_end()
+            shader_hud_set()
+        end
+    end,
+
+    draw_line_wrap = function(self, h, height)
+        if not self.line_wrap then return nil end
+        local fontw, fonth = var_get("fontw"), var_get("fonth")
+        if height <= fonth then return nil end
+        shader_hudnotexture_set()
+        gle_color3ub(0x80, 0xA0, 0x80)
+        gle_defvertexf(2)
+        gle_begin(gl.TRIANGLE_STRIP)
+        gle_attrib2f(fontw / 2, h + fonth)
+        gle_attrib2f(fontw / 2, h + height)
+        gle_attrib2f(0,         h + fonth)
+        gle_attrib2f(0,         h + height)
+        gle_end()
+        shader_hud_set()
+    end,
+
     draw = function(self, sx, sy)
         text_font_push()
         text_font_set(self.font)
@@ -751,84 +839,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         hudmatrix_scale(k, k, 1)
         hudmatrix_flush()
 
-        local x, y, hit = var_get("fontw") / 2, 0, is_focused(self)
-        local max_width = self.line_wrap and self.pixel_width or -1
-        local selection, sx, sy, ex, ey = self:region()
-
+        local hit = is_focused(self)
         self.scrolly = clamp(self.scrolly, 0, #self.lines - 1)
 
-        if selection then
-            -- convert from cursor coords into pixel coords
-            local psx, psy = text_get_position(self.lines[sy + 1], sx,
-                max_width)
-            local pex, pey = text_get_position(self.lines[ey + 1], ex,
-                max_width)
-            local maxy = #self.lines
-            local h = 0
-            for i = self.scrolly + 1, maxy do
-                local width, height = text_get_bounds(self.lines[i],
-                    max_width)
-                if h + height > self.pixel_height then
-                    maxy = i
-                    break
-                end
-                if i == sy + 1 then
-                    psy = psy + h
-                end
-                if i == ey + 1 then
-                    pey = pey + h
-                    break
-                end
-                h = h + height
-            end
-            maxy = maxy - 1
-
-            if ey >= self.scrolly and sy <= maxy then
-                local fonth = var_get("fonth")
-                -- crop top/bottom within window
-                if  sy < self.scrolly then
-                    sy = self.scrolly
-                    psy = 0
-                    psx = 0
-                end
-                if  ey > maxy then
-                    ey = maxy
-                    pey = self.pixel_height - fonth
-                    pex = self.pixel_width
-                end
-
-                shader_hudnotexture_set()
-                gle_color3ub(0xA0, 0x80, 0x80)
-                gle_defvertexf(2)
-                gle_begin(gl.QUADS)
-                if psy == pey then
-                    gle_attrib2f(x + psx, y + psy)
-                    gle_attrib2f(x + pex, y + psy)
-                    gle_attrib2f(x + pex, y + pey + fonth)
-                    gle_attrib2f(x + psx, y + pey + fonth)
-                else
-                    gle_attrib2f(x + psx,              y + psy)
-                    gle_attrib2f(x + psx,              y + psy + fonth)
-                    gle_attrib2f(x + self.pixel_width, y + psy + fonth)
-                    gle_attrib2f(x + self.pixel_width, y + psy)
-                    if (pey - psy) > fonth then
-                        gle_attrib2f(x, y + psy + fonth)
-                        gle_attrib2f(x + self.pixel_width,
-                                        y + psy + fonth)
-                        gle_attrib2f(x + self.pixel_width, y + pey)
-                        gle_attrib2f(x, y + pey)
-                    end
-                    gle_attrib2f(x,       y + pey)
-                    gle_attrib2f(x,       y + pey + fonth)
-                    gle_attrib2f(x + pex, y + pey + fonth)
-                    gle_attrib2f(x + pex, y + pey)
-                end
-                gle_end()
-                shader_hud_set()
-            end
-        end
+        self:draw_selection()
 
         local h = 0
+        local fontw = var_get("fontw")
+        local max_width = self.line_wrap and self.pixel_width or -1
         for i = self.scrolly + 1, #self.lines do
             local width, height = text_get_bounds(self.lines[i],
                 max_width)
@@ -836,24 +854,10 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 break
             end
             text_draw(tostring(self.password and ("*"):rep(#self.lines[i])
-                or self.lines[i]), x, y + h, 255, 255, 255, 255,
+                or self.lines[i]), fontw / 2, h, 255, 255, 255, 255,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
-            local fonth = var_get("fonth")
-            -- line wrap indicator
-            if self.line_wrap and height > fonth then
-                local fontw = var_get("fontw")
-                shader_hudnotexture_set()
-                gle_color3ub(0x80, 0xA0, 0x80)
-                gle_defvertexf(2)
-                gle_begin(gl.TRIANGLE_STRIP)
-                gle_attrib2f(x,             y + h + fonth)
-                gle_attrib2f(x,             y + h + height)
-                gle_attrib2f(x - fontw / 2, y + h + fonth)
-                gle_attrib2f(x - fontw / 2, y + h + height)
-                gle_end()
-                shader_hud_set()
-            end
+            self:draw_line_wrap(h, height)
             h = h + height
         end
 
