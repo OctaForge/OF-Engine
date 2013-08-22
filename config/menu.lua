@@ -185,10 +185,10 @@ end)
 
 cs_execute([=[
 showui = [lua [
-    require("core.gui.core").get_world():show_window(@(escape $arg1))
+    return require("core.gui.core").get_world():show_window(@(escape $arg1))
 ]]
 hideui = [lua [
-    require("core.gui.core").get_world():hide_window(@(escape $arg1))
+    return require("core.gui.core").get_world():hide_window(@(escape $arg1))
 ]]
 toggleui = [
     if (! (hideui $arg1)) [showui $arg1] []
