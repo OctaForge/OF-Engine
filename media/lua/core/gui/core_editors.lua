@@ -74,6 +74,13 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local scale  = kwargs.scale  or 1
         local font   = kwargs.font
 
+        self.clip_w = kwargs.clip_w or 0
+        self.clip_h = kwargs.clip_h or 0
+        self.virt_w = 0
+        self.virt_h = 0
+        local mline = kwargs.multiline
+        self.multiline = mline != false and true or false
+
         self.keyfilter  = kwargs.key_filter
         self.init_value = kwargs.value
         self.font  = font
@@ -89,8 +96,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         -- instead use region()
         self.mx, self.my = -1, -1
         -- maxy = -1 if unlimited lines, 1 if single line editor
-        self.maxx, self.maxy = (length < 0 and -1 or length),
-            (height <= 0 and 1 or -1)
+        self.maxx = (length < 0 and -1 or length)
 
         self.scrolly = 0 -- vertical scroll offset
 
@@ -296,7 +302,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local current = self:current_line()
 
         if ch == "\n" then
-            if self.maxy == -1 or self.cy < (self.maxy - 1) then
+            if self.multiline then
                 local newline = current:sub(self.cx + 1)
                 self.lines[self.cy + 1] = current:sub(1, self.cx)
                 self.cy = min(#self.lines, self.cy + 1)
@@ -671,7 +677,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             if isdown then self:set_focus(nil) end
             return true
         elseif code == key.RETURN or code == key.TAB then
-            if self.maxy == 1 then
+            if not self.multiline then
                 if isdown then self:commit() end
                 return true
             end
@@ -716,6 +722,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     update_height = function(self)
+        if not self.line_wrap or self.multiline then return nil end
         local w, h = text_get_bounds(self.lines[1], self.pixel_width)
         self.pixel_height = h
     end,
@@ -730,7 +737,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
 
         local k = self:draw_scale()
-        if self.line_wrap and self.maxy == 1 then self:update_height() end
+        self:update_height()
         self.w = max(self.w, (self.pixel_width + text_font_get_w()) * k)
         self.h = max(self.h, self.pixel_height * k)
         text_font_pop()
@@ -878,7 +885,7 @@ M.Text_Editor = Text_Editor
 M.Field = register_class("Field", Text_Editor, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        kwargs.height = kwargs.height or 0
+        kwargs.multiline = kwargs.multiline or false
 
         self.value = kwargs.value or ""
         if kwargs.var then
