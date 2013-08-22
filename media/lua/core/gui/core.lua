@@ -28,7 +28,7 @@ local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
 hudmatrix_ortho, hudmatrix_reset, shader_hud_set, hud_get_w, hud_get_h,
 hud_get_ss_x, hud_get_ss_y, hud_get_so_x, hud_get_so_y, isconnected,
-text_get_res, text_font_get_h in capi
+text_get_res, text_font_get_h, aspect_get in capi
 
 local set_external = capi.external_set
 
@@ -1515,7 +1515,7 @@ local World = register_class("World", Widget, {
     ]]
     layout = function(self)
         local sw, sh = hud_get_w(), hud_get_h()
-        local faspect = var_get("aspect")
+        local faspect = aspect_get()
         if faspect != 0 then sw = ceil(sh * faspect) end
 
         local margin = max((sw/sh - 1) / 2, 0)
@@ -1838,17 +1838,31 @@ end)
 cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     cs.var_flags.PERSIST)
 
-cs.var_new("uitextscale", cs.var_type.float, 1, 0, 0)
-cs.var_new("uicontextscale", cs.var_type.float, 1, 0, 0)
+local uitextrows = var_get("uitextrows")
+signal.connect(cs, "uitextrows_changed", function(self, n)
+    uitextrows = n
+end)
+
+--[[! Function: get_text_rows
+    See <uitextrows>. This is a fast getter for it.
+]]
+M.get_text_rows = function()
+    return uitextrows
+end
+
+local uitextscale, uicontextscale = 0, 0
+
+M.get_text_scale = function(con)
+    return con and uicontextscale or uitextscale
+end
 
 local calc_text_scale = function()
-    var_set("uitextscale", 1 / var_get("uitextrows"), true, false)
+    uitextscale = 1 / uitextrows
     local tw, th = hud_get_w(), hud_get_h()
-    local forceaspect = var_get("aspect")
+    local forceaspect = aspect_get()
     if forceaspect != 0 then tw = ceil(th * forceaspect) end
     tw, th = text_get_res(tw, th)
-    var_set("uicontextscale", (text_font_get_h() * var_get("conscale")) / th,
-        true, false)
+    uicontextscale = text_font_get_h() * var_get("conscale") / th
 end
 
 set_external("gui_visible", function(wname)

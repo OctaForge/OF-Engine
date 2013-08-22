@@ -32,8 +32,6 @@ hudmatrix_translate, text_draw, text_get_bounds, text_font_push,
 text_font_pop, text_font_set, hud_get_h, console_render_full,
 text_font_get_w, text_font_get_h in capi
 
-local var_get = cs.var_get
-
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
@@ -71,6 +69,9 @@ local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
+
+-- text scale
+local get_text_scale = M.get_text_scale
 
 local Filler = M.Filler
 
@@ -1007,7 +1008,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
 ]]
 M.Console = register_class("Console", Filler, {
     draw_scale = function(self)
-        return var_get("uicontextscale") / text_font_get_h()
+        return get_text_scale(true) / text_font_get_h()
     end,
 
     draw = function(self, sx, sy)
@@ -1226,11 +1227,7 @@ M.Label = register_class("Label", Widget, {
 
     draw_scale = function(self)
         local scale = self.scale
-        if scale < 0 then
-            return (-scale * var_get("uicontextscale")) / text_font_get_h()
-        else
-            return (scale * var_get("uitextscale")) / text_font_get_h()
-        end
+        return (abs(scale) * get_text_scale(scale < 0)) / text_font_get_h()
     end,
 
     draw = function(self, sx, sy)
@@ -1326,11 +1323,7 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
 
     draw_scale = function(self)
         local scale = self.scale
-        if scale < 0 then
-            return (-scale * var_get("uicontextscale")) / text_font_get_h()
-        else
-            return (scale * var_get("uitextscale")) / text_font_get_h()
-        end
+        return (abs(scale) * get_text_scale(scale < 0)) / text_font_get_h()
     end,
 
     draw = function(self, sx, sy)

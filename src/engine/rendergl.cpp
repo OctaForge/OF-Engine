@@ -1208,6 +1208,8 @@ VAR(avatarfov, 10, 65, 150);
 FVAR(avatardepth, 0, 0.5f, 1);
 FVARNP(aspect, forceaspect, 0, 0, 1e3f);
 
+CLUAICOMMAND(aspect_get, float, (), return forceaspect);
+
 static int zoommillis = 0;
 VARF(zoom, -1, 0, 1,
     if(zoom) zoommillis = totalmillis;

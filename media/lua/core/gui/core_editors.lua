@@ -28,8 +28,6 @@ shader_hudnotexture_set, shader_hud_set, gle_color3ub, gle_defvertexf,
 gle_begin, gle_end, gle_attrib2f, text_font_push, text_font_pop, text_font_set,
 text_font_get_w, text_font_get_h in capi
 
-local var_get = cs.var_get
-
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
@@ -55,6 +53,9 @@ local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
+
+-- text scale
+local get_text_scale = M.get_text_scale
 
 local mod = require("core.gui.constants").mod
 
@@ -711,11 +712,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     draw_scale = function(self)
         local scale = self.scale
-        if scale < 0 then
-            return (-scale * var_get("uicontextscale")) / text_font_get_h()
-        else
-            return (scale * var_get("uitextscale")) / text_font_get_h()
-        end
+        return (abs(scale) * get_text_scale(scale < 0)) / text_font_get_h()
     end,
 
     update_height = function(self)
