@@ -107,9 +107,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if length < 0 and height <= 0 then
             text_font_push()
             text_font_set(font)
-            local w, h = text_get_bounds(self.lines[1], self.pixel_width)
+            self:update_height()
             text_font_pop()
-            self.pixel_height = h
         else
             self.pixel_height = var_get("fonth") * max(height, 1)
         end
@@ -629,15 +628,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     hovering = function(self, cx, cy)
         if is_clicked(self) and is_focused(self) then
-            local dx = abs(cx - self.offset_h)
-            local dy = abs(cy - self.offset_v)
-            local fw, fh = var_get("fontw"), var_get("fonth")
-            local th = fh * var_get("uitextrows")
-            local sc = self.scale
-            local dragged = max(dx, dy) > (fh / 8) * sc / th
-
-            self:hit(floor(cx * th / sc - fw / 2),
-                floor(cy * th / sc), dragged)
+            local k = self:draw_scale()
+            local dx, dy = abs(cx - self.offset_h), abs(cy - self.offset_v)
+            local dragged = max(dx, dy) > (var_get("fonth") * k / 8)
+            self:hit(floor(cx / k - var_get("fontw") / 2),
+                floor(cy / k), dragged)
         end
     end,
 
@@ -716,6 +711,20 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
+    draw_scale = function(self)
+        local scale = self.scale
+        if scale < 0 then
+            return (-scale * var_get("uicontextscale")) / var_get("fonth")
+        else
+            return (scale * var_get("uitextscale")) / var_get("fonth")
+        end
+    end,
+
+    update_height = function(self)
+        local w, h = text_get_bounds(self.lines[1], self.pixel_width)
+        self.pixel_height = h
+    end,
+
     layout = function(self)
         Widget.layout(self)
 
@@ -725,17 +734,10 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:reset_value()
         end
 
-        if self.line_wrap and self.maxy == 1 then
-            local w, h = text_get_bounds(self.lines[1], self.pixel_width)
-            self.pixel_height = h
-        end
-
-        self.w = max(self.w, (self.pixel_width + var_get("fontw")) *
-            self.scale / (var_get("fonth") * var_get("uitextrows")))
-
-        self.h = max(self.h, self.pixel_height *
-            self.scale / (var_get("fonth") * var_get("uitextrows"))
-        )
+        local k = self:draw_scale()
+        if self.line_wrap and self.maxy == 1 then self:update_height() end
+        self.w = max(self.w, (self.pixel_width + var_get("fontw")) * k)
+        self.h = max(self.h, self.pixel_height * k)
         text_font_pop()
     end,
 
@@ -745,8 +747,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         hudmatrix_push()
 
         hudmatrix_translate(sx, sy, 0)
-        local s = (self.scale * var_get("uitextscale")) / var_get("fonth")
-        hudmatrix_scale(s, s, 1)
+        local k = self:draw_scale()
+        hudmatrix_scale(k, k, 1)
         hudmatrix_flush()
 
         local x, y, hit = var_get("fontw") / 2, 0, is_focused(self)
