@@ -2466,6 +2466,8 @@ void gl_drawview()
     rendergrass();
     GLERROR;
 
+    glFlush();
+
     renderradiancehints();
     GLERROR;
 
