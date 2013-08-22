@@ -840,6 +840,9 @@ void writecompletions(stream *f)
 VARP(freecursor, 0, 1, 2);
 VARP(freeeditcursor, 0, 1, 2);
 
+CLUAICOMMAND(input_get_free_cursor, int, (bool edit),
+    return edit ? freeeditcursor : freecursor;);
+
 #define QUOT(arg) #arg
 
 #define MOUSECLICK(num) \

@@ -106,6 +106,8 @@ VAR(editing, 1, 0, 0);
 VAR(selectcorners, 0, 0, 1);
 VARF(hmapedit, 0, 0, 1, horient = sel.orient);
 
+CLUAICOMMAND(editing_get, int, (), return editing;);
+
 void forcenextundo() { lastsel.orient = -1; }
 
 namespace hmap { void cancel(); }

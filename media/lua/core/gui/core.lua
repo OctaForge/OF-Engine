@@ -28,7 +28,8 @@ local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
 hudmatrix_ortho, hudmatrix_reset, shader_hud_set, hud_get_w, hud_get_h,
 hud_get_ss_x, hud_get_ss_y, hud_get_so_x, hud_get_so_y, isconnected,
-text_get_res, text_font_get_h, aspect_get in capi
+text_get_res, text_font_get_h, aspect_get, editing_get, console_scale_get,
+input_get_free_cursor in capi
 
 local set_external = capi.external_set
 
@@ -1682,18 +1683,25 @@ end
 cs.var_new_checked("uisensitivity", cs.var_type.float, 0.0001, 1, 10000,
     cs.var_flags.PERSIST)
 
+local uisensitivity = var_get("uisensitivity")
+signal.connect(cs, "uisensitivity_changed", function(self, n)
+    uisensitivity = n
+end)
+
+M.get_cursor_sensitivity = function()
+    return uisensitivity
+end
+
 local cursor_mode = function()
-    return var_get("editing") == 0 and var_get("freecursor")
-        or var_get("freeeditcursor")
+    return input_get_free_cursor(editing_get() != 0)
 end
 
 set_external("cursor_move", function(dx, dy)
     local cmode = cursor_mode()
     if cmode == 2 or (world:grabs_input() and cmode >= 1) then
-        local uisens = var_get("uisensitivity")
         local hudw, hudh = hud_get_w(), hud_get_h()
-        cursor_x = clamp(cursor_x + dx * uisens / hudw, 0, 1)
-        cursor_y = clamp(cursor_y + dy * uisens / hudh, 0, 1)
+        cursor_x = clamp(cursor_x + dx * uisensitivity / hudw, 0, 1)
+        cursor_y = clamp(cursor_y + dy * uisensitivity / hudh, 0, 1)
         if cmode == 2 then
             if cursor_x != 1 and cursor_x != 0 then dx = 0 end
             if cursor_y != 1 and cursor_y != 0 then dy = 0 end
@@ -1862,7 +1870,7 @@ local calc_text_scale = function()
     local forceaspect = aspect_get()
     if forceaspect != 0 then tw = ceil(th * forceaspect) end
     tw, th = text_get_res(tw, th)
-    uicontextscale = text_font_get_h() * var_get("conscale") / th
+    uicontextscale = text_font_get_h() * console_scale_get() / th
 end
 
 set_external("gui_visible", function(wname)

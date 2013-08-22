@@ -1208,7 +1208,7 @@ VAR(avatarfov, 10, 65, 150);
 FVAR(avatardepth, 0, 0.5f, 1);
 FVARNP(aspect, forceaspect, 0, 0, 1e3f);
 
-CLUAICOMMAND(aspect_get, float, (), return forceaspect);
+CLUAICOMMAND(aspect_get, float, (), return forceaspect;);
 
 static int zoommillis = 0;
 VARF(zoom, -1, 0, 1,
@@ -2590,6 +2590,8 @@ VARP(showfpsrange, 0, 0, 1);
 VAR(statrate, 1, 200, 1000);
 
 FVARP(conscale, 1e-3f, 0.33f, 1e3f);
+
+CLUAICOMMAND(console_scale_get, float, (), return forceaspect;);
 
 bool fullconsole_visible();
 
