@@ -7,9 +7,6 @@ static int fontdeftex = 0;
 font *curfont = NULL;
 int curfonttex = 0;
 
-VAR(fonth, 512, 0, 0);
-VAR(fontw, 512, 0, 0);
-
 void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *scale)
 {
     font *f = &fonts[name];
@@ -129,8 +126,6 @@ bool setfont(const char *name)
     font *f = fonts.access(name);
     if(!f) return false;
     curfont = f;
-    fontw = FONTW;
-    fonth = FONTH;
     return true;
 }
 
@@ -145,8 +140,6 @@ bool popfont()
 {
     if(fontstack.empty()) return false;
     curfont = fontstack.pop();
-    fontw = FONTW;
-    fonth = FONTH;
     return true;
 }
 
@@ -492,3 +485,6 @@ CLUAICOMMAND(text_font_set, void, (const char *fnt), {
     if (!fnt || !fnt[0]) return;
     setfont(fnt);
 });
+
+CLUAICOMMAND(text_font_get_w, int, (), return FONTW);
+CLUAICOMMAND(text_font_get_h, int, (), return FONTH);

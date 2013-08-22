@@ -28,7 +28,7 @@ local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
 hudmatrix_ortho, hudmatrix_reset, shader_hud_set, hud_get_w, hud_get_h,
 hud_get_ss_x, hud_get_ss_y, hud_get_so_x, hud_get_so_y, isconnected,
-text_get_res in capi
+text_get_res, text_font_get_h in capi
 
 local set_external = capi.external_set
 
@@ -1847,7 +1847,7 @@ local calc_text_scale = function()
     local forceaspect = var_get("aspect")
     if forceaspect != 0 then tw = ceil(th * forceaspect) end
     tw, th = text_get_res(tw, th)
-    var_set("uicontextscale", (var_get("fonth") * var_get("conscale")) / th,
+    var_set("uicontextscale", (text_font_get_h() * var_get("conscale")) / th,
         true, false)
 end
 

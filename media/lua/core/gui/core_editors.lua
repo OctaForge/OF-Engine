@@ -25,8 +25,8 @@ text_get_bounds, text_get_position, text_is_visible, input_is_modifier_pressed,
 input_textinput, input_keyrepeat, input_get_key_name, hudmatrix_push,
 hudmatrix_translate, hudmatrix_flush, hudmatrix_scale, hudmatrix_pop,
 shader_hudnotexture_set, shader_hud_set, gle_color3ub, gle_defvertexf,
-gle_begin, gle_end, gle_attrib2f, text_font_push, text_font_pop, text_font_set
-in capi
+gle_begin, gle_end, gle_attrib2f, text_font_push, text_font_pop, text_font_set,
+text_font_get_w, text_font_get_h in capi
 
 local var_get = cs.var_get
 
@@ -95,7 +95,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         self.line_wrap = length < 0
         -- required for up/down/hit/draw/bounds
-        self.pixel_width  = abs(length) * var_get("fontw")
+        self.pixel_width  = abs(length) * text_font_get_w()
         -- -1 for variable size, i.e. from bounds
         self.pixel_height = -1
 
@@ -110,7 +110,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:update_height()
             text_font_pop()
         else
-            self.pixel_height = var_get("fonth") * max(height, 1)
+            self.pixel_height = text_font_get_h() * max(height, 1)
         end
 
         return Widget.__init(self, kwargs)
@@ -381,7 +381,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                     self.pixel_width)
                 local width, height = text_get_bounds(str,
                     self.pixel_width)
-                y = y + var_get("fonth")
+                y = y + text_font_get_h()
                 if y < height then
                     self.cx = text_is_visible(str, x, y, self.pixel_width)
                     self:scroll_on_screen()
@@ -401,7 +401,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             if input_is_modifier_pressed(mod_keys) then
                 self.cy = 0
             else
-                self.cy = self.cy - self.pixel_height / var_get("fonth")
+                self.cy = self.cy - self.pixel_height / text_font_get_h()
             end
             self:scroll_on_screen()
         elseif code == key.PAGEDOWN then
@@ -409,7 +409,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             if input_is_modifier_pressed(mod_keys) then
                 self.cy = 1 / 0
             else
-                self.cy = self.cy + self.pixel_height / var_get("fonth")
+                self.cy = self.cy + self.pixel_height / text_font_get_h()
             end
             self:scroll_on_screen()
         elseif code == key.HOME then
@@ -628,8 +628,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if is_clicked(self) and is_focused(self) then
             local k = self:draw_scale()
             local dx, dy = abs(cx - self.offset_h), abs(cy - self.offset_v)
-            local dragged = max(dx, dy) > (var_get("fonth") * k / 8)
-            self:hit(floor(cx / k - var_get("fontw") / 2),
+            local dragged = max(dx, dy) > (text_font_get_h() * k / 8)
+            self:hit(floor(cx / k - text_font_get_w() / 2),
                 floor(cy / k), dragged)
         end
     end,
@@ -712,9 +712,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     draw_scale = function(self)
         local scale = self.scale
         if scale < 0 then
-            return (-scale * var_get("uicontextscale")) / var_get("fonth")
+            return (-scale * var_get("uicontextscale")) / text_font_get_h()
         else
-            return (scale * var_get("uitextscale")) / var_get("fonth")
+            return (scale * var_get("uitextscale")) / text_font_get_h()
         end
     end,
 
@@ -734,7 +734,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         local k = self:draw_scale()
         if self.line_wrap and self.maxy == 1 then self:update_height() end
-        self.w = max(self.w, (self.pixel_width + var_get("fontw")) * k)
+        self.w = max(self.w, (self.pixel_width + text_font_get_w()) * k)
         self.h = max(self.h, self.pixel_height * k)
         text_font_pop()
     end,
@@ -769,7 +769,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         maxy = maxy - 1
 
         if ey >= self.scrolly and sy <= maxy then
-            local fonth = var_get("fonth")
+            local fonth = text_font_get_h()
             -- crop top/bottom within window
             if  sy < self.scrolly then
                 sy = self.scrolly
@@ -786,7 +786,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             gle_color3ub(0xA0, 0x80, 0x80)
             gle_defvertexf(2)
             gle_begin(gl.QUADS)
-            local x = var_get("fontw") / 2
+            local x = text_font_get_w() / 2
             if psy == pey then
                 gle_attrib2f(x + psx, psy)
                 gle_attrib2f(x + pex, psy)
@@ -815,7 +815,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     draw_line_wrap = function(self, h, height)
         if not self.line_wrap then return nil end
-        local fontw, fonth = var_get("fontw"), var_get("fonth")
+        local fontw, fonth = text_font_get_w(), text_font_get_h()
         if height <= fonth then return nil end
         shader_hudnotexture_set()
         gle_color3ub(0x80, 0xA0, 0x80)
@@ -845,7 +845,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self:draw_selection()
 
         local h = 0
-        local fontw = var_get("fontw")
+        local fontw = text_font_get_w()
         local max_width = self.line_wrap and self.pixel_width or -1
         for i = self.scrolly + 1, #self.lines do
             local width, height = text_get_bounds(self.lines[i],
