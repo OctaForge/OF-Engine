@@ -119,7 +119,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     clear = function(self)
         self:set_focus(nil)
-        return Widget:clear()
+        return Widget.clear(self)
     end,
 
     edit_clear = function(self, init)
@@ -158,18 +158,36 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         local cx, cy, mx, my = self.cx, self.cy, self.mx, self.my
 
-        if cy < 0 then cy = 0 elseif cy >= n then cy = n - 1 end
+        if  cy < 0 then
+            cy = 0
+        elseif cy >= n then
+            cy = n - 1
+        end
         local len = #self.lines[cy + 1]
-        if cx < 0 then cx = 0 elseif cx > len then cx = len end
+        if  cx < 0 then
+            cx = 0
+        elseif cx > len then
+            cx = len
+        end
         if mx >= 0 then
-            if my < 0 then my = 0 elseif my >= n then my = n - 1 end
+            if  my < 0 then
+                my = 0
+            elseif my >= n then
+                my = n - 1
+            end
             len = #self.lines[my + 1]
-            if mx > len then mx = len end
+            if  mx > len then
+                mx = len
+            end
         end
         sx, sy = (mx >= 0) and mx or cx, (mx >= 0) and my or cy -- XXX
         ex, ey = cx, cy
-        if sy >  ey then sy, ey, sx, ex = ey, sy, ex, sx
-        elseif sy == ey and sx > ex then sx, ex = ex, sx end
+        if sy > ey then
+            sy, ey = ey, sy
+            sx, ex = ex, sx
+        elseif sy == ey and sx > ex then
+            sx, ex = ex, sx
+        end
 
         self.cx, self.cy, self.mx, self.my = cx, cy, mx, my
 
@@ -232,7 +250,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if sy == ey then
             if sx == 0 and ex == #self.lines[ey + 1] then
                 self:remove_lines(sy + 1, 1)
-            else self.lines[sy + 1]:del(sx + 1, ex - sx)
+            else self.lines[sy + 1] = self.lines[sy + 1]:del(sx + 1, ex - sx)
             end
         else
             if ey > sy + 1 then
@@ -243,13 +261,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             if ex == #self.lines[ey + 1] then
                 self:remove_lines(ey + 1, 1)
             else
-                self.lines[ey + 1]:del(1, ex)
+                self.lines[ey + 1] = self.lines[ey + 1]:del(1, ex)
             end
 
             if sx == 0 then
                 self:remove_lines(sy + 1, 1)
             else
-                self.lines[sy + 1]:del(sx + 1, #self.lines[sy] - sx)
+                self.lines[sy + 1] = self.lines[sy + 1]:del(sx + 1,
+                    #self.lines[sy] - sx)
             end
         end
 
