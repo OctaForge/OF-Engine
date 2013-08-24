@@ -377,13 +377,13 @@ void text_boundsf(const char *str, float &width, float &height, int maxwidth)
 
 Shader *textshader = NULL;
 
-void draw_text(const char *str, float left, float top, int r, int g, int b, int a, int cursor, int maxwidth)
+void draw_text(const char *str, float left, float top, int r, int g, int b, int a, int cursor, int maxwidth, float fxoffset)
 {
     #define TEXTINDEX(idx) if(idx == cursor) { cx = x; cy = y; }
     #define TEXTWHITE(idx)
-    #define TEXTLINE(idx)
+    #define TEXTLINE(idx) firstline = false;
     #define TEXTCOLOR(idx) if(usecolor) text_color(str[idx], colorstack, sizeof(colorstack), colorpos, color, a);
-    #define TEXTCHAR(idx) draw_char(tex, c, left+x, top+y, scale); x += cw;
+    #define TEXTCHAR(idx) draw_char(tex, c, left+x+(firstline ? fxoffset : 0.0f), top+y, scale); x += cw;
     #define TEXTWORD TEXTWORDSKELETON
     char colorstack[10];
     colorstack[0] = '\0'; //indicate user color
@@ -392,6 +392,7 @@ void draw_text(const char *str, float left, float top, int r, int g, int b, int 
     int colorpos = 0;
     float cx = -FONTW, cy = 0;
     bool usecolor = true;
+    bool firstline = true;
     if(a < 0) { usecolor = false; a = -a; }
     Texture *tex = curfont->texs[0];
     Shader *oldshader = Shader::lastshader;
@@ -410,7 +411,7 @@ void draw_text(const char *str, float left, float top, int r, int g, int b, int 
     {
         gle::color(color, a);
         if(maxwidth >= 0 && cx >= maxwidth && cx > 0) { cx = 0; cy += FONTH; }
-        draw_char(tex, '_', left+cx, top+cy, scale);
+        draw_char(tex, '_', left+cx+(firstline ? fxoffset : 0.0f), top+cy, scale);
         xtraverts += gle::end();
     }
     gle::disable();
@@ -473,9 +474,9 @@ int maxw), {
 });
 
 CLUAICOMMAND(text_draw, void, (const char *text, float left, float top,
-int r, int g, int b, int a, int cursor, int maxw), {
+int r, int g, int b, int a, int cursor, int maxw, float fxoffset), {
     if (!text || !text[0]) return;
-    draw_text(text, left, top, r, g, b, a, cursor, maxw);
+    draw_text(text, left, top, r, g, b, a, cursor, maxw, fxoffset);
 });
 
 CLUACOMMAND(text_font_push, void, (), pushfont);

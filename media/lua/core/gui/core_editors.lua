@@ -847,16 +847,22 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         local h = 0
         local fontw, fonth = text_font_get_w(), text_font_get_h()
-        local max_width = self.line_wrap and self.pixel_width or -1
+        local pwidth = self.pixel_width
+        local max_width = self.line_wrap and pwidth or -1
         for i = self.scrolly + 1, #self.lines do
-            local width, height = text_get_bounds(self.lines[i],
+            local line = tostring(self.password and ("*"):rep(#self.lines[i])
+                or self.lines[i])
+            local width, height = text_get_bounds(line,
                 max_width)
-            if h + height > self.pixel_height then
-                break
+            if h + height > self.pixel_height then break end
+            local xo = 0
+            if max_width < 0 and (width + fontw) > pwidth then
+                local x, y = text_get_position(line, self.cx, -1)
+                local d = pwidth - x - fontw
+                if d < 0 then xo = d end
             end
-            text_draw(tostring(self.password and ("*"):rep(#self.lines[i])
-                or self.lines[i]), 0, h, 255, 255, 255, 255,
-                (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
+            text_draw(line, 0, h, 255, 255, 255, 255,
+                (hit and (self.cy == i - 1)) and self.cx or -1, max_width, xo)
 
             if height > fonth then self:draw_line_wrap(h, height) end
             h = h + height

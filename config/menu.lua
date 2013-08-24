@@ -123,8 +123,9 @@ world:new_window("main", gui.Window, |win| do
 
             local ed, lbl
             b:append(gui.H_Box(), |b| do
-                b:append(gui.Field { clip_w = 0.4, value = "butts", line_wrap = true }, |x|do
+                b:append(gui.Field { clip_w = 0.4, value = "butts" }, |x|do
                     x:clamp(true, true, true, true)
+                    x:append(gui.Outline(), |c| c:clamp(true, true, true, true))
                     ed = x
                 end)
                 b:append(gui.Label { text = "none" }, |l| do lbl = l end)

@@ -227,7 +227,7 @@ extern bool setfont(const char *name);
 extern void pushfont();
 extern bool popfont();
 extern void gettextres(int &w, int &h);
-extern void draw_text(const char *str, float left, float top, int r = 255, int g = 255, int b = 255, int a = 255, int cursor = -1, int maxwidth = -1);
+extern void draw_text(const char *str, float left, float top, int r = 255, int g = 255, int b = 255, int a = 255, int cursor = -1, int maxwidth = -1, float fxoffset = 0.0f);
 extern void draw_textf(const char *fstr, float left, float top, ...) PRINTFARGS(1, 4);
 extern float text_widthf(const char *str);
 extern void text_boundsf(const char *str, float &width, float &height, int maxwidth = -1);
