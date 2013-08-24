@@ -105,7 +105,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         -- instead use region()
         self.mx, self.my = -1, -1
 
-        self.scrolly = 0 -- vertical scroll offset
+        self.scrolly = 0
 
         self.line_wrap = kwargs.line_wrap or false
         self.password = kwargs.password or false
@@ -553,12 +553,21 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local h = 0
         text_font_push()
         text_font_set(self.font)
+        local fontw = text_font_get_w()
+        local pwidth = self.pixel_width
         for i = self.scrolly + 1, #self.lines do
             local width, height = text_get_bounds(self.lines[i],
                 max_width)
             if h + height > self.pixel_height then break end
+            --local hitx2 = hitx / pwidth * (width + fontw)
             if hity >= h and hity <= h + height then
-                local x = text_is_visible(self.lines[i], hitx, hity - h,
+                local xo = 0
+                if max_width < 0 then
+                    local x, y = text_get_position(self.lines[i], self.cx, -1)
+                    local d = x - pwidth
+                    if d > 0 then xo = d end
+                end
+                local x = text_is_visible(self.lines[i], hitx + xo, hity - h,
                     max_width)
                 if dragged then
                     self.mx, self.my = x, i - 1
@@ -624,9 +633,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if is_clicked(self) and is_focused(self) then
             local k = self:draw_scale()
             local dx, dy = abs(cx - self.offset_h), abs(cy - self.offset_v)
-            local dragged = max(dx, dy) > (text_font_get_h() * k / 8)
-            self:hit(floor(cx / k - text_font_get_w() / 2),
-                floor(cy / k), dragged)
+            local dragged = max(dx, dy) > (text_font_get_h() / 8 * k)
+            self:hit(floor(cx / k), floor(cy / k), dragged)
         end
     end,
 
@@ -789,27 +797,26 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             gle_color3ub(0xA0, 0x80, 0x80)
             gle_defvertexf(2)
             gle_begin(gl.QUADS)
-            local x = text_font_get_w() / 2
             if psy == pey then
-                gle_attrib2f(x + psx, psy)
-                gle_attrib2f(x + pex, psy)
-                gle_attrib2f(x + pex, pey + fonth)
-                gle_attrib2f(x + psx, pey + fonth)
+                gle_attrib2f(psx, psy)
+                gle_attrib2f(pex, psy)
+                gle_attrib2f(pex, pey + fonth)
+                gle_attrib2f(psx, pey + fonth)
             else
-                gle_attrib2f(x + psx,              psy)
-                gle_attrib2f(x + psx,              psy + fonth)
-                gle_attrib2f(x + self.pixel_width, psy + fonth)
-                gle_attrib2f(x + self.pixel_width, psy)
+                gle_attrib2f(psx,              psy)
+                gle_attrib2f(psx,              psy + fonth)
+                gle_attrib2f(self.pixel_width, psy + fonth)
+                gle_attrib2f(self.pixel_width, psy)
                 if (pey - psy) > fonth then
-                    gle_attrib2f(x, psy + fonth)
-                    gle_attrib2f(x + self.pixel_width, psy + fonth)
-                    gle_attrib2f(x + self.pixel_width, pey)
-                    gle_attrib2f(x, pey)
+                    gle_attrib2f(0,                psy + fonth)
+                    gle_attrib2f(self.pixel_width, psy + fonth)
+                    gle_attrib2f(self.pixel_width, pey)
+                    gle_attrib2f(0,                pey)
                 end
-                gle_attrib2f(x,       pey)
-                gle_attrib2f(x,       pey + fonth)
-                gle_attrib2f(x + pex, pey + fonth)
-                gle_attrib2f(x + pex, pey)
+                gle_attrib2f(0,   pey)
+                gle_attrib2f(0,   pey + fonth)
+                gle_attrib2f(pex, pey + fonth)
+                gle_attrib2f(pex, pey)
             end
             gle_end()
             shader_hud_set()
@@ -861,8 +868,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 local d = pwidth - x - fontw
                 if d < 0 then xo = d end
             end
-            text_draw(line, 0, h, 255, 255, 255, 255,
-                (hit and (self.cy == i - 1)) and self.cx or -1, max_width, xo)
+            text_draw(line, xo, h, 255, 255, 255, 255,
+                (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
             if height > fonth then self:draw_line_wrap(h, height) end
             h = h + height
