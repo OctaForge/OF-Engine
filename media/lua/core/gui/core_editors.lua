@@ -48,6 +48,9 @@ local set_focus = M.set_focus
 -- widget types
 local register_class = M.register_class
 
+-- scissoring
+local clip_push, clip_pop = M.clip_push, M.clip_pop
+
 -- base widgets
 local Widget = M.get_class("Widget")
 
@@ -59,6 +62,16 @@ local get_text_scale = M.get_text_scale
 
 local mod = require("core.gui.constants").mod
 
+local floor_to_fontw = function(n)
+    local fw = text_font_get_w()
+    return floor(n / fw) * fw
+end
+
+local floor_to_fonth = function(n)
+    local fh = text_font_get_h()
+    return floor(n / fh) * fh
+end
+
 --[[! Struct: Text_Editor
     Implements a text editor widget. It's a basic editor that supports
     scrolling of text and some extra features like key filter, password
@@ -69,20 +82,16 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        local length = kwargs.length or 0
-        local height = kwargs.height or 1
-        local scale  = kwargs.scale  or 1
-        local font   = kwargs.font
-
         self.clip_w = kwargs.clip_w or 0
         self.clip_h = kwargs.clip_h or 0
         self.virt_w = 0
         self.virt_h = 0
-        local mline = kwargs.multiline
-        self.multiline = mline != false and true or false
+        local mline = kwargs.multiline != false and true or false
+        self.multiline = mline
 
         self.keyfilter  = kwargs.key_filter
         self.init_value = kwargs.value
+        local font = kwargs.font
         self.font  = font
         self.scale = kwargs.scale or 1
 
@@ -95,30 +104,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         -- selection mark, mx = -1 if following cursor - avoid direct access,
         -- instead use region()
         self.mx, self.my = -1, -1
-        -- maxy = -1 if unlimited lines, 1 if single line editor
-        self.maxx = (length < 0 and -1 or length)
 
         self.scrolly = 0 -- vertical scroll offset
 
-        self.line_wrap = length < 0
-        -- required for up/down/hit/draw/bounds
-        self.pixel_width  = abs(length) * text_font_get_w()
-        -- -1 for variable size, i.e. from bounds
-        self.pixel_height = -1
-
+        self.line_wrap = kwargs.line_wrap or false
         self.password = kwargs.password or false
 
         -- must always contain at least one line
         self.lines = { kwargs.value or "" }
-
-        if length < 0 and height <= 0 then
-            text_font_push()
-            text_font_set(font)
-            self:update_height()
-            text_font_pop()
-        else
-            self.pixel_height = text_font_get_h() * max(height, 1)
-        end
 
         return Widget.__init(self, kwargs)
     end,
@@ -313,11 +306,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             self.cx = 0
         else
-            local len = #current
-            if self.maxx >= 0 and len > self.maxx - 1 then
-                len = self.maxx - 1
-            end
-            if self.cx <= len then
+            if self.cx <= #current then
                 self.lines[self.cy + 1] = current:insert(self.cx + 1, ch)
                 self.cx = self.cx + 1
             end
@@ -368,7 +357,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 local x, y = text_get_position(str, self.cx + 1,
                     self.pixel_width)
                 if y > 0 then
-                    self.cx = text_is_visible(str, x, y - FONTH,
+                    self.cx = text_is_visible(str, x, y - text_font_get_h(),
                         self.pixel_width)
                     self:scroll_on_screen()
                     text_font_pop()
@@ -721,12 +710,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return (abs(scale) * get_text_scale(scale < 0)) / text_font_get_h()
     end,
 
-    update_height = function(self)
-        if not self.line_wrap or self.multiline then return nil end
-        local w, h = text_get_bounds(self.lines[1], self.pixel_width)
-        self.pixel_height = h
-    end,
-
     layout = function(self)
         Widget.layout(self)
 
@@ -736,11 +719,27 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:reset_value()
         end
 
+        local lw, ml = self.line_wrap, self.multiline
         local k = self:draw_scale()
-        self:update_height()
-        self.w = max(self.w, (self.pixel_width + text_font_get_w()) * k)
-        self.h = max(self.h, self.pixel_height * k)
+        local pw, ph = self.clip_w / k
+        if not lw and not ml then
+            ph = text_font_get_h()
+        elseif ml then
+            ph = self.clip_h / k
+        else
+            local w, h = text_get_bounds(self.lines[1], pw)
+            ph = h
+        end
+        self.w = max(self.w, pw * k)
+        self.h = max(self.h, ph * k)
+        self.pixel_width, self.pixel_height = pw, ph
+
         text_font_pop()
+    end,
+
+    get_clip = function(self)
+        return self.clip_w, (self.multiline and self.clip_h
+            or self.pixel_height * self:draw_scale())
     end,
 
     draw_selection = function(self, max_width)
@@ -819,21 +818,19 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     draw_line_wrap = function(self, h, height)
         if not self.line_wrap then return nil end
-        local fontw, fonth = text_font_get_w(), text_font_get_h()
-        if height <= fonth then return nil end
+        local fonth = text_font_get_h()
         shader_hudnotexture_set()
-        gle_color3ub(0x80, 0xA0, 0x80)
+        gle_color3ub(0x3C, 0x3C, 0x3C)
         gle_defvertexf(2)
-        gle_begin(gl.TRIANGLE_STRIP)
-        gle_attrib2f(fontw / 2, h + fonth)
-        gle_attrib2f(fontw / 2, h + height)
-        gle_attrib2f(0,         h + fonth)
-        gle_attrib2f(0,         h + height)
+        gle_begin(gl.LINE_STRIP)
+        gle_attrib2f(0, h + fonth)
+        gle_attrib2f(0, h + height)
         gle_end()
         shader_hud_set()
     end,
 
     draw = function(self, sx, sy)
+        clip_push(sx, sy, self:get_clip())
         text_font_push()
         text_font_set(self.font)
         hudmatrix_push()
@@ -849,7 +846,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self:draw_selection()
 
         local h = 0
-        local fontw = text_font_get_w()
+        local fontw, fonth = text_font_get_w(), text_font_get_h()
         local max_width = self.line_wrap and self.pixel_width or -1
         for i = self.scrolly + 1, #self.lines do
             local width, height = text_get_bounds(self.lines[i],
@@ -858,17 +855,18 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 break
             end
             text_draw(tostring(self.password and ("*"):rep(#self.lines[i])
-                or self.lines[i]), fontw / 2, h, 255, 255, 255, 255,
+                or self.lines[i]), 0, h, 255, 255, 255, 255,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
-            self:draw_line_wrap(h, height)
+            if height > fonth then self:draw_line_wrap(h, height) end
             h = h + height
         end
 
         hudmatrix_pop()
         text_font_pop()
 
-        return Widget.draw(self, sx, sy)
+        Widget.draw(self, sx, sy)
+        clip_pop()
     end,
 
     is_field = function() return true end

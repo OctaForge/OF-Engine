@@ -23,6 +23,7 @@ local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 local logger = require("core.logger")
+local Vec2 = require("core.lua.geom").Vec2
 
 local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
@@ -328,6 +329,8 @@ local clip_area_is_fully_clipped = function(self, x, y, w, h)
 end
 M.clip_area_is_fully_clipped = clip_area_is_fully_clipped
 
+local clip_area_scissor
+
 --[[! Function: clip_push
     Pushes a clip area into the clip stack and scissors.
 ]]
@@ -374,7 +377,7 @@ M.is_fully_clipped = is_fully_clipped
     Scissors an area given a clip area. If nothing is given, the area
     last in the clip stack is used.
 ]]
-local clip_area_scissor = function(self)
+clip_area_scissor = function(self)
     self = self or clip_stack[#clip_stack]
     local sx1, sy1, sx2, sy2 =
         projection:calc_scissor(self[1], self[2], self[3], self[4])
@@ -458,6 +461,7 @@ local Projection = table2.Object:clone {
         local soffset = Vec2(self.so_x, self.so_y)
         local s1 = Vec2(x1, y2):mul(sscale):add(soffset)
         local s2 = Vec2(x2, y1):mul(sscale):add(soffset)
+        local hudw, hudh = hud_get_w(), hud_get_h()
         return clamp(floor(s1.x * hudw), 0, hudw),
                clamp(floor(s1.y * hudh), 0, hudh),
                clamp(ceil (s2.x * hudw), 0, hudw),
