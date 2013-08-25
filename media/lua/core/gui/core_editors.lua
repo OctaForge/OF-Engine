@@ -193,8 +193,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.virt_w, self.virt_h = 0, 0
         self.text_w, self.text_h = 0, 0
 
+        -- offset_h - horizontal offset in regular units
+        -- offset_v - by how many lines of text we're offset
         self.offset_h, self.offset_v = 0, 0
-        self.offset_vn  = 0
         self.can_scroll = 0
 
         local mline = kwargs.multiline != false and true or false
@@ -440,13 +441,13 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_push()
         text_font_set(self.font)
         self:region()
-        self.offset_vn = clamp(self.offset_vn, 0, self.cy)
+        self.offset_v = clamp(self.offset_v, 0, self.cy)
         local h = 0
-        for i = self.cy + 1, self.offset_vn + 1, -1 do
+        for i = self.cy + 1, self.offset_v + 1, -1 do
             local width, height = text_get_bounds(tostring(self.lines[i].text),
                 self.line_wrap and self.pixel_width or -1)
             if h + height > self.pixel_height then
-                self.offset_vn = i
+                self.offset_v = i
                 break
             end
             h = h + height
@@ -503,9 +504,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self.cy = self.cy + 1
             self:scroll_on_screen()
         elseif code == key.MOUSE4 then
-            self.offset_vn = self.offset_vn - 3
+            self.offset_v = self.offset_v - 3
         elseif code == key.MOUSE5 then
-            self.offset_vn = self.offset_vn + 3
+            self.offset_v = self.offset_v + 3
         elseif code == key.PAGEUP then
             self:movement_mark()
             if input_is_modifier_pressed(mod_keys) then
@@ -673,7 +674,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_set(self.font)
         local fontw = text_font_get_w()
         local pwidth = self.pixel_width
-        for i = self.offset_vn + 1, #self.lines do
+        for i = self.offset_v + 1, #self.lines do
             local linestr = tostring(self.lines[i])
             local width, height = text_get_bounds(linestr, max_width)
             if h + height > self.pixel_height then break end
@@ -908,7 +909,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             max_width)
         local maxy = #self.lines
         local h = 0
-        for i = self.offset_vn + 1, maxy do
+        for i = self.offset_v + 1, maxy do
             local width, height = text_get_bounds(tostring(self.lines[i]),
                 max_width)
             if h + height > self.pixel_height then
@@ -926,11 +927,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
         maxy = maxy - 1
 
-        if ey >= self.offset_vn and sy <= maxy then
+        if ey >= self.offset_v and sy <= maxy then
             local fonth = text_font_get_h()
             -- crop top/bottom within window
-            if  sy < self.offset_vn then
-                sy = self.offset_vn
+            if  sy < self.offset_v then
+                sy = self.offset_v
                 psy = 0
                 psx = 0
             end
@@ -999,7 +1000,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         hudmatrix_flush()
 
         local hit = is_focused(self)
-        self.offset_vn = clamp(self.offset_vn, 0, #self.lines - 1)
+        self.offset_v = clamp(self.offset_v, 0, #self.lines - 1)
 
         self:draw_selection()
 
@@ -1007,7 +1008,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local fontw, fonth = text_font_get_w(), text_font_get_h()
         local pwidth = self.pixel_width
         local max_width = self.line_wrap and pwidth or -1
-        for i = self.offset_vn + 1, #self.lines do
+        for i = self.offset_v + 1, #self.lines do
             local line = tostring(self.password
                 and ("*"):rep(self.lines[i].len) or self.lines[i])
             local width, height = text_get_bounds(line,
