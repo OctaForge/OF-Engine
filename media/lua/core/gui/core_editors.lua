@@ -478,9 +478,10 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             yoff += th
         end
 
-        local ov = self.offset_v
-        if yoff <= (oov / k) or yoff > ((oov + self.h) / k) then
-            ov += oov - yoff * k
+        if yoff <= (oov / k) then
+            self.offset_v += yoff * k - oov
+        elseif yoff > ((oov + self.h) / k) then
+            self.offset_v += yoff * k - (oov + self.h)
         end
     end,
 
