@@ -231,6 +231,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     edit_clear = function(self, init)
+        self._needs_calc = true
         self.cx, self.cy = 0, 0
         self:mark()
         if init == false then
