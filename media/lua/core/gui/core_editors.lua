@@ -191,6 +191,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.clip_h = kwargs.clip_h or 0
         self.virt_w = 0
         self.virt_h = 0
+        self.text_w = 0
+        self.text_h = 0
         local mline = kwargs.multiline != false and true or false
         self.multiline = mline
 
@@ -217,6 +219,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         -- must always contain at least one line
         self.lines = { editline(kwargs.value) }
+
+        self._needs_calc = true
 
         return Widget.__init(self, kwargs)
     end,
@@ -335,6 +339,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     remove_lines = function(self, start, count)
+        self._needs_calc = true
         for i = 1, count do
             table.remove(self.lines, start)
         end
@@ -348,6 +353,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:mark()
             return false
         end
+
+        self._needs_calc = true
 
         if sy == ey then
             if sx == 0 and ex == self.lines[ey + 1].len then
@@ -393,6 +400,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             return nil
         end
+
+        self._needs_calc = true
 
         self:del()
         local current = self:current_line()
@@ -543,6 +552,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:scroll_on_screen()
         elseif code == key.DELETE then
             if not self:del() then
+                self._needs_calc = true
                 local current = self:current_line()
                 if self.cx < current.len then
                     current:del(self.cx, 1)
@@ -555,6 +565,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:scroll_on_screen()
         elseif code == key.BACKSPACE then
             if not self:del() then
+                self._needs_calc = true
                 local current = self:current_line()
                 if self.cx > 0 then
                     current:del(self.cx - 1, 1)
@@ -570,6 +581,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:scroll_on_screen()
         elseif code == key.RETURN then
             -- maintain indentation
+            self._needs_calc = true
             local str = tostring(self:current_line())
             self:insert("\n")
             for c in str:gmatch "." do if c == " " or c == "\t" then
@@ -579,6 +591,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         elseif code == key.TAB then
             local b, sx, sy, ex, ey = self:region()
             if b then
+                self._needs_calc = true
                 for i = sy, ey do
                     if input_is_modifier_pressed(mod.SHIFT) then
                         local rem = 0
@@ -606,6 +619,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 end
             elseif input_is_modifier_pressed(mod.SHIFT) then
                 if self.cx > 0 then
+                    self._needs_calc = true
                     local cy = self.cy
                     local lines = self.lines
                     if tostring(lines[cy + 1]):sub(1, 1) == "\t" then
@@ -700,12 +714,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     copy = function(self)
         if not self:region() then return nil end
+        self._needs_calc = true
         local str = self:selection_to_string()
         if str then clipboard_set_text(str) end
     end,
 
     paste = function(self)
         if not clipboard_has_text() then return false end
+        self._needs_calc = true
         if self:region() then self:del() end
         local  str = clipboard_get_text()
         if not str then return false end
@@ -818,6 +834,23 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return (abs(scale) * get_text_scale(scale < 0)) / text_font_get_h()
     end,
 
+    calc_dimensions = function(self, maxw)
+        if not self._needs_calc then
+            return self.text_w, self.text_h
+        end
+        self._needs_calc = false
+        local lines = self.lines
+        local w, h = 0, 0
+        for i = 1, #lines do
+            local tw, th = text_get_bounds(tostring(lines[i]), maxw)
+            w, h = w + tw, h + th
+        end
+        local k = self:draw_scale()
+        w, h = w * k, h * k
+        self.text_w, self.text_h = w, h
+        return w, h
+    end,
+
     layout = function(self)
         Widget.layout(self)
 
@@ -838,6 +871,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             local w, h = text_get_bounds(tostring(self.lines[1]), pw)
             ph = h
         end
+
+        local tw, th = self:calc_dimensions(lw and pw or -1)
+
+        self.virt_w = max(self.w, tw)
+        self.virt_h = max(self.h, th)
+
         self.w = max(self.w, pw * k)
         self.h = max(self.h, ph * k)
         self.pixel_width, self.pixel_height = pw, ph
