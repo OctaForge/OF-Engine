@@ -72,6 +72,111 @@ local floor_to_fonth = function(n)
     return floor(n / fh) * fh
 end
 
+local chunksize = 256
+local ffi_new, ffi_cast, ffi_copy, ffi_string = ffi.new, ffi.cast, ffi.copy,
+ffi.string
+
+ffi.cdef [[
+    void *memmove(void*, const void*, size_t);
+    void *malloc(size_t nbytes);
+    void free(void *ptr);
+    typedef struct editline_t {
+        char *text;
+        int len, maxlen;
+    } editline_t;
+]]
+local C = ffi.C
+
+local editline_MT = {
+    __new = function(self, x)
+        return ffi_new(self):set(x or "")
+    end,
+    __tostring = function(self)
+        return ffi_string(self.text, self.len)
+    end,
+    __gc = function(self)
+        self:clear()
+    end,
+    __index = {
+        empty = function(self) return self.len <= 0 end,
+        clear = function(self)
+            C.free(self.text)
+            self.text = nil
+            self.len, self.maxlen = 0, 0
+        end,
+        grow = function(self, total, nocopy)
+            if total + 1 <= self.maxlen then return false end
+            self.maxlen = (total + chunksize) - total % chunksize
+            local newtext = ffi_cast("char*", C.malloc(self.maxlen))
+            if not nocopy then
+                ffi_copy(newtext, self.text, self.len + 1)
+            end
+            C.free(self.text)
+            self.text = newtext
+            return true
+        end,
+        set = function(self, str)
+            self:grow(#str, true)
+            ffi_copy(self.text, str)
+            self.len = #str
+            return self
+        end,
+        prepend = function(self, str)
+            local slen = #str
+            self:grow(self.len + slen)
+            C.memmove(self.text + slen, self.text, self.len + 1)
+            ffi_copy(self.text, str)
+            self.len += slen
+            return self
+        end,
+        append = function(self, str)
+            self:grow(self.len + #str)
+            ffi_copy(self.text + self.len, str)
+            self.len += #str
+            return self
+        end,
+        del = function(self, start, count)
+            if not self.text then return self end
+            if start < 0 then
+                count, start = count + start, 0
+            end
+            if count <= 0 or start >= self.len then return self end
+            if start + count > self.len then count = self.len - start - 1 end
+            C.memmove(self.text + start, self.text + start + count,
+                self.len + 1 - (start + count))
+            self.len -= count
+            return self
+        end,
+        chop = function(self, newlen)
+            if not self.text then return self end
+            self.len = clamp(newlen, 0, len)
+            self.text[self.len] = 0
+            return self
+        end,
+        insert = function(self, str, start, count)
+            if not count or count <= 0 then count = #str end
+            start = clamp(start, 0, self.len)
+            self:grow(self.len + count)
+            if self.len == 0 then self.text[0] = 0 end
+            C.memmove(self.text + start + count, self.text + start,
+                self.len - start + 1)
+            ffi_copy(self.text + start, str, count)
+            self.len += count
+            return self
+        end,
+        combine_lines = function(self, src)
+            if #src == 0 then self:set("")
+            else for i, v in ipairs(src) do
+                if i != 1 then self:append("\n") end
+                if i == 1 then self:set(v.text, v.len)
+                else self:insert(v.text, self.len, v.len) end
+            end end
+            return self
+        end,
+    }
+}
+local editline = ffi.metatype("editline_t", editline_MT)
+
 --[[! Struct: Text_Editor
     Implements a text editor widget. It's a basic editor that supports
     scrolling of text and some extra features like key filter, password
@@ -111,7 +216,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.password = kwargs.password or false
 
         -- must always contain at least one line
-        self.lines = { kwargs.value or "" }
+        self.lines = { editline(kwargs.value) }
 
         return Widget.__init(self, kwargs)
     end,
@@ -127,7 +232,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if init == false then
             self.lines = {}
         else
-            self.lines = { init or "" }
+            self.lines = { editline(init) }
         end
     end,
 
@@ -143,7 +248,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     is_empty = function(self)
         local lines = self.lines
-        return #lines == 1 and lines[1] == ""
+        return #lines == 1 and lines[1].text[0] == 0
     end,
 
     -- constrain results to within buffer - s = start, e = end, return true if
@@ -160,7 +265,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         elseif cy >= n then
             cy = n - 1
         end
-        local len = #self.lines[cy + 1]
+        local len = self.lines[cy + 1].len
         if  cx < 0 then
             cx = 0
         elseif cx > len then
@@ -172,7 +277,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             elseif my >= n then
                 my = n - 1
             end
-            len = #self.lines[my + 1]
+            len = self.lines[my + 1].len
             if  mx > len then
                 mx = len
             end
@@ -199,7 +304,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if     self.cy <  0 then self.cy = 0
         elseif self.cy >= n then self.cy = n - 1 end
 
-        local len = #self.lines[self.cy + 1]
+        local len = self.lines[self.cy + 1].len
 
         if     self.cx < 0   then self.cx = 0
         elseif self.cx > len then self.cx = len end
@@ -208,7 +313,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     to_string = function(self)
-        return table.concat(self.lines, "\n")
+        return tostring(editline():combine_lines(self.lines))
     end,
 
     selection_to_string = function(self)
@@ -217,7 +322,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         for i = 1, 1 + ey - sy do
             local y = sy + i - 1
-            local line = self.lines[y + 1]
+            local line = tostring(self.lines[y + 1])
             local len  = #line
             if y == sy then line = line:sub(sx + 1) end
             buf[#buf + 1] = line
@@ -245,9 +350,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
 
         if sy == ey then
-            if sx == 0 and ex == #self.lines[ey + 1] then
+            if sx == 0 and ex == self.lines[ey + 1].len then
                 self:remove_lines(sy + 1, 1)
-            else self.lines[sy + 1] = self.lines[sy + 1]:del(sx + 1, ex - sx)
+            else self.lines[sy + 1]:del(sx, ex - sx)
             end
         else
             if ey > sy + 1 then
@@ -255,28 +360,26 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 ey = sy + 1
             end
 
-            if ex == #self.lines[ey + 1] then
+            if ex == self.lines[ey + 1].len then
                 self:remove_lines(ey + 1, 1)
             else
-                self.lines[ey + 1] = self.lines[ey + 1]:del(1, ex)
+                self.lines[ey + 1]:del(0, ex)
             end
 
             if sx == 0 then
                 self:remove_lines(sy + 1, 1)
             else
-                self.lines[sy + 1] = self.lines[sy + 1]:del(sx + 1,
-                    #self.lines[sy] - sx)
+                self.lines[sy + 1]:del(sx, self.lines[sy].len - sx)
             end
         end
 
-        if #self.lines == 0 then self.lines = { "" } end
+        if #self.lines == 0 then self.lines = { editline() } end
         self:mark()
         self.cx, self.cy = sx, sy
 
         local current = self:current_line()
-        if self.cx > #current and self.cy < #self.lines - 1 then
-            self.lines[self.cy + 1] = table.concat {
-                self.lines[self.cy + 1], self.lines[self.cy + 2] }
+        if self.cx > current.len and self.cy < #self.lines - 1 then
+            current:append(tostring(self.lines[self.cy + 2]))
             self:remove_lines(self.cy + 2, 1)
         end
 
@@ -296,18 +399,17 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         if ch == "\n" then
             if self.multiline then
-                local newline = current:sub(self.cx + 1)
-                self.lines[self.cy + 1] = current:sub(1, self.cx)
+                local newline = editline(tostring(current):sub(self.cx + 1))
+                current:chop(self.cx)
                 self.cy = min(#self.lines, self.cy + 1)
                 table.insert(self.lines, self.cy + 1, newline)
             else
-                current = current:sub(1, self.cx)
-                self.lines[self.cy + 1] = current
+                current:chop(self.cx)
             end
             self.cx = 0
         else
-            if self.cx <= #current then
-                self.lines[self.cy + 1] = current:insert(self.cx + 1, ch)
+            if self.cx <= current.len then
+                current:insert(ch, self.cx, 1)
                 self.cx = self.cx + 1
             end
         end
@@ -329,7 +431,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.scrolly = clamp(self.scrolly, 0, self.cy)
         local h = 0
         for i = self.cy + 1, self.scrolly + 1, -1 do
-            local width, height = text_get_bounds(self.lines[i],
+            local width, height = text_get_bounds(tostring(self.lines[i].text),
                 self.line_wrap and self.pixel_width or -1)
             if h + height > self.pixel_height then
                 self.scrolly = i
@@ -351,7 +453,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if code == key.UP then
             self:movement_mark()
             if self.line_wrap then
-                local str = self:current_line()
+                local str = tostring(self:current_line())
                 text_font_push()
                 text_font_set(self.font)
                 local x, y = text_get_position(str, self.cx + 1,
@@ -370,7 +472,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         elseif code == key.DOWN then
             self:movement_mark()
             if self.line_wrap then
-                local str = self:current_line()
+                local str = tostring(self:current_line())
                 text_font_push()
                 text_font_set(self.font)
                 local x, y = text_get_position(str, self.cx,
@@ -432,7 +534,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:scroll_on_screen()
         elseif code == key.RIGHT then
             self:movement_mark()
-            if self.cx < #self.lines[self.cy + 1] then
+            if self.cx < self.lines[self.cy + 1].len then
                 self.cx = self.cx + 1
             elseif self.cy < #self.lines - 1 then
                 self.cx = 0
@@ -442,12 +544,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         elseif code == key.DELETE then
             if not self:del() then
                 local current = self:current_line()
-                if self.cx < #current then
-                    self.lines[self.cy + 1] = current:del(self.cx + 1, 1)
+                if self.cx < current.len then
+                    current:del(self.cx, 1)
                 elseif self.cy < #self.lines - 1 then
                     -- combine with next line
-                    self.lines[self.cy + 1] = table.concat {
-                        current, self.lines[self.cy + 2] }
+                    current:append(tostring(self.lines[self.cy + 2]))
                     self:remove_lines(self.cy + 2, 1)
                 end
             end
@@ -456,13 +557,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             if not self:del() then
                 local current = self:current_line()
                 if self.cx > 0 then
-                    self.lines[self.cy + 1] = current:del(self.cx, 1)
+                    current:del(self.cx - 1, 1)
                     self.cx = self.cx - 1
                 elseif self.cy > 0 then
                     -- combine with previous line
-                    self.cx = #self.lines[self.cy]
-                    self.lines[self.cy] = table.concat {
-                        self.lines[self.cy], current }
+                    self.cx = self.lines[self.cy].len
+                    self.lines[self.cy]:append(tostring(current))
                     self:remove_lines(self.cy + 1, 1)
                     self.cy = self.cy - 1
                 end
@@ -470,7 +570,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:scroll_on_screen()
         elseif code == key.RETURN then
             -- maintain indentation
-            local str = self:current_line()
+            local str = tostring(self:current_line())
             self:insert("\n")
             for c in str:gmatch "." do if c == " " or c == "\t" then
                 self:insert(c) else break
@@ -482,23 +582,24 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 for i = sy, ey do
                     if input_is_modifier_pressed(mod.SHIFT) then
                         local rem = 0
-                        for j = 1, min(4, #self.lines[i + 1]) do
-                            if self.lines[i + 1]:sub(j, j) == " " then
+                        for j = 1, min(4, self.lines[i + 1].len) do
+                            if tostring(self.lines[i + 1]):sub(j, j) == " "
+                            then
                                 rem = rem + 1
                             else
-                                if self.lines[i + 1]:sub(j, j) == "\t"
-                                and j == 0 then
+                                if tostring(self.lines[i + 1]):sub(j, j)
+                                == "\t" and j == 0 then
                                     rem = rem + 1
                                 end
                                 break
                             end
                         end
-                        self.lines[i + 1] = self.lines[i + 1]:del(1, rem)
+                        self.lines[i + 1]:del(0, rem)
                         if i == self.my then self.mx = self.mx
                             - (rem > self.mx and self.mx or rem) end
                         if i == self.cy then self.cx = self.cx -  rem end
                     else
-                        self.lines[i + 1] = "\t" .. self.lines[i + 1]
+                        self.lines[i + 1]:prepend("\t")
                         if i == self.my then self.mx = self.mx + 1 end
                         if i == self.cy then self.cx = self.cx + 1 end
                     end
@@ -507,13 +608,13 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 if self.cx > 0 then
                     local cy = self.cy
                     local lines = self.lines
-                    if lines[cy + 1]:sub(1, 1) == "\t" then
-                        lines[cy + 1] = lines[cy + 1]:sub(2)
+                    if tostring(lines[cy + 1]):sub(1, 1) == "\t" then
+                        lines[cy + 1]:del(0, 1)
                         self.cx = self.cx - 1
                     else
                         for j = 1, min(4, #lines[cy + 1]) do
-                            if lines[cy + 1]:sub(1, 1) == " " then
-                                lines[cy + 1] = lines[cy + 1]:sub(2)
+                            if tostring(lines[cy + 1]):sub(1, 1) == " " then
+                                lines[cy + 1]:del(0, 1)
                                 self.cx = self.cx - 1
                             end
                         end
@@ -556,18 +657,17 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local fontw = text_font_get_w()
         local pwidth = self.pixel_width
         for i = self.scrolly + 1, #self.lines do
-            local width, height = text_get_bounds(self.lines[i],
-                max_width)
+            local linestr = tostring(self.lines[i])
+            local width, height = text_get_bounds(linestr, max_width)
             if h + height > self.pixel_height then break end
-            --local hitx2 = hitx / pwidth * (width + fontw)
             if hity >= h and hity <= h + height then
                 local xo = 0
                 if max_width < 0 then
-                    local x, y = text_get_position(self.lines[i], self.cx, -1)
+                    local x, y = text_get_position(linestr, self.cx, -1)
                     local d = x - pwidth
                     if d > 0 then xo = d end
                 end
-                local x = text_is_visible(self.lines[i], hitx + xo, hity - h,
+                local x = text_is_visible(linestr, hitx + xo, hity - h,
                     max_width)
                 if dragged then
                     self.mx, self.my = x, i - 1
@@ -588,7 +688,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local slines = #self.lines
         local ph = self.pixel_height
         while slines > 0 and ph > 0 do
-            local width, height = text_get_bounds(self.lines[slines],
+            local width, height = text_get_bounds(tostring(self.lines[slines]),
                 max_width)
             if height > ph then break end
             ph = ph - height
@@ -708,7 +808,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     reset_value = function(self)
         local ival = self.init_value
-        if ival and ival != self.lines[1] then
+        if ival and ival != tostring(self.lines[1]) then
             self:edit_clear(ival)
         end
     end,
@@ -735,7 +835,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         elseif ml then
             ph = self.clip_h / k
         else
-            local w, h = text_get_bounds(self.lines[1], pw)
+            local w, h = text_get_bounds(tostring(self.lines[1]), pw)
             ph = h
         end
         self.w = max(self.w, pw * k)
@@ -755,14 +855,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if not selection then return nil end
         local max_width = self.line_wrap and self.pixel_width or -1
         -- convert from cursor coords into pixel coords
-        local psx, psy = text_get_position(self.lines[sy + 1], sx,
+        local psx, psy = text_get_position(tostring(self.lines[sy + 1]), sx,
             max_width)
-        local pex, pey = text_get_position(self.lines[ey + 1], ex,
+        local pex, pey = text_get_position(tostring(self.lines[ey + 1]), ex,
             max_width)
         local maxy = #self.lines
         local h = 0
         for i = self.scrolly + 1, maxy do
-            local width, height = text_get_bounds(self.lines[i],
+            local width, height = text_get_bounds(tostring(self.lines[i]),
                 max_width)
             if h + height > self.pixel_height then
                 maxy = i
@@ -857,8 +957,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local pwidth = self.pixel_width
         local max_width = self.line_wrap and pwidth or -1
         for i = self.scrolly + 1, #self.lines do
-            local line = tostring(self.password and ("*"):rep(#self.lines[i])
-                or self.lines[i])
+            local line = tostring(self.password
+                and ("*"):rep(self.lines[i].len) or self.lines[i])
             local width, height = text_get_bounds(line,
                 max_width)
             if h + height > self.pixel_height then break end
@@ -910,7 +1010,7 @@ M.Field = register_class("Field", Text_Editor, {
 
     commit = function(self)
         Text_Editor.commit(self)
-        local val = self.lines[1]
+        local val = tostring(self.lines[1])
         self.value = val
         -- trigger changed signal
         emit(self, "value_changed", val)
@@ -933,7 +1033,8 @@ M.Field = register_class("Field", Text_Editor, {
     ]]
     reset_value = function(self)
         local str = self.value
-        if self.lines[1] != str then self:edit_clear(str) end
+        local str2 = tostring(self.lines[1])
+        if str2 != str then self:edit_clear(str) end
     end,
 
     --[[! Function: set_value ]]
