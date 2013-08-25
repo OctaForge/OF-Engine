@@ -977,7 +977,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     draw = function(self, sx, sy)
-        clip_push(sx, sy, self:get_clip())
+        local cw, ch = self:get_clip()
+        local clip = (cw != 0 and self.virt_w > cw)
+                  or (ch != 0 and self.virt_h > ch)
+
+        if clip then clip_push(sx, sy, cw, ch) end
         text_font_push()
         text_font_set(self.font)
         hudmatrix_push()
@@ -1019,7 +1023,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_pop()
 
         Widget.draw(self, sx, sy)
-        clip_pop()
+        if clip then clip_pop() end
     end,
 
     is_field = function() return true end
