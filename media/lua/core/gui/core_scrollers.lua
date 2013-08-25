@@ -49,7 +49,8 @@ local Clipper = M.Clipper
 
 --[[! Struct: Scroller
     Derived from Clipper. Provides a scrollable area without scrollbars.
-    Scrollbars are separate widgets and are siblings of scrollers.
+    There are scrollbars provided further below. Text editors implement
+    the same interface as scrollers, thus they can be used as scrollers.
 ]]
 M.Scroller = register_class("Scroller", Clipper, {
     __init = function(self, kwargs)
@@ -110,7 +111,7 @@ M.Scroller = register_class("Scroller", Clipper, {
     --[[! Function: key_hover
         A mouse scroll wheel handler. It scrolls in the direction of its
         scrollbar. If both are present, vertical takes precedence. If none
-        is present, scrolling won't work.
+        is present, vertical is used with the default arrow_speed of 0.5.
     ]]
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSE4, key.MOUSE5
@@ -119,11 +120,12 @@ M.Scroller = register_class("Scroller", Clipper, {
         end
 
         local  sb = self.v_scrollbar or self.h_scrollbar
-        if not sb or not self.can_scroll then return false end
+        if not self.can_scroll then return false end
         if not isdown then return true end
 
-        local adjust = (code == m4 and -0.2 or 0.2) * sb.arrow_speed
-        if self.v_scrollbar then
+        local adjust = (code == m4 and -0.2 or 0.2) * (sb and sb.arrow_speed
+            or 0.5)
+        if not self.h_scrollbar then
             self:scroll_v(adjust)
         else
             self:scroll_h(adjust)
@@ -263,7 +265,11 @@ local Scroll_Button
     A base scrollbar widget class. This one is not of much use. Has two
     properties, arrow_size (determines the length of the arrow part of
     the scrollbar) and arrow_speed (mouse scroll is by 0.2 * arrow_speed,
-    arrow scroll is by frame_time * arrow_speed), both of which default to 0.
+    arrow scroll is by frame_time * arrow_speed, when used with text editors,
+    mouse scroll is 6 * fonth * arrow_speed), both of which default to 0.
+
+    Scrollbars can be used with widgets that implement the right interface -
+    scrollers and text editors (including fields).
 ]]
 local Scrollbar = register_class("Scrollbar", Widget, {
     orient = -1,

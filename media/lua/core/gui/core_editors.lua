@@ -544,10 +544,13 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             self.cy = self.cy + 1
             self:scroll_on_screen()
-        elseif code == key.MOUSE4 then
-            self.offset_v -= (3 * text_font_get_h()) * self:draw_scale()
-        elseif code == key.MOUSE5 then
-            self.offset_v += (3 * text_font_get_h()) * self:draw_scale()
+        elseif code == key.MOUSE4 or code == key.MOUSE5 then
+            if self.can_scroll then
+                local sb = self.v_scrollbar
+                local fac = 6 * text_font_get_h() * self:draw_scale()
+                self:scroll_v((code == key.MOUSE4 and -fac or fac)
+                    * (sb and sb.arrow_speed or 0.5))
+            end
         elseif code == key.PAGEUP then
             self:movement_mark()
             if input_is_modifier_pressed(mod_keys) then
@@ -718,7 +721,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_set(self.font)
         local fontw = text_font_get_w()
         local pwidth = self.pixel_width
-        for i = self:get_first_drawable_line(), #self.lines do
+        local fd = self:get_first_drawable_line()
+        if fd then for i = fd, #self.lines do
             local linestr = tostring(self.lines[i])
             local width, height = self.lines[i]:get_bounds()
             if h + height > self.pixel_height then break end
@@ -733,7 +737,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 break
             end
             h = h + height
-        end
+        end end
         text_font_pop()
     end,
 
@@ -1046,25 +1050,26 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local pwidth = self.pixel_width
         local max_width = self.line_wrap and pwidth or -1
 
-        local first_drawable = self:get_first_drawable_line()
+        local fd = self:get_first_drawable_line()
+        if fd then
+            local xoff = self.offset_h / k
 
-        local xoff = self.offset_h / k
+            self:draw_selection(fd, xoff)
 
-        self:draw_selection(first_drawable, xoff)
+            local h = 0
+            local fontw, fonth = text_font_get_w(), text_font_get_h()
+            for i = fd, #self.lines do
+                local line = tostring(self.password
+                    and ("*"):rep(self.lines[i].len) or self.lines[i])
+                local width, height = text_get_bounds(line,
+                    max_width)
+                if h >= self.pixel_height then break end
+                text_draw(line, xoff, h, 255, 255, 255, 255,
+                    (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
-        local h = 0
-        local fontw, fonth = text_font_get_w(), text_font_get_h()
-        for i = first_drawable, #self.lines do
-            local line = tostring(self.password
-                and ("*"):rep(self.lines[i].len) or self.lines[i])
-            local width, height = text_get_bounds(line,
-                max_width)
-            if h >= self.pixel_height then break end
-            text_draw(line, xoff, h, 255, 255, 255, 255,
-                (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
-
-            if height > fonth then self:draw_line_wrap(h, height) end
-            h = h + height
+                if height > fonth then self:draw_line_wrap(h, height) end
+                h = h + height
+            end
         end
 
         hudmatrix_pop()
@@ -1118,6 +1123,24 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     get_v_scale = function(self)
         return self.h / max(self.virt_h, self.h)
+    end,
+
+    set_h_scroll = function(self, hs)
+        self.offset_h = clamp(hs, 0, self:get_h_limit())
+        emit(self, "h_scroll_changed", self:get_h_offset())
+    end,
+
+    set_v_scroll = function(self, vs)
+        self.offset_v = clamp(vs, 0, self:get_v_limit())
+        emit(self, "v_scroll_changed", self:get_v_offset())
+    end,
+
+    scroll_h = function(self, hs)
+        self:set_h_scroll(self.offset_h + hs)
+    end,
+
+    scroll_v = function(self, vs)
+        self:set_v_scroll(self.offset_v + vs)
     end
 })
 M.Text_Editor = Text_Editor
