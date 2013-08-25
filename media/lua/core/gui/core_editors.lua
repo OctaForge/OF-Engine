@@ -227,6 +227,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     clear = function(self)
         self:set_focus(nil)
+        self:bind_h_scrollbar()
+        self:bind_v_scrollbar()
         return Widget.clear(self)
     end,
 
@@ -735,10 +737,16 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     hover = function(self, cx, cy)
+        local oh, ov, vw, vh = self.offset_h, self.offset_v,
+            self.virt_w, self.virt_h
+        self.can_scroll = ((cx + oh) < vw) and ((cy + ov) < vh)
         return self:target(cx, cy) and self
     end,
 
     click = function(self, cx, cy)
+        local oh, ov, vw, vh = self.offset_h, self.offset_v,
+            self.virt_w, self.virt_h
+        self.can_scroll = ((cx + oh) < vw) and ((cy + ov) < vh)
         return self:target(cx, cy) and self
     end,
 
@@ -1025,7 +1033,51 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if clip then clip_pop() end
     end,
 
-    is_field = function() return true end
+    bind_h_scrollbar = function(self, sb)
+        if not sb then
+            sb = self.h_scrollbar
+            if not sb then return nil end
+            sb.scroller, self.h_scrollbar = nil, nil
+            return sb
+        end
+        self.h_scrollbar = sb
+        sb.scroller = self
+    end,
+
+    bind_v_scrollbar = function(self, sb)
+        if not sb then
+            sb = self.v_scrollbar
+            if not sb then return nil end
+            sb.scroller, self.v_scrollbar = nil, nil
+            return sb
+        end
+        self.v_scrollbar = sb
+        sb.scroller = self
+    end,
+
+    get_h_limit = function(self)
+        return max(self.virt_w - self.w, 0)
+    end,
+
+    get_v_limit = function(self)
+        return max(self.virt_h - self.h, 0)
+    end,
+
+    get_h_offset = function(self)
+        return self.offset_h / max(self.virt_w, self.w)
+    end,
+
+    get_v_offset = function(self)
+        return self.offset_v / max(self.virt_h, self.h)
+    end,
+
+    get_h_scale = function(self)
+        return self.w / max(self.virt_w, self.w)
+    end,
+
+    get_v_scale = function(self)
+        return self.h / max(self.virt_h, self.h)
+    end
 })
 M.Text_Editor = Text_Editor
 
