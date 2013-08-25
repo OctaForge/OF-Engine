@@ -125,7 +125,7 @@ world:new_window("main", gui.Window, |win| do
             b:append(gui.H_Box(), |b| do
                 b:append(gui.Outline(), |o| do
                     o:clamp(true, true, true, true)
-                    o:append(gui.Field { clip_w = 0.4, value = "butts" }, |x| do
+                    o:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = "butts", multiline = true }, |x| do
                         x:clamp(true, true, true, true)
                         ed = x
                     end)

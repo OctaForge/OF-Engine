@@ -83,6 +83,7 @@ ffi.cdef [[
     typedef struct editline_t {
         char *text;
         int len, maxlen;
+        float w, h;
     } editline_t;
 ]]
 local C = ffi.C
@@ -149,7 +150,7 @@ local editline_MT = {
         end,
         chop = function(self, newlen)
             if not self.text then return self end
-            self.len = clamp(newlen, 0, len)
+            self.len = clamp(newlen, 0, self.len)
             self.text[self.len] = 0
             return self
         end,
@@ -173,6 +174,14 @@ local editline_MT = {
             end end
             return self
         end,
+        calc_bounds = function(self, maxw)
+            local w, h = text_get_bounds(tostring(self), maxw)
+            self.w, self.h = w, h
+            return w, h
+        end,
+        get_bounds = function(self)
+            return self.w, self.h
+        end
     }
 }
 local editline = ffi.metatype("editline_t", editline_MT)
@@ -193,8 +202,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.virt_w, self.virt_h = 0, 0
         self.text_w, self.text_h = 0, 0
 
-        -- offset_h - horizontal offset in regular units
-        -- offset_v - by how many lines of text we're offset
         self.offset_h, self.offset_v = 0, 0
         self.can_scroll = 0
 
@@ -242,6 +249,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         else
             self.lines = { editline(init) }
         end
+        self:scroll_on_screen()
     end,
 
     mark = function(self, enable)
@@ -437,21 +445,53 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    scroll_on_screen = function(self)
+    fix_h_scroll = function(self, del, maxw)
+        local k = self:draw_scale()
+        local maxw = self.line_wrap and self.pixel_width or -1
+
+        local fontw = text_font_get_w() * k
+        local x, y = text_get_position(tostring(self.lines[self.cy + 1]),
+            self.cx, maxw)
+
+        x *= k
+        local w, oh = self.w, self.offset_h
+
+        if x > (w - (not del and oh or 0) - 2 * fontw) then
+            self.offset_h = w - x - 2 * fontw
+        elseif (x + oh) < 0 then
+            self.offset_h = -x
+        else
+            self.offset_h = 0
+        end
+    end,
+
+    fix_v_scroll = function(self)
+        local k = self:draw_scale()
+        local lines = self.lines
+
+        local cy = self.cy + 1
+        local oov = self.offset_v
+
+        local yoff = 0
+        for i = 1, cy do
+            local tw, th = lines[i]:get_bounds()
+            yoff += th
+        end
+
+        local ov = self.offset_v
+        if yoff <= (oov / k) or yoff > ((oov + self.h) / k) then
+            ov += oov - yoff * k
+        end
+    end,
+
+    scroll_on_screen = function(self, del)
         text_font_push()
         text_font_set(self.font)
         self:region()
-        self.offset_v = clamp(self.offset_v, 0, self.cy)
-        local h = 0
-        for i = self.cy + 1, self.offset_v + 1, -1 do
-            local width, height = text_get_bounds(tostring(self.lines[i].text),
-                self.line_wrap and self.pixel_width or -1)
-            if h + height > self.pixel_height then
-                self.offset_v = i
-                break
-            end
-            h = h + height
-        end
+
+        self:fix_h_scroll(del)
+        self:fix_v_scroll()
+
         text_font_pop()
     end,
 
@@ -504,9 +544,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self.cy = self.cy + 1
             self:scroll_on_screen()
         elseif code == key.MOUSE4 then
-            self.offset_v = self.offset_v - 3
+            self.offset_v -= (3 * text_font_get_h()) * self:draw_scale()
         elseif code == key.MOUSE5 then
-            self.offset_v = self.offset_v + 3
+            self.offset_v += (3 * text_font_get_h()) * self:draw_scale()
         elseif code == key.PAGEUP then
             self:movement_mark()
             if input_is_modifier_pressed(mod_keys) then
@@ -582,7 +622,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                     self.cy = self.cy - 1
                 end
             end
-            self:scroll_on_screen()
+            self:scroll_on_screen(true)
         elseif code == key.RETURN then
             -- maintain indentation
             self._needs_calc = true
@@ -644,6 +684,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:scroll_on_screen()
         elseif code == key.A then
             if not input_is_modifier_pressed(mod_keys) then
+                self:scroll_on_screen()
                 return nil
             end
             self:select_all()
@@ -651,6 +692,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         elseif code == key.C or code == key.X then
             if not input_is_modifier_pressed(mod_keys)
             or not self:region() then
+                self:scroll_on_screen()
                 return nil
             end
             self:copy()
@@ -658,6 +700,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:scroll_on_screen()
         elseif code == key.V then
             if not input_is_modifier_pressed(mod_keys) then
+                self:scroll_on_screen()
                 return nil
             end
             self:paste()
@@ -674,18 +717,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_set(self.font)
         local fontw = text_font_get_w()
         local pwidth = self.pixel_width
-        for i = self.offset_v + 1, #self.lines do
+        for i = self:get_first_drawable_line(), #self.lines do
             local linestr = tostring(self.lines[i])
-            local width, height = text_get_bounds(linestr, max_width)
+            local width, height = self.lines[i]:get_bounds()
             if h + height > self.pixel_height then break end
             if hity >= h and hity <= h + height then
-                local xo = 0
-                if max_width < 0 then
-                    local x, y = text_get_position(linestr, self.cx, -1)
-                    local d = x - pwidth
-                    if d > 0 then xo = d end
-                end
-                local x = text_is_visible(linestr, hitx + xo, hity - h,
+                local x = text_is_visible(linestr, hitx, hity - h,
                     max_width)
                 if dragged then
                     self.mx, self.my = x, i - 1
@@ -697,23 +734,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             h = h + height
         end
         text_font_pop()
-    end,
-
-    limit_scroll_y = function(self)
-        text_font_push()
-        text_font_set(self.font)
-        local max_width = self.line_wrap and self.pixel_width or -1
-        local slines = #self.lines
-        local ph = self.pixel_height
-        while slines > 0 and ph > 0 do
-            local width, height = text_get_bounds(tostring(self.lines[slines]),
-                max_width)
-            if height > ph then break end
-            ph = ph - height
-            slines = slines - 1
-        end
-        text_font_pop()
-        return slines
     end,
 
     copy = function(self)
@@ -850,14 +870,35 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self._needs_calc = false
         local lines = self.lines
         local w, h = 0, 0
+        local ov = 0
+        local k = self:draw_scale()
         for i = 1, #lines do
-            local tw, th = text_get_bounds(tostring(lines[i]), maxw)
+            local tw, th = lines[i]:calc_bounds(maxw)
             w, h = w + tw, h + th
         end
-        local k = self:draw_scale()
         w, h = w * k, h * k
         self.text_w, self.text_h = w, h
         return w, h
+    end,
+
+    get_first_drawable_line = function(self)
+        local lines = self.lines
+        local ov = self.offset_v / self:draw_scale()
+        for i = 1, #lines do
+            local tw, th = lines[i]:get_bounds()
+            ov -= th
+            if ov < 0 then return i end
+        end
+    end,
+
+    get_last_drawable_line = function(self)
+        local lines = self.lines
+        local ov = (self.offset_v + self.h) / self:draw_scale()
+        for i = 1, #lines do
+            local tw, th = lines[i]:get_bounds()
+            ov -= th
+            if ov <= 0 then return i end
+        end
     end,
 
     layout = function(self)
@@ -898,7 +939,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             or self.pixel_height * self:draw_scale())
     end,
 
-    draw_selection = function(self, max_width)
+    draw_selection = function(self, first_drawable, x)
         local selection, sx, sy, ex, ey = self:region()
         if not selection then return nil end
         local max_width = self.line_wrap and self.pixel_width or -1
@@ -909,7 +950,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             max_width)
         local maxy = #self.lines
         local h = 0
-        for i = self.offset_v + 1, maxy do
+        for i = first_drawable, maxy do
             local width, height = text_get_bounds(tostring(self.lines[i]),
                 max_width)
             if h + height > self.pixel_height then
@@ -927,11 +968,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
         maxy = maxy - 1
 
-        if ey >= self.offset_v and sy <= maxy then
+        if ey >= first_drawable - 1 and sy <= maxy then
             local fonth = text_font_get_h()
             -- crop top/bottom within window
-            if  sy < self.offset_v then
-                sy = self.offset_v
+            if  sy < first_drawable - 1 then
+                sy = first_drawable - 1
                 psy = 0
                 psx = 0
             end
@@ -946,25 +987,25 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             gle_defvertexf(2)
             gle_begin(gl.QUADS)
             if psy == pey then
-                gle_attrib2f(psx, psy)
-                gle_attrib2f(pex, psy)
-                gle_attrib2f(pex, pey + fonth)
-                gle_attrib2f(psx, pey + fonth)
+                gle_attrib2f(x + psx, psy)
+                gle_attrib2f(x + pex, psy)
+                gle_attrib2f(x + pex, pey + fonth)
+                gle_attrib2f(x + psx, pey + fonth)
             else
-                gle_attrib2f(psx,              psy)
-                gle_attrib2f(psx,              psy + fonth)
-                gle_attrib2f(self.pixel_width, psy + fonth)
-                gle_attrib2f(self.pixel_width, psy)
+                gle_attrib2f(x + psx,              psy)
+                gle_attrib2f(x + psx,              psy + fonth)
+                gle_attrib2f(x + self.pixel_width, psy + fonth)
+                gle_attrib2f(x + self.pixel_width, psy)
                 if (pey - psy) > fonth then
-                    gle_attrib2f(0,                psy + fonth)
-                    gle_attrib2f(self.pixel_width, psy + fonth)
-                    gle_attrib2f(self.pixel_width, pey)
-                    gle_attrib2f(0,                pey)
+                    gle_attrib2f(x,                    psy + fonth)
+                    gle_attrib2f(x + self.pixel_width, psy + fonth)
+                    gle_attrib2f(x + self.pixel_width, pey)
+                    gle_attrib2f(x,                    pey)
                 end
-                gle_attrib2f(0,   pey)
-                gle_attrib2f(0,   pey + fonth)
-                gle_attrib2f(pex, pey + fonth)
-                gle_attrib2f(pex, pey)
+                gle_attrib2f(x,       pey)
+                gle_attrib2f(x,       pey + fonth)
+                gle_attrib2f(x + pex, pey + fonth)
+                gle_attrib2f(x + pex, pey)
             end
             gle_end()
             shader_hud_set()
@@ -1000,27 +1041,25 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         hudmatrix_flush()
 
         local hit = is_focused(self)
-        self.offset_v = clamp(self.offset_v, 0, #self.lines - 1)
 
-        self:draw_selection()
+        local pwidth = self.pixel_width
+        local max_width = self.line_wrap and pwidth or -1
+
+        local first_drawable = self:get_first_drawable_line()
+
+        local xoff = self.offset_h / k
+
+        self:draw_selection(first_drawable, xoff)
 
         local h = 0
         local fontw, fonth = text_font_get_w(), text_font_get_h()
-        local pwidth = self.pixel_width
-        local max_width = self.line_wrap and pwidth or -1
-        for i = self.offset_v + 1, #self.lines do
+        for i = first_drawable, #self.lines do
             local line = tostring(self.password
                 and ("*"):rep(self.lines[i].len) or self.lines[i])
             local width, height = text_get_bounds(line,
                 max_width)
-            if h + height > self.pixel_height then break end
-            local xo = 0
-            if max_width < 0 and (width + fontw) > pwidth then
-                local x, y = text_get_position(line, self.cx, -1)
-                local d = pwidth - x - fontw
-                if d < 0 then xo = d end
-            end
-            text_draw(line, xo, h, 255, 255, 255, 255,
+            if h >= self.pixel_height then break end
+            text_draw(line, xoff, h, 255, 255, 255, 255,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
             if height > fonth then self:draw_line_wrap(h, height) end
