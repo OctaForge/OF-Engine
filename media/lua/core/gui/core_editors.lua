@@ -467,6 +467,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     movement_mark = function(self)
+        self._needs_offset = true
         if input_is_modifier_pressed(mod.SHIFT) then
             if not self:region() then self:mark(true) end
         else
