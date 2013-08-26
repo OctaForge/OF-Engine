@@ -474,23 +474,20 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    fix_h_scroll = function(self, del, maxw)
+    fix_h_scroll = function(self)
         local k = self:draw_scale()
         local maxw = self.line_wrap and self.pixel_width or -1
 
         local fontw = text_font_get_w() * k
         local x, y = text_get_position(tostring(self.lines[self.cy + 1]),
-            self.cx, maxw)
+            self.cx + 1, maxw)
 
         x *= k
         local w, oh = self.w, self.offset_h
-
-        if x > (w - (not del and oh or 0) - 2 * fontw) then
-            self.offset_h = w - x - 2 * fontw
+        if (x + fontw) > w then
+           self.offset_h = w - x - fontw
         elseif (x + oh) < 0 then
             self.offset_h = -x
-        else
-            self.offset_h = 0
         end
     end,
 
@@ -655,7 +652,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                     self.cy = self.cy - 1
                 end
             end
-            self:scroll_on_screen(true)
+            self:scroll_on_screen()
         elseif code == key.RETURN then
             -- maintain indentation
             self._needs_calc = true
@@ -882,6 +879,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             self:insert(table.concat(buf))
         end
+        self:scroll_on_screen()
         return true
     end,
 
