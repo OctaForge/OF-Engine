@@ -197,9 +197,24 @@ local editline = ffi.metatype("editline_t", editline_MT)
 
 --[[! Struct: Text_Editor
     Implements a text editor widget. It's a basic editor that supports
-    scrolling of text and some extra features like key filter, password
-    and so on. It supports copy-paste that interacts with native system
-    clipboard. It doesn't have any states.
+    scrolling of text and some extra features like key filter and so on.
+    It supports copy-paste that interacts with native system clipboard.
+    It doesn't have any states.
+
+    Its properties clip_w and clip_h specify the editor bounds in standard
+    UI units. The "multiline" property is a boolean and it specifies whether
+    the editor has one or multiple lines - if it's single-line, clip_h is
+    ignored and the height is instead calculated from line text bounds.
+
+    There are also properties "font" (which is a string specifying which
+    font is used for this editor and is optional), key_filter (a string
+    of characters that can be used in the editor), value (the initial
+    value and the fallback value on reset), scale (the text scale,
+    defaults to 1) and line_wrap (by default false, makes the text wrap
+    when it has reached maximum width).
+
+    The editor implements the same interface and internal members as Scroller,
+    allowing scrollbars to be used with it.
 ]]
 local Text_Editor = register_class("Text_Editor", Widget, {
     __init = function(self, kwargs)
@@ -217,8 +232,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local mline = kwargs.multiline != false and true or false
         self.multiline = mline
 
-        self.keyfilter  = kwargs.key_filter
-        if not self.value then self.value = kwargs.value end
+        self.key_filter = kwargs.key_filter
+        self.value = kwargs.value or ""
 
         local font = kwargs.font
         self.font  = font
@@ -232,10 +247,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.mx, self.my = -1, -1
 
         self.line_wrap = kwargs.line_wrap or false
-        self.password = kwargs.password or false
 
         -- must always contain at least one line
-        self.lines = { editline(kwargs.value) }
+        self.lines = { editline(kwargs.value or "") }
 
         self._needs_calc = true
 
@@ -852,7 +866,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if not is_focused(self) or not self:allow_text_input() then
             return false
         end
-        local filter = self.keyfilter
+        local filter = self.key_filter
         if not filter then
             self:insert(str)
         else
@@ -1071,8 +1085,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             local h = 0
             local fontw, fonth = text_font_get_w(), text_font_get_h()
             for i = fd, #self.lines do
-                local line = tostring(self.password
-                    and ("*"):rep(self.lines[i].len) or self.lines[i])
+                local line = tostring(self.lines[i])
                 local width, height = text_get_bounds(line,
                     max_width)
                 if h >= self.pixel_height then break end
@@ -1155,30 +1168,23 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     set_font      = gen_ed_setter "font",
-    set_line_wrap = gen_ed_setter "line_wrap",
-    set_password  = gen_ed_setter "password",
+    set_line_wrap = gen_ed_setter "line_wrap"
 })
 M.Text_Editor = Text_Editor
 
 --[[! Struct: Field
     Represents a field, a specialization of <Text_Editor>. It has the same
-    properties with one added, "value". It represents the current value in
-    the field. You can also provide "var" via kwargs which is the name of
-    the engine variable this field will write into, but it's not a property.
-    If the variable doesn't exist the field will auto-create it.
+    properties. The "value" property changed meaning - now it stores the
+    current value - there is no fallback for fields (it still is the default
+    value though).
+
+    Fields are also by default not multiline. You can still explicitly
+    override this in kwargs or by setting the property.
 ]]
 M.Field = register_class("Field", Text_Editor, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         kwargs.multiline = kwargs.multiline or false
-
-        self.value = kwargs.value or ""
-        if kwargs.var then
-            local varn = kwargs.var
-            self.var = varn
-            cs.var_new_checked(varn, cs.var_type.string, self.value)
-        end
-
         return Text_Editor.__init(self, kwargs)
     end,
 
@@ -1188,9 +1194,6 @@ M.Field = register_class("Field", Text_Editor, {
         self.value = val
         -- trigger changed signal
         emit(self, "value_changed", val)
-
-        local varn = self.var
-        if varn then M.update_var(varn, val) end
     end,
 
     --[[! Function: key_hover
@@ -1199,15 +1202,6 @@ M.Field = register_class("Field", Text_Editor, {
     ]]
     key_hover = function(self, code, isdown)
         return self:key(code, isdown) or Widget.key_hover(self, code, isdown)
-    end,
-
-    set_value = function(self, val)
-        val = tostring(val)
-        self.value = val
-        emit("value_changed", val)
-        self:reset_value()
-        local varn = self.var
-        if varn then M.update_var(varn, val) end
     end
 })
 
