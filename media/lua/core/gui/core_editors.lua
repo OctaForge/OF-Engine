@@ -16,6 +16,7 @@
 local capi = require("capi")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
+local string2 = require("core.lua.string")
 local signal = require("core.events.signal")
 local ffi = require("ffi")
 
@@ -34,6 +35,7 @@ local clamp = math2.clamp
 local floor = math.floor
 local emit  = signal.emit
 local tostring = tostring
+local split = string2.split
 
 local M = require("core.gui.core")
 
@@ -269,7 +271,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if init == false then
             self.lines = {}
         else
-            self.lines = { editline(init) }
+            local lines = {}
+            if type(init) != "table" then
+                init = split(init, "\n")
+            end
+            for i = 1, #init do lines[i] = editline(init[i]) end
+            self.lines = lines
         end
         self:scroll_on_screen()
     end,
@@ -883,9 +890,19 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         any sort of unsaved changes.
     ]]
     reset_value = function(self)
-        local str = self.value
-        local str2 = tostring(self.lines[1])
-        if str2 != str then self:edit_clear(str) end
+        local str = self.value or ""
+        local strlines = split(str, "\n")
+        local lines = self.lines
+        local cond = #strlines != #lines
+        if not cond then
+            for i = 1, #strlines do
+                if strlines[i] != tostring(lines[i]) then
+                    cond = true
+                    break
+                end
+            end
+        end
+        if cond then self:edit_clear(strlines) end
     end,
 
     draw_scale = function(self)
