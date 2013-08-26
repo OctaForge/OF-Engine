@@ -667,21 +667,23 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self._needs_offset = true
         elseif code == key.A then
             if not input_is_modifier_pressed(mod_keys) then
+                self._needs_offset = true
                 return nil
             end
             self:select_all()
+            self._needs_offset = true
         elseif code == key.C or code == key.X then
             if not input_is_modifier_pressed(mod_keys)
             or not self:region() then
+                self._needs_offset = true
                 return nil
             end
             self:copy()
-            if code == key.X then
-                self:del()
-                self._needs_offset = true
-            end
+            if code == key.X then self:del() end
+            self._needs_offset = true
         elseif code == key.V then
             if not input_is_modifier_pressed(mod_keys) then
+                self._needs_offset = true
                 return nil
             end
             self:paste()
