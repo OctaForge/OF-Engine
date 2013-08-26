@@ -653,11 +653,10 @@ Widget = register_class("Widget", table2.Object, {
             for k, v in pairs(vstates) do v:clear() end
         end
 
-        local container, menu, tooltip in self
+        local menu, tooltip in self
         self.container, self.menu, self.tooltip = nil, nil, nil
-        if container and container.parent == self then container:clear() end
-        if menu      and menu.parent      == self then      menu:clear() end
-        if tooltip   and tooltip.parent   == self then   tooltip:clear() end
+        if menu    then    menu:clear() end
+        if tooltip then tooltip:clear() end
 
         emit(self, "destroy")
         local insts = rawget(self.__proto, "instances")
