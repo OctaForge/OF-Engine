@@ -267,6 +267,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     edit_clear = function(self, init)
         self._needs_calc = true
         self.cx, self.cy = 0, 0
+        self.offset_h, self.offset_v = 0, 0
         self:mark()
         if init == false then
             self.lines = {}
@@ -278,7 +279,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             for i = 1, #init do lines[i] = editline(init[i]) end
             self.lines = lines
         end
-        self:scroll_on_screen()
     end,
 
     mark = function(self, enable)
