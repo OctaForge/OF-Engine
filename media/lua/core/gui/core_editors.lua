@@ -943,12 +943,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local lw, ml = self.line_wrap, self.multiline
         local k = self:draw_scale()
         local pw, ph = self.clip_w / k
-        if not lw and not ml then
-            ph = text_font_get_h()
-        elseif ml then
+        if ml then
             ph = self.clip_h / k
         else
-            local w, h = text_get_bounds(tostring(self.lines[1]), pw)
+            local w, h = text_get_bounds(tostring(self.lines[1]),
+                lw and pw or -1)
             ph = h
         end
 
