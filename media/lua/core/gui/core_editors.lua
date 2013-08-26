@@ -466,60 +466,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     movement_mark = function(self)
-        self:scroll_on_screen()
         if input_is_modifier_pressed(mod.SHIFT) then
             if not self:region() then self:mark(true) end
         else
             self:mark(false)
         end
-    end,
-
-    fix_h_scroll = function(self)
-        local k = self:draw_scale()
-        local maxw = self.line_wrap and self.pixel_width or -1
-
-        local fontw = text_font_get_w() * k
-        local x, y = text_get_position(tostring(self.lines[self.cy + 1]),
-            self.cx + 1, maxw)
-
-        x *= k
-        local w, oh = self.w, self.offset_h
-        if (x + fontw) > w then
-           self.offset_h = w - x - fontw
-        elseif (x + oh) < 0 then
-            self.offset_h = -x
-        end
-    end,
-
-    fix_v_scroll = function(self)
-        local k = self:draw_scale()
-        local lines = self.lines
-
-        local cy = self.cy + 1
-        local oov = self.offset_v
-
-        local yoff = 0
-        for i = 1, cy do
-            local tw, th = lines[i]:get_bounds()
-            yoff += th
-        end
-
-        if yoff <= (oov / k) then
-            self.offset_v += yoff * k - oov
-        elseif yoff > ((oov + self.h) / k) then
-            self.offset_v += yoff * k - (oov + self.h)
-        end
-    end,
-
-    scroll_on_screen = function(self, del)
-        text_font_push()
-        text_font_set(self.font)
-        self:region()
-
-        self:fix_h_scroll(del)
-        self:fix_v_scroll()
-
-        text_font_pop()
     end,
 
     edit_key = function(self, code)
@@ -541,14 +492,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 if y > 0 then
                     self.cx = text_is_visible(str, x, y - text_font_get_h(),
                         self.pixel_width)
-                    self:scroll_on_screen()
                     text_font_pop()
                     return nil
                 end
                 text_font_pop()
             end
             self.cy = self.cy - 1
-            self:scroll_on_screen()
         elseif code == key.DOWN then
             self:movement_mark()
             if self.line_wrap then
@@ -562,14 +511,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 y = y + text_font_get_h()
                 if y < height then
                     self.cx = text_is_visible(str, x, y, self.pixel_width)
-                    self:scroll_on_screen()
                     text_font_pop()
                     return nil
                 end
                 text_font_pop()
             end
             self.cy = self.cy + 1
-            self:scroll_on_screen()
         elseif code == key.MOUSE4 or code == key.MOUSE5 then
             if self.can_scroll then
                 local sb = self.v_scrollbar
@@ -584,7 +531,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             else
                 self.cy = self.cy - self.pixel_height / text_font_get_h()
             end
-            self:scroll_on_screen()
         elseif code == key.PAGEDOWN then
             self:movement_mark()
             if input_is_modifier_pressed(mod_keys) then
@@ -592,21 +538,18 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             else
                 self.cy = self.cy + self.pixel_height / text_font_get_h()
             end
-            self:scroll_on_screen()
         elseif code == key.HOME then
             self:movement_mark()
             self.cx = 0
             if input_is_modifier_pressed(mod_keys) then
                 self.cy = 0
             end
-            self:scroll_on_screen()
         elseif code == key.END then
             self:movement_mark()
             self.cx = 1 / 0
             if input_is_modifier_pressed(mod_keys) then
                 self.cy = 1 / 0
             end
-            self:scroll_on_screen()
         elseif code == key.LEFT then
             self:movement_mark()
             if     self.cx > 0 then self.cx = self.cx - 1
@@ -614,7 +557,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 self.cx = 1 / 0
                 self.cy = self.cy - 1
             end
-            self:scroll_on_screen()
         elseif code == key.RIGHT then
             self:movement_mark()
             if self.cx < self.lines[self.cy + 1].len then
@@ -623,7 +565,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 self.cx = 0
                 self.cy = self.cy + 1
             end
-            self:scroll_on_screen()
         elseif code == key.DELETE then
             if not self:del() then
                 self._needs_calc = true
@@ -636,7 +577,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                     self:remove_lines(self.cy + 2, 1)
                 end
             end
-            self:scroll_on_screen()
         elseif code == key.BACKSPACE then
             if not self:del() then
                 self._needs_calc = true
@@ -652,7 +592,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                     self.cy = self.cy - 1
                 end
             end
-            self:scroll_on_screen()
         elseif code == key.RETURN then
             -- maintain indentation
             self._needs_calc = true
@@ -661,7 +600,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             for c in str:gmatch "." do if c == " " or c == "\t" then
                 self:insert(c) else break
             end end
-            self:scroll_on_screen()
         elseif code == key.TAB then
             local b, sx, sy, ex, ey = self:region()
             if b then
@@ -711,32 +649,23 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             else
                 self:insert("\t")
             end
-            self:scroll_on_screen()
         elseif code == key.A then
             if not input_is_modifier_pressed(mod_keys) then
-                self:scroll_on_screen()
                 return nil
             end
             self:select_all()
-            self:scroll_on_screen()
         elseif code == key.C or code == key.X then
             if not input_is_modifier_pressed(mod_keys)
             or not self:region() then
-                self:scroll_on_screen()
                 return nil
             end
             self:copy()
             if code == key.X then self:del() end
-            self:scroll_on_screen()
         elseif code == key.V then
             if not input_is_modifier_pressed(mod_keys) then
-                self:scroll_on_screen()
                 return nil
             end
             self:paste()
-            self:scroll_on_screen()
-        else
-            self:scroll_on_screen()
         end
     end,
 
@@ -879,7 +808,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             self:insert(table.concat(buf))
         end
-        self:scroll_on_screen()
         return true
     end,
 
@@ -946,6 +874,39 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
+    fix_h_offset = function(self, k, maxw)
+        local fontw = text_font_get_w() * k
+        local x, y = text_get_position(tostring(self.lines[self.cy + 1]),
+            self.cx, maxw)
+
+        x *= k
+        local w, oh = self.w, self.offset_h
+        if (x + fontw) > w then
+           self.offset_h = w - x - fontw
+        elseif (x + oh) < 0 then
+            self.offset_h = -x
+        end
+    end,
+
+    fix_v_offset = function(self, k)
+        local lines = self.lines
+
+        local cy = self.cy + 1
+        local oov = self.offset_v
+
+        local yoff = 0
+        for i = 1, cy do
+            local tw, th = lines[i]:get_bounds()
+            yoff += th
+        end
+
+        if yoff <= (oov / k) then
+            self.offset_v += yoff * k - oov
+        elseif yoff > ((oov + self.h) / k) then
+            self.offset_v += yoff * k - (oov + self.h)
+        end
+    end,
+
     layout = function(self)
         Widget.layout(self)
 
@@ -966,7 +927,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             ph = h
         end
 
-        local tw, th = self:calc_dimensions(lw and pw or -1)
+        local maxw = lw and pw or -1
+        local tw, th = self:calc_dimensions(maxw)
 
         self.virt_w = max(self.w, tw)
         self.virt_h = max(self.h, th)
@@ -974,6 +936,10 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.w = max(self.w, pw * k)
         self.h = max(self.h, ph * k)
         self.pixel_width, self.pixel_height = pw, ph
+
+        self:region()
+        self:fix_h_offset(k, maxw)
+        self:fix_v_offset(k)
 
         text_font_pop()
     end,
