@@ -72,6 +72,15 @@ local floor_to_fonth = function(n)
     return floor(n / fh) * fh
 end
 
+local gen_ed_setter = function(name)
+    local sname = name .. "_changed"
+    return function(self, val)
+        self._needs_calc = true
+        self[name] = val
+        emit(self, sname, val)
+    end
+end
+
 local chunksize = 256
 local ffi_new, ffi_cast, ffi_copy, ffi_string = ffi.new, ffi.cast, ffi.copy,
 ffi.string
@@ -203,13 +212,13 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.text_w, self.text_h = 0, 0
 
         self.offset_h, self.offset_v = 0, 0
-        self.can_scroll = 0
+        self.can_scroll = false
 
         local mline = kwargs.multiline != false and true or false
         self.multiline = mline
 
         self.keyfilter  = kwargs.key_filter
-        self.init_value = kwargs.value
+        if not self.value then self.value = kwargs.value end
 
         local font = kwargs.font
         self.font  = font
@@ -856,11 +865,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return true
     end,
 
+    --[[! Function: reset_value
+        Resets the field value to the last saved value, effectively canceling
+        any sort of unsaved changes.
+    ]]
     reset_value = function(self)
-        local ival = self.init_value
-        if ival and ival != tostring(self.lines[1]) then
-            self:edit_clear(ival)
-        end
+        local str = self.value
+        local str2 = tostring(self.lines[1])
+        if str2 != str then self:edit_clear(str) end
     end,
 
     draw_scale = function(self)
@@ -1101,13 +1113,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         sb.scroller = self
     end,
 
-    get_h_limit = function(self)
-        return max(self.virt_w - self.w, 0)
-    end,
-
-    get_v_limit = function(self)
-        return max(self.virt_h - self.h, 0)
-    end,
+    get_h_limit = function(self) return max(self.virt_w - self.w, 0) end,
+    get_v_limit = function(self) return max(self.virt_h - self.h, 0) end,
 
     get_h_offset = function(self)
         return self.offset_h / max(self.virt_w, self.w)
@@ -1117,13 +1124,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return self.offset_v / max(self.virt_h, self.h)
     end,
 
-    get_h_scale = function(self)
-        return self.w / max(self.virt_w, self.w)
-    end,
-
-    get_v_scale = function(self)
-        return self.h / max(self.virt_h, self.h)
-    end,
+    get_h_scale = function(self) return self.w / max(self.virt_w, self.w) end,
+    get_v_scale = function(self) return self.h / max(self.virt_h, self.h) end,
 
     set_h_scroll = function(self, hs)
         self.offset_h = clamp(hs, 0, self:get_h_limit())
@@ -1135,13 +1137,26 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         emit(self, "v_scroll_changed", self:get_v_offset())
     end,
 
-    scroll_h = function(self, hs)
-        self:set_h_scroll(self.offset_h + hs)
+    scroll_h = function(self, hs) self:set_h_scroll(self.offset_h + hs) end,
+    scroll_v = function(self, vs) self:set_v_scroll(self.offset_v + vs) end,
+
+    set_clip_w     = gen_ed_setter "clip_w",
+    set_clip_h     = gen_ed_setter "clip_h",
+
+    set_multiline  = gen_ed_setter "multiline",
+
+    set_key_filter = gen_setter "key_filter",
+
+    set_value = function(self, val)
+        val = tostring(val)
+        self.value = val
+        emit("value_changed", val)
+        self:reset_value()
     end,
 
-    scroll_v = function(self, vs)
-        self:set_v_scroll(self.offset_v + vs)
-    end
+    set_font      = gen_ed_setter "font",
+    set_line_wrap = gen_ed_setter "line_wrap",
+    set_password  = gen_ed_setter "password",
 })
 M.Text_Editor = Text_Editor
 
@@ -1186,18 +1201,14 @@ M.Field = register_class("Field", Text_Editor, {
         return self:key(code, isdown) or Widget.key_hover(self, code, isdown)
     end,
 
-    --[[! Function: reset_value
-        Resets the field value to the last saved value, effectively canceling
-        any sort of unsaved changes.
-    ]]
-    reset_value = function(self)
-        local str = self.value
-        local str2 = tostring(self.lines[1])
-        if str2 != str then self:edit_clear(str) end
-    end,
-
-    --[[! Function: set_value ]]
-    set_value = gen_setter "value"
+    set_value = function(self, val)
+        val = tostring(val)
+        self.value = val
+        emit("value_changed", val)
+        self:reset_value()
+        local varn = self.var
+        if varn then M.update_var(varn, val) end
+    end
 })
 
 --[[! Struct: Key_Field

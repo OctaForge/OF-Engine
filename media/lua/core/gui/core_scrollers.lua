@@ -58,7 +58,7 @@ M.Scroller = register_class("Scroller", Clipper, {
 
         self.offset_h = 0
         self.offset_v = 0
-        self.can_scroll = 0
+        self.can_scroll = false
 
         return Clipper.__init(self, kwargs)
     end,
@@ -182,16 +182,12 @@ M.Scroller = register_class("Scroller", Clipper, {
         Returns the horizontal offset limit, that is, the actual width of
         the contents minus the clipper width.
     ]]
-    get_h_limit = function(self)
-        return max(self.virt_w - self.w, 0)
-    end,
+    get_h_limit = function(self) return max(self.virt_w - self.w, 0) end,
 
     --[[! Function: get_v_limit
         See above.
     ]]
-    get_v_limit = function(self)
-        return max(self.virt_h - self.h, 0)
-    end,
+    get_v_limit = function(self) return max(self.virt_h - self.h, 0) end,
 
     --[[! Function: get_h_offset
         Returns the horizontal offset, that is, the portion of the actual
@@ -213,16 +209,12 @@ M.Scroller = register_class("Scroller", Clipper, {
         Returns the horizontal scale, that is,
         size_of_container / max(size_of_container, size_of_contents).
     ]]
-    get_h_scale = function(self)
-        return self.w / max(self.virt_w, self.w)
-    end,
+    get_h_scale = function(self) return self.w / max(self.virt_w, self.w) end,
 
     --[[! Function: get_v_scale
         See above.
     ]]
-    get_v_scale = function(self)
-        return self.h / max(self.virt_h, self.h)
-    end,
+    get_v_scale = function(self) return self.h / max(self.virt_h, self.h) end,
 
     --[[! Function: set_h_scroll
         Sets the horizontal scroll offset. Takes the "real" offset, that is,
@@ -247,16 +239,12 @@ M.Scroller = register_class("Scroller", Clipper, {
         Like <set_h_scroll>, but works with deltas (adds the given value
         to the actual offset).
     ]]
-    scroll_h = function(self, hs)
-        self:set_h_scroll(self.offset_h + hs)
-    end,
+    scroll_h = function(self, hs) self:set_h_scroll(self.offset_h + hs) end,
 
     --[[! Function: scroll_v
         See above.
     ]]
-    scroll_v = function(self, vs)
-        self:set_v_scroll(self.offset_v + vs)
-    end
+    scroll_v = function(self, vs) self:set_v_scroll(self.offset_v + vs) end
 })
 
 local Scroll_Button
