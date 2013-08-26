@@ -468,13 +468,13 @@ LUAICOMMAND(text_get_positionf, {
 
 CLUAICOMMAND(text_is_visible, int, (const char *text, float hitx, float hity,
 int maxw), {
-    if (!text || !text[0]) return 0;
+    if (!text) return 0;
     return text_visible(text, hitx, hity, maxw);
 });
 
 CLUAICOMMAND(text_draw, void, (const char *text, float left, float top,
 int r, int g, int b, int a, int cursor, int maxw), {
-    if (!text || !text[0]) return;
+    if (!text) return;
     draw_text(text, left, top, r, g, b, a, cursor, maxw);
 });
 
