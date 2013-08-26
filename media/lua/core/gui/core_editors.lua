@@ -92,7 +92,7 @@ ffi.cdef [[
     typedef struct editline_t {
         char *text;
         int len, maxlen;
-        float w, h;
+        int w, h;
     } editline_t;
 ]]
 local C = ffi.C
