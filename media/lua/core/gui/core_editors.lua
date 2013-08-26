@@ -898,14 +898,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    fix_h_offset = function(self, k, maxw)
+    fix_h_offset = function(self, k, maxw, del)
         local fontw = text_font_get_w() * k
         local x, y = text_get_position(tostring(self.lines[self.cy + 1]),
             self.cx, maxw)
 
         x *= k
         local w, oh = self.w, self.offset_h
-        if (x + fontw) > w then
+        if (x + fontw + (del and 0 or oh)) > w then
            self.offset_h = w - x - fontw
         elseif (x + oh) < 0 then
             self.offset_h = -x
@@ -933,6 +933,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     layout = function(self)
         Widget.layout(self)
+
+        local old_text_w = self.text_w
 
         text_font_push()
         text_font_set(self.font)
@@ -963,7 +965,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         if self._needs_offset then
             self:region()
-            self:fix_h_offset(k, maxw)
+            self:fix_h_offset(k, maxw, old_text_w > tw)
             self:fix_v_offset(k)
             self._needs_offset = false
         end
