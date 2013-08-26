@@ -1,3 +1,27 @@
+2013-08-26 - 0.2.7 beta 8
+
+    * UI changes:
+      * Font selection on labels and editors
+      * New widgets: Triangle, Circle, Console
+      * Optional dynamic min_w and min_h for widgets
+      * Large console and edit stats are now handled with the UI
+      * Separate projection for each window/UI world object (independent
+        scaling)
+      * Rewritten editors:
+        * They now implement the same interface as Scrollers, allowing for
+          scrollbars
+        * Horizontal and vertical autoscroll as you type
+        * Unbounded (no maxx/maxy)
+        * Proper clipping
+      * Better value handling on sliders/editors/fields
+      * Faster text calls (via function pointers)
+    * Upstream sync:
+      * Oculus Rift support on Linux
+      * nogi material
+    * New vector library, geom.lua, for now supporting vec2, vec3 and vec4
+      with a lot more functions than the previous one
+    * Luacy: support for 64bit signed and unsigned integers
+
 2013-08-05 - 0.2.6 beta 7
 
     * Savemap command

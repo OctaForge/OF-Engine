@@ -18,6 +18,19 @@ elseif(OF_TARGET_SOLARIS)
     set(EXTRA_LIBS ${EXTRA_LIBS} socket nsl)
 endif()
 
+if(OF_OVR)
+    if(OF_TARGET_LINUX)
+        if(OF_TARGET_X64)
+            link_directories(../LibOVR/Lib/Linux/Release/x86_64)
+        else()
+            link_directories(../LibOVR/Lib/Linux/Release/i386)
+        endif()
+        set(EXTRA_LIBS ${EXTRA_LIBS} ovr udev Xinerama)
+    else()
+        message(WARNING "Oculus Rift only supported on Linux at this point")
+    endif()
+endif()
+
 if(OF_BUILD_AMALG)
     set(CLIENT_SOURCES ../shared/client_amalg)
 else()
@@ -43,6 +56,7 @@ else()
         ../engine/material
         ../engine/octaedit
         ../engine/grass
+        ../engine/ovr
         ../engine/physics
         ../engine/rendergl
         ../engine/renderlights
