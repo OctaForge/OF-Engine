@@ -909,6 +909,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
            self.offset_h = w - x - fontw
         elseif (x + oh) < 0 then
             self.offset_h = -x
+        elseif (x + fontw) <= w and oh >= -fontw then
+            self.offset_h = 0
         end
     end,
 
@@ -1065,13 +1067,16 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     draw = function(self, sx, sy)
-        local cw, ch = self:get_clip()
-        local clip = (cw != 0 and self.virt_w > cw)
-                  or (ch != 0 and self.virt_h > ch)
-
-        if clip then clip_push(sx, sy, cw, ch) end
         text_font_push()
         text_font_set(self.font)
+
+        local cw, ch = self:get_clip()
+        local fontw  = text_font_get_w()
+        local clip = (cw != 0 and (self.virt_w + fontw) > cw)
+                  or (ch != 0 and  self.virt_h          > ch)
+
+        if clip then clip_push(sx, sy, cw, ch) end
+
         hudmatrix_push()
 
         hudmatrix_translate(sx, sy, 0)
@@ -1091,7 +1096,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:draw_selection(fd, xoff)
 
             local h = 0
-            local fontw, fonth = text_font_get_w(), text_font_get_h()
+            local fonth = text_font_get_h()
             for i = fd, #self.lines do
                 local line = tostring(self.lines[i])
                 local width, height = text_get_bounds(line,
@@ -1106,10 +1111,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
 
         hudmatrix_pop()
-        text_font_pop()
 
         Widget.draw(self, sx, sy)
         if clip then clip_pop() end
+
+        text_font_pop()
     end,
 
     bind_h_scrollbar = function(self, sb)
