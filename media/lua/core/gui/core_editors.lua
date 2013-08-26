@@ -901,7 +901,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
 
         if yoff <= (oov / k) then
-            self.offset_v += yoff * k - oov
+            self.offset_v += yoff * k - oov - text_font_get_h() * k
         elseif yoff > ((oov + self.h) / k) then
             self.offset_v += yoff * k - (oov + self.h)
         end
