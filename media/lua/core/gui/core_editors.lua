@@ -14,7 +14,6 @@
 ]]
 
 local capi = require("capi")
-local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
 local signal = require("core.events.signal")

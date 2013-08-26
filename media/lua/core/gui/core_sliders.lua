@@ -14,7 +14,6 @@
 ]]
 
 local capi = require("capi")
-local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
@@ -59,12 +58,6 @@ local Slider_Button
 
     Changes of "value" performed internally emit the "value_changed" signal
     with the new value as an argument.
-
-    Via kwargs field "var" you can set the engine variable the slider
-    will be bound to. It's not a property, and it'll auto-create the
-    variable if it doesn't exist. You don't have to bind the slider
-    at all though. If you do, the min and max values will be bound
-    to the variable.
 ]]
 local Slider = register_class("Slider", Widget, {
     __init = function(self, kwargs)
@@ -72,15 +65,6 @@ local Slider = register_class("Slider", Widget, {
         self.min_value = kwargs.min_value or 0
         self.max_value = kwargs.max_value or 0
         self.value     = kwargs.value     or 0
-
-        if kwargs.var then
-            local varn = kwargs.var
-            self.var = varn
-            cs.var_new_checked(varn, cs.var_type.int, self.value)
-            local mn, mx = cs.var_get_min(varn), cs.var_get_max(varn)
-            self.min_value = clamp(self.min_value, mn, mx)
-            self.max_value = clamp(self.max_value, mn, mx)
-        end
 
         self.arrow_size = kwargs.arrow_size or 0
         self.step_size  = kwargs.step_size  or 1
@@ -105,9 +89,6 @@ local Slider = register_class("Slider", Widget, {
         local val = min(mx, mn) + newstep * ss
         self.value = val
         emit(self, "value_changed", val)
-
-        local varn = self.var
-        if varn then M.update_var(varn, val) end
     end,
 
     --[[! Function: set_step
@@ -122,9 +103,6 @@ local Slider = register_class("Slider", Widget, {
         local val = min(mx, mn) + newstep * ss
         self.value = val
         emit(self, "value_changed", val)
-
-        local varn = self.var
-        if varn then M.update_var(varn, val) end
     end,
 
     --[[! Function: key_hover

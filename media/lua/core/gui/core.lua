@@ -72,18 +72,6 @@ M.mod = mod
 
 local update_later = {}
 
---[[! Function: update_var
-    Schedules an engine variable update for the next frame. Takes the
-    variable name and the value to set.
-]]
-local update_var = function(varn, val)
-    if not cs.var_exists(varn) then
-        return nil
-    end
-    update_later[#update_later + 1] = { varn, val }
-end
-M.update_var = update_var
-
 -- initialized after World is created
 local world, projection, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
