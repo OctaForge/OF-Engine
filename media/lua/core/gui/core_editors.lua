@@ -701,22 +701,25 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local fontw = text_font_get_w()
         local pwidth = self.pixel_width
         local fd = self:get_first_drawable_line()
-        if fd then for i = fd, #self.lines do
-            local linestr = tostring(self.lines[i])
-            local width, height = self.lines[i]:get_bounds()
-            if h + height > self.pixel_height then break end
-            if hity >= h and hity <= h + height then
-                local x = text_is_visible(linestr, hitx, hity - h,
-                    max_width)
-                if dragged then
-                    self.mx, self.my = x, i - 1
-                else
-                    self.cx, self.cy = x, i - 1
+        if fd then
+            hitx -= self.offset_h / self:draw_scale()
+            for i = fd, #self.lines do
+                local linestr = tostring(self.lines[i])
+                local width, height = self.lines[i]:get_bounds()
+                if h + height > self.pixel_height then break end
+                if hity >= h and hity <= h + height then
+                    local x = text_is_visible(linestr, hitx, hity - h,
+                        max_width)
+                    if dragged then
+                        self.mx, self.my = x, i - 1
+                    else
+                        self.cx, self.cy = x, i - 1
+                    end
+                    break
                 end
-                break
+                h = h + height
             end
-            h = h + height
-        end end
+        end
         text_font_pop()
     end,
 
