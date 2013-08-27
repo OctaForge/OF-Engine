@@ -694,15 +694,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     hit = function(self, hitx, hity, dragged)
+        local k = self:draw_scale()
         local max_width = self.line_wrap and self.pixel_width or -1
-        local h = 0
         text_font_push()
         text_font_set(self.font)
-        local fontw = text_font_get_w()
-        local pwidth = self.pixel_width
         local fd = self:get_first_drawable_line()
         if fd then
-            hitx -= self.offset_h / self:draw_scale()
+            local h = 0
+            hitx, hity = (hitx - self.offset_h) / k, hity / k
             for i = fd, #self.lines do
                 local linestr = tostring(self.lines[i])
                 local width, height = self.lines[i]:get_bounds()
@@ -764,10 +763,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     hovering = function(self, cx, cy)
         if is_clicked(self) and is_focused(self) then
-            local k = self:draw_scale()
             local dx, dy = abs(cx - self._oh), abs(cy - self._ov)
-            local dragged = max(dx, dy) > (text_font_get_h() / 8 * k)
-            self:hit(floor(cx / k), floor(cy / k), dragged)
+            self:hit(cx, cy, max(dx, dy) > (text_font_get_h() / 8
+                * self:draw_scale()))
         end
     end,
 
