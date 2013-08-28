@@ -220,20 +220,20 @@ local loop_children = function(self, fun)
                 w = vr and (vr[s] or vr["default"])
             end
             if w then
-                local r = fun(w)
-                if r != nil then return r end
+                local a, b = fun(w)
+                if a != nil then return a, b end
             end
         end
     end
 
     for i = 1, #vr do
-        local r = fun(vr[i])
-        if    r != nil then return r end
+        local a, b = fun(vr[i])
+        if    a != nil then return a, b end
     end
 
     for i = 1, #ch do
-        local r = fun(ch[i])
-        if    r != nil then return r end
+        local a, b = fun(ch[i])
+        if    a != nil then return a, b end
     end
 end
 M.loop_children = loop_children
@@ -251,13 +251,13 @@ local loop_children_r = function(self, fun)
     local st = self.states
 
     for i = #ch, 1, -1 do
-        local r = fun(ch[i])
-        if    r != nil then return r end
+        local a, b = fun(ch[i])
+        if    a != nil then return a, b end
     end
 
     for i = #vr, 1, -1 do
-        local r = fun(vr[i])
-        if    r != nil then return r end
+        local a, b = fun(vr[i])
+        if    a != nil then return a, b end
     end
 
     if st then
@@ -268,8 +268,8 @@ local loop_children_r = function(self, fun)
                 w = vr and (vr[s] or vr["default"])
             end
             if w then
-                local r = fun(w)
-                if r != nil then return r end
+                local a, b = fun(w)
+                if a != nil then return a, b end
             end
         end
     end
@@ -282,14 +282,14 @@ M.loop_children_r = loop_children_r
     is the function. The function is executed only for those children
     that cover the given x, y coords.
 ]]
-local loop_in_children = function(self, cx, cy, fun)
+local loop_in_children = function(self, cx, cy, fun, ins)
     return loop_children(self, function(o)
         local ox = cx - o.x
         local oy = cy - o.y
 
-        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-            local r = fun(o, ox, oy)
-            if    r != nil then return r end
+        if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) then
+            local a, b = fun(o, ox, oy)
+            if    a != nil then return a, b end
         end
     end)
 end
@@ -298,14 +298,14 @@ M.loop_in_children = loop_in_children
 --[[! Function: loop_in_children
     See above. Reverse order.
 ]]
-local loop_in_children_r = function(self, cx, cy, fun)
+local loop_in_children_r = function(self, cx, cy, fun, ins)
     return loop_children_r(self, function(o)
         local ox = cx - o.x
         local oy = cy - o.y
 
-        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-            local r = fun(o, ox, oy)
-            if    r != nil then return r end
+        if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) then
+            local a, b = fun(o, ox, oy)
+            if    a != nil then return a, b end
         end
     end)
 end
@@ -1041,21 +1041,26 @@ Widget = register_class("Widget", table2.Object, {
     end,
 
     --[[! Function: hovering
-        Called each frame on the widget that's being hovered on (assuming
+        Called every frame on the widget that's being hovered on (assuming
         it exists). It takes the coordinates we're hovering on. By default
         does nothing, but it can be overloaded.
     ]]
     hovering = function(self, cx, cy)
     end,
 
-    --[[! Function: pressing
-        Called on the widget when something is clicked. The arguments
-        passed on it are cursor coord deltas compared to the last frame
-        (on full width/height scale dependent on the aspect ratio, not
-        from 0 to 1). The last argument specifies which mouse button
-        is being pressed.
+    hold = function(self, cx, cy, obj)
+        return loop_in_children_r(self, cx, cy, function(o, ox, oy)
+            if o == obj then return ox, oy end
+            if o.visible then return o:hold(ox, oy, obj) end
+        end, false)
+    end,
+
+    --[[! Function: holding
+        Called every frame on the widget that's currently being held
+        (assuming there is one). It takes the position (x, y) within
+        the widget and the mouse button code.
     ]]
-    pressing = function(self, cx, cy, code)
+    holding = function(self, cx, cy, code)
     end,
 
     --[[! Function: click
@@ -1478,6 +1483,7 @@ local World = register_class("World", Widget, {
         local ch = self.children
         for i = #ch, 1, -1 do
             local o = ch[i]
+            if not o.visible then continue end
             local proj = get_projection(o)
             local ox = cx * proj.pw - o.x
             local oy = cy * proj.ph - o.y
@@ -1492,6 +1498,20 @@ local World = register_class("World", Widget, {
         end
     end,
 
+    hold = function(self, cx, cy, obj)
+        local ch = self.children
+        for i = #ch, 1, -1 do
+            local o = ch[i]
+            if not o.visible then continue end
+            local proj = get_projection(o)
+            local ox = cx * proj.pw - o.x
+            local oy = cy * proj.ph - o.y
+            if o == obj then return ox, oy end
+            ox, oy = o:hold(ox, oy, obj)
+            if ox then return ox, oy end
+        end
+    end,
+
     --[[! Function: click
         See above, but for click events. Takes the mouse button code too.
     ]]
@@ -1499,6 +1519,7 @@ local World = register_class("World", Widget, {
         local ch = self.children
         for i = #ch, 1, -1 do
             local o = ch[i]
+            if not o.visible then continue end
             local proj = get_projection(o)
             local ox = cx * proj.pw - o.x
             local oy = cy * proj.ph - o.y
@@ -1771,6 +1792,14 @@ local menu_hover = function(o, cx, cy)
     end
 end
 
+local menu_hold = function(o, cx, cy, obj)
+    cx = cx - world.margin
+    local proj = get_projection(o)
+    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+    if obj == o then return ox, oy end
+    return o:hold(ox, oy, obj)
+end
+
 local tremove = table.remove
 local menus_drop = function(n)
     local msl = #menustack
@@ -1956,8 +1985,20 @@ set_external("gui_update", function()
 
         -- hacky
         if  clicked then
-            clicked:pressing(cursor_x - prev_cx, cursor_y - prev_cy,
-                clicked_code)
+            local hx, hy
+            if #menustack > 0 then
+                for i = #menustack, 1, -1 do
+                    hx, hy = menu_hold(menustack[i], cursor_x, cursor_y,
+                        clicked)
+                    if hx then break end
+                end
+            end
+            if not hx then
+                hx, hy = world:hold(cursor_x, cursor_y, clicked)
+            end
+            if hx then
+                clicked:holding(hx, hy, clicked_code)
+            end
         end
     else
         hovering, clicked = nil, nil

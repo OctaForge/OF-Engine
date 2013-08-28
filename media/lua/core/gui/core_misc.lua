@@ -101,12 +101,10 @@ M.Mover = register_class("Mover", Widget, {
         local wp = win.parent
 
         -- no parent means world; we don't need checking for non-mdi windows
-        if not wp.parent then return get_projection(win) end
+        if not wp.parent then return true end
 
-        local proj = nil
         local rx, ry, p = self.x, self.y, wp
         while true do
-            if not proj then proj = get_projection(p, true) end
             rx, ry = rx + p.x, ry + py
             local  pp = p.parent
             if not pp then break end
@@ -116,20 +114,24 @@ M.Mover = register_class("Mover", Widget, {
         if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) then
             -- avoid bugs; stop moving when cursor is outside
             clear_focus(self)
-            return nil
+            return false
         end
 
-        return proj
+        return true
     end,
 
-    pressing = function(self, cx, cy, code)
+    clicked = function(self, cx, cy, code)
+        if code == key.MOUSELEFT then
+            self.ox, self.oy = cx, cy
+        end
+    end,
+
+    holding = function(self, cx, cy, code)
         local w = self.window
-        if w and w.floating and is_clicked(self, key.MOUSELEFT) then
-            local  proj = self:can_move()
-            if not proj then return nil end
-            cx, cy = cx * proj.pw, cy * proj.ph
-            w.fx, w.x = w.fx + cx, w.x + cx
-            w.fy, w.y = w.fy + cy, w.y + cy
+        if w and w.floating and code == key.MOUSELEFT and self:can_move() then
+            local dx, dy = cx - self.ox, cy - self.oy
+            w.fx, w.x = w.fx + dx, w.x + dx
+            w.fy, w.y = w.fy + dy, w.y + dy
         end
     end,
 
