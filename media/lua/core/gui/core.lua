@@ -76,12 +76,25 @@ local update_later = {}
 local world, projection, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local cursor_x, cursor_y, prev_cx, prev_cy = 0.5, 0.5, 0.5, 0.5
+local clicked_code
 
 --[[! Function: is_clicked
     Given a widget, this function returns true if that widget is clicked
-    and false otherwise.
+    and false otherwise. Allows you to provide a button code as an optional
+    second argument to specify which mouse button should've been clicked
+    (if none specified, it assumes any button). If you don't provide the
+    code, the return value when clicked is not true, it's the code of
+    the button that was clicked.
 ]]
-local is_clicked = function(o) return (o == clicked) end
+local is_clicked = function(o, btn)
+    if btn then
+        return (o == clicked) and (btn == clicked_code)
+    elseif o == clicked then
+        return clicked_code
+    else
+        return false
+    end
+end
 M.is_clicked = is_clicked
 
 --[[! Function: is_hovering
@@ -91,7 +104,7 @@ M.is_clicked = is_clicked
 local is_hovering = function(o) return (o == hovering) end
 M.is_hovering = is_hovering
 
---[[! Function: is_clicked
+--[[! Function: is_focused
     Given a widget, this function returns true if that widget is focused
     and false otherwise.
 ]]
@@ -192,7 +205,7 @@ M.get_class = get_class
     Loops widget children, executing the function given in the second
     argument with the child passed to it. If the widget has states,
     it first acts on the current state and then on the actual children
-    from 1 to N.
+    from 1 to N. If the selected state is not available, it tries "default".
 ]]
 local loop_children = function(self, fun)
     local ch = self.children
@@ -201,13 +214,15 @@ local loop_children = function(self, fun)
 
     if st or vr then
         local s = self:choose_state()
-        local  w = st and st[s]
-        if not w then
-            w = vr and vr[s]
-        end
-        if w then
-            local r = fun(w)
-            if r != nil then return r end
+        if s then
+            local  w = st and (st[s] or st["default"])
+            if not w then
+                w = vr and (vr[s] or vr["default"])
+            end
+            if w then
+                local r = fun(w)
+                if r != nil then return r end
+            end
         end
     end
 
@@ -227,7 +242,8 @@ M.loop_children = loop_children
     Loops widget children in reverse order, executing the function
     given in the second argument with the child passed to it. First
     goes over all children in reverse order and then if the widget
-    has states, it acts on the current state.
+    has states, it acts on the current state. If the selected state
+    is not available, it tries "default".
 ]]
 local loop_children_r = function(self, fun)
     local ch = self.children
@@ -246,13 +262,15 @@ local loop_children_r = function(self, fun)
 
     if st then
         local s = self:choose_state()
-        local  w = st and st[s]
-        if not w then
-            w = vr and vr[s]
-        end
-        if w then
-            local r = fun(w)
-            if r != nil then return r end
+        if s then
+            local  w = st and (st[s] or st["default"])
+            if not w then
+                w = vr and (vr[s] or vr["default"])
+            end
+            if w then
+                local r = fun(w)
+                if r != nil then return r end
+            end
         end
     end
 end
@@ -1034,17 +1052,19 @@ Widget = register_class("Widget", table2.Object, {
         Called on the widget when something is clicked. The arguments
         passed on it are cursor coord deltas compared to the last frame
         (on full width/height scale dependent on the aspect ratio, not
-        from 0 to 1).
+        from 0 to 1). The last argument specifies which mouse button
+        is being pressed.
     ]]
-    pressing = function(self, cx, cy)
+    pressing = function(self, cx, cy, code)
     end,
 
     --[[! Function: click
-        See <hover>. It's identical, only for the click event.
+        See <hover>. It's identical, only for the click event. This also
+        takes the currently clicked mouse button as the last argument.
     ]]
-    click = function(self, cx, cy)
+    click = function(self, cx, cy, code)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c  = o.visible and o:click(ox, oy) or nil
+            local c  = o.visible and o:click(ox, oy, code) or nil
             if    c == o then
                 click_x = ox
                 click_y = oy
@@ -1056,11 +1076,12 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: clicked
         Called once on the widget that was clicked. By default schedules
         the "click" signal on that widget for emission. Takes the click
-        coords as arguments and passes them later to the signal.
+        coords as arguments and passes them later to the signal. Also
+        takes the clicked mouse button code and passes it as well.
     ]]
-    clicked = function(self, cx, cy)
+    clicked = function(self, cx, cy, code)
         update_later[#update_later + 1] = { self, "click",
-            cx / self.w, cy / self.w }
+            cx / self.w, cy / self.w, code }
     end,
 
     --[[! Function: grabs_input
@@ -1472,9 +1493,9 @@ local World = register_class("World", Widget, {
     end,
 
     --[[! Function: click
-        See above, but for click events.
+        See above, but for click events. Takes the mouse button code too.
     ]]
-    click = function(self, cx, cy)
+    click = function(self, cx, cy, code)
         local ch = self.children
         for i = #ch, 1, -1 do
             local o = ch[i]
@@ -1482,7 +1503,7 @@ local World = register_class("World", Widget, {
             local ox = cx * proj.pw - o.x
             local oy = cy * proj.ph - o.y
             if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-                local c  = o:click(ox, oy)
+                local c  = o:click(ox, oy, code)
                 if    c == o then
                     click_x = ox
                     click_y = oy
@@ -1724,12 +1745,12 @@ end)
 
 local menustack = {}
 
-local menu_click = function(o, cx, cy)
+local menu_click = function(o, cx, cy, code)
     cx = cx - world.margin
     local proj = get_projection(o)
     local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-        local cl = o:click(ox, oy)
+        local cl = o:click(ox, oy, code)
         if cl == o then click_x, click_y = ox, oy end
         return true, cl
     else
@@ -1771,13 +1792,14 @@ set_external("input_keypress", function(code, isdown)
            (hovering and hovering:key_hover(code, isdown))
         then return true end
         return false
-    elseif code == key.MOUSE1 then
+    elseif code == key.MOUSE1 or code == key.MOUSE2 or code == key.MOUSE3 then
         if isdown then
+            clicked_code = code
             local clicked_try
             local ck, cl
             if #menustack > 0 then
                 for i = #menustack, 1, -1 do
-                    ck, cl = menu_click(menustack[i], cursor_x, cursor_y)
+                    ck, cl = menu_click(menustack[i], cursor_x, cursor_y, code)
                     if ck then
                         clicked_try = cl
                         break
@@ -1788,7 +1810,7 @@ set_external("input_keypress", function(code, isdown)
             if ck then
                 clicked = clicked_try
             else
-                clicked = world:click(cursor_x, cursor_y)
+                clicked = world:click(cursor_x, cursor_y, code)
             end
             if clicked then
                 if not ck then
@@ -1800,10 +1822,12 @@ set_external("input_keypress", function(code, isdown)
                         clicked.has_menu = true
                     end
                 end
-                clicked:clicked(click_x, click_y)
+                clicked:clicked(click_x, click_y, code)
+            else
+                clicked_code = nil
             end
         else
-            clicked = nil
+            clicked_code, clicked = nil, nil
         end
         return true
     end
@@ -1925,7 +1949,8 @@ set_external("gui_update", function()
 
         -- hacky
         if  clicked then
-            clicked:pressing(cursor_x - prev_cx, cursor_y - prev_cy)
+            clicked:pressing(cursor_x - prev_cx, cursor_y - prev_cy,
+                clicked_code)
         end
     else
         hovering, clicked = nil, nil

@@ -38,9 +38,9 @@ local btn_build_variant = |r, g, b| gui.Gradient {
     }
 }
 
-btnv["default" ] = btn_build_variant(255, 255, 255)
-btnv["hovering"] = btn_build_variant(225, 225, 225)
-btnv["clicked" ] = btn_build_variant(192, 192, 192)
+btnv["default"     ] = btn_build_variant(255, 255, 255)
+btnv["hovering"    ] = btn_build_variant(225, 225, 225)
+btnv["clicked_left"] = btn_build_variant(192, 192, 192)
 
 world:new_window("changes", gui.Window, function(win)
     win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,

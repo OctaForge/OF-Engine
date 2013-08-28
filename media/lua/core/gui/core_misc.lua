@@ -36,6 +36,9 @@ local gen_setter = M.gen_setter
 -- projection
 local get_projection = M.get_projection
 
+-- keys
+local key = M.key
+
 --[[! Struct: Conditional
     Conditional has two states, "true" and "false". It has a property,
     "condition", which is a function. If that function exists and returns
@@ -80,7 +83,8 @@ M.Mover = register_class("Mover", Widget, {
         return self:target(cx, cy) and self
     end,
 
-    click = function(self, cx, cy)
+    click = function(self, cx, cy, code)
+        if code != key.MOUSE1 then return Widget.click(self, cx, cy, code) end
         local  w = self.window
         if not w then return self:target(cx, cy) and self end
         local c = w.parent.children
@@ -116,10 +120,9 @@ M.Mover = register_class("Mover", Widget, {
         return proj
     end,
 
-    pressing = function(self, cx, cy)
-        local  w = self.window
-        if not w then return Widget.pressing(self, cx, cy) end
-        if w and w.floating and is_clicked(self) then
+    pressing = function(self, cx, cy, code)
+        local w = self.window
+        if w and w.floating and is_clicked(self, key.MOUSE1) then
             local  proj = self:can_move()
             if not proj then return nil end
             cx, cy = cx * proj.pw, cy * proj.ph

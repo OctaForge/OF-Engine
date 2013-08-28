@@ -28,14 +28,24 @@ local Widget = M.get_class("Widget")
 -- setters
 local gen_setter = M.gen_setter
 
+-- keys
+local key = M.key
+
+local clicked_states = {
+    [key.MOUSE1] = "clicked_left",
+    [key.MOUSE2] = "clicked_right",
+    [key.MOUSE3] = "clicked_middle"
+}
+
 --[[! Struct: Button
-    A button has three states, "default", "hovering" and "clicked". On click
-    it emits the "click" signal on itself (which is handled by <Widget>, the
-    button itself doesn't do anything).
+    A button has five states, "default", "hovering", "clicked_left",
+    "clicked_right" and "clicked_middle". On click it emits the "click" signal
+    on itself (which is handled by <Widget>, the button itself doesn't do
+    anything).
 ]]
 local Button = register_class("Button", Widget, {
     choose_state = function(self)
-        return is_clicked(self) and "clicked" or
+        return clicked_states[is_clicked(self)] or
             (is_hovering(self) and "hovering" or "default")
     end,
 
@@ -69,10 +79,10 @@ M.Menu_Button = register_class("Menu_Button", Button, {
 
 --[[! Struct: Conditional_Button
     Derived from Button. It's similar, but provides more states - more
-    specifically "false", "true", "hovering", "clicked". There is the
-    "condition" property which works identically as in <Conditional>.
-    If the condition is not met, the "false" state is used, otherwise
-    one of the other three is used as in <Button>.
+    specifically "false", "true", "hovering" and the button clicked states.
+    There is the "condition" property which works identically as in
+    <Conditional>. If the condition is not met, the "false" state is used,
+    otherwise one of the other three is used as in <Button>.
 ]]
 M.Conditional_Button = register_class("Conditional_Button", Button, {
     __init = function(self, kwargs)
@@ -83,7 +93,7 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
 
     choose_state = function(self)
         return ((self.condition and self:p_condition()) and
-            (is_clicked(self) and "clicked" or
+            (clicked_states[is_clicked(self)] or
                 (is_hovering(self) and "hovering" or "true")) or "false")
     end,
 

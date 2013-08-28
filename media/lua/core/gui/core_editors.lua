@@ -328,7 +328,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 mx = len
             end
         end
-        sx, sy = (mx >= 0) and mx or cx, (mx >= 0) and my or cy -- XXX
+        sx, sy = (mx >= 0) and mx or cx, (my >= 0) and my or cy
         ex, ey = cx, cy
         if sy > ey then
             sy, ey = ey, sy
@@ -476,13 +476,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     edit_key = function(self, code)
-        local mod_keys
-        if ffi.os == "OSX" then
-            mod_keys = mod.GUI
-        else
-            mod_keys = mod.CTRL
-        end
-
+        local mod_keys = (ffi.os == "OSX") and mod.GUI or mod.CTRL
         if code == key.UP then
             self:movement_mark()
             if self.line_wrap then
@@ -759,7 +753,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     hovering = function(self, cx, cy)
-        if is_clicked(self) and is_focused(self) then
+        if is_clicked(self, key.MOUSE1) and is_focused(self) then
             local dx, dy = abs(cx - self._oh), abs(cy - self._ov)
             self:hit(cx, cy, max(dx, dy) > (text_font_get_h() / 8
                 * self:draw_scale()))
@@ -774,12 +768,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         input_keyrepeat(ati, 1 << 1) -- KR_GUI
     end,
 
-    clicked = function(self, cx, cy)
+    clicked = function(self, cx, cy, code)
         self:set_focus(self)
         self:mark()
         self._oh, self._ov = cx, cy
 
-        return Widget.clicked(self, cx, cy)
+        return Widget.clicked(self, cx, cy, code)
     end,
 
     key_hover = function(self, code, isdown)

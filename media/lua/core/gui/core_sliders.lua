@@ -145,8 +145,8 @@ local Slider = register_class("Slider", Widget, {
         The slider can be clicked on unless some of its children want the
         click instead.
     ]]
-    click = function(self, cx, cy)
-        return Widget.click(self, cx, cy) or
+    click = function(self, cx, cy, code)
+        return Widget.click(self, cx, cy, code) or
                      (self:target(cx, cy) and self)
     end,
 
@@ -156,7 +156,10 @@ local Slider = register_class("Slider", Widget, {
         Clicking inside the slider area but outside the arrow area jumps
         in the slider.
     ]]
-    clicked = function(self, cx, cy)
+    clicked = function(self, cx, cy, code)
+        if code != key.MOUSE1 then
+            return Widget.clicked(self, cx, cy, code)
+        end
         local ad = self.choose_direction(self, cx, cy)
         self.arrow_dir = ad
 
@@ -166,7 +169,7 @@ local Slider = register_class("Slider", Widget, {
             self:hovering(cx, cy)
         end
 
-        return Widget.clicked(self, cx, cy)
+        return Widget.clicked(self, cx, cy, code)
     end,
 
     arrow_scroll = function(self)
@@ -184,14 +187,14 @@ local Slider = register_class("Slider", Widget, {
         in the appropriate direction. Also controls the slider button.
     ]]
     hovering = function(self, cx, cy)
-        if is_clicked(self) then
+        if is_clicked(self, key.MOUSE1) then
             if self.arrow_dir != 0 then
                 self:arrow_scroll()
             end
         else
             local button = self:find_child(Slider_Button.type, nil, false)
 
-            if button and is_clicked(button) then
+            if button and is_clicked(button, key.MOUSE1) then
                 self.arrow_dir = 0
                 button.hovering(button, cx - button.x, cy - button.y)
             else
@@ -219,12 +222,19 @@ local Slider = register_class("Slider", Widget, {
 })
 M.Slider = Slider
 
+local clicked_states = {
+    [key.MOUSE1] = "clicked_left",
+    [key.MOUSE2] = "clicked_right",
+    [key.MOUSE3] = "clicked_middle"
+}
+
 --[[! Struct: Slider_Button
     A slider button you can put inside a slider and drag. The slider
     will adjust the button width (in case of horizontal slider) and height
     (in case of vertical slider) depending on the slider size and values.
 
-    A slider button has three states, "default", "hovering" and "clicked".
+    A slider button has five states, "default", "hovering", "clicked_left",
+    "clicked_right" and "clicked_middle".
 ]]
 Slider_Button = register_class("Slider_Button", Widget, {
     __init = function(self, kwargs)
@@ -235,7 +245,7 @@ Slider_Button = register_class("Slider_Button", Widget, {
     end,
 
     choose_state = function(self)
-        return is_clicked(self) and "clicked" or
+        return clicked_states[is_clicked(self)] or
             (is_hovering(self) and "hovering" or "default")
     end,
 
@@ -250,16 +260,17 @@ Slider_Button = register_class("Slider_Button", Widget, {
     hovering = function(self, cx, cy)
         local p = self.parent
 
-        if is_clicked(self) and p and p.type == Slider.type then
+        if is_clicked(self, key.MOUSE1) and p and p.type == Slider.type then
             p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
     end,
 
-    clicked = function(self, cx, cy)
-        self.offset_h = cx
-        self.offset_v = cy
-
-        return Widget.clicked(self, cx, cy)
+    clicked = function(self, cx, cy, code)
+        if code == key.MOUSE1 then
+            self.offset_h = cx
+            self.offset_v = cy
+        end
+        return Widget.clicked(self, cx, cy, code)
     end,
 
     layout = function(self)
@@ -268,7 +279,7 @@ Slider_Button = register_class("Slider_Button", Widget, {
 
         Widget.layout(self)
 
-        if is_clicked(self) then
+        if is_clicked(self, key.MOUSE1) then
             self.w = lastw
             self.h = lasth
         end
@@ -281,8 +292,8 @@ M.Slider_Button = Slider_Button
     the HORIZONTAL field of <orient>. Overloads some of the Slider
     methods specifically for horizontal direction.
 
-    Has five states - "default", "(left|right)_hovering",
-    "(left|right)_clicked".
+    Has nine states - "default", "(left|right)_hovering",
+    "(left|right)_clicked_(left|right|middle)".
 ]]
 M.H_Slider = register_class("H_Slider", Slider, {
     orient = orient.HORIZONTAL,
@@ -291,10 +302,12 @@ M.H_Slider = register_class("H_Slider", Slider, {
         local ad = self.arrow_dir
 
         if ad == -1 then
-            return is_clicked(self) and "left_clicked" or
+            local clicked = clicked_states[is_clicked(self)]
+            return clicked and "left_" .. clicked or
                 (is_hovering(self) and "left_hovering" or "default")
         elseif ad == 1 then
-            return is_clicked(self) and "right_clicked" or
+            local clicked = clicked_states[is_clicked(self)]
+            return clicked and "right_" .. clicked or
                 (is_hovering(self) and "right_hovering" or "default")
         end
         return "default"
@@ -345,17 +358,19 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
 --[[! Struct: V_Slider
     See <H_Slider> above. Has different states, "default", "(up|down)_hovering"
-    and "(up|down)_clicked".
+    and  "(up|down)_clicked_(left|right|middle)".
 ]]
 M.V_Slider = register_class("V_Slider", Slider, {
     choose_state = function(self)
         local ad = self.arrow_dir
 
         if ad == -1 then
-            return is_clicked(self) and "up_clicked" or
+            local clicked = clicked_states[is_clicked(self)]
+            return clicked and "up_" .. clicked or
                 (is_hovering(self) and "up_hovering" or "default")
         elseif ad == 1 then
-            return is_clicked(self) and "down_clicked" or
+            local clicked = clicked_states[is_clicked(self)]
+            return clicked and "down_" .. clicked or
                 (is_hovering(self) and "down_hovering" or "default")
         end
         return "default"

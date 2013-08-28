@@ -100,12 +100,12 @@ M.Scroller = register_class("Scroller", Clipper, {
         return Widget.hover(self, cx + oh, cy + ov) or self
     end,
 
-    click = function(self, cx, cy)
+    click = function(self, cx, cy, code)
         local oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
-        return Widget.click(self, cx + oh, cy + ov)
+        return Widget.click(self, cx + oh, cy + ov, code)
     end,
 
     --[[! Function: key_hover
@@ -303,8 +303,8 @@ local Scrollbar = register_class("Scrollbar", Widget, {
         Scrollbars can be clicked on assuming none of the children want
         to be clicked on.
     ]]
-    click = function(self, cx, cy)
-        return Widget.click(self, cx, cy) or
+    click = function(self, cx, cy, code)
+        return Widget.click(self, cx, cy, code) or
                      (self:target(cx, cy) and self or nil)
     end,
 
@@ -338,7 +338,10 @@ local Scrollbar = register_class("Scrollbar", Widget, {
         Clicking inside the scrollbar area but outside the arrow area jumps
         in the scroller.
     ]]
-    clicked = function(self, cx, cy)
+    clicked = function(self, cx, cy, code)
+        if code != key.MOUSE1 then
+            return Widget.clicked(self, cx, cy, code)
+        end
         local id = self:choose_direction(cx, cy)
         self.arrow_dir = id
 
@@ -348,7 +351,7 @@ local Scrollbar = register_class("Scrollbar", Widget, {
             self:hovering(cx, cy)
         end
 
-        return Widget.clicked(self, cx, cy)
+        return Widget.clicked(self, cx, cy, code)
     end,
 
     arrow_scroll = function(self) end,
@@ -358,13 +361,13 @@ local Scrollbar = register_class("Scrollbar", Widget, {
         in the appropriate direction. Also controls the scroll button.
     ]]
     hovering = function(self, cx, cy)
-        if is_clicked(self) then
+        if is_clicked(self, key.MOUSE1) then
             if self.arrow_dir != 0 then
                 self:arrow_scroll()
             end
         else
             local button = self:find_child(Scroll_Button.type, nil, false)
-            if button and is_clicked(button) then
+            if button and is_clicked(button, key.MOUSE1) then
                 self.arrow_dir = 0
                 button:hovering(cx - button.x, cy - button.y)
             else
@@ -383,12 +386,19 @@ local Scrollbar = register_class("Scrollbar", Widget, {
 })
 M.Scrollbar = Scrollbar
 
+local clicked_states = {
+    [key.MOUSE1] = "clicked_left",
+    [key.MOUSE2] = "clicked_right",
+    [key.MOUSE3] = "clicked_middle"
+}
+
 --[[! Struct: Scroll_Button
     A scroll button you can put inside a scrollbar and drag. The scrollbar
     will adjust the button width (in case of horizontal scrollbar) and height
     (in case of vertical scrollbar) depending on the scroller contents.
 
-    A scroll button has three states, "default", "hovering" and "clicked".
+    A scroll button has five states, "default", "hovering", "clicked_left",
+    "clicked_right" and "clicked_middle".
 ]]
 Scroll_Button = register_class("Scroll_Button", Widget, {
     __init = function(self, kwargs)
@@ -399,7 +409,7 @@ Scroll_Button = register_class("Scroll_Button", Widget, {
     end,
 
     choose_state = function(self)
-        return is_clicked(self) and "clicked" or
+        return clicked_states[is_clicked(self)] or
             (is_hovering(self) and "hovering" or "default")
     end,
 
@@ -413,16 +423,17 @@ Scroll_Button = register_class("Scroll_Button", Widget, {
 
     hovering = function(self, cx, cy)
         local p = self.parent
-        if is_clicked(self) and p and p.type == Scrollbar.type then
+        if is_clicked(self, key.MOUSE1) and p and p.type == Scrollbar.type then
             p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
     end,
 
-    clicked = function(self, cx, cy)
-        self.offset_h = cx
-        self.offset_v = cy
-
-        return Widget.clicked(self, cx, cy)
+    clicked = function(self, cx, cy, code)
+        if code == key.MOUSE1 then
+            self.offset_h = cx
+            self.offset_v = cy
+        end
+        return Widget.clicked(self, cx, cy, code)
     end
 })
 M.Scroll_Button = Scroll_Button
@@ -435,8 +446,8 @@ local ALIGN_VMASK = 0xC
     the HORIZONTAL field of <orient>. Overloads some of the Scrollbar
     methods specifically for horizontal scrolling.
 
-    Has five states - "default", "(left|right)_hovering",
-    "(left|right)_clicked".
+    Has nine states - "default", "(left|right)_hovering",
+    "(left|right)_clicked_(left|right|middle)".
 ]]
 M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     orient = orient.HORIZONTAL,
@@ -456,10 +467,12 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         local ad = self.arrow_dir
 
         if ad == -1 then
-            return is_clicked(self) and "left_clicked" or
+            local clicked = clicked_states[is_clicked(self)]
+            return clicked and "left_" .. clicked or
                 (is_hovering(self) and "left_hovering" or "default")
         elseif ad == 1 then
-            return is_clicked(self) and "right_clicked" or
+            local clicked = clicked_states[is_clicked(self)]
+            return clicked and "right_" .. clicked or
                 (is_hovering(self) and "right_hovering" or "default")
         end
         return "default"
@@ -525,7 +538,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
 --[[! Struct: V_Scrollbar
     See <H_Scrollbar> above. Has different states, "default",
-    "(up|down)_hovering" and "(up|down)_clicked".
+    "(up|down)_hovering" and "(up|down)_clicked_(left|right|middle)".
 ]]
 M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
     orient = orient.VERTICAL,
@@ -545,10 +558,12 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         local ad = self.arrow_dir
 
         if ad == -1 then
-            return is_clicked(self) and "up_clicked" or
+            local clicked = clicked_states[is_clicked(self)]
+            return clicked and "up_" .. clicked or
                 (is_hovering(self) and "up_hovering" or "default")
         elseif ad == 1 then
-            return is_clicked(self) and "down_clicked" or
+            local clicked = clicked_states[is_clicked(self)]
+            return clicked and "down_" .. clicked or
                 (is_hovering(self) and "down_hovering" or "default")
         end
         return "default"
