@@ -328,7 +328,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 mx = len
             end
         end
-        sx, sy = (mx >= 0) and mx or cx, (my >= 0) and my or cy
+        sx, sy = (mx >= 0) and mx or cx, (mx >= 0) and my or cy
         ex, ey = cx, cy
         if sy > ey then
             sy, ey = ey, sy
