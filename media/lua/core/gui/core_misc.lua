@@ -84,7 +84,9 @@ M.Mover = register_class("Mover", Widget, {
     end,
 
     click = function(self, cx, cy, code)
-        if code != key.MOUSE1 then return Widget.click(self, cx, cy, code) end
+        if code != key.MOUSELEFT then
+            return Widget.click(self, cx, cy, code)
+        end
         local  w = self.window
         if not w then return self:target(cx, cy) and self end
         local c = w.parent.children
@@ -122,7 +124,7 @@ M.Mover = register_class("Mover", Widget, {
 
     pressing = function(self, cx, cy, code)
         local w = self.window
-        if w and w.floating and is_clicked(self, key.MOUSE1) then
+        if w and w.floating and is_clicked(self, key.MOUSELEFT) then
             local  proj = self:can_move()
             if not proj then return nil end
             cx, cy = cx * proj.pw, cy * proj.ph

@@ -375,17 +375,17 @@ M.scancode = scancode
 
 --[[! Variable: key
     Contains a list of key constants. Matches SDLK_* with the addition of
-    mouse buttons (MOUSE1 to MOUSE8).
+    mouse buttons (MOUSELEFT, MOUSEMIDDLE, MOUSERIGHT, MOUSEWHEELUP,
+    MOUSEWHEELDOWN, MOUSEBACK, MOUSEFORWARD).
 ]]
 local key = {
-    MOUSE1 = -1,
-    MOUSE2 = -3,
-    MOUSE3 = -2,
-    MOUSE4 = -4,
-    MOUSE5 = -5,
-    MOUSE6 = -6,
-    MOUSE7 = -7,
-    MOUSE8 = -8,
+    MOUSELEFT      = -1,
+    MOUSEMIDDLE    = -2,
+    MOUSERIGHT     = -3,
+    MOUSEWHEELUP   = -4,
+    MOUSEWHEELDOWN = -5,
+    MOUSEBACK      = -6,
+    MOUSEFORWARD   = -7,
 
     UNKNOWN = 0,
 

@@ -1781,18 +1781,25 @@ local menus_drop = function(n)
     end
 end
 
+local mousebuttons = {
+    [key.MOUSELEFT] = true, [key.MOUSEMIDDLE]  = true, [key.MOUSERIGHT] = true,
+    [key.MOUSEBACK] = true, [key.MOUSEFORWARD] = true
+}
+
+local hoverkeys = {
+    [key.MOUSEWHEELUP] = true, [key.MOUSEWHEELDOWN] = true,
+    [key.LEFT] = true, [key.RIGHT] = true, [key.DOWN] = true, [key.UP] = true
+}
+
 set_external("input_keypress", function(code, isdown)
     if not cursor_exists() or not world.visible then return false end
     if world:key_raw(code, isdown) then return true end
-    if code == key.MOUSE5 or code == key.MOUSE4 or
-       code == key.LEFT   or code == key.RIGHT  or
-       code == key.DOWN   or code == key.UP
-    then
+    if hoverkeys[code] then
         if (focused  and  focused:key_hover(code, isdown)) or
            (hovering and hovering:key_hover(code, isdown))
         then return true end
         return false
-    elseif code == key.MOUSE1 or code == key.MOUSE2 or code == key.MOUSE3 then
+    elseif mousebuttons[code] then
         if isdown then
             clicked_code = code
             local clicked_try

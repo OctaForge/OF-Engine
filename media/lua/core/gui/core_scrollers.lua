@@ -114,7 +114,7 @@ M.Scroller = register_class("Scroller", Clipper, {
         is present, vertical is used with the default arrow_speed of 0.5.
     ]]
     key_hover = function(self, code, isdown)
-        local m4, m5 = key.MOUSE4, key.MOUSE5
+        local m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
         if code != m4 or code != m5 then
             return Widget.key_hover(self, code, isdown)
         end
@@ -315,7 +315,7 @@ local Scrollbar = register_class("Scrollbar", Widget, {
         by 0.2 in the right direction depending on the scrollbar type.
     ]]
     key_hover = function(self, code, isdown)
-        local m4, m5 = key.MOUSE4, key.MOUSE5
+        local m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
         if code != m4 or code != m5 then
             return Widget.key_hover(self, code, isdown)
         end
@@ -339,7 +339,7 @@ local Scrollbar = register_class("Scrollbar", Widget, {
         in the scroller.
     ]]
     clicked = function(self, cx, cy, code)
-        if code != key.MOUSE1 then
+        if code != key.MOUSELEFT then
             return Widget.clicked(self, cx, cy, code)
         end
         local id = self:choose_direction(cx, cy)
@@ -361,13 +361,13 @@ local Scrollbar = register_class("Scrollbar", Widget, {
         in the appropriate direction. Also controls the scroll button.
     ]]
     hovering = function(self, cx, cy)
-        if is_clicked(self, key.MOUSE1) then
+        if is_clicked(self, key.MOUSELEFT) then
             if self.arrow_dir != 0 then
                 self:arrow_scroll()
             end
         else
             local button = self:find_child(Scroll_Button.type, nil, false)
-            if button and is_clicked(button, key.MOUSE1) then
+            if button and is_clicked(button, key.MOUSELEFT) then
                 self.arrow_dir = 0
                 button:hovering(cx - button.x, cy - button.y)
             else
@@ -387,9 +387,11 @@ local Scrollbar = register_class("Scrollbar", Widget, {
 M.Scrollbar = Scrollbar
 
 local clicked_states = {
-    [key.MOUSE1] = "clicked_left",
-    [key.MOUSE2] = "clicked_right",
-    [key.MOUSE3] = "clicked_middle"
+    [key.MOUSELEFT   ] = "clicked_left",
+    [key.MOUSEMIDDLE ] = "clicked_middle",
+    [key.MOUSERIGHT  ] = "clicked_right",
+    [key.MOUSEBACK   ] = "clicked_back",
+    [key.MOUSEFORWARD] = "clicked_forward"
 }
 
 --[[! Struct: Scroll_Button
@@ -423,13 +425,14 @@ Scroll_Button = register_class("Scroll_Button", Widget, {
 
     hovering = function(self, cx, cy)
         local p = self.parent
-        if is_clicked(self, key.MOUSE1) and p and p.type == Scrollbar.type then
+        if is_clicked(self, key.MOUSELEFT) and p
+        and p.type == Scrollbar.type then
             p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
     end,
 
     clicked = function(self, cx, cy, code)
-        if code == key.MOUSE1 then
+        if code == key.MOUSELEFT then
             self.offset_h = cx
             self.offset_v = cy
         end

@@ -114,13 +114,13 @@ local Slider = register_class("Slider", Widget, {
         if code == key.UP or code == key.LEFT then
             if isdown then self:do_step(-1) end
             return true
-        elseif code == key.MOUSE4 then
+        elseif code == key.MOUSEWHEELUP then
             if isdown then self:do_step(-3) end
             return true
         elseif code == key.DOWN or code == key.RIGHT then
             if isdown then self:do_step(1) end
             return true
-        elseif code == key.MOUSE5 then
+        elseif code == key.MOUSEWHEELDOWN then
             if isdown then self:do_step(3) end
             return true
         end
@@ -157,7 +157,7 @@ local Slider = register_class("Slider", Widget, {
         in the slider.
     ]]
     clicked = function(self, cx, cy, code)
-        if code != key.MOUSE1 then
+        if code != key.MOUSELEFT then
             return Widget.clicked(self, cx, cy, code)
         end
         local ad = self.choose_direction(self, cx, cy)
@@ -187,14 +187,14 @@ local Slider = register_class("Slider", Widget, {
         in the appropriate direction. Also controls the slider button.
     ]]
     hovering = function(self, cx, cy)
-        if is_clicked(self, key.MOUSE1) then
+        if is_clicked(self, key.MOUSELEFT) then
             if self.arrow_dir != 0 then
                 self:arrow_scroll()
             end
         else
             local button = self:find_child(Slider_Button.type, nil, false)
 
-            if button and is_clicked(button, key.MOUSE1) then
+            if button and is_clicked(button, key.MOUSELEFT) then
                 self.arrow_dir = 0
                 button.hovering(button, cx - button.x, cy - button.y)
             else
@@ -223,9 +223,11 @@ local Slider = register_class("Slider", Widget, {
 M.Slider = Slider
 
 local clicked_states = {
-    [key.MOUSE1] = "clicked_left",
-    [key.MOUSE2] = "clicked_right",
-    [key.MOUSE3] = "clicked_middle"
+    [key.MOUSELEFT   ] = "clicked_left",
+    [key.MOUSEMIDDLE ] = "clicked_middle",
+    [key.MOUSERIGHT  ] = "clicked_right",
+    [key.MOUSEBACK   ] = "clicked_back",
+    [key.MOUSEFORWARD] = "clicked_forward"
 }
 
 --[[! Struct: Slider_Button
@@ -260,13 +262,13 @@ Slider_Button = register_class("Slider_Button", Widget, {
     hovering = function(self, cx, cy)
         local p = self.parent
 
-        if is_clicked(self, key.MOUSE1) and p and p.type == Slider.type then
+        if is_clicked(self, key.MOUSELEFT) and p and p.type == Slider.type then
             p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
     end,
 
     clicked = function(self, cx, cy, code)
-        if code == key.MOUSE1 then
+        if code == key.MOUSELEFT then
             self.offset_h = cx
             self.offset_v = cy
         end
@@ -279,7 +281,7 @@ Slider_Button = register_class("Slider_Button", Widget, {
 
         Widget.layout(self)
 
-        if is_clicked(self, key.MOUSE1) then
+        if is_clicked(self, key.MOUSELEFT) then
             self.w = lastw
             self.h = lasth
         end

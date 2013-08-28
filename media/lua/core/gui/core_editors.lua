@@ -514,11 +514,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             self.cy = self.cy + 1
             self._needs_offset = true
-        elseif code == key.MOUSE4 or code == key.MOUSE5 then
+        elseif code == key.MOUSEWHEELUP or code == key.MOUSEHEELDOWN then
             if self.can_scroll then
                 local sb = self.v_scrollbar
                 local fac = 6 * text_font_get_h() * self:draw_scale()
-                self:scroll_v((code == key.MOUSE4 and -fac or fac)
+                self:scroll_v((code == key.MOUSEWHEELUP and -fac or fac)
                     * (sb and sb.arrow_speed or 0.5))
             end
         elseif code == key.PAGEUP then
@@ -753,7 +753,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     hovering = function(self, cx, cy)
-        if is_clicked(self, key.MOUSE1) and is_focused(self) then
+        if is_clicked(self, key.MOUSELEFT) and is_focused(self) then
             local dx, dy = abs(cx - self._oh), abs(cy - self._ov)
             self:hit(cx, cy, max(dx, dy) > (text_font_get_h() / 8
                 * self:draw_scale()))
@@ -777,9 +777,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     key_hover = function(self, code, isdown)
-        if code == key.LEFT   or code == key.RIGHT or
-           code == key.UP     or code == key.DOWN  or
-           code == key.MOUSE4 or code == key.MOUSE5
+        if code == key.LEFT         or code == key.RIGHT or
+           code == key.UP           or code == key.DOWN  or
+           code == key.MOUSEWHEELUP or code == key.MOUSEWHEELDOWN
         then
             if isdown then self:edit_key(code) end
             return true

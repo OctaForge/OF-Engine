@@ -32,9 +32,11 @@ local gen_setter = M.gen_setter
 local key = M.key
 
 local clicked_states = {
-    [key.MOUSE1] = "clicked_left",
-    [key.MOUSE2] = "clicked_right",
-    [key.MOUSE3] = "clicked_middle"
+    [key.MOUSELEFT   ] = "clicked_left",
+    [key.MOUSEMIDDLE ] = "clicked_middle",
+    [key.MOUSERIGHT  ] = "clicked_right",
+    [key.MOUSEBACK   ] = "clicked_back",
+    [key.MOUSEFORWARD] = "clicked_forward"
 }
 
 --[[! Struct: Button
