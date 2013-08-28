@@ -1983,16 +1983,12 @@ set_external("gui_update", function()
             hovering:hovering(hover_x, hover_y)
         end
 
-        -- hacky
-        if  clicked then
+        if clicked then
             local hx, hy
-            if #menustack > 0 then
-                for i = #menustack, 1, -1 do
-                    hx, hy = menu_hold(menustack[i], cursor_x, cursor_y,
-                        clicked)
-                    if hx then break end
-                end
-            end
+            if #menustack > 0 then for i = #menustack, 1, -1 do
+                hx, hy = menu_hold(menustack[i], cursor_x, cursor_y, clicked)
+                if hx then break end
+            end end
             if not hx then
                 hx, hy = world:hold(cursor_x, cursor_y, clicked)
             end
