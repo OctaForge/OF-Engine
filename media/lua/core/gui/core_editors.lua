@@ -514,7 +514,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             self.cy = self.cy + 1
             self._needs_offset = true
-        elseif code == key.MOUSEWHEELUP or code == key.MOUSEHEELDOWN then
+        elseif code == key.MOUSEWHEELUP or code == key.MOUSEWHEELDOWN then
             if self.can_scroll then
                 local sb = self.v_scrollbar
                 local fac = 6 * text_font_get_h() * self:draw_scale()
