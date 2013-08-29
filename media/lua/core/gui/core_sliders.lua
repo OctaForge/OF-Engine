@@ -157,49 +157,37 @@ local Slider = register_class("Slider", Widget, {
         in the slider.
     ]]
     clicked = function(self, cx, cy, code)
-        if code != key.MOUSELEFT then
-            return Widget.clicked(self, cx, cy, code)
+        if code == key.MOUSELEFT then
+            local d = self.choose_direction(self, cx, cy)
+            self.arrow_dir = d
+            if d == 0 then
+                self:scroll_to(cx, cy)
+            end
         end
-        local ad = self.choose_direction(self, cx, cy)
-        self.arrow_dir = ad
-
-        if ad == 0 then
-            self:scroll_to(cx, cy)
-        else
-            self:hovering(cx, cy)
-        end
-
         return Widget.clicked(self, cx, cy, code)
     end,
 
-    arrow_scroll = function(self)
+    arrow_scroll = function(self, d)
         local tmillis = get_millis(true)
         if (self.last_step + self.step_time) > tmillis then
             return nil
         end
 
         self.last_step = tmillis
-        self.do_step(self, self.arrow_dir)
+        self.do_step(self, d)
     end,
 
-    --[[! Function: hovering
-        When the arrow area is pressed, the slider will keep going
-        in the appropriate direction. Also controls the slider button.
-    ]]
-    hovering = function(self, cx, cy)
-        if is_clicked(self, key.MOUSELEFT) then
-            if self.arrow_dir != 0 then
-                self:arrow_scroll()
-            end
-        else
-            local button = self:find_child(Slider_Button.type, nil, false)
+    holding = function(self, cx, cy, code)
+        if code == key.MOUSELEFT then
+            local d = self:choose_direction(cx, cy)
+            self.arrow_dir = d
+            if d != 0 then self:arrow_scroll(d) end
+        end
+    end,
 
-            if button and is_clicked(button, key.MOUSELEFT) then
-                self.arrow_dir = 0
-                button.hovering(button, cx - button.x, cy - button.y)
-            else
-                self.arrow_dir = self:choose_direction(cx, cy)
-            end
+    hovering = function(self, cx, cy)
+        if not is_clicked(self, key.MOUSELEFT) then
+            self.arrow_dir = self:choose_direction(cx, cy)
         end
     end,
 
@@ -259,11 +247,12 @@ Slider_Button = register_class("Slider_Button", Widget, {
         return self:target(cx, cy) and self
     end,
 
-    hovering = function(self, cx, cy)
+    holding = function(self, cx, cy, code)
         local p = self.parent
-
-        if is_clicked(self, key.MOUSELEFT) and p and p.type == Slider.type then
-            p:move_button(self, self.offset_h, self.offset_v, cx, cy)
+        if p and code == key.MOUSELEFT and p.type == Slider.type then
+            p.arrow_dir = 0
+            p:move_button(self, self.offset_h, self.offset_v,
+                clamp(cx, 0, self.w), clamp(cy, 0, self.h))
         end
     end,
 

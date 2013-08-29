@@ -752,8 +752,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self:set_focus(nil)
     end,
 
-    hovering = function(self, cx, cy)
-        if is_clicked(self, key.MOUSELEFT) and is_focused(self) then
+    holding = function(self, cx, cy, code)
+        if code == key.MOUSELEFT then
             local dx, dy = abs(cx - self._oh), abs(cy - self._ov)
             self:hit(cx, cy, max(dx, dy) > (text_font_get_h() / 8
                 * self:draw_scale()))

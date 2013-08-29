@@ -339,40 +339,29 @@ local Scrollbar = register_class("Scrollbar", Widget, {
         in the scroller.
     ]]
     clicked = function(self, cx, cy, code)
-        if code != key.MOUSELEFT then
-            return Widget.clicked(self, cx, cy, code)
+        if code == key.MOUSELEFT then
+            local d = self:choose_direction(cx, cy)
+            self.arrow_dir = d
+            if d == 0 then
+                self:scroll_to(cx, cy)
+            end
         end
-        local id = self:choose_direction(cx, cy)
-        self.arrow_dir = id
-
-        if id == 0 then
-            self:scroll_to(cx, cy)
-        else
-            self:hovering(cx, cy)
-        end
-
         return Widget.clicked(self, cx, cy, code)
     end,
 
-    arrow_scroll = function(self) end,
+    arrow_scroll = function(self, d) end,
 
-    --[[! Function: hovering
-        When the arrow area is pressed, the scroller will keep scrolling
-        in the appropriate direction. Also controls the scroll button.
-    ]]
+    holding = function(self, cx, cy, code)
+        if code == key.MOUSELEFT then
+            local d = self:choose_direction(cx, cy)
+            self.arrow_dir = d
+            if d != 0 then self:arrow_scroll(d) end
+        end
+    end,
+
     hovering = function(self, cx, cy)
-        if is_clicked(self, key.MOUSELEFT) then
-            if self.arrow_dir != 0 then
-                self:arrow_scroll()
-            end
-        else
-            local button = self:find_child(Scroll_Button.type, nil, false)
-            if button and is_clicked(button, key.MOUSELEFT) then
-                self.arrow_dir = 0
-                button:hovering(cx - button.x, cy - button.y)
-            else
-                self.arrow_dir = self:choose_direction(cx, cy)
-            end
+        if not is_clicked(self, key.MOUSELEFT) then
+            self.arrow_dir = self:choose_direction(cx, cy)
         end
     end,
 
@@ -423,11 +412,12 @@ Scroll_Button = register_class("Scroll_Button", Widget, {
         return self:target(cx, cy) and self or nil
     end,
 
-    hovering = function(self, cx, cy)
+    holding = function(self, cx, cy, code)
         local p = self.parent
-        if is_clicked(self, key.MOUSELEFT) and p
-        and p.type == Scrollbar.type then
-            p:move_button(self, self.offset_h, self.offset_v, cx, cy)
+        if p and code == key.MOUSELEFT and p.type == Scrollbar.type then
+            p.arrow_dir = 0
+            p:move_button(self, self.offset_h, self.offset_v,
+                clamp(cx, 0, self.w), clamp(cy, 0, self.h))
         end
     end,
 
@@ -486,12 +476,10 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         return (cx < as) and -1 or (cx >= (self.w - as) and 1 or 0)
     end,
 
-    arrow_scroll = function(self)
+    arrow_scroll = function(self, d)
         local  scroll = self.scroller
         if not scroll then return nil end
-
-        scroll:scroll_h(self.arrow_dir * self.arrow_speed *
-            (frame.get_frame_time() / 1000))
+        scroll:scroll_h(d * self.arrow_speed * (frame.get_frame_time() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)
@@ -577,12 +565,10 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         return (cy < as) and -1 or (cy >= (self.h - as) and 1 or 0)
     end,
 
-    arrow_scroll = function(self)
+    arrow_scroll = function(self, d)
         local  scroll = self.scroller
         if not scroll then return nil end
-
-        scroll:scroll_v(self.arrow_dir * self.arrow_speed *
-            (frame.get_frame_time() / 1000))
+        scroll:scroll_v(d * self.arrow_speed * (frame.get_frame_time() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)
