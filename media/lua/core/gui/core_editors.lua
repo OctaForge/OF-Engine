@@ -694,9 +694,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             local h = 0
             hitx, hity = (hitx - self.offset_h) / k, hity / k
             for i = fd, #self.lines do
+                if h > self.ph then break end
                 local linestr = tostring(self.lines[i])
                 local width, height = self.lines[i]:get_bounds()
-                if h + height > self.ph then break end
                 if hity >= h and hity <= h + height then
                     local x = text_is_visible(linestr, hitx, hity - h,
                         max_width)
@@ -983,12 +983,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local maxy = #self.lines
         local h = 0
         for i = first_drawable, maxy do
-            local width, height = text_get_bounds(tostring(self.lines[i]),
-                max_width)
-            if h + height > self.ph then
+            if h > self.ph then
                 maxy = i
                 break
             end
+            local width, height = text_get_bounds(tostring(self.lines[i]),
+                max_width)
             if i == sy + 1 then
                 psy = psy + h
             end

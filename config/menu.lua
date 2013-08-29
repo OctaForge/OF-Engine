@@ -125,7 +125,28 @@ world:new_window("main", gui.Window, |win| do
             b:append(gui.H_Box(), |b| do
                 b:append(gui.Outline(), |o| do
                     o:clamp(true, true, true, true)
-                    o:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = "butts", multiline = false }, |x| do
+                    o:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = [[
+Lorem ipsum dolor sit amet, consectetur
+adipisicing elit, sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit
+in voluptate velit esse cillum dolore eu fugiat
+nulla pariatur. Excepteur sint occaecat cupidatat
+non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+Lorem ipsum dolor sit amet, consectetur
+adipisicing elit, sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit
+in voluptate velit esse cillum dolore eu fugiat
+nulla pariatur. Excepteur sint occaecat cupidatat
+non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+                    ]], multiline = true }, |x| do
                         x:clamp(true, true, true, true)
                         ed = x
                     end)
