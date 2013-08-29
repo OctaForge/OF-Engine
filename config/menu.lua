@@ -69,17 +69,17 @@ world:new_window("main", gui.Window, |win| do
 
             b:append(gui.H_Box(), |b| do
                 b:append(gui.Menu_Button { label = "Menu 1" }, |b| do
-                    b:set_menu(gui.Color_Filler {
+                    b:set_menu_left(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
                         gui.V_Box {
                             gui.Menu_Button {
                                 label = "Submenu 1",
-                                menu = gui.Color_Filler {
+                                menu_hover = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 192,
                                     b = 0, a = 192,
                                     gui.Menu_Button {
                                         label = "Subsubmenu 1",
-                                        menu = gui.Color_Filler {
+                                        menu_hover = gui.Color_Filler {
                                             min_w = 0.2, min_h = 0.3, r = 192,
                                             g = 192, b = 0, a = 192,
                                             gui.Label { text = "Butts!" }
@@ -91,7 +91,7 @@ world:new_window("main", gui.Window, |win| do
                             },
                             gui.Menu_Button {
                                 label = "Submenu 2",
-                                menu = gui.Color_Filler {
+                                menu_hover = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 0,
                                     b = 192, a = 192
                                 },
@@ -101,12 +101,12 @@ world:new_window("main", gui.Window, |win| do
                     })
                 end)
                 b:append(gui.Menu_Button { label = "Menu 2" }, |b| do
-                    b:set_menu(gui.Color_Filler {
+                    b:set_menu_left(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
                     })
                 end)
                 b:append(gui.Menu_Button { label = "Menu 3" }, |b| do
-                    b:set_menu(gui.Color_Filler {
+                    b:set_menu_left(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
                     })
                 end)

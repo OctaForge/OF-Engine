@@ -505,6 +505,14 @@ end
 
 M.get_projection = get_projection
 
+local menu_keys = {
+    [key.MOUSELEFT   ] = "menu_left",
+    [key.MOUSEMIDDLE ] = "menu_middle",
+    [key.MOUSERIGHT  ] = "menu_right",
+    [key.MOUSEBACK   ] = "menu_back",
+    [key.MOUSEFORWARD] = "menu_forward"
+}
+
 local Widget, Window
 
 --[[! Struct: Widget
@@ -514,7 +522,8 @@ local Widget, Window
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of widgets), floating (whether the widget is freely
     movable), parent (the parent widget), variant, variants, states, tooltip
-    (a widget), menu (a widget) and container (a widget).
+    (a widget), menu_(left|middle|right|back|forward|hover) (a widget) and
+    container (a widget).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -525,7 +534,7 @@ local Widget, Window
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, variant, states, signals,
-    tooltip, menu, container and init, which is a function called at the end
+    tooltip, menu_*, container and init, which is a function called at the end
     of the constructor if it exists). Array members of kwargs are children.
 
     Widgets instances can have states - they're named references to widgets
@@ -599,8 +608,11 @@ Widget = register_class("Widget", table2.Object, {
             end
         end
 
-        self.tooltip = kwargs.tooltip or false
-        self.menu    = kwargs.menu    or false
+        self.tooltip    = kwargs.tooltip    or nil
+        self.menu_hover = kwargs.menu_hover or nil
+        for k, v in pairs(menu_keys) do
+            self[v] = kwargs[v] or nil
+        end
 
         self.init_clone = kwargs.init_clone
 
@@ -671,10 +683,15 @@ Widget = register_class("Widget", table2.Object, {
             for k, v in pairs(vstates) do v:clear() end
         end
 
-        local menu, tooltip in self
-        self.container, self.menu, self.tooltip = nil, nil, nil
-        if menu    then    menu:clear() end
-        if tooltip then tooltip:clear() end
+        for k, v in pairs(menu_keys) do
+            local v = self[v]
+            if v then v:clear() end
+            self[v] = nil
+        end
+        local menu_hover, tooltip in self
+        self.container, self.menu_hover, self.tooltip = nil, nil, nil
+        if menu_hover then menu_hover:clear() end
+        if tooltip    then    tooltip:clear() end
 
         emit(self, "destroy")
         local insts = rawget(self.__proto, "instances")
@@ -1301,8 +1318,23 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: set_tooltip ]]
     set_tooltip = gen_setter "tooltip",
 
-    --[[! Function: set_menu ]]
-    set_menu = gen_setter "menu",
+    --[[! Function: set_menu_left ]]
+    set_menu_left = gen_setter "menu_left",
+
+    --[[! Function: set_menu_middle ]]
+    set_menu_middle = gen_setter "menu_middle",
+
+    --[[! Function: set_menu_right ]]
+    set_menu_right = gen_setter "menu_right",
+
+    --[[! Function: set_menu_back ]]
+    set_menu_back = gen_setter "menu_back",
+
+    --[[! Function: set_menu_forward ]]
+    set_menu_forward = gen_setter "menu_forward",
+
+    --[[! Function: set_menu_hover ]]
+    set_menu_hover = gen_setter "menu_hover",
 
     --[[! Function: set_container ]]
     set_container = gen_setter "container",
@@ -1850,7 +1882,7 @@ set_external("input_keypress", function(code, isdown)
             end
             if clicked then
                 if not ck then
-                    local cm = clicked.menu
+                    local cm = clicked[menu_keys[code]]
                     if cm then
                         menustack[1] = cm
                         cm.is_menu = true
@@ -2019,7 +2051,7 @@ set_external("gui_update", function()
                 if nd > 0 then menus_drop(nd) end
                 msl = nhov
             end
-            local hmenu = hovering.menu
+            local hmenu = hovering.menu_hover
             if  hmenu then
                 hmenu.is_menu = true
                 hmenu.parent = hovering
