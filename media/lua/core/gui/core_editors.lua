@@ -754,9 +754,18 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     holding = function(self, cx, cy, code)
         if code == key.MOUSELEFT then
-            local dx, dy = abs(cx - self._oh), abs(cy - self._ov)
-            self:hit(cx, cy, max(dx, dy) > (text_font_get_h() / 8
-                * self:draw_scale()))
+            local w, h, vd = self.w, self.h, 0
+            if cy > h then
+                vd = cy - h
+            elseif cy < 0 then
+                vd = cy
+            end
+            cx, cy = clamp(cx, 0, w), clamp(cy, 0, h)
+            if vd != 0 then
+                self:scroll_v(vd)
+            end
+            self:hit(cx, cy, max(abs(cx - self._oh), abs(cy - self._ov))
+                > (text_font_get_h() / 8 * self:draw_scale()))
         end
     end,
 
