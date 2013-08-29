@@ -276,17 +276,23 @@ local loop_children_r = function(self, fun)
 end
 M.loop_children_r = loop_children_r
 
+local get_projection
+
 --[[! Function: loop_in_children
     Similar to above, but takes 4 arguments. The first argument is a widget,
     the other two arguments are x and y position and the last argument
     is the function. The function is executed only for those children
     that cover the given x, y coords.
 ]]
-local loop_in_children = function(self, cx, cy, fun, ins)
+local loop_in_children = function(self, cx, cy, fun, ins, useproj)
     return loop_children(self, function(o)
-        local ox = cx - o.x
-        local oy = cy - o.y
-
+        local ox, oy
+        if useproj then
+            local proj = get_projection(o)
+            ox, oy = (cx * proj.pw - o.x), (cy * proj.ph - o.y)
+        else
+            ox, oy = cx - o.x, cy - o.y
+        end
         if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) then
             local a, b = fun(o, ox, oy)
             if    a != nil then return a, b end
@@ -298,11 +304,15 @@ M.loop_in_children = loop_in_children
 --[[! Function: loop_in_children
     See above. Reverse order.
 ]]
-local loop_in_children_r = function(self, cx, cy, fun, ins)
+local loop_in_children_r = function(self, cx, cy, fun, ins, useproj)
     return loop_children_r(self, function(o)
-        local ox = cx - o.x
-        local oy = cy - o.y
-
+        local ox, oy
+        if useproj then
+            local proj = get_projection(o)
+            ox, oy = (cx * proj.pw - o.x), (cy * proj.ph - o.y)
+        else
+            ox, oy = cx - o.x, cy - o.y
+        end
         if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) then
             local a, b = fun(o, ox, oy)
             if    a != nil then return a, b end
@@ -494,7 +504,7 @@ local Projection = table2.Object:clone {
     end
 }
 
-local get_projection = function(o, nonew)
+get_projection = function(o, nonew)
     if not o then return projection end
     local proj = o._projection
     if proj or nonew then return proj end
@@ -1509,61 +1519,38 @@ local World = register_class("World", Widget, {
     --[[! Function: hover
         Without this overload, hover events would propagate into windows
         even if they're covered by other windows, which is not really a
-        desirable behavior.
+        desirable behavior. It also handles projections correctly.
     ]]
     hover = function(self, cx, cy)
-        local ch = self.children
-        for i = #ch, 1, -1 do
-            local o = ch[i]
-            if not o.visible then continue end
-            local proj = get_projection(o)
-            local ox = cx * proj.pw - o.x
-            local oy = cy * proj.ph - o.y
-            if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-                local c  = o:hover(ox, oy)
-                if    c == o then
-                    hover_x = ox
-                    hover_y = oy
-                end
-                return c
+        return loop_in_children_r(self, cx, cy, function(o, ox, oy)
+            local c  = o.visible and o:hover(ox, oy) or nil
+            if    c == o then
+                hover_x = ox
+                hover_y = oy
             end
-        end
+            return c
+        end, true, true)
     end,
 
     hold = function(self, cx, cy, obj)
-        local ch = self.children
-        for i = #ch, 1, -1 do
-            local o = ch[i]
-            if not o.visible then continue end
-            local proj = get_projection(o)
-            local ox = cx * proj.pw - o.x
-            local oy = cy * proj.ph - o.y
+        return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             if o == obj then return ox, oy end
-            ox, oy = o:hold(ox, oy, obj)
-            if ox then return ox, oy end
-        end
+            if o.visible then return o:hold(ox, oy, obj) end
+        end, false, true)
     end,
 
     --[[! Function: click
         See above, but for click events. Takes the mouse button code too.
     ]]
     click = function(self, cx, cy, code)
-        local ch = self.children
-        for i = #ch, 1, -1 do
-            local o = ch[i]
-            if not o.visible then continue end
-            local proj = get_projection(o)
-            local ox = cx * proj.pw - o.x
-            local oy = cy * proj.ph - o.y
-            if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-                local c  = o:click(ox, oy, code)
-                if    c == o then
-                    click_x = ox
-                    click_y = oy
-                end
-                return c
+        return loop_in_children_r(self, cx, cy, function(o, ox, oy)
+            local c  = o.visible and o:click(ox, oy, code) or nil
+            if    c == o then
+                click_x = ox
+                click_y = oy
             end
-        end
+            return c
+        end, true, true)
     end,
 
     adjust_children = function(self)
