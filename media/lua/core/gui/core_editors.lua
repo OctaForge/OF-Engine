@@ -1006,7 +1006,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             h = h + height
         end
         maxy = maxy - 1
-
         if ey >= first_drawable - 1 and sy <= maxy then
             local fonth = text_font_get_h()
             -- crop top/bottom within window
@@ -1026,23 +1025,29 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             gle_defvertexf(2)
             gle_begin(gl.QUADS)
             if psy == pey then
+                -- one selection line - arbitrary bounds
                 gle_attrib2f(x + psx, psy)
                 gle_attrib2f(x + pex, psy)
                 gle_attrib2f(x + pex, pey + fonth)
                 gle_attrib2f(x + psx, pey + fonth)
             else
-                gle_attrib2f(x + psx,     psy)
-                gle_attrib2f(x + psx,     psy + fonth)
-                gle_attrib2f(x + self.pw, psy + fonth)
-                gle_attrib2f(x + self.pw, psy)
+                -- multiple selection lines
+                -- first line - always ends in the end of the visible area
+                gle_attrib2f(x + psx, psy)
+                gle_attrib2f(x + psx, psy + fonth)
+                gle_attrib2f(self.pw, psy + fonth)
+                gle_attrib2f(self.pw, psy)
+                -- between first and last selected line
+                -- a quad that fills the whole space
                 if (pey - psy) > fonth then
-                    gle_attrib2f(x,           psy + fonth)
-                    gle_attrib2f(x + self.pw, psy + fonth)
-                    gle_attrib2f(x + self.pw, pey)
-                    gle_attrib2f(x,           pey)
+                    gle_attrib2f(0,       psy + fonth)
+                    gle_attrib2f(self.pw, psy + fonth)
+                    gle_attrib2f(self.pw, pey)
+                    gle_attrib2f(0,       pey)
                 end
-                gle_attrib2f(x,       pey)
-                gle_attrib2f(x,       pey + fonth)
+                -- last line - starts in the beginning of the visible area
+                gle_attrib2f(0,       pey)
+                gle_attrib2f(0,       pey + fonth)
                 gle_attrib2f(x + pex, pey + fonth)
                 gle_attrib2f(x + pex, pey)
             end
