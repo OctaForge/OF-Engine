@@ -24,7 +24,7 @@ local clipboard_set_text, clipboard_get_text, clipboard_has_text, text_draw,
 text_get_bounds, text_get_position, text_is_visible, input_is_modifier_pressed,
 input_textinput, input_keyrepeat, input_get_key_name, hudmatrix_push,
 hudmatrix_translate, hudmatrix_flush, hudmatrix_scale, hudmatrix_pop,
-shader_hudnotexture_set, shader_hud_set, gle_color3ub, gle_defvertexf,
+shader_hudnotexture_set, shader_hud_set, gle_color4ub, gle_defvertexf,
 gle_begin, gle_end, gle_attrib2f, text_font_push, text_font_pop, text_font_set,
 text_font_get_w, text_font_get_h in capi
 
@@ -214,6 +214,13 @@ local editline = ffi.metatype("editline_t", editline_MT)
     defaults to 1) and line_wrap (by default false, makes the text wrap
     when it has reached maximum width).
 
+    You can customize colors in the editor. The text color is changed using
+    the properties r, g, b, a (all default to 0xFF). Then there are properties
+    sel_(r|g|b|a) to customize selection box color that default to 0x7B, 0x68,
+    0xEE and 0xC0 respectively and wrap_(r|g|b|a) to customize line wrap sign
+    color - these all default to 0x3C except alpha which defaults to 0xFF.
+    Note that selection box is drawn under the text.
+
     The editor implements the same interface and internal members as Scroller,
     allowing scrollbars to be used with it.
 ]]
@@ -239,6 +246,21 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local font = kwargs.font
         self.font  = font
         self.scale = kwargs.scale or 1
+
+        self.r = kwargs.r or 0xFF
+        self.g = kwargs.g or 0xFF
+        self.b = kwargs.b or 0xFF
+        self.a = kwargs.a or 0xFF
+
+        self.sel_r = kwargs.sel_r or 0x7B
+        self.sel_g = kwargs.sel_g or 0x68
+        self.sel_b = kwargs.sel_b or 0xEE
+        self.sel_a = kwargs.sel_a or 0xC0
+
+        self.wrap_r = kwargs.wrap_r or 0x3C
+        self.wrap_g = kwargs.wrap_g or 0x3C
+        self.wrap_b = kwargs.wrap_b or 0x3C
+        self.wrap_a = kwargs.wrap_a or 0xFF
 
         -- cursor position - ensured to be valid after a region() or
         -- currentline()
@@ -1021,7 +1043,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
 
             shader_hudnotexture_set()
-            gle_color3ub(0xA0, 0x80, 0x80)
+            gle_color4ub(self.sel_r, self.sel_g, self.sel_b, self.sel_a)
             gle_defvertexf(2)
             gle_begin(gl.QUADS)
             if psy == pey then
@@ -1060,7 +1082,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if not self.line_wrap then return nil end
         local fonth = text_font_get_h()
         shader_hudnotexture_set()
-        gle_color3ub(0x3C, 0x3C, 0x3C)
+        gle_color4ub(self.wrap_r, self.wrap_g, self.wrap_b, self.wrap_a)
         gle_defvertexf(2)
         gle_begin(gl.LINE_STRIP)
         gle_attrib2f(0, h + fonth)
@@ -1105,7 +1127,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 local width, height = text_get_bounds(line,
                     max_width)
                 if h >= self.ph then break end
-                text_draw(line, xoff, h, 255, 255, 255, 255,
+                text_draw(line, xoff, h, self.r, self.g, self.b, self.a,
                     (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
                 if height > fonth then self:draw_line_wrap(h, height) end
