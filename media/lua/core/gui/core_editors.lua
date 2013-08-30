@@ -692,7 +692,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local fd = self:get_first_drawable_line()
         if fd then
             local h = 0
-            hitx, hity = (hitx - self.offset_h) / k, hity / k
+            hitx, hity = (hitx + self.offset_h) / k, hity / k
             for i = fd, #self.lines do
                 if h > self.ph then break end
                 local linestr = tostring(self.lines[i])
@@ -754,16 +754,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     holding = function(self, cx, cy, code)
         if code == key.MOUSELEFT then
-            local w, h, vd = self.w, self.h, 0
-            if cy > h then
-                vd = cy - h
-            elseif cy < 0 then
-                vd = cy
-            end
+            local w, h, hs, vs = self.w, self.h, 0, 0
+            if     cy > h then vs = cy - h
+            elseif cy < 0 then vs = cy end
+            if     cx > w then hs = cx - w
+            elseif cx < 0 then hs = cx end
             cx, cy = clamp(cx, 0, w), clamp(cy, 0, h)
-            if vd != 0 then
-                self:scroll_v(vd)
-            end
+            if vs != 0 then self:scroll_v(vs) end
+            if hs != 0 then self:scroll_h(hs) end
             self:hit(cx, cy, max(abs(cx - self._oh), abs(cy - self._ov))
                 > (text_font_get_h() / 8 * self:draw_scale()))
         end
@@ -872,7 +870,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local k = self:draw_scale()
         for i = 1, #lines do
             local tw, th = lines[i]:calc_bounds(maxw)
-            w, h = w + tw, h + th
+            w, h = max(w, tw), h + th
         end
         w, h = w * k, h * k
         self.text_w, self.text_h = w, h
@@ -906,11 +904,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         x *= k
         local w, oh = self.w, self.offset_h
-        if (x + fontw + (del and 0 or oh)) > w then
-           self.offset_h = w - x - fontw
-        elseif (x + oh) < 0 then
-            self.offset_h = -x
-        elseif (x + fontw) <= w and oh >= -fontw then
+        if (x + fontw) > w + (del and 0 or oh) then
+           self.offset_h = x + fontw - w
+        elseif x < oh then
+            self.offset_h = x
+        elseif (x + fontw) <= w and oh >= fontw then
             self.offset_h = 0
         end
     end,
@@ -1091,7 +1089,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         local fd = self:get_first_drawable_line()
         if fd then
-            local xoff = self.offset_h / k
+            local xoff = -self.offset_h / k
 
             self:draw_selection(fd, xoff)
 
