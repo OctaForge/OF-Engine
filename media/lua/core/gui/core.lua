@@ -1057,14 +1057,15 @@ Widget = register_class("Widget", table2.Object, {
         are set up appropriately.
     ]]
     hover = function(self, cx, cy)
+        local isw = (self == world)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c  = o.visible and o:hover(ox, oy) or nil
             if    c == o then
                 hover_x = ox
                 hover_y = oy
             end
-            if c then return c end
-        end)
+            if isw or c then return c end
+        end, true, isw)
     end,
 
     --[[! Function: hovering
@@ -1079,7 +1080,7 @@ Widget = register_class("Widget", table2.Object, {
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             if o == obj then return ox, oy end
             if o.visible then return o:hold(ox, oy, obj) end
-        end, false)
+        end, false, self == world)
     end,
 
     --[[! Function: holding
@@ -1095,14 +1096,15 @@ Widget = register_class("Widget", table2.Object, {
         takes the currently clicked mouse button as the last argument.
     ]]
     click = function(self, cx, cy, code)
+        local isw = (self == world)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c  = o.visible and o:click(ox, oy, code) or nil
             if    c == o then
                 click_x = ox
                 click_y = oy
             end
-            if c then return c end
-        end)
+            if isw or c then return c end
+        end, true, isw)
     end,
 
     --[[! Function: clicked
@@ -1514,43 +1516,6 @@ local World = register_class("World", Widget, {
         return loop_children_r(self, function(o)
             if o:grabs_input() then return true end
         end) or false
-    end,
-
-    --[[! Function: hover
-        Without this overload, hover events would propagate into windows
-        even if they're covered by other windows, which is not really a
-        desirable behavior. It also handles projections correctly.
-    ]]
-    hover = function(self, cx, cy)
-        return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c  = o.visible and o:hover(ox, oy) or nil
-            if    c == o then
-                hover_x = ox
-                hover_y = oy
-            end
-            return c
-        end, true, true)
-    end,
-
-    hold = function(self, cx, cy, obj)
-        return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            if o == obj then return ox, oy end
-            if o.visible then return o:hold(ox, oy, obj) end
-        end, false, true)
-    end,
-
-    --[[! Function: click
-        See above, but for click events. Takes the mouse button code too.
-    ]]
-    click = function(self, cx, cy, code)
-        return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c  = o.visible and o:click(ox, oy, code) or nil
-            if    c == o then
-                click_x = ox
-                click_y = oy
-            end
-            return c
-        end, true, true)
     end,
 
     adjust_children = function(self)
