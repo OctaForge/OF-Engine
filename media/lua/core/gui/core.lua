@@ -694,8 +694,8 @@ Widget = register_class("Widget", table2.Object, {
         end
 
         for k, v in pairs(menu_keys) do
-            local v = self[v]
-            if v then v:clear() end
+            local o = self[v]
+            if o then o:clear() end
             self[v] = nil
         end
         local menu_hover, tooltip in self
