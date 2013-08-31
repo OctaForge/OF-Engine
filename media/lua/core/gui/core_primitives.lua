@@ -1,4 +1,4 @@
---[[! File: lua/core/gui/core_widgets.lua
+--[[! File: lua/core/gui/core_primitives.lua
 
     About: Author
         q66 <quaker66@gmail.com>
