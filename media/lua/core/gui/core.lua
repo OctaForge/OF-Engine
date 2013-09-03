@@ -1792,6 +1792,59 @@ local menus_drop = function(n)
     end
 end
 
+local menu_init = function(o, op, i)
+    menustack[i] = o
+    o.is_menu    = true
+    o.parent     = op
+    op.has_menu  = true
+
+    local md = 1 + world.margin
+    local prevo = (i > 1) and menustack[i - 1] or nil
+
+    projection = get_projection(o)
+    o:layout()
+
+    local ow, opw = o.w, op.w
+    local omx, omy = op.x, op.y
+    local opp = op.parent
+    while opp and (i == 1 or opp != prevo) do
+        omx, omy, opp = omx + opp.x, omy + opp.y, opp.parent
+    end
+    if i != 1 then
+        omx, omy = omx + opp.x, omy + opp.y
+        local oh = o.h
+        if omy + oh > 1 then
+            omy -= oh - op.h
+        end
+        if (omx + opw + ow) > md then
+            omx -= opw
+        else
+            omx += opw
+        end
+    else
+        local oh, oph = o.h, op.h
+        if omy + oph + oh > 1 then
+            omy -= oh
+        else
+            omy += oph
+        end
+        if (omx + ow) > md then
+            if (omx + opw) > md then
+                omx = md - ow
+            else
+                omx -= ow - opw
+            end
+        end
+    end
+    if (omx + ow) > md then
+        omx -= ow
+    end
+    local wm = -world.margin
+    omx, omy = max(omx, wm), max(omy, wm)
+    o.x, o.y = omx, omy
+    projection = nil
+end
+
 local mousebuttons = {
     [key.MOUSELEFT] = true, [key.MOUSEMIDDLE]  = true, [key.MOUSERIGHT] = true,
     [key.MOUSEBACK] = true, [key.MOUSEFORWARD] = true
@@ -1833,12 +1886,7 @@ set_external("input_keypress", function(code, isdown)
             if clicked then
                 if not ck then
                     local cm = clicked[menu_keys[code]]
-                    if cm then
-                        menustack[1] = cm
-                        cm.is_menu = true
-                        cm.parent = clicked
-                        clicked.has_menu = true
-                    end
+                    if cm then menu_init(cm, clicked, 1) end
                 end
                 clicked:clicked(click_x, click_y, code)
             else
@@ -2020,70 +2068,24 @@ set_external("gui_update", function()
             end
             local hmenu = hovering.menu_hover
             if  hmenu then
-                hmenu.is_menu = true
-                hmenu.parent = hovering
                 if nhov > 0 then
                     msl += 1
                 else
                     menus_drop()
                     msl = 1
                 end
-                menustack[msl] = hmenu
-                hovering.has_menu = true
+                menu_init(hmenu, hovering, msl)
             end
         end
     end
 
     if msl > 0 then
-        local prevo
-        local md = 1 + world.margin
         for i = 1, msl do
             local o = menustack[i]
             projection = get_projection(o)
             o:layout()
             projection:calc()
             o:adjust_children()
-            local op = o.parent
-            op.has_menu = true
-            local ow, opw = o.w, op.w
-            local omx, omy = op.x, op.y
-            local opp = op.parent
-            while opp and (i == 1 or opp != prevo) do
-                omx, omy, opp = omx + opp.x, omy + opp.y, opp.parent
-            end
-            if i != 1 then
-                omx, omy = omx + opp.x, omy + opp.y
-                local oh = o.h
-                if omy + oh > 1 then
-                    omy -= oh - op.h
-                end
-                if (omx + opw + ow) > md then
-                    omx -= opw
-                else
-                    omx += opw
-                end
-            else
-                local oh, oph = o.h, op.h
-                if omy + oph + oh > 1 then
-                    omy -= oh
-                else
-                    omy += oph
-                end
-                if (omx + ow) > md then
-                    if (omx + opw) > md then
-                        omx = md - ow
-                    else
-                        omx -= ow - opw
-                    end
-                end
-            end
-            if (omx + ow) > md then
-                omx -= ow
-            end
-            local wm = -world.margin
-            omx, omy = max(omx, wm), max(omy, wm)
-            o.x, o.y = omx, omy
-            prevo = o
             projection = nil
         end
     end
