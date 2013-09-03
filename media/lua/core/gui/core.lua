@@ -516,13 +516,8 @@ end
 
 M.get_projection = get_projection
 
-local menu_keys = {
-    [key.MOUSELEFT   ] = "menu_left",
-    [key.MOUSEMIDDLE ] = "menu_middle",
-    [key.MOUSERIGHT  ] = "menu_right",
-    [key.MOUSEBACK   ] = "menu_back",
-    [key.MOUSEFORWARD] = "menu_forward"
-}
+local menu_init
+local menustack = {}
 
 local Widget, Window
 
@@ -533,8 +528,7 @@ local Widget, Window
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of widgets), floating (whether the widget is freely
     movable), parent (the parent widget), variant, variants, states, tooltip
-    (a widget), menu_(left|middle|right|back|forward|hover) (a widget) and
-    container (a widget).
+    (a widget), menu_hover (a widget) and container (a widget).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -545,8 +539,8 @@ local Widget, Window
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, variant, states, signals,
-    tooltip, menu_*, container and init, which is a function called at the end
-    of the constructor if it exists). Array members of kwargs are children.
+    tooltip, menu_hover, container and init, which is a function called at the
+    end of the constructor if it exists). Array members of kwargs are children.
 
     Widgets instances can have states - they're named references to widgets
     and are widget type specific. For example a button could have states
@@ -621,10 +615,6 @@ Widget = register_class("Widget", table2.Object, {
 
         self.tooltip    = kwargs.tooltip    or nil
         self.menu_hover = kwargs.menu_hover or nil
-        for k, v in pairs(menu_keys) do
-            self[v] = kwargs[v] or nil
-        end
-
         self.init_clone = kwargs.init_clone
 
         local ch = {}
@@ -694,11 +684,6 @@ Widget = register_class("Widget", table2.Object, {
             for k, v in pairs(vstates) do v:clear() end
         end
 
-        for k, v in pairs(menu_keys) do
-            local o = self[v]
-            if o then o:clear() end
-            self[v] = nil
-        end
         local menu_hover, tooltip in self
         self.container, self.menu_hover, self.tooltip = nil, nil, nil
         if menu_hover then menu_hover:clear() end
@@ -1331,21 +1316,6 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: set_tooltip ]]
     set_tooltip = gen_setter "tooltip",
 
-    --[[! Function: set_menu_left ]]
-    set_menu_left = gen_setter "menu_left",
-
-    --[[! Function: set_menu_middle ]]
-    set_menu_middle = gen_setter "menu_middle",
-
-    --[[! Function: set_menu_right ]]
-    set_menu_right = gen_setter "menu_right",
-
-    --[[! Function: set_menu_back ]]
-    set_menu_back = gen_setter "menu_back",
-
-    --[[! Function: set_menu_forward ]]
-    set_menu_forward = gen_setter "menu_forward",
-
     --[[! Function: set_menu_hover ]]
     set_menu_hover = gen_setter "menu_hover",
 
@@ -1401,6 +1371,16 @@ Widget = register_class("Widget", table2.Object, {
         obj.parent = self
         if fun then fun(obj) end
         return obj
+    end,
+
+    --[[! Function: show_menu
+        Given a menu object (any widget), this shows the menu with this widget
+        as the parent. The optional at_cursor argument specifies whether to
+        align the menu relatively to this or whether to show it at cursor
+        position.
+    ]]
+    show_menu = function(self, obj, at_cursor)
+        menu_init(obj, self, #menustack + 1)
     end,
 
     --[[! Function: is_field
@@ -1749,8 +1729,6 @@ set_external("cursor_get_position", function()
     end
 end)
 
-local menustack = {}
-
 local menu_click = function(o, cx, cy, code)
     local proj = get_projection(o)
     local ox, oy = cx * proj.pw - world.margin - o.x, cy * proj.ph - o.y
@@ -1792,7 +1770,7 @@ local menus_drop = function(n)
     end
 end
 
-local menu_init = function(o, op, i)
+menu_init = function(o, op, i)
     menustack[i] = o
     o.is_menu    = true
     o.parent     = op
@@ -1803,6 +1781,7 @@ local menu_init = function(o, op, i)
 
     projection = get_projection(o)
     o:layout()
+    projection = nil
 
     local ow, opw = o.w, op.w
     local omx, omy = op.x, op.y
@@ -1842,7 +1821,6 @@ local menu_init = function(o, op, i)
     local wm = -world.margin
     omx, omy = max(omx, wm), max(omy, wm)
     o.x, o.y = omx, omy
-    projection = nil
 end
 
 local mousebuttons = {
@@ -1884,10 +1862,6 @@ set_external("input_keypress", function(code, isdown)
                 clicked = world:click(cursor_x, cursor_y, code)
             end
             if clicked then
-                if not ck then
-                    local cm = clicked[menu_keys[code]]
-                    if cm then menu_init(cm, clicked, 1) end
-                end
                 clicked:clicked(click_x, click_y, code)
             else
                 clicked_code = nil
@@ -2075,6 +2049,11 @@ set_external("gui_update", function()
                     msl = 1
                 end
                 menu_init(hmenu, hovering, msl)
+            end
+        else
+            local hmenu = hovering.menu_hover
+            if  hmenu then
+                menu_init(hmenu, hovering, 1)
             end
         end
     end

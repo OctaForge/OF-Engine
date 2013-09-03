@@ -69,51 +69,53 @@ world:new_window("main", gui.Window, |win| do
 
             b:append(gui.H_Box(), |b| do
                 b:append(gui.Menu_Button { label = "Menu 1" }, |b| do
-                    b:set_menu_left(gui.Color_Filler {
-                        min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
-                        gui.V_Box {
-                            clamp_l = true, clamp_r = true,
-                            gui.Menu_Button {
-                                label = "Submenu 1",
+                    signal.connect(b, "click", || do
+                        b:show_menu(gui.Color_Filler {
+                            min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
+                            gui.V_Box {
                                 clamp_l = true, clamp_r = true,
-                                menu_hover = gui.Color_Filler {
-                                    min_w = 0.2, min_h = 0.3, r = 0, g = 192,
-                                    b = 0, a = 192,
-                                    gui.Menu_Button {
-                                        label = "Subsubmenu 1",
-                                        clamp_l = true, clamp_r = true,
-                                        menu_hover = gui.Color_Filler {
-                                            min_w = 0.2, min_h = 0.3, r = 192,
-                                            g = 192, b = 0, a = 192,
-                                            gui.Label { text = "Butts!" }
-                                        },
-                                        variant = "submenu"
-                                    }
+                                gui.Menu_Button {
+                                    label = "Submenu 1",
+                                    clamp_l = true, clamp_r = true,
+                                    menu_hover = gui.Color_Filler {
+                                        min_w = 0.2, min_h = 0.3, r = 0, g = 192,
+                                        b = 0, a = 192,
+                                        gui.Menu_Button {
+                                            label = "Subsubmenu 1",
+                                            clamp_l = true, clamp_r = true,
+                                            menu_hover = gui.Color_Filler {
+                                                min_w = 0.2, min_h = 0.3, r = 192,
+                                                g = 192, b = 0, a = 192,
+                                                gui.Label { text = "Butts!" }
+                                            },
+                                            variant = "submenu"
+                                        }
+                                    },
+                                    variant = "submenu"
                                 },
-                                variant = "submenu"
-                            },
-                            gui.Menu_Button {
-                                label = "Submenu 2",
-                                clamp_l = true, clamp_r = true,
-                                menu_hover = gui.Color_Filler {
-                                    min_w = 0.2, min_h = 0.3, r = 0, g = 0,
-                                    b = 192, a = 192
-                                },
-                                variant = "submenu"
+                                gui.Menu_Button {
+                                    label = "Submenu 2",
+                                    clamp_l = true, clamp_r = true,
+                                    menu_hover = gui.Color_Filler {
+                                        min_w = 0.2, min_h = 0.3, r = 0, g = 0,
+                                        b = 192, a = 192
+                                    },
+                                    variant = "submenu"
+                                }
                             }
-                        }
-                    })
+                        })
+                    end)
                 end)
                 b:append(gui.Menu_Button { label = "Menu 2" }, |b| do
-                    b:set_menu_left(gui.Color_Filler {
-                        min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
-                    })
+                    signal.connect(b, "click", || do
+                        b:show_menu(gui.Color_Filler {
+                            min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
+                        }, true)
+                    end)
                 end)
-                b:append(gui.Menu_Button { label = "Menu 3" }, |b| do
-                    b:set_menu_left(gui.Color_Filler {
-                        min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
-                    })
-                end)
+                b:append(gui.Menu_Button { label = "Menu 3", menu_hover = gui.Color_Filler {
+                    min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
+                } })
             end)
 
             b:append(gui.Label { text = "This is some transparent text", a = 100 })
