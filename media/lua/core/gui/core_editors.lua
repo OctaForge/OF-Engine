@@ -787,6 +787,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:hit(cx, cy, max(abs(cx - self._oh), abs(cy - self._ov))
                 > (text_font_get_h() / 8 * self:draw_scale()))
         end
+        Widget.holding(self, cx, cy, code)
     end,
 
     set_focus = function(self, ed)

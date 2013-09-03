@@ -133,6 +133,7 @@ M.Mover = register_class("Mover", Widget, {
             w.fx, w.x = w.fx + dx, w.x + dx
             w.fy, w.y = w.fy + dy, w.y + dy
         end
+        Widget.holding(self, cx, cy, code)
     end,
 
     --[[! Function: set_window ]]

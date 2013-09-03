@@ -357,12 +357,14 @@ local Scrollbar = register_class("Scrollbar", Widget, {
             self.arrow_dir = d
             if d != 0 then self:arrow_scroll(d) end
         end
+        Widget.holding(self, cx, cy, code)
     end,
 
     hovering = function(self, cx, cy)
         if not is_clicked(self, key.MOUSELEFT) then
             self.arrow_dir = self:choose_direction(cx, cy)
         end
+        Widget.hovering(self, cx, cy)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy) end,
@@ -419,6 +421,7 @@ Scroll_Button = register_class("Scroll_Button", Widget, {
             p:move_button(self, self.offset_h, self.offset_v,
                 clamp(cx, 0, self.w), clamp(cy, 0, self.h))
         end
+        Widget.holding(self, cx, cy, code)
     end,
 
     clicked = function(self, cx, cy, code)

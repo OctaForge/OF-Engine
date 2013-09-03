@@ -1057,9 +1057,11 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: hovering
         Called every frame on the widget that's being hovered on (assuming
         it exists). It takes the coordinates we're hovering on. By default
-        does nothing, but it can be overloaded.
+        it emits the "hovering" signal on itself, passing the coordinates
+        to it.
     ]]
     hovering = function(self, cx, cy)
+        emit(self, "hovering", cx, cy)
     end,
 
     hold = function(self, cx, cy, obj)
@@ -1072,9 +1074,12 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: holding
         Called every frame on the widget that's currently being held
         (assuming there is one). It takes the position (x, y) within
-        the widget and the mouse button code.
+        the widget and the mouse button code. By default it emits the
+        "holding" signal on itself, passing the coordinates and the
+        mouse button code to it.
     ]]
     holding = function(self, cx, cy, code)
+        emit(self, "holding", cx, cy, code)
     end,
 
     --[[! Function: click
@@ -1094,14 +1099,13 @@ Widget = register_class("Widget", table2.Object, {
     end,
 
     --[[! Function: clicked
-        Called once on the widget that was clicked. By default schedules
-        the "click" signal on that widget for emission. Takes the click
-        coords as arguments and passes them later to the signal. Also
-        takes the clicked mouse button code and passes it as well.
+        Called once on the widget that was clicked. By emits the "clicked"
+        signal on itself. Takes the click coords as arguments and passes
+        them to the signal. Also takes the clicked mouse button code
+        and passes it as well.
     ]]
     clicked = function(self, cx, cy, code)
-        update_later[#update_later + 1] = { self, "click",
-            cx / self.w, cy / self.w, code }
+        emit(self, "clicked", cx, cy, code)
     end,
 
     --[[! Function: grabs_input

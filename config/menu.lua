@@ -69,7 +69,7 @@ world:new_window("main", gui.Window, |win| do
 
             b:append(gui.H_Box(), |b| do
                 b:append(gui.Menu_Button { label = "Menu 1" }, |b| do
-                    signal.connect(b, "click", || do
+                    signal.connect(b, "clicked", || do
                         b:show_menu(gui.Color_Filler {
                             min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
                             gui.V_Box {
@@ -107,7 +107,7 @@ world:new_window("main", gui.Window, |win| do
                     end)
                 end)
                 b:append(gui.Menu_Button { label = "Menu 2" }, |b| do
-                    signal.connect(b, "click", || do
+                    signal.connect(b, "clicked", || do
                         b:show_menu(gui.Color_Filler {
                             min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
                         }, true)
@@ -166,7 +166,7 @@ mollit anim id est laborum.]], multiline = true }, |x| do
                             min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
                         })
                         b.tooltip:append(gui.Label { text = "A tooltip" })
-                        signal.connect(b, "click", || do
+                        signal.connect(b, "clicked", || do
                             lbl:set_text(ed.value)
                         end)
                     end)
