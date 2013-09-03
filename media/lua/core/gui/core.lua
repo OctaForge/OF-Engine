@@ -1380,7 +1380,7 @@ Widget = register_class("Widget", table2.Object, {
         position.
     ]]
     show_menu = function(self, obj, at_cursor)
-        menu_init(obj, self, #menustack + 1)
+        menu_init(obj, self, #menustack + 1, at_cursor)
     end,
 
     --[[! Function: is_field
@@ -1770,56 +1770,89 @@ local menus_drop = function(n)
     end
 end
 
-menu_init = function(o, op, i)
+menu_init = function(o, op, i, at_cursor)
     menustack[i] = o
     o.is_menu    = true
     o.parent     = op
     op.has_menu  = true
 
-    local md = 1 + world.margin
-    local prevo = (i > 1) and menustack[i - 1] or nil
+    local margin = world.margin
+    local prevo  = (i > 1) and menustack[i - 1] or nil
 
+    -- initial layout to guess the bounds
     projection = get_projection(o)
     o:layout()
     projection = nil
 
-    local ow, opw = o.w, op.w
+    -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
+    local ow, oh, opw, oph = o.w, o.h, op.w, op.h
+
+    -- when spawning menus right on the cursor
+    if at_cursor then
+        -- compute cursor coords in terms of widget position
+        local x, y = cursor_x * (1 + 2 * margin) - margin, cursor_y
+        -- adjust y so that it's always visible as whole
+        if (y + oh) > 1 then y = max(0, y - oh) end
+        -- adjust x if clipped on the right
+        if (x + ow) > (1 + margin) then
+            x = max(-margin, x - ow)
+        end
+        -- set position and return
+        o.x, o.y = x, y
+        return nil
+    end
+
+    -- omx, omy: the base position of the new menu
     local omx, omy = op.x, op.y
+
+    -- calculate omx, omy by going down the tree
     local opp = op.parent
     while opp and (i == 1 or opp != prevo) do
         omx, omy, opp = omx + opp.x, omy + opp.y, opp.parent
     end
+
+    -- a submenu - uses different alignment - submenus are put next to
+    -- their spawners, regular menus are put under their spawners
     if i != 1 then
+        -- adjust base omx/y
         omx, omy = omx + opp.x, omy + opp.y
-        local oh = o.h
+        -- when the current y + height of menu exceeds the screen height,
+        -- move the menu up by its height minus the spawner height, make
+        -- sure it's at least 0 (so that it's not accidentally moved above
+        -- the screen)
         if omy + oh > 1 then
-            omy -= oh - op.h
+            omy = max(0, omy - oh + oph)
         end
-        if (omx + opw + ow) > md then
-            omx -= opw
+        -- when the current x + width of the spawner + width of the menu
+        -- exceeds the screen width, move it to the left by its width,
+        -- making sure the x is at least -margin
+        if (omx + opw + ow) > (1 + margin) then
+            omx = max(-margin, omx - ow)
+        -- else offset by spawner width
         else
             omx += opw
         end
+    -- regular menu
     else
-        local oh, oph = o.h, op.h
+        -- when current y + height of spawner + height of menu exceeds the
+        -- screen height, move the menu up by its height, make sure it's > 0
         if omy + oph + oh > 1 then
-            omy -= oh
+            omy = max(0, omy - oh)
+        -- otherwise move down a bit (by the button height)
         else
             omy += oph
         end
-        if (omx + ow) > md then
-            if (omx + opw) > md then
-                omx = md - ow
-            else
-                omx -= ow - opw
-            end
+        -- adjust x here - when the current x + width of the menu exceeds
+        -- the screen width, perform adjustments
+        if (omx + ow) > (1 + margin) then
+            -- if the menu spawner width exceeds the screen width too, put the
+            -- menu to the right
+            if (omx + opw) > (1 + margin) then
+                omx = max(-margin, 1 + margin - ow)
+            -- else align it with the spawner
+            else omx = max(-margin, omx - ow + opw) end
         end
     end
-    if (omx + ow) > md then
-        omx -= ow
-    end
-    local wm = -world.margin
-    omx, omy = max(omx, wm), max(omy, wm)
     o.x, o.y = omx, omy
 end
 
@@ -2017,11 +2050,11 @@ set_external("gui_update", function()
             tooltip:adjust_children()
 
             local margin = world.margin
-            local left, right = -margin, 1 + 2 * margin
-            local x, y = left + cursor_x * right + 0.01, cursor_y + 0.01
+            local x, y = cursor_x * (1 + 2 * margin) - margin + 0.01,
+                         cursor_y + 0.01
 
             local tw, th = tooltip.w, tooltip.h
-            if (x + tw * 0.95) > (right - margin) then
+            if (x + tw * 0.95) > (1 + margin) then
                 x = x - tw + 0.02
                 if x <= -margin then x = -margin + 0.02 end
             end
@@ -2029,7 +2062,7 @@ set_external("gui_update", function()
                 y = y - th + 0.02
                 if y < 0 then y = 0 end
             end
-            x, y = max(x, left), max(y, left)
+            x, y = max(x, -margin), max(y, 0)
 
             tooltip.x, tooltip.y = x, y
             projection = nil
