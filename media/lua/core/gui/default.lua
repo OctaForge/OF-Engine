@@ -31,8 +31,9 @@ end
 
 local btn_build_variant = |r, g, b| gui.Gradient {
     r = 0, g = 0, b = 0, r2 = 48, g2 = 48, b2 = 48,
+    clamp_l = true, clamp_r = true,
     gui.Outline {
-        r = r, g = g, b = b, gui.Spacer {
+        r = r, g = g, b = b, clamp_l = true, clamp_r = true, gui.Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
         }
     }
@@ -41,6 +42,20 @@ local btn_build_variant = |r, g, b| gui.Gradient {
 btnv["default"     ] = btn_build_variant(255, 255, 255)
 btnv["hovering"    ] = btn_build_variant(225, 225, 225)
 btnv["clicked_left"] = btn_build_variant(192, 192, 192)
+
+local mbtnv, smbtnv = {}, {}
+gui.Menu_Button.variants   = { default = mbtnv, submenu = smbtnv }
+gui.Menu_Button.properties = { default = { "label" }, submenu = { "label" } }
+
+mbtnv["default"     ] = btn_build_variant(255, 255, 255)
+mbtnv["hovering"    ] = btn_build_variant(225, 225, 225)
+mbtnv["menu"        ] = btn_build_variant(192, 192, 192)
+mbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
+
+smbtnv["default"     ] = btn_build_variant(255, 255, 255)
+smbtnv["hovering"    ] = btn_build_variant(225, 225, 225)
+smbtnv["menu"        ] = btn_build_variant(192, 192, 192)
+smbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
 
 world:new_window("changes", gui.Window, function(win)
     win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,

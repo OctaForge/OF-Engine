@@ -72,13 +72,16 @@ world:new_window("main", gui.Window, |win| do
                     b:set_menu_left(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
                         gui.V_Box {
+                            clamp_l = true, clamp_r = true,
                             gui.Menu_Button {
                                 label = "Submenu 1",
+                                clamp_l = true, clamp_r = true,
                                 menu_hover = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 192,
                                     b = 0, a = 192,
                                     gui.Menu_Button {
                                         label = "Subsubmenu 1",
+                                        clamp_l = true, clamp_r = true,
                                         menu_hover = gui.Color_Filler {
                                             min_w = 0.2, min_h = 0.3, r = 192,
                                             g = 192, b = 0, a = 192,
@@ -91,6 +94,7 @@ world:new_window("main", gui.Window, |win| do
                             },
                             gui.Menu_Button {
                                 label = "Submenu 2",
+                                clamp_l = true, clamp_r = true,
                                 menu_hover = gui.Color_Filler {
                                     min_w = 0.2, min_h = 0.3, r = 0, g = 0,
                                     b = 192, a = 192

@@ -493,7 +493,8 @@ local Projection = table2.Object:clone {
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         gle_color3f(1, 1, 1)
 
-        self.obj:draw(sx, sy)
+        local obj = self.obj
+        obj:draw(sx or obj.x, sy or obj.y)
 
         gl_blend_disable()
         projection = nil
@@ -1751,9 +1752,8 @@ end)
 local menustack = {}
 
 local menu_click = function(o, cx, cy, code)
-    cx = cx - world.margin
     local proj = get_projection(o)
-    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+    local ox, oy = cx * proj.pw - world.margin - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:click(ox, oy, code)
         if cl == o then click_x, click_y = ox, oy end
@@ -1764,9 +1764,8 @@ local menu_click = function(o, cx, cy, code)
 end
 
 local menu_hover = function(o, cx, cy)
-    cx = cx - world.margin
     local proj = get_projection(o)
-    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+    local ox, oy = cx * proj.pw - world.margin - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:hover(ox, oy)
         if cl == o then hover_x, hover_y = ox, oy end
@@ -1777,9 +1776,8 @@ local menu_hover = function(o, cx, cy)
 end
 
 local menu_hold = function(o, cx, cy, obj)
-    cx = cx - world.margin
     local proj = get_projection(o)
-    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+    local ox, oy = cx * proj.pw - world.margin - o.x, cy * proj.ph - o.y
     if obj == o then return ox, oy end
     return o:hold(ox, oy, obj)
 end
@@ -1989,13 +1987,30 @@ set_external("gui_update", function()
     local msl = #menustack
     if hovering then
         local tooltip = hovering.tooltip
-        if    tooltip then
-              tooltip.parent = hovering
-              projection = get_projection(tooltip)
-              tooltip:layout()
-              projection:calc()
-              tooltip:adjust_children()
-              projection = nil
+        if tooltip then
+            tooltip.parent = hovering
+            projection = get_projection(tooltip)
+            tooltip:layout()
+            projection:calc()
+            tooltip:adjust_children()
+
+            local margin = world.margin
+            local left, right = -margin, 1 + 2 * margin
+            local x, y = left + cursor_x * right + 0.01, cursor_y + 0.01
+
+            local tw, th = tooltip.w, tooltip.h
+            if (x + tw * 0.95) > (right - margin) then
+                x = x - tw + 0.02
+                if x <= -margin then x = -margin + 0.02 end
+            end
+            if (y + th * 0.95) > 1 then
+                y = y - th + 0.02
+                if y < 0 then y = 0 end
+            end
+            x, y = max(x, left), max(y, left)
+
+            tooltip.x, tooltip.y = x, y
+            projection = nil
         end
         if msl > 0 then
             if nhov > 0 then
@@ -2020,11 +2035,55 @@ set_external("gui_update", function()
     end
 
     if msl > 0 then
+        local prevo
+        local md = 1 + world.margin
         for i = 1, msl do
-            projection = get_projection(menustack[i])
-            menustack[i]:layout()
+            local o = menustack[i]
+            projection = get_projection(o)
+            o:layout()
             projection:calc()
-            menustack[i]:adjust_children()
+            o:adjust_children()
+            local op = o.parent
+            op.has_menu = true
+            local ow, opw = o.w, op.w
+            local omx, omy = op.x, op.y
+            local opp = op.parent
+            while opp and (i == 1 or opp != prevo) do
+                omx, omy, opp = omx + opp.x, omy + opp.y, opp.parent
+            end
+            if i != 1 then
+                omx, omy = omx + opp.x, omy + opp.y
+                local oh = o.h
+                if omy + oh > 1 then
+                    omy -= oh - op.h
+                end
+                if (omx + opw + ow) > md then
+                    omx -= opw
+                else
+                    omx += opw
+                end
+            else
+                local oh, oph = o.h, op.h
+                if omy + oph + oh > 1 then
+                    omy -= oh
+                else
+                    omy += oph
+                end
+                if (omx + ow) > md then
+                    if (omx + opw) > md then
+                        omx = md - ow
+                    else
+                        omx -= ow - opw
+                    end
+                end
+            end
+            if (omx + ow) > md then
+                omx -= ow
+            end
+            local wm = -world.margin
+            omx, omy = max(omx, wm), max(omy, wm)
+            o.x, o.y = omx, omy
+            prevo = o
             projection = nil
         end
     end
@@ -2047,73 +2106,14 @@ set_external("gui_render", function()
         w:draw()
         local msl = #menustack
         if msl > 0 then
-            local prevo
-            local md = 1 + w.margin
             for i = 1, msl do
-                local o = menustack[i]
-                local op = o.parent
-                op.has_menu = true
-                local ow, opw = o.w, op.w
-                local omx, omy = op.x, op.y
-                local opp = op.parent
-                while opp and (i == 1 or opp != prevo) do
-                    omx, omy, opp = omx + opp.x, omy + opp.y, opp.parent
-                end
-                if i != 1 then
-                    omx, omy = omx + opp.x, omy + opp.y
-                    local oh = o.h
-                    if omy + oh > 1 then
-                        omy -= oh - op.h
-                    end
-                    if (omx + opw + ow) > md then
-                        omx -= opw
-                    else
-                        omx += opw
-                    end
-                else
-                    local oh, oph = o.h, op.h
-                    if omy + oph + oh > 1 then
-                        omy -= oh
-                    else
-                        omy += oph
-                    end
-                    if (omx + ow) > md then
-                        if (omx + opw) > md then
-                            omx = md - ow
-                        else
-                            omx -= ow - opw
-                        end
-                    end
-                end
-                if (omx + ow) > md then
-                    omx -= ow
-                end
-                local wm = -world.margin
-                omx, omy = max(omx, wm), max(omy, wm)
-                o.x, o.y = omx, omy
-                get_projection(o):draw(omx, omy)
-                prevo = o
+                get_projection(menustack[i]):draw()
             end
         end
 
         local tooltip = hovering and hovering.tooltip
-        if    tooltip then
-            local margin = w.margin
-            local left, right = -margin, 1 + 2 * margin
-            local x, y = left + cursor_x * right + 0.01, cursor_y + 0.01
-
-            local tw, th = tooltip.w, tooltip.h
-            if (x + tw * 0.95) > (right - margin) then
-                x = x - tw + 0.02
-                if x <= -margin then x = -margin + 0.02 end
-            end
-            if (y + th * 0.95) > 1 then
-                y = y - th + 0.02
-                if y < 0 then y = 0 end
-            end
-            x, y = max(x, left), max(y, left)
-            tooltip.x, tooltip.y = x, y
-            get_projection(tooltip):draw(x, y)
+        if tooltip then
+            get_projection(tooltip):draw()
         end
 
         if draw_hud then
