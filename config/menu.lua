@@ -77,29 +77,38 @@ world:new_window("main", gui.Window, |win| do
                                 gui.Menu_Button {
                                     label = "Submenu 1",
                                     clamp_l = true, clamp_r = true,
-                                    menu_hover = gui.Color_Filler {
-                                        min_w = 0.2, min_h = 0.3, r = 0, g = 192,
-                                        b = 0, a = 192,
-                                        gui.Menu_Button {
-                                            label = "Subsubmenu 1",
-                                            clamp_l = true, clamp_r = true,
-                                            menu_hover = gui.Color_Filler {
-                                                min_w = 0.2, min_h = 0.3, r = 192,
-                                                g = 192, b = 0, a = 192,
-                                                gui.Label { text = "Butts!" }
-                                            },
-                                            variant = "submenu"
+                                    init = |mb| do
+                                        local menu = gui.Color_Filler {
+                                            min_w = 0.2, min_h = 0.3, r = 0, g = 192,
+                                            b = 0, a = 192,
+                                            gui.Menu_Button {
+                                                label = "Subsubmenu 1",
+                                                clamp_l = true, clamp_r = true,
+                                                init = |mb| do
+                                                    local menu = gui.Color_Filler {
+                                                        min_w = 0.2, min_h = 0.3, r = 192,
+                                                        g = 192, b = 0, a = 192,
+                                                        gui.Label { text = "Butts!" }
+                                                    }
+                                                    signal.connect(mb, "hovering", || mb:show_menu(menu))
+                                                end,
+                                                variant = "submenu"
+                                            }
                                         }
-                                    },
+                                        signal.connect(mb, "hovering", || mb:show_menu(menu))
+                                    end,
                                     variant = "submenu"
                                 },
                                 gui.Menu_Button {
                                     label = "Submenu 2",
                                     clamp_l = true, clamp_r = true,
-                                    menu_hover = gui.Color_Filler {
-                                        min_w = 0.2, min_h = 0.3, r = 0, g = 0,
-                                        b = 192, a = 192
-                                    },
+                                    init = |mb| do
+                                        local menu = gui.Color_Filler {
+                                            min_w = 0.2, min_h = 0.3, r = 0, g = 0,
+                                            b = 192, a = 192
+                                        }
+                                        signal.connect(mb, "hovering", || mb:show_menu(menu))
+                                    end,
                                     variant = "submenu"
                                 }
                             }
@@ -113,9 +122,12 @@ world:new_window("main", gui.Window, |win| do
                         }, true)
                     end)
                 end)
-                b:append(gui.Menu_Button { label = "Menu 3", menu_hover = gui.Color_Filler {
-                    min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
-                } })
+                b:append(gui.Menu_Button { label = "Menu 3" }, |mb| do
+                    local menu = gui.Color_Filler {
+                        min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
+                    }
+                    signal.connect(mb, "hovering", || mb:show_menu(menu))
+                end)
             end)
 
             b:append(gui.Label { text = "This is some transparent text", a = 100 })

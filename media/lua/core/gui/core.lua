@@ -528,7 +528,7 @@ local Widget, Window
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of widgets), floating (whether the widget is freely
     movable), parent (the parent widget), variant, variants, states, tooltip
-    (a widget), menu_hover (a widget) and container (a widget).
+    (a widget) and container (a widget).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -539,8 +539,8 @@ local Widget, Window
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, variant, states, signals,
-    tooltip, menu_hover, container and init, which is a function called at the
-    end of the constructor if it exists). Array members of kwargs are children.
+    tooltip, container and init, which is a function called at the end of the
+    constructor if it exists). Array members of kwargs are children.
 
     Widgets instances can have states - they're named references to widgets
     and are widget type specific. For example a button could have states
@@ -589,6 +589,8 @@ Widget = register_class("Widget", table2.Object, {
         end
         instances[self] = self
 
+        self.managed_objects = {}
+
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
 
         self.adjust = ALIGN_HCENTER | ALIGN_VCENTER
@@ -613,8 +615,7 @@ Widget = register_class("Widget", table2.Object, {
             end
         end
 
-        self.tooltip    = kwargs.tooltip    or nil
-        self.menu_hover = kwargs.menu_hover or nil
+        self.tooltip    = kwargs.tooltip or nil
         self.init_clone = kwargs.init_clone
 
         local ch = {}
@@ -683,11 +684,14 @@ Widget = register_class("Widget", table2.Object, {
         if vstates then
             for k, v in pairs(vstates) do v:clear() end
         end
+        local mobjs = self.managed_objects
+        if mobjs then
+            for k, v in pairs(mobjs) do v:clear() end
+        end
 
-        local menu_hover, tooltip in self
-        self.container, self.menu_hover, self.tooltip = nil, nil, nil
-        if menu_hover then menu_hover:clear() end
-        if tooltip    then    tooltip:clear() end
+        local tooltip in self
+        self.container, self.tooltip = nil, nil
+        if tooltip then tooltip:clear() end
 
         emit(self, "destroy")
         local insts = rawget(self.__proto, "instances")
@@ -1320,9 +1324,6 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: set_tooltip ]]
     set_tooltip = gen_setter "tooltip",
 
-    --[[! Function: set_menu_hover ]]
-    set_menu_hover = gen_setter "menu_hover",
-
     --[[! Function: set_container ]]
     set_container = gen_setter "container",
 
@@ -1382,6 +1383,10 @@ Widget = register_class("Widget", table2.Object, {
         as the parent. The optional at_cursor argument specifies whether to
         align the menu relatively to this or whether to show it at cursor
         position.
+
+        Note that the this widget becomes the menu's parent, thus this widget
+        becomes responsible for it (if it gets destroyed, it destroys the
+        menu as well), that is, unless the menu changes parent in the meantime.
     ]]
     show_menu = function(self, obj, at_cursor)
         menu_init(obj, self, #menustack + 1, at_cursor)
@@ -1774,7 +1779,17 @@ local menus_drop = function(n)
     end
 end
 
+local menu_nhov
 menu_init = function(o, op, i, at_cursor)
+    if menu_nhov == 0 then
+        menus_drop()
+        i = 1
+    end
+
+    op.managed_objects[o] = o
+    local oldop = o.parent
+    if oldop then oldop.managed_objects[o] = nil end
+
     menustack[i] = o
     o.is_menu    = true
     o.parent     = op
@@ -1858,6 +1873,29 @@ menu_init = function(o, op, i, at_cursor)
         end
     end
     o.x, o.y = omx, omy
+end
+
+local tooltip_init = function(o, op)
+    o.parent = op
+    projection = get_projection(o)
+    o:layout()
+    projection = nil
+
+    local margin = world.margin
+    local x, y = cursor_x * (1 + 2 * margin) - margin + 0.01,
+                 cursor_y + 0.01
+
+    local tw, th = o.w, o.h
+    if (x + tw * 0.95) > (1 + margin) then
+        x = x - tw + 0.02
+        if x <= -margin then x = -margin + 0.02 end
+    end
+    if (y + th * 0.95) > 1 then
+        y = y - th + 0.02
+        if y < 0 then y = 0 end
+    end
+    x, y = max(x, -margin), max(y, 0)
+    o.x, o.y = x, y
 end
 
 local mousebuttons = {
@@ -2001,10 +2039,11 @@ set_external("gui_update", function()
 
     calc_text_scale()
 
-    local nhov = 0
+    local tooltip
     if cursor_exists() and wvisible then
         local hovering_try
         local hk, hl
+        local nhov = 0
         if #menustack > 0 then
             for i = #menustack, 1, -1 do
                 hk, hl = menu_hover(menustack[i], cursor_x, cursor_y)
@@ -2021,7 +2060,17 @@ set_external("gui_update", function()
             hovering = world:hover(cursor_x, cursor_y)
         end
         if  hovering then
+            local msl = #menustack
+            if msl > 0 and nhov > 0 and msl > nhov then
+                menus_drop(msl - nhov)
+            end
+            tooltip = hovering.tooltip
+            if tooltip then
+                tooltip_init(tooltip, hovering)
+            end
+            menu_nhov = nhov
             hovering:hovering(hover_x, hover_y)
+            menu_nhov = nil
         end
 
         if clicked then
@@ -2043,67 +2092,21 @@ set_external("gui_update", function()
 
     if wvisible then world:layout() end
 
-    local msl = #menustack
-    if hovering then
-        local tooltip = hovering.tooltip
-        if tooltip then
-            tooltip.parent = hovering
-            projection = get_projection(tooltip)
-            tooltip:layout()
-            projection:calc()
-            tooltip:adjust_children()
-
-            local margin = world.margin
-            local x, y = cursor_x * (1 + 2 * margin) - margin + 0.01,
-                         cursor_y + 0.01
-
-            local tw, th = tooltip.w, tooltip.h
-            if (x + tw * 0.95) > (1 + margin) then
-                x = x - tw + 0.02
-                if x <= -margin then x = -margin + 0.02 end
-            end
-            if (y + th * 0.95) > 1 then
-                y = y - th + 0.02
-                if y < 0 then y = 0 end
-            end
-            x, y = max(x, -margin), max(y, 0)
-
-            tooltip.x, tooltip.y = x, y
-            projection = nil
-        end
-        if msl > 0 then
-            if nhov > 0 then
-                local nd = msl - nhov
-                if nd > 0 then menus_drop(nd) end
-                msl = nhov
-            end
-            local hmenu = hovering.menu_hover
-            if  hmenu then
-                if nhov > 0 then
-                    msl += 1
-                else
-                    menus_drop()
-                    msl = 1
-                end
-                menu_init(hmenu, hovering, msl)
-            end
-        else
-            local hmenu = hovering.menu_hover
-            if  hmenu then
-                menu_init(hmenu, hovering, 1)
-            end
-        end
+    if tooltip then
+        projection = get_projection(tooltip)
+        tooltip:layout()
+        projection:calc()
+        tooltip:adjust_children()
+        projection = nil
     end
 
-    if msl > 0 then
-        for i = 1, msl do
-            local o = menustack[i]
-            projection = get_projection(o)
-            o:layout()
-            projection:calc()
-            o:adjust_children()
-            projection = nil
-        end
+    for i = 1, #menustack do
+        local o = menustack[i]
+        projection = get_projection(o)
+        o:layout()
+        projection:calc()
+        o:adjust_children()
+        projection = nil
     end
 
     if draw_hud then
@@ -2122,11 +2125,9 @@ set_external("gui_render", function()
     local w = world
     if draw_hud or (w.visible and #w.children != 0) then
         w:draw()
-        local msl = #menustack
-        if msl > 0 then
-            for i = 1, msl do
-                get_projection(menustack[i]):draw()
-            end
+
+        for i = 1, #menustack do
+            get_projection(menustack[i]):draw()
         end
 
         local tooltip = hovering and hovering.tooltip
