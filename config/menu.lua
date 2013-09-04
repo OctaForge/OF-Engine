@@ -174,13 +174,12 @@ mollit anim id est laborum.]], multiline = true }, |x| do
             b:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |s| do
                 s:append(gui.H_Box(), |b| do
                     b:append(gui.Button { label = "A button" }, |b| do
-                        b:set_tooltip(gui.Color_Filler {
+                        local ttip = gui.Color_Filler {
                             min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
-                        })
-                        b.tooltip:append(gui.Label { text = "A tooltip" })
-                        signal.connect(b, "clicked", || do
-                            lbl:set_text(ed.value)
-                        end)
+                        }
+                        ttip:append(gui.Label { text = "A tooltip" })
+                        signal.connect(b, "clicked",  || lbl:set_text(ed.value))
+                        signal.connect(b, "hovering", || b:show_tooltip(ttip))
                     end)
                     b:append(gui.Spacer { pad_h = 0.005 }, |s| do
                         s:append(gui.Label { text = "foo" })

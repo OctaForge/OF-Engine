@@ -77,6 +77,8 @@ local world, projection, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local cursor_x, cursor_y, prev_cx, prev_cy = 0.5, 0.5, 0.5, 0.5
 local clicked_code
+local menu_init, tooltip_init, tooltip
+local menustack = {}
 
 --[[! Function: is_clicked
     Given a widget, this function returns true if that widget is clicked
@@ -111,12 +113,11 @@ M.is_hovering = is_hovering
 local is_focused = function(o) return (o == focused) end
 M.is_focused = is_focused
 
---[[! Function: has_menu
-    Given a widget, this function return true if that widget has a menu
-    opened and false otherwise.
+--[[! Function: get_menu
+    Assuming the given widget has a menu, this returns the menu.
 ]]
-local has_menu = function(o) return o.has_menu == true end
-M.has_menu = has_menu
+local get_menu = function(o) return o._menu end
+M.get_menu = get_menu
 
 --[[! Function: set_focus
     Gives the given GUI widget focus.
@@ -516,9 +517,6 @@ end
 
 M.get_projection = get_projection
 
-local menu_init
-local menustack = {}
-
 local Widget, Window
 
 --[[! Struct: Widget
@@ -527,8 +525,8 @@ local Widget, Window
 
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of widgets), floating (whether the widget is freely
-    movable), parent (the parent widget), variant, variants, states, tooltip
-    (a widget) and container (a widget).
+    movable), parent (the parent widget), variant, variants, states and
+    container (a widget).
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -539,7 +537,7 @@ local Widget, Window
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, variant, states, signals,
-    tooltip, container and init, which is a function called at the end of the
+    container and init, which is a function called at the end of the
     constructor if it exists). Array members of kwargs are children.
 
     Widgets instances can have states - they're named references to widgets
@@ -615,7 +613,6 @@ Widget = register_class("Widget", table2.Object, {
             end
         end
 
-        self.tooltip    = kwargs.tooltip or nil
         self.init_clone = kwargs.init_clone
 
         local ch = {}
@@ -665,8 +662,7 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: clear
         Clears a widget including its children recursively. Calls the
         "destroy" signal. Removes itself from its widget class' instances
-        set. Does nothing if already cleared. Also clears the container,
-        menu and tooltip if present (and if self is their parent).
+        set. Does nothing if already cleared.
     ]]
     clear = function(self)
         if self._cleared then return nil end
@@ -688,10 +684,7 @@ Widget = register_class("Widget", table2.Object, {
         if mobjs then
             for k, v in pairs(mobjs) do v:clear() end
         end
-
-        local tooltip in self
-        self.container, self.tooltip = nil, nil
-        if tooltip then tooltip:clear() end
+        self.container = nil
 
         emit(self, "destroy")
         local insts = rawget(self.__proto, "instances")
@@ -1321,9 +1314,6 @@ Widget = register_class("Widget", table2.Object, {
     --[[! Function: set_visible ]]
     set_visible = gen_setter "visible",
 
-    --[[! Function: set_tooltip ]]
-    set_tooltip = gen_setter "tooltip",
-
     --[[! Function: set_container ]]
     set_container = gen_setter "container",
 
@@ -1384,12 +1374,41 @@ Widget = register_class("Widget", table2.Object, {
         align the menu relatively to this or whether to show it at cursor
         position.
 
+        There is also one additional boolean argument that specifies whether
+        to clear the menu when it's dropped. The default behavior is that the
+        menu remains alive until the parent is destroyed. Try to avoid using
+        this. For example when creating on-hover menus, instead of setting
+        the argument to true and creating a new widget on every call of
+        "hovering", create a permanent reference to the menu elsewhere
+        instead.
+
+        Speaking of on-hover menus - you need to show your on-hover menu
+        every time the "hovering" signal is activated, because it gets
+        dropped next frame.
+
         Note that the this widget becomes the menu's parent, thus this widget
         becomes responsible for it (if it gets destroyed, it destroys the
         menu as well), that is, unless the menu changes parent in the meantime.
     ]]
-    show_menu = function(self, obj, at_cursor)
-        menu_init(obj, self, #menustack + 1, at_cursor)
+    show_menu = function(self, obj, at_cursor, clear_on_drop)
+        menu_init(obj, self, #menustack + 1, at_cursor, clear_on_drop)
+    end,
+
+    --[[! Function: show_tooltip
+        Given a tooltip object (any widget), this shows the tooltip with this
+        widget as the parent. The same precautions as for <show_menu> apply.
+        There is no at_cursor argument (because that's how it behaves by
+        default). There is clear_on_drop which has identical semantics as
+        the same argument in <show_menu>.
+
+        You typically want to call this in the "hovering" signal of a widget.
+        Make sure to actually create the tooltip object beforehand, somewhere
+        where it's done just once (for example in the user constructor).
+        Alternatively, you can pass clear_on_drop as true and create it
+        everytime, but that's not recommended.
+    ]]
+    show_tooltip = function(self, obj, clear_on_drop)
+        tooltip_init(obj, self, clear_on_drop)
     end,
 
     --[[! Function: is_field
@@ -1775,12 +1794,17 @@ local menus_drop = function(n)
     n = n or msl
     for i = msl, msl - n + 1, -1 do
         local o = tremove(menustack)
-        o.parent.has_menu = false
+        local op = o.parent
+        if o._clear_on_drop then
+            o:clear()
+            op.managed_objects[o] = nil
+        end
+        op._menu = nil
     end
 end
 
 local menu_nhov
-menu_init = function(o, op, i, at_cursor)
+menu_init = function(o, op, i, at_cursor, clear_on_drop)
     if menu_nhov == 0 then
         menus_drop()
         i = 1
@@ -1793,7 +1817,9 @@ menu_init = function(o, op, i, at_cursor)
     menustack[i] = o
     o.is_menu    = true
     o.parent     = op
-    op.has_menu  = true
+    op._menu     = o
+
+    o._clear_on_drop = clear_on_drop
 
     local margin = world.margin
     local prevo  = (i > 1) and menustack[i - 1] or nil
@@ -1875,11 +1901,18 @@ menu_init = function(o, op, i, at_cursor)
     o.x, o.y = omx, omy
 end
 
-local tooltip_init = function(o, op)
+tooltip_init = function(o, op, clear_on_drop)
+    op.managed_objects[o] = o
+    local oldop = o.parent
+    if oldop then oldop.managed_objects[o] = nil end
+
+    tooltip  = o
     o.parent = op
     projection = get_projection(o)
     o:layout()
     projection = nil
+
+    o._clear_on_drop = clear_on_drop
 
     local margin = world.margin
     local x, y = cursor_x * (1 + 2 * margin) - margin + 0.01,
@@ -2037,9 +2070,14 @@ set_external("gui_update", function()
 
     local wvisible = world.visible
 
+    if tooltip and tooltip._clear_on_drop then
+        tooltip:clear()
+        tooltip.parent.managed_objects[tooltip] = nil
+    end
+    tooltip = nil
+
     calc_text_scale()
 
-    local tooltip
     if cursor_exists() and wvisible then
         local hovering_try
         local hk, hl
@@ -2063,10 +2101,6 @@ set_external("gui_update", function()
             local msl = #menustack
             if msl > 0 and nhov > 0 and msl > nhov then
                 menus_drop(msl - nhov)
-            end
-            tooltip = hovering.tooltip
-            if tooltip then
-                tooltip_init(tooltip, hovering)
             end
             menu_nhov = nhov
             hovering:hovering(hover_x, hover_y)
@@ -2130,7 +2164,6 @@ set_external("gui_render", function()
             get_projection(menustack[i]):draw()
         end
 
-        local tooltip = hovering and hovering.tooltip
         if tooltip then
             get_projection(tooltip):draw()
         end

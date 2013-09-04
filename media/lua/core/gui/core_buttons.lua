@@ -17,7 +17,7 @@ local M = require("core.gui.core")
 
 -- input event management
 local is_clicked, is_hovering = M.is_clicked, M.is_hovering
-local has_menu = M.has_menu
+local get_menu = M.get_menu
 
 -- widget types
 local register_class = M.register_class
@@ -75,7 +75,7 @@ M.Button = Button
 ]]
 M.Menu_Button = register_class("Menu_Button", Button, {
     choose_state = function(self)
-        return has_menu(self) and "menu" or Button.choose_state(self)
+        return get_menu(self) != nil and "menu" or Button.choose_state(self)
     end
 })
 
