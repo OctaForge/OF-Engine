@@ -142,7 +142,6 @@ world:new_window("main", gui.Window, |win| do
             local ed, lbl
             b:append(gui.H_Box(), |b| do
                 b:append(gui.Outline(), |o| do
-                    o:clamp(true, true, true, true)
                     o:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = [[
 Lorem ipsum dolor sit amet, consectetur
 adipisicing elit, sed do eiusmod tempor
