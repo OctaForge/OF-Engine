@@ -2159,18 +2159,9 @@ set_external("gui_render", function()
     local w = world
     if draw_hud or (w.visible and #w.children != 0) then
         w:draw()
-
-        for i = 1, #menustack do
-            get_projection(menustack[i]):draw()
-        end
-
-        if tooltip then
-            get_projection(tooltip):draw()
-        end
-
-        if draw_hud then
-            get_projection(hud):draw(hud.x, hud.y)
-        end
+        for i = 1, #menustack do get_projection(menustack[i]):draw() end
+        if tooltip          then get_projection(tooltip     ):draw() end
+        if draw_hud         then get_projection(hud         ):draw() end
         gle_disable()
     end
 end)
