@@ -19,6 +19,8 @@ local gui = require("core.gui.core")
 
 local world = gui.get_world()
 
+-- buttons
+
 local btnv = {}
 gui.Button.variants   = { default = btnv }
 gui.Button.properties = { default = { "label" } }
@@ -62,6 +64,16 @@ smbtnv["default"     ] = btn_build_variant_nobg()
 smbtnv["hovering"    ] = btn_build_variant(192, 192, 192)
 smbtnv["menu"        ] = btn_build_variant(192, 192, 192)
 smbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
+
+-- editors
+
+gui.Text_Editor.variants = { default = { gui.Outline {
+    clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true
+} } }
+gui.Field.variants       = gui.Text_Editor.variants
+gui.Key_Field.variants   = gui.Text_Editor.variants
+
+-- default windows
 
 world:new_window("changes", gui.Window, function(win)
     win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,

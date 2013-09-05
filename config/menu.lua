@@ -141,8 +141,7 @@ world:new_window("main", gui.Window, |win| do
 
             local ed, lbl
             b:append(gui.H_Box(), |b| do
-                b:append(gui.Outline(), |o| do
-                    o:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = [[
+                b:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = [[
 Lorem ipsum dolor sit amet, consectetur
 adipisicing elit, sed do eiusmod tempor
 incididunt ut labore et dolore magna aliqua.
@@ -163,9 +162,7 @@ in voluptate velit esse cillum dolore eu fugiat
 nulla pariatur. Excepteur sint occaecat cupidatat
 non proident, sunt in culpa qui officia deserunt
 mollit anim id est laborum.]], multiline = true }, |x| do
-                        x:clamp(true, true, true, true)
                         ed = x
-                    end)
                 end)
                 b:append(gui.Label { text = "none" }, |l| do lbl = l end)
             end)
