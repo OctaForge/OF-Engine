@@ -997,10 +997,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_pop()
     end,
 
-    get_clip = function(self)
-        return self.clip_w, (self.multiline and self.clip_h or self.h)
-    end,
-
     draw_selection = function(self, first_drawable, x)
         local selection, sx, sy, ex, ey = self:region()
         if not selection then return nil end
@@ -1096,7 +1092,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_push()
         text_font_set(self.font)
 
-        local cw, ch = self:get_clip()
+        local cw, ch = self.w, self.h
         local fontw  = text_font_get_w()
         local clip = (cw != 0 and (self.virt_w + fontw) > cw)
                   or (ch != 0 and  self.virt_h          > ch)
