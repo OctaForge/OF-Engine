@@ -190,6 +190,7 @@ mollit anim id est laborum.]], multiline = true }, |x| do
 end)
 
 local var_get = cs.var_get
+local cs_execute = cs.execute
 
 world:new_window("fullconsole", gui.Overlay, |win| do
     win:clamp(true, true, false, false)
@@ -201,16 +202,6 @@ world:new_window("fullconsole", gui.Overlay, |win| do
     end)
 end)
 
-local cs_execute = cs.execute
-
-cs_execute([=[
-    edithudline1 = [edithud]
-    edithudline2 = [format "cube %1%2" $selchildcount (if $showmat [selchildmat ": "])]
-    edithudline3 = [format "wtr:%1k(%2%%) wvt:%3k(%4%%) evt:%5k eva:%6k" $editstatwtr $editstatvtr $editstatwvt $editstatvvt $editstatevt $editstateva]
-    edithudline4 = [format "ond:%1 va:%2 gl:%3(%4) oq:%5 pvs:%6" $editstatocta $editstatva $editstatglde $editstatgeombatch $editstatoq $editstatpvs]
-    getedithud = [ concatword (edithudline1) "^f7^n" (edithudline2) "^n" (edithudline3) "^n" (edithudline4) ]
-]=])
-
 world:new_window("editstats", gui.Overlay, |win| do
     win:align(-1, 1)
     win:set_above_hud(true)
@@ -221,29 +212,3 @@ world:new_window("editstats", gui.Overlay, |win| do
         end)
     end)
 end)
-
-cs_execute([=[
-showui = [lua [
-    return require("core.gui.core").get_world():show_window(@(escape $arg1))
-]]
-hideui = [lua [
-    return require("core.gui.core").get_world():hide_window(@(escape $arg1))
-]]
-toggleui = [
-    if (! (hideui $arg1)) [showui $arg1] []
-]
-holdui = [
-    if (! $arg2) [hideui $arg1] [showui $arg1]
-]
-uivisible = [lua [
-    return require("core.gui.core").get_world():window_visible(@(escape $arg1))
-]]
-
-toggleconsole = [toggleui fullconsole]
-
-edittoggled = [
-   if $editing [showui editstats] [hideui editstats]
-]
-
-bind ESCAPE [toggleui main]
-]=])
