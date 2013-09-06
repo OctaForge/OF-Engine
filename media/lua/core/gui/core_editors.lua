@@ -222,7 +222,8 @@ local editline = ffi.metatype("editline_t", editline_MT)
     Note that selection box is drawn under the text.
 
     The editor implements the same interface and internal members as Scroller,
-    allowing scrollbars to be used with it.
+    allowing scrollbars to be used with it. The functions are not documented
+    here because they follow Scroller semantics.
 ]]
 local Text_Editor = register_class("Text_Editor", Widget, {
     __init = function(self, kwargs)
@@ -280,40 +281,28 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return Widget.__init(self, kwargs)
     end,
 
-    clear = function(self)
-        self:set_focus(nil)
-        self:bind_h_scrollbar()
-        self:bind_v_scrollbar()
-        return Widget.clear(self)
-    end,
-
-    edit_clear = function(self, init)
-        self._needs_calc = true
-        self.cx, self.cy = 0, 0
-        self.offset_h, self.offset_v = 0, 0
-        self:mark()
-        if init == false then
-            self.lines = {}
-        else
-            local lines = {}
-            if type(init) != "table" then
-                init = split(init, "\n")
-            end
-            for i = 1, #init do lines[i] = editline(init[i]) end
-            self.lines = lines
-        end
-    end,
-
+    --[[! Function: mark
+        Marks a selection. If the provided argument is true, the selection
+        position is set to the cursor position (and any change in cursor
+        position effectively extends the selection). Otherwise the
+        selection is disabled.
+    ]]
     mark = function(self, enable)
         self.mx = enable and self.cx or -1
         self.my = self.cy
     end,
 
+    --[[! Function: select_all
+        Selects everything in the editor.
+    ]]
     select_all = function(self)
         self.cx, self.cy = 0, 0
         self.mx, self.my = 1 / 0, 1 / 0
     end,
 
+    --[[! Function: is_empty
+        Returns true if the editor contains nothing, false otherwise.
+    ]]
     is_empty = function(self)
         local lines = self.lines
         return #lines == 1 and lines[1].text[0] == 0
@@ -380,10 +369,17 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return self.lines[self.cy + 1]
     end,
 
+    --[[! Function: to_string
+        Returns all contents of the editor as a string.
+    ]]
     to_string = function(self)
         return tostring(editline():combine_lines(self.lines))
     end,
 
+    --[[! Function: selection_to_string
+        Returns the selected portion of the editor as a string (assuming
+        there is one, otherwise it returns nil).
+    ]]
     selection_to_string = function(self)
         local buf = {}
         local sx, sy, ex, ey = select(2, self:region())
@@ -402,6 +398,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
+    --[[! Function: remove_lines
+        Removes "count" lines from line number "start".
+    ]]
     remove_lines = function(self, start, count)
         self._needs_calc = true
         for i = 1, count do
@@ -409,9 +408,62 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    -- removes the current selection (if any),
-    -- returns true if selection was removed
-    del = function(self)
+    --[[! Function: reset_value
+        Resets the editor contents - they're set to the "value" property
+        (which acts differently on editors and fields - on editors it's just
+        an "initial" value, on fields it's the current value, so on fields
+        it pretty much cancels out unsaved changes). If "value" is nil,
+        then an empty string is used.
+    ]]
+    reset_value = function(self)
+        local str = self.value or ""
+        local strlines = split(str, "\n")
+        local lines = self.lines
+        local cond = #strlines != #lines
+        if not cond then
+            for i = 1, #strlines do
+                if strlines[i] != tostring(lines[i]) then
+                    cond = true
+                    break
+                end
+            end
+        end
+        if cond then self:edit_clear(strlines) end
+    end,
+
+    --[[! Function: copy
+        Copies the current selection into system clipboard. Returns the
+        copied string or nil if nothing was copied.
+    ]]
+    copy = function(self)
+        if not self:region() then return nil end
+        self._needs_calc = true
+        local str = self:selection_to_string()
+        if str then
+            clipboard_set_text(str)
+            return str
+        end
+    end,
+
+    --[[! Function: paste
+        Pastes a string from the clipboard into the editor on cursor position.
+        Returns the pasted string or nil if nothing was pasted. Deletes the
+        current selection if there is one and there is something to paste.
+    ]]
+    paste = function(self)
+        if not clipboard_has_text() then return nil end
+        self._needs_calc = true
+        if self:region() then self:delete_selection() end
+        local  str = clipboard_get_text()
+        if not str then return nil end
+        self:insert(str)
+        return str
+    end,
+
+    --[[! Function: delete_selection
+        Deletes the current selection if any, returns true if there was one.
+    ]]
+    delete_selection = function(self)
         local b, sx, sy, ex, ey = self:region()
         if not b then
             self:mark()
@@ -457,6 +509,10 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return true
     end,
 
+    --[[! Function: insert
+        Given a string, this inserts the string into the editor on cursor
+        position (and deletes any selection before that if there is one).
+    ]]
     insert = function(self, ch)
         if #ch > 1 then
             for c in ch:gmatch(".") do
@@ -467,7 +523,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         self._needs_calc = true
 
-        self:del()
+        self:delete_selection()
         local current = self:current_line()
 
         if ch == "\n" then
@@ -485,6 +541,119 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 current:insert(ch, self.cx, 1)
                 self.cx = self.cx + 1
             end
+        end
+    end,
+
+    --[[! Function: bind_h_scrollbar ]]
+    bind_h_scrollbar = function(self, sb)
+        if not sb then
+            sb = self.h_scrollbar
+            if not sb then return nil end
+            sb.scroller, self.h_scrollbar = nil, nil
+            return sb
+        end
+        self.h_scrollbar = sb
+        sb.scroller = self
+    end,
+
+    --[[! Function: bind_v_scrollbar ]]
+    bind_v_scrollbar = function(self, sb)
+        if not sb then
+            sb = self.v_scrollbar
+            if not sb then return nil end
+            sb.scroller, self.v_scrollbar = nil, nil
+            return sb
+        end
+        self.v_scrollbar = sb
+        sb.scroller = self
+    end,
+
+    --[[! Function: get_h_limit ]]
+    get_h_limit = function(self) return max(self.virt_w - self.w, 0) end,
+    --[[! Function: get_v_limit ]]
+    get_v_limit = function(self) return max(self.virt_h - self.h, 0) end,
+
+    --[[! Function: get_h_offset ]]
+    get_h_offset = function(self)
+        return self.offset_h / max(self.virt_w, self.w)
+    end,
+
+    --[[! Function: get_v_offset ]]
+    get_v_offset = function(self)
+        return self.offset_v / max(self.virt_h, self.h)
+    end,
+
+    --[[! Function: get_h_scale ]]
+    get_h_scale = function(self) return self.w / max(self.virt_w, self.w) end,
+    --[[! Function: get_v_scale ]]
+    get_v_scale = function(self) return self.h / max(self.virt_h, self.h) end,
+
+    --[[! Function: set_h_scroll ]]
+    set_h_scroll = function(self, hs)
+        self.offset_h = clamp(hs, 0, self:get_h_limit())
+        emit(self, "h_scroll_changed", self:get_h_offset())
+    end,
+
+    --[[! Function: set_v_scroll ]]
+    set_v_scroll = function(self, vs)
+        self.offset_v = clamp(vs, 0, self:get_v_limit())
+        emit(self, "v_scroll_changed", self:get_v_offset())
+    end,
+
+    --[[! Function: scroll_h ]]
+    scroll_h = function(self, hs) self:set_h_scroll(self.offset_h + hs) end,
+    --[[! Function: scroll_v ]]
+    scroll_v = function(self, vs) self:set_v_scroll(self.offset_v + vs) end,
+
+    --[[! Function: set_clip_w ]]
+    set_clip_w = gen_ed_setter "clip_w",
+    --[[! Function: set_clip_h ]]
+    set_clip_h = gen_ed_setter "clip_h",
+
+    --[[! Function: set_multiline ]]
+    set_multiline = gen_ed_setter "multiline",
+
+    --[[! Function: set_key_filter ]]
+    set_key_filter = gen_setter "key_filter",
+
+    --[[! Function: set_value
+        Sets the value property, emits value_changed and calls <reset_value>.
+    ]]
+    set_value = function(self, val)
+        val = tostring(val)
+        self.value = val
+        emit("value_changed", val)
+        self:reset_value()
+    end,
+
+    --[[! Function: set_font ]]
+    set_font = gen_ed_setter "font",
+    --[[! Function: set_line_wrap ]]
+    set_line_wrap = gen_ed_setter "line_wrap",
+
+    clear = function(self)
+        self:set_focus(nil)
+        self:bind_h_scrollbar()
+        self:bind_v_scrollbar()
+        return Widget.clear(self)
+    end,
+
+    edit_clear = function(self, init)
+        self._needs_calc = true
+        self.cx, self.cy =  0,  0
+        self.mx, self.my = -1, -1
+        self.offset_h, self.offset_v = 0, 0
+        self:mark()
+        if init == false then
+            self.lines = {}
+        else
+            init = init or ""
+            local lines = {}
+            if type(init) != "table" then
+                init = split(init, "\n")
+            end
+            for i = 1, #init do lines[i] = editline(init[i]) end
+            self.lines = lines
         end
     end,
 
@@ -630,7 +799,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             self._needs_offset = true
         elseif code == key.DELETE then
-            if not self:del() then
+            if not self:delete_selection() then
                 self._needs_calc = true
                 local current = self:current_line()
                 if self.cx < current.len then
@@ -643,7 +812,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
             self._needs_offset = true
         elseif code == key.BACKSPACE then
-            if not self:del() then
+            if not self:delete_selection() then
                 self._needs_calc = true
                 local current = self:current_line()
                 if self.cx > 0 then
@@ -731,7 +900,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 return nil
             end
             self:copy()
-            if code == key.X then self:del() end
+            if code == key.X then self:delete_selection() end
             self._needs_offset = true
         elseif code == key.V then
             if not input_is_modifier_pressed(mod_keys) then
@@ -773,23 +942,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
         end
         text_font_pop()
-    end,
-
-    copy = function(self)
-        if not self:region() then return nil end
-        self._needs_calc = true
-        local str = self:selection_to_string()
-        if str then clipboard_set_text(str) end
-    end,
-
-    paste = function(self)
-        if not clipboard_has_text() then return false end
-        self._needs_calc = true
-        if self:region() then self:del() end
-        local  str = clipboard_get_text()
-        if not str then return false end
-        self:insert(str)
-        return true
     end,
 
     target = function(self, cx, cy)
@@ -864,26 +1016,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self:insert(table.concat(buf))
         end
         return true
-    end,
-
-    --[[! Function: reset_value
-        Resets the field value to the last saved value, effectively canceling
-        any sort of unsaved changes.
-    ]]
-    reset_value = function(self)
-        local str = self.value or ""
-        local strlines = split(str, "\n")
-        local lines = self.lines
-        local cond = #strlines != #lines
-        if not cond then
-            for i = 1, #strlines do
-                if strlines[i] != tostring(lines[i]) then
-                    cond = true
-                    break
-                end
-            end
-        end
-        if cond then self:edit_clear(strlines) end
     end,
 
     draw_scale = function(self)
@@ -1153,73 +1285,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if clip then clip_pop() end
 
         text_font_pop()
-    end,
-
-    bind_h_scrollbar = function(self, sb)
-        if not sb then
-            sb = self.h_scrollbar
-            if not sb then return nil end
-            sb.scroller, self.h_scrollbar = nil, nil
-            return sb
-        end
-        self.h_scrollbar = sb
-        sb.scroller = self
-    end,
-
-    bind_v_scrollbar = function(self, sb)
-        if not sb then
-            sb = self.v_scrollbar
-            if not sb then return nil end
-            sb.scroller, self.v_scrollbar = nil, nil
-            return sb
-        end
-        self.v_scrollbar = sb
-        sb.scroller = self
-    end,
-
-    get_h_limit = function(self) return max(self.virt_w - self.w, 0) end,
-    get_v_limit = function(self) return max(self.virt_h - self.h, 0) end,
-
-    get_h_offset = function(self)
-        return self.offset_h / max(self.virt_w, self.w)
-    end,
-
-    get_v_offset = function(self)
-        return self.offset_v / max(self.virt_h, self.h)
-    end,
-
-    get_h_scale = function(self) return self.w / max(self.virt_w, self.w) end,
-    get_v_scale = function(self) return self.h / max(self.virt_h, self.h) end,
-
-    set_h_scroll = function(self, hs)
-        self.offset_h = clamp(hs, 0, self:get_h_limit())
-        emit(self, "h_scroll_changed", self:get_h_offset())
-    end,
-
-    set_v_scroll = function(self, vs)
-        self.offset_v = clamp(vs, 0, self:get_v_limit())
-        emit(self, "v_scroll_changed", self:get_v_offset())
-    end,
-
-    scroll_h = function(self, hs) self:set_h_scroll(self.offset_h + hs) end,
-    scroll_v = function(self, vs) self:set_v_scroll(self.offset_v + vs) end,
-
-    set_clip_w     = gen_ed_setter "clip_w",
-    set_clip_h     = gen_ed_setter "clip_h",
-
-    set_multiline  = gen_ed_setter "multiline",
-
-    set_key_filter = gen_setter "key_filter",
-
-    set_value = function(self, val)
-        val = tostring(val)
-        self.value = val
-        emit("value_changed", val)
-        self:reset_value()
-    end,
-
-    set_font      = gen_ed_setter "font",
-    set_line_wrap = gen_ed_setter "line_wrap"
+    end
 })
 M.Text_Editor = Text_Editor
 
