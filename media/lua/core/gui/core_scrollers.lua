@@ -115,7 +115,7 @@ M.Scroller = register_class("Scroller", Clipper, {
     ]]
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
-        if code != m4 or code != m5 then
+        if code != m4 and code != m5 then
             return Widget.key_hover(self, code, isdown)
         end
 
@@ -316,7 +316,7 @@ local Scrollbar = register_class("Scrollbar", Widget, {
     ]]
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
-        if code != m4 or code != m5 then
+        if code != m4 and code != m5 then
             return Widget.key_hover(self, code, isdown)
         end
 

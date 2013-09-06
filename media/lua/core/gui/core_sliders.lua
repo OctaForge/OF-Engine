@@ -124,7 +124,6 @@ local Slider = register_class("Slider", Widget, {
             if isdown then self:do_step(3) end
             return true
         end
-
         return Widget.key_hover(self, code, isdown)
     end,
 

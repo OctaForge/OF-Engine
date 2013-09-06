@@ -998,9 +998,13 @@ Widget = register_class("Widget", table2.Object, {
     end,
 
     --[[! Function: key_hover
-        Similar to above. Occurs on mouse scroll events and on arrow
-        key presses on the focused or hovering widget. Those keys do not
-        react otherwise.
+        Occurs on keypress (any key) when hovering over a widget. The default
+        just goes over its children (backwards) and tries key_hover on each
+        until it hits true (and then itself returns true). If this doesn't
+        happen, it returns false.
+
+        Called after <key_raw> (if possible) and before mouse clicks and
+        world <key>.
     ]]
     key_hover = function(self, code, isdown)
         return loop_children_r(self, function(o)
@@ -1936,20 +1940,17 @@ local mousebuttons = {
     [key.MOUSEBACK] = true, [key.MOUSEFORWARD] = true
 }
 
-local hoverkeys = {
-    [key.MOUSEWHEELUP] = true, [key.MOUSEWHEELDOWN] = true,
-    [key.LEFT] = true, [key.RIGHT] = true, [key.DOWN] = true, [key.UP] = true
-}
-
 set_external("input_keypress", function(code, isdown)
-    if not cursor_exists() or not world.visible then return false end
-    if world:key_raw(code, isdown) then return true end
-    if hoverkeys[code] then
-        if (focused  and  focused:key_hover(code, isdown)) or
-           (hovering and hovering:key_hover(code, isdown))
-        then return true end
+    if not cursor_exists() or not world.visible then
         return false
-    elseif mousebuttons[code] then
+    end
+    if world:key_raw(code, isdown) then
+        return true
+    end
+    if hovering and hovering:key_hover(code, isdown) then
+        return true
+    end
+    if mousebuttons[code] then
         if isdown then
             clicked_code = code
             local clicked_try
@@ -1979,7 +1980,6 @@ set_external("input_keypress", function(code, isdown)
         end
         return true
     end
-
     return world:key(code, isdown)
 end)
 

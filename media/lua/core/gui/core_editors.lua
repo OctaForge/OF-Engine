@@ -812,10 +812,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     key_hover = function(self, code, isdown)
-        if code == key.LEFT         or code == key.RIGHT or
-           code == key.UP           or code == key.DOWN  or
-           code == key.MOUSEWHEELUP or code == key.MOUSEWHEELDOWN
-        then
+        local hoverkeys = {
+            [key.MOUSEWHEELUP  ] = true,
+            [key.MOUSEWHEELDOWN] = true,
+            [key.PAGEUP        ] = true,
+            [key.PAGEDOWN      ] = true,
+            [key.HOME          ] = true
+        }
+        if hoverkeys[code] then
             if isdown then self:edit_key(code) end
             return true
         end
@@ -1241,14 +1245,6 @@ M.Field = register_class("Field", Text_Editor, {
         self.value = val
         -- trigger changed signal
         emit(self, "value_changed", val)
-    end,
-
-    --[[! Function: key_hover
-        Here it just tries to call <key>. If that returns false, it just
-        returns Widget.key_hover(self, code, isdown).
-    ]]
-    key_hover = function(self, code, isdown)
-        return self:key(code, isdown) or Widget.key_hover(self, code, isdown)
     end
 })
 
