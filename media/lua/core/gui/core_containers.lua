@@ -68,7 +68,7 @@ M.H_Box = register_class("H_Box", Widget, {
 
     adjust_children = function(self)
         local nchildren, nvstates = #self.children, #self.vstates
-        if nchildren == 0 and nvstates == 0 then return nil end
+        if nchildren == 0 and nvstates == 0 then return end
         local offset, space = 0, (self.w - self.subw) / max(nvstates +
             nchildren - 1, 1)
         loop_children(self, function(o)
@@ -110,7 +110,7 @@ M.V_Box = register_class("V_Box", Widget, {
 
     adjust_children = function(self)
         local nchildren, nvstates = #self.children, #self.vstates
-        if nchildren == 0 and nvstates == 0 then return nil end
+        if nchildren == 0 and nvstates == 0 then return end
         local offset, space = 0, (self.h - self.subh) / max(nvstates +
             nchildren - 1, 1)
         loop_children(self, function(o)
@@ -176,7 +176,7 @@ M.Grid = register_class("Grid", Widget, {
     end,
 
     adjust_children = function(self)
-        if #self.children == 0 and #self.vstates == 0 then return nil end
+        if #self.children == 0 and #self.vstates == 0 then return end
         local widths, heights = self.widths, self.heights
         local column , row     = 1, 1
         local offsetx, offsety = 0, 0

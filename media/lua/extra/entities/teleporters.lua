@@ -65,11 +65,11 @@ M.Teleporter = Obstacle:clone {
 
     on_collision = function(self, collider)
         local dest = self:get_attr("destination")
-        if dest <= 0 then return nil end
+        if dest <= 0 then return end
         local dests = get_by_tag("teledest_" .. dest)
         if #dests == 0 then
             log.log(log.ERROR, "No teledest found.")
-            return nil
+            return
         end
         dests[rand(1, #dests)]:place_entity(collider)
         local sn = self:get_attr("sound_name")
@@ -78,7 +78,7 @@ M.Teleporter = Obstacle:clone {
 
     get_attached_next = function(self)
         local dest = self:get_attr("destination")
-        if dest <= 0 then return nil end
+        if dest <= 0 then return end
         return unpack(get_by_tag("teledest_" .. dest))
     end
 }

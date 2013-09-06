@@ -162,7 +162,7 @@ local Game_Manager = ents.Entity:clone {
         local starts = ents.get_by_tag(st)
         if starts and #starts > 0 then
             starts[rand(1, #starts)]:place_entity(player)
-            return nil
+            return
         end
         log.log(log.WARNING, ('player start not found (\"%s\"), '
             .. 'placing player elsewhere'):format(st))

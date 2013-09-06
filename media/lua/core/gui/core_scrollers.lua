@@ -481,16 +481,16 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
     arrow_scroll = function(self, d)
         local  scroll = self.scroller
-        if not scroll then return nil end
+        if not scroll then return end
         scroll:scroll_h(d * self.arrow_speed * (frame.get_frame_time() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)
         local  scroll = self.scroller
-        if not scroll then return nil end
+        if not scroll then return end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
-        if not btn then return nil end
+        if not btn then return end
 
         local as = self.arrow_size
 
@@ -504,10 +504,10 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
     adjust_children = function(self)
         local  scroll = self.scroller
-        if not scroll then return nil end
+        if not scroll then return end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
-        if not btn then return nil end
+        if not btn then return end
 
         local as = self.arrow_size
 
@@ -570,16 +570,16 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
 
     arrow_scroll = function(self, d)
         local  scroll = self.scroller
-        if not scroll then return nil end
+        if not scroll then return end
         scroll:scroll_v(d * self.arrow_speed * (frame.get_frame_time() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)
         local  scroll = self.scroller
-        if not scroll then return nil end
+        if not scroll then return end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
-        if not btn then return nil end
+        if not btn then return end
 
         local as = self.arrow_size
 
@@ -594,10 +594,10 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
 
     adjust_children = function(self)
         local  scroll = self.scroller
-        if not scroll then return nil end
+        if not scroll then return end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
-        if not btn then return nil end
+        if not btn then return end
 
         local as = self.arrow_size
 

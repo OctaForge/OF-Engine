@@ -54,7 +54,7 @@ local FLAG_BELOWGROUND = 2 << 4
     (see <Character>).
 ]]
 set_external("physics_state_change", function(ent, loc, flevel, llevel, mat)
-    if SERVER then return nil end
+    if SERVER then return end
 
     local flags = 0
     if mat == edit.material.WATER then

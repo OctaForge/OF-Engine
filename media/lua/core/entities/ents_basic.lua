@@ -404,7 +404,7 @@ local Character = Entity:clone {
 
         -- see world.lua for field meanings
         connect(self, "physics_trigger_changed", function(self, val)
-            if val == 0 then return nil end
+            if val == 0 then return end
             self:set_attr("physics_trigger", 0)
 
             local pos = (self != ents.get_player())
@@ -447,15 +447,15 @@ local Character = Entity:clone {
         hud_model_offset (vec3) is used to offset the HUD model (if available).
     ]]
     render = (not SERVER) and function(self, hudpass, needhud)
-        if not self.initialized then return nil end
-        if not hudpass and needhud then return nil end
+        if not self.initialized then return end
+        if not hudpass and needhud then return end
 
         local ra = self.render_args
         local fr = frame.get_frame()
         if self.render_args_timestamp != fr then
             local state = self:get_attr("client_state")
             -- spawning or spectator
-            if state == 5 or state == 2 then return nil end
+            if state == 5 or state == 2 then return end
             local mdn = (hudpass and needhud)
                 and self:get_attr("hud_model_name")
                 or  self:get_attr("model_name")

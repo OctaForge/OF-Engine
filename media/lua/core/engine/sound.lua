@@ -26,7 +26,7 @@ return {
         defaults to 0, 0, 0) and volume (which is a number defaulting to 100).
     ]]
     play = function(name, pos, volume)
-        if not name then return nil end
+        if not name then return end
         pos = pos or vec3(0)
         play(name, pos.x, pos.y, pos.z, volume)
     end,

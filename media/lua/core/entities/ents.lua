@@ -519,7 +519,7 @@ M.remove = function(uid)
     local e = storage[uid]
     if not e then
         log(WARNING, "ents.remove: does not exist.")
-        return nil
+        return
     end
 
     emit(e, "pre_deactivate")
@@ -574,7 +574,7 @@ set_external("entities_remove_all", M.remove_all)
         { { uid, "entity_class", sdata }, { ... }, ... }
 ]]
 M.load = function()
-    if not SERVER then return nil end
+    if not SERVER then return end
 
     debug then log(DEBUG, "ents.load: reading")
     local el = capi.readfile("./entities.lua")
@@ -751,7 +751,7 @@ Entity = table2.Object:clone {
     setup = function(self)
         debug then log(DEBUG, "Entity: setup")
 
-        if self.setup_complete then return nil end
+        if self.setup_complete then return end
 
         self.action_system = actions.Action_System(self)
         -- for caching
@@ -819,7 +819,7 @@ Entity = table2.Object:clone {
     remove_tag = function(self, tag)
         debug then log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
-        if not self:has_tag(tag) then return nil end
+        if not self:has_tag(tag) then return end
         self:set_attr("tags", filter(self:get_attr("tags"):to_array(),
             function(i, t)
                 return t != tag
@@ -994,7 +994,7 @@ Entity = table2.Object:clone {
     ]]
     sdata_changed = function(self, var, name, val)
         local sfun = var.setter_fun
-        if not sfun then return nil end
+        if not sfun then return end
         if not (SERVER and self.svar_change_queue) then
             debug then log(INFO, "Calling setter function for " .. name)
             sfun(self, val)
@@ -1078,7 +1078,7 @@ Entity = table2.Object:clone {
         if not var then
             log(WARNING, "Entity.set_sdata: ignoring sdata setting"
                 .. " for an unknown variable " .. key)
-            return nil
+            return
         end
 
         if actor_uid and actor_uid != -1 then
@@ -1086,7 +1086,7 @@ Entity = table2.Object:clone {
             if not var.client_write then
                 log(ERROR, "Entity.set_sdata: client " .. actor_uid
                     .. " tried to change " .. key)
-                return nil
+                return
             end
         elseif iop then
             val = var:from_wire(val)
@@ -1096,7 +1096,7 @@ Entity = table2.Object:clone {
         emit(self, key .. "_changed", val, actor_uid)
         if self.sdata_update_cancel then
             self.sdata_update_cancel = nil
-            return nil
+            return
         end
 
         self.svar_values[key] = val
@@ -1105,7 +1105,7 @@ Entity = table2.Object:clone {
         local csfh = var.custom_sync and self.controlled_here
         if not iop and var.client_read and not csfh then
             if not self.sent_notification_full then
-                return nil
+                return
             end
 
             local args = {
@@ -1177,7 +1177,7 @@ Entity = table2.Object:clone {
     ]]
     flush_queued_svar_changes = SERVER and function(self)
         local changes = self.svar_change_queue
-        if not changes then return nil end
+        if not changes then return end
         self.svar_change_queue = nil
 
         for k, v in pairs(changes) do
@@ -1247,7 +1247,7 @@ Entity = table2.Object:clone {
     ]]
     set_gui_attr = function(self, prop, val)
         local var = self["_SV_GUI_" .. prop]
-        if not var or not var.has_history then return nil end
+        if not var or not var.has_history then return end
         self:set_attr(var.name, var:from_wire(val))
     end,
 
@@ -1345,7 +1345,7 @@ end)
 local render = (not SERVER) and function(tp)
     debug then log(INFO, "game_render")
     local  player = player_entity
-    if not player then return nil end
+    if not player then return end
 
     for uid, entity in pairs(storage) do
         if not entity.deactivated then
@@ -1370,7 +1370,7 @@ set_external("game_render", render)
 local render_hud = (not SERVER) and function()
     debug then log(INFO, "game_render_hud")
     local  player = player_entity
-    if not player then return nil end
+    if not player then return end
 
     if player:get_attr("hud_model_name") and not player:get_editing() then
         player:render(true, true)

@@ -478,7 +478,7 @@ local lex_get = function(ls)
 end
 
 local function assert_tok(ls, tok, ...)
-    if not tok then return nil end
+    if not tok then return end
     if ls.tname != tok then
         error(("%d: unexpected symbol near '%s'"):format(ls.linenum,
             ls.tname), 0)
@@ -556,9 +556,7 @@ local sift_down = function(tbl, l, s, e, fun)
         if swap != root then
             tbl[root], tbl[swap] = tbl[swap], tbl[root]
             root = swap
-        else
-            return nil
-        end
+        else return end
     end
 end
 

@@ -168,9 +168,7 @@ local Slider = register_class("Slider", Widget, {
 
     arrow_scroll = function(self, d)
         local tmillis = get_millis(true)
-        if (self.last_step + self.step_time) > tmillis then
-            return nil
-        end
+        if (self.last_step + self.step_time) > tmillis then return end
 
         self.last_step = tmillis
         self.do_step(self, d)
@@ -313,7 +311,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
     scroll_to = function(self, cx, cy)
         local  btn = self:find_child(Slider_Button.type, nil, false)
-        if not btn then return nil end
+        if not btn then return end
 
         local as = self.arrow_size
 
@@ -326,7 +324,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
     adjust_children = function(self)
         local  btn = self:find_child(Slider_Button.type, nil, false)
-        if not btn then return nil end
+        if not btn then return end
 
         local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
@@ -376,7 +374,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
 
     scroll_to = function(self, cx, cy)
         local  btn = self:find_child(Slider_Button.type, nil, false)
-        if not btn then return nil end
+        if not btn then return end
 
         local as = self.arrow_size
 
@@ -390,7 +388,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
 
     adjust_children = function(self)
         local  btn = self:find_child(Slider_Button.type, nil, false)
-        if not btn then return nil end
+        if not btn then return end
 
         local mn, mx, ss = self.min_value, self.max_value, self.step_size
 

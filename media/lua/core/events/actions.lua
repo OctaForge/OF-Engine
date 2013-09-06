@@ -321,7 +321,7 @@ local Action_System_MT = {
                             str, " is already present in the system, ",
                             "multiplication explicitly disabled for the ",
                             "action." })
-                        return nil
+                        return
                     end
                 end
             end

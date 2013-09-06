@@ -860,7 +860,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     end,
 
     load = function(self, force)
-        if self.loaded then return nil end
+        if self.loaded then return end
         local tex = thumbnail_load(self.file, force)
         if tex then
             self.loaded = true
@@ -903,7 +903,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
         doesn't do anything.
     ]]
     set_fallback = function(self, fallback)
-        if self.loaded then return nil end
+        if self.loaded then return end
         if fallback then self.texture = texture_load(fallback) end
     end
 })
@@ -1351,7 +1351,7 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
         Widget.layout(self)
 
         local  cmd = self.func
-        if not cmd then return nil end
+        if not cmd then return end
         local val = cmd(self)
         self.val_saved = val
 

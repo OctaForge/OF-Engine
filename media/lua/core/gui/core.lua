@@ -665,7 +665,7 @@ Widget = register_class("Widget", table2.Object, {
         set. Does nothing if already cleared.
     ]]
     clear = function(self)
-        if self._cleared then return nil end
+        if self._cleared then return end
         clear_focus(self)
 
         local children = self.children
@@ -1848,7 +1848,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         end
         -- set position and return
         o.x, o.y = x, y
-        return nil
+        return
     end
 
     -- omx, omy: the base position of the new menu
@@ -2181,10 +2181,10 @@ cs.var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
 cs.var_new("hidechanges", cs.var_type.int, 0, 0, 1)
 
 set_external("change_add", function(desc, ctype)
-    if var_get("applydialog") == 0 then return nil end
+    if var_get("applydialog") == 0 then return end
 
     for i, v in pairs(needsapply) do
-        if v.desc == desc then return nil end
+        if v.desc == desc then return end
     end
 
     needsapply[#needsapply + 1] = { ctype = ctype, desc = desc }

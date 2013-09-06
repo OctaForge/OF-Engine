@@ -518,7 +518,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             for c in ch:gmatch(".") do
                 self:insert(c)
             end
-            return nil
+            return
         end
 
         self._needs_calc = true
@@ -716,7 +716,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                         pw)
                     self._needs_offset = true
                     text_font_pop()
-                    return nil
+                    return
                 end
                 text_font_pop()
             end
@@ -736,7 +736,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                     self.cx = text_is_visible(str, x, y, pw)
                     self._needs_offset = true
                     text_font_pop()
-                    return nil
+                    return
                 end
                 text_font_pop()
             end
@@ -889,7 +889,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         elseif code == key.A then
             if not input_is_modifier_pressed(mod_keys) then
                 self._needs_offset = true
-                return nil
+                return
             end
             self:select_all()
             self._needs_offset = true
@@ -897,7 +897,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             if not input_is_modifier_pressed(mod_keys)
             or not self:region() then
                 self._needs_offset = true
-                return nil
+                return
             end
             self:copy()
             if code == key.X then self:delete_selection() end
@@ -905,7 +905,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         elseif code == key.V then
             if not input_is_modifier_pressed(mod_keys) then
                 self._needs_offset = true
-                return nil
+                return
             end
             self:paste()
             self._needs_offset = true
@@ -983,7 +983,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     set_focus = function(self, ed)
-        if is_focused(ed) then return nil end
+        if is_focused(ed) then return end
         set_focus(ed)
         local ati = ed and ed:allow_text_input()
         input_textinput(ati, 1 << 1) -- TI_GUI
@@ -1144,7 +1144,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     draw_selection = function(self, first_drawable, x)
         local selection, sx, sy, ex, ey = self:region()
-        if not selection then return nil end
+        if not selection then return end
         local k = self:draw_scale()
         local pw, ph = floor(self.w / k), floor(self.h / k)
         local max_width = self.line_wrap and pw or -1
@@ -1223,7 +1223,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     draw_line_wrap = function(self, h, height)
-        if not self.line_wrap then return nil end
+        if not self.line_wrap then return end
         local fonth = text_font_get_h()
         shader_hudnotexture_set()
         gle_color4ub(self.wrap_r, self.wrap_g, self.wrap_b, self.wrap_a)
