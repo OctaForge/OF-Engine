@@ -93,7 +93,7 @@ world:new_window("changes", gui.Window, function(win)
                                 r = 64, g = 64, b = 64,
                                 min_w = 0.2, min_h = 0.05,
                                 gui.Label { text = "OK" } })))
-                    signal.connect(btn, "click", function()
+                    signal.connect(btn, "clicked", function()
                         world:hide_window("changes")
                         gui.changes_apply()
                     end)
@@ -105,7 +105,7 @@ world:new_window("changes", gui.Window, function(win)
                                 r = 64, g = 64, b = 64,
                                 min_w = 0.2, min_h = 0.05,
                                 gui.Label { text = "Cancel" } })))
-                    signal.connect(btn, "click", function()
+                    signal.connect(btn, "clicked", function()
                         world:hide_window("changes")
                         gui.changes_clear()
                     end)
@@ -129,7 +129,7 @@ world:new_window("texture", gui.Window, function(win)
                                 btn:update_state("clicked", gui.Slot_Viewer {
                                     index = i - 1, min_w = 0.095,
                                     min_h = 0.095 })))
-                        signal.connect(btn, "click", function()
+                        signal.connect(btn, "clicked", function()
                             capi.slot_set(i - 1)
                         end)
                     end)
@@ -142,7 +142,7 @@ world:new_window("texture", gui.Window, function(win)
                             r = 64, g = 64, b = 64,
                             min_w = 0.2, min_h = 0.05,
                             gui.Label { text = "Close" } })))
-                signal.connect(btn, "click", function()
+                signal.connect(btn, "clicked", function()
                     world:hide_window("texture")
                 end)
             end)
