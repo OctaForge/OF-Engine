@@ -353,7 +353,7 @@ local lextbl = {
             local sep = skip_sep(ls, {})
             if sep >= 0 then
                 read_long_string(ls, nil, sep)
-                return nil
+                return
             end
         end
         while ls.current and not is_newline(ls.current) do next_char(ls) end

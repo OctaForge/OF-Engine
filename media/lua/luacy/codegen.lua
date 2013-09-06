@@ -26,7 +26,7 @@ local init = function(ls, debug)
                 self.last_line = linenum
             end
 
-            if not self.enabled then return nil end
+            if not self.enabled then return end
             self.was_idkw = nil
             if pos then
                 tinsert(buffer, pos, str)
@@ -46,14 +46,14 @@ local init = function(ls, debug)
                 lastln = linenum
             end
 
-            if not self.enabled then return nil end
+            if not self.enabled then return end
             if   self.was_idkw == lastln then buffer[#buffer + 1] = space
             else self.was_idkw  = lastln end
             buffer[#buffer + 1] = str
             self.last_append = #buffer
         end,
         append_saved = function(self, str)
-            if not self.enabled then return nil end
+            if not self.enabled then return end
             local buffer = self.buffer
             local sbuf   = self.saved
             local apos   = (sbuf[#sbuf] or 0) + 1

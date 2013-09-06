@@ -14,7 +14,7 @@ local iskw = lexer.is_keyword
 
 local assert_tok = function(ls, tok)
     local n = ls.token.name
-    if tok == n then return nil end
+    if tok == n then return end
     syntax_error(ls, "'" .. tok .. "' expected")
 end
 
@@ -506,7 +506,7 @@ local parse_stat
 
 parse_chunk = function(ls, cs)
     local tok = ls.token
-    if block_follow[tok.name] then return nil end
+    if block_follow[tok.name] then return end
     repeat
         local last = parse_stat(ls, cs)
         if tok.name == ";" then
@@ -565,7 +565,7 @@ local parse_assignment = function(ls, cs, buflen)
             ls:get()
             parse_expr(ls, cs)
             if bitop then cs:append(")") end
-            return nil
+            return
         end
     end
     assert_append(ls, cs, "=")
