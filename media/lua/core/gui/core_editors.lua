@@ -497,7 +497,42 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    edit_key = function(self, code)
+    key = function(self, code, isdown)
+        if Widget.key(self, code, isdown) then return true end
+        if not is_focused(self) then return false end
+
+        if code == key.ESCAPE then
+            if isdown then self:set_focus(nil) end
+            return true
+        elseif code == key.RETURN or code == key.TAB then
+            if not self.multiline then
+                if isdown then self:commit() end
+                return true
+            end
+        elseif code == key.KP_ENTER then
+            if isdown then self:commit() end
+            return true
+        end
+        if isdown then self:key_edit(code) end
+        return true
+    end,
+
+    key_hover = function(self, code, isdown)
+        local hoverkeys = {
+            [key.MOUSEWHEELUP  ] = true,
+            [key.MOUSEWHEELDOWN] = true,
+            [key.PAGEUP        ] = true,
+            [key.PAGEDOWN      ] = true,
+            [key.HOME          ] = true
+        }
+        if hoverkeys[code] then
+            if isdown then self:key_edit(code) end
+            return true
+        end
+        return Widget.key_hover(self, code, isdown)
+    end,
+
+    key_edit = function(self, code)
         local mod_keys = (ffi.os == "OSX") and mod.GUI or mod.CTRL
         if code == key.UP then
             self:movement_mark()
@@ -809,41 +844,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self._oh, self._ov = cx, cy
 
         return Widget.clicked(self, cx, cy, code)
-    end,
-
-    key_hover = function(self, code, isdown)
-        local hoverkeys = {
-            [key.MOUSEWHEELUP  ] = true,
-            [key.MOUSEWHEELDOWN] = true,
-            [key.PAGEUP        ] = true,
-            [key.PAGEDOWN      ] = true,
-            [key.HOME          ] = true
-        }
-        if hoverkeys[code] then
-            if isdown then self:edit_key(code) end
-            return true
-        end
-        return Widget.key_hover(self, code, isdown)
-    end,
-
-    key = function(self, code, isdown)
-        if Widget.key(self, code, isdown) then return true end
-        if not is_focused(self) then return false end
-
-        if code == key.ESCAPE then
-            if isdown then self:set_focus(nil) end
-            return true
-        elseif code == key.RETURN or code == key.TAB then
-            if not self.multiline then
-                if isdown then self:commit() end
-                return true
-            end
-        elseif code == key.KP_ENTER then
-            if isdown then self:commit() end
-            return true
-        end
-        if isdown then self:edit_key(code) end
-        return true
     end,
 
     allow_text_input = function(self) return true end,
