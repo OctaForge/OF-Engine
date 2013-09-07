@@ -77,14 +77,14 @@ world:new_window("main", gui.Window, |win| do
                                 gui.Menu_Button {
                                     label = "Submenu 1",
                                     clamp_l = true, clamp_r = true,
-                                    init = |mb| do
+                                    __init = |mb| do
                                         local menu = gui.Color_Filler {
                                             min_w = 0.2, min_h = 0.3, r = 0, g = 192,
                                             b = 0, a = 192,
                                             gui.Menu_Button {
                                                 label = "Subsubmenu 1",
                                                 clamp_l = true, clamp_r = true,
-                                                init = |mb| do
+                                                __init = |mb| do
                                                     local menu = gui.Color_Filler {
                                                         min_w = 0.2, min_h = 0.3, r = 192,
                                                         g = 192, b = 0, a = 192,
@@ -102,7 +102,7 @@ world:new_window("main", gui.Window, |win| do
                                 gui.Menu_Button {
                                     label = "Submenu 2",
                                     clamp_l = true, clamp_r = true,
-                                    init = |mb| do
+                                    __init = |mb| do
                                         local menu = gui.Color_Filler {
                                             min_w = 0.2, min_h = 0.3, r = 0, g = 0,
                                             b = 192, a = 192

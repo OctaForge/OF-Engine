@@ -529,7 +529,7 @@ local Widget, Window
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, variant, states, signals,
-    container and init, which is a function called at the end of the
+    container and __init, which is a function called at the end of the
     constructor if it exists). Array members of kwargs are children.
 
     Widgets instances can have states - they're named references to widgets
@@ -628,8 +628,8 @@ Widget = register_class("Widget", table2.Object, {
 
         self.children = ch
 
-        if  kwargs.pre_init then
-            kwargs.pre_init(self)
+        if  kwargs.__pre_init then
+            kwargs.__pre_init(self)
         end
 
         -- states
@@ -661,8 +661,8 @@ Widget = register_class("Widget", table2.Object, {
         self:set_variant(variant, true)
 
         -- and init
-        if  kwargs.init then
-            kwargs.init(self)
+        if  kwargs.__init then
+            kwargs.__init(self)
         end
     end,
 
