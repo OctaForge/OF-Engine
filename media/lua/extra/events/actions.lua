@@ -33,12 +33,12 @@ M.Action_Parallel = Action:clone {
     name = "Action_Parallel",
     cancellable = false,
 
-    --[[! Constructor: __init
+    --[[! Constructor: __ctor
         Takes an array of actions and kwargs. Those are passed unmodified
         to the <actions.Action> constructor.
     ]]
-    __init = function(self, actions, kwargs)
-        Action.__init(self, kwargs)
+    __ctor = function(self, actions, kwargs)
+        Action.__ctor(self, kwargs)
         self.action_systems = {}
         self.other_actions  = actions
     end,

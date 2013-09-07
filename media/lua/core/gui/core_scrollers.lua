@@ -53,14 +53,14 @@ local Clipper = M.Clipper
     the same interface as scrollers, thus they can be used as scrollers.
 ]]
 M.Scroller = register_class("Scroller", Clipper, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
         self.offset_h = 0
         self.offset_v = 0
         self.can_scroll = false
 
-        return Clipper.__init(self, kwargs)
+        return Clipper.__ctor(self, kwargs)
     end,
 
     --[[! Function: clear
@@ -262,13 +262,13 @@ local Scroll_Button
 local Scrollbar = register_class("Scrollbar", Widget, {
     orient = -1,
 
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.arrow_size  = kwargs.arrow_size  or 0
         self.arrow_speed = kwargs.arrow_speed or 0
         self.arrow_dir   = 0
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     --[[! Function: clear
@@ -394,11 +394,11 @@ local clicked_states = {
     "clicked_right" and "clicked_middle".
 ]]
 Scroll_Button = register_class("Scroll_Button", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     choose_state = function(self)

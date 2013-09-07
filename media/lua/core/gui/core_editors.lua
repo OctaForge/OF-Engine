@@ -226,7 +226,7 @@ local editline = ffi.metatype("editline_t", editline_MT)
     here because they follow Scroller semantics.
 ]]
 local Text_Editor = register_class("Text_Editor", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
         self.clip_w = kwargs.clip_w or 0
@@ -278,7 +278,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self._needs_calc = true
         self._needs_offset = false
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     --[[! Function: mark
@@ -1299,10 +1299,10 @@ M.Text_Editor = Text_Editor
     override this in kwargs or by setting the property.
 ]]
 M.Field = register_class("Field", Text_Editor, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         kwargs.multiline = kwargs.multiline or false
-        return Text_Editor.__init(self, kwargs)
+        return Text_Editor.__ctor(self, kwargs)
     end,
 
     commit = function(self)

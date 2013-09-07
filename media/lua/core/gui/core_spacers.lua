@@ -46,12 +46,12 @@ local get_projection = M.get_projection
     padding (pad_v). There is no other meaning to it.
 ]]
 M.Spacer = register_class("Spacer", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.pad_h = kwargs.pad_h or 0
         self.pad_v = kwargs.pad_v or 0
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     layout = function(self)
@@ -99,14 +99,14 @@ M.Spacer = register_class("Spacer", Widget, {
     floating windows.
 ]]
 M.Filler = register_class("Filler", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_w = kwargs.min_w or 0
         self.min_h = kwargs.min_h or 0
 
         self.clip_children = kwargs.clip_children or false
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     layout = function(self)
@@ -160,12 +160,12 @@ M.Filler = register_class("Filler", Widget, {
     Offsets a widget by offset_h and offset_v properties.
 ]]
 M.Offsetter = register_class("Offsetter", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.offset_h = kwargs.offset_h or 0
         self.offset_v = kwargs.offset_v or 0
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     layout = function(self)

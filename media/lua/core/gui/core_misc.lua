@@ -46,10 +46,10 @@ local key = M.key
     the "false" state is set.
 ]]
 M.Conditional = register_class("Conditional", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.condition = kwargs.condition
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     choose_state = function(self)
@@ -73,10 +73,10 @@ M.Conditional = register_class("Conditional", Widget, {
     this mover belongs to. Without it, it won't work.
 ]]
 M.Mover = register_class("Mover", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.window = kwargs.window
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     hover = function(self, cx, cy)

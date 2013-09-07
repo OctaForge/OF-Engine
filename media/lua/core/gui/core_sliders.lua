@@ -60,7 +60,7 @@ local Slider_Button
     with the new value as an argument.
 ]]
 local Slider = register_class("Slider", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_value = kwargs.min_value or 0
         self.max_value = kwargs.max_value or 0
@@ -73,7 +73,7 @@ local Slider = register_class("Slider", Widget, {
         self.last_step = 0
         self.arrow_dir = 0
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     --[[! Function: do_step
@@ -226,11 +226,11 @@ local clicked_states = {
     "clicked_right" and "clicked_middle".
 ]]
 Slider_Button = register_class("Slider_Button", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     choose_state = function(self)

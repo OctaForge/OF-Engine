@@ -438,7 +438,7 @@ local orient = {
 M.orient = orient
 
 local Projection = table2.Object:clone {
-    __init = function(self, obj)
+    __ctor = function(self, obj)
         self.obj = obj
         self.px, self.py, self.pw, self.ph = 0, 0, 0, 0
     end,
@@ -570,12 +570,12 @@ local Widget, Window
     of all instances of the widget class.
 ]]
 Widget = register_class("Widget", table2.Object, {
-    --[[! Constructor: __init
+    --[[! Constructor: __ctor
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting
         widget.
     ]]
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
         local instances = rawget(self.__proto, "__instances")
@@ -1428,10 +1428,10 @@ Widget = register_class("Widget", table2.Object, {
     obj_name. The name can be passed via constructor kwargs as "name".
 ]]
 local Named_Widget = register_class("Named_Widget", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.obj_name = kwargs.name
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     --[[! Function: set_obj_name ]]
@@ -1461,12 +1461,12 @@ M.Tag = Tag
     for windows that are always shown in say, editing mode).
 ]]
 Window = register_class("Window", Named_Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         local ig = kwargs.input_grab
         self.input_grab = ig == nil and true or ig
         self.above_hud = kwargs.above_hud or false
-        return Named_Widget.__init(self, kwargs)
+        return Named_Widget.__ctor(self, kwargs)
     end,
 
     grabs_input = function(self) return self.input_grab end,
@@ -1516,10 +1516,10 @@ M.Overlay = Overlay
     the margin is 0.
 ]]
 local World = register_class("World", Widget, {
-    __init = function(self)
+    __ctor = function(self)
         self.windows = {}
         self.margin = 0
-        return Widget.__init(self)
+        return Widget.__ctor(self)
     end,
 
     --[[! Function: grabs_input

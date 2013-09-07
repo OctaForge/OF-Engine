@@ -23,7 +23,7 @@ local M = {}
 M.Timer = require("core.lua.table").Object:clone {
     name = "Timer",
 
-    --[[! Constructor: __init
+    --[[! Constructor: __ctor
         The constructor takes at least one additional argument, interval. It's
         time in milliseconds the timer should take until next repeated action.
         An additional third argument is a boolean which specifies whether to
@@ -31,7 +31,7 @@ M.Timer = require("core.lua.table").Object:clone {
         a too large value, the sum will be larger than the interval).
         This extra argument is saved as carry_over and defaults to false.
     ]]
-    __init = function(self, interval, carry_over)
+    __ctor = function(self, interval, carry_over)
         self.interval   = interval
         self.carry_over = carry_over or false
         self.sum        = 0

@@ -87,10 +87,10 @@ M.Menu_Button = register_class("Menu_Button", Button, {
     otherwise one of the other three is used as in <Button>.
 ]]
 M.Conditional_Button = register_class("Conditional_Button", Button, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.condition = kwargs.condition
-        return Button.__init(self, kwargs)
+        return Button.__ctor(self, kwargs)
     end,
 
     choose_state = function(self)
@@ -119,10 +119,10 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
     otherwise "default" or "default_hovering" is used).
 ]]
 M.Toggle = register_class("Toggle", Button, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.condition = kwargs.condition
-        return Button.__init(self, kwargs)
+        return Button.__ctor(self, kwargs)
     end,
 
     choose_state = function(self)

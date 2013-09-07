@@ -84,7 +84,7 @@ local Filler = M.Filler
     default to 255, solid defaults to true.
 ]]
 local Color_Filler = register_class("Color_Filler", Filler, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs       = kwargs or {}
         self.solid = kwargs.solid == false and false or true
         self.r     = kwargs.r or 255
@@ -92,7 +92,7 @@ local Color_Filler = register_class("Color_Filler", Filler, {
         self.b     = kwargs.b or 255
         self.a     = kwargs.a or 255
 
-        return Filler.__init(self, kwargs)
+        return Filler.__ctor(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
@@ -145,8 +145,8 @@ M.Color_Filler = Color_Filler
     inherited from <Color_Filler>.
 ]]
 M.Gradient = register_class("Gradient", Color_Filler, {
-    __init = function(self, kwargs)
-        Color_Filler.__init(self, kwargs)
+    __ctor = function(self, kwargs)
+        Color_Filler.__ctor(self, kwargs)
         self.horizontal = kwargs.horizontal
         self.r2 = kwargs.r2 or 255
         self.g2 = kwargs.g2 or 255
@@ -210,13 +210,13 @@ M.Gradient = register_class("Gradient", Color_Filler, {
     (that default to 255 and represent the line color).
 ]]
 M.Line = register_class("Line", Filler, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.r = kwargs.r or 255
         self.g = kwargs.g or 255
         self.b = kwargs.b or 255
         self.a = kwargs.a or 255
-        return Filler.__init(self, kwargs)
+        return Filler.__ctor(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
@@ -253,13 +253,13 @@ M.Line = register_class("Line", Filler, {
     g, b and a (that default to 255 and represent the outline color).
 ]]
 M.Outline = register_class("Outline", Filler, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.r = kwargs.r or 255
         self.g = kwargs.g or 255
         self.b = kwargs.b or 255
         self.a = kwargs.a or 255
-        return Filler.__init(self, kwargs)
+        return Filler.__ctor(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
@@ -329,7 +329,7 @@ end
     are low-level and documented elsewhere.
 ]]
 local Image = register_class("Image", Filler, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs    = kwargs or {}
         local tex = kwargs.file and texture_load(kwargs.file)
 
@@ -347,7 +347,7 @@ local Image = register_class("Image", Filler, {
         self.b = kwargs.b or 255
         self.a = kwargs.a or 255
 
-        return Filler.__init(self, kwargs)
+        return Filler.__ctor(self, kwargs)
     end,
 
     --[[! Function: get_tex
@@ -473,10 +473,10 @@ end
     sizes in pixels.
 ]]
 M.Cropped_Image = register_class("Cropped_Image", Image, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
-        Image.__init(self, kwargs)
+        Image.__ctor(self, kwargs)
         local tex = self.texture
 
         self.crop_x = get_border_size(tex, kwargs.crop_x or 0, false)
@@ -656,9 +656,9 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
     pixels.
 ]]
 M.Bordered_Image = register_class("Bordered_Image", Image, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
-        Image.__init(self, kwargs)
+        Image.__ctor(self, kwargs)
         self.tex_border = get_border_size(self.texture, kwargs.tex_border or 0)
         self.screen_border = kwargs.screen_border or 0
     end,
@@ -758,13 +758,13 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
     properties specifying the tile width and height (they both default to 1).
 ]]
 local Tiled_Image = register_class("Tiled_Image", Image, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
         self.tile_w = kwargs.tile_w or 1
         self.tile_h = kwargs.tile_h or 1
 
-        return Image.__init(self, kwargs)
+        return Image.__ctor(self, kwargs)
     end,
 
     target = function(self, cx, cy)
@@ -842,7 +842,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
     targeting it), it loads immediately.
 ]]
 M.Thumbnail = register_class("Thumbnail", Image, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.file = kwargs.file
         self.texture = kwargs.fallback and texture_load(kwargs.fallback)
@@ -856,7 +856,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
         self.b = kwargs.b or 255
         self.a = kwargs.a or 255
 
-        return Filler.__init(self, kwargs)
+        return Filler.__ctor(self, kwargs)
     end,
 
     load = function(self, force)
@@ -915,11 +915,11 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     like in <Thumbnail>.
 ]]
 M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.index = kwargs.index or 0
 
-        return Filler.__init(self, kwargs)
+        return Filler.__ctor(self, kwargs)
     end,
 
     target = function(self, cx, cy)
@@ -958,7 +958,7 @@ local animctl = model.anim_control
     property is attachments. It's an array of tag-attachment pairs.
 ]]
 M.Model_Viewer = register_class("Model_Viewer", Filler, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.model = kwargs.model
 
@@ -970,7 +970,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         self.anim = { aprim, asec }
         self.attachments = kwargs.attachments or {}
 
-        return Filler.__init(self, kwargs)
+        return Filler.__ctor(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
@@ -1037,14 +1037,14 @@ local Shape = register_class("Shape", Filler, {
     OUTLINE  = OUTLINE,
     MODULATE = MODULATE,
 
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.style = kwargs.style or 0
         self.r     = kwargs.r or 255
         self.g     = kwargs.g or 255
         self.b     = kwargs.b or 255
         self.a     = kwargs.a or 255
-        return Filler.__init(self, kwargs)
+        return Filler.__ctor(self, kwargs)
     end,
 
     --[[! Function: set_style ]]
@@ -1070,10 +1070,10 @@ M.Shape = Shape
     conventions as on <Filler> apply).
 ]]
 M.Triangle = register_class("Triangle", Shape, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.angle = kwargs.angle or 0
-        return Shape.__init(self, kwargs)
+        return Shape.__ctor(self, kwargs)
     end,
 
     layout = function(self)
@@ -1147,10 +1147,10 @@ M.Triangle = register_class("Triangle", Shape, {
     perfect circle).
 ]]
 M.Circle = register_class("Circle", Shape, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.sides = kwargs.sides or 15
-        return Shape.__init(self, kwargs)
+        return Shape.__ctor(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
@@ -1203,7 +1203,7 @@ M.Circle = register_class("Circle", Shape, {
     of regular one.
 ]]
 M.Label = register_class("Label", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
         self.text  = kwargs.text  or ""
@@ -1215,7 +1215,7 @@ M.Label = register_class("Label", Widget, {
         self.b     = kwargs.b or 255
         self.a     = kwargs.a or 255
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     --[[! Function: target
@@ -1301,7 +1301,7 @@ M.Label = register_class("Label", Widget, {
     a callable value that returns the text to display.
 ]]
 M.Eval_Label = register_class("Eval_Label", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
         self.func  = kwargs.func  or nil
@@ -1312,7 +1312,7 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
         self.b     = kwargs.b or 255
         self.a     = kwargs.a or 255
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     --[[! Function: target

@@ -645,7 +645,7 @@ M.Object = {
             __tostring = self.__tostring
         }
         setmetatable(r, r)
-        if self.__init then self.__init(r, ...) end
+        if self.__ctor then self.__ctor(r, ...) end
         return r
     end,
 

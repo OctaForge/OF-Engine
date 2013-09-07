@@ -45,10 +45,10 @@ local gen_setter = M.gen_setter
     extended by (nitems-1)*padding).
 ]]
 M.H_Box = register_class("H_Box", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding = kwargs.padding or 0
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     layout = function(self)
@@ -87,10 +87,10 @@ M.H_Box = register_class("H_Box", Widget, {
     See <H_Box>. This is a vertical variant.
 ]]
 M.V_Box = register_class("V_Box", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding = kwargs.padding or 0
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     layout = function(self)
@@ -132,11 +132,11 @@ M.V_Box = register_class("V_Box", Widget, {
     position themselves according to the max number of columns.
 ]]
 M.Grid = register_class("Grid", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.columns = kwargs.columns or 0
         self.padding = kwargs.padding or 0
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     layout = function(self)
@@ -213,14 +213,14 @@ M.Grid = register_class("Grid", Widget, {
     Clips the children inside of it by clip_w and clip_h.
 ]]
 M.Clipper = register_class("Clipper", Widget, {
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.clip_w = kwargs.clip_w or 0
         self.clip_h = kwargs.clip_h or 0
         self.virt_w = 0
         self.virt_h = 0
 
-        return Widget.__init(self, kwargs)
+        return Widget.__ctor(self, kwargs)
     end,
 
     layout = function(self)

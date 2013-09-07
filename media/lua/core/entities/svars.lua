@@ -74,7 +74,7 @@ State_Variable = table2.Object:clone {
         return self.name
     end,
 
-    --[[! Constructor: __init
+    --[[! Constructor: __ctor
         Initializes the svar. Parameters are passed in kwargs.
 
         Kwargs:
@@ -104,7 +104,7 @@ State_Variable = table2.Object:clone {
             even with getter and setter functions, the value will be cached
             for better performance (we don't always have to query).
     ]]
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         debug then log(INFO, "State_Variable: init")
 
         kwargs = kwargs or {}
@@ -662,13 +662,13 @@ M.State_Vec4 = State_Vec4
 State_Variable_Alias = State_Variable:clone {
     name = "State_Variable_Alias",
 
-    --[[! Constructor: __init
+    --[[! Constructor: __ctor
         Variable aliases don't really need all the properties, so the parent
         constructor is never called. They have one property, target_name,
         given by the constructor argument, which specifies the name of
         the state variable they point to.
     ]]
-    __init = function(self, tname)
+    __ctor = function(self, tname)
         self.target_name = tname
     end,
 

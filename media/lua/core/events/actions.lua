@@ -35,7 +35,7 @@ local filter = table2.filter
 local Action = table2.Object:clone {
     name = "Action",
 
-    --[[! Constructor: __init
+    --[[! Constructor: __ctor
         Constructs the action. Takes kwargs, which is an optional argument
         supplying modifiers for the action. It's an associative array.
 
@@ -69,7 +69,7 @@ local Action = table2.Object:clone {
             i.e. animations that run in parallel.
             
     ]]
-    __init = function(self, kwargs)
+    __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
         self.begun      = false
@@ -252,13 +252,13 @@ local Infinite_Action = Action:clone {
 local Targeted_Action = Action:clone {
     name = "Targeted_Action",
 
-    --[[! Constructor: __init
+    --[[! Constructor: __ctor
         Constructs this action. Compared to a standard action, it takes
         an additional argument, "target". That specifies an entity that
         will be later available as "target" class member.
     ]]
-    __init = function(self, target, kwargs)
-        Action.__init(self, kwargs)
+    __ctor = function(self, target, kwargs)
+        Action.__ctor(self, kwargs)
         self.target = target
     end
 }
@@ -270,14 +270,14 @@ local Targeted_Action = Action:clone {
 local Single_Action = Action:clone {
     name = "Single_Action",
 
-    --[[! Constructor: __init
+    --[[! Constructor: __ctor
         Constructs this action. Compared to a standard action, it takes
         an additional argument, "command", which is a function taking
         this action as a first argument. It is then available as
         "command" class member.
     ]]
-    __init = function(self, command, kwargs)
-        Action.__init(self, kwargs)
+    __ctor = function(self, command, kwargs)
+        Action.__ctor(self, kwargs)
         self.command = command
     end,
 
