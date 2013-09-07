@@ -227,10 +227,10 @@ local loop_children = function(self, fun)
         end
     end
 
-    for i = 1, #vr do
+    if vr then for i = 1, #vr do
         local a, b = fun(vr[i])
         if    a != nil then return a, b end
-    end
+    end end
 
     for i = 1, #ch do
         local a, b = fun(ch[i])
@@ -256,10 +256,10 @@ local loop_children_r = function(self, fun)
         if    a != nil then return a, b end
     end
 
-    for i = #vr, 1, -1 do
+    if vr then for i = #vr, 1, -1 do
         local a, b = fun(vr[i])
         if    a != nil then return a, b end
-    end
+    end end
 
     if st then
         local s = self:choose_state()
@@ -722,7 +722,6 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     set_variant = function(self, variant, disable_asserts)
         self.variant = variant
-        local vstates = {}
         local old_vstates = self.vstates
         if old_vstates then
             for k, v in pairs(old_vstates) do
@@ -733,6 +732,8 @@ Widget = register_class("Widget", table2.Object, {
         for i = #manprops, 1, -1 do
             self[manprops[i]], manprops[i] = nil, nil
         end
+        if variant == false then return nil end
+        local vstates = {}
         local dstates = rawget(self.__proto, "variants")
         dstates = dstates and dstates[variant or "default"] or nil
         if dstates then
@@ -744,11 +745,6 @@ Widget = register_class("Widget", table2.Object, {
                 if ic then ic(cl, self) end
             end
         end
-        local oldprops = self.defprops
-        if oldprops then for i, v in ipairs(oldprops) do
-            self["set_" .. v], self[v] = nil, nil
-        end end
-        local defprops = {}
         local props = rawget(self.__proto, "properties")
         props = props and props[variant or "default"] or nil
         if props then for i, v in ipairs(props) do
@@ -763,8 +759,7 @@ Widget = register_class("Widget", table2.Object, {
         end end
         local cont = self.container
         if cont and cont._cleared then self.container = nil end
-        self.vstates  = vstates
-        self.defprops = defprops
+        self.vstates = vstates
     end,
 
     --[[! Function: update_class_state
