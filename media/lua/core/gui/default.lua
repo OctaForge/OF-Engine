@@ -86,25 +86,13 @@ world:new_window("changes", gui.Window, function(win)
                 box:append(gui.Label { text = v })
             end
             box:append(gui.H_Box { padding = 0.01 }, function(hb)
-                hb:append(gui.Button(), function(btn)
-                    btn:update_state("default",
-                        btn:update_state("hovering",
-                            btn:update_state("clicked", gui.Color_Filler {
-                                r = 64, g = 64, b = 64,
-                                min_w = 0.2, min_h = 0.05,
-                                gui.Label { text = "OK" } })))
+                hb:append(gui.Button { label = "OK" }, function(btn)
                     signal.connect(btn, "clicked", function()
                         world:hide_window("changes")
                         gui.changes_apply()
                     end)
                 end)
-                hb:append(gui.Button(), function(btn)
-                    btn:update_state("default",
-                        btn:update_state("hovering",
-                            btn:update_state("clicked", gui.Color_Filler {
-                                r = 64, g = 64, b = 64,
-                                min_w = 0.2, min_h = 0.05,
-                                gui.Label { text = "Cancel" } })))
+                hb:append(gui.Button { label = "Cancel" }, function(btn)
                     signal.connect(btn, "clicked", function()
                         world:hide_window("changes")
                         gui.changes_clear()
@@ -123,7 +111,7 @@ world:new_window("texture", gui.Window, function(win)
             box:append(gui.Label { text = "Textures" })
             box:append(gui.Grid { columns = 9, padding = 0.01 }, function(t)
                 for i = 1, capi.slot_get_count() do
-                    t:append(gui.Button(), function(btn)
+                    t:append(gui.Button, function(btn)
                         btn:update_state("default",
                             btn:update_state("hovering",
                                 btn:update_state("clicked", gui.Slot_Viewer {
