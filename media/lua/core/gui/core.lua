@@ -213,24 +213,20 @@ local loop_children = function(self, fun)
     local vr = self.vstates
     local st = self.states
 
-    if st or vr then
-        local s = self:choose_state()
-        if s then
-            local  w = st and (st[s] or st["default"])
-            if not w then
-                w = vr and (vr[s] or vr["default"])
-            end
-            if w then
-                local a, b = fun(w)
-                if a != nil then return a, b end
-            end
+    local s = self:choose_state()
+    if s then
+        local  w = st[s] or st["default"]
+        if not w then w = vr[s] or vr["default"] end
+        if w then
+            local a, b = fun(w)
+            if a != nil then return a, b end
         end
     end
 
-    if vr then for i = 1, #vr do
+    for i = 1, #vr do
         local a, b = fun(vr[i])
         if    a != nil then return a, b end
-    end end
+    end
 
     for i = 1, #ch do
         local a, b = fun(ch[i])
@@ -256,22 +252,18 @@ local loop_children_r = function(self, fun)
         if    a != nil then return a, b end
     end
 
-    if vr then for i = #vr, 1, -1 do
+    for i = #vr, 1, -1 do
         local a, b = fun(vr[i])
         if    a != nil then return a, b end
-    end end
+    end
 
-    if st then
-        local s = self:choose_state()
-        if s then
-            local  w = st and (st[s] or st["default"])
-            if not w then
-                w = vr and (vr[s] or vr["default"])
-            end
-            if w then
-                local a, b = fun(w)
-                if a != nil then return a, b end
-            end
+    local s = self:choose_state()
+    if s then
+        local  w = st[s] or st["default"]
+        if not w then w = vr[s] or vr["default"] end
+        if w then
+            local a, b = fun(w)
+            if a != nil then return a, b end
         end
     end
 end
@@ -670,21 +662,13 @@ Widget = register_class("Widget", table2.Object, {
         clear_focus(self)
 
         local children = self.children
-        if children then
-            for k, v in ipairs(children) do v:clear() end
-        end
+        for k, v in ipairs(children) do v:clear() end
         local states = self.states
-        if states then
-            for k, v in pairs(states) do v:clear() end
-        end
+        for k, v in pairs(states) do v:clear() end
         local vstates = self.vstates
-        if vstates then
-            for k, v in pairs(vstates) do v:clear() end
-        end
+        for k, v in pairs(vstates) do v:clear() end
         local mobjs = self.managed_objects
-        if mobjs then
-            for k, v in pairs(mobjs) do v:clear() end
-        end
+        for k, v in pairs(mobjs) do v:clear() end
         self.container = nil
 
         emit(self, "destroy")
@@ -723,17 +707,16 @@ Widget = register_class("Widget", table2.Object, {
     set_variant = function(self, variant, disable_asserts)
         self.variant = variant
         local old_vstates = self.vstates
-        if old_vstates then
-            for k, v in pairs(old_vstates) do
-                v:clear()
-            end
-        end
+        if old_vstates then for k, v in pairs(old_vstates) do
+            v:clear()
+        end end
         local manprops = self.managed_properties
         for i = #manprops, 1, -1 do
             self[manprops[i]], manprops[i] = nil, nil
         end
-        if variant == false then return nil end
         local vstates = {}
+        self.vstates = vstates
+        if variant == false then return nil end
         local dstates = rawget(self.__proto, "variants")
         dstates = dstates and dstates[variant or "default"] or nil
         if dstates then
@@ -759,7 +742,6 @@ Widget = register_class("Widget", table2.Object, {
         end end
         local cont = self.container
         if cont and cont._cleared then self.container = nil end
-        self.vstates = vstates
     end,
 
     --[[! Function: update_class_state
@@ -791,7 +773,7 @@ Widget = register_class("Widget", table2.Object, {
         local insts = rawget(self, "instances")
         if insts then for v in pairs(insts) do
             local sts = v.vstates
-            if sts and v.variant == variant then
+            if v.variant == variant then
                 local st = sts[sname]
                 -- update only on widgets actually using the default state
                 if st and st.__proto == oldstate then

@@ -61,15 +61,13 @@ M.H_Box = register_class("H_Box", Widget, {
             subw += o.w
             self.h = max(self.h, o.y + o.h)
         end)
-        local vstates = self.vstates
-        self.w = subw + self.padding * max((vstates and #vstates or 0) +
+        self.w = subw + self.padding * max(#self.vstates +
             #self.children - 1, 0)
         self.subw = subw
     end,
 
     adjust_children = function(self)
-        local vstates = self.vstates
-        local nchildren, nvstates = #self.children, (vstates and #vstates or 0)
+        local nchildren, nvstates = #self.children, #self.vstates
         if nchildren == 0 and nvstates == 0 then return end
         local offset, space = 0, (self.w - self.subw) / max(nvstates +
             nchildren - 1, 1)
@@ -105,15 +103,13 @@ M.V_Box = register_class("V_Box", Widget, {
             subh += o.h
             self.w = max(self.w, o.x + o.w)
         end)
-        local vstates = self.vstates
-        self.h = subh + self.padding * max((vstates and #vstates or 0) +
+        self.h = subh + self.padding * max(#self.vstates +
             #self.children - 1, 0)
         self.subh = subh
     end,
 
     adjust_children = function(self)
-        local vstates = self.vstates
-        local nchildren, nvstates = #self.children, (vstates and #vstates or 0)
+        local nchildren, nvstates = #self.children, #self.vstates
         if nchildren == 0 and nvstates == 0 then return end
         local offset, space = 0, (self.h - self.subh) / max(nvstates +
             nchildren - 1, 1)
@@ -180,10 +176,7 @@ M.Grid = register_class("Grid", Widget, {
     end,
 
     adjust_children = function(self)
-        local vstates = self.vstates
-        if #self.children == 0 and (not vstates or #vstates == 0) then
-            return
-        end
+        if #self.children == 0 and #self.vstates == 0 then return end
         local widths, heights = self.widths, self.heights
         local column , row     = 1, 1
         local offsetx, offsety = 0, 0
