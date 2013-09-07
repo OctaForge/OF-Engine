@@ -62,7 +62,7 @@ end
 local Game_Player = Player:clone {
     name = "Game_Player",
 
-    properties = {
+    __properties = {
         new_mark = svars.State_Array_Float {
             client_set = true, has_history = false
         }

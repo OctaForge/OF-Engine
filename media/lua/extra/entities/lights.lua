@@ -35,7 +35,7 @@ local Marker = ents.Marker
 local Dynamic_Light = Marker:clone {
     name = "Dynamic_Light",
 
-    properties = {
+    __properties = {
         radius = svars.State_Integer(),
         red    = svars.State_Integer(),
         green  = svars.State_Integer(),
@@ -85,7 +85,7 @@ local flash_flag = lights.flags.FLASH
 M.Flickering_Light = Dynamic_Light:clone {
     name = "Flickering_Light",
 
-    properties = {
+    __properties = {
         probability = svars.State_Float(),
         min_delay   = svars.State_Integer(),
         max_delay   = svars.State_Integer(),

@@ -196,7 +196,7 @@ local Character = Entity:clone {
         ON_FLOOR = 4, STEPPING_UP = 5, STEPPING_DOWN = 6, BOUNCING = 7
     },
 
-    properties = {
+    __properties = {
         animation = svars.State_Array {
             setter = setanim, client_set = true
         },
@@ -675,7 +675,7 @@ end)
 local Player = Character:clone {
     name = "Player",
 
-    properties = {
+    __properties = {
         can_edit = svars.State_Boolean(),
         hud_model_name = svars.State_String()
     },
@@ -735,7 +735,7 @@ local Static_Entity = Entity:clone {
     sauer_type = 0,
     attr_num   = 0,
 
-    properties = {
+    __properties = {
         position = svars.State_Vec3 {
             getter = capi.get_extent_position,
             setter = capi.set_extent_position
@@ -913,7 +913,7 @@ local Oriented_Marker = Static_Entity:clone {
     sauer_type = 2,
     attr_num   = 2,
 
-    properties = {
+    __properties = {
         attr1 = gen_attr(1, "yaw"),
         attr2 = gen_attr(2, "pitch")
     },
@@ -966,7 +966,7 @@ local Light = Static_Entity:clone {
     sauer_type = 3,
     attr_num   = 5,
 
-    properties = {
+    __properties = {
         attr1 = gen_attr(1, "radius"),
         attr2 = gen_attr(2, "red"),
         attr3 = gen_attr(3, "green"),
@@ -1013,7 +1013,7 @@ local Spot_Light = Static_Entity:clone {
     sauer_type = 4,
     attr_num   = 1,
 
-    properties = {
+    __properties = {
         attr1 = gen_attr(1, "radius")
     },
 
@@ -1050,7 +1050,7 @@ local Envmap = Static_Entity:clone {
     sauer_type = 5,
     attr_num   = 1,
 
-    properties = {
+    __properties = {
         attr1 = gen_attr(1, "radius")
     },
 
@@ -1086,7 +1086,7 @@ local Sound = Static_Entity:clone {
     sauer_type = 6,
     attr_num   = 3,
 
-    properties = {
+    __properties = {
         attr1 = gen_attr(1, "radius"),
         attr2 = gen_attr(2, "size"),
         attr3 = gen_attr(3, "volume"),
@@ -1186,7 +1186,7 @@ local Mapmodel = Static_Entity:clone {
     sauer_type = 8,
     attr_num   = 4,
 
-    properties = {
+    __properties = {
         animation = svars.State_Array {
             setter = setanim, client_set = true
         },
@@ -1278,7 +1278,7 @@ local Obstacle = Static_Entity:clone {
     sauer_type = 9,
     attr_num   = 7,
 
-    properties = {
+    __properties = {
         attr1 = gen_attr(1, "yaw"),
         attr2 = gen_attr(2, "pitch"),
         attr3 = gen_attr(3, "roll"),

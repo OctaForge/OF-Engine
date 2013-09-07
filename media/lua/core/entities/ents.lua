@@ -178,7 +178,7 @@ local register_plugins = function(cl, plugins, name)
     for i, plugin in ipairs(plugins) do
         for name, elem in pairs(plugin) do
             if not plugin_slotset[name] then
-                if name == "properties" then
+                if name == "__properties" then
                     assert(type(elem) == "table")
                     if not properties then
                         properties = elem
@@ -196,7 +196,7 @@ local register_plugins = function(cl, plugins, name)
 
     local ret = cl:clone(cldata)
     ret.name           = name
-    ret.properties     = properties
+    ret.__properties   = properties
     ret.__raw_class    = cl
     ret.__parent_class = cl.__proto
     ret.__plugins      = plugins
@@ -223,7 +223,7 @@ end
     after it in the order of plugin array. Then it can contain any non-slot
     member, those are overriden without checking (the last plugin takes
     priority). Plugins can provide their own state variables via the
-    "properties" table, like entities. The "properties" tables of plugins
+    "__properties" table, like entities. The "__properties" tables of plugins
     are all merged together and the last plugin takes priority.
 
     The original plugin array is accessible from the clone as __plugins.
@@ -269,7 +269,7 @@ M.register_class = function(cl, plugins, name)
 
     local base = cl
     while base do
-        local props = base.properties
+        local props = base.__properties
         if props then
             for n, v in pairs(props) do
                 if not pt[n] and svars.is_svar(v) then
@@ -726,13 +726,13 @@ Entity = table2.Object:clone {
     ]]
     per_frame = true,
 
-    --[[! Variable: properties
+    --[[! Variable: __properties
         Here you store the state variables. Each inherited entity class
         also inherits its parent's properties in addition to the newly
         defined ones. If you don't want any new properties in your
         entity class, do not create this table.
     ]]
-    properties = {
+    __properties = {
         tags       = svars.State_Array(),
         persistent = svars.State_Boolean()
     },

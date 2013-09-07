@@ -47,7 +47,7 @@ local Obstacle = ents.Obstacle
 M.Teleporter = Obstacle:clone {
     name = "Teleporter",
 
-    properties = {
+    __properties = {
         destination = svars.State_Integer(),
         sound_name  = svars.State_String()
     },

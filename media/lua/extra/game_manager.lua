@@ -31,7 +31,7 @@ local get
     plugin.
 ]]
 M.player_plugin = {
-    properties = {
+    __properties = {
         team        = svars.State_String(),
         spawn_stage = svars.State_Integer()
     },
@@ -91,7 +91,7 @@ local rand, floor = math.random, math.floor
 local Game_Manager = ents.Entity:clone {
     name = "Game_Manager",
 
-    properties = {
+    __properties = {
         team_data = svars.State_Table()
     },
 

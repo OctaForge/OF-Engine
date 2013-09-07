@@ -72,7 +72,7 @@ local SMOKE, FLAME = renderers.smoke, renderers.flame
 M.Fire_Effect = Particle_Effect:clone {
     name = "Fire_Effect",
 
-    properties = {
+    __properties = {
         radius = svars.State_Float(),
         height = svars.State_Float(),
         red    = svars.State_Integer(),
@@ -125,7 +125,7 @@ local STEAM = renderers.steam
 M.Steam_Effect = Particle_Effect:clone {
     name = "Steam_Effect",
 
-    properties = {
+    __properties = {
         direction = svars.State_Integer()
     },
 
