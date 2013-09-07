@@ -588,6 +588,7 @@ Widget = register_class("Widget", table2.Object, {
         instances[self] = self
 
         self.managed_objects = {}
+        self.managed_properties = {}
 
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
 
@@ -728,6 +729,10 @@ Widget = register_class("Widget", table2.Object, {
                 v:clear()
             end
         end
+        local manprops = self.managed_properties
+        for i = #manprops, 1, -1 do
+            self[manprops[i]], manprops[i] = nil, nil
+        end
         local dstates = rawget(self.__proto, "variants")
         dstates = dstates and dstates[variant or "default"] or nil
         if dstates then
@@ -754,6 +759,7 @@ Widget = register_class("Widget", table2.Object, {
                     "cannot override existing property " .. v)
             end
             self[nm] = gen_setter(v)
+            manprops[#manprops + 1] = nm
         end end
         local cont = self.container
         if cont and cont._cleared then self.container = nil end
