@@ -544,13 +544,19 @@ local Widget, Window
 
     When selecting the current state of a widget instance, it first tries
     the "states" member (which is local to the widget instance). If such
-    state is found, it's used. Otherwise the global "variants" table is
-    tried, getting the variant self.variant (or "default" if none).
+    state is found, it's used. Otherwise the widget-global "__variants"
+    table is tried, getting the variant self.variant (or "default" if none).
 
-    Along with "variants", the global widget class can contain "properties".
-    These allow to define per-variant special attributes for widgets (each
-    comes with a setter that emits the appropriate signal). The tablle
-    "properties" maps a variant name to an array of property names.
+    Note that self.variant can also have the "false" value, in this case
+    no variant is used at all (not even "default").
+
+    Every variant can have a member "__properties" which is an array of
+    extra properties specific to the variant. You can initialize them
+    via kwargs just like all other properties and the appropriate
+    setters are defined.
+
+    There can also be "__init" on every variant which is a function that
+    is called with self as an argument after initialization of the variant.
 
     Note that you can't override existing properties (as in, either self[name]
     or self["set_" .. name] exists) and if you set a different variant, all
@@ -560,7 +566,7 @@ local Widget, Window
     The property "container" is a reference to another widget that is used
     as a target for appending/prepending/insertion and is fully optional.
 
-    Each widget class also contains an "instances" table storing a set
+    Each widget class also contains an "__instances" table storing a set
     of all instances of the widget class.
 ]]
 Widget = register_class("Widget", table2.Object, {
@@ -572,12 +578,18 @@ Widget = register_class("Widget", table2.Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        local instances = rawget(self.__proto, "instances")
+        local instances = rawget(self.__proto, "__instances")
         if not instances then
             instances = {}
-            rawset(self.__proto, "instances", instances)
+            rawset(self.__proto, "__instances", instances)
         end
         instances[self] = self
+
+        local variants = rawget(self.__proto, "__variants")
+        if not variants then
+            variants = {}
+            rawset(self.__proto, "__variants", variants)
+        end
 
         self.managed_objects = {}
         self.managed_properties = {}
@@ -634,14 +646,16 @@ Widget = register_class("Widget", table2.Object, {
         local variant = kwargs.variant
 
         -- extra kwargs
-        local props = rawget(self.__proto, "properties")
-        props = props and props[variant or "default"] or nil
-        if props then for i, v in ipairs(props) do
-            assert(v:sub(1, 1) != "_", "invalid property " .. v)
-            assert(not self["set_" .. v] and self[v] == nil,
-                "cannot override existing property " .. v)
-            self[v] = kwargs[v]
-        end end
+        if variant != false then
+            local dstates = variants[variant or "default"]
+            local props = dstates and dstates.__properties or nil
+            if props then for i, v in ipairs(props) do
+                assert(v:sub(1, 1) != "_", "invalid property " .. v)
+                assert(not self["set_" .. v] and self[v] == nil,
+                    "cannot override existing property " .. v)
+                self[v] = kwargs[v]
+            end end
+        end
 
         -- disable asserts, already checked above
         self:set_variant(variant, true)
@@ -672,7 +686,7 @@ Widget = register_class("Widget", table2.Object, {
         self.container = nil
 
         emit(self, "destroy")
-        local insts = rawget(self.__proto, "instances")
+        local insts = rawget(self.__proto, "__instances")
         if insts then
             insts[self] = nil
         end
@@ -717,29 +731,34 @@ Widget = register_class("Widget", table2.Object, {
         local vstates = {}
         self.vstates = vstates
         if variant == false then return nil end
-        local dstates = rawget(self.__proto, "variants")
-        dstates = dstates and dstates[variant or "default"] or nil
+        local variants = rawget(self.__proto, "__variants")
+        local dstates = variants[variant or "default"]
         if dstates then
+            local notvariants = {
+                ["__properties"] = true, ["__init"] = true
+            }
             for k, v in pairs(dstates) do
+                if notvariants[k] then continue end
                 local ic = v.init_clone
                 local cl = v:deep_clone(self)
                 vstates[k] = cl
                 cl.parent = self
                 if ic then ic(cl, self) end
             end
+            local props = dstates.__properties
+            if props then for i, v in ipairs(props) do
+                local nm = "set_" .. v
+                if not disable_asserts then
+                    assert(v:sub(1, 1) != "_", "invalid property " .. v)
+                    assert(not self[nm] and self[v] == nil,
+                        "cannot override existing property " .. v)
+                end
+                self[nm] = gen_setter(v)
+                manprops[#manprops + 1] = nm
+            end end
+            local init = dstates.__init
+            if init then init(self) end
         end
-        local props = rawget(self.__proto, "properties")
-        props = props and props[variant or "default"] or nil
-        if props then for i, v in ipairs(props) do
-            local nm = "set_" .. v
-            if not disable_asserts then
-                assert(v:sub(1, 1) != "_", "invalid property " .. v)
-                assert(not self[nm] and self[v] == nil,
-                    "cannot override existing property " .. v)
-            end
-            self[nm] = gen_setter(v)
-            manprops[#manprops + 1] = nm
-        end end
         local cont = self.container
         if cont and cont._cleared then self.container = nil end
     end,
@@ -756,10 +775,10 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     update_class_state = function(self, sname, sval, variant)
         variant = variant or "default"
-        local dstates = rawget(self, "variants")
+        local dstates = rawget(self, "__variants")
         if not dstates then
             dstates = {}
-            rawset(self, "variants", dstates)
+            rawset(self, "__variants", dstates)
         end
         local variant = dstates[variant]
         if not variant then
@@ -770,7 +789,7 @@ Widget = register_class("Widget", table2.Object, {
         variant[sname] = sval
         oldstate:clear()
 
-        local insts = rawget(self, "instances")
+        local insts = rawget(self, "__instances")
         if insts then for v in pairs(insts) do
             local sts = v.vstates
             if v.variant == variant then

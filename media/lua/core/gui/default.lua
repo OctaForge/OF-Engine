@@ -21,9 +21,8 @@ local world = gui.get_world()
 
 -- buttons
 
-local btnv = {}
-gui.Button.variants   = { default = btnv }
-gui.Button.properties = { default = { "label" } }
+local btnv = { __properties = { "label" } }
+gui.Button.__variants = { default = btnv }
 
 local btnv_init_clone = |self, btn| do
     local lbl = gui.Label { text = btn.label }
@@ -51,9 +50,10 @@ btnv["default"     ] = btn_build_variant(255, 255, 255)
 btnv["hovering"    ] = btn_build_variant(225, 225, 225)
 btnv["clicked_left"] = btn_build_variant(192, 192, 192)
 
-local mbtnv, smbtnv = {}, {}
-gui.Menu_Button.variants   = { default = mbtnv, submenu = smbtnv }
-gui.Menu_Button.properties = { default = { "label" }, submenu = { "label" } }
+local mbtnv, smbtnv =
+    { __properties  = { "label" } },
+    { __properties  = { "label" } }
+gui.Menu_Button.__variants = { default = mbtnv, submenu = smbtnv }
 
 mbtnv["default"     ] = btn_build_variant_nobg()
 mbtnv["hovering"    ] = btn_build_variant_nobg()
@@ -67,11 +67,11 @@ smbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
 
 -- editors
 
-gui.Text_Editor.variants = { default = { gui.Outline {
+gui.Text_Editor.__variants = { default = { gui.Outline {
     clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true
 } } }
-gui.Field.variants       = gui.Text_Editor.variants
-gui.Key_Field.variants   = gui.Text_Editor.variants
+gui.Field.__variants       = gui.Text_Editor.__variants
+gui.Key_Field.__variants   = gui.Text_Editor.__variants
 
 -- default windows
 
