@@ -52,8 +52,8 @@ M.Teleporter = Obstacle:clone {
         sound_name  = svars.State_String()
     },
 
-    init = function(self, uid, kwargs)
-        Obstacle.init(self, uid, kwargs)
+    init = function(self, kwargs)
+        Obstacle.init(self, kwargs)
         self:set_attr("destination", 0)
         self:set_attr("sound_name", "")
     end,

@@ -466,13 +466,8 @@ local add = function(cn, uid, kwargs, new)
     end
 
     local r = cl()
-    if not (SERVER and new) then
-        r.uid = uid
-    else
-        r:init(uid, kwargs)
-    end
-
-    storage[r.uid] = r
+    r.uid = uid
+    storage[uid] = r
 
     -- caching
     for k, v in pairs(class_storage) do
@@ -485,6 +480,8 @@ local add = function(cn, uid, kwargs, new)
             end
         end
     end
+
+    if SERVER and new then r:init(kwargs) end
 
     debug then log(DEBUG, "ents.add: activate")
     r:activate(kwargs)
@@ -936,11 +933,9 @@ Entity = table2.Object:clone {
         is persistent (to set the persistent property). In child entities,
         it can be used for more things.
     ]]
-    init = SERVER and function(self, uid, kwargs)
-        debug then log(DEBUG, "Entity.init: " .. uid)
-        assert(type(uid) == "number")
+    init = SERVER and function(self, kwargs)
+        debug then log(DEBUG, "Entity.init")
 
-        self.uid = uid
         self:entity_setup()
 
         self:set_attr("tags", {})
