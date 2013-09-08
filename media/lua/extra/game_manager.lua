@@ -36,7 +36,7 @@ M.player_plugin = {
         spawn_stage = svars.State_Integer()
     },
 
-    init_svars = function(self)
+    __init_svars = function(self)
         self:set_attr("team", "")
     end,
 
@@ -44,7 +44,7 @@ M.player_plugin = {
         self:set_attr("spawn_stage", 1)
     end,
 
-    activate = function(self)
+    __activate = function(self)
         connect(self, "spawn_stage_changed", self.on_spawn_stage)
         if SERVER then
             get():pick_team(self)
@@ -95,7 +95,7 @@ local Game_Manager = ents.Entity:clone {
         team_data = svars.State_Table()
     },
 
-    activate = SERVER and function(self)
+    __activate = SERVER and function(self)
         self:add_tag("game_manager")
         self.teams = {}
     end or nil,

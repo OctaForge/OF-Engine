@@ -355,8 +355,8 @@ local Character = Entity:clone {
     get_editing = function(self) return self:get_attr("client_state") == 4 end,
     get_lagged = function(self) return self:get_attr("client_state") == 3 end,
 
-    init_svars = SERVER and function(self, kwargs)
-        Entity.init_svars(self, kwargs)
+    __init_svars = SERVER and function(self, kwargs)
+        Entity.__init_svars(self, kwargs)
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
@@ -384,18 +384,18 @@ local Character = Entity:clone {
         self:set_attr("landing_sound", "olpc/AdamKeshen/kik.wav")
     end or nil,
 
-    activate = SERVER and function(self, kwargs)
+    __activate = SERVER and function(self, kwargs)
         self.cn = kwargs and kwargs.cn or -1
         assert(self.cn >= 0)
         capi.setup_character(self)
 
-        Entity.activate(self, kwargs)
+        Entity.__activate(self, kwargs)
 
         self:set_attr("model_name", self:get_attr("model_name"))
 
         self:flush_queued_svar_changes()
     end or function(self, kwargs)
-        Entity.activate(self, kwargs)
+        Entity.__activate(self, kwargs)
 
         self.cn = kwargs and kwargs.cn or -1
         capi.setup_character(self)
@@ -430,12 +430,12 @@ local Character = Entity:clone {
         end)
     end,
 
-    deactivate = function(self)
+    __deactivate = function(self)
         capi.destroy_character(self)
-        Entity.deactivate(self)
+        Entity.__deactivate(self)
     end,
 
-    --[[! Function: render
+    --[[! Function: __render
         Clientside and run per frame. It renders the character model. Decides
         all the parameters, including animation etc., but not every frame -
         they're cached by self.render_args_timestamp (they're only
@@ -446,7 +446,7 @@ local Character = Entity:clone {
         which determines whether we're in first person mode), the member
         hud_model_offset (vec3) is used to offset the HUD model (if available).
     ]]
-    render = (not SERVER) and function(self, hudpass, needhud)
+    __render = (not SERVER) and function(self, hudpass, needhud)
         if not self.initialized then return end
         if not hudpass and needhud then return end
 
@@ -500,8 +500,8 @@ local Character = Entity:clone {
         Returns the rendering flags used when rendering the character. By
         default, it enables some occlusion stuff. Override as needed,
         the parameters are hudpass (whether we're rendering HUD right now)
-        and needhud (whether we're in first person mode). Called from <render>.
-        Clientside.
+        and needhud (whether we're in first person mode). Called from
+        <__render>. Clientside.
     ]]
     get_render_flags = (not SERVER) and function(self, hudpass, needhud)
         local flags = model.render_flags.FULLBRIGHT
@@ -680,8 +680,8 @@ local Player = Character:clone {
         hud_model_name = svars.State_String()
     },
 
-    init_svars = SERVER and function(self, kwargs)
-        Character.init_svars(self, kwargs)
+    __init_svars = SERVER and function(self, kwargs)
+        Character.__init_svars(self, kwargs)
 
         self:set_attr("can_edit", false)
         self:set_attr("hud_model_name", "")
@@ -707,8 +707,8 @@ end
 --[[! Class: Static_Entity
     A base for any static entity. Inherits from <Entity>. Unlike
     dynamic entities (such as <Character>), static entities usually don't
-    invoke their "run" method per frame. To re-enable that, set the
-    per_frame member to true (false by default for efficiency).
+    invoke their "__run" method per frame. To re-enable that, set the
+    __per_frame member to true (false by default for efficiency).
 
     Static entities are persistent by default, so they set the "persistent"
     inherited property to true.
@@ -731,7 +731,7 @@ local Static_Entity = Entity:clone {
     ]]
     edit_icon = "media/interface/icon/edit_generic",
 
-    per_frame = false,
+    __per_frame = false,
     sauer_type = 0,
     attr_num   = 0,
 
@@ -742,13 +742,13 @@ local Static_Entity = Entity:clone {
         }
     },
 
-    init_svars = function(self, kwargs)
+    __init_svars = function(self, kwargs)
         debug then log(DEBUG, "Static_Entity.init")
 
         kwargs = kwargs or {}
         kwargs.persistent = true
 
-        Entity.init_svars(self, kwargs)
+        Entity.__init_svars(self, kwargs)
         if not kwargs.position then
             self:set_attr("position", { 511, 512, 513 })
         else
@@ -762,11 +762,11 @@ local Static_Entity = Entity:clone {
         debug then log(DEBUG, "Static_Entity.init complete")
     end,
 
-    activate = SERVER and function(self, kwargs)
+    __activate = SERVER and function(self, kwargs)
         kwargs = kwargs or {}
 
-        debug then log(DEBUG, "Static_Entity.activate")
-        Entity.activate(self, kwargs)
+        debug then log(DEBUG, "Static_Entity.__activate")
+        Entity.__activate(self, kwargs)
 
         debug then log(DEBUG, "Static_Entity: extent setup")
         capi.setup_extent(self, self.sauer_type)
@@ -781,12 +781,12 @@ local Static_Entity = Entity:clone {
         end
     end or function(self, kwargs)
         capi.setup_extent(self, self.sauer_type)
-        return Entity.activate(self, kwargs)
+        return Entity.__activate(self, kwargs)
     end,
 
-    deactivate = function(self)
+    __deactivate = function(self)
         capi.destroy_extent(self)
-        return Entity.deactivate(self)
+        return Entity.__deactivate(self)
     end,
 
     send_notification_full = SERVER and function(self, cn)
@@ -974,8 +974,8 @@ local Light = Static_Entity:clone {
         attr5 = gen_attr(5, "shadow")
     },
 
-    init_svars = function(self, kwargs)
-        Static_Entity.init_svars(self, kwargs)
+    __init_svars = function(self, kwargs)
+        Static_Entity.__init_svars(self, kwargs)
         self:set_attr("red", 128)
         self:set_attr("green", 128)
         self:set_attr("blue", 128)
@@ -1017,8 +1017,8 @@ local Spot_Light = Static_Entity:clone {
         attr1 = gen_attr(1, "radius")
     },
 
-    init_svars = function(self, kwargs)
-        Static_Entity.init_svars(self, kwargs)
+    __init_svars = function(self, kwargs)
+        Static_Entity.__init_svars(self, kwargs)
         self:set_attr("radius", 90)
     end,
 
@@ -1054,8 +1054,8 @@ local Envmap = Static_Entity:clone {
         attr1 = gen_attr(1, "radius")
     },
 
-    init_svars = function(self, kwargs)
-        Static_Entity.init_svars(self, kwargs)
+    __init_svars = function(self, kwargs)
+        Static_Entity.__init_svars(self, kwargs)
         self:set_attr("radius", 128)
     end,
 
@@ -1093,16 +1093,16 @@ local Sound = Static_Entity:clone {
         sound_name = svars.State_String()
     },
 
-    init_svars = function(self, kwargs)
-        Static_Entity.init_svars(self, kwargs)
+    __init_svars = function(self, kwargs)
+        Static_Entity.__init_svars(self, kwargs)
         self:set_attr("radius", 100)
         self:set_attr("size", 0)
         self:set_attr("volume", 100)
         self:set_attr("sound_name", "")
     end,
 
-    activate = (not SERVER) and function(self, ...)
-        Static_Entity.activate(self, ...)
+    __activate = (not SERVER) and function(self, ...)
+        Static_Entity.__activate(self, ...)
         local f = capi.sound_stop_map
         connect(self, "sound_name_changed", f)
         connect(self, "radius_changed", f)
@@ -1209,8 +1209,8 @@ local Mapmodel = Static_Entity:clone {
         attr4 = gen_attr(4, "scale")
     },
 
-    init_svars = SERVER and function(self, kwargs)
-        Static_Entity.init_svars(self, kwargs)
+    __init_svars = SERVER and function(self, kwargs)
+        Static_Entity.__init_svars(self, kwargs)
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
@@ -1218,8 +1218,8 @@ local Mapmodel = Static_Entity:clone {
         self:set_attr("animation_flags", 0)
     end or nil,
 
-    activate = SERVER and function(self, kwargs)
-        Static_Entity.activate(self, kwargs)
+    __activate = SERVER and function(self, kwargs)
+        Static_Entity.__activate(self, kwargs)
         self:set_attr("model_name", self:get_attr("model_name"))
     end or nil,
 
@@ -1288,8 +1288,8 @@ local Obstacle = Static_Entity:clone {
         attr7 = gen_attr(7, "solid")
     },
 
-    init_svars = function(self, kwargs)
-        Static_Entity.init_svars(self, kwargs)
+    __init_svars = function(self, kwargs)
+        Static_Entity.__init_svars(self, kwargs)
         self:set_attr("yaw", 0)
         self:set_attr("pitch", 0)
         self:set_attr("roll", 0)

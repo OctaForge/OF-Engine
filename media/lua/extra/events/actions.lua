@@ -43,35 +43,35 @@ M.Action_Parallel = Action:clone {
         self.other_actions  = actions
     end,
 
-    --[[! Function: start
+    --[[! Function: __start
         Iterates over the action array given in the constructor, adding
         each into the system using <add_action>.
     ]]
-    start = function(self)
+    __start = function(self)
         for i, action in ipairs(self.other_actions) do
             self:add_action(action)
         end
     end,
 
-    --[[! Function: run
+    --[[! Function: __run
         Runs all the action systems saved inside, filtering out those that
         are already done. Returns the same as <actions.Action> with the
         addition of another condition (the number of systems must be
         zero - the action won't finish until everything is done).
     ]]
-    run = function(self, millis)
+    __run = function(self, millis)
         local systems = filter(self.action_systems, function(i, actsys)
             actsys:run(millis)
             return #actsys:get() != 0
         end)
         self.action_systems = systems
-        return Action.run(self, millis) and #systems == 0
+        return Action.__run(self, millis) and #systems == 0
     end,
 
-    --[[! Function: finish
+    --[[! Function: __finish
         Clears up the remaining action systems.
     ]]
-    finish = function(self)
+    __finish = function(self)
         for i, actsys in ipairs(self.action_systems) do
             actsys:clear()
         end
@@ -98,11 +98,11 @@ M.Action_Parallel = Action:clone {
 M.Action_Local_Animation = Action:clone {
     name = "Action_Local_Animation",
 
-    --[[! Function: start
+    --[[! Function: __start
         Gives its actor the new animation. Uses the set_local_animation
         method of an entity.
     ]]
-    start = function(self)
+    __start = function(self)
         local ac = self.actor
         self.old_animation = ac:get_attr("animation"):to_array()
         self.old_animflags = ac:get_attr("animation_flags")
@@ -110,10 +110,10 @@ M.Action_Local_Animation = Action:clone {
         ac:set_local_animation_flags(self.local_animation_flags or 0)
     end,
 
-    --[[! Function: finish
+    --[[! Function: __finish
         Resets the animation back.
     ]]
-    finish = function(self)
+    __finish = function(self)
         local ac = self.actor
         local anim = ac:get_attr("animation"):to_array()
         local lanim = self.local_animation

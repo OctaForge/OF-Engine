@@ -58,12 +58,12 @@ local handle_frame = function(millis, lastmillis)
     for uid, entity in pairs(get_ents()) do
         local skip = false
 
-        if entity.deactivated or not entity.per_frame then
+        if entity.deactivated or not entity.__per_frame then
             skip = true
         end
 
         if not skip then
-            entity:run(millis)
+            entity:__run(millis)
         end
     end
 end

@@ -42,25 +42,25 @@ local Dynamic_Light = Marker:clone {
         blue   = svars.State_Integer()
     },
 
-    --[[! Variable: per_frame
-        Set to true, as <run> doesn't work on static entities by default.
+    --[[! Variable: __per_frame
+        Set to true, as <__run> doesn't work on static entities by default.
     ]]
-    per_frame = true,
+    __per_frame = true,
 
-    init_svars = function(self, kwargs)
-        Marker.init_svars(self, kwargs)
+    __init_svars = function(self, kwargs)
+        Marker.__init_svars(self, kwargs)
         self:set_attr("radius", 100)
         self:set_attr("red",    128)
         self:set_attr("green",  128)
         self:set_attr("blue",   128)
     end,
 
-    --[[! Function: run
+    --[[! Function: __run
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
     ]]
-    run = (not SERVER) and function(self, millis)
-        Marker.run(self, millis)
+    __run = (not SERVER) and function(self, millis)
+        Marker.__run(self, millis)
         local pos = self:get_attr("position")
         light_add(pos, self:get_attr("radius"),
             self:get_attr("red") / 255, self:get_attr("green") / 255,
@@ -91,19 +91,19 @@ M.Flickering_Light = Dynamic_Light:clone {
         max_delay   = svars.State_Integer(),
     },
 
-    init_svars = function(self, kwargs)
-        Dynamic_Light.init_svars(self, kwargs)
+    __init_svars = function(self, kwargs)
+        Dynamic_Light.__init_svars(self, kwargs)
         self:set_attr("probability", 0.5)
         self:set_attr("min_delay",   100)
         self:set_attr("max_delay",   300)
     end,
 
-    activate = (not SERVER) and function(self, kwargs)
-        Marker.activate(self, kwargs)
+    __activate = (not SERVER) and function(self, kwargs)
+        Marker.__activate(self, kwargs)
         self.delay = 0
     end or nil,
 
-    run = (not SERVER) and function(self, millis)
+    __run = (not SERVER) and function(self, millis)
         local d = self.delay - millis
         if  d <= 0 then
             d = max(floor(random() * self:get_attr("max_delay")),

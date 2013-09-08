@@ -69,8 +69,8 @@ local Game_Player = Player:clone {
     },
 
     -- a property setting example
-    init_svars = function(self, ...)
-        Player.init_svars(self, ...)
+    __init_svars = function(self, ...)
+        Player.__init_svars(self, ...)
         self:set_attr("jump_velocity", 250)
     end,
 
@@ -89,12 +89,12 @@ local Game_Player = Player:clone {
         self.stop_batch = true
     end,
 
-    --[[! Function: activate
+    --[[! Function: __activate
         Called on entity activation. Connects a callback to state data
         change of new_mark.
     ]]
-    activate = (not SERVER) and function(self, kwargs)
-        Player.activate(self, kwargs)
+    __activate = (not SERVER) and function(self, kwargs)
+        Player.__activate(self, kwargs)
         self.marks = {}
         self.color_id = 1
         self.color    = colors[1]
@@ -109,11 +109,11 @@ local Game_Player = Player:clone {
         end)
     end or nil,
 
-    --[[! Function: run
+    --[[! Function: __run
         Called every frame. It goes over the marks and draws everything.
     ]]
-    run = (not SERVER) and function(self, millis)
-        Player.run(self, millis)
+    __run = (not SERVER) and function(self, millis)
+        Player.__run(self, millis)
         local last = nil
         local marks = self.marks
 

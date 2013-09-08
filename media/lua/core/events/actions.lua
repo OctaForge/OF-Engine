@@ -106,14 +106,14 @@ local Action = table2.Object:clone {
 
     priv_start = function(self)
         self.begun = true
-        self.start(self)
+        self:__start()
     end,
 
-    --[[! Function: start
+    --[[! Function: __start
         By default, empty. Overload in your inherited actions as you need.
         Called when the action flow starts.
     ]]
-    start = function(self)
+    __start = function(self)
     end,
 
     priv_run = function(self, millis)
@@ -147,7 +147,7 @@ local Action = table2.Object:clone {
         if self.parallel_to == false then
             debug then log(INFO, "Executing action " .. self.name)
 
-            local finished = self.run(self, millis)
+            local finished = self:__run(millis)
             if    finished then
                 self.priv_finish(self)
             end
@@ -165,15 +165,15 @@ local Action = table2.Object:clone {
         end
     end,
 
-    --[[! Function: run
+    --[[! Function: __run
         Override this in inherited actions. By default does almost nothing,
         but the "almost nothing" is important, so make sure to call this
-        always at the end of your custom "run", like this:
+        always at the end of your custom "__run", like this:
 
         (start code)
-            Foo.run = function(self, millis)
+            Foo.__run = function(self, millis)
                 echo("run")
-                return self.__proto.__proto.run(self, millis)
+                return self.__proto.__proto.__run(self, millis)
             end
         (end)
 
@@ -188,7 +188,7 @@ local Action = table2.Object:clone {
         The "millis" argument specifies the amount of time to simulate
         this iteration in milliseconds.
     ]]
-    run = function(self, millis)
+    __run = function(self, millis)
         self.millis_left = self.millis_left - millis
         return (self.millis_left <= 0)
     end,
@@ -210,14 +210,14 @@ local Action = table2.Object:clone {
             end
         end
 
-        self.finish(self)
+        self:__finish()
     end,
 
-    --[[! Function: finish
+    --[[! Function: __finish
         By default, empty. Overload in your inherited actions as you need.
         Called when the action finishes.
     ]]
-    finish = function(self)
+    __finish = function(self)
     end,
 
     --[[! Function: cancel
@@ -226,7 +226,7 @@ local Action = table2.Object:clone {
     ]]
     cancel = function(self)
         if  self.cancellable then
-            self.priv_finish(self)
+            self:priv_finish()
         end
     end
 }
@@ -237,11 +237,11 @@ local Action = table2.Object:clone {
 local Infinite_Action = Action:clone {
     name = "Infinite_Action",
 
-    --[[! Function: run
-        One of the exceptional cases of the "run" method; it always returns
+    --[[! Function: __run
+        One of the exceptional cases of the "__run" method; it always returns
         false because it doesn't manipulate "millis_left".
     ]]
-    run = function(self, millis)
+    __run = function(self, millis)
         return false
     end
 }
@@ -281,11 +281,11 @@ local Single_Action = Action:clone {
         self.command = command
     end,
 
-    --[[! Function: run
+    --[[! Function: __run
         Another of the exceptional cases. This runs the command initialized
         in the constructor and returns true (so that it finishes).
     ]]
-    run = function(self, millis)
+    __run = function(self, millis)
         self.command(self)
         return true
     end

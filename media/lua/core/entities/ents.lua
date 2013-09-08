@@ -139,11 +139,11 @@ M.clear_network_data = function(cn)
 end
 
 local plugin_slots = {
-    "init_svars", "activate", "deactivate", "run", "render"
+    "__init_svars", "__activate", "__deactivate", "__run", "__render"
 }
 local plugin_slotset = {
-    ["init_svars"] = true, ["activate"] = true, ["deactivate"] = true,
-    ["run"       ] = true, ["render"  ] = true
+    ["__init_svars"] = true, ["__activate"] = true, ["__deactivate"] = true,
+    ["__run"       ] = true, ["__render"  ] = true
 }
 
 local ipairs, pairs = ipairs, pairs
@@ -220,10 +220,10 @@ end
 
     A plugin is pretty much an associative table of things to inject. It
     can contain slots - those are functions or callable values with keys
-    "init_svars", "activate", "deactivate", "run", "render" - slots never
-    override elements of the same name in the original class, instead they're
-    called after it in the order of plugin array. Then it can contain any
-    non-slot member, those are overriden without checking (the last plugin
+    "__init_svars", "__activate", "__deactivate", "__run", "__render" - slots
+    never override elements of the same name in the original class, instead
+    they're called after it in the order of plugin array. Then it can contain
+    any non-slot member, those are overriden without checking (the last plugin
     takes priority). Plugins can provide their own state variables via the
     "__properties" table, like entities. The "__properties" tables of plugins
     are all merged together and the last plugin takes priority.
@@ -483,10 +483,10 @@ local add = function(cn, uid, kwargs, new)
         end
     end
 
-    if SERVER and new then r:init_svars(kwargs) end
+    if SERVER and new then r:__init_svars(kwargs) end
 
     debug then log(DEBUG, "ents.add: activate")
-    r:activate(kwargs)
+    r:__activate(kwargs)
     debug then log(DEBUG, "ents.add: activated")
     return r
 end
@@ -522,7 +522,7 @@ M.remove = function(uid)
     end
 
     emit(e, "pre_deactivate")
-    e:deactivate()
+    e:__deactivate()
 
     for k, v in pairs(class_storage) do
         if e:is_a(v) then
@@ -551,7 +551,7 @@ set_external("entity_remove", M.remove)
 M.remove_all = function()
     for uid, e in pairs(storage) do
         emit(e, "pre_deactivate")
-        e:deactivate()
+        e:__deactivate()
     end
     storage = {}
     storage_by_class = {}
@@ -718,12 +718,12 @@ set_external("entities_save_all", M.save)
 Entity = table2.Object:clone {
     name = "Entity",
 
-    --[[! Variable: per_frame
-        If this is true for the entity class, it will call the <run> method
+    --[[! Variable: __per_frame
+        If this is true for the entity class, it will call the <__run> method
         each frame. That is often convenient, but in most static entities
         undesirable.
     ]]
-    per_frame = true,
+    __per_frame = true,
 
     --[[! Variable: __properties
         Here you store the state variables. Each inherited entity class
@@ -762,12 +762,12 @@ Entity = table2.Object:clone {
         self.setup_complete = true
     end,
 
-    --[[! Function: deactivate
+    --[[! Function: __deactivate
         The default entity deactivator. Clears the action system, unregisters
         the entity and makes it deactivated. On the server, it also sends a
         message to all clients to do the same.
     ]]
-    deactivate = function(self)
+    __deactivate = function(self)
         self:clear_actions()
         capi.unregister_entity(self.uid)
 
@@ -778,13 +778,13 @@ Entity = table2.Object:clone {
         end
     end,
 
-    --[[! Function: run
-        Called per-frame unless <per_frame> is false. All inherited classes
+    --[[! Function: __run
+        Called per-frame unless <__per_frame> is false. All inherited classes
         must call this in their own overrides. The argument specifies how
         long to manage the action system (how much will the counters change
         internally), specified in milliseconds.
     ]]
-    run = function(self, millis)
+    __run = function(self, millis)
         self.action_system:run(millis)
     end,
 
@@ -911,8 +911,8 @@ Entity = table2.Object:clone {
 
     --[[! Function: entity_setup
         Takes care of a proper entity setup (calls <setup>, inits the change
-        queue and makes the entity initialized). Called by <init> and
-        <activate>.
+        queue and makes the entity initialized). Called by <__init_svars> and
+        <__activate>.
     ]]
     entity_setup = SERVER and function(self)
         if not self.initialized then
@@ -927,7 +927,7 @@ Entity = table2.Object:clone {
         end
     end or nil,
 
-    --[[! Function: init_svars
+    --[[! Function: __init_svars
         Initializes the entity before activation on the server. It's
         used to set default svar values (unless client_set).
 
@@ -935,8 +935,8 @@ Entity = table2.Object:clone {
         is persistent (to set the persistent property). In child entities,
         it can be used for more things.
     ]]
-    init_svars = SERVER and function(self, kwargs)
-        debug then log(DEBUG, "Entity.init_svars")
+    __init_svars = SERVER and function(self, kwargs)
+        debug then log(DEBUG, "Entity.__init_svars")
 
         self:entity_setup()
 
@@ -944,7 +944,7 @@ Entity = table2.Object:clone {
         self:set_attr("persistent", kwargs and kwargs.persistent or false)
     end or nil,
 
-    --[[! Function: activate
+    --[[! Function: __activate
         The entity activator. It's called on its creation. It calls
         <setup>.
 
@@ -954,8 +954,8 @@ Entity = table2.Object:clone {
         On the server, the kwargs are queried for sdata and
         a <set_sdata_full> happens.
     ]]
-    activate = function(self, kwargs)
-        debug then log(DEBUG, "Entity.activate")
+    __activate = function(self, kwargs)
+        debug then log(DEBUG, "Entity.__activate")
         if SERVER then
             self:entity_setup()
         else
@@ -963,7 +963,7 @@ Entity = table2.Object:clone {
         end
 
         if not self.sauer_type then
-            debug then log(DEBUG, "Entity.activate: non-sauer entity: "
+            debug then log(DEBUG, "Entity.__activate: non-sauer entity: "
                 .. self.name)
             capi.setup_nonsauer(self)
             if SERVER then
@@ -1346,7 +1346,7 @@ local render = (not SERVER) and function(tp)
 
     for uid, entity in pairs(storage) do
         if not entity.deactivated then
-            local rd = entity.render
+            local rd = entity.__render
             -- first arg to rd is hudpass, false because we aren't rendering
             -- the HUD model, second is needhud, which is true if the model
             -- should be shown as HUD model and that happens if we're not in
@@ -1370,7 +1370,7 @@ local render_hud = (not SERVER) and function()
     if not player then return end
 
     if player:get_attr("hud_model_name") and not player:get_editing() then
-        player:render(true, true)
+        player:__render(true, true)
     end
 end or nil
 M.render_hud = render_hud
