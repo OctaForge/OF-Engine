@@ -726,10 +726,10 @@ end
 local Static_Entity = Entity:clone {
     name = "Static_Entity",
 
-    --[[! Variable: edit_icon
+    --[[! Variable: __edit_icon
         The icon that'll be displayed in edit mode.
     ]]
-    edit_icon = "media/interface/icon/edit_generic",
+    __edit_icon = "media/interface/icon/edit_generic",
 
     __per_frame = false,
     sauer_type = 0,
@@ -818,20 +818,20 @@ local Static_Entity = Entity:clone {
         return self:get_attr("position"):copy()
     end,
 
-    --[[! Function: get_edit_color
+    --[[! Function: __get_edit_color
         Returns the color of the entity icon in edit mode. If an invalid
         value is returned, it defaults to 255, 255, 255 (white). This is
         useful for e.g. light entity that is colored.
     ]]
-    get_edit_color = function(self)
+    __get_edit_color = function(self)
         return 255, 255, 255
     end,
 
-    --[[! Function: get_edit_info
+    --[[! Function: __get_edit_info
         Returns any piece of information displayed in in the edit HUD in
         addition to the entity name. Overload for different entity types.
     ]]
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return nil
     end,
 
@@ -856,18 +856,18 @@ local Static_Entity = Entity:clone {
 ents.Static_Entity = Static_Entity
 
 --[[! Function: entity_get_edit_info
-    An external. Returns ent.edit_icon, ent:get_edit_color().
+    An external. Returns ent.__edit_icon, ent:__get_edit_color().
 ]]
 set_external("entity_get_edit_icon_info", function(ent)
-    return ent.edit_icon, ent:get_edit_color()
+    return ent.__edit_icon, ent:__get_edit_color()
 end)
 
 --[[! Function: entity_get_edit_info
     An external. Returns the entity name and the return value of
-    <Static_Entity.get_edit_info>.
+    <Static_Entity.__get_edit_info>.
 ]]
 set_external("entity_get_edit_info", function(ent)
-    return ent.name, ent:get_edit_info()
+    return ent.name, ent:__get_edit_info()
 end)
 
 --[[! Function: entity_get_edit_drop_height
@@ -884,7 +884,7 @@ end)
 local Marker = Static_Entity:clone {
     name = "Marker",
 
-    edit_icon = "media/interface/icon/edit_marker",
+    __edit_icon = "media/interface/icon/edit_marker",
 
     sauer_type = 1,
 
@@ -908,7 +908,7 @@ ents.Marker = Marker
 local Oriented_Marker = Static_Entity:clone {
     name = "Oriented_Marker",
 
-    edit_icon = "media/interface/icon/edit_marker",
+    __edit_icon = "media/interface/icon/edit_marker",
 
     sauer_type = 2,
     attr_num   = 2,
@@ -927,7 +927,7 @@ local Oriented_Marker = Static_Entity:clone {
         ent:set_attr("pitch", self:get_attr("pitch"))
     end,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d", self:get_attr("yaw"),
             self:get_attr("pitch"))
     end
@@ -961,7 +961,7 @@ local lightflags = setmetatable({
 local Light = Static_Entity:clone {
     name = "Light",
 
-    edit_icon = "media/interface/icon/edit_light",
+    __edit_icon = "media/interface/icon/edit_light",
 
     sauer_type = 3,
     attr_num   = 5,
@@ -983,12 +983,12 @@ local Light = Static_Entity:clone {
         self:set_attr("shadow", 0)
     end,
 
-    get_edit_color = function(self)
+    __get_edit_color = function(self)
         return self:get_attr("red"), self:get_attr("green"),
             self:get_attr("blue")
     end,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
             .. "radius :\f2 %d \f7| shadow :\f2 %s",
             self:get_attr("red"), self:get_attr("green"),
@@ -1008,7 +1008,7 @@ ents.Light = Light
 local Spot_Light = Static_Entity:clone {
     name = "Spot_Light",
 
-    edit_icon = "media/interface/icon/edit_spotlight",
+    __edit_icon = "media/interface/icon/edit_spotlight",
 
     sauer_type = 4,
     attr_num   = 1,
@@ -1022,13 +1022,13 @@ local Spot_Light = Static_Entity:clone {
         self:set_attr("radius", 90)
     end,
 
-    get_edit_color = function(self)
+    __get_edit_color = function(self)
         local ent = self:get_attached_entity()
         if not ent then return 255, 255, 255 end
         return ent:get_attr("red"), ent:get_attr("green"), ent:get_attr("blue")
     end,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("radius :\f2 %d", self:get_attr("radius"))
     end
 }
@@ -1045,7 +1045,7 @@ ents.Spot_Light = Spot_Light
 local Envmap = Static_Entity:clone {
     name = "Envmap",
 
-    edit_icon = "media/interface/icon/edit_envmap",
+    __edit_icon = "media/interface/icon/edit_envmap",
 
     sauer_type = 5,
     attr_num   = 1,
@@ -1059,7 +1059,7 @@ local Envmap = Static_Entity:clone {
         self:set_attr("radius", 128)
     end,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("radius :\f2 %d", self:get_attr("radius"))
     end
 }
@@ -1081,7 +1081,7 @@ ents.Envmap = Envmap
 local Sound = Static_Entity:clone {
     name = "Sound",
 
-    edit_icon = "media/interface/icon/edit_sound",
+    __edit_icon = "media/interface/icon/edit_sound",
 
     sauer_type = 6,
     attr_num   = 3,
@@ -1110,14 +1110,14 @@ local Sound = Static_Entity:clone {
         connect(self, "volume_changed", f)
     end or nil,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("radius :\f2 %d \f7| size :\f2 %d \f7| volume :\f2 %d"
             .. "\n\f7name :\f2 %s",
             self:get_attr("radius"), self:get_attr("size"),
             self:get_attr("volume"), self:get_attr("sound_name"))
     end,
 
-    play_sound = function(self)
+    __play_sound = function(self)
         capi.sound_play_map(self, self:get_attr("sound_name"),
             self:get_attr("volume"))
     end
@@ -1125,7 +1125,7 @@ local Sound = Static_Entity:clone {
 ents.Sound = Sound
 
 set_external("sound_play_map", function(ent)
-    ent:play_sound()
+    ent:__play_sound()
 end)
 
 --[[! Class: Particle_Effect
@@ -1136,7 +1136,7 @@ end)
 local Particle_Effect = Static_Entity:clone {
     name = "Particle_Effect",
 
-    edit_icon  = "media/interface/icon/edit_particles",
+    __edit_icon  = "media/interface/icon/edit_particles",
     sauer_type = 7,
 
     --[[! Function: get_edit_drop_height
@@ -1146,15 +1146,15 @@ local Particle_Effect = Static_Entity:clone {
         return 0
     end,
 
-    --[[! Function: emit_particles
+    --[[! Function: __emit_particles
         This is what you need to override - draw your particles from here.
     ]]
-    emit_particles = function(self) end
+    __emit_particles = function(self) end
 }
 ents.Particle_Effect = Particle_Effect
 
 set_external("particle_entity_emit", function(e)
-    e:emit_particles()
+    e:__emit_particles()
 end)
 
 --[[! Class: Mapmodel
@@ -1181,7 +1181,7 @@ end)
 local Mapmodel = Static_Entity:clone {
     name = "Mapmodel",
 
-    edit_icon = "media/interface/icon/edit_mapmodel",
+    __edit_icon = "media/interface/icon/edit_mapmodel",
 
     sauer_type = 8,
     attr_num   = 4,
@@ -1223,7 +1223,7 @@ local Mapmodel = Static_Entity:clone {
         self:set_attr("model_name", self:get_attr("model_name"))
     end or nil,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d \f7|"
             .. " scale :\f2 %d\n\f7name :\f2 %s",
             self:get_attr("yaw"), self:get_attr("pitch"),
@@ -1299,7 +1299,7 @@ local Obstacle = Static_Entity:clone {
         self:set_attr("solid", 0)
     end,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
             .. "a :\f2 %d \f7| b :\f2 %d \f7| c :\f2 %d \f7| solid :\f2 %d",
             self:get_attr("yaw"),  self:get_attr("pitch"),

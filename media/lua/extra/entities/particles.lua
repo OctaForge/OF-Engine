@@ -89,12 +89,12 @@ M.Fire_Effect = Particle_Effect:clone {
         self:set_attr("blue",  0x20)
     end,
 
-    get_edit_color = function(self)
+    __get_edit_color = function(self)
         return self:get_attr("red"), self:get_attr("green"),
             self:get_attr("blue")
     end,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
             .. "radius :\f2 %.3f \f7| height :\f2 %.3f",
             self:get_attr("red"), self:get_attr("green"),
@@ -102,7 +102,7 @@ M.Fire_Effect = Particle_Effect:clone {
             self:get_attr("height"))
     end,
 
-    emit_particles = function(self)
+    __emit_particles = function(self)
         local radius = self:get_attr("radius")
         local height = self:get_attr("height")
         local r, g, b = self:get_attr("red"), self:get_attr("green"),
@@ -134,11 +134,11 @@ M.Steam_Effect = Particle_Effect:clone {
         self:set_attr("direction", 0)
     end,
 
-    get_edit_info = function(self)
+    __get_edit_info = function(self)
         return format("direction :\f2 %d", self:get_attr("direction"))
     end,
 
-    emit_particles = function(self)
+    __emit_particles = function(self)
         local dir = self:get_attr("direction")
         local pos = self:get_attr("position")
         local d = offset_vec({ x = pos.x, y = pos.y, z = pos.z }, dir, rand(9))
