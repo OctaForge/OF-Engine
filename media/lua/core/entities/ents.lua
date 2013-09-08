@@ -138,10 +138,12 @@ M.clear_network_data = function(cn)
     end
 end
 
-local plugin_slots   = { "init", "activate", "deactivate", "run", "render" }
+local plugin_slots = {
+    "init_svars", "activate", "deactivate", "run", "render"
+}
 local plugin_slotset = {
-    ["init"] = true, ["activate"] = true, ["deactivate"] = true,
-    ["run" ] = true, ["render"  ] = true
+    ["init_svars"] = true, ["activate"] = true, ["deactivate"] = true,
+    ["run"       ] = true, ["render"  ] = true
 }
 
 local ipairs, pairs = ipairs, pairs
@@ -218,11 +220,11 @@ end
 
     A plugin is pretty much an associative table of things to inject. It
     can contain slots - those are functions or callable values with keys
-    "init", "activate", "deactivate", "run", "render" - slots never override
-    elements of the same name in the original class, instead they're called
-    after it in the order of plugin array. Then it can contain any non-slot
-    member, those are overriden without checking (the last plugin takes
-    priority). Plugins can provide their own state variables via the
+    "init_svars", "activate", "deactivate", "run", "render" - slots never
+    override elements of the same name in the original class, instead they're
+    called after it in the order of plugin array. Then it can contain any
+    non-slot member, those are overriden without checking (the last plugin
+    takes priority). Plugins can provide their own state variables via the
     "__properties" table, like entities. The "__properties" tables of plugins
     are all merged together and the last plugin takes priority.
 
@@ -481,7 +483,7 @@ local add = function(cn, uid, kwargs, new)
         end
     end
 
-    if SERVER and new then r:init(kwargs) end
+    if SERVER and new then r:init_svars(kwargs) end
 
     debug then log(DEBUG, "ents.add: activate")
     r:activate(kwargs)
@@ -925,7 +927,7 @@ Entity = table2.Object:clone {
         end
     end or nil,
 
-    --[[! Function: init
+    --[[! Function: init_svars
         Initializes the entity before activation on the server. It's
         used to set default svar values (unless client_set).
 
@@ -933,8 +935,8 @@ Entity = table2.Object:clone {
         is persistent (to set the persistent property). In child entities,
         it can be used for more things.
     ]]
-    init = SERVER and function(self, kwargs)
-        debug then log(DEBUG, "Entity.init")
+    init_svars = SERVER and function(self, kwargs)
+        debug then log(DEBUG, "Entity.init_svars")
 
         self:entity_setup()
 

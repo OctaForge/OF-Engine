@@ -80,8 +80,8 @@ M.Fire_Effect = Particle_Effect:clone {
         blue   = svars.State_Integer()
     },
 
-    init = function(self, kwargs)
-        Particle_Effect.init(self, kwargs)
+    init_svars = function(self, kwargs)
+        Particle_Effect.init_svars(self, kwargs)
         self:set_attr("radius", 1.5)
         self:set_attr("height", 0.5)
         self:set_attr("red",   0x90)
@@ -129,8 +129,8 @@ M.Steam_Effect = Particle_Effect:clone {
         direction = svars.State_Integer()
     },
 
-    init = function(self, kwargs)
-        Particle_Effect.init(self, kwargs)
+    init_svars = function(self, kwargs)
+        Particle_Effect.init_svars(self, kwargs)
         self:set_attr("direction", 0)
     end,
 

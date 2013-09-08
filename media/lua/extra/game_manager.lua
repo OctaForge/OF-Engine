@@ -36,7 +36,7 @@ M.player_plugin = {
         spawn_stage = svars.State_Integer()
     },
 
-    init = function(self)
+    init_svars = function(self)
         self:set_attr("team", "")
     end,
 

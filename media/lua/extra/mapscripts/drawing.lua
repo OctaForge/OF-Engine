@@ -69,8 +69,8 @@ local Game_Player = Player:clone {
     },
 
     -- a property setting example
-    init = function(self, ...)
-        Player.init(self, ...)
+    init_svars = function(self, ...)
+        Player.init_svars(self, ...)
         self:set_attr("jump_velocity", 250)
     end,
 

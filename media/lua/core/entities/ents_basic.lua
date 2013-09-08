@@ -355,8 +355,8 @@ local Character = Entity:clone {
     get_editing = function(self) return self:get_attr("client_state") == 4 end,
     get_lagged = function(self) return self:get_attr("client_state") == 3 end,
 
-    init = SERVER and function(self, kwargs)
-        Entity.init(self, kwargs)
+    init_svars = SERVER and function(self, kwargs)
+        Entity.init_svars(self, kwargs)
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
@@ -680,8 +680,8 @@ local Player = Character:clone {
         hud_model_name = svars.State_String()
     },
 
-    init = SERVER and function(self, kwargs)
-        Character.init(self, kwargs)
+    init_svars = SERVER and function(self, kwargs)
+        Character.init_svars(self, kwargs)
 
         self:set_attr("can_edit", false)
         self:set_attr("hud_model_name", "")
@@ -742,13 +742,13 @@ local Static_Entity = Entity:clone {
         }
     },
 
-    init = function(self, kwargs)
+    init_svars = function(self, kwargs)
         debug then log(DEBUG, "Static_Entity.init")
 
         kwargs = kwargs or {}
         kwargs.persistent = true
 
-        Entity.init(self, kwargs)
+        Entity.init_svars(self, kwargs)
         if not kwargs.position then
             self:set_attr("position", { 511, 512, 513 })
         else
@@ -974,8 +974,8 @@ local Light = Static_Entity:clone {
         attr5 = gen_attr(5, "shadow")
     },
 
-    init = function(self, kwargs)
-        Static_Entity.init(self, kwargs)
+    init_svars = function(self, kwargs)
+        Static_Entity.init_svars(self, kwargs)
         self:set_attr("red", 128)
         self:set_attr("green", 128)
         self:set_attr("blue", 128)
@@ -1017,8 +1017,8 @@ local Spot_Light = Static_Entity:clone {
         attr1 = gen_attr(1, "radius")
     },
 
-    init = function(self, kwargs)
-        Static_Entity.init(self, kwargs)
+    init_svars = function(self, kwargs)
+        Static_Entity.init_svars(self, kwargs)
         self:set_attr("radius", 90)
     end,
 
@@ -1054,8 +1054,8 @@ local Envmap = Static_Entity:clone {
         attr1 = gen_attr(1, "radius")
     },
 
-    init = function(self, kwargs)
-        Static_Entity.init(self, kwargs)
+    init_svars = function(self, kwargs)
+        Static_Entity.init_svars(self, kwargs)
         self:set_attr("radius", 128)
     end,
 
@@ -1093,8 +1093,8 @@ local Sound = Static_Entity:clone {
         sound_name = svars.State_String()
     },
 
-    init = function(self, kwargs)
-        Static_Entity.init(self, kwargs)
+    init_svars = function(self, kwargs)
+        Static_Entity.init_svars(self, kwargs)
         self:set_attr("radius", 100)
         self:set_attr("size", 0)
         self:set_attr("volume", 100)
@@ -1209,8 +1209,8 @@ local Mapmodel = Static_Entity:clone {
         attr4 = gen_attr(4, "scale")
     },
 
-    init = SERVER and function(self, kwargs)
-        Static_Entity.init(self, kwargs)
+    init_svars = SERVER and function(self, kwargs)
+        Static_Entity.init_svars(self, kwargs)
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
@@ -1288,8 +1288,8 @@ local Obstacle = Static_Entity:clone {
         attr7 = gen_attr(7, "solid")
     },
 
-    init = function(self, kwargs)
-        Static_Entity.init(self, kwargs)
+    init_svars = function(self, kwargs)
+        Static_Entity.init_svars(self, kwargs)
         self:set_attr("yaw", 0)
         self:set_attr("pitch", 0)
         self:set_attr("roll", 0)
