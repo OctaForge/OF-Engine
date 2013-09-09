@@ -116,12 +116,7 @@ gui.Filler.__variants = {
             clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
             gui.Outline {
                 r = 255, g = 255, b = 255,
-                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
-                gui.Spacer {
-                    pad_h = 0.005, pad_v = 0.005, init_clone = |self, o| do
-                        o:set_container(self)
-                    end
-                }
+                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true
             }
         }
     }
