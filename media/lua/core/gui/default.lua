@@ -77,6 +77,8 @@ gui.Text_Editor.__variants = {
             }
         },
         __init = |ed| do
+            ed:set_pad_l(0.005)
+            ed:set_pad_r(0.005)
         end
     }
 }

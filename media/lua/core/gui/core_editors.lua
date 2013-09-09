@@ -196,6 +196,8 @@ local editline_MT = {
 }
 local editline = ffi.metatype("editline_t", editline_MT)
 
+local get_aw = function(self) return self.w - self.pad_l - self.pad_r end
+
 --[[! Struct: Text_Editor
     Implements a text editor widget. It's a basic editor that supports
     scrolling of text and some extra features like key filter and so on.
@@ -220,6 +222,9 @@ local editline = ffi.metatype("editline_t", editline_MT)
     0xEE and 0xC0 respectively and wrap_(r|g|b|a) to customize line wrap sign
     color - these all default to 0x3C except alpha which defaults to 0xFF.
     Note that selection box is drawn under the text.
+
+    You can also pad the text on the left and on the right using the pad_l
+    and pad_r properties. They both default to 0.
 
     The editor implements the same interface and internal members as Scroller,
     allowing scrollbars to be used with it. The functions are not documented
@@ -265,6 +270,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.wrap_g = kwargs.wrap_g or 0x3C
         self.wrap_b = kwargs.wrap_b or 0x3C
         self.wrap_a = kwargs.wrap_a or 0xFF
+
+        self.pad_l = kwargs.pad_l or 0
+        self.pad_r = kwargs.pad_r or 0
 
         -- cursor position - ensured to be valid after a region() or
         -- currentline()
@@ -572,13 +580,13 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     --[[! Function: get_h_limit ]]
-    get_h_limit = function(self) return max(self.virt_w - self.w, 0) end,
+    get_h_limit = function(self) return max(self.virt_w - get_aw(self), 0) end,
     --[[! Function: get_v_limit ]]
     get_v_limit = function(self) return max(self.virt_h - self.h, 0) end,
 
     --[[! Function: get_h_offset ]]
     get_h_offset = function(self)
-        return self.offset_h / max(self.virt_w, self.w)
+        return self.offset_h / max(self.virt_w, get_aw(self))
     end,
 
     --[[! Function: get_v_offset ]]
@@ -587,9 +595,15 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     --[[! Function: get_h_scale ]]
-    get_h_scale = function(self) return self.w / max(self.virt_w, self.w) end,
+    get_h_scale = function(self)
+        local w = get_aw(self)
+        return w / max(self.virt_w, w)
+    end,
     --[[! Function: get_v_scale ]]
-    get_v_scale = function(self) return self.h / max(self.virt_h, self.h) end,
+    get_v_scale = function(self)
+        local h = self.h
+        return h / max(self.virt_h, h)
+    end,
 
     --[[! Function: set_h_scroll ]]
     set_h_scroll = function(self, hs)
@@ -612,6 +626,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     set_clip_w = gen_ed_setter "clip_w",
     --[[! Function: set_clip_h ]]
     set_clip_h = gen_ed_setter "clip_h",
+
+    --[[! Function: set_pad_l ]]
+    set_pad_l = gen_ed_setter "pad_l",
+    --[[! Function: set_pad_r ]]
+    set_pad_r = gen_ed_setter "pad_r",
 
     --[[! Function: set_multiline ]]
     set_multiline = gen_ed_setter "multiline",
@@ -712,7 +731,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 local str = tostring(self:current_line())
                 text_font_push()
                 text_font_set(self.font)
-                local pw = floor(self.w / self:draw_scale())
+                local pw = floor(get_aw(self) / self:draw_scale())
                 local x, y = text_get_position(str, self.cx + 1, pw)
                 if y > 0 then
                     self.cx = text_is_visible(str, x, y - text_font_get_h(),
@@ -731,7 +750,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 local str = tostring(self:current_line())
                 text_font_push()
                 text_font_set(self.font)
-                local pw = floor(self.w / self:draw_scale())
+                local pw = floor(get_aw(self) / self:draw_scale())
                 local x, y = text_get_position(str, self.cx, pw)
                 local width, height = text_get_bounds(str, pw)
                 y = y + text_font_get_h()
@@ -919,7 +938,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
     hit = function(self, hitx, hity, dragged)
         local k = self:draw_scale()
-        local pw, ph = floor(self.w / k), floor(self.h / k)
+        local pw, ph = floor(get_aw(self) / k), floor(self.h / k)
         local max_width = self.line_wrap and pw or -1
         text_font_push()
         text_font_set(self.font)
@@ -1035,6 +1054,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         local w, h = 0, 0
         local ov = 0
         local k = self:draw_scale()
+        maxw -= (self.pad_l + self.pad_r) / k
         for i = 1, #lines do
             local tw, th = lines[i]:calc_bounds(maxw)
             w, h = max(w, tw), h + th
@@ -1070,7 +1090,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             self.cx, maxw)
 
         x *= k
-        local w, oh = self.w, self.offset_h
+        local w, oh = get_aw(self), self.offset_h + self.pad_l
         if (x + fontw) > w + (del and 0 or oh) then
            self.offset_h = x + fontw - w
         elseif x < oh then
@@ -1092,10 +1112,11 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             yoff += th
         end
 
+        local h = self.h
         if yoff <= (oov / k) then
             self.offset_v += yoff * k - oov - text_font_get_h() * k
-        elseif yoff > ((oov + self.h) / k) then
-            self.offset_v += yoff * k - (oov + self.h)
+        elseif yoff > ((oov + h) / k) then
+            self.offset_v += yoff * k - (oov + h)
         end
     end,
 
@@ -1138,18 +1159,18 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if self._needs_offset then
             self:region()
             local k = self:draw_scale()
-            local maxw = self.line_wrap and floor(self.w / k) or -1
+            local maxw = self.line_wrap and floor(get_aw(self) / k) or -1
             self:fix_h_offset(k, maxw, self._prev_tw > self.text_w)
             self:fix_v_offset(k)
             self._needs_offset = false
         end
     end,
 
-    draw_selection = function(self, first_drawable, x)
+    draw_selection = function(self, first_drawable, x, x2, y)
         local selection, sx, sy, ex, ey = self:region()
         if not selection then return end
         local k = self:draw_scale()
-        local pw, ph = floor(self.w / k), floor(self.h / k)
+        local pw, ph = floor(get_aw(self) / k), floor(self.h / k)
         local max_width = self.line_wrap and pw or -1
         -- convert from cursor coords into pixel coords
         local psx, psy = text_get_position(tostring(self.lines[sy + 1]), sx,
@@ -1202,21 +1223,21 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             else
                 -- multiple selection lines
                 -- first line - always ends in the end of the visible area
-                gle_attrib2f(x + psx, psy)
-                gle_attrib2f(x + psx, psy + fonth)
-                gle_attrib2f(pw,      psy + fonth)
-                gle_attrib2f(pw,      psy)
+                gle_attrib2f(x  + psx, psy)
+                gle_attrib2f(x  + psx, psy + fonth)
+                gle_attrib2f(x2 + pw,  psy + fonth)
+                gle_attrib2f(x2 + pw,  psy)
                 -- between first and last selected line
                 -- a quad that fills the whole space
                 if (pey - psy) > fonth then
-                    gle_attrib2f(0,  psy + fonth)
-                    gle_attrib2f(pw, psy + fonth)
-                    gle_attrib2f(pw, pey)
-                    gle_attrib2f(0,  pey)
+                    gle_attrib2f(x2,      psy + fonth)
+                    gle_attrib2f(x2 + pw, psy + fonth)
+                    gle_attrib2f(x2 + pw, pey)
+                    gle_attrib2f(x2,      pey)
                 end
                 -- last line - starts in the beginning of the visible area
-                gle_attrib2f(0,       pey)
-                gle_attrib2f(0,       pey + fonth)
+                gle_attrib2f(x2,      pey)
+                gle_attrib2f(x2,      pey + fonth)
                 gle_attrib2f(x + pex, pey + fonth)
                 gle_attrib2f(x + pex, pey)
             end
@@ -1239,17 +1260,17 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     draw = function(self, sx, sy)
+        Widget.draw(self, sx, sy)
+
         text_font_push()
         text_font_set(self.font)
 
-        local cw, ch = self.w, self.h
+        local cw, ch = get_aw(self), self.h
         local fontw  = text_font_get_w()
         local clip = (cw != 0 and (self.virt_w + fontw) > cw)
                   or (ch != 0 and  self.virt_h          > ch)
 
-        if clip then clip_push(sx, sy, cw, ch) end
-
-        Widget.draw(self, sx, sy)
+        if clip then clip_push(sx + self.pad_l, sy, cw, ch) end
 
         hudmatrix_push()
 
@@ -1260,14 +1281,15 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         local hit = is_focused(self)
 
-        local pw, ph = floor(self.w / k), floor(self.h / k)
+        local pw, ph = floor(get_aw(self) / k), floor(self.h / k)
         local max_width = self.line_wrap and pw or -1
 
         local fd = self:get_first_drawable_line()
         if fd then
-            local xoff = -self.offset_h / k
+            local xoff = self.pad_l / k
+            local txof = xoff - self.offset_h / k
 
-            self:draw_selection(fd, xoff)
+            self:draw_selection(fd, txof, xoff)
 
             local h = 0
             local fonth = text_font_get_h()
@@ -1276,7 +1298,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 local width, height = text_get_bounds(line,
                     max_width)
                 if h >= ph then break end
-                text_draw(line, xoff, h, self.r, self.g, self.b, self.a,
+                text_draw(line, txof, h, self.r, self.g, self.b, self.a,
                     (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
                 if height > fonth then self:draw_line_wrap(h, height) end
