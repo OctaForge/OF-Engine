@@ -91,13 +91,35 @@ gui.Window.__variants = {
     noborder = {
         gui.Gradient {
             r = 8, g = 8, b = 8, r2 = 32, g2 = 32, b2 = 32,
+            a = 230, a2 = 230,
             clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
             gui.Outline {
                 r = 255, g = 255, b = 255,
                 clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
                 gui.Spacer {
-                    pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
-                        win:set_container(self)
+                    pad_h = 0.005, pad_v = 0.005, init_clone = |self, o| do
+                        o:set_container(self)
+                    end
+                }
+            }
+        }
+    }
+}
+
+-- menus
+
+gui.Filler.__variants = {
+    menu = {
+        gui.Gradient {
+            r = 8, g = 8, b = 8, r2 = 24, g2 = 24, b2 = 24,
+            a = 250, a2 = 250,
+            clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+            gui.Outline {
+                r = 255, g = 255, b = 255,
+                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+                gui.Spacer {
+                    pad_h = 0.005, pad_v = 0.005, init_clone = |self, o| do
+                        o:set_container(self)
                     end
                 }
             }
