@@ -136,29 +136,34 @@ local clear_focus = function(o)
 end
 M.clear_focus = clear_focus
 
-local ALIGN_MASK    = 0xF
+local adjust = {:
+    ALIGN_HMASK = 0x3,
+    ALIGN_VMASK = 0xC,
+    ALIGN_MASK  = ALIGN_HMASK | ALIGN_VMASK,
+    CLAMP_MASK  = 0xF0,
 
-local ALIGN_HMASK   = 0x3
-local ALIGN_HSHIFT  = 0
-local ALIGN_HNONE   = 0
-local ALIGN_LEFT    = 1
-local ALIGN_HCENTER = 2
-local ALIGN_RIGHT   = 3
+    ALIGN_HSHIFT = 0,
+    ALIGN_VSHIFT = 2,
 
-local ALIGN_VMASK   = 0xC
-local ALIGN_VSHIFT  = 2
-local ALIGN_VNONE   = 0 << 2
-local ALIGN_TOP     = 1 << 2
-local ALIGN_VCENTER = 2 << 2
-local ALIGN_BOTTOM  = 3 << 2
+    ALIGN_HNONE   = 0 << ALIGN_HSHIFT,
+    ALIGN_LEFT    = 1 << ALIGN_HSHIFT,
+    ALIGN_HCENTER = 2 << ALIGN_HSHIFT,
+    ALIGN_RIGHT   = 3 << ALIGN_HSHIFT,
 
-local CLAMP_MASK    = 0xF0
-local CLAMP_LEFT    = 0x10
-local CLAMP_RIGHT   = 0x20
-local CLAMP_TOP     = 0x40
-local CLAMP_BOTTOM  = 0x80
+    ALIGN_VNONE   = 0 << ALIGN_VSHIFT,
+    ALIGN_TOP     = 1 << ALIGN_VSHIFT,
+    ALIGN_VCENTER = 2 << ALIGN_VSHIFT,
+    ALIGN_BOTTOM  = 3 << ALIGN_VSHIFT,
 
-local NO_ADJUST     = ALIGN_HNONE | ALIGN_VNONE
+    ALIGN_CENTER = ALIGN_HCENTER | ALIGN_VCENTER,
+    ALIGN_NONE   = ALIGN_HNONE   | ALIGN_VNONE,
+
+    CLAMP_LEFT    = 1 << 4,
+    CLAMP_RIGHT   = 1 << 5,
+    CLAMP_TOP     = 1 << 6,
+    CLAMP_BOTTOM  = 1 << 7,
+:}
+M.adjust = adjust
 
 local wtypes_by_name = {}
 local wtypes_by_type = {}
@@ -596,7 +601,7 @@ Widget = register_class("Widget", table2.Object, {
 
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
 
-        self.adjust = ALIGN_HCENTER | ALIGN_VCENTER
+        self.adjust = adjust.ALIGN_CENTER
 
         -- alignment and clamping
         local align_h = kwargs.align_h or 0
@@ -900,34 +905,34 @@ Widget = register_class("Widget", table2.Object, {
         local x, y, w, h, a = self.x, self.y,
             self.w, self.h, self.adjust
 
-        local adj = a & ALIGN_HMASK
+        local adj = a & adjust.ALIGN_HMASK
 
-        if adj == ALIGN_LEFT then
+        if adj == adjust.ALIGN_LEFT then
             x = px
-        elseif adj == ALIGN_HCENTER then
+        elseif adj == adjust.ALIGN_HCENTER then
             x = px + (pw - w) / 2
-        elseif adj == ALIGN_RIGHT then
+        elseif adj == adjust.ALIGN_RIGHT then
             x = px + pw - w
         end
 
-        adj = a & ALIGN_VMASK
+        adj = a & adjust.ALIGN_VMASK
 
-        if adj == ALIGN_TOP then
+        if adj == adjust.ALIGN_TOP then
             y = py
-        elseif adj == ALIGN_VCENTER then
+        elseif adj == adjust.ALIGN_VCENTER then
             y = py + (ph - h) / 2
-        elseif adj == ALIGN_BOTTOM then
+        elseif adj == adjust.ALIGN_BOTTOM then
             y = py + ph - h
         end
 
-        if (a & CLAMP_MASK) != 0 then
-            if (a & CLAMP_LEFT ) != 0 then x = px end
-            if (a & CLAMP_RIGHT) != 0 then
+        if (a & adjust.CLAMP_MASK) != 0 then
+            if (a & adjust.CLAMP_LEFT ) != 0 then x = px end
+            if (a & adjust.CLAMP_RIGHT) != 0 then
                 w = px + pw - x
             end
 
-            if (a & CLAMP_TOP   ) != 0 then y = py end
-            if (a & CLAMP_BOTTOM) != 0 then
+            if (a & adjust.CLAMP_TOP   ) != 0 then y = py end
+            if (a & adjust.CLAMP_BOTTOM) != 0 then
                 h = py + ph - y
             end
         end
@@ -1266,9 +1271,9 @@ Widget = register_class("Widget", table2.Object, {
         right).
     ]]
     align = function(self, h, v)
-        self.adjust = (self.adjust & ~ALIGN_MASK)
-            | ((clamp(h, -1, 1) + 2) << ALIGN_HSHIFT)
-            | ((clamp(v, -1, 1) + 2) << ALIGN_VSHIFT)
+        self.adjust = (self.adjust & ~adjust.ALIGN_MASK)
+            | ((clamp(h, -1, 1) + 2) << adjust.ALIGN_HSHIFT)
+            | ((clamp(v, -1, 1) + 2) << adjust.ALIGN_VSHIFT)
     end,
 
     --[[! Function: clamp
@@ -1276,11 +1281,11 @@ Widget = register_class("Widget", table2.Object, {
         clamping. The values can be either true or false.
     ]]
     clamp = function(self, l, r, t, b)
-        self.adjust = (self.adjust & ~CLAMP_MASK)
-            | (l and CLAMP_LEFT   or 0)
-            | (r and CLAMP_RIGHT  or 0)
-            | (t and CLAMP_TOP    or 0)
-            | (b and CLAMP_BOTTOM or 0)
+        self.adjust = (self.adjust & ~adjust.CLAMP_MASK)
+            | (l and adjust.CLAMP_LEFT   or 0)
+            | (r and adjust.CLAMP_RIGHT  or 0)
+            | (t and adjust.CLAMP_TOP    or 0)
+            | (b and adjust.CLAMP_BOTTOM or 0)
     end,
 
     --[[! Function: get_alignment
@@ -1289,13 +1294,13 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     get_alignment = function(self)
         local a   = self.adjust
-        local adj = a & ALIGN_HMASK
-        local hal = (adj == ALIGN_LEFT) and -1 or
-            (adj == ALIGN_HCENTER and 0 or 1)
+        local adj = a & adjust.ALIGN_HMASK
+        local hal = (adj == adjust.ALIGN_LEFT) and -1 or
+            (adj == adjust.ALIGN_HCENTER and 0 or 1)
 
-        adj = a & ALIGN_VMASK
-        local val = (adj == ALIGN_BOTTOM) and 1 or
-            (adj == ALIGN_VCENTER and 0 or -1)
+        adj = a & adjust.ALIGN_VMASK
+        local val = (adj == adjust.ALIGN_BOTTOM) and 1 or
+            (adj == adjust.ALIGN_VCENTER and 0 or -1)
 
         return hal, val
     end,
@@ -1305,13 +1310,13 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     get_clamping = function(self)
         local a   = self.adjust
-        local adj = a & CLAMP_MASK
+        local adj = a & adjust.CLAMP_MASK
         if    adj == 0 then
             return 0, 0, 0, 0
         end
 
-        return (a & CLAMP_LEFT  ) != 0, (a & CLAMP_RIGHT) != 0,
-               (a & CLAMP_BOTTOM) != 0, (a & CLAMP_TOP  ) != 0
+        return (a & adjust.CLAMP_LEFT  ) != 0, (a & adjust.CLAMP_RIGHT) != 0,
+               (a & adjust.CLAMP_BOTTOM) != 0, (a & adjust.CLAMP_TOP  ) != 0
     end,
 
     --[[! Function: set_floating ]]

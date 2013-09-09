@@ -45,6 +45,9 @@ local gen_setter = M.gen_setter
 -- orientation
 local orient = M.orient
 
+-- alignment/clamping
+local adjust = M.adjust
+
 local Clipper = M.Clipper
 
 --[[! Struct: Scroller
@@ -434,9 +437,6 @@ Scroll_Button = register_class("Scroll_Button", Widget, {
 })
 M.Scroll_Button = Scroll_Button
 
-local ALIGN_HMASK = 0x3
-local ALIGN_VMASK = 0xC
-
 --[[! Struct: H_Scrollbar
     A specialization of <Scrollbar>. Has the "orient" member set to
     the HORIZONTAL field of <orient>. Overloads some of the Scrollbar
@@ -520,7 +520,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
             (max(sw - 2 * as, 0) - btn.w) / (1 - scroll:get_h_scale()) or 1
 
         btn.x = as + scroll:get_h_offset() * bscale
-        btn.adjust = btn.adjust & ~ALIGN_HMASK
+        btn.adjust = btn.adjust & ~adjust.ALIGN_HMASK
 
         Widget.adjust_children(self)
     end,
@@ -611,7 +611,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
             (max(sh - 2 * as, 0) - btn.h) / (1 - scroll:get_v_scale()) or 1
 
         btn.y = as + scroll:get_v_offset() * bscale
-        btn.adjust = btn.adjust & ~ALIGN_VMASK
+        btn.adjust = btn.adjust & ~adjust.ALIGN_VMASK
 
         Widget.adjust_children(self)
     end,

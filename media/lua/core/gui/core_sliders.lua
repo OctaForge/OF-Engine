@@ -46,6 +46,9 @@ local gen_setter = M.gen_setter
 -- orientation
 local orient = M.orient
 
+-- alignment/clamping
+local adjust = M.adjust
+
 local Slider_Button
 
 --[[! Struct: Slider
@@ -337,7 +340,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
         btn.w = max(btn.w, width / steps)
         btn.x = as + (width - btn.w) * curstep / steps
-        btn.adjust = btn.adjust & ~ALIGN_HMASK
+        btn.adjust = btn.adjust & ~adjust.ALIGN_HMASK
 
         Widget.adjust_children(self)
     end,
@@ -401,7 +404,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
 
         btn.h = max(btn.h, height / steps)
         btn.y = as + (height - btn.h) * curstep / steps
-        btn.adjust = btn.adjust & ~ALIGN_VMASK
+        btn.adjust = btn.adjust & ~adjust.ALIGN_VMASK
 
         Widget.adjust_children(self)
     end,
