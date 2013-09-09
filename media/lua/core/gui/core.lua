@@ -533,9 +533,20 @@ local Widget, Window
     emit signals so you can handle extra events. That is typically documented.
 
     Several properties can be initialized via kwargs (align_h, align_v,
-    clamp_l, clamp_r, clamp_b, clamp_t, floating, variant, states, signals,
-    container and __init, which is a function called at the end of the
-    constructor if it exists). Array members of kwargs are children.
+    clamp, clamp_h, clamp_v, clamp_l, clamp_r, clamp_b, clamp_t, floating,
+    variant, states, signals, container and __init, which is a function called
+    at the end of the constructor if it exists). Array members of kwargs are
+    children.
+
+    Left/right/top/bottom clamping is false by default. If the "clamp" value
+    is defined and not false in kwargs, they all turn true.
+
+    After that, the values "clamp_h" and "clamp_v" are checked - the former
+    enables/disables left/right clamping, the latter enables/disables
+    top/bottom clamping.
+
+    After these are checked, the individual values "clamp_l", "clamp_r",
+    "clamp_t", "clamp_b" are checked, turning on/off the individual directions.
 
     Widgets instances can have states - they're named references to widgets
     and are widget type specific. For example a button could have states
@@ -606,10 +617,21 @@ Widget = register_class("Widget", table2.Object, {
         -- alignment and clamping
         local align_h = kwargs.align_h or 0
         local align_v = kwargs.align_v or 0
-        local clamp_l = kwargs.clamp_l or false
-        local clamp_r = kwargs.clamp_r or false
-        local clamp_b = kwargs.clamp_b or false
-        local clamp_t = kwargs.clamp_t or false
+
+        -- double negation turns the value into an equivalent boolean
+        local cl = not not kwargs.clamp
+        local clamp_l, clamp_r, clamp_b, clamp_t = cl, cl, cl, cl
+
+        local clh, clv = kwargs.clamp_h, kwargs.clamp_v
+        if clh != nil then clamp_l, clamp_r = not not clh, not not clh end
+        if clv != nil then clamp_t, clamp_b = not not clv, not not clv end
+
+        local cll, clr, clt, clb = kwargs.clamp_l, kwargs.clamp_r,
+            kwargs.clamp_t, kwargs.clamp_b
+        if cll != nil then clamp_l = not not cll end
+        if clr != nil then clamp_r = not not clr end
+        if clt != nil then clamp_t = not not clt end
+        if clb != nil then clamp_b = not not clb end
 
         self.floating = kwargs.floating or false
         self.visible  = (kwargs.visible != false) and true or false

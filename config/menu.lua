@@ -38,37 +38,28 @@ world:new_window("main", gui.Window, |win| do
         b:append(gui.H_Box(), |b| do
             b:append(gui.Menu_Button { label = "Menu 1" }, |b| do
                 signal.connect(b, "clicked", || do
-                    b:show_menu(gui.Filler {
-                        min_w = 0.3, min_h = 0.5, variant = "menu"
-                    }, true)
+                    b:show_menu(gui.Filler { min_w = 0.3, min_h = 0.5, variant = "menu" }, true)
                 end)
             end)
             b:append(gui.Menu_Button { label = "Menu 2" }, |mb| do
-                local menu = gui.Filler {
-                    min_w = 0.3, min_h = 0.5, variant = "menu"
-                }
+                local menu = gui.Filler { min_w = 0.3, min_h = 0.5, variant = "menu" }
                 signal.connect(mb, "hovering", || mb:show_menu(menu))
             end)
             b:append(gui.Menu_Button { label = "Menu 3" }, |b| do
                 signal.connect(b, "clicked", || do
                     b:show_menu(gui.Filler {
                         min_w = 0.3, min_h = 0.5, variant = "menu",
-                        gui.V_Box {
-                            clamp_l = true, clamp_r = true,
+                        gui.V_Box { clamp_h = true,
                             gui.Menu_Button {
-                                label = "Submenu 1",
-                                clamp_l = true, clamp_r = true,
+                                label = "Submenu 1", clamp_h = true,
                                 __init = |mb| do
                                     local menu = gui.Filler {
-                                        min_w = 0.2, min_h = 0.3,
-                                        variant = "menu",
+                                        min_w = 0.2, min_h = 0.3, variant = "menu",
                                         gui.Menu_Button {
-                                            label = "Subsubmenu 1",
-                                            clamp_l = true, clamp_r = true,
+                                            label = "Subsubmenu 1", clamp_h = true,
                                             __init = |mb| do
                                                 local menu = gui.Filler {
-                                                    min_w = 0.2, min_h = 0.3,
-                                                    variant = "menu",
+                                                    min_w = 0.2, min_h = 0.3, variant = "menu",
                                                     gui.Label { text = "Butts!" }
                                                 }
                                                 signal.connect(mb, "hovering", || mb:show_menu(menu))
@@ -81,16 +72,11 @@ world:new_window("main", gui.Window, |win| do
                                 variant = "submenu"
                             },
                             gui.Menu_Button {
-                                label = "Submenu 2",
-                                clamp_l = true, clamp_r = true,
+                                label = "Submenu 2", clamp_h = true, variant = "submenu",
                                 __init = |mb| do
-                                    local menu = gui.Filler {
-                                        min_w = 0.2, min_h = 0.3,
-                                        variant = "menu"
-                                    }
+                                    local menu = gui.Filler { min_w = 0.2, min_h = 0.3, variant = "menu" }
                                     signal.connect(mb, "hovering", || mb:show_menu(menu))
-                                end,
-                                variant = "submenu"
+                                end
                             }
                         }
                     })
