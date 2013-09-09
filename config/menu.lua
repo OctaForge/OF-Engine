@@ -32,116 +32,87 @@ end
 local i = 0
 
 world:new_window("main", gui.Window, |win| do
+    win:set_variant("noborder")
     win:set_floating(true)
-    win:append(gui.Filler {
-        gui.H_Box {
-            clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
-            gui.Gradient { min_w = 0.15, min_h = 0.05, horizontal = true,
-                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
-                r2 = 255, g2 = 0, b2 = 0, r = 255, g = 255, b = 0
-            },
-            gui.Gradient { min_w = 0.15, min_h = 0.05, horizontal = true,
-                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
-                r2 = 255, g2 = 255, b2 = 0, r = 0, g = 255, b = 0
-            },
-            gui.Gradient { min_w = 0.15, min_h = 0.05, horizontal = true,
-                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
-                r2 = 0, g2 = 255, b2 = 0, r = 0, g = 0, b = 255
-            },
-            gui.Gradient { min_w = 0.15, min_h = 0.05, horizontal = true,
-                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
-                r2 = 0, g2 = 0, b2 = 255, r = 143, g = 0, b = 255
-            }
-        }
-    }, |r| do
-        r:align(0, 0)
-        r:append(gui.V_Box(), |b| do
-            b:clamp(true, true, true, true)
-            b:append(gui.Mover { window = win }, |mover| do
-                mover:clamp(true, true, true, true)
-                mover:append(gui.Color_Filler { r = 255, g = 0, b = 0, a = 200, min_h = 0.03 }, |r| do
-                    r:clamp(true, true, true, true)
-                    r:append(gui.Label { text = "Window title" }, |l| do
-                        l:align(0, 0)
-                    end)
-                end)
-            end)
+    local r = win
 
-            b:append(gui.H_Box(), |b| do
-                b:append(gui.Menu_Button { label = "Menu 1" }, |b| do
-                    signal.connect(b, "clicked", || do
-                        b:show_menu(gui.Color_Filler {
-                            min_w = 0.3, min_h = 0.5, r = 128, g = 0, b = 0, a = 192,
-                            gui.V_Box {
+    r:align(0, 0)
+    r:append(gui.V_Box(), |b| do
+        b:append(gui.H_Box(), |b| do
+            b:append(gui.Menu_Button { label = "Menu 1" }, |b| do
+                signal.connect(b, "clicked", || do
+                    b:show_menu(gui.Color_Filler {
+                        min_w = 0.3, min_h = 0.5, r = 8, g = 8, b = 8, a = 240,
+                        gui.V_Box {
+                            clamp_l = true, clamp_r = true,
+                            gui.Menu_Button {
+                                label = "Submenu 1",
                                 clamp_l = true, clamp_r = true,
-                                gui.Menu_Button {
-                                    label = "Submenu 1",
-                                    clamp_l = true, clamp_r = true,
-                                    __init = |mb| do
-                                        local menu = gui.Color_Filler {
-                                            min_w = 0.2, min_h = 0.3, r = 0, g = 192,
-                                            b = 0, a = 192,
-                                            gui.Menu_Button {
-                                                label = "Subsubmenu 1",
-                                                clamp_l = true, clamp_r = true,
-                                                __init = |mb| do
-                                                    local menu = gui.Color_Filler {
-                                                        min_w = 0.2, min_h = 0.3, r = 192,
-                                                        g = 192, b = 0, a = 192,
-                                                        gui.Label { text = "Butts!" }
-                                                    }
-                                                    signal.connect(mb, "hovering", || mb:show_menu(menu))
-                                                end,
-                                                variant = "submenu"
-                                            }
+                                __init = |mb| do
+                                    local menu = gui.Color_Filler {
+                                        min_w = 0.2, min_h = 0.3, r = 0, g = 192,
+                                        b = 0, a = 192,
+                                        gui.Menu_Button {
+                                            label = "Subsubmenu 1",
+                                            clamp_l = true, clamp_r = true,
+                                            __init = |mb| do
+                                                local menu = gui.Color_Filler {
+                                                    min_w = 0.2, min_h = 0.3, r = 192,
+                                                    g = 192, b = 0, a = 192,
+                                                    gui.Label { text = "Butts!" }
+                                                }
+                                                signal.connect(mb, "hovering", || mb:show_menu(menu))
+                                            end,
+                                            variant = "submenu"
                                         }
-                                        signal.connect(mb, "hovering", || mb:show_menu(menu))
-                                    end,
-                                    variant = "submenu"
-                                },
-                                gui.Menu_Button {
-                                    label = "Submenu 2",
-                                    clamp_l = true, clamp_r = true,
-                                    __init = |mb| do
-                                        local menu = gui.Color_Filler {
-                                            min_w = 0.2, min_h = 0.3, r = 0, g = 0,
-                                            b = 192, a = 192
-                                        }
-                                        signal.connect(mb, "hovering", || mb:show_menu(menu))
-                                    end,
-                                    variant = "submenu"
-                                }
+                                    }
+                                    signal.connect(mb, "hovering", || mb:show_menu(menu))
+                                end,
+                                variant = "submenu"
+                            },
+                            gui.Menu_Button {
+                                label = "Submenu 2",
+                                clamp_l = true, clamp_r = true,
+                                __init = |mb| do
+                                    local menu = gui.Color_Filler {
+                                        min_w = 0.2, min_h = 0.3, r = 0, g = 0,
+                                        b = 192, a = 192
+                                    }
+                                    signal.connect(mb, "hovering", || mb:show_menu(menu))
+                                end,
+                                variant = "submenu"
                             }
-                        })
-                    end)
-                end)
-                b:append(gui.Menu_Button { label = "Menu 2" }, |b| do
-                    signal.connect(b, "clicked", || do
-                        b:show_menu(gui.Color_Filler {
-                            min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
-                        }, true)
-                    end)
-                end)
-                b:append(gui.Menu_Button { label = "Menu 3" }, |mb| do
-                    local menu = gui.Color_Filler {
-                        min_w = 0.3, min_h = 0.5, r = 0, g = 0, b = 128, a = 192
-                    }
-                    signal.connect(mb, "hovering", || mb:show_menu(menu))
+                        }
+                    })
                 end)
             end)
+            b:append(gui.Menu_Button { label = "Menu 2" }, |b| do
+                signal.connect(b, "clicked", || do
+                    b:show_menu(gui.Color_Filler {
+                        min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
+                    }, true)
+                end)
+            end)
+            b:append(gui.Menu_Button { label = "Menu 3" }, |mb| do
+                local menu = gui.Color_Filler {
+                    min_w = 0.3, min_h = 0.5, r = 8, g = 8, b = 8, a = 240
+                }
+                signal.connect(mb, "hovering", || mb:show_menu(menu))
+            end)
+        end)
 
-            b:append(gui.Label { text = "This is some transparent text", a = 100 })
-            b:append(gui.Label { text = "Different text", r = 255, g = 0, b = 0 })
-            b:append(gui.Eval_Label {
-                func = || do
-                    i = i + 1
-                    return i
-                end
-            })
+        b:append(gui.Label { text = "This is some transparent text", a = 100 })
+        b:append(gui.Label { text = "Different text", r = 255, g = 0, b = 0 })
+        b:append(gui.Eval_Label {
+            func = || do
+                i = i + 1
+                return i
+            end
+        })
 
-            local ed, lbl
-            b:append(gui.H_Box(), |b| do
-                b:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = [[
+        local ed
+        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
+            s:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = [[
 Lorem ipsum dolor sit amet, consectetur
 adipisicing elit, sed do eiusmod tempor
 incididunt ut labore et dolore magna aliqua.
@@ -162,25 +133,18 @@ in voluptate velit esse cillum dolore eu fugiat
 nulla pariatur. Excepteur sint occaecat cupidatat
 non proident, sunt in culpa qui officia deserunt
 mollit anim id est laborum.]], multiline = true }, |x| do
-                        ed = x
-                end)
-                b:append(gui.Label { text = "none" }, |l| do lbl = l end)
+                ed = x
             end)
+        end)
 
-            b:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |s| do
-                s:append(gui.H_Box(), |b| do
-                    b:append(gui.Button { label = "A button" }, |b| do
-                        local ttip = gui.Color_Filler {
-                            min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
-                        }
-                        ttip:append(gui.Label { text = "A tooltip" })
-                        signal.connect(b, "clicked",  || lbl:set_text(ed.value))
-                        signal.connect(b, "hovering", || b:show_tooltip(ttip))
-                    end)
-                    b:append(gui.Spacer { pad_h = 0.005 }, |s| do
-                        s:append(gui.Label { text = "foo" })
-                    end)
-                end)
+        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
+            s:append(gui.Button { label = "A button" }, |b| do
+                local ttip = gui.Color_Filler {
+                    min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
+                }
+                ttip:append(gui.Label { text = "Reset editor" })
+                signal.connect(b, "clicked",  || ed:reset_value())
+                signal.connect(b, "hovering", || b:show_tooltip(ttip))
             end)
         end)
     end)

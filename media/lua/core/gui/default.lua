@@ -73,6 +73,26 @@ gui.Text_Editor.__variants = { default = { gui.Outline {
 gui.Field.__variants       = gui.Text_Editor.__variants
 gui.Key_Field.__variants   = gui.Text_Editor.__variants
 
+-- windows
+
+gui.Window.__variants = {
+    noborder = {
+        gui.Gradient {
+            r = 8, g = 8, b = 8, r2 = 32, g2 = 32, b2 = 32,
+            clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+            gui.Outline {
+                r = 255, g = 255, b = 255,
+                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+                gui.Spacer {
+                    pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
+                        win:set_container(self)
+                    end
+                }
+            }
+        }
+    }
+}
+
 -- default windows
 
 world:new_window("changes", gui.Window, function(win)
