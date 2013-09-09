@@ -67,11 +67,21 @@ smbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
 
 -- editors
 
-gui.Text_Editor.__variants = { default = { gui.Outline {
-    clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true
-} } }
-gui.Field.__variants       = gui.Text_Editor.__variants
-gui.Key_Field.__variants   = gui.Text_Editor.__variants
+gui.Text_Editor.__variants = {
+    default = {
+        gui.Color_Filler {
+            r = 48, g = 48, b = 48,
+            clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true,
+            gui.Outline {
+                clamp_l = true, clamp_r = true, clamp_b = true, clamp_t = true
+            }
+        },
+        __init = |ed| do
+        end
+    }
+}
+gui.Field.__variants     = gui.Text_Editor.__variants
+gui.Key_Field.__variants = gui.Text_Editor.__variants
 
 -- windows
 

@@ -224,6 +224,9 @@ local editline = ffi.metatype("editline_t", editline_MT)
     The editor implements the same interface and internal members as Scroller,
     allowing scrollbars to be used with it. The functions are not documented
     here because they follow Scroller semantics.
+
+    Note that children of the editor are drawn first - that allows themes to
+    define various backgrounds and stuff while keeping the text on top.
 ]]
 local Text_Editor = register_class("Text_Editor", Widget, {
     __ctor = function(self, kwargs)
@@ -1246,6 +1249,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
         if clip then clip_push(sx, sy, cw, ch) end
 
+        Widget.draw(self, sx, sy)
+
         hudmatrix_push()
 
         hudmatrix_translate(sx, sy, 0)
@@ -1280,8 +1285,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
 
         hudmatrix_pop()
-
-        Widget.draw(self, sx, sy)
         if clip then clip_pop() end
 
         text_font_pop()
