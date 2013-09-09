@@ -42,6 +42,19 @@ world:new_window("main", gui.Window, |win| do
             b:append(gui.Menu_Button { label = "Menu 1" }, |b| do
                 signal.connect(b, "clicked", || do
                     b:show_menu(gui.Color_Filler {
+                        min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
+                    }, true)
+                end)
+            end)
+            b:append(gui.Menu_Button { label = "Menu 2" }, |mb| do
+                local menu = gui.Color_Filler {
+                    min_w = 0.3, min_h = 0.5, r = 8, g = 8, b = 8, a = 240
+                }
+                signal.connect(mb, "hovering", || mb:show_menu(menu))
+            end)
+            b:append(gui.Menu_Button { label = "Menu 3" }, |b| do
+                signal.connect(b, "clicked", || do
+                    b:show_menu(gui.Color_Filler {
                         min_w = 0.3, min_h = 0.5, r = 8, g = 8, b = 8, a = 240,
                         gui.V_Box {
                             clamp_l = true, clamp_r = true,
@@ -50,15 +63,15 @@ world:new_window("main", gui.Window, |win| do
                                 clamp_l = true, clamp_r = true,
                                 __init = |mb| do
                                     local menu = gui.Color_Filler {
-                                        min_w = 0.2, min_h = 0.3, r = 0, g = 192,
-                                        b = 0, a = 192,
+                                        min_w = 0.2, min_h = 0.3, r = 8, g = 8,
+                                        b = 8, a = 240,
                                         gui.Menu_Button {
                                             label = "Subsubmenu 1",
                                             clamp_l = true, clamp_r = true,
                                             __init = |mb| do
                                                 local menu = gui.Color_Filler {
-                                                    min_w = 0.2, min_h = 0.3, r = 192,
-                                                    g = 192, b = 0, a = 192,
+                                                    min_w = 0.2, min_h = 0.3,
+                                                    r = 8, g = 8, b = 8, a = 240,
                                                     gui.Label { text = "Butts!" }
                                                 }
                                                 signal.connect(mb, "hovering", || mb:show_menu(menu))
@@ -85,19 +98,6 @@ world:new_window("main", gui.Window, |win| do
                         }
                     })
                 end)
-            end)
-            b:append(gui.Menu_Button { label = "Menu 2" }, |b| do
-                signal.connect(b, "clicked", || do
-                    b:show_menu(gui.Color_Filler {
-                        min_w = 0.3, min_h = 0.5, r = 0, g = 218, b = 0, a = 192
-                    }, true)
-                end)
-            end)
-            b:append(gui.Menu_Button { label = "Menu 3" }, |mb| do
-                local menu = gui.Color_Filler {
-                    min_w = 0.3, min_h = 0.5, r = 8, g = 8, b = 8, a = 240
-                }
-                signal.connect(mb, "hovering", || mb:show_menu(menu))
             end)
         end)
 
