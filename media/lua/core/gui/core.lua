@@ -647,32 +647,8 @@ Widget = register_class("Widget", table2.Object, {
 
         self.init_clone = kwargs.init_clone
 
-        local ch = {}
-        for i, v in ipairs(kwargs) do
-            ch[i] = v
-            v.parent = self
-        end
-
-        self.children = ch
-
-        if  kwargs.__pre_init then
-            kwargs.__pre_init(self)
-        end
-
-        -- states
-        local states = {}
-        local ks = kwargs.states
-        if ks then
-            for k, v in pairs(ks) do
-                states[k] = v
-                states[k].parent = self
-            end
-        end
-        self.states = states
-
-        local variant = kwargs.variant
-
         -- extra kwargs
+        local variant = kwargs.variant
         if variant != false then
             local dstates = variants[variant or "default"]
             local props = dstates and dstates.__properties or nil
@@ -686,6 +662,33 @@ Widget = register_class("Widget", table2.Object, {
 
         -- disable asserts, already checked above
         self:set_variant(variant, true)
+
+        -- prepare for children
+        local ch, states
+        local cont = self.container
+        if cont then
+            ch, states = cont.children, cont.states
+        else
+            cont = self
+            ch, states = {}, {}
+            self.children, self.states = ch, states
+        end
+        local clen = #ch
+
+        -- children
+        for i, v in ipairs(kwargs) do
+            ch[clen + i] = v
+            v.parent = cont
+        end
+        self.children = ch
+
+        -- states
+        local ks = kwargs.states
+        if ks then for k, v in pairs(ks) do
+            states[k] = v
+            v.parent = cont
+        end end
+        self.states = states
 
         -- and init
         if  kwargs.__init then
