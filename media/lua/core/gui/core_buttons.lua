@@ -102,9 +102,18 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
     --[[! Function: clicked
         Makes sure the signal is sent only if the condition is met.
     ]]
-    clicked = function(self, cx, cy)
+    clicked = function(self, cx, cy, code)
         if self.condition and self:condition() then
-            Widget.clicked(self, cx, cy)
+            Widget.clicked(self, cx, cy, code)
+        end
+    end,
+
+    --[[! Function: released
+        See above.
+    ]]
+    released = function(self, cx, cy, code)
+        if self.condition and self:condition() then
+            Widget.released(self, cx, cy, code)
         end
     end,
 
