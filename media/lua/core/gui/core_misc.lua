@@ -53,7 +53,7 @@ M.Conditional = register_class("Conditional", Widget, {
     end,
 
     choose_state = function(self)
-        return (self.condition and self:p_condition()) and "true" or "false"
+        return (self.condition and self:condition()) and "true" or "false"
     end,
 
     --[[! Function: set_condition ]]

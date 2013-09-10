@@ -32,7 +32,7 @@ end
 local i = 0
 
 world:new_window("main", gui.Window, |win| do
-    win:set_variant("noborder")
+    win:set_variant("borderless")
     win:align(0, 0)
     win:append(gui.V_Box(), |b| do
         b:append(gui.H_Box(), |b| do
@@ -117,6 +117,20 @@ nulla pariatur. Excepteur sint occaecat cupidatat
 non proident, sunt in culpa qui officia deserunt
 mollit anim id est laborum.]], multiline = true }, |x| do
                 ed = x
+            end)
+        end)
+
+        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
+            s:append(gui.H_Box { padding = 0.01 }, |hb| do
+                local tvar, tvar2 = false, false
+                hb:append(gui.Toggle { variant = "checkbox", condition = || tvar }, |t| do
+                    signal.connect(t, "clicked", || do tvar = not tvar end)
+                end)
+                hb:append(gui.Label { text = "A checkbox" })
+                hb:append(gui.Toggle { variant = "checkbox", condition = || tvar2 }, |t| do
+                    signal.connect(t, "clicked", || do tvar2 = not tvar2 end)
+                end)
+                hb:append(gui.Label { text = "Another one" })
             end)
         end)
 

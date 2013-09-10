@@ -94,7 +94,7 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
     end,
 
     choose_state = function(self)
-        return ((self.condition and self:p_condition()) and
+        return ((self.condition and self:condition()) and
             (clicked_states[is_clicked(self)] or
                 (is_hovering(self) and "hovering" or "true")) or "false")
     end,
@@ -103,7 +103,7 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
         Makes sure the signal is sent only if the condition is met.
     ]]
     clicked = function(self, cx, cy)
-        if self.condition and self:p_condition() then
+        if self.condition and self:condition() then
             Widget.clicked(self, cx, cy)
         end
     end,
@@ -127,7 +127,7 @@ M.Toggle = register_class("Toggle", Button, {
 
     choose_state = function(self)
         local h = is_hovering(self)
-        return (self.condition and self:p_condition() and
+        return (self.condition and self:condition() and
             (h and "toggled_hovering" or "toggled") or
             (h and "default_hovering" or "default"))
     end,

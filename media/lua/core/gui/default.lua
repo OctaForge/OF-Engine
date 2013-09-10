@@ -83,7 +83,7 @@ gui.Key_Field.__variants = gui.Text_Editor.__variants
 -- windows
 
 gui.Window.__variants = {
-    noborder = {
+    borderless = {
         gui.Gradient {
             r = 8, g = 8, b = 8, r2 = 32, g2 = 32, b2 = 32, a = 230, a2 = 230,
             clamp = true, gui.Outline {
@@ -110,6 +110,32 @@ gui.Filler.__variants = {
         }
     }
 }
+
+-- checkboxes, radioboxes
+
+local ckbox_build_variant = |r, g, b, tgl| gui.Gradient {
+    r = 0, g = 0, b = 0, r2 = 48, g2 = 48, b2 = 48, min_w = 0.02, min_h = 0.02,
+    gui.Outline {
+        r = r, g = g, b = b, clamp = true, tgl and gui.Spacer {
+            pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Color_Filler {
+                clamp = true, r = 192, g = 192, b = 192,
+                gui.Outline { r = r, g = g, b = b, clamp = true }
+            }
+        } or nil
+    }
+}
+
+local ckboxv, rdbtnv = {}, {}
+
+gui.Toggle.__variants = {
+    checkbox = ckboxv,
+    radiobutton = rdbtnv
+}
+
+ckboxv["default"         ] = ckbox_build_variant(255, 255, 255)
+ckboxv["default_hovering"] = ckbox_build_variant(225, 225, 225)
+ckboxv["toggled"         ] = ckbox_build_variant(192, 192, 192, true)
+ckboxv["toggled_hovering"] = ckbox_build_variant(225, 225, 225, true)
 
 -- default windows
 
