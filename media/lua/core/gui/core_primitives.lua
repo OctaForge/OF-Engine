@@ -38,6 +38,7 @@ local abs   = math.abs
 local clamp = math2.clamp
 local floor = math.floor
 local ceil  = math.ceil
+local huge  = math.huge
 local emit  = signal.emit
 local tostring = tostring
 local type = type
@@ -419,8 +420,8 @@ local Image = register_class("Image", Filler, {
         if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
 
         local proj = get_projection()
-        if min_w == -1 then min_w = proj.pw end
-        if min_h == -1 then min_h = proj.ph end
+        if min_w == huge then min_w = proj.pw end
+        if min_h == huge then min_h = proj.ph end
 
         if  min_w == 0 or min_h == 0 then
             local tex, scrh = self.texture, hud_get_h()
@@ -1088,8 +1089,8 @@ M.Triangle = register_class("Triangle", Shape, {
         if h < 0 then h = abs(h) / hud_get_h() end
 
         local proj = get_projection()
-        if w == -1 then w = proj.pw end
-        if h == -1 then h = proj.ph end
+        if w == huge then w = proj.pw end
+        if h == huge then h = proj.ph end
 
         local a = Vec2(0, -h * 2 / 3)
         local b = Vec2(-w / 2, h / 3)

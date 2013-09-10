@@ -160,18 +160,4 @@ M.compare_pitch = function(origin, target, pitch, acceptable)
         <= acceptable
 end
 
---[[! Function: is_nan
-    Returns true if the given value is nan, false otherwise.
-]]
-M.is_nan = function(n)
-    return (n != n)
-end
-
---[[! Function: is_inf
-    Returns true if the given value is infinite, false otherwise.
-]]
-M.is_inf = function(n)
-    return (n == 1/0)
-end
-
 return M

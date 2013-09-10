@@ -14,9 +14,10 @@
         that is, actual spacers, offsetters, fillers etc.
 ]]
 
-local max = math.max
-local min = math.min
-local abs = math.abs
+local max  = math.max
+local min  = math.min
+local abs  = math.abs
+local huge = math.huge
 
 local M = require("core.gui.core")
 
@@ -40,6 +41,9 @@ local gen_setter = M.gen_setter
 
 -- projection
 local get_projection = M.get_projection
+
+-- text scale
+local get_text_scale = M.get_text_scale
 
 --[[! Struct: Spacer
     A spacer will give a widget a horizontal padding (pad_h) and a vertical
@@ -86,19 +90,20 @@ M.Spacer = register_class("Spacer", Widget, {
 
 --[[! Struct: Filler
     A filler will fill at least min_w space horizontally and min_h space
-    vertically. If the min_w property is -1, the filler will take all
-    the available space (depending on aspect ratio), if min_h is -1,
-    it'll take the full height (1). It's invisible.
+    vertically. It's invisible.
 
     Negative min_w and min_h values are in pixels.
     They can also be functions, in which case their return value is used
     (the widget is passed as an argument for the call).
 
+    Infinite values of min_w and min_h are treated as full width or full
+    height.
+
     There is also the clip_children boolean property defaulting to false.
     When true, it'll clip children inside - that's useful for, say, embedded
     floating windows.
 ]]
-M.Filler = register_class("Filler", Widget, {
+local Filler = register_class("Filler", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_w = kwargs.min_w or 0
@@ -121,8 +126,8 @@ M.Filler = register_class("Filler", Widget, {
         if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
 
         local proj = get_projection()
-        if min_w == -1 then min_w = proj.pw end
-        if min_h == -1 then min_h = proj.ph end
+        if min_w == huge then min_w = proj.pw end
+        if min_h == huge then min_h = proj.ph end
 
         self.w = max(self.w, min_w)
         self.h = max(self.h, min_h)
@@ -154,6 +159,37 @@ M.Filler = register_class("Filler", Widget, {
 
     --[[! Function: set_clip_children ]]
     set_clip_children = gen_setter "clip_children"
+})
+M.Filler = Filler
+
+--[[! Struct: Text_Filler
+    Like <Filler>, but its min_w and min_h work in terms of text units.
+    By default uses regular text scale factor, but if the "console_text"
+    property is true, it'll use console text scale.
+
+    Note that this widget doesn't support extra min_w and min_h values
+    like <Filler> (such as -1) - it operates strictly in terms of text units.
+    Function based bounds are supported.
+]]
+M.Text_Filler = register_class("Text_Filler", Filler, {
+    __ctor = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.console_text = kwargs.console_text or false
+        return Filler.__ctor(self, kwargs)
+    end,
+
+    layout = function(self)
+        Widget.layout(self)
+
+        local min_w = self.min_w
+        local min_h = self.min_h
+        if type(min_w) == "function" then min_w = min_w(self) end
+        if type(min_h) == "function" then min_h = min_h(self) end
+
+        local scalef = get_text_scale(self.console_text)
+        self.w = max(self.w, min_w * scalef * 0.5)
+        self.h = max(self.h, min_h * scalef)
+    end,
 })
 
 --[[! Struct: Offsetter
