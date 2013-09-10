@@ -113,13 +113,28 @@ gui.Filler.__variants = {
 
 -- checkboxes, radioboxes
 
-local ckbox_build_variant = |r, g, b, tgl| gui.Gradient {
-    r = 0, g = 0, b = 0, r2 = 48, g2 = 48, b2 = 48, min_w = 0.02, min_h = 0.02,
+local ckbox_build_variant = |r, g, b, tgl| gui.Color_Filler {
+    r = 16, g = 16, b = 16, min_w = 0.02, min_h = 0.02,
     gui.Outline {
         r = r, g = g, b = b, clamp = true, tgl and gui.Spacer {
             pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Color_Filler {
                 clamp = true, r = 192, g = 192, b = 192,
                 gui.Outline { r = r, g = g, b = b, clamp = true }
+            }
+        } or nil
+    }
+}
+
+local rdbtn_build_variant = |r, g, b, tgl| gui.Circle {
+    r = 16, g = 16, b = 16, min_w = 0.02, min_h = 0.02,
+    gui.Circle {
+        style = gui.Circle.OUTLINE, r = r, g = g, b = b, clamp = true,
+        tgl and gui.Spacer {
+            pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Circle {
+                clamp = true, r = 192, g = 192, b = 192,
+                gui.Circle { style = gui.Circle.OUTLINE,
+                    r = r, g = g, b = b, clamp = true
+                }
             }
         } or nil
     }
@@ -136,6 +151,10 @@ ckboxv["default"         ] = ckbox_build_variant(255, 255, 255)
 ckboxv["default_hovering"] = ckbox_build_variant(225, 225, 225)
 ckboxv["toggled"         ] = ckbox_build_variant(192, 192, 192, true)
 ckboxv["toggled_hovering"] = ckbox_build_variant(225, 225, 225, true)
+rdbtnv["default"         ] = rdbtn_build_variant(255, 255, 255)
+rdbtnv["default_hovering"] = rdbtn_build_variant(225, 225, 225)
+rdbtnv["toggled"         ] = rdbtn_build_variant(192, 192, 192, true)
+rdbtnv["toggled_hovering"] = rdbtn_build_variant(225, 225, 225, true)
 
 -- default windows
 

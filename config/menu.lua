@@ -135,6 +135,36 @@ mollit anim id est laborum.]], multiline = true }, |x| do
         end)
 
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
+            s:append(gui.V_Box { padding = 0.01 }, |vb| do
+                local tvar = 1
+                vb:append(gui.H_Box { padding = 0.01 }, |hb| do
+                    hb:append(gui.Toggle { variant = "radiobutton",
+                        condition = || tvar == 1
+                    }, |t| do
+                        signal.connect(t, "clicked", || do tvar = 1 end)
+                    end)
+                    hb:append(gui.Label { text = "Radiobutton 1" })
+                end)
+                vb:append(gui.H_Box { padding = 0.01 }, |hb| do
+                    hb:append(gui.Toggle { variant = "radiobutton",
+                        condition = || tvar == 2
+                    }, |t| do
+                        signal.connect(t, "clicked", || do tvar = 2 end)
+                    end)
+                    hb:append(gui.Label { text = "Radiobutton 2" })
+                end)
+                vb:append(gui.H_Box { padding = 0.01 }, |hb| do
+                    hb:append(gui.Toggle { variant = "radiobutton",
+                        condition = || tvar == 3
+                    }, |t| do
+                        signal.connect(t, "clicked", || do tvar = 3 end)
+                    end)
+                    hb:append(gui.Label { text = "Radiobutton 3" })
+                end)
+            end)
+        end)
+
+        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
             s:append(gui.Button { label = "A button" }, |b| do
                 local ttip = gui.Color_Filler {
                     min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
