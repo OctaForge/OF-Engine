@@ -1140,8 +1140,9 @@ Widget = register_class("Widget", table2.Object, {
 
     --[[! Function: released
         Called once the widget has been released from a click. Takes the
-        same argument as <clicked>, emits the "releaseD" signal, passes
-        the same arguments to it.
+        same argument as <clicked>, emits the "released" signal, passes
+        the same arguments to it. The cx, cy coordinates are up to date
+        (they're calculated by the time of the button release).
     ]]
     released = function(self, cx, cy, code)
         emit(self, "released", cx, cy, code)
@@ -2014,7 +2015,18 @@ set_external("input_keypress", function(code, isdown)
                 clicked_code = nil
             end
         else
-            if clicked then clicked:released(click_x, click_y, code) end
+            if clicked then
+                local hx, hy
+                if #menustack > 0 then for i = #menustack, 1, -1 do
+                    hx, hy = menu_hold(menustack[i], cursor_x, cursor_y,
+                        clicked)
+                    if hx then break end
+                end end
+                if not hx then
+                    hx, hy = world:hold(cursor_x, cursor_y, clicked)
+                end
+                clicked:released(hx, hy, code)
+            end
             clicked_code, clicked = nil, nil
         end
         return true
@@ -2155,9 +2167,7 @@ set_external("gui_update", function()
             if not hx then
                 hx, hy = world:hold(cursor_x, cursor_y, clicked)
             end
-            if hx then
-                clicked:holding(hx, hy, clicked_code)
-            end
+            clicked:holding(hx, hy, clicked_code)
         end
     else
         hovering, clicked = nil, nil
