@@ -124,11 +124,11 @@ mollit anim id est laborum.]], multiline = true }, |x| do
             s:append(gui.H_Box { padding = 0.01 }, |hb| do
                 local tvar, tvar2 = false, false
                 hb:append(gui.Toggle { variant = "checkbox", condition = || tvar }, |t| do
-                    signal.connect(t, "clicked", || do tvar = not tvar end)
+                    signal.connect(t, "released", || do tvar = not tvar end)
                 end)
                 hb:append(gui.Label { text = "A checkbox" })
                 hb:append(gui.Toggle { variant = "checkbox", condition = || tvar2 }, |t| do
-                    signal.connect(t, "clicked", || do tvar2 = not tvar2 end)
+                    signal.connect(t, "released", || do tvar2 = not tvar2 end)
                 end)
                 hb:append(gui.Label { text = "Another one" })
             end)
@@ -141,7 +141,7 @@ mollit anim id est laborum.]], multiline = true }, |x| do
                     hb:append(gui.Toggle { variant = "radiobutton",
                         condition = || tvar == 1
                     }, |t| do
-                        signal.connect(t, "clicked", || do tvar = 1 end)
+                        signal.connect(t, "released", || do tvar = 1 end)
                     end)
                     hb:append(gui.Label { text = "Radiobutton 1" })
                 end)
@@ -149,7 +149,7 @@ mollit anim id est laborum.]], multiline = true }, |x| do
                     hb:append(gui.Toggle { variant = "radiobutton",
                         condition = || tvar == 2
                     }, |t| do
-                        signal.connect(t, "clicked", || do tvar = 2 end)
+                        signal.connect(t, "released", || do tvar = 2 end)
                     end)
                     hb:append(gui.Label { text = "Radiobutton 2" })
                 end)
@@ -157,7 +157,7 @@ mollit anim id est laborum.]], multiline = true }, |x| do
                     hb:append(gui.Toggle { variant = "radiobutton",
                         condition = || tvar == 3
                     }, |t| do
-                        signal.connect(t, "clicked", || do tvar = 3 end)
+                        signal.connect(t, "released", || do tvar = 3 end)
                     end)
                     hb:append(gui.Label { text = "Radiobutton 3" })
                 end)
@@ -170,7 +170,7 @@ mollit anim id est laborum.]], multiline = true }, |x| do
                     min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
                 }
                 ttip:append(gui.Label { text = "Reset editor" })
-                signal.connect(b, "clicked",  || ed:reset_value())
+                signal.connect(b, "released", || ed:reset_value())
                 signal.connect(b, "hovering", || b:show_tooltip(ttip))
             end)
         end)

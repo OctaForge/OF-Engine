@@ -1138,6 +1138,15 @@ Widget = register_class("Widget", table2.Object, {
         emit(self, "clicked", cx, cy, code)
     end,
 
+    --[[! Function: released
+        Called once the widget has been released from a click. Takes the
+        same argument as <clicked>, emits the "releaseD" signal, passes
+        the same arguments to it.
+    ]]
+    released = function(self, cx, cy, code)
+        emit(self, "released", cx, cy, code)
+    end,
+
     --[[! Function: grabs_input
         Returns true if the widget takes input in regular cursor mode. That
         is the default behavior. However, that is not always convenient as
@@ -2005,6 +2014,7 @@ set_external("input_keypress", function(code, isdown)
                 clicked_code = nil
             end
         else
+            if clicked then clicked:released(click_x, click_y, code) end
             clicked_code, clicked = nil, nil
         end
         return true
