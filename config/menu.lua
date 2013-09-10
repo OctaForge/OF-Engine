@@ -4,31 +4,6 @@ local cs = require("core.engine.cubescript")
 
 local world = gui.get_world()
 
---[[
-local test_states = function()
-    gui.Button:update_class_states {
-        default = gui.Color_Filler {
-            min_w = 0.2, min_h = 0.05, r = 64, g = 32, b = 192,
-            gui.Label { text = "Different idle" }
-        },
-    
-        hovering = gui.Color_Filler {
-            min_w = 0.2, min_h = 0.05, r = 0, g = 50, b = 150,
-            gui.Label { text = "Different hovering" }
-        },
-    
-        clicked = gui.Color_Filler {
-            min_w = 0.2, min_h = 0.05, r = 128, g = 192, b = 225,
-            gui.Label { text = "Different clicked" }
-        }
-    }
-end
-
-local append_hud = function()
-    gui.get_hud():append(gui.Color_Filler { r = 255, b = 0, g = 0, min_w = 0.3, min_h = 0.4 }, function(r) r:align(-1, 0) end)
-end
-]]
-
 local i = 0
 
 world:new_window("main", gui.Window, |win| do
