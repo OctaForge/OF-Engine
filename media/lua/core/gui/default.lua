@@ -69,7 +69,7 @@ smbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
 gui.Text_Editor.__variants = {
     default = {
         gui.Color_Filler {
-            r = 48, g = 48, b = 48, clamp = true, gui.Outline { clamp = true }
+            r = 32, g = 32, b = 32, clamp = true, gui.Outline { clamp = true }
         },
         __init = |ed| do
             ed:set_pad_l(0.005)
@@ -85,7 +85,7 @@ gui.Key_Field.__variants = gui.Text_Editor.__variants
 gui.Filler.__variants = {
     menu = {
         gui.Gradient {
-            r = 8, g = 8, b = 8, r2 = 24, g2 = 24, b2 = 24, a = 250, a2 = 250,
+            r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 250, a2 = 250,
             clamp = true, gui.Outline {
                 r = 255, g = 255, b = 255, clamp = true
             }
@@ -141,7 +141,7 @@ rdbtnv["toggled_hovering"] = rdbtn_build_variant(225, 225, 225, true)
 -- windows
 
 local window_build_titlebar = || gui.Gradient {
-    r = 32, g = 32, b = 32, r2 = 8, g2 = 8, b2 = 8,
+    r = 48, g = 48, b = 48, r2 = 0, g2 = 0, b2 = 0,
     a = 230, a2 = 230, clamp_h = true,
     gui.Spacer {
         pad_h = 0.004, pad_v = 0.004,
@@ -196,8 +196,8 @@ local window_build_regular = |mov| gui.Filler {
             }
         },
         gui.Gradient {
-            r = 8, g = 8, b = 8, r2 = 32, g2 = 32, b2 = 32,
-            a = 230, a2 = 230, clamp = true, gui.Spacer {
+            r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 230, a2 = 230,
+            clamp = true, gui.Spacer {
                 pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
                     win:set_container(self)
                 end
@@ -213,7 +213,7 @@ local window_build_regular = |mov| gui.Filler {
 gui.Window.__variants = {
     borderless = {
         gui.Gradient {
-            r = 8, g = 8, b = 8, r2 = 32, g2 = 32, b2 = 32, a = 230, a2 = 230,
+            r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 230, a2 = 230,
             clamp = true, gui.Outline {
                 r = 255, g = 255, b = 255, clamp = true,
                 gui.Spacer {
