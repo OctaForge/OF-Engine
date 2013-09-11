@@ -1900,20 +1900,14 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         return
     end
 
+    local dx, dy = hovering and hover_x or click_x,
+                   hovering and hover_y or click_y
     -- omx, omy: the base position of the new menu
-    local omx, omy = op.x, op.y
-
-    -- calculate omx, omy by going down the tree
-    local opp = op.parent
-    while opp and (i == 1 or opp != prevo) do
-        omx, omy, opp = omx + opp.x, omy + opp.y, opp.parent
-    end
+    local omx, omy = cursor_x * (1 + 2 * margin) - margin - dx, cursor_y - dy
 
     -- a submenu - uses different alignment - submenus are put next to
     -- their spawners, regular menus are put under their spawners
     if i != 1 then
-        -- adjust base omx/y
-        omx, omy = omx + opp.x, omy + opp.y
         -- when the current y + height of menu exceeds the screen height,
         -- move the menu up by its height minus the spawner height, make
         -- sure it's at least 0 (so that it's not accidentally moved above
