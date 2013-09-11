@@ -80,7 +80,7 @@ gui.Text_Editor.__variants = {
 gui.Field.__variants     = gui.Text_Editor.__variants
 gui.Key_Field.__variants = gui.Text_Editor.__variants
 
--- menus
+-- menus, tooltips
 
 gui.Filler.__variants = {
     menu = {
@@ -88,6 +88,22 @@ gui.Filler.__variants = {
             r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 250, a2 = 250,
             clamp = true, gui.Outline {
                 r = 255, g = 255, b = 255, clamp = true
+            }
+        }
+    },
+    tooltip = {
+        __properties = { "label" },
+        gui.Gradient {
+            r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 250, a2 = 250,
+            gui.Outline {
+                r = 255, g = 255, b = 255, clamp = true, gui.Spacer {
+                    pad_h = 0.01, pad_v = 0.005, init_clone = |self, ttip| do
+                        local lbl = gui.Label { text = ttip.label }
+                        self:append(lbl)
+                        signal.connect(ttip, "label_changed", |o, t| do
+                            o:set_text(t) end)
+                    end
+                }
             }
         }
     }

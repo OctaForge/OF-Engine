@@ -143,10 +143,9 @@ mollit anim id est laborum.]], multiline = true }, |x| do
 
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
             s:append(gui.Button { label = "A button" }, |b| do
-                local ttip = gui.Color_Filler {
-                    min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
+                local ttip = gui.Filler {
+                    variant = "tooltip", label = "Reset editor"
                 }
-                ttip:append(gui.Label { text = "Reset editor" })
                 signal.connect(b, "released", || ed:reset_value())
                 signal.connect(b, "hovering", || b:show_tooltip(ttip))
             end)
