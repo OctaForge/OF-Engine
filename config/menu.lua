@@ -7,7 +7,8 @@ local world = gui.get_world()
 local i = 0
 
 world:new_window("main", gui.Window, |win| do
-    win:set_variant("regular")
+    win:set_floating(true)
+    win:set_variant("movable")
     win:set_title("Main menu")
     win:align(0, 0)
     win:append(gui.V_Box(), |b| do
