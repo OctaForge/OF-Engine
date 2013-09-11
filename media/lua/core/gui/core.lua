@@ -1894,14 +1894,14 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
             win = p
         end
         local proj = get_projection(win)
-        fw, fh = proj.pw / wpw, proj.ph / wph
+        fw, fh = wpw / proj.pw, wph / proj.ph
     else
         local proj = get_projection(prevo)
-        fw, fh = proj.pw / wpw, proj.ph / wph
+        fw, fh = wpw / proj.pw, wph / proj.ph
     end
 
     -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
-    local ow, oh, opw, oph = o.w, o.h, op.w / fw, op.h / fh
+    local ow, oh, opw, oph = o.w, o.h, op.w * fw, op.h * fh
 
     -- when spawning menus right on the cursor
     if at_cursor then
@@ -1918,8 +1918,8 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         return
     end
 
-    local dx, dy = hovering and hover_x / fw or click_x / fw,
-                   hovering and hover_y / fh or click_y / fh
+    local dx, dy = hovering and hover_x * fw or click_x * fw,
+                   hovering and hover_y * fh or click_y * fh
     -- omx, omy: the base position of the new menu
     local omx, omy = cursor_x * world.w - margin - dx, cursor_y - dy
 
