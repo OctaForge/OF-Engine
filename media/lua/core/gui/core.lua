@@ -1880,10 +1880,28 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     -- initial layout to guess the bounds
     projection = get_projection(o)
     o:layout()
+    projection:calc()
+    local wpw, wph = projection.pw, projection.ph
     projection = nil
 
+    -- parent projection (for correct offsets)
+    local fw, fh
+    if not prevo then
+        local win = o.parent
+        while true do
+            local p = win.parent
+            if not p.parent then break end
+            win = p
+        end
+        local proj = get_projection(win)
+        fw, fh = proj.pw / wpw, proj.ph / wph
+    else
+        local proj = get_projection(prevo)
+        fw, fh = proj.pw / wpw, proj.ph / wph
+    end
+
     -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
-    local ow, oh, opw, oph = o.w, o.h, op.w, op.h
+    local ow, oh, opw, oph = o.w, o.h, op.w / fw, op.h / fh
 
     -- when spawning menus right on the cursor
     if at_cursor then
@@ -1900,8 +1918,8 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         return
     end
 
-    local dx, dy = hovering and hover_x or click_x,
-                   hovering and hover_y or click_y
+    local dx, dy = hovering and hover_x / fw or click_x / fw,
+                   hovering and hover_y / fh or click_y / fh
     -- omx, omy: the base position of the new menu
     local omx, omy = cursor_x * (1 + 2 * margin) - margin - dx, cursor_y - dy
 
