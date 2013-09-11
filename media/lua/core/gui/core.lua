@@ -17,6 +17,7 @@
         It also manages the HUD.
 ]]
 
+local ffi = require("ffi")
 local capi = require("capi")
 local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
@@ -26,11 +27,11 @@ local logger = require("core.logger")
 local Vec2 = require("core.lua.geom").Vec2
 
 local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
-gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_disable,
-hudmatrix_ortho, hudmatrix_reset, shader_hud_set, hud_get_w, hud_get_h,
-hud_get_ss_x, hud_get_ss_y, hud_get_so_x, hud_get_so_y, isconnected,
-text_get_res, text_font_get_h, aspect_get, editing_get, console_scale_get,
-input_get_free_cursor in capi
+gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_color4ub,
+gle_attrib4ub, gle_defcolorub, gle_disable, hudmatrix_ortho, hudmatrix_reset,
+shader_hud_set, hud_get_w, hud_get_h, hud_get_ss_x, hud_get_ss_y, hud_get_so_x,
+hud_get_so_y, isconnected, text_get_res, text_font_get_h, aspect_get,
+editing_get, console_scale_get, input_get_free_cursor in capi
 
 local set_external = capi.external_set
 
@@ -513,6 +514,97 @@ get_projection = function(o, nonew)
 end
 
 M.get_projection = get_projection
+
+ffi.cdef [[
+    typedef struct color_t {
+        uchar r, g, b, a;
+    } color_t;
+]]
+
+local ffi_new = ffi.new
+
+local color_ctors = {
+    [0] = function(self) return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) end,
+    [1] = function(self, c)
+        c = c or 0xFFFFFFFF
+        local a = c >> 24
+        return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
+            (a == 0) and 0xFF or a)
+    end,
+    [2] = function(self, c, a)
+        c = c or 0xFFFFFF
+        return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
+            a or 0xFF)
+    end,
+    [3] = function(self, r, g, b)
+        return ffi_new(self, r or 0xFF, g or 0xFF, b or 0xFF, 0xFF)
+    end
+}
+
+local color_defctor = function(self, r, g, b, a)
+    return ffi_new(self, r or 0xFF, g or 0xFF, b or 0xFF, a or 0xFF)
+end
+
+--[[! Struct: Color
+    A color structure used for color attributes in all widgets that support
+    them. Has fields r, g, b, a ranging from 0 to 255.
+]]
+M.Color = ffi.metatype("color_t", {
+    --[[! Constructor: new
+        Depending on the number of arguments, this initializes the color.
+
+        With zero argments, everything is initialized to 0xFF (255). With
+        one argument, the argument is treated as a hex color. That means
+        you can specify it either as 0xRRGGBB or 0xAARRGGBB. If you use
+        the former, the alpha defaults to 0xFF.
+
+        With two arguments, the first argument is a hex color in 0xRRGGBB
+        and the second argument is the alpha. With three or four arguments
+        you're providing the r, g, b and possibly a values. If only three
+        arguments are provided, the alpha defaults to 0xFF.
+
+        Note that if you provide nil or false in place of any argument,
+        it'll default all color channels it affects to 0xFF.
+
+        The set_(r|g|b|a) methods emit the "(r|g|b|a)_changed" signals
+        on this structure, passing the new value to the emit call.
+    ]]
+    __new = function(self, ...)
+        local nargs = select("#", ...)
+        return (color_ctors[nargs] or color_defctor)(self, ...)
+    end,
+
+    __index = {
+        --[[! Function: init
+            Sets the color (like glColor4f).
+        ]]
+        init = function(self)
+            --print(self.r, self.g, self.b, self.a)
+            gle_color4ub(self.r, self.g, self.b, self.a)
+        end,
+
+        --[[! Function: attrib
+            Like above, but used as an attribute.
+        ]]
+        attrib = function(self)
+            gle_attrib4ub(self.r, self.g, self.b, self.a)
+        end,
+
+        --[[! Function: def
+            Defines the color attribute as 4 unsigned bytes.
+        ]]
+        def = function() gle_defcolorub(4) end,
+
+        --[[! Function: set_r ]]
+        set_r = gen_setter "r",
+        --[[! Function: set_g ]]
+        set_g = gen_setter "g",
+        --[[! Function: set_b ]]
+        set_b = gen_setter "b",
+        --[[! Function: set_a ]]
+        set_a = gen_setter "a"
+    }
+})
 
 local Widget, Window
 

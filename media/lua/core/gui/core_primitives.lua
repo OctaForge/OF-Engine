@@ -22,15 +22,14 @@ local geom = require("core.lua.geom")
 
 local gl_blend_func, shader_hudnotexture_set, shader_hud_set, gl_bind_texture,
 gl_texture_param, shader_hud_set_variant, gle_begin, gle_end, gle_defvertexf,
-gle_defcolorub, gle_deftexcoord0f, gle_color4ub, gle_color4f, gle_attrib4ub,
-gle_attrib2f, texture_load, texture_load_alpha_mask, texture_is_notexture,
-texture_get_notexture, thumbnail_load, texture_draw_slot, texture_draw_vslot,
-gl_blend_disable, gl_blend_enable, gl_scissor_disable, gl_scissor_enable,
-gle_disable, model_preview_start, model_preview, model_preview_end,
-hudmatrix_push, hudmatrix_scale, hudmatrix_flush, hudmatrix_pop,
-hudmatrix_translate, text_draw, text_get_bounds, text_font_push,
-text_font_pop, text_font_set, hud_get_h, console_render_full,
-text_font_get_w, text_font_get_h in capi
+gle_deftexcoord0f, gle_color4f, gle_attrib2f, texture_load,
+texture_load_alpha_mask, texture_is_notexture, texture_get_notexture,
+thumbnail_load, texture_draw_slot, texture_draw_vslot, gl_blend_disable,
+gl_blend_enable, gl_scissor_disable, gl_scissor_enable, gle_disable,
+model_preview_start, model_preview, model_preview_end, hudmatrix_push,
+hudmatrix_scale, hudmatrix_flush, hudmatrix_pop, hudmatrix_translate,
+text_draw, text_get_bounds, text_font_push, text_font_pop, text_font_set,
+hud_get_h, console_render_full, text_font_get_w, text_font_get_h in capi
 
 local max   = math.max
 local min   = math.min
@@ -65,6 +64,9 @@ local quad, quadtri = M.draw_quad, M.draw_quadtri
 -- projection
 local get_projection = M.get_projection
 
+-- color
+local Color = M.Color
+
 -- base widgets
 local Widget = M.get_class("Widget")
 
@@ -76,32 +78,43 @@ local get_text_scale = M.get_text_scale
 
 local Filler = M.Filler
 
+local init_color = function(col)
+    return col and (type(col) == "number" and Color(col) or col) or Color()
+end
+
+local gen_color_setter = function(name)
+    local sname = name .. "_changed"
+    return function(self, val)
+        self[name] = init_color(val)
+        emit(self, sname, val)
+    end
+end
+
 --[[! Struct: Color_Filler
     Derived from <Filler>. Represents a regular rectangle. Has properties
-    r (red, 0-255), g (green, 0-255), b (blue, 0-255), a (alpha, 0-255)
-    and solid, which is a boolean value specifying whether the rectangle
-    is solid - that is, if it's just a regular color fill or whether it
-    modulates the color of the thing underneath. The color/alpha values
-    default to 255, solid defaults to true.
+    color (see <Color>) and solid, which is a boolean value specifying whether
+    the rectangle is solid - that is, if it's just a regular color fill or
+    whether it modulates the color of the thing underneath. The color property
+    defaults to <Color>(), solid defaults to true. The color propety can be
+    initialized either with a number (in format 0xAARRGGBB or 0xRRGGBB) or
+    an instance of <Color> - that goes for both for kwargs initialization and
+    <set_color>.
 ]]
 local Color_Filler = register_class("Color_Filler", Filler, {
     __ctor = function(self, kwargs)
         kwargs       = kwargs or {}
         self.solid = kwargs.solid == false and false or true
-        self.r     = kwargs.r or 255
-        self.g     = kwargs.g or 255
-        self.b     = kwargs.b or 255
-        self.a     = kwargs.a or 255
+        self.color = init_color(kwargs.color)
 
         return Filler.__ctor(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
-        local w, h, solid = self.w, self.h, self.solid
+        local w, h, color, solid in self
 
         if not solid then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        color:init()
 
         gle_defvertexf(2)
         gle_begin(gl.TRIANGLE_STRIP)
@@ -124,61 +137,47 @@ local Color_Filler = register_class("Color_Filler", Filler, {
     --[[! Function: set_solid ]]
     set_solid = gen_setter "solid",
 
-    --[[! Function: set_r ]]
-    set_r = gen_setter "r",
-
-    --[[! Function: set_g ]]
-    set_g = gen_setter "g",
-
-    --[[! Function: set_b ]]
-    set_b = gen_setter "b",
-
-    --[[! Function: set_a ]]
-    set_a = gen_setter "a"
+    --[[! Function: set_color ]]
+    set_color = gen_color_setter "color"
 })
 M.Color_Filler = Color_Filler
 
 --[[! Struct: Gradient
     Derived from <Color_Filler>. It's a gradient, not solid color fill
-    like <Color_Filler>. Properties r2, g2, b2, a2 represent the other
-    color (and all default to 255). The property "horizontal" makes the
-    gradient horizontal (default is vertical). Other properties are
-    inherited from <Color_Filler>.
+    like <Color_Filler>. The other color is represented as "color2". The
+    property "horizontal" makes the gradient horizontal (default is vertical).
+    The other properties are inherited from <Color_Filler>.
 ]]
 M.Gradient = register_class("Gradient", Color_Filler, {
     __ctor = function(self, kwargs)
         Color_Filler.__ctor(self, kwargs)
         self.horizontal = kwargs.horizontal
-        self.r2 = kwargs.r2 or 255
-        self.g2 = kwargs.g2 or 255
-        self.b2 = kwargs.b2 or 255
-        self.a2 = kwargs.a2 or 255
+        self.color2 = init_color(kwargs.color2)
     end,
 
     draw = function(self, sx, sy)
-        local w, h, solid, horizontal in self
-        local r, r2, g, g2, b, b2, a, a2 in self
+        local w, h, color, color2, solid, horizontal in self
 
         if not solid then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
 
         gle_defvertexf(2)
-        gle_defcolorub(4)
+        color.def()
         gle_begin(gl.TRIANGLE_STRIP)
 
         gle_attrib2f(sx, sy)
         if horizontal then
-            gle_attrib4ub(r2, g2, b2, a2)
+            color2:attrib()
         else
-            gle_attrib4ub(r, g, b, a)
+            color:attrib()
         end
-        gle_attrib2f(sx + w, sy)     gle_attrib4ub(r,  g,  b,  a)
-        gle_attrib2f(sx,     sy + h) gle_attrib4ub(r2, g2, b2, a2)
+        gle_attrib2f(sx + w, sy)     color:attrib()
+        gle_attrib2f(sx,     sy + h) color2:attrib()
         gle_attrib2f(sx + w, sy + h)
         if horizontal then
-            gle_attrib4ub(r, g, b, a)
+            color:attrib()
         else
-            gle_attrib4ub(r2, g2, b2, a2)
+            color2:attrib()
         end
 
         gle_end()
@@ -193,38 +192,26 @@ M.Gradient = register_class("Gradient", Color_Filler, {
     --[[! Function: set_horizontal ]]
     set_horizontal = gen_setter "horizontal",
 
-    --[[! Function: set_r2 ]]
-    set_r2 = gen_setter "r2",
-
-    --[[! Function: set_g2 ]]
-    set_g2 = gen_setter "g2",
-
-    --[[! Function: set_b2 ]]
-    set_b2 = gen_setter "b2",
-
-    --[[! Function: set_a2 ]]
-    set_a2 = gen_setter "a2"
+    --[[! Function: set_color2 ]]
+    set_color2 = gen_color_setter "color2"
 })
 
 --[[! Struct: Line
-    Derived from <Filler>. Represents a line. Has properties r, g, b and a
-    (that default to 255 and represent the line color).
+    Derived from <Filler>. Represents a line. Has property color (see
+    <Color_Filler>).
 ]]
 M.Line = register_class("Line", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
-        self.r = kwargs.r or 255
-        self.g = kwargs.g or 255
-        self.b = kwargs.b or 255
-        self.a = kwargs.a or 255
+        self.color = init_color(kwargs.color)
         return Filler.__ctor(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
-        local w, h in self
+        local color, w, h in self
 
         shader_hudnotexture_set()
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        color:init()
         gle_defvertexf(2)
         gle_begin(gl.LINE_LOOP)
         gle_attrib2f(sx,     sy)
@@ -236,38 +223,26 @@ M.Line = register_class("Line", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_r ]]
-    set_r = gen_setter "r",
-
-    --[[! Function: set_g ]]
-    set_g = gen_setter "g",
-
-    --[[! Function: set_b ]]
-    set_b = gen_setter "b",
-
-    --[[! Function: set_a ]]
-    set_a = gen_setter "a"
+    --[[! Function: set_color ]]
+    set_color = gen_color_setter "color"
 })
 
 --[[! Struct: Outline
-    Derived from <Filler>. Represents an outline. Has properties r,
-    g, b and a (that default to 255 and represent the outline color).
+    Derived from <Filler>. Represents an outline. Has property color (see
+    <Color_Filler>).
 ]]
 M.Outline = register_class("Outline", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
-        self.r = kwargs.r or 255
-        self.g = kwargs.g or 255
-        self.b = kwargs.b or 255
-        self.a = kwargs.a or 255
+        self.color = init_color(kwargs.color)
         return Filler.__ctor(self, kwargs)
     end,
 
     draw = function(self, sx, sy)
-        local w, h in self
+        local color, w, h in self
 
         shader_hudnotexture_set()
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        color:init()
         gle_defvertexf(2)
         gle_begin(gl.LINE_LOOP)
         gle_attrib2f(sx,     sy)
@@ -281,17 +256,8 @@ M.Outline = register_class("Outline", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_r ]]
-    set_r = gen_setter "r",
-
-    --[[! Function: set_g ]]
-    set_g = gen_setter "g",
-
-    --[[! Function: set_b ]]
-    set_b = gen_setter "b",
-
-    --[[! Function: set_a ]]
-    set_a = gen_setter "a"
+    --[[! Function: set_color ]]
+    set_color = gen_color_setter "color"
 })
 
 local check_alpha_mask = function(tex, x, y)
@@ -318,9 +284,9 @@ end
     Derived from Filler. Represents a basic image with basic stretching.
     Has two kwargs properties - file (the filename), alt_file (alternative
     filename assuming file fails) - those are not saved in the widget and
-    six other properties - min_filter, mag_filter (see GL_TEXTURE_MIN_FILTER
+    three other properties - min_filter, mag_filter (see GL_TEXTURE_MIN_FILTER
     and GL_TEXTURE_MAG_FILTER as well as the filters later in this module),
-    r, g, b, a (see <Color_Filler>).
+    color (see <Color_Filler>).
 
     Negative min_w and min_h values are in pixels.
     They can also be functions, in which case their return value is used
@@ -342,11 +308,7 @@ local Image = register_class("Image", Filler, {
         self.texture = tex or texture_get_notexture()
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
-
-        self.r = kwargs.r or 255
-        self.g = kwargs.g or 255
-        self.b = kwargs.b or 255
-        self.a = kwargs.a or 255
+        self.color = init_color(kwargs.color)
 
         return Filler.__ctor(self, kwargs)
     end,
@@ -386,6 +348,7 @@ local Image = register_class("Image", Filler, {
     draw = function(self, sx, sy)
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
+        local color = self.color
 
         shader_hud_set_variant(tex)
         gl_bind_texture(tex:get_id())
@@ -397,8 +360,7 @@ local Image = register_class("Image", Filler, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gle_color4ub(self.r, self.g, self.b, self.a)
-
+        color:init()
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
         gle_begin(gl.TRIANGLE_STRIP)
@@ -444,17 +406,8 @@ local Image = register_class("Image", Filler, {
     --[[! Function: set_mag_filter ]]
     set_min_filter = gen_setter "mag_filter",
 
-    --[[! Function: set_r ]]
-    set_r = gen_setter "r",
-
-    --[[! Function: set_g ]]
-    set_g = gen_setter "g",
-
-    --[[! Function: set_b ]]
-    set_b = gen_setter "b",
-
-    --[[! Function: set_a ]]
-    set_a = gen_setter "a"
+    --[[! Function: set_color ]]
+    set_color = gen_color_setter "color"
 })
 M.Image = Image
 
@@ -510,7 +463,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        self.color:init()
 
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
@@ -592,7 +545,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        self.color:init()
 
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
@@ -710,7 +663,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        self.color:init()
 
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
@@ -796,7 +749,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        self.color:init()
 
         local pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
 
@@ -851,11 +804,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
 
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
-
-        self.r = kwargs.r or 255
-        self.g = kwargs.g or 255
-        self.b = kwargs.b or 255
-        self.a = kwargs.a or 255
+        self.color = init_color(kwargs.color)
 
         return Filler.__ctor(self, kwargs)
     end,
@@ -884,20 +833,8 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     ]]
     draw = function(self, sx, sy)
         self:load()
-        return Image.target(self, sx, sy)
+        return Image.draw(self, sx, sy)
     end,
-
-    --[[! Function: set_r ]]
-    set_r = gen_setter "r",
-
-    --[[! Function: set_g ]]
-    set_g = gen_setter "g",
-
-    --[[! Function: set_b ]]
-    set_b = gen_setter "b",
-
-    --[[! Function: set_a ]]
-    set_a = gen_setter "a",
 
     --[[! Function: set_fallback
         Loads the fallback texture. If the thumbnail is already loaded,
@@ -1031,7 +968,7 @@ local MODULATE = 2
 --[[! Struct: Shape
     Represents a generic shape that derives from <Filler>. It has one extra
     property called "style" which can have values Shape.SOLID, Shape.OUTLINE
-    and Shape.MODULATE. It also has color properties, r, g, b, a.
+    and Shape.MODULATE. It also has the color property.
 ]]
 local Shape = register_class("Shape", Filler, {
     SOLID    = SOLID,
@@ -1041,27 +978,15 @@ local Shape = register_class("Shape", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.style = kwargs.style or 0
-        self.r     = kwargs.r or 255
-        self.g     = kwargs.g or 255
-        self.b     = kwargs.b or 255
-        self.a     = kwargs.a or 255
+        self.color = init_color(kwargs.color)
         return Filler.__ctor(self, kwargs)
     end,
 
     --[[! Function: set_style ]]
     set_style = gen_setter "style",
 
-    --[[! Function: set_r ]]
-    set_r = gen_setter "r",
-
-    --[[! Function: set_g ]]
-    set_g = gen_setter "g",
-
-    --[[! Function: set_b ]]
-    set_b = gen_setter "b",
-
-    --[[! Function: set_a ]]
-    set_a = gen_setter "a"
+    --[[! Function: set_color ]]
+    set_color = gen_color_setter "color"
 })
 M.Shape = Shape
 
@@ -1116,12 +1041,11 @@ M.Triangle = register_class("Triangle", Shape, {
     end,
 
     draw = function(self, sx, sy)
-        local style = self.style
+        local color, style in self
         if style == MODULATE then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        color:init()
         gle_defvertexf(2)
-        gle_color4ub(self.r, self.g, self.b, self.a)
         gle_begin(style == OUTLINE and gl.LINE_LOOP or gl.TRIANGLES)
         gle_attrib2f(Vec2(sx, sy):add(self.ta):unpack())
         gle_attrib2f(Vec2(sx, sy):add(self.tb):unpack())
@@ -1155,9 +1079,9 @@ M.Circle = register_class("Circle", Shape, {
     end,
 
     draw = function(self, sx, sy)
-        local style = self.style
+        local color, style in self
         shader_hudnotexture_set()
-        gle_color4ub(self.r, self.g, self.b, self.a)
+        color:init()
         gle_defvertexf(2)
         local radius = min(self.w, self.h) / 2
         local center = Vec2(sx + radius, sy + radius)
@@ -1198,7 +1122,7 @@ M.Circle = register_class("Circle", Shape, {
     A regular label. Has several properties - text (the label, a string),
     font (the font, a string, optional), scale (the scale, defaults to 1,
     which is the base scale), wrap (text wrapping, defaults to -1 - not
-    wrapped, otherwise a size), r, g, b, a (see <Color_Filler> for these).
+    wrapped, otherwise a size), color (see <Color_Filler>).
 
     If the scale is negative, it uses console text scaling multiplier instead
     of regular one.
@@ -1211,10 +1135,7 @@ M.Label = register_class("Label", Widget, {
         self.font  = kwargs.font  or nil
         self.scale = kwargs.scale or  1
         self.wrap  = kwargs.wrap  or -1
-        self.r     = kwargs.r or 255
-        self.g     = kwargs.g or 255
-        self.b     = kwargs.b or 255
-        self.a     = kwargs.a or 255
+        self.color = init_color(kwargs.color)
 
         return Widget.__ctor(self, kwargs)
     end,
@@ -1242,8 +1163,9 @@ M.Label = register_class("Label", Widget, {
 
         local w = self.wrap
         local text = tostring(self.text)
+        local color = self.color
         text_draw(text, sx / k, sy / k,
-            self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
+            color.r, color.g, color.b, color.a, -1, w <= 0 and -1 or w / k)
 
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
@@ -1284,17 +1206,8 @@ M.Label = register_class("Label", Widget, {
     --[[! Function: set_wrap ]]
     set_wrap = gen_setter "wrap",
 
-    --[[! Function: set_r ]]
-    set_r = gen_setter "r",
-
-    --[[! Function: set_g ]]
-    set_g = gen_setter "g",
-
-    --[[! Function: set_b ]]
-    set_b = gen_setter "b",
-
-    --[[! Function: set_a ]]
-    set_a = gen_setter "a"
+    --[[! Function: set_color ]]
+    set_color = gen_color_setter "color"
 })
 
 --[[! Struct: Eval_Label
@@ -1308,10 +1221,7 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
         self.func  = kwargs.func  or nil
         self.scale = kwargs.scale or  1
         self.wrap  = kwargs.wrap  or -1
-        self.r     = kwargs.r or 255
-        self.g     = kwargs.g or 255
-        self.b     = kwargs.b or 255
-        self.a     = kwargs.a or 255
+        self.color = init_color(kwargs.color)
 
         return Widget.__ctor(self, kwargs)
     end,
@@ -1339,8 +1249,9 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
 
         local w = self.wrap
         local text = tostring(val) or ""
+        local color = self.color
         text_draw(text, sx / k, sy / k,
-            self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
+            color.r, color.g, color.b, color.a, -1, w <= 0 and -1 or w / k)
 
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
@@ -1380,17 +1291,8 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
     --[[! Function: set_wrap ]]
     set_wrap = gen_setter "wrap",
 
-    --[[! Function: set_r ]]
-    set_r = gen_setter "r",
-
-    --[[! Function: set_g ]]
-    set_g = gen_setter "g",
-
-    --[[! Function: set_b ]]
-    set_b = gen_setter "b",
-
-    --[[! Function: set_a ]]
-    set_a = gen_setter "a"
+    --[[! Function: set_color ]]
+    set_color = gen_color_setter "color"
 })
 
 --[[! Variable: FILTER_LINEAR

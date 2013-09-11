@@ -19,6 +19,8 @@ local gui = require("core.gui.core")
 
 local world = gui.get_world()
 
+local Color = gui.Color
+
 -- buttons
 
 local btnv = { __properties = { "label" } }
@@ -31,9 +33,9 @@ local btnv_init_clone = |self, btn| do
 end
 
 local btn_build_variant = |r, g, b| gui.Gradient {
-    r = 0, g = 0, b = 0, r2 = 48, g2 = 48, b2 = 48, clamp_h = true,
+    color = 0x0, color2 = 0x303030, clamp_h = true,
     gui.Outline {
-        r = r, g = g, b = b, clamp_h = true, gui.Spacer {
+        color = Color(r, g, b), clamp_h = true, gui.Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
         }
     }
@@ -69,7 +71,7 @@ smbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
 gui.Text_Editor.__variants = {
     default = {
         gui.Color_Filler {
-            r = 32, g = 32, b = 32, clamp = true, gui.Outline { clamp = true }
+            color = 0x202020, clamp = true, gui.Outline { clamp = true }
         },
         __init = |ed| do
             ed:set_pad_l(0.005)
@@ -84,19 +86,15 @@ gui.Key_Field.__variants = gui.Text_Editor.__variants
 
 gui.Filler.__variants = {
     menu = {
-        gui.Gradient {
-            r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 250, a2 = 250,
-            clamp = true, gui.Outline {
-                r = 255, g = 255, b = 255, clamp = true
-            }
+        gui.Gradient { color = 0xFA000000, color2 = 0xFA080808, clamp = true,
+            gui.Outline { color = 0xFFFFFF, clamp = true }
         }
     },
     tooltip = {
         __properties = { "label" },
         gui.Gradient {
-            r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 250, a2 = 250,
-            gui.Outline {
-                r = 255, g = 255, b = 255, clamp = true, gui.Spacer {
+            color = 0xFA000000, color2 = 0xFA080808, gui.Outline {
+                color = 0xFFFFFF, clamp = true, gui.Spacer {
                     pad_h = 0.01, pad_v = 0.005, init_clone = |self, ttip| do
                         local lbl = gui.Label { text = ttip.label }
                         self:append(lbl)
@@ -112,26 +110,26 @@ gui.Filler.__variants = {
 -- checkboxes, radioboxes
 
 local ckbox_build_variant = |r, g, b, tgl| gui.Color_Filler {
-    r = 16, g = 16, b = 16, min_w = 0.02, min_h = 0.02,
+    color = 0x101010, min_w = 0.02, min_h = 0.02,
     gui.Outline {
-        r = r, g = g, b = b, clamp = true, tgl and gui.Spacer {
+        color = Color(r, g, b), clamp = true, tgl and gui.Spacer {
             pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Color_Filler {
-                clamp = true, r = 192, g = 192, b = 192,
-                gui.Outline { r = r, g = g, b = b, clamp = true }
+                clamp = true, color = 0xC0C0C0,
+                gui.Outline { color = Color(r, g, b), clamp = true }
             }
         } or nil
     }
 }
 
 local rdbtn_build_variant = |r, g, b, tgl| gui.Circle {
-    r = 16, g = 16, b = 16, min_w = 0.02, min_h = 0.02,
+    color = 0x101010, min_w = 0.02, min_h = 0.02,
     gui.Circle {
-        style = gui.Circle.OUTLINE, r = r, g = g, b = b, clamp = true,
+        style = gui.Circle.OUTLINE, color = Color(r, g, b), clamp = true,
         tgl and gui.Spacer {
             pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Circle {
-                clamp = true, r = 192, g = 192, b = 192,
-                gui.Circle { style = gui.Circle.OUTLINE,
-                    r = r, g = g, b = b, clamp = true
+                clamp = true, color = 0xC0C0C0, gui.Circle {
+                    style = gui.Circle.OUTLINE, color = Color(r, g, b),
+                    clamp = true
                 }
             }
         } or nil
@@ -157,13 +155,11 @@ rdbtnv["toggled_hovering"] = rdbtn_build_variant(225, 225, 225, true)
 -- windows
 
 local window_build_titlebar = || gui.Gradient {
-    r = 48, g = 48, b = 48, r2 = 0, g2 = 0, b2 = 0,
-    a = 230, a2 = 230, clamp_h = true,
+    color = 0xE6303030, color2 = 0xE6000000, clamp_h = true,
     gui.Spacer {
         pad_h = 0.004, pad_v = 0.004,
         init_clone = |self, win| do
-            local lbl = gui.Label { text = win.title
-                or win.obj_name }
+            local lbl = gui.Label { text = win.title or win.obj_name }
             self:append(lbl)
             signal.connect(win, "title_changed", |w, t| do
                 lbl:set_text(t or w.obj_name) end)
@@ -186,23 +182,18 @@ local window_build_regular = |mov| gui.Filler {
                 gui.Button {
                     variant = false, states = {
                         default = gui.Gradient {
-                            r = 0, g = 0, b = 0, r2 = 48, g2 = 48,
-                            b2 = 48, min_w = 0.015, min_h = 0.015,
-                            gui.Outline { clamp = true }
+                            color = 0x0, color2 = 0x303030, min_w = 0.015,
+                            min_h = 0.015, gui.Outline { clamp = true }
                         },
                         hovering = gui.Gradient {
-                            r = 0, g = 0, b = 0, r2 = 48, g2 = 48,
-                            b2 = 48, min_w = 0.015, min_h = 0.015,
-                            gui.Outline { clamp = true,
-                                r = 225, g = 225, b = 225
-                            }
+                            color = 0x0, color2 = 0x303030, min_w = 0.015,
+                            min_h = 0.015, gui.Outline { clamp = true,
+                                color = 0xE1E1E1 }
                         },
                         clicked_left = gui.Gradient {
-                            r = 0, g = 0, b = 0, r2 = 48, g2 = 48,
-                            b2 = 48, min_w = 0.015, min_h = 0.015,
-                            gui.Outline { clamp = true,
-                                r = 192, g = 192, b = 192
-                            }
+                            color = 0x0, color2 = 0x303030, min_w = 0.015,
+                            min_h = 0.015, gui.Outline { clamp = true,
+                                color = 0xC0C0C0 }
                         }
                     },
                     init_clone = |self, win| do
@@ -212,8 +203,7 @@ local window_build_regular = |mov| gui.Filler {
             }
         },
         gui.Gradient {
-            r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 230, a2 = 230,
-            clamp = true, gui.Spacer {
+            color = 0xE6000000, color2 = 0xE6080808, clamp = true, gui.Spacer {
                 pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
                     win:set_container(self)
                 end
@@ -223,21 +213,18 @@ local window_build_regular = |mov| gui.Filler {
             default = gui.Color_Filler { min_w = 0.05, min_h = 0.07 }
         }
     },
-    gui.Outline { r = 255, g = 255, b = 255, clamp = true }
+    gui.Outline { color = 0xFFFFFF, clamp = true }
 }
 
 gui.Window.__variants = {
     borderless = {
         gui.Gradient {
-            r = 0, g = 0, b = 0, r2 = 8, g2 = 8, b2 = 8, a = 230, a2 = 230,
-            clamp = true, gui.Outline {
-                r = 255, g = 255, b = 255, clamp = true,
-                gui.Spacer {
-                    pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
-                        win:set_container(self)
-                    end
-                }
-            }
+            color = 0xE6000000, color2 = 0xE6080808, clamp = true,
+            gui.Outline { color = 0xFFFFFF, clamp = true, gui.Spacer {
+                pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
+                    win:set_container(self)
+                end
+            } }
         }
     },
     regular = { __properties = { "title" }, window_build_regular(false) },
@@ -247,8 +234,8 @@ gui.Window.__variants = {
 -- default windows
 
 world:new_window("changes", gui.Window, function(win)
-    win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,
-    min_w = 0.3, min_h = 0.2 }, function(r)
+    win:append(gui.Color_Filler { color = 0xC0000000, min_w = 0.3,
+    min_h = 0.2 }, function(r)
         r:clamp(true, true, true, true)
         win:append(gui.V_Box { padding = 0.01 }, function(box)
             box:append(gui.Label { text = "Changes" })
@@ -275,8 +262,8 @@ world:new_window("changes", gui.Window, function(win)
 end)
 
 world:new_window("texture", gui.Window, function(win)
-    win:append(gui.Color_Filler { r = 0, g = 0, b = 0, a = 192,
-    min_w = 0.3, min_h = 0.2 }, function(r)
+    win:append(gui.Color_Filler { color = 0xC0000000, min_w = 0.3,
+    min_h = 0.2 }, function(r)
         r:clamp(true, true, true, true)
         win:append(gui.V_Box { padding = 0.01 }, function(box)
             box:append(gui.Label { text = "Textures" })
@@ -298,8 +285,7 @@ world:new_window("texture", gui.Window, function(win)
                 btn:update_state("default",
                     btn:update_state("hovering",
                         btn:update_state("clicked", gui.Color_Filler {
-                            r = 64, g = 64, b = 64,
-                            min_w = 0.2, min_h = 0.05,
+                            color = 0x404040, min_w = 0.2, min_h = 0.05,
                             gui.Label { text = "Close" } })))
                 signal.connect(btn, "clicked", function()
                     world:hide_window("texture")
