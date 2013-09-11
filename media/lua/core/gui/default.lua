@@ -170,7 +170,7 @@ gui.Window.__variants = {
                                 or win.obj_name }
                             self:append(lbl)
                             signal.connect(win, "title_changed",
-                                |w, t| do lbl:set_text(t) end)
+                                |w, t| do lbl:set_text(t or w.obj_name) end)
                         end
                     },
                     gui.Spacer { pad_h = 0.009, align_h = 1,
