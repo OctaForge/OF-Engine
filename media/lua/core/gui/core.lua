@@ -1942,7 +1942,6 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         end
         -- adjust x here - when the current x + width of the menu exceeds
         -- the screen width, perform adjustments
-        --print(omx + ow)
         if (omx + ow) > pw then
             -- if the menu spawner width exceeds the screen width too, put the
             -- menu to the right
