@@ -1882,7 +1882,6 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     o:layout()
     projection:calc()
     local pw, ph = projection.pw, projection.ph
-    local pmargin = (pw - ph) / 2
     projection = nil
 
     -- parent projection (for correct offsets)
@@ -1911,11 +1910,11 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         -- adjust y so that it's always visible as whole
         if (y + oh) > ph then y = max(0, y - oh) end
         -- adjust x if clipped on the right
-        if (x + ow) > (1 + pmargin) then
-            x = max(-pmargin, x - ow)
+        if (x + ow) > (pw - margin) then
+            x = max(-margin, x - ow)
         end
         -- set position and return
-        o.x, o.y = x, y
+        o.x, o.y = max(-margin, x), max(0, y)
         return
     end
 
@@ -1937,8 +1936,8 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         -- when the current x + width of the spawner + width of the menu
         -- exceeds the screen width, move it to the left by its width,
         -- making sure the x is at least -margin
-        if (omx + opw + ow) > (1 + pmargin) then
-            omx = max(-pmargin, omx - ow)
+        if (omx + opw + ow) > (pw - margin) then
+            omx = max(-margin, omx - ow)
         -- else offset by spawner width
         else
             omx += opw
@@ -1955,16 +1954,17 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         end
         -- adjust x here - when the current x + width of the menu exceeds
         -- the screen width, perform adjustments
-        if (omx + ow) > (1 + pmargin) then
+        --print(omx + ow)
+        if (omx + ow) > (pw - margin) then
             -- if the menu spawner width exceeds the screen width too, put the
             -- menu to the right
-            if (omx + opw) > (1 + pmargin) then
-                omx = max(-pmargin, 1 + pmargin - ow)
+            if (omx + opw) > (pw - margin) then
+                omx = max(-margin, (pw - margin) - ow)
             -- else align it with the spawner
-            else omx = max(-pmargin, omx - ow + opw) end
+            else omx = max(-margin, omx - ow + opw) end
         end
     end
-    o.x, o.y = omx, omy
+    o.x, o.y = max(-margin, omx), max(0, omy)
 end
 
 tooltip_init = function(o, op, clear_on_drop)
@@ -1991,8 +1991,7 @@ tooltip_init = function(o, op, clear_on_drop)
         y = y - th + 0.02
         if y < 0 then y = 0 end
     end
-    x, y = max(x, -margin), max(y, 0)
-    o.x, o.y = x, y
+    o.x, o.y = max(x, -margin), max(y, 0)
 end
 
 local mousebuttons = {
