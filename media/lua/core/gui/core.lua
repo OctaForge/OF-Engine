@@ -1509,6 +1509,13 @@ Window = register_class("Window", Named_Widget, {
         return Named_Widget.__ctor(self, kwargs)
     end,
 
+    --[[! Function: hide
+        Equivalent to win.parent:hide_window(win.obj_name).
+    ]]
+    hide = function(self)
+        return self.parent:hide_window(self.obj_name)
+    end,
+
     grabs_input = function(self) return self.input_grab end,
 
     --[[! Function: set_input_grab ]]

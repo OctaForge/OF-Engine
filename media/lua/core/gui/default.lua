@@ -80,24 +80,6 @@ gui.Text_Editor.__variants = {
 gui.Field.__variants     = gui.Text_Editor.__variants
 gui.Key_Field.__variants = gui.Text_Editor.__variants
 
--- windows
-
-gui.Window.__variants = {
-    borderless = {
-        gui.Gradient {
-            r = 8, g = 8, b = 8, r2 = 32, g2 = 32, b2 = 32, a = 230, a2 = 230,
-            clamp = true, gui.Outline {
-                r = 255, g = 255, b = 255, clamp = true,
-                gui.Spacer {
-                    pad_h = 0.005, pad_v = 0.005, init_clone = |self, o| do
-                        o:set_container(self)
-                    end
-                }
-            }
-        }
-    }
-}
-
 -- menus
 
 gui.Filler.__variants = {
@@ -155,6 +137,88 @@ rdbtnv["default"         ] = rdbtn_build_variant(255, 255, 255)
 rdbtnv["default_hovering"] = rdbtn_build_variant(225, 225, 225)
 rdbtnv["toggled"         ] = rdbtn_build_variant(192, 192, 192, true)
 rdbtnv["toggled_hovering"] = rdbtn_build_variant(225, 225, 225, true)
+
+-- windows
+
+gui.Window.__variants = {
+    borderless = {
+        gui.Gradient {
+            r = 8, g = 8, b = 8, r2 = 32, g2 = 32, b2 = 32, a = 230, a2 = 230,
+            clamp = true, gui.Outline {
+                r = 255, g = 255, b = 255, clamp = true,
+                gui.Spacer {
+                    pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
+                        win:set_container(self)
+                    end
+                }
+            }
+        }
+    },
+    regular = {
+        __properties = { "title" },
+        gui.Filler {
+            clamp = true,
+            gui.V_Box {
+                clamp = true,
+                gui.Gradient {
+                    r = 32, g = 32, b = 32, r2 = 8, g2 = 8, b2 = 8,
+                    a = 230, a2 = 230, clamp_h = true,
+                    gui.Spacer {
+                        pad_h = 0.004, pad_v = 0.004,
+                        init_clone = |self, win| do
+                            local lbl = gui.Label { text = win.title
+                                or win.obj_name }
+                            self:append(lbl)
+                            signal.connect(win, "title_changed",
+                                |w, t| do lbl:set_text(t) end)
+                        end
+                    },
+                    gui.Spacer { pad_h = 0.009, align_h = 1,
+                        gui.Button {
+                            variant = false, states = {
+                                default = gui.Gradient {
+                                    r = 0, g = 0, b = 0, r2 = 48, g2 = 48,
+                                    b2 = 48, min_w = 0.015, min_h = 0.015,
+                                    gui.Outline { clamp = true }
+                                },
+                                hovering = gui.Gradient {
+                                    r = 0, g = 0, b = 0, r2 = 48, g2 = 48,
+                                    b2 = 48, min_w = 0.015, min_h = 0.015,
+                                    gui.Outline { clamp = true,
+                                        r = 225, g = 225, b = 225
+                                    }
+                                },
+                                clicked_left = gui.Gradient {
+                                    r = 0, g = 0, b = 0, r2 = 48, g2 = 48,
+                                    b2 = 48, min_w = 0.015, min_h = 0.015,
+                                    gui.Outline { clamp = true,
+                                        r = 192, g = 192, b = 192
+                                    }
+                                }
+                            },
+                            init_clone = |self, win| do
+                                signal.connect(self, "clicked", || win:hide())
+                            end
+                        }
+                    }
+                },
+                gui.Gradient {
+                    r = 8, g = 8, b = 8, r2 = 32, g2 = 32, b2 = 32,
+                    a = 230, a2 = 230, clamp = true, gui.Spacer {
+                        pad_h = 0.005, pad_v = 0.005,
+                        init_clone = |self, win| do
+                            win:set_container(self)
+                        end
+                    }
+                },
+                states = {
+                    default = gui.Color_Filler { min_w = 0.05, min_h = 0.07 }
+                }
+            },
+            gui.Outline { r = 255, g = 255, b = 255, clamp = true }
+        }
+    }
+}
 
 -- default windows
 
