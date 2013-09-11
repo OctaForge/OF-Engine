@@ -453,7 +453,7 @@ local Projection = table2.Object:clone {
         local obj = self.obj
         local ph = max(max(obj.h, obj.w / aspect), 1)
         local pw = aspect * ph
-        self.px, self.py = world.x, world.y
+        self.px, self.py = 0, 0
         self.pw, self.ph = pw, ph
         return pw, ph
     end,
@@ -1555,17 +1555,10 @@ M.Overlay = Overlay
     primary windows. In the future it will be possible to create new
     worlds for different purposes (e.g. in-game GUI on a surface) but
     that is not supported at this point.
-
-    It adds a property to Widget, margin. It specifies the left/right margin
-    compared to the height. For example if the aspect ratio is 16:10, then
-    the world width is 1.6 and height is 1 and thus margin is 0.3
-    ((1.6 - 1) / 2). If the width is actually lower than the height,
-    the margin is 0.
 ]]
 local World = register_class("World", Widget, {
     __ctor = function(self)
         self.windows = {}
-        self.margin = 0
         return Widget.__ctor(self)
     end,
 
@@ -1598,12 +1591,8 @@ local World = register_class("World", Widget, {
         local faspect = aspect_get()
         if faspect != 0 then sw = ceil(sh * faspect) end
 
-        local margin = max((sw/sh - 1) / 2, 0)
-        self.x = -margin
-        self.y = 0
-        self.w = 2 * margin + 1
-        self.h = 1
-        self.margin = margin
+        self.x, self.y = 0, 0
+        self.w, self.h = sw / sh, 1
 
         loop_children(self, function(o)
             o.x, o.y = 0, 0
@@ -1812,7 +1801,7 @@ end)
 
 local menu_click = function(o, cx, cy, code)
     local proj = get_projection(o)
-    local ox, oy = cx * proj.pw - world.margin - o.x, cy * proj.ph - o.y
+    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:click(ox, oy, code)
         if cl == o then click_x, click_y = ox, oy end
@@ -1824,7 +1813,7 @@ end
 
 local menu_hover = function(o, cx, cy)
     local proj = get_projection(o)
-    local ox, oy = cx * proj.pw - world.margin - o.x, cy * proj.ph - o.y
+    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:hover(ox, oy)
         if cl == o then hover_x, hover_y = ox, oy end
@@ -1836,7 +1825,7 @@ end
 
 local menu_hold = function(o, cx, cy, obj)
     local proj = get_projection(o)
-    local ox, oy = cx * proj.pw - world.margin - o.x, cy * proj.ph - o.y
+    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if obj == o then return ox, oy end
     return o:hold(ox, oy, obj)
 end
@@ -1874,8 +1863,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
 
     o._clear_on_drop = clear_on_drop
 
-    local margin = world.margin
-    local prevo  = (i > 1) and menustack[i - 1] or nil
+    local prevo = (i > 1) and menustack[i - 1] or nil
 
     -- initial layout to guess the bounds
     projection = get_projection(o)
@@ -1906,22 +1894,22 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     -- when spawning menus right on the cursor
     if at_cursor then
         -- compute cursor coords in terms of widget position
-        local x, y = cursor_x * world.w - margin, cursor_y
+        local x, y = cursor_x * pw, cursor_y * ph
         -- adjust y so that it's always visible as whole
         if (y + oh) > ph then y = max(0, y - oh) end
         -- adjust x if clipped on the right
-        if (x + ow) > (pw - margin) then
-            x = max(-margin, x - ow)
+        if (x + ow) > pw then
+            x = max(0, x - ow)
         end
         -- set position and return
-        o.x, o.y = max(-margin, x), max(0, y)
+        o.x, o.y = max(0, x), max(0, y)
         return
     end
 
     local dx, dy = hovering and hover_x * fw or click_x * fw,
                    hovering and hover_y * fh or click_y * fh
     -- omx, omy: the base position of the new menu
-    local omx, omy = cursor_x * pw - margin - dx, cursor_y * ph - dy
+    local omx, omy = cursor_x * pw - dx, cursor_y * ph - dy
 
     -- a submenu - uses different alignment - submenus are put next to
     -- their spawners, regular menus are put under their spawners
@@ -1935,9 +1923,9 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         end
         -- when the current x + width of the spawner + width of the menu
         -- exceeds the screen width, move it to the left by its width,
-        -- making sure the x is at least -margin
-        if (omx + opw + ow) > (pw - margin) then
-            omx = max(-margin, omx - ow)
+        -- making sure the x is at least 0
+        if (omx + opw + ow) > pw then
+            omx = max(0, omx - ow)
         -- else offset by spawner width
         else
             omx += opw
@@ -1955,16 +1943,16 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         -- adjust x here - when the current x + width of the menu exceeds
         -- the screen width, perform adjustments
         --print(omx + ow)
-        if (omx + ow) > (pw - margin) then
+        if (omx + ow) > pw then
             -- if the menu spawner width exceeds the screen width too, put the
             -- menu to the right
-            if (omx + opw) > (pw - margin) then
-                omx = max(-margin, (pw - margin) - ow)
+            if (omx + opw) > pw then
+                omx = max(0, pw - ow)
             -- else align it with the spawner
-            else omx = max(-margin, omx - ow + opw) end
+            else omx = max(0, omx - ow + opw) end
         end
     end
-    o.x, o.y = max(-margin, omx), max(0, omy)
+    o.x, o.y = max(0, omx), max(0, omy)
 end
 
 tooltip_init = function(o, op, clear_on_drop)
@@ -1980,18 +1968,16 @@ tooltip_init = function(o, op, clear_on_drop)
 
     o._clear_on_drop = clear_on_drop
 
-    local margin = world.margin
-    local x, y = cursor_x * world.w - margin + 0.01, cursor_y + 0.01
+    local x, y = cursor_x * world.w + 0.01, cursor_y + 0.01
     local tw, th = o.w, o.h
-    if (x + tw * 0.95) > (1 + margin) then
+    if (x + tw * 0.95) > world.w then
         x = x - tw + 0.02
-        if x <= -margin then x = -margin + 0.02 end
+        if x <= 0 then x = 0.02 end
     end
     if (y + th * 0.95) > 1 then
         y = y - th + 0.02
-        if y < 0 then y = 0 end
     end
-    o.x, o.y = max(x, -margin), max(y, 0)
+    o.x, o.y = max(0, x), max(0, y)
 end
 
 local mousebuttons = {
@@ -2215,7 +2201,7 @@ set_external("gui_update", function()
     if draw_hud then
         projection = get_projection(hud)
         hud:layout()
-        hud.x, hud.y, hud.w, hud.h = world.x, world.y, world.w, world.h
+        hud.x, hud.y, hud.w, hud.h = 0, 0, world.w, world.h
         projection:calc()
         hud:adjust_children()
         projection = nil
