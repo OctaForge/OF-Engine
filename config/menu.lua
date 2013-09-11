@@ -172,7 +172,7 @@ world:new_window("editstats", gui.Overlay, |win| do
     win:set_above_hud(true)
     win:append(gui.V_Box(), |box| do
         box:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02 }, |sp| do
-            sp:append(gui.Eval_Label { scale = 1,
+            sp:append(gui.Eval_Label { scale = -1,
                 func = || cs_execute("getedithud") }):align(-1, 0)
         end)
     end)

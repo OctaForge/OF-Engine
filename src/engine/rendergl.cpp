@@ -2591,7 +2591,7 @@ VAR(statrate, 1, 200, 1000);
 
 FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
-CLUAICOMMAND(console_scale_get, float, (), return forceaspect;);
+CLUAICOMMAND(console_scale_get, float, (), return conscale;);
 
 bool fullconsole_visible();
 
