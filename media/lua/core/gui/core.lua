@@ -1906,7 +1906,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     -- when spawning menus right on the cursor
     if at_cursor then
         -- compute cursor coords in terms of widget position
-        local x, y = cursor_x * (1 + 2 * margin) - margin, cursor_y
+        local x, y = cursor_x * world.w - margin, cursor_y
         -- adjust y so that it's always visible as whole
         if (y + oh) > 1 then y = max(0, y - oh) end
         -- adjust x if clipped on the right
@@ -1921,7 +1921,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     local dx, dy = hovering and hover_x / fw or click_x / fw,
                    hovering and hover_y / fh or click_y / fh
     -- omx, omy: the base position of the new menu
-    local omx, omy = cursor_x * (1 + 2 * margin) - margin - dx, cursor_y - dy
+    local omx, omy = cursor_x * world.w - margin - dx, cursor_y - dy
 
     -- a submenu - uses different alignment - submenus are put next to
     -- their spawners, regular menus are put under their spawners
@@ -1980,9 +1980,7 @@ tooltip_init = function(o, op, clear_on_drop)
     o._clear_on_drop = clear_on_drop
 
     local margin = world.margin
-    local x, y = cursor_x * (1 + 2 * margin) - margin + 0.01,
-                 cursor_y + 0.01
-
+    local x, y = cursor_x * world.w - margin + 0.01, cursor_y + 0.01
     local tw, th = o.w, o.h
     if (x + tw * 0.95) > (1 + margin) then
         x = x - tw + 0.02
