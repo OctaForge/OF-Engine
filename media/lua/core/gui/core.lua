@@ -1881,7 +1881,8 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     projection = get_projection(o)
     o:layout()
     projection:calc()
-    local wpw, wph = projection.pw, projection.ph
+    local pw, ph = projection.pw, projection.ph
+    local pmargin = (pw - ph) / 2
     projection = nil
 
     -- parent projection (for correct offsets)
@@ -1894,10 +1895,10 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
             win = p
         end
         local proj = get_projection(win)
-        fw, fh = wpw / proj.pw, wph / proj.ph
+        fw, fh = pw / proj.pw, ph / proj.ph
     else
         local proj = get_projection(prevo)
-        fw, fh = wpw / proj.pw, wph / proj.ph
+        fw, fh = pw / proj.pw, ph / proj.ph
     end
 
     -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
@@ -1908,10 +1909,10 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         -- compute cursor coords in terms of widget position
         local x, y = cursor_x * world.w - margin, cursor_y
         -- adjust y so that it's always visible as whole
-        if (y + oh) > 1 then y = max(0, y - oh) end
+        if (y + oh) > ph then y = max(0, y - oh) end
         -- adjust x if clipped on the right
-        if (x + ow) > (1 + margin) then
-            x = max(-margin, x - ow)
+        if (x + ow) > (1 + pmargin) then
+            x = max(-pmargin, x - ow)
         end
         -- set position and return
         o.x, o.y = x, y
@@ -1921,7 +1922,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     local dx, dy = hovering and hover_x * fw or click_x * fw,
                    hovering and hover_y * fh or click_y * fh
     -- omx, omy: the base position of the new menu
-    local omx, omy = cursor_x * world.w - margin - dx, cursor_y - dy
+    local omx, omy = cursor_x * pw - margin - dx, cursor_y * ph - dy
 
     -- a submenu - uses different alignment - submenus are put next to
     -- their spawners, regular menus are put under their spawners
@@ -1930,14 +1931,14 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         -- move the menu up by its height minus the spawner height, make
         -- sure it's at least 0 (so that it's not accidentally moved above
         -- the screen)
-        if omy + oh > 1 then
+        if omy + oh > ph then
             omy = max(0, omy - oh + oph)
         end
         -- when the current x + width of the spawner + width of the menu
         -- exceeds the screen width, move it to the left by its width,
         -- making sure the x is at least -margin
-        if (omx + opw + ow) > (1 + margin) then
-            omx = max(-margin, omx - ow)
+        if (omx + opw + ow) > (1 + pmargin) then
+            omx = max(-pmargin, omx - ow)
         -- else offset by spawner width
         else
             omx += opw
@@ -1946,7 +1947,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     else
         -- when current y + height of spawner + height of menu exceeds the
         -- screen height, move the menu up by its height, make sure it's > 0
-        if omy + oph + oh > 1 then
+        if omy + oph + oh > ph then
             omy = max(0, omy - oh)
         -- otherwise move down a bit (by the button height)
         else
@@ -1954,13 +1955,13 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
         end
         -- adjust x here - when the current x + width of the menu exceeds
         -- the screen width, perform adjustments
-        if (omx + ow) > (1 + margin) then
+        if (omx + ow) > (1 + pmargin) then
             -- if the menu spawner width exceeds the screen width too, put the
             -- menu to the right
-            if (omx + opw) > (1 + margin) then
-                omx = max(-margin, 1 + margin - ow)
+            if (omx + opw) > (1 + pmargin) then
+                omx = max(-pmargin, 1 + pmargin - ow)
             -- else align it with the spawner
-            else omx = max(-margin, omx - ow + opw) end
+            else omx = max(-pmargin, omx - ow + opw) end
         end
     end
     o.x, o.y = omx, omy
