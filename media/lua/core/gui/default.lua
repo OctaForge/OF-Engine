@@ -32,14 +32,14 @@ local btnv_init_clone = |self, btn| do
     signal.connect(btn, "label_changed", |b, t| do lbl:set_text(t) end)
 end
 
-local btn_build_variant = |r, g, b| gui.Gradient {
+local btn_build_variant = |color| gui.Gradient {
     color = 0x0, color2 = 0x303030, clamp_h = true, init_clone = |self, btn| do
         self:set_min_w(btn.min_w or 0)
         self:set_min_h(btn.min_h or 0)
         signal.connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
         signal.connect(btn, "min_h_changed", |b, v| self:set_min_w(v))
     end, gui.Outline {
-        color = Color(r, g, b), clamp_h = true, gui.Spacer {
+        color = color, clamp_h = true, gui.Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
         }
     }
@@ -51,9 +51,9 @@ local btn_build_variant_nobg = || gui.Filler {
     }
 }
 
-btnv["default"     ] = btn_build_variant(255, 255, 255)
-btnv["hovering"    ] = btn_build_variant(225, 225, 225)
-btnv["clicked_left"] = btn_build_variant(192, 192, 192)
+btnv["default"     ] = btn_build_variant(0xFFFFFF)
+btnv["hovering"    ] = btn_build_variant(0xE1E1E1)
+btnv["clicked_left"] = btn_build_variant(0xC0C0C0)
 
 local mbtnv, smbtnv =
     { __properties  = { "label" } },
@@ -62,13 +62,13 @@ gui.Menu_Button.__variants = { default = mbtnv, submenu = smbtnv }
 
 mbtnv["default"     ] = btn_build_variant_nobg()
 mbtnv["hovering"    ] = btn_build_variant_nobg()
-mbtnv["menu"        ] = btn_build_variant(192, 192, 192)
-mbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
+mbtnv["menu"        ] = btn_build_variant(0xC0C0C0)
+mbtnv["clicked_left"] = btn_build_variant(0xC0C0C0)
 
 smbtnv["default"     ] = btn_build_variant_nobg()
-smbtnv["hovering"    ] = btn_build_variant(192, 192, 192)
-smbtnv["menu"        ] = btn_build_variant(192, 192, 192)
-smbtnv["clicked_left"] = btn_build_variant(192, 192, 192)
+smbtnv["hovering"    ] = btn_build_variant(0xC0C0C0)
+smbtnv["menu"        ] = btn_build_variant(0xC0C0C0)
+smbtnv["clicked_left"] = btn_build_variant(0xC0C0C0)
 
 -- editors
 
@@ -113,26 +113,26 @@ gui.Filler.__variants = {
 
 -- checkboxes, radioboxes
 
-local ckbox_build_variant = |r, g, b, tgl| gui.Color_Filler {
+local ckbox_build_variant = |color, tgl| gui.Color_Filler {
     color = 0x101010, min_w = 0.02, min_h = 0.02,
     gui.Outline {
-        color = Color(r, g, b), clamp = true, tgl and gui.Spacer {
+        color = color, clamp = true, tgl and gui.Spacer {
             pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Color_Filler {
                 clamp = true, color = 0xC0C0C0,
-                gui.Outline { color = Color(r, g, b), clamp = true }
+                gui.Outline { color = color, clamp = true }
             }
         } or nil
     }
 }
 
-local rdbtn_build_variant = |r, g, b, tgl| gui.Circle {
+local rdbtn_build_variant = |color, tgl| gui.Circle {
     color = 0x101010, min_w = 0.02, min_h = 0.02,
     gui.Circle {
-        style = gui.Circle.OUTLINE, color = Color(r, g, b), clamp = true,
+        style = gui.Circle.OUTLINE, color = color, clamp = true,
         tgl and gui.Spacer {
             pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Circle {
                 clamp = true, color = 0xC0C0C0, gui.Circle {
-                    style = gui.Circle.OUTLINE, color = Color(r, g, b),
+                    style = gui.Circle.OUTLINE, color = color,
                     clamp = true
                 }
             }
@@ -147,14 +147,14 @@ gui.Toggle.__variants = {
     radiobutton = rdbtnv
 }
 
-ckboxv["default"         ] = ckbox_build_variant(255, 255, 255)
-ckboxv["default_hovering"] = ckbox_build_variant(225, 225, 225)
-ckboxv["toggled"         ] = ckbox_build_variant(192, 192, 192, true)
-ckboxv["toggled_hovering"] = ckbox_build_variant(225, 225, 225, true)
-rdbtnv["default"         ] = rdbtn_build_variant(255, 255, 255)
-rdbtnv["default_hovering"] = rdbtn_build_variant(225, 225, 225)
-rdbtnv["toggled"         ] = rdbtn_build_variant(192, 192, 192, true)
-rdbtnv["toggled_hovering"] = rdbtn_build_variant(225, 225, 225, true)
+ckboxv["default"         ] = ckbox_build_variant(0xFFFFFF)
+ckboxv["default_hovering"] = ckbox_build_variant(0xE1E1E1)
+ckboxv["toggled"         ] = ckbox_build_variant(0xC0C0C0, true)
+ckboxv["toggled_hovering"] = ckbox_build_variant(0xE1E1E1, true)
+rdbtnv["default"         ] = rdbtn_build_variant(0xFFFFFF)
+rdbtnv["default_hovering"] = rdbtn_build_variant(0xE1E1E1)
+rdbtnv["toggled"         ] = rdbtn_build_variant(0xC0C0C0, true)
+rdbtnv["toggled_hovering"] = rdbtn_build_variant(0xE1E1E1, true)
 
 -- scrollbars
 
