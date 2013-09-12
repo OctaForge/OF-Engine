@@ -156,6 +156,54 @@ rdbtnv["default_hovering"] = rdbtn_build_variant(225, 225, 225)
 rdbtnv["toggled"         ] = rdbtn_build_variant(192, 192, 192, true)
 rdbtnv["toggled_hovering"] = rdbtn_build_variant(225, 225, 225, true)
 
+-- scrollbars
+
+local sb_buildh = |labgc, lac, rabgc, rac| gui.Color_Filler {
+    clamp_h = true, color = 0x101010, gui.Outline { clamp = true },
+    gui.Color_Filler { color = labgc, min_w = 0.02, min_h = 0.02,
+        align_h = -1, gui.Outline { clamp = true },
+        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 90 }
+    },
+    gui.Color_Filler { color = rabgc, min_w = 0.02, min_h = 0.02,
+        align_h = 1, gui.Outline { clamp = true },
+        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = -90 }
+    }
+}
+
+local sb_buildv = |labgc, lac, rabgc, rac| gui.Color_Filler {
+    clamp_v = true, color = 0x101010, gui.Outline { clamp = true },
+    gui.Color_Filler { color = labgc, min_w = 0.02, min_h = 0.02,
+        align_v = -1, gui.Outline { clamp = true },
+        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012 }
+    },
+    gui.Color_Filler { color = rabgc, min_w = 0.02, min_h = 0.02,
+        align_v = 1, gui.Outline { clamp = true },
+        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 180 }
+    }
+}
+
+gui.H_Scrollbar.__variants = {
+    default = {
+        default            = sb_buildh(0x101010, 0xC0C0C0, 0x101010, 0xC0C0C0),
+        left_hovering      = sb_buildh(0x404040, 0xC0C0C0, 0x101010, 0xC0C0C0),
+        left_clicked_left  = sb_buildh(0x202020, 0xC0C0C0, 0x101010, 0xC0C0C0),
+        right_hovering     = sb_buildh(0x101010, 0xC0C0C0, 0x404040, 0xC0C0C0),
+        right_clicked_left = sb_buildh(0x101010, 0xC0C0C0, 0x202020, 0xC0C0C0),
+        __init = |self| do self:set_arrow_size(0.02) end
+    }
+}
+
+gui.V_Scrollbar.__variants = {
+    default = {
+        default           = sb_buildv(0x101010, 0xC0C0C0, 0x101010, 0xC0C0C0),
+        up_hovering       = sb_buildv(0x404040, 0xC0C0C0, 0x101010, 0xC0C0C0),
+        up_clicked_left   = sb_buildv(0x202020, 0xC0C0C0, 0x101010, 0xC0C0C0),
+        down_hovering     = sb_buildv(0x101010, 0xC0C0C0, 0x404040, 0xC0C0C0),
+        down_clicked_left = sb_buildv(0x101010, 0xC0C0C0, 0x202020, 0xC0C0C0),
+        __init = |self| do self:set_arrow_size(0.02) end
+    }
+}
+
 -- windows
 
 local window_build_titlebar = || gui.Gradient {

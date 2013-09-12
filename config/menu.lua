@@ -71,8 +71,8 @@ world:new_window("main", gui.Window, |win| do
 
         local ed
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
-            s:append(gui.V_Box(), |vb| do
-                vb:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = [[
+            s:append(gui.Grid { columns = 2 }, |gr| do
+                gr:append(gui.Field { clip_w = 0.4, clip_h = 0.3, value = [[
 Lorem ipsum dolor sit amet, consectetur
 adipisicing elit, sed do eiusmod tempor
 incididunt ut labore et dolore magna aliqua.
@@ -95,6 +95,8 @@ non proident, sunt in culpa qui officia deserunt
 mollit anim id est laborum.]], multiline = true }, |x| do
                     ed = x
                 end)
+                gr:append(gui.V_Scrollbar { clamp_v = true })
+                gr:append(gui.H_Scrollbar { clamp_h = true })
             end)
         end)
 
