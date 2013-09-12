@@ -38,16 +38,26 @@ local Widget = M.get_class("Widget")
 -- setters
 local gen_setter = M.gen_setter
 
+-- adjustment
+local adjust = M.adjust
+
+local CLAMP_LEFT, CLAMP_RIGHT, CLAMP_TOP, CLAMP_BOTTOM in adjust
+
 --[[! Struct: H_Box
     A horizontal box. Boxes are containers that hold multiple widgets that
-    do not cover each other. It has one extra property, padding, specifying
+    do not cover each other. It has two extra properties, padding, specifying
     the padding between the items (the actual width is width of items
-    extended by (nitems-1)*padding).
+    extended by (nitems-1)*padding), and expand, which is a boolean value.
+    If you set it to true, items clamped from both left and right will divide
+    the remaining space the other items didn't fill between themselves.
+    Otherwise clamping will have no effect and the items will be aligned
+    evenly through the list.
 ]]
 M.H_Box = register_class("H_Box", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding = kwargs.padding or 0
+        self.expand = kwargs.expand or false
         return Widget.__ctor(self, kwargs)
     end,
 
@@ -66,30 +76,62 @@ M.H_Box = register_class("H_Box", Widget, {
         self.subw = subw
     end,
 
-    adjust_children = function(self)
-        local nchildren, nvstates = #self.children, #self.vstates
-        if nchildren == 0 and nvstates == 0 then return end
-        local offset, space = 0, (self.w - self.subw) / max(nvstates +
-            nchildren - 1, 1)
+    adjust_children_regular = function(self, nch, nvs)
+        local offset, space = 0, (self.w - self.subw) / max(nvs + nch - 1, 1)
         loop_children(self, function(o)
             o.x = offset
-            offset += o.w
+            offset += o.w + space
             o:adjust_layout(o.x, 0, o.w, self.h)
-            offset += space
         end)
     end,
 
+    adjust_children_expand = function(self, nch, nvs, ncl, cl)
+        local pad = self.padding
+        local dpad = pad * max(nch + nvs - 1, 0)
+        local offset, space = 0, ((self.w - self.subw) / ncl - dpad)
+        loop_children(self, function(o)
+            o.x = offset
+            local add = (cl[o] != nil) and space or 0
+            o:adjust_layout(o.x, 0, o.w + add, self.h)
+            offset += o.w + pad
+        end)
+    end,
+
+    adjust_children = function(self)
+        local nch, nvs = #self.children, #self.vstates
+        if nch == 0 and nvs == 0 then return end
+        if self.expand then
+            local ncl, cl = 0, {}
+            loop_children(self, function(o)
+                local a = o.adjust
+                if  ((a & CLAMP_LEFT) != 0) and ((a & CLAMP_RIGHT) != 0) then
+                    ncl += 1
+                    cl[o] = true
+                end
+            end)
+            if ncl != 0 then
+                return self:adjust_children_expand(nch, nvs, ncl, cl)
+            end
+        end
+        return self:adjust_children_regular(nch, nvs)
+    end,
+
     --[[! Function: set_padding ]]
-    set_padding = gen_setter "padding"
+    set_padding = gen_setter "padding",
+
+    --[[! Function: set_expand ]]
+    set_expand = gen_setter "expand"
 })
 
 --[[! Struct: V_Box
-    See <H_Box>. This is a vertical variant.
+    See <H_Box>. This is a vertical variant. For "expand", top/bottom clamping
+    applies.
 ]]
 M.V_Box = register_class("V_Box", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding = kwargs.padding or 0
+        self.expand = kwargs.expand or false
         return Widget.__ctor(self, kwargs)
     end,
 
@@ -108,21 +150,51 @@ M.V_Box = register_class("V_Box", Widget, {
         self.subh = subh
     end,
 
-    adjust_children = function(self)
-        local nchildren, nvstates = #self.children, #self.vstates
-        if nchildren == 0 and nvstates == 0 then return end
-        local offset, space = 0, (self.h - self.subh) / max(nvstates +
-            nchildren - 1, 1)
+    adjust_children_regular = function(self, nch, nvs)
+        local offset, space = 0, (self.h - self.subh) / max(nvs + nch - 1, 1)
         loop_children(self, function(o)
             o.y = offset
-            offset += o.h
+            offset += o.h + space
             o:adjust_layout(0, o.y, self.w, o.h)
-            offset += space
         end)
     end,
 
+    adjust_children_expand = function(self, nch, nvs, ncl, cl)
+        local pad = self.padding
+        local dpad = pad * max(nch + nvs - 1, 0)
+        local offset, space = 0, ((self.h - self.subh) / ncl - dpad)
+        loop_children(self, function(o)
+            o.y = offset
+            local add = (cl[o] != nil) and space or 0
+            o:adjust_layout(0, o.y, self.w, o.h + add)
+            offset += o.h + pad
+        end)
+    end,
+
+    adjust_children = function(self)
+        local nch, nvs = #self.children, #self.vstates
+        if nch == 0 and nvs == 0 then return end
+        if self.expand then
+            local ncl, cl = 0, {}
+            loop_children(self, function(o)
+                local a = o.adjust
+                if  ((a & CLAMP_TOP) != 0) and ((a & CLAMP_BOTTOM) != 0) then
+                    ncl += 1
+                    cl[o] = true
+                end
+            end)
+            if ncl != 0 then
+                return self:adjust_children_expand(nch, nvs, ncl, cl)
+            end
+        end
+        return self:adjust_children_regular(nch, nvs)
+    end,
+
     --[[! Function: set_padding ]]
-    set_padding = gen_setter "padding"
+    set_padding = gen_setter "padding",
+
+    --[[! Function: set_expand ]]
+    set_expand = gen_setter "expand"
 }, M.H_Box.type)
 
 --[[! Struct: Grid
