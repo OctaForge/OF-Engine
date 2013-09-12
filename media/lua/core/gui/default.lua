@@ -23,7 +23,7 @@ local Color = gui.Color
 
 -- buttons
 
-local btnv = { __properties = { "label" } }
+local btnv = { __properties = { "label", "min_w", "min_h" } }
 gui.Button.__variants = { default = btnv }
 
 local btnv_init_clone = |self, btn| do
@@ -33,8 +33,12 @@ local btnv_init_clone = |self, btn| do
 end
 
 local btn_build_variant = |r, g, b| gui.Gradient {
-    color = 0x0, color2 = 0x303030, clamp_h = true,
-    gui.Outline {
+    color = 0x0, color2 = 0x303030, clamp_h = true, init_clone = |self, btn| do
+        self:set_min_w(btn.min_w or 0)
+        self:set_min_h(btn.min_h or 0)
+        signal.connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
+        signal.connect(btn, "min_h_changed", |b, v| self:set_min_w(v))
+    end, gui.Outline {
         color = Color(r, g, b), clamp_h = true, gui.Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
         }
@@ -233,31 +237,36 @@ gui.Window.__variants = {
 
 -- default windows
 
-world:new_window("changes", gui.Window, function(win)
-    win:append(gui.Color_Filler { color = 0xC0000000, min_w = 0.3,
-    min_h = 0.2 }, function(r)
-        r:clamp(true, true, true, true)
-        win:append(gui.V_Box { padding = 0.01 }, function(box)
-            box:append(gui.Label { text = "Changes" })
-            box:append(gui.Label { text = "Apply changes?" })
-            for i, v in ipairs(gui.changes_get()) do
-                box:append(gui.Label { text = v })
-            end
-            box:append(gui.H_Box { padding = 0.01 }, function(hb)
-                hb:append(gui.Button { label = "OK" }, function(btn)
-                    signal.connect(btn, "clicked", function()
+world:new_window("changes", gui.Window, |win| do
+    win:set_floating(true)
+    win:set_variant("movable")
+    win:set_title("Changes")
+    signal.connect(win, "destroy", || gui.changes_clear())
+    win:append(gui.V_Box(), |b| do
+        b:append(gui.Label { text = "Apply changes?" })
+        b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
+            gui.Line { clamp_h = true } })
+        for i, v in ipairs(gui.changes_get()) do
+            b:append(gui.Label { text = v })
+        end
+        b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
+            gui.Line { clamp_h = true } })
+        b:append(gui.Spacer { pad_v = 0.005, pad_h = 0.005, clamp_h = true,
+            gui.H_Box { padding = 0.01,
+                gui.Button { label = "OK", min_w = 0.15,
+                    signals = { clicked = || do
                         world:hide_window("changes")
                         gui.changes_apply()
-                    end)
-                end)
-                hb:append(gui.Button { label = "Cancel" }, function(btn)
-                    signal.connect(btn, "clicked", function()
+                    end }
+                },
+                gui.Button { label = "Cancel", min_w = 0.15,
+                    signals = { clicked = || do
                         world:hide_window("changes")
                         gui.changes_clear()
-                    end)
-                end)
-            end)
-        end)
+                    end }
+                }
+            }
+        })
     end)
 end)
 
