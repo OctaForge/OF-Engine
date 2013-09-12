@@ -61,8 +61,8 @@ world:new_window("main", gui.Window, |win| do
             end)
         end)
 
-        b:append(gui.Label { text = "This is some transparent text", color = gui.Color(nil, 0x64) })
-        b:append(gui.Label { text = "Different text", color = gui.Color(0xFF0000) })
+        b:append(gui.Label { text = "This is some transparent text", color = 0x64FFFFFF })
+        b:append(gui.Label { text = "Different text", color = 0xFF0000 })
         b:append(gui.Eval_Label {
             func = || do
                 i = i + 1
