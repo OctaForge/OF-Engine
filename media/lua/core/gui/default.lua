@@ -162,11 +162,19 @@ local sb_buildh = |labgc, lac, rabgc, rac| gui.Color_Filler {
     clamp_h = true, color = 0x101010, gui.Outline { clamp = true },
     gui.Color_Filler { color = labgc, min_w = 0.02, min_h = 0.02,
         align_h = -1, gui.Outline { clamp = true },
-        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 90 }
+        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 90,
+            gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
+                min_w = 0.012, min_h = 0.012, angle = 90
+            }
+        }
     },
     gui.Color_Filler { color = rabgc, min_w = 0.02, min_h = 0.02,
         align_h = 1, gui.Outline { clamp = true },
-        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = -90 }
+        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = -90,
+            gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
+                min_w = 0.012, min_h = 0.012, angle = -90
+            }
+        }
     }
 }
 
@@ -174,11 +182,19 @@ local sb_buildv = |labgc, lac, rabgc, rac| gui.Color_Filler {
     clamp_v = true, color = 0x101010, gui.Outline { clamp = true },
     gui.Color_Filler { color = labgc, min_w = 0.02, min_h = 0.02,
         align_v = -1, gui.Outline { clamp = true },
-        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012 }
+        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012,
+            gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
+                min_w = 0.012, min_h = 0.012
+            }
+        }
     },
     gui.Color_Filler { color = rabgc, min_w = 0.02, min_h = 0.02,
         align_v = 1, gui.Outline { clamp = true },
-        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 180 }
+        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 180,
+            gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
+                min_w = 0.012, min_h = 0.012, angle = 180
+            }
+        }
     }
 }
 
