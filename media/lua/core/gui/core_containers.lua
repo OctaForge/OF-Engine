@@ -45,19 +45,31 @@ local CLAMP_LEFT, CLAMP_RIGHT, CLAMP_TOP, CLAMP_BOTTOM in adjust
 
 --[[! Struct: H_Box
     A horizontal box. Boxes are containers that hold multiple widgets that
-    do not cover each other. It has two extra properties, padding, specifying
-    the padding between the items (the actual width is width of items
-    extended by (nitems-1)*padding), and expand, which is a boolean value.
-    If you set it to true, items clamped from both left and right will divide
-    the remaining space the other items didn't fill between themselves.
-    Otherwise clamping will have no effect and the items will be aligned
-    evenly through the list.
+    do not cover each other. It has three extra properties.
+
+    The first property, padding, specifies the padding between the items
+    (the actual width is width of items extended by (nitems-1)*padding).
+
+    The second property is "expand" and it's a boolean value (defaults to
+    false). If you set it to true, items clamped from both left and right
+    will divide the remaining space the other items didn't fill between
+    themselves, in the other case clamping will have no effect and the
+    items will be aligned evenly through the list.
+
+    The third property is "homogenous" and it attempts to reserve an equal
+    amount of space for every item. Items that clamp will be clamped inside
+    their space and the other items will be aligned depending on their own
+    alignment.
+
+    The property "homogenous" takes precedence over "expand". Only one can
+    be in effect (or none of them).
 ]]
 M.H_Box = register_class("H_Box", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
-        self.padding = kwargs.padding or 0
-        self.expand = kwargs.expand or false
+        self.padding    = kwargs.padding    or 0
+        self.expand     = kwargs.expand     or false
+        self.homogenous = kwargs.homogenous or false
         return Widget.__ctor(self, kwargs)
     end,
 
@@ -71,17 +83,28 @@ M.H_Box = register_class("H_Box", Widget, {
             subw += o.w
             self.h = max(self.h, o.y + o.h)
         end)
-        self.w = subw + self.padding * max(#self.vstates +
+        self.w = subw + self.padding * max(#self.vstates + 
             #self.children - 1, 0)
         self.subw = subw
     end,
 
-    adjust_children_regular = function(self, nch, nvs)
+    adjust_children_regular = function(self, nch, nvs, hmg)
         local offset, space = 0, (self.w - self.subw) / max(nvs + nch - 1, 1)
         loop_children(self, function(o)
             o.x = offset
             offset += o.w + space
             o:adjust_layout(o.x, 0, o.w, self.h)
+        end)
+    end,
+
+    adjust_children_homogenous = function(self, nch, nvs)
+        local pad = self.padding
+        local offset, space = 0, (self.w - self.subw - (nvs + nch - 1) * pad)
+            / max(nvs + nch, 1)
+        loop_children(self, function(o)
+            o.x = offset
+            offset += o.w + space + pad
+            o:adjust_layout(o.x, 0, o.w + space, self.h)
         end)
     end,
 
@@ -100,7 +123,9 @@ M.H_Box = register_class("H_Box", Widget, {
     adjust_children = function(self)
         local nch, nvs = #self.children, #self.vstates
         if nch == 0 and nvs == 0 then return end
-        if self.expand then
+        if self.homogenous then
+            return self:adjust_children_homogenous(nch, nvs)
+        elseif self.expand then
             local ncl, cl = 0, {}
             loop_children(self, function(o)
                 local a = o.adjust
@@ -120,18 +145,22 @@ M.H_Box = register_class("H_Box", Widget, {
     set_padding = gen_setter "padding",
 
     --[[! Function: set_expand ]]
-    set_expand = gen_setter "expand"
+    set_expand = gen_setter "expand",
+
+    --[[! Function: set_homogenous ]]
+    set_homogenous = gen_setter "homogenous"
 })
 
 --[[! Struct: V_Box
-    See <H_Box>. This is a vertical variant. For "expand", top/bottom clamping
-    applies.
+    See <H_Box>. This is a vertical variant. For "expand" and "homogenous",
+    top/bottom clamping applies.
 ]]
 M.V_Box = register_class("V_Box", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
-        self.padding = kwargs.padding or 0
-        self.expand = kwargs.expand or false
+        self.padding    = kwargs.padding    or 0
+        self.expand     = kwargs.expand     or false
+        self.homogenous = kwargs.homogenous or false
         return Widget.__ctor(self, kwargs)
     end,
 
@@ -159,6 +188,17 @@ M.V_Box = register_class("V_Box", Widget, {
         end)
     end,
 
+    adjust_children_homogenous = function(self, nch, nvs)
+        local pad = self.padding
+        local offset, space = 0, (self.h - self.subh - (nvs + nch - 1) * pad)
+            / max(nvs + nch, 1)
+        loop_children(self, function(o)
+            o.y = offset
+            offset += o.h + space + pad
+            o:adjust_layout(0, o.y, self.w, o.h + space)
+        end)
+    end,
+
     adjust_children_expand = function(self, nch, nvs, ncl, cl)
         local pad = self.padding
         local dpad = pad * max(nch + nvs - 1, 0)
@@ -174,7 +214,9 @@ M.V_Box = register_class("V_Box", Widget, {
     adjust_children = function(self)
         local nch, nvs = #self.children, #self.vstates
         if nch == 0 and nvs == 0 then return end
-        if self.expand then
+        if self.homogenous then
+            return self:adjust_children_homogenous(nch, nvs)
+        elseif self.expand then
             local ncl, cl = 0, {}
             loop_children(self, function(o)
                 local a = o.adjust
@@ -194,7 +236,10 @@ M.V_Box = register_class("V_Box", Widget, {
     set_padding = gen_setter "padding",
 
     --[[! Function: set_expand ]]
-    set_expand = gen_setter "expand"
+    set_expand = gen_setter "expand",
+
+    --[[! Function: set_homogenous ]]
+    set_homogenous = gen_setter "homogenous"
 }, M.H_Box.type)
 
 --[[! Struct: Grid

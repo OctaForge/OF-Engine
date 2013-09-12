@@ -504,10 +504,16 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
     adjust_children = function(self)
         local  scroll = self.scroller
-        if not scroll then return end
+        if not scroll then
+            Widget.adjust_children(self)
+            return
+        end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
-        if not btn then return end
+        if not btn then
+            Widget.adjust_children(self)
+            return
+        end
 
         local as = self.arrow_size
 
@@ -521,8 +527,6 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
         btn.x = as + scroll:get_h_offset() * bscale
         btn.adjust = btn.adjust & ~adjust.ALIGN_HMASK
-
-        Widget.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
@@ -594,10 +598,16 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
 
     adjust_children = function(self)
         local  scroll = self.scroller
-        if not scroll then return end
+        if not scroll then
+            Widget.adjust_children(self)
+            return
+        end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
-        if not btn then return end
+        if not btn then
+            Widget.adjust_children(self)
+            return
+        end
 
         local as = self.arrow_size
 
