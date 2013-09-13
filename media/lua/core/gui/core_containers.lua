@@ -266,13 +266,13 @@ M.Grid = register_class("Grid", Widget, {
         loop_children(self, function(o)
             o:layout()
 
-            if #widths <= column then
+            if #widths < column then
                 widths[#widths + 1] = o.w
             elseif o.w > widths[column] then
                 widths[column] = o.w
             end
 
-            if #heights <= row then
+            if #heights < row then
                 heights[#heights + 1] = o.h
             elseif o.h > heights[row] then
                 heights[row] = o.h
@@ -280,7 +280,7 @@ M.Grid = register_class("Grid", Widget, {
 
             column = (column % columns) + 1
             if column == 1 then
-                row = row + 1
+                row += 1
             end
         end)
 
@@ -306,15 +306,15 @@ M.Grid = register_class("Grid", Widget, {
             o.y = offsety
 
             local wc, hr = widths[column], heights[row]
-            o.adjust_layout(o, offsetx, offsety, wc, hr)
+            o:adjust_layout(offsetx, offsety, wc, hr)
 
-            offsetx = offsetx + wc + cspace
+            offsetx += wc + cspace
             column = (column % columns) + 1
 
             if column == 1 then
                 offsetx = 0
-                offsety = offsety + hr + rspace
-                row = row + 1
+                offsety += hr + rspace
+                row += 1
             end
         end)
     end,

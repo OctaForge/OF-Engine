@@ -353,36 +353,23 @@ world:new_window("changes", gui.Window, |win| do
     end)
 end)
 
-world:new_window("texture", gui.Window, function(win)
-    win:append(gui.Color_Filler { color = 0xC0000000, min_w = 0.3,
-    min_h = 0.2 }, function(r)
-        r:clamp(true, true, true, true)
-        win:append(gui.V_Box { padding = 0.01 }, function(box)
-            box:append(gui.Label { text = "Textures" })
-            box:append(gui.Grid { columns = 9, padding = 0.01 }, function(t)
-                for i = 1, capi.slot_get_count() do
-                    t:append(gui.Button, function(btn)
-                        btn:update_state("default",
-                            btn:update_state("hovering",
-                                btn:update_state("clicked", gui.Slot_Viewer {
-                                    index = i - 1, min_w = 0.095,
-                                    min_h = 0.095 })))
-                        signal.connect(btn, "clicked", function()
-                            capi.slot_set(i - 1)
-                        end)
-                    end)
-                end
-            end)
-            box:append(gui.Button(), function(btn)
+world:new_window("texture", gui.Window, |win| do
+    win:set_floating(true)
+    win:set_variant("movable")
+    win:set_title("Textures")
+
+    win:append(gui.Grid { columns = 9, padding = 0.01 }, function(t)
+        for i = 1, capi.slot_get_count() do
+            t:append(gui.Button { variant = false }, function(btn)
                 btn:update_state("default",
                     btn:update_state("hovering",
-                        btn:update_state("clicked", gui.Color_Filler {
-                            color = 0x404040, min_w = 0.2, min_h = 0.05,
-                            gui.Label { text = "Close" } })))
+                        btn:update_state("clicked", gui.Slot_Viewer {
+                            index = i - 1, min_w = 0.095,
+                            min_h = 0.095 })))
                 signal.connect(btn, "clicked", function()
-                    world:hide_window("texture")
+                    capi.slot_set(i - 1)
                 end)
             end)
-        end)
+        end
     end)
 end)
