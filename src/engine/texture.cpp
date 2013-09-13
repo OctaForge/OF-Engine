@@ -3479,6 +3479,7 @@ static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float x, float 
     }
     glBindTexture(GL_TEXTURE_2D, t->id);
     if (slot.loaded) gle::color(vslot.colorscale);
+    else gle::colorf(1, 1, 1);
     quad(x, y, w, h, tc);
     if (decaltex) {
         glBindTexture(GL_TEXTURE_2D, decaltex->id);

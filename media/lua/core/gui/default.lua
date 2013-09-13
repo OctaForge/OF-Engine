@@ -84,8 +84,7 @@ end
 
 gui.Button.__variants.vslot = {
     __properties = { "index", "min_w", "min_h" },
-    default = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0xAAAAAA } },
+    default = gui.VSlot_Viewer { init_clone = slotbtn_init_clone },
     hovering = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
         gui.Outline { clamp = true, color = 0xFFFFFF } },
     clicked_left = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
@@ -94,8 +93,7 @@ gui.Button.__variants.vslot = {
 
 gui.Button.__variants.slot = {
     __properties = { "index", "min_w", "min_h" },
-    default = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0xAAAAAA } },
+    default = gui.Slot_Viewer { init_clone = slotbtn_init_clone },
     hovering = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
         gui.Outline { clamp = true, color = 0xFFFFFF } },
     clicked_left = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
