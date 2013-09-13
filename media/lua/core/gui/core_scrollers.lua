@@ -424,8 +424,7 @@ Scroll_Button = register_class("Scroll_Button", Widget, {
         local p = self.parent
         if p and code == key.MOUSELEFT and p.type == Scrollbar.type then
             p.arrow_dir = 0
-            p:move_button(self, self.offset_h, self.offset_v,
-                clamp(cx, 0, self.w), clamp(cy, 0, self.h))
+            p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
         Widget.holding(self, cx, cy, code)
     end,
@@ -436,18 +435,6 @@ Scroll_Button = register_class("Scroll_Button", Widget, {
             self.offset_v = cy
         end
         return Widget.clicked(self, cx, cy, code)
-    end,
-
-    key_hover = function(self, code, isdown)
-        local m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
-        if code != m4 and code != m5 then
-            return Widget.key_hover(self, code, isdown)
-        end
-        local p = self.parent
-        if p and p.type == Scrollbar.type then
-            return p:key_hover(code, isdown)
-        end
-        return Widget.key_hover(self, code, isdown)
     end
 })
 M.Scroll_Button = Scroll_Button

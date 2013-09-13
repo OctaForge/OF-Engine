@@ -121,6 +121,14 @@ mollit anim id est laborum.]], multiline = true }, |x| do
         end)
 
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
+            s:append(gui.Filler { min_w = 0.4 }, |f| do
+                f:append(gui.H_Slider { min_value = 5, max_value = 17, value = 6, clamp_h = true }, |sl| do
+                    sl:append(gui.Slider_Button())
+                end)
+            end)
+        end)
+
+        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
             s:append(gui.V_Box { padding = 0.01 }, |vb| do
                 local tvar = 1
                 vb:append(gui.H_Box { padding = 0.01 }, |hb| do

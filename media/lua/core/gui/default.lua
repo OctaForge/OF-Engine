@@ -270,6 +270,30 @@ gui.V_Scrollbar.__variants = {
     }
 }
 
+-- sliders
+
+local slbtn_ic = |self, btn| do
+end
+
+gui.Slider_Button.__variants = {
+    default = {
+        default = gui.Color_Filler {
+            color = 0x202020, clamp = true, min_w = 0.02, min_h = 0.02,
+            init_clone = slbtn_ic, gui.Outline { clamp = true }
+        },
+        hovering = gui.Color_Filler {
+            color = 0x606060, clamp = true, min_w = 0.02, min_h = 0.02,
+            init_clone = slbtn_ic, gui.Outline { clamp = true }
+        },
+        clicked_left = gui.Color_Filler {
+            color = 0x404040, clamp = true, min_w = 0.02, min_h = 0.02,
+            init_clone = slbtn_ic, gui.Outline { clamp = true }
+        },
+    }
+}
+
+gui.H_Slider.__variants = gui.H_Scrollbar.__variants
+
 -- windows
 
 local window_build_titlebar = || gui.Gradient {

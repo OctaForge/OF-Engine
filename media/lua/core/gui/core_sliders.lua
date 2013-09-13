@@ -71,7 +71,7 @@ local Slider = register_class("Slider", Widget, {
 
         self.arrow_size = kwargs.arrow_size or 0
         self.step_size  = kwargs.step_size  or 1
-        self.step_time  = kwargs.step_time  or 1000
+        self.step_time  = kwargs.step_time  or 100
 
         self.last_step = 0
         self.arrow_dir = 0
@@ -208,7 +208,10 @@ local Slider = register_class("Slider", Widget, {
     set_step_size = gen_setter "step_size",
 
     --[[! Function: set_step_time ]]
-    set_step_time = gen_setter "step_time"
+    set_step_time = gen_setter "step_time",
+
+    --[[! Function: set_arrow_size ]]
+    set_arrow_size = gen_setter "arrow_size"
 })
 M.Slider = Slider
 
@@ -253,8 +256,7 @@ Slider_Button = register_class("Slider_Button", Widget, {
         local p = self.parent
         if p and code == key.MOUSELEFT and p.type == Slider.type then
             p.arrow_dir = 0
-            p:move_button(self, self.offset_h, self.offset_v,
-                clamp(cx, 0, self.w), clamp(cy, 0, self.h))
+            p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
         Widget.holding(self, cx, cy, code)
     end,
@@ -317,12 +319,13 @@ M.H_Slider = register_class("H_Slider", Slider, {
         if not btn then return end
 
         local as = self.arrow_size
-
         local sw, bw = self.w, btn.w
 
-        self.set_step(self, round((abs(self.max_value - self.min_value) /
-            self.step_size) * clamp((cx - as - bw / 2) /
-                (sw - 2 * as - bw), 0.1, 1)))
+        local pos = clamp((cx - as - bw / 2) / (sw - 2 * as - bw), 0, 1)
+        local steps = abs(self.max_value - self.min_value) / self.step_size
+        local step = round(steps * pos)
+
+        self.set_step(self, step)
     end,
 
     adjust_children = function(self)
@@ -380,13 +383,13 @@ M.V_Slider = register_class("V_Slider", Slider, {
         if not btn then return end
 
         local as = self.arrow_size
-
         local sh, bh = self.h, btn.h
-        local mn, mx = self.min_value, self.max_value
 
-        self.set_step(self, round(((max(mx, mn) - min(mx, mn)) /
-            self.step_size) * clamp((cy - as - bh / 2) /
-                (sh - 2 * as - bh), 0.1, 1)))
+        local pos = clamp((cy - as - bh / 2) / (sh - 2 * as - bh), 0, 1)
+        local steps = abs(self.max_value - self.min_value) / self.step_size
+        local step = round(steps * pos)
+
+        self.set_step(self, step)
     end,
 
     adjust_children = function(self)
