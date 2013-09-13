@@ -13,9 +13,11 @@
         Widgets related to scrolling - scrollers, scrollbars and so on.
 ]]
 
-local frame = require("core.events.frame")
+local capi = require("capi")
 local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
+
+local get_curtime = capi.get_curtime
 
 local max   = math.max
 local min   = math.min
@@ -482,7 +484,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     arrow_scroll = function(self, d)
         local  scroll = self.scroller
         if not scroll then return end
-        scroll:scroll_h(d * self.arrow_speed * (frame.get_frame_time() / 1000))
+        scroll:scroll_h(d * self.arrow_speed * (get_curtime() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)
@@ -577,7 +579,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
     arrow_scroll = function(self, d)
         local  scroll = self.scroller
         if not scroll then return end
-        scroll:scroll_v(d * self.arrow_speed * (frame.get_frame_time() / 1000))
+        scroll:scroll_v(d * self.arrow_speed * (get_curtime() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)

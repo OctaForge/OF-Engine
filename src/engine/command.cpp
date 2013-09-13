@@ -4047,6 +4047,8 @@ LUAICOMMAND(get_millis, {
     return 1;
 });
 
+CLUAICOMMAND(get_curtime, int, (), return curtime;);
+
 LUAICOMMAND(get_current_time, {
 #ifdef SERVER
     lua_pushinteger(L, enet_time_get());
