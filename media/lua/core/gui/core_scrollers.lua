@@ -259,7 +259,8 @@ local Scroll_Button
     properties, arrow_size (determines the length of the arrow part of
     the scrollbar) and arrow_speed (mouse scroll is by 0.2 * arrow_speed,
     arrow scroll is by frame_time * arrow_speed, when used with text editors,
-    mouse scroll is 6 * fonth * arrow_speed), both of which default to 0.
+    mouse scroll is 6 * fonth * arrow_speed). The former defaults to 0, the
+    latter to 0.5.
 
     Scrollbars can be used with widgets that implement the right interface -
     scrollers and text editors (including fields).
@@ -270,7 +271,7 @@ local Scrollbar = register_class("Scrollbar", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.arrow_size  = kwargs.arrow_size  or 0
-        self.arrow_speed = kwargs.arrow_speed or 0
+        self.arrow_speed = kwargs.arrow_speed or 0.5
         self.arrow_dir   = 0
 
         return Widget.__ctor(self, kwargs)

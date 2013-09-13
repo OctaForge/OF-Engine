@@ -359,7 +359,7 @@ world:new_window("texture", gui.Window, |win| do
     win:set_title("Textures")
 
     win:append(gui.Grid { columns = 2 }, |gr| do
-        local scr
+        local s
         gr:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
             sc:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
                 sp:append(gui.Grid { columns = 8, padding = 0.01 }, |gr| do
@@ -378,11 +378,9 @@ world:new_window("texture", gui.Window, |win| do
                     end
                 end)
             end)
-            scr = sc
+            s = sc
         end)
-        gr:append(gui.V_Scrollbar { clamp_v = true, arrow_speed = 0.5 },
-            |sb| sb:bind_scroller(scr))
-        gr:append(gui.H_Scrollbar { clamp_h = true, arrow_speed = 0.5 },
-            |sb| sb:bind_scroller(scr))
+        gr:append(gui.V_Scrollbar { clamp_v = true }, |sb| sb:bind_scroller(s))
+        gr:append(gui.H_Scrollbar { clamp_h = true }, |sb| sb:bind_scroller(s))
     end)
 end)
