@@ -198,6 +198,23 @@ local sb_buildv = |labgc, lac, rabgc, rac| gui.Color_Filler {
     }
 }
 
+gui.Scroll_Button.__variants = {
+    default = {
+        default = gui.Color_Filler {
+            color = 0x202020, clamp = true, min_w = 0.02, min_h = 0.02,
+            gui.Outline { clamp = true }
+        },
+        hovering = gui.Color_Filler {
+            color = 0x606060, clamp = true, min_w = 0.02, min_h = 0.02,
+            gui.Outline { clamp = true }
+        },
+        clicked_left = gui.Color_Filler {
+            color = 0x404040, clamp = true, min_w = 0.02, min_h = 0.02,
+            gui.Outline { clamp = true }
+        }
+    }
+}
+
 gui.H_Scrollbar.__variants = {
     default = {
         default            = sb_buildh(0x101010, 0xC0C0C0, 0x101010, 0xC0C0C0),
@@ -205,6 +222,7 @@ gui.H_Scrollbar.__variants = {
         left_clicked_left  = sb_buildh(0x202020, 0xC0C0C0, 0x101010, 0xC0C0C0),
         right_hovering     = sb_buildh(0x101010, 0xC0C0C0, 0x404040, 0xC0C0C0),
         right_clicked_left = sb_buildh(0x101010, 0xC0C0C0, 0x202020, 0xC0C0C0),
+        gui.Scroll_Button(),
         __init = |self| do self:set_arrow_size(0.02) end
     }
 }
@@ -216,6 +234,7 @@ gui.V_Scrollbar.__variants = {
         up_clicked_left   = sb_buildv(0x202020, 0xC0C0C0, 0x101010, 0xC0C0C0),
         down_hovering     = sb_buildv(0x101010, 0xC0C0C0, 0x404040, 0xC0C0C0),
         down_clicked_left = sb_buildv(0x101010, 0xC0C0C0, 0x202020, 0xC0C0C0),
+        gui.Scroll_Button(),
         __init = |self| do self:set_arrow_size(0.02) end
     }
 }

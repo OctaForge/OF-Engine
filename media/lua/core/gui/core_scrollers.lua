@@ -527,6 +527,8 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
         btn.x = as + scroll:get_h_offset() * bscale
         btn.adjust = btn.adjust & ~adjust.ALIGN_HMASK
+
+        Widget.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)

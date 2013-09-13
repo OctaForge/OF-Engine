@@ -95,8 +95,10 @@ non proident, sunt in culpa qui officia deserunt
 mollit anim id est laborum.]], multiline = true }, |x| do
                     ed = x
                 end)
-                gr:append(gui.V_Scrollbar { clamp_v = true })
-                gr:append(gui.H_Scrollbar { clamp_h = true })
+                gr:append(gui.V_Scrollbar { clamp_v = true },
+                    |sb| sb:bind_scroller(ed))
+                gr:append(gui.H_Scrollbar { clamp_h = true },
+                    |sb| sb:bind_scroller(ed))
             end)
         end)
 
