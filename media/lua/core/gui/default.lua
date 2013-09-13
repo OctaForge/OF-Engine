@@ -358,29 +358,30 @@ world:new_window("texture", gui.Window, |win| do
     win:set_variant("movable")
     win:set_title("Textures")
 
-    win:append(gui.Grid { columns = 2 }, |gr| do
+    win:append(gui.H_Box(), |hb| do
         local s
-        gr:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
-            sc:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
-                sp:append(gui.Grid { columns = 8, padding = 0.01 }, |gr| do
-                    for i = 1, capi.slot_texmru_num() do
-                        local mru = capi.slot_texmru(i - 1)
-                        gr:append(gui.Button { variant = false }, |btn| do
-                            btn:update_state("default",
-                                btn:update_state("hovering",
-                                    btn:update_state("clicked",
-                                        gui.VSlot_Viewer { index = mru,
-                                            min_w = 0.095, min_h = 0.095
-                                        })))
-                            signal.connect(btn, "clicked",
-                                || capi.slot_set(mru))
-                        end)
-                    end
+        hb:append(gui.Outline(), |o| do
+            o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
+                sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
+                    sc:append(gui.Grid { columns = 8, padding = 0.01 }, |gr| do
+                        for i = 1, capi.slot_texmru_num() do
+                            local mru = capi.slot_texmru(i - 1)
+                            gr:append(gui.Button { variant = false }, |btn| do
+                                btn:update_state("default",
+                                    btn:update_state("hovering",
+                                        btn:update_state("clicked",
+                                            gui.VSlot_Viewer { index = mru,
+                                                min_w = 0.095, min_h = 0.095
+                                            })))
+                                signal.connect(btn, "clicked",
+                                    || capi.slot_set(mru))
+                            end)
+                        end
+                    end)
+                    s = sc
                 end)
             end)
-            s = sc
         end)
-        gr:append(gui.V_Scrollbar { clamp_v = true }, |sb| sb:bind_scroller(s))
-        gr:append(gui.H_Scrollbar { clamp_h = true }, |sb| sb:bind_scroller(s))
+        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| sb:bind_scroller(s))
     end)
 end)
