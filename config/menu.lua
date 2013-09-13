@@ -121,9 +121,19 @@ mollit anim id est laborum.]], multiline = true }, |x| do
         end)
 
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.005 }, |s| do
-            s:append(gui.Filler { min_w = 0.4 }, |f| do
-                f:append(gui.H_Slider { min_value = 5, max_value = 17, value = 6, clamp_h = true }, |sl| do
-                    sl:append(gui.Slider_Button())
+            local sl, sb
+            s:append(gui.Filler { min_w = 0.35 }, |f| do
+                f:append(gui.H_Slider { min_value = 5, max_value = 17,
+                    value = 6, clamp_h = true
+                }, |slo| do
+                    sl = slo
+                    slo:append(gui.Slider_Button(), |sbo| do sb = sbo end)
+                end)
+            end)
+            sb:append(gui.Label { text = tostring(sl.value), scale = 0.8 },
+            |lbl| do
+                signal.connect(sl, "value_changed", |sl, v| do
+                    lbl:set_text(tostring(v))
                 end)
             end)
         end)

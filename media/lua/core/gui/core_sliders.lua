@@ -331,6 +331,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
     adjust_children = function(self)
         local  btn = self:find_child(Slider_Button.type, nil, false)
         if not btn then return end
+        btn._slider = self
 
         local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
@@ -395,6 +396,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
     adjust_children = function(self)
         local  btn = self:find_child(Slider_Button.type, nil, false)
         if not btn then return end
+        btn._slider = self
 
         local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
