@@ -20,6 +20,7 @@ local gui = require("core.gui.core")
 local world = gui.get_world()
 
 local Color = gui.Color
+local connect = signal.connect
 
 -- buttons
 
@@ -29,15 +30,15 @@ gui.Button.__variants = { default = btnv }
 local btnv_init_clone = |self, btn| do
     local lbl = gui.Label { text = btn.label }
     self:append(lbl)
-    signal.connect(btn, "label_changed", |b, t| do lbl:set_text(t) end)
+    connect(btn, "label_changed", |b, t| do lbl:set_text(t) end)
 end
 
 local btn_build_variant = |color| gui.Gradient {
     color = 0x0, color2 = 0x303030, clamp_h = true, init_clone = |self, btn| do
         self:set_min_w(btn.min_w or 0)
         self:set_min_h(btn.min_h or 0)
-        signal.connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
-        signal.connect(btn, "min_h_changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_h_changed", |b, v| self:set_min_w(v))
     end, gui.Outline {
         color = color, clamp_h = true, gui.Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
@@ -69,6 +70,37 @@ smbtnv["default"     ] = btn_build_variant_nobg()
 smbtnv["hovering"    ] = btn_build_variant(0xC0C0C0)
 smbtnv["menu"        ] = btn_build_variant(0xC0C0C0)
 smbtnv["clicked_left"] = btn_build_variant(0xC0C0C0)
+
+-- (v)slot viewer buttons
+
+local slotbtn_init_clone = |self, btn| do
+    self:set_min_w(btn.min_w or 0)
+    self:set_min_h(btn.min_h or 0)
+    self:set_index(btn.index or 0)
+    connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
+    connect(btn, "min_h_changed", |b, v| self:set_min_h(v))
+    connect(btn, "index_changed", |b, v| self:set_index(v))
+end
+
+gui.Button.__variants.vslot = {
+    __properties = { "index", "min_w", "min_h" },
+    default = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
+        gui.Outline { clamp = true, color = 0xAAAAAA } },
+    hovering = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
+        gui.Outline { clamp = true, color = 0xFFFFFF } },
+    clicked_left = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
+        gui.Outline { clamp = true, color = 0xC0C0C0 } }
+}
+
+gui.Button.__variants.slot = {
+    __properties = { "index", "min_w", "min_h" },
+    default = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
+        gui.Outline { clamp = true, color = 0xAAAAAA } },
+    hovering = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
+        gui.Outline { clamp = true, color = 0xFFFFFF } },
+    clicked_left = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
+        gui.Outline { clamp = true, color = 0xC0C0C0 } }
+}
 
 -- editors
 
@@ -102,7 +134,7 @@ gui.Filler.__variants = {
                     pad_h = 0.01, pad_v = 0.005, init_clone = |self, ttip| do
                         local lbl = gui.Label { text = ttip.label }
                         self:append(lbl)
-                        signal.connect(ttip, "label_changed", |o, t| do
+                        connect(ttip, "label_changed", |o, t| do
                             o:set_text(t) end)
                     end
                 }
@@ -248,7 +280,7 @@ local window_build_titlebar = || gui.Gradient {
         init_clone = |self, win| do
             local lbl = gui.Label { text = win.title or win.obj_name }
             self:append(lbl)
-            signal.connect(win, "title_changed", |w, t| do
+            connect(win, "title_changed", |w, t| do
                 lbl:set_text(t or w.obj_name) end)
         end
     }
@@ -284,7 +316,7 @@ local window_build_regular = |mov| gui.Filler {
                         }
                     },
                     init_clone = |self, win| do
-                        signal.connect(self, "clicked", || win:hide())
+                        connect(self, "clicked", || win:hide())
                     end
                 }
             }
@@ -324,7 +356,7 @@ world:new_window("changes", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Changes")
-    signal.connect(win, "destroy", || gui.changes_clear())
+    connect(win, "destroy", || gui.changes_clear())
     win:append(gui.V_Box(), |b| do
         b:append(gui.Label { text = "Apply changes?" })
         b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
@@ -366,15 +398,10 @@ world:new_window("texture", gui.Window, |win| do
                     sc:append(gui.Grid { columns = 8, padding = 0.01 }, |gr| do
                         for i = 1, capi.slot_texmru_num() do
                             local mru = capi.slot_texmru(i - 1)
-                            gr:append(gui.Button { variant = false }, |btn| do
-                                btn:update_state("default",
-                                    btn:update_state("hovering",
-                                        btn:update_state("clicked",
-                                            gui.VSlot_Viewer { index = mru,
-                                                min_w = 0.095, min_h = 0.095
-                                            })))
-                                signal.connect(btn, "clicked",
-                                    || capi.slot_set(mru))
+                            gr:append(gui.Button { variant = "vslot",
+                                index = mru, min_w = 0.095, min_h = 0.095
+                            }, |b| do
+                                connect(b, "clicked", || capi.slot_set(mru))
                             end)
                         end
                     end)

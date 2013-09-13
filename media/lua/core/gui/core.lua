@@ -1123,17 +1123,16 @@ Widget = register_class("Widget", table2.Object, {
 
     --[[! Function: key_hover
         Occurs on keypress (any key) when hovering over a widget. The default
-        just goes over its children (backwards) and tries key_hover on each
-        until it hits true (and then itself returns true). If this doesn't
-        happen, it returns false.
-
+        just tries to key_hover on its parent (returns false as a fallback).
         Called after <key_raw> (if possible) and before mouse clicks and
         world <key>.
     ]]
     key_hover = function(self, code, isdown)
-        return loop_children_r(self, function(o)
-            if o.visible and o:key_hover(code, isdown) then return true end
-        end) or false
+        local parent = self.parent
+        if parent then
+            return parent:key_hover(code, isdown)
+        end
+        return false
     end,
 
     --[[! Function: draw

@@ -103,7 +103,7 @@ end
 local Color_Filler = register_class("Color_Filler", Filler, {
     __ctor = function(self, kwargs)
         kwargs       = kwargs or {}
-        self.solid = kwargs.solid == false and false or true
+        self.solid = kwargs.solid != false and true or false
         self.color = init_color(kwargs.color)
 
         return Filler.__ctor(self, kwargs)
