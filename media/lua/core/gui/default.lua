@@ -255,7 +255,6 @@ gui.H_Scrollbar.__variants = {
         left_clicked_left  = sb_buildh(0x202020, 0xC0C0C0, 0x101010, 0xC0C0C0),
         right_hovering     = sb_buildh(0x101010, 0xC0C0C0, 0x404040, 0xC0C0C0),
         right_clicked_left = sb_buildh(0x101010, 0xC0C0C0, 0x202020, 0xC0C0C0),
-        gui.Scroll_Button(),
         __init = |self| do self:set_arrow_size(0.02) end
     }
 }
@@ -267,7 +266,6 @@ gui.V_Scrollbar.__variants = {
         up_clicked_left   = sb_buildv(0x202020, 0xC0C0C0, 0x101010, 0xC0C0C0),
         down_hovering     = sb_buildv(0x101010, 0xC0C0C0, 0x404040, 0xC0C0C0),
         down_clicked_left = sb_buildv(0x101010, 0xC0C0C0, 0x202020, 0xC0C0C0),
-        gui.Scroll_Button(),
         __init = |self| do self:set_arrow_size(0.02) end
     }
 }
@@ -409,7 +407,10 @@ world:new_window("texture", gui.Window, |win| do
                 end)
             end)
         end)
-        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| sb:bind_scroller(s))
+        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| do
+            sb:append(gui.Scroll_Button())
+            sb:bind_scroller(s)
+        end)
     end)
 end)
 
@@ -486,6 +487,9 @@ world:new_window("entity", gui.Window, |win| do
                 end)
             end)
         end)
-        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| sb:bind_scroller(s))
+        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| do
+            sb:append(gui.Scroll_Button())
+            sb:bind_scroller(s)
+        end)
     end)
 end)
