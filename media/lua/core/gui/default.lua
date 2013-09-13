@@ -358,18 +358,31 @@ world:new_window("texture", gui.Window, |win| do
     win:set_variant("movable")
     win:set_title("Textures")
 
-    win:append(gui.Grid { columns = 9, padding = 0.01 }, function(t)
-        for i = 1, capi.slot_get_count() do
-            t:append(gui.Button { variant = false }, function(btn)
-                btn:update_state("default",
-                    btn:update_state("hovering",
-                        btn:update_state("clicked", gui.Slot_Viewer {
-                            index = i - 1, min_w = 0.095,
-                            min_h = 0.095 })))
-                signal.connect(btn, "clicked", function()
-                    capi.slot_set(i - 1)
+    win:append(gui.Grid { columns = 2 }, |gr| do
+        local scr
+        gr:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
+            sc:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
+                sp:append(gui.Grid { columns = 8, padding = 0.01 }, |gr| do
+                    for i = 1, capi.slot_texmru_num() do
+                        local mru = capi.slot_texmru(i - 1)
+                        gr:append(gui.Button { variant = false }, |btn| do
+                            btn:update_state("default",
+                                btn:update_state("hovering",
+                                    btn:update_state("clicked",
+                                        gui.VSlot_Viewer { index = mru,
+                                            min_w = 0.095, min_h = 0.095
+                                        })))
+                            signal.connect(btn, "clicked",
+                                || capi.slot_set(mru))
+                        end)
+                    end
                 end)
             end)
-        end
+            scr = sc
+        end)
+        gr:append(gui.V_Scrollbar { clamp_v = true, arrow_speed = 0.5 },
+            |sb| sb:bind_scroller(scr))
+        gr:append(gui.H_Scrollbar { clamp_h = true, arrow_speed = 0.5 },
+            |sb| sb:bind_scroller(scr))
     end)
 end)
