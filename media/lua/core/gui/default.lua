@@ -15,12 +15,15 @@
 
 local capi = require("capi")
 local signal = require("core.events.signal")
+local svars = require("core.entities.svars")
 local gui = require("core.gui.core")
 
 local world = gui.get_world()
 
 local Color = gui.Color
 local connect = signal.connect
+local max = math.max
+local tostring = tostring
 
 -- buttons
 
@@ -387,7 +390,6 @@ world:new_window("texture", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Textures")
-
     win:append(gui.H_Box(), |hb| do
         local s
         hb:append(gui.Outline(), |o| do
@@ -400,6 +402,83 @@ world:new_window("texture", gui.Window, |win| do
                                 index = mru, min_w = 0.095, min_h = 0.095
                             }, |b| do
                                 connect(b, "clicked", || capi.slot_set(mru))
+                            end)
+                        end
+                    end)
+                    s = sc
+                end)
+            end)
+        end)
+        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| sb:bind_scroller(s))
+    end)
+end)
+
+local fields = {
+    [svars.State_Boolean] = function(hb, nm, ent, dv)
+        local tvar = (dv == "true")
+        hb:append(gui.Filler { min_w = 0.4 }, |f| do
+            f:append(gui.Toggle { variant = "checkbox", condition = || tvar,
+                align_h = -1
+            }, |t| do
+                signal.connect(t, "released", || do
+                    tvar = not tvar
+                    ent:set_attr(nm, tostring(tvar))
+                end)
+            end)
+        end)
+    end
+}
+local field_def = function(hb, nm, ent, dv)
+    hb:append(gui.Field { clip_w = 0.4, value = dv }, |ed| do
+        connect(ed, "value_changed", |ed, v| do
+            if dv != v then
+                ent:set_attr(nm, v)
+            end
+        end)
+    end)
+end
+
+world:new_window("entity", gui.Window, |win| do
+    win:set_floating(true)
+    win:set_variant("movable")
+    local  ent = capi.get_selected_entity()
+    if not ent then
+        win:set_title("Entity editing: none")
+        win:append(gui.Spacer { pad_h = 0.04, pad_v = 0.03,
+            gui.Label { text = "No selected entity" }
+        })
+        return
+    end
+    win:set_title(("Entity editing: %s (%d)"):format(ent.name, ent.uid))
+    local props = {}
+    local sdata = {}
+    local sdata_raw = ent:build_sdata()
+
+    local nfields = 0
+    local prefix = "_SV_"
+    for k, v in pairs(sdata_raw) do
+        nfields += 1
+        local sv = ent[prefix .. k]
+        local gn = sv.gui_name or k
+        sdata[k] = { gn, v, sv }
+        props[nfields] = k
+    end
+    table.sort(props)
+
+    win:append(gui.H_Box(), |hb| do
+        local s
+        hb:append(gui.Outline(), |o| do
+            o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
+                sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
+                    sc:append(gui.V_Box(), |vb| do
+                        for i = 1, nfields do
+                            local nm = props[i]
+                            local sd = sdata[nm]
+                            local gn, dv, sv = sd[1] .. ": ", sd[2], sd[3]
+                            vb:append(gui.H_Box { align_h = 1 }, |hb| do
+                                hb:append(gui.Label { text = gn })
+                                local fld = fields[sv.__proto] or field_def
+                                fld(hb, nm, ent, dv)
                             end)
                         end
                     end)

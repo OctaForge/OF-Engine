@@ -847,6 +847,7 @@ Entity = table2.Object:clone {
             to protocol IDs, otherwise raw table.
     ]]
     build_sdata = function(self, kwargs)
+        kwargs = kwargs or {}
         local tcn, comp
         if not kwargs then
             tcn, comp = msg.ALL_CLIENTS, false
@@ -1253,7 +1254,8 @@ Entity = table2.Object:clone {
     ]]
     get_attr = function(self, prop)
         local fun = self["__get_" .. prop]
-        return fun and fun(self) or nil
+        if fun then return fun(self) end
+        return nil
     end,
 
     --[[! Function: set_attr

@@ -644,7 +644,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     set_value = function(self, val)
         val = tostring(val)
         self.value = val
-        emit("value_changed", val)
+        emit(self, "value_changed", val)
         self:reset_value()
     end,
 
