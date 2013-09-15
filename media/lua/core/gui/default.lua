@@ -383,14 +383,14 @@ world:new_window("changes", gui.Window, |win| do
     win:set_title("Changes")
     connect(win, "destroy", || gui.changes_clear())
     win:append(gui.V_Box(), |b| do
-        b:append(gui.Label { text = "Apply changes?" })
+        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0,
+            gui.Label { text = "The following settings have changed:" } })
         b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
             gui.Line { clamp_h = true } })
         for i, v in ipairs(gui.changes_get()) do
             b:append(gui.Label { text = v })
         end
-        b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
-            gui.Line { clamp_h = true } })
+        b:append(gui.Filler { clamp_h = true, min_h = 0.01 })
         b:append(gui.Spacer { pad_v = 0.005, pad_h = 0.005, clamp_h = true,
             gui.H_Box { padding = 0.01,
                 gui.Button { label = "OK", min_w = 0.15,
