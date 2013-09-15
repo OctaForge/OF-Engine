@@ -451,9 +451,7 @@ local fields = {
 local field_def = function(hb, nm, ent, dv)
     hb:append(gui.Field { clip_w = 0.4, value = dv }, |ed| do
         connect(ed, "value_changed", |ed, v| do
-            if dv != v then
-                ent:set_attr(nm, v)
-            end
+            ent:set_attr(nm, v)
         end)
     end)
 end
