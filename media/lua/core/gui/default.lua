@@ -389,14 +389,13 @@ world:new_window("changes", gui.Window, |win| do
             gui.H_Box { padding = 0.01,
                 gui.Button { label = "OK", min_w = 0.15,
                     signals = { clicked = || do
-                        world:hide_window("changes")
                         gui.changes_apply()
+                        world:hide_window("changes")
                     end }
                 },
                 gui.Button { label = "Cancel", min_w = 0.15,
                     signals = { clicked = || do
                         world:hide_window("changes")
-                        gui.changes_clear()
                     end }
                 }
             }
