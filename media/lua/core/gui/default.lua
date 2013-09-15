@@ -141,6 +141,11 @@ gui.Filler.__variants = {
             gui.Outline { color = 0xFFFFFF, clamp = true }
         }
     },
+    edithud = {
+        gui.Gradient { color = 0xC0000000, color2 = 0xC0080808, clamp = true,
+            gui.Outline { color = 0xFFFFFF, clamp = true }
+        }
+    },
     tooltip = {
         __properties = { "label" },
         gui.Gradient {
