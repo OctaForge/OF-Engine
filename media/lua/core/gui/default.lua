@@ -14,7 +14,10 @@
 ]]
 
 local capi = require("capi")
+local edit = require("core.engine.edit")
+local input = require("core.engine.input")
 local signal = require("core.events.signal")
+local ents = require("core.entities.ents")
 local svars = require("core.entities.svars")
 local gui = require("core.gui.core")
 
@@ -27,8 +30,10 @@ local tostring = tostring
 
 -- buttons
 
-local btnv = { __properties = { "label", "min_w", "min_h" } }
-gui.Button.__variants = { default = btnv }
+local btnp  = { "label", "min_w", "min_h" }
+local btnv  = { __properties = btnp }
+local btnvb = { __properties = btnp }
+gui.Button.__variants = { default = btnv, nobg = btnvb }
 
 local btnv_init_clone = |self, btn| do
     local lbl = gui.Label { text = btn.label }
@@ -50,7 +55,12 @@ local btn_build_variant = |color| gui.Gradient {
 }
 
 local btn_build_variant_nobg = || gui.Filler {
-    clamp_h = true, gui.Spacer {
+    clamp_h = true, init_clone = |self, btn| do
+        self:set_min_w(btn.min_w or 0)
+        self:set_min_h(btn.min_h or 0)
+        connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_h_changed", |b, v| self:set_min_w(v))
+    end, gui.Spacer {
         pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
     }
 }
@@ -58,6 +68,10 @@ local btn_build_variant_nobg = || gui.Filler {
 btnv["default"     ] = btn_build_variant(0xFFFFFF)
 btnv["hovering"    ] = btn_build_variant(0xE1E1E1)
 btnv["clicked_left"] = btn_build_variant(0xC0C0C0)
+
+btnvb["default"     ] = btn_build_variant_nobg()
+btnvb["hovering"    ] = btn_build_variant(0xE1E1E1)
+btnvb["clicked_left"] = btn_build_variant(0xC0C0C0)
 
 local mbtnv, smbtnv =
     { __properties  = { "label" } },
@@ -486,6 +500,42 @@ world:new_window("entity", gui.Window, |win| do
                                 hb:append(gui.Label { text = gn })
                                 local fld = fields[sv.__proto] or field_def
                                 fld(hb, nm, ent, dv)
+                            end)
+                        end
+                    end)
+                    s = sc
+                end)
+            end)
+        end)
+        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| do
+            sb:append(gui.Scroll_Button())
+            sb:bind_scroller(s)
+        end)
+    end)
+end)
+
+world:new_window("entity_new", gui.Window, |win| do
+    input.save_mouse_position()
+    win:set_floating(true)
+    win:set_variant("movable")
+    win:set_title("New entity")
+
+    local cnames = {}
+    for k, v in pairs(ents.get_all_classes()) do cnames[#cnames + 1] = k end
+    table.sort(cnames)
+
+    win:append(gui.H_Box(), |hb| do
+        local s
+        hb:append(gui.Outline(), |o| do
+            o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
+                sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.6 }, |sc| do
+                    sc:append(gui.V_Box(), |vb| do
+                        for i = 1, #cnames do
+                            local n = cnames[i]
+                            vb:append(gui.Button {
+                                variant = "nobg", min_w = 0.3, label = n
+                            }, |btn| do
+                                connect(btn, "clicked", || edit.new_entity(n))
                             end)
                         end
                     end)

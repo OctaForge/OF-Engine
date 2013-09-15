@@ -1,4 +1,4 @@
---[[! File: lua/core/engine/camera.lua
+--[[! File: lua/core/engine/edit.lua
 
     About: Author
         q66 <quaker66@gmail.com>
