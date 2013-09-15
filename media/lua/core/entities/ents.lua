@@ -530,16 +530,7 @@ M.remove = function(uid)
                 function(a, b) return (b != e) end)
         end
     end
-
     storage[uid] = nil
-    if uid == highest_uid then
-        for i = highest_uid - 1, 1, -1 do
-            if storage[i] then
-                highest_uid = i
-                break
-            end
-        end
-    end
 end
 set_external("entity_remove", M.remove)
 
@@ -555,7 +546,6 @@ M.remove_all = function()
     end
     storage = {}
     storage_by_class = {}
-    highest_uid = 1
 end
 set_external("entities_remove_all", M.remove_all)
 

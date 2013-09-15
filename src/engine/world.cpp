@@ -204,14 +204,10 @@ static bool modifyoctaent(int flags, int id, extentity &e)
 
 /* OctaForge: getentid */
 static int getentid(extentity *entity) {
-    int id = 0;
     const vector<extentity *> &ents = entities::getents();
-    while (ents[id] != entity) {
-        id++;
-        assert(id < ents.length());
-    }
-
-    return id;
+    loopv(ents) if (ents[i] == entity) return i;
+    assert(false);
+    return -1;
 }
 
 static inline bool modifyoctaent(int flags, int id) {
