@@ -995,8 +995,7 @@ Widget = register_class("Widget", table2.Object, {
         self.h = 0
 
         loop_children(self, function(o)
-            o.x = 0
-            o.y = 0
+            if not o.floating then o.x, o.y = 0, 0 end
             o:layout()
             self.w = max(self.w, o.x + o.w)
             self.h = max(self.h, o.y + o.h)
@@ -1055,18 +1054,6 @@ Widget = register_class("Widget", table2.Object, {
         end
 
         self.x, self.y, self.w, self.h = x, y, w, h
-
-        if self.floating then
-            local fx = self.fx
-            local fy = self.fy
-
-            if not fx then self.fx, fx = x, x end
-            if not fy then self.fy, fy = y, y end
-
-            self.x = fx
-            self.y = fy
-        end
-
         self:adjust_children()
     end,
 
@@ -1686,7 +1673,7 @@ local World = register_class("World", Widget, {
         self.w, self.h = sw / sh, 1
 
         loop_children(self, function(o)
-            o.x, o.y = 0, 0
+            if not o.floating then o.x, o.y = 0, 0 end
             projection = get_projection(o)
             o:layout()
             projection = nil

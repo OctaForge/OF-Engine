@@ -37,8 +37,13 @@ local gen_setter = M.gen_setter
 -- projection
 local get_projection = M.get_projection
 
+-- adjustment
+local adjust = M.adjust
+
 -- keys
 local key = M.key
+
+local ALIGN_MASK = adjust.ALIGN_MASK
 
 --[[! Struct: State
     Represents a state as a first class object. Has an arbitrary number of
@@ -132,9 +137,10 @@ M.Mover = register_class("Mover", Widget, {
     holding = function(self, cx, cy, code)
         local w = self.window
         if w and w.floating and code == key.MOUSELEFT and self:can_move() then
-            local dx, dy = cx - self.ox, cy - self.oy
-            w.fx, w.x = w.fx + dx, w.x + dx
-            w.fy, w.y = w.fy + dy, w.y + dy
+            -- dealign so that adjust_layout doesn't fuck with x/y
+            w.adjust &= ~ALIGN_MASK
+            w.x += cx - self.ox
+            w.y += cy - self.oy
         end
         Widget.holding(self, cx, cy, code)
     end,
