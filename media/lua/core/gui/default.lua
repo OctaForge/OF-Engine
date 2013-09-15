@@ -27,6 +27,7 @@ local Color = gui.Color
 local connect = signal.connect
 local max = math.max
 local tostring = tostring
+local sort = require("core.lua.table").sort
 
 -- buttons
 
@@ -486,7 +487,7 @@ world:new_window("entity", gui.Window, |win| do
         sdata[k] = { gn, v, sv }
         props[nfields] = k
     end
-    table.sort(props)
+    sort(props)
 
     win:append(gui.H_Box(), |hb| do
         local s
@@ -528,7 +529,7 @@ world:new_window("entity_new", gui.Window, |win| do
             cnames[#cnames + 1] = k
         end
     end
-    table.sort(cnames)
+    sort(cnames)
 
     win:append(gui.H_Box(), |hb| do
         local s
