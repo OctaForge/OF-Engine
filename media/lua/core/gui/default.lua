@@ -518,7 +518,11 @@ world:new_window("entity_new", gui.Window, |win| do
     win:set_title("New entity")
 
     local cnames = {}
-    for k, v in pairs(ents.get_all_classes()) do cnames[#cnames + 1] = k end
+    for k, v in pairs(ents.get_all_classes()) do
+        if v:is_a(ents.Static_Entity) then
+            cnames[#cnames + 1] = k
+        end
+    end
     table.sort(cnames)
 
     win:append(gui.H_Box(), |hb| do
