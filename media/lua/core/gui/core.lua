@@ -1175,6 +1175,16 @@ Widget = register_class("Widget", table2.Object, {
         emit(self, "hovering", cx, cy)
     end,
 
+    --[[! Function: leaving
+        Called when a mouse cursor is leaving widget hover. Takes the cx
+        and cy arguments like <hovering> (they're the last position in the
+        widget the cursor was hovering on) and emits the "leaving" signal,
+        passing those arguments to it.
+    ]]
+    leaving = function(self, cx, cy)
+        emit(self, "leaving", cx, cy)
+    end,
+
     hold = function(self, cx, cy, obj)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             if o == obj then return ox, oy end
@@ -2226,13 +2236,17 @@ set_external("gui_update", function()
                 end
             end
         end
+        local oldhov, oldhx, oldhy = hovering, hover_x, hover_y
         if hk then
             hovering = hovering_try
         else
             hovering = world:hover(cursor_x, cursor_y)
         end
-        if  hovering then
-            local msl = #menustack
+        if oldhov and oldhov != hovering then
+            oldhov:leaving(oldhx, oldhy)
+        end
+        if hovering then
+             local msl = #menustack
             if msl > 0 and nhov > 0 and msl > nhov then
                 menus_drop(msl - nhov)
             end

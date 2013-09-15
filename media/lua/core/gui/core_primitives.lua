@@ -322,9 +322,14 @@ local Image = register_class("Image", Filler, {
 
     --[[! Function: set_tex
         Given the filename and an alternative filename, this reloads the
-        texture this holds.
+        texture this holds. If the file argument is nil/false/none, this
+        disables the texture (sets the texture to notexture).
     ]]
     set_tex = function(self, file, alt)
+        if not file then
+            self.texture = texture_get_notexture()
+            return
+        end
         local tex = texture_load(file)
         if texture_is_notexture(tex) and alt then
               tex = texture_load(alt)
@@ -350,6 +355,10 @@ local Image = register_class("Image", Filler, {
                                 self.mag_filter, self.texture
         local color = self.color
 
+        if texture_is_notexture(tex) then
+            return Filler.draw(self, sx, sy)
+        end
+
         shader_hud_set_variant(tex)
         gl_bind_texture(tex:get_id())
 
@@ -367,7 +376,7 @@ local Image = register_class("Image", Filler, {
         quadtri(sx, sy, self.w, self.h)
         gle_end()
 
-        return Widget.draw(self, sx, sy)
+        return Filler.draw(self, sx, sy)
     end,
 
     layout = function(self)
@@ -453,6 +462,10 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
+        if texture_is_notexture(tex) then
+            return Filler.draw(self, sx, sy)
+        end
+
         shader_hud_set_variant(tex)
         gl_bind_texture(tex:get_id())
 
@@ -472,7 +485,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
             self.crop_x, self.crop_y, self.crop_w, self.crop_h)
         gle_end()
 
-        return Widget.draw(self, sx, sy)
+        return Filler.draw(self, sx, sy)
     end,
 
     --[[! Function: set_crop_x ]]
@@ -535,6 +548,10 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
+        if texture_is_notexture(tex) then
+            return Filler.draw(self, sx, sy)
+        end
+
         shader_hud_set_variant(tex)
         gl_bind_texture(tex:get_id())
 
@@ -596,7 +613,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
 
         gle_end()
 
-        return Widget.draw(self, sx, sy)
+        return Filler.draw(self, sx, sy)
     end
 })
 
@@ -653,6 +670,10 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
+        if texture_is_notexture(tex) then
+            return Filler.draw(self, sx, sy)
+        end
+
         shader_hud_set_variant(tex)
         gl_bind_texture(tex:get_id())
 
@@ -693,7 +714,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
 
         gle_end()
 
-        return Widget.draw(self, sx, sy)
+        return Filler.draw(self, sx, sy)
     end,
 
     --[[! Function: set_tex_border ]]
@@ -739,6 +760,10 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
+        if texture_is_notexture(tex) then
+            return Filler.draw(self, sx, sy)
+        end
+
         shader_hud_set_variant(tex)
         gl_bind_texture(tex:get_id())
 
@@ -777,7 +802,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
             gle_end()
         end
 
-        return Widget.draw(self, sx, sy)
+        return Filler.draw(self, sx, sy)
     end,
 
     --[[! Function: set_tile_w ]]

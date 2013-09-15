@@ -395,11 +395,14 @@ namespace lapi_binds
 
         lua_createtable(L, 0, 0);
         listfiles("media/map", NULL, dirs, FTYPE_DIR, LIST_ROOT);
+        int j = 1;
         loopv(dirs) {
             char *dir = dirs[i];
+            if (dir[0] == '.') { delete[] dir; continue; }
             lua_pushstring(L, dir);
-            lua_rawseti(L, -2, i + 1);
+            lua_rawseti(L, -2, j);
             delete[] dir;
+            ++j;
         }
 
         dirs.setsize(0);
@@ -413,11 +416,14 @@ namespace lapi_binds
             loopj(i) if (!strcmp(dirs[j], dir)) { r = true; break; }
             if (r) delete[] dirs.removeunordered(i);
         }
+        j = 1;
         loopv(dirs) {
             char *dir = dirs[i];
+            if (dir[0] == '.') { delete[] dir; continue; }
             lua_pushstring(L, dir);
-            lua_rawseti(L, -2, i + 1);
+            lua_rawseti(L, -2, j);
             delete[] dir;
+            ++j;
         }
 
         return 2;
