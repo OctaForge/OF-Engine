@@ -220,7 +220,7 @@ local loop_children = function(self, fun)
     local st = self.states
 
     local s = self:choose_state()
-    if s then
+    if s != nil then
         local  w = st[s] or st["default"]
         if not w then w = vr[s] or vr["default"] end
         if w then
@@ -264,7 +264,7 @@ local loop_children_r = function(self, fun)
     end
 
     local s = self:choose_state()
-    if s then
+    if s != nil then
         local  w = st[s] or st["default"]
         if not w then w = vr[s] or vr["default"] end
         if w then
