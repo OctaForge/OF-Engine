@@ -17,6 +17,7 @@ local table2 = require("core.lua.table")
 
 local find = table2.find
 local tremove = table.remove
+local type = type
 
 local M = require("core.gui.core")
 local world = M.get_world()
@@ -39,25 +40,27 @@ local get_projection = M.get_projection
 -- keys
 local key = M.key
 
---[[! Struct: Conditional
-    Conditional has two states, "true" and "false". It has a property,
-    "condition", which is a function. If that function exists and returns
-    a value that can be evaluated as true, the "true" state is set, otherwise
-    the "false" state is set.
+--[[! Struct: State
+    Represents a state as a first class object. Has an arbitrary number of
+    states and the current state is determined by the "state" property (if
+    it's a string, it's used directly, otherwise it's called with this widget
+    as its argument and the return value is then used).
 ]]
-M.Conditional = register_class("Conditional", Widget, {
+M.State = register_class("State", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
-        self.condition = kwargs.condition
+        self.state = kwargs.state
         return Widget.__ctor(self, kwargs)
     end,
 
     choose_state = function(self)
-        return (self.condition and self:condition()) and "true" or "false"
+        local  state = self.state
+        if not state then return end
+        return (type(state) == "string") and state or state(self)
     end,
 
-    --[[! Function: set_condition ]]
-    set_condition = gen_setter "condition"
+    --[[! Function: set_state ]]
+    set_state = gen_setter "state"
 })
 
 --[[! Struct: Mover

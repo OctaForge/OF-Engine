@@ -79,48 +79,6 @@ M.Menu_Button = register_class("Menu_Button", Button, {
     end
 })
 
---[[! Struct: Conditional_Button
-    Derived from Button. It's similar, but provides more states - more
-    specifically "false", "true", "hovering" and the button clicked states.
-    There is the "condition" property which works identically as in
-    <Conditional>. If the condition is not met, the "false" state is used,
-    otherwise one of the other three is used as in <Button>.
-]]
-M.Conditional_Button = register_class("Conditional_Button", Button, {
-    __ctor = function(self, kwargs)
-        kwargs = kwargs or {}
-        self.condition = kwargs.condition
-        return Button.__ctor(self, kwargs)
-    end,
-
-    choose_state = function(self)
-        return ((self.condition and self:condition()) and
-            (clicked_states[is_clicked(self)] or
-                (is_hovering(self) and "hovering" or "true")) or "false")
-    end,
-
-    --[[! Function: clicked
-        Makes sure the signal is sent only if the condition is met.
-    ]]
-    clicked = function(self, cx, cy, code)
-        if self.condition and self:condition() then
-            Widget.clicked(self, cx, cy, code)
-        end
-    end,
-
-    --[[! Function: released
-        See above.
-    ]]
-    released = function(self, cx, cy, code)
-        if self.condition and self:condition() then
-            Widget.released(self, cx, cy, code)
-        end
-    end,
-
-    --[[! Function: set_condition ]]
-    set_condition = gen_setter "condition"
-})
-
 --[[! Struct: Toggle
     Derived from Button. Toggles between two states depending on the
     "condition" property (if the condition returns something that evaluates
