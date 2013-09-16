@@ -114,12 +114,21 @@ void fontalias(const char *dst, const char *src)
     d->defaultw = s->defaultw;
     d->defaulth = s->defaulth;
     d->scale = s->scale;
+    d->bordermin = s->bordermin;
+    d->bordermax = s->bordermax;
+    d->outlinemin = s->outlinemin;
+    d->outlinemax = s->outlinemax;
 
     fontdef = d;
     fontdeftex = d->texs.length()-1;
 }
 
 COMMAND(fontalias, "ss");
+
+font *findfont(const char *name)
+{
+    return fonts.access(name);
+}
 
 bool setfont(const char *name)
 {

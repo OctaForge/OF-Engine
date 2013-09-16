@@ -58,7 +58,10 @@ extern font *curfont;
 extern Shader *textshader;
 extern const matrix3x4 *textmatrix;
 
+extern font *findfont(const char *name);
 extern void reloadfonts();
+
+static inline void setfont(font *f) { if(f) curfont = f; }
 
 // texture
 extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize, hwtexunits, hwvtexunits;
