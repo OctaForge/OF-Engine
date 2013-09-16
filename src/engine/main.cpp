@@ -1248,8 +1248,8 @@ int main(int argc, char **argv)
 
     execfile("config/keymap.cfg");
     execfile("config/stdedit.cfg");
-    tools::execfile("config/menu.lua");
-    execfile("config/menu.cfg");
+    tools::execfile("config/ui.lua");
+    execfile("config/ui.cfg");
     execfile("config/heightmap.cfg");
     execfile("config/blendbrush.cfg");
     if (game::savedservers()) execfile(game::savedservers(), false);

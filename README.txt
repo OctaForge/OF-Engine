@@ -1,7 +1,7 @@
 OctaForge
 ================
 
-This is OctaForge developer beta (0.2.7, August 26 2013)
+This is OctaForge developer beta (0.2.8, September 16 2013)
 
 In sync with Tesseract.
 

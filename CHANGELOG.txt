@@ -1,3 +1,41 @@
+2013-09-16 - 0.2.8 beta 9
+
+    * UI changes:
+      * Much improved text editors (better clamping, autoscroll,
+        customizable colors, documentation and other things)
+      * Improved states (use "default" state when none available)
+      * Support for 5 mouse buttons in clicking
+      * New event: holding (when a clicked widget is being held)
+      * Improved API for menus and tooltips (not as hardcoded)
+      * Better scrollers and scrollbars
+      * Everything now respects independent projections
+      * Better and more efficient menu positioning
+      * Initial theme and default GUIs:
+        * Main menu
+        * Entity editing (right click or F1 with entity selection)
+        * "New entity" window (F1)
+        * Texture selection window (F2)
+        * Changes window
+      * Theme includes more things:
+        * Checkboxes, radioboxes
+        * Window styles (borderless, regular, movable etc.)
+      * Variant properties
+      * A "false" variant (disables)
+      * Improved clamping: clamp_h and clamp_v for horizontal/vertical clamp
+      * New event: "released" (when a widget is released from a click)
+      * New widget: Text_Filler (fills in terms of font units)
+      * Removed world margin (not needed anymore)
+      * Improved colors on widgets: can be now specified in several ways
+        (hex ARGB, hex RGB + alpha, hex RGB, RGB fields, RGBA fields)
+      * New modes for H_Box and V_Box:
+        * Expand - makes clamping items take as much space as they can
+        * Homogenous - gives all items an equal amount of space
+      * New widget: State (an equivalent of a "switch" construct or pattern
+        matching in terms of GUI)
+      * Revamped handling of floating widgets and movable windows
+      * And a lot more (fixes everywhere)
+    * Changed naming on constructors and initializers (__ctor, __init etc.)
+
 2013-08-26 - 0.2.7 beta 8
 
     * UI changes:
