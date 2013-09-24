@@ -273,7 +273,7 @@ namespace lua
         L = NULL;
         init();
 #ifndef SERVER
-        tools::execfile("config/menu.lua");
+        tools::execfile("config/ui.lua");
 #endif
     }
 
