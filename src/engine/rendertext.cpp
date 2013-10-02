@@ -207,7 +207,7 @@ void draw_textf(const char *fstr, float left, float top, ...)
     draw_text(str, left, top);
 }
 
-const matrix3x4 *textmatrix = NULL;
+const matrix4x3 *textmatrix = NULL;
 
 static float draw_char(Texture *&tex, int c, float x, float y, float scale)
 {

@@ -465,7 +465,7 @@ static inline bool editmatcmp(const materialsurface &x, const materialsurface &y
 void sorteditmaterials()
 {
     sortorigin = ivec(camera1->o);
-    vec dir(fabs(camdir.x), fabs(camdir.y), fabs(camdir.z));
+    vec dir = vec(camdir).abs();
     loopi(3) sortdim[i] = i;
     if(dir[sortdim[2]] > dir[sortdim[1]]) swap(sortdim[2], sortdim[1]);
     if(dir[sortdim[1]] > dir[sortdim[0]]) swap(sortdim[1], sortdim[0]);
@@ -777,9 +777,9 @@ void rendereditmaterials()
 
     glDisable(GL_CULL_FACE);
 
-    foggednotextureshader->set();
-
     zerofogcolor();
+
+    foggednotextureshader->set();
 
     glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
     glEnable(GL_BLEND);

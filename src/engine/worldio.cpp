@@ -1004,17 +1004,17 @@ void writecollideobj(char *name)
         return;
     }
 
-    matrix3x4 xform;
+    matrix4x3 xform;
     m->calctransform(xform);
     float scale = mm->attr[3] > 0 ? mm->attr[3]/100.0f : 1;
     int yaw = mm->attr[0], pitch = mm->attr[1], roll = mm->attr[2];
-    matrix3x3 orient;
+    matrix3 orient;
     orient.identity();
     if(scale != 1) orient.scale(scale);
     if(yaw) orient.rotate_around_z(sincosmod360(yaw));
     if(pitch) orient.rotate_around_x(sincosmod360(pitch));
     if(roll) orient.rotate_around_y(sincosmod360(-roll));
-    xform.mul(orient, mm->o, matrix3x4(xform));
+    xform.mul(orient, mm->o, matrix4x3(xform));
     xform.invert();
 
     ivec selmin = sel.o, selmax = ivec(sel.s).mul(sel.grid).add(sel.o);

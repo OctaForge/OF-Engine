@@ -5,8 +5,8 @@
 #include "targeting.h" // INTENSITY
 #include "client_system.h"
 
-bool hasVAO = false, hasTR = false, hasTSW = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasS3TC = false, hasFXT1 = false, hasLATC = false, hasRGTC = false, hasAF = false, hasFBB = false, hasFBMS = false, hasTMS = false, hasMSS = false, hasFBMSBS = false, hasNVFBMSC = false, hasNVTMS = false, hasUBO = false, hasMBR = false, hasDB2 = false, hasDBB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false, hasDBGO = false, hasEGPU4 = false, hasGPU4 = false, hasGPU5 = false, hasEAL = false, hasCR = false, hasOQ2 = false;
-bool mesa = false, intel = false, ati = false, nvidia = false;
+bool hasVAO = false, hasTR = false, hasTSW = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasS3TC = false, hasFXT1 = false, hasLATC = false, hasRGTC = false, hasAF = false, hasFBB = false, hasFBMS = false, hasTMS = false, hasMSS = false, hasFBMSBS = false, hasNVFBMSC = false, hasNVTMS = false, hasUBO = false, hasMBR = false, hasDB2 = false, hasDBB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasTI = false, hasDBT = false, hasDC = false, hasDBGO = false, hasEGPU4 = false, hasGPU4 = false, hasGPU5 = false, hasEAL = false, hasCR = false, hasOQ2 = false;
+bool mesa = false, intel = false, amd = false, nvidia = false;
 
 int hasstencil = 0;
 
@@ -191,6 +191,18 @@ PFNGLDRAWBUFFERSPROC glDrawBuffers_ = NULL;
 // OpenGL 3.0
 PFNGLGETSTRINGIPROC           glGetStringi_           = NULL;
 PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation_ = NULL;
+PFNGLUNIFORM1UIPROC           glUniform1ui_           = NULL;
+PFNGLUNIFORM2UIPROC           glUniform2ui_           = NULL;
+PFNGLUNIFORM3UIPROC           glUniform3ui_           = NULL;
+PFNGLUNIFORM4UIPROC           glUniform4ui_           = NULL;
+PFNGLUNIFORM1UIVPROC          glUniform1uiv_          = NULL;
+PFNGLUNIFORM2UIVPROC          glUniform2uiv_          = NULL;
+PFNGLUNIFORM3UIVPROC          glUniform3uiv_          = NULL;
+PFNGLUNIFORM4UIVPROC          glUniform4uiv_          = NULL;
+PFNGLCLEARBUFFERIVPROC        glClearBufferiv_        = NULL;
+PFNGLCLEARBUFFERUIVPROC       glClearBufferuiv_       = NULL;
+PFNGLCLEARBUFFERFVPROC        glClearBufferfv_        = NULL;
+PFNGLCLEARBUFFERFIPROC        glClearBufferfi_        = NULL;
 
 // GL_EXT_draw_buffers2
 PFNGLCOLORMASKIPROC glColorMaski_ = NULL;
@@ -200,6 +212,14 @@ PFNGLDISABLEIPROC   glDisablei_   = NULL;
 // GL_NV_conditional_render
 PFNGLBEGINCONDITIONALRENDERPROC glBeginConditionalRender_ = NULL;
 PFNGLENDCONDITIONALRENDERPROC   glEndConditionalRender_   = NULL;
+
+// GL_EXT_texture_integer
+PFNGLTEXPARAMETERIIVPROC     glTexParameterIiv_     = NULL;
+PFNGLTEXPARAMETERIUIVPROC    glTexParameterIuiv_    = NULL;
+PFNGLGETTEXPARAMETERIIVPROC  glGetTexParameterIiv_  = NULL;
+PFNGLGETTEXPARAMETERIUIVPROC glGetTexParameterIuiv_ = NULL;
+PFNGLCLEARCOLORIIEXTPROC     glClearColorIi_        = NULL;
+PFNGLCLEARCOLORIUIEXTPROC    glClearColorIui_       = NULL;
 
 // GL_ARB_uniform_buffer_object
 PFNGLGETUNIFORMINDICESPROC       glGetUniformIndices_       = NULL;
@@ -255,7 +275,7 @@ void glerror(const char *file, int line, GLenum error)
     printf("GL error: %s:%d: %s (%x)\n", file, line, desc, error);
 }
 
-VAR(ati_pf_bug, 0, 0, 1);
+VAR(amd_pf_bug, 0, 0, 1);
 VAR(useubo, 1, 0, 0);
 VAR(usetexgather, 1, 0, 0);
 VAR(usetexcompress, 1, 0, 0);
@@ -327,7 +347,7 @@ void gl_checkextensions()
     else if(strstr(vendor, "NVIDIA"))
         nvidia = true;
     else if(strstr(vendor, "ATI") || strstr(vendor, "Advanced Micro Devices"))
-        ati = true;
+        amd = true;
     else if(strstr(vendor, "Intel"))
         intel = true;
 
@@ -523,7 +543,19 @@ void gl_checkextensions()
     {
         hasTF = hasTRG = hasRGTC = hasPF = true;
 
-        glBindFragDataLocation_ =  (PFNGLBINDFRAGDATALOCATIONPROC)getprocaddress("glBindFragDataLocation");
+        glBindFragDataLocation_ = (PFNGLBINDFRAGDATALOCATIONPROC)getprocaddress("glBindFragDataLocation");
+        glUniform1ui_ =           (PFNGLUNIFORM1UIPROC)          getprocaddress("glUniform1ui");
+        glUniform2ui_ =           (PFNGLUNIFORM2UIPROC)          getprocaddress("glUniform2ui");
+        glUniform3ui_ =           (PFNGLUNIFORM3UIPROC)          getprocaddress("glUniform3ui");
+        glUniform4ui_ =           (PFNGLUNIFORM4UIPROC)          getprocaddress("glUniform4ui");
+        glUniform1uiv_ =          (PFNGLUNIFORM1UIVPROC)         getprocaddress("glUniform1uiv");
+        glUniform2uiv_ =          (PFNGLUNIFORM2UIVPROC)         getprocaddress("glUniform2uiv");
+        glUniform3uiv_ =          (PFNGLUNIFORM3UIVPROC)         getprocaddress("glUniform3uiv");
+        glUniform4uiv_ =          (PFNGLUNIFORM4UIVPROC)         getprocaddress("glUniform4uiv");
+        glClearBufferiv_ =        (PFNGLCLEARBUFFERIVPROC)       getprocaddress("glClearBufferiv");
+        glClearBufferuiv_ =       (PFNGLCLEARBUFFERUIVPROC)      getprocaddress("glClearBufferuiv");
+        glClearBufferfv_ =        (PFNGLCLEARBUFFERFVPROC)       getprocaddress("glClearBufferfv");
+        glClearBufferfi_ =        (PFNGLCLEARBUFFERFIPROC)       getprocaddress("glClearBufferfi");
         hasGPU4 = true;
 
         if(hasext("GL_EXT_gpu_shader4"))
@@ -543,6 +575,12 @@ void gl_checkextensions()
         glBeginConditionalRender_ = (PFNGLBEGINCONDITIONALRENDERPROC)getprocaddress("glBeginConditionalRender");
         glEndConditionalRender_ =   (PFNGLENDCONDITIONALRENDERPROC)  getprocaddress("glEndConditionalRender");
         hasCR = true;
+
+        glTexParameterIiv_ =     (PFNGLTEXPARAMETERIIVPROC)    getprocaddress("glTexParameterIiv");
+        glTexParameterIuiv_ =    (PFNGLTEXPARAMETERIUIVPROC)   getprocaddress("glTexParameterIuiv");
+        glGetTexParameterIiv_ =  (PFNGLGETTEXPARAMETERIIVPROC) getprocaddress("glGetTexParameterIiv");
+        glGetTexParameterIuiv_ = (PFNGLGETTEXPARAMETERIUIVPROC)getprocaddress("glGetTexParameterIuiv");
+        hasTI = true;
     }
     else
     {
@@ -569,6 +607,14 @@ void gl_checkextensions()
         if(hasext("GL_EXT_gpu_shader4"))
         {
             glBindFragDataLocation_ = (PFNGLBINDFRAGDATALOCATIONPROC)getprocaddress("glBindFragDataLocationEXT");
+            glUniform1ui_ =           (PFNGLUNIFORM1UIPROC)          getprocaddress("glUniform1uiEXT");
+            glUniform2ui_ =           (PFNGLUNIFORM2UIPROC)          getprocaddress("glUniform2uiEXT");
+            glUniform3ui_ =           (PFNGLUNIFORM3UIPROC)          getprocaddress("glUniform3uiEXT");
+            glUniform4ui_ =           (PFNGLUNIFORM4UIPROC)          getprocaddress("glUniform4uiEXT");
+            glUniform1uiv_ =          (PFNGLUNIFORM1UIVPROC)         getprocaddress("glUniform1uivEXT");
+            glUniform2uiv_ =          (PFNGLUNIFORM2UIVPROC)         getprocaddress("glUniform2uivEXT");
+            glUniform3uiv_ =          (PFNGLUNIFORM3UIVPROC)         getprocaddress("glUniform3uivEXT");
+            glUniform4uiv_ =          (PFNGLUNIFORM4UIVPROC)         getprocaddress("glUniform4uivEXT");
             hasEGPU4 = hasGPU4 = true;
             if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_gpu_shader4 extension.");
         }
@@ -592,6 +638,17 @@ void gl_checkextensions()
             glEndConditionalRender_ =   (PFNGLENDCONDITIONALRENDERPROC)  getprocaddress("glEndConditionalRenderNV");
             hasCR = true;
             if(dbgexts) conoutf(CON_INIT, "Using GL_NV_conditional_render extension.");
+        }
+        if(hasext("GL_EXT_texture_integer"))
+        {
+            glTexParameterIiv_ =     (PFNGLTEXPARAMETERIIVPROC)    getprocaddress("glTexParameterIivEXT");
+            glTexParameterIuiv_ =    (PFNGLTEXPARAMETERIUIVPROC)   getprocaddress("glTexParameterIuivEXT");
+            glGetTexParameterIiv_ =  (PFNGLGETTEXPARAMETERIIVPROC) getprocaddress("glGetTexParameterIivEXT");
+            glGetTexParameterIuiv_ = (PFNGLGETTEXPARAMETERIUIVPROC)getprocaddress("glGetTexParameterIuivEXT");
+            glClearColorIi_ =        (PFNGLCLEARCOLORIIEXTPROC)    getprocaddress("glClearColorIiEXT");
+            glClearColorIui_ =       (PFNGLCLEARCOLORIUIEXTPROC)   getprocaddress("glClearColorIuiEXT");
+            hasTI = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_texture_integer extension.");
         }
     }
 
@@ -869,11 +926,11 @@ void gl_checkextensions()
     }
 
     extern int msaadepthstencil, gdepthstencil, glineardepth, msaalineardepth, lighttilebatch, batchsunlight, smgather;
-    if(ati)
+    if(amd)
     {
         msaalineardepth = glineardepth = 1; // reading back from depth-stencil still buggy on newer cards, and requires stencil for MSAA
-        msaadepthstencil = gdepthstencil = 1; // some older ATI GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
-        if(checkseries(renderer, "Radeon HD", 4000, 5199)) ati_pf_bug = 1;
+        msaadepthstencil = gdepthstencil = 1; // some older AMD GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
+        if(checkseries(renderer, "Radeon HD", 4000, 5199)) amd_pf_bug = 1;
     }
     else if(nvidia)
     {
@@ -1159,7 +1216,7 @@ void setcamprojmatrix(bool init = true, bool flush = false)
     if(flush && Shader::lastshader) Shader::lastshader->flushparams();
 }
 
-glmatrix hudmatrix, hudmatrixstack[64];
+matrix4 hudmatrix, hudmatrixstack[64];
 int hudmatrixpos = 0;
 
 CLUAICOMMAND(hud_get_ss_x, float, (), return hudmatrix.a.x / 2.0f);
@@ -1448,11 +1505,11 @@ void position_camera(physent* camera1) {
     float saved_camera_speed = camera1->maxspeed;
     camera1->maxspeed = 50;
 
-    matrix3x3 orient;
+    matrix3 orient;
     orient.identity();
-    orient.rotate_around_y(ovr::modifyroll(camera1->roll)*RAD);
-    orient.rotate_around_x(camera1->pitch*-RAD);
-    orient.rotate_around_z(camera1->yaw*-RAD);
+    orient.rotate_around_z(camera1->yaw*RAD);
+    orient.rotate_around_x(camera1->pitch*RAD);
+    orient.rotate_around_y(ovr::modifyroll(camera1->roll)*-RAD);
     vec dir = vec(orient.b).neg(), side = vec(orient.a).neg(), up = orient.c;
 
     if(game::collidecamera()) {
@@ -1596,9 +1653,9 @@ float calcfrustumboundsphere(float nearplane, float farplane,  const vec &pos, c
     }
 }
 
-extern const glmatrix viewmatrix(vec(-1, 0, 0), vec(0, 0, 1), vec(0, -1, 0));
-extern const glmatrix invviewmatrix(vec(-1, 0, 0), vec(0, 0, -1), vec(0, 1, 0));
-glmatrix cammatrix, projmatrix, camprojmatrix, invcammatrix, invcamprojmatrix, invprojmatrix;
+extern const matrix4 viewmatrix(vec(-1, 0, 0), vec(0, 0, 1), vec(0, -1, 0));
+extern const matrix4 invviewmatrix(vec(-1, 0, 0), vec(0, 0, -1), vec(0, 1, 0));
+matrix4 cammatrix, projmatrix, camprojmatrix, invcammatrix, invcamprojmatrix, invprojmatrix;
 
 FVAR(nearplane, 0.01f, 0.54f, 2.0f);
 
@@ -1622,7 +1679,7 @@ void renderavatar()
 {
     if(!isthirdperson())
     {
-        glmatrix oldprojmatrix = projmatrix;
+        matrix4 oldprojmatrix = projmatrix;
         float avatarfovy = curavatarfov;
         if(ovr::enabled && ovr::fov) avatarfovy *= ovr::fov/fov;
         projmatrix.perspective(avatarfovy, aspect, nearplane, farplane);
@@ -1638,7 +1695,7 @@ FVAR(polygonoffsetfactor, -1e4f, -3.0f, 1e4f);
 FVAR(polygonoffsetunits, -1e4f, -3.0f, 1e4f);
 FVAR(depthoffset, -1e4f, 0.01f, 1e4f);
 
-glmatrix nooffsetmatrix;
+matrix4 nooffsetmatrix;
 
 void enablepolygonoffset(GLenum type)
 {
@@ -2022,7 +2079,7 @@ static void setfog(int fogmat, float below = 0, float blend = 1, int abovemat = 
     curfogcolor.mul(ldrscale);
 
     GLOBALPARAM(fogcolor, curfogcolor);
-    GLOBALPARAMF(fogparams, start, end, 1/(end - start));
+    GLOBALPARAMF(fogparams, start/(end-start), end/(end-start), 1/(end - start));
 }
 
 static void blendfogoverlay(int fogmat, float below, float blend, vec &overlay)
@@ -2180,9 +2237,6 @@ void drawminimap()
 
     ldrscale = 1;
     ldrscaleb = ldrscale/255;
-    GLOBALPARAMF(ldrscale, ldrscale);
-    GLOBALPARAM(camera, camera1->o);
-    GLOBALPARAMF(millis, lastmillis/1000.0f);
 
     visiblecubes(false);
     collectlights();
@@ -2276,9 +2330,6 @@ void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapsi
 
     ldrscale = 1;
     ldrscaleb = ldrscale/255;
-    GLOBALPARAMF(ldrscale, ldrscale);
-    GLOBALPARAM(camera, camera1->o);
-    GLOBALPARAMF(millis, lastmillis/1000.0f);
 
     visiblecubes();
     GLERROR;
@@ -2374,10 +2425,6 @@ namespace modelpreview
         ldrscale = 1;
         ldrscaleb = ldrscale/255;
 
-        GLOBALPARAMF(ldrscale, ldrscale);
-        GLOBALPARAM(camera, camera1->o);
-        GLOBALPARAMF(millis, lastmillis/1000.0f);
-
         projmatrix.perspective(fovy, aspect, nearplane, farplane);
         setcamprojmatrix();
 
@@ -2447,9 +2494,6 @@ void gl_drawview()
 
     ldrscale = hdr ? 0.5f : 1;
     ldrscaleb = ldrscale/255;
-    GLOBALPARAMF(ldrscale, ldrscale);
-    GLOBALPARAM(camera, camera1->o);
-    GLOBALPARAMF(millis, lastmillis/1000.0f);
 
     visiblecubes();
 

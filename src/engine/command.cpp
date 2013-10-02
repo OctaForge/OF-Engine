@@ -3762,7 +3762,7 @@ void sortlist(char *list, ident *x, ident *y, uint *body, uint *unique)
 
     vector<sortitem> items;
     int clen = strlen(list), total = 0;
-    char *cstr = newstring(clen);
+    char *cstr = newstring(list, clen);
     const char *curlist = list, *start, *end, *quotestart, *quoteend;
     while(parselist(curlist, start, end, quotestart, quoteend))
     {
@@ -3772,25 +3772,51 @@ void sortlist(char *list, ident *x, ident *y, uint *body, uint *unique)
         total += item.quotelength();
     }
 
+    if(items.empty())
+    {
+        commandret->setstr(cstr);
+        return;
+    }
+
     identstack xstack, ystack;
     pusharg(*x, nullval, xstack); x->flags &= ~IDF_UNKNOWN;
     pusharg(*y, nullval, ystack); y->flags &= ~IDF_UNKNOWN;
 
-    sortfun f = { x, y, body };
-    items.sort(f);
-
     int totalunique = total, numunique = items.length();
-    if(items.length() && (*unique&CODE_OP_MASK) != CODE_EXIT)
+    if(body)
     {
+        sortfun f = { x, y, body };
+        items.sort(f);
+        if((*unique&CODE_OP_MASK) != CODE_EXIT)
+        {
+            f.body = unique;
+            totalunique = items[0].quotelength();
+            numunique = 1;
+            for(int i = 1; i < items.length(); i++)
+            {
+                sortitem &item = items[i];
+                if(f(items[i-1], item)) item.quotestart = NULL;
+                else { totalunique += item.quotelength(); numunique++; }
+            }
+        }
+    }
+    else
+    {
+        sortfun f = { x, y, unique };
         totalunique = items[0].quotelength();
         numunique = 1;
         for(int i = 1; i < items.length(); i++)
         {
             sortitem &item = items[i];
-            if(f(items[i-1], item)) item.quotestart = NULL;
-            else { totalunique += item.quotelength(); numunique++; }
+            loopj(i)
+            {
+                sortitem &prev = items[j];
+                if(prev.quotestart && f(item, prev)) { item.quotestart = NULL; break; }
+            }
+            if(item.quotestart) { totalunique += item.quotelength(); numunique++; }
         }
     }
+
     poparg(*x);
     poparg(*y);
 
@@ -3817,6 +3843,7 @@ void sortlist(char *list, ident *x, ident *y, uint *body, uint *unique)
     commandret->setstr(sorted);
 }
 COMMAND(sortlist, "srree");
+ICOMMAND(uniquelist, "srre", (char *list, ident *x, ident *y, uint *body), sortlist(list, x, y, NULL, body));
 
 #define MATHCMD(name, fmt, type, op, initval, unaryop) \
     ICOMMANDS(name, #fmt "1V", (tagval *args, int numargs), \

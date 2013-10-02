@@ -56,7 +56,7 @@ struct font
 
 extern font *curfont;
 extern Shader *textshader;
-extern const matrix3x4 *textmatrix;
+extern const matrix4x3 *textmatrix;
 
 extern font *findfont(const char *name);
 extern void reloadfonts();
@@ -117,7 +117,7 @@ static inline bool pvsoccluded(const ivec &bborigin, int size)
 }
 
 // rendergl
-extern bool hasVAO, hasTR, hasTSW, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasS3TC, hasFXT1, hasLATC, hasRGTC, hasAF, hasFBB, hasFBMS, hasTMS, hasMSS, hasFBMSBS, hasNVFBMSC, hasNVTMS, hasUBO, hasMBR, hasDB2, hasDBB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasDBT, hasDC, hasDBGO, hasEGPU4, hasGPU4, hasGPU5, hasEAL, hasCR, hasOQ2;
+extern bool hasVAO, hasTR, hasTSW, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasS3TC, hasFXT1, hasLATC, hasRGTC, hasAF, hasFBB, hasFBMS, hasTMS, hasMSS, hasFBMSBS, hasNVFBMSC, hasNVTMS, hasUBO, hasMBR, hasDB2, hasDBB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasTI, hasDBT, hasDC, hasDBGO, hasEGPU4, hasGPU4, hasGPU5, hasEAL, hasCR, hasOQ2;
 extern int glversion, glslversion;
 
 enum { DRAWTEX_NONE = 0, DRAWTEX_ENVMAP, DRAWTEX_MINIMAP, DRAWTEX_MODELPREVIEW };
@@ -131,8 +131,8 @@ extern int hdr;
 extern bool hdrfloat;
 extern float ldrscale, ldrscaleb;
 extern int drawtex;
-extern const glmatrix viewmatrix, invviewmatrix;
-extern glmatrix cammatrix, projmatrix, camprojmatrix, invcammatrix, invcamprojmatrix, invprojmatrix;
+extern const matrix4 viewmatrix, invviewmatrix;
+extern matrix4 cammatrix, projmatrix, camprojmatrix, invcammatrix, invcamprojmatrix, invprojmatrix;
 extern int fog;
 extern bvec fogcolorv;
 extern vec curfogcolor;
@@ -199,7 +199,7 @@ namespace ovr
     extern void cleanup();
     extern void update();
     extern void warp();
-    extern void ortho(glmatrix &m, float dist = 0, float fov = 0);
+    extern void ortho(matrix4 &m, float dist = 0, float fov = 0);
 
     static inline float modifyroll(float r) { return ovr::enabled ? r + roll : r; }
 }
@@ -295,7 +295,7 @@ extern int shadowmapping;
 extern vec shadoworigin, shadowdir;
 extern float shadowradius, shadowbias;
 extern int shadowside, shadowspot;
-extern glmatrix shadowmatrix;
+extern matrix4 shadowmatrix;
 
 extern void resetlights();
 extern void collectlights();
@@ -337,7 +337,7 @@ static inline bool bbinsidespot(const vec &origin, const vec &dir, int spot, con
     return sphereinsidespot(dir, spot, center.sub(origin), radius.magnitude());
 }
 
-extern glmatrix worldmatrix, screenmatrix;
+extern matrix4 worldmatrix, screenmatrix;
 
 extern int gw, gh, gdepthformat, ghasstencil;
 extern GLuint gdepthtex, gcolortex, gnormaltex, gglowtex, gdepthrb, gstencilrb;
@@ -368,7 +368,7 @@ extern bool debuglights();
 extern void cleanuplights();
 
 // aa
-extern glmatrix nojittermatrix, aamaskmatrix;
+extern matrix4 nojittermatrix, aamaskmatrix;
 
 extern void setupaa(int w, int h);
 extern void jitteraa(bool init = true);
@@ -682,7 +682,7 @@ extern void cleanupdecals();
 // rendersky
 extern int skytexture, skyshadow, explicitsky;
 
-extern void drawskybox(int farplane);
+extern void drawskybox(int farplane, bool clear);
 extern bool limitsky();
 extern bool renderexplicitsky(bool outline = false);
 extern void cleanupsky();

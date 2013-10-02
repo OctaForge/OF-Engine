@@ -9,9 +9,6 @@ require("extra.entities.teleporters")
 require("extra.entities.lights")
 require("extra.entities.particles")
 
--- default skybox
-require("core.engine.cubescript").var_set("skybox", "remus/sky01")
-
 -- use drawing mode on empty map
 require("extra.mapscripts.drawing")
 

@@ -272,7 +272,7 @@ extern vec calcavatarpos(const vec &pos, float dist);
 extern vec minimapcenter, minimapradius, minimapscale;
 extern void bindminimap();
 
-extern glmatrix hudmatrix;
+extern matrix4 hudmatrix;
 extern void resethudmatrix();
 extern void pushhudmatrix();
 extern void flushhudmatrix(bool flushparams = true);

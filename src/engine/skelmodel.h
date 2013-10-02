@@ -1,5 +1,4 @@
 VARP(gpuskel, 0, 1, 1);
-VARP(matskel, 0, 0, 1);
 
 VAR(maxskelanimdata, 1, 192, 0);
 
@@ -94,7 +93,7 @@ struct skelmodel : animmodel
             {
                 v.weights[0] = 255;
                 loopk(3) v.weights[k+1] = 0;
-                v.bones[0] = (matskel ? 3 : 2)*interpindex;
+                v.bones[0] = 2*interpindex;
                 loopk(3) v.bones[k+1] = v.bones[0];
             }
             else
@@ -109,7 +108,7 @@ struct skelmodel : animmodel
                 {
                     loopk(4) if(v.weights[k] < 255 && total < 255) { v.weights[k]++; total++; }
                 }
-                loopk(4) v.bones[k] = (matskel ? 3 : 2)*interpbones[k];
+                loopk(4) v.bones[k] = 2*interpbones[k];
             }
         }
     };
@@ -151,10 +150,9 @@ struct skelmodel : animmodel
     struct skelcacheentry : animcacheentry
     {
         dualquat *bdata;
-        matrix3x4 *mdata;
         int version;
 
-        skelcacheentry() : bdata(NULL), mdata(NULL), version(-1) {}
+        skelcacheentry() : bdata(NULL), version(-1) {}
 
         void nextversion()
         {
@@ -215,7 +213,7 @@ struct skelmodel : animmodel
             mesh::calctangents(bumpverts, verts, verts, numverts, tris, numtris, areaweight);
         }
 
-        void calcbb(vec &bbmin, vec &bbmax, const matrix3x4 &m)
+        void calcbb(vec &bbmin, vec &bbmax, const matrix4x3 &m)
         {
             loopj(numverts)
             {
@@ -235,7 +233,7 @@ struct skelmodel : animmodel
             m.tcstride = sizeof(vert);
         }
 
-        void genshadowmesh(vector<triangle> &out, const matrix3x4 &m)
+        void genshadowmesh(vector<triangle> &out, const matrix4x3 &m)
         {
             loopj(numtris)
             {
@@ -411,11 +409,10 @@ struct skelmodel : animmodel
             }
         }
 
-        template<class M>
-        void interpverts(const M * RESTRICT mdata1, const M * RESTRICT mdata2, bool norms, bool tangents, void * RESTRICT vdata, skin &s)
+        void interpverts(const dualquat * RESTRICT bdata1, const dualquat * RESTRICT bdata2, bool norms, bool tangents, void * RESTRICT vdata, skin &s)
         {
             const int blendoffset = ((skelmeshgroup *)group)->skel->numgpubones;
-            mdata2 -= blendoffset;
+            bdata2 -= blendoffset;
 
             #define IPLOOP(type, dosetup, dotransform) \
                 loopi(numverts) \
@@ -423,8 +420,8 @@ struct skelmodel : animmodel
                     const vert &src = verts[i]; \
                     type &dst = ((type * RESTRICT)vdata)[i]; \
                     dosetup; \
-                    const M &m = (src.interpindex < blendoffset ? mdata1 : mdata2)[src.interpindex]; \
-                    dst.pos = m.transform(src.pos); \
+                    const dualquat &b = (src.interpindex < blendoffset ? bdata1 : bdata2)[src.interpindex]; \
+                    dst.pos = b.transform(src.pos); \
                     dotransform; \
                 }
 
@@ -434,13 +431,13 @@ struct skelmodel : animmodel
                 {
                     IPLOOP(vvertbump, bumpvert &bsrc = bumpverts[i],
                     {
-                        dst.norm = m.transformnormal(src.norm);
-                        dst.tangent = m.transformnormal(bsrc.tangent);
+                        dst.norm = b.transformnormal(src.norm);
+                        dst.tangent = b.transformnormal(bsrc.tangent);
                     });
                 }
-                else { IPLOOP(vvertbump, , dst.norm = m.transformnormal(src.norm)); }
+                else { IPLOOP(vvertbump, , dst.norm = b.transformnormal(src.norm)); }
             }
-            else if(norms) { IPLOOP(vvertn, , dst.norm = m.transformnormal(src.norm)); }
+            else if(norms) { IPLOOP(vvertn, , dst.norm = b.transformnormal(src.norm)); }
             else { IPLOOP(vvert, , ); }
 
             #undef IPLOOP
@@ -450,8 +447,7 @@ struct skelmodel : animmodel
         {
             skelmeshgroup *g = (skelmeshgroup *)group;
             if(!g->skel->usegpuskel) s->set();
-            else if(g->skel->usematskel) s->setvariant(min(maxweights, g->vweights)-1, 0);
-            else s->setvariant(min(maxweights, g->vweights)-1, 1);
+            else s->setvariant(min(maxweights, g->vweights)-1, 0);
         }
 
         void render(const animstate *as, skin &s, vbocacheentry &vc)
@@ -467,7 +463,7 @@ struct skelmodel : animmodel
     {
         char *name;
         int bone;
-        matrix3x4 matrix;
+        matrix4x3 matrix;
 
         tag() : name(NULL) {}
         ~tag() { DELETEA(name); }
@@ -543,11 +539,11 @@ struct skelmodel : animmodel
         vector<pitchtarget> pitchtargets;
         vector<pitchcorrect> pitchcorrects;
 
-        bool usegpuskel, usematskel;
+        bool usegpuskel;
         vector<skelcacheentry> skelcache;
         hashtable<GLuint, int> blendoffsets;
 
-        skeleton() : name(NULL), shared(0), bones(NULL), numbones(0), numinterpbones(0), numgpubones(0), numframes(0), framebones(NULL), ragdoll(NULL), usegpuskel(false), usematskel(false), blendoffsets(32)
+        skeleton() : name(NULL), shared(0), bones(NULL), numbones(0), numinterpbones(0), numgpubones(0), numframes(0), framebones(NULL), ragdoll(NULL), usegpuskel(false), blendoffsets(32)
         {
         }
 
@@ -560,7 +556,6 @@ struct skelmodel : animmodel
             loopv(skelcache)
             {
                 DELETEA(skelcache[i].bdata);
-                DELETEA(skelcache[i].mdata);
             }
         }
 
@@ -601,7 +596,7 @@ struct skelmodel : animmodel
             return -1;
         }
 
-        bool addtag(const char *name, int bone, const matrix3x4 &matrix)
+        bool addtag(const char *name, int bone, const matrix4x3 &matrix)
         {
             int idx = findtag(name);
             if(idx >= 0)
@@ -870,7 +865,7 @@ struct skelmodel : animmodel
             }
         }
 
-        int availgpubones() const { return min(maxvsuniforms, maxskelanimdata) / (matskel ? 3 : 2); }
+        int availgpubones() const { return min(maxvsuniforms, maxskelanimdata) / 2; }
         bool gpuaccelerate() const { return numframes && gpuskel && numgpubones<=availgpubones(); }
 
         float calcdeviation(const vec &axis, const vec &forward, const dualquat &pose1, const dualquat &pose2)
@@ -934,176 +929,116 @@ struct skelmodel : animmodel
                 d.accumulate(f.pfr2[bone], s.prev.t*(1-s.interp)); \
             }
 
-        #define INTERPBONES(outbody, rotbody) \
-            sc.nextversion(); \
-            struct framedata \
-            { \
-                const dualquat *fr1, *fr2, *pfr1, *pfr2; \
-            } partframes[MAXANIMPARTS]; \
-            loopi(numanimparts) \
-            { \
-                partframes[i].fr1 = &framebones[as[i].cur.fr1*numbones]; \
-                partframes[i].fr2 = &framebones[as[i].cur.fr2*numbones]; \
-                if(as[i].interp<1) \
-                { \
-                    partframes[i].pfr1 = &framebones[as[i].prev.fr1*numbones]; \
-                    partframes[i].pfr2 = &framebones[as[i].prev.fr2*numbones]; \
-                } \
-            } \
-            loopv(pitchdeps) \
-            { \
-                pitchdep &p = pitchdeps[i]; \
-                INTERPBONE(p.bone); \
-                d.normalize(); \
-                if(p.parent >= 0) p.pose.mul(pitchdeps[p.parent].pose, d); \
-                else p.pose = d; \
-            } \
-            calcpitchcorrects(pitch, axis, forward); \
-            loopi(numbones) if(bones[i].interpindex>=0) \
-            { \
-                INTERPBONE(i); \
-                const boneinfo &b = bones[i]; \
-                outbody; \
-                float angle; \
-                if(b.pitchscale) { angle = b.pitchscale*pitch + b.pitchoffset; if(b.pitchmin || b.pitchmax) angle = clamp(angle, b.pitchmin, b.pitchmax); } \
-                else if(b.correctindex >= 0) angle = pitchcorrects[b.correctindex].pitchangle; \
-                else continue; \
-                if(as->cur.anim&ANIM_NOPITCH || (as->interp < 1 && as->prev.anim&ANIM_NOPITCH)) \
-                    angle *= (as->cur.anim&ANIM_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.anim&ANIM_NOPITCH ? 0 : 1-as->interp); \
-                rotbody; \
-            }
-
-        void interpmatbones(const animstate *as, float pitch, const vec &axis, const vec &forward, int numanimparts, const uchar *partmask, skelcacheentry &sc)
-        {
-            if(!sc.mdata) sc.mdata = new matrix3x4[numinterpbones];
-            INTERPBONES(
-            {
-                matrix3x4 m(d);
-                if(b.interpparent<0) sc.mdata[b.interpindex] = m;
-                else sc.mdata[b.interpindex].mul(sc.mdata[b.interpparent], m);
-            },
-            {
-                sc.mdata[b.interpindex].mulorient(matrix3x3(angle*RAD, axis), b.base);
-            });
-        }
-
         void interpbones(const animstate *as, float pitch, const vec &axis, const vec &forward, int numanimparts, const uchar *partmask, skelcacheentry &sc)
         {
             if(!sc.bdata) sc.bdata = new dualquat[numinterpbones];
-            INTERPBONES(
+            sc.nextversion();
+            struct framedata
             {
+                const dualquat *fr1, *fr2, *pfr1, *pfr2;
+            } partframes[MAXANIMPARTS];
+            loopi(numanimparts)
+            {
+                partframes[i].fr1 = &framebones[as[i].cur.fr1*numbones];
+                partframes[i].fr2 = &framebones[as[i].cur.fr2*numbones];
+                if(as[i].interp<1)
+                {
+                    partframes[i].pfr1 = &framebones[as[i].prev.fr1*numbones];
+                    partframes[i].pfr2 = &framebones[as[i].prev.fr2*numbones];
+                }
+            }
+            loopv(pitchdeps)
+            {
+                pitchdep &p = pitchdeps[i];
+                INTERPBONE(p.bone);
                 d.normalize();
+                if(p.parent >= 0) p.pose.mul(pitchdeps[p.parent].pose, d);
+                else p.pose = d;
+            }
+            calcpitchcorrects(pitch, axis, forward);
+            loopi(numbones) if(bones[i].interpindex>=0)
+            {
+                INTERPBONE(i);
+                const boneinfo &b = bones[i];
                 if(b.interpparent<0) sc.bdata[b.interpindex] = d;
                 else sc.bdata[b.interpindex].mul(sc.bdata[b.interpparent], d);
-            },
-            {
+
+                float angle;
+                if(b.pitchscale) { angle = b.pitchscale*pitch + b.pitchoffset; if(b.pitchmin || b.pitchmax) angle = clamp(angle, b.pitchmin, b.pitchmax); }
+                else if(b.correctindex >= 0) angle = pitchcorrects[b.correctindex].pitchangle;
+                else continue;
+                if(as->cur.anim&ANIM_NOPITCH || (as->interp < 1 && as->prev.anim&ANIM_NOPITCH))
+                    angle *= (as->cur.anim&ANIM_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.anim&ANIM_NOPITCH ? 0 : 1-as->interp);
                 sc.bdata[b.interpindex].mulorient(quat(axis, angle*RAD), b.base);
-            });
-            loopv(antipodes) sc.bdata[antipodes[i].child].fixantipodal(sc.bdata[antipodes[i].parent]);
-        }
-
-        #define INITRAGDOLL(ptype, pdata, relbody) \
-            const ptype *pdata = sc.pdata; \
-            loopv(ragdoll->joints) \
-            { \
-                const ragdollskel::joint &j = ragdoll->joints[i]; \
-                const boneinfo &b = bones[j.bone]; \
-                const ptype &p = pdata[b.interpindex]; \
-                loopk(3) if(j.vert[k] >= 0) \
-                { \
-                    ragdollskel::vert &v = ragdoll->verts[j.vert[k]]; \
-                    ragdolldata::vert &dv = d.verts[j.vert[k]]; \
-                    dv.pos.add(p.transform(v.pos).mul(v.weight)); \
-                } \
-            } \
-            if(ragdoll->animjoints) loopv(ragdoll->joints) \
-            { \
-                const ragdollskel::joint &j = ragdoll->joints[i]; \
-                const boneinfo &b = bones[j.bone]; \
-                const ptype &p = pdata[b.interpindex]; \
-                d.calcanimjoint(i, p); \
-            } \
-            loopv(ragdoll->verts) \
-            { \
-                ragdolldata::vert &dv = d.verts[i]; \
-                matrixstack[matrixpos].transform(vec(dv.pos).mul(p->model->scale), dv.pos); \
-            } \
-            loopv(ragdoll->reljoints) \
-            { \
-                const ragdollskel::reljoint &r = ragdoll->reljoints[i]; \
-                const ragdollskel::joint &j = ragdoll->joints[r.parent]; \
-                const boneinfo &br = bones[r.bone], &bj = bones[j.bone]; \
-                relbody; \
             }
-
-        void initmatragdoll(ragdolldata &d, skelcacheentry &sc, part *p)
-        {
-            INITRAGDOLL(matrix3x4, mdata,
-            {
-                d.reljoints[i].transposemul(mdata[bj.interpindex], mdata[br.interpindex]);
-            });
+            loopv(antipodes) sc.bdata[antipodes[i].child].fixantipodal(sc.bdata[antipodes[i].parent]);
         }
 
         void initragdoll(ragdolldata &d, skelcacheentry &sc, part *p)
         {
-            INITRAGDOLL(dualquat, bdata,
+            const dualquat *bdata = sc.bdata;
+            loopv(ragdoll->joints)
             {
-                dualquat q = bdata[bj.interpindex];
-                q.invert().mul(bdata[br.interpindex]);
-                d.reljoints[i] = matrix3x4(q);
-            });
-        }
-
-        #define GENRAGDOLLBONES(outbody, relbody) \
-            sc.nextversion(); \
-            vec trans = vec(d.center).div(p->model->scale).add(p->model->translate); \
-            loopv(ragdoll->joints) \
-            { \
-                const ragdollskel::joint &j = ragdoll->joints[i]; \
-                const boneinfo &b = bones[j.bone]; \
-                vec pos(0, 0, 0); \
-                loopk(3) if(j.vert[k]>=0) pos.add(d.verts[j.vert[k]].pos); \
-                pos.mul(j.weight/p->model->scale).sub(trans); \
-                outbody; \
-            } \
-            loopv(ragdoll->reljoints) \
-            { \
-                const ragdollskel::reljoint &r = ragdoll->reljoints[i]; \
-                const ragdollskel::joint &j = ragdoll->joints[r.parent]; \
-                const boneinfo &br = bones[r.bone], &bj = bones[j.bone]; \
-                relbody; \
+                const ragdollskel::joint &j = ragdoll->joints[i];
+                const boneinfo &b = bones[j.bone];
+                const dualquat &q = bdata[b.interpindex];
+                loopk(3) if(j.vert[k] >= 0)
+                {
+                    ragdollskel::vert &v = ragdoll->verts[j.vert[k]];
+                    ragdolldata::vert &dv = d.verts[j.vert[k]];
+                    dv.pos.add(q.transform(v.pos).mul(v.weight));
+                }
             }
-
-        void genmatragdollbones(ragdolldata &d, skelcacheentry &sc, part *p)
-        {
-            if(!sc.mdata) sc.mdata = new matrix3x4[numinterpbones];
-            GENRAGDOLLBONES(
+            if(ragdoll->animjoints) loopv(ragdoll->joints)
             {
-                sc.mdata[b.interpindex].transposemul(d.tris[j.tri], pos, d.animjoints ? d.animjoints[i] : j.orient);
-            },
+                const ragdollskel::joint &j = ragdoll->joints[i];
+                const boneinfo &b = bones[j.bone];
+                const dualquat &q = bdata[b.interpindex];
+                d.calcanimjoint(i, matrix4x3(q));
+            }
+            loopv(ragdoll->verts)
             {
-                sc.mdata[br.interpindex].mul(sc.mdata[bj.interpindex], d.reljoints[i]);
-            });
+                ragdolldata::vert &dv = d.verts[i];
+                matrixstack[matrixpos].transform(vec(dv.pos).mul(p->model->scale), dv.pos);
+            }
+            loopv(ragdoll->reljoints)
+            {
+                const ragdollskel::reljoint &r = ragdoll->reljoints[i];
+                const ragdollskel::joint &j = ragdoll->joints[r.parent];
+                const boneinfo &br = bones[r.bone], &bj = bones[j.bone];
+                d.reljoints[i].mul(dualquat(bdata[bj.interpindex]).invert(), bdata[br.interpindex]);
+            }
         }
 
         void genragdollbones(ragdolldata &d, skelcacheentry &sc, part *p)
         {
             if(!sc.bdata) sc.bdata = new dualquat[numinterpbones];
-            GENRAGDOLLBONES(
+            sc.nextversion();
+            vec trans = vec(d.center).div(p->model->scale).add(p->model->translate);
+            loopv(ragdoll->joints)
             {
-                matrix3x4 m;
-                m.transposemul(d.tris[j.tri], pos, d.animjoints ? d.animjoints[i] : j.orient);
+                const ragdollskel::joint &j = ragdoll->joints[i];
+                const boneinfo &b = bones[j.bone];
+                vec pos(0, 0, 0);
+                loopk(3) if(j.vert[k]>=0) pos.add(d.verts[j.vert[k]].pos);
+                pos.mul(j.weight/p->model->scale).sub(trans);
+                matrix4x3 m;
+                m.mul(d.tris[j.tri], pos, d.animjoints ? d.animjoints[i] : j.orient);
                 sc.bdata[b.interpindex] = dualquat(m);
-            },
+            }
+            loopv(ragdoll->reljoints)
             {
-                sc.bdata[br.interpindex].mul(sc.bdata[bj.interpindex], dualquat(d.reljoints[i]));
-            });
+                const ragdollskel::reljoint &r = ragdoll->reljoints[i];
+                const ragdollskel::joint &j = ragdoll->joints[r.parent];
+                const boneinfo &br = bones[r.bone], &bj = bones[j.bone];
+                sc.bdata[br.interpindex].mul(sc.bdata[bj.interpindex], d.reljoints[i]);
+            }
             loopv(antipodes) sc.bdata[antipodes[i].child].fixantipodal(sc.bdata[antipodes[i].parent]);
         }
 
-        void concattagtransform(part *p, int i, const matrix3x4 &m, matrix3x4 &n)
+        void concattagtransform(part *p, int i, const matrix4x3 &m, matrix4x3 &n)
         {
-            matrix3x4 t;
+            matrix4x3 t;
             t.mul(bones[tags[i].bone].base, tags[i].matrix);
             n.mul(m, t);
         }
@@ -1114,16 +1049,13 @@ struct skelmodel : animmodel
             {
                 linkedpart &l = p->links[i];
                 tag &t = tags[l.tag];
-                matrix3x4 m;
-                m.mul(bones[t.bone].base, t.matrix);
-                if(sc)
-                {
-                    int interpindex = bones[t.bone].interpindex;
-                    m.mul(usematskel ? sc->mdata[interpindex] : sc->bdata[interpindex], matrix3x4(m));
-                }
-                float resize = p->model->scale * sizescale;
+                dualquat q;
+                if(sc) q.mul(sc->bdata[bones[t.bone].interpindex], bones[t.bone].base);
+                else q = bones[t.bone].base;
+                matrix4x3 m;
+                m.mul(q, t.matrix);
+                m.d.mul(p->model->scale * sizescale);
                 l.matrix = m;
-                l.matrix.d.mul3(resize);
             }
         }
 
@@ -1134,7 +1066,6 @@ struct skelmodel : animmodel
                 skelcacheentry &sc = skelcache[i];
                 loopj(MAXANIMPARTS) sc.as[j].cur.fr1 = -1;
                 DELETEA(sc.bdata);
-                DELETEA(sc.mdata);
             }
             skelcache.setsize(0);
             blendoffsets.clear();
@@ -1149,7 +1080,6 @@ struct skelmodel : animmodel
             if(skelcache.empty())
             {
                 usegpuskel = gpuaccelerate();
-                usematskel = matskel!=0;
             }
         }
 
@@ -1158,7 +1088,6 @@ struct skelmodel : animmodel
             if(skelcache.empty())
             {
                 usegpuskel = gpuaccelerate();
-                usematskel = matskel!=0;
             }
 
             int numanimparts = ((skelpart *)as->owner)->numanimparts;
@@ -1183,12 +1112,7 @@ struct skelmodel : animmodel
                 sc->pitch = pitch;
                 sc->partmask = partmask;
                 sc->ragdoll = rdata;
-                if(rdata)
-                {
-                    if(matskel) genmatragdollbones(*rdata, *sc, p);
-                    else genragdollbones(*rdata, *sc, p);
-                }
-                else if(matskel) interpmatbones(as, pitch, axis, forward, numanimparts, partmask, *sc);
+                if(rdata) genragdollbones(*rdata, *sc, p);
                 else interpbones(as, pitch, axis, forward, numanimparts, partmask, *sc);
             }
             sc->millis = lastmillis;
@@ -1200,7 +1124,7 @@ struct skelmodel : animmodel
             int &offset = blendoffsets.access(Shader::lastshader->program, -1);
             if(offset < 0)
             {
-                defformatstring(offsetname, "%s[%d]", u.name, (usematskel ? 3 : 2)*numgpubones);
+                defformatstring(offsetname, "%s[%d]", u.name, 2*numgpubones);
                 offset = glGetUniformLocation_(Shader::lastshader->program, offsetname);
             }
             return offset;
@@ -1208,27 +1132,15 @@ struct skelmodel : animmodel
 
         void setglslbones(UniformLoc &u, skelcacheentry &sc, skelcacheentry &bc, int count)
         {
-            if(u.version == bc.version && u.data == (usematskel ? (void *)bc.mdata : (void *)bc.bdata)) return;
-            if(usematskel)
+            if(u.version == bc.version && u.data == bc.bdata) return;
+            glUniform4fv_(u.loc, 2*numgpubones, sc.bdata[0].real.v);
+            if(count > 0)
             {
-                glUniform4fv_(u.loc, 3*numgpubones, sc.mdata[0].a.v);
-                if(count > 0)
-                {
-                    int offset = getblendoffset(u);
-                    if(offset >= 0) glUniform4fv_(offset, 3*count, bc.mdata[0].a.v);
-                }
-            }
-            else
-            {
-                glUniform4fv_(u.loc, 2*numgpubones, sc.bdata[0].real.v);
-                if(count > 0)
-                {
-                    int offset = getblendoffset(u);
-                    if(offset >= 0) glUniform4fv_(offset, 2*count, bc.bdata[0].real.v);
-                }
+                int offset = getblendoffset(u);
+                if(offset >= 0) glUniform4fv_(offset, 2*count, bc.bdata[0].real.v);
             }
             u.version = bc.version;
-            u.data = usematskel ? (void *)bc.mdata : (void *)bc.bdata;
+            u.data = bc.bdata;
         }
 
         void setgpubones(skelcacheentry &sc, blendcacheentry *bc, int count)
@@ -1241,7 +1153,7 @@ struct skelmodel : animmodel
 
         bool shouldcleanup() const
         {
-            return numframes && (skelcache.empty() || gpuaccelerate()!=usegpuskel || (matskel!=0)!=usematskel);
+            return numframes && (skelcache.empty() || gpuaccelerate()!=usegpuskel);
         }
     };
 
@@ -1282,7 +1194,6 @@ struct skelmodel : animmodel
             loopi(MAXBLENDCACHE)
             {
                 DELETEA(blendcache[i].bdata);
-                DELETEA(blendcache[i].mdata);
             }
             loopi(MAXVBOCACHE)
             {
@@ -1344,7 +1255,7 @@ struct skelmodel : animmodel
                 }
 
                 vertsize = tangents ? sizeof(vvertbump) : (norms ? sizeof(vvertn) : sizeof(vvert));
-                looprendermeshes(skelmesh, m, m.genvbo(idxs, vlen));
+                looprendermeshes(skelmesh, m, vlen += m.genvbo(idxs, vlen));
                 DELETEA(vdata);
                 vdata = new uchar[vlen*vertsize];
                 looprendermeshes(skelmesh, m,
@@ -1439,7 +1350,7 @@ struct skelmodel : animmodel
             else if(enablebones) disablebones();
         }
 
-        void concattagtransform(part *p, int i, const matrix3x4 &m, matrix3x4 &n)
+        void concattagtransform(part *p, int i, const matrix4x3 &m, matrix4x3 &n)
         {
             skel->concattagtransform(p, i, m, n);
         }
@@ -1478,8 +1389,7 @@ struct skelmodel : animmodel
             return c.weights[1] ? c.interpindex : c.interpbones[0];
         }
 
-        template<class B>
-        static inline void blendbones(B &d, const B *bdata, const blendcombo &c)
+        static inline void blendbones(dualquat &d, const dualquat *bdata, const blendcombo &c)
         {
             d = bdata[c.interpbones[0]];
             d.mul(c.weights[0]);
@@ -1488,19 +1398,6 @@ struct skelmodel : animmodel
             {
                 d.accumulate(bdata[c.interpbones[2]], c.weights[2]);
                 if(c.weights[3]) d.accumulate(bdata[c.interpbones[3]], c.weights[3]);
-            }
-        }
-
-        void blendmatbones(const skelcacheentry &sc, blendcacheentry &bc)
-        {
-            bc.nextversion();
-            if(!bc.mdata) bc.mdata = new matrix3x4[vblends];
-            matrix3x4 *dst = bc.mdata - skel->numgpubones;
-            loopv(blendcombos)
-            {
-                const blendcombo &c = blendcombos[i];
-                if(c.interpindex<0) break;
-                blendbones(dst[c.interpindex], sc.mdata, c);
             }
         }
 
@@ -1520,11 +1417,6 @@ struct skelmodel : animmodel
             }
         }
 
-        static inline void blendbones(const matrix3x4 *mdata, matrix3x4 *dst, const blendcombo *c, int numblends)
-        {
-            loopi(numblends) blendbones(dst[i], mdata, c[i]);
-        }
-
         static inline void blendbones(const dualquat *bdata, dualquat *dst, const blendcombo *c, int numblends)
         {
             loopi(numblends)
@@ -1541,7 +1433,6 @@ struct skelmodel : animmodel
             {
                 blendcacheentry &c = blendcache[i];
                 DELETEA(c.bdata);
-                DELETEA(c.mdata);
                 c.owner = -1;
             }
             loopi(MAXVBOCACHE)
@@ -1595,7 +1486,7 @@ struct skelmodel : animmodel
 
             if(skel->shouldcleanup()) skel->cleanup();
 
-            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
+            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll || d->ragdoll->millis == lastmillis ? NULL : d->ragdoll);
 
             intersect(hitdata, p, sc, o, ray);
 
@@ -1639,7 +1530,7 @@ struct skelmodel : animmodel
                 return;
             }
 
-            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
+            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll || d->ragdoll->millis == lastmillis ? NULL : d->ragdoll);
             if(!(as->cur.anim&ANIM_NORENDER))
             {
                 int owner = &sc-&skel->skelcache[0];
@@ -1655,8 +1546,7 @@ struct skelmodel : animmodel
                     {
                         bc->owner = owner;
                         *(animcacheentry *)bc = sc;
-                        if(skel->usematskel) blendmatbones(sc, *bc);
-                        else blendbones(sc, *bc);
+                        blendbones(sc, *bc);
                     }
                 }
                 if(!skel->usegpuskel && vc.owner!=owner)
@@ -1665,8 +1555,7 @@ struct skelmodel : animmodel
                     (animcacheentry &)vc = sc;
                     looprendermeshes(skelmesh, m,
                     {
-                        if(skel->usematskel) m.interpverts(sc.mdata, bc ? bc->mdata : NULL, norms, tangents, vdata + m.voffset*vertsize, p->skins[i]);
-                        else m.interpverts(sc.bdata, bc ? bc->bdata : NULL, norms, tangents, vdata + m.voffset*vertsize, p->skins[i]);
+                        m.interpverts(sc.bdata, bc ? bc->bdata : NULL, norms, tangents, vdata + m.voffset*vertsize, p->skins[i]);
                     });
                     glBindBuffer_(GL_ARRAY_BUFFER, vc.vbuf);
                     glBufferData_(GL_ARRAY_BUFFER, vlen*vertsize, vdata, GL_STREAM_DRAW);
@@ -1686,8 +1575,7 @@ struct skelmodel : animmodel
             if(as->cur.anim&ANIM_RAGDOLL && skel->ragdoll && !d->ragdoll)
             {
                 d->ragdoll = new ragdolldata(skel->ragdoll, p->model->scale);
-                if(matskel) skel->initmatragdoll(*d->ragdoll, sc, p);
-                else skel->initragdoll(*d->ragdoll, sc, p);
+                skel->initragdoll(*d->ragdoll, sc, p);
                 d->ragdoll->init(d);
             }
         }
@@ -1862,7 +1750,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
             float cx = *rx ? cosf(*rx/2*RAD) : 1, sx = *rx ? sinf(*rx/2*RAD) : 0,
                   cy = *ry ? cosf(*ry/2*RAD) : 1, sy = *ry ? sinf(*ry/2*RAD) : 0,
                   cz = *rz ? cosf(*rz/2*RAD) : 1, sz = *rz ? sinf(*rz/2*RAD) : 0;
-            matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)),
+            matrix4x3 m(matrix3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)),
                         vec(*tx, *ty, *tz));
             ((meshgroup *)mdl.meshes)->skel->addtag(tagname, i, m);
             return;

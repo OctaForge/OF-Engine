@@ -47,7 +47,10 @@ void setupcaustics(int tmu, float surface = -1e16f)
     if(surface > -1e15f)
     {
         float bz = surface + camera1->o.z + (vertwater ? WATER_AMPLITUDE : 0);
-        glmatrix m(vec4(s, 0), vec4(t, 0), vec4(0, 0, -1, bz));
+        matrix4 m(vec4(s.x, t.x,  0, 0),
+                  vec4(s.y, t.y,  0, 0),
+                  vec4(s.z, t.z, -1, 0),
+                  vec4(  0,   0, bz, 1));
         m.mul(worldmatrix);
         GLOBALPARAM(causticsmatrix, m);
         blendscale *= 0.5f;
@@ -114,12 +117,10 @@ void renderwaterfog(int mat, float surface)
         GLOBALPARAMF(waterdeepcolor, 0, 0, 0);
         GLOBALPARAMF(waterdeepfade, 0, 0, 0);
     }
+    
+    GLOBALPARAMF(waterheight, bz);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    vec4 d = cammatrix.getrow(2);
-    glmatrix m(d, vec4(0, 1, 0, 0), vec4(0, 0, -1, bz));
-    m.mul(worldmatrix);
-    GLOBALPARAM(waterfogmatrix, m);
 
     SETSHADER(waterfog);
     gle::defvertex(2);
@@ -352,22 +353,22 @@ void renderlava(const materialsurface &m, Texture *tex, float scale)
     HVARFR(name##color, 0, 0x01212C, 0xFFFFFF, \
     { \
         if(!name##color) name##color = 0x01212C; \
-        name##colorv = bvec((name##color>>16)&0xFF, (name##color>>8)&0xFF, name##color&0xFF); \
+        name##colorv = bvec::hexcolor(name##color); \
     }); \
     HVARFR(name##deepcolor, 0, 0x010A10, 0xFFFFFF, \
     { \
         if(!name##deepcolor) name##deepcolor = 0x010A10; \
-        name##deepcolorv = bvec((name##deepcolor>>16)&0xFF, (name##deepcolor>>8)&0xFF, name##deepcolor&0xFF); \
+        name##deepcolorv = bvec::hexcolor(name##deepcolor); \
     }); \
     HVARFR(name##deepfade, 0, 0x60BFFF, 0xFFFFFF, \
     { \
         if(!name##deepfade) name##deepfade = 0x60BFFF; \
-        name##deepfadecolorv = bvec((name##deepfade>>16)&0xFF, (name##deepfade>>8)&0xFF, name##deepfade&0xFF); \
+        name##deepfadecolorv = bvec::hexcolor(name##deepfade); \
     }); \
     HVARFR(name##refractcolor, 0, 0xFFFFFF, 0xFFFFFF, \
     { \
         if(!name##refractcolor) name##refractcolor = 0xFFFFFF; \
-        name##refractcolorv = bvec((name##refractcolor>>16)&0xFF, (name##refractcolor>>8)&0xFF, name##refractcolor&0xFF); \
+        name##refractcolorv = bvec::hexcolor(name##refractcolor); \
     }); \
     VARR(name##fog, 0, 30, 10000); \
     VARR(name##deep, 0, 50, 10000); \
@@ -375,11 +376,11 @@ void renderlava(const materialsurface &m, Texture *tex, float scale)
     FVARR(name##refract, 0, 0.1f, 1e3f); \
     HVARFR(name##fallcolor, 0, 0, 0xFFFFFF, \
     { \
-        name##fallcolorv = bvec((name##fallcolor>>16)&0xFF, (name##fallcolor>>8)&0xFF, name##fallcolor&0xFF); \
+        name##fallcolorv = bvec::hexcolor(name##fallcolor); \
     }); \
     HVARFR(name##fallrefractcolor, 0, 0, 0xFFFFFF, \
     { \
-        name##fallrefractcolorv = bvec((name##fallrefractcolor>>16)&0xFF, (name##fallrefractcolor>>8)&0xFF, name##fallrefractcolor&0xFF); \
+        name##fallrefractcolorv = bvec::hexcolor(name##fallrefractcolor); \
     }); \
     VARR(name##fallspec, 0, 150, 200); \
     FVARR(name##fallrefract, 0, 0.1f, 1e3f);
@@ -413,7 +414,7 @@ GETMATIDXVAR(water, fallrefract, float)
     HVARFR(name##color, 0, 0xFF4000, 0xFFFFFF, \
     { \
         if(!name##color) name##color = 0xFF4000; \
-        name##colorv = bvec((name##color>>16)&0xFF, (name##color>>8)&0xFF, name##color&0xFF); \
+        name##colorv = bvec::hexcolor(name##color); \
     }); \
     VARR(name##fog, 0, 50, 10000); \
     FVARR(name##glowmin, 0, 0.25f, 2); \

@@ -314,7 +314,7 @@ struct fireballrenderer : regularlistrenderer
 
         if(isfoggedsphere(psize*WOBBLE, p->o)) return;
 
-        glmatrix m;
+        matrix4 m;
         m.identity();
         m.translate(o);
 
@@ -350,7 +350,7 @@ struct fireballrenderer : regularlistrenderer
 
         m.rotate(rotangle*RAD, vec(-rotdir.x, rotdir.y, -rotdir.z));
         m.scale(-psize, psize, -psize);
-        m.mul(camprojmatrix, glmatrix(m));
+        m.mul(camprojmatrix, m);
         LOCALPARAM(explosionmatrix, m);
 
         LOCALPARAM(center, o);

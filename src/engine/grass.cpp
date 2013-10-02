@@ -66,7 +66,7 @@ bvec grasscolorv(255, 255, 255);
 HVARFR(grasscolor, 0, 0xFFFFFF, 0xFFFFFF,
 {
     if(!grasscolor) grasscolor = 0xFFFFFF;
-    grasscolorv = bvec((grasscolor>>16)&0xFF, (grasscolor>>8)&0xFF, grasscolor&0xFF);
+    grasscolorv = bvec::hexcolor(grasscolor);
 });
 FVARR(grasstest, 0, 0.6f, 1);
 
