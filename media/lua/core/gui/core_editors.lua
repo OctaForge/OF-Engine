@@ -284,7 +284,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.line_wrap = kwargs.line_wrap or false
 
         -- must always contain at least one line
-        self.lines = { editline(kwargs.value or "") }
+        self.lines = { editline(kwargs.value) }
 
         self._needs_calc = true
         self._needs_offset = false
@@ -675,6 +675,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 init = split(init, "\n")
             end
             for i = 1, #init do lines[i] = editline(init[i]) end
+            if #lines == 0 then lines[1] = editline() end
             self.lines = lines
         end
     end,
