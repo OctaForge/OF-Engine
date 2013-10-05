@@ -274,10 +274,12 @@ namespace lapi_binds
         {
             assert(lua::push_external(L, "gui_show_message"));
             lua_pushliteral(L, "Compilation failed");
-            lua_pushvalue  (L, -5);
+            lua_pushvalue  (L, -3);
             lua_call       (L,  2, 0);
-            return 1;
+            lua_pop        (L, 1);
+            return 0;
         }
+        lua_pop(L, 1);
 
         renderprogress(0.3, "generating map ..");
         save_world(game::getclientmap());

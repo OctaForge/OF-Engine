@@ -59,7 +59,7 @@ local Action = table2.Object:clone {
             it won't be possible to queue it into an action system already
             containing an action of the same type.
 
-            cancellable - A boolean value specifying whether the action
+            cancelable - A boolean value specifying whether the action
             can be cancelled during its execution. Defaults to true.
 
             parallel_to - Specifies an action this one is parallel to.
@@ -90,9 +90,9 @@ local Action = table2.Object:clone {
             (self.allow_multiple   == nil) and
             (kwargs.allow_multiple == nil) and true or false
 
-        self.cancellable =
-            (self.cancellable   == nil) and
-            (kwargs.cancellable == nil) and true or false
+        self.cancelable =
+            (self.cancelable   == nil) and
+            (kwargs.cancelable == nil) and true or false
 
         self.parallel_to =
             (self.parallel_to == nil) and kwargs.parallel_to or false
@@ -221,11 +221,11 @@ local Action = table2.Object:clone {
     end,
 
     --[[! Function: cancel
-        Forces the action finish. Effective only when the "cancellable"
+        Forces the action finish. Effective only when the "cancelable"
         property of the action is true (it is by default).
     ]]
     cancel = function(self)
-        if  self.cancellable then
+        if  self.cancelable then
             self:priv_finish()
         end
     end

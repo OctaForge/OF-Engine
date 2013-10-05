@@ -26,12 +26,12 @@ local filter = table2.filter
 
 --[[! Class: Action_Parallel
     A container action that executes its actions in parallel. It's not
-    cancellable. It works by parallel by having an internal action system
+    cancelable. It works by parallel by having an internal action system
     for each action.
 ]]
 M.Action_Parallel = Action:clone {
     name = "Action_Parallel",
-    cancellable = false,
+    cancelable = false,
 
     --[[! Constructor: __ctor
         Takes an array of actions and kwargs. Those are passed unmodified
