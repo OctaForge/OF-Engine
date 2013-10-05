@@ -1,4 +1,4 @@
---[[! File: lua/extra/mapscripts/drawing.lua
+--[[! File: lua/games/drawing/init.lua
 
     About: Author
         q66 <quaker66@gmail.com>

@@ -9,8 +9,8 @@ require("extra.entities.teleporters")
 require("extra.entities.lights")
 require("extra.entities.particles")
 
--- use drawing mode on empty map
-require("extra.mapscripts.drawing")
+-- drawing game
+require("games.drawing")
 
 -- this is how you initialize game manager
 game_manager.setup()
