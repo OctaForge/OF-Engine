@@ -14,9 +14,11 @@ namespace gle
     };
 
     extern const char * const attribnames[MAXATTRIBS];
-    extern vector<uchar> data;
+    extern ucharbuf attribbuf;
 
     extern void begin(GLenum mode);
+    extern void begin(GLenum mode, int numverts);
+    extern void multidraw();
     extern void defattribs(const char *fmt);
     extern void defattrib(int type, int size, int format);
 
@@ -79,41 +81,53 @@ namespace gle
     template<class T>
     static inline void attrib(T x)
     {
-        T *buf = (T *)data.pad(sizeof(T));
-        buf[0] = x;
+        if(attribbuf.check(sizeof(T)))
+        {
+            T *buf = (T *)attribbuf.pad(sizeof(T));
+            buf[0] = x;
+        }
     }
 
     template<class T>
     static inline void attrib(T x, T y)
     {
-        T *buf = (T *)data.pad(2*sizeof(T));
-        buf[0] = x;
-        buf[1] = y;
+        if(attribbuf.check(2*sizeof(T)))
+        {
+            T *buf = (T *)attribbuf.pad(2*sizeof(T));
+            buf[0] = x;
+            buf[1] = y;
+        }
     }
 
     template<class T>
     static inline void attrib(T x, T y, T z)
     {
-        T *buf = (T *)data.pad(3*sizeof(T));
-        buf[0] = x;
-        buf[1] = y;
-        buf[2] = z;
+        if(attribbuf.check(3*sizeof(T)))
+        {
+            T *buf = (T *)attribbuf.pad(3*sizeof(T));
+            buf[0] = x;
+            buf[1] = y;
+            buf[2] = z;
+        }
     }
 
     template<class T>
     static inline void attrib(T x, T y, T z, T w)
     {
-        T *buf = (T *)data.pad(4*sizeof(T));
-        buf[0] = x;
-        buf[1] = y;
-        buf[2] = z;
-        buf[3] = w;
+        if(attribbuf.check(4*sizeof(T)))
+        {
+            T *buf = (T *)attribbuf.pad(4*sizeof(T));
+            buf[0] = x;
+            buf[1] = y;
+            buf[2] = z;
+            buf[3] = w;
+        }
     }
 
     template<size_t N, class T>
     static inline void attribv(const T *v)
     {
-        data.put((const uchar *)v, N*sizeof(T));
+        attribbuf.put((const uchar *)v, N*sizeof(T));
     }
 
     #define GLE_ATTRIB(suffix, type) \

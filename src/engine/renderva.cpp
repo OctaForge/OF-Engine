@@ -189,7 +189,7 @@ void setvfcP(const vec &bbmin, const vec &bbmax)
     vfcP[3] = plane(vec4(pw).mul(bbmax.y).sub(py)).normalize(); // top plane
     vfcP[4] = plane(vec4(pw).add(pz)).normalize(); // near/far planes
 
-    vfcDfog = fog;
+    vfcDfog = min(calcfogcull(), float(farplane));
     calcvfcD();
 }
 
@@ -216,7 +216,7 @@ void visiblecubes(bool cull)
     else
     {
         memset(vfcP, 0, sizeof(vfcP));
-        vfcDfog = 1000000;
+        vfcDfog = farplane;
         memset(vfcDnear, 0, sizeof(vfcDnear));
         memset(vfcDfar, 0, sizeof(vfcDfar));
         visibleva = NULL;

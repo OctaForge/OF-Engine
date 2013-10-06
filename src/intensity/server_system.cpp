@@ -180,6 +180,9 @@ PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
 PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;
 PFNGLGETUNIFORMLOCATIONPROC       glGetUniformLocation_       = NULL;
 PFNGLACTIVETEXTUREPROC            glActiveTexture_            = NULL;
+PFNGLMAPBUFFERRANGEPROC           glMapBufferRange_           = NULL;
+PFNGLUNMAPBUFFERPROC              glUnmapBuffer_              = NULL;
+PFNGLMULTIDRAWARRAYSPROC          glMultiDrawArrays_          = NULL;
 #else
 void glDeleteBuffers(GLsizei n, const GLuint *buffers) {};
 void glGenBuffers(GLsizei n, GLuint *buffers) {};
@@ -210,6 +213,9 @@ void glDisableVertexAttribArray(GLuint index) {}
 void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer) {};
 GLint glGetUniformLocation(GLuint program, const GLchar *name) { return 0; };
 void glActiveTexture(GLenum texture) {};
+void *glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) { return NULL; };
+void *glMapBuffer(GLenum target, GLenum access) { return NULL; };
+void glMultiDrawArrays(	GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount) {};
 #endif
 
 PFNGLGENVERTEXARRAYSPROC          glGenVertexArrays_          = NULL;

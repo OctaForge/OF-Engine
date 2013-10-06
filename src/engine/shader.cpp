@@ -849,17 +849,18 @@ static void genfogshader(vector<char> &vsbuf, vector<char> &psbuf, const char *v
             const char *foginterp = "\nvarying float lineardepth;\n";
             psbuf.put(foginterp, strlen(foginterp));
         }
-        const char *fogparams = 
-            "\nuniform vec3 fogcolor, fogparams;\n"
-            "uniform vec4 radialfogparams;\n"
-            "#define fogcoord lineardepth*length(vec3(gl_FragCoord.xy*radialfogparams.xy + radialfogparams.zw, 1.0))\n";
+        const char *fogparams =
+            "\nuniform vec3 fogcolor;\n"
+            "uniform vec2 fogdensity;\n"
+            "uniform vec4 radialfogscale;\n"
+            "#define fogcoord lineardepth*length(vec3(gl_FragCoord.xy*radialfogscale.xy + radialfogscale.zw, 1.0))\n";
         psbuf.put(fogparams, strlen(fogparams));
         psbuf.put(psmain, psend - psmain);
         const char *psdef = "\n#define FOG_COLOR ";
         const char *psfog =
             pspragma && !strncmp(pspragma+pragmalen, "rgba", 4) ?
-                "\nfragcolor = mix((FOG_COLOR), fragcolor, clamp(fogparams.y + fogcoord*fogparams.z, 0.0, 1.0));\n" :
-                "\nfragcolor.rgb = mix((FOG_COLOR).rgb, fragcolor.rgb, clamp(fogparams.y + fogcoord*fogparams.z, 0.0, 1.0));\n";
+                "\nfragcolor = mix((FOG_COLOR), fragcolor, clamp(exp2(fogcoord*-fogdensity.x)*fogdensity.y, 0.0, 1.0));\n" :
+                "\nfragcolor.rgb = mix((FOG_COLOR).rgb, fragcolor.rgb, clamp(exp2(fogcoord*-fogdensity.x)*fogdensity.y, 0.0, 1.0));\n";
         int clen = 0;
         if(pspragma)
         {
@@ -1569,11 +1570,12 @@ void resetshaders()
 }
 COMMAND(resetshaders, "");
 
-void setupblurkernel(int radius, float sigma, float *weights, float *offsets)
+FVAR(blursigma, 0.005f, 0.5f, 2.0f);
+
+void setupblurkernel(int radius, float *weights, float *offsets)
 {
     if(radius<1 || radius>MAXBLURRADIUS) return;
-    sigma *= 2*radius;
-    float total = 1.0f/sigma;
+    float sigma = blursigma*2*radius, total = 1.0f/sigma;
     weights[0] = total;
     offsets[0] = 0;
     // rely on bilinear filtering to sample 2 pixels at once

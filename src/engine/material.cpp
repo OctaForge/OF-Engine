@@ -74,7 +74,7 @@ struct QuadNode
 
 static void drawmaterial(const materialsurface &m, float offset)
 {
-    if(gle::data.empty())
+    if(gle::attribbuf.empty())
     {
         gle::defvertex();
         gle::begin(GL_QUADS);
@@ -512,7 +512,7 @@ static float glassxscale = 0, glassyscale = 0;
 
 static void drawglass(const materialsurface &m, float offset, const vec *normal = NULL)
 {
-    if(gle::data.empty())
+    if(gle::attribbuf.empty())
     {
         gle::defvertex();
         if(normal) gle::defnormal();

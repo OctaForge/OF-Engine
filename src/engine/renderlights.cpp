@@ -117,10 +117,10 @@ void clearbilateralshaders()
     loopk(2) bilateralshader[k] = NULL;
 }
 
-void setbilateralshader(int radius, int pass, float sigma, float depth)
+void setbilateralshader(int radius, int pass, float depth)
 {
     bilateralshader[pass]->set();
-    sigma *= 2*radius;
+    float sigma = blursigma*2*radius;
     LOCALPARAMF(bilateralparams, 1.0f/(2*sigma*sigma), 1.0f/(depth*depth));
 }
 
@@ -219,7 +219,6 @@ FVARR(aomin, 0, 0.25f, 1);
 VARFR(aosun, 0, 1, 1, cleardeferredlightshaders());
 FVARR(aosunmin, 0, 0.5f, 1);
 VARP(aoblur, 0, 4, 7);
-FVARP(aosigma, 0.005f, 0.5f, 2.0f);
 VARP(aoiter, 0, 0, 4);
 VARFP(aoreduce, 0, 1, 2, cleanupao());
 VARF(aoreducedepth, 0, 1, 2, cleanupao());
@@ -228,7 +227,6 @@ VARFP(aoprec, 0, 1, 1, cleanupao());
 VAR(aodepthformat, 1, 0, 0);
 VARF(aonoise, 0, 5, 8, cleanupao());
 VARFP(aobilateral, 0, 3, 10, cleanupao());
-FVARP(aobilateralsigma, 0, 0.5f, 1e3f);
 FVARP(aobilateraldepth, 0, 4, 1e3f);
 VARFP(aobilateralupscale, 0, 0, 1, cleanupao());
 VARF(aopackdepth, 0, 1, 1, cleanupao());
@@ -306,7 +304,7 @@ void renderao()
     {
         if(aoreduce && aobilateralupscale) loopi(2)
         {
-            setbilateralshader(aobilateral, i, aobilateralsigma, aobilateraldepth);
+            setbilateralshader(aobilateral, i, aobilateraldepth);
             glBindFramebuffer_(GL_FRAMEBUFFER, aofbo[i+1]);
             glViewport(0, 0, vieww, i ? viewh : aoh);
             glBindTexture(GL_TEXTURE_RECTANGLE, aotex[i]);
@@ -318,7 +316,7 @@ void renderao()
         }
         else loopi(2 + 2*aoiter)
         {
-            setbilateralshader(aobilateral, i%2, aobilateralsigma, aobilateraldepth);
+            setbilateralshader(aobilateral, i%2, aobilateraldepth);
             glBindFramebuffer_(GL_FRAMEBUFFER, aofbo[(i+1)%2]);
             glViewport(0, 0, aow, aoh);
             glBindTexture(GL_TEXTURE_RECTANGLE, aotex[i%2]);
@@ -333,7 +331,7 @@ void renderao()
     else if(aoblur)
     {
         float blurweights[MAXBLURRADIUS+1], bluroffsets[MAXBLURRADIUS+1];
-        setupblurkernel(aoblur, aosigma, blurweights, bluroffsets);
+        setupblurkernel(aoblur, blurweights, bluroffsets);
         loopi(2 + 2*aoiter)
         {
             glBindFramebuffer_(GL_FRAMEBUFFER, aofbo[(i+1)%2]);
@@ -382,7 +380,6 @@ void setupscale(int sw, int sh, int w, int h)
 
     glBindFramebuffer_(GL_FRAMEBUFFER, 0);
 
-    useshaderbyname("scalelinear");
     if(gscalecubic)
     {
         useshaderbyname("scalecubicx");
@@ -842,7 +839,6 @@ FVAR(bloomthreshold, 1e-3f, 0.8f, 1e3f);
 FVARP(bloomscale, 0, 1.0f, 1e3f);
 VARP(bloomblur, 0, 7, 7);
 VARP(bloomiter, 0, 0, 4);
-FVARP(bloomsigma, 0.005f, 0.5f, 2.0f);
 VARFP(bloomsize, 6, 9, 11, cleanupbloom());
 VARFP(bloomprec, 0, 2, 3, cleanupbloom());
 FVAR(hdraccumscale, 0, 0.98f, 1);
@@ -860,31 +856,20 @@ FVARFP(gscalecubicsoft, 0, 0, 1, initwarning("scaling setup", INIT_LOAD, CHANGE_
 
 float ldrscale = 1.0f, ldrscaleb = 1.0f/255;
 
-void readhdr(int w, int h, GLenum format, GLenum type, void *dst, GLenum target, GLuint tex)
+void copyhdr(int sw, int sh, GLuint fbo, int dw, int dh, bool flipx, bool flipy, bool swapxy)
 {
-    if(msaasamples) resolvemsaacolor(w, h);
+    if(!dw) dw = sw;
+    if(!dh) dh = sh;
+
+    if(msaasamples) resolvemsaacolor(sw, sh);
     GLERROR;
 
-    if(hasCBF || !hdrfloat) glBindFramebuffer_(GL_FRAMEBUFFER, hdrfbo);
-    else
-    {
-        glBindFramebuffer_(GL_FRAMEBUFFER, 0);
-        SETSHADER(hdrnop);
-        glBindTexture(GL_TEXTURE_RECTANGLE, hdrtex);
-        screenquad(w, h);
-    }
-
-    if(hasCBF && hdrfloat) glClampColor_(GL_CLAMP_READ_COLOR, GL_TRUE);
-
-    if(dst) glReadPixels(0, 0, w, h, format, type, dst);
-    else if(target)
-    {
-        glBindTexture(target, tex);
-        GLERROR;
-        glCopyTexImage2D(target, 0, format, 0, 0, w, h, 0);
-    }
-
-    if(hasCBF && hdrfloat) glClampColor_(GL_CLAMP_READ_COLOR, GL_FIXED_ONLY);
+    glBindFramebuffer_(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, dw, dh);
+    SETSHADER(hdrnop);
+    glBindTexture(GL_TEXTURE_RECTANGLE, hdrtex);
+    screenquadreorient(sw, sh, flipx, flipy, swapxy);
+    GLERROR;
 
     hdrclear = 3;
 }
@@ -1121,7 +1106,7 @@ void processhdr(GLuint outfbo, int aa)
     if(bloomblur)
     {
         float blurweights[MAXBLURRADIUS+1], bluroffsets[MAXBLURRADIUS+1];
-        setupblurkernel(bloomblur, bloomsigma, blurweights, bluroffsets);
+        setupblurkernel(bloomblur, blurweights, bluroffsets);
         loopi(2 + 2*bloomiter)
         {
             glBindFramebuffer_(GL_FRAMEBUFFER, b1fbo);
@@ -3298,7 +3283,7 @@ void radiancehints::renderslices()
         maskslice:
             if(i) continue;
             rendernogi(ivec::floor(vec(x1, y1, z - 0.5f*step)), ivec::ceil(vec(x2, y2, z + 0.5f*step)), int(step));
-            if(gle::data.empty()) continue;
+            if(gle::attribbuf.empty()) continue;
             SETSHADER(radiancehintsdisable);
             if(rhborder)
             {
@@ -3872,8 +3857,8 @@ void preparegbuffer(bool depthclear)
     {
         linearworldmatrix.mul(invcamprojmatrix, invscreenmatrix);
         worldmatrix = linearworldmatrix;
-    
-        GLOBALPARAMF(radialfogparams, 0, 0, 0, 0);
+
+        GLOBALPARAMF(radialfogscale, 0, 0, 0, 0);
     }
     else
     {
@@ -3884,7 +3869,7 @@ void preparegbuffer(bool depthclear)
         if(gdepthformat) worldmatrix = linearworldmatrix;
         else worldmatrix.mul(invcamprojmatrix, invscreenmatrix);
 
-        GLOBALPARAMF(radialfogparams, xscale/zscale, yscale/zscale, xoffset/zscale, yoffset/zscale); 
+        GLOBALPARAMF(radialfogscale, xscale/zscale, yscale/zscale, xoffset/zscale, yoffset/zscale);
     }
 
     screenmatrix.identity();
@@ -4002,6 +3987,14 @@ void shademodelpreview(int x, int y, int w, int h, bool background, bool scissor
     glViewport(0, 0, hudw, hudh);
 }
 
+void shadesky()
+{
+    glBindFramebuffer_(GL_FRAMEBUFFER, msaasamples ? mshdrfbo : hdrfbo);
+    glViewport(0, 0, vieww, viewh);
+
+    drawskybox((hdrclear > 0 ? hdrclear-- : msaasamples) > 0);
+}
+
 void shadegbuffer()
 {
     GLERROR;
@@ -4009,10 +4002,7 @@ void shadegbuffer()
     timer *shcputimer = begintimer("deferred shading", false);
     timer *shtimer = begintimer("deferred shading");
 
-    glBindFramebuffer_(GL_FRAMEBUFFER, msaasamples ? mshdrfbo : hdrfbo);
-    glViewport(0, 0, vieww, viewh);
-
-    drawskybox(farplane, (hdrclear > 0 ? hdrclear-- : msaasamples) > 0);
+    shadesky();
 
     if(msaasamples)
     {

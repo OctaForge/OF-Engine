@@ -91,12 +91,12 @@ void drawenvboxface(float s0, float t0, int x0, int y0, int z0,
     xtraverts += gle::end();
 }
 
-void drawenvbox(int w, Texture **sky = NULL, float z1clip = 0.0f, float z2clip = 1.0f, int faces = 0x3F)
+void drawenvbox(Texture **sky = NULL, float z1clip = 0.0f, float z2clip = 1.0f, int faces = 0x3F)
 {
     if(z1clip >= z2clip) return;
 
     float v1 = 1-z1clip, v2 = 1-z2clip;
-    int z1 = int(ceil(2*w*(z1clip-0.5f))), z2 = int(ceil(2*w*(z2clip-0.5f)));
+    int w = farplane/2, z1 = int(ceil(2*w*(z1clip-0.5f))), z2 = int(ceil(2*w*(z2clip-0.5f)));
 
     gle::defvertex();
     gle::deftexcoord0();
@@ -140,8 +140,9 @@ void drawenvbox(int w, Texture **sky = NULL, float z1clip = 0.0f, float z2clip =
     gle::disable();
 }
 
-void drawenvoverlay(int w, Texture *overlay = NULL, float tx = 0, float ty = 0)
+void drawenvoverlay(Texture *overlay = NULL, float tx = 0, float ty = 0)
 {
+    int w = farplane/2;
     float z = w*cloudheight, tsz = 0.5f*(1-cloudfade)/cloudscale, psz = w*(1-cloudfade);
     glBindTexture(GL_TEXTURE_2D, (overlay ? overlay : notexture)->id);
     vec color = vec::hexcolor(cloudcolor);
@@ -351,7 +352,7 @@ namespace fogdome
     }
 }
 
-static void drawfogdome(int farplane)
+static void drawfogdome()
 {
     SETSHADER(skyfog);
 
@@ -377,7 +378,7 @@ void cleanupsky()
 VARR(atmo, 0, 0, 1);
 FVARR(atmoplanetsize, 1e-3f, 1, 1e3f);
 FVARR(atmoheight, 1e-3f, 1, 1e3f);
-FVARR(atmobright, 0, 3, 16);
+FVARR(atmobright, 0, 4, 16);
 HVARFR(atmosunlight, 0, 0, 0xFFFFFF,
 {
     if(atmosunlight <= 255) atmosunlight |= (atmosunlight<<8) | (atmosunlight<<16);
@@ -385,14 +386,14 @@ HVARFR(atmosunlight, 0, 0, 0xFFFFFF,
 FVARR(atmosunlightscale, 0, 1, 16);
 FVARR(atmosundisksize, 0, 1, 10);
 FVARR(atmosundiskbright, 0, 1, 16);
-FVARR(atmohaze, 0, 0.1f, 1);
+FVARR(atmohaze, 0, 0.03f, 1);
 HVARFR(atmohazefade, 0, 0xAEACA9, 0xFFFFFF,
 {
     if(!atmohazefade) atmohazefade = 0xAEACA9;
 });
 FVARR(atmohazefadescale, 0, 1, 1);
-FVARR(atmoclarity, 0, 5, 10);
-FVARR(atmodensity, 1e-3f, 0.5f, 10);
+FVARR(atmoclarity, 0, 0.2f, 10);
+FVARR(atmodensity, 1e-3f, 0.99f, 10);
 FVARR(atmoalpha, 0, 1, 1);
 
 static void drawatmosphere()
@@ -455,7 +456,7 @@ bool limitsky()
     return explicitsky && (useskytexture || editmode);
 }
 
-void drawskybox(int farplane, bool clear)
+void drawskybox(bool clear)
 {
     if(limitsky())
     {
@@ -493,7 +494,7 @@ void drawskybox(int farplane, bool clear)
         skyprojmatrix.mul(projmatrix, skymatrix);
         LOCALPARAM(skymatrix, skyprojmatrix);
 
-        drawenvbox(farplane/2, sky);
+        drawenvbox(sky);
     }
 
     if(atmo && (!skybox[0] || atmoalpha < 1))
@@ -511,7 +512,7 @@ void drawskybox(int farplane, bool clear)
 
     if(fogdomemax && !fogdomeclouds)
     {
-        drawfogdome(farplane);
+        drawfogdome();
     }
 
     if(cloudbox[0])
@@ -529,7 +530,7 @@ void drawskybox(int farplane, bool clear)
         skyprojmatrix.mul(projmatrix, skymatrix);
         LOCALPARAM(skymatrix, skyprojmatrix);
 
-        drawenvbox(farplane/2, clouds, cloudclip);
+        drawenvbox(clouds, cloudclip);
 
         glDisable(GL_BLEND);
     }
@@ -549,7 +550,7 @@ void drawskybox(int farplane, bool clear)
         skyprojmatrix.mul(projmatrix, skymatrix);
         LOCALPARAM(skymatrix, skyprojmatrix);
 
-        drawenvoverlay(farplane/2, cloudoverlay, cloudoffsetx + cloudscrollx * lastmillis/1000.0f, cloudoffsety + cloudscrolly * lastmillis/1000.0f);
+        drawenvoverlay(cloudoverlay, cloudoffsetx + cloudscrollx * lastmillis/1000.0f, cloudoffsety + cloudscrolly * lastmillis/1000.0f);
 
         glDisable(GL_BLEND);
 
@@ -558,7 +559,7 @@ void drawskybox(int farplane, bool clear)
 
     if(fogdomemax && fogdomeclouds)
     {
-        drawfogdome(farplane);
+        drawfogdome();
     }
 
     if(clampsky) glDepthRange(0, 1);
@@ -572,5 +573,10 @@ void drawskybox(int farplane, bool clear)
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
     }
+}
+
+bool hasskybox()
+{
+    return skybox[0] || atmo || fogdomemax || cloudbox[0] || cloudlayer[0];
 }
 

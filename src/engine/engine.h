@@ -73,7 +73,7 @@ extern bool floatformat(GLenum format);
 extern void cleanuptexture(Texture *t);
 extern uchar *loadalphamask(Texture *t);
 extern Texture *cubemapload(const char *name, bool mipit = true, bool msg = true, bool transient = false);
-extern void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side);
+extern void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side, bool onlysky = false);
 extern void loadshaders();
 extern void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLenum format = GL_RGB, GLenum target = GL_TEXTURE_2D, bool swizzle = false);
 extern void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int filter, GLenum component = GL_RGB, GLenum target = GL_TEXTURE_2D, int pw = 0, int ph = 0, int pitch = 0, bool resize = true, GLenum format = GL_FALSE, bool swizzle = false);
@@ -161,6 +161,7 @@ extern bool calcspotscissor(const vec &origin, float radius, const vec &dir, int
 extern void screenquad();
 extern void screenquad(float sw, float sh);
 extern void screenquadflipped(float sw, float sh);
+extern void screenquadreorient(float sw, float sh, bool flipx, bool flipy, bool swapxy);
 extern void screenquad(float sw, float sh, float sw2, float sh2);
 extern void screenquadoffset(float x, float y, float w, float h);
 extern void screenquadoffset(float x, float y, float w, float h, float x2, float y2, float w2, float h2);
@@ -171,6 +172,8 @@ extern float calcfrustumboundsphere(float nearplane, float farplane,  const vec 
 extern void setfogcolor(const vec &v);
 extern void zerofogcolor();
 extern void resetfogcolor();
+extern float calcfogdensity(float dist);
+extern float calcfogcull();
 extern void renderavatar();
 
 namespace modelpreview
@@ -352,6 +355,7 @@ extern void maskgbuffer(const char *mask);
 extern void bindgdepth();
 extern void preparegbuffer(bool depthclear = true);
 extern void rendergbuffer(bool depthclear = true);
+extern void shadesky();
 extern void shadegbuffer();
 extern void shademinimap(const vec &color = vec(-1, -1, -1));
 extern void shademodelpreview(int x, int y, int w, int h, bool background = true, bool scissor = false);
@@ -359,7 +363,7 @@ extern void rendertransparent();
 extern void renderao();
 extern void loadhdrshaders(int aa = AA_UNUSED);
 extern void processhdr(GLuint outfbo = 0, int aa = AA_UNUSED);
-extern void readhdr(int w, int h, GLenum format, GLenum type, void *dst, GLenum target = 0, GLuint tex = 0);
+extern void copyhdr(int sw, int sh, GLuint fbo, int dw = 0, int dh = 0, bool flipx = false, bool flipy = false, bool swapxy = false);
 extern void setuplights();
 extern void setupgbuffer();
 extern GLuint shouldscale();
@@ -682,7 +686,8 @@ extern void cleanupdecals();
 // rendersky
 extern int skytexture, skyshadow, explicitsky;
 
-extern void drawskybox(int farplane, bool clear);
+extern void drawskybox(bool clear = false);
+extern bool hasskybox();
 extern bool limitsky();
 extern bool renderexplicitsky(bool outline = false);
 extern void cleanupsky();

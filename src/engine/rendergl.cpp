@@ -1948,6 +1948,33 @@ void screenquadflipped(float sw, float sh)
     gle::disable();
 }
 
+void screenquadreorient(float sw, float sh, bool flipx, bool flipy, bool swapxy)
+{
+    float sx1 = 0, sy1 = 0, sx2 = sw, sy2 = sh;
+    if(swapxy) swap(sx2, sy2);
+    if(flipx) swap(sx1, sx2);
+    if(flipy) swap(sy1, sy2);
+    gle::defvertex(2);
+    gle::deftexcoord0();
+    gle::begin(GL_TRIANGLE_STRIP);
+    if(swapxy)
+    {
+        gle::attribf( 1, -1); gle::attribf(sy1, sx2);
+        gle::attribf(-1, -1); gle::attribf(sy1, sx1);
+        gle::attribf( 1,  1); gle::attribf(sy2, sx2);
+        gle::attribf(-1,  1); gle::attribf(sy2, sx1);
+    }
+    else
+    {
+        gle::attribf( 1, -1); gle::attribf(sx2, sy1);
+        gle::attribf(-1, -1); gle::attribf(sx1, sy1);
+        gle::attribf( 1,  1); gle::attribf(sx2, sy2);
+        gle::attribf(-1,  1); gle::attribf(sx1, sy2);
+    }
+    gle::end();
+    gle::disable();
+}
+
 #define SCREENQUAD2(x1, y1, x2, y2, sx1, sy1, sx2, sy2, tx1, ty1, tx2, ty2) { \
     gle::defvertex(2); \
     gle::deftexcoord0(); \
@@ -2068,6 +2095,20 @@ void resetfogcolor()
     setfogcolor(curfogcolor);
 }
 
+FVAR(fogintensity, 0, 0.15f, 1);
+
+float calcfogdensity(float dist)
+{
+    return log(fogintensity)/(M_LN2*dist);
+}
+
+FVAR(fogcullintensity, 0, 1e-3f, 1);
+
+float calcfogcull()
+{
+    return log(fogcullintensity) / (M_LN2*calcfogdensity(fog - (fog+64)/8));
+}
+
 static void setfog(int fogmat, float below = 0, float blend = 1, int abovemat = MAT_AIR)
 {
     float start = 0, end = 0;
@@ -2079,7 +2120,9 @@ static void setfog(int fogmat, float below = 0, float blend = 1, int abovemat = 
     curfogcolor.mul(ldrscale);
 
     GLOBALPARAM(fogcolor, curfogcolor);
-    GLOBALPARAMF(fogparams, start/(end-start), end/(end-start), 1/(end - start));
+
+    float fogdensity = calcfogdensity(end-start);
+    GLOBALPARAMF(fogdensity, fogdensity, 1/exp(M_LN2*start*fogdensity));
 }
 
 static void blendfogoverlay(int fogmat, float below, float blend, vec &overlay)
@@ -2268,19 +2311,25 @@ void drawminimap()
     camera1 = oldcamera;
     drawtex = 0;
 
-    readhdr(size, size, GL_RGB5, GL_UNSIGNED_BYTE, NULL, GL_TEXTURE_2D, minimaptex);
-    setuptexparameters(minimaptex, NULL, 3, 1, GL_RGB5, GL_TEXTURE_2D);
+    createtexture(minimaptex, size, size, NULL, 3, 1, GL_RGB5, GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     GLfloat border[4] = { minimapcolorv.x/255.0f, minimapcolorv.y/255.0f, minimapcolorv.z/255.0f, 1.0f };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    GLuint fbo = 0;
+    glGenFramebuffers_(1, &fbo);
+    glBindFramebuffer_(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, minimaptex, 0);
+    copyhdr(size, size, fbo);
     glBindFramebuffer_(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers_(1, &fbo);
+
     glViewport(0, 0, hudw, hudh);
 }
 
-void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side)
+void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side, bool onlysky)
 {
     drawtex = DRAWTEX_ENVMAP;
 
@@ -2331,29 +2380,39 @@ void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapsi
     ldrscale = 1;
     ldrscaleb = ldrscale/255;
 
-    visiblecubes();
-    GLERROR;
+    visiblecubes(onlysky);
 
-    rendergbuffer();
-    GLERROR;
-
-    rendershadowatlas();
-    GLERROR;
-
-    shadegbuffer();
-    GLERROR;
-
-    if(fogmat)
+    if(onlysky)
     {
-        setfog(fogmat, fogbelow, 1, abovemat);
+        preparegbuffer();
+        GLERROR;
 
-        renderwaterfog(fogmat, fogbelow);
-
-        setfog(fogmat, fogbelow, clamp(fogbelow, 0.0f, 1.0f), abovemat);
+        shadesky();
+        GLERROR;
     }
+    else
+    {
+        rendergbuffer();
+        GLERROR;
 
-    rendertransparent();
-    GLERROR;
+        rendershadowatlas();
+        GLERROR;
+
+        shadegbuffer();
+        GLERROR;
+
+        if(fogmat)
+        {
+            setfog(fogmat, fogbelow, 1, abovemat);
+
+            renderwaterfog(fogmat, fogbelow);
+
+            setfog(fogmat, fogbelow, clamp(fogbelow, 0.0f, 1.0f), abovemat);
+        }
+
+        rendertransparent();
+        GLERROR;
+    }
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
