@@ -2551,7 +2551,7 @@ void gl_drawview()
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    ldrscale = hdr ? 0.5f : 1;
+    ldrscale = 0.5f;
     ldrscaleb = ldrscale/255;
 
     visiblecubes();

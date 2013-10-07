@@ -430,7 +430,7 @@ static void drawatmosphere()
     betam.div(betarm).mul((1-gm)*(1-gm)/(4*M_PI));
     LOCALPARAM(betar, betar);
     LOCALPARAM(betam, betam);
-    LOCALPARAM(betarm, betarm);
+    LOCALPARAM(betarm, betarm.div(M_LN2));
 
     LOCALPARAMF(atmoalpha, atmoalpha);
 

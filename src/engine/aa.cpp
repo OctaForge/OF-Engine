@@ -784,7 +784,7 @@ void setaamask(bool on)
 
 bool multisampledaa()
 {
-    return smaa && smaaspatial && msaasamples == 2 && hasMSS;
+    return smaa && smaaspatial && msaasamples == 2;
 }
 
 bool maskedaa()
