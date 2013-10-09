@@ -40,18 +40,14 @@ M.player_plugin = {
         self:set_attr("team", "")
     end,
 
-    respawn = function(self)
-        self:set_attr("spawn_stage", 1)
-    end,
-
     __activate = function(self)
-        connect(self, "spawn_stage_changed", self.on_spawn_stage)
+        connect(self, "spawn_stage_changed", self.game_manager_on_spawn_stage)
         if SERVER then
             get():pick_team(self)
             connect(self, "pre_deactivate", function(self)
                 get():leave_team(self)
             end)
-            self:respawn()
+            self:game_manager_respawn()
         else
             connect(self, "client_respawn", function(self)
                 get():place_player(self)
@@ -59,28 +55,36 @@ M.player_plugin = {
         end
     end,
 
-    on_spawn_stage = function(self, stage, auid)
-        if stage == 1 then
-            if not SERVER then self:set_attr("spawn_stage", 2) end
-        elseif stage == 2 then
-            if SERVER then
-                if auid == self.uid then
-                    self:set_attr("spawn_stage", 3)
-                end
-                self:cancel_sdata_update()
-            end
-        elseif stage == 3 then
-            if not SERVER and self == ents.get_player() then
-                emit(self, "client_respawn")
-                self:set_attr("spawn_stage", 4)
-            end
-        elseif stage == 4 then
-            if SERVER then
-                self:set_attr("can_move", true)
-                self:set_attr("spawn_stage", 0)
-                self:cancel_sdata_update()
-            end
+    game_manager_respawn = function(self)
+        self:set_attr("spawn_stage", 1)
+    end,
+
+    game_manager_spawn_stage_1 = (not SERVER) and function(self, auid)
+        self:set_attr("spawn_stage", 2)
+    end or function(self, auid) end,
+
+    game_manager_spawn_stage_2 = (SERVER) and function(self, auid)
+        if auid == self.uid then
+            self:set_attr("spawn_stage", 3)
         end
+        self:cancel_sdata_update()
+    end or function(self, auid) end,
+
+    game_manager_spawn_stage_3 = (not SERVER) and function(self, auid)
+        if self == ents.get_player() then
+            emit(self, "client_respawn")
+            self:set_attr("spawn_stage", 4)
+        end
+    end or function(self, auid) end,
+
+    game_manager_spawn_stage_4 = (SERVER) and function(self, auid)
+        self:set_attr("can_move", true)
+        self:set_attr("spawn_stage", 0)
+        self:cancel_sdata_update()
+    end or function(self, auid) end,
+
+    game_manager_on_spawn_stage = function(self, stage, auid)
+        self["game_manager_spawn_stage_" .. stage](self, auid)
     end
 }
 
