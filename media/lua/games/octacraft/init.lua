@@ -24,6 +24,7 @@ local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 
 local game_manager = require("extra.game_manager")
+local health = require("extra.health")
 
 local Player = ents.Player
 
@@ -34,7 +35,12 @@ local Game_Player = Player:clone {
     name = "Game_Player",
 }
 
-ents.register_class(Game_Player, { game_manager.player_plugin })
+ents.register_class(Game_Player, {
+    game_manager.player_plugin,
+    health.player_plugin
+})
+ents.register_class(ents.Obstacle, { health.deadly_area_plugin },
+    "Deadly_Area")
 
 if not SERVER then
     inputev.set_event("click", function(btn, down, x, y, z, ent, cx, cy)

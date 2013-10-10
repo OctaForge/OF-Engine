@@ -59,6 +59,8 @@ M.player_plugin = {
         self:set_attr("spawn_stage", 1)
     end,
 
+    game_manager_spawn_stage_0 = function(self, auid) end,
+
     game_manager_spawn_stage_1 = (not SERVER) and function(self, auid)
         self:set_attr("spawn_stage", 2)
     end or function(self, auid) end,

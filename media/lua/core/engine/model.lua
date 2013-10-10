@@ -57,6 +57,16 @@ M.anim_control = {:
     END      = LOOP  | CLAMP | REVERSE
 :}
 
+M.anim_flags = {:
+    NOSKIN     = 1 << 0,
+    SETTIME    = 1 << 1,
+    FULLBRIGHT = 1 << 2,
+    NORENDER   = 1 << 3,
+    RAGDOLL    = 1 << 4,
+    SETSPEED   = 1 << 5,
+    NOPITCH    = 1 << 6
+:}
+
 --[[! Variable: render_flags
     Contains flags for model rendering. CULL_VFC is a view frustrum culling
     flag, CULL_DIST is a distance culling flag, CULL_OCCLUDED is an occlusion

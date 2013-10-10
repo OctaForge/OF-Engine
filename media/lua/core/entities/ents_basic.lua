@@ -513,6 +513,14 @@ local Character = Entity:clone {
         return flags
     end or nil,
 
+    --[[! Function: get_animation
+        Returns the base "action animation" used by <decide_animation>. By
+        default simply return the "animation" attribute.
+    ]]
+    get_animation = (not SERVER) and function(self)
+        return self:get_attr("animation")
+    end or nil,
+
     --[[! Function: decide_animation
         Decides the current animation for the character. Starts with
         <get_animation>, then adjusts it to take things like moving,
@@ -525,7 +533,7 @@ local Character = Entity:clone {
     ]]
     decide_animation = (not SERVER) and function(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
-        local anim = self:get_attr("animation")
+        local anim = self:get_animation()
         local panim = anim[1]
         if panim then
             local xy = panim:split(",")

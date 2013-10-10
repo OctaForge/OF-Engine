@@ -33,6 +33,7 @@ local quadrenderer, taperenderer = particles.register_renderer_quad,
 local hextorgb = conv.hex_to_rgb
 
 local game_manager = require("extra.game_manager")
+local health = require("extra.health")
 
 local connect = signal.connect
 local Vec4 = require("core.lua.geom").Vec4
@@ -146,7 +147,12 @@ local Game_Player = Player:clone {
     end or nil
 }
 
-ents.register_class(Game_Player, { game_manager.player_plugin })
+ents.register_class(Game_Player, {
+    game_manager.player_plugin,
+    health.player_plugin
+})
+ents.register_class(ents.Obstacle, { health.deadly_area_plugin },
+    "Deadly_Area")
 
 if not SERVER then
     inputev.set_event("click", function(btn, down, x, y, z, ent, cx, cy)
