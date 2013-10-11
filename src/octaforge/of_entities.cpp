@@ -255,8 +255,7 @@ namespace entities
     DYNENT_ACCESSORS(pitching, int, look_updown_move)
     DYNENT_ACCESSORS(jumping, bool, jumping)
     DYNENT_ACCESSORS(blocked, bool, blocked)
-    /* XXX should be unsigned */
-    DYNENT_ACCESSORS(mapdefinedposdata, int, mapDefinedPositionData)
+    DYNENT_ACCESSORS(mapdefinedposdata, uint, mapDefinedPositionData)
     DYNENT_ACCESSORS(clientstate, int, state)
     DYNENT_ACCESSORS(physstate, int, physstate)
     DYNENT_ACCESSORS(inwater, int, inwater)
