@@ -116,34 +116,26 @@ namespace entities
         return 0;
     });
 
-    LUAICOMMAND(set_animflags, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.setanimflags", return 0)
-        entity->setAnimationFlags((luaL_checkinteger(L, 2)
-            << ANIM_FLAGSHIFT) & ANIM_FLAGS);
-        return 0;
+    CLUAICOMMAND(set_animflags, void, (int uid, int aflags), {
+        LUA_GET_ENT(entity, uid, "_C.setanimflags", return)
+        entity->setAnimationFlags((aflags << ANIM_FLAGSHIFT) & ANIM_FLAGS);
     });
 
-    LUAICOMMAND(get_start_time, {
-        int uid = luaL_checkinteger(L, 1);
+    CLUAICOMMAND(get_start_time, int, (int uid), {
         LUA_GET_ENT(entity, uid, "_C.getstarttime", return 0)
-        lua_pushinteger(L, entity->getStartTime());
-        return 1;
+        return entity->getStartTime();
     });
 
-    LUAICOMMAND(set_model_name, {
-        int uid = luaL_checkinteger(L, 1);
-        const char *name = "";
-        if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
-        LUA_GET_ENT(entity, uid, "_C.setmodelname", return 0)
+    CLUAICOMMAND(set_model_name, void, (int uid, const char *name), {
+        if (!name) name = "";
+        LUA_GET_ENT(entity, uid, "_C.setmodelname", return)
         logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")",
             entity->getUniqueId(), name);
         extentity *ext = entity->staticEntity;
-        if (!ext) return 0;
+        if (!ext) return;
         removeentity(ext);
         if (name[0]) ext->m = loadmodel(name);
         addentity(ext);
-        return 0;
     });
 
     LUAICOMMAND(set_attachments, {
@@ -165,44 +157,32 @@ namespace entities
         return 1;
     });
 
-    LUAICOMMAND(set_can_move, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.setcanmove", return 0)
-        entity->canMove = lua_toboolean(L, 2);
-        return 0;
+    CLUAICOMMAND(set_can_move, void, (int uid, bool b), {
+        LUA_GET_ENT(entity, uid, "_C.setcanmove", return)
+        entity->canMove = b;
     });
 
     /* Extents */
 
-    LUAICOMMAND(get_attr, {
-        int uid = luaL_checkinteger(L, 1);
+    CLUAICOMMAND(get_attr, int, (int uid, int a), {
         LUA_GET_ENT(entity, uid, "_C.get_attr", return 0)
         extentity *ext = entity->staticEntity;
         assert(ext);
-        lua_pushinteger(L, ext->attr[luaL_checkinteger(L, 2)]);
-        return 1;
+        return ext->attr[a];
     });
-    LUAICOMMAND(set_attr, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.set_attr", return 0)
-        int i = luaL_checkinteger(L, 2);
-        int v = luaL_checkinteger(L, 3);
+    CLUAICOMMAND(set_attr, void, (int uid, int a, int v), {
+        LUA_GET_ENT(entity, uid, "_C.set_attr", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
         if (!world::loading) removeentity(ext);
-        ext->attr[i] = v;
+        ext->attr[a] = v;
         if (!world::loading) addentity(ext);
-        return 0;
     });
-    LUAICOMMAND(FAST_set_attr, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.FAST_set_attr", return 0)
-        int i = luaL_checkinteger(L, 2);
-        int v = luaL_checkinteger(L, 2);
+    CLUAICOMMAND(FAST_set_attr, void, (int uid, int a, int v), {
+        LUA_GET_ENT(entity, uid, "_C.FAST_set_attr", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
-        ext->attr[i] = v;
-        return 0;
+        ext->attr[a] = v;
     });
 
     LUAICOMMAND(get_extent_position, {
@@ -242,50 +222,45 @@ namespace entities
 
     #define luaL_checkboolean lua_toboolean
 
-    #define DYNENT_ACCESSORS(n, t, tt, an) \
-    LUAICOMMAND(get_##n, { \
-        int uid = luaL_checkinteger(L, 1); \
+    #define DYNENT_ACCESSORS(n, t, an) \
+    CLUAICOMMAND(get_##n, t, (int uid), { \
         LUA_GET_ENT(entity, uid, "_C.get"#n, return 0) \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
-        lua_push##tt(L, d->an); \
-        return 1; \
+        return d->an; \
     }); \
-    LUAICOMMAND(set_##n, { \
-        int uid = luaL_checkinteger(L, 1); \
-        LUA_GET_ENT(entity, uid, "_C.set"#n, return 0) \
-        t v = luaL_check##tt(L, 2); \
+    CLUAICOMMAND(set_##n, void, (int uid, t v), { \
+        LUA_GET_ENT(entity, uid, "_C.set"#n, return) \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
         d->an = v; \
-        return 0; \
     });
 
-    DYNENT_ACCESSORS(maxspeed, float, number, maxspeed)
-    DYNENT_ACCESSORS(crouchtime, int, integer, crouchtime)
-    DYNENT_ACCESSORS(radius, float, number, radius)
-    DYNENT_ACCESSORS(eyeheight, float, number, eyeheight)
-    DYNENT_ACCESSORS(maxheight, float, number, maxheight)
-    DYNENT_ACCESSORS(crouchheight, float, number, crouchheight)
-    DYNENT_ACCESSORS(jumpvel, float, number, jumpvel)
-    DYNENT_ACCESSORS(gravity, float, number, gravity)
-    DYNENT_ACCESSORS(aboveeye, float, number, aboveeye)
-    DYNENT_ACCESSORS(yaw, float, number, yaw)
-    DYNENT_ACCESSORS(pitch, float, number, pitch)
-    DYNENT_ACCESSORS(roll, float, number, roll)
-    DYNENT_ACCESSORS(move, int, integer, move)
-    DYNENT_ACCESSORS(strafe, int, integer, strafe)
-    DYNENT_ACCESSORS(yawing, int, integer, turn_move)
-    DYNENT_ACCESSORS(crouching, int, integer, crouching);
-    DYNENT_ACCESSORS(pitching, int, integer, look_updown_move)
-    DYNENT_ACCESSORS(jumping, bool, boolean, jumping)
-    DYNENT_ACCESSORS(blocked, bool, boolean, blocked)
+    DYNENT_ACCESSORS(maxspeed, float, maxspeed)
+    DYNENT_ACCESSORS(crouchtime, int, crouchtime)
+    DYNENT_ACCESSORS(radius, float, radius)
+    DYNENT_ACCESSORS(eyeheight, float, eyeheight)
+    DYNENT_ACCESSORS(maxheight, float, maxheight)
+    DYNENT_ACCESSORS(crouchheight, float, crouchheight)
+    DYNENT_ACCESSORS(jumpvel, float, jumpvel)
+    DYNENT_ACCESSORS(gravity, float, gravity)
+    DYNENT_ACCESSORS(aboveeye, float, aboveeye)
+    DYNENT_ACCESSORS(yaw, float, yaw)
+    DYNENT_ACCESSORS(pitch, float, pitch)
+    DYNENT_ACCESSORS(roll, float, roll)
+    DYNENT_ACCESSORS(move, int, move)
+    DYNENT_ACCESSORS(strafe, int, strafe)
+    DYNENT_ACCESSORS(yawing, int, turn_move)
+    DYNENT_ACCESSORS(crouching, int, crouching);
+    DYNENT_ACCESSORS(pitching, int, look_updown_move)
+    DYNENT_ACCESSORS(jumping, bool, jumping)
+    DYNENT_ACCESSORS(blocked, bool, blocked)
     /* XXX should be unsigned */
-    DYNENT_ACCESSORS(mapdefinedposdata, int, integer, mapDefinedPositionData)
-    DYNENT_ACCESSORS(clientstate, int, integer, state)
-    DYNENT_ACCESSORS(physstate, int, integer, physstate)
-    DYNENT_ACCESSORS(inwater, int, integer, inwater)
-    DYNENT_ACCESSORS(timeinair, int, integer, timeinair)
+    DYNENT_ACCESSORS(mapdefinedposdata, int, mapDefinedPositionData)
+    DYNENT_ACCESSORS(clientstate, int, state)
+    DYNENT_ACCESSORS(physstate, int, physstate)
+    DYNENT_ACCESSORS(inwater, int, inwater)
+    DYNENT_ACCESSORS(timeinair, int, timeinair)
     #undef DYNENT_ACCESSORS
     #undef luaL_checkboolean
 
@@ -371,22 +346,18 @@ namespace entities
     });
 #endif
 
-    LUAICOMMAND(get_plag, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.getplag", return 0)
+    CLUAICOMMAND(get_plag, int, (int uid), {
+        LUA_GET_ENT(entity, uid, "_C.getplag", return -1)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
-        lua_pushinteger(L, p->plag);
-        return 1;
+        return p->plag;
     });
 
-    LUAICOMMAND(get_ping, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.getping", return 0)
+    CLUAICOMMAND(get_ping, int, (int uid), {
+        LUA_GET_ENT(entity, uid, "_C.getping", return -1)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
-        lua_pushinteger(L, p->ping);
-        return 1;
+        return p->ping;
     });
 
     LUAICOMMAND(get_selected_entity, {
