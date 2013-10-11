@@ -1175,7 +1175,8 @@ fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
 }
 
 LUAICOMMAND(model_render, {
-    LUA_GET_ENT(entity, "_C.rendermodel", return 0)
+    int uid = luaL_checkinteger(L, 1);
+    LUA_GET_ENT(entity, uid, "_C.rendermodel", return 0)
 
     lua_pushinteger(L, 1);
     lua_gettable(L, 3);

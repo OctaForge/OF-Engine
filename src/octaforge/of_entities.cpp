@@ -101,7 +101,8 @@ namespace entities
     /* Entity attributes */
 
     LUAICOMMAND(set_animation, {
-        LUA_GET_ENT(entity, "_C.setanim", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.setanim", return 0)
 
         lua_pushinteger(L, 1);
         lua_gettable(L, 2);
@@ -116,22 +117,25 @@ namespace entities
     });
 
     LUAICOMMAND(set_animflags, {
-        LUA_GET_ENT(entity, "_C.setanimflags", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.setanimflags", return 0)
         entity->setAnimationFlags((luaL_checkinteger(L, 2)
             << ANIM_FLAGSHIFT) & ANIM_FLAGS);
         return 0;
     });
 
     LUAICOMMAND(get_start_time, {
-        LUA_GET_ENT(entity, "_C.getstarttime", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.getstarttime", return 0)
         lua_pushinteger(L, entity->getStartTime());
         return 1;
     });
 
     LUAICOMMAND(set_model_name, {
+        int uid = luaL_checkinteger(L, 1);
         const char *name = "";
         if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
-        LUA_GET_ENT(entity, "_C.setmodelname", return 0)
+        LUA_GET_ENT(entity, uid, "_C.setmodelname", return 0)
         logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")",
             entity->getUniqueId(), name);
         extentity *ext = entity->staticEntity;
@@ -143,15 +147,17 @@ namespace entities
     });
 
     LUAICOMMAND(set_attachments, {
-        LUA_GET_ENT(entity, "_C.setattachments", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.setattachments", return 0)
         entity->setAttachments(L);
         return 0;
     });
 
     LUAICOMMAND(get_attachment_position, {
+        int uid = luaL_checkinteger(L, 1);
         const char *attachment = "";
         if (!lua_isnoneornil(L, 2)) attachment = luaL_checkstring(L, 2);
-        LUA_GET_ENT(entity, "_C.getattachmentpos", return 0)
+        LUA_GET_ENT(entity, uid, "_C.getattachmentpos", return 0)
         lua::push_external(L, "new_vec3");
         const vec& o = entity->getAttachmentPosition(attachment);
         lua_pushnumber(L, o.x); lua_pushnumber(L, o.y); lua_pushnumber(L, o.z);
@@ -160,7 +166,8 @@ namespace entities
     });
 
     LUAICOMMAND(set_can_move, {
-        LUA_GET_ENT(entity, "_C.setcanmove", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.setcanmove", return 0)
         entity->canMove = lua_toboolean(L, 2);
         return 0;
     });
@@ -168,14 +175,16 @@ namespace entities
     /* Extents */
 
     LUAICOMMAND(get_attr, {
-        LUA_GET_ENT(entity, "_C.get_attr", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.get_attr", return 0)
         extentity *ext = entity->staticEntity;
         assert(ext);
         lua_pushinteger(L, ext->attr[luaL_checkinteger(L, 2)]);
         return 1;
     });
     LUAICOMMAND(set_attr, {
-        LUA_GET_ENT(entity, "_C.set_attr", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.set_attr", return 0)
         int i = luaL_checkinteger(L, 2);
         int v = luaL_checkinteger(L, 3);
         extentity *ext = entity->staticEntity;
@@ -186,7 +195,8 @@ namespace entities
         return 0;
     });
     LUAICOMMAND(FAST_set_attr, {
-        LUA_GET_ENT(entity, "_C.FAST_set_attr", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.FAST_set_attr", return 0)
         int i = luaL_checkinteger(L, 2);
         int v = luaL_checkinteger(L, 2);
         extentity *ext = entity->staticEntity;
@@ -196,7 +206,8 @@ namespace entities
     });
 
     LUAICOMMAND(get_extent_position, {
-        LUA_GET_ENT(entity, "_C.getextent0", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.getextent0", return 0)
         extentity *ext = entity->staticEntity;
         assert(ext);
         logger::log(logger::INFO,
@@ -210,7 +221,8 @@ namespace entities
     });
 
     LUAICOMMAND(set_extent_position, {
-        LUA_GET_ENT(entity, "_C.setextent0", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.setextent0", return 0)
         luaL_checktype(L, 2, LUA_TTABLE);
         extentity *ext = entity->staticEntity;
         assert(ext);
@@ -232,14 +244,16 @@ namespace entities
 
     #define DYNENT_ACCESSORS(n, t, tt, an) \
     LUAICOMMAND(get_##n, { \
-        LUA_GET_ENT(entity, "_C.get"#n, return 0) \
+        int uid = luaL_checkinteger(L, 1); \
+        LUA_GET_ENT(entity, uid, "_C.get"#n, return 0) \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
         lua_push##tt(L, d->an); \
         return 1; \
     }); \
     LUAICOMMAND(set_##n, { \
-        LUA_GET_ENT(entity, "_C.set"#n, return 0) \
+        int uid = luaL_checkinteger(L, 1); \
+        LUA_GET_ENT(entity, uid, "_C.set"#n, return 0) \
         t v = luaL_check##tt(L, 2); \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
@@ -276,7 +290,8 @@ namespace entities
     #undef luaL_checkboolean
 
     LUAICOMMAND(get_dynent_position, {
-        LUA_GET_ENT(entity, "_C.getdynent0", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.getdynent0", return 0)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
         lua_createtable(L, 3, 0);
@@ -288,7 +303,8 @@ namespace entities
     });
 
     LUAICOMMAND(set_dynent_position, {
-        LUA_GET_ENT(entity, "_C.setdynent0", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.setdynent0", return 0)
         luaL_checktype(L, 2, LUA_TTABLE);
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
@@ -316,7 +332,8 @@ namespace entities
 
     #define DYNENTVEC(name, prop) \
         LUAICOMMAND(get_dynent_##name, { \
-            LUA_GET_ENT(entity, "_C.getdynent"#name, return 0) \
+            int uid = luaL_checkinteger(L, 1); \
+            LUA_GET_ENT(entity, uid, "_C.getdynent"#name, return 0) \
             fpsent *d = (fpsent*)entity->dynamicEntity; \
             assert(d); \
             lua_createtable(L, 3, 0); \
@@ -326,7 +343,8 @@ namespace entities
             return 1; \
         }); \
         LUAICOMMAND(set_dynent_##name, { \
-            LUA_GET_ENT(entity, "_C.setdynent"#name, return 0) \
+            int uid = luaL_checkinteger(L, 1); \
+            LUA_GET_ENT(entity, uid, "_C.setdynent"#name, return 0) \
             fpsent *d = (fpsent*)entity->dynamicEntity; \
             assert(d); \
             lua_pushinteger(L, 1); lua_gettable(L, -2); \
@@ -354,7 +372,8 @@ namespace entities
 #endif
 
     LUAICOMMAND(get_plag, {
-        LUA_GET_ENT(entity, "_C.getplag", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.getplag", return 0)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
         lua_pushinteger(L, p->plag);
@@ -362,7 +381,8 @@ namespace entities
     });
 
     LUAICOMMAND(get_ping, {
-        LUA_GET_ENT(entity, "_C.getping", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.getping", return 0)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
         lua_pushinteger(L, p->ping);
@@ -379,7 +399,8 @@ namespace entities
     });
 
     LUAICOMMAND(get_attached_entity, {
-        LUA_GET_ENT(entity, "_C.get_attached_entity", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.get_attached_entity", return 0)
         extentity *e = entity->staticEntity;
         if (!e || !e->attached) return 0;
         CLogicEntity *ae = LogicSystem::getLogicEntity(*e->attached);

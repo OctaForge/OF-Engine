@@ -985,7 +985,7 @@ Entity = table2.Object:clone {
         if not sfun then return end
         if not (SERVER and self.svar_change_queue) then
             debug then log(INFO, "Calling setter function for " .. name)
-            sfun(self, val)
+            sfun(self.uid, val)
             debug then log(INFO, "Setter called")
 
             self.svar_values[name] = val

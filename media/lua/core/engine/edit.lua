@@ -59,7 +59,7 @@ M.add_npc = capi.npcadd
 --[[! Function: delete_npc
     Deletes a bot. Takes the entity, returns nothing. Purely serverside.
 ]]
-M.delete_npc = capi.npcdel
+M.delete_npc = function(ent) capi.npcdel(ent.uid) end
 
 --[[! Function: new_entity
     Creates a new entity on the position where the edit cursor is aiming.

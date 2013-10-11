@@ -779,7 +779,8 @@ LUAICOMMAND(sound_play, {
 });
 
 LUAICOMMAND(sound_play_map, {
-    LUA_GET_ENT(entity, "_C.sound_play_map", {
+    int uid = luaL_checkinteger(L, 1);
+    LUA_GET_ENT(entity, uid, "_C.sound_play_map", {
         lua_pushboolean(L, false);
         return 1;
     });
@@ -803,7 +804,8 @@ LUAICOMMAND(sound_stop, {
 });
 
 LUAICOMMAND(sound_stop_map, {
-    LUA_GET_ENT(entity, "_C.sound_stop_map", {
+    int uid = luaL_checkinteger(L, 1);
+    LUA_GET_ENT(entity, uid, "_C.sound_stop_map", {
         lua_pushboolean(L, false);
         return 1;
     });

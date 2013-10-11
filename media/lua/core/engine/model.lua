@@ -126,8 +126,8 @@ local mrender = capi.model_render
 ]]
 M.render = function(ent, mdl, anim, animflags, pos, yaw, pitch, roll, flags,
 btime, trans)
-    mrender(ent, mdl, anim, animflags, pos.x, pos.y, pos.z, yaw, pitch, roll,
-        flags, btime, trans)
+    mrender(ent.uid, mdl, anim, animflags, pos.x, pos.y, pos.z, yaw, pitch,
+        roll, flags, btime, trans)
 end
 
 --[[! Function: get_bounding_box

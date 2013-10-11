@@ -209,7 +209,7 @@ State_Variable = table2.Object:clone {
 
         debug then log(INFO, "State_Variable: getter: getter function")
 
-        local val = var.getter_fun(self)
+        local val = var.getter_fun(self.uid)
 
         if not SERVER or self.svar_change_queue_complete then
             self.svar_values[vn] = val
@@ -552,7 +552,7 @@ State_Array = State_Variable:clone {
 
         debug then log(INFO, "State_Array: get_raw: getter function")
 
-        local val = self.getter_fun(ent)
+        local val = self.getter_fun(ent.uid)
 
         if not SERVER or ent.svar_change_queue_complete then
             ent.svar_values[vn] = val

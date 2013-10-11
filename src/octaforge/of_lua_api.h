@@ -75,7 +75,8 @@ namespace lapi_binds
     }
 
     int _lua_npcdel(lua_State *L) {
-        LUA_GET_ENT(entity, "_C.npcdel", return 0)
+        int uid = luaL_checkinteger(L, 1);
+        LUA_GET_ENT(entity, uid, "_C.npcdel", return 0)
         fpsent *fp = (fpsent*)entity->dynamicEntity;
         localdisconnect(true, fp->clientnum);
         return 0;

@@ -350,8 +350,8 @@ local Character = Entity:clone {
         end
     end,
 
-    get_plag = capi.get_plag,
-    get_ping = capi.get_ping,
+    get_plag = function(self) return capi.get_plag(self.uid) end,
+    get_ping = function(self) return capi.get_ping(self.uid) end,
     get_editing = function(self) return self:get_attr("client_state") == 4 end,
     get_lagged = function(self) return self:get_attr("client_state") == 3 end,
 
@@ -849,7 +849,7 @@ local Static_Entity = Entity:clone {
         works with.
     ]]
     get_attached_entity = function(self)
-        return capi.get_attached_entity(self)
+        return capi.get_attached_entity(self.uid)
     end,
 
     --[[! Function: get_edit_drop_height
@@ -1111,7 +1111,7 @@ local Sound = Static_Entity:clone {
 
     __activate = (not SERVER) and function(self, ...)
         Static_Entity.__activate(self, ...)
-        local f = capi.sound_stop_map
+        local f = |self, ...| capi.sound_stop_map(self.uid, ...)
         connect(self, "sound_name_changed", f)
         connect(self, "radius_changed", f)
         connect(self, "size_changed", f)
@@ -1126,7 +1126,7 @@ local Sound = Static_Entity:clone {
     end,
 
     __play_sound = function(self)
-        capi.sound_play_map(self, self:get_attr("sound_name"),
+        capi.sound_play_map(self.uid, self:get_attr("sound_name"),
             self:get_attr("volume"))
     end
 }
