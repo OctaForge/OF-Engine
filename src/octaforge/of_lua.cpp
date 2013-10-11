@@ -198,10 +198,11 @@ namespace lua
         lua_call(L, 1, 1);
         lua_getfield(L, -1, "cdef");
         lua_pushliteral(L, "typedef unsigned char uchar;\n"
-                           "typedef unsigned short ushort;\n"
-                           "typedef unsigned int uint;\n"
-                           "typedef signed long long int llong;\n"
-                           "typedef unsigned long long int ullong;\n");
+            "typedef unsigned short ushort;\n"
+            "typedef unsigned int uint;\n"
+            "typedef signed long long int llong;\n"
+            "typedef unsigned long long int ullong;\n"
+            "typedef struct cvec3_t { double x, y, z; } cvec3_t;\n");
         lua_call(L, 1, 0);
         lua_getfield(L, -1, "cast");
         lua_replace(L, -2);

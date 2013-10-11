@@ -62,9 +62,8 @@ namespace entities
 
     /* OF Lua entity API */
 
-    LUAICOMMAND(unregister_entity, {
-        LogicSystem::unregisterLogicEntityByUniqueId(luaL_checkinteger(L, 1));
-        return 0;
+    CLUAICOMMAND(unregister_entity, void, (int uid), {
+        LogicSystem::unregisterLogicEntityByUniqueId(uid);
     });
 
     LUAICOMMAND(setup_extent, {
@@ -100,20 +99,11 @@ namespace entities
 
     /* Entity attributes */
 
-    LUAICOMMAND(set_animation, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.setanim", return 0)
-
-        lua_pushinteger(L, 1);
-        lua_gettable(L, 2);
-        int panim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR);
-        lua_pushinteger(L, 2);
-        lua_gettable(L, 2);
-        int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR);
-        lua_pop(L, 2);
-
+    CLUAICOMMAND(set_animation, void, (int uid, int panim, int sanim), {
+        LUA_GET_ENT(entity, uid, "_C.setanim", return)
+        panim &= (ANIM_INDEX | ANIM_DIR);
+        sanim &= (ANIM_INDEX | ANIM_DIR);
         entity->setAnimation(panim | (sanim << ANIM_SECONDARY));
-        return 0;
     });
 
     CLUAICOMMAND(set_animflags, void, (int uid, int aflags), {
@@ -185,42 +175,33 @@ namespace entities
         ext->attr[a] = v;
     });
 
-    LUAICOMMAND(get_extent_position, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.getextent0", return 0)
+    struct cvec3_t { double x, y, z; };
+
+    CLUAICOMMAND(get_extent_position, cvec3_t, (int uid), {
+        LUA_GET_ENT(entity, uid, "_C.getextent0",
+            return ((cvec3_t){ 0, 0, 0 }))
         extentity *ext = entity->staticEntity;
         assert(ext);
         logger::log(logger::INFO,
             "_C.getextent0(%d): x: %f, y: %f, z: %f",
             entity->getUniqueId(), ext->o.x, ext->o.y, ext->o.z);
-        lua_createtable(L, 3, 0);
-        lua_pushnumber(L, ext->o.x); lua_rawseti(L, -2, 1);
-        lua_pushnumber(L, ext->o.y); lua_rawseti(L, -2, 2);
-        lua_pushnumber(L, ext->o.z); lua_rawseti(L, -2, 3);
-        return 1;
+        return ((cvec3_t){ ext->o.x, ext->o.y, ext->o.z });
     });
 
-    LUAICOMMAND(set_extent_position, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.setextent0", return 0)
-        luaL_checktype(L, 2, LUA_TTABLE);
+    CLUAICOMMAND(set_extent_position, void, (int uid, double x, double y,
+    double z), {
+        LUA_GET_ENT(entity, uid, "_C.setextent0", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
 
         removeentity(ext);
-        lua_pushinteger(L, 1); lua_gettable(L, -2);
-        ext->o.x = luaL_checknumber(L, -1); lua_pop(L, 1);
-        lua_pushinteger(L, 2); lua_gettable(L, -2);
-        ext->o.y = luaL_checknumber(L, -1); lua_pop(L, 1);
-        lua_pushinteger(L, 3); lua_gettable(L, -2);
-        ext->o.z = luaL_checknumber(L, -1); lua_pop(L, 1);
+        ext->o.x = x;
+        ext->o.y = y;
+        ext->o.z = z;
         addentity(ext);
-        return 0;
     });
 
     /* Dynents */
-
-    #define luaL_checkboolean lua_toboolean
 
     #define DYNENT_ACCESSORS(n, t, an) \
     CLUAICOMMAND(get_##n, t, (int uid), { \
@@ -261,35 +242,25 @@ namespace entities
     DYNENT_ACCESSORS(inwater, int, inwater)
     DYNENT_ACCESSORS(timeinair, int, timeinair)
     #undef DYNENT_ACCESSORS
-    #undef luaL_checkboolean
 
-    LUAICOMMAND(get_dynent_position, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.getdynent0", return 0)
+    CLUAICOMMAND(get_dynent_position, cvec3_t, (int uid), {
+        LUA_GET_ENT(entity, uid, "_C.getdynent0",
+            return ((cvec3_t){ 0, 0, 0 }))
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
-        lua_createtable(L, 3, 0);
-        lua_pushnumber(L, d->o.x); lua_rawseti(L, -2, 1);
-        lua_pushnumber(L, d->o.y); lua_rawseti(L, -2, 2);
-        lua_pushnumber(L, d->o.z - d->eyeheight/* - d->aboveeye*/);
-        lua_rawseti(L, -2, 3);
-        return 1;
+        return ((cvec3_t){ d->o.x, d->o.y, d->o.z
+            - d->eyeheight/* - d->aboveeye*/ });
     });
 
-    LUAICOMMAND(set_dynent_position, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.setdynent0", return 0)
-        luaL_checktype(L, 2, LUA_TTABLE);
+    CLUAICOMMAND(set_dynent_position, void, (int uid, double x, double y,
+    double z), {
+        LUA_GET_ENT(entity, uid, "_C.setdynent0", return)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
 
-        lua_pushinteger(L, 1); lua_gettable(L, -2);
-        d->o.x = luaL_checknumber(L, -1); lua_pop(L, 1);
-        lua_pushinteger(L, 2); lua_gettable(L, -2);
-        d->o.y = luaL_checknumber(L, -1); lua_pop(L, 1);
-        lua_pushinteger(L, 3); lua_gettable(L, -2);
-        d->o.z = luaL_checknumber(L, -1) + d->eyeheight;/* + d->aboveeye; */
-        lua_pop(L, 1);
+        d->o.x = x;
+        d->o.y = y;
+        d->o.z = z + d->eyeheight;/* + d->aboveeye; */
 
         /* also set newpos, otherwise this change may get overwritten */
         d->newpos = d->o;
@@ -301,33 +272,24 @@ namespace entities
             logger::INFO, "(%i).setdynent0(%f, %f, %f)",
             d->uid, d->o.x, d->o.y, d->o.z
         );
-        return 0;
     });
 
     #define DYNENTVEC(name, prop) \
-        LUAICOMMAND(get_dynent_##name, { \
-            int uid = luaL_checkinteger(L, 1); \
-            LUA_GET_ENT(entity, uid, "_C.getdynent"#name, return 0) \
+        CLUAICOMMAND(get_dynent_##name, cvec3_t, (int uid), { \
+            LUA_GET_ENT(entity, uid, "_C.getdynent"#name, \
+                return ((cvec3_t){ 0, 0, 0 })) \
             fpsent *d = (fpsent*)entity->dynamicEntity; \
             assert(d); \
-            lua_createtable(L, 3, 0); \
-            lua_pushnumber(L, d->prop.x); lua_rawseti(L, -2, 1); \
-            lua_pushnumber(L, d->prop.y); lua_rawseti(L, -2, 2); \
-            lua_pushnumber(L, d->prop.z); lua_rawseti(L, -2, 3); \
-            return 1; \
+            return ((cvec3_t){ d->prop.x, d->prop.y, d->prop.z }); \
         }); \
-        LUAICOMMAND(set_dynent_##name, { \
-            int uid = luaL_checkinteger(L, 1); \
-            LUA_GET_ENT(entity, uid, "_C.setdynent"#name, return 0) \
+        CLUAICOMMAND(set_dynent_##name, void, (int uid, double x, \
+        double y, double z), { \
+            LUA_GET_ENT(entity, uid, "_C.setdynent"#name, return) \
             fpsent *d = (fpsent*)entity->dynamicEntity; \
             assert(d); \
-            lua_pushinteger(L, 1); lua_gettable(L, -2); \
-            d->prop.x = luaL_checknumber(L, -1); lua_pop(L, 1); \
-            lua_pushinteger(L, 2); lua_gettable(L, -2); \
-            d->prop.y = luaL_checknumber(L, -1); lua_pop(L, 1); \
-            lua_pushinteger(L, 3); lua_gettable(L, -2); \
-            d->prop.z = luaL_checknumber(L, -1); lua_pop(L, 1); \
-            return 0; \
+            d->prop.x = x; \
+            d->prop.y = y; \
+            d->prop.z = z; \
         });
 
     DYNENTVEC(velocity, vel)
