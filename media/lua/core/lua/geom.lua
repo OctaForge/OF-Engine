@@ -16,6 +16,7 @@
 
 local capi = require("capi")
 local ffi = require("ffi")
+local log = require("core.logger")
 
 local gen_vec2 = function(tp, sf, mt)
     ffi.cdef(([[
@@ -905,7 +906,7 @@ local gen_vec_surrogate = function(name, base, ltable)
     surrtbl = {
         name = name,
         new = function(self, ent, var)
-            debug then log(INFO, name .. ": new: " .. var.name)
+            debug then log.log(log.INFO, name .. ": new: " .. var.name)
             local rawt = { entity = ent, variable = var }
             rawt.rawt = rawt
             local ret = newproxy(true)

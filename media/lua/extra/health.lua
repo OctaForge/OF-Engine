@@ -120,8 +120,7 @@ M.player_plugin = {
         if self:get_attr("health") > 0 then
             return self.__parent_class.decide_animation(self, ...)
         else
-            return (anims.dying | model.anim_control.LOOP),
-                model.anim_flags.RAGDOLL
+            return { anims.dying, 0 }, model.anim_flags.RAGDOLL
         end
     end or nil,
 
