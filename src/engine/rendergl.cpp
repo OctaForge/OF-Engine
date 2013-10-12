@@ -1153,26 +1153,20 @@ CLUAICOMMAND(camera_get_pitch, float, (), {
 CLUAICOMMAND(camera_get_roll, float, (), {
     return camera1->roll;
 });
-LUAICOMMAND(camera_get_position, {
-    lua::push_external(L, "new_vec3");
+CLUAICOMMAND(camera_get_position, void, (float *val), {
     const vec& o = camera1->o;
-    lua_pushnumber(L, o.x);
-    lua_pushnumber(L, o.y);
-    lua_pushnumber(L, o.z);
-    lua_call(L, 3, 1);
-    return 1;
+    val[0] = o.x;
+    val[1] = o.y;
+    val[2] = o.z;
 });
-LUAICOMMAND(camera_get, {
-    lua::push_external(L, "new_vec3");
+CLUAICOMMAND(camera_get, void, (float *val), {
     const vec& o = camera1->o;
-    lua_pushnumber(L, o.x);
-    lua_pushnumber(L, o.y);
-    lua_pushnumber(L, o.z);
-    lua_call(L, 3, 1);
-    lua_pushinteger(L, camera1->yaw);
-    lua_pushinteger(L, camera1->pitch);
-    lua_pushinteger(L, camera1->roll);
-    return 4;
+    val[0] = o.x;
+    val[1] = o.y;
+    val[2] = o.z;
+    val[3] = camera1->yaw;
+    val[4] = camera1->pitch;
+    val[5] = camera1->roll;
 })
 
 vec worldpos, camdir, camright, camup;
@@ -1433,20 +1427,16 @@ static physent forced_camera;
 static int force_flags = 0;
 static int saved_thirdperson = -1;
 
-void force_position(vec &pos) {
+void force_position(float x, float y, float z) {
     force_flags |= FORCE_POS;
-    forced_camera.o = pos;
+    forced_camera.o = vec(x, y, z);
     if (!thirdperson && saved_thirdperson == -1) {
         saved_thirdperson = thirdperson;
         thirdperson = 1;
     }
 }
-LUAICOMMAND(camera_force_position, {
-    vec pos(luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3));
-    force_position(pos);
-    return 0;
+CLUAICOMMAND(camera_force_position, void, (float x, float y, float z), {
+    force_position(x, y, z);
 });
 
 #define FORCE_PROP(name, flag) \
@@ -1458,9 +1448,8 @@ void force_##name(float name) { \
         thirdperson = 1; \
     } \
 } \
-LUAICOMMAND(camera_force_##name, { \
-    force_##name(luaL_checknumber(L, 1)); \
-    return 0; \
+CLUAICOMMAND(camera_force_##name, void, (float v), { \
+    force_##name(v); \
 });
 FORCE_PROP(yaw, FORCE_YAW)
 FORCE_PROP(pitch, FORCE_PITCH)
@@ -1474,26 +1463,22 @@ void force_fov(float fov) {
         thirdperson = 1;
     }
 }
-LUAICOMMAND(camera_force_fov, {
-    force_fov(luaL_checknumber(L, 1));
-    return 0;
+CLUAICOMMAND(camera_force_fov, void, (float fov), {
+    force_fov(fov);
 });
 
-void force_camera(vec &pos, float yaw, float pitch, float roll, float fov) {
+void force_camera(float x, float y, float z, float yaw, float pitch,
+float roll, float fov) {
     force_flags = 0;
-    force_position(pos);
+    force_position(x, y, z);
     force_yaw(yaw);
     force_pitch(pitch);
     force_roll(roll);
     force_fov(fov);
 }
-LUAICOMMAND(camera_force, {
-    vec pos(luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3));
-    force_camera(pos, luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-        luaL_checknumber(L, 6), luaL_optnumber(L, 7, -1));
-    return 0;
+CLUAICOMMAND(camera_force, void, (float x, float y, float z, float yaw,
+float pitch, float roll, float fov), {
+    force_camera(x, y, z, yaw, pitch, roll, fov);
 });
 
 void position_camera(physent* camera1) {

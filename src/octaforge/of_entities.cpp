@@ -141,11 +141,9 @@ namespace entities
         const char *attachment = "";
         if (!lua_isnoneornil(L, 2)) attachment = luaL_checkstring(L, 2);
         LUA_GET_ENT(entity, uid, "_C.getattachmentpos", return 0)
-        lua::push_external(L, "new_vec3");
         const vec& o = entity->getAttachmentPosition(attachment);
         lua_pushnumber(L, o.x); lua_pushnumber(L, o.y); lua_pushnumber(L, o.z);
-        lua_call(L, 3, 1);
-        return 1;
+        return 3;
     });
 
     CLUAICOMMAND(set_can_move, void, (int uid, bool b), {
