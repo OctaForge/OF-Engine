@@ -1618,8 +1618,8 @@ CLUAICOMMAND(shader_hud_set, void, (), {
     hudshader->set();
 });
 
-CLUAICOMMAND(shader_hud_set_variant, void, (void *tex), {
-    hudshader->setvariant(((Texture*)tex)->swizzle(), 0);
+CLUAICOMMAND(shader_hud_set_variant, void, (Texture *tex), {
+    hudshader->setvariant(tex->swizzle(), 0);
 });
 
 CLUAICOMMAND(shader_hudnotexture_set, void, (), {

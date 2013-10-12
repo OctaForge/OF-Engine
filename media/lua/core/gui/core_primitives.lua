@@ -23,13 +23,13 @@ local geom = require("core.lua.geom")
 local gl_blend_func, shader_hudnotexture_set, shader_hud_set, gl_bind_texture,
 gl_texture_param, shader_hud_set_variant, gle_begin, gle_end, gle_defvertexf,
 gle_deftexcoord0f, gle_color4f, gle_attrib2f, texture_load,
-texture_load_alpha_mask, texture_is_notexture, texture_get_notexture,
-thumbnail_load, texture_draw_slot, texture_draw_vslot, gl_blend_disable,
-gl_blend_enable, gl_scissor_disable, gl_scissor_enable, gle_disable,
-model_preview_start, model_preview, model_preview_end, hudmatrix_push,
-hudmatrix_scale, hudmatrix_flush, hudmatrix_pop, hudmatrix_translate,
-text_draw, text_get_bounds, text_font_push, text_font_pop, text_font_set,
-hud_get_h, console_render_full, text_font_get_w, text_font_get_h in capi
+texture_load_alpha_mask, texture_get_notexture, thumbnail_load,
+texture_draw_slot, texture_draw_vslot, gl_blend_disable, gl_blend_enable,
+gl_scissor_disable, gl_scissor_enable, gle_disable, model_preview_start,
+model_preview, model_preview_end, hudmatrix_push, hudmatrix_scale,
+hudmatrix_flush, hudmatrix_pop, hudmatrix_translate, text_draw,
+text_get_bounds, text_font_push, text_font_pop, text_font_set, hud_get_h,
+console_render_full, text_font_get_w, text_font_get_h in capi
 
 local max   = math.max
 local min   = math.min
@@ -261,19 +261,17 @@ M.Outline = register_class("Outline", Filler, {
 })
 
 local check_alpha_mask = function(tex, x, y)
-    if not tex:get_alphamask() then
-        texture_load_alpha_mask(tex)
-        if not tex:get_alphamask() then
+    if tex.alphamask == nil then
+        if texture_load_alpha_mask(tex) == nil then
             return true
         end
     end
 
-    local xs, ys = tex:get_xs(), tex:get_ys()
-    local tx, ty = clamp(floor(x * xs), 0, xs - 1),
-                   clamp(floor(y * ys), 0, ys - 1)
+    local xs, ys = tex.xs, tex.ys
+    local tx, ty = clamp(floor(x * tex.xs), 0, tex.xs - 1),
+                   clamp(floor(y * tex.ys), 0, tex.ys - 1)
 
-    local m = tex:get_alphamask(ty * ((xs + 7) / 8))
-    if (m & (1 << (tx % 8))) != 0 then
+    if (tex.alphamask[ty * ((tex.xs + 7) / 8)] & (1 << (tx % 8))) != 0 then
         return true
     end
 
@@ -300,12 +298,13 @@ local Image = register_class("Image", Filler, {
         kwargs    = kwargs or {}
         local tex = kwargs.file and texture_load(kwargs.file)
 
+        local notexture = texture_get_notexture()
         local af = kwargs.alt_file
-        if (not tex or texture_is_notexture(tex)) and af then
+        if (not tex or tex == notexture) and af then
             tex = texture_load(af)
         end
 
-        self.texture = tex or texture_get_notexture()
+        self.texture = tex or notexture
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
         self.color = init_color(kwargs.color)
@@ -317,7 +316,7 @@ local Image = register_class("Image", Filler, {
         Returns the loaded texture filename.
     ]]
     get_tex = function(self)
-        return self.texture:get_name()
+        return self.texture.name
     end,
 
     --[[! Function: set_tex
@@ -331,8 +330,8 @@ local Image = register_class("Image", Filler, {
             return
         end
         local tex = texture_load(file)
-        if texture_is_notexture(tex) and alt then
-              tex = texture_load(alt)
+        if  tex == texture_get_notexture() and alt then
+            tex = texture_load(alt)
         end
         self.texture = tex
     end,
@@ -346,8 +345,8 @@ local Image = register_class("Image", Filler, {
         if    o then return o end
 
         local tex = self.texture
-        return (tex:get_bpp() < 32 or check_alpha_mask(tex, cx / self.w,
-                                                      cy / self.h)) and self
+        return (tex.bpp < 32 or check_alpha_mask(tex, cx / self.w,
+                                                       cy / self.h)) and self
     end,
 
     draw = function(self, sx, sy)
@@ -355,12 +354,12 @@ local Image = register_class("Image", Filler, {
                                 self.mag_filter, self.texture
         local color = self.color
 
-        if texture_is_notexture(tex) then
+        if tex == texture_get_notexture() then
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
-        gl_bind_texture(tex:get_id())
+        gl_bind_texture(tex.id)
 
         if minf and minf != 0 then
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -396,12 +395,8 @@ local Image = register_class("Image", Filler, {
 
         if  min_w == 0 or min_h == 0 then
             local tex, scrh = self.texture, hud_get_h()
-            if  min_w == 0 then
-                min_w = tex:get_w() / scrh
-            end
-            if  min_h == 0 then
-                min_h = tex:get_h() / scrh
-            end
+            if min_w == 0 then min_w = tex.w / scrh end
+            if min_h == 0 then min_h = tex.h / scrh end
         end
 
         self._min_w, self._min_h = min_w, min_h
@@ -424,8 +419,7 @@ local get_border_size = function(tex, size, vert)
     if size >= 0 then
         return size
     end
-
-    return abs(n) / (vert and tex:get_ys() or tex:get_xs())
+    return abs(n) / (vert and tex.ys or tex.xs)
 end
 
 --[[! Struct: Cropped_Image
@@ -453,7 +447,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         if    o then return o end
 
         local tex = self.texture
-        return (tex:get_bpp() < 32 or check_alpha_mask(tex,
+        return (tex.bpp < 32 or check_alpha_mask(tex,
             self.crop_x + cx / self.w * self.crop_w,
             self.crop_y + cy / self.h * self.crop_h)) and self
     end,
@@ -462,12 +456,12 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        if texture_is_notexture(tex) then
+        if tex == texture_get_notexture() then
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
-        gl_bind_texture(tex:get_id())
+        gl_bind_texture(tex.id)
 
         if minf and minf != 0 then
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -526,7 +520,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
     target = function(self, cx, cy)
         local o = Widget.target(self, cx, cy)
         if    o then return o end
-        if self.texture:get_bpp() < 32 then return self end
+        if self.texture.bpp < 32 then return self end
 
         local mx, my, mw, mh, pw, ph = 0, 0, self._min_w, self._min_h,
                                              self.w,      self.h
@@ -548,12 +542,12 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        if texture_is_notexture(tex) then
+        if tex == texture_get_notexture() then
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
-        gl_bind_texture(tex:get_id())
+        gl_bind_texture(tex.id)
 
         if minf and minf != 0 then
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -648,7 +642,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
 
         local tex = self.texture
 
-        if tex:get_bpp() < 32 then
+        if tex.bpp < 32 then
             return self
         end
 
@@ -670,12 +664,12 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        if texture_is_notexture(tex) then
+        if tex == texture_get_notexture() then
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
-        gl_bind_texture(tex:get_id())
+        gl_bind_texture(tex.id)
 
         if minf and minf != 0 then
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -748,7 +742,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
 
         local tex = self.texture
 
-        if tex:get_bpp() < 32 then return self end
+        if tex.bpp < 32 then return self end
 
         local tw, th = self.tile_w, self.tile_h
         local dx, dy = cx % tw, cy % th
@@ -760,12 +754,12 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         local minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        if texture_is_notexture(tex) then
+        if tex == texture_get_notexture() then
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
-        gl_bind_texture(tex:get_id())
+        gl_bind_texture(tex.id)
 
         if minf and minf != 0 then
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -780,7 +774,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
 
         -- we cannot use the built in OpenGL texture
         -- repeat with clamped textures
-        if tex:get_clamp() != 0 then
+        if tex.clamp != 0 then
             local dx, dy = 0, 0
             gle_defvertexf(2)
             gle_deftexcoord0f(2)
@@ -837,7 +831,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     load = function(self, force)
         if self.loaded then return end
         local tex = thumbnail_load(self.file, force)
-        if tex then
+        if tex != texture_get_notexture() then
             self.loaded = true
             self.texture = tex
         end

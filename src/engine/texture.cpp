@@ -3379,12 +3379,6 @@ COMMAND(removealphachannel, "ss");
 
 /* OF */
 
-Texture *luachecktexture(lua_State *L, int idx) {
-    Texture **tex = (Texture**)luaL_checkudata(L, idx, "Texture");
-    luaL_argcheck(L, tex != NULL, idx, "'Texture' expected");
-    return *tex;
-}
-
 LUAICOMMAND(texture_get_data, {
     const char *fn = "";
     if (!lua_isnoneornil(L, 1)) fn = luaL_checkstring(L, 1);
@@ -3442,85 +3436,16 @@ LUAICOMMAND(texture_get_data, {
     return 3;
 });
 
-#define TEXPROP(field, func) \
-static int texture_get_##field(lua_State *L) { \
-    Texture *tex = luachecktexture(L, 1); \
-    lua_push##func(L, tex->field); \
-    return 1; \
-}
-
-TEXPROP(name, string)
-TEXPROP(type, integer)
-TEXPROP(w, integer)
-TEXPROP(h, integer)
-TEXPROP(xs, integer)
-TEXPROP(ys, integer)
-TEXPROP(bpp, integer)
-TEXPROP(clamp, integer)
-TEXPROP(mipmap, boolean)
-TEXPROP(canreduce, boolean)
-TEXPROP(id, integer)
-#undef TEXPROP
-
-static int texture_get_alphamask(lua_State *L) {
-    Texture *tex = luachecktexture(L, 1);
-    if (lua_gettop(L) > 1) {
-        int idx = luaL_checkinteger(L, 2);
-        luaL_argcheck(L, idx < (tex->h * ((tex->w + 7) / 8)),
-            1, "index out of range");
-        lua_pushinteger(L, tex->alphamask[idx]);
-    } else {
-        lua_pushboolean(L, tex->alphamask != NULL);
-    }
-    return 1;
-}
-
-static void texture_setmeta(lua_State *L) {
-    if (luaL_newmetatable(L, "Texture")) {
-        lua_createtable(L, 0, 11);
-        #define TEXFIELD(field) \
-            lua_pushcfunction(L, texture_get_##field); \
-            lua_setfield(L, -2, "get_" #field);
-
-        TEXFIELD(name)
-        TEXFIELD(type)
-        TEXFIELD(w)
-        TEXFIELD(h)
-        TEXFIELD(xs)
-        TEXFIELD(ys)
-        TEXFIELD(bpp)
-        TEXFIELD(clamp)
-        TEXFIELD(mipmap)
-        TEXFIELD(canreduce)
-        TEXFIELD(id)
-        TEXFIELD(alphamask)
-        #undef TEXFIELD
-        lua_setfield(L, -2, "__index");
-    }
-    lua_setmetatable(L, -2);
-}
-
-LUAICOMMAND(texture_load, {
-    *((Texture**)lua_newuserdata(L, sizeof(void*)))
-        = textureload(luaL_checkstring(L, 1), 3, true, false);
-    texture_setmeta(L);
-    return 1;
+CLUAICOMMAND(texture_load, Texture*, (const char *name), {
+    return textureload(name, 3, true, false);
 });
 
-LUAICOMMAND(texture_is_notexture, {
-    lua_pushboolean(L, luachecktexture(L, 1) == notexture);
-    return 1;
+CLUAICOMMAND(texture_get_notexture, Texture*, (), {
+    return notexture;
 });
 
-LUAICOMMAND(texture_get_notexture, {
-    *((Texture**)lua_newuserdata(L, sizeof(void*))) = notexture;
-    texture_setmeta(L);
-    return 1;
-});
-
-LUAICOMMAND(texture_load_alpha_mask, {
-    loadalphamask(luachecktexture(L, 1));
-    return 0;
+CLUAICOMMAND(texture_load_alpha_mask, uchar*, (Texture *tex), {
+    return loadalphamask(tex);
 });
 
 VAR(thumbtime, 0, 25, 1000);
@@ -3630,10 +3555,7 @@ LUAICOMMAND(texture_draw_vslot, {
     return 0;
 });
 
-LUAICOMMAND(thumbnail_load, {
-    const char *p = luaL_checkstring(L, 1);
-    bool force = lua_toboolean(L, 2);
-
+CLUAICOMMAND(thumbnail_load, Texture*, (const char *p, bool force), {
     string tname;
     copystring(tname, p);
     Texture *t = textures.access(path(tname));
@@ -3647,11 +3569,9 @@ LUAICOMMAND(thumbnail_load, {
         t = textureload(p, 3, true, false);
 
     if (!t || t == notexture) {
-        return 0;
+        return notexture;
     }
 finalize:
     lastthumbnail = totalmillis;
-    *((Texture**)lua_newuserdata(L, sizeof(void*))) = t;
-    texture_setmeta(L);
-    return 1;
+    return t;
 })
