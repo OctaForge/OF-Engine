@@ -208,9 +208,9 @@ PART_VEC_ACCESSOR(d, z)
 struct partvert
 {
     vec pos;
-    float u, v;
     vec color;
     float alpha;
+    float u, v;
 };
 
 #define COLLIDERADIUS 8.0f

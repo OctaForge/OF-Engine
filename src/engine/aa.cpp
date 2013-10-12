@@ -5,10 +5,12 @@ extern void cleanuptqaa();
 VARFP(tqaa, 0, 0, 1, cleanupaa());
 FVAR(tqaareproject, 0, 300, 1e3f);
 FVAR(tqaareprojectscale, 0, 4, 1e3f);
-VARFP(tqaamovemask, 0, 1, 1, cleanuptqaa());
+VARFP(tqaamovemask, 0, 0, 1, cleanuptqaa());
 VARFP(tqaamovemaskreduce, 0, 0, 2, cleanuptqaa());
 VARFP(tqaamovemaskprec, 0, 1, 1, cleanuptqaa());
 VARP(tqaaquincunx, 0, 1, 1);
+FVAR(tqaacolorweightscale, 0, 0.25f, 1e3f);
+FVAR(tqaacolorweightbias, 0, 0.01f, 1);
 
 struct tqaaview
 {
@@ -124,7 +126,11 @@ struct tqaaview
             SETSHADER(tqaaresolvemasked);
             LOCALPARAMF(movemaskscale, 1/float(1<<tqaamovemaskreduce));
         }
-        else SETSHADER(tqaaresolve);
+        else
+        {
+            SETSHADER(tqaaresolve);
+            LOCALPARAMF(colorweight, tqaacolorweightscale, -tqaacolorweightbias*tqaacolorweightscale);
+        }
         glBindTexture(GL_TEXTURE_RECTANGLE, curtex);
         glActiveTexture_(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_RECTANGLE, frame ? prevtex : curtex);

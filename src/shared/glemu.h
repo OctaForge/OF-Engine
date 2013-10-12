@@ -60,10 +60,10 @@ namespace gle
     static inline void tangent(const vec &v, float w = 1.0f) { glVertexAttrib4f_(ATTRIB_TANGENT, v.x, v.y, v.z, w); }
     static inline void tangent(const vec4 &v) { glVertexAttrib4fv_(ATTRIB_TANGENT, v.v); }
 
-    #define GLE_ATTRIBPOINTER(name, index, normalized, defaultsize, defaulttype) \
+    #define GLE_ATTRIBPOINTER(name, index, defaultnormalized, defaultsize, defaulttype) \
         static inline void enable##name() { glEnableVertexAttribArray_(index); } \
         static inline void disable##name() { glDisableVertexAttribArray_(index); } \
-        static inline void name##pointer(int stride, const void *data, GLenum type = defaulttype, int size = defaultsize) { \
+        static inline void name##pointer(int stride, const void *data, GLenum type = defaulttype, int size = defaultsize, GLenum normalized = defaultnormalized) { \
             glVertexAttribPointer_(index, size, type, normalized, stride, data); \
         }
 

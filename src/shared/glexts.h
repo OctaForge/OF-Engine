@@ -718,6 +718,11 @@ extern PFNGLGETTEXPARAMETERIUIVPROC glGetTexParameterIuiv_;
 extern PFNGLCLEARCOLORIIEXTPROC glClearColorIi_;
 extern PFNGLCLEARCOLORIUIEXTPROC glClearColorIui_;
 
+#ifndef GL_ARB_half_float_vertex
+#define GL_ARB_half_float_vertex 1
+#define GL_HALF_FLOAT                     0x140B
+#endif
+
 #ifndef GL_VERSION_3_1
 #define GL_VERSION_3_1 1
 #define GL_SAMPLER_2D_RECT                0x8B63

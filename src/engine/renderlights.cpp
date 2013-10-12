@@ -2044,6 +2044,9 @@ void cleardeferredlightshaders()
     deferredmsaasampleshader = NULL;
 }
 
+VARF(lighttilebatch, 0, 8, 8, cleardeferredlightshaders());
+VARF(batchsunlight, 0, 2, 2, cleardeferredlightshaders());
+
 Shader *loaddeferredlightshader(const char *type = NULL)
 {
     string common, shadow, sun;
@@ -2054,6 +2057,7 @@ Shader *loaddeferredlightshader(const char *type = NULL)
         copystring(common, type);
         commonlen = strlen(common);
     }
+    if(lighttilebatch) common[commonlen++] = '0' + lighttilebatch;
     if(usegatherforsm()) common[commonlen++] = smfilter > 2 ? 'G' : 'g';
     else if(smfilter) common[commonlen++] = smfilter > 2 ? 'E' : (smfilter > 1 ? 'F' : 'f');
     common[commonlen] = '\0';
@@ -2061,7 +2065,7 @@ Shader *loaddeferredlightshader(const char *type = NULL)
     shadow[shadowlen++] = 'p';
     shadow[shadowlen] = '\0';
 
-    int usecsm = 0, userh = 0;
+    int usecsm = 0, userh = 0, batchsun = 0;
     if(common[0] != 'm' && ao) sun[sunlen++] = 'a';
     if(sunlight && csmshadowmap)
     {
@@ -2078,11 +2082,16 @@ Shader *loaddeferredlightshader(const char *type = NULL)
                 sun[sunlen++] = '0' + rhsplits;
             }
         }
+        if(lighttilebatch && batchsunlight > (userh ? 1 : 0))
+        {
+            batchsun = 1;
+            sun[sunlen++] = 'b';
+        }
     }
     sun[sunlen] = '\0';
 
     defformatstring(name, "deferredlight%s%s%s", common, shadow, sun);
-    return generateshader(name, "deferredlightshader \"%s\" \"%s\" \"%s\" %d %d", common, shadow, sun, usecsm, userh);
+    return generateshader(name, "deferredlightshader \"%s\" \"%s\" \"%s\" %d %d %d %d", common, shadow, sun, usecsm, userh, lighttilebatch, batchsun);
 }
 
 void loaddeferredlightshaders()
@@ -2224,10 +2233,7 @@ void cleanuplightsphere()
 }
 
 VAR(depthtestlights, 0, 2, 2);
-VAR(depthclamplights, 0, 0, 1);
 VAR(depthfaillights, 0, 1, 1);
-VAR(lighttilebatch, 0, 8, 8);
-VAR(batchsunlight, 0, 1, 1);
 FVAR(lightradiustweak, 1, 1.11f, 2);
 
 VAR(lighttilestrip, 0, 1, 1);
@@ -2330,7 +2336,7 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
             GLOBALPARAMF(giscale, 2*giscale);
             GLOBALPARAMF(skylightcolor, 2*giaoscale*skylightcolor.x*lightscale*skylightscale, 2*giaoscale*skylightcolor.y*lightscale*skylightscale, 2*giaoscale*skylightcolor.z*lightscale*skylightscale);
         }
-        if(!batchsunlight) sunpass = true;
+        if(batchsunlight <= (gi && giscale && gidist ? 1 : 0)) sunpass = true;
     }
 
     gle::defvertex(3);
@@ -2394,13 +2400,11 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
     if(!lighttilebatch)
     {
         gle::disable();
-        if(!lightspherevbuf) initlightsphere(10, 5);
+        if(!lightspherevbuf) initlightsphere(8, 4);
         glBindBuffer_(GL_ARRAY_BUFFER, lightspherevbuf);
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, lightsphereebuf);
         gle::vertexpointer(sizeof(vec), lightsphereverts);
         gle::enablevertex();
-
-        if(hasDC && depthclamplights) glEnable(GL_DEPTH_CLAMP);
 
         bool outside = true;
         loopv(lightorder)
@@ -2502,8 +2506,6 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
             glDepthFunc(GL_LESS);
             glCullFace(GL_BACK);
         }
-
-        if(hasDC && depthclamplights) glDisable(GL_DEPTH_CLAMP);
 
         gle::disablevertex();
         glBindBuffer_(GL_ARRAY_BUFFER, 0);

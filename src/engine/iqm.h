@@ -178,7 +178,6 @@ struct iqm : skelmodel, skelloader<iqm>
                 if(m->numverts)
                 {
                     m->verts = new vert[m->numverts];
-                    if(vtan) m->bumpverts = new bumpvert[m->numverts];
                     if(!vindex || !vweight)
                     {
                         blendcombo c;
@@ -199,24 +198,21 @@ struct iqm : skelmodel, skelloader<iqm>
                     mpos += 3;
                     if(mtc)
                     {
-                        v.u = mtc[0];
-                        v.v = mtc[1];
+                        v.tc = vec2(mtc[0], mtc[1]);
                         mtc += 2;
                     }
-                    else v.u = v.v = 0;
+                    else v.tc = vec2(0, 0);
                     if(mnorm)
                     {
                         v.norm = vec(mnorm[0], -mnorm[1], mnorm[2]);
                         mnorm += 3;
                         if(mtan)
                         {
-                            bumpvert &bv = m->bumpverts[j];
-                            bv.tangent = vec(mtan[0], -mtan[1], mtan[2]);
-                            bv.bitangent = mtan[3];
+                            m->calctangent(v, v.norm, vec(mtan[0], -mtan[1], mtan[2]), mtan[3]);
                             mtan += 4;
                         }
                     }
-                    else v.norm = vec(0, 0, 0);
+                    else { v.norm = vec(0, 0, 0); v.tangent = quat(0, 0, 0, 1); }
                     if(noblend < 0)
                     {
                         blendcombo c;
@@ -245,7 +241,9 @@ struct iqm : skelmodel, skelloader<iqm>
                     conoutf("empty mesh in %s", filename);
                     meshes.removeobj(m);
                     delete m;
+                    continue;
                 }
+                if(vnorm && !vtan) m->calctangents();
             }
 
             sortblendcombos();

@@ -364,6 +364,7 @@ inline vec::vec(const vec4 &v) : x(v.x), y(v.y), z(v.z) {}
 
 struct matrix3;
 struct matrix4x3;
+struct matrix4;
 
 struct quat : vec4
 {
@@ -392,6 +393,7 @@ struct quat : vec4
     }
     explicit quat(const matrix3 &m) { convertmatrix(m); }
     explicit quat(const matrix4x3 &m) { convertmatrix(m); }
+    explicit quat(const matrix4 &m) { convertmatrix(m); }
 
     void restorew() { w = 1.0f-x*x-y*y-z*z; w = w<0 ? 0 : -sqrtf(w); }
 
@@ -579,6 +581,11 @@ struct dualquat
         return vec().cross(real, vec().cross(real, v).madd(v, real.w).add(vec(dual))).madd(vec(dual), real.w).msub(vec(real), dual.w).mul(2).add(v);
     }
 
+    quat transform(const quat &q) const
+    {
+        return quat().mul(real, q);
+    }
+
     vec transposedtransform(const vec &v) const
     {
         return dualquat(*this).invert().transform(v);
@@ -599,8 +606,6 @@ struct dualquat
         return vec().cross(real, dual).madd(vec(dual), real.w).msub(vec(real), dual.w).mul(2);
     }
 };
-
-struct matrix4;
 
 struct matrix3
 {
@@ -1679,6 +1684,95 @@ struct matrix2
     matrix2(const vec2 &a, const vec2 &b) : a(a), b(b) {}
     explicit matrix2(const matrix4 &m) : a(m.a), b(m.b) {}
     explicit matrix2(const matrix3 &m) : a(m.a), b(m.b) {}
+};
+
+struct half
+{
+    ushort val;
+
+    half() {}
+    half(float f)
+    {
+        union { int i; float f; } conv;
+        conv.f = f;
+        ushort signbit = (conv.i>>(31-15)) & (1<<15), mantissa = (conv.i>>(23-10)) & 0x3FF;
+        int exponent = ((conv.i>>23)&0xFF) - 127 + 15;
+        if(exponent <= 0)
+        {
+            mantissa |= 0x400;
+            mantissa >>= min(1-exponent, 10+1);
+            exponent = 0;
+        }
+        else if(exponent >= 0x1F)
+        {
+            mantissa = 0;
+            exponent = 0x1F;
+        }
+        val = signbit | (ushort(exponent)<<10) | mantissa;
+    }
+
+    bool operator==(const half &h) const { return val == h.val; }
+    bool operator!=(const half &h) const { return val != h.val; }
+};
+
+struct hvec2
+{
+    half x, y;
+
+    hvec2() {}
+    template<class T> hvec2(T x, T y) : x(x), y(y) {}
+    hvec2(const vec2 &v) : x(v.x), y(v.y) {}
+
+    bool operator==(const hvec2 &h) const { return x == h.x && y == h.y; }
+    bool operator!=(const hvec2 &h) const { return x != h.x || y != h.y; }
+};
+
+struct hvec
+{
+    half x, y, z;
+
+    hvec() {}
+    template<class T> hvec(T x, T y, T z) : x(x), y(y), z(z) {}
+    hvec(const vec &v) : x(v.x), y(v.y), z(v.z) {}
+
+    bool operator==(const hvec &h) const { return x == h.x && y == h.y && z == h.z; }
+    bool operator!=(const hvec &h) const { return x != h.x || y != h.y || z != h.z; }
+};
+
+struct hvec4
+{
+    half x, y, z, w;
+
+    hvec4() {}
+    template<class T> hvec4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
+    template<class T> hvec4(const vec &v, T w = 0) : x(v.x), y(v.y), z(v.z), w(w) {}
+    hvec4(const vec4 &v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
+
+    bool operator==(const hvec4 &h) const { return x == h.x && y == h.y && z == h.z && w == h.w; }
+    bool operator!=(const hvec4 &h) const { return x != h.x || y != h.y || z != h.z || w != h.w; }
+};
+
+struct squat
+{
+    short x, y, z, w;
+
+    squat() {}
+    squat(const vec4 &q) { convert(q); }
+
+    void convert(const vec4 &q)
+    {
+        x = short(q.x*32767.5f-0.5f);
+        y = short(q.y*32767.5f-0.5f);
+        z = short(q.z*32767.5f-0.5f);
+        w = short(q.w*32767.5f-0.5f);
+    }
+
+    void lerp(const vec4 &a, const vec4 &b, float t)
+    {
+        vec4 q;
+        q.lerp(a, b, t);
+        convert(q);
+    }
 };
 
 extern bool raysphereintersect(const vec &center, float radius, const vec &o, const vec &ray, float &dist);

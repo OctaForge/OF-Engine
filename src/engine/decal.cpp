@@ -3,9 +3,9 @@
 struct decalvert
 {
     vec pos;
-    float u, v;
     vec color;
     uchar alpha;
+    float u, v;
 };
 
 struct decalinfo
@@ -568,8 +568,8 @@ struct decalrenderer
             float tsz = flags&DF_RND4 ? 0.5f : 1.0f, scale = tsz*0.5f/decalradius,
                   tu = decalu + tsz*0.5f - ptc*scale, tv = decalv + tsz*0.5f - pbc*scale;
             pt.mul(scale); pb.mul(scale);
-            decalvert dv1 = { v2[0], pt.dot(v2[0]) + tu, pb.dot(v2[0]) + tv, decalcolor, 255 },
-                      dv2 = { v2[1], pt.dot(v2[1]) + tu, pb.dot(v2[1]) + tv, decalcolor, 255 };
+            decalvert dv1 = { v2[0], decalcolor, 255, pt.dot(v2[0]) + tu, pb.dot(v2[0]) + tv },
+                      dv2 = { v2[1], decalcolor, 255, pt.dot(v2[1]) + tu, pb.dot(v2[1]) + tv };
             int totalverts = 3*(numv-2);
             if(totalverts > buf.maxverts-3) return;
             while(buf.availverts < totalverts)

@@ -89,8 +89,6 @@ struct animmodel : model
 
         bool envmapped() const { return envmapmax>0 && envmapmodels; }
         bool bumpmapped() const { return normalmap && bumpmodels; }
-        bool normals() const { return true; }
-        bool tangents() const { return bumpmapped(); }
         bool alphatested() const { return alphatest > 0 && tex->type&Texture::ALPHA; }
 
         void setshaderparams(mesh &m, const animstate *as, bool masked, bool alphatested = false, bool skinned = true)
@@ -278,63 +276,70 @@ struct animmodel : model
             s->set();
         }
 
+        struct smoothdata
+        {
+            vec norm;
+            int next;
+
+            smoothdata() : norm(0, 0, 0), next(-1) {}
+        };
+
         template<class V, class T> void smoothnorms(V *verts, int numverts, T *tris, int numtris, float limit, bool areaweight)
         {
+            if(!numverts) return;
+            smoothdata *smooth = new smoothdata[numverts];
             hashtable<vec, int> share;
-            int *next = new int[numverts];
-            memset(next, -1, numverts*sizeof(int));
             loopi(numverts)
             {
                 V &v = verts[i];
-                v.norm = vec(0, 0, 0);
-                int idx = share.access(v.pos, i);
-                if(idx != i) { next[i] = next[idx]; next[idx] = i; }
+                int &idx = share.access(v.pos, i);
+                if(idx != i) { smooth[i].next = idx; idx = i; }
             }
             loopi(numtris)
             {
                 T &t = tris[i];
-                V &v1 = verts[t.vert[0]], &v2 = verts[t.vert[1]], &v3 = verts[t.vert[2]];
+                int v1 = t.vert[0], v2 = t.vert[1], v3 = t.vert[2];
                 vec norm;
-                norm.cross(vec(v2.pos).sub(v1.pos), vec(v3.pos).sub(v1.pos));
+                norm.cross(verts[v1].pos, verts[v2].pos, verts[v3].pos);
                 if(!areaweight) norm.normalize();
-                v1.norm.add(norm);
-                v2.norm.add(norm);
-                v3.norm.add(norm);
+                smooth[v1].norm.add(norm);
+                smooth[v2].norm.add(norm);
+                smooth[v3].norm.add(norm);
             }
-            vec *norms = new vec[numverts];
-            memset(norms, 0, numverts*sizeof(vec));
+            loopi(numverts) verts[i].norm = vec(0, 0, 0);
             loopi(numverts)
             {
-                V &v = verts[i];
-                norms[i].add(v.norm);
-                if(next[i] >= 0)
+                const smoothdata &n = smooth[i];
+                verts[i].norm.add(n.norm);
+                if(n.next >= 0)
                 {
-                    float vlimit = limit*v.norm.magnitude();
-                    for(int j = next[i]; j >= 0; j = next[j])
+                    float vlimit = limit*n.norm.magnitude();
+                    for(int j = n.next; j >= 0;)
                     {
-                        V &o = verts[j];
-                        if(v.norm.dot(o.norm) >= vlimit*o.norm.magnitude())
+                        const smoothdata &o = smooth[j];
+                        if(n.norm.dot(o.norm) >= vlimit*o.norm.magnitude())
                         {
-                            norms[i].add(o.norm);
-                            norms[j].add(v.norm);
+                            verts[i].norm.add(o.norm);
+                            verts[j].norm.add(n.norm);
                         }
+                        j = o.next;
                     }
                 }
             }
-            loopi(numverts) verts[i].norm = norms[i].normalize();
-            delete[] next;
-            delete[] norms;
+            loopi(numverts) verts[i].norm.normalize();
+            delete[] smooth;
         }
 
         template<class V, class T> void buildnorms(V *verts, int numverts, T *tris, int numtris, bool areaweight)
         {
+            if(!numverts) return;
             loopi(numverts) verts[i].norm = vec(0, 0, 0);
             loopi(numtris)
             {
                 T &t = tris[i];
                 V &v1 = verts[t.vert[0]], &v2 = verts[t.vert[1]], &v3 = verts[t.vert[2]];
                 vec norm;
-                norm.cross(vec(v2.pos).sub(v1.pos), vec(v3.pos).sub(v1.pos));
+                norm.cross(v1.pos, v2.pos, v3.pos);
                 if(!areaweight) norm.normalize();
                 v1.norm.add(norm);
                 v2.norm.add(norm);
@@ -343,7 +348,35 @@ struct animmodel : model
             loopi(numverts) verts[i].norm.normalize();
         }
 
-        template<class B, class V, class TC, class T> void calctangents(B *bumpverts, V *verts, TC *tcverts, int numverts, T *tris, int numtris, bool areaweight)
+        template<class V, class T> void buildnorms(V *verts, int numverts, T *tris, int numtris, bool areaweight, int numframes)
+        {
+            if(!numverts) return;
+            loopi(numframes) buildnorms(&verts[i*numverts], numverts, tris, numtris, areaweight);
+        }
+
+        static inline void fixqtangent(quat &q, float bt)
+        {
+            static const float bias = -1.5f/65535, biasscale = sqrtf(1 + bias*bias);
+            if(bt < 0)
+            {
+                if(q.w >= 0) q.neg();
+                if(q.w > bias) { q.mul3(biasscale); q.w = bias; }
+            }
+            else if(q.w < 0) q.neg();
+        }
+
+        template<class V> static inline void calctangent(V &v, const vec &n, const vec &t, float bt)
+        {
+            matrix3 m;
+            m.c = n;
+            m.a = t;
+            m.b.cross(m.c, m.a);
+            quat q(m);
+            fixqtangent(q, bt);
+            v.tangent = q;
+        }
+
+        template<class V, class TC, class T> void calctangents(V *verts, TC *tcverts, int numverts, T *tris, int numtris, bool areaweight)
         {
             vec *tangent = new vec[2*numverts], *bitangent = tangent+numverts;
             memset(tangent, 0, 2*numverts*sizeof(vec));
@@ -353,11 +386,11 @@ struct animmodel : model
                 const vec &e0 = verts[t.vert[0]].pos;
                 vec e1 = vec(verts[t.vert[1]].pos).sub(e0), e2 = vec(verts[t.vert[2]].pos).sub(e0);
 
-                const TC &tc0 = tcverts[t.vert[0]],
-                         &tc1 = tcverts[t.vert[1]],
-                         &tc2 = tcverts[t.vert[2]];
-                float u1 = tc1.u - tc0.u, v1 = tc1.v - tc0.v,
-                      u2 = tc2.u - tc0.u, v2 = tc2.v - tc0.v;
+                const vec2 &tc0 = tcverts[t.vert[0]].tc,
+                           &tc1 = tcverts[t.vert[1]].tc,
+                           &tc2 = tcverts[t.vert[2]].tc;
+                float u1 = tc1.x - tc0.x, v1 = tc1.y - tc0.y,
+                      u2 = tc2.x - tc0.x, v2 = tc2.y - tc0.y;
                 vec u(e2), v(e2);
                 u.mul(v1).sub(vec(e1).mul(v2));
                 v.mul(u1).sub(vec(e1).mul(u2));
@@ -382,16 +415,24 @@ struct animmodel : model
             }
             loopi(numverts)
             {
-                const vec &n = verts[i].norm,
-                          &t = tangent[i],
+                V &v = verts[i];
+                const vec &t = tangent[i],
                           &bt = bitangent[i];
-                B &bv = bumpverts[i];
-                (bv.tangent = t).sub(vec(n).mul(n.dot(t))).normalize();
-                bv.bitangent = vec().cross(n, t).dot(bt) < 0 ? -1 : 1;
+                matrix3 m;
+                m.c = v.norm;
+                (m.a = t).project(m.c).normalize();
+                m.b.cross(m.c, m.a);
+                quat q(m);
+                fixqtangent(q, m.b.dot(bt));
+                v.tangent = q;
             }
             delete[] tangent;
         }
 
+        template<class V, class TC, class T> void calctangents(V *verts, TC *tcverts, int numverts, T *tris, int numtris, bool areaweight, int numframes)
+        {
+            loopi(numframes) calctangents(&verts[i*numverts], tcverts, numverts, tris, numtris, areaweight);
+        }
     };
 
     struct meshgroup
@@ -449,7 +490,7 @@ struct animmodel : model
         virtual void render(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p) {}
         virtual void intersect(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p, const vec &o, const vec &ray) {}
 
-        void bindpos(GLuint ebuf, GLuint vbuf, void *v, int stride)
+        void bindpos(GLuint ebuf, GLuint vbuf, void *v, int stride, int type, int size)
         {
             if(lastebuf!=ebuf)
             {
@@ -460,10 +501,12 @@ struct animmodel : model
             {
                 glBindBuffer_(GL_ARRAY_BUFFER, vbuf);
                 if(!lastvbuf) gle::enablevertex();
-                gle::vertexpointer(stride, v);
+                gle::vertexpointer(stride, v, type, size);
                 lastvbuf = vbuf;
             }
         }
+        void bindpos(GLuint ebuf, GLuint vbuf, vec *v, int stride) { bindpos(ebuf, vbuf, v, stride, GL_FLOAT, 3); }
+        void bindpos(GLuint ebuf, GLuint vbuf, hvec4 *v, int stride) { bindpos(ebuf, vbuf, v, stride, GL_HALF_FLOAT, 4); }
 
         void bindtc(void *v, int stride)
         {
@@ -474,22 +517,8 @@ struct animmodel : model
             }
             if(lasttcbuf!=lastvbuf)
             {
-                gle::texcoord0pointer(stride, v);
+                gle::texcoord0pointer(stride, v, GL_HALF_FLOAT);
                 lasttcbuf = lastvbuf;
-            }
-        }
-
-        void bindnorm(void *v, int stride)
-        {
-            if(!enablenormals)
-            {
-                gle::enablenormal();
-                enablenormals = true;
-            }
-            if(lastnbuf!=lastvbuf)
-            {
-                gle::normalpointer(stride, v);
-                lastnbuf = lastvbuf;
             }
         }
 
@@ -502,7 +531,7 @@ struct animmodel : model
             }
             if(lastxbuf!=lastvbuf)
             {
-                gle::tangentpointer(stride, v);
+                gle::tangentpointer(stride, v, GL_SHORT);
                 lastxbuf = lastvbuf;
             }
         }
@@ -661,18 +690,6 @@ struct animmodel : model
                 s.tex = tex;
                 s.masks = masks;
             }
-        }
-
-        bool hasnormals() const
-        {
-            loopv(skins) if(skins[i].normals()) return true;
-            return false;
-        }
-
-        bool hastangents() const
-        {
-            loopv(skins) if(skins[i].tangents()) return true;
-            return false;
         }
 
         bool alphatested() const
@@ -1523,18 +1540,18 @@ struct animmodel : model
         m.scale(scale);
     }
 
-    static bool enabletc, enablecullface, enablenormals, enabletangents, enablebones, enabledepthoffset;
+    static bool enabletc, enablecullface, enabletangents, enablebones, enabledepthoffset;
     static float sizescale, transparent;
-    static GLuint lastvbuf, lasttcbuf, lastnbuf, lastxbuf, lastbbuf, lastebuf, lastenvmaptex, closestenvmaptex;
+    static GLuint lastvbuf, lasttcbuf, lastxbuf, lastbbuf, lastebuf, lastenvmaptex, closestenvmaptex;
     static Texture *lasttex, *lastdecal, *lastmasks, *lastnormalmap;
     static int envmaptmu, matrixpos;
     static matrix4 matrixstack[64];
 
     void startrender()
     {
-        enabletc = enablenormals = enabletangents = enablebones = enabledepthoffset = false;
+        enabletc = enabletangents = enablebones = enabledepthoffset = false;
         enablecullface = true;
-        lastvbuf = lasttcbuf = lastnbuf = lastxbuf = lastbbuf = lastebuf = lastenvmaptex = closestenvmaptex = 0;
+        lastvbuf = lasttcbuf = lastxbuf = lastbbuf = lastebuf = lastenvmaptex = closestenvmaptex = 0;
         lasttex = lastdecal = lastmasks = lastnormalmap = NULL;
         envmaptmu = -1;
         sizescale = transparent = 1;
@@ -1559,22 +1576,15 @@ struct animmodel : model
         enabletc = false;
     }
 
-    static void disablenormals()
-    {
-        gle::disablenormal();
-        enablenormals = false;
-    }
-
     static void disablevbo()
     {
         glBindBuffer_(GL_ARRAY_BUFFER, 0);
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
         gle::disablevertex();
         if(enabletc) disabletc();
-        if(enablenormals) disablenormals();
         if(enabletangents) disabletangents();
         if(enablebones) disablebones();
-        lastvbuf = lasttcbuf = lastnbuf = lastxbuf = lastbbuf = lastebuf = 0;
+        lastvbuf = lasttcbuf = lastxbuf = lastbbuf = lastebuf = 0;
     }
 
     void endrender()
@@ -1587,12 +1597,10 @@ struct animmodel : model
 
 int animmodel::intersectresult = -1, animmodel::intersectmode = 0;
 float animmodel::intersectdist = 0, animmodel::intersectscale = 1;
-bool animmodel::enabletc = false,
-     animmodel::enablecullface = true,
-     animmodel::enablenormals = false, animmodel::enabletangents = false,
-     animmodel::enablebones = false, animmodel::enabledepthoffset = false;
+bool animmodel::enabletc = false, animmodel::enabletangents = false, animmodel::enablebones = false,
+     animmodel::enablecullface = true, animmodel::enabledepthoffset = false;
 float animmodel::sizescale = 1, animmodel::transparent = 1;
-GLuint animmodel::lastvbuf = 0, animmodel::lasttcbuf = 0, animmodel::lastnbuf = 0, animmodel::lastxbuf = 0, animmodel::lastbbuf = 0, animmodel::lastebuf = 0,
+GLuint animmodel::lastvbuf = 0, animmodel::lasttcbuf = 0, animmodel::lastxbuf = 0, animmodel::lastbbuf = 0, animmodel::lastebuf = 0,
        animmodel::lastenvmaptex = 0, animmodel::closestenvmaptex = 0;
 Texture *animmodel::lasttex = NULL, *animmodel::lastdecal = NULL, *animmodel::lastmasks = NULL, *animmodel::lastnormalmap = NULL;
 int animmodel::envmaptmu = -1, animmodel::matrixpos = 0;
@@ -1689,7 +1697,7 @@ template<class MDL, class MESH> struct modelcommands
     static void setbumpmap(char *meshname, char *normalmapfile)
     {
         Texture *normalmaptex = textureload(makerelpath(MDL::dir, normalmapfile), 0, true, false);
-        loopskins(meshname, s, { s.normalmap = normalmaptex; m.calctangents(); });
+        loopskins(meshname, s, s.normalmap = normalmaptex);
     }
 
     static void setdecal(char *meshname, char *decal)

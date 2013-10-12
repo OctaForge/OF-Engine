@@ -544,6 +544,8 @@ void renderlava()
             glBindTexture(GL_TEXTURE_2D, lslot.sts.inrange(1) ? lslot.sts[1].t->id : notexture->id);
             glActiveTexture_(GL_TEXTURE0);
 
+            gle::normal(vec(0, 0, 1));
+
             vector<materialsurface> &surfs = lavasurfs[k];
             loopv(surfs) renderwater(surfs[i], MAT_LAVA);
             xtraverts += gle::end();

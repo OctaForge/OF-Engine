@@ -116,7 +116,7 @@ namespace sphere
     struct vert
     {
         vec pos;
-        float s, t;
+        ushort s, t;
     } *verts = NULL;
     GLushort *indices = NULL;
     int numverts = 0, numindices = 0;
@@ -135,8 +135,8 @@ namespace sphere
                 float theta = j==slices ? 0 : 2*M_PI*s;
                 vert &v = verts[i*(slices+1) + j];
                 v.pos = vec(-sin(theta)*sin(rho), cos(theta)*sin(rho), cos(rho));
-                v.s = s;
-                v.t = t;
+                v.s = ushort(s*0xFFFF);
+                v.t = ushort(t*0xFFFF);
                 s += ds;
             }
             t -= dt;
@@ -186,7 +186,7 @@ namespace sphere
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, ebuf);
 
         gle::vertexpointer(sizeof(vert), &verts->pos);
-        gle::texcoord0pointer(sizeof(vert), &verts->s);
+        gle::texcoord0pointer(sizeof(vert), &verts->s, GL_UNSIGNED_SHORT, 2, GL_TRUE);
         gle::enablevertex();
         gle::enabletexcoord0();
     }

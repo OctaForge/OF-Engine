@@ -536,9 +536,12 @@ GLenum compressedformat(GLenum format, int w, int h, int force = 0)
 {
     if(usetexcompress && texcompress && force >= 0 && (force || max(w, h) >= texcompress)) switch(format)
     {
+        case GL_RGB4:
         case GL_RGB5:
         case GL_RGB8:
         case GL_RGB: return usetexcompress > 1 ? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGB;
+        case GL_RGB5_A1: return usetexcompress > 1 ? GL_COMPRESSED_RGBA_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA;
+        case GL_RGBA4:
         case GL_RGBA: return usetexcompress > 1 ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA;
         case GL_RED:
         case GL_R8: return hasRGTC ? (usetexcompress > 1 ? GL_COMPRESSED_RED_RGTC1 : GL_COMPRESSED_RED) : (usetexcompress > 1 ? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGB);
@@ -801,6 +804,8 @@ static GLenum textype(GLenum &component, GLenum &format)
             if(!format) format = GL_RG;
             break;
 
+        case GL_R3_G3_B2:
+        case GL_RGB4:
         case GL_RGB5:
         case GL_RGB8:
         case GL_RGB16:
@@ -810,6 +815,9 @@ static GLenum textype(GLenum &component, GLenum &format)
             if(!format) format = GL_RGB;
             break;
 
+        case GL_RGBA2:
+        case GL_RGBA4:
+        case GL_RGB5_A1:
         case GL_RGBA8:
         case GL_RGBA16:
         case GL_RGB10_A2:
