@@ -59,6 +59,6 @@ return {
     ]]
     add = function(tp, op, sp, rad, r, g, b, inf)
         capi.decal_add(tp, op.x, op.y, op.z, sp.x, sp.y, sp.z, rad, r, g, b,
-            inf)
+            inf or 0)
     end
 }

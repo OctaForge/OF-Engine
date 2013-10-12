@@ -17,6 +17,33 @@ local M = {}
 if SERVER then return M end
 
 local capi = require("capi")
+local ffi = require("ffi")
+
+ffi.cdef [[
+    typedef struct partvec_t {
+        float x, y, z;
+    } partvec_t;
+    typedef struct particle_t {
+        partvec_t o, d;
+        int gravity, fade, millis;
+        partvec_t color;
+        uchar flags;
+        float size, val;
+    } particle_t;
+]]
+
+local ffi_cast = ffi.cast
+
+local particle = ffi.metatype("particle_t", {
+    __index = {
+        get_owner = function(self)
+            return capi.particle_get_owner(self)
+        end,
+        set_owner = function(self, ent)
+            capi.particle_set_owner(self, ent.uid)
+        end
+    }
+})
 
 --[[! Variable: flags
     The flags available during particle renderer registration. Use bitwise
@@ -142,8 +169,9 @@ M.get_renderer = capi.particle_get_renderer
     Returns the particle object on which you can further set properties.
 ]]
 M.new = function(tp, o, d, r, g, b, fade, size, gravity, owner)
-    capi.particle_new(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b, fade,
-        size, gravity or 0)
+    return ffi_cast("particle_t", capi.particle_new(tp, o.x, o.y, o.z,
+        d.x, d.y, d.z, r, g, b, fade, size, gravity or 0,
+        owner and owner.uid or -1))
 end
 
 --[[! Function: splash
@@ -159,7 +187,8 @@ end
 M.splash = function(tp, o, rad, num, r, g, b, fade, size, gravity, delay,
 owner, un)
     return capi.particle_splash(tp, o.x, o.y, o.z, rad, num, r, g, b, fade,
-        size, gravity or 0, delay or 0, owner, un)
+        size, gravity or 0, delay or 0, owner and owner.uid or -1,
+        un or false)
 end
 
 --[[! Function: trail
@@ -169,7 +198,7 @@ end
 ]]
 M.trail = function(tp, o, d, r, g, b, fade, size, gravity, owner)
     return capi.particle_trail(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b,
-        fade, size, gravity or 0, owner)
+        fade, size, gravity or 0, owner and owner.uid or -1)
 end
 
 --[[! Function: text
@@ -178,8 +207,8 @@ end
     owner (defaults to nil).
 ]]
 M.text = function(tp, o, text, r, g, b, fade, size, gravity, owner)
-    return capi.particle_text(tp, o.x, o.y, o.z, text, r, g, b, fade, size,
-        gravity or 0, owner)
+    return capi.particle_text(tp, o.x, o.y, o.z, text, #text, r, g, b, fade,
+        size, gravity or 0, owner and owner.uid or -1)
 end
 
 --[[! Function: icon_generic
@@ -191,7 +220,7 @@ end
 ]]
 M.icon_generic = function(tp, o, ix, iy, r, g, b, fade, size, gravity, owner)
     return capi.particle_icon_generic(tp, o.x, o.y, o.z, ix, iy, r, g, b,
-        fade, size, gravity or 0, owner)
+        fade, size, gravity or 0, owner and owner.uid or -1)
 end
 
 --[[! Function: icon
@@ -201,7 +230,7 @@ end
 ]]
 M.icon = function(tp, o, itex, r, g, b, fade, size, gravity, owner)
     return capi.particle_icon(tp, o.x, o.y, o.z, itex, r, g, b, fade, size,
-        gravity or 0, owner)
+        gravity or 0, owner and owner.uid or -1)
 end
 
 --[[! Function: meter
@@ -211,7 +240,7 @@ end
 ]]
 M.meter = function(tp, o, val, r, g, b, fade, size, owner)
     return capi.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, 0, 0, 0,
-        fade, size, owner)
+        fade, size, owner and owner.uid or -1)
 end
 
 --[[! Function: meter_vs
@@ -220,7 +249,7 @@ end
 ]]
 M.meter_vs = function(tp, o, val, r, g, b, r2, g2, b2, fade, size, owner)
     return capi.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, r2, g2, b2,
-        fade, size, owner)
+        fade, size, owner and owner.uid or -1)
 end
 
 --[[! Function: flare
@@ -229,7 +258,7 @@ end
 ]]
 M.flare = function(tp, o, d, r, g, b, fade, size, owner)
     return capi.particle_flare(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b,
-        fade, size, owner)
+        fade, size, owner and owner.uid or -1)
 end
 
 --[[! Function: fireball
@@ -238,7 +267,7 @@ end
 ]]
 M.fireball = function(tp, o, r, g, b, fade, size, msize, owner)
     return capi.particle_fireball(tp, o.x, o.y, o.z, r, g, b, fade, size,
-        msize, owner)
+        msize, owner and owner.uid or -1)
 end
 
 --[[! Function: lens_flare
@@ -266,7 +295,7 @@ end
 ]]
 M.shape = function(tp, o, rad, dir, num, r, g, b, fade, size, grav, vel, owner)
     return capi.particle_shape(tp, o.x, o.y, o.z, rad, dir, num, r, g, b, fade,
-        size, grav or 0, vel or 200, owner)
+        size, grav or 0, vel or 200, owner and owner.uid or -1)
 end
 
 --[[! Function: flame
@@ -277,7 +306,8 @@ end
 ]]
 M.flame = function(tp, o, rad, h, r, g, b, fade, dens, sc, speed, grav, owner)
     return capi.particle_flame(tp, o.x, o.y, o.z, rad, h, r, g, b, fade or 600,
-        dens or 3, sc or 2, speed or 200, grav or -15, owner)
+        dens or 3, sc or 2, speed or 200, grav or -15,
+        owner and owner.uid or -1)
 end
 
 return M

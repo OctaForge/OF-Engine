@@ -784,27 +784,11 @@ void adddecal(int type, const vec &center, const vec &surface, float radius, con
     decals[type]->adddecal(center, surface, radius, color, info);
 }
 
-LUAICOMMAND(decal_add, {
-    int type;
-    if (lua_isnumber(L, 1)) type = lua_tointeger(L, 1);
-    else {
-        int *tp = decalmap.access(luaL_checkstring(L, 1));
-        type = tp ? *tp : -1;
-    }
-    if (!decals.inrange(type)) { lua_pushboolean(L, false); return 1; }
-    float cx = luaL_checknumber(L, 2);
-    float cy = luaL_checknumber(L, 3);
-    float cz = luaL_checknumber(L, 4);
-    float sx = luaL_checknumber(L, 5);
-    float sy = luaL_checknumber(L, 6);
-    float sz = luaL_checknumber(L, 7);
-    float radius = luaL_checknumber(L, 8);
-    float r = luaL_checknumber(L, 9);
-    float g = luaL_checknumber(L, 10);
-    float b = luaL_checknumber(L, 11);
-    int info = luaL_optinteger(L, 12, 0);
+CLUAICOMMAND(decal_add, bool, (int type, float cx, float cy, float cz,
+float sx, float sy, float sz, float radius, float r, float g, float b,
+int info), {
+    if (!decals.inrange(type)) return false;
     adddecal(type, vec(cx, cy, cz), vec(sx, sy, sz), radius,
         vec(r, g, b), info);
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 })

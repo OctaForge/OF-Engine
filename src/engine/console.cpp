@@ -301,9 +301,8 @@ void pasteconsole()
     SDL_free(cb);
 }
 
-LUAICOMMAND(clipboard_has_text, {
-    lua_pushboolean(L, SDL_HasClipboardText());
-    return 1;
+CLUAICOMMAND(clipboard_has_text, bool, (), {
+    return SDL_HasClipboardText();
 });
 
 LUAICOMMAND(clipboard_get_text, {
@@ -953,14 +952,8 @@ ICOMMAND(crouch, "", (), {
     }
 });
 
-LUAICOMMAND(input_is_modifier_pressed, {
-    int nargs = lua_gettop(L);
-    int keys = 0;
-    for (int i = 1; i <= nargs; ++i) {
-        keys |= lua_tointeger(L, i);
-    }
-    lua_pushboolean(L, SDL_GetModState() & keys);
-    return 1;
+CLUAICOMMAND(input_is_modifier_pressed, bool, (int mod), {
+    return SDL_GetModState() & mod;
 });
 
 ICOMMAND(is_mod_pressed, "V", (tagval *args, int nargs), {
@@ -971,17 +964,14 @@ ICOMMAND(is_mod_pressed, "V", (tagval *args, int nargs), {
     intret((SDL_GetModState() & keys) != 0);
 })
 
-LUAICOMMAND(input_keyrepeat, {
-    keyrepeat(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
-    return 0;
+CLUAICOMMAND(input_keyrepeat, void, (bool b, int i), {
+    keyrepeat(b, i);
 });
 
-LUAICOMMAND(input_textinput, {
-    textinput(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
-    return 0;
+CLUAICOMMAND(input_textinput, void, (bool b, int i), {
+    textinput(b, i);
 });
 
-LUAICOMMAND(input_get_key_name, {
-    lua_pushstring(L, getkeyname(luaL_checkinteger(L, 1)));
-    return 1;
+CLUAICOMMAND(input_get_key_name, const char*, (int n), {
+    return getkeyname(n);
 });

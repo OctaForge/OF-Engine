@@ -139,71 +139,17 @@ struct particle {
     physent *owner;
 };
 
-/* can be changed into something more sophisticated when multiple
- * metatables are needed, for now there is just one
- */
-static particle *luacheckpart(lua_State *L, int idx) {
-    particle **part = (particle**)luaL_checkudata(L, idx, "Particle");
-    luaL_argcheck(L, part != NULL, idx, "'Particle' expected");
-    return *part;
-}
+CLUAICOMMAND(particle_get_owner, int, (void *p), {
+    particle *part = (particle*)p;
+    if (part->owner) return LogicSystem::getUniqueId(part->owner);
+    return -1;
+})
 
-#define PART_ACCESSOR(field, func, setfunc) \
-static int particle_get_##field(lua_State *L) { \
-    particle *part = luacheckpart(L, 1); \
-    lua_push##func(L, part->field); \
-    return 1; \
-} \
-static int particle_set_##field(lua_State *L) { \
-    particle *part = luacheckpart(L, 1); \
-    part->field = luaL_check##setfunc(L, 2); \
-    return 0; \
-}
-
-PART_ACCESSOR(gravity, integer, integer)
-PART_ACCESSOR(fade, integer, integer)
-PART_ACCESSOR(size, number, number)
-PART_ACCESSOR(val, number, number)
-
-static int particle_get_owner(lua_State *L) {
-    particle *part = luacheckpart(L, 1);
-    if (!part->owner) { lua_pushnil(L); return 1; }
-    CLogicEntity *ent = LogicSystem::getLogicEntity(part->owner);
-    if (!ent) { lua_pushnil(L); return 1; }
-    lua_rawgeti(L, LUA_REGISTRYINDEX, ent->lua_ref);
-    return 1;
-}
-static int particle_set_owner(lua_State *L) {
-    particle *part = luacheckpart(L, 1);
-    lua::push_external(L, "entity_get_attr");
-    lua_pushvalue(L, 2);
-    lua_pushliteral(L, "uid");
-    lua_call(L, 2, 1);
-    int uid = lua_tointeger(L, -1); lua_pop(L, 1);
+CLUAICOMMAND(particle_set_owner, void, (void *p, int uid), {
+    particle *part = (particle*)p;
     CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
-    assert(ent && ent->dynamicEntity);
-    part->owner = ent->dynamicEntity;
-    return 0;
-}
-
-#define PART_VEC_ACCESSOR(prefix, field) \
-static int particle_get_##prefix##field(lua_State *L) { \
-    particle *part = luacheckpart(L, 1); \
-    lua_pushnumber(L, part->prefix.field); \
-    return 1; \
-} \
-static int particle_set_##prefix##field(lua_State *L) { \
-    particle *part = luacheckpart(L, 1); \
-    part->prefix.field = luaL_checknumber(L, 2); \
-    return 0; \
-}
-
-PART_VEC_ACCESSOR(o, x)
-PART_VEC_ACCESSOR(o, y)
-PART_VEC_ACCESSOR(o, z)
-PART_VEC_ACCESSOR(d, x)
-PART_VEC_ACCESSOR(d, y)
-PART_VEC_ACCESSOR(d, z)
+    if (ent && ent->dynamicEntity) part->owner = ent->dynamicEntity;
+})
 
 struct partvert
 {
@@ -248,31 +194,6 @@ struct partrenderer
     virtual bool haswork() = 0;
     virtual int count() = 0; //for debug
     virtual void cleanup() {}
-
-#define PART_MT_FIELD(field) \
-    lua_pushcfunction(L, particle_get_##field); \
-    lua_setfield(L, -2, "get_" #field); \
-    lua_pushcfunction(L, particle_set_##field); \
-    lua_setfield(L, -2, "set_" #field);
-
-    virtual void set_part_mt(lua_State *L) {
-        if (luaL_newmetatable(L, "Particle")) {
-            lua_createtable(L, 0, 0);
-            PART_MT_FIELD(gravity)
-            PART_MT_FIELD(fade)
-            PART_MT_FIELD(size)
-            PART_MT_FIELD(val)
-            PART_MT_FIELD(owner)
-            PART_MT_FIELD(ox)
-            PART_MT_FIELD(oy)
-            PART_MT_FIELD(oz)
-            PART_MT_FIELD(dx)
-            PART_MT_FIELD(dy)
-            PART_MT_FIELD(dz)
-            lua_setfield(L, -2, "__index");
-        }
-        lua_setmetatable(L, -2);
-    }
 
     virtual void seedemitter(particleemitter &pe, const vec &o, const vec &d, int fade, float size, int gravity)
     {
@@ -1256,54 +1177,26 @@ static inline particle *newparticle(const vec &o, const vec &d, int fade, int ty
     return parts[type]->addpart(o, d, fade, color, size, gravity);
 }
 
-#define PART_GET_TYPE(type) \
-    int type; \
-    if (lua_isnumber(L, 1)) type = lua_tointeger(L, 1); \
-    else { \
-        int *tp = partmap.access(luaL_checkstring(L, 1)); \
-        type = tp ? *tp : -1; \
-    }
-
 bool canaddparticles() { return !minimized; }
 
-#define PART_GET_OWNER(n) \
+#define PART_GET_OWNER(uid) \
     physent *owner = NULL; \
-    if (!lua_isnoneornil(L, n)) { \
-        lua::push_external(L, "entity_get_attr"); \
-        lua_pushvalue(L, n); \
-        lua_pushliteral(L, "uid"); \
-        lua_call(L, 2, 1); \
-        int uid = lua_tointeger(L, -1); lua_pop(L, 1); \
+    if (uid != -1) { \
         CLogicEntity *ent = LogicSystem::getLogicEntity(uid); \
         assert(ent && ent->dynamicEntity); \
         owner = ent->dynamicEntity; \
     }
 
-LUAICOMMAND(particle_new, {
-    if (!canaddparticles()) { lua_pushnil(L); return 1; }
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type) || parts[type]->type&PT_SPECIAL) {
-        lua_pushnil(L); return 1;
-    }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    float dx = luaL_checknumber(L, 5);
-    float dy = luaL_checknumber(L, 6);
-    float dz = luaL_checknumber(L, 7);
-    float r = luaL_checknumber(L, 8);
-    float g = luaL_checknumber(L, 9);
-    float b = luaL_checknumber(L, 10);
-    int fade = luaL_checkinteger(L, 11);
-    float size = luaL_checknumber(L, 12);
-    int gravity = luaL_checkinteger(L, 13);
-    PART_GET_OWNER(14)
+CLUAICOMMAND(particle_new, void*, (int type, float ox, float oy, float oz,
+float dx, float dy, float dz, float r, float g, float b, int fade,
+float size, int gravity, int uid), {
+    if (!canaddparticles()) return NULL;
+    if (!parts.inrange(type) || parts[type]->type&PT_SPECIAL) return NULL;
+    PART_GET_OWNER(uid)
     particle *part = newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade, type,
         vec(r, g, b), size, gravity);
     part->owner = owner;
-    *((particle**)lua_newuserdata(L, sizeof(void*))) = part;
-    parts[type]->set_part_mt(L);
-    return 1;
+    return (void*)part;
 });
 
 VARP(maxparticledistance, 256, 1024, 4096);
@@ -1333,53 +1226,26 @@ static void splash(int type, const vec &color, int radius, int num, int fade, co
     }
 }
 
-LUAICOMMAND(particle_splash, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    int radius = luaL_checkinteger(L, 5);
-    int num = luaL_checkinteger(L, 6);
-    float r = luaL_checknumber(L, 7);
-    float g = luaL_checknumber(L, 8);
-    float b = luaL_checknumber(L, 9);
-    int fade = luaL_checkinteger(L, 10);
-    float size = luaL_checknumber(L, 11);
-    int gravity = luaL_checkinteger(L, 12);
-    int delay = luaL_checkinteger(L, 13);
-    PART_GET_OWNER(14)
-    if ((!lua_toboolean(L, 15) && !canemitparticles())
-    || (delay > 0 && rnd(delay) != 0)) {
-        lua_pushboolean(L, true);
-        return 1;
-    }
+CLUAICOMMAND(particle_splash, bool, (int type, float ox, float oy, float oz,
+int radius, int num, float r, float g, float b, int fade, float size,
+int gravity, int delay, int uid, bool unbounded), {
+    if (!parts.inrange(type)) return false;
+    PART_GET_OWNER(uid)
+    if ((!unbounded && !canemitparticles()) || (delay > 0 && rnd(delay) != 0))
+        return true;
     splash(type, vec(r, g, b), radius, num, fade, vec(ox, oy, oz), size,
         gravity, owner);
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
 VARP(maxtrail, 1, 500, 10000);
 
-LUAICOMMAND(particle_trail, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    float dx = luaL_checknumber(L, 5);
-    float dy = luaL_checknumber(L, 6);
-    float dz = luaL_checknumber(L, 7);
-    float r = luaL_checknumber(L, 8);
-    float g = luaL_checknumber(L, 9);
-    float b = luaL_checknumber(L, 10);
-    int fade = luaL_checkinteger(L, 11);
-    float size = luaL_checknumber(L, 12);
-    int gravity = luaL_checkinteger(L, 13);
-    PART_GET_OWNER(14)
-
-    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
+CLUAICOMMAND(particle_trail, bool, (int type, float ox, float oy, float oz,
+float dx, float dy, float dz, float r, float g, float b, int fade,
+float size, int gravity, int uid), {
+    if (!parts.inrange(type)) return false;
+    PART_GET_OWNER(uid)
+    if (!canaddparticles()) return true;
     vec s(ox, oy, oz);
     vec e(dx, dy, dz);
     vec v;
@@ -1394,8 +1260,7 @@ LUAICOMMAND(particle_trail, {
         newparticle(p, tmp, rnd(fade) + fade, type, vec(r, g, b), size,
             gravity)->owner = owner;
     }
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
 VARP(particletext, 0, 1, 1);
@@ -1409,185 +1274,103 @@ void particle_textcopy(const vec &s, const char *t, int type, int fade, const ve
     p->text = newstring(t);
 }
 
-LUAICOMMAND(particle_text, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TEXT) {
-        lua_pushboolean(L, false); return 1;
-    }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    size_t slen;
-    const char *text = luaL_checklstring(L, 5, &slen);
-    float r = luaL_checknumber(L, 6);
-    float g = luaL_checknumber(L, 7);
-    float b = luaL_checknumber(L, 8);
-    int fade = luaL_checkinteger(L, 9);
-    float size = luaL_checknumber(L, 10);
-    int gravity = luaL_checkinteger(L, 11);
-    PART_GET_OWNER(12)
+CLUAICOMMAND(particle_text, bool, (int type, float ox, float oy, float oz,
+const char *text, size_t slen, float r, float g, float b, int fade,
+float size, int gravity, int uid), {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TEXT)
+        return false;
+    PART_GET_OWNER(uid)
 
-    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
+    if (!canaddparticles()) return true;
 
     vec s(ox, oy, oz);
-    if(!particletext || camera1->o.dist(s) > maxparticletextdistance) {
-        lua_pushboolean(L, true);
-        return 1;
-    }
+    if(!particletext || camera1->o.dist(s) > maxparticletextdistance)
+        return true;
     textparticle *p = (textparticle*)newparticle(s, vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
     p->text = newstring(text, slen);
     p->owner = owner;
-
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
-LUAICOMMAND(particle_icon_generic, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type) || !(parts[type]->type&PT_ICONF)) {
-        lua_pushboolean(L, false); return 1;
-    }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    int ix = luaL_checkinteger(L, 5);
-    int iy = luaL_checkinteger(L, 6);
-    float r = luaL_checknumber(L, 7);
-    float g = luaL_checknumber(L, 8);
-    float b = luaL_checknumber(L, 9);
-    int fade = luaL_checkinteger(L, 10);
-    float size = luaL_checknumber(L, 11);
-    int gravity = luaL_checkinteger(L, 12);
-    PART_GET_OWNER(13)
-    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
+CLUAICOMMAND(particle_icon_generic, bool, (int type, float ox, float oy,
+float oz, int ix, int iy, float r, float g, float b, int fade, float size,
+int gravity, int uid), {
+    if (!parts.inrange(type) || !(parts[type]->type&PT_ICONF))
+        return false;
+    PART_GET_OWNER(uid)
+    if (!canaddparticles()) return true;
     particle *p = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
     p->flags |= ix | (iy<<2);
     p->owner = owner;
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
-LUAICOMMAND(particle_icon, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_ICON) {
-        lua_pushboolean(L, false); return 1;
-    }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    const char *icon = luaL_checkstring(L, 5);
-    float r = luaL_checknumber(L, 6);
-    float g = luaL_checknumber(L, 7);
-    float b = luaL_checknumber(L, 8);
-    int fade = luaL_checkinteger(L, 9);
-    float size = luaL_checknumber(L, 10);
-    int gravity = luaL_checkinteger(L, 11);
-    PART_GET_OWNER(12)
-    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
+CLUAICOMMAND(particle_icon, bool, (int type, float ox, float oy, float oz,
+const char *icon, float r, float g, float b, int fade, float size,
+int gravity, int uid), {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_ICON)
+        return false;
+    PART_GET_OWNER(uid)
+    if (!canaddparticles()) return true;
     particle *part = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
     part->owner = owner;
     ((iconparticle*)part)->tex = textureload(icon);
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
-LUAICOMMAND(particle_meter, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type) || !(parts[type]->type&(PT_METER|PT_METERVS))) {
-        lua_pushboolean(L, false); return 1;
-    }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    int val = luaL_checkinteger(L, 5);
-    float r = luaL_checknumber(L, 6);
-    float g = luaL_checknumber(L, 7);
-    float b = luaL_checknumber(L, 8);
-    int r2 = luaL_checknumber(L, 9);
-    int g2 = luaL_checknumber(L, 10);
-    int b2 = luaL_checknumber(L, 11);
-    int fade = luaL_checkinteger(L, 12);
-    float size = luaL_checknumber(L, 13);
-    PART_GET_OWNER(14)
-    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
+CLUAICOMMAND(particle_meter, bool, (int type, float ox, float oy, float oz,
+int val, float r, float g, float b, int r2, int g2, int b2, int fade,
+float size, int uid), {
+    if (!parts.inrange(type) || !(parts[type]->type&(PT_METER|PT_METERVS)))
+        return false;
+    PART_GET_OWNER(uid)
+    if (!canaddparticles()) return true;
     meterparticle *p = (meterparticle*)newparticle(vec(ox, oy, oz),
         vec(0, 0, 1), fade, type, vec(r, g, b), size);
     p->color2 = vec(r2, g2, b2);
     p->progress = clamp(val, 0, 100);
     p->owner = owner;
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
-LUAICOMMAND(particle_flare, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    float dx = luaL_checknumber(L, 5);
-    float dy = luaL_checknumber(L, 6);
-    float dz = luaL_checknumber(L, 7);
-    float r = luaL_checknumber(L, 8);
-    float g = luaL_checknumber(L, 9);
-    float b = luaL_checknumber(L, 10);
-    int fade = luaL_checkinteger(L, 11);
-    float size = luaL_checknumber(L, 12);
-    PART_GET_OWNER(13)
-    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
+CLUAICOMMAND(particle_flare, bool, (int type, float ox, float oy, float oz,
+float dx, float dy, float dz, float r, float g, float b, int fade,
+float size, int uid), {
+    if (!parts.inrange(type)) return false;
+    PART_GET_OWNER(uid)
+    if (!canaddparticles()) return true;
     newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade,
         type, vec(r, g, b), size)->owner = owner;
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
-LUAICOMMAND(particle_fireball, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FIREBALL) {
-        lua_pushboolean(L, false); return 1;
-    }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    float r = luaL_checknumber(L, 5);
-    float g = luaL_checknumber(L, 6);
-    float b = luaL_checknumber(L, 7);
-    int fade = luaL_checkinteger(L, 8);
-    float size = luaL_checknumber(L, 9);
-    float maxsize = luaL_checknumber(L, 10);
-    PART_GET_OWNER(11)
-    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
+CLUAICOMMAND(particle_fireball, bool, (int type, float ox, float oy,
+float oz, float r, float g, float b, int fade, float size, float maxsize,
+int uid), {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FIREBALL)
+        return false;
+    PART_GET_OWNER(uid)
+    if (!canaddparticles()) return true;
     float growth = maxsize - size;
     if(fade < 0) fade = int(growth*20);
     particle *part = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade,
         type, vec(r, g, b), size);
     part->val = growth;
     part->owner = owner;
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
-LUAICOMMAND(particle_lensflare, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FLARE) {
-        lua_pushboolean(L, false); return 1;
-    }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    bool sun = lua_toboolean(L, 5);
-    bool sparkle = lua_toboolean(L, 6);
-    float r = luaL_checknumber(L, 7);
-    float g = luaL_checknumber(L, 8);
-    float b = luaL_checknumber(L, 9);
-    if (!canaddparticles()) { lua_pushboolean(L, true); return 1; }
+CLUAICOMMAND(particle_lensflare, bool, (int type, float ox, float oy,
+float oz, bool sun, bool sparkle, float r, float g, float b), {
+    if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FLARE)
+        return false;
+    if (!canaddparticles()) return true;
     vec o(ox, oy, oz);
     ((flarerenderer*)parts[type])->addflare(o, vec(r, g, b), sun, sparkle);
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 })
 
 /* Experiments in shapes...
@@ -1601,36 +1384,18 @@ LUAICOMMAND(particle_lensflare, {
  * 24..26 flat plane
  * +32 to inverse direction
  */
-LUAICOMMAND(particle_shape, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    int radius = luaL_checkinteger(L, 5);
-    int dir = luaL_checkinteger(L, 6);
-    int num = luaL_checkinteger(L, 7);
-    float r = luaL_checknumber(L, 8);
-    float g = luaL_checknumber(L, 9);
-    float b = luaL_checknumber(L, 10);
-    int fade = luaL_checkinteger(L, 11);
-    float size = luaL_checknumber(L, 12);
-    int gravity = luaL_checkinteger(L, 13);
-    int vel = luaL_checkinteger(L, 14);
-    PART_GET_OWNER(15)
-
-    if (!canaddparticles() || !canemitparticles()) {
-        lua_pushboolean(L, true);
-        return 1;
-    }
-
+CLUAICOMMAND(particle_shape, bool, (int type, float ox, float oy, float oz,
+int radius, int dir, int num, float r, float g, float b, int fade,
+float size, int gravity, int vel, int uid), {
+    if (!parts.inrange(type)) return false;
+    PART_GET_OWNER(uid)
+    if (!canaddparticles() || !canemitparticles()) return true;
     vec p(ox, oy, oz);
     int basetype = parts[type]->type&0xFF;
     bool flare = (basetype == PT_TAPE) || (basetype == PT_LIGHTNING);
     bool inv   = (dir & 0x20) != 0;
     bool taper = (dir & 0x40) != 0 && !seedemitter;
     dir &= 0x1F;
-
     loopi(num) {
         vec to;
         vec from;
@@ -1710,33 +1475,15 @@ LUAICOMMAND(particle_shape, {
             }
         }
     }
-
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
 
-LUAICOMMAND(particle_flame, {
-    PART_GET_TYPE(type);
-    if (!parts.inrange(type)) { lua_pushboolean(L, false); return 1; }
-    float ox = luaL_checknumber(L, 2);
-    float oy = luaL_checknumber(L, 3);
-    float oz = luaL_checknumber(L, 4);
-    float radius = luaL_checknumber(L, 5);
-    float height = luaL_checknumber(L, 6);
-    float r = luaL_checknumber(L, 7);
-    float g = luaL_checknumber(L, 8);
-    float b = luaL_checknumber(L, 9);
-    int fade = luaL_checkinteger(L, 10);
-    int density = luaL_checkinteger(L, 11);
-    float scale = luaL_checknumber(L, 12);
-    float speed = luaL_checknumber(L, 13);
-    int gravity = luaL_checkinteger(L, 14);
-    PART_GET_OWNER(15)
-
-    if (!canaddparticles() || !canemitparticles()) {
-        lua_pushboolean(L, true);
-        return 1;
-    }
+CLUAICOMMAND(particle_flame, bool, (int type, float ox, float oy, float oz,
+float radius, float height, float r, float g, float b, int fade,
+int density, float scale, float speed, int gravity, int uid), {
+    if (!parts.inrange(type)) return false;
+    PART_GET_OWNER(uid)
+    if (!canaddparticles() || !canemitparticles()) return true;
 
     float size = scale * min(radius, height);
     vec v(0, 0, min(1.0f, height) * speed);
@@ -1748,11 +1495,8 @@ LUAICOMMAND(particle_flame, {
         newparticle(s, v, rnd(max(int(fade * height), 1)) + 1, type,
             vec(r, g, b), size, gravity)->owner = owner;
     }
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 });
-
-#undef PART_GET_TYPE
 
 enum { PART_TEXT = 0, PART_ICON };
 
@@ -1870,5 +1614,4 @@ void updateparticles()
     }
 }
 
-#undef PART_MT_FIELD
 #undef PART_GET_OWNER
