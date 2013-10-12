@@ -1614,18 +1614,14 @@ void setblurshader(int pass, int size, int radius, float *weights, float *offset
 
 /* OF: extra Lua APIs */
 
-LUAICOMMAND(shader_hud_set, {
+CLUAICOMMAND(shader_hud_set, void, (), {
     hudshader->set();
-    return 0;
 });
 
-LUAICOMMAND(shader_hud_set_variant, {
-    Texture *tex = luachecktexture(L, 1);
-    hudshader->setvariant(tex->swizzle(), 0);
-    return 0;
+CLUAICOMMAND(shader_hud_set_variant, void, (void *tex), {
+    hudshader->setvariant(((Texture*)tex)->swizzle(), 0);
 });
 
-LUAICOMMAND(shader_hudnotexture_set, {
+CLUAICOMMAND(shader_hudnotexture_set, void, (), {
     hudnotextureshader->set();
-    return 0;
 });

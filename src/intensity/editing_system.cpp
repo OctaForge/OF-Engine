@@ -317,56 +317,35 @@ CLogicEntity *getSelectedEntity()
 
 #ifndef SERVER
 ICOMMAND(save_mouse_position, "", (), EditingSystem::saved_pos = worldpos);
-LUAICOMMAND(save_mouse_position, {
+CLUAICOMMAND(save_mouse_position, void, (), {
     EditingSystem::saved_pos = worldpos;
-    return 0;
 });
 #endif
 
-LUAICOMMAND(edit_erase_geometry, {
+CLUAICOMMAND(edit_erase_geometry, void, (), {
     EditingSystem::eraseGeometry();
-    return 0;
 });
 
-LUAICOMMAND(edit_create_cube, {
-    EditingSystem::createCube(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                              luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
-    return 0;
+CLUAICOMMAND(edit_create_cube, void, (int x, int y, int z, int gs), {
+    EditingSystem::createCube(x, y, z, gs);
 });
 
-LUAICOMMAND(edit_delete_cube, {
-    EditingSystem::deleteCube(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                              luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
-    return 0;
+CLUAICOMMAND(edit_delete_cube, void, (int x, int y, int z, int gs), {
+    EditingSystem::deleteCube(x, y, z, gs);
 });
 
-LUAICOMMAND(edit_set_cube_texture, {
-    EditingSystem::setCubeTexture(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
-                                  luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
-    return 0;
+CLUAICOMMAND(edit_set_cube_texture, void, (int x, int y, int z, int gs, int face, int tex), {
+    EditingSystem::setCubeTexture(x, y, z, gs, face, tex);
 });
 
-LUAICOMMAND(edit_set_cube_material, {
-    EditingSystem::setCubeMaterial(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                   luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
-                                   luaL_checkinteger(L, 5));
-    return 0;
+CLUAICOMMAND(edit_set_cube_material, void, (int x, int y, int z, int gs, int mat), {
+    EditingSystem::setCubeMaterial(x, y, z, gs, mat);
 });
 
-LUAICOMMAND(edit_set_cube_color, {
-    EditingSystem::setCubeColor(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
-                                luaL_checknumber(L, 5),
-                                luaL_checknumber(L, 6),
-                                luaL_checknumber(L, 7));
-    return 0;
+CLUAICOMMAND(edit_set_cube_color, void, (int x, int y, int z, int gs, float r, float g, float b), {
+    EditingSystem::setCubeColor(x, y, z, gs, r, g, b);
 });
 
-LUAICOMMAND(edit_push_cube_corner, {
-    EditingSystem::pushCubeCorner(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
-                                  luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
-                                  luaL_checkinteger(L, 7));
-    return 0;
+CLUAICOMMAND(edit_push_cube_corner, void, (int x, int y, int z, int gs, int face, int corner, int dir), {
+    EditingSystem::pushCubeCorner(x, y, z, gs, face, corner, dir);
 });

@@ -2115,30 +2115,21 @@ bool entinmap(dynent *d, bool avoidplayers)        // brute force but effective 
 
 /* OF */
 
-LUAICOMMAND(ray_los, {
+CLUAICOMMAND(ray_los, bool, (float x, float y, float z,
+float dx, float dy, float dz), {
     vec target(0);
-    lua_pushboolean(L, raycubelos(vec(luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-        vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-            luaL_checknumber(L, 6)), target));
-    return 1;
+    return raycubelos(vec(x, y, z), vec(dx, dy, dz), target);
 });
 
-LUAICOMMAND(ray_pos, {
+CLUAICOMMAND(ray_pos, float, (float x, float y, float z,
+float rx, float ry, float rz, float radius), {
     vec hitpos(0);
-    lua_pushnumber(L, raycubepos(vec(luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-        vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-            luaL_checknumber(L, 6)), hitpos, luaL_checknumber(L, 7),
-        RAY_CLIPMAT | RAY_POLY));
-    return 1;
+    return raycubepos(vec(x, y, z), vec(rx, ry, rz), hitpos,
+        radius, RAY_CLIPMAT | RAY_POLY);
 });
 
-LUAICOMMAND(ray_floor, {
+CLUAICOMMAND(ray_floor, float, (float x, float y, float z, float radius), {
     vec floor(0);
-    lua_pushnumber(L, rayfloor(vec(luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2), luaL_checknumber(L, 3)), floor, 0,
-            luaL_checknumber(L, 4)));
-    return 1;
+    return rayfloor(vec(x, y, z), floor, 0, radius);
 });
 

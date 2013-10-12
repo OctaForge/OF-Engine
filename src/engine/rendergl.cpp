@@ -1144,17 +1144,14 @@ ICOMMAND(getcampos, "", (),
 
 /* OF */
 
-LUAICOMMAND(camera_get_yaw, {
-    lua_pushinteger(L, camera1->yaw);
-    return 1;
+CLUAICOMMAND(camera_get_yaw, float, (), {
+    return camera1->yaw;
 });
-LUAICOMMAND(camera_get_pitch, {
-    lua_pushinteger(L, camera1->pitch);
-    return 1;
+CLUAICOMMAND(camera_get_pitch, float, (), {
+    return camera1->pitch;
 });
-LUAICOMMAND(camera_get_roll, {
-    lua_pushinteger(L, camera1->roll);
-    return 1;
+CLUAICOMMAND(camera_get_roll, float, (), {
+    return camera1->roll;
 });
 LUAICOMMAND(camera_get_position, {
     lua::push_external(L, "new_vec3");

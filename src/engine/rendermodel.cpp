@@ -1223,19 +1223,12 @@ LUAICOMMAND(model_render, {
 SMDLBOX(boundbox)
 SMDLBOX(collisionbox)
 
-LUAICOMMAND(model_preload, { preloadmodel(luaL_checkstring(L, 1)); return 0; });
-LUAICOMMAND(model_clear, { clearmodel((char*)luaL_checkstring(L, 1)); return 0; });
+CLUAICOMMAND(model_preload, void, (const char *name), { preloadmodel(name); });
+CLUAICOMMAND(model_clear, void, (const char *name), { clearmodel((char*)name); });
 
-LUAICOMMAND(model_preview_start, {
-    int  x = luaL_checkinteger(L, 1);
-    int  y = luaL_checkinteger(L, 2);
-    int dx = luaL_checkinteger(L, 3);
-    int dy = luaL_checkinteger(L, 4);
-    bool scissor = lua_toboolean(L, 5);
-
+CLUAICOMMAND(model_preview_start, void, (int x, int y, int dx, int dy, bool scissor), {
     gle::disable();
     modelpreview::start(x, y, dx, dy, false, scissor);
-    return 0;
 });
 
 LUAICOMMAND(model_preview, {
@@ -1279,9 +1272,8 @@ LUAICOMMAND(model_preview, {
     return 0;
 });
 
-LUAICOMMAND(model_preview_end, {
+CLUAICOMMAND(model_preview_end, void, (), {
     modelpreview::end();
-    return 0;
 });
 
 vector<int> lua_anims;
