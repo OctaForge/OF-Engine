@@ -21,14 +21,14 @@ local M = {
     __connect = function(self, name)
         local  vn = name:match("(.+)_changed$")
         if not vn then return end
-        capi.var_emits(vn, true)
+        capi.var_make_emit(vn, true)
     end,
 
     __disconnect = function(self, name, id, scount)
         if scount == 0 then
             local  vn = name:match("(.+)_changed$")
             if not vn then return end
-            capi.var_emits(vn, false)
+            capi.var_make_emit(vn, false)
         end
     end
 }

@@ -2357,59 +2357,44 @@ EDITSTAT(pvs, int, getnumviewcells());
 
 /* OF */
 
-LUAICOMMAND(slot_set, {
-    int n = luaL_checkinteger(L, 1);
-    if (!vslots.inrange(n) || noedit()) return 0;
+CLUAICOMMAND(slot_set, void, (int n), {
+    if (!vslots.inrange(n) || noedit()) return;
     filltexlist();
     edittex(n);
-    return 0;
 });
 
-LUAICOMMAND(slot_texmru_num, {
+CLUAICOMMAND(slot_texmru_num, int, (), {
     filltexlist();
-    lua_pushinteger(L, texmru.length());
-    return 1;
+    return texmru.length();
 });
 
-LUAICOMMAND(slot_texmru, {
-    int idx = luaL_checkinteger(L, 1);
+CLUAICOMMAND(slot_texmru, int, (int idx), {
     filltexlist();
-    lua_pushinteger(L, texmru.inrange(idx) ? texmru[idx] : idx);
-    return 1;
+    return texmru.inrange(idx) ? texmru[idx] : idx;
 });
 
-LUAICOMMAND(slot_get_count, {
-    lua_pushinteger(L, slots.length());
-    return 1;
+CLUAICOMMAND(slot_get_count, int, (), {
+    return slots.length();
 });
 
-LUAICOMMAND(slot_get_count_v, {
-    lua_pushinteger(L, vslots.length());
-    return 1;
+CLUAICOMMAND(slot_get_count_v, int, (), {
+    return vslots.length();
 });
 
-LUAICOMMAND(slot_exists, {
-    lua_pushboolean(L, texmru.inrange((int)luaL_checkinteger(L, 1)));
-    return 1;
+CLUAICOMMAND(slot_exists, bool, (int idx), {
+    return texmru.inrange(idx);
 });
 
-LUAICOMMAND(slot_get_name, {
-    int tex = luaL_checkinteger(L, 1);
-    int subslot = luaL_optinteger(L, 2, 0);
-    if (tex < 0) return 0;
+CLUAICOMMAND(slot_get_name, char*, (int tex, int subslot), {
+    if (tex < 0) return NULL;
     VSlot &vslot = lookupvslot(tex, false);
     Slot &slot = *vslot.slot;
-    if(!slot.sts.inrange(subslot)) return 0;
-    lua_pushstring(L, slot.sts[subslot].name);
-    return 1;
+    if(!slot.sts.inrange(subslot)) return NULL;
+    return slot.sts[subslot].name;
 });
 
-LUAICOMMAND(slot_check_vslot, {
-    VSlot &vslot = lookupvslot(texmru[luaL_checkinteger(L, 1)], false);
-    if (vslot.slot->sts.length() && (vslot.slot->loaded || vslot.slot->thumbnail))
-        lua_pushboolean(L, true);
-    else
-        lua_pushboolean(L, false);
-    return 1;
+CLUAICOMMAND(slot_check_vslot, bool, (int idx), {
+    VSlot &vslot = lookupvslot(texmru[idx], false);
+    return vslot.slot->sts.length() && (vslot.slot->loaded || vslot.slot->thumbnail);
 });
 #endif

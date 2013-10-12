@@ -180,65 +180,31 @@ void queuedynlight(const vec &o, float radius, const vec &color, int fade, int p
     dynlight_queue.add(d);
 }
 
-#define DYNLIGHT_GET_OWNER(owner, num) \
+#define DYNLIGHT_GET_OWNER(owner, uid) \
     physent *owner = NULL; \
-    if (!lua_isnoneornil(L, num)) { \
-        lua::push_external(L, "entity_get_attr"); \
-        lua_pushvalue(L, num); \
-        lua_pushliteral(L, "uid"); \
-        lua_call(L, 2, 1); \
-        int uid = lua_tointeger(L, -1); lua_pop(L, 1); \
+    if (uid >= 0) { \
         CLogicEntity *ent = LogicSystem::getLogicEntity(uid); \
         assert(ent && ent->dynamicEntity); \
         owner = ent->dynamicEntity; \
     }
 
-LUAICOMMAND(dynlight_add, {
-    float ox = luaL_checknumber(L, 1);
-    float oy = luaL_checknumber(L, 2);
-    float oz = luaL_checknumber(L, 3);
-    float radius = luaL_checknumber(L, 4);
-    float r = luaL_checknumber(L, 5);
-    float g = luaL_checknumber(L, 6);
-    float b = luaL_checknumber(L, 7);
-    int fade = luaL_optinteger(L, 8, 0);
-    int peak = luaL_optinteger(L, 9, 0);
-    int flags = luaL_optinteger(L, 10, 0);
-    float initradius = luaL_optnumber(L, 11, 0.0f);
-    float ir = luaL_optnumber(L, 12, 0.0f);
-    float ig = luaL_optnumber(L, 13, 0.0f);
-    float ib = luaL_optnumber(L, 14, 0.0f);
-    DYNLIGHT_GET_OWNER(owner, 15);
+CLUAICOMMAND(dynlight_add, bool, (float ox, float oy, float oz,
+float radius, float r, float g, float b, int fade, int peak, int flags,
+float initradius, float ir, float ig, float ib, int uid), {
+    DYNLIGHT_GET_OWNER(owner, uid);
     queuedynlight(vec(ox, oy, oz), radius, vec(r, g, b), fade, peak, flags,
         initradius, vec(ir, ig, ib), owner, vec(0, 0, 0), 0);
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 })
 
-LUAICOMMAND(dynlight_add_spot, {
-    float ox = luaL_checknumber(L, 1);
-    float oy = luaL_checknumber(L, 2);
-    float oz = luaL_checknumber(L, 3);
-    float dx = luaL_checknumber(L, 4);
-    float dy = luaL_checknumber(L, 5);
-    float dz = luaL_checknumber(L, 6);
-    float radius = luaL_checknumber(L, 7);
-    int spot = luaL_checkinteger(L, 8);
-    float r = luaL_checknumber(L, 9);
-    float g = luaL_checknumber(L, 10);
-    float b = luaL_checknumber(L, 11);
-    int fade = luaL_optinteger(L, 12, 0);
-    int peak = luaL_optinteger(L, 13, 0);
-    int flags = luaL_optinteger(L, 14, 0);
-    float initradius = luaL_optnumber(L, 15, 0.0f);
-    float ir = luaL_optnumber(L, 16, 0.0f);
-    float ig = luaL_optnumber(L, 17, 0.0f);
-    float ib = luaL_optnumber(L, 18, 0.0f);
-    DYNLIGHT_GET_OWNER(owner, 19);
+CLUAICOMMAND(dynlight_add_spot, bool, (float ox, float oy, float oz,
+float dx, float dy, float dz, float radius, int spot, float r, float g,
+float b, int fade, int peak, int flags, int initradius, float ir, float ig,
+float ib, int uid), {
+    DYNLIGHT_GET_OWNER(owner, uid);
     queuedynlight(vec(ox, oy, oz), radius, vec(r, g, b), fade, peak, flags,
         initradius, vec(ir, ig, ib), owner, vec(dx, dy, dz), spot);
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 })
 
 #undef DYNLIGHT_GET_OWNER

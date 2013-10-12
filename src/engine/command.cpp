@@ -4075,25 +4075,23 @@ ICOMMAND(trusted, "e", (uint *body), {
     identflags = flags;
 })
 
-LUAICOMMAND(get_millis, {
-    lua_pushinteger(L, lua_toboolean(L, 1) ? totalmillis : lastmillis);
-    return 1;
+CLUAICOMMAND(get_millis, int, (bool total), {
+    return total ? totalmillis : lastmillis;
 });
 
 CLUAICOMMAND(get_curtime, int, (), return curtime;);
 
-LUAICOMMAND(get_current_time, {
+CLUAICOMMAND(get_current_time, int, (), {
 #ifdef SERVER
-    lua_pushinteger(L, enet_time_get());
+    return enet_time_get();
 #else
     extern int clockrealbase;
-    lua_pushinteger(L, SDL_GetTicks() - clockrealbase);
+    return SDL_GetTicks() - clockrealbase;
 #endif
-    return 1;
 });
 
 static time_t walltime = 0;
-LUAICOMMAND(strftime, {
+CLUAICOMMAND(strftime, bool, (char *buf, size_t max, const char *fmt), {
     if (!walltime) {
         walltime = time(NULL) - totalmillis / 1000;
         if (!walltime) {
@@ -4102,13 +4100,10 @@ LUAICOMMAND(strftime, {
     }
     time_t walloffset = walltime + totalmillis / 1000;
     struct tm *localvals = localtime(&walloffset);
-    static string buf;
-    const char *fmt = luaL_checkstring(L, 1);
-    if (localvals && strftime(buf, sizeof(buf), fmt, localvals)) {
-        lua_pushstring(L, buf);
-        return 1;
+    if (localvals && strftime(buf, max, fmt, localvals)) {
+        return true;
     }
-    return 0;
+    return false;
 });
 
 enum { SLEEP_CS = 0, SLEEP_LUA = 1 };
@@ -4196,9 +4191,8 @@ void clearsleep_(int *clearoverrides) {
 }
 COMMANDN(clearsleep, clearsleep_, "i");
 
-LUAICOMMAND(sleep_clear, {
-    clearsleep(lua_toboolean(L, 1) || identflags&IDF_OVERRIDDEN);
-    return 0;
+CLUAICOMMAND(sleep_clear, void, (bool overrides), {
+    clearsleep(overrides || identflags&IDF_OVERRIDDEN);
 });
 
 ICOMMAND(lua, "s", (char *str), {
@@ -4246,9 +4240,8 @@ LUAICOMMAND(cubescript, {
     return 1;
 })
 
-LUAICOMMAND(var_reset, {
-    resetvar((char*)luaL_checkstring(L, 1));
-    return 0;
+CLUAICOMMAND(var_reset, void, (const char *name), {
+    resetvar((char*)name);
 });
 
 LUAICOMMAND(var_new, {
@@ -4372,28 +4365,30 @@ LUAICOMMAND(var_get_type, {
     return 1;
 });
 
-LUAICOMMAND(var_exists, {
-    ident *id = getident(luaL_checkstring(L, 1));
-    lua_pushboolean(L, (!id || id->type > ID_SVAR) ? false : true);
-    return 1;
+CLUAICOMMAND(var_exists, bool, (const char *name), {
+    ident *id = getident(name);
+    return id && (id->type <= ID_SVAR);
 });
 
-LUAICOMMAND(var_is_hex, {
-    ident *id = getident(luaL_checkstring(L, 1));
-    lua_pushboolean(L, (!id || !(id->flags&IDF_HEX)) ? false : true);
-    return 1;
+CLUAICOMMAND(var_is_hex, bool, (const char *name), {
+    ident *id = getident(name);
+    return id && (id->flags&IDF_HEX);
 });
 
-LUAICOMMAND(var_emits, {
-    ident *id = getident(luaL_checkstring(L, 1));
-    lua_pushboolean(L, (!id || !(id->flags&IDF_SIGNAL)) ? false : true);
-    if (!id) return 1;
-    if (lua_gettop(L) >= 2) {
-        if (lua_toboolean(L, 2)) id->flags |= IDF_SIGNAL;
-        else id->flags &= ~IDF_SIGNAL;
-    }
-    return 1;
+CLUAICOMMAND(var_emits, bool, (const char *name), {
+    ident *id = getident(name);
+    bool ret = id && (id->flags&IDF_SIGNAL);
+    return ret;
 });
+
+CLUAICOMMAND(var_make_emit, bool, (const char *name, bool v), {
+    ident *id = getident(name);
+    bool ret = id && (id->flags&IDF_SIGNAL);
+    if (!id) return ret;
+    if (v) id->flags |=  IDF_SIGNAL;
+    else   id->flags &= ~IDF_SIGNAL;
+    return ret;
+})
 
 #undef ICOMMANDNAME
 #define ICOMMANDNAME(name) _icmd_##name
