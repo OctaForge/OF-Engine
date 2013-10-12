@@ -168,13 +168,10 @@ void gettextres(int &w, int &h)
         }
     }
 }
-LUAICOMMAND(text_get_res, {
-    int w = luaL_checkinteger(L, 1);
-    int h = luaL_checkinteger(L, 2);
+CLUAICOMMAND(text_get_res, void, (int w, int h, int *v), {
     gettextres(w, h);
-    lua_pushinteger(L, w);
-    lua_pushinteger(L, h);
-    return 2;
+    v[0] = w;
+    v[1] = h;
 })
 
 float text_widthf(const char *str)
@@ -445,34 +442,34 @@ void reloadfonts()
 
 /* OF */
 
-LUAICOMMAND(text_get_bounds, {
+CLUAICOMMAND(text_get_bounds, void, (const char *text, int maxw, int *v), {
     int w; int h;
-    text_bounds(luaL_checkstring(L, 1), w, h, luaL_checkinteger(L, 2));
-    lua_pushinteger(L, w); lua_pushinteger(L, h);
-    return 2;
+    text_bounds(text, w, h, maxw);
+    v[0] = w;
+    v[1] = h;
 });
 
-LUAICOMMAND(text_get_boundsf, {
+CLUAICOMMAND(text_get_boundsf, void, (const char *text, int maxw, float *v), {
     float w; float h;
-    text_boundsf(luaL_checkstring(L, 1), w, h, luaL_checkinteger(L, 2));
-    lua_pushnumber(L, w); lua_pushnumber(L, h);
-    return 2;
+    text_boundsf(text, w, h, maxw);
+    v[0] = w;
+    v[1] = h;
 });
 
-LUAICOMMAND(text_get_position, {
+CLUAICOMMAND(text_get_position, void, (const char *text, int cursor,
+int maxw, int *v), {
     int cx; int cy;
-    text_pos(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
-        cx, cy, luaL_checkinteger(L, 3));
-    lua_pushinteger(L, cx); lua_pushinteger(L, cy);
-    return 2;
+    text_pos(text, cursor, cx, cy, maxw);
+    v[0] = cx;
+    v[1] = cy;
 });
 
-LUAICOMMAND(text_get_positionf, {
+CLUAICOMMAND(text_get_positionf, void, (const char *text, int cursor,
+int maxw, float *v), {
     float cx; float cy;
-    text_posf(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
-        cx, cy, luaL_checkinteger(L, 3));
-    lua_pushnumber(L, cx); lua_pushnumber(L, cy);
-    return 2;
+    text_posf(text, cursor, cx, cy, maxw);
+    v[0] = cx;
+    v[1] = cy;
 });
 
 CLUAICOMMAND(text_is_visible, int, (const char *text, float hitx, float hity,

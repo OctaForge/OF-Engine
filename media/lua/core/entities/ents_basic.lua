@@ -1111,7 +1111,7 @@ local Sound = Static_Entity:clone {
 
     __activate = (not SERVER) and function(self, ...)
         Static_Entity.__activate(self, ...)
-        local f = |self, ...| capi.sound_stop_map(self.uid, ...)
+        local f = |self| capi.sound_stop_map(self.uid)
         connect(self, "sound_name_changed", f)
         connect(self, "radius_changed", f)
         connect(self, "size_changed", f)

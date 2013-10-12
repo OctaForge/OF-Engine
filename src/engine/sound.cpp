@@ -764,71 +764,47 @@ void stop_sound_by_id(int id) {
     }
 }
 
-LUAICOMMAND(sound_play, {
-    float x = luaL_checknumber(L, 2); float y = luaL_checknumber(L, 3);
-    float z = luaL_checknumber(L, 4);
+CLUAICOMMAND(sound_play, void, (const char *name, float x, float y,
+float z, int vol), {
     if (x || y || z) {
         vec loc(x, y, z);
-        playsoundname(luaL_checkstring(L, 1), &loc,
-            luaL_optinteger(L, 5, 100));
+        playsoundname(name, &loc, vol);
     } else {
-        playsoundname(luaL_checkstring(L, 1), NULL,
-            luaL_optinteger(L, 5, 100));
+        playsoundname(name, NULL, vol);
     }
-    return 0;
 });
 
-LUAICOMMAND(sound_play_map, {
-    int uid = luaL_checkinteger(L, 1);
-    LUA_GET_ENT(entity, uid, "_C.sound_play_map", {
-        lua_pushboolean(L, false);
-        return 1;
-    });
-    const char *s = luaL_checkstring(L, 2);
-    int vol   = luaL_optinteger(L, 3, 100);
-    int loops = luaL_optinteger(L, 4, -1);
-    if (!vol) vol = 100;
+CLUAICOMMAND(sound_play_map, bool, (int uid, const char *name, int vol,
+int loops), {
+    LUA_GET_ENT(entity, uid, "_C.sound_play_map", return false;);
     extentity *ent = entity->staticEntity;
     assert(ent);
-    int id = findsound(s, vol, mapsounds, mapslots);
-    if(id < 0) id = addsound(s, vol, 0, mapsounds, mapslots);
-    lua_pushboolean(L, playsound(id, NULL, ent, SND_MAP,
-        loops, 0, -1, 0, -1) >= 0);
-    return 1;
+    int id = findsound(name, vol, mapsounds, mapslots);
+    if(id < 0) id = addsound(name, vol, 0, mapsounds, mapslots);
+    return playsound(id, NULL, ent, SND_MAP, loops, 0, -1, 0, -1) >= 0;
 })
 
-LUAICOMMAND(sound_stop, {
-    stop_sound_by_id(get_sound_id(luaL_checkstring(L, 1),
-        luaL_optinteger(L, 2, 100)));
-    return 0;
+CLUAICOMMAND(sound_stop, void, (const char *name, int vol), {
+    stop_sound_by_id(get_sound_id(name, vol));
 });
 
-LUAICOMMAND(sound_stop_map, {
-    int uid = luaL_checkinteger(L, 1);
-    LUA_GET_ENT(entity, uid, "_C.sound_stop_map", {
-        lua_pushboolean(L, false);
-        return 1;
-    });
+CLUAICOMMAND(sound_stop_map, bool, (int uid), {
+    LUA_GET_ENT(entity, uid, "_C.sound_stop_map", return false;);
     extentity *ent = entity->staticEntity;
     assert(ent);
     stopmapsound(ent);
-    lua_pushboolean(L, true);
-    return 1;
+    return true;
 })
 
-LUAICOMMAND(sound_preload_map, {
-    const char *n = luaL_checkstring(L, 1);
-    defformatstring(buf, "preloading sound '%s' ...", n);
+CLUAICOMMAND(sound_preload_map, int, (const char *name, int vol), {
+    defformatstring(buf, "preloading sound '%s' ...", name);
     renderprogress(0, buf);
-    lua_pushinteger(L, preloadmapsound(n, luaL_optinteger(L, 2, 100)));
-    return 1;
+    return preloadmapsound(name, vol);
 });
 
-LUAICOMMAND(sound_preload_game, {
-    const char *n = luaL_checkstring(L, 1);
-    defformatstring(buf, "preloading sound '%s' ...", n);
+CLUAICOMMAND(sound_preload_game, int, (const char *name, int vol), {
+    defformatstring(buf, "preloading sound '%s' ...", name);
     renderprogress(0, buf);
-    lua_pushinteger(L, preloadgamesound(n, luaL_optinteger(L, 2, 100)));
-    return 1;
+    return preloadgamesound(name, vol);
 });
 

@@ -25,27 +25,31 @@ return {
         Plays a sound. Accepts the sound name, a position (which is a vec3 and
         defaults to 0, 0, 0) and volume (which is a number defaulting to 100).
     ]]
-    play = function(name, pos, volume)
+    play = function(name, pos, vol)
         if not name then return end
         pos = pos or vec3(0)
-        play(name, pos.x, pos.y, pos.z, volume)
+        play(name, pos.x, pos.y, pos.z, vol or 100)
     end,
 
     --[[! Function: stop
         Stops a sound. Accepts the sound name and its volume (which defaults
         to 100).
     ]]
-    stop = capi.sound_stop,
+    stop = function(name, vol) capi.sound_stop(name, vol or 100) end,
 
     --[[! Function: preload_map
         Preloads a map sound so that it doesn't have to be loaded on the fly
         later. That leads to better performance.
     ]]
-    preload_map = capi.sound_preload_map,
+    preload_map = function(name, vol)
+        return capi.sound_preload_map(name, vol or 100)
+    end,
 
     --[[! Function: preload_game
         Preloads a game sound so that it doesn't have to be loaded on the fly
         later. That leads to better performance.
     ]]
-    preload_game = capi.sound_preload_game
+    preload_game = function(name, vol)
+        return capi.sound_preload_game(name, vol or 100)
+    end
 }

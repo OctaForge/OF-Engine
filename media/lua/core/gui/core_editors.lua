@@ -1008,7 +1008,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     set_focus = function(self, ed)
         if is_focused(ed) then return end
         set_focus(ed)
-        local ati = ed and ed:allow_text_input()
+        local ati = ed and ed:allow_text_input() or false
         input_textinput(ati, 1 << 1) -- TI_GUI
         input_keyrepeat(ati, 1 << 1) -- KR_GUI
     end,
