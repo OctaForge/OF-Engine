@@ -61,6 +61,9 @@ end
 
 local capi = require("capi")
 
+-- patch capi
+require("core.capi")
+
 capi.log(1, "Initializing logging.")
 
 local log = require("core.logger")

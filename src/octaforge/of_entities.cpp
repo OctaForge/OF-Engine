@@ -111,9 +111,10 @@ namespace entities
         entity->setAnimationFlags((aflags << ANIM_FLAGSHIFT) & ANIM_FLAGS);
     });
 
-    CLUAICOMMAND(get_start_time, int, (int uid), {
-        LUA_GET_ENT(entity, uid, "_C.getstarttime", return 0)
-        return entity->getStartTime();
+    CLUAICOMMAND(get_start_time, bool, (int uid, int *val), {
+        LUA_GET_ENT(entity, uid, "_C.getstarttime", return false)
+        *val = entity->getStartTime();
+        return true;
     });
 
     CLUAICOMMAND(set_model_name, void, (int uid, const char *name), {
@@ -154,11 +155,12 @@ namespace entities
 
     /* Extents */
 
-    CLUAICOMMAND(get_attr, int, (int uid, int a), {
-        LUA_GET_ENT(entity, uid, "_C.get_attr", return 0)
+    CLUAICOMMAND(get_attr, bool, (int uid, int a, int *val), {
+        LUA_GET_ENT(entity, uid, "_C.get_attr", return false)
         extentity *ext = entity->staticEntity;
         assert(ext);
-        return ext->attr[a];
+        *val = ext->attr[a];
+        return true;
     });
     CLUAICOMMAND(set_attr, void, (int uid, int a, int v), {
         LUA_GET_ENT(entity, uid, "_C.set_attr", return)
@@ -175,17 +177,17 @@ namespace entities
         ext->attr[a] = v;
     });
 
-    struct cvec3_t { double x, y, z; };
-
-    CLUAICOMMAND(get_extent_position, cvec3_t, (int uid), {
-        LUA_GET_ENT(entity, uid, "_C.getextent0",
-            return ((cvec3_t){ 0, 0, 0 }))
+    CLUAICOMMAND(get_extent_position, bool, (int uid, double *pos), {
+        LUA_GET_ENT(entity, uid, "_C.getextent0", return false)
         extentity *ext = entity->staticEntity;
         assert(ext);
         logger::log(logger::INFO,
             "_C.getextent0(%d): x: %f, y: %f, z: %f",
             entity->getUniqueId(), ext->o.x, ext->o.y, ext->o.z);
-        return ((cvec3_t){ ext->o.x, ext->o.y, ext->o.z });
+        pos[0] = ext->o.x;
+        pos[1] = ext->o.y;
+        pos[2] = ext->o.z;
+        return true;
     });
 
     CLUAICOMMAND(set_extent_position, void, (int uid, double x, double y,
@@ -204,11 +206,12 @@ namespace entities
     /* Dynents */
 
     #define DYNENT_ACCESSORS(n, t, an) \
-    CLUAICOMMAND(get_##n, t, (int uid), { \
-        LUA_GET_ENT(entity, uid, "_C.get"#n, return 0) \
+    CLUAICOMMAND(get_##n, bool, (int uid, t *val), { \
+        LUA_GET_ENT(entity, uid, "_C.get"#n, return false) \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
-        return d->an; \
+        *val = d->an; \
+        return true; \
     }); \
     CLUAICOMMAND(set_##n, void, (int uid, t v), { \
         LUA_GET_ENT(entity, uid, "_C.set"#n, return) \
@@ -232,7 +235,7 @@ namespace entities
     DYNENT_ACCESSORS(move, int, move)
     DYNENT_ACCESSORS(strafe, int, strafe)
     DYNENT_ACCESSORS(yawing, int, turn_move)
-    DYNENT_ACCESSORS(crouching, int, crouching);
+    DYNENT_ACCESSORS(crouching, int, crouching)
     DYNENT_ACCESSORS(pitching, int, look_updown_move)
     DYNENT_ACCESSORS(jumping, bool, jumping)
     DYNENT_ACCESSORS(blocked, bool, blocked)
@@ -243,13 +246,14 @@ namespace entities
     DYNENT_ACCESSORS(timeinair, int, timeinair)
     #undef DYNENT_ACCESSORS
 
-    CLUAICOMMAND(get_dynent_position, cvec3_t, (int uid), {
-        LUA_GET_ENT(entity, uid, "_C.getdynent0",
-            return ((cvec3_t){ 0, 0, 0 }))
+    CLUAICOMMAND(get_dynent_position, bool, (int uid, double *pos), {
+        LUA_GET_ENT(entity, uid, "_C.getdynent0", return false)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
-        return ((cvec3_t){ d->o.x, d->o.y, d->o.z
-            - d->eyeheight/* - d->aboveeye*/ });
+        pos[0] = d->o.x;
+        pos[1] = d->o.y;
+        pos[2] = d->o.z - d->eyeheight/* - d->aboveeye*/;
+        return true;
     });
 
     CLUAICOMMAND(set_dynent_position, void, (int uid, double x, double y,
@@ -274,13 +278,25 @@ namespace entities
         );
     });
 
+    CLUAICOMMAND(get_dynent_position, bool, (int uid, double *pos), {
+        LUA_GET_ENT(entity, uid, "_C.getdynent0", return false)
+        fpsent *d = (fpsent*)entity->dynamicEntity;
+        assert(d);
+        pos[0] = d->o.x;
+        pos[1] = d->o.y;
+        pos[2] = d->o.z - d->eyeheight/* - d->aboveeye*/;
+        return true;
+    });
+
     #define DYNENTVEC(name, prop) \
-        CLUAICOMMAND(get_dynent_##name, cvec3_t, (int uid), { \
-            LUA_GET_ENT(entity, uid, "_C.getdynent"#name, \
-                return ((cvec3_t){ 0, 0, 0 })) \
+        CLUAICOMMAND(get_dynent_##name, bool, (int uid, double *val), { \
+            LUA_GET_ENT(entity, uid, "_C.getdynent"#name, return false) \
             fpsent *d = (fpsent*)entity->dynamicEntity; \
             assert(d); \
-            return ((cvec3_t){ d->prop.x, d->prop.y, d->prop.z }); \
+            val[0] = d->o.x; \
+            val[1] = d->o.y; \
+            val[2] = d->o.z; \
+            return true; \
         }); \
         CLUAICOMMAND(set_dynent_##name, void, (int uid, double x, \
         double y, double z), { \
@@ -297,28 +313,29 @@ namespace entities
     #undef DYNENTVEC
 
 #ifndef SERVER
-    LUAICOMMAND(get_target_entity_uid, {
+    CLUAICOMMAND(get_target_entity_uid, bool, (int *uid), {
         if (TargetingControl::targetLogicEntity) {
-            lua_pushinteger(L, TargetingControl::targetLogicEntity->
-                getUniqueId());
-            return 1;
+            *uid = TargetingControl::targetLogicEntity->getUniqueId();
+            return true;
         }
-        return 0;
+        return false;
     });
 #endif
 
-    CLUAICOMMAND(get_plag, int, (int uid), {
-        LUA_GET_ENT(entity, uid, "_C.getplag", return -1)
+    CLUAICOMMAND(get_plag, bool, (int uid, int *val), {
+        LUA_GET_ENT(entity, uid, "_C.getplag", return false)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
-        return p->plag;
+        *val = p->plag;
+        return true;
     });
 
-    CLUAICOMMAND(get_ping, int, (int uid), {
-        LUA_GET_ENT(entity, uid, "_C.getping", return -1)
+    CLUAICOMMAND(get_ping, bool, (int uid, int *val), {
+        LUA_GET_ENT(entity, uid, "_C.getping", return false)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
-        return p->ping;
+        *val = p->ping;
+        return true;
     });
 
     LUAICOMMAND(get_selected_entity, {

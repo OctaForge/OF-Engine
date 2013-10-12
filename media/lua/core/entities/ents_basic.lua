@@ -90,33 +90,6 @@ end or function(self, v)
     csetanim(self, panim, sanim)
 end
 
-local get_dyn_pos = function(ent)
-    local ret = capi.get_dynent_position(ent)
-    return { ret.x, ret.y, ret.z }
-end
-
-local set_dyn_pos = function(ent, pos)
-    capi.set_dynent_position(ent, pos[1], pos[2], pos[3])
-end
-
-local get_dyn_vel = function(ent)
-    local ret = capi.get_dynent_velocity(ent)
-    return { ret.x, ret.y, ret.z }
-end
-
-local set_dyn_vel = function(ent, vel)
-    capi.set_dynent_velocity(ent, vel[1], vel[2], vel[3])
-end
-
-local get_dyn_fall = function(ent)
-    local ret = capi.get_dynent_falling(ent)
-    return { ret.x, ret.y, ret.z }
-end
-
-local set_dyn_fall = function(ent, fl)
-    capi.set_dynent_falling(ent, fl[1], fl[2], fl[3])
-end
-
 --[[! Class: Character
     Represents the base class for any character (NPC, player etc.). Players
     use the <Player> entity class that inherits from this one.
@@ -283,13 +256,19 @@ local Character = Entity:clone {
             custom_sync = true
         },
         position = svars.State_Vec3 {
-            getter = get_dyn_pos, setter = set_dyn_pos, custom_sync = true
+            getter = capi.get_dynent_position,
+            setter = capi.set_dynent_position,
+            custom_sync = true
         },
         velocity = svars.State_Vec3 {
-            getter = get_dyn_vel, setter = set_dyn_vel, custom_sync = true
+            getter = capi.get_dynent_velocity,
+            setter = capi.set_dynent_velocity,
+            custom_sync = true
         },
         falling = svars.State_Vec3 {
-            getter = get_dyn_fall, setter = set_dyn_fall, custom_sync = true
+            getter = capi.get_dynent_falling,
+            setter = capi.set_dynent_falling,
+            custom_sync = true
         },
         radius = svars.State_Float {
             getter = capi.get_radius, setter = capi.set_radius
@@ -733,15 +712,6 @@ local gen_attr = function(i, name)
     }
 end
 
-local get_ext_pos = function(ent)
-    local ret = capi.get_extent_position(ent)
-    return { ret.x, ret.y, ret.z }
-end
-
-local set_ext_pos = function(ent, pos)
-    capi.set_extent_position(ent, pos[1], pos[2], pos[3])
-end
-
 --[[! Class: Static_Entity
     A base for any static entity. Inherits from <Entity>. Unlike
     dynamic entities (such as <Character>), static entities usually don't
@@ -775,7 +745,8 @@ local Static_Entity = Entity:clone {
 
     __properties = {
         position = svars.State_Vec3 {
-            getter = get_ext_pos, setter = set_ext_pos
+            getter = capi.get_extent_position,
+            setter = capi.set_extent_position
         }
     },
 
