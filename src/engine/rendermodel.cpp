@@ -1174,35 +1174,27 @@ fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
     }
 }
 
-LUAICOMMAND(model_render, {
-    int uid = luaL_checkinteger(L, 1);
-    LUA_GET_ENT(entity, uid, "_C.rendermodel", return 0)
+CLUAICOMMAND(model_render, void, (int uid, const char *name, int panim,
+int sanim, int animflags, float x, float y, float z, float yaw, float pitch,
+float roll, int flags, int basetime, float trans), {
+    LUA_GET_ENT(entity, uid, "_C.rendermodel", return)
 
-    lua_pushinteger(L, 1);
-    lua_gettable(L, 3);
-    int panim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR);
-    lua_pushinteger(L, 2);
-    lua_gettable(L, 3);
-    int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR); lua_pop(L, 2);
+    panim &= (ANIM_INDEX | ANIM_DIR);
+    sanim &= (ANIM_INDEX | ANIM_DIR);
 
     int anim = panim | (sanim << ANIM_SECONDARY)
-        | ((luaL_checkinteger(L, 4) << ANIM_FLAGSHIFT) & ANIM_FLAGS);
-    preparerd(L, anim, entity);
+        | ((animflags << ANIM_FLAGSHIFT) & ANIM_FLAGS);
+
+    preparerd(lua::L, anim, entity);
     fpsent *fp = NULL;
 
     if (entity->dynamicEntity)
         fp = (fpsent*)entity->dynamicEntity;
     else
-        fp = getproxyfpsent(L, entity);
+        fp = getproxyfpsent(lua::L, entity);
 
-    rendermodel(luaL_checkstring(L, 2), anim,
-        vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
-            luaL_checknumber(L, 7)),
-        luaL_checknumber(L, 8), luaL_checknumber(L, 9),
-        luaL_checknumber(L, 10), luaL_checkinteger(L, 11), fp,
-        entity->attachments.getbuf(), luaL_checkinteger(L, 12), 0, 1,
-        luaL_optnumber(L, 13, 1.0f));
-    return 0;
+    rendermodel(name, anim, vec(x, y, z), yaw, pitch, roll, flags, fp,
+        entity->attachments.getbuf(), basetime, 0, 1, trans);
 });
 
 #define SMDLBOX(nm) LUAICOMMAND(model_get_##nm, { \
@@ -1231,18 +1223,13 @@ CLUAICOMMAND(model_preview_start, void, (int x, int y, int dx, int dy, bool scis
     modelpreview::start(x, y, dx, dy, false, scissor);
 });
 
-LUAICOMMAND(model_preview, {
-    const char *mdl = luaL_checkstring(L, 1);
+CLUAICOMMAND(model_preview, void, (const char *mdl, int panim, int sanim,
+int animflags, const char **attachments, int len), {
+    panim &= (ANIM_INDEX | ANIM_DIR);
+    sanim &= (ANIM_INDEX | ANIM_DIR);
 
-    lua_pushinteger(L, 1);
-    lua_gettable(L, 2);
-    int panim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR);
-    lua_pushinteger(L, 2);
-    lua_gettable(L, 2);
-    int sanim = lua_tointeger(L, -1) & (ANIM_INDEX | ANIM_DIR); lua_pop(L, 2);
-
-    int anim = panim | (sanim << ANIM_SECONDARY)
-        | ((luaL_checkinteger(L, 3) << ANIM_FLAGSHIFT) & ANIM_FLAGS);
+    int anim = panim | ANIM_LOOP | ((sanim | ANIM_LOOP) << ANIM_SECONDARY)
+        | ((animflags << ANIM_FLAGSHIFT) & ANIM_FLAGS);
 
     model *m = loadmodel(mdl);
     if (m) {
@@ -1253,23 +1240,16 @@ LUAICOMMAND(model_preview, {
         vec o(-center.x, dist - center.y, -0.1f * dist - center.z);
 
         vector<modelattach> attach;
-        int len = lua_objlen(L, 4);
         if (len) {
             attach.reserve(len);
-            for (int i = 1; i <= len; ++i) {
-                lua_rawgeti(L,  4, i); /* attachments[i] */
-                lua_rawgeti(L, -1, 1); /* attachments[i][1] */
-                lua_rawgeti(L, -2, 2); /* attachments[i][2] */
-                attach.add(modelattach(lua_tostring(L, -2),
-                    lua_tostring(L, -1)));
-                lua_pop(L, 3);
+            for (int i = 0; i < len; ++i) {
+                attach.add(modelattach(attachments[i * 2], attachments[i * 2 + 1]));
             }
             attach.add(modelattach());
         }
         dynent ent;
         rendermodel(mdl, anim, o, yaw, 0, 0, 0, &ent, attach.getbuf(), 0, 0, 1);
     }
-    return 0;
 });
 
 CLUAICOMMAND(model_preview_end, void, (), {

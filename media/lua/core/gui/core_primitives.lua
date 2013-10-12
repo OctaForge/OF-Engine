@@ -14,6 +14,7 @@
 ]]
 
 local capi = require("capi")
+local ffi = require("ffi")
 local model = require("core.engine.model")
 local cs = require("core.engine.cubescript")
 local math2 = require("core.lua.math")
@@ -45,6 +46,8 @@ local type = type
 local Vec2 = geom.Vec2
 local sincosmod360 = geom.sin_cos_mod_360
 local sincos360 = geom.sin_cos_360
+
+local ffi_new = ffi.new
 
 local M = require("core.gui.core")
 
@@ -918,16 +921,27 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.model = kwargs.model
-
-        local a = kwargs.anim
-        local aprim = a[1] | animctl.LOOP
-        local asec  = a[2]
-        if asec and asec != 0 then asec |= animctl.LOOP end
-
-        self.anim = { aprim, asec }
+        self.anim = kwargs.anim or { 0, 0 }
         self.attachments = kwargs.attachments or {}
 
         return Filler.__ctor(self, kwargs)
+    end,
+
+    -- turn the table into a ffi-friendly array
+    build_attachments = function(self)
+        local att = self.attachments
+        if att == self._last_attachments then
+            return self._c_attachments, #att * 2
+        end
+        local n = #att * 2
+        local stor = ffi_new("const char*[?]", n)
+        for i = 0, #att - 1 do
+            local at = att[i + 1]
+            stor[i * 2], stor[i * 2 + 1] = at[1], at[2]
+        end
+        self._c_attachments = stor
+        self._last_attachments = att
+        return stor, n
     end,
 
     draw = function(self, sx, sy)
@@ -939,7 +953,8 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
-        model_preview(self.model, self.anim, self.attachments)
+        local anim = self.anim
+        model_preview(self.model, anim[1], anim[2], self:build_attachments())
         if csl then clip_area_scissor() end
         model_preview_end()
         shader_hud_set()

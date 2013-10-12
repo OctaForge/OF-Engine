@@ -3537,22 +3537,14 @@ static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float x, float 
     hudshader->set();
 }
 
-LUAICOMMAND(texture_draw_slot, {
-    int index = luaL_checkinteger(L, 1);
-    float w = luaL_checknumber(L, 2); float h = luaL_checknumber(L, 3);
-    float x = luaL_checknumber(L, 4); float y = luaL_checknumber(L, 5);
-    Slot &slot = lookupslot(index, false);
+CLUAICOMMAND(texture_draw_slot, void, (int idx, float w, float h, float x, float y), {
+    Slot &slot = lookupslot(idx, false);
     drawslot(slot, *slot.variants, w, h, x, y);
-    return 0;
 });
 
-LUAICOMMAND(texture_draw_vslot, {
-    int index = luaL_checkinteger(L, 1);
-    float w = luaL_checknumber(L, 2); float h = luaL_checknumber(L, 3);
-    float x = luaL_checknumber(L, 4); float y = luaL_checknumber(L, 5);
-    VSlot &vslot = lookupvslot(index, false);
+CLUAICOMMAND(texture_draw_vslot, void, (int idx, float w, float h, float x, float y), {
+    VSlot &vslot = lookupvslot(idx, false);
     drawslot(*vslot.slot, vslot, w, h, x, y);
-    return 0;
 });
 
 CLUAICOMMAND(thumbnail_load, Texture*, (const char *p, bool force), {
