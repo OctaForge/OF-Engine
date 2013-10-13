@@ -19,6 +19,8 @@ if SERVER then return M end
 local capi = require("capi")
 local ffi = require("ffi")
 
+local assert = assert
+
 ffi.cdef [[
     typedef struct particle_t {
         vec3f_t position, direction;
@@ -32,9 +34,11 @@ ffi.cdef [[
 local particle = ffi.metatype("particle_t", {
     __index = {
         get_owner = function(self)
+            assert(self != nil)
             return capi.particle_get_owner(self)
         end,
         set_owner = function(self, ent)
+            assert(self != nil)
             capi.particle_set_owner(self, ent.uid)
         end
     }

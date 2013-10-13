@@ -231,6 +231,8 @@ local edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
 edit_raw_edit_material, edit_raw_flip, edit_raw_rotate, edit_raw_edit_vslot,
 edit_get_world_size in capi
 
+local assert = assert
+
 local clamp = require("core.lua.math").clamp
 
 --[[! Struct: Selection
@@ -282,6 +284,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         ]]
         edit_face = function(self, dir, mode, loc)
             if loc != false then loc = true end
+            assert(self != nil)
             edit_raw_edit_face(dir, mode, self, loc)
         end,
 
@@ -290,6 +293,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         ]]
         delete = function(self, loc)
             if loc != false then loc = true end
+            assert(self != nil)
             edit_raw_delete_cube(self, loc)
         end,
 
@@ -300,6 +304,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         ]]
         edit_texture = function(self, tex, all_faces, loc)
             if loc != false then loc = true end
+            assert(self != nil)
             edit_raw_edit_texture(tex, all_faces or false, self, loc)
         end,
 
@@ -308,6 +313,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         ]]
         edit_material = function(self, mat, loc)
             if loc != false then loc = true end
+            assert(self != nil)
             edit_raw_edit_material(mat, self, loc)
         end,
 
@@ -316,6 +322,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         ]]
         flip = function(self, loc)
             if loc != false then loc = true end
+            assert(self != nil)
             edit_raw_flip(self, loc)
         end,
 
@@ -325,6 +332,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         ]]
         rotate = function(self, cw, loc)
             if loc != false then loc = true end
+            assert(self != nil)
             edit_raw_rotate(cw, self, loc)
         end,
 
@@ -334,6 +342,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         ]]
         edit_vslot = function(self, vs, all_faces, loc)
             if loc != false then loc = true end
+            assert(self != nil and vs != nil)
             edit_raw_edit_vslot(vs, all_faces or false, self, loc)
         end,
 
