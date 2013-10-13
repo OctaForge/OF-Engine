@@ -21,15 +21,13 @@ local ffi = require("ffi")
 
 ffi.cdef [[
     typedef struct particle_t {
-        struct { float x, y, z; } o, d;
+        vec3f_t position, direction;
         int gravity, fade, millis;
-        struct { float x, y, z; } color;
+        vec3f_t color;
         uchar flags;
         float size, val;
     } particle_t;
 ]]
-
-local ffi_cast = ffi.cast
 
 local particle = ffi.metatype("particle_t", {
     __index = {
@@ -166,9 +164,9 @@ M.get_renderer = capi.particle_get_renderer
     Returns the particle object on which you can further set properties.
 ]]
 M.new = function(tp, o, d, r, g, b, fade, size, gravity, owner)
-    return ffi_cast("particle_t", capi.particle_new(tp, o.x, o.y, o.z,
+    return capi.particle_new(tp, o.x, o.y, o.z,
         d.x, d.y, d.z, r, g, b, fade, size, gravity or 0,
-        owner and owner.uid or -1))
+        owner and owner.uid or -1)
 end
 
 --[[! Function: splash

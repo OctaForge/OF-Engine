@@ -221,9 +221,9 @@ ffi.cdef [[
         float scale;
         int layer, decal;
         float alpha_front, alpha_back;
-        float r, g, b;
+        vec3f_t color;
         float refract_scale;
-        float refract_r, refract_g, refract_b;
+        vec3f_t refract_color;
     } vslot_t;
 ]]
 

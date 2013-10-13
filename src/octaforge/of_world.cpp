@@ -220,10 +220,11 @@ CLUAICOMMAND(edit_cube_create, bool, (int x, int y, int z, int gs), {
     return true;
 });
 
-CLUAICOMMAND(edit_raw_edit_face, void, (int dir, int mode, void *sel,
+typedef selinfo selinfo_t;
+
+CLUAICOMMAND(edit_raw_edit_face, void, (int dir, int mode, selinfo_t &sel,
 bool local), {
-    selinfo &s = *((selinfo*)sel);
-    mpeditface(dir, mode, s, local);
+    mpeditface(dir, mode, sel, local);
 });
 
 bool edit_cube_delete(int x, int y, int z, int gs) {
@@ -241,9 +242,8 @@ bool edit_cube_delete(int x, int y, int z, int gs) {
     return true;
 }
 
-CLUAICOMMAND(edit_raw_delete_cube, void, (void *sel, bool local), {
-    selinfo &s = *((selinfo*)sel);
-    mpdelcube(s, local);
+CLUAICOMMAND(edit_raw_delete_cube, void, (selinfo_t &sel, bool local), {
+    mpdelcube(sel, local);
 });
 
 CLUACOMMAND(edit_cube_delete, bool, (int, int, int, int), edit_cube_delete);
@@ -272,10 +272,9 @@ int face, int tex), {
     return true;
 });
 
-CLUAICOMMAND(edit_raw_edit_texture, void, (int tex, bool allfaces, void *sel,
-bool local), {
-    selinfo &s = *((selinfo*)sel);
-    mpedittex(tex, allfaces, s, local);
+CLUAICOMMAND(edit_raw_edit_texture, void, (int tex, bool allfaces,
+selinfo_t &sel, bool local), {
+    mpedittex(tex, allfaces, sel, local);
 });
 
 CLUAICOMMAND(edit_cube_set_material, bool, (int x, int y, int z, int gs,
@@ -293,20 +292,17 @@ int mat), {
     return true;
 });
 
-CLUAICOMMAND(edit_raw_edit_material, void, (int mat, void *sel,
+CLUAICOMMAND(edit_raw_edit_material, void, (int mat, selinfo_t &sel,
 bool local), {
-    selinfo &s = *((selinfo*)sel);
-    mpeditmat(mat, 0, s, local);
+    mpeditmat(mat, 0, sel, local);
 });
 
-CLUAICOMMAND(edit_raw_flip, void, (void *sel, bool local), {
-    selinfo &s = *((selinfo*)sel);
-    mpflip(s, local);
+CLUAICOMMAND(edit_raw_flip, void, (selinfo_t &sel, bool local), {
+    mpflip(sel, local);
 });
 
-CLUAICOMMAND(edit_raw_rotate, void, (int cw, void *sel, bool local), {
-    selinfo &s = *((selinfo*)sel);
-    mprotate(cw, s, local);
+CLUAICOMMAND(edit_raw_rotate, void, (int cw, selinfo_t &sel, bool local), {
+    mprotate(cw, sel, local);
 });
 
 CLUAICOMMAND(edit_raw_remip, void, (bool local), mpremip(local););
@@ -336,10 +332,8 @@ enum {
     VFLAG_DECAL = 1 << VSLOT_DECAL
 };
 
-CLUAICOMMAND(edit_raw_edit_vslot, void, (void *vs, bool allfaces, void *sel,
-bool local), {
-    vslot_t &v = *((vslot_t*)vs);
-    selinfo &s = *((selinfo*)sel);
+CLUAICOMMAND(edit_raw_edit_vslot, void, (const vslot_t &v, bool allfaces,
+selinfo_t &sel, bool local), {
     VSlot ds;
     ds.changed = v.flags;
     if (ds.changed & VFLAG_ROTATION)
@@ -373,7 +367,7 @@ bool local), {
             ds.refractcolor = vec(1, 1, 1);
         }
     }
-    mpeditvslot(ds, allfaces, s, local);
+    mpeditvslot(ds, allfaces, sel, local);
 });
 
 #define VSELHDR \

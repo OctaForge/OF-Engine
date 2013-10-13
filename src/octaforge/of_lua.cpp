@@ -207,7 +207,10 @@ namespace lua
             "    bool mipmap, canreduce;\n"
             "    uint32_t id;\n"
             "    uchar *alphamask;\n"
-            "} Texture;\n");
+            "} Texture;\n"
+            "struct particle_t; typedef struct particle_t particle_t;\n"
+            "struct selinfo_t; typedef struct selinfo_t selinfo_t;\n"
+            "struct vslot_t; typedef struct vslot_t vslot_t;\n");
         lua_call(L, 1, 0);
         lua_getfield(L, -1, "cast");
         lua_replace(L, -2);

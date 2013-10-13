@@ -139,14 +139,14 @@ struct particle {
     physent *owner;
 };
 
-CLUAICOMMAND(particle_get_owner, int, (void *p), {
-    particle *part = (particle*)p;
+typedef particle particle_t;
+
+CLUAICOMMAND(particle_get_owner, int, (particle_t *part), {
     if (part->owner) return LogicSystem::getUniqueId(part->owner);
     return -1;
 })
 
-CLUAICOMMAND(particle_set_owner, void, (void *p, int uid), {
-    particle *part = (particle*)p;
+CLUAICOMMAND(particle_set_owner, void, (particle_t *part, int uid), {
     CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
     if (ent && ent->dynamicEntity) part->owner = ent->dynamicEntity;
 })
@@ -1187,7 +1187,7 @@ bool canaddparticles() { return !minimized; }
         owner = ent->dynamicEntity; \
     }
 
-CLUAICOMMAND(particle_new, void*, (int type, float ox, float oy, float oz,
+CLUAICOMMAND(particle_new, particle_t*, (int type, float ox, float oy, float oz,
 float dx, float dy, float dz, float r, float g, float b, int fade,
 float size, int gravity, int uid), {
     if (!canaddparticles()) return NULL;
@@ -1196,7 +1196,7 @@ float size, int gravity, int uid), {
     particle *part = newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade, type,
         vec(r, g, b), size, gravity);
     part->owner = owner;
-    return (void*)part;
+    return part;
 });
 
 VARP(maxparticledistance, 256, 1024, 4096);
