@@ -59,7 +59,7 @@ local iton = { [0] = "x", [1] = "y", [2] = "z" }
 
 local M = {}
 
-local Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("double", "d", {
+local Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
     __new = function(self, x, y)
         if type(x) == "number" then
             if not y then
@@ -228,7 +228,7 @@ local Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("double", "d", {
 })
 M.Vec2 = Vec2
 
-local Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("double", "d", {
+local Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
     __new = function(self, x, y, z)
         if type(x) == "number" then
             if not y and not z then
@@ -611,7 +611,7 @@ local Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("double", "d", {
 })
 M.Vec3 = Vec3
 
-local Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("double", "d", {
+local Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
     __new = function(self, x, y, z, w)
         if type(x) == "number" then
             if not y and not z and not w then
