@@ -38,7 +38,6 @@ else()
         ../octaforge/of_tools
         ../engine/blend
         ../engine/serverbrowser
-        ../intensity/editing_system
         ../intensity/messages
         ../intensity/message_system
         ../intensity/client_system

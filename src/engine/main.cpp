@@ -3,7 +3,6 @@
 #include "engine.h"
 
 #include "client_system.h" // INTENSITY
-#include "editing_system.h" // INTENSITY
 #include "message_system.h"
 #include "of_localserver.h"
 #include "of_tools.h"

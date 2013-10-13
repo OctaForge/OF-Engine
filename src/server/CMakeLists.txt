@@ -16,7 +16,6 @@ if(OF_BUILD_AMALG)
 else()
     set(SERVER_SOURCES
         ../octaforge/of_tools
-        ../intensity/editing_system
         ../shared/tools
         ../engine/command
         ../engine/server

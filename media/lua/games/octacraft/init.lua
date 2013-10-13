@@ -80,10 +80,10 @@ local Mouse_Action = actions.Action:clone {
         local bf
         if self.button == 1 then
             tg:add((tg - pos):normalize())
-            bf = edit.delete_cube
+            bf = edit.cube_delete
         else
             tg:sub((tg - pos):normalize())
-            bf = edit.create_cube
+            bf = edit.cube_create
         end
         local bsize = self.block_size
         bf(tg.x >> bsize << bsize, tg.y >> bsize << bsize,

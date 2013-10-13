@@ -32,11 +32,12 @@
 #include "game.h"
 
 #include "targeting.h"
-#include "editing_system.h"
 #include "of_world.h"
 
 void removeentity(extentity* entity);
 void addentity(extentity* entity);
+
+extern int efocus;
 
 namespace entities
 {
@@ -337,7 +338,13 @@ namespace entities
     });
 
     LUAICOMMAND(get_selected_entity, {
-        CLogicEntity *ret = EditingSystem::getSelectedEntity();
+        const vector<extentity *> &ents = entities::getents();
+        if (!ents.inrange(efocus)) {
+            lua_pushnil(L);
+            return 1;
+        }
+        extentity &e = *ents[efocus];
+        CLogicEntity *ret = LogicSystem::getLogicEntity(e);
         if (ret && ret->lua_ref != LUA_REFNIL)
             lua_rawgeti(L, LUA_REGISTRYINDEX, ret->lua_ref);
         else

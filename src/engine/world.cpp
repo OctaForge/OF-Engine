@@ -2,7 +2,9 @@
 
 #include "engine.h"
 
-#include "editing_system.h" // INTENSITY
+#ifndef SERVER
+#include "client_system.h"
+#endif
 #include "message_system.h" // INTENSITY
 #include "of_tools.h"
 
@@ -928,6 +930,52 @@ void attachent()
 
 COMMAND(attachent, "");
 
+vec saved_pos;
+
+#define FAR_PLACING_FACTOR 0.9
+
+void newent(const char *cl, const char *sd, vec fp)
+{
+    #ifndef SERVER
+        fp.mul(FAR_PLACING_FACTOR);
+        vec cp = ClientSystem::playerLogicEntity->dynamicEntity->o;
+        cp.mul(1 - FAR_PLACING_FACTOR);
+        cp.add(fp);
+
+        if (!sd || !strcmp(sd, "")) sd = "{}";
+        MessageSystem::send_NewEntityRequest(cl, cp.x, cp.y, cp.z, sd);
+    #else // SERVER
+        assert(0); // Where?
+    #endif
+}
+
+#undef FAR_PLACING_FACTOR
+
+void newent(const char *cl, const char *sd) {
+    newent(cl, sd, saved_pos);
+}
+
+#ifndef SERVER
+ICOMMAND(newent, "ss", (char *cl, char *sd), newent(cl, sd, worldpos));
+
+LUAICOMMAND(new_entity, {
+    vec pos = saved_pos;
+    if (!lua_isnoneornil(L, 3)) {
+        pos.x = luaL_optnumber(L, 3, 0);
+        pos.y = luaL_optnumber(L, 4, 0);
+        pos.z = luaL_optnumber(L, 5, 0);
+    }
+    newent(luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), pos);
+    return 0;
+});
+
+ICOMMAND(save_mouse_position, "", (), saved_pos = worldpos);
+
+CLUAICOMMAND(save_mouse_position, void, (), {
+    saved_pos = worldpos;
+});
+#endif
+
 /* OF */
 static const int attrnums[] = {
     0, /* ET_EMPTY */
@@ -993,7 +1041,7 @@ void entpaste()
         const char *sd = luaL_optstring(lua::L, -1, "{}");
         lua_pop(lua::L, 1);
 
-        EditingSystem::newent(cn, sd);
+        newent(cn, sd);
     }
 // INTENSITY   int j = 0;
 // INTENSITY   groupeditundo(e.type = entcopybuf[j++].type;);
@@ -1077,7 +1125,7 @@ void intensityentcopy() // INTENSITY
 
 void intensitypasteent() // INTENSITY
 {
-    EditingSystem::newent(copied_class, copied_sdata);
+    newent(copied_class, copied_sdata);
 }
 
 COMMAND(intensityentcopy, "");

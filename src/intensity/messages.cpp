@@ -12,7 +12,6 @@
 
 #include "client_system.h"
 #include "message_system.h"
-#include "editing_system.h"
 #include "network_system.h"
 #include "of_world.h"
 #include "of_tools.h"
@@ -275,8 +274,7 @@ namespace MessageSystem
 // NewEntityRequest
 
     void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData)
-    {        EditingSystem::madeChanges = true;
-
+    {
         logger::log(logger::DEBUG, "Sending a message of type NewEntityRequest (1010)");
         INDENT_LOG(logger::DEBUG);
 
@@ -387,8 +385,6 @@ namespace MessageSystem
         // there is - if you're in edit mode, the change counts as a 'real change', that you probably
         // want saved.
         // Note: We don't do this with unreliable messages, meaningless anyhow.
-        if (editmode)
-            EditingSystem::madeChanges = true;
 
         logger::log(logger::DEBUG, "Sending a message of type StateDataChangeRequest (1012)");
         INDENT_LOG(logger::DEBUG);
@@ -636,8 +632,7 @@ namespace MessageSystem
 // RequestLogicEntityRemoval
 
     void send_RequestLogicEntityRemoval(int uid)
-    {        EditingSystem::madeChanges = true;
-
+    {
         logger::log(logger::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)");
         INDENT_LOG(logger::DEBUG);
 

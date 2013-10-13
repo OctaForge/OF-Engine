@@ -11,7 +11,6 @@
     #include "client_system.h"
     #include "targeting.h"
 #endif
-#include "editing_system.h"
 #include "message_system.h"
 
 #include "of_world.h"

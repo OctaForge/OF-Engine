@@ -6,7 +6,6 @@
 #include "engine.h"
 #include "game.h"
 
-#include "editing_system.h"
 #include "client_system.h"
 #include "message_system.h"
 #include "network_system.h"
@@ -18,7 +17,7 @@
     extern int freecursor, freeeditcursor;
 #endif
 
-// Enable to let *server* do physics for players - useful for debugging. Must also be defined in fps.cpp!
+// Enable to let *server* do physics for players - useful for debugging. Must also be defined in game.cpp!
 #define SERVER_DRIVEN_PLAYERS 0
 
 namespace game
@@ -668,9 +667,6 @@ assert(0);
                 break;
             }
         }
-
-        // Note that we made changes
-        EditingSystem::madeChanges = true;
     }
 };
 

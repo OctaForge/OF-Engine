@@ -76,12 +76,12 @@ M.get_material = function(o)
     return capi.getmat(o.x, o.y, o.z)
 end
 
---[[! Function: erase_geometry
+--[[! Function: map_erase
     Clears all the map geometry.
 ]]
-M.erase_geometry = capi.edit_erase_geometry
+M.map_erase = capi.edit_map_erase
 
---[[! Function: create_cube
+--[[! Function: cube_create
     Creates a cube with the given parameters. Please note that not all
     positions are sufficient for creating cubes, you need to fit into the grid.
 
@@ -91,18 +91,21 @@ M.erase_geometry = capi.edit_erase_geometry
 
     The coordinates also have to fit in the world, so mapsize. Takes the x,
     y, z coordinates and the gridsize (which is 1<<gridpower).
-]]
-M.create_cube = capi.edit_create_cube
 
---[[! Function: delete_cube
-    Parameters and rules are the same as for <create_cube>, but it actually
+    Returns true on success, false on failure (same goes for all following
+    functions).
+]]
+M.cube_create = capi.edit_cube_create
+
+--[[! Function: cube_delete
+    Parameters and rules are the same as for <cube_create>, but it actually
     deletes cubes instead of creating.
 ]]
-M.delete_cube = capi.edit_delete_cube
+M.cube_delete = capi.edit_cube_delete
 
---[[! Function: set_cube_texture
-    First 4 arguments are the same as in <create_cube>, the fifth argument is
-    the face, sixth is the texture slot number. See also <set_cube_material>.
+--[[! Function: cube_set_texture
+    First 4 arguments are the same as in <cube_create>, the fifth argument is
+    the face, sixth is the texture slot number. See also <cube_set_material>.
 
     If we're standing in the center of the map, with increasing X coordinate
     when going right and increasing Y coordinate when going forward, the
@@ -116,21 +119,70 @@ M.delete_cube = capi.edit_delete_cube
         4 - bottom of the cube
         5 - top of the cube
 ]]
-M.set_cube_texture = capi.edit_set_cube_texture
+M.cube_set_texture = capi.edit_cube_set_texture
 
---[[! Function: set_cube_material
-    First 4 arguments are the same as in <create_cube>, the fifth argument is
-    the material index, see <get_material>. See also <set_cube_texture>.
+--[[! Function: cube_set_material
+    First 4 arguments are the same as in <cube_create>, the fifth argument is
+    the material index, see <get_material>. See also <cube_set_texture>.
 ]]
-M.set_cube_material = capi.edit_set_cube_material
+M.cube_set_material = capi.edit_cube_set_material
 
---[[! Function: set_cube_color
-    See above. The last 3 arguments are the color components (from 0 to 1).
+--[[! Function: cube_vrotate
+    Like vrotate, arguments are x, y, z, gridsize, face followed
+    by vrotate arguments.
 ]]
-M.set_cube_color = capi.edit_set_cube_color
+M.cube_vrotate = capi.cube_vrotate
 
---[[! Function: push_cube_corner
-    First 5 arguments are the same with <set_cube_texture>, the sixth argument
+--[[! Function: cube_voffset
+    Like voffset, arguments are x, y, z, gridsize, face followed
+    by voffset arguments.
+]]
+M.cube_voffset = capi.cube_voffset
+
+--[[! Function: cube_vscroll
+    Like vscroll, arguments are x, y, z, gridsize, face followed
+    by vscroll arguments.
+]]
+M.cube_vscroll = capi.cube_vscroll
+
+--[[! Function: cube_vscale
+    Like vscale, arguments are x, y, z, gridsize, face followed
+    by vscale arguments.
+]]
+M.cube_vscale = capi.cube_vscale
+
+--[[! Function: cube_vlayer
+    Like vlayer, arguments are x, y, z, gridsize, face followed
+    by vlayer arguments.
+]]
+M.cube_vlayer = capi.cube_vlayer
+
+--[[! Function: cube_vdecal
+    Like vdecal, arguments are x, y, z, gridsize, face followed
+    by vdecal arguments.
+]]
+M.cube_vdecal = capi.cube_vdecal
+
+--[[! Function: cube_valpha
+    Like valpha, arguments are x, y, z, gridsize, face followed
+    by valpha arguments.
+]]
+M.cube_valpha = capi.cube_valpha
+
+--[[! Function: cube_vcolor
+    Like vcolor, arguments are x, y, z, gridsize, face followed
+    by vcolor arguments.
+]]
+M.cube_vcolor = capi.cube_vcolor
+
+--[[! Function: cube_vrefract
+    Like vrefract, arguments are x, y, z, gridsize, face followed
+    by vrefract arguments.
+]]
+M.cube_vrefract = capi.cube_vrefract
+
+--[[! Function: cube_push_corner
+    First 5 arguments are the same with <cube_set_texture>, the sixth argument
     is the corner index, the seventh is the direction (1 into the cube,
     -1 from the cube).
 
@@ -138,6 +190,6 @@ M.set_cube_color = capi.edit_set_cube_color
     is bottom-right when facing them directly (that is, when we see the texture
     in the right orientation).
 ]]
-M.push_cube_corner = capi.edit_push_cube_corner
+M.cube_push_corner = capi.edit_cube_push_corner
 
 return M

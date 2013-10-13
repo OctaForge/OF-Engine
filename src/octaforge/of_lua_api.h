@@ -1,8 +1,3 @@
-namespace EditingSystem
-{
-    extern vec saved_pos;
-}
-
 void trydisconnect(bool local);
 
 namespace game

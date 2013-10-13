@@ -193,3 +193,272 @@ namespace world
         identflags = oldflags;
     }
 } /* end namespace world */
+
+void mpeditvslot(VSlot &ds, int allfaces, selinfo &sel, bool local);
+
+CLUAICOMMAND(edit_cube_create, bool, (int x, int y, int z, int gs), {
+    logger::log(logger::DEBUG, "edit_cube_create: %d, %d, %d (%d)",
+        x, y, z, gs);
+
+    selinfo sel;
+
+    if ((z - gs) >= 0) {
+        sel.o = ivec(x, y, z - gs);
+        sel.orient = 5; /* up */
+    } else if ((z + gs) < getworldsize()) {
+        sel.o = ivec(x, y, z + gs);
+        sel.orient = 4; /* down */
+    } else {
+        return false;
+    }
+
+    sel.s = ivec(1, 1, 1);
+    sel.grid = gs;
+
+    sel.corner = 1;
+    sel.cx = 0;
+    sel.cxs = 2;
+    sel.cy = 0;
+    sel.cys = 2;
+
+    if (!sel.validate()) return false;
+    mpeditface(-1, 1, sel, true);
+    return true;
+});
+
+bool edit_cube_delete(int x, int y, int z, int gs) {
+    logger::log(logger::DEBUG, "edit_cube_delete: %d, %d, %d (%d)",
+        x, y, z, gs);
+
+    selinfo sel;
+
+    sel.o = ivec(x, y, z);
+    sel.s = ivec(1, 1, 1);
+    sel.grid = gs;
+
+    sel.orient = 5;
+    sel.corner = 1;
+    sel.cx = 0;
+    sel.cxs = 2;
+    sel.cy = 0;
+    sel.cys = 2;
+
+    if (!sel.validate()) return false;
+    mpdelcube(sel, true);
+    return true;
+}
+
+CLUACOMMAND(edit_cube_delete, bool, (int, int, int, int), edit_cube_delete);
+
+CLUAICOMMAND(edit_map_erase, void, (), {
+    int hs = getworldsize() / 2;
+    loopi(2) loopj(2) loopk(2) edit_cube_delete(i * hs, j * hs, k * hs, hs);
+});
+
+CLUAICOMMAND(edit_cube_set_texture, bool, (int x, int y, int z, int gs,
+int face, int tex), {
+    logger::log(logger::DEBUG, "edit_cube_set_texture: %d, %d, %d (%d, %d, %d)",
+        x, y, z, gs, face, tex);    
+
+    if (face < -1 || face > 5) return false;
+
+    selinfo sel;
+    sel.o = ivec(x, y, z);
+    sel.s = ivec(1, 1, 1);
+    sel.grid = gs;
+
+    sel.orient = face != -1 ? face : 5;
+    sel.corner = 1;
+    sel.cx = 0;
+    sel.cxs = 2;
+    sel.cy = 0;
+    sel.cys = 2;
+
+    if (!sel.validate()) return false;
+    mpedittex(tex, face == -1, sel, true);
+    return true;
+});
+
+CLUAICOMMAND(edit_cube_set_material, bool, (int x, int y, int z, int gs,
+int mat), {
+    logger::log(logger::DEBUG, "edit_cube_set_material: %d, %d, %d (%d, %d)",
+        x, y, z, gs, mat);
+
+    selinfo sel;
+    sel.o = ivec(x, y, z);
+    sel.s = ivec(1, 1, 1);
+    sel.grid = gs;
+
+    sel.orient = 5;
+    sel.corner = 1;
+    sel.cx = 0;
+    sel.cxs = 2;
+    sel.cy = 0;
+    sel.cys = 2;
+
+    if (!sel.validate()) return false;
+    mpeditmat(mat, 0, sel, true);
+    return true;
+});
+
+#define VSELHDR \
+    if (face < -1 || face > 5) return false; \
+\
+    selinfo sel; \
+    sel.o = ivec(x, y, z); \
+    sel.s = ivec(1, 1, 1); \
+    sel.grid = gs; \
+\
+    sel.orient = face != -1 ? face : 5; \
+    sel.corner = 1; \
+    sel.cx = 0; \
+    sel.cxs = 2; \
+    sel.cy = 0; \
+    sel.cys = 2;
+
+#define VSELFTR \
+    if (!sel.validate()) return false; \
+    mpeditvslot(ds, face == -1, sel, true); \
+    return true;
+
+CLUAICOMMAND(edit_cube_vrotate, bool, (int x, int y, int z, int gs,
+int face, int n), {
+    logger::log(logger::DEBUG, "edit_cube_vrotate: %d, %d, %d (%d, %d, %d)",
+        x, y, z, gs, face, n);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_ROTATION;
+    ds.rotation = clamp(n, 0, 5);
+    VSELFTR
+});
+
+CLUAICOMMAND(edit_cube_voffset, bool, (int x, int y, int z, int gs,
+int face, int ox, int oy), {
+    logger::log(logger::DEBUG, "edit_cube_voffset: %d, %d, %d (%d, %d, %d, %d)",
+        x, y, z, gs, face, x, y);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_OFFSET;
+    ds.offset = ivec2(ox, oy).max(0);
+    VSELFTR
+});
+
+CLUAICOMMAND(edit_cube_vscroll, bool, (int x, int y, int z, int gs,
+int face, float s, float t), {
+    logger::log(logger::DEBUG, "edit_cube_vscroll: %d, %d, %d (%d, %d) (%f, %f)",
+        x, y, z, gs, face, s, t);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_SCROLL;
+    ds.scroll = vec2(s / 1000.0f, t / 1000.0f);
+    VSELFTR
+});
+
+CLUAICOMMAND(edit_cube_vscale, bool, (int x, int y, int z, int gs,
+int face, float scale), {
+    logger::log(logger::DEBUG, "edit_cube_vscale: %d, %d, %d (%d, %d) (%f)",
+        x, y, z, gs, face, scale);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_SCALE;
+    ds.scale = scale <= 0 ? 1 : clamp(scale, 1 / 8.0f, 8.0f);
+    VSELFTR
+});
+
+CLUAICOMMAND(edit_cube_vlayer, bool, (int x, int y, int z, int gs,
+int face, int n), {
+    logger::log(logger::DEBUG, "edit_cube_vlayer: %d, %d, %d (%d, %d, %d)",
+        x, y, z, gs, face, n);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_LAYER;
+    ds.layer = vslots.inrange(n) ? n : 0;
+    VSELFTR
+});
+
+CLUAICOMMAND(edit_cube_vdecal, bool, (int x, int y, int z, int gs,
+int face, int n), {
+    logger::log(logger::DEBUG, "edit_cube_vdecal: %d, %d, %d (%d, %d, %d)",
+        x, y, z, gs, face, n);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_DECAL;
+    ds.decal = vslots.inrange(n) ? n : 0;
+    VSELFTR
+});
+
+CLUAICOMMAND(edit_cube_valpha, bool, (int x, int y, int z, int gs,
+int face, float front, float back), {
+    logger::log(logger::DEBUG, "edit_cube_valpha: %d, %d, %d (%d, %d) (%f, %f)",
+        x, y, z, gs, face, front, back);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_ALPHA;
+    ds.alphafront = clamp(front, 0.0f, 1.0f);
+    ds.alphaback = clamp(back, 0.0f, 1.0f);
+    VSELFTR
+});
+
+CLUAICOMMAND(edit_cube_vcolor, bool, (int x, int y, int z, int gs,
+int face, float r, float g, float b), {
+    logger::log(logger::DEBUG, "edit_cube_vcolor: %d, %d, %d (%d, %d) "
+        "(%f, %f, %f)", x, y, z, gs, face, r, g, b);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_COLOR;
+    ds.colorscale = vec(clamp(r, 0.0f, 1.0f), clamp(g, 0.0f, 1.0f),
+        clamp(b, 0.0f, 1.0f) );
+    VSELFTR
+});
+
+CLUAICOMMAND(edit_cube_vrefract, bool, (int x, int y, int z, int gs,
+int face, float k, float r, float g, float b), {
+    logger::log(logger::DEBUG, "edit_cube_vrefract: %d, %d, %d (%d, %d) "
+        "(%f, %f, %f)", x, y, z, gs, face, r, g, b);
+    VSELHDR
+    VSlot ds;
+    ds.changed = 1 << VSLOT_REFRACT;
+    ds.refractscale = clamp(k, 0.0f, 1.0f);
+    if (ds.refractscale > 0 && (r > 0 || g > 0 || b > 0)) {
+        ds.refractcolor = vec(clamp(r, 0.0f, 1.0f), clamp(g, 0.0f, 1.0f),
+            clamp(b, 0.0f, 1.0f));
+    } else {
+        ds.refractcolor = vec(1, 1, 1);
+    }
+    VSELFTR
+});
+
+#undef VSELHDR
+#undef VSELFTR
+
+int cornert[6][4] = {
+    /* 0 */ { 2, 3, 0, 1 },
+    /* 1 */ { 3, 2, 1, 0 },
+    /* 2 */ { 3, 1, 2, 0 },
+    /* 3 */ { 1, 3, 0, 2 },
+    /* 4 */ { 0, 1, 2, 3 },
+    /* 5 */ { 0, 1, 2, 3 }
+};
+
+CLUAICOMMAND(edit_cube_push_corner, bool, (int x, int y, int z, int gs,
+int face, int corner, int dir), {
+    logger::log(logger::DEBUG, "edit_cube_push_corner: %d, %d, %d (%d, %d, %d, %d)",
+        x, y, z, gs, face, corner, dir);
+    if (face < 0 || face > 5 || corner < 0 || corner > 3) return false;
+
+    selinfo sel;
+    sel.o = ivec(x, y, z);
+    sel.s = ivec(1, 1, 1);
+    sel.grid = gs;
+
+    sel.orient = face;
+    sel.corner = cornert[face][corner];
+    sel.cx  = 0;
+    sel.cxs = 2;
+    sel.cy  = 0;
+    sel.cys = 2;
+
+    if (!sel.validate()) return false;
+    mpeditface(dir, 2, sel, true);
+    return true;
+});

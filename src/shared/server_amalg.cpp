@@ -9,11 +9,10 @@
 #include "game/game.h"
 
 #include "octaforge/of_tools.cpp"
-#include "intensity/editing_system.cpp"
 #include "shared/tools.cpp"
 #include "engine/command.cpp"
 #include "engine/server.cpp"
-#include "game/fps.cpp"
+#include "game/game.cpp"
 #include "game/server.cpp"
 #include "game/client.cpp"
 #include "intensity/message_system.cpp"

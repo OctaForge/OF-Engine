@@ -8,7 +8,6 @@
 
 #include "message_system.h"
 
-#include "editing_system.h"
 #include "targeting.h"
 
 #include "client_system.h"
@@ -147,8 +146,6 @@ void ClientSystem::finishLoadWorld()
     finish_load_world();
 
     _mapCompletelyReceived = true; // We have the original map + static entities (still, scenarioStarted might want more stuff)
-
-    EditingSystem::madeChanges = false; // Clean the slate
 
     ClientSystem::editingAlone = false; // Assume not in this mode
 
