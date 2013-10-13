@@ -20,13 +20,10 @@ local capi = require("capi")
 local ffi = require("ffi")
 
 ffi.cdef [[
-    typedef struct partvec_t {
-        float x, y, z;
-    } partvec_t;
     typedef struct particle_t {
-        partvec_t o, d;
+        struct { float x, y, z; } o, d;
         int gravity, fade, millis;
-        partvec_t color;
+        struct { float x, y, z; } color;
         uchar flags;
         float size, val;
     } particle_t;

@@ -215,15 +215,15 @@ CLUAICOMMAND(edit_cube_create, bool, (int x, int y, int z, int gs), {
     sel.s = ivec(1, 1, 1);
     sel.grid = gs;
 
-    sel.corner = 1;
-    sel.cx = 0;
-    sel.cxs = 2;
-    sel.cy = 0;
-    sel.cys = 2;
-
     if (!sel.validate()) return false;
     mpeditface(-1, 1, sel, true);
     return true;
+});
+
+CLUAICOMMAND(edit_raw_edit_face, void, (int dir, int mode, void *sel,
+bool local), {
+    selinfo &s = *((selinfo*)sel);
+    mpeditface(dir, mode, s, local);
 });
 
 bool edit_cube_delete(int x, int y, int z, int gs) {
@@ -236,17 +236,15 @@ bool edit_cube_delete(int x, int y, int z, int gs) {
     sel.s = ivec(1, 1, 1);
     sel.grid = gs;
 
-    sel.orient = 5;
-    sel.corner = 1;
-    sel.cx = 0;
-    sel.cxs = 2;
-    sel.cy = 0;
-    sel.cys = 2;
-
     if (!sel.validate()) return false;
     mpdelcube(sel, true);
     return true;
 }
+
+CLUAICOMMAND(edit_raw_delete_cube, void, (void *sel, bool local), {
+    selinfo &s = *((selinfo*)sel);
+    mpdelcube(s, local);
+});
 
 CLUACOMMAND(edit_cube_delete, bool, (int, int, int, int), edit_cube_delete);
 
@@ -268,15 +266,16 @@ int face, int tex), {
     sel.grid = gs;
 
     sel.orient = face != -1 ? face : 5;
-    sel.corner = 1;
-    sel.cx = 0;
-    sel.cxs = 2;
-    sel.cy = 0;
-    sel.cys = 2;
 
     if (!sel.validate()) return false;
     mpedittex(tex, face == -1, sel, true);
     return true;
+});
+
+CLUAICOMMAND(edit_raw_edit_texture, void, (int tex, bool allfaces, void *sel,
+bool local), {
+    selinfo &s = *((selinfo*)sel);
+    mpedittex(tex, allfaces, s, local);
 });
 
 CLUAICOMMAND(edit_cube_set_material, bool, (int x, int y, int z, int gs,
@@ -289,16 +288,92 @@ int mat), {
     sel.s = ivec(1, 1, 1);
     sel.grid = gs;
 
-    sel.orient = 5;
-    sel.corner = 1;
-    sel.cx = 0;
-    sel.cxs = 2;
-    sel.cy = 0;
-    sel.cys = 2;
-
     if (!sel.validate()) return false;
     mpeditmat(mat, 0, sel, true);
     return true;
+});
+
+CLUAICOMMAND(edit_raw_edit_material, void, (int mat, void *sel,
+bool local), {
+    selinfo &s = *((selinfo*)sel);
+    mpeditmat(mat, 0, s, local);
+});
+
+CLUAICOMMAND(edit_raw_flip, void, (void *sel, bool local), {
+    selinfo &s = *((selinfo*)sel);
+    mpflip(s, local);
+});
+
+CLUAICOMMAND(edit_raw_rotate, void, (int cw, void *sel, bool local), {
+    selinfo &s = *((selinfo*)sel);
+    mprotate(cw, s, local);
+});
+
+CLUAICOMMAND(edit_raw_remip, void, (bool local), mpremip(local););
+
+struct vslot_t {
+    int flags;
+    int rotation;
+    int offset_x, offset_y;
+    float scroll_s, scroll_t;
+    float scale;
+    int layer, decal;
+    float alpha_front, alpha_back;
+    float r, g, b;
+    float refract_scale;
+    float refract_r, refract_g, refract_b;
+};
+
+enum {
+    VFLAG_SCALE = 1 << VSLOT_SCALE,
+    VFLAG_ROTATION = 1 << VSLOT_ROTATION,
+    VFLAG_OFFSET = 1 << VSLOT_OFFSET,
+    VFLAG_SCROLL = 1 << VSLOT_SCROLL,
+    VFLAG_LAYER = 1 << VSLOT_LAYER,
+    VFLAG_ALPHA = 1 << VSLOT_ALPHA,
+    VFLAG_COLOR = 1 << VSLOT_COLOR,
+    VFLAG_REFRACT = 1 << VSLOT_REFRACT,
+    VFLAG_DECAL = 1 << VSLOT_DECAL
+};
+
+CLUAICOMMAND(edit_raw_edit_vslot, void, (void *vs, bool allfaces, void *sel,
+bool local), {
+    vslot_t &v = *((vslot_t*)vs);
+    selinfo &s = *((selinfo*)sel);
+    VSlot ds;
+    ds.changed = v.flags;
+    if (ds.changed & VFLAG_ROTATION)
+        ds.rotation = clamp(v.rotation, 0, 5);
+    if (ds.changed & VFLAG_OFFSET)
+        ds.offset = ivec2(v.offset_x, v.offset_y).max(0);
+    if (ds.changed & VFLAG_SCROLL)
+        ds.scroll = vec2(v.scroll_s / 1000.0f, v.scroll_t / 1000.0f);
+    if (ds.changed & VFLAG_SCALE)
+        ds.scale = v.scale <= 0 ? 1 : clamp(v.scale, 1 / 8.0f, 8.0f);
+    if (ds.changed & VFLAG_LAYER)
+        ds.layer = vslots.inrange(v.layer) ? v.layer : 0;
+    if (ds.changed & VFLAG_DECAL)
+        ds.decal = vslots.inrange(v.decal) ? v.decal : 0;
+    if (ds.changed & VFLAG_ALPHA) {
+        ds.alphafront = clamp(v.alpha_front, 0.0f, 1.0f);
+        ds.alphaback = clamp(v.alpha_back, 0.0f, 1.0f);
+    }
+    if (ds.changed & VFLAG_COLOR)
+        ds.colorscale = vec(clamp(v.r, 0.0f, 1.0f), clamp(v.g, 0.0f, 1.0f),
+        clamp(v.b, 0.0f, 1.0f));
+    if (ds.changed & VFLAG_REFRACT) {
+        ds.refractscale = clamp(v.refract_scale, 0.0f, 1.0f);
+        float r = v.refract_r;
+        float g = v.refract_g;
+        float b = v.refract_b;
+        if (ds.refractscale > 0 && (r > 0 || g > 0 || b > 0)) {
+            ds.refractcolor = vec(clamp(r, 0.0f, 1.0f), clamp(g, 0.0f, 1.0f),
+                clamp(b, 0.0f, 1.0f));
+        } else {
+            ds.refractcolor = vec(1, 1, 1);
+        }
+    }
+    mpeditvslot(ds, allfaces, s, local);
 });
 
 #define VSELHDR \
@@ -309,12 +384,7 @@ int mat), {
     sel.s = ivec(1, 1, 1); \
     sel.grid = gs; \
 \
-    sel.orient = face != -1 ? face : 5; \
-    sel.corner = 1; \
-    sel.cx = 0; \
-    sel.cxs = 2; \
-    sel.cy = 0; \
-    sel.cys = 2;
+    sel.orient = face != -1 ? face : 5;
 
 #define VSELFTR \
     if (!sel.validate()) return false; \
@@ -407,7 +477,7 @@ int face, float r, float g, float b), {
     VSlot ds;
     ds.changed = 1 << VSLOT_COLOR;
     ds.colorscale = vec(clamp(r, 0.0f, 1.0f), clamp(g, 0.0f, 1.0f),
-        clamp(b, 0.0f, 1.0f) );
+        clamp(b, 0.0f, 1.0f));
     VSELFTR
 });
 
@@ -453,12 +523,13 @@ int face, int corner, int dir), {
 
     sel.orient = face;
     sel.corner = cornert[face][corner];
-    sel.cx  = 0;
-    sel.cxs = 2;
-    sel.cy  = 0;
-    sel.cys = 2;
 
     if (!sel.validate()) return false;
     mpeditface(dir, 2, sel, true);
     return true;
 });
+
+CLUAICOMMAND(edit_get_world_size, int, (), {
+    extern int worldsize;
+    return worldsize;
+})
