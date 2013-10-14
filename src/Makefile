@@ -316,7 +316,6 @@ CLIENT_OBJ = \
 	octaforge/of_tools.o \
 	engine/blend.o \
 	engine/serverbrowser.o \
-	intensity/editing_system.o \
 	intensity/messages.o \
 	intensity/message_system.o \
 	intensity/client_system.o \
@@ -414,7 +413,6 @@ endif
 
 SERVER_OBJ = \
 	octaforge/of_tools.o \
-	intensity/editing_system.o \
 	shared/tools.o \
 	engine/command.o \
 	engine/server.o \
