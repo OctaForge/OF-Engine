@@ -1,3 +1,20 @@
+2013-10-14 - 0.2.9 beta 10
+
+    * Adjustable procedural atmosphere/sky
+    * New scripting library: games
+    * Initial code for the OF demo game, "octacraft", with basic block
+      placement and deletion
+    * Lots of UI fixes
+    * Improved spawn stage control in game manager
+    * A new, generic, reusable health/damage system
+    * Faster API calls: almost all of the core API was transformed to use
+      FFI function pointers (and all performance sensitive functions)
+    * A new capi patching module
+    * Reworked UI texture handling
+    * Redesigned/rewritten procedural editing API with high level safe
+      functions and a fast and powerful low level part
+    * Vectors in geom.lua now use floats
+
 2013-09-16 - 0.2.8 beta 9
 
     * UI changes:
