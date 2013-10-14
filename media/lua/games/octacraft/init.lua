@@ -63,7 +63,7 @@ local Mouse_Action = actions.Action:clone {
         local cnt = self.counter
         cnt += millis
         local btn = self.button
-        if (btn == 1 and cnt >= 300) or cnt >= 100 then
+        if (btn == 1 and cnt >= 300) or (btn != 1 and cnt >= 100) then
             self.counter = 0
             self:try_block()
         else

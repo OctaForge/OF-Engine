@@ -468,7 +468,8 @@ bool modeloccluded(const vec &center, float radius)
 struct batchedmodel
 {
     vec pos, center;
-    float radius, yaw, pitch, roll, sizescale, transparent;
+    float radius, yaw, pitch, roll, sizescale;
+    vec4 colorscale;
     int anim, basetime, basetime2, flags, attached;
     union
     {
@@ -525,7 +526,7 @@ static inline void renderbatchedmodel(model *m, batchedmodel &b)
         if(b.flags&MDL_FULLBRIGHT) anim |= ANIM_FULLBRIGHT;
     }
 
-    m->render(anim, b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.roll, b.d, a, b.sizescale, b.transparent);
+    m->render(anim, b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.roll, b.d, a, b.sizescale, b.colorscale);
 }
 
 VARP(maxmodelradiusdistance, 10, 200, 1000);
@@ -601,7 +602,7 @@ void shadowmaskbatchedmodels(bool dynshadow)
     loopv(batchedmodels)
     {
         batchedmodel &b = batchedmodels[i];
-        if(b.flags&MDL_MAPMODEL || b.transparent < 1) break;
+        if(b.flags&MDL_MAPMODEL || b.colorscale.a < 1) break;
         b.visible = dynshadow ? shadowmaskmodel(b.center, b.radius) : 0;
     }
 }
@@ -732,7 +733,7 @@ void rendermodelbatches()
             j = bm.next;
             bm.culled = cullmodel(b.m, bm.center, bm.radius, bm.flags, bm.d);
             if(bm.culled) continue;
-            if(bm.transparent < 1)
+            if(bm.colorscale.a < 1)
             {
                 float sx1, sy1, sx2, sy2;
                 if(calcbbscissor(vec(bm.center).sub(bm.radius), vec(bm.center).add(bm.radius+1), sx1, sy1, sx2, sy2))
@@ -795,7 +796,7 @@ void rendertransparentmodelbatches()
             batchedmodel &bm = batchedmodels[j];
             j = bm.next;
             bm.culled = cullmodel(b.m, bm.center, bm.radius, bm.flags, bm.d);
-            if(bm.culled || bm.transparent >= 1) continue;
+            if(bm.culled || bm.colorscale.a >= 1) continue;
             if(!rendered)
             {
                 b.m->startrender();
@@ -930,7 +931,7 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     b.basetime = basetime;
     b.basetime2 = 0;
     b.sizescale = size;
-    b.transparent = 1;
+    b.colorscale = vec4(1, 1, 1, 1);
     b.flags = flags | MDL_MAPMODEL;
     b.visible = visible;
     b.d = NULL;
@@ -939,7 +940,7 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     addbatchedmodel(m, b, batchedmodels.length()-1);
 }
 
-void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float size, float trans)
+void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float size, const vec4 &color)
 {
     model *m = loadmodel(mdl);
     if(!m) return;
@@ -1021,7 +1022,7 @@ hasboundbox:
     b.basetime = basetime;
     b.basetime2 = basetime2;
     b.sizescale = size;
-    b.transparent = trans;
+    b.colorscale = color;
     b.flags = flags;
     b.visible = 0;
     b.d = d;
@@ -1176,7 +1177,7 @@ fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
 
 CLUAICOMMAND(model_render, void, (int uid, const char *name, int panim,
 int sanim, int animflags, float x, float y, float z, float yaw, float pitch,
-float roll, int flags, int basetime, float trans), {
+float roll, int flags, int basetime, float r, float g, float b, float a), {
     LUA_GET_ENT(entity, uid, "_C.rendermodel", return)
 
     panim &= (ANIM_INDEX | ANIM_DIR);
@@ -1194,7 +1195,7 @@ float roll, int flags, int basetime, float trans), {
         fp = getproxyfpsent(lua::L, entity);
 
     rendermodel(name, anim, vec(x, y, z), yaw, pitch, roll, flags, fp,
-        entity->attachments.getbuf(), basetime, 0, 1, trans);
+        entity->attachments.getbuf(), basetime, 0, 1, vec4(r, g, b, a));
 });
 
 #define SMDLBOX(nm) LUAICOMMAND(model_get_##nm, { \

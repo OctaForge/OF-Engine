@@ -121,13 +121,16 @@ local mrender = capi.model_render
     Renders a model. Takes the entity which owns the model, the model name
     (relative to media/model), animation (see above), animation flags,
     position (vec3), yaw, pitch, roll, flags (see render_flags), basetime
-    (start_time) and trans (which is model transparency that ranges from 0
-    to 1 and defaults to 1).
+    (start_time) and color (vec4).
 ]]
 M.render = function(ent, mdl, anim, animflags, pos, yaw, pitch, roll, flags,
 btime, trans)
+    local r, g, b, a = 1, 1, 1, 1
+    if trans then
+        r, g, b, a = trans.r, trans.g, trans.b, trans.a
+    end
     mrender(ent.uid, mdl, anim[1], anim[2], animflags, pos.x, pos.y, pos.z,
-        yaw, pitch, roll, flags, btime, trans or 1)
+        yaw, pitch, roll, flags, btime, r, g, b, a)
 end
 
 --[[! Function: get_bounding_box

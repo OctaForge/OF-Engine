@@ -945,14 +945,12 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_debug_output extension.");
     }
 
-    extern int msaadepthstencil, gdepthstencil, glineardepth, msaalineardepth, lighttilebatch, batchsunlight, smgather;
+    extern int msaadepthstencil, gdepthstencil, glineardepth, msaalineardepth, batchsunlight, smgather;
     if(amd)
     {
         msaalineardepth = glineardepth = 1; // reading back from depth-stencil still buggy on newer cards, and requires stencil for MSAA
         msaadepthstencil = gdepthstencil = 1; // some older AMD GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
         if(checkseries(renderer, "Radeon HD", 4000, 5199)) amd_pf_bug = 1;
-        batchsunlight = 1; // massive cpu stalls if GI 3D textures are accessed in deferred light tile shaders as of catalyst 13.9
-        lighttilebatch = 0;
     }
     else if(nvidia)
     {
@@ -960,7 +958,6 @@ void gl_checkextensions()
     else if(intel)
     {
         glineardepth = 1; // causes massive slowdown in windows driver (and sometimes in linux driver) if not using linear depth
-        lighttilebatch = 4;
         if(mesa) batchsunlight = 0; // causes massive slowdown in linux driver
         smgather = 1; // native shadow filter is slow
     }

@@ -1547,23 +1547,47 @@ int shadowmapping = 0;
 
 struct lightstrip
 {
-    int x, y, w;
+    short x, y, w;
 
     bool inside(int tx1, int ty1, int tx2, int ty2, const uint *tilemask) const
     {
         return x + w > tx1 && x < tx2 && y >= ty1 && y < ty2 && (!tilemask || (tilemask[y]>>x)&((1<<w)-1));
     }
+
+    bool extend(int ex, int ey)
+    {
+        if(y != ey || x+1 != ex) return false;
+        ++w;
+        return true;
+    } 
 };
 
-struct lightbatch
+struct lighttile
 {
     int band;
-    vector<int> lights;
-    vector<lightstrip> strips;
+    vector<ushort> lights;
 
     void reset()
     {
         lights.setsize(0);
+    }
+};
+
+struct lighttileslice
+{
+    lighttile *tile;
+    ushort priority, offset, numlights;
+
+    lighttileslice() {}
+    lighttileslice(lighttile *tile, int priority, int offset, int numlights) : tile(tile), priority(priority), offset(offset), numlights(numlights) {}
+};
+
+struct lightbatch : lighttileslice
+{
+    vector<lightstrip> strips;
+
+    void reset()
+    {
         strips.setsize(0);
     }
 
@@ -1575,21 +1599,30 @@ struct lightbatch
     }
 };
 
-static inline uint hthash(const lightbatch *l)
+static inline void htrecycle(lightbatch &l)
+{
+    l.reset();
+}
+
+static inline uint hthash(const lighttileslice &l)
 {
     uint h = 0;
-    loopv(l->lights) h = ((h<<8)+h)^l->lights[i];
+    loopi(l.numlights) h = ((h<<8)+h)^l.tile->lights[l.offset + i];
     return h;
 }
 
-static inline bool htcmp(const lightbatch *x, const lightbatch *y)
+static inline bool htcmp(const lighttileslice &x, const lighttileslice &y)
 {
-    return x->band == y->band && x->lights.length() == y->lights.length() && !memcmp(x->lights.getbuf(), y->lights.getbuf(), x->lights.length()*sizeof(int));
+    return x.tile->band == y.tile->band && 
+           x.priority == y.priority &&
+           x.numlights == y.numlights &&
+           (!x.numlights || !memcmp(&x.tile->lights[x.offset], &y.tile->lights[y.offset], x.numlights*sizeof(int)));
 }
 
 vector<lightinfo> lights;
 vector<int> lightorder;
-lightbatch lighttiles[LIGHTTILE_MAXH][LIGHTTILE_MAXW];
+lighttile lighttiles[LIGHTTILE_MAXH][LIGHTTILE_MAXW];
+hashset<lightbatch> lightbatcher(128);
 vector<lightbatch *> lightbatches;
 vector<shadowmapinfo> shadowmaps;
 
@@ -2065,7 +2098,7 @@ Shader *loaddeferredlightshader(const char *type = NULL)
     shadow[shadowlen++] = 'p';
     shadow[shadowlen] = '\0';
 
-    int usecsm = 0, userh = 0, batchsun = 0;
+    int usecsm = 0, userh = 0, usebase = 0;
     if(common[0] != 'm' && ao) sun[sunlen++] = 'a';
     if(sunlight && csmshadowmap)
     {
@@ -2082,16 +2115,16 @@ Shader *loaddeferredlightshader(const char *type = NULL)
                 sun[sunlen++] = '0' + rhsplits;
             }
         }
-        if(lighttilebatch && batchsunlight > (userh ? 1 : 0))
-        {
-            batchsun = 1;
-            sun[sunlen++] = 'b';
-        }
+    }
+    if(lighttilebatch && (!usecsm || batchsunlight > (userh ? 1 : 0)))
+    {
+        usebase = 1;
+        sun[sunlen++] = 'b';
     }
     sun[sunlen] = '\0';
 
     defformatstring(name, "deferredlight%s%s%s", common, shadow, sun);
-    return generateshader(name, "deferredlightshader \"%s\" \"%s\" \"%s\" %d %d %d %d", common, shadow, sun, usecsm, userh, lighttilebatch, batchsun);
+    return generateshader(name, "deferredlightshader \"%s\" \"%s\" \"%s\" %d %d %d %d", common, shadow, sun, usecsm, userh, lighttilebatch, usebase);
 }
 
 void loaddeferredlightshaders()
@@ -2513,124 +2546,136 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
     }
     else loopv(lightbatches)
     {
-        lightbatch *batch = lightbatches[i];
-        if(batch->inside(btx1, bty1, btx2, bty2, tilemask)) for(int offset = 0;;)
+        lightbatch &batch = *lightbatches[i];
+        if(!batch.inside(btx1, bty1, btx2, bty2, tilemask)) continue;
+
+        lighttile &tile = *batch.tile;
+        int offset = batch.offset, n = batch.numlights;
+        bool shadowmap = false, spotlight = false;
+        if(n)
         {
-            int n = min(batch->lights.length() - offset, lighttilebatch);
-            bool shadowmap = false, spotlight = false;
-            if(n)
+            lightinfo &l = lights[tile.lights[offset]];
+            shadowmap = l.shadowmap >= 0;
+            spotlight = l.spot > 0;
+        }
+        float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1, sz1 = 1, sz2 = -1;
+        loopj(n)
+        {
+            lightinfo &l = lights[tile.lights[offset+j]];
+            lightposv[j] = vec4(l.o.x, l.o.y, l.o.z, 1.0f/l.radius);
+            lightcolorv[j] = vec(l.color.x*lightscale, l.color.y*lightscale, l.color.z*lightscale);
+            if(spotlight)
             {
-                lightinfo &l = lights[batch->lights[offset]];
-                shadowmap = l.shadowmap >= 0;
-                spotlight = l.spot > 0;
+                float maxatten = sincos360[l.spot].x;
+                spotparamsv[j] = vec4(l.dir, maxatten).div(1 - maxatten);
             }
-            float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1, sz1 = 1, sz2 = -1;
-            loopj(n)
+            if(shadowmap)
             {
-                lightinfo &l = lights[batch->lights[offset+j]];
-                if((l.shadowmap >= 0) != shadowmap || (l.spot > 0) != spotlight) { n = j; break; }
-                lightposv[j] = vec4(l.o.x, l.o.y, l.o.z, 1.0f/l.radius);
-                lightcolorv[j] = vec(l.color.x*lightscale, l.color.y*lightscale, l.color.z*lightscale);
+                shadowmapinfo &sm = shadowmaps[l.shadowmap];
+                float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3,
+                      bias = (smfilter > 2 ? smbias2 : smbias) * (smcullside ? 1 : -1) * smnearclip * (1024.0f / sm.size);
+                int border = smfilter > 2 ? smborder2 : smborder;
                 if(spotlight)
                 {
+                    spotxv[j] = l.spotx;
+                    spotyv[j] = l.spoty;
                     float maxatten = sincos360[l.spot].x;
-                    spotparamsv[j] = vec4(l.dir, maxatten).div(1 - maxatten);
+                    shadowparamsv[j] = vec4(
+                        0.5f * sm.size / (1 - maxatten),
+                        (-smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias) / (1 - maxatten),
+                        sm.size,
+                        0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
                 }
-                if(shadowmap)
+                else
                 {
-                    shadowmapinfo &sm = shadowmaps[l.shadowmap];
-                    float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3,
-                          bias = (smfilter > 2 ? smbias2 : smbias) * (smcullside ? 1 : -1) * smnearclip * (1024.0f / sm.size);
-                    int border = smfilter > 2 ? smborder2 : smborder;
-                    if(spotlight)
-                    {
-                        spotxv[j] = l.spotx;
-                        spotyv[j] = l.spoty;
-                        float maxatten = sincos360[l.spot].x;
-                        shadowparamsv[j] = vec4(
-                            0.5f * sm.size / (1 - maxatten),
-                            (-smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias) / (1 - maxatten),
-                            sm.size,
-                            0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
-                    }
-                    else
-                    {
-                        shadowparamsv[j] = vec4(
-                            0.5f * (sm.size - border),
-                            -smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias,
-                            sm.size,
-                            0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
-                    }
-                    shadowoffsetv[j] = vec2(sm.x + 0.5f*sm.size, sm.y + 0.5f*sm.size);
+                    shadowparamsv[j] = vec4(
+                        0.5f * (sm.size - border),
+                        -smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias,
+                        sm.size,
+                        0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
                 }
-                sx1 = min(sx1, l.sx1);
-                sy1 = min(sy1, l.sy1);
-                sx2 = max(sx2, l.sx2);
-                sy2 = max(sy2, l.sy2);
-                sz1 = min(sz1, l.sz1);
-                sz2 = max(sz2, l.sz2);
+                shadowoffsetv[j] = vec2(sm.x + 0.5f*sm.size, sm.y + 0.5f*sm.size);
             }
-            if(n)
-            {
-                s->setvariant(n-1, (shadowmap ? 1 : 0) + (offset || sunpass ? 2 : 0) + (spotlight ? 4 : 0));
-                lightpos.setv(lightposv, n);
-                lightcolor.setv(lightcolorv, n);
-                if(spotlight) spotparams.setv(spotparamsv, n);
-                if(shadowmap)
-                {
-                    if(spotlight)
-                    {
-                        spotx.setv(spotxv, n);
-                        spoty.setv(spotyv, n);
-                    }
-                    shadowparams.setv(shadowparamsv, n);
-                    shadowoffset.setv(shadowoffsetv, n);
-                }
-            }
-            else s->set();
+            sx1 = min(sx1, l.sx1);
+            sy1 = min(sy1, l.sy1);
+            sx2 = max(sx2, l.sx2);
+            sy2 = max(sy2, l.sy2);
+            sz1 = min(sz1, l.sz1);
+            sz2 = max(sz2, l.sz2);
+        }
 
-            if(!offset && !sunpass) { sx1 = sy1 = sz1 = -1; sx2 = sy2 = sz2 = 1; }
+        if(!offset && !sunpass)
+        {
+            sx1 = bsx1;
+            sy1 = bsy1;
+            sx2 = bsx2;
+            sy2 = bsy2;
+            sz1 = -1;
+            sz2 = 1;
+        }
+        else
+        {
             sx1 = max(sx1, bsx1);
             sy1 = max(sy1, bsy1);
             sx2 = min(sx2, bsx2);
             sy2 = min(sy2, bsy2);
-            if(hasDBT && depthtestlights > 1) glDepthBounds_(sz1*0.5f + 0.5f, sz2*0.5f + 0.5f);
-            if(!lighttilescissor) gle::begin(GL_QUADS);
-            if(sx1 < sx2 && sy1 < sy2 && sz1 < sz2) loopvj(batch->strips)
-            {
-                lightstrip &s = batch->strips[j];
-                if(s.y >= bty1 && s.y < bty2) for(int x = max(s.x, btx1), end = min(s.x + s.w, btx2); x < end;)
-                {
-                    int start;
-                    if(tilemask)
-                    {
-                        while(x < end && !(tilemask[s.y]&(1<<x))) x++;
-                        if(x >= end) break;
-                        start = x;
-                        do ++x; while(x < end && tilemask[s.y]&(1<<x));
-                    }
-                    else
-                    {
-                        start = x;
-                        x = end;
-                    }
-                    int tx1 = max(int(floor((sx1*0.5f+0.5f)*vieww)), ((start*lighttilevieww)/lighttilew)*lighttilealignw),
-                        ty1 = max(int(floor((sy1*0.5f+0.5f)*viewh)), ((s.y*lighttileviewh)/lighttileh)*lighttilealignh),
-                        tx2 = min(int(ceil((sx2*0.5f+0.5f)*vieww)), min(((x*lighttilevieww)/lighttilew)*lighttilealignw, vieww)),
-                        ty2 = min(int(ceil((sy2*0.5f+0.5f)*viewh)), min((((s.y+1)*lighttileviewh)/lighttileh)*lighttilealignh, viewh));
-                    if(lighttilescissor)
-                    {
-                        glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
-                        lightquad(sz1);
-                    }
-                    else lightquads(sz1, (tx1*2.0f)/vieww-1.0f, (ty1*2.0f)/viewh-1.0f, (tx2*2.0f)/vieww-1.0f, (ty2*2.0f)/viewh-1.0f);
-                    lightpassesused++;
-                }
-            }
-            if(!lighttilescissor) gle::end();
-            offset += n;
-            if(offset >= batch->lights.length()) break;
+            if(sx1 >= sx2 || sy1 >= sy2 || sz1 >= sz2) continue;
         }
+
+        if(n)
+        {
+            s->setvariant(n-1, (shadowmap ? 1 : 0) + (offset || sunpass ? 2 : 0) + (spotlight ? 4 : 0));
+            lightpos.setv(lightposv, n);
+            lightcolor.setv(lightcolorv, n);
+            if(spotlight) spotparams.setv(spotparamsv, n);
+            if(shadowmap)
+            {
+                if(spotlight)
+                {
+                    spotx.setv(spotxv, n);
+                    spoty.setv(spotyv, n);
+                }
+                shadowparams.setv(shadowparamsv, n);
+                shadowoffset.setv(shadowoffsetv, n);
+            }
+        }
+        else s->set();
+
+        lightpassesused++;
+
+        if(hasDBT && depthtestlights > 1) glDepthBounds_(sz1*0.5f + 0.5f, sz2*0.5f + 0.5f);
+        if(!lighttilescissor) gle::begin(GL_QUADS);
+        loopvj(batch.strips)
+        {
+            lightstrip &s = batch.strips[j];
+            if(s.y >= bty1 && s.y < bty2) for(int x = max(int(s.x), btx1), end = min(int(s.x + s.w), btx2); x < end;)
+            {
+                int start;
+                if(tilemask)
+                {
+                    while(x < end && !(tilemask[s.y]&(1<<x))) x++;
+                    if(x >= end) break;
+                    start = x;
+                    do ++x; while(x < end && tilemask[s.y]&(1<<x));
+                }
+                else
+                {
+                    start = x;
+                    x = end;
+                }
+                int tx1 = max(int(floor((sx1*0.5f+0.5f)*vieww)), ((start*lighttilevieww)/lighttilew)*lighttilealignw),
+                    ty1 = max(int(floor((sy1*0.5f+0.5f)*viewh)), ((s.y*lighttileviewh)/lighttileh)*lighttilealignh),
+                    tx2 = min(int(ceil((sx2*0.5f+0.5f)*vieww)), min(((x*lighttilevieww)/lighttilew)*lighttilealignw, vieww)),
+                    ty2 = min(int(ceil((sy2*0.5f+0.5f)*viewh)), min((((s.y+1)*lighttileviewh)/lighttileh)*lighttilealignh, viewh));
+                if(lighttilescissor)
+                {
+                    glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
+                    lightquad(sz1);
+                }
+                else lightquads(sz1, (tx1*2.0f)/vieww-1.0f, (ty1*2.0f)/viewh-1.0f, (tx2*2.0f)/vieww-1.0f, (ty2*2.0f)/viewh-1.0f);
+            }
+        }
+        if(!lighttilescissor) gle::end();
     }
 
     gle::disable();
@@ -2828,6 +2873,15 @@ VAR(lightsvisible, 1, 0, 0);
 VAR(lightsoccluded, 1, 0, 0);
 VARN(lightbatches, lightbatchesused, 1, 0, 0);
 
+static inline bool sortlightbatches(const lightbatch *x, const lightbatch *y)
+{
+    if(x->tile->band < y->tile->band) return true;
+    if(x->tile->band > y->tile->band) return false;
+    if(x->priority < y->priority) return true;
+    if(x->priority > y->priority) return false;
+    return x->numlights > y->numlights;
+}
+
 void packlights()
 {
     lightsvisible = lightsoccluded = 0;
@@ -2900,30 +2954,52 @@ void packlights()
 
     lightsvisible = lightorder.length() - lightsoccluded;
 
-    static hashset<lightbatch *> batcher(128);
-    batcher.clear();
+    lightbatcher.recycle();
     lightbatches.setsize(0);
-    loop(y, lighttileh)
+    if(lighttilebatch) loop(y, lighttileh)
     {
-        lightbatch *prevbatch = NULL;
         int band = lighttilebands && lighttilebands < lighttileh ? (y * lighttilebands) / lighttileh : y;
+        bool sunpass = sunlight && csmshadowmap && batchsunlight < (gi && giscale && gidist ? 1 : 0);
         loop(x, lighttilew)
         {
-            lightbatch &tile = lighttiles[y][x];
+            lighttile &tile = lighttiles[y][x];
             tile.band = band;
-            lightbatch *batch = batcher.add(&tile);
-            if(batch != prevbatch)
+            for(int offset = 0;;)
             {
-                if(batch == &tile) lightbatches.add(batch);
-                lightstrip &strip = batch->strips.add();
-                strip.x = x;
-                strip.y = y;
-                strip.w = 1;
+                int n = min(tile.lights.length() - offset, lighttilebatch);
+                bool shadowmap = false, spotlight = false;
+                if(n)
+                {
+                    lightinfo &l = lights[tile.lights[offset]];
+                    shadowmap = l.shadowmap >= 0;
+                    spotlight = l.spot > 0;
+                }
+                loopj(n)
+                {
+                    lightinfo &l = lights[tile.lights[offset+j]];
+                    if((l.shadowmap >= 0) != shadowmap || (l.spot > 0) != spotlight) { n = j; break; }
+                }
+                int priority = (offset || sunpass ? 4 : 0) + (shadowmap ? 0 : 2) + (spotlight ? 1 : 0);
+                lighttileslice slice(&tile, priority, offset, n);
+                lightbatch &batch = lightbatcher[slice];
+                if(batch.strips.empty() || !lighttilestrip || !batch.strips.last().extend(x, y))
+                {
+                    if(batch.strips.empty())
+                    {
+                        (lighttileslice &)batch = slice;
+                        lightbatches.add(&batch);
+                    }
+                    lightstrip &strip = batch.strips.add();
+                    strip.x = x;
+                    strip.y = y;
+                    strip.w = 1;
+                }
+                offset += n;
+                if(offset >= tile.lights.length()) break;
             }
-            else batch->strips.last().w++;
-            if(lighttilestrip) prevbatch = batch;
         }
     }
+    lightbatches.sort(sortlightbatches);
     lightbatchesused = lightbatches.length();
 }
 

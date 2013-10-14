@@ -101,7 +101,7 @@ static void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uint pitch, uch
             case 4: halvetexture<4>(src, sw, sh, pitch, dst); return;
         }
     }
-    else if(sw < dw || sh < dh || sw&(sw-1) || sh&(sh-1))
+    else if(sw < dw || sh < dh || sw&(sw-1) || sh&(sh-1) || dw&(dw-1) || dh&(dh-1))
     {
         switch(bpp)
         {
