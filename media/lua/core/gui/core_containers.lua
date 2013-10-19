@@ -76,20 +76,25 @@ M.H_Box = register_class("H_Box", Widget, {
     layout = function(self)
         self.w, self.h = 0, 0
         local subw = 0
+        local ncl, ex = 0, self.expand
         loop_children(self, function(o)
             o.x = subw
             o.y = 0
             o:layout()
             subw += o.w
             self.h = max(self.h, o.y + o.h)
+            if ex and ((o.adjust & CLAMP_LEFT)  != 0)
+                  and ((o.adjust & CLAMP_RIGHT) != 0) then
+                ncl += 1
+            end
         end)
         self.w = subw + self.padding * max(#self.vstates + 
             #self.children - 1, 0)
-        self.subw = subw
+        self.subw, self.ncl = subw, ncl
     end,
 
-    adjust_children_regular = function(self, nch, nvs, hmg)
-        local offset, space = 0, (self.w - self.subw) / max(nvs + nch - 1, 1)
+    adjust_children_regular = function(self, no, hmg)
+        local offset, space = 0, (self.w - self.subw) / max(no - 1, 1)
         loop_children(self, function(o)
             o.x = offset
             offset += o.w + space
@@ -97,10 +102,10 @@ M.H_Box = register_class("H_Box", Widget, {
         end)
     end,
 
-    adjust_children_homogenous = function(self, nch, nvs)
+    adjust_children_homogenous = function(self, no)
         local pad = self.padding
-        local offset, space = 0, (self.w - self.subw - (nvs + nch - 1) * pad)
-            / max(nvs + nch, 1)
+        local offset, space = 0, (self.w - self.subw - (no - 1) * pad)
+            / max(no, 1)
         loop_children(self, function(o)
             o.x = offset
             offset += o.w + space + pad
@@ -108,13 +113,15 @@ M.H_Box = register_class("H_Box", Widget, {
         end)
     end,
 
-    adjust_children_expand = function(self, nch, nvs, ncl, cl)
+    adjust_children_expand = function(self, no)
         local pad = self.padding
-        local dpad = pad * max(nch + nvs - 1, 0)
-        local offset, space = 0, ((self.w - self.subw) / ncl - dpad)
+        local dpad = pad * max(no - 1, 0)
+        local offset, space = 0, ((self.w - self.subw) / self.ncl - dpad)
         loop_children(self, function(o)
             o.x = offset
-            local add = (cl[o] != nil) and space or 0
+            local a = o.adjust
+            local add = ((a & CLAMP_LEFT) != 0) and ((a & CLAMP_RIGHT) != 0)
+                and space or 0
             o:adjust_layout(o.x, 0, o.w + add, self.h)
             offset += o.w + pad
         end)
@@ -124,21 +131,11 @@ M.H_Box = register_class("H_Box", Widget, {
         local nch, nvs = #self.children, #self.vstates
         if nch == 0 and nvs == 0 then return end
         if self.homogenous then
-            return self:adjust_children_homogenous(nch, nvs)
-        elseif self.expand then
-            local ncl, cl = 0, {}
-            loop_children(self, function(o)
-                local a = o.adjust
-                if  ((a & CLAMP_LEFT) != 0) and ((a & CLAMP_RIGHT) != 0) then
-                    ncl += 1
-                    cl[o] = true
-                end
-            end)
-            if ncl != 0 then
-                return self:adjust_children_expand(nch, nvs, ncl, cl)
-            end
+            return self:adjust_children_homogenous(nch + nvs)
+        elseif self.expand and self.ncl != 0 then
+            return self:adjust_children_expand(nch + nvs)
         end
-        return self:adjust_children_regular(nch, nvs)
+        return self:adjust_children_regular(nch + nvs)
     end,
 
     --[[! Function: set_padding ]]
@@ -167,20 +164,25 @@ M.V_Box = register_class("V_Box", Widget, {
     layout = function(self)
         self.w, self.h = 0, 0
         local subh = 0
+        local ncl, ex = 0, self.expand
         loop_children(self, function(o)
             o.x = 0
             o.y = subh
             o:layout()
             subh += o.h
             self.w = max(self.w, o.x + o.w)
+            if ex and ((o.adjust & CLAMP_TOP)    != 0)
+                  and ((o.adjust & CLAMP_BOTTOM) != 0) then
+                ncl += 1
+            end
         end)
         self.h = subh + self.padding * max(#self.vstates +
             #self.children - 1, 0)
-        self.subh = subh
+        self.subh, self.ncl = subh, ncl
     end,
 
-    adjust_children_regular = function(self, nch, nvs)
-        local offset, space = 0, (self.h - self.subh) / max(nvs + nch - 1, 1)
+    adjust_children_regular = function(self, no)
+        local offset, space = 0, (self.h - self.subh) / max(no - 1, 1)
         loop_children(self, function(o)
             o.y = offset
             offset += o.h + space
@@ -188,10 +190,10 @@ M.V_Box = register_class("V_Box", Widget, {
         end)
     end,
 
-    adjust_children_homogenous = function(self, nch, nvs)
+    adjust_children_homogenous = function(self, no)
         local pad = self.padding
-        local offset, space = 0, (self.h - self.subh - (nvs + nch - 1) * pad)
-            / max(nvs + nch, 1)
+        local offset, space = 0, (self.h - self.subh - (no - 1) * pad)
+            / max(no, 1)
         loop_children(self, function(o)
             o.y = offset
             offset += o.h + space + pad
@@ -199,13 +201,15 @@ M.V_Box = register_class("V_Box", Widget, {
         end)
     end,
 
-    adjust_children_expand = function(self, nch, nvs, ncl, cl)
+    adjust_children_expand = function(self, no)
         local pad = self.padding
-        local dpad = pad * max(nch + nvs - 1, 0)
-        local offset, space = 0, ((self.h - self.subh) / ncl - dpad)
+        local dpad = pad * max(no - 1, 0)
+        local offset, space = 0, ((self.h - self.subh) / self.ncl - dpad)
         loop_children(self, function(o)
             o.y = offset
-            local add = (cl[o] != nil) and space or 0
+            local a = o.adjust
+            local add = ((a & CLAMP_TOP) != 0) and ((a & CLAMP_BOTTOM) != 0)
+                and space or 0
             o:adjust_layout(0, o.y, self.w, o.h + add)
             offset += o.h + pad
         end)
@@ -215,21 +219,11 @@ M.V_Box = register_class("V_Box", Widget, {
         local nch, nvs = #self.children, #self.vstates
         if nch == 0 and nvs == 0 then return end
         if self.homogenous then
-            return self:adjust_children_homogenous(nch, nvs)
-        elseif self.expand then
-            local ncl, cl = 0, {}
-            loop_children(self, function(o)
-                local a = o.adjust
-                if  ((a & CLAMP_TOP) != 0) and ((a & CLAMP_BOTTOM) != 0) then
-                    ncl += 1
-                    cl[o] = true
-                end
-            end)
-            if ncl != 0 then
-                return self:adjust_children_expand(nch, nvs, ncl, cl)
-            end
+            return self:adjust_children_homogenous(nch + nvs)
+        elseif self.expand and self.ncl != 0 then
+            return self:adjust_children_expand(nch + nvs)
         end
-        return self:adjust_children_regular(nch, nvs)
+        return self:adjust_children_regular(nch + nvs)
     end,
 
     --[[! Function: set_padding ]]
