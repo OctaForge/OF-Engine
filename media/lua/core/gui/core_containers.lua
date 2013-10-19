@@ -42,6 +42,12 @@ local gen_setter = M.gen_setter
 local adjust = M.adjust
 
 local CLAMP_LEFT, CLAMP_RIGHT, CLAMP_TOP, CLAMP_BOTTOM in adjust
+local clampsv = function(adj)
+    return ((adj & CLAMP_TOP) != 0) and ((adj & CLAMP_BOTTOM) != 0)
+end
+local clampsh = function(adj)
+    return ((adj & CLAMP_LEFT) != 0) and ((adj & CLAMP_RIGHT) != 0)
+end
 
 --[[! Struct: H_Box
     A horizontal box. Boxes are containers that hold multiple widgets that
@@ -83,10 +89,7 @@ M.H_Box = register_class("H_Box", Widget, {
             o:layout()
             subw += o.w
             self.h = max(self.h, o.y + o.h)
-            if ex and ((o.adjust & CLAMP_LEFT)  != 0)
-                  and ((o.adjust & CLAMP_RIGHT) != 0) then
-                ncl += 1
-            end
+            if ex and clampsh(o.adjust) then ncl += 1 end
         end)
         self.w = subw + self.padding * max(#self.vstates + 
             #self.children - 1, 0)
@@ -119,10 +122,8 @@ M.H_Box = register_class("H_Box", Widget, {
         local offset, space = 0, ((self.w - self.subw) / self.ncl - dpad)
         loop_children(self, function(o)
             o.x = offset
-            local a = o.adjust
-            local add = ((a & CLAMP_LEFT) != 0) and ((a & CLAMP_RIGHT) != 0)
-                and space or 0
-            o:adjust_layout(o.x, 0, o.w + add, self.h)
+            o:adjust_layout(o.x, 0, o.w + (clampsh(o.adjust) and space or 0),
+                self.h)
             offset += o.w + pad
         end)
     end,
@@ -171,10 +172,7 @@ M.V_Box = register_class("V_Box", Widget, {
             o:layout()
             subh += o.h
             self.w = max(self.w, o.x + o.w)
-            if ex and ((o.adjust & CLAMP_TOP)    != 0)
-                  and ((o.adjust & CLAMP_BOTTOM) != 0) then
-                ncl += 1
-            end
+            if ex and clampsv(o.adjust) then ncl += 1 end
         end)
         self.h = subh + self.padding * max(#self.vstates +
             #self.children - 1, 0)
@@ -207,10 +205,8 @@ M.V_Box = register_class("V_Box", Widget, {
         local offset, space = 0, ((self.h - self.subh) / self.ncl - dpad)
         loop_children(self, function(o)
             o.y = offset
-            local a = o.adjust
-            local add = ((a & CLAMP_TOP) != 0) and ((a & CLAMP_BOTTOM) != 0)
-                and space or 0
-            o:adjust_layout(0, o.y, self.w, o.h + add)
+            o:adjust_layout(0, o.y, self.w,
+                o.h + (clampsv(o.adjust) and space or 0))
             offset += o.h + pad
         end)
     end,
