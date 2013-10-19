@@ -71,8 +71,6 @@ M.key = key
 local mod = consts.mod
 M.mod = mod
 
-local update_later = {}
-
 -- initialized after World is created
 local world, projection, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
@@ -2185,25 +2183,7 @@ set_external("gui_visible", function(wname)
 end)
 
 set_external("gui_update", function()
-    local i = 1
-    while true do
-        if i > #update_later then break end
-        local ul = update_later[i]
-        local first = ul[1]
-        local t = type(first)
-        if t == "string" then
-            var_set(first, ul[2])
-        elseif t == "function" then
-            first(unpack(ul, 2))
-        else
-            emit(first, ul[2], unpack(ul, 3))
-        end
-        i = i + 1
-    end
-    update_later = {}
-
     local mm = var_get("mainmenu")
-
     if mm != 0 and not world:window_visible("main") and
     not isconnected(true) then
         world:show_window("main")
@@ -2368,15 +2348,12 @@ M.changes_apply = function()
     end
 
     if (changetypes & CHANGE_GFX) != 0 then
-        update_later[#update_later + 1] = { cs.execute, "resetgl" }
+        cs.execute("resetgl")
+    elseif (changetypes & CHANGE_SHADERS) != 0 then
+        cs.execute("resetshaders")
     end
-
     if (changetypes & CHANGE_SOUND) != 0 then
-        update_later[#update_later + 1] = { cs.execute, "resetsound" }
-    end
-
-    if (changetypes & CHANGE_SHADERS) != 0 then
-        update_later[#update_later + 1] = { cs.execute, "resetshaders" }
+        cs.execute("resetsound")
     end
 end
 
