@@ -2145,12 +2145,12 @@ set_external("gui_clear", function()
             hud:destroy_children()
             draw_hud = false
         end
-        if tooltip then
+        if tooltip and tooltip._clear_on_drop then
             tooltip:clear()
-            tooltip = nil
+            tooltip.parent.managed_objects[tooltip] = nil
         end
-        for i = 1, #menustack do menustack[i]:clear() end
-        menustack = {}
+        tooltip = nil
+        menus_drop()
     end
 end)
 
