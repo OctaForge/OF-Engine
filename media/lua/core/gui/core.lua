@@ -74,7 +74,7 @@ M.mod = mod
 -- initialized after World is created
 local world, projection, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
-local cursor_x, cursor_y, prev_cx, prev_cy = 0.5, 0.5, 0.5, 0.5
+local cursor_x, cursor_y = 0.5, 0.5
 local clicked_code
 local menu_init, tooltip_init, tooltip
 local menustack = {}
@@ -2131,15 +2131,26 @@ end)
 
 local draw_hud = false
 
+local mmenu = var_get("mainmenu")
+signal.connect(cs, "mainmenu_changed", function(self, v)
+    mmenu = v
+end)
+
 set_external("gui_clear", function()
     var_set("hidechanges", 0)
-    if  var_get("mainmenu") != 0 and isconnected() then
+    if mmenu != 0 and isconnected() then
         var_set("mainmenu", 0, true, false) -- no clamping, readonly var
         world:destroy_children()
         if draw_hud then
             hud:destroy_children()
             draw_hud = false
         end
+        if tooltip then
+            tooltip:clear()
+            tooltip = nil
+        end
+        for i = 1, #menustack do menustack[i]:clear() end
+        menustack = {}
     end
 end)
 
@@ -2183,13 +2194,12 @@ set_external("gui_visible", function(wname)
 end)
 
 set_external("gui_update", function()
-    local mm = var_get("mainmenu")
-    if mm != 0 and not world:window_visible("main") and
+    if mmenu != 0 and not world:window_visible("main") and
     not isconnected(true) then
         world:show_window("main")
     end
 
-    if not draw_hud and mm == 0 then draw_hud = true end
+    if not draw_hud and mmenu == 0 then draw_hud = true end
     if draw_hud then draw_hud = hud.visible end
 
     local wvisible = world.visible
@@ -2277,8 +2287,6 @@ set_external("gui_update", function()
         hud:adjust_children()
         projection = nil
     end
-
-    prev_cx, prev_cy = cursor_x, cursor_y
 end)
 
 set_external("gui_render", function()
