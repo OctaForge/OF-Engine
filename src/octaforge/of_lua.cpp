@@ -16,14 +16,12 @@
 #include "of_world.h"
 #include "of_localserver.h"
 
-#define LAPI_REG(name) LUACOMMAND(name, _lua_##name)
 #define LAPI_EMPTY(name) int _lua_##name(lua_State *L) \
 { logger::log(logger::DEBUG, "stub: _C."#name"\n"); return 0; }
 
 #include "of_lua_api.h"
 
 #undef LAPI_EMPTY
-#undef LAPI_REG
 
 void deleteparticles();
 void deletedecals();
@@ -210,7 +208,8 @@ namespace lua
             "} Texture;\n"
             "struct particle_t; typedef struct particle_t particle_t;\n"
             "struct selinfo_t; typedef struct selinfo_t selinfo_t;\n"
-            "struct vslot_t; typedef struct vslot_t vslot_t;\n");
+            "struct vslot_t; typedef struct vslot_t vslot_t;\n"
+            "struct cube_t; typedef struct cube_t cube_t;\n");
         lua_call(L, 1, 0);
         lua_getfield(L, -1, "cast");
         lua_replace(L, -2);

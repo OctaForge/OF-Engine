@@ -527,3 +527,30 @@ CLUAICOMMAND(edit_get_world_size, int, (), {
     extern int worldsize;
     return worldsize;
 })
+
+typedef cube cube_t;
+
+CLUAICOMMAND(edit_lookup_cube, cube_t*, (int x, int y, int z, int ts,
+int *rx, int *ry, int *rz, int *rts), {
+    ivec co;
+    int rs;
+    cube *c = &lookupcube(ivec(x, y, z), ts, co, rs);
+    *rx = co.x;
+    *ry = co.y;
+    *rz = co.z;
+    *rts = rs;
+    return c;
+});
+
+CLUAICOMMAND(edit_lookup_texture, ushort, (int x, int y, int z, int ts,
+int face), {
+    return lookupcube(ivec(x, y, z), ts).texture[face];
+});
+
+CLUAICOMMAND(edit_lookup_material, ushort, (int x, int y, int z, int ts), {
+    return lookupcube(ivec(x, y, z), ts).material;
+});
+
+CLUAICOMMAND(edit_get_material, int, (float x, float y, float z), {
+    return lookupmaterial(vec(x, y, z));
+});

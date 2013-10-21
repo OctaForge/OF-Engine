@@ -71,14 +71,6 @@ M.delete_npc = function(ent) capi.npcdel(ent.uid) end
 ]]
 M.new_entity = capi.new_entity
 
---[[! Function: get_material
-    Returns what material is on the position given by the argument.
-    Materials are represented by <material> fields.
-]]
-M.get_material = function(o)
-    return capi.getmat(o.x, o.y, o.z)
-end
-
 --[[! Function: map_erase
     Clears all the map geometry.
 ]]
@@ -131,7 +123,7 @@ M.cube_set_texture = capi.edit_cube_set_texture
 
 --[[! Function: cube_set_material
     First 4 arguments are the same as in <cube_create>, the fifth argument is
-    the material index, see <get_material>. See also <cube_set_texture>.
+    the material index, see <lookup_material>. See also <cube_set_texture>.
 ]]
 M.cube_set_material = capi.edit_cube_set_material
 
@@ -225,6 +217,25 @@ ffi.cdef [[
         float refract_scale;
         vec3f_t refract_color;
     } vslot_t;
+
+    /* fields with double underscores are private and to be used at your
+     * own risk only (you most likely won't need these at all)
+     */
+    typedef struct cube_t {
+        cube_t *__children;
+        void *__ext; /* not to be used */
+        union {
+            uchar __edges[12];
+            uint __faces[3];
+        };
+        ushort texture[6];
+        ushort material;
+        uchar __merged;
+        union {
+            uchar __escaped;
+            uchar __visible;
+        };
+    } cube_t;
 ]]
 
 local edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
@@ -408,5 +419,47 @@ M.VSlot = ffi.metatype("vslot_t", {
     __index = {
     }
 })
+
+local edit_lookup_cube, edit_lookup_texture in capi
+
+--[[! Function: lookup_cube
+    Looks up a cube at the given origin position with the given size and
+    returns it. The fields you're likely to use in the cube are "texture",
+    which is a zero indexed array of 6 texture slot ids - each of the array
+    indexes corresponds to a face as described by <cube_set_texture> and
+    "material" which is the material id for the cube.
+
+    It also returns four other values corresponding to the reference arguments
+    of internal lookupcube (result origin x, y, z and size).
+
+    Note that this is a raw function. You most likely want to use the two
+    below, <lookup_material> and <lookup_texture>.
+]]
+M.lookup_cube = function(x, y, z, ts)
+    local r = ffi_new("int[4]");
+    local c = edit_lookup_cube(x, y, z, ts, r + 0, r + 1, r + 2, r + 3)
+    return c, r[0], r[1], r[2], r[3]
+end
+
+--[[! Function: lookup_texture
+    Returns the texture slot id corresponding to the texture on a cube's face
+    represented by the origin position (x, y, z), the size and the face
+    (see <cube_set_texture>).
+]]
+M.lookup_texture = capi.edit_lookup_texture
+
+--[[! Function: lookup_material
+    Returns the material of a cube represented by the origin position (x, y, z)
+    and the size. There is also <get_material> for a safe, general version.
+]]
+M.lookup_material = capi.edit_lookup_material
+
+--[[! Function: get_material
+    Returns what material is on the position given by the arguments (x, y, z).
+    Materials are represented by <material> fields. Note that the position
+    is not an origin position of a cube - it's a real world position, not
+    limited in any way.
+]]
+M.get_material = capi.edit_get_material
 
 return M

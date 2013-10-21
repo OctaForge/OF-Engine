@@ -356,12 +356,6 @@ namespace lapi_binds
         return 0;
     }
 
-    int _lua_getmat(lua_State *L) {
-        lua_pushinteger(L, lookupmaterial(vec(luaL_checknumber(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3))));
-        return 1;
-    }
-
 #ifndef SERVER
     int _lua_hasmap(lua_State *L) {
         lua_pushboolean(L, local_server::is_running());
@@ -427,54 +421,53 @@ namespace lapi_binds
         return 2;
     }
 
-    LAPI_REG(log);
-    LAPI_REG(should_log);
-    LAPI_REG(echo);
-    LAPI_REG(readfile);
+    LUACOMMAND(log, _lua_log);
+    LUACOMMAND(should_log, _lua_should_log);
+    LUACOMMAND(echo, _lua_echo);
+    LUACOMMAND(readfile, _lua_readfile);
 
     /* edit */
-    LAPI_REG(npcadd);
-    LAPI_REG(npcdel);
-    LAPI_REG(requestprivedit);
-    LAPI_REG(hasprivedit);
+    LUACOMMAND(npcadd, _lua_npcadd);
+    LUACOMMAND(npcdel, _lua_npcdel);
+    LUACOMMAND(requestprivedit, _lua_requestprivedit);
+    LUACOMMAND(hasprivedit, _lua_hasprivedit);
 
     /* input */
-    LAPI_REG(set_targeted_entity);
+    LUACOMMAND(set_targeted_entity, _lua_set_targeted_entity);
 
     /* messages */
-    LAPI_REG(personal_servmsg);
-    LAPI_REG(statedata_changerequest);
-    LAPI_REG(statedata_changerequest_unreliable);
-    LAPI_REG(notify_numents);
-    LAPI_REG(le_notification_complete);
-    LAPI_REG(le_removal);
-    LAPI_REG(statedata_update);
-    LAPI_REG(statedata_update_unreliable);
-    LAPI_REG(do_click);
-    LAPI_REG(extent_notification_complete);
+    LUACOMMAND(personal_servmsg, _lua_personal_servmsg);
+    LUACOMMAND(statedata_changerequest, _lua_statedata_changerequest);
+    LUACOMMAND(statedata_changerequest_unreliable, _lua_statedata_changerequest_unreliable);
+    LUACOMMAND(notify_numents, _lua_notify_numents);
+    LUACOMMAND(le_notification_complete, _lua_le_notification_complete);
+    LUACOMMAND(le_removal, _lua_le_removal);
+    LUACOMMAND(statedata_update, _lua_statedata_update);
+    LUACOMMAND(statedata_update_unreliable, _lua_statedata_update_unreliable);
+    LUACOMMAND(do_click, _lua_do_click);
+    LUACOMMAND(extent_notification_complete, _lua_extent_notification_complete);
 
     /* network */
-    LAPI_REG(connect);
-    LAPI_REG(isconnected);
-    LAPI_REG(haslocalclients);
-    LAPI_REG(connectedip);
-    LAPI_REG(connectedport);
-    LAPI_REG(connectserv);
-    LAPI_REG(lanconnect);
-    LAPI_REG(disconnect);
-    LAPI_REG(localconnect);
-    LAPI_REG(localdisconnect);
-    LAPI_REG(getfollow);
-    LAPI_REG(do_upload);
-    LAPI_REG(restart_map);
+    LUACOMMAND(connect, _lua_connect);
+    LUACOMMAND(isconnected, _lua_isconnected);
+    LUACOMMAND(haslocalclients, _lua_haslocalclients);
+    LUACOMMAND(connectedip, _lua_connectedip);
+    LUACOMMAND(connectedport, _lua_connectedport);
+    LUACOMMAND(connectserv, _lua_connectserv);
+    LUACOMMAND(lanconnect, _lua_lanconnect);
+    LUACOMMAND(disconnect, _lua_disconnect);
+    LUACOMMAND(localconnect, _lua_localconnect);
+    LUACOMMAND(localdisconnect, _lua_localdisconnect);
+    LUACOMMAND(getfollow, _lua_getfollow);
+    LUACOMMAND(do_upload, _lua_do_upload);
+    LUACOMMAND(restart_map, _lua_restart_map);
 
     /* world */
-    LAPI_REG(gettargetpos);
-    LAPI_REG(gettargetent);
-    LAPI_REG(iscolliding);
-    LAPI_REG(setgravity);
-    LAPI_REG(getmat);
-    LAPI_REG(hasmap);
-    LAPI_REG(get_map_preview_filename);
-    LAPI_REG(get_all_map_names);
+    LUACOMMAND(gettargetpos, _lua_gettargetpos);
+    LUACOMMAND(gettargetent, _lua_gettargetent);
+    LUACOMMAND(iscolliding, _lua_iscolliding);
+    LUACOMMAND(setgravity, _lua_setgravity);
+    LUACOMMAND(hasmap, _lua_hasmap);
+    LUACOMMAND(get_map_preview_filename, _lua_get_map_preview_filename);
+    LUACOMMAND(get_all_map_names, _lua_get_all_map_names);
 }
