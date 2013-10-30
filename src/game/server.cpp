@@ -425,9 +425,9 @@ namespace server
     {
         if(clients.empty()) return false;
         enet_uint32 curtime = enet_time_get()-lastsend;
-        if(curtime<33 && !force) return false; // kripken: Server sends packets at most every 33ms? FIXME: fast rate, we might slow or dynamic this
+        if(curtime<40 && !force) return false; // kripken: Server sends packets at most every 40ms? FIXME: fast rate, we might slow or dynamic this
         bool flush = buildworldstate();
-        lastsend += curtime - (curtime%33);
+        lastsend += curtime - (curtime%40);
         return flush;
     }
 

@@ -1438,6 +1438,7 @@ static inline void changeshader(renderstate &cur, int pass, geombatch &b)
     Slot &slot = *vslot.slot;
     if(pass == RENDERPASS_RSM)
     {
+        extern Shader *rsmworldshader;
         if(b.es.layer&LAYER_BOTTOM) rsmworldshader->setvariant(0, 0, slot, vslot);
         else rsmworldshader->set(slot, vslot);
     }
@@ -1624,13 +1625,12 @@ void rendergeom()
 {
     bool doOQ = oqfrags && oqgeom && !drawtex, multipassing = false;
     renderstate cur;
-    setupgeom(cur);
-
-    resetbatches();
 
     int blends = 0;
     if(viewidx)
     {
+        setupgeom(cur);
+        resetbatches();
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs && va->occluded < OCCLUDE_GEOM)
         {
             if(pvsoccluded(va->geommin, va->geommax))
@@ -1690,17 +1690,18 @@ void rendergeom()
         collectlights();
         if(!cur.colormask) { cur.colormask = true; glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); }
         if(!cur.depthmask) { cur.depthmask = true; glDepthMask(GL_TRUE); }
-        glFlush();
 
         if(!multipassing) { multipassing = true; glDepthFunc(GL_LEQUAL); }
         cur.texgenorient = -1;
+        setupgeom(cur);
+        resetbatches();
 
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs && va->occluded < OCCLUDE_GEOM)
         {
             blends += va->blends;
             renderva(cur, va, RENDERPASS_GBUFFER);
         }
-        if(geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER);
+        if(geombatches.length()) { renderbatches(cur, RENDERPASS_GBUFFER); glFlush(); }
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs && va->occluded >= OCCLUDE_GEOM)
         {
             if((va->parent && va->parent->occluded >= OCCLUDE_BB) || (va->query && checkquery(va->query)))
@@ -1721,6 +1722,8 @@ void rendergeom()
     }
     else
     {
+        setupgeom(cur);
+        resetbatches();
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs)
         {
             va->query = NULL;
@@ -1767,7 +1770,6 @@ void rendergeom()
         collectlights();
         if(!cur.colormask) { cur.colormask = true; glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); }
         if(!cur.depthmask) { cur.depthmask = true; glDepthMask(GL_TRUE); }
-        glFlush();
     }
 }
 

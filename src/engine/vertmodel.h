@@ -414,7 +414,29 @@ struct vertmodel : animmodel
 
             loopv(p->links) calctagmatrix(p, p->links[i].tag, *as, p->links[i].matrix);
         }
+
+        virtual bool load(const char *name, float smooth) = 0;
     };
+
+    virtual vertmeshgroup *newmeshes() = 0;
+
+    meshgroup *loadmeshes(const char *name, float smooth = 2)
+    {
+        vertmeshgroup *group = newmeshes();
+        if(!group->load(name, smooth)) { delete group; return NULL; }
+        return group;
+    }
+
+    meshgroup *sharemeshes(const char *name, float smooth = 2)
+    {
+        if(!meshgroups.access(name))
+        {
+            meshgroup *group = loadmeshes(name, smooth);
+            if(!group) return NULL;
+            meshgroups.add(group);
+        }
+        return meshgroups[name];
+    }
 
     vertmodel(const char *name) : animmodel(name)
     {
@@ -437,7 +459,7 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
         defformatstring(filename, "%s/%s", MDL::dir, model);
         part &mdl = MDL::loading->addpart();
         if(mdl.index) mdl.disablepitch();
-        mdl.meshes = MDL::loading->sharemeshes(path(filename), double(*smooth > 0 ? cos(clamp(*smooth, 0.0f, 180.0f)*RAD) : 2));
+        mdl.meshes = MDL::loading->sharemeshes(path(filename), *smooth > 0 ? cosf(clamp(*smooth, 0.0f, 180.0f)*RAD) : 2);
         if(!mdl.meshes) conoutf("could not load %s", filename);
         else mdl.initskins();
     }

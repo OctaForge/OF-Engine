@@ -8,7 +8,7 @@ CC ?= cc
 CC_FLAGS = -O2 -fomit-frame-pointer
 
 CXX ?= c++
-CXX_FLAGS = -O2 -fomit-frame-pointer
+CXX_FLAGS = -O2 -fomit-frame-pointer -ffast-math
 
 CC_FLAGS_x86 = -march=i686
 CC_FLAGS_x64 =

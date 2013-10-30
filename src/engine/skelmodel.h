@@ -289,7 +289,7 @@ struct skelmodel : animmodel
                     loopk(htlen)
                     {
                         int &vidx = htdata[(htidx+k)&(htlen-1)];
-                        if(vidx < 0) { vidx = idxs.add(ushort(vverts.length())); vverts.add(vv); }
+                        if(vidx < 0) { vidx = idxs.add(ushort(vverts.length())); vverts.add(vv); break; }
                         else if(!memcmp(&vverts[vidx], &vv, sizeof(vv))) { minvert = min(minvert, idxs.add(ushort(vidx))); break; }
                     }
                 }
@@ -360,7 +360,6 @@ struct skelmodel : animmodel
             xtravertsva += numverts;
         }
     };
-
 
     struct tag
     {
@@ -862,6 +861,7 @@ struct skelmodel : animmodel
             loopi(numbones) if(bones[i].interpindex>=0)
             {
                 INTERPBONE(i);
+                d.normalize();
                 const boneinfo &b = bones[i];
                 if(b.interpparent<0) sc.bdata[b.interpindex] = d;
                 else sc.bdata[b.interpindex].mul(sc.bdata[b.interpparent], d);
@@ -1060,6 +1060,8 @@ struct skelmodel : animmodel
         }
     };
 
+    static hashnameset<skeleton *> skeletons;
+
     struct skelmeshgroup : meshgroup
     {
         skeleton *skel;
@@ -1105,7 +1107,7 @@ struct skelmodel : animmodel
             deletehitdata();
         }
 
-        void shareskeleton(char *name)
+        void shareskeleton(const char *name)
         {
             if(!name)
             {
@@ -1114,7 +1116,6 @@ struct skelmodel : animmodel
                 return;
             }
 
-            static hashnameset<skeleton *> skeletons;
             if(skeletons.access(name)) skel = skeletons[name];
             else
             {
@@ -1470,7 +1471,30 @@ struct skelmodel : animmodel
                 d->ragdoll->init(d);
             }
         }
+
+        virtual bool load(const char *name, float smooth) = 0;
     };
+
+    virtual skelmeshgroup *newmeshes() = 0;
+
+    meshgroup *loadmeshes(const char *name, const char *skelname = NULL, float smooth = 2)
+    {
+        skelmeshgroup *group = newmeshes();
+        group->shareskeleton(skelname);
+        if(!group->load(name, smooth)) { delete group; return NULL; }
+        return group;
+    }
+
+    meshgroup *sharemeshes(const char *name, const char *skelname = NULL, float smooth = 2)
+    {
+        if(!meshgroups.access(name))
+        {
+            meshgroup *group = loadmeshes(name, skelname, smooth);
+            if(!group) return NULL;
+            meshgroups.add(group);
+        }
+        return meshgroups[name];
+    }
 
     struct animpartmask
     {
@@ -1542,6 +1566,12 @@ struct skelmodel : animmodel
 
             ((skelmeshgroup *)meshes)->skel->optimize();
         }
+
+        void loaded()
+        {
+            endanimparts();
+            part::loaded();
+        }
     };
 
     skelmodel(const char *name) : animmodel(name)
@@ -1565,6 +1595,8 @@ struct skelmodel : animmodel
         return *p;
     }
 };
+
+hashnameset<skelmodel::skeleton *> skelmodel::skeletons;
 
 struct skeladjustment
 {
@@ -1622,7 +1654,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         defformatstring(filename, "%s/%s", MDL::dir, meshfile);
         part &mdl = MDL::loading->addpart();
         MDL::adjustments.setsize(0);
-        mdl.meshes = MDL::loading->sharemeshes(path(filename), skelname[0] ? skelname : NULL, double(*smooth > 0 ? cos(clamp(*smooth, 0.0f, 180.0f)*RAD) : 2));
+        mdl.meshes = MDL::loading->sharemeshes(path(filename), skelname[0] ? skelname : NULL, *smooth > 0 ? cosf(clamp(*smooth, 0.0f, 180.0f)*RAD) : 2);
         if(!mdl.meshes) conoutf("could not load %s", filename);
         else
         {

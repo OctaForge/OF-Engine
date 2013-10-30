@@ -131,7 +131,7 @@ void initenvmaps() { };
 int optimizematsurfs(materialsurface *matbuf, int matsurfs) { return 0; };
 void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks) {};
 
-matrix4 hudmatrix, aamaskmatrix, shadowmatrix;
+matrix4 hudmatrix, aamaskmatrix, shadowmatrix, camprojmatrix;
 
 void pushhudmatrix() {};
 void flushhudmatrix(bool flushparams) {};

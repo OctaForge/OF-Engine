@@ -369,7 +369,7 @@ local Character = Entity:clone {
         self:set_attr("eye_height", 14.0)
         self:set_attr("max_height", 14.0)
         self:set_attr("crouch_height", 0.75)
-        self:set_attr("crouch_time", 150)
+        self:set_attr("crouch_time", 200)
         self:set_attr("jump_velocity", 125)
         self:set_attr("gravity", -1)
         self:set_attr("above_eye", 1.0)

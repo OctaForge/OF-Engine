@@ -31,11 +31,11 @@ struct model
     virtual void setshader(Shader *shader) {}
     virtual void setenvmap(float envmapmin, float envmapmax, Texture *envmap) {}
     virtual void setspec(float spec) {}
-    virtual void setambient(float ambient) {}
     virtual void setglow(float glow, float glowdelta, float glowpulse) {}
     virtual void setalphatest(float alpha) {}
     virtual void setfullbright(float fullbright) {}
     virtual void setcullface(bool cullface) {}
+    virtual void setcolor(const vec &color) {}
 
     virtual void genshadowmesh(vector<triangle> &tris, const matrix4x3 &orient) {}
     virtual void preloadBIH() { if(!bih) setBIH(); }

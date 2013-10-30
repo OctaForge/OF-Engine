@@ -294,7 +294,7 @@ struct smd : skelmodel, skelloader<smd>
             return true;
         }
 
-        int readframes(stream *f, char *buf, size_t bufsize, vector<dualquat> &animbones)
+        int readframes(stream *f, char *buf, size_t bufsize, vector<smdbone> &bones, vector<dualquat> &animbones)
         {
             int frame = -1, numframes = 0, lastbone = skel->numbones;
             while(f->getline(buf, bufsize))
@@ -336,10 +336,12 @@ struct smd : skelmodel, skelloader<smd>
                                  cx*cy*cz + sx*sy*sz),
                             pos);
                 if(adjustments.inrange(bone)) adjustments[bone].adjust(dq);
-                dq.mul(skel->bones[bone].invbase);
+                smdbone &h = bones[bone];
+                boneinfo &b = skel->bones[bone];
+                dq.mul(b.invbase);
                 dualquat &dst = animbones[frame*skel->numbones + bone];
-                if(skel->bones[bone].parent < 0) dst = dq;
-                else dst.mul(skel->bones[skel->bones[bone].parent].base, dq);
+                if(h.parent < 0) dst = dq;
+                else dst.mul(skel->bones[h.parent].base, dq);
                 dst.fixantipodal(skel->numframes > 0 ? skel->framebones[bone] : animbones[bone]);
             }
             for(; lastbone < skel->numbones; lastbone++) animbones[frame*skel->numbones + lastbone] = animbones[lastbone];
@@ -356,6 +358,7 @@ struct smd : skelmodel, skelloader<smd>
 
             char buf[512];
             int version = -1;
+            vector<smdbone> bones;
             vector<dualquat> animbones;
             while(f->getline(buf, sizeof(buf)))
             {
@@ -367,14 +370,13 @@ struct smd : skelmodel, skelloader<smd>
                 }
                 else if(!strncmp(curbuf, "nodes", 5))
                 {
-                    vector<smdbone> bones;
                     readnodes(f, buf, sizeof(buf), bones);
                     if(bones.length() != skel->numbones) { delete f; return NULL; }
                 }
                 else if(!strncmp(curbuf, "triangles", 9))
                     skipsection(f, buf, sizeof(buf));
                 else if(!strncmp(curbuf, "skeleton", 8))
-                    readframes(f, buf, sizeof(buf), animbones);
+                    readframes(f, buf, sizeof(buf), bones, animbones);
                 else if(!strncmp(curbuf, "vertexanimation", 15))
                     skipsection(f, buf, sizeof(buf));
             }
@@ -397,23 +399,15 @@ struct smd : skelmodel, skelloader<smd>
             return sa;
         }
 
-        bool load(const char *meshfile)
+        bool load(const char *meshfile, float smooth)
         {
             name = newstring(meshfile);
 
-            if(!loadmesh(meshfile)) return false;
-
-            return true;
+            return loadmesh(meshfile);
         }
     };
 
-    meshgroup *loadmeshes(const char *name, va_list args)
-    {
-        smdmeshgroup *group = new smdmeshgroup;
-        group->shareskeleton(va_arg(args, char *));
-        if(!group->load(name)) { delete group; return NULL; }
-        return group;
-    }
+    skelmeshgroup *newmeshes() { return new smdmeshgroup; }
 
     bool loaddefaultparts()
     {
@@ -423,7 +417,7 @@ struct smd : skelmodel, skelloader<smd>
         do --fname; while(fname >= name && *fname!='/' && *fname!='\\');
         fname++;
         defformatstring(meshname, "media/model/%s/%s.smd", name, fname);
-        mdl.meshes = sharemeshes(path(meshname), NULL);
+        mdl.meshes = sharemeshes(path(meshname));
         if(!mdl.meshes) return false;
         mdl.initanimparts();
         mdl.initskins();
@@ -453,12 +447,7 @@ struct smd : skelmodel, skelloader<smd>
             }
             loading = NULL;
         }
-        loopv(parts)
-        {
-            skelpart *p = (skelpart *)parts[i];
-            p->endanimparts();
-            p->meshes->shared++;
-        }
+        loaded();
         return true;
     }
 };

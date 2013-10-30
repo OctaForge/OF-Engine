@@ -4,7 +4,7 @@
 
 Shader *Shader::lastshader = NULL;
 
-Shader *nullshader = NULL, *hudshader = NULL, *hudtextshader = NULL, *hudnotextureshader = NULL, *nocolorshader = NULL, *foggedshader = NULL, *foggednotextureshader = NULL, *ldrshader = NULL, *ldrnotextureshader = NULL, *stdworldshader = NULL, *rsmworldshader = NULL;
+Shader *nullshader = NULL, *hudshader = NULL, *hudtextshader = NULL, *hudnotextureshader = NULL, *nocolorshader = NULL, *foggedshader = NULL, *foggednotextureshader = NULL, *ldrshader = NULL, *ldrnotextureshader = NULL, *stdworldshader = NULL;
 
 static hashnameset<GlobalShaderParamState> globalparams(256);
 static hashtable<const char *, int> localparams(256);
@@ -42,7 +42,6 @@ void loadshaders()
     foggednotextureshader = lookupshaderbyname("foggednotexture");
     ldrshader = lookupshaderbyname("ldr");
     ldrnotextureshader = lookupshaderbyname("ldrnotexture");
-    rsmworldshader = lookupshaderbyname("rsmworld");
 
     nullshader->set();
 
@@ -177,6 +176,8 @@ static void compileglslshader(Shader &s, GLenum type, GLuint &obj, const char *d
         parts[numparts++] = "#extension GL_ARB_texture_multisample : enable\n";
     if(glslversion >= 150 && glslversion < 330 && hasEAL)
         parts[numparts++] = "#extension GL_ARB_explicit_attrib_location : enable\n";
+    if(glslversion < 400 && hasGPU5)
+        parts[numparts++] = "#extension GL_ARB_gpu_shader5 : enable\n";
     if(glslversion >= 130)
     {
         if(type == GL_VERTEX_SHADER) parts[numparts++] =
@@ -217,12 +218,19 @@ static void compileglslshader(Shader &s, GLenum type, GLuint &obj, const char *d
             "#define shadow2DOffset(sampler, coords, offset) textureOffset(sampler, coords, offset)\n"
             "#define texture3D(sampler, coords) texture(sampler, coords)\n"
             "#define textureCube(sampler, coords) texture(sampler, coords)\n";
-        if(glslversion >= 140) parts[numparts++] =
-            "#define texture2DRect(sampler, coords) texture(sampler, coords)\n"
-            "#define texture2DRectOffset(sampler, coords, offset) textureOffset(sampler, coords, offset)\n"
-            "#define texture2DRectProj(sampler, coords) textureProj(sampler, coords)\n"
-            "#define shadow2DRect(sampler, coords) texture(sampler, coords)\n"
-            "#define shadow2DRectOffset(sampler, coords, offset) textureOffset(sampler, coords, offset)\n";
+        if(glslversion >= 140)
+        {
+            parts[numparts++] =
+                "#define texture2DRect(sampler, coords) texture(sampler, coords)\n"
+                "#define texture2DRectProj(sampler, coords) textureProj(sampler, coords)\n"
+                "#define shadow2DRect(sampler, coords) texture(sampler, coords)\n";
+            extern int mesa_texrectoffset_bug;
+            parts[numparts++] = mesa_texrectoffset_bug ?
+                "#define texture2DRectOffset(sampler, coords, offset) texture(sampler, coords + vec2(offset))\n"
+                "#define shadow2DRectOffset(sampler, coords, offset) texture(sampler, coords + vec2(offset))\n" :
+                "#define texture2DRectOffset(sampler, coords, offset) textureOffset(sampler, coords, offset)\n"
+                "#define shadow2DRectOffset(sampler, coords, offset) textureOffset(sampler, coords, offset)\n";
+        }
     }
     if(glslversion < 130 && hasEGPU4) parts[numparts++] = "#define uint unsigned int\n";
     else if(glslversion < 140 && !hasEGPU4)

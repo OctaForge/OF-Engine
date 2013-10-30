@@ -290,7 +290,7 @@ namespace game
 
         logger::log(logger::INFO, "c2sinfo: %d,%d", totalmillis, lastupdate);
 
-        if(totalmillis - lastupdate < 33 && !force) return;    // don't update faster than the rate
+        if(totalmillis - lastupdate < 40 && !force) return;    // don't update faster than the rate
         lastupdate = totalmillis;
 
 #ifndef SERVER

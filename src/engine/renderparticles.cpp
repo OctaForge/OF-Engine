@@ -121,7 +121,8 @@ enum
     PT_NOTEX     = 1<<21, // from now on not allowed in scripting
     PT_SHADER    = 1<<22,
     PT_SWIZZLE   = 1<<23,
-    PT_SPECIAL   = 1<<24,
+    PT_NOLAYER   = 1<<24,
+    PT_SPECIAL   = 1<<25,
     PT_FLIP      = PT_HFLIP | PT_VFLIP | PT_ROT,
 
     PT_FLAGMASK  = PT_NOTEX | PT_SHADER | PT_SWIZZLE | PT_SPECIAL,
@@ -435,7 +436,7 @@ struct meterparticle: listparticle<meterparticle> {
 struct meterrenderer : listrenderer<meterparticle>
 {
     meterrenderer(int type)
-        : listrenderer<meterparticle>(type|PT_NOTEX|PT_LERP|PT_SPECIAL)
+        : listrenderer<meterparticle>(type|PT_NOTEX|PT_LERP|PT_NOLAYER|PT_SPECIAL)
     {}
 
     void startrender()
@@ -524,7 +525,7 @@ struct textparticle: listparticle<textparticle> {
 struct textrenderer : listrenderer<textparticle>
 {
     textrenderer(int type = 0)
-        : listrenderer<textparticle>(type|PT_TEXT|PT_LERP|PT_SHADER|PT_SPECIAL)
+        : listrenderer<textparticle>(type|PT_TEXT|PT_LERP|PT_SHADER|PT_NOLAYER|PT_SPECIAL)
     {}
 
     void startrender()
@@ -566,7 +567,7 @@ struct iconrenderer: listrenderer<iconparticle> {
     Texture *prevtex;
 
     iconrenderer(int type = 0):
-        listrenderer<iconparticle>(type|PT_ICON|PT_LERP|PT_SPECIAL), prevtex(NULL) {}
+        listrenderer<iconparticle>(type|PT_ICON|PT_LERP|PT_NOLAYER|PT_SPECIAL), prevtex(NULL) {}
 
     void startrender() {
         prevtex = NULL;
@@ -1087,21 +1088,23 @@ void debugparticles()
     pophudmatrix();
 }
 
-void renderparticles(bool mainpass)
+void renderparticles(int layer)
 {
-    canstep = mainpass;
+    canstep = layer != PL_UNDER;
 
     //want to debug BEFORE the lastpass render (that would delete particles)
-    if(dbgparts && mainpass) loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->debuginfo();
+    if(dbgparts && (layer == PL_ALL || layer == PL_UNDER)) loopv(parts) parts[i]->debuginfo();
 
     bool rendered = false;
-    uint lastflags = PT_LERP|PT_SHADER, flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER;
+    uint lastflags = PT_LERP|PT_SHADER,
+         flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER,
+         excludemask = layer == PL_ALL ? ~0 : (layer != PL_NOLAYER ? PT_NOLAYER : 0);
     int lastswizzle = -1;
 
     loopv(parts)
     {
         partrenderer *p = parts[i];
-        if(!p->haswork()) continue;
+        if((p->type&PT_NOLAYER) == excludemask || !p->haswork()) continue;
 
         if(!rendered)
         {

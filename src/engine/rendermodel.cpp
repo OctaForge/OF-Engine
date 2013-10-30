@@ -2,7 +2,7 @@
 #include "game.h" // OF
 
 VARP(oqdynent, 0, 1, 1);
-VARP(animationinterpolationtime, 0, 150, 1000);
+VARP(animationinterpolationtime, 0, 200, 1000);
 
 model *loadingmodel = NULL;
 
@@ -52,15 +52,20 @@ void mdlcullface(int *cullface)
     checkmdl;
     loadingmodel->setcullface(*cullface!=0);
 }
-
 COMMAND(mdlcullface, "i");
+
+void mdlcolor(float *r, float *g, float *b)
+{
+    checkmdl;
+    loadingmodel->setcolor(vec(*r, *g, *b));
+}
+COMMAND(mdlcolor, "fff");
 
 void mdlcollide(int *collide)
 {
     checkmdl;
     loadingmodel->collide = *collide!=0 ? (loadingmodel->collide ? loadingmodel->collide : COLLIDE_OBB) : COLLIDE_NONE;
 }
-
 COMMAND(mdlcollide, "i");
 
 void mdlellipsecollide(int *collide)
@@ -68,7 +73,6 @@ void mdlellipsecollide(int *collide)
     checkmdl;
     loadingmodel->collide = *collide!=0 ? COLLIDE_ELLIPSE : COLLIDE_NONE;
 }
-
 COMMAND(mdlellipsecollide, "i");
 
 void mdltricollide(char *collide)
@@ -80,7 +84,6 @@ void mdltricollide(char *collide)
     if(*end) { val = 1; loadingmodel->collidemodel = newstring(collide); }
     loadingmodel->collide = val ? COLLIDE_TRI : COLLIDE_NONE;
 }
-
 COMMAND(mdltricollide, "s");
 
 void mdlspec(float *percent)
@@ -89,24 +92,13 @@ void mdlspec(float *percent)
     float spec = *percent > 0 ? *percent/100.0f : 0.0f;
     loadingmodel->setspec(spec);
 }
-
 COMMAND(mdlspec, "f");
-
-void mdlambient(float *percent)
-{
-    checkmdl;
-    float ambient = *percent > 0 ? *percent/100.0f : 0.0f;
-    loadingmodel->setambient(ambient);
-}
-
-COMMAND(mdlambient, "f");
 
 void mdlalphatest(float *cutoff)
 {
     checkmdl;
     loadingmodel->setalphatest(max(0.0f, min(1.0f, *cutoff)));
 }
-
 COMMAND(mdlalphatest, "f");
 
 void mdldepthoffset(int *offset)
@@ -114,7 +106,6 @@ void mdldepthoffset(int *offset)
     checkmdl;
     loadingmodel->depthoffset = *offset!=0;
 }
-
 COMMAND(mdldepthoffset, "i");
 
 void mdlglow(float *percent, float *delta, float *pulse)
@@ -124,7 +115,6 @@ void mdlglow(float *percent, float *delta, float *pulse)
     glowdelta -= glow;
     loadingmodel->setglow(glow, glowdelta, glowpulse);
 }
-
 COMMAND(mdlglow, "fff");
 
 void mdlenvmap(float *envmapmax, float *envmapmin, char *envmap)
@@ -132,7 +122,6 @@ void mdlenvmap(float *envmapmax, float *envmapmin, char *envmap)
     checkmdl;
     loadingmodel->setenvmap(*envmapmin, *envmapmax, envmap[0] ? cubemapload(envmap) : NULL);
 }
-
 COMMAND(mdlenvmap, "ffs");
 
 void mdlfullbright(float *fullbright)
@@ -140,7 +129,6 @@ void mdlfullbright(float *fullbright)
     checkmdl;
     loadingmodel->setfullbright(*fullbright);
 }
-
 COMMAND(mdlfullbright, "f");
 
 void mdlshader(char *shader)
@@ -148,7 +136,6 @@ void mdlshader(char *shader)
     checkmdl;
     loadingmodel->setshader(lookupshaderbyname(shader));
 }
-
 COMMAND(mdlshader, "s");
 
 void mdlspin(float *yaw, float *pitch, float *roll)
@@ -158,7 +145,6 @@ void mdlspin(float *yaw, float *pitch, float *roll)
     loadingmodel->spinpitch = *pitch;
     loadingmodel->spinroll = *roll;
 }
-
 COMMAND(mdlspin, "fff");
 
 void mdlscale(float *percent)
@@ -167,7 +153,6 @@ void mdlscale(float *percent)
     float scale = *percent > 0 ? *percent/100.0f : 1.0f;
     loadingmodel->scale = scale;
 }
-
 COMMAND(mdlscale, "f");
 
 void mdltrans(float *x, float *y, float *z)
@@ -175,7 +160,6 @@ void mdltrans(float *x, float *y, float *z)
     checkmdl;
     loadingmodel->translate = vec(*x, *y, *z);
 }
-
 COMMAND(mdltrans, "fff");
 
 void mdlyaw(float *angle)
@@ -183,7 +167,6 @@ void mdlyaw(float *angle)
     checkmdl;
     loadingmodel->offsetyaw = *angle;
 }
-
 COMMAND(mdlyaw, "f");
 
 void mdlpitch(float *angle)
@@ -191,7 +174,6 @@ void mdlpitch(float *angle)
     checkmdl;
     loadingmodel->offsetpitch = *angle;
 }
-
 COMMAND(mdlpitch, "f");
 
 void mdlroll(float *angle)
@@ -199,7 +181,6 @@ void mdlroll(float *angle)
     checkmdl;
     loadingmodel->offsetroll = *angle;
 }
-
 COMMAND(mdlroll, "f");
 
 void mdlshadow(int *shadow)
@@ -207,7 +188,6 @@ void mdlshadow(int *shadow)
     checkmdl;
     loadingmodel->shadow = *shadow!=0;
 }
-
 COMMAND(mdlshadow, "i");
 
 void mdlalphashadow(int *alphashadow)
@@ -215,7 +195,6 @@ void mdlalphashadow(int *alphashadow)
     checkmdl;
     loadingmodel->alphashadow = *alphashadow!=0;
 }
-
 COMMAND(mdlalphashadow, "i");
 
 void mdlbb(float *rad, float *h, float *eyeheight)
@@ -225,7 +204,6 @@ void mdlbb(float *rad, float *h, float *eyeheight)
     loadingmodel->collideheight = *h;
     loadingmodel->eyeheight = *eyeheight;
 }
-
 COMMAND(mdlbb, "fff");
 
 void mdlextendbb(float *x, float *y, float *z)
@@ -233,7 +211,6 @@ void mdlextendbb(float *x, float *y, float *z)
     checkmdl;
     loadingmodel->bbextend = vec(*x, *y, *z);
 }
-
 COMMAND(mdlextendbb, "fff");
 
 void mdlname()
@@ -241,7 +218,6 @@ void mdlname()
     checkmdl;
     result(loadingmodel->name);
 }
-
 COMMAND(mdlname, "");
 
 #define checkragdoll \
@@ -313,6 +289,7 @@ void rdlimitrot(int *t1, int *t2, float *maxangle, float *qx, float *qy, float *
     r.tri[0] = *t1;
     r.tri[1] = *t2;
     r.maxangle = *maxangle * RAD;
+    r.maxtrace = 1 + 2*cos(r.maxangle);
     r.middle = matrix3(quat(*qx, *qy, *qz, *qw));
 }
 COMMAND(rdlimitrot, "iifffff");

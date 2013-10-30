@@ -16,46 +16,22 @@
 
 string ogzname, bakname, cfgname, picname;
 
-void cutogz(char *s)
-{
-    char *ogzp = strstr(s, ".ogz");
-    if(ogzp) *ogzp = '\0';
-}
-
-void getmapfilenames(const char *fname, const char *cname, char *pakname, char *mapname, char *cfgname)
-{
-    if(!cname) cname = fname;
-    string name;
-    copystring(name, cname, 100);
-    cutogz(name);
-    char *slash = strpbrk(name, "/\\");
-    if(slash)
-    {
-        copystring(pakname, name, slash-name+1);
-        copystring(cfgname, slash+1);
-    }
-    else
-    {
-        copystring(pakname, "map");
-        copystring(cfgname, name);
-    }
-    if(strpbrk(fname, "/\\")) copystring(mapname, fname);
-    else nformatstring(mapname, MAXSTRLEN, "map/%s", fname);
-    cutogz(mapname);
-}
-
 VARP(savebak, 0, 2, 2);
 
-void setmapfilenames(const char *fname, const char *cname = 0)
+void setmapfilenames(const char *fname, const char *cname = NULL)
 {
-    string pakname, mapname, mcfgname;
-    getmapfilenames(fname, cname, pakname, mapname, mcfgname);
-
-    formatstring(ogzname, "media/%s.ogz", mapname);
-    if(savebak==1) formatstring(bakname, "media/%s.BAK", mapname);
-    else formatstring(bakname, "media/%s_%d.BAK", mapname, totalmillis);
-    formatstring(cfgname, "media/%s/%s.cfg", pakname, mcfgname);
-    formatstring(picname, "media/%s", mapname);
+    formatstring(ogzname, "media/%s.ogz", fname);
+    if(savebak==1) formatstring(bakname, "media/%s.BAK", fname);
+    else
+    {
+        string baktime;
+        time_t t = time(NULL);
+        size_t len = strftime(baktime, sizeof(baktime), "%Y-%m-%d_%H.%M.%S", localtime(&t));
+        baktime[min(len, sizeof(baktime)-1)] = '\0';
+        formatstring(bakname, "media/%s_%s.BAK", fname, baktime);
+    }
+    formatstring(cfgname, "media/%s.cfg", cname ? cname : fname);
+    formatstring(picname, "media/%s.png", fname);
 
     path(ogzname);
     path(bakname);
@@ -68,10 +44,7 @@ void mapcfgname()
     const char *mname = game::getclientmap();
     if (!mname[0]) mname = "untitled";
 
-    string pakname, mapname, mcfgname;
-    getmapfilenames(mname, NULL, pakname, mapname, mcfgname);
-
-    defformatstring(cfgname, "media/%s/%s.lua", pakname, mcfgname);
+    defformatstring(cfgname, "media/%s.lua", mname);
     path(cfgname);
 
     result(cfgname);
@@ -79,7 +52,7 @@ void mapcfgname()
 
 COMMAND(mapcfgname, "");
 
-void backup(char *name, char *backupname)
+void backup(const char *name, const char *backupname)
 {
     string backupfile;
     copystring(backupfile, findfile(backupname, "wb"));

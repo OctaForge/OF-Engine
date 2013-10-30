@@ -163,6 +163,50 @@ bool getdynlight(int n, vec &o, float &radius, vec &color, vec &dir, int &spot)
     return true;
 }
 
+void dynlightreaching(const vec &target, vec &color, vec &dir, bool hud)
+{
+    vec dyncolor(0, 0, 0);//, dyndir(0, 0, 0);
+    loopv(dynlights)
+    {
+        dynlight &d = dynlights[i];
+        if(d.curradius<=0) continue;
+
+        vec ray(target);
+        ray.sub(hud ? d.hud : d.o);
+        float mag = ray.squaredlen();
+        if(mag >= d.curradius*d.curradius) continue;
+
+        float intensity = 1 - sqrtf(mag)/d.curradius;
+        if(d.spot > 0)
+        {
+            float spotatten = 1 - (1 - ray.dot(d.dir)) / (1 - cos360(d.spot));
+            if(spotatten <= 0) continue;
+            intensity *= spotatten;
+        }
+
+        vec color = d.curcolor;
+        color.mul(intensity);
+        dyncolor.add(color);
+        //dyndir.add(ray.mul(intensity/mag));
+    }
+#if 0
+    if(!dyndir.iszero())
+    {
+        dyndir.normalize();
+        float x = dyncolor.magnitude(), y = color.magnitude();
+        if(x+y>0)
+        {
+            dir.mul(x);
+            dyndir.mul(y);
+            dir.add(dyndir).div(x+y);
+            if(dir.iszero()) dir = vec(0, 0, 1);
+            else dir.normalize();
+        }
+    }
+#endif
+    color.add(dyncolor);
+}
+
 void queuedynlight(const vec &o, float radius, const vec &color, int fade, int peak, int flags, float initradius, const vec &initcolor, physent *owner, const vec &dir, int spot)
 {
     dynlight_queued d;

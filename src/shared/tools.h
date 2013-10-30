@@ -26,21 +26,6 @@ typedef unsigned long long int ullong;
 #define RESTRICT
 #endif
 
-inline void *operator new(size_t size)
-{
-    void *p = malloc(size);
-    if(!p) abort();
-    return p;
-}
-inline void *operator new[](size_t size)
-{
-    void *p = malloc(size);
-    if(!p) abort();
-    return p;
-}
-inline void operator delete(void *p) { if(p) free(p); }
-inline void operator delete[](void *p) { if(p) free(p); }
-
 inline void *operator new(size_t, void *p) { return p; }
 inline void *operator new[](size_t, void *p) { return p; }
 inline void operator delete(void *, void *) {}
@@ -501,12 +486,15 @@ inline const char *stringptr(const stringslice &s) { return s.str; }
 inline int stringlen(const char *s) { return int(strlen(s)); }
 inline int stringlen(const stringslice &s) { return s.len; }
 
-static inline uint hthash(const stringslice &s)
+static inline uint memhash(const void *ptr, int len)
 {
+    const uchar *data = (const uchar *)ptr;
     uint h = 5381;
-    loopi(s.len) h = ((h<<5)+h)^s.str[i];
+    loopi(len) h = ((h<<5)+h)^data[i];
     return h;
 }
+
+static inline uint hthash(const stringslice &s) { return memhash(s.str, s.len); }
 
 static inline bool htcmp(const stringslice &x, const char *y)
 {
@@ -1159,7 +1147,7 @@ template<class H, class E, class K, class T> struct hashbase
 };
 
 template<class T> static inline void htrecycle(const T &) {}
- 
+
 template<class T> struct hashset : hashbase<hashset<T>, T, T, T>
 {
     typedef hashbase<hashset<T>, T, T, T> basetype;
@@ -1326,7 +1314,7 @@ inline char *newconcatstring(const char *s, const char *t)
     return r;
 }
 
-const int islittleendian = 1;
+static inline bool islittleendian() { union { int i; uchar b[sizeof(int)]; } conv; conv.i = 1; return conv.b[0] != 0; }
 #ifdef SDL_BYTEORDER
 #define endianswap16 SDL_Swap16
 #define endianswap32 SDL_Swap32
@@ -1356,10 +1344,10 @@ template<class T> inline void endiansame(T *buf, int len) {}
 #define bigswap endiansame
 #endif
 #else
-template<class T> inline T lilswap(T n) { return *(const uchar *)&islittleendian ? n : endianswap(n); }
-template<class T> inline void lilswap(T *buf, int len) { if(!*(const uchar *)&islittleendian) endianswap(buf, len); }
-template<class T> inline T bigswap(T n) { return *(const uchar *)&islittleendian ? endianswap(n) : n; }
-template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&islittleendian) endianswap(buf, len); }
+template<class T> inline T lilswap(T n) { return islittleendian() ? n : endianswap(n); }
+template<class T> inline void lilswap(T *buf, int len) { if(!islittleendian()) endianswap(buf, len); }
+template<class T> inline T bigswap(T n) { return islittleendian() ? endianswap(n) : n; }
+template<class T> inline void bigswap(T *buf, int len) { if(islittleendian()) endianswap(buf, len); }
 #endif
 
 /* workaround for some C platforms that have these two functions as macros - not used anywhere */

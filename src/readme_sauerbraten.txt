@@ -82,7 +82,7 @@ Wouter "Aardappel" van Oortmerssen
 http://strlen.com
 
 Lee "eihrul" Salzman 
-http://lee.fov120.com
+http://sauerbraten.org/lee/
 
 Mike "Gilt" Dysart
 

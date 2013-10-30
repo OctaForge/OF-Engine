@@ -160,23 +160,18 @@ struct obj : vertmodel, vertloader<obj>
         }
     };
 
-    meshgroup *loadmeshes(const char *name, va_list args)
-    {
-        objmeshgroup *group = new objmeshgroup;
-        if(!group->load(name, va_arg(args, double))) { delete group; return NULL; }
-        return group;
-    }
+    vertmeshgroup *newmeshes() { return new objmeshgroup; }
 
     bool loaddefaultparts()
     {
         part &mdl = addpart();
         const char *pname = parentdir(name);
         defformatstring(name1, "media/model/%s/tris.obj", name);
-        mdl.meshes = sharemeshes(path(name1), 2.0);
+        mdl.meshes = sharemeshes(path(name1));
         if(!mdl.meshes)
         {
             defformatstring(name2, "media/model/%s/tris.obj", pname);    // try obj in parent folder (vert sharing)
-            mdl.meshes = sharemeshes(path(name2), 2.0);
+            mdl.meshes = sharemeshes(path(name2));
             if(!mdl.meshes) return false;
         }
         Texture *tex, *masks;
@@ -206,7 +201,7 @@ struct obj : vertmodel, vertloader<obj>
             if(!loaddefaultparts()) return false;
         }
         translate.y = -translate.y;
-        loopv(parts) parts[i]->meshes->shared++;
+        loaded();
         return true;
     }
 };
