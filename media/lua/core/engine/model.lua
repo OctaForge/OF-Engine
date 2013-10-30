@@ -22,26 +22,41 @@ local ran = capi.model_register_anim
 
 --[[! Variable: anims
     An enumeration of all basic (pre-defined) animations available in the
-    engine. Possible values are "mapmodel", "idle", "forward", "backward",
-    "left", "right", "crouch", "crouch_(forward,backward,left,right)", "jump",
-    "sink", "swim", "crouch_(jump,sink,swim)", "edit", "lag".
+    engine. Possible values are "mapmodel", "edit", "lag", "idle",
+    "run_X", "jump", "jump_X", "sink", "swim", "crouch", "crouch_X",
+    "crouch_jump", "crouch_jump_X", "crouch_sink", "crouch_swim" where
+    "X" is either "N", "NE", "E", "SE", "S", "SW", "W", "NW" (specifying
+    the direction - e.g. NE means north-east).
 
     There is also INDEX, which can be used with bitwise AND to retrieve
     just the animation from a combined animation/control integer.
 ]]
-M.anims = {
-    mapmodel = ran "mapmodel",
-    idle = ran "idle", forward = ran "forward", backward = ran "backward",
-    left = ran "left", right = ran "right", crouch = ran "crouch",
-    crouch_forward = ran "crouch_forward",
-    crouch_backward = ran "crouch_backward",
-    crouch_left = ran "crouch_left", crouch_right = ran "crouch_right",
-    jump = ran "jump", sink = ran "sink", swim = ran "swim",
-    crouch_jump = ran "crouch_jump", crouch_sink = ran "crouch_sink",
-    crouch_swim = ran "crouch_swim", edit = ran "edit", lag = ran "lag",
-
-    INDEX = 0x1FF
+local anims = {
+    mapmodel = ran "mapmodel", edit = ran "edit", lag = ran "lag",
+    idle = ran "idle", INDEX = 0x1FF
 }
+M.anims = anims
+
+local variants = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
+local gen_anim_variants = function(bname, onlysuffix)
+    if not onlysuffix then anims[bname] = ran(bname) end
+    for i, v in ipairs(variants) do
+        local nm = bname .. "_" .. v
+        anims[nm] = ran(nm)
+    end
+end
+
+gen_anim_variants("run", true)
+gen_anim_variants "jump"
+
+anims.sink = ran "sink"
+anims.swim = ran "swim"
+
+gen_anim_variants "crouch"
+gen_anim_variants "crouch_jump"
+
+anims.crouch_sink = ran "crouch_sink"
+anims.crouch_swim = ran "crouch_swim"
 
 --[[! Variable: anim_control
     Provides means to control the animation direction and looping. Contains

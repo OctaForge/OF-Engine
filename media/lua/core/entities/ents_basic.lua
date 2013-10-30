@@ -90,6 +90,27 @@ end or function(self, v)
     csetanim(self, panim, sanim)
 end
 
+local anim_dirs, anim_jump, anim_run
+if not SERVER then
+    anim_dirs = {
+        anims.run_SE, anims.run_S, anims.run_SW,
+        anims.run_E,  0,           anims.run_W,
+        anims.run_NE, anims.run_N, anims.run_NW
+    }
+
+    anim_jump = {
+        [anims.jump_N] = true, [anims.jump_NE] = true, [anims.jump_NW] = true,
+        [anims.jump_S] = true, [anims.jump_SE] = true, [anims.jump_SW] = true,
+        [anims.jump_E] = true, [anims.jump_W ] = true
+    }
+
+    anim_run = {
+        [anims.run_N] = true, [anims.run_NE] = true, [anims.run_NW] = true,
+        [anims.run_S] = true, [anims.run_SE] = true, [anims.run_SW] = true,
+        [anims.run_E] = true, [anims.run_W ] = true
+    }
+end
+
 --[[! Class: Character
     Represents the base class for any character (NPC, player etc.). Players
     use the <Player> entity class that inherits from this one.
@@ -560,18 +581,15 @@ local Character = Entity:clone {
             if inwater != 0 and pstate <= 1 then
                 sanim = (((move or strafe) or ((vel.z + falling.z) > 0))
                     and anims.swim or anims.sink) | animctl.LOOP
-            -- jumping animation
-            elseif tinair > 250 then
-                sanim = anims.jump | animctl.END
             -- moving or strafing
-            elseif move != 0 or strafe != 0 then
-                if move > 0 then
-                    sanim = anims.forward | animctl.LOOP
-                elseif strafe != 0 then
-                    sanim = (strafe > 0 and anims.left
-                        or anims.right) | animctl.LOOP
-                elseif move < 0 then
-                    sanim = anims.backward | animctl.LOOP
+            else
+                local dir = anim_dirs[(move + 1) * 3 + strafe + 2]
+                -- jumping anim
+                if tinair > 100 then
+                    sanim = ((dir != 0) and (dir + anims.jump_N - anims.run_N)
+                        or anims.jump) | animctl.END
+                elseif dir != 0 then
+                    sanim = dir | animctl.LOOP
                 end
             end
 
@@ -591,10 +609,10 @@ local Character = Entity:clone {
                     sanim = sanim | anims.crouch_sink
                 elseif v == 0 then
                     sanim = anims.crouch | animctl.LOOP
-                elseif v == anims.forward or v == anims.backward
-                or v == anims.left or v == anims.right then
-                    sanim = sanim + anims.crouch_forward
-                        - anims.forward
+                elseif anim_run[v] then
+                    sanim = sanim + anims.crouch_N - anims.run_N
+                elseif anim_jump[v] then
+                    sanim = sanim + anims.crouch_jump_N - anims.jump_N
                 end
             end
 
