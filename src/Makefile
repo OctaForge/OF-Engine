@@ -454,7 +454,7 @@ ENET_CFLAGS := $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(ENET_XCFLAGS) \
 # feature availability detection
 
 ifneq (Windows,$(TARGET_SYS))
-	ENET_CFLAGS += $(shell ./check_enet.sh $(TARGET_CC) $(CFLAGS))
+	ENET_CFLAGS += $(shell enet/check_cflags.sh $(TARGET_CC) $(CFLAGS))
 endif
 
 ENET_OBJ = \
