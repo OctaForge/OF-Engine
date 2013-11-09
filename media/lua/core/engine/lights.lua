@@ -7,7 +7,7 @@
         Copyright (c) 2013 OctaForge project
 
     About: License
-        This file is licensed under MIT. See COPYING.txt for more information.
+        See COPYING.txt for licensing information.
 
     About: Purpose
         Lua light API. You typically need to run each of the functions every

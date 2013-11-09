@@ -2,7 +2,7 @@
  * Warning: requires lots of virtual memory, takes long to compile
  *
  * Author: Daniel "q66" Kolesa <quaker66@gmail.com>
- * License: MIT
+ * License: see COPYING.txt
  */
 
 #include "engine/engine.h"

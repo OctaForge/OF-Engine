@@ -2,7 +2,7 @@
 # written for all platforms OF covers
 #
 # author: Daniel 'q66' Kolesa <quaker66@gmail.com>
-# license: MIT
+# license: see COPYING.txt
 
 cmake_minimum_required(VERSION 2.6)
 project(OctaForge)

@@ -7,7 +7,7 @@
         Copyright (c) 2013 OctaForge project
 
     About: License
-        This file is licensed under MIT. See COPYING.txt for more information.
+        See COPYING.txt for licensing information.
 
     About: Purpose
         A main file for the "octacraft" test game. It's meant to be a

@@ -7,7 +7,7 @@
         Copyright (c) 2013 OctaForge project
 
     About: License
-        This file is licensed under MIT. See COPYING.txt for more information.
+        See COPYING.txt for licensing information.
 
     About: Purpose
         Spacers are widgets that have something to do with space management -
