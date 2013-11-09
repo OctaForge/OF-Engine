@@ -76,14 +76,14 @@ end or function(self, v)
     local panim = v[1]
     if panim then
         local xy = panim:split(",")
-        panim = model.get_anim(xy[1]) | (animctl_l[xy[2]] or 0)
+        panim = (model.get_anim(xy[1]) or 0) | (animctl_l[xy[2]] or 0)
     else
         panim = 0
     end
     local sanim = v[2]
     if sanim then
         local xy = panim:split(",")
-        sanim = model.get_anim(xy[1]) | (animctl_l[xy[2]] or 0)
+        sanim = (model.get_anim(xy[1]) or 0) | (animctl_l[xy[2]] or 0)
     else
         sanim = 0
     end
@@ -558,14 +558,14 @@ local Character = Entity:clone {
         local panim = anim[1]
         if panim then
             local xy = panim:split(",")
-            panim = model.get_anim(xy[1]) | (animctl_l[xy[2]] or 0)
+            panim = (model.get_anim(xy[1]) or 0) | (animctl_l[xy[2]] or 0)
         else
             panim = 0
         end
         local sanim = anim[2]
         if sanim then
             local xy = panim:split(",")
-            sanim = model.get_anim(xy[1]) | (animctl_l[xy[2]] or 0)
+            sanim = (model.get_anim(xy[1]) or 0) | (animctl_l[xy[2]] or 0)
         else
             sanim = 0
         end
