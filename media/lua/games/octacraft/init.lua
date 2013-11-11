@@ -108,3 +108,7 @@ inputev.set_event("click", function(btn, down, x, y, z, ent, cx, cy)
         gm.mouse_action = nil
     end
 end)
+
+if SERVER
+    ents.set_player_class("Game_Player")
+end

@@ -377,13 +377,23 @@ M.get_by_class = function(cl)
     return storage_by_class[cl] or {}
 end
 
+local player_class = "Player"
+
+--[[! Function: set_player_class
+    Sets the player class (by name) on the server (invalid on the client).
+]]
+M.set_player_class = SERVER and function(cl)
+    player_class = cl
+end or nil
+
 local vg = cs.var_get
 
 --[[! Function: get_players
     Gets an array of players (all of the currently set player class).
 ]]
 local get_players = function()
-    return storage_by_class[vg("player_class")] or {}
+    return storage_by_class[SERVER and player_class or player_entity.name]
+        or {}
 end
 M.get_players = get_players
 
@@ -393,6 +403,12 @@ M.get_players = get_players
 M.get_player = (not SERVER) and function()
     return player_entity
 end or nil
+
+if SERVER then
+    set_external("entity_get_player_class", function()
+        return player_class
+    end)
+end
 
 --[[! Function: get_by_distance
     Finds all entities whose maximum distance from pos equals

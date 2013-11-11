@@ -24,8 +24,6 @@
 
 extern bool should_quit;
 
-extern char *player_class;
-
 namespace server
 {
     struct server_entity            // server side version of "entity" type
@@ -741,9 +739,15 @@ namespace server
         }
 
         // Use the PC class, unless told otherwise
-        if (!strcmp(_class, "")) _class = player_class;
+        string pcclass;
+        if (!_class[0]) {
+            lua::push_external("entity_get_player_class");
+            lua_call(lua::L, 0, 1);
+            copystring(pcclass, lua_tostring(lua::L, -1));
+            lua_pop(lua::L, 1);
+        } else copystring(pcclass, _class);
 
-        logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class, cn);
+        logger::log(logger::DEBUG, "Creating player entity: %s, %d", pcclass, cn);
 
         lua::push_external("entity_gen_uid");
         lua_call(lua::L, 0, 1);
@@ -758,7 +762,7 @@ namespace server
         ci->uniqueId = uid;
 
         lua::push_external("entity_new");
-        lua_pushstring(lua::L, _class);
+        lua_pushstring(lua::L, pcclass);
 
         lua_createtable(lua::L, 0, 1);
         lua_pushinteger(lua::L, cn);

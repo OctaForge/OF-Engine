@@ -168,6 +168,6 @@ if not SERVER then
             ents.get_player():next_color()
         end
     end)
+else
+    ents.set_player_class("Game_Player")
 end
-
-cs.var_set("player_class", "Game_Player")
