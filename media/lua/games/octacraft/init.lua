@@ -47,7 +47,10 @@ ents.register_class(ents.Obstacle, { health.deadly_area_plugin },
 
 cs.var_set("player_class", "Game_Player")
 
-if SERVER then return end
+if SERVER then
+    ents.set_player_class("Game_Player")
+    return
+end
 
 local Mouse_Action = actions.Action:clone {
     name = "Mouse_Action",
@@ -108,7 +111,3 @@ inputev.set_event("click", function(btn, down, x, y, z, ent, cx, cy)
         gm.mouse_action = nil
     end
 end)
-
-if SERVER
-    ents.set_player_class("Game_Player")
-end
