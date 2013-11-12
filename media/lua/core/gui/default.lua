@@ -542,7 +542,10 @@ world:new_window("entity_new", gui.Window, |win| do
                             vb:append(gui.Button {
                                 variant = "nobg", min_w = 0.3, label = n
                             }, |btn| do
-                                connect(btn, "clicked", || edit.new_entity(n))
+                                connect(btn, "clicked", || do
+                                    edit.new_entity(n)
+                                    world:hide_window("entity_new")
+                                end)
                             end)
                         end
                     end)
