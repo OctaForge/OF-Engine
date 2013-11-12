@@ -498,11 +498,11 @@ world:new_window("entity", gui.Window, |win| do
                         for i = 1, nfields do
                             local nm = props[i]
                             local sd = sdata[nm]
-                            local gn, dv, sv = " "..sd[1]..": ", sd[2], sd[3]
+                            local gn, dv, sv = sd[1], sd[2], sd[3]
                             vb:append(gui.H_Box { align_h = 1 }, |hb| do
-                                hb:append(gui.Label { text = gn })
+                                hb:append(gui.Label { text = " "..sd[1]..": " })
                                 local fld = fields[sv.__proto] or field_def
-                                fld(hb, nm, ent, dv)
+                                fld(hb, gn, ent, dv)
                             end)
                         end
                     end)
