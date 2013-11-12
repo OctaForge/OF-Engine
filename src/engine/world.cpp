@@ -941,7 +941,7 @@ void newent(const char *cl, const char *sd, vec fp)
         cp.mul(1 - FAR_PLACING_FACTOR);
         cp.add(fp);
 
-        if (!sd || !strcmp(sd, "")) sd = "{}";
+        if (!sd || !sd[0]) sd = "{}";
         MessageSystem::send_NewEntityRequest(cl, cp.x, cp.y, cp.z, sd);
     #else // SERVER
         assert(0); // Where?

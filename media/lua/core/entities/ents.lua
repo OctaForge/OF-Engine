@@ -675,7 +675,7 @@ M.load = function()
         local e = entities[i]
         local uid, cn = e[1], e[2]
         debug then log(DEBUG, "    " .. uid .. ", " .. cn)
-        add(cn, uid, { sdata = serialize(e[3]) })
+        add(cn, uid, { state_data = serialize(e[3]) })
     end
     debug then log(DEBUG, "ents.load: done")
 end
@@ -979,7 +979,7 @@ Entity = table2.Object:clone {
         end
 
         if SERVER then
-            local sd = kwargs and kwargs.sdata or nil
+            local sd = kwargs and kwargs.state_data or nil
             if sd then self:set_sdata_full(sd) end
             self:send_notification_full(msg.ALL_CLIENTS)
             self.sent_notification_full = true
