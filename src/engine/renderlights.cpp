@@ -1492,7 +1492,7 @@ static inline void setsmcomparemode() // use embedded shadow cmp
 }
 
 extern int usetexgather;
-static inline bool usegatherforsm() { return smfilter > 1 && smgather && (hasTG || hasT4) && usetexgather; }
+static inline bool usegatherforsm() { return smfilter > 1 && smgather && hasTG && usetexgather; }
 static inline bool usesmcomparemode() { return !usegatherforsm() || (hasTG && hasGPU5 && usetexgather > 1); }
 
 void viewshadowatlas()

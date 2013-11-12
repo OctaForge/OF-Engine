@@ -1620,19 +1620,28 @@ void compactvslots(cube *c, int n)
     }
 }
 
-int compactvslots()
+int compactvslots(bool cull)
 {
     clonedvslots = 0;
-    markingvslots = false;
+    markingvslots = cull;
     compactedvslots = 0;
     compactvslotsprogress = 0;
     loopv(vslots) vslots[i]->index = -1;
-    loopv(slots) slots[i]->variants->index = compactedvslots++;
-    loopv(slots) assignvslotlayer(*slots[i]->variants);
-    loopv(vslots)
+    if(cull)
     {
-        VSlot &vs = *vslots[i];
-        if(!vs.changed && vs.index < 0) { markingvslots = true; break; }
+        int numdefaults = min(int(NUMDEFAULTSLOTS), slots.length());
+        loopi(numdefaults) slots[i]->variants->index = compactedvslots++;
+        loopi(numdefaults) assignvslotlayer(*slots[i]->variants);
+    }
+    else
+    {
+        loopv(slots) slots[i]->variants->index = compactedvslots++;
+        loopv(slots) assignvslotlayer(*slots[i]->variants);
+        loopv(vslots)
+        {
+            VSlot &vs = *vslots[i];
+            if(!vs.changed && vs.index < 0) { markingvslots = true; break; }
+        }
     }
     compactvslots(worldroot);
     int total = compactedvslots;
@@ -1659,7 +1668,7 @@ int compactvslots()
             if(vs.changed || (vs.index < 0 && !vs.next)) vs.index = -1;
             else
             {
-                while(lastdiscard < i)
+                if(!cull) while(lastdiscard < i)
                 {
                     VSlot &ds = *vslots[lastdiscard++];
                     if(!ds.changed && ds.index < 0) ds.index = compactedvslots++;
@@ -1677,6 +1686,11 @@ int compactvslots()
         VSlot &vs = *vslots[i];
         if(vs.index >= 0 && vs.layer && vslots.inrange(vs.layer)) vs.layer = vslots[vs.layer]->index;
     }
+    if(cull)
+    {
+        loopvrev(slots) if(slots[i]->variants->index < 0) delete slots.remove(i);
+        loopv(slots) slots[i]->index = i;
+    }
     loopv(vslots)
     {
         while(vslots[i]->index >= 0 && vslots[i]->index != i)
@@ -1687,11 +1701,11 @@ int compactvslots()
     return total;
 }
 
-ICOMMAND(compactvslots, "", (),
+ICOMMAND(compactvslots, "i", (int *cull),
 {
     extern int nompedit;
     if(nompedit && multiplayer()) return;
-    compactvslots();
+    compactvslots(*cull!=0);
     allchanged();
 });
 

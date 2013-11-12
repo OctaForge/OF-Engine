@@ -163,13 +163,13 @@ end
         velocity [<svars.State_Vec3>] - the current velocity.
         falling [<svars.State_Vec3>] - the character's gravity falling.
         radius [<svars.State_Float>] - the character's bounding box radius.
-        Defaults to 3.0.
+        Defaults to 4.1.
         above_eye [<svars.State_Float>] - the height of the character above
-        its eyes. Defaults to 1.0.
+        its eyes. Defaults to 2.0.
         eye_height [<svars.State_Float>] - the distance from the ground to
-        the eye position. Defaults to 14.0.
+        the eye position. Defaults to 22.0.
         max_height [<svars.State_Float>] - the maximum distance from the
-        ground to the eye position. Defaults to 14.0. Used when crouching.
+        ground to the eye position. Defaults to 22.0. Used when crouching.
         crouch_height [<svars.State_Float>] - the fraction from max_height
         to use when crouched, defaults to 0.75.
         crouch_time [<svars.State_Integer>] - the time in milliseconds spent
@@ -387,17 +387,17 @@ local Character = Entity:clone {
         self.cn = kwargs and kwargs.cn or -1
         self:set_attr("character_name", "none")
         self:set_attr("model_name", "player")
-        self:set_attr("eye_height", 14.0)
-        self:set_attr("max_height", 14.0)
+        self:set_attr("eye_height", 22.0)
+        self:set_attr("max_height", 22.0)
         self:set_attr("crouch_height", 0.75)
         self:set_attr("crouch_time", 200)
         self:set_attr("jump_velocity", 125)
         self:set_attr("gravity", -1)
-        self:set_attr("above_eye", 1.0)
+        self:set_attr("above_eye", 2.0)
         self:set_attr("movement_speed", 50.0)
         self:set_attr("facing_speed", 120)
         self:set_attr("position", { 512, 512, 550 })
-        self:set_attr("radius", 3.0)
+        self:set_attr("radius", 4.1)
         self:set_attr("can_move", true)
 
         self:set_attr("physics_trigger", 0)

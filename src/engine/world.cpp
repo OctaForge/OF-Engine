@@ -1008,14 +1008,13 @@ void entcopy()
 
 void entpaste()
 {
-    if(noentedit()) return;
-    if(entcopybuf.length()==0) return;
+    if(noentedit() || entcopybuf.empty()) return;
     entcancel();
 //    int last = entities::getents().length()-1; // INTENSITY
     float m = float(sel.grid)/float(entcopygrid);
     loopv(entcopybuf)
     {
-        extentity &c = entcopybuf[i]; // INTENSITY: extentity, for uniqueID
+        const extentity &c = entcopybuf[i]; // INTENSITY: extentity, for uniqueID
         vec o = vec(c.o).mul(m).add(vec(sel.o));
 
         // INTENSITY: Create entity using new system
