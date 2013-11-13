@@ -467,6 +467,9 @@ world:new_window("entity", gui.Window, |win| do
     win:set_variant("movable")
     local  ent = capi.get_selected_entity()
     if not ent then
+        ent = ents.get_player()
+    end
+    if not ent then
         win:set_title("Entity editing: none")
         win:append(gui.Spacer { pad_h = 0.04, pad_v = 0.03,
             gui.Label { text = "No selected entity" }
