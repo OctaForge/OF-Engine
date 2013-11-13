@@ -394,7 +394,7 @@ local Character = Entity:clone {
         self:set_attr("jump_velocity", 125)
         self:set_attr("gravity", -1)
         self:set_attr("above_eye", 2.0)
-        self:set_attr("movement_speed", 50.0)
+        self:set_attr("movement_speed", 100.0)
         self:set_attr("facing_speed", 120)
         self:set_attr("position", { 512, 512, 550 })
         self:set_attr("radius", 4.1)
@@ -530,6 +530,9 @@ local Character = Entity:clone {
             flags = model.render_flags.CULL_VFC
                 | model.render_flags.CULL_OCCLUDED
                 | model.render_flags.CULL_QUERY
+        end
+        if hudpass and needhud then
+            flags |= model.render_flags.NOBATCH
         end
         return flags
     end or nil,
