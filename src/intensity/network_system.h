@@ -53,7 +53,7 @@ namespace NetworkSystem
 
             bool crouching; // stuff this to indicator for now
 
-            bool hasMapDefinedPositionData; // Bit 8 - see class fpsent
+            bool hasMapDefinedPositionData; // Bit 8 - see class gameent
             unsigned int mapDefinedPositionData;
 
             QuantizedInfo() : hasPosition(true), hasYaw(true), hasPitch(true), hasRoll(true),
@@ -63,7 +63,7 @@ namespace NetworkSystem
 
             //! Fills the fields with data from the given entity. Applies quantization
             //! as appropriate to each field, but nothing more.
-            void generateFrom(fpsent *d);
+            void generateFrom(gameent *d);
 
             //! Fills the fields with data from the given buffer, whose source is the network.
             //! This is used both on the client and the server (the server just needs to
@@ -75,7 +75,7 @@ namespace NetworkSystem
             //! Applies the fields to the appropriate entity (found using the clientNumber).
             //! This does the opposite of generateFrom(entity), i.e., it unquantizes the info.
             //! If the entity is not supplied, we look it up using its client number.
-            void applyToEntity(fpsent *d = NULL);
+            void applyToEntity(gameent *d = NULL);
 
             //! Applies the fields to a buffer, which can be send over the network. Leaves
             //! fields in quantized form. Applies compression of bitfields, packing, unsent

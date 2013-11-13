@@ -110,7 +110,7 @@ void ClientSystem::frameTrigger(int curtime)
         if (b) x = y = 0.5;
 
         /* turning */
-        fpsent *fp = (fpsent*)player;
+        gameent *fp = (gameent*)player;
         lua::push_external("entity_get_attr");
         lua_rawgeti    (lua::L, LUA_REGISTRYINDEX, ClientSystem::playerLogicEntity->lua_ref);
         lua_pushliteral(lua::L, "facing_speed");

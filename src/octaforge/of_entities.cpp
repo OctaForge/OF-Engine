@@ -186,14 +186,14 @@ namespace entities
     #define DYNENT_ACCESSORS(n, t, an) \
     CLUAICOMMAND(get_##n, bool, (int uid, t *val), { \
         LUA_GET_ENT(entity, uid, "_C.get"#n, return false) \
-        fpsent *d = (fpsent*)entity->dynamicEntity; \
+        gameent *d = (gameent*)entity->dynamicEntity; \
         assert(d); \
         *val = d->an; \
         return true; \
     }); \
     CLUAICOMMAND(set_##n, void, (int uid, t v), { \
         LUA_GET_ENT(entity, uid, "_C.set"#n, return) \
-        fpsent *d = (fpsent*)entity->dynamicEntity; \
+        gameent *d = (gameent*)entity->dynamicEntity; \
         assert(d); \
         d->an = v; \
     });
@@ -226,7 +226,7 @@ namespace entities
 
     CLUAICOMMAND(get_dynent_position, bool, (int uid, double *pos), {
         LUA_GET_ENT(entity, uid, "_C.getdynent0", return false)
-        fpsent *d = (fpsent*)entity->dynamicEntity;
+        gameent *d = (gameent*)entity->dynamicEntity;
         assert(d);
         pos[0] = d->o.x;
         pos[1] = d->o.y;
@@ -237,7 +237,7 @@ namespace entities
     CLUAICOMMAND(set_dynent_position, void, (int uid, double x, double y,
     double z), {
         LUA_GET_ENT(entity, uid, "_C.setdynent0", return)
-        fpsent *d = (fpsent*)entity->dynamicEntity;
+        gameent *d = (gameent*)entity->dynamicEntity;
         assert(d);
 
         d->o.x = x;
@@ -258,7 +258,7 @@ namespace entities
 
     CLUAICOMMAND(get_dynent_position, bool, (int uid, double *pos), {
         LUA_GET_ENT(entity, uid, "_C.getdynent0", return false)
-        fpsent *d = (fpsent*)entity->dynamicEntity;
+        gameent *d = (gameent*)entity->dynamicEntity;
         assert(d);
         pos[0] = d->o.x;
         pos[1] = d->o.y;
@@ -269,7 +269,7 @@ namespace entities
     #define DYNENTVEC(name, prop) \
         CLUAICOMMAND(get_dynent_##name, bool, (int uid, double *val), { \
             LUA_GET_ENT(entity, uid, "_C.getdynent"#name, return false) \
-            fpsent *d = (fpsent*)entity->dynamicEntity; \
+            gameent *d = (gameent*)entity->dynamicEntity; \
             assert(d); \
             val[0] = d->o.x; \
             val[1] = d->o.y; \
@@ -279,7 +279,7 @@ namespace entities
         CLUAICOMMAND(set_dynent_##name, void, (int uid, double x, \
         double y, double z), { \
             LUA_GET_ENT(entity, uid, "_C.setdynent"#name, return) \
-            fpsent *d = (fpsent*)entity->dynamicEntity; \
+            gameent *d = (gameent*)entity->dynamicEntity; \
             assert(d); \
             d->prop.x = x; \
             d->prop.y = y; \
@@ -302,7 +302,7 @@ namespace entities
 
     CLUAICOMMAND(get_plag, bool, (int uid, int *val), {
         LUA_GET_ENT(entity, uid, "_C.getplag", return false)
-        fpsent *p = (fpsent*)entity->dynamicEntity;
+        gameent *p = (gameent*)entity->dynamicEntity;
         assert(p);
         *val = p->plag;
         return true;
@@ -310,7 +310,7 @@ namespace entities
 
     CLUAICOMMAND(get_ping, bool, (int uid, int *val), {
         LUA_GET_ENT(entity, uid, "_C.getping", return false)
-        fpsent *p = (fpsent*)entity->dynamicEntity;
+        gameent *p = (gameent*)entity->dynamicEntity;
         assert(p);
         *val = p->ping;
         return true;

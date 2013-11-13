@@ -38,8 +38,8 @@ namespace MessageSystem
             if (clientNumber == exclude) continue;
             #ifdef SERVER
                 int testUniqueId = server::getUniqueId(clientNumber);
-                fpsent* fpsEntity = game::getclient(clientNumber);
-                bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
+                gameent* gameEntity = game::getclient(clientNumber);
+                bool serverControlled = gameEntity ? gameEntity->serverControlled : false;
 
                 if (testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) {
                     if (!toDummyServer) continue;
@@ -751,10 +751,10 @@ namespace MessageSystem
             return;
         }
         #ifndef SERVER
-            fpsent *player1 = game::player1;
+            gameent *player1 = game::player1;
         #else
             assert(0);
-            fpsent *player1 = NULL;
+            gameent *player1 = NULL;
         #endif
         player1->clientnum = explicitClientNumber; // we are now fully connected
                                                    // Kripken: Well, sauer would be, we still need more...

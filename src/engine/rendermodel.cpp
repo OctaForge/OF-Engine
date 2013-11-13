@@ -1096,7 +1096,7 @@ static int oldtp = -1;
 void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
     if (anim&ANIM_RAGDOLL) {
         //if (!ragdoll || loadmodel(mdl);
-        fpsent *fp = (fpsent*)self->dynamicEntity;
+        gameent *fp = (gameent*)self->dynamicEntity;
 
         if (fp->clientnum == ClientSystem::playerNumber) {
             if (oldtp == -1 && thirdperson == 0) {
@@ -1119,7 +1119,7 @@ void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
         }
     } else {
         if (self->dynamicEntity) {
-            fpsent *fp = (fpsent*)self->dynamicEntity;
+            gameent *fp = (gameent*)self->dynamicEntity;
 
             if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1) {
                 thirdperson = oldtp;
@@ -1129,15 +1129,15 @@ void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
     }
 }
 
-fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
+gameent *getproxygameent(lua_State *L, CLogicEntity *self) {
     lua_rawgeti (L, LUA_REGISTRYINDEX, self->lua_ref);
     lua_getfield(L, -1, "rendering_hash_hint");
     lua_remove  (L, -2);
     if (!lua_isnil(L, -1)) {
         static bool initialized = false;
-        static fpsent *fpsentsfr[1024];
+        static gameent *gameentsfr[1024];
         if (!initialized) {
-            for (int i = 0; i < 1024; i++) fpsentsfr[i] = new fpsent;
+            for (int i = 0; i < 1024; i++) gameentsfr[i] = new gameent;
             initialized = true;
         }
 
@@ -1145,7 +1145,7 @@ fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
         lua_pop(L, 1);
         rhashhint = rhashhint & 1023;
         assert(rhashhint >= 0 && rhashhint < 1024);
-        return fpsentsfr[rhashhint];
+        return gameentsfr[rhashhint];
     } else {
         lua_pop(L, 1);
         return NULL;
@@ -1164,12 +1164,12 @@ float roll, int flags, int basetime, float r, float g, float b, float a), {
         | ((animflags << ANIM_FLAGSHIFT) & ANIM_FLAGS);
 
     preparerd(lua::L, anim, entity);
-    fpsent *fp = NULL;
+    gameent *fp = NULL;
 
     if (entity->dynamicEntity)
-        fp = (fpsent*)entity->dynamicEntity;
+        fp = (gameent*)entity->dynamicEntity;
     else
-        fp = getproxyfpsent(lua::L, entity);
+        fp = getproxygameent(lua::L, entity);
 
     rendermodel(name, anim, vec(x, y, z), yaw, pitch, roll, flags, fp,
         entity->attachments.getbuf(), basetime, 0, 1, vec4(r, g, b, a));

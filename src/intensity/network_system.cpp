@@ -11,7 +11,7 @@
 
 namespace game
 {
-    void updatepos(fpsent *d);
+    void updatepos(gameent *d);
     extern int smoothmove, smoothdist;
 }
 
@@ -30,7 +30,7 @@ int QuantizedInfo::getLifeSequence()
     return (misc >> 3) & 1;
 }
 
-void QuantizedInfo::generateFrom(fpsent *d)
+void QuantizedInfo::generateFrom(gameent *d)
 {
     clientNumber = d->clientnum; // Kripken: Changed player1 to d, so this will work for NPCs as well
 
@@ -138,10 +138,10 @@ void QuantizedInfo::generateFrom(ucharbuf& p)
     }
 }
 
-void QuantizedInfo::applyToEntity(fpsent *d)
+void QuantizedInfo::applyToEntity(gameent *d)
 {
     if (!d) d = game::getclient(clientNumber);
-//        fpsent *d = cl.getclient(cn);
+//        gameent *d = cl.getclient(cn);
 
     // Only possibly discard if we get a value for the lifesequence
     if(!d || (hasMisc && (getLifeSequence()!=(d->lifesequence&1))))

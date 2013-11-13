@@ -55,7 +55,7 @@ enum
 #define TESSERACT_SERVER_PORT 42000
 #define PROTOCOL_VERSION 1 // bump when protocol changes
 
-struct fpsent : dynent
+struct gameent : dynent
 {
     int weight;                         // affects the effectiveness of hitpush
     int clientnum, lastupdate, plag, ping;
@@ -97,7 +97,7 @@ struct fpsent : dynent
 
     int uid;
 
-    fpsent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), ai(NULL)
+    gameent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), ai(NULL)
                                                                       , lastServerUpdate(0)
 #ifdef SERVER
                                                                       , serverControlled(false)
@@ -105,7 +105,7 @@ struct fpsent : dynent
                                                                       , physsteps(0), physframetime(5), lastphysframe(0), lastPhysicsPosition(0,0,0)
                                                                       , mapDefinedPositionData(0), uid(-821)
                { name[0] = team[0] = info[0] = 0; respawn(); }
-    ~fpsent()
+    ~gameent()
     {
 #ifndef SERVER
         freeeditinfo(edit);
@@ -156,23 +156,23 @@ struct fpsent : dynent
 
 namespace game
 {
-    // fps
+    // game
     extern int gamemode;
     extern bool intermission;
-    extern fpsent *player1;
-    extern vector<fpsent *> players;
+    extern gameent *player1;
+    extern vector<gameent *> players;
     extern int lasthit;
     extern int following;
 
     extern bool clientoption(const char *arg);
-    extern fpsent *getclient(int cn);
-    extern fpsent *newclient(int cn);
-    extern char *colorname(fpsent *d, char *name = NULL, const char *prefix = "");
-    extern fpsent *hudplayer();
-    extern fpsent *followingplayer();
+    extern gameent *getclient(int cn);
+    extern gameent *newclient(int cn);
+    extern char *colorname(gameent *d, char *name = NULL, const char *prefix = "");
+    extern gameent *hudplayer();
+    extern gameent *followingplayer();
     extern void stopfollowing();
     extern void clientdisconnected(int cn, bool notify = true);
-    extern void spawnplayer(fpsent *);
+    extern void spawnplayer(gameent *);
 
     // client
     extern bool connected, remote, demoplayback, spectator;
@@ -181,8 +181,8 @@ namespace game
     extern void addmsg(int type, const char *fmt = NULL, ...);
     extern void changemap(const char *name, int mode);
     extern void c2sinfo(bool force = false);
-    extern void sendposition(fpsent *d, bool reliable = false);
-    extern void sendmessages(fpsent *d);
+    extern void sendposition(gameent *d, bool reliable = false);
+    extern void sendmessages(gameent *d);
 
     // weapon
     extern bool intersect(dynent *d, const vec &from, const vec &to);

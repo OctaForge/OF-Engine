@@ -325,7 +325,7 @@ int LogicSystem::getUniqueId(extentity* staticEntity)
 
 int LogicSystem::getUniqueId(physent* dynamicEntity)
 {
-    return ((fpsent*)dynamicEntity)->uid;
+    return ((gameent*)dynamicEntity)->uid;
 }
 
 // TODO: Use this whereever it should be used
@@ -355,7 +355,7 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
         assert(0);
     }
 
-    ((fpsent*)dynamicEntity)->uid = uniqueId;
+    ((gameent*)dynamicEntity)->uid = uniqueId;
 }
 
 void LogicSystem::setupExtent(int ref, int type)
@@ -396,7 +396,7 @@ void LogicSystem::setupCharacter(int ref)
     logger::log(logger::DEBUG, "setupCharacter: %d", uid);
     INDENT_LOG(logger::DEBUG);
 
-    fpsent* fpsEntity;
+    gameent* gameEntity;
 
     lua_getfield(lua::L, -1, "cn");
     int cn = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
@@ -419,32 +419,32 @@ void LogicSystem::setupCharacter(int ref)
     assert(cn >= 0);
 
     #ifndef SERVER
-    // If this is the player. There should already have been created an fpsent for this client,
+    // If this is the player. There should already have been created an gameent for this client,
     // which we can fetch with the valid client #
     logger::log(logger::DEBUG, "UIDS: in ClientSystem %d, and given to us%d", ClientSystem::uniqueId, uid);
 
     if (uid == ClientSystem::uniqueId)
     {
-        logger::log(logger::DEBUG, "This is the player, use existing clientnumber for fpsent (should use player1?)");
+        logger::log(logger::DEBUG, "This is the player, use existing clientnumber for gameent (should use player1?)");
 
-        fpsEntity = game::getclient(cn);
+        gameEntity = game::getclient(cn);
 
-        // Wipe clean the uid set for the fpsent, so we can re-use it.
-        fpsEntity->uid = -77;
+        // Wipe clean the uid set for the gameent, so we can re-use it.
+        gameEntity->uid = -77;
     }
     else
     #endif
     {
-        logger::log(logger::DEBUG, "This is a remote client or NPC, do a newClient for the fpsent");
+        logger::log(logger::DEBUG, "This is a remote client or NPC, do a newClient for the gameent");
 
         // This is another client, perhaps NPC. Connect this new client using newClient
-        fpsEntity = game::newclient(cn);
+        gameEntity = game::newclient(cn);
     }
 
     // Register with the C++ system.
 
-    LogicSystem::setUniqueId(fpsEntity, uid);
-    LogicSystem::registerLogicEntity(fpsEntity);
+    LogicSystem::setUniqueId(gameEntity, uid);
+    LogicSystem::registerLogicEntity(gameEntity);
 }
 
 void LogicSystem::setupNonSauer(int ref)
@@ -496,8 +496,8 @@ void LogicSystem::dismantleCharacter(int ref)
         logger::log(logger::DEBUG, "Dismantling other client %d\r\n", cn);
 
 #ifdef SERVER
-        fpsent* fpsEntity = game::getclient(cn);
-        bool isNPC = fpsEntity->serverControlled;
+        gameent* gameEntity = game::getclient(cn);
+        bool isNPC = gameEntity->serverControlled;
 #endif
 
         game::clientdisconnected(cn);

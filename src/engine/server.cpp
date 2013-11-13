@@ -3,7 +3,7 @@
 
 #include "engine.h"
 
-#include "game.h" // INTENSITY: needed for fpsent
+#include "game.h" // INTENSITY: needed for gameent
  // INTENSITY
 #include "network_system.h"
 #include "message_system.h"
@@ -601,17 +601,17 @@ void server_init()//int argc, char* argv[])
     initserver(true, true);
 
     // Generate 'dummy' singleton client. This is to whom we send position updates on the server so our internal
-    // fpsclient is updates.
+    // gameclient is updates.
 
     localconnect();
     assert(clients.length() == 1); // Ensure noone else connected before
 
-    fpsent* fpsEntity = game::newclient(0); // Create a new fpsclient for this client
+    gameent* gameEntity = game::newclient(0); // Create a new gameclient for this client
 
-    fpsEntity->serverControlled = true; // Mark this as not controlled by server, so we don't try to actually do anything with it
+    gameEntity->serverControlled = true; // Mark this as not controlled by server, so we don't try to actually do anything with it
                                         // After all it doesn't really exist
 
-    fpsEntity->uid = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
+    gameEntity->uid = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
     server::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
 }
 

@@ -1,7 +1,7 @@
 // client.cpp, mostly network related client game code
 
 #include "engine.h"
-#include "game.h" // INTENSITY: Need this for fpsent, below
+#include "game.h" // INTENSITY: Need this for gameent, below
 
 #ifndef SERVER
     #include "client_system.h" // INTENSITY

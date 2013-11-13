@@ -28,9 +28,9 @@ namespace game
 
     int following = -1, followdir = 0;
 
-    fpsent *player1 = NULL;         // our client
-    vector<fpsent *> players;       // other clients
-    fpsent lastplayerstate;
+    gameent *player1 = NULL;         // our client
+    vector<gameent *> players;       // other clients
+    gameent lastplayerstate;
 
     void follow(char *arg)
     {
@@ -76,7 +76,7 @@ namespace game
         return clientmap;
     }
 
-    fpsent *spawnstate(fpsent *d)              // reset player state not persistent accross spawns
+    gameent *spawnstate(gameent *d)              // reset player state not persistent accross spawns
     {
         d->respawn();
         return d;
@@ -90,24 +90,24 @@ namespace game
         conoutf("follow off");
     }
 
-    fpsent *followingplayer()
+    gameent *followingplayer()
     {
         if(player1->state!=CS_SPECTATOR || following<0) return NULL;
-        fpsent *target = getclient(following);
+        gameent *target = getclient(following);
         if(target && target->state!=CS_SPECTATOR) return target;
         return NULL;
     }
 
-    fpsent *hudplayer()
+    gameent *hudplayer()
     {
         if(thirdperson) return player1;
-        fpsent *target = followingplayer();
+        gameent *target = followingplayer();
         return target ? target : player1;
     }
 
     void setupcamera()
     {
-        fpsent *target = followingplayer();
+        gameent *target = followingplayer();
         if(target)
         {
             player1->yaw = target->yaw;    // Kripken: needed?
@@ -119,7 +119,7 @@ namespace game
 
     bool detachcamera()
     {
-        fpsent *d = hudplayer();
+        gameent *d = hudplayer();
         return d->state==CS_DEAD;
     }
 
@@ -136,7 +136,7 @@ namespace game
     VARP(smoothmove, 0, 75, 100);
     VARP(smoothdist, 0, 32, 64);
 
-    void predictplayer(fpsent *d, bool move)
+    void predictplayer(gameent *d, bool move)
     {
         d->o = d->newpos;
         d->yaw = d->newyaw;
@@ -161,7 +161,7 @@ namespace game
     {
         loopv(players) if(players[i] && LogicSystem::getUniqueId(players[i]) >= 0) // Need a complete entity for this
         {
-            fpsent *d = players[i];
+            gameent *d = players[i];
             if(d == player1 || d->ai) continue;
 
             if (d->uid < 0) continue;
@@ -276,7 +276,7 @@ namespace game
         // Loop over NPCs we control, moving and sending their info c2sinfo for each.
         loopv(players)
         {
-            fpsent* npc = players[i];
+            gameent* npc = players[i];
             if (!npc->serverControlled || npc->uid == DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
                 continue;
 
@@ -335,20 +335,20 @@ namespace game
 
             loopv(game::players)
             {
-                fpsent* fpsEntity = game::players[i];
-                CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
+                gameent* gameEntity = game::players[i];
+                CLogicEntity *entity = LogicSystem::getLogicEntity(gameEntity);
                 if (!entity) continue;
 
                 #ifndef SERVER
                     // Ragdolls
                     int aflags = entity->getAnimationFlags();
-                    if (fpsEntity->ragdoll && !(aflags&ANIM_RAGDOLL))
+                    if (gameEntity->ragdoll && !(aflags&ANIM_RAGDOLL))
                     {
-                        cleanragdoll(fpsEntity);
+                        cleanragdoll(gameEntity);
                     }
-                    if (fpsEntity->ragdoll && (aflags&ANIM_RAGDOLL))
+                    if (gameEntity->ragdoll && (aflags&ANIM_RAGDOLL))
                     {
-                        moveragdoll(fpsEntity);
+                        moveragdoll(gameEntity);
                     }
                 #endif
             }
@@ -376,7 +376,7 @@ namespace game
 #endif
     }
 
-    void spawnplayer(fpsent *d)   // place at random spawn. also used by monsters!
+    void spawnplayer(gameent *d)   // place at random spawn. also used by monsters!
     {
         spawnstate(d);
         #ifndef SERVER
@@ -407,11 +407,11 @@ namespace game
         return true; // Handled ourselves elsewhere
     }
 
-    vector<fpsent *> clients;
+    vector<gameent *> clients;
 
-    fpsent *newclient(int cn)   // ensure valid entity
+    gameent *newclient(int cn)   // ensure valid entity
     {
-        logger::log(logger::DEBUG, "fps::newclient: %d", cn);
+        logger::log(logger::DEBUG, "game::newclient: %d", cn);
 
         if(cn < 0 || cn > max(0xFF, MAXCLIENTS)) // + MAXBOTS))
         {
@@ -429,7 +429,7 @@ namespace game
 
         while(cn >= clients.length()) clients.add(NULL);
 
-        fpsent *d = new fpsent;
+        gameent *d = new gameent;
         d->clientnum = cn;
         assert(clients[cn] == NULL); // XXX FIXME This fails if a player logged in exactly while the server was downloading assets
         clients[cn] = d;
@@ -438,7 +438,7 @@ namespace game
         return clients[cn];
     }
 
-    fpsent *getclient(int cn)   // ensure valid entity
+    gameent *getclient(int cn)   // ensure valid entity
     {
 #ifndef SERVER // INTENSITY
         if(cn == player1->clientnum) return player1;
@@ -448,7 +448,7 @@ namespace game
 
     void clientdisconnected(int cn, bool notify)
     {
-        logger::log(logger::DEBUG, "fps::clientdisconnected: %d", cn);
+        logger::log(logger::DEBUG, "game::clientdisconnected: %d", cn);
 
         if(!clients.inrange(cn)) return;
         if(following==cn)
@@ -456,7 +456,7 @@ namespace game
             if(followdir) nextfollow(followdir);
             else stopfollowing();
         }
-        fpsent *d = clients[cn];
+        gameent *d = clients[cn];
         if(!d) return;
         if(notify && d->name[0]) conoutf("player %s disconnected", colorname(d));
 //        removeweapons(d);
@@ -471,7 +471,7 @@ namespace game
 
     void initclient()
     {
-        player1 = spawnstate(new fpsent);
+        player1 = spawnstate(new gameent);
 #ifndef SERVER
         players.add(player1);
 #endif
@@ -490,7 +490,7 @@ namespace game
         spawnplayer(player1);
         disablezoom();
 #endif
-//        if(*name) conoutf(CON_GAMEINFO, "\f2game mode is %s", fpsserver::modestr(gamemode));
+//        if(*name) conoutf(CON_GAMEINFO, "\f2game mode is %s", gameserver::modestr(gamemode));
 
         //execident("mapstart");
 
@@ -524,7 +524,7 @@ namespace game
         return NULL;
     }
 
-    const char *scriptname(fpsent *d)
+    const char *scriptname(gameent *d)
     {
         lua::push_external("entity_get_attr_uid");
         lua_pushinteger(lua::L, LogicSystem::getUniqueId(d));
@@ -534,7 +534,7 @@ namespace game
         return ret;
     }
 
-    char *colorname(fpsent *d, char *name, const char *prefix)
+    char *colorname(gameent *d, char *name, const char *prefix)
     {
         if(!name) name = (char*)scriptname(d);
         const char* color = (d != player1) ? "" : "\f1";
@@ -544,7 +544,7 @@ namespace game
     }
 
 #ifndef SERVER
-    void drawhudmodel(fpsent *d, int anim, float speed = 0, int base = 0)
+    void drawhudmodel(gameent *d, int anim, float speed = 0, int base = 0)
     {
         logger::log(logger::WARNING, "Rendering hudmodel is deprecated for now");
     }
@@ -573,7 +573,7 @@ namespace game
     {
 #ifndef SERVER
         if(owner->type!=ENT_PLAYER) return;
-//        fpsent *pl = (fpsent *)owner;
+//        gameent *pl = (gameent *)owner;
         float dist = o.dist(d);
         o = vec(0,0,0); //pl->muzzle;
         if(dist <= 0) d = o;
@@ -597,7 +597,7 @@ namespace game
     void writegamedata(vector<char> &extras) {}
     void readgamedata(vector<char> &extras) {}
 
-    const char *gameident() { return "fps"; }
+    const char *gameident() { return "game"; }
     const char *defaultmap() { return "login"; }
     const char *savedservers() { return NULL; } //"servers.cfg"; }
 

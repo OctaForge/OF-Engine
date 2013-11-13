@@ -360,7 +360,7 @@ namespace server
 #ifdef SERVER
             // Kripken: FIXME: Send position updates only to real clients, not local ones. For multiple local
             // ones, a single manual sending suffices, which is done to the singleton dummy client
-            fpsent* currClient = game::getclient(ci.clientnum);
+            gameent* currClient = game::getclient(ci.clientnum);
             if (!currClient) continue; // We have a server client, but no FPSClient client yet, because we have not yet
                                        // finished the player's login, only after which do we create the lua entity,
                                        // which then gets a client added to the FPSClient (and the remote client's FPSClient)
@@ -729,11 +729,11 @@ namespace server
             return false;
         }
 
-        fpsent* fpsEntity = game::getclient(cn);
-        if (fpsEntity)
+        gameent* gameEntity = game::getclient(cn);
+        if (gameEntity)
         {
             // Already created an entity
-            logger::log(logger::WARNING, "createluaEntity(%d): already have fpsEntity, and hence lua entity. Kicking.", cn);
+            logger::log(logger::WARNING, "createluaEntity(%d): already have gameEntity, and hence lua entity. Kicking.", cn);
             disconnect_client(cn, DISC_KICK);
             return false;
         }
@@ -799,12 +799,12 @@ namespace server
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)
         {
-            fpsEntity = game::getclient(cn); // It was created since fpsEntity was def'd
-            assert(fpsEntity);
+            gameEntity = game::getclient(cn); // It was created since gameEntity was def'd
+            assert(gameEntity);
 
-            fpsEntity->serverControlled = true; // Mark this as an NPC the server should control
+            gameEntity->serverControlled = true; // Mark this as an NPC the server should control
 
-            game::spawnplayer(fpsEntity);
+            game::spawnplayer(gameEntity);
         }
 
         /* we leave the entity on the stack and return true */

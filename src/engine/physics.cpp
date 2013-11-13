@@ -5,7 +5,7 @@
 
 #include "engine.h"
 #include "mpr.h"
-#include "game.h" // INTENSITY: for fpsent
+#include "game.h" // INTENSITY: for gameent
 
 #include "targeting.h" // INTENSITY
 
@@ -1994,8 +1994,8 @@ void moveplayer(physent *pl, int moveres, bool local)
     TargetingControl::calcPhysicsFrames(pl);
 
     // INTENSITY: Per-entity frame times
-    fpsent* fpsEntity = (fpsent*)pl;
-    physsteps = fpsEntity->physsteps, physframetime = fpsEntity->physframetime, lastphysframe = fpsEntity->lastphysframe;
+    gameent* gameEntity = (gameent*)pl;
+    physsteps = gameEntity->physsteps, physframetime = gameEntity->physframetime, lastphysframe = gameEntity->lastphysframe;
     // INTENSITY
 
     if(physsteps <= 0)

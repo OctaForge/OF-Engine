@@ -665,7 +665,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(dbgvars) conoutf(CON_DEBUG, "read %d vars", hdr.numvars);
 
     string gametype;
-    copystring(gametype, "fps");
+    copystring(gametype, "game");
     bool samegame = true;
     int len = f->getchar();
     if (len >= 0) f->read(gametype, len+1);

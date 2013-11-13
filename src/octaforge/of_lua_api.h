@@ -2,7 +2,7 @@ void trydisconnect(bool local);
 
 namespace game
 {
-    fpsent *followingplayer();
+    gameent *followingplayer();
 }
 
 extern float GRAVITY;
@@ -72,7 +72,7 @@ namespace lapi_binds
     int _lua_npcdel(lua_State *L) {
         int uid = luaL_checkinteger(L, 1);
         LUA_GET_ENT(entity, uid, "_C.npcdel", return 0)
-        fpsent *fp = (fpsent*)entity->dynamicEntity;
+        gameent *fp = (gameent*)entity->dynamicEntity;
         localdisconnect(true, fp->clientnum);
         return 0;
     }
@@ -257,7 +257,7 @@ namespace lapi_binds
     }
 
     int _lua_getfollow(lua_State *L) {
-        fpsent *f = game::followingplayer();
+        gameent *f = game::followingplayer();
         lua_pushinteger(L, f ? f->clientnum : -1);
         return 1;
     }

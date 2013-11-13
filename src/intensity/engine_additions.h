@@ -6,7 +6,7 @@
 //! logic occurs on the server; LogicEntity is just for minimal client-side logic.
 //!
 //! LogicEntity wraps around the Sauer types, so in practice a LogicEntity is either a dynamic entity
-//! (PC/NPC - TODO: Make this fpsent? Or do we need movables also?) or a mapmodel. This is completely
+//! (PC/NPC - TODO: Make this gameent? Or do we need movables also?) or a mapmodel. This is completely
 //! transparent to users of the LogicEntity class, but they can query the type if they need to.
 //!
 //! LogicEntities have unique IDs. These are unique in a module (but not a map - entities can
@@ -61,7 +61,7 @@ struct CLogicEntity
     //! Returns the unique ID for this entity
     int   getUniqueId();
 
-    //! Returns the type, i.e., dynamic (player, NPC - physent/fpsent), or static (mapmodel). In the future, also lights, etc.
+    //! Returns the type, i.e., dynamic (player, NPC - physent/gameent), or static (mapmodel). In the future, also lights, etc.
     int   getType();
 
     bool  isDynamic() { return getType() == LE_DYNAMIC; };

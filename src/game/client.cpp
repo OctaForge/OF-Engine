@@ -28,7 +28,7 @@ namespace game
 
     bool spectator = false;
 
-    void parsemessages(int cn, fpsent *d, ucharbuf &p);
+    void parsemessages(int cn, gameent *d, ucharbuf &p);
 
     void initclientnet()
     {
@@ -127,13 +127,13 @@ namespace game
         // try case sensitive first
         loopi(numdynents())
         {
-            fpsent *o = (fpsent *)iterdynents(i);
+            gameent *o = (gameent *)iterdynents(i);
             if(o && !strcmp(arg, o->name)) return o->clientnum;
         }
         // nothing found, try case insensitive
         loopi(numdynents())
         {
-            fpsent *o = (fpsent *)iterdynents(i);
+            gameent *o = (gameent *)iterdynents(i);
             if(o && !strcasecmp(arg, o->name)) return o->clientnum;
         }
         return -1;
@@ -169,7 +169,7 @@ namespace game
                 case 'r': reliable = true; break;
                 case 'c':
                 {
-                    fpsent *d = va_arg(args, fpsent *);
+                    gameent *d = va_arg(args, gameent *);
                     mcn = !d || d == player1 ? -1 : d->clientnum;
                     break;
                 }
@@ -231,7 +231,7 @@ namespace game
     }
     COMMANDN(say, toserver, "C");
 
-    void sendposition(fpsent *d, bool reliable)
+    void sendposition(gameent *d, bool reliable)
     {
         logger::log(logger::INFO, "sendposition?, %d)", curtime);
 
@@ -264,7 +264,7 @@ namespace game
         }
     }
 
-    void sendmessages(fpsent *d)
+    void sendmessages(gameent *d)
     {
         packetbuf p(MAXTRANS);
         if(messages.length())
@@ -301,7 +301,7 @@ namespace game
 #else // SERVER
         loopv(players)
         {
-            fpsent *d = players[i];
+            gameent *d = players[i];
             if (d->serverControlled && d->uid != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
             {
                 sendposition(d);
@@ -311,7 +311,7 @@ namespace game
         flushclient();
     }
 
-    void updatepos(fpsent *d)
+    void updatepos(gameent *d)
     {
 #ifndef SERVER
         // Only the client cares if other clients overlap him. NPCs on the server don't mind.
@@ -372,7 +372,7 @@ namespace game
 
         switch(chan)
         {   // Kripken: channel 0 is just positions, for as-fast-as-possible position updates. We do not want to change this.
-            //          channel 1 is used by essentially all the fps game logic events
+            //          channel 1 is used by essentially all the game logic events
             //          channel 2: a binary file is received, a map or a demo
             case 0:
                 parsepositions(p);
@@ -392,7 +392,7 @@ namespace game
 
     SVARP(chat_sound, "olpc/FlavioGaete/Vla_G_Major");
 
-    void parsemessages(int cn, fpsent *d, ucharbuf &p) // cn: Sauer's sending client
+    void parsemessages(int cn, gameent *d, ucharbuf &p) // cn: Sauer's sending client
     {
 //        int gamemode = gamemode; Kripken
         static char text[MAXTRANS];
@@ -442,7 +442,7 @@ namespace game
             case N_CLIPBOARD:
             {
                 int cn = getint(p), unpacklen = getint(p), packlen = getint(p);
-                fpsent *d = getclient(cn);
+                gameent *d = getclient(cn);
                 ucharbuf q = p.subbuf(max(packlen, 0));
                 if(d) unpackeditinfo(d->edit, q.buf, q.maxlen, unpacklen);
                 break;
@@ -520,7 +520,7 @@ assert(0);
             case N_INITCLIENT:
             {
                 int cn = getint(p);
-                fpsent *d = newclient(cn);
+                gameent *d = newclient(cn);
                 if(!d->name[0])
                   if(needclipboard >= 0)
                     needclipboard++;
@@ -588,7 +588,7 @@ assert(0);
         int i = parseplayer(arg);
         if(i>=0 && i!=player1->clientnum)
         {
-            fpsent *d = getclient(i);
+            gameent *d = getclient(i);
             if(!d) return;
             player1->o = d->o;
             vec dir;

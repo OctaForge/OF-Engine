@@ -67,7 +67,7 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
         entity = LogicSystem::getLogicEntity(*ents[enthover]);
     } else {
         // Manually check if we are hovering, using ray intersections. TODO: Not needed for extents?
-        CLogicEntity *ignore = (fpsent*)targeter ? LogicSystem::getLogicEntity(targeter) : NULL;
+        CLogicEntity *ignore = (gameent*)targeter ? LogicSystem::getLogicEntity(targeter) : NULL;
         float dynamicDist, staticDist;
         dynent* dynamicEntity;
         extentity* staticEntity;
@@ -162,12 +162,12 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 
 float TargetingControl::calculateMovement(physent* entity)
 {
-    fpsent* fpsEntity = (fpsent*)entity;
+    gameent* gameEntity = (gameent*)entity;
     // Take into account movement both by velocity, and of movement since our last frame
-    vec movement(fpsEntity->lastPhysicsPosition);
-    movement.sub(fpsEntity->o);
+    vec movement(gameEntity->lastPhysicsPosition);
+    movement.sub(gameEntity->o);
     movement.mul(curtime/1024.0f); // Take into account the timeframe
-    movement.add(fpsEntity->vel);
+    movement.add(gameEntity->vel);
     movement.mul(0.5f);
     return movement.magnitude();
 }
@@ -183,42 +183,42 @@ void TargetingControl::calcPhysicsFrames(physent *entity)
     // they now do thins differently. To debug this, revert back to sauer's method
     // of NON-per-entity physics and see what that changes.
 
-    fpsent* fpsEntity = (fpsent*)entity;
+    gameent* gameEntity = (gameent*)entity;
 
-    logger::log(logger::INFO, "physicsframe() lastmillis: %d  curtime: %d  lastphysframe: %d", lastmillis, curtime, fpsEntity->lastphysframe);
+    logger::log(logger::INFO, "physicsframe() lastmillis: %d  curtime: %d  lastphysframe: %d", lastmillis, curtime, gameEntity->lastphysframe);
 
     // If no previous physframe - this is the first time - then don't bother
     // running physics, wait for that first frame. Or else we might run
     // a lot of frames for nothing at this stage (all the way back to time '0')
-    if (fpsEntity->lastphysframe == 0)
-        fpsEntity->lastphysframe = lastmillis; // Will induce diff=0 for this frame
+    if (gameEntity->lastphysframe == 0)
+        gameEntity->lastphysframe = lastmillis; // Will induce diff=0 for this frame
 
-    int diff = lastmillis - fpsEntity->lastphysframe; // + curtime
-    if(diff <= 0) fpsEntity->physsteps = 0;
+    int diff = lastmillis - gameEntity->lastphysframe; // + curtime
+    if(diff <= 0) gameEntity->physsteps = 0;
     else
     {
         int entityFrameTime;
 
 #ifdef SERVER
-        entityFrameTime = (calculateMovement(fpsEntity) >= 0.001) ? 15 : 30;
+        entityFrameTime = (calculateMovement(gameEntity) >= 0.001) ? 15 : 30;
 #else
-        entityFrameTime = (fpsEntity == player) ? 5 : 10;
+        entityFrameTime = (gameEntity == player) ? 5 : 10;
 #endif
-        fpsEntity->physframetime = entityFrameTime; // WAS: clamp((entityFrameTime*gamespeed)/100, 1, entityFrameTime);
+        gameEntity->physframetime = entityFrameTime; // WAS: clamp((entityFrameTime*gamespeed)/100, 1, entityFrameTime);
 
-        fpsEntity->physsteps = (diff + fpsEntity->physframetime - 1)/fpsEntity->physframetime;
-        fpsEntity->lastphysframe += fpsEntity->physsteps * fpsEntity->physframetime;
+        gameEntity->physsteps = (diff + gameEntity->physframetime - 1)/gameEntity->physframetime;
+        gameEntity->lastphysframe += gameEntity->physsteps * gameEntity->physframetime;
 
-        fpsEntity->lastPhysicsPosition = fpsEntity->o;
+        gameEntity->lastPhysicsPosition = gameEntity->o;
     }
 
-    if (fpsEntity->physsteps * fpsEntity->physframetime > 2000)
+    if (gameEntity->physsteps * gameEntity->physframetime > 2000)
     {
-        logger::log(logger::WARNING, "Trying to run over 2 seconds of physics prediction at once for %d: %d/%d (%d fps) (diff: %d ; %d, %d). Aborting physics for this round.", fpsEntity->uid, fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff, lastmillis, fpsEntity->lastphysframe - (fpsEntity->physsteps * fpsEntity->physframetime));
-        fpsEntity->physsteps = 1; // If we had a ton of physics to run - like, say, after 19 seconds of lightmap calculations -
+        logger::log(logger::WARNING, "Trying to run over 2 seconds of physics prediction at once for %d: %d/%d (%d fps) (diff: %d ; %d, %d). Aborting physics for this round.", gameEntity->uid, gameEntity->physframetime, gameEntity->physsteps, 1000/gameEntity->physframetime, diff, lastmillis, gameEntity->lastphysframe - (gameEntity->physsteps * gameEntity->physframetime));
+        gameEntity->physsteps = 1; // If we had a ton of physics to run - like, say, after 19 seconds of lightmap calculations -
                                   // then just give up, don't run all that physics, do just one frame. Back to normal next time, after all.
     }
 
-    logger::log(logger::INFO, "physicsframe() Decided on physframetime/physsteps: %d/%d (%d fps) (diff: %d)", fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff);
+    logger::log(logger::INFO, "physicsframe() Decided on physframetime/physsteps: %d/%d (%d fps) (diff: %d)", gameEntity->physframetime, gameEntity->physsteps, 1000/gameEntity->physframetime, diff);
 }
 

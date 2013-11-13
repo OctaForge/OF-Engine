@@ -15,7 +15,7 @@
 
 //! Extensions to the Sauerbraten client-server messaging system
 
-//! Instead of hard-coding messages into fpsserver.h as in Sauerbraten, we instead have the
+//! Instead of hard-coding messages into gameserver.h as in Sauerbraten, we instead have the
 //! following general system, where MessageTypes are registered, and the MessageManager then
 //! calls the appropriate MessageType to handle a packet. Message types themselves are defined
 //! in the messages.template file, which is then used to autogenerate C++ code, with no risk

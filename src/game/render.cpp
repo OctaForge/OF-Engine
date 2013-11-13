@@ -29,7 +29,7 @@ namespace game
 
     void swayhudgun(int curtime)
     {
-        fpsent *d = hudplayer();
+        gameent *d = hudplayer();
         if(d->state!=CS_SPECTATOR)
         {
             if(d->physstate>=PHYS_SLOPE) swaymillis += curtime;
