@@ -69,12 +69,6 @@ local Game_Player = Player:clone {
         }
     },
 
-    -- a property setting example
-    __init_svars = function(self, ...)
-        Player.__init_svars(self, ...)
-        self:set_attr("jump_velocity", 250)
-    end,
-
     next_color = function(self)
         if  self.color_id < #colors then
             self.color_id = self.color_id + 1
