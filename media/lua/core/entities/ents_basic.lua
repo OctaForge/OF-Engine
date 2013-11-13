@@ -531,7 +531,7 @@ local Character = Entity:clone {
         end
         if needhud then
             if hudpass then
-                flags |= 0
+                flags |= model.render_flags.NOBATCH
             else
                 flags |= model.render_flags.ONLY_SHADOW
             end
