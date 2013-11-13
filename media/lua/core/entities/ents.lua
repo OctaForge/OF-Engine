@@ -1347,7 +1347,7 @@ end)
     Main render hook. External as game_render. Calls individual render
     method on each entity (if defined). Clientside only.
 ]]
-local render = (not SERVER) and function(tp)
+local render = (not SERVER) and function(tp, fpsshadow)
     debug then log(INFO, "game_render")
     local  player = player_entity
     if not player then return end
@@ -1359,8 +1359,9 @@ local render = (not SERVER) and function(tp)
             -- the HUD model, second is needhud, which is true if the model
             -- should be shown as HUD model and that happens if we're not in
             -- thirdperson and the current entity is the player
+            -- third is whether we're rendering a first person shadow
             if  rd then
-                rd(entity, false, not tp and entity == player)
+                rd(entity, false, not tp and entity == player, fpsshadow)
             end
         end
     end
@@ -1378,7 +1379,7 @@ local render_hud = (not SERVER) and function()
     if not player then return end
 
     if player:get_attr("hud_model_name") and not player:get_editing() then
-        player:__render(true, true)
+        player:__render(true, true, false)
     end
 end or nil
 M.render_hud = render_hud

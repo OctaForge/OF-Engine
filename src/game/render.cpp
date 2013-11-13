@@ -10,6 +10,8 @@
 
 namespace game
 {
+    VARP(playerfpsshadow, 0, 1, 1);
+
     void rendergame()
     {
         if (!ClientSystem::loggedIn) // If not logged in remotely, do not render, because entities lack all the fields like model_name
@@ -20,8 +22,10 @@ namespace game
         }
 
         lua::push_external("game_render");
-        lua_pushboolean(lua::L, isthirdperson());
-        lua_call       (lua::L, 1, 0);
+        bool tp = isthirdperson();
+        lua_pushboolean(lua::L, tp);
+        lua_pushboolean(lua::L, !tp && playerfpsshadow);
+        lua_call       (lua::L, 2, 0);
     }
 
     int swaymillis = 0;

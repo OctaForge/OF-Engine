@@ -111,6 +111,8 @@ if not SERVER then
     }
 end
 
+local mrender = (not SERVER) and model.render
+
 --[[! Class: Character
     Represents the base class for any character (NPC, player etc.). Players
     use the <Player> entity class that inherits from this one.
@@ -466,55 +468,49 @@ local Character = Entity:clone {
         determines whether we're rendering HUD right now, and needhud,
         which determines whether we're in first person mode), the member
         hud_model_offset (vec3) is used to offset the HUD model (if available).
+
+        There is one additional argument, fpsshadow - it's true if we're about
+        to render a first person shadow (can be true only when needhud is true
+        and hudpass is false).
     ]]
-    __render = (not SERVER) and function(self, hudpass, needhud)
+    __render = (not SERVER) and function(self, hudpass, needhud, fpsshadow)
         if not self.initialized then return end
-        if not hudpass and needhud then return end
+        if not hudpass and needhud and not fpsshadow then return end
 
-        local ra = self.render_args
-        local fr = frame.get_frame()
-        if self.render_args_timestamp != fr then
-            local state = self:get_attr("client_state")
-            -- spawning or spectator
-            if state == 5 or state == 2 then return end
-            local mdn = (hudpass and needhud)
-                and self:get_attr("hud_model_name")
-                or  self:get_attr("model_name")
+        local state = self:get_attr("client_state")
+        -- spawning or spectator
+        if state == 5 or state == 2 then return end
+        local mdn = (hudpass and needhud)
+            and self:get_attr("hud_model_name")
+            or  self:get_attr("model_name")
 
-            local yaw, pitch, roll = self:get_attr("yaw"),
-                self:get_attr("pitch"),
-                self:get_attr("roll")
-            local o = self:get_attr("position"):copy()
+        if mdn == "" then return end
 
-            if hudpass and needhud and self.hud_model_offset then
-                o:add(self.hud_model_offset)
-            end
+        local yaw, pitch, roll = self:get_attr("yaw"),
+            self:get_attr("pitch"),
+            self:get_attr("roll")
+        local o = self:get_attr("position"):copy()
 
-            local pstate = self:get_attr("physical_state")
-            local bt, iw = self:get_attr("start_time"),
-                self:get_attr("in_liquid")
-            local mv, sf = self:get_attr("move"), self:get_attr("strafe")
-
-            local vel, fall = self:get_attr("velocity"):copy(),
-                self:get_attr("falling"):copy()
-            local tia = self:get_attr("time_in_air")
-
-            local cr = self:get_attr("crouching")
-
-            local anim, animflags = self:decide_animation(state, pstate, mv,
-                sf, cr, vel, fall, iw, tia)
-            local flags = self:get_render_flags(hudpass, needhud)
-
-            if not ra then
-                ra = { self, "", true, true, true, true, true, true, true }
-                self.render_args = ra
-            end
-
-            ra[2], ra[3], ra[4], ra[5], ra[6], ra[7], ra[8], ra[9], ra[10] =
-                mdn, anim, animflags, o, yaw, pitch, roll, flags, bt
-            self.render_args_timestamp = fr
+        if hudpass and needhud and self.hud_model_offset then
+            o:add(self.hud_model_offset)
         end
-        if (ra and ra[2] != "") then model.render(unpack(ra)) end
+
+        local pstate = self:get_attr("physical_state")
+        local bt, iw = self:get_attr("start_time"),
+            self:get_attr("in_liquid")
+        local mv, sf = self:get_attr("move"), self:get_attr("strafe")
+
+        local vel, fall = self:get_attr("velocity"):copy(),
+            self:get_attr("falling"):copy()
+        local tia = self:get_attr("time_in_air")
+
+        local cr = self:get_attr("crouching")
+
+        local anim, animflags = self:decide_animation(state, pstate, mv,
+            sf, cr, vel, fall, iw, tia)
+        local flags = self:get_render_flags(hudpass, needhud)
+
+        mrender(self, mdn, anim, animflags, o, yaw, pitch, roll, flags, bt)
     end or nil,
 
     --[[! Function: get_render_flags
@@ -525,14 +521,20 @@ local Character = Entity:clone {
         <__render>. Clientside.
     ]]
     get_render_flags = (not SERVER) and function(self, hudpass, needhud)
-        local flags = model.render_flags.FULLBRIGHT
+        local flags
         if self != ents.get_player() then
             flags = model.render_flags.CULL_VFC
                 | model.render_flags.CULL_OCCLUDED
                 | model.render_flags.CULL_QUERY
+        else
+            flags = model.render_flags.FULLBRIGHT
         end
-        if hudpass and needhud then
-            flags |= model.render_flags.NOBATCH
+        if needhud then
+            if hudpass then
+                flags |= 0
+            else
+                flags |= model.render_flags.ONLY_SHADOW
+            end
         end
         return flags
     end or nil,

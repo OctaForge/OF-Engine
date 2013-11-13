@@ -87,12 +87,13 @@ M.anim_flags = {:
     flag, CULL_DIST is a distance culling flag, CULL_OCCLUDED is an occlusion
     culling flag, CULL_QUERY is hw occlusion queries flag, FULLBRIGHT makes
     the model fullbright, NORENDER disables rendering, MAPMODEL is a mapmodel
-    flag, NOBATCH disables batching on the model.
+    flag, NOBATCH disables batching on the model, ONLY_SHADOW makes only the
+    shadow render.
 ]]
 M.render_flags = {:
     CULL_VFC   = 1 << 0, CULL_DIST  = 1 << 1, CULL_OCCLUDED = 1 << 2,
     CULL_QUERY = 1 << 3, FULLBRIGHT = 1 << 4, NORENDER      = 1 << 5,
-    MAPMODEL   = 1 << 6, NOBATCH    = 1 << 7
+    MAPMODEL   = 1 << 6, NOBATCH    = 1 << 7, ONLY_SHADOW   = 1 << 8
 :}
 
 --[[! Function: register_anim
