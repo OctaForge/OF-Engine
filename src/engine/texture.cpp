@@ -1989,7 +1989,7 @@ void clear_texpacks() {
 }
 
 ICOMMAND(texload, "s", (char *pack), {
-    defformatstring(ppath, "texture/%s.tex", pack);
+    defformatstring(ppath, "media/texture/%s.tex", pack);
     int first = slots.length();
     int oldresetcount = texresetcount;
     if (!execfile(ppath, false)) {
