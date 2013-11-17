@@ -1975,9 +1975,9 @@ ICOMMAND(texgroup, "se", (char *name, uint *body), {
 /* OF: a texture pack system */
 struct texpack {
     char *name;
-    int firstslot;
+    int firstslot, nslots;
     texpack(const char *name, int firstslot): name(newstring(name)),
-        firstslot(firstslot) {}
+        firstslot(firstslot), nslots(slots.length() - firstslot) {}
     ~texpack() {
         delete[] name;
     }
@@ -2015,9 +2015,11 @@ ICOMMAND(texload, "s", (char *pack), {
 LUAICOMMAND(texture_get_packs, {
     lua_createtable(L, texpacks.length(), 0);
     loopv(texpacks) {
-        lua_createtable(L, 2, 0);
-        lua_pushstring (L, texpacks[i]->name);      lua_rawseti(L, -2, 1);
-        lua_pushinteger(L, texpacks[i]->firstslot); lua_rawseti(L, -2, 2);
+        lua_createtable(L, 3, 0);
+        texpack *tp = texpacks[i];
+        lua_pushstring (L, tp->name);      lua_rawseti(L, -2, 1);
+        lua_pushinteger(L, tp->firstslot); lua_rawseti(L, -2, 2);
+        lua_pushinteger(L, tp->nslots);    lua_rawseti(L, -2, 3);
         lua_rawseti(L, -2, i);
     }
     return 1;
