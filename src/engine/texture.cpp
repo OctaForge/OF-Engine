@@ -1971,24 +1971,19 @@ ICOMMAND(texgroup, "se", (char *name, uint *body), {
 
 /* OF: a texture pack system */
 struct texpack {
-    texpack *next;
-    char    *name;
+    char *name;
     int firstslot;
-    texpack(const char *name, int firstslot): next(NULL),
-        name(newstring(name)), firstslot(firstslot) {}
+    texpack(const char *name, int firstslot): name(newstring(name)),
+        firstslot(firstslot) {}
     ~texpack() {
         delete[] name;
-        if (next) delete next;
     }
 };
 
-static texpack *texpacks = NULL, *lasttexpack = NULL;
-static int ntexpacks = 0;
+static vector<texpack*> texpacks;
 
 void clear_texpacks() {
-    delete texpacks;
-    texpacks = lasttexpack = NULL;
-    ntexpacks = 0;
+    texpacks.deletecontents();
 }
 
 ICOMMAND(texload, "s", (char *pack), {
@@ -2004,25 +1999,17 @@ ICOMMAND(texload, "s", (char *pack), {
         intret(false);
         return;
     }
-    texpack *tp = new texpack(pack, first);
-    if (!texpacks)
-        texpacks = lasttexpack = tp;
-    else
-        lasttexpack = lasttexpack->next = tp;
-    ++ntexpacks;
+    texpacks.add(new texpack(pack, first));
     intret(true);
 });
 
 LUAICOMMAND(texture_get_packs, {
-    lua_createtable(L, ntexpacks, 0);
-    if (!ntexpacks) return 1;
-    texpack *tp = texpacks;
-    for (int i = 1; tp; ++i) {
+    lua_createtable(L, texpacks.length(), 0);
+    loopv(texpacks) {
         lua_createtable(L, 2, 0);
-        lua_pushstring (L, tp->name);      lua_rawseti(L, -2, 1);
-        lua_pushinteger(L, tp->firstslot); lua_rawseti(L, -2, 2);
+        lua_pushstring (L, texpacks[i]->name);      lua_rawseti(L, -2, 1);
+        lua_pushinteger(L, texpacks[i]->firstslot); lua_rawseti(L, -2, 2);
         lua_rawseti(L, -2, i);
-        tp = tp->next;
     }
     return 1;
 });
