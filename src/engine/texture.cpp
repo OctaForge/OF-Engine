@@ -1959,10 +1959,11 @@ const char *get_texgroup_name(const char *name) {
 
 static const char *curtexgroup = get_texgroup_name("");
 
-ICOMMAND(texgroup, "s", (char *name), {
+ICOMMAND(texgroup, "se", (char *name, uint *body), {
     const char *oldgroup = curtexgroup;
     curtexgroup = get_texgroup_name(name);
-    result(oldgroup);
+    execute(body);
+    curtexgroup = oldgroup;
 });
 
 // OF: forcedindex
