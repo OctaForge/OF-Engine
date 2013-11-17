@@ -1961,7 +1961,10 @@ static const char *curtexgroup = get_texgroup_name("");
 
 ICOMMAND(texgroup, "se", (char *name, uint *body), {
     const char *oldgroup = curtexgroup;
-    curtexgroup = get_texgroup_name(name);
+    if (oldgroup[0] && name[0]) {
+        defformatstring(tmpgroup, "%s.%s", oldgroup, name);
+        curtexgroup = get_texgroup_name(tmpgroup);
+    } else curtexgroup = get_texgroup_name(name);
     execute(body);
     curtexgroup = oldgroup;
 });
