@@ -22,10 +22,11 @@ void cleanup()
     SDL_ShowCursor(SDL_TRUE);
     cleargamma();
     freeocta(worldroot);
-    extern void clear_command(); clear_command();
-    extern void clear_console(); clear_console();
-    extern void clear_models();  clear_models();
-    extern void clear_sound();   clear_sound();
+    extern void clear_texpacks(); clear_texpacks(); /* OF */
+    extern void clear_command();  clear_command();
+    extern void clear_console();  clear_console();
+    extern void clear_models();   clear_models();
+    extern void clear_sound();    clear_sound();
     lua::close();
     closelogfile();
     ovr::destroy();

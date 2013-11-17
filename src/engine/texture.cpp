@@ -1969,6 +1969,64 @@ ICOMMAND(texgroup, "se", (char *name, uint *body), {
     curtexgroup = oldgroup;
 });
 
+/* OF: a texture pack system */
+struct texpack {
+    texpack *next;
+    char    *name;
+    int firstslot;
+    texpack(const char *name, int firstslot): next(NULL),
+        name(newstring(name)), firstslot(firstslot) {}
+    ~texpack() {
+        delete[] name;
+        if (next) delete next;
+    }
+};
+
+static texpack *texpacks = NULL, *lasttexpack = NULL;
+static int ntexpacks = 0;
+
+void clear_texpacks() {
+    delete texpacks;
+    texpacks = lasttexpack = NULL;
+    ntexpacks = 0;
+}
+
+ICOMMAND(texload, "s", (char *pack), {
+    defformatstring(ppath, "texture/%s.tex", pack);
+    int first = slots.length();
+    if (!execfile(ppath, false)) {
+        conoutf("could not load texture pack '%s'", pack);
+        intret(false);
+        return;
+    }
+    if (slots.length() == first) {
+        conoutf("texture pack '%s' contains no slots", pack);
+        intret(false);
+        return;
+    }
+    texpack *tp = new texpack(pack, first);
+    if (!texpacks)
+        texpacks = lasttexpack = tp;
+    else
+        lasttexpack = lasttexpack->next = tp;
+    ++ntexpacks;
+    intret(true);
+});
+
+LUAICOMMAND(texture_get_packs, {
+    lua_createtable(L, ntexpacks, 0);
+    if (!ntexpacks) return 1;
+    texpack *tp = texpacks;
+    for (int i = 1; tp; ++i) {
+        lua_createtable(L, 2, 0);
+        lua_pushstring (L, tp->name);      lua_rawseti(L, -2, 1);
+        lua_pushinteger(L, tp->firstslot); lua_rawseti(L, -2, 2);
+        lua_rawseti(L, -2, i);
+        tp = tp->next;
+    }
+    return 1;
+});
+
 // OF: forcedindex
 void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float *scale, int *forcedindex)
 {

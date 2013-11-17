@@ -1254,6 +1254,7 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
 #ifndef SERVER
+    extern void clear_texpacks(); clear_texpacks();
     lua::push_external("gui_clear"); lua_call(lua::L, 0, 0);
 #endif
 
