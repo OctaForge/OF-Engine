@@ -1542,6 +1542,8 @@ MSlot materialslots[(MATF_VOLUME|MATF_INDEX)+1];
 Slot dummyslot;
 VSlot dummyvslot(&dummyslot);
 
+static int texresetcount = 0; /* OF */
+
 void texturereset(int *n)
 {
     if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
@@ -1554,6 +1556,7 @@ void texturereset(int *n)
         delete s;
     }
     slots.setsize(limit);
+    ++texresetcount;
 }
 
 COMMAND(texturereset, "i");
@@ -1979,7 +1982,6 @@ struct texpack {
         delete[] name;
     }
 };
-
 static vector<texpack*> texpacks;
 
 void clear_texpacks() {
@@ -1989,10 +1991,17 @@ void clear_texpacks() {
 ICOMMAND(texload, "s", (char *pack), {
     defformatstring(ppath, "texture/%s.tex", pack);
     int first = slots.length();
+    int oldresetcount = texresetcount;
     if (!execfile(ppath, false)) {
         conoutf("could not load texture pack '%s'", pack);
         intret(false);
         return;
+    }
+    int nresets = texresetcount - oldresetcount;
+    if (nresets > 0) {
+        first = 0;
+        texresetcount -= nresets;
+        clear_texpacks();
     }
     if (slots.length() == first) {
         conoutf("texture pack '%s' contains no slots", pack);
