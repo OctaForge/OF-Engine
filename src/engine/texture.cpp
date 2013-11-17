@@ -2025,6 +2025,47 @@ LUAICOMMAND(texture_get_packs, {
     return 1;
 });
 
+static void dumpslotrange(int firstslot, int nslots) {
+    const char *lastgroup = NULL;
+    for (int i = firstslot; i < (firstslot + nslots); ++i) {
+        const Slot &s = *slots[i];
+        if (lastgroup != s.group) {
+            if (lastgroup) printf("end group\n");
+            lastgroup = s.group;
+            printf("start group: '%s'\n", lastgroup);
+        }
+        printf("    slot on index %d: %s\n", i, s.sts[0].name);
+    }
+    printf("end group\n");
+}
+
+ICOMMAND(texdumpslots, "", (), {
+    if (!texpacks.length()) {
+        dumpslotrange(0, slots.length());
+        return;
+    }
+    if (texpacks[0]->firstslot > 0) dumpslotrange(0, texpacks[0]->firstslot);
+    texpack *ptp = NULL;
+    loopv(texpacks) {
+        texpack *tp = texpacks[i];
+        if (ptp) {
+            int offstart = ptp->firstslot + ptp->nslots;
+            if (offstart != tp->firstslot)
+                dumpslotrange(offstart, tp->firstslot - offstart);
+        }
+        printf("start texpack: '%s' (starting at %d, containing %d slots)\n",
+            tp->name, tp->firstslot, tp->nslots);
+        dumpslotrange(tp->firstslot, tp->nslots);
+        printf("end texpack\n");
+        ptp = tp;
+    }
+    if (ptp) {
+        int offstart = ptp->firstslot + ptp->nslots;
+        if (slots.inrange(offstart))
+            dumpslotrange(offstart, slots.length() - offstart);
+    }
+});
+
 // OF: forcedindex
 void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float *scale, int *forcedindex)
 {
