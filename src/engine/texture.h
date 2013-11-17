@@ -660,6 +660,7 @@ struct Slot
     bool loaded;
     uint texmask;
     char *autograss;
+    const char *group; /* OF */
     Texture *grasstex, *thumbnail;
 
     Slot(int index = -1) : index(index), variants(NULL), autograss(NULL) { reset(); }

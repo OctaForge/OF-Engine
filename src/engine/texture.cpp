@@ -1948,6 +1948,23 @@ int findslottex(const char *name)
     return -1;
 }
 
+/* OF: a group system */
+static hashset<const char*> texgroupnames(256);
+
+const char *get_texgroup_name(const char *name) {
+    const char *group = texgroupnames.find(name, NULL);
+    if (group) return group;
+    return texgroupnames.add(newstring(name));
+}
+
+static const char *curtexgroup = get_texgroup_name("");
+
+ICOMMAND(texgroup, "s", (char *name), {
+    const char *oldgroup = curtexgroup;
+    curtexgroup = get_texgroup_name(name);
+    result(oldgroup);
+});
+
 // OF: forcedindex
 void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float *scale, int *forcedindex)
 {
@@ -1964,6 +1981,7 @@ void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float
         slots[*forcedindex]->reset();
     Slot &s = matslot>=0 ? materialslots[matslot] : (*forcedindex <= 0 ? *(tnum!=TEX_DIFFUSE ? slots.last() : slots.add(new Slot(slots.length()))) : *slots[*forcedindex]); // OF: Allow forced indexes
 
+    s.group = curtexgroup;
     s.loaded = false;
     s.texmask |= 1<<tnum;
     if(s.sts.length()>=8) conoutf(CON_WARN, "warning: too many textures in slot %d", slots.length()-1);
