@@ -2129,8 +2129,10 @@ static void dumpslot(stream *f, const Slot &s, int index, bool indent) {
 static void dumpslotrange(stream *f, int firstslot, int nslots) {
     const char *lastgroup = NULL;
     bool endgroup = false;
-    f->printf("// slot range %d-%d\n", firstslot, firstslot + nslots - 1);
-    for (int i = firstslot; i < (firstslot + nslots); ++i) {
+    int nextfirstslot = firstslot + nslots;
+    f->printf("// slot range %d-%d\n", firstslot, nextfirstslot - 1);
+    for (int i = firstslot; i < nextfirstslot; ++i) {
+        renderprogress((i - firstslot) / float(nslots), "saving slots...");
         const Slot &s = *slots[i];
         bool indent = false;
         if (lastgroup != s.group) {
@@ -2162,6 +2164,7 @@ ICOMMAND(writemediacfg, "", (), {
     f->printf("// material slots\nmaterialreset\n\n");
     int nummat = sizeof(materialslots) / sizeof(materialslots[0]);
     loopi(nummat) {
+        renderprogress(i / float(nummat), "saving material slots...");
         switch (i & MATF_VOLUME) {
             case MAT_GLASS:
             case MAT_WATER:
@@ -2178,6 +2181,7 @@ ICOMMAND(writemediacfg, "", (), {
     if (texpacks[0]->firstslot > 0) dumpslotrange(f, 0, texpacks[0]->firstslot);
     texpack *ptp = NULL;
     loopv(texpacks) {
+        renderprogress(i / float(texpacks.length()), "saving texture packs...");
         texpack *tp = texpacks[i];
         if (ptp) {
             int offstart = ptp->firstslot + ptp->nslots;
