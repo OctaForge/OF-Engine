@@ -1967,11 +1967,11 @@ const char *get_texgroup_name(const char *name) {
     return texgroupnames.add(newstring(name));
 }
 
-static const char *curtexgroup = get_texgroup_name("");
+static const char *curtexgroup = NULL;
 
 ICOMMAND(texgroup, "se", (char *name, uint *body), {
     const char *oldgroup = curtexgroup;
-    if (oldgroup[0] && name[0]) {
+    if (oldgroup && name[0]) {
         defformatstring(tmpgroup, "%s.%s", oldgroup, name);
         curtexgroup = get_texgroup_name(tmpgroup);
     } else curtexgroup = get_texgroup_name(name);
@@ -2143,12 +2143,12 @@ static void dumpslotrange(stream *f, int firstslot, int nslots) {
         const Slot &s = *slots[i];
         bool indent = false;
         if (lastgroup != s.group) {
-            if (lastgroup && lastgroup[0]) {
+            if (lastgroup) {
                 f->printf("]\n");
                 endgroup = false;
             }
             lastgroup = s.group;
-            if (lastgroup[0]) {
+            if (lastgroup) {
                 f->printf("texgroup \"%s\" [\n", lastgroup);
                 indent = endgroup = true;
             }
