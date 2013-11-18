@@ -3,12 +3,6 @@
 
 local ents = require("core.entities.ents")
 
-if not SERVER then
-    require("core.engine.cubescript").execute [[
-         loopfiles file media/texture/nobiax tex [ texload [nobiax/@file] ]
-    ]]
-end
-
 local game_manager = require("extra.game_manager")
 
 require("extra.entities.teleporters")

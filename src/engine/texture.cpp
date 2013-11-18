@@ -2030,119 +2030,130 @@ const char slotvariants[] = {
     'c', 'n', 'g', 'e', 's', 'z', 'u'
 };
 
-static void dumpvslot(const VSlot &vs, bool indent) {
+static void dumpvslot(stream *f, const VSlot &vs, bool indent) {
     if (vs.scroll.x || vs.scroll.y) {
-        if (indent) printf("    ");
-        printf("texscroll %f %f\n", vs.scroll.x * 1000.0f,
+        if (indent) f->printf("    ");
+        f->printf("texscroll %f %f\n", vs.scroll.x * 1000.0f,
             vs.scroll.y * 1000.0f);
     }
     if (vs.layer) {
-        if (indent) printf("    ");
-        printf("texlayer %d\n", vs.layer);
+        if (indent) f->printf("    ");
+        f->printf("texlayer %d\n", vs.layer);
     }
     if (vs.decal) {
-        if (indent) printf("    ");
-        printf("texdecal %d\n", vs.decal);
+        if (indent) f->printf("    ");
+        f->printf("texdecal %d\n", vs.decal);
     }
     if (vs.alphafront != 0.5f || vs.alphaback != 0) {
-        if (indent) printf("    ");
-        printf("texalpha %f %f\n", vs.alphafront, vs.alphaback);
+        if (indent) f->printf("    ");
+        f->printf("texalpha %f %f\n", vs.alphafront, vs.alphaback);
     }
     const vec &col = vs.colorscale;
     if (col.r != 1.0f || col.g != 1.0f || col.b != 1.0f) {
-        if (indent) printf("    ");
-        printf("texcolor %f %f %f\n", col.r, col.g, col.b);
+        if (indent) f->printf("    ");
+        f->printf("texcolor %f %f %f\n", col.r, col.g, col.b);
     }
     const vec &rfc = vs.refractcolor;
     if (vs.refractscale || rfc.r != 1.0f || rfc.g != 1.0f || rfc.b != 1.0f) {
-        if (indent) printf("    ");
+        if (indent) f->printf("    ");
         const vec &rfc = vs.refractcolor;
-        printf("texrefract %f %f %f %f\n", vs.refractscale,
+        f->printf("texrefract %f %f %f %f\n", vs.refractscale,
             rfc.r, rfc.g, rfc.b);
     }
 }
 
-static void dumpslot(const Slot &s, Shader *lastshader, bool indent) {
-    if (indent) printf("    ");
+static void dumpslot(stream *f, const Slot &s, Shader *lastshader, bool indent) {
+    if (indent) f->printf("    ");
     if (s.shader != lastshader)
-        printf("setshader \"%s\"\n\n", s.shader->name);
+        f->printf("setshader \"%s\"\n\n", s.shader->name);
     loopv(s.params) {
         const SlotShaderParam &p = s.params[i];
-        if (indent) printf("    ");
-        printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
+        if (indent) f->printf("    ");
+        f->printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
             p.val[1], p.val[2], p.val[3]);
     }
-    if (s.params.length()) printf("\n");
+    if (s.params.length()) f->printf("\n");
     const VSlot &vs = *s.variants;
     loopv(s.sts) {
         const Slot::Tex &st = s.sts[i];
-        if (indent) printf("    ");
-        printf("texture %c \"%s\"", slotvariants[st.type], st.name);
+        if (indent) f->printf("    ");
+        f->printf("texture %c \"%s\"", slotvariants[st.type], st.name);
         if (st.type == TEX_DIFFUSE)
-            printf(" %d %d %d %f\n", vs.rotation, vs.offset.x, vs.offset.y,
+            f->printf(" %d %d %d %f\n", vs.rotation, vs.offset.x, vs.offset.y,
                 vs.scale);
-        else printf("\n");
+        else f->printf("\n");
     }
     if (s.autograss) {
-        if (indent) printf("    ");
-        printf("autograss \"%s\"\n", s.autograss);
+        if (indent) f->printf("    ");
+        f->printf("autograss \"%s\"\n", s.autograss);
     }
     if (s.smooth >= 0) {
         extern vector<int> smoothgroups;
-        if (indent) printf("    ");
-        printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
+        if (indent) f->printf("    ");
+        f->printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
     }
-    dumpvslot(*s.variants, indent);
-    printf("\n");
+    dumpvslot(f, *s.variants, indent);
+    f->printf("\n");
 }
 
-static void dumpslotrange(int firstslot, int nslots) {
+static void dumpslotrange(stream *f, int firstslot, int nslots) {
     const char *lastgroup = NULL;
     Shader *lastshader = NULL;
     bool endgroup = false;
-    printf("// slot range %d-%d\n", firstslot, firstslot + nslots - 1);
+    f->printf("// slot range %d-%d\n", firstslot, firstslot + nslots - 1);
     for (int i = firstslot; i < (firstslot + nslots); ++i) {
         const Slot &s = *slots[i];
         bool indent = false;
         if (lastgroup != s.group) {
             if (lastgroup && lastgroup[0]) {
-                printf("]\n");
+                f->printf("]\n");
                 endgroup = false;
             }
             lastgroup = s.group;
             if (lastgroup[0]) {
-                printf("texgroup \"%s\" [\n", lastgroup);
+                f->printf("texgroup \"%s\" [\n", lastgroup);
                 indent = endgroup = true;
             }
         }
-        dumpslot(s, lastshader, indent);
+        dumpslot(f, s, lastshader, indent);
         lastshader = s.shader;
     }
-    if (endgroup) printf("]\n");
+    if (endgroup) f->printf("]\n");
 }
 
-ICOMMAND(texdumpslots, "", (), {
+extern string cfgname;
+
+ICOMMAND(writemediacfg, "", (), {
+    string buf;
+    copystring(buf, world::curr_map_id);
+    buf[strlen(world::curr_map_id) - 7] = '\0';
+    defformatstring(fname, "media/%s/media.cfg", buf);
+    stream *f = openutf8file(fname, "w");
+    if (!f) return;
+    f->printf("// generated automatically, do not modify\n\n// texture slots\n");
+    f->printf("texturereset\n\n");
     if (!texpacks.length()) {
-        dumpslotrange(0, slots.length());
+        dumpslotrange(f, 0, slots.length());
         return;
     }
-    if (texpacks[0]->firstslot > 0) dumpslotrange(0, texpacks[0]->firstslot);
+    if (texpacks[0]->firstslot > 0) dumpslotrange(f, 0, texpacks[0]->firstslot);
     texpack *ptp = NULL;
     loopv(texpacks) {
         texpack *tp = texpacks[i];
         if (ptp) {
             int offstart = ptp->firstslot + ptp->nslots;
             if (offstart != tp->firstslot)
-                dumpslotrange(offstart, tp->firstslot - offstart);
+                dumpslotrange(f, offstart, tp->firstslot - offstart);
         }
-        printf("texload \"%s\"\n", tp->name);
+        f->printf("texload \"%s\"\n", tp->name);
         ptp = tp;
     }
     if (ptp) {
         int offstart = ptp->firstslot + ptp->nslots;
         if (slots.inrange(offstart))
-            dumpslotrange(offstart, slots.length() - offstart);
+            dumpslotrange(f, offstart, slots.length() - offstart);
     }
+    delete f;
 });
 
 // OF: forcedindex
