@@ -1339,6 +1339,18 @@ ICOMMAND(setuniformparam, "sfFFf", (char *name, float *x, float *y, float *z, fl
 ICOMMAND(setshaderparam, "sfFFf", (char *name, float *x, float *y, float *z, float *w), addslotparam(name, *x, *y, *z, *w));
 ICOMMAND(defuniformparam, "sfFFf", (char *name, float *x, float *y, float *z, float *w), addslotparam(name, *x, *y, *z, *w));
 
+/* OF */
+void saveslotshader(Shader *&shader, vector<SlotShaderParam> &params) {
+    params.move(slotparams);
+    shader = slotshader;
+}
+
+void restoreslotshader(Shader *shader, vector<SlotShaderParam> &params) {
+    slotparams.shrink(0);
+    slotparams.move(params);
+    slotshader = shader;
+}
+
 #define NUMPOSTFXBINDS 10
 
 struct postfxtex

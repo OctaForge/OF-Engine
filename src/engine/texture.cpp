@@ -1962,13 +1962,22 @@ const char *get_texgroup_name(const char *name) {
 
 static const char *curtexgroup = get_texgroup_name("");
 
+extern void saveslotshader(Shader *&shader, vector<SlotShaderParam> &params);
+extern void restoreslotshader(Shader *shader, vector<SlotShaderParam> &params);
+
 ICOMMAND(texgroup, "se", (char *name, uint *body), {
     const char *oldgroup = curtexgroup;
     if (oldgroup[0] && name[0]) {
         defformatstring(tmpgroup, "%s.%s", oldgroup, name);
         curtexgroup = get_texgroup_name(tmpgroup);
     } else curtexgroup = get_texgroup_name(name);
+
+    Shader *savedshader = NULL;
+    vector<SlotShaderParam> savedparams;
+    saveslotshader(savedshader, savedparams);
     execute(body);
+    restoreslotshader(savedshader, savedparams);
+
     curtexgroup = oldgroup;
 });
 
@@ -1988,15 +1997,26 @@ void clear_texpacks() {
     texpacks.deletecontents();
 }
 
+extern void setshader(char *name);
+
 ICOMMAND(texload, "s", (char *pack), {
     defformatstring(ppath, "media/texture/%s.tex", pack);
     int first = slots.length();
     int oldresetcount = texresetcount;
+
+    Shader *savedshader = NULL;
+    vector<SlotShaderParam> savedparams;
+    saveslotshader(savedshader, savedparams);
+    setshader((char*)"stdworld");
+
     if (!execfile(ppath, false)) {
         conoutf("could not load texture pack '%s'", pack);
         intret(false);
         return;
     }
+
+    restoreslotshader(savedshader, savedparams);
+
     int nresets = texresetcount - oldresetcount;
     if (nresets > 0) {
         first = 0;
