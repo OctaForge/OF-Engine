@@ -1,0 +1,7 @@
+loop+ i 1 4 [
+    materialreset [lava@i]
+    texture [lava@i] "material/default/lava/lava.png"              // Lava Diffuse
+    texture 1        "material/default/water/water_normal.png"     // Lava Normals
+    texture 1        "material/default/lava/lava.png"              // Lavafall Diffuse
+    texture 1        "material/default/water/waterfall_normal.png" // Lavafall Normals
+]

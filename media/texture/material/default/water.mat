@@ -1,0 +1,7 @@
+loop+ i 1 4 [
+    materialreset [water@i]
+    texture [water@i] "material/default/water/water.png"            // Water Diffuse (Unused)
+    texture 1         "material/default/water/water_normal.png"     // Water Normals
+    texture 1         "material/default/water/waterfall.png"        // Waterfall Diffuse
+    texture 1         "material/default/water/waterfall_normal.png" // Waterfall Normals
+]

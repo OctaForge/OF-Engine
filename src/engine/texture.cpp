@@ -1561,13 +1561,20 @@ void texturereset(int *n)
 
 COMMAND(texturereset, "i");
 
-void materialreset()
+void materialreset(const char *type)
 {
     if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
+    if (type[0]) {
+        int matslot = findmaterial(type);
+        if (matslot >= 0) {
+            materialslots[matslot].reset();
+            return;
+        }
+    }
     loopi((MATF_VOLUME|MATF_INDEX)+1) materialslots[i].reset();
 }
 
-COMMAND(materialreset, "");
+COMMAND(materialreset, "s");
 
 static int compactedvslots = 0, compactvslotsprogress = 0, clonedvslots = 0;
 static bool markingvslots = false;

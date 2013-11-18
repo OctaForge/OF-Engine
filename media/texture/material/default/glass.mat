@@ -1,0 +1,4 @@
+loop+ i 1 4 [
+    materialreset [glass@i]
+    texture [glass@i] "material/default/glass/glass_normal.png" // Glass Normals
+]

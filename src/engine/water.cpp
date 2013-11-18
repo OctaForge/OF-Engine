@@ -14,7 +14,7 @@ void loadcaustics(bool force)
     loopi(NUMCAUSTICS)
     {
         /* OF */
-        defformatstring(name, "<grey><noswizzle>media/texture/mat_water/caustic/caust%.2d", i);
+        defformatstring(name, "<grey><noswizzle>media/texture/material/default/water/caustic/caust%.2d", i);
         caustictex[i] = textureload(name);
     }
 }
