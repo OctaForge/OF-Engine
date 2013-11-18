@@ -940,7 +940,7 @@ void gl_checkextensions()
             if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_draw_buffers_blend extension.");
         }
     }
-    if(hasTG) usetexgather = hasGPU5 && !intel ? 2 : 1;
+    if(hasTG) usetexgather = hasGPU5 && !intel && !nvidia ? 2 : 1;
 
     if(hasext("GL_ARB_debug_output"))
     {
@@ -1302,15 +1302,13 @@ FVARNP(aspect, forceaspect, 0, 0, 1e3f);
 
 CLUAICOMMAND(aspect_get, float, (), return forceaspect;);
 
-static int zoommillis = 0;
-VARF(zoom, -1, 0, 1,
-    if(zoom) zoommillis = totalmillis;
-);
+static float zoomprogress = 0;
+VAR(zoom, -1, 0, 1);
 
 void disablezoom()
 {
     zoom = 0;
-    zoommillis = totalmillis;
+    zoomprogress = 0;
 }
 
 static float forced_camera_fov = -1;
@@ -1324,28 +1322,14 @@ void computezoom()
         return;
     }
 
-    if(!zoom) { curfov = fov; curavatarfov = avatarfov; return; }
-    if(zoom < 0 && curfov >= fov) { zoom = 0; curfov = fov; curavatarfov = avatarfov; return; } // don't zoom-out if not zoomed-in
-    int zoomvel = zoom > 0 ? zoominvel : zoomoutvel,
-        oldfov = zoom > 0 ? fov : zoomfov,
-        newfov = zoom > 0 ? zoomfov : fov,
-        oldavatarfov = zoom > 0 ? avatarfov : avatarzoomfov,
-        newavatarfov = zoom > 0 ? avatarzoomfov : avatarfov;
-    float t = zoomvel ? float(zoomvel - (totalmillis - zoommillis)) / zoomvel : 0;
-    if(t <= 0)
+    if(!zoom) { zoomprogress = 0; curfov = fov; curavatarfov = avatarfov; return; }
+    if(zoom > 0) zoomprogress = zoominvel ? min(zoomprogress + float(elapsedtime) / zoominvel, 1.0f) : 1;
     {
-        if(!zoomvel && fabs(newfov - curfov) >= 1)
-        {
-            curfov = newfov;
-            curavatarfov = newavatarfov;
-        }
-        zoom = max(zoom, 0);
+        zoomprogress = zoomoutvel ? max(zoomprogress - float(elapsedtime) / zoomoutvel, 0.0f) : 0;
+        if(zoomprogress <= 0) zoom = 0;
     }
-    else
-    {
-        curfov = oldfov*t + newfov*(1 - t);
-        curavatarfov = oldavatarfov*t + newavatarfov*(1 - t);
-    }
+    curfov = zoomfov*zoomprogress + fov*(1 - zoomprogress);
+    curavatarfov = avatarzoomfov*zoomprogress + avatarfov*(1 - zoomprogress);
 }
 
 FVARP(zoomsens, 1e-4f, 3, 1e4f);

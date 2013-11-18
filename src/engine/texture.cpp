@@ -2097,9 +2097,9 @@ static void dumpslot(stream *f, const Slot &s, int index, bool indent) {
         } else f->printf("\n");
     }
     if (index >= 0) {
-        if (s.autograss) {
+        if (s.grass) {
             if (indent) f->printf("    ");
-            f->printf("autograss \"%s\"\n", s.autograss);
+            f->printf("texgrass \"%s\"\n", s.grass);
         }
         if (s.smooth >= 0) {
             extern vector<int> smoothgroups;
@@ -2220,14 +2220,14 @@ void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float
 
 COMMAND(texture, "ssiiifi");
 
-void autograss(char *name)
+void texgrass(char *name)
 {
     if(slots.empty()) return;
     Slot &s = *slots.last();
-    DELETEA(s.autograss);
-    s.autograss = name[0] ? newstring(makerelpath("media/texture", name)) : NULL;
+    DELETEA(s.grass);
+    s.grass = name[0] ? newstring(makerelpath("media/texture", name)) : NULL;
 }
-COMMAND(autograss, "s");
+COMMAND(texgrass, "s");
 
 void texscroll(float *scrollS, float *scrollT)
 {
