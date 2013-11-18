@@ -2030,61 +2030,31 @@ const char slotvariants[] = {
     'c', 'n', 'g', 'e', 's', 'z', 'u'
 };
 
-static int genvsflags(const VSlot &vs) {
-    int flags = 0;
-    if (vs.scale != 1.0f)           flags |= 1 << VSLOT_SCALE;
-    if (vs.rotation)                flags |= 1 << VSLOT_ROTATION;
-    if (vs.offset.x || vs.offset.y) flags |= 1 << VSLOT_OFFSET;
-    if (vs.scroll.x || vs.scroll.y) flags |= 1 << VSLOT_SCROLL;
-    if (vs.layer)                   flags |= 1 << VSLOT_LAYER;
-    if (vs.decal)                   flags |= 1 << VSLOT_DECAL;
-    if (vs.alphafront != 0.5f || vs.alphaback != 0)
-        flags |= 1 << VSLOT_ALPHA;
-    const vec &col = vs.colorscale;
-    if (col.r != 1.0f || col.g != 1.0f || col.b != 1.0f)
-        flags |= 1 << VSLOT_COLOR;
-    const vec &rfc = vs.refractcolor;
-    if (vs.refractscale || rfc.r != 1.0f || rfc.g != 1.0f || rfc.b != 1.0f)
-        flags |= 1 << VSLOT_REFRACT;
-    return flags;
-}
-
 static void dumpvslot(const VSlot &vs, bool indent) {
-    int flags = genvsflags(vs);
-    if (flags & (1 << VSLOT_SCALE)) {
+    if (vs.scroll.x || vs.scroll.y) {
         if (indent) printf("    ");
-        printf("texscale %f\n", vs.scale);
+        printf("texscroll %f %f\n", vs.scroll.x * 1000.0f,
+            vs.scroll.y * 1000.0f);
     }
-    if (flags & (1 << VSLOT_ROTATION)) {
-        if (indent) printf("    ");
-        printf("texrotate %d\n", vs.rotation);
-    }
-    if (flags & (1 << VSLOT_OFFSET)) {
-        if (indent) printf("    ");
-        printf("texoffset %d %d\n", vs.offset.x, vs.offset.y);
-    }
-    if (flags & (1 << VSLOT_SCROLL)) {
-        if (indent) printf("    ");
-        printf("texscroll %f %f\n", vs.scroll.x, vs.scroll.y);
-    }
-    if (flags & (1 << VSLOT_LAYER)) {
+    if (vs.layer) {
         if (indent) printf("    ");
         printf("texlayer %d\n", vs.layer);
     }
-    if (flags & (1 << VSLOT_DECAL)) {
+    if (vs.decal) {
         if (indent) printf("    ");
         printf("texdecal %d\n", vs.decal);
     }
-    if (flags & (1 << VSLOT_ALPHA)) {
+    if (vs.alphafront != 0.5f || vs.alphaback != 0) {
         if (indent) printf("    ");
         printf("texalpha %f %f\n", vs.alphafront, vs.alphaback);
     }
-    if (flags & (1 << VSLOT_COLOR)) {
+    const vec &col = vs.colorscale;
+    if (col.r != 1.0f || col.g != 1.0f || col.b != 1.0f) {
         if (indent) printf("    ");
-        const vec &col = vs.colorscale;
         printf("texcolor %f %f %f\n", col.r, col.g, col.b);
     }
-    if (flags & (1 << VSLOT_REFRACT)) {
+    const vec &rfc = vs.refractcolor;
+    if (vs.refractscale || rfc.r != 1.0f || rfc.g != 1.0f || rfc.b != 1.0f) {
         if (indent) printf("    ");
         const vec &rfc = vs.refractcolor;
         printf("texrefract %f %f %f %f\n", vs.refractscale,
@@ -2103,23 +2073,26 @@ static void dumpslot(const Slot &s, Shader *lastshader, bool indent) {
             p.val[1], p.val[2], p.val[3]);
     }
     if (s.params.length()) printf("\n");
+    const VSlot &vs = *s.variants;
     loopv(s.sts) {
         const Slot::Tex &st = s.sts[i];
         if (indent) printf("    ");
-        printf("texture %c \"%s\"\n", slotvariants[st.type], st.name);
-        if (st.type == TEX_DIFFUSE) {
-            if (s.autograss) {
-                if (indent) printf("    ");
-                printf("autograss \"%s\"\n", s.autograss);
-            }
-            if (s.smooth >= 0) {
-                extern vector<int> smoothgroups;
-                if (indent) printf("    ");
-                printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
-            }
-            dumpvslot(*s.variants, indent);
-        }
+        printf("texture %c \"%s\"", slotvariants[st.type], st.name);
+        if (st.type == TEX_DIFFUSE)
+            printf(" %d %d %d %f\n", vs.rotation, vs.offset.x, vs.offset.y,
+                vs.scale);
+        else printf("\n");
     }
+    if (s.autograss) {
+        if (indent) printf("    ");
+        printf("autograss \"%s\"\n", s.autograss);
+    }
+    if (s.smooth >= 0) {
+        extern vector<int> smoothgroups;
+        if (indent) printf("    ");
+        printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
+    }
+    dumpvslot(*s.variants, indent);
     printf("\n");
 }
 
