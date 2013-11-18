@@ -1155,7 +1155,7 @@ void variantshader(int *type, char *name, int *row, char *vs, char *ps, int *max
     }
 }
 
-void setshader(char *name)
+void setshader(const char *name)
 {
     slotparams.shrink(0);
     Shader *s = shaders.access(name);

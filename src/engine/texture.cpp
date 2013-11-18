@@ -1997,7 +1997,7 @@ void clear_texpacks() {
     texpacks.deletecontents();
 }
 
-extern void setshader(char *name);
+extern void setshader(const char *name);
 
 ICOMMAND(texload, "s", (char *pack), {
     defformatstring(ppath, "media/texture/%s.tex", pack);
@@ -2007,7 +2007,7 @@ ICOMMAND(texload, "s", (char *pack), {
     Shader *savedshader = NULL;
     vector<SlotShaderParam> savedparams;
     saveslotshader(savedshader, savedparams);
-    setshader((char*)"stdworld");
+    setshader("stdworld");
 
     if (!execfile(ppath, false)) {
         conoutf("could not load texture pack '%s'", pack);
