@@ -162,6 +162,9 @@ namespace world
     void run_mapscript() {
         int oldflags = identflags;
         identflags |= IDF_SAFE;
+#ifndef SERVER
+        execfile(get_mapfile_path("media.cfg"), false);
+#endif
         if (lua::load_file(get_mapscript_filename()))
             fatal("%s", lua_tostring(lua::L, -1));
         lua::push_external("mapscript_gen_env");
