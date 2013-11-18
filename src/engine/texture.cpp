@@ -2030,8 +2030,27 @@ const char slotvariants[] = {
     'c', 'n', 'g', 'e', 's', 'z', 'u'
 };
 
+static int genvsflags(const VSlot &vs) {
+    int flags = 0;
+    if (vs.scale != 1.0f)           flags |= 1 << VSLOT_SCALE;
+    if (vs.rotation)                flags |= 1 << VSLOT_ROTATION;
+    if (vs.offset.x || vs.offset.y) flags |= 1 << VSLOT_OFFSET;
+    if (vs.scroll.x || vs.scroll.y) flags |= 1 << VSLOT_SCROLL;
+    if (vs.layer)                   flags |= 1 << VSLOT_LAYER;
+    if (vs.decal)                   flags |= 1 << VSLOT_DECAL;
+    if (vs.alphafront != 0.5f || vs.alphaback != 0)
+        flags |= 1 << VSLOT_ALPHA;
+    const vec &col = vs.colorscale;
+    if (col.r != 1.0f || col.g != 1.0f || col.b != 1.0f)
+        flags |= 1 << VSLOT_COLOR;
+    const vec &rfc = vs.refractcolor;
+    if (vs.refractscale || rfc.r != 1.0f || rfc.g != 1.0f || rfc.b != 1.0f)
+        flags |= 1 << VSLOT_REFRACT;
+    return flags;
+}
+
 static void dumpvslot(const VSlot &vs, bool indent) {
-    int flags = vs.changed;
+    int flags = genvsflags(vs);
     if (flags & (1 << VSLOT_SCALE)) {
         if (indent) printf("    ");
         printf("texscale %f\n", vs.scale);
@@ -2076,13 +2095,14 @@ static void dumpvslot(const VSlot &vs, bool indent) {
 static void dumpslot(const Slot &s, Shader *lastshader, bool indent) {
     if (indent) printf("    ");
     if (s.shader != lastshader)
-        printf("setshader \"%s\"\n", s.shader->name);
+        printf("setshader \"%s\"\n\n", s.shader->name);
     loopv(s.params) {
         const SlotShaderParam &p = s.params[i];
         if (indent) printf("    ");
         printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
             p.val[1], p.val[2], p.val[3]);
     }
+    if (s.params.length()) printf("\n");
     loopv(s.sts) {
         const Slot::Tex &st = s.sts[i];
         if (indent) printf("    ");
@@ -2100,12 +2120,14 @@ static void dumpslot(const Slot &s, Shader *lastshader, bool indent) {
             dumpvslot(*s.variants, indent);
         }
     }
+    printf("\n");
 }
 
 static void dumpslotrange(int firstslot, int nslots) {
     const char *lastgroup = NULL;
     Shader *lastshader = NULL;
     bool endgroup = false;
+    printf("// slot range %d-%d\n", firstslot, firstslot + nslots - 1);
     for (int i = firstslot; i < (firstslot + nslots); ++i) {
         const Slot &s = *slots[i];
         bool indent = false;
