@@ -827,12 +827,19 @@ CLUAICOMMAND(sound_stop_map, bool, (int uid), {
     assert(ent);
     stopmapsound(ent);
     return true;
-})
+});
 
 CLUAICOMMAND(sound_preload_map, int, (const char *name, int vol), {
     defformatstring(buf, "preloading sound '%s' ...", name);
     renderprogress(0, buf);
     return preloadmapsound(name, vol);
+});
+
+ICOMMAND(preloadmapsound, "si", (char *name, int *vol), {
+    if (!name[0]) return;
+    defformatstring(buf, "preloading sound '%s' ...", name);
+    renderprogress(0, buf);
+    intret(preloadmapsound(name, *vol ? *vol : 100));
 });
 
 CLUAICOMMAND(sound_preload_game, int, (const char *name, int vol), {
@@ -841,3 +848,9 @@ CLUAICOMMAND(sound_preload_game, int, (const char *name, int vol), {
     return preloadgamesound(name, vol);
 });
 
+ICOMMAND(preloadgamesound, "si", (char *name, int *vol), {
+    if (!name[0]) return;
+    defformatstring(buf, "preloading sound '%s' ...", name);
+    renderprogress(0, buf);
+    intret(preloadgamesound(name, *vol ? *vol : 100));
+});
