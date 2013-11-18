@@ -2025,18 +2025,105 @@ LUAICOMMAND(texture_get_packs, {
     return 1;
 });
 
+/* diffuse, normal, glow, envmap, spec, depth, unknown */
+const char slotvariants[] = {
+    'c', 'n', 'g', 'e', 's', 'z', 'u'
+};
+
+static void dumpvslot(const VSlot &vs, bool indent) {
+    int flags = vs.changed;
+    if (flags & (1 << VSLOT_SCALE)) {
+        if (indent) printf("    ");
+        printf("texscale %f\n", vs.scale);
+    }
+    if (flags & (1 << VSLOT_ROTATION)) {
+        if (indent) printf("    ");
+        printf("texrotate %d\n", vs.rotation);
+    }
+    if (flags & (1 << VSLOT_OFFSET)) {
+        if (indent) printf("    ");
+        printf("texoffset %d %d\n", vs.offset.x, vs.offset.y);
+    }
+    if (flags & (1 << VSLOT_SCROLL)) {
+        if (indent) printf("    ");
+        printf("texscroll %f %f\n", vs.scroll.x, vs.scroll.y);
+    }
+    if (flags & (1 << VSLOT_LAYER)) {
+        if (indent) printf("    ");
+        printf("texlayer %d\n", vs.layer);
+    }
+    if (flags & (1 << VSLOT_DECAL)) {
+        if (indent) printf("    ");
+        printf("texdecal %d\n", vs.decal);
+    }
+    if (flags & (1 << VSLOT_ALPHA)) {
+        if (indent) printf("    ");
+        printf("texalpha %f %f\n", vs.alphafront, vs.alphaback);
+    }
+    if (flags & (1 << VSLOT_COLOR)) {
+        if (indent) printf("    ");
+        const vec &col = vs.colorscale;
+        printf("texcolor %f %f %f\n", col.r, col.g, col.b);
+    }
+    if (flags & (1 << VSLOT_REFRACT)) {
+        if (indent) printf("    ");
+        const vec &rfc = vs.refractcolor;
+        printf("texrefract %f %f %f %f\n", vs.refractscale,
+            rfc.r, rfc.g, rfc.b);
+    }
+}
+
+static void dumpslot(const Slot &s, Shader *lastshader, bool indent) {
+    if (indent) printf("    ");
+    if (s.shader != lastshader)
+        printf("setshader \"%s\"\n", s.shader->name);
+    loopv(s.params) {
+        const SlotShaderParam &p = s.params[i];
+        if (indent) printf("    ");
+        printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
+            p.val[1], p.val[2], p.val[3]);
+    }
+    loopv(s.sts) {
+        const Slot::Tex &st = s.sts[i];
+        if (indent) printf("    ");
+        printf("texture %c \"%s\"\n", slotvariants[st.type], st.name);
+        if (st.type == TEX_DIFFUSE) {
+            if (s.autograss) {
+                if (indent) printf("    ");
+                printf("autograss \"%s\"\n", s.autograss);
+            }
+            if (s.smooth >= 0) {
+                extern vector<int> smoothgroups;
+                if (indent) printf("    ");
+                printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
+            }
+            dumpvslot(*s.variants, indent);
+        }
+    }
+}
+
 static void dumpslotrange(int firstslot, int nslots) {
     const char *lastgroup = NULL;
+    Shader *lastshader = NULL;
+    bool endgroup = false;
     for (int i = firstslot; i < (firstslot + nslots); ++i) {
         const Slot &s = *slots[i];
+        bool indent = false;
         if (lastgroup != s.group) {
-            if (lastgroup) printf("end group\n");
+            if (lastgroup && lastgroup[0]) {
+                printf("]\n");
+                endgroup = false;
+            }
             lastgroup = s.group;
-            printf("start group: '%s'\n", lastgroup);
+            if (lastgroup[0]) {
+                printf("texgroup \"%s\" [\n", lastgroup);
+                indent = endgroup = true;
+            }
         }
-        printf("    slot on index %d: %s\n", i, s.sts[0].name);
+        dumpslot(s, lastshader, indent);
+        lastshader = s.shader;
     }
-    printf("end group\n");
+    if (endgroup) printf("]\n");
 }
 
 ICOMMAND(texdumpslots, "", (), {
@@ -2053,10 +2140,7 @@ ICOMMAND(texdumpslots, "", (), {
             if (offstart != tp->firstslot)
                 dumpslotrange(offstart, tp->firstslot - offstart);
         }
-        printf("start texpack: '%s' (starting at %d, containing %d slots)\n",
-            tp->name, tp->firstslot, tp->nslots);
-        dumpslotrange(tp->firstslot, tp->nslots);
-        printf("end texpack\n");
+        printf("texload \"%s\"\n", tp->name);
         ptp = tp;
     }
     if (ptp) {
