@@ -1962,9 +1962,6 @@ const char *get_texgroup_name(const char *name) {
 
 static const char *curtexgroup = get_texgroup_name("");
 
-extern void saveslotshader(Shader *&shader, vector<SlotShaderParam> &params);
-extern void restoreslotshader(Shader *shader, vector<SlotShaderParam> &params);
-
 ICOMMAND(texgroup, "se", (char *name, uint *body), {
     const char *oldgroup = curtexgroup;
     if (oldgroup[0] && name[0]) {
@@ -1996,8 +1993,6 @@ static vector<texpack*> texpacks;
 void clear_texpacks() {
     texpacks.deletecontents();
 }
-
-extern void setshader(const char *name);
 
 ICOMMAND(texload, "s", (char *pack), {
     defformatstring(ppath, "media/texture/%s.tex", pack);

@@ -752,6 +752,11 @@ extern void setupshaders();
 extern void reloadshaders();
 extern void cleanupshaders();
 
+/* OF */
+extern void setshader(const char *name);
+extern void saveslotshader(Shader *&shader, vector<SlotShaderParam> &params);
+extern void restoreslotshader(Shader *shader, vector<SlotShaderParam> &params);
+
 #define MAXBLURRADIUS 7
 extern float blursigma;
 extern void setupblurkernel(int radius, float *weights, float *offsets);
