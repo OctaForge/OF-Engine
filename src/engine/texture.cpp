@@ -2062,43 +2062,57 @@ static void dumpvslot(stream *f, const VSlot &vs, bool indent) {
     }
 }
 
-static void dumpslot(stream *f, const Slot &s, Shader *lastshader, bool indent) {
-    if (indent) f->printf("    ");
-    if (s.shader != lastshader)
-        f->printf("setshader \"%s\"\n\n", s.shader->name);
-    loopv(s.params) {
-        const SlotShaderParam &p = s.params[i];
+static void dumpslot(stream *f, const Slot &s, int index, bool indent) {
+    if (index >= 0) {
         if (indent) f->printf("    ");
-        f->printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
-            p.val[1], p.val[2], p.val[3]);
+        f->printf("setshader \"%s\"\n", s.shader->name);
+        loopv(s.params) {
+            const SlotShaderParam &p = s.params[i];
+            if (indent) f->printf("    ");
+            f->printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
+                p.val[1], p.val[2], p.val[3]);
+        }
+        if (s.params.length()) f->printf("\n");
     }
-    if (s.params.length()) f->printf("\n");
     const VSlot &vs = *s.variants;
     loopv(s.sts) {
         const Slot::Tex &st = s.sts[i];
         if (indent) f->printf("    ");
-        f->printf("texture %c \"%s\"", slotvariants[st.type], st.name);
-        if (st.type == TEX_DIFFUSE)
-            f->printf(" %d %d %d %f\n", vs.rotation, vs.offset.x, vs.offset.y,
+        f->printf("texture ");
+        if (index >= 0) {
+            f->printf("%c", slotvariants[st.type]);
+        } else if (!i) {
+            f->printf("%s", findmaterialname(-index));
+        } else {
+            f->printf("1");
+        }
+        f->printf(" \"%s\"", st.name);
+        if (st.type == TEX_DIFFUSE) {
+            f->printf(" %d %d %d %f", vs.rotation, vs.offset.x, vs.offset.y,
                 vs.scale);
-        else f->printf("\n");
+            if (index >= 0)
+                f->printf(" // %d\n", index);
+            else
+                f->printf("\n");
+        } else f->printf("\n");
     }
-    if (s.autograss) {
-        if (indent) f->printf("    ");
-        f->printf("autograss \"%s\"\n", s.autograss);
+    if (index >= 0) {
+        if (s.autograss) {
+            if (indent) f->printf("    ");
+            f->printf("autograss \"%s\"\n", s.autograss);
+        }
+        if (s.smooth >= 0) {
+            extern vector<int> smoothgroups;
+            if (indent) f->printf("    ");
+            f->printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
+        }
+        dumpvslot(f, *s.variants, indent);
     }
-    if (s.smooth >= 0) {
-        extern vector<int> smoothgroups;
-        if (indent) f->printf("    ");
-        f->printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
-    }
-    dumpvslot(f, *s.variants, indent);
     f->printf("\n");
 }
 
 static void dumpslotrange(stream *f, int firstslot, int nslots) {
     const char *lastgroup = NULL;
-    Shader *lastshader = NULL;
     bool endgroup = false;
     f->printf("// slot range %d-%d\n", firstslot, firstslot + nslots - 1);
     for (int i = firstslot; i < (firstslot + nslots); ++i) {
@@ -2115,8 +2129,7 @@ static void dumpslotrange(stream *f, int firstslot, int nslots) {
                 indent = endgroup = true;
             }
         }
-        dumpslot(f, s, lastshader, indent);
-        lastshader = s.shader;
+        dumpslot(f, s, i, indent);
     }
     if (endgroup) f->printf("]\n");
 }
@@ -2130,8 +2143,19 @@ ICOMMAND(writemediacfg, "", (), {
     defformatstring(fname, "media/%s/media.cfg", buf);
     stream *f = openutf8file(fname, "w");
     if (!f) return;
-    f->printf("// generated automatically, do not modify\n\n// texture slots\n");
-    f->printf("texturereset\n\n");
+    f->printf("// generated automatically, do not modify\n\n");
+    f->printf("// material slots\nmaterialreset\n\n");
+    int nummat = sizeof(materialslots) / sizeof(materialslots[0]);
+    loopi(nummat) {
+        switch (i & MATF_VOLUME) {
+            case MAT_GLASS:
+            case MAT_WATER:
+            case MAT_LAVA:
+                dumpslot(f, materialslots[i], -i, false);
+                break;
+        }
+    }
+    f->printf("// texture slots\ntexturereset\n\n");
     if (!texpacks.length()) {
         dumpslotrange(f, 0, slots.length());
         return;
