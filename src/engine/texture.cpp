@@ -2151,9 +2151,7 @@ static void dumpslotrange(stream *f, int firstslot, int nslots) {
     if (endgroup) f->printf("]\n");
 }
 
-extern string cfgname;
-
-ICOMMAND(writemediacfg, "", (), {
+ICOMMAND(writemediacfg, "i", (int *level), {
     string buf;
     copystring(buf, world::curr_map_id);
     buf[strlen(world::curr_map_id) - 7] = '\0';
@@ -2176,25 +2174,75 @@ ICOMMAND(writemediacfg, "", (), {
     f->printf("// texture slots\ntexturereset\n\n");
     if (!texpacks.length()) {
         dumpslotrange(f, 0, slots.length());
-        return;
-    }
-    if (texpacks[0]->firstslot > 0) dumpslotrange(f, 0, texpacks[0]->firstslot);
-    texpack *ptp = NULL;
-    loopv(texpacks) {
-        renderprogress(i / float(texpacks.length()), "saving texture packs...");
-        texpack *tp = texpacks[i];
+    } else {
+        if (texpacks[0]->firstslot > 0)
+            dumpslotrange(f, 0, texpacks[0]->firstslot);
+        texpack *ptp = NULL;
+        loopv(texpacks) {
+            renderprogress(i / float(texpacks.length()),
+                "saving texture packs...");
+            texpack *tp = texpacks[i];
+            if (ptp) {
+                int offstart = ptp->firstslot + ptp->nslots;
+                if (offstart != tp->firstslot)
+                    dumpslotrange(f, offstart, tp->firstslot - offstart);
+            }
+            f->printf("texload \"%s\"\n", tp->name);
+            ptp = tp;
+        }
         if (ptp) {
             int offstart = ptp->firstslot + ptp->nslots;
-            if (offstart != tp->firstslot)
-                dumpslotrange(f, offstart, tp->firstslot - offstart);
+            if (slots.inrange(offstart))
+                dumpslotrange(f, offstart, slots.length() - offstart);
         }
-        f->printf("texload \"%s\"\n", tp->name);
-        ptp = tp;
     }
-    if (ptp) {
-        int offstart = ptp->firstslot + ptp->nslots;
-        if (slots.inrange(offstart))
-            dumpslotrange(f, offstart, slots.length() - offstart);
+    int lvl = *level;
+    if (lvl >= 1) {
+        vector<extentity*> models;
+        vector<extentity*> sounds;
+        const vector<extentity*> &ents = entities::getents();
+        loopv(ents) {
+            renderprogress(i / float(ents.length()), "checking entities...");
+            extentity *e = ents[i];
+            switch (e->type) {
+                case ET_MAPMODEL:
+                    models.add(e);
+                    break;
+                case ET_SOUND:
+                    if (lvl <= 1) break;
+                    sounds.add(e);
+                    break;
+            }
+        }
+        if (!models.length()) goto sounds;
+        f->printf("// models\n");
+        loopv(models) {
+            renderprogress(i / float(models.length()), "saving models...");
+            const extentity &e = *models[i];
+            if (e.m) f->printf("preloadmodel \"%s\"\n", e.m->name);
+        }
+sounds:
+        if (!sounds.length()) goto none;
+        f->printf("\n// sounds\n");
+        lua::push_external("entity_get_attr");
+        loopv(sounds) {
+            renderprogress(i / float(sounds.length()), "saving sounds...");
+            lua_pushvalue(lua::L, -1);
+            const extentity &e = *sounds[i];
+
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
+                LogicSystem::getLogicEntity(e)->lua_ref);
+            lua_pushliteral(lua::L, "sound_name");
+            lua_call(lua::L, 2, 1);
+
+            const char *sn = lua_tostring(lua::L, -1);
+            f->printf("preloadmapsound \"%s\" %d\n", sn, e.attr[2]);
+            lua_pop(lua::L, 1);
+        }
+        lua_pop(lua::L, 1);
+none:
+        delete f;
+        return;
     }
     delete f;
 });
