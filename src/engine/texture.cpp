@@ -2019,16 +2019,15 @@ ICOMMAND(texload, "s", (char *pack), {
         return;
     }
 
+    texpackloading = oldloading;
     restoreslotshader(savedshader, savedparams);
 
     if (slots.length() == first) {
         conoutf("texture pack '%s' contains no slots", pack);
-        texpackloading = oldloading;
         intret(false);
         return;
     }
     texpacks.add(new texpack(pack, first));
-    texpackloading = oldloading;
     intret(true);
 });
 
