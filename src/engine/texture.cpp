@@ -1541,11 +1541,12 @@ MSlot materialslots[(MATF_VOLUME|MATF_INDEX)+1];
 Slot dummyslot;
 VSlot dummyvslot(&dummyslot);
 
-static int texresetcount = 0; /* OF */
+static bool texpackloading = false; /* OF */
 
 void texturereset(int *n)
 {
     if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
+    if(texpackloading) return;
     resetslotshader();
     int limit = clamp(*n, 0, slots.length());
     for(int i = limit; i < slots.length(); i++)
@@ -1555,7 +1556,7 @@ void texturereset(int *n)
         delete s;
     }
     slots.setsize(limit);
-    ++texresetcount;
+    void clear_texpacks(); clear_texpacks();
 }
 
 COMMAND(texturereset, "i");
@@ -2003,7 +2004,8 @@ void clear_texpacks() {
 ICOMMAND(texload, "s", (char *pack), {
     defformatstring(ppath, "media/texture/%s.tex", pack);
     int first = slots.length();
-    int oldresetcount = texresetcount;
+    bool oldloading = texpackloading;
+    texpackloading = true;
 
     Shader *savedshader = NULL;
     vector<SlotShaderParam> savedparams;
@@ -2012,24 +2014,21 @@ ICOMMAND(texload, "s", (char *pack), {
 
     if (!execfile(ppath, false)) {
         conoutf("could not load texture pack '%s'", pack);
+        texpackloading = oldloading;
         intret(false);
         return;
     }
 
     restoreslotshader(savedshader, savedparams);
 
-    int nresets = texresetcount - oldresetcount;
-    if (nresets > 0) {
-        first = 0;
-        texresetcount -= nresets;
-        clear_texpacks();
-    }
     if (slots.length() == first) {
         conoutf("texture pack '%s' contains no slots", pack);
+        texpackloading = oldloading;
         intret(false);
         return;
     }
     texpacks.add(new texpack(pack, first));
+    texpackloading = oldloading;
     intret(true);
 });
 
