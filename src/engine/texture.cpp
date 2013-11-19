@@ -1556,7 +1556,7 @@ void texturereset(int *n)
         delete s;
     }
     slots.setsize(limit);
-    void clear_texpacks(); clear_texpacks();
+    void clear_texpacks(int n); clear_texpacks(limit);
 }
 
 COMMAND(texturereset, "i");
@@ -1997,7 +1997,16 @@ struct texpack {
 };
 static vector<texpack*> texpacks;
 
-void clear_texpacks() {
+void clear_texpacks(int n) {
+    if (n > 0) {
+        loopvrev(texpacks) {
+            if ((texpacks[i]->firstslot + texpacks[i]->nslots - 1) >= n)
+                delete texpacks.remove(i);
+            else
+                break;
+        }
+        return;
+    }
     texpacks.deletecontents();
 }
 

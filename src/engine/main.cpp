@@ -22,7 +22,7 @@ void cleanup()
     SDL_ShowCursor(SDL_TRUE);
     cleargamma();
     freeocta(worldroot);
-    extern void clear_texpacks(); clear_texpacks(); /* OF */
+    extern void clear_texpacks(int n = 0); clear_texpacks(); /* OF */
     extern void clear_command();  clear_command();
     extern void clear_console();  clear_console();
     extern void clear_models();   clear_models();

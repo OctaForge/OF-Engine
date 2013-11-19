@@ -783,7 +783,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     delete f;
 
 #ifndef SERVER
-    extern void clear_texpacks(); clear_texpacks();
+    extern void clear_texpacks(int n = 0); clear_texpacks();
     lua::push_external("gui_clear"); lua_call(lua::L, 0, 0);
 #endif
 
