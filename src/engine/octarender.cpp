@@ -1451,10 +1451,6 @@ void octarender()                               // creates va s for all leaf cub
 
 void precachetextures()
 {
-#ifndef SERVER
-    resetbgload(); /* OctaForge: see below for bgload */
-#endif
-
     vector<int> texs;
     loopv(valist)
     {
@@ -1477,11 +1473,6 @@ void precachetextures()
         loadprogress = float(i+1)/texs.length();
         lookupvslot(texs[i]);
     }
-
-#ifndef SERVER
-    dobgload(true); /* OctaForge: lookuptexture just queues, now, so here we need to flush all the requests */
-#endif
-
     loadprogress = 0;
 }
 

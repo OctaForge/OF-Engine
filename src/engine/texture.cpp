@@ -1535,7 +1535,6 @@ bool settexture(const char *name, int clamp)
     return t != notexture;
 }
 
-vector<int> requested_slots;
 vector<VSlot *> vslots;
 vector<Slot *> slots;
 MSlot materialslots[(MATF_VOLUME|MATF_INDEX)+1];
@@ -2528,43 +2527,10 @@ MSlot &lookupmaterialslot(int index, bool load)
     return s;
 }
 
-// OF: background loading system
 Slot &lookupslot(int index, bool load)
 {
     Slot &s = slots.inrange(index) ? *slots[index] : (slots.inrange(DEFAULT_GEOM) ? *slots[DEFAULT_GEOM] : dummyslot);
-    if (load && !s.loaded)
-    {
-        if (slots.inrange(index))
-        {
-            if (requested_slots.find(index) == -1)
-            {
-                requested_slots.add(index);
-                loopv(s.sts) s.sts[i].t = notexture; // Until we load them, do not crash in rendering code
-            }
-        } else
-            loadslot(s, false);
-    }
-    return s;
-}
-
-void resetbgload()
-{
-    requested_slots.setsize(0);
-}
-
-void dobgload(bool all)
-{
-    while (requested_slots.length() > 0)
-    {
-        int slot = requested_slots[0];
-        requested_slots.remove(0);
-
-        assert(slots.inrange(slot));
-        Slot &s = *slots[slot];
-        loadslot(s, false); /* for materials, would be true */
-
-        if (!all) break;
-    }
+    return s.loaded || !load ? s : loadslot(s, false);
 }
 
 VSlot &lookupvslot(int index, bool load)
@@ -3242,12 +3208,9 @@ void gendds(char *infile, char *outfile)
     defformatstring(cfile, "<compress>%s", infile);
     extern void reloadtex(char *name);
     Texture *t = textures.access(path(cfile));
-    bool preexisting = false; // OF: We clean up the texture, if it is not preexisting (usually the case)
-    if(t) { reloadtex(cfile); preexisting = true; } // OF
+    if(t) reloadtex(cfile);
     t = textureload(cfile);
-    // OF
-    #define CLEANUPDDSTEX { if (!preexisting) { t->type |= Texture::TRANSIENT; cleanuptexture(t); } }
-    if(t==notexture) { conoutf(CON_ERROR, "failed loading %s", infile); CLEANUPDDSTEX; return; } // INTENSITY
+    if(t==notexture) { conoutf(CON_ERROR, "failed loading %s", infile); return; }
 
     glBindTexture(GL_TEXTURE_2D, t->id);
     GLint compressed = 0, format = 0, width = 0, height = 0;
@@ -3256,7 +3219,7 @@ void gendds(char *infile, char *outfile)
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
 
-    if(!compressed) { conoutf(CON_ERROR, "failed compressing %s", infile); CLEANUPDDSTEX; return; } // INTENSITY
+    if(!compressed) { conoutf(CON_ERROR, "failed compressing %s", infile); return; }
     int fourcc = 0;
     switch(format)
     {
@@ -3270,7 +3233,6 @@ void gendds(char *infile, char *outfile)
         case GL_COMPRESSED_RG_RGTC2: fourcc = FOURCC_ATI2; conoutf("compressed as ATI2"); break;
         default:
             conoutf(CON_ERROR, "failed compressing %s: unknown format: 0x%X", infile, format); break;
-            CLEANUPDDSTEX; // OF
             return;
     }
 
@@ -3285,7 +3247,7 @@ void gendds(char *infile, char *outfile)
     }
 
     stream *f = openfile(path(outfile, true), "wb");
-    if(!f) { conoutf(CON_ERROR, "failed writing to %s", outfile); CLEANUPDDSTEX; return; } // OF
+    if(!f) { conoutf(CON_ERROR, "failed writing to %s", outfile); return; }
 
     int csize = 0;
     for(int lw = width, lh = height, level = 0;;)
@@ -3330,8 +3292,6 @@ void gendds(char *infile, char *outfile)
     delete f;
 
     delete[] data;
-
-    CLEANUPDDSTEX; // OF
 
     conoutf("wrote DDS file %s", outfile);
 

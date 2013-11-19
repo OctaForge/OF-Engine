@@ -136,7 +136,6 @@ void ClientSystem::frameTrigger(int curtime)
         fixcamerarange();
 
         TargetingControl::determineMouseTarget();
-        dobgload();
     }
 }
 

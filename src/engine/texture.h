@@ -769,8 +769,6 @@ extern bool loadimage(const char *filename, ImageData &image);
 
 extern MSlot &lookupmaterialslot(int slot, bool load = true);
 extern Slot &lookupslot(int slot, bool load = true);
-extern void resetbgload();
-extern void dobgload(bool all = false);
 extern VSlot &lookupvslot(int slot, bool load = true);
 extern VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta);
 extern VSlot *editvslot(const VSlot &src, const VSlot &delta);
