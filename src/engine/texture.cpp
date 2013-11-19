@@ -2254,8 +2254,7 @@ none:
     delete f;
 });
 
-// OF: forcedindex
-void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float *scale, int *forcedindex)
+void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float *scale)
 {
     if(slots.length()>=0x10000) return;
     static int lastmatslot = -1;
@@ -2264,11 +2263,7 @@ void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float
     if(tnum==TEX_DIFFUSE) lastmatslot = matslot;
     else if(lastmatslot>=0) matslot = lastmatslot;
     else if(slots.empty()) return;
-
-    assert(*forcedindex <= 0 || slots.inrange(*forcedindex)); // OF
-    if (*forcedindex > 0 && tnum==TEX_DIFFUSE) // OF: reset old slots we force the index of
-        slots[*forcedindex]->reset();
-    Slot &s = matslot>=0 ? materialslots[matslot] : (*forcedindex <= 0 ? *(tnum!=TEX_DIFFUSE ? slots.last() : slots.add(new Slot(slots.length()))) : *slots[*forcedindex]); // OF: Allow forced indexes
+    Slot &s = matslot>=0 ? materialslots[matslot] : *(tnum!=TEX_DIFFUSE ? slots.last() : slots.add(new Slot(slots.length())));
 
     s.group = curtexgroup;
     s.loaded = false;
@@ -2292,7 +2287,7 @@ void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float
     }
 }
 
-COMMAND(texture, "ssiiifi");
+COMMAND(texture, "ssiiif");
 
 void texgrass(char *name)
 {
