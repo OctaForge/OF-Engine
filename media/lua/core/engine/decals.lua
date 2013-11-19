@@ -21,14 +21,14 @@ return {
     --[[! Variable: flags
         The flags available during decal renderer registration. Use bitwise
         OR to combine them. They include RND4 (picks one of four corners),
-        ROTATE, INVMOD, OVERBRIGHT, ADD, SATURATE.
+        ROTATE, INVMOD, OVERBRIGHT, GLOW, SATURATE.
     ]]
     flags = {:
         RND4       = 1 << 0,
         ROTATE     = 1 << 1,
         INVMOD     = 1 << 2,
         OVERBRIGHT = 1 << 3,
-        ADD        = 1 << 4,
+        GLOW       = 1 << 4,
         SATURATE   = 1 << 5
     :},
 

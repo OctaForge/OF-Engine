@@ -22,7 +22,7 @@ enum
     DF_ROTATE     = 1<<1,
     DF_INVMOD     = 1<<2,
     DF_OVERBRIGHT = 1<<3,
-    DF_ADD        = 1<<4,
+    DF_GLOW       = 1<<4,
     DF_SATURATE   = 1<<5
 };
 
@@ -84,6 +84,8 @@ struct decalbuffer
         startvert = d.endvert;
         availverts = endvert < startvert ? startvert - endvert - 3 : maxverts - 3 - (endvert - startvert);
     }
+
+    bool faded(const decalinfo &d) const { return verts[d.startvert].alpha < 255; }
 
     void fadedecal(const decalinfo &d, vec color, uchar alpha)
     {
@@ -227,19 +229,12 @@ struct decalrenderer
         return verts[d.owner].freedecal(d);
     }
 
-    void fadedecal(decalinfo &d, uchar alpha)
-    {
-        vec color;
-        if(flags&DF_OVERBRIGHT)
-        {
-            color = vec(0.5f, 0.5f, 0.5f);
-        }
-        else
-        {
-            color = d.color;
-            if(flags&(DF_ADD|DF_INVMOD)) loopk(3) color[k] = color[k]*alpha/255.0f;
-        }
+    bool faded(const decalinfo &d) const { return verts[d.owner].faded(d); }
 
+    void fadedecal(const decalinfo &d, uchar alpha)
+    {
+        vec color = d.color;
+        if(flags&(DF_OVERBRIGHT|DF_GLOW|DF_INVMOD)) loopk(3) color[k] = color[k]*alpha/255.0f;
         verts[d.owner].fadedecal(d, color, alpha);
     }
 
@@ -268,8 +263,9 @@ struct decalrenderer
         {
             d--;
             int fade = lastmillis - d->millis;
-            if(fade >= fadeintime) return;
-            fadedecal(*d, (fade<<8)/fadeintime);
+            if(fade < fadeintime) fadedecal(*d, (fade<<8)/fadeintime);
+            else if(faded(*d)) fadedecal(*d, 255);
+            else return;
         }
         if(enddecal < startdecal)
         {
@@ -279,8 +275,9 @@ struct decalrenderer
             {
                 d--;
                 int fade = lastmillis - d->millis;
-                if(fade >= fadeintime) return;
-                fadedecal(*d, (fade<<8)/fadeintime);
+                if(fade < fadeintime) fadedecal(*d, (fade<<8)/fadeintime);
+                else if(faded(*d)) fadedecal(*d, 255);
+                else return;
             }
         }
     }
@@ -353,22 +350,33 @@ struct decalrenderer
 
     void render(int db)
     {
+        float colorscale = 1, alphascale = 1;
         if(flags&DF_OVERBRIGHT)
         {
             glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
             SETSWIZZLE(overbrightdecal, tex);
         }
+        else if(flags&DF_GLOW)
+        {
+            glBlendFunc(GL_ONE, GL_ONE);
+            SETSWIZZLE(glowdecal, tex);
+            colorscale = ldrscale;
+            if(flags&DF_SATURATE) colorscale *= 2;
+            alphascale = 1/ldrscale;
+        }
         else
         {
             if(flags&DF_INVMOD) glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-            else if(flags&DF_ADD) glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
-            else if(db) glBlendFuncSeparate_(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-            else glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+            else
+            {
+                if(db) glBlendFuncSeparate_(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                else glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                colorscale = ldrscale;
+                if(flags&DF_SATURATE) colorscale *= 2;
+            }
             SETSWIZZLE(decal, tex);
-            float colorscale = flags&DF_SATURATE ? 2 : 1, alphascale = flags&(DF_INVMOD|DF_ADD) ? 0 : 1;
-            LOCALPARAMF(colorscale, colorscale, colorscale, colorscale, alphascale);
         }
+        LOCALPARAMF(colorscale, colorscale, colorscale, colorscale, alphascale);
 
         glBindTexture(GL_TEXTURE_2D, tex->id);
 
@@ -433,7 +441,7 @@ struct decalrenderer
 
             decalinfo &d = newdecal();
             d.owner = i;
-            d.color = !(flags&DF_INVMOD) ? vec(color).mul(0.5f) : color;
+            d.color = color;
             d.millis = lastmillis;
             d.startvert = dstart;
             d.endvert = buf.endvert;
