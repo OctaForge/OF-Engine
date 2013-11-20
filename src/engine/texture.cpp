@@ -2071,14 +2071,22 @@ ICOMMAND(texunload, "s", (const char *pack), {
     texpack **tpp = texpackmap.access(pack);
     if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
     texpack *tp = *tpp;
+    int j = 0;
+    int ncleared = 0;
     loopv(texpacks) {
         if (texpacks[i] == tp) {
+            j = i;
+            ncleared = tp->nslots;
             clearslotrange(tp->firstslot, tp->nslots);
             texpacks.remove(i);
             texpackmap.remove(pack);
             delete tp;
-            return;
+            break;
         }
+    }
+    for (int i = ++j; i < texpacks.length(); ++i) {
+        texpack *tp = texpacks[i];
+        tp->firstslot -= ncleared;
     }
 });
 
