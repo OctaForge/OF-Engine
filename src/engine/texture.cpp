@@ -2213,7 +2213,8 @@ ICOMMAND(writemediacfg, "i", (int *level), {
     defformatstring(fname, "media/%s/media.cfg", buf);
     stream *f = openutf8file(fname, "w");
     if (!f) return;
-    f->printf("// generated automatically, do not modify\n\n");
+    f->printf("// generated automatically, if you modify this it'll get\n");
+    f->printf("// overwritten the next time you call writemediacfg\n\n");
     f->printf("// material slots\nmaterialreset\n\n");
     int nummat = sizeof(materialslots) / sizeof(materialslots[0]);
     loopi(nummat) {
