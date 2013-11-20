@@ -2014,7 +2014,7 @@ void clear_texpacks(int n) {
     texpackmap.clear();
 }
 
-ICOMMAND(texload, "s", (char *name), {
+static void texload(const char *name) {
     string pack;
     if (texpackmap.access(name)) {
         int i = 2;
@@ -2050,9 +2050,11 @@ ICOMMAND(texload, "s", (char *name), {
     texpack *tp = new texpack(pack, first);
     texpackmap.access(tp->name, texpacks.add(tp));
     intret(true);
-});
+}
 
-void clearslotrange(int firstslot, int nslots) {
+COMMAND(texload, "s");
+
+static void clearslotrange(int firstslot, int nslots) {
     int tnslots = slots.length();
     for (int i = firstslot; i < (firstslot + nslots); ++i) {
         Slot *s = slots[i];
@@ -2067,10 +2069,7 @@ void clearslotrange(int firstslot, int nslots) {
     slots.setsize(tnslots - nslots);
 }
 
-ICOMMAND(texunload, "s", (const char *pack), {
-    texpack **tpp = texpackmap.access(pack);
-    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
-    texpack *tp = *tpp;
+static void texunload(const char *pack, texpack *tp) {
     int j = 0;
     int ncleared = 0;
     loopv(texpacks) {
@@ -2088,6 +2087,12 @@ ICOMMAND(texunload, "s", (const char *pack), {
         texpack *tp = texpacks[i];
         tp->firstslot -= ncleared;
     }
+}
+
+ICOMMAND(texunload, "s", (const char *pack), {
+    texpack **tpp = texpackmap.access(pack);
+    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
+    texunload(pack, *tpp);
 });
 
 LUAICOMMAND(texture_get_packs, {
