@@ -2053,18 +2053,18 @@ ICOMMAND(texload, "s", (char *name), {
 });
 
 void clearslotrange(int firstslot, int nslots) {
+    int tnslots = slots.length();
     for (int i = firstslot; i < (firstslot + nslots); ++i) {
         Slot *s = slots[i];
         for (VSlot *vs = s->variants; vs; vs = vs->next)
             vs->slot = &dummyslot;
         delete s;
+        if ((i + nslots) < tnslots) {
+            slots[i] = slots[i + nslots];
+            slots[i]->index = i;
+        }
     }
-    for (int i = firstslot + nslots; i < slots.length(); ++i) {
-        Slot *s = slots[i];
-        slots[i - nslots] = s;
-        s->index = i - nslots;
-    }
-    slots.setsize(slots.length() - nslots);
+    slots.setsize(tnslots - nslots);
 }
 
 ICOMMAND(texunload, "s", (const char *pack), {
