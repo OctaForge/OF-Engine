@@ -2264,7 +2264,24 @@ void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float
 {
     if(slots.length()>=0x10000) return;
     static int lastmatslot = -1;
-    int tnum = findslottex(type), matslot = findmaterial(type);
+    int matslot = findmaterial(type);
+    /* OF */
+    if (type[0] != '\0' && type[1] != '\0' && matslot < 0) {
+        char buf[2];
+        buf[1] = '\0';
+        if (type[0] == 'c' || type[0] == '0') {
+            buf[0] = (type++)[0];
+            texture(buf, name, rot, xoffset, yoffset, scale);
+        }
+        while (*type) {
+            buf[0] = (type++)[0];
+            /* the last 4 arguments will always be unused */
+            if (buf[0] != 'c' && buf[0] != '0')
+                texture(buf, (char*)"", NULL, NULL, NULL, NULL);
+        }
+        return;
+    }
+    int tnum = findslottex(type);
     if(tnum<0) tnum = matslot >= 0 ? TEX_DIFFUSE : TEX_UNKNOWN;
     if(tnum==TEX_DIFFUSE) lastmatslot = matslot;
     else if(lastmatslot>=0) matslot = lastmatslot;
@@ -2279,7 +2296,17 @@ void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float
     st.type = tnum;
     st.combined = -1;
     st.t = NULL;
-    copystring(st.name, name);
+    /* OF */
+    if (tnum != TEX_DIFFUSE && !name[0] && matslot < 0) {
+        string nname;
+        const char *tname = s.sts[0].name, *ext = strrchr(tname, '.');
+        copystring(nname, tname);
+        char *buf = nname + strlen(tname) - (ext ? strlen(ext) : 0);
+        *(buf++) = '_';
+        *(buf++) = type[0];
+        copystring(buf, ext ? ext : "");
+        copystring(st.name, nname);
+    } else copystring(st.name, name);
     path(st.name);
     if(tnum==TEX_DIFFUSE)
     {
