@@ -1995,23 +1995,34 @@ struct texpack {
         delete[] name;
     }
 };
+
 static vector<texpack*> texpacks;
+static hashtable<const char*, texpack*> texpackmap;
 
 void clear_texpacks(int n) {
     if (n > 0) {
         loopvrev(texpacks) {
-            if ((texpacks[i]->firstslot + texpacks[i]->nslots - 1) >= n)
-                delete texpacks.remove(i);
-            else
-                break;
+            if ((texpacks[i]->firstslot + texpacks[i]->nslots - 1) >= n) {
+                texpack *tp = texpacks.remove(i);
+                texpackmap.remove(tp->name);
+                delete tp;
+            } else break;
         }
         return;
     }
     texpacks.deletecontents();
+    texpackmap.clear();
 }
 
-ICOMMAND(texload, "s", (char *pack), {
-    defformatstring(ppath, "media/texture/%s.tex", pack);
+ICOMMAND(texload, "s", (char *name), {
+    string pack;
+    if (texpackmap.access(name)) {
+        int i = 2;
+        do {
+            formatstring(pack, "%s (%d)", name, i++);
+        } while (texpackmap.access(pack));
+    } else copystring(pack, name);
+    defformatstring(ppath, "media/texture/%s.tex", name);
     int first = slots.length();
     bool oldloading = texpackloading;
     texpackloading = true;
@@ -2022,7 +2033,7 @@ ICOMMAND(texload, "s", (char *pack), {
     setshader("stdworld");
 
     if (!execfile(ppath, false)) {
-        conoutf("could not load texture pack '%s'", pack);
+        conoutf("could not load texture pack '%s'", name);
         texpackloading = oldloading;
         intret(false);
         return;
@@ -2032,12 +2043,43 @@ ICOMMAND(texload, "s", (char *pack), {
     restoreslotshader(savedshader, savedparams);
 
     if (slots.length() == first) {
-        conoutf("texture pack '%s' contains no slots", pack);
+        conoutf("texture pack '%s' contains no slots", name);
         intret(false);
         return;
     }
-    texpacks.add(new texpack(pack, first));
+    texpack *tp = new texpack(pack, first);
+    texpackmap.access(tp->name, texpacks.add(tp));
     intret(true);
+});
+
+void clearslotrange(int firstslot, int nslots) {
+    for (int i = firstslot; i < (firstslot + nslots); ++i) {
+        Slot *s = slots[i];
+        for (VSlot *vs = s->variants; vs; vs = vs->next)
+            vs->slot = &dummyslot;
+        delete s;
+    }
+    for (int i = firstslot + nslots; i < slots.length(); ++i) {
+        Slot *s = slots[i];
+        slots[i - nslots] = s;
+        s->index = i - nslots;
+    }
+    slots.setsize(slots.length() - nslots);
+}
+
+ICOMMAND(texunload, "s", (const char *pack), {
+    texpack **tpp = texpackmap.access(pack);
+    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
+    texpack *tp = *tpp;
+    loopv(texpacks) {
+        if (texpacks[i] == tp) {
+            clearslotrange(tp->firstslot, tp->nslots);
+            texpacks.remove(i);
+            texpackmap.remove(pack);
+            delete tp;
+            return;
+        }
+    }
 });
 
 LUAICOMMAND(texture_get_packs, {
