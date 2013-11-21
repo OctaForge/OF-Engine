@@ -1002,8 +1002,9 @@ void entcopy()
     if(noentedit()) return;
     entcopygrid = sel.grid;
     entcopybuf.shrink(0);
-    loopv(entgroup)
-        entfocus(entgroup[i], entcopybuf.add(e).o.sub(vec(sel.o)));
+    addimplicit({
+        loopv(entgroup) entfocus(entgroup[i], entcopybuf.add(e).o.sub(vec(sel.o)));
+    });
 }
 
 void entpaste()

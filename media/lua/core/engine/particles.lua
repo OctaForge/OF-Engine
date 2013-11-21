@@ -53,22 +53,24 @@ local particle = ffi.metatype("particle_t", {
     ROT (randomly rotated), FEW (initializes the renderer with fewparticles
     instead of maxparticles if it's lower), ICON (4x4 icon grid), SHRINK
     (particle will keep shrinking), GROW (particle will keep growing),
-    FLIP (a combination of HFLIP, VFLIP and ROT).
+    COLLIDE (colliding particle with decal),  FLIP (a combination of HFLIP,
+    VFLIP and ROT).
 ]]
 M.flags = {:
-    MOD    = 1 << 8,
-    RND4   = 1 << 9,
-    LERP   = 1 << 10,
-    TRACK  = 1 << 11,
-    BRIGHT = 1 << 12,
-    SOFT   = 1 << 13,
-    HFLIP  = 1 << 14,
-    VFLIP  = 1 << 15,
-    ROT    = 1 << 16,
-    FEW    = 1 << 17,
-    ICON   = 1 << 18,
-    SHRINK = 1 << 19,
-    GROW   = 1 << 20,
+    MOD     = 1 << 8,
+    RND4    = 1 << 9,
+    LERP    = 1 << 10,
+    TRACK   = 1 << 11,
+    BRIGHT  = 1 << 12,
+    SOFT    = 1 << 13,
+    HFLIP   = 1 << 14,
+    VFLIP   = 1 << 15,
+    ROT     = 1 << 16,
+    FEW     = 1 << 17,
+    ICON    = 1 << 18,
+    SHRINK  = 1 << 19,
+    GROW    = 1 << 20,
+    COLLIDE = 1 << 21,
     FLIP   = HFLIP | VFLIP | ROT
 :}
 
@@ -86,8 +88,7 @@ M.renderers = renderers
     given a name (arbitrary), a texture path and optionally flags
     (see <flags>) and the id of the decal that gets spawned if the
     particle collides with geometry (happens on particles with gravity,
-    such as snow). The id can be -1 - in such case the particles will
-    collide but won't spawn any decal.
+    such as snow, requires the COLLIDE flag to be set).
 
     Returns two values - a particle renderer id (which you will use when
     spawning particles) and a boolean value that is false if a renderer

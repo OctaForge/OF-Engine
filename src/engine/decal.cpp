@@ -366,7 +366,11 @@ struct decalrenderer
         }
         else
         {
-            if(flags&DF_INVMOD) glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+            if(flags&DF_INVMOD)
+            {
+                glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+                alphascale = 0;
+            }
             else
             {
                 if(db) glBlendFuncSeparate_(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
