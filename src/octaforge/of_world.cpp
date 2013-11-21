@@ -163,7 +163,11 @@ namespace world
         int oldflags = identflags;
         identflags |= IDF_SAFE;
 #ifndef SERVER
-        execfile(get_mapfile_path("media.cfg"), false);
+        string aloc;
+        copystring(aloc, curr_map_id);
+        aloc[strlen(curr_map_id) - 7] = '\0';
+        defformatstring(fname, "media/%s/media.cfg", aloc);
+        execfile(path(fname), false);
 #endif
         if (lua::load_file(get_mapscript_filename()))
             fatal("%s", lua_tostring(lua::L, -1));

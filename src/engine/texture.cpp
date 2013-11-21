@@ -2029,7 +2029,7 @@ static void texload(const char *pack, uint *body = NULL) {
     saveslotshader(savedshader, savedparams);
     setshader("stdworld");
 
-    if (!body && !execfile(ppath, false)) {
+    if (!body && !execfile(path(ppath), false)) {
         conoutf("could not load texture pack '%s'", pack);
         texpackloading = oldloading;
         intret(false);
@@ -2261,7 +2261,7 @@ ICOMMAND(writemediacfg, "i", (int *level), {
     copystring(buf, world::curr_map_id);
     buf[strlen(world::curr_map_id) - 7] = '\0';
     defformatstring(fname, "media/%s/media.cfg", buf);
-    stream *f = openutf8file(fname, "w");
+    stream *f = openutf8file(path(fname), "w");
     if (!f) return;
     f->printf("// generated automatically by writemediacfg\n\n");
     f->printf("// material slots\nmaterialreset\n\n");
