@@ -2020,15 +2020,8 @@ void clear_texpacks(int n) {
     texpackmap.clear();
 }
 
-static void texload(const char *name) {
-    string pack;
-    if (texpackmap.access(name)) {
-        int i = 2;
-        do {
-            formatstring(pack, "%s (%d)", name, i++);
-        } while (texpackmap.access(pack));
-    } else copystring(pack, name);
-    defformatstring(ppath, "media/texture/%s.tex", name);
+static void texload(const char *pack) {
+    defformatstring(ppath, "media/texture/%s.tex", pack);
     int first = slots.length();
     bool oldloading = texpackloading;
     texpackloading = true;
@@ -2039,7 +2032,7 @@ static void texload(const char *name) {
     setshader("stdworld");
 
     if (!execfile(ppath, false)) {
-        conoutf("could not load texture pack '%s'", name);
+        conoutf("could not load texture pack '%s'", pack);
         texpackloading = oldloading;
         intret(false);
         return;
@@ -2049,7 +2042,7 @@ static void texload(const char *name) {
     restoreslotshader(savedshader, savedparams);
 
     if (slots.length() == first) {
-        conoutf("texture pack '%s' contains no slots", name);
+        conoutf("texture pack '%s' contains no slots", pack);
         intret(false);
         return;
     }
@@ -2058,7 +2051,13 @@ static void texload(const char *name) {
     intret(true);
 }
 
-COMMAND(texload, "s");
+ICOMMAND(texload, "s", (const char *pack), {
+    if (texpackmap.access(pack)) {
+        conoutf("texture pack '%s' already loaded", pack);
+        return;
+    }
+    texload(pack);
+});
 
 static vector<VSlot*> saved_vslots;
 
@@ -2103,6 +2102,13 @@ ICOMMAND(texunload, "s", (const char *pack), {
     texpack **tpp = texpackmap.access(pack);
     if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
     texunload(pack, *tpp);
+});
+
+ICOMMAND(texreload, "s", (const char *pack), {
+    texpack **tpp = texpackmap.access(pack);
+    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
+    texunload(pack, *tpp);
+    texload(pack);
 });
 
 LUAICOMMAND(texture_get_packs, {
