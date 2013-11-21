@@ -2383,7 +2383,7 @@ static int comparevslot(const VSlot &dst, const VSlot &src) {
     return changed;
 }
 
-void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float *scale)
+void texture(const char *type, const char *name, int *rot, int *xoffset, int *yoffset, float *scale)
 {
     if(slots.length()>=0x10000) return;
     static int lastmatslot = -1;
@@ -2400,7 +2400,7 @@ void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float
             buf[0] = (type++)[0];
             /* the last 4 arguments will always be unused */
             if (buf[0] != 'c' && buf[0] != '0')
-                texture(buf, (char*)"", NULL, NULL, NULL, NULL);
+                texture(buf, "", NULL, NULL, NULL, NULL);
         }
         return;
     }
