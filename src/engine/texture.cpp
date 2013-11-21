@@ -2005,17 +2005,15 @@ struct texpack {
 };
 
 static texpack *firsttexpack = NULL, *lasttexpack = NULL;
-static hashtable<const char*, texpack*> texpackmap;
-static int ntexpacks = 0;
+static hashtable<const char*, texpack*> texpacks;
 
 void clear_texpacks(int n) {
     texpack *tp = lasttexpack;
     while (tp && (!n || (tp->firstslot + tp->nslots - 1) >= n)) {
         lasttexpack = tp->prev;
         if (lasttexpack) lasttexpack->next = NULL;
-        texpackmap.remove(tp->name); delete tp;
+        texpacks.remove(tp->name); delete tp;
         tp = lasttexpack;
-        --ntexpacks;
     }
     if (!lasttexpack) firsttexpack = NULL;
 }
@@ -2053,13 +2051,12 @@ static void texload(const char *pack) {
         lasttexpack = tp;
     } else lasttexpack = tp;
     if (!firsttexpack) firsttexpack = tp;
-    texpackmap.access(tp->name, tp);
-    ++ntexpacks;
+    texpacks.access(tp->name, tp);
     intret(true);
 }
 
 ICOMMAND(texload, "s", (const char *pack), {
-    if (texpackmap.access(pack)) {
+    if (texpacks.access(pack)) {
         conoutf("texture pack '%s' already loaded", pack);
         return;
     }
@@ -2095,29 +2092,28 @@ static void texunload(const char *pack, texpack *tp) {
     if (tp->next) tp->next->prev = tp->prev;
     else lasttexpack = tp->prev;
 
-    texpackmap.remove(pack);
+    texpacks.remove(pack);
     delete tp;
     for (tp = ntp; tp; tp = tp->next) {
         tp->firstslot -= ncleared;
     }
-    --ntexpacks;
 }
 
 ICOMMAND(texunload, "s", (const char *pack), {
-    texpack **tpp = texpackmap.access(pack);
+    texpack **tpp = texpacks.access(pack);
     if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
     texunload(pack, *tpp);
 });
 
 ICOMMAND(texreload, "s", (const char *pack), {
-    texpack **tpp = texpackmap.access(pack);
+    texpack **tpp = texpacks.access(pack);
     if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
     texunload(pack, *tpp);
     texload(pack);
 });
 
 LUAICOMMAND(texture_get_packs, {
-    lua_createtable(L, ntexpacks, 0);
+    lua_createtable(L, texpacks.numelems, 0);
     int i = 1;
     for (texpack *tp = firsttexpack; tp; tp = tp->next) {
         lua_createtable(L, 3, 0);
@@ -2270,7 +2266,8 @@ ICOMMAND(writemediacfg, "i", (int *level), {
         texpack *ptp = NULL;
         int i = 0;
         for (texpack *tp = firsttexpack; tp; tp = tp->next) {
-            renderprogress(i / float(ntexpacks), "saving texture packs...");
+            renderprogress(float(i++) / texpacks.numelems,
+                "saving texture packs...");
             if (ptp) {
                 int offstart = ptp->firstslot + ptp->nslots;
                 if (offstart != tp->firstslot)
@@ -2278,7 +2275,6 @@ ICOMMAND(writemediacfg, "i", (int *level), {
             }
             f->printf("texload \"%s\"\n", tp->name);
             ptp = tp;
-            ++i;
         }
         if (ptp) {
             int offstart = ptp->firstslot + ptp->nslots;
