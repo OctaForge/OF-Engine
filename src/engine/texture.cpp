@@ -2018,7 +2018,7 @@ void clear_texpacks(int n) {
     if (!lasttexpack) firsttexpack = NULL;
 }
 
-static void texload(const char *pack) {
+static void texload(const char *pack, uint *body = NULL) {
     defformatstring(ppath, "media/texture/%s.tex", pack);
     int first = slots.length();
     bool oldloading = texpackloading;
@@ -2029,12 +2029,12 @@ static void texload(const char *pack) {
     saveslotshader(savedshader, savedparams);
     setshader("stdworld");
 
-    if (!execfile(ppath, false)) {
+    if (!body && !execfile(ppath, false)) {
         conoutf("could not load texture pack '%s'", pack);
         texpackloading = oldloading;
         intret(false);
         return;
-    }
+    } else if (body) execute(body);
 
     texpackloading = oldloading;
     restoreslotshader(savedshader, savedparams);
@@ -2055,7 +2055,16 @@ static void texload(const char *pack) {
     intret(true);
 }
 
-ICOMMAND(texload, "s", (const char *pack), {
+ICOMMAND(texpack, "se", (char *pack, uint *body), {
+    if (texpackloading) return;
+    if (texpacks.access(pack)) {
+        conoutf("texture pack '%s' already loaded", pack);
+        return;
+    }
+    texload(pack, body);
+})
+
+ICOMMAND(texpackload, "s", (const char *pack), {
     if (texpacks.access(pack)) {
         conoutf("texture pack '%s' already loaded", pack);
         return;
@@ -2099,13 +2108,13 @@ static void texunload(const char *pack, texpack *tp) {
     }
 }
 
-ICOMMAND(texunload, "s", (const char *pack), {
+ICOMMAND(texpackunload, "s", (const char *pack), {
     texpack **tpp = texpacks.access(pack);
     if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
     texunload(pack, *tpp);
 });
 
-ICOMMAND(texreload, "s", (const char *pack), {
+ICOMMAND(texpackreload, "s", (const char *pack), {
     texpack **tpp = texpacks.access(pack);
     if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
     texunload(pack, *tpp);
@@ -2130,45 +2139,49 @@ const char slotvariants[] = {
     'c', 'n', 'g', 'e', 's', 'z', 'u'
 };
 
-static void dumpvslot(stream *f, const VSlot &vs, bool indent) {
+static void printindent(stream *f, int n) {
+    for (; n > 0; --n) f->printf("    ");
+}
+
+static void dumpvslot(stream *f, const VSlot &vs, int indent) {
     if (vs.scroll.x || vs.scroll.y) {
-        if (indent) f->printf("    ");
+        printindent(f, indent);
         f->printf("texscroll %f %f\n", vs.scroll.x * 1000.0f,
             vs.scroll.y * 1000.0f);
     }
     if (vs.layer) {
-        if (indent) f->printf("    ");
+        printindent(f, indent);
         f->printf("texlayer %d\n", vs.layer);
     }
     if (vs.decal) {
-        if (indent) f->printf("    ");
+        printindent(f, indent);
         f->printf("texdecal %d\n", vs.decal);
     }
     if (vs.alphafront != 0.5f || vs.alphaback != 0) {
-        if (indent) f->printf("    ");
+        printindent(f, indent);
         f->printf("texalpha %f %f\n", vs.alphafront, vs.alphaback);
     }
     const vec &col = vs.colorscale;
     if (col.r != 1.0f || col.g != 1.0f || col.b != 1.0f) {
-        if (indent) f->printf("    ");
+        printindent(f, indent);
         f->printf("texcolor %f %f %f\n", col.r, col.g, col.b);
     }
     const vec &rfc = vs.refractcolor;
     if (vs.refractscale || rfc.r != 1.0f || rfc.g != 1.0f || rfc.b != 1.0f) {
-        if (indent) f->printf("    ");
+        printindent(f, indent);
         const vec &rfc = vs.refractcolor;
         f->printf("texrefract %f %f %f %f\n", vs.refractscale,
             rfc.r, rfc.g, rfc.b);
     }
 }
 
-static void dumpslot(stream *f, const Slot &s, int index, bool indent) {
+static void dumpslot(stream *f, const Slot &s, int index, int indent) {
     if (index >= 0) {
-        if (indent) f->printf("    ");
+        printindent(f, indent);
         f->printf("setshader \"%s\"\n", s.shader->name);
         loopv(s.params) {
             const SlotShaderParam &p = s.params[i];
-            if (indent) f->printf("    ");
+            if (indent) printindent(f, indent);
             f->printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
                 p.val[1], p.val[2], p.val[3]);
         }
@@ -2177,7 +2190,7 @@ static void dumpslot(stream *f, const Slot &s, int index, bool indent) {
     const VSlot &vs = *s.variants;
     loopv(s.sts) {
         const Slot::Tex &st = s.sts[i];
-        if (indent) f->printf("    ");
+        printindent(f, indent);
         f->printf("texture ");
         if (index >= 0) {
             f->printf("%c", slotvariants[st.type]);
@@ -2198,42 +2211,49 @@ static void dumpslot(stream *f, const Slot &s, int index, bool indent) {
     }
     if (index >= 0) {
         if (s.grass) {
-            if (indent) f->printf("    ");
+            printindent(f, indent);
             f->printf("texgrass \"%s\"\n", s.grass);
         }
         if (s.smooth >= 0) {
             extern vector<int> smoothgroups;
-            if (indent) f->printf("    ");
+            printindent(f, indent);
             f->printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
         }
         dumpvslot(f, *s.variants, indent);
     }
-    f->printf("\n");
 }
 
-static void dumpslotrange(stream *f, int firstslot, int nslots) {
+static void dumpslotrange(stream *f, int firstslot, int nslots, int indent = 0) {
     const char *lastgroup = NULL;
     bool endgroup = false;
     int nextfirstslot = firstslot + nslots;
+    printindent(f, indent);
     f->printf("// slot range %d-%d\n", firstslot, nextfirstslot - 1);
     for (int i = firstslot; i < nextfirstslot; ++i) {
         renderprogress((i - firstslot) / float(nslots), "saving slots...");
         const Slot &s = *slots[i];
-        bool indent = false;
+        int ind = indent;
         if (lastgroup != s.group) {
             if (lastgroup) {
+                printindent(f, indent);
                 f->printf("]\n");
                 endgroup = false;
             }
             lastgroup = s.group;
             if (lastgroup) {
+                printindent(f, indent);
                 f->printf("texgroup \"%s\" [\n", lastgroup);
-                indent = endgroup = true;
+                endgroup = true;
+                ++ind;
             }
         }
-        dumpslot(f, s, i, indent);
+        dumpslot(f, s, i, ind);
+        if (i != (nextfirstslot - 1)) f->printf("\n");
     }
-    if (endgroup) f->printf("]\n");
+    if (endgroup) {
+        printindent(f, indent);
+        f->printf("]\n");
+    }
 }
 
 ICOMMAND(writemediacfg, "i", (int *level), {
@@ -2243,8 +2263,7 @@ ICOMMAND(writemediacfg, "i", (int *level), {
     defformatstring(fname, "media/%s/media.cfg", buf);
     stream *f = openutf8file(fname, "w");
     if (!f) return;
-    f->printf("// generated automatically, if you modify this it'll get\n");
-    f->printf("// overwritten the next time you call writemediacfg\n\n");
+    f->printf("// generated automatically by writemediacfg\n\n");
     f->printf("// material slots\nmaterialreset\n\n");
     int nummat = sizeof(materialslots) / sizeof(materialslots[0]);
     loopi(nummat) {
@@ -2253,7 +2272,8 @@ ICOMMAND(writemediacfg, "i", (int *level), {
             case MAT_GLASS:
             case MAT_WATER:
             case MAT_LAVA:
-                dumpslot(f, materialslots[i], -i, false);
+                dumpslot(f, materialslots[i], -i, 0);
+                f->printf("\n");
                 break;
         }
     }
@@ -2261,8 +2281,10 @@ ICOMMAND(writemediacfg, "i", (int *level), {
     if (!firsttexpack) {
         dumpslotrange(f, 0, slots.length());
     } else {
-        if (firsttexpack->firstslot > 0)
+        if (firsttexpack->firstslot > 0) {
             dumpslotrange(f, 0, firsttexpack->firstslot);
+            f->printf("\n");
+        }
         texpack *ptp = NULL;
         int i = 0;
         for (texpack *tp = firsttexpack; tp; tp = tp->next) {
@@ -2270,10 +2292,14 @@ ICOMMAND(writemediacfg, "i", (int *level), {
                 "saving texture packs...");
             if (ptp) {
                 int offstart = ptp->firstslot + ptp->nslots;
-                if (offstart != tp->firstslot)
+                if (offstart != tp->firstslot) {
                     dumpslotrange(f, offstart, tp->firstslot - offstart);
+                    if (tp) f->printf("\n");
+                }
             }
-            f->printf("texload \"%s\"\n", tp->name);
+            f->printf("texpack \"%s\" [\n", tp->name);
+            dumpslotrange(f, tp->firstslot, tp->nslots, 1);
+            f->printf("]\n\n");
             ptp = tp;
         }
         if (ptp) {
