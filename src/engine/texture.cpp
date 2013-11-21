@@ -1993,31 +1993,31 @@ ICOMMAND(texgroup, "se", (char *name, uint *body), {
 
 /* OF: a texture pack system */
 struct texpack {
+    texpack *prev, *next;
     char *name;
     int firstslot, nslots;
-    texpack(const char *name, int firstslot): name(newstring(name)),
-        firstslot(firstslot), nslots(slots.length() - firstslot) {}
+    texpack(const char *name, int firstslot): prev(NULL), next(NULL),
+        name(newstring(name)), firstslot(firstslot),
+        nslots(slots.length() - firstslot) {}
     ~texpack() {
         delete[] name;
     }
 };
 
-static vector<texpack*> texpacks;
+static texpack *firsttexpack = NULL, *lasttexpack = NULL;
 static hashtable<const char*, texpack*> texpackmap;
+static int ntexpacks = 0;
 
 void clear_texpacks(int n) {
-    if (n > 0) {
-        loopvrev(texpacks) {
-            if ((texpacks[i]->firstslot + texpacks[i]->nslots - 1) >= n) {
-                texpack *tp = texpacks.remove(i);
-                texpackmap.remove(tp->name);
-                delete tp;
-            } else break;
-        }
-        return;
+    texpack *tp = lasttexpack;
+    while (tp && (!n || (tp->firstslot + tp->nslots - 1) >= n)) {
+        lasttexpack = tp->prev;
+        if (lasttexpack) lasttexpack->next = NULL;
+        texpackmap.remove(tp->name); delete tp;
+        tp = lasttexpack;
+        --ntexpacks;
     }
-    texpacks.deletecontents();
-    texpackmap.clear();
+    if (!lasttexpack) firsttexpack = NULL;
 }
 
 static void texload(const char *pack) {
@@ -2047,7 +2047,14 @@ static void texload(const char *pack) {
         return;
     }
     texpack *tp = new texpack(pack, first);
-    texpackmap.access(tp->name, texpacks.add(tp));
+    if (lasttexpack) {
+        lasttexpack->next = tp;
+        tp->prev = lasttexpack;
+        lasttexpack = tp;
+    } else lasttexpack = tp;
+    if (!firsttexpack) firsttexpack = tp;
+    texpackmap.access(tp->name, tp);
+    ++ntexpacks;
     intret(true);
 }
 
@@ -2079,23 +2086,21 @@ static void clearslotrange(int firstslot, int nslots) {
 }
 
 static void texunload(const char *pack, texpack *tp) {
-    int j = 0;
-    int ncleared = 0;
-    loopv(texpacks) {
-        if (texpacks[i] == tp) {
-            j = i;
-            ncleared = tp->nslots;
-            clearslotrange(tp->firstslot, tp->nslots);
-            texpacks.remove(i);
-            texpackmap.remove(pack);
-            delete tp;
-            break;
-        }
-    }
-    for (int i = j; i < texpacks.length(); ++i) {
-        texpack *tp = texpacks[i];
+    int ncleared = tp->nslots;
+    texpack *ntp = tp->next;
+
+    clearslotrange(tp->firstslot, tp->nslots);
+    if (tp->prev) tp->prev->next = tp->next;
+    else firsttexpack = tp->next;
+    if (tp->next) tp->next->prev = tp->prev;
+    else lasttexpack = tp->prev;
+
+    texpackmap.remove(pack);
+    delete tp;
+    for (tp = ntp; tp; tp = tp->next) {
         tp->firstslot -= ncleared;
     }
+    --ntexpacks;
 }
 
 ICOMMAND(texunload, "s", (const char *pack), {
@@ -2112,14 +2117,14 @@ ICOMMAND(texreload, "s", (const char *pack), {
 });
 
 LUAICOMMAND(texture_get_packs, {
-    lua_createtable(L, texpacks.length(), 0);
-    loopv(texpacks) {
+    lua_createtable(L, ntexpacks, 0);
+    int i = 1;
+    for (texpack *tp = firsttexpack; tp; tp = tp->next) {
         lua_createtable(L, 3, 0);
-        texpack *tp = texpacks[i];
         lua_pushstring (L, tp->name);      lua_rawseti(L, -2, 1);
         lua_pushinteger(L, tp->firstslot); lua_rawseti(L, -2, 2);
         lua_pushinteger(L, tp->nslots);    lua_rawseti(L, -2, 3);
-        lua_rawseti(L, -2, i);
+        lua_rawseti(L, -2, i++);
     }
     return 1;
 });
@@ -2257,16 +2262,15 @@ ICOMMAND(writemediacfg, "i", (int *level), {
         }
     }
     f->printf("// texture slots\ntexturereset\n\n");
-    if (!texpacks.length()) {
+    if (!firsttexpack) {
         dumpslotrange(f, 0, slots.length());
     } else {
-        if (texpacks[0]->firstslot > 0)
-            dumpslotrange(f, 0, texpacks[0]->firstslot);
+        if (firsttexpack->firstslot > 0)
+            dumpslotrange(f, 0, firsttexpack->firstslot);
         texpack *ptp = NULL;
-        loopv(texpacks) {
-            renderprogress(i / float(texpacks.length()),
-                "saving texture packs...");
-            texpack *tp = texpacks[i];
+        int i = 0;
+        for (texpack *tp = firsttexpack; tp; tp = tp->next) {
+            renderprogress(i / float(ntexpacks), "saving texture packs...");
             if (ptp) {
                 int offstart = ptp->firstslot + ptp->nslots;
                 if (offstart != tp->firstslot)
@@ -2274,6 +2278,7 @@ ICOMMAND(writemediacfg, "i", (int *level), {
             }
             f->printf("texload \"%s\"\n", tp->name);
             ptp = tp;
+            ++i;
         }
         if (ptp) {
             int offstart = ptp->firstslot + ptp->nslots;
