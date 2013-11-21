@@ -1630,6 +1630,8 @@ void compactvslots(cube *c, int n)
     }
 }
 
+static void cullslots();
+
 int compactvslots(bool cull)
 {
     clonedvslots = 0;
@@ -1639,7 +1641,6 @@ int compactvslots(bool cull)
     loopv(vslots) vslots[i]->index = -1;
     if(cull)
     {
-        void clear_texpacks(int n); clear_texpacks(0); /* OF */
         int numdefaults = min(int(NUMDEFAULTSLOTS), slots.length());
         loopi(numdefaults) slots[i]->variants->index = compactedvslots++;
         loopi(numdefaults) assignvslotlayer(*slots[i]->variants);
@@ -1697,11 +1698,7 @@ int compactvslots(bool cull)
         VSlot &vs = *vslots[i];
         if(vs.index >= 0 && vs.layer && vslots.inrange(vs.layer)) vs.layer = vslots[vs.layer]->index;
     }
-    if(cull)
-    {
-        loopvrev(slots) if(slots[i]->variants->index < 0) delete slots.remove(i);
-        loopv(slots) slots[i]->index = i;
-    }
+    if(cull) cullslots(); /* OF */
     loopv(vslots)
     {
         while(vslots[i]->index >= 0 && vslots[i]->index != i)
@@ -2006,6 +2003,20 @@ struct texpack {
 
 static texpack *firsttexpack = NULL, *lasttexpack = NULL;
 static hashtable<const char*, texpack*> texpacks;
+
+static void cullslots() {
+    texpack *tp = lasttexpack;
+    loopvrev(slots) if (slots[i]->variants->index < 0) {
+        if (tp && i >= tp->firstslot && i < (tp->firstslot + tp->nslots)) {
+            lasttexpack = tp->prev;
+            texpacks.remove(tp->name);
+            delete tp;
+            tp = lasttexpack;
+        }
+        delete slots.remove(i);
+    }
+    loopv(slots) slots[i]->index = i;
+}
 
 void clear_texpacks(int n) {
     texpack *tp = lasttexpack;
