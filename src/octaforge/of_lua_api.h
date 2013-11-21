@@ -7,6 +7,7 @@ namespace game
 
 extern float GRAVITY;
 extern physent *collideplayer;
+void writemediacfg(int level);
 
 namespace lapi_binds
 {
@@ -263,28 +264,36 @@ namespace lapi_binds
     }
 
 #ifndef SERVER
-    int _lua_do_upload(lua_State *L) {
-        renderprogress(0.1f, "compiling scripts ..");
+    static void do_upload(bool skipmedia, int medialevel) {
+        renderprogress(0.1f, "compiling scripts...");
 
-        if (lua::load_file(L, world::get_mapfile_path("map.lua")))
+        if (lua::load_file(world::get_mapfile_path("map.lua")))
         {
-            assert(lua::push_external(L, "gui_show_message"));
-            lua_pushliteral(L, "Compilation failed");
-            lua_pushvalue  (L, -3);
-            lua_call       (L,  2, 0);
-            lua_pop        (L, 1);
-            return 0;
+            assert(lua::push_external("gui_show_message"));
+            lua_pushliteral(lua::L, "Compilation failed");
+            lua_pushvalue  (lua::L, -3);
+            lua_call       (lua::L,  2, 0);
+            lua_pop        (lua::L,  1);
+            return;
         }
-        lua_pop(L, 1);
+        lua_pop(lua::L, 1);
 
-        renderprogress(0.3, "generating map ..");
+        renderprogress(0.3, "generating map...");
         save_world(game::getclientmap());
 
-        renderprogress(0.4, "exporting entities ..");
+        renderprogress(0.4, "exporting entities...");
         world::export_ents("entities.lua");
+
+        if (!skipmedia) writemediacfg(medialevel);
+    }
+
+    int _lua_do_upload(lua_State *L) {
+        do_upload(lua_toboolean(L, 1), luaL_optinteger(L, 2, 0));
         return 0;
     }
-    ICOMMAND(savemap, "", (), { _lua_do_upload(lua::L); });
+    ICOMMAND(savemap, "ii", (int *skipmedia, int *medialevel), {
+        do_upload(*skipmedia != 0, *medialevel);
+    });
 
     int _lua_restart_map(lua_State *L) {
         MessageSystem::send_RestartMap();

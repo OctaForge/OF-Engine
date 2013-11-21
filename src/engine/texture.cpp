@@ -2256,7 +2256,7 @@ static void dumpslotrange(stream *f, int firstslot, int nslots, int indent = 0) 
     }
 }
 
-ICOMMAND(writemediacfg, "i", (int *level), {
+void writemediacfg(int level) {
     stream *f = openutf8file(world::get_mapfile_path("media.cfg"), "w");
     if (!f) return;
     f->printf("// generated automatically by writemediacfg\n\n");
@@ -2304,8 +2304,7 @@ ICOMMAND(writemediacfg, "i", (int *level), {
                 dumpslotrange(f, offstart, slots.length() - offstart);
         }
     }
-    int lvl = *level;
-    if (lvl >= 1) {
+    if (level >= 1) {
         vector<extentity*> models;
         vector<extentity*> sounds;
         const vector<extentity*> &ents = entities::getents();
@@ -2317,7 +2316,7 @@ ICOMMAND(writemediacfg, "i", (int *level), {
                     models.add(e);
                     break;
                 case ET_SOUND:
-                    if (lvl <= 1) break;
+                    if (level <= 1) break;
                     sounds.add(e);
                     break;
             }
@@ -2353,6 +2352,10 @@ none:
         return;
     }
     delete f;
+}
+
+ICOMMAND(writemediacfg, "i", (int *level), {
+    writemediacfg(*level);
 });
 
 static int comparevslot(const VSlot &dst, const VSlot &src) {
