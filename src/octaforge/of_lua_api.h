@@ -43,10 +43,10 @@ namespace lapi_binds
         if (strlen(p) >= 2 && p[0] == '.' && (p[1] == '/' || p[1] == '\\')) {
             copystring(buf, world::get_mapfile_path(p + 2));
         } else {
-            formatstring(buf, "media%c%s", PATHDIV, p);
+            formatstring(buf, "media/%s", p);
         }
 
-        if (!(loaded = loadfile(path(buf, true), NULL))) {
+        if (!(loaded = loadfile(path(buf), NULL))) {
             logger::log(logger::ERROR, "count not read \"%s\"", p);
             return 0;
         }
@@ -266,7 +266,7 @@ namespace lapi_binds
     int _lua_do_upload(lua_State *L) {
         renderprogress(0.1f, "compiling scripts ..");
 
-        if (lua::load_file(L, world::get_mapscript_filename()))
+        if (lua::load_file(L, world::get_mapfile_path("map.lua")))
         {
             assert(lua::push_external(L, "gui_show_message"));
             lua_pushliteral(L, "Compilation failed");
@@ -366,15 +366,15 @@ namespace lapi_binds
 #endif
 
     int _lua_get_map_preview_filename(lua_State *L) {
-        defformatstring(buf, "media%cmap%c%s%cpreview.png", PATHDIV, PATHDIV,
-            luaL_checkstring(L, 1), PATHDIV);
-        if (fileexists(buf, "r")) {
+        defformatstring(buf, "media/map/%s/preview.png",
+            luaL_checkstring(L, 1));
+        if (fileexists(path(buf), "r")) {
             lua_pushstring(L, buf);
             return 1;
         }
 
         defformatstring(buff, "%s%s", homedir, buf);
-        if (fileexists(buff, "r")) {
+        if (fileexists(path(buff), "r")) {
             lua_pushstring(L, buff);
             return 1;
         }

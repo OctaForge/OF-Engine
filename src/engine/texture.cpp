@@ -2257,11 +2257,7 @@ static void dumpslotrange(stream *f, int firstslot, int nslots, int indent = 0) 
 }
 
 ICOMMAND(writemediacfg, "i", (int *level), {
-    string buf;
-    copystring(buf, world::curr_map_id);
-    buf[strlen(world::curr_map_id) - 7] = '\0';
-    defformatstring(fname, "media/%s/media.cfg", buf);
-    stream *f = openutf8file(path(fname), "w");
+    stream *f = openutf8file(world::get_mapfile_path("media.cfg"), "w");
     if (!f) return;
     f->printf("// generated automatically by writemediacfg\n\n");
     f->printf("// material slots\nmaterialreset\n\n");

@@ -145,31 +145,18 @@ namespace world
         copystring(aloc, curr_map_id);
         aloc[strlen(curr_map_id) - 7] = '\0';
 
-        defformatstring(buf, "media%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
-        formatstring(mapfile_path, "%s%s", homedir, buf);
-
-        if (fileexists(mapfile_path, "r")) {
-            return mapfile_path;
-        }
-        copystring(mapfile_path, buf);
+        formatstring(mapfile_path, "media/%s/%s", aloc, rpath);
+        path(mapfile_path);
         return mapfile_path;
-    }
-
-    const char *get_mapscript_filename() {
-        return get_mapfile_path("map.lua");
     }
 
     void run_mapscript() {
         int oldflags = identflags;
         identflags |= IDF_SAFE;
 #ifndef SERVER
-        string aloc;
-        copystring(aloc, curr_map_id);
-        aloc[strlen(curr_map_id) - 7] = '\0';
-        defformatstring(fname, "media/%s/media.cfg", aloc);
-        execfile(path(fname), false);
+        execfile(get_mapfile_path("media.cfg"), false);
 #endif
-        if (lua::load_file(get_mapscript_filename()))
+        if (lua::load_file(get_mapfile_path("map.lua")))
             fatal("%s", lua_tostring(lua::L, -1));
         lua::push_external("mapscript_gen_env");
         lua_call(lua::L, 0, 1);

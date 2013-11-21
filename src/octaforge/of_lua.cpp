@@ -166,7 +166,8 @@ namespace lua
 
     void load_module(const char *name)
     {
-        defformatstring(p, "%s%c%s.lua", mod_dir, PATHDIV, name);
+        defformatstring(p, "%s/%s.lua", mod_dir, name);
+        path(p);
         logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
         if (load_file(L, p) || lua_pcall(L, 0, 0, 0)) {
             fatal("%s", lua_tostring(L, -1));
@@ -362,19 +363,19 @@ namespace lua
             }
         } else {
             lua_pushfstring(L, "@%s", fname);
-            FILE *f = fopen(fname, "rb");
+            stream *f = openfile(fname, "rb");
             if (!f) return err_file(L, "open", fnameidx);
-            fseek(f, 0, SEEK_END);
-            size_t size = ftell(f);
+            f->seek(0, SEEK_END);
+            size_t size = f->tell();
             buf.growbuf(size);
-            rewind(f);
-            size_t asize = fread(buf.getbuf(), 1, size, f);
+            f->seek(0, SEEK_SET);
+            size_t asize = f->read(buf.getbuf(), size);
             if (size != asize) {
-                fclose(f);
+                delete f;
                 return err_file(L, "read", fnameidx);
             }
             buf.advance(asize);
-            fclose(f);
+            delete f;
         }
         lua_getfield(L, LUA_REGISTRYINDEX, "luacy_parse");
         lua_pushvalue(L, fnameidx);

@@ -28,7 +28,6 @@ namespace world
 
     void export_ents(const char *fname);
     const char *get_mapfile_path(const char *rpath);
-    const char *get_mapscript_filename();
     void run_mapscript();
 } /* end namespace world */
 
