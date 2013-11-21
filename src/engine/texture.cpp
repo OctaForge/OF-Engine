@@ -1639,6 +1639,7 @@ int compactvslots(bool cull)
     loopv(vslots) vslots[i]->index = -1;
     if(cull)
     {
+        void clear_texpacks(int n); clear_texpacks(0); /* OF */
         int numdefaults = min(int(NUMDEFAULTSLOTS), slots.length());
         loopi(numdefaults) slots[i]->variants->index = compactedvslots++;
         loopi(numdefaults) assignvslotlayer(*slots[i]->variants);
@@ -1840,11 +1841,16 @@ static VSlot *reassignvslot(Slot &owner, VSlot *vs)
     return owner.variants;
 }
 
-static VSlot *emptyvslot(Slot &owner)
+/* OF */
+static VSlot *emptyvslot(Slot &owner, bool &newvslot)
 {
     int offset = 0;
     loopvrev(slots) if(slots[i]->variants) { offset = slots[i]->variants->index + 1; break; }
-    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) return reassignvslot(owner, vslots[i]);
+    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) {
+        newvslot = false;
+        return reassignvslot(owner, vslots[i]);
+    }
+    newvslot = true;
     return vslots.add(new VSlot(&owner, vslots.length()));
 }
 
@@ -2054,17 +2060,21 @@ static void texload(const char *name) {
 
 COMMAND(texload, "s");
 
+static vector<VSlot*> saved_vslots;
+
 static void clearslotrange(int firstslot, int nslots) {
     int tnslots = slots.length();
-    for (int i = firstslot; i < (firstslot + nslots); ++i) {
+    for (int i = (firstslot + nslots - 1); i >= firstslot; --i) {
         Slot *s = slots[i];
-        for (VSlot *vs = s->variants; vs; vs = vs->next)
+        saved_vslots.add(s->variants);
+        for (VSlot *vs = s->variants; vs; vs = vs->next) {
             vs->slot = &dummyslot;
-        delete s;
-        if ((i + nslots) < tnslots) {
-            slots[i] = slots[i + nslots];
-            slots[i]->index = i;
         }
+        delete s;
+    }
+    for (int i = firstslot + nslots; i < tnslots; ++i) {
+        slots[i - nslots] = slots[i];
+        slots[i - nslots]->index = i - nslots;
     }
     slots.setsize(tnslots - nslots);
 }
@@ -2083,7 +2093,7 @@ static void texunload(const char *pack, texpack *tp) {
             break;
         }
     }
-    for (int i = ++j; i < texpacks.length(); ++i) {
+    for (int i = j; i < texpacks.length(); ++i) {
         texpack *tp = texpacks[i];
         tp->firstslot -= ncleared;
     }
@@ -2316,6 +2326,34 @@ none:
     delete f;
 });
 
+static int comparevslot(const VSlot &dst, const VSlot &src) {
+    int changed = 0;
+    if (src.params.length() != dst.params.length())
+        changed |= 1 << VSLOT_SHPARAM;
+    else {
+        loopv(src.params) {
+            const SlotShaderParam &sp = src.params[i], &dp = dst.params[i];
+            if (sp.name != dp.name || memcmp(sp.val, dp.val, sizeof(sp.val))) {
+                changed |= 1 << VSLOT_SHPARAM;
+                break;
+            }
+        }
+    }
+    if (dst.scale    != src.scale)    changed |= 1 << VSLOT_SCALE;
+    if (dst.rotation != src.rotation) changed |= 1 << VSLOT_ROTATION;
+    if (dst.offset   != src.offset)   changed |= 1 << VSLOT_OFFSET;
+    if (dst.scroll   != src.scroll)   changed |= 1 << VSLOT_SCROLL;
+    if (dst.layer    != src.layer)    changed |= 1 << VSLOT_LAYER;
+    if (dst.decal    != src.decal)    changed |= 1 << VSLOT_DECAL;
+    if (dst.alphafront != src.alphafront || dst.alphaback != src.alphaback)
+        changed |= 1 << VSLOT_ALPHA;
+    if (dst.colorscale != src.colorscale)
+        changed |= 1 << VSLOT_COLOR;
+    if (dst.refractscale != src.refractscale || dst.refractcolor != src.refractcolor)
+        changed |= 1 << VSLOT_REFRACT;
+    return changed;
+}
+
 void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float *scale)
 {
     if(slots.length()>=0x10000) return;
@@ -2367,12 +2405,29 @@ void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float
     if(tnum==TEX_DIFFUSE)
     {
         setslotshader(s);
-        VSlot &vs = matslot >= 0 ? materialslots[matslot] : *emptyvslot(s);
-        vs.reset();
-        vs.rotation = clamp(*rot, 0, 5);
-        vs.offset = ivec2(*xoffset, *yoffset).max(0);
-        vs.scale = *scale <= 0 ? 1 : *scale;
-        propagatevslot(&vs, (1<<VSLOT_NUM)-1);
+        bool newvslot = false;
+        VSlot *vs = matslot >= 0 ? &materialslots[matslot] : emptyvslot(s, newvslot);
+        vs->reset();
+        vs->rotation = clamp(*rot, 0, 5);
+        vs->offset = ivec2(*xoffset, *yoffset).max(0);
+        vs->scale = *scale <= 0 ? 1 : *scale;
+        /* OF */
+        if (matslot < 0 && !saved_vslots.empty()) {
+            VSlot *svs = saved_vslots.pop();
+            svs->changed = comparevslot(*vs, *svs);
+            if (!svs->changed) {
+                if (newvslot) delete vslots.pop();
+                vs = svs;
+                s.variants = NULL;
+            }
+            svs->addvariant(&s);
+            while (svs) {
+                svs->slot = &s;
+                svs->linked = false;
+                svs = svs->next;
+            }
+        }
+        propagatevslot(vs, (1<<VSLOT_NUM)-1);
     }
 }
 
