@@ -2217,16 +2217,11 @@ static VSlot *reassignvslot(Slot &owner, VSlot *vs)
     return owner.variants;
 }
 
-/* OF */
-static VSlot *emptyvslot(Slot &owner, bool &newvslot)
+static VSlot *emptyvslot(Slot &owner)
 {
     int offset = 0;
     loopvrev(slots) if(slots[i]->variants) { offset = slots[i]->variants->index + 1; break; }
-    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) {
-        newvslot = false;
-        return reassignvslot(owner, vslots[i]);
-    }
-    newvslot = true;
+    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) return reassignvslot(owner, vslots[i]);
     return vslots.add(new VSlot(&owner, vslots.length()));
 }
 
@@ -2447,8 +2442,8 @@ void texture(const char *type, const char *name, int *rot, int *xoffset, int *yo
     if(tnum==TEX_DIFFUSE)
     {
         setslotshader(s);
-        bool newvslot = false;
-        VSlot *vs = matslot >= 0 ? &materialslots[matslot] : emptyvslot(s, newvslot);
+        int nvslots = vslots.length();
+        VSlot *vs = matslot >= 0 ? &materialslots[matslot] : emptyvslot(s);
         vs->reset();
         vs->rotation = clamp(*rot, 0, 5);
         vs->offset = ivec2(*xoffset, *yoffset).max(0);
@@ -2458,7 +2453,7 @@ void texture(const char *type, const char *name, int *rot, int *xoffset, int *yo
             VSlot *svs = saved_vslots.pop();
             svs->changed = comparevslot(*vs, *svs);
             if (!svs->changed) {
-                if (newvslot) delete vslots.pop();
+                if (vslots.length() > nvslots) delete vslots.pop();
                 vs = svs;
                 s.variants = NULL;
             }
