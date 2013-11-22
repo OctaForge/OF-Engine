@@ -1547,8 +1547,8 @@ static bool texpackloading = false;
 struct texpack {
     texpack *prev, *next;
     char *name;
-    int firstslot, nslots;
-    texpack(const char *name, int firstslot): prev(NULL), next(NULL),
+    ushort firstslot, nslots;
+    texpack(const char *name, ushort firstslot): prev(NULL), next(NULL),
         name(newstring(name)), firstslot(firstslot),
         nslots(slots.length() - firstslot) {}
     ~texpack() {
