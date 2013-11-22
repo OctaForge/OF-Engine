@@ -1541,7 +1541,388 @@ MSlot materialslots[(MATF_VOLUME|MATF_INDEX)+1];
 Slot dummyslot;
 VSlot dummyvslot(&dummyslot);
 
-static bool texpackloading = false; /* OF */
+/* OF: a texture pack system */
+static bool texpackloading = false;
+
+struct texpack {
+    texpack *prev, *next;
+    char *name;
+    int firstslot, nslots;
+    texpack(const char *name, int firstslot): prev(NULL), next(NULL),
+        name(newstring(name)), firstslot(firstslot),
+        nslots(slots.length() - firstslot) {}
+    ~texpack() {
+        delete[] name;
+    }
+};
+
+static texpack *firsttexpack = NULL, *lasttexpack = NULL;
+static hashtable<const char*, texpack*> texpacks;
+
+static void cullslots() {
+    texpack *tp = lasttexpack;
+    loopvrev(slots) if (slots[i]->variants->index < 0) {
+        if (tp && i >= tp->firstslot && i < (tp->firstslot + tp->nslots)) {
+            lasttexpack = tp->prev;
+            texpacks.remove(tp->name);
+            delete tp;
+            tp = lasttexpack;
+        }
+        delete slots.remove(i);
+    }
+    loopv(slots) slots[i]->index = i;
+}
+
+void clear_texpacks(int n) {
+    texpack *tp = lasttexpack;
+    while (tp && (!n || (tp->firstslot + tp->nslots - 1) >= n)) {
+        lasttexpack = tp->prev;
+        if (lasttexpack) lasttexpack->next = NULL;
+        texpacks.remove(tp->name); delete tp;
+        tp = lasttexpack;
+    }
+    if (!lasttexpack) firsttexpack = NULL;
+}
+
+static void texpackload(const char *pack, uint *body = NULL) {
+    defformatstring(ppath, "media/texture/%s.tex", pack);
+    int first = slots.length();
+    bool oldloading = texpackloading;
+    texpackloading = true;
+
+    Shader *savedshader = NULL;
+    vector<SlotShaderParam> savedparams;
+    saveslotshader(savedshader, savedparams);
+    setshader("stdworld");
+
+    if (!body && !execfile(path(ppath), false)) {
+        conoutf("could not load texture pack '%s'", pack);
+        texpackloading = oldloading;
+        intret(false);
+        return;
+    } else if (body) execute(body);
+
+    texpackloading = oldloading;
+    restoreslotshader(savedshader, savedparams);
+
+    if (slots.length() == first) {
+        conoutf("texture pack '%s' contains no slots", pack);
+        intret(false);
+        return;
+    }
+    texpack *tp = new texpack(pack, first);
+    if (lasttexpack) {
+        lasttexpack->next = tp;
+        tp->prev = lasttexpack;
+        lasttexpack = tp;
+    } else lasttexpack = tp;
+    if (!firsttexpack) firsttexpack = tp;
+    texpacks.access(tp->name, tp);
+    intret(true);
+}
+
+ICOMMAND(texpack, "se", (char *pack, uint *body), {
+    if (texpackloading) return;
+    if (texpacks.access(pack)) {
+        conoutf("texture pack '%s' already loaded", pack);
+        return;
+    }
+    texpackload(pack, body);
+})
+
+ICOMMAND(texpackload, "s", (const char *pack), {
+    if (texpacks.access(pack)) {
+        conoutf("texture pack '%s' already loaded", pack);
+        return;
+    }
+    texpackload(pack);
+});
+
+static vector<VSlot*> saved_vslots;
+
+static void clearslotrange(int firstslot, int nslots) {
+    int tnslots = slots.length();
+    for (int i = (firstslot + nslots - 1); i >= firstslot; --i) {
+        Slot *s = slots[i];
+        saved_vslots.add(s->variants);
+        for (VSlot *vs = s->variants; vs; vs = vs->next) {
+            vs->slot = &dummyslot;
+        }
+        delete s;
+    }
+    for (int i = firstslot + nslots; i < tnslots; ++i) {
+        slots[i - nslots] = slots[i];
+        slots[i - nslots]->index = i - nslots;
+    }
+    slots.setsize(tnslots - nslots);
+}
+
+static void texpackunload(const char *pack, texpack *tp) {
+    int ncleared = tp->nslots;
+    texpack *ntp = tp->next;
+
+    clearslotrange(tp->firstslot, tp->nslots);
+    if (tp->prev) tp->prev->next = tp->next;
+    else firsttexpack = tp->next;
+    if (tp->next) tp->next->prev = tp->prev;
+    else lasttexpack = tp->prev;
+
+    texpacks.remove(pack);
+    delete tp;
+    for (tp = ntp; tp; tp = tp->next) {
+        tp->firstslot -= ncleared;
+    }
+}
+
+ICOMMAND(texpackunload, "s", (const char *pack), {
+    texpack **tpp = texpacks.access(pack);
+    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
+    texpackunload(pack, *tpp);
+});
+
+ICOMMAND(texpackreload, "s", (const char *pack), {
+    texpack **tpp = texpacks.access(pack);
+    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
+    texpackunload(pack, *tpp);
+    texpackload(pack);
+});
+
+LUAICOMMAND(texture_get_packs, {
+    lua_createtable(L, texpacks.numelems, 0);
+    int i = 1;
+    for (texpack *tp = firsttexpack; tp; tp = tp->next) {
+        lua_createtable(L, 3, 0);
+        lua_pushstring (L, tp->name);      lua_rawseti(L, -2, 1);
+        lua_pushinteger(L, tp->firstslot); lua_rawseti(L, -2, 2);
+        lua_pushinteger(L, tp->nslots);    lua_rawseti(L, -2, 3);
+        lua_rawseti(L, -2, i++);
+    }
+    return 1;
+});
+
+/* diffuse, normal, glow, envmap, spec, depth, unknown */
+const char slotvariants[] = {
+    'c', 'n', 'g', 'e', 's', 'z', 'u'
+};
+
+static void printindent(stream *f, int n) {
+    for (; n > 0; --n) f->printf("    ");
+}
+
+static void dumpvslot(stream *f, const VSlot &vs, int indent) {
+    if (vs.scroll.x || vs.scroll.y) {
+        printindent(f, indent);
+        f->printf("texscroll %f %f\n", vs.scroll.x * 1000.0f,
+            vs.scroll.y * 1000.0f);
+    }
+    if (vs.layer) {
+        printindent(f, indent);
+        f->printf("texlayer %d\n", vs.layer);
+    }
+    if (vs.decal) {
+        printindent(f, indent);
+        f->printf("texdecal %d\n", vs.decal);
+    }
+    if (vs.alphafront != 0.5f || vs.alphaback != 0) {
+        printindent(f, indent);
+        f->printf("texalpha %f %f\n", vs.alphafront, vs.alphaback);
+    }
+    const vec &col = vs.colorscale;
+    if (col.r != 1.0f || col.g != 1.0f || col.b != 1.0f) {
+        printindent(f, indent);
+        f->printf("texcolor %f %f %f\n", col.r, col.g, col.b);
+    }
+    const vec &rfc = vs.refractcolor;
+    if (vs.refractscale || rfc.r != 1.0f || rfc.g != 1.0f || rfc.b != 1.0f) {
+        printindent(f, indent);
+        const vec &rfc = vs.refractcolor;
+        f->printf("texrefract %f %f %f %f\n", vs.refractscale,
+            rfc.r, rfc.g, rfc.b);
+    }
+}
+
+static void dumpslot(stream *f, const Slot &s, int index, int indent) {
+    if (index >= 0) {
+        printindent(f, indent);
+        f->printf("setshader \"%s\"\n", s.shader->name);
+        loopv(s.params) {
+            const SlotShaderParam &p = s.params[i];
+            if (indent) printindent(f, indent);
+            f->printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
+                p.val[1], p.val[2], p.val[3]);
+        }
+        if (s.params.length()) f->printf("\n");
+    }
+    const VSlot &vs = *s.variants;
+    loopv(s.sts) {
+        const Slot::Tex &st = s.sts[i];
+        printindent(f, indent);
+        f->printf("texture ");
+        if (index >= 0) {
+            f->printf("%c", slotvariants[st.type]);
+        } else if (!i) {
+            f->printf("%s", findmaterialname(-index));
+        } else {
+            f->printf("1");
+        }
+        f->printf(" \"%s\"", st.name);
+        if (st.type == TEX_DIFFUSE) {
+            f->printf(" %d %d %d %f", vs.rotation, vs.offset.x, vs.offset.y,
+                vs.scale);
+            if (index >= 0)
+                f->printf(" // %d\n", index);
+            else
+                f->printf("\n");
+        } else f->printf("\n");
+    }
+    if (index >= 0) {
+        if (s.grass) {
+            printindent(f, indent);
+            f->printf("texgrass \"%s\"\n", s.grass);
+        }
+        if (s.smooth >= 0) {
+            extern vector<int> smoothgroups;
+            printindent(f, indent);
+            f->printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
+        }
+        dumpvslot(f, *s.variants, indent);
+    }
+}
+
+static void dumpslotrange(stream *f, int firstslot, int nslots, int indent = 0) {
+    const char *lastgroup = NULL;
+    bool endgroup = false;
+    int nextfirstslot = firstslot + nslots;
+    printindent(f, indent);
+    f->printf("// slot range %d-%d\n", firstslot, nextfirstslot - 1);
+    for (int i = firstslot; i < nextfirstslot; ++i) {
+        renderprogress((i - firstslot) / float(nslots), "saving slots...");
+        const Slot &s = *slots[i];
+        int ind = indent;
+        if (lastgroup != s.group) {
+            if (lastgroup) {
+                printindent(f, indent);
+                f->printf("]\n");
+                endgroup = false;
+            }
+            lastgroup = s.group;
+            if (lastgroup) {
+                printindent(f, indent);
+                f->printf("texgroup \"%s\" [\n", lastgroup);
+                endgroup = true;
+                ++ind;
+            }
+        }
+        dumpslot(f, s, i, ind);
+        if (i != (nextfirstslot - 1)) f->printf("\n");
+    }
+    if (endgroup) {
+        printindent(f, indent);
+        f->printf("]\n");
+    }
+}
+
+void writemediacfg(int level) {
+    stream *f = openutf8file(world::get_mapfile_path("media.cfg"), "w");
+    if (!f) return;
+    f->printf("// generated automatically by writemediacfg\n\n");
+    f->printf("// material slots\nmaterialreset\n\n");
+    int nummat = sizeof(materialslots) / sizeof(materialslots[0]);
+    loopi(nummat) {
+        renderprogress(i / float(nummat), "saving material slots...");
+        switch (i & MATF_VOLUME) {
+            case MAT_GLASS:
+            case MAT_WATER:
+            case MAT_LAVA:
+                dumpslot(f, materialslots[i], -i, 0);
+                f->printf("\n");
+                break;
+        }
+    }
+    f->printf("// texture slots\ntexturereset\n\n");
+    if (!firsttexpack) {
+        dumpslotrange(f, 0, slots.length());
+    } else {
+        if (firsttexpack->firstslot > 0) {
+            dumpslotrange(f, 0, firsttexpack->firstslot);
+            f->printf("\n");
+        }
+        texpack *ptp = NULL;
+        int i = 0;
+        for (texpack *tp = firsttexpack; tp; tp = tp->next) {
+            renderprogress(float(i++) / texpacks.numelems,
+                "saving texture packs...");
+            if (ptp) {
+                int offstart = ptp->firstslot + ptp->nslots;
+                if (offstart != tp->firstslot) {
+                    dumpslotrange(f, offstart, tp->firstslot - offstart);
+                    if (tp) f->printf("\n");
+                }
+            }
+            f->printf("texpack \"%s\" [\n", tp->name);
+            dumpslotrange(f, tp->firstslot, tp->nslots, 1);
+            f->printf("]\n\n");
+            ptp = tp;
+        }
+        if (ptp) {
+            int offstart = ptp->firstslot + ptp->nslots;
+            if (slots.inrange(offstart))
+                dumpslotrange(f, offstart, slots.length() - offstart);
+        }
+    }
+    if (level >= 1) {
+        vector<extentity*> models;
+        vector<extentity*> sounds;
+        const vector<extentity*> &ents = entities::getents();
+        loopv(ents) {
+            renderprogress(i / float(ents.length()), "checking entities...");
+            extentity *e = ents[i];
+            switch (e->type) {
+                case ET_MAPMODEL:
+                    models.add(e);
+                    break;
+                case ET_SOUND:
+                    if (level <= 1) break;
+                    sounds.add(e);
+                    break;
+            }
+        }
+        if (!models.length()) goto sounds;
+        f->printf("// models\n");
+        loopv(models) {
+            renderprogress(i / float(models.length()), "saving models...");
+            const extentity &e = *models[i];
+            if (e.m) f->printf("preloadmodel \"%s\"\n", e.m->name);
+        }
+sounds:
+        if (!sounds.length()) goto none;
+        f->printf("\n// sounds\n");
+        lua::push_external("entity_get_attr");
+        loopv(sounds) {
+            renderprogress(i / float(sounds.length()), "saving sounds...");
+            lua_pushvalue(lua::L, -1);
+            const extentity &e = *sounds[i];
+
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
+                LogicSystem::getLogicEntity(e)->lua_ref);
+            lua_pushliteral(lua::L, "sound_name");
+            lua_call(lua::L, 2, 1);
+
+            const char *sn = lua_tostring(lua::L, -1);
+            f->printf("preloadmapsound \"%s\" %d\n", sn, e.attr[2]);
+            lua_pop(lua::L, 1);
+        }
+        lua_pop(lua::L, 1);
+none:
+        delete f;
+        return;
+    }
+    delete f;
+}
+
+ICOMMAND(writemediacfg, "i", (int *level), {
+    writemediacfg(*level);
+});
 
 void texturereset(int *n)
 {
@@ -1556,7 +1937,7 @@ void texturereset(int *n)
         delete s;
     }
     slots.setsize(limit);
-    void clear_texpacks(int n); clear_texpacks(limit);
+    clear_texpacks(limit); /* OF */
 }
 
 COMMAND(texturereset, "i");
@@ -1629,8 +2010,6 @@ void compactvslots(cube *c, int n)
         }
     }
 }
-
-static void cullslots();
 
 int compactvslots(bool cull)
 {
@@ -1874,6 +2253,35 @@ static bool comparevslot(const VSlot &dst, const VSlot &src, int diff)
     return true;
 }
 
+/* OF */
+static int comparevslot(const VSlot &dst, const VSlot &src) {
+    int changed = 0;
+    if (src.params.length() != dst.params.length())
+        changed |= 1 << VSLOT_SHPARAM;
+    else {
+        loopv(src.params) {
+            const SlotShaderParam &sp = src.params[i], &dp = dst.params[i];
+            if (sp.name != dp.name || memcmp(sp.val, dp.val, sizeof(sp.val))) {
+                changed |= 1 << VSLOT_SHPARAM;
+                break;
+            }
+        }
+    }
+    if (dst.scale    != src.scale)    changed |= 1 << VSLOT_SCALE;
+    if (dst.rotation != src.rotation) changed |= 1 << VSLOT_ROTATION;
+    if (dst.offset   != src.offset)   changed |= 1 << VSLOT_OFFSET;
+    if (dst.scroll   != src.scroll)   changed |= 1 << VSLOT_SCROLL;
+    if (dst.layer    != src.layer)    changed |= 1 << VSLOT_LAYER;
+    if (dst.decal    != src.decal)    changed |= 1 << VSLOT_DECAL;
+    if (dst.alphafront != src.alphafront || dst.alphaback != src.alphaback)
+        changed |= 1 << VSLOT_ALPHA;
+    if (dst.colorscale != src.colorscale)
+        changed |= 1 << VSLOT_COLOR;
+    if (dst.refractscale != src.refractscale || dst.refractcolor != src.refractcolor)
+        changed |= 1 << VSLOT_REFRACT;
+    return changed;
+}
+
 VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta)
 {
     for(VSlot *dst = slot.variants; dst; dst = dst->next)
@@ -1987,415 +2395,6 @@ ICOMMAND(texgroup, "se", (char *name, uint *body), {
 
     curtexgroup = oldgroup;
 });
-
-/* OF: a texture pack system */
-struct texpack {
-    texpack *prev, *next;
-    char *name;
-    int firstslot, nslots;
-    texpack(const char *name, int firstslot): prev(NULL), next(NULL),
-        name(newstring(name)), firstslot(firstslot),
-        nslots(slots.length() - firstslot) {}
-    ~texpack() {
-        delete[] name;
-    }
-};
-
-static texpack *firsttexpack = NULL, *lasttexpack = NULL;
-static hashtable<const char*, texpack*> texpacks;
-
-static void cullslots() {
-    texpack *tp = lasttexpack;
-    loopvrev(slots) if (slots[i]->variants->index < 0) {
-        if (tp && i >= tp->firstslot && i < (tp->firstslot + tp->nslots)) {
-            lasttexpack = tp->prev;
-            texpacks.remove(tp->name);
-            delete tp;
-            tp = lasttexpack;
-        }
-        delete slots.remove(i);
-    }
-    loopv(slots) slots[i]->index = i;
-}
-
-void clear_texpacks(int n) {
-    texpack *tp = lasttexpack;
-    while (tp && (!n || (tp->firstslot + tp->nslots - 1) >= n)) {
-        lasttexpack = tp->prev;
-        if (lasttexpack) lasttexpack->next = NULL;
-        texpacks.remove(tp->name); delete tp;
-        tp = lasttexpack;
-    }
-    if (!lasttexpack) firsttexpack = NULL;
-}
-
-static void texload(const char *pack, uint *body = NULL) {
-    defformatstring(ppath, "media/texture/%s.tex", pack);
-    int first = slots.length();
-    bool oldloading = texpackloading;
-    texpackloading = true;
-
-    Shader *savedshader = NULL;
-    vector<SlotShaderParam> savedparams;
-    saveslotshader(savedshader, savedparams);
-    setshader("stdworld");
-
-    if (!body && !execfile(path(ppath), false)) {
-        conoutf("could not load texture pack '%s'", pack);
-        texpackloading = oldloading;
-        intret(false);
-        return;
-    } else if (body) execute(body);
-
-    texpackloading = oldloading;
-    restoreslotshader(savedshader, savedparams);
-
-    if (slots.length() == first) {
-        conoutf("texture pack '%s' contains no slots", pack);
-        intret(false);
-        return;
-    }
-    texpack *tp = new texpack(pack, first);
-    if (lasttexpack) {
-        lasttexpack->next = tp;
-        tp->prev = lasttexpack;
-        lasttexpack = tp;
-    } else lasttexpack = tp;
-    if (!firsttexpack) firsttexpack = tp;
-    texpacks.access(tp->name, tp);
-    intret(true);
-}
-
-ICOMMAND(texpack, "se", (char *pack, uint *body), {
-    if (texpackloading) return;
-    if (texpacks.access(pack)) {
-        conoutf("texture pack '%s' already loaded", pack);
-        return;
-    }
-    texload(pack, body);
-})
-
-ICOMMAND(texpackload, "s", (const char *pack), {
-    if (texpacks.access(pack)) {
-        conoutf("texture pack '%s' already loaded", pack);
-        return;
-    }
-    texload(pack);
-});
-
-static vector<VSlot*> saved_vslots;
-
-static void clearslotrange(int firstslot, int nslots) {
-    int tnslots = slots.length();
-    for (int i = (firstslot + nslots - 1); i >= firstslot; --i) {
-        Slot *s = slots[i];
-        saved_vslots.add(s->variants);
-        for (VSlot *vs = s->variants; vs; vs = vs->next) {
-            vs->slot = &dummyslot;
-        }
-        delete s;
-    }
-    for (int i = firstslot + nslots; i < tnslots; ++i) {
-        slots[i - nslots] = slots[i];
-        slots[i - nslots]->index = i - nslots;
-    }
-    slots.setsize(tnslots - nslots);
-}
-
-static void texunload(const char *pack, texpack *tp) {
-    int ncleared = tp->nslots;
-    texpack *ntp = tp->next;
-
-    clearslotrange(tp->firstslot, tp->nslots);
-    if (tp->prev) tp->prev->next = tp->next;
-    else firsttexpack = tp->next;
-    if (tp->next) tp->next->prev = tp->prev;
-    else lasttexpack = tp->prev;
-
-    texpacks.remove(pack);
-    delete tp;
-    for (tp = ntp; tp; tp = tp->next) {
-        tp->firstslot -= ncleared;
-    }
-}
-
-ICOMMAND(texpackunload, "s", (const char *pack), {
-    texpack **tpp = texpacks.access(pack);
-    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
-    texunload(pack, *tpp);
-});
-
-ICOMMAND(texpackreload, "s", (const char *pack), {
-    texpack **tpp = texpacks.access(pack);
-    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
-    texunload(pack, *tpp);
-    texload(pack);
-});
-
-LUAICOMMAND(texture_get_packs, {
-    lua_createtable(L, texpacks.numelems, 0);
-    int i = 1;
-    for (texpack *tp = firsttexpack; tp; tp = tp->next) {
-        lua_createtable(L, 3, 0);
-        lua_pushstring (L, tp->name);      lua_rawseti(L, -2, 1);
-        lua_pushinteger(L, tp->firstslot); lua_rawseti(L, -2, 2);
-        lua_pushinteger(L, tp->nslots);    lua_rawseti(L, -2, 3);
-        lua_rawseti(L, -2, i++);
-    }
-    return 1;
-});
-
-/* diffuse, normal, glow, envmap, spec, depth, unknown */
-const char slotvariants[] = {
-    'c', 'n', 'g', 'e', 's', 'z', 'u'
-};
-
-static void printindent(stream *f, int n) {
-    for (; n > 0; --n) f->printf("    ");
-}
-
-static void dumpvslot(stream *f, const VSlot &vs, int indent) {
-    if (vs.scroll.x || vs.scroll.y) {
-        printindent(f, indent);
-        f->printf("texscroll %f %f\n", vs.scroll.x * 1000.0f,
-            vs.scroll.y * 1000.0f);
-    }
-    if (vs.layer) {
-        printindent(f, indent);
-        f->printf("texlayer %d\n", vs.layer);
-    }
-    if (vs.decal) {
-        printindent(f, indent);
-        f->printf("texdecal %d\n", vs.decal);
-    }
-    if (vs.alphafront != 0.5f || vs.alphaback != 0) {
-        printindent(f, indent);
-        f->printf("texalpha %f %f\n", vs.alphafront, vs.alphaback);
-    }
-    const vec &col = vs.colorscale;
-    if (col.r != 1.0f || col.g != 1.0f || col.b != 1.0f) {
-        printindent(f, indent);
-        f->printf("texcolor %f %f %f\n", col.r, col.g, col.b);
-    }
-    const vec &rfc = vs.refractcolor;
-    if (vs.refractscale || rfc.r != 1.0f || rfc.g != 1.0f || rfc.b != 1.0f) {
-        printindent(f, indent);
-        const vec &rfc = vs.refractcolor;
-        f->printf("texrefract %f %f %f %f\n", vs.refractscale,
-            rfc.r, rfc.g, rfc.b);
-    }
-}
-
-static void dumpslot(stream *f, const Slot &s, int index, int indent) {
-    if (index >= 0) {
-        printindent(f, indent);
-        f->printf("setshader \"%s\"\n", s.shader->name);
-        loopv(s.params) {
-            const SlotShaderParam &p = s.params[i];
-            if (indent) printindent(f, indent);
-            f->printf("setshaderparam \"%s\" %f %f %f %f\n", p.name, p.val[0],
-                p.val[1], p.val[2], p.val[3]);
-        }
-        if (s.params.length()) f->printf("\n");
-    }
-    const VSlot &vs = *s.variants;
-    loopv(s.sts) {
-        const Slot::Tex &st = s.sts[i];
-        printindent(f, indent);
-        f->printf("texture ");
-        if (index >= 0) {
-            f->printf("%c", slotvariants[st.type]);
-        } else if (!i) {
-            f->printf("%s", findmaterialname(-index));
-        } else {
-            f->printf("1");
-        }
-        f->printf(" \"%s\"", st.name);
-        if (st.type == TEX_DIFFUSE) {
-            f->printf(" %d %d %d %f", vs.rotation, vs.offset.x, vs.offset.y,
-                vs.scale);
-            if (index >= 0)
-                f->printf(" // %d\n", index);
-            else
-                f->printf("\n");
-        } else f->printf("\n");
-    }
-    if (index >= 0) {
-        if (s.grass) {
-            printindent(f, indent);
-            f->printf("texgrass \"%s\"\n", s.grass);
-        }
-        if (s.smooth >= 0) {
-            extern vector<int> smoothgroups;
-            printindent(f, indent);
-            f->printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
-        }
-        dumpvslot(f, *s.variants, indent);
-    }
-}
-
-static void dumpslotrange(stream *f, int firstslot, int nslots, int indent = 0) {
-    const char *lastgroup = NULL;
-    bool endgroup = false;
-    int nextfirstslot = firstslot + nslots;
-    printindent(f, indent);
-    f->printf("// slot range %d-%d\n", firstslot, nextfirstslot - 1);
-    for (int i = firstslot; i < nextfirstslot; ++i) {
-        renderprogress((i - firstslot) / float(nslots), "saving slots...");
-        const Slot &s = *slots[i];
-        int ind = indent;
-        if (lastgroup != s.group) {
-            if (lastgroup) {
-                printindent(f, indent);
-                f->printf("]\n");
-                endgroup = false;
-            }
-            lastgroup = s.group;
-            if (lastgroup) {
-                printindent(f, indent);
-                f->printf("texgroup \"%s\" [\n", lastgroup);
-                endgroup = true;
-                ++ind;
-            }
-        }
-        dumpslot(f, s, i, ind);
-        if (i != (nextfirstslot - 1)) f->printf("\n");
-    }
-    if (endgroup) {
-        printindent(f, indent);
-        f->printf("]\n");
-    }
-}
-
-void writemediacfg(int level) {
-    stream *f = openutf8file(world::get_mapfile_path("media.cfg"), "w");
-    if (!f) return;
-    f->printf("// generated automatically by writemediacfg\n\n");
-    f->printf("// material slots\nmaterialreset\n\n");
-    int nummat = sizeof(materialslots) / sizeof(materialslots[0]);
-    loopi(nummat) {
-        renderprogress(i / float(nummat), "saving material slots...");
-        switch (i & MATF_VOLUME) {
-            case MAT_GLASS:
-            case MAT_WATER:
-            case MAT_LAVA:
-                dumpslot(f, materialslots[i], -i, 0);
-                f->printf("\n");
-                break;
-        }
-    }
-    f->printf("// texture slots\ntexturereset\n\n");
-    if (!firsttexpack) {
-        dumpslotrange(f, 0, slots.length());
-    } else {
-        if (firsttexpack->firstslot > 0) {
-            dumpslotrange(f, 0, firsttexpack->firstslot);
-            f->printf("\n");
-        }
-        texpack *ptp = NULL;
-        int i = 0;
-        for (texpack *tp = firsttexpack; tp; tp = tp->next) {
-            renderprogress(float(i++) / texpacks.numelems,
-                "saving texture packs...");
-            if (ptp) {
-                int offstart = ptp->firstslot + ptp->nslots;
-                if (offstart != tp->firstslot) {
-                    dumpslotrange(f, offstart, tp->firstslot - offstart);
-                    if (tp) f->printf("\n");
-                }
-            }
-            f->printf("texpack \"%s\" [\n", tp->name);
-            dumpslotrange(f, tp->firstslot, tp->nslots, 1);
-            f->printf("]\n\n");
-            ptp = tp;
-        }
-        if (ptp) {
-            int offstart = ptp->firstslot + ptp->nslots;
-            if (slots.inrange(offstart))
-                dumpslotrange(f, offstart, slots.length() - offstart);
-        }
-    }
-    if (level >= 1) {
-        vector<extentity*> models;
-        vector<extentity*> sounds;
-        const vector<extentity*> &ents = entities::getents();
-        loopv(ents) {
-            renderprogress(i / float(ents.length()), "checking entities...");
-            extentity *e = ents[i];
-            switch (e->type) {
-                case ET_MAPMODEL:
-                    models.add(e);
-                    break;
-                case ET_SOUND:
-                    if (level <= 1) break;
-                    sounds.add(e);
-                    break;
-            }
-        }
-        if (!models.length()) goto sounds;
-        f->printf("// models\n");
-        loopv(models) {
-            renderprogress(i / float(models.length()), "saving models...");
-            const extentity &e = *models[i];
-            if (e.m) f->printf("preloadmodel \"%s\"\n", e.m->name);
-        }
-sounds:
-        if (!sounds.length()) goto none;
-        f->printf("\n// sounds\n");
-        lua::push_external("entity_get_attr");
-        loopv(sounds) {
-            renderprogress(i / float(sounds.length()), "saving sounds...");
-            lua_pushvalue(lua::L, -1);
-            const extentity &e = *sounds[i];
-
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-                LogicSystem::getLogicEntity(e)->lua_ref);
-            lua_pushliteral(lua::L, "sound_name");
-            lua_call(lua::L, 2, 1);
-
-            const char *sn = lua_tostring(lua::L, -1);
-            f->printf("preloadmapsound \"%s\" %d\n", sn, e.attr[2]);
-            lua_pop(lua::L, 1);
-        }
-        lua_pop(lua::L, 1);
-none:
-        delete f;
-        return;
-    }
-    delete f;
-}
-
-ICOMMAND(writemediacfg, "i", (int *level), {
-    writemediacfg(*level);
-});
-
-static int comparevslot(const VSlot &dst, const VSlot &src) {
-    int changed = 0;
-    if (src.params.length() != dst.params.length())
-        changed |= 1 << VSLOT_SHPARAM;
-    else {
-        loopv(src.params) {
-            const SlotShaderParam &sp = src.params[i], &dp = dst.params[i];
-            if (sp.name != dp.name || memcmp(sp.val, dp.val, sizeof(sp.val))) {
-                changed |= 1 << VSLOT_SHPARAM;
-                break;
-            }
-        }
-    }
-    if (dst.scale    != src.scale)    changed |= 1 << VSLOT_SCALE;
-    if (dst.rotation != src.rotation) changed |= 1 << VSLOT_ROTATION;
-    if (dst.offset   != src.offset)   changed |= 1 << VSLOT_OFFSET;
-    if (dst.scroll   != src.scroll)   changed |= 1 << VSLOT_SCROLL;
-    if (dst.layer    != src.layer)    changed |= 1 << VSLOT_LAYER;
-    if (dst.decal    != src.decal)    changed |= 1 << VSLOT_DECAL;
-    if (dst.alphafront != src.alphafront || dst.alphaback != src.alphaback)
-        changed |= 1 << VSLOT_ALPHA;
-    if (dst.colorscale != src.colorscale)
-        changed |= 1 << VSLOT_COLOR;
-    if (dst.refractscale != src.refractscale || dst.refractcolor != src.refractcolor)
-        changed |= 1 << VSLOT_REFRACT;
-    return changed;
-}
 
 void texture(const char *type, const char *name, int *rot, int *xoffset, int *yoffset, float *scale)
 {
@@ -3854,45 +3853,35 @@ LUAICOMMAND(texture_get_data, {
     lua_pushinteger(L, d.h);
 
     lua_createtable(L,  d.w, 0);
-    for (int x = 0; x < d.w; ++x)
-    {
+    for (int x = 0; x < d.w; ++x) {
         lua_pushinteger(L, x + 1);
         lua_createtable(L,  d.h, 0);
-        for (int y = 0; y < d.h; ++y)
-        {
+        for (int y = 0; y < d.h; ++y) {
             uchar *p = d.data + y * d.pitch + x * d.bpp;
-
             Uint32 ret;
-            switch (d.bpp)
-            {
-                case 1:
-                    ret = *p;
-                    break;
-                case 2:
-                    ret = *(Uint16*)p;
-                    break;
+            switch (d.bpp) {
+                case 1: ret = *p;          break;
+                case 2: ret = *(Uint16*)p; break;
                 case 3:
                     if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
                         ret = (p[0] << 16 | p[1] << 8 | p[2]);
                     else
                         ret = (p[0] | p[1] << 8 | p[2] << 16);
                     break;
-                case 4:
-                    ret = *(Uint32*)p;
-                    break;
+                case 4: ret = *(Uint32*)p; break;
                 default:
-                    ret = 0;
-                    break;
+                    ret = 0; break;
             }
 
-            uchar r; uchar g; uchar b;
-            SDL_GetRGB(ret, ((SDL_Surface*)d.owner)->format, &r, &g, &b);
+            uchar r; uchar g; uchar b; uchar a;
+            SDL_GetRGBA(ret, ((SDL_Surface*)d.owner)->format, &r, &g, &b, &a);
 
             lua_pushinteger(L, y + 1);
-            lua_createtable(L, 0, 3);
+            lua_createtable(L, 0, 4);
             lua_pushinteger(L, r); lua_setfield(L, -2, "r");
             lua_pushinteger(L, g); lua_setfield(L, -2, "g");
             lua_pushinteger(L, b); lua_setfield(L, -2, "b");
+            lua_pushinteger(L, a); lua_setfield(L, -2, "a");
             lua_settable   (L, -3);
         }
         lua_settable(L, -3);
