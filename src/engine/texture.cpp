@@ -1701,9 +1701,7 @@ LUAICOMMAND(texture_get_packs, {
 });
 
 /* diffuse, normal, glow, envmap, spec, depth, unknown */
-const char slotvariants[] = {
-    'c', 'n', 'g', 'e', 's', 'z', 'u'
-};
+const char slotvariants[] = "cngeszu";
 
 static void printindent(stream *f, int n) {
     for (; n > 0; --n) f->printf("    ");
