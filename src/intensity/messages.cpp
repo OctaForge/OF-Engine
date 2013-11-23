@@ -273,12 +273,12 @@ namespace MessageSystem
 
 // NewEntityRequest
 
-    void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData)
+    void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData, const char *newent_data)
     {
         logger::log(logger::DEBUG, "Sending a message of type NewEntityRequest (1010)");
         INDENT_LOG(logger::DEBUG);
 
-        game::addmsg(1010, "rsiiis", _class, int(x*DMF), int(y*DMF), int(z*DMF), stateData);
+        game::addmsg(1010, "rsiiiss", _class, int(x*DMF), int(y*DMF), int(z*DMF), stateData, newent_data);
     }
 
 #ifdef SERVER
@@ -291,6 +291,8 @@ namespace MessageSystem
         float z = float(getint(p))/DMF;
         char stateData[MAXTRANS];
         getstring(stateData, p);
+        char newent_data[MAXTRANS];
+        getstring(newent_data, p);
 
         if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
@@ -309,12 +311,12 @@ namespace MessageSystem
         }
         lua_pop(lua::L, 1);
         // Add entity
-        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s", _class, x, y, z, stateData);
+        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s|%s", _class, x, y, z, stateData, newent_data);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         // Create
         lua::push_external("entity_new");
         lua_pushstring(lua::L, _class); // first arg
-        lua_createtable(lua::L, 0, 2); // second arg
+        lua_createtable(lua::L, 0, 3); // second arg
         lua_createtable(lua::L, 0, 3);
         lua_pushnumber(lua::L, x); lua_setfield(lua::L, -2, "x");
         lua_pushnumber(lua::L, y); lua_setfield(lua::L, -2, "y");
@@ -322,6 +324,8 @@ namespace MessageSystem
         lua_setfield(lua::L, -2, "position");
         lua_pushstring(lua::L, stateData);
         lua_setfield(lua::L, -2, "state_data");
+        lua_pushstring(lua::L, newent_data);
+        lua_setfield(lua::L, -2, "newent_data");
         lua_call(lua::L, 2, 1);
         lua_getfield(lua::L, -1, "uid");
         int newuid = lua_tointeger(lua::L, -1);

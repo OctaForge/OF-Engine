@@ -499,7 +499,13 @@ local add = function(cn, uid, kwargs, new)
         end
     end
 
-    if SERVER and new then r:__init_svars(kwargs) end
+    if SERVER and new then
+        if kwargs then
+            local ndata = kwargs.newent_data
+            if ndata then kwargs.newent_data = deserialize(ndata) end
+        end
+        r:__init_svars(kwargs)
+    end
 
     debug then log(DEBUG, "ents.add: activate")
     r:__activate(kwargs)
@@ -1265,9 +1271,19 @@ Entity = table2.Object:clone {
     end,
 
     --[[! Function: set_attr
-        Sets the entity property of the given name to the given value.
+        Sets the entity property of the given name to the given value. There
+        is one last argument which provides a non-wise default value that takes
+        preference and is optional (if it's provided, it's converted from wire
+        format and that succeeds, it's used in place of the actual value).
     ]]
-    set_attr = function(self, prop, val)
+    set_attr = function(self, prop, val, nd)
+        if nd then
+            local var = self["_SV_" .. prop]
+            if var then
+                local nw = var:from_wire(nd)
+                if nw != nil then val = nw end
+            end
+        end
         local fun = self["__set_" .. prop]
         return fun and fun(self, val) or nil
     end

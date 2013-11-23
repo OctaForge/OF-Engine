@@ -143,7 +143,7 @@ struct NewEntityRequest : MessageType
 #endif
 };
 
-void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData);
+void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData, const char *newent_data);
 
 
 // StateDataUpdate

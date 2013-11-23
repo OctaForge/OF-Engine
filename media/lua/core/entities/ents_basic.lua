@@ -977,7 +977,9 @@ local lightflags = setmetatable({
 
 --[[! Class: Light
     A regular point light. In the extension library there are special light
-    entity types that are e.g. triggered, flickering and so on.
+    entity types that are e.g. triggered, flickering and so on. When providing
+    properties as extra arguments to newent, you can specify red, green, blue,
+    radius and shadow in that order.
 
     Properties:
         attr1 - light radius. (0 to N, alias "radius", default 100 - 0 or
@@ -1007,11 +1009,12 @@ local Light = Static_Entity:clone {
 
     __init_svars = function(self, kwargs)
         Static_Entity.__init_svars(self, kwargs)
-        self:set_attr("red", 128)
-        self:set_attr("green", 128)
-        self:set_attr("blue", 128)
-        self:set_attr("radius", 100)
-        self:set_attr("shadow", 0)
+        local nd = kwargs.newent_data or {}
+        self:set_attr("red", 128, nd[1])
+        self:set_attr("green", 128, nd[2])
+        self:set_attr("blue", 128, nd[3])
+        self:set_attr("radius", 100, nd[4])
+        self:set_attr("shadow", 0, nd[5])
     end,
 
     __get_edit_color = function(self)

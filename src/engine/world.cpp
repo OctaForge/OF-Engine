@@ -933,7 +933,7 @@ vec saved_pos;
 
 #define FAR_PLACING_FACTOR 0.9
 
-void newent(const char *cl, const char *sd, vec fp)
+void newent(const char *cl, const char *sd, const char *nd, vec fp)
 {
     #ifndef SERVER
         fp.mul(FAR_PLACING_FACTOR);
@@ -942,7 +942,7 @@ void newent(const char *cl, const char *sd, vec fp)
         cp.add(fp);
 
         if (!sd || !sd[0]) sd = "{}";
-        MessageSystem::send_NewEntityRequest(cl, cp.x, cp.y, cp.z, sd);
+        MessageSystem::send_NewEntityRequest(cl, cp.x, cp.y, cp.z, sd, nd ? nd : "");
     #else // SERVER
         assert(0); // Where?
     #endif
@@ -951,11 +951,28 @@ void newent(const char *cl, const char *sd, vec fp)
 #undef FAR_PLACING_FACTOR
 
 void newent(const char *cl, const char *sd) {
-    newent(cl, sd, saved_pos);
+    newent(cl, sd, NULL, saved_pos);
 }
 
 #ifndef SERVER
-ICOMMAND(newent, "ss", (char *cl, char *sd), newent(cl, sd, worldpos));
+ICOMMAND(newent, "V", (tagval *args, int numargs), {
+    const char *cl = args[0].getstr();
+    vector<char> buf;
+    buf.add('{');
+    for (int i = 1; i < numargs; ++i) {
+        const char *str = args[i].getstr();
+        int len = strlen(str);
+        buf.reserve(len + 2);
+        buf.add('"');
+        memcpy(&buf[buf.ulen], str, len);
+        buf.advance(len);
+        buf.add('"');
+        if (i < (numargs - 1)) buf.add(',');
+    }
+    buf.add('}');
+    buf.add('\0');
+    newent(cl, NULL, buf.getbuf(), worldpos);
+});
 
 LUAICOMMAND(new_entity, {
     vec pos = saved_pos;
@@ -964,7 +981,7 @@ LUAICOMMAND(new_entity, {
         pos.y = luaL_optnumber(L, 4, 0);
         pos.z = luaL_optnumber(L, 5, 0);
     }
-    newent(luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), pos);
+    newent(luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), NULL, pos);
     return 0;
 });
 
@@ -1137,7 +1154,7 @@ void enttype(char *type, int *numargs) {
             vec pos(e.o);
             MessageSystem::send_RequestLogicEntityRemoval(e.uid);
             MessageSystem::send_NewEntityRequest(type, pos.x, pos.y, pos.z,
-                "{}");
+                "{}", "");
         );
     } else entfocus(efocus, {
         lua::push_external("entity_get_class_name");
