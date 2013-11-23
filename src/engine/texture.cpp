@@ -1779,9 +1779,8 @@ static void dumpslot(stream *f, const Slot &s, int index, int indent) {
             f->printf("texgrass \"%s\"\n", s.grass);
         }
         if (s.smooth >= 0) {
-            extern vector<int> smoothgroups;
             printindent(f, indent);
-            f->printf("texsmooth %d %d\n", s.smooth, smoothgroups[s.smooth]);
+            f->printf("texsmooth %d -1\n", s.smooth);
         }
         dumpvslot(f, *s.variants, indent);
     }
@@ -1824,6 +1823,19 @@ void writemediacfg(int level) {
     stream *f = openutf8file(world::get_mapfile_path("media.cfg"), "w");
     if (!f) return;
     f->printf("// generated automatically by writemediacfg\n\n");
+
+    extern vector<int> smoothgroups;
+    if (!smoothgroups.empty()) {
+        f->printf("// smoothing groups\n");
+        loopv(smoothgroups) {
+            if (smoothgroups[i] < 0) continue;
+            renderprogress(i / float(smoothgroups.length()),
+                "saving smoothing groups...");
+            f->printf("smoothangle %d %d\n", i, smoothgroups[i]);
+        }
+        f->printf("\n");
+    }
+
     f->printf("// material slots\nmaterialreset\n\n");
     int nummat = sizeof(materialslots) / sizeof(materialslots[0]);
     loopi(nummat) {
