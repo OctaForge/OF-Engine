@@ -35,6 +35,8 @@ local Obstacle = ents.Obstacle
     two new properties, "destination" which is an integer from 1 to N
     (0 by default, as in, invalid) and "sound_name", which is an optional
     string specifying which sound to play on teleportation (empty by default).
+    You can specify the destination and sound name as arguments to newent,
+    followed by obstacle newent arguments.
 
     A destination for this teleporter can be any entity type that has a method
     "place_entity". By default, <ents.Marker> and <ents.Oriented_Marker> have
@@ -53,9 +55,11 @@ M.Teleporter = Obstacle:clone {
     },
 
     __init_svars = function(self, kwargs)
+        local nd = kwargs.newent_data
+        if nd then kwargs.newent_data = { unpack(nd, 3) } end
         Obstacle.__init_svars(self, kwargs)
-        self:set_attr("destination", 0)
-        self:set_attr("sound_name", "")
+        self:set_attr("destination", nd[1])
+        self:set_attr("sound_name", nd[2])
     end,
 
     __activate = (not SERVER) and function(self, kwargs)

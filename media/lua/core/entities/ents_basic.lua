@@ -931,7 +931,8 @@ ents.Marker = Marker
 --[[! Class: Oriented_Marker
     A generic (oriented) marker with a wide variety of uses. Can be used as
     a base for various position markers (e.g. playerstarts). It has two
-    properties, attr1 alias yaw, attr2 alias pitch.
+    properties, attr1 alias yaw, attr2 alias pitch. When providing properties
+    as extra arguments to newent, you can specify yaw and pitch in that order.
 
     An example of world marker usage is a cutscene system. Different marker
     types inherited from this one can represent different nodes.
@@ -948,6 +949,13 @@ local Oriented_Marker = Static_Entity:clone {
         attr1 = gen_attr(1, "yaw"),
         attr2 = gen_attr(2, "pitch")
     },
+
+    __init_svars = function(self, kwargs)
+        Static_Entity.__init_svars(self, kwargs)
+        local nd = kwargs.newent_data or {}
+        self:set_attr("yaw", 0, nd[1])
+        self:set_attr("pitch", 0, nd[2])
+    end,
 
     --[[! Function: place_entity
         Places an entity on this marker's position.
@@ -1035,7 +1043,8 @@ ents.Light = Light
 --[[! Class: Spot_Light
     A spot light. It's attached to the nearest <Light>. It has just one
     property, attr1 (alias "radius") which defaults to 90 and is in degrees
-    (90 is a full hemisphere, 0 is a line).
+    (90 is a full hemisphere, 0 is a line). You can specify the radius
+    as an extra argument to newent.
 
     Properties such as color are inherited from the attached light entity.
 ]]
@@ -1053,7 +1062,8 @@ local Spot_Light = Static_Entity:clone {
 
     __init_svars = function(self, kwargs)
         Static_Entity.__init_svars(self, kwargs)
-        self:set_attr("radius", 90)
+        local nd = kwargs.newent_data or {}
+        self:set_attr("radius", 90, nd[1])
     end,
 
     __get_edit_color = function(self)
@@ -1071,7 +1081,8 @@ ents.Spot_Light = Spot_Light
 --[[! Class: Envmap
     An environment map entity class. Things reflecting on their surface using
     environment maps can generate their envmap from the nearest envmap entity
-    instead of using skybox and reflect geometry that way (statically).
+    instead of using skybox and reflect geometry that way (statically). You
+    can specify the radius as an extra argument to newent.
 
     It has one property, radius, which specifies the distance it'll still
     have effect in.
@@ -1090,7 +1101,8 @@ local Envmap = Static_Entity:clone {
 
     __init_svars = function(self, kwargs)
         Static_Entity.__init_svars(self, kwargs)
-        self:set_attr("radius", 128)
+        local nd = kwargs.newent_data or {}
+        self:set_attr("radius", 128, nd[1])
     end,
 
     __get_edit_info = function(self)
@@ -1101,6 +1113,8 @@ ents.Envmap = Envmap
 
 --[[! Class: Sound
     An ambient sound in the world. Repeats the given sound at entity position.
+    You can specify the sound name, volume, radius and size as extra arguments
+    to newent.
 
     Properties:
         attr1 - the sound radius (alias "radius", default 100)
@@ -1129,10 +1143,11 @@ local Sound = Static_Entity:clone {
 
     __init_svars = function(self, kwargs)
         Static_Entity.__init_svars(self, kwargs)
-        self:set_attr("radius", 100)
-        self:set_attr("size", 0)
-        self:set_attr("volume", 100)
-        self:set_attr("sound_name", "")
+        local nd = kwargs.newent_data or {}
+        self:set_attr("radius", 100, nd[3])
+        self:set_attr("size", 0, nd[4])
+        self:set_attr("volume", 100, nd[2])
+        self:set_attr("sound_name", "", nd[1])
     end,
 
     __activate = (not SERVER) and function(self, ...)
@@ -1195,6 +1210,8 @@ end)
     A model in the world. All attrs default to 0. On mapmodels and all
     entity types derived from mapmodels, the engine emits the "collision"
     signal with the collider entity passed as an argument when collided.
+    You can specify the model name, yaw, pitch, roll and scale as extra
+    arguments to newent.
 
     Properties:
         animation [<svars.State_Array>] - the mapmodel's current animation.
@@ -1245,8 +1262,12 @@ local Mapmodel = Static_Entity:clone {
 
     __init_svars = SERVER and function(self, kwargs)
         Static_Entity.__init_svars(self, kwargs)
-
-        self:set_attr("model_name", "")
+        local nd = kwargs.newent_data or {}
+        self:set_attr("model_name", "", nd[1])
+        self:set_attr("yaw", 0, nd[2])
+        self:set_attr("pitch", 0, nd[3])
+        self:set_attr("roll", 0, nd[4])
+        self:set_attr("scale", 0, nd[5])
         self:set_attr("attachments", {})
         self:set_attr("animation", { "idle,loop" })
         self:set_attr("animation_flags", 0)
@@ -1304,7 +1325,9 @@ end)
     An entity class that emits a "collision" signal on itself when a client
     (player, NPC...) collides with it. It has its own yaw (attr1), dimensions
     (attr2 alias a, attr3 alias b, attr4 alias c) and the solid property
-    (attr5) which makes the obstacle solid when it isn't 0.
+    (attr5) which makes the obstacle solid when it isn't 0. You can specify
+    the a, b, c dimensions, yaw, pitch, roll and the solid property as extra
+    arguments to newent.
 ]]
 local Obstacle = Static_Entity:clone {
     name = "Obstacle",
@@ -1324,13 +1347,14 @@ local Obstacle = Static_Entity:clone {
 
     __init_svars = function(self, kwargs)
         Static_Entity.__init_svars(self, kwargs)
-        self:set_attr("yaw", 0)
-        self:set_attr("pitch", 0)
-        self:set_attr("roll", 0)
-        self:set_attr("a", 10)
-        self:set_attr("b", 10)
-        self:set_attr("c", 10)
-        self:set_attr("solid", 0)
+        local nd = kwargs.newent_data or {}
+        self:set_attr("yaw", 0, nd[4])
+        self:set_attr("pitch", 0, nd[5])
+        self:set_attr("roll", 0, nd[6])
+        self:set_attr("a", 10, nd[1])
+        self:set_attr("b", 10, nd[2])
+        self:set_attr("c", 10, nd[3])
+        self:set_attr("solid", 0, nd[7])
     end,
 
     __get_edit_info = function(self)

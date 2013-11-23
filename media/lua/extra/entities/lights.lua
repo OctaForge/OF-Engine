@@ -30,7 +30,8 @@ local Marker = ents.Marker
     the core set. Note: even though this type is not registered by default,
     it's fully functional.
 
-    Properties overlap with the core Light entity type (but it lacks flags).
+    Properties overlap with the core Light entity type (but it lacks flags)
+    including newent properties.
 ]]
 local Dynamic_Light = Marker:clone {
     name = "Dynamic_Light",
@@ -49,10 +50,11 @@ local Dynamic_Light = Marker:clone {
 
     __init_svars = function(self, kwargs)
         Marker.__init_svars(self, kwargs)
-        self:set_attr("radius", 100)
-        self:set_attr("red",    128)
-        self:set_attr("green",  128)
-        self:set_attr("blue",   128)
+        local nd = kwargs.newent_data or {}
+        self:set_attr("radius", 100, nd[4])
+        self:set_attr("red",    128, nd[1])
+        self:set_attr("green",  128, nd[2])
+        self:set_attr("blue",   128, nd[3])
     end,
 
     --[[! Function: __run
@@ -75,7 +77,8 @@ local flash_flag = lights.flags.FLASH
 
 --[[! Class: Flickering_Light
     A flickering light entity type derived from <Dynamic_Light>. This one
-    is registered. Delays are in milliseconds.
+    is registered. Delays are in milliseconds. It adds probability, min delay
+    and max delay to newent properties of its parent.
 
     Properties (all <svars.State_Float>):
         probability - the flicker probability (from 0 to 1, defaults to 0.5)
@@ -93,9 +96,10 @@ M.Flickering_Light = Dynamic_Light:clone {
 
     __init_svars = function(self, kwargs)
         Dynamic_Light.__init_svars(self, kwargs)
-        self:set_attr("probability", 0.5)
-        self:set_attr("min_delay",   100)
-        self:set_attr("max_delay",   300)
+        local nd = kwargs.newent_data or {}
+        self:set_attr("probability", 0.5, nd[5])
+        self:set_attr("min_delay",   100, nd[6])
+        self:set_attr("max_delay",   300, nd[7])
     end,
 
     __activate = (not SERVER) and function(self, kwargs)

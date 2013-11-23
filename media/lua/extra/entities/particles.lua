@@ -68,6 +68,8 @@ local SMOKE, FLAME = renderers.smoke, renderers.flame
 --[[! Class: Fire_Effect
     A regular fire effect. Has properties radius (default 1.5), height
     (default 0.5), red, green, blue (integers, default 0x90, 0x30, 0x20).
+    You can specify radius, height, red, green and blue values as newent
+    arguments.
 ]]
 M.Fire_Effect = Particle_Effect:clone {
     name = "Fire_Effect",
@@ -82,11 +84,12 @@ M.Fire_Effect = Particle_Effect:clone {
 
     __init_svars = function(self, kwargs)
         Particle_Effect.__init_svars(self, kwargs)
-        self:set_attr("radius", 1.5)
-        self:set_attr("height", 0.5)
-        self:set_attr("red",   0x90)
-        self:set_attr("green", 0x30)
-        self:set_attr("blue",  0x20)
+        local nd = kwargs.newent_data or {}
+        self:set_attr("radius", 1.5, nd[1])
+        self:set_attr("height", 0.5, nd[2])
+        self:set_attr("red",   0x90, nd[3])
+        self:set_attr("green", 0x30, nd[4])
+        self:set_attr("blue",  0x20, nd[5])
     end,
 
     __get_edit_color = function(self)
@@ -120,7 +123,8 @@ local STEAM = renderers.steam
 
 --[[! Class: Steam_Effect
     A steam effect. Has one property, direction, which is passed to
-    <offset_vec> directly.
+    <offset_vec> directly. You can specify the direction as a newent
+    argument.
 ]]
 M.Steam_Effect = Particle_Effect:clone {
     name = "Steam_Effect",
@@ -131,7 +135,7 @@ M.Steam_Effect = Particle_Effect:clone {
 
     __init_svars = function(self, kwargs)
         Particle_Effect.__init_svars(self, kwargs)
-        self:set_attr("direction", 0)
+        self:set_attr("direction", 0, (kwargs.newent_data or {})[1])
     end,
 
     __get_edit_info = function(self)
