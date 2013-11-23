@@ -832,7 +832,6 @@ local stat_opts = {
         ls:get()
         assert_append(ls, cs, "::")
         ls:get()
-        print("done", tok.name)
     end,
     ["debug"] = function(ls, cs)
         local lah = ls:lookahead()

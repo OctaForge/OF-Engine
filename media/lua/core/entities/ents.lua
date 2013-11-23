@@ -500,11 +500,13 @@ local add = function(cn, uid, kwargs, new)
     end
 
     if SERVER and new then
+        local ndata
         if kwargs then
-            local ndata = kwargs.newent_data
-            if ndata then kwargs.newent_data = deserialize(ndata) end
+            ndata = kwargs.newent_data
+            kwargs.newent_data = nil
+            if ndata then ndata = deserialize(ndata) end
         end
-        r:__init_svars(kwargs)
+        r:__init_svars(kwargs, ndata or {})
     end
 
     debug then log(DEBUG, "ents.add: activate")
@@ -946,9 +948,10 @@ Entity = table2.Object:clone {
 
         The kwargs parameter is used here to query whether the entity
         is persistent (to set the persistent property). In child entities,
-        it can be used for more things.
+        it can be used for more things. The ndata last parameter is an array
+        of extra newent arguments in wire format.
     ]]
-    __init_svars = SERVER and function(self, kwargs)
+    __init_svars = SERVER and function(self, kwargs, ndata)
         debug then log(DEBUG, "Entity.__init_svars")
 
         self:entity_setup()

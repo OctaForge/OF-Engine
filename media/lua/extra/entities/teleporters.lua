@@ -54,10 +54,8 @@ M.Teleporter = Obstacle:clone {
         sound_name  = svars.State_String()
     },
 
-    __init_svars = function(self, kwargs)
-        local nd = kwargs.newent_data
-        if nd then kwargs.newent_data = { unpack(nd, 3) } end
-        Obstacle.__init_svars(self, kwargs)
+    __init_svars = function(self, kwargs, nd)
+        Obstacle.__init_svars(self, kwargs, { unpack(nd, 3) })
         self:set_attr("destination", nd[1])
         self:set_attr("sound_name", nd[2])
     end,

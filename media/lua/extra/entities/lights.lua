@@ -48,9 +48,8 @@ local Dynamic_Light = Marker:clone {
     ]]
     __per_frame = true,
 
-    __init_svars = function(self, kwargs)
-        Marker.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = function(self, kwargs, nd)
+        Marker.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 100, nd[4])
         self:set_attr("red",    128, nd[1])
         self:set_attr("green",  128, nd[2])
@@ -94,9 +93,8 @@ M.Flickering_Light = Dynamic_Light:clone {
         max_delay   = svars.State_Integer(),
     },
 
-    __init_svars = function(self, kwargs)
-        Dynamic_Light.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = function(self, kwargs, nd)
+        Dynamic_Light.__init_svars(self, kwargs, nd)
         self:set_attr("probability", 0.5, nd[5])
         self:set_attr("min_delay",   100, nd[6])
         self:set_attr("max_delay",   300, nd[7])

@@ -1,3 +1,33 @@
+2013-11-23 - 0.3.0 beta 11
+
+    * Removed obsolete GUI code, simplified, optimized the rest
+    * GUI: reduce expanding hbox/vbox mode to two passes
+    * Procedural API: cube, texture, material lookups
+    * Tweaked fonts
+    * 8-directional movement animations (running, crouching, jumping etc.)
+    * New contributor: fleeky
+    * New player model by fleeky
+    * Build system fixes and simplifications
+    * Changed license: University of Illinois/NCSA Open Source License
+    * Added in some textures by nobiax
+    * Redesign the player_class system
+    * Tweaked player values
+    * playerfpsshadow variable for making player shadow visible in first person
+    * New map: test (by fleeky)
+    * Texture groups via the texgroup command (for categorization)
+    * New texture loading system - works dynamically while mapping, is based
+      on a texture pack system (texpackload, texpackunload, texpackreload)
+    * New command: texcull, to remove unused slots
+    * New command: writemediacfg, to write used textures (and optionally
+      preload lines for models and sounds) into media.cfg - executed
+      automatically on map start, and the cfg is also written in savemap
+    * Akin to texpackload, matpackload loads .mat files with material defs
+      (materialreset has been expanded to allow fine-grained clearing)
+    * Fixed the replace/replacesel commands
+    * Upstream: decal and particle improvements
+    * Extended newent: extra arguments to it specify default values of
+      the new entity's attributes (specific for each entity type)
+
 2013-10-14 - 0.2.9 beta 10
 
     * Adjustable procedural atmosphere/sky

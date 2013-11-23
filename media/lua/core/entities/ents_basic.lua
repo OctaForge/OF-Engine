@@ -950,9 +950,8 @@ local Oriented_Marker = Static_Entity:clone {
         attr2 = gen_attr(2, "pitch")
     },
 
-    __init_svars = function(self, kwargs)
-        Static_Entity.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = function(self, kwargs, nd)
+        Static_Entity.__init_svars(self, kwargs, nd)
         self:set_attr("yaw", 0, nd[1])
         self:set_attr("pitch", 0, nd[2])
     end,
@@ -1015,9 +1014,8 @@ local Light = Static_Entity:clone {
         attr5 = gen_attr(5, "shadow")
     },
 
-    __init_svars = function(self, kwargs)
-        Static_Entity.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = function(self, kwargs, nd)
+        Static_Entity.__init_svars(self, kwargs, nd)
         self:set_attr("red", 128, nd[1])
         self:set_attr("green", 128, nd[2])
         self:set_attr("blue", 128, nd[3])
@@ -1060,9 +1058,8 @@ local Spot_Light = Static_Entity:clone {
         attr1 = gen_attr(1, "radius")
     },
 
-    __init_svars = function(self, kwargs)
-        Static_Entity.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = function(self, kwargs, nd)
+        Static_Entity.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 90, nd[1])
     end,
 
@@ -1099,9 +1096,8 @@ local Envmap = Static_Entity:clone {
         attr1 = gen_attr(1, "radius")
     },
 
-    __init_svars = function(self, kwargs)
-        Static_Entity.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = function(self, kwargs, nd)
+        Static_Entity.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 128, nd[1])
     end,
 
@@ -1141,9 +1137,8 @@ local Sound = Static_Entity:clone {
         sound_name = svars.State_String()
     },
 
-    __init_svars = function(self, kwargs)
-        Static_Entity.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = function(self, kwargs, nd)
+        Static_Entity.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 100, nd[3])
         self:set_attr("size", 0, nd[4])
         self:set_attr("volume", 100, nd[2])
@@ -1260,9 +1255,8 @@ local Mapmodel = Static_Entity:clone {
         attr4 = gen_attr(4, "scale")
     },
 
-    __init_svars = SERVER and function(self, kwargs)
-        Static_Entity.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = SERVER and function(self, kwargs, nd)
+        Static_Entity.__init_svars(self, kwargs, nd)
         self:set_attr("model_name", "", nd[1])
         self:set_attr("yaw", 0, nd[2])
         self:set_attr("pitch", 0, nd[3])
@@ -1345,9 +1339,8 @@ local Obstacle = Static_Entity:clone {
         attr7 = gen_attr(7, "solid")
     },
 
-    __init_svars = function(self, kwargs)
-        Static_Entity.__init_svars(self, kwargs)
-        local nd = kwargs.newent_data or {}
+    __init_svars = function(self, kwargs, nd)
+        Static_Entity.__init_svars(self, kwargs, nd)
         self:set_attr("yaw", 0, nd[4])
         self:set_attr("pitch", 0, nd[5])
         self:set_attr("roll", 0, nd[6])
