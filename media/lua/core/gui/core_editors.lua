@@ -696,9 +696,14 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if code == key.ESCAPE then
             if isdown then self:set_focus(nil) end
             return true
-        elseif code == key.RETURN or code == key.TAB then
+        elseif code == key.RETURN then
             if not self.multiline then
                 if isdown then self:commit() end
+                return true
+            end
+        elseif code == key.TAB then
+            if not self.multiline then
+                if isdown then set_focus(self.tab_next) end
                 return true
             end
         elseif code == key.KP_ENTER then
@@ -710,6 +715,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     key_hover = function(self, code, isdown)
+        if not self.multiline then
+            return Widget.key_hover(self, code, isdown)
+        end
         local hoverkeys = {
             [key.MOUSEWHEELUP  ] = true,
             [key.MOUSEWHEELDOWN] = true,

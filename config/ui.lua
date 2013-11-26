@@ -69,7 +69,7 @@ local gen_map_load = || do
                         hb:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02,
                             gui.Image { min_w = 0.3, min_h = 0.3,
                                 __init = |img| do im = img end,
-                                gui.Outline { clamp = true }
+                                gui.Outline { clamp = true, color = 0x303030 }
                             }
                         })
                         hb:append(gui.V_Box(), |vb| do
@@ -78,7 +78,7 @@ local gen_map_load = || do
                     end)
                 end)
             end)
-        end },
+        end, color = 0x303030 },
         gui.V_Scrollbar { clamp_v = true, __init = |sb| do
             sb:append(gui.Scroll_Button())
             sb:bind_scroller(s)
@@ -118,7 +118,7 @@ world:new_window("main", gui.Window, |win| do
         b:append(gui.State { state = "default" }, |st| do
             stat = st
             st:update_state("default", gui.Outline { min_w = 0.6, min_h = 0.5,
-                gui.V_Box {
+                color = 0x303030, gui.V_Box {
                     gui.Label { text = "Welcome to OctaForge!", scale = 1.5,
                         color = 0x88FF88
                     },
@@ -128,14 +128,14 @@ world:new_window("main", gui.Window, |win| do
             })
             st:update_state("load_map", gen_map_load())
             st:update_state("options", gui.Outline { min_w = 0.6, min_h = 0.5,
-                gui.V_Box {
+                color = 0x303030, gui.V_Box {
                     gui.Label { text = "Coming soon", scale = 1.5,
                         color = 0x88FF88 },
                     gui.Label { text = "No options for now :)" }
                 }
             })
             st:update_state("credits", gui.Outline { min_w = 0.6, min_h = 0.5,
-                gui.V_Box {
+                color = 0x303030, gui.V_Box {
                     gui.Label { text = "OctaForge is brought to you by:",
                         color = 0x88FF88 },
                     gui.Filler { min_h = 0.01, clamp_h = true },

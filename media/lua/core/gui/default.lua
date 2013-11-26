@@ -43,7 +43,8 @@ local btnv_init_clone = |self, btn| do
 end
 
 local btn_build_variant = |color| gui.Gradient {
-    color = 0x0, color2 = 0x303030, clamp_h = true, init_clone = |self, btn| do
+    color = 0x202020, color2 = 0x101010, clamp_h = true,
+    init_clone = |self, btn| do
         self:set_min_w(btn.min_w or 0)
         self:set_min_h(btn.min_h or 0)
         connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
@@ -66,13 +67,13 @@ local btn_build_variant_nobg = || gui.Filler {
     }
 }
 
-btnv["default"     ] = btn_build_variant(0xFFFFFF)
-btnv["hovering"    ] = btn_build_variant(0xE1E1E1)
-btnv["clicked_left"] = btn_build_variant(0xC0C0C0)
+btnv["default"     ] = btn_build_variant(0x303030)
+btnv["hovering"    ] = btn_build_variant(0x505050)
+btnv["clicked_left"] = btn_build_variant(0x404040)
 
 btnvb["default"     ] = btn_build_variant_nobg()
-btnvb["hovering"    ] = btn_build_variant(0xE1E1E1)
-btnvb["clicked_left"] = btn_build_variant(0xC0C0C0)
+btnvb["hovering"    ] = btn_build_variant(0x404040)
+btnvb["clicked_left"] = btn_build_variant(0x303030)
 
 local mbtnv, smbtnv =
     { __properties  = { "label" } },
@@ -81,13 +82,13 @@ gui.Menu_Button.__variants = { default = mbtnv, submenu = smbtnv }
 
 mbtnv["default"     ] = btn_build_variant_nobg()
 mbtnv["hovering"    ] = btn_build_variant_nobg()
-mbtnv["menu"        ] = btn_build_variant(0xC0C0C0)
-mbtnv["clicked_left"] = btn_build_variant(0xC0C0C0)
+mbtnv["menu"        ] = btn_build_variant(0x404040)
+mbtnv["clicked_left"] = btn_build_variant(0x404040)
 
 smbtnv["default"     ] = btn_build_variant_nobg()
-smbtnv["hovering"    ] = btn_build_variant(0xC0C0C0)
-smbtnv["menu"        ] = btn_build_variant(0xC0C0C0)
-smbtnv["clicked_left"] = btn_build_variant(0xC0C0C0)
+smbtnv["hovering"    ] = btn_build_variant(0x404040)
+smbtnv["menu"        ] = btn_build_variant(0x404040)
+smbtnv["clicked_left"] = btn_build_variant(0x404040)
 
 -- (v)slot viewer buttons
 
@@ -104,18 +105,18 @@ gui.Button.__variants.vslot = {
     __properties = { "index", "min_w", "min_h" },
     default = gui.VSlot_Viewer { init_clone = slotbtn_init_clone },
     hovering = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0xFFFFFF } },
+        gui.Outline { clamp = true, color = 0x606060 } },
     clicked_left = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0xC0C0C0 } }
+        gui.Outline { clamp = true, color = 0x505050 } }
 }
 
 gui.Button.__variants.slot = {
     __properties = { "index", "min_w", "min_h" },
     default = gui.Slot_Viewer { init_clone = slotbtn_init_clone },
     hovering = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0xFFFFFF } },
+        gui.Outline { clamp = true, color = 0x606060 } },
     clicked_left = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0xC0C0C0 } }
+        gui.Outline { clamp = true, color = 0x505050 } }
 }
 
 -- editors
@@ -123,7 +124,9 @@ gui.Button.__variants.slot = {
 gui.Text_Editor.__variants = {
     default = {
         gui.Color_Filler {
-            color = 0x202020, clamp = true, gui.Outline { clamp = true }
+            color = 0x202020, clamp = true, gui.Outline { clamp = true,
+                color = 0x303030
+            }
         },
         __init = |ed| do
             ed:set_pad_l(0.005)
@@ -138,20 +141,20 @@ gui.Key_Field.__variants = gui.Text_Editor.__variants
 
 gui.Filler.__variants = {
     menu = {
-        gui.Gradient { color = 0xFA000000, color2 = 0xFA080808, clamp = true,
-            gui.Outline { color = 0xFFFFFF, clamp = true }
+        gui.Color_Filler { color = 0xF0101010, clamp = true,
+            gui.Outline { color = 0x303030, clamp = true }
         }
     },
     edithud = {
-        gui.Gradient { color = 0xC0000000, color2 = 0xC0080808, clamp = true,
-            gui.Outline { color = 0xFFFFFF, clamp = true }
+        gui.Gradient { color = 0xF0303030, color2 = 0xF0101010, clamp = true,
+            gui.Outline { color = 0x404040, clamp = true }
         }
     },
     tooltip = {
         __properties = { "label" },
         gui.Gradient {
-            color = 0xFA000000, color2 = 0xFA080808, gui.Outline {
-                color = 0xFFFFFF, clamp = true, gui.Spacer {
+            color = 0xF0202020, color2 = 0xF0101010, gui.Outline {
+                color = 0x303030, clamp = true, gui.Spacer {
                     pad_h = 0.01, pad_v = 0.005, init_clone = |self, ttip| do
                         local lbl = gui.Label { text = ttip.label }
                         self:append(lbl)
@@ -167,7 +170,7 @@ gui.Filler.__variants = {
 -- checkboxes, radioboxes
 
 local ckbox_build_variant = |color, tgl| gui.Color_Filler {
-    color = 0x101010, min_w = 0.02, min_h = 0.02,
+    color = 0x202020, min_w = 0.02, min_h = 0.02,
     gui.Outline {
         color = color, clamp = true, tgl and gui.Spacer {
             pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Color_Filler {
@@ -179,7 +182,7 @@ local ckbox_build_variant = |color, tgl| gui.Color_Filler {
 }
 
 local rdbtn_build_variant = |color, tgl| gui.Circle {
-    color = 0x101010, min_w = 0.02, min_h = 0.02,
+    color = 0x202020, min_w = 0.02, min_h = 0.02,
     gui.Circle {
         style = gui.Circle.OUTLINE, color = color, clamp = true,
         tgl and gui.Spacer {
@@ -200,21 +203,23 @@ gui.Toggle.__variants = {
     radiobutton = rdbtnv
 }
 
-ckboxv["default"         ] = ckbox_build_variant(0xFFFFFF)
-ckboxv["default_hovering"] = ckbox_build_variant(0xE1E1E1)
-ckboxv["toggled"         ] = ckbox_build_variant(0xC0C0C0, true)
-ckboxv["toggled_hovering"] = ckbox_build_variant(0xE1E1E1, true)
-rdbtnv["default"         ] = rdbtn_build_variant(0xFFFFFF)
-rdbtnv["default_hovering"] = rdbtn_build_variant(0xE1E1E1)
-rdbtnv["toggled"         ] = rdbtn_build_variant(0xC0C0C0, true)
-rdbtnv["toggled_hovering"] = rdbtn_build_variant(0xE1E1E1, true)
+ckboxv["default"         ] = ckbox_build_variant(0x303030)
+ckboxv["default_hovering"] = ckbox_build_variant(0x505050)
+ckboxv["toggled"         ] = ckbox_build_variant(0x404040, true)
+ckboxv["toggled_hovering"] = ckbox_build_variant(0x505050, true)
+rdbtnv["default"         ] = rdbtn_build_variant(0x303030)
+rdbtnv["default_hovering"] = rdbtn_build_variant(0x505050)
+rdbtnv["toggled"         ] = rdbtn_build_variant(0x404040, true)
+rdbtnv["toggled_hovering"] = rdbtn_build_variant(0x505050, true)
 
 -- scrollbars
 
 local sb_buildh = |labgc, lac, rabgc, rac| gui.Color_Filler {
-    clamp_h = true, color = 0x101010, gui.Outline { clamp = true },
+    clamp_h = true, color = 0x202020, gui.Outline { clamp = true,
+        color = 0x303030
+    },
     gui.Color_Filler { color = labgc, min_w = 0.02, min_h = 0.02,
-        align_h = -1, gui.Outline { clamp = true },
+        align_h = -1, gui.Outline { clamp = true, color = 0x303030 },
         gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 90,
             gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
                 min_w = 0.012, min_h = 0.012, angle = 90
@@ -222,7 +227,7 @@ local sb_buildh = |labgc, lac, rabgc, rac| gui.Color_Filler {
         }
     },
     gui.Color_Filler { color = rabgc, min_w = 0.02, min_h = 0.02,
-        align_h = 1, gui.Outline { clamp = true },
+        align_h = 1, gui.Outline { clamp = true, color = 0x303030 },
         gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = -90,
             gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
                 min_w = 0.012, min_h = 0.012, angle = -90
@@ -232,9 +237,11 @@ local sb_buildh = |labgc, lac, rabgc, rac| gui.Color_Filler {
 }
 
 local sb_buildv = |labgc, lac, rabgc, rac| gui.Color_Filler {
-    clamp_v = true, color = 0x101010, gui.Outline { clamp = true },
+    clamp_v = true, color = 0x202020, gui.Outline { clamp = true,
+        color = 0x303030
+    },
     gui.Color_Filler { color = labgc, min_w = 0.02, min_h = 0.02,
-        align_v = -1, gui.Outline { clamp = true },
+        align_v = -1, gui.Outline { clamp = true, color = 0x303030 },
         gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012,
             gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
                 min_w = 0.012, min_h = 0.012
@@ -242,7 +249,7 @@ local sb_buildv = |labgc, lac, rabgc, rac| gui.Color_Filler {
         }
     },
     gui.Color_Filler { color = rabgc, min_w = 0.02, min_h = 0.02,
-        align_v = 1, gui.Outline { clamp = true },
+        align_v = 1, gui.Outline { clamp = true, color = 0x303030 },
         gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 180,
             gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
                 min_w = 0.012, min_h = 0.012, angle = 180
@@ -255,15 +262,15 @@ gui.Scroll_Button.__variants = {
     default = {
         default = gui.Color_Filler {
             color = 0x202020, clamp = true, min_w = 0.02, min_h = 0.02,
-            gui.Outline { clamp = true }
+            gui.Outline { clamp = true, color = 0x404040 }
         },
         hovering = gui.Color_Filler {
-            color = 0x606060, clamp = true, min_w = 0.02, min_h = 0.02,
-            gui.Outline { clamp = true }
+            color = 0x202020, clamp = true, min_w = 0.02, min_h = 0.02,
+            gui.Outline { clamp = true, color = 0x606060 }
         },
         clicked_left = gui.Color_Filler {
-            color = 0x404040, clamp = true, min_w = 0.02, min_h = 0.02,
-            gui.Outline { clamp = true }
+            color = 0x202020, clamp = true, min_w = 0.02, min_h = 0.02,
+            gui.Outline { clamp = true, color = 0x505050 }
         }
     }
 }
@@ -299,7 +306,7 @@ gui.V_Slider.__variants = gui.V_Scrollbar.__variants
 -- windows
 
 local window_build_titlebar = || gui.Gradient {
-    color = 0xE6303030, color2 = 0xE6000000, clamp_h = true,
+    color = 0xF0202020, color2 = 0xF0101010, clamp_h = true,
     gui.Spacer {
         pad_h = 0.004, pad_v = 0.004,
         init_clone = |self, win| do
@@ -325,19 +332,20 @@ local window_build_regular = |mov| gui.Filler {
             gui.Spacer { pad_h = 0.009, align_h = 1,
                 gui.Button {
                     variant = false, states = {
-                        default = gui.Gradient {
-                            color = 0x0, color2 = 0x303030, min_w = 0.015,
-                            min_h = 0.015, gui.Outline { clamp = true }
-                        },
-                        hovering = gui.Gradient {
-                            color = 0x0, color2 = 0x303030, min_w = 0.015,
+                        default = gui.Color_Filler {
+                            color = 0x101010, min_w = 0.015,
                             min_h = 0.015, gui.Outline { clamp = true,
-                                color = 0xE1E1E1 }
+                                color = 0x606060 }
                         },
-                        clicked_left = gui.Gradient {
-                            color = 0x0, color2 = 0x303030, min_w = 0.015,
+                        hovering = gui.Color_Filler {
+                            color = 0x101010, min_w = 0.015,
                             min_h = 0.015, gui.Outline { clamp = true,
-                                color = 0xC0C0C0 }
+                                color = 0x808080 }
+                        },
+                        clicked_left = gui.Color_Filler {
+                            color = 0x101010, min_w = 0.015,
+                            min_h = 0.015, gui.Outline { clamp = true,
+                                color = 0x707070 }
                         }
                     },
                     init_clone = |self, win| do
@@ -346,8 +354,8 @@ local window_build_regular = |mov| gui.Filler {
                 }
             }
         },
-        gui.Gradient {
-            color = 0xE6000000, color2 = 0xE6080808, clamp = true, gui.Spacer {
+        gui.Color_Filler {
+            color = 0xF0101010, clamp = true, gui.Spacer {
                 pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
                     win:set_container(self)
                 end
@@ -357,14 +365,14 @@ local window_build_regular = |mov| gui.Filler {
             default = gui.Color_Filler { min_w = 0.05, min_h = 0.07 }
         }
     },
-    gui.Outline { color = 0xFFFFFF, clamp = true }
+    gui.Outline { color = 0x303030, clamp = true }
 }
 
 gui.Window.__variants = {
     borderless = {
-        gui.Gradient {
-            color = 0xE6000000, color2 = 0xE6080808, clamp = true,
-            gui.Outline { color = 0xFFFFFF, clamp = true, gui.Spacer {
+        gui.Color_Filler {
+            color = 0xF0101010, clamp = true,
+            gui.Outline { color = 0x303030, clamp = true, gui.Spacer {
                 pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
                     win:set_container(self)
                 end
@@ -442,7 +450,7 @@ end)
 local fields = {
     [svars.State_Boolean] = function(hb, nm, ent, dv)
         local tvar = (dv == "true")
-        hb:append(gui.Filler { min_w = 0.4 }, |f| do
+        return hb:append(gui.Filler { min_w = 0.4 }, |f| do
             f:append(gui.Toggle { variant = "checkbox", condition = || tvar,
                 align_h = -1
             }, |t| do
@@ -455,7 +463,7 @@ local fields = {
     end
 }
 local field_def = function(hb, nm, ent, dv)
-    hb:append(gui.Field { clip_w = 0.4, value = dv }, |ed| do
+    return hb:append(gui.Field { clip_w = 0.4, value = dv }, |ed| do
         connect(ed, "value_changed", |ed, v| do
             ent:set_gui_attr(nm, v)
         end)
@@ -494,10 +502,11 @@ world:new_window("entity", gui.Window, |win| do
 
     win:append(gui.H_Box(), |hb| do
         local s
-        hb:append(gui.Outline(), |o| do
+        hb:append(gui.Outline { color = 0x303030 }, |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
                 sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
                     sc:append(gui.V_Box(), |vb| do
+                        local fpf, pf
                         for i = 1, nfields do
                             local nm = props[i]
                             local sd = sdata[nm]
@@ -505,8 +514,16 @@ world:new_window("entity", gui.Window, |win| do
                             vb:append(gui.H_Box { align_h = 1 }, |hb| do
                                 hb:append(gui.Label { text = " "..sd[1]..": " })
                                 local fld = fields[sv.__proto] or field_def
-                                fld(hb, gn, ent, dv)
+                                local fd = fld(hb, gn, ent, dv)
+                                if fld == field_def then
+                                    if pf then pf.tab_next = fd end
+                                    pf = fd
+                                    if not fpf then fpf = fd end
+                                end
                             end)
+                            if fpf and pf and pf != fpf then
+                                pf.tab_next = fpf
+                            end
                         end
                     end)
                     s = sc
@@ -536,7 +553,7 @@ world:new_window("entity_new", gui.Window, |win| do
 
     win:append(gui.H_Box(), |hb| do
         local s
-        hb:append(gui.Outline(), |o| do
+        hb:append(gui.Outline { color = 0x303030 }, |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
                 sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.6 }, |sc| do
                     sc:append(gui.V_Box(), |vb| do

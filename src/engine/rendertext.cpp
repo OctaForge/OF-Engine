@@ -243,7 +243,7 @@ static float draw_char(Texture *&tex, int c, float x, float y, float scale)
     return scale*info.advance;
 }
 
-VARP(textbright, 0, 100, 100);
+VARP(textbright, 0, 90, 100);
 
 //stack[sp] is current color index
 static void text_color(char c, char *stack, int size, int &sp, bvec color, int a)
