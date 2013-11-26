@@ -462,7 +462,7 @@ local fields = {
                 ret = t
                 signal.connect(t, "released", || do
                     tvar = not tvar
-                    ent:set_attr(nm, tostring(tvar))
+                    ent:set_gui_attr(nm, tostring(tvar))
                 end)
             end)
         end)
