@@ -13,10 +13,15 @@
         All kinds of button widgets.
 ]]
 
+local signal = require("core.events.signal")
+
 local M = require("core.gui.core")
 
+local emit = signal.emit
+
 -- input event management
-local is_clicked, is_hovering = M.is_clicked, M.is_hovering
+local is_clicked, is_hovering, is_focused = M.is_clicked, M.is_hovering,
+    M.is_focused
 local get_menu = M.get_menu
 
 -- widget types
@@ -83,7 +88,8 @@ M.Menu_Button = register_class("Menu_Button", Button, {
     Derived from Button. Toggles between two states depending on the
     "condition" property (if the condition returns something that evaluates
     to true, either the "toggled" or "toggled_hovering" state is used,
-    otherwise "default" or "default_hovering" is used).
+    otherwise "default" or "default_hovering" is used). The space key
+    serves the same purpose as clicking (when focused).
 ]]
 M.Toggle = register_class("Toggle", Button, {
     __ctor = function(self, kwargs)
@@ -93,10 +99,20 @@ M.Toggle = register_class("Toggle", Button, {
     end,
 
     choose_state = function(self)
-        local h = is_hovering(self)
+        local h, f = is_hovering(self), is_focused(self)
         return (self.condition and self:condition() and
-            (h and "toggled_hovering" or "toggled") or
-            (h and "default_hovering" or "default"))
+            (h and "toggled_hovering" or (f and "toggled_focused"
+                or "toggled")) or
+            (h and "default_hovering" or (f and "default_focused"
+                or "default")))
+    end,
+
+    key = function(self, code, isdown)
+        if is_focused(self) and code == key.SPACE then
+            emit(self, isdown and "clicked" or "released", -1, -1, code)
+            return true
+        end
+        return Widget.key(self, code, isdown)
     end,
 
     --[[! Function: set_condition ]]

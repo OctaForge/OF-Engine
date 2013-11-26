@@ -205,12 +205,16 @@ gui.Toggle.__variants = {
 
 ckboxv["default"         ] = ckbox_build_variant(0x303030)
 ckboxv["default_hovering"] = ckbox_build_variant(0x505050)
+ckboxv["default_focused" ] = ckbox_build_variant(0x606060)
 ckboxv["toggled"         ] = ckbox_build_variant(0x404040, true)
 ckboxv["toggled_hovering"] = ckbox_build_variant(0x505050, true)
+ckboxv["toggled_focused" ] = ckbox_build_variant(0x606060, true)
 rdbtnv["default"         ] = rdbtn_build_variant(0x303030)
 rdbtnv["default_hovering"] = rdbtn_build_variant(0x505050)
+rdbtnv["default_focused" ] = rdbtn_build_variant(0x606060)
 rdbtnv["toggled"         ] = rdbtn_build_variant(0x404040, true)
 rdbtnv["toggled_hovering"] = rdbtn_build_variant(0x505050, true)
+rdbtnv["toggled_focused" ] = rdbtn_build_variant(0x606060, true)
 
 -- scrollbars
 
@@ -450,16 +454,19 @@ end)
 local fields = {
     [svars.State_Boolean] = function(hb, nm, ent, dv)
         local tvar = (dv == "true")
-        return hb:append(gui.Filler { min_w = 0.4 }, |f| do
+        local ret
+        hb:append(gui.Filler { min_w = 0.4 }, |f| do
             f:append(gui.Toggle { variant = "checkbox", condition = || tvar,
                 align_h = -1
             }, |t| do
+                ret = t
                 signal.connect(t, "released", || do
                     tvar = not tvar
                     ent:set_attr(nm, tostring(tvar))
                 end)
             end)
         end)
+        return ret
     end
 }
 local field_def = function(hb, nm, ent, dv)
@@ -515,11 +522,9 @@ world:new_window("entity", gui.Window, |win| do
                                 hb:append(gui.Label { text = " "..sd[1]..": " })
                                 local fld = fields[sv.__proto] or field_def
                                 local fd = fld(hb, gn, ent, dv)
-                                if fld == field_def then
-                                    if pf then pf:set_tab_next(fd) end
-                                    pf = fd
-                                    if not fpf then fpf = fd end
-                                end
+                                if pf then pf:set_tab_next(fd) end
+                                pf = fd
+                                if not fpf then fpf = fd end
                             end)
                             if fpf and pf and pf != fpf then
                                 pf:set_tab_next(fpf)
