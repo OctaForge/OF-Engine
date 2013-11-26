@@ -88,6 +88,7 @@ State_Variable = table2.Object:clone {
             custom_sync [false] - the state variable will use a custom
             synchronization method (useful for Cube 2 dynents).
             gui_name [nil] - the name shown in the editing GUI for the svar.
+            Set to false if you want to disable this svar in the editing GUI.
             alt_name [nil] - alternative accessor name.
             reliable [true] - the messages sent for this svar will be reliable,
             that is, always sent; you cannot send a big number of them.
@@ -131,7 +132,8 @@ State_Variable = table2.Object:clone {
         and also for alt_name if set in constructor kwargs. You can access
         the raw state variable on the entity class by prefixing it with
         _SV. You can access the variable by gui_name by prefixing it with
-        _SV_GUI_ (if gui_name is not defined, regular name is used).
+        _SV_GUI_ (if gui_name is not defined, regular name is used, if
+        gui_name is false, this field won't exist at all).
     ]]
     register = function(self, name, cl)
         debug then log(DEBUG, "State_Variable: register(" .. name
@@ -152,7 +154,10 @@ State_Variable = table2.Object:clone {
             cl["_SV_" .. an] = self
             define_accessors(cl, an, self.getter, self.setter, self)
         end
-        cl["_SV_GUI_" .. (self.gui_name or name)] = self
+        local gn = self.gui_name
+        if gn != false then
+            cl["_SV_GUI_" .. (gn or name)] = self
+        end
     end,
 
     --[[! Function: read_tests

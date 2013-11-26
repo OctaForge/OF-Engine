@@ -499,11 +499,13 @@ world:new_window("entity", gui.Window, |win| do
     local nfields = 0
     local prefix = "_SV_"
     for k, v in pairs(sdata_raw) do
-        nfields += 1
         local sv = ent[prefix .. k]
-        local gn = sv.gui_name or k
-        sdata[k] = { gn, v, sv }
-        props[nfields] = k
+        local gn = sv.gui_name
+        if gn != false then
+            nfields += 1
+            sdata[k] = { gn or k, v, sv }
+            props[nfields] = k
+        end
     end
     sort(props)
 

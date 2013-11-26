@@ -258,27 +258,27 @@ local Character = Entity:clone {
         },
         move = svars.State_Integer {
             getter = capi.get_move, setter = capi.set_move,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         strafe = svars.State_Integer {
             getter = capi.get_strafe, setter = capi.set_strafe,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         yawing = svars.State_Integer {
             getter = capi.get_yawing, setter = capi.set_yawing,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         pitching = svars.State_Integer {
             getter = capi.get_pitching, setter = capi.set_pitching,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         crouching = svars.State_Integer {
             getter = capi.get_crouching, setter = capi.set_crouching,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         jumping = svars.State_Boolean {
             getter = capi.get_jumping, setter = capi.set_jumping,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         position = svars.State_Vec3 {
             getter = capi.get_dynent_position,
@@ -293,7 +293,7 @@ local Character = Entity:clone {
         falling = svars.State_Vec3 {
             getter = capi.get_dynent_falling,
             setter = capi.set_dynent_falling,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         radius = svars.State_Float {
             getter = capi.get_radius, setter = capi.set_radius
@@ -323,7 +323,8 @@ local Character = Entity:clone {
             getter = capi.get_gravity, setter = capi.set_gravity
         },
         blocked = svars.State_Boolean {
-            getter = capi.get_blocked, setter = capi.set_blocked
+            getter = capi.get_blocked, setter = capi.set_blocked,
+            gui_name = false
         },
         can_move = svars.State_Boolean {
             setter = capi.set_can_move, client_set = true
@@ -331,26 +332,26 @@ local Character = Entity:clone {
         map_defined_position_data = svars.State_Integer {
             getter = capi.get_mapdefinedposdata,
             setter = capi.set_mapdefinedposdata,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         client_state = svars.State_Integer {
             getter = capi.get_clientstate, setter = capi.set_clientstate,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         physical_state = svars.State_Integer {
             getter = capi.get_physstate, setter = capi.set_physstate,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         in_liquid = svars.State_Integer {
             getter = capi.get_inwater, setter = capi.set_inwater,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
         time_in_air = svars.State_Integer {
             getter = capi.get_timeinair, setter = capi.set_timeinair,
-            custom_sync = true
+            custom_sync = true, gui_name = false
         },
 
-        physics_trigger = svars.State_Integer(),
+        physics_trigger = svars.State_Integer { gui_name = false },
 
         jumping_sound = svars.State_String(),
         landing_sound = svars.State_String()

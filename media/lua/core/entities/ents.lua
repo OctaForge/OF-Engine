@@ -1242,7 +1242,7 @@ Entity = table2.Object:clone {
         if sortattrs == nil then sortattrs = true end
         local r = {}
         for k, var in pairs(self) do
-            if is_svar(var) and var.has_history then
+            if is_svar(var) and var.has_history and var.gui_name != false then
                 local name = var.name
                 local val = self:get_attr(name)
                 if val != nil then
