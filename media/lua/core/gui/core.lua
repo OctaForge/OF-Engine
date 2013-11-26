@@ -672,6 +672,10 @@ local Widget, Window
     The property "container" is a reference to another widget that is used
     as a target for appending/prepending/insertion and is fully optional.
 
+    The property "tab_next" is a reference to another widget that is focused
+    when the tab key is pressed while this widget is focused. Only works when
+    the property is actually set to a valid widget reference.
+
     Each widget class also contains an "__instances" table storing a set
     of all instances of the widget class.
 ]]
@@ -1074,9 +1078,15 @@ Widget = register_class("Widget", table2.Object, {
         value that is true when the key is down and false when it's up.
         By default it doesn't define any behavior so it just loops children
         in reverse order and returns true if any key calls on the children
-        return true or false if they don't.
+        return true or false if they don't. It also handles tab-cycling
+        behavior when the tab_next field is defined.
     ]]
     key = function(self, code, isdown)
+        local tn = self.tab_next
+        if tn and code == key.TAB and is_focused(self) then
+            if isdown then set_focus(tn) end
+            return true
+        end
         return loop_children_r(self, function(o)
             if o.visible and o:key(code, isdown) then return true end
         end) or false
@@ -1451,6 +1461,9 @@ Widget = register_class("Widget", table2.Object, {
 
     --[[! Function: set_init_clone ]]
     set_init_clone = gen_setter "init_clone",
+
+    --[[! Function: set_tab_next ]]
+    set_tab_next = gen_setter "tab_next",
 
     --[[! Function: insert
         Given a position in the children list, a widget and optionally a

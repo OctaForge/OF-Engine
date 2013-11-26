@@ -701,11 +701,6 @@ local Text_Editor = register_class("Text_Editor", Widget, {
                 if isdown then self:commit() end
                 return true
             end
-        elseif code == key.TAB then
-            if not self.multiline then
-                if isdown then set_focus(self.tab_next) end
-                return true
-            end
         elseif code == key.KP_ENTER then
             if isdown then self:commit() end
             return true

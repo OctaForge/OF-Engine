@@ -516,13 +516,13 @@ world:new_window("entity", gui.Window, |win| do
                                 local fld = fields[sv.__proto] or field_def
                                 local fd = fld(hb, gn, ent, dv)
                                 if fld == field_def then
-                                    if pf then pf.tab_next = fd end
+                                    if pf then pf:set_tab_next(fd) end
                                     pf = fd
                                     if not fpf then fpf = fd end
                                 end
                             end)
                             if fpf and pf and pf != fpf then
-                                pf.tab_next = fpf
+                                pf:set_tab_next(fpf)
                             end
                         end
                     end)
