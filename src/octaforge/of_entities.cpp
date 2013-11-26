@@ -204,6 +204,7 @@ namespace entities
     DYNENT_ACCESSORS(eyeheight, float, eyeheight)
     DYNENT_ACCESSORS(maxheight, float, maxheight)
     DYNENT_ACCESSORS(crouchheight, float, crouchheight)
+    DYNENT_ACCESSORS(crouchspeed, float, crouchspeed)
     DYNENT_ACCESSORS(jumpvel, float, jumpvel)
     DYNENT_ACCESSORS(gravity, float, gravity)
     DYNENT_ACCESSORS(aboveeye, float, aboveeye)

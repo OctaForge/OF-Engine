@@ -172,8 +172,10 @@ local mrender = (not SERVER) and model.render
         the eye position. Defaults to 18.0.
         max_height [<svars.State_Float>] - the maximum distance from the
         ground to the eye position. Defaults to 18.0. Used when crouching.
-        crouch_height [<svars.State_Float>] - the fraction from max_height
+        crouch_height [<svars.State_Float>] - the fraction of max_height
         to use when crouched, defaults to 0.75.
+        crouch_speed [<svars.State_Float>] - the fraction of regular movement
+        speed to use while crouching, defaults to 0.4.
         crouch_time [<svars.State_Integer>] - the time in milliseconds spent
         to crouch, adjust to change the speed.
         jump_velocity [<svars.State_Float>] - the vertical velocity to apply
@@ -308,6 +310,9 @@ local Character = Entity:clone {
         crouch_height = svars.State_Float {
             getter = capi.get_crouchheight, setter = capi.set_crouchheight
         },
+        crouch_speed = svars.State_Float {
+            getter = capi.get_crouchspeed, setter = capi.set_crouchspeed
+        },
         crouch_time = svars.State_Integer {
             getter = capi.get_crouchtime, setter = capi.set_crouchtime
         },
@@ -392,6 +397,7 @@ local Character = Entity:clone {
         self:set_attr("eye_height", 18.0)
         self:set_attr("max_height", 18.0)
         self:set_attr("crouch_height", 0.75)
+        self:set_attr("crouch_speed", 0.4)
         self:set_attr("crouch_time", 200)
         self:set_attr("jump_velocity", 125)
         self:set_attr("gravity", -1)
