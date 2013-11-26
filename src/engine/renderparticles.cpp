@@ -115,7 +115,7 @@ enum
     PT_VFLIP     = 1<<15,
     PT_ROT       = 1<<16,
     PT_FEW       = 1<<17,
-    PT_ICONF     = 1<<18,
+    PT_ICONGRID  = 1<<18,
     PT_SHRINK    = 1<<19,
     PT_GROW      = 1<<20,
     PT_COLLIDE   = 1<<21,
@@ -837,7 +837,7 @@ struct varenderer : partrenderer
                     if(p->flags&0x02) swap(v1, v2);
                 });
             }
-            else if(type&PT_ICONF)
+            else if(type&PT_ICONGRID)
             {
                 float tx = 0.25f*(p->flags&3), ty = 0.25f*((p->flags>>2)&3);
                 SETTEXCOORDS(tx, tx + 0.25f, ty, ty + 0.25f, {});
@@ -1300,7 +1300,7 @@ float size, int gravity, int uid), {
 CLUAICOMMAND(particle_icon_generic, bool, (int type, float ox, float oy,
 float oz, int ix, int iy, float r, float g, float b, int fade, float size,
 int gravity, int uid), {
-    if (!parts.inrange(type) || !(parts[type]->type&PT_ICONF))
+    if (!parts.inrange(type) || !(parts[type]->type&PT_ICONGRID))
         return false;
     PART_GET_OWNER(uid)
     if (!canaddparticles()) return true;

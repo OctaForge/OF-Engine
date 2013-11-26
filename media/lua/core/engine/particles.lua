@@ -51,27 +51,27 @@ local particle = ffi.metatype("particle_t", {
     issues), TRACK (for tracked particles with owner, mainly for
     muzzleflashes), BRIGHT, SOFT, HFLIP/VFLIP (randomly flipped),
     ROT (randomly rotated), FEW (initializes the renderer with fewparticles
-    instead of maxparticles if it's lower), ICON (4x4 icon grid), SHRINK
+    instead of maxparticles if it's lower), ICONGRID (NxN icon grid), SHRINK
     (particle will keep shrinking), GROW (particle will keep growing),
     COLLIDE (colliding particle with decal),  FLIP (a combination of HFLIP,
     VFLIP and ROT).
 ]]
 M.flags = {:
-    MOD     = 1 << 8,
-    RND4    = 1 << 9,
-    LERP    = 1 << 10,
-    TRACK   = 1 << 11,
-    BRIGHT  = 1 << 12,
-    SOFT    = 1 << 13,
-    HFLIP   = 1 << 14,
-    VFLIP   = 1 << 15,
-    ROT     = 1 << 16,
-    FEW     = 1 << 17,
-    ICON    = 1 << 18,
-    SHRINK  = 1 << 19,
-    GROW    = 1 << 20,
-    COLLIDE = 1 << 21,
-    FLIP   = HFLIP | VFLIP | ROT
+    MOD      = 1 << 8,
+    RND4     = 1 << 9,
+    LERP     = 1 << 10,
+    TRACK    = 1 << 11,
+    BRIGHT   = 1 << 12,
+    SOFT     = 1 << 13,
+    HFLIP    = 1 << 14,
+    VFLIP    = 1 << 15,
+    ROT      = 1 << 16,
+    FEW      = 1 << 17,
+    ICONGRID = 1 << 18,
+    SHRINK   = 1 << 19,
+    GROW     = 1 << 20,
+    COLLIDE  = 1 << 21,
+    FLIP     = HFLIP | VFLIP | ROT
 :}
 
 --[[! Variable: renderers
