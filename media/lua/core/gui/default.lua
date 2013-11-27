@@ -124,7 +124,7 @@ gui.Button.__variants.slot = {
 gui.Text_Editor.__variants = {
     default = {
         gui.Color_Filler {
-            color = 0x202020, clamp = true, gui.Outline { clamp = true,
+            color = 0x80202020, clamp = true, gui.Outline { clamp = true,
                 color = 0x303030
             }
         },
