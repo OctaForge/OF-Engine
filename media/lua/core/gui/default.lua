@@ -218,46 +218,30 @@ rdbtnv["toggled_focused" ] = rdbtn_build_variant(0x606060, true)
 
 -- scrollbars
 
-local sb_buildh = |labgc, lac, rabgc, rac| gui.Color_Filler {
-    clamp_h = true, color = 0x202020, gui.Outline { clamp = true,
-        color = 0x303030
-    },
-    gui.Color_Filler { color = labgc, min_w = 0.02, min_h = 0.02,
-        align_h = -1, gui.Outline { clamp = true, color = 0x303030 },
-        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 90,
-            gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
-                min_w = 0.012, min_h = 0.012, angle = 90
-            }
+local sb_buildh = |lac, rac| gui.Outline {
+    clamp_h = true, color = 0x303030,
+    gui.Filler { min_w = 0.02, min_h = 0.02, align_h = -1,
+        gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
+            min_w = 0.01, min_h = 0.01, angle = 90
         }
     },
-    gui.Color_Filler { color = rabgc, min_w = 0.02, min_h = 0.02,
-        align_h = 1, gui.Outline { clamp = true, color = 0x303030 },
-        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = -90,
-            gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
-                min_w = 0.012, min_h = 0.012, angle = -90
-            }
+    gui.Filler { min_w = 0.02, min_h = 0.02, align_h = 1,
+        gui.Triangle { style = gui.Triangle.OUTLINE, color = rac,
+            min_w = 0.01, min_h = 0.01, angle = -90
         }
     }
 }
 
-local sb_buildv = |labgc, lac, rabgc, rac| gui.Color_Filler {
-    clamp_v = true, color = 0x202020, gui.Outline { clamp = true,
-        color = 0x303030
-    },
-    gui.Color_Filler { color = labgc, min_w = 0.02, min_h = 0.02,
-        align_v = -1, gui.Outline { clamp = true, color = 0x303030 },
-        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012,
-            gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
-                min_w = 0.012, min_h = 0.012
-            }
+local sb_buildv = |lac, rac| gui.Filler {
+    clamp_v = true,
+    gui.Filler { min_w = 0.02, min_h = 0.02, align_v = -1,
+        gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
+            min_w = 0.01, min_h = 0.01
         }
     },
-    gui.Color_Filler { color = rabgc, min_w = 0.02, min_h = 0.02,
-        align_v = 1, gui.Outline { clamp = true, color = 0x303030 },
-        gui.Triangle { color = lac, min_w = 0.012, min_h = 0.012, angle = 180,
-            gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
-                min_w = 0.012, min_h = 0.012, angle = 180
-            }
+    gui.Filler { min_w = 0.02, min_h = 0.02, align_v = 1,
+        gui.Triangle { style = gui.Triangle.OUTLINE, color = rac,
+            min_w = 0.01, min_h = 0.01, angle = 180
         }
     }
 }
@@ -265,15 +249,15 @@ local sb_buildv = |labgc, lac, rabgc, rac| gui.Color_Filler {
 gui.Scroll_Button.__variants = {
     default = {
         default = gui.Color_Filler {
-            color = 0x202020, clamp = true, min_w = 0.02, min_h = 0.02,
+            color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
             gui.Outline { clamp = true, color = 0x404040 }
         },
         hovering = gui.Color_Filler {
-            color = 0x202020, clamp = true, min_w = 0.02, min_h = 0.02,
+            color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
             gui.Outline { clamp = true, color = 0x606060 }
         },
         clicked_left = gui.Color_Filler {
-            color = 0x202020, clamp = true, min_w = 0.02, min_h = 0.02,
+            color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
             gui.Outline { clamp = true, color = 0x505050 }
         }
     }
@@ -281,22 +265,22 @@ gui.Scroll_Button.__variants = {
 
 gui.H_Scrollbar.__variants = {
     default = {
-        default            = sb_buildh(0x101010, 0xC0C0C0, 0x101010, 0xC0C0C0),
-        left_hovering      = sb_buildh(0x404040, 0xC0C0C0, 0x101010, 0xC0C0C0),
-        left_clicked_left  = sb_buildh(0x202020, 0xC0C0C0, 0x101010, 0xC0C0C0),
-        right_hovering     = sb_buildh(0x101010, 0xC0C0C0, 0x404040, 0xC0C0C0),
-        right_clicked_left = sb_buildh(0x101010, 0xC0C0C0, 0x202020, 0xC0C0C0),
+        default            = sb_buildh(0x404040, 0x404040),
+        left_hovering      = sb_buildh(0x606060, 0x404040),
+        left_clicked_left  = sb_buildh(0x505050, 0x404040),
+        right_hovering     = sb_buildh(0x404040, 0x606060),
+        right_clicked_left = sb_buildh(0x404040, 0x505050),
         __init = |self| do self:set_arrow_size(0.02) end
     }
 }
 
 gui.V_Scrollbar.__variants = {
     default = {
-        default           = sb_buildv(0x101010, 0xC0C0C0, 0x101010, 0xC0C0C0),
-        up_hovering       = sb_buildv(0x404040, 0xC0C0C0, 0x101010, 0xC0C0C0),
-        up_clicked_left   = sb_buildv(0x202020, 0xC0C0C0, 0x101010, 0xC0C0C0),
-        down_hovering     = sb_buildv(0x101010, 0xC0C0C0, 0x404040, 0xC0C0C0),
-        down_clicked_left = sb_buildv(0x101010, 0xC0C0C0, 0x202020, 0xC0C0C0),
+        default           = sb_buildv(0x404040, 0x404040),
+        up_hovering       = sb_buildv(0x606060, 0x404040),
+        up_clicked_left   = sb_buildv(0x505050, 0x404040),
+        down_hovering     = sb_buildv(0x404040, 0x606060),
+        down_clicked_left = sb_buildv(0x404040, 0x505050),
         __init = |self| do self:set_arrow_size(0.02) end
     }
 }
@@ -398,7 +382,7 @@ world:new_window("changes", gui.Window, |win| do
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0,
             gui.Label { text = "The following settings have changed:" } })
         b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
-            gui.Line { clamp_h = true } })
+            gui.Line { clamp_h = true, color = 0x303030 } })
         for i, v in ipairs(gui.changes_get()) do
             b:append(gui.Label { text = v })
         end
