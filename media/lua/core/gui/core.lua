@@ -1537,6 +1537,7 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     show_menu = function(self, obj, at_cursor, clear_on_drop)
         menu_init(obj, self, #menustack + 1, at_cursor, clear_on_drop)
+        return obj
     end,
 
     --[[! Function: show_tooltip
@@ -1554,6 +1555,7 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     show_tooltip = function(self, obj, clear_on_drop)
         tooltip_init(obj, self, clear_on_drop)
+        return obj
     end,
 
     --[[! Function: is_field

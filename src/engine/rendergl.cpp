@@ -2703,6 +2703,12 @@ void drawcrosshair(int w, int h)
     hudquad(x, y, chsize, chsize);
 }
 
+VARP(wallclock, 0, 0, 1);
+VARP(wallclock24, 0, 0, 1);
+VARP(wallclocksecs, 0, 0, 1);
+
+static time_t walltime = 0;
+
 VARP(showfps, 0, 1, 1);
 VARP(showfpsrange, 0, 0, 1);
 VAR(statrate, 1, 200, 1000);
@@ -2761,6 +2767,26 @@ void gl_drawhud()
             }
 
             printtimers(conw, conh);
+
+            if(wallclock)
+            {
+                if(!walltime) { walltime = time(NULL); walltime -= totalmillis/1000; if(!walltime) walltime++; }
+                time_t walloffset = walltime + totalmillis/1000;
+                struct tm *localvals = localtime(&walloffset);
+                static string buf;
+                if(localvals && strftime(buf, sizeof(buf), wallclocksecs ? (wallclock24 ? "%H:%M:%S" : "%I:%M:%S%p") : (wallclock24 ? "%H:%M" : "%I:%M%p"), localvals))
+                {
+                    // hack because not all platforms (windows) support %P lowercase option
+                    // also strip leading 0 from 12 hour time
+                    char *dst = buf;
+                    const char *src = &buf[!wallclock24 && buf[0]=='0' ? 1 : 0];
+                    while(*src) *dst++ = tolower(*src++);
+                    *dst++ = '\0';
+                    draw_text(buf, conw-5*FONTH, conh-FONTH*3/2-roffset);
+                    roffset += FONTH;
+                }
+            }
+
             pophudmatrix();
         }
 

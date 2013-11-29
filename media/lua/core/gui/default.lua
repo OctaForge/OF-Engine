@@ -75,15 +75,22 @@ btnvb["default"     ] = btn_build_variant_nobg()
 btnvb["hovering"    ] = btn_build_variant(0x404040)
 btnvb["clicked_left"] = btn_build_variant(0x303030)
 
-local mbtnv, smbtnv =
+local mbtnv, vmbtnv, smbtnv =
+    { __properties  = { "label" } },
     { __properties  = { "label" } },
     { __properties  = { "label" } }
-gui.Menu_Button.__variants = { default = mbtnv, submenu = smbtnv }
+gui.Menu_Button.__variants = { default = mbtnv, visible = vmbtnv,
+    submenu = smbtnv }
 
 mbtnv["default"     ] = btn_build_variant_nobg()
 mbtnv["hovering"    ] = btn_build_variant_nobg()
 mbtnv["menu"        ] = btn_build_variant(0x404040)
 mbtnv["clicked_left"] = btn_build_variant(0x404040)
+
+vmbtnv["default"     ] = btn_build_variant(0x303030)
+vmbtnv["hovering"    ] = btn_build_variant(0x505050)
+vmbtnv["menu"        ] = btn_build_variant(0x404040)
+vmbtnv["clicked_left"] = btn_build_variant(0x404040)
 
 smbtnv["default"     ] = btn_build_variant_nobg()
 smbtnv["hovering"    ] = btn_build_variant(0x404040)

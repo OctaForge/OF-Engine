@@ -117,14 +117,14 @@ void ClientSystem::frameTrigger(int curtime)
         lua_call       (lua::L,  2, 1);
         float fs = lua_tonumber(lua::L, -1); lua_pop(lua::L, 1);
 
-        if (fp->turn_move || fabs(x - 0.5) > 0.45)
+        if (fp->turn_move || fabs(x - 0.5) > 0.495)
         {
             player->yaw += fs * (
                 fp->turn_move ? fp->turn_move : (x > 0.5 ? 1 : -1)
             ) * delta;
         }
 
-        if (fp->look_updown_move || fabs(y - 0.5) > 0.45)
+        if (fp->look_updown_move || fabs(y - 0.5) > 0.495)
         {
             player->pitch += fs * (
                 fp->look_updown_move ? fp->look_updown_move : (y > 0.5 ? -1 : 1)
