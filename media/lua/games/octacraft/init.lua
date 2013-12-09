@@ -1,17 +1,12 @@
---[[! File: lua/games/octacraft/init.lua
+--[[!<
+    A main file for the "octacraft" test game. It's meant to be a
+    Minecraft inspired demo with procedural world generation.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        A main file for the "octacraft" test game. It's meant to be a
-        Minecraft inspired demo with procedural world generation.
+    License:
+        See COPYING.txt.
 ]]
 
 local log = require("core.logger")
@@ -31,7 +26,7 @@ local health = require("extra.health")
 
 local Player = ents.Player
 
---[[! Class: Game_Player
+--[[! Object: Game_Player
     This serves as a base for our player.
 ]]
 local Game_Player = Player:clone {

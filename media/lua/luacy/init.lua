@@ -1,22 +1,17 @@
---[[! File: lua/luacy/init.lua
+--[[!<
+    Loads the Luacy language, a supetset of Lua (github: quaker66/luacy).
+    This is not an OF project. This init file serves as a loader and it
+    also replaces the default module loader and convenience functions
+    (load, loadstring, loadfile, dofile) with Luacy-enabled ones.
 
-    About: Author
+    Returns the parser module. It's aloded before any other OF library
+    component.
+
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Loads the Luacy language, a supetset of Lua (github: quaker66/luacy).
-        This is not an OF project. This init file serves as a loader and it
-        also replaces the default module loader and convenience functions
-        (load, loadstring, loadfile, dofile) with Luacy-enabled ones.
-
-        Returns the parser module. It's loaded before any other OF library
-        component.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")

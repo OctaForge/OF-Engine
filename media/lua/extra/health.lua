@@ -1,17 +1,12 @@
---[[! File: lua/extra/health.lua
+--[[!<
+    A reusable health system that integrates with the game manager and
+    other modules (the game manager is required).
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        A reusable health system that integrates with the game manager and
-        other modules (the game manager is required).
+    License:
+        See COPYING.txt.
 ]]
 
 local M = {}
@@ -27,8 +22,9 @@ local eactions = require("extra.events.actions")
 local connect, emit = signal.connect, signal.emit
 local min, max = math.min, math.max
 
---[[! Variable: anims
+--[[!
     This module adds two new animations, "dying" and "pain", on the client.
+    They're stored in this enumeration.
 ]]
 local anims = (not SERVER) and {:
     dying = model.register_anim "dying",
@@ -36,8 +32,8 @@ local anims = (not SERVER) and {:
 :} or nil
 M.anims = anims
 
---[[! Struct: Action_Pain
-    Derives from <actions.Action_Local_Animation> and is queued as a pain
+--[[! Object: Action_Pain
+    Derives from {{$actions.Action_Local_Animation}} and is queued as a pain
     effect. The default duration is 600 milliseconds and it uses the
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
@@ -49,7 +45,7 @@ M.Action_Pain = (not SERVER) and eactions.Action_Local_Animation:clone {
     allow_multiple  = false
 } or nil
 
---[[! Struct: Action_Death
+--[[! Object: Action_Death
     Derives from a regular Action. Represents player death and the default
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
@@ -60,7 +56,7 @@ local Action_Death = SERVER and actions.Action:clone {
     cancelable      = false,
     millis_left     = 5000,
 
-    --[[! Function: __start
+    --[[!
         Makes the player unable to move, sets up a possible ragdoll, clears
         the player's actions (except itself as it's not cancelable) and
         emits the "killed" signal on the player.
@@ -72,20 +68,21 @@ local Action_Death = SERVER and actions.Action:clone {
         emit(actor, "killed")
     end,
 
-    --[[! Function: __finish
-        Triggers a respawn.
-    ]]
+    --! Triggers a respawn.
     __finish = function(self)
         self.actor:game_manager_respawn()
     end
 } or nil
 M.Action_Death = Action_Death
 
---[[! Struct: player_plugin
+--[[!
     The player plugin - use it when baking your player entity class. Must be
     used after the game manager player plugin has been baked in (it overrides
-    some of its stuff). Introduces properties "health" and "max_health", both
-    default to 100.
+    some of its stuff).
+
+    Properties:
+        - health - the player's current health.
+        - max_health - the maximum health a player can have.
 ]]
 M.player_plugin = {
     __properties = {
@@ -102,7 +99,7 @@ M.player_plugin = {
         connect(self, "health_changed", self.health_on_health)
     end,
 
-    --[[! Function: game_manager_spawn_stage_4
+    --[[!
         Overrides the serverside spawn stage 4. In addition to the default
         behavior it restores the player's health.
     ]]
@@ -113,7 +110,7 @@ M.player_plugin = {
         self:cancel_sdata_update()
     end or nil,
 
-    --[[! Function: decide_animation
+    --[[!
         Overriden so that the "dying" animation can be used when health is 0.
     ]]
     decide_animation = (not SERVER) and function(self, ...)
@@ -131,14 +128,21 @@ M.player_plugin = {
         self:health_changed(health, health - oh, server_orig)
     end,
 
-    --[[! Function: health_changed
+    --[[!
         There are two variants of this one, for the client and for the server.
-        The server handles death, so the serverside version queues the death
-        action if health is <= 0. The clientside variant handles pain, so
-        it queues the pain action if health is > 0 and the diff is lower
-        than -5. The function always takes the current health, the difference
-        from the old state and a boolean that is true if the change originated
-        on the server as arguments.
+
+        Server:
+            Handles death, so the serverside version queues the death action
+            if health is <= 0.
+
+        Client:
+            The clientside variant handles pain, so it queues the pain action
+            if health is > 0 and the diff is lower than -5.
+
+        Arguments:
+            - health - the current health.
+            - diff - the difference from the old health state.
+            - server_orig - true if the change originated on the server.
     ]]
     health_changed = SERVER and function(self, health, diff, server_orig)
         if health <= 0 then self:queue_action(Action_Death()) end
@@ -148,7 +152,7 @@ M.player_plugin = {
         end
     end,
 
-    --[[! Function: health_add
+    --[[!
         Adds to player's health. If the provided amount is zero, it does
         nothing. The current health also must be larger than 0. Negative
         amount does damage to the player. The result is always clamped
@@ -163,7 +167,7 @@ M.player_plugin = {
     end
 }
 
---[[! Function: is_valid_target
+--[[!
     Returns true if the given player entity is a valid target (for example
     for shooting or other kind of damage). The player must not be editing
     or lagged, its health must be higher than 0 and it must be already
@@ -182,7 +186,7 @@ local is_valid_target = function(ent)
 end
 M.is_valid_target = is_valid_target
 
---[[! Struct: deadly_area_plugin
+--[[!
     A plugin that turns an entity (colliding one) into a deadly area. It
     hooks a collision signal to the entity that kills the collider (if
     it's a valid target). Bake it with an obstacle to create a deadly

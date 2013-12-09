@@ -1,24 +1,17 @@
---[[! File: lua/core/init.lua
+--[[!<
+    Loads all required core modules, sets up logging, loads the FFI
+    and sets up the default environment.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Loads all required core modules. Before doing that, sets up logging.
-        This also loads the LuaJIT FFI, which is however fully accessible for
-        the core library only.
+    License:
+        See COPYING.txt.
 ]]
 
---[[! Variable: _G
-    The metatable on _G is overriden in that manner it doesn't allow creation
-    of global variables (and usage of global variables that don't exist) using
-    the regular way (assignment).
+--[[! Object: _G
+    Sets up the default _G metatable in that way it won't allow creation
+    of global variables and usage of non-existent global variables.
 ]]
 setmetatable(_G, {
     __newindex = function(self, n)
@@ -32,17 +25,17 @@ setmetatable(_G, {
 -- init a random seed
 math.randomseed(os.time())
 
---[[! Function: trace
-    Not in use. Traces what Lua does and logs it into the console. Very
-    verbose. Use only when absolutely required. Uncomment the sethook
-    line to use it. Takes two arguments, the caught event and the
-    line on which the event was caught.
+--[[!
+    Traces what Lua does and logs it into the console. Not in use by
+    default. Very verbose. Use only when absolutely required. Uncomment
+    the sethook line to use it. Takes two arguments, the caught event and
+    the line on which the event was caught.
 
     Does not get logged, just printed into the console.
 
-    (start code)
-        debug.sethook(trace, "c")
-    (end)
+    ```
+    debug.sethook(trace, "c")
+    ```
 ]]
 local trace = function(event, line)
     local s = debug.getinfo(2, "nSl")

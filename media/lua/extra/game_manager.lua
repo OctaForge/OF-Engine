@@ -1,17 +1,12 @@
---[[! File: lua/extra/game_manager.lua
+--[[!<
+    A game manager module that manages spawning and teams, with the
+    possibility of various plugins.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        A game manager module that manages spawning and teams, with the
-        possibility of various plugins.
+    License:
+        See COPYING.txt.
 ]]
 
 local M = {}
@@ -25,10 +20,14 @@ local connect, emit = signal.connect, signal.emit
 
 local get
 
---[[! Class: player_plugin
+--[[!
     Player-side game manager functionality. If you want to use the game
     game manager, you need to set up your player entity class with this
     plugin.
+
+    Properties:
+        - team - the player's current team. Defaults to an empty string.
+        - spawn_stage - the current spawn stage the player is going through.
 ]]
 M.player_plugin = {
     __properties = {
@@ -183,7 +182,7 @@ local assert = assert
 
 local gameman
 
---[[! Function: get
+--[[!
     Gets the current game manager instance.
 ]]
 get = function()
@@ -195,9 +194,9 @@ get = function()
 end
 M.get = get
 
---[[! Function: setup
-    Sets up the game manager. You can provide an optional list of game
-    manager plugins. You should call this in your mapscript before ents.load().
+--[[!
+    Sets up the game manager. You should call this in your mapscript before
+    {{$ents.load}}.
 ]]
 M.setup = function(plugins)
     ents.register_class(Game_Manager, plugins)

@@ -1,16 +1,11 @@
---[[! File: lua/core/capi.lua
+--[[!<
+    This file patches some of the core API.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        This patches some of the capi.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")

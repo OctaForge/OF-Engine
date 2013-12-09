@@ -1,60 +1,61 @@
---[[! File: lua/core/logger.lua
+--[[!<
+    Provides the core logging facilities.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        A logger module.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
 
 local M = {}
 
---[[! Variable: INFO ]]
+--! The INFO logging level, use for very verbose output.
 M.INFO = 0
 
---[[! Variable: DEBUG ]]
+--! The DEBUG logging level.
 M.DEBUG = 1
 
---[[! Variable: WARNING ]]
+--! The WARNING logging level, displayed by default.
 M.WARNING = 2
 
---[[! Variable: ERROR ]]
+--! The ERROR logging level, always printed (incl. the in-engine console).
 M.ERROR = 3
 
 --[[! Function: log
     Logs some text into the console with the given level. By default, OF
     uses the "WARNING" level. You can change it on engine startup.
 
-    Takes the log level and the text.
+    Arguments:
+        - level - the logging level.
+        - text - the text to be logged.
 
-    Levels:
-        INFO - Use for often repeating output that is not by default of much
-        use.
-        DEBUG - Use for the usual debugging output.
-        WARNING - This level is usually displayed by default.
-        ERROR - Use for serious error messages, displayed always. Printed into
-        the in-engine console.
+    See also:
+        $INFO
+        $DEBUG
+        $WARNING
+        $ERROR
 ]]
 M.log = capi.log
 
 --[[! Function: echo
-    Displays some text into both consoles (in-engine and terminal). Takes
-    only the text, there is no logging level, no changes are made to the
-    text. It's printed as it's given.
+    Displays some text into both consoles (in-engine and terminal).
+
+    Arguments:
+        - text - the text to be printed.
 ]]
 M.echo = capi.echo
 
 --[[! Function: should_log
-    Given a log level, this returns true if that level should be logged
-    and false otherwise.
+    Returns whether the given logging level should be logged.
+
+    Arguments:
+        - level - the logging level to use.
+
+    Returns:
+        Either true or false.
 ]]
 M.should_log = capi.should_log
 

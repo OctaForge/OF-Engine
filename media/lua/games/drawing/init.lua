@@ -1,18 +1,13 @@
---[[! File: lua/games/drawing/init.lua
+--[[!<
+    A test "game" for OctaForge that lets you draw on the world geometry.
+    Left click to draw, right click to stop drawing, middle click to change
+    colors.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        A test "game" for OctaForge that lets you draw on the world geometry.
-        Left click to draw, right click to stop drawing, middle click to change
-        colors.
+    License:
+        See COPYING.txt.
 ]]
 
 local log = require("core.logger")
@@ -53,12 +48,13 @@ if not SERVER then
         particles.flags.BRIGHT)
 end
 
---[[! Class: Game_Player
+--[[! Object: Game_Player
     This serves as a base for our player. It defines all the basic entry
     points for the drawing game.
 
-    The property new_mark contains mark data. It's required because it has
-    to sync over the server (e.g. in coop).
+    Properties:
+        - new_mark - contains mark data. It's required because it has to sync
+          over the server (e.g. in coop).
 ]]
 local Game_Player = Player:clone {
     name = "Game_Player",
