@@ -1,21 +1,17 @@
---[[! File: lua/extra/events/actions.lua
+--[[!<
+    Various additional reusable actions.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Various additional reusable actions.
+    License:
+        See COPYING.txt.
 ]]
 
 local actions = require("core.events.actions")
 local table2 = require("core.lua.table")
 
+--! Module: actions
 local M = {}
 
 local Action = actions.Action
@@ -24,7 +20,7 @@ local Action_System = actions.Action_System
 local ipairs = ipairs
 local filter = table2.filter
 
---[[! Class: Action_Parallel
+--[[! Object: actions.Action_Parallel
     A container action that executes its actions in parallel. It's not
     cancelable. It works by parallel by having an internal action system
     for each action.
@@ -33,9 +29,9 @@ M.Action_Parallel = Action:clone {
     name = "Action_Parallel",
     cancelable = false,
 
-    --[[! Constructor: __ctor
+    --[[!
         Takes an array of actions and kwargs. Those are passed unmodified
-        to the <actions.Action> constructor.
+        to the {{$actions.Action}} constructor.
     ]]
     __ctor = function(self, actions, kwargs)
         Action.__ctor(self, kwargs)
@@ -43,9 +39,9 @@ M.Action_Parallel = Action:clone {
         self.other_actions  = actions
     end,
 
-    --[[! Function: __start
+    --[[!
         Iterates over the action array given in the constructor, adding
-        each into the system using <add_action>.
+        each into the system using {{$add_action}}.
     ]]
     __start = function(self)
         for i, action in ipairs(self.other_actions) do
@@ -53,9 +49,9 @@ M.Action_Parallel = Action:clone {
         end
     end,
 
-    --[[! Function: __run
+    --[[!
         Runs all the action systems saved inside, filtering out those that
-        are already done. Returns the same as <actions.Action> with the
+        are already done. Returns the same as {{$actions.Action}} with the
         addition of another condition (the number of systems must be
         zero - the action won't finish until everything is done).
     ]]
@@ -68,7 +64,7 @@ M.Action_Parallel = Action:clone {
         return Action.__run(self, millis) and #systems == 0
     end,
 
-    --[[! Function: __finish
+    --[[!
         Clears up the remaining action systems.
     ]]
     __finish = function(self)
@@ -77,7 +73,7 @@ M.Action_Parallel = Action:clone {
         end
     end,
 
-    --[[! Function: add_action
+    --[[!
         Given an action, creates an action system and queues the given action
         inside, then appends the system into the action system table inside.
     ]]
@@ -89,7 +85,7 @@ M.Action_Parallel = Action:clone {
     end
 }
 
---[[! Class: Action_Local_Animation
+--[[! Object: actions.Action_Local_Animation
     Action that starts, sets its actor's animation to its local_animation
     property (and optionally animation_flags to local_animation_flags), runs,
     ends and sets back the old animation (and flags). Not too useful alone,
@@ -98,7 +94,7 @@ M.Action_Parallel = Action:clone {
 M.Action_Local_Animation = Action:clone {
     name = "Action_Local_Animation",
 
-    --[[! Function: __start
+    --[[!
         Gives its actor the new animation. Uses the set_local_animation
         method of an entity.
     ]]
@@ -110,9 +106,7 @@ M.Action_Local_Animation = Action:clone {
         ac:set_local_animation_flags(self.local_animation_flags or 0)
     end,
 
-    --[[! Function: __finish
-        Resets the animation back.
-    ]]
+    --! Resets the animation back.
     __finish = function(self)
         local ac = self.actor
         local anim = ac:get_attr("animation"):to_array()

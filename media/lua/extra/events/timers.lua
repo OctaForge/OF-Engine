@@ -1,21 +1,17 @@
---[[! File: lua/extra/events/timers.lua
+--[[!<
+    Timer objects for general use.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Timer objects for general use.
+    License:
+        See COPYING.txt.
 ]]
 
+--! Module: timers
 local M = {}
 
---[[! Class: Timer
+--[[! Object: timers.Timer
     A general use timer. It's not automatically managed - you have to simulate
     it yourself using the provided methods. That makes it flexible for various
     scenarios (where the timing is not managed by the general event loop).
@@ -23,13 +19,16 @@ local M = {}
 M.Timer = require("core.lua.table").Object:clone {
     name = "Timer",
 
-    --[[! Constructor: __ctor
-        The constructor takes at least one additional argument, interval. It's
-        time in milliseconds the timer should take until next repeated action.
-        An additional third argument is a boolean which specifies whether to
-        carry potential extra time to next iteration (if you "tick" with
-        a too large value, the sum will be larger than the interval).
-        This extra argument is saved as carry_over and defaults to false.
+    --[[!
+        A timer constructor.
+
+        Arguments:
+            - interval - time in milliseconds the timer should take until
+              the next repeated action.
+            - carry_over - a boolean specifying whether to carry potential
+              extra time to next iteration (if you $tick with a too large
+              value, the sum will be larger than the interval), defaults
+              to false.
     ]]
     __ctor = function(self, interval, carry_over)
         self.interval   = interval
@@ -37,12 +36,16 @@ M.Timer = require("core.lua.table").Object:clone {
         self.sum        = 0
     end,
 
-    --[[! Function: tick
-        Given a value in milliseconds, this simulates the timer. It adds the
-        given value to an internal sum member. If that member is >= the
-        interval, sum is reset to either zero or "sum - interval" (if
-        carry_over is true) and this returns true. Otherwise this
-        returns false.
+    --[[!
+        Performs one timer tick.
+
+        Arguments:
+            - millis - the value in milliseconds to add to the internal sum.
+              If this is larger than the interval, sum is reset to either zero
+              or "sum - interval" (if carry_over is true).
+
+        Returns:
+            True if the interval was reached, false otherwise.
     ]]
     tick = function(self, millis)
         local sum = self.sum + millis
@@ -56,9 +59,7 @@ M.Timer = require("core.lua.table").Object:clone {
         end
     end,
 
-    --[[! Function: prime
-        Manually sets sum to interval.
-    ]]
+    --! Manually sets sum to interval.
     prime = function(self)
         self.sum = self.interval
     end

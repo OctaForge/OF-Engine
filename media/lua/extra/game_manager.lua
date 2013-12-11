@@ -9,6 +9,7 @@
         See COPYING.txt.
 ]]
 
+--! Module: game_manager
 local M = {}
 
 local log = require("core.logger")
@@ -20,7 +21,7 @@ local connect, emit = signal.connect, signal.emit
 
 local get
 
---[[!
+--[[! Object: game_manager.player_plugin
     Player-side game manager functionality. If you want to use the game
     game manager, you need to set up your player entity class with this
     plugin.
@@ -182,7 +183,7 @@ local assert = assert
 
 local gameman
 
---[[!
+--[[! Function: game_manager.get
     Gets the current game manager instance.
 ]]
 get = function()

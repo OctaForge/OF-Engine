@@ -9,6 +9,7 @@
         See COPYING.txt.
 ]]
 
+--! Module: health
 local M = {}
 
 local actions = require("core.events.actions")
@@ -22,7 +23,7 @@ local eactions = require("extra.events.actions")
 local connect, emit = signal.connect, signal.emit
 local min, max = math.min, math.max
 
---[[!
+--[[! Enum: health.anims
     This module adds two new animations, "dying" and "pain", on the client.
     They're stored in this enumeration.
 ]]
@@ -32,7 +33,7 @@ local anims = (not SERVER) and {:
 :} or nil
 M.anims = anims
 
---[[! Object: Action_Pain
+--[[! Object: health.Action_Pain
     Derives from {{$actions.Action_Local_Animation}} and is queued as a pain
     effect. The default duration is 600 milliseconds and it uses the
     previously defined PAIN animation. It also cannot be used more than
@@ -45,7 +46,7 @@ M.Action_Pain = (not SERVER) and eactions.Action_Local_Animation:clone {
     allow_multiple  = false
 } or nil
 
---[[! Object: Action_Death
+--[[! Object: health.Action_Death
     Derives from a regular Action. Represents player death and the default
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
@@ -75,7 +76,7 @@ local Action_Death = SERVER and actions.Action:clone {
 } or nil
 M.Action_Death = Action_Death
 
---[[!
+--[[! Object: health.player_plugin
     The player plugin - use it when baking your player entity class. Must be
     used after the game manager player plugin has been baked in (it overrides
     some of its stuff).
@@ -167,7 +168,7 @@ M.player_plugin = {
     end
 }
 
---[[!
+--[[! Function: health.is_valid_target
     Returns true if the given player entity is a valid target (for example
     for shooting or other kind of damage). The player must not be editing
     or lagged, its health must be higher than 0 and it must be already
@@ -186,7 +187,7 @@ local is_valid_target = function(ent)
 end
 M.is_valid_target = is_valid_target
 
---[[!
+--[[! Object: health.deadly_area_plugin
     A plugin that turns an entity (colliding one) into a deadly area. It
     hooks a collision signal to the entity that kills the collider (if
     it's a valid target). Bake it with an obstacle to create a deadly

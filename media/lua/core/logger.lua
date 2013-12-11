@@ -10,6 +10,7 @@
 
 local capi = require("capi")
 
+--! Module: logger
 local M = {}
 
 --! The INFO logging level, use for very verbose output.
@@ -33,10 +34,10 @@ M.ERROR = 3
         - text - the text to be logged.
 
     See also:
-        $INFO
-        $DEBUG
-        $WARNING
-        $ERROR
+        - $INFO
+        - $DEBUG
+        - $WARNING
+        - $ERROR
 ]]
 M.log = capi.log
 

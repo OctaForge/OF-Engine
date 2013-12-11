@@ -1,16 +1,11 @@
---[[! File: lua/extra/entities/lights.lua
+--[[!<
+    Various types of light entities.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Various types of light entities.
+    License:
+        See COPYING.txt.
 ]]
 
 local svars = require("core.entities.svars")
@@ -19,14 +14,15 @@ local lights = require("core.engine.lights")
 
 local light_add = lights.add
 
+--! Module: lights
 local M = {}
 
 local Marker = ents.Marker
 
---[[! Class: Dynamic_Light
+--[[! Object: lights.Dynamic_Light
     A generic "dynamic light" entity class. It's not registered by default
     (a Light from the core set is already dynamic), it serves as a base for
-    derived dynamic light types. Inherits from <ents.Marker> entity type of
+    derived dynamic light types. Inherits from {{$ents.Marker}} entity type of
     the core set. Note: even though this type is not registered by default,
     it's fully functional.
 
@@ -43,9 +39,7 @@ local Dynamic_Light = Marker:clone {
         blue   = svars.State_Integer()
     },
 
-    --[[! Variable: __per_frame
-        Set to true, as <__run> doesn't work on static entities by default.
-    ]]
+    --! Set to true, as <__run> doesn't work on static entities by default.
     __per_frame = true,
 
     __init_svars = function(self, kwargs, nd)
@@ -56,7 +50,7 @@ local Dynamic_Light = Marker:clone {
         self:set_attr("blue",   128, nd[3])
     end,
 
-    --[[! Function: __run
+    --[[!
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
     ]]
@@ -74,15 +68,15 @@ local max, random = math.max, math.random
 local floor = math.floor
 local flash_flag = lights.flags.FLASH
 
---[[! Class: Flickering_Light
-    A flickering light entity type derived from <Dynamic_Light>. This one
+--[[! Object: lights.Flickering_Light
+    A flickering light entity type derived from $Dynamic_Light. This one
     is registered. Delays are in milliseconds. It adds probability, min delay
     and max delay to newent properties of its parent.
 
-    Properties (all <svars.State_Float>):
-        probability - the flicker probability (from 0 to 1, defaults to 0.5)
-        min_delay - the minimal flicker delay (defaults to 100)
-        max_delay - the maximal flicker delay (defaults to 300)
+    Properties:
+        - probability - the flicker probability (from 0 to 1, defaults to 0.5).
+        - min_delay - the minimal flicker delay (defaults to 100).
+        - max_delay - the maximal flicker delay (defaults to 300).
 ]]
 M.Flickering_Light = Dynamic_Light:clone {
     name = "Flickering_Light",

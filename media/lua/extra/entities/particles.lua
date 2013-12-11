@@ -1,17 +1,12 @@
---[[! File: lua/extra/entities/lights.lua
+--[[!<
+    Various types of particle effects. All of the entity types here
+    derive from {{$ents.Particle_Effect}}.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Various types of particle effects. All of the entity types here
-        derive from <ents.Particle_Effect>.
+    License:
+        See COPYING.txt.
 ]]
 
 local ents = require("core.entities.ents")
@@ -26,9 +21,10 @@ local pflags = particles.flags
 local quadrenderer = particles.register_renderer_quad
 local Particle_Effect = ents.Particle_Effect
 
+--! Module: particles
 local M = {}
 
---[[! Variable: renderers
+--[[! Table: particles.renderers
     Provides some extra renderers - "smoke", "flame" and "steam" used
     by the effect entities. On the client only, on the server this is nil.
 ]]
@@ -49,12 +45,16 @@ end
 
 local cmap = { "x", "y", "z" }
 
---[[! Function: offset_vec
-    Given an object with members x, y, z (that are numbers), a direction
-    (0 to 5 where 0 is up) and distance, this adds or subtracts the distance
-    to the vector component given by the direction. 0 is z with addition,
-    1 is x with addition, 2 is y with addition, 3 is z with subtraction,
-    4 is x with subtraction, 5 is y with subtraction.
+--[[! Function: particles.offset_vec
+    This adds or subtracts the distance to the vector component given by
+    the direction, 0 is z with addition, 1 is x with addition, 2 is
+    y with addition, 3 is z with subtraction, 4 is x with subtraction,
+    5 is y with subtraction.
+
+    Arguments:
+        - v - a vector, any object with members x, y, z (that are numbers).
+        - dir - a direction (0 to 5 where 0 is up).
+        - dist - a distance.
 ]]
 local offset_vec = function(v, dir, dist)
     local e = cmap[((2 + dir) % 3) + 1]
@@ -65,11 +65,14 @@ M.offset_vec = offset_vec
 
 local SMOKE, FLAME = renderers.smoke, renderers.flame
 
---[[! Class: Fire_Effect
-    A regular fire effect. Has properties radius (default 1.5), height
-    (default 0.5), red, green, blue (integers, default 0x90, 0x30, 0x20).
-    You can specify radius, height, red, green and blue values as newent
-    arguments.
+--[[! Object: particles.Fire_Effect
+    A regular fire effect. You can specify radius, height, red, green and blue
+    values as newent arguments.
+
+    Properties:
+        - radius - the fire radius, defaults to 1.5.
+        - height - the fire height, defaults to 0.5.
+        - red, green, blue - the color values (they default to 0x903020).
 ]]
 M.Fire_Effect = Particle_Effect:clone {
     name = "Fire_Effect",
@@ -120,10 +123,11 @@ M.Fire_Effect = Particle_Effect:clone {
 
 local STEAM = renderers.steam
 
---[[! Class: Steam_Effect
-    A steam effect. Has one property, direction, which is passed to
-    <offset_vec> directly. You can specify the direction as a newent
-    argument.
+--[[! Object: particles.Steam_Effect
+    A steam effect. You can pass the direction via newent.
+
+    Properties:
+        - direction - see $offset_vec.
 ]]
 M.Steam_Effect = Particle_Effect:clone {
     name = "Steam_Effect",
