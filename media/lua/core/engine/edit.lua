@@ -1,16 +1,11 @@
---[[! File: lua/core/engine/edit.lua
+--[[!<
+   Editing functions including procedural geometry generation.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Editing functions including procedural geometry generation.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -18,6 +13,7 @@ local ffi = require("ffi")
 
 local ffi_new = ffi.new
 
+--! Module: edit
 local M = {}
 
 -- undocumented, not exposed for the time being
@@ -33,7 +29,7 @@ local matf = {:
     FLAGS  = 0xFF << FLAG_SHIFT
 :}
 
---[[! Variable: material
+--[[!
     Represents material ids present in the engine. Contains values AIR,
     WATER, LAVA, GLASS, NOCLIP, CLIP, GAMECLIP, DEATH and ALPHA.
 ]]
@@ -87,31 +83,38 @@ M.map_erase = capi.edit_map_erase
     The coordinates also have to fit in the world, so mapsize. Takes the x,
     y, z coordinates and the gridsize (which is 1<<gridpower).
 
-    Returns true on success, false on failure (same goes for all following
-    functions).
-
     Note that this function and the following ones are safe and validated
     (they also sync client-server). There is a more "raw" set down below
     that operates directly with the structures - it's faster (and much
     more powerful), but often also less convenient.
+
+    Arguments:
+        - x, y, z - the position.
+        - gs - the grid size.
+
 ]]
 M.cube_create = capi.edit_cube_create
 
 --[[! Function: cube_delete
-    Parameters and rules are the same as for <cube_create>, but it actually
+    Parameters and rules are the same as for $cube_create, but it actually
     deletes cubes instead of creating.
 ]]
 M.cube_delete = capi.edit_cube_delete
 
 --[[! Function: cube_set_texture
-    First 4 arguments are the same as in <cube_create>, the fifth argument is
-    the face, sixth is the texture slot number. See also <cube_set_material>.
+    Sets the texture of a cube face or all faces.
 
     If we're standing in the center of the map, with increasing X coordinate
     when going right and increasing Y coordinate when going forward, the
-    faces go like this:
+    faces go like below.
+
+    Arguments:
+        - x, y, z, gs - see $cube_create.
+        - face - see below.
+        - sn - the texture vslot index.
 
     Faces:
+        -1 - all faces.
         0 - right side of the cube
         1 - left side of the cube
         2 - back of the cube
@@ -122,73 +125,87 @@ M.cube_delete = capi.edit_cube_delete
 M.cube_set_texture = capi.edit_cube_set_texture
 
 --[[! Function: cube_set_material
-    First 4 arguments are the same as in <cube_create>, the fifth argument is
-    the material index, see <lookup_material>. See also <cube_set_texture>.
+    Sets the cube material.
+
+    Arguments:
+        - x, y, z, gs - see $cube_create.
+        - mat - the material index, see $material.
 ]]
 M.cube_set_material = capi.edit_cube_set_material
 
 --[[! Function: cube_vrotate
     Like vrotate, arguments are x, y, z, gridsize, face followed
-    by vrotate arguments.
+    by vrotate arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_vrotate = capi.cube_vrotate
 
 --[[! Function: cube_voffset
     Like voffset, arguments are x, y, z, gridsize, face followed
-    by voffset arguments.
+    by voffset arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_voffset = capi.cube_voffset
 
 --[[! Function: cube_vscroll
     Like vscroll, arguments are x, y, z, gridsize, face followed
-    by vscroll arguments.
+    by vscroll arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_vscroll = capi.cube_vscroll
 
 --[[! Function: cube_vscale
     Like vscale, arguments are x, y, z, gridsize, face followed
-    by vscale arguments.
+    by vscale arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_vscale = capi.cube_vscale
 
 --[[! Function: cube_vlayer
     Like vlayer, arguments are x, y, z, gridsize, face followed
-    by vlayer arguments.
+    by vlayer arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_vlayer = capi.cube_vlayer
 
 --[[! Function: cube_vdecal
     Like vdecal, arguments are x, y, z, gridsize, face followed
-    by vdecal arguments.
+    by vdecal arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_vdecal = capi.cube_vdecal
 
 --[[! Function: cube_valpha
     Like valpha, arguments are x, y, z, gridsize, face followed
-    by valpha arguments.
+    by valpha arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_valpha = capi.cube_valpha
 
 --[[! Function: cube_vcolor
     Like vcolor, arguments are x, y, z, gridsize, face followed
-    by vcolor arguments.
+    by vcolor arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_vcolor = capi.cube_vcolor
 
 --[[! Function: cube_vrefract
     Like vrefract, arguments are x, y, z, gridsize, face followed
-    by vrefract arguments.
+    by vrefract arguments. The face argument follows the semantics
+    of $cube_set_texture.
 ]]
 M.cube_vrefract = capi.cube_vrefract
 
 --[[! Function: cube_push_corner
-    First 5 arguments are the same with <cube_set_texture>, the sixth argument
-    is the corner index, the seventh is the direction (1 into the cube,
-    -1 from the cube).
+    Pushes a cube's corner.
 
-    On all faces, 0 is top-left corner, 1 is top-right, 2 is bottom-left and 3
-    is bottom-right when facing them directly (that is, when we see the texture
-    in the right orientation).
+    Arguments:
+        - x, y, z, gs - see $cube_create.
+        - face - see $cube_set_texture.
+        - ci - the corner index, on all faces 0 is top-left, 1 is top-right,
+          2 is bottom-left and 3 is bottom-right when facing them directly
+          (when we see the texture in the right orientation).
+        - dir - the direction (1 is into the cube, -1 is from the cube).
 ]]
 M.cube_push_corner = capi.edit_cube_push_corner
 
@@ -246,28 +263,28 @@ local assert = assert
 
 local clamp = require("core.lua.math").clamp
 
---[[! Struct: Selection
+--[[! Object: Selection
     Represents a selection structure that can be used for procedural editing.
     It's faster and more powerful than the functions above but also more
     dangerous.
 
-    It has several fields:
-        corner - the face corner the pointer is the closest to, for a face
-        from above 0 is to the origin and 2 is across from 1 (you fill one
-        row and then fill the next row starting from the same side)
-        position - has 3 integer fields, x, y, z, represents the current
-        cube origin.
-        selection - has 3 integer fields x, y, z and represents the selection
-        size in cubes (1, 1, 1 is one cube)
-        grid_size - the current grid size (1 << gridpower)
-        orientation - the face orientation, if 0, 0, 0 is in the lower left
-        and the cube extends from us in the other axis, then:
-            0 - facing us
-            1 - away from us
-            2 - left
-            3 - right
-            4 - down
-            5 - up
+    Fields:
+        - corner - the face corner the pointer is the closest to, for a face
+          from above 0 is to the origin and 2 is across from 1 (you fill one
+          row and then fill the next row starting from the same side)
+        - position - has 3 integer fields, x, y, z, represents the current
+          cube origin.
+        - selection - has 3 integer fields x, y, z and represents the selection
+          size in cubes (1, 1, 1 is one cube)
+        - grid_size - the current grid size (1 << gridpower)
+        - orientation - the face orientation, if 0, 0, 0 is in the lower left
+          and the cube extends from us in the other axis, then:
+          - 0 - facing us
+          - 1 - away from us
+          - 2 - left
+          - 3 - right
+          - 4 - down
+          - 5 - up
 ]]
 M.Selection = ffi.metatype("selinfo_t", {
     __eq = function(self, other)
@@ -280,18 +297,17 @@ M.Selection = ffi.metatype("selinfo_t", {
     end,
 
     __index = {
-        --[[! Function: edit_face
-            Edits a face of the selection. The argument "dir" specifies the
-            direction (-1 extrudes, 1 pushes back into, for corners/edges
-            1 is into the cube, -1 is back out), the argument "mode" specifies
-            whether to extrude/push back cubes (1) or corners (2).
+        --[[!
+            Edits a face of the selection.
 
-            The argument "local" specifies whether the change was initiated
-            here (so whether to notify others). It defaults to true but you
-            can force it as false if you know what you're doing and it's really
-            what you want.
-
-            The argument "local" is present on all editing methods here.
+            Arguments:
+                - dir - the direction (-1 extrudes, 1 pushes back into, for
+                  corners/edges 1 is into the cube, -1 is back out).
+                - mode - 1 is extruding/pushing back cubes, 2 is corners.
+                - loc - whether the change was initiated here (so whether
+                  to notify others) and it defaults to true (if you know what
+                  you're doing and you really want it, you can set force it
+                  to false).
         ]]
         edit_face = function(self, dir, mode, loc)
             if loc != false then loc = true end
@@ -299,8 +315,11 @@ M.Selection = ffi.metatype("selinfo_t", {
             edit_raw_edit_face(dir, mode, self, loc)
         end,
 
-        --[[! Function: delete
+        --[[!
             Deletes the selection.
+
+            Arguments:
+                - loc - see $edit_face.
         ]]
         delete = function(self, loc)
             if loc != false then loc = true end
@@ -308,10 +327,13 @@ M.Selection = ffi.metatype("selinfo_t", {
             edit_raw_delete_cube(self, loc)
         end,
 
-        --[[! Function: edit_texture
-            Changes the texture for the given face. Takes the texture slot
-            id and optionally a boolean specifying whether to change the
-            texture on all faces (false by default).
+        --[[!
+            Changes the texture for the given face.
+
+            Arguments:
+                - tex - the texture vslot id.
+                - all_faces - whether to change all faces (defaults to false).
+                - loc - see $edit_face.
         ]]
         edit_texture = function(self, tex, all_faces, loc)
             if loc != false then loc = true end
@@ -319,8 +341,12 @@ M.Selection = ffi.metatype("selinfo_t", {
             edit_raw_edit_texture(tex, all_faces or false, self, loc)
         end,
 
-        --[[! Function: edit_texture
-            Edits the material in the current selection. Takes the material id.
+        --[[!
+            Edits the material in the current selection.
+
+            Arguments:
+                - mat - the material id (see $material).
+                - loc - see $edit_face.
         ]]
         edit_material = function(self, mat, loc)
             if loc != false then loc = true end
@@ -328,8 +354,11 @@ M.Selection = ffi.metatype("selinfo_t", {
             edit_raw_edit_material(mat, self, loc)
         end,
 
-        --[[! Function: flip
+        --[[!
             Flips the selection.
+
+            Arguments:
+                - loc - see $edit_face.
         ]]
         flip = function(self, loc)
             if loc != false then loc = true end
@@ -338,8 +367,11 @@ M.Selection = ffi.metatype("selinfo_t", {
         end,
 
         --[[! Function: rotate
-            Rotates the selection, the argument is the same as with normal
-            rotation in cubescript.
+            Rotates the selection.
+
+            Arguments:
+                - cw - see the rotate command in cubescript.
+                - loc - see $edit_face.
         ]]
         rotate = function(self, cw, loc)
             if loc != false then loc = true end
@@ -347,9 +379,13 @@ M.Selection = ffi.metatype("selinfo_t", {
             edit_raw_rotate(cw, self, loc)
         end,
 
-        --[[! Function: edit_vslot
-            Edits the vslot in the given selection. Takes the vslot
-            and optionally an all_faces boolean (defaults to false).
+        --[[!
+            Edits the vslot in the given selection.
+
+            Arguments:
+                - vs - the vslot (see $VSlot).
+                - all_faces - whether to change all faces (defaults to false).
+                - loc - see $edit_face.
         ]]
         edit_vslot = function(self, vs, all_faces, loc)
             if loc != false then loc = true end
@@ -357,7 +393,7 @@ M.Selection = ffi.metatype("selinfo_t", {
             edit_raw_edit_vslot(vs, all_faces or false, self, loc)
         end,
 
-        --[[! Function: get_size
+        --[[!
             Returns the selection size in terms of number of cubes.
         ]]
         get_size = function(self)
@@ -365,7 +401,7 @@ M.Selection = ffi.metatype("selinfo_t", {
             return sel.x * sel.y * sel.z
         end,
 
-        --[[! Function: validate
+        --[[!
             Validates the selection and returns true if it's valid and
             false if it's not.
         ]]
@@ -387,7 +423,7 @@ M.Selection = ffi.metatype("selinfo_t", {
     }
 })
 
---[[! Variable: vslot_flags
+--[[!
     Represents all flags that can be enabled on a vslot used later with
     the procedural API. Contains SCALE, ROTATION, OFFSET, SCROLL, LAYER,
     ALPHA, COLOR, REFRACTION and DECAL, mapping to the respective vcommand
@@ -405,15 +441,21 @@ M.vslot_flags = {:
     DECAL      = 1 << 10
 :}
 
---[[! Struct: VSlot
+--[[! Object: VSlot
     Represents a vslot for the procedural API. You can enable flags on it
-    (see <vslot_flags>). Every flag has its associated field (or fields)
-    in the structure. The fields are rotation (int), offset_x, offset_y
-    (both ints), scroll_s, scroll_t (floats), scale (float), layer, decal
-    (ints), alpha_front, alpha_back, r, g, b, refract_scale, refract_r,
-    refract_g, refract_b (all floats).
+    (see $vslot_flags). Every flag has its associated field (or fields)
+    in the structure.
 
-    These values map to the respective vcommand parameters.
+    These fields map to the respective vcommand parameters.
+
+    Fields:
+        - rotation - an integer.
+        - offset_x, offset_y - integers.
+        - scroll_s, scroll_t - flots.
+        - scale - float.
+        - layer, decal - integers.
+        - alpha_front, alpha_back, r, g, b - floats.
+        - refract_scale, refract_r, refract_g, refract_b - flots.
 ]]
 M.VSlot = ffi.metatype("vslot_t", {
     __index = {
@@ -422,7 +464,7 @@ M.VSlot = ffi.metatype("vslot_t", {
 
 local edit_lookup_cube, edit_lookup_texture in capi
 
---[[! Function: lookup_cube
+--[[!
     Looks up a cube at the given origin position with the given size and
     returns it. The fields you're likely to use in the cube are "texture",
     which is a zero indexed array of 6 texture slot ids - each of the array
@@ -433,7 +475,7 @@ local edit_lookup_cube, edit_lookup_texture in capi
     of internal lookupcube (result origin x, y, z and size).
 
     Note that this is a raw function. You most likely want to use the two
-    below, <lookup_material> and <lookup_texture>.
+    below, $lookup_material and $lookup_texture.
 ]]
 M.lookup_cube = function(x, y, z, ts)
     local r = ffi_new("int[4]");
@@ -444,19 +486,19 @@ end
 --[[! Function: lookup_texture
     Returns the texture slot id corresponding to the texture on a cube's face
     represented by the origin position (x, y, z), the size and the face
-    (see <cube_set_texture>).
+    (see $cube_set_texture).
 ]]
 M.lookup_texture = capi.edit_lookup_texture
 
 --[[! Function: lookup_material
     Returns the material of a cube represented by the origin position (x, y, z)
-    and the size. There is also <get_material> for a safe, general version.
+    and the size. There is also $get_material for a safe, general version.
 ]]
 M.lookup_material = capi.edit_lookup_material
 
 --[[! Function: get_material
     Returns what material is on the position given by the arguments (x, y, z).
-    Materials are represented by <material> fields. Note that the position
+    Materials are represented by $material fields. Note that the position
     is not an origin position of a cube - it's a real world position, not
     limited in any way.
 ]]

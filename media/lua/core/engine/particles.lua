@@ -1,18 +1,14 @@
---[[! File: lua/core/engine/particles.lua
+--[[!<
+    Lua particle API for the client.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Lua particle API. Works on the client.
+    License:
+        See COPYING.txt.
 ]]
 
+--! Module: particles
 local M = {}
 if SERVER then return M end
 
@@ -44,7 +40,7 @@ local particle = ffi.metatype("particle_t", {
     }
 })
 
---[[! Variable: flags
+--[[!
     The flags available during particle renderer registration. Use bitwise
     OR to combine them. They include MOD (multiplied), RND4 (picks one of
     the corners at random), LERP (use sparingly, has order of blending
@@ -74,7 +70,7 @@ M.flags = {:
     FLIP     = HFLIP | VFLIP | ROT
 :}
 
---[[! Variable: renderers
+--[[!
     Contains two predefined renderers that are mandatory - "text" and "icon".
 ]]
 local renderers = {
@@ -84,70 +80,108 @@ local renderers = {
 M.renderers = renderers
 
 --[[! Function: register_renderer_quad
-    Registers a "quad renderer" (a renderer that draws individual textures)
-    given a name (arbitrary), a texture path and optionally flags
-    (see <flags>) and the id of the decal that gets spawned if the
-    particle collides with geometry (happens on particles with gravity,
-    such as snow, requires the COLLIDE flag to be set).
+    Registers a "quad renderer" (a renderer that draws individual textures).
 
-    Returns two values - a particle renderer id (which you will use when
-    spawning particles) and a boolean value that is false if a renderer
-    of such name was already registered (in such case it doesn't register
-    anything, it simply returns the id of the already registered renderer)
-    and true otherwise. This applies for all renderer registration
-    functions, not only this one.
+    Arguments:
+        - name - pick one.
+        - tex - the texture path.
+        - flags - see $flags, optional.
+        - id - the decal id that gets spawned if the particle collides
+          with geometry (the particle needs to have gravity and requires
+          the COLLIDE flag to be set), optional.
+
+    Returns:
+        The particle renderer id (use to spawn particles) and a boolean value
+        that is false when a renderer of such name is already registered
+        (the id returned in this case is the id of the registered renderer).
 ]]
 M.register_renderer_quad = capi.particle_register_renderer_quad
 
 --[[! Function: register_renderer_tape
-    Registers a tape renderer. The parameters are the same.
-    Look above for more information.
+    Registers a tape renderer. See $register_renderer_quad, the parameters
+    are the same.
 ]]
 M.register_renderer_tape = capi.particle_register_renderer_tape
 
 --[[! Function: register_renderer_trail
-    Registers a trail renderer. The parameters are the same.
-    Look above for more information.
+    Registers a trail renderer. See $register_renderer_quad, the parameters
+    are the same.
 ]]
 M.register_renderer_trail = capi.particle_register_renderer_trail
 
 --[[! Function: register_renderer_fireball
-    Registers a fireball renderer given a name and a texture path.
-    Look above for more information.
+    Registers a fireball renderer.
+
+    Arguments:
+        - name - pick one.
+        - tex - the texture path.
+
+    Returns:
+        See $register_renderer_quad.
 ]]
 M.register_renderer_fireball = capi.particle_register_renderer_fireball
 
 --[[! Function: register_renderer_lightning
-    Registers a lightning renderer given a name and a texture path.
-    Look above for more information.
+    Registers a lightning renderer.
+
+    Arguments:
+        - name - pick one.
+        - tex - the texture path.
+
+    Returns:
+        See $register_renderer_quad.
 ]]
 M.register_renderer_lightning = capi.particle_register_renderer_lightning
 
 --[[! Function: register_renderer_flare
-    Registers a lens flare renderer given a name, a texture path
-    and optionally a maximum flare count (defaults to 64) and flags.
-    Look above for more information.
+    Registers a lens flare renderer.
+
+    Arguments:
+        - name - pick one.
+        - tex - the texture path.
+        - flarecount - the maximum flare count (defaults to 64).
+        - flags - optional.
+
+    Returns:
+        See $register_renderer_quad.
 ]]
 M.register_renderer_flare = capi.particle_register_renderer_flare
 
 --[[! Function: register_renderer_text
-    Registers a text renderer given a name and optionally flags.
-    Look above for more information.
+    Registers a text renderer.
+
+    Arguments:
+        - name - pick one.
+        - flags - optional.
+
+    Returns:
+        See $register_renderer_quad.
 ]]
 M.register_renderer_text = capi.particle_register_renderer_text
 
 --[[! Function: register_renderer_icon
-    Registers an icon renderer given a name and optionally flags.
-    Look above for more information.
+    Registers an icon renderer.
+
+    Arguments:
+        - name - pick one.
+        - flags - optional.
+
+    Returns:
+        See $register_renderer_quad.
 ]]
 M.register_renderer_icon = capi.particle_register_renderer_icon
 
 --[[! Function: register_renderer_meter
-    Registers a progress meter renderer given a name and a boolean
-    specifying whether it's a two-color or one-color meter (if it's
-    true, it has two colors, foreground and background; otherwise
-    it has one color, foreground, on black) and optionally flags.
-    Look above for more information.
+    Registers a progress meter renderer.
+
+    Arguments:
+        - name - pick one.
+        - vs - if it's true, it's a two-color meter, otherwise only
+          foreground on black.
+        - flags - optional.
+
+    Returns:
+        See $register_renderer_quad.
 ]]
 M.register_renderer_meter = capi.particle_register_renderer_meter
 
@@ -157,16 +191,22 @@ M.register_renderer_meter = capi.particle_register_renderer_meter
 ]]
 M.get_renderer = capi.particle_get_renderer
 
---[[! Function: new
-    Spawns a new generic particle given a type (renderer ID), origin
-    position, target position, color (three floats typically from 0 to 1,
-    can go out of bounds), fade time (in millis), size (float) and
-    optionally gravity (defaults to 0) and owner (defaults to nil).
+--[[!
+    Spawns a new generic particle.
 
-    Any dynamic entity can be an owner, it's used for particle tracking.
-    Tracking is only enabled if the TRACK flag is on.
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - d - the target position (anything with x ,y, z).
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - gravity - optional, defaults to 0.
+        - owner - optional (for tracking purposes, any dynamic entity can
+          be and owner and it only takes effect when the TRACK flag is on).
 
-    Returns the particle object on which you can further set properties.
+    Returns:
+        The particle object on which you can further set properties.
 ]]
 M.new = function(tp, o, d, r, g, b, fade, size, gravity, owner)
     return capi.particle_new(tp, o.x, o.y, o.z,
@@ -174,15 +214,25 @@ M.new = function(tp, o, d, r, g, b, fade, size, gravity, owner)
         owner and owner.uid or -1)
 end
 
---[[! Function: splash
-    Spawns a splash particle effect given a type, position, radius
-    (an integer), number of particles, color, fade time, size and
-    optionally gravity (defaults to 0), delay (defaults to 0), owner
-    (defaults to nil) and a boolean that makes the splash unbounded
-    when true (always keeps spawning particles).
+--[[!
+    Spawns a splash particle effect.
 
-    Returns true on success and false on failure (when invalid type is
-    provided). The same applies for all subsequent particle effects.
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - rad - the radius.
+        - num - the number of particles.
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - gravity - optional, defaults to 0.
+        - delay - optional, defaults to 0.
+        - owner - optional (for tracking purposes, see $new).
+        - un - optional, makes the splash unbounded (alway keeps spawning
+          particles).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.splash = function(tp, o, rad, num, r, g, b, fade, size, gravity, delay,
 owner, un)
@@ -191,99 +241,180 @@ owner, un)
         un or false)
 end
 
---[[! Function: trail
-    Spawns a trail particle effect given a type, origin position,
-    target position, color, fade time, size and optionally gravity
-    (defaults to 0) and owner (defaults to nil).
+--[[!
+    Spawns a trail particle effect.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - d - the target position (anything with x ,y, z).
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - gravity - optional, defaults to 0.
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.trail = function(tp, o, d, r, g, b, fade, size, gravity, owner)
     return capi.particle_trail(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b,
         fade, size, gravity or 0, owner and owner.uid or -1)
 end
 
---[[! Function: text
-    Spawns a text particle effect given a type, position, text string,
-    color, fade time, size and optionally gravity (defaults to 0) and
-    owner (defaults to nil).
+--[[!
+    Spawns a text particle effect.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - text - the text to didsplay.
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - gravity - optional, defaults to 0.
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.text = function(tp, o, text, r, g, b, fade, size, gravity, owner)
     return capi.particle_text(tp, o.x, o.y, o.z, text, #text, r, g, b, fade,
         size, gravity or 0, owner and owner.uid or -1)
 end
 
---[[! Function: icon_generic
-    Creates an icon. The renderer has to have an ICON flag set. The icons
-    make a 4x4 grid - you have to provide the type, position, horizontal
-    icon position in the texture (0 to 3), vertical position (0 to 3),
-    color, fade time, size and optionally gravity (defaults to 0) and
-    owner (defaults to nil).
+--[[!
+    Creates an icon. The renderer has to have an ICON flag set.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - ix, iy - horizontal and vertical position of the icon within
+          the texture, supports 4x4 so the values are 0 to 3.
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - gravity - optional, defaults to 0.
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.icon_generic = function(tp, o, ix, iy, r, g, b, fade, size, gravity, owner)
     return capi.particle_icon_generic(tp, o.x, o.y, o.z, ix, iy, r, g, b,
         fade, size, gravity or 0, owner and owner.uid or -1)
 end
 
---[[! Function: icon
-    Creates an icon using a specialized icon renderer. You have to provide
-    the type, position, texture path, color, fade time, size and optionally
-    gravity (defaults to 0) and owner (defaults to nil).
+--[[!
+    Creates an icon using a specialized icon renderer.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - itex - the icon texture.
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - gravity - optional, defaults to 0.
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.icon = function(tp, o, itex, r, g, b, fade, size, gravity, owner)
     return capi.particle_icon(tp, o.x, o.y, o.z, itex, r, g, b, fade, size,
         gravity or 0, owner and owner.uid or -1)
 end
 
---[[! Function: meter
-    Creates a meter particle. You have to provide the type, position,
-    value (from 0 to 100), color, fade time, size and optionally owner
-    (defaults to nil). The background will be black here.
+--[[!
+    Creates a meter particle. See also $meter_vs.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - val - the progress value (from 0 to 100).
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.meter = function(tp, o, val, r, g, b, fade, size, owner)
     return capi.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, 0, 0, 0,
         fade, size, owner and owner.uid or -1)
 end
 
---[[! Function: meter_vs
-    Similar to above, but you have to provide two sets of colors, the former
-    specifying the foreground and the latter the background.
+--[[!
+    See $meter. The only difference is that you have to provide two sets
+    of colors (r, g, b, r2, g2, b2).
 ]]
 M.meter_vs = function(tp, o, val, r, g, b, r2, g2, b2, fade, size, owner)
     return capi.particle_meter(tp, o.x, o.y, o.z, val, r, g, b, r2, g2, b2,
         fade, size, owner and owner.uid or -1)
 end
 
---[[! Function: flare
-    Creates a flare particle effect given the type, origin position, target
-    position, color, fade time, size and optionally owner (defaults to nil).
+--[[!
+    Creates a flare particle effect.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - d - the target position (anything with x ,y, z).
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.flare = function(tp, o, d, r, g, b, fade, size, owner)
     return capi.particle_flare(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b,
         fade, size, owner and owner.uid or -1)
 end
 
---[[! Function: fireball
-    Given a type, position, color, fade time, size, maximum size and optionally
-    owner (defaults to nil), this creates a fireball effect.
+--[[!
+    Creates a fireball effect.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - msize - the maximum fireball size (float).
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.fireball = function(tp, o, r, g, b, fade, size, msize, owner)
     return capi.particle_fireball(tp, o.x, o.y, o.z, r, g, b, fade, size,
         msize, owner and owner.uid or -1)
 end
 
---[[! Function: lens_flare
-    Creates a lens flare effect given a type, position, a boolean specifying
-    whether it's a sun lens flare (fixed size regardless the distance), a
-    boolean specifying whether to display a sparkle center and color.
+--[[!
+    Creates a lens flare effect.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - sun - if true, it's a sun lens flare (fixed size regardless of
+          the distance).
+        - sparkle - true if a sparkle center should be displayed.
+        - r, g, b - the color (three floats).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.lens_flare = function(tp, o, sun, sparkle, r, g, b)
     return capi.particle_lensflare(tp, o.x, o.y, o.z, sun, sparkle, r, g, b)
 end
 
---[[! Function: shape
-    Creates a particle shape effect. You have to provide the type, position,
-    radius, direction, number of particles, color, fade time, size and
-    optionally gravity (defaults to 0), velocity (defaults to 200) and
-    owner (defaults to nil).
+--[[!
+    Creates a particle shape effect.
 
     The direction argument specifies the shape. From 0 to 2 you get a circle,
     3 to 5 is a cylinder shell, 6 to 11 is a cone shell, 12 to 14 is a plane
@@ -292,17 +423,46 @@ end
 
     The remainder of division of the direction argument by 3 specifies the
     actual direction - 0 is x, 1 is y, 2 is z (up).
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - rad - the radius.
+        - dir - the direction.
+        - num - the number of particles.
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - size - the particle size (float).
+        - grav - optional, defaults to 0.
+        - vel - the velocity (defaults to 200).
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.shape = function(tp, o, rad, dir, num, r, g, b, fade, size, grav, vel, owner)
     return capi.particle_shape(tp, o.x, o.y, o.z, rad, dir, num, r, g, b, fade,
         size, grav or 0, vel or 200, owner and owner.uid or -1)
 end
 
---[[! Function: flame
-    Creaets a flame particle effect. You have to provide the type, position,
-    radius (float), height (float), color and optionally fade time (defaults
-    to 600), density (defaults to 3), scale (defaults to 2), speed (defaults
-    to 200), gravity (defaults to 15) and owner (defaults to nil).
+--[[!
+    Creaets a flame particle effect.
+
+    Arguments:
+        - tp - the renderer id.
+        - o - the origin position (anything with x, y, z).
+        - rad - the radius.
+        - h - the height (float).
+        - r, g, b - the color (three floats).
+        - fade - the fade time in milliseconds.
+        - dens - the density, optional, defaults to 3.
+        - sc - the scale, optional, defaults to 2.
+        - speed - optional, defaults to 200.
+        - grav - optional, defaults to 0.
+        - owner - optional (for tracking purposes, see $new).
+
+    Returns:
+        True on success, false on failure (with invalid type).
 ]]
 M.flame = function(tp, o, rad, h, r, g, b, fade, dens, sc, speed, grav, owner)
     return capi.particle_flame(tp, o.x, o.y, o.z, rad, h, r, g, b, fade or 600,

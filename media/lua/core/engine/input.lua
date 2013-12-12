@@ -1,16 +1,11 @@
---[[! File: lua/core/engine/input.lua
+--[[!<
+    Input related engine functions. It's a clientside module.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Several input-related functions in the "input" module.
+    License:
+        See COPYING.txt.
 ]]
 
 if SERVER then return {} end
@@ -20,6 +15,7 @@ local frame = require("core.events.frame")
 
 local vec3 = require("core.lua.geom").Vec3
 
+--! Module: input
 return {
     --[[! Function: get_target_entity
         Returns the entity you're targeting.

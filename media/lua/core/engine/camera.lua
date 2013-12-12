@@ -1,17 +1,12 @@
---[[! File: lua/core/engine/camera.lua
+--[[!<
+    Camera related functions. All the force functions take effect for
+    one frame only.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Camera related functions. All the force functions take effect for
-        one frame only.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -23,66 +18,56 @@ local Vec3 = geom.Vec3
 
 local camera_get, camera_get_position in capi
 
+--! Module: camera
 return {
-    --[[! Function: get
-        Gets information about the camera. Returns its position (as a vec3)
-        followed by yaw, pitch and roll (as multiple return values).
+    --[[!
+        Gets information about the camera.
+
+        Returns:
+            The camera position (as a vec3) followed by yaw, pitch and roll
+            (as multiple return values).
     ]]
     get = function()
         local x, y, z, yaw, pitch, roll = camera_get()
         return Vec3(x, y, z), yaw, pitch, roll
     end,
 
-    --[[! Function: get_position
-        Returns the camera position (as a vec3).
-    ]]
+    --! Returns the camera position (as a vec3).
     get_position = function()
         return Vec3(camera_get_position())
     end,
 
-    --[[! Function: get_yaw
-        Returns the camera yaw.
-    ]]
+    --! Returns the camera yaw.
     get_yaw = capi.camera_get_yaw,
 
-    --[[! Function: get_pitch
-        Returns the camera pitch.
-    ]]
+    --! Returns the camera pitch.
     get_pitch = capi.camera_get_pitch,
 
-    --[[! Function: get_roll
-        Returns the camera roll.
-    ]]
+    --! Returns the camera roll.
     get_roll = capi.camear_get_roll,
 
-    --[[! Function: force
-        Forces the camera. Takes x, y, z, yaw, pitch, roll, fov in that order.
-        All must be supplied except fov, which is optional.
+    --[[!
+        Forces the camera.
+
+        Arguments:
+            - x, y, z - the position.
+            - yaw, pitch, roll - the resulting camera yaw, pitch and roll.
+            - fov - the camera fov, which is optional.
     ]]
     force = capi.camera_force,
 
-    --[[! Function: force_position
-        Forces the camera position. Takes x, y, z.
-    ]]
+    --! Forces the camera position. Takes x, y, z.
     force_position = capi.camera_force_position,
 
-    --[[! Function: force_yaw
-        Forces the camera yaw.
-    ]]
+    --! Forces the camera yaw.
     force_yaw = capi.camera_force_yaw,
 
-    --[[! Function: force_pitch
-        Forces the camera pitch.
-    ]]
+    --! Forces the camera pitch.
     force_pitch = capi.camera_force_pitch,
 
-    --[[! Function: force_roll
-        Forces the camera roll.
-    ]]
+    --! Forces the camera roll.
     force_roll = capi.camera_force_roll,
 
-    --[[! Function: force_fov
-        Forces the camera field of view.
-    ]]
+    --! Forces the camera field of view.
     force_fov = capi.camera_force_fov
 }

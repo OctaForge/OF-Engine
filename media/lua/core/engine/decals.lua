@@ -1,24 +1,20 @@
---[[! File: lua/core/engine/decals.lua
+--[[!<
+    Lua decal API. Works on the client.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Lua decal API. Works on the client.
+    License:
+        See COPYING.txt.
 ]]
 
 if SERVER then return {} end
 
 local capi = require("capi")
 
+--! Module: decals
 return {
-    --[[! Variable: flags
+    --[[!
         The flags available during decal renderer registration. Use bitwise
         OR to combine them. They include RND4 (picks one of four corners),
         ROTATE, INVMOD, OVERBRIGHT, GLOW, SATURATE.
@@ -33,14 +29,21 @@ return {
     :},
 
     --[[! Function: register_renderer
-        Given a name (you can select any you want), a decal texture path
-        and optionally flags (see above), fade in time, fade out time and
-        timeout time, this registers a new decal renderer and returns two
-        values - a decal renderer id (which you use when spawning decals)
-        and a boolean value that is false if a renderer of such name was
-        already registered (in such case it doesn't register anything,
-        it simply returns the id of the already registered renderer)
-        and true otherwise.
+        Registers a new decal renderer.
+
+        Arguments:
+            - name - the renderer name.
+            - tex - the decal texture name.
+            - flags - the optional decal renderer flags.
+
+        Returns:
+            The decal renderer id (an integer, use it for spawning decals)
+            and a boolean which is false if a renderer of such name is
+            already registered (in this case the id returned belongs to
+            the registered renderer).
+
+        See also:
+            - $flags
     ]]
     register_renderer = capi.decal_register_renderer,
 
@@ -50,12 +53,17 @@ return {
     ]]
     get_renderer = capi.decal_get_renderer,
 
-    --[[! Function: add
-        Creates a decal given its type (the integer returned by renderer
-        registration), center position (anything with x, y, z will do),
-        surface normal (again, a vec3), radius, color and optionally an
-        "info" parameter that decides the corner used (number from 0 to
-        3).
+    --[[!
+        Creates a decal.
+
+        Arguments:
+            - tp - the decal renderer id.
+            - op - the origin position (any value with x, y, z).
+            - sp - a surface normal vector (again, any value with x, y, z).
+            - rad - the decal radius (a float).
+            - r, g, b - the decal color (floats, typically from 0 to 1).
+            - info - optional, specifies the corner to use if it's rnd4
+              (0 to 3).
     ]]
     add = function(tp, op, sp, rad, r, g, b, inf)
         capi.decal_add(tp, op.x, op.y, op.z, sp.x, sp.y, sp.z, rad, r, g, b,

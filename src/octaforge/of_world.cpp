@@ -229,7 +229,7 @@ CLUAICOMMAND(edit_map_erase, void, (), {
 CLUAICOMMAND(edit_cube_set_texture, bool, (int x, int y, int z, int gs,
 int face, int tex), {
     logger::log(logger::DEBUG, "edit_cube_set_texture: %d, %d, %d (%d, %d, %d)",
-        x, y, z, gs, face, tex);    
+        x, y, z, gs, face, tex);
 
     if (face < -1 || face > 5) return false;
 

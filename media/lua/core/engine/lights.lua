@@ -1,25 +1,21 @@
---[[! File: lua/core/engine/lights.lua
+--[[!<
+    Lua light API. You typically need to run each of the functions every
+    frame to make it continuous (unless there are extended fade times
+    or something else).
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Lua light API. You typically need to run each of the functions every
-        frame to make it continuous (unless there are extended fade times
-        or something else).
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
 
+--! Module: lights
 return {
-    --[[! Variable: flags
-        Provides the available flags for <add> and <add_spot>. Includes
+    --[[!
+        Provides the available flags for $add and $add_spot. Includes
         SHRINK (shrinking light), EXPAND (expanding light) and FLASH
         (flashing light).
     ]]
@@ -29,28 +25,51 @@ return {
         FLASH  = 1 << 2
     :},
 
-    --[[! Function: add
-        Creates a light at the given position, with the given radius and
-        color. The other parameters are optional, namely the fadeout time
-        (in milliseconds), the peak time (in milliseconds), flags (see
-        above), initial radius and initial color (specified as r, g, b)
-        and owner (which is an entity and is used for tracking).
+    --[[!
+        Creates a light with the given parameters, for one frame unless
+        you specify the extended parameters.
 
-        Colors are specified as floats typically from 0 to 1 (but it can
-        go outside this range). Position can be any object indexable
-        with x, y and z. The function returns true.
+        Arguments:
+            - pos - the light position (any value with x, y, z).
+            - rad - the light radius.
+            - r, g, b - the light color (floats typically from 0 to 1,
+              can go outside this range).
+            - fade - optional fadeout time in milliseconds.
+            - peak - optional peak time (in milliseconds).
+            - flags - see $flags (optional).
+            - irad - optional initial light radius.
+            - ir, ig, ib - optional initial light color.
+            - own - optional light owner (a reference to an entity, used
+              for tracking on e.g. gun lights).
+
+        See also:
+            - $add_spot
     ]]
     add = function(pos, rad, r, g, b, fade, peak, flags, irad, ir, ig, ib, own)
         capi.dynlight_add(pos.x, pos.y, pos.z, rad, r, g, b, fade, peak,
             flags, irad, ir, ig, ib, own)
     end,
 
-    --[[! Function: add_spot
-        Creates a spotlight. It works similarly to above. You need to provide
-        the origin position, the direction (which should be normalized),
-        radius, spotlight angle (specifies the angle of the wedge, how "open"
-        it is), the color and further optional parameters that are identical
-        to <add>.
+    --[[!
+        Creates a spotlight that works similarly as above.
+
+        Arguments:
+            - pos - the light origin position (any value with x, y, z).
+            - dir - the light direction vector (any value with x, y, z).
+            - rad - the light radius.
+            - spot - the spotlight angle (angle of the wedge).
+            - r, g, b - the light color (floats typically from 0 to 1,
+              can go outside this range).
+            - fade - optional fadeout time in milliseconds.
+            - peak - optional peak time (in milliseconds).
+            - flags - see $flags (optional).
+            - irad - optional initial light radius.
+            - ir, ig, ib - optional initial light color.
+            - own - optional light owner (a reference to an entity, used
+              for tracking on e.g. gun lights).
+
+        See also:
+            - $add
     ]]
     add_spot = function(from, dir, rad, spot, r, g, b, fade, peak, flags, irad,
     ir, ig, ib, own)
