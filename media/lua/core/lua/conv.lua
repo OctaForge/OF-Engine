@@ -1,23 +1,17 @@
---[[! File: lua/core/lua/conv.lua
+--[[!<
+    Provides extra conversion functions.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Provides color conversion functions. The conversion algorithms
-        for rgb <=> hs{v,l} taken from http://mjijackson.com/2008/02/rgb-to-hs
-        -an -rgb-to-hsv-color-model-conversion-algorithms-in-javascript.
+    License:
+        See COPYING.txt.
 ]]
 
+--! Module: conv
 local M = {}
 
---[[! Function: hex_to_rgb
+--[[!
     Converts an integral value to be treated as hexadecimal color code to
     r, g, b values (ranging 0-255). Returns three separate values.
 ]]
@@ -25,14 +19,14 @@ M.hex_to_rgb = function(hex)
     return hex >> 16, (hex >> 8) & 0xFF, hex & 0xFF
 end
 
---[[! Function: rgb_to_hex
+--[[!
     Converts r, g, b color values (0-255) to a hexadecimal color code.
 ]]
 M.rgb_to_hex = function(r, g, b)
     return b | (g << 8) | (r << 16)
 end
 
---[[! Function: rgb_to_hsl
+--[[!
     Takes the r, g, b values (0-255) and returns the matching h, s, l
     values (0-1).
 ]]
@@ -58,7 +52,7 @@ M.rgb_to_hsl = function(r, g, b)
     return h, s, l
 end
 
---[[! Function: rgb_to_hsv
+--[[!
     Takes the r, g, b values (0-255) and returns the matching h, s, v
     values (0-1).
 ]]
@@ -84,7 +78,7 @@ M.rgb_to_hsv = function(r, g, b)
     return h, s, v
 end
 
---[[! Function: hsl_to_rgb
+--[[!
     Takes the h, s, l values (0-1) and returns the matching r, g, b
     values (0-255).
 ]]
@@ -116,7 +110,7 @@ M.hsl_to_rgb = function(h, s, l)
     return (r * 255), (g * 255), (b * 255)
 end
 
---[[! Function: hsv_to_rgb
+--[[!
     Takes the h, s, v values (0-1) and returns the matching r, g, b
     values (0-255).
 ]]

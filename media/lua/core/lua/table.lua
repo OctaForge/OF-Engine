@@ -1,20 +1,16 @@
---[[! File: lua/core/lua/table.lua
+--[[!<
+    Lua table extensions.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Lua table module extensions.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
 
+--! Module: table
 local M = {}
 
 local ctable = capi.table_create
@@ -26,8 +22,8 @@ local tconc = table.concat
 local pcall = pcall
 local floor, log = math.floor, math.log
 
---[[! Function: is_array
-    Checks whether a given table is an array (that is, contains only a
+--[[!
+    Checks whether the given table is an array (that is, contains only a
     consecutive sequence of values with indexes from 1 to #table). If
     there is any non-array element found, returns false. Otherwise
     returns true.
@@ -43,19 +39,20 @@ end
 
 local is_array = M.is_array
 
---[[! Function: map
-    Performs conversion on each item of the table. Takes the table and a
-    function taking one argument (which is the item value) and returning
-    some other value. The returned value will then replace the value
-    passed to the function. There are no modifications done on the
-    original table. Instead, remapped table is returned.
+--[[!
+    Implements the standard functional "map" higher order function. Returns
+    a new table, leaving the old one alone.
 
-    (start code)
-        -- table of numbers
-        foo = { bar = 5, baz = 10 }
-        -- table of strings
-        bar = map(foo, function(v) return tostring(v) end)
-    (end)
+    Arguments:
+        - t - the table.
+        - f - the function.
+
+    ```
+    -- table of numbers
+    foo = { bar = 5, baz = 10 }
+    -- table of strings
+    bar = map(foo, |v| tostring(v))
+    ```
 ]]
 M.map = function(t, f)
     local r = {}
@@ -63,7 +60,7 @@ M.map = function(t, f)
     return r
 end
 
---[[! Function: merge
+--[[!
     Merges two arrays. Contents of the other come after those of the first one.
 ]]
 M.merge = function(ta, tb)
@@ -74,7 +71,7 @@ M.merge = function(ta, tb)
     return r
 end
 
---[[! Function: merge_maps
+--[[!
     Merges two associative arrays (maps). When a key overlaps, the latter
     value is preferred.
 ]]
@@ -85,9 +82,8 @@ M.merge_maps = function(ta, tb)
     return r
 end
 
---[[! Function: copy
-    Returns a copy of the given table. Doesn't copy tables inside (only
-    primitives are copied, no reference types).
+--[[!
+    Returns a copy of the given table. It's a shallow copy.
 ]]
 M.copy = function(t)
     local r = ctable(#t)
@@ -95,24 +91,30 @@ M.copy = function(t)
     return r
 end
 
---[[! Function: filter
-    Filters an array. Takes the array and a function returning true if the
-    passed value should be a part of the returned array and false if it
-    shouldn't. The function takes two arguments, the index and the value.
-    This doesn't perform anything on the original table.
+--[[!
+    Implements the standard functional "filter" higher order function.
+    Returns a new table, leaving the old one alone. The given function
+    takes two arguments, the index and the value.
 
-    (start code)
-        -- a table to filter
-        foo = { 5, 10, 15, 20 }
-        -- the filtered table, contains just 5, 10, 20
-        bar = filter(foo, function(k, v)
-            if v == 15 then
-                return false
-            else
-                return true
-            end
-        end)
-    (end)
+    Arguments:
+        - t - the table.
+        - f - the function.
+
+    See also:
+        - $filter_map
+
+    ```
+    -- a table to filter
+    foo = { 5, 10, 15, 20 }
+    -- the filtered table, contains just 5, 10, 20
+    bar = filter(foo, function(k, v)
+        if v == 15 then
+            return false
+        else
+            return true
+        end
+    end)
+    ```
 ]]
 M.filter = function(t, f)
     local r = {}
@@ -120,23 +122,22 @@ M.filter = function(t, f)
     return r
 end
 
---[[! Function: filter_map
-    The same as the filter function above. The difference is that it works
-    on an associative array (map). That means it doesn't work with length,
-    but instead with key/value pairs.
+--[[!
+    See $filter. Works the same, but operates on a hash map (the result
+    is not guaranteed to be without holes).
 
-    (start code)
-        -- a table to filter
-        foo = { a = 5, b = 10, c = 15, d = 20 }
-        -- the filtered table, contains just key/value pairs a, b, d
-        bar = filter_map(foo, function(k, v)
-            if k == "c" then
-                return false
-            else
-                return true
-            end
-        end)
-    (end)
+    ```
+    -- a table to filter
+    foo = { a = 5, b = 10, c = 15, d = 20 }
+    -- the filtered table, contains just key/value pairs a, b, d
+    bar = filter_map(foo, function(k, v)
+        if k == "c" then
+            return false
+        else
+            return true
+        end
+    end)
+    ```
 ]]
 M.filter_map = function(t, f)
     local r = {}
@@ -144,26 +145,32 @@ M.filter_map = function(t, f)
     return r
 end
 
---[[! Function: find
-    Finds a key of a value in the given table. The first argument is the
-    table, the second argument is the value. Returns the key, or nil if
-    nothing is found.
+--[[!
+    Finds the key of an element in the given table.
+
+    Arguments:
+         - t - the table.
+         - v - the element (its value).
 ]]
 M.find = function(t, v)
     for a, b in pairs(t) do if v == b then return a end end
 end
 
---[[! Function: foldr
-    Performs a right fold on a table (array). The first argument
-    is the table, followed by the predicate and a default value.
-    If the default value is not provided, it defaults to the
-    first array element and folding is then performed from
-    indexes 2 to len.
+--[[!
+    Implements the standard functional right fold higher order function.
 
-    (start code)
+    Arguments:
+        - t - the table.
+        - fun - the function.
+        - z - the default value.
+
+    See also:
+        - $foldl
+
+    ```
         local a = { 5, 10, 15, 20 }
         assert(foldr(a, function(a, b) return a + b end) == 50)
-    (end)
+    ```
 ]]
 M.foldr = function(t, fun, z)
     local idx = 1
@@ -178,8 +185,11 @@ M.foldr = function(t, fun, z)
     return z
 end
 
---[[! Function: foldl
-    See above. Performs a left fold on a table.
+--[[!
+    Implements the standard functional left fold higher order function.
+
+    See also:
+        - $foldl
 ]]
 M.foldl = function(t, fun, z)
     local len = #t
@@ -288,7 +298,7 @@ local defkwp = {
     optimize_keys = true
 }
 
---[[! Function: serialize
+--[[!
     Serializes a given table, returning a string containing a literal
     representation of the table. It tries to be compact by default so it
     avoids whitespace and newlines. Arrays and associative arrays are
@@ -324,19 +334,18 @@ local defkwp = {
     is one space, narr_line is 4, nrec_line is 2, end_sep is false,
     optimize_keys is true).
 
-    A third argument, "stream" can be passed. As a table is serialized
-    by pieces, "stream" is called each time a new piece is saved. It's
-    useful for example for file I/O. When a custom stream is supplied,
-    the function doesn't return a string, instead it returns true
-    or false depending on whether it succeeded and the error message
-    if any.
-
-    And finally there is the fourth argument, "simplifier". It's a
-    function that takes a value and "simplifies" it (returns another
-    value it should be replaced by). By default nothing is simplified
-    of course.
-
     This function is externally available as "table_serialize".
+
+    Arguments:
+        - val - the value to serialize.
+        - kwargs - see above.
+        - stream - optionally a function that is called every time a new piece
+          is saved - when a custom stream is supplied, the function doesn't
+          return a string, but it returns true or false depending on whether
+          it succeeded and a potential error message.
+        - simplifier - optionally a function that takes a value and simplifies
+          it (returns another value the original should be replaced with),
+          by default there is no simplifier.
 ]]
 local serialize = function(val, kwargs, stream, simplifier)
     if kwargs == true then
@@ -523,9 +532,9 @@ local function parse(ls)
     end
 end
 
---[[! Function: deserialize
+--[[!
     Takes a previously serialized table and converts it back to the original.
-    Uses a simple tokenizer and a recursive descent parser to build the result,
+    Uses a simple tokenizer and a recursive descent parser to build the result
     so it's safe (doesn't evaluate anything). The input can also be a callable
     value that return the next character each call.
     External as "table_deserialize". This returns the deserialized value on
@@ -615,13 +624,18 @@ end
 
 local defaultcmp = function(a, b) return a < b end
 
---[[! Function: sort
+--[[!
     A substitute for the original table.sort. Normally it behaves exactly
     like table.sort (takes a table, optionally a comparison function and
     sorts the table in-place), but it also takes two other arguments
     specifying from where to where to sort the table (the starting
     and ending indexes, both are inclusive). Under LuaJIT it's also
     considerably faster than vanilla table.sort (about 3x).
+
+    Thanks to custom indexes and independence on type assumptions this
+    can sort not only Lua arrays in a raw form, but also any kind of
+    "virtual" array (for example a state array surrogate) or a FFI
+    array.
 
     The sorting algorithm used here is introsort. It's a modification
     of quicksort that switches to heapsort when the recursion depth
@@ -638,7 +652,17 @@ end
 -- Object system -
 ------------------
 
+--[[!
+    Provides the basis for any object in OF. It implements a simple prototypal
+    OO system.
+]]
 M.Object = {
+    --[[!
+        When you call an object, it's identical to $clone, but it also
+        tries to call a __ctor field of the current object on the result,
+        passing in any extra arguments (besides the new object as the first
+        argument).
+    ]]
     __call = function(self, ...)
         local r = {
             __index = self, __proto = self, __call = self.__call,
@@ -649,6 +673,18 @@ M.Object = {
         return r
     end,
 
+    --[[!
+        "Clones" an object. It's not an actual clone as it's delegative
+        (doesn't copy, only hooks a metatable). Thanks to its delegative
+        nature changes in parents also reflect in children.
+
+        Arguments:
+            tbl - optionally a table to serve as a basis for the new clone
+            (this will modify the table and hook its metatable properly).
+
+        Returns:
+            The new clone.
+    ]]
     clone = function(self, tbl)
         tbl = tbl or {}
         tbl.__index, tbl.__proto, tbl.__call = self, self, self.__call
@@ -657,6 +693,11 @@ M.Object = {
         return tbl
     end,
 
+    --[[!
+        Checks whether the current object is a either equal to the given
+        object, is a child of the given object, or a child of a child
+        of the given object, or anything down the tree.
+    ]]
     is_a = function(self, base)
         if self == base then return true end
         local pt = self.__proto
@@ -668,6 +709,10 @@ M.Object = {
         return is
     end,
 
+    --[[!
+        The default tostring result is in format "Object: NAME" where NAME
+        is self.name.
+    ]]
     __tostring = function(self)
         return ("Object: %s"):format(self.name or "unnamed")
     end

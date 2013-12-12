@@ -1,39 +1,34 @@
---[[! File: lua/core/lua/string.lua
+--[[!<
+    Lua string extensions. Contains all the functionality of the original
+    string module as well and makes the default __index of the global string
+    metatable point to this module so you can use the new functionality more
+    conveniently.
 
-    About: Author
+    It does not contain string.dump. It contains byte, char, find, format,
+    gmatch, gsub, len, lower, match, rep, reverse, sub, upper.
+
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Lua string extensions. Provided as a separate module. This module
-        also contains all the functionality of the original string module
-        and it makes the default __index of the global string metatable
-        point to this module so that you can use the functionality
-        more conveniently.
-
-        It does not contain string.dump which can be potentially dangerous.
-        The functions that are imported from the string module are byte,
-        char, find, format, gmatch, gsub, len, lower, match, rep, reverse,
-        sub and upper.
+    License:
+        See COPYING.txt.
 ]]
 
+--! Module: string
 local M = {}
 
---[[! Function: split
-    Splits a string into a table of tokens, based on
-    <http://lua-users.org/wiki/SplitJoin>. Takes a
-    string and a delimiter.
+--[[!
+    Splits a string using the given parameters.
 
-    (start code)
-        local a = "abc|def|ghi|jkl"
-        local b = split(a, '|')
-        assert(table.concat(b) == "abcdefghijkl")
-    (end)
+    Arguments:
+        - str - the given string.
+        - delim - the delimiter to use (defaults to ",")
+
+    ```
+    local a = "abc|def|ghi|jkl"
+    local b = split(a, '|')
+    assert(table.concat(b) == "abcdefghijkl")
+    ```
 ]]
 M.split = function(str, delim)
     delim = delim or ","
@@ -44,18 +39,25 @@ M.split = function(str, delim)
     return r
 end
 
---[[! Function: del
-    Deletes a substring in a string. The start argument specifies which
-    first index to delete, count specifies the amount of characters to
-    delete afterwards (the first one inclusive).
+--[[!
+    Deletes a substring in a string. Returns the new string.
+
+    Arguments:
+        - str - the given string.
+        - start - the starting index to delete.
+        - count - the number of characters to delete.
 ]]
 M.del = function(str, start, count)
     return table.concat { str:sub(1, start - 1), str:sub(start + count) }
 end
 
---[[! Function: insert
-    Inserts a string "new" into a string so that it starts on index "idx".
-    The rest of the string is placed after it. Returns the modified string.
+--[[!
+    Inserts a substring into the string. Returns the new string.
+
+    Arguments:
+        - str - the given string.
+        - idx - the index where to start the inserted substring.
+        - new - the string to insert.
 ]]
 M.insert = function(str, idx, new)
     return table.concat { str:sub(1, idx - 1), new, str:sub(idx) }
@@ -71,7 +73,7 @@ local str_escapes = setmetatable({
     __index = function(self, c) return ("\\%03d"):format(c:byte()) end
 })
 
---[[! Function: escape
+--[[!
     Escapes a string. Works similarly to the Lua %q format but it tries
     to be more compact (e.g. uses \r instead of \13), doesn't insert newlines
     in the result (\n instead) and automatically decides if to delimit the

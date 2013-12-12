@@ -1,18 +1,14 @@
---[[! File: lua/core/lua/env.lua
+--[[!<
+    Provides environment management for sandboxed scripts.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Provides additional utilities for environment management.
+    License:
+        See COPYING.txt.
 ]]
 
+--! Module: env
 local M = {}
 
 local env_package = {
@@ -164,7 +160,7 @@ local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
     return setmetatable(env, getmetatable(_G))
 end
 
---[[! Function: gen_mapscript_env
+--[[!
     Generates an environment for the mapscript. It's isolated from the outside
     world to some degree, providing some safety against potentially malicious
     code. Externally available as "mapscript_gen_env".

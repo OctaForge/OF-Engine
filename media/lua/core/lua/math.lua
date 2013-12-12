@@ -1,16 +1,11 @@
---[[! File: lua/core/lua/math.lua
+--[[!<
+    Lua math extensions.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Lua math extensions.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -24,9 +19,10 @@ local sin, cos, rad, deg = math.sin, math.cos, math.rad, math.deg
 
 local Vec3
 
+--! Module: math
 local M = {}
 
---[[! Function: round
+--[[!
     Rounds a given number and returns it. The second argument can be used to
     specify the number of places past the floating point, defaulting to 0
     (rounding to integers).
@@ -36,7 +32,7 @@ M.round = function(v, d)
     return floor(v * m + 0.5) / m
 end
 
---[[! Function: clamp
+--[[!
     Clamps a number value given by the first argument between third and
     second argument. Globally available.
 ]]
@@ -44,15 +40,15 @@ M.clamp = function(val, low, high)
     return max(low, min(val, high))
 end
 
---[[! Function: lerp
-    Performs a linear interpolation between the two
-    numerical values, given a weight.
+--[[!
+    Performs a linear interpolation between the two numerical values,
+    given a weight.
 ]]
 M.lerp = function(first, other, weight)
     return first + weight * (other - first)
 end
 
---[[! Function: magnet
+--[[!
     If the distance between the two numerical values is in given radius,
     the second value is returned, otherwise the first is returned.
 ]]
@@ -60,7 +56,7 @@ M.magnet = function(value, other, radius)
     return (abs(value - other) <= radius) and other or value
 end
 
---[[! Function: distance
+--[[!
     Returns a distance between two <Vec3>.
 ]]
 local distance = function(a, b)
@@ -68,7 +64,7 @@ local distance = function(a, b)
 end
 M.distance = distance
 
---[[! Function: normalize_angle
+--[[!
     Normalizes an angle to be within +-180 degrees of some value.
     Useful to know if we need to turn left or right in order to be
     closer to something (we just need to check the sign, after normalizing
@@ -84,12 +80,15 @@ local normalize_angle = function(angle, rel_to)
 end
 M.normalize_angle = normalize_angle
 
---[[! Function: floor_distance
-    By default returns the distance to the floor below some given
-    position, with maximal distance equal to max_dist. If radius
-    is given, it finds the distance to the highest floor in given
-    radius. If the fourth optional argument is true, it finds the
-    lowest floor instead of highest floor.
+--[[!
+    Returns the distance to the floor below some given position.
+
+    Arguments:
+        - pos - the given position.
+        - max_dist - the maximum distance.
+        - radius - optionally the radius to search within.
+        - lowest - if true, finds the lowest floor instead of highest
+          floor, optional.
 ]]
 M.floor_distance = function(pos, max_dist, radius, lowest)
     local rt = capi.ray_floor(pos.x, pos.y, pos.z, max_dist)
@@ -110,7 +109,7 @@ M.floor_distance = function(pos, max_dist, radius, lowest)
     return rt
 end
 
---[[! Function: is_los
+--[[!
     Returns true is the line between two given positions is clear
     (if there are no obstructions). Returns false otherwise.
 ]]
@@ -118,7 +117,7 @@ M.is_los = function(o, d)
     return capi.ray_los(o.x, o.y, o.z, d.x, d.y, d.z)
 end
 
---[[! Function: yaw_to
+--[[!
     Calculates the yaw from an origin to a target. Done on 2D data only.
     If the last "reverse" argument is given as true, it calculates away
     from the target. Returns the yaw.
@@ -129,7 +128,7 @@ local function yaw_to(origin, target, reverse)
 end
 M.yaw_to = yaw_to
 
---[[! Function: pitch_to
+--[[!
     Calculates the pitch from an origin to a target. Done on 2D data only.
     If the last "reverse" argument is given as true, it calculates away
     from the target. Returns the pitch.
@@ -140,7 +139,7 @@ local function pitch_to(origin, target, reverse)
 end
 M.pitch_to = pitch_to
 
---[[! Function: compare_yaw
+--[[!
     Checks if the yaw between two points is within acceptable error range.
     Useful to see whether a character is facing closely enough to the target,
     for example. Returns true if it is within the range, false otherwise.
@@ -150,7 +149,7 @@ M.compare_yaw = function(origin, target, yaw, acceptable)
         <= acceptable
 end
 
---[[! Function: compare_pitch
+--[[!
     Checks if the pitch between two points is within acceptable error range.
     Useful to see whether a character is facing closely enough to the target,
     for example. Returns true if it is within the range, false otherwise.

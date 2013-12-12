@@ -1,17 +1,12 @@
---[[! File: lua/core/lua/geom.lua
+--[[!<
+    Vector math, matrix math and geometry utilities. Roughly equivalent
+    to geom.h in the core engine plus extensions.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Vector math, matrix math and geometry utilities. Roughly equivalent
-        to geom.h in the core engine plus extensions.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
