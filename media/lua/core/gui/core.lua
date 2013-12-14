@@ -1,20 +1,14 @@
---[[! File: lua/core/gui/core.lua
+--[[!<
+    A basic widget set. This module in particular implements the core of the
+    whole system. All modules are documented, but not all methods in each
+    widget are documented - only those of a significant meaning to the user
+    are (as the other ones have no use for the user). It also manages the HUD.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        A basic widget set. This module in particular implements the core
-        of the whole system. All modules are documented, but not all methods
-        in each widgets are documented - only those of a significant meaning
-        to the user are (as the other ones have no use for the user).
-        It also manages the HUD.
+    License:
+        See COPYING.txt.
 ]]
 
 local ffi = require("ffi")
@@ -49,27 +43,28 @@ local pairs, ipairs = pairs, ipairs
 local tremove = table.remove
 local tinsert = table.insert
 
+--! Module: core
 local M = {}
 
 local consts = require("core.gui.constants")
 
---[[! Variable: gl
+--[[! Enum: gl
     Forwarded from the "constants" module.
 ]]
-local gl = consts.gl
-M.gl = gl
+M.gl = consts.gl
+local gl = M.gl
 
---[[! Variable: key
+--[[! Enum: key
     Forwarded from the "constants" module.
 ]]
-local key = consts.key
-M.key = key
+M.key = consts.key
+local key = M.key
 
---[[! Variable: mod
+--[[! Enum: mod
     Forwarded from the "constants" module.
 ]]
-local mod = consts.mod
-M.mod = mod
+M.mod = consts.mod
+local mod = M.mod
 
 -- initialized after World is created
 local world, projection, clicked, hovering, focused
@@ -79,15 +74,19 @@ local clicked_code
 local menu_init, tooltip_init, tooltip
 local menustack = {}
 
---[[! Function: is_clicked
-    Given a widget, this function returns true if that widget is clicked
-    and false otherwise. Allows you to provide a button code as an optional
-    second argument to specify which mouse button should've been clicked
-    (if none specified, it assumes any button). If you don't provide the
-    code, the return value when clicked is not true, it's the code of
-    the button that was clicked.
+--[[!
+    Checks whether a widget is clicked.
+
+    Arguments:
+        - o - the widget.
+        - btn - optionally a mouse button code to specify which button should
+          have been clicked (if none specified, any button is assumed).
+
+    Returns:
+        If the button was provided, then it returns either true or false,
+        otherwise it returns either the clicked button code or nil.
 ]]
-local is_clicked = function(o, btn)
+M.is_clicked = function(o, btn)
     if btn then
         return (o == clicked) and (btn == clicked_code)
     elseif o == clicked then
@@ -96,44 +95,42 @@ local is_clicked = function(o, btn)
         return false
     end
 end
-M.is_clicked = is_clicked
+local is_clicked = M.is_clicked
 
---[[! Function: is_hovering
+--[[!
     Given a widget, this function returns true if that widget is being
     hovered on and false otherwise.
 ]]
-local is_hovering = function(o) return (o == hovering) end
-M.is_hovering = is_hovering
+M.is_hovering = function(o) return (o == hovering) end
+local is_hovering = M.is_hovering
 
---[[! Function: is_focused
+--[[!
     Given a widget, this function returns true if that widget is focused
     and false otherwise.
 ]]
-local is_focused = function(o) return (o == focused) end
-M.is_focused = is_focused
+M.is_focused = function(o) return (o == focused) end
+local is_focused = M.is_focused
 
---[[! Function: get_menu
+--[[!
     Assuming the given widget has a menu, this returns the menu.
 ]]
-local get_menu = function(o) return o._menu end
-M.get_menu = get_menu
+M.get_menu = function(o) return o._menu end
+local get_menu = M.get_menu
 
---[[! Function: set_focus
-    Gives the given GUI widget focus.
-]]
-local set_focus = function(o) focused = o end
-M.set_focus = set_focus
+--! Gives the given GUI widget focus.
+M.set_focus = function(o) focused = o end
+local set_focus = M.set_focus
 
---[[! Function: clear_focus
+--[[!
     Given a widget, this function clears all focus from it (that is,
     clicked, hovering, focused).
 ]]
-local clear_focus = function(o)
+M.clear_focus = function(o)
     if o == clicked  then clicked  = nil end
     if o == hovering then hovering = nil end
     if o == focused  then focused  = nil end
 end
-M.clear_focus = clear_focus
+local clear_focus = M.clear_focus
 
 local adjust = {:
     ALIGN_HMASK = 0x3,
@@ -169,15 +166,16 @@ local wtypes_by_type = {}
 
 local lastwtype = 0
 
---[[! Function: register_class
-    Registers a widget class. Takes the widget class name, its base (if
-    not given, Widget), its body (empty if not given, otherwise regular
-    object body like with clone operation) and optionally a forced type
-    (by default assigns the widget a new type available under the "type"
-    field, using this you can override it and make it set a specific
-    value). Returns the widget class.
+--[[!
+    Registers a widget class.
+
+    Arguments:
+        - name - the widget class name.
+        - base - the widget class base widget class (defaults to $Widget).
+        - obj - the body with custom contents.
+        - ftype - the "type" field, by default it just assigns is a new type.
 ]]
-local register_class = function(name, base, obj, ftype)
+M.register_class = function(name, base, obj, ftype)
     if not ftype then
         lastwtype = lastwtype + 1
         ftype = lastwtype
@@ -191,28 +189,30 @@ local register_class = function(name, base, obj, ftype)
     wtypes_by_type[ftype] = obj
     return obj
 end
-M.register_class = register_class
+local register_class = M.register_class
 
---[[! Function: get_class
+--[[!
     Given either a name or type, this function returns the widget class
     with that name or type.
 ]]
-local get_class = function(n)
+M.get_class = function(n)
     if type(n) == "string" then
         return wtypes_by_name[n]
     else
         return wtypes_by_type[n]
     end
 end
-M.get_class = get_class
+local get_class = M.get_class
 
---[[! Function: loop_children
+--[[!
     Loops widget children, executing the function given in the second
     argument with the child passed to it. If the widget has states,
     it first acts on the current state and then on the actual children
     from 1 to N. If the selected state is not available, it tries "default".
+
+    See also $loop_children_r.
 ]]
-local loop_children = function(self, fun)
+M.loop_children = function(self, fun)
     local ch = self.children
     local vr = self.vstates
     local st = self.states
@@ -237,16 +237,18 @@ local loop_children = function(self, fun)
         if    a != nil then return a, b end
     end
 end
-M.loop_children = loop_children
+local loop_children = M.loop_children
 
---[[! Function: loop_children_r
+--[[!
     Loops widget children in reverse order, executing the function
     given in the second argument with the child passed to it. First
     goes over all children in reverse order and then if the widget
     has states, it acts on the current state. If the selected state
     is not available, it tries "default".
+
+    See also $loop_children.
 ]]
-local loop_children_r = function(self, fun)
+M.loop_children_r = function(self, fun)
     local ch = self.children
     local vr = self.vstates
     local st = self.states
@@ -271,17 +273,34 @@ local loop_children_r = function(self, fun)
         end
     end
 end
-M.loop_children_r = loop_children_r
+local loop_children_r = M.loop_children_r
 
 local get_projection
 
---[[! Function: loop_in_children
-    Similar to above, but takes 4 arguments. The first argument is a widget,
-    the other two arguments are x and y position and the last argument
-    is the function. The function is executed only for those children
-    that cover the given x, y coords.
+--[[!
+    Similar to $loop_children, takes some extra assumptions - executes only
+    for those children that cover the given coordinates. The function is
+    executed, passing the computed coordinates alongside the object to
+    the function. The computed coordinates represent position of a cursor
+    within the object - "cx - o.x" and "cy - o.y" respectively (the ox, oy
+    coords of 0, 0 represent the top-left corner).
+
+    Arguments:
+        - o - the widget.
+        - cx, cy - the cursor x and y position.
+        - fun - the function to execute.
+        - ins - when not given, assumed true; when false, it executes the
+          function for every child, even if the cursor is not inside the
+          child.
+        - useproj - false by default, when true, it tries to get the
+          projection of every child and then multiplies cx, cy with
+          projection values - useful when treating windows (we need
+          proper scaling on these and thus also proper input).
+
+    See also:
+        - $loop_in_children_r
 ]]
-local loop_in_children = function(self, cx, cy, fun, ins, useproj)
+M.loop_in_children = function(self, cx, cy, fun, ins, useproj)
     return loop_children(self, function(o)
         local ox, oy
         if useproj then
@@ -296,12 +315,13 @@ local loop_in_children = function(self, cx, cy, fun, ins, useproj)
         end
     end)
 end
-M.loop_in_children = loop_in_children
+local loop_in_children = M.loop_in_children
 
---[[! Function: loop_in_children
-    See above. Reverse order.
+--[[!
+    See $loop_in_children and $loop_children_r. This is equal to above,
+    just using $loop_children_r instead.
 ]]
-local loop_in_children_r = function(self, cx, cy, fun, ins, useproj)
+M.loop_in_children_r = function(self, cx, cy, fun, ins, useproj)
     return loop_children_r(self, function(o)
         local ox, oy
         if useproj then
@@ -316,38 +336,36 @@ local loop_in_children_r = function(self, cx, cy, fun, ins, useproj)
         end
     end)
 end
-M.loop_in_children_r = loop_in_children_r
+local loop_in_children_r = M.loop_in_children_r
 
 local clip_stack = {}
 
---[[! Function: clip_area_intersect
+--[[!
     Intersects the given clip area with another one. Writes into the
     first one.
 ]]
-local clip_area_intersect = function(self, c)
+M.clip_area_intersect = function(self, c)
     self[1] = max(self[1], c[1])
     self[2] = max(self[2], c[2])
     self[3] = max(self[1], min(self[3], c[3]))
     self[4] = max(self[2], min(self[4], c[4]))
 end
-M.clip_area_intersect = clip_area_intersect
+local clip_area_intersect = M.clip_area_intersect
 
---[[! Function: clip_area_is_fully_clipped
+--[[!
     Given a clip area and x, y, w, h, checks if the area specified by
     the coordinates is fully clipped by the clip area.
 ]]
-local clip_area_is_fully_clipped = function(self, x, y, w, h)
+M.clip_area_is_fully_clipped = function(self, x, y, w, h)
     return self[1] == self[3] or self[2] == self[4] or x >= self[3] or
            y >= self[4] or (x + w) <= self[1] or (y + h) <= self[2]
 end
-M.clip_area_is_fully_clipped = clip_area_is_fully_clipped
+local clip_area_is_fully_clipped = M.clip_area_is_fully_clipped
 
 local clip_area_scissor
 
---[[! Function: clip_push
-    Pushes a clip area into the clip stack and scissors.
-]]
-local clip_push = function(x, y, w, h)
+--! Pushes a clip area into the clip stack and scissors.
+M.clip_push = function(x, y, w, h)
     local l = #clip_stack
     if    l == 0 then gl_scissor_enable() end
 
@@ -359,13 +377,13 @@ local clip_push = function(x, y, w, h)
     if l >= 2 then clip_area_intersect(c, clip_stack[l - 1]) end
     clip_area_scissor(c)
 end
-M.clip_push = clip_push
+local clip_push = M.clip_push
 
---[[! Function: clip_pop
+--[[!
     Pops a clip area out of the clip stack and scissors (assuming there
     is anything left on the clip stack).
 ]]
-local clip_pop = function()
+M.clip_pop = function()
     tremove(clip_stack)
 
     local l = #clip_stack
@@ -373,56 +391,56 @@ local clip_pop = function()
     else clip_area_scissor(clip_stack[l])
     end
 end
-M.clip_pop = clip_pop
+local clip_pop = M.clip_pop
 
---[[! Function: is_fully_clipped
-    See <clip_area_is_fully_clipped>. Works on the last clip area on the
+--[[!
+    See $clip_area_is_fully_clipped. Works on the last clip area on the
     clip stack.
 ]]
-local is_fully_clipped = function(x, y, w, h)
+M.is_fully_clipped = function(x, y, w, h)
     local l = #clip_stack
     if    l == 0 then return false end
     return clip_area_is_fully_clipped(clip_stack[l], x, y, w, h)
 end
-M.is_fully_clipped = is_fully_clipped
+local is_fully_clipped = M.is_fully_clipped
 
---[[! Function: clip_area_scissor
+--[[!
     Scissors an area given a clip area. If nothing is given, the area
     last in the clip stack is used.
 ]]
-clip_area_scissor = function(self)
+M.clip_area_scissor = function(self)
     self = self or clip_stack[#clip_stack]
     local sx1, sy1, sx2, sy2 =
         projection:calc_scissor(self[1], self[2], self[3], self[4])
     gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
 end
-M.clip_area_scissor = clip_area_scissor
+clip_area_scissor = M.clip_area_scissor
 
---[[! Function: draw_quad
+--[[!
     An utility function for drawing quads, takes x, y, w, h and optionally
     tx, ty, tw, th (defaulting to 0, 0, 1, 1).
 ]]
-local quad = function(x, y, w, h, tx, ty, tw, th)
+M.draw_quad = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
     gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
     gle_attrib2f(x + w, y)     gle_attrib2f(tx + tw, ty)
     gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
     gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
 end
-M.draw_quad = quad
+local quad = M.draw_quad
 
---[[! Function: draw_quadtri
+--[[!
     An utility function for drawing quads, takes x, y, w, h and optionally
     tx, ty, tw, th (defaulting to 0, 0, 1, 1). Used with triangle strip.
 ]]
-local quadtri = function(x, y, w, h, tx, ty, tw, th)
+M.draw_quadtri = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
     gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
     gle_attrib2f(x + w, y)     gle_attrib2f(tx + tw, ty)
     gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
     gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
 end
-M.draw_quadtri = quadtri
+local quadtri = M.draw_quadtri
 
 local gen_setter = function(name)
     local sname = name .. "_changed"
@@ -433,13 +451,11 @@ local gen_setter = function(name)
 end
 M.gen_setter = gen_setter
 
---[[! Variable: orient
-    Defines the possible orientations on widgets - HORIZONTAL and VERTICAL.
-]]
-local orient = {
+--! Defines the possible orientations on widgets - HORIZONTAL and VERTICAL.
+M.orient = {:
     HORIZONTAL = 0, VERTICAL = 1
-}
-M.orient = orient
+:}
+local orient = M.orient
 
 local Projection = table2.Object:clone {
     __ctor = function(self, obj)
@@ -543,12 +559,12 @@ local color_defctor = function(self, r, g, b, a)
     return ffi_new(self, r or 0xFF, g or 0xFF, b or 0xFF, a or 0xFF)
 end
 
---[[! Struct: Color
+--[[!
     A color structure used for color attributes in all widgets that support
     them. Has fields r, g, b, a ranging from 0 to 255.
 ]]
 M.Color = ffi.metatype("color_t", {
-    --[[! Constructor: new
+    --[[!
         Depending on the number of arguments, this initializes the color.
 
         With zero argments, everything is initialized to 0xFF (255). With
@@ -573,47 +589,37 @@ M.Color = ffi.metatype("color_t", {
     end,
 
     __index = {
-        --[[! Function: init
-            Sets the color (like glColor4f).
-        ]]
+        --! Sets the color (like glColor4f).
         init = function(self)
-            --print(self.r, self.g, self.b, self.a)
             gle_color4ub(self.r, self.g, self.b, self.a)
         end,
 
-        --[[! Function: attrib
-            Like above, but used as an attribute.
-        ]]
+        --! Like above, but used as an attribute.
         attrib = function(self)
             gle_attrib4ub(self.r, self.g, self.b, self.a)
         end,
 
-        --[[! Function: def
-            Defines the color attribute as 4 unsigned bytes.
-        ]]
+        --! Defines the color attribute as 4 unsigned bytes.
         def = function() gle_defcolorub(4) end,
 
-        --[[! Function: set_r ]]
+        --! Function: set_r
         set_r = gen_setter "r",
-        --[[! Function: set_g ]]
+        --! Function: set_g
         set_g = gen_setter "g",
-        --[[! Function: set_b ]]
+        --! Function: set_b
         set_b = gen_setter "b",
-        --[[! Function: set_a ]]
+        --! Function: set_a
         set_a = gen_setter "a"
     }
 })
 
 local Widget, Window
 
---[[! Struct: Widget
+--[[!
     The basic widget class every other derives from. Provides everything
     needed for a working widget class, but doesn't do anything by itself.
 
-    Basic properties are x, y, w, h, adjust (clamping and alignment),
-    children (an array of widgets), floating (whether the widget is freely
-    movable), parent (the parent widget), variant, variants, states and
-    container (a widget).
+    The widget has several basic properties described below.
 
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
@@ -678,9 +684,19 @@ local Widget, Window
 
     Each widget class also contains an "__instances" table storing a set
     of all instances of the widget class.
+
+    Properties:
+        - x, y, w, h - the widget dimensions.
+        - adjust - the widget clamping and alignment as a set of bit flags.
+        - children - an array of widget children.
+        - floating - false by default, when true the widget is freely movable.
+        - parent - the parent widget.
+        - variant - the current widget variant.
+        - variants, states - See above.
+        - container - see above.
 ]]
-Widget = register_class("Widget", table2.Object, {
-    --[[! Constructor: __ctor
+M.Widget = register_class("Widget", table2.Object, {
+    --[[!
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting
         widget.
@@ -790,7 +806,7 @@ Widget = register_class("Widget", table2.Object, {
         end
     end,
 
-    --[[! Function: clear
+    --[[!
         Clears a widget including its children recursively. Calls the
         "destroy" signal. Removes itself from its widget class' instances
         set. Does nothing if already cleared.
@@ -818,7 +834,7 @@ Widget = register_class("Widget", table2.Object, {
         self._cleared = true
     end,
 
-    --[[! Function: deep_clone
+    --[[!
         Creates a deep clone of the widget, that is, where each child
         is again a clone of the original child, down the tree. Useful
         for default widget class states, where we need to clone
@@ -838,7 +854,7 @@ Widget = register_class("Widget", table2.Object, {
         return cl
     end,
 
-    --[[! Function: set_variant
+    --[[!
         Sets the variant this widget instance uses. If not provided, "default"
         is set implicitly.
     ]]
@@ -887,15 +903,21 @@ Widget = register_class("Widget", table2.Object, {
         if cont and cont._cleared then self.container = nil end
     end,
 
-    --[[! Function: update_class_state
-        Call on the widget class. Takes the state name and the state
-        widget and optionally variant (defaults to "default") and updates it
-        on the class and on every instance of the class. Destroys the old state
-        of that name (if any) on the class and on every instance. If the
-        instance already uses a different state (custom), it's left alone.
+    --[[!
+        Call on the widget class. Updates the state widget on the widget class
+        and every instance of it. Destroys the old state of that name (if any)
+        on the class and on every instance. If the instance already uses a
+        different state (custom), it's left alone.
 
         Using this you can update the look of all widgets of certain type
         with ease.
+
+        See also $state_changed.
+
+        Arguments:
+            - sname - the state name.
+            - sval - the state widget.
+            - variant - optional (defaults to "default").
     ]]
     update_class_state = function(self, sname, sval, variant)
         variant = variant or "default"
@@ -934,9 +956,9 @@ Widget = register_class("Widget", table2.Object, {
         end end
     end,
 
-    --[[! Function: update_class_states
+    --[[!
         Given an associative array of states (and optionally variant), it
-        calls <update_class_state> for each.
+        calls $update_class_state for each.
     ]]
     update_class_states = function(self, states, variant)
         for k, v in pairs(states) do
@@ -944,12 +966,14 @@ Widget = register_class("Widget", table2.Object, {
         end
     end,
 
-    --[[! Function: update_state
+    --[[!
         Given the state name an a widget, this sets the state of that name
-        for the individual widget (unlike <update_class_state>). That is
+        for the individual widget (unlike $update_class_state). That is
         useful when you need widgets with custom appearance but you don't
         want all widgets to have it. This function destroys the old state
         if any.
+
+        See also $state_changed.
     ]]
     update_state = function(self, state, obj)
         local states = self.states
@@ -963,32 +987,29 @@ Widget = register_class("Widget", table2.Object, {
         return obj
     end,
 
-    --[[! Function: update_states
-        Given an associative array of states, it calls <update_state>
-        for each.
-    ]]
+    --! Given an associative array of states, it calls $update_state for each.
     update_states = function(self, states)
         for k, v in pairs(states) do
             self:update_state(k, v)
         end
     end,
 
-    --[[! Function: state_changed
+    --[[!
         Called with the state name and the state widget everytime
-        <update_state> or <update_class_state> updates a widget's state.
+        $update_state or $update_class_state updates a widget's state.
         Useful for widget class and instance specific things such as updating
         labels on buttons. By default does nothing.
     ]]
     state_changed = function(self, sname, obj)
     end,
 
-    --[[! Function: choose_state
+    --[[!
         Returns the state that should be currently used. By default
         returns nil.
     ]]
     choose_state = function(self) return nil end,
 
-    --[[! Function: layout
+    --[[!
         Takes care of widget positioning and sizing. By default calls
         recursively.
     ]]
@@ -1004,20 +1025,20 @@ Widget = register_class("Widget", table2.Object, {
         end)
     end,
 
-    --[[! Function: adjust_children
+    --[[!
         Adjusts layout of children widgets. Takes additional optional
         parameters px (0), py (0), pw (self.w), ph (self.h). Basically
-        calls <adjust_layout> on each child with those parameters.
+        calls $adjust_layout on each child with those parameters.
     ]]
     adjust_children = function(self, px, py, pw, ph)
         px, py, pw, ph = px or 0, py or 0, pw or self.w, ph or self.h
         loop_children(self, function(o) o:adjust_layout(px, py, pw, ph) end)
     end,
 
-    --[[! Function: adjust_layout
+    --[[!
         Layout adjustment hook for self. Adjusts x, y, w, h of the widget
         according to its alignment and clamping. When everything is done,
-        calls <adjust_children> with no parameters.
+        calls $adjust_children with no parameters.
     ]]
     adjust_layout = function(self, px, py, pw, ph)
         local x, y, w, h, a = self.x, self.y,
@@ -1059,7 +1080,7 @@ Widget = register_class("Widget", table2.Object, {
         self:adjust_children()
     end,
 
-    --[[! Function: target
+    --[[!
         Given the cursor coordinates, this function should return the
         targeted widget. Returns nil if there is nothing or nothing
         targetable. By default this just loops the children in reverse
@@ -1073,13 +1094,20 @@ Widget = register_class("Widget", table2.Object, {
         end)
     end,
 
-    --[[! Function: key
-        Called on keypress. Takes the keycode (see <key>) and a boolean
-        value that is true when the key is down and false when it's up.
-        By default it doesn't define any behavior so it just loops children
-        in reverse order and returns true if any key calls on the children
-        return true or false if they don't. It also handles tab-cycling
-        behavior when the tab_next field is defined.
+    --[[!
+        Called on keypress.  By default it doesn't define any behavior so it
+        just loops children in reverse order and returns true if any key calls
+        on the children return true or false if they don't. It also handles
+        tab-cycling behavior when the tab_next field is defined.
+
+        Arguments:
+            - code - the keycode pressed.
+            - isdown - true if it was pressed, false if it was released.
+
+        See also:
+            - $key_raw
+            - $key_hover
+            - $text_input
     ]]
     key = function(self, code, isdown)
         local tn = self.tab_next
@@ -1092,12 +1120,17 @@ Widget = register_class("Widget", table2.Object, {
         end) or false
     end,
 
-    --[[! Function: key_raw
+    --[[!
         A "raw" key handler that is used in the very beginning of the keypress
         handler. By default, it iterates the children (backwards), tries
         key_raw on each and if that returns true, it returns true too,
         otherwise it goes on (if nothing returned true, it returns false).
         If this returns false, the keypress handler continues normally.
+
+        See also:
+            - $key
+            - $key_hover
+            - $text_input
     ]]
     key_raw = function(self, code, isdown)
         return loop_children_r(self, function(o)
@@ -1105,10 +1138,15 @@ Widget = register_class("Widget", table2.Object, {
         end) or false
     end,
 
-    --[[! Function: text_input
+    --[[!
         Called on text input on the widget. Returns true of the input was
         accepted and false otherwise. The default version loops children
         (backwards) and tries on each until it hits true.
+
+        See also:
+            - $key
+            - $key_raw
+            - $key_hover
     ]]
     text_input = function(self, str)
         return loop_children_r(self, function(o)
@@ -1116,11 +1154,16 @@ Widget = register_class("Widget", table2.Object, {
         end) or false
     end,
 
-    --[[! Function: key_hover
+    --[[!
         Occurs on keypress (any key) when hovering over a widget. The default
         just tries to key_hover on its parent (returns false as a fallback).
-        Called after <key_raw> (if possible) and before mouse clicks and
-        world <key>.
+        Called after $key_raw (if possible) and before mouse clicks and
+        world $key.
+
+        See also:
+            - $key
+            - $key_raw
+            - $key_hover
     ]]
     key_hover = function(self, code, isdown)
         local parent = self.parent
@@ -1130,11 +1173,14 @@ Widget = register_class("Widget", table2.Object, {
         return false
     end,
 
-    --[[! Function: draw
-        Called in the drawing phase, taking x (left side) and y (upper
-        side) coordinates as arguments (or nothing, in that case they
-        default to p_x and p_y). By default just loops all the children
+    --[[!
+        Called in the drawing phase. By default just loops all the children
         and draws on these (assuming they're not fully clipped).
+
+        Arguments:
+            - sx, sy - the left and upper side coordinates of the widget,
+              optional (if not present, they default to "x" and "y" properties
+              of the current widget).
     ]]
     draw = function(self, sx, sy)
         sx = sx or self.x
@@ -1152,14 +1198,17 @@ Widget = register_class("Widget", table2.Object, {
         end)
     end,
 
-    --[[! Function: hover
+    --[[!
         Given the cursor coordinates, this function returns the widget
         currently hovered on. By default it just loops children in
-        reverse order using <loop_in_children> and calls hover recursively
+        reverse order using $loop_in_children_r and calls hover recursively
         on each (and returns the one that first returns a non-nil value).
         If the hover call returns itself, it means we're hovering on the
         widget the method was called on and the current hover coords
         are set up appropriately.
+
+        See also:
+            - $click
     ]]
     hover = function(self, cx, cy)
         local isw = (self == world)
@@ -1173,19 +1222,23 @@ Widget = register_class("Widget", table2.Object, {
         end, true, isw)
     end,
 
-    --[[! Function: hovering
+    --[[!
         Called every frame on the widget that's being hovered on (assuming
         it exists). It takes the coordinates we're hovering on. By default
         it emits the "hovering" signal on itself, passing the coordinates
         to it.
+
+        See also:
+             - $leaving
+             - $holding
     ]]
     hovering = function(self, cx, cy)
         emit(self, "hovering", cx, cy)
     end,
 
-    --[[! Function: leaving
+    --[[!
         Called when a mouse cursor is leaving widget hover. Takes the cx
-        and cy arguments like <hovering> (they're the last position in the
+        and cy arguments like $hovering (they're the last position in the
         widget the cursor was hovering on) and emits the "leaving" signal,
         passing those arguments to it.
     ]]
@@ -1200,19 +1253,16 @@ Widget = register_class("Widget", table2.Object, {
         end, false, self == world)
     end,
 
-    --[[! Function: holding
-        Called every frame on the widget that's currently being held
-        (assuming there is one). It takes the position (x, y) within
-        the widget and the mouse button code. By default it emits the
-        "holding" signal on itself, passing the coordinates and the
-        mouse button code to it.
+    --[[!
+        See $hovering. It's the same, but called only when the widget
+        is being held.
     ]]
     holding = function(self, cx, cy, code)
         emit(self, "holding", cx, cy, code)
     end,
 
-    --[[! Function: click
-        See <hover>. It's identical, only for the click event. This also
+    --[[!
+        See $hover. It's identical, only for the click event. This also
         takes the currently clicked mouse button as the last argument.
     ]]
     click = function(self, cx, cy, code)
@@ -1227,27 +1277,29 @@ Widget = register_class("Widget", table2.Object, {
         end, true, isw)
     end,
 
-    --[[! Function: clicked
+    --[[!
         Called once on the widget that was clicked. By emits the "clicked"
         signal on itself. Takes the click coords as arguments and passes
         them to the signal. Also takes the clicked mouse button code
         and passes it as well.
+
+        See also:
+            - $released
     ]]
     clicked = function(self, cx, cy, code)
         emit(self, "clicked", cx, cy, code)
     end,
 
-    --[[! Function: released
-        Called once the widget has been released from a click. Takes the
-        same argument as <clicked>, emits the "released" signal, passes
-        the same arguments to it. The cx, cy coordinates are up to date
-        (they're calculated by the time of the button release).
+    --[[!
+        See $clicked. Emits the "released" signal with the same arguments
+        as the "clicked" signal above. The coordinates are calculated by
+        the time of button release, so they're up to date.
     ]]
     released = function(self, cx, cy, code)
         emit(self, "released", cx, cy, code)
     end,
 
-    --[[! Function: grabs_input
+    --[[!
         Returns true if the widget takes input in regular cursor mode. That
         is the default behavior. However, that is not always convenient as
         sometimes you want on-screen widgets that take input in free cursor
@@ -1255,12 +1307,20 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     grabs_input = function(self) return true end,
 
-    --[[! Function: find_child
-        Given a widget type it filds a child widget of that type and returns
-        it. Additional optional arguments can be given - the widget name
-        (assuming the widget is named), a boolean option specifying whether
-        the search is recursive (it always is by default) and a reference
-        to a widget that is excluded.
+    --[[!
+        Finds a child widget.
+
+        Arguments:
+            - otype - the child type to find.
+            - name - if the widget is named, this is taken into consideration.
+            - recurse - if true (true by default), this will search recursively
+              in children of the children.
+            - exclude - a reference to a widget that should be excluded, this
+              is optional. Note that this is never passed in recursively.
+
+        See also:
+            - $find_children
+            - $find_sibling
     ]]
     find_child = function(self, otype, name, recurse, exclude)
         recurse = (recurse == nil) and true or recurse
@@ -1282,8 +1342,12 @@ Widget = register_class("Widget", table2.Object, {
         return o
     end,
 
-    --[[! Function: find_children
-        See above. Returns all the possible matches.
+    --[[!
+        See $find_child. Takes an extra argument (optional) which is an
+        array. Unlike the above, this finds all possible matches and appends
+        them to the given array (if not given, a new array is created). This
+        returns the array. If the array is given and not empty, it's not
+        erased (all matches append).
     ]]
     find_children = function(self, otype, name, recurse, exclude, ret)
         local ch = ret or {}
@@ -1304,11 +1368,18 @@ Widget = register_class("Widget", table2.Object, {
         return ch
     end,
 
-    --[[! Function: find_sibling
+    --[[!
         Finds a sibling of a widget. A sibling is basically defined as any
         child of the parent widget that isn't self (searched recursively),
         then any child of the parent widget of that parent widget and so on.
-        Takes type and name.
+
+        Arguments:
+            - otype - the sibling type.
+            - name - the sibling name (if named).
+
+        See also:
+            - $find_siblings
+            - $find_child
     ]]
     find_sibling = function(self, otype, name)
         local prev = self
@@ -1323,11 +1394,9 @@ Widget = register_class("Widget", table2.Object, {
         end
     end,
 
-    --[[! Function: find_siblings
-        See above. Returns all the possible matches.
-    ]]
-    find_siblings = function(self, otype, name)
-        local ch   = {}
+    --! See $find_sibling. Equivalent to $find_children.
+    find_siblings = function(self, otype, name, ret)
+        local ch   = ret or {}
         local prev = self
         local cur  = self.parent
 
@@ -1339,11 +1408,18 @@ Widget = register_class("Widget", table2.Object, {
         return ch
     end,
 
-    --[[! Function: replace
-        Given a tag name, finds a tag of that name in the children, destroys
-        all children of that tag and appends the given widget to the tag.
-        Optionally calls a function given as the last argument with the
-        widget being the sole argument of it.
+    --[[!
+        Replaces a widget that has been tagged (inside a tag, the tag itself
+        persists).
+
+        Arguments:
+            - tname - the tag name (name of a $Tag instance).
+            - obj - the widget to replace the original with.
+            - fun - optionally a function called at the end with "obj"
+              as an argument.
+
+        Returns:
+            True if the replacement was successful, false otherwise.
     ]]
     replace = function(self, tname, obj, fun)
         local tag = self:find_child(Tag.type, tname)
@@ -1354,7 +1430,7 @@ Widget = register_class("Widget", table2.Object, {
         return true
     end,
 
-    --[[! Function: remove
+    --[[!
         Removes the given widget from the widget's children. Alternatively,
         the argument can be the index of the child in the list. Returns true
         on success and false on failure.
@@ -1376,16 +1452,14 @@ Widget = register_class("Widget", table2.Object, {
         return false
     end,
 
-    --[[! Function: destroy
-        Removes itself from its parent.
-    ]]
+    --! Removes itself from its parent using $remove.
     destroy = function(self)
         self.parent:remove(self)
     end,
 
-    --[[! Function: destroy_children
-        Destroys all the children using regular <clear>. Emits a signal
-        "children_destroy" afterwards.
+    --[[!
+        Destroys all the children using regular $clear. Emits a signal
+        "children_destroy" afterwards on self.
     ]]
     destroy_children = function(self)
         local ch = self.children
@@ -1396,7 +1470,7 @@ Widget = register_class("Widget", table2.Object, {
         emit(self, "children_destroy")
     end,
 
-    --[[! Function: align
+    --[[!
         Aligns the widget given the horizontal alignment and the vertical
         alignment. Those can be -1 (top, left), 0 (center) and 1 (bottom,
         right).
@@ -1407,7 +1481,7 @@ Widget = register_class("Widget", table2.Object, {
             | ((clamp(v, -1, 1) + 2) << adjust.ALIGN_VSHIFT)
     end,
 
-    --[[! Function: clamp
+    --[[!
         Sets the widget clamping, given the left, right, top and bottom
         clamping. The values can be either true or false.
     ]]
@@ -1421,7 +1495,11 @@ Widget = register_class("Widget", table2.Object, {
 
     --[[! Function: get_alignment
         Returns the horizontal and vertical alignment of the widget in
-        the same format as <align> arguments.
+        the same format as $align arguments.
+
+        See also:
+            - $align
+            - $get_clamping
     ]]
     get_alignment = function(self)
         local a   = self.adjust
@@ -1436,8 +1514,12 @@ Widget = register_class("Widget", table2.Object, {
         return hal, val
     end,
 
-    --[[! Function: get_clamping
+    --[[!
         Returns the left, right, bottom, top clamping as either true or false.
+
+        See also:
+            - $clamp
+            - $get_alignment
     ]]
     get_clamping = function(self)
         local a   = self.adjust
@@ -1450,27 +1532,38 @@ Widget = register_class("Widget", table2.Object, {
                (a & adjust.CLAMP_BOTTOM) != 0, (a & adjust.CLAMP_TOP  ) != 0
     end,
 
-    --[[! Function: set_floating ]]
+    --! Function: set_floating
     set_floating = gen_setter "floating",
 
-    --[[! Function: set_visible ]]
+    --! Function: set_visible
     set_visible = gen_setter "visible",
 
-    --[[! Function: set_container ]]
+    --! Function: set_container
     set_container = gen_setter "container",
 
-    --[[! Function: set_init_clone ]]
+    --! Function: set_init_clone
     set_init_clone = gen_setter "init_clone",
 
-    --[[! Function: set_tab_next ]]
+    --! Function: set_tab_next
     set_tab_next = gen_setter "tab_next",
 
     --[[! Function: insert
-        Given a position in the children list, a widget and optionally a
-        function, this inserts the given widget in the position and calls
-        the function with the widget as an argument. Finally, the last
-        argument allows you to enforce insertion into the "real" children
-        array instead of a custom container (even if it's defined).
+        Inserts a widget at the given position in the widget's children.
+
+        Arguments:
+            - pos - the position.
+            - obj - the widget object.
+            - fun - optional function called with "obj" as an argument after
+              it has been inserted.
+            - force_ch - forces insertion into "real" children even with the
+              widget "container" property set.
+
+        Returns:
+            The given widget.
+
+        See also:
+            - $append
+            - $prepend
     ]]
     insert = function(self, pos, obj, fun, force_ch)
         local children = force_ch and self.children
@@ -1482,11 +1575,7 @@ Widget = register_class("Widget", table2.Object, {
     end,
 
     --[[! Function: append
-        Given a widget and optionally a function, this inserts the given
-        widget in the end of the child list and calls the function with the
-        widget as an argument. Finally, the last argument allows you to
-        enforce insertion into the "real" children array instead of a custom
-        container (even if it's defined).
+        Like $insert, but appends to the end of the children list.
     ]]
     append = function(self, obj, fun, force_ch)
         local children = force_ch and self.children
@@ -1498,11 +1587,7 @@ Widget = register_class("Widget", table2.Object, {
     end,
 
     --[[! Function: prepend
-        Given a widget and optionally a function, this inserts the given
-        widget in the beginning of the child list and calls the function
-        with the widget as an argument. Finally, the last argument allows
-        you to enforce insertion into the "real" children array instead of
-        a custom container (even if it's defined).
+        Like $insert, but prepends (inserts to the beginning of the list).
     ]]
     prepend = function(self, obj, fun, force_ch)
         local children = force_ch and self.children
@@ -1513,45 +1598,52 @@ Widget = register_class("Widget", table2.Object, {
         return obj
     end,
 
-    --[[! Function: show_menu
+    --[[!
         Given a menu object (any widget), this shows the menu with this widget
-        as the parent. The optional at_cursor argument specifies whether to
-        align the menu relatively to this or whether to show it at cursor
-        position.
+        as the parent.
 
-        There is also one additional boolean argument that specifies whether
-        to clear the menu when it's dropped. The default behavior is that the
-        menu remains alive until the parent is destroyed. Try to avoid using
-        this. For example when creating on-hover menus, instead of setting
-        the argument to true and creating a new widget on every call of
-        "hovering", create a permanent reference to the menu elsewhere
-        instead.
-
-        Speaking of on-hover menus - you need to show your on-hover menu
-        every time the "hovering" signal is activated, because it gets
-        dropped next frame.
+        As for on-hover menus - you need to show your on-hover menu every time
+        the "hovering" signal is activated, because it gets dropped next frame.
 
         Note that the this widget becomes the menu's parent, thus this widget
         becomes responsible for it (if it gets destroyed, it destroys the
         menu as well), that is, unless the menu changes parent in the meantime.
+
+        Arguments:
+            - obj - the menu object.
+            - at_cursor - instead of using special positioning for menus
+              and submenus, this shows the menu at cursor position.
+            - clear_on_drop - clears the menu when dropped if true, the
+              default behavior is that the menu remains alive until its parent
+              is destroyed. If you can avoid using this, please do so, as
+              it's more expensive. For example when creating on-hover menus,
+              instead of setting the argument to true and creating a new widget
+              every call of "hovering", create a permanent reference to the
+              menu elsewhere instead.
     ]]
     show_menu = function(self, obj, at_cursor, clear_on_drop)
         menu_init(obj, self, #menustack + 1, at_cursor, clear_on_drop)
         return obj
     end,
 
-    --[[! Function: show_tooltip
+    --[[!
         Given a tooltip object (any widget), this shows the tooltip with this
-        widget as the parent. The same precautions as for <show_menu> apply.
+        widget as the parent. The same precautions as for $show_menu apply.
         There is no at_cursor argument (because that's how it behaves by
-        default). There is clear_on_drop which has identical semantics as
-        the same argument in <show_menu>.
+        default).
 
         You typically want to call this in the "hovering" signal of a widget.
         Make sure to actually create the tooltip object beforehand, somewhere
         where it's done just once (for example in the user constructor).
         Alternatively, you can pass clear_on_drop as true and create it
         everytime, but that's not recommended.
+
+        Arguments:
+            - obj - the tooltip object.
+            - clear_on_drop - see $show_menu.
+
+        See also:
+            - $show_menu
     ]]
     show_tooltip = function(self, obj, clear_on_drop)
         tooltip_init(obj, self, clear_on_drop)
@@ -1563,45 +1655,48 @@ Widget = register_class("Widget", table2.Object, {
     ]]
     is_field = function() return false end
 })
+Widget = M.Widget
 
---[[! Struct: Named_Widget
-    Named widgets are regular widgets thave have a name under the property
-    obj_name. The name can be passed via constructor kwargs as "name".
+--[[!
+    Named widgets are regular widgets thave have a name that is specific
+    to instance.
+
+    Properties:
+        - obj_name - can be passed in kwargs as "name".
 ]]
-local Named_Widget = register_class("Named_Widget", Widget, {
+M.Named_Widget = register_class("Named_Widget", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.obj_name = kwargs.name
         return Widget.__ctor(self, kwargs)
     end,
 
-    --[[! Function: set_obj_name ]]
+    --! Function: set_obj_name
     set_obj_name = gen_setter "obj_name"
 })
+local Named_Widget = M.Named_Widget
 
---[[! Struct: Tag
+--[[!
     Tags are special named widgets. They can contain more widgets. They're
     particularly useful when looking up certain part of a GUI structure or
     replacing something inside without having to iterate through and finding
     it manually.
 ]]
-local Tag = register_class("Tag", Named_Widget)
-M.Tag = Tag
+M.Tag = register_class("Tag", Named_Widget)
+local Tag = M.Tag
 
---[[! Struct: Window
+--[[!
     This is a regular window. It's nothing more than a special case of named
-    widget. You can derive custom window types from this (see <Overlay>) but
+    widget. You can derive custom window types from this (see $Overlay) but
     you have to make sure the widget type stays the same (pass Window.type
-    as the last argument to <register_class>).
+    as the last argument to $register_class).
 
-    This also overloads grabs_input, returning the input_grab property which
-    can be set via kwargs or later via set_input_grab. It defaults to true,
-    which means it always grabs input, no matter what. If it's false, the
-    window lets either the other widgets or the engine control the input
-    and you can click, hover etc. in it only in free cursor mode (useful
-    for windows that are always shown in say, editing mode).
+    Properties:
+        - input_grab - true by default, specifies whether this window grabs
+          input. If it's false, the window takes input only in free cursor
+          mode.
 ]]
-Window = register_class("Window", Named_Widget, {
+M.Window = register_class("Window", Named_Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         local ig = kwargs.input_grab
@@ -1610,46 +1705,43 @@ Window = register_class("Window", Named_Widget, {
         return Named_Widget.__ctor(self, kwargs)
     end,
 
-    --[[! Function: hide
-        Equivalent to win.parent:hide_window(win.obj_name).
-    ]]
+    --! Equivalent to win.parent:hide_window(win.obj_name).
     hide = function(self)
         return self.parent:hide_window(self.obj_name)
     end,
 
     grabs_input = function(self) return self.input_grab end,
 
-    --[[! Function: set_input_grab ]]
+    --! Function: set_input_grab
     set_input_grab = gen_setter "input_grab",
 
-    --[[! Function: set_above_hud ]]
+    --! Function: set_above_hud
     set_above_hud = gen_setter "above_hud"
 })
-M.Window = Window
+Window = M.Window
 
---[[! Struct: Overlay
-    Overlays are windows that take no input under no circumstances.
-    There is no difference otherwise. This overloads grabs_input
-    (returns false), target (returns nil), hover (returns nil) and
-    click (returns nil).
+--[[!
+    Overlays are windows that take no input under no circumstances. There is no
+    difference otherwise. This overloads {{$Widget.grabs_input}} (returns
+    false), {{$Widget.target}} (returns nil), {{$Widget.hover}} (returns nil)
+    and {{$Widget.click}} (returns nil).
 
-    There is one default overlay - the HUD. You can retrieve it using
-    <get_hud>. Its layout is managed separately, it takes world's
-    dimensions. You can freely append into it. It gets cleared
-    everytime you leave the map and it doesn't display when
-    mainmenu is active.
+    There is one default overlay - the HUD. You can retrieve it using $get_hud.
+    Its layout is managed separately, it takes world's dimensions. You can
+    freely append into it. It gets cleared everytime you leave the map and it
+    doesn't display when mainmenu is active.
 ]]
-local Overlay = register_class("Overlay", Window, {
+M.Overlay = register_class("Overlay", Window, {
     grabs_input = function(self) return false end,
 
     target = function() end,
     hover  = function() end,
     click  = function() end
 }, Window.type)
-M.Overlay = Overlay
+local Overlay = M.Overlay
 
---[[! Struct: World
-    A world is a structure that derives from <Widget> and holds windows.
+--[[!
+    A world is a structure that derives from $Widget and holds windows.
     It defines the base for calculating dimensions of child widgets as
     well as input hooks. It also provides some window management functions.
     By default the system creates one default world that holds all the
@@ -1657,16 +1749,16 @@ M.Overlay = Overlay
     worlds for different purposes (e.g. in-game GUI on a surface) but
     that is not supported at this point.
 ]]
-local World = register_class("World", Widget, {
+M.World = register_class("World", Widget, {
     __ctor = function(self)
         self.windows = {}
         return Widget.__ctor(self)
     end,
 
-    --[[! Function: grabs_input
-        This custom overload loops children (in reverse order) and calls
-        grabs_input on each. If any of them returns true, this also returns
-        true, otherwise it returns false.
+    --[[!
+        This custom overload of {{$Widget.grabs_input}} loops children
+        (in reverse order) and calls grabs_input on each. If any of them
+        returns true, this also returns true, otherwise it returns false.
     ]]
     grabs_input = function(self)
         return loop_children_r(self, function(o)
@@ -1682,10 +1774,11 @@ local World = register_class("World", Widget, {
         end)
     end,
 
-    --[[! Function: layout
-        First calls layout on <Widget>, then calculates x, y, w, h of the
-        world. Takes forced aspect (via the forceaspect engine variable)
-        into consideration. Then adjusts children.
+    --[[!
+        Overloads {{$Widget.layout}}. Calculates proper world dimensions
+        (takes forced aspect set using an engine variable forceaspect into
+        account), then layouts every child (using correct projection separate
+        for every window) and then adjusts children.
     ]]
     layout = function(self)
         local sw, sh = hud_get_w(), hud_get_h()
@@ -1721,10 +1814,6 @@ local World = register_class("World", Widget, {
         end)
     end,
 
-    --[[! Function: build_window
-        Builds a window. Takes the window name, its widget class and optionally
-        a function that's called with the newly created window as an argument.
-    ]]
     build_window = function(self, name, win, fun)
         local old = self:find_child(Window.type, name, false)
         if old then self:remove(old) end
@@ -1736,19 +1825,24 @@ local World = register_class("World", Widget, {
         return win
     end,
 
-    --[[! Function: new_window
-        Creates a window, but doesn't show it. At the time of creation
-        the actual window structure is not built, it merely creates a
-        callback that builds the window (using <build_window>). Takes
-        the same arguments as <build_window>.
+    --[[!
+        Creates a window, but doesn't show it. At the time of creation the
+        structure is not built, it merely creates a callback that it stores.
+        The window is actually built when shown, and destroyed when hidden.
 
-        If there already was a window of that name, it returns the old build
+        If there already is a window of that name, it returns the old build
         hook. You can call it with no arguments to show the window. If you
         pass true as the sole argument, it returns whether the window is
         currently visible. If you pass false to it, it marks the window
         as invisible/destroyed (without actually hiding anything, unlike
         <hide_window> which destroys it AND marks it). Don't actually rely
         on this, it's only intended for the internals.
+
+        Arguments:
+            - name - the window name.
+            - win - the window object type (for example $Window or $Overlay).
+            - fun - the function to call after the window has been built
+              (with the window as an argument).
     ]]
     new_window = function(self, name, win, fun)
         local old = self.windows[name]
@@ -1766,7 +1860,7 @@ local World = register_class("World", Widget, {
         return old
     end,
 
-    --[[! Function: show_window
+    --[[!
         Triggers a window build. The window has to exist, if it doesn't,
         this just returns true. Otherwise builds the window and returns
         true.
@@ -1778,17 +1872,14 @@ local World = register_class("World", Widget, {
         return true
     end,
 
-    --[[! Function: get_window
-        Returns the window build hook (the same one <show_window> calls).
-    ]]
+    --! Returns the window build hook (the same one $show_window calls).
     get_window = function(self, name)
         return self.windows[name]
     end,
 
-    --[[! Function: hide_window
+    --[[!
         Hides a window - that is, destroys it. It can be re-built anytime
         later. Returns true if it actually destroyed anything, false otherwise.
-        It works by finding the window first and then calling self:remove(old).
     ]]
     hide_window = function(self, name)
         local old = self:find_child(Window.type, name, false)
@@ -1802,11 +1893,18 @@ local World = register_class("World", Widget, {
         return old != nil
     end,
 
-    --[[! Function: replace_in_window
-        Given a window name, a tag name, a widget and a function, this
-        finds a window of that name (if it doesn't exist it returns false)
-        in the children and then returns win:replace(tname, obj, fun). It's
-        merely a little wrapper for convenience.
+    --[[!
+        This finds a window of the given name in the children and returns
+        `win:replace(tname, obj, fun)`. It's merely a convenient wrapper.
+
+        Arguments:
+            - wname - the window name.
+            - tname - the tag name.
+            - obj - the object.
+            - fun - the optional function (see {{$Widget.replace}}).
+
+        Returns:
+            The result of replacing, and false if the window doesn't exist.
     ]]
     replace_in_window = function(self, wname, tname, obj, fun)
         local win = self:find_child(Window.type, wname, false)
@@ -1814,9 +1912,9 @@ local World = register_class("World", Widget, {
         return win:replace(tname, obj, fun)
     end,
 
-    --[[! Function: window_visible
-        Given a window name, returns true if that window is currently shown
-        and false otherwise.
+    --[[!
+        Given a window name, this returns true if that window is currently
+        shown and false otherwise.
     ]]
     window_visible = function(self, name)
         return self.windows[name](true)
@@ -1833,14 +1931,13 @@ local World = register_class("World", Widget, {
         return y
     end
 })
+local World = M.World
 
 world = World()
 
 local hud = Overlay { name = "hud" }
 
---[[! Function: get_hud
-    Returns the HUD overlay.
-]]
+--! Returns the HUD overlay.
 M.get_hud = function()
     return hud
 end
@@ -2182,9 +2279,7 @@ signal.connect(cs, "uitextrows_changed", function(self, n)
     uitextrows = n
 end)
 
---[[! Function: get_text_rows
-    See <uitextrows>. This is a fast getter for it.
-]]
+--! See $uitextrows. This is a fast getter for it.
 M.get_text_rows = function()
     return uitextrows
 end
@@ -2384,9 +2479,7 @@ M.changes_get = function()
     return table2.map(needsapply, function(v) return v.desc end)
 end
 
---[[! Function: get_world
-    Gets the default GUI world widget.
-]]
+--! Gets the default GUI world widget.
 M.get_world = function()
     return world
 end

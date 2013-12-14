@@ -1,22 +1,18 @@
---[[! File: lua/core/gui/constants.lua
+--[[!<
+    Some constants used in the GUI. Non-global, used by the primary GUI
+    module and forwarded.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Some constants used in the GUI. Non-global, used by the primary GUI
-        module and forwarded.
+    License:
+        See COPYING.txt.
 ]]
 
+--! Module: constants
 local M = {}
 
---[[! Variable: gl
+--[[!
     Contains a list of OpenGL constants used by (and useful in) the GUI.
     Their meaning matches the one in OpenGL (with the GL_ prefix). This table
     contains ALPHA, ALWAYS, BLUE, CLAMP_TO_BORDER, CLAMP_TO_EDGE,
@@ -36,7 +32,7 @@ local M = {}
     TEXTURE_SWIZZLE_R, TEXTURE_WRAP_R, TEXTURE_WRAP_S, TEXTURE_WRAP_T,
     TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, ZERO.
 ]]
-local gl = {
+M.gl = {:
     ALPHA = 0x1906,
     ALWAYS = 0x0207,
     BLUE = 0x1905,
@@ -107,16 +103,15 @@ local gl = {
     TRIANGLE_FAN = 0x0006,
     TRIANGLE_STRIP = 0x0005,
     ZERO = 0x0
-}
-M.gl = gl
+:}
 
 local scancode_to_keycode = function(x) return (x | (1 << 30)) end
 local char_to_byte = string.byte
 
---[[! Variable: scancode
-    Contains a list of key scan codes. Not meant for direct use. Use <key>.
+--[[! Enum: scancode
+    Contains a list of key scan codes. Not meant for direct use. Use $key.
 ]]
-local scancode = {
+M.scancode = {
     UNKNOWN = 0,
     A = 4,
     B = 5,
@@ -371,14 +366,14 @@ local scancode = {
     APP1 = 283,
     APP2 = 284,
 }
-M.scancode = scancode
+local scancode = M.scancode
 
---[[! Variable: key
+--[[! Enum: key
     Contains a list of key constants. Matches SDLK_* with the addition of
     mouse buttons (MOUSELEFT, MOUSEMIDDLE, MOUSERIGHT, MOUSEWHEELUP,
     MOUSEWHEELDOWN, MOUSEBACK, MOUSEFORWARD).
 ]]
-local key = {
+M.key = {
     MOUSELEFT      = -1,
     MOUSEMIDDLE    = -2,
     MOUSERIGHT     = -3,
@@ -648,12 +643,9 @@ local key = {
     EJECT = scancode_to_keycode(scancode.EJECT),
     SLEEP = scancode_to_keycode(scancode.SLEEP)
 }
-M.key = key
 
---[[! Variable: mod
-    Contains a list of key modifier constants mapping to SDL's KMOD_*.
-]]
-local mod = {:
+--! Contains a list of key modifier constants mapping to SDL's KMOD_*.
+M.mod = {:
     NONE     = 0x0000,
     LSHIFT   = 0x0001,
     RSHIFT   = 0x0002,
@@ -672,6 +664,5 @@ local mod = {:
     ALT      = LALT   | RALT,
     GUI      = LGUI   | RGUI
 :}
-M.mod = mod
 
 return M

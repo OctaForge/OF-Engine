@@ -1,16 +1,11 @@
---[[! File: lua/core/gui/core_editors.lua
+--[[!<
+    Text editors and fields.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Text editor and fields.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -37,6 +32,7 @@ local emit  = signal.emit
 local tostring = tostring
 local split = string2.split
 
+--! Module: core
 local M = require("core.gui.core")
 
 -- consts
@@ -51,6 +47,9 @@ local register_class = M.register_class
 
 -- scissoring
 local clip_push, clip_pop = M.clip_push, M.clip_pop
+
+-- color
+local Color = M.Color
 
 -- base widgets
 local Widget = M.get_class("Widget")
@@ -198,33 +197,23 @@ local editline = ffi.metatype("editline_t", editline_MT)
 
 local get_aw = function(self) return self.w - self.pad_l - self.pad_r end
 
---[[! Struct: Text_Editor
+local init_color = function(col)
+    return col and (type(col) == "number" and Color(col) or col) or Color()
+end
+
+local gen_color_setter = function(name)
+    local sname = name .. "_changed"
+    return function(self, val)
+        self[name] = init_color(val)
+        emit(self, sname, val)
+    end
+end
+
+--[[!
     Implements a text editor widget. It's a basic editor that supports
     scrolling of text and some extra features like key filter and so on.
     It supports copy-paste that interacts with native system clipboard.
     It doesn't have any states.
-
-    Its properties clip_w and clip_h specify the editor bounds in standard
-    UI units. The "multiline" property is a boolean and it specifies whether
-    the editor has one or multiple lines - if it's single-line, clip_h is
-    ignored and the height is instead calculated from line text bounds.
-
-    There are also properties "font" (which is a string specifying which
-    font is used for this editor and is optional), key_filter (a string
-    of characters that can be used in the editor), value (the initial
-    value and the fallback value on reset), scale (the text scale,
-    defaults to 1) and line_wrap (by default false, makes the text wrap
-    when it has reached maximum width).
-
-    You can customize colors in the editor. The text color is changed using
-    the properties r, g, b, a (all default to 0xFF). Then there are properties
-    sel_(r|g|b|a) to customize selection box color that default to 0x7B, 0x68,
-    0xEE and 0xC0 respectively and wrap_(r|g|b|a) to customize line wrap sign
-    color - these all default to 0x3C except alpha which defaults to 0xFF.
-    Note that selection box is drawn under the text.
-
-    You can also pad the text on the left and on the right using the pad_l
-    and pad_r properties. They both default to 0.
 
     The editor implements the same interface and internal members as Scroller,
     allowing scrollbars to be used with it. The functions are not documented
@@ -232,8 +221,24 @@ local get_aw = function(self) return self.w - self.pad_l - self.pad_r end
 
     Note that children of the editor are drawn first - that allows themes to
     define various backgrounds and stuff while keeping the text on top.
+
+    Properties:
+        - clip_w, clip_h - see also $Clipper.
+        - multiline - if true, the editor will have only one line, clip_h
+          will be ignored and the height will be calculated using line text
+          bounds, true is default.
+        - font - the font (a string) the editor will use.
+        - key_filter - a string of characters that can be used in the editor.
+        - value - the initial editor value and the fallback value on reset.
+        - scale - the text scale, defaults to 1.
+        - line_wrap - if true, the text will wrap when it has reached editor
+          width.
+        - text_color - the text color (0xFFFFFFFF).
+        - sel_color - the selection color (ARGB: 0xC07B68EE).
+        - wrap_color - the wrap symbol color (ARGB: 0xFF3C3C3C).
+        - pad_l, pad_r - text left and right padding (both 0 by default).
 ]]
-local Text_Editor = register_class("Text_Editor", Widget, {
+M.Text_Editor = register_class("Text_Editor", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -256,20 +261,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.font  = font
         self.scale = kwargs.scale or 1
 
-        self.r = kwargs.r or 0xFF
-        self.g = kwargs.g or 0xFF
-        self.b = kwargs.b or 0xFF
-        self.a = kwargs.a or 0xFF
-
-        self.sel_r = kwargs.sel_r or 0x7B
-        self.sel_g = kwargs.sel_g or 0x68
-        self.sel_b = kwargs.sel_b or 0xEE
-        self.sel_a = kwargs.sel_a or 0xC0
-
-        self.wrap_r = kwargs.wrap_r or 0x3C
-        self.wrap_g = kwargs.wrap_g or 0x3C
-        self.wrap_b = kwargs.wrap_b or 0x3C
-        self.wrap_a = kwargs.wrap_a or 0xFF
+        self.text_color = init_color(kwargs.text_color)
+        self.sel_color  = init_color(kwargs.sel_color  or 0xC07B68EE)
+        self.wrap_color = init_color(kwargs.wrap_color or 0xFF3C3C3C)
 
         self.pad_l = kwargs.pad_l or 0
         self.pad_r = kwargs.pad_r or 0
@@ -292,7 +286,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return Widget.__ctor(self, kwargs)
     end,
 
-    --[[! Function: mark
+    --[[!
         Marks a selection. If the provided argument is true, the selection
         position is set to the cursor position (and any change in cursor
         position effectively extends the selection). Otherwise the
@@ -303,17 +297,13 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self.my = self.cy
     end,
 
-    --[[! Function: select_all
-        Selects everything in the editor.
-    ]]
+    --! Selects everything in the editor.
     select_all = function(self)
         self.cx, self.cy = 0, 0
         self.mx, self.my = 1 / 0, 1 / 0
     end,
 
-    --[[! Function: is_empty
-        Returns true if the editor contains nothing, false otherwise.
-    ]]
+    --! Returns true if the editor contains nothing, false otherwise.
     is_empty = function(self)
         local lines = self.lines
         return #lines == 1 and lines[1].text[0] == 0
@@ -380,14 +370,12 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return self.lines[self.cy + 1]
     end,
 
-    --[[! Function: to_string
-        Returns all contents of the editor as a string.
-    ]]
+    --! Returns all contents of the editor as a string.
     to_string = function(self)
         return tostring(editline():combine_lines(self.lines))
     end,
 
-    --[[! Function: selection_to_string
+    --[[!
         Returns the selected portion of the editor as a string (assuming
         there is one, otherwise it returns nil).
     ]]
@@ -409,7 +397,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    --[[! Function: remove_lines
+    --[[!
         Removes "count" lines from line number "start".
     ]]
     remove_lines = function(self, start, count)
@@ -419,7 +407,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    --[[! Function: reset_value
+    --[[!
         Resets the editor contents - they're set to the "value" property
         (which acts differently on editors and fields - on editors it's just
         an "initial" value, on fields it's the current value, so on fields
@@ -442,7 +430,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if cond then self:edit_clear(strlines) end
     end,
 
-    --[[! Function: copy
+    --[[!
         Copies the current selection into system clipboard. Returns the
         copied string or nil if nothing was copied.
     ]]
@@ -456,7 +444,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    --[[! Function: paste
+    --[[!
         Pastes a string from the clipboard into the editor on cursor position.
         Returns the pasted string or nil if nothing was pasted. Deletes the
         current selection if there is one and there is something to paste.
@@ -471,9 +459,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return str
     end,
 
-    --[[! Function: delete_selection
-        Deletes the current selection if any, returns true if there was one.
-    ]]
+    --! Deletes the current selection if any, returns true if there was one.
     delete_selection = function(self)
         local b, sx, sy, ex, ey = self:region()
         if not b then
@@ -520,7 +506,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         return true
     end,
 
-    --[[! Function: insert
+    --[[!
         Given a string, this inserts the string into the editor on cursor
         position (and deletes any selection before that if there is one).
     ]]
@@ -555,7 +541,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         end
     end,
 
-    --[[! Function: bind_h_scrollbar ]]
+    --!
     bind_h_scrollbar = function(self, sb)
         if not sb then
             sb = self.h_scrollbar
@@ -567,7 +553,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         sb.scroller = self
     end,
 
-    --[[! Function: bind_v_scrollbar ]]
+    --!
     bind_v_scrollbar = function(self, sb)
         if not sb then
             sb = self.v_scrollbar
@@ -579,67 +565,67 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         sb.scroller = self
     end,
 
-    --[[! Function: get_h_limit ]]
+    --!
     get_h_limit = function(self) return max(self.virt_w - get_aw(self), 0) end,
-    --[[! Function: get_v_limit ]]
+    --!
     get_v_limit = function(self) return max(self.virt_h - self.h, 0) end,
 
-    --[[! Function: get_h_offset ]]
+    --!
     get_h_offset = function(self)
         return self.offset_h / max(self.virt_w, get_aw(self))
     end,
 
-    --[[! Function: get_v_offset ]]
+    --!
     get_v_offset = function(self)
         return self.offset_v / max(self.virt_h, self.h)
     end,
 
-    --[[! Function: get_h_scale ]]
+    --!
     get_h_scale = function(self)
         local w = get_aw(self)
         return w / max(self.virt_w, w)
     end,
-    --[[! Function: get_v_scale ]]
+    --!
     get_v_scale = function(self)
         local h = self.h
         return h / max(self.virt_h, h)
     end,
 
-    --[[! Function: set_h_scroll ]]
+    --!
     set_h_scroll = function(self, hs)
         self.offset_h = clamp(hs, 0, self:get_h_limit())
         emit(self, "h_scroll_changed", self:get_h_offset())
     end,
 
-    --[[! Function: set_v_scroll ]]
+    --!
     set_v_scroll = function(self, vs)
         self.offset_v = clamp(vs, 0, self:get_v_limit())
         emit(self, "v_scroll_changed", self:get_v_offset())
     end,
 
-    --[[! Function: scroll_h ]]
+    --!
     scroll_h = function(self, hs) self:set_h_scroll(self.offset_h + hs) end,
-    --[[! Function: scroll_v ]]
+    --!
     scroll_v = function(self, vs) self:set_v_scroll(self.offset_v + vs) end,
 
-    --[[! Function: set_clip_w ]]
+    --! Function: set_clip_w
     set_clip_w = gen_ed_setter "clip_w",
-    --[[! Function: set_clip_h ]]
+    --! Function: set_clip_h
     set_clip_h = gen_ed_setter "clip_h",
 
-    --[[! Function: set_pad_l ]]
+    --! Function: set_pad_l
     set_pad_l = gen_ed_setter "pad_l",
-    --[[! Function: set_pad_r ]]
+    --! Function: set_pad_r
     set_pad_r = gen_ed_setter "pad_r",
 
-    --[[! Function: set_multiline ]]
+    --! Function: set_multiline
     set_multiline = gen_ed_setter "multiline",
 
-    --[[! Function: set_key_filter ]]
+    --! Function: set_key_filter
     set_key_filter = gen_setter "key_filter",
 
-    --[[! Function: set_value
-        Sets the value property, emits value_changed and calls <reset_value>.
+    --[[!
+        Sets the value property, emits value_changed and calls $reset_value.
     ]]
     set_value = function(self, val)
         val = tostring(val)
@@ -648,9 +634,9 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         self:reset_value()
     end,
 
-    --[[! Function: set_font ]]
+    --! Function: set_font
     set_font = gen_ed_setter "font",
-    --[[! Function: set_line_wrap ]]
+    --! Function: set_line_wrap
     set_line_wrap = gen_ed_setter "line_wrap",
 
     clear = function(self)
@@ -1183,6 +1169,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             max_width)
         local maxy = #self.lines
         local h = 0
+        local sc = self.sel_color
         for i = first_drawable, maxy do
             if h > ph then
                 maxy = i
@@ -1215,7 +1202,7 @@ local Text_Editor = register_class("Text_Editor", Widget, {
             end
 
             shader_hudnotexture_set()
-            gle_color4ub(self.sel_r, self.sel_g, self.sel_b, self.sel_a)
+            gle_color4ub(sc.r, sc.g, sc.b, sc.a)
             gle_defvertexf(2)
             gle_begin(gl.QUADS)
             if psy == pey then
@@ -1254,7 +1241,8 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         if not self.line_wrap then return end
         local fonth = text_font_get_h()
         shader_hudnotexture_set()
-        gle_color4ub(self.wrap_r, self.wrap_g, self.wrap_b, self.wrap_a)
+        local wc = self.wrap_color
+        gle_color4ub(wc.r, wc.g, wc.b, wc.a)
         gle_defvertexf(2)
         gle_begin(gl.LINE_STRIP)
         gle_attrib2f(0, h + fonth)
@@ -1297,12 +1285,13 @@ local Text_Editor = register_class("Text_Editor", Widget, {
 
             local h = 0
             local fonth = text_font_get_h()
+            local tc = self.text_color
             for i = fd, #self.lines do
                 local line = tostring(self.lines[i])
                 local width, height = text_get_bounds(line,
                     max_width)
                 if h >= ph then break end
-                text_draw(line, txof, h, self.r, self.g, self.b, self.a,
+                text_draw(line, txof, h, tc.r, tc.g, tc.b, tc.a,
                     (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
                 if height > fonth then self:draw_line_wrap(h, height) end
@@ -1316,10 +1305,10 @@ local Text_Editor = register_class("Text_Editor", Widget, {
         text_font_pop()
     end
 })
-M.Text_Editor = Text_Editor
+local Text_Editor = M.Text_Editor
 
---[[! Struct: Field
-    Represents a field, a specialization of <Text_Editor>. It has the same
+--[[!
+    Represents a field, a specialization of $Text_Editor. It has the same
     properties. The "value" property changed meaning - now it stores the
     current value - there is no fallback for fields (it still is the default
     value though).
@@ -1343,8 +1332,8 @@ M.Field = register_class("Field", Text_Editor, {
     end
 })
 
---[[! Struct: Key_Field
-    Derived from <Field>. Represents a keyfield - it catches keypresses and
+--[[!
+    Derived from $Field. Represents a keyfield - it catches keypresses and
     inserts key names. Useful when creating an e.g. keybinding GUI.
 ]]
 M.Key_Field = register_class("Key_Field", M.Field, {
@@ -1358,9 +1347,7 @@ M.Key_Field = register_class("Key_Field", M.Field, {
         end
     end,
 
-    --[[! Function: key_raw
-        Overloaded. Commits on the escape key, inserts the name otherwise.
-    ]]
+    --! Overloaded. Commits on the escape key, inserts the name otherwise.
     key_raw = function(code, isdown)
         if Widget.key_raw(code, isdown) then return true end
         if not is_focused(self) or not isdown then return false end

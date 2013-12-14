@@ -1,16 +1,11 @@
---[[! File: lua/core/gui/core_containers.lua
+--[[!<
+    Container GUI widgets.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Features container widgets for the OF GUI.
+    License:
+        See COPYING.txt.
 ]]
 
 local max = math.max
@@ -18,6 +13,7 @@ local min = math.min
 
 local createtable = require("capi").table_create
 
+--! Module: core
 local M = require("core.gui.core")
 
 -- consts
@@ -49,26 +45,26 @@ local clampsh = function(adj)
     return ((adj & CLAMP_LEFT) != 0) and ((adj & CLAMP_RIGHT) != 0)
 end
 
---[[! Struct: H_Box
+--[[!
     A horizontal box. Boxes are containers that hold multiple widgets that
-    do not cover each other. It has three extra properties.
+    do not cover each other.
 
-    The first property, padding, specifies the padding between the items
-    (the actual width is width of items extended by (nitems-1)*padding).
+    Properties:
+        - padding - the padding between the items (the actual width is the
+          width of the items extended by (nitems - 1) * padding).
+        - expand - a boolean, if true, items clamped from both left and
+          right will divide the remaining space the other items didn't
+          fill between themselves, in the other case clamping will have
+          no effect and the items will be aligned evenly through the list.
+        - homogenous - the box will attempt to reserve an equal amount of
+          space for every item in the box, items that clamp will be clamped
+          inside of their space and the other items will be aligned depending
+          on their own alignment. Takes precedence over "expand". Only one can
+          be in effect and both default to false.
 
-    The second property is "expand" and it's a boolean value (defaults to
-    false). If you set it to true, items clamped from both left and right
-    will divide the remaining space the other items didn't fill between
-    themselves, in the other case clamping will have no effect and the
-    items will be aligned evenly through the list.
-
-    The third property is "homogenous" and it attempts to reserve an equal
-    amount of space for every item. Items that clamp will be clamped inside
-    their space and the other items will be aligned depending on their own
-    alignment.
-
-    The property "homogenous" takes precedence over "expand". Only one can
-    be in effect (or none of them).
+    See also:
+        - $V_Box
+        - $Grid
 ]]
 M.H_Box = register_class("H_Box", Widget, {
     __ctor = function(self, kwargs)
@@ -139,19 +135,19 @@ M.H_Box = register_class("H_Box", Widget, {
         return self:adjust_children_regular(nch + nvs)
     end,
 
-    --[[! Function: set_padding ]]
+    --! Function: set_padding
     set_padding = gen_setter "padding",
 
-    --[[! Function: set_expand ]]
+    --! Function: set_expand
     set_expand = gen_setter "expand",
 
-    --[[! Function: set_homogenous ]]
+    --! Function: set_homogenous
     set_homogenous = gen_setter "homogenous"
 })
 
---[[! Struct: V_Box
-    See <H_Box>. This is a vertical variant. For "expand" and "homogenous",
-    top/bottom clamping applies.
+--[[!
+    See $H_Box. This is a vertical variant, for its properties top/bottom
+    clamping is relevant rather than left/right.
 ]]
 M.V_Box = register_class("V_Box", Widget, {
     __ctor = function(self, kwargs)
@@ -222,21 +218,28 @@ M.V_Box = register_class("V_Box", Widget, {
         return self:adjust_children_regular(nch + nvs)
     end,
 
-    --[[! Function: set_padding ]]
+    --! Function: set_padding
     set_padding = gen_setter "padding",
 
-    --[[! Function: set_expand ]]
+    --! Function: set_expand
     set_expand = gen_setter "expand",
 
-    --[[! Function: set_homogenous ]]
+    --! Function: set_homogenous
     set_homogenous = gen_setter "homogenous"
 }, M.H_Box.type)
 
---[[! Struct: Grid
-    A grid of elements. It has two properties, columns (specifies the number
-    of columns the table will have at max) and again padding (which has the
-    same meaning as in boxes). As you append, the children will automatically
+--[[!
+    A grid of elements. As you append, the children will automatically
     position themselves according to the max number of columns.
+
+    Properties:
+        - columns - the number of columns the grid will have at maximum,
+          defaulting to 0.
+        - padding - the padding between grid items (both horizontal and
+          vertical).
+
+    See also:
+        - $H_Box
 ]]
 M.Grid = register_class("Grid", Widget, {
     __ctor = function(self, kwargs)
@@ -309,15 +312,19 @@ M.Grid = register_class("Grid", Widget, {
         end)
     end,
 
-    --[[! Function: set_padding ]]
+    --! Function: set_padding
     set_padding = gen_setter "padding",
 
-    --[[! Function: set_columns ]]
+    --! Function: set_columns
     set_columns = gen_setter "columns"
 })
 
---[[! Struct: Clipper
-    Clips the children inside of it by clip_w and clip_h.
+--[[!
+    Clips the children inside of it by its properties.
+
+    Properties:
+        - clip_w - the width of the clipper.
+        - clip_h - the height of the clipper.
 ]]
 M.Clipper = register_class("Clipper", Widget, {
     __ctor = function(self, kwargs)
@@ -359,9 +366,9 @@ M.Clipper = register_class("Clipper", Widget, {
         end
     end,
 
-    --[[! Function: set_clip_w ]]
+    --! Function: set_clip_w
     set_clip_w = gen_setter "clip_w",
 
-    --[[! Function: set_clip_h ]]
+    --! Function: set_clip_h
     set_clip_h = gen_setter "clip_h"
 })
