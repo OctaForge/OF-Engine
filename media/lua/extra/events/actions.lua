@@ -15,14 +15,14 @@ local table2 = require("core.lua.table")
 local M = {}
 
 local Action = actions.Action
-local Action_System = actions.Action_System
+local Action_Queue = actions.Action_Queue
 
 local ipairs = ipairs
 local filter = table2.filter
 
 --[[! Object: actions.Action_Parallel
     A container action that executes its actions in parallel. It's not
-    cancelable. It works by parallel by having an internal action system
+    cancelable. It works by parallel by having an internal action queue
     for each action.
 ]]
 M.Action_Parallel = Action:clone {
@@ -35,7 +35,7 @@ M.Action_Parallel = Action:clone {
     ]]
     __ctor = function(self, actions, kwargs)
         Action.__ctor(self, kwargs)
-        self.action_systems = {}
+        self.action_queues = {}
         self.other_actions  = actions
     end,
 
@@ -50,38 +50,38 @@ M.Action_Parallel = Action:clone {
     end,
 
     --[[!
-        Runs all the action systems saved inside, filtering out those that
+        Runs all the action queues saved inside, filtering out those that
         are already done. Returns the same as {{$actions.Action}} with the
         addition of another condition (the number of systems must be
         zero - the action won't finish until everything is done).
     ]]
     __run = function(self, millis)
-        local systems = filter(self.action_systems, function(i, actsys)
-            actsys:run(millis)
-            return #actsys:get() != 0
+        local systems = filter(self.action_queues, function(i, actqueue)
+            actqueue:run(millis)
+            return #actqueue.actions != 0
         end)
-        self.action_systems = systems
+        self.action_queues = systems
         return Action.__run(self, millis) and #systems == 0
     end,
 
     --[[!
-        Clears up the remaining action systems.
+        Clears up the remaining action queues.
     ]]
     __finish = function(self)
-        for i, actsys in ipairs(self.action_systems) do
-            actsys:clear()
+        for i, actqueue in ipairs(self.action_queues) do
+            actqueue:clear()
         end
     end,
 
     --[[!
-        Given an action, creates an action system and queues the given action
-        inside, then appends the system into the action system table inside.
+        Given an action, creates an action queue and queues the given action
+        inside, then appends the system into the action queue table inside.
     ]]
     add_action = function(self, action)
-        local actsys = Action_System(self.actor)
-        actsys:queue(action)
-        local systems = self.action_systems
-        systems[#systems + 1] = actsys
+        local actqueue = Action_Queue(self.actor)
+        actqueue:enqueue(action)
+        local systems = self.action_queues
+        systems[#systems + 1] = actqueue
     end
 }
 

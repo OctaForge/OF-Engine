@@ -758,7 +758,7 @@ Entity = table2.Object:clone {
     end,
 
     --[[! Function: setup
-        Performs the entity setup. Creates the action system, caching tables,
+        Performs the entity setup. Creates the action queue, caching tables,
         de-deactivates the entity, triggers svar setup and locks.
     ]]
     setup = function(self)
@@ -766,7 +766,7 @@ Entity = table2.Object:clone {
 
         if self.setup_complete then return end
 
-        self.action_system = actions.Action_System(self)
+        self.action_queue = actions.Action_Queue(self)
         -- for caching
         self.svar_values, self.svar_value_timestamps = {}, {}
         -- no longer deactivated
@@ -777,7 +777,7 @@ Entity = table2.Object:clone {
     end,
 
     --[[! Function: __deactivate
-        The default entity deactivator. Clears the action system, unregisters
+        The default entity deactivator. Clears the action queue, unregisters
         the entity and makes it deactivated. On the server, it also sends a
         message to all clients to do the same.
     ]]
@@ -795,25 +795,25 @@ Entity = table2.Object:clone {
     --[[! Function: __run
         Called per-frame unless <__per_frame> is false. All inherited classes
         must call this in their own overrides. The argument specifies how
-        long to manage the action system (how much will the counters change
+        long to manage the action queue (how much will the counters change
         internally), specified in milliseconds.
     ]]
     __run = function(self, millis)
-        self.action_system:run(millis)
+        self.action_queue:run(millis)
     end,
 
-    --[[! Function: queue_action
+    --[[! Function: enqueue_action
         Queues an action into the entity's queue.
     ]]
-    queue_action = function(self, act)
-        self.action_system:queue(act)
+    enqueue_action = function(self, act)
+        self.action_queue:enqueue(act)
     end,
 
     --[[! Function: clear_actions
-        Clears the entity's action system.
+        Clears the entity's action queue.
     ]]
     clear_actions = function(self)
-        self.action_system:clear()
+        self.action_queue:clear()
     end,
 
     --[[! Function: add_tag

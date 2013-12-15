@@ -1,16 +1,11 @@
---[[! File: lua/core/events/signal.lua
+--[[!<
+    Lua signal system. Allows connecting and further emitting signals.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Lua signal system. Allows connecting and further emitting signals.
+    License:
+        See COPYING.txt.
 ]]
 
 local log = require("core.logger")
@@ -22,32 +17,38 @@ local rawget, rawset = rawget, rawset
 local clamp = math2.clamp
 local tfind = table2.find
 
+--! Module: signal
 local M = {}
 
---[[! Function: connect
+--[[!
     Connects a signal to a slot inside a table. The callback has to be a
     function.
 
-    You can later use <emit> to call the connected slot(s), passing
+    You can later use $emit to call the connected slot(s), passing
     arguments to it (them).
-
-    This function returns the id for the slot. You can later use this id
-    to disconnect the slot. It also returns the number of currently
-    connected slots.
 
     Slots take at least one argument, the table they're connected to.
     They're called in the order they were conected. Any further arguments
-    passed to <emit> are also passed to any connected slot.
+    passed to $emit are also passed to any connected slot.
 
-    (start code)
-        Foo = {}
-        signal.connect(Foo, "blah", function(self, a, b, c)
-            echo(a)
-            echo(b)
-            echo(c)
-        end)
-        signal.emit(Foo, "blah", 5, 10, 15)
-    (end)
+    ```
+    Foo = {}
+    signal.connect(Foo, "blah", function(self, a, b, c)
+        echo(a)
+        echo(b)
+        echo(c)
+    end)
+    signal.emit(Foo, "blah", 5, 10, 15)
+    ```
+
+    Arguments:
+        - self - the table we're connecting on.
+        - name - the signal name.
+        - callback - the callback.
+
+    Returns:
+        The id for the slot, you can later use that to $disconnect the
+        slot, it also returns the number of currently connected slots.
 ]]
 M.connect = function(self, name, callback)
     if type(callback) != "function" then
@@ -73,12 +74,19 @@ M.connect = function(self, name, callback)
     return id, clist.slotcount
 end
 
---[[! Function: disconnect
-    Disconnects a slot. You have to provide the signal name and the slot
-    id. If you don't know the id, you can provide the slot itself.
-    If the id is not provided, it disconnects all slots associated with
-    the given signal. Returns the number of connected slots after the
-    disconnect (or nil if nothing could be disconnected).
+--[[!
+    Disconnects a slot (or slots).
+
+    Arguments:
+        - self - the table we're disconnecting on.
+        - name - the signal name.
+        - id - either the id (see $connect) or the slot itself (what you
+          connected). If not provided, it disconnects all slots associated
+          with the signal.
+
+    Returns:
+        The number of connected slots after disconnect (or nil if nothing
+        could be disconnected).
 ]]
 M.disconnect = function(self, name, id)
     local clistn = "_sig_conn_" .. name
@@ -103,11 +111,15 @@ M.disconnect = function(self, name, id)
     end
 end
 
---[[! Function: emit
+--[[!
     Emits a signal, calling all the slots associated with it in the
     order of connection, passing all extra arguments to it (besides
-    the "self" argument). Returns the number of called slots.
-    External as "signal_emit".
+    the "self" argument). External as "signal_emit".
+
+    Arguments:
+        - self - the table we're emitting on.
+        - name - the signal name.
+        - ... - any further arguments passed to each callback.
 ]]
 M.emit = function(self, name, ...)
     local clistn = "_sig_conn_" .. name

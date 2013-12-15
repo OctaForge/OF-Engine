@@ -1,21 +1,15 @@
---[[! File: lua/core/events/actions.lua
+--[[!<
+    Actions are basically objects that are stored in an action queue.
+    You can queue new actions and those will run for example for a period
+    of time, depending on the action type. They're used to for example queue
+    a player animation for a few seconds, or to trigger a world event at some
+    specific point. They have numerous uses generally.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Actions are basically classes that are stored in an action queue
-        (called action system). You can queue new actions and those will
-        run for example for a period of time, depending on the action type.
-        They're used to for example queue a player animation for a few seconds,
-        or to trigger a world event at some specific point. They have numerous
-        uses generally.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -27,47 +21,49 @@ local WARNING = logging.WARNING
 local table2 = require("core.lua.table")
 local filter = table2.filter
 
---[[! Class: Action
+local createtable = capi.table_create
+
+--! Module: actions
+local M = {}
+
+--[[!
     Provides the base action object other actions can inherit from.
     Takes care of the basic action infrastructure. It doesn't really
     do anything, though.
+
+    Fields:
+        - begun - true when the action has begun.
+        - finished - true when the action has finished.
+        - actor - the entity this belongs to (set automatically by the action
+          queue).
+        - queue - the action queue this belongs to (set automatically by
+          the action queue).
+        - start_time - the action start time (current time around action
+          initialization).
+        - millis_left - how many milliseconds the action takes, can be
+          initialized in constructor kwargs.
+        - animation - if specified, the action will change the actor's
+          animation during its execution, it's an array of strings in format
+          "animname,dir".
+        - animation_flags - the animation flags, a set of bit flags.
+        - allow_multiple - a boolean specifying whether multiple actions
+          of the same type can be present in one action queue, defaults to
+          true (unless it's specified directly in the base object we're
+          constructing from, then it defaults to that).
+        - cancelable - a boolean specifying whether the action can be
+          canceled, same defaults as above apply.
+        - parallel_to - the action this one is parallel to, if specified,
+          then this action will mirror the other action's finish status
+          (i.e. it runs as long as the other action does, and it finishes
+          as soon as the other action does). Useful for e.g. animations that
+          run in parallel.
 ]]
-local Action = table2.Object:clone {
+M.Action = table2.Object:clone {
     name = "Action",
 
-    --[[! Constructor: __ctor
+    --[[!
         Constructs the action. Takes kwargs, which is an optional argument
         supplying modifiers for the action. It's an associative array.
-
-        Actions also have the "actor" member specifying the entity they
-        belong to. That is set while pushing the action to a queue.
-        The respective action system automatically takes care
-        of actor.
-
-        Kwargs:
-            millis_left - Specifies how many milliseconds are left before the
-            action ends. By default it's 0.
-
-            animation - If specified, the action will change the actor's
-            animation during its execution. An array of strings in format
-            "animname,dir".
-            animation_flags - See above, for animation flags.
-
-            allow_multiple - A boolean value specifying whether multiple
-            actions of the same type can be present in one action system.
-            Defaults to true. If explicitly set to false for the instance,
-            it won't be possible to queue it into an action system already
-            containing an action of the same type.
-
-            cancelable - A boolean value specifying whether the action
-            can be cancelled during its execution. Defaults to true.
-
-            parallel_to - Specifies an action this one is parallel to.
-            If specified, then this action will mirror the other action's
-            finish status (i.e. it runs as long as the other action does,
-            and it finishes as soon as the other action does). Useful for
-            i.e. animations that run in parallel.
-            
     ]]
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
@@ -98,7 +94,7 @@ local Action = table2.Object:clone {
             (self.parallel_to == nil) and kwargs.parallel_to or false
     end,
 
-    --[[! Function: __tostring
+    --[[!
         Overloaded so that tostring(x) where x is an action simply
         returns the name ("Action" for the base action).
     ]]
@@ -109,7 +105,7 @@ local Action = table2.Object:clone {
         self:__start()
     end,
 
-    --[[! Function: __start
+    --[[!
         By default, empty. Overload in your inherited actions as you need.
         Called when the action flow starts.
     ]]
@@ -165,17 +161,17 @@ local Action = table2.Object:clone {
         end
     end,
 
-    --[[! Function: __run
+    --[[!
         Override this in inherited actions. By default does almost nothing,
         but the "almost nothing" is important, so make sure to call this
         always at the end of your custom "__run", like this:
 
-        (start code)
-            Foo.__run = function(self, millis)
-                echo("run")
-                return self.__proto.__proto.__run(self, millis)
-            end
-        (end)
+        ```
+        Foo.__run = function(self, millis)
+            echo("run")
+            return self.__proto.__proto.__run(self, millis)
+        end
+        ```
 
         Basically, the "almost nothing" it does is that it decrements
         the "millis_left" property appropriately and returns true if
@@ -185,8 +181,9 @@ local Action = table2.Object:clone {
         Of course, there are exceptions like the never ending action
         where you don't want to run this, but generally you should.
 
-        The "millis" argument specifies the amount of time to simulate
-        this iteration in milliseconds.
+        Arguments:
+            - millis - the amount of time in milliseconds to simulate this
+              iteration.
     ]]
     __run = function(self, millis)
         self.millis_left = self.millis_left - millis
@@ -195,6 +192,8 @@ local Action = table2.Object:clone {
 
     priv_finish = function(self)
         self.finished = true
+        local sys = self.queue
+        if sys then sys._changed = true end
 
         if self.animation and self.last_animation != nil then
             local lanim = self.last_animation
@@ -213,15 +212,15 @@ local Action = table2.Object:clone {
         self:__finish()
     end,
 
-    --[[! Function: __finish
+    --[[!
         By default, empty. Overload in your inherited actions as you need.
         Called when the action finishes.
     ]]
     __finish = function(self)
     end,
 
-    --[[! Function: cancel
-        Forces the action finish. Effective only when the "cancelable"
+    --[[!
+        Forces the action to finish. Effective only when the "cancelable"
         property of the action is true (it is by default).
     ]]
     cancel = function(self)
@@ -230,14 +229,15 @@ local Action = table2.Object:clone {
         end
     end
 }
+local Action = M.Action
 
---[[! Class: Infinite_Action
+--[[!
     An action that never ends.
 ]]
-local Infinite_Action = Action:clone {
+M.Infinite_Action = Action:clone {
     name = "Infinite_Action",
 
-    --[[! Function: __run
+    --[[!
         One of the exceptional cases of the "__run" method; it always returns
         false because it doesn't manipulate "millis_left".
     ]]
@@ -246,16 +246,18 @@ local Infinite_Action = Action:clone {
     end
 }
 
---[[! Class: Targeted_Action
+--[[!
     An action with an entity as a "target" member.
 ]]
-local Targeted_Action = Action:clone {
+M.Targeted_Action = Action:clone {
     name = "Targeted_Action",
 
-    --[[! Constructor: __ctor
-        Constructs this action. Compared to a standard action, it takes
-        an additional argument, "target". That specifies an entity that
-        will be later available as "target" class member.
+    --[[!
+        Constructs this action. See {{$Action.__ctor}}.
+
+        Arguments:
+            - target - an entity this action is targeted at.
+            - kwargs - the standard kwargs.
     ]]
     __ctor = function(self, target, kwargs)
         Action.__ctor(self, kwargs)
@@ -263,95 +265,103 @@ local Targeted_Action = Action:clone {
     end
 }
 
---[[! Class: Single_Action
-    An action that runs a single command and ends. Useful for i.e. queuing
-    a command for next run of an entity.
-]]
-local Single_Action = Action:clone {
-    name = "Single_Action",
+--[[!
+    An action queue.
 
-    --[[! Constructor: __ctor
-        Constructs this action. Compared to a standard action, it takes
-        an additional argument, "command", which is a function taking
-        this action as a first argument. It is then available as
-        "command" class member.
+    Fields:
+        - parent - the parent entity of this action queue.
+        - actions - an array of actions.
+]]
+M.Action_Queue = table2.Object:clone {
+    name = "Action_Queue",
+
+    --[[!
+        Initializes the queue.
+
+        Arguments:
+            - parent - the parent entity.
     ]]
-    __ctor = function(self, command, kwargs)
-        Action.__ctor(self, kwargs)
-        self.command = command
+    __ctor = function(self, parent)
+        self.parent   = parent
+        self.actions  = createtable(4)
+        self._changed = false
     end,
 
-    --[[! Function: __run
-        Another of the exceptional cases. This runs the command initialized
-        in the constructor and returns true (so that it finishes).
+    compact = function(self)
+        local acts = self.actions
+        local olen, down = #acts, 0
+        for i = 1, olen do
+            local act = acts[i]
+            if act.finished then down += 1
+            elseif down > 0 then acts[i - down] = act end
+        end
+        if down == olen then
+            acts = {}
+            self.actions = {}
+            return acts
+        end
+        for i = #acts, #acts - down + 1, -1 do acts[i] = nil end
+        return acts
+    end,
+
+    --[[!
+        Runs the action queue. If there are any actions left from the
+        previous frame that are finished, the action array is first
+        compacted. Then this runs the first unfinished action in the
+        list (providing the millis as an argument).
     ]]
-    __run = function(self, millis)
-        self.command(self)
-        return true
+    run = function(self, millis)
+        local acts
+        if self._changed then
+            acts = self:compact()
+            self._changed = false
+        else
+            acts = self.actions
+        end
+        if #acts > 0 then
+            local act = acts[1]
+            debug then log(INFO, table.concat { "Executing ", act.name })
+
+            -- keep the removal for the next frame
+            act:priv_run(millis)
+        end
+    end,
+
+    --[[!
+        Enqueues an action. If multiple actions of the same type are not
+        enabled on the action we're queuing, this first checks the existing
+        queue and if it finds an action of the same type, it warns and returns.
+        Otherwise it enqueues the action.
+    ]]
+    enqueue = function(self, act)
+        local acts = self.actions
+        if not act.allow_multiple then
+            local str = act.name
+            for i = 1, #acts do
+                if str == acts[i].name then
+                    log(WARNING, table.concat { "Action of the type ",
+                        str, " is already present in the queue, ",
+                        "multiplication explicitly disabled for the ",
+                        "action." })
+                    return
+                end
+            end
+        end
+
+        acts[#acts + 1] = act
+        act.actor = self.parent
+        act.queue = self
+    end,
+
+    --[[!
+        Clears the action queue (cancels every action in the queue).
+    ]]
+    clear = function(self)
+        local acts = self.actions
+        for i = 1, #acts do
+            acts[i]:cancel()
+        end
     end
 }
 
-local Action_System_MT = {
-    __index = {
-        get = function(sys)
-            return sys.actions
-        end,
-
-        run = function(sys, millis)
-            local acts = filter(sys.actions,
-                function(i, v) return not v.finished end)
-            sys.actions = acts
-
-            if #acts > 0 then
-                local act = acts[1]
-                debug then log(INFO, table.concat { "Executing ", act.name })
-
-                -- keep the removal for the next frame
-                act:priv_run(millis)
-            end
-        end,
-
-        queue = function(sys, act)
-            local acts = sys.actions
-            if not act.allow_multiple then
-                local str = act.name
-                for i = 1, #acts do
-                    if str == acts[i].name then
-                        log(WARNING, table.concat { "Action of the type ",
-                            str, " is already present in the system, ",
-                            "multiplication explicitly disabled for the ",
-                            "action." })
-                        return
-                    end
-                end
-            end
-
-            acts[#acts + 1] = act
-            act.actor = sys.parent
-        end,
-
-        clear = function(sys)
-            local acts = sys.actions
-            for i = 1, #acts do
-                acts[i]:cancel()
-            end
-        end
-    }
-}
-
-local createtable = capi.table_create
-
-local Action_System = function(parent)
-    return setmetatable({
-        parent  = parent,
-        actions = createtable(4)
-    }, Action_System_MT)
-end
-
-return {
-    Action          = Action,
-    Infinite_Action = Infinite_Action,
-    Targeted_Action = Targeted_Action,
-    Single_Action   = Single_Action,
-    Action_System   = Action_System
-}
+return M

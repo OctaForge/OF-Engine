@@ -1,16 +1,11 @@
---[[! File: lua/core/events/world.lua
+--[[!<
+    Registers several world events. Override these as you wish.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Registers several world events. Override these as you wish.
+    License:
+        See COPYING.txt.
 ]]
 
 local edit = require("core.engine.edit")
@@ -23,13 +18,18 @@ local emit = signal.emit
 --[[! Function: physics_off_map
     Called when a client falls off the map (keeps calling until the client
     changes its state).
+
+    Arguments:
+        - ent - the client entity.
 ]]
 set_external("physics_off_map", function(ent) end)
 
 --[[! Function: physics_in_deadly
-    Called when a client is in a deadly material (lava or death). Takes
-    the entity and the deadly material id. For material ids, see the
-    <edit> module.
+    Called when a client is in a deadly material (lava or death).
+
+    Arguments:
+        - ent - the client entity.
+        - mat - the material id (see $edit).
 ]]
 set_external("physics_in_deadly", function(ent, mat) end)
 
@@ -42,16 +42,19 @@ local FLAG_ABOVEGROUND = 1 << 4
 local FLAG_BELOWGROUND = 2 << 4
 
 --[[! Function: physics_state_change
-    Called when a client changes their physical state. Takes the client
-    entity, the "local" argument (false for multiplayer prediction), the
-    "floorlevel" argument (specifying a delta from the previous state, 1
-    when the client went up, 0 when stayed the same, -1 when down), the
-    "liquidlevel" argument and the material id (for example when jumping
-    out of/into water, it's water material id). For material ids, see the
-    <edit> module.
+    Called when a client changes their physical state.
 
     By default this activates physics trigger state var on the client
-    (see <Character>).
+    (see {{$ents.Character}}).
+
+    Arguments:
+        - ent - the client entity.
+        - loc - fale for multiplayer prediction.
+        - flevel - the floor level specifying a delta from the previous state,
+          1 when the client went up, 0 when stayed the same, -1 when down.
+        - llevel - the liquid level.
+        - mat - the material id (fore xample when jumping out of/into water,
+          it's the water material id, see $edit).
 ]]
 set_external("physics_state_change", function(ent, loc, flevel, llevel, mat)
     if SERVER then return end

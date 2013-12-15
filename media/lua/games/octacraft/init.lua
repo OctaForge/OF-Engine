@@ -100,7 +100,7 @@ inputev.set_event("click", function(btn, down, x, y, z, ent, cx, cy)
         mact.button = btn
         mact.player = pl
         gm.mouse_action = mact
-        gm:queue_action(mact)
+        gm:enqueue_action(mact)
     else
         gm.mouse_action:cancel()
         gm.mouse_action = nil

@@ -1,16 +1,11 @@
---[[! File: lua/core/events/world.lua
+--[[!<
+    Registers several input events.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Registers several input events.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -35,8 +30,11 @@ local event_map
 if not SERVER then
 --[[! Function: input_yaw
     An external triggered on yaw change. By default it sets the "yawing"
-    property on the player to "dir" (the first argument). Also takes a
-    second argument, "down", specifying whether the key is down.
+    property on the player to "dir".
+
+    Arguments:
+        - dir - the yawing direction.
+        - down - whether the key was pressed.
 ]]
 set_ext("input_yaw", function(dir, down)
     if not ents then ents = require("core.entities.ents") end
@@ -45,8 +43,11 @@ end)
 
 --[[! Function: input_pitch
     An external triggered on pitch change. By default it sets the "pitching"
-    property on the player to "dir" (the first argument). Also takes a
-    second argument, "down", specifying whether the key is down.
+    property on the player to "dir".
+
+    Arguments:
+        - dir - the pitching direction.
+        - down - whether the key was pressed.
 ]]
 set_ext("input_pitch", function(dir, down)
     if not ents then ents = require("core.entities.ents") end
@@ -55,8 +56,11 @@ end)
 
 --[[! Function: input_move
     An external triggered during movement. By default it sets the "move"
-    property on the player to "dir" (the first argument). Also takes a
-    second argument, "down", specifying whether the key is down.
+    property on the player to "dir".
+
+    Arguments:
+        - dir - the move direction.
+        - down - whether the key was pressed.
 ]]
 set_ext("input_move", function(dir, down)
     if not ents then ents = require("core.entities.ents") end
@@ -65,8 +69,11 @@ end)
 
 --[[! Function: input_strafe
     An external triggered during strafing. By default it sets the "strafe"
-    property on the player to "dir" (the first argument). Also takes a
-    second argument, "down", specifying whether the key is down.
+    property on the player to "dir".
+
+    Arguments:
+        - dir - the strafe direction.
+        - down - whether the key was pressed.
 ]]
 set_ext("input_strafe", function(dir, down)
     if not ents then ents = require("core.entities.ents") end
@@ -75,7 +82,10 @@ end)
 
 --[[! Function: input_jump
     An external triggered when the player jumps. By default calls the method
-    "jump" on the player, passing "down" (the only argument) as an argument.
+    "jump" on the player, passing "down" as an argument.
+
+    Arguments:
+        - down - whether the key was pressed.
 ]]
 set_ext("input_jump", function(down)
     if not ents then ents = require("core.entities.ents") end
@@ -84,7 +94,10 @@ end)
 
 --[[! Function: input_crouch
     An external triggered when the player crouches. By default calls the method
-    "crouch" on the player, passing "down" (the only argument) as an argument.
+    "crouch" on the player, passing "down" as an argument.
+
+    Arguments:
+        - down - whether the key was pressed.
 ]]
 set_ext("input_crouch", function(down)
     if not ents then ents = require("core.entities.ents") end
@@ -92,14 +105,17 @@ set_ext("input_crouch", function(down)
 end)
 
 --[[! Function: input_click
-    Clientside click input handler. It takes the mouse button number, a
-    boolean that is true when the button was down, the x, y, z position
-    of the click, an entity that was clicked (if any, otherwise nil)
-    and the position of the cursor on the screen during the click (values
-    from 0 to 1). It calls another external, input_click_client, which
-    you can override. If that external doesn't return a value that evaluates
-    to true, it sends a click request to the server.
-    Do not override this.
+    Clientside click input handler. It calls another external,
+    $input_click_client, which you can override. If that external doesn't
+    return a value that evaluates to true, it sends a click request to the
+    server. Do not override this.
+
+    Arguments:
+        - btn - the clicked button.
+        - down - whether it was pressed.
+        - x, y, z - the position of the click in the world.
+        - ent - the entity that was clicked (if any, nil otherwise).
+        - cx, cy - the cursor position.
 ]]
 set_ext("input_click", function(btn, down, x, y, z, ent, cx, cy)
     if not get_ext("input_click_client")(btn, down, x, y, z, ent, cx, cy) then
@@ -110,9 +126,9 @@ end)
 --[[! Function: input_click_client
     Clientside external for user-defined clicks. By default it tries to call
     the click method on the given entity assuming the entity exists and it
-    has a method of that name. It takes the same arguments as above and
-    by default returns false, which means the above external will trigger
-    a server request.
+    has a method of that name. It takes the same arguments as $input_click
+    and by default returns false, which means the above external will
+    trigger a server request.
 ]]
 set_ext("input_click_client", function(btn, down, x, y, z, ent, cx, cy)
     if ent and ent.click then
@@ -137,9 +153,10 @@ end
 if SERVER then
 --[[! Function: input_click_server
     Serverside external for user-defined clicks. Called assuming
-    input_click_client returns a value that evaluates to false. By default
+    $input_click_client returns a value that evaluates to false. By default
     it tries to call the same method on the entity as above but on the server.
-    Return values of this one are ignored.
+    Return values of this one are ignored. The arguments are the same, but
+    the cursor position is not there (obviously).
 ]]
 set_ext("input_click_server", function(btn, dn, x, y, z, ent)
     if ent and ent.click then
@@ -152,23 +169,27 @@ event_map = {
 }
 end
 
+--! Module: input
 local M = {}
 local type, assert = type, assert
 
---[[! Function: set_event
-    Sets an event callback. Takes the event name and the callback. If the
-    callback is not provided, the default callback is used (as before
-    overriding).
+--[[!
+    Sets an event callback. If the callback is not provided, the default
+    callback is used (as before overriding).
 
     On the client you can use "yaw", "pitch", "move", "strafe", "jump",
     "crouch", "click" and "mouse_move". On the server you can use "click".
     They map to the input_EVENTNAME events above. For "click", this maps
-    to "input_click_client" and "input_click_server" on the client and
+    to $input_click_client and $input_click_server on the client and
     server respectively.
 
     This function returns false when no or invalid name is provided,
     true when callback is nil and the previous callback in other cases
     (nil if the callback doesn't exist - mouse_move).
+
+    Arguments:
+        - en - the event name.
+        - fun - the callback.
 ]]
 M.set_event = function(en, fun)
     if not en then
@@ -197,10 +218,9 @@ M.set_event = function(en, fun)
     return ret
 end
 
---[[! Function: get_event
-    Gets an event callback. For naming, see above. Returns nil if the name
-    is invalid or the callback doesn't exist (mouse_move) and the callback
-    otherwise.
+--[[!
+    Gets an event callback. For naming, see $set_event. Returns nil if the name
+    is invalid or the callback doesn't exist and the callback otherwise.
 ]]
 M.get_event = function(en)
     if not en then

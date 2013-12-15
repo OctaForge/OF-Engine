@@ -146,10 +146,10 @@ M.player_plugin = {
             - server_orig - true if the change originated on the server.
     ]]
     health_changed = SERVER and function(self, health, diff, server_orig)
-        if health <= 0 then self:queue_action(Action_Death()) end
+        if health <= 0 then self:enqueue_action(Action_Death()) end
     end or function(self, health, diff, server_orig)
         if diff <= -5 and health > 0 then
-            self:queue_action(Action_Pain())
+            self:enqueue_action(Action_Pain())
         end
     end,
 
