@@ -1,16 +1,11 @@
---[[! File: lua/core/gui/core_primitives.lua
+--[[!<
+    Various primitive widgets (rectangles, text and others).
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Primitive widgets - rectangles, images, labels...
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -49,6 +44,7 @@ local sincos360 = geom.sin_cos_360
 
 local ffi_new = ffi.new
 
+--! Module: core
 local M = require("core.gui.core")
 
 -- consts
@@ -93,17 +89,17 @@ local gen_color_setter = function(name)
     end
 end
 
---[[! Struct: Color_Filler
-    Derived from <Filler>. Represents a regular rectangle. Has properties
-    color (see <Color>) and solid, which is a boolean value specifying whether
-    the rectangle is solid - that is, if it's just a regular color fill or
-    whether it modulates the color of the thing underneath. The color property
-    defaults to <Color>(), solid defaults to true. The color propety can be
-    initialized either with a number (in format 0xAARRGGBB or 0xRRGGBB) or
-    an instance of <Color> - that goes for both for kwargs initialization and
-    <set_color>.
+--[[!
+    Derived from $Filler. Represents a regular rectangle.
+
+    Properties:
+        - color - color of the rectangle, defaults to $Color() - via kwargs
+          you can initialize it either via $Color constructor or a hex number
+          in format 0xRRGGBB or 0xAARRGGBB.
+        - solid - if true, it's a solid color rectangle (default), otherwise
+          it modulates the color its background.
 ]]
-local Color_Filler = register_class("Color_Filler", Filler, {
+M.Color_Filler = register_class("Color_Filler", Filler, {
     __ctor = function(self, kwargs)
         kwargs       = kwargs or {}
         self.solid = kwargs.solid != false and true or false
@@ -137,19 +133,21 @@ local Color_Filler = register_class("Color_Filler", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_solid ]]
+    --! Function: set_solid
     set_solid = gen_setter "solid",
 
-    --[[! Function: set_color ]]
+    --! Function: set_color
     set_color = gen_color_setter "color"
 })
-M.Color_Filler = Color_Filler
+local Color_Filler = M.Color_Filler
 
---[[! Struct: Gradient
-    Derived from <Color_Filler>. It's a gradient, not solid color fill
-    like <Color_Filler>. The other color is represented as "color2". The
-    property "horizontal" makes the gradient horizontal (default is vertical).
-    The other properties are inherited from <Color_Filler>.
+--[[!
+    Derived from $Color_Filler.
+
+    Properties:
+        - horizontal - by default the gradient is vertical, if this is true
+          it's horizontal.
+        - color2 - the other color of the gradient.
 ]]
 M.Gradient = register_class("Gradient", Color_Filler, {
     __ctor = function(self, kwargs)
@@ -192,16 +190,18 @@ M.Gradient = register_class("Gradient", Color_Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_horizontal ]]
+    --! Function: set_horizontal
     set_horizontal = gen_setter "horizontal",
 
-    --[[! Function: set_color2 ]]
+    --! Function: set_color2
     set_color2 = gen_color_setter "color2"
 })
 
---[[! Struct: Line
-    Derived from <Filler>. Represents a line. Has property color (see
-    <Color_Filler>).
+--[[!
+    Derived from $Filler. Represents a line.
+
+    Properties:
+        - color - see $Color_Filler.
 ]]
 M.Line = register_class("Line", Filler, {
     __ctor = function(self, kwargs)
@@ -226,13 +226,15 @@ M.Line = register_class("Line", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_color ]]
+    --! Function: set_color
     set_color = gen_color_setter "color"
 })
 
---[[! Struct: Outline
-    Derived from <Filler>. Represents an outline. Has property color (see
-    <Color_Filler>).
+--[[!
+    Derived from $Filler. Represents an outline.
+
+    Properties:
+        - color - see $Color_Filler.
 ]]
 M.Outline = register_class("Outline", Filler, {
     __ctor = function(self, kwargs)
@@ -259,7 +261,7 @@ M.Outline = register_class("Outline", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_color ]]
+    --! Function: set_color
     set_color = gen_color_setter "color"
 })
 
@@ -282,21 +284,21 @@ local check_alpha_mask = function(tex, x, y)
 end
 
 --[[! Struct: Image
-    Derived from Filler. Represents a basic image with basic stretching.
-    Has two kwargs properties - file (the filename), alt_file (alternative
-    filename assuming file fails) - those are not saved in the widget and
-    three other properties - min_filter, mag_filter (see GL_TEXTURE_MIN_FILTER
-    and GL_TEXTURE_MAG_FILTER as well as the filters later in this module),
-    color (see <Color_Filler>).
-
-    Negative min_w and min_h values are in pixels.
-    They can also be functions, in which case their return value is used
-    (the widget is passed as an argument for the call).
+    Derived from $Filler. Represents a basic image with basic stretching.
 
     Images are basically containers for texture objects. Texture objects
     are low-level and documented elsewhere.
+
+    The file and alt_file properties are not saved in the image.
+
+    Properties:
+        - file - filename of the texture.
+        - alt_file - alternative filename assuming file fails.
+        - min_filter, mag_filter - see GL_TEXTURE_MIN_FILTER and
+          GL_TEXTURE_MAG_FILTER as well as filters later in this module.
+        - color - see $Color_Filler.
 ]]
-local Image = register_class("Image", Filler, {
+M.Image = register_class("Image", Filler, {
     __ctor = function(self, kwargs)
         kwargs    = kwargs or {}
         local tex = kwargs.file and texture_load(kwargs.file)
@@ -315,14 +317,12 @@ local Image = register_class("Image", Filler, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    --[[! Function: get_tex
-        Returns the loaded texture filename.
-    ]]
+    --!  Returns the loaded texture filename.
     get_tex = function(self)
         return self.texture.name
     end,
 
-    --[[! Function: set_tex
+    --[[!
         Given the filename and an alternative filename, this reloads the
         texture this holds. If the file argument is nil/false/none, this
         disables the texture (sets the texture to notexture).
@@ -339,9 +339,9 @@ local Image = register_class("Image", Filler, {
         self.texture = tex
     end,
 
-    --[[! Function: target
+    --[[!
         Images are normally targetable (they're not only where they're
-        completely transparent).
+        completely transparent). See also {{$Widget.target}}.
     ]]
     target = function(self, cx, cy)
         local o = Widget.target(self, cx, cy)
@@ -407,16 +407,16 @@ local Image = register_class("Image", Filler, {
         self.h = max(self.h, min_h)
     end,
 
-    --[[! Function: set_min_filter ]]
+    --! Function: set_min_filter
     set_min_filter = gen_setter "min_filter",
 
-    --[[! Function: set_mag_filter ]]
+    --! Function: set_mag_filter
     set_min_filter = gen_setter "mag_filter",
 
-    --[[! Function: set_color ]]
+    --! Function: set_color
     set_color = gen_color_setter "color"
 })
-M.Image = Image
+local Image = M.Image
 
 local get_border_size = function(tex, size, vert)
     if size >= 0 then
@@ -425,12 +425,13 @@ local get_border_size = function(tex, size, vert)
     return abs(n) / (vert and tex.ys or tex.xs)
 end
 
---[[! Struct: Cropped_Image
-    Deriving from <Image>, this represents a cropped image. It has four
-    additional properties, crop_x (the x crop position, defaults to 0),
-    crop_y, crop_w (the crop width, defaults to 1), crop_h. With these
-    default settings it does not crop. Negative values represent the
-    sizes in pixels.
+--[[!
+    Deriving from $Image, this represents a cropped image. Negative crop
+    values are in pixels.
+
+    Properties:
+        - crop_x, crop_y - the crop x and y position, they default to 0.
+        - crop_w, crop_h - the crop dimensions, they default to 1.
 ]]
 M.Cropped_Image = register_class("Cropped_Image", Image, {
     __ctor = function(self, kwargs)
@@ -485,28 +486,28 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_crop_x ]]
+    --!
     set_crop_x = function(self, cx)
         cx = get_border_size(self.texture, cx, false)
         self.crop_x = cx
         emit(self, "crop_x_changed", cx)
     end,
 
-    --[[! Function: set_crop_y ]]
+    --!
     set_crop_y = function(self, cy)
         cy = get_border_size(self.texture, cy, true)
         self.crop_y = cy
         emit(self, "crop_y_changed", cy)
     end,
 
-    --[[! Function: set_crop_w ]]
+    --!
     set_crop_w = function(self, cw)
         cw = get_border_size(self.texture, cw, false)
         self.crop_w = cw
         emit(self, "crop_w_changed", cx)
     end,
 
-    --[[! Function: set_crop_w ]]
+    --!
     set_crop_h = function(self, ch)
         ch = get_border_size(self.texture, ch, true)
         self.crop_h = ch
@@ -514,8 +515,8 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
     end
 })
 
---[[! Struct: Stretched_Image
-    Derives from <Image> and represents a stretched image type. Regular
+--[[!
+    Derives from $Image and represents a stretched image type. Regular
     images stretch as well, but this uses better quality (and more expensive)
     computations instead of basic stretching.
 ]]
@@ -614,14 +615,16 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
     end
 })
 
---[[! Struct: Bordered_Image
-    Derives from <Image>. Turns the provided image into a border or a frame.
-    There are two properties, screen_border - this one determines the border
-    size and tex_border - this one determines a texture offset from which
-    to create the borders. Use a <Spacer> with screen_border as padding to
-    offset the children away from the border. Without any children, this
-    renders only the corners. Negative tex_border represents the value in
-    pixels.
+--[[!
+    Derives from $Image. Turns the provided image into a border or a frame.
+    Use a <Spacer> with screen_border as padding to offset the children away
+    from the border. Without any children, this renders only the corners.
+    Negative tex_border represents the value in pixels.
+
+    Properties:
+        - screen_border - determines the border size.
+        - tex_border - determines a texture offset from which to create the
+          borders.
 ]]
 M.Bordered_Image = register_class("Bordered_Image", Image, {
     __ctor = function(self, kwargs)
@@ -714,22 +717,24 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_tex_border ]]
+    --!
     set_tex_border = function(self, tb)
         tb = get_border_size(self.texture, tb)
         self.tex_border = tb
         emit(self, "tex_border_changed", tb)
     end,
 
-    --[[! Function: set_screen_border ]]
+    --! Function: set_screen_border
     set_screen_border = gen_setter "screen_border"
 })
 
---[[! Struct: Tiled_Image
-    Derived from Image. Represents a tiled image with the tile_w and tile_h
-    properties specifying the tile width and height (they both default to 1).
+--[[!
+    Derived from $Image. Represents a tiled image.
+
+    Properties:
+        - tile_w, tile_h - tile width and height, they default to 1.
 ]]
-local Tiled_Image = register_class("Tiled_Image", Image, {
+M.Tiled_Image = register_class("Tiled_Image", Image, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -802,15 +807,15 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_tile_w ]]
+    --! Function: set_tile_w
     set_tile_w = gen_setter "tile_w",
 
-    --[[! Function: set_tile_h ]]
+    --! Function: set_tile_h
     set_tile_h = gen_setter "tile_h"
 })
 
---[[! Struct: Thumbnail
-    Derived from Image. Represents a thumbnail. You can't supply an alt
+--[[!
+    Derived from $Image. Represents a thumbnail. You can't supply an alt
     image via kwargs, you can supply the other stuff. A thumbnail's default
     texture is notexture and the delay between loads of different
     thumbnails is defined using the "thumbtime" engine variable which
@@ -840,25 +845,25 @@ M.Thumbnail = register_class("Thumbnail", Image, {
         end
     end,
 
-    --[[! Function: target
-        Unlike the regular target in <Image>, this force-loads the thumbnail
-        texture and then targets.
+    --[[!
+        Unlike the regular target in $Image, this force-loads the thumbnail
+        texture and then targets. See also {{$Image.target}}.
     ]]
     target = function(self, cx, cy)
         self:load(true)
         return Image.target(self, cx, cy)
     end,
 
-    --[[! Function: draw
+    --[[!
         Before drawing, this tries to load the thumbnail, but without forcing
-        it like <target>.
+        it like $target.
     ]]
     draw = function(self, sx, sy)
         self:load()
         return Image.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_fallback
+    --[[!
         Loads the fallback texture. If the thumbnail is already loaded,
         doesn't do anything.
     ]]
@@ -868,11 +873,13 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     end
 })
 
---[[! Struct: Slot_Viewer
-    Derived from <Filler>. Represents a texture slot thumbnail, for example
-    in a texture selector. Has one property, index, which is the texture slot
-    index (starting with 0). Regular thumbnail rules and delays are followed
-    like in <Thumbnail>.
+--[[!
+    Derived from $Filler. Represents a texture slot thumbnail, for example
+    in a texture selector. Regular thumbnail rules and delays are followed
+    like in $Thumbnail. See also $VSlot_Viewer.
+
+    Properties:
+        - index - the texture slot index (starting with 0, defaults to 0).
 ]]
 M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     __ctor = function(self, kwargs)
@@ -895,9 +902,8 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     set_index = gen_setter "index"
 })
 
---[[! Class: VSlot_Viewer
-    Similar to <Slot_Viewer>, but previews vslots. It has the same
-    properties, however the "index" property is used for vslot lookup.
+--[[!
+    Similar to (and derives from) $Slot_Viewer, but previews vslots.
 ]]
 M.VSlot_Viewer = register_class("VSlot_Viewer", M.Slot_Viewer, {
     draw = function(self, sx, sy)
@@ -908,14 +914,15 @@ M.VSlot_Viewer = register_class("VSlot_Viewer", M.Slot_Viewer, {
 
 local animctl = model.anim_control
 
---[[! Struct: Model_Viewer
-    Derived from <Filler>. Represents a 3D model preview. Has several
-    properties, the most important being model, which is the model path
-    (identical to mapmodel paths). Another property is anim, which is
-    a model animation represented as an array of integers (see the model
-    and animation API) - you only provide a primary and a optionally a
-    secondary animation, the widget takes care of looping. The third
-    property is attachments. It's an array of tag-attachment pairs.
+--[[!
+    Derived from $Filler. Represents a 3D model preview.
+
+    Properties:
+        - model - the model name (like mapmodel paths).
+        - anim - an array of integers (see model and animation API, you only
+          provide primary and secondary anim and the widget takes care of
+          looping them).
+        - attachments - an array of tag-attachment pairs.
 ]]
 M.Model_Viewer = register_class("Model_Viewer", Filler, {
     __ctor = function(self, kwargs)
@@ -964,20 +971,17 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         return Widget.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_model ]]
+    --! Function: set_model
     set_model = gen_setter "model",
 
-    --[[! Function: set_anim ]]
+    --! Function: set_anim
     set_anim = gen_setter "anim",
 
-    --[[! Function: set_attachments ]]
+    --! Function: set_attachments
     set_attachments = gen_setter "attachments"
 })
 
---[[! Struct: Console
-    A full console widget that derives from <Filler>. Its bounds are determined
-    by filler's min_w and min_h.
-]]
+--! A full console widget that derives from $Filler.
 M.Console = register_class("Console", Filler, {
     draw_scale = function(self)
         return get_text_scale(true) / text_font_get_h()
@@ -999,12 +1003,15 @@ local SOLID    = 0
 local OUTLINE  = 1
 local MODULATE = 2
 
---[[! Struct: Shape
-    Represents a generic shape that derives from <Filler>. It has one extra
-    property called "style" which can have values Shape.SOLID, Shape.OUTLINE
-    and Shape.MODULATE. It also has the color property.
+--[[!
+    Represents a generic shape that derives from $Filler.
+
+    Properties:
+        - style - can be Shape.SOLID, Shape.OUTLINE, Shape.MODULATE (defaults
+          to solid).
+        - color - see $Color_Filler.
 ]]
-local Shape = register_class("Shape", Filler, {
+M.Shape = register_class("Shape", Filler, {
     SOLID    = SOLID,
     OUTLINE  = OUTLINE,
     MODULATE = MODULATE,
@@ -1016,18 +1023,20 @@ local Shape = register_class("Shape", Filler, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    --[[! Function: set_style ]]
+    --! Function: set_style
     set_style = gen_setter "style",
 
-    --[[! Function: set_color ]]
+    --! Function: set_color
     set_color = gen_color_setter "color"
 })
-M.Shape = Shape
+local Shape = M.Shape
 
---[[! Struct: Triangle
-    A regular triangle that derives from <Shape>. Features an extra property,
-    "angle". Its width and height is determined by min_w and min_h (same
-    conventions as on <Filler> apply).
+--[[!
+    A regular triangle that derives from $Shape.  Its width and height is
+    determined by min_w and min_h (same conventions as on $Filler apply).
+
+    Properties:
+        - angle - the triangle rotation (in degrees).
 ]]
 M.Triangle = register_class("Triangle", Shape, {
     __ctor = function(self, kwargs)
@@ -1093,17 +1102,18 @@ M.Triangle = register_class("Triangle", Shape, {
         return Shape.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_angle ]]
+    --! Function: set_angle
     set_angle = gen_setter "angle"
 })
 
---[[! Struct: Circle
-    A regular circle that derives from <Shape>. Its radius is determined
-    by min_w and min_h (same conventions as on <Filler> apply when it comes
+--[[!
+    A regular circle that derives from $Shape. Its radius is determined
+    by min_w and min_h (same conventions as on $Filler apply when it comes
     to widget bounds and the smaller one is used to determine radius).
-    It features one additional property called "sides". It defaults to 15
-    and specifies the number of sides the circle will have (as it's not a
-    perfect circle).
+
+    Properties:
+        - sides - defaults to 15, specifying the number of sides this circle
+          will have (it's not a perfect circle, but rather a polygon).
 ]]
 M.Circle = register_class("Circle", Shape, {
     __ctor = function(self, kwargs)
@@ -1148,18 +1158,21 @@ M.Circle = register_class("Circle", Shape, {
         return Shape.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_sides ]]
+    --! Function: set_sides
     set_sides = gen_setter "sides"
 })
 
---[[! Struct: Label
-    A regular label. Has several properties - text (the label, a string),
-    font (the font, a string, optional), scale (the scale, defaults to 1,
-    which is the base scale), wrap (text wrapping, defaults to -1 - not
-    wrapped, otherwise a size), color (see <Color_Filler>).
+--[[!
+    A regular label. If the scale is negative, it uses console text scaling
+    multiplier instead of regular one.
 
-    If the scale is negative, it uses console text scaling multiplier instead
-    of regular one.
+    Properties:
+         - text - the label.
+         - font - the font (optional).
+         - scale - the font scale, defaults to 1.
+         - wrap - whether to wrap the text, defaults to -1 - not wrapping,
+           otherwise it's a number of characters.
+         - color - see $Color_Filler.
 ]]
 M.Label = register_class("Label", Widget, {
     __ctor = function(self, kwargs)
@@ -1174,8 +1187,8 @@ M.Label = register_class("Label", Widget, {
         return Widget.__ctor(self, kwargs)
     end,
 
-    --[[! Function: target
-        Labels are always targetable.
+    --[[!
+        Labels are always targetable. See also {{$Widget.target}}.
     ]]
     target = function(self, cx, cy)
         return Widget.target(self, cx, cy) or self
@@ -1228,24 +1241,24 @@ M.Label = register_class("Label", Widget, {
         text_font_pop()
     end,
 
-    --[[! Function: set_text ]]
+    --! Function: set_text
     set_text = gen_setter "text",
 
-    --[[! Function: set_font ]]
+    --! Function: set_font
     set_font = gen_setter "font",
 
-    --[[! Function: set_scale ]]
+    --! Function: set_scale
     set_scale = gen_setter "scale",
 
-    --[[! Function: set_wrap ]]
+    --! Function: set_wrap
     set_wrap = gen_setter "wrap",
 
-    --[[! Function: set_color ]]
+    --! Function: set_color
     set_color = gen_color_setter "color"
 })
 
---[[! Struct: Eval_Label
-    See <Label>. Instead of the property "text", there is "func", which is
+--[[!
+    See $Label. Instead of the property "text", there is "func", which is
     a callable value that returns the text to display.
 ]]
 M.Eval_Label = register_class("Eval_Label", Widget, {
@@ -1260,9 +1273,6 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
         return Widget.__ctor(self, kwargs)
     end,
 
-    --[[! Function: target
-        Labels are always targetable.
-    ]]
     target = function(self, cx, cy)
         return Widget.target(self, cx, cy) or self
     end,
@@ -1316,16 +1326,16 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
         self.h = max(self.h, h * k)
     end,
 
-    --[[! Function: set_func ]]
+    --! Function: set_func
     set_func = gen_setter "func",
 
-    --[[! Function: set_scale ]]
+    --! Function: set_scale
     set_scale = gen_setter "scale",
 
-    --[[! Function: set_wrap ]]
+    --! Function: set_wrap
     set_wrap = gen_setter "wrap",
 
-    --[[! Function: set_color ]]
+    --! Function: set_color
     set_color = gen_color_setter "color"
 })
 

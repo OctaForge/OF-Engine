@@ -1,16 +1,11 @@
---[[! File: lua/core/gui/core_sliders.lua
+--[[!<
+    Slider widgets.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Sliders for the OF GUI.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -26,6 +21,7 @@ local clamp = math2.clamp
 local round = math2.round
 local emit  = signal.emit
 
+--! Module: core
 local M = require("core.gui.core")
 
 -- consts
@@ -51,18 +47,21 @@ local adjust = M.adjust
 
 local Slider_Button
 
---[[! Struct: Slider
-    Implements a base class for either horizontal or vertical slider. Has
-    several properties - min_value (the minimal slider value), max_value,
-    value (the current one), arrow_size (sliders can arrow-scroll like
-    scrollbars), step_size (determines the size of one slider step,
-    defaults to 1), step_time (the time to perform a step during
-    arrow scroll).
+--[[!
+    Implements a base class for either horizontal or vertical slider.
 
     Changes of "value" performed internally emit the "value_changed" signal
     with the new value as an argument.
+
+    Properties:
+        - min_valie, max_value, value - the minimum, maximum and current
+          values of the slider.
+        - arrow_size - sliders can arrow-scroll like scrollbars.
+        - step_size - the size of one slider step, defaults to 1.
+        - step_time - the time to perform a step during arrow scroll,
+          defaults to 100.
 ]]
-local Slider = register_class("Slider", Widget, {
+M.Slider = register_class("Slider", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_value = kwargs.min_value or 0
@@ -79,9 +78,7 @@ local Slider = register_class("Slider", Widget, {
         return Widget.__ctor(self, kwargs)
     end,
 
-    --[[! Function: do_step
-        Jumps by n steps on the slider.
-    ]]
+    --! Jumps by n steps on the slider.
     do_step = function(self, n)
         local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
@@ -94,9 +91,7 @@ local Slider = register_class("Slider", Widget, {
         emit(self, "value_changed", val)
     end,
 
-    --[[! Function: set_step
-        Sets the nth step.
-    ]]
+    --! Sets the nth step.
     set_step = function(self, n)
         local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
@@ -108,7 +103,7 @@ local Slider = register_class("Slider", Widget, {
         emit(self, "value_changed", val)
     end,
 
-    --[[! Function: key_hover
+    --[[!
         You can change the slider value using the up, left keys (goes back
         by one step), down, right keys (goes forward by one step) and mouse
         scroll (goes forward/back by 3 steps).
@@ -134,7 +129,7 @@ local Slider = register_class("Slider", Widget, {
         return 0
     end,
 
-    --[[! Function: hover
+    --[[!
         The slider can be hovered on unless some of its children want the
         hover instead.
     ]]
@@ -143,7 +138,7 @@ local Slider = register_class("Slider", Widget, {
                      (self:target(cx, cy) and self)
     end,
 
-    --[[! Function: hover
+    --[[!
         The slider can be clicked on unless some of its children want the
         click instead.
     ]]
@@ -154,7 +149,7 @@ local Slider = register_class("Slider", Widget, {
 
     scroll_to = function(self, cx, cy) end,
 
-    --[[! Function: clicked
+    --[[!
         Clicking inside the slider area but outside the arrow area jumps
         in the slider.
     ]]
@@ -195,25 +190,25 @@ local Slider = register_class("Slider", Widget, {
 
     move_button = function(self, o, fromx, fromy, tox, toy) end,
 
-    --[[! Function: set_min_value ]]
+    --! Function: set_min_value
     set_min_value = gen_setter "min_value",
 
-    --[[! Function: set_max_value ]]
+    --! Function: set_max_value
     set_max_value = gen_setter "max_value",
 
-    --[[! Function: set_value ]]
+    --! Function: set_value
     set_value = gen_setter "value",
 
-    --[[! Function: set_step_size ]]
+    --! Function: set_step_size
     set_step_size = gen_setter "step_size",
 
-    --[[! Function: set_step_time ]]
+    --! Function: set_step_time
     set_step_time = gen_setter "step_time",
 
-    --[[! Function: set_arrow_size ]]
+    --! Function: set_arrow_size
     set_arrow_size = gen_setter "arrow_size"
 })
-M.Slider = Slider
+local Slider = M.Slider
 
 local clicked_states = {
     [key.MOUSELEFT   ] = "clicked_left",
@@ -223,15 +218,15 @@ local clicked_states = {
     [key.MOUSEFORWARD] = "clicked_forward"
 }
 
---[[! Struct: Slider_Button
+--[[!
     A slider button you can put inside a slider and drag. The slider
     will adjust the button width (in case of horizontal slider) and height
     (in case of vertical slider) depending on the slider size and values.
 
-    A slider button has five states, "default", "hovering", "clicked_left",
-    "clicked_right" and "clicked_middle".
+    A slider button has seven states, "default", "hovering", "clicked_left",
+    "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
 ]]
-Slider_Button = register_class("Slider_Button", Widget, {
+M.Slider_Button = register_class("Slider_Button", Widget, {
     __ctor = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
@@ -281,15 +276,15 @@ Slider_Button = register_class("Slider_Button", Widget, {
         end
     end
 })
-M.Slider_Button = Slider_Button
+Slider_Button = M.Slider_Button
 
---[[! Struct: H_Slider
-    A specialization of <Slider>. Has the "orient" member set to
-    the HORIZONTAL field of <orient>. Overloads some of the Slider
+--[[!
+    A specialization of $Slider. Has the "orient" member set to
+    the HORIZONTAL field of $orient. Overloads some of the Slider
     methods specifically for horizontal direction.
 
-    Has nine states - "default", "(left|right)_hovering",
-    "(left|right)_clicked_(left|right|middle)".
+    Has thirteen states - "default", "(left|right)_hovering",
+    "(left|right)_clicked_(left|right|middle|back|forward)".
 ]]
 M.H_Slider = register_class("H_Slider", Slider, {
     orient = orient.HORIZONTAL,
@@ -354,9 +349,9 @@ M.H_Slider = register_class("H_Slider", Slider, {
     end
 }, Slider.type)
 
---[[! Struct: V_Slider
-    See <H_Slider> above. Has different states, "default", "(up|down)_hovering"
-    and  "(up|down)_clicked_(left|right|middle)".
+--[[!
+    See $H_Slider above. Has different states, "default", "(up|down)_hovering"
+    and  "(up|down)_clicked_(left|right|middle|back|forward)".
 ]]
 M.V_Slider = register_class("V_Slider", Slider, {
     choose_state = function(self)

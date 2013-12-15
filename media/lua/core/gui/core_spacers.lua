@@ -1,17 +1,12 @@
---[[! File: lua/core/gui/core_spacers.lua
+--[[!<
+    Spacers are widgets that have something to do with space management -
+    that is, actual spacers, offsetters, fillers etc.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Spacers are widgets that have something to do with space management -
-        that is, actual spacers, offsetters, fillers etc.
+    License:
+        See COPYING.txt.
 ]]
 
 local max  = math.max
@@ -19,6 +14,7 @@ local min  = math.min
 local abs  = math.abs
 local huge = math.huge
 
+--! Module: core
 local M = require("core.gui.core")
 
 local capi = require("capi")
@@ -45,9 +41,11 @@ local get_projection = M.get_projection
 -- text scale
 local get_text_scale = M.get_text_scale
 
---[[! Struct: Spacer
-    A spacer will give a widget a horizontal padding (pad_h) and a vertical
-    padding (pad_v). There is no other meaning to it.
+--[[!
+    A spacer will give a widget some padding.
+
+    Properties:
+        - pad_h, pad_v - the padding values, both default to 0.
 ]]
 M.Spacer = register_class("Spacer", Widget, {
     __ctor = function(self, kwargs)
@@ -81,14 +79,14 @@ M.Spacer = register_class("Spacer", Widget, {
             self.h - 2 * pv)
     end,
 
-    --[[! Function: set_pad_h ]]
+    --! Function: set_pad_h
     set_pad_h = gen_setter "pad_h",
 
-    --[[! Function: set_pad_v ]]
+    --! Function: set_pad_v
     set_pad_v = gen_setter "pad_v"
 })
 
---[[! Struct: Filler
+--[[!
     A filler will fill at least min_w space horizontally and min_h space
     vertically. It's invisible.
 
@@ -99,11 +97,13 @@ M.Spacer = register_class("Spacer", Widget, {
     Infinite values of min_w and min_h are treated as full width or full
     height.
 
-    There is also the clip_children boolean property defaulting to false.
-    When true, it'll clip children inside - that's useful for, say, embedded
-    floating windows.
+    Properties:
+        - min_w, min_h - minimal dimensions of the filler.
+        - clip_children - when true, it clips children inside (if they have
+          parts outside of the filler, they won't be viisble), defaults
+          to false (useful for MDI windows for example).
 ]]
-local Filler = register_class("Filler", Widget, {
+M.Filler = register_class("Filler", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_w = kwargs.min_w or 0
@@ -133,9 +133,9 @@ local Filler = register_class("Filler", Widget, {
         self.h = max(self.h, min_h)
     end,
 
-    --[[! Function: target
+    --[[!
         Makes sure the filler can take input. Makes it useful for, say, button
-        surfaces (when they should be invisible).
+        surfaces (when they should be invisible). See also {{$Widget.target}}.
     ]]
     target = function(self, cx, cy)
         return Widget.target(self, cx, cy) or self
@@ -151,25 +151,28 @@ local Filler = register_class("Filler", Widget, {
         end
     end,
 
-    --[[! Function: set_min_w ]]
+    --! Function: set_min_w
     set_min_w = gen_setter "min_w",
 
-    --[[! Function: set_min_h ]]
+    --! Function: set_min_h
     set_min_h = gen_setter "min_h",
 
-    --[[! Function: set_clip_children ]]
+    --! Function: set_clip_children
     set_clip_children = gen_setter "clip_children"
 })
-M.Filler = Filler
+local Filler = M.Filler
 
---[[! Struct: Text_Filler
-    Like <Filler>, but its min_w and min_h work in terms of text units.
-    By default uses regular text scale factor, but if the "console_text"
-    property is true, it'll use console text scale.
+--[[!
+    Like $Filler, but its min_w and min_h work in terms of text units.
+    By default uses regular text scale factor.
 
     Note that this widget doesn't support extra min_w and min_h values
-    like <Filler> (such as -1) - it operates strictly in terms of text units.
-    Function based bounds are supported.
+    like $Filler - it operates strictly in terms of text units. Function
+    based bounds are supported.
+
+    Properties:
+        - console_text - if true (false by default), this will use console
+          scaling factor rather than regular text scaling factor.
 ]]
 M.Text_Filler = register_class("Text_Filler", Filler, {
     __ctor = function(self, kwargs)
@@ -192,8 +195,11 @@ M.Text_Filler = register_class("Text_Filler", Filler, {
     end,
 })
 
---[[! Struct: Offsetter
-    Offsets a widget by offset_h and offset_v properties.
+--[[!
+    Offsets a widget.
+
+    Properties:
+        - offset_h, offset_v - the offset values.
 ]]
 M.Offsetter = register_class("Offsetter", Widget, {
     __ctor = function(self, kwargs)
@@ -223,9 +229,9 @@ M.Offsetter = register_class("Offsetter", Widget, {
         Widget.adjust_children(self, oh, ov, self.w - oh, self.h - ov)
     end,
 
-    --[[! Function: set_offset_h ]]
+    --! Function: set_offset_h
     set_offset_h = gen_setter "offset_h",
 
-    --[[! Function: set_offset_v ]]
+    --! Function: set_offset_v
     set_offset_v = gen_setter "offset_v"
 })

@@ -1,18 +1,3 @@
---[[! File: lua/core/gui/default.lua
-
-    About: Author
-        q66 <quaker66@gmail.com>
-
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Some default menus.
-]]
-
 local capi = require("capi")
 local edit = require("core.engine.edit")
 local input = require("core.engine.input")

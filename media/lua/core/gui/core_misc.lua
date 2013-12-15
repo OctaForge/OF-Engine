@@ -1,16 +1,11 @@
---[[! File: lua/core/gui/core_misc.lua
+--[[!<
+    Misc widgets.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Misc widgets.
+    License:
+        See COPYING.txt.
 ]]
 
 local table2 = require("core.lua.table")
@@ -19,6 +14,7 @@ local find = table2.find
 local tremove = table.remove
 local type = type
 
+--! Module: core
 local M = require("core.gui.core")
 local world = M.get_world()
 
@@ -45,11 +41,14 @@ local key = M.key
 
 local ALIGN_MASK = adjust.ALIGN_MASK
 
---[[! Struct: State
+--[[!
     Represents a state as a first class object. Has an arbitrary number of
-    states and the current state is determined by the "state" property (if
-    it's a string, it's used directly, otherwise it's called with this widget
-    as its argument and the return value is then used).
+    states.
+
+    Properties:
+        - state - the current state of the widget, can be either a string or
+          a callable value that returns the state when called with self as
+          an argument.
 ]]
 M.State = register_class("State", Widget, {
     __ctor = function(self, kwargs)
@@ -64,11 +63,11 @@ M.State = register_class("State", Widget, {
         return (type(state) == "string") and state or state(self)
     end,
 
-    --[[! Function: set_state ]]
+    --! Function: set_state
     set_state = gen_setter "state"
 })
 
---[[! Struct: Mover
+--[[!
     A widget using which you can move windows. The window must have the
     floating property set to true or it won't move. It doesn't have any
     appearance or states, those are defined by its children.
@@ -77,8 +76,8 @@ M.State = register_class("State", Widget, {
     moving the current window to the top. That means you don't have to care
     about re-stacking them.
 
-    It has one property called "window" which is a reference to the window
-    this mover belongs to. Without it, it won't work.
+    Properties:
+        - window - a reference to the window this belongs to.
 ]]
 M.Mover = register_class("Mover", Widget, {
     __ctor = function(self, kwargs)
@@ -145,6 +144,6 @@ M.Mover = register_class("Mover", Widget, {
         Widget.holding(self, cx, cy, code)
     end,
 
-    --[[! Function: set_window ]]
+    --! Function: set_window
     set_window = gen_setter "window"
 })

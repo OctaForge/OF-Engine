@@ -233,7 +233,8 @@ end
         - scale - the text scale, defaults to 1.
         - line_wrap - if true, the text will wrap when it has reached editor
           width.
-        - text_color - the text color (0xFFFFFFFF).
+        - text_color - the text color (0xFFFFFFFF). See $Color_Filler for
+          how you can initialize colors.
         - sel_color - the selection color (ARGB: 0xC07B68EE).
         - wrap_color - the wrap symbol color (ARGB: 0xFF3C3C3C).
         - pad_l, pad_r - text left and right padding (both 0 by default).
