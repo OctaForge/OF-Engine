@@ -43,16 +43,16 @@ local is_array = M.is_array
     Implements the standard functional "map" higher order function. Returns
     a new table, leaving the old one alone.
 
-    Arguments:
-        - t - the table.
-        - f - the function.
-
     ```
     -- table of numbers
     foo = { bar = 5, baz = 10 }
     -- table of strings
     bar = map(foo, |v| tostring(v))
     ```
+
+    Arguments:
+        - t - the table.
+        - f - the function.
 ]]
 M.map = function(t, f)
     local r = {}
@@ -96,12 +96,7 @@ end
     Returns a new table, leaving the old one alone. The given function
     takes two arguments, the index and the value.
 
-    Arguments:
-        - t - the table.
-        - f - the function.
-
-    See also:
-        - $filter_map
+    For in-place equivalent, see $compact.
 
     ```
     -- a table to filter
@@ -115,6 +110,13 @@ end
         end
     end)
     ```
+
+    Arguments:
+        - t - the table.
+        - f - the function.
+
+    See also:
+        - $filter_map
 ]]
 M.filter = function(t, f)
     local r = {}
@@ -146,6 +148,33 @@ M.filter_map = function(t, f)
 end
 
 --[[!
+    Compacts an array - simply discards items that do not meet the condition
+    (which is given by the function). If the function returns true (given the
+    index and the value), the item stays; otherwise goes away (and items after
+    that are shifted down). Returns the array. Works in-place on the array,
+    unlike $filter.
+
+    ```
+    local t = { 5, 10, 15, 10, 20, 10, 25 }
+    -- the compacted table is { 5, 15, 20, 25 }
+    compact(t, |v| v != 10)
+    ```
+
+    Arguments:
+        - t - the table.
+        - f - the conditional function.
+]]
+M.compact = function(t, f)
+    local olen, comp = #t, 0
+    for i = 1, olen do
+        local v = t[i]
+        if not f(i, v) then comp += 1 elseif comp > 0 then t[i - comp] = v end
+    end
+    for i = olen, olen - comp + 1, -1 do t[i] = nil end
+    return t
+end
+
+--[[!
     Finds the key of an element in the given table.
 
     Arguments:
@@ -159,6 +188,11 @@ end
 --[[!
     Implements the standard functional right fold higher order function.
 
+    ```
+        local a = { 5, 10, 15, 20 }
+        assert(foldr(a, function(a, b) return a + b end) == 50)
+    ```
+
     Arguments:
         - t - the table.
         - fun - the function.
@@ -166,11 +200,6 @@ end
 
     See also:
         - $foldl
-
-    ```
-        local a = { 5, 10, 15, 20 }
-        assert(foldr(a, function(a, b) return a + b end) == 50)
-    ```
 ]]
 M.foldr = function(t, fun, z)
     local idx = 1

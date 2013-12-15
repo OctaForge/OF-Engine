@@ -19,7 +19,7 @@ local INFO = logging.INFO
 local WARNING = logging.WARNING
 
 local table2 = require("core.lua.table")
-local filter = table2.filter
+local compact = table2.compact
 
 local createtable = capi.table_create
 
@@ -287,23 +287,6 @@ M.Action_Queue = table2.Object:clone {
         self._changed = false
     end,
 
-    compact = function(self)
-        local acts = self.actions
-        local olen, down = #acts, 0
-        for i = 1, olen do
-            local act = acts[i]
-            if act.finished then down += 1
-            elseif down > 0 then acts[i - down] = act end
-        end
-        if down == olen then
-            acts = {}
-            self.actions = {}
-            return acts
-        end
-        for i = #acts, #acts - down + 1, -1 do acts[i] = nil end
-        return acts
-    end,
-
     --[[!
         Runs the action queue. If there are any actions left from the
         previous frame that are finished, the action array is first
@@ -311,12 +294,10 @@ M.Action_Queue = table2.Object:clone {
         list (providing the millis as an argument).
     ]]
     run = function(self, millis)
-        local acts
+        local acts = self.actions
         if self._changed then
-            acts = self:compact()
+            compact(acts, |i, v| not v.finished)
             self._changed = false
-        else
-            acts = self.actions
         end
         if #acts > 0 then
             local act = acts[1]

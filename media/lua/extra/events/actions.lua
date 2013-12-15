@@ -18,7 +18,7 @@ local Action = actions.Action
 local Action_Queue = actions.Action_Queue
 
 local ipairs = ipairs
-local filter = table2.filter
+local compact = table2.compact
 
 --[[! Object: actions.Action_Parallel
     A container action that executes its actions in parallel. It's not
@@ -56,11 +56,10 @@ M.Action_Parallel = Action:clone {
         zero - the action won't finish until everything is done).
     ]]
     __run = function(self, millis)
-        local systems = filter(self.action_queues, function(i, actqueue)
+        local systems = compact(self.action_queues, function(i, actqueue)
             actqueue:run(millis)
             return #actqueue.actions != 0
         end)
-        self.action_queues = systems
         return Action.__run(self, millis) and #systems == 0
     end,
 
