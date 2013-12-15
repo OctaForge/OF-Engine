@@ -1,18 +1,13 @@
---[[! File: lua/core/entities/ents.lua
+--[[!<
+    Implements basic entity handling, that is, storage, entity class management
+    and the basic entity classes; the other extended entity types have their
+    own modules.
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Implements basic entity handling, that is, storage, entity class
-        management and the basic entity classes; the other extended
-        entity types have their own modules.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -44,6 +39,7 @@ local pairs = pairs
 local assert = assert
 local tonumber, tostring = tonumber, tostring
 
+--! Module: ents
 local M = {}
 
 local Entity
@@ -54,36 +50,23 @@ local player_entity
 -- client and server
 local highest_uid = 1
 
---[[! Variable: storage
-    A table of entities. Stores all the entities for the currently loaded
-    map; cleared out when not needed anymore. Entities here are stored by
-    their uid (unique id - the key). Private to the module, not directly
-    accessible.
-]]
+-- basic storage for entities, keys are unique ids and values are entities
 local storage = {}
 
---[[! Variable: storage_by_class
-    Ditto. Used mainly for caching. Keys are entity class names and values
-    are arrays of entities (instances of the given class). Again, private.
-]]
+-- for caching, keys are class names and values are arrays of entities
 local storage_by_class = {}
 
 -- for Sauer entity import; used as intermediate storage during map loading,
 -- cleared out immediately afterwards
 local storage_sauer = {}
 
---[[! Variable: class_storage
-    A table of entity classes. Stores all currently registered classes.
-    Private to the module. Represents a name-class map.
-]]
+-- stores all registered entity classes
 local class_storage = {}
 
---[[! Variable: names_to_ids
-    A private associative table used to store mapping of state variable
-    names and the associated ids, which are used in network transfers.
-    Numbers take less space than names, they take less time to transfer.
-
-    Structure:
+--[[
+    Stores mapping of state variable names and the associated ids, which
+    are used for network transfers; numbers take less space than names,
+    so they take less time to transfer.
     {
         entity_class_name1 = {
             state_variable_name1 = id1,
@@ -96,21 +79,17 @@ local class_storage = {}
 ]]
 local names_to_ids = {}
 
---[[! Variable: ids_to_names
-    Similar to <names_to_ids>. It maps things the other way, from ids
-    to names. Used to translate the ids back to names.
-]]
+-- see above, used for back-translation
 local ids_to_names = {}
 
 local is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
 
---[[! Function: gen_network_data
+--[[!
     Generates the required network data for an entity class. You pass the
     entity class name and an array of state variable names to generate network
-    data for. This function fills the appropriate fields in <names_to_ids>
-    and <ids_to_names>.
+    data for.
 ]]
-local gen_network_data = function(cn, names)
+M.gen_network_data = function(cn, names)
     debug then log(DEBUG, "ents.generate_network_data: " .. cn)
     sort(names)
 
@@ -122,11 +101,11 @@ local gen_network_data = function(cn, names)
 
     names_to_ids[cn], ids_to_names[cn] = ntoi, iton
 end
-M.gen_network_data = gen_network_data
+local gen_network_data = M.gen_network_data
 
---[[! Function: clear_network_data
+--[[!
     If an entity class name is provided, clears the network data generated
-    by <gen_network_data> for the entity class. Otherwise clears it all.
+    by $gen_network_data for the entity class. Otherwise clears it all.
 ]]
 M.clear_network_data = function(cn)
     if cn == nil then
@@ -205,38 +184,42 @@ local register_plugins = function(cl, plugins, name)
     return ret
 end
 
---[[! Function: register_class
+--[[!
     Registers an entity class. The registered class is always a clone of
-    the given class. You can access the original class via the __raw_class
-    member of the new clone. You can access the parent of __raw_class using
-    __parent_class. This also generates protocol data for its properties and
-    registers these. Allows an optional second argument, "plugins" - it's an
-    array of plugins to inject into the entity class (before the actual
-    registration, so that the plugins can provide their own state variables).
+    the given class. You can access the original class via the `__raw_class`
+    member of the new clone. You can access the parent of `__raw_class` using
+    `__parent_class`. This also generates protocol data for its properties and
+    registers these.
+
+    Allows to provide an array of plugins to inject into the entity class
+    (before the actual registration, so that the plugins can provide their own
+    state variables).
 
     Because this is a special clone, do NOT derive from it. Instead derive
-    from __raw_class. This function doesn't return anything for a reason.
-    If you really need this special clone, use <get_class>.
+    from `__raw_class`. This function doesn't return anything for a reason.
+    If you really need this special clone, use $get_class.
 
     A plugin is pretty much an associative table of things to inject. It
     can contain slots - those are functions or callable values with keys
-    "__init_svars", "__activate", "__deactivate", "__run", "__render" - slots
+    `__init_svars`, `__activate`, `__deactivate`, `__run`, `__render` - slots
     never override elements of the same name in the original class, instead
     they're called after it in the order of plugin array. Then it can contain
     any non-slot member, those are overriden without checking (the last plugin
     takes priority). Plugins can provide their own state variables via the
-    "__properties" table, like entities. The "__properties" tables of plugins
+    `__properties` table, like entities. The `__properties` tables of plugins
     are all merged together and the last plugin takes priority.
 
-    The original plugin array is accessible from the clone as __plugins.
-
-    There can be also an optional third argument, which specifies the entity
-    class name. If not given, it's taken from the given class - its "name"
-    member. Assuming no plugins are given, the name can also be the second
-    argument in place of plugins.
+    The original plugin array is accessible from the clone as `__plugins`.
 
     Note that plugins can NOT change the entity class name. If any such
     element is found, it's ignored.
+
+    Arguments:
+        - cl - the entity class.
+        - plugins - an optional array of plugins (or name).
+        - name - optional entity class name, if not provided the `name` field
+          of the entity class name is used; it can also be the second argument
+          if you are not providing plugins.
 ]]
 M.register_class = function(cl, plugins, name)
     if not name then
@@ -308,33 +291,34 @@ M.register_class = function(cl, plugins, name)
     end
 end
 
---[[! Function: get_class
+--[[!
     Returns the entity class with the given name. If it doesn't exist,
-    logs an error message and returns nil. External as "entity_class_get".
+    logs an error message and returns nil. External as `entity_class_get`.
 
-    Use with caution! See <register_class> for the possible dangers of
+    Use with caution! See $register_class for the possible dangers of
     using this. It's still useful sometimes, so it's in the API.
 ]]
-local get_class = function(cn)
+M.get_class = function(cn)
     local  t = class_storage[cn]
     if not t then
         log(ERROR, "ents.get_class: invalid class " .. cn)
     end
     return t
 end
-M.get_class = get_class
+local get_class = M.get_class
 set_external("entity_class_get", get_class)
 
---[[! Function: get_all_classes
-    Returns <class_storage>. Use with care.
+--[[!
+    Returns the internal entity class storage (name->class mapping), use
+    with care.
 ]]
 M.get_all_classes = function()
     return class_storage
 end
 
---[[! Function: get
-    Retrieves an entity, given its uuid. If not found, nil. External as
-    "entity_get".
+--[[!
+    Retrieves an entity, given its unique id. If not found, nil. External as
+    `entity_get`.
 ]]
 M.get = function(uid)
     local r = storage[uid]
@@ -347,17 +331,15 @@ M.get = function(uid)
 end
 set_external("entity_get", M.get)
 
---[[! Function: get_all
-    Returns the whole storage. Use with care. External as "entities_get_all".
+--[[!
+    Returns the whole storage. Use with care. External as `entities_get_all`.
 ]]
 M.get_all = function()
     return storage
 end
 set_external("entities_get_all", M.get_all)
 
---[[! Function: get_all_by_tag
-    Returns an array of entities with a common tag.
-]]
+--! Returns an array of entities with a common tag.
 M.get_by_tag = function(tag)
     local r = {}
     local l = 1
@@ -371,36 +353,28 @@ M.get_by_tag = function(tag)
     return r
 end
 
---[[! Function: get_by_class
-    Returns an array of entities with a common class.
-]]
+--! Returns an array of entities with a common class.
 M.get_by_class = function(cl)
     return storage_by_class[cl] or {}
 end
 
 local player_class = "Player"
 
---[[! Function: set_player_class
-    Sets the player class (by name) on the server (invalid on the client).
-]]
+--! Sets the player class (by name) on the server (invalid on the client).
 M.set_player_class = SERVER and function(cl)
     player_class = cl
 end or nil
 
 local vg = cs.var_get
 
---[[! Function: get_players
-    Gets an array of players (all of the currently set player class).
-]]
-local get_players = function()
+--! Gets an array of players (all of the currently set player class).
+M.get_players = function()
     return storage_by_class[SERVER and player_class or player_entity.name]
         or {}
 end
-M.get_players = get_players
+local get_players = M.get_players
 
---[[! Function: get_player
-    Gets the current player, clientside only.
-]]
+--! Gets the current player, clientside only.
 M.get_player = (not SERVER) and function()
     return player_entity
 end or nil
@@ -411,7 +385,7 @@ if SERVER then
     end)
 end
 
---[[! Function: get_by_distance
+--[[!
     Finds all entities whose maximum distance from pos equals
     max_distance. You can filter them more using optional kwargs.
     Returns an array of entity-distance pairs.
@@ -422,11 +396,11 @@ end
         tag - a tag the entities must have.
         sort - by default, the resulting array is sorted by distance
         from lowest to highest. This can be either a function (passed
-        to core.lua.table.sort, refer to its documentation), a boolean value
+        to {{$table.sort}}, refer to its documentation), a boolean value
         false (which means it won't be sorted) or nil (which means
         it will be sorted using the default method).
         pos_fun - a function taking an entity and returning a position
-        in form of <math.Vec3>. By default simply returns entity's position,
+        in form of {{$geom.Vec3}}. By default simply returns entity's position,
         the position is then used for subtraction from the given position.
 ]]
 M.get_by_distance = function(pos, kwargs)
@@ -460,15 +434,14 @@ M.get_by_distance = function(pos, kwargs)
     return ret
 end
 
---[[! Function: add
+--[[!
     Inserts an entity of the given class or class name into the storage.
-    The entity will get assigned an uid and activated. Kwargs will be
-    passed to the activation calls and init call on the server. If
-    "new" is true, "init" method will be called on the server on
-    the entity instead of just assigning an uid. That means it's
-    a newly created entity. Sometimes we don't want this behavior,
-    for example when loading an entity from a file.
-    External as "entity_add".
+    The entity will get assigned an uid and activated. Kwargs will be passed
+    to the activation calls and init call on the server. If `new` is true,
+    `__init_svars` method will be called on the server on the entity instead
+    of just assigning an uid. That means it's a newly created entity. Sometimes
+    we don't want this behavior, for example when loading an entity from a
+    file. External as `entity_add`.
 ]]
 local add = function(cn, uid, kwargs, new)
     uid = uid or 1337
@@ -520,12 +493,6 @@ end
 M.add = add
 set_external("entity_add", add)
 
---[[! Function: add_sauer
-    Appends a request to add a Sauer entity to the sauer storage queue.
-    Used for migration of in-map Sauer entities to OctaForge entities.
-
-    External as entity_add_sauer.
-]]
 local add_sauer = function(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
     storage_sauer[#storage_sauer + 1] = {
         et, Vec3(x, y, z), attr1, attr2, attr3, attr4, attr5
@@ -534,10 +501,13 @@ end
 M.add_sauer = add_sauer
 set_external("entity_add_sauer", add_sauer)
 
---[[! Function: remove
-    Removes an entity of the given uid. First emits pre_deactivate signal
-    on it, then deactivates it and then clears it out from both storages.
-    External as "entity_remove".
+--[[!
+    Removes an entity of the given uid. First emits the `pre_deactivate`
+    signal on it, then deactivates it and then clears it out from both
+    storages. External as `entity_remove`.
+
+    See also:
+        - $remove_all
 ]]
 M.remove = function(uid)
     debug then log(DEBUG, "ents.remove: " .. uid)
@@ -561,10 +531,13 @@ M.remove = function(uid)
 end
 set_external("entity_remove", M.remove)
 
---[[! Function: remove_all
+--[[!
     Removes all entities from both storages. It's equivalent to looping
     over the whole storage and removing each entity individually, but
-    much faster. External as "entities_remove_all".
+    much faster. External as `entities_remove_all`.
+
+    See also:
+        - $remove
 ]]
 M.remove_all = function()
     for i = 1, highest_uid do
@@ -579,8 +552,8 @@ M.remove_all = function()
 end
 set_external("entities_remove_all", M.remove_all)
 
---[[! Function: load
-    Serverside. Reads a file called "entities.lua" in the map directory,
+--[[!
+    Serverside. Reads a file called `entities.lua` in the map directory,
     serializes it and loads entities from it. The file contains a regular
     Lua serialized table.
 
@@ -590,7 +563,10 @@ set_external("entities_remove_all", M.remove_all)
     The server then sends the entities to all clients.
 
     Format:
-        { { uid, "entity_class", sdata }, { ... }, ... }
+        `{ { uid, "entity_class", sdata }, { ... }, ... }`
+
+    See also:
+        - $save
 ]]
 M.load = function()
     if not SERVER then return end
@@ -694,9 +670,9 @@ M.load = function()
     debug then log(DEBUG, "ents.load: done")
 end
 
---[[! Function: save
-    Serializes all loaded entities into format that can be read by <load>.
-    External as "entities_save_all".
+--[[!
+    Serializes all loaded entities into format that can be read by $load.
+    External as `entities_save_all`.
 ]]
 M.save = function()
     local r = {}
@@ -716,38 +692,38 @@ M.save = function()
 end
 set_external("entities_save_all", M.save)
 
---[[! Class: Entity
+--[[!
     The base entity class. Every other entity class inherits from this.
     This class is fully functional, but it has no physical form (it's only
     kept in storage, handles its sdata and does the required syncing and
     calls).
 
     Every entity class needs a name. You need to specify a unique one as
-    a "name" member of the class (see the code). Typically, the name will
+    the `name` member of the class (see the code). Typically, the name will
     be the same with the name of the actual class variable.
 
     The base entity class has two basic properties.
 
     Properties:
-        tags [<svars.State_Array>] - each entity can have an unlimited amount
-        of tags (they're strings). You can use tags to search for entities
-        later, other use cases include i.e. marking of player starts.
-        persistent [<svars.State_Boolean>] - if the entity is persistent, it
-        will be saved during map save; if not, it's only temporary (and it
+        - tags [{{$svars.State_Array}}] - every entity can have an unlimited
+        amount of tags (they're strings). You can use tags to search for
+        entities later, other use cases include e.g. marking of player starts.
+        - persistent [{{$svars.State_Booleann}}] - if the entity is persistent,
+        it will be saved during map save; if not, it's only temporary (and it
         will disappear when the map ends)
 ]]
-Entity = table2.Object:clone {
+M.Entity = table2.Object:clone {
     name = "Entity",
 
-    --[[! Variable: __per_frame
-        If this is true for the entity class, it will call the <__run> method
-        each frame. That is often convenient, but in most static entities
-        undesirable.
+    --[[!
+        If this is true for the entity class, it will call the $__run method
+        every frame. That is often convenient, but in most static entities
+        undesirable. It's true by default.
     ]]
     __per_frame = true,
 
-    --[[! Variable: __properties
-        Here you store the state variables. Each inherited entity class
+    --[[!
+        Here you store the state variables. Every inherited entity class
         also inherits its parent's properties in addition to the newly
         defined ones. If you don't want any new properties in your
         entity class, do not create this table.
@@ -757,15 +733,13 @@ Entity = table2.Object:clone {
         persistent = svars.State_Boolean()
     },
 
-    --[[! Function: __tostring
-        Makes entity objects return their names on tostring.
-    ]]
+    --! Makes entity objects return their name on tostring.
     __tostring = function(self)
         return self.name
     end,
 
-    --[[! Function: setup
-        Performs the entity setup. Creates the action queue, caching tables,
+    --[[!
+        Performs entity setup. Creates its action queue, caching tables,
         de-deactivates the entity, triggers svar setup and locks.
     ]]
     setup = function(self)
@@ -783,9 +757,9 @@ Entity = table2.Object:clone {
         self.setup_complete = true
     end,
 
-    --[[! Function: __deactivate
+    --[[!
         The default entity deactivator. Clears the action queue, unregisters
-        the entity and makes it deactivated. On the server, it also sends a
+        the entity and makes it deactivated. On the server it also sends a
         message to all clients to do the same.
     ]]
     __deactivate = function(self)
@@ -799,8 +773,8 @@ Entity = table2.Object:clone {
         end
     end,
 
-    --[[! Function: __run
-        Called per-frame unless <__per_frame> is false. All inherited classes
+    --[[!
+        Called per frame unless $__per_frame is false. All inherited classes
         must call this in their own overrides. The argument specifies how
         long to manage the action queue (how much will the counters change
         internally), specified in milliseconds.
@@ -809,22 +783,18 @@ Entity = table2.Object:clone {
         self.action_queue:run(millis)
     end,
 
-    --[[! Function: enqueue_action
-        Queues an action into the entity's queue.
-    ]]
+    --! Enqueues an action into the entity's queue.
     enqueue_action = function(self, act)
         self.action_queue:enqueue(act)
     end,
 
-    --[[! Function: clear_actions
-        Clears the entity's action queue.
-    ]]
+    --! Clears the entity's action queue.
     clear_actions = function(self)
         self.action_queue:clear()
     end,
 
-    --[[! Function: add_tag
-        Tags an entity. Modifies the "tags" property. Checks for existence
+    --[[!
+        Tags an entity. Modifies the `tags` property. Checks for existence
         of the tag first.
     ]]
     add_tag = function(self, tag)
@@ -833,20 +803,16 @@ Entity = table2.Object:clone {
         end
     end,
 
-    --[[! Function: remove_tag
-        Removes the given tag. Checks for its existence first.
-    ]]
+    --! Removes the given tag. Checks for its existence first.
     remove_tag = function(self, tag)
         debug then log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
         if not self:has_tag(tag) then return end
         self:set_attr("tags", filter(self:get_attr("tags"):to_array(),
-            function(i, t)
-                return t != tag
-            end))
+            |i, t| t != tag))
     end,
 
-    --[[! Function: has_tag
+    --[[!
         Checks if the entity is tagged with the given tag. Returns true if
         found, false if not found.
     ]]
@@ -855,15 +821,15 @@ Entity = table2.Object:clone {
         return find(self:get_attr("tags"):to_array(), tag) != nil
     end,
 
-    --[[! Function: build_sdata
+    --[[!
         Builds sdata (state data, property mappings) from the properties the
         entity has.
 
         Kwargs:
-            target_cn [nil] - the client number to check state variables
+            - target_cn [nil] - the client number to check state variables
             against (see <State_Variable.should_send>). If that is nil,
             no checking happens and stuff is done for all clients.
-            compressed [false] - if true, this function will return the
+            - compressed [false] - if true, this function will return the
             sdata in a serialized format (string) with names converted
             to protocol IDs, otherwise raw table.
     ]]
@@ -908,9 +874,7 @@ Entity = table2.Object:clone {
         return r:sub(2, #r - 1)
     end,
 
-    --[[! Function: set_sdata_full
-        Updates the complete state data on an entity from serialized input.
-    ]]
+    --! Updates the complete state data on an entity from serialized input.
     set_sdata_full = function(self, sdata)
         debug then log(DEBUG, "Entity.set_sdata_full: " .. self.uid .. ", "
             .. sdata)
@@ -932,9 +896,9 @@ Entity = table2.Object:clone {
     end,
 
     --[[! Function: entity_setup
-        Takes care of a proper entity setup (calls <setup>, inits the change
-        queue and makes the entity initialized). Called by <__init_svars> and
-        <__activate>.
+        Takes care of a proper entity setup (calls $setup, inits the change
+        queue and makes the entity initialized). Called by $__init_svars and
+        $__activate.
     ]]
     entity_setup = SERVER and function(self)
         if not self.initialized then
@@ -951,12 +915,13 @@ Entity = table2.Object:clone {
 
     --[[! Function: __init_svars
         Initializes the entity before activation on the server. It's
-        used to set default svar values (unless client_set).
+        used to set default svar values (unless `client_set`).
 
-        The kwargs parameter is used here to query whether the entity
-        is persistent (to set the persistent property). In child entities,
-        it can be used for more things. The ndata last parameter is an array
-        of extra newent arguments in wire format.
+        Arguments:
+             - kwargs - used to query whether the entity is persistent (to
+               set the persistent property), in child entities it can be used
+               for more things.
+             - ndata - an array of extra newent arguments in wire format.
     ]]
     __init_svars = SERVER and function(self, kwargs, ndata)
         debug then log(DEBUG, "Entity.__init_svars")
@@ -967,15 +932,15 @@ Entity = table2.Object:clone {
         self:set_attr("persistent", kwargs and kwargs.persistent or false)
     end or nil,
 
-    --[[! Function: __activate
+    --[[!
         The entity activator. It's called on its creation. It calls
-        <setup>.
+        $setup.
 
         Client note: The entity is not initialized before complete
-        sdata are received.
+        sdata is received.
 
         On the server, the kwargs are queried for sdata and
-        a <set_sdata_full> happens.
+        a $set_sdata_full happens.
     ]]
     __activate = function(self, kwargs)
         debug then log(DEBUG, "Entity.__activate")
@@ -1005,12 +970,16 @@ Entity = table2.Object:clone {
         end
     end,
 
-    --[[! Function: sdata_changed
-        Triggered automatically right before the _changed signal. Takes
-        the state variable, its name and the value to set. It first checks
-        if there is a setter function for the given svar and does nothing
-        if there isn't. Triggers a setter call on the client or on the
+    --[[!
+        Triggered automatically right before the `_changed` signal. It first
+        checks if there is a setter function for the given svar and does
+        nothing if there isn't. Triggers a setter call on the client or on the
         server when there is no change queue and queues a change otherwise.
+
+        Arguments:
+            - var - the state variable.
+            - name - the state variable name.
+            - val - the value to set.
     ]]
     sdata_changed = function(self, var, name, val)
         local sfun = var.setter_fun
@@ -1031,28 +1000,26 @@ Entity = table2.Object:clone {
         The entity state data setter. Has different variants for the client
         and the server.
 
-        Client:
-            Takes 4 arguments (self, key, value, actor_uid). The first 3
-            are obvious, the fourth specifies an uid of the change source.
-            If -1, it was the client itself. If the change came from this
-            client and the entity doesn't use a custom syncing method,
-            sends a request/notification to the server.
+        If this is on the client and the change didn't come from here (or if
+        the property is `client_set`), it performs a local update. The local
+        update first calls $sdata_changed and then triggers the `_changed`
+        signal (before setting). The new value is passed to the signal
+        during the emit along with a boolean equaling to `actor_uid != -1`.
 
-            Otherwise (or if the property is client_set) it does a local
-            update. The local update first calls <sdata_changed> and then
-            triggers the _changed signal (before the setting). The new
-            value is passed to the signal during the emit along with a
-            boolean equaling to actor_uid != -1.
+        On the server it triggers a local change in the same manner.
 
-        Server:
-            Takes 5 arguments (self, key, vactor, actor_uid, iop). The
-            arguments are sort of the same as on the client. If actor_uid
-            is -1, it means all clients. The fifth argument is a boolean
-            value and if it's true, it makes this an internal server
-            operation; that always forces the value to convert from
-            wire format (otherwise converts only when setting on a
-            specific client number). The signal and <sdata_changed>
-            are triggered in the same manner.
+        Arguments:
+            - key - the key.
+            - val - the value.
+            - actor_uid - unique ID of the change source. On the client, -1
+              means it's the client itself, on the server it means all clients.
+              If the change came from this client on the client and the entity
+              doesn't use a custom syncing method, this sends a notification
+              to the server.
+            - iop - on the server, a boolean value, if it's true it makes
+              this an internal server operaton; that always forces the value
+              to convert from wire format (otherwise converts only when setting
+              on a specific client number).
     ]]
     set_sdata = (not SERVER) and function(self, key, val, actor_uid)
         debug then log(DEBUG, "Entity.set_sdata: " .. key .. " = "
@@ -1149,9 +1116,9 @@ Entity = table2.Object:clone {
         end
     end,
 
-    --[[! Function: cancel_sdata_update
+    --[[!
         Cancels a state data update (on the server). Useful when called
-        from FOO_changed signal slots.
+        from `_changed` signal slots.
     ]]
     cancel_sdata_update = function(self)
         self.sdata_update_cancel = true
@@ -1211,25 +1178,30 @@ Entity = table2.Object:clone {
         self.svar_change_queue_complete = true
     end or nil,
 
-    --[[! Function: get_attached_next
+    --[[!
         Returns the next attached entity. This implementation doesn't do
         anything though - you need to overload it for your entity type
         accordingly. The core entity system doesn't manage attached
-        entities at all.
+        entities at all. See also $get_attached_prev.
     ]]
     get_attached_next = function(self)
     end,
 
-    --[[! Function: get_attached_prev
-        Returns the previous attached entity. Like <get_attached_next>,
+    --[[!
+        Returns the previous attached entity. Like $get_attached_next,
         you need to overload this.
     ]]
     get_attached_prev = function(self)
     end,
 
-    --[[! Function: get_gui_attr
-        Given a GUI property name (gui_name or name if not defined in the
+    --[[!
+        Given a GUI property name (`gui_name` or `name` if not defined in the
         svar), this returns the property value in a wire (string) format.
+
+        See also:
+            - $get_attr
+            - $get_gui_attrs
+            - $set_gui_attr
     ]]
     get_gui_attr = function(self, prop)
         local var = self["_SV_GUI_" .. prop]
@@ -1240,8 +1212,8 @@ Entity = table2.Object:clone {
         end
     end,
 
-    --[[! Function: get_gui_attrs
-        Like <get_gui_attr>, but returns all available attributes as an
+    --[[!
+        Like $get_gui_attr, but returns all available attributes as an
         array of key-value pairs. The second argument (defaults to true)
         specifies whether to sort the result by attribute name.
     ]]
@@ -1261,9 +1233,13 @@ Entity = table2.Object:clone {
         return r
     end,
 
-    --[[! Function: set_gui_attr
+    --[[!
         Given a GUI property name and a value in a wire format, this sets
         the property on the entity.
+
+        See also:
+            - $set_attr
+            - $get_gui_attr
     ]]
     set_gui_attr = function(self, prop, val)
         local var = self["_SV_GUI_" .. prop]
@@ -1271,8 +1247,12 @@ Entity = table2.Object:clone {
         self:set_attr(var.name, var:from_wire(val))
     end,
 
-    --[[! Function: get_attr
+    --[[!
         Returns the entity property of the given name.
+
+        See also:
+            - $set_attr
+            - $get_gui_attr
     ]]
     get_attr = function(self, prop)
         local fun = self["__get_" .. prop]
@@ -1281,10 +1261,18 @@ Entity = table2.Object:clone {
     end,
 
     --[[! Function: set_attr
-        Sets the entity property of the given name to the given value. There
-        is one last argument which provides a non-wise default value that takes
-        preference and is optional (if it's provided, it's converted from wire
-        format and that succeeds, it's used in place of the actual value).
+        Sets the entity property of the given name to the given value.
+
+        Arguments:
+             - prop - the property name.
+             - val - the value.
+             - nd - optionally provides a non-wire default value that takes
+               preference (if it's provided, it's converted from wire format
+               and if that succeeds, it's used in place of the actual value).
+
+        See also:
+            - $get_attr
+            - $set_gui_attr
     ]]
     set_attr = function(self, prop, val, nd)
         if nd then
@@ -1298,28 +1286,30 @@ Entity = table2.Object:clone {
         return fun and fun(self, val) or nil
     end
 }
+Entity = M.Entity
 
-M.Entity = Entity
-
---[[! Function: get_gui_attr
-    See <Entity.get_gui_attr>. Externally accessible as entity_get_gui_attr.
+--[[!
+    See {{$Entity.get_gui_attr}}. Externally accessible as
+    `entity_get_gui_attr`. See also $set_gui_attr.
 ]]
 M.get_gui_attr = function(ent, prop)
     return ent:get_gui_attr(prop)
 end
 set_external("entity_get_gui_attr", M.get_gui_attr)
 
---[[! Function: set_gui_attr
-    See <Entity.set_gui_attr>. Externally accessible as entity_set_gui_attr.
+--[[!
+    See {{$Entity.set_gui_attr}}. Externally accessible as
+    `entity_set_gui_attr`. See also $get_gui_attr.
 ]]
 M.set_gui_attr = function(ent, prop, val)
     return ent:set_gui_attr(prop, val)
 end
 set_external("entity_set_gui_attr", M.set_gui_attr)
 
---[[! Function: get_attr
-    See <Entity.get_attr>. Externally accessible as entity_get_attr. An
-    external called entity_get_attr_uid works with uid instead of an entity.
+--[[!
+    See {{$Entity.get_attr}}. Externally accessible as `entity_get_attr`. An
+    external called `entity_get_attr_uid` works with uid instead of an entity.
+    See also $set_attr.
 ]]
 M.get_attr = function(ent, prop)
     return ent:get_attr(prop)
@@ -1331,9 +1321,10 @@ set_external("entity_get_attr_uid", function(uid, prop)
     return ent:get_attr(prop)
 end)
 
---[[! Function: set_attr
-    See <Entity.set_attr>. Externally accessible as entity_set_attr. An
-    external called entity_set_attr_uid works with uid instead of an entity.
+--[[!
+    See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`. An
+    external called `entity_set_attr_uid` works with uid instead of an entity.
+    See also $get_attr.
 ]]
 M.set_attr = function(ent, prop, val)
     return ent:set_attr(prop, val)
@@ -1346,10 +1337,10 @@ set_external("entity_set_attr_uid", function(uid, prop, val)
 end)
 
 --[[! Function: entity_get_attached
-    An external. Calls get_attached_next on the given entity first, if that
-    returns then this returns true + the attached entities, otherwise calls
-    get_attached_prev and if that returns, then this returns false + the
-    attached entities, if that also fails then it returns nil.
+    An external. Calls {{$Entity.get_attached_next}} on the given entity first,
+    if that returns then this returns true + the attached entities, otherwise
+    calls {{$Entity.get_attached_prev}} and if that returns, then this returns
+    false + the attached entities, if that also fails then it returns nil.
 ]]
 set_external("entity_get_attached", function(ent)
     local ents = { ent:get_attached_next() }
@@ -1370,10 +1361,10 @@ set_external("entity_get_class_name", function(ent)
 end)
 
 --[[! Function: render
-    Main render hook. External as game_render. Calls individual render
-    method on each entity (if defined). Clientside only.
+    Main render hook. External as `game_render`. Calls individual `render`
+    method on each entity (if defined). Clientside only. See also $render_hud.
 ]]
-local render = (not SERVER) and function(tp, fpsshadow)
+M.render = (not SERVER) and function(tp, fpsshadow)
     debug then log(INFO, "game_render")
     local  player = player_entity
     if not player then return end
@@ -1393,14 +1384,14 @@ local render = (not SERVER) and function(tp, fpsshadow)
         end
     end
 end or nil
-M.render = render
+local render = M.render
 set_external("game_render", render)
 
 --[[! Function: render_hud
-    Renders the player HUD model if needed. External as game_render_hud.
-    Clientside only.
+    Renders the player HUD model if needed. External as `game_render_hud`.
+    Clientside only. See also $render.
 ]]
-local render_hud = (not SERVER) and function()
+M.render_hud = (not SERVER) and function()
     debug then log(INFO, "game_render_hud")
     local  player = player_entity
     if not player then return end
@@ -1409,14 +1400,14 @@ local render_hud = (not SERVER) and function()
         player:__render(true, true, false)
     end
 end or nil
-M.render_hud = render_hud
+local render_hud = M.render_hud
 set_external("game_render_hud", render_hud)
 
 --[[! Function: init_player
-    Assigns the player entity using the given uid. External as player_init,
+    Assigns the player entity using the given uid. External as `player_init`,
     clientside.
 ]]
-local init_player = (not SERVER) and function(uid)
+M.init_player = (not SERVER) and function(uid)
     assert(uid)
     debug then log(DEBUG, "Initializing player with uid " .. uid)
 
@@ -1424,19 +1415,22 @@ local init_player = (not SERVER) and function(uid)
     assert(player_entity)
     player_entity.controlled_here = true
 end or nil
-M.init_player = init_player
+local init_player = M.init_player
 set_external("player_init", init_player)
 
---[[! Function: set_sdata
-    Given an unique id, a key (in protocol ID format) and a value, this
-    function converts the protocol ID to the real key and sets the state
-    data on the entity with the given uid.
+--[[!
+    Converts the protocol ID to a real key and sets the state data on the
+    entity with the given unique ID.
 
-    On the server you can optionally provide "actor unique id", an unique id
-    of the client that triggered the change. When set to -1, it means the
-    server triggered it.
+    External as `entity_set_sdata`.
 
-    External as entity_set_sdata.
+    Arguments:
+        - uid - an unique ID.
+        - kpid - a key in protocol ID format.
+        - value - a value.
+        - auid - optional (on the server only) actor unique ID, an unique ID
+          of the client that triggered the change. When set to -1, it means
+          the server triggered it.
 ]]
 M.set_sdata = function(uid, kpid, value, auid)
     local ent = storage[uid]
@@ -1452,7 +1446,7 @@ set_external("entity_set_sdata", M.set_sdata)
 --[[ Function: scene_is_ready
     On the client, used to check if the current scene is ready and we can
     actually start (checks whether the player exists and whether all the
-    entities are initialized). External as scene_is_ready.
+    entities are initialized). External as `scene_is_ready`.
 !]]
 M.scene_is_ready = (not SERVER) and function()
     debug then log(INFO, "Scene ready?")
@@ -1478,27 +1472,31 @@ set_external("scene_is_ready", M.scene_is_ready)
 
 --[[! Function: gen_uid
     Generates a new entity unique ID. It's larger than the previous largest
-    by one. Serverside. External as "entity_gen_uid".
+    by one. Serverside. External as `entity_gen_uid`.
 ]]
-local gen_uid = SERVER and function()
+M.gen_uid = SERVER and function()
     debug then log(DEBUG, "Generating an UID, last highest UID: "
         .. highest_uid)
     return highest_uid + 1
 end or nil
-M.gen_uid = gen_uid
+local gen_uid = M.gen_uid
 set_external("entity_gen_uid", gen_uid)
 
---[[!
-    Returns the highest entity unique ID used.
-]]
+--! Returns the highest entity unique ID used.
 M.get_highest_uid = function()
     return highest_uid
 end
 
 --[[! Function: new
-    Creates a new entity on the server. Takes the entity class, kwargs
-    (will be passed directly to <add>) and optionally the unique ID to
-    force (otherwise <gen_uid>). Returns the entity. External as "entity_new".
+    Creates a new entity on the server. External as `entity_new`.
+
+    Arguments:
+        - cl - the entity class.
+        - kwargs - passed directly to $add.
+        - fuid - optional forced unique ID, otherwise $gen_uid.
+
+    Returns:
+         The new entity.
 ]]
 M.new = SERVER and function(cl, kwargs, fuid)
     fuid = fuid or gen_uid()
@@ -1510,7 +1508,7 @@ set_external("entity_new", M.new)
 --[[! Function: send
     Notifies a client of the number of entities on the server and then
     send a complete notification for each of them. Takes the client number.
-    Works only serverside. External as "entities_send_all".
+    Works only serverside. External as `entities_send_all`.
 ]]
 M.send = SERVER and function(cn)
     debug then log(DEBUG, "Sending active entities to " .. cn)
