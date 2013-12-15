@@ -105,8 +105,8 @@ struct physent                                  // base entity type, can be affe
         floor = vec(0, 0, 1);
     }
 
-    vec feetpos(float offset = 0) const { return vec(o).add(vec(0, 0, offset - eyeheight)); }
-    vec headpos(float offset = 0) const { return vec(o).add(vec(0, 0, offset)); }
+    vec feetpos(float offset = 0) const { return vec(o).addz(offset - eyeheight); }
+    vec headpos(float offset = 0) const { return vec(o).addz(offset); }
 
     /* OF: normalization functions */
     void normalize_yaw(float angle)
@@ -211,7 +211,7 @@ struct dynent : physent                         // animated characters, or chara
         loopi(MAXANIMPARTS) animinterp[i].reset();
     }
 
-    vec abovehead() { return vec(o).add(vec(0, 0, aboveeye+4)); }
+    vec abovehead() { return vec(o).addz(aboveeye+4); }
 };
 
 

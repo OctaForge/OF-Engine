@@ -495,6 +495,8 @@ M.Character = Entity:clone {
         local state = self:get_attr("client_state")
         -- spawning or spectator
         if state == 5 or state == 2 then return end
+        -- editing
+        if not hudpass and needhud and state == 4 then return end
         local mdn = (hudpass and needhud)
             and self:get_attr("hud_model_name")
             or  self:get_attr("model_name")
