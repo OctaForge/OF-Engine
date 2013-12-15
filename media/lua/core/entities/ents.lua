@@ -361,8 +361,9 @@ set_external("entities_get_all", M.get_all)
 M.get_by_tag = function(tag)
     local r = {}
     local l = 1
-    for uid, ent in pairs(storage) do
-        if ent:has_tag(tag) then
+    for i = 1, highest_uid do
+        local ent = storage[i]
+        if ent and ent:has_tag(tag) then
             r[l] = ent
             l = l + 1
         end
@@ -442,8 +443,10 @@ M.get_by_distance = function(pos, kwargs)
     if type(cl) == "table" then cl = cl.name end
 
     local ret = {}
-    for uid, ent in pairs(storage) do
-        if (not cl or cl == ent.name) and (not tg or ent:has_tag(tg)) then
+    for uid = 1, highest_uid do
+        local ent = storage[uid]
+        if ent and ((not cl or cl == ent.name) and (not tg or ent:has_tag(tg)))
+        then
             local dist = #(pos - fn(ent))
             if dist <= md then
                 ret[#ret + 1] = { ent, dist }
@@ -564,9 +567,12 @@ set_external("entity_remove", M.remove)
     much faster. External as "entities_remove_all".
 ]]
 M.remove_all = function()
-    for uid, e in pairs(storage) do
-        emit(e, "pre_deactivate")
-        e:__deactivate()
+    for i = 1, highest_uid do
+        local e = storage[i]
+        if e then
+            emit(e, "pre_deactivate")
+            e:__deactivate()
+        end
     end
     storage = {}
     storage_by_class = {}
@@ -696,8 +702,9 @@ M.save = function()
     local r = {}
     debug then log(DEBUG, "ents.save: saving")
 
-    for uid, entity in pairs(storage) do
-        if entity:get_attr("persistent") then
+    for uid = 1, highest_uid do
+        local entity = storage[uid]
+        if entity and entity:get_attr("persistent") then
             local en = entity.name
             debug then log(DEBUG, "    " .. uid .. ", " .. en)
             r[#r + 1] = serialize({ uid, en, entity:build_sdata() })
@@ -1371,8 +1378,9 @@ local render = (not SERVER) and function(tp, fpsshadow)
     local  player = player_entity
     if not player then return end
 
-    for uid, entity in pairs(storage) do
-        if not entity.deactivated then
+    for uid = 1, highest_uid do
+        local entity = storage[uid]
+        if entity and not entity.deactivated then
             local rd = entity.__render
             -- first arg to rd is hudpass, false because we aren't rendering
             -- the HUD model, second is needhud, which is true if the model
@@ -1455,8 +1463,9 @@ M.scene_is_ready = (not SERVER) and function()
     end
 
     debug then log(INFO, "...player ready, trying other entities.")
-    for uid, ent in pairs(storage) do
-        if not ent.initialized then
+    for uid = 1, highest_uid do
+        local ent = storage[uid]
+        if ent and not ent.initialized then
             debug then log(INFO, "...entity " .. uid .. " not ready.")
             return false
         end
@@ -1479,6 +1488,13 @@ end or nil
 M.gen_uid = gen_uid
 set_external("entity_gen_uid", gen_uid)
 
+--[[!
+    Returns the highest entity unique ID used.
+]]
+M.get_highest_uid = function()
+    return highest_uid
+end
+
 --[[! Function: new
     Creates a new entity on the server. Takes the entity class, kwargs
     (will be passed directly to <add>) and optionally the unique ID to
@@ -1499,9 +1515,11 @@ set_external("entity_new", M.new)
 M.send = SERVER and function(cn)
     debug then log(DEBUG, "Sending active entities to " .. cn)
     local nents, uids = 0, {}
-    for uid, _ in pairs(storage) do
-        nents = nents + 1
-        uids[nents] = uid
+    for uid = 1, highest_uid do
+        if storage[uid] then
+            nents = nents + 1
+            uids[nents] = uid
+        end
     end
     sort(uids)
     msg.send(cn, capi.notify_numents, nents)

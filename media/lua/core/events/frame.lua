@@ -22,7 +22,7 @@ local current_frame_time = 0
 local last_millis        = 0
 
 local require, setmetatable = require, setmetatable
-local ents
+local ents, get_ents, get_highest_uid
 
 local copy = table2.copy
 
@@ -33,8 +33,10 @@ local copy = table2.copy
     activated entities. External as "frame_handle".
 ]]
 M.handle_frame = function(millis, lastmillis)
-    if not ents then ents = require("core.entities.ents") end
-    local get_ents = ents.get_all
+    if not ents then
+        ents = require("core.entities.ents")
+        get_ents, get_highest_uid = ents.get_all, ents.get_highest_uid
+    end
 
     debug then log(INFO, "frame.handle_frame: New frame")
     current_frame = current_frame + 1
@@ -45,15 +47,11 @@ M.handle_frame = function(millis, lastmillis)
 
     debug then log(INFO, "frame.handle_frame: Acting on entities")
 
-    for uid, entity in pairs(get_ents()) do
-        local skip = false
-
-        if entity.deactivated or not entity.__per_frame then
-            skip = true
-        end
-
-        if not skip then
-            entity:__run(millis)
+    local storage = get_ents()
+    for uid = 1, get_highest_uid() do
+        local ent = storage[uid]
+        if ent and not ent.deactivated and ent.__per_frame then
+            ent:__run(millis)
         end
     end
 end
