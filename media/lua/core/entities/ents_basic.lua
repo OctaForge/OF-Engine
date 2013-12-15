@@ -1,16 +1,11 @@
---[[! File: lua/core/entities/ents_basic.lua
+--[[!<
+    A basic entity set (extends over the base entity).
 
-    About: Author
+    Author:
         q66 <quaker66@gmail.com>
 
-    About: Copyright
-        Copyright (c) 2013 OctaForge project
-
-    About: License
-        See COPYING.txt for licensing information.
-
-    About: Purpose
-        Implements a basic entity set. Injects directly into the "ents" module.
+    License:
+        See COPYING.txt.
 ]]
 
 local capi = require("capi")
@@ -113,113 +108,119 @@ end
 
 local mrender = (not SERVER) and model.render
 
---[[! Class: Character
+--! Module: ents
+local M = ents
+
+--[[!
     Represents the base class for any character (NPC, player etc.). Players
-    use the <Player> entity class that inherits from this one.
+    use the $Player entity class that inherits from this one.
     Inherited property model_name defaults to "player".
 
     This entity class defines several more properties that do not belong to any
-    state variable. These mostly correspond to client_state == <State>.*.
+    state variable. These mostly correspond to client_state == {{$State}}.*.
     More will be defined later as needed.
 
     Non-svar properties:
-        ping - the client ping.
-        plag - the client plag.
-        editing - client_state == EDITING.
-        lagged - client_state == LAGGED.
+        - ping - the client ping.
+        - plag - the client plag.
+        - editing - client_state == EDITING.
+        - lagged - client_state == LAGGED.
 
     Properties:
-        animation [<svars.State_Array>] - the entity's current animation.
-        It's an array of strings in format "animname,dir" and defaults
-        to "idle,loop".
-        animation_flags [<svars.State_Integer>] - the entity's current anim
-        flags.
-        start_time [<svars.State_Integer>] - an internal property used for
-        animation timing.
-        model_name [<svars.State_String>] - name of the model associated with
-        this entity.
-        attachments [<svars.State_Array>] - an array of model attachments.
-        Those are strings in format "tagname,attachmentname".
-        character_name [<svars.State_String>] - name of the character.
-        facing_speed [<svars.State_Integer>] - how fast can the character
-        change facing (yaw/pitch) in degrees per second. Defaults to 120.
-        movement_speed [<svars.State_Float>] - how fast the character can move.
-        Defaults to 50.
-        yaw [<svars.State_Float>] - the current character yaw in degrees.
-        pitch [<svars.State_Float>] - the current character pitch in degrees.
-        roll [<svars.State_Float>] - the current character roll in degrees.
-        move [<svars.State_Integer>] - -1 when moving backwards, 0 when not
-        moving, 1 when forward.
-        strafe [<svars.State_Integer>] - -1 when strafing left, 0 when not
-        strafing, 1 when right.
-        yawing [<svars.State_Integer>] - -1 when turning left, 1 when right,
-        0 when not at all.
-        pitching [<svars.State_Integer>] - -1 when looking down, 1 when up,
-        0 when not.
-        crouching [<svars.State_Integer>] - -1 when crouching down, 1 when up,
-        0 when not.
-        jumping [<svars.State_Boolean>] - true when the character has jumped,
-        false otherwise.
-        position [<svars.State_Vec3>] - the current position. Defaults to
-        { 512, 512, 550 }.
-        velocity [<svars.State_Vec3>] - the current velocity.
-        falling [<svars.State_Vec3>] - the character's gravity falling.
-        radius [<svars.State_Float>] - the character's bounding box radius.
-        Defaults to 4.1.
-        above_eye [<svars.State_Float>] - the height of the character above
-        its eyes. Defaults to 2.0.
-        eye_height [<svars.State_Float>] - the distance from the ground to
-        the eye position. Defaults to 18.0.
-        max_height [<svars.State_Float>] - the maximum distance from the
-        ground to the eye position. Defaults to 18.0. Used when crouching.
-        crouch_height [<svars.State_Float>] - the fraction of max_height
-        to use when crouched, defaults to 0.75.
-        crouch_speed [<svars.State_Float>] - the fraction of regular movement
-        speed to use while crouching, defaults to 0.4.
-        crouch_time [<svars.State_Integer>] - the time in milliseconds spent
-        to crouch, adjust to change the speed.
-        jump_velocity [<svars.State_Float>] - the vertical velocity to apply
-        when jumping, defaults to 125.
-        gravity [<svars.State_Float>] - a custom character gravity to override
-        the global defaults. By default it's -1, which means the character
-        will use the global gravity.
-        blocked [<svars.State_Boolean>] - true when the character is currently
-        blocked from moving. Floor is not considered an obstacle.
-        can_move [<svars.State_Boolean>] - when false, the character can't
-        move. Defaults to true.
-        map_defined_position_data [<svars.State_Integer>] - position protocol
-        data specific to the current map, see fpsent (TODO: make unsigned).
-        client_state [<svars.State_Integer>] - see <State>.
-        physical_state [<svars.State_Integer>] - see <Physical_State>.
-        in_liquid [<svars.State_Integer>] - either 0 (in the air) or the
-        liquid material id (water, lava).
-        time_in_air [<svars.State_Integer>] - time in milliseconds spent in
-        the air (TODO: unsigned).
+        - animation [$svars.State_Array] - the entity's current animation.
+          It's an array of strings in format "animname,dir" and defaults
+          to "idle,loop".
+        - animation_flags [{{$svars.State_Integer}}] - the entity's current
+          anim flags.
+        - start_time [{{$svars.State_Integer}}] - an internal property used for
+          animation timing.
+        - model_name [{{$svars.State_String}}] - name of the model associated
+          with this entity.
+        - attachments [{{$svars.State_Array}}] - an array of model attachments.
+          Those are strings in format "tagname,attachmentname".
+        - character_name [{{$svars.State_String}}] - name of the character.
+        - facing_speed [{{$svars.State_Integer}}] - how fast can the character
+          change facing (yaw/pitch) in degrees per second. Defaults to 120.
+        - movement_speed [{{$svars.State_Float}}] - how fast the character can
+          move. Defaults to 50.
+        - yaw [{{$svars.State_Float}}] - the current character yaw in degrees.
+        - pitch [{{$svars.State_Float}}] - the current character pitch in
+          degrees.
+        - roll [{{$svars.State_Float}}] - the current character roll in
+          degrees.
+        - move [{{$svars.State_Integer}}] - -1 when moving backwards, 0 when
+          not moving, 1 when forward.
+        - strafe [{{$svars.State_Integer}}] - -1 when strafing left, 0 when not
+          strafing, 1 when right.
+        - yawing [{{$svars.State_Integer}}] - -1 when turning left, 1 when
+          right, 0 when not at all.
+        - pitching [{{$svars.State_Integer}}] - -1 when looking down, 1 when
+          up, 0 when not.
+        - crouching [{{$svars.State_Integer}}] - -1 when crouching down, 1
+          when up, 0 when not.
+        - jumping [{{$svars.State_Boolean}}] - true when the character has
+          jumped, false otherwise.
+        - position [{{$svars.State_Vec3}}] - the current position. Defaults to
+          { 512, 512, 550 }.
+        - velocity [{{$svars.State_Vec3}}] - the current velocity.
+        - falling [{{$svars.State_Vec3}}] - the character's gravity falling.
+        - radius [{{$svars.State_Float}}] - the character's bounding box
+          radius. Defaults to 4.1.
+        - above_eye [{{$svars.State_Float}}] - the height of the character
+          above its eyes. Defaults to 2.0.
+        - eye_height [{{$svars.State_Float}}] - the distance from the ground to
+          the eye position. Defaults to 18.0.
+        - max_height [{{$svars.State_Float}}] - the maximum distance from the
+          ground to the eye position. Defaults to 18.0. Used when crouching.
+        - crouch_height [{{$svars.State_Float}}] - the fraction of max_height
+          to use when crouched, defaults to 0.75.
+        - crouch_speed [{{$svars.State_Float}}] - the fraction of regular
+          movement speed to use while crouching, defaults to 0.4.
+        - crouch_time [{{$svars.State_Integer}}] - the time in milliseconds
+          spent to crouch, adjust to change the speed.
+        - jump_velocity [{{$svars.State_Float}}] - the vertical velocity to
+          apply when jumping, defaults to 125.
+        - gravity [{{$svars.State_Float}}] - a custom character gravity to
+          override the global defaults. By default it's -1, which means the
+          character will use the global gravity.
+        - blocked [{{$svars.State_Boolean}}] - true when the character is
+          currently blocked from moving. Floor is not considered an obstacle.
+        - can_move [{{$svars.State_Boolean}}] - when false, the character can't
+          move. Defaults to true.
+        - map_defined_position_data [{{$svars.State_Integer}}] - position
+          protocol data specific to the current map, see fpsent (TODO: make
+          unsigned).
+        - client_state [{{$svars.State_Integer}}] - see $State.
+        - physical_state [{{$svars.State_Integer}}] - see $Physical_State.
+        - in_liquid [{{$svars.State_Integer}}] - either 0 (in the air) or the
+          liquid material id (water, lava).
+        - time_in_air [{{$svars.State_Integer}}] - time in milliseconds spent
+          in the air (TODO: unsigned).
 ]]
-local Character = Entity:clone {
+M.Character = Entity:clone {
     name = "Character",
 
     -- so that it isn't nonsauer
     sauer_type = -1,
 
-    --[[! Variable: State
+    --[[!
         Defines the "client states". 0 is ALIVE, 1 is DEAD, 2 is SPAWNING,
         3 is LAGGED, 4 is EDITING, 5 is SPECTATOR.
     ]]
-    State = {
+    State = {:
         ALIVE = 0, DEAD = 1, SPAWNING = 2, LAGGED = 3, EDITING = 4,
         SPECTATOR = 5
-    },
+    :},
 
-    --[[! Variable: Physical_State
+    --[[!
         Defines the "physical states". 0 is FLOATING, 1 is FALLING,
         2 is SLIDING, 3 is SLOPING, 4 is ON_FLOOR, 5 is STEPPING_UP,
         6 is STEPPING_DOWN, 7 is BOUNCING.
     ]]
-    Physical_State = {
+    Physical_State = {:
         FLOATING = 0, FALLING = 1, SLIDING = 2, SLOPING = 3,
         ON_FLOOR = 4, STEPPING_UP = 5, STEPPING_DOWN = 6, BOUNCING = 7
-    },
+    :},
 
     __properties = {
         animation = svars.State_Array {
@@ -357,19 +358,24 @@ local Character = Entity:clone {
         landing_sound = svars.State_String()
     },
 
-    --[[! Function: jump
-        A handler called when the character is about to jump. It takes the
-        "down" parameter as an argument. By default sets "jumping" to "down".
+    --[[!
+        A handler called when the character is about to jump. By default sets
+        `jumping` to value of its argument.
+
+        Arguments:
+            - down - whether the jump key is down.
     ]]
     jump = function(self, down)
         self:set_attr("jumping", down)
     end,
 
     --[[! Function: crouch
-        A handler called when the character is about to crouch. It takes the
-        "down" parameter as an argument. By default checks if "down" is true
-        and if it is, sets "crouching" to -1, otherwise sets "crouching" to
-        abs(crouching).
+        A handler called when the character is about to crouch. By default
+        checks if `down` is true and if it is, sets `crouching` to -1,
+        otherwise sets `crouching` to `abs(crouching)`.
+
+        Arguments:
+            - down - whether the crouch key is down.
     ]]
     crouch = function(self, down)
         if down then
@@ -467,18 +473,20 @@ local Character = Entity:clone {
 
     --[[! Function: __render
         Clientside and run per frame. It renders the character model. Decides
-        all the parameters, including animation etc., but not every frame -
-        they're cached by self.render_args_timestamp (they're only
-        recomputed when this timestamp changes).
+        all the parameters, including animation etc.
 
-        When rendering HUD (determined by the paramters hudpass, which
-        determines whether we're rendering HUD right now, and needhud,
-        which determines whether we're in first person mode), the member
-        hud_model_offset (vec3) is used to offset the HUD model (if available).
+        When rendering HUD, the member `hud_model_offset` (vec3) is used to
+        offset the HUD model (if available).
 
         There is one additional argument, fpsshadow - it's true if we're about
         to render a first person shadow (can be true only when needhud is true
         and hudpass is false).
+
+        Arguments:
+            - hudpass - a bool, true if we're rendering the HUD pass (whether
+              we're rendering a HUD model right now).
+            - needhud - true if we're in first person mode.
+            - fpsshadow - true if we enabled a FPS player shadow.
     ]]
     __render = (not SERVER) and function(self, hudpass, needhud, fpsshadow)
         if not self.initialized then return end
@@ -522,10 +530,11 @@ local Character = Entity:clone {
 
     --[[! Function: get_render_flags
         Returns the rendering flags used when rendering the character. By
-        default, it enables some occlusion stuff. Override as needed,
-        the parameters are hudpass (whether we're rendering HUD right now)
-        and needhud (whether we're in first person mode). Called from
-        <__render>. Clientside.
+        default, it enables some occlusion stuff. Override as needed.
+        Called from $__render. Clientside.
+
+        Arguments:
+            - hudpass, needhud - see $__render.
     ]]
     get_render_flags = (not SERVER) and function(self, hudpass, needhud)
         local flags
@@ -547,8 +556,8 @@ local Character = Entity:clone {
     end or nil,
 
     --[[! Function: get_animation
-        Returns the base "action animation" used by <decide_animation>. By
-        default simply return the "animation" attribute.
+        Returns the base "action animation" used by $decide_animation. By
+        default simply return the `animation` attribute.
     ]]
     get_animation = (not SERVER) and function(self)
         return self:get_attr("animation")
@@ -556,13 +565,15 @@ local Character = Entity:clone {
 
     --[[! Function: decide_animation
         Decides the current animation for the character. Starts with
-        <get_animation>, then adjusts it to take things like moving,
+        $get_animation, then adjusts it to take things like moving,
         strafing, swimming etc into account. Returns the animation
         (an array) and animation flags (by default 0).
 
-        Passed arguments are client_state, physical_state, move, strafe,
-        crouching, velocity, falling, in_liquid and time_in_air (same as the
-        state variables).
+        Arguments:
+            - state - client state (see $State).
+            - pstate - physical state (see $Physical_State).
+            - move, strafe, crouching, vel, falling, unwater, tinair - see
+              the appropriate state variables.
     ]]
     decide_animation = (not SERVER) and function(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
@@ -640,10 +651,10 @@ local Character = Entity:clone {
         return { panim, sanim }, 0
     end or nil,
 
-    --[[! Function: get_center
+    --[[!
         Gets the center position of a character, something like gravity center
         (approximate). Useful for e.g. bots (better to aim at this position,
-        the actual "position" is feet position). Override if you need this
+        the actual `position` is feet position). Override if you need this
         non-standard. By default it's 0.75 * eye_height above feet.
     ]]
     get_center = function(self)
@@ -652,7 +663,7 @@ local Character = Entity:clone {
         return r
     end,
 
-    --[[! Function: get_targeting_origin
+    --[[!
         Given an origin position (e.g. from an attachment tag), this method
         is supposed to fix it so that it corresponds to where player actually
         targeted from. By default just returns origin.
@@ -661,9 +672,9 @@ local Character = Entity:clone {
         return origin
     end,
 
-    --[[! Function: set_local_animation
-        Sets the animation property locally, without notifying the other side.
-        Useful when allowing actions to animate the entity (as we mostly
+    --[[!
+        Sets the `animation` property locally, without notifying the other
+        side. Useful when allowing actions to animate the entity (as we mostly
         don't need the changes to reflect elsewhere).
     ]]
     set_local_animation = function(self, anim)
@@ -671,25 +682,26 @@ local Character = Entity:clone {
         self.svar_values["animation"] = anim
     end,
 
-    --[[! Function: set_local_animation_flags
-        Sets the animation_flags property locally, without notifying the other
-        side. Useful when allowing actions to animate the entity (as we mostly
-        don't need the changes to reflect elsewhere).
+    --[[!
+        Sets the `animation_flags` property locally, without notifying the
+        other side. Useful when allowing actions to animate the entity (as we
+        mostly don't need the changes to reflect elsewhere).
     ]]
     set_local_animation_flags = function(self, animflags)
         capi.set_animflags(self, animflags)
         self.svar_values["animation_flags"] = animflags
     end,
 
-    --[[! Function: set_local_model_name
-        Sets the model name property locally, without notifying the other side.
+    --[[!
+        Sets the `model_name` property locally, without notifying the other
+        side.
     ]]
     set_local_model_name = function(self, mname)
         capi.set_model_name(self, mname)
         self.svar_values["model_name"] = mname
     end
 }
-ents.Character = Character
+local Character = M.Character
 
 --[[! Function: physics_collide_client
     An external called when two clients collide. Takes both entities. By
@@ -702,15 +714,15 @@ set_external("physics_collide_client", function(cl1, cl2, dx, dy, dz)
     emit(cl2, "collision", cl1, dx, dy, dz)
 end)
 
---[[! Class: Player
-    The default entity class for player. Inherits from <Character>. Adds
+--[[!
+    The default entity class for player. Inherits from $Character. Adds
     two new properties.
 
     Properties:
-        can_edit [false] - if player can edit, it's true (private edit mode).
-        hud_model_name [""] - the first person model to use for the player.
+        - can_edit [false] - if player can edit, it's true (private edit mode).
+        - hud_model_name [""] - the first person model to use for the player.
 ]]
-local Player = Character:clone {
+M.Player = Character:clone {
     name = "Player",
 
     __properties = {
@@ -725,10 +737,9 @@ local Player = Character:clone {
         self:set_attr("hud_model_name", "")
     end or nil
 }
-ents.Player = Player
 
 ents.register_class(Character)
-ents.register_class(Player)
+ents.register_class(M.Player)
 
 local c_get_attr = capi.get_attr
 local c_set_attr = capi.set_attr
@@ -742,31 +753,24 @@ local gen_attr = function(i, name)
     }
 end
 
---[[! Class: Static_Entity
-    A base for any static entity. Inherits from <Entity>. Unlike
-    dynamic entities (such as <Character>), static entities usually don't
-    invoke their "__run" method per frame. To re-enable that, set the
-    __per_frame member to true (false by default for efficiency).
+--[[!
+    A base for any static entity. Inherits from $Entity. Unlike
+    dynamic entities (such as $Character$), static entities usually don't
+    invoke their `__run` method per frame. To re-enable that, set the
+    `__per_frame` member to true (false by default for efficiency).
 
-    Static entities are persistent by default, so they set the "persistent"
+    Static entities are persistent by default, so they set the `persistent`
     inherited property to true.
 
     This entity class is never registered, the inherited ones are.
 
     Properties:
-        position [<svars.State_Vec3>] - the entity position.
-        attr1 [<svars.State_Integer>] - the first "sauer" entity attribute.
-        attr2 [<svars.State_Integer>] - the second "sauer" entity attribute.
-        attr3 [<svars.State_Integer>] - the third "sauer" entity attribute.
-        attr4 [<svars.State_Integer>] - the fourth "sauer" entity attribute.
-        attr5 [<svars.State_Integer>] - the fifth "sauer" entity attribute.
+        position [{{$svars.State_Vec3}}] - the entity position.
 ]]
-local Static_Entity = Entity:clone {
+M.Static_Entity = Entity:clone {
     name = "Static_Entity",
 
-    --[[! Variable: __edit_icon
-        The icon that'll be displayed in edit mode.
-    ]]
+    --! The icon that'll be displayed in edit mode.
     __edit_icon = "media/interface/icon/edit_generic",
 
     __per_frame = false,
@@ -848,15 +852,15 @@ local Static_Entity = Entity:clone {
         debug then log(DEBUG, "Static_Entity.send_notification_full: done")
     end or nil,
 
-    --[[! Function: get_center
-        See <Character.get_center>. By default this is the entity position.
+    --[[!
+        See {{$Character.get_center}}. By default this is the entity position.
         May be overloaded for other entity types.
     ]]
     get_center = function(self)
         return self:get_attr("position"):copy()
     end,
 
-    --[[! Function: __get_edit_color
+    --[[!
         Returns the color of the entity icon in edit mode. If an invalid
         value is returned, it defaults to 255, 255, 255 (white). This is
         useful for e.g. light entity that is colored.
@@ -865,7 +869,7 @@ local Static_Entity = Entity:clone {
         return 255, 255, 255
     end,
 
-    --[[! Function: __get_edit_info
+    --[[!
         Returns any piece of information displayed in in the edit HUD in
         addition to the entity name. Overload for different entity types.
     ]]
@@ -873,7 +877,7 @@ local Static_Entity = Entity:clone {
         return nil
     end,
 
-    --[[! Function: get_attached_entity
+    --[[!
         Returns the currently attached entity. Useful mainly for spotlights.
         This refers to the "internally attached" entity that the core engine
         works with.
@@ -882,7 +886,7 @@ local Static_Entity = Entity:clone {
         return capi.get_attached_entity(self.uid)
     end,
 
-    --[[! Function: get_edit_drop_height
+    --[[!
         Returns the height above the floor to use when dropping the entity
         to the floor. By default returns 4, may be useful to overload (for
         say, mapmodels).
@@ -891,10 +895,11 @@ local Static_Entity = Entity:clone {
         return 4
     end
 }
-ents.Static_Entity = Static_Entity
+local Static_Entity = M.Static_Entity
 
 --[[! Function: entity_get_edit_info
-    An external. Returns ent.__edit_icon, ent:__get_edit_color().
+    An external. Returns `ent.__edit_icon`,
+    `ent:{{$Static_Entity.__get_edit_color|__get_edit_color}}()`.
 ]]
 set_external("entity_get_edit_icon_info", function(ent)
     return ent.__edit_icon, ent:__get_edit_color()
@@ -902,49 +907,49 @@ end)
 
 --[[! Function: entity_get_edit_info
     An external. Returns the entity name and the return value of
-    <Static_Entity.__get_edit_info>.
+    {{$Static_Entity.__get_edit_info}}.
 ]]
 set_external("entity_get_edit_info", function(ent)
     return ent.name, ent:__get_edit_info()
 end)
 
 --[[! Function: entity_get_edit_drop_height
-    An external, see <Entity.get_edit_drop_height>.
+    An external, see {{$Static_Entity.get_edit_drop_height}}.
 ]]
 set_external("entity_get_edit_drop_height", function(ent)
     return ent:get_edit_drop_height()
 end)
 
---[[! Class: Marker
+--[[!
     A generic marker without orientation. It doesn't have any default
     additional properties.
 ]]
-local Marker = Static_Entity:clone {
+M.Marker = Static_Entity:clone {
     name = "Marker",
 
     __edit_icon = "media/interface/icon/edit_marker",
 
     sauer_type = 1,
 
-    --[[! Function: place_entity
-        Places an entity on this marker's position.
-    ]]
+    --! Places the given entity on this marker's position.
     place_entity = function(self, ent)
         ent:set_attr("position", self:get_attr("position"))
     end
 }
-ents.Marker = Marker
+local Marker = M.Marker
 
---[[! Class: Oriented_Marker
+--[[!
     A generic (oriented) marker with a wide variety of uses. Can be used as
-    a base for various position markers (e.g. playerstarts). It has two
-    properties, attr1 alias yaw, attr2 alias pitch. When providing properties
-    as extra arguments to newent, you can specify yaw and pitch in that order.
+    a base for various position markers (e.g. playerstarts).
 
     An example of world marker usage is a cutscene system. Different marker
     types inherited from this one can represent different nodes.
+
+    Properties:
+        - attr1 - aka "yaw".
+        - attr2 - aka "pitch".
 ]]
-local Oriented_Marker = Static_Entity:clone {
+M.Oriented_Marker = Static_Entity:clone {
     name = "Oriented_Marker",
 
     __edit_icon = "media/interface/icon/edit_marker",
@@ -963,9 +968,7 @@ local Oriented_Marker = Static_Entity:clone {
         self:set_attr("pitch", 0, nd[2])
     end,
 
-    --[[! Function: place_entity
-        Places an entity on this marker's position.
-    ]]
+    --! Places the given entity on this marker's position, using yaw and pitch.
     place_entity = function(self, ent)
         ent:set_attr("position", self:get_attr("position"))
         ent:set_attr("yaw", self:get_attr("yaw"))
@@ -977,7 +980,7 @@ local Oriented_Marker = Static_Entity:clone {
             self:get_attr("pitch"))
     end
 }
-ents.Oriented_Marker = Oriented_Marker
+local Oriented_Marker = M.Oriented_Marker
 
 local lightflags = setmetatable({
     [0] = "dynamic (0)",
@@ -989,23 +992,23 @@ local lightflags = setmetatable({
     end
 })
 
---[[! Class: Light
+--[[!
     A regular point light. In the extension library there are special light
     entity types that are e.g. triggered, flickering and so on. When providing
     properties as extra arguments to newent, you can specify red, green, blue,
     radius and shadow in that order.
 
     Properties:
-        attr1 - light radius. (0 to N, alias "radius", default 100 - 0 or
-        lower means the light is off)
-        attr2 - red value (can be any range, even negative - typical values
-        are 0 to 255, negative values make a negative light, alias "red",
-        default 128)
-        attr3 - green value (alias "green", default 128)
-        attr4 - blue value (alias "blue", default 128)
-        attr5 - shadow type, 0 means dnyamic, 1 disabled, 2 static (default 0).
+        - attr1 - light radius. (0 to N, alias "radius", default 100 - 0 or
+          lower means the light is off)
+        - attr2 - red value (can be any range, even negative - typical values
+          are 0 to 255, negative values make a negative light, alias "red",
+          default 128)
+        - attr3 - green value (alias "green", default 128)
+        - attr4 - blue value (alias "blue", default 128)
+        - attr5 - shadow type, 0 means dnyamic, 1 disabled, 2 static (default 0).
 ]]
-local Light = Static_Entity:clone {
+M.Light = Static_Entity:clone {
     name = "Light",
 
     __edit_icon = "media/interface/icon/edit_light",
@@ -1043,17 +1046,16 @@ local Light = Static_Entity:clone {
             lightflags[self:get_attr("shadow")])
     end
 }
-ents.Light = Light
 
---[[! Class: Spot_Light
-    A spot light. It's attached to the nearest <Light>. It has just one
-    property, attr1 (alias "radius") which defaults to 90 and is in degrees
-    (90 is a full hemisphere, 0 is a line). You can specify the radius
-    as an extra argument to newent.
+--[[!
+    A spot light. It's attached to the nearest $Light. Properties such as
+    color are retrieved from the attached light entity.
 
-    Properties such as color are inherited from the attached light entity.
+    Properties:
+        - attr1 - alias "radius", defaults to 90, in degrees (90 is a full
+          hemisphere, 0 is a line)
 ]]
-local Spot_Light = Static_Entity:clone {
+M.Spot_Light = Static_Entity:clone {
     name = "Spot_Light",
 
     __edit_icon = "media/interface/icon/edit_spotlight",
@@ -1080,18 +1082,18 @@ local Spot_Light = Static_Entity:clone {
         return format("radius :\f2 %d", self:get_attr("radius"))
     end
 }
-ents.Spot_Light = Spot_Light
 
---[[! Class: Envmap
+--[[!
     An environment map entity class. Things reflecting on their surface using
     environment maps can generate their envmap from the nearest envmap entity
     instead of using skybox and reflect geometry that way (statically). You
     can specify the radius as an extra argument to newent.
 
-    It has one property, radius, which specifies the distance it'll still
-    have effect in.
+    Properties:
+        - attr1 - alias "radius", the distance it'll still have effect in,
+          defaults to 128.
 ]]
-local Envmap = Static_Entity:clone {
+M.Envmap = Static_Entity:clone {
     name = "Envmap",
 
     __edit_icon = "media/interface/icon/edit_envmap",
@@ -1112,24 +1114,24 @@ local Envmap = Static_Entity:clone {
         return format("radius :\f2 %d", self:get_attr("radius"))
     end
 }
-ents.Envmap = Envmap
 
---[[! Class: Sound
+--[[!
     An ambient sound in the world. Repeats the given sound at entity position.
     You can specify the sound name, volume, radius and size as extra arguments
     to newent.
 
     Properties:
-        attr1 - the sound radius (alias "radius", default 100)
-        attr2 - the sound size, if this is 0, the sound is a point source,
-        otherwise the sound volume will always be max until the distance
-        specified by this property and then it'll start fading off
-        (alias "size", default 0).
-        attr3 - the sound volume, from 0 to 100 (alias "volume", default 100).
-        sound_name [<svars.State_String>] - the  path to the sound in
-        media/sound (default "").
+        - attr1 - the sound radius (alias "radius", default 100)
+        - attr2 - the sound size, if this is 0, the sound is a point source,
+          otherwise the sound volume will always be max until the distance
+          specified by this property and then it'll start fading off
+          (alias "size", default 0).
+        - attr3 - the sound volume, from 0 to 100 (alias "volume",
+          default 100).
+        - sound_name [{{$svars.State_String}}] - the  path to the sound in
+          media/sound (default "").
 ]]
-local Sound = Static_Entity:clone {
+M.Sound = Static_Entity:clone {
     name = "Sound",
 
     __edit_icon = "media/interface/icon/edit_sound",
@@ -1173,65 +1175,59 @@ local Sound = Static_Entity:clone {
             self:get_attr("volume"))
     end
 }
-ents.Sound = Sound
 
 set_external("sound_play_map", function(ent)
     ent:__play_sound()
 end)
 
---[[! Class: Particle_Effect
+--[[!
     A particle effect entity class. You can derive from this to create
     your own effects, but by default this doesn't draw anything and is
     not registered.
 ]]
-local Particle_Effect = Static_Entity:clone {
+M.Particle_Effect = Static_Entity:clone {
     name = "Particle_Effect",
 
     __edit_icon  = "media/interface/icon/edit_particles",
     sauer_type = 7,
 
-    --[[! Function: get_edit_drop_height
-        Returns 0.
-    ]]
+    --! Returns 0.
     get_edit_drop_height = function(self)
         return 0
     end,
 
-    --[[! Function: __emit_particles
-        This is what you need to override - draw your particles from here.
-    ]]
+    --! This is what you need to override - draw your particles from here.
     __emit_particles = function(self) end
 }
-ents.Particle_Effect = Particle_Effect
 
 set_external("particle_entity_emit", function(e)
     e:__emit_particles()
 end)
 
---[[! Class: Mapmodel
+--[[!
     A model in the world. All attrs default to 0. On mapmodels and all
-    entity types derived from mapmodels, the engine emits the "collision"
+    entity types derived from mapmodels, the engine emits the `collision`
     signal with the collider entity passed as an argument when collided.
     You can specify the model name, yaw, pitch, roll and scale as extra
     arguments to newent.
 
     Properties:
-        animation [<svars.State_Array>] - the mapmodel's current animation.
-        See <Character>.
-        animation_flags [<svars.State_Integer>] - the mapmodel's current anim
-        flags.
-        start_time [<svars.State_Integer>] - an internal property used for
-        animation timing.
-        model_name [<svars.State_String>] - name of the model associated with
-        this mapmodel.
-        attachments [<svars.State_Array>] - an array of model attachments.
-        Those are strings in format "tagname,attachmentname".
-        attr1 - the model yaw, alias "yaw".
-        attr2 - the model pitch, alias "pitch".
-        attr3 - the model roll, alias "roll".
-        attr4 - the model scale, alias "scale".
+        - animation [{{$svars.State_Array}}] - the mapmodel's current
+          animation. See $Character.
+        - animation_flags [{{$svars.State_Integer}}] - the mapmodel's current
+          anim flags.
+        - start_time [{{$svars.State_Integer}}] - an internal property used for
+          animation timing.
+        - model_name [{{$svars.State_String}}] - name of the model associated
+          with this mapmodel.
+        - attachments [{{$svars.State_Array}}] - an array of model attachments.
+          Those are strings in format "tagname,attachmentname".
+        - attr1 - the model yaw, alias "yaw".
+        - attr2 - the model pitch, alias "pitch".
+        - attr3 - the model roll, alias "roll".
+        - attr4 - the model scale, alias "scale".
 ]]
-local Mapmodel = Static_Entity:clone {
+M.Mapmodel = Static_Entity:clone {
     name = "Mapmodel",
 
     __edit_icon = "media/interface/icon/edit_mapmodel",
@@ -1287,34 +1283,25 @@ local Mapmodel = Static_Entity:clone {
             self:get_attr("model_name"))
     end,
 
-    --[[! Function: get_edit_drop_height
-        Returns 0.
-    ]]
+    --! Returns 0.
     get_edit_drop_height = function(self)
         return 0
     end,
 
-    --[[! Function: set_local_animation
-        See <Character.set_local_animation>.
-    ]]
+    --! See {{$Character.set_local_animation}}.
     set_local_animation = Character.set_local_animation,
 
-    --[[! Function: set_local_animation_flags
-        See <Character.set_local_animation_flags>.
-    ]]
+    --! See {{$Character.set_local_animation_flags}}.
     set_local_animation_flags = Character.set_local_animation_flags,
 
-    --[[! Function: set_local_model_name
-        See <Character.set_local_model_name>.
-    ]]
+    --! See {{$Character.set_local_model_name}}.
     set_local_model_name = Character.set_local_model_name
 }
-ents.Mapmodel = Mapmodel
 
 --[[! Function: physics_collide_mapmodel
     An external called when a client collides with a mapmodel. Takes the
     collider entity (the client) and the mapmodel entity. By default emits
-    the "collision" signal on both entities, passing the other one as an
+    the `collision` signal on both entities, passing the other one as an
     argument. The mapmodel takes precedence.
 ]]
 set_external("physics_collide_mapmodel", function(collider, entity)
@@ -1322,15 +1309,19 @@ set_external("physics_collide_mapmodel", function(collider, entity)
     emit(collider, "collision", entity)
 end)
 
---[[! Class: Obstacle
-    An entity class that emits a "collision" signal on itself when a client
-    (player, NPC...) collides with it. It has its own yaw (attr1), dimensions
-    (attr2 alias a, attr3 alias b, attr4 alias c) and the solid property
-    (attr5) which makes the obstacle solid when it isn't 0. You can specify
-    the a, b, c dimensions, yaw, pitch, roll and the solid property as extra
+--[[!
+    An entity class that emits a `collision` signal on itself when a client
+    (player, NPC...) collides with it. You can specify the properties as extra
     arguments to newent.
+
+    Properties:
+        - attr1, attr2, attr3 - alias "yaw", "pitch", "roll", all 0.
+        - attr4, attr5, attr6 - alias "a", "b", "c" (the dimensions,
+          10, 10, 10 by default).
+        - attr7 - alias "solid", makes the obstacle solid when not 0 (0
+          by default).
 ]]
-local Obstacle = Static_Entity:clone {
+M.Obstacle = Static_Entity:clone {
     name = "Obstacle",
 
     sauer_type = 9,
@@ -1365,19 +1356,16 @@ local Obstacle = Static_Entity:clone {
             self:get_attr("b"),    self:get_attr("c"), self:get_attr("solid"))
     end,
 
-    --[[! Function: get_edit_drop_height
-        Returns 0.
-    ]]
+    --! Returns 0.
     get_edit_drop_height = function(self)
         return 0
     end
 }
-ents.Obstacle = Obstacle
 
 --[[! Function: physics_collide_area
     An external called when a client collides with an area. Takes the
     collider entity (the client) and the area entity.  By default emits
-    the "collision" signal on both entities, passing the other one as an
+    the `collision` signal on both entities, passing the other one as an
     argument. The obstacle takes precedence.
 ]]
 set_external("physics_collide_area", function(collider, entity)
@@ -1385,11 +1373,11 @@ set_external("physics_collide_area", function(collider, entity)
     emit(collider, "collision", entity)
 end)
 
-ents.register_class(Marker)
-ents.register_class(Oriented_Marker)
-ents.register_class(Light)
-ents.register_class(Spot_Light)
-ents.register_class(Envmap)
-ents.register_class(Sound)
-ents.register_class(Mapmodel)
-ents.register_class(Obstacle)
+ents.register_class(M.Marker)
+ents.register_class(M.Oriented_Marker)
+ents.register_class(M.Light)
+ents.register_class(M.Spot_Light)
+ents.register_class(M.Envmap)
+ents.register_class(M.Sound)
+ents.register_class(M.Mapmodel)
+ents.register_class(M.Obstacle)
