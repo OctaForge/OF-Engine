@@ -25,8 +25,8 @@ gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_color4ub,
 gle_attrib4ub, gle_defcolorub, gle_disable, hudmatrix_ortho, hudmatrix_reset,
 shader_hud_set, hud_get_w, hud_get_h, hud_get_ss_x, hud_get_ss_y, hud_get_so_x,
 hud_get_so_y, isconnected, text_get_res, text_font_get_h, aspect_get,
-editing_get, console_scale_get, input_get_free_cursor,
-input_cursor_exists_update in capi
+editing_get, console_scale_get, input_get_free_cursor, input_cursor_get_x,
+input_cursor_get_y, input_cursor_exists_update in capi
 
 local set_external = capi.external_set
 
@@ -69,8 +69,8 @@ local mod = M.mod
 
 -- initialized after World is created
 local world, projection, clicked, hovering, focused
-local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local cursor_x, cursor_y = 0.5, 0.5
+local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local clicked_code
 local menu_init, tooltip_init, tooltip
 local menustack = {}
@@ -1943,42 +1943,6 @@ M.get_hud = function()
     return hud
 end
 
---[[! Variable: uisensitivity
-    An engine variable specifying the mouse cursor sensitivity. Ranges from
-    0.001 to 1000 and defaults to 1.
-]]
-cs.var_new_checked("uisensitivity", cs.var_type.float, 0.0001, 1, 10000,
-    cs.var_flags.PERSIST)
-
-local uisensitivity = var_get("uisensitivity")
-signal.connect(cs, "uisensitivity_changed", function(self, n)
-    uisensitivity = n
-end)
-
-M.get_cursor_sensitivity = function()
-    return uisensitivity
-end
-
-local cursor_mode = function()
-    return input_get_free_cursor(editing_get() != 0)
-end
-
-set_external("cursor_move", function(dx, dy)
-    local cmode = cursor_mode()
-    if cmode == 2 or (world:grabs_input() and cmode >= 1) then
-        local hudw, hudh = hud_get_w(), hud_get_h()
-        cursor_x = clamp(cursor_x + dx * uisensitivity / hudw, 0, 1)
-        cursor_y = clamp(cursor_y + dy * uisensitivity / hudh, 0, 1)
-        if cmode == 2 then
-            if cursor_x != 1 and cursor_x != 0 then dx = 0 end
-            if cursor_y != 1 and cursor_y != 0 then dy = 0 end
-            return false, dx, dy
-        end
-        return true, dx, dy
-    end
-    return false, dx, dy
-end)
-
 local cec = false
 local cursor_exists = function(update)
     if not update then return cec end
@@ -1987,15 +1951,6 @@ local cursor_exists = function(update)
     if bce ~= cec then input_cursor_exists_update(cec) end
     return cec
 end
-
-set_external("cursor_get_position", function()
-    local cmode = cursor_mode()
-    if cmode == 2 or (world:grabs_input() and cmode >= 1) then
-        return cursor_x, cursor_y
-    else
-        return 0.5, 0.5
-    end
-end)
 
 local menu_click = function(o, cx, cy, code)
     local proj = get_projection(o)
@@ -2304,6 +2259,8 @@ set_external("gui_visible", function(wname)
 end)
 
 set_external("gui_update", function()
+    cursor_x, cursor_y = input_cursor_get_x(), input_cursor_get_y()
+
     if mmenu != 0 and not world:window_visible("main") and
     not isconnected(true) then
         world:show_window("main")

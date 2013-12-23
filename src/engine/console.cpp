@@ -842,11 +842,9 @@ VARP(freeeditcursor, 0, 1, 2);
 CLUAICOMMAND(input_get_free_cursor, int, (bool edit),
     return edit ? freeeditcursor : freecursor;);
 
-VAR(cursor_exists, 1, 0, 0);
-CLUAICOMMAND(input_cursor_exists_update, void, (bool exists),
-    cursor_exists = exists);
-
 #define QUOT(arg) #arg
+
+extern void cursor_get_position(float &x, float &y);
 
 #define MOUSECLICK(num) \
 void mouse##num##click() { \
@@ -861,12 +859,8 @@ void mouse##num##click() { \
 \
     CLogicEntity *tle = TargetingControl::targetLogicEntity; \
 \
-    lua::push_external("cursor_get_position"); \
-    lua_call(lua::L, 0, 2); \
-\
-    float x = lua_tonumber(lua::L, -2); \
-    float y = lua_tonumber(lua::L, -1); \
-    lua_pop(lua::L, 2); \
+    float x, y; \
+    cursor_get_position(x, y); \
 \
     assert(lua::push_external("input_click")); \
     lua_pushinteger(lua::L, num); \

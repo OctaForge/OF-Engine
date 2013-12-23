@@ -86,6 +86,9 @@ bool ClientSystem::scenarioStarted()
     return _mapCompletelyReceived && _scenarioStarted;
 }
 
+extern void cursor_get_position(float &x, float &y);
+extern int cursor_exists;
+
 void ClientSystem::frameTrigger(int curtime)
 {
     if (scenarioStarted())
@@ -93,14 +96,9 @@ void ClientSystem::frameTrigger(int curtime)
         float delta = float(curtime)/1000.0f;
 
         /* turn if mouse is at borders */
-        lua::push_external("cursor_get_position");
-        lua_call(lua::L, 0, 2);
+        float x, y;
+        cursor_get_position(x, y);
 
-        float x = lua_tonumber(lua::L, -2);
-        float y = lua_tonumber(lua::L, -1);
-        lua_pop(lua::L, 2);
-
-        extern int cursor_exists;
         /* do not scroll with mouse */
         if (cursor_exists) x = y = 0.5;
 

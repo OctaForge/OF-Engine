@@ -698,6 +698,43 @@ void resetgl()
 
 COMMAND(resetgl, "");
 
+VAR(cursor_exists, 1, 0, 0);
+FVAR(cursor_x, 1, 0.5f, 0);
+FVAR(cursor_y, 1, 0.5f, 0);
+
+CLUAICOMMAND(input_cursor_exists_update, void, (bool exists),
+    cursor_exists = exists);
+
+CLUAICOMMAND(input_cursor_get_x, float, (), return cursor_x;);
+CLUAICOMMAND(input_cursor_get_y, float, (), return cursor_y;);
+
+extern int freecursor, freeeditcursor, cursor_exists, hudw, hudh;
+
+void cursor_get_position(float &x, float &y) {
+    if ((editmode ? freeeditcursor >= 2 : freecursor >= 2) || cursor_exists) {
+        x = cursor_x, y = cursor_y;
+    } else {
+        x = y = 0.5f;
+    }
+}
+
+FVARP(cursorsensitivity, 1e-4f, 1, 10000);
+
+static bool cursor_move(int &dx, int &dy) {
+    int cmode = editmode ? freeeditcursor : freecursor;
+    if (cmode >= 2 || cursor_exists) {
+        cursor_x = clamp(cursor_x + dx * cursorsensitivity / screenw, 0.0f, 1.0f);
+        cursor_y = clamp(cursor_y + dy * cursorsensitivity / screenh, 0.0f, 1.0f);
+        if (cmode >= 2) {
+            if (cursor_x != 1 && cursor_x != 0) dx = 0;
+            if (cursor_y != 1 && cursor_y != 0) dy = 0;
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
 vector<SDL_Event> events;
 
 void pushevent(const SDL_Event &e)
@@ -873,17 +910,7 @@ void checkinput()
                 {
                     int dx = event.motion.xrel, dy = event.motion.yrel;
                     checkmousemotion(dx, dy);
-
-                    lua::push_external("cursor_move");
-                    lua_pushinteger(lua::L, dx);
-                    lua_pushinteger(lua::L, dy);
-                    lua_call(lua::L, 2, 3);
-                    bool b = lua_toboolean(lua::L, -3);
-                    dx = lua_tointeger(lua::L, -2);
-                    dy = lua_tointeger(lua::L, -1);
-                    lua_pop(lua::L, 3);
-                    extern int cursor_exists;
-                    if (!b && !cursor_exists) mousemove(dx, dy);
+                    if (!cursor_move(dx, dy) && !cursor_exists) mousemove(dx, dy);
                     mousemoved = true;
                 }
                 else if(shouldgrab) inputgrab(grabinput = true);

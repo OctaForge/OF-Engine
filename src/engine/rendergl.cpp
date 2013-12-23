@@ -1223,12 +1223,9 @@ void setcammatrix()
     invcamprojmatrix.invert(camprojmatrix);
 
     if (!drawtex) {
-        lua::push_external("cursor_get_position");
-        lua_call(lua::L, 0, 2);
-
-        float x = lua_tonumber(lua::L, -2);
-        float y = lua_tonumber(lua::L, -1);
-        lua_pop(lua::L, 2);
+        extern void cursor_get_position(float &x, float &y);
+        float x, y;
+        cursor_get_position(x, y);
 
         vec dir1 = invcamprojmatrix.perspectivetransform(vec(x*2-1, 1-2*y, 2-1));
         vec dir2 = invcamprojmatrix.perspectivetransform(vec(x*2-1, 1-2*y, -1));
@@ -2682,12 +2679,8 @@ void drawcrosshair(int w, int h)
         if(!cursor) cursor = textureload("media/interface/cursor", 3, true);
         crosshair = cursor;
         chsize = cursorsize*w/900.0f;
-        lua::push_external("cursor_get_position");
-        lua_call(lua::L, 0, 2);
-
-        cx = lua_tonumber(lua::L, -2);
-        cy = lua_tonumber(lua::L, -1);
-        lua_pop(lua::L, 2);
+        extern void cursor_get_position(float &x, float &y);
+        cursor_get_position(cx, cy);
     }
     else
     {
