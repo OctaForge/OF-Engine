@@ -148,6 +148,7 @@ void glDisable(GLenum cap) {};
 void glBindTexture(GLenum target, GLuint texture) {};
 void glBlendFunc(GLenum sfactor, GLenum dfactor) {};
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {};
+void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indicies) {};
 #endif
 
 #ifndef __APPLE__
@@ -174,12 +175,10 @@ PFNGLUNIFORM4UIVPROC              glUniform4uiv_              = NULL;
 PFNGLUNIFORMMATRIX2FVPROC         glUniformMatrix2fv_         = NULL;
 PFNGLUNIFORMMATRIX3FVPROC         glUniformMatrix3fv_         = NULL;
 PFNGLUNIFORMMATRIX4FVPROC         glUniformMatrix4fv_         = NULL;
-PFNGLDRAWRANGEELEMENTSPROC        glDrawRangeElements_        = NULL;
 PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_  = NULL;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
 PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;
 PFNGLGETUNIFORMLOCATIONPROC       glGetUniformLocation_       = NULL;
-PFNGLACTIVETEXTUREPROC            glActiveTexture_            = NULL;
 PFNGLMAPBUFFERRANGEPROC           glMapBufferRange_           = NULL;
 PFNGLUNMAPBUFFERPROC              glUnmapBuffer_              = NULL;
 PFNGLMULTIDRAWARRAYSPROC          glMultiDrawArrays_          = NULL;
@@ -207,12 +206,10 @@ void glUniform4uiv(GLint location, GLsizei count, const GLuint *value) {};
 void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {};
 void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {};
 void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {};
-void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indicies) {};
 void glEnableVertexAttribArray(GLuint index) {}
 void glDisableVertexAttribArray(GLuint index) {}
 void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer) {};
 GLint glGetUniformLocation(GLuint program, const GLchar *name) { return 0; };
-void glActiveTexture(GLenum texture) {};
 void *glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) { return NULL; };
 void *glMapBuffer(GLenum target, GLenum access) { return NULL; };
 void glMultiDrawArrays(	GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount) {};
