@@ -153,17 +153,20 @@ btime, trans)
         yaw, pitch, roll, flags, btime, r, g, b, a)
 end
 
---[[! Function: get_bounding_box
-    Returns the bounding box of the given model as two vec3, center and
-    radius.
-]]
-M.get_bounding_box = capi.model_get_boundbox
+local geom = require("core.lua.geom")
+local Vec3 = geom.Vec3
 
---[[! Function: get_collision_box
-    Returns the collision box of the given model as two vec3, center and
-    radius.
-]]
-M.get_collision_box = capi.model_get_collisionbox
+--! Returns the bounding box of the given model as two vec3, center and radius.
+M.get_bounding_box = function(name)
+    local cx, cy, cz, rx, ry, rz = capi.model_get_boundbox(name)
+    return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
+end
+
+--! See $get_bounding_box - for collision box.
+M.get_collision_box = function(name)
+    local cx, cy, cz, rx, ry, rz = capi.model_get_collisionbox(name)
+    return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
+end
 
 --[[! Function: get_mesh
     Returns the mesh information about the given model as a table.

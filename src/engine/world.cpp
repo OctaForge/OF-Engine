@@ -1387,11 +1387,10 @@ void finish_dragging() {
         lua::push_external("entity_set_attr_uid");
         lua_pushinteger(lua::L, LogicSystem::getUniqueId(&e));
         lua_pushliteral(lua::L, "position");
-        lua::push_external("new_vec3");
-        lua_pushnumber (lua::L, o.x);
-        lua_pushnumber (lua::L, o.y);
-        lua_pushnumber (lua::L, o.z);
-        lua_call       (lua::L, 3, 1);
+        lua_createtable(lua::L, 3, 0);
+        lua_pushnumber (lua::L, o.x); lua_rawseti(lua::L, -2, 1);
+        lua_pushnumber (lua::L, o.y); lua_rawseti(lua::L, -2, 2);
+        lua_pushnumber (lua::L, o.z); lua_rawseti(lua::L, -2, 3);
         lua_call       (lua::L, 3, 0);
     );
 }

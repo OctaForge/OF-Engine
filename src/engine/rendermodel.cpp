@@ -1184,13 +1184,11 @@ float roll, int flags, int basetime, float r, float g, float b, float a), {
     vec center; \
     vec radius; \
     mdl->nm(center, radius); \
-    lua::push_external(L, "new_vec3"); \
     lua_pushnumber(L, center.x); lua_pushnumber(L, center.y); \
-    lua_pushnumber(L, center.z); lua_call(L, 3, 1); \
-    lua::push_external(L, "new_vec3"); \
+    lua_pushnumber(L, center.z); \
     lua_pushnumber(L, radius.x); lua_pushnumber(L, radius.y); \
-    lua_pushnumber(L, radius.z); lua_call(L, 3, 1); \
-    return 2; \
+    lua_pushnumber(L, radius.z); \
+    return 6; \
 });
 
 SMDLBOX(boundbox)

@@ -9,7 +9,6 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
 local ffi = require("ffi")
 local log = require("core.logger")
 
@@ -884,10 +883,6 @@ local Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
     }
 })
 M.Vec4 = Vec4
-
-capi.external_set("new_vec2", function(x, y) return Vec2(x, y) end)
-capi.external_set("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
-capi.external_set("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
 
 local newproxy = newproxy
 local getmt, setmt = getmetatable, setmetatable
