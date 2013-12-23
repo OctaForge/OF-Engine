@@ -100,14 +100,9 @@ void ClientSystem::frameTrigger(int curtime)
         float y = lua_tonumber(lua::L, -1);
         lua_pop(lua::L, 2);
 
-        lua::push_external("cursor_exists");
-        lua_call(lua::L, 0, 1);
-
-        bool b = lua_toboolean(lua::L, -1);
-        lua_pop(lua::L, 1);
-
+        extern int cursor_exists;
         /* do not scroll with mouse */
-        if (b) x = y = 0.5;
+        if (cursor_exists) x = y = 0.5;
 
         /* turning */
         gameent *fp = (gameent*)player;

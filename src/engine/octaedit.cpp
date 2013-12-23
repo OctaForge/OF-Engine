@@ -310,10 +310,8 @@ void rendereditcursor()
         odc = dimcoord(orient);
 
     #ifndef SERVER
-        lua::push_external("cursor_exists");
-        lua_call(lua::L, 0, 1);
-        bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
-        bool hidecursor = b || blendpaintmode;
+        extern int cursor_exists;
+        bool hidecursor = cursor_exists || blendpaintmode;
     #else
         bool hidecursor = false;
     #endif

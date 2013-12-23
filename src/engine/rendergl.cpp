@@ -2666,12 +2666,12 @@ VAR(hidehud, 0, 0, 1);
 VARP(crosshairsize, 0, 15, 50);
 VARP(cursorsize, 0, 18, 30);
 
+extern int freecursor, freeeditcursor, cursor_exists;
+
 void drawcrosshair(int w, int h)
 {
-    lua::push_external("cursor_exists");
-    lua_pushboolean(lua::L, true);
-    lua_call(lua::L, 1, 1);
-    bool windowhit = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
+    bool windowhit = (editmode ? freeeditcursor >= 2 : freecursor >= 2);
+    if (!windowhit) windowhit = cursor_exists;
     if(!windowhit && (hidehud || mainmenu)) return; //(hidehud || player->state==CS_SPECTATOR || player->state==CS_DEAD)) return;
 
     float r = 1, g = 1, b = 1, cx = 0.5f, cy = 0.5f, chsize;

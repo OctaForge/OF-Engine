@@ -25,7 +25,8 @@ gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_color4ub,
 gle_attrib4ub, gle_defcolorub, gle_disable, hudmatrix_ortho, hudmatrix_reset,
 shader_hud_set, hud_get_w, hud_get_h, hud_get_ss_x, hud_get_ss_y, hud_get_so_x,
 hud_get_so_y, isconnected, text_get_res, text_font_get_h, aspect_get,
-editing_get, console_scale_get, input_get_free_cursor in capi
+editing_get, console_scale_get, input_get_free_cursor,
+input_cursor_exists_update in capi
 
 local set_external = capi.external_set
 
@@ -1978,15 +1979,14 @@ set_external("cursor_move", function(dx, dy)
     return false, dx, dy
 end)
 
-local cursor_exists = function(draw)
-    if draw and cursor_mode() == 2 then return true end
-    local w = world
-    if w:grabs_input() or w:target(cursor_x * w.w, cursor_y * w.h) then
-        return true
-    end
-    return false
+local cec = false
+local cursor_exists = function(update)
+    if not update then return cec end
+    local bce, w = cec, world
+    cec = w:grabs_input() or w:target(cursor_x * w.w, cursor_y * w.h) ~= nil
+    if bce ~= cec then input_cursor_exists_update(cec) end
+    return cec
 end
-set_external("cursor_exists", cursor_exists)
 
 set_external("cursor_get_position", function()
     local cmode = cursor_mode()
@@ -2397,6 +2397,8 @@ set_external("gui_update", function()
         hud:adjust_children()
         projection = nil
     end
+
+    cursor_exists(true)
 end)
 
 set_external("gui_render", function()

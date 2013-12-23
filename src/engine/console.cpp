@@ -842,6 +842,10 @@ VARP(freeeditcursor, 0, 1, 2);
 CLUAICOMMAND(input_get_free_cursor, int, (bool edit),
     return edit ? freeeditcursor : freecursor;);
 
+VAR(cursor_exists, 1, 0, 0);
+CLUAICOMMAND(input_cursor_exists_update, void, (bool exists),
+    cursor_exists = exists);
+
 #define QUOT(arg) #arg
 
 #define MOUSECLICK(num) \

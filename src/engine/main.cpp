@@ -882,12 +882,8 @@ void checkinput()
                     dx = lua_tointeger(lua::L, -2);
                     dy = lua_tointeger(lua::L, -1);
                     lua_pop(lua::L, 3);
-                    if (!b) {
-                        lua::push_external("cursor_exists");
-                        lua_call(lua::L, 0, 1);
-                        b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
-                        if (!b) mousemove(dx, dy);
-                    }
+                    extern int cursor_exists;
+                    if (!b && !cursor_exists) mousemove(dx, dy);
                     mousemoved = true;
                 }
                 else if(shouldgrab) inputgrab(grabinput = true);
