@@ -175,6 +175,8 @@ end)
 world:new_window("fullconsole", gui.Overlay, |win| do
     win:clamp(true, true, false, false)
     win:align(0, -1)
+    capi.console_full_show(true)
+    connect(win, "destroy", || capi.console_full_show(false))
     win:append(gui.Console {
         min_h = || var_get("fullconsize") / 100
     }, |con| do

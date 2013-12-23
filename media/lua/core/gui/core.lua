@@ -2254,10 +2254,6 @@ local calc_text_scale = function()
     uicontextscale = text_font_get_h() * console_scale_get() / th
 end
 
-set_external("gui_visible", function(wname)
-    return world:window_visible(wname)
-end)
-
 set_external("gui_update", function()
     cursor_x, cursor_y = input_cursor_get_x(), input_cursor_get_y()
 

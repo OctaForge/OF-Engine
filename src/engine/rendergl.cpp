@@ -2684,13 +2684,8 @@ void drawcrosshair(int w, int h)
     }
     else
     {
-        string cr = "media/interface/hud/crosshair";
-        if (lua::push_external("gui_get_crosshair")) {
-            lua_call(lua::L, 0, 1);
-            formatstring(cr, "media/interface/hud/%s", lua_tostring(lua::L, -1));
-            lua_pop(lua::L, 1);
-        }
-        crosshair = textureload(cr);
+        /* TODO: implement a proper system */
+        crosshair = textureload("media/interface/hud/crosshair");
         chsize = crosshairsize*w/900.0f;
     }
     if(crosshair->type&Texture::ALPHA) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2717,7 +2712,7 @@ FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
 CLUAICOMMAND(console_scale_get, float, (), return conscale;);
 
-bool fullconsole_visible();
+extern bool fullconsole;
 
 void gl_drawhud()
 {
@@ -2809,7 +2804,7 @@ void gl_drawhud()
     hudmatrix.scale(conscale, conscale, 1);
     flushhudmatrix();
     abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);
-    if(!hidehud && !fullconsole_visible()) renderconsole(conw, conh, abovehud - FONTH/2);
+    if(!hidehud && !fullconsole) renderconsole(conw, conh, abovehud - FONTH/2);
     pophudmatrix();
 
     drawcrosshair(w, h);
