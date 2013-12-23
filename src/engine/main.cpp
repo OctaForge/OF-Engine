@@ -1270,7 +1270,6 @@ int main(int argc, char **argv)
     MessageSystem::MessageManager::registerAll();
 
     initlog("shaders");
-    renderbackground("initializing...");
     initgbuffer();
     loadshaders();
     initparticles();

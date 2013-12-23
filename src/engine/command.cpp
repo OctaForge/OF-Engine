@@ -21,48 +21,44 @@ VARN(numargs, _numargs, MAXARGS, 0, 0);
 void ident::changed() {
     if (fun) fun(this);
     if (!(flags&IDF_SIGNAL)) return;
-    lua::push_external("signal_emit");
-    lua::push_external("var_get_table");
-    lua_call(lua::L, 0, 1);
+    lua::push_external("var_emit_changed");
     lua_pushstring (lua::L, name);
-    lua_pushliteral(lua::L, "_changed");
-    lua_concat     (lua::L, 2);
     switch (type) {
         case ID_VAR:
             lua_pushinteger(lua::L, *(storage.i));
             lua_pushinteger(lua::L, minval);
             lua_pushinteger(lua::L, overrideval.i);
             lua_pushinteger(lua::L, maxval);
-            lua_call       (lua::L, 6, 0);
+            lua_call       (lua::L, 5, 0);
             break;
         case ID_FVAR:
             lua_pushnumber(lua::L, *(storage.f));
             lua_pushnumber(lua::L, minvalf);
             lua_pushnumber(lua::L, overrideval.f);
             lua_pushnumber(lua::L, maxvalf);
-            lua_call      (lua::L, 6, 0);
+            lua_call      (lua::L, 5, 0);
             break;
         case ID_SVAR:
             lua_pushstring(lua::L, *(storage.s));
             lua_pushstring(lua::L, overrideval.s);
-            lua_call      (lua::L, 4, 0);
+            lua_call      (lua::L, 3, 0);
             break;
         case ID_ALIAS: switch (valtype) {
             case VAL_INT:
                 lua_pushinteger(lua::L, val.i);
-                lua_call       (lua::L, 3, 0);
+                lua_call       (lua::L, 2, 0);
                 break;
             case VAL_FLOAT:
                 lua_pushnumber(lua::L, val.f);
-                lua_call      (lua::L, 3, 0);
+                lua_call      (lua::L, 2, 0);
                 break;
             case VAL_STR:
                 lua_pushstring(lua::L, val.s);
-                lua_call      (lua::L, 3, 0);
+                lua_call      (lua::L, 2, 0);
                 break;
-            default: lua_call(lua::L, 2, 0); break;
+            default: lua_call(lua::L, 1, 0); break;
         }
-        default: lua_call(lua::L, 2, 0); break;
+        default: lua_call(lua::L, 1, 0); break;
     }
 }
 
