@@ -415,12 +415,8 @@ void checkmapsounds()
         if(e.type!=ET_SOUND) continue;
         if(camera1->o.dist(e.o) < e.attr[0])
         {
-            if(!(e.flags&EF_SOUND)) {
-                lua::push_external("sound_play_map");
-                lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-                    LogicSystem::getLogicEntity(e)->lua_ref);
-                lua_call(lua::L, 1, 0);
-            }
+            if(!(e.flags&EF_SOUND))
+                lua::call_external("sound_play_map", "i", e.uid);
         }
         else if(e.flags&EF_SOUND) stopmapsound(&e);
     }
@@ -633,9 +629,7 @@ ICOMMAND(playsound, "i", (int *n), playsound(*n));
 
 void resetsound()
 {
-    lua::push_external("changes_clear");
-    lua_pushinteger(lua::L, CHANGE_SOUND);
-    lua_call       (lua::L, 1, 0);
+    lua::call_external("changes_clear", "i", CHANGE_SOUND);
     if(!nosound)
     {
         gamesounds.cleanupsamples();

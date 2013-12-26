@@ -32,6 +32,7 @@ local var_get = cs.var_get
 local set_external = capi.external_set
 
 local Entity = ents.Entity
+local ent_get = ents.get
 
 local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
 local connect, emit = signal.connect, signal.emit
@@ -1178,8 +1179,8 @@ M.Sound = Static_Entity:clone {
     end
 }
 
-set_external("sound_play_map", function(ent)
-    ent:__play_sound()
+set_external("sound_play_map", function(uid)
+    ent_get(uid):__play_sound()
 end)
 
 --[[!
@@ -1202,8 +1203,8 @@ M.Particle_Effect = Static_Entity:clone {
     __emit_particles = function(self) end
 }
 
-set_external("particle_entity_emit", function(e)
-    e:__emit_particles()
+set_external("particle_entity_emit", function(uid)
+    ent_get(uid):__emit_particles()
 end)
 
 --[[!

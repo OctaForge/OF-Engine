@@ -1505,11 +1505,7 @@ int density, float scale, float speed, int gravity, int uid), {
 enum { PART_TEXT = 0, PART_ICON };
 
 static void makeparticles(const extentity &e) {
-    lua::push_external("particle_entity_emit");
-    CLogicEntity *le = LogicSystem::getLogicEntity(e);
-    assert(le);
-    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
-    lua_call(lua::L, 1, 0);
+    lua::call_external("particle_entity_emit", "i", e.uid);
 }
 
 void seedparticles()
