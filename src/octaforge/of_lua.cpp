@@ -189,7 +189,7 @@ namespace lua
         return ret;
     }
 
-    void pop_external_ret(lua_State *L, int n) { lua_pop(L, n); }
+    void pop_external_ret(lua_State *L, int n) { if (n > 0) lua_pop(L, n); }
     void pop_external_ret(int n) { pop_external_ret(L, n); }
 
     LUAICOMMAND(external_set, {

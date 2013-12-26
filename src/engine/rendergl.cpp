@@ -1373,16 +1373,16 @@ void modifyorient(float yaw, float pitch)
 {
     // OF: Let scripts customize mousemoving
     if (lua::L) {
-        if (lua::push_external("input_mouse_move")) {
-            lua_pushnumber(lua::L, yaw);
-            lua_pushnumber(lua::L, pitch);
-            lua_call(lua::L, 2, 2);
-            camera1->yaw   += lua_tonumber(lua::L, -2);
-            camera1->pitch += lua_tonumber(lua::L, -1);
-            lua_pop(lua::L, 2);
-        } else {
+        float ryaw, rpitch;
+        int n = lua::call_external_ret("input_mouse_move", "ff", "ff", yaw,
+            pitch, &ryaw, &rpitch);
+        if (n < 0) {
             camera1->yaw   += yaw;
             camera1->pitch += pitch;
+        } else {
+            lua::pop_external_ret(n);
+            camera1->yaw   += ryaw;
+            camera1->pitch += rpitch;
         }
         fixcamerarange();
         if(camera1!=player && !detachedcamera)
@@ -2795,10 +2795,10 @@ void gl_drawhud()
         rendertexturepanel(w, h);
     }
 
-    lua::push_external("gui_above_hud");
-    lua_call(lua::L, 0, 1);
-    abovehud = min(abovehud, float(conh*lua_tonumber(lua::L, -1)));
-    lua_pop(lua::L, 1);
+    float ahud;
+    lua::pop_external_ret(lua::call_external_ret("gui_above_hud", "", "f",
+        &ahud));
+    abovehud = min(abovehud, float(conh*ahud));
 
     pushhudmatrix();
     hudmatrix.scale(conscale, conscale, 1);
