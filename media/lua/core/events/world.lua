@@ -21,18 +21,18 @@ local ents
     changes its state).
 
     Arguments:
-        - ent - the client entity.
+        - uid - the client entity uid.
 ]]
-set_external("physics_off_map", function(ent) end)
+set_external("physics_off_map", function(uid) end)
 
 --[[! Function: physics_in_deadly
     Called when a client is in a deadly material (lava or death).
 
     Arguments:
-        - ent - the client entity.
+        - uid - the client entity uid.
         - mat - the material id (see $edit).
 ]]
-set_external("physics_in_deadly", function(ent, mat) end)
+set_external("physics_in_deadly", function(uid, mat) end)
 
 -- flags for physics_state_change
 local FLAG_WATER = 1 << 0

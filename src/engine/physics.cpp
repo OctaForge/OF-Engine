@@ -634,15 +634,8 @@ bool plcollide(physent *d, const vec &dir)    // collide with player
             /* OF */
             CLogicEntity *dl = LogicSystem::getLogicEntity(d);
             CLogicEntity *ol = LogicSystem::getLogicEntity(o);
-            if (dl && ol) {
-                lua::push_external("physics_collide_client");
-                lua_rawgeti(lua::L, LUA_REGISTRYINDEX, dl->lua_ref);
-                lua_rawgeti(lua::L, LUA_REGISTRYINDEX, ol->lua_ref);
-                lua_pushnumber(lua::L, collidewall.x);
-                lua_pushnumber(lua::L, collidewall.y);
-                lua_pushnumber(lua::L, collidewall.z);
-                lua_call(lua::L, 5, 0);
-            }
+            if (dl && ol) lua::call_external("physics_collide_client", "iifff",
+                dl->getUniqueId(), ol->getUniqueId(), collidewall.x, collidewall.y, collidewall.z);
             return true;
         }
     }
@@ -818,12 +811,8 @@ bool areacollide(physent *d, const vec &dir, float cutoff, CLogicEntity *el) {
     return false;
 collision:
     CLogicEntity *dl = LogicSystem::getLogicEntity(d);
-    if (dl) {
-        lua::push_external("physics_collide_area");
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, dl->lua_ref);
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
-        lua_call(lua::L, 2, 0);
-    }
+    if (dl) lua::call_external("physics_collide_area", "ii",
+        dl->getUniqueId(), el->getUniqueId());
     return e.attr[6];
 }
 
@@ -906,12 +895,8 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         continue;
 collision:
         CLogicEntity *dl = LogicSystem::getLogicEntity(d);
-        if (dl) {
-            lua::push_external("physics_collide_mapmodel");
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, dl->lua_ref);
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
-            lua_call(lua::L, 2, 0);
-        }
+        if (dl) lua::call_external("physics_collide_mapmodel", "ii",
+            dl->getUniqueId(), el->getUniqueId());
         return true;
     }
     return false;
@@ -1723,10 +1708,9 @@ bool droptofloor(vec &o, float radius, float height)
 float dropheight(entity &e) {
     CLogicEntity *ent = LogicSystem::getLogicEntity((extentity&)e);
     if (!ent) return 4.0f;
-    lua::push_external("entity_get_edit_drop_height");
-    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, ent->lua_ref);
-    lua_call(lua::L, 1, 1);
-    float  ret = lua_tonumber(lua::L, -1); lua_pop(lua::L, 1);
+    float ret;
+    lua::pop_external_ret(lua::call_external_ret("entity_get_edit_drop_height",
+        "i", "f", ent->getUniqueId(), &ret));
     return ret;
 }
 
@@ -1939,18 +1923,10 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     else if(pl->inwater && !water) game::physicstrigger(pl, local, 0, 1, pl->inwater);
     pl->inwater = water ? material&MATF_VOLUME : MAT_AIR;
 
-    if (material&MAT_DEATH) {
-        if (lua::push_external("physics_in_deadly")) {
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(pl)->lua_ref);
-            lua_pushinteger(lua::L, material&MATF_VOLUME);
-            lua_call(lua::L, 2, 0);
-        }
-    } else if (pl->o.z < 0) {
-        if (lua::push_external("physics_off_map")) {
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(pl)->lua_ref);
-            lua_call(lua::L, 1, 0);
-        }
-    }
+    if (material&MAT_DEATH)
+        lua::call_external("physics_in_deadly", "ii", LogicSystem::getUniqueId(pl), material&MATF_VOLUME);
+    else if (pl->o.z < 0)
+        lua::call_external("physics_off_map", "i", LogicSystem::getUniqueId(pl));
     return true;
 }
 

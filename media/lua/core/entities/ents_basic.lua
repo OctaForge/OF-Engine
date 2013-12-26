@@ -707,12 +707,13 @@ M.Character = Entity:clone {
 local Character = M.Character
 
 --[[! Function: physics_collide_client
-    An external called when two clients collide. Takes both entities. By
-    default emits the "collision" signal on both clients, passing the other
-    one as an argument. The client we're testing collisions against gets
-    the first emit.
+    An external called when two clients collide. Takes unique ids of both
+    entities. By default emits the "collision" signal on both clients, passing
+    the other one as an argument. The client we're testing collisions against
+    gets the first emit.
 ]]
 set_external("physics_collide_client", function(cl1, cl2, dx, dy, dz)
+    cl1, cl2 = ent_get(cl1), ent_get(cl2)
     emit(cl1, "collision", cl2, dx, dy, dz)
     emit(cl2, "collision", cl1, dx, dy, dz)
 end)
@@ -917,10 +918,10 @@ set_external("entity_get_edit_info", function(ent)
 end)
 
 --[[! Function: entity_get_edit_drop_height
-    An external, see {{$Static_Entity.get_edit_drop_height}}.
+    An external, see {{$Static_Entity.get_edit_drop_height}}. Takes the uid.
 ]]
 set_external("entity_get_edit_drop_height", function(ent)
-    return ent:get_edit_drop_height()
+    return ent_get(ent):get_edit_drop_height()
 end)
 
 --[[!
@@ -1303,13 +1304,13 @@ M.Mapmodel = Static_Entity:clone {
 
 --[[! Function: physics_collide_mapmodel
     An external called when a client collides with a mapmodel. Takes the
-    collider entity (the client) and the mapmodel entity. By default emits
-    the `collision` signal on both entities, passing the other one as an
+    collider entity uid (the client) and the mapmodel entity uid. By default
+    emits the `collision` signal on both entities, passing the other one as an
     argument. The mapmodel takes precedence.
 ]]
 set_external("physics_collide_mapmodel", function(collider, entity)
-    emit(entity, "collision", collider)
-    emit(collider, "collision", entity)
+    emit(entity, "collision", ent_get(collider))
+    emit(collider, "collision", ent_get(entity))
 end)
 
 --[[!
@@ -1367,13 +1368,13 @@ M.Obstacle = Static_Entity:clone {
 
 --[[! Function: physics_collide_area
     An external called when a client collides with an area. Takes the
-    collider entity (the client) and the area entity.  By default emits
+    collider entity uid (the client) and the area entity uid. By default emits
     the `collision` signal on both entities, passing the other one as an
     argument. The obstacle takes precedence.
 ]]
 set_external("physics_collide_area", function(collider, entity)
-    emit(entity, "collision", collider)
-    emit(collider, "collision", entity)
+    emit(entity, "collision", ent_get(collider))
+    emit(collider, "collision", ent_get(entity))
 end)
 
 ents.register_class(M.Marker)

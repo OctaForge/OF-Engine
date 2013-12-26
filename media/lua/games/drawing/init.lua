@@ -145,7 +145,8 @@ ents.register_class(ents.Obstacle, { health.deadly_area_plugin },
     "Deadly_Area")
 
 if not SERVER then
-    inputev.set_event("click", function(btn, down, x, y, z, ent, cx, cy)
+    inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)
+        local ent = ents.get(uid)
         if ent and ent.click then
             return ent:click(btn, down, x, y, z, cx, cy)
         end
