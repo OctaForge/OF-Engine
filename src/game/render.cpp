@@ -20,12 +20,8 @@ namespace game
             logger::log(logger::INFO, "Not logged in remotely, so not rendering");
             return;
         }
-
-        lua::push_external("game_render");
         bool tp = isthirdperson();
-        lua_pushboolean(lua::L, tp);
-        lua_pushboolean(lua::L, !tp && playerfpsshadow);
-        lua_call       (lua::L, 2, 0);
+        lua::call_external("game_render", "bb", tp, !tp && playerfpsshadow);
     }
 
     int swaymillis = 0;
@@ -47,7 +43,7 @@ namespace game
 
     void renderavatar()
     {
-        lua::push_external("game_render_hud"); lua_call(lua::L, 0, 0);
+        lua::call_external("game_render_hud", "");
     }
 }
 

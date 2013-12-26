@@ -21,44 +21,32 @@ VARN(numargs, _numargs, MAXARGS, 0, 0);
 void ident::changed() {
     if (fun) fun(this);
     if (!(flags&IDF_SIGNAL)) return;
-    lua::push_external("var_emit_changed");
-    lua_pushstring (lua::L, name);
     switch (type) {
         case ID_VAR:
-            lua_pushinteger(lua::L, *(storage.i));
-            lua_pushinteger(lua::L, minval);
-            lua_pushinteger(lua::L, overrideval.i);
-            lua_pushinteger(lua::L, maxval);
-            lua_call       (lua::L, 5, 0);
+            lua::call_external("var_emit_changed", "siiii", name,
+                *(storage.i), minval, overrideval.i, maxval);
             break;
         case ID_FVAR:
-            lua_pushnumber(lua::L, *(storage.f));
-            lua_pushnumber(lua::L, minvalf);
-            lua_pushnumber(lua::L, overrideval.f);
-            lua_pushnumber(lua::L, maxvalf);
-            lua_call      (lua::L, 5, 0);
+            lua::call_external("var_emit_changed", "sffff", name,
+                *(storage.f), minvalf, overrideval.f, maxvalf);
             break;
         case ID_SVAR:
-            lua_pushstring(lua::L, *(storage.s));
-            lua_pushstring(lua::L, overrideval.s);
-            lua_call      (lua::L, 3, 0);
+            lua::call_external("var_emit_changed", "sss", name,
+                *(storage.s), overrideval.s);
             break;
         case ID_ALIAS: switch (valtype) {
             case VAL_INT:
-                lua_pushinteger(lua::L, val.i);
-                lua_call       (lua::L, 2, 0);
+                lua::call_external("var_emit_changed", "si", name, val.i);
                 break;
             case VAL_FLOAT:
-                lua_pushnumber(lua::L, val.f);
-                lua_call      (lua::L, 2, 0);
+                lua::call_external("var_emit_changed", "sf", name, val.f);
                 break;
             case VAL_STR:
-                lua_pushstring(lua::L, val.s);
-                lua_call      (lua::L, 2, 0);
+                lua::call_external("var_emit_changed", "ss", name, val.s);
                 break;
-            default: lua_call(lua::L, 1, 0); break;
+            default: lua::call_external("var_emit_changed", "s", name); break;
         }
-        default: lua_call(lua::L, 1, 0); break;
+        default: lua::call_external("var_emit_changed", "s", name); break;
     }
 }
 

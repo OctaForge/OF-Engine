@@ -892,11 +892,7 @@ ICOMMAND(name, "", (), { \
         lua_call    (lua::L, 1, 0); \
 \
         s = (addreleaseaction(newstring(#name)) != 0); \
-\
-        lua::push_external("input_" #v); \
-        lua_pushinteger(lua::L, s ? d : (os ? -(d) : 0)); \
-        lua_pushboolean(lua::L, s); \
-        lua_call(lua::L, 2, 0); \
+        lua::call_external("input_" #v, "ib", s ? d : (os ? -(d) : 0), s); \
     } \
 });
 
@@ -921,10 +917,7 @@ ICOMMAND(jump, "", (), {
         lua_call    (lua::L, 1, 0);
 
         bool down = (addreleaseaction(newstring("jump")) != 0);
-
-        lua::push_external("input_jump");
-        lua_pushboolean(lua::L, down);
-        lua_call(lua::L, 1, 0);
+        lua::call_external("input_jump", "b", down);
     }
 });
 
@@ -938,10 +931,7 @@ ICOMMAND(crouch, "", (), {
         lua_call    (lua::L, 1, 0);
 
         bool down = (addreleaseaction(newstring("crouch")) != 0);
-
-        lua::push_external("input_crouch");
-        lua_pushboolean(lua::L, down);
-        lua_call(lua::L, 1, 0);
+        lua::call_external("input_crouch", "b", down);
     }
 });
 
