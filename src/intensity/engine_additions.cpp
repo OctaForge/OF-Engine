@@ -189,7 +189,7 @@ void LogicSystem::clear(bool restart_lua)
 
     if (lua::L)
     {
-        lua::push_external("entities_remove_all"); lua_call(lua::L, 0, 0);
+        lua::call_external("entities_remove_all", "");
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
         if (restart_lua) lua::reset();
     }
@@ -285,14 +285,7 @@ void LogicSystem::manageActions(long millis)
 {
     logger::log(logger::INFO, "manageActions: %d", millis);
     INDENT_LOG(logger::INFO);
-
-    if (lua::L) {
-        lua::push_external("frame_handle");
-        lua_pushinteger(lua::L, millis);
-        lua_pushinteger(lua::L, lastmillis);
-        lua_call       (lua::L,  2, 0);
-    }
-
+    if (lua::L) lua::call_external("frame_handle", "ii", millis, lastmillis);
     logger::log(logger::INFO, "manageActions complete");
 }
 

@@ -103,12 +103,9 @@ void ClientSystem::frameTrigger(int curtime)
 
         /* turning */
         gameent *fp = (gameent*)player;
-        lua::push_external("entity_get_attr");
-        lua_rawgeti    (lua::L, LUA_REGISTRYINDEX, ClientSystem::playerLogicEntity->lua_ref);
-        lua_pushliteral(lua::L, "facing_speed");
-        lua_call       (lua::L,  2, 1);
-        float fs = lua_tonumber(lua::L, -1); lua_pop(lua::L, 1);
-
+        float fs;
+        lua::pop_external_ret(lua::call_external_ret("entity_get_attr_uid", "is",
+            "f", ClientSystem::playerLogicEntity->getUniqueId(), "facing_speed", &fs));
         if (fp->turn_move || fabs(x - 0.5) > 0.495)
         {
             player->yaw += fs * (
@@ -140,7 +137,7 @@ void ClientSystem::finishLoadWorld()
 
     ClientSystem::editingAlone = false; // Assume not in this mode
 
-    lua::push_external("gui_clear"); lua_call(lua::L, 0, 0); // (see prepareForMap)
+    lua::call_external("gui_clear", ""); // (see prepareForMap)
 }
 
 void ClientSystem::prepareForNewScenario(const char *sc)
@@ -163,11 +160,9 @@ bool ClientSystem::isAdmin()
     if (!loggedIn) return false;
     if (!playerLogicEntity) return false;
 
-    lua::push_external("entity_get_attr");
-    lua_rawgeti    (lua::L, LUA_REGISTRYINDEX, playerLogicEntity->lua_ref);
-    lua_pushliteral(lua::L, "can_edit");
-    lua_call       (lua::L,  2, 1);
-    bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
+    bool b;
+    lua::pop_external_ret(lua::call_external_ret("entity_get_attr_uid", "is",
+        "b", playerLogicEntity->getUniqueId(), "can_edit", &b));
     return b;
 }
 

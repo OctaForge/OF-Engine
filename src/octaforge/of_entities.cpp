@@ -317,29 +317,21 @@ namespace entities
         return true;
     });
 
-    LUAICOMMAND(get_selected_entity, {
+    CLUAICOMMAND(get_selected_entity, int, (), {
         const vector<extentity *> &ents = entities::getents();
-        if (!ents.inrange(efocus)) {
-            lua_pushnil(L);
-            return 1;
-        }
+        if (!ents.inrange(efocus)) return -1;
         extentity &e = *ents[efocus];
         CLogicEntity *ret = LogicSystem::getLogicEntity(e);
-        if (ret && ret->lua_ref != LUA_REFNIL)
-            lua_rawgeti(L, LUA_REGISTRYINDEX, ret->lua_ref);
-        else
-            lua_pushnil(L);
-        return 1;
+        if (ret) return ret->getUniqueId();
+        return -1;
     });
 
-    LUAICOMMAND(get_attached_entity, {
-        int uid = luaL_checkinteger(L, 1);
+    CLUAICOMMAND(get_attached_entity, int, (int uid), {
         LUA_GET_ENT(entity, uid, "_C.get_attached_entity", return 0)
         extentity *e = entity->staticEntity;
-        if (!e || !e->attached) return 0;
+        if (!e || !e->attached) return -1;
         CLogicEntity *ae = LogicSystem::getLogicEntity(*e->attached);
-        if (!ae) return 0;
-        lua_rawgeti(L, LUA_REGISTRYINDEX, ae->lua_ref);
-        return 1;
+        if (!ae) return -1;
+        return ae->getUniqueId();
     });
 } /* end namespace entities */

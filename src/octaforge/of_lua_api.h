@@ -269,11 +269,9 @@ namespace lapi_binds
 
         if (lua::load_file(world::get_mapfile_path("map.lua")))
         {
-            assert(lua::push_external("gui_show_message"));
-            lua_pushliteral(lua::L, "Compilation failed");
-            lua_pushvalue  (lua::L, -3);
-            lua_call       (lua::L,  2, 0);
-            lua_pop        (lua::L,  1);
+            assert(lua::call_external("gui_show_message", "ss",
+                "Compilation failed", lua_tostring(lua::L, -1)));
+            lua_pop(lua::L, 1);
             return;
         }
         lua_pop(lua::L, 1);
@@ -315,11 +313,11 @@ namespace lapi_binds
     int _lua_gettargetent(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
         CLogicEntity *target = TargetingControl::targetLogicEntity;
-        if (target && target->lua_ref != LUA_REFNIL) {
-            lua_rawgeti(L, LUA_REGISTRYINDEX, target->lua_ref);
-            return 1;
-        }
-        return 0;
+        if (target)
+            lua_pushinteger(L, target->getUniqueId());
+        else
+            lua_pushinteger(L, -1);
+        return 1;
     }
 #else
     LAPI_EMPTY(gettargetpos)

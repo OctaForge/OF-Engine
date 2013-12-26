@@ -869,11 +869,7 @@ ICOMMAND(name, "", (), { \
     if (ClientSystem::scenarioStarted()) \
     { \
         CLogicEntity *e = ClientSystem::playerLogicEntity; \
-        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, e->lua_ref); \
-        lua_getfield(lua::L, -1, "clear_actions"); \
-        lua_insert  (lua::L, -2); \
-        lua_call    (lua::L, 1, 0); \
-\
+        lua::call_external("entity_clear_actions", "i", e->getUniqueId()); \
         s = (addreleaseaction(newstring(#name)) != 0); \
         lua::call_external("input_" #v, "ib", s ? d : (os ? -(d) : 0), s); \
     } \
@@ -894,11 +890,7 @@ ICOMMAND(jump, "", (), {
     if (ClientSystem::scenarioStarted())
     {
         CLogicEntity *e = ClientSystem::playerLogicEntity;
-        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, e->lua_ref);
-        lua_getfield(lua::L, -1, "clear_actions");
-        lua_insert  (lua::L, -2);
-        lua_call    (lua::L, 1, 0);
-
+        lua::call_external("entity_clear_actions", "i", e->getUniqueId());
         bool down = (addreleaseaction(newstring("jump")) != 0);
         lua::call_external("input_jump", "b", down);
     }
@@ -908,11 +900,7 @@ ICOMMAND(crouch, "", (), {
     if (ClientSystem::scenarioStarted())
     {
         CLogicEntity *e = ClientSystem::playerLogicEntity;
-        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, e->lua_ref);
-        lua_getfield(lua::L, -1, "clear_actions");
-        lua_insert  (lua::L, -2);
-        lua_call    (lua::L, 1, 0);
-
+        lua::call_external("entity_clear_actions", "i", e->getUniqueId());
         bool down = (addreleaseaction(newstring("crouch")) != 0);
         lua::call_external("input_crouch", "b", down);
     }

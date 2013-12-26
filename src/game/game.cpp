@@ -232,11 +232,9 @@ namespace game
 #ifndef SERVER
         if (ClientSystem::playerLogicEntity)
         {
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-                ClientSystem::playerLogicEntity->lua_ref);
-            lua_getfield(lua::L, -1, "initialized");
-            bool b = lua_toboolean(lua::L, -1);
-            lua_pop(lua::L, 2);
+            bool b;
+            lua::pop_external_ret(lua::call_external_ret("entity_is_initialized",
+                "i", "b", ClientSystem::playerLogicEntity->getUniqueId(), &b));
             if (b)
             {
                 logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.",

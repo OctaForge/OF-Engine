@@ -589,11 +589,7 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s", stateData);
-        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_getfield(lua::L, -1, "set_sdata_full");
-        lua_insert  (lua::L, -2);
-        lua_pushstring(lua::L, stateData);
-        lua_call(lua::L, 2, 0);
+        lua::call_external("entity_set_sdata_full", "is", entity->getUniqueId(), stateData);
         #ifndef SERVER
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
@@ -692,11 +688,7 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData");
-        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_getfield(lua::L, -1, "set_sdata_full");
-        lua_insert  (lua::L, -2);
-        lua_pushstring(lua::L, stateData);
-        lua_call(lua::L, 2, 0);
+        lua::call_external("entity_set_sdata_full", "is", entity->getUniqueId(), stateData);
         // Events post-reception
         world::trigger_received_entity();
     }

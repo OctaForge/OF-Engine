@@ -10,6 +10,7 @@
 
 local capi = require("capi")
 local ffi = require("ffi")
+local ents, get_ent
 
 local ffi_new = ffi.new
 
@@ -23,6 +24,39 @@ local gen_getwrap = function(fun, tp)
 end
 
 capi.get_start_time = gen_getwrap(capi.get_start_time, "int")
+
+local get_selected_entity in capi
+capi.get_selected_entity = function()
+    if not ents then
+        ents = require("core.entities.ents")
+        get_ent = ents.get
+    end
+    local uid = get_selected_entity()
+    if uid >= 0 then return get_ent(uid) end
+    return nil
+end
+
+local get_attached_entity in capi
+capi.get_attached_entity = function(uid)
+    if not ents then
+        ents = require("core.entities.ents")
+        get_ent = ents.get
+    end
+    local auid = get_attached_entity(uid)
+    if auid >= 0 then return get_ent(auid) end
+    return nil
+end
+
+local gettargetent in capi
+capi.gettargetent = function()
+    if not ents then
+        ents = require("core.entities.ents")
+        get_ent = ents.get
+    end
+    local uid = gettargetent()
+    if uid >= 0 then return get_ent(uid) end
+    return nil
+end
 
 local get_attr in capi
 capi.get_attr = function(ent, id)

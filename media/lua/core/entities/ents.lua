@@ -330,6 +330,7 @@ M.get = function(uid)
     end
 end
 set_external("entity_get", M.get)
+local get_ent = M.get
 
 --[[!
     Returns the whole storage. Use with care. External as `entities_get_all`.
@@ -530,6 +531,14 @@ M.remove = function(uid)
     storage[uid] = nil
 end
 set_external("entity_remove", M.remove)
+
+set_external("entity_clear_actions", function(uid)
+    get_ent(uid):clear_actions()
+end)
+
+set_external("entity_is_initialized", function(uid)
+    return get_ent(uid).initialized
+end)
 
 --[[!
     Removes all entities from both storages. It's equivalent to looping
@@ -1442,6 +1451,10 @@ M.set_sdata = function(uid, kpid, value, auid)
     end
 end
 set_external("entity_set_sdata", M.set_sdata)
+
+set_external("entity_set_sdata_full", function(uid, sd)
+    get_ent(uid):set_sdata_full(sd)
+end)
 
 --[[ Function: scene_is_ready
     On the client, used to check if the current scene is ready and we can
