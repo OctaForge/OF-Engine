@@ -14,6 +14,7 @@ local signal = require("core.events.signal")
 local set_external = require("capi").external_set
 
 local emit = signal.emit
+local ents
 
 --[[! Function: physics_off_map
     Called when a client falls off the map (keeps calling until the client
@@ -48,7 +49,7 @@ local FLAG_BELOWGROUND = 2 << 4
     (see {{$ents.Character}}).
 
     Arguments:
-        - ent - the client entity.
+        - ent - the unique ID of the client entity.
         - loc - fale for multiplayer prediction.
         - flevel - the floor level specifying a delta from the previous state,
           1 when the client went up, 0 when stayed the same, -1 when down.
@@ -56,8 +57,11 @@ local FLAG_BELOWGROUND = 2 << 4
         - mat - the material id (fore xample when jumping out of/into water,
           it's the water material id, see $edit).
 ]]
-set_external("physics_state_change", function(ent, loc, flevel, llevel, mat)
+set_external("physics_state_change", function(uid, loc, flevel, llevel, mat)
     if SERVER then return end
+
+    if not ents then ents = require("core.entities.ents") end
+    local ent = ents.get(uid)
 
     local flags = 0
     if mat == edit.material.WATER then

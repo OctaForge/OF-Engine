@@ -501,14 +501,8 @@ namespace game
 
     void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material)
     {
-        if (lua::push_external("physics_state_change")) {
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
-            lua_pushboolean(lua::L, local);
-            lua_pushinteger(lua::L, floorlevel);
-            lua_pushinteger(lua::L, waterlevel);
-            lua_pushinteger(lua::L, material);
-            lua_call(lua::L, 5, 0);
-        }
+        lua::call_external("physics_state_change", "ibiii", LogicSystem::getUniqueId(d),
+            local, floorlevel, waterlevel, material);
     }
 
     int numdynents()
@@ -526,12 +520,13 @@ namespace game
 
     const char *scriptname(gameent *d)
     {
-        lua::push_external("entity_get_attr_uid");
-        lua_pushinteger(lua::L, LogicSystem::getUniqueId(d));
-        lua_pushliteral(lua::L, "character_name");
-        lua_call       (lua::L,  2, 1);
-        const char *ret = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
-        return ret;
+        static string cns;
+        const char *cn;
+        int n = lua::call_external_ret("entity_get_attr_uid", "is", "s",
+            LogicSystem::getUniqueId(d), "character_name", &cn);
+        copystring(cns, cn);
+        lua::pop_external_ret(n);
+        return cns;
     }
 
     char *colorname(gameent *d, char *name, const char *prefix)

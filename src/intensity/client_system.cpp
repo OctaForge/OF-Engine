@@ -77,9 +77,8 @@ bool ClientSystem::scenarioStarted()
     if (_mapCompletelyReceived && !_scenarioStarted)
     {
         if (lua::L) {
-            lua::push_external("scene_is_ready"); lua_call(lua::L,  0, 1);
-            _scenarioStarted = lua_toboolean(lua::L, -1);
-            lua_pop(lua::L, 1);
+            lua::pop_external_ret(lua::call_external_ret("scene_is_ready", "",
+                "b", &_scenarioStarted));
         }
     }
 
