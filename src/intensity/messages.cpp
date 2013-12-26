@@ -69,11 +69,7 @@ namespace MessageSystem
         getstring(title, p);
         char content[MAXTRANS];
         getstring(content, p);
-
-        assert(lua::push_external("gui_show_message"));
-        lua_pushstring(lua::L, title);
-        lua_pushstring(lua::L, content);
-        lua_call(lua::L, 2, 0);
+        assert(lua::call_external("gui_show_message", "ss", title, content));
     }
 #endif
 
@@ -196,11 +192,8 @@ namespace MessageSystem
     {
         char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
-
-        assert(lua::push_external("gui_show_message"));
-        lua_pushliteral(lua::L, "Server");
-        lua_pushliteral(lua::L, "Map being prepared on the server, please wait ..");
-        lua_call(lua::L, 2, 0);
+        assert(lua::call_external("gui_show_message", "ss", "Server",
+            "Map is being prepared on the server, please wait..."));
         ClientSystem::prepareForNewScenario(scenarioCode);
     }
 #endif
@@ -368,12 +361,7 @@ namespace MessageSystem
                 \
                 if (!LogicSystem::initialized) \
                     return; \
-                \
-                lua::push_external("entity_set_sdata"); \
-                lua_pushinteger(lua::L, uid); \
-                lua_pushinteger(lua::L, keyProtocolId); \
-                lua_pushstring (lua::L, value); \
-                lua_call       (lua::L, 3, 0);
+                lua::call_external("entity_set_sdata", "iis", uid, keyProtocolId, value);
         #endif
         STATE_DATA_UPDATE
     }
@@ -411,13 +399,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "client %d requests to change %d to value: %s", actorUniqueId, keyProtocolId, value); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
-        \
-        lua::push_external("entity_set_sdata"); \
-        lua_pushinteger(lua::L, uid); \
-        lua_pushinteger(lua::L, keyProtocolId); \
-        lua_pushstring (lua::L, value); \
-        lua_pushinteger(lua::L, actorUniqueId); \
-        lua_call       (lua::L,  4, 0);
+        lua::call_external("entity_set_sdata", "iisi", uid, keyProtocolId, value, actorUniqueId);
         STATE_DATA_REQUEST
     }
 #endif
@@ -528,10 +510,7 @@ namespace MessageSystem
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
-            assert(lua::push_external("entities_send_all"));
-            lua_pushinteger(lua::L, sender);
-            lua_call       (lua::L,  1, 0);
-
+            assert(lua::call_external("entities_send_all", "i", sender));
             MessageSystem::send_AllActiveEntitiesSent(sender);
             assert(lua::push_external("event_player_login"));
             assert(lua::push_external("entity_get"));
@@ -623,9 +602,7 @@ namespace MessageSystem
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
-                lua::push_external("player_init");
-                lua_pushinteger(lua::L, ClientSystem::uniqueId);
-                lua_call       (lua::L, 1, 0);
+                lua::call_external("player_init", "i", ClientSystem::uniqueId);
             }
         #endif
         // Events post-reception
@@ -656,9 +633,7 @@ namespace MessageSystem
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua::push_external("entity_remove");
-        lua_pushinteger(lua::L, uid);
-        lua_call       (lua::L, 1, 0);
+        lua::call_external("entity_remove", "i", uid);
     }
 #endif
 
@@ -677,9 +652,7 @@ namespace MessageSystem
 
         if (!LogicSystem::initialized)
             return;
-        lua::push_external("entity_remove");
-        lua_pushinteger(lua::L, uid);
-        lua_call       (lua::L, 1, 0);
+        lua::call_external("entity_remove", "i", uid);
     }
 #endif
 
@@ -710,10 +683,7 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity");
-            lua::push_external("entity_add");
-            lua_pushstring (lua::L, otherClass);
-            lua_pushinteger(lua::L, otherUniqueId);
-            lua_call(lua::L, 2, 0);
+            lua::call_external("entity_add", "si", otherClass, otherUniqueId);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else
