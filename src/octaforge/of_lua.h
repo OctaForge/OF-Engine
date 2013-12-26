@@ -9,8 +9,6 @@ namespace lua
     void init         (const char *dir = "media/lua/core");
     void reset        ();
     void close        ();
-    bool push_external(const char *name);
-    bool push_external(lua_State *L, const char *name);
     void pin_string   (const char *str);
     void unpin_string (const char *str);
     void pin_string   (lua_State *L, const char *str);
@@ -19,6 +17,25 @@ namespace lua
     int load_string   (const char *str, const char *ch = NULL);
     int load_file     (lua_State *L, const char *fname);
     int load_string   (lua_State *L, const char *str, const char *ch = NULL);
+    bool push_external(const char *name);
+    bool push_external(lua_State *L, const char *name);
+
+    bool vcall_external(lua_State *L, const char *name, const char *args,
+        va_list ap);
+    bool  call_external(lua_State *L, const char *name, const char *args, ...);
+
+    bool vcall_external(const char *name, const char *args, va_list ap);
+    bool  call_external(const char *name, const char *args, ...);
+
+    int vcall_external_ret(lua_State *L, const char *name, const char *args,
+        const char *retargs, va_list ap);
+    int  call_external_ret(lua_State *L, const char *name, const char *args,
+        const char *retargs, ...);
+
+    int vcall_external_ret(const char *name, const char *args,
+        const char *retargs, va_list ap);
+    int  call_external_ret(const char *name, const char *args,
+        const char *retargs, ...);
 }
 
 #define LUACOMMAND(name, fun) \
