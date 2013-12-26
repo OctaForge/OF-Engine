@@ -36,6 +36,9 @@ namespace lua
         const char *retargs, va_list ap);
     int  call_external_ret(const char *name, const char *args,
         const char *retargs, ...);
+
+    void pop_external_ret(lua_State *L, int n);
+    void pop_external_ret(int n);
 }
 
 #define LUACOMMAND(name, fun) \

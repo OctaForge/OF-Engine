@@ -90,10 +90,7 @@ bool initwarning(const char *desc, int level, int type)
 {
     if(initing < level)
     {
-        lua::push_external("change_add");
-        lua_pushstring (lua::L, desc);
-        lua_pushinteger(lua::L, type);
-        lua_call       (lua::L, 2, 0);
+        lua::call_external("change_add", "si", desc, type);
         return true;
     }
     return false;
@@ -652,9 +649,7 @@ void setupscreen()
 
 void resetgl()
 {
-    lua::push_external("changes_clear");
-    lua_pushinteger(lua::L, CHANGE_GFX|CHANGE_SHADERS);
-    lua_call       (lua::L, 1, 0);
+    lua::call_external("changes_clear", "i", CHANGE_GFX|CHANGE_SHADERS);
     renderbackground("resetting OpenGL");
 
     recorder::cleanup();
@@ -1341,8 +1336,7 @@ int main(int argc, char **argv)
 
         checkinput();
         ovr::update();
-        lua::push_external("gui_update");
-        lua_call(lua::L, 0, 0);
+        lua::call_external("gui_update", "");
         tryedit();
 
         if(lastmillis) game::updateworld();

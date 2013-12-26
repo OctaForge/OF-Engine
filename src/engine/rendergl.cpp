@@ -2852,7 +2852,7 @@ void gl_drawframe()
     {
         if(mainmenu) gl_drawmainmenu();
         else if (ClientSystem::scenarioStarted()) gl_drawview();
-        lua::push_external("gui_render"); lua_call(lua::L, 0, 0);
+        lua::call_external("gui_render", "");
         gl_drawhud();
         if(!ovr::enabled) break;
         ovr::warp();

@@ -1578,10 +1578,7 @@ void reloadshaders()
 
 void resetshaders()
 {
-    lua::push_external("changes_clear");
-    lua_pushinteger(lua::L, CHANGE_SHADERS);
-    lua_call       (lua::L, 1, 0);
-
+    lua::call_external("changes_clear", "i", CHANGE_SHADERS);
     cleanuplights();
     cleanupmodels();
     cleanupshaders();

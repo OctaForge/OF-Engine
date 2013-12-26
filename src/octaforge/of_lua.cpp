@@ -70,6 +70,11 @@ namespace lua
                 case 's':
                     lua_pushstring(L, va_arg(ap, const char*));
                     break;
+                case 'S': {
+                    const char *str = va_arg(ap, const char*);
+                    lua_pushlstring(L, str, va_arg(ap, int));
+                    break;
+                }
                 case 'd': case 'i':
                     lua_pushinteger(L, va_arg(ap, int));
                     break;
@@ -85,10 +90,11 @@ namespace lua
                 case 'c':
                     lua_pushcfunction(L, va_arg(ap, lua_CFunction));
                     break;
-                case 'C':
-                    lua_pushcclosure(L, va_arg(ap, lua_CFunction),
-                        va_arg(ap, int));
+                case 'C': {
+                    lua_CFunction cf = va_arg(ap, lua_CFunction);
+                    lua_pushcclosure(L, cf, va_arg(ap, int));
                     break;
+                }
                 case 'n':
                     lua_pushnil(L);
                     break;
@@ -100,9 +106,8 @@ namespace lua
                     break;
             }
         }
-        int n2 = lua_gettop(L);
-        lua_call(L, n2 - n1, retn);
-        return lua_gettop(L) - n2;
+        lua_call(L, lua_gettop(L) - n1, retn);
+        return lua_gettop(L) - n1 + 1;
     }
 
     bool vcall_external(lua_State *L, const char *name, const char *args,
@@ -138,19 +143,19 @@ namespace lua
         if (retargs) while (*retargs) {
             switch (*retargs++) {
                 case 's':
-                    *va_arg(ap, const char**) = lua_tostring(L, -(--idx));
+                    *va_arg(ap, const char**) = lua_tostring(L, -(idx--));
                     break;
                 case 'd': case 'i':
-                    *va_arg(ap, int*) = lua_tointeger(L, -(--idx));
+                    *va_arg(ap, int*) = lua_tointeger(L, -idx--);
                     break;
                 case 'f':
-                    *va_arg(ap, float*) = lua_tonumber(L, -(--idx));
+                    *va_arg(ap, float*) = lua_tonumber(L, -idx--);
                     break;
                 case 'F':
-                    *va_arg(ap, double*) = lua_tonumber(L, -(--idx));
+                    *va_arg(ap, double*) = lua_tonumber(L, -idx--);
                     break;
                 case 'b':
-                    *va_arg(ap, bool*) = lua_toboolean(L, -(--idx));
+                    *va_arg(ap, bool*) = lua_toboolean(L, -idx--);
                     break;
                 default:
                     assert(false);
@@ -183,6 +188,9 @@ namespace lua
         va_end(ap);
         return ret;
     }
+
+    void pop_external_ret(lua_State *L, int n) { lua_pop(L, n); }
+    void pop_external_ret(int n) { pop_external_ret(L, n); }
 
     LUAICOMMAND(external_set, {
         const char *name = luaL_checkstring(L, 1);
