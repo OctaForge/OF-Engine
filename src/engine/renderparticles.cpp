@@ -1579,13 +1579,9 @@ void updateparticles()
         loopv(entgroup)
         {
             extentity &e = *ents[entgroup[i]];
-            CLogicEntity *le = LogicSystem::getLogicEntity(e);
-            if (!le) continue;
-            lua::push_external("entity_get_class_name");
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
-            lua_call(lua::L, 1, 1);
-            particle_textcopy(e.o, lua_tostring(lua::L, -1), PART_TEXT, 1, vec(1.0f, 0.3f, 0.1f), 2.0f, 0);
-            lua_pop(lua::L, 1);
+            const char *cn;
+            lua::pop_external_ret(lua::call_external_ret("entity_get_class_name", "i", "s", e.uid, &cn));
+            particle_textcopy(e.o, cn, PART_TEXT, 1, vec(1.0f, 0.3f, 0.1f), 2.0f, 0);
         }
         loopv(ents)
         {
@@ -1595,10 +1591,8 @@ void updateparticles()
             lua::push_external("entity_get_edit_icon_info");
             lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
 
-            lua::push_external("entity_get_class_name");
-            lua_pushvalue(lua::L, -2);
-            lua_call(lua::L, 1, 1);
-            const char *name = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
+            const char *name;
+            lua::pop_external_ret(lua::call_external_ret("entity_get_class_name", "i", "s", e.uid, &name));
 
             lua_call(lua::L, 1, 4);
             float r = lua_tonumber(lua::L, -3) / 255.0f;

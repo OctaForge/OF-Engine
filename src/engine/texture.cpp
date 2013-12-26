@@ -1907,22 +1907,16 @@ void writemediacfg(int level) {
 sounds:
         if (!sounds.length()) goto none;
         f->printf("\n// sounds\n");
-        lua::push_external("entity_get_attr");
         loopv(sounds) {
             renderprogress(i / float(sounds.length()), "saving sounds...");
             lua_pushvalue(lua::L, -1);
             const extentity &e = *sounds[i];
-
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-                LogicSystem::getLogicEntity(e)->lua_ref);
-            lua_pushliteral(lua::L, "sound_name");
-            lua_call(lua::L, 2, 1);
-
-            const char *sn = lua_tostring(lua::L, -1);
+            const char *sn;
+            int n = lua::call_external_ret("entity_get_uid", "is", "s", e.uid,
+                "sound_name", &sn);
             f->printf("preloadmapsound \"%s\" %d\n", sn, e.attr[2]);
-            lua_pop(lua::L, 1);
+            lua::pop_external_ret(n);
         }
-        lua_pop(lua::L, 1);
 none:
         delete f;
         return;

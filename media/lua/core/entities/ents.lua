@@ -1363,10 +1363,10 @@ set_external("entity_get_attached", function(ent)
 end)
 
 --[[! Function: entity_get_class_name
-    An external that returns the name of the class of the given entity.
+    An external that returns the name of the class of the given entity uid.
 ]]
-set_external("entity_get_class_name", function(ent)
-    return ent.name
+set_external("entity_get_class_name", function(uid)
+    return get_ent(uid).name
 end)
 
 --[[! Function: render

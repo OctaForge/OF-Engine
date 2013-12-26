@@ -1043,10 +1043,9 @@ void entpaste()
         CLogicEntity *entity = LogicSystem::getLogicEntity(c);
         if (!entity) return;
 
-        lua::push_external("entity_get_class_name");
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_call(lua::L, 1, 1);
-        const char *cn = lua_tostring(lua::L, -1); lua_pop(lua::L, -1);
+        const char *cn;
+        lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
+            "i", "s", c.uid, &cn));
 
         lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
         lua_getfield(lua::L, -1, "build_sdata");
@@ -1124,10 +1123,10 @@ void intensityentcopy() // INTENSITY
     extentity& e = *(entities::getents()[efocus]);
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
 
-    lua::push_external("entity_get_class_name");
-    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-    lua_call(lua::L, 1, 1);
-    copystring(copied_class, lua_tostring(lua::L, -1)); lua_pop(lua::L, -1);
+    const char *name;
+    lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
+        "i", "s", e.uid, &name));
+    copystring(copied_class, name);
 
     lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
     lua_getfield(lua::L, -1, "build_sdata");
@@ -1161,12 +1160,10 @@ void enttype(char *type, int *numargs) {
                 "{}", "");
         );
     } else entfocus(efocus, {
-        lua::push_external("entity_get_class_name");
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-            LogicSystem::getLogicEntity(e)->lua_ref);
-        lua_call(lua::L, 1, 1);
-        const char *str = lua_tostring(lua::L, -1); lua_pop(lua::L, -1);
-        result(str ? str : "");
+        const char *name;
+        lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
+            "i", "s", e.uid, &name));
+        result(name ? name : "");
     })
 }
 
