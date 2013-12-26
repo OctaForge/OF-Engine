@@ -111,11 +111,8 @@ namespace server
         // Also do not do this if the uniqueId is negative - it means we are disconnecting this client *before* a lua
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
-        if (lua::L && !_ci->local && uniqueId >= 0) {
-            lua::push_external("entity_remove");
-            lua_pushinteger(lua::L, uniqueId);
-            lua_call       (lua::L, 1, 0);
-        }
+        if (lua::L && !_ci->local && uniqueId >= 0)
+            lua::call_external("entity_remove", "i", uniqueId);
 
         delete (clientinfo *)ci;
     }
@@ -534,12 +531,9 @@ namespace server
                     break;
                 }
 
-                assert(lua::push_external("event_text_message"));
-                lua_pushinteger(lua::L, ci->uniqueId);
-                lua_pushstring (lua::L, text);
-                lua_call       (lua::L, 2, 1);
-                bool b = lua_toboolean(lua::L, -1);
-                lua_pop(lua::L, 1);
+                bool b;
+                lua::pop_external_ret(lua::call_external_ret(
+                    "event_text_message", "is", "b", ci->uniqueId, text, &b));
 
                 if (!b) {
                     QUEUE_INT(type);
@@ -677,13 +671,9 @@ namespace server
         if (!ci) return; // May have been kicked just before now
         ci->isAdmin = isAdmin;
 
-        if (ci->isAdmin && ci->uniqueId >= 0) { // If an entity was already created, update it
-            lua::push_external("entity_set_attr_uid");
-            lua_pushinteger(lua::L, ci->uniqueId);
-            lua_pushliteral(lua::L, "can_edit");
-            lua_pushboolean(lua::L, true);
-            lua_call       (lua::L, 3, 0);
-        }
+        if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
+            lua::call_external("entity_set_attr_uid", "isb", ci->uniqueId,
+                "can_edit", true);
     }
 
     bool isAdmin(int clientNumber)
@@ -741,18 +731,16 @@ namespace server
         // Use the PC class, unless told otherwise
         string pcclass;
         if (!_class[0]) {
-            lua::push_external("entity_get_player_class");
-            lua_call(lua::L, 0, 1);
-            copystring(pcclass, lua_tostring(lua::L, -1));
-            lua_pop(lua::L, 1);
+            const char *cl;
+            int n = lua::call_external_ret("entity_get_player_class", "", "s", &cl);
+            copystring(pcclass, cl);
+            lua::pop_external_ret(n);
         } else copystring(pcclass, _class);
 
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", pcclass, cn);
 
-        lua::push_external("entity_gen_uid");
-        lua_call(lua::L, 0, 1);
-        int uid = lua_tointeger(lua::L, -1);
-        lua_pop(lua::L, 1);
+        int uid;
+        lua::pop_external_ret(lua::call_external_ret("entity_gen_uid", "", "i", &uid));
 
         // Notify of uid *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly

@@ -832,19 +832,8 @@ namespace MessageSystem
 
         CLogicEntity *entity = NULL;
         if (uid != -1) entity = LogicSystem::getLogicEntity(uid);
-
-        assert(lua::push_external("input_click_server"));
-        lua_pushinteger(lua::L, button);
-        lua_pushboolean(lua::L, down);
-        lua_pushnumber (lua::L, x);
-        lua_pushnumber (lua::L, y);
-        lua_pushnumber (lua::L, z);
-        if (entity) {
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-            lua_call(lua::L, 6, 0);
-        } else {
-            lua_call(lua::L, 5, 0);
-        }
+        assert(lua::call_external("input_click_server", "ibfffi", button, down,
+            x, y, z, entity ? entity->getUniqueId() : -1));
     }
 #endif
 

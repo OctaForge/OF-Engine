@@ -114,12 +114,13 @@ end)
         - btn - the clicked button.
         - down - whether it was pressed.
         - x, y, z - the position of the click in the world.
-        - ent - the entity that was clicked (if any, nil otherwise).
+        - uid - the unique ID of the entity that was clicked
+          (if any, nil otherwise).
         - cx, cy - the cursor position.
 ]]
-set_ext("input_click", function(btn, down, x, y, z, ent, cx, cy)
-    if not get_ext("input_click_client")(btn, down, x, y, z, ent, cx, cy) then
-        msg.send(capi.do_click, btn, down, x, y, z, ent and ent.uid or -1)
+set_ext("input_click", function(btn, down, x, y, z, uid, cx, cy)
+    if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) then
+        msg.send(capi.do_click, btn, down, x, y, z, uid)
     end
 end)
 
@@ -130,7 +131,10 @@ end)
     and by default returns false, which means the above external will
     trigger a server request.
 ]]
-set_ext("input_click_client", function(btn, down, x, y, z, ent, cx, cy)
+set_ext("input_click_client", function(btn, down, x, y, z, uid, cx, cy)
+    if not ents then ents = require("core.entities.ents") end
+    local ent
+    if uid >= 0 then ent = ents.get(uid) end
     if ent and ent.click then
         return ent:click(btn, down, x, y, z, cx, cy)
     end
@@ -158,7 +162,10 @@ if SERVER then
     Return values of this one are ignored. The arguments are the same, but
     the cursor position is not there (obviously).
 ]]
-set_ext("input_click_server", function(btn, dn, x, y, z, ent)
+set_ext("input_click_server", function(btn, dn, x, y, z, uid)
+    if not ents then ents = require("core.entities.ents") end
+    local ent
+    if uid >= 0 then ent = ents.get(uid) end
     if ent and ent.click then
         return ent:click(btn, down, x, y, z)
     end
