@@ -151,7 +151,7 @@ gui.Filler.__variants = {
                         local lbl = gui.Label { text = ttip.label }
                         self:append(lbl)
                         connect(ttip, "label_changed", |o, t| do
-                            o:set_text(t) end)
+                            lbl:set_text(t) end)
                     end
                 }
             }
@@ -282,6 +282,50 @@ gui.V_Scrollbar.__variants = {
 gui.Slider_Button.__variants = gui.Scroll_Button.__variants
 gui.H_Slider.__variants = gui.H_Scrollbar.__variants
 gui.V_Slider.__variants = gui.V_Scrollbar.__variants
+
+-- progress bars
+
+gui.H_Progress_Bar.__variants = {
+    default = {
+        gui.Color_Filler { color = 0xF0101010, clamp = true,
+            gui.Outline { color = 0x404040, clamp = true },
+            init_clone = |self, pb| do
+                local bar = gui.Gradient { color = 0xF0353535,
+                    color2 = 0xF0252525, clamp_v = true,
+                    gui.Outline { color = 0x404040, clamp = true }
+                }
+                local lbl = gui.Label { text = pb:gen_label(), scale = 0.8 }
+                pb:set_bar(bar)
+                self:append(bar)
+                self:append(lbl)
+                connect(pb, "value_changed", |o, v| do
+                    lbl:set_text(pb:gen_label())
+                end)
+            end
+        }
+    }
+}
+
+gui.V_Progress_Bar.__variants = {
+    default = {
+        gui.Color_Filler { color = 0xF0101010, clamp = true,
+            gui.Outline { color = 0x404040, clamp = true },
+            init_clone = |self, pb| do
+                local bar = gui.Gradient { color = 0xF0353535,
+                    color2 = 0xF0252525, clamp_h = true, horizontal = true,
+                    gui.Outline { color = 0x404040, clamp = true }
+                }
+                local lbl = gui.Label { text = pb:gen_label(), scale = 0.8 }
+                pb:set_bar(bar)
+                self:append(bar)
+                self:append(lbl)
+                connect(pb, "value_changed", |o, v| do
+                    lbl:set_text(pb:gen_label())
+                end)
+            end
+        }
+    }
+}
 
 -- windows
 

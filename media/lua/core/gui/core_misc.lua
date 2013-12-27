@@ -13,6 +13,7 @@ local table2 = require("core.lua.table")
 local find = table2.find
 local tremove = table.remove
 local type = type
+local min = math.min
 
 --! Module: core
 local M = require("core.gui.core")
@@ -146,4 +147,74 @@ M.Mover = register_class("Mover", Widget, {
 
     --! Function: set_window
     set_window = gen_setter "window"
+})
+
+local Filler = M.Filler
+
+--[[!
+    A base widget class for progress bars. Not useful alone. For working
+    variants, see $H_Progress_Bar and $V_Progress_Bar.
+
+    Properties:
+        - value - the current value, from 0.0 to 1.0. If set out of bounds,
+          it will get clamped to nearest valid value (0.0 or 1.0).
+        - bar - a widget representing the actual "bar" of the progress bar
+          (aka the child that will take value * width or value * height of
+          the progress bar).
+        - label - either a format string or a callable value. When a format
+          string, it represents the format of the label on the progress bar
+          (by default it's `%d%%`, which will result in e.g. `75%`, the value
+          is multiplied by 100 before formatting), when it's a callable value
+          it'll be called with `self` and the value (not multiplied) as
+          arguments, expecting the label string as a return value.
+]]
+M.Progress_Bar = register_class("Progress_Bar", Filler, {
+    __ctor = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.value = kwargs.value or 0
+        self.bar = kwargs.bar
+        self.label = kwargs.label or "%d%%"
+        return Filler.__ctor(self, kwargs)
+    end,
+
+    --[[!
+        Generates a label for the progress bar and returns it. See the `label`
+        attribute for semantics.
+    ]]
+    gen_label = function(self)
+        local lbl = self.label
+        if type(lbl) == "string" then return lbl:format(self.value * 100) end
+        return lbl(self, self.value)
+    end,
+
+    --! Function: set_value
+    set_value = gen_setter "value",
+    --! Function: set_bar
+    set_bar = gen_setter "bar",
+    --! Function: set_label
+    set_label = gen_setter "label"
+})
+
+--! A horizontal working variant of $Progress_Bar.
+M.H_Progress_Bar = register_class("H_Progress_Bar", M.Progress_Bar, {
+    adjust_children = function(self)
+        local bar = self.bar
+        if not bar then return Widget.adjust_children(self) end
+        bar.x = 0
+        bar.w = min(self.w, self.w * self.value)
+        bar.adjust &= ~adjust.ALIGN_HMASK
+        Widget.adjust_children(self)
+    end
+})
+
+--! A vertical working variant of $Progress_Bar.
+M.V_Progress_Bar = register_class("V_Progress_Bar", M.Progress_Bar, {
+    adjust_children = function(self)
+        local bar = self.bar
+        if not bar then return Widget.adjust_children(self) end
+        bar.y = 0
+        bar.h = min(self.h, self.h * self.value)
+        bar.adjust &= ~adjust.ALIGN_VMASK
+        Widget.adjust_children(self)
+    end
 })
