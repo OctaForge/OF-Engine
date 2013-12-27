@@ -1337,7 +1337,7 @@ end)
 set_external("entity_refresh_attr", function(uid, prop)
     local ent = get_ent(uid)
     ent:set_attr(prop, ent:get_attr(prop))
-end
+end)
 
 --[[!
     See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`. An
@@ -1533,7 +1533,13 @@ M.new = SERVER and function(cl, kwargs, fuid)
     debug then log(DEBUG, "New entity: " .. fuid)
     return add(cl, fuid, kwargs, true)
 end or nil
+local ent_new = M.new
 set_external("entity_new", M.new)
+
+set_external("entity_new_with_cn", function(cl, cn, fuid)
+    local ent = ent_new(cl, { cn = cn }, fuid)
+    assert(ent.cn == cn)
+end)
 
 --[[! Function: send
     Notifies a client of the number of entities on the server and then

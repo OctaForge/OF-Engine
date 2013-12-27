@@ -749,40 +749,17 @@ namespace server
 
         ci->uniqueId = uid;
 
-        lua::push_external("entity_new");
-        lua_pushstring(lua::L, pcclass);
-
-        lua_createtable(lua::L, 0, 1);
-        lua_pushinteger(lua::L, cn);
-        lua_setfield   (lua::L, -2, "cn");
-
-        lua_pushinteger(lua::L, uid);
-        lua_pushboolean(lua::L, true);
-        lua_call       (lua::L, 4, 0);
-
-        lua::push_external("entity_get");
-        lua_pushinteger(lua::L, uid);
-        lua_call       (lua::L, 1, 1);
-
-        lua_getfield   (lua::L, -1, "cn");
-        assert(lua_tointeger(lua::L, -1) == cn);
-        lua_pop(lua::L, 1);
+        lua::call_external("entity_new_with_cn", "sii", pcclass, cn, uid);
 
         // Add admin status, if relevant
         if (ci->isAdmin) {
-            lua::push_external("entity_set_attr");
-            lua_pushvalue  (lua::L, -2);
-            lua_pushliteral(lua::L, "can_edit");
-            lua_pushboolean(lua::L, true);
-            lua_call       (lua::L, 3, 0);
+            lua::call_external("entity_set_attr_uid", "isb", uid,
+                "can_edit", true);
         }
 
         // Add nickname
-        lua::push_external("entity_set_attr");
-        lua_pushvalue  (lua::L, -2);
-        lua_pushliteral(lua::L, "character_name");
-        lua_pushstring (lua::L, uname);
-        lua_call       (lua::L, 3, 0);
+        lua::call_external("entity_set_attr_uid", "iss", uid, "character_name",
+            uname);
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)
