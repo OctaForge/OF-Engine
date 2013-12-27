@@ -418,6 +418,53 @@ M.Image = register_class("Image", Filler, {
 })
 local Image = M.Image
 
+--[[!
+    Represents a raw texture. Not meant for regular use. It's here to aid
+    some of the internal OF UIs. Has only a subset of $Image's features.
+]]
+M.Texture = register_class("Texture", Filler, {
+    __ctor = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.texture_id = kwargs.texture_id
+        return Filler.__ctor(self, kwargs)
+    end,
+
+    target = function(self, cx, cy)
+        local o = Widget.target(self, cx, cy)
+        if    o then return o end
+        return self
+    end,
+
+    draw = function(self, sx, sy)
+        gl_bind_texture(self.texture_id)
+        gle_defvertexf(2)
+        gle_deftexcoord0f(2)
+        gle_begin(gl.TRIANGLE_STRIP)
+        quadtri(sx, sy, self.w, self.h)
+        gle_end()
+        return Filler.draw(self, sx, sy)
+    end,
+
+    layout = function(self)
+        Widget.layout(self)
+
+        local min_w = self.min_w
+        local min_h = self.min_h
+        if type(min_w) == "function" then min_w = min_w(self) end
+        if type(min_h) == "function" then min_h = min_h(self) end
+
+        if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
+        if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
+
+        local proj = get_projection()
+        if min_w == huge then min_w = proj.pw end
+        if min_h == huge then min_h = proj.ph end
+
+        self.w = max(self.w, min_w)
+        self.h = max(self.h, min_h)
+    end
+})
+
 local get_border_size = function(tex, size, vert)
     if size >= 0 then
         return size

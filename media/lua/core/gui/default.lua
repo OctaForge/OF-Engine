@@ -409,18 +409,27 @@ gui.Window.__variants = {
 
 -- default windows
 
-local progress_win, progress_bar, progress_label
+local progress_win, progress_bar, progress_label, progress_tex
 
 world:new_window("progress", gui.Window, |win| do
     progress_win = win
     win:set_variant("borderless")
-    win:append(gui.V_Box(), |b| do
-        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
-            sp:append(gui.Label(), |lbl| do progress_label = lbl end)
-        end)
-        b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.01 }, |sp| do
-            sp:append(gui.H_Progress_Bar { min_w = 0.4, min_h = 0.03 }, |pb| do
-                progress_bar = pb
+    win:append(gui.H_Box(), |hb| do
+        if progress_tex then
+            hb:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
+                sp:append(gui.Texture { texture_id = progress_tex,
+                    min_w = 0.25, min_h = 0.25 })
+            end)
+        end
+        hb:append(gui.V_Box(), |b| do
+            b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
+                sp:append(gui.Label(), |lbl| do progress_label = lbl end)
+            end)
+            b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.01 }, |sp| do
+                sp:append(gui.H_Progress_Bar { min_w = 0.4, min_h = 0.03 },
+                |pb| do
+                    progress_bar = pb
+                end)
             end)
         end)
     end)
@@ -431,13 +440,15 @@ end)
 
 local set_ext = capi.external_set
 
-set_ext("progress_render", function(v, text)
+set_ext("progress_render", function(v, text, tex)
+    if tex != 0 then progress_tex = tex end
     world:show_window("progress")
     progress_label:set_text(text)
     progress_bar:set_value(v)
     gui.update()
     gui.render()
     progress_win:hide()
+    progress_tex = nil
 end)
 
 world:new_window("changes", gui.Window, |win| do

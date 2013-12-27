@@ -319,6 +319,10 @@ void restorebackground(int w, int h)
 
 float loadprogress = 0;
 
+void renderprogressview(float bar, const char *text, GLuint tex) { // also used during loading
+    lua::call_external("progress_render", "fsi", bar, text ? text : "", tex);
+}
+
 void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
 {
     if(!inbetweenframes || drawtex) return;
@@ -347,7 +351,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
                 glClear(GL_COLOR_BUFFER_BIT);
                 restorebackground(w, h);
             }
-            lua::call_external("progress_render", "fs", bar, text ? text : "");
+            renderprogressview(bar, text, tex);
             ovr::warp();
         }
         viewidx = 0;
@@ -356,7 +360,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     else
     {
         if(background) restorebackground(w, h);
-        lua::call_external("progress_render", "fs", bar, text ? text : "");
+        renderprogressview(bar, text, tex);
     }
     swapbuffers(false);
 }
