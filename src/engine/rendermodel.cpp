@@ -1109,16 +1109,7 @@ void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
         }
 
         if (fp->ragdoll || !ragdoll) {
-            anim &= ~ANIM_RAGDOLL;
-            lua_rawgeti    (L, LUA_REGISTRYINDEX, self->lua_ref);
-            lua_getfield   (L, -1, "set_local_animation");
-            lua_pushvalue  (L, -2);
-            lua_pushinteger(L, anim & (ANIM_INDEX | ANIM_DIR));
-            lua_call       (L,  2, 0);
-            lua_getfield   (L, -1, "set_local_animation_flags");
-            lua_insert     (L, -2);
-            lua_pushinteger(L, (anim & ANIM_FLAGS) >> ANIM_FLAGSHIFT);
-            lua_call       (L,  2, 0);
+            /* TODO */
         }
     } else {
         if (self->dynamicEntity) {

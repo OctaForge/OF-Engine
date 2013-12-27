@@ -28,8 +28,6 @@ struct CLogicEntity
 
     int uniqueId; //!< Only used for nonSauer
 
-    int lua_ref; //!< this is lua reference number for this logic entity
-
     //! The attachments for this entity
     vector<modelattach> attachments;
 

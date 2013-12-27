@@ -212,12 +212,6 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     assert(!logicEntities.access(uniqueId));
     logicEntities.access(uniqueId, newEntity);
 
-    lua::push_external("entity_get");
-    lua_pushinteger(lua::L, uniqueId);
-    lua_call       (lua::L, 1, 1);
-    newEntity->lua_ref = luaL_ref(lua::L, LUA_REGISTRYINDEX);
-    assert(newEntity->lua_ref != LUA_REFNIL);
-
     logger::log(logger::DEBUG, "C registerLogicEntity completes");
 }
 
@@ -276,8 +270,6 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
         lua::unpin_string(ptr->attachments[i].tag);
         if (ptr->attachments[i].name) lua::unpin_string(ptr->attachments[i].name);
     }
-
-    luaL_unref(lua::L, LUA_REGISTRYINDEX, ptr->lua_ref);
     delete ptr;
 }
 
