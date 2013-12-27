@@ -591,10 +591,7 @@ void resetgl()
        !reloadtexture("<premul>media/interface/logo") ||
        !reloadtexture("<premul>media/interface/logo_1024") ||
        !reloadtexture("media/interface/background") ||
-       !reloadtexture("media/interface/shadow") ||
-       !reloadtexture("media/interface/mapshot_frame") ||
-       !reloadtexture("media/interface/loading_frame") ||
-       !reloadtexture("media/interface/loading_bar"))
+       !reloadtexture("media/interface/shadow"))
         fatal("failed to reload core textures");
     reloadfonts();
     inbetweenframes = true;
