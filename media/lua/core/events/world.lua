@@ -94,10 +94,10 @@ end)
 if SERVER then
 --[[! Function: event_player_login
     Serverside. Called after a server sends all the active entities to the
-    client. Emits a signal of the same name with the player entity as an
-    argument on the global table.
+    client. Emits a signal of the same name with the unique ID of the player
+    entity as an argument on the global table.
 ]]
-set_external("event_player_login", function(ent)
-    emit(_G, "event_player_login", ent)
+set_external("event_player_login", function(uid)
+    emit(_G, "event_player_login", uid)
 end)
 end

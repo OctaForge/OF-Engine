@@ -295,14 +295,9 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        lua::push_external("entity_class_get");
-        lua_pushstring(lua::L, _class);
-        lua_call(lua::L, 1, 1);
-        if (lua_isnil(lua::L, -1)) {
-            lua_pop(lua::L, 1);
-            return;
-        }
-        lua_pop(lua::L, 1);
+        bool b;
+        lua::pop_external_ret(lua::call_external_ret("entity_class_exists", "s", "b", _class, &b));
+        if (!b) return;
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s|%s", _class, x, y, z, stateData, newent_data);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
@@ -512,11 +507,7 @@ namespace MessageSystem
             }
             assert(lua::call_external("entities_send_all", "i", sender));
             MessageSystem::send_AllActiveEntitiesSent(sender);
-            assert(lua::push_external("event_player_login"));
-            assert(lua::push_external("entity_get"));
-            lua_pushinteger(lua::L, server::getUniqueId(sender));
-            lua_call       (lua::L, 1, 1); // entity_get
-            lua_call       (lua::L, 1, 0); // player_login
+            assert(lua::call_external("event_player_login", "i", server::getUniqueId(sender)));
         #else // CLIENT
             // Send just enough info for the player's LE
             send_LogicEntityCompleteNotification( sender,

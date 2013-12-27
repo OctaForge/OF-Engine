@@ -293,7 +293,7 @@ end
 
 --[[!
     Returns the entity class with the given name. If it doesn't exist,
-    logs an error message and returns nil. External as `entity_class_get`.
+    logs an error message and returns nil.
 
     Use with caution! See $register_class for the possible dangers of
     using this. It's still useful sometimes, so it's in the API.
@@ -306,7 +306,10 @@ M.get_class = function(cn)
     return t
 end
 local get_class = M.get_class
-set_external("entity_class_get", get_class)
+
+set_external("entity_class_exists", function(cn)
+    return not not get_class(cn)
+end)
 
 --[[!
     Returns the internal entity class storage (name->class mapping), use
