@@ -13,7 +13,7 @@ local table2 = require("core.lua.table")
 local find = table2.find
 local tremove = table.remove
 local type = type
-local min = math.min
+local min, max = math.min, math.max
 
 --! Module: core
 local M = require("core.gui.core")
@@ -201,7 +201,7 @@ M.H_Progress_Bar = register_class("H_Progress_Bar", M.Progress_Bar, {
         local bar = self.bar
         if not bar then return Widget.adjust_children(self) end
         bar.x = 0
-        bar.w = min(self.w, self.w * self.value)
+        bar.w = max(min(self.w, self.w * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_HMASK
         Widget.adjust_children(self)
     end
@@ -213,7 +213,7 @@ M.V_Progress_Bar = register_class("V_Progress_Bar", M.Progress_Bar, {
         local bar = self.bar
         if not bar then return Widget.adjust_children(self) end
         bar.y = 0
-        bar.h = min(self.h, self.h * self.value)
+        bar.h = max(min(self.h, self.h * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_VMASK
         Widget.adjust_children(self)
     end
