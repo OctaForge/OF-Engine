@@ -414,7 +414,7 @@ local progress_win, progress_bar, progress_label, progress_tex
 world:new_window("progress", gui.Window, |win| do
     progress_win = win
     win:set_variant("borderless")
-    win:append(gui.H_Box(), |hb| do
+    win:append(gui.H_Box { clamp_h = true }, |hb| do
         if progress_tex then
             hb:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
                 sp:append(gui.Texture { texture_id = progress_tex,
@@ -432,6 +432,7 @@ world:new_window("progress", gui.Window, |win| do
                 end)
             end)
         end)
+        hb:append(gui.Filler { min_w = 0.0005, clamp_v = true })
     end)
     connect(win, "destroy", || do
         progress_win, progress_bar, progress_label = nil, nil, nil
