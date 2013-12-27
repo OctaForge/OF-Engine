@@ -723,17 +723,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case 19: /* TELEPORT */
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */
-                lua::push_external("entity_add_sauer");
-                lua_pushinteger(lua::L, e.type);
-                lua_pushnumber (lua::L, e.o.x);
-                lua_pushnumber (lua::L, e.o.y);
-                lua_pushnumber (lua::L, e.o.z);
-                lua_pushinteger(lua::L, e.attr[0]);
-                lua_pushinteger(lua::L, e.attr[1]);
-                lua_pushinteger(lua::L, e.attr[2]);
-                lua_pushinteger(lua::L, e.attr[3]);
-                lua_pushinteger(lua::L, e.attr[4]);
-                lua_call       (lua::L, 9, 0);
+                lua::call_external("entity_add_sauer", "ifffiiiii", e.type,
+                    e.o.x, e.o.y, e.o.z, e.attr[0], e.attr[1], e.attr[2],
+                    e.attr[3], e.attr[4]);
                 break;
             default:
                 break;
@@ -784,7 +776,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
 #ifndef SERVER
     extern void clear_texpacks(int n = 0); clear_texpacks();
-    lua::push_external("gui_clear"); lua_call(lua::L, 0, 0);
+    lua::call_external("gui_clear", "");
 #endif
 
     identflags |= IDF_OVERRIDDEN;

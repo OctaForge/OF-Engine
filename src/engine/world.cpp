@@ -1336,14 +1336,9 @@ COMMAND(mapname, "");
 void finish_dragging() {
     groupeditpure(
         const vec& o = e.o;
-        lua::push_external("entity_set_attr_uid");
-        lua_pushinteger(lua::L, LogicSystem::getUniqueId(&e));
-        lua_pushliteral(lua::L, "position");
-        lua_createtable(lua::L, 3, 0);
-        lua_pushnumber (lua::L, o.x); lua_rawseti(lua::L, -2, 1);
-        lua_pushnumber (lua::L, o.y); lua_rawseti(lua::L, -2, 2);
-        lua_pushnumber (lua::L, o.z); lua_rawseti(lua::L, -2, 3);
-        lua_call       (lua::L, 3, 0);
+        defformatstring(pos, "[%f|%f|%f]", o.x, o.y, o.z);
+        lua::call_external("entity_set_gui_attr_uid", "iss", e.uid,
+            "position", pos);
     );
 }
 

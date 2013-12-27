@@ -420,17 +420,10 @@ namespace game
                 getstring(text, p);
                 filtertext(text, text);
 #ifndef SERVER
-                if (d->state!=CS_SPECTATOR && lua::push_external("particle_draw_text")) {
+                if (d->state != CS_SPECTATOR) {
                     const vec &o = d->abovehead();
-                    lua_pushstring (lua::L, text);
-                    lua_pushnumber (lua::L, o.x);
-                    lua_pushnumber (lua::L, o.y);
-                    lua_pushnumber (lua::L, o.z);
-                    lua_pushinteger(lua::L, 0x32FF64);
-                    lua_pushinteger(lua::L, 2000);
-                    lua_pushnumber (lua::L, 4.0f);
-                    lua_pushinteger(lua::L, -8);
-                    lua_call(lua::L, 8, 0);
+                    lua::call_external("particle_draw_text", "sfffiifi", text,
+                        o.x, o.y, o.z, 0x32FF64, 2000, 4.0f, -8);
                 }
                 if (chat_sound[0])
                     playsoundname(chat_sound);
