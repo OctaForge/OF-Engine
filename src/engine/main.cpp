@@ -307,7 +307,7 @@ void restorebackground(int w, int h)
 float loadprogress = 0;
 
 void renderprogressview(float bar, const char *text, GLuint tex) { // also used during loading
-    lua::call_external("progress_render", "fsi", bar, text ? text : "", tex);
+    lua::call_external("progress_render", "fsib", bar, text ? text : "", tex, !mainmenu);
 }
 
 void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
