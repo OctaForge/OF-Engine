@@ -213,16 +213,7 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            lua::push_external("entity_set_attr");
-            lua::push_external("entity_get");
-            lua_pushinteger(lua::L, d->uid);
-            lua_call       (lua::L, 1, 1);
-            lua_pushliteral(lua::L, "position");
-            lua::push_external("entity_get_attr");
-            lua_pushvalue  (lua::L, -3);
-            lua_pushliteral(lua::L, "position");
-            lua_call       (lua::L, 2, 1);
-            lua_call       (lua::L,  3, 0);
+            lua::call_external("entity_refresh_attr", "is", d->uid, "position");
 #endif
         }
     }

@@ -1334,6 +1334,11 @@ set_external("entity_get_attr_uid", function(uid, prop)
     return ent:get_attr(prop)
 end)
 
+set_external("entity_refresh_attr", function(uid, prop)
+    local ent = get_ent(uid)
+    ent:set_attr(prop, ent:get_attr(prop))
+end
+
 --[[!
     See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`. An
     external called `entity_set_attr_uid` works with uid instead of an entity.
