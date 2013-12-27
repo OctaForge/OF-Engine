@@ -319,94 +319,6 @@ void restorebackground(int w, int h)
 
 float loadprogress = 0;
 
-void renderprogressview(int w, int h, float bar, const char *text, GLuint tex)   // also used during loading
-{
-    hudmatrix.ortho(0, w, h, 0, -1, 1);
-    resethudmatrix();
-    hudshader->set();
-
-    gle::defvertex(2);
-    gle::deftexcoord0();
-
-    gle::colorf(1, 1, 1);
-
-    float fh = 0.060f*min(w, h), fw = fh*15,
-          fx = renderedframe ? w - fw - fh/4 : 0.5f*(w - fw),
-          fy = renderedframe ? fh/4 : h - fh*1.5f;
-    settexture("media/interface/loading_frame", 3);
-    bgquad(fx, fy, fw, fh);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    float bw = fw*(512 - 2*8)/512.0f, bh = fh*20/32.0f,
-          bx = fx + fw*8/512.0f, by = fy + fh*6/32.0f,
-          su1 = 0/32.0f, su2 = 8/32.0f, sw = fw*8/512.0f,
-          eu1 = 24/32.0f, eu2 = 32/32.0f, ew = fw*8/512.0f,
-          mw = bw - sw - ew,
-          ex = bx+sw + max(mw*bar, fw*8/512.0f);
-    if(bar > 0)
-    {
-        settexture("media/interface/loading_bar", 3);
-        bgquad(bx, by, sw, bh, su1, 0, su2-su1, 1);
-        bgquad(bx+sw, by, ex-(bx+sw), bh, su2, 0, eu1-su2, 1);
-        bgquad(ex, by, ew, bh, eu1, 0, eu2-eu1, 1);
-    }
-    else if (bar < 0) // INTENSITY: Show side-to-side progress for negative values (-0 to -infinity)
-    {
-        float width = 0.382; // 1-golden ratio
-        float start;
-        bar = -bar;
-        bar = fmod(bar, 1.0f);
-        if (bar < 0.5)
-            start = (bar*2)*(1-width);
-        else
-            start = 2*(1-bar)*(1-width);
-
-        float bw = fw*(512 - 2*8)/512.0f, bh = fh*20/32.0f,
-              bx = fx + fw*8/512.0f + mw*start, by = fy + fh*6/32.0f,
-              su1 = 0/32.0f, su2 = 8/32.0f, sw = fw*8/512.0f,
-              eu1 = 24/32.0f, eu2 = 32/32.0f, ew = fw*8/512.0f,
-              mw = bw - sw - ew,
-              ex = bx+sw + max(mw*width, fw*8/512.0f);
-
-        settexture("media/interface/loading_bar", 3);
-        bgquad(bx, by, sw, bh, su1, 0, su2-su1, 1);
-        bgquad(bx+sw, by, ex-(bx+sw), bh, su2, 0, eu1-su2, 1);
-        bgquad(ex, by, ew, bh, eu1, 0, eu2-eu1, 1);
-    } // INTENSITY: End side-to-side progress
-
-    if(text)
-    {
-        int tw = text_width(text);
-        float tsz = bh*0.6f/FONTH;
-        if(tw*tsz > mw) tsz = mw/tw;
-        pushhudmatrix();
-        hudmatrix.translate(bx+sw, by + (bh - FONTH*tsz)/2, 0);
-        hudmatrix.scale(tsz, tsz, 1);
-        flushhudmatrix();
-        draw_text(text, 0, 0);
-        pophudmatrix();
-    }
-
-    glDisable(GL_BLEND);
-
-    if(tex)
-    {
-        glBindTexture(GL_TEXTURE_2D, tex);
-        float sz = 0.35f*min(w, h), x = 0.5f*(w-sz), y = 0.5f*min(w, h) - sz/15;
-        bgquad(x, y, sz, sz);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        settexture("media/interface/mapshot_frame", 3);
-        bgquad(x, y, sz, sz);
-        glDisable(GL_BLEND);
-    }
-
-    gle::disable();
-}
-
 void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
 {
     if(!inbetweenframes || drawtex) return;
@@ -435,7 +347,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
                 glClear(GL_COLOR_BUFFER_BIT);
                 restorebackground(w, h);
             }
-            renderprogressview(w, h, bar, text, tex);
+            lua::call_external("progress_render", "fs", bar, text ? text : "");
             ovr::warp();
         }
         viewidx = 0;
@@ -444,7 +356,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     else
     {
         if(background) restorebackground(w, h);
-        renderprogressview(w, h, bar, text, tex);
+        lua::call_external("progress_render", "fs", bar, text ? text : "");
     }
     swapbuffers(false);
 }

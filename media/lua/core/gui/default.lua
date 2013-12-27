@@ -431,18 +431,13 @@ end)
 
 local set_ext = capi.external_set
 
-set_ext("progress_set_label", function(txt)
-    if not progress_win then world:show_window("progress") end
-    progress_label:set_text(txt)
-end)
-
-set_ext("progress_set_value", function(v)
-    if not progress_win then world:show_window("progress") end
+set_ext("progress_render", function(v, text)
+    world:show_window("progress")
+    progress_label:set_text(text)
     progress_bar:set_value(v)
-end)
-
-set_ext("progress_hide", function()
-    if progress_win then progress_win:hide() end
+    gui.update()
+    gui.render()
+    progress_win:hide()
 end)
 
 world:new_window("changes", gui.Window, |win| do
