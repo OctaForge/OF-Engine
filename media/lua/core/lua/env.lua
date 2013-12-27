@@ -8,6 +8,8 @@
         See COPYING.txt.
 ]]
 
+local logger = require("core.logger")
+
 --! Module: env
 local M = {}
 
@@ -189,12 +191,21 @@ M.gen_mapscript_env = function()
 end
 local gen_mapscript_env = M.gen_mapscript_env
 
-require("capi").external_set("mapscript_run", function(fn)
+local external_set = require("capi").external_set
+
+external_set("mapscript_run", function(fn)
     local f, err = loadfile(fn)
     if not f then error(err, 2) end
     setfenv(f, gen_mapscript_env())()
 end)
 
-require("capi").external_set("mapscript_gen_env", M.gen_mapscript_env)
+external_set("mapscript_verify", function(fn)
+    local f, err = loadfile(fn)
+    if not f then
+        logger.log(logger.ERROR, "Compilation failed: " .. err)
+        return false
+    end
+    return true
+end)
 
 return M

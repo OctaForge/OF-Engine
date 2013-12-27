@@ -267,14 +267,10 @@ namespace lapi_binds
     static void do_upload(bool skipmedia, int medialevel) {
         renderprogress(0.1f, "compiling scripts...");
 
-        if (lua::load_file(world::get_mapfile_path("map.lua")))
-        {
-            assert(lua::call_external("gui_show_message", "ss",
-                "Compilation failed", lua_tostring(lua::L, -1)));
-            lua_pop(lua::L, 1);
-            return;
-        }
-        lua_pop(lua::L, 1);
+        bool b;
+        lua::pop_external_ret(lua::call_external_ret("mapscript_verify", "s",
+            "b", world::get_mapfile_path("map.lua"), &b));
+        if (!b) return;
 
         renderprogress(0.3, "generating map...");
         save_world(game::getclientmap());

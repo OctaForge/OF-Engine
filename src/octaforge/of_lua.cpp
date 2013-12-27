@@ -29,6 +29,8 @@ void clearanims();
 
 namespace lua
 {
+    static int load_file(lua_State *L, const char *fname);
+
     lua_State *L = NULL;
     static string mod_dir = "";
 
@@ -48,17 +50,13 @@ namespace lua
 
     static hashtable<const char*, int> externals;
 
-    bool push_external(lua_State *L, const char *name) {
+    static bool push_external(lua_State *L, const char *name) {
         int *ref = externals.access(name);
         if  (ref) {
             lua_rawgeti(L, LUA_REGISTRYINDEX, *ref);
             return true;
         }
         return false;
-    }
-
-    bool push_external(const char *name) {
-        return push_external(L, name);
     }
 
     static int vcall_external_i(lua_State *L, const char *name,
@@ -229,7 +227,7 @@ namespace lua
     });
 
     LUAICOMMAND(external_get, {
-        if (!push_external(luaL_checkstring(L, 1))) lua_pushnil(L);
+        if (!push_external(L, luaL_checkstring(L, 1))) lua_pushnil(L);
         return 1;
     });
 
@@ -484,7 +482,7 @@ namespace lua
         return LUA_ERRFILE;
     }
 
-    int load_file(lua_State *L, const char *fname) {
+    static int load_file(lua_State *L, const char *fname) {
         int fnameidx = lua_gettop(L) + 1;
         vector<char> buf;
         if (!fname) {
@@ -531,7 +529,7 @@ namespace lua
         return ret;
     }
 
-    int load_string(lua_State *L, const char *str, const char *ch) {
+    static int load_string(lua_State *L, const char *str, const char *ch) {
         lua_getfield(L, LUA_REGISTRYINDEX, "luacy_parse");
         lua_pushstring(L, str);
         lua_pushvalue(L, -1);
@@ -547,7 +545,6 @@ namespace lua
         return ret;
     }
 
-    int load_file  (const char *fname) { return load_file(L, fname); }
     int load_string(const char *str, const char *ch) {
         return load_string(L, str, ch);
     }

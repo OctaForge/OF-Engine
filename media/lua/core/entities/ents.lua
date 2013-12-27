@@ -496,6 +496,9 @@ local add = function(cn, uid, kwargs, new)
 end
 M.add = add
 set_external("entity_add", add)
+set_external("entity_add_with_cn", function(cl, uid, cn)
+    add(cl, uid, (cn >= 0) and { cn = cn } or nil)
+end)
 
 local add_sauer = function(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
     storage_sauer[#storage_sauer + 1] = {
@@ -1537,7 +1540,13 @@ M.new = SERVER and function(cl, kwargs, fuid)
     return add(cl, fuid, kwargs, true)
 end or nil
 local ent_new = M.new
-set_external("entity_new", M.new)
+
+set_external("entity_new_with_sd", function(cl, x, y, z, sd, nd)
+    local ent = ent_new(cl, { position = { x = x, y = y, z = z },
+        state_data = sd, newent_data = nd })
+    debug then log(DEBUG, ("Created entity: %d - %s (%f, %f, %f)")
+        :format(ent.uid, cl, x, y, z))
+end)
 
 set_external("entity_new_with_cn", function(cl, cn, fuid)
     local ent = ent_new(cl, { cn = cn }, fuid)

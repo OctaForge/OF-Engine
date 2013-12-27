@@ -302,24 +302,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s|%s", _class, x, y, z, stateData, newent_data);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         // Create
-        lua::push_external("entity_new");
-        lua_pushstring(lua::L, _class); // first arg
-        lua_createtable(lua::L, 0, 3); // second arg
-        lua_createtable(lua::L, 0, 3);
-        lua_pushnumber(lua::L, x); lua_setfield(lua::L, -2, "x");
-        lua_pushnumber(lua::L, y); lua_setfield(lua::L, -2, "y");
-        lua_pushnumber(lua::L, z); lua_setfield(lua::L, -2, "z");
-        lua_setfield(lua::L, -2, "position");
-        lua_pushstring(lua::L, stateData);
-        lua_setfield(lua::L, -2, "state_data");
-        lua_pushstring(lua::L, newent_data);
-        lua_setfield(lua::L, -2, "newent_data");
-        lua_call(lua::L, 2, 1);
-        lua_getfield(lua::L, -1, "uid");
-        int newuid = lua_tointeger(lua::L, -1);
-        lua_pop(lua::L, 2);
-        logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f)",
-                                      newuid, _class, x, y, z);
+        lua::call_external("entity_new_with_sd", "sfffss", _class, x, y, z, stateData, newent_data);
     }
 #endif
 
@@ -549,25 +532,19 @@ namespace MessageSystem
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            lua::push_external("entity_add");
-            lua_pushstring (lua::L, otherClass);
-            lua_pushinteger(lua::L, otherUniqueId);
-            lua_createtable(lua::L, 0, 0);
+#ifndef SERVER
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
             {
-                #ifndef SERVER
-                    // If this is the player, validate it is the clientNumber we already have
-                    if (otherUniqueId == ClientSystem::uniqueId)
-                    {
-                        logger::log(logger::DEBUG, "This is the player's entity (%d), validating client num: %d,%d",
-                            otherUniqueId, otherClientNumber, ClientSystem::playerNumber);
-                        assert(otherClientNumber == ClientSystem::playerNumber);
-                    }
-                #endif
-                lua_pushinteger(lua::L, otherClientNumber);
-                lua_setfield   (lua::L, -2, "cn");
+                // If this is the player, validate it is the clientNumber we already have
+                if (otherUniqueId == ClientSystem::uniqueId)
+                {
+                    logger::log(logger::DEBUG, "This is the player's entity (%d), validating client num: %d,%d",
+                        otherUniqueId, otherClientNumber, ClientSystem::playerNumber);
+                    assert(otherClientNumber == ClientSystem::playerNumber);
+                }
             }
-            lua_call(lua::L, 3, 0);
+#endif
+            lua::call_external("entity_add_with_cn", "sii", otherClass, otherUniqueId, otherClientNumber);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
