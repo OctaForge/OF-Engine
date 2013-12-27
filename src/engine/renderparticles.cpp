@@ -1586,24 +1586,19 @@ void updateparticles()
         loopv(ents)
         {
             extentity &e = *ents[i];
-            CLogicEntity *le = LogicSystem::getLogicEntity(e);
-            if (!le) continue;
-            lua::push_external("entity_get_edit_icon_info");
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
 
             const char *name;
-            lua::pop_external_ret(lua::call_external_ret("entity_get_class_name", "i", "s", e.uid, &name));
+            lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
+                "i", "s", e.uid, &name));
 
-            lua_call(lua::L, 1, 4);
-            float r = lua_tonumber(lua::L, -3) / 255.0f;
-            float g = lua_tonumber(lua::L, -2) / 255.0f;
-            float b = lua_tonumber(lua::L, -1) / 255.0f;
-            const char *icon = lua_tostring(lua::L, -4);
-            lua_pop(lua::L, 4);
+            const char *icon;
+            float r, g, b;
+            lua::pop_external_ret(lua::call_external_ret("entity_get_edit_icon_info",
+                "i", "sfff", e.uid, &icon, &r, &g, &b));
 
             particle_textcopy(e.o, name, PART_TEXT, 1, vec(0.12f, 0.78f, 0.31f), 2.0f, 0);
             ((iconparticle*)newparticle(e.o, vec(0, 0, 0), 0, PART_ICON,
-                vec(r, g, b), editpartsize))->tex = textureload(icon);
+                vec(r / 255.0f, g / 255.0f, b / 255.0f), editpartsize))->tex = textureload(icon);
         }
     }
 }

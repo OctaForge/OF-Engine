@@ -1299,21 +1299,25 @@ Entity = M.Entity
 
 --[[!
     See {{$Entity.get_gui_attr}}. Externally accessible as
-    `entity_get_gui_attr`. See also $set_gui_attr.
+    `entity_get_gui_attr_uid` (using uid). See also $set_gui_attr.
 ]]
 M.get_gui_attr = function(ent, prop)
     return ent:get_gui_attr(prop)
 end
-set_external("entity_get_gui_attr", M.get_gui_attr)
+set_external("entity_get_gui_attr_uid", function(uid, prop)
+    return get_ent(uid):get_gui_attr(prop)
+end)
 
 --[[!
     See {{$Entity.set_gui_attr}}. Externally accessible as
-    `entity_set_gui_attr`. See also $get_gui_attr.
+    `entity_set_gui_attr_uid` (using uid). See also $get_gui_attr.
 ]]
 M.set_gui_attr = function(ent, prop, val)
     return ent:set_gui_attr(prop, val)
 end
-set_external("entity_set_gui_attr", M.set_gui_attr)
+set_external("entity_set_gui_attr_uid", function(uid, prop, val)
+    return get_ent(uid):set_gui_attr(prop, val)
+end)
 
 --[[!
     See {{$Entity.get_attr}}. Externally accessible as `entity_get_attr`. An
@@ -1345,20 +1349,18 @@ set_external("entity_set_attr_uid", function(uid, prop, val)
     return ent:set_attr(prop, val)
 end)
 
---[[! Function: entity_get_attached
-    An external. Calls {{$Entity.get_attached_next}} on the given entity first,
-    if that returns then this returns true + the attached entities, otherwise
-    calls {{$Entity.get_attached_prev}} and if that returns, then this returns
-    false + the attached entities, if that also fails then it returns nil.
-]]
-set_external("entity_get_attached", function(ent)
+set_external("entity_draw_attached", function(uid)
+    local ent = storage[uid]
+    if not ent then return end
     local ents = { ent:get_attached_next() }
     if #ents > 0 then
-        return true, unpack(ents)
+        for i = 1, #ents do capi.entity_draw_attachment(uid, ents[i].uid) end
+        return
     end
     ents = { ent:get_attached_prev() }
     if #ents > 0 then
-        return false, unpack(ents)
+        for i = 1, #ents do capi.entity_draw_attachment(ents[i].uid, uid) end
+        return
     end
 end)
 
@@ -1454,6 +1456,16 @@ set_external("entity_set_sdata", M.set_sdata)
 
 set_external("entity_set_sdata_full", function(uid, sd)
     get_ent(uid):set_sdata_full(sd)
+end)
+
+set_external("entity_serialize_sdata", function(uid, x, y, z)
+    local sd = get_ent(uid):build_sdata()
+    if not x then
+        sd.position = nil
+    else
+        sd.position = ("[%f|%f|%f]"):format(x, y, z)
+    end
+    return serialize(sd) or "{}"
 end)
 
 --[[ Function: scene_is_ready

@@ -903,9 +903,11 @@ local Static_Entity = M.Static_Entity
 
 --[[! Function: entity_get_edit_info
     An external. Returns `ent.__edit_icon`,
-    `ent:{{$Static_Entity.__get_edit_color|__get_edit_color}}()`.
+    `ent:{{$Static_Entity.__get_edit_color|__get_edit_color}}()` where `ent`
+    is the entity with unique id `uid`.
 ]]
-set_external("entity_get_edit_icon_info", function(ent)
+set_external("entity_get_edit_icon_info", function(uid)
+    local ent = ent_get(uid)
     return ent.__edit_icon, ent:__get_edit_color()
 end)
 
@@ -913,7 +915,8 @@ end)
     An external. Returns the entity name and the return value of
     {{$Static_Entity.__get_edit_info}}.
 ]]
-set_external("entity_get_edit_info", function(ent)
+set_external("entity_get_edit_info", function(uid)
+    local ent = ent_get(uid)
     return ent.name, ent:__get_edit_info()
 end)
 

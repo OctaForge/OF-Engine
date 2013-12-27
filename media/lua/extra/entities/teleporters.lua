@@ -51,8 +51,8 @@ M.Teleporter = Obstacle:clone {
 
     __init_svars = function(self, kwargs, nd)
         Obstacle.__init_svars(self, kwargs, { unpack(nd, 3) })
-        self:set_attr("destination", nd[1])
-        self:set_attr("sound_name", nd[2])
+        self:set_attr("destination", 0, nd[1])
+        self:set_attr("sound_name", "", nd[2])
     end,
 
     __activate = (not SERVER) and function(self, kwargs)

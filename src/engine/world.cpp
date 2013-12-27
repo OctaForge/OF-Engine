@@ -691,36 +691,18 @@ void renderentradius(extentity &e, bool color)
         /* OF */
         default:
         attach:
-            CLogicEntity *el = LogicSystem::getLogicEntity(e);
-            if (!el || !el->staticEntity) break;
-
-            int onstack = lua_gettop(lua::L);
-            lua::push_external("entity_get_attached");
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
-            lua_call(lua::L, 1, LUA_MULTRET);
-            int nrets = lua_gettop(lua::L) - onstack;
-            if (nrets == 0 || lua_isnil(lua::L, -nrets)) {
-                lua_pop(lua::L, nrets);
-                break;
-            }
             if (color) gle::colorf(0, 1, 1);
-            bool b = lua_toboolean(lua::L, -nrets);
-            for (int i = (-nrets) + 1; i < 0; ++i) {
-                lua_getfield(lua::L, i, "uid");
-                CLogicEntity *ea = LogicSystem::getLogicEntity(
-                    lua_tointeger(lua::L, -1));
-                lua_pop(lua::L, 1);
-                if (!ea || !ea->staticEntity) continue;
-                if (!b) {
-                    renderentattachment(*ea->staticEntity, el->staticEntity);
-                } else {
-                    renderentattachment(*el->staticEntity, ea->staticEntity);
-                }
-            }
-            lua_pop(lua::L, nrets);
+            lua::call_external("entity_draw_attached", "i", e.uid);
             break;
     }
 }
+
+CLUAICOMMAND(entity_draw_attachment, void, (int uid1, int uid2), {
+    CLogicEntity *e1 = LogicSystem::getLogicEntity(uid1);
+    CLogicEntity *e2 = LogicSystem::getLogicEntity(uid2);
+    if (!e1 || !e2 || !e1->staticEntity || !e2->staticEntity) return;
+    renderentattachment(*e1->staticEntity, e2->staticEntity);
+});
 
 void renderentselection(const vec &o, const vec &ray, bool entmoving)
 {
@@ -1039,28 +1021,16 @@ void entpaste()
         const extentity &c = entcopybuf[i]; // INTENSITY: extentity, for uniqueID
         vec o = vec(c.o).mul(m).add(vec(sel.o));
 
-        // INTENSITY: Create entity using new system
-        CLogicEntity *entity = LogicSystem::getLogicEntity(c);
-        if (!entity) return;
-
         const char *cn;
         lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
             "i", "s", c.uid, &cn));
 
-        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_getfield(lua::L, -1, "build_sdata");
-        lua_insert  (lua::L, -2);
-        lua_call    (lua::L,  1, 1);
-
-        lua_pushfstring(lua::L, "[%f|%f|%f]", o.x, o.y, o.z);
-        lua_setfield   (lua::L, -2, "position");
-
-        lua::push_external("table_serialize"); lua_insert(lua::L, -2);
-        lua_call(lua::L, 1, 1);
-        const char *sd = luaL_optstring(lua::L, -1, "{}");
-        lua_pop(lua::L, 1);
+        const char *sd;
+        int npop = lua::call_external_ret("entity_serialize_sdata", "ifff", "s",
+            c.uid, o.x, o.y, o.z, &sd);
 
         newent(cn, sd);
+        lua::pop_external_ret(npop);
     }
 // INTENSITY   int j = 0;
 // INTENSITY   groupeditundo(e.type = entcopybuf[j++].type;);
@@ -1073,14 +1043,12 @@ COMMAND(entpaste, "");
 
 /* OF */
 void printent(extentity &e, char *buf, int len) {
-    lua::push_external("entity_get_edit_info");
-    lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-        LogicSystem::getLogicEntity(e)->lua_ref);
-    lua_call(lua::L, 1, 2);
-    const char *info = lua_tostring(lua::L, -1);
-    const char *name = lua_tostring(lua::L, -2); lua_pop(lua::L, 2);
+    const char *name, *info;
+    int npop = lua::call_external_ret("entity_get_edit_info", "i", "ss", e.uid,
+        &name, &info);
     if (!info || !info[0]) nformatstring(buf, len, "%s", name);
     else nformatstring(buf, len, "%s\n\f7%s", info, name);
+    lua::pop_external_ret(npop);
 }
 
 void nearestent()
@@ -1121,25 +1089,18 @@ void intensityentcopy() // INTENSITY
     }
 
     extentity& e = *(entities::getents()[efocus]);
-    CLogicEntity *entity = LogicSystem::getLogicEntity(e);
 
     const char *name;
     lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
         "i", "s", e.uid, &name));
     copystring(copied_class, name);
 
-    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-    lua_getfield(lua::L, -1, "build_sdata");
-    lua_insert  (lua::L, -2);
-    lua_call    (lua::L,  1, 1);
+    const char *sd;
+    int npop = lua::call_external_ret("entity_serialize_sdata", "i", "s",
+        e.uid, &sd);
 
-    lua_pushnil (lua::L);
-    lua_setfield(lua::L, -2, "position");
-
-    lua::push_external("table_serialize"); lua_insert(lua::L, -2);
-    lua_call(lua::L,  1, 1);
-    copystring(copied_sdata, luaL_optstring(lua::L, -1, "{}"), sizeof(copied_sdata));
-    lua_pop(lua::L, 1);
+    copystring(copied_sdata, sd, sizeof(copied_sdata));
+    lua::pop_external_ret(npop);
 }
 
 void intensitypasteent() // INTENSITY
@@ -1171,21 +1132,15 @@ void enttype(char *type, int *numargs) {
 void entattr(char *attr, char *val, int *numargs) {
     if (*numargs >= 2) {
         groupedit(
-            lua::push_external("entity_set_gui_attr");
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-                LogicSystem::getLogicEntity(e)->lua_ref);
-            lua_pushstring(lua::L, attr);
-            lua_pushstring(lua::L, val);
-            lua_call(lua::L, 3, 0);
+            lua::call_external("entity_set_gui_attr_uid", "iss",
+                e.uid, attr, val);
         );
     } else entfocus(efocus, {
-        lua::push_external("entity_get_gui_attr");
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-            LogicSystem::getLogicEntity(e)->lua_ref);
-        lua_pushstring(lua::L, attr);
-        lua_call(lua::L, 2, 1);
-        const char *str = lua_tostring(lua::L, -1); lua_pop(lua::L, -1);
+        const char *str;
+        int npop = lua::call_external_ret("entity_get_gui_attr_uid", "is", "s",
+            e.uid, &str);
         result(str ? str : "");
+        lua::pop_external_ret(npop);
     });
 }
 
@@ -1274,7 +1229,7 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
 
 #ifndef SERVER
     extern void clear_texpacks(int n = 0); clear_texpacks();
-    lua::push_external("gui_clear"); lua_call(lua::L, 0, 0);
+    lua::call_external("gui_clear", "");
 #endif
 
     if (usecfg)

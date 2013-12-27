@@ -137,7 +137,12 @@ namespace lua
 
     int vcall_external_ret(lua_State *L, const char *name, const char *args,
     const char *retargs, va_list ap) {
-        int nrets = vcall_external_i(L, name, args, LUA_MULTRET, ap);
+        int nr = LUA_MULTRET;
+        if (retargs && *retargs == 'N') {
+            ++retargs;
+            nr = va_arg(ap, int);
+        }
+        int nrets = vcall_external_i(L, name, args, nr, ap);
         if (nrets < 0) return -1;
         int idx = nrets;
         if (retargs) while (*retargs) {
@@ -162,7 +167,6 @@ namespace lua
                     break;
             }
         }
-        if (idx > 0) assert(false);
         return nrets;
     }
 
