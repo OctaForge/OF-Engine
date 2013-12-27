@@ -120,23 +120,23 @@ namespace world
         defformatstring(buf, "%smedia%c%s%c%s", homedir, PATHDIV, tmp,
             PATHDIV, fname);
 
-        lua::push_external("entities_save_all");
-        lua_call(lua::L, 0, 1);
-        const char *data = lua_tostring(lua::L, -1);
-        lua_pop(lua::L, 1);
         if (fileexists(buf, "r")) {
             defformatstring(buff, "%s-%d.bak", buf, (int)time(0));
             tools::fcopy(buf, buff);
         }
 
-        FILE *f = fopen(buf, "w");
+        stream *f = openutf8file(buf, "w");
         if  (!f) {
             logger::log(logger::ERROR, "Cannot open file %s for writing.",
                 buf);
             return;
         }
-        fputs(data, f);
-        fclose(f);
+
+        const char *data;
+        int popn = lua::call_external_ret("entities_save_all", "", "s", &data);
+        f->putstring(data);
+        lua::pop_external_ret(popn);
+        delete f;
     }
 
     static string mapfile_path = "";
@@ -156,13 +156,7 @@ namespace world
 #ifndef SERVER
         execfile(get_mapfile_path("media.cfg"), false);
 #endif
-        if (lua::load_file(get_mapfile_path("map.lua")))
-            fatal("%s", lua_tostring(lua::L, -1));
-        lua::push_external("mapscript_gen_env");
-        lua_call(lua::L, 0, 1);
-        lua_setfenv(lua::L, -2);
-        if (lua_pcall(lua::L, 0, 0, 0))
-            fatal("%s", lua_tostring(lua::L, -1));
+        lua::call_external("mapscript_run", "s", get_mapfile_path("map.lua"));
         identflags = oldflags;
     }
 } /* end namespace world */

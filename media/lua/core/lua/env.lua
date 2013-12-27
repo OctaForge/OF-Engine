@@ -163,7 +163,7 @@ end
 --[[!
     Generates an environment for the mapscript. It's isolated from the outside
     world to some degree, providing some safety against potentially malicious
-    code. Externally available as "mapscript_gen_env".
+    code.
 
     The new environment contains the following global functions: assert, error,
     getmetatable (modified so that it can get only table metatables), ipairs,
@@ -187,6 +187,14 @@ M.gen_mapscript_env = function()
     env_package.path = package.path
     return gen_envtable(env_structure, {}, env_replacements)
 end
+local gen_mapscript_env = M.gen_mapscript_env
+
+require("capi").external_set("mapscript_run", function(fn)
+    local f, err = loadfile(fn)
+    if not f then error(err, 2) end
+    setfenv(f, gen_mapscript_env())()
+end)
+
 require("capi").external_set("mapscript_gen_env", M.gen_mapscript_env)
 
 return M
