@@ -218,19 +218,6 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
             glBindTexture(GL_TEXTURE_2D, mapshot->id);
             bgquad(x, y, sz, sz);
         }
-        else
-        {
-            float qw, qh;
-            text_boundsf("?", qw, qh);
-            float qsz = sz*0.5f/max(qw, qh);
-            pushhudmatrix();
-            hudmatrix.translate(x + 0.5f*(sz - qw*qsz), y + 0.5f*(sz - qh*qsz), 0);
-            hudmatrix.scale(qsz, qsz, 1);
-            flushhudmatrix();
-            draw_text("?", 0, 0);
-            pophudmatrix();
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }
         if(mapname)
         {
             float tw = text_widthf(mapname),
