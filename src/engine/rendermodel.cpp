@@ -1132,29 +1132,6 @@ void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
     }
 }
 
-gameent *getproxygameent(lua_State *L, CLogicEntity *self) {
-    lua_rawgeti (L, LUA_REGISTRYINDEX, self->lua_ref);
-    lua_getfield(L, -1, "rendering_hash_hint");
-    lua_remove  (L, -2);
-    if (!lua_isnil(L, -1)) {
-        static bool initialized = false;
-        static gameent *gameentsfr[1024];
-        if (!initialized) {
-            for (int i = 0; i < 1024; i++) gameentsfr[i] = new gameent;
-            initialized = true;
-        }
-
-        int rhashhint = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        rhashhint = rhashhint & 1023;
-        assert(rhashhint >= 0 && rhashhint < 1024);
-        return gameentsfr[rhashhint];
-    } else {
-        lua_pop(L, 1);
-        return NULL;
-    }
-}
-
 CLUAICOMMAND(model_render, void, (int uid, const char *name, int panim,
 int sanim, int animflags, float x, float y, float z, float yaw, float pitch,
 float roll, int flags, int basetime, float r, float g, float b, float a), {
@@ -1169,10 +1146,7 @@ float roll, int flags, int basetime, float r, float g, float b, float a), {
     preparerd(lua::L, anim, entity);
     gameent *fp = NULL;
 
-    if (entity->dynamicEntity)
-        fp = (gameent*)entity->dynamicEntity;
-    else
-        fp = getproxygameent(lua::L, entity);
+    if (entity->dynamicEntity) fp = (gameent*)entity->dynamicEntity;
 
     rendermodel(name, anim, vec(x, y, z), yaw, pitch, roll, flags, fp,
         entity->attachments.getbuf(), basetime, 0, 1, vec4(r, g, b, a));
