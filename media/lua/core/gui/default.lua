@@ -409,6 +409,42 @@ gui.Window.__variants = {
 
 -- default windows
 
+local progress_win, progress_bar, progress_label
+
+world:new_window("progress", gui.Window, |win| do
+    progress_win = win
+    win:set_variant("borderless")
+    win:append(gui.V_Box(), |b| do
+        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
+            sp:append(gui.Label(), |lbl| do progress_label = lbl end)
+        end)
+        b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.01 }, |sp| do
+            sp:append(gui.H_Progress_Bar { min_w = 0.4, min_h = 0.03 }, |pb| do
+                progress_bar = pb
+            end)
+        end)
+    end)
+    connect(win, "destroy", || do
+        progress_win, progress_bar, progress_label = nil, nil, nil
+    end)
+end)
+
+local set_ext = capi.external_set
+
+set_ext("progress_set_label", function(txt)
+    if not progress_win then world:show_window("progress") end
+    progress_label:set_text(txt)
+end)
+
+set_ext("progress_set_value", function(v)
+    if not progress_win then world:show_window("progress") end
+    progress_bar:set_value(v)
+end)
+
+set_ext("progress_hide", function()
+    if progress_win then progress_win:hide() end
+end)
+
 world:new_window("changes", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
