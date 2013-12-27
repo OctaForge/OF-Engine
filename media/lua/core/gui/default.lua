@@ -410,11 +410,9 @@ gui.Window.__variants = {
 -- default windows
 
 local progress_win, progress_bar, progress_label, progress_tex
-local progress_bg = false
 
-world:new_window("progress", gui.Window, |win| do
+world:new_window("progress_bg", gui.Window, |win| do
     progress_win = win
-    if not progress_bg then win:set_variant("borderless") end
     win:append(gui.H_Box { clamp_h = true }, |hb| do
         if progress_tex then
             hb:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
@@ -442,16 +440,15 @@ end)
 
 local set_ext = capi.external_set
 
-set_ext("progress_render", function(v, text, tex, bg)
+set_ext("progress_render", function(v, text, tex)
     if tex != 0 then progress_tex = tex end
-    if bg then progress_bg = true end
-    world:show_window("progress")
+    world:show_window("progress_bg")
     progress_label:set_text(text)
     progress_bar:set_value(v)
-    gui.update()
-    gui.render()
+    gui.world_update()
+    gui.get_projection(progress_win):draw()
     progress_win:hide()
-    progress_bg, progress_tex = false, nil
+    progress_tex = nil
 end)
 
 world:new_window("changes", gui.Window, |win| do

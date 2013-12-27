@@ -2254,7 +2254,7 @@ local calc_text_scale = function()
     uicontextscale = text_font_get_h() * console_scale_get() / th
 end
 
-local gui_update = function()
+set_external("gui_update", function()
     cursor_x, cursor_y = input_cursor_get_x(), input_cursor_get_y()
 
     if mmenu != 0 and not world:window_visible("main") and
@@ -2352,11 +2352,14 @@ local gui_update = function()
     end
 
     cursor_exists(true)
-end
-set_external("gui_update", gui_update)
-M.update = gui_update
+end)
 
-local gui_render = function()
+M.world_update = function()
+    calc_text_scale()
+    world:layout()
+end
+
+set_external("gui_render", function()
     local w = world
     if draw_hud or (w.visible and #w.children != 0) then
         w:draw()
@@ -2365,9 +2368,7 @@ local gui_render = function()
         if draw_hud         then get_projection(hud         ):draw() end
         gle_disable()
     end
-end
-set_external("gui_render", gui_render)
-M.render = gui_render
+end)
 
 set_external("gui_above_hud", function()
     return world:above_hud()
