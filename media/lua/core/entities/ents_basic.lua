@@ -681,7 +681,7 @@ M.Character = Entity:clone {
         don't need the changes to reflect elsewhere).
     ]]
     set_local_animation = function(self, anim)
-        setanim(self, anim)
+        setanim(self.uid, anim)
         self.svar_values["animation"] = anim
     end,
 
@@ -691,7 +691,7 @@ M.Character = Entity:clone {
         mostly don't need the changes to reflect elsewhere).
     ]]
     set_local_animation_flags = function(self, animflags)
-        capi.set_animflags(self, animflags)
+        capi.set_animflags(self.uid, animflags)
         self.svar_values["animation_flags"] = animflags
     end,
 
@@ -700,7 +700,7 @@ M.Character = Entity:clone {
         side.
     ]]
     set_local_model_name = function(self, mname)
-        capi.set_model_name(self, mname)
+        capi.set_model_name(self.uid, mname)
         self.svar_values["model_name"] = mname
     end
 }

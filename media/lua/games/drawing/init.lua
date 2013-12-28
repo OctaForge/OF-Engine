@@ -143,6 +143,8 @@ ents.register_class(Game_Player, {
 })
 ents.register_class(ents.Obstacle, { health.deadly_area_plugin },
     "Deadly_Area")
+ents.register_class(ents.Obstacle, { health.pain_area_plugin },
+    "Pain_Area")
 
 if not SERVER then
     inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)

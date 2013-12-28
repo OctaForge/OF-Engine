@@ -39,12 +39,13 @@ M.anims = anims
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
 ]]
-M.Action_Pain = (not SERVER) and eactions.Action_Local_Animation:clone {
+local Action_Pain = (not SERVER) and eactions.Action_Local_Animation:clone {
     name            = "Action_Pain",
     millis_left     = 600,
-    local_animation = anims.pain,
+    local_animation = { "pain" },
     allow_multiple  = false
 } or nil
+M.Action_Pain = Action_Pain
 
 --[[! Object: health.Action_Death
     Derives from a regular Action. Represents player death and the default
@@ -187,7 +188,7 @@ local is_valid_target = function(ent)
 end
 M.is_valid_target = is_valid_target
 
---[[! Object: health.deadly_area_plugin
+--[[!
     A plugin that turns an entity (colliding one) into a deadly area. It
     hooks a collision signal to the entity that kills the collider (if
     it's a valid target). Bake it with an obstacle to create a deadly
@@ -203,6 +204,59 @@ M.deadly_area_plugin = {
 
     __activate = (not SERVER) and function(self)
         signal.connect(self, "collision", self.deadly_area_on_collision)
+    end
+}
+
+local Do_Pain_Action = actions.Action:clone {
+    cancelable = false,
+
+    __ctor = function(self, kwargs)
+        actions.Action.__ctor(self, kwargs)
+        self.pain_step = kwargs.pain_step
+    end,
+
+    __finish = function(self)
+        self.actor:health_add(-self.pain_step)
+    end
+}
+
+--[[!
+    See $deadly_area_plugin. This represents a "pain area" which takes away
+    player's health in steps while inside it.
+
+    Properties:
+        - pain_step - the amount of health points to take away in one step.
+        - pain_millis - the amount of time one pain step takes (the health
+          is taken away at the end of each step).
+]]
+M.pain_area_plugin = {
+    __properties = {
+        pain_step = svars.State_Integer(),
+        pain_millis = svars.State_Integer()
+    },
+
+    __init_svars = function(self)
+        self:set_attr("pain_step", 10)
+        self:set_attr("pain_millis", 1000)
+    end,
+
+    pain_area_on_collision = function(self, collider)
+        if collider != ents.get_player() then return end
+        if is_valid_target(collider) then
+            local prev = self.pain_previous_act
+            if not prev or prev.finished then
+                local act = Do_Pain_Action {
+                    millis_left = self:get_attr("pain_millis"),
+                    pain_step = self:get_attr("pain_step")
+                }
+                collider:enqueue_action(act)
+                self.pain_previous_act = act
+            end
+        end
+    end,
+
+    __activate = (not SERVER) and function(self)
+        signal.connect(self, "collision", self.pain_area_on_collision)
     end
 }
 
