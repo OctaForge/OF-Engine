@@ -31,7 +31,7 @@ void setmapfilenames(const char *fname, const char *cname = NULL)
         formatstring(bakname, "media/%s_%s.BAK", fname, baktime);
     }
     formatstring(cfgname, "media/%s.cfg", cname ? cname : fname);
-    formatstring(picname, "media/%s.png", fname);
+    formatstring(picname, "media/%s", fname);
 
     path(ogzname);
     path(bakname);

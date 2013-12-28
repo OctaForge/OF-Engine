@@ -1,4 +1,5 @@
 local capi = require("capi")
+local ffi = require("ffi")
 local edit = require("core.engine.edit")
 local input = require("core.engine.input")
 local signal = require("core.events.signal")
@@ -409,38 +410,68 @@ gui.Window.__variants = {
 
 -- default windows
 
-local progress_win, progress_bar, progress_label, progress_tex
+local progress_win, progress_val, progress_label
 
-world:new_window("progress_bg", gui.Window, |win| do
+world:new_window("bg_progress", gui.Window, |win| do
     progress_win = win
+    win:set_input_grab(false)
     win:append(gui.H_Box { clamp_h = true }, |hb| do
         hb:append(gui.V_Box(), |b| do
             b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
-                sp:append(gui.Label(), |lbl| do progress_label = lbl end)
+                sp:append(gui.Label { text = progress_label })
             end)
             b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.01 }, |sp| do
-                sp:append(gui.H_Progress_Bar { min_w = 0.4, min_h = 0.03 },
-                |pb| do
-                    progress_bar = pb
-                end)
+                 sp:append(gui.H_Progress_Bar { min_w = 0.4, min_h = 0.03,
+                    value = progress_val })
             end)
         end)
         hb:append(gui.Filler { min_w = 0.0005, clamp_v = true })
-    end)
-    connect(win, "destroy", || do
-        progress_win, progress_bar, progress_label = nil, nil, nil
     end)
 end)
 
 local set_ext = capi.external_set
 
 set_ext("progress_render", function(v, text)
-    world:show_window("progress_bg")
-    progress_label:set_text(text)
-    progress_bar:set_value(v)
+    progress_val, progress_label = v, text
+    world:show_window("bg_progress")
     gui.world_update()
     gui.get_projection(progress_win):draw()
     progress_win:hide()
+    progress_win, progress_val, progress_label = nil, nil, nil
+end)
+
+local bg_win, bg_caption, bg_mapshot, bg_mapname, bg_mapinfo
+
+world:new_window("bg_background", gui.Window, |win| do
+    bg_win = win
+    win:set_input_grab(false)
+    win:align(0, 1)
+    win:append(gui.V_Box(), |b| do
+        if bg_mapname then
+            b:append(gui.Label { text = bg_mapname, scale = 1.5 })
+        end
+        if bg_mapinfo then b:append(gui.Label { text = bg_mapinfo }) end
+        if bg_mapshot then
+            b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02 }, |sp| do
+                bg_mapshot = sp:append(gui.Image { min_w = 0.2, min_h = 0.2 },
+                    |img| do img.texture = bg_mapshot end)
+            end)
+        end
+        if bg_caption then
+            b:append(gui.Label { text = bg_caption, scale = 1.5 })
+        end
+        b:append(gui.Filler { min_h = 0.05 })
+    end)
+end)
+
+set_ext("background_render", function(caption, mapname, mapinfo, mapshot)
+    bg_caption, bg_mapname, bg_mapinfo = caption, mapname, mapinfo
+    bg_mapshot = mapshot and ffi.cast("Texture*", mapshot) or nil
+    world:show_window("bg_background")
+    gui.world_update()
+    gui.get_projection(bg_win):draw()
+    bg_win:hide()
+    bg_win, bg_caption, bg_mapname, bg_mapinfo, bg_mapshot = nil, nil, nil, nil
 end)
 
 world:new_window("changes", gui.Window, |win| do

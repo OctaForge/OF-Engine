@@ -191,58 +191,12 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
     settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (hudw > 1280 || hudh > 800) ? "<premul>media/interface/logo_1024" : "<premul>media/interface/logo", 3);
     bgquad(lx, ly, lw, lh);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    if(caption)
-    {
-        int tw = text_width(caption);
-        float tsz = 0.04f*min(w, h)/FONTH,
-              tx = 0.5f*(w - tw*tsz), ty = h - 0.075f*1.5f*min(w, h) - 1.25f*FONTH*tsz;
-        pushhudmatrix();
-        hudmatrix.translate(tx, ty, 0);
-        hudmatrix.scale(tsz, tsz, 1);
-        flushhudmatrix();
-        draw_text(caption, 0, 0);
-        pophudmatrix();
-    }
-    if(mapshot || mapname)
-    {
-        float infowidth = 12*FONTH, sz = 0.35f*min(w, h), msz = (0.75f*min(w, h) - sz)/(infowidth + FONTH), x = 0.5f*(w-sz), y = ly+lh - sz/15;
-        if(mapinfo)
-        {
-            float mw, mh;
-            text_boundsf(mapinfo, mw, mh, infowidth);
-            x -= 0.5f*(mw*msz + FONTH*msz);
-        }
-        if(mapshot && mapshot!=notexture)
-        {
-            glBindTexture(GL_TEXTURE_2D, mapshot->id);
-            bgquad(x, y, sz, sz);
-        }
-        if(mapname)
-        {
-            float tw = text_widthf(mapname),
-                  tsz = sz/(8*FONTH),
-                  tx = 0.9f*sz - tw*tsz, ty = 0.9f*sz - FONTH*tsz;
-            if(tx < 0.1f*sz) { tsz = 0.1f*sz/tw; tx = 0.1f; }
-            pushhudmatrix();
-            hudmatrix.translate(x+tx, y+ty, 0);
-            hudmatrix.scale(tsz, tsz, 1);
-            flushhudmatrix();
-            draw_text(mapname, 0, 0);
-            pophudmatrix();
-        }
-        if(mapinfo)
-        {
-            pushhudmatrix();
-            hudmatrix.translate(x+sz+FONTH*msz, y, 0);
-            hudmatrix.scale(msz, msz, 1);
-            flushhudmatrix();
-            draw_text(mapinfo, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, -1, infowidth);
-            pophudmatrix();
-        }
-    }
-    glDisable(GL_BLEND);
+    if (mapshot)
+        lua::call_external("background_render", "sssp", caption, mapname, mapinfo, mapshot);
+    else
+        lua::call_external("background_render", "sss", caption, mapname, mapinfo);
 
+    glDisable(GL_BLEND);
     gle::disable();
 }
 
@@ -313,6 +267,7 @@ void renderprogress(float bar, const char *text)   // also used during loading
 {
     if(!inbetweenframes || drawtex) return;
     clientkeepalive();      // make sure our connection doesn't time out while loading maps etc.
+    stopsounds();
 
     #ifdef __APPLE__
     interceptkey(SDLK_UNKNOWN); // keep the event queue awake to avoid 'beachball' cursor
