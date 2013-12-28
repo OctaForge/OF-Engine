@@ -104,7 +104,7 @@ void ClientSystem::frameTrigger(int curtime)
         /* turning */
         gameent *fp = (gameent*)player;
         float fs;
-        lua::pop_external_ret(lua::call_external_ret("entity_get_attr_uid", "is",
+        lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
             "f", ClientSystem::playerLogicEntity->getUniqueId(), "facing_speed", &fs));
         if (fp->turn_move || fabs(x - 0.5) > 0.495)
         {
@@ -161,7 +161,7 @@ bool ClientSystem::isAdmin()
     if (!playerLogicEntity) return false;
 
     bool b;
-    lua::pop_external_ret(lua::call_external_ret("entity_get_attr_uid", "is",
+    lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
         "b", playerLogicEntity->getUniqueId(), "can_edit", &b));
     return b;
 }

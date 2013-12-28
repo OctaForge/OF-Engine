@@ -672,7 +672,7 @@ namespace server
         ci->isAdmin = isAdmin;
 
         if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
-            lua::call_external("entity_set_attr_uid", "isb", ci->uniqueId,
+            lua::call_external("entity_set_attr", "isb", ci->uniqueId,
                 "can_edit", true);
     }
 
@@ -749,17 +749,7 @@ namespace server
 
         ci->uniqueId = uid;
 
-        lua::call_external("entity_new_with_cn", "sii", pcclass, cn, uid);
-
-        // Add admin status, if relevant
-        if (ci->isAdmin) {
-            lua::call_external("entity_set_attr_uid", "isb", uid,
-                "can_edit", true);
-        }
-
-        // Add nickname
-        lua::call_external("entity_set_attr_uid", "iss", uid, "character_name",
-            uname);
+        lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, uid);
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)

@@ -1305,36 +1305,34 @@ Entity = M.Entity
 
 --[[!
     See {{$Entity.get_gui_attr}}. Externally accessible as
-    `entity_get_gui_attr_uid` (using uid). See also $set_gui_attr.
+    `entity_get_gui_attr` (using uid). See also $set_gui_attr.
 ]]
 M.get_gui_attr = function(ent, prop)
     return ent:get_gui_attr(prop)
 end
-set_external("entity_get_gui_attr_uid", function(uid, prop)
+set_external("entity_get_gui_attr", function(uid, prop)
     return get_ent(uid):get_gui_attr(prop)
 end)
 
 --[[!
     See {{$Entity.set_gui_attr}}. Externally accessible as
-    `entity_set_gui_attr_uid` (using uid). See also $get_gui_attr.
+    `entity_set_gui_attr` (using uid). See also $get_gui_attr.
 ]]
 M.set_gui_attr = function(ent, prop, val)
     return ent:set_gui_attr(prop, val)
 end
-set_external("entity_set_gui_attr_uid", function(uid, prop, val)
+set_external("entity_set_gui_attr", function(uid, prop, val)
     return get_ent(uid):set_gui_attr(prop, val)
 end)
 
 --[[!
-    See {{$Entity.get_attr}}. Externally accessible as `entity_get_attr`. An
-    external called `entity_get_attr_uid` works with uid instead of an entity.
-    See also $set_attr.
+    See {{$Entity.get_attr}}. Externally accessible as `entity_get_attr`
+    (using the uid). See also $set_attr.
 ]]
 M.get_attr = function(ent, prop)
     return ent:get_attr(prop)
 end
-set_external("entity_get_attr", M.get_attr)
-set_external("entity_get_attr_uid", function(uid, prop)
+set_external("entity_get_attr", function(uid, prop)
     local ent = storage[uid]
     if not ent then return nil end
     return ent:get_attr(prop)
@@ -1346,15 +1344,13 @@ set_external("entity_refresh_attr", function(uid, prop)
 end)
 
 --[[!
-    See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`. An
-    external called `entity_set_attr_uid` works with uid instead of an entity.
-    See also $get_attr.
+    See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`
+    (using the uid). See also $get_attr.
 ]]
 M.set_attr = function(ent, prop, val)
     return ent:set_attr(prop, val)
 end
-set_external("entity_set_attr", M.set_attr)
-set_external("entity_set_attr_uid", function(uid, prop, val)
+set_external("entity_set_attr", function(uid, prop, val)
     local ent = storage[uid]
     if not ent then return nil end
     return ent:set_attr(prop, val)
@@ -1548,9 +1544,11 @@ set_external("entity_new_with_sd", function(cl, x, y, z, sd, nd)
         :format(ent.uid, cl, x, y, z))
 end)
 
-set_external("entity_new_with_cn", function(cl, cn, fuid)
+set_external("entity_new_with_cn", function(cl, cn, can_edit, char_name, fuid)
     local ent = ent_new(cl, { cn = cn }, fuid)
     assert(ent.cn == cn)
+    if can_edit then ent:set_attr("can_edit", can_edit) end
+    ent:set_attr("character_name", char_name)
 end)
 
 --[[! Function: send

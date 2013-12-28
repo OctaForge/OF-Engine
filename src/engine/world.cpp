@@ -1132,12 +1132,11 @@ void enttype(char *type, int *numargs) {
 void entattr(char *attr, char *val, int *numargs) {
     if (*numargs >= 2) {
         groupedit(
-            lua::call_external("entity_set_gui_attr_uid", "iss",
-                e.uid, attr, val);
+            lua::call_external("entity_set_gui_attr", "iss", e.uid, attr, val);
         );
     } else entfocus(efocus, {
         const char *str;
-        int npop = lua::call_external_ret("entity_get_gui_attr_uid", "is", "s",
+        int npop = lua::call_external_ret("entity_get_gui_attr", "is", "s",
             e.uid, &str);
         result(str ? str : "");
         lua::pop_external_ret(npop);
@@ -1337,7 +1336,7 @@ void finish_dragging() {
     groupeditpure(
         const vec& o = e.o;
         defformatstring(pos, "[%f|%f|%f]", o.x, o.y, o.z);
-        lua::call_external("entity_set_gui_attr_uid", "iss", e.uid,
+        lua::call_external("entity_set_gui_attr", "iss", e.uid,
             "position", pos);
     );
 }
