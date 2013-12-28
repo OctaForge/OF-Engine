@@ -410,68 +410,56 @@ gui.Window.__variants = {
 
 -- default windows
 
-local progress_win, progress_val, progress_label
-
-world:new_window("bg_progress", gui.Window, |win| do
-    progress_win = win
-    win:set_input_grab(false)
+local progress_bar, progress_label
+local progress_win = gui.Window { __init = |win| do
     win:append(gui.H_Box { clamp_h = true }, |hb| do
         hb:append(gui.V_Box(), |b| do
             b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
-                sp:append(gui.Label { text = progress_label })
+                progress_label = sp:append(gui.Label())
             end)
             b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.01 }, |sp| do
-                 sp:append(gui.H_Progress_Bar { min_w = 0.4, min_h = 0.03,
-                    value = progress_val })
+                progress_bar = sp:append(gui.H_Progress_Bar { min_w = 0.4,
+                    min_h = 0.03 })
             end)
         end)
         hb:append(gui.Filler { min_w = 0.0005, clamp_v = true })
     end)
-end)
+end }
 
 local set_ext = capi.external_set
 
 set_ext("progress_render", function(v, text)
-    progress_val, progress_label = v, text
-    world:show_window("bg_progress")
-    gui.world_update()
-    gui.get_projection(progress_win):draw()
-    progress_win:hide()
-    progress_win, progress_val, progress_label = nil, nil, nil
+    progress_bar:set_value(v)
+    progress_label:set_text(text)
+    gui.__draw_window(progress_win)
 end)
 
-local bg_win, bg_caption, bg_mapshot, bg_mapname, bg_mapinfo
-
-world:new_window("bg_background", gui.Window, |win| do
-    bg_win = win
+local bg_win = function(mapname, mapinfo, mapshot, caption)
+    local win = gui.Window()
     win:set_input_grab(false)
     win:align(0, 1)
     win:append(gui.V_Box(), |b| do
-        if bg_mapname then
-            b:append(gui.Label { text = bg_mapname, scale = 1.5 })
+        if mapname then
+            b:append(gui.Label { text = mapname, scale = 1.5 })
         end
-        if bg_mapinfo then b:append(gui.Label { text = bg_mapinfo }) end
-        if bg_mapshot then
+        if mapinfo then b:append(gui.Label { text = mapinfo }) end
+        if mapshot then
             b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02 }, |sp| do
-                bg_mapshot = sp:append(gui.Image { min_w = 0.2, min_h = 0.2 },
-                    |img| do img.texture = bg_mapshot end)
+                sp:append(gui.Image { min_w = 0.2, min_h = 0.2 },
+                    |img| do img.texture = mapshot end)
             end)
         end
-        if bg_caption then
-            b:append(gui.Label { text = bg_caption, scale = 1.5 })
+        if caption then
+            b:append(gui.Label { text = caption, scale = 1.5 })
         end
         b:append(gui.Filler { min_h = 0.05 })
     end)
-end)
+    return win
+end
 
 set_ext("background_render", function(caption, mapname, mapinfo, mapshot)
-    bg_caption, bg_mapname, bg_mapinfo = caption, mapname, mapinfo
-    bg_mapshot = mapshot and ffi.cast("Texture*", mapshot) or nil
-    world:show_window("bg_background")
-    gui.world_update()
-    gui.get_projection(bg_win):draw()
-    bg_win:hide()
-    bg_win, bg_caption, bg_mapname, bg_mapinfo, bg_mapshot = nil, nil, nil, nil
+    gui.__draw_window(bg_win(mapname, mapinfo, mapshot
+        and ffi.cast("Texture*", mapshot) or nil, caption))
 end)
 
 world:new_window("changes", gui.Window, |win| do

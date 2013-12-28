@@ -1775,6 +1775,14 @@ M.World = register_class("World", Widget, {
         end)
     end,
 
+    layout_dim = function(self)
+        local sw, sh = hud_get_w(), hud_get_h()
+        local faspect = aspect_get()
+        if faspect != 0 then sw = ceil(sh * faspect) end
+        self.x, self.y = 0, 0
+        self.w, self.h = sw / sh, 1
+    end,
+
     --[[!
         Overloads {{$Widget.layout}}. Calculates proper world dimensions
         (takes forced aspect set using an engine variable forceaspect into
@@ -1782,12 +1790,7 @@ M.World = register_class("World", Widget, {
         for every window) and then adjusts children.
     ]]
     layout = function(self)
-        local sw, sh = hud_get_w(), hud_get_h()
-        local faspect = aspect_get()
-        if faspect != 0 then sw = ceil(sh * faspect) end
-
-        self.x, self.y = 0, 0
-        self.w, self.h = sw / sh, 1
+        self:layout_dim()
 
         loop_children(self, function(o)
             if not o.floating then o.x, o.y = 0, 0 end
@@ -2354,9 +2357,15 @@ set_external("gui_update", function()
     cursor_exists(true)
 end)
 
-M.world_update = function()
+M.__draw_window = function(win)
     calc_text_scale()
-    world:layout()
+    world:layout_dim()
+    win.x, win.y, win.parent = 0, 0, world
+    projection = get_projection(win)
+    win:layout()
+    projection:adjust_layout()
+    projection:draw()
+    projection = nil
 end
 
 set_external("gui_render", function()
