@@ -2226,7 +2226,7 @@ void drawminimap()
     if(!game::needminimap()) { clearminimap(); return; }
 
     GLERROR;
-    renderprogress(0, "generating mini-map...", 0, !renderedframe);
+    renderprogress(0, "generating mini-map...");
 
     drawtex = DRAWTEX_MINIMAP;
 

@@ -414,12 +414,6 @@ local progress_win, progress_bar, progress_label, progress_tex
 world:new_window("progress_bg", gui.Window, |win| do
     progress_win = win
     win:append(gui.H_Box { clamp_h = true }, |hb| do
-        if progress_tex then
-            hb:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
-                sp:append(gui.Texture { texture_id = progress_tex,
-                    min_w = 0.25, min_h = 0.25 })
-            end)
-        end
         hb:append(gui.V_Box(), |b| do
             b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
                 sp:append(gui.Label(), |lbl| do progress_label = lbl end)
@@ -440,15 +434,13 @@ end)
 
 local set_ext = capi.external_set
 
-set_ext("progress_render", function(v, text, tex)
-    if tex != 0 then progress_tex = tex end
+set_ext("progress_render", function(v, text)
     world:show_window("progress_bg")
     progress_label:set_text(text)
     progress_bar:set_value(v)
     gui.world_update()
     gui.get_projection(progress_win):draw()
     progress_win:hide()
-    progress_tex = nil
 end)
 
 world:new_window("changes", gui.Window, |win| do

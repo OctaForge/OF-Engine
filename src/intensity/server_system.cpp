@@ -32,7 +32,7 @@ int GlobalShaderParamState::nextversion = 0;
 void GlobalShaderParamState::resetversions() {}
 GlobalShaderParamState *getglobalparam(const char *name) { return NULL; };
 
-void renderprogress(float bar, const char *text, GLuint tex, bool background)
+void renderprogress(float bar, const char *text)
 {
     // Keep connection alive
     clientkeepalive();

@@ -300,21 +300,19 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
 void restorebackground(int w, int h)
 {
-    if(renderedframe) return;
     renderbackgroundview(w, h, backgroundcaption[0] ? backgroundcaption : NULL, backgroundmapshot, backgroundmapname[0] ? backgroundmapname : NULL, backgroundmapinfo);
 }
 
 float loadprogress = 0;
 
-void renderprogressview(float bar, const char *text, GLuint tex) { // also used during loading
-    lua::call_external("progress_render", "fsi", bar, text ? text : "", tex);
+void renderprogressview(float bar, const char *text) { // also used during loading
+    lua::call_external("progress_render", "fs", bar, text ? text : "");
 }
 
-void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
+void renderprogress(float bar, const char *text)   // also used during loading
 {
     if(!inbetweenframes || drawtex) return;
     clientkeepalive();      // make sure our connection doesn't time out while loading maps etc.
-    renderbackground(NULL, backgroundmapshot, NULL, NULL, true); // INTENSITY
 
     #ifdef __APPLE__
     interceptkey(SDLK_UNKNOWN); // keep the event queue awake to avoid 'beachball' cursor
@@ -332,13 +330,10 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
         {
             glBindFramebuffer_(GL_FRAMEBUFFER, ovr::lensfbo[viewidx]);
             glViewport(0, 0, hudw, hudh);
-            if(background)
-            {
-                glClearColor(0, 0, 0, 0);
-                glClear(GL_COLOR_BUFFER_BIT);
-                restorebackground(w, h);
-            }
-            renderprogressview(bar, text, tex);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT);
+            restorebackground(w, h);
+            renderprogressview(bar, text);
             ovr::warp();
         }
         viewidx = 0;
@@ -346,8 +341,8 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     }
     else
     {
-        if(background) restorebackground(w, h);
-        renderprogressview(bar, text, tex);
+        restorebackground(w, h);
+        renderprogressview(bar, text);
     }
     swapbuffers(false);
 }
