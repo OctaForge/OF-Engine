@@ -1312,8 +1312,9 @@ M.Mapmodel = Static_Entity:clone {
     argument. The mapmodel takes precedence.
 ]]
 set_external("physics_collide_mapmodel", function(collider, entity)
-    emit(entity, "collision", ent_get(collider))
-    emit(collider, "collision", ent_get(entity))
+    collider, entity = ent_get(collider), ent_get(entity)
+    emit(entity, "collision", collider)
+    emit(collider, "collision", entity)
 end)
 
 --[[!
@@ -1376,8 +1377,9 @@ M.Obstacle = Static_Entity:clone {
     argument. The obstacle takes precedence.
 ]]
 set_external("physics_collide_area", function(collider, entity)
-    emit(entity, "collision", ent_get(collider))
-    emit(collider, "collision", ent_get(entity))
+    collider, entity = ent_get(collider), ent_get(entity)
+    emit(entity, "collision", collider)
+    emit(collider, "collision", entity)
 end)
 
 ents.register_class(M.Marker)
