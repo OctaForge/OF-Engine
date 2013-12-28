@@ -2725,6 +2725,9 @@ void gl_drawhud()
     resethudmatrix();
     hudshader->set();
 
+    pushfont();
+    setfont("default_outline");
+
     gle::colorf(1, 1, 1);
 
     debuglights();
@@ -2812,6 +2815,8 @@ void gl_drawhud()
     gle::disable();
 
     glDisable(GL_BLEND);
+
+    popfont();
 
     if(frametimer)
     {

@@ -4006,6 +4006,14 @@ CASECOMMAND(cases, "s", const char *, args[0].getstr(), args[i].type == VAL_NULL
 
 ICOMMAND(rnd, "ii", (int *a, int *b), intret(*a - *b > 0 ? rnd(*a - *b) + *b : *b));
 
+ICOMMAND(tohex, "ii", (int *n, int *p),
+{
+    const int len = 20;
+    char *buf = newstring(len);
+    nformatstring(buf, len, "0x%.*X", max(*p, 1), *n);
+    stringret(buf);
+});
+
 #define CMPSCMD(name, op) \
     ICOMMAND(name, "s1V", (tagval *args, int numargs), \
     { \
