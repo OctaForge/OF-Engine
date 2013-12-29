@@ -662,6 +662,10 @@ set_external("physics_collide_client", function(cl1, cl2, dx, dy, dz)
     emit(cl2, "collision", cl1, dx, dy, dz)
 end)
 
+set_external("entity_set_local_animation", function(uid, anim)
+    ent_get(uid):set_local_animation(anim)
+end)
+
 --[[!
     The default entity class for player. Inherits from $Character. Adds
     two new properties.

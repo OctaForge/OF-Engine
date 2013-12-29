@@ -327,19 +327,9 @@ namespace game
                 gameent* gameEntity = game::players[i];
                 CLogicEntity *entity = LogicSystem::getLogicEntity(gameEntity);
                 if (!entity) continue;
-
-                #ifndef SERVER
-                    // Ragdolls
-                    int aflags = entity->getAnimation();
-                    if (gameEntity->ragdoll && !(aflags&ANIM_RAGDOLL))
-                    {
-                        cleanragdoll(gameEntity);
-                    }
-                    if (gameEntity->ragdoll && (aflags&ANIM_RAGDOLL))
-                    {
-                        moveragdoll(gameEntity);
-                    }
-                #endif
+#ifndef SERVER
+                moveragdoll(gameEntity);
+#endif
             }
             LogicSystem::manageActions(curtime);
         }

@@ -112,6 +112,16 @@ M.player_plugin = {
         self:cancel_sdata_update()
     end or nil,
 
+    get_animation = function(self)
+        local ret = self.__parent_class.get_animation(self)
+        local INDEX, idle = model.anims.INDEX, model.anims.idle
+        if self:get_attr("health") > 0 and (ret & INDEX) == anims.dying then
+            self:set_local_animation(idle | model.anim_control.LOOP)
+            ret = self:get_attr("animation")
+        end
+        return ret
+    end,
+
     --[[!
         Overriden so that the "dying" animation can be used when health is 0.
     ]]

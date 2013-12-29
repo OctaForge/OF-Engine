@@ -69,13 +69,13 @@ M.anim_control = {:
 :}
 
 M.anim_flags = {:
-    NOSKIN     = 1 << 0,
-    SETTIME    = 1 << 1,
-    FULLBRIGHT = 1 << 2,
-    NORENDER   = 1 << 3,
-    RAGDOLL    = 1 << 4,
-    SETSPEED   = 1 << 5,
-    NOPITCH    = 1 << 6
+    NOSKIN     = 1 << 24,
+    SETTIME    = 1 << 25,
+    FULLBRIGHT = 1 << 26,
+    NORENDER   = 1 << 27,
+    RAGDOLL    = 1 << 28,
+    SETSPEED   = 1 << 29,
+    NOPITCH    = 1 << 30
 :}
 
 --[[!

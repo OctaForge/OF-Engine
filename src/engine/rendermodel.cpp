@@ -1109,7 +1109,9 @@ void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
         }
 
         if (fp->ragdoll || !ragdoll) {
-            /* TODO */
+            if (!ragdoll) anim &= ~ANIM_RAGDOLL;
+            lua::call_external("entity_set_local_animation", "ii",
+                self->getUniqueId(), anim);
         }
     } else {
         if (self->dynamicEntity) {
