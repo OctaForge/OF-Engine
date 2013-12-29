@@ -55,6 +55,9 @@ struct CLogicEntity
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL),
         uniqueId(_uniqueId), anim(0), startTime(0)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
+    ~CLogicEntity() { clear_attachments(); }
+
+    void clear_attachments();
 
     //! Returns the unique ID for this entity
     int   getUniqueId();
@@ -72,7 +75,7 @@ struct CLogicEntity
     int getStartTime();
 
     //! Updates the attachments based on lua information. Refreshes what is needed in Sauer
-    void setAttachments(lua_State *L);
+    void setAttachments(const char **attach);
 
     //! Updates the animation based on lua information. Refreshes what is needed in Sauer. In particular sets the start time.
     void setAnimation(int anim);

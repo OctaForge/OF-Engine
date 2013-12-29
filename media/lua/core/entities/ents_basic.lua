@@ -8,6 +8,7 @@
         See COPYING.txt.
 ]]
 
+local ffi = require("ffi")
 local capi = require("capi")
 local logging = require("core.logger")
 local log = logging.log
@@ -196,13 +197,13 @@ M.Character = Entity:clone {
         animation = svars.State_Integer {
             setter = capi.set_animation, client_set = true
         },
-        start_time  = svars.State_Integer { getter = capi.get_start_time   },
-        model_name  = svars.State_String  { setter = capi.set_model_name   },
+        start_time  = svars.State_Integer { getter = capi.get_start_time },
+        model_name  = svars.State_String  { setter = capi.set_model_name },
         attachments = svars.State_Array   {
             setter = function(self, val)
-                return set_attachments(self, map(val, function(str)
-                    return str:split(",")
-                end))
+                local arr = ffi.new("const char *[?]", #val + 1)
+                for i = 1, #val do arr[i - 1] = val end
+                set_attachments(self, arr)
             end
         },
 

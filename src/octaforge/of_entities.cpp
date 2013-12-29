@@ -102,11 +102,9 @@ namespace entities
         addentity(ext);
     });
 
-    LUAICOMMAND(set_attachments, {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.setattachments", return 0)
-        entity->setAttachments(L);
-        return 0;
+    CLUAICOMMAND(set_attachments, void, (int uid, const char **attach), {
+        LUA_GET_ENT(entity, uid, "_C.setattachments", return)
+        entity->setAttachments(attach);
     });
 
     LUAICOMMAND(get_attachment_position, {

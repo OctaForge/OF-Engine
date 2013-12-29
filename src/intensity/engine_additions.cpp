@@ -51,65 +51,43 @@ int CLogicEntity::getStartTime()
     return startTime;
 }
 
-static const char *pin_str_ret(lua_State *L, const char *inp, size_t off = 0) {
-    lua_pushstring(L, inp + off);
-    const char *str = lua_tostring(L, -1);
-    lua::pin_string(L, str); lua_pop(L, 1);
-    return str;
-}
-
 int getanimid(const char *name);
 
-void CLogicEntity::setAttachments(lua_State *L) {
+void CLogicEntity::clear_attachments() {
+    for (int i = 0; i < attachments.length() - 1; i++) {
+        delete[] (char*)attachments[i].tag;
+        delete[] (char*)attachments[i].name;
+    }
+    attachments.setsize(0);
+    attachment_positions.clear();
+}
+
+void CLogicEntity::setAttachments(const char **attach) {
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
 
     // Clean out old data
-    for (int i = 0; i < attachments.length() - 1; i++) {
-        lua::unpin_string(L, attachments[i].tag);
-        if (attachments[i].name) lua::unpin_string(L, attachments[i].name);
-    }
-    attachments.setsize(0);
-    attachment_positions.clear();
+    clear_attachments();
 
-    size_t num = lua_objlen(L, -1);
-    for (size_t i = 0; i < num; ++i) {
-        lua_rawgeti(L, -1, i + 1);
-        int narr = lua_objlen(L, -1);
-        switch (narr) {
-            case 0: default: lua_pop(L, 1); break;
-            case 1: {
-                lua_rawgeti(L, -1, 1);
-                const char *tag = lua_tostring(L, -1); lua_pop(L, 2);
-                if (tag[0] == '*') {
-                    entlinkpos *pos = attachment_positions.access(tag + 1);
-                    attachments.add(modelattach(pin_str_ret(L, tag, 1),
-                        (vec*)(pos ? pos : &attachment_positions.access(tag
-                            + 1, entlinkpos()))));
-                } else {
-                    attachments.add(modelattach(pin_str_ret(L, tag),
-                        pin_str_ret(L, "")));
-                }
-                break;
-            }
-            case 2: {
-                lua_rawgeti(L, -1, 1);
-                lua_rawgeti(L, -2, 2);
-                const char *tag  = lua_tostring(L, -2);
-                const char *name = lua_tostring(L, -1); lua_pop(L, 3);
-                if (tag[0] == '*') {
-                    entlinkpos *pos = attachment_positions.access(tag + 1);
-                    modelattach &a = attachments.add(modelattach(pin_str_ret(L,
-                        tag, 1), (vec*)(pos ? pos : &attachment_positions
-                            .access(tag + 1, entlinkpos()))));
-                    a.name = pin_str_ret(L, name);
-                } else {
-                    attachments.add(modelattach(pin_str_ret(L, tag),
-                        pin_str_ret(L, name)));
-                }
-                break;
-            }
+    while (*attach) {
+        const char *str = *attach++;
+        if (!str[0]) continue;
+        const char *name = strchr(str, ',');
+        char *tag = NULL;
+        if (name) {
+            const char *sp = str + (str[0] == '*');
+            tag = (char*)memcpy(new char[name - sp + 1], sp, name - sp);
+            tag[name - sp] = '\0';
+            name++;
+        } else tag = newstring(str + (str[0] == '*'));
+        if (str[0] == '*') {
+            entlinkpos *pos = attachment_positions.access(tag);
+            modelattach &a = attachments.add(modelattach(tag, (vec*)(pos ? pos
+                : &attachment_positions.access(tag, entlinkpos()))));
+            a.name = name ? newstring(name) : NULL;
+        } else {
+            attachments.add(modelattach(tag, newstring(name ? name : "")));
         }
     }
     attachments.add(modelattach());
@@ -255,10 +233,7 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
     CLogicEntity *ptr = logicEntities[uniqueId];
     logicEntities.remove(uniqueId);
 
-    for (int i = 0; i < ptr->attachments.length() - 1; i++) {
-        lua::unpin_string(ptr->attachments[i].tag);
-        if (ptr->attachments[i].name) lua::unpin_string(ptr->attachments[i].name);
-    }
+    ptr->clear_attachments();
     delete ptr;
 }
 
