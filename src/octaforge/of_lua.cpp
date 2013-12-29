@@ -427,41 +427,6 @@ namespace lua
         delete cfuns;
     }
 
-#define PINHDR \
-    lua_pushliteral(L, "__pinstrs");       /* k1 */ \
-    lua_rawget     (L, LUA_REGISTRYINDEX); /* v1 */ \
-    lua_pushstring (L, str);               /* v1, str */ \
-    lua_pushvalue  (L, -1);                /* v1, str, str */ \
-    lua_rawget     (L, -3);                /* v1, str, cnt */
-
-    void pin_string(lua_State *L, const char *str) {
-        PINHDR;
-        int cnt = lua_tointeger(L, -1); lua_pop(L, 1); /* v1, str */
-        lua_pushinteger(L, cnt + 1);                   /* v1, str, cnt + 1 */
-        lua_rawset(L, -3);                             /* v1 */
-        lua_pop(L, 1);
-    }
-
-    void unpin_string(lua_State *L, const char *str) {
-        PINHDR;
-        ASSERT(lua_isnumber(L, -1));
-        int cnt = lua_tointeger(L, -1); lua_pop(L, 1); /* v1, str */
-        if (cnt == 1) lua_pushnil(L);                  /* v1, str, nil */
-        else lua_pushinteger(L, cnt - 1);              /* v1, str, cnt - 1 */
-        lua_rawset(L, -3);                             /* v1 */
-        lua_pop(L, 1);
-    }
-
-#undef PINHDR
-
-    void pin_string(const char *str) {
-        pin_string(L, str);
-    }
-
-    void unpin_string(const char *str) {
-        unpin_string(L, str);
-    }
-
     struct reads {
         const char *str;
         size_t size;

@@ -4,16 +4,12 @@
 namespace lua
 {
     extern lua_State *L;
-    bool reg_fun      (const char *name, lua_CFunction fun);
-    bool reg_cfun     (const char *name, const char *sig, void *fun);
-    void init         (const char *dir = "media/lua/core");
-    void reset        ();
-    void close        ();
-    void pin_string   (const char *str);
-    void unpin_string (const char *str);
-    void pin_string   (lua_State *L, const char *str);
-    void unpin_string (lua_State *L, const char *str);
-    int load_string   (const char *str, const char *ch = NULL);
+    bool reg_fun   (const char *name, lua_CFunction fun);
+    bool reg_cfun  (const char *name, const char *sig, void *fun);
+    void init      (const char *dir = "media/lua/core");
+    void reset     ();
+    void close     ();
+    int load_string(const char *str, const char *ch = NULL);
 
     bool vcall_external(lua_State *L, const char *name, const char *args,
         va_list ap);

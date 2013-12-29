@@ -967,8 +967,8 @@ LUAICOMMAND(particle_register_renderer_##name, { \
     const char *path = luaL_checkstring(L, 2); \
     int flags = luaL_optinteger(L, 3, 0) & (~PT_CLEARMASK); \
     int decal = luaL_optinteger(L, 4, 0); \
-    lua::pin_string(L, name); lua::pin_string(L, path); \
-    register_renderer(L, name, new name##renderer(path, flags, decal)); \
+    register_renderer(L, newstring(name), new name##renderer(newstring(path), \
+        flags, decal)); \
     return 2; \
 })
 
@@ -982,8 +982,8 @@ LUAICOMMAND(particle_register_renderer_##name, { \
     const char *name = luaL_checkstring(L, 1); \
     if (get_renderer(L, name)) return 2; \
     const char *path = luaL_checkstring(L, 2); \
-    lua::pin_string(L, name); lua::pin_string(L, path); \
-    register_renderer(L, name, new name##renderer(path)); \
+    register_renderer(L, newstring(name), new name##renderer( \
+        newstring(path))); \
     return 2; \
 })
 
@@ -997,8 +997,8 @@ LUAICOMMAND(particle_register_renderer_flare, {
     const char *path = luaL_checkstring(L, 2);
     int maxflares = luaL_optinteger(L, 3, 64);
     int flags = luaL_optinteger(L, 4, 0) & (~PT_CLEARMASK);
-    lua::pin_string(L, name); lua::pin_string(L, path);
-    register_renderer(L, name, new flarerenderer(path, maxflares, flags));
+    register_renderer(L, newstring(name), new flarerenderer(newstring(path),
+        maxflares, flags));
     return 2;
 })
 
@@ -1007,8 +1007,7 @@ LUAICOMMAND(particle_register_renderer_##name, { \
     const char *name = luaL_checkstring(L, 1); \
     if (get_renderer(L, name)) return 2; \
     int flags = luaL_optinteger(L, 3, 0) & (~PT_CLEARMASK); \
-    lua::pin_string(L, name); \
-    register_renderer(L, name, new name##renderer(flags)); \
+    register_renderer(L, newstring(name), new name##renderer(flags)); \
     return 2; \
 })
 
@@ -1021,8 +1020,7 @@ LUAICOMMAND(particle_register_renderer_meter, {
     if (get_renderer(L, name)) return 2;
     int flags = (lua_toboolean(L, 2) ? PT_METERVS : PT_METER)
         | (luaL_optinteger(L, 3, 0) & (~PT_CLEARMASK));
-    lua::pin_string(L, name);
-    register_renderer(L, name, new meterrenderer(flags));
+    register_renderer(L, newstring(name), new meterrenderer(flags));
     return 2;
 })
 
@@ -1071,11 +1069,11 @@ void deleteparticles() {
     cleanupparticles();
     while (parts.length()) {
         partrenderer *rd = parts.pop();
-        if (rd->texname) lua::unpin_string(rd->texname);
+        delete[] (char*)rd->texname;
         delete rd;
     }
     enumeratekt(partmap, const char*, name, int, value, {
-        lua::unpin_string(name);
+        delete[] (char*)name;
         (void)value; /* supress warnings */
     });
     partmap.clear();

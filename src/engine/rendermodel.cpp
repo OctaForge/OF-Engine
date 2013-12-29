@@ -1230,10 +1230,8 @@ LUAICOMMAND(model_register_anim, {
         lua_pushboolean(L, false);
         return 2;
     } else if (lua_anims.length() > ANIM_ALL) return 0;
-    /* pin it */
-    lua::pin_string(L, s);
     int n = lua_anims.length();
-    animmap.access(s, n);
+    animmap.access(newstring(s), n);
     lua_anims.add(n);
     lua_pushinteger(L, n);
     lua_pushboolean(L, true);
@@ -1257,7 +1255,7 @@ int getanimid(const char *name) {
 void clearanims() {
     lua_anims.setsize(0);
     enumeratekt(animmap, const char*, name, int, value, {
-        lua::unpin_string(name);
+        delete[] (char*)name;
         (void)value; /* supress warnings */
     });
     animmap.clear();
