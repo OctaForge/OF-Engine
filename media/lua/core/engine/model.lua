@@ -56,7 +56,7 @@ anims.crouch_swim = ran "crouch_swim"
 
 --[[!
     Provides means to control the animation direction and looping. Contains
-    LOOP, CLAMP, REVERSE, LOOPERV, CLAMPREV, START, END.
+    LOOP, CLAMP, REVERSE, LOOPREV, CLAMPREV, START, END.
 ]]
 M.anim_control = {:
     LOOP     = 1 << 9,
