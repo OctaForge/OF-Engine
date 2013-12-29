@@ -390,7 +390,7 @@ M.Character = Entity:clone {
     __activate = SERVER and function(self, kwargs)
         self.cn = kwargs and kwargs.cn or -1
         assert(self.cn >= 0)
-        capi.setup_character(self)
+        capi.setup_character(self.uid, self.cn)
 
         Entity.__activate(self, kwargs)
 
@@ -401,7 +401,7 @@ M.Character = Entity:clone {
         Entity.__activate(self, kwargs)
 
         self.cn = kwargs and kwargs.cn or -1
-        capi.setup_character(self)
+        capi.setup_character(self.uid, self.cn)
 
         self.render_args_timestamp = -1
 
@@ -434,7 +434,7 @@ M.Character = Entity:clone {
     end,
 
     __deactivate = function(self)
-        capi.destroy_character(self)
+        capi.destroy_character(self.cn)
         Entity.__deactivate(self)
     end,
 
@@ -774,7 +774,7 @@ M.Static_Entity = Entity:clone {
         Entity.__activate(self, kwargs)
 
         debug then log(DEBUG, "Static_Entity: extent setup")
-        capi.setup_extent(self, self.sauer_type)
+        capi.setup_extent(self.uid, self.sauer_type)
 
         debug then log(DEBUG, "Static_Entity: flush")
         self:flush_queued_svar_changes()
@@ -785,12 +785,12 @@ M.Static_Entity = Entity:clone {
             self:set_attr(an, self:get_attr(an))
         end
     end or function(self, kwargs)
-        capi.setup_extent(self, self.sauer_type)
+        capi.setup_extent(self.uid, self.sauer_type)
         return Entity.__activate(self, kwargs)
     end,
 
     __deactivate = function(self)
-        capi.destroy_extent(self)
+        capi.destroy_extent(self.uid)
         return Entity.__deactivate(self)
     end,
 

@@ -970,7 +970,7 @@ M.Entity = table2.Object:clone {
         if not self.sauer_type then
             debug then log(DEBUG, "Entity.__activate: non-sauer entity: "
                 .. self.name)
-            capi.setup_nonsauer(self)
+            capi.setup_nonsauer(self.uid)
             if SERVER then
                 self:flush_queued_svar_changes()
             end
@@ -1520,6 +1520,10 @@ set_external("entity_gen_uid", gen_uid)
 M.get_highest_uid = function()
     return highest_uid
 end
+
+set_external("entity_set_cn", function(uid, cn)
+    get_ent(uid).cn = cn
+end)
 
 --[[! Function: new
     Creates a new entity on the server. External as `entity_new`.

@@ -46,35 +46,24 @@ namespace entities
         LogicSystem::unregisterLogicEntityByUniqueId(uid);
     });
 
-    LUAICOMMAND(setup_extent, {
-        lua_pushvalue(L, 1);
-        LogicSystem::setupExtent(luaL_ref(L, LUA_REGISTRYINDEX),
-            luaL_checkinteger(L, 2));
-        return 0;
+    CLUAICOMMAND(setup_extent, void, (int uid, int type), {
+        LogicSystem::setupExtent(uid, type);
     });
 
-    LUAICOMMAND(setup_character, {
-        lua_pushvalue(L, 1);
-        LogicSystem::setupCharacter(luaL_ref(L, LUA_REGISTRYINDEX));
-        return 0;
+    CLUAICOMMAND(setup_character, void, (int uid, int cn), {
+        LogicSystem::setupCharacter(uid, cn);
     });
 
-    LUAICOMMAND(setup_nonsauer, {
-        lua_pushvalue(L, 1);
-        LogicSystem::setupNonSauer(luaL_ref(L, LUA_REGISTRYINDEX));
-        return 0;
+    CLUAICOMMAND(setup_nonsauer, void, (int uid), {
+        LogicSystem::setupNonSauer(uid);
     });
 
-    LUAICOMMAND(destroy_extent, {
-        lua_pushvalue(L, 1);
-        LogicSystem::dismantleExtent(luaL_ref(L, LUA_REGISTRYINDEX));
-        return 0;
+    CLUAICOMMAND(destroy_extent, void, (int uid), {
+        LogicSystem::dismantleExtent(uid);
     });
 
-    LUAICOMMAND(destroy_character, {
-        lua_pushvalue(L, 1);
-        LogicSystem::dismantleCharacter(luaL_ref(L, LUA_REGISTRYINDEX));
-        return 0;
+    CLUAICOMMAND(destroy_character, void, (int cn), {
+        LogicSystem::dismantleCharacter(cn);
     });
 
     /* Entity attributes */

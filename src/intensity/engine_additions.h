@@ -131,13 +131,13 @@ struct LogicSystem
     //! Done only in initial preparation of an entity - never afterwards
     static void          setUniqueId(physent* dynamicEntity, int uniqueId);
 
-    static void setupExtent(int ref, int type);
+    static void setupExtent(int uid, int type);
 
-    static void setupCharacter(int ref);
+    static void setupCharacter(int uid, int cn);
 
-    static void setupNonSauer(int ref);
+    static void setupNonSauer(int uid);
 
-    static void dismantleExtent(int ref);
-    static void dismantleCharacter(int ref);
+    static void dismantleExtent(int uid);
+    static void dismantleCharacter(int cn);
 };
 

@@ -307,12 +307,8 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
     ((gameent*)dynamicEntity)->uid = uniqueId;
 }
 
-void LogicSystem::setupExtent(int ref, int type)
+void LogicSystem::setupExtent(int uid, int type)
 {
-    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lua::L, -1, "uid");
-    int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
-    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
     logger::log(logger::DEBUG, "setupExtent: %d, %d", uid, type);
     INDENT_LOG(logger::DEBUG);
 
@@ -332,38 +328,19 @@ void LogicSystem::setupExtent(int ref, int type)
     LogicSystem::registerLogicEntity(e);
 }
 
-void LogicSystem::setupCharacter(int ref)
+void LogicSystem::setupCharacter(int uid, int cn)
 {
-//    #ifndef SERVER
-//        assert(0); // until we figure this out
-//    #endif
-
-    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lua::L, -1, "uid");
-    int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
-
-    logger::log(logger::DEBUG, "setupCharacter: %d", uid);
+    logger::log(logger::DEBUG, "setupCharacter: %d, %d", uid, cn);
     INDENT_LOG(logger::DEBUG);
 
     gameent* gameEntity;
 
-    lua_getfield(lua::L, -1, "cn");
-    int cn = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
-    logger::log(logger::DEBUG, "(a) cn: %d\r\n", cn);
-
     #ifndef SERVER
         logger::log(logger::DEBUG, "client numbers: %d, %d", ClientSystem::playerNumber, cn);
 
-        if (uid == ClientSystem::uniqueId) {
-            lua_pushinteger(lua::L, ClientSystem::playerNumber);
-            lua_setfield   (lua::L, -2, "cn");
-        }
+        if (uid == ClientSystem::uniqueId)
+            lua::call_external("entity_set_cn", "ii", uid, (cn = ClientSystem::playerNumber));
     #endif
-
-    lua_pop(lua::L, 1); // pop the entity
-    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
-
-    logger::log(logger::DEBUG, "(b) cn: %d", cn);
 
     assert(cn >= 0);
 
@@ -396,26 +373,16 @@ void LogicSystem::setupCharacter(int ref)
     LogicSystem::registerLogicEntity(gameEntity);
 }
 
-void LogicSystem::setupNonSauer(int ref)
+void LogicSystem::setupNonSauer(int uid)
 {
-    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lua::L, -1, "uid");
-    int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
-    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
-
     logger::log(logger::DEBUG, "setupNonSauer: %d\r\n", uid);
     INDENT_LOG(logger::DEBUG);
 
     LogicSystem::registerLogicEntityNonSauer(uid);
 }
 
-void LogicSystem::dismantleExtent(int ref)
+void LogicSystem::dismantleExtent(int uid)
 {
-    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lua::L, -1, "uid");
-    int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
-    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
-
     logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uid);
 
     extentity* extent = getLogicEntity(uid)->staticEntity;
@@ -429,13 +396,8 @@ void LogicSystem::dismantleExtent(int ref)
                                                      // in clearents() in the next load_world.
 }
 
-void LogicSystem::dismantleCharacter(int ref)
+void LogicSystem::dismantleCharacter(int cn)
 {
-    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lua::L, -1, "cn");
-    int cn = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
-    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
-
     #ifndef SERVER
     if (cn == ClientSystem::playerNumber)
         logger::log(logger::DEBUG, "Not dismantling own client\r\n", cn);
