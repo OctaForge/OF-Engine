@@ -28,7 +28,7 @@ hud_get_so_y, isconnected, text_get_res, text_font_get_h, aspect_get,
 editing_get, console_scale_get, input_get_free_cursor, input_cursor_get_x,
 input_cursor_get_y, input_cursor_exists_update in capi
 
-local set_external = capi.external_set
+local set_external = require("core.externals").set
 
 local var_get, var_set = cs.var_get, cs.var_set
 

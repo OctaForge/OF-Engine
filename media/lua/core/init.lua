@@ -61,6 +61,8 @@ capi.log(1, "Initializing logging.")
 
 local log = require("core.logger")
 
+require("core.externals")
+
 log.log(log.DEBUG, "Initializing the core library.")
 
 log.log(log.DEBUG, ":: Lua extensions.")

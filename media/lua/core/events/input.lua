@@ -23,7 +23,8 @@ local ents
 ]]
 local input_mouse_move
 
-local get_ext, set_ext = capi.external_get, capi.external_set
+local ext = require("core.externals")
+local get_ext, set_ext = ext.get, ext.set
 
 local event_map
 

@@ -192,6 +192,10 @@ env_package.loaded = eloaded
 
 local rawget = rawget
 
+local disallow = {
+    ["core.externals"] = true
+}
+
 local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
     for k, v in pairs(tbl) do
         if v == true then
@@ -210,7 +214,11 @@ local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
         eloaded["_G"] = env
         for k, v in pairs(ploaded) do
             if k:match("core%..+") or k:match("luacy%..+") then
-                eloaded[k] = v
+                if not disallow[k] then
+                    eloaded[k] = v
+                else
+                    eloaded[k] = false
+                end
             end
         end
     end
@@ -246,15 +254,15 @@ M.gen_mapscript_env = function()
 end
 local gen_mapscript_env = M.gen_mapscript_env
 
-local external_set = require("capi").external_set
+local ext_set = require("core.externals").set
 
-external_set("mapscript_run", function(fn)
+ext_set("mapscript_run", function(fn)
     local f, err = loadfile(fn)
     if not f then error(err, 2) end
     setfenv(f, gen_mapscript_env())()
 end)
 
-external_set("mapscript_verify", function(fn)
+ext_set("mapscript_verify", function(fn)
     local f, err = loadfile(fn)
     if not f then
         logger.log(logger.ERROR, "Compilation failed: " .. err)

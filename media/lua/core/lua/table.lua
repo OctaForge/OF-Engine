@@ -22,6 +22,8 @@ local tconc = table.concat
 local pcall = pcall
 local floor, log = math.floor, math.log
 
+local ext_set = require("core.externals").set
+
 --[[!
     Checks whether the given table is an array (that is, contains only a
     consecutive sequence of values with indexes from 1 to #table). If
@@ -400,7 +402,7 @@ local serialize = function(val, kwargs, stream, simplifier)
     end
 end
 M.serialize = serialize
-capi.external_set("table_serialize", serialize)
+ext_set("table_serialize", serialize)
 
 local lex_get = function(ls)
     while true do
@@ -578,7 +580,7 @@ M.deserialize = function(s)
     if not r then return nil, v end
     return v
 end
-capi.external_set("table_deserialize", M.deserialize)
+ext_set("table_deserialize", M.deserialize)
 
 local sift_down = function(tbl, l, s, e, fun)
     local root = s

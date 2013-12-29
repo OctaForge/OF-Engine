@@ -28,7 +28,7 @@ local model = require("core.engine.model")
 
 local table2 = require("core.lua.table")
 
-local set_external = capi.external_set
+local set_external = require("core.externals").set
 
 local filter, filter_map, map, sort, concat, find, serialize, deserialize
     = table2.filter, table2.filter_map, table2.map, table2.sort,

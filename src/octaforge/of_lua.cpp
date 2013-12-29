@@ -48,15 +48,14 @@ namespace lua
         return 1;
     });
 
-    static hashtable<const char*, int> externals;
+    static int external_handler = LUA_REFNIL;
 
     static bool push_external(lua_State *L, const char *name) {
-        int *ref = externals.access(name);
-        if  (ref) {
-            lua_rawgeti(L, LUA_REGISTRYINDEX, *ref);
-            return true;
-        }
-        return false;
+        if (external_handler == LUA_REFNIL) return false;
+        lua_rawgeti(L, LUA_REGISTRYINDEX, external_handler);
+        lua_pushstring(L, name);
+        lua_call(L, 1, 1);
+        return !lua_isnil(L, -1);
     }
 
     static int vcall_external_i(lua_State *L, const char *name,
@@ -196,42 +195,11 @@ namespace lua
     void pop_external_ret(lua_State *L, int n) { if (n > 0) lua_pop(L, n); }
     void pop_external_ret(int n) { pop_external_ret(L, n); }
 
-    LUAICOMMAND(external_set, {
-        const char *name = luaL_checkstring(L, 1);
-        int *ref = externals.access(name);
-        if  (ref) {
-            lua_rawgeti(L, LUA_REGISTRYINDEX, *ref);
-            luaL_unref (L, LUA_REGISTRYINDEX, *ref);
-        } else {
-            lua_pushnil(L);
-        }
-        /* let's pin the name so the garbage collector doesn't free it */
-        lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
-        /* and now we can ref */
-        lua_pushvalue(L, 2);
-        externals.access(name, luaL_ref(L, LUA_REGISTRYINDEX));
-        return 1;
-    });
-
-    LUAICOMMAND(external_unset, {
-        const char *name = luaL_checkstring(L, 1);
-        int *ref = externals.access(name);
-        if (!ref) {
-            lua_pushboolean(L, false);
-            return 1;
-        }
-        /* unpin the name */
-        lua_pushnil(L); lua_setfield(L, LUA_REGISTRYINDEX, name);
-        /* and unref */
-        luaL_unref(L, LUA_REGISTRYINDEX, *ref);
-        lua_pushboolean(L, externals.remove(name));
-        return 1;
-    });
-
-    LUAICOMMAND(external_get, {
-        if (!push_external(L, luaL_checkstring(L, 1))) lua_pushnil(L);
-        return 1;
-    });
+    LUAICOMMAND(external_hook, {
+        lua_pushvalue(L, 1);
+        external_handler = luaL_ref(L, LUA_REGISTRYINDEX);
+        return 0;
+    })
 
     struct Reg {
         const char *name;
@@ -412,7 +380,7 @@ namespace lua
         deletedecals();
         clearanims();
 #endif
-        externals.clear();
+        external_handler = LUA_REFNIL;
         lua_close(L);
         L = NULL;
         init();

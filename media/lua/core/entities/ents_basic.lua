@@ -30,7 +30,7 @@ local hextorgb = conv.hex_to_rgb
 
 local var_get = cs.var_get
 
-local set_external = capi.external_set
+local set_external = require("core.externals").set
 
 local Entity = ents.Entity
 local ent_get = ents.get

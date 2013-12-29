@@ -55,7 +55,7 @@ M.handle_frame = function(millis, lastmillis)
         end
     end
 end
-require("capi").external_set("frame_handle", M.handle_frame)
+require("core.externals").set("frame_handle", M.handle_frame)
 
 local tocalltable = function(v)
     return setmetatable({}, { __call = function(_, ...) return v(...) end })

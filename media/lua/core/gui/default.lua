@@ -426,7 +426,7 @@ local progress_win = gui.Window { __init = |win| do
     end)
 end }
 
-local set_ext = capi.external_set
+local set_ext = require("core.externals").set
 
 set_ext("progress_render", function(v, text)
     progress_bar:set_value(v)
