@@ -799,9 +799,10 @@ M.Entity = table2.Object:clone {
         self.action_queue:run(millis)
     end,
 
-    --! Enqueues an action into the entity's queue.
+    --! Enqueues an action into the entity's queue. Returns the action.
     enqueue_action = function(self, act)
         self.action_queue:enqueue(act)
+        return act
     end,
 
     --! Clears the entity's action queue.

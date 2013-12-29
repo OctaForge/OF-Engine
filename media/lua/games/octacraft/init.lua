@@ -37,8 +37,8 @@ ents.register_class(Game_Player, {
     game_manager.player_plugin,
     health.player_plugin
 })
-ents.register_class(ents.Obstacle, { health.deadly_area_plugin },
-    "Deadly_Area")
+ents.register_class(ents.Obstacle, { health.health_area_plugin },
+    "Health_Area")
 
 cs.var_set("player_class", "Game_Player")
 

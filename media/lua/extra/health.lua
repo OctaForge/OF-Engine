@@ -226,75 +226,72 @@ local is_valid_target = function(ent)
 end
 M.is_valid_target = is_valid_target
 
---[[!
-    A plugin that turns an entity (colliding one) into a deadly area. It
-    hooks a collision signal to the entity that kills the collider (if
-    it's a valid target). Bake it with an obstacle to create a deadly
-    area.
-]]
-M.deadly_area_plugin = {
-    deadly_area_on_collision = function(self, collider)
-        if collider != ents.get_player() then return end
-        if is_valid_target(collider) then
-            collider:set_attr("health", 0)
-        end
-    end,
-
-    __activate = (not SERVER) and function(self)
-        signal.connect(self, "collision", self.deadly_area_on_collision)
-    end
-}
-
-local Do_Pain_Action = actions.Action:clone {
+local Health_Action = actions.Action:clone {
     cancelable = false,
 
     __ctor = function(self, kwargs)
         actions.Action.__ctor(self, kwargs)
-        self.pain_step = kwargs.pain_step
+        self.health_step = kwargs.health_step
     end,
 
     __finish = function(self)
-        self.actor:health_add(-self.pain_step)
+        self.actor:health_add(self.health_step)
     end
 }
 
 --[[!
-    See $deadly_area_plugin. This represents a "pain area" which takes away
-    player's health in steps while inside it.
+    A plugin that turns an entity (colliding one) into a "health area". It
+    hooks a collision signal to the entity that changes the collider's health
+    in steps (optionally, and only if it's a valid target). Bake it with an
+    obstacle.
+
+    When any of the properties is zero, this won't do anything.
 
     Properties:
-        - pain_step - the amount of health points to take away in one step.
-        - pain_millis - the amount of time one pain step takes (the health
-          is taken away at the end of each step).
+        - health_step - the amount of health points to add (when positive) or
+          subtract (when negative) in one step.
+        - health_step_millis - the amount of time one health step takes (the
+          health is taken away at the end of each step). When this is negative,
+          the area won't work in steps, instead it'll kill the collider when
+          `health_step` is negative or restore maximum health when it's
+          positive.
 ]]
-M.pain_area_plugin = {
+M.health_area_plugin = {
     __properties = {
-        pain_step = svars.State_Integer(),
-        pain_millis = svars.State_Integer()
+        health_step = svars.State_Integer(),
+        health_step_millis = svars.State_Integer()
     },
 
     __init_svars = function(self)
-        self:set_attr("pain_step", 10)
-        self:set_attr("pain_millis", 1000)
+        self:set_attr("health_step", -10)
+        self:set_attr("health_step_millis", 1000)
     end,
 
-    pain_area_on_collision = function(self, collider)
+    health_area_on_collision = function(self, collider)
         if collider != ents.get_player() then return end
         if is_valid_target(collider) then
-            local prev = self.pain_previous_act
-            if not prev or prev.finished then
-                local act = Do_Pain_Action {
-                    millis_left = self:get_attr("pain_millis"),
-                    pain_step = self:get_attr("pain_step")
-                }
-                collider:enqueue_action(act)
-                self.pain_previous_act = act
+            local step = self:get_attr("health_step")
+            if    step == 0 then return end
+            local step_millis = self:get_attr("health_step_millis")
+            if    step_millis == 0 then return end
+
+            if step_millis < 0 then
+                local oldhealth = collider:get_attr("health")
+                collider:set_attr("health", step < 0 and 0
+                    or max(oldhealth, collider:get_attr("max_health")))
+            else
+                local prev = self.health_previous_act
+                if not prev or prev.finished then
+                    self.health_previous_act = collider:enqueue_action(
+                        Health_Action { millis_left = step_millis,
+                            health_step = step })
+                end
             end
         end
     end,
 
     __activate = (not SERVER) and function(self)
-        signal.connect(self, "collision", self.pain_area_on_collision)
+        signal.connect(self, "collision", self.health_area_on_collision)
     end
 }
 
