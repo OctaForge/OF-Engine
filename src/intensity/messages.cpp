@@ -153,9 +153,7 @@ namespace MessageSystem
     void send_LoginResponse(int clientNumber, bool success, bool local)
     {
         logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)");
-        if (success) if (server::createluaEntity(clientNumber)) {
-            lua_pop(lua::L, 1);
-        }
+        if (success) server::createluaEntity(clientNumber);
 
         send_AnyMessage(clientNumber, MAIN_CHANNEL, false, false, buildf("riii", 1005, success, local));
     }

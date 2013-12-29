@@ -686,7 +686,7 @@ namespace server
     // INTENSITY: Called when logging in, and also when the map restarts (need a new entity).
     // Creates a new lua entity, in the process of which a uniqueId is generated.
     // it leaves the entity on the stack and returns true or leaves nothing and returns false.
-    bool createluaEntity(int cn, const char *_class, const char *uname)
+    int createluaEntity(int cn, const char *_class, const char *uname)
     {
 #ifndef SERVER
         assert(0);
@@ -704,11 +704,9 @@ namespace server
 
                 logger::log(logger::DEBUG, "luaEntities creation: Adding %d", i);
 
-                if (createluaEntity(i)) {
-                    lua_pop(lua::L, 1);
-                }
+                createluaEntity(i);
             }
-            return false;
+            return -1;
         }
 
         assert(cn >= 0);
@@ -716,7 +714,7 @@ namespace server
         if (!ci)
         {
             logger::log(logger::WARNING, "Asked to create a player entity for %d, but no clientinfo (perhaps disconnected meanwhile)", cn);
-            return false;
+            return -1;
         }
 
         gameent* gameEntity = game::getclient(cn);
@@ -725,7 +723,7 @@ namespace server
             // Already created an entity
             logger::log(logger::WARNING, "createluaEntity(%d): already have gameEntity, and hence lua entity. Kicking.", cn);
             disconnect_client(cn, DISC_KICK);
-            return false;
+            return -1;
         }
 
         // Use the PC class, unless told otherwise
@@ -762,8 +760,7 @@ namespace server
             game::spawnplayer(gameEntity);
         }
 
-        /* we leave the entity on the stack and return true */
-        return true;
+        return uid;
 #endif
     }
 

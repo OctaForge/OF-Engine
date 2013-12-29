@@ -98,7 +98,6 @@ namespace world
         }
 
 #ifdef SERVER
-        /* always returns false with -1 - no pop needed */
         server::createluaEntity(-1);
         send_curr_map(-1);
 #else

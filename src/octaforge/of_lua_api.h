@@ -65,9 +65,8 @@ namespace lapi_binds
         logger::log(logger::DEBUG, "New NPC with client number: %i", cn);
 
         const char *cl = luaL_checkstring(L, 1);
-        /* returns true  == 1 when there is an entity on the stack
-         * returns false == 0 when there is no entity on the stack */
-        return server::createluaEntity(cn, cl ? cl : "", buf);
+        lua_pushinteger(L, server::createluaEntity(cn, cl ? cl : "", buf));
+        return 1;
     }
 
     int _lua_npcdel(lua_State *L) {

@@ -1096,16 +1096,12 @@ VARP(ragdoll, 0, 1, 1);
 
 static int oldtp = -1;
 
-void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
+int preparerd(lua_State *L, int &anim, CLogicEntity *self) {
+    gameent *fp = (gameent*)self->dynamicEntity;
+    if (!fp) return anim;
     if (anim&ANIM_RAGDOLL) {
-        //if (!ragdoll || loadmodel(mdl);
-        gameent *fp = (gameent*)self->dynamicEntity;
-
-        if (fp->clientnum == ClientSystem::playerNumber) {
-            if (oldtp == -1 && thirdperson == 0) {
-                oldtp = thirdperson;
-                thirdperson = 1;
-            }
+        if (fp->clientnum == ClientSystem::playerNumber && !thirdperson && oldtp < 0) {
+            oldtp = 0; thirdperson = 1;
         }
 
         if (fp->ragdoll || !ragdoll) {
@@ -1113,16 +1109,10 @@ void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
             lua::call_external("entity_set_local_animation", "ii",
                 self->getUniqueId(), anim);
         }
-    } else {
-        if (self->dynamicEntity) {
-            gameent *fp = (gameent*)self->dynamicEntity;
-
-            if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1) {
-                thirdperson = oldtp;
-                oldtp = -1;
-            }
-        }
+    } else if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1) {
+        thirdperson = oldtp; oldtp = -1;
     }
+    return anim;
 }
 
 CLUAICOMMAND(model_render, void, (int uid, const char *name, int anim,
@@ -1130,7 +1120,7 @@ float x, float y, float z, float yaw, float pitch, float roll, int flags,
 int basetime, float r, float g, float b, float a), {
     LUA_GET_ENT(entity, uid, "_C.rendermodel", return)
 
-    preparerd(lua::L, anim, entity);
+    anim = preparerd(lua::L, anim, entity);
     gameent *fp = NULL;
 
     if (entity->dynamicEntity) fp = (gameent*)entity->dynamicEntity;

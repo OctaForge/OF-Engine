@@ -51,7 +51,7 @@ M.material = {:
     Adds a bot into the world onto the starting position. Bots are considered
     clients. You can define their AI via their entity class. This is purely
     serverside. Takes the entity class name the bot should be. Returns the bot
-    entity.
+    entity's uid.
 ]]
 M.add_npc = capi.npcadd
 
