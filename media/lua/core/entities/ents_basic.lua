@@ -56,35 +56,8 @@ local MASK_GROUND = 0x30
 local FLAG_ABOVEGROUND = 1 << 4
 local FLAG_BELOWGROUND = 2 << 4
 
-local animctl   = model.anim_control
-local animctl_l = {}
-if not SERVER then
-    for k, v in pairs(animctl) do
-        animctl_l[k:lower()] = v
-    end
-end
+local animctl = model.anim_control
 local anims = model.anims
-
-local csetanim = capi.set_animation
-local setanim = SERVER and function(self, v)
-    csetanim(self, 0, 0)
-end or function(self, v)
-    local panim = v[1]
-    if panim then
-        local xy = panim:split(",")
-        panim = (model.get_anim(xy[1]) or 0) | (animctl_l[xy[2]] or 0)
-    else
-        panim = 0
-    end
-    local sanim = v[2]
-    if sanim then
-        local xy = panim:split(",")
-        sanim = (model.get_anim(xy[1]) or 0) | (animctl_l[xy[2]] or 0)
-    else
-        sanim = 0
-    end
-    csetanim(self, panim, sanim)
-end
 
 local anim_dirs, anim_jump, anim_run
 if not SERVER then
@@ -128,11 +101,7 @@ local M = ents
         - lagged - client_state == LAGGED.
 
     Properties:
-        - animation [$svars.State_Array] - the entity's current animation.
-          It's an array of strings in format "animname,dir" and defaults
-          to "idle,loop".
-        - animation_flags [{{$svars.State_Integer}}] - the entity's current
-          anim flags.
+        - animation [{{$svars.Integer}}] - the entity's current animation.
         - start_time [{{$svars.State_Integer}}] - an internal property used for
           animation timing.
         - model_name [{{$svars.State_String}}] - name of the model associated
@@ -224,11 +193,8 @@ M.Character = Entity:clone {
     :},
 
     __properties = {
-        animation = svars.State_Array {
-            setter = setanim, client_set = true
-        },
-        animation_flags = svars.State_Integer {
-            setter = capi.set_animflags, client_set = true
+        animation = svars.State_Integer {
+            setter = capi.set_animation, client_set = true
         },
         start_time  = svars.State_Integer { getter = capi.get_start_time   },
         model_name  = svars.State_String  { setter = capi.set_model_name   },
@@ -396,8 +362,7 @@ M.Character = Entity:clone {
 
         self:set_attr("model_name", "")
         self:set_attr("attachments", {})
-        self:set_attr("animation", { "idle,loop" })
-        self:set_attr("animation_flags", 0)
+        self:set_attr("animation", 3 | (1 << 9))
 
         self.cn = kwargs and kwargs.cn or -1
         self:set_attr("character_name", "none")
@@ -524,11 +489,11 @@ M.Character = Entity:clone {
 
         local cr = self:get_attr("crouching")
 
-        local anim, animflags = self:decide_animation(state, pstate, mv,
+        local anim = self:decide_animation(state, pstate, mv,
             sf, cr, vel, fall, iw, tia)
         local flags = self:get_render_flags(hudpass, needhud)
 
-        mrender(self, mdn, anim, animflags, o, yaw, pitch, roll, flags, bt)
+        mrender(self, mdn, anim, o, yaw, pitch, roll, flags, bt)
     end or nil,
 
     --[[! Function: get_render_flags
@@ -581,20 +546,9 @@ M.Character = Entity:clone {
     decide_animation = (not SERVER) and function(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
         local anim = self:get_animation()
-        local panim = anim[1]
-        if panim then
-            local xy = panim:split(",")
-            panim = (model.get_anim(xy[1]) or 0) | (animctl_l[xy[2]] or 0)
-        else
-            panim = 0
-        end
-        local sanim = anim[2]
-        if sanim then
-            local xy = panim:split(",")
-            sanim = (model.get_anim(xy[1]) or 0) | (animctl_l[xy[2]] or 0)
-        else
-            sanim = 0
-        end
+
+        local mask = anims.INDEX | anims.DIR
+        local panim, sanim = anim & mask, (anim >> anims.SECONDARY) & mask
 
         -- editing or spectator
         if state == 4 or state == 5 then
@@ -651,7 +605,7 @@ M.Character = Entity:clone {
         if (sanim & anims.INDEX) == 0 then
             sanim = anims.idle | animctl.LOOP
         end
-        return { panim, sanim }, 0
+        return panim | (sanim << anims.SECONDARY)
     end or nil,
 
     --[[!
@@ -681,18 +635,8 @@ M.Character = Entity:clone {
         don't need the changes to reflect elsewhere).
     ]]
     set_local_animation = function(self, anim)
-        setanim(self.uid, anim)
+        capi.set_animation(self.uid, anim)
         self.svar_values["animation"] = anim
-    end,
-
-    --[[!
-        Sets the `animation_flags` property locally, without notifying the
-        other side. Useful when allowing actions to animate the entity (as we
-        mostly don't need the changes to reflect elsewhere).
-    ]]
-    set_local_animation_flags = function(self, animflags)
-        capi.set_animflags(self.uid, animflags)
-        self.svar_values["animation_flags"] = animflags
     end,
 
     --[[!
@@ -1219,10 +1163,8 @@ end)
     arguments to newent.
 
     Properties:
-        - animation [{{$svars.State_Array}}] - the mapmodel's current
+        - animation [{{$svars.State_Integer}}] - the mapmodel's current
           animation. See $Character.
-        - animation_flags [{{$svars.State_Integer}}] - the mapmodel's current
-          anim flags.
         - start_time [{{$svars.State_Integer}}] - an internal property used for
           animation timing.
         - model_name [{{$svars.State_String}}] - name of the model associated
@@ -1243,11 +1185,8 @@ M.Mapmodel = Static_Entity:clone {
     attr_num   = 4,
 
     __properties = {
-        animation = svars.State_Array {
-            setter = setanim, client_set = true
-        },
-        animation_flags = svars.State_Integer {
-            setter = capi.set_animflags, client_set = true
+        animation = svars.State_Integer {
+            setter = capi.set_animation, client_set = true
         },
         start_time  = svars.State_Integer { getter = capi.get_start_time   },
         model_name  = svars.State_String  { setter = capi.set_model_name   },
@@ -1273,8 +1212,7 @@ M.Mapmodel = Static_Entity:clone {
         self:set_attr("roll", 0, nd[4])
         self:set_attr("scale", 0, nd[5])
         self:set_attr("attachments", {})
-        self:set_attr("animation", { "idle,loop" })
-        self:set_attr("animation_flags", 0)
+        self:set_attr("animation", 3 | (1 << 9))
     end or nil,
 
     __activate = SERVER and function(self, kwargs)
@@ -1297,9 +1235,6 @@ M.Mapmodel = Static_Entity:clone {
 
     --! See {{$Character.set_local_animation}}.
     set_local_animation = Character.set_local_animation,
-
-    --! See {{$Character.set_local_animation_flags}}.
-    set_local_animation_flags = Character.set_local_animation_flags,
 
     --! See {{$Character.set_local_model_name}}.
     set_local_model_name = Character.set_local_model_name

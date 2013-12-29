@@ -1123,16 +1123,10 @@ void preparerd(lua_State *L, int &anim, CLogicEntity *self) {
     }
 }
 
-CLUAICOMMAND(model_render, void, (int uid, const char *name, int panim,
-int sanim, int animflags, float x, float y, float z, float yaw, float pitch,
-float roll, int flags, int basetime, float r, float g, float b, float a), {
+CLUAICOMMAND(model_render, void, (int uid, const char *name, int anim,
+float x, float y, float z, float yaw, float pitch, float roll, int flags,
+int basetime, float r, float g, float b, float a), {
     LUA_GET_ENT(entity, uid, "_C.rendermodel", return)
-
-    panim &= (ANIM_INDEX | ANIM_DIR);
-    sanim &= (ANIM_INDEX | ANIM_DIR);
-
-    int anim = panim | (sanim << ANIM_SECONDARY)
-        | ((animflags << ANIM_FLAGSHIFT) & ANIM_FLAGS);
 
     preparerd(lua::L, anim, entity);
     gameent *fp = NULL;
@@ -1167,14 +1161,8 @@ CLUAICOMMAND(model_preview_start, void, (int x, int y, int dx, int dy, bool scis
     modelpreview::start(x, y, dx, dy, false, scissor);
 });
 
-CLUAICOMMAND(model_preview, void, (const char *mdl, int panim, int sanim,
-int animflags, const char **attachments, int len), {
-    panim &= (ANIM_INDEX | ANIM_DIR);
-    sanim &= (ANIM_INDEX | ANIM_DIR);
-
-    int anim = panim | ANIM_LOOP | ((sanim | ANIM_LOOP) << ANIM_SECONDARY)
-        | ((animflags << ANIM_FLAGSHIFT) & ANIM_FLAGS);
-
+CLUAICOMMAND(model_preview, void, (const char *mdl, int anim,
+const char **attachments, int len), {
     model *m = loadmodel(mdl);
     if (m) {
         vec center; vec radius;

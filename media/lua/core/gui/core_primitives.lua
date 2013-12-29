@@ -959,23 +959,19 @@ M.VSlot_Viewer = register_class("VSlot_Viewer", M.Slot_Viewer, {
     end
 })
 
-local animctl = model.anim_control
-
 --[[!
     Derived from $Filler. Represents a 3D model preview.
 
     Properties:
         - model - the model name (like mapmodel paths).
-        - anim - an array of integers (see model and animation API, you only
-          provide primary and secondary anim and the widget takes care of
-          looping them).
+        - anim - an integer.
         - attachments - an array of tag-attachment pairs.
 ]]
 M.Model_Viewer = register_class("Model_Viewer", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.model = kwargs.model
-        self.anim = kwargs.anim or { 0, 0 }
+        self.anim = kwargs.anim or 0
         self.attachments = kwargs.attachments or {}
 
         return Filler.__ctor(self, kwargs)
@@ -1008,7 +1004,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         local anim = self.anim
-        model_preview(self.model, anim[1], anim[2], self:build_attachments())
+        model_preview(self.model, anim, self:build_attachments())
         if csl then clip_area_scissor() end
         model_preview_end()
         shader_hud_set()

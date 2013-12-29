@@ -29,7 +29,7 @@ local ran = capi.model_register_anim
 ]]
 M.anims = {
     mapmodel = ran "mapmodel", edit = ran "edit", lag = ran "lag",
-    idle = ran "idle", INDEX = 0x1FF
+    idle = ran "idle", INDEX = 0x1FF, DIR = 0xE00, SECONDARY = 12
 }
 local anims = M.anims
 
@@ -135,22 +135,21 @@ local mrender = capi.model_render
     Arguments:
         - ent - the owner entity.
         - mdl - the model name.
-        - anim - the model animation (an array).
-        - animflags - the animation flags.
+        - anim - the model animation.
         - pos - anything with x, y, z.
         - yaw, pitch, roll - the model yaw, pitch and roll.
         - flags - see $render_flags.
         - btime - the base time (start_time of an entity) for animations.
         - color - any value with r, g, b, a (for example a vec4).
 ]]
-M.render = function(ent, mdl, anim, animflags, pos, yaw, pitch, roll, flags,
+M.render = function(ent, mdl, anim, pos, yaw, pitch, roll, flags,
 btime, trans)
     local r, g, b, a = 1, 1, 1, 1
     if trans then
         r, g, b, a = trans.r, trans.g, trans.b, trans.a
     end
-    mrender(ent.uid, mdl, anim[1], anim[2], animflags, pos.x, pos.y, pos.z,
-        yaw, pitch, roll, flags, btime, r, g, b, a)
+    mrender(ent.uid, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll, flags,
+        btime, r, g, b, a)
 end
 
 local geom = require("core.lua.geom")

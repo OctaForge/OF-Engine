@@ -437,10 +437,9 @@ static inline void rendermapmodel(extentity &e)
         assert(0);
     }
     int anim    = entity->getAnimation(); // ANIM_MAPMODEL|ANIM_LOOP
-    int aflags  = entity->getAnimationFlags();
     int basetime = entity->getStartTime();
 
-    rendermapmodel(entity, anim | aflags, e.o, e.attr[0], e.attr[1], e.attr[2], MDL_CULL_VFC | MDL_CULL_DIST, basetime, e.attr[3] > 0 ? e.attr[3]/100.0f : 1.0f); // OF
+    rendermapmodel(entity, anim, e.o, e.attr[0], e.attr[1], e.attr[2], MDL_CULL_VFC | MDL_CULL_DIST, basetime, e.attr[3] > 0 ? e.attr[3]/100.0f : 1.0f); // OF
 }
 
 void rendermapmodels()

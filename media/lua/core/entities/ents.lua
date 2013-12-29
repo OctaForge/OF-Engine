@@ -24,6 +24,7 @@ local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local cs = require("core.engine.cubescript")
+local model = require("core.engine.model")
 
 local table2 = require("core.lua.table")
 
@@ -642,8 +643,8 @@ M.load = function()
                         ("@REPLACE_" .. attr2 .. "@") or im[attr2 + 1]
                     ent.attr2 = ent.attr3
                     ent.attr3 = "0"
-                    ent.animation = "[mapmodel,loop]"
-                    ent.animation_flags = "0"
+                    ent.animation = model.anims.mapmodel
+                        | model.anim_control.LOOP
                 elseif et == 6 then
                     if #is > attr1 then
                         local snd = is[attr1 + 1]

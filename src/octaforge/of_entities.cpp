@@ -79,16 +79,9 @@ namespace entities
 
     /* Entity attributes */
 
-    CLUAICOMMAND(set_animation, void, (int uid, int panim, int sanim), {
+    CLUAICOMMAND(set_animation, void, (int uid, int anim), {
         LUA_GET_ENT(entity, uid, "_C.setanim", return)
-        panim &= (ANIM_INDEX | ANIM_DIR);
-        sanim &= (ANIM_INDEX | ANIM_DIR);
-        entity->setAnimation(panim | (sanim << ANIM_SECONDARY));
-    });
-
-    CLUAICOMMAND(set_animflags, void, (int uid, int aflags), {
-        LUA_GET_ENT(entity, uid, "_C.setanimflags", return)
-        entity->setAnimationFlags((aflags << ANIM_FLAGSHIFT) & ANIM_FLAGS);
+        entity->setAnimation(anim);
     });
 
     CLUAICOMMAND(get_start_time, bool, (int uid, int *val), {

@@ -42,7 +42,7 @@ M.anims = anims
 local Action_Pain = (not SERVER) and eactions.Action_Local_Animation:clone {
     name            = "Action_Pain",
     millis_left     = 600,
-    local_animation = { "pain" },
+    local_animation = anims.pain,
     allow_multiple  = false
 } or nil
 M.Action_Pain = Action_Pain
@@ -119,7 +119,7 @@ M.player_plugin = {
         if self:get_attr("health") > 0 then
             return self.__parent_class.decide_animation(self, ...)
         else
-            return { anims.dying, 0 }, model.anim_flags.RAGDOLL
+            return anims.dying | model.anim_flags.RAGDOLL
         end
     end or nil,
 

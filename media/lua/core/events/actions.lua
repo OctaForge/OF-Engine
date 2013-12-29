@@ -42,10 +42,7 @@ local M = {}
           initialization).
         - millis_left - how many milliseconds the action takes, can be
           initialized in constructor kwargs.
-        - animation - if specified, the action will change the actor's
-          animation during its execution, it's an array of strings in format
-          "animname,dir".
-        - animation_flags - the animation flags, a set of bit flags.
+        - animation - the animation.
         - allow_multiple - a boolean specifying whether multiple actions
           of the same type can be present in one action queue, defaults to
           true (unless it's specified directly in the base object we're
@@ -77,8 +74,6 @@ M.Action = table2.Object:clone {
 
         self.animation    = (self.animation == nil) and
             kwargs.animation or false
-        self.animation_flags = (self.animation_flags == nil) and
-            kwargs.animation_flags or false
 
         self.actor = false
 
@@ -122,20 +117,11 @@ M.Action = table2.Object:clone {
             self.priv_start(self)
 
             if self.animation != false then
-                self.last_animation = self.actor:get_attr("animation")
-                    :to_array()
-                local sanim = self.animation
                 local aanim = self.actor:get_attr("animation")
-                if sanim[1] != aanim[1] or sanim[2] != aanim[2] then
-                    self.actor:set_attr("animation", sanim)
-                end
-            end
-            if self.animation_flags != false then
-                self.last_animflags = self.actor:get_attr("animation_flags")
-                if self.actor:get_attr("animation_flags")
-                != self.animation_flags then
-                    self.actor:set_attr("animation_flags",
-                        self.animation_flags)
+                local anim = self.animation
+                if aanim != anim then
+                    self.last_animation = aanim
+                    self.actor:set_attr("animation", anim)
                 end
             end
         end
@@ -198,14 +184,8 @@ M.Action = table2.Object:clone {
         if self.animation and self.last_animation != nil then
             local lanim = self.last_animation
             local aanim = self.actor:get_attr("animation")
-            if lanim[1] != aanim[1] or lanim[2] != aanim[2] then
+            if lanim != aanim then
                 self.actor:set_attr("animation", lanim)
-            end
-        end
-        if self.animation_flags and self.last_animflags != nil then
-            if self.actor:get_attr("animation_flags")
-            != self.last_animflags then
-                self.actor:set_attr("animation_flags", self.last_animflags)
             end
         end
 

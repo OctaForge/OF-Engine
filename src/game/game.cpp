@@ -330,7 +330,7 @@ namespace game
 
                 #ifndef SERVER
                     // Ragdolls
-                    int aflags = entity->getAnimationFlags();
+                    int aflags = entity->getAnimation();
                     if (gameEntity->ragdoll && !(aflags&ANIM_RAGDOLL))
                     {
                         cleanragdoll(gameEntity);
