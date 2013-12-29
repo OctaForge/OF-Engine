@@ -490,7 +490,7 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 #ifndef SERVER // INTENSITY: Added this
     if(!disconnected) return;
     game::gamedisconnect(cleanup);
-    mainmenu = 1;
+    setvar("mainmenu", 1);
 #endif
 }
 
