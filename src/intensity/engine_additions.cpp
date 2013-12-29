@@ -73,8 +73,6 @@ void CLogicEntity::setAttachments(lua_State *L) {
     attachments.setsize(0);
     attachment_positions.clear();
 
-    int npop = lua::call_external_ret("entity_get", "i", "N", getUniqueId(), 1);
-
     size_t num = lua_objlen(L, -1);
     for (size_t i = 0; i < num; ++i) {
         lua_rawgeti(L, -1, i + 1);
@@ -115,8 +113,6 @@ void CLogicEntity::setAttachments(lua_State *L) {
         }
     }
     attachments.add(modelattach());
-
-    lua::pop_external_ret(npop);
 }
 
 void CLogicEntity::setAnimation(int _anim)
