@@ -564,7 +564,7 @@ extern void clearoverrides();
 extern void writecfg(const char *name = NULL);
 
 extern void checksleep(int millis);
-extern void clearsleep(bool clearoverrides = true, bool lua = false);
+extern void clearsleep(bool clearoverrides = true);
 
 // console
 extern void processkey(int code, bool isdown);

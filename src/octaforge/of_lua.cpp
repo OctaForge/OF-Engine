@@ -413,7 +413,6 @@ namespace lua
         clearanims();
 #endif
         externals.clear();
-        clearsleep(false, true);
         lua_close(L);
         L = NULL;
         init();
