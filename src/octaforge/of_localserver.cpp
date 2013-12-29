@@ -22,19 +22,28 @@ _SVAR(server_log_file, server_log_file, "out_server.log", IDF_READONLY);
 
 namespace local_server {
     /* private prototypes */
-    bool is_ready();
+    static bool is_ready();
 
-    int last_connect_trial = 0;
-    int num_trials         = 0;
+    static int last_disconnect    = 0;
+    static int last_connect_trial = 0;
+    static int num_trials         = 0;
 
-    bool ready   = false;
-    bool started = false;
+    static string map_to_run;
+
+    static bool ready   = false;
+    static bool started = false;
 
     bool is_running() {
         return ready;
     }
 
     void try_connect() {
+        /* if we disconnected and now are trying to connect again */
+        if (last_disconnect > 0 && lastmillis - last_disconnect >= 1000) {
+            last_disconnect = 0;
+            run(map_to_run);
+            return;
+        }
         if (!ready && started && num_trials <= 20
         && lastmillis - last_connect_trial >= 1000) {
             if (is_ready()) {
@@ -61,6 +70,10 @@ namespace local_server {
         if (started) {
             conoutf("Stopping old server instance ..");
             stop();
+            /* sleep a bit here to give the old server time to shutdown */
+            copystring(map_to_run, map);
+            last_disconnect = lastmillis;
+            return;
         }
         conoutf("Starting server, please wait ..");
 #ifndef WIN32
@@ -125,7 +138,7 @@ namespace local_server {
         ready = started = false;
     }
 
-    bool is_ready() {
+    static bool is_ready() {
         defformatstring(path, "%s%s", homedir, SERVER_READYFILE);
         if (fileexists(path, "r")) {
             tools::fdel(path);
