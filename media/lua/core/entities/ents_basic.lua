@@ -437,6 +437,14 @@ M.Character = Entity:clone {
         Entity.__deactivate(self)
     end,
 
+    --[[!
+        Decides the base time to use for animation rendering of the character.
+        By default simply returns `start_time`.
+    ]]
+    decide_base_time = function(self, anim)
+        return self:get_attr("start_time")
+    end,
+
     --[[! Function: __render
         Clientside and run per frame. It renders the character model. Decides
         all the parameters, including animation etc.
@@ -479,8 +487,7 @@ M.Character = Entity:clone {
         end
 
         local pstate = self:get_attr("physical_state")
-        local bt, iw = self:get_attr("start_time"),
-            self:get_attr("in_liquid")
+        local iw = self:get_attr("in_liquid")
         local mv, sf = self:get_attr("move"), self:get_attr("strafe")
 
         local vel, fall = self:get_attr("velocity"):copy(),
@@ -491,6 +498,9 @@ M.Character = Entity:clone {
 
         local anim = self:decide_animation(state, pstate, mv,
             sf, cr, vel, fall, iw, tia)
+
+        local bt = self:decide_base_time(anim)
+
         local flags = self:get_render_flags(hudpass, needhud)
 
         mrender(self, mdn, anim, o, yaw, pitch, roll, flags, bt)

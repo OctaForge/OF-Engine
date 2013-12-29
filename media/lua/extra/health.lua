@@ -12,6 +12,7 @@
 --! Module: health
 local M = {}
 
+local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local model = require("core.engine.model")
@@ -24,10 +25,11 @@ local connect, emit = signal.connect, signal.emit
 local min, max = math.min, math.max
 
 --[[! Enum: health.anims
-    This module adds two new animations, "dying" and "pain", on the client.
-    They're stored in this enumeration.
+    This module adds three new animations, "dead", "dying" and "pain",
+    on the client. They're stored in this enumeration.
 ]]
 local anims = (not SERVER) and {:
+    dead  = model.register_anim "dead",
     dying = model.register_anim "dying",
     pain  = model.register_anim "pain"
 :} or nil
@@ -115,21 +117,47 @@ M.player_plugin = {
     get_animation = function(self)
         local ret = self.__parent_class.get_animation(self)
         local INDEX, idle = model.anims.INDEX, model.anims.idle
-        if self:get_attr("health") > 0 and (ret & INDEX) == anims.dying then
-            self:set_local_animation(idle | model.anim_control.LOOP)
-            ret = self:get_attr("animation")
+        if self:get_attr("health") > 0 then
+            if (ret & INDEX) == anims.dying or (ret & INDEX) == anims.dead then
+                self:set_local_animation(idle | model.anim_control.LOOP)
+                self.prev_bt = nil
+                ret = self:get_attr("animation")
+            end
         end
         return ret
     end,
 
     --[[!
-        Overriden so that the "dying" animation can be used when health is 0.
+        Overriden so that the "dying" animation is displayed correctly.
+    ]]
+    decide_base_time = function(self, anim)
+        if (anim & model.anims.INDEX) == anims.dying then
+            local pbt = self.prev_bt
+            if not pbt then
+                pbt = frame.get_last_millis()
+                self.prev_bt = pbt
+            end
+            return pbt
+        end
+        return self:get_attr("start_time")
+    end,
+
+    --[[!
+        Overriden so that the "dying" animation can be used when health is 0
+        (and "dead" when at least 1 second after death).
     ]]
     decide_animation = (not SERVER) and function(self, ...)
         if self:get_attr("health") > 0 then
             return self.__parent_class.decide_animation(self, ...)
         else
-            return anims.dying | model.anim_flags.RAGDOLL
+            local anim
+            local pbt = self.prev_bt
+            if pbt and (frame.get_last_millis() - pbt) > 1000 then
+                anim = anims.dead | model.anim_control.LOOP
+            else
+                anim = anims.dying
+            end
+            return anim | model.anim_flags.NOPITCH | model.anim_flags.RAGDOLL
         end
     end or nil,
 

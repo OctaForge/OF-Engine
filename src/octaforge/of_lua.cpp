@@ -62,50 +62,52 @@ namespace lua
     static int vcall_external_i(lua_State *L, const char *name,
     const char *args, int retn, va_list ap) {
         if (!push_external(L, name)) return -1;
-        int n1 = lua_gettop(L);
+        int nargs = 0;
         while (*args) {
             switch (*args++) {
                 case 's':
                     lua_pushstring(L, va_arg(ap, const char*));
-                    break;
+                    ++nargs; break;
                 case 'S': {
                     const char *str = va_arg(ap, const char*);
                     lua_pushlstring(L, str, va_arg(ap, int));
-                    break;
+                    ++nargs; break;
                 }
                 case 'd': case 'i':
                     lua_pushinteger(L, va_arg(ap, int));
-                    break;
+                    ++nargs; break;
                 case 'f':
                     lua_pushnumber(L, va_arg(ap, double));
-                    break;
+                    ++nargs; break;
                 case 'b':
                     lua_pushboolean(L, va_arg(ap, int));
-                    break;
+                    ++nargs; break;
                 case 'p':
                     lua_pushlightuserdata(L, va_arg(ap, void*));
-                    break;
+                    ++nargs; break;
                 case 'c':
                     lua_pushcfunction(L, va_arg(ap, lua_CFunction));
-                    break;
+                    ++nargs; break;
                 case 'C': {
                     lua_CFunction cf = va_arg(ap, lua_CFunction);
-                    lua_pushcclosure(L, cf, va_arg(ap, int));
-                    break;
+                    int nups = va_arg(ap, int);
+                    lua_pushcclosure(L, cf, nups);
+                    nargs -= nups - 1; break;
                 }
                 case 'n':
                     lua_pushnil(L);
-                    break;
+                    ++nargs; break;
                 case 'v':
                     lua_pushvalue(L, va_arg(ap, int));
-                    break;
+                    ++nargs; break;
                 default:
                     assert(false);
                     break;
             }
         }
-        lua_call(L, lua_gettop(L) - n1, retn);
-        return lua_gettop(L) - n1 + 1;
+        int n1 = lua_gettop(L) - nargs - 1;
+        lua_call(L, nargs, retn);
+        return lua_gettop(L) - n1;
     }
 
     bool vcall_external(lua_State *L, const char *name, const char *args,
@@ -390,6 +392,7 @@ namespace lua
         lua_setmetatable(L, -2);               /* _C */
         lua_pushcclosure(L, capi_get, 1);      /* C_get */
         lua_setfield(L, -2, "capi");
+        lua_pop(L, 1); /* _PRELOAD */
 
         /* load luacy early on */
         lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
