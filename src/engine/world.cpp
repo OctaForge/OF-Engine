@@ -1105,13 +1105,13 @@ void nearestent()
     if(closest >= 0) entadd(closest);
 }
 
-ICOMMAND(enthavesel,"",  (), addimplicit(intret(entgroup.length())));
-ICOMMAND(entselect, "e", (uint *body), if(!noentedit()) addgroup(e.type != ET_EMPTY && entgroup.find(n)<0 && executebool(body)));
-ICOMMAND(entloop,   "e", (uint *body), if(!noentedit()) addimplicit(groupeditloop(((void)e, execute(body)))));
-ICOMMAND(insel,     "",  (), entfocus(efocus, intret(pointinsel(sel, e.o))));
-ICOMMAND(entget,    "",  (), entfocus(efocus, string s; printent(e, s, sizeof(s)); result(s)));
-ICOMMAND(entindex,  "",  (), intret(efocus));
-COMMAND(nearestent, "");
+ICOMMAND(enthavesel, "",  (), addimplicit(intret(entgroup.length())));
+ICOMMAND(entselect,  "e", (uint *body), if(!noentedit()) addgroup(e.type != ET_EMPTY && entgroup.find(n)<0 && executebool(body)));
+ICOMMAND(entloop,    "e", (uint *body), if(!noentedit()) addimplicit(groupeditloop(((void)e, execute(body)))));
+ICOMMAND(insel,      "",  (), entfocus(efocus, intret(pointinsel(sel, e.o))));
+ICOMMAND(entgetinfo, "",  (), entfocus(efocus, string s; printent(e, s, sizeof(s)); result(s)));
+ICOMMAND(entindex,   "",  (), intret(efocus));
+COMMAND(nearestent,  "");
 
 static string copied_class = {'\0'};
 static char copied_sdata[4096] = {'\0'};
@@ -1171,7 +1171,7 @@ void entattr(char *attr, char *val, int *numargs) {
     } else entfocus(efocus, {
         const char *str;
         int npop = lua::call_external_ret("entity_get_gui_attr", "is", "s",
-            e.uid, &str);
+            e.uid, attr, &str);
         result(str ? str : "");
         lua::pop_external_ret(npop);
     });
