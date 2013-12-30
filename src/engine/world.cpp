@@ -406,21 +406,25 @@ void attachentities()
 // convenience macros implicitly define:
 // e         entity, currently edited ent
 // n         int,    index to currently edited ent
-#define addimplicit(f)  { if(entgroup.empty() && enthover>=0) { entadd(enthover); undonext = (enthover != oldhover); f; entgroup.drop(); } else f; }
-#define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &e = *entities::getents()[n]; f; } }
-#define entedit(i, f) \
+#define addimplicit(f)    { if(entgroup.empty() && enthover>=0) { entadd(enthover); undonext = (enthover != oldhover); f; entgroup.drop(); } else f; }
+#define entfocusv(i, f, v){ int n = efocus = (i); if(n>=0) { extentity &e = *v[n]; f; } }
+#define entfocus(i, f)    entfocusv(i, f, entities::getents())
+#define enteditv(i, f, v) \
 { \
-    entfocus(i, \
-    int oldtype = e.type; \
-    removeentity(n);  \
-    f; \
-    if(oldtype!=e.type) detachentity(e); \
-    if(e.type!=ET_EMPTY) { addentity(n); if(oldtype!=e.type) attachentity(e); }) \
-    clearshadowcache(); \
+    entfocusv(i, \
+    { \
+        int oldtype = e.type; \
+        removeentity(n);  \
+        f; \
+        if(oldtype!=e.type) detachentity(e); \
+        if(e.type!=ET_EMPTY) { addentity(n); if(oldtype!=e.type) attachentity(e); } \
+        clearshadowcache(); \
+    }, v); \
 }
-#define addgroup(exp)   { loopv(entities::getents()) entfocus(i, if(exp) entadd(n)); }
+#define entedit(i, f)   enteditv(i, f, entities::getents())
+#define addgroup(exp)   { vector<extentity *> &ents = entities::getents(); loopv(ents) entfocusv(i, if(exp) entadd(n), ents); }
 #define setgroup(exp)   { entcancel(); addgroup(exp); }
-#define groupeditloop(f){ entlooplevel++; int _ = efocus; loopv(entgroup) entedit(entgroup[i], f); efocus = _; entlooplevel--; }
+#define groupeditloop(f){ vector<extentity *> &ents = entities::getents(); entlooplevel++; int _ = efocus; loopv(entgroup) enteditv(entgroup[i], f, ents); efocus = _; entlooplevel--; }
 #define groupeditpure(f){ if(entlooplevel>0) { entedit(efocus, f); } else groupeditloop(f); }
 #define groupeditundo(f){ makeundoent(); groupeditpure(f); }
 #define groupedit(f)    { addimplicit(groupeditundo(f)); }
@@ -557,7 +561,7 @@ void renderentring(const extentity &e, float radius, int axis)
         p[axis>=1 ? 2 : 1] += radius*sc.y;
         gle::attrib(p);
     }
-    gle::end();
+    xtraverts += gle::end();
 }
 
 void renderentsphere(const extentity &e, float radius)
@@ -586,7 +590,7 @@ void renderentattachment(const extentity &e, extentity *ea)
     gle::begin(GL_LINES);
     gle::attrib(e.o);
     gle::attrib(ea ? ea->o : e.attached->o);
-    gle::end();
+    xtraverts += gle::end();
     /* OF */
     if (ea) {
         vec dir = vec(ea->o).sub(e.o).normalize();
@@ -609,12 +613,12 @@ void renderentarrow(const extentity &e, const vec &dir, float radius)
     gle::begin(GL_LINES);
     gle::attrib(e.o);
     gle::attrib(target);
-    gle::end();
+    xtraverts += gle::end();
 
     gle::begin(GL_TRIANGLE_FAN);
     gle::attrib(target);
     loopi(5) gle::attrib(vec(spoke).rotate(2*M_PI*i/4.0f, dir).add(arrowbase));
-    gle::end();
+    xtraverts += gle::end();
 }
 
 void renderentcone(const extentity &e, const vec &dir, float radius, float angle)
@@ -633,11 +637,11 @@ void renderentcone(const extentity &e, const vec &dir, float radius, float angle
         gle::attrib(e.o);
         gle::attrib(vec(spoke).rotate(2*M_PI*i/8.0f, dir).add(spot));
     }
-    gle::end();
+    xtraverts += gle::end();
 
     gle::begin(GL_LINE_LOOP);
     loopi(8) gle::attrib(vec(spoke).rotate(2*M_PI*i/8.0f, dir).add(spot));
-    gle::end();
+    xtraverts += gle::end();
 }
 
 void renderentradius(extentity &e, bool color)
@@ -704,16 +708,45 @@ CLUAICOMMAND(entity_draw_attachment, void, (int uid1, int uid2), {
     renderentattachment(*e1->staticEntity, e2->staticEntity);
 });
 
+static void renderentbox(const vec &eo, vec es)
+{
+    es.add(eo);
+
+    // bottom quad
+    gle::attrib(eo.x, eo.y, eo.z); gle::attrib(es.x, eo.y, eo.z);
+    gle::attrib(es.x, eo.y, eo.z); gle::attrib(es.x, es.y, eo.z);
+    gle::attrib(es.x, es.y, eo.z); gle::attrib(eo.x, es.y, eo.z);
+    gle::attrib(eo.x, es.y, eo.z); gle::attrib(eo.x, eo.y, eo.z);
+
+    // top quad
+    gle::attrib(eo.x, eo.y, es.z); gle::attrib(es.x, eo.y, es.z);
+    gle::attrib(es.x, eo.y, es.z); gle::attrib(es.x, es.y, es.z);
+    gle::attrib(es.x, es.y, es.z); gle::attrib(eo.x, es.y, es.z);
+    gle::attrib(eo.x, es.y, es.z); gle::attrib(eo.x, eo.y, es.z);
+
+    // sides
+    gle::attrib(eo.x, eo.y, eo.z); gle::attrib(eo.x, eo.y, es.z);
+    gle::attrib(es.x, eo.y, eo.z); gle::attrib(es.x, eo.y, es.z);
+    gle::attrib(es.x, es.y, eo.z); gle::attrib(es.x, es.y, es.z);
+    gle::attrib(eo.x, es.y, eo.z); gle::attrib(eo.x, es.y, es.z);
+}
+
 void renderentselection(const vec &o, const vec &ray, bool entmoving)
 {
-    if(noentedit()) return;
+    if(noentedit() || (entgroup.empty() && enthover < 0)) return;
     vec eo, es;
 
-    gle::colorub(0, 40, 0);
-    loopv(entgroup) entfocus(entgroup[i],
-        entselectionbox(e, eo, es);
-        boxs3D(eo, es, 1);
-    );
+    if(entgroup.length())
+    {
+        gle::colorub(0, 40, 0);
+        gle::defvertex();
+        gle::begin(GL_LINES, entgroup.length()*24);
+        loopv(entgroup) entfocus(entgroup[i],
+            entselectionbox(e, eo, es);
+            renderentbox(eo, es);
+        );
+        xtraverts += gle::end();
+    }
 
     if(enthover >= 0)
     {
@@ -731,7 +764,7 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
         boxs(entorient, eo, es);
     }
 
-    if(showentradius && (entgroup.length() || enthover >= 0))
+    if(showentradius)
     {
         glDepthFunc(GL_GREATER);
         gle::colorf(0.25f, 0.25f, 0.25f);
@@ -740,8 +773,9 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
         glDepthFunc(GL_LESS);
         loopv(entgroup) entfocus(entgroup[i], renderentradius(e, true));
         if(enthover>=0) entfocus(enthover, renderentradius(e, true));
-        gle::disable();
     }
+
+    gle::disable();
 }
 
 bool enttoggle(int id)
