@@ -156,9 +156,11 @@ namespace world
         execfile(get_mapfile_path("media.cfg"), false);
 #endif
         const char *mpath = get_mapfile_path("map.lua");
-        defformatstring(mspath, "%s%c%s", homedir, PATHDIV, mpath);
-        lua::call_external("mapscript_run", "s", fileexists(mspath, "r")
-            ? mspath : mpath);
+        char *buf = loadfile(mpath, NULL);
+        if (buf)
+            lua::call_external("mapscript_run", "ss", mpath, buf);
+        else
+            conoutf(CON_ERROR, "could not read \"%s\"", mpath);
         identflags = oldflags;
     }
 } /* end namespace world */

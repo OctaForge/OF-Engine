@@ -256,8 +256,8 @@ local gen_mapscript_env = M.gen_mapscript_env
 
 local ext_set = require("core.externals").set
 
-ext_set("mapscript_run", function(fn)
-    local f, err = loadfile(fn)
+ext_set("mapscript_run", function(fname, fn)
+    local f, err = loadstring(fn, "@" .. fname)
     if not f then error(err, 2) end
     setfenv(f, gen_mapscript_env())()
 end)
