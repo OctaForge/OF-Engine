@@ -155,7 +155,10 @@ namespace world
 #ifndef SERVER
         execfile(get_mapfile_path("media.cfg"), false);
 #endif
-        lua::call_external("mapscript_run", "s", get_mapfile_path("map.lua"));
+        const char *mpath = get_mapfile_path("map.lua");
+        defformatstring(mspath, "%s%c%s", homedir, PATHDIV, mpath);
+        lua::call_external("mapscript_run", "s", fileexists(mspath, "r")
+            ? mspath : mpath);
         identflags = oldflags;
     }
 } /* end namespace world */
