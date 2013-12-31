@@ -1370,7 +1370,11 @@ struct stream
     typedef off_t offset;
 #endif
 
+    int refcount;
+    stream(): refcount(-1) {}
     virtual ~stream() {}
+    void incref() { if (refcount < 0) return; else ++refcount; }
+    bool decref() { if (refcount < 0) return false; return !(--refcount); }
     virtual void close() = 0;
     virtual bool end() = 0;
     virtual offset tell() { return -1; }

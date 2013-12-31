@@ -689,11 +689,11 @@ struct gzstream : stream
     stream *file;
     z_stream zfile;
     uchar *buf;
-    bool reading, writing, autoclose;
+    bool reading, writing;
     uint crc;
     int headersize;
 
-    gzstream() : file(NULL), buf(NULL), reading(false), writing(false), autoclose(false), crc(0), headersize(0)
+    gzstream() : file(NULL), buf(NULL), reading(false), writing(false), crc(0), headersize(0)
     {
         zfile.zalloc = NULL;
         zfile.zfree = NULL;
@@ -777,7 +777,8 @@ struct gzstream : stream
         else if(writing && deflateInit2(&zfile, level, Z_DEFLATED, -MAX_WBITS, min(MAX_MEM_LEVEL, 8), Z_DEFAULT_STRATEGY) != Z_OK) writing = false;
         if(!reading && !writing) return false;
 
-        autoclose = needclose;
+        if (needclose) f->refcount = 0;
+        f->incref();
         file = f;
         crc = crc32(0, NULL, 0);
         buf = new uchar[BUFSIZE];
@@ -846,7 +847,7 @@ struct gzstream : stream
         if(writing) finishwriting();
         stopwriting();
         DELETEA(buf);
-        if(autoclose) DELETEP(file);
+        if(file->decref()) DELETEP(file);
     }
 
     bool end() { return !reading && !writing; }
@@ -962,10 +963,10 @@ struct utf8stream : stream
     stream *file;
     offset pos;
     int bufread, bufcarry, buflen;
-    bool reading, writing, autoclose;
+    bool reading, writing;
     uchar buf[BUFSIZE];
 
-    utf8stream() : file(NULL), pos(0), bufread(0), bufcarry(0), buflen(0), reading(false), writing(false), autoclose(false)
+    utf8stream() : file(NULL), pos(0), bufread(0), bufcarry(0), buflen(0), reading(false), writing(false)
     {
     }
 
@@ -1004,7 +1005,8 @@ struct utf8stream : stream
         }
         if(!reading && !writing) return false;
 
-        autoclose = needclose;
+        if (needclose) f->refcount = 0;
+        f->incref();
         file = f;
 
         if(reading) checkheader();
@@ -1033,7 +1035,7 @@ struct utf8stream : stream
     {
         stopreading();
         stopwriting();
-        if(autoclose) DELETEP(file);
+        if(file->decref()) DELETEP(file);
     }
 
     bool end() { return !reading && !writing; }

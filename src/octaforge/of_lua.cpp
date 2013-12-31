@@ -256,7 +256,7 @@ namespace lua
             lua_pushliteral(L, "attempt to close a closed stream");
             return 2;
         }
-        delete *f;
+        if ((*f)->decref()) delete *f;
         *f = NULL;
         lua_pushboolean(L, true);
         return 1;
@@ -403,8 +403,9 @@ namespace lua
 
     LUAICOMMAND(stream_open_file_raw, {
         STREAMOPENPARAMS(fname, mode, ud)
-        return (!(*ud = openrawfile(fname, mode)))
-            ? s_push_ret(L, 0, fname) : 1;
+        stream *f = openrawfile(fname, mode);
+        if (f) { f->refcount = 1; *ud = f; return 1; }
+        return s_push_ret(L, 0, fname);
     });
 
     LUAICOMMAND(stream_open_file, {
@@ -415,7 +416,10 @@ namespace lua
     LUAICOMMAND(stream_open_file_gz, {
         STREAMOPENPARAMS(fname, mode, ud)
         stream *file = NULL;
-        if (!lua_isnoneornil(L, 3)) file = s_get_stream(L, 3);
+        if (!lua_isnoneornil(L, 3)) {
+            file = s_get_stream(L, 3);
+            file->refcount = 1;
+        }
         int level = luaL_optinteger(L, 4, Z_BEST_COMPRESSION);
         return (!(*ud = opengzfile(fname, mode, file, level)))
             ? s_push_ret(L, 0, fname) : 1;
@@ -424,7 +428,10 @@ namespace lua
     LUAICOMMAND(stream_open_file_utf8, {
         STREAMOPENPARAMS(fname, mode, ud)
         stream *file = NULL;
-        if (!lua_isnoneornil(L, 3)) file = s_get_stream(L, 3);
+        if (!lua_isnoneornil(L, 3)) {
+            file = s_get_stream(L, 3);
+            file->refcount = 1;
+        }
         return (!(*ud = openutf8file(fname, mode, file)))
             ? s_push_ret(L, 0, fname) : 1;
     });
