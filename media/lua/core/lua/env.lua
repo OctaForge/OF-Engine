@@ -9,6 +9,7 @@
 ]]
 
 local logger = require("core.logger")
+local stream = require("core.lua.stream")
 
 --! Module: env
 local M = {}
@@ -193,7 +194,7 @@ env_package.loaded = eloaded
 local rawget = rawget
 
 local disallow = {
-    ["core.externals"] = true
+    ["core.externals"] = true, ["core.lua.stream"] = true
 }
 
 local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
@@ -256,8 +257,11 @@ local gen_mapscript_env = M.gen_mapscript_env
 
 local ext_set = require("core.externals").set
 
-ext_set("mapscript_run", function(fname, fn)
-    local f, err = loadstring(fn, "@" .. fname)
+ext_set("mapscript_run", function(fname)
+    local fs, err = stream.open_file(fname)
+    if not fs then error(err, 2) end
+    local f, err = loadstring(fs:read("*a"), "@" .. fname)
+    fs:close()
     if not f then error(err, 2) end
     setfenv(f, gen_mapscript_env())()
 end)

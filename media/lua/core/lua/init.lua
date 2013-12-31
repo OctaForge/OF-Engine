@@ -1,5 +1,8 @@
 local log = require("core.logger")
 
+log.log(log.DEBUG, ":::: Lua extensions: streams")
+require("core.lua.stream")
+
 log.log(log.DEBUG, ":::: Lua extensions: string")
 require("core.lua.string")
 
