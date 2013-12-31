@@ -2265,8 +2265,7 @@ set_external("gui_update", function()
         world:show_window("main")
     end
 
-    if not draw_hud and mmenu == 0 then draw_hud = true end
-    if draw_hud then draw_hud = hud.visible end
+    draw_hud = (mmenu == 0 and editing_get() == 0) and hud.visible or false
 
     local wvisible = world.visible
 
