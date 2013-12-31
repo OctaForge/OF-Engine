@@ -1373,7 +1373,7 @@ struct stream
     int refcount;
     stream(): refcount(-1) {}
     virtual ~stream() {}
-    void incref() { if (refcount < 0) return; else ++refcount; }
+    void incref() { if (refcount < 0) return; ++refcount; }
     bool decref() { if (refcount < 0) return false; return !(--refcount); }
     virtual void close() = 0;
     virtual bool end() = 0;
