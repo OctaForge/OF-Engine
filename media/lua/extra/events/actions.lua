@@ -176,9 +176,36 @@ local event_list = {
 }
 
 --[[!
+    An input capture plugin. Contains the __start and __finish methods you
+    need to call in order to give your action input capturing capabilities.
+    See $Input_Capture_Action.
+]]
+M.input_capture_plugin = {
+    --! Replaces the events.
+    __start = function(self)
+        local events = self.events
+        local old_events = {}
+        self.old_events = old_events
+        for i = 1, #event_list do
+            local en = event_list[i]
+            local ev = events[en]
+            if ev then old_events[en] = input.set_event(en,
+                function(...) ev(self, ...) end) end
+        end
+    end,
+
+    --! Restores the events.
+    __finish = function(self)
+        for en, ev in pairs(self.old_events) do
+            input.set_event(en, ev)
+        end
+    end
+}
+
+--[[!
     An input capture action - temporarily replaces input handlers (yaw, pitch,
     move, strafe, jump, crouch, click, mouse_move) with provided functions and
-    restores them when it finishes.
+    restores them when it finishes. Uses $input_capture_plugin.
 ]]
 M.Input_Capture_Action = Action:clone {
     name = "Input_Capture_Action",
@@ -194,24 +221,8 @@ M.Input_Capture_Action = Action:clone {
         self.events = kwargs.events or self.events or {}
     end,
 
-    --! Replaces the events.
-    __start = function(self)
-        local events = self.events
-        local old_events = {}
-        self.old_events = old_events
-        for i = 1, #event_list do
-            local en = event_list[i]
-            local ev = events[en]
-            if ev then old_events[en] = input.set_event(en, ev) end
-        end
-    end,
-
-    --! Restores the events.
-    __finish = function(self)
-        for en, ev in pairs(self.old_events) do
-            input.set_event(en, ev)
-        end
-    end
+    __start = M.input_capture_plugin.__start,
+    __finish = M.input_capture_plugin.__finish,
 }
 
 return M
