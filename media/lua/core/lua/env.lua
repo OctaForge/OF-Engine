@@ -255,7 +255,103 @@ M.gen_mapscript_env = function()
 end
 local gen_mapscript_env = M.gen_mapscript_env
 
+local consolemap = {
+    ["capi"                  ] = "capi",
+    ["core.engine.camera"    ] = "camera",
+    ["core.engine.cubescript"] = "cubescript",
+    ["core.engine.decals"    ] = "decals",
+    ["core.engine.edit"      ] = "edit",
+    ["core.engine.input"     ] = "input",
+    ["core.engine.lights"    ] = "lights",
+    ["core.engine.model"     ] = "model",
+    ["core.engine.particles" ] = "particles",
+    ["core.engine.sound"     ] = "sound",
+    ["core.entities.ents"    ] = "ents",
+    ["core.entities.svars"   ] = "svars",
+    ["core.events.actions"   ] = "actions",
+    ["core.events.frame"     ] = "frame",
+    ["core.events.input"     ] = "inputev",
+    ["core.events.signal"    ] = "signal",
+    ["core.events.world"     ] = "world",
+    ["core.externals"        ] = "externals",
+    ["core.gui.core"         ] = "gui",
+    ["core.logger"           ] = "logger",
+    ["core.lua.conv"         ] = "conv",
+    ["core.lua.geom"         ] = "geom",
+    ["core.lua.math"         ] = "mathext",
+    ["core.lua.stream"       ] = "stream",
+    ["core.lua.string"       ] = "stringext",
+    ["core.lua.table"        ] = "tableext",
+    ["core.network.msg"      ] = "msg"
+}
+
+local consoleenv
+local gen_console_env = function()
+    if consoleenv then return consoleenv end
+    local env = {}
+    for k, v in pairs(ploaded) do
+        local cmap = consolemap[k]
+        if cmap then env[cmap] = v end
+    end
+    -- extra fields
+    env["echo"   ] = logger.echo
+    env["log"    ] = logger.log
+    env["INFO"   ] = logger.INFO
+    env["DEBUG"  ] = logger.DEBUG
+    env["WARNING"] = logger.WARNING
+    env["ERROR"  ] = logger.ERROR
+    setmetatable(env, setmetatable({ __index = _G, __newindex = _G },
+        { __index = getmetatable(_G) }))
+    consoleenv = env
+    return env
+end
+
 local ext_set = require("core.externals").set
+
+--[[! Function: console_lua_run
+    An external called when you run Lua code in the console. The console
+    has its own special environment featuring most of the core modules as
+    globals (so that you don't have to type so much).
+
+    Global mappings:
+        - capi - capi
+        - core.engine.camera - camera
+        - core.engine.cubescript - cubescript
+        - core.engine.decals - decals
+        - core.engine.edit - edit
+        - core.engine.input - input
+        - core.engine.lights - lights
+        - core.engine.model - model
+        - core.engine.particles - particles
+        - core.engine.sound - sound
+        - core.entities.ents - ents
+        - core.entities.svars - svars
+        - core.events.actions - actions
+        - core.events.frame - frame
+        - core.events.input - inputev
+        - core.events.signal - signal
+        - core.events.world - world
+        - core.externals - externals
+        - core.gui.core - gui
+        - core.logger - logger
+        - core.lua.conv - conv
+        - core.lua.geom - geom
+        - core.lua.math - mathext
+        - core.lua.stream - stream
+        - core.lua.string - stringext
+        - core.lua.table - tableext
+        - core.network.msg - msg
+
+    Other global variables:
+        - echo, log, INFO, DEBUG, WARNING, ERROR - logger.*
+]]
+ext_set("console_lua_run", function(str)
+    local  ret, err = loadstring(str, "=console")
+    if not ret then return err end
+    ret, err = pcall(setfenv(ret, gen_console_env()))
+    if not ret then return err end
+    return nil
+end)
 
 ext_set("mapscript_run", function(fname)
     local fs, err = stream.open(fname)

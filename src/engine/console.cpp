@@ -365,13 +365,14 @@ struct hline
     void run()
     {
         if (flags&CF_EXECUTE && buf[0] == '/') {
-            if (buf[1] == '/') {
-                if (lua::load_string(buf + 2) || lua_pcall(lua::L, 0, 0, 0)) {
-                    logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
-                    lua_pop(lua::L, 1);
-                }
-            } else {
-                execute(buf+1);
+            if (buf[1] != '/')
+                execute(buf + 1);
+            else {
+                const char *err;
+                int npop = lua::call_external_ret("console_lua_run", "s", "s",
+                    buf + 2, &err);
+                if (err) conoutf(CON_ERROR, "%s", err);
+                lua::pop_external_ret(npop);
             }
         } else if (action) {
             alias("commandbuf", buf);
