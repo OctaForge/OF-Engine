@@ -322,7 +322,7 @@ namespace lua
     static int stream_read(lua_State *L) {
         bool success;
         int n;
-        int nargs = lua_gettop(L);
+        int nargs = lua_gettop(L) - 1;
         stream *f = s_get_stream(L);
         if (!nargs) {
             success = s_read_line(L, f);
@@ -357,7 +357,7 @@ namespace lua
 
     static int stream_write(lua_State *L) {
         bool status = true;
-        int nargs = lua_gettop(L);
+        int nargs = lua_gettop(L) - 1;
         stream *f = s_get_stream(L);
         for (int arg = 2; nargs--; ++arg) {
             if (lua_type(L, arg) == LUA_TNUMBER) {
