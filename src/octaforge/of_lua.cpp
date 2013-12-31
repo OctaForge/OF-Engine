@@ -249,24 +249,6 @@ namespace lua
         return  f;
     }
 
-    static int s_actual_close(lua_State *L) {
-        stream **f = (stream**)luaL_checkudata(L, 1, "Stream");
-        if    (!*f) {
-            lua_pushboolean(L, false);
-            lua_pushliteral(L, "attempt to close a closed stream");
-            return 2;
-        }
-        if ((*f)->decref()) delete *f;
-        *f = NULL;
-        lua_pushboolean(L, true);
-        return 1;
-    }
-
-    static int s_wrap_close(lua_State *L) {
-        lua_getfield(L, LUA_REGISTRYINDEX, "stream_close");
-        return (lua_tocfunction(L, -1))(L);
-    }
-
     static bool s_test_eof(lua_State *L, stream *f) {
         lua_pushlstring(L, NULL, 0);
         return f->tell() == f->size();
@@ -385,7 +367,11 @@ namespace lua
     }
 
     static int stream_close(lua_State *L) {
-        s_get_stream(L); return s_wrap_close(L);
+        stream *f = s_get_stream(L);
+        if (f->decref()) delete f;
+        *((stream**)lua_touserdata(L, 1)) = NULL;
+        lua_pushboolean(L, true);
+        return 1;
     }
 
     static stream **io_newfile(lua_State *L) {
@@ -453,7 +439,7 @@ namespace lua
 
     static int stream_meta_gc(lua_State *L) {
         stream *f = *((stream**)luaL_checkudata(L, 1, "Stream"));
-        if     (f) s_wrap_close(L);
+        if (f && f->decref()) delete f;
         return 0;
     }
 
@@ -514,8 +500,6 @@ namespace lua
         lua_setfield     (L, -2, "__index");
         luaL_register    (L, NULL, streamlib);
         lua_pop          (L, 1);
-        lua_pushcfunction(L, s_actual_close);
-        lua_setfield     (L, LUA_REGISTRYINDEX, "stream_close");
 
         setup_binds();
     }
