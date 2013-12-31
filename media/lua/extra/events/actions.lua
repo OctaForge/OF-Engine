@@ -9,7 +9,8 @@
 ]]
 
 local actions = require("core.events.actions")
-local table2 = require("core.lua.table")
+local input   = require("core.events.input")
+local table2  = require("core.lua.table")
 
 --! Module: actions
 local M = {}
@@ -31,12 +32,13 @@ M.Container_Action = Action:clone {
     name = "Container_Action",
 
     --[[!
-        Takes an array of actions and kwargs. Those are passed unmodified
-        to the {{$actions.Action}} constructor.
+        Takes kwargs. Those are passed unmodified to the {{$actions.Action}}
+        constructor. This action looks up the field `actions` in it and uses
+        it as an action source.
     ]]
-    __ctor = function(self, actions, kwargs)
+    __ctor = function(self, kwargs)
         Action.__ctor(self, kwargs)
-        self.other_actions = actions
+        self.other_actions = kwargs.actions or {}
     end,
 
     --[[!
@@ -89,13 +91,14 @@ M.Parallel_Action = Action:clone {
     cancelable = false,
 
     --[[!
-        Takes an array of actions and kwargs. Those are passed unmodified
-        to the {{$actions.Action}} constructor.
+        Takes kwargs. Those are passed unmodified to the {{$actions.Action}}
+        constructor. This action looks up the field `actions` in it and uses
+        it as an action source.
     ]]
-    __ctor = function(self, actions, kwargs)
+    __ctor = function(self, kwargs)
         Action.__ctor(self, kwargs)
         self.action_queues = {}
-        self.other_actions = actions
+        self.other_actions = kwargs.actions or {}
     end,
 
     --[[!
@@ -165,6 +168,49 @@ M.Local_Animation_Action = Action:clone {
         local anim = ac:get_attr("animation")
         local lanim = self.local_animation
         if anim == lanim then ac:set_local_animation(self.old_animation) end
+    end
+}
+
+local event_list = {
+    "yaw", "pitch", "move", "strafe", "jump", "crouch", "click", "mouse_move"
+}
+
+--[[!
+    An input capture action - temporarily replaces input handlers (yaw, pitch,
+    move, strafe, jump, crouch, click, mouse_move) with provided functions and
+    restores them when it finishes.
+]]
+M.Input_Capture_Action = Action:clone {
+    name = "Input_Capture_Action",
+
+    --[[!
+        Kwargs are passed as-is to the original constructor and a field
+        `events` is looked up, which is an associative table of events.
+        If that fails, it uses `self.events`. If that alos fails, it uses
+        an empty table as a fallback.
+    ]]
+    __ctor = function(self, kwargs)
+        Action.__ctor(self, kwargs)
+        self.events = kwargs.events or self.events or {}
+    end,
+
+    --! Replaces the events.
+    __start = function(self)
+        local events = self.events
+        local old_events = {}
+        self.old_events = old_events
+        for i = 1, #event_list do
+            local en = event_list[i]
+            local ev = events[en]
+            if ev then old_events[en] = input.set_event(en, ev) end
+        end
+    end,
+
+    --! Restores the events.
+    __finish = function(self)
+        for en, ev in pairs(self.old_events) do
+            input.set_event(en, ev)
+        end
     end
 }
 

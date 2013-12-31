@@ -227,25 +227,6 @@ M.Infinite_Action = Action:clone {
 }
 
 --[[!
-    An action with an entity as a "target" member.
-]]
-M.Targeted_Action = Action:clone {
-    name = "Targeted_Action",
-
-    --[[!
-        Constructs this action. See {{$Action.__ctor}}.
-
-        Arguments:
-            - target - an entity this action is targeted at.
-            - kwargs - the standard kwargs.
-    ]]
-    __ctor = function(self, target, kwargs)
-        Action.__ctor(self, kwargs)
-        self.target = target
-    end
-}
-
---[[!
     An action queue.
 
     Fields:
