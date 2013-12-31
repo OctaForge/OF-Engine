@@ -37,27 +37,27 @@ local anims = (not SERVER) and {:
 :} or nil
 M.anims = anims
 
---[[! Object: health.Action_Pain
-    Derives from {{$actions.Action_Local_Animation}} and is queued as a pain
+--[[! Object: health.Pain_Action
+    Derives from {{$actions.Local_Animation_Action}} and is queued as a pain
     effect. The default duration is 600 milliseconds and it uses the
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
 ]]
-local Action_Pain = (not SERVER) and eactions.Action_Local_Animation:clone {
-    name            = "Action_Pain",
+local Pain_Action = (not SERVER) and eactions.Local_Animation_Action:clone {
+    name            = "Pain_Action",
     millis_left     = 600,
     local_animation = anims.pain,
     allow_multiple  = false
 } or nil
-M.Action_Pain = Action_Pain
+M.Pain_Action = Pain_Action
 
---[[! Object: health.Action_Death
+--[[! Object: health.Death_Action
     Derives from a regular Action. Represents player death and the default
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
 ]]
-local Action_Death = SERVER and actions.Action:clone {
-    name            = "Action_Death",
+local Death_Action = SERVER and actions.Action:clone {
+    name            = "Death_Action",
     allow_multiple  = false,
     cancelable      = false,
     millis_left     = 5000,
@@ -79,7 +79,7 @@ local Action_Death = SERVER and actions.Action:clone {
         self.actor:game_manager_respawn()
     end
 } or nil
-M.Action_Death = Action_Death
+M.Death_Action = Death_Action
 
 --[[! Object: health.player_plugin
     The player plugin - use it when baking your player entity class. Must be
@@ -187,10 +187,10 @@ M.player_plugin = {
             - server_orig - true if the change originated on the server.
     ]]
     health_changed = SERVER and function(self, health, diff, server_orig)
-        if health <= 0 then self:enqueue_action(Action_Death()) end
+        if health <= 0 then self:enqueue_action(Death_Action()) end
     end or function(self, health, diff, server_orig)
         if diff <= -5 and health > 0 then
-            self:enqueue_action(Action_Pain())
+            self:enqueue_action(Pain_Action())
         end
     end,
 

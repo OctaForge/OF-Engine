@@ -20,13 +20,13 @@ local Action_Queue = actions.Action_Queue
 local ipairs = ipairs
 local compact = table2.compact
 
---[[! Object: actions.Action_Parallel
+--[[! Object: actions.Parallel_Action
     A container action that executes its actions in parallel. It's not
     cancelable. It works by parallel by having an internal action queue
     for each action.
 ]]
-M.Action_Parallel = Action:clone {
-    name = "Action_Parallel",
+M.Parallel_Action = Action:clone {
+    name = "Parallel_Action",
     cancelable = false,
 
     --[[!
@@ -84,13 +84,13 @@ M.Action_Parallel = Action:clone {
     end
 }
 
---[[! Object: actions.Action_Local_Animation
+--[[! Object: actions.Local_Animation_Action
     Action that starts, sets its actor's animation to its local_animation
     property, runs, ends and sets back the old animation. Not too useful
     alone, but can be used for inheriting.
 ]]
-M.Action_Local_Animation = Action:clone {
-    name = "Action_Local_Animation",
+M.Local_Animation_Action = Action:clone {
+    name = "Local_Animation_Action",
 
     --[[!
         Gives its actor the new animation. Uses the set_local_animation
