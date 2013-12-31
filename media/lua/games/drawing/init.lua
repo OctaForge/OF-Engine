@@ -12,6 +12,7 @@
 
 local log = require("core.logger")
 
+local gui = require("core.gui.core")
 local input = require("core.engine.input")
 local inputev = require("core.events.input")
 local cs = require("core.engine.cubescript")
@@ -139,7 +140,26 @@ local Game_Player = Player:clone {
 
 ents.register_class(Game_Player, {
     game_manager.player_plugin,
-    health.player_plugin
+    health.player_plugin, {
+        __activate = (not SERVER) and function(self)
+            local hstatus
+            gui.get_hud():append(gui.Spacer { pad_h = 0.1, pad_v = 0.1,
+                align_h = 1, align_v = 1
+            }, |sp| do
+                hstatus = sp:append(gui.Label {
+                    text = tostring(self:get_attr("health")), scale = 2.5,
+                    font = "default_outline"
+                })
+            end)
+            self.health_hud_status = hstatus
+            connect(self, "health_changed", |self, v| do
+                hstatus:set_text(tostring(v))
+            end)
+        end,
+        __deactivate = (not SERVER) and function(self)
+            self.health_hud_status:destroy()
+        end
+    }
 })
 ents.register_class(ents.Obstacle, { health.health_area_plugin },
     "Health_Area")
