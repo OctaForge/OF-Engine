@@ -407,13 +407,13 @@ namespace lua
             return (!(*ud = fun(fname, mode))) ? s_push_ret(L, 0, fname) : 1; \
         });
 
-    STREAMOPEN2ARGS(stream_open_file_raw, openrawfile)
-    STREAMOPEN2ARGS(stream_open_file_zip, openzipfile)
-    STREAMOPEN2ARGS(stream_open_file, openfile)
+    STREAMOPEN2ARGS(stream_open_raw, openrawfile)
+    STREAMOPEN2ARGS(stream_open_zip, openzipfile)
+    STREAMOPEN2ARGS(stream_open, openfile)
 
     #undef STREAMOPEN2ARGS
 
-    LUAICOMMAND(stream_open_file_gz, {
+    LUAICOMMAND(stream_open_gz, {
         STREAMOPENPARAMS(fname, mode, ud)
         stream *file = NULL;
         if (!lua_isnoneornil(L, 3)) {
@@ -426,7 +426,7 @@ namespace lua
             ? s_push_ret(L, 0, fname) : 1;
     });
 
-    LUAICOMMAND(stream_open_file_utf8, {
+    LUAICOMMAND(stream_open_utf8, {
         STREAMOPENPARAMS(fname, mode, ud)
         stream *file = NULL;
         if (!lua_isnoneornil(L, 3)) {

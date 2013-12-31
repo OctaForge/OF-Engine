@@ -11,6 +11,7 @@
 local capi = require("capi")
 local math2 = require("core.lua.math")
 local table2 = require("core.lua.table")
+local stream = require("core.lua.stream")
 local string2 = require("core.lua.string")
 local signal = require("core.events.signal")
 local ffi = require("ffi")
@@ -285,6 +286,33 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
         self._needs_offset = false
 
         return Widget.__ctor(self, kwargs)
+    end,
+
+    --[[!
+        Given a readable stream, this loads its contents into the editor.
+        It doesn't close the stream and it clears the editor beforehand.
+    ]]
+    load_stream = function(self, stream)
+        if not stream then return end
+        self:edit_clear(false)
+        local lines = self.lines
+        local mline = self.multiline
+        for line in stream:lines() do
+            lines[#lines + 1] = editline(line)
+            if mline then break end
+        end
+        if #lines == 0 then lines[1] = editline() end
+    end,
+
+    --[[!
+        Given a writable stream, this writes the contents of the editor
+        into it. It doesn't close the stream.
+    ]]
+    save_stream = function(self, stream)
+        if not stream then return end
+        for i, line in ipairs(self.lines) do
+            stream:write(line.text, "\n")
+        end
     end,
 
     --[[!

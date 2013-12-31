@@ -258,7 +258,7 @@ local gen_mapscript_env = M.gen_mapscript_env
 local ext_set = require("core.externals").set
 
 ext_set("mapscript_run", function(fname)
-    local fs, err = stream.open_file(fname)
+    local fs, err = stream.open(fname)
     if not fs then error(err, 2) end
     local f, err = loadstring(fs:read("*a"), "@" .. fname)
     fs:close()
