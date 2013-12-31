@@ -227,6 +227,245 @@ namespace lua
         return true;
     }
 
+    /* streams! */
+
+    static int s_push_ret(lua_State *L, bool succ, const char *fname = NULL) {
+        int en = errno;
+        if (succ) {
+            lua_pushboolean(L, true);
+            return 1;
+        } else {
+            lua_pushnil(L);
+            if (fname) lua_pushfstring(L, "%s: %s", fname, strerror(en));
+            else       lua_pushfstring(L, "%s",            strerror(en));
+            lua_pushinteger(L, en);
+            return 3;
+        }
+    }
+
+    static stream *s_get_stream(lua_State *L, int n = 1) {
+        stream *f = *((stream**)luaL_checkudata(L, n, "Stream"));
+        if    (!f) luaL_error(L, "attempt to use a closed stream");
+        return  f;
+    }
+
+    static int s_actual_close(lua_State *L) {
+        stream **f = (stream**)luaL_checkudata(L, 1, "Stream");
+        if    (!*f) {
+            lua_pushboolean(L, false);
+            lua_pushliteral(L, "attempt to close a closed stream");
+            return 2;
+        }
+        delete *f;
+        *f = NULL;
+        lua_pushboolean(L, true);
+        return 1;
+    }
+
+    static int s_wrap_close(lua_State *L) {
+        lua_getfield(L, LUA_REGISTRYINDEX, "stream_close");
+        return (lua_tocfunction(L, -1))(L);
+    }
+
+    static bool s_test_eof(lua_State *L, stream *f) {
+        lua_pushlstring(L, NULL, 0);
+        return f->tell() == f->size();
+    }
+
+    static bool s_read_line(lua_State *L, stream *f) {
+        luaL_Buffer b;
+        luaL_buffinit(L, &b);
+        for (;;) {
+            char *p = luaL_prepbuffer(&b);
+            if (!f->getline(p, LUAL_BUFFERSIZE)) {
+                luaL_pushresult(&b);
+                return (lua_objlen(L, -1) > 0);
+            }
+            size_t l = strlen(p);
+            if (!l || p[l - 1] != '\n') luaL_addsize(&b, l);
+            else {
+                luaL_addsize(&b, l - 1);
+                luaL_pushresult(&b);
+                return true;
+            }
+        }
+    }
+
+    static bool s_read_chars(lua_State *L, stream *f, size_t n) {
+        luaL_Buffer b;
+        luaL_buffinit(L, &b);
+        size_t rlen = LUAL_BUFFERSIZE, nr;
+        do {
+            char *p = luaL_prepbuffer(&b);
+            rlen = min(rlen, n);
+            nr = f->read(p, rlen * sizeof(char));
+            luaL_addsize(&b, nr);
+            n -= nr;
+        } while (n > 0 && nr == rlen);
+        luaL_pushresult(&b);
+        return (!n || lua_objlen(L, -1) > 0);
+    }
+
+    static int s_wrap_read_line(lua_State *L) {
+        stream *f = *((stream**)lua_touserdata(L, lua_upvalueindex(1)));
+        if  (!f) luaL_error(L, "stream is already closed");
+        return s_read_line(L, f);
+    }
+
+    static int stream_lines(lua_State *L) {
+        s_get_stream(L);
+        lua_pushvalue(L, 1);
+        lua_pushcclosure(L, s_wrap_read_line, 1);
+        return 1;
+    }
+
+    static int stream_read(lua_State *L) {
+        bool success;
+        int n;
+        int nargs = lua_gettop(L);
+        stream *f = s_get_stream(L);
+        if (!nargs) {
+            success = s_read_line(L, f);
+            n = 3;
+        } else {
+            luaL_checkstack(L, nargs + LUA_MINSTACK, "too many arguments");
+            success = true;
+            for (n = 2; nargs-- && success; ++n) {
+                if (lua_type(L, n) == LUA_TNUMBER) {
+                    size_t l = (size_t)lua_tointeger(L, n);
+                    success = (!l) ? s_test_eof(L, f) : s_read_chars(L, f, l);
+                } else {
+                    const char *p = lua_tostring(L, n);
+                    luaL_argcheck(L, p && *p == '*', n, "invalid operation");
+                    switch (*(p + 1)) {
+                        case 'l': success = s_read_line(L, f); break;
+                        case 'a':
+                            s_read_chars(L, f, ~((size_t)0));
+                            success = true;
+                            break;
+                        default: return luaL_argerror(L, n, "invalid format");
+                    }
+                }
+            }
+        }
+        if (!success) {
+            lua_pop(L, 1);
+            lua_pushnil(L);
+        }
+        return n - 2;
+    }
+
+    static int stream_write(lua_State *L) {
+        bool status = true;
+        int nargs = lua_gettop(L);
+        stream *f = s_get_stream(L);
+        for (int arg = 2; nargs--; ++arg) {
+            if (lua_type(L, arg) == LUA_TNUMBER) {
+                status = status && (f->printf(LUA_NUMBER_FMT,
+                    lua_tonumber(L, arg)) > 0);
+            } else {
+                size_t l;
+                const char *s = luaL_checklstring(L, arg, &l);
+                l *= sizeof(char);
+                status = status && (f->write(s, l) == (int)l);
+            }
+        }
+        return s_push_ret(L, status);
+    }
+
+    static int stream_seek(lua_State *L) {
+        static const int          mode[] = { SEEK_SET, SEEK_CUR, SEEK_END };
+        static const char * const name[] = { "set", "cur", "end", NULL    };
+        stream *f   = s_get_stream(L);
+        int  op     = luaL_checkoption(L, 2, "cur", name);
+        long offset = luaL_optlong    (L, 3, 0);
+        if (f->seek(offset, mode[op])) return s_push_ret(L, false);
+        lua_pushinteger(L, f->tell());
+        return 1;
+    }
+
+    static int stream_close(lua_State *L) {
+        s_get_stream(L); return s_wrap_close(L);
+    }
+
+    static stream **io_newfile(lua_State *L) {
+        stream **ud = (stream**)lua_newuserdata(L, sizeof(stream*));
+        *ud = NULL;
+        luaL_getmetatable(L, "Stream");
+        lua_setmetatable (L, -2);
+        return ud;
+    }
+
+    #define STREAMOPENPARAMS(fname, mode, ud) \
+        const char *fname = luaL_checkstring(L, 1); \
+        const char *mode  = luaL_optstring  (L, 2, "r"); \
+        stream **ud = io_newfile(L);
+
+    LUAICOMMAND(stream_open_file_raw, {
+        STREAMOPENPARAMS(fname, mode, ud)
+        return (!(*ud = openrawfile(fname, mode)))
+            ? s_push_ret(L, 0, fname) : 1;
+    });
+
+    LUAICOMMAND(stream_open_file, {
+        STREAMOPENPARAMS(fname, mode, ud)
+        return (!(*ud = openfile(fname, mode))) ? s_push_ret(L, 0, fname) : 1;
+    });
+
+    LUAICOMMAND(stream_open_file_gz, {
+        STREAMOPENPARAMS(fname, mode, ud)
+        stream *file = NULL;
+        if (!lua_isnoneornil(L, 3)) file = s_get_stream(L, 3);
+        int level = luaL_optinteger(L, 4, Z_BEST_COMPRESSION);
+        return (!(*ud = opengzfile(fname, mode, file, level)))
+            ? s_push_ret(L, 0, fname) : 1;
+    });
+
+    LUAICOMMAND(stream_open_file_utf8, {
+        STREAMOPENPARAMS(fname, mode, ud)
+        stream *file = NULL;
+        if (!lua_isnoneornil(L, 3)) file = s_get_stream(L, 3);
+        return (!(*ud = openutf8file(fname, mode, file)))
+            ? s_push_ret(L, 0, fname) : 1;
+    });
+
+    #undef STREAMOPENPARAMS
+
+    LUAICOMMAND(stream_type, {
+        luaL_checkany(L, 1);
+        void *ud = lua_touserdata(L, 1);
+        lua_getfield(L, LUA_REGISTRYINDEX, "Stream");
+        if (!ud || !lua_getmetatable(L, 1) || !lua_rawequal(L, -2, -1))
+            lua_pushnil(L);
+        else if (!*((stream**)ud)) lua_pushliteral(L, "closed stream");
+        else                       lua_pushliteral(L, "stream");
+        return 1;
+    });
+
+    static int stream_meta_gc(lua_State *L) {
+        stream *f = *((stream**)luaL_checkudata(L, 1, "Stream"));
+        if     (f) s_wrap_close(L);
+        return 0;
+    }
+
+    static int stream_meta_tostring(lua_State *L) {
+        stream *f = *((stream**)luaL_checkudata(L, 1, "Stream"));
+        if    (!f) lua_pushliteral(L, "stream (closed)");
+        else       lua_pushfstring(L, "stream (%p)",  f);
+        return 1;
+    }
+
+    static const luaL_Reg streamlib[] = {
+        { "close",      stream_close         },
+        { "lines",      stream_lines         },
+        { "read",       stream_read          },
+        { "seek",       stream_seek          },
+        { "write",      stream_write         },
+        { "__gc",       stream_meta_gc       },
+        { "__tostring", stream_meta_tostring },
+        { NULL,         NULL}
+    };
+
     void init(const char *dir)
     {
         if (L) return;
@@ -260,9 +499,14 @@ namespace lua
         lua_concat  (L,  8);
         lua_setfield(L, -2, "path"); lua_pop(L, 1);
 
-        /* string pinning */
-        lua_newtable(L);
-        lua_setfield(L, LUA_REGISTRYINDEX, "__pinstrs");
+        /* stream functions */
+        luaL_newmetatable(L, "Stream");
+        lua_pushvalue    (L, -1);
+        lua_setfield     (L, -2, "__index");
+        luaL_register    (L, NULL, streamlib);
+        lua_pop          (L, 1);
+        lua_pushcfunction(L, s_actual_close);
+        lua_setfield     (L, LUA_REGISTRYINDEX, "stream_close");
 
         setup_binds();
     }
