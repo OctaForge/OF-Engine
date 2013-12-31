@@ -401,16 +401,17 @@ namespace lua
         const char *mode  = luaL_optstring  (L, 2, "r"); \
         stream **ud = io_newfile(L);
 
-    LUAICOMMAND(stream_open_file_raw, {
-        STREAMOPENPARAMS(fname, mode, ud)
-        return (!(*ud = openrawfile(fname, mode)))
-            ? s_push_ret(L, 0, fname) : 1;
-    });
+    #define STREAMOPEN2ARGS(name, fun) \
+        LUAICOMMAND(name, { \
+            STREAMOPENPARAMS(fname, mode, ud) \
+            return (!(*ud = fun(fname, mode))) ? s_push_ret(L, 0, fname) : 1; \
+        });
 
-    LUAICOMMAND(stream_open_file, {
-        STREAMOPENPARAMS(fname, mode, ud)
-        return (!(*ud = openfile(fname, mode))) ? s_push_ret(L, 0, fname) : 1;
-    });
+    STREAMOPEN2ARGS(stream_open_file_raw, openrawfile)
+    STREAMOPEN2ARGS(stream_open_file_zip, openzipfile)
+    STREAMOPEN2ARGS(stream_open_file, openfile)
+
+    #undef STREAMOPEN2ARGS
 
     LUAICOMMAND(stream_open_file_gz, {
         STREAMOPENPARAMS(fname, mode, ud)

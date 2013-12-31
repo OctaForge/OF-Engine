@@ -44,6 +44,7 @@ local M = {}
 
     See also:
         - $open_file_raw
+        - $open_file_zip
         - $open_file_gz
         - $open_file_utf8
 ]]
@@ -56,10 +57,22 @@ M.open_file = capi.stream_open_file
 
     See also:
         - $open_file
+        - $open_file_zip
         - $open_file_gz
         - $open_file_utf8
 ]]
 M.open_file_raw = capi.stream_open_file_raw
+
+--[[! Function: open_file_zip
+    Like $open_file_raw, but tries to read ONLY in mounted zip files.
+
+    See also:
+        - $open_file
+        - $open_file_raw
+        - $open_file_gz
+        - $open_file_utf8
+]]
+M.open_file_zip = capi.stream_open_file_zip
 
 --[[! Function: open_file_gz
     Like $open_file, but treats the file as gzip compressed (zlib). It
@@ -79,6 +92,7 @@ M.open_file_raw = capi.stream_open_file_raw
     See also:
         - $open_file
         - $open_file_raw
+        - $open_file_zip
         - $open_file_utf8
 ]]
 M.open_file_gz = capi.stream_open_file_gz
@@ -101,6 +115,7 @@ M.open_file_gz = capi.stream_open_file_gz
     See also:
         - $open_file
         - $open_file_raw
+        - $open_file_zip
         - $open_file_gz
 ]]
 M.open_file_utf8 = capi.stream_open_file_utf8
