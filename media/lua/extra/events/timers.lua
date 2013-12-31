@@ -11,7 +11,7 @@
 --! Module: timers
 local M = {}
 
---[[! Object: timers.Timer
+--[[!
     A general use timer. It's not automatically managed - you have to simulate
     it yourself using the provided methods. That makes it flexible for various
     scenarios (where the timing is not managed by the general event loop).

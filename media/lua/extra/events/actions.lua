@@ -20,10 +20,69 @@ local Action_Queue = actions.Action_Queue
 local ipairs = ipairs
 local compact = table2.compact
 
---[[! Object: actions.Parallel_Action
+--[[!
+    A container action that can queue more actions into itself, which run on
+    its actor, finishes when both this action and all subactions are done.
+
+    See also:
+        - $Parallel_Action
+]]
+M.Container_Action = Action:clone {
+    name = "Container_Action",
+
+    --[[!
+        Takes an array of actions and kwargs. Those are passed unmodified
+        to the {{$actions.Action}} constructor.
+    ]]
+    __ctor = function(self, actions, kwargs)
+        Action.__ctor(self, kwargs)
+        self.other_actions = actions
+    end,
+
+    --[[!
+        Iterates over the action array given in the constructor, adding
+        each into the system using {{$add_action}}.
+    ]]
+    __start = function(self)
+        local actqueue = Action_Queue(self.actor)
+        for i, action in ipairs(self.other_actions) do
+            self:add_action(action)
+        end
+        self.action_queue = actqueue
+    end,
+
+    --[[!
+        Runs all the action queue for the given `millis`, returns the same as
+        {{$actions.Action}} with the addition of another condition (the number
+        of actions in the system must be zero - the action won't finish until
+        everything is done).
+    ]]
+    __run = function(self, millis)
+        local actqueue = self.action_queue
+        actqueue:run(millis)
+        return Action.__run(self, millis) and (#actqueue.actions == 0)
+    end,
+
+    --! Clears up the action queue.
+    __finish = function(self)
+        self.action_queue:clear()
+    end,
+
+    --[[!
+        Given an action, this queues it into the action queue inside.
+    ]]
+    add_action = function(self, action)
+        self.action_queue:enqueue(action)
+    end
+}
+
+--[[!
     A container action that executes its actions in parallel. It's not
     cancelable. It works by parallel by having an internal action queue
     for each action.
+
+    See also:
+        - $Container_Action
 ]]
 M.Parallel_Action = Action:clone {
     name = "Parallel_Action",
@@ -36,7 +95,7 @@ M.Parallel_Action = Action:clone {
     __ctor = function(self, actions, kwargs)
         Action.__ctor(self, kwargs)
         self.action_queues = {}
-        self.other_actions  = actions
+        self.other_actions = actions
     end,
 
     --[[!
@@ -63,9 +122,7 @@ M.Parallel_Action = Action:clone {
         return Action.__run(self, millis) and #systems == 0
     end,
 
-    --[[!
-        Clears up the remaining action queues.
-    ]]
+    --! Clears up the remaining action queues.
     __finish = function(self)
         for i, actqueue in ipairs(self.action_queues) do
             actqueue:clear()
@@ -84,7 +141,7 @@ M.Parallel_Action = Action:clone {
     end
 }
 
---[[! Object: actions.Local_Animation_Action
+--[[!
     Action that starts, sets its actor's animation to its local_animation
     property, runs, ends and sets back the old animation. Not too useful
     alone, but can be used for inheriting.

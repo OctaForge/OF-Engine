@@ -26,7 +26,7 @@ local connect, emit = signal.connect, signal.emit
 local min, max = math.min, math.max
 local floor = math.floor
 
---[[! Enum: health.anims
+--[[!
     This module adds three new animations, "dead", "dying" and "pain",
     on the client. They're stored in this enumeration.
 ]]
@@ -37,7 +37,7 @@ local anims = (not SERVER) and {:
 :} or nil
 M.anims = anims
 
---[[! Object: health.Pain_Action
+--[[!
     Derives from {{$actions.Local_Animation_Action}} and is queued as a pain
     effect. The default duration is 600 milliseconds and it uses the
     previously defined PAIN animation. It also cannot be used more than
@@ -51,7 +51,7 @@ local Pain_Action = (not SERVER) and eactions.Local_Animation_Action:clone {
 } or nil
 M.Pain_Action = Pain_Action
 
---[[! Object: health.Death_Action
+--[[!
     Derives from a regular Action. Represents player death and the default
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
@@ -81,7 +81,7 @@ local Death_Action = SERVER and actions.Action:clone {
 } or nil
 M.Death_Action = Death_Action
 
---[[! Object: health.player_plugin
+--[[!
     The player plugin - use it when baking your player entity class. Must be
     used after the game manager player plugin has been baked in (it overrides
     some of its stuff).

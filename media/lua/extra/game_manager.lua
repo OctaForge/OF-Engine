@@ -21,7 +21,7 @@ local connect, emit = signal.connect, signal.emit
 
 local get
 
---[[! Object: game_manager.player_plugin
+--[[!
     Player-side game manager functionality. If you want to use the game
     game manager, you need to set up your player entity class with this
     plugin.
@@ -183,17 +183,15 @@ local assert = assert
 
 local gameman
 
---[[! Function: game_manager.get
-    Gets the current game manager instance.
-]]
-get = function()
+--! Gets the current game manager instance.
+M.get = function()
     if not gameman then
         gameman = ents.get_by_class("Game_Manager")[1]
     end
     assert(gameman)
     return gameman
 end
-M.get = get
+get = M.get
 
 --[[!
     Sets up the game manager. You should call this in your mapscript before
