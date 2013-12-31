@@ -403,9 +403,8 @@ namespace lua
 
     LUAICOMMAND(stream_open_file_raw, {
         STREAMOPENPARAMS(fname, mode, ud)
-        stream *f = openrawfile(fname, mode);
-        if (f) { f->refcount = 1; *ud = f; return 1; }
-        return s_push_ret(L, 0, fname);
+        return (!(*ud = openrawfile(fname, mode)))
+            ? s_push_ret(L, 0, fname) : 1;
     });
 
     LUAICOMMAND(stream_open_file, {
@@ -418,7 +417,8 @@ namespace lua
         stream *file = NULL;
         if (!lua_isnoneornil(L, 3)) {
             file = s_get_stream(L, 3);
-            file->refcount = 1;
+            if (file->refcount < 0) file->refcount = 0;
+            file->incref();
         }
         int level = luaL_optinteger(L, 4, Z_BEST_COMPRESSION);
         return (!(*ud = opengzfile(fname, mode, file, level)))
@@ -430,7 +430,8 @@ namespace lua
         stream *file = NULL;
         if (!lua_isnoneornil(L, 3)) {
             file = s_get_stream(L, 3);
-            file->refcount = 1;
+            if (file->refcount < 0) file->refcount = 0;
+            file->incref();
         }
         return (!(*ud = openutf8file(fname, mode, file)))
             ? s_push_ret(L, 0, fname) : 1;
