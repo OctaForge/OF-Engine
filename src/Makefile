@@ -138,9 +138,9 @@ ifeq ($(TARGET_SYS),Windows)
 	TARGET_BINOS = win
 	TARGET_XINC += -Iplatform_windows/include
 	ifeq (x64,$(TARGET_ARCH))
-		TARGET_XLIB += -Lplatform_windows/lib64
+		TARGET_XLIB += -L../bin_win64
 	else
-		TARGET_XLIB += -Lplatform_windows/lib32
+		TARGET_XLIB += -L../bin_win32
 	endif
 else
 ifeq ($(TARGET_SYS),Linux)
@@ -277,7 +277,7 @@ ifeq ($(TARGET_ARCH),x64)
 endif
 	CLIENT_CXXFLAGS += $(CS_INC)
 	CLIENT_LDFLAGS += -mwindows -lSDL2 -lSDL2_image -lSDL2_mixer
-	CLIENT_LDFLAGS += -lzdll -lopengl32 -lws2_32 -lwinmm
+	CLIENT_LDFLAGS += -lzlib1 -lopengl32 -lws2_32 -lwinmm
 	CLIENT_LDFLAGS += -static-libgcc -static-libstdc++
 else
 ifeq ($(TARGET_SYS),Darwin)
@@ -390,7 +390,7 @@ ifeq ($(TARGET_ARCH),x64)
 	SERVER_CXXFLAGS += -DWIN64
 endif
 	SERVER_CXXFLAGS += $(CS_INC)
-	SERVER_LDFLAGS += -mwindows -lzdll -lopengl32 -lws2_32 -lwinmm
+	SERVER_LDFLAGS += -mwindows -lzlib1 -lopengl32 -lws2_32 -lwinmm
 	SERVER_LDFLAGS += -static-libgcc -static-libstdc++
 else
 ifeq ($(TARGET_SYS),Darwin)
