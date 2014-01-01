@@ -58,38 +58,40 @@ namespace lua
         return !lua_isnil(L, -1);
     }
 
+    struct va_ref { va_list ap; };
+
     static int vcall_external_i(lua_State *L, const char *name,
-    const char *args, int retn, va_list ap) {
+    const char *args, int retn, va_ref *ar) {
         if (!push_external(L, name)) return -1;
         int nargs = 0;
         while (*args) {
             switch (*args++) {
                 case 's':
-                    lua_pushstring(L, va_arg(ap, const char*));
+                    lua_pushstring(L, va_arg(ar->ap, const char*));
                     ++nargs; break;
                 case 'S': {
-                    const char *str = va_arg(ap, const char*);
-                    lua_pushlstring(L, str, va_arg(ap, int));
+                    const char *str = va_arg(ar->ap, const char*);
+                    lua_pushlstring(L, str, va_arg(ar->ap, int));
                     ++nargs; break;
                 }
                 case 'd': case 'i':
-                    lua_pushinteger(L, va_arg(ap, int));
+                    lua_pushinteger(L, va_arg(ar->ap, int));
                     ++nargs; break;
                 case 'f':
-                    lua_pushnumber(L, va_arg(ap, double));
+                    lua_pushnumber(L, va_arg(ar->ap, double));
                     ++nargs; break;
                 case 'b':
-                    lua_pushboolean(L, va_arg(ap, int));
+                    lua_pushboolean(L, va_arg(ar->ap, int));
                     ++nargs; break;
                 case 'p':
-                    lua_pushlightuserdata(L, va_arg(ap, void*));
+                    lua_pushlightuserdata(L, va_arg(ar->ap, void*));
                     ++nargs; break;
                 case 'c':
-                    lua_pushcfunction(L, va_arg(ap, lua_CFunction));
+                    lua_pushcfunction(L, va_arg(ar->ap, lua_CFunction));
                     ++nargs; break;
                 case 'C': {
-                    lua_CFunction cf = va_arg(ap, lua_CFunction);
-                    int nups = va_arg(ap, int);
+                    lua_CFunction cf = va_arg(ar->ap, lua_CFunction);
+                    int nups = va_arg(ar->ap, int);
                     lua_pushcclosure(L, cf, nups);
                     nargs -= nups - 1; break;
                 }
@@ -97,7 +99,7 @@ namespace lua
                     lua_pushnil(L);
                     ++nargs; break;
                 case 'v':
-                    lua_pushvalue(L, va_arg(ap, int));
+                    lua_pushvalue(L, va_arg(ar->ap, int));
                     ++nargs; break;
                 default:
                     assert(false);
@@ -109,57 +111,58 @@ namespace lua
         return lua_gettop(L) - n1;
     }
 
-    bool vcall_external(lua_State *L, const char *name, const char *args,
-    va_list ap) {
-        return vcall_external_i(L, name, args, 0, ap) >= 0;
+    static bool vcall_external(lua_State *L, const char *name,
+    const char *args, va_ref *ar) {
+        return vcall_external_i(L, name, args, 0, ar) >= 0;
     }
 
-    bool vcall_external(const char *name, const char *args, va_list ap) {
-        return vcall_external(L, name, args, ap) >= 0;
+    static bool vcall_external(const char *name, const char *args,
+    va_ref *ar) {
+        return vcall_external(L, name, args, ar) >= 0;
     }
 
     bool call_external(lua_State *L, const char *name, const char *args, ...) {
-        va_list ap;
-        va_start(ap, args);
-        bool ret = vcall_external(L, name, args, ap);
-        va_end(ap);
+        va_ref ar;
+        va_start(ar.ap, args);
+        bool ret = vcall_external(L, name, args, &ar);
+        va_end(ar.ap);
         return ret;
     }
 
     bool call_external(const char *name, const char *args, ...) {
-        va_list ap;
-        va_start(ap, args);
-        bool ret = vcall_external(name, args, ap);
-        va_end(ap);
+        va_ref ar;
+        va_start(ar.ap, args);
+        bool ret = vcall_external(name, args, &ar);
+        va_end(ar.ap);
         return ret;
     }
 
-    int vcall_external_ret(lua_State *L, const char *name, const char *args,
-    const char *retargs, va_list ap) {
+    static int vcall_external_ret(lua_State *L, const char *name,
+    const char *args, const char *retargs, va_ref *ar) {
         int nr = LUA_MULTRET;
         if (retargs && *retargs == 'N') {
             ++retargs;
-            nr = va_arg(ap, int);
+            nr = va_arg(ar->ap, int);
         }
-        int nrets = vcall_external_i(L, name, args, nr, ap);
+        int nrets = vcall_external_i(L, name, args, nr, ar);
         if (nrets < 0) return -1;
         int idx = nrets;
         if (retargs) while (*retargs) {
             switch (*retargs++) {
                 case 's':
-                    *va_arg(ap, const char**) = lua_tostring(L, -(idx--));
+                    *va_arg(ar->ap, const char**) = lua_tostring(L, -(idx--));
                     break;
                 case 'd': case 'i':
-                    *va_arg(ap, int*) = lua_tointeger(L, -idx--);
+                    *va_arg(ar->ap, int*) = lua_tointeger(L, -idx--);
                     break;
                 case 'f':
-                    *va_arg(ap, float*) = lua_tonumber(L, -idx--);
+                    *va_arg(ar->ap, float*) = lua_tonumber(L, -idx--);
                     break;
                 case 'F':
-                    *va_arg(ap, double*) = lua_tonumber(L, -idx--);
+                    *va_arg(ar->ap, double*) = lua_tonumber(L, -idx--);
                     break;
                 case 'b':
-                    *va_arg(ap, bool*) = lua_toboolean(L, -idx--);
+                    *va_arg(ar->ap, bool*) = lua_toboolean(L, -idx--);
                     break;
                 default:
                     assert(false);
@@ -169,26 +172,26 @@ namespace lua
         return nrets;
     }
 
-    int vcall_external_ret(const char *name, const char *args,
-    const char *retargs, va_list ap) {
-        return vcall_external_ret(L, name, args, retargs, ap);
+    static int vcall_external_ret(const char *name, const char *args,
+    const char *retargs, va_ref *ar) {
+        return vcall_external_ret(L, name, args, retargs, ar);
     }
 
     int call_external_ret(lua_State *L, const char *name, const char *args,
     const char *retargs, ...) {
-        va_list ap;
-        va_start(ap, retargs);
-        int ret = vcall_external_ret(L, name, args, retargs, ap);
-        va_end(ap);
+        va_ref ar;
+        va_start(ar.ap, retargs);
+        int ret = vcall_external_ret(L, name, args, retargs, &ar);
+        va_end(ar.ap);
         return ret;
     }
 
     int call_external_ret(const char *name, const char *args,
     const char *retargs, ...) {
-        va_list ap;
-        va_start(ap, retargs);
-        int ret = vcall_external_ret(name, args, retargs, ap);
-        va_end(ap);
+        va_ref ar;
+        va_start(ar.ap, retargs);
+        int ret = vcall_external_ret(name, args, retargs, &ar);
+        va_end(ar.ap);
         return ret;
     }
 

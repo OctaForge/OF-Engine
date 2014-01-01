@@ -11,21 +11,12 @@ namespace lua
     void close     ();
     int load_string(const char *str, const char *ch = NULL);
 
-    bool vcall_external(lua_State *L, const char *name, const char *args,
-        va_list ap);
-    bool  call_external(lua_State *L, const char *name, const char *args, ...);
+    bool call_external(lua_State *L, const char *name, const char *args, ...);
+    bool call_external(              const char *name, const char *args, ...);
 
-    bool vcall_external(const char *name, const char *args, va_list ap);
-    bool  call_external(const char *name, const char *args, ...);
-
-    int vcall_external_ret(lua_State *L, const char *name, const char *args,
-        const char *retargs, va_list ap);
-    int  call_external_ret(lua_State *L, const char *name, const char *args,
+    int call_external_ret(lua_State *L, const char *name, const char *args,
         const char *retargs, ...);
-
-    int vcall_external_ret(const char *name, const char *args,
-        const char *retargs, va_list ap);
-    int  call_external_ret(const char *name, const char *args,
+    int call_external_ret(              const char *name, const char *args,
         const char *retargs, ...);
 
     void pop_external_ret(lua_State *L, int n);
