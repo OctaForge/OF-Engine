@@ -70,6 +70,7 @@ LUAJIT_PKGCONF_PATH += :/usr/lib/pkgconfig:/usr/libdata/pkgconfig
 TARGET_CC = $(CROSS)$(CC)
 TARGET_CXX = $(CROSS)$(CXX)
 TARGET_STRIP = $(CROSS)strip
+TARGET_WINDRES = $(CROSS)windres
 
 ifeq (,$(VERBOSE))
 	Q = @
@@ -139,9 +140,15 @@ ifeq ($(TARGET_SYS),Windows)
 	TARGET_XINC += -Iplatform_windows/include
 	ifeq (x64,$(TARGET_ARCH))
 		TARGET_XLIB += -L../bin_win64
+		override TARGET_WINDRES += -F pe-x86-64
 	else
 		TARGET_XLIB += -L../bin_win32
+		override TARGET_WINDRES += -F pe-i386
 	endif
+	WINDRES_RC = platform_windows/mingw.rc
+	WINDRES_RES = platform_windows/mingw.res
+	WINDRES_CMDLINE = -I platform_windows -i $(WINDRES_RC) -J rc \
+	-o $(WINDRES_RES) -O coff
 else
 ifeq ($(TARGET_SYS),Linux)
 	TARGET_BINOS = linux
@@ -504,10 +511,18 @@ $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
+ifneq ($(HOST_FLAV),windows)
 client: $(ENET_OBJB) $(CLIENT_OBJB)
 	$(E) " LD (client) $(CLIENT_BIN)"
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -o $(CLIENT_BIN) \
 	$(ENET_OBJB) $(CLIENT_OBJB) $(CLIENT_LDFLAGS) $(LDFLAGS)
+else
+client: $(ENET_OBJB) $(CLIENT_OBJB)
+	$(E) " LD (client) $(CLIENT_BIN)"
+	$(Q) $(TARGET_WINDRES) $(WINDRES_CMDLINE)
+	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -o $(CLIENT_BIN) \
+	$(WINDRES_RES) $(ENET_OBJB) $(CLIENT_OBJB) $(CLIENT_LDFLAGS) $(LDFLAGS)
+endif
 
 # OctaForge - server
 
@@ -516,10 +531,18 @@ $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
+ifneq ($(HOST_FLAV),windows)
 server: $(ENET_OBJB) $(SERVER_OBJB)
 	$(E) " LD (server) $(SERVER_BIN)"
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -o $(SERVER_BIN) \
 	$(ENET_OBJB) $(SERVER_OBJB) $(SERVER_LDFLAGS) $(LDFLAGS)
+else
+server: $(ENET_OBJB) $(SERVER_OBJB)
+	$(E) " LD (server) $(SERVER_BIN)"
+	$(Q) $(TARGET_WINDRES) $(WINDRES_CMDLINE)
+	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -o $(SERVER_BIN) \
+	$(WINDRES_RES) $(ENET_OBJB) $(SERVER_OBJB) $(SERVER_LDFLAGS) $(LDFLAGS)
+endif
 
 $(OBJDIR)/tessfont.o: shared/tessfont.c
 	$(E) " CC tessfont.o"
