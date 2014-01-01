@@ -18,21 +18,29 @@ local ents
 
 --[[! Function: physics_off_map
     Called when a client falls off the map (keeps calling until the client
-    changes its state).
+    changes its state). By default emits the `off_map` signal on the client.
 
     Arguments:
         - uid - the client entity uid.
 ]]
-set_external("physics_off_map", function(uid) end)
+set_external("physics_off_map", function(uid)
+    if not ents then ents = require("core.entities.ents") end
+    emit(ents.get(uid), "off_map")
+end)
 
 --[[! Function: physics_in_deadly
-    Called when a client is in a deadly material (lava or death).
+    Called when a client is in a deadly material (lava or death). By default
+    emits the `in_deadly` signal on the client, passing the material ID as
+    an extra argument.
 
     Arguments:
         - uid - the client entity uid.
         - mat - the material id (see $edit).
 ]]
-set_external("physics_in_deadly", function(uid, mat) end)
+set_external("physics_in_deadly", function(uid, mat)
+    if not ents then ents = require("core.entities.ents") end
+    emit(ents.get(uid), "in_deadly", mat)
+end)
 
 -- flags for physics_state_change
 local FLAG_WATER = 1 << 0

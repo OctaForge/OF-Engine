@@ -140,7 +140,9 @@ local Game_Player = Player:clone {
 ents.register_class(Game_Player, {
     game_manager.player_plugin,
     health.player_plugin,
-    health.examples.player_hud_plugin
+    health.examples.player_hud_plugin,
+    health.examples.player_off_map_plugin,
+    health.examples.player_in_deadly_material_plugin
 })
 ents.register_class(ents.Obstacle, { health.examples.area_plugin },
     "Health_Area")

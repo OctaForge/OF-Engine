@@ -17,6 +17,7 @@ local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local model = require("core.engine.model")
+local edit = require("core.engine.edit")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 
@@ -305,7 +306,7 @@ M.examples = {
 
         __activate = (not SERVER) and function(self)
             signal.connect(self, "collision", self.health_area_on_collision)
-        end
+        end or nil
     },
 
     --[[!
@@ -332,10 +333,37 @@ M.examples = {
             connect(self, "health_changed", |self, v| do
                 curh = v; if maxh then updatehud() end
             end)
-        end,
+        end or nil,
         __deactivate = (not SERVER) and function(self)
             self.health_hud_status:destroy()
         end
+    },
+
+    --! Kills the player when he falls off the map.
+    player_off_map_plugin = {
+        __activate = (not SERVER) and function(self)
+            connect(self, "off_map", |ent| do
+                if not is_valid_target(ent) then return end
+                ent:set_attr("health", 0)
+            end)
+        end or nil
+    },
+
+    --[[!
+        Kills the player when in a deadly area, at once when in the `death`
+        material and gradually when in lava.
+    ]]
+    player_in_deadly_material_plugin = {
+        __activate = (not SERVER) and function(self)
+            connect(self, "in_deadly", |ent, mat| do
+                if not is_valid_target(ent) then return end
+                if mat == edit.material.LAVA then
+                    ent:health_add(-1)
+                else
+                    ent:set_attr("health", 0)
+                end
+            end)
+        end or nil
     }
 }
 
