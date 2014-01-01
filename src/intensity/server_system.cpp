@@ -141,6 +141,7 @@ void findanims(const char *pattern, vector<int> &anims) {};
 
 #ifdef WINDOWS // needs stubs too, works for now
 #include "GL/gl.h"
+PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements_ = NULL;
 #else // stubs everywhere!
 void glDepthFunc(GLenum func) {};
 void glEnable(GLenum cap) {};
