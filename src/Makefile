@@ -511,7 +511,7 @@ $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
-ifneq ($(HOST_FLAV),windows)
+ifneq ($(TARGET_SYS),Windows)
 client: $(ENET_OBJB) $(CLIENT_OBJB)
 	$(E) " LD (client) $(CLIENT_BIN)"
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -o $(CLIENT_BIN) \
@@ -531,7 +531,7 @@ $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
-ifneq ($(HOST_FLAV),windows)
+ifneq ($(TARGET_SYS),Windows)
 server: $(ENET_OBJB) $(SERVER_OBJB)
 	$(E) " LD (server) $(SERVER_BIN)"
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -o $(SERVER_BIN) \
