@@ -246,7 +246,7 @@ ifneq ($(TARGET_SYS),Windows)
 		LUAJIT_LIB = -lluajit
 	endif
 else
-	LUAJIT_LIB = -lluajit
+	LUAJIT_LIB = -llua51
 endif
 
 # client/server includes
