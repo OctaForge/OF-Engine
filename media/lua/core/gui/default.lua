@@ -412,17 +412,14 @@ gui.Window.__variants = {
 
 local progress_bar, progress_label
 local progress_win = gui.Window { __init = |win| do
-    win:append(gui.H_Box { clamp_h = true }, |hb| do
-        hb:append(gui.V_Box(), |b| do
-            b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
-                progress_label = sp:append(gui.Label())
-            end)
-            b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.01 }, |sp| do
-                progress_bar = sp:append(gui.H_Progress_Bar { min_w = 0.4,
-                    min_h = 0.03 })
-            end)
+    win:append(gui.V_Box(), |b| do
+        b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
+            progress_label = sp:append(gui.Label())
         end)
-        hb:append(gui.Filler { min_w = 0.0005, clamp_v = true })
+        b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.01 }, |sp| do
+            progress_bar = sp:append(gui.H_Progress_Bar { min_w = 0.4,
+                min_h = 0.03 })
+        end)
     end)
 end }
 
