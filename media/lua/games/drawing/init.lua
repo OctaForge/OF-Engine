@@ -28,6 +28,7 @@ local quadrenderer, taperenderer = particles.register_renderer_quad,
 local hextorgb = conv.hex_to_rgb
 
 local game_manager = require("extra.game_manager")
+local day_manager = require("extra.day_manager")
 local health = require("extra.health")
 
 local connect = signal.connect
@@ -140,12 +141,14 @@ local Game_Player = Player:clone {
 ents.register_class(Game_Player, {
     game_manager.player_plugin,
     health.player_plugin,
-    health.examples.player_hud_plugin,
-    health.examples.player_off_map_plugin,
-    health.examples.player_in_deadly_material_plugin
+    health.plugins.player_hud,
+    health.plugins.player_off_map,
+    health.plugins.player_in_deadly_material
 })
-ents.register_class(ents.Obstacle, { health.examples.area_plugin },
+ents.register_class(ents.Obstacle, { health.plugins.area },
     "Health_Area")
+
+day_manager.setup({ day_manager.plugins.day_night })
 
 if not SERVER then
     inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)

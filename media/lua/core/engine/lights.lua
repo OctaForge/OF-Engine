@@ -75,5 +75,25 @@ return {
     ir, ig, ib, own)
         capi.dynlight_add_spot(from.x, from.y, from.z, dir.x, dir.y, dir.z,
             rad, spot, r, g, b, fade, peak, flags, irad, ir, ig, ib, own)
+    end,
+
+    --[[!
+        Temporarily sets the sun light yaw and pitch (doesn't manipulate
+        the map variables). Any change to these map variables restores the
+        sunlight.
+
+        Arguments:
+            - yaw - sunlight yaw, from 0 to 360, defaulting to 0.
+            - pitch - sunlight pitch, from -90 to 90, defaulting to 0.
+    ]]
+    set_sun_yaw_pitch = function(yaw, pitch)
+        capi.sunlight_set_yaw_pitch(yaw or 0, pitch or 0)
+    end,
+
+    --[[!
+        Resets the sun light yaw and pitch back to variable values.
+    ]]
+    reset_sun_yaw_pitch = function()
+        capi.sunlight_reset_yaw_pitch()
     end
 }

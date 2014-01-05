@@ -626,14 +626,6 @@ void server_runslice()
 
     serverslice(true, 5);
 
-    time_t now = time(0);
-
-    static time_t    total_time = 0;
-    if (!total_time) total_time = now;
-
-    curtime    = (long)(1000 * (now - total_time));
-    total_time = now;
-
     if(lastmillis) game::updateworld();
 
     checksleep(lastmillis);

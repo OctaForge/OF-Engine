@@ -252,7 +252,7 @@ end
 --[[!
     A bunch of example uses of the code included in this module.
 ]]
-M.examples = {
+M.plugins = {
     --[[!
         A plugin that turns an entity (colliding one) into a "health area". It
         hooks a collision signal to the entity that changes the collider's
@@ -270,7 +270,7 @@ M.examples = {
               the collider when `health_step` is negative or restore maximum
               health when it's positive.
     ]]
-    area_plugin = {
+    area = {
         __properties = {
             health_step = svars.State_Integer(),
             health_step_millis = svars.State_Integer()
@@ -312,7 +312,7 @@ M.examples = {
     --[[!
         Displays a simple HUD health status on the player.
     ]]
-    player_hud_plugin = {
+    player_hud = {
         __activate = (not SERVER) and function(self)
             gui.get_hud():append(gui.Spacer { pad_h = 0.1, pad_v = 0.1,
                 align_h = 1, align_v = 1
@@ -340,7 +340,7 @@ M.examples = {
     },
 
     --! Kills the player when he falls off the map.
-    player_off_map_plugin = {
+    player_off_map = {
         __activate = (not SERVER) and function(self)
             connect(self, "off_map", |ent| do
                 if not is_valid_target(ent) then return end
@@ -353,7 +353,7 @@ M.examples = {
         Kills the player when in a deadly area, at once when in the `death`
         material and gradually when in lava.
     ]]
-    player_in_deadly_material_plugin = {
+    player_in_deadly_material = {
         __activate = (not SERVER) and function(self)
             connect(self, "in_deadly", |ent, mat| do
                 if not is_valid_target(ent) then return end

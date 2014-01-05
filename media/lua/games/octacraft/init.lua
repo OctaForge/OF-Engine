@@ -22,6 +22,7 @@ local ents = require("core.entities.ents")
 local geom = require("core.lua.geom")
 
 local game_manager = require("extra.game_manager")
+local day_manager = require("extra.day_manager")
 local health = require("extra.health")
 
 local Player = ents.Player
@@ -36,12 +37,14 @@ local Game_Player = Player:clone {
 ents.register_class(Game_Player, {
     game_manager.player_plugin,
     health.player_plugin,
-    health.examples.player_hud_plugin,
-    health.examples.player_off_map_plugin,
-    health.examples.player_in_deadly_material_plugin
+    health.plugins.player_hud,
+    health.plugins.player_off_map,
+    health.plugins.player_in_deadly_material
 })
-ents.register_class(ents.Obstacle, { health.examples.area_plugin },
+ents.register_class(ents.Obstacle, { health.plugins.area },
     "Health_Area")
+
+day_manager.setup({ day_manager.plugins.day_night })
 
 cs.var_set("player_class", "Game_Player")
 

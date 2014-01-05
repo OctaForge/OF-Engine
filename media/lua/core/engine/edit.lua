@@ -47,6 +47,11 @@ M.material = {:
     ALPHA    = 4 << matf.FLAG_SHIFT
 :}
 
+--[[! Function: player_is_editing
+    Returns true if player is editing, false otherwise.
+]]
+M.player_is_editing = function() return capi.editing_get() ~= 0 end
+
 --[[! Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered
     clients. You can define their AI via their entity class. This is purely

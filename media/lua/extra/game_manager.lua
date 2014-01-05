@@ -94,7 +94,9 @@ local pairs, ipairs = pairs, ipairs
 local tremove = table.remove
 local rand, floor = math.random, math.floor
 
-local Game_Manager = ents.Entity:clone {
+local Entity = ents.Entity
+
+local Game_Manager = Entity:clone {
     name = "Game_Manager",
 
     __properties = {
@@ -102,6 +104,7 @@ local Game_Manager = ents.Entity:clone {
     },
 
     __activate = SERVER and function(self)
+        Entity.__activate(self)
         self:add_tag("game_manager")
         self.teams = {}
     end or nil,
@@ -195,11 +198,14 @@ get = M.get
 
 --[[!
     Sets up the game manager. You should call this in your mapscript before
-    {{$ents.load}}.
+    {{$ents.load}}. On the server, this returns the entity.
 ]]
 M.setup = function(plugins)
     ents.register_class(Game_Manager, plugins)
-    if SERVER then ents.new(Game_Manager.name) end
+    if SERVER then
+        gameman = ents.new("Game_Manager")
+        return gameman
+    end
 end
 
 return M

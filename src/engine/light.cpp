@@ -29,8 +29,13 @@ HVARFR(sunlight, 0, 0, 0xFFFFFF,
 FVARFR(sunlightscale, 0, 1, 16, setupsunlight());
 vec sunlightdir(0, 0, 1);
 extern void setsunlightdir();
-FVARFR(sunlightyaw, 0, 0, 360, setsunlightdir());
-FVARFR(sunlightpitch, -90, 90, 90, setsunlightdir());
+float sunlightyaw, sunlightpitch;
+FVARFNR(sunlightyaw, sunyaw, 0, 0, 360, {
+    sunlightyaw = sunyaw; setsunlightdir();
+});
+FVARFNR(sunlightpitch, sunpitch, -90, 90, 90, {
+    sunlightpitch = sunpitch; setsunlightdir();
+});
 
 void setsunlightdir()
 {
@@ -39,6 +44,18 @@ void setsunlightdir()
     sunlightdir.normalize();
     setupsunlight();
 }
+
+CLUAICOMMAND(sunlight_set_yaw_pitch, void, (float yaw, float pitch), {
+    sunlightyaw   = clamp(yaw,     0.0f, 360.0f);
+    sunlightpitch = clamp(pitch, -90.0f,  90.0f);
+    setsunlightdir();
+});
+
+CLUAICOMMAND(sunlight_reset_yaw_pitch, void, (), {
+    sunlightyaw   = sunyaw;
+    sunlightpitch = sunpitch;
+    setsunlightdir();
+})
 
 void setupsunlight()
 {
