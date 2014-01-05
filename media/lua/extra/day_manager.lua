@@ -116,7 +116,7 @@ M.plugins = {
             end)
             connect(self, "day_progress_changed", |self, v| do
                 if not daylen then return end
-                if edit.player_is_editing() then print("editing") return end
+                if edit.player_is_editing() then return end
                 self.sun_changed_dir = true
                 lights.set_sun_yaw_pitch(getsunyawpitch(v, daylen * 1000))
             end)
