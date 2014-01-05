@@ -42,7 +42,7 @@ local Day_Manager = Entity:clone {
 
     __activate = SERVER and function(self)
         Entity.__activate(self)
-        self.day_seconds_s = 60
+        self.day_seconds_s = self:get_attr("day_seconds")
         connect(self, "day_seconds_changed", |self, v| do
             self.day_seconds_s = v
         end)
