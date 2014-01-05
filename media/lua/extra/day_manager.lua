@@ -26,8 +26,8 @@ local Entity = ents.Entity
 --[[!
     This is the day manager entity class.
 ]]
-local Sky_Manager = Entity:clone {
-    name = "Sky_Manager",
+local Day_Manager = Entity:clone {
+    name = "Day_Manager",
 
     __properties = {
         day_seconds = svars.State_Integer(),
@@ -67,7 +67,7 @@ local dayman
 --! Gets the day manager instance.
 M.get = function()
     if not dayman then
-        dayman = ents.get_by_class("Sky_Manager")[1]
+        dayman = ents.get_by_class("Day_Manager")[1]
     end
     assert(dayman)
     return dayman
@@ -81,9 +81,9 @@ get = M.get
     entity.
 ]]
 M.setup = function(plugins)
-    ents.register_class(Sky_Manager, plugins)
+    ents.register_class(Day_Manager, plugins)
     if SERVER then
-        dayman = ents.new("Sky_Manager")
+        dayman = ents.new("Day_Manager")
         return dayman
     end
 end
