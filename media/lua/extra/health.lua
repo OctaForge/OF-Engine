@@ -314,24 +314,24 @@ M.examples = {
     ]]
     player_hud_plugin = {
         __activate = (not SERVER) and function(self)
-            local hstatus
             gui.get_hud():append(gui.Spacer { pad_h = 0.1, pad_v = 0.1,
                 align_h = 1, align_v = 1
-            }, |sp| do hstatus = sp:append(gui.Label {
-                scale = 2.5, font = "default_outline"
-            }) end)
-            self.health_hud_status = hstatus
-
-            local curh, maxh
-            local updatehud = || do
-                hstatus:set_text(tostring(curh))
-                hstatus:set_color(gethcolor(curh, maxh))
-            end
-            connect(self, "max_health_changed", |self, v| do
-                maxh = v; if curh then updatehud() end
-            end)
-            connect(self, "health_changed", |self, v| do
-                curh = v; if maxh then updatehud() end
+            }, |sp| do
+                self.health_hud_status = sp:append(gui.Label {
+                    scale = 2.5, font = "default_outline"
+                }, |st| do
+                    local curh, maxh
+                    local updatehud = || do
+                        st:set_text(tostring(curh))
+                        st:set_color(gethcolor(curh, maxh))
+                    end
+                    connect(self, "max_health_changed", |self, v| do
+                        maxh = v; if curh then updatehud() end
+                    end)
+                    connect(self, "health_changed", |self, v| do
+                        curh = v; if maxh then updatehud() end
+                    end)
+                end)
             end)
         end or nil,
         __deactivate = (not SERVER) and function(self)
