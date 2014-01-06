@@ -91,9 +91,16 @@ return {
     end,
 
     --[[!
-        Resets the sun light yaw and pitch back to variable values.
+        Sets the sunlight scale temporarily.
     ]]
-    reset_sun_yaw_pitch = function()
-        capi.sunlight_reset_yaw_pitch()
+    set_sunlight_scale = function(s)
+        capi.sunlight_set_scale(s or 0)
+    end,
+
+    --[[!
+        Resets the sun light yaw, pitch and scale back to variable values.
+    ]]
+    reset_sun = function()
+        capi.sunlight_reset()
     end
 }

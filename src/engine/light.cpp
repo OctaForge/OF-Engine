@@ -26,7 +26,10 @@ HVARFR(sunlight, 0, 0, 0xFFFFFF,
     cleardeferredlightshaders();
     clearshadowcache();
 });
-FVARFR(sunlightscale, 0, 1, 16, setupsunlight());
+float sunlightscale;
+FVARFNR(sunlightscale, sunlightscalev, 0, 1, 16, {
+    sunlightscale = sunlightscalev; setupsunlight();
+});
 vec sunlightdir(0, 0, 1);
 extern void setsunlightdir();
 float sunlightyaw, sunlightpitch;
@@ -51,10 +54,16 @@ CLUAICOMMAND(sunlight_set_yaw_pitch, void, (float yaw, float pitch), {
     setsunlightdir();
 });
 
-CLUAICOMMAND(sunlight_reset_yaw_pitch, void, (), {
+CLUAICOMMAND(sunlight_reset, void, (), {
     sunlightyaw   = sunyaw;
     sunlightpitch = sunpitch;
+    sunlightscale = sunlightscalev;
     setsunlightdir();
+})
+
+CLUAICOMMAND(sunlight_set_scale, void, (float scale), {
+    sunlightscale = scale;
+    setupsunlight();
 })
 
 void setupsunlight()

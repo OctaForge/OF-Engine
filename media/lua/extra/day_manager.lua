@@ -88,7 +88,7 @@ M.setup = function(plugins)
     end
 end
 
-local getsunyawpitch = function(daytime, daylen)
+local getsunparams = function(daytime, daylen)
     local mid = daylen / 2
     local yaw = 360 - (daytime / daylen) * 360
     local pitch
@@ -97,7 +97,7 @@ local getsunyawpitch = function(daytime, daylen)
     else
         pitch = 90 - ((daytime - mid) / mid) * 180
     end
-    return yaw, pitch
+    return yaw, pitch, 1
 end
 
 --[[!
@@ -118,13 +118,15 @@ M.plugins = {
                 if not daylen then return end
                 if edit.player_is_editing() then return end
                 self.sun_changed_dir = true
-                lights.set_sun_yaw_pitch(getsunyawpitch(v, daylen * 1000))
+                local yaw, pitch, scale = getsunparams(v, daylen * 1000)
+                lights.set_sun_yaw_pitch(yaw, pitch)
+                lights.set_sunlight_scale(scale)
             end)
         end or nil,
 
         __run = (not SERVER) and function(self)
             if self.sun_changed_dir and edit.player_is_editing() then
-                lights.reset_sun_yaw_pitch()
+                lights.reset_sun()
                 self.sun_changed_dir = false
             end
         end or nil
