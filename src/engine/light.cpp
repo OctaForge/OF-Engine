@@ -1,27 +1,14 @@
 #include "engine.h"
 
-bvec ambientcolor(0x19, 0x19, 0x19);
-HVARFR(ambient, 1, 0x191919, 0xFFFFFF,
-{
-    if(ambient <= 255) ambient |= (ambient<<8) | (ambient<<16);
-    ambientcolor = bvec::hexcolor(ambient);
-});
+CVAR1R(ambient, 0x191919);
 FVARR(ambientscale, 0, 1, 16);
 
-bvec skylightcolor(0, 0, 0);
-HVARFR(skylight, 0, 0, 0xFFFFFF,
-{
-    if(skylight <= 255) skylight |= (skylight<<8) | (skylight<<16);
-    skylightcolor = bvec::hexcolor(skylight);
-});
+CVAR1R(skylight, 0);
 FVARR(skylightscale, 0, 1, 16);
 
 extern void setupsunlight();
-bvec sunlightcolor(0, 0, 0);
-HVARFR(sunlight, 0, 0, 0xFFFFFF,
+CVAR1FR(sunlight, 0,
 {
-    if(sunlight <= 255) sunlight |= (sunlight<<8) | (sunlight<<16);
-    sunlightcolor = bvec::hexcolor(sunlight);
     setupsunlight();
     cleardeferredlightshaders();
     clearshadowcache();
@@ -30,6 +17,7 @@ float sunlightscale;
 FVARFNR(sunlightscale, sunlightscalev, 0, 1, 16, {
     sunlightscale = sunlightscalev; setupsunlight();
 });
+
 vec sunlightdir(0, 0, 1);
 extern void setsunlightdir();
 float sunlightyaw, sunlightpitch;
@@ -618,7 +606,7 @@ static Uint32 calclighttimer(Uint32 interval, void *param)
 void calclight()
 {
     renderbackground("computing lighting... (esc to abort)");
-    mpremip(true);
+    remip();
     optimizeblendmap();
     clearlightcache();
     clearsurfaces(worldroot);
@@ -642,7 +630,14 @@ void calclight()
             (end - start) / 1000.0f);
 }
 
-COMMAND(calclight, "");
+void mpcalclight(bool local)
+{
+    extern selinfo sel;
+    if(local) game::edittrigger(sel, EDIT_CALCLIGHT);
+    calclight();
+}
+
+ICOMMAND(calclight, "", (), mpcalclight(true));
 
 VARF(fullbright, 0, 0, 1, initlights());
 VARF(fullbrightlevel, 0, 160, 255, initlights());
@@ -662,7 +657,7 @@ void initlights()
     loaddeferredlightshaders();
 }
 
-void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity *t, float ambient)
+void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity *t, float minambient)
 {
     if(fullbright && editmode)
     {
@@ -712,13 +707,13 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
         color.add(vec(lightcol).mul(intensity));
         dir.add(vec(ray).mul(-intensity*lightcol.x*lightcol.y*lightcol.z));
     }
-    if(sunlight && shadowray(target, sunlightdir, 1e16f, RAY_SHADOW | RAY_POLY, t) > 1e15f)
+    if(!sunlight.iszero() && shadowray(target, sunlightdir, 1e16f, RAY_SHADOW | RAY_POLY, t) > 1e15f)
     {
-        vec lightcol = sunlightcolor.tocolor().mul(sunlightscale);
+        vec lightcol = sunlight.tocolor().mul(sunlightscale);
         color.add(lightcol);
         dir.add(vec(sunlightdir).mul(lightcol.x*lightcol.y*lightcol.z));
     }
-    loopk(3) color[k] = min(1.5f, max(max(ambientcolor[k]/255.0f, ambient), color[k]));
+    color.max(ambient.tocolor().max(minambient)).min(1.5f);
     if(dir.iszero()) dir = vec(0, 0, 1);
     else dir.normalize();
 }

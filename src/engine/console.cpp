@@ -182,6 +182,9 @@ struct keym
 
     keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
     ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
+
+    void clear(int type);
+    void clear() { loopi(NUMACTIONS) clear(i); }
 };
 
 hashtable<int, keym> keyms(128);
@@ -259,6 +262,21 @@ ICOMMAND(geteditbind, "s", (char *key), getbind(key, keym::ACTION_EDITING));
 ICOMMAND(searchbinds,     "s", (char *action), searchbinds(action, keym::ACTION_DEFAULT));
 ICOMMAND(searchspecbinds, "s", (char *action), searchbinds(action, keym::ACTION_SPECTATOR));
 ICOMMAND(searcheditbinds, "s", (char *action), searchbinds(action, keym::ACTION_EDITING));
+
+void keym::clear(int type)
+{
+    char *&binding = actions[type];
+    if(binding[0])
+    {
+        if(!keypressed || keyaction!=binding) delete[] binding;
+        binding = newstring("");
+    }
+}
+
+ICOMMAND(clearbinds, "", (), enumerate(keyms, keym, km, km.clear(keym::ACTION_DEFAULT)));
+ICOMMAND(clearspecbinds, "", (), enumerate(keyms, keym, km, km.clear(keym::ACTION_SPECTATOR)));
+ICOMMAND(cleareditbinds, "", (), enumerate(keyms, keym, km, km.clear(keym::ACTION_EDITING)));
+ICOMMAND(clearallbinds, "", (), enumerate(keyms, keym, km, km.clear()));
 
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL, char *flags = NULL) // turns input to the command line on or off
 {

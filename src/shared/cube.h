@@ -56,19 +56,15 @@ extern "C" {
 #ifdef main
 #undef main
 #endif
+#else
+#ifdef __APPLE__
+#define main SDL_main
+#endif
 #endif
 
 #include <enet/enet.h>
 
 #include <zlib.h>
-
-#ifdef __sun__
-#undef sun
-#ifdef queue
-  #undef queue
-#endif
-#define queue __squeue
-#endif
 
 #ifdef swap
 #undef swap
@@ -84,6 +80,7 @@ extern "C" {
 #include "geom.h"
 #include "ents.h"
 #include "command.h"
+
 #include "glexts.h"
 #include "glemu.h"
 

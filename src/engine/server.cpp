@@ -355,9 +355,11 @@ void sendserverinforeply(ucharbuf &p)
     enet_socket_send(serverhost->socket, &serverinfoaddress, &buf, 1);
 }
 
+#define MAXPINGDATA 32
+
 static int serverinfointercept(ENetHost *host, ENetEvent *event)
 {
-    if(host->receivedDataLength < 2 || host->receivedData[0] != 0xFF || host->receivedData[1] != 0xFF) return 0;
+    if(host->receivedDataLength < 2 || host->receivedData[0] != 0xFF || host->receivedData[1] != 0xFF || host->receivedDataLength-2 > MAXPINGDATA) return 0;
     serverinfoaddress = host->receivedAddress;
     return 1;
 }
@@ -422,7 +424,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
                 client &c = addclient(ST_TCPIP);
                 c.peer = event.peer;
                 c.peer->data = &c;
-                char hn[1024];
+                string hn;
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logoutf("client connected (%s)", c.hostname);
                 int reason = server::clientconnect(c.num, c.peer->address.host);
@@ -577,7 +579,7 @@ bool serveroption(char *opt)
 {
     switch(opt[1])
     {
-        case 'u': setvar("serveruprate", atoi(opt+2)); return true;
+        case 'r': setvar("serveruprate", atoi(opt+2)); return true;
         case 'c': maxclients = atoi(opt+2); return true;
         case 'i': setsvar("serverip", opt+2); return true;
         case 'j': setvar("serverport", atoi(opt+2)); return true;
@@ -689,7 +691,7 @@ int main(int argc, char **argv)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
         {
-            case 'q':
+            case 'u':
             {
                 dir = sethomedir(&argv[i][2]);
                 break;

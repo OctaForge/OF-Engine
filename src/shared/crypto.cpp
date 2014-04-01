@@ -864,8 +864,8 @@ bool hashstring(const char *str, char *result, int maxlen)
     loopi(sizeof(hv.bytes))
     {
         uchar c = hv.bytes[i];
-        *result++ = "0123456789abcdef"[c&0xF];
         *result++ = "0123456789abcdef"[c>>4];
+        *result++ = "0123456789abcdef"[c&0xF];
     }
     *result = '\0';
     return true;
@@ -898,7 +898,7 @@ void freepubkey(void *pubkey)
 void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr)
 {
     tiger::hashval hash;
-    tiger::hash((const uchar *)seed, sizeof(seed), hash);
+    tiger::hash((const uchar *)seed, seedlen, hash);
     gfint challenge;
     memcpy(challenge.digits, hash.bytes, sizeof(hash.bytes));
     challenge.len = 8*sizeof(hash.bytes)/BI_DIGIT_BITS;

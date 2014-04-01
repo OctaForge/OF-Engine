@@ -1,5 +1,5 @@
 # OctaForge makefile
-# written for FreeBSD, Linux, Solaris, Mac OS X and Windows
+# written for FreeBSD, Linux, Mac OS X and Windows
 #
 # author: Daniel 'q66' Kolesa <quaker66@gmail.com>
 # license: MIT
@@ -177,17 +177,7 @@ ifeq ($(TARGET_SYS),Darwin)
 		TARGET_XLIB += -Lplatform_osx/lib32
 	endif
 else
-ifeq ($(TARGET_SYS),SunOS)
-	TARGET_BINOS = solaris
-	TARGET_XINC += -Iplatform_solaris/include
-	ifeq (x64,$(TARGET_ARCH))
-		TARGET_XLIB += -Lplatform_solaris/lib64
-	else
-		TARGET_XLIB += -Lplatform_solaris/lib32
-	endif
-else
 	$(error Unsupported OS)
-endif
 endif
 endif
 endif
@@ -313,9 +303,6 @@ else
 		CLIENT_LDFLAGS += -ldl -lrt
 	endif
 	endif
-	ifeq ($(TARGET_SYS),SunOS)
-		CLIENT_LDFLAGS += -lsocket -lnsl
-	endif
 endif
 endif
 
@@ -412,9 +399,6 @@ else
 	ifeq ($(TARGET_SYS),Linux)
 		SERVER_LDFLAGS += -ldl
 	endif
-	ifeq ($(TARGET_SYS),SunOS)
-		SERVER_LDFLAGS += -lsocket -lnsl
-	endif
 endif
 endif
 
@@ -466,6 +450,7 @@ endif
 
 ENET_OBJ = \
 	enet/callbacks.o \
+	enet/compress.o \
 	enet/host.o \
 	enet/list.o \
 	enet/packet.o \
@@ -716,6 +701,7 @@ $(OBJDIR)/server/octaforge/of_logger.o: shared/cube.h shared/tools.h shared/geom
 $(OBJDIR)/server/octaforge/of_entities.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/engine.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h game/game.h intensity/targeting.h octaforge/of_world.h
 
 $(OBJDIR)/enet/callbacks.o: enet/include/enet/enet.h enet/include/enet/unix.h enet/include/enet/types.h enet/include/enet/protocol.h enet/include/enet/list.h enet/include/enet/callbacks.h
+$(OBJDIR)/enet/compress.o: enet/include/enet/enet.h enet/include/enet/unix.h enet/include/enet/types.h enet/include/enet/protocol.h enet/include/enet/list.h enet/include/enet/callbacks.h
 $(OBJDIR)/enet/host.o: enet/include/enet/enet.h enet/include/enet/unix.h enet/include/enet/types.h enet/include/enet/protocol.h enet/include/enet/list.h enet/include/enet/callbacks.h
 $(OBJDIR)/enet/list.o: enet/include/enet/enet.h enet/include/enet/unix.h enet/include/enet/types.h enet/include/enet/protocol.h enet/include/enet/list.h enet/include/enet/callbacks.h
 $(OBJDIR)/enet/packet.o: enet/include/enet/enet.h enet/include/enet/unix.h enet/include/enet/types.h enet/include/enet/protocol.h enet/include/enet/list.h enet/include/enet/callbacks.h

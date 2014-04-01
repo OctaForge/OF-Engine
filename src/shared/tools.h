@@ -134,7 +134,13 @@ static inline T clamp(T a, U b, U c)
 typedef char string[MAXSTRLEN];
 
 inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
-inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
+inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN)
+{
+    size_t slen = min(strlen(s)+1, len);
+    memcpy(d, s, slen);
+    d[slen-1] = 0;
+    return d;
+}
 inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
 inline char *prependstring(char *d, const char *s, size_t len = MAXSTRLEN)
 {
@@ -600,7 +606,7 @@ template <class T> struct vector
     T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
     const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
 
-    void disown() { buf = NULL; alen = ulen = 0; }
+    T *disown() { T *r = buf; buf = NULL; alen = ulen = 0; return r; }
 
     void shrink(int i) { ASSERT(i<=ulen); if(isclass<T>::no) ulen = i; else while(ulen>i) drop(); }
     void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
@@ -1199,46 +1205,6 @@ template<class K, class T> struct hashtable : hashbase<hashtable<K, T>, hashtabl
 #define enumeratekt(ht,k,e,t,f,b) loopi((ht).size) for(void *ec = (ht).chains[i]; ec;) { k &e = (ht).enumkey(ec); t &f = (ht).enumdata(ec); ec = (ht).enumnext(ec); b; }
 #define enumerate(ht,t,e,b)       loopi((ht).size) for(void *ec = (ht).chains[i]; ec;) { t &e = (ht).enumdata(ec); ec = (ht).enumnext(ec); b; }
 
-struct unionfind
-{
-    struct ufval
-    {
-        int rank, next;
-
-        ufval() : rank(0), next(-1) {}
-    };
-
-    vector<ufval> ufvals;
-
-    int find(int k)
-    {
-        if(k>=ufvals.length()) return k;
-        while(ufvals[k].next>=0) k = ufvals[k].next;
-        return k;
-    }
-
-    int compressfind(int k)
-    {
-        if(ufvals[k].next<0) return k;
-        return ufvals[k].next = compressfind(ufvals[k].next);
-    }
-
-    void unite (int x, int y)
-    {
-        while(ufvals.length() <= max(x, y)) ufvals.add();
-        x = compressfind(x);
-        y = compressfind(y);
-        if(x==y) return;
-        ufval &xval = ufvals[x], &yval = ufvals[y];
-        if(xval.rank < yval.rank) xval.next = y;
-        else
-        {
-            yval.next = x;
-            if(xval.rank==yval.rank) yval.rank++;
-        }
-    }
-};
-
 template <class T, int SIZE> struct queue
 {
     int head, tail, len;
@@ -1300,8 +1266,7 @@ template <class T, int SIZE> struct reversequeue : queue<T, SIZE>
 
 inline char *newstring(size_t l)                { return new char[l+1]; }
 inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
-inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
-inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
+inline char *newstring(const char *s)           { size_t l = strlen(s); char *d = newstring(l); memcpy(d, s, l+1); return d; }
 inline char *newstring(const stringslice &s)    { return newstring(s.str, s.len); }
 
 inline char *newconcatstring(const char *s, const char *t)
@@ -1384,6 +1349,7 @@ struct stream
     virtual offset rawsize() { return size(); }
     virtual int read(void *buf, int len) { return 0; }
     virtual int write(const void *buf, int len) { return 0; }
+    virtual bool flush() { return true; }
     virtual int getchar() { uchar c; return read(&c, 1) == 1 ? c : -1; }
     virtual bool putchar(int n) { uchar c = n; return write(&c, 1) == 1; }
     virtual bool getline(char *str, int len);
@@ -1448,6 +1414,16 @@ static inline uchar uni2cube(int c)
     extern const int uni2cubeoffsets[8];
     extern const uchar uni2cubechars[];
     return uint(c) <= 0x7FF ? uni2cubechars[uni2cubeoffsets[c>>8] + (c&0xFF)] : 0;
+}
+static inline uchar cubelower(uchar c)
+{
+    extern const uchar cubelowerchars[256];
+    return cubelowerchars[c];
+}
+static inline uchar cubeupper(uchar c)
+{
+    extern const uchar cubeupperchars[256];
+    return cubeupperchars[c];
 }
 extern int decodeutf8(uchar *dst, int dstlen, const uchar *src, int srclen, int *carry = NULL);
 extern int encodeutf8(uchar *dstbuf, int dstlen, const uchar *srcbuf, int srclen, int *carry = NULL);

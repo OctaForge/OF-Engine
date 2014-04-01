@@ -43,7 +43,7 @@ enum // cube empty-space materials
 #define isdeadly(mat) ((mat)==MAT_LAVA)
 
 extern void lightent(extentity &e, float height = 8.0f);
-extern void lightreaching(const vec &target, vec &color, vec &dir, bool fast = false, extentity *e = 0, float ambient = 0.4f);
+extern void lightreaching(const vec &target, vec &color, vec &dir, bool fast = false, extentity *e = 0, float minambient = 0.4f);
 
 enum { RAY_BB = 1, RAY_POLY = 3, RAY_ALPHAPOLY = 7, RAY_ENTS = 9, RAY_CLIPMAT = 16, RAY_SKIPFIRST = 32, RAY_EDITMAT = 64, RAY_SHADOW = 128, RAY_PASS = 256, RAY_SKIPSKY = 512 };
 
@@ -59,7 +59,7 @@ extern bool settexture(const char *name, int clamp = 0);
 
 // octaedit
 
-enum { EDIT_FACE = 0, EDIT_TEX, EDIT_MAT, EDIT_FLIP, EDIT_COPY, EDIT_PASTE, EDIT_ROTATE, EDIT_REPLACE, EDIT_DELCUBE, EDIT_REMIP };
+enum { EDIT_FACE = 0, EDIT_TEX, EDIT_MAT, EDIT_FLIP, EDIT_COPY, EDIT_PASTE, EDIT_ROTATE, EDIT_REPLACE, EDIT_DELCUBE, EDIT_CALCLIGHT, EDIT_REMIP };
 
 struct selinfo
 {
@@ -107,6 +107,7 @@ extern void mprotate(int cw, selinfo &sel, bool local);
 extern void mpreplacetex(int oldtex, int newtex, bool insel, selinfo &sel, bool local);
 extern void mpdelcube(selinfo &sel, bool local);
 extern void mpremip(bool local);
+extern void mpcalclight(bool local);
 
 // command
 extern int variable(const char *name, int min, int cur, int max, int *storage, identfun fun, int flags);
@@ -173,7 +174,7 @@ extern void printsvar(ident *id, const char *s);
 extern int clampvar(ident *id, int i, int minval, int maxval);
 extern float clampfvar(ident *id, float f, float minval, float maxval);
 extern void resetvar(char *name);
-extern void loopiter(ident *id, identstack &stack, tagval &v);
+extern void loopiter(ident *id, identstack &stack, const tagval &v);
 extern void loopend(ident *id, identstack &stack);
 
 #define loopstart(id, stack) if((id)->type != ID_ALIAS) return; identstack stack;
@@ -265,10 +266,12 @@ extern void removetrackedparticles(physent *owner = NULL);
 // rendergl
 extern physent *camera1;
 extern vec worldpos, camdir, camright, camup;
+extern float curfov, fovy, aspect;
 
 extern void disablezoom();
 
 extern vec calcavatarpos(const vec &pos, float dist);
+extern vec calcmodelpreviewpos(const vec &radius, float &yaw);
 
 extern vec minimapcenter, minimapradius, minimapscale;
 extern void bindminimap();

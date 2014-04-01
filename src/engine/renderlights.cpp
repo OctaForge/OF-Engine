@@ -56,9 +56,9 @@ void setupbloom(int w, int h)
         createtexture(bloomtex[5], bloomw, bloomh, NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE);
     }
 
-    static uchar gray[3] = { 32, 32, 32 };
-    static float grayf[3] = { 0.125f, 0.125f, 0.125f };
-    createtexture(bloomtex[4], 1, 1, hasTF ? (void *)grayf : (void *)gray, 3, 1, hasTF ? (hasTRG ? GL_R16F : GL_RGB16F) : (hasTRG ? GL_R16 : GL_RGB16));
+    static const uchar gray[3] = { 32, 32, 32 };
+    static const float grayf[3] = { 0.125f, 0.125f, 0.125f };
+    createtexture(bloomtex[4], 1, 1, hasTF ? (const void *)grayf : (const void *)gray, 3, 1, hasTF ? (hasTRG ? GL_R16F : GL_RGB16F) : (hasTRG ? GL_R16 : GL_RGB16));
 
     loopi(5 + (bloomformat != GL_RGB ? 1 : 0))
     {
@@ -1331,6 +1331,7 @@ VARFP(rhprec, 0, 0, 1, cleanupradiancehints());
 VARFP(rsmprec, 0, 0, 3, cleanupradiancehints());
 VARFP(rsmdepthprec, 0, 0, 2, cleanupradiancehints());
 FVAR(rhnudge, 0, 0.5f, 4);
+FVARF(rhworldbias, 0, 0.5f, 10, clearradiancehintscache());
 FVARF(rhsplitweight, 0.20f, 0.6f, 0.95f, clearradiancehintscache());
 VARF(rhgrid, 3, 27, RH_MAXGRID, cleanupradiancehints());
 FVARF(rsmspread, 0, 0.15f, 1, clearradiancehintscache());
@@ -1669,7 +1670,7 @@ static inline bool htcmp(const lighttileslice &x, const lighttileslice &y)
     return x.tile->band == y.tile->band &&
            x.priority == y.priority &&
            x.numlights == y.numlights &&
-           (!x.numlights || !memcmp(&x.tile->lights[x.offset], &y.tile->lights[y.offset], x.numlights*sizeof(int)));
+           (!x.numlights || !memcmp(&x.tile->lights[x.offset], &y.tile->lights[y.offset], x.numlights*sizeof(ushort)));
 }
 
 vector<lightinfo> lights;
@@ -2123,7 +2124,7 @@ void radiancehints::bindparams()
 
 bool useradiancehints()
 {
-    return sunlight && csmshadowmap && gi && giscale && gidist;
+    return !sunlight.iszero() && csmshadowmap && gi && giscale && gidist;
 }
 
 static Shader *deferredlightshader = NULL, *deferredminimapshader = NULL, *deferredmsaapixelshader = NULL, *deferredmsaasampleshader = NULL;
@@ -2159,7 +2160,7 @@ Shader *loaddeferredlightshader(const char *type = NULL)
 
     int usecsm = 0, userh = 0, usebase = 0;
     if(common[0] != 'm' && ao) sun[sunlen++] = 'a';
-    if(sunlight && csmshadowmap)
+    if(!sunlight.iszero() && csmshadowmap)
     {
         usecsm = csmsplits;
         sun[sunlen++] = 'c';
@@ -2382,7 +2383,7 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
         glActiveTexture_(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_RECTANGLE, aotex[2] ? aotex[2] : aotex[0]);
     }
-    if(sunlight && csmshadowmap && gi && giscale && gidist) loopi(4)
+    if(useradiancehints()) loopi(4)
     {
         glActiveTexture_(GL_TEXTURE6 + i);
         glBindTexture(GL_TEXTURE_3D, rhtex[i]);
@@ -2407,10 +2408,10 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
     if(editmode && fullbright)
         GLOBALPARAMF(lightscale, fullbrightlevel*lightscale, fullbrightlevel*lightscale, fullbrightlevel*lightscale, 255*lightscale);
     else
-        GLOBALPARAMF(lightscale, ambientcolor.x*lightscale*ambientscale, ambientcolor.y*lightscale*ambientscale, ambientcolor.z*lightscale*ambientscale, 255*lightscale);
+        GLOBALPARAMF(lightscale, ambient.x*lightscale*ambientscale, ambient.y*lightscale*ambientscale, ambient.z*lightscale*ambientscale, 255*lightscale);
 
     bool sunpass = !lighttilebatch;
-    if(sunlight && csmshadowmap)
+    if(!sunlight.iszero() && csmshadowmap)
     {
         csm.bindparams();
         rh.bindparams();
@@ -2424,9 +2425,9 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
         else
         {
             GLOBALPARAM(sunlightdir, sunlightdir);
-            GLOBALPARAMF(sunlightcolor, sunlightcolor.x*lightscale*sunlightscale, sunlightcolor.y*lightscale*sunlightscale, sunlightcolor.z*lightscale*sunlightscale);
+            GLOBALPARAMF(sunlightcolor, sunlight.x*lightscale*sunlightscale, sunlight.y*lightscale*sunlightscale, sunlight.z*lightscale*sunlightscale);
             GLOBALPARAMF(giscale, 2*giscale);
-            GLOBALPARAMF(skylightcolor, 2*giaoscale*skylightcolor.x*lightscale*skylightscale, 2*giaoscale*skylightcolor.y*lightscale*skylightscale, 2*giaoscale*skylightcolor.z*lightscale*skylightscale);
+            GLOBALPARAMF(skylightcolor, 2*giaoscale*skylight.x*lightscale*skylightscale, 2*giaoscale*skylight.y*lightscale*skylightscale, 2*giaoscale*skylight.z*lightscale*skylightscale);
         }
         if(batchsunlight <= (gi && giscale && gidist ? 1 : 0)) sunpass = true;
     }
@@ -2818,8 +2819,12 @@ void collectlights()
         if(calclightscissor(l)) lightorder.add(lights.length()-1);
     }
 
-    updatedynlights();
-    int numdynlights = finddynlights();
+    int numdynlights = 0;
+    if(!drawtex)
+    {
+        updatedynlights();
+        numdynlights = finddynlights();
+    }
     loopi(numdynlights)
     {
         vec o, color, dir;
@@ -2999,7 +3004,7 @@ void packlights()
     if(lighttilebatch) loop(y, lighttileh)
     {
         int band = lighttilebands && lighttilebands < lighttileh ? (y * lighttilebands) / lighttileh : y;
-        bool sunpass = sunlight && csmshadowmap && batchsunlight < (gi && giscale && gidist ? 1 : 0);
+        bool sunpass = !sunlight.iszero() && csmshadowmap && batchsunlight < (gi && giscale && gidist ? 1 : 0);
         loop(x, lighttilew)
         {
             lighttile &tile = lighttiles[y][x];
@@ -3187,7 +3192,6 @@ void radiancehints::renderslices()
 
     memset(rhclearmasks[0], 0xFF, sizeof(rhclearmasks[0]));
 
-    float nudge = rhnudge*2*splits[0].bounds/rhgrid;
     loopirev(rhsplits)
     {
         splitinfo &split = splits[i];
@@ -3203,7 +3207,7 @@ void radiancehints::renderslices()
             }
         }
 
-        float cellradius = split.bounds/rhgrid, step = 2*cellradius;
+        float cellradius = split.bounds/rhgrid, step = 2*cellradius, nudge = rhnudge*2*splits[0].bounds/rhgrid + rhworldbias*step;
         GLOBALPARAM(rhcenter, split.center);
         GLOBALPARAMF(rhbounds, split.bounds);
         GLOBALPARAMF(rhspread, cellradius);
@@ -3430,7 +3434,7 @@ VAR(rhinoq, 0, 1, 1);
 
 void renderradiancehints()
 {
-    if(!sunlight || !csmshadowmap || !gi || !giscale || !gidist) return;
+    if(!useradiancehints()) return;
 
     timer *rhcputimer = begintimer("radiance hints", false);
     timer *rhtimer = begintimer("radiance hints");
@@ -3730,7 +3734,7 @@ void rendershadowatlas()
     glEnable(GL_SCISSOR_TEST);
 
     // sun light
-    if(sunlight && csmshadowmap)
+    if(!sunlight.iszero() && csmshadowmap)
     {
         csm.setup();
         rendercsmshadowmaps();
@@ -4177,9 +4181,9 @@ void setuplights()
     if(bloomw < 0 || bloomh < 0) setupbloom(gw, gh);
     if(ao && (aow < 0 || aoh < 0)) setupao(gw, gh);
     if(!shadowatlasfbo) setupshadowatlas();
-    if(sunlight && csmshadowmap && gi && giscale && gidist && !rhfbo) setupradiancehints();
+    if(useradiancehints() && !rhfbo) setupradiancehints();
     if(!deferredlightshader) loaddeferredlightshaders();
-    if(drawtex == DRAWTEX_MINIMAP && !deferredminimapshader) deferredminimapshader = loaddeferredlightshader(msaasamples ? "Mm" : "m");
+    if(drawtex == DRAWTEX_MINIMAP && !deferredminimapshader) deferredminimapshader = loaddeferredlightshader(msaasamples ? "mM" : "m");
     setupaa(gw, gh);
     GLERROR;
 }

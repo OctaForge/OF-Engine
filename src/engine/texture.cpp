@@ -9,10 +9,11 @@ static void halvetexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
 {
     for (uchar *yend = &src[sh*stride]; src < yend;)
     {
-        for (uchar *xend = &src[stride]; src < xend; src += 2*S, dst += S) {
-            loopi(S) dst[i] = (uint(src[i]) + uint(src[i+S]) + uint(src[stride+i]) + uint(src[stride+i+S]))>>2;
+        for(uchar *xend = &src[sw*S], *xsrc = src; xsrc < xend; xsrc += 2*S, dst += S)
+        {
+            loopi(S) dst[i] = (uint(xsrc[i]) + uint(xsrc[i+S]) + uint(xsrc[stride+i]) + uint(xsrc[stride+i+S]))>>2;
         }
-        src += stride;
+        src += 2*stride;
     }
 }
 
@@ -25,10 +26,10 @@ static void shifttexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst, 
     uint tshift = wshift + hshift;
     for(uchar *yend = &src[sh*stride]; src < yend;)
     {
-        for(uchar *xend = &src[stride];    src < xend; src += wfrac*S, dst += S)
+        for(uchar *xend = &src[sw*S], *xsrc = src; xsrc < xend; xsrc += wfrac*S, dst += S)
         {
             uint r[S] = {0};
-            for(uchar *ycur=src, *xend=&ycur[wfrac*S], *yend=&src[hfrac*stride]; ycur<yend; ycur+=stride, xend+=stride)
+            for(uchar *ycur = xsrc, *xend = &ycur[wfrac*S], *yend = &src[hfrac*stride]; ycur<yend; ycur+=stride, xend+=stride)
             {
                 for(uchar *xcur = ycur; xcur < xend; xcur += S) {
                     loopi(S) r[i] += xcur[i];
@@ -36,7 +37,7 @@ static void shifttexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst, 
             }
             loopi(S) dst[i] = (r[i]) >> tshift;
         }
-        src += (hfrac-1)*stride;
+        src += hfrac*stride;
     }
 }
 
@@ -1394,7 +1395,7 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
     {
         cmds = tname;
         file = strrchr(tname, '>');
-        if(!file) { if(msg) conoutf(CON_ERROR, "could not load texture %s", tname); return NULL; }
+        if(!file) { if(msg) conoutf(CON_ERROR, "could not load texture %s", tname); return false; }
         file++;
     }
 
@@ -1941,6 +1942,12 @@ void texturereset(int *n)
         delete s;
     }
     slots.setsize(limit);
+    while(vslots.length())
+    {
+        VSlot *vs = vslots.last();
+        if(vs->slot != &dummyslot || vs->changed) break;
+        delete vslots.pop();
+    }
     clear_texpacks(limit); /* OF */
 }
 

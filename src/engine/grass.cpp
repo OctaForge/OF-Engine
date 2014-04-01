@@ -29,8 +29,7 @@ static struct grasswedge
 struct grassvert
 {
     vec pos;
-    bvec color;
-    uchar alpha;
+    bvec4 color;
     float u, v;
 };
 
@@ -63,12 +62,7 @@ static void animategrass()
 }
 
 VARR(grassscale, 1, 2, 64);
-bvec grasscolorv(255, 255, 255);
-HVARFR(grasscolor, 0, 0xFFFFFF, 0xFFFFFF,
-{
-    if(!grasscolor) grasscolor = 0xFFFFFF;
-    grasscolorv = bvec::hexcolor(grasscolor);
-});
+CVAR0R(grasscolor, 0xFFFFFF);
 FVARR(grasstest, 0, 0.6f, 1);
 
 static void gengrassquads(grassgroup *&group, const grasswedge &w, const grasstri &g, Texture *tex)
@@ -177,12 +171,12 @@ static void gengrassquads(grassgroup *&group, const grasswedge &w, const grasstr
               tc1 = tc.dot(p1) + tcoffset, tc2 = tc.dot(p2) + tcoffset,
               fade = dist - t > taperdist ? (grassdist - (dist - t))*taperscale : 1,
               height = grassheight * fade;
-        uchar color[4] = { grasscolorv.x, grasscolorv.y, grasscolorv.z, 255 };
+        bvec4 color(grasscolor, 255);
 
         #define GRASSVERT(n, tcv, modify) { \
             grassvert &gv = grassverts.add(); \
             gv.pos = p##n; \
-            memcpy(gv.color.v, color, sizeof(color)); \
+            gv.color = color; \
             gv.u = tc##n; gv.v = tcv; \
             modify; \
         }

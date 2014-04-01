@@ -232,11 +232,15 @@ M.V_Box = register_class("V_Box", Widget, {
     A grid of elements. As you append, the children will automatically
     position themselves according to the max number of columns.
 
+    If you want both horizontal and vertical padding to be the same you can
+    set it with unified setter "padding" (both kwargs and methods), but
+    it's not actually there. Using a method emits set for both paddings.
+
     Properties:
         - columns - the number of columns the grid will have at maximum,
           defaulting to 0.
-        - padding - the padding between grid items (both horizontal and
-          vertical).
+        - padding_h - the horizontal padding between grid items
+        - padding_v - the vertical padding between grid items
 
     See also:
         - $H_Box
@@ -245,7 +249,8 @@ M.Grid = register_class("Grid", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.columns = kwargs.columns or 0
-        self.padding = kwargs.padding or 0
+        self.padding_h = kwargs.padding_h or kwargs.padding or 0
+        self.padding_v = kwargs.padding_v or kwargs.padding or 0
         return Widget.__ctor(self, kwargs)
     end,
 
@@ -254,7 +259,7 @@ M.Grid = register_class("Grid", Widget, {
         self.widths, self.heights = widths, heights
 
         local column, row = 1, 1
-        local columns, padding = self.columns, self.padding
+        local columns, ph, pv = self.columns, self.padding_h, self.padding_v
 
         loop_children(self, function(o)
             o:layout()
@@ -280,8 +285,8 @@ M.Grid = register_class("Grid", Widget, {
         local subw, subh = 0, 0
         for i = 1, #widths  do subw +=  widths[i] end
         for i = 1, #heights do subh += heights[i] end
-        self.w = subw + padding * max(#widths  - 1, 0)
-        self.h = subh + padding * max(#heights - 1, 0)
+        self.w = subw + ph * max(#widths  - 1, 0)
+        self.h = subh + pv * max(#heights - 1, 0)
         self.subw, self.subh = subw, subh
     end,
 
@@ -312,8 +317,17 @@ M.Grid = register_class("Grid", Widget, {
         end)
     end,
 
+    --! Function: set_padding_h
+    set_padding_h = gen_setter "padding_h",
+
+    --! Function: set_padding_v
+    set_padding_v = gen_setter "padding_v",
+
     --! Function: set_padding
-    set_padding = gen_setter "padding",
+    set_padding = function(self, v)
+        self:set_padding_h(v)
+        self:set_padding_v(v)
+    end,
 
     --! Function: set_columns
     set_columns = gen_setter "columns"

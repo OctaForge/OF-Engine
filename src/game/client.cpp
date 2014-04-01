@@ -491,15 +491,19 @@ namespace game
                 break;
             }
             case N_REMIP:
-            {
               #ifndef SERVER
                 if(!d) return;
                 conoutf("%s remipped", colorname(d));
                 mpremip(false);
               #endif
-
                 break;
-            }
+            case N_CALCLIGHT:
+              #ifndef SERVER
+                if(!d) return;
+                conoutf("%s calced lights", colorname(d));
+                mpcalclight(false);
+              #endif
+                break;
 
             case N_PONG:
 #ifdef SERVER
@@ -654,6 +658,7 @@ assert(0);
                    arg1, arg2, arg3);
                 break;
             }
+            case EDIT_CALCLIGHT:
             case EDIT_REMIP:
             {
                 addmsg(N_EDITF + op, "r");

@@ -85,6 +85,44 @@ extern const uchar uni2cubechars[878] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
+extern const uchar cubelowerchars[256] =
+{
+    0, 130, 131, 132, 133, 134, 135, 136, 137, 9, 10, 11, 12, 13, 138, 139,
+    140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155,
+    32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+    48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+    64, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+    112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 91, 92, 93, 94, 95,
+    96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+    112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 156,
+    157, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143,
+    144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 160,
+    160, 162, 162, 164, 164, 166, 166, 168, 168, 170, 170, 172, 172, 105, 174, 176,
+    176, 178, 178, 180, 180, 182, 182, 184, 184, 186, 186, 188, 188, 190, 190, 192,
+    192, 194, 194, 196, 196, 198, 198, 158, 201, 201, 203, 203, 205, 205, 206, 207,
+    208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
+    224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
+    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
+};
+extern const uchar cubeupperchars[256] =
+{
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+    32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+    48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+    64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+    80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95,
+    96, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+    80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 123, 124, 125, 126, 127,
+    128, 129, 1, 2, 3, 4, 5, 6, 7, 8, 14, 15, 16, 17, 18, 19,
+    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127, 128, 199, 159,
+    159, 161, 161, 163, 163, 165, 165, 167, 167, 169, 169, 171, 171, 173, 73, 175,
+    175, 177, 177, 179, 179, 181, 181, 183, 183, 185, 185, 187, 187, 189, 189, 191,
+    191, 193, 193, 195, 195, 197, 197, 199, 200, 200, 202, 202, 204, 204, 206, 207,
+    208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
+    224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
+    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
+};
 
 int decodeutf8(uchar *dstbuf, int dstlen, const uchar *srcbuf, int srclen, int *carry)
 {
@@ -649,6 +687,7 @@ struct filestream : stream
 
     int read(void *buf, int len) { return (int)fread(buf, 1, len, file); }
     int write(const void *buf, int len) { return (int)fwrite(buf, 1, len, file); }
+    bool flush() { return !fflush(file); }
     int getchar() { return fgetc(file); }
     bool putchar(int c) { return fputc(c, file)!=EOF; }
     bool getline(char *str, int len) { return fgets(str, len, file)!=NULL; }
@@ -822,7 +861,7 @@ struct gzstream : stream
         {
             int err = zfile.avail_out > 0 ? deflate(&zfile, Z_FINISH) : Z_OK;
             if(err != Z_OK && err != Z_STREAM_END) break;
-            flush();
+            flushbuf();
             if(err == Z_STREAM_END) break;
         }
         uchar trailer[8] =
@@ -926,17 +965,20 @@ struct gzstream : stream
         return len - zfile.avail_out;
     }
 
-    bool flush()
+    bool flushbuf(bool full = false)
     {
+        if(full) deflate(&zfile, Z_SYNC_FLUSH);
         if(zfile.next_out && zfile.avail_out < BUFSIZE)
         {
-            if(file->write(buf, BUFSIZE - zfile.avail_out) != int(BUFSIZE - zfile.avail_out))
+            if(file->write(buf, BUFSIZE - zfile.avail_out) != int(BUFSIZE - zfile.avail_out) || (full && !file->flush()))
                 return false;
         }
         zfile.next_out = buf;
         zfile.avail_out = BUFSIZE;
         return true;
     }
+
+    bool flush() { return flushbuf(true); }
 
     int write(const void *buf, int len)
     {
@@ -945,7 +987,7 @@ struct gzstream : stream
         zfile.avail_in = len;
         while(zfile.avail_in > 0)
         {
-            if(!zfile.avail_out && !flush()) { stopwriting(); break; }
+            if(!zfile.avail_out && !flushbuf()) { stopwriting(); break; }
             int err = deflate(&zfile, Z_NO_FLUSH);
             if(err != Z_OK) { stopwriting(); break; }
         }
@@ -1123,6 +1165,8 @@ struct utf8stream : stream
         pos += next;
         return next;
     }
+
+    bool flush() { return file->flush(); }
 };
 
 stream *openrawfile(const char *filename, const char *mode)

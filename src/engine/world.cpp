@@ -1183,13 +1183,14 @@ COMMAND(entattr, "ssN");
 int findentity(int type, int index, int attr1, int attr2)
 {
     const vector<extentity *> &ents = entities::getents();
-    for(int i = index; i<ents.length(); i++)
+    if(index > ents.length()) index = ents.length();
+    else for(int i = index; i<ents.length(); i++)
     {
         extentity &e = *ents[i];
         if(e.type==type && (attr1<0 || e.attr[0]==attr1) && (attr2<0 || e.attr[1]==attr2))
             return i;
     }
-    loopj(min(index, ents.length()))
+    loopj(index)
     {
         extentity &e = *ents[j];
         if(e.type==type && (attr1<0 || e.attr[0]==attr1) && (attr2<0 || e.attr[1]==attr2))

@@ -1126,6 +1126,17 @@ M.Triangle = register_class("Triangle", Shape, {
         self.h = max(self.h, bbmax.y)
     end,
 
+    target = function(self, cx, cy)
+        local o = Widget.target(self, cx, cy)
+        if o then return o end
+        if self.style == OUTLINE then return nil end
+        local a, b, c = self.ta, self.tb, self.tc
+        local side = Vec2(cx, cy):sub(b):cross(Vec2(a):sub(b)) < 0
+        return ((Vec2(cx, cy):sub(c):cross(Vec2(b):sub(c)) < 0) == side
+            and (Vec2(cx, cy):sub(a):cross(Vec2(c):sub(a)) < 0) == side)
+            and self or nil
+    end,
+
     draw = function(self, sx, sy)
         local color, style in self
         if style == MODULATE then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
@@ -1163,6 +1174,14 @@ M.Circle = register_class("Circle", Shape, {
         kwargs = kwargs or {}
         self.sides = kwargs.sides or 15
         return Shape.__ctor(self, kwargs)
+    end,
+
+    target = function(self, cx, cy)
+        local o = Widget.target(self, cx, cy)
+        if o then return o end
+        if self.style == OUTLINE then return nil end
+        local r = min(self.w, self.h)
+        return (Vec2(cx, cy):sub(r):squared_len() <= (r * r)) and self or nil
     end,
 
     draw = function(self, sx, sy)

@@ -30,7 +30,10 @@ void cleanup()
     lua::close();
     closelogfile();
     ovr::destroy();
-    SDL_Quit();
+    #ifdef __APPLE__
+        if(screen) SDL_SetWindowFullscreen(screen, 0);
+    #endif
+    SDL_Quit();    
 }
 
 extern void writeinitcfg();
@@ -65,19 +68,22 @@ void fatal(const char *s, ...)    // failure exit
                 SDL_SetRelativeMouseMode(SDL_FALSE);
                 SDL_ShowCursor(SDL_TRUE);
                 cleargamma();
+                #ifdef __APPLE__
+                    if(screen) SDL_SetWindowFullscreen(screen, 0);
+                #endif
             }
-            #ifdef WIN32
-                MessageBox(NULL, msg, "OctaForge fatal error", MB_OK|MB_SYSTEMMODAL);
-            #endif
             SDL_Quit();
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "OctaForge fatal error", msg, NULL);
         }
     }
 
     exit(EXIT_FAILURE);
 }
 
+VAR(desktopw, 1, 0, 0);
+VAR(desktoph, 1, 0, 0);
+int screenw = 0, screenh = 0;
 SDL_Window *screen = NULL;
-int screenw = 0, screenh = 0, desktopw = 0, desktoph = 0;
 SDL_GLContext glcontext = NULL;
 
 int curtime = 0, lastmillis = 1, elapsedtime = 0, totalmillis = 1;
@@ -401,18 +407,23 @@ void screenres(int w, int h)
 
 ICOMMAND(screenres, "ii", (int *w, int *h), screenres(*w, *h));
 
+static void setgamma(int val)
+{
+    if(screen && SDL_SetWindowBrightness(screen, val/100.0f) < 0) conoutf(CON_ERROR, "Could not set gamma: %s", SDL_GetError());
+}
+
 static int curgamma = 100;
 VARFP(gamma, 30, 100, 300,
 {
-    if(gamma == curgamma) return;
+    if(initing || gamma == curgamma) return;
     curgamma = gamma;
-    if(SDL_SetWindowBrightness(screen, gamma/100.0f)==-1) conoutf(CON_ERROR, "Could not set gamma: %s", SDL_GetError());
+    setgamma(curgamma);
 });
 
 void restoregamma()
 {
-    if(curgamma == 100) return;
-    SDL_SetWindowBrightness(screen, curgamma/100.0f);
+    if(initing || curgamma == 100) return;
+    setgamma(curgamma);
 }
 
 void cleargamma()
@@ -422,8 +433,9 @@ void cleargamma()
 
 void restorevsync()
 {
+    if(initing || !glcontext) return;
     extern int vsync, vsynctear;
-    if(glcontext) SDL_GL_SetSwapInterval(vsync ? (vsynctear ? -1 : 1) : 0);
+    SDL_GL_SetSwapInterval(vsync ? (vsynctear ? -1 : 1) : 0);
 }
 
 VARFP(vsync, 0, 0, 1, restorevsync());
@@ -496,8 +508,6 @@ void setupscreen()
     renderh = min(scr_h, screenh);
     hudw = screenw;
     hudh = screenh;
-
-    restorevsync();
 }
 
 void resetgl()
@@ -534,6 +544,7 @@ void resetgl()
     inbetweenframes = true;
     renderbackground("initializing...");
     restoregamma();
+    restorevsync();
     initgbuffer();
     reloadshaders();
     reloadtextures();
@@ -827,8 +838,8 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     if(!ep) fatal("unknown type");
     EXCEPTION_RECORD *er = ep->ExceptionRecord;
     CONTEXT *context = ep->ContextRecord;
-    string out, t;
-    formatstring(out, "Tesseract Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
+    char out[512];
+    formatstring(out, "OctaForge Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
 #ifdef _AMD64_
     STACKFRAME64 sf = {{context->Rip, 0, AddrModeFlat}, {}, {context->Rbp, 0, AddrModeFlat}, {context->Rsp, 0, AddrModeFlat}, 0};
@@ -856,8 +867,7 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
 #endif
         {
             char *del = strrchr(line.FileName, '\\');
-            formatstring(t, "%s - %s [%d]\n", sym.Name, del ? del + 1 : line.FileName, line.LineNumber);
-            concatstring(out, t);
+            concformatstring(out, "%s - %s [%d]\n", sym.Name, del ? del + 1 : line.FileName, line.LineNumber);
         }
     }
     fatal(out);
@@ -918,10 +928,13 @@ CLUAICOMMAND(getfps, void, (int *fps), {
 
 void getfps_(int *raw)
 {
-    int fps, bestdiff, worstdiff;
-    if(*raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
-    else getfps(fps, bestdiff, worstdiff);
-    intret(fps);
+    if(*raw) floatret(1000.0f/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY]);
+    else
+    {
+        int fps, bestdiff, worstdiff;
+        getfps(fps, bestdiff, worstdiff);
+        intret(fps);
+    }
 }
 
 COMMANDN(getfps, getfps_, "i");
@@ -987,7 +1000,7 @@ int main(int argc, char **argv)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
         {
-            case 'q':
+            case 'u':
             {
                 dir = sethomedir(&argv[i][2]);
                 break;
@@ -1009,8 +1022,7 @@ int main(int argc, char **argv)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
         {
-            case 'q': /* parsed first */ break;
-            case 'r': /* compat, ignore */ break;
+            case 'u': /* parsed first */ break;
             case 'k':
             {
                 const char *dir = addpackagedir(&argv[i][2]);
@@ -1021,13 +1033,8 @@ int main(int argc, char **argv)
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
             case 'w': scr_w = clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW); if(!findarg(argc, argv, "-h")) scr_h = -1; break;
             case 'h': scr_h = clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH); if(!findarg(argc, argv, "-w")) scr_w = -1; break;
-            case 'z': /* compat, ignore */ break;
-            case 'b': /* compat, ignore */ break;
-            case 'a': /* compat, ignore */ break;
             case 'v': vsync = atoi(&argv[i][2]); if(vsync < 0) { vsynctear = 1; vsync = 1; } else vsynctear = 0; break;
-            case 't': fullscreen = atoi(&argv[i][2]); break;
-            case 's': /* compat, ignore */ break;
-            case 'f': /* compat, ignore */ break;
+            case 'f': fullscreen = atoi(&argv[i][2]); break;
             case 'l':
             {
                 char pkgdir[] = "media/";
@@ -1047,8 +1054,6 @@ int main(int argc, char **argv)
     initlog("lua");
     lua::init();
     if (!lua::L) fatal("cannot initialize lua script engine");
-
-    initing = NOT_INITING;
 
     numcpus = clamp(SDL_GetCPUCount(), 1, 16);
 
@@ -1108,7 +1113,7 @@ int main(int argc, char **argv)
     initsound();
 
     initlog("cfg");
-
+    initing = INIT_LOAD;
     execfile("config/keymap.cfg");
     execfile("config/stdedit.cfg");
     tools::execfile("config/ui.lua");
@@ -1119,25 +1124,24 @@ int main(int argc, char **argv)
 
     identflags |= IDF_PERSIST;
 
-    initing = INIT_LOAD;
     if(!execfile("config/saved.cfg", false))
     {
         execfile("config/default.cfg");
         writecfg("config/restore.cfg");
     }
     execfile("config/autoexec.cfg");
-    initing = NOT_INITING;
 
     identflags &= ~IDF_PERSIST;
 
-    initing = INIT_GAME;
     game::loadconfigs();
     initing = NOT_INITING;
 
     initlog("messages");
     MessageSystem::MessageManager::registerAll();
 
-    initlog("shaders");
+    initlog("render");
+    restoregamma();
+    restorevsync();
     initgbuffer();
     loadshaders();
     initparticles();

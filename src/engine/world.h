@@ -36,5 +36,5 @@ enum
 extern int texdefscale;
 #define TEX_SCALE texdefscale
 
-struct vertex { vec pos; bvec norm; uchar reserved; vec2 tc; bvec tangent; uchar bitangent; };
+struct vertex { vec pos; bvec norm; uchar reserved; vec2 tc; bvec4 tangent; };
 

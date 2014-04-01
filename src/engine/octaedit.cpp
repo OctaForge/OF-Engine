@@ -8,7 +8,7 @@ void boxs(int orient, vec o, const vec &s)
 {
     int d = dimension(orient), dc = dimcoord(orient);
     float f = boxoutline ? (dc>0 ? 0.2f : -0.2f) : 0;
-    o[D[d]] += float(dc) * s[D[d]] + f,
+    o[D[d]] += dc * s[D[d]] + f;
 
     gle::defvertex();
     gle::begin(GL_LINE_LOOP);
@@ -2031,10 +2031,10 @@ ICOMMAND(replace, "", (), replace(false));
 ICOMMAND(replacesel, "", (), replace(true));
 
 ////////// flip and rotate ///////////////
-uint dflip(uint face) { return face==F_EMPTY ? face : 0x88888888 - (((face&0xF0F0F0F0)>>4) | ((face&0x0F0F0F0F)<<4)); }
-uint cflip(uint face) { return ((face&0xFF00FF00)>>8) | ((face&0x00FF00FF)<<8); }
-uint rflip(uint face) { return ((face&0xFFFF0000)>>16)| ((face&0x0000FFFF)<<16); }
-uint mflip(uint face) { return (face&0xFF0000FF) | ((face&0x00FF0000)>>8) | ((face&0x0000FF00)<<8); }
+static inline uint dflip(uint face) { return face==F_EMPTY ? face : 0x88888888 - (((face&0xF0F0F0F0)>>4) | ((face&0x0F0F0F0F)<<4)); }
+static inline uint cflip(uint face) { return ((face&0xFF00FF00)>>8) | ((face&0x00FF00FF)<<8); }
+static inline uint rflip(uint face) { return ((face&0xFFFF0000)>>16)| ((face&0x0000FFFF)<<16); }
+static inline uint mflip(uint face) { return (face&0xFF0000FF) | ((face&0x00FF0000)>>8) | ((face&0x0000FF00)<<8); }
 
 void flipcube(cube &c, int d)
 {
@@ -2049,16 +2049,16 @@ void flipcube(cube &c, int d)
     }
 }
 
-void rotatequad(cube &a, cube &b, cube &c, cube &d)
+static inline void rotatequad(cube &a, cube &b, cube &c, cube &d)
 {
     cube t = a; a = b; b = c; c = d; d = t;
 }
 
 void rotatecube(cube &c, int d)   // rotates cube clockwise. see pics in cvs for help.
 {
-    c.faces[D[d]] = cflip (mflip(c.faces[D[d]]));
-    c.faces[C[d]] = dflip (mflip(c.faces[C[d]]));
-    c.faces[R[d]] = rflip (mflip(c.faces[R[d]]));
+    c.faces[D[d]] = cflip(mflip(c.faces[D[d]]));
+    c.faces[C[d]] = dflip(mflip(c.faces[C[d]]));
+    c.faces[R[d]] = rflip(mflip(c.faces[R[d]]));
     swap(c.faces[R[d]], c.faces[C[d]]);
 
     swap(c.texture[2*R[d]], c.texture[2*C[d]+1]);
@@ -2273,7 +2273,7 @@ void rendertexturepanel(int w, int h)
                     if(vslot.rotation >= 2 && vslot.rotation <= 4) { xoff *= -1; loopk(4) tc[k].x *= -1; }
                     if(vslot.rotation <= 2 || vslot.rotation == 5) { yoff *= -1; loopk(4) tc[k].y *= -1; }
                 }
-                loopk(4) { tc[k].x = tc[k].x/sx - xoff/tex->xs; tc[k].x = tc[k].x/sy - yoff/tex->ys; }
+                loopk(4) { tc[k].x = tc[k].x/sx - xoff/tex->xs; tc[k].y = tc[k].y/sy - yoff/tex->ys; }
                 glBindTexture(GL_TEXTURE_2D, tex->id);
                 loopj(glowtex ? 3 : 2)
                 {

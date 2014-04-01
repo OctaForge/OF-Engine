@@ -113,7 +113,7 @@ struct flarerenderer : partrenderer
         {
             const flare &f = flares[i];
             vec axis = vec(f.o).sub(f.center);
-            float color[4] = {f.color[0], f.color[1], f.color[2], 1.0f};
+            vec4 color(f.color, 1.0f);
             loopj(f.sparkle?12:9)
             {
                 const flaretype &ft = flaretypes[j];
@@ -124,26 +124,26 @@ struct flarerenderer : partrenderer
                 {
                     shinetime = (shinetime + 1) % 10;
                     tex = 6+shinetime;
-                    color[0] = 0.0f;
-                    color[1] = 0.0f;
-                    color[2] = 0.0f;
+                    color.r = 0.0f;
+                    color.g = 0.0f;
+                    color.b = 0.0f;
                     color[-ft.type-1] = f.color[-ft.type-1]; //only want a single channel
                 }
-                color[3] = ft.alpha;
+                color.a = ft.alpha;
                 const float tsz = 0.25; //flares are aranged in 4x4 grid
                 float tx = tsz*(tex&0x03), ty = tsz*((tex>>2)&0x03);
                 gle::attribf(o.x+(-camright.x+camup.x)*sz, o.y+(-camright.y+camup.y)*sz, o.z+(-camright.z+camup.z)*sz);
                     gle::attribf(tx,     ty+tsz);
-                    gle::attribv<4, float>(color);
+                    gle::attrib(color);
                 gle::attribf(o.x+( camright.x+camup.x)*sz, o.y+( camright.y+camup.y)*sz, o.z+( camright.z+camup.z)*sz);
                     gle::attribf(tx+tsz, ty+tsz);
-                    gle::attribv<4, float>(color);
+                    gle::attrib(color);
                 gle::attribf(o.x+( camright.x-camup.x)*sz, o.y+( camright.y-camup.y)*sz, o.z+( camright.z-camup.z)*sz);
                     gle::attribf(tx+tsz, ty);
-                    gle::attribv<4, float>(color);
+                    gle::attrib(color);
                 gle::attribf(o.x+(-camright.x-camup.x)*sz, o.y+(-camright.y-camup.y)*sz, o.z+(-camright.z-camup.z)*sz);
                     gle::attribf(tx,     ty);
-                    gle::attribv<4, float>(color);
+                    gle::attrib(color);
             }
         }
         gle::end();

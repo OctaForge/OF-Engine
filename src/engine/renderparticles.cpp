@@ -156,8 +156,7 @@ CLUAICOMMAND(particle_set_owner, void, (particle_t *part, int uid), {
 struct partvert
 {
     vec pos;
-    vec color;
-    float alpha;
+    vec4 color;
     float u, v;
 };
 
@@ -851,15 +850,15 @@ struct varenderer : partrenderer
 
             #define SETCOLOR(r, g, b, a) \
             do { \
-                float col[4] = { r, g, b, a }; \
-                loopi(4) memcpy(vs[i].color.v, col, sizeof(col)); \
+                vec4 col(r, g, b, a); \
+                loopi(4) vs[i].color = col; \
             } while(0)
-            #define SETMODCOLOR SETCOLOR(p->color[0]*blendf, p->color[1]*blendf, p->color[2]*blendf, 1.0f)
+            #define SETMODCOLOR SETCOLOR(p->color.r*blendf, p->color.g*blendf, p->color.b*blendf, 1.0f)
             if(type&PT_MOD) SETMODCOLOR;
-            else SETCOLOR(p->color[0], p->color[1], p->color[2], blendf);
+            else SETCOLOR(p->color.r, p->color.g, p->color.b, blendf);
         }
         else if(type&PT_MOD) SETMODCOLOR;
-        else loopi(4) vs[i].alpha = blendf;
+        else loopi(4) vs[i].color.a = blendf;
 
         if(type&PT_ROT) genrotpos<T>(o, d, size, ts, p->gravity, vs, (p->flags>>2)&0x1F);
         else genpos<T>(o, d, size, ts, p->gravity, vs);

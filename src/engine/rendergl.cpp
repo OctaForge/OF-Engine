@@ -287,6 +287,8 @@ void glerror(const char *file, int line, GLenum error)
 
 VAR(amd_pf_bug, 0, 0, 1);
 VAR(mesa_texrectoffset_bug, 0, 0, 1);
+VAR(intel_fragalpha_bug, 0, 0, 1);
+VAR(intel_texgatheroffsetcomp_bug, 0, 0, 1);
 VAR(useubo, 1, 0, 0);
 VAR(usetexgather, 1, 0, 0);
 VAR(usetexcompress, 1, 0, 0);
@@ -302,6 +304,17 @@ static bool checkseries(const char *s, const char *name, int low, int high)
     return n >= low && n <= high;
 }
 
+static bool checkmesaversion(const char *s, int major, int minor, int patch)
+{
+    const char *v = strstr(s, "Mesa");
+    if(!v) return false;
+    int vmajor = 0, vminor = 0, vpatch = 0;
+    if(sscanf(v, "Mesa %d.%d.%d", &vmajor, &vminor, &vpatch) < 1) return false;
+    if(vmajor > major) return true; else if(vmajor < major) return false;
+    if(vminor > minor) return true; else if(vminor < minor) return false;
+    return vpatch >= patch;
+}
+    
 VAR(dbgexts, 0, 0, 1);
 
 hashset<const char *> glexts;
@@ -667,7 +680,7 @@ void gl_checkextensions()
         if(hasext("GL_NV_half_float"))
         {
             hasHFV = hasHFP = true;
-            if(dbgexts) conoutf(CON_INIT, "Using GL_NV_half_float");
+            if(dbgexts) conoutf(CON_INIT, "Using GL_NV_half_float extension.");
         }
         else
         {
@@ -975,7 +988,7 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_NV_copy_image extension.");
     }
 
-    extern int msaadepthstencil, gdepthstencil, glineardepth, msaalineardepth, batchsunlight, smgather, rhrect;
+    extern int msaadepthstencil, gdepthstencil, glineardepth, msaalineardepth, batchsunlight, smgather, rhrect, tqaaresolvegather;
     if(amd)
     {
         msaalineardepth = glineardepth = 1; // reading back from depth-stencil still buggy on newer cards, and requires stencil for MSAA
@@ -989,10 +1002,22 @@ void gl_checkextensions()
     else if(intel)
     {
         glineardepth = 1; // causes massive slowdown in windows driver (and sometimes in linux driver) if not using linear depth
-        if(mesa) batchsunlight = 0; // causes massive slowdown in linux driver
         smgather = 1; // native shadow filter is slow
-        if(mesa) mesa_texrectoffset_bug = 1; // mesa i965 driver has buggy textureOffset with texture rectangles
+        if(mesa)
+        {
+            batchsunlight = 0; // causes massive slowdown in linux driver
+            if(!checkmesaversion(version, 10, 0, 3))
+                mesa_texrectoffset_bug = 1; // mesa i965 driver has buggy textureOffset with texture rectangles
+        }
+        else
+        {
+            // luma tonemap shaders are buggy and slightly slower on Intel's Windows driver
+            intel_fragalpha_bug = 1;
+            // textureGatherOffset with component selection crashes Intel's GLSL compiler on Windows
+            intel_texgatheroffsetcomp_bug = 1;
+        }
     }
+    if(hasGPU5 && hasTG && !intel_texgatheroffsetcomp_bug) tqaaresolvegather = 1;
 }
 
 ICOMMAND(glext, "s", (char *ext), intret(hasext(ext) ? 1 : 0));
@@ -1293,7 +1318,7 @@ void pophudmatrix(bool flush, bool flushparams)
 }
 
 int vieww = -1, viewh = -1, viewidx = 0;
-float curfov = 100, curavatarfov = 65, fovy, aspect;
+float curfov, curavatarfov, fovy, aspect;
 int farplane;
 VARP(zoominvel, 0, 40, 500);
 VARP(zoomoutvel, 0, 50, 500);
@@ -2030,11 +2055,7 @@ void debugquad(float x, float y, float w, float h, float tx, float ty, float tw,
 }
 
 VARR(fog, 16, 4000, 1000024);
-bvec fogcolorv(0x80, 0x99, 0xB3);
-HVARFR(fogcolor, 0, 0x8099B3, 0xFFFFFF,
-{
-    fogcolorv = bvec((fogcolor>>16)&0xFF, (fogcolor>>8)&0xFF, fogcolor&0xFF);
-});
+CVARR(fogcolor, 0x8099B3);
 VAR(fogoverlay, 0, 1, 1);
 
 static float findsurface(int fogmat, const vec &v, int &abovemat)
@@ -2064,7 +2085,7 @@ static void blendfog(int fogmat, float below, float blend, float logblend, float
     {
         case MAT_WATER:
         {
-            const bvec &wcol = getwatercolorv(fogmat), &wdeepcol = getwaterdeepcolorv(fogmat);
+            const bvec &wcol = getwatercolor(fogmat), &wdeepcol = getwaterdeepcolor(fogmat);
             int wfog = getwaterfog(fogmat), wdeep = getwaterdeep(fogmat);
             float deepfade = clamp(below/max(wdeep, wfog), 0.0f, 1.0f);
             vec color;
@@ -2076,7 +2097,7 @@ static void blendfog(int fogmat, float below, float blend, float logblend, float
 
         case MAT_LAVA:
         {
-            const bvec &lcol = getlavacolorv(fogmat);
+            const bvec &lcol = getlavacolor(fogmat);
             int lfog = getlavafog(fogmat);
             fogc.add(lcol.tocolor().mul(blend));
             end += logblend*min(fog, max(lfog*2, 16));
@@ -2084,7 +2105,7 @@ static void blendfog(int fogmat, float below, float blend, float logblend, float
         }
 
         default:
-            fogc.add(fogcolorv.tocolor().mul(blend));
+            fogc.add(fogcolor.tocolor().mul(blend));
             start += logblend*(fog+64)/8;
             end += logblend*fog;
             break;
@@ -2145,7 +2166,7 @@ static void blendfogoverlay(int fogmat, float below, float blend, vec &overlay)
     {
         case MAT_WATER:
         {
-            const bvec &wcol = getwatercolorv(fogmat), &wdeepcol = getwaterdeepcolorv(fogmat);
+            const bvec &wcol = getwatercolor(fogmat), &wdeepcol = getwaterdeepcolor(fogmat);
             int wfog = getwaterfog(fogmat), wdeep = getwaterdeep(fogmat);
             float deepfade = clamp(below/max(wdeep, wfog), 0.0f, 1.0f);
             vec color = vec(wcol.r, wcol.g, wcol.b).lerp(vec(wdeepcol.r, wdeepcol.g, wdeepcol.b), deepfade);
@@ -2155,7 +2176,7 @@ static void blendfogoverlay(int fogmat, float below, float blend, vec &overlay)
 
         case MAT_LAVA:
         {
-            const bvec &lcol = getlavacolorv(fogmat);
+            const bvec &lcol = getlavacolor(fogmat);
             maxc = max(lcol.r, max(lcol.g, lcol.b));
             overlay.add(vec(lcol.r, lcol.g, lcol.b).div(min(32.0f + maxc*7.0f/8.0f, 255.0f)).max(0.4f).mul(blend));
             break;
@@ -2194,13 +2215,11 @@ void clearminimap()
 }
 
 VARR(minimapheight, 0, 0, 2<<16);
-bvec minimapcolorv(0, 0, 0);
-HVARFR(minimapcolor, 0, 0, 0xFFFFFF,
-{
-    minimapcolorv = bvec((minimapcolor>>16)&0xFF, (minimapcolor>>8)&0xFF, minimapcolor&0xFF);
-});
+CVARR(minimapcolor, 0);
 VARR(minimapclip, 0, 0, 1);
 VARFP(minimapsize, 7, 8, 10, { if(minimaptex) drawminimap(); });
+VARFP(showminimap, 0, 1, 1, { if(minimaptex) drawminimap(); });
+CVARFP(nominimapcolor, 0x101010, { if(minimaptex && !showminimap) drawminimap(); });
 
 void bindminimap()
 {
@@ -2224,6 +2243,13 @@ void clipminimap(ivec &bbmin, ivec &bbmax, cube *c = worldroot, const ivec &co =
 void drawminimap()
 {
     if(!game::needminimap()) { clearminimap(); return; }
+
+    if(!showminimap)
+    {
+        if(!minimaptex) glGenTextures(1, &minimaptex);
+        createtexture(minimaptex, 1, 1, nominimapcolor.v, 3, 0, GL_RGB, GL_TEXTURE_2D);
+        return;
+    }
 
     GLERROR;
     renderprogress(0, "generating mini-map...");
@@ -2275,7 +2301,8 @@ void drawminimap()
     setviewcell(vec(-1, -1, -1));
 
     float oldldrscale = ldrscale, oldldrscaleb = ldrscaleb;
-    int oldvieww = vieww, oldviewh = viewh;
+    int oldfarplane = farplane, oldvieww = vieww, oldviewh = viewh;
+    farplane = worldsize*2;
     vieww = viewh = size;
 
     float zscale = max(float(minimapheight), minimapcenter.z + minimapradius.z + 1) + 1;
@@ -2302,7 +2329,7 @@ void drawminimap()
 
     rendershadowatlas();
 
-    shademinimap(vec(minimapcolorv.x*ldrscaleb, minimapcolorv.y*ldrscaleb, minimapcolorv.z*ldrscaleb));
+    shademinimap(minimapcolor.tocolor().mul(ldrscale));
 
     if(minimapheight > 0 && minimapheight < minimapcenter.z + minimapradius.z)
     {
@@ -2316,6 +2343,7 @@ void drawminimap()
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
+    farplane = oldfarplane;
     vieww = oldvieww;
     viewh = oldviewh;
     ldrscale = oldldrscale;
@@ -2327,7 +2355,7 @@ void drawminimap()
     createtexture(minimaptex, size, size, NULL, 3, 1, GL_RGB5, GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    GLfloat border[4] = { minimapcolorv.x/255.0f, minimapcolorv.y/255.0f, minimapcolorv.z/255.0f, 1.0f };
+    GLfloat border[4] = { minimapcolor.x/255.0f, minimapcolor.y/255.0f, minimapcolor.z/255.0f, 1.0f };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -2446,6 +2474,9 @@ void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapsi
     drawtex = 0;
 }
 
+VAR(modelpreviewfov, 10, 20, 100);
+VAR(modelpreviewpitch, -90, -15, 90);
+
 namespace modelpreview
 {
     physent *oldcamera;
@@ -2478,7 +2509,7 @@ namespace modelpreview
         camera.type = ENT_CAMERA;
         camera.o = vec(0, 0, 0);
         camera.yaw = 0;
-        camera.pitch = 0;
+        camera.pitch = modelpreviewpitch;
         camera.roll = 0;
         camera1 = &camera;
 
@@ -2492,7 +2523,7 @@ namespace modelpreview
         oldviewh = viewh;
 
         aspect = w/float(h);
-        fovy = 90;
+        fovy = modelpreviewfov;
         curfov = 2*atan2(tan(fovy/2*RAD), 1/aspect)/RAD;
         farplane = 1024;
         vieww = min(gw, w);
@@ -2532,6 +2563,13 @@ namespace modelpreview
         camera1 = oldcamera;
         drawtex = 0;
     }
+}
+
+vec calcmodelpreviewpos(const vec &radius, float &yaw)
+{
+    yaw = fmod(lastmillis/10000.0f*360.0f, 360.0f);
+    float dist = max(radius.magnitude2()/aspect, radius.magnitude())/sinf(fovy/2*RAD);
+    return vec(0, dist, 0).rotate_around_x(camera1->pitch*RAD);
 }
 
 int xtraverts, xtravertsva;

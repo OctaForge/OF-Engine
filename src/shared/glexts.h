@@ -232,7 +232,7 @@ extern PFNGLTEXTUREIMAGE3DMULTISAMPLECOVERAGENVPROC glTextureImage3DMultisampleC
 #endif
 
 #ifndef GL_EXT_texture_compression_latc
-#define GL_EXT_texture_compression_latc
+#define GL_EXT_texture_compression_latc 1
 #define GL_COMPRESSED_LUMINANCE_LATC1_EXT              0x8C70
 #define GL_COMPRESSED_SIGNED_LUMINANCE_LATC1_EXT       0x8C71
 #define GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT        0x8C72
@@ -241,7 +241,7 @@ extern PFNGLTEXTUREIMAGE3DMULTISAMPLECOVERAGENVPROC glTextureImage3DMultisampleC
 
 // GL_ARB_texture_compression_rgtc
 #ifndef GL_ARB_texture_compression_rgtc
-#define GL_ARB_texture_compression_rgtc
+#define GL_ARB_texture_compression_rgtc 1
 #define GL_COMPRESSED_RED_RGTC1           0x8DBB
 #define GL_COMPRESSED_SIGNED_RED_RGTC1    0x8DBC
 #define GL_COMPRESSED_RG_RGTC2            0x8DBD
@@ -750,6 +750,7 @@ extern PFNGLBINDBUFFERRANGEPROC         glBindBufferRange_;
 
 // GL_ARB_copy_buffer
 #ifndef GL_ARB_copy_buffer
+#define GL_ARB_copy_buffer 1
 #define GL_COPY_READ_BUFFER_BINDING       0x8F36
 #define GL_COPY_READ_BUFFER               GL_COPY_READ_BUFFER_BINDING
 #define GL_COPY_WRITE_BUFFER_BINDING      0x8F37
@@ -773,6 +774,7 @@ extern PFNGLGENVERTEXARRAYSPROC    glGenVertexArrays_;
 extern PFNGLISVERTEXARRAYPROC      glIsVertexArray_;
 
 #ifndef GL_ARB_depth_clamp
+#define GL_ARB_depth_clamp 1
 #define GL_DEPTH_CLAMP                    0x864F
 #endif
 
@@ -786,6 +788,7 @@ extern PFNGLISVERTEXARRAYPROC      glIsVertexArray_;
 #endif
 
 #ifndef GL_ARB_occlusion_query2
+#define GL_ARB_occlusion_query2 1
 #define GL_ANY_SAMPLES_PASSED             0x8C2F
 #endif
 

@@ -183,11 +183,7 @@ FVARR(fogdomemin, 0, 0, 1);
 FVARR(fogdomemax, 0, 0, 1);
 VARR(fogdomecap, 0, 1, 1);
 FVARR(fogdomeclip, 0, 1, 1);
-bvec fogdomecolorv(0, 0, 0);
-HVARFR(fogdomecolor, 0, 0, 0xFFFFFF,
-{
-    fogdomecolorv = bvec::hexcolor(fogdomecolor);
-});
+CVARR(fogdomecolor, 0);
 VARR(fogdomeclouds, 0, 1, 1);
 
 namespace fogdome
@@ -195,18 +191,15 @@ namespace fogdome
     struct vert
     {
         vec pos;
-        uchar color[4];
+        bvec4 color;
 
         vert() {}
-        vert(const vec &pos, const bvec &fcolor, float alpha) : pos(pos)
+        vert(const vec &pos, const bvec &fcolor, float alpha) : pos(pos), color(fcolor, uchar(alpha*255))
         {
-            memcpy(color, fcolor.v, 3);
-            color[3] = uchar(alpha*255);
         }
-        vert(const vert &v0, const vert &v1) : pos(vec(v0.pos).add(v1.pos).normalize())
+        vert(const vert &v0, const vert &v1) : pos(vec(v0.pos).add(v1.pos).normalize()), color(v0.color)
         {
-            memcpy(color, v0.color, 4);
-            if(v0.pos.z != v1.pos.z) color[3] += uchar((v1.color[3] - v0.color[3]) * (pos.z - v0.pos.z) / (v1.pos.z - v0.pos.z));
+            if(v0.pos.z != v1.pos.z) color.a += uchar((v1.color.a - v0.color.a) * (pos.z - v0.pos.z) / (v1.pos.z - v0.pos.z));
         }
     } *verts = NULL;
     GLushort *indices = NULL;
@@ -321,7 +314,7 @@ namespace fogdome
     void draw()
     {
         float capsize = fogdomecap && fogdomeheight < 1 ? (1 + fogdomeheight) / (1 - fogdomeheight) : -1;
-        bvec color = fogdomecolor ? fogdomecolorv : fogcolorv;
+        bvec color = !fogdomecolor.iszero() ? fogdomecolor : fogcolor;
         if(!numverts || lastcolor != color || lastminalpha != fogdomemin || lastmaxalpha != fogdomemax || lastcapsize != capsize || lastclipz != fogdomeclip)
         {
             init(color, min(fogdomemin, fogdomemax), fogdomemax, capsize, fogdomeclip);
@@ -376,7 +369,7 @@ void cleanupsky()
 }
 
 VARR(atmo, 0, 0, 1);
-FVARR(atmoplanetsize, 1e-3f, 1, 1e3f);
+FVARR(atmoplanetsize, 1e-3f, 8, 1e3f);
 FVARR(atmoheight, 1e-3f, 1, 1e3f);
 FVARR(atmobright, 0, 4, 16);
 HVARFR(atmosunlight, 0, 0, 0xFFFFFF,
@@ -405,7 +398,7 @@ static void drawatmosphere()
     sunmatrix.mul(invprojmatrix);
     LOCALPARAM(sunmatrix, sunmatrix);
 
-    LOCALPARAM(sunlight, (atmosunlight ? vec::hexcolor(atmosunlight).mul(atmosunlightscale) : sunlightcolor.tocolor().mul(sunlightscale)).mul(atmobright*ldrscale));
+    LOCALPARAM(sunlight, (atmosunlight ? vec::hexcolor(atmosunlight).mul(atmosunlightscale) : sunlight.tocolor().mul(sunlightscale)).mul(atmobright*ldrscale));
     LOCALPARAM(sundir, sunlightdir);
 
     vec sundiskparams;

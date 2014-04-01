@@ -1159,10 +1159,8 @@ const char **attachments, int len), {
     if (m) {
         vec center; vec radius;
         m->boundbox(center, radius);
-        float dist = 2.0f * max(max(radius.x, radius.y), 1.1f * radius.z);
-        float yaw = fmod(totalmillis / 10000.f * 360.f, 360.f);
-        vec o(-center.x, dist - center.y, -0.1f * dist - center.z);
-
+        float yaw;
+        vec o = calcmodelpreviewpos(radius, yaw).sub(center);
         vector<modelattach> attach;
         if (len) {
             attach.reserve(len);

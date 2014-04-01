@@ -36,7 +36,7 @@ local Day_Manager = Entity:clone {
 
     __init_svars = function(self)
         Entity.__init_svars(self)
-        self:set_attr("day_seconds", 180)
+        self:set_attr("day_seconds", 40)
         self:set_attr("day_progress", 0)
     end,
 
@@ -97,7 +97,13 @@ local getsunparams = function(daytime, daylen)
     else
         pitch = 90 - ((daytime - mid) / mid) * 180
     end
-    return yaw, pitch, 1
+    local scale = 1
+    if pitch < -20 then
+        scale = 0
+    elseif pitch <= 0 then
+        scale = (pitch + 20) / 20
+    end
+    return yaw, pitch, scale
 end
 
 --[[!

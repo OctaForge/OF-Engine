@@ -138,7 +138,7 @@ struct verthash
         for(int i = table[h]; i>=0; i = chain[i])
         {
             const vertex &c = verts[i];
-            if(c.pos==v.pos && c.tc==v.tc && c.norm==v.norm && c.tangent==v.tangent && c.bitangent==v.bitangent)
+            if(c.pos==v.pos && c.tc==v.tc && c.norm==v.norm && c.tangent==v.tangent)
                  return i;
         }
         if(verts.length() >= (int)USHRT_MAX) return -1;
@@ -147,7 +147,7 @@ struct verthash
         return table[h] = verts.length()-1;
     }
 
-    int addvert(const vec &pos, const vec2 &tc = vec2(0, 0), const bvec &norm = bvec(128, 128, 128), const bvec &tangent = bvec(128, 128, 128), uchar bitangent = 128)
+    int addvert(const vec &pos, const vec2 &tc = vec2(0, 0), const bvec &norm = bvec(128, 128, 128), const bvec4 &tangent = bvec4(128, 128, 128, 128))
     {
         vertex vtx;
         vtx.pos = pos;
@@ -155,7 +155,6 @@ struct verthash
         vtx.norm = norm;
         vtx.reserved = 0;
         vtx.tangent = tangent;
-        vtx.bitangent = bitangent;
         return addvert(vtx);
     }
 };
@@ -278,7 +277,7 @@ struct vacollect : verthash
 
     void genverts(void *buf)
     {
-        GENVERTS(vertex, buf, { *f = v; f->norm.flip(); f->tangent.flip(); f->bitangent -= 128; });
+        GENVERTS(vertex, buf, { *f = v; f->norm.flip(); f->tangent.flip(); });
     }
 
     void setupdata(vtxarray *va)
@@ -522,8 +521,12 @@ void addtris(VSlot &vslot, int orient, const sortkey &key, vertex *verts, int *i
                     vt.reserved = 0;
                     vt.tc.lerp(v1.tc, v2.tc, offset);
                     vt.norm.lerp(v1.norm, v2.norm, offset);
-                    vt.tangent.lerp(v1.tangent, v2.tangent, offset);
-                    vt.bitangent = v1.bitangent == v2.bitangent ? v1.bitangent : (orientation_bitangent[vslot.rotation][orient].scalartriple(vt.norm.tonormal(), vt.tangent.tonormal()) < 0 ? 0 : 255);
+                    bvec tangent;
+                    tangent.lerp(bvec(v1.tangent), bvec(v2.tangent), offset);
+                    vt.tangent = bvec4(tangent,
+                                       v1.tangent.w == v2.tangent.w ? 
+                                            v1.tangent.w : 
+                                            (orientation_bitangent[vslot.rotation][orient].scalartriple(vt.norm.tonormal(), tangent.tonormal()) < 0 ? 0 : 255));
                     int i2 = vc.addvert(vt);
                     if(i2 < 0) return;
                     if(i1 >= 0)
@@ -667,8 +670,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
             vec n = decodenormal(vinfo[k].norm), t = orientation_tangent[vslot.rotation][orient];
             t.project(n).normalize();
             v.norm = bvec(n);
-            v.tangent = bvec(t);
-            v.bitangent = orientation_bitangent[vslot.rotation][orient].scalartriple(n, t) < 0 ? 0 : 255;
+            v.tangent = bvec4(bvec(t), orientation_bitangent[vslot.rotation][orient].scalartriple(n, t) < 0 ? 0 : 255);
         }
         else if(texture != DEFAULT_SKY)
         {
@@ -677,14 +679,12 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
             vec t = orientation_tangent[vslot.rotation][orient];
             t.project(n).normalize();
             v.norm = bvec(n);
-            v.tangent = bvec(t);
-            v.bitangent = orientation_bitangent[vslot.rotation][orient].scalartriple(n, t) < 0 ? 0 : 255;
+            v.tangent = bvec4(bvec(t), orientation_bitangent[vslot.rotation][orient].scalartriple(n, t) < 0 ? 0 : 255);
         }
         else
         {
             v.norm = bvec(128, 128, 255);
-            v.tangent = bvec(255, 128, 128);
-            v.bitangent = 255;
+            v.tangent = bvec4(255, 128, 128, 255);
         }
         index[k] = vc.addvert(v);
         if(index[k] < 0) return;

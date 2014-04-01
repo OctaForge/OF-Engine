@@ -132,7 +132,7 @@ extern int drawtex;
 extern const matrix4 viewmatrix, invviewmatrix;
 extern matrix4 cammatrix, projmatrix, camprojmatrix, invcammatrix, invcamprojmatrix, invprojmatrix;
 extern int fog;
-extern bvec fogcolorv;
+extern bvec fogcolor;
 extern vec curfogcolor;
 extern int wireframe;
 
@@ -252,9 +252,9 @@ extern void genfaceverts(const cube &c, int orient, ivec v[4]);
 extern int calcmergedsize(int orient, const ivec &co, int size, const vertinfo *verts, int numverts);
 extern void invalidatemerges(cube &c, const ivec &co, int size, bool msg);
 extern void calcmerges();
-
 extern int mergefaces(int orient, facebounds *m, int sz);
 extern void mincubeface(const cube &cu, int orient, const ivec &o, int size, const facebounds &orig, facebounds &cf, ushort nmat = MAT_AIR, ushort matmask = MATF_VOLUME);
+extern void remip();
 
 static inline cubeext &ext(cube &c)
 {
@@ -500,12 +500,12 @@ extern float watersx1, watersy1, watersx2, watersy2;
         } \
     }
 
-extern const bvec &getwatercolorv(int mat);
-extern const bvec &getwaterdeepcolorv(int mat);
-extern const bvec &getwaterdeepfadecolorv(int mat);
-extern const bvec &getwaterrefractcolorv(int mat);
-extern const bvec &getwaterfallcolorv(int mat);
-extern const bvec &getwaterfallrefractcolorv(int mat);
+extern const bvec &getwatercolor(int mat);
+extern const bvec &getwaterdeepcolor(int mat);
+extern const bvec &getwaterdeepfade(int mat);
+extern const bvec &getwaterrefractcolor(int mat);
+extern const bvec &getwaterfallcolor(int mat);
+extern const bvec &getwaterfallrefractcolor(int mat);
 extern int getwaterfog(int mat);
 extern int getwaterdeep(int mat);
 extern int getwaterspec(int mat);
@@ -513,13 +513,13 @@ extern float getwaterrefract(int mat);
 extern int getwaterfallspec(int mat);
 extern float getwaterfallrefract(int mat);
 
-extern const bvec &getlavacolorv(int mat);
+extern const bvec &getlavacolor(int mat);
 extern int getlavafog(int mat);
 extern float getlavaglowmin(int mat);
 extern float getlavaglowmax(int mat);
 extern int getlavaspec(int mat);
 
-extern const bvec &getglasscolorv(int mat);
+extern const bvec &getglasscolor(int mat);
 extern float getglassrefract(int mat);
 extern int getglassspec(int mat);
 

@@ -8,6 +8,7 @@ VARF(tqaamovemask, 0, 1, 1, cleanupaa());
 VARP(tqaaquincunx, 0, 1, 1);
 FVAR(tqaacolorweightscale, 0, 0.25f, 1e3f);
 FVAR(tqaacolorweightbias, 0, 0.01f, 1);
+VAR(tqaaresolvegather, 1, 0, 0);
 
 struct tqaaview
 {
@@ -128,6 +129,8 @@ void dotqaa(tqaaview &tv, GLuint outfbo = 0)
     endtimer(tqaatimer);
 }
 
+extern int intel_fragalpha_bug;
+
 GLuint fxaafbo = 0, fxaatex = 0;
 
 extern int fxaaquality, fxaagreenluma;
@@ -136,11 +139,11 @@ static Shader *fxaashader = NULL;
 
 void loadfxaashaders()
 {
-    loadhdrshaders(tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!fxaagreenluma ? AA_LUMA : AA_UNUSED));
+    loadhdrshaders(tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!fxaagreenluma && !intel_fragalpha_bug ? AA_LUMA : AA_UNUSED));
 
     string opts;
     int optslen = 0;
-    if(fxaagreenluma || tqaa) opts[optslen++] = 'g';
+    if(fxaagreenluma || tqaa || intel_fragalpha_bug) opts[optslen++] = 'g';
     opts[optslen] = '\0';
 
     defformatstring(fxaaname, "fxaa%d%s", fxaaquality, opts);
@@ -157,7 +160,7 @@ void setupfxaa(int w, int h)
     if(!fxaatex) glGenTextures(1, &fxaatex);
     if(!fxaafbo) glGenFramebuffers_(1, &fxaafbo);
     glBindFramebuffer_(GL_FRAMEBUFFER, fxaafbo);
-    createtexture(fxaatex, w, h, NULL, 3, 1, tqaa || !fxaagreenluma ? GL_RGBA8 : GL_RGB, GL_TEXTURE_RECTANGLE);
+    createtexture(fxaatex, w, h, NULL, 3, 1, tqaa || (!fxaagreenluma && !intel_fragalpha_bug) ? GL_RGBA8 : GL_RGB, GL_TEXTURE_RECTANGLE);
     glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, fxaatex, 0);
     bindgdepth();
     if(glCheckFramebufferStatus_(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -204,15 +207,15 @@ static Shader *smaalumaedgeshader = NULL, *smaacoloredgeshader = NULL, *smaablen
 
 void loadsmaashaders(bool split = false)
 {
-    loadhdrshaders(split ? (tqaa ? (tqaamovemask ? AA_SPLIT_VELOCITY_MASKED : AA_SPLIT_VELOCITY) : (!smaagreenluma && !smaacoloredge ? AA_SPLIT_LUMA : AA_SPLIT)) :
-                           (tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!smaagreenluma && !smaacoloredge ? AA_LUMA : AA_UNUSED)));
+    loadhdrshaders(split ? (tqaa ? (tqaamovemask ? AA_SPLIT_VELOCITY_MASKED : AA_SPLIT_VELOCITY) : (!smaagreenluma && !smaacoloredge && !intel_fragalpha_bug ? AA_SPLIT_LUMA : AA_SPLIT)) :
+                           (tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!smaagreenluma && !smaacoloredge && !intel_fragalpha_bug ? AA_LUMA : AA_UNUSED)));
 
     string opts;
     int optslen = 0;
     if(!hasTRG) opts[optslen++] = 'a';
     if(smaadepthmask || smaastencil) opts[optslen++] = 'd';
     if(split) opts[optslen++] = 's';
-    if(smaagreenluma || tqaa) opts[optslen++] = 'g';
+    if(smaagreenluma || tqaa || intel_fragalpha_bug) opts[optslen++] = 'g';
     if(tqaa) opts[optslen++] = 't';
     opts[optslen] = '\0';
 
@@ -526,7 +529,7 @@ void setupsmaa(int w, int h)
         GLenum format = GL_RGB;
         switch(i)
         {
-            case 0: format = tqaa || (!smaagreenluma && !smaacoloredge) ? GL_RGBA8 : GL_RGB; break;
+            case 0: format = tqaa || (!smaagreenluma && !smaacoloredge && !intel_fragalpha_bug) ? GL_RGBA8 : GL_RGB; break;
             case 1: format = hasTRG ? GL_RG8 : GL_RGBA8; break;
             case 2: case 3: format = GL_RGBA8; break;
         }
@@ -726,11 +729,11 @@ void doaa(GLuint outfbo, void (*resolve)(GLuint, int))
     if(smaa)
     {
         bool split = multisampledaa();
-        resolve(smaafbo[0], split ? (tqaa ? (tqaamovemask ? AA_SPLIT_VELOCITY_MASKED : AA_SPLIT_VELOCITY) : (!smaagreenluma && !smaacoloredge ? AA_SPLIT_LUMA : AA_SPLIT)) :
-                                    (tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!smaagreenluma && !smaacoloredge ? AA_LUMA : AA_UNUSED)));
+        resolve(smaafbo[0], split ? (tqaa ? (tqaamovemask ? AA_SPLIT_VELOCITY_MASKED : AA_SPLIT_VELOCITY) : (!smaagreenluma && !smaacoloredge && !intel_fragalpha_bug ? AA_SPLIT_LUMA : AA_SPLIT)) :
+                                    (tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!smaagreenluma && !smaacoloredge && !intel_fragalpha_bug ? AA_LUMA : AA_UNUSED)));
         dosmaa(outfbo, split);
     }
-    else if(fxaa) { resolve(fxaafbo, tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!fxaagreenluma ? AA_LUMA : AA_UNUSED)); dofxaa(outfbo); }
+    else if(fxaa) { resolve(fxaafbo, tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!fxaagreenluma && !intel_fragalpha_bug ? AA_LUMA : AA_UNUSED)); dofxaa(outfbo); }
     else if(tqaa) { tqaaview &tv = tqaaviews[viewidx]; resolve(tv.fbo[0], tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY); dotqaa(tv, outfbo); }
     else resolve(outfbo, AA_UNUSED);
 }

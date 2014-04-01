@@ -349,7 +349,7 @@ static struct soundtype
 
     void preloadsound(int n)
     {
-        if(!configs.inrange(n)) return;
+        if(nosound || !configs.inrange(n)) return;
         soundconfig &config = configs[n];
         loopk(config.numslots) slots[config.slots+k].sample->load(dir, true);
     }
