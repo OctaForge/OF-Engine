@@ -1435,27 +1435,41 @@ M.Widget = register_class("Widget", table2.Object, {
         Removes the given widget from the widget's children. Alternatively,
         the argument can be the index of the child in the list. Returns true
         on success and false on failure.
+
+        If the last argument "detach" is true, this doesn't clear the widget
+        and instead of returning true or false, it returns the widget or nil.
     ]]
-    remove = function(self, o)
+    remove = function(self, o, detach)
         if type(o) == "number" then
-            if #self.children < n then
+            if #self.children < o then
+                if detach then return nil end
                 return false
             end
-            tremove(self.children, n):clear()
+            local r = tremove(self.children, o)
+            if detach then return r end
+            r:clear()
             return true
         end
         for i = 1, #self.children do
             if o == self.children[i] then
-                tremove(self.children, i):clear()
+                local r = tremove(self.children, i)
+                if detach then return r end
+                r:clear()
                 return true
             end
         end
+        if detach then return nil end
         return false
     end,
 
     --! Removes itself from its parent using $remove.
     destroy = function(self)
         self.parent:remove(self)
+    end,
+
+    --! Detaches itself from its parent using $remove.
+    detach = function(self)
+        self.parent:remove(self, true)
     end,
 
     --[[!

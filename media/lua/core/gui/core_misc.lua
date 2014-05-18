@@ -8,12 +8,18 @@
         See COPYING.txt.
 ]]
 
+local capi = require("capi")
 local table2 = require("core.lua.table")
+local signal = require("core.events.signal")
 
 local find = table2.find
 local tremove = table.remove
 local type = type
 local min, max = math.min, math.max
+local abs = math.abs
+local emit = signal.emit
+
+local get_curtime = capi.get_curtime
 
 --! Module: core
 local M = require("core.gui.core")
@@ -216,5 +222,109 @@ M.V_Progress_Bar = register_class("V_Progress_Bar", M.Progress_Bar, {
         bar.h = max(min(self.h, self.h * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_VMASK
         Widget.adjust_children(self)
+    end
+})
+
+local sin, pi = math.sin, math.pi
+
+local move_funcs = {
+    ["linear,x" ] = function(p) return 1, 0 end,
+    ["linear,y" ] = function(p) return 0, 1 end,
+    ["linear,xy"] = function(p) return 1, 1 end,
+
+    ["speedup,x" ] = function(p) return p, 0 end,
+    ["speedup,y" ] = function(p) return 0, p end,
+    ["speedup,xy"] = function(p) return p, p end,
+
+    ["slowdown,x" ] = function(p) return 1 - p,     0 end,
+    ["slowdown,y" ] = function(p) return 0,     1 - p end,
+    ["slowdown,xy"] = function(p) return 1 - p, 1 - p end,
+
+    ["sinusoidal,x" ] = function(p) return sin(p * pi),           0 end,
+    ["sinusoidal,y" ] = function(p) return 0,           sin(p * pi) end,
+    ["sinusoidal,xy"] = function(p) return sin(p * pi), sin(p * pi) end
+}
+
+local min = math.min
+
+M.Animator = register_class("Animator", Widget, {
+    __ctor = function(self, kwargs)
+        self.move_func    = kwargs.move_func
+        self.move_time    = kwargs.move_time   or 2000
+        self.move_dist_x  = kwargs.move_dist_x or nil
+        self.move_dist_y  = kwargs.move_dist_y or nil
+        self.move_speed   = kwargs.move_speed  or 0.2
+        self:reset()
+        return Widget.__ctor(self, kwargs)
+    end,
+
+    reset = function(self)
+        self.move_elapsed = 0
+        self.move_moved_x = 0
+        self.move_moved_y = 0
+    end,
+
+    get_progress = function(self)
+        local elapsed, rtime = self.move_elapsed, self.move_time
+        local distx = self.move_dist_x
+        local disty = self.move_dist_y
+
+        if distx or disty then
+            local progx, progy = 1, 1
+            if distx and distx != 0 then
+                progx = self.move_moved_x / distx
+            end
+            if disty and disty != 0 then
+                progy = self.move_moved_y / disty
+            end
+            return min(progx, progy)
+        end
+
+        return elapsed / rtime
+    end,
+
+    animate = function(self, o, millis)
+        local mf = self.move_func
+        if type(mf) == "string" then mf = move_funcs[mf] end
+
+        local dx, dy = mf(self.move_elapsed / self.move_time)
+        dx = dx * self.move_speed * (millis / 1000)
+        dy = dy * self.move_speed * (millis / 1000)
+        o.x = o.x + dx
+        o.y = o.y + dy
+        self.move_moved_x = self.move_moved_x + abs(dx)
+        self.move_moved_y = self.move_moved_y + abs(dy)
+    end,
+
+    layout = function(self)
+        if not self.started then return Widget.layout(self) end
+
+        local prog = self:get_progress()
+        if prog >= 1.0 then
+            self.started = false
+            emit(self, "anim,end")
+            return Widget.layout(self)
+        end
+
+        local millis = get_curtime()
+        self.move_elapsed += millis
+
+        M.loop_children(self, function(o)
+            o:layout()
+            self:animate(o, millis)
+            self.w = max(self.w, o.x + o.w)
+            self.h = max(self.h, o.y + o.h)
+        end)
+    end,
+
+    start = function(self)
+        self.started = true
+        self:reset()
+        emit(self, "anim,start")
+    end,
+
+    stop = function(self)
+        self.started = false
+        emit(self, "anim,stop")
     end
 })

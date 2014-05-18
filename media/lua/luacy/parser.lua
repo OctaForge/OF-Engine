@@ -217,6 +217,7 @@ local parse_function_body = function(ls, cs, line)
     check_match(ls, "end", "function", line)
     cs:append_kw("end")
     ls:get()
+    loopstack[#loopstack] = nil
 end
 
 local parse_call = function(ls, cs)
@@ -358,6 +359,7 @@ local sexps = {
             parse_expr(ls, cs)
             cs:append_kw("end")
         end
+        loopstack[#loopstack] = nil
     end,
     ["if"] = function(ls, cs)
         local tok = ls.token
@@ -616,6 +618,7 @@ local parse_while_stat = function(ls, cs, line)
     cs:append("::")
     cs:append_kw(tok.name)
     ls:get()
+    loopstack[#loopstack] = nil
 end
 
 local parse_repeat_stat = function(ls, cs, line)
@@ -632,6 +635,7 @@ local parse_repeat_stat = function(ls, cs, line)
     cs:append_kw(tok.name)
     ls:get()
     parse_expr(ls, cs)
+    loopstack[#loopstack] = nil
 end
 
 local parse_for_stat = function(ls, cs, line)
@@ -677,6 +681,7 @@ local parse_for_stat = function(ls, cs, line)
     cs:append("::")
     cs:append_kw(tok.name)
     ls:get()
+    loopstack[#loopstack] = nil
 end
 
 local parse_if_stat = function(ls, cs, line)
@@ -874,6 +879,7 @@ local parse = function(chunkname, input, debug)
     ls:get()
     loopstack[#loopstack + 1] = false
     parse_chunk(ls, cs)
+    loopstack[#loopstack] = nil
     return cs:build()
 end
 

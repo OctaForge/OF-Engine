@@ -582,7 +582,6 @@ namespace game
         loopv(args)
         {
             const char* arg = args[i];
-            printf("parseoptions: %c\r\n", arg[1]);
             #ifdef INTENSITY_PLUGIN
                 if (arg[1] == 'P')
                 {

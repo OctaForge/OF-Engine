@@ -3,6 +3,8 @@ local signal = require("core.events.signal")
 local gui = require("core.gui.core")
 local cs = require("core.engine.cubescript")
 
+local abs = math.abs
+
 local connect = signal.connect
 
 local world = gui.get_world()
@@ -191,6 +193,255 @@ world:new_window("editstats", gui.Overlay, |win| do
         fl:append(gui.Spacer { pad_h = 0.015, pad_v = 0.01 }, |sp| do
             sp:append(gui.Eval_Label { scale = -1,
                 func = || cs_execute("getedithud") }):align(-1, 0)
+        end)
+    end)
+end)
+
+local genblock = |val, color, tcolor| || gui.Color_Filler {
+    color = color, min_w = 0.18, min_h = 0.18,
+    gui.Label {
+        text = tostring(val), scale = 3.5, color = tcolor
+    }
+}
+
+local blocktypes = {
+    [0] = || gui.Color_Filler {
+        color = 0xccc0b3, min_w = 0.18, min_h = 0.18
+    },
+    [2   ] = genblock(2,    0xEEE4DA, 0x776E65),
+    [4   ] = genblock(4,    0xEDE0C8, 0x776E65),
+    [8   ] = genblock(8,    0xF2B179, 0xF9F6F2),
+    [16  ] = genblock(16,   0xF59563, 0xF9F6F2),
+    [32  ] = genblock(32,   0xF67C5F, 0xF9F6F2),
+    [64  ] = genblock(64,   0xF65E3B, 0xF9F6F2),
+    [128 ] = genblock(128,  0xEDCF72, 0xF9F6F2),
+    [256 ] = genblock(256,  0xEDCC61, 0xF9F6F2),
+    [512 ] = genblock(512,  0xEDC850, 0xF9F6F2),
+    [1024] = genblock(1024, 0xEDC53F, 0xF9F6F2),
+    [2048] = genblock(2048, 0xEDC22E, 0xF9F6F2),
+    [4096] = genblock(4096, 0x3C3A32, 0xF9F6F2)
+}
+
+local tiles   = {}
+local cleanup = {}
+
+local totalscore = 0
+local gamestate  = 0
+
+local cleanuptiles = || do
+    for i, v in ipairs(cleanup) do cleanup[i]:destroy() end
+end
+
+local seedtiles = || do
+    local t1, t2 = math.random(1, 16)
+    repeat t2 = math.random(1, 16) until t2 != t1
+    local vals = { 2, 4 }
+    local tv1, tv2 = vals[math.random(1, 2)],
+                     vals[math.random(1, 2)]
+    for i = 1, 16 do
+        if i == t1 then
+            tiles[i] = tv1
+        elseif i == t2 then
+            tiles[i] = tv2
+        else
+            tiles[i] = 0
+        end
+    end
+end
+
+local randtile = |grid| do
+    local emptyfields = {}
+    for i = 1, 16 do
+        if tiles[i] == 0 then emptyfields[#emptyfields + 1] = i end
+    end
+    if #emptyfields == 0 then return end
+    local n = emptyfields[math.random(1, #emptyfields)]
+    tiles[n] = ({ 2, 4 })[math.random(1, 2)]
+    grid:remove(n)
+    grid:insert(n, blocktypes[tiles[n]]())
+    if #emptyfields == 1 then
+        -- check game over (yes if nothing is mergeable)
+        if gamestate == 0 then
+            gamestate = -1
+            for a = 1, 2 do
+                local ia, ib, ic, ja, jb, jc
+                if a == 1 then
+                    ia, ib, ic = 0, 12, 4
+                    ja, jb, jc = 1, 3, 1
+                else
+                    ia, ib, ic = 0, 3, 1
+                    ja, jb, jc = 1, 13, 4
+                end
+                for i = ia, ib, ic do
+                    for j = ja + i, jb + i, jc do
+                        if tiles[j] == tiles[j + jc] then
+                            gamestate = 0
+                            break
+                        end
+                    end
+                    if gamestate >= 0 then break end
+                end
+                if gamestate >= 0 then break end
+            end
+            if gamestate == 0 then
+                for i = 1, #tiles do
+                    if tiles[i] == 2048 then
+                        gamestate = 1
+                        break
+                    end
+                end
+            end
+        end
+    end
+end
+
+local pendinganims = 0
+
+local guimovetile = |grid, i, j, step, hdir, vdir| do
+    local o = grid:remove(j, true)
+    local oadj = o.adjust
+    grid:insert(j, blocktypes[0]())
+    local n = (j - i) / step
+    local dist = 0.205 * n
+    local dirn, mspeed, dx, dy
+    if hdir != 0 then
+        dirn, mspeed = "speedup,x", 3 * n * hdir
+        dx, dy = dist, 0
+    else
+        dirn, mspeed = "speedup,y", 3 * n * vdir
+        dx, dy = 0, dist
+    end
+    grid.parent:append(gui.Animator {
+        move_func = dirn, move_speed = mspeed,
+        move_dist_x = dx, move_dist_y = dy, o
+    }, |m| do
+        m:clamp(true, true, true, true)
+        connect(m, "anim,start", || do
+            pendinganims += 1
+        end)
+        connect(m, "anim,end", || do
+            m:set_visible(false)
+            cleanup[#cleanup + 1] = m
+            grid:remove(i)
+            grid:insert(i, blocktypes[tiles[i]]())
+            pendinganims -= 1
+            if pendinganims == 0 then
+                randtile(grid)
+            end
+            grid:layout()
+        end)
+        m:start()
+        grid.parent:append(m)
+    end)
+    o.floating = true
+    o.adjust   = 0
+end
+
+local movetile = |grid, off, hdir, vdir| do
+    local dir = (hdir != 0) and hdir or (vdir * 4)
+    local lbeg, lend, lstart
+    if dir < 0 then
+        if hdir != 0 then
+            lbeg, lend, lstart = 2, 4, 1
+        else
+            lbeg, lend, lstart = 5, 13, 1
+        end
+    else
+        if hdir != 0 then
+            lbeg, lend, lstart = 3, 1, 4
+        else
+            lbeg, lend, lstart = 9, 1, 13
+        end
+    end
+    local jm = false
+    for i = lbeg, lend, -dir do
+        local nnz
+        for j = i + dir, lstart, dir do
+            if tiles[j + off] != 0 then
+                nnz = j
+                break
+            end
+        end
+        if nnz and not jm and tiles[nnz + off] == tiles[i + off] then
+            jm = true
+            tiles[nnz + off] += tiles[i + off]
+            tiles[i + off] = 0
+            guimovetile(grid, nnz + off, i + off, -dir, hdir, vdir)
+            totalscore += tiles[nnz + off]
+        elseif tiles[i + off] != 0 then
+            jm = false
+            local fz
+            for j = i + dir, lstart, dir do
+                if tiles[j + off] == 0 then fz = j end
+            end
+            if fz then
+                tiles[fz + off] = tiles[i + off]
+                tiles[i + off] = 0
+                guimovetile(grid, fz + off, i + off, -dir, hdir, vdir)
+            end
+        end
+    end
+end
+
+local movetiles = |grid, h, v| do
+    if h != 0 then
+        movetile(grid, 0,  h, 0)
+        movetile(grid, 4,  h, 0)
+        movetile(grid, 8,  h, 0)
+        movetile(grid, 12, h, 0)
+    end
+    if v != 0 then
+        movetile(grid, 0, 0, v)
+        movetile(grid, 1, 0, v)
+        movetile(grid, 2, 0, v)
+        movetile(grid, 3, 0, v)
+    end
+    cleanuptiles()
+end
+
+local gamestates = {
+    [-1] = "2048 (game over, score: %d)",
+    [ 0] = "2048 (score: %d)",
+    [ 1] = "2048 (you won! score: %d)"
+}
+
+local seededtiles = false
+world:new_window("2048", gui.Window, |win| do
+    win:set_floating(true)
+    win:set_variant("movable")
+    win:set_title("2048 (score: 0)")
+    connect(win, "destroy", || do totalscore = 0 end)
+    win:append(gui.Color_Filler { color = 0xBBADA0 }, |cf| do
+        cf:clamp(true, true, true, true)
+        win:append(gui.Spacer { pad_h = 0.025, pad_v = 0.025 }, |sp| do
+            sp:append(gui.Grid { columns = 4, padding = 0.025 }, |grid| do
+                cf.key = function(self, code, isdown)
+                    if isdown then
+                        if code == gui.key.LEFT then
+                            movetiles(grid, -1,  0)
+                        elseif code == gui.key.RIGHT then
+                            movetiles(grid,  1,  0)
+                        elseif code == gui.key.UP then
+                            movetiles(grid,  0, -1)
+                        elseif code == gui.key.DOWN then
+                            movetiles(grid,  0,  1)
+                        end
+                    end
+                    if gamestate < 0 then cf.key = nil end
+                    win:set_title(gamestates[gamestate]:format(totalscore))
+                    return gui.Widget.key(self, code, isdown)
+                end
+                if gamestate < 0 then
+                    totalscore, gamestate, seededtiles, tiles = 0, 0, false, {}
+                end
+                if not seededtiles then
+                    seedtiles()
+                    seededtiles = true
+                end
+                for i = 1, #tiles do
+                    grid:append(blocktypes[tiles[i]]())
+                end
+            end)
         end)
     end)
 end)
