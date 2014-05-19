@@ -22,15 +22,29 @@ struct octaheader
     int numvslots;
 };
 
-#define MAPVERSION 1            // bump if map format changes, see worldio.cpp
+#define TMAPVERSION 1
 
-struct mapheader
+struct tmapheader
 {
     char magic[4];              // "TMAP"
     int version;                // any >8bit quantity is little endian
     int headersize;             // sizeof(header)
     int worldsize;
     int numents;
+    int numpvs;
+    int blendmap;
+    int numvars;
+    int numvslots;
+};
+
+#define MAPVERSION 1            // bump if map format changes, see worldio.cpp
+
+struct mapheader
+{
+    char magic[4];              // "OFMF"
+    int version;                // any >8bit quantity is little endian
+    int headersize;             // sizeof(header)
+    int worldsize;
     int numpvs;
     int blendmap;
     int numvars;

@@ -477,11 +477,10 @@ bool save_world(const char *mname, bool nolms)
     renderprogress(0, "saving map...");
 
     mapheader hdr;
-    memcpy(hdr.magic, "TMAP", 4);
+    memcpy(hdr.magic, "OFMF", 4);
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(hdr);
     hdr.worldsize = worldsize;
-    hdr.numents = 0;
     hdr.numpvs = nolms ? 0 : getnumviewcells();
     hdr.blendmap = shouldsaveblendmap();
     hdr.numvars = 0;
@@ -562,33 +561,50 @@ bool finish_load_world(); // INTENSITY: Added this, and use it inside load_world
 const char *_saved_mname = NULL; // INTENSITY
 const char *_saved_cname = NULL; // INTENSITY
 
-static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octaheader &ohdr)
+static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octaheader &ohdr, tmapheader &thdr, int &numents)
 {
     if(f->read(&hdr, 3*sizeof(int)) != 3*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
     lilswap(&hdr.version, 2);
 
-    if(!memcmp(hdr.magic, "TMAP", 4))
+    if(!memcmp(hdr.magic, "OFMF", 4))
     {
         if(hdr.version>MAPVERSION) { conoutf(CON_ERROR, "map %s requires a newer version of OctaForge", ogzname); return false; }
-        if(f->read(&hdr.worldsize, 6*sizeof(int)) != 6*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(f->read(&hdr.worldsize, 5*sizeof(int)) != 5*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
         lilswap(&hdr.worldsize, 6);
-        if(hdr.worldsize <= 0|| hdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(hdr.worldsize <= 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        numents = 0;
+    }
+    else if(!memcmp(hdr.magic, "TMAP", 4))
+    {
+        if(hdr.version>TMAPVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version (Tesseract)", ogzname); return false; }
+        if(f->read(&thdr.worldsize, 6*sizeof(int)) != 6*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        lilswap(&thdr.worldsize, 6);
+        if(thdr.worldsize <= 0|| thdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+         memcpy(hdr.magic, "OFMF", 4);
+        hdr.version = 0;
+        hdr.headersize = sizeof(hdr);
+        hdr.worldsize = thdr.worldsize;
+        hdr.numpvs = thdr.numpvs;
+        hdr.blendmap = thdr.blendmap;
+        hdr.numvars = thdr.numvars;
+        hdr.numvslots = thdr.numvslots;
+        numents = thdr.numents;
     }
     else if(!memcmp(hdr.magic, "OCTA", 4))
     {
-        if(hdr.version!=OCTAVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version", ogzname); return false; }
+        if(hdr.version!=OCTAVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version (Sauerbraten)", ogzname); return false; }
         if(f->read(&ohdr.worldsize, 7*sizeof(int)) != 7*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
         lilswap(&ohdr.worldsize, 7);
         if(ohdr.worldsize <= 0|| ohdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
-        memcpy(hdr.magic, "TMAP", 4);
+        memcpy(hdr.magic, "OFMF", 4);
         hdr.version = 0;
         hdr.headersize = sizeof(hdr);
         hdr.worldsize = ohdr.worldsize;
-        hdr.numents = ohdr.numents;
         hdr.numpvs = ohdr.numpvs;
         hdr.blendmap = ohdr.blendmap;
         hdr.numvars = ohdr.numvars;
         hdr.numvslots = ohdr.numvslots;
+        numents = ohdr.numents;
     }
     else { conoutf(CON_ERROR, "map %s uses an unsupported map type", ogzname); return false; }
 
@@ -610,7 +626,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     mapheader hdr;
     octaheader ohdr;
-    if(!loadmapheader(f, ogzname, hdr, ohdr)) { delete f; return false; }
+    tmapheader thdr;
+    int numents;
+    if(!loadmapheader(f, ogzname, hdr, ohdr, thdr, numents)) { delete f; return false; }
 
     resetmap();
     Texture *mapshot = textureload(picname, 3, true, false);
@@ -706,9 +724,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     ushort nummru = f->getlil<ushort>();
     loopi(nummru) texmru.add(f->getlil<ushort>());
 
-    renderprogress(0, "loading entities...");
+    if (numents) renderprogress(0, "loading in-map entities...");
 
-    loopi(min(hdr.numents, MAXENTS))
+    loopi(min(numents, MAXENTS))
     {
         extentity e;
         e.o.x = f->getlil<float>();
@@ -753,10 +771,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         }
     }
 
-    if(hdr.numents > MAXENTS)
+    if(numents > MAXENTS)
     {
-        conoutf(CON_WARN, "warning: map has %d entities", hdr.numents);
-        f->seek((hdr.numents-MAXENTS)*(samegame ? sizeof(entity) : eif), SEEK_CUR);
+        conoutf(CON_WARN, "warning: map has %d entities", numents);
+        f->seek((numents-MAXENTS)*(samegame ? sizeof(entity) : eif), SEEK_CUR);
     }
 
     renderprogress(0, "loading slots...");
