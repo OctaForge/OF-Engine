@@ -49,16 +49,18 @@ extern "C" {
   #define ZLIB_DLL
 #endif
 
+#ifdef __APPLE__
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_opengl.h"
+#define main SDL_main
+#else
 #include <SDL.h>
 #include <SDL_opengl.h>
+#endif
 
 #ifdef SERVER
 #ifdef main
 #undef main
-#endif
-#else
-#ifdef __APPLE__
-#define main SDL_main
 #endif
 #endif
 

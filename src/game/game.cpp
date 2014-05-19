@@ -451,6 +451,7 @@ namespace game
     void initclient()
     {
         player1 = spawnstate(new gameent);
+        filtertext(player1->name, "unnamed", false, 32);
 #ifndef SERVER
         players.add(player1);
 #endif

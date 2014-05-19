@@ -70,6 +70,7 @@ void clearshadowcache() {}
 
 void calcmatbb(vtxarray *va, const ivec &co, int size, vector<materialsurface> &matsurfs) {}
 
+void cleardeferredlightshaders() {};
 void clearmapsounds() { };
 void clearparticles() { };
 void clearstains() { };

@@ -2,7 +2,12 @@
 
 #include "engine.h"
 
-#include "SDL_mixer.h"
+#ifdef __APPLE__
+  #include "SDL2_mixer/SDL_mixer.h"
+#else
+  #include "SDL_mixer.h"
+#endif
+
 #define MAXVOL MIX_MAX_VOLUME
 
 bool nosound = true;

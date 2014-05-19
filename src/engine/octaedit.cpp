@@ -579,7 +579,15 @@ void commitchanges(bool force)
     updatevabbs();
 }
 
-void changed(const block3 &sel, bool commit = true)
+void changed(const ivec &bbmin, const ivec &bbmax, bool commit)
+{
+    readychanges(bbmin, bbmax, worldroot, ivec(0, 0, 0), worldsize/2);
+    haschanged = true;
+
+    if(commit) commitchanges();
+}
+
+void changed(const block3 &sel, bool commit)
 {
     if(sel.s.iszero()) return;
     readychanges(ivec(sel.o).sub(1), ivec(sel.s).mul(sel.grid).add(sel.o).add(1), worldroot, ivec(0, 0, 0), worldsize/2);
@@ -1980,6 +1988,15 @@ void gettexname(int *tex, int *subslot)
     result(slot.sts[*subslot].name);
 }
 
+#ifndef SERVER
+void getslottex(int *idx)
+{
+    if(*idx < 0 || !slots.inrange(*idx)) { intret(-1); return; }
+    Slot &slot = lookupslot(*idx, false);
+    intret(slot.variants->index);
+}
+#endif
+
 COMMANDN(edittex, edittex_, "i");
 ICOMMAND(settex, "i", (int *tex), { if(!vslots.inrange(*tex) || noedit()) return; filltexlist(); edittex(*tex); });
 COMMAND(gettex, "");
@@ -1998,6 +2015,7 @@ ICOMMAND(looptexmru, "re", (ident *id, uint *body),
 #ifndef SERVER
 ICOMMAND(numvslots, "", (), intret(vslots.length()));
 ICOMMAND(numslots, "", (), intret(slots.length()));
+COMMAND(getslottex, "i");
 #endif
 
 void replacetexcube(cube &c, int oldtex, int newtex)

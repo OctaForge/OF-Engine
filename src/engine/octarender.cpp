@@ -276,7 +276,7 @@ struct vacollect : verthash
     vector<decalkey> decaltexs;
     vector<grasstri> grasstris;
     vector<materialsurface> matsurfs;
-    vector<octaentities *> mapmodels, decals;
+    vector<octaentities *> mapmodels, decals, extdecals;
     int worldtris, skytris, decaltris;
     vec alphamin, alphamax;
     vec refractmin, refractmax;
@@ -292,6 +292,7 @@ struct vacollect : verthash
         matsurfs.setsize(0);
         mapmodels.setsize(0);
         decals.setsize(0);
+        extdecals.setsize(0);
         grasstris.setsize(0);
         texs.setsize(0);
         decaltexs.setsize(0);
@@ -408,11 +409,12 @@ struct vacollect : verthash
 
     void gendecals()
     {
-        if(decals.empty()) return;
+        if(decals.length()) extdecals.put(decals.getbuf(), decals.length());
+        if(extdecals.empty()) return;
         vector<extentity *> &ents = entities::getents();
-        loopv(decals)
+        loopv(extdecals)
         {
-            octaentities *oe = decals[i];
+            octaentities *oe = extdecals[i];
             loopvj(oe->decals)
             {
                 extentity &e = *ents[oe->decals[j]];
@@ -425,9 +427,9 @@ struct vacollect : verthash
                 gendecal(e, s, k);
             }
         }
-        loopv(decals)
+        loopv(extdecals)
         {
-            octaentities *oe = decals[i];
+            octaentities *oe = extdecals[i];
             loopvj(oe->decals)
             {
                 extentity &e = *ents[oe->decals[j]];
@@ -1376,13 +1378,23 @@ void addmergedverts(int level, const ivec &o)
     mfl.setsize(0);
 }
 
-void rendercube(cube &c, const ivec &co, int size, int csi, int &maxlevel)  // creates vertices and indices ready to be put into a va
+static inline void finddecals(vtxarray *va)
+{
+    if(va->hasmerges&(MERGE_ORIGIN|MERGE_PART))
+    {
+        loopv(va->decals) vc.extdecals.add(va->decals[i]);
+        loopv(va->children) finddecals(va->children[i]);
+    }
+}
+ 
+void rendercube(cube &c, const ivec &co, int size, int csi, int &maxlevel) // creates vertices and indices ready to be put into a va
 {
     //if(size<=16) return;
     if(c.ext && c.ext->va)
     {
         maxlevel = max(maxlevel, c.ext->va->mergelevel);
-        return;                            // don't re-render
+        finddecals(c.ext->va);
+        return; // don't re-render
     }
 
     if(c.children)
@@ -1466,7 +1478,7 @@ void setva(cube &c, const ivec &co, int size, int csi)
     loopi(entdepth+1)
     {
         octaentities *oe = entstack[i];
-        if(oe->decals.length()) vc.decals.add(oe);
+        if(oe->decals.length()) vc.extdecals.add(oe);
     }
 
     int maxlevel = -1;

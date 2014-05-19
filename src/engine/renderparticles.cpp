@@ -206,7 +206,7 @@ struct partrenderer
     }
 
     //blend = 0 => remove it
-    void calc(particle *p, int &blend, int &ts, float &size, vec &o, vec &d)
+    void calc(particle *p, int &blend, int &ts, float &size, vec &o, vec &d, bool step = true)
     {
         o = p->o;
         d = p->d;
@@ -243,7 +243,7 @@ struct partrenderer
                 o.add(vec(d).mul(t/5000.0f));
                 o.z -= t*t/(2.0f * 5000.0f * weight);
             }
-            if(type&PT_COLLIDE && o.z < p->val && canstep)
+            if(type&PT_COLLIDE && o.z < p->val && step)
             {
                 if(stain >= 0)
                 {
@@ -397,7 +397,7 @@ struct listrenderer : partrenderer
         vec o, d;
         int blend, ts;
         float size;
-        calc(p, blend, ts, size, o, d);
+        calc(p, blend, ts, size, o, d, canstep);
         if(blend <= 0) return false;
         renderpart(p, o, d, blend / 255.0f, ts, size);
         return p->fade > 5;

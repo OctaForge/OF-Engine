@@ -109,10 +109,7 @@ enum
     SHADER_DEFERRED   = 1<<9
 };
 
-#define MAXSHADERDETAIL 3
-#define MAXVARIANTROWS 8
-
-extern int shaderdetail;
+#define MAXVARIANTROWS 32
 
 struct Slot;
 struct VSlot;
@@ -152,18 +149,18 @@ struct Shader
     vector<GlobalShaderParamUse> globalparams;
     vector<LocalShaderParamState> localparams;
     vector<uchar> localparamremap;
-    Shader *detailshader, *variantshader, *altshader, *fastshader[MAXSHADERDETAIL];
-    vector<Shader *> variants[MAXVARIANTROWS];
-    bool standard, forced, used, native;
+    Shader *variantshader;
+    vector<Shader *> variants;
+    ushort *variantrows;
+    bool standard, forced, used;
     Shader *reusevs, *reuseps;
     vector<UniformLoc> uniformlocs;
     vector<AttribLoc> attriblocs;
     vector<FragDataLoc> fragdatalocs;
     const void *owner;
 
-    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(NULL), type(SHADER_DEFAULT), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL), owner(NULL)
+    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(NULL), type(SHADER_DEFAULT), program(0), vsobj(0), psobj(0), variantshader(NULL), variantrows(NULL), standard(false), forced(false), used(false), reusevs(NULL), reuseps(NULL), owner(NULL)
     {
-        loopi(MAXSHADERDETAIL) fastshader[i] = this;
     }
 
     ~Shader()
@@ -172,9 +169,9 @@ struct Shader
         DELETEA(vsstr);
         DELETEA(psstr);
         DELETEA(defer);
+        DELETEA(variantrows);
     }
 
-    void fixdetailshader(bool force = true, bool recurse = true);
     void allocparams(Slot *slot = NULL);
     void setslotparams(Slot &slot);
     void setslotparams(Slot &slot, VSlot &vslot);
@@ -186,41 +183,58 @@ struct Shader
         loopv(globalparams) globalparams[i].flush();
     }
 
-    bool hasoption()
-    {
-        return detailshader && (detailshader->type&SHADER_OPTION)!=0;
-    }
+    void force();
 
-    bool hasoption(int row)
-    {
-        if(!detailshader || detailshader->variants[row].empty()) return false;
-        return (detailshader->variants[row][0]->type&SHADER_OPTION)!=0;
-    }
+    bool invalid() const { return (type&SHADER_INVALID)!=0; }
+    bool deferred() const { return (type&SHADER_DEFERRED)!=0; }
+    bool loaded() const { return !(type&(SHADER_DEFERRED|SHADER_INVALID)); }
+
+    bool hasoption() const { return (type&SHADER_OPTION)!=0; }
 
     bool isdynamic() const { return (type&SHADER_DYNAMIC)!=0; }
 
+    int numvariants(int row) const
+    {
+        if(row < 0 || row >= MAXVARIANTROWS || !variantrows) return 0;
+        return variantrows[row+1] - variantrows[row];
+    }
+
+    Shader *getvariant(int col, int row) const
+    {
+        if(row < 0 || row >= MAXVARIANTROWS || col < 0 || !variantrows) return NULL;
+        int start = variantrows[row], end = variantrows[row+1];
+        return col < end - start ? variants[start + col] : NULL;
+    }
+
+    void addvariant(int row, Shader *s)
+    {
+        if(row < 0 || row >= MAXVARIANTROWS || variants.length() >= USHRT_MAX) return;
+        if(!variantrows) { variantrows = new ushort[MAXVARIANTROWS+1]; memset(variantrows, 0, (MAXVARIANTROWS+1)*sizeof(ushort)); }
+        variants.insert(variantrows[row+1], s);
+        for(int i = row+1; i <= MAXVARIANTROWS; ++i) ++variantrows[i];
+    }
+
     void setvariant_(int col, int row)
     {
-        Shader *s = detailshader;
-        for(col = min(col, detailshader->variants[row].length()-1); col >= 0; col--)
-            if(!(detailshader->variants[row][col]->type&SHADER_INVALID))
-            {
-                s = detailshader->variants[row][col];
-                break;
-            }
+        Shader *s = this;
+        if(variantrows)
+        {
+            int start = variantrows[row], end = variantrows[row+1];
+            for(col = min(start + col, end-1); col >= start; --col) if(!variants[col]->invalid()) { s = variants[col]; break; }
+        }
         if(lastshader!=s) s->bindprograms();
     }
 
     void setvariant(int col, int row)
     {
-        if(!this || !detailshader) return;
+        if(!this || !loaded()) return;
         setvariant_(col, row);
         lastshader->flushparams();
     }
 
     void setvariant(int col, int row, Slot &slot)
     {
-        if(!this || !detailshader) return;
+        if(!this || !loaded()) return;
         setvariant_(col, row);
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot);
@@ -228,7 +242,7 @@ struct Shader
 
     void setvariant(int col, int row, Slot &slot, VSlot &vslot)
     {
-        if(!this || !detailshader) return;
+        if(!this || !loaded()) return;
         setvariant_(col, row);
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot, vslot);
@@ -236,19 +250,19 @@ struct Shader
 
     void set_()
     {
-        if(lastshader!=detailshader) detailshader->bindprograms();
+        if(lastshader!=this) bindprograms();
     }
 
     void set()
     {
-        if(!this || !detailshader) return;
+        if(!this || !loaded()) return;
         set_();
         lastshader->flushparams();
     }
 
     void set(Slot &slot)
     {
-        if(!this || !detailshader) return;
+        if(!this || !loaded()) return;
         set_();
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot);
@@ -256,14 +270,14 @@ struct Shader
 
     void set(Slot &slot, VSlot &vslot)
     {
-        if(!this || !detailshader) return;
+        if(!this || !loaded()) return;
         set_();
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot, vslot);
     }
 
     bool compile();
-    void cleanup(bool invalid = false);
+    void cleanup(bool full = false);
 
     static int uniformlocversion();
 };

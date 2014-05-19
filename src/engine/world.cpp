@@ -97,7 +97,8 @@ bool getentboundingbox(const extentity &e, ivec &o, ivec &r)
 enum
 {
     MODOE_ADD      = 1<<0,
-    MODOE_UPDATEBB = 1<<1
+    MODOE_UPDATEBB = 1<<1,
+    MODOE_CHANGED  = 1<<2
 };
 
 void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor, int size, const ivec &bo, const ivec &br, int leafsize, vtxarray *lastva = NULL)
@@ -220,6 +221,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
 }
 
 vector<int> outsideents;
+int spotlights = 0;
 
 static bool modifyoctaent(int flags, int id, extentity &e)
 {
@@ -246,8 +248,13 @@ static bool modifyoctaent(int flags, int id, extentity &e)
         modifyoctaentity(flags, id, e, worldroot, ivec(0, 0, 0), worldsize>>1, o, r, leafsize);
     }
     e.flags ^= EF_OCTA;
-    if(e.type == ET_LIGHT) clearlightcache(id);
-    else if(e.type == ET_PARTICLES) clearparticleemitters();
+    switch(e.type)
+    {
+        case ET_LIGHT: clearlightcache(id); break;
+        case ET_SPOTLIGHT: if(!(flags&MODOE_ADD ? spotlights++ : --spotlights)) cleardeferredlightshaders(); 
+        case ET_PARTICLES: clearparticleemitters(); break;
+        case ET_DECAL: if(flags&MODOE_CHANGED) changed(o, r, false); break;
+    }
     return true;
 }
 
@@ -263,8 +270,10 @@ static inline bool modifyoctaent(int flags, int id) {
     return entities::getents().inrange(id) && modifyoctaent(flags, id, *entities::getents()[id]);
 }
 
-void addentity(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
-void removeentity(int id) { modifyoctaent(MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
+              void addentity(int id)        { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
+              void removeentity(int id)     { modifyoctaent(MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
+static inline void addentityedit(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB|MODOE_CHANGED, id); }
+static inline void removeentityedit(int id) { modifyoctaent(MODOE_UPDATEBB|MODOE_CHANGED, id); }
 
 /* OctaForge: extentity* versions */
 void addentity(extentity* entity) { addentity(getentid(entity)); }
@@ -459,10 +468,10 @@ void attachentities()
     entfocusv(i, \
     { \
         int oldtype = e.type; \
-        removeentity(n);  \
+        removeentityedit(n);  \
         f; \
         if(oldtype!=e.type) detachentity(e); \
-        if(e.type!=ET_EMPTY) { addentity(n); if(oldtype!=e.type) attachentity(e); } \
+        if(e.type!=ET_EMPTY) { addentityedit(n); if(oldtype!=e.type) attachentity(e); } \
         clearshadowcache(); \
     }, v); \
 }
@@ -470,7 +479,7 @@ void attachentities()
 #define addgroup(exp)   { vector<extentity *> &ents = entities::getents(); loopv(ents) entfocusv(i, if(exp) entadd(n), ents); }
 #define setgroup(exp)   { entcancel(); addgroup(exp); }
 #define groupeditloop(f){ vector<extentity *> &ents = entities::getents(); entlooplevel++; int _ = efocus; loopv(entgroup) enteditv(entgroup[i], f, ents); efocus = _; entlooplevel--; }
-#define groupeditpure(f){ if(entlooplevel>0) { entedit(efocus, f); } else groupeditloop(f); }
+#define groupeditpure(f){ if(entlooplevel>0) { entedit(efocus, f); } else { groupeditloop(f); commitchanges(); } }
 #define groupeditundo(f){ makeundoent(); groupeditpure(f); }
 #define groupedit(f)    { addimplicit(groupeditundo(f)); }
 
@@ -1334,6 +1343,7 @@ void resetmap()
 
     entities::clearents();
     outsideents.setsize(0);
+    spotlights = 0;
 }
 
 void startmap(const char *name)

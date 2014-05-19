@@ -552,7 +552,6 @@ bool setuplistenserver(bool dedicated)
         return false;
     }
     serverhost->duplicatePeers = maxdupclients ? maxdupclients : MAXCLIENTS;
-    loopi(maxclients) serverhost->peers[i].data = NULL;
     serverhost->intercept = serverinfointercept;
     return true;
 }

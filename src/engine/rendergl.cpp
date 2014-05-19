@@ -355,6 +355,36 @@ bool hasext(const char *ext)
     return glexts.access(ext)!=NULL;
 }
 
+bool checkdepthtexstencilrb()
+{
+    int w = 256, h = 256;
+    GLuint fbo = 0;
+    glGenFramebuffers_(1, &fbo);
+    glBindFramebuffer_(GL_FRAMEBUFFER, fbo);
+    
+    GLuint depthtex = 0;
+    glGenTextures(1, &depthtex);
+    createtexture(depthtex, w, h, NULL, 3, 0, GL_DEPTH_COMPONENT, GL_TEXTURE_RECTANGLE);
+    glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+    glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_RECTANGLE, depthtex, 0);
+
+    GLuint stencilrb = 0;
+    glGenRenderbuffers_(1, &stencilrb);
+    glBindRenderbuffer_(GL_RENDERBUFFER, stencilrb);
+    glRenderbufferStorage_(GL_RENDERBUFFER, GL_STENCIL_INDEX8, w, h);
+    glBindRenderbuffer_(GL_RENDERBUFFER, 0);
+    glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencilrb);
+
+    bool supported = glCheckFramebufferStatus_(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+
+    glBindFramebuffer_(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers_(1, &fbo);
+    glDeleteTextures(1, &depthtex);
+    glDeleteRenderbuffers_(1, &stencilrb);
+
+    return supported;
+}
+
 void gl_checkextensions()
 {
     const char *vendor = (const char *)glGetString(GL_VENDOR);
@@ -1006,7 +1036,7 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_NV_copy_image extension.");
     }
 
-    extern int msaadepthstencil, gdepthstencil, glineardepth, msaalineardepth, batchsunlight, smgather, rhrect, tqaaresolvegather;
+    extern int gdepthstencil, gstencil, glineardepth, msaadepthstencil, msaalineardepth, batchsunlight, smgather, rhrect, tqaaresolvegather;
     if(amd)
     {
         msaalineardepth = glineardepth = 1; // reading back from depth-stencil still buggy on newer cards, and requires stencil for MSAA
@@ -1020,7 +1050,6 @@ void gl_checkextensions()
     }
     else if(intel)
     {
-        glineardepth = 1; // causes massive slowdown in windows driver (and sometimes in linux driver) if not using linear depth
         smgather = 1; // native shadow filter is slow
         if(mesa)
         {
@@ -1030,6 +1059,12 @@ void gl_checkextensions()
         }
         else
         {
+            // causes massive slowdown in windows driver if reading depth-stencil texture
+            if(checkdepthtexstencilrb())
+            {
+                gdepthstencil = 1;
+                gstencil = 1;
+            }
             // textureGatherOffset with component selection crashes Intel's GLSL compiler on Windows
             intel_texgatheroffsetcomp_bug = 1;
         }

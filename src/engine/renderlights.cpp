@@ -56,7 +56,7 @@ void setupbloom(int w, int h)
         createtexture(bloomtex[5], bloomw, bloomh, NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE);
     }
 
-    if(!hwvtexunits)
+    if(hwvtexunits < 4)
     {
         glGenBuffers_(1, &bloompbo); 
         glBindBuffer_(GL_PIXEL_PACK_BUFFER, bloompbo);
@@ -442,13 +442,13 @@ void doscale(GLuint outfbo)
 
 VARFP(glineardepth, 0, 0, 3, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
 VAR(gdepthformat, 1, 0, 0);
-VARF(gstencil, 0, 0, 1, cleanupgbuffer());
-VARF(gdepthstencil, 0, 2, 2, cleanupgbuffer());
+VARF(gstencil, 0, 0, 1, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
+VARF(gdepthstencil, 0, 2, 2, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
 VAR(ghasstencil, 1, 0, 0);
 VARFP(msaa, 0, 0, 16, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
 VARFP(csaa, 0, 0, 16, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
-VARF(msaadepthstencil, 0, 2, 2, cleanupgbuffer());
-VARF(msaastencil, 0, 0, 1, cleanupgbuffer());
+VARF(msaadepthstencil, 0, 2, 2, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
+VARF(msaastencil, 0, 0, 1, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
 VARF(msaaedgedetect, 0, 1, 1, cleanupgbuffer());
 VARFP(msaalineardepth, -1, -1, 3, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
 VARFP(msaatonemap, 0, 0, 1, cleanupgbuffer());
@@ -504,6 +504,9 @@ void initgbuffer()
 
     if(lineardepth > 1 && (!hasAFBO || !hasTF || !hasTRG)) gdepthformat = 1;
     else gdepthformat = lineardepth;
+
+    if(msaasamples) ghasstencil = (msaadepthstencil > 1 || (msaadepthstencil && gdepthformat)) && hasDS ? 2 : (msaastencil ? 1 : 0);
+    else ghasstencil = (gdepthstencil > 1 || (gdepthstencil && gdepthformat)) && hasDS ? 2 : (gstencil ? 1 : 0);
 
     initao();
 }
@@ -584,7 +587,6 @@ void setupmsbuffer(int w, int h)
 
     maskgbuffer("cngd");
 
-    ghasstencil = (msaadepthstencil > 1 || (msaadepthstencil && gdepthformat)) && hasDS ? 2 : (msaastencil ? 1 : 0);
     stencilformat = ghasstencil > 1 ? GL_DEPTH24_STENCIL8 : (ghasstencil ? GL_STENCIL_INDEX8 : 0);
 
     GLenum fixed = multisampledaa() ? GL_TRUE : GL_FALSE;
@@ -731,7 +733,6 @@ void setupgbuffer()
     gh = sh;
 
     hdrformat = gethdrformat(hdrprec);
-    ghasstencil = (gdepthstencil > 1 || (gdepthstencil && gdepthformat)) && hasDS ? 2 : (gstencil ? 1 : 0);
     stencilformat = ghasstencil > 1 ? GL_DEPTH24_STENCIL8 : (ghasstencil ? GL_STENCIL_INDEX8 : 0);
 
     if(msaasamples) setupmsbuffer(gw, gh);
@@ -2174,6 +2175,8 @@ void cleardeferredlightshaders()
 VARF(lighttilebatch, 0, 8, 8, cleardeferredlightshaders());
 VARF(batchsunlight, 0, 2, 2, cleardeferredlightshaders());
 
+extern int spotlights;
+
 Shader *loaddeferredlightshader(const char *type = NULL)
 {
     string common, shadow, sun;
@@ -2187,6 +2190,7 @@ Shader *loaddeferredlightshader(const char *type = NULL)
     if(lighttilebatch) common[commonlen++] = '0' + lighttilebatch;
     if(usegatherforsm()) common[commonlen++] = smfilter > 2 ? 'G' : 'g';
     else if(smfilter) common[commonlen++] = smfilter > 2 ? 'E' : (smfilter > 1 ? 'F' : 'f');
+    if(spotlights) common[commonlen++] = 's';
     common[commonlen] = '\0';
 
     shadow[shadowlen++] = 'p';
@@ -2218,7 +2222,7 @@ Shader *loaddeferredlightshader(const char *type = NULL)
     sun[sunlen] = '\0';
 
     defformatstring(name, "deferredlight%s%s%s", common, shadow, sun);
-    return generateshader(name, "deferredlightshader \"%s\" \"%s\" \"%s\" %d %d %d %d", common, shadow, sun, usecsm, userh, lighttilebatch, usebase);
+    return generateshader(name, "deferredlightshader \"%s\" \"%s\" \"%s\" %d %d %d %d %d", common, shadow, sun, usecsm, userh, lighttilebatch, usebase, spotlights);
 }
 
 void loaddeferredlightshaders()
