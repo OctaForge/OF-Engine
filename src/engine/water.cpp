@@ -477,7 +477,7 @@ void renderlava()
     {
         if(lavasurfs[k].empty() && (drawtex == DRAWTEX_MINIMAP || lavafallsurfs[k].empty())) continue;
 
-        MSlot &lslot = lookupmaterialslot(MAT_LAVA+k);
+        MatSlot &lslot = lookupmaterialslot(MAT_LAVA+k);
 
         SETSHADER(lava);
         float t = lastmillis/2000.0f;
@@ -542,7 +542,7 @@ void renderwaterfalls()
         vector<materialsurface> &surfs = waterfallsurfs[k];
         if(surfs.empty()) continue;
 
-        MSlot &wslot = lookupmaterialslot(MAT_WATER+k);
+        MatSlot &wslot = lookupmaterialslot(MAT_WATER+k);
 
         Texture *tex = wslot.sts.inrange(2) ? wslot.sts[2].t : (wslot.sts.inrange(0) ? wslot.sts[0].t : notexture);
         float angle = fmod(float(lastmillis/600.0f/(2*M_PI)), 1.0f),
@@ -592,7 +592,7 @@ void renderwater()
         vector<materialsurface> &surfs = watersurfs[k];
         if(surfs.empty()) continue;
 
-        MSlot &wslot = lookupmaterialslot(MAT_WATER+k);
+        MatSlot &wslot = lookupmaterialslot(MAT_WATER+k);
 
         Texture *tex = wslot.sts.inrange(0) ? wslot.sts[0].t: notexture;
         wxscale = TEX_SCALE/(tex->xs*wslot.scale);

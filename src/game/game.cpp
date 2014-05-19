@@ -581,9 +581,8 @@ namespace game
     {
         loopv(args)
         {
-            const char* arg = args[i];
             #ifdef INTENSITY_PLUGIN
-                if (arg[1] == 'P')
+                if (args[i][1] == 'P')
                 {
                     PluginListener::initialize();
                 }

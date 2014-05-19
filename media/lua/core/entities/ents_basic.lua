@@ -14,6 +14,7 @@ local logging = require("core.logger")
 local log = logging.log
 local DEBUG = logging.DEBUG
 
+local camera = require("core.engine.camera")
 local sound = require("core.engine.sound")
 local model = require("core.engine.model")
 local frame = require("core.events.frame")
@@ -1312,6 +1313,54 @@ M.Obstacle = Static_Entity:clone {
             self:get_attr("yaw"),  self:get_attr("pitch"),
             self:get_attr("roll"), self:get_attr("a"),
             self:get_attr("b"),    self:get_attr("c"), self:get_attr("solid"))
+    end,
+
+    --! Returns 0.
+    get_edit_drop_height = function(self)
+        return 0
+    end
+}
+
+--[[!
+    A decal entity class. It represents a decal that sticks to world geometry.
+    Refer to Tesseract documentation for decals. You can specify the properties
+    as extra arguments to newent, in slot, size, yaw, pitch, roll order
+    (unlike Tesseract, which is slot, yaw, pitch, roll, size).
+
+    Properties:
+        - attr1 - alias "slot", the decal slot used.
+        - attr2, attr3, attr4 - alias "yaw", "pitch", "roll", 0 by default.
+        - atr5 - alias "size", the decal size in cube units.
+]]
+M.Decal = Static_Entity:clone {
+    name = "Decal",
+
+    sauer_type = 10,
+    attr_num   = 5,
+
+    __properties = {
+        attr1 = gen_attr(1, "slot"),
+        attr2 = gen_attr(2, "yaw"),
+        attr3 = gen_attr(3, "pitch"),
+        attr4 = gen_attr(4, "roll"),
+        attr5 = gen_attr(5, "size")
+    },
+
+    __init_svars = function(self, kwargs, nd)
+        Static_Entity.__init_svars(self, kwargs, nd)
+        self:set_attr("slot",  0, nd[1])
+        self:set_attr("yaw",   0, nd[3])
+        self:set_attr("pitch", 0, nd[4])
+        self:set_attr("roll",  0, nd[5])
+        self:set_attr("size",  1, nd[2])
+    end,
+
+    __get_edit_info = function(self)
+        return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
+            .. "slot :\f2 %d \f7| size :\f2 %d",
+            self:get_attr("yaw"),  self:get_attr("pitch"),
+            self:get_attr("roll"), self:get_attr("slot"),
+            self:get_attr("size"))
     end,
 
     --! Returns 0.

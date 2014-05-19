@@ -259,7 +259,7 @@ local consolemap = {
     ["capi"                  ] = "capi",
     ["core.engine.camera"    ] = "camera",
     ["core.engine.cubescript"] = "cubescript",
-    ["core.engine.decals"    ] = "decals",
+    ["core.engine.stains"    ] = "stains",
     ["core.engine.edit"      ] = "edit",
     ["core.engine.input"     ] = "input",
     ["core.engine.lights"    ] = "lights",
@@ -317,7 +317,7 @@ local ext_set = require("core.externals").set
         - capi - capi
         - core.engine.camera - camera
         - core.engine.cubescript - cubescript
-        - core.engine.decals - decals
+        - core.engine.stains - stains
         - core.engine.edit - edit
         - core.engine.input - input
         - core.engine.lights - lights

@@ -24,7 +24,7 @@
 #undef LAPI_EMPTY
 
 void deleteparticles();
-void deletedecals();
+void deletestains();
 void clearanims();
 
 namespace lua
@@ -617,7 +617,7 @@ namespace lua
     void reset() {
 #ifndef SERVER
         deleteparticles();
-        deletedecals();
+        deletestains();
         clearanims();
 #endif
         external_handler = LUA_REFNIL;

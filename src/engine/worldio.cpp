@@ -64,7 +64,6 @@ enum { OCTSAV_CHILDREN = 0, OCTSAV_EMPTY, OCTSAV_SOLID, OCTSAV_NORMAL };
 
 #define LM_PACKW 512
 #define LM_PACKH 512
-enum { LMID_AMBIENT = 0, LMID_AMBIENT1, LMID_BRIGHT, LMID_BRIGHT1, LMID_DARK, LMID_DARK1, LMID_RESERVED };
 #define LAYER_DUP (1<<7)
 
 struct polysurfacecompat
@@ -162,11 +161,7 @@ void savec(cube *c, const ivec &o, int size, stream *f, bool nolms)
                         if(matchnorm) vertmask |= 0x08;
                     }
                     surf.verts = vertmask;
-                    polysurfacecompat psurf;
-                    psurf.lmid[0] = psurf.lmid[1] = LMID_AMBIENT;
-                    psurf.verts = surf.verts;
-                    psurf.numverts = surf.numverts;
-                    f->write(&psurf, sizeof(polysurfacecompat));
+                    f->write(&surf, sizeof(surf));
                     bool hasxyz = (vertmask&0x04)!=0, hasnorm = (vertmask&0x80)!=0;
                     if(layerverts == 4)
                     {
@@ -226,10 +221,14 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
         loopi(6) if(surfmask&(1<<i))
         {
             surfaceinfo &surf = c.ext->surfaces[i];
-            polysurfacecompat psurf;
-            f->read(&psurf, sizeof(polysurfacecompat));
-            surf.verts = psurf.verts;
-            surf.numverts = psurf.numverts;
+            if(mapversion <= 0)
+            {
+                polysurfacecompat psurf;
+                f->read(&psurf, sizeof(polysurfacecompat));
+                surf.verts = psurf.verts;
+                surf.numverts = psurf.numverts;
+            }
+            else f->read(&surf, sizeof(surf));
             int vertmask = surf.verts, numverts = surf.totalverts();
             if(!numverts) { surf.verts = 0; continue; }
             surf.verts = offset;
@@ -238,7 +237,7 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
             ivec v[4], n;
             int layerverts = surf.numverts&MAXFACEVERTS, dim = dimension(i), vc = C[dim], vr = R[dim], bias = 0;
             genfaceverts(c, i, v);
-            bool hasxyz = (vertmask&0x04)!=0, hasuv = (vertmask&0x40)!=0, hasnorm = (vertmask&0x80)!=0;
+            bool hasxyz = (vertmask&0x04)!=0, hasuv = mapversion <= 0 && (vertmask&0x40)!=0, hasnorm = (vertmask&0x80)!=0;
             if(hasxyz)
             {
                 ivec e1, e2, e3;
@@ -297,10 +296,7 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
                 if(hasuv) { f->getlil<ushort>(); f->getlil<ushort>(); }
                 if(hasnorm) v.norm = f->getlil<ushort>();
             }
-            if(surf.numverts&LAYER_DUP) loopk(layerverts)
-            {
-                if(hasuv) { f->getlil<ushort>(); f->getlil<ushort>(); }
-            }
+            if(hasuv && surf.numverts&LAYER_DUP) loopk(layerverts) { f->getlil<ushort>(); f->getlil<ushort>(); }
         }
     }
 }
@@ -480,14 +476,13 @@ bool save_world(const char *mname, bool nolms)
     savemapprogress = 0;
     renderprogress(0, "saving map...");
 
-    octaheader hdr;
-    memcpy(hdr.magic, "OCTA", 4);
+    mapheader hdr;
+    memcpy(hdr.magic, "TMAP", 4);
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(hdr);
     hdr.worldsize = worldsize;
     hdr.numents = 0;
     hdr.numpvs = nolms ? 0 : getnumviewcells();
-    hdr.lightmaps = 0;
     hdr.blendmap = shouldsaveblendmap();
     hdr.numvars = 0;
     hdr.numvslots = numvslots;
@@ -495,7 +490,7 @@ bool save_world(const char *mname, bool nolms)
     {
         if((id.type == ID_VAR || id.type == ID_FVAR || id.type == ID_SVAR) && id.flags&IDF_OVERRIDE && !(id.flags&IDF_READONLY) && id.flags&IDF_OVERRIDDEN) hdr.numvars++;
     });
-    lilswap(&hdr.version, 9);
+    lilswap(&hdr.version, 8);
     f->write(&hdr, sizeof(hdr));
 
     enumerate(idents, ident, id,
@@ -566,7 +561,39 @@ bool finish_load_world(); // INTENSITY: Added this, and use it inside load_world
 
 const char *_saved_mname = NULL; // INTENSITY
 const char *_saved_cname = NULL; // INTENSITY
-octaheader *saved_hdr = NULL; // INTENSITY
+
+static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octaheader &ohdr)
+{
+    if(f->read(&hdr, 3*sizeof(int))!=int(3*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+    lilswap(&hdr.version, 2);
+
+    if(!memcmp(hdr.magic, "TMAP", 4))
+    {
+        if(hdr.version>MAPVERSION) { conoutf(CON_ERROR, "map %s requires a newer version of OctaForge", ogzname); return false; }
+        if(f->read(&hdr.worldsize, 6*sizeof(int)) != int(6*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        lilswap(&hdr.worldsize, 6);
+        if(hdr.worldsize <= 0|| hdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+    }
+    else if(!memcmp(hdr.magic, "OCTA", 4))
+    {
+        if(hdr.version!=OCTAVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version", ogzname); return false; }
+        if(f->read(&ohdr.worldsize, 7*sizeof(int)) != int(7*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        lilswap(&ohdr.worldsize, 7);
+        if(ohdr.worldsize <= 0|| ohdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        memcpy(hdr.magic, "TMAP", 4);
+        hdr.version = 0;
+        hdr.headersize = sizeof(hdr);
+        hdr.worldsize = ohdr.worldsize;
+        hdr.numents = ohdr.numents;
+        hdr.numpvs = ohdr.numpvs;
+        hdr.blendmap = ohdr.blendmap;
+        hdr.numvars = ohdr.numvars;
+        hdr.numvslots = ohdr.numvslots;
+    }
+    else { conoutf(CON_ERROR, "map %s uses an unsupported map type", ogzname); return false; }
+
+    return true;
+}
 
 bool load_world(const char *mname, const char *cname)        // still supports all map formats that have existed since the earliest cube betas!
 {
@@ -580,22 +607,16 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     stream *f = opengzfile(ogzname, "rb");
     if(!f) { conoutf(CON_ERROR, "could not read map %s", ogzname); return false; }
-    saved_hdr = new octaheader; // INTENSITY
-    octaheader& hdr = *saved_hdr; // INTENSITY
-    if(f->read(&hdr, 7*sizeof(int))!=int(7*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); delete f; return false; }
-    lilswap(&hdr.version, 6);
-    if(memcmp(hdr.magic, "OCTA", 4) || hdr.worldsize <= 0|| hdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); delete f; return false; }
-    if(hdr.version<33) { conoutf(CON_ERROR, "map %s uses an unsupported map format version", ogzname); delete f; return false; }
-    if(hdr.version>MAPVERSION) { conoutf(CON_ERROR, "map %s requires a newer version of OctaForge", ogzname); delete f; return false; }
-    if(f->read(&hdr.blendmap, sizeof(hdr) - 7*sizeof(int)) != int(sizeof(hdr) - 7*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); delete f; return false; }
+
+    mapheader hdr;
+    octaheader ohdr;
+    if(!loadmapheader(f, ogzname, hdr, ohdr)) { delete f; return false; }
 
     resetmap();
     Texture *mapshot = textureload(picname, 3, true, false);
     renderbackground("loading...", mapshot, mname, game::getmapinfo());
 
     setvar("mapversion", hdr.version, true, false);
-
-    lilswap(&hdr.blendmap, 3);
 
     renderprogress(0, "clearing world...");
 
@@ -753,7 +774,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
               //            them up if we did read them, so would have a leak)
     if(!failed)
     {
-        loopi(hdr.lightmaps)
+        if(mapversion <= 0) loopi(ohdr.lightmaps)
         {
             int type = f->getchar();
             if(type&0x80)
@@ -844,10 +865,8 @@ void writeobj(char *name)
     path(mtlname);
     f->printf("mtllib %s\n\n", mtlname);
     extern vector<vtxarray *> valist;
-    vector<vec> verts;
-    vector<vec2> texcoords;
-    hashtable<vec, int> shareverts(1<<16);
-    hashtable<vec2, int> sharetc(1<<16);
+    vector<vec> verts, texcoords;
+    hashtable<vec, int> shareverts(1<<16), sharetc(1<<16);
     hashtable<int, vector<ivec2> > mtls(1<<8);
     vector<int> usedmtl;
     vec bbmin(1e16f, 1e16f, 1e16f), bbmax(-1e16f, -1e16f, -1e16f);
@@ -860,14 +879,14 @@ void writeobj(char *name)
         ushort *idx = edata;
         loopj(va.texs)
         {
-            elementset &es = va.eslist[j];
+            elementset &es = va.texelems[j];
             if(usedmtl.find(es.texture) < 0) usedmtl.add(es.texture);
             vector<ivec2> &keys = mtls[es.texture];
             loopk(es.length)
             {
                 const vertex &v = vdata[idx[k]];
                 const vec &pos = v.pos;
-                const vec2 &tc = v.tc;
+                const vec &tc = v.tc;
                 ivec2 &key = keys.add();
                 key.x = shareverts.access(pos, verts.length());
                 if(key.x == verts.length())
@@ -895,7 +914,7 @@ void writeobj(char *name)
     f->printf("\n");
     loopv(texcoords)
     {
-        const vec2 &tc = texcoords[i];
+        const vec &tc = texcoords[i];
         f->printf("vt %.6f %.6f\n", tc.x, 1-tc.y);
     }
     f->printf("\n");
@@ -1000,7 +1019,7 @@ void writecollideobj(char *name)
         ushort *idx = edata;
         loopj(va.texs)
         {
-            elementset &es = va.eslist[j];
+            elementset &es = va.texelems[j];
             for(int k = 0; k < es.length; k += 3)
             {
                 const vec &v0 = vdata[idx[k]].pos, &v1 = vdata[idx[k+1]].pos, &v2 = vdata[idx[k+2]].pos;

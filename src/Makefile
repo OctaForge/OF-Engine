@@ -350,7 +350,7 @@ CLIENT_OBJ = \
 	engine/server.o \
 	engine/client.o \
 	engine/dynlight.o \
-	engine/decal.o \
+	engine/stain.o \
 	engine/sound.o \
 	engine/pvs.o \
 	intensity/engine_additions.o \
@@ -655,7 +655,7 @@ $(OBJDIR)/client/engine/octarender.o: engine/engine.h shared/cube.h shared/tools
 $(OBJDIR)/client/engine/server.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h game/game.h intensity/network_system.h intensity/message_system.h intensity/messages.h octaforge/of_world.h
 $(OBJDIR)/client/engine/client.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h game/game.h intensity/client_system.h intensity/network_system.h
 $(OBJDIR)/client/engine/dynlight.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h
-$(OBJDIR)/client/engine/decal.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h
+$(OBJDIR)/client/engine/stain.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h
 $(OBJDIR)/client/engine/sound.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h
 $(OBJDIR)/client/engine/pvs.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h
 $(OBJDIR)/client/intensity/engine_additions.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/glexts.h shared/glemu.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/engine.h engine/world.h engine/octa.h engine/light.h engine/bih.h engine/texture.h engine/model.h game/game.h intensity/message_system.h intensity/messages.h intensity/client_system.h octaforge/of_tools.h

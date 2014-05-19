@@ -163,7 +163,7 @@ struct partvert
 #define COLLIDERADIUS 8.0f
 #define COLLIDEERROR 1.0f
 
-void adddecal(int type, const vec &center, const vec &surface, float radius, const vec &color = vec(1.0f, 1.0f, 1.0f), int info = 0);
+void addstain(int type, const vec &center, const vec &surface, float radius, const vec &color = vec(1.0f, 1.0f, 1.0f), int info = 0);
 
 struct partrenderer
 {
@@ -171,15 +171,15 @@ struct partrenderer
     const char *texname;
     int texclamp;
     uint type;
-    int decal;
+    int stain;
     string info;
 
-    partrenderer(const char *texname, int texclamp, int type, int decal = -1)
-        : tex(NULL), texname(texname), texclamp(texclamp), type(type), decal(decal)
+    partrenderer(const char *texname, int texclamp, int type, int stain = -1)
+        : tex(NULL), texname(texname), texclamp(texclamp), type(type), stain(stain)
     {
     }
-    partrenderer(int type, int decal = -1)
-        : tex(NULL), texname(NULL), texclamp(0), type(type), decal(decal)
+    partrenderer(int type, int stain = -1)
+        : tex(NULL), texname(NULL), texclamp(0), type(type), stain(stain)
     {
     }
     virtual ~partrenderer()
@@ -245,7 +245,7 @@ struct partrenderer
             }
             if(type&PT_COLLIDE && o.z < p->val && canstep)
             {
-                if(decal >= 0)
+                if(stain >= 0)
                 {
                     vec surface;
                     float floorz = rayfloor(vec(o.x, o.y, p->val), surface, RAY_CLIPMAT, COLLIDERADIUS);
@@ -254,7 +254,7 @@ struct partrenderer
                         p->val = collidez+COLLIDEERROR;
                     else
                     {
-                        adddecal(decal, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*size, p->color, type&PT_RND4 ? (p->flags>>5)&3 : 0);
+                        addstain(stain, vec(o.x, o.y, collidez), vec(p->o).sub(o).normalize(), 2*size, p->color, type&PT_RND4 ? (p->flags>>5)&3 : 0);
                         blend = 0;
                     }
                 }
@@ -298,12 +298,12 @@ struct listrenderer : partrenderer
     static T *parempty;
     T *list;
 
-    listrenderer(const char *texname, int texclamp, int type, int decal = -1)
-        : partrenderer(texname, texclamp, type, decal), list(NULL)
+    listrenderer(const char *texname, int texclamp, int type, int stain = -1)
+        : partrenderer(texname, texclamp, type, stain), list(NULL)
     {
     }
-    listrenderer(int type, int decal = -1)
-        : partrenderer(type, decal), list(NULL)
+    listrenderer(int type, int stain = -1)
+        : partrenderer(type, stain), list(NULL)
     {
     }
 
@@ -715,8 +715,8 @@ struct varenderer : partrenderer
     int maxparts, numparts, lastupdate, rndmask;
     GLuint vbo;
 
-    varenderer(const char *texname, int type, int decal = -1)
-        : partrenderer(texname, 3, type|T, decal),
+    varenderer(const char *texname, int type, int stain = -1)
+        : partrenderer(texname, 3, type|T, stain),
           verts(NULL), parts(NULL), maxparts(0), numparts(0), lastupdate(-1), rndmask(0), vbo(0)
     {
         if(type & PT_HFLIP) rndmask |= 0x01;
@@ -965,9 +965,9 @@ LUAICOMMAND(particle_register_renderer_##name, { \
     if (get_renderer(L, name)) return 2; \
     const char *path = luaL_checkstring(L, 2); \
     int flags = luaL_optinteger(L, 3, 0) & (~PT_CLEARMASK); \
-    int decal = luaL_optinteger(L, 4, 0); \
+    int stain = luaL_optinteger(L, 4, 0); \
     register_renderer(L, newstring(name), new name##renderer(newstring(path), \
-        flags, decal)); \
+        flags, stain)); \
     return 2; \
 })
 
@@ -1211,7 +1211,7 @@ static void splash(int type, const vec &color, int radius, int num, int fade, co
 {
     if (!canaddparticles()) return;
     if(camera1->o.dist(p) > maxparticledistance && !seedemitter) return;
-    float collidez = parts[type]->type&PT_COLLIDE ? p.z - raycube(p, vec(0, 0, -1), COLLIDERADIUS, RAY_CLIPMAT) + (parts[type]->decal >= 0 ? COLLIDEERROR : 0) : -1;
+    float collidez = parts[type]->type&PT_COLLIDE ? p.z - raycube(p, vec(0, 0, -1), COLLIDERADIUS, RAY_CLIPMAT) + (parts[type]->stain >= 0 ? COLLIDEERROR : 0) : -1;
     int fmin = 1;
     int fmax = fade*3;
     loopi(num)
@@ -1475,9 +1475,9 @@ float size, int gravity, int vel, int uid), {
             n->owner = owner;
             if (parts[type]->type&PT_COLLIDE) {
                 n->val = from.z - raycube(from, vec(0, 0, -1),
-                    (parts[type]->decal >= 0 ? COLLIDERADIUS
+                    (parts[type]->stain >= 0 ? COLLIDERADIUS
                         : max(from.z, 0.0f)), RAY_CLIPMAT)
-                +  (parts[type]->decal >= 0 ? COLLIDEERROR : 0);
+                +  (parts[type]->stain >= 0 ? COLLIDEERROR : 0);
             }
         }
     }

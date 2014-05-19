@@ -18,8 +18,8 @@ require("core.engine.model")
 log.log(log.DEBUG, ":::: Lights.")
 require("core.engine.lights")
 
-log.log(log.DEBUG, ":::: Decals.")
-require("core.engine.decals")
+log.log(log.DEBUG, ":::: Stains.")
+require("core.engine.stains")
 
 log.log(log.DEBUG, ":::: Particles.")
 require("core.engine.particles")

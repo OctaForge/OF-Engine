@@ -137,7 +137,8 @@ struct FragDataLoc
     const char *name;
     int loc;
     GLenum format;
-    FragDataLoc(const char *name = NULL, int loc = -1, GLenum format = GL_FALSE) : name(name), loc(loc), format(format) {}
+    int index;
+    FragDataLoc(const char *name = NULL, int loc = -1, GLenum format = GL_FALSE, int index = 0) : name(name), loc(loc), format(format), index(index) {}
 };
 
 struct Shader
@@ -175,6 +176,7 @@ struct Shader
 
     void fixdetailshader(bool force = true, bool recurse = true);
     void allocparams(Slot *slot = NULL);
+    void setslotparams(Slot &slot);
     void setslotparams(Slot &slot, VSlot &vslot);
     void bindprograms();
 
@@ -182,6 +184,11 @@ struct Shader
     {
         if(!used) { allocparams(slot); used = true; }
         loopv(globalparams) globalparams[i].flush();
+    }
+
+    bool hasoption()
+    {
+        return detailshader && (detailshader->type&SHADER_OPTION)!=0;
     }
 
     bool hasoption(int row)
@@ -192,9 +199,9 @@ struct Shader
 
     bool isdynamic() const { return (type&SHADER_DYNAMIC)!=0; }
 
-    void setvariant_(int col, int row, Shader *fallbackshader)
+    void setvariant_(int col, int row)
     {
-        Shader *s = fallbackshader;
+        Shader *s = detailshader;
         for(col = min(col, detailshader->variants[row].length()-1); col >= 0; col--)
             if(!(detailshader->variants[row][col]->type&SHADER_INVALID))
             {
@@ -204,32 +211,25 @@ struct Shader
         if(lastshader!=s) s->bindprograms();
     }
 
-    void setvariant(int col, int row, Shader *fallbackshader)
-    {
-        if(!this || !detailshader) return;
-        setvariant_(col, row, fallbackshader);
-        lastshader->flushparams();
-    }
-
     void setvariant(int col, int row)
     {
         if(!this || !detailshader) return;
-        setvariant_(col, row, detailshader);
+        setvariant_(col, row);
         lastshader->flushparams();
     }
 
-    void setvariant(int col, int row, Slot &slot, VSlot &vslot, Shader *fallbackshader)
+    void setvariant(int col, int row, Slot &slot)
     {
         if(!this || !detailshader) return;
-        setvariant_(col, row, fallbackshader);
+        setvariant_(col, row);
         lastshader->flushparams(&slot);
-        lastshader->setslotparams(slot, vslot);
+        lastshader->setslotparams(slot);
     }
 
     void setvariant(int col, int row, Slot &slot, VSlot &vslot)
     {
         if(!this || !detailshader) return;
-        setvariant_(col, row, detailshader);
+        setvariant_(col, row);
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot, vslot);
     }
@@ -244,6 +244,14 @@ struct Shader
         if(!this || !detailshader) return;
         set_();
         lastshader->flushparams();
+    }
+
+    void set(Slot &slot)
+    {
+        if(!this || !detailshader) return;
+        set_();
+        lastshader->flushparams(&slot);
+        lastshader->setslotparams(slot);
     }
 
     void set(Slot &slot, VSlot &vslot)
@@ -644,6 +652,8 @@ struct VSlot
 
 struct Slot
 {
+    enum { OCTA, MATERIAL, DECAL };
+
     struct Tex
     {
         int type;
@@ -664,6 +674,21 @@ struct Slot
     Texture *grasstex, *thumbnail;
 
     Slot(int index = -1) : index(index), variants(NULL), grass(NULL), group(NULL) { reset(); }
+    virtual ~Slot() {}
+
+    virtual int type() const { return OCTA; }
+    virtual const char *name() const;
+
+    virtual VSlot &emptyvslot();
+
+    virtual int cancombine(int type) const;
+
+    int findtextype(int type, int last = -1) const;
+
+    void load(int index, Slot::Tex &t);
+    void load();
+
+    Texture *loadthumbnail();
 
     void reset()
     {
@@ -709,14 +734,49 @@ inline bool VSlot::isdynamic() const
     return !scroll.iszero() || slot->shader->isdynamic();
 }
 
-struct MSlot : Slot, VSlot
+struct MatSlot : Slot, VSlot
 {
-    MSlot() : VSlot(this) {}
+    MatSlot();
+
+    int type() const { return MATERIAL; }
+    const char *name() const;
+
+    VSlot &emptyvslot() { return *this; }
+
+    int cancombine(int type) const { return -1; }
 
     void reset()
     {
         Slot::reset();
         VSlot::reset();
+    }
+
+    void cleanup()
+    {
+        Slot::cleanup();
+        VSlot::cleanup();
+    }
+};
+
+struct DecalSlot : Slot, VSlot
+{
+    float depth, fade;
+
+    DecalSlot(int index = -1) : Slot(index), VSlot(this), depth(1), fade(0.5f) {}
+
+    int type() const { return DECAL; }
+    const char *name() const;
+
+    VSlot &emptyvslot() { return *this; }
+
+    int cancombine(int type) const;
+
+    void reset()
+    {
+        Slot::reset();
+        VSlot::reset();
+        depth = 1;
+        fade = 0.5f;
     }
 
     void cleanup()
@@ -741,7 +801,6 @@ extern int maxvsuniforms, maxfsuniforms;
 extern Shader *lookupshaderbyname(const char *name);
 extern Shader *useshaderbyname(const char *name);
 extern Shader *generateshader(const char *name, const char *cmd, ...);
-extern Texture *loadthumbnail(Slot &slot);
 extern void resetslotshader();
 extern void setslotshader(Slot &s);
 extern void linkslotshader(Slot &s, bool load = true);
@@ -767,9 +826,10 @@ extern void savetga(const char *filename, ImageData &image, bool flip = false);
 extern bool loaddds(const char *filename, ImageData &image);
 extern bool loadimage(const char *filename, ImageData &image);
 
-extern MSlot &lookupmaterialslot(int slot, bool load = true);
+extern MatSlot &lookupmaterialslot(int slot, bool load = true);
 extern Slot &lookupslot(int slot, bool load = true);
 extern VSlot &lookupvslot(int slot, bool load = true);
+extern DecalSlot &lookupdecalslot(int slot, bool load = true);
 extern VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta);
 extern VSlot *editvslot(const VSlot &src, const VSlot &delta);
 extern void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta);

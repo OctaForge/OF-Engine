@@ -705,7 +705,7 @@ void renderglass()
         vector<materialsurface> &surfs = glasssurfs[k];
         if(surfs.empty()) continue;
 
-        MSlot &gslot = lookupmaterialslot(MAT_GLASS+k);
+        MatSlot &gslot = lookupmaterialslot(MAT_GLASS+k);
 
         Texture *tex = gslot.sts.inrange(0) ? gslot.sts[0].t : notexture;
         glassxscale = TEX_SCALE/(tex->xs*gslot.scale);

@@ -50,7 +50,7 @@
 #include "engine/server.cpp"
 #include "engine/client.cpp"
 #include "engine/dynlight.cpp"
-#include "engine/decal.cpp"
+#include "engine/stain.cpp"
 #include "engine/sound.cpp"
 #include "engine/pvs.cpp"
 #include "intensity/engine_additions.cpp"

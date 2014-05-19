@@ -116,8 +116,9 @@ static inline bool pvsoccluded(const ivec &bborigin, int size)
 }
 
 // rendergl
-extern bool hasVAO, hasTR, hasTSW, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasS3TC, hasFXT1, hasLATC, hasRGTC, hasAF, hasFBB, hasFBMS, hasTMS, hasMSS, hasFBMSBS, hasNVFBMSC, hasNVTMS, hasUBO, hasMBR, hasDB2, hasDBB, hasTG, hasTQ, hasPF, hasTRG, hasTI, hasHFV, hasHFP, hasDBT, hasDC, hasDBGO, hasEGPU4, hasGPU4, hasGPU5, hasEAL, hasCR, hasOQ2, hasCB, hasCI;
+extern bool hasVAO, hasTR, hasTSW, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasS3TC, hasFXT1, hasLATC, hasRGTC, hasAF, hasFBB, hasFBMS, hasTMS, hasMSS, hasFBMSBS, hasNVFBMSC, hasNVTMS, hasUBO, hasMBR, hasDB2, hasDBB, hasTG, hasTQ, hasPF, hasTRG, hasTI, hasHFV, hasHFP, hasDBT, hasDC, hasDBGO, hasEGPU4, hasGPU4, hasGPU5, hasBFE, hasEAL, hasCR, hasOQ2, hasCB, hasCI;
 extern int glversion, glslversion;
+extern int maxdrawbufs, maxdualdrawbufs;
 
 enum { DRAWTEX_NONE = 0, DRAWTEX_ENVMAP, DRAWTEX_MINIMAP, DRAWTEX_MODELPREVIEW };
 
@@ -446,6 +447,8 @@ extern void drawbb(const ivec &bo, const ivec &br, const vec &camera = camera1->
 #define startquery(query) do { glBeginQuery_(GL_SAMPLES_PASSED, ((occludequery *)(query))->id); } while(0)
 #define endquery(query) do { glEndQuery_(GL_SAMPLES_PASSED); } while(0)
 
+extern void renderdecals();
+
 struct shadowmesh;
 extern void clearshadowmeshes();
 extern void genshadowmeshes();
@@ -678,13 +681,13 @@ extern void debugparticles();
 extern void renderparticles(int layer = PL_ALL);
 extern void cleanupparticles();
 
-// decal
-enum { DB_OPAQUE = 0, DB_TRANSPARENT, NUMDB };
+// stain
+enum { STAINBUF_OPAQUE = 0, STAINBUF_TRANSPARENT, NUMSTAINBUFS };
 
-extern void initdecals();
-extern void cleardecals();
-extern void renderdecals(int db = DB_OPAQUE);
-extern void cleanupdecals();
+extern void initstains();
+extern void clearstains();
+extern void renderstains(int sbuf = STAINBUF_OPAQUE);
+extern void cleanupstains();
 
 // rendersky
 extern int skytexture, skyshadow, explicitsky;

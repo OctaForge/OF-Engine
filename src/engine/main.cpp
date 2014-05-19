@@ -518,7 +518,7 @@ void resetgl()
     recorder::cleanup();
     cleanupva();
     cleanupparticles();
-    cleanupdecals();
+    cleanupstains();
     cleanupsky();
     cleanupmodels();
     cleanuptextures();
@@ -1145,7 +1145,7 @@ int main(int argc, char **argv)
     initgbuffer();
     loadshaders();
     initparticles();
-    initdecals();
+    initstains();
 
     identflags |= IDF_PERSIST;
 

@@ -78,7 +78,7 @@ else()
         ../engine/server
         ../engine/client
         ../engine/dynlight
-        ../engine/decal
+        ../engine/stain
         ../engine/sound
         ../engine/pvs
         ../intensity/engine_additions

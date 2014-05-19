@@ -49,7 +49,7 @@ local particle = ffi.metatype("particle_t", {
     ROT (randomly rotated), FEW (initializes the renderer with fewparticles
     instead of maxparticles if it's lower), ICONGRID (NxN icon grid), SHRINK
     (particle will keep shrinking), GROW (particle will keep growing),
-    COLLIDE (colliding particle with decal),  FLIP (a combination of HFLIP,
+    COLLIDE (colliding particle with stain),  FLIP (a combination of HFLIP,
     VFLIP and ROT).
 ]]
 M.flags = {:
@@ -86,7 +86,7 @@ M.renderers = renderers
         - name - pick one.
         - tex - the texture path.
         - flags - see $flags, optional.
-        - id - the decal id that gets spawned if the particle collides
+        - id - the stain id that gets spawned if the particle collides
           with geometry (the particle needs to have gravity and requires
           the COLLIDE flag to be set), optional.
 

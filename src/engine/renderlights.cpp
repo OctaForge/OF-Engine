@@ -498,10 +498,10 @@ void maskgbuffer(const char *mask)
     int numbufs = 0;
     while(*mask) switch(*mask++)
     {
-        case 'c': drawbufs[numbufs++] =  GL_COLOR_ATTACHMENT0; break;
-        case 'n': drawbufs[numbufs++] =  GL_COLOR_ATTACHMENT1; break;
-        case 'g': drawbufs[numbufs++] =  GL_COLOR_ATTACHMENT2; break;
-        case 'd': if(gdepthformat) drawbufs[numbufs++] =  GL_COLOR_ATTACHMENT3; break;
+        case 'c': drawbufs[numbufs++] = GL_COLOR_ATTACHMENT0; break;
+        case 'n': drawbufs[numbufs++] = GL_COLOR_ATTACHMENT1; break;
+        case 'g': drawbufs[numbufs++] = GL_COLOR_ATTACHMENT2; break;
+        case 'd': if(gdepthformat) drawbufs[numbufs++] = GL_COLOR_ATTACHMENT3; break;
     }
     glDrawBuffers_(numbufs, drawbufs);
 }
@@ -3905,7 +3905,7 @@ void rendertransparent()
                 glStencilFunc(GL_EQUAL, layer+1, ~0);
                 glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
             }
-            renderdecals(DB_TRANSPARENT);
+            renderstains(STAINBUF_TRANSPARENT);
             break;
         case 3:
             rendertransparentmodelbatches();
@@ -4057,6 +4057,8 @@ void rendergbuffer(bool depthclear)
     }
     rendergeom();
     GLERROR;
+    renderdecals();
+    GLERROR;
     resetmodelbatches();
     rendermapmodels();
     GLERROR;
@@ -4070,7 +4072,7 @@ void rendergbuffer(bool depthclear)
         game::rendergame();
         rendermodelbatches();
         GLERROR;
-        renderdecals();
+        renderstains();
         GLERROR;
         renderavatar();
         GLERROR;

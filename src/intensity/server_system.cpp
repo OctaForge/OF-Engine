@@ -72,7 +72,7 @@ void calcmatbb(vtxarray *va, const ivec &co, int size, vector<materialsurface> &
 
 void clearmapsounds() { };
 void clearparticles() { };
-void cleardecals() { };
+void clearstains() { };
 void clearlights() { };
 void clearlightcache(int e) { };
 void initlights() { };
@@ -93,6 +93,21 @@ Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient) { r
 
 vector<VSlot *> vslots;
 
+int Slot::findtextype(int type, int last) const
+{
+    return -1;
+}
+
+int Slot::cancombine(int type) const
+{
+    return -1;
+}
+
+void Slot::load(int index, Slot::Tex &t) {}
+void Slot::load() {}
+
+const char *Slot::name() const { return "slot"; }
+
 Slot &lookupslot(int index, bool load)
 {
     static Slot sl;
@@ -109,6 +124,11 @@ VSlot &lookupvslot(int index, bool load)
     return vsl;
 }
 
+VSlot &Slot::emptyvslot()
+{
+    return lookupvslot(0, false);
+}
+
 VSlot *editvslot(const VSlot &src, const VSlot &delta)
 {
     return &lookupvslot(0, 0);
@@ -118,6 +138,16 @@ void clearslots() { };
 void compactvslots(cube *c, int n) { };
 void compactvslot(int &index) { };
 void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta) { };
+
+const char *DecalSlot::name() const { return "decal slot"; }
+
+DecalSlot &lookupdecalslot(int index, bool load)
+{
+    static DecalSlot ds;
+    return ds;
+}
+
+int DecalSlot::cancombine(int type) const { return -1; }
 
 const char *getshaderparamname(const char *name) { return ""; };
 

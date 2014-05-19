@@ -15,7 +15,7 @@ SVARR(maptitle, "Untitled Map by Unknown");
 VAR(octaentsize, 0, 64, 1024);
 VAR(entselradius, 0, 2, 10);
 
-static inline void transformbb(const entity &e,vec &center, vec &radius)
+static inline void transformbb(const entity &e, vec &center, vec &radius)
 {
     if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; center.mul(scale); radius.mul(scale); }
     rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]);
@@ -33,16 +33,33 @@ static inline void mmcollisionbox(const extentity &e, model *m, vec &center, vec
     transformbb(e, center, radius);
 }
 
+static inline void decalboundbox(const entity &e, DecalSlot &s, vec &center, vec &radius)
+{
+    float size = max(float(e.attr[4]), 1.0f);
+    center = vec(0, s.depth * size/2, 0);
+    radius = vec(size/2, s.depth * size/2, size/2);
+    rotatebb(center, radius, e.attr[1], e.attr[2], e.attr[3]);
+}
+
 bool getentboundingbox(const extentity &e, ivec &o, ivec &r)
 {
     switch(e.type)
     {
         case ET_EMPTY:
             return false;
+        case ET_DECAL:
+            {
+                DecalSlot &s = lookupdecalslot(e.attr[0], false);
+                vec center, radius;
+                decalboundbox(e, s, center, radius);
+                center.add(e.o);
+                radius.max(entselradius);
+                o = vec(center).sub(radius);
+                r = vec(center).add(radius).add(1);
+                break;
+            } 
         case ET_MAPMODEL:
-        {
-            model *m = e.m; // INTENSITY
-            if(m)
+            if(model *m = e.m)
             {
                 vec center, radius;
                 mmboundbox(e, m, center, radius);
@@ -52,7 +69,6 @@ bool getentboundingbox(const extentity &e, ivec &o, ivec &r)
                 r = vec(center).add(radius).add(1);
                 break;
             }
-        }
         case ET_OBSTACLE: /* OF */
         {
             int a = e.attr[3], b = e.attr[4], c = e.attr[5];
@@ -98,9 +114,17 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
             octaentities &oe = *c[i].ext->ents;
             switch(e.type)
             {
-                case ET_OBSTACLE: /* OF */
-                    oe.mapmodels.add(id);
+                case ET_DECAL:
+                    if(va)
+                    {
+                        va->bbmin.x = -1;
+                        if(oe.decals.empty()) va->decals.add(&oe);
+                    }
+                    oe.decals.add(id);
+                    oe.bbmin.min(bo).max(oe.o);
+                    oe.bbmax.max(br).min(ivec(oe.o).add(oe.size));
                     break;
+                case ET_OBSTACLE: /* OF */
                 case ET_MAPMODEL:
                     if(e.m)
                     {
@@ -126,9 +150,29 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
             octaentities &oe = *c[i].ext->ents;
             switch(e.type)
             {
-                case ET_OBSTACLE: /* OF */
-                    oe.mapmodels.removeobj(id);
+                case ET_DECAL:
+                    oe.decals.removeobj(id);
+                    if(va)
+                    {
+                        va->bbmin.x = -1;
+                        if(oe.decals.empty()) va->decals.removeobj(&oe);
+                    }
+                    oe.bbmin = oe.bbmax = oe.o;
+                    oe.bbmin.add(oe.size);
+                    loopvj(oe.decals)
+                    {
+                        extentity &e = *entities::getents()[oe.decals[j]];
+                        ivec eo, er;
+                        if(getentboundingbox(e, eo, er))
+                        {
+                            oe.bbmin.min(eo);
+                            oe.bbmax.max(er);
+                        }
+                    }
+                    oe.bbmin.max(oe.o);
+                    oe.bbmax.min(ivec(oe.o).add(oe.size));
                     break;
+                case ET_OBSTACLE: /* OF */
                 case ET_MAPMODEL:
                     if(e.m)
                     {
@@ -160,7 +204,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     oe.other.removeobj(id);
                     break;
             }
-            if(oe.mapmodels.empty() && oe.other.empty())
+            if(oe.mapmodels.empty() && oe.decals.empty() && oe.other.empty())
                 freeoctaentities(c[i]);
         }
         if(c[i].ext && c[i].ext->ents) c[i].ext->ents->query = NULL;
@@ -232,6 +276,7 @@ void freeoctaentities(cube &c)
     if(entities::getents().length())
     {
         while(c.ext->ents && !c.ext->ents->mapmodels.empty()) removeentity(c.ext->ents->mapmodels.pop());
+        while(c.ext->ents && !c.ext->ents->decals.empty())    removeentity(c.ext->ents->decals.pop());
         while(c.ext->ents && !c.ext->ents->other.empty())     removeentity(c.ext->ents->other.pop());
     }
     if(c.ext->ents)
@@ -498,6 +543,13 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
         es.max(entselradius);
         eo.add(e.o);
     }
+    else if(e.type == ET_DECAL)
+    {
+        DecalSlot &s = lookupdecalslot(e.attr[0], false);
+        decalboundbox(e, s, eo, es);
+        es.max(entselradius);
+        eo.add(e.o);
+    }
     else
     {
         es = vec(entselradius);
@@ -644,6 +696,47 @@ void renderentcone(const extentity &e, const vec &dir, float radius, float angle
     xtraverts += gle::end();
 }
 
+void renderentbox(const extentity &e, const vec &center, const vec &radius, int yaw, int pitch, int roll)
+{
+    matrix4x3 orient;
+    orient.identity();
+    orient.settranslation(e.o);
+    if(yaw) orient.rotate_around_z(sincosmod360(yaw));
+    if(pitch) orient.rotate_around_x(sincosmod360(pitch));
+    if(roll) orient.rotate_around_y(sincosmod360(-roll));
+    orient.translate(center);
+
+    gle::defvertex();
+    
+    vec front[4] = { vec(-radius.x, -radius.y, -radius.z), vec( radius.x, -radius.y, -radius.z), vec( radius.x, -radius.y,  radius.z), vec(-radius.x, -radius.y,  radius.z) },
+        back[4] = { vec(-radius.x, radius.y, -radius.z), vec( radius.x, radius.y, -radius.z), vec( radius.x, radius.y,  radius.z), vec(-radius.x, radius.y,  radius.z) };
+    loopi(4)
+    {
+        front[i] = orient.transform(front[i]);
+        back[i] = orient.transform(back[i]);
+    }
+
+    gle::begin(GL_LINE_LOOP);
+    loopi(4) gle::attrib(front[i]);
+    xtraverts += gle::end();
+
+    gle::begin(GL_LINES);
+    gle::attrib(front[0]);
+        gle::attrib(front[2]);
+    gle::attrib(front[1]);
+        gle::attrib(front[3]);
+    loopi(4)
+    {
+        gle::attrib(front[i]);
+        gle::attrib(back[i]);
+    }
+    xtraverts += gle::end();
+
+    gle::begin(GL_LINE_LOOP);
+    loopi(4) gle::attrib(back[i]);
+    xtraverts += gle::end();
+}
+
 void renderentradius(extentity &e, bool color)
 {
     switch(e.type)
@@ -689,6 +782,15 @@ void renderentradius(extentity &e, bool color)
             vec dir;
             vecfromyawpitch(e.attr[0], e.attr[1], 1, 0, dir);
             renderentarrow(e, dir, 4);
+            goto attach;
+        }
+
+        case ET_DECAL:
+        {
+            if(color) gle::colorf(0, 1, 1);
+            DecalSlot &s = lookupdecalslot(e.attr[0], false);
+            float size = max(float(e.attr[4]), 1.0f);
+            renderentbox(e, vec(0, s.depth * size/2, 0), vec(size/2, s.depth * size/2, size/2), e.attr[1], e.attr[2], e.attr[3]);
             goto attach;
         }
 
@@ -1023,7 +1125,8 @@ static const int attrnums[] = {
     3, /* ET_SOUND */
     0, /* ET_PARTICLES */
     4, /* ET_MAPMODEL */
-    7  /* ET_OBSTACLE */
+    7, /* ET_OBSTACLE */
+    5  /* ET_DECAL */
 };
 
 int getattrnum(int type) {
@@ -1220,7 +1323,7 @@ void resetmap()
 #endif
     clearslots();
     clearparticles();
-    cleardecals();
+    clearstains();
     clearsleep();
     cancelsel();
     pruneundos();

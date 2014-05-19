@@ -875,12 +875,18 @@ struct matrix4x3
         d.mul(k);
     }
 
-    void scale(float k)
+    void setscale(float x, float y, float z) { a.x = x; b.y = y; c.z = z; }
+    void setscale(const vec &v) { setscale(v.x, v.y, v.z); }
+    void setscale(float n) { setscale(n, n, n); }
+
+    void scale(float x, float y, float z)
     {
-        a.mul(k);
-        b.mul(k);
-        c.mul(k);
+        a.mul(x);
+        b.mul(y);
+        c.mul(z);
     }
+    void scale(const vec &v) { scale(v.x, v.y, v.z); }
+    void scale(float n) { scale(n, n, n); }
 
     void settranslation(const vec &p) { d = p; }
     void settranslation(float x, float y, float z) { d = vec(x, y, z); }
@@ -1840,6 +1846,7 @@ struct squat
 extern bool raysphereintersect(const vec &center, float radius, const vec &o, const vec &ray, float &dist);
 extern bool rayboxintersect(const vec &b, const vec &s, const vec &o, const vec &ray, float &dist, int &orient);
 extern bool linecylinderintersect(const vec &from, const vec &to, const vec &start, const vec &end, float radius, float &dist);
+extern int polyclip(const vec *in, int numin, const vec &dir, float below, float above, vec *out);
 
 extern const vec2 sincos360[];
 static inline int mod360(int angle)

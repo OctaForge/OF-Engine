@@ -792,6 +792,17 @@ extern PFNGLISVERTEXARRAYPROC      glIsVertexArray_;
 #define GL_ANY_SAMPLES_PASSED             0x8C2F
 #endif
 
+// GL_ARB_blend_func_extended
+#ifndef GL_ARB_blend_func_extended
+#define GL_ARB_blend_func_extended 1
+#define GL_SRC1_COLOR                     0x88F9
+#define GL_ONE_MINUS_SRC1_COLOR           0x88FA
+#define GL_ONE_MINUS_SRC1_ALPHA           0x88FB
+#define GL_MAX_DUAL_SOURCE_DRAW_BUFFERS   0x88FC
+typedef void (APIENTRYP PFNGLBINDFRAGDATALOCATIONINDEXEDPROC) (GLuint program, GLuint colorNumber, GLuint index, const GLchar *name);
+#endif
+extern PFNGLBINDFRAGDATALOCATIONINDEXEDPROC glBindFragDataLocationIndexed_;
+
 #ifndef GL_VERSION_4_0
 #define GL_VERSION_4_0 1
 #define GL_SAMPLE_SHADING                 0x8C36

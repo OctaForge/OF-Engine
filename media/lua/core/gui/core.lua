@@ -69,7 +69,7 @@ local mod = M.mod
 
 -- initialized after World is created
 local world, projection, clicked, hovering, focused
-local cursor_x, cursor_y = 0.5, 0.5
+local cursor_x, cursor_y = 0.499, 0.499
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local clicked_code
 local menu_init, tooltip_init, tooltip

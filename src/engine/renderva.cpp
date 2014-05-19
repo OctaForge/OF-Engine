@@ -551,7 +551,7 @@ bool bboccluded(const ivec &bo, const ivec &br)
 }
 
 VAR(outline, 0, 1, 1);
-HVARP(outlinecolor, 0, 0, 0xFFFFFF);
+CVARP(outlinecolor, 0);
 VAR(dtoutline, 0, 1, 1);
 
 void renderoutline()
@@ -561,7 +561,7 @@ void renderoutline()
     gle::enablevertex();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    gle::color(vec::hexcolor(outlinecolor));
+    gle::color(outlinecolor);
 
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
 
@@ -605,7 +605,7 @@ void renderoutline()
     gle::disablevertex();
 }
 
-HVAR(blendbrushcolor, 0, 0x0000C0, 0xFFFFFF);
+CVARP(blendbrushcolor, 0x0000C0);
 
 void renderblendbrush(GLuint tex, float x, float y, float w, float h)
 {
@@ -619,7 +619,7 @@ void renderblendbrush(GLuint tex, float x, float y, float w, float h)
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindTexture(GL_TEXTURE_2D, tex);
-    gle::color(vec::hexcolor(blendbrushcolor), 0.25f);
+    gle::color(blendbrushcolor, 0x40);
 
     LOCALPARAMF(texgenS, 1.0f/w, 0, 0, -x/w);
     LOCALPARAMF(texgenT, 0, 1.0f/h, 0, -y/h);
@@ -1053,7 +1053,7 @@ struct renderstate
     int alphaing;
     GLuint vbuf;
     bool vattribs, vquery;
-    GLfloat color[4], fogcolor[4];
+    GLfloat color[4];
     vec colorscale;
     float alphascale;
     float refractscale;
@@ -1167,7 +1167,7 @@ static void mergetexs(renderstate &cur, vtxarray *va, elementset *texs = NULL, i
 {
     if(!texs)
     {
-        texs = va->eslist;
+        texs = va->texelems;
         numtexs = va->texs;
         if(cur.alphaing)
         {
@@ -1274,8 +1274,8 @@ static void changevbuf(renderstate &cur, int pass, vtxarray *va)
 
     if(pass==RENDERPASS_GBUFFER || pass==RENDERPASS_RSM)
     {
-        gle::texcoord0pointer(sizeof(vertex), vdata->tc.v);
         gle::normalpointer(sizeof(vertex), vdata->norm.v, GL_BYTE);
+        gle::texcoord0pointer(sizeof(vertex), vdata->tc.v);
         gle::tangentpointer(sizeof(vertex), vdata->tangent.v, GL_BYTE);
     }
 }
@@ -1498,7 +1498,7 @@ static void renderbatches(renderstate &cur, int pass)
         if(cur.vslot != &b.vslot)
         {
             changeslottmus(cur, pass, *b.vslot.slot, b.vslot);
-            if(cur.texgenorient != b.es.orient || (cur.texgenorient < 7 && cur.texgenvslot != &b.vslot)) changetexgen(cur, b.es.orient, *b.vslot.slot, b.vslot);
+            if(cur.texgenorient != b.es.orient || (cur.texgenorient < O_ANY && cur.texgenvslot != &b.vslot)) changetexgen(cur, b.es.orient, *b.vslot.slot, b.vslot);
         }
         else if(cur.texgenorient != b.es.orient) changetexgen(cur, b.es.orient, *b.vslot.slot, b.vslot);
         if(pass == RENDERPASS_GBUFFER || pass == RENDERPASS_RSM) changebatchtmus(cur, pass, b);
@@ -1568,7 +1568,7 @@ void renderva(renderstate &cur, vtxarray *va, int pass = RENDERPASS_GBUFFER, boo
 
         case RENDERPASS_GBUFFER_BLEND:
             if(doquery) startvaquery(va, { if(geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER); });
-            mergetexs(cur, va, &va->eslist[va->texs], va->blends, 3*va->tris);
+            mergetexs(cur, va, &va->texelems[va->texs], va->blends, 3*va->tris);
             if(doquery) endvaquery(va, { if(geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER); });
             else if(!batchgeom && geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER);
             break;
@@ -1592,7 +1592,7 @@ void renderva(renderstate &cur, vtxarray *va, int pass = RENDERPASS_GBUFFER, boo
             break;
 
         case RENDERPASS_RSM_BLEND:
-            mergetexs(cur, va, &va->eslist[va->texs], va->blends, 3*va->tris);
+            mergetexs(cur, va, &va->texelems[va->texs], va->blends, 3*va->tris);
             if(!batchgeom && geombatches.length()) renderbatches(cur, RENDERPASS_RSM);
             break;
     }
@@ -1954,7 +1954,7 @@ void renderalphageom(int side)
     cleanupgeom(cur);
 }
 
-HVARP(explicitskycolor, 0, 0x800080, 0xFFFFFF);
+CVARP(explicitskycolor, 0x800080);
 
 bool renderexplicitsky(bool outline)
 {
@@ -1969,7 +1969,7 @@ bool renderexplicitsky(bool outline)
                 if(outline)
                 {
                     ldrnotextureshader->set();
-                    gle::color(vec::hexcolor(explicitskycolor));
+                    gle::color(explicitskycolor);
                     glDepthMask(GL_FALSE);
                     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -1986,7 +1986,7 @@ bool renderexplicitsky(bool outline)
             gle::vertexpointer(sizeof(vertex), ptr->pos.v);
         }
         drawvaskytris(va);
-        xtraverts += va->sky/3;
+        xtraverts += va->sky;
         prev = va;
     }
     if(!prev) return false;
@@ -2004,6 +2004,328 @@ bool renderexplicitsky(bool outline)
     glBindBuffer_(GL_ARRAY_BUFFER, 0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
     return true;
+}
+
+struct decalrenderer
+{
+    GLuint vbuf;
+    vec colorscale;
+    GLuint textures[7];
+    DecalSlot *slot;
+
+    decalrenderer() : vbuf(0), colorscale(1, 1, 1), slot(NULL)
+    {
+        loopi(7) textures[i] = 0;
+    }
+};
+
+struct decalbatch
+{
+    const elementset &es;
+    DecalSlot &slot;
+    int offset;
+    vtxarray *va;
+    int next, batch;
+
+    decalbatch(const elementset &es, int offset, vtxarray *va)
+      : es(es), slot(lookupdecalslot(es.texture)), offset(offset), va(va),
+        next(-1), batch(-1)
+    {}
+
+    int compare(const decalbatch &b) const
+    {
+        if(va->vbuf < b.va->vbuf) return -1;
+        if(va->vbuf > b.va->vbuf) return 1;
+        if(slot.shader < b.slot.shader) return -1;
+        if(slot.shader > b.slot.shader) return 1;
+        if(slot.Slot::params.length() < b.slot.Slot::params.length()) return -1;
+        if(slot.Slot::params.length() > b.slot.Slot::params.length()) return 1;
+        if(es.texture < b.es.texture) return -1;
+        if(es.texture > b.es.texture) return 1;
+        if(es.envmap < b.es.envmap) return -1;
+        if(es.envmap > b.es.envmap) return 1;
+        if(es.orient < b.es.orient) return -1;
+        if(es.orient > b.es.orient) return 1;
+        return 0;
+    }
+};
+
+static vector<decalbatch> decalbatches;
+
+static void mergedecals(decalrenderer &cur, vtxarray *va)
+{
+    elementset *texs = va->decalelems;
+    int numtexs = va->decaltexs, offset = 0;
+
+    if(firstbatch < 0)
+    {
+        firstbatch = geombatches.length();
+        numbatches = numtexs;
+        loopi(numtexs-1)
+        {
+            decalbatches.add(decalbatch(texs[i], offset, va)).next = i+1;
+            offset += texs[i].length;
+        }
+        decalbatches.add(decalbatch(texs[numtexs-1], offset, va));
+        return;
+    }
+
+    int prevbatch = -1, curbatch = firstbatch, curtex = 0;
+    do
+    {
+        decalbatch &b = decalbatches.add(decalbatch(texs[curtex], offset, va));
+        offset += texs[curtex].length;
+        int dir = -1;
+        while(curbatch >= 0)
+        {
+            dir = b.compare(decalbatches[curbatch]);
+            if(dir <= 0) break;
+            prevbatch = curbatch;
+            curbatch = decalbatches[curbatch].next;
+        }
+        if(!dir)
+        {
+            int last = curbatch, next;
+            for(;;)
+            {
+                next = decalbatches[last].batch;
+                if(next < 0) break;
+                last = next;
+            }
+            if(last==curbatch)
+            {
+                b.batch = curbatch;
+                b.next = decalbatches[curbatch].next;
+                if(prevbatch < 0) firstbatch = decalbatches.length()-1;
+                else decalbatches[prevbatch].next = decalbatches.length()-1;
+                curbatch = decalbatches.length()-1;
+            }
+            else
+            {
+                b.batch = next;
+                decalbatches[last].batch = decalbatches.length()-1;
+            }
+        }
+        else
+        {
+            numbatches++;
+            b.next = curbatch;
+            if(prevbatch < 0) firstbatch = decalbatches.length()-1;
+            else decalbatches[prevbatch].next = decalbatches.length()-1;
+            prevbatch = decalbatches.length()-1;
+        }
+    }
+    while(++curtex < numtexs);
+}
+
+static void resetdecalbatches()
+{
+    decalbatches.setsize(0);
+    firstbatch = -1;
+    numbatches = 0;
+}
+
+static void changevbuf(decalrenderer &cur, int pass, vtxarray *va)
+{
+    glBindBuffer_(GL_ARRAY_BUFFER, va->vbuf);
+    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, va->decalbuf);
+    cur.vbuf = va->vbuf;
+
+    vertex *vdata = (vertex *)0;
+    gle::vertexpointer(sizeof(vertex), vdata->pos.v);
+    gle::normalpointer(sizeof(vertex), vdata->norm.v, GL_BYTE);
+    gle::texcoord0pointer(sizeof(vertex), vdata->tc.v, GL_FLOAT, 3);
+    gle::tangentpointer(sizeof(vertex), vdata->tangent.v, GL_BYTE);
+}
+
+static void changebatchtmus(decalrenderer &cur, int pass, decalbatch &b)
+{
+    bool changed = false;
+    if(b.slot.shader->type&SHADER_ENVMAP && b.es.envmap!=EMID_CUSTOM)
+    {
+        GLuint emtex = lookupenvmap(b.es.envmap);
+        if(cur.textures[TEX_ENVMAP]!=emtex)
+        {
+            glActiveTexture_(GL_TEXTURE0 + TEX_ENVMAP);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, cur.textures[TEX_ENVMAP] = emtex);
+            changed = true;
+        }
+    }
+    if(changed) glActiveTexture_(GL_TEXTURE0);
+}
+
+static inline void bindslottex(decalrenderer &cur, int type, Texture *tex)
+{
+    if(cur.textures[type] != tex->id)
+    {
+        glActiveTexture_(GL_TEXTURE0 + type);
+        glBindTexture(GL_TEXTURE_2D, cur.textures[type] = tex->id);
+    }
+}
+
+static void changeslottmus(decalrenderer &cur, int pass, DecalSlot &slot)
+{
+    Texture *diffuse = slot.sts.empty() ? notexture : slot.sts[0].t;
+    bindslottex(cur, TEX_DIFFUSE, diffuse);
+
+    loopv(slot.sts)
+    {
+        Slot::Tex &t = slot.sts[i];
+        switch(t.type)
+        {
+            case TEX_ENVMAP:
+                if(!t.t) break;
+                // fall-through
+            case TEX_NORMAL:
+            case TEX_GLOW:
+                bindslottex(cur, t.type, t.t);
+                break;
+            case TEX_SPEC:
+                if(t.combined < 0) bindslottex(cur, TEX_GLOW, t.t);
+                break;
+        }
+    }
+    glActiveTexture_(GL_TEXTURE0);
+
+    if(cur.colorscale != slot.colorscale)
+    {
+        cur.colorscale = slot.colorscale;
+        GLOBALPARAMF(colorparams, slot.colorscale.x, slot.colorscale.y, slot.colorscale.z, 1);
+    }
+
+    cur.slot = &slot;
+}
+
+static inline void changeshader(decalrenderer &cur, int pass, decalbatch &b)
+{
+    DecalSlot &slot = b.slot;
+    if(pass) slot.shader->setvariant(0, 0, slot);
+    else slot.shader->set(slot);
+}
+
+static void renderdecalbatch(decalrenderer &cur, int pass, decalbatch &b)
+{
+    int rendered = -1;
+    for(decalbatch *curbatch = &b;; curbatch = &decalbatches[curbatch->batch])
+    {
+        ushort len = curbatch->es.length;
+        if(len)
+        {
+            if(rendered < 0)
+            {
+                changeshader(cur, pass, b);
+                rendered = 0;
+                gbatches++;
+            }
+            drawtris(len, (ushort *)0 + curbatch->va->decaloffset + curbatch->offset, curbatch->es.minvert, curbatch->es.maxvert);
+            vtris += len/3;
+        }
+        if(curbatch->batch < 0) break;
+    }
+}
+
+static void renderdecalbatches(decalrenderer &cur, int pass)
+{
+    cur.slot = NULL;
+    int curbatch = firstbatch;
+    while(curbatch >= 0)
+    {
+        decalbatch &b = decalbatches[curbatch];
+        curbatch = b.next;
+
+        if(cur.vbuf != b.va->vbuf) changevbuf(cur, pass, b.va);
+        if(cur.slot != &b.slot) changeslottmus(cur, pass, b.slot);
+        changebatchtmus(cur, pass, b);
+
+        renderdecalbatch(cur, pass, b);
+    }
+
+    resetdecalbatches();
+}
+
+void setupdecals(decalrenderer &cur)
+{
+    gle::enablevertex();
+    gle::enablenormal();
+    gle::enabletexcoord0();
+    gle::enabletangent();
+
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    enablepolygonoffset(GL_POLYGON_OFFSET_FILL);
+
+    GLOBALPARAMF(colorparams, 1, 1, 1, 1);
+}
+
+void cleanupdecals(decalrenderer &cur)
+{
+    disablepolygonoffset(GL_POLYGON_OFFSET_FILL);
+    glDisable(GL_BLEND);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_TRUE);
+    maskgbuffer("cngd");
+
+    gle::disablevertex();
+    gle::disablenormal();
+    gle::disabletexcoord0();
+    gle::disabletangent();
+
+    glBindBuffer_(GL_ARRAY_BUFFER, 0);
+    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+VAR(batchdecals, 0, 1, 1);
+ 
+void renderdecals()
+{
+    vtxarray *decalva;
+    for(decalva = visibleva; decalva; decalva = decalva->next) if(decalva->decaltris && decalva->occluded < OCCLUDE_BB) break;
+    if(!decalva) return;
+
+    decalrenderer cur;
+
+    setupdecals(cur);
+    resetdecalbatches();
+
+    if(maxdualdrawbufs)
+    {
+        glBlendFunc(GL_SRC1_ALPHA, GL_ONE_MINUS_SRC1_ALPHA);
+        maskgbuffer("c");
+        for(vtxarray *va = decalva; va; va = va->next) if(va->decaltris && va->occluded < OCCLUDE_BB)
+        {
+            vverts += 3*va->decaltris;
+            mergedecals(cur, va);
+            if(!batchdecals && decalbatches.length()) renderdecalbatches(cur, 0);
+        }
+        if(decalbatches.length()) renderdecalbatches(cur, 0);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
+        maskgbuffer("ng");
+        cur.vbuf = 0;
+        for(vtxarray *va = decalva; va; va = va->next) if(va->decaltris && va->occluded < OCCLUDE_BB)
+        {
+            vverts += 3*va->decaltris;
+            mergedecals(cur, va);
+            if(!batchdecals && decalbatches.length()) renderdecalbatches(cur, 1);
+        }
+        if(decalbatches.length()) renderdecalbatches(cur, 1);
+    }
+    else
+    {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
+        maskgbuffer("cng");
+        for(vtxarray *va = decalva; va; va = va->next) if(va->decaltris && va->occluded < OCCLUDE_BB)
+        {
+            vverts += 3*va->decaltris;
+            mergedecals(cur, va);
+            if(!batchdecals && decalbatches.length()) renderdecalbatches(cur, 0);
+        }
+        if(decalbatches.length()) renderdecalbatches(cur, 0);
+    }
+
+    cleanupdecals(cur);
 }
 
 struct shadowmesh

@@ -50,14 +50,14 @@ Texture *loadskyoverlay(const char *basename)
 }
 
 SVARFR(skybox, "", { if(skybox[0]) loadsky(skybox, sky); });
-HVARR(skyboxcolor, 0, 0xFFFFFF, 0xFFFFFF);
+CVARR(skyboxcolor, 0xFFFFFF);
 FVARR(skyboxoverbright, 1, 2, 16);
 FVARR(skyboxoverbrightmin, 0, 1, 16);
 FVARR(skyboxoverbrightthreshold, 0, 0.7f, 1);
 FVARR(spinsky, -720, 0, 720);
 VARR(yawsky, 0, 0, 360);
 SVARFR(cloudbox, "", { if(cloudbox[0]) loadsky(cloudbox, clouds); });
-HVARR(cloudboxcolor, 0, 0xFFFFFF, 0xFFFFFF);
+CVARR(cloudboxcolor, 0xFFFFFF);
 FVARR(cloudboxalpha, 0, 1, 1);
 FVARR(spinclouds, -720, 0, 720);
 VARR(yawclouds, 0, 0, 360);
@@ -74,7 +74,7 @@ FVARR(cloudheight, -1, 0.2f, 1);
 FVARR(cloudfade, 0, 0.2f, 1);
 FVARR(cloudalpha, 0, 1, 1);
 VARR(cloudsubdiv, 4, 16, 64);
-HVARR(cloudcolor, 0, 0xFFFFFF, 0xFFFFFF);
+CVARR(cloudcolor, 0xFFFFFF);
 
 void drawenvboxface(float s0, float t0, int x0, int y0, int z0,
                     float s1, float t1, int x1, int y1, int z1,
@@ -145,7 +145,7 @@ void drawenvoverlay(Texture *overlay = NULL, float tx = 0, float ty = 0)
     int w = farplane/2;
     float z = w*cloudheight, tsz = 0.5f*(1-cloudfade)/cloudscale, psz = w*(1-cloudfade);
     glBindTexture(GL_TEXTURE_2D, (overlay ? overlay : notexture)->id);
-    vec color = vec::hexcolor(cloudcolor);
+    vec color = cloudcolor.tocolor();
     gle::color(color, cloudalpha);
     gle::defvertex();
     gle::deftexcoord0();
@@ -372,18 +372,12 @@ VARR(atmo, 0, 0, 1);
 FVARR(atmoplanetsize, 1e-3f, 8, 1e3f);
 FVARR(atmoheight, 1e-3f, 1, 1e3f);
 FVARR(atmobright, 0, 4, 16);
-HVARFR(atmosunlight, 0, 0, 0xFFFFFF,
-{
-    if(atmosunlight <= 255) atmosunlight |= (atmosunlight<<8) | (atmosunlight<<16);
-});
+CVAR1R(atmosunlight, 0);
 FVARR(atmosunlightscale, 0, 1, 16);
 FVARR(atmosundisksize, 0, 1, 10);
 FVARR(atmosundiskbright, 0, 1, 16);
 FVARR(atmohaze, 0, 0.03f, 1);
-HVARFR(atmohazefade, 0, 0xAEACA9, 0xFFFFFF,
-{
-    if(!atmohazefade) atmohazefade = 0xAEACA9;
-});
+CVAR0R(atmohazefade, 0xAEACA9);
 FVARR(atmohazefadescale, 0, 1, 1);
 FVARR(atmoclarity, 0, 0.2f, 10);
 FVARR(atmodensity, 1e-3f, 0.99f, 10);
@@ -398,7 +392,7 @@ static void drawatmosphere()
     sunmatrix.mul(invprojmatrix);
     LOCALPARAM(sunmatrix, sunmatrix);
 
-    LOCALPARAM(sunlight, (atmosunlight ? vec::hexcolor(atmosunlight).mul(atmosunlightscale) : sunlight.tocolor().mul(sunlightscale)).mul(atmobright*ldrscale));
+    LOCALPARAM(sunlight, (!atmosunlight.iszero() ? atmosunlight.tocolor().mul(atmosunlightscale) : sunlight.tocolor().mul(sunlightscale)).mul(atmobright*ldrscale));
     LOCALPARAM(sundir, sunlightdir);
 
     vec sundiskparams;
@@ -417,7 +411,7 @@ static void drawatmosphere()
 
     vec lambda(680e-9f, 550e-9f, 450e-9f),
         betar = vec(lambda).square().square().recip().mul(1.86e-31f / atmodensity),
-        betam = vec(lambda).recip().mul(2*M_PI).square().mul(vec::hexcolor(atmohazefade).mul(atmohazefadescale)).mul(1.36e-19f * max(atmohaze, 1e-3f)),
+        betam = vec(lambda).recip().mul(2*M_PI).square().mul(atmohazefade.tocolor().mul(atmohazefadescale)).mul(1.36e-19f * max(atmohaze, 1e-3f)),
         betarm = vec(betar).div(1+atmoclarity).add(betam);
     betar.div(betarm).mul(3/(16*M_PI));
     betam.div(betarm).mul((1-gm)*(1-gm)/(4*M_PI));
@@ -465,7 +459,7 @@ void drawskybox(bool clear)
 
     if(clear || (!skybox[0] && (!atmo || atmoalpha < 1)))
     {
-        vec skyboxcolorv = vec::hexcolor(skyboxcolor).mul(ldrscale);
+        vec skyboxcolorv = skyboxcolor.tocolor().mul(ldrscale);
         glClearColor(skyboxcolorv.x, skyboxcolorv.y, skyboxcolorv.z, 0);
         glClear(GL_COLOR_BUFFER_BIT);
     }
@@ -479,7 +473,7 @@ void drawskybox(bool clear)
         }
         else SETSWIZZLE(skybox, sky[0]);
 
-        gle::color(vec::hexcolor(skyboxcolor));
+        gle::color(skyboxcolor);
 
         matrix4 skymatrix = cammatrix, skyprojmatrix;
         skymatrix.settranslation(0, 0, 0);
@@ -515,7 +509,7 @@ void drawskybox(bool clear)
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        gle::color(vec::hexcolor(cloudboxcolor), cloudboxalpha);
+        gle::color(cloudboxcolor.tocolor(), cloudboxalpha);
 
         matrix4 skymatrix = cammatrix, skyprojmatrix;
         skymatrix.settranslation(0, 0, 0);
