@@ -5,7 +5,7 @@ GLuint gfbo = 0, gdepthtex = 0, gcolortex = 0, gnormaltex = 0, gglowtex = 0, gde
 bool gdepthinit = false;
 int scalew = -1, scaleh = -1;
 GLuint scalefbo[2] = { 0, 0 }, scaletex[2] = { 0, 0 };
-GLuint hdrfbo = 0, hdrtex = 0, bloomfbo[6] = { 0, 0, 0, 0, 0, 0 }, bloomtex[6] = { 0, 0, 0, 0, 0, 0 };
+GLuint hdrfbo = 0, hdrtex = 0, bloompbo = 0, bloomfbo[6] = { 0, 0, 0, 0, 0, 0 }, bloomtex[6] = { 0, 0, 0, 0, 0, 0 };
 int hdrclear = 0;
 GLuint refractfbo = 0, refracttex = 0;
 GLenum bloomformat = 0, hdrformat = 0, stencilformat = 0;
@@ -56,9 +56,17 @@ void setupbloom(int w, int h)
         createtexture(bloomtex[5], bloomw, bloomh, NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE);
     }
 
-    static const uchar gray[3] = { 32, 32, 32 };
-    static const float grayf[3] = { 0.125f, 0.125f, 0.125f };
-    createtexture(bloomtex[4], 1, 1, hasTF ? (const void *)grayf : (const void *)gray, 3, 1, hasTF ? (hasTRG ? GL_R16F : GL_RGB16F) : (hasTRG ? GL_R16 : GL_RGB16));
+    if(!hwvtexunits)
+    {
+        glGenBuffers_(1, &bloompbo); 
+        glBindBuffer_(GL_PIXEL_PACK_BUFFER, bloompbo);
+        glBufferData_(GL_PIXEL_PACK_BUFFER, 4*(hasTF ? sizeof(GLfloat) : sizeof(GLushort))*(hasTRG ? 1 : 3), NULL, GL_DYNAMIC_COPY);
+        glBindBuffer_(GL_PIXEL_PACK_BUFFER, 0);
+    } 
+
+    static const uchar gray[12] = { 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32 };
+    static const float grayf[12] = { 0.125f, 0.125f, 0.125f, 0.125f, 0.125f, 0.125f, 0.125f, 0.125f, 0.125f, 0.125f, 0.125f, 0.125f };
+    createtexture(bloomtex[4], bloompbo ? 4 : 1, 1, hasTF ? (const void *)grayf : (const void *)gray, 3, 1, hasTF ? (hasTRG ? GL_R16F : GL_RGB16F) : (hasTRG ? GL_R16 : GL_RGB16));
 
     loopi(5 + (bloomformat != GL_RGB ? 1 : 0))
     {
@@ -74,6 +82,7 @@ void setupbloom(int w, int h)
 
 void cleanupbloom()
 {
+    if(bloompbo) { glDeleteBuffers_(1, &bloompbo); bloompbo = 0; }
     loopi(6) if(bloomfbo[i]) { glDeleteFramebuffers_(1, &bloomfbo[i]); bloomfbo[i] = 0; }
     loopi(6) if(bloomtex[i]) { glDeleteTextures(1, &bloomtex[i]); bloomtex[i] = 0; }
     bloomw = bloomh = -1;
@@ -180,6 +189,13 @@ void setupao(int w, int h)
         glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, aotex[i], 0);
         if(glCheckFramebufferStatus_(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             fatal("failed allocating AO buffer!");
+        if(!upscale && packformat == GL_RG16F)
+        {
+            glViewport(0, 0, aow, aoh);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glViewport(0, 0, hudw, hudh);
+        }
     }
 
     if(aoreducedepth && (aoreduce || aoreducedepth > 1))
@@ -1029,7 +1045,7 @@ void processhdr(GLuint outfbo, int aa)
         }
 
         glBindFramebuffer_(GL_FRAMEBUFFER, bloomfbo[4]);
-        glViewport(0, 0, 1, 1);
+        glViewport(0, 0, bloompbo ? 4 : 1, 1);
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
         SETSHADER(hdraccum);
@@ -1038,7 +1054,23 @@ void processhdr(GLuint outfbo, int aa)
         screenquad(2, 2);
         glDisable(GL_BLEND);
 
+        if(bloompbo)
+        {
+            glBindBuffer_(GL_PIXEL_PACK_BUFFER, bloompbo);
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
+            glReadPixels(0, 0, 4, 1, hasTRG ? GL_RED : GL_RGB, hasTF ? GL_FLOAT : GL_UNSIGNED_SHORT, NULL);
+            glBindBuffer_(GL_PIXEL_PACK_BUFFER, 0);
+        }
+
         lasthdraccum = lastmillis;
+    }
+
+    if(bloompbo)
+    {
+        glBindBuffer_(GL_ARRAY_BUFFER, bloompbo);
+        gle::enablecolor();
+        gle::colorpointer(hasTF ? sizeof(GLfloat) : sizeof(GLushort), (void *)0, hasTF ? GL_FLOAT : GL_UNSIGNED_SHORT, 1);
+        glBindBuffer_(GL_ARRAY_BUFFER, 0);
     }
 
     b0fbo = bloomfbo[3];
@@ -1178,6 +1210,8 @@ void processhdr(GLuint outfbo, int aa)
             }
         }
     }
+
+    if(bloompbo) gle::disablecolor();
 
     endtimer(hdrtimer);
 }
@@ -3814,8 +3848,8 @@ void rendertransparent()
     if(ghasstencil) glEnable(GL_STENCIL_TEST);
 
     matrix4 raymatrix(vec(-0.5f*vieww*projmatrix.a.x, 0, 0.5f*vieww - 0.5f*vieww*projmatrix.c.x),
-                       vec(0, -0.5f*viewh*projmatrix.b.y, 0.5f*viewh - 0.5f*viewh*projmatrix.c.y));
-    raymatrix.mul(cammatrix);
+                      vec(0, -0.5f*viewh*projmatrix.b.y, 0.5f*viewh - 0.5f*viewh*projmatrix.c.y));
+    raymatrix.muld(cammatrix);
     GLOBALPARAM(raymatrix, raymatrix);
     GLOBALPARAM(linearworldmatrix, linearworldmatrix);
 
@@ -3999,10 +4033,10 @@ void preparegbuffer(bool depthclear)
     invscreenmatrix.identity();
     invscreenmatrix.settranslation(-1.0f, -1.0f, -1.0f);
     invscreenmatrix.setscale(2.0f/vieww, 2.0f/viewh, 2.0f);
-    eyematrix.mul(invprojmatrix, invscreenmatrix);
+    eyematrix.muld(invprojmatrix, invscreenmatrix);
     if(drawtex == DRAWTEX_MINIMAP)
     {
-        linearworldmatrix.mul(invcamprojmatrix, invscreenmatrix);
+        linearworldmatrix.muld(invcamprojmatrix, invscreenmatrix);
         if(!gdepthformat) worldmatrix = linearworldmatrix;
         linearworldmatrix.a.z = invcammatrix.a.z;
         linearworldmatrix.b.z = invcammatrix.b.z;
@@ -4014,12 +4048,11 @@ void preparegbuffer(bool depthclear)
     }
     else
     {
-        linearworldmatrix.mul(invprojmatrix, invscreenmatrix);
-        float xscale = linearworldmatrix.a.x, yscale = linearworldmatrix.b.y, xoffset = linearworldmatrix.d.x, yoffset = linearworldmatrix.d.y, zscale = linearworldmatrix.d.z;
+        float xscale = eyematrix.a.x, yscale = eyematrix.b.y, xoffset = eyematrix.d.x, yoffset = eyematrix.d.y, zscale = eyematrix.d.z;
         matrix4 depthmatrix(vec(xscale/zscale, 0, xoffset/zscale), vec(0, yscale/zscale, yoffset/zscale));
-        linearworldmatrix.mul(invcammatrix, depthmatrix);
+        linearworldmatrix.muld(invcammatrix, depthmatrix);
         if(gdepthformat) worldmatrix = linearworldmatrix;
-        else worldmatrix.mul(invcamprojmatrix, invscreenmatrix);
+        else worldmatrix.muld(invcamprojmatrix, invscreenmatrix);
 
         GLOBALPARAMF(radialfogscale, xscale/zscale, yscale/zscale, xoffset/zscale, yoffset/zscale);
     }
@@ -4027,7 +4060,7 @@ void preparegbuffer(bool depthclear)
     screenmatrix.identity();
     screenmatrix.settranslation(0.5f*vieww, 0.5f*viewh, 0.5f);
     screenmatrix.setscale(0.5f*vieww, 0.5f*viewh, 0.5f);
-    screenmatrix.mul(camprojmatrix);
+    screenmatrix.muld(camprojmatrix);
 
     GLOBALPARAMF(viewsize, vieww, viewh, 1.0f/vieww, 1.0f/viewh);
     GLOBALPARAMF(gdepthscale, eyematrix.d.z, eyematrix.c.w, eyematrix.d.w);

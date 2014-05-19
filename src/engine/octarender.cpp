@@ -415,12 +415,23 @@ struct vacollect : verthash
             octaentities *oe = decals[i];
             loopvj(oe->decals)
             {
-                const extentity &e = *ents[oe->decals[j]];
+                extentity &e = *ents[oe->decals[j]];
+                if(e.flags&EF_RENDER) continue;
+                e.flags |= EF_RENDER;
                 DecalSlot &s = lookupdecalslot(e.attr[0], true);
                 if(!s.shader) continue;
                 ushort envmap = s.shader->type&SHADER_ENVMAP ? (s.texmask&(1<<TEX_ENVMAP) ? EMID_CUSTOM : closestenvmap(e.o)) : EMID_NONE;
                 decalkey k(e.attr[0], envmap);
                 gendecal(e, s, k);
+            }
+        }
+        loopv(decals)
+        {
+            octaentities *oe = decals[i];
+            loopvj(oe->decals)
+            {
+                extentity &e = *ents[oe->decals[j]];
+                if(e.flags&EF_RENDER) e.flags &= ~EF_RENDER;
             }
         }
         enumeratekt(decalindices, decalkey, k, sortval, t,
@@ -559,7 +570,7 @@ struct vacollect : verthash
         if(va->decaltexs)
         {
             va->decalelems = new elementset[va->decaltexs];
-            ushort *edata = (ushort *)addvbo(va, VBO_DECALBUF, worldtris, sizeof(ushort)), *curbuf = edata;
+            ushort *edata = (ushort *)addvbo(va, VBO_DECALBUF, decaltris, sizeof(ushort)), *curbuf = edata;
             loopv(decaltexs)
             {
                 const decalkey &k = decaltexs[i];
@@ -1234,6 +1245,8 @@ void updatevabb(vtxarray *va, bool force)
         va->bbmin.min(oe->bbmin);
         va->bbmax.max(oe->bbmax);
     }
+    va->bbmin.max(va->o);
+    va->bbmax.min(ivec(va->o).add(va->size));
     worldmin.min(va->bbmin);
     worldmax.max(va->bbmax);
     nogimin.min(va->nogimin);
@@ -1437,6 +1450,9 @@ void calcgeombb(const ivec &co, int size, ivec &bbmin, ivec &bbmax)
     bbmax = ivec(vmax.mul(8)).add(7).shr(3);
 }
 
+static int entdepth = -1;
+static octaentities *entstack[32];
+
 void setva(cube &c, const ivec &co, int size, int csi)
 {
     ASSERT(size <= 0x1000);
@@ -1446,6 +1462,12 @@ void setva(cube &c, const ivec &co, int size, int csi)
 
     vc.origin = co;
     vc.size = size;
+
+    loopi(entdepth+1)
+    {
+        octaentities *oe = entstack[i];
+        if(oe->decals.length()) vc.decals.add(oe);
+    }
 
     int maxlevel = -1;
     rendercube(c, co, size, csi, maxlevel);
@@ -1519,7 +1541,12 @@ int updateva(cube *c, const ivec &co, int size, int csi)
         }
         else
         {
-            if(c[i].children) count += updateva(c[i].children, o, size/2, csi-1);
+            if(c[i].children)
+            {
+                if(c[i].ext && c[i].ext->ents) entstack[++entdepth] = c[i].ext->ents;
+                count += updateva(c[i].children, o, size/2, csi-1);
+                if(c[i].ext && c[i].ext->ents) --entdepth;
+            }
             else if(!isempty(c[i])) count += setcubevisibility(c[i], o, size);
             int tcount = count + (csi <= MAXMERGELEVEL ? vamerges[csi].length() : 0);
             if(tcount > vafacemax || (tcount >= vafacemin && size >= vacubesize) || size == min(0x1000, worldsize/2))

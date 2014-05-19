@@ -289,6 +289,7 @@ void glerror(const char *file, int line, GLenum error)
 }
 
 VAR(amd_pf_bug, 0, 0, 1);
+VAR(amd_eal_bug, 0, 0, 1);
 VAR(mesa_texrectoffset_bug, 0, 0, 1);
 VAR(intel_texgatheroffsetcomp_bug, 0, 0, 1);
 VAR(useubo, 1, 0, 0);
@@ -528,7 +529,7 @@ void gl_checkextensions()
     GLint texsize = 0, texunits = 0, vtexunits = 0, cubetexsize = 0, oqbits = 0, drawbufs = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texsize);
     hwtexsize = texsize;
-    if(hwtexsize < 4096)
+    if(hwtexsize < 2048)
         fatal("Large texture support is required!");
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texunits);
     hwtexunits = texunits;
@@ -536,8 +537,8 @@ void gl_checkextensions()
         fatal("Hardware does not support at least 16 texture units.");
     glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &vtexunits);
     hwvtexunits = vtexunits;
-    if(hwvtexunits < 4)
-        fatal("Hardware does not support at least 4 vertex texture units.");
+    //if(hwvtexunits < 4)
+    //    fatal("Hardware does not support at least 4 vertex texture units.");
     glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &cubetexsize);
     hwcubetexsize = cubetexsize;
     glGetIntegerv(GL_MAX_DRAW_BUFFERS, &drawbufs);
@@ -1011,6 +1012,7 @@ void gl_checkextensions()
         msaalineardepth = glineardepth = 1; // reading back from depth-stencil still buggy on newer cards, and requires stencil for MSAA
         msaadepthstencil = gdepthstencil = 1; // some older AMD GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
         if(checkseries(renderer, "Radeon HD", 4000, 5199)) amd_pf_bug = 1;
+        if(glversion <= 330) amd_eal_bug = 1; // explicit_attrib_location broken when used with blend_func_extended on legacy Catalyst
         rhrect = 1; // bad cpu stalls on Catalyst 13.x when trying to use 3D textures previously bound to FBOs
     }
     else if(nvidia)
@@ -1285,7 +1287,7 @@ void setcamprojmatrix(bool init = true, bool flush = false)
         if(ovr::enabled && !drawtex)
             projmatrix.jitter((viewidx ? -1 : 1) * ovr::distortoffset, 0);
     }
-    else camprojmatrix.mul(projmatrix, cammatrix);
+    else camprojmatrix.muld(projmatrix, cammatrix);
 
     jitteraa(init);
 

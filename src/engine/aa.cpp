@@ -14,7 +14,7 @@ struct tqaaview
 {
     int frame;
     GLuint prevtex, curtex, fbo[2];
-    matrix4 prevmvp;
+    matrix4 prevscreenmatrix;
 
     tqaaview() : frame(0), prevtex(0), curtex(0)
     {
@@ -47,7 +47,7 @@ struct tqaaview
         }
         glBindFramebuffer_(GL_FRAMEBUFFER, 0);
 
-        prevmvp.identity();
+        prevscreenmatrix.identity();
     }
 
     void setaavelocityparams(GLuint tmu)
@@ -56,7 +56,7 @@ struct tqaaview
         if(msaasamples) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msdepthtex);
         else glBindTexture(GL_TEXTURE_RECTANGLE, gdepthtex);
         matrix4 reproject;
-        reproject.mul(frame ? prevmvp : screenmatrix, worldmatrix);
+        reproject.muld(frame ? prevscreenmatrix : screenmatrix, worldmatrix);
         vec2 jitter = frame&1 ? vec2(0.5f, 0.5f) : vec2(-0.5f, -0.5f);
         if(multisampledaa()) { jitter.x *= 0.5f; jitter.y *= -0.5f; }
         if(frame) reproject.jitter(jitter.x, jitter.y);
@@ -90,7 +90,7 @@ struct tqaaview
 
         swap(fbo[0], fbo[1]);
         swap(curtex, prevtex);
-        prevmvp = screenmatrix;
+        prevscreenmatrix = screenmatrix;
         frame++;
     }
 } tqaaviews[2];

@@ -1453,6 +1453,23 @@ struct svec
 inline vec::vec(const svec &v) : x(v.x), y(v.y), z(v.z) {}
 inline ivec::ivec(const svec &v) : x(v.x), y(v.y), z(v.z) {}
 
+struct dvec4
+{
+    double x, y, z, w;
+
+    dvec4() {}
+    dvec4(double x, double y, double z, double w) : x(x), y(y), z(z), w(w) {}
+    dvec4(const vec4 &v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
+
+    template<class B> dvec4 &madd(const dvec4 &a, const B &b) { return add(dvec4(a).mul(b)); }
+    dvec4 &mul(double f)       { x *= f; y *= f; z *= f; w *= f; return *this; }
+    dvec4 &mul(const dvec4 &o) { x *= o.x; y *= o.y; z *= o.z; w *= o.w; return *this; }
+    dvec4 &add(double f)       { x += f; y += f; z += f; w += f; return *this; }
+    dvec4 &add(const dvec4 &o) { x += o.x; y += o.y; z += o.z; w += o.w; return *this; }
+
+    operator vec4() const { return vec4(x, y, z, w); }
+};
+
 struct matrix4
 {
     vec4 a, b, c, d;
@@ -1478,14 +1495,19 @@ struct matrix4
     }
     void mul(const matrix3 &y) { mul(matrix4(*this), y); }
 
-    void mul(const matrix4 &x, const matrix4 &y)
+    template<class T> void mult(const matrix4 &x, const matrix4 &y)
     {
-        a = vec4(x.a).mul(y.a.x).madd(x.b, y.a.y).madd(x.c, y.a.z).madd(x.d, y.a.w);
-        b = vec4(x.a).mul(y.b.x).madd(x.b, y.b.y).madd(x.c, y.b.z).madd(x.d, y.b.w);
-        c = vec4(x.a).mul(y.c.x).madd(x.b, y.c.y).madd(x.c, y.c.z).madd(x.d, y.c.w);
-        d = vec4(x.a).mul(y.d.x).madd(x.b, y.d.y).madd(x.c, y.d.z).madd(x.d, y.d.w);
+        a = T(x.a).mul(y.a.x).madd(x.b, y.a.y).madd(x.c, y.a.z).madd(x.d, y.a.w);
+        b = T(x.a).mul(y.b.x).madd(x.b, y.b.y).madd(x.c, y.b.z).madd(x.d, y.b.w);
+        c = T(x.a).mul(y.c.x).madd(x.b, y.c.y).madd(x.c, y.c.z).madd(x.d, y.c.w);
+        d = T(x.a).mul(y.d.x).madd(x.b, y.d.y).madd(x.c, y.d.z).madd(x.d, y.d.w);
     }
-    void mul(const matrix4 &y) { mul(matrix4(*this), y); }
+
+    void mul(const matrix4 &x, const matrix4 &y) { mult<vec4>(x, y); }
+    void mul(const matrix4 &y) { mult<vec4>(matrix4(*this), y); }
+
+    void muld(const matrix4 &x, const matrix4 &y) { mult<dvec4>(x, y); }
+    void muld(const matrix4 &y) { mult<dvec4>(matrix4(*this), y); }
 
     void rotate_around_x(float ck, float sk)
     {

@@ -1371,32 +1371,21 @@ static vec parsevec(const char *arg)
 VAR(usedds, 0, 1, 1);
 VAR(dbgdds, 0, 0, 1);
 
-static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, bool msg = true, int *compress = NULL, int *wrap = NULL)
+static bool texturedata(ImageData &d, const char *tname, bool msg = true, int *compress = NULL, int *wrap = NULL, const char *tdir = NULL, int ttype = TEX_DIFFUSE)
 {
     const char *cmds = NULL, *file = tname;
-
-    if(!tname)
-    {
-        if(!tex) return false;
-        if(tex->name[0]=='<')
-        {
-            cmds = tex->name;
-            file = strrchr(tex->name, '>');
-            if(!file) { if(msg) conoutf(CON_ERROR, "could not load texture media/%s", tex->name); return false; }
-            file++;
-        }
-        else file = tex->name;
-
-        static string pname;
-        formatstring(pname, "media/texture/%s", file);
-        file = path(pname);
-    }
-    else if(tname[0]=='<')
+    if(tname[0]=='<')
     {
         cmds = tname;
         file = strrchr(tname, '>');
         if(!file) { if(msg) conoutf(CON_ERROR, "could not load texture %s", tname); return false; }
         file++;
+    }
+    if(tdir)
+    {
+        static string pname;
+        formatstring(pname, "%s/%s", tdir, file);
+        file = path(pname);
     }
 
     bool raw = !usedds || !compress, dds = false;
@@ -1453,8 +1442,8 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         }
         else if(!strncmp(cmd, "dup", len)) texdup(d, atoi(arg[0]), atoi(arg[1]));
         else if(!strncmp(cmd, "offset", len)) texoffset(d, atoi(arg[0]), atoi(arg[1]));
-        else if(!strncmp(cmd, "rotate", len)) texrotate(d, atoi(arg[0]), tex ? tex->type : 0);
-        else if(!strncmp(cmd, "reorient", len)) texreorient(d, atoi(arg[0])>0, atoi(arg[1])>0, atoi(arg[2])>0, tex ? tex->type : TEX_DIFFUSE);
+        else if(!strncmp(cmd, "rotate", len)) texrotate(d, atoi(arg[0]), ttype);
+        else if(!strncmp(cmd, "reorient", len)) texreorient(d, atoi(arg[0])>0, atoi(arg[1])>0, atoi(arg[2])>0, ttype);
         else if(!strncmp(cmd, "mix", len)) texmix(d, *arg[0] ? atoi(arg[0]) : -1, *arg[1] ? atoi(arg[1]) : -1, *arg[2] ? atoi(arg[2]) : -1, *arg[3] ? atoi(arg[3]) : -1);
         else if(!strncmp(cmd, "grey", len)) texgrey(d);
         else if(!strncmp(cmd, "blur", len))
@@ -1494,12 +1483,17 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
     return true;
 }
 
+static inline bool texturedata(ImageData &d, Slot &slot, Slot::Tex &tex, bool msg = true, int *compress = NULL, int *wrap = NULL)
+{
+    return texturedata(d, tex.name, msg, compress, wrap, slot.texturedir(), tex.type);
+}
+ 
 uchar *loadalphamask(Texture *t)
 {
     if(t->alphamask) return t->alphamask;
     if((t->type&(Texture::ALPHA|Texture::COMPRESSED)) != Texture::ALPHA) return NULL;
     ImageData s;
-    if(!texturedata(s, t->name, NULL, false) || !s.data || s.compressed) return NULL;
+    if(!texturedata(s, t->name, false) || !s.data || s.compressed) return NULL;
     t->alphamask = new uchar[s.h * ((s.w+7)/8)];
     uchar *srcrow = s.data, *dst = t->alphamask-1;
     loop(y, s.h)
@@ -1525,7 +1519,7 @@ Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
     if(t) return t;
     int compress = 0;
     ImageData s;
-    if(texturedata(s, tname, NULL, msg, &compress, &clamp)) return newtexture(NULL, tname, s, clamp, mipit, false, false, compress);
+    if(texturedata(s, tname, msg, &compress, &clamp)) return newtexture(NULL, tname, s, clamp, mipit, false, false, compress);
     return notexture;
 }
 
@@ -2477,8 +2471,6 @@ void texture(const char *type, const char *name, int *rot, int *xoffset, int *yo
     if(s.sts.length()>=8) conoutf(CON_WARN, "warning: too many textures in %s", s.name());
     Slot::Tex &st = s.sts.add();
     st.type = tnum;
-    st.combined = -1;
-    st.t = NULL;
     /* OF */
     if (tnum != TEX_DIFFUSE && !name[0] && matslot < 0 && !isdecal) {
         string nname;
@@ -2707,18 +2699,18 @@ int DecalSlot::cancombine(int type) const
     }
 }
 
-static void addname(vector<char> &key, Slot::Tex &t, bool combined = false, const char *prefix = NULL)
+static void addname(vector<char> &key, Slot &slot, Slot::Tex &t, bool combined = false, const char *prefix = NULL)
 {
     if(combined) key.add('&');
     if(prefix) { while(*prefix) key.add(*prefix++); }
-    defformatstring(tname, "media/texture/%s", t.name);
+    defformatstring(tname, "%s/%s", slot.texturedir(), t.name);
     for(const char *s = path(tname); *s; key.add(*s++));
 }
 
 void Slot::load(int index, Slot::Tex &t)
 {
     vector<char> key;
-    addname(key, t);
+    addname(key, *this, t);
     Slot::Tex *combine = NULL;
     loopv(sts)
     {
@@ -2726,7 +2718,7 @@ void Slot::load(int index, Slot::Tex &t)
         if(c.combined == index)
         {
             combine = &c;
-            addname(key, c, true);
+            addname(key, *this, c, true);
             break;
         }
     }
@@ -2735,7 +2727,7 @@ void Slot::load(int index, Slot::Tex &t)
     if(t.t) return;
     int compress = 0, wrap = 0;
     ImageData ts;
-    if(!texturedata(ts, NULL, &t, true, &compress, &wrap)) { t.t = notexture; return; }
+    if(!texturedata(ts, *this, t, true, &compress, &wrap)) { t.t = notexture; return; }
     if(!ts.compressed) switch(t.type)
     {
         case TEX_SPEC:
@@ -2747,7 +2739,7 @@ void Slot::load(int index, Slot::Tex &t)
             if(combine)
             {
                 ImageData cs;
-                if(texturedata(cs, NULL, combine))
+                if(texturedata(cs, *this, *combine))
                 {
                     if(cs.w!=ts.w || cs.h!=ts.h) scaleimage(cs, ts.w, ts.h);
                     switch(combine->type)
@@ -2774,7 +2766,7 @@ void Slot::load()
         if(combine >= 0 && (combine = findtextype(1<<combine)) >= 0)
         {
             Slot::Tex &c = sts[combine];
-            c.combined = index;
+            c.combined = i;
         }
     }    
     loopv(sts)
@@ -2880,11 +2872,11 @@ Texture *Slot::loadthumbnail()
     linkslotshader(*this, false);
     linkvslotshader(vslot, false);
     vector<char> name;
-    if(vslot.colorscale == vec(1, 1, 1)) addname(name, sts[0], false, "<thumbnail>");
+    if(vslot.colorscale == vec(1, 1, 1)) addname(name, *this, sts[0], false, "<thumbnail>");
     else
     {
         defformatstring(prefix, "<thumbnail:%.2f/%.2f/%.2f>", vslot.colorscale.x, vslot.colorscale.y, vslot.colorscale.z);
-        addname(name, sts[0], false, prefix);
+        addname(name, *this, sts[0], false, prefix);
     }
     int glow = -1;
     if(texmask&(1<<TEX_GLOW))
@@ -2893,31 +2885,31 @@ Texture *Slot::loadthumbnail()
         if(glow >= 0)
         {
             defformatstring(prefix, "<glow:%.2f/%.2f/%.2f>", vslot.glowcolor.x, vslot.glowcolor.y, vslot.glowcolor.z);
-            addname(name, sts[glow], true, prefix);
+            addname(name, *this, sts[glow], true, prefix);
         }
     }
     VSlot *layer = vslot.layer ? &lookupvslot(vslot.layer, false) : NULL;
     if(layer)
     {
-        if(layer->colorscale == vec(1, 1, 1)) addname(name, layer->slot->sts[0], true, "<layer>");
+        if(layer->colorscale == vec(1, 1, 1)) addname(name, *layer->slot, layer->slot->sts[0], true, "<layer>");
         else
         {
             defformatstring(prefix, "<layer:%.2f/%.2f/%.2f>", layer->colorscale.x, layer->colorscale.y, layer->colorscale.z);
-            addname(name, layer->slot->sts[0], true, prefix);
+            addname(name, *layer->slot, layer->slot->sts[0], true, prefix);
         }
     }
     VSlot *decal = vslot.decal ? &lookupvslot(vslot.decal, false) : NULL;
-    if(decal) addname(name, decal->slot->sts[0], true, "<decal>");
+    if(decal) addname(name, *decal->slot, decal->slot->sts[0], true, "<decal>");
     name.add('\0');
     Texture *t = textures.access(path(name.getbuf()));
     if(t) thumbnail = t;
     else
     {
         ImageData s, g, l, d;
-        texturedata(s, NULL, &sts[0], false);
-        if(glow >= 0) texturedata(g, NULL, &sts[glow], false);
-        if(layer) texturedata(l, NULL, &layer->slot->sts[0], false);
-        if(decal) texturedata(d, NULL, &decal->slot->sts[0], false);
+        texturedata(s, *this, sts[0], false);
+        if(glow >= 0) texturedata(g, *this, sts[glow], false);
+        if(layer) texturedata(l, *layer->slot, layer->slot->sts[0], false);
+        if(decal) texturedata(d, *decal->slot, decal->slot->sts[0], false);
         if(!s.data) t = thumbnail = notexture;
         else
         {
@@ -2993,7 +2985,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
             concatstring(sname, wildcard+1);
         }
         ImageData &s = surface[i];
-        texturedata(s, sname, NULL, msg, &compress);
+        texturedata(s, sname, msg, &compress);
         if(!s.data) return NULL;
         if(s.w != s.h)
         {
@@ -3343,7 +3335,7 @@ bool reloadtexture(Texture &tex)
         {
             int compress = 0;
             ImageData s;
-            if(!texturedata(s, tex.name, NULL, true, &compress) || !newtexture(&tex, NULL, s, tex.clamp, tex.mipmap, false, false, compress)) return false;
+            if(!texturedata(s, tex.name, true, &compress) || !newtexture(&tex, NULL, s, tex.clamp, tex.mipmap, false, false, compress)) return false;
             break;
         }
 

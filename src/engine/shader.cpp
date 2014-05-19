@@ -146,6 +146,8 @@ static const char *finddecls(const char *line)
     }
 }
 
+extern int amd_eal_bug;
+
 static void compileglslshader(Shader &s, GLenum type, GLuint &obj, const char *def, const char *name, bool msg = true)
 {
     const char *source = def + strspn(def, " \t\r\n");
@@ -174,7 +176,7 @@ static void compileglslshader(Shader &s, GLenum type, GLuint &obj, const char *d
     }
     if(glslversion < 150 && hasTMS)
         parts[numparts++] = "#extension GL_ARB_texture_multisample : enable\n";
-    if(glslversion >= 150 && glslversion < 330 && hasEAL)
+    if(glslversion >= 150 && glslversion < 330 && hasEAL && !amd_eal_bug)
         parts[numparts++] = "#extension GL_ARB_explicit_attrib_location : enable\n";
     if(glslversion < 400)
     {
@@ -189,7 +191,7 @@ static void compileglslshader(Shader &s, GLenum type, GLuint &obj, const char *d
         else if(type == GL_FRAGMENT_SHADER)
         {
             parts[numparts++] = "#define varying in\n";
-            parts[numparts++] = glslversion >= 330 || (glslversion >= 150 && hasEAL) ?
+            parts[numparts++] = (glslversion >= 330 || (glslversion >= 150 && hasEAL)) && !amd_eal_bug ?
                 "#define fragdata(loc, name, type) layout(location = loc) out type name;\n" 
                 "#define blenddata(loc, name, type) layout(location = loc, index = 1) out type name;\n" :
                 "#define fragdata(loc, name, type) out type name;\n"
@@ -349,7 +351,7 @@ static void linkglslprogram(Shader &s, bool msg = true)
             attribs |= 1<<a.loc;
         }
         loopi(gle::MAXATTRIBS) if(!(attribs&(1<<i))) glBindAttribLocation_(s.program, i, gle::attribnames[i]);
-        if(glslversion >= 130 && glslversion < 330 && (glslversion < 150 || !hasEAL) && glversion >= 300) loopv(s.fragdatalocs)
+        if(glslversion >= 130 && ((glslversion < 330 && (glslversion < 150 || !hasEAL)) || amd_eal_bug) && glversion >= 300) loopv(s.fragdatalocs)
         {
             FragDataLoc &d = s.fragdatalocs[i];
             if(d.index)
@@ -427,7 +429,7 @@ static void findfragdatalocs(Shader &s, const char *ps, const char *macroname, i
 
 void findfragdatalocs(Shader &s, const char *psstr)
 {
-    if(!psstr || glslversion >= 330 || (glslversion >= 150 && hasEAL)) return;
+    if(!psstr || ((glslversion >= 330 || (glslversion >= 150 && hasEAL)) && !amd_eal_bug)) return;
 
     findfragdatalocs(s, psstr, "fragdata(", 0);
     if(maxdualdrawbufs) findfragdatalocs(s, psstr, "blenddata(", 1);
