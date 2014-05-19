@@ -1041,6 +1041,8 @@ M.Prefab_Viewer = register_class("Prefab_Viewer", Filler, {
     end,
 
     draw = function(self, sx, sy)
+        local prefab = self.prefab
+        if not prefab then return Widget.draw(self, sx, sy) end
         local w, h in self
         local csl = #clip_stack > 0
         if csl then gl_scissor_disable() end
@@ -1050,7 +1052,7 @@ M.Prefab_Viewer = register_class("Prefab_Viewer", Filler, {
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         local col = self.color
-        prefab_preview(self.prefab, col.r / 255, col.g / 255, col.b / 255)
+        prefab_preview(prefab, col.r / 255, col.g / 255, col.b / 255)
         if csl then clip_area_scissor() end
         model_preview_end()
         shader_hud_set()
