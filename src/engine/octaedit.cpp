@@ -1279,6 +1279,10 @@ void previewprefab(const char *name, const vec &color)
         renderprefab(*p, o, yaw, 0, 0, 1, color);
     }
 }
+
+CLUAICOMMAND(prefab_preview, void, (const char *name, float r, float g, float b), {
+    previewprefab(name, vec(r, g, b));
+})
 #endif
 
 void mpcopy(editinfo *&e, selinfo &sel, bool local)

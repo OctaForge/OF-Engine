@@ -25,7 +25,7 @@ gl_scissor_disable, gl_scissor_enable, gle_disable, model_preview_start,
 model_preview, model_preview_end, hudmatrix_push, hudmatrix_scale,
 hudmatrix_flush, hudmatrix_pop, hudmatrix_translate, text_draw,
 text_get_bounds, text_font_push, text_font_pop, text_font_set, hud_get_h,
-console_render_full, text_font_get_w, text_font_get_h in capi
+console_render_full, text_font_get_w, text_font_get_h, prefab_preview in capi
 
 local max   = math.max
 local min   = math.min
@@ -1022,6 +1022,49 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
 
     --! Function: set_attachments
     set_attachments = gen_setter "attachments"
+})
+
+--[[!
+    Derived from $Filler. Represents a 3D prefab preview.
+
+    Properties:
+        - prefab - the prefab name.
+        - color - the color (alpha is ignored).
+]]
+M.Prefab_Viewer = register_class("Prefab_Viewer", Filler, {
+    __ctor = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.prefab = kwargs.prefab
+        self.color  = init_color(kwargs.color)
+
+        return Filler.__ctor(self, kwargs)
+    end,
+
+    draw = function(self, sx, sy)
+        local w, h in self
+        local csl = #clip_stack > 0
+        if csl then gl_scissor_disable() end
+        local sx1, sy1, sx2, sy2 = get_projection():calc_scissor(sx, sy,
+            sx + w, sy + h)
+        gl_blend_disable()
+        gle_disable()
+        model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
+        local col = self.color
+        prefab_preview(self.prefab, col.r / 255, col.g / 255, col.b / 255)
+        if csl then clip_area_scissor() end
+        model_preview_end()
+        shader_hud_set()
+        gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+        gl_blend_enable()
+        if csl then gl_scissor_enable() end
+        return Widget.draw(self, sx, sy)
+    end,
+
+    --! Function: set_prefab
+    set_prefab = gen_setter "prefab",
+
+    --! Function: set_color
+    set_color = gen_color_setter "color"
 })
 
 --! A full console widget that derives from $Filler.
