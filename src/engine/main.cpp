@@ -17,9 +17,9 @@ void cleanup()
 {
     recorder::stop();
     cleanupserver();
-    if(screen) SDL_SetWindowGrab(screen, SDL_FALSE);
-    SDL_SetRelativeMouseMode(SDL_FALSE);
     SDL_ShowCursor(SDL_TRUE);
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+    if(screen) SDL_SetWindowGrab(screen, SDL_FALSE);
     cleargamma();
     freeocta(worldroot);
     extern void clear_texpacks(int n = 0); clear_texpacks(); /* OF */
@@ -33,7 +33,7 @@ void cleanup()
     #ifdef __APPLE__
         if(screen) SDL_SetWindowFullscreen(screen, 0);
     #endif
-    SDL_Quit();    
+    SDL_Quit();
 }
 
 extern void writeinitcfg();
@@ -64,9 +64,9 @@ void fatal(const char *s, ...)    // failure exit
         {
             if(SDL_WasInit(SDL_INIT_VIDEO))
             {
-                if(screen) SDL_SetWindowGrab(screen, SDL_FALSE);
-                SDL_SetRelativeMouseMode(SDL_FALSE);
                 SDL_ShowCursor(SDL_TRUE);
+                SDL_SetRelativeMouseMode(SDL_FALSE);
+                if(screen) SDL_SetWindowGrab(screen, SDL_FALSE);
                 cleargamma();
                 #ifdef __APPLE__
                     if(screen) SDL_SetWindowFullscreen(screen, 0);
@@ -358,8 +358,8 @@ void inputgrab(bool on)
         SDL_ShowCursor(SDL_TRUE);
         if(relativemouse)
         {
-            SDL_SetWindowGrab(screen, SDL_FALSE);
             SDL_SetRelativeMouseMode(SDL_FALSE);
+            SDL_SetWindowGrab(screen, SDL_FALSE);
             relativemouse = false;
         }
     }
@@ -521,6 +521,7 @@ void resetgl()
     cleanupstains();
     cleanupsky();
     cleanupmodels();
+    cleanupprefabs();
     cleanuptextures();
     cleanupblendmap();
     cleanuplights();
@@ -706,8 +707,8 @@ void checkinput()
 
             case SDL_TEXTINPUT:
             {
-                static uchar buf[SDL_TEXTINPUTEVENT_TEXT_SIZE+1];
-                int len = decodeutf8(buf, int(sizeof(buf)-1), (const uchar *)event.text.text, strlen(event.text.text));
+                uchar buf[SDL_TEXTINPUTEVENT_TEXT_SIZE+1];
+                size_t len = decodeutf8(buf, sizeof(buf)-1, (const uchar *)event.text.text, strlen(event.text.text));
                 if(len > 0) { buf[len] = '\0'; processtextinput((const char *)buf, len); }
                 break;
             }

@@ -339,6 +339,20 @@ static struct soundtype
         configs.setsize(0);
     }
 
+    void reset()
+    {
+        loopv(channels)
+        {
+            soundchannel &chan = channels[i];
+            if(chan.inuse && slots.inbuf(chan.slot))
+            {
+                Mix_HaltChannel(i);
+                freechannel(i);
+            }
+        }
+        clear();
+    }
+
     void cleanupsamples()
     {
         enumerate(samples, soundsample, s, s.cleanup());
@@ -364,6 +378,18 @@ static struct soundtype
         return chan.inuse && config.hasslot(chan.slot, slots);
     }
 } gamesounds(""), mapsounds("");
+
+void soundreset()
+{
+    gamesounds.reset();
+}
+COMMAND(soundreset, "");
+
+void mapsoundreset()
+{
+    mapsounds.reset();
+}
+COMMAND(mapsoundreset, "");
 
 void resetchannels()
 {

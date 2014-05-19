@@ -582,6 +582,7 @@ struct Texture
 };
 
 #define SETSWIZZLE(name, tex) SETVARIANT(name, (tex) ? (tex)->swizzle() : -1, 0)
+#define SETVARIANTSWIZZLE(name, tex, row) SETVARIANT(name, ((row) >= 0 ? 1 : 0) + ((tex) ? (tex)->swizzle() : -1), row)
 
 enum
 {

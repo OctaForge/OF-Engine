@@ -19,19 +19,20 @@ PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64v_  = NULL;
 PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64v_ = NULL;
 
 // GL_EXT_framebuffer_object
-PFNGLBINDRENDERBUFFERPROC        glBindRenderbuffer_        = NULL;
-PFNGLDELETERENDERBUFFERSPROC     glDeleteRenderbuffers_     = NULL;
-PFNGLGENFRAMEBUFFERSPROC         glGenRenderbuffers_        = NULL;
-PFNGLRENDERBUFFERSTORAGEPROC     glRenderbufferStorage_     = NULL;
-PFNGLCHECKFRAMEBUFFERSTATUSPROC  glCheckFramebufferStatus_  = NULL;
-PFNGLBINDFRAMEBUFFERPROC         glBindFramebuffer_         = NULL;
-PFNGLDELETEFRAMEBUFFERSPROC      glDeleteFramebuffers_      = NULL;
-PFNGLGENFRAMEBUFFERSPROC         glGenFramebuffers_         = NULL;
-PFNGLFRAMEBUFFERTEXTURE1DPROC    glFramebufferTexture1D_    = NULL;
-PFNGLFRAMEBUFFERTEXTURE2DPROC    glFramebufferTexture2D_    = NULL;
-PFNGLFRAMEBUFFERTEXTURE3DPROC    glFramebufferTexture3D_    = NULL;
-PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer_ = NULL;
-PFNGLGENERATEMIPMAPPROC          glGenerateMipmap_          = NULL;
+PFNGLBINDRENDERBUFFERPROC           glBindRenderbuffer_           = NULL;
+PFNGLDELETERENDERBUFFERSPROC        glDeleteRenderbuffers_        = NULL;
+PFNGLGENFRAMEBUFFERSPROC            glGenRenderbuffers_           = NULL;
+PFNGLRENDERBUFFERSTORAGEPROC        glRenderbufferStorage_        = NULL;
+PFNGLGETRENDERBUFFERPARAMETERIVPROC glGetRenderbufferParameteriv_ = NULL;
+PFNGLCHECKFRAMEBUFFERSTATUSPROC     glCheckFramebufferStatus_     = NULL;
+PFNGLBINDFRAMEBUFFERPROC            glBindFramebuffer_            = NULL;
+PFNGLDELETEFRAMEBUFFERSPROC         glDeleteFramebuffers_         = NULL;
+PFNGLGENFRAMEBUFFERSPROC            glGenFramebuffers_            = NULL;
+PFNGLFRAMEBUFFERTEXTURE1DPROC       glFramebufferTexture1D_       = NULL;
+PFNGLFRAMEBUFFERTEXTURE2DPROC       glFramebufferTexture2D_       = NULL;
+PFNGLFRAMEBUFFERTEXTURE3DPROC       glFramebufferTexture3D_       = NULL;
+PFNGLFRAMEBUFFERRENDERBUFFERPROC    glFramebufferRenderbuffer_    = NULL;
+PFNGLGENERATEMIPMAPPROC             glGenerateMipmap_             = NULL;
 
 // GL_EXT_framebuffer_blit
 PFNGLBLITFRAMEBUFFERPROC         glBlitFramebuffer_         = NULL;
@@ -292,6 +293,7 @@ VAR(amd_pf_bug, 0, 0, 1);
 VAR(amd_eal_bug, 0, 0, 1);
 VAR(mesa_texrectoffset_bug, 0, 0, 1);
 VAR(intel_texgatheroffsetcomp_bug, 0, 0, 1);
+VAR(intel_mapbufferrange_bug, 0, 0, 1);
 VAR(useubo, 1, 0, 0);
 VAR(usetexgather, 1, 0, 0);
 VAR(usetexcompress, 1, 0, 0);
@@ -319,7 +321,7 @@ static bool checkmesaversion(const char *s, int major, int minor, int patch)
     if(vminor > minor) return true; else if(vminor < minor) return false;
     return vpatch >= patch;
 }
-    
+
 VAR(dbgexts, 0, 0, 1);
 
 hashset<const char *> glexts;
@@ -361,7 +363,7 @@ bool checkdepthtexstencilrb()
     GLuint fbo = 0;
     glGenFramebuffers_(1, &fbo);
     glBindFramebuffer_(GL_FRAMEBUFFER, fbo);
-    
+
     GLuint depthtex = 0;
     glGenTextures(1, &depthtex);
     createtexture(depthtex, w, h, NULL, 3, 0, GL_DEPTH_COMPONENT, GL_TEXTURE_RECTANGLE);
@@ -737,20 +739,21 @@ void gl_checkextensions()
 
     if(glversion >= 300 || hasext("GL_ARB_framebuffer_object"))
     {
-        glBindRenderbuffer_        = (PFNGLBINDRENDERBUFFERPROC)       getprocaddress("glBindRenderbuffer");
-        glDeleteRenderbuffers_     = (PFNGLDELETERENDERBUFFERSPROC)    getprocaddress("glDeleteRenderbuffers");
-        glGenRenderbuffers_        = (PFNGLGENFRAMEBUFFERSPROC)        getprocaddress("glGenRenderbuffers");
-        glRenderbufferStorage_     = (PFNGLRENDERBUFFERSTORAGEPROC)    getprocaddress("glRenderbufferStorage");
-        glCheckFramebufferStatus_  = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) getprocaddress("glCheckFramebufferStatus");
-        glBindFramebuffer_         = (PFNGLBINDFRAMEBUFFERPROC)        getprocaddress("glBindFramebuffer");
-        glDeleteFramebuffers_      = (PFNGLDELETEFRAMEBUFFERSPROC)     getprocaddress("glDeleteFramebuffers");
-        glGenFramebuffers_         = (PFNGLGENFRAMEBUFFERSPROC)        getprocaddress("glGenFramebuffers");
-        glFramebufferTexture1D_    = (PFNGLFRAMEBUFFERTEXTURE1DPROC)   getprocaddress("glFramebufferTexture1D");
-        glFramebufferTexture2D_    = (PFNGLFRAMEBUFFERTEXTURE2DPROC)   getprocaddress("glFramebufferTexture2D");
-        glFramebufferTexture3D_    = (PFNGLFRAMEBUFFERTEXTURE3DPROC)   getprocaddress("glFramebufferTexture3D");
-        glFramebufferRenderbuffer_ = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)getprocaddress("glFramebufferRenderbuffer");
-        glGenerateMipmap_          = (PFNGLGENERATEMIPMAPPROC)         getprocaddress("glGenerateMipmap");
-        glBlitFramebuffer_         = (PFNGLBLITFRAMEBUFFERPROC)        getprocaddress("glBlitFramebuffer");
+        glBindRenderbuffer_               = (PFNGLBINDRENDERBUFFERPROC)              getprocaddress("glBindRenderbuffer");
+        glDeleteRenderbuffers_            = (PFNGLDELETERENDERBUFFERSPROC)           getprocaddress("glDeleteRenderbuffers");
+        glGenRenderbuffers_               = (PFNGLGENFRAMEBUFFERSPROC)               getprocaddress("glGenRenderbuffers");
+        glRenderbufferStorage_            = (PFNGLRENDERBUFFERSTORAGEPROC)           getprocaddress("glRenderbufferStorage");
+        glGetRenderbufferParameteriv_     = (PFNGLGETRENDERBUFFERPARAMETERIVPROC)    getprocaddress("glGetRenderbufferParameteriv");
+        glCheckFramebufferStatus_         = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)        getprocaddress("glCheckFramebufferStatus");
+        glBindFramebuffer_                = (PFNGLBINDFRAMEBUFFERPROC)               getprocaddress("glBindFramebuffer");
+        glDeleteFramebuffers_             = (PFNGLDELETEFRAMEBUFFERSPROC)            getprocaddress("glDeleteFramebuffers");
+        glGenFramebuffers_                = (PFNGLGENFRAMEBUFFERSPROC)               getprocaddress("glGenFramebuffers");
+        glFramebufferTexture1D_           = (PFNGLFRAMEBUFFERTEXTURE1DPROC)          getprocaddress("glFramebufferTexture1D");
+        glFramebufferTexture2D_           = (PFNGLFRAMEBUFFERTEXTURE2DPROC)          getprocaddress("glFramebufferTexture2D");
+        glFramebufferTexture3D_           = (PFNGLFRAMEBUFFERTEXTURE3DPROC)          getprocaddress("glFramebufferTexture3D");
+        glFramebufferRenderbuffer_        = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)       getprocaddress("glFramebufferRenderbuffer");
+        glGenerateMipmap_                 = (PFNGLGENERATEMIPMAPPROC)                getprocaddress("glGenerateMipmap");
+        glBlitFramebuffer_                = (PFNGLBLITFRAMEBUFFERPROC)               getprocaddress("glBlitFramebuffer");
         glRenderbufferStorageMultisample_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)getprocaddress("glRenderbufferStorageMultisample");
 
         hasAFBO = hasFBO = hasFBB = hasFBMS = hasDS = true;
@@ -758,19 +761,20 @@ void gl_checkextensions()
     }
     else if(hasext("GL_EXT_framebuffer_object"))
     {
-        glBindRenderbuffer_        = (PFNGLBINDRENDERBUFFERPROC)       getprocaddress("glBindRenderbufferEXT");
-        glDeleteRenderbuffers_     = (PFNGLDELETERENDERBUFFERSPROC)    getprocaddress("glDeleteRenderbuffersEXT");
-        glGenRenderbuffers_        = (PFNGLGENFRAMEBUFFERSPROC)        getprocaddress("glGenRenderbuffersEXT");
-        glRenderbufferStorage_     = (PFNGLRENDERBUFFERSTORAGEPROC)    getprocaddress("glRenderbufferStorageEXT");
-        glCheckFramebufferStatus_  = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) getprocaddress("glCheckFramebufferStatusEXT");
-        glBindFramebuffer_         = (PFNGLBINDFRAMEBUFFERPROC)        getprocaddress("glBindFramebufferEXT");
-        glDeleteFramebuffers_      = (PFNGLDELETEFRAMEBUFFERSPROC)     getprocaddress("glDeleteFramebuffersEXT");
-        glGenFramebuffers_         = (PFNGLGENFRAMEBUFFERSPROC)        getprocaddress("glGenFramebuffersEXT");
-        glFramebufferTexture1D_    = (PFNGLFRAMEBUFFERTEXTURE1DPROC)   getprocaddress("glFramebufferTexture1DEXT");
-        glFramebufferTexture2D_    = (PFNGLFRAMEBUFFERTEXTURE2DPROC)   getprocaddress("glFramebufferTexture2DEXT");
-        glFramebufferTexture3D_    = (PFNGLFRAMEBUFFERTEXTURE3DPROC)   getprocaddress("glFramebufferTexture3DEXT");
-        glFramebufferRenderbuffer_ = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)getprocaddress("glFramebufferRenderbufferEXT");
-        glGenerateMipmap_          = (PFNGLGENERATEMIPMAPPROC)         getprocaddress("glGenerateMipmapEXT");
+        glBindRenderbuffer_           = (PFNGLBINDRENDERBUFFERPROC)          getprocaddress("glBindRenderbufferEXT");
+        glDeleteRenderbuffers_        = (PFNGLDELETERENDERBUFFERSPROC)       getprocaddress("glDeleteRenderbuffersEXT");
+        glGenRenderbuffers_           = (PFNGLGENFRAMEBUFFERSPROC)           getprocaddress("glGenRenderbuffersEXT");
+        glRenderbufferStorage_        = (PFNGLRENDERBUFFERSTORAGEPROC)       getprocaddress("glRenderbufferStorageEXT");
+        glGetRenderbufferParameteriv_ = (PFNGLGETRENDERBUFFERPARAMETERIVPROC)getprocaddress("glGetRenderbufferParameterivEXT");
+        glCheckFramebufferStatus_     = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)    getprocaddress("glCheckFramebufferStatusEXT");
+        glBindFramebuffer_            = (PFNGLBINDFRAMEBUFFERPROC)           getprocaddress("glBindFramebufferEXT");
+        glDeleteFramebuffers_         = (PFNGLDELETEFRAMEBUFFERSPROC)        getprocaddress("glDeleteFramebuffersEXT");
+        glGenFramebuffers_            = (PFNGLGENFRAMEBUFFERSPROC)           getprocaddress("glGenFramebuffersEXT");
+        glFramebufferTexture1D_       = (PFNGLFRAMEBUFFERTEXTURE1DPROC)      getprocaddress("glFramebufferTexture1DEXT");
+        glFramebufferTexture2D_       = (PFNGLFRAMEBUFFERTEXTURE2DPROC)      getprocaddress("glFramebufferTexture2DEXT");
+        glFramebufferTexture3D_       = (PFNGLFRAMEBUFFERTEXTURE3DPROC)      getprocaddress("glFramebufferTexture3DEXT");
+        glFramebufferRenderbuffer_    = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)   getprocaddress("glFramebufferRenderbufferEXT");
+        glGenerateMipmap_             = (PFNGLGENERATEMIPMAPPROC)            getprocaddress("glGenerateMipmapEXT");
         hasFBO = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_framebuffer_object extension.");
 
@@ -1067,6 +1071,8 @@ void gl_checkextensions()
             }
             // textureGatherOffset with component selection crashes Intel's GLSL compiler on Windows
             intel_texgatheroffsetcomp_bug = 1;
+            // MapBufferRange is buggy on older Intel drivers on Windows
+            if(glversion <= 310) intel_mapbufferrange_bug = 1;
         }
     }
     if(hasGPU5 && hasTG && !intel_texgatheroffsetcomp_bug) tqaaresolvegather = 1;
@@ -1324,7 +1330,7 @@ void setcamprojmatrix(bool init = true, bool flush = false)
     }
     else camprojmatrix.muld(projmatrix, cammatrix);
 
-    jitteraa(init);
+    jitteraa();
 
     GLOBALPARAM(camprojmatrix, camprojmatrix);
     GLOBALPARAM(lineardepthscale, projmatrix.lineardepthscale()); //(invprojmatrix.c.z, invprojmatrix.d.z));
@@ -1768,18 +1774,21 @@ vec calcavatarpos(const vec &pos, float dist)
 
 void renderavatar()
 {
-    if(!isthirdperson())
-    {
-        matrix4 oldprojmatrix = projmatrix;
-        float avatarfovy = curavatarfov;
-        if(ovr::enabled && ovr::fov) avatarfovy *= ovr::fov/fov;
-        projmatrix.perspective(avatarfovy, aspect, nearplane, farplane);
-        projmatrix.scalez(avatardepth);
-        setcamprojmatrix(false);
-        game::renderavatar();
-        projmatrix = oldprojmatrix;
-        setcamprojmatrix(false);
-    }
+    if(isthirdperson()) return;
+
+    matrix4 oldprojmatrix = nojittermatrix;
+    float avatarfovy = curavatarfov;
+    if(ovr::enabled && ovr::fov) avatarfovy *= ovr::fov/fov;
+    projmatrix.perspective(avatarfovy, aspect, nearplane, farplane);
+    projmatrix.scalez(avatardepth);
+    setcamprojmatrix(false);
+
+    enableavatarmask();
+    game::renderavatar();
+    disableavatarmask();
+
+    projmatrix = oldprojmatrix;
+    setcamprojmatrix(false);
 }
 
 FVAR(polygonoffsetfactor, -1e4f, -3.0f, 1e4f);

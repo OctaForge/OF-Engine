@@ -68,10 +68,10 @@ void logoutf(const char *fmt, ...)
 static void writelog(FILE *file, const char *buf)
 {
     static uchar ubuf[512];
-    int len = strlen(buf), carry = 0;
+    size_t len = strlen(buf), carry = 0;
     while(carry < len)
     {
-        int numu = encodeutf8(ubuf, sizeof(ubuf)-1, &((const uchar *)buf)[carry], len - carry, &carry);
+        size_t numu = encodeutf8(ubuf, sizeof(ubuf)-1, &((const uchar *)buf)[carry], len - carry, &carry);
         if(carry >= len) ubuf[numu++] = '\n';
         fwrite(ubuf, 1, numu, file);
     }

@@ -352,7 +352,7 @@ namespace lua
                 size_t l;
                 const char *s = luaL_checklstring(L, arg, &l);
                 l *= sizeof(char);
-                status = status && (f->write(s, l) == (int)l);
+                status = status && (f->write(s, l) == l);
             }
         }
         return s_push_ret(L, status);

@@ -63,7 +63,6 @@ namespace game
     void gamedisconnect(bool cleanup)
     {
         logger::log(logger::DEBUG, "client.h: gamedisconnect()");
-//        if(remote) stopfollowing(); Kripken
         connected = false;
         player1->clientnum = -1;
 #ifndef SERVER

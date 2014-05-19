@@ -57,7 +57,7 @@ bool getentboundingbox(const extentity &e, ivec &o, ivec &r)
                 o = vec(center).sub(radius);
                 r = vec(center).add(radius).add(1);
                 break;
-            } 
+            }
         case ET_MAPMODEL:
             if(model *m = e.m)
             {
@@ -251,7 +251,7 @@ static bool modifyoctaent(int flags, int id, extentity &e)
     switch(e.type)
     {
         case ET_LIGHT: clearlightcache(id); break;
-        case ET_SPOTLIGHT: if(!(flags&MODOE_ADD ? spotlights++ : --spotlights)) cleardeferredlightshaders(); 
+        case ET_SPOTLIGHT: if(!(flags&MODOE_ADD ? spotlights++ : --spotlights)) cleardeferredlightshaders();
         case ET_PARTICLES: clearparticleemitters(); break;
         case ET_DECAL: if(flags&MODOE_CHANGED) changed(o, r, false); break;
     }
@@ -716,7 +716,7 @@ void renderentbox(const extentity &e, const vec &center, const vec &radius, int 
     orient.translate(center);
 
     gle::defvertex();
-    
+
     vec front[4] = { vec(-radius.x, -radius.y, -radius.z), vec( radius.x, -radius.y, -radius.z), vec( radius.x, -radius.y,  radius.z), vec(-radius.x, -radius.y,  radius.z) },
         back[4] = { vec(-radius.x, radius.y, -radius.z), vec( radius.x, radius.y, -radius.z), vec( radius.x, radius.y,  radius.z), vec(-radius.x, radius.y,  radius.z) };
     loopi(4)
@@ -861,6 +861,7 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
 
     if(enthover >= 0)
     {
+        gle::colorub(0, 40, 0);
         entfocus(enthover, entselectionbox(e, eo, es)); // also ensures enthover is back in focus
         boxs3D(eo, es, 1);
         if(entmoving && entmovingshadow==1)

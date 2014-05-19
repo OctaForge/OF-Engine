@@ -1405,7 +1405,7 @@ struct bvec4
     bvec4() {}
     bvec4(uchar x, uchar y, uchar z, uchar w) : x(x), y(y), z(z), w(w) {}
     bvec4(const bvec &v, uchar w) : x(v.x), y(v.y), z(v.z), w(w) {}
-  
+
     uchar &operator[](int i)       { return v[i]; }
     uchar  operator[](int i) const { return v[i]; }
 

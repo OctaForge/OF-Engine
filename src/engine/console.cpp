@@ -307,9 +307,9 @@ void pasteconsole()
     if(!SDL_HasClipboardText()) return;
     char *cb = SDL_GetClipboardText();
     if(!cb) return;
-    int cblen = strlen(cb);
-    size_t commandlen = strlen(commandbuf);
-    int decoded = decodeutf8((uchar *)&commandbuf[commandlen], int(sizeof(commandbuf)-1-commandlen), (const uchar *)cb, cblen);
+    size_t cblen = strlen(cb),
+           commandlen = strlen(commandbuf),
+           decoded = decodeutf8((uchar *)&commandbuf[commandlen], sizeof(commandbuf)-1-commandlen, (const uchar *)cb, cblen);
     commandbuf[commandlen + decoded] = '\0';
     SDL_free(cb);
 }

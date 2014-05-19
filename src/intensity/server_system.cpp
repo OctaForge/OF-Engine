@@ -12,7 +12,10 @@ int texdefscale   = 0;
 int maxvsuniforms = 0;
 int shadowmapping = 0;
 
+int intel_mapbufferrange_bug;
 int xtravertsva;
+
+float ldrscale = 1.0f;
 
 void serverkeepalive()
 {
@@ -181,6 +184,7 @@ void glBindTexture(GLenum target, GLuint texture) {};
 void glBlendFunc(GLenum sfactor, GLenum dfactor) {};
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {};
 void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indicies) {};
+void glPolygonMode(GLenum face, GLenum mode) {};
 #endif
 
 #ifndef __APPLE__
@@ -191,6 +195,7 @@ PFNGLBUFFERDATAARBPROC            glBufferData_               = NULL;
 PFNGLBUFFERSUBDATAPROC            glBufferSubData_            = NULL;
 PFNGLVERTEXATTRIB3FPROC           glVertexAttrib3f_           = NULL;
 PFNGLVERTEXATTRIB4FPROC           glVertexAttrib4f_           = NULL;
+PFNGLVERTEXATTRIB3FVPROC          glVertexAttrib3fv_          = NULL;
 PFNGLVERTEXATTRIB4NUBPROC         glVertexAttrib4Nub_         = NULL;
 PFNGLUNIFORM1FVPROC               glUniform1fv_               = NULL;
 PFNGLUNIFORM2FVPROC               glUniform2fv_               = NULL;
@@ -222,6 +227,7 @@ void glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usa
 void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid *data) {};
 void glVertexAttrib3f(GLuint index, GLfloat v0, GLfloat v1, GLfloat v2) {};
 void glVertexAttrib4f(GLuint index, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) {};
+void glVertexAttrib3fv(GLuint index, const GLfloat *v) {};
 void glVertexAttrib4Nub(GLuint index, GLubyte v0, GLubyte v1, GLubyte v2, GLubyte v3) {};
 void glUniform1fv(GLint location, GLsizei count, const GLfloat *value) {};
 void glUniform2fv(GLint location, GLsizei count, const GLfloat *value) {};

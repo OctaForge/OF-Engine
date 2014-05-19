@@ -182,6 +182,8 @@ struct stainrenderer
         DELETEA(stains);
     }
 
+    bool usegbuffer() const { return !(flags&(SF_INVMOD|SF_GLOW)); }
+
     void init(int tris)
     {
         if(stains)
@@ -191,7 +193,7 @@ struct stainrenderer
         }
         stains = new staininfo[tris];
         maxstains = tris;
-        loopi(NUMSTAINBUFS) verts[i].init(i ? (hasDB2 ? tris/2 : 0) : tris);
+        loopi(NUMSTAINBUFS) verts[i].init(i ? tris/2 : tris);
     }
 
     void preload()
@@ -305,12 +307,12 @@ struct stainrenderer
         }
     }
 
-    static void setuprenderstate(int sbuf)
+    static void setuprenderstate(int sbuf, bool gbuf)
     {
-        maskgbuffer("cg");
+        if(gbuf) maskgbuffer(sbuf ? "cg" : "c");
+        else zerofogcolor();
 
-        if(sbuf) glColorMaski_(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-        else glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
 
         enablepolygonoffset(GL_POLYGON_OFFSET_FILL);
 
@@ -322,7 +324,7 @@ struct stainrenderer
         gle::enablecolor();
     }
 
-    static void cleanuprenderstate(int sbuf)
+    static void cleanuprenderstate(int sbuf, bool gbuf)
     {
         glBindBuffer_(GL_ARRAY_BUFFER, 0);
 
@@ -337,7 +339,8 @@ struct stainrenderer
 
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-        maskgbuffer("cngd");
+        if(gbuf) maskgbuffer(sbuf ? "cndg" : "cnd");
+        else resetfogcolor();
     }
 
     void cleanup()
@@ -351,31 +354,28 @@ struct stainrenderer
         if(flags&SF_OVERBRIGHT)
         {
             glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
-            SETSWIZZLE(overbrightstain, tex);
+            SETVARIANTSWIZZLE(overbrightstain, tex, sbuf);
         }
         else if(flags&SF_GLOW)
         {
             glBlendFunc(GL_ONE, GL_ONE);
-            SETSWIZZLE(glowstain, tex);
             colorscale = ldrscale;
             if(flags&SF_SATURATE) colorscale *= 2;
-            alphascale = 1/ldrscale;
+            alphascale = 0;
+            SETSWIZZLE(foggedstain, tex);
+        }
+        else if(flags&SF_INVMOD)
+        {
+            glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+            alphascale = 0;
+            SETSWIZZLE(foggedstain, tex);
         }
         else
         {
-            if(flags&SF_INVMOD)
-            {
-                glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-                alphascale = 0;
-            }
-            else
-            {
-                if(sbuf) glBlendFuncSeparate_(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-                else glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                colorscale = ldrscale;
-                if(flags&SF_SATURATE) colorscale *= 2;
-            }
-            SETSWIZZLE(stain, tex);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            colorscale = ldrscale;
+            if(flags&SF_SATURATE) colorscale *= 2;
+            SETVARIANTSWIZZLE(stain, tex, sbuf);
         }
         LOCALPARAMF(colorscale, colorscale, colorscale, colorscale, alphascale);
 
@@ -500,7 +500,7 @@ struct stainrenderer
         }
         else return;
 
-        stainbuffer &buf = verts[(mat || cu.material&MAT_ALPHA) && hasDB2 ? STAINBUF_TRANSPARENT : STAINBUF_OPAQUE];
+        stainbuffer &buf = verts[mat || cu.material&MAT_ALPHA ? STAINBUF_TRANSPARENT : STAINBUF_OPAQUE];
         loopl(numplanes)
         {
             const vec &n = planes[l];
@@ -706,12 +706,13 @@ void clearstains()
 
 VARNP(stains, showstains, 0, 1, 1);
 
-void renderstains(int sbuf)
+void renderstains(int sbuf, bool gbuf)
 {
     bool rendered = false;
     loopv(stains)
     {
         stainrenderer &d = *stains[i];
+        if(d.usegbuffer() != gbuf) continue;
         if(sbuf == STAINBUF_OPAQUE)
         {
             d.clearfadedstains();
@@ -722,12 +723,12 @@ void renderstains(int sbuf)
         if(!rendered)
         {
             rendered = true;
-            stainrenderer::setuprenderstate(sbuf);
+            stainrenderer::setuprenderstate(sbuf, gbuf);
         }
         d.render(sbuf);
     }
     if(!rendered) return;
-    stainrenderer::cleanuprenderstate(sbuf);
+    stainrenderer::cleanuprenderstate(sbuf, gbuf);
 }
 
 void cleanupstains()

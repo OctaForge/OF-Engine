@@ -352,7 +352,7 @@ struct vacollect : verthash
         {
             const sortkey &k = texs[i];
             if(k.layer == LAYER_BLEND || k.alpha != NO_ALPHA) continue;
-            const sortval &t = indices[k]; 
+            const sortval &t = indices[k];
             if(t.tris.empty()) continue;
             for(int j = 0; j < t.tris.length(); j += 3)
             {
@@ -384,17 +384,17 @@ struct vacollect : verthash
                           b2 = (d11*dp2 - d12*dp1) / denom,
                           b0 = 1 - b1 - b2;
                     v.norm.x = uchar(b0*t0.norm.x + b1*t1.norm.x + b2*t2.norm.x);
-                    v.norm.y = uchar(b0*t0.norm.y + b1*t1.norm.y + b2*t2.norm.y); 
+                    v.norm.y = uchar(b0*t0.norm.y + b1*t1.norm.y + b2*t2.norm.y);
                     v.norm.z = uchar(b0*t0.norm.z + b1*t1.norm.z + b2*t2.norm.z);
                     v.reserved = 0;
                     vec tc = orient.transposedtransform(vec(center).sub(v.pos)).div(size).add(0.5f);
                     v.tc = vec(tc.x, tc.z, s.fade ? tc.y * s.depth / s.fade : s.fade);
-                    v.tangent.x = uchar(b0*t0.tangent.x + b1*t1.tangent.x + b2*t2.tangent.x); 
+                    v.tangent.x = uchar(b0*t0.tangent.x + b1*t1.tangent.x + b2*t2.tangent.x);
                     v.tangent.y = uchar(b0*t0.tangent.y + b1*t1.tangent.y + b2*t2.tangent.y);
                     v.tangent.z = uchar(b0*t0.tangent.z + b1*t1.tangent.z + b2*t2.tangent.z);
                     v.tangent.w = uchar(b0*t0.tangent.w + b1*t1.tangent.w + b2*t2.tangent.w);
                     idx[k] = addvert(v);
-                } 
+                }
                 vector<ushort> &tris = decalindices[key].tris;
                 loopk(nump-2) if(idx[0] != idx[k+1] && idx[k+1] != idx[k+2] && idx[k+2] != idx[0])
                 {
@@ -606,7 +606,9 @@ struct vacollect : verthash
         if(grasstris.length())
         {
             va->grasstris.move(grasstris);
-            useshaderbyname("grass");
+#ifndef SERVER
+            loadgrassshaders();
+#endif
         }
 
         if(mapmodels.length()) va->mapmodels.put(mapmodels.getbuf(), mapmodels.length());
@@ -732,8 +734,8 @@ void addtris(VSlot &vslot, int orient, const sortkey &key, vertex *verts, int *i
                     bvec tangent;
                     tangent.lerp(bvec(v1.tangent), bvec(v2.tangent), offset);
                     vt.tangent = bvec4(tangent,
-                                       v1.tangent.w == v2.tangent.w ? 
-                                            v1.tangent.w : 
+                                       v1.tangent.w == v2.tangent.w ?
+                                            v1.tangent.w :
                                             (orientation_bitangent[vslot.rotation][orient].scalartriple(vt.norm.tonormal(), tangent.tonormal()) < 0 ? 0 : 255));
                     int i2 = vc.addvert(vt);
                     if(i2 < 0) return;
@@ -848,7 +850,6 @@ void guessnormals(const vec *pos, int numverts, vec *normals)
     else n1.normalize();
     if(n2.iszero())
     {
-        n1.normalize();
         loopk(4) normals[k] = n1;
         return;
     }
@@ -1386,7 +1387,7 @@ static inline void finddecals(vtxarray *va)
         loopv(va->children) finddecals(va->children[i]);
     }
 }
- 
+
 void rendercube(cube &c, const ivec &co, int size, int csi, int &maxlevel) // creates vertices and indices ready to be put into a va
 {
     //if(size<=16) return;

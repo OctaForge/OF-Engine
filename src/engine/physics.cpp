@@ -143,7 +143,7 @@ static float disttoent(octaentities *oc, const vec &o, const vec &ray, float rad
                 hitorient = orient; \
             } \
         } \
-    } while(0) 
+    } while(0)
 
     if((mode&RAY_POLY) == RAY_POLY) entintersect(mapmodels,
     {

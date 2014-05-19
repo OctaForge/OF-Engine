@@ -192,7 +192,7 @@ static void compileglslshader(Shader &s, GLenum type, GLuint &obj, const char *d
         {
             parts[numparts++] = "#define varying in\n";
             parts[numparts++] = (glslversion >= 330 || (glslversion >= 150 && hasEAL)) && !amd_eal_bug ?
-                "#define fragdata(loc, name, type) layout(location = loc) out type name;\n" 
+                "#define fragdata(loc, name, type) layout(location = loc) out type name;\n"
                 "#define blenddata(loc, name, type) layout(location = loc, index = 1) out type name;\n" :
                 "#define fragdata(loc, name, type) out type name;\n"
                 "#define blenddata(loc, name, type) out type name;\n";
@@ -249,28 +249,37 @@ static void compileglslshader(Shader &s, GLenum type, GLuint &obj, const char *d
     }
     if(glslversion < 130 && type == GL_FRAGMENT_SHADER)
     {
-        parts[numparts++] = "#define fragdata(loc, name, type)\n";
-        loopv(s.fragdatalocs)
+        if(hasEGPU4)
         {
-            FragDataLoc &d = s.fragdatalocs[i];
-            if(d.index) continue;
-            if(i >= 4) break;
-            static string defs[4];
-            const char *swizzle = "";
-            switch(d.format)
+            parts[numparts++] =
+                "#define fragdata(loc, name, type) varying out type name;\n"
+                "#define blenddata(loc, name, type) varying out type name;\n";
+        }
+        else
+        {
+            parts[numparts++] = "#define fragdata(loc, name, type)\n";
+            loopv(s.fragdatalocs)
             {
-                case GL_UNSIGNED_INT_VEC2:
-                case GL_INT_VEC2:
-                case GL_FLOAT_VEC2: swizzle = ".rg"; break;
-                case GL_UNSIGNED_INT_VEC3:
-                case GL_INT_VEC3:
-                case GL_FLOAT_VEC3: swizzle = ".rgb"; break;
-                case GL_UNSIGNED_INT:
-                case GL_INT:
-                case GL_FLOAT: swizzle = ".r"; break;
+                FragDataLoc &d = s.fragdatalocs[i];
+                if(d.index) continue;
+                if(i >= 4) break;
+                static string defs[4];
+                const char *swizzle = "";
+                switch(d.format)
+                {
+                    case GL_UNSIGNED_INT_VEC2:
+                    case GL_INT_VEC2:
+                    case GL_FLOAT_VEC2: swizzle = ".rg"; break;
+                    case GL_UNSIGNED_INT_VEC3:
+                    case GL_INT_VEC3:
+                    case GL_FLOAT_VEC3: swizzle = ".rgb"; break;
+                    case GL_UNSIGNED_INT:
+                    case GL_INT:
+                    case GL_FLOAT: swizzle = ".r"; break;
+                }
+                formatstring(defs[i], "#define %s gl_FragData[%d]%s\n", d.name, d.loc, swizzle);
+                parts[numparts++] = defs[i];
             }
-            formatstring(defs[i], "#define %s gl_FragData[%d]%s\n", d.name, d.loc, swizzle);
-            parts[numparts++] = defs[i];
         }
     }
     parts[numparts++] = modsource ? modsource : source;
@@ -352,7 +361,7 @@ static void linkglslprogram(Shader &s, bool msg = true)
             attribs |= 1<<a.loc;
         }
         loopi(gle::MAXATTRIBS) if(!(attribs&(1<<i))) glBindAttribLocation_(s.program, i, gle::attribnames[i]);
-        if(glslversion >= 130 && ((glslversion < 330 && (glslversion < 150 || !hasEAL)) || amd_eal_bug) && glversion >= 300) loopv(s.fragdatalocs)
+        if((glslversion >= 130 || hasEGPU4) && ((glslversion < 330 && (glslversion < 150 || !hasEAL)) || amd_eal_bug)) loopv(s.fragdatalocs)
         {
             FragDataLoc &d = s.fragdatalocs[i];
             if(d.index)
@@ -678,12 +687,13 @@ void Shader::cleanup(bool full)
     else loopv(defaultparams) defaultparams[i].loc = -1;
 }
 
-static void genattriblocs(Shader &s, const char *vs, const char *ps)
+static void genattriblocs(Shader &s, const char *vs, const char *ps, Shader *reusevs, Shader *reuseps)
 {
     static int len = strlen("#pragma CUBE2_attrib");
     string name;
     int loc;
-    while((vs = strstr(vs, "#pragma CUBE2_attrib")))
+    if(reusevs) s.attriblocs = reusevs->attriblocs;
+    else while((vs = strstr(vs, "#pragma CUBE2_attrib")))
     {
         if(sscanf(vs, "#pragma CUBE2_attrib %100s %d", name, &loc) == 2)
             s.attriblocs.add(AttribLoc(getshaderparamname(name), loc));
@@ -691,12 +701,13 @@ static void genattriblocs(Shader &s, const char *vs, const char *ps)
     }
 }
 
-static void genuniformlocs(Shader &s, const char *vs, const char *ps)
+static void genuniformlocs(Shader &s, const char *vs, const char *ps, Shader *reusevs, Shader *reuseps)
 {
     static int len = strlen("#pragma CUBE2_uniform");
     string name, blockname;
     int binding, stride;
-    while((vs = strstr(vs, "#pragma CUBE2_uniform")))
+    if(reusevs) s.uniformlocs = reusevs->uniformlocs;
+    else while((vs = strstr(vs, "#pragma CUBE2_uniform")))
     {
         int numargs = sscanf(vs, "#pragma CUBE2_uniform %100s %100s %d %d", name, blockname, &binding, &stride);
         if(numargs >= 3) s.uniformlocs.add(UniformLoc(getshaderparamname(name), getshaderparamname(blockname), binding, numargs >= 4 ? stride : 0));
@@ -744,8 +755,8 @@ Shader *newshader(int type, const char *name, const char *vs, const char *ps, Sh
     else loopv(slotparams) s.defaultparams.add(slotparams[i]);
     s.attriblocs.setsize(0);
     s.uniformlocs.setsize(0);
-    genattriblocs(s, vs, ps);
-    genuniformlocs(s, vs, ps);
+    genattriblocs(s, vs, ps, s.reusevs, s.reuseps);
+    genuniformlocs(s, vs, ps, s.reusevs, s.reuseps);
     s.fragdatalocs.setsize(0);
     if(s.reuseps) s.fragdatalocs = s.reuseps->fragdatalocs;
     else findfragdatalocs(s, ps);
@@ -812,7 +823,7 @@ static void gengenericvariant(Shader &s, const char *sname, const char *vs, cons
     }
     row += rowoffset;
     if(row < 0 || row >= MAXVARIANTROWS) return;
-    int col = s.numvariants(row); 
+    int col = s.numvariants(row);
     defformatstring(varname, "<variant:%d,%d>%s", col, row, sname);
     string reuse;
     if(col) formatstring(reuse, "%d", row);
@@ -1119,7 +1130,7 @@ void variantshader(int *type, char *name, int *row, char *vs, char *ps, int *max
         return;
     }
     else if(*row >= MAXVARIANTROWS) return;
-    
+
     Shader *s = lookupshaderbyname(name);
     if(!s) return;
 
@@ -1127,7 +1138,7 @@ void variantshader(int *type, char *name, int *row, char *vs, char *ps, int *max
     if(*maxvariants > 0)
     {
         defformatstring(info, "shader %s", name);
-        renderprogress(s->variants.length() / float(*maxvariants), info);
+        renderprogress(min(s->variants.length() / float(*maxvariants), 1.0f), info);
     }
     vector<char> vsbuf, psbuf, vsbak, psbak;
     GENSHADER(s->defaultparams.length(), genuniformdefs(vsbuf, psbuf, vs, ps, s));

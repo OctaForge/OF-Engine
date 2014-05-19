@@ -31,7 +31,7 @@ static model *__loadmodel__##modelclass(const char *filename) \
 { \
     return new modelclass(filename); \
 } \
-static int __dummy__##modelclass = addmodeltype((modeltype), __loadmodel__##modelclass);
+UNUSED static int __dummy__##modelclass = addmodeltype((modeltype), __loadmodel__##modelclass);
 
 #include "md3.h"
 #include "md5.h"
@@ -664,6 +664,7 @@ void rendershadowmodelbatches(bool dynmodel)
 
 void rendermapmodelbatches()
 {
+    enableaamask();
     loopv(batches)
     {
         modelbatch &b = batches[i];
@@ -691,6 +692,7 @@ void rendermapmodelbatches()
         if(query) endquery(query);
         if(rendered) b.m->endrender();
     }
+    disableaamask();
 }
 
 float transmdlsx1 = -1, transmdlsy1 = -1, transmdlsx2 = 1, transmdlsy2 = 1;
@@ -702,6 +704,7 @@ void rendermodelbatches()
     transmdlsx2 = transmdlsy2 = -1;
     memset(transmdltiles, 0, sizeof(transmdltiles));
 
+    enableaamask();
     loopv(batches)
     {
         modelbatch &b = batches[i];
@@ -755,17 +758,24 @@ void rendermodelbatches()
                 j = bm.next;
                 if(bm.culled&(MDL_CULL_OCCLUDED|MDL_CULL_QUERY) && bm.flags&MDL_CULL_QUERY)
                 {
-                    if(!queried) { enablecullmodelquery(); queried = true; }
+                    if(!queried)
+                    {
+                        if(rendered) setaamask(false);
+                        enablecullmodelquery();
+                        queried = true;
+                    }
                     rendercullmodelquery(b.m, bm.d, bm.center, bm.radius);
                 }
             }
             if(queried) disablecullmodelquery();
         }
     }
+    disableaamask();
 }
 
-void rendertransparentmodelbatches()
+void rendertransparentmodelbatches(int stencil)
 {
+    enableaamask(stencil);
     loopv(batches)
     {
         modelbatch &b = batches[i];
@@ -798,6 +808,7 @@ void rendertransparentmodelbatches()
         }
         if(rendered) b.m->endrender();
     }
+    disableaamask();
 }
 
 void startmodelquery(occludequery *query)
@@ -820,6 +831,7 @@ void endmodelquery()
         modelquery = NULL;
         return;
     }
+    enableaamask();
     int minattached = modelattached.length();
     startquery(modelquery);
     loopv(batches)
@@ -844,6 +856,7 @@ void endmodelquery()
     endquery(modelquery);
     modelquery = NULL;
     modelattached.setsize(minattached);
+    disableaamask();
 }
 
 void clearbatchedmapmodels()
@@ -976,6 +989,7 @@ hasboundbox:
             }
             return;
         }
+        enableaamask();
         if(flags&MDL_CULL_QUERY && !viewidx)
         {
             d->query = newquery(d);
@@ -987,6 +1001,7 @@ hasboundbox:
         m->render(anim, basetime, basetime2, o, yaw, pitch, roll, d, a, size, color);
         m->endrender();
         if(flags&MDL_CULL_QUERY && !viewidx && d->query) endquery(d->query);
+        disableaamask();
         return;
     }
 

@@ -249,9 +249,33 @@ void generategrass()
     glBindBuffer_(GL_ARRAY_BUFFER, 0);
 }
 
+static Shader *grassshader = NULL;
+
+Shader *loadgrassshader()
+{
+    string opts;
+    int optslen = 0;
+
+    opts[optslen] = '\0';
+
+    defformatstring(name, "grass%s", opts);
+    return generateshader(name, "grassshader \"%s\"", opts);
+    
+}
+
+void loadgrassshaders()
+{
+    grassshader = loadgrassshader();
+}
+
+void cleargrassshaders()
+{
+    grassshader = NULL;
+}
+
 void rendergrass()
 {
-    if(!grass || !grassdist || grassgroups.empty() || dbggrass) return;
+    if(!grass || !grassdist || grassgroups.empty() || dbggrass || !grassshader) return;
 
     glDisable(GL_CULL_FACE);
 
@@ -265,9 +289,6 @@ void rendergrass()
     gle::enablecolor();
     gle::enabletexcoord0();
     gle::enablequads();
-
-    static Shader *grassshader = NULL;
-    if(!grassshader) grassshader = lookupshaderbyname("grass");
 
     GLOBALPARAMF(grasstest, grasstest);
 
@@ -313,5 +334,7 @@ void cleanupgrass()
 {
     if(grassvbo) { glDeleteBuffers_(1, &grassvbo); grassvbo = 0; }
     grassvbosize = 0;
+
+    cleargrassshaders();
 }
 

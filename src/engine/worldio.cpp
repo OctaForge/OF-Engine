@@ -564,20 +564,20 @@ const char *_saved_cname = NULL; // INTENSITY
 
 static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octaheader &ohdr)
 {
-    if(f->read(&hdr, 3*sizeof(int))!=int(3*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+    if(f->read(&hdr, 3*sizeof(int)) != 3*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
     lilswap(&hdr.version, 2);
 
     if(!memcmp(hdr.magic, "TMAP", 4))
     {
         if(hdr.version>MAPVERSION) { conoutf(CON_ERROR, "map %s requires a newer version of OctaForge", ogzname); return false; }
-        if(f->read(&hdr.worldsize, 6*sizeof(int)) != int(6*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(f->read(&hdr.worldsize, 6*sizeof(int)) != 6*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
         lilswap(&hdr.worldsize, 6);
         if(hdr.worldsize <= 0|| hdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
     }
     else if(!memcmp(hdr.magic, "OCTA", 4))
     {
         if(hdr.version!=OCTAVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version", ogzname); return false; }
-        if(f->read(&ohdr.worldsize, 7*sizeof(int)) != int(7*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(f->read(&ohdr.worldsize, 7*sizeof(int)) != 7*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
         lilswap(&ohdr.worldsize, 7);
         if(ohdr.worldsize <= 0|| ohdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
         memcpy(hdr.magic, "TMAP", 4);

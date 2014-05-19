@@ -113,19 +113,20 @@ typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURELAYERPROC) (GLenum target, GLenum
 #endif
 
 // GL_EXT_framebuffer_object
-extern PFNGLBINDRENDERBUFFERPROC        glBindRenderbuffer_;
-extern PFNGLDELETERENDERBUFFERSPROC     glDeleteRenderbuffers_;
-extern PFNGLGENFRAMEBUFFERSPROC         glGenRenderbuffers_;
-extern PFNGLRENDERBUFFERSTORAGEPROC     glRenderbufferStorage_;
-extern PFNGLCHECKFRAMEBUFFERSTATUSPROC  glCheckFramebufferStatus_;
-extern PFNGLBINDFRAMEBUFFERPROC         glBindFramebuffer_;
-extern PFNGLDELETEFRAMEBUFFERSPROC      glDeleteFramebuffers_;
-extern PFNGLGENFRAMEBUFFERSPROC         glGenFramebuffers_;
-extern PFNGLFRAMEBUFFERTEXTURE1DPROC    glFramebufferTexture1D_;
-extern PFNGLFRAMEBUFFERTEXTURE2DPROC    glFramebufferTexture2D_;
-extern PFNGLFRAMEBUFFERTEXTURE3DPROC    glFramebufferTexture3D_;
-extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer_;
-extern PFNGLGENERATEMIPMAPPROC          glGenerateMipmap_;
+extern PFNGLBINDRENDERBUFFERPROC           glBindRenderbuffer_;
+extern PFNGLDELETERENDERBUFFERSPROC        glDeleteRenderbuffers_;
+extern PFNGLGENFRAMEBUFFERSPROC            glGenRenderbuffers_;
+extern PFNGLRENDERBUFFERSTORAGEPROC        glRenderbufferStorage_;
+extern PFNGLGETRENDERBUFFERPARAMETERIVPROC glGetRenderbufferParameteriv_;
+extern PFNGLCHECKFRAMEBUFFERSTATUSPROC     glCheckFramebufferStatus_;
+extern PFNGLBINDFRAMEBUFFERPROC            glBindFramebuffer_;
+extern PFNGLDELETEFRAMEBUFFERSPROC         glDeleteFramebuffers_;
+extern PFNGLGENFRAMEBUFFERSPROC            glGenFramebuffers_;
+extern PFNGLFRAMEBUFFERTEXTURE1DPROC       glFramebufferTexture1D_;
+extern PFNGLFRAMEBUFFERTEXTURE2DPROC       glFramebufferTexture2D_;
+extern PFNGLFRAMEBUFFERTEXTURE3DPROC       glFramebufferTexture3D_;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC    glFramebufferRenderbuffer_;
+extern PFNGLGENERATEMIPMAPPROC             glGenerateMipmap_;
 
 // GL_EXT_framebuffer_blit
 extern PFNGLBLITFRAMEBUFFERPROC         glBlitFramebuffer_;

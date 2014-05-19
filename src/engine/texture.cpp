@@ -517,8 +517,8 @@ VARFP(reducefilter, 0, 1, 1, initwarning("texture quality", INIT_LOAD));
 VARFP(texreduce, 0, 0, 12, initwarning("texture quality", INIT_LOAD));
 VARFP(texcompress, 0, 1536, 1<<12, initwarning("texture quality", INIT_LOAD));
 VARFP(texcompressquality, -1, -1, 1, setuptexcompress());
-VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
-VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
+VARF(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
+VARF(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(aniso, 0, 0, 16, initwarning("texture filtering", INIT_LOAD));
 /* OF */
 VARFR(texdefscale, 1, 16, 64, if (!world::loading) initwarning("texture scale", INIT_LOAD));
@@ -1492,7 +1492,7 @@ static inline bool texturedata(ImageData &d, Slot &slot, Slot::Tex &tex, bool ms
 {
     return texturedata(d, tex.name, msg, compress, wrap, slot.texturedir(), tex.type);
 }
- 
+
 uchar *loadalphamask(Texture *t)
 {
     if(t->alphamask) return t->alphamask;
@@ -2466,6 +2466,7 @@ void texture(const char *type, const char *name, int *rot, int *xoffset, int *yo
     {
         tnum = TEX_DIFFUSE;
         defslot = &materialslots[matslot];
+        defslot->reset(); 
     }
     else if(!defslot) return;
     else if(tnum < 0) tnum = TEX_UNKNOWN;
@@ -2773,7 +2774,7 @@ void Slot::load()
             Slot::Tex &c = sts[combine];
             c.combined = i;
         }
-    }    
+    }
     loopv(sts)
     {
         Slot::Tex &t = sts[i];
@@ -3489,7 +3490,7 @@ bool loaddds(const char *filename, ImageData &image)
 
     }
     image.setdata(NULL, d.dwWidth, d.dwHeight, bpp, d.dwMipMapCount, 4, format);
-    int size = image.calcsize();
+    size_t size = image.calcsize();
     if(f->read(image.data, size) != size) { delete f; image.cleanup(); return false; }
     delete f;
     return true;

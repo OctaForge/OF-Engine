@@ -238,7 +238,7 @@ static bool initidents()
     }
     return true;
 }
-static bool forceinitidents = initidents();
+UNUSED static bool forceinitidents = initidents();
 
 static const char *sourcefile = NULL, *sourcestr = NULL;
 
@@ -728,6 +728,8 @@ ICOMMAND(getfvarmin, "s", (char *s), floatret(getfvarmin(s)));
 ICOMMAND(getfvarmax, "s", (char *s), floatret(getfvarmax(s)));
 
 bool identexists(const char *name) { return idents.access(name)!=NULL; }
+ICOMMAND(identexists, "s", (char *s), intret(identexists(s) ? 1 : 0));
+
 ident *getident(const char *name) { return idents.access(name); }
 
 void touchvar(const char *name)
@@ -3074,7 +3076,7 @@ bool execfile(const char *cfgfile, bool msg)
     delete[] buf;
     return true;
 }
-ICOMMAND(exec, "s", (char *file), execfile(file));
+ICOMMAND(exec, "sb", (char *file, int *msg), intret(execfile(file, *msg != 0) ? 1 : 0));
 
 const char *escapestring(const char *s)
 {
@@ -3833,7 +3835,7 @@ ICOMMAND(findfile, "s", (char *name),
     string fname;
     copystring(fname, name);
     path(fname);
-    intret(fileexists(fname, "e") || findfile(fname, "e") ? 1 : 0);
+    intret(findzipfile(fname) || fileexists(fname, "e") || findfile(fname, "e") ? 1 : 0);
 });
 
 struct sortitem

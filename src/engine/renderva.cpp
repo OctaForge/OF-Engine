@@ -1441,7 +1441,7 @@ static inline void changeshader(renderstate &cur, int pass, geombatch &b)
         if(b.es.layer&LAYER_BOTTOM) rsmworldshader->setvariant(0, 0, slot, vslot);
         else rsmworldshader->set(slot, vslot);
     }
-    else if(cur.alphaing > 1 && vslot.refractscale > 0) slot.shader->setvariant(0, 1, slot, vslot);
+    else if(cur.alphaing) slot.shader->setvariant(cur.alphaing > 1 && vslot.refractscale > 0 ? 1 : 0, 1, slot, vslot);
     else if(b.es.layer&LAYER_BOTTOM) slot.shader->setvariant(0, 0, slot, vslot);
     else slot.shader->set(slot, vslot);
 }
@@ -1742,7 +1742,7 @@ void rendergeom()
         glDepthMask(GL_FALSE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
-        maskgbuffer("cng");
+        maskgbuffer("cn");
 
         GLOBALPARAMF(blendlayer, 0.0f);
         cur.texgenorient = -1;
@@ -1752,7 +1752,7 @@ void rendergeom()
         }
         if(geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER);
 
-        maskgbuffer("cngd");
+        maskgbuffer("cnd");
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
     }
@@ -2263,7 +2263,7 @@ void cleanupdecals(decalrenderer &cur)
     glDisable(GL_BLEND);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_TRUE);
-    maskgbuffer("cngd");
+    maskgbuffer("cnd");
 
     gle::disablevertex();
     gle::disablenormal();
@@ -2275,7 +2275,7 @@ void cleanupdecals(decalrenderer &cur)
 }
 
 VAR(batchdecals, 0, 1, 1);
- 
+
 void renderdecals()
 {
     vtxarray *decalva;
@@ -2301,7 +2301,7 @@ void renderdecals()
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-        maskgbuffer("ng");
+        maskgbuffer("n");
         cur.vbuf = 0;
         GLOBALPARAMF(colorparams, 1, 1, 1, 1);
         for(vtxarray *va = decalva; va; va = va->next) if(va->decaltris && va->occluded < OCCLUDE_BB)
@@ -2316,7 +2316,7 @@ void renderdecals()
     {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-        maskgbuffer("cng");
+        maskgbuffer("cn");
         for(vtxarray *va = decalva; va; va = va->next) if(va->decaltris && va->occluded < OCCLUDE_BB)
         {
             vverts += 3*va->decaltris;

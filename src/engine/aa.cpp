@@ -95,9 +95,12 @@ struct tqaaview
     }
 } tqaaviews[2];
 
+int tqaatype = -1;
+
 void loadtqaashaders()
 {
-    loadhdrshaders(tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY);
+    tqaatype = tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY;
+    loadhdrshaders(tqaatype);
 
     useshaderbyname("tqaaresolve");
 }
@@ -111,6 +114,7 @@ void setuptqaa(int w, int h)
 
 void cleanuptqaa()
 {
+    tqaatype = -1;
     loopi(2) tqaaviews[i].cleanup();
 }
 
@@ -133,11 +137,13 @@ GLuint fxaafbo = 0, fxaatex = 0;
 
 extern int fxaaquality, fxaagreenluma;
 
+int fxaatype = -1;
 static Shader *fxaashader = NULL;
 
 void loadfxaashaders()
 {
-    loadhdrshaders(tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!fxaagreenluma ? AA_LUMA : AA_UNUSED));
+    fxaatype = tqaatype >= 0 ? tqaatype : (!fxaagreenluma ? AA_LUMA : AA_UNUSED);
+    loadhdrshaders(fxaatype);
 
     string opts;
     int optslen = 0;
@@ -150,6 +156,7 @@ void loadfxaashaders()
 
 void clearfxaashaders()
 {
+    fxaatype = -1;
     fxaashader = NULL;
 }
 
@@ -201,12 +208,14 @@ int smaasubsampleorder = -1;
 
 extern int smaaquality, smaagreenluma, smaacoloredge, smaadepthmask, smaastencil;
 
+int smaatype = -1;
 static Shader *smaalumaedgeshader = NULL, *smaacoloredgeshader = NULL, *smaablendweightshader = NULL, *smaaneighborhoodshader = NULL;
 
 void loadsmaashaders(bool split = false)
 {
-    loadhdrshaders(split ? (tqaa ? (tqaamovemask ? AA_SPLIT_VELOCITY_MASKED : AA_SPLIT_VELOCITY) : (!smaagreenluma && !smaacoloredge ? AA_SPLIT_LUMA : AA_SPLIT)) :
-                           (tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!smaagreenluma && !smaacoloredge ? AA_LUMA : AA_UNUSED)));
+    smaatype = tqaatype >= 0 ? tqaatype : (!smaagreenluma && !smaacoloredge ? AA_LUMA : AA_UNUSED);
+    if(split) smaatype += AA_SPLIT;
+    loadhdrshaders(smaatype);
 
     string opts;
     int optslen = 0;
@@ -241,6 +250,7 @@ void loadsmaashaders(bool split = false)
 
 void clearsmaashaders()
 {
+    smaatype = -1;
     smaalumaedgeshader = NULL;
     smaacoloredgeshader = NULL;
     smaablendweightshader = NULL;
@@ -678,16 +688,15 @@ void dosmaa(GLuint outfbo = 0, bool split = false)
 
 void setupaa(int w, int h)
 {
+    if(tqaa && !tqaaviews[0].fbo[0]) setuptqaa(w, h);
+
     if(smaa) { if(!smaafbo[0]) setupsmaa(w, h); }
     else if(fxaa) { if(!fxaafbo) setupfxaa(w, h); }
-
-    if(tqaa && !tqaaviews[0].fbo[0]) setuptqaa(w, h);
 }
 
 matrix4 nojittermatrix;
-int aamask = -1;
 
-void jitteraa(bool init)
+void jitteraa()
 {
     nojittermatrix = projmatrix;
 
@@ -698,18 +707,49 @@ void jitteraa(bool init)
         if(multisampledaa()) { jitter.x *= 0.5f; jitter.y *= -0.5f; }
         projmatrix.jitter(jitter.x*2.0f/vieww, jitter.y*2.0f/viewh);
     }
-
-    if(init) aamask = -1;
 }
+
+int aamaskstencil = -1, aamask = -1;
 
 void setaamask(bool on)
 {
     int val = on && !drawtex ? 1 : 0;
     if(aamask == val) return;
 
+    if(!aamaskstencil)
+    {
+        glStencilOp(GL_KEEP, GL_KEEP, val ? GL_REPLACE : GL_KEEP);
+        if(aamask < 0)
+        {
+            glStencilFunc(GL_ALWAYS, 0x80, ~0);
+            glEnable(GL_STENCIL_TEST);
+        }
+    }
+    else if(aamaskstencil > 0)
+    {
+        if(val) glStencilFunc(GL_ALWAYS, 0x80 | aamaskstencil, ~0);
+        else if(aamask >= 0) glStencilFunc(GL_ALWAYS, aamaskstencil, ~0);
+    }
+
     aamask = val;
 
-    GLOBALPARAMF(aamask, aamask ? 1.0f : 0.0f);
+    GLOBALPARAMF(aamask, aamask);
+}
+
+void enableaamask(int stencil)
+{
+    aamask = -1;
+    aamaskstencil = !msaasamples && ghasstencil && tqaa && tqaamovemask && !drawtex ? stencil|avatarmask : -1;
+}
+
+void disableaamask()
+{
+    if(aamaskstencil >= 0 && aamask >= 0)
+    {
+        if(!aamaskstencil) glDisable(GL_STENCIL_TEST);
+        else if(aamask) glStencilFunc(GL_ALWAYS, aamaskstencil, ~0);
+        aamask = -1;
+    }
 }
 
 bool multisampledaa()
@@ -727,12 +767,11 @@ void doaa(GLuint outfbo, void (*resolve)(GLuint, int))
     if(smaa)
     {
         bool split = multisampledaa();
-        resolve(smaafbo[0], split ? (tqaa ? (tqaamovemask ? AA_SPLIT_VELOCITY_MASKED : AA_SPLIT_VELOCITY) : (!smaagreenluma && !smaacoloredge ? AA_SPLIT_LUMA : AA_SPLIT)) :
-                                    (tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!smaagreenluma && !smaacoloredge ? AA_LUMA : AA_UNUSED)));
+        resolve(smaafbo[0], smaatype);
         dosmaa(outfbo, split);
     }
-    else if(fxaa) { resolve(fxaafbo, tqaa ? (tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY) : (!fxaagreenluma ? AA_LUMA : AA_UNUSED)); dofxaa(outfbo); }
-    else if(tqaa) { tqaaview &tv = tqaaviews[viewidx]; resolve(tv.fbo[0], tqaamovemask ? AA_VELOCITY_MASKED : AA_VELOCITY); dotqaa(tv, outfbo); }
+    else if(fxaa) { resolve(fxaafbo, fxaatype); dofxaa(outfbo); }
+    else if(tqaa) { tqaaview &tv = tqaaviews[viewidx]; resolve(tv.fbo[0], tqaatype); dotqaa(tv, outfbo); }
     else resolve(outfbo, AA_UNUSED);
 }
 
