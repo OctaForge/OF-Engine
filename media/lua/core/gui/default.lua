@@ -7,7 +7,7 @@ local ents = require("core.entities.ents")
 local svars = require("core.entities.svars")
 local gui = require("core.gui.core")
 
-local world = gui.get_world()
+local root = gui.get_root()
 
 local Color = gui.Color
 local connect = signal.connect
@@ -459,7 +459,7 @@ set_ext("background_render", function(caption, mapname, mapinfo, mapshot)
         and ffi.cast("Texture*", mapshot) or nil, caption))
 end)
 
-world:new_window("changes", gui.Window, |win| do
+root:new_window("changes", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Changes")
@@ -478,12 +478,12 @@ world:new_window("changes", gui.Window, |win| do
                 gui.Button { label = "OK", min_w = 0.15,
                     signals = { clicked = || do
                         gui.changes_apply()
-                        world:hide_window("changes")
+                        root:hide_window("changes")
                     end }
                 },
                 gui.Button { label = "Cancel", min_w = 0.15,
                     signals = { clicked = || do
-                        world:hide_window("changes")
+                        root:hide_window("changes")
                     end }
                 }
             }
@@ -491,7 +491,7 @@ world:new_window("changes", gui.Window, |win| do
     end)
 end)
 
-world:new_window("texture", gui.Window, |win| do
+root:new_window("texture", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Textures")
@@ -547,7 +547,7 @@ local field_def = function(hb, nm, ent, dv)
     end)
 end
 
-world:new_window("entity", gui.Window, |win| do
+root:new_window("entity", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     local  ent = capi.get_selected_entity()
@@ -614,7 +614,7 @@ world:new_window("entity", gui.Window, |win| do
     end)
 end)
 
-world:new_window("entity_new", gui.Window, |win| do
+root:new_window("entity_new", gui.Window, |win| do
     input.save_mouse_position()
     win:set_floating(true)
     win:set_variant("movable")
@@ -641,7 +641,7 @@ world:new_window("entity_new", gui.Window, |win| do
                             }, |btn| do
                                 connect(btn, "clicked", || do
                                     edit.new_entity(n)
-                                    world:hide_window("entity_new")
+                                    root:hide_window("entity_new")
                                 end)
                             end)
                         end

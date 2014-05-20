@@ -67,8 +67,8 @@ local key = M.key
 M.mod = consts.mod
 local mod = M.mod
 
--- initialized after World is created
-local world, projection, clicked, hovering, focused
+-- initialized after Root is created
+local root, projection, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local clicked_code
 local menu_init, tooltip_init, tooltip
@@ -1158,7 +1158,7 @@ M.Widget = register_class("Widget", table2.Object, {
         Occurs on keypress (any key) when hovering over a widget. The default
         just tries to key_hover on its parent (returns false as a fallback).
         Called after $key_raw (if possible) and before mouse clicks and
-        world $key.
+        root $key.
 
         See also:
             - $key
@@ -1211,7 +1211,7 @@ M.Widget = register_class("Widget", table2.Object, {
             - $click
     ]]
     hover = function(self, cx, cy)
-        local isw = (self == world)
+        local isw = (self == root)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c  = o.visible and o:hover(ox, oy) or nil
             if    c == o then
@@ -1250,7 +1250,7 @@ M.Widget = register_class("Widget", table2.Object, {
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             if o == obj then return ox, oy end
             if o.visible then return o:hold(ox, oy, obj) end
-        end, false, self == world)
+        end, false, self == root)
     end,
 
     --[[!
@@ -1266,7 +1266,7 @@ M.Widget = register_class("Widget", table2.Object, {
         takes the currently clicked mouse button as the last argument.
     ]]
     click = function(self, cx, cy, code)
-        local isw = (self == world)
+        local isw = (self == root)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c  = o.visible and o:click(ox, oy, code) or nil
             if    c == o then
@@ -1741,7 +1741,7 @@ Window = M.Window
     and {{$Widget.click}} (returns nil).
 
     There is one default overlay - the HUD. You can retrieve it using $get_hud.
-    Its layout is managed separately, it takes world's dimensions. You can
+    Its layout is managed separately, it takes root's dimensions. You can
     freely append into it. It gets cleared everytime you leave the map and it
     doesn't display when mainmenu is active.
 ]]
@@ -1755,15 +1755,15 @@ M.Overlay = register_class("Overlay", Window, {
 local Overlay = M.Overlay
 
 --[[!
-    A world is a structure that derives from $Widget and holds windows.
+    A root is a structure that derives from $Widget and holds windows.
     It defines the base for calculating dimensions of child widgets as
     well as input hooks. It also provides some window management functions.
-    By default the system creates one default world that holds all the
+    By default the system creates one default root that holds all the
     primary windows. In the future it will be possible to create new
-    worlds for different purposes (e.g. in-game GUI on a surface) but
+    roots for different purposes (e.g. in-game GUI on a surface) but
     that is not supported at this point.
 ]]
-M.World = register_class("World", Widget, {
+M.Root = register_class("Root", Widget, {
     __ctor = function(self)
         self.windows  = {}
         self.cursor_x = 0.499
@@ -1799,7 +1799,7 @@ M.World = register_class("World", Widget, {
     end,
 
     --[[!
-        Overloads {{$Widget.layout}}. Calculates proper world dimensions
+        Overloads {{$Widget.layout}}. Calculates proper root dimensions
         (takes forced aspect set using an engine variable forceaspect into
         account), then layouts every child (using correct projection separate
         for every window) and then adjusts children.
@@ -1951,7 +1951,7 @@ M.World = register_class("World", Widget, {
     end,
 
     --[[!
-        Sets the world's cursor position, given the global pointer
+        Sets the root's cursor position, given the global pointer
         coordinates. By default this simply copies the given values.
     ]]
     set_cursor = function(self, x, y)
@@ -1959,9 +1959,9 @@ M.World = register_class("World", Widget, {
         self.cursor_y = y
     end
 })
-local World = M.World
+local Root = M.Root
 
-world = World()
+root = Root()
 
 local hud = Overlay { name = "hud" }
 
@@ -1973,7 +1973,7 @@ end
 local cec = false
 local cursor_exists = function(update)
     if not update then return cec end
-    local bce, w = cec, world
+    local bce, w = cec, root
     cec = w:grabs_input() or w:target(w.cursor_x * w.w,
         w.cursor_y * w.h) ~= nil
     if bce ~= cec then input_cursor_exists_update(cec) end
@@ -2072,7 +2072,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
     local ow, oh, opw, oph = o.w, o.h, op.w * fw, op.h * fh
 
-    local cx, cy = world.cusror_x, world.cursor_y
+    local cx, cy = root.cusror_x, root.cursor_y
 
     -- when spawning menus right on the cursor
     if at_cursor then
@@ -2150,9 +2150,9 @@ tooltip_init = function(o, op, clear_on_drop)
 
     o._clear_on_drop = clear_on_drop
 
-    local x, y = world.cursor_x * world.w + 0.01, world.cursor_y + 0.01
+    local x, y = root.cursor_x * root.w + 0.01, root.cursor_y + 0.01
     local tw, th = o.w, o.h
-    if (x + tw * 0.95) > world.w then
+    if (x + tw * 0.95) > root.w then
         x = x - tw + 0.02
         if x <= 0 then x = 0.02 end
     end
@@ -2168,10 +2168,10 @@ local mousebuttons = {
 }
 
 set_external("input_keypress", function(code, isdown)
-    if not cursor_exists() or not world.visible then
+    if not cursor_exists() or not root.visible then
         return false
     end
-    if world:key_raw(code, isdown) then
+    if root:key_raw(code, isdown) then
         return true
     end
     if hovering and hovering:key_hover(code, isdown) then
@@ -2184,8 +2184,8 @@ set_external("input_keypress", function(code, isdown)
             local ck, cl
             if #menustack > 0 then
                 for i = #menustack, 1, -1 do
-                    ck, cl = menu_click(menustack[i], world.cursor_x,
-                        world.cursor_y, code)
+                    ck, cl = menu_click(menustack[i], root.cursor_x,
+                        root.cursor_y, code)
                     if ck then
                         clicked_try = cl
                         break
@@ -2196,7 +2196,7 @@ set_external("input_keypress", function(code, isdown)
             if ck then
                 clicked = clicked_try
             else
-                clicked = world:click(world.cursor_x, world.cursor_y, code)
+                clicked = root:click(root.cursor_x, root.cursor_y, code)
             end
             if clicked then
                 clicked:clicked(click_x, click_y, code)
@@ -2207,12 +2207,12 @@ set_external("input_keypress", function(code, isdown)
             if clicked then
                 local hx, hy
                 if #menustack > 0 then for i = #menustack, 1, -1 do
-                    hx, hy = menu_hold(menustack[i], world.cursor_x,
-                        world.cursor_y, clicked)
+                    hx, hy = menu_hold(menustack[i], root.cursor_x,
+                        root.cursor_y, clicked)
                     if hx then break end
                 end end
                 if not hx then
-                    hx, hy = world:hold(world.cursor_x, world.cursor_y, clicked)
+                    hx, hy = root:hold(root.cursor_x, root.cursor_y, clicked)
                 end
                 clicked:released(hx, hy, code)
             end
@@ -2220,11 +2220,11 @@ set_external("input_keypress", function(code, isdown)
         end
         return true
     end
-    return world:key(code, isdown)
+    return root:key(code, isdown)
 end)
 
 set_external("input_text", function(str)
-    return world:text_input(str)
+    return root:text_input(str)
 end)
 
 local draw_hud = false
@@ -2238,7 +2238,7 @@ set_external("gui_clear", function()
     var_set("hidechanges", 0)
     if mmenu != 0 and isconnected() then
         var_set("mainmenu", 0, true, false) -- no clamping, readonly var
-        world:destroy_children()
+        root:destroy_children()
         if draw_hud then
             hud:destroy_children()
             draw_hud = false
@@ -2286,16 +2286,16 @@ local calc_text_scale = function()
 end
 
 set_external("gui_update", function()
-    world:set_cursor(input_cursor_get_x(), input_cursor_get_y())
+    root:set_cursor(input_cursor_get_x(), input_cursor_get_y())
 
-    if mmenu != 0 and not world:window_visible("main") and
+    if mmenu != 0 and not root:window_visible("main") and
     not isconnected(true) then
-        world:show_window("main")
+        root:show_window("main")
     end
 
     draw_hud = (mmenu == 0 and editing_get() == 0) and hud.visible or false
 
-    local wvisible = world.visible
+    local wvisible = root.visible
 
     if tooltip and tooltip._clear_on_drop then
         tooltip:clear()
@@ -2311,8 +2311,8 @@ set_external("gui_update", function()
         local nhov = 0
         if #menustack > 0 then
             for i = #menustack, 1, -1 do
-                hk, hl = menu_hover(menustack[i], world.cursor_x,
-                    world.cursor_y)
+                hk, hl = menu_hover(menustack[i], root.cursor_x,
+                    root.cursor_y)
                 if hk then
                     hovering_try = hl
                     if hl then nhov = i end
@@ -2324,7 +2324,7 @@ set_external("gui_update", function()
         if hk then
             hovering = hovering_try
         else
-            hovering = world:hover(world.cursor_x, world.cursor_y)
+            hovering = root:hover(root.cursor_x, root.cursor_y)
         end
         if oldhov and oldhov != hovering then
             oldhov:leaving(oldhx, oldhy)
@@ -2342,12 +2342,12 @@ set_external("gui_update", function()
         if clicked then
             local hx, hy
             if #menustack > 0 then for i = #menustack, 1, -1 do
-                hx, hy = menu_hold(menustack[i], world.cursor_x,
-                    world.cursor_y, clicked)
+                hx, hy = menu_hold(menustack[i], root.cursor_x,
+                    root.cursor_y, clicked)
                 if hx then break end
             end end
             if not hx then
-                hx, hy = world:hold(world.cursor_x, world.cursor_y, clicked)
+                hx, hy = root:hold(root.cursor_x, root.cursor_y, clicked)
             end
             clicked:holding(hx, hy, clicked_code)
         end
@@ -2355,7 +2355,7 @@ set_external("gui_update", function()
         hovering, clicked = nil, nil
     end
 
-    if wvisible then world:layout() end
+    if wvisible then root:layout() end
 
     if tooltip then
         projection = get_projection(tooltip)
@@ -2377,7 +2377,7 @@ set_external("gui_update", function()
     if draw_hud then
         projection = get_projection(hud)
         hud:layout()
-        hud.x, hud.y, hud.w, hud.h = 0, 0, world.w, world.h
+        hud.x, hud.y, hud.w, hud.h = 0, 0, root.w, root.h
         projection:calc()
         hud:adjust_children()
         projection = nil
@@ -2388,8 +2388,8 @@ end)
 
 M.__draw_window = function(win)
     calc_text_scale()
-    world:layout_dim()
-    win.x, win.y, win.parent = 0, 0, world
+    root:layout_dim()
+    win.x, win.y, win.parent = 0, 0, root
     projection = get_projection(win)
     win:layout()
     projection:adjust_layout()
@@ -2398,7 +2398,7 @@ M.__draw_window = function(win)
 end
 
 set_external("gui_render", function()
-    local w = world
+    local w = root
     if draw_hud or (w.visible and #w.children != 0) then
         w:draw()
         for i = 1, #menustack do get_projection(menustack[i]):draw() end
@@ -2409,7 +2409,7 @@ set_external("gui_render", function()
 end)
 
 set_external("gui_above_hud", function()
-    return world:above_hud()
+    return root:above_hud()
 end)
 
 local needsapply = {}
@@ -2430,7 +2430,7 @@ set_external("change_add", function(desc, ctype)
     end
 
     needsapply[#needsapply + 1] = { ctype = ctype, desc = desc }
-    local win = world:get_window("changes")
+    local win = root:get_window("changes")
     if win and (var_get("hidechanges") == 0) then win() end
 end)
 
@@ -2477,9 +2477,9 @@ M.changes_get = function()
     return table2.map(needsapply, function(v) return v.desc end)
 end
 
---! Gets the default GUI world widget.
-M.get_world = function()
-    return world
+--! Gets the default GUI root widget.
+M.get_root = function()
+    return root
 end
 
 return M

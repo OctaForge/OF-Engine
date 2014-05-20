@@ -7,7 +7,7 @@ local abs = math.abs
 
 local connect = signal.connect
 
-local world = gui.get_world()
+local root = gui.get_root()
 
 local var_get = cs.var_get
 local cs_execute = cs.execute
@@ -88,7 +88,7 @@ local gen_map_load = || do
     }
 end
 
-world:new_window("main", gui.Window, |win| do
+root:new_window("main", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Main menu")
@@ -174,7 +174,7 @@ world:new_window("main", gui.Window, |win| do
     end)
 end)
 
-world:new_window("fullconsole", gui.Overlay, |win| do
+root:new_window("fullconsole", gui.Overlay, |win| do
     win:clamp(true, true, false, false)
     win:align(0, -1)
     capi.console_full_show(true)
@@ -186,7 +186,7 @@ world:new_window("fullconsole", gui.Overlay, |win| do
     end)
 end)
 
-world:new_window("editstats", gui.Overlay, |win| do
+root:new_window("editstats", gui.Overlay, |win| do
     win:align(-1, 1)
     win:set_above_hud(true)
     win:append(gui.Filler { variant = "edithud" }, |fl| do
@@ -406,7 +406,7 @@ local gamestates = {
 }
 
 local seededtiles = false
-world:new_window("2048", gui.Window, |win| do
+root:new_window("2048", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("2048 (score: 0)")

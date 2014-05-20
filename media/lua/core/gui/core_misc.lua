@@ -23,7 +23,7 @@ local get_curtime = capi.get_curtime
 
 --! Module: core
 local M = require("core.gui.core")
-local world = M.get_world()
+local root = M.get_root()
 
 -- input event management
 local is_clicked, clear_focus = M.is_clicked, M.clear_focus
@@ -114,7 +114,7 @@ M.Mover = register_class("Mover", Widget, {
         local win = self.window
         local wp = win.parent
 
-        -- no parent means world; we don't need checking for non-mdi windows
+        -- no parent means root; we don't need checking for non-mdi windows
         if not wp.parent then return true end
 
         local rx, ry, p = self.x, self.y, wp
