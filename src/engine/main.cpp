@@ -556,8 +556,8 @@ void resetgl()
 COMMAND(resetgl, "");
 
 VAR(cursor_exists, 1, 0, 0);
-FVAR(cursor_x, 1, 0.5f, 0);
-FVAR(cursor_y, 1, 0.5f, 0);
+FVAR(cursor_x, 1, 0.499f, 0);
+FVAR(cursor_y, 1, 0.499f, 0);
 
 CLUAICOMMAND(input_cursor_exists_update, void, (bool exists),
     cursor_exists = exists);

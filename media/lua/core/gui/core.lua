@@ -69,7 +69,6 @@ local mod = M.mod
 
 -- initialized after World is created
 local world, projection, clicked, hovering, focused
-local cursor_x, cursor_y = 0.499, 0.499
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local clicked_code
 local menu_init, tooltip_init, tooltip
@@ -1766,7 +1765,9 @@ local Overlay = M.Overlay
 ]]
 M.World = register_class("World", Widget, {
     __ctor = function(self)
-        self.windows = {}
+        self.windows  = {}
+        self.cursor_x = 0.499
+        self.cursor_y = 0.499
         return Widget.__ctor(self)
     end,
 
@@ -1947,6 +1948,15 @@ M.World = register_class("World", Widget, {
             end
         end
         return y
+    end,
+
+    --[[!
+        Sets the world's cursor position, given the global pointer
+        coordinates. By default this simply copies the given values.
+    ]]
+    set_cursor = function(self, x, y)
+        self.cursor_x = x
+        self.cursor_y = y
     end
 })
 local World = M.World
@@ -1964,7 +1974,8 @@ local cec = false
 local cursor_exists = function(update)
     if not update then return cec end
     local bce, w = cec, world
-    cec = w:grabs_input() or w:target(cursor_x * w.w, cursor_y * w.h) ~= nil
+    cec = w:grabs_input() or w:target(w.cursor_x * w.w,
+        w.cursor_y * w.h) ~= nil
     if bce ~= cec then input_cursor_exists_update(cec) end
     return cec
 end
@@ -2061,10 +2072,12 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
     local ow, oh, opw, oph = o.w, o.h, op.w * fw, op.h * fh
 
+    local cx, cy = world.cusror_x, world.cursor_y
+
     -- when spawning menus right on the cursor
     if at_cursor then
         -- compute cursor coords in terms of widget position
-        local x, y = cursor_x * pw, cursor_y * ph
+        local x, y = cx * pw, cy * ph
         -- adjust y so that it's always visible as whole
         if (y + oh) > ph then y = max(0, y - oh) end
         -- adjust x if clipped on the right
@@ -2079,7 +2092,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     local dx, dy = hovering and hover_x * fw or click_x * fw,
                    hovering and hover_y * fh or click_y * fh
     -- omx, omy: the base position of the new menu
-    local omx, omy = cursor_x * pw - dx, cursor_y * ph - dy
+    local omx, omy = cx * pw - dx, cy * ph - dy
 
     -- a submenu - uses different alignment - submenus are put next to
     -- their spawners, regular menus are put under their spawners
@@ -2137,7 +2150,7 @@ tooltip_init = function(o, op, clear_on_drop)
 
     o._clear_on_drop = clear_on_drop
 
-    local x, y = cursor_x * world.w + 0.01, cursor_y + 0.01
+    local x, y = world.cursor_x * world.w + 0.01, world.cursor_y + 0.01
     local tw, th = o.w, o.h
     if (x + tw * 0.95) > world.w then
         x = x - tw + 0.02
@@ -2171,7 +2184,8 @@ set_external("input_keypress", function(code, isdown)
             local ck, cl
             if #menustack > 0 then
                 for i = #menustack, 1, -1 do
-                    ck, cl = menu_click(menustack[i], cursor_x, cursor_y, code)
+                    ck, cl = menu_click(menustack[i], world.cursor_x,
+                        world.cursor_y, code)
                     if ck then
                         clicked_try = cl
                         break
@@ -2182,7 +2196,7 @@ set_external("input_keypress", function(code, isdown)
             if ck then
                 clicked = clicked_try
             else
-                clicked = world:click(cursor_x, cursor_y, code)
+                clicked = world:click(world.cursor_x, world.cursor_y, code)
             end
             if clicked then
                 clicked:clicked(click_x, click_y, code)
@@ -2193,12 +2207,12 @@ set_external("input_keypress", function(code, isdown)
             if clicked then
                 local hx, hy
                 if #menustack > 0 then for i = #menustack, 1, -1 do
-                    hx, hy = menu_hold(menustack[i], cursor_x, cursor_y,
-                        clicked)
+                    hx, hy = menu_hold(menustack[i], world.cursor_x,
+                        world.cursor_y, clicked)
                     if hx then break end
                 end end
                 if not hx then
-                    hx, hy = world:hold(cursor_x, cursor_y, clicked)
+                    hx, hy = world:hold(world.cursor_x, world.cursor_y, clicked)
                 end
                 clicked:released(hx, hy, code)
             end
@@ -2272,7 +2286,7 @@ local calc_text_scale = function()
 end
 
 set_external("gui_update", function()
-    cursor_x, cursor_y = input_cursor_get_x(), input_cursor_get_y()
+    world:set_cursor(input_cursor_get_x(), input_cursor_get_y())
 
     if mmenu != 0 and not world:window_visible("main") and
     not isconnected(true) then
@@ -2297,7 +2311,8 @@ set_external("gui_update", function()
         local nhov = 0
         if #menustack > 0 then
             for i = #menustack, 1, -1 do
-                hk, hl = menu_hover(menustack[i], cursor_x, cursor_y)
+                hk, hl = menu_hover(menustack[i], world.cursor_x,
+                    world.cursor_y)
                 if hk then
                     hovering_try = hl
                     if hl then nhov = i end
@@ -2309,7 +2324,7 @@ set_external("gui_update", function()
         if hk then
             hovering = hovering_try
         else
-            hovering = world:hover(cursor_x, cursor_y)
+            hovering = world:hover(world.cursor_x, world.cursor_y)
         end
         if oldhov and oldhov != hovering then
             oldhov:leaving(oldhx, oldhy)
@@ -2327,11 +2342,12 @@ set_external("gui_update", function()
         if clicked then
             local hx, hy
             if #menustack > 0 then for i = #menustack, 1, -1 do
-                hx, hy = menu_hold(menustack[i], cursor_x, cursor_y, clicked)
+                hx, hy = menu_hold(menustack[i], world.cursor_x,
+                    world.cursor_y, clicked)
                 if hx then break end
             end end
             if not hx then
-                hx, hy = world:hold(cursor_x, cursor_y, clicked)
+                hx, hy = world:hold(world.cursor_x, world.cursor_y, clicked)
             end
             clicked:holding(hx, hy, clicked_code)
         end
