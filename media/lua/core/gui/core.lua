@@ -1765,9 +1765,10 @@ local Overlay = M.Overlay
 ]]
 M.Root = register_class("Root", Widget, {
     __ctor = function(self)
-        self.windows  = {}
-        self.cursor_x = 0.499
-        self.cursor_y = 0.499
+        self.windows    = {}
+        self.cursor_x   = 0.499
+        self.cursor_y   = 0.499
+        self.has_cursor = false
         return Widget.__ctor(self)
     end,
 
@@ -1957,27 +1958,39 @@ M.Root = register_class("Root", Widget, {
     set_cursor = function(self, x, y)
         self.cursor_x = x
         self.cursor_y = y
+    end,
+
+    --[[!
+        Returns whether the current root has a cursor. If the argument
+        is true, this does an update (re-checks, updates the value and
+        emits an internal signal).
+    ]]
+    cursor_exists = function(self, update)
+        local cec = self.has_cursor
+        if not update then return cec end
+        local bce = cec
+        cec = self:grabs_input() or self:target(self.cursor_x * self.w,
+            self.cursor_y * self.h) ~= nil
+        if bce ~= cec then
+            self.has_cursor = cec
+            emit(self, "__has_cursor_changed", cec)
+        end
+        return cec
     end
 })
 local Root = M.Root
 
 root = Root()
 
+signal.connect(root, "__has_cursor_changed", function(self, val)
+    input_cursor_exists_update(val)
+end)
+
 local hud = Overlay { name = "hud" }
 
 --! Returns the HUD overlay.
 M.get_hud = function()
     return hud
-end
-
-local cec = false
-local cursor_exists = function(update)
-    if not update then return cec end
-    local bce, w = cec, root
-    cec = w:grabs_input() or w:target(w.cursor_x * w.w,
-        w.cursor_y * w.h) ~= nil
-    if bce ~= cec then input_cursor_exists_update(cec) end
-    return cec
 end
 
 local menu_click = function(o, cx, cy, code)
@@ -2168,7 +2181,7 @@ local mousebuttons = {
 }
 
 set_external("input_keypress", function(code, isdown)
-    if not cursor_exists() or not root.visible then
+    if not root:cursor_exists() or not root.visible then
         return false
     end
     if root:key_raw(code, isdown) then
@@ -2305,7 +2318,7 @@ set_external("gui_update", function()
 
     calc_text_scale()
 
-    if cursor_exists() and wvisible then
+    if root:cursor_exists() and wvisible then
         local hovering_try
         local hk, hl
         local nhov = 0
@@ -2383,7 +2396,7 @@ set_external("gui_update", function()
         projection = nil
     end
 
-    cursor_exists(true)
+    root:cursor_exists(true)
 end)
 
 M.__draw_window = function(win)
