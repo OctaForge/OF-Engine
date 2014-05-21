@@ -23,7 +23,6 @@ local get_curtime = capi.get_curtime
 
 --! Module: core
 local M = require("core.gui.core")
-local root = M.get_root()
 
 -- widget types
 local register_class = M.register_class

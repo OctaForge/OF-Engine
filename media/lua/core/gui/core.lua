@@ -1700,6 +1700,13 @@ M.Widget = register_class("Widget", table2.Object, {
     ]]
     is_focused = function(self)
         return self == focused
+    end,
+
+    --[[!
+        Returns false, as normal widgets are not roots.
+    ]]
+    is_root = function(self)
+        return false
     end
 })
 Widget = M.Widget
@@ -2011,6 +2018,13 @@ M.Root = register_class("Root", Widget, {
             emit(self, "__has_cursor_changed", cec)
         end
         return cec
+    end,
+
+    --[[!
+        Returns true as roots are alway roots.
+    ]]
+    is_root = function(self)
+        return true
     end
 })
 local Root = M.Root
