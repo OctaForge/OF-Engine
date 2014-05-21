@@ -789,6 +789,7 @@ M.Widget = register_class("Widget", table2.Object, {
         for i, v in ipairs(kwargs) do
             ch[clen + i] = v
             v.parent = cont
+            v._root  = cont._root
         end
         self.children = ch
 
@@ -797,6 +798,7 @@ M.Widget = register_class("Widget", table2.Object, {
         if ks then for k, v in pairs(ks) do
             states[k] = v
             v.parent = cont
+            v._root  = cont._root
         end end
         self.states = states
 
@@ -848,6 +850,7 @@ M.Widget = register_class("Widget", table2.Object, {
             local c = rch[i]
             local chcl = c:deep_clone(obj, true)
             chcl.parent = cl
+            chcl._root  = cl._root
             ch[i] = chcl
         end
         if ic then ic(cl, obj) end
@@ -883,6 +886,7 @@ M.Widget = register_class("Widget", table2.Object, {
                 local cl = v:deep_clone(self)
                 vstates[k] = cl
                 cl.parent = self
+                cl._root  = self._root
                 if ic then ic(cl, self) end
             end
             local props = dstates.__properties
@@ -945,6 +949,7 @@ M.Widget = register_class("Widget", table2.Object, {
                     local ic = sval.init_clone
                     local nst = sval:deep_clone(v)
                     nst.parent = v
+                    nst._root  = v._root
                     sts[sname] = nst
                     st:clear()
                     if ic then ic(nst, v) end
@@ -981,6 +986,7 @@ M.Widget = register_class("Widget", table2.Object, {
         if ostate then ostate:clear() end
         states[state] = obj
         obj.parent = self
+        obj._root  = self._root
         local cont = self.container
         if cont and cont._cleared then self.container = nil end
         self:state_changed(state, obj)
@@ -1584,6 +1590,7 @@ M.Widget = register_class("Widget", table2.Object, {
             or (self.container or self).children
         tinsert(children, pos, obj)
         obj.parent = self
+        obj._root  = self._root
         if fun then fun(obj) end
         return obj
     end,
@@ -1596,6 +1603,7 @@ M.Widget = register_class("Widget", table2.Object, {
             or (self.container or self).children
         children[#children + 1] = obj
         obj.parent = self
+        obj._root  = self._root
         if fun then fun(obj) end
         return obj
     end,
@@ -1608,6 +1616,7 @@ M.Widget = register_class("Widget", table2.Object, {
             or (self.container or self).children
         tinsert(children, 1, obj)
         obj.parent = self
+        obj._root  = self._root
         if fun then fun(obj) end
         return obj
     end,
@@ -1667,7 +1676,36 @@ M.Widget = register_class("Widget", table2.Object, {
     --[[! Function: is_field
         Returns true if this widget is a textual field, by default false.
     ]]
-    is_field = function() return false end
+    is_field = function() return false end,
+
+    --[[!
+        Returns the parent of this widget (or nil if no parent).
+        This is just a plain hash table read, no complex retrieval.
+    ]]
+    get_parent = function(self)
+        return self.parent
+    end,
+
+    --[[!
+        Returns the root window of this widget. Note that this might do a more
+        complex retrieval if root is unassigned and might modify parents (if
+        it has to ask parents for root and they don't have it, it uses a
+        recursive approach).
+    ]]
+    get_root = function(self)
+        local  rt = self._root
+        if not rt then
+            -- a recursive approach makes sure parents will
+            -- have their roots assigned (for later use - faster)
+            local par = self:get_parent()
+            if par then
+                rt = par:get_root()
+                self._root = rt
+                return rt
+            end
+        end
+        return rt
+    end
 })
 Widget = M.Widget
 
@@ -1769,6 +1807,7 @@ M.Root = register_class("Root", Widget, {
         self.cursor_x   = 0.499
         self.cursor_y   = 0.499
         self.has_cursor = false
+        self._root      = self
         return Widget.__ctor(self)
     end,
 
@@ -1839,6 +1878,7 @@ M.Root = register_class("Root", Widget, {
         if old then self:remove(old) end
         win = win { name = name }
         win.parent = self
+        win._root  = self._root
         local children = self.children
         children[#children + 1] = win
         if fun then fun(win) end
@@ -2053,6 +2093,7 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     menustack[i] = o
     o.is_menu    = true
     o.parent     = op
+    o._root      = op._root
     op._menu     = o
 
     o._clear_on_drop = clear_on_drop
@@ -2157,6 +2198,7 @@ tooltip_init = function(o, op, clear_on_drop)
 
     tooltip  = o
     o.parent = op
+    o._root  = op._root
     projection = get_projection(o)
     o:layout()
     projection = nil
@@ -2402,7 +2444,7 @@ end)
 M.__draw_window = function(win)
     calc_text_scale()
     root:layout_dim()
-    win.x, win.y, win.parent = 0, 0, root
+    win.x, win.y, win.parent, win._root = 0, 0, root, root
     projection = get_projection(win)
     win:layout()
     projection:adjust_layout()
