@@ -111,12 +111,6 @@ local is_hovering = M.is_hovering
 M.is_focused = function(o) return (o == focused) end
 local is_focused = M.is_focused
 
---[[!
-    Assuming the given widget has a menu, this returns the menu.
-]]
-M.get_menu = function(o) return o._menu end
-local get_menu = M.get_menu
-
 --! Gives the given GUI widget focus.
 M.set_focus = function(o) focused = o end
 local set_focus = M.set_focus
@@ -1648,6 +1642,11 @@ M.Widget = register_class("Widget", table2.Object, {
         menu_init(obj, self, #menustack + 1, at_cursor, clear_on_drop)
         return obj
     end,
+
+    --[[!
+        Returns this widget's menu assuming it has one.
+    ]]
+    get_menu = function(self) return self._menu end,
 
     --[[!
         Given a tooltip object (any widget), this shows the tooltip with this

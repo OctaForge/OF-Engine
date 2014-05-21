@@ -18,7 +18,6 @@ local emit = signal.emit
 -- input event management
 local is_clicked, is_hovering, is_focused = M.is_clicked, M.is_hovering,
     M.is_focused
-local get_menu = M.get_menu
 
 -- widget types
 local register_class = M.register_class
@@ -74,7 +73,7 @@ local Button = M.Button
 ]]
 M.Menu_Button = register_class("Menu_Button", Button, {
     choose_state = function(self)
-        return get_menu(self) != nil and "menu" or Button.choose_state(self)
+        return self:get_menu() != nil and "menu" or Button.choose_state(self)
     end
 })
 
