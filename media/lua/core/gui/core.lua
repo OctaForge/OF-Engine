@@ -1673,7 +1673,7 @@ M.Widget = register_class("Widget", table2.Object, {
     is_clicked = function(self, btn)
         if btn then
             return (self == clicked) and (btn == clicked_code)
-        elseif btn == clicked then
+        elseif self == clicked then
             return clicked_code
         else
             return false
