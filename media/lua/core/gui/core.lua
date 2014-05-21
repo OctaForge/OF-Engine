@@ -111,21 +111,6 @@ local is_hovering = M.is_hovering
 M.is_focused = function(o) return (o == focused) end
 local is_focused = M.is_focused
 
---! Gives the given GUI widget focus.
-M.set_focus = function(o) focused = o end
-local set_focus = M.set_focus
-
---[[!
-    Given a widget, this function clears all focus from it (that is,
-    clicked, hovering, focused).
-]]
-M.clear_focus = function(o)
-    if o == clicked  then clicked  = nil end
-    if o == hovering then hovering = nil end
-    if o == focused  then focused  = nil end
-end
-local clear_focus = M.clear_focus
-
 local adjust = {:
     ALIGN_HMASK = 0x3,
     ALIGN_VMASK = 0xC,
@@ -1112,7 +1097,7 @@ M.Widget = register_class("Widget", table2.Object, {
     key = function(self, code, isdown)
         local tn = self.tab_next
         if tn and code == key.TAB and is_focused(self) then
-            if isdown then set_focus(tn) end
+            if isdown then tn:set_focused(true) end
             return true
         end
         return loop_children_r(self, function(o)
@@ -1704,6 +1689,23 @@ M.Widget = register_class("Widget", table2.Object, {
             end
         end
         return rt
+    end,
+
+    --[[!
+        Clears any kind of focus for this widget.
+    ]]
+    clear_focus = function(self)
+        if self == clicked  then clicked  = nil end
+        if self == hovering then hovering = nil end
+        if self == focused  then focused  = nil end
+    end,
+
+    --[[!
+        If the given parameter is true, this widget gets the focus within
+        the root.
+    ]]
+    set_focused = function(self, foc)
+        if foc then focused = self end
     end
 })
 Widget = M.Widget

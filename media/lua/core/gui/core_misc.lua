@@ -26,7 +26,7 @@ local M = require("core.gui.core")
 local root = M.get_root()
 
 -- input event management
-local is_clicked, clear_focus = M.is_clicked, M.clear_focus
+local is_clicked = M.is_clicked
 
 -- widget types
 local register_class = M.register_class
@@ -127,7 +127,7 @@ M.Mover = register_class("Mover", Widget, {
 
         if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) then
             -- avoid bugs; stop moving when cursor is outside
-            clear_focus(self)
+            self:clear_focus()
             return false
         end
 

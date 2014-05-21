@@ -41,7 +41,6 @@ local gl, key = M.gl, M.key
 
 -- input event management
 local is_clicked, is_focused = M.is_clicked, M.is_focused
-local set_focus = M.set_focus
 
 -- widget types
 local register_class = M.register_class
@@ -1025,7 +1024,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
 
     set_focus = function(self, ed)
         if is_focused(ed) then return end
-        set_focus(ed)
+        ed:set_focused(true)
         local ati = ed and ed:allow_text_input() or false
         input_textinput(ati, 1 << 1) -- TI_GUI
         input_keyrepeat(ati, 1 << 1) -- KR_GUI
