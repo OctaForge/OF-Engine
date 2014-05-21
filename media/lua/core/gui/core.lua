@@ -757,7 +757,7 @@ M.Widget = register_class("Widget", table2.Object, {
     ]]
     clear = function(self)
         if self._cleared then return end
-        clear_focus(self)
+        self:clear_focus()
 
         local children = self.children
         for k, v in ipairs(children) do v:clear() end
