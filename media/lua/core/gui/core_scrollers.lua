@@ -25,9 +25,6 @@ local M = require("core.gui.core")
 -- consts
 local key = M.key
 
--- input event management
-local is_clicked, is_hovering = M.is_clicked, M.is_hovering
-
 -- widget types
 local register_class = M.register_class
 
@@ -353,7 +350,7 @@ M.Scrollbar = register_class("Scrollbar", Widget, {
     end,
 
     hovering = function(self, cx, cy)
-        if not is_clicked(self, key.MOUSELEFT) then
+        if not self:is_clicked(key.MOUSELEFT) then
             self.arrow_dir = self:choose_direction(cx, cy)
         end
         Widget.hovering(self, cx, cy)
@@ -394,8 +391,8 @@ M.Scroll_Button = register_class("Scroll_Button", Widget, {
     end,
 
     choose_state = function(self)
-        return clicked_states[is_clicked(self)] or
-            (is_hovering(self) and "hovering" or "default")
+        return clicked_states[self:is_clicked()] or
+            (self:is_hovering() and "hovering" or "default")
     end,
 
     hover = function(self, cx, cy)
@@ -451,13 +448,13 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         local ad = self.arrow_dir
 
         if ad == -1 then
-            local clicked = clicked_states[is_clicked(self)]
+            local clicked = clicked_states[self:is_clicked()]
             return clicked and "left_" .. clicked or
-                (is_hovering(self) and "left_hovering" or "default")
+                (self:is_hovering() and "left_hovering" or "default")
         elseif ad == 1 then
-            local clicked = clicked_states[is_clicked(self)]
+            local clicked = clicked_states[self:is_clicked()]
             return clicked and "right_" .. clicked or
-                (is_hovering(self) and "right_hovering" or "default")
+                (self:is_hovering() and "right_hovering" or "default")
         end
         return "default"
     end,
@@ -546,13 +543,13 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         local ad = self.arrow_dir
 
         if ad == -1 then
-            local clicked = clicked_states[is_clicked(self)]
+            local clicked = clicked_states[self:is_clicked()]
             return clicked and "up_" .. clicked or
-                (is_hovering(self) and "up_hovering" or "default")
+                (self:is_hovering() and "up_hovering" or "default")
         elseif ad == 1 then
-            local clicked = clicked_states[is_clicked(self)]
+            local clicked = clicked_states[self:is_clicked()]
             return clicked and "down_" .. clicked or
-                (is_hovering(self) and "down_hovering" or "default")
+                (self:is_hovering() and "down_hovering" or "default")
         end
         return "default"
     end,

@@ -25,9 +25,6 @@ local get_curtime = capi.get_curtime
 local M = require("core.gui.core")
 local root = M.get_root()
 
--- input event management
-local is_clicked = M.is_clicked
-
 -- widget types
 local register_class = M.register_class
 

@@ -15,10 +15,6 @@ local M = require("core.gui.core")
 
 local emit = signal.emit
 
--- input event management
-local is_clicked, is_hovering, is_focused = M.is_clicked, M.is_hovering,
-    M.is_focused
-
 -- widget types
 local register_class = M.register_class
 
@@ -47,8 +43,8 @@ local clicked_states = {
 ]]
 M.Button = register_class("Button", Widget, {
     choose_state = function(self)
-        return clicked_states[is_clicked(self)] or
-            (is_hovering(self) and "hovering" or "default")
+        return clicked_states[self:is_clicked()] or
+            (self:is_hovering() and "hovering" or "default")
     end,
 
     --[[!
@@ -95,7 +91,7 @@ M.Toggle = register_class("Toggle", Button, {
     end,
 
     choose_state = function(self)
-        local h, f = is_hovering(self), is_focused(self)
+        local h, f = self:is_hovering(), self:is_focused()
         return (self.condition and self:condition() and
             (h and "toggled_hovering" or (f and "toggled_focused"
                 or "toggled")) or
@@ -104,7 +100,7 @@ M.Toggle = register_class("Toggle", Button, {
     end,
 
     key = function(self, code, isdown)
-        if is_focused(self) and code == key.SPACE then
+        if self:is_focused() and code == key.SPACE then
             emit(self, isdown and "clicked" or "released", -1, -1, code)
             return true
         end

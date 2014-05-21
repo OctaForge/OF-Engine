@@ -74,43 +74,6 @@ local clicked_code
 local menu_init, tooltip_init, tooltip
 local menustack = {}
 
---[[!
-    Checks whether a widget is clicked.
-
-    Arguments:
-        - o - the widget.
-        - btn - optionally a mouse button code to specify which button should
-          have been clicked (if none specified, any button is assumed).
-
-    Returns:
-        If the button was provided, then it returns either true or false,
-        otherwise it returns either the clicked button code or nil.
-]]
-M.is_clicked = function(o, btn)
-    if btn then
-        return (o == clicked) and (btn == clicked_code)
-    elseif o == clicked then
-        return clicked_code
-    else
-        return false
-    end
-end
-local is_clicked = M.is_clicked
-
---[[!
-    Given a widget, this function returns true if that widget is being
-    hovered on and false otherwise.
-]]
-M.is_hovering = function(o) return (o == hovering) end
-local is_hovering = M.is_hovering
-
---[[!
-    Given a widget, this function returns true if that widget is focused
-    and false otherwise.
-]]
-M.is_focused = function(o) return (o == focused) end
-local is_focused = M.is_focused
-
 local adjust = {:
     ALIGN_HMASK = 0x3,
     ALIGN_VMASK = 0xC,
@@ -1096,7 +1059,7 @@ M.Widget = register_class("Widget", table2.Object, {
     ]]
     key = function(self, code, isdown)
         local tn = self.tab_next
-        if tn and code == key.TAB and is_focused(self) then
+        if tn and code == key.TAB and self:is_focused() then
             if isdown then tn:set_focused(true) end
             return true
         end
@@ -1701,11 +1664,42 @@ M.Widget = register_class("Widget", table2.Object, {
     end,
 
     --[[!
+        If the button code is given, this returns true or false depending on
+        whether the current widget is clicked in its root and was clicked
+        using the given button; otherwise, returns the code of the button
+        that it was clicked with if it's clicked, or false if it's not
+        clicked at all.
+    ]]
+    is_clicked = function(self, btn)
+        if btn then
+            return (self == clicked) and (btn == clicked_code)
+        elseif btn == clicked then
+            return clicked_code
+        else
+            return false
+        end
+    end,
+
+    --[[!
+        Returns true or false depending on whether the widget is being
+        hovered on in its root.
+    ]]
+    is_hovering = function(self) return self == hovering end,
+
+    --[[!
         If the given parameter is true, this widget gets the focus within
         the root.
     ]]
     set_focused = function(self, foc)
         if foc then focused = self end
+    end,
+
+    --[[!
+        Returns true or false depending on whether the widget is focused
+        in its root.
+    ]]
+    is_focused = function(self)
+        return self == focused
     end
 })
 Widget = M.Widget

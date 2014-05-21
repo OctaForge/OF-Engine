@@ -39,9 +39,6 @@ local M = require("core.gui.core")
 -- consts
 local gl, key = M.gl, M.key
 
--- input event management
-local is_clicked, is_focused = M.is_clicked, M.is_focused
-
 -- widget types
 local register_class = M.register_class
 
@@ -705,7 +702,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
 
     key = function(self, code, isdown)
         if Widget.key(self, code, isdown) then return true end
-        if not is_focused(self) then return false end
+        if not self:is_focused() then return false end
 
         if code == key.ESCAPE then
             if isdown then self:set_focus(nil) end
@@ -1023,7 +1020,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     set_focus = function(self, ed)
-        if is_focused(ed) then return end
+        if ed:is_focused() then return end
         ed:set_focused(true)
         local ati = ed and ed:allow_text_input() or false
         input_textinput(ati, 1 << 1) -- TI_GUI
@@ -1042,7 +1039,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
 
     text_input = function(self, str)
         if Widget.text_input(self, str) then return true end
-        if not is_focused(self) or not self:allow_text_input() then
+        if not self:is_focused() or not self:allow_text_input() then
             return false
         end
         local filter = self.key_filter
@@ -1145,7 +1142,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
 
         text_font_push()
         text_font_set(self.font)
-        if not is_focused(self) then
+        if not self:is_focused() then
             self:reset_value()
         end
 
@@ -1299,7 +1296,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
         hudmatrix_scale(k, k, 1)
         hudmatrix_flush()
 
-        local hit = is_focused(self)
+        local hit = self:is_focused()
 
         local pw, ph = floor(get_aw(self) / k), floor(self.h / k)
         local max_width = self.line_wrap and pw or -1
@@ -1378,7 +1375,7 @@ M.Key_Field = register_class("Key_Field", M.Field, {
     --! Overloaded. Commits on the escape key, inserts the name otherwise.
     key_raw = function(code, isdown)
         if Widget.key_raw(code, isdown) then return true end
-        if not is_focused(self) or not isdown then return false end
+        if not self:is_focused() or not isdown then return false end
         if code == key.ESCAPE then self:commit()
         else self:key_insert(code) end
         return true
