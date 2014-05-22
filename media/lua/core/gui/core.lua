@@ -68,7 +68,7 @@ M.mod = consts.mod
 local mod = M.mod
 
 -- initialized after Root is created
-local root, clicked, hovering, focused
+local root
 local clicked_code
 
 local adjust = {:
@@ -1633,9 +1633,10 @@ M.Widget = register_class("Widget", table2.Object, {
         Clears any kind of focus for this widget.
     ]]
     clear_focus = function(self)
-        if self == clicked  then clicked  = nil end
-        if self == hovering then hovering = nil end
-        if self == focused  then focused  = nil end
+        local w = self:get_root()
+        if self == w._clicked  then w._clicked  = nil end
+        if self == w._hovering then w._hovering = nil end
+        if self == w._focused  then w._focused  = nil end
     end,
 
     --[[!
@@ -1646,9 +1647,10 @@ M.Widget = register_class("Widget", table2.Object, {
         clicked at all.
     ]]
     is_clicked = function(self, btn)
+        local clked = self:get_root()._clicked
         if btn then
-            return (self == clicked) and (btn == clicked_code)
-        elseif self == clicked then
+            return (self == clked) and (btn == clicked_code)
+        elseif self == clked then
             return clicked_code
         else
             return false
@@ -1659,14 +1661,14 @@ M.Widget = register_class("Widget", table2.Object, {
         Returns true or false depending on whether the widget is being
         hovered on in its root.
     ]]
-    is_hovering = function(self) return self == hovering end,
+    is_hovering = function(self) return self == self:get_root()._hovering end,
 
     --[[!
         If the given parameter is true, this widget gets the focus within
         the root.
     ]]
     set_focused = function(self, foc)
-        if foc then focused = self end
+        if foc then self:get_root()._focused = self end
     end,
 
     --[[!
@@ -1674,7 +1676,7 @@ M.Widget = register_class("Widget", table2.Object, {
         in its root.
     ]]
     is_focused = function(self)
-        return self == focused
+        return self == self:get_root()._focused
     end,
 
     --[[!
@@ -2196,8 +2198,9 @@ M.Root = register_class("Root", Widget, {
             return
         end
 
-        local dx, dy = hovering and self._hover_x * fw or self._click_x * fw,
-                       hovering and self._hover_y * fh or self._click_y * fh
+        local hov = self._hovering
+        local dx, dy = hov and self._hover_x * fw or self._click_x * fw,
+                       hov and self._hover_y * fh or self._click_y * fh
         -- omx, omy: the base position of the new menu
         local omx, omy = cx * pw - dx, cy * ph - dy
 
@@ -2243,6 +2246,37 @@ M.Root = register_class("Root", Widget, {
             end
         end
         o.x, o.y = max(0, omx), max(0, omy)
+    end,
+
+    menu_click = function(self, o, cx, cy, code)
+        local proj = o:get_projection()
+        local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
+            local cl = o:click(ox, oy, code)
+            if cl == o then self._click_x, self._click_y = ox, oy end
+            return true, cl
+        else
+            return false
+        end
+    end,
+
+    menu_hover = function(self, o, cx, cy)
+        local proj = o:get_projection()
+        local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
+            local cl = o:hover(ox, oy)
+            if cl == o then self._hover_x, self._hover_y = ox, oy end
+            return true, cl
+        else
+            return false
+        end
+    end,
+
+    menu_hold = function(self, o, cx, cy, obj)
+        local proj = o:get_projection()
+        local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+        if obj == o then return ox, oy end
+        return o:hold(ox, oy, obj)
     end
 })
 local Root = M.Root
@@ -2261,37 +2295,6 @@ M.get_hud = function()
     return hud
 end
 
-local menu_click = function(o, cx, cy, code)
-    local proj = o:get_projection()
-    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
-    if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-        local cl = o:click(ox, oy, code)
-        if cl == o then root._click_x, root._click_y = ox, oy end
-        return true, cl
-    else
-        return false
-    end
-end
-
-local menu_hover = function(o, cx, cy)
-    local proj = o:get_projection()
-    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
-    if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-        local cl = o:hover(ox, oy)
-        if cl == o then root._hover_x, root._hover_y = ox, oy end
-        return true, cl
-    else
-        return false
-    end
-end
-
-local menu_hold = function(o, cx, cy, obj)
-    local proj = o:get_projection()
-    local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
-    if obj == o then return ox, oy end
-    return o:hold(ox, oy, obj)
-end
-
 local mousebuttons = {
     [key.MOUSELEFT] = true, [key.MOUSEMIDDLE]  = true, [key.MOUSERIGHT] = true,
     [key.MOUSEBACK] = true, [key.MOUSEFORWARD] = true
@@ -2304,7 +2307,7 @@ set_external("input_keypress", function(code, isdown)
     if root:key_raw(code, isdown) then
         return true
     end
-    if hovering and hovering:key_hover(code, isdown) then
+    if root._hovering and root._hovering:key_hover(code, isdown) then
         return true
     end
     if mousebuttons[code] then
@@ -2315,7 +2318,7 @@ set_external("input_keypress", function(code, isdown)
             local ms = root._menu_stack
             if #ms > 0 then
                 for i = #ms, 1, -1 do
-                    ck, cl = menu_click(ms[i], root.cursor_x,
+                    ck, cl = root:menu_click(ms[i], root.cursor_x,
                         root.cursor_y, code)
                     if ck then
                         clicked_try = cl
@@ -2325,30 +2328,31 @@ set_external("input_keypress", function(code, isdown)
                 if not ck then root:_menus_drop() end
             end
             if ck then
-                clicked = clicked_try
+                root._clicked = clicked_try
             else
-                clicked = root:click(root.cursor_x, root.cursor_y, code)
+                root._clicked = root:click(root.cursor_x, root.cursor_y, code)
             end
-            if clicked then
-                clicked:clicked(root._click_x, root._click_y, code)
+            if root._clicked then
+                root._clicked:clicked(root._click_x, root._click_y, code)
             else
                 clicked_code = nil
             end
         else
-            if clicked then
+            if root._clicked then
                 local hx, hy
                 local ms = root._menu_stack
                 if #ms > 0 then for i = #ms, 1, -1 do
-                    hx, hy = menu_hold(ms[i], root.cursor_x,
-                        root.cursor_y, clicked)
+                    hx, hy = root:menu_hold(ms[i], root.cursor_x,
+                        root.cursor_y, root._clicked)
                     if hx then break end
                 end end
                 if not hx then
-                    hx, hy = root:hold(root.cursor_x, root.cursor_y, clicked)
+                    hx, hy = root:hold(root.cursor_x, root.cursor_y,
+                        root._clicked)
                 end
-                clicked:released(hx, hy, code)
+                root._clicked:released(hx, hy, code)
             end
-            clicked_code, clicked = nil, nil
+            clicked_code, root._clicked = nil, nil
         end
         return true
     end
@@ -2446,7 +2450,7 @@ set_external("gui_update", function()
         local ms = root._menu_stack
         if #ms > 0 then
             for i = #ms, 1, -1 do
-                hk, hl = menu_hover(ms[i], root.cursor_x,
+                hk, hl = root:menu_hover(ms[i], root.cursor_x,
                     root.cursor_y)
                 if hk then
                     hovering_try = hl
@@ -2455,39 +2459,40 @@ set_external("gui_update", function()
                 end
             end
         end
-        local oldhov, oldhx, oldhy = hovering, root._hover_x, root._hover_y
+        local oldhov, oldhx, oldhy = root._hovering,
+            root._hover_x, root._hover_y
         if hk then
-            hovering = hovering_try
+            root._hovering = hovering_try
         else
-            hovering = root:hover(root.cursor_x, root.cursor_y)
+            root._hovering = root:hover(root.cursor_x, root.cursor_y)
         end
-        if oldhov and oldhov != hovering then
+        if oldhov and oldhov != root._hovering then
             oldhov:leaving(oldhx, oldhy)
         end
-        if hovering then
+        if root._hovering then
              local msl = #ms
             if msl > 0 and nhov > 0 and msl > nhov then
                 root:_menus_drop(msl - nhov)
             end
             root._menu_nhov = nhov
-            hovering:hovering(root._hover_x, root._hover_y)
+            root._hovering:hovering(root._hover_x, root._hover_y)
             root._menu_nhov = nil
         end
 
-        if clicked then
+        if root._clicked then
             local hx, hy
             if #ms > 0 then for i = #ms, 1, -1 do
-                hx, hy = menu_hold(ms[i], root.cursor_x,
-                    root.cursor_y, clicked)
+                hx, hy = root:menu_hold(ms[i], root.cursor_x,
+                    root.cursor_y, root._clicked)
                 if hx then break end
             end end
             if not hx then
-                hx, hy = root:hold(root.cursor_x, root.cursor_y, clicked)
+                hx, hy = root:hold(root.cursor_x, root.cursor_y, root._clicked)
             end
-            clicked:holding(hx, hy, clicked_code)
+            root._clicked:holding(hx, hy, clicked_code)
         end
     else
-        hovering, clicked = nil, nil
+        root._hovering, root._clicked = nil, nil
     end
 
     if wvisible then root:layout() end
