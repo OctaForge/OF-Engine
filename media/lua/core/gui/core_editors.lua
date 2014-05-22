@@ -42,9 +42,6 @@ local gl, key = M.gl, M.key
 -- widget types
 local register_class = M.register_class
 
--- scissoring
-local clip_push, clip_pop = M.clip_push, M.clip_pop
-
 -- color
 local Color = M.Color
 
@@ -1287,7 +1284,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
         local clip = (cw != 0 and (self.virt_w + fontw) > cw)
                   or (ch != 0 and  self.virt_h          > ch)
 
-        if clip then clip_push(self:get_root(), sx + self.pad_l, sy, cw, ch) end
+        if clip then self:get_root():clip_push(sx + self.pad_l, sy, cw, ch) end
 
         hudmatrix_push()
 
@@ -1325,7 +1322,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
         end
 
         hudmatrix_pop()
-        if clip then clip_pop(self:get_root()) end
+        if clip then self:get_root():clip_pop() end
 
         text_font_pop()
     end

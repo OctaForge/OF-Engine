@@ -28,9 +28,6 @@ local key = M.key
 -- widget types
 local register_class = M.register_class
 
--- scissoring
-local clip_push, clip_pop = M.clip_push, M.clip_pop
-
 -- base widgets
 local Widget = M.get_class("Widget")
 
@@ -136,9 +133,9 @@ M.Scroller = register_class("Scroller", Clipper, {
         if (self.clip_w != 0 and self.virt_w > self.clip_w) or
            (self.clip_h != 0 and self.virt_h > self.clip_h)
         then
-            clip_push(self:get_root(), sx, sy, self.w, self.h)
+            self:get_root():clip_push(sx, sy, self.w, self.h)
             Widget.draw(self, sx - self.offset_h, sy - self.offset_v)
-            clip_pop(self:get_root())
+            self:get_root():clip_pop()
         else
             return Widget.draw(self, sx, sy)
         end

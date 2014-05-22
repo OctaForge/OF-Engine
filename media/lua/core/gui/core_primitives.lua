@@ -53,9 +53,6 @@ local gl = M.gl
 -- widget types
 local register_class = M.register_class
 
--- scissoring
-local clip_area_scissor = M.clip_area_scissor
-
 -- primitive drawing
 local quad, quadtri = M.draw_quad, M.draw_quadtri
 
@@ -1001,7 +998,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         local anim = self.anim
         model_preview(self.model, anim, self:build_attachments())
-        if csl then clip_area_scissor(self:get_root()) end
+        if csl then self:get_root():clip_scissor() end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -1049,7 +1046,7 @@ M.Prefab_Viewer = register_class("Prefab_Viewer", Filler, {
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         local col = self.color
         prefab_preview(prefab, col.r / 255, col.g / 255, col.b / 255)
-        if csl then clip_area_scissor(self:get_root()) end
+        if csl then self:get_root():clip_scissor() end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)

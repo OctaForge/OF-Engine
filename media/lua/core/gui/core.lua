@@ -278,83 +278,51 @@ M.loop_in_children_r = function(self, cx, cy, fun, ins, useproj)
 end
 local loop_in_children_r = M.loop_in_children_r
 
-local clip_stack = {}
+ffi.cdef [[
+    typedef struct clip_area_t {
+        float x1, y1, x2, y2;
+    } clip_area_t;
+]]
+
+local ffi_new = ffi.new
 
 --[[!
-    Intersects the given clip area with another one. Writes into the
-    first one.
+    Represents a clip area defined by four points, x1, y1, x2, y2. The latter
+    refer to x1+w and y1+h respectively.
 ]]
-M.clip_area_intersect = function(self, c)
-    self[1] = max(self[1], c[1])
-    self[2] = max(self[2], c[2])
-    self[3] = max(self[1], min(self[3], c[3]))
-    self[4] = max(self[2], min(self[4], c[4]))
-end
-local clip_area_intersect = M.clip_area_intersect
+M.Clip_Area = ffi.metatype("clip_area_t", {
+    __new = function(self, x, y, w, h)
+        return ffi_new("clip_area_t", x, y, x + w, y + h)
+    end,
 
---[[!
-    Given a clip area and x, y, w, h, checks if the area specified by
-    the coordinates is fully clipped by the clip area.
-]]
-M.clip_area_is_fully_clipped = function(self, x, y, w, h)
-    return self[1] == self[3] or self[2] == self[4] or x >= self[3] or
-           y >= self[4] or (x + w) <= self[1] or (y + h) <= self[2]
-end
-local clip_area_is_fully_clipped = M.clip_area_is_fully_clipped
+    __index = {
+        --[[!
+            Intersects the clip area with another one. Writes into self.
+        ]]
+        intersect = function(self, c)
+            self.x1 = max(self.x1, c.x1)
+            self.y1 = max(self.y1, c.y1)
+            self.x2 = max(self.x1, min(self.x2, c.x2))
+            self.y2 = max(self.y1, min(self.y2, c.y2))
+        end,
 
-local clip_area_scissor
+        --[[!
+            Given x, y, w, h, checks if the area specified by the coordinates
+            is fully clipped by the clip area.
+        ]]
+        is_fully_clipped = function(self, x, y, w, h)
+            return self.x1 == self.x2 or self.y1 == self.y2 or x >= self.x2 or
+                   y >= self.y2 or (x + w) <= self.x1 or (y + h) <= self.y1
+        end,
 
---! Pushes a clip area into the clip stack and scissors.
-M.clip_push = function(root, x, y, w, h)
-    local l = #clip_stack
-    if    l == 0 then gl_scissor_enable() end
-
-    local c = { x, y, x + w, y + h }
-
-    l = l + 1
-    clip_stack[l] = c
-
-    if l >= 2 then clip_area_intersect(c, clip_stack[l - 1]) end
-    clip_area_scissor(root, c)
-end
-local clip_push = M.clip_push
-
---[[!
-    Pops a clip area out of the clip stack and scissors (assuming there
-    is anything left on the clip stack).
-]]
-M.clip_pop = function(root)
-    tremove(clip_stack)
-
-    local l = #clip_stack
-    if    l == 0 then gl_scissor_disable()
-    else clip_area_scissor(root, clip_stack[l])
-    end
-end
-local clip_pop = M.clip_pop
-
---[[!
-    See $clip_area_is_fully_clipped. Works on the last clip area on the
-    clip stack.
-]]
-M.is_fully_clipped = function(x, y, w, h)
-    local l = #clip_stack
-    if    l == 0 then return false end
-    return clip_area_is_fully_clipped(clip_stack[l], x, y, w, h)
-end
-local is_fully_clipped = M.is_fully_clipped
-
---[[!
-    Scissors an area given a clip area. If nothing is given, the area
-    last in the clip stack is used.
-]]
-M.clip_area_scissor = function(root, area)
-    area = area or clip_stack[#clip_stack]
-    local sx1, sy1, sx2, sy2 = root:get_projection()
-        :calc_scissor(area[1], area[2], area[3], area[4])
-    gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
-end
-clip_area_scissor = M.clip_area_scissor
+        scissor = function(self, root)
+            local sx1, sy1, sx2, sy2 = root:get_projection()
+                :calc_scissor(self.x1, self.y1, self.x2, self.y2)
+            gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
+        end
+    }
+})
+local Clip_Area = M.Clip_Area
 
 --[[!
     An utility function for drawing quads, takes x, y, w, h and optionally
@@ -464,8 +432,6 @@ ffi.cdef [[
         uchar r, g, b, a;
     } color_t;
 ]]
-
-local ffi_new = ffi.new
 
 local color_ctors = {
     [0] = function(self) return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) end,
@@ -1135,13 +1101,14 @@ M.Widget = register_class("Widget", table2.Object, {
     draw = function(self, sx, sy)
         sx = sx or self.x
         sy = sy or self.y
+        local root = self:get_root()
 
         loop_children(self, function(o)
             local ox = o.x
             local oy = o.y
             local ow = o.w
             local oh = o.h
-            if not is_fully_clipped(sx + ox, sy + oy, ow, oh)
+            if not root:clip_is_fully_clipped(sx + ox, sy + oy, ow, oh)
             and o.visible then
                 o:draw(sx + ox, sy + oy)
             end
@@ -1834,11 +1801,12 @@ local Overlay = M.Overlay
 ]]
 M.Root = register_class("Root", Widget, {
     __ctor = function(self)
-        self.windows    = {}
-        self.cursor_x   = 0.499
-        self.cursor_y   = 0.499
-        self.has_cursor = false
-        self._root      = self
+        self.windows     = {}
+        self.cursor_x    = 0.499
+        self.cursor_y    = 0.499
+        self.has_cursor  = false
+        self._root       = self
+        self._clip_stack = {}
         return Widget.__ctor(self)
     end,
 
@@ -1897,7 +1865,7 @@ M.Root = register_class("Root", Widget, {
             local oy = o.y
             local ow = o.w
             local oh = o.h
-            if not is_fully_clipped(sx + ox, sy + oy, ow, oh)
+            if not self:clip_is_fully_clipped(sx + ox, sy + oy, ow, oh)
             and o.visible then
                 o:get_projection():draw(sx + ox, sy + oy)
             end
@@ -2063,6 +2031,54 @@ M.Root = register_class("Root", Widget, {
     ]]
     get_projection = function(self)
         return self._projection
+    end,
+
+    --! Pushes a clip area into the root's clip stack and scissors.
+    clip_push = function(self, x, y, w, h)
+        local cs = self._clip_stack
+        local l = #cs
+        if    l == 0 then gl_scissor_enable() end
+
+        local c = Clip_Area(x, y, w, h)
+
+        l = l + 1
+        cs[l] = c
+
+        if l >= 2 then c:intersect(cs[l - 1]) end
+        c:scissor(self)
+    end,
+
+    --[[!
+        Pops a clip area out of the clip stack and scissors (assuming there
+        is anything left on the clip stack).
+    ]]
+    clip_pop = function(self)
+        local cs = self._clip_stack
+        tremove(cs)
+
+        local l = #cs
+        if    l == 0 then gl_scissor_disable()
+        else cs[l]:scissor(self)
+        end
+    end,
+
+    --[[!
+        See $Clip_Area.is_fully_clipped. Works on the last clip area on the
+        clip stack.
+    ]]
+    clip_is_fully_clipped = function(self, x, y, w, h)
+        local cs = self._clip_stack
+        local l = #cs
+        if    l == 0 then return false end
+        return cs[l]:is_fully_clipped(x, y, w, h)
+    end,
+
+    --[[!
+        Scissors the last area in the clip stack.
+    ]]
+    clip_scissor = function(self)
+        local cs = self._clip_stack
+        cs[#cs]:scissor(self)
     end
 })
 local Root = M.Root

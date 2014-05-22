@@ -26,9 +26,6 @@ local register_class = M.register_class
 -- children iteration
 local loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
--- scissoring
-local clip_push, clip_pop = M.clip_push, M.clip_pop
-
 -- base widgets
 local Widget = M.get_class("Widget")
 
@@ -140,9 +137,9 @@ M.Filler = register_class("Filler", Widget, {
 
     draw = function(self, sx, sy)
         if self.clip_children then
-            clip_push(self:get_root(), sx, sy, self.w, self.h)
+            self:get_root():clip_push(sx, sy, self.w, self.h)
             Widget.draw(self, sx, sy)
-            clip_pop(self:get_root())
+            self:get_root():clip_pop()
         else
             return Widget.draw(self, sx, sy)
         end
