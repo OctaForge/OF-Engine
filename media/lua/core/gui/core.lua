@@ -71,7 +71,7 @@ local mod = M.mod
 local root, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local clicked_code
-local menu_init, tooltip_init, tooltip
+local menu_init
 local menustack = {}
 
 local adjust = {:
@@ -1590,7 +1590,7 @@ M.Widget = register_class("Widget", table2.Object, {
             - $show_menu
     ]]
     show_tooltip = function(self, obj, clear_on_drop)
-        tooltip_init(obj, self, clear_on_drop)
+        self:get_root():_tooltip_init(obj, self, clear_on_drop)
         return obj
     end,
 
@@ -1807,6 +1807,7 @@ M.Root = register_class("Root", Widget, {
         self.has_cursor  = false
         self._root       = self
         self._clip_stack = {}
+        self._tooltip    = nil
         return Widget.__ctor(self)
     end,
 
@@ -2079,6 +2080,33 @@ M.Root = register_class("Root", Widget, {
     clip_scissor = function(self)
         local cs = self._clip_stack
         cs[#cs]:scissor(self)
+    end,
+
+    _tooltip_init = function(self, o, op, clear_on_drop)
+        op.managed_objects[o] = o
+        local oldop = o.parent
+        if oldop then oldop.managed_objects[o] = nil end
+
+        self._tooltip  = o
+        o.parent       = op
+        o._root        = self
+        op._root       = self
+        self:set_projection(o:get_projection())
+        o:layout()
+        self:set_projection(nil)
+
+        o._clear_on_drop = clear_on_drop
+
+        local x, y = self.cursor_x * self.w + 0.01, self.cursor_y + 0.01
+        local tw, th = o.w, o.h
+        if (x + tw * 0.95) > self.w then
+            x = x - tw + 0.02
+            if x <= 0 then x = 0.02 end
+        end
+        if (y + th * 0.95) > 1 then
+            y = y - th + 0.02
+        end
+        o.x, o.y = max(0, x), max(0, y)
     end
 })
 local Root = M.Root
@@ -2255,32 +2283,6 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     o.x, o.y = max(0, omx), max(0, omy)
 end
 
-tooltip_init = function(o, op, clear_on_drop)
-    op.managed_objects[o] = o
-    local oldop = o.parent
-    if oldop then oldop.managed_objects[o] = nil end
-
-    tooltip  = o
-    o.parent = op
-    o._root  = op._root
-    o:get_root():set_projection(o:get_projection())
-    o:layout()
-    o:get_root():set_projection(nil)
-
-    o._clear_on_drop = clear_on_drop
-
-    local x, y = root.cursor_x * root.w + 0.01, root.cursor_y + 0.01
-    local tw, th = o.w, o.h
-    if (x + tw * 0.95) > root.w then
-        x = x - tw + 0.02
-        if x <= 0 then x = 0.02 end
-    end
-    if (y + th * 0.95) > 1 then
-        y = y - th + 0.02
-    end
-    o.x, o.y = max(0, x), max(0, y)
-end
-
 local mousebuttons = {
     [key.MOUSELEFT] = true, [key.MOUSEMIDDLE]  = true, [key.MOUSERIGHT] = true,
     [key.MOUSEBACK] = true, [key.MOUSEFORWARD] = true
@@ -2362,11 +2364,12 @@ set_external("gui_clear", function()
             hud:destroy_children()
             draw_hud = false
         end
+        local tooltip = root._tooltip
         if tooltip and tooltip._clear_on_drop then
             tooltip:clear()
             tooltip.parent.managed_objects[tooltip] = nil
         end
-        tooltip = nil
+        root._tooltip = nil
         menus_drop()
     end
 end)
@@ -2416,11 +2419,12 @@ set_external("gui_update", function()
 
     local wvisible = root.visible
 
+    local tooltip = root._tooltip
     if tooltip and tooltip._clear_on_drop then
         tooltip:clear()
         tooltip.parent.managed_objects[tooltip] = nil
     end
-    tooltip = nil
+    tooltip, root._tooltip = nil, nil
 
     calc_text_scale()
 
@@ -2476,6 +2480,7 @@ set_external("gui_update", function()
 
     if wvisible then root:layout() end
 
+    tooltip = root._tooltip
     if tooltip then
         local proj = root:set_projection(tooltip:get_projection())
         tooltip:layout()
@@ -2520,6 +2525,7 @@ set_external("gui_render", function()
     local w = root
     if draw_hud or (w.visible and #w.children != 0) then
         w:draw()
+        local tooltip = w._tooltip
         for i = 1, #menustack do menustack[i]:get_projection():draw() end
         if tooltip          then      tooltip:get_projection():draw() end
         if draw_hud         then          hud:get_projection():draw() end
