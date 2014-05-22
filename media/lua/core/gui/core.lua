@@ -1817,6 +1817,9 @@ M.Root = register_class("Root", Widget, {
         self._hover_y    = 0
         self._click_x    = 0
         self._click_y    = 0
+        self._clicked    = nil
+        self._hovering   = nil
+        self._focused    = nil
         return Widget.__ctor(self)
     end,
 
