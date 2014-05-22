@@ -372,9 +372,9 @@ M.Clipper = register_class("Clipper", Widget, {
 
         if (cw != 0 and self.virt_w > cw) or (ch != 0 and self.virt_h > ch)
         then
-            clip_push(sx, sy, self.w, self.h)
+            clip_push(self:get_root(), sx, sy, self.w, self.h)
             Widget.draw(self, sx, sy)
-            clip_pop()
+            clip_pop(self:get_root())
         else
             return Widget.draw(self, sx, sy)
         end

@@ -55,13 +55,9 @@ local register_class = M.register_class
 
 -- scissoring
 local clip_area_scissor = M.clip_area_scissor
-local clip_push, clip_pop = M.clip_push, M.clip_pop
 
 -- primitive drawing
 local quad, quadtri = M.draw_quad, M.draw_quadtri
-
--- projection
-local get_projection = M.get_projection
 
 -- color
 local Color = M.Color
@@ -392,7 +388,7 @@ M.Image = register_class("Image", Filler, {
         if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
         if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
 
-        local proj = get_projection()
+        local proj = self:get_root():get_projection()
         if min_w == huge then min_w = proj.pw end
         if min_h == huge then min_h = proj.ph end
 
@@ -456,7 +452,7 @@ M.Texture = register_class("Texture", Filler, {
         if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
         if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
 
-        local proj = get_projection()
+        local proj = self:get_root():get_projection()
         if min_w == huge then min_w = proj.pw end
         if min_h == huge then min_h = proj.ph end
 
@@ -998,14 +994,14 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         local w, h in self
         local csl = #clip_stack > 0
         if csl then gl_scissor_disable() end
-        local sx1, sy1, sx2, sy2 = get_projection():calc_scissor(sx, sy,
-            sx + w, sy + h)
+        local sx1, sy1, sx2, sy2 = self:get_root():get_projection()
+            :calc_scissor(sx, sy, sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         local anim = self.anim
         model_preview(self.model, anim, self:build_attachments())
-        if csl then clip_area_scissor() end
+        if csl then clip_area_scissor(self:get_root()) end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -1046,14 +1042,14 @@ M.Prefab_Viewer = register_class("Prefab_Viewer", Filler, {
         local w, h in self
         local csl = #clip_stack > 0
         if csl then gl_scissor_disable() end
-        local sx1, sy1, sx2, sy2 = get_projection():calc_scissor(sx, sy,
-            sx + w, sy + h)
+        local sx1, sy1, sx2, sy2 = self:get_root():get_projection()
+            :calc_scissor(sx, sy, sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         local col = self.color
         prefab_preview(prefab, col.r / 255, col.g / 255, col.b / 255)
-        if csl then clip_area_scissor() end
+        if csl then clip_area_scissor(self:get_root()) end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -1144,7 +1140,7 @@ M.Triangle = register_class("Triangle", Shape, {
         if w < 0 then w = abs(w) / hud_get_h() end
         if h < 0 then h = abs(h) / hud_get_h() end
 
-        local proj = get_projection()
+        local proj = self:get_root():get_projection()
         if w == huge then w = proj.pw end
         if h == huge then h = proj.ph end
 

@@ -68,7 +68,7 @@ M.mod = consts.mod
 local mod = M.mod
 
 -- initialized after Root is created
-local root, projection, clicked, hovering, focused
+local root, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local clicked_code
 local menu_init, tooltip_init, tooltip
@@ -217,8 +217,6 @@ M.loop_children_r = function(self, fun)
 end
 local loop_children_r = M.loop_children_r
 
-local get_projection
-
 --[[!
     Similar to $loop_children, takes some extra assumptions - executes only
     for those children that cover the given coordinates. The function is
@@ -246,7 +244,7 @@ M.loop_in_children = function(self, cx, cy, fun, ins, useproj)
     return loop_children(self, function(o)
         local ox, oy
         if useproj then
-            local proj = get_projection(o)
+            local proj = o:get_projection()
             ox, oy = (cx * proj.pw - o.x), (cy * proj.ph - o.y)
         else
             ox, oy = cx - o.x, cy - o.y
@@ -267,7 +265,7 @@ M.loop_in_children_r = function(self, cx, cy, fun, ins, useproj)
     return loop_children_r(self, function(o)
         local ox, oy
         if useproj then
-            local proj = get_projection(o)
+            local proj = o:get_projection()
             ox, oy = (cx * proj.pw - o.x), (cy * proj.ph - o.y)
         else
             ox, oy = cx - o.x, cy - o.y
@@ -307,7 +305,7 @@ local clip_area_is_fully_clipped = M.clip_area_is_fully_clipped
 local clip_area_scissor
 
 --! Pushes a clip area into the clip stack and scissors.
-M.clip_push = function(x, y, w, h)
+M.clip_push = function(root, x, y, w, h)
     local l = #clip_stack
     if    l == 0 then gl_scissor_enable() end
 
@@ -317,7 +315,7 @@ M.clip_push = function(x, y, w, h)
     clip_stack[l] = c
 
     if l >= 2 then clip_area_intersect(c, clip_stack[l - 1]) end
-    clip_area_scissor(c)
+    clip_area_scissor(root, c)
 end
 local clip_push = M.clip_push
 
@@ -325,12 +323,12 @@ local clip_push = M.clip_push
     Pops a clip area out of the clip stack and scissors (assuming there
     is anything left on the clip stack).
 ]]
-M.clip_pop = function()
+M.clip_pop = function(root)
     tremove(clip_stack)
 
     local l = #clip_stack
     if    l == 0 then gl_scissor_disable()
-    else clip_area_scissor(clip_stack[l])
+    else clip_area_scissor(root, clip_stack[l])
     end
 end
 local clip_pop = M.clip_pop
@@ -350,10 +348,10 @@ local is_fully_clipped = M.is_fully_clipped
     Scissors an area given a clip area. If nothing is given, the area
     last in the clip stack is used.
 ]]
-M.clip_area_scissor = function(self)
-    self = self or clip_stack[#clip_stack]
-    local sx1, sy1, sx2, sy2 =
-        projection:calc_scissor(self[1], self[2], self[3], self[4])
+M.clip_area_scissor = function(root, area)
+    area = area or clip_stack[#clip_stack]
+    local sx1, sy1, sx2, sy2 = root:get_projection()
+        :calc_scissor(area[1], area[2], area[3], area[4])
     gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
 end
 clip_area_scissor = M.clip_area_scissor
@@ -440,7 +438,8 @@ local Projection = table2.Object:clone {
     end,
 
     draw = function(self, sx, sy)
-        projection = self
+        local root = self.obj:get_root()
+        root:set_projection(self)
         self:projection()
         shader_hud_set()
 
@@ -452,24 +451,13 @@ local Projection = table2.Object:clone {
         obj:draw(sx or obj.x, sy or obj.y)
 
         gl_blend_disable()
-        projection = nil
+        root:set_projection(nil)
     end,
 
     calc_above_hud = function(self)
         return 1 - (self.obj.y * self.ss_y + self.so_y)
     end
 }
-
-get_projection = function(o, nonew)
-    if not o then return projection end
-    local proj = o._projection
-    if proj or nonew then return proj end
-    proj = Projection(o)
-    o._projection = proj
-    return proj
-end
-
-M.get_projection = get_projection
 
 ffi.cdef [[
     typedef struct color_t {
@@ -786,14 +774,28 @@ M.Widget = register_class("Widget", table2.Object, {
     ]]
     deep_clone = function(self, obj, initc)
         local ch, rch = {}, self.children
+        local st, rst = {}, self.states
+        local vs, rvs = {}, self.vstates
         local ic = initc and self.init_clone or nil
-        local cl = self:clone { children = ch }
+        local cl = self:clone { children = ch, states = st, vstates = vs }
         for i = 1, #rch do
             local c = rch[i]
             local chcl = c:deep_clone(obj, true)
             chcl.parent = cl
             chcl._root  = cl._root
             ch[i] = chcl
+        end
+        for k, v in pairs(rst) do
+            local vcl = v:deep_clone(obj, true)
+            vcl.parent = cl
+            vcl._root  = cl._root
+            st[k] = vcl
+        end
+        for k, v in pairs(rvs) do
+            local vcl = v:deep_clone(obj, true)
+            vcl.parent = cl
+            vcl._root  = cl._root
+            vs[k] = vcl
         end
         if ic then ic(cl, obj) end
         return cl
@@ -1501,7 +1503,12 @@ M.Widget = register_class("Widget", table2.Object, {
     set_visible = gen_setter "visible",
 
     --! Function: set_container
-    set_container = gen_setter "container",
+    set_container = function(self, val)
+        if self.container then self.container.parent = nil end
+        self.container = val
+        if val then val.parent = self end
+        emit(self, "container_changed", val)
+    end,
 
     --! Function: set_init_clone
     set_init_clone = gen_setter "init_clone",
@@ -1707,6 +1714,28 @@ M.Widget = register_class("Widget", table2.Object, {
     ]]
     is_root = function(self)
         return false
+    end,
+
+    --[[!
+        Gets the widget's projection. If it doesn't exist it tries to create
+        a new one unless the parameter is true. Returns the projection or
+        nil.
+    ]]
+    get_projection = function(self, nonew)
+        local proj = self._projection
+        if proj or nonew then return proj end
+        proj = Projection(self)
+        self._projection = proj
+        return proj
+    end,
+
+    --[[!
+        Sets the widget's projection to some forced value. Returns the
+        projection.
+    ]]
+    set_projection = function(self, proj)
+        self._projection = proj
+        return proj
     end
 })
 Widget = M.Widget
@@ -1826,9 +1855,9 @@ M.Root = register_class("Root", Widget, {
 
     adjust_children = function(self)
         loop_children(self, function(o)
-            projection = get_projection(o)
-            projection:adjust_layout()
-            projection = nil
+            local proj = self:set_projection(o:get_projection())
+            proj:adjust_layout()
+            self:set_projection(nil)
         end)
     end,
 
@@ -1851,9 +1880,9 @@ M.Root = register_class("Root", Widget, {
 
         loop_children(self, function(o)
             if not o.floating then o.x, o.y = 0, 0 end
-            projection = get_projection(o)
+            self:set_projection(o:get_projection())
             o:layout()
-            projection = nil
+            self:set_projection(nil)
         end)
 
         self:adjust_children()
@@ -1870,7 +1899,7 @@ M.Root = register_class("Root", Widget, {
             local oh = o.h
             if not is_fully_clipped(sx + ox, sy + oy, ow, oh)
             and o.visible then
-                get_projection(o):draw(sx + ox, sy + oy)
+                o:get_projection():draw(sx + ox, sy + oy)
             end
         end)
     end,
@@ -1987,7 +2016,7 @@ M.Root = register_class("Root", Widget, {
         for i = 1, #ch do
             local w = ch[i]
             if w.above_hud then
-                y = min(y, get_projection(w):calc_above_hud())
+                y = min(y, w:get_projection():calc_above_hud())
             end
         end
         return y
@@ -2025,6 +2054,15 @@ M.Root = register_class("Root", Widget, {
     ]]
     is_root = function(self)
         return true
+    end,
+
+    --[[!
+        Gets the widget's projection. Unlike regular projection getter,
+        this doesn't attempt to create a new projection if one doesn't
+        exist as roots typically don't have projections.
+    ]]
+    get_projection = function(self)
+        return self._projection
     end
 })
 local Root = M.Root
@@ -2036,6 +2074,7 @@ signal.connect(root, "__has_cursor_changed", function(self, val)
 end)
 
 local hud = Overlay { name = "hud" }
+hud._root = root
 
 --! Returns the HUD overlay.
 M.get_hud = function()
@@ -2043,7 +2082,7 @@ M.get_hud = function()
 end
 
 local menu_click = function(o, cx, cy, code)
-    local proj = get_projection(o)
+    local proj = o:get_projection()
     local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:click(ox, oy, code)
@@ -2055,7 +2094,7 @@ local menu_click = function(o, cx, cy, code)
 end
 
 local menu_hover = function(o, cx, cy)
-    local proj = get_projection(o)
+    local proj = o:get_projection()
     local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:hover(ox, oy)
@@ -2067,7 +2106,7 @@ local menu_hover = function(o, cx, cy)
 end
 
 local menu_hold = function(o, cx, cy, obj)
-    local proj = get_projection(o)
+    local proj = o:get_projection()
     local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if obj == o then return ox, oy end
     return o:hold(ox, oy, obj)
@@ -2110,11 +2149,11 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
     local prevo = (i > 1) and menustack[i - 1] or nil
 
     -- initial layout to guess the bounds
-    projection = get_projection(o)
+    local proj = o:get_root():set_projection(o:get_projection())
     o:layout()
-    projection:calc()
-    local pw, ph = projection.pw, projection.ph
-    projection = nil
+    proj:calc()
+    local pw, ph = proj.pw, proj.ph
+    o:get_root():set_projection(nil)
 
     -- parent projection (for correct offsets)
     local fw, fh
@@ -2125,10 +2164,10 @@ menu_init = function(o, op, i, at_cursor, clear_on_drop)
             if not p.parent then break end
             win = p
         end
-        local proj = get_projection(win)
+        local proj = win:get_projection()
         fw, fh = pw / proj.pw, ph / proj.ph
     else
-        local proj = get_projection(prevo)
+        local proj = prevo:get_projection()
         fw, fh = pw / proj.pw, ph / proj.ph
     end
 
@@ -2208,9 +2247,9 @@ tooltip_init = function(o, op, clear_on_drop)
     tooltip  = o
     o.parent = op
     o._root  = op._root
-    projection = get_projection(o)
+    o:get_root():set_projection(o:get_projection())
     o:layout()
-    projection = nil
+    o:get_root():set_projection(nil)
 
     o._clear_on_drop = clear_on_drop
 
@@ -2422,29 +2461,29 @@ set_external("gui_update", function()
     if wvisible then root:layout() end
 
     if tooltip then
-        projection = get_projection(tooltip)
+        local proj = root:set_projection(tooltip:get_projection())
         tooltip:layout()
-        projection:calc()
+        proj:calc()
         tooltip:adjust_children()
-        projection = nil
+        root:set_projection(nil)
     end
 
     for i = 1, #menustack do
         local o = menustack[i]
-        projection = get_projection(o)
+        local proj = root:set_projection(o:get_projection())
         o:layout()
-        projection:calc()
+        proj:calc()
         o:adjust_children()
-        projection = nil
+        root:set_projection(nil)
     end
 
     if draw_hud then
-        projection = get_projection(hud)
+        local proj = root:set_projection(hud:get_projection())
         hud:layout()
         hud.x, hud.y, hud.w, hud.h = 0, 0, root.w, root.h
-        projection:calc()
+        proj:calc()
         hud:adjust_children()
-        projection = nil
+        root:set_projection(nil)
     end
 
     root:cursor_exists(true)
@@ -2454,20 +2493,20 @@ M.__draw_window = function(win)
     calc_text_scale()
     root:layout_dim()
     win.x, win.y, win.parent, win._root = 0, 0, root, root
-    projection = get_projection(win)
+    local proj = root:set_projection(win:get_projection())
     win:layout()
-    projection:adjust_layout()
-    projection:draw()
-    projection = nil
+    proj:adjust_layout()
+    proj:draw()
+    root:set_projection(nil)
 end
 
 set_external("gui_render", function()
     local w = root
     if draw_hud or (w.visible and #w.children != 0) then
         w:draw()
-        for i = 1, #menustack do get_projection(menustack[i]):draw() end
-        if tooltip          then get_projection(tooltip     ):draw() end
-        if draw_hud         then get_projection(hud         ):draw() end
+        for i = 1, #menustack do menustack[i]:get_projection():draw() end
+        if tooltip          then      tooltip:get_projection():draw() end
+        if draw_hud         then          hud:get_projection():draw() end
         gle_disable()
     end
 end)

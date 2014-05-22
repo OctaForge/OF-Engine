@@ -33,9 +33,6 @@ local Widget = M.get_class("Widget")
 -- setters
 local gen_setter = M.gen_setter
 
--- projection
-local get_projection = M.get_projection
-
 -- adjustment
 local adjust = M.adjust
 

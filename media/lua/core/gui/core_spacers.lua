@@ -35,9 +35,6 @@ local Widget = M.get_class("Widget")
 -- setters
 local gen_setter = M.gen_setter
 
--- projection
-local get_projection = M.get_projection
-
 -- text scale
 local get_text_scale = M.get_text_scale
 
@@ -125,7 +122,7 @@ M.Filler = register_class("Filler", Widget, {
         if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
         if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
 
-        local proj = get_projection()
+        local proj = self:get_root():get_projection()
         if min_w == huge then min_w = proj.pw end
         if min_h == huge then min_h = proj.ph end
 
@@ -143,9 +140,9 @@ M.Filler = register_class("Filler", Widget, {
 
     draw = function(self, sx, sy)
         if self.clip_children then
-            clip_push(sx, sy, self.w, self.h)
+            clip_push(self:get_root(), sx, sy, self.w, self.h)
             Widget.draw(self, sx, sy)
-            clip_pop()
+            clip_pop(self:get_root())
         else
             return Widget.draw(self, sx, sy)
         end

@@ -1287,7 +1287,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
         local clip = (cw != 0 and (self.virt_w + fontw) > cw)
                   or (ch != 0 and  self.virt_h          > ch)
 
-        if clip then clip_push(sx + self.pad_l, sy, cw, ch) end
+        if clip then clip_push(self:get_root(), sx + self.pad_l, sy, cw, ch) end
 
         hudmatrix_push()
 
@@ -1325,7 +1325,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
         end
 
         hudmatrix_pop()
-        if clip then clip_pop() end
+        if clip then clip_pop(self:get_root()) end
 
         text_font_pop()
     end
