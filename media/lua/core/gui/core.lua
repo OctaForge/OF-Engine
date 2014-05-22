@@ -69,7 +69,6 @@ local mod = M.mod
 
 -- initialized after Root is created
 local root, clicked, hovering, focused
-local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local clicked_code
 
 local adjust = {:
@@ -1126,12 +1125,13 @@ M.Widget = register_class("Widget", table2.Object, {
             - $click
     ]]
     hover = function(self, cx, cy)
-        local isw = (self == root)
+        local w = self:get_root()
+        local isw = (self == w)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c  = o.visible and o:hover(ox, oy) or nil
             if    c == o then
-                hover_x = ox
-                hover_y = oy
+                w._hover_x = ox
+                w._hover_y = oy
             end
             if isw or c then return c end
         end, true, isw)
@@ -1181,12 +1181,13 @@ M.Widget = register_class("Widget", table2.Object, {
         takes the currently clicked mouse button as the last argument.
     ]]
     click = function(self, cx, cy, code)
-        local isw = (self == root)
+        local w = self:get_root()
+        local isw = (self == w)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c  = o.visible and o:click(ox, oy, code) or nil
             if    c == o then
-                click_x = ox
-                click_y = oy
+                w._click_x = ox
+                w._click_y = oy
             end
             if isw or c then return c end
         end, true, isw)
@@ -1810,6 +1811,10 @@ M.Root = register_class("Root", Widget, {
         self._menu_stack = {}
         self._menu_nhov  = nil
         self._tooltip    = nil
+        self._hover_x    = 0
+        self._hover_y    = 0
+        self._click_x    = 0
+        self._click_y    = 0
         return Widget.__ctor(self)
     end,
 
@@ -2191,8 +2196,8 @@ M.Root = register_class("Root", Widget, {
             return
         end
 
-        local dx, dy = hovering and hover_x * fw or click_x * fw,
-                       hovering and hover_y * fh or click_y * fh
+        local dx, dy = hovering and self._hover_x * fw or self._click_x * fw,
+                       hovering and self._hover_y * fh or self._click_y * fh
         -- omx, omy: the base position of the new menu
         local omx, omy = cx * pw - dx, cy * ph - dy
 
@@ -2261,7 +2266,7 @@ local menu_click = function(o, cx, cy, code)
     local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:click(ox, oy, code)
-        if cl == o then click_x, click_y = ox, oy end
+        if cl == o then root._click_x, root._click_y = ox, oy end
         return true, cl
     else
         return false
@@ -2273,7 +2278,7 @@ local menu_hover = function(o, cx, cy)
     local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
     if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
         local cl = o:hover(ox, oy)
-        if cl == o then hover_x, hover_y = ox, oy end
+        if cl == o then root._hover_x, root._hover_y = ox, oy end
         return true, cl
     else
         return false
@@ -2325,7 +2330,7 @@ set_external("input_keypress", function(code, isdown)
                 clicked = root:click(root.cursor_x, root.cursor_y, code)
             end
             if clicked then
-                clicked:clicked(click_x, click_y, code)
+                clicked:clicked(root._click_x, root._click_y, code)
             else
                 clicked_code = nil
             end
@@ -2450,7 +2455,7 @@ set_external("gui_update", function()
                 end
             end
         end
-        local oldhov, oldhx, oldhy = hovering, hover_x, hover_y
+        local oldhov, oldhx, oldhy = hovering, root._hover_x, root._hover_y
         if hk then
             hovering = hovering_try
         else
@@ -2465,7 +2470,7 @@ set_external("gui_update", function()
                 root:_menus_drop(msl - nhov)
             end
             root._menu_nhov = nhov
-            hovering:hovering(hover_x, hover_y)
+            hovering:hovering(root._hover_x, root._hover_y)
             root._menu_nhov = nil
         end
 
