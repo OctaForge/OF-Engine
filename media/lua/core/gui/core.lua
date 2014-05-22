@@ -71,8 +71,6 @@ local mod = M.mod
 local root, clicked, hovering, focused
 local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
 local clicked_code
-local menu_init
-local menustack = {}
 
 local adjust = {:
     ALIGN_HMASK = 0x3,
@@ -1561,7 +1559,9 @@ M.Widget = register_class("Widget", table2.Object, {
               menu elsewhere instead.
     ]]
     show_menu = function(self, obj, at_cursor, clear_on_drop)
-        menu_init(obj, self, #menustack + 1, at_cursor, clear_on_drop)
+        local root = self:get_root()
+        root:_menu_init(obj, self, #root._menu_stack + 1, at_cursor,
+            clear_on_drop)
         return obj
     end,
 
@@ -1807,6 +1807,8 @@ M.Root = register_class("Root", Widget, {
         self.has_cursor  = false
         self._root       = self
         self._clip_stack = {}
+        self._menu_stack = {}
+        self._menu_nhov  = nil
         self._tooltip    = nil
         return Widget.__ctor(self)
     end,
@@ -2107,6 +2109,135 @@ M.Root = register_class("Root", Widget, {
             y = y - th + 0.02
         end
         o.x, o.y = max(0, x), max(0, y)
+    end,
+
+    _menus_drop = function(self, n)
+        local ms = self._menu_stack
+        local msl = #ms
+        n = n or msl
+        for i = msl, msl - n + 1, -1 do
+            local o = tremove(ms)
+            local op = o.parent
+            if o._clear_on_drop then
+                o:clear()
+                op.managed_objects[o] = nil
+            end
+            op._menu = nil
+        end
+    end,
+
+    _menu_init = function(self, o, op, i, at_cursor, clear_on_drop)
+        if self._menu_nhov == 0 then
+            self:_menus_drop()
+            i = 1
+        end
+
+        op.managed_objects[o] = o
+        local oldop = o.parent
+        if oldop then oldop.managed_objects[o] = nil end
+
+        local ms = self._menu_stack
+        ms[i]     = o
+        o.is_menu = true
+        o.parent  = op
+        o._root   = self
+        op._root  = self
+        op._menu  = o
+
+        o._clear_on_drop = clear_on_drop
+
+        local prevo = (i > 1) and ms[i - 1] or nil
+
+        -- initial layout to guess the bounds
+        local proj = self:set_projection(o:get_projection())
+        o:layout()
+        proj:calc()
+        local pw, ph = proj.pw, proj.ph
+        self:set_projection(nil)
+
+        -- parent projection (for correct offsets)
+        local fw, fh
+        if not prevo then
+            local win = o.parent
+            while true do
+                local p = win.parent
+                if not p.parent then break end
+                win = p
+            end
+            local proj = win:get_projection()
+            fw, fh = pw / proj.pw, ph / proj.ph
+        else
+            local proj = prevo:get_projection()
+            fw, fh = pw / proj.pw, ph / proj.ph
+        end
+
+        -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
+        local ow, oh, opw, oph = o.w, o.h, op.w * fw, op.h * fh
+
+        local cx, cy = self.cusror_x, self.cursor_y
+
+        -- when spawning menus right on the cursor
+        if at_cursor then
+            -- compute cursor coords in terms of widget position
+            local x, y = cx * pw, cy * ph
+            -- adjust y so that it's always visible as whole
+            if (y + oh) > ph then y = max(0, y - oh) end
+            -- adjust x if clipped on the right
+            if (x + ow) > pw then
+                x = max(0, x - ow)
+            end
+            -- set position and return
+            o.x, o.y = max(0, x), max(0, y)
+            return
+        end
+
+        local dx, dy = hovering and hover_x * fw or click_x * fw,
+                       hovering and hover_y * fh or click_y * fh
+        -- omx, omy: the base position of the new menu
+        local omx, omy = cx * pw - dx, cy * ph - dy
+
+        -- a submenu - uses different alignment - submenus are put next to
+        -- their spawners, regular menus are put under their spawners
+        if i != 1 then
+            -- when the current y + height of menu exceeds the screen height,
+            -- move the menu up by its height minus the spawner height, make
+            -- sure it's at least 0 (so that it's not accidentally moved above
+            -- the screen)
+            if omy + oh > ph then
+                omy = max(0, omy - oh + oph)
+            end
+            -- when the current x + width of the spawner + width of the menu
+            -- exceeds the screen width, move it to the left by its width,
+            -- making sure the x is at least 0
+            if (omx + opw + ow) > pw then
+                omx = max(0, omx - ow)
+            -- else offset by spawner width
+            else
+                omx += opw
+            end
+        -- regular menu
+        else
+            -- when current y + height of spawner + height of menu exceeds the
+            -- screen height, move the menu up by its height, make sure
+            -- it's > 0
+            if omy + oph + oh > ph then
+                omy = max(0, omy - oh)
+            -- otherwise move down a bit (by the button height)
+            else
+                omy += oph
+            end
+            -- adjust x here - when the current x + width of the menu exceeds
+            -- the screen width, perform adjustments
+            if (omx + ow) > pw then
+                -- if the menu spawner width exceeds the screen width too,
+                -- put the menu to the right
+                if (omx + opw) > pw then
+                    omx = max(0, pw - ow)
+                -- else align it with the spawner
+                else omx = max(0, omx - ow + opw) end
+            end
+        end
+        o.x, o.y = max(0, omx), max(0, omy)
     end
 })
 local Root = M.Root
@@ -2156,133 +2287,6 @@ local menu_hold = function(o, cx, cy, obj)
     return o:hold(ox, oy, obj)
 end
 
-local tremove = table.remove
-local menus_drop = function(n)
-    local msl = #menustack
-    n = n or msl
-    for i = msl, msl - n + 1, -1 do
-        local o = tremove(menustack)
-        local op = o.parent
-        if o._clear_on_drop then
-            o:clear()
-            op.managed_objects[o] = nil
-        end
-        op._menu = nil
-    end
-end
-
-local menu_nhov
-menu_init = function(o, op, i, at_cursor, clear_on_drop)
-    if menu_nhov == 0 then
-        menus_drop()
-        i = 1
-    end
-
-    op.managed_objects[o] = o
-    local oldop = o.parent
-    if oldop then oldop.managed_objects[o] = nil end
-
-    menustack[i] = o
-    o.is_menu    = true
-    o.parent     = op
-    o._root      = op._root
-    op._menu     = o
-
-    o._clear_on_drop = clear_on_drop
-
-    local prevo = (i > 1) and menustack[i - 1] or nil
-
-    -- initial layout to guess the bounds
-    local proj = o:get_root():set_projection(o:get_projection())
-    o:layout()
-    proj:calc()
-    local pw, ph = proj.pw, proj.ph
-    o:get_root():set_projection(nil)
-
-    -- parent projection (for correct offsets)
-    local fw, fh
-    if not prevo then
-        local win = o.parent
-        while true do
-            local p = win.parent
-            if not p.parent then break end
-            win = p
-        end
-        local proj = win:get_projection()
-        fw, fh = pw / proj.pw, ph / proj.ph
-    else
-        local proj = prevo:get_projection()
-        fw, fh = pw / proj.pw, ph / proj.ph
-    end
-
-    -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
-    local ow, oh, opw, oph = o.w, o.h, op.w * fw, op.h * fh
-
-    local cx, cy = root.cusror_x, root.cursor_y
-
-    -- when spawning menus right on the cursor
-    if at_cursor then
-        -- compute cursor coords in terms of widget position
-        local x, y = cx * pw, cy * ph
-        -- adjust y so that it's always visible as whole
-        if (y + oh) > ph then y = max(0, y - oh) end
-        -- adjust x if clipped on the right
-        if (x + ow) > pw then
-            x = max(0, x - ow)
-        end
-        -- set position and return
-        o.x, o.y = max(0, x), max(0, y)
-        return
-    end
-
-    local dx, dy = hovering and hover_x * fw or click_x * fw,
-                   hovering and hover_y * fh or click_y * fh
-    -- omx, omy: the base position of the new menu
-    local omx, omy = cx * pw - dx, cy * ph - dy
-
-    -- a submenu - uses different alignment - submenus are put next to
-    -- their spawners, regular menus are put under their spawners
-    if i != 1 then
-        -- when the current y + height of menu exceeds the screen height,
-        -- move the menu up by its height minus the spawner height, make
-        -- sure it's at least 0 (so that it's not accidentally moved above
-        -- the screen)
-        if omy + oh > ph then
-            omy = max(0, omy - oh + oph)
-        end
-        -- when the current x + width of the spawner + width of the menu
-        -- exceeds the screen width, move it to the left by its width,
-        -- making sure the x is at least 0
-        if (omx + opw + ow) > pw then
-            omx = max(0, omx - ow)
-        -- else offset by spawner width
-        else
-            omx += opw
-        end
-    -- regular menu
-    else
-        -- when current y + height of spawner + height of menu exceeds the
-        -- screen height, move the menu up by its height, make sure it's > 0
-        if omy + oph + oh > ph then
-            omy = max(0, omy - oh)
-        -- otherwise move down a bit (by the button height)
-        else
-            omy += oph
-        end
-        -- adjust x here - when the current x + width of the menu exceeds
-        -- the screen width, perform adjustments
-        if (omx + ow) > pw then
-            -- if the menu spawner width exceeds the screen width too, put the
-            -- menu to the right
-            if (omx + opw) > pw then
-                omx = max(0, pw - ow)
-            -- else align it with the spawner
-            else omx = max(0, omx - ow + opw) end
-        end
-    end
-    o.x, o.y = max(0, omx), max(0, omy)
-end
-
 local mousebuttons = {
     [key.MOUSELEFT] = true, [key.MOUSEMIDDLE]  = true, [key.MOUSERIGHT] = true,
     [key.MOUSEBACK] = true, [key.MOUSEFORWARD] = true
@@ -2303,16 +2307,17 @@ set_external("input_keypress", function(code, isdown)
             clicked_code = code
             local clicked_try
             local ck, cl
-            if #menustack > 0 then
-                for i = #menustack, 1, -1 do
-                    ck, cl = menu_click(menustack[i], root.cursor_x,
+            local ms = root._menu_stack
+            if #ms > 0 then
+                for i = #ms, 1, -1 do
+                    ck, cl = menu_click(ms[i], root.cursor_x,
                         root.cursor_y, code)
                     if ck then
                         clicked_try = cl
                         break
                     end
                 end
-                if not ck then menus_drop() end
+                if not ck then root:_menus_drop() end
             end
             if ck then
                 clicked = clicked_try
@@ -2327,8 +2332,9 @@ set_external("input_keypress", function(code, isdown)
         else
             if clicked then
                 local hx, hy
-                if #menustack > 0 then for i = #menustack, 1, -1 do
-                    hx, hy = menu_hold(menustack[i], root.cursor_x,
+                local ms = root._menu_stack
+                if #ms > 0 then for i = #ms, 1, -1 do
+                    hx, hy = menu_hold(ms[i], root.cursor_x,
                         root.cursor_y, clicked)
                     if hx then break end
                 end end
@@ -2370,7 +2376,7 @@ set_external("gui_clear", function()
             tooltip.parent.managed_objects[tooltip] = nil
         end
         root._tooltip = nil
-        menus_drop()
+        root:_menus_drop()
     end
 end)
 
@@ -2432,9 +2438,10 @@ set_external("gui_update", function()
         local hovering_try
         local hk, hl
         local nhov = 0
-        if #menustack > 0 then
-            for i = #menustack, 1, -1 do
-                hk, hl = menu_hover(menustack[i], root.cursor_x,
+        local ms = root._menu_stack
+        if #ms > 0 then
+            for i = #ms, 1, -1 do
+                hk, hl = menu_hover(ms[i], root.cursor_x,
                     root.cursor_y)
                 if hk then
                     hovering_try = hl
@@ -2453,19 +2460,19 @@ set_external("gui_update", function()
             oldhov:leaving(oldhx, oldhy)
         end
         if hovering then
-             local msl = #menustack
+             local msl = #ms
             if msl > 0 and nhov > 0 and msl > nhov then
-                menus_drop(msl - nhov)
+                root:_menus_drop(msl - nhov)
             end
-            menu_nhov = nhov
+            root._menu_nhov = nhov
             hovering:hovering(hover_x, hover_y)
-            menu_nhov = nil
+            root._menu_nhov = nil
         end
 
         if clicked then
             local hx, hy
-            if #menustack > 0 then for i = #menustack, 1, -1 do
-                hx, hy = menu_hold(menustack[i], root.cursor_x,
+            if #ms > 0 then for i = #ms, 1, -1 do
+                hx, hy = menu_hold(ms[i], root.cursor_x,
                     root.cursor_y, clicked)
                 if hx then break end
             end end
@@ -2489,8 +2496,9 @@ set_external("gui_update", function()
         root:set_projection(nil)
     end
 
-    for i = 1, #menustack do
-        local o = menustack[i]
+    local ms = root._menu_stack
+    for i = 1, #ms do
+        local o = ms[i]
         local proj = root:set_projection(o:get_projection())
         o:layout()
         proj:calc()
@@ -2526,9 +2534,10 @@ set_external("gui_render", function()
     if draw_hud or (w.visible and #w.children != 0) then
         w:draw()
         local tooltip = w._tooltip
-        for i = 1, #menustack do menustack[i]:get_projection():draw() end
-        if tooltip          then      tooltip:get_projection():draw() end
-        if draw_hud         then          hud:get_projection():draw() end
+        local ms = w._menu_stack
+        for i = 1, #ms do   ms[i]:get_projection():draw() end
+        if tooltip   then tooltip:get_projection():draw() end
+        if draw_hud  then     hud:get_projection():draw() end
         gle_disable()
     end
 end)
