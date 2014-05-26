@@ -1484,12 +1484,21 @@ M.Widget = register_class("Widget", table2.Object, {
     --! Function: set_visible
     set_visible = gen_setter "visible",
 
-    --! Function: set_container
+    --! Returns the previous container, erases its parent and root, but doesn't
+    --! destroy it.
     set_container = function(self, val)
-        if self.container then self.container.parent = nil end
+        local orig = self.container
+        if orig then
+            orig.parent = nil
+            orig._root  = nil
+        end
         self.container = val
-        if val then val.parent = self end
+        if val then
+            val.parent = self
+            val._root  = self:get_root()
+        end
         emit(self, "container_changed", val)
+        return orig
     end,
 
     --! Function: set_init_clone
@@ -1898,6 +1907,11 @@ M.Root = register_class("Root", Widget, {
                 o:get_projection():draw(sx + ox, sy + oy)
             end
         end)
+
+        local tooltip = self._tooltip
+        local ms = self._menu_stack
+        for i = 1, #ms do   ms[i]:get_projection():draw() end
+        if tooltip   then tooltip:get_projection():draw() end
     end,
 
     build_window = function(self, name, win, fun)
@@ -2365,6 +2379,95 @@ M.Root = register_class("Root", Widget, {
     --! Given a value in pixels, this returns the value in UI units.
     get_ui_size = function(self, px)
         return px / self:get_pixel_h()
+    end,
+
+    update = function(self, cx, cy)
+        self:set_cursor(cx, cy)
+
+        local tooltip = self._tooltip
+        if tooltip and tooltip._clear_on_drop then
+            tooltip:clear()
+            tooltip.parent.managed_objects[tooltip] = nil
+        end
+        tooltip, self._tooltip = nil, nil
+
+        self:calc_text_scale()
+
+        if self:cursor_exists() and self.visible then
+            local hovering_try
+            local hk, hl
+            local nhov = 0
+            local ms = self._menu_stack
+            if #ms > 0 then
+                for i = #ms, 1, -1 do
+                    hk, hl = self:menu_hover(ms[i], self.cursor_x,
+                        self.cursor_y)
+                    if hk then
+                        hovering_try = hl
+                        if hl then nhov = i end
+                        break
+                    end
+                end
+            end
+            local oldhov, oldhx, oldhy
+                = self._hovering, self._hover_x, self._hover_y
+            if hk then
+                self._hovering = hovering_try
+            else
+                self._hovering = self:hover(self.cursor_x, self.cursor_y)
+            end
+            if oldhov and oldhov != self._hovering then
+                oldhov:leaving(oldhx, oldhy)
+            end
+            if self._hovering then
+                 local msl = #ms
+                if msl > 0 and nhov > 0 and msl > nhov then
+                    self:_menus_drop(msl - nhov)
+                end
+                self._menu_nhov = nhov
+                self._hovering:hovering(self._hover_x, self._hover_y)
+                self._menu_nhov = nil
+            end
+
+            if self._clicked then
+                local hx, hy
+                if #ms > 0 then for i = #ms, 1, -1 do
+                    hx, hy = self:menu_hold(ms[i], self.cursor_x,
+                        self.cursor_y, self._clicked)
+                    if hx then break end
+                end end
+                if not hx then
+                    hx, hy = self:hold(self.cursor_x, self.cursor_y,
+                        self._clicked)
+                end
+                self._clicked:holding(hx, hy, clicked_code)
+            end
+        else
+            self._hovering, self._clicked = nil, nil
+        end
+
+        if self.visible then self:layout() end
+
+        tooltip = self._tooltip
+        if tooltip then
+            local proj = self:set_projection(tooltip:get_projection())
+            tooltip:layout()
+            proj:calc()
+            tooltip:adjust_children()
+            self:set_projection(nil)
+        end
+
+        local ms = self._menu_stack
+        for i = 1, #ms do
+            local o = ms[i]
+            local proj = self:set_projection(o:get_projection())
+            o:layout()
+            proj:calc()
+            o:adjust_children()
+            self:set_projection(nil)
+        end
+
+        self:cursor_exists(true)
     end
 })
 local Root = M.Root
@@ -2478,8 +2581,6 @@ set_external("gui_clear", function()
 end)
 
 set_external("gui_update", function()
-    root:set_cursor(input_cursor_get_x(), input_cursor_get_y())
-
     if mmenu != 0 and not root:window_visible("main") and
     not isconnected(true) then
         root:show_window("main")
@@ -2487,89 +2588,9 @@ set_external("gui_update", function()
 
     draw_hud = (mmenu == 0 and editing_get() == 0) and hud.visible or false
 
-    local wvisible = root.visible
+    local cx, cy = input_cursor_get_x(), input_cursor_get_y()
 
-    local tooltip = root._tooltip
-    if tooltip and tooltip._clear_on_drop then
-        tooltip:clear()
-        tooltip.parent.managed_objects[tooltip] = nil
-    end
-    tooltip, root._tooltip = nil, nil
-
-    root:calc_text_scale()
-
-    if root:cursor_exists() and wvisible then
-        local hovering_try
-        local hk, hl
-        local nhov = 0
-        local ms = root._menu_stack
-        if #ms > 0 then
-            for i = #ms, 1, -1 do
-                hk, hl = root:menu_hover(ms[i], root.cursor_x,
-                    root.cursor_y)
-                if hk then
-                    hovering_try = hl
-                    if hl then nhov = i end
-                    break
-                end
-            end
-        end
-        local oldhov, oldhx, oldhy = root._hovering,
-            root._hover_x, root._hover_y
-        if hk then
-            root._hovering = hovering_try
-        else
-            root._hovering = root:hover(root.cursor_x, root.cursor_y)
-        end
-        if oldhov and oldhov != root._hovering then
-            oldhov:leaving(oldhx, oldhy)
-        end
-        if root._hovering then
-             local msl = #ms
-            if msl > 0 and nhov > 0 and msl > nhov then
-                root:_menus_drop(msl - nhov)
-            end
-            root._menu_nhov = nhov
-            root._hovering:hovering(root._hover_x, root._hover_y)
-            root._menu_nhov = nil
-        end
-
-        if root._clicked then
-            local hx, hy
-            if #ms > 0 then for i = #ms, 1, -1 do
-                hx, hy = root:menu_hold(ms[i], root.cursor_x,
-                    root.cursor_y, root._clicked)
-                if hx then break end
-            end end
-            if not hx then
-                hx, hy = root:hold(root.cursor_x, root.cursor_y, root._clicked)
-            end
-            root._clicked:holding(hx, hy, clicked_code)
-        end
-    else
-        root._hovering, root._clicked = nil, nil
-    end
-
-    if wvisible then root:layout() end
-
-    tooltip = root._tooltip
-    if tooltip then
-        local proj = root:set_projection(tooltip:get_projection())
-        tooltip:layout()
-        proj:calc()
-        tooltip:adjust_children()
-        root:set_projection(nil)
-    end
-
-    local ms = root._menu_stack
-    for i = 1, #ms do
-        local o = ms[i]
-        local proj = root:set_projection(o:get_projection())
-        o:layout()
-        proj:calc()
-        o:adjust_children()
-        root:set_projection(nil)
-    end
+    root:update(cx, cy)
 
     if draw_hud then
         local proj = root:set_projection(hud:get_projection())
@@ -2579,11 +2600,10 @@ set_external("gui_update", function()
         hud:adjust_children()
         root:set_projection(nil)
     end
-
-    root:cursor_exists(true)
 end)
 
 M.__draw_window = function(win)
+    -- draw on main root
     root:calc_text_scale()
     root:layout_dim()
     win.x, win.y, win.parent, win._root = 0, 0, root, root
@@ -2598,11 +2618,7 @@ set_external("gui_render", function()
     local w = root
     if draw_hud or (w.visible and #w.children != 0) then
         w:draw()
-        local tooltip = w._tooltip
-        local ms = w._menu_stack
-        for i = 1, #ms do   ms[i]:get_projection():draw() end
-        if tooltip   then tooltip:get_projection():draw() end
-        if draw_hud  then     hud:get_projection():draw() end
+        if draw_hud then hud:get_projection():draw() end
         gle_disable()
     end
 end)
