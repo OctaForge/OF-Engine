@@ -381,17 +381,17 @@ M.Image = register_class("Image", Filler, {
 
         local r = self:get_root()
 
-        if min_w < 0 then min_w = abs(min_w) / r:get_pixel_h() end
-        if min_h < 0 then min_h = abs(min_h) / r:get_pixel_h() end
+        if min_w < 0 then min_w = r:get_ui_size(abs(min_w)) end
+        if min_h < 0 then min_h = r:get_ui_size(abs(min_h)) end
 
         local proj = r:get_projection()
         if min_w == huge then min_w = proj.pw end
         if min_h == huge then min_h = proj.ph end
 
         if  min_w == 0 or min_h == 0 then
-            local tex, scrh = self.texture, r:get_pixel_h()
-            if min_w == 0 then min_w = tex.w / scrh end
-            if min_h == 0 then min_h = tex.h / scrh end
+            local tex = self.texture
+            if min_w == 0 then min_w = r:get_ui_size(tex.w) end
+            if min_h == 0 then min_h = r:get_ui_size(tex.h) end
         end
 
         self._min_w, self._min_h = min_w, min_h
@@ -447,8 +447,8 @@ M.Texture = register_class("Texture", Filler, {
 
         local r = self:get_root()
 
-        if min_w < 0 then min_w = abs(min_w) / r:get_pixel_h() end
-        if min_h < 0 then min_h = abs(min_h) / r:get_pixel_h() end
+        if min_w < 0 then min_w = r:get_ui_size(abs(min_w)) end
+        if min_h < 0 then min_h = r:get_ui_size(abs(min_h)) end
 
         local proj = r:get_projection()
         if min_w == huge then min_w = proj.pw end
@@ -1136,8 +1136,8 @@ M.Triangle = register_class("Triangle", Shape, {
         local angle = self.angle
         local r = self:get_root()
 
-        if w < 0 then w = abs(w) / r:get_pixel_h() end
-        if h < 0 then h = abs(h) / r:get_pixel_h() end
+        if w < 0 then w = r:get_ui_size(abs(w)) end
+        if h < 0 then h = r:get_ui_size(abs(h)) end
 
         local proj = r:get_projection()
         if w == huge then w = proj.pw end

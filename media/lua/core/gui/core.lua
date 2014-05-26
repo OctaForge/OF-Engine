@@ -2352,6 +2352,11 @@ M.Root = register_class("Root", Widget, {
     --! Returns the projection object used by windows of this root.
     get_projection_object = function(self)
         return Projection
+    end,
+
+    --! Given a value in pixels, this returns the value in UI units.
+    get_ui_size = function(self, px)
+        return px / self:get_pixel_h()
     end
 })
 local Root = M.Root

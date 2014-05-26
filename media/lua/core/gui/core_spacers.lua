@@ -114,8 +114,8 @@ M.Filler = register_class("Filler", Widget, {
 
         local r = self:get_root()
 
-        if min_w < 0 then min_w = abs(min_w) / r:get_pixel_h() end
-        if min_h < 0 then min_h = abs(min_h) / r:get_pixel_h() end
+        if min_w < 0 then min_w = r:get_ui_size(abs(min_w)) end
+        if min_h < 0 then min_h = r:get_ui_size(abs(min_h)) end
 
         local proj = r:get_projection()
         if min_w == huge then min_w = proj.pw end
