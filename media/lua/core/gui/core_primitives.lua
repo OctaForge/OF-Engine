@@ -24,7 +24,7 @@ texture_draw_slot, texture_draw_vslot, gl_blend_disable, gl_blend_enable,
 gl_scissor_disable, gl_scissor_enable, gle_disable, model_preview_start,
 model_preview, model_preview_end, hudmatrix_push, hudmatrix_scale,
 hudmatrix_flush, hudmatrix_pop, hudmatrix_translate, text_draw,
-text_get_bounds, text_font_push, text_font_pop, text_font_set, hud_get_h,
+text_get_bounds, text_font_push, text_font_pop, text_font_set,
 console_render_full, text_font_get_w, text_font_get_h, prefab_preview in capi
 
 local max   = math.max
@@ -64,9 +64,6 @@ local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
-
--- text scale
-local get_text_scale = M.get_text_scale
 
 local Filler = M.Filler
 
@@ -382,15 +379,17 @@ M.Image = register_class("Image", Filler, {
         if type(min_w) == "function" then min_w = min_w(self) end
         if type(min_h) == "function" then min_h = min_h(self) end
 
-        if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
-        if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
+        local r = self:get_root()
 
-        local proj = self:get_root():get_projection()
+        if min_w < 0 then min_w = abs(min_w) / r:get_pixel_h() end
+        if min_h < 0 then min_h = abs(min_h) / r:get_pixel_h() end
+
+        local proj = r:get_projection()
         if min_w == huge then min_w = proj.pw end
         if min_h == huge then min_h = proj.ph end
 
         if  min_w == 0 or min_h == 0 then
-            local tex, scrh = self.texture, hud_get_h()
+            local tex, scrh = self.texture, r:get_pixel_h()
             if min_w == 0 then min_w = tex.w / scrh end
             if min_h == 0 then min_h = tex.h / scrh end
         end
@@ -446,10 +445,12 @@ M.Texture = register_class("Texture", Filler, {
         if type(min_w) == "function" then min_w = min_w(self) end
         if type(min_h) == "function" then min_h = min_h(self) end
 
-        if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
-        if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
+        local r = self:get_root()
 
-        local proj = self:get_root():get_projection()
+        if min_w < 0 then min_w = abs(min_w) / r:get_pixel_h() end
+        if min_h < 0 then min_h = abs(min_h) / r:get_pixel_h() end
+
+        local proj = r:get_projection()
         if min_w == huge then min_w = proj.pw end
         if min_h == huge then min_h = proj.ph end
 
@@ -1065,7 +1066,7 @@ M.Prefab_Viewer = register_class("Prefab_Viewer", Filler, {
 --! A full console widget that derives from $Filler.
 M.Console = register_class("Console", Filler, {
     draw_scale = function(self)
-        return get_text_scale(true) / text_font_get_h()
+        return self:get_root():get_text_scale(true) / text_font_get_h()
     end,
 
     draw = function(self, sx, sy)
@@ -1133,11 +1134,12 @@ M.Triangle = register_class("Triangle", Shape, {
         if type(w) == "function" then w = w(self) end
         if type(h) == "function" then h = h(self) end
         local angle = self.angle
+        local r = self:get_root()
 
-        if w < 0 then w = abs(w) / hud_get_h() end
-        if h < 0 then h = abs(h) / hud_get_h() end
+        if w < 0 then w = abs(w) / r:get_pixel_h() end
+        if h < 0 then h = abs(h) / r:get_pixel_h() end
 
-        local proj = self:get_root():get_projection()
+        local proj = r:get_projection()
         if w == huge then w = proj.pw end
         if h == huge then h = proj.ph end
 
@@ -1296,7 +1298,8 @@ M.Label = register_class("Label", Widget, {
 
     draw_scale = function(self)
         local scale = self.scale
-        return (abs(scale) * get_text_scale(scale < 0)) / text_font_get_h()
+        return (abs(scale) * self:get_root():get_text_scale(scale < 0))
+            / text_font_get_h()
     end,
 
     draw = function(self, sx, sy)
@@ -1379,7 +1382,8 @@ M.Eval_Label = register_class("Eval_Label", Widget, {
 
     draw_scale = function(self)
         local scale = self.scale
-        return (abs(scale) * get_text_scale(scale < 0)) / text_font_get_h()
+        return (abs(scale) * self:get_root():get_text_scale(scale < 0))
+            / text_font_get_h()
     end,
 
     draw = function(self, sx, sy)

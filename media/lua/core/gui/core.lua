@@ -369,8 +369,9 @@ local Projection = table2.Object:clone {
     end,
 
     calc = function(self)
-        local aspect = hud_get_w() / hud_get_h()
         local obj = self.obj
+        local r = obj:get_root()
+        local aspect = r:get_pixel_w() / r:get_pixel_h()
         local ph = max(max(obj.h, obj.w / aspect), 1)
         local pw = aspect * ph
         self.px, self.py = 0, 0
@@ -391,11 +392,13 @@ local Projection = table2.Object:clone {
     end,
 
     calc_scissor = function(self, x1, y1, x2, y2)
+        local obj = self.obj
+        local r = obj:get_root()
         local sscale  = Vec2(self.ss_x, self.ss_y)
         local soffset = Vec2(self.so_x, self.so_y)
         local s1 = Vec2(x1, y2):mul(sscale):add(soffset)
         local s2 = Vec2(x2, y1):mul(sscale):add(soffset)
-        local hudw, hudh = hud_get_w(), hud_get_h()
+        local hudw, hudh = r:get_pixel_w(), r:get_pixel_h()
         return clamp(floor(s1.x * hudw), 0, hudw),
                clamp(floor(s1.y * hudh), 0, hudh),
                clamp(ceil (s2.x * hudw), 0, hudw),
@@ -505,6 +508,19 @@ M.Color = ffi.metatype("color_t", {
         set_a = gen_setter "a"
     }
 })
+
+--[[! Variable: uitextrows
+    Specifies how many rows of text of scale 1 can fit on the screen. Defaults
+    to 40. You can change this to tweak the font scale and thus the whole UI
+    scale.
+]]
+cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
+    cs.var_flags.PERSIST)
+
+local uitextrows = var_get("uitextrows")
+signal.connect(cs, "uitextrows_changed", function(self, n)
+    uitextrows = n
+end)
 
 local Widget, Window
 
@@ -1694,7 +1710,7 @@ M.Widget = register_class("Widget", table2.Object, {
     get_projection = function(self, nonew)
         local proj = self._projection
         if proj or nonew then return proj end
-        proj = Projection(self)
+        proj = self:get_root():get_projection_object()(self)
         self._projection = proj
         return proj
     end,
@@ -1820,6 +1836,8 @@ M.Root = register_class("Root", Widget, {
         self._clicked    = nil
         self._hovering   = nil
         self._focused    = nil
+        self._rtxt_scale = 0
+        self._ctxt_scale = 0
         return Widget.__ctor(self)
     end,
 
@@ -1843,9 +1861,9 @@ M.Root = register_class("Root", Widget, {
     end,
 
     layout_dim = function(self)
-        local sw, sh = hud_get_w(), hud_get_h()
-        local faspect = aspect_get()
-        if faspect != 0 then sw = ceil(sh * faspect) end
+        local sw, sh = self:get_pixel_w(), self:get_pixel_h()
+        local faspect = self:get_aspect()
+        if faspect then sw = ceil(sh * faspect) end
         self.x, self.y = 0, 0
         self.w, self.h = sw / sh, 1
     end,
@@ -2280,6 +2298,60 @@ M.Root = register_class("Root", Widget, {
         local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
         if obj == o then return ox, oy end
         return o:hold(ox, oy, obj)
+    end,
+
+    --[[!
+        Returns the width of this root window in pixels. By default just
+        retrieves HUD width from the engine. Override as needed.
+    ]]
+    get_pixel_w = function(self)
+        return hud_get_w()
+    end,
+
+    --[[!
+        Returns the height of this root window in pixels. By default just
+        retrieves HUD height from the engine. Override as needed.
+    ]]
+    get_pixel_h = function(self)
+        return hud_get_h()
+    end,
+
+    --[[!
+        If this returns nil, aspect ratio will be auto-computed. Otherwise
+        you can return any aspect ratio as a floating point number which is
+        a result of division of width by height. By default checks forced
+        aspect variable in the engine and returns nil if it's 0 or the
+        value. Override as needed.
+    ]]
+    get_aspect = function(self)
+        local faspect = aspect_get()
+        if faspect ~= 0 then return faspect end
+    end,
+
+    --[[!
+        Returns the number of rows of text that can fit on the screen. Used
+        to calculate text scale. By default just returns $uitextrows.
+    ]]
+    get_text_rows = function(self)
+        return uitextrows
+    end,
+
+    calc_text_scale = function(self)
+        self._rtxt_scale = 1 / self:get_text_rows()
+        local tw, th = self:get_pixel_w(), self:get_pixel_h()
+        local faspect = self:get_aspect()
+        if faspect then tw = ceil(th * faspect) end
+        tw, th = text_get_res(tw, th)
+        self._ctxt_scale = text_font_get_h() * console_scale_get() / th
+    end,
+
+    get_text_scale = function(self, con)
+        return con and self._ctxt_scale or self._rtxt_scale
+    end,
+
+    --! Returns the projection object used by windows of this root.
+    get_projection_object = function(self)
+        return Projection
     end
 })
 local Root = M.Root
@@ -2392,39 +2464,6 @@ set_external("gui_clear", function()
     end
 end)
 
---[[! Variable: uitextrows
-    Specifies how many rows of text of scale 1 can fit on the screen. Defaults
-    to 40. You can change this to tweak the font scale and thus the whole UI
-    scale.
-]]
-cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
-    cs.var_flags.PERSIST)
-
-local uitextrows = var_get("uitextrows")
-signal.connect(cs, "uitextrows_changed", function(self, n)
-    uitextrows = n
-end)
-
---! See $uitextrows. This is a fast getter for it.
-M.get_text_rows = function()
-    return uitextrows
-end
-
-local uitextscale, uicontextscale = 0, 0
-
-M.get_text_scale = function(con)
-    return con and uicontextscale or uitextscale
-end
-
-local calc_text_scale = function()
-    uitextscale = 1 / uitextrows
-    local tw, th = hud_get_w(), hud_get_h()
-    local forceaspect = aspect_get()
-    if forceaspect != 0 then tw = ceil(th * forceaspect) end
-    tw, th = text_get_res(tw, th)
-    uicontextscale = text_font_get_h() * console_scale_get() / th
-end
-
 set_external("gui_update", function()
     root:set_cursor(input_cursor_get_x(), input_cursor_get_y())
 
@@ -2444,7 +2483,7 @@ set_external("gui_update", function()
     end
     tooltip, root._tooltip = nil, nil
 
-    calc_text_scale()
+    root:calc_text_scale()
 
     if root:cursor_exists() and wvisible then
         local hovering_try
@@ -2532,7 +2571,7 @@ set_external("gui_update", function()
 end)
 
 M.__draw_window = function(win)
-    calc_text_scale()
+    root:calc_text_scale()
     root:layout_dim()
     win.x, win.y, win.parent, win._root = 0, 0, root, root
     local proj = root:set_projection(win:get_projection())

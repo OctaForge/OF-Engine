@@ -18,7 +18,6 @@ local huge = math.huge
 local M = require("core.gui.core")
 
 local capi = require("capi")
-local hud_get_h = capi.hud_get_h
 
 -- widget types
 local register_class = M.register_class
@@ -31,9 +30,6 @@ local Widget = M.get_class("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
-
--- text scale
-local get_text_scale = M.get_text_scale
 
 --[[!
     A spacer will give a widget some padding.
@@ -116,10 +112,12 @@ M.Filler = register_class("Filler", Widget, {
         if type(min_w) == "function" then min_w = min_w(self) end
         if type(min_h) == "function" then min_h = min_h(self) end
 
-        if min_w < 0 then min_w = abs(min_w) / hud_get_h() end
-        if min_h < 0 then min_h = abs(min_h) / hud_get_h() end
+        local r = self:get_root()
 
-        local proj = self:get_root():get_projection()
+        if min_w < 0 then min_w = abs(min_w) / r:get_pixel_h() end
+        if min_h < 0 then min_h = abs(min_h) / r:get_pixel_h() end
+
+        local proj = r:get_projection()
         if min_w == huge then min_w = proj.pw end
         if min_h == huge then min_h = proj.ph end
 
@@ -183,7 +181,7 @@ M.Text_Filler = register_class("Text_Filler", Filler, {
         if type(min_w) == "function" then min_w = min_w(self) end
         if type(min_h) == "function" then min_h = min_h(self) end
 
-        local scalef = get_text_scale(self.console_text)
+        local scalef = self:get_root():get_text_scale(self.console_text)
         self.w = max(self.w, min_w * scalef * 0.5)
         self.h = max(self.h, min_h * scalef)
     end,

@@ -51,9 +51,6 @@ local Widget = M.get_class("Widget")
 -- setters
 local gen_setter = M.gen_setter
 
--- text scale
-local get_text_scale = M.get_text_scale
-
 local mod = require("core.gui.constants").mod
 
 local floor_to_fontw = function(n)
@@ -1054,7 +1051,8 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
 
     draw_scale = function(self)
         local scale = self.scale
-        return (abs(scale) * get_text_scale(scale < 0)) / text_font_get_h()
+        return (abs(scale) * self:get_root():get_text_scale(scale < 0))
+            / text_font_get_h()
     end,
 
     calc_dimensions = function(self, maxw)
