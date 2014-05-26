@@ -371,7 +371,7 @@ local Projection = table2.Object:clone {
     calc = function(self)
         local obj = self.obj
         local r = obj:get_root()
-        local aspect = r:get_pixel_w() / r:get_pixel_h()
+        local aspect = r:get_aspect(true)
         local ph = max(max(obj.h, obj.w / aspect), 1)
         local pw = aspect * ph
         self.px, self.py = 0, 0
@@ -1861,11 +1861,8 @@ M.Root = register_class("Root", Widget, {
     end,
 
     layout_dim = function(self)
-        local sw, sh = self:get_pixel_w(), self:get_pixel_h()
-        local faspect = self:get_aspect()
-        if faspect then sw = ceil(sh * faspect) end
         self.x, self.y = 0, 0
-        self.w, self.h = sw / sh, 1
+        self.w, self.h = self:get_aspect(true), 1
     end,
 
     --[[!
@@ -2302,9 +2299,17 @@ M.Root = register_class("Root", Widget, {
 
     --[[!
         Returns the width of this root window in pixels. By default just
-        retrieves HUD width from the engine. Override as needed.
+        retrieves HUD width from the engine. Override as needed. The second
+        parameter (if provided - if not, then no aspect forcing will be taken
+        into consideration) can be either a number specifying forced aspect
+        ratio (width divided by height) or true, in which case $get_aspect
+        is used.
     ]]
-    get_pixel_w = function(self)
+    get_pixel_w = function(self, faspect)
+        if faspect == true then faspect = self:get_aspect() end
+        if faspect then
+            return ceil(hud_get_w() * faspect)
+        end
         return hud_get_w()
     end,
 
@@ -2322,10 +2327,15 @@ M.Root = register_class("Root", Widget, {
         a result of division of width by height. By default checks forced
         aspect variable in the engine and returns nil if it's 0 or the
         value. Override as needed.
+
+        Keep in mind that if the second provided paremter is true, this will
+        return in all cases - as return value of $get_pixel_w divided by
+        return value of $get_pixel_h.
     ]]
-    get_aspect = function(self)
+    get_aspect = function(self, forceret)
         local faspect = aspect_get()
         if faspect ~= 0 then return faspect end
+        if forceret then return self:get_pixel_w() / self:get_pixel_h() end
     end,
 
     --[[!
@@ -2338,9 +2348,7 @@ M.Root = register_class("Root", Widget, {
 
     calc_text_scale = function(self)
         self._rtxt_scale = 1 / self:get_text_rows()
-        local tw, th = self:get_pixel_w(), self:get_pixel_h()
-        local faspect = self:get_aspect()
-        if faspect then tw = ceil(th * faspect) end
+        local tw, th = self:get_pixel_w(true), self:get_pixel_h()
         tw, th = text_get_res(tw, th)
         self._ctxt_scale = text_font_get_h() * console_scale_get() / th
     end,
