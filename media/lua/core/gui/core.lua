@@ -2468,6 +2468,21 @@ M.Root = register_class("Root", Widget, {
         end
 
         self:cursor_exists(true)
+    end,
+
+    --[[!
+        Resets the root (drops all children, menus and tooltip). Emits
+        the "reset" signal at the end.
+    ]]
+    reset = function(self)
+        self:destroy_children()
+        if self._tooltip and self._tooltip._clear_on_drop then
+            self._tooltip:clear()
+            self._tooltip.parent.managed_objects[self._tooltip] = nil
+        end
+        self._tooltip = nil
+        self:_menus_drop()
+        emit(self, "reset")
     end
 })
 local Root = M.Root
@@ -2562,21 +2577,11 @@ signal.connect(cs, "mainmenu_changed", function(self, v)
 end)
 
 set_external("gui_clear", function()
-    var_set("hidechanges", 0)
-    if mmenu != 0 and isconnected() then
-        var_set("mainmenu", 0, true, false) -- no clamping, readonly var
-        root:destroy_children()
-        if draw_hud then
-            hud:destroy_children()
-            draw_hud = false
-        end
-        local tooltip = root._tooltip
-        if tooltip and tooltip._clear_on_drop then
-            tooltip:clear()
-            tooltip.parent.managed_objects[tooltip] = nil
-        end
-        root._tooltip = nil
-        root:_menus_drop()
+    root:reset()
+    var_set("mainmenu", 0, true, false)
+    if draw_hud then
+        hud:destroy_children()
+        draw_hud = false
     end
 end)
 
@@ -2626,71 +2631,6 @@ end)
 set_external("gui_above_hud", function()
     return root:above_hud()
 end)
-
-local needsapply = {}
-
---[[! Variable: applydialog
-    An engine variable that controls whether the "apply" dialog will show
-    on changes that need restart of some engine subsystem. Defaults to 1.
-]]
-cs.var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
-    cs.var_flags.PERSIST)
-cs.var_new("hidechanges", cs.var_type.int, 0, 0, 1)
-
-set_external("change_add", function(desc, ctype)
-    if var_get("applydialog") == 0 then return end
-
-    for i, v in pairs(needsapply) do
-        if v.desc == desc then return end
-    end
-
-    needsapply[#needsapply + 1] = { ctype = ctype, desc = desc }
-    local win = root:get_window("changes")
-    if win and (var_get("hidechanges") == 0) then win() end
-end)
-
-local CHANGE_GFX     = 1 << 0
-local CHANGE_SOUND   = 1 << 1
-local CHANGE_SHADERS = 1 << 2
-
-local changes_clear = function(ctype)
-    ctype = ctype or (CHANGE_GFX | CHANGE_SOUND | CHANGE_SHADERS)
-
-    needsapply = table2.filter(needsapply, function(i, v)
-        if (v.ctype & ctype) == 0 then
-            return true
-        end
-
-        v.ctype = (v.ctype & ~ctype)
-        if v.ctype == 0 then
-            return false
-        end
-
-        return true
-    end)
-end
-set_external("changes_clear", changes_clear)
-M.changes_clear = changes_clear
-
-M.changes_apply = function()
-    local changetypes = 0
-    for i, v in pairs(needsapply) do
-        changetypes |= v.ctype
-    end
-
-    if (changetypes & CHANGE_GFX) != 0 then
-        cs.execute("resetgl")
-    elseif (changetypes & CHANGE_SHADERS) != 0 then
-        cs.execute("resetshaders")
-    end
-    if (changetypes & CHANGE_SOUND) != 0 then
-        cs.execute("resetsound")
-    end
-end
-
-M.changes_get = function()
-    return table2.map(needsapply, function(v) return v.desc end)
-end
 
 --! Gets the default GUI root widget.
 M.get_root = function()

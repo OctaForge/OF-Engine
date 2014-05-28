@@ -13,6 +13,7 @@ local ffi = require("ffi")
 local ents, get_ent
 
 local ffi_new = ffi.new
+local tostring = tostring
 
 local gen_getwrap = function(fun, tp)
     local tpnm = tp .. "[1]"
@@ -231,13 +232,13 @@ if not SERVER then
 
     capi.text_get_bounds = function(text, maxw)
         local stor = ffi_new("int[2]")
-        text_get_bounds(text, maxw, stor)
+        text_get_bounds(tostring(text), maxw, stor)
         return stor[0], stor[1]
     end
 
     capi.text_get_boundsf = function(text, maxw)
         local stor = ffi_new("float[2]")
-        text_get_boundsf(text, maxw, stor)
+        text_get_boundsf(tostring(text), maxw, stor)
         return stor[0], stor[1]
     end
 
@@ -245,13 +246,13 @@ if not SERVER then
 
     capi.text_get_position = function(text, cursor, maxw)
         local stor = ffi_new("int[2]")
-        text_get_position(text, cursor, maxw, stor)
+        text_get_position(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
     end
 
     capi.text_get_positionf = function(text, cursor, maxw)
         local stor = ffi_new("float[2]")
-        text_get_positionf(text, cursor, maxw, stor)
+        text_get_positionf(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
     end
 end

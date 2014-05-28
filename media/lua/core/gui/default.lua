@@ -1,7 +1,9 @@
 local capi = require("capi")
 local ffi = require("ffi")
+local cs = require("core.engine.cubescript")
 local edit = require("core.engine.edit")
 local input = require("core.engine.input")
+local changes = require("core.engine.changes")
 local signal = require("core.events.signal")
 local ents = require("core.entities.ents")
 local svars = require("core.entities.svars")
@@ -459,17 +461,35 @@ set_ext("background_render", function(caption, mapname, mapinfo, mapshot)
         and ffi.cast("Texture*", mapshot) or nil, caption))
 end)
 
+--[[! Variable: applydialog
+    An engine variable that controls whether the "apply" dialog will show
+    on changes that need restart of some engine subsystem. Defaults to 1.
+]]
+cs.var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
+    cs.var_flags.PERSIST)
+cs.var_new("hidechanges", cs.var_type.int, 0, 0, 1)
+
+connect(changes, "add", |self, ctype, desc| do
+    if cs.var_get("applydialog") == 0 then return end
+    changes.add(ctype, desc)
+    if cs.var_get("hidechanges") == 0 then
+        root:show_window("changes")
+    end
+end)
+
+connect(root, "reset", || cs.var_set("hidechanges", 0))
+
 root:new_window("changes", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Changes")
-    connect(win, "destroy", || gui.changes_clear())
+    connect(win, "destroy", || changes.clear())
     win:append(gui.V_Box(), |b| do
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0,
             gui.Label { text = "The following settings have changed:" } })
         b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
             gui.Line { clamp_h = true, color = 0x303030 } })
-        for i, v in ipairs(gui.changes_get()) do
+        for i, v in ipairs(changes.get()) do
             b:append(gui.Label { text = v })
         end
         b:append(gui.Filler { clamp_h = true, min_h = 0.01 })
@@ -477,7 +497,7 @@ root:new_window("changes", gui.Window, |win| do
             gui.H_Box { padding = 0.01,
                 gui.Button { label = "OK", min_w = 0.15,
                     signals = { clicked = || do
-                        gui.changes_apply()
+                        changes.apply()
                         root:hide_window("changes")
                     end }
                 },

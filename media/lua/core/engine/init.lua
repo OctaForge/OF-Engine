@@ -26,3 +26,6 @@ require("core.engine.particles")
 
 log.log(log.DEBUG, ":::: Editing.")
 require("core.engine.edit")
+
+log.log(log.DEBUG, ":::: Changes.")
+require("core.engine.changes")
