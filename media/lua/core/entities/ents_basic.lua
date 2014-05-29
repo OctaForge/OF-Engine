@@ -1139,7 +1139,7 @@ M.Sound = Static_Entity:clone {
 
     __play_sound = function(self)
         capi.sound_play_map(self.uid, self:get_attr("sound_name"),
-            self:get_attr("volume"))
+            self:get_attr("volume"), -1)
     end
 }
 
