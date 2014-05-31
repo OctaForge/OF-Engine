@@ -354,10 +354,8 @@ M.Clipper = register_class("Clipper", Widget, {
         self.virt_w = self.w
         self.virt_h = self.h
 
-        local cw, ch = self.clip_w, self.clip_h
-
-        if cw != 0 then self.w = min(self.w, cw) end
-        if ch != 0 then self.h = min(self.h, ch) end
+        self.w = min(self.w, self.clip_w)
+        self.h = min(self.h, self.clip_h)
     end,
 
     adjust_children = function(self)
