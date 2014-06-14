@@ -97,13 +97,7 @@ local getsunparams = function(daytime, daylen)
     else
         pitch = 90 - ((daytime - mid) / mid) * 180
     end
-    local scale = 1
-    if pitch < -20 then
-        scale = 0
-    elseif pitch <= 0 then
-        scale = (pitch + 20) / 20
-    end
-    return yaw, pitch, scale
+    return yaw, pitch, math.max(0, pitch) / 90
 end
 
 --[[!
