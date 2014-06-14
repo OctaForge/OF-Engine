@@ -121,6 +121,7 @@ M.plugins = {
                 local yaw, pitch, scale = getsunparams(v, daylen * 1000)
                 lights.set_sun_yaw_pitch(yaw, pitch)
                 lights.set_sunlight_scale(scale)
+                lights.set_skylight_scale(scale)
             end)
         end or nil,
 

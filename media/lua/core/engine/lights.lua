@@ -98,6 +98,13 @@ return {
     end,
 
     --[[!
+        Sets the skylight scale temporarily.
+    ]]
+    set_skylight_scale = function(s)
+        capi.skylight_set_scale(s or 0)
+    end,
+
+    --[[!
         Resets the sun light yaw, pitch and scale back to variable values.
     ]]
     reset_sun = function()

@@ -4,7 +4,10 @@ CVAR1R(ambient, 0x191919);
 FVARR(ambientscale, 0, 1, 16);
 
 CVAR1R(skylight, 0);
-FVARR(skylightscale, 0, 1, 16);
+float skylightscale;
+FVARFNR(skylightscale, skylightscalev, 0, 1, 16, {
+    skylightscale = skylightscalev;
+});
 
 extern void setupsunlight();
 CVAR1FR(sunlight, 0,
@@ -46,12 +49,17 @@ CLUAICOMMAND(sunlight_reset, void, (), {
     sunlightyaw   = sunyaw;
     sunlightpitch = sunpitch;
     sunlightscale = sunlightscalev;
+    skylightscale = skylightscalev;
     setsunlightdir();
 })
 
 CLUAICOMMAND(sunlight_set_scale, void, (float scale), {
     sunlightscale = scale;
     setupsunlight();
+})
+
+CLUAICOMMAND(skylight_set_scale, void, (float scale), {
+    skylightscale = scale;
 })
 
 void setupsunlight()
