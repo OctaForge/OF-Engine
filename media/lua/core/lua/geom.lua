@@ -9,8 +9,9 @@
         See COPYING.txt.
 ]]
 
-local ffi = require("ffi")
-local log = require("core.logger")
+local capi = require("capi")
+local ffi  = require("ffi")
+local log  = require("core.logger")
 
 local gen_vec2 = function(tp, sf, mt)
     ffi.cdef(([[
@@ -48,10 +49,27 @@ local sin, cos, abs, min, max, sqrt, floor = math.sin, math.cos, math.abs,
 local clamp = function(v, l, h)
     return max(l, min(v, h))
 end
+local atan2, asin, deg = math.atan2, math.asin, math.deg
 
 local iton = { [0] = "x", [1] = "y", [2] = "z" }
 
 local M = {}
+
+--[[!
+    Normalizes an angle to be within +-180 degrees of some value.
+    Useful to know if we need to turn left or right in order to be
+    closer to something (we just need to check the sign, after normalizing
+    relative to that angle).
+
+    For example, for angle 100 and rel_to 300, this function returns 460
+    (as 460 is within 180 degrees of 300, but 100 isn't).
+]]
+local normalize_angle = function(angle, rel_to)
+    while angle < (rel_to - 180.0) do angle = angle + 360.0 end
+    while angle > (rel_to + 180.0) do angle = angle - 360.0 end
+    return angle
+end
+M.normalize_angle = normalize_angle
 
 local Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
     __new = function(self, x, y)
@@ -600,6 +618,84 @@ local Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return floor(clamp(self.r, 0, 1) * 255) << 16
                  | floor(clamp(self.g, 0, 1) * 255) <<  8
                  | floor(clamp(self.b, 0, 1) * 255)
+        end,
+
+        --[[!
+            Returns the distance to the floor below some given position.
+
+            Arguments:
+                - max_dist - the maximum distance.
+                - radius - optionally the radius to search within.
+                - lowest - if true, finds the lowest floor instead of highest
+                  floor, optional.
+        ]]
+        floor_distance = function(self, max_dist, radius, lowest)
+            local rt = capi.ray_floor(self.x, self.y, self.z, max_dist)
+            if not radius then return rt end
+
+            local tbl = { -radius / 2, 0, radius / 2 }
+
+            local f = min
+            if lowest then f = max end
+
+            for x = 1, #tbl do
+                for y = 1, #tbl do
+                    local o = self:add_new(Vec3(tbl[x], tbl[y], 0))
+                    rt = f(rt, capi.ray_floor(o.x, o.y, o.z, max_dist))
+                end
+            end
+
+            return rt
+        end,
+
+        --[[!
+            Returns true is the line between two given positions is clear
+            (if there are no obstructions). Returns false otherwise.
+        ]]
+        is_los = function(self, d)
+            return capi.ray_los(self.x, self.y, self.z, d.x, d.y, d.z)
+        end,
+
+        --[[!
+            Calculates the yaw from an origin to a target. Done on 2D data
+            only. If the last "reverse" argument is given as true, it
+            calculates away from the target. Returns the yaw.
+        ]]
+        yaw_to = function(self, target, reverse)
+            return reverse and target:yaw_to(self)
+                or deg(-(atan2(target.x - self.x, target.y - self.y)))
+        end,
+
+        --[[!
+            Calculates the pitch from an origin to a target. Done on 2D data
+            only. If the last "reverse" argument is given as true, it
+            calculates away from the target. Returns the pitch.
+        ]]
+        pitch_to = function(self, target, reverse)
+            return reverse and target:pitch_to(self)
+                or deg(asin((target.z - self.z) / self:dist(target)))
+        end,
+
+        --[[!
+            Checks if the yaw between two points is within acceptable error
+            range. Useful to see whether a character is facing closely enough
+            to the target, for example. Returns true if it is within the range,
+            false otherwise.
+        ]]
+        compare_yaw = function(self, target, yaw, acceptable)
+            return abs(normalize_angle(self:yaw_to(target), yaw) - yaw)
+                <= acceptable
+        end,
+
+        --[[!
+            Checks if the pitch between two points is within acceptable error
+            range. Useful to see whether a character is facing closely enough
+            to the target, for example. Returns true if it is within the range,
+            false otherwise.
+        ]]
+        compare_pitch = function(self, target, pitch, acceptable)
+            return abs(normalize_angle(self:pitch_to(target), pitch) - pitch)
+                <= acceptable
         end
     }
 })

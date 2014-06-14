@@ -12,8 +12,6 @@ local logging = require("core.logger")
 local log = logging.log
 local INFO = logging.INFO
 
-local table2 = require("core.lua.table")
-
 local M = {}
 
 local current_frame      = 0
@@ -24,7 +22,7 @@ local last_millis        = 0
 local require, setmetatable = require, setmetatable
 local ents, get_ents, get_highest_uid
 
-local copy = table2.copy
+local copy = table.copy
 
 --[[!
     Executed per frame from C++. It handles the current frame, meaning

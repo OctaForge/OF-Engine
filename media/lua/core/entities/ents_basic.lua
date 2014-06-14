@@ -23,7 +23,6 @@ local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
 local msg = require("core.network.msg")
-local table2 = require("core.lua.table")
 local cs = require("core.engine.cubescript")
 local conv = require("core.lua.conv")
 
@@ -42,8 +41,8 @@ local format = string.format
 local abs = math.abs
 local tconc = table.concat
 local min, max = math.min, math.max
-local clamp = require("core.lua.math").clamp
-local map = table2.map
+local clamp = math.clamp
+local map = table.map
 
 local set_attachments = capi.set_attachments
 

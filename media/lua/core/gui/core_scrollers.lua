@@ -9,14 +9,13 @@
 ]]
 
 local capi = require("capi")
-local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
 local get_curtime = capi.get_curtime
 
 local max   = math.max
 local min   = math.min
-local clamp = math2.clamp
+local clamp = math.clamp
 local emit  = signal.emit
 
 --! Module: core

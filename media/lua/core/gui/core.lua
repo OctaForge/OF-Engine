@@ -14,8 +14,6 @@
 local ffi = require("ffi")
 local capi = require("capi")
 local cs = require("core.engine.cubescript")
-local math2 = require("core.lua.math")
-local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 local logger = require("core.logger")
 local Vec2 = require("core.lua.geom").Vec2
@@ -35,7 +33,7 @@ local var_get, var_set = cs.var_get, cs.var_set
 -- external locals
 local max   = math.max
 local min   = math.min
-local clamp = math2.clamp
+local clamp = math.clamp
 local floor = math.floor
 local ceil  = math.ceil
 local emit  = signal.emit
@@ -362,7 +360,7 @@ M.orient = {:
 :}
 local orient = M.orient
 
-local Projection = table2.Object:clone {
+local Projection = table.Object:clone {
     __ctor = function(self, obj)
         self.obj = obj
         self.px, self.py, self.pw, self.ph = 0, 0, 0, 0
@@ -604,7 +602,7 @@ local Widget, Window
         - variants, states - See above.
         - container - see above.
 ]]
-M.Widget = register_class("Widget", table2.Object, {
+M.Widget = register_class("Widget", table.Object, {
     --[[!
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting

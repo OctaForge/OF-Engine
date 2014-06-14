@@ -8,7 +8,6 @@
         See COPYING.txt.
 ]]
 
-local table2 = require("core.lua.table")
 local cs = require("core.engine.cubescript")
 local signal = require("core.events.signal")
 
@@ -51,7 +50,7 @@ end
 M.clear = function(ctype)
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
-    needsapply = table2.filter(needsapply, function(i, v)
+    needsapply = table.filter(needsapply, function(i, v)
         if (v.ctype & ctype) == 0 then
             return true
         end
@@ -89,7 +88,7 @@ end
     Returns a table of all queued changes' descriptions.
 ]]
 M.get = function()
-    return table2.map(needsapply, function(v) return v.desc end)
+    return table.map(needsapply, function(v) return v.desc end)
 end
 
 return M

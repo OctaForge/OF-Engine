@@ -18,12 +18,10 @@ local DEBUG = logging.DEBUG
 local INFO  = logging.INFO
 
 local frame = require("core.events.frame")
-local math2 = require("core.lua.math")
 local geom  = require("core.lua.geom")
-local table2 = require("core.lua.table")
 
 local tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
-    math.abs, math2.round, math.floor, rawget
+    math.abs, math.round, math.floor, rawget
 
     --! Module: svars
 local M = {}
@@ -86,7 +84,7 @@ end
           the value will be cached for better performance (so we don't always
           have to query).
 ]]
-M.State_Variable = table2.Object:clone {
+M.State_Variable = table.Object:clone {
     name = "State_Variable",
 
     --! Makes svar objects return their name on tostring.
@@ -313,7 +311,7 @@ M.State_Boolean = State_Variable:clone {
 }
 State_Boolean = M.State_Boolean
 
-local ts, td = table2.serialize, table2.deserialize
+local ts, td = table.serialize, table.deserialize
 
 --[[!
     Specialization of $State_Variable for table values. Overrides
@@ -442,7 +440,7 @@ M.Array_Surrogate = {
 }
 Array_Surrogate = M.Array_Surrogate
 
-local tc, tcc, map = table2.copy, table.concat, table2.map
+local tc, tcc, map = table.copy, table.concat, table.map
 
 --[[!
     Specialization of <State_Variable> for arrays. Uses $Array_Surrogate

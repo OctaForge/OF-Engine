@@ -26,15 +26,13 @@ local svars = require("core.entities.svars")
 local cs = require("core.engine.cubescript")
 local model = require("core.engine.model")
 
-local table2 = require("core.lua.table")
-
 local set_external = require("core.externals").set
 
 local filter, filter_map, map, sort, concat, find, serialize, deserialize
-    = table2.filter, table2.filter_map, table2.map, table2.sort,
-      table.concat, table2.find, table2.serialize, table2.deserialize
+    = table.filter, table.filter_map, table.map, table.sort,
+      table.concat, table.find, table.serialize, table.deserialize
 
-local Vec3, emit = require("core.lua.math").Vec3, signal.emit
+local Vec3, emit = require("core.lua.geom").Vec3, signal.emit
 local max, floor = math.max, math.floor
 local pairs = pairs
 local assert = assert
@@ -728,7 +726,7 @@ set_external("entities_save_all", M.save)
         it will be saved during map save; if not, it's only temporary (and it
         will disappear when the map ends)
 ]]
-M.Entity = table2.Object:clone {
+M.Entity = table.Object:clone {
     name = "Entity",
 
     --[[!

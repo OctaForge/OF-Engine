@@ -9,7 +9,6 @@
 ]]
 
 local capi = require("capi")
-local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 
 local get_millis in capi
@@ -17,8 +16,8 @@ local get_millis in capi
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
-local clamp = math2.clamp
-local round = math2.round
+local clamp = math.clamp
+local round = math.round
 local emit  = signal.emit
 
 --! Module: core

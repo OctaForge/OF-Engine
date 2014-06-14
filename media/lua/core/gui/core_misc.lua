@@ -9,10 +9,9 @@
 ]]
 
 local capi = require("capi")
-local table2 = require("core.lua.table")
 local signal = require("core.events.signal")
 
-local find = table2.find
+local find = table.find
 local tremove = table.remove
 local type = type
 local min, max = math.min, math.max

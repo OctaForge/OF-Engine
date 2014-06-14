@@ -9,13 +9,11 @@
 ]]
 
 local log = require("core.logger")
-local math2 = require("core.lua.math")
-local table2 = require("core.lua.table")
 
 local type = type
 local rawget, rawset = rawget, rawset
-local clamp = math2.clamp
-local tfind = table2.find
+local clamp = math.clamp
+local tfind = table.find
 
 --! Module: signal
 local M = {}

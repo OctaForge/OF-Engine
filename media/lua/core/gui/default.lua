@@ -15,7 +15,7 @@ local Color = gui.Color
 local connect = signal.connect
 local max = math.max
 local tostring = tostring
-local sort = require("core.lua.table").sort
+local sort = table.sort
 
 -- buttons
 

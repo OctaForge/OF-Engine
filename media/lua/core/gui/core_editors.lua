@@ -9,10 +9,7 @@
 ]]
 
 local capi = require("capi")
-local math2 = require("core.lua.math")
-local table2 = require("core.lua.table")
 local stream = require("core.lua.stream")
-local string2 = require("core.lua.string")
 local signal = require("core.events.signal")
 local ffi = require("ffi")
 
@@ -27,11 +24,10 @@ text_font_get_w, text_font_get_h in capi
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
-local clamp = math2.clamp
+local clamp = math.clamp
 local floor = math.floor
 local emit  = signal.emit
 local tostring = tostring
-local split = string2.split
 
 --! Module: core
 local M = require("core.gui.core")
@@ -435,7 +431,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
     ]]
     reset_value = function(self)
         local str = self.value or ""
-        local strlines = split(str, "\n")
+        local strlines = str:split("\n")
         local lines = self.lines
         local cond = #strlines != #lines
         if not cond then
@@ -677,7 +673,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
             init = init or ""
             local lines = {}
             if type(init) != "table" then
-                init = split(init, "\n")
+                init = init:split("\n")
             end
             for i = 1, #init do lines[i] = editline(init[i]) end
             if #lines == 0 then lines[1] = editline() end

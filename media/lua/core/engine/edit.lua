@@ -266,7 +266,7 @@ edit_get_world_size in capi
 
 local assert = assert
 
-local clamp = require("core.lua.math").clamp
+local clamp = math.clamp
 
 --[[! Object: Selection
     Represents a selection structure that can be used for procedural editing.

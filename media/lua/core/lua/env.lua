@@ -87,50 +87,11 @@ local env_structure = {
         ["tobit"     ] = true,
         ["tohex"     ] = true
     },
-    ["coroutine"     ] = {
-        ["create"    ] = true,
-        ["resume"    ] = true,
-        ["running"   ] = true,
-        ["status"    ] = true,
-        ["wrap"      ] = true,
-        ["yield"     ] = true
-    },
+    ["coroutine"     ] = true,
     ["error"         ] = true,
     ["getmetatable"  ] = true,
     ["ipairs"        ] = true,
-    ["math"          ] = {
-        ["abs"       ] = true,
-        ["acos"      ] = true,
-        ["asin"      ] = true,
-        ["atan"      ] = true,
-        ["atan2"     ] = true,
-        ["ceil"      ] = true,
-        ["cos"       ] = true,
-        ["cosh"      ] = true,
-        ["deg"       ] = true,
-        ["exp"       ] = true,
-        ["floor"     ] = true,
-        ["fmod"      ] = true,
-        ["frexp"     ] = true,
-        ["huge"      ] = true,
-        ["ldexp"     ] = true,
-        ["log"       ] = true,
-        ["log10"     ] = true,
-        ["max"       ] = true,
-        ["min"       ] = true,
-        ["mod"       ] = true,
-        ["modf"      ] = true,
-        ["pi"        ] = true,
-        ["pow"       ] = true,
-        ["rad"       ] = true,
-        ["random"    ] = true,
-        ["randomseed"] = true,
-        ["sin"       ] = true,
-        ["sinh"      ] = true,
-        ["sqrt"      ] = true,
-        ["tan"       ] = true,
-        ["tanh"      ] = true,
-    },
+    ["math"          ] = true,
     ["next"          ] = true,
     ["os"            ] = {
         ["clock"     ] = true,
@@ -148,30 +109,8 @@ local env_structure = {
     ["require"       ] = true,
     ["select"        ] = true,
     ["setmetatable"  ] = true,
-    ["string"        ] = {
-        ["byte"      ] = true,
-        ["char"      ] = true,
-        ["find"      ] = true,
-        ["format"    ] = true,
-        ["gmatch"    ] = true,
-        ["gsub"      ] = true,
-        ["len"       ] = true,
-        ["lower"     ] = true,
-        ["match"     ] = true,
-        ["rep"       ] = true,
-        ["reverse"   ] = true,
-        ["sub"       ] = true,
-        ["upper"     ] = true
-    },
-    ["table"         ] = {
-        ["concat"    ] = true,
-        ["foreach"   ] = true,
-        ["foreachi"  ] = true,
-        ["insert"    ] = true,
-        ["remove"    ] = true,
-        ["maxn"      ] = true,
-        ["sort"      ] = true
-    },
+    ["string"        ] = true,
+    ["table"         ] = true,
     ["tonumber"      ] = true,
     ["tostring"      ] = true,
     ["type"          ] = true,
@@ -278,10 +217,7 @@ local consolemap = {
     ["core.logger"           ] = "logger",
     ["core.lua.conv"         ] = "conv",
     ["core.lua.geom"         ] = "geom",
-    ["core.lua.math"         ] = "mathext",
     ["core.lua.stream"       ] = "stream",
-    ["core.lua.string"       ] = "stringext",
-    ["core.lua.table"        ] = "tableext",
     ["core.network.msg"      ] = "msg"
 }
 
@@ -336,10 +272,7 @@ local ext_set = require("core.externals").set
         - core.logger - logger
         - core.lua.conv - conv
         - core.lua.geom - geom
-        - core.lua.math - mathext
         - core.lua.stream - stream
-        - core.lua.string - stringext
-        - core.lua.table - tableext
         - core.network.msg - msg
 
     Other global variables:

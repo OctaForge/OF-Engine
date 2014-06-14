@@ -10,9 +10,6 @@
 
 local capi = require("capi")
 
---! Module: table
-local M = {}
-
 local ctable = capi.table_create
 local pairs, ipairs = pairs, ipairs
 local type, setmetatable = type, setmetatable
@@ -30,7 +27,7 @@ local ext_set = require("core.externals").set
     there is any non-array element found, returns false. Otherwise
     returns true.
 ]]
-M.is_array = function(t)
+table.is_array = function(t)
     local i = 0
     while t[i + 1] do i = i + 1 end
     for _ in pairs(t) do
@@ -39,7 +36,7 @@ M.is_array = function(t)
     return i == 0
 end
 
-local is_array = M.is_array
+local is_array = table.is_array
 
 --[[!
     Implements the standard functional "map" higher order function. Returns
@@ -56,7 +53,7 @@ local is_array = M.is_array
         - t - the table.
         - f - the function.
 ]]
-M.map = function(t, f)
+table.map = function(t, f)
     local r = {}
     for i, v in pairs(t) do r[i] = f(v) end
     return r
@@ -65,7 +62,7 @@ end
 --[[!
     Merges two arrays. Contents of the other come after those of the first one.
 ]]
-M.merge = function(ta, tb)
+table.merge = function(ta, tb)
     local l1, l2 = #ta, #tb
     local r = ctable(l1 + l2)
     for i = 1, l1 do r[#r + 1] = ta[i] end
@@ -77,7 +74,7 @@ end
     Merges two associative arrays (maps). When a key overlaps, the latter
     value is preferred.
 ]]
-M.merge_maps = function(ta, tb)
+table.merge_maps = function(ta, tb)
     local r = {}
     for a, b in pairs(ta) do r[a] = b end
     for a, b in pairs(tb) do r[a] = b end
@@ -87,7 +84,7 @@ end
 --[[!
     Returns a copy of the given table. It's a shallow copy.
 ]]
-M.copy = function(t)
+table.copy = function(t)
     local r = ctable(#t)
     for a, b in pairs(t) do r[a] = b end
     return r
@@ -120,7 +117,7 @@ end
     See also:
         - $filter_map
 ]]
-M.filter = function(t, f)
+table.filter = function(t, f)
     local r = {}
     for i = 1, #t do if f(i, t[i]) then r[#r + 1] = t[i] end end
     return r
@@ -143,7 +140,7 @@ end
     end)
     ```
 ]]
-M.filter_map = function(t, f)
+table.filter_map = function(t, f)
     local r = {}
     for a, b in pairs(t) do if f(a, b) then r[a] = b end end
     return r
@@ -166,7 +163,7 @@ end
         - t - the table.
         - f - the conditional function.
 ]]
-M.compact = function(t, f)
+table.compact = function(t, f)
     local olen, comp = #t, 0
     for i = 1, olen do
         local v = t[i]
@@ -183,7 +180,7 @@ end
          - t - the table.
          - v - the element (its value).
 ]]
-M.find = function(t, v)
+table.find = function(t, v)
     for a, b in pairs(t) do if v == b then return a end end
 end
 
@@ -203,7 +200,7 @@ end
     See also:
         - $foldl
 ]]
-M.foldr = function(t, fun, z)
+table.foldr = function(t, fun, z)
     local idx = 1
     if not z then
         z   = t[1]
@@ -222,7 +219,7 @@ end
     See also:
         - $foldl
 ]]
-M.foldl = function(t, fun, z)
+table.foldl = function(t, fun, z)
     local len = #t
     if not z then
         z   = t[len]
@@ -235,15 +232,13 @@ M.foldl = function(t, fun, z)
     return z
 end
 
-local escape_string = require("core.lua.string").escape
-
 local function serialize_fn(v, stream, kwargs, simp, tables, indent)
     if simp then
         v = simp(v)
     end
     local tv = type(v)
     if tv == "string" then
-        stream(escape_string(v))
+        stream(v:escape())
     elseif tv == "number" or tv == "boolean" then
         stream(tostring(v))
     elseif tv == "table" then
@@ -401,7 +396,7 @@ local serialize = function(val, kwargs, stream, simplifier)
         end
     end
 end
-M.serialize = serialize
+table.serialize = serialize
 ext_set("table_serialize", serialize)
 
 local lex_get = function(ls)
@@ -571,7 +566,7 @@ end
     External as "table_deserialize". This returns the deserialized value on
     success and nil + the error message on failure.
 ]]
-M.deserialize = function(s)
+table.deserialize = function(s)
     local stream = (type(s) == "string") and s:gmatch(".") or s
     local ls = { curr = stream(), rdr = stream, linenum = 1 }
     local r, v = pcall(lex_get, ls)
@@ -580,7 +575,7 @@ M.deserialize = function(s)
     if not r then return nil, v end
     return v
 end
-ext_set("table_deserialize", M.deserialize)
+ext_set("table_deserialize", table.deserialize)
 
 local sift_down = function(tbl, l, s, e, fun)
     local root = s
@@ -674,7 +669,7 @@ local defaultcmp = function(a, b) return a < b end
     sort to sort small sublists (10 elements and smaller). The
     quicksort part uses a median of three pivot.
 ]]
-M.sort = function(tbl, fun, l, r)
+table.sort = function(tbl, fun, l, r)
     l, r = l or 1, r or #tbl
     return introsort(tbl, l, r, fun or defaultcmp)
 end
@@ -687,7 +682,7 @@ end
     Provides the basis for any object in OF. It implements a simple prototypal
     OO system.
 ]]
-M.Object = {
+table.Object = {
     --[[!
         When you call an object, it's identical to $clone, but it also
         tries to call a __ctor field of the current object on the result,
@@ -748,5 +743,3 @@ M.Object = {
         return ("Object: %s"):format(self.name or "unnamed")
     end
 }
-
-return M

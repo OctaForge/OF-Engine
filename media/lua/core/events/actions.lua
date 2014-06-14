@@ -18,8 +18,7 @@ local log = logging.log
 local INFO = logging.INFO
 local WARNING = logging.WARNING
 
-local table2 = require("core.lua.table")
-local compact = table2.compact
+local compact = table.compact
 
 local createtable = capi.table_create
 
@@ -55,7 +54,7 @@ local M = {}
           as soon as the other action does). Useful for e.g. animations that
           run in parallel.
 ]]
-M.Action = table2.Object:clone {
+M.Action = table.Object:clone {
     name = "Action",
 
     --[[!
@@ -233,7 +232,7 @@ M.Infinite_Action = Action:clone {
         - parent - the parent entity of this action queue.
         - actions - an array of actions.
 ]]
-M.Action_Queue = table2.Object:clone {
+M.Action_Queue = table.Object:clone {
     name = "Action_Queue",
 
     --[[!

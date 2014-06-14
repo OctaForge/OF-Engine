@@ -10,7 +10,6 @@
 
 local actions = require("core.events.actions")
 local input   = require("core.events.input")
-local table2  = require("core.lua.table")
 
 --! Module: actions
 local M = {}
@@ -19,7 +18,7 @@ local Action = actions.Action
 local Action_Queue = actions.Action_Queue
 
 local ipairs = ipairs
-local compact = table2.compact
+local compact = table.compact
 
 --[[!
     A container action that can queue more actions into itself, which run on

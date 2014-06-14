@@ -14,9 +14,6 @@
         See COPYING.txt.
 ]]
 
---! Module: string
-local M = {}
-
 --[[!
     Splits a string using the given parameters.
 
@@ -30,7 +27,7 @@ local M = {}
     assert(table.concat(b) == "abcdefghijkl")
     ```
 ]]
-M.split = function(str, delim)
+string.split = function(str, delim)
     delim = delim or ","
     local r = {}
     for ch in str:gmatch("([^" .. delim .. "]+)") do
@@ -47,7 +44,7 @@ end
         - start - the starting index to delete.
         - count - the number of characters to delete.
 ]]
-M.del = function(str, start, count)
+string.del = function(str, start, count)
     return table.concat { str:sub(1, start - 1), str:sub(start + count) }
 end
 
@@ -59,7 +56,7 @@ end
         - idx - the index where to start the inserted substring.
         - new - the string to insert.
 ]]
-M.insert = function(str, idx, new)
+string.insert = function(str, idx, new)
     return table.concat { str:sub(1, idx - 1), new, str:sub(idx) }
 end
 
@@ -80,7 +77,7 @@ local str_escapes = setmetatable({
     result with ' or " depending on the number of nested ' and " (uses the
     one that needs less escaping).
 ]]
-M.escape = function(s)
+string.escape = function(s)
     -- a space optimization: decide which string quote to
     -- use as a delimiter (the one that needs less escaping)
     local nsq, ndq = 0, 0
@@ -89,13 +86,3 @@ M.escape = function(s)
     local sd = (ndq > nsq) and "'" or '"'
     return sd .. s:gsub("[\\"..sd.."%z\001-\031]", str_escapes) .. sd
 end
-
-local funmap = {
-    "byte" , "char" , "find", "format" , "gmatch", "gsub", "len",
-    "lower", "match", "rep" , "reverse", "sub"   , "upper"
-}
-for i, v in ipairs(funmap) do M[v] = string[v] end
-
-getmetatable("").__index = M
-
-return M

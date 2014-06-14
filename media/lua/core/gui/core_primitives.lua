@@ -12,7 +12,6 @@ local capi = require("capi")
 local ffi = require("ffi")
 local model = require("core.engine.model")
 local cs = require("core.engine.cubescript")
-local math2 = require("core.lua.math")
 local signal = require("core.events.signal")
 local geom = require("core.lua.geom")
 
@@ -30,7 +29,7 @@ console_render_full, text_font_get_w, text_font_get_h, prefab_preview in capi
 local max   = math.max
 local min   = math.min
 local abs   = math.abs
-local clamp = math2.clamp
+local clamp = math.clamp
 local floor = math.floor
 local ceil  = math.ceil
 local huge  = math.huge
