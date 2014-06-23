@@ -655,7 +655,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
     set_line_wrap = gen_ed_setter "line_wrap",
 
     clear = function(self)
-        self:set_focus(nil)
+        self:set_focused(false)
         self:bind_h_scrollbar()
         self:bind_v_scrollbar()
         return Widget.clear(self)
@@ -695,7 +695,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
         if not self:is_focused() then return false end
 
         if code == key.ESCAPE then
-            if isdown then self:set_focus(nil) end
+            if isdown then self:set_focused(false) end
             return true
         elseif code == key.RETURN then
             if not self.multiline then
@@ -990,7 +990,7 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
     end,
 
     commit = function(self)
-        self:set_focus(nil)
+        self:set_focused(false)
     end,
 
     holding = function(self, cx, cy, code)
@@ -1009,16 +1009,15 @@ M.Text_Editor = register_class("Text_Editor", Widget, {
         Widget.holding(self, cx, cy, code)
     end,
 
-    set_focus = function(self, ed)
-        if ed:is_focused() then return end
-        ed:set_focused(true)
-        local ati = ed and ed:allow_text_input() or false
+    set_focused = function(self, foc)
+        Widget.set_focused(self, foc)
+        local ati = foc and self:allow_text_input() or false
         input_textinput(ati, 1 << 1) -- TI_GUI
         input_keyrepeat(ati, 1 << 1) -- KR_GUI
     end,
 
     clicked = function(self, cx, cy, code)
-        self:set_focus(self)
+        self:set_focused(true)
         self:mark()
         self._oh, self._ov = cx, cy
 
