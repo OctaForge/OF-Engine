@@ -673,10 +673,12 @@ namespace lua
             lua_pushfstring(L, "@%s", fname);
             stream *f = openfile(fname, "rb");
             if (!f) return err_file(L, "open", fnameidx);
-            f->seek(0, SEEK_END);
-            size_t size = f->tell();
+            size_t size = f->size();
+            if (size <= 0) {
+                delete f;
+                return err_file(L, "read", fnameidx);
+            }
             buf.growbuf(size);
-            f->seek(0, SEEK_SET);
             size_t asize = f->read(buf.getbuf(), size);
             if (size != asize) {
                 delete f;
