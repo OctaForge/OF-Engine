@@ -509,4 +509,9 @@ M.lookup_material = capi.edit_lookup_material
 ]]
 M.get_material = capi.edit_get_material
 
+--[[! Function: get_world_size
+    Retrieves the current world size in cube units.
+]]
+M.get_world_size = edit_get_world_size
+
 return M
