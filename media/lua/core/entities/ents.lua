@@ -119,10 +119,6 @@ end
 local plugin_slots = {
     "__init_svars", "__activate", "__deactivate", "__run", "__render"
 }
-local plugin_slotset = {
-    ["__init_svars"] = true, ["__activate"] = true, ["__deactivate"] = true,
-    ["__run"       ] = true, ["__render"  ] = true
-}
 
 local ipairs, pairs = ipairs, pairs
 local assert, type = assert, type
@@ -134,8 +130,13 @@ local register_plugins = function(cl, plugins, name)
     local cldata = {}
     local properties
 
+    local clmeths = cl["__plugin_methods"] or {}
+    for i, v in ipairs(plugin_slots) do clmeths[#clmeths + 1] = v end
+    local clmethset = {}
+    for i, v in ipairs(clmeths) do clmethset[v] = true end
+
     local clname = cl.name
-    for i, slot in ipairs(plugin_slots) do
+    for i, slot in ipairs(clmeths) do
         local slotname = modprefix .. clname .. slot
         assert(not cl[slotname])
 
@@ -157,7 +158,7 @@ local register_plugins = function(cl, plugins, name)
 
     for i, plugin in ipairs(plugins) do
         for name, elem in pairs(plugin) do
-            if not plugin_slotset[name] then
+            if not clmethset[name] then
                 if name == "__properties" then
                     assert(type(elem) == "table")
                     if not properties then
