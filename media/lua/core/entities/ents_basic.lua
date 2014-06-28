@@ -1149,13 +1149,16 @@ end)
 --[[!
     A particle effect entity class. You can derive from this to create
     your own effects, but by default this doesn't draw anything and is
-    not registered.
+    not registered. It also specifies __emit_particles as a composable
+    method.
 ]]
 M.Particle_Effect = Static_Entity:clone {
     name = "Particle_Effect",
 
     __edit_icon  = "media/interface/icon/edit_particles",
     sauer_type = 7,
+
+    __plugin_methods = { "__emit_particles" },
 
     --! Returns 0.
     get_edit_drop_height = function(self)
