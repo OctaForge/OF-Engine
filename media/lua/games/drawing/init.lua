@@ -138,14 +138,14 @@ local Game_Player = Player:clone {
     end or nil
 }
 
-ents.register_class(Game_Player, {
+ents.register_prototype(Game_Player, {
     game_manager.player_plugin,
     health.player_plugin,
     health.plugins.player_hud,
     health.plugins.player_off_map,
     health.plugins.player_in_deadly_material
 })
-ents.register_class(ents.Obstacle, { health.plugins.area },
+ents.register_prototype(ents.Obstacle, { health.plugins.area },
     "Health_Area")
 
 day_manager.setup({ day_manager.plugins.day_night })
@@ -166,5 +166,5 @@ if not SERVER then
         end
     end)
 else
-    ents.set_player_class("Game_Player")
+    ents.set_player_prototype("Game_Player")
 end

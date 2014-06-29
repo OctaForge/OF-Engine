@@ -20,13 +20,13 @@ local M = require("core.gui.core")
 local gl, key = M.gl, M.key
 
 -- widget types
-local register_class = M.register_class
+local register_type = M.register_type
 
 -- children iteration
 local loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
 -- base widgets
-local Widget = M.get_class("Widget")
+local Widget = M.get_type("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -63,7 +63,7 @@ end
         - $V_Box
         - $Grid
 ]]
-M.H_Box = register_class("H_Box", Widget, {
+M.H_Box = register_type("H_Box", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding    = kwargs.padding    or 0
@@ -146,7 +146,7 @@ M.H_Box = register_class("H_Box", Widget, {
     See $H_Box. This is a vertical variant, for its properties top/bottom
     clamping is relevant rather than left/right.
 ]]
-M.V_Box = register_class("V_Box", Widget, {
+M.V_Box = register_type("V_Box", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding    = kwargs.padding    or 0
@@ -242,7 +242,7 @@ M.V_Box = register_class("V_Box", Widget, {
     See also:
         - $H_Box
 ]]
-M.Grid = register_class("Grid", Widget, {
+M.Grid = register_type("Grid", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.columns = kwargs.columns or 0
@@ -337,7 +337,7 @@ M.Grid = register_class("Grid", Widget, {
         - clip_w - the width of the clipper.
         - clip_h - the height of the clipper.
 ]]
-M.Clipper = register_class("Clipper", Widget, {
+M.Clipper = register_type("Clipper", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.clip_w = kwargs.clip_w or 0

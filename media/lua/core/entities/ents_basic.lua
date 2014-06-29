@@ -87,12 +87,12 @@ local mrender = (not SERVER) and model.render
 local M = ents
 
 --[[!
-    Represents the base class for any character (NPC, player etc.). Players
-    use the $Player entity class that inherits from this one.
+    Represents the base prototype for any character (NPC, player etc.). Players
+    use the $Player entity prototype that inherits from this one.
     Inherited property model_name defaults to "player".
 
-    This entity class defines several more properties that do not belong to any
-    state variable. These mostly correspond to client_state == {{$State}}.*.
+    This entity prototype defines several more properties that do not belong to
+    any state variable. These mostly correspond to client_state == {{$State}}.*.
     More will be defined later as needed.
 
     Non-svar properties:
@@ -678,7 +678,7 @@ set_external("entity_set_local_animation", function(uid, anim)
 end)
 
 --[[!
-    The default entity class for player. Inherits from $Character. Adds
+    The default entity prototype for player. Inherits from $Character. Adds
     two new properties.
 
     Properties:
@@ -701,8 +701,8 @@ M.Player = Character:clone {
     end or nil
 }
 
-ents.register_class(Character)
-ents.register_class(M.Player)
+ents.register_prototype(Character)
+ents.register_prototype(M.Player)
 
 local c_get_attr = capi.get_attr
 local c_set_attr = capi.set_attr
@@ -725,7 +725,7 @@ end
     Static entities are persistent by default, so they set the `persistent`
     inherited property to true.
 
-    This entity class is never registered, the inherited ones are.
+    This entity prototype is never registered, the inherited ones are.
 
     Properties:
         position [{{$svars.State_Vec3}}] - the entity position.
@@ -1050,7 +1050,7 @@ M.Spot_Light = Static_Entity:clone {
 }
 
 --[[!
-    An environment map entity class. Things reflecting on their surface using
+    An environment map entity prototype. Things reflecting on their surface using
     environment maps can generate their envmap from the nearest envmap entity
     instead of using skybox and reflect geometry that way (statically). You
     can specify the radius as an extra argument to newent.
@@ -1147,7 +1147,7 @@ set_external("sound_play_map", function(uid)
 end)
 
 --[[!
-    A particle effect entity class. You can derive from this to create
+    A particle effect entity prototype. You can derive from this to create
     your own effects, but by default this doesn't draw anything and is
     not registered. It also specifies __emit_particles as a composable
     method.
@@ -1271,7 +1271,7 @@ set_external("physics_collide_mapmodel", function(collider, entity)
 end)
 
 --[[!
-    An entity class that emits a `collision` signal on itself when a client
+    An entity prototype that emits a `collision` signal on itself when a client
     (player, NPC...) collides with it. You can specify the properties as extra
     arguments to newent.
 
@@ -1324,7 +1324,7 @@ M.Obstacle = Static_Entity:clone {
 }
 
 --[[!
-    A decal entity class. It represents a decal that sticks to world geometry.
+    A decal entity prototype. It represents a decal that sticks to world geometry.
     Refer to Tesseract documentation for decals. You can specify the properties
     as extra arguments to newent, in slot, size, yaw, pitch, roll order
     (unlike Tesseract, which is slot, yaw, pitch, roll, size).
@@ -1383,11 +1383,11 @@ set_external("physics_collide_area", function(collider, entity)
     emit(collider, "collision", entity)
 end)
 
-ents.register_class(M.Marker)
-ents.register_class(M.Oriented_Marker)
-ents.register_class(M.Light)
-ents.register_class(M.Spot_Light)
-ents.register_class(M.Envmap)
-ents.register_class(M.Sound)
-ents.register_class(M.Mapmodel)
-ents.register_class(M.Obstacle)
+ents.register_prototype(M.Marker)
+ents.register_prototype(M.Oriented_Marker)
+ents.register_prototype(M.Light)
+ents.register_prototype(M.Spot_Light)
+ents.register_prototype(M.Envmap)
+ents.register_prototype(M.Sound)
+ents.register_prototype(M.Mapmodel)
+ents.register_prototype(M.Obstacle)

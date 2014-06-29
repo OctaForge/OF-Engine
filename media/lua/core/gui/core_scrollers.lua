@@ -25,10 +25,10 @@ local M = require("core.gui.core")
 local key = M.key
 
 -- widget types
-local register_class = M.register_class
+local register_type = M.register_type
 
 -- base widgets
-local Widget = M.get_class("Widget")
+local Widget = M.get_type("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -46,7 +46,7 @@ local Clipper = M.Clipper
     There are scrollbars provided further below. Text editors implement
     the same interface as scrollers, thus they can be used as scrollers.
 ]]
-M.Scroller = register_class("Scroller", Clipper, {
+M.Scroller = register_type("Scroller", Clipper, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -234,7 +234,7 @@ M.Scroller = register_class("Scroller", Clipper, {
 local Scroll_Button
 
 --[[!
-    A base scrollbar widget class. This one is not of much use.
+    A base scrollbar widget type. This one is not of much use.
 
     Scrollbars can be used with widgets that implement the right interface -
     scrollers and text editors (including fields).
@@ -246,7 +246,7 @@ local Scroll_Button
           frame_time * arrow_speed, when used with text editors mouse scroll
           is 6 * fonth * arrow_speed. Defaults to 0.5.
 ]]
-M.Scrollbar = register_class("Scrollbar", Widget, {
+M.Scrollbar = register_type("Scrollbar", Widget, {
     orient = -1,
 
     __ctor = function(self, kwargs)
@@ -378,7 +378,7 @@ local clicked_states = {
     A scroll button has seven states, "default", "hovering", "clicked_left",
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
 ]]
-M.Scroll_Button = register_class("Scroll_Button", Widget, {
+M.Scroll_Button = register_type("Scroll_Button", Widget, {
     __ctor = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
@@ -426,7 +426,7 @@ Scroll_Button = M.Scroll_Button
     Has thirteen states - "default", "(left|right)_hovering",
     "(left|right)_clicked_(left|right|middle|back|forward)".
 ]]
-M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
+M.H_Scrollbar = register_type("H_Scrollbar", Scrollbar, {
     orient = orient.HORIZONTAL,
 
     bind_scroller = function(self, sc)
@@ -521,7 +521,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     See $H_Scrollbar above. Has states "default", "(up|down)_hovering" and
     "(up|down)_clicked_(left|right|middle|back|forward)".
 ]]
-M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
+M.V_Scrollbar = register_type("V_Scrollbar", Scrollbar, {
     orient = orient.VERTICAL,
 
     bind_scroller = function(self, sc)

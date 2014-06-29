@@ -154,7 +154,7 @@ M.Steam_Effect = Particle_Effect:clone {
     end
 }
 
-ents.register_class(M.Fire_Effect)
-ents.register_class(M.Steam_Effect)
+ents.register_prototype(M.Fire_Effect)
+ents.register_prototype(M.Steam_Effect)
 
 return M

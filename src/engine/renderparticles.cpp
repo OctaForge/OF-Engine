@@ -1583,7 +1583,7 @@ void updateparticles()
             extentity &e = *ents[entgroup[i]];
             if (!LogicSystem::getLogicEntity(e)) continue;
             const char *cn;
-            lua::pop_external_ret(lua::call_external_ret("entity_get_class_name", "i", "s", e.uid, &cn));
+            lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name", "i", "s", e.uid, &cn));
             particle_textcopy(e.o, cn, PART_TEXT, 1, vec(1.0f, 0.3f, 0.1f), 2.0f, 0);
         }
         loopv(ents)
@@ -1592,7 +1592,7 @@ void updateparticles()
             if (!LogicSystem::getLogicEntity(e)) continue;
 
             const char *name;
-            lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
+            lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
                 "i", "s", e.uid, &name));
 
             const char *icon;

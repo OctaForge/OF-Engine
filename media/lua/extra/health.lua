@@ -83,7 +83,7 @@ local Death_Action = SERVER and actions.Action:clone {
 M.Death_Action = Death_Action
 
 --[[!
-    The player plugin - use it when baking your player entity class. Must be
+    The player plugin - use it when baking your player entity prototype. Must be
     used after the game manager player plugin has been baked in (it overrides
     some of its stuff).
 
@@ -118,7 +118,7 @@ M.player_plugin = {
     end or nil,
 
     get_animation = function(self)
-        local ret = self.__parent_class.get_animation(self)
+        local ret = self.__parent_ent_proto.get_animation(self)
         local INDEX, idle = model.anims.INDEX, model.anims.idle
         if self:get_attr("health") > 0 then
             if (ret & INDEX) == anims.dying or (ret & INDEX) == anims.dead then
@@ -151,7 +151,7 @@ M.player_plugin = {
     ]]
     decide_animation = (not SERVER) and function(self, ...)
         if self:get_attr("health") > 0 then
-            return self.__parent_class.decide_animation(self, ...)
+            return self.__parent_ent_proto.decide_animation(self, ...)
         else
             local anim
             local pbt = self.prev_bt

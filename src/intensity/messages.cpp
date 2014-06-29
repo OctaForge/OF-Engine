@@ -294,7 +294,7 @@ namespace MessageSystem
         }
         // Validate class
         bool b;
-        lua::pop_external_ret(lua::call_external_ret("entity_class_exists", "s", "b", _class, &b));
+        lua::pop_external_ret(lua::call_external_ret("entity_proto_exists", "s", "b", _class, &b));
         if (!b) return;
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s|%s", _class, x, y, z, stateData, newent_data);

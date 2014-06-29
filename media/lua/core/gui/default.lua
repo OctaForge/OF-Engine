@@ -641,7 +641,7 @@ root:new_window("entity_new", gui.Window, |win| do
     win:set_title("New entity")
 
     local cnames = {}
-    for k, v in pairs(ents.get_all_classes()) do
+    for k, v in pairs(ents.get_all_prototypes()) do
         if v:is_a(ents.Static_Entity) then
             cnames[#cnames + 1] = k
         end

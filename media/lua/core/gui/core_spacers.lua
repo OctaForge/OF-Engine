@@ -20,13 +20,13 @@ local M = require("core.gui.core")
 local capi = require("capi")
 
 -- widget types
-local register_class = M.register_class
+local register_type = M.register_type
 
 -- children iteration
 local loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
 -- base widgets
-local Widget = M.get_class("Widget")
+local Widget = M.get_type("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -37,7 +37,7 @@ local gen_setter = M.gen_setter
     Properties:
         - pad_h, pad_v - the padding values, both default to 0.
 ]]
-M.Spacer = register_class("Spacer", Widget, {
+M.Spacer = register_type("Spacer", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.pad_h = kwargs.pad_h or 0
@@ -93,7 +93,7 @@ M.Spacer = register_class("Spacer", Widget, {
           parts outside of the filler, they won't be viisble), defaults
           to false (useful for MDI windows for example).
 ]]
-M.Filler = register_class("Filler", Widget, {
+M.Filler = register_type("Filler", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_w = kwargs.min_w or 0
@@ -166,7 +166,7 @@ local Filler = M.Filler
         - console_text - if true (false by default), this will use console
           scaling factor rather than regular text scaling factor.
 ]]
-M.Text_Filler = register_class("Text_Filler", Filler, {
+M.Text_Filler = register_type("Text_Filler", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.console_text = kwargs.console_text or false
@@ -193,7 +193,7 @@ M.Text_Filler = register_class("Text_Filler", Filler, {
     Properties:
         - offset_h, offset_v - the offset values.
 ]]
-M.Offsetter = register_class("Offsetter", Widget, {
+M.Offsetter = register_type("Offsetter", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.offset_h = kwargs.offset_h or 0

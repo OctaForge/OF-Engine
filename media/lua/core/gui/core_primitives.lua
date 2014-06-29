@@ -50,7 +50,7 @@ local M = require("core.gui.core")
 local gl = M.gl
 
 -- widget types
-local register_class = M.register_class
+local register_type = M.register_type
 
 -- primitive drawing
 local quad, quadtri = M.draw_quad, M.draw_quadtri
@@ -59,7 +59,7 @@ local quad, quadtri = M.draw_quad, M.draw_quadtri
 local Color = M.Color
 
 -- base widgets
-local Widget = M.get_class("Widget")
+local Widget = M.get_type("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -88,7 +88,7 @@ end
         - solid - if true, it's a solid color rectangle (default), otherwise
           it modulates the color its background.
 ]]
-M.Color_Filler = register_class("Color_Filler", Filler, {
+M.Color_Filler = register_type("Color_Filler", Filler, {
     __ctor = function(self, kwargs)
         kwargs       = kwargs or {}
         self.solid = kwargs.solid != false and true or false
@@ -138,7 +138,7 @@ local Color_Filler = M.Color_Filler
           it's horizontal.
         - color2 - the other color of the gradient.
 ]]
-M.Gradient = register_class("Gradient", Color_Filler, {
+M.Gradient = register_type("Gradient", Color_Filler, {
     __ctor = function(self, kwargs)
         Color_Filler.__ctor(self, kwargs)
         self.horizontal = kwargs.horizontal
@@ -192,7 +192,7 @@ M.Gradient = register_class("Gradient", Color_Filler, {
     Properties:
         - color - see $Color_Filler.
 ]]
-M.Line = register_class("Line", Filler, {
+M.Line = register_type("Line", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.color = init_color(kwargs.color)
@@ -225,7 +225,7 @@ M.Line = register_class("Line", Filler, {
     Properties:
         - color - see $Color_Filler.
 ]]
-M.Outline = register_class("Outline", Filler, {
+M.Outline = register_type("Outline", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.color = init_color(kwargs.color)
@@ -287,7 +287,7 @@ end
           GL_TEXTURE_MAG_FILTER as well as filters later in this module.
         - color - see $Color_Filler.
 ]]
-M.Image = register_class("Image", Filler, {
+M.Image = register_type("Image", Filler, {
     __ctor = function(self, kwargs)
         kwargs    = kwargs or {}
         local tex = kwargs.file and texture_load(kwargs.file)
@@ -413,7 +413,7 @@ local Image = M.Image
     Represents a raw texture. Not meant for regular use. It's here to aid
     some of the internal OF UIs. Has only a subset of $Image's features.
 ]]
-M.Texture = register_class("Texture", Filler, {
+M.Texture = register_type("Texture", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.texture_id = kwargs.texture_id
@@ -473,7 +473,7 @@ end
         - crop_x, crop_y - the crop x and y position, they default to 0.
         - crop_w, crop_h - the crop dimensions, they default to 1.
 ]]
-M.Cropped_Image = register_class("Cropped_Image", Image, {
+M.Cropped_Image = register_type("Cropped_Image", Image, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -560,7 +560,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
     images stretch as well, but this uses better quality (and more expensive)
     computations instead of basic stretching.
 ]]
-M.Stretched_Image = register_class("Stretched_Image", Image, {
+M.Stretched_Image = register_type("Stretched_Image", Image, {
     target = function(self, cx, cy)
         local o = Widget.target(self, cx, cy)
         if    o then return o end
@@ -666,7 +666,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         - tex_border - determines a texture offset from which to create the
           borders.
 ]]
-M.Bordered_Image = register_class("Bordered_Image", Image, {
+M.Bordered_Image = register_type("Bordered_Image", Image, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         Image.__ctor(self, kwargs)
@@ -774,7 +774,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
     Properties:
         - tile_w, tile_h - tile width and height, they default to 1.
 ]]
-M.Tiled_Image = register_class("Tiled_Image", Image, {
+M.Tiled_Image = register_type("Tiled_Image", Image, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -862,7 +862,7 @@ M.Tiled_Image = register_class("Tiled_Image", Image, {
     defaults to 25 milliseconds. If the thumbnail is requested (by
     targeting it), it loads immediately.
 ]]
-M.Thumbnail = register_class("Thumbnail", Image, {
+M.Thumbnail = register_type("Thumbnail", Image, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.file = kwargs.file
@@ -921,7 +921,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     Properties:
         - index - the texture slot index (starting with 0, defaults to 0).
 ]]
-M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
+M.Slot_Viewer = register_type("Slot_Viewer", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.index = kwargs.index or 0
@@ -945,7 +945,7 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
 --[[!
     Similar to (and derives from) $Slot_Viewer, but previews vslots.
 ]]
-M.VSlot_Viewer = register_class("VSlot_Viewer", M.Slot_Viewer, {
+M.VSlot_Viewer = register_type("VSlot_Viewer", M.Slot_Viewer, {
     draw = function(self, sx, sy)
         texture_draw_vslot(self.index, self.w, self.h, sx, sy)
         return Widget.draw(self, sx, sy)
@@ -960,7 +960,7 @@ M.VSlot_Viewer = register_class("VSlot_Viewer", M.Slot_Viewer, {
         - anim - an integer.
         - attachments - an array of tag-attachment pairs.
 ]]
-M.Model_Viewer = register_class("Model_Viewer", Filler, {
+M.Model_Viewer = register_type("Model_Viewer", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.model = kwargs.model
@@ -1024,7 +1024,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         - prefab - the prefab name.
         - color - the color (alpha is ignored).
 ]]
-M.Prefab_Viewer = register_class("Prefab_Viewer", Filler, {
+M.Prefab_Viewer = register_type("Prefab_Viewer", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.prefab = kwargs.prefab
@@ -1063,7 +1063,7 @@ M.Prefab_Viewer = register_class("Prefab_Viewer", Filler, {
 })
 
 --! A full console widget that derives from $Filler.
-M.Console = register_class("Console", Filler, {
+M.Console = register_type("Console", Filler, {
     draw_scale = function(self)
         return self:get_root():get_text_scale(true) / text_font_get_h()
     end,
@@ -1092,7 +1092,7 @@ local MODULATE = 2
           to solid).
         - color - see $Color_Filler.
 ]]
-M.Shape = register_class("Shape", Filler, {
+M.Shape = register_type("Shape", Filler, {
     SOLID    = SOLID,
     OUTLINE  = OUTLINE,
     MODULATE = MODULATE,
@@ -1119,7 +1119,7 @@ local Shape = M.Shape
     Properties:
         - angle - the triangle rotation (in degrees).
 ]]
-M.Triangle = register_class("Triangle", Shape, {
+M.Triangle = register_type("Triangle", Shape, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.angle = kwargs.angle or 0
@@ -1208,7 +1208,7 @@ M.Triangle = register_class("Triangle", Shape, {
         - sides - defaults to 15, specifying the number of sides this circle
           will have (it's not a perfect circle, but rather a polygon).
 ]]
-M.Circle = register_class("Circle", Shape, {
+M.Circle = register_type("Circle", Shape, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.sides = kwargs.sides or 15
@@ -1275,7 +1275,7 @@ M.Circle = register_class("Circle", Shape, {
            otherwise it's a number of characters.
          - color - see $Color_Filler.
 ]]
-M.Label = register_class("Label", Widget, {
+M.Label = register_type("Label", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -1363,7 +1363,7 @@ M.Label = register_class("Label", Widget, {
     See $Label. Instead of the property "text", there is "func", which is
     a callable value that returns the text to display.
 ]]
-M.Eval_Label = register_class("Eval_Label", Widget, {
+M.Eval_Label = register_type("Eval_Label", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 

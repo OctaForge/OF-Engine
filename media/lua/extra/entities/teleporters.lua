@@ -80,6 +80,6 @@ M.Teleporter = Obstacle:clone {
     end
 }
 
-ents.register_class(M.Teleporter)
+ents.register_prototype(M.Teleporter)
 
 return M

@@ -20,7 +20,7 @@ local M = {}
 local Marker = ents.Marker
 
 --[[! Object: lights.Dynamic_Light
-    A generic "dynamic light" entity class. It's not registered by default
+    A generic "dynamic light" entity prototype. It's not registered by default
     (a Light from the core set is already dynamic), it serves as a base for
     derived dynamic light types. Inherits from {{$ents.Marker}} entity type of
     the core set. Note: even though this type is not registered by default,
@@ -115,6 +115,6 @@ M.Flickering_Light = Dynamic_Light:clone {
     end or nil
 }
 
-ents.register_class(M.Flickering_Light)
+ents.register_prototype(M.Flickering_Light)
 
 return M

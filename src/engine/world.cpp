@@ -1169,7 +1169,7 @@ void entpaste()
         vec o = vec(c.o).mul(m).add(vec(sel.o));
 
         const char *cn;
-        lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
+        lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
             "i", "s", c.uid, &cn));
 
         const char *sd;
@@ -1238,7 +1238,7 @@ void intensityentcopy() // INTENSITY
     extentity& e = *(entities::getents()[efocus]);
 
     const char *name;
-    lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
+    lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
         "i", "s", e.uid, &name));
     copystring(copied_class, name);
 
@@ -1269,7 +1269,7 @@ void enttype(char *type, int *numargs) {
         );
     } else entfocus(efocus, {
         const char *name;
-        lua::pop_external_ret(lua::call_external_ret("entity_get_class_name",
+        lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
             "i", "s", e.uid, &name));
         result(name ? name : "");
     })

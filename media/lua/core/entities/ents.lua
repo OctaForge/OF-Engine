@@ -1,6 +1,6 @@
 --[[!<
-    Implements basic entity handling, that is, storage, entity class management
-    and the basic entity classes; the other extended entity types have their
+    Implements basic entity handling, that is, storage, entity prototype management
+    and the basic entity prototypees; the other extended entity types have their
     own modules.
 
     Author:
@@ -52,28 +52,28 @@ local highest_uid = 1
 -- basic storage for entities, keys are unique ids and values are entities
 local storage = {}
 
--- for caching, keys are class names and values are arrays of entities
-local storage_by_class = {}
+-- for caching, keys are prototype names and values are arrays of entities
+local storage_by_proto = {}
 
 -- for Sauer entity import; used as intermediate storage during map loading,
 -- cleared out immediately afterwards
 local storage_sauer = {}
 
--- stores all registered entity classes
-local class_storage = {}
+-- stores all registered entity prototypees
+local proto_storage = {}
 
 --[[
     Stores mapping of state variable names and the associated ids, which
     are used for network transfers; numbers take less space than names,
     so they take less time to transfer.
     {
-        entity_class_name1 = {
+        entity_proto_name1 = {
             state_variable_name1 = id1,
             state_variable_name2 = id2,
             state_variable_namen = idn
         },
-        entity_class_name2 = ...
-        entity_class_namen = ...
+        entity_proto_name2 = ...
+        entity_proto_namen = ...
     }
 ]]
 local names_to_ids = {}
@@ -84,8 +84,8 @@ local ids_to_names = {}
 local is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
 
 --[[!
-    Generates the required network data for an entity class. You pass the
-    entity class name and an array of state variable names to generate network
+    Generates the required network data for an entity prototype. You pass the
+    entity prototype name and an array of state variable names to generate network
     data for.
 ]]
 M.gen_network_data = function(cn, names)
@@ -103,8 +103,8 @@ end
 local gen_network_data = M.gen_network_data
 
 --[[!
-    If an entity class name is provided, clears the network data generated
-    by $gen_network_data for the entity class. Otherwise clears it all.
+    If an entity prototype name is provided, clears the network data generated
+    by $gen_network_data for the entity prototype. Otherwise clears it all.
 ]]
 M.clear_network_data = function(cn)
     if cn == nil then
@@ -126,7 +126,7 @@ local assert, type = assert, type
 local modprefix = "_PLUGINS_"
 
 local register_plugins = function(cl, plugins, name)
-    debug then log(DEBUG, "ents.register_class: registering plugins")
+    debug then log(DEBUG, "ents.register_prototype: registering plugins")
     local cldata = {}
     local properties
 
@@ -178,31 +178,31 @@ local register_plugins = function(cl, plugins, name)
     local ret = cl:clone(cldata)
     ret.name           = name
     ret.__properties   = properties
-    ret.__raw_class    = cl
-    ret.__parent_class = cl.__proto
+    ret.__raw_ent_proto    = cl
+    ret.__parent_ent_proto = cl.__proto
     ret.__plugins      = plugins
     return ret
 end
 
 --[[!
-    Registers an entity class. The registered class is always a clone of
-    the given class. You can access the original class via the `__raw_class`
-    member of the new clone. You can access the parent of `__raw_class` using
-    `__parent_class`. This also generates protocol data for its properties and
-    registers these.
+    Registers an entity prototype. The registered prototype is always a clone
+    of the given prototype. You can access the original prototype via the
+    `__raw_ent_proto` member of the new clone. You can access the parent of
+    `__raw_ent_proto` using `__parent_ent_proto`. This also generates protocol
+    data for its properties and registers these.
 
-    Allows to provide an array of plugins to inject into the entity class
+    Allows to provide an array of plugins to inject into the entity prototype
     (before the actual registration, so that the plugins can provide their own
     state variables).
 
     Because this is a special clone, do NOT derive from it. Instead derive
-    from `__raw_class`. This function doesn't return anything for a reason.
-    If you really need this special clone, use $get_class.
+    from `__raw_ent_proto`. This function doesn't return anything for a reason.
+    If you really need this special clone, use $get_prototype.
 
     A plugin is pretty much an associative table of things to inject. It
     can contain slots - those are functions or callable values with keys
     `__init_svars`, `__activate`, `__deactivate`, `__run`, `__render` - slots
-    never override elements of the same name in the original class, instead
+    never override elements of the same name in the original prototype, instead
     they're called after it in the order of plugin array. Then it can contain
     any non-slot member, those are overriden without checking (the last plugin
     takes priority). Plugins can provide their own state variables via the
@@ -211,17 +211,17 @@ end
 
     The original plugin array is accessible from the clone as `__plugins`.
 
-    Note that plugins can NOT change the entity class name. If any such
+    Note that plugins can NOT change the entity prototype name. If any such
     element is found, it's ignored.
 
     Arguments:
-        - cl - the entity class.
+        - cl - the entity prototype.
         - plugins - an optional array of plugins (or name).
-        - name - optional entity class name, if not provided the `name` field
-          of the entity class name is used; it can also be the second argument
-          if you are not providing plugins.
+        - name - optional entity prototype name, if not provided the `name`
+          field of the entity prototype name is used; it can also be the second
+          argument if you are not providing plugins.
 ]]
-M.register_class = function(cl, plugins, name)
+M.register_prototype = function(cl, plugins, name)
     if not name then
         if type(plugins) == "string" then
             name, plugins = plugins, nil
@@ -231,22 +231,22 @@ M.register_class = function(cl, plugins, name)
     end
     assert(name)
 
-    debug then log(DEBUG, "ents.register_class: " .. name)
+    debug then log(DEBUG, "ents.register_prototype: " .. name)
 
-    assert(not class_storage[name],
-        "an entity class with the same name already exists")
+    assert(not proto_storage[name],
+        "an entity prototype with the same name already exists")
 
     if plugins then
         cl = register_plugins(cl, plugins, name)
     else
         cl = cl:clone {
             name = name,
-            __raw_class = cl,
-            __parent_class = cl.__proto
+            __raw_ent_proto = cl,
+            __parent_ent_proto = cl.__proto
         }
     end
 
-    class_storage[name] = cl
+    proto_storage[name] = cl
 
     -- table of properties
     local pt = {}
@@ -277,12 +277,12 @@ M.register_class = function(cl, plugins, name)
         return n < m
     end)
 
-    debug then log(DEBUG, "ents.register_class: generating protocol data for "
+    debug then log(DEBUG, "ents.register_prototype: generating protocol data for "
         .. "{ " .. concat(sv_names, ", ") .. " }")
 
     gen_network_data(name, sv_names)
 
-    debug then log(DEBUG, "ents.register_class: registering state variables")
+    debug then log(DEBUG, "ents.register_prototype: registering state variables")
     for i = 1, #sv_names do
         local name = sv_names[i]
         local var  = pt[name]
@@ -292,31 +292,31 @@ M.register_class = function(cl, plugins, name)
 end
 
 --[[!
-    Returns the entity class with the given name. If it doesn't exist,
+    Returns the entity prototype with the given name. If it doesn't exist,
     logs an error message and returns nil.
 
-    Use with caution! See $register_class for the possible dangers of
+    Use with caution! See $register_prototype for the possible dangers of
     using this. It's still useful sometimes, so it's in the API.
 ]]
-M.get_class = function(cn)
-    local  t = class_storage[cn]
+M.get_prototype = function(cn)
+    local  t = proto_storage[cn]
     if not t then
-        log(ERROR, "ents.get_class: invalid class " .. cn)
+        log(ERROR, "ents.get_prototype: invalid prototype " .. cn)
     end
     return t
 end
-local get_class = M.get_class
+local get_prototype = M.get_prototype
 
-set_external("entity_class_exists", function(cn)
-    return not not get_class(cn)
+set_external("entity_proto_exists", function(cn)
+    return not not get_prototype(cn)
 end)
 
 --[[!
-    Returns the internal entity class storage (name->class mapping), use
-    with care.
+    Returns the internal entity prototype storage (name->prototype mapping),
+    use with care.
 ]]
-M.get_all_classes = function()
-    return class_storage
+M.get_all_prototypes = function()
+    return proto_storage
 end
 
 --[[!
@@ -357,23 +357,23 @@ M.get_by_tag = function(tag)
     return r
 end
 
---! Returns an array of entities with a common class.
-M.get_by_class = function(cl)
-    return storage_by_class[cl] or {}
+--! Returns an array of entities with a common prototype.
+M.get_by_prototype = function(cl)
+    return storage_by_proto[cl] or {}
 end
 
-local player_class = "Player"
+local player_prototype = "Player"
 
---! Sets the player class (by name) on the server (invalid on the client).
-M.set_player_class = SERVER and function(cl)
-    player_class = cl
+--! Sets the player prototype (by name) on the server (invalid on the client).
+M.set_player_prototype = SERVER and function(cl)
+    player_prototype = cl
 end or nil
 
 local vg = cs.var_get
 
---! Gets an array of players (all of the currently set player class).
+--! Gets an array of players (all of the currently set player prototype).
 M.get_players = function()
-    return storage_by_class[SERVER and player_class or player_entity.name]
+    return storage_by_proto[SERVER and player_prototype or player_entity.name]
         or {}
 end
 local get_players = M.get_players
@@ -384,8 +384,8 @@ M.get_player = (not SERVER) and function()
 end or nil
 
 if SERVER then
-    set_external("entity_get_player_class", function()
-        return player_class
+    set_external("entity_get_player_prototype", function()
+        return player_prototype
     end)
 end
 
@@ -396,7 +396,7 @@ end
 
     Kwargs:
         max_distance - the maximum distance from the given position.
-        class - either an actual entity class or a name.
+        prototype - either an actual entity prototype or a name.
         tag - a tag the entities must have.
         sort - by default, the resulting array is sorted by distance
         from lowest to highest. This can be either a function (passed
@@ -413,7 +413,7 @@ M.get_by_distance = function(pos, kwargs)
     local md = kwargs.max_distance
     if not md then return nil end
 
-    local cl, tg, sr = kwargs.class, kwargs.tag, kwargs.sort
+    local cl, tg, sr = kwargs.prototype, kwargs.tag, kwargs.sort
     local fn = kwargs.pos_fun or function(e)
         return e:get_attr("position"):copy()
     end
@@ -439,7 +439,7 @@ M.get_by_distance = function(pos, kwargs)
 end
 
 --[[!
-    Inserts an entity of the given class or class name into the storage.
+    Inserts an entity of the given prototype or prototype name into the storage.
     The entity will get assigned an uid and activated. Kwargs will be passed
     to the activation calls and init call on the server. If `new` is true,
     `__init_svars` method will be called on the server on the entity instead
@@ -450,9 +450,9 @@ end
 local add = function(cn, uid, kwargs, new)
     uid = uid or 1337
 
-    local cl = type(cn) == "table" and cn or class_storage[cn]
+    local cl = type(cn) == "table" and cn or proto_storage[cn]
     if not cl then
-        log(ERROR, "ents.add: no such entity class: " .. tostring(cn))
+        log(ERROR, "ents.add: no such entity prototype: " .. tostring(cn))
         assert(false)
     end
 
@@ -468,11 +468,11 @@ local add = function(cn, uid, kwargs, new)
     storage[uid] = r
 
     -- caching
-    for k, v in pairs(class_storage) do
+    for k, v in pairs(proto_storage) do
         if r:is_a(v) then
-            local sbc = storage_by_class[k]
+            local sbc = storage_by_proto[k]
             if not sbc then
-                storage_by_class[k] = { r }
+                storage_by_proto[k] = { r }
             else
                 sbc[#sbc + 1] = r
             end
@@ -528,9 +528,9 @@ M.remove = function(uid)
     emit(e, "pre_deactivate")
     e:__deactivate()
 
-    for k, v in pairs(class_storage) do
+    for k, v in pairs(proto_storage) do
         if e:is_a(v) then
-            storage_by_class[k] = filter_map(storage_by_class[k],
+            storage_by_proto[k] = filter_map(storage_by_proto[k],
                 function(a, b) return (b != e) end)
         end
     end
@@ -563,7 +563,7 @@ M.remove_all = function()
         end
     end
     storage = {}
-    storage_by_class = {}
+    storage_by_proto = {}
 end
 set_external("entities_remove_all", M.remove_all)
 
@@ -578,7 +578,7 @@ set_external("entities_remove_all", M.remove_all)
     The server then sends the entities to all clients.
 
     Format:
-        `{ { uid, "entity_class", sdata }, { ... }, ... }`
+        `{ { uid, "entity_proto", sdata }, { ... }, ... }`
 
     See also:
         - $save
@@ -708,16 +708,16 @@ end
 set_external("entities_save_all", M.save)
 
 --[[!
-    The base entity class. Every other entity class inherits from this.
-    This class is fully functional, but it has no physical form (it's only
+    The base entity prototype. Every other entity prototype inherits from this.
+    This prototype is fully functional, but it has no physical form (it's only
     kept in storage, handles its sdata and does the required syncing and
     calls).
 
-    Every entity class needs a name. You need to specify a unique one as
-    the `name` member of the class (see the code). Typically, the name will
-    be the same with the name of the actual class variable.
+    Every entity prototype needs a name. You need to specify a unique one as
+    the `name` member of the prototype (see the code). Typically, the name will
+    be the same with the name of the actual prototype variable.
 
-    The base entity class has two basic properties.
+    The base entity prototype has two basic properties.
 
     Properties:
         - tags [{{$svars.State_Array}}] - every entity can have an unlimited
@@ -731,17 +731,17 @@ M.Entity = table.Object:clone {
     name = "Entity",
 
     --[[!
-        If this is true for the entity class, it will call the $__run method
+        If this is true for the entity prototype, it will call the $__run method
         every frame. That is often convenient, but in most static entities
         undesirable. It's true by default.
     ]]
     __per_frame = true,
 
     --[[!
-        Here you store the state variables. Every inherited entity class
+        Here you store the state variables. Every inherited entity prototype
         also inherits its parent's properties in addition to the newly
         defined ones. If you don't want any new properties in your
-        entity class, do not create this table.
+        entity prototype, do not create this table.
     ]]
     __properties = {
         tags       = svars.State_Array(),
@@ -789,7 +789,7 @@ M.Entity = table.Object:clone {
     end,
 
     --[[!
-        Called per frame unless $__per_frame is false. All inherited classes
+        Called per frame unless $__per_frame is false. All inherited prototypes
         must call this in their own overrides. The argument specifies how
         long to manage the action queue (how much will the counters change
         internally), specified in milliseconds.
@@ -1372,10 +1372,10 @@ set_external("entity_draw_attached", function(uid)
     end
 end)
 
---[[! Function: entity_get_class_name
-    An external that returns the name of the class of the given entity uid.
+--[[! Function: entity_get_proto_name
+    An external that returns the name of the prototype of the given entity uid.
 ]]
-set_external("entity_get_class_name", function(uid)
+set_external("entity_get_proto_name", function(uid)
     return get_ent(uid).name
 end)
 
@@ -1528,7 +1528,7 @@ end)
     Creates a new entity on the server. External as `entity_new`.
 
     Arguments:
-        - cl - the entity class.
+        - cl - the entity prototype.
         - kwargs - passed directly to $add.
         - fuid - optional forced unique ID, otherwise $gen_uid.
 

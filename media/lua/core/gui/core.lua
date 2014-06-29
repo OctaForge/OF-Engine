@@ -104,15 +104,15 @@ local wtypes_by_type = {}
 local lastwtype = 0
 
 --[[!
-    Registers a widget class.
+    Registers a widget type.
 
     Arguments:
-        - name - the widget class name.
-        - base - the widget class base widget class (defaults to $Widget).
+        - name - the widget type name.
+        - base - the widget type base widget type (defaults to $Widget).
         - obj - the body with custom contents.
         - ftype - the "type" field, by default it just assigns is a new type.
 ]]
-M.register_class = function(name, base, obj, ftype)
+M.register_type = function(name, base, obj, ftype)
     if not ftype then
         lastwtype = lastwtype + 1
         ftype = lastwtype
@@ -126,20 +126,20 @@ M.register_class = function(name, base, obj, ftype)
     wtypes_by_type[ftype] = obj
     return obj
 end
-local register_class = M.register_class
+local register_type = M.register_type
 
 --[[!
-    Given either a name or type, this function returns the widget class
+    Given either a name or type, this function returns the widget type
     with that name or type.
 ]]
-M.get_class = function(n)
+M.get_type = function(n)
     if type(n) == "string" then
         return wtypes_by_name[n]
     else
         return wtypes_by_type[n]
     end
 end
-local get_class = M.get_class
+local get_type = M.get_type
 
 --[[!
     Loops widget children, executing the function given in the second
@@ -523,8 +523,8 @@ end)
 local Widget, Window
 
 --[[!
-    The basic widget class every other derives from. Provides everything
-    needed for a working widget class, but doesn't do anything by itself.
+    The basic widget type every other derives from. Provides everything
+    needed for a working widget type, but doesn't do anything by itself.
 
     The widget has several basic properties described below.
 
@@ -589,8 +589,8 @@ local Widget, Window
     when the tab key is pressed while this widget is focused. Only works when
     the property is actually set to a valid widget reference.
 
-    Each widget class also contains an "__instances" table storing a set
-    of all instances of the widget class.
+    Each widget type also contains an "__instances" table storing a set
+    of all instances of the widget type.
 
     Properties:
         - x, y, w, h - the widget dimensions.
@@ -602,7 +602,7 @@ local Widget, Window
         - variants, states - See above.
         - container - see above.
 ]]
-M.Widget = register_class("Widget", table.Object, {
+M.Widget = register_type("Widget", table.Object, {
     --[[!
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting
@@ -717,7 +717,7 @@ M.Widget = register_class("Widget", table.Object, {
 
     --[[!
         Clears a widget including its children recursively. Calls the
-        "destroy" signal. Removes itself from its widget class' instances
+        "destroy" signal. Removes itself from its widget type' instances
         set. Does nothing if already cleared.
     ]]
     clear = function(self)
@@ -746,7 +746,7 @@ M.Widget = register_class("Widget", table.Object, {
     --[[!
         Creates a deep clone of the widget, that is, where each child
         is again a clone of the original child, down the tree. Useful
-        for default widget class states, where we need to clone
+        for default widget type states, where we need to clone
         these per-instance.
     ]]
     deep_clone = function(self, obj, initc)
@@ -829,9 +829,9 @@ M.Widget = register_class("Widget", table.Object, {
     end,
 
     --[[!
-        Call on the widget class. Updates the state widget on the widget class
+        Call on the widget type. Updates the state widget on the widget type
         and every instance of it. Destroys the old state of that name (if any)
-        on the class and on every instance. If the instance already uses a
+        on the type and on every instance. If the instance already uses a
         different state (custom), it's left alone.
 
         Using this you can update the look of all widgets of certain type
@@ -844,7 +844,7 @@ M.Widget = register_class("Widget", table.Object, {
             - sval - the state widget.
             - variant - optional (defaults to "default").
     ]]
-    update_class_state = function(self, sname, sval, variant)
+    update_prototype_state = function(self, sname, sval, variant)
         variant = variant or "default"
         local dstates = rawget(self, "__variants")
         if not dstates then
@@ -884,17 +884,17 @@ M.Widget = register_class("Widget", table.Object, {
 
     --[[!
         Given an associative array of states (and optionally variant), it
-        calls $update_class_state for each.
+        calls $update_prototype_state for each.
     ]]
-    update_class_states = function(self, states, variant)
+    update_prototype_states = function(self, states, variant)
         for k, v in pairs(states) do
-            self:update_class_state(k, v, variant)
+            self:update_prototype_state(k, v, variant)
         end
     end,
 
     --[[!
         Given the state name an a widget, this sets the state of that name
-        for the individual widget (unlike $update_class_state). That is
+        for the individual widget (unlike $update_prototype_state). That is
         useful when you need widgets with custom appearance but you don't
         want all widgets to have it. This function destroys the old state
         if any.
@@ -923,8 +923,8 @@ M.Widget = register_class("Widget", table.Object, {
 
     --[[!
         Called with the state name and the state widget everytime
-        $update_state or $update_class_state updates a widget's state.
-        Useful for widget class and instance specific things such as updating
+        $update_state or $update_prototype_state updates a widget's state.
+        Useful for widget type and instance specific things such as updating
         labels on buttons. By default does nothing.
     ]]
     state_changed = function(self, sname, obj)
@@ -1740,7 +1740,7 @@ Widget = M.Widget
     Properties:
         - obj_name - can be passed in kwargs as "name".
 ]]
-M.Named_Widget = register_class("Named_Widget", Widget, {
+M.Named_Widget = register_type("Named_Widget", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.obj_name = kwargs.name
@@ -1758,21 +1758,21 @@ local Named_Widget = M.Named_Widget
     replacing something inside without having to iterate through and finding
     it manually.
 ]]
-M.Tag = register_class("Tag", Named_Widget)
+M.Tag = register_type("Tag", Named_Widget)
 local Tag = M.Tag
 
 --[[!
     This is a regular window. It's nothing more than a special case of named
     widget. You can derive custom window types from this (see $Overlay) but
     you have to make sure the widget type stays the same (pass Window.type
-    as the last argument to $register_class).
+    as the last argument to $register_type).
 
     Properties:
         - input_grab - true by default, specifies whether this window grabs
           input. If it's false, the window takes input only in free cursor
           mode.
 ]]
-M.Window = register_class("Window", Named_Widget, {
+M.Window = register_type("Window", Named_Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         local ig = kwargs.input_grab
@@ -1807,7 +1807,7 @@ Window = M.Window
     freely append into it. It gets cleared everytime you leave the map and it
     doesn't display when mainmenu is active.
 ]]
-M.Overlay = register_class("Overlay", Window, {
+M.Overlay = register_type("Overlay", Window, {
     grabs_input = function(self) return false end,
 
     target = function() end,
@@ -1825,7 +1825,7 @@ local Overlay = M.Overlay
     roots for different purposes (e.g. in-game GUI on a surface) but
     that is not supported at this point.
 ]]
-M.Root = register_class("Root", Widget, {
+M.Root = register_type("Root", Widget, {
     __ctor = function(self)
         self.windows     = {}
         self.cursor_x    = 0.499

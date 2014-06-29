@@ -115,17 +115,17 @@ M.State_Variable = table.Object:clone {
     end,
 
     --[[!
-        Registers the state variable, given an entity class. It'll create
-        getter and setter methods on the entity class for the given name
+        Registers the state variable, given an entity prototype. It'll create
+        getter and setter methods on the entity prototype for the given name
         and also for `alt_name` if set in constructor kwargs. You can access
-        the raw state variable on the entity class by prefixing it with
+        the raw state variable on the entity prototype by prefixing it with
         `_SV`. You can access the variable by gui_name by prefixing it with
         `_SV_GUI_` (if `gui_name` is not defined, regular name is used, if
         `gui_name` is false, this field won't exist at all).
 
         Arguments:
             - name - the state var name.
-            - cl - the entity class.
+            - cl - the entity prototype.
     ]]
     register = function(self, name, cl)
         debug then log(DEBUG, "State_Variable: register(" .. name

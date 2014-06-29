@@ -27,10 +27,10 @@ local M = require("core.gui.core")
 local key = M.key
 
 -- widget types
-local register_class = M.register_class
+local register_type = M.register_type
 
 -- base widgets
-local Widget = M.get_class("Widget")
+local Widget = M.get_type("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -44,7 +44,7 @@ local adjust = M.adjust
 local Slider_Button
 
 --[[!
-    Implements a base class for either horizontal or vertical slider.
+    Implements a base type for either horizontal or vertical slider.
 
     Changes of "value" performed internally emit the "value_changed" signal
     with the new value as an argument.
@@ -57,7 +57,7 @@ local Slider_Button
         - step_time - the time to perform a step during arrow scroll,
           defaults to 100.
 ]]
-M.Slider = register_class("Slider", Widget, {
+M.Slider = register_type("Slider", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.min_value = kwargs.min_value or 0
@@ -222,7 +222,7 @@ local clicked_states = {
     A slider button has seven states, "default", "hovering", "clicked_left",
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
 ]]
-M.Slider_Button = register_class("Slider_Button", Widget, {
+M.Slider_Button = register_type("Slider_Button", Widget, {
     __ctor = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
@@ -282,7 +282,7 @@ Slider_Button = M.Slider_Button
     Has thirteen states - "default", "(left|right)_hovering",
     "(left|right)_clicked_(left|right|middle|back|forward)".
 ]]
-M.H_Slider = register_class("H_Slider", Slider, {
+M.H_Slider = register_type("H_Slider", Slider, {
     orient = orient.HORIZONTAL,
 
     choose_state = function(self)
@@ -349,7 +349,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
     See $H_Slider above. Has different states, "default", "(up|down)_hovering"
     and  "(up|down)_clicked_(left|right|middle|back|forward)".
 ]]
-M.V_Slider = register_class("V_Slider", Slider, {
+M.V_Slider = register_type("V_Slider", Slider, {
     choose_state = function(self)
         local ad = self.arrow_dir
 

@@ -24,10 +24,10 @@ local get_curtime = capi.get_curtime
 local M = require("core.gui.core")
 
 -- widget types
-local register_class = M.register_class
+local register_type = M.register_type
 
 -- base widgets
-local Widget = M.get_class("Widget")
+local Widget = M.get_type("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -49,7 +49,7 @@ local ALIGN_MASK = adjust.ALIGN_MASK
           a callable value that returns the state when called with self as
           an argument.
 ]]
-M.State = register_class("State", Widget, {
+M.State = register_type("State", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.state = kwargs.state
@@ -78,7 +78,7 @@ M.State = register_class("State", Widget, {
     Properties:
         - window - a reference to the window this belongs to.
 ]]
-M.Mover = register_class("Mover", Widget, {
+M.Mover = register_type("Mover", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.window = kwargs.window
@@ -150,7 +150,7 @@ M.Mover = register_class("Mover", Widget, {
 local Filler = M.Filler
 
 --[[!
-    A base widget class for progress bars. Not useful alone. For working
+    A base widget type for progress bars. Not useful alone. For working
     variants, see $H_Progress_Bar and $V_Progress_Bar.
 
     Properties:
@@ -166,7 +166,7 @@ local Filler = M.Filler
           it'll be called with `self` and the value (not multiplied) as
           arguments, expecting the label string as a return value.
 ]]
-M.Progress_Bar = register_class("Progress_Bar", Filler, {
+M.Progress_Bar = register_type("Progress_Bar", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.value = kwargs.value or 0
@@ -194,7 +194,7 @@ M.Progress_Bar = register_class("Progress_Bar", Filler, {
 })
 
 --! A horizontal working variant of $Progress_Bar.
-M.H_Progress_Bar = register_class("H_Progress_Bar", M.Progress_Bar, {
+M.H_Progress_Bar = register_type("H_Progress_Bar", M.Progress_Bar, {
     adjust_children = function(self)
         local bar = self.bar
         if not bar then return Widget.adjust_children(self) end
@@ -206,7 +206,7 @@ M.H_Progress_Bar = register_class("H_Progress_Bar", M.Progress_Bar, {
 })
 
 --! A vertical working variant of $Progress_Bar.
-M.V_Progress_Bar = register_class("V_Progress_Bar", M.Progress_Bar, {
+M.V_Progress_Bar = register_type("V_Progress_Bar", M.Progress_Bar, {
     adjust_children = function(self)
         local bar = self.bar
         if not bar then return Widget.adjust_children(self) end
@@ -239,7 +239,7 @@ local move_funcs = {
 
 local min = math.min
 
-M.Animator = register_class("Animator", Widget, {
+M.Animator = register_type("Animator", Widget, {
     __ctor = function(self, kwargs)
         self.move_func    = kwargs.move_func
         self.move_time    = kwargs.move_time   or 2000

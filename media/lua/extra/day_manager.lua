@@ -24,7 +24,7 @@ local get
 local Entity = ents.Entity
 
 --[[!
-    This is the day manager entity class.
+    This is the day manager entity prototype.
 ]]
 local Day_Manager = Entity:clone {
     name = "Day_Manager",
@@ -67,7 +67,7 @@ local dayman
 --! Gets the day manager instance.
 M.get = function()
     if not dayman then
-        dayman = ents.get_by_class("Day_Manager")[1]
+        dayman = ents.get_by_prototype("Day_Manager")[1]
     end
     assert(dayman)
     return dayman
@@ -81,7 +81,7 @@ get = M.get
     entity.
 ]]
 M.setup = function(plugins)
-    ents.register_class(Day_Manager, plugins)
+    ents.register_prototype(Day_Manager, plugins)
     if SERVER then
         dayman = ents.new("Day_Manager")
         return dayman

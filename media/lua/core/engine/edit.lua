@@ -54,8 +54,8 @@ M.player_is_editing = function() return capi.editing_get() ~= 0 end
 
 --[[! Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered
-    clients. You can define their AI via their entity class. This is purely
-    serverside. Takes the entity class name the bot should be. Returns the bot
+    clients. You can define their AI via their entity prototype. This is purely
+    serverside. Takes the entity prototype name the bot should be. Returns the bot
     entity's uid.
 ]]
 M.add_npc = capi.npcadd
@@ -67,7 +67,7 @@ M.delete_npc = function(ent) capi.npcdel(ent.uid) end
 
 --[[! Function: new_entity
     Creates a new entity on the position where the edit cursor is aiming.
-    Takes the entity class name as an argument. Also callable from cubescript
+    Takes the entity prototype name as an argument. Also callable from cubescript
     as newent. Clientside.
 ]]
 M.new_entity = capi.new_entity

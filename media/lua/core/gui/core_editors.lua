@@ -36,13 +36,13 @@ local M = require("core.gui.core")
 local gl, key = M.gl, M.key
 
 -- widget types
-local register_class = M.register_class
+local register_type = M.register_type
 
 -- color
 local Color = M.Color
 
 -- base widgets
-local Widget = M.get_class("Widget")
+local Widget = M.get_type("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -226,7 +226,7 @@ end
         - wrap_color - the wrap symbol color (ARGB: 0xFF3C3C3C).
         - pad_l, pad_r - text left and right padding (both 0 by default).
 ]]
-M.Text_Editor = register_class("Text_Editor", Widget, {
+M.Text_Editor = register_type("Text_Editor", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -1331,7 +1331,7 @@ local Text_Editor = M.Text_Editor
     Fields are also by default not multiline. You can still explicitly
     override this in kwargs or by setting the property.
 ]]
-M.Field = register_class("Field", Text_Editor, {
+M.Field = register_type("Field", Text_Editor, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         kwargs.multiline = kwargs.multiline or false
@@ -1351,7 +1351,7 @@ M.Field = register_class("Field", Text_Editor, {
     Derived from $Field. Represents a keyfield - it catches keypresses and
     inserts key names. Useful when creating an e.g. keybinding GUI.
 ]]
-M.Key_Field = register_class("Key_Field", M.Field, {
+M.Key_Field = register_type("Key_Field", M.Field, {
     allow_text_input = function(self) return false end,
 
     key_insert = function(self, code)

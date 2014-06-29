@@ -16,10 +16,10 @@ local M = require("core.gui.core")
 local emit = signal.emit
 
 -- widget types
-local register_class = M.register_class
+local register_type = M.register_type
 
 -- base widgets
-local Widget = M.get_class("Widget")
+local Widget = M.get_type("Widget")
 
 -- setters
 local gen_setter = M.gen_setter
@@ -41,7 +41,7 @@ local clicked_states = {
     on itself (which is handled by $Widget, the button itself doesn't do
     anything).
 ]]
-M.Button = register_class("Button", Widget, {
+M.Button = register_type("Button", Widget, {
     choose_state = function(self)
         return clicked_states[self:is_clicked()] or
             (self:is_hovering() and "hovering" or "default")
@@ -67,7 +67,7 @@ local Button = M.Button
     Like $Button, but adds a new state, "menu", when a menu is currently
     opened using this button.
 ]]
-M.Menu_Button = register_class("Menu_Button", Button, {
+M.Menu_Button = register_type("Menu_Button", Button, {
     choose_state = function(self)
         return self:get_menu() != nil and "menu" or Button.choose_state(self)
     end
@@ -83,7 +83,7 @@ M.Menu_Button = register_class("Menu_Button", Button, {
           otherwise "default" or "default_hovering" is used. The condition
           is passed the current object as an argument.
 ]]
-M.Toggle = register_class("Toggle", Button, {
+M.Toggle = register_type("Toggle", Button, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.condition = kwargs.condition

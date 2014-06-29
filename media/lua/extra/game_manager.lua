@@ -23,7 +23,7 @@ local get
 
 --[[!
     Player-side game manager functionality. If you want to use the game
-    game manager, you need to set up your player entity class with this
+    game manager, you need to set up your player entity prototype with this
     plugin.
 
     Properties:
@@ -189,7 +189,7 @@ local gameman
 --! Gets the current game manager instance.
 M.get = function()
     if not gameman then
-        gameman = ents.get_by_class("Game_Manager")[1]
+        gameman = ents.get_by_prototype("Game_Manager")[1]
     end
     assert(gameman)
     return gameman
@@ -201,7 +201,7 @@ get = M.get
     {{$ents.load}}. On the server, this returns the entity.
 ]]
 M.setup = function(plugins)
-    ents.register_class(Game_Manager, plugins)
+    ents.register_prototype(Game_Manager, plugins)
     if SERVER then
         gameman = ents.new("Game_Manager")
         return gameman

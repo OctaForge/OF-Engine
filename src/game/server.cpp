@@ -730,7 +730,7 @@ namespace server
         string pcclass;
         if (!_class[0]) {
             const char *cl;
-            int n = lua::call_external_ret("entity_get_player_class", "", "s", &cl);
+            int n = lua::call_external_ret("entity_get_player_prototype", "", "s", &cl);
             copystring(pcclass, cl);
             lua::pop_external_ret(n);
         } else copystring(pcclass, _class);
