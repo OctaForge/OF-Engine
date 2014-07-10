@@ -454,7 +454,6 @@ struct batchedmodel
         int culled;
     };
     dynent *d;
-    occludequery *query;
     int next;
 };
 struct modelbatch
@@ -465,7 +464,6 @@ struct modelbatch
 static vector<batchedmodel> batchedmodels;
 static vector<modelbatch> batches;
 static vector<modelattach> modelattached;
-static occludequery *modelquery = NULL;
 
 void resetmodelbatches()
 {
@@ -477,15 +475,20 @@ void resetmodelbatches()
 void addbatchedmodel(model *m, batchedmodel &bm, int idx)
 {
     modelbatch *b = NULL;
-    if(batches.inrange(m->batch) && batches[m->batch].m == m) b = &batches[m->batch];
-    else
+    if(batches.inrange(m->batch))
     {
-        m->batch = batches.length();
-        b = &batches.add();
-        b->m = m;
-        b->flags = 0;
-        b->batched = -1;
+        b = &batches[m->batch];
+        if(b->m == m && (b->flags & MDL_MAPMODEL) == (bm.flags & MDL_MAPMODEL))
+            goto foundbatch;
     }
+    
+    m->batch = batches.length();
+    b = &batches.add();
+    b->m = m;
+    b->flags = 0;
+    b->batched = -1;
+
+foundbatch:
     b->flags |= bm.flags;
     bm.next = b->batched;
     b->batched = idx;
@@ -513,10 +516,7 @@ VARP(maxmodelradiusdistance, 10, 200, 1000);
 
 static inline void enablecullmodelquery()
 {
-    nocolorshader->set();
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glDepthMask(GL_FALSE);
-    gle::defvertex();
+    startbb();
 }
 
 static inline void rendercullmodelquery(model *m, dynent *d, const vec &center, float radius)
@@ -538,9 +538,7 @@ static inline void rendercullmodelquery(model *m, dynent *d, const vec &center, 
 
 static inline void disablecullmodelquery()
 {
-    gle::disable();
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_TRUE);
+    endbb();
 }
 
 static inline int cullmodel(model *m, const vec &center, float radius, int flags, dynent *d = NULL)
@@ -582,8 +580,8 @@ void shadowmaskbatchedmodels(bool dynshadow)
     loopv(batchedmodels)
     {
         batchedmodel &b = batchedmodels[i];
-        if(b.flags&MDL_MAPMODEL || b.colorscale.a < 1) break;
-        b.visible = dynshadow ? shadowmaskmodel(b.center, b.radius) : 0;
+        if(b.flags&MDL_MAPMODEL) break;
+        b.visible = dynshadow && b.colorscale.a >= 1 ? shadowmaskmodel(b.center, b.radius) : 0;
     }
 }
 
@@ -599,7 +597,7 @@ int batcheddynamicmodels()
     loopv(batches)
     {
         modelbatch &b = batches[i];
-        if(!(b.flags&MDL_MAPMODEL) || b.batched < 0 || !b.m->animated()) continue;
+        if(!(b.flags&MDL_MAPMODEL) || !b.m->animated()) continue;
         for(int j = b.batched; j >= 0;)
         {
             batchedmodel &bm = batchedmodels[j];
@@ -627,7 +625,7 @@ int batcheddynamicmodelbounds(int mask, vec &bbmin, vec &bbmax)
     loopv(batches)
     {
         modelbatch &b = batches[i];
-        if(!(b.flags&MDL_MAPMODEL) || b.batched < 0 || !b.m->animated()) continue;
+        if(!(b.flags&MDL_MAPMODEL) || !b.m->animated()) continue;
         for(int j = b.batched; j >= 0;)
         {
             batchedmodel &bm = batchedmodels[j];
@@ -648,7 +646,7 @@ void rendershadowmodelbatches(bool dynmodel)
     loopv(batches)
     {
         modelbatch &b = batches[i];
-        if(b.batched < 0 || !b.m->shadow || (!dynmodel && (!(b.flags&MDL_MAPMODEL) || b.m->animated()))) continue;
+        if(!b.m->shadow || (!dynmodel && (!(b.flags&MDL_MAPMODEL) || b.m->animated()))) continue;
         bool rendered = false;
         for(int j = b.batched; j >= 0;)
         {
@@ -668,29 +666,16 @@ void rendermapmodelbatches()
     loopv(batches)
     {
         modelbatch &b = batches[i];
-        if(b.batched < 0 || !(b.flags&MDL_MAPMODEL)) continue;
-        bool rendered = false;
-        occludequery *query = NULL;
+        if(!(b.flags&MDL_MAPMODEL)) continue;
+        b.m->startrender();
+        setaamask(b.m->animated());
         for(int j = b.batched; j >= 0;)
         {
             batchedmodel &bm = batchedmodels[j];
-            j = bm.next;
-            if(bm.query!=query)
-            {
-                if(query) endquery(query);
-                query = bm.query;
-                if(query) startquery(query);
-            }
-            if(!rendered)
-            {
-                b.m->startrender();
-                rendered = true;
-                setaamask(b.m->animated());
-            }
             renderbatchedmodel(b.m, bm);
+            j = bm.next;
         }
-        if(query) endquery(query);
-        if(rendered) b.m->endrender();
+        b.m->endrender();
     }
     disableaamask();
 }
@@ -708,7 +693,7 @@ void rendermodelbatches()
     loopv(batches)
     {
         modelbatch &b = batches[i];
-        if(b.batched < 0 || b.flags&MDL_MAPMODEL) continue;
+        if(b.flags&MDL_MAPMODEL) continue;
         bool rendered = false;
         for(int j = b.batched; j >= 0;)
         {
@@ -779,7 +764,7 @@ void rendertransparentmodelbatches(int stencil)
     loopv(batches)
     {
         modelbatch &b = batches[i];
-        if(b.batched < 0 || b.flags&MDL_MAPMODEL) continue;
+        if(b.flags&MDL_MAPMODEL) continue;
         bool rendered = false;
         for(int j = b.batched; j >= 0;)
         {
@@ -811,73 +796,64 @@ void rendertransparentmodelbatches(int stencil)
     disableaamask();
 }
 
+static occludequery *modelquery = NULL;
+static int modelquerybatches = -1, modelquerymodels = -1, modelqueryattached = -1;
+ 
 void startmodelquery(occludequery *query)
 {
     modelquery = query;
+    modelquerybatches = batches.length();
+    modelquerymodels = batchedmodels.length();
+    modelqueryattached = modelattached.length();
 }
 
 void endmodelquery()
 {
-    int querybatches = 0;
-    loopv(batches)
+    if(batchedmodels.length() == modelquerymodels)
     {
-        modelbatch &b = batches[i];
-        if(b.batched < 0 || batchedmodels[b.batched].query != modelquery) continue;
-        querybatches++;
-    }
-    if(querybatches<=1)
-    {
-        if(!querybatches) modelquery->fragments = 0;
+        modelquery->fragments = 0;
         modelquery = NULL;
         return;
     }
     enableaamask();
-    int minattached = modelattached.length();
     startquery(modelquery);
     loopv(batches)
     {
         modelbatch &b = batches[i];
         int j = b.batched;
-        if(j < 0 || batchedmodels[j].query != modelquery) continue;
+        if(j < modelquerymodels) continue;
         b.m->startrender();
-        setaamask(b.m->animated());
+        setaamask(!(b.flags&MDL_MAPMODEL) || b.m->animated());
         do
         {
             batchedmodel &bm = batchedmodels[j];
-            if(bm.query != modelquery) break;
-            j = bm.next;
-            if(bm.attached>=0) minattached = min(minattached, bm.attached);
             renderbatchedmodel(b.m, bm);
+            j = bm.next;
         }
-        while(j >= 0);
+        while(j >= modelquerymodels);
         b.batched = j;
         b.m->endrender();
     }
     endquery(modelquery);
     modelquery = NULL;
-    modelattached.setsize(minattached);
+    batches.setsize(modelquerybatches);
+    batchedmodels.setsize(modelquerymodels);
+    modelattached.setsize(modelqueryattached);
     disableaamask();
 }
 
 void clearbatchedmapmodels()
 {
-    if(batchedmodels.empty()) return;
-    int len = 0;
-    loopvrev(batchedmodels) if(!(batchedmodels[i].flags&MDL_MAPMODEL))
-    {
-        len = i+1;
-        break;
-    }
-    if(len >= batchedmodels.length()) return;
     loopv(batches)
     {
         modelbatch &b = batches[i];
-        if(b.batched < 0) continue;
-        int j = b.batched;
-        while(j >= len) j = batchedmodels[j].next;
-        b.batched = j;
+        if(b.flags&MDL_MAPMODEL)
+        {
+            batchedmodels.setsize(b.batched);
+            batches.setsize(i);
+            break;
+        }
     }
-    batchedmodels.setsize(len);
 }
 
 void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
@@ -913,7 +889,6 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     }
 
     batchedmodel &b = batchedmodels.add();
-    b.query = modelquery;
     b.pos = o;
     b.center = center;
     b.radius = radius;
@@ -1006,7 +981,6 @@ hasboundbox:
     }
 
     batchedmodel &b = batchedmodels.add();
-    b.query = modelquery;
     b.pos = o;
     b.center = center;
     b.radius = radius;

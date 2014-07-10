@@ -221,7 +221,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
 }
 
 vector<int> outsideents;
-int spotlights = 0;
+int spotlights = 0, volumetriclights = 0;
 
 static bool modifyoctaent(int flags, int id, extentity &e)
 {
@@ -250,8 +250,8 @@ static bool modifyoctaent(int flags, int id, extentity &e)
     e.flags ^= EF_OCTA;
     switch(e.type)
     {
-        case ET_LIGHT: clearlightcache(id); break;
-        case ET_SPOTLIGHT: if(!(flags&MODOE_ADD ? spotlights++ : --spotlights)) cleardeferredlightshaders();
+        case ET_LIGHT: clearlightcache(id); if(e.attr[4]&L_VOLUMETRIC) { if(flags&MODOE_ADD) volumetriclights++; else --volumetriclights; } break;
+        case ET_SPOTLIGHT: if(!(flags&MODOE_ADD ? spotlights++ : --spotlights)) { cleardeferredlightshaders(); cleanupvolumetric(); } break;
         case ET_PARTICLES: clearparticleemitters(); break;
         case ET_DECAL: if(flags&MODOE_CHANGED) changed(o, r, false); break;
     }
@@ -1345,6 +1345,7 @@ void resetmap()
     entities::clearents();
     outsideents.setsize(0);
     spotlights = 0;
+    volumetriclights = 0;
 }
 
 void startmap(const char *name)

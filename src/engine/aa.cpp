@@ -1,5 +1,7 @@
 #include "engine.h"
 
+extern int intel_texalpha_bug;
+
 extern void cleanuptqaa();
 
 VARFP(tqaa, 0, 0, 1, cleanupaa());
@@ -142,12 +144,12 @@ static Shader *fxaashader = NULL;
 
 void loadfxaashaders()
 {
-    fxaatype = tqaatype >= 0 ? tqaatype : (!fxaagreenluma ? AA_LUMA : AA_UNUSED);
+    fxaatype = tqaatype >= 0 ? tqaatype : (!fxaagreenluma && !intel_texalpha_bug ? AA_LUMA : AA_UNUSED);
     loadhdrshaders(fxaatype);
 
     string opts;
     int optslen = 0;
-    if(fxaagreenluma || tqaa) opts[optslen++] = 'g';
+    if(tqaa || fxaagreenluma || intel_texalpha_bug) opts[optslen++] = 'g';
     opts[optslen] = '\0';
 
     defformatstring(fxaaname, "fxaa%d%s", fxaaquality, opts);
@@ -165,7 +167,7 @@ void setupfxaa(int w, int h)
     if(!fxaatex) glGenTextures(1, &fxaatex);
     if(!fxaafbo) glGenFramebuffers_(1, &fxaafbo);
     glBindFramebuffer_(GL_FRAMEBUFFER, fxaafbo);
-    createtexture(fxaatex, w, h, NULL, 3, 1, tqaa || !fxaagreenluma ? GL_RGBA8 : GL_RGB, GL_TEXTURE_RECTANGLE);
+    createtexture(fxaatex, w, h, NULL, 3, 1, tqaa || (!fxaagreenluma && !intel_texalpha_bug) ? GL_RGBA8 : GL_RGB, GL_TEXTURE_RECTANGLE);
     glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, fxaatex, 0);
     bindgdepth();
     if(glCheckFramebufferStatus_(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -213,7 +215,7 @@ static Shader *smaalumaedgeshader = NULL, *smaacoloredgeshader = NULL, *smaablen
 
 void loadsmaashaders(bool split = false)
 {
-    smaatype = tqaatype >= 0 ? tqaatype : (!smaagreenluma && !smaacoloredge ? AA_LUMA : AA_UNUSED);
+    smaatype = tqaatype >= 0 ? tqaatype : (!smaagreenluma && !intel_texalpha_bug && !smaacoloredge ? AA_LUMA : AA_UNUSED);
     if(split) smaatype += AA_SPLIT;
     loadhdrshaders(smaatype);
 
@@ -222,7 +224,7 @@ void loadsmaashaders(bool split = false)
     if(!hasTRG) opts[optslen++] = 'a';
     if(smaadepthmask || smaastencil) opts[optslen++] = 'd';
     if(split) opts[optslen++] = 's';
-    if(smaagreenluma || tqaa) opts[optslen++] = 'g';
+    if(tqaa || smaagreenluma || intel_texalpha_bug) opts[optslen++] = 'g';
     if(tqaa) opts[optslen++] = 't';
     opts[optslen] = '\0';
 
@@ -537,7 +539,7 @@ void setupsmaa(int w, int h)
         GLenum format = GL_RGB;
         switch(i)
         {
-            case 0: format = tqaa || (!smaagreenluma && !smaacoloredge) ? GL_RGBA8 : GL_RGB; break;
+            case 0: format = tqaa || (!smaagreenluma && !intel_texalpha_bug && !smaacoloredge) ? GL_RGBA8 : GL_RGB; break;
             case 1: format = hasTRG ? GL_RG8 : GL_RGBA8; break;
             case 2: case 3: format = GL_RGBA8; break;
         }

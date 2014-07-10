@@ -1075,7 +1075,7 @@ COMMAND(pasteprefab, "s");
 
 struct prefabmesh
 {
-    struct vertex { vec pos; bvec norm; uchar reserved; };
+    struct vertex { vec pos; bvec4 norm; };
 
     static const int SIZE = 1<<9;
     int table[SIZE];
@@ -1104,7 +1104,6 @@ struct prefabmesh
         vertex vtx;
         vtx.pos = pos;
         vtx.norm = norm;
-        vtx.reserved = 0;
         return addvert(vtx);
    }
 
@@ -2070,7 +2069,7 @@ void vcolor(float *r, float *g, float *b)
     if(noedit() || (nompedit && multiplayer())) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_COLOR;
-    ds.colorscale = vec(clamp(*r, 0.0f, 1.0f), clamp(*g, 0.0f, 1.0f), clamp(*b, 0.0f, 1.0f));
+    ds.colorscale = vec(clamp(*r, 0.0f, 2.0f), clamp(*g, 0.0f, 2.0f), clamp(*b, 0.0f, 2.0f));
     mpeditvslot(ds, allfaces, sel, true);
 }
 COMMAND(vcolor, "fff");

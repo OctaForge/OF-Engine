@@ -159,7 +159,6 @@ struct verthash
         vtx.pos = pos;
         vtx.tc = tc;
         vtx.norm = norm;
-        vtx.reserved = 0;
         vtx.tangent = tangent;
         return addvert(vtx);
     }
@@ -383,16 +382,10 @@ struct vacollect : verthash
                           b1 = (d22*dp1 - d12*dp2) / denom,
                           b2 = (d11*dp2 - d12*dp1) / denom,
                           b0 = 1 - b1 - b2;
-                    v.norm.x = uchar(b0*t0.norm.x + b1*t1.norm.x + b2*t2.norm.x);
-                    v.norm.y = uchar(b0*t0.norm.y + b1*t1.norm.y + b2*t2.norm.y);
-                    v.norm.z = uchar(b0*t0.norm.z + b1*t1.norm.z + b2*t2.norm.z);
-                    v.reserved = 0;
+                    v.norm.lerp(t0.norm, t1.norm, t2.norm, b0, b1, b2);
                     vec tc = orient.transposedtransform(vec(center).sub(v.pos)).div(size).add(0.5f);
                     v.tc = vec(tc.x, tc.z, s.fade ? tc.y * s.depth / s.fade : s.fade);
-                    v.tangent.x = uchar(b0*t0.tangent.x + b1*t1.tangent.x + b2*t2.tangent.x);
-                    v.tangent.y = uchar(b0*t0.tangent.y + b1*t1.tangent.y + b2*t2.tangent.y);
-                    v.tangent.z = uchar(b0*t0.tangent.z + b1*t1.tangent.z + b2*t2.tangent.z);
-                    v.tangent.w = uchar(b0*t0.tangent.w + b1*t1.tangent.w + b2*t2.tangent.w);
+                    v.tangent.lerp(t0.tangent, t1.tangent, t2.tangent, b0, b1, b2);
                     idx[k] = addvert(v);
                 }
                 vector<ushort> &tris = decalindices[key].tris;
@@ -728,15 +721,11 @@ void addtris(VSlot &vslot, int orient, const sortkey &key, vertex *verts, int *i
                     float offset = (t.offset - offset1) * doffset;
                     vertex vt;
                     vt.pos = vec(d).mul(t.offset/8.0f).add(o);
-                    vt.reserved = 0;
                     vt.tc.lerp(v1.tc, v2.tc, offset);
                     vt.norm.lerp(v1.norm, v2.norm, offset);
-                    bvec tangent;
-                    tangent.lerp(bvec(v1.tangent), bvec(v2.tangent), offset);
-                    vt.tangent = bvec4(tangent,
-                                       v1.tangent.w == v2.tangent.w ?
-                                            v1.tangent.w :
-                                            (orientation_bitangent[vslot.rotation][orient].scalartriple(vt.norm.tonormal(), tangent.tonormal()) < 0 ? 0 : 255));
+                    vt.tangent.lerp(v1.tangent, v2.tangent, offset);
+                    if(v1.tangent.w != v2.tangent.w)
+                        vt.tangent.w = orientation_bitangent[vslot.rotation][orient].scalartriple(vt.norm.tonormal(), vt.tangent.tonormal()) < 0 ? 0 : 255;
                     int i2 = vc.addvert(vt);
                     if(i2 < 0) return;
                     if(i1 >= 0)
@@ -872,7 +861,6 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
     {
         vertex &v = verts[k];
         v.pos = pos[k];
-        v.reserved = 0;
         v.tc = vec(sgen.dot(v.pos), tgen.dot(v.pos), 0);
         if(vinfo && vinfo[k].norm)
         {

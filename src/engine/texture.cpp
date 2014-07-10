@@ -1349,7 +1349,9 @@ SDL_Surface *loadsurface(const char *name)
         if (z) {
             SDL_RWops *rw = z->rwops();
             if (rw) {
-                s = IMG_Load_RW(rw, 0);
+                const char *ext = strrchr(buf, '.');
+                if(ext) ++ext;
+                s = IMG_LoadTyped_RW(rw, 0, ext);
                 SDL_FreeRW(rw);
             }
             delete z;
@@ -2597,7 +2599,7 @@ void texcolor(float *r, float *g, float *b)
 {
     if(!defslot) return;
     Slot &s = *defslot;
-    s.variants->colorscale = vec(clamp(*r, 0.0f, 1.0f), clamp(*g, 0.0f, 1.0f), clamp(*b, 0.0f, 1.0f));
+    s.variants->colorscale = vec(clamp(*r, 0.0f, 2.0f), clamp(*g, 0.0f, 2.0f), clamp(*b, 0.0f, 2.0f));
     propagatevslot(s.variants, 1<<VSLOT_COLOR);
 }
 COMMAND(texcolor, "fff");

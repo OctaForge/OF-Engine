@@ -347,26 +347,81 @@ bool checkquery(occludequery *query, bool nowait)
     return fragments < uint(oqfrags);
 }
 
-void drawbb(const ivec &bo, const ivec &br, const vec &camera)
+static GLuint bbvbo = 0, bbebo = 0;
+
+static void setupbb()
 {
-    gle::begin(GL_QUADS);
+    if(!bbvbo)
+    {
+        glGenBuffers_(1, &bbvbo);
+        glBindBuffer_(GL_ARRAY_BUFFER, bbvbo);
+        vec verts[8];
+        loopi(8) verts[i] = vec(i&1, (i>>1)&1, (i>>2)&1);
+        glBufferData_(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+        glBindBuffer_(GL_ARRAY_BUFFER, 0);
+    }
+    if(!bbebo)
+    {
+        glGenBuffers_(1, &bbebo);
+        glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, bbebo);
+        GLushort tris[3*2*6];
+        #define GENFACEORIENT(orient, v0, v1, v2, v3) do { \
+            int offset = orient*3*2; \
+            tris[offset + 0] = v0; \
+            tris[offset + 1] = v1; \
+            tris[offset + 2] = v2; \
+            tris[offset + 3] = v0; \
+            tris[offset + 4] = v2; \
+            tris[offset + 5] = v3; \
+        } while(0);
+        #define GENFACEVERT(orient, vert, ox,oy,oz, rx,ry,rz) (ox | oy | oz)
+        GENFACEVERTS(0, 1, 0, 2, 0, 4, , , , , , )
+        #undef GENFACEORIENT
+        #undef GENFACEVERT
+        glBufferData_(GL_ELEMENT_ARRAY_BUFFER, sizeof(tris), tris, GL_STATIC_DRAW);
+        glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+}
 
-    #define GENFACEORIENT(orient, v0, v1, v2, v3) do { \
-        int dim = dimension(orient); \
-        if(dimcoord(orient)) \
-        { \
-            if(camera[dim] < bo[dim] + br[dim]) continue; \
-        } \
-        else if(camera[dim] > bo[dim]) continue; \
-        v0 v1 v2 v3 \
-    } while(0);
-    #define GENFACEVERT(orient, vert, ox,oy,oz, rx,ry,rz) \
-        gle::attribf(ox rx, oy ry, oz rz);
-    GENFACEVERTS(bo.x, bo.x + br.x, bo.y, bo.y + br.y, bo.z, bo.z + br.z, , , , , , )
-    #undef GENFACEORIENT
-    #undef GENFACEVERT
+static void cleanupbb()
+{
+    if(bbvbo) { glDeleteBuffers_(1, &bbvbo); bbvbo = 0; }
+    if(bbebo) { glDeleteBuffers_(1, &bbebo); bbebo = 0; }
+}
 
-    xtraverts += gle::end();
+void startbb(bool mask)
+{
+    setupbb();
+    glBindBuffer_(GL_ARRAY_BUFFER, bbvbo);
+    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, bbebo);
+    gle::vertexpointer(sizeof(vec), (const vec *)0);
+    gle::enablevertex();
+    SETSHADER(bbquery);
+    if(mask)
+    {
+        glDepthMask(GL_FALSE);
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    }
+}
+
+void endbb(bool mask)
+{
+    gle::disablevertex();
+    glBindBuffer_(GL_ARRAY_BUFFER, 0);
+    glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
+    if(mask)
+    {
+        glDepthMask(GL_TRUE);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    }
+}
+
+void drawbb(const ivec &bo, const ivec &br)
+{
+    LOCALPARAMF(bborigin, bo.x, bo.y, bo.z);
+    LOCALPARAMF(bbsize, br.x, br.y, br.z);
+    glDrawRangeElements_(GL_TRIANGLES, 0, 8-1, 3*2*6, GL_UNSIGNED_SHORT, (ushort *)0);
+    xtraverts += 8;
 }
 
 extern int octaentsize;
@@ -472,7 +527,7 @@ void rendermapmodels()
         if(rendered && !viewidx && oe->query) endmodelquery();
     }
     rendermapmodelbatches();
-    resetmodelbatches();
+    clearbatchedmapmodels();
 
     if(viewidx) return;
 
@@ -483,10 +538,7 @@ void rendermapmodels()
         if(!oe->query) continue;
         if(!queried)
         {
-            glDepthMask(GL_FALSE);
-            glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-            nocolorshader->set();
-            gle::defvertex();
+            startbb();
             queried = true;
         }
         startquery(oe->query);
@@ -495,9 +547,7 @@ void rendermapmodels()
     }
     if(queried)
     {
-        gle::disable();
-        glDepthMask(GL_TRUE);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        endbb();
     }
 }
 
@@ -1059,13 +1109,14 @@ struct renderstate
     float refractscale;
     vec refractcolor;
     int blendx, blendy;
+    int globals, tmu;
     GLuint textures[7];
     Slot *slot, *texgenslot;
     VSlot *vslot, *texgenvslot;
     vec2 texgenscroll;
     int texgenorient, texgenmillis;
 
-    renderstate() : colormask(true), depthmask(true), alphaing(0), vbuf(0), vattribs(false), vquery(false), colorscale(1, 1, 1), alphascale(0), refractscale(0), refractcolor(1, 1, 1), blendx(-1), blendy(-1), slot(NULL), texgenslot(NULL), vslot(NULL), texgenvslot(NULL), texgenscroll(0, 0), texgenorient(-1), texgenmillis(lastmillis)
+    renderstate() : colormask(true), depthmask(true), alphaing(0), vbuf(0), vattribs(false), vquery(false), colorscale(1, 1, 1), alphascale(0), refractscale(0), refractcolor(1, 1, 1), blendx(-1), blendy(-1), globals(-1), tmu(-1), slot(NULL), texgenslot(NULL), vslot(NULL), texgenvslot(NULL), texgenscroll(0, 0), texgenorient(-1), texgenmillis(lastmillis)
     {
         loopk(4) color[k] = 1;
         loopk(7) textures[k] = 0;
@@ -1081,29 +1132,26 @@ static inline void disablevbuf(renderstate &cur)
 
 static inline void enablevquery(renderstate &cur)
 {
-    gle::defvertex();
+    if(cur.colormask) { cur.colormask = false; glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); }
+    if(cur.depthmask) { cur.depthmask = false; glDepthMask(GL_FALSE); }
+    startbb(false);
     cur.vquery = true;
 }
 
 static inline void disablevquery(renderstate &cur)
 {
-    gle::disable();
+    endbb(false);
     cur.vquery = false;
 }
 
-void renderquery(renderstate &cur, occludequery *query, vtxarray *va, bool full = true)
+static void renderquery(renderstate &cur, occludequery *query, vtxarray *va, bool full = true)
 {
-    nocolorshader->set();
-    if(cur.colormask) { cur.colormask = false; glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); }
-    if(cur.depthmask) { cur.depthmask = false; glDepthMask(GL_FALSE); }
     if(!cur.vquery) enablevquery(cur);
-
-    vec camera(camera1->o);
 
     startquery(query);
 
-    if(full) drawbb(ivec(va->bbmin).sub(1), ivec(va->bbmax).sub(va->bbmin).add(2), camera);
-    else drawbb(va->geommin, ivec(va->geommax).sub(va->geommin), camera);
+    if(full) drawbb(ivec(va->bbmin).sub(1), ivec(va->bbmax).sub(va->bbmin).add(2));
+    else drawbb(va->geommin, ivec(va->geommax).sub(va->geommin));
 
     endquery(query);
 }
@@ -1148,12 +1196,12 @@ struct geombatch
         else if(b.es.layer&LAYER_BOTTOM) return -1;
         if(vslot.slot->shader < b.vslot.slot->shader) return -1;
         if(vslot.slot->shader > b.vslot.slot->shader) return 1;
-        if(vslot.slot->params.length() < b.vslot.slot->params.length()) return -1;
-        if(vslot.slot->params.length() > b.vslot.slot->params.length()) return 1;
         if(es.texture < b.es.texture) return -1;
         if(es.texture > b.es.texture) return 1;
         if(es.envmap < b.es.envmap) return -1;
         if(es.envmap > b.es.envmap) return 1;
+        if(vslot.slot->params.length() < b.vslot.slot->params.length()) return -1;
+        if(vslot.slot->params.length() > b.vslot.slot->params.length()) return 1;
         if(es.orient < b.es.orient) return -1;
         if(es.orient > b.es.orient) return 1;
         return 0;
@@ -1282,33 +1330,40 @@ static void changevbuf(renderstate &cur, int pass, vtxarray *va)
 
 static void changebatchtmus(renderstate &cur, int pass, geombatch &b)
 {
-    bool changed = false;
     if(b.vslot.slot->shader->type&SHADER_ENVMAP && b.es.envmap!=EMID_CUSTOM)
     {
         GLuint emtex = lookupenvmap(b.es.envmap);
         if(cur.textures[TEX_ENVMAP]!=emtex)
         {
+            cur.tmu = TEX_ENVMAP;
             glActiveTexture_(GL_TEXTURE0 + TEX_ENVMAP);
             glBindTexture(GL_TEXTURE_CUBE_MAP, cur.textures[TEX_ENVMAP] = emtex);
-            changed = true;
         }
     }
     if(b.es.layer&LAYER_BOTTOM && (cur.blendx != (b.va->o.x&~0xFFF) || cur.blendy != (b.va->o.y&~0xFFF)))
     {
+        cur.tmu = 7;
         glActiveTexture_(GL_TEXTURE7);
         bindblendtexture(b.va->o);
         cur.blendx = b.va->o.x&~0xFFF;
         cur.blendy = b.va->o.y&~0xFFF;
-        changed = true;
     }
-    if(changed) glActiveTexture_(GL_TEXTURE0);
+    if(cur.tmu != 0)
+    {
+        cur.tmu = 0;
+        glActiveTexture_(GL_TEXTURE0);
+    }
 }
 
 static inline void bindslottex(renderstate &cur, int type, Texture *tex)
 {
     if(cur.textures[type] != tex->id)
     {
-        glActiveTexture_(GL_TEXTURE0 + type);
+        if(cur.tmu != type)
+        {
+            cur.tmu = type;
+            glActiveTexture_(GL_TEXTURE0 + type);
+        }
         glBindTexture(GL_TEXTURE_2D, cur.textures[type] = tex->id);
     }
 }
@@ -1392,7 +1447,11 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
         }
     }
 
-    glActiveTexture_(GL_TEXTURE0);
+    if(cur.tmu != 0)
+    {
+        cur.tmu = 0;
+        glActiveTexture_(GL_TEXTURE0);
+    }
 
     cur.slot = &slot;
     cur.vslot = &vslot;
@@ -1444,22 +1503,27 @@ static inline void changeshader(renderstate &cur, int pass, geombatch &b)
     else if(cur.alphaing) slot.shader->setvariant(cur.alphaing > 1 && vslot.refractscale > 0 ? 1 : 0, 1, slot, vslot);
     else if(b.es.layer&LAYER_BOTTOM) slot.shader->setvariant(0, 0, slot, vslot);
     else slot.shader->set(slot, vslot);
+    cur.globals = GlobalShaderParamState::nextversion;
+}
+
+template<class T>
+static inline void updateshader(T &cur)
+{
+    if(cur.globals != GlobalShaderParamState::nextversion)
+    {
+        if(Shader::lastshader) Shader::lastshader->flushparams();
+        cur.globals = GlobalShaderParamState::nextversion;
+    }
 }
 
 static void renderbatch(renderstate &cur, int pass, geombatch &b)
 {
-    int rendered = -1;
+    gbatches++;
     for(geombatch *curbatch = &b;; curbatch = &geombatches[curbatch->batch])
     {
         ushort len = curbatch->es.length;
         if(len)
         {
-            if(rendered < 0)
-            {
-                changeshader(cur, pass, b);
-                rendered = 0;
-                gbatches++;
-            }
             drawtris(len, (ushort *)0 + curbatch->va->eoffset + curbatch->offset, curbatch->es.minvert, curbatch->es.maxvert);
             vtris += len/3;
         }
@@ -1495,13 +1559,18 @@ static void renderbatches(renderstate &cur, int pass)
         curbatch = b.next;
 
         if(cur.vbuf != b.va->vbuf) changevbuf(cur, pass, b.va);
+        if(pass == RENDERPASS_GBUFFER || pass == RENDERPASS_RSM) changebatchtmus(cur, pass, b);
         if(cur.vslot != &b.vslot)
         {
             changeslottmus(cur, pass, *b.vslot.slot, b.vslot);
             if(cur.texgenorient != b.es.orient || (cur.texgenorient < O_ANY && cur.texgenvslot != &b.vslot)) changetexgen(cur, b.es.orient, *b.vslot.slot, b.vslot);
+            changeshader(cur, pass, b);
         }
-        else if(cur.texgenorient != b.es.orient) changetexgen(cur, b.es.orient, *b.vslot.slot, b.vslot);
-        if(pass == RENDERPASS_GBUFFER || pass == RENDERPASS_RSM) changebatchtmus(cur, pass, b);
+        else
+        {
+            if(cur.texgenorient != b.es.orient) changetexgen(cur, b.es.orient, *b.vslot.slot, b.vslot);
+            updateshader(cur);
+        }
 
         renderbatch(cur, pass, b);
     }
@@ -1602,6 +1671,7 @@ void cleanupva()
 {
     clearvas(worldroot);
     clearqueries();
+    cleanupbb();
     cleanupgrass();
 }
 
@@ -1686,7 +1756,7 @@ void rendergeom()
         glFlush();
         if(cur.colormask) { cur.colormask = false; glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); }
         if(cur.depthmask) { cur.depthmask = false; glDepthMask(GL_FALSE); }
-        collectlights();
+        workinoq();
         if(!cur.colormask) { cur.colormask = true; glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); }
         if(!cur.depthmask) { cur.depthmask = true; glDepthMask(GL_TRUE); }
 
@@ -1761,12 +1831,12 @@ void rendergeom()
 
     cleanupgeom(cur);
 
-    if((viewidx || !doOQ) && drawtex != DRAWTEX_MINIMAP)
+    if(viewidx || !doOQ)
     {
         glFlush();
         if(cur.colormask) { cur.colormask = false; glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); }
         if(cur.depthmask) { cur.depthmask = false; glDepthMask(GL_FALSE); }
-        collectlights();
+        workinoq();
         if(!cur.colormask) { cur.colormask = true; glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); }
         if(!cur.depthmask) { cur.depthmask = true; glDepthMask(GL_TRUE); }
     }
@@ -2010,10 +2080,11 @@ struct decalrenderer
 {
     GLuint vbuf;
     vec colorscale;
+    int globals, tmu;
     GLuint textures[7];
     DecalSlot *slot;
 
-    decalrenderer() : vbuf(0), colorscale(1, 1, 1), slot(NULL)
+    decalrenderer() : vbuf(0), colorscale(1, 1, 1), globals(-1), tmu(-1), slot(NULL)
     {
         loopi(7) textures[i] = 0;
     }
@@ -2038,12 +2109,12 @@ struct decalbatch
         if(va->vbuf > b.va->vbuf) return 1;
         if(slot.shader < b.slot.shader) return -1;
         if(slot.shader > b.slot.shader) return 1;
-        if(slot.Slot::params.length() < b.slot.Slot::params.length()) return -1;
-        if(slot.Slot::params.length() > b.slot.Slot::params.length()) return 1;
         if(es.texture < b.es.texture) return -1;
         if(es.texture > b.es.texture) return 1;
         if(es.envmap < b.es.envmap) return -1;
         if(es.envmap > b.es.envmap) return 1;
+        if(slot.Slot::params.length() < b.slot.Slot::params.length()) return -1;
+        if(slot.Slot::params.length() > b.slot.Slot::params.length()) return 1;
         if(es.orient < b.es.orient) return -1;
         if(es.orient > b.es.orient) return 1;
         return 0;
@@ -2140,25 +2211,32 @@ static void changevbuf(decalrenderer &cur, int pass, vtxarray *va)
 
 static void changebatchtmus(decalrenderer &cur, int pass, decalbatch &b)
 {
-    bool changed = false;
     if(b.slot.shader->type&SHADER_ENVMAP && b.es.envmap!=EMID_CUSTOM)
     {
         GLuint emtex = lookupenvmap(b.es.envmap);
         if(cur.textures[TEX_ENVMAP]!=emtex)
         {
+            cur.tmu = TEX_ENVMAP;
             glActiveTexture_(GL_TEXTURE0 + TEX_ENVMAP);
             glBindTexture(GL_TEXTURE_CUBE_MAP, cur.textures[TEX_ENVMAP] = emtex);
-            changed = true;
         }
     }
-    if(changed) glActiveTexture_(GL_TEXTURE0);
+    if(cur.tmu != 0)
+    {
+        cur.tmu = 0;
+        glActiveTexture_(GL_TEXTURE0);
+    }
 }
 
 static inline void bindslottex(decalrenderer &cur, int type, Texture *tex)
 {
     if(cur.textures[type] != tex->id)
     {
-        glActiveTexture_(GL_TEXTURE0 + type);
+        if(cur.tmu != type)
+        {
+            cur.tmu = type;
+            glActiveTexture_(GL_TEXTURE0 + type);
+        }
         glBindTexture(GL_TEXTURE_2D, cur.textures[type] = tex->id);
     }
 }
@@ -2185,7 +2263,11 @@ static void changeslottmus(decalrenderer &cur, int pass, DecalSlot &slot)
                 break;
         }
     }
-    glActiveTexture_(GL_TEXTURE0);
+    if(cur.tmu != 0)
+    {
+        cur.tmu = 0;
+        glActiveTexture_(GL_TEXTURE0);
+    }
 
     if(cur.colorscale != slot.colorscale)
     {
@@ -2201,22 +2283,17 @@ static inline void changeshader(decalrenderer &cur, int pass, decalbatch &b)
     DecalSlot &slot = b.slot;
     if(pass) slot.shader->setvariant(0, 0, slot);
     else slot.shader->set(slot);
+    cur.globals = GlobalShaderParamState::nextversion;
 }
 
 static void renderdecalbatch(decalrenderer &cur, int pass, decalbatch &b)
 {
-    int rendered = -1;
+    gbatches++;
     for(decalbatch *curbatch = &b;; curbatch = &decalbatches[curbatch->batch])
     {
         ushort len = curbatch->es.length;
         if(len)
         {
-            if(rendered < 0)
-            {
-                changeshader(cur, pass, b);
-                rendered = 0;
-                gbatches++;
-            }
             drawtris(len, (ushort *)0 + curbatch->va->decaloffset + curbatch->offset, curbatch->es.minvert, curbatch->es.maxvert);
             vtris += len/3;
         }
@@ -2234,9 +2311,17 @@ static void renderdecalbatches(decalrenderer &cur, int pass)
         curbatch = b.next;
 
         if(cur.vbuf != b.va->vbuf) changevbuf(cur, pass, b.va);
-        if(cur.slot != &b.slot) changeslottmus(cur, pass, b.slot);
         changebatchtmus(cur, pass, b);
-
+        if(cur.slot != &b.slot)
+        {
+            changeslottmus(cur, pass, b.slot);
+            changeshader(cur, pass, b);
+        }
+        else
+        {
+            updateshader(cur);
+        }
+ 
         renderdecalbatch(cur, pass, b);
     }
 

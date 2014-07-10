@@ -3787,9 +3787,9 @@ LISTMERGECMD(listdel, , list, elems, <);
 LISTMERGECMD(listintersect, , list, elems, >=);
 LISTMERGECMD(listunion, p.put(list, strlen(list)), elems, list, <);
 
-void listsplice(const char *s, const char *vals, int *skip, int *count, int *numargs)
+void listsplice(const char *s, const char *vals, int *skip, int *count)
 {
-    int offset = max(*skip, 0), len = *numargs >= 4 ? max(*count, 0) : -1;
+    int offset = max(*skip, 0), len = max(*count, 0);
     const char *list = s, *start, *end, *qstart, *qend = s;
     loopi(offset) if(!parselist(s, start, end, qstart, qend)) break;
     vector<char> p;
@@ -3799,7 +3799,7 @@ void listsplice(const char *s, const char *vals, int *skip, int *count, int *num
         if(!p.empty()) p.add(' ');
         p.put(vals, strlen(vals));
     }
-    while(len-- > 0) if(!parselist(s)) break;
+    loopi(len) if(!parselist(s)) break;
     skiplist(s);
     switch(*s)
     {
@@ -3812,7 +3812,7 @@ void listsplice(const char *s, const char *vals, int *skip, int *count, int *num
     p.add('\0');
     commandret->setstr(p.disown());
 }
-COMMAND(listsplice, "ssiiN");
+COMMAND(listsplice, "ssii");
 
 ICOMMAND(loopfiles, "rsse", (ident *id, char *dir, char *ext, uint *body),
 {
@@ -3830,13 +3830,14 @@ ICOMMAND(loopfiles, "rsse", (ident *id, char *dir, char *ext, uint *body),
     if(files.length()) poparg(*id);
 });
 
-ICOMMAND(findfile, "s", (char *name),
+void findfile_(char *name)
 {
     string fname;
     copystring(fname, name);
     path(fname);
     intret(findzipfile(fname) || fileexists(fname, "e") || findfile(fname, "e") ? 1 : 0);
-});
+}
+COMMANDN(findfile, findfile_, "s");
 
 struct sortitem
 {
@@ -4198,6 +4199,20 @@ char *strreplace(const char *s, const char *oldval, const char *newval, const ch
 }
 
 ICOMMAND(strreplace, "ssss", (char *s, char *o, char *n, char *n2), commandret->setstr(strreplace(s, o, n, n2[0] ? n2 : n)));
+
+void strsplice(const char *s, const char *vals, int *skip, int *count)
+{
+    int slen = strlen(s), vlen = strlen(vals),
+        offset = clamp(*skip, 0, slen),
+        len = clamp(*count, 0, slen - offset);
+    char *p = newstring(slen - len + vlen);
+    if(offset) memcpy(p, s, offset);
+    if(vlen) memcpy(&p[offset], vals, vlen);
+    if(offset + len < slen) memcpy(&p[offset + vlen], &s[offset + len], slen - (offset + len));
+    p[slen - len + vlen] = '\0';
+    commandret->setstr(p);
+}
+COMMAND(strsplice, "ssii");
 
 ICOMMAND(getmillis, "i", (int *total), intret(*total ? totalmillis : lastmillis));
 

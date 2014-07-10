@@ -90,25 +90,28 @@ void savec(cube *c, const ivec &o, int size, stream *f, bool nolms)
         {
             int oflags = 0, surfmask = 0, totalverts = 0;
             if(c[i].material!=MAT_AIR) oflags |= 0x40;
-            if(!nolms)
-            {
-                if(c[i].merged) oflags |= 0x80;
-                if(c[i].ext) loopj(6)
-                {
-                    const surfaceinfo &surf = c[i].ext->surfaces[j];
-                    if(!surf.used()) continue;
-                    oflags |= 0x20;
-                    surfmask |= 1<<j;
-                    totalverts += surf.totalverts();
-                }
-            }
-
             if(isempty(c[i])) f->putchar(oflags | OCTSAV_EMPTY);
-            else if(isentirelysolid(c[i])) f->putchar(oflags | OCTSAV_SOLID);
             else
             {
-                f->putchar(oflags | OCTSAV_NORMAL);
-                f->write(c[i].edges, 12);
+                if(!nolms)
+                {
+                    if(c[i].merged) oflags |= 0x80;
+                    if(c[i].ext) loopj(6)
+                    {
+                        const surfaceinfo &surf = c[i].ext->surfaces[j];
+                        if(!surf.used()) continue;
+                        oflags |= 0x20;
+                        surfmask |= 1<<j;
+                        totalverts += surf.totalverts();
+                    }
+                }
+
+                if(isentirelysolid(c[i])) f->putchar(oflags | OCTSAV_SOLID);
+                else
+                {
+                    f->putchar(oflags | OCTSAV_NORMAL);
+                    f->write(c[i].edges, 12);
+                }
             }
 
             loopj(6) f->putlil<ushort>(c[i].texture[j]);
@@ -234,7 +237,7 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
             surf.verts = offset;
             vertinfo *verts = c.ext->verts() + offset;
             offset += numverts;
-            ivec v[4], n;
+            ivec v[4], n, vo = ivec(co).mask(0xFFF).shl(3);
             int layerverts = surf.numverts&MAXFACEVERTS, dim = dimension(i), vc = C[dim], vr = R[dim], bias = 0;
             genfaceverts(c, i, v);
             bool hasxyz = (vertmask&0x04)!=0, hasuv = mapversion <= 0 && (vertmask&0x40)!=0, hasnorm = (vertmask&0x80)!=0;
@@ -243,12 +246,11 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
                 ivec e1, e2, e3;
                 n.cross((e1 = v[1]).sub(v[0]), (e2 = v[2]).sub(v[0]));
                 if(n.iszero()) n.cross(e2, (e3 = v[3]).sub(v[0]));
-                bias = -n.dot(ivec(v[0]).mul(size).add(ivec(co).mask(0xFFF).shl(3)));
+                bias = -n.dot(ivec(v[0]).mul(size).add(vo));
             }
             else
             {
                 int vis = layerverts < 4 ? (vertmask&0x02 ? 2 : 1) : 3, order = vertmask&0x01 ? 1 : 0, k = 0;
-                ivec vo = ivec(co).mask(0xFFF).shl(3);
                 verts[k++].setxyz(v[order].mul(size).add(vo));
                 if(vis&1) verts[k++].setxyz(v[order+1].mul(size).add(vo));
                 verts[k++].setxyz(v[order+2].mul(size).add(vo));
@@ -260,13 +262,13 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
                 {
                     ushort c1 = f->getlil<ushort>(), r1 = f->getlil<ushort>(), c2 = f->getlil<ushort>(), r2 = f->getlil<ushort>();
                     ivec xyz;
-                    xyz[vc] = c1; xyz[vr] = r1; xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                    xyz[vc] = c1; xyz[vr] = r1; xyz[dim] = n[dim] ? -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim] : vo[dim];
                     verts[0].setxyz(xyz);
-                    xyz[vc] = c1; xyz[vr] = r2; xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                    xyz[vc] = c1; xyz[vr] = r2; xyz[dim] = n[dim] ? -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim] : vo[dim];
                     verts[1].setxyz(xyz);
-                    xyz[vc] = c2; xyz[vr] = r2; xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                    xyz[vc] = c2; xyz[vr] = r2; xyz[dim] = n[dim] ? -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim] : vo[dim];
                     verts[2].setxyz(xyz);
-                    xyz[vc] = c2; xyz[vr] = r1; xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                    xyz[vc] = c2; xyz[vr] = r1; xyz[dim] = n[dim] ? -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim] : vo[dim];
                     verts[3].setxyz(xyz);
                     hasxyz = false;
                 }
@@ -290,7 +292,7 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
                 {
                     ivec xyz;
                     xyz[vc] = f->getlil<ushort>(); xyz[vr] = f->getlil<ushort>();
-                    xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                    xyz[dim] = n[dim] ? -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim] : vo[dim];
                     v.setxyz(xyz);
                 }
                 if(hasuv) { f->getlil<ushort>(); f->getlil<ushort>(); }
