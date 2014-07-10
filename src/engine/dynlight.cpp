@@ -175,11 +175,12 @@ void dynlightreaching(const vec &target, vec &color, vec &dir, bool hud)
         ray.sub(hud ? d.hud : d.o);
         float mag = ray.squaredlen();
         if(mag >= d.curradius*d.curradius) continue;
+        mag = sqrtf(mag);
 
-        float intensity = 1 - sqrtf(mag)/d.curradius;
-        if(d.spot > 0)
+        float intensity = 1 - mag/d.curradius;
+        if(d.spot > 0 && mag > 1e-4f)
         {
-            float spotatten = 1 - (1 - ray.dot(d.dir)) / (1 - cos360(d.spot));
+            float spotatten = 1 - (1 - ray.dot(d.dir)/mag) / (1 - cos360(d.spot));
             if(spotatten <= 0) continue;
             intensity *= spotatten;
         }

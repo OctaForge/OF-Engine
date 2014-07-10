@@ -2317,14 +2317,16 @@ VAR(forcespotlights, 1, 0, 0);
 
 extern int spotlights;
 
-static Shader *volumetricshader = NULL;
+static Shader *volumetricshader = NULL, *volumetricblurshader[2] = { NULL, NULL };
 
 void clearvolumetricshaders()
 {
     volumetricshader = NULL;
+
+    loopi(2) volumetricblurshader[i] = NULL;
 }
 
-extern int volsteps;
+extern int volsteps, volblur;
 
 Shader *loadvolumetricshader()
 {
@@ -2346,39 +2348,48 @@ Shader *loadvolumetricshader()
 void loadvolumetricshaders()
 {
     volumetricshader = loadvolumetricshader();
+
+    if(volblur) loopi(2)
+    {
+        defformatstring(name, "volumetricblur%c%d", 'x' + i, volblur);
+        volumetricblurshader[i] = generateshader(name, "volumetricblurshader %d", volblur);
+    }
 }
 
 extern int volreduce;
 
 static int volw = -1, volh = -1;
-static GLuint volfbo = 0, voltex = 0;
+static GLuint volfbo[2] = { 0, 0 }, voltex[2] = { 0, 0 };
 
 void setupvolumetric(int w, int h)
 {
     volw = w>>volreduce;
     volh = h>>volreduce;
 
-    if(!voltex) glGenTextures(1, &voltex);
-    if(!volfbo) glGenFramebuffers_(1, &volfbo);
+    loopi(volblur ? 2 : 1)
+    {
+        if(!voltex[i]) glGenTextures(1, &voltex[i]);
+        if(!volfbo[i]) glGenFramebuffers_(1, &volfbo[i]);
 
-    glBindFramebuffer_(GL_FRAMEBUFFER, volfbo);
+        glBindFramebuffer_(GL_FRAMEBUFFER, volfbo[i]);
 
-    createtexture(voltex, volw, volh, NULL, 3, 1, hdrformat, GL_TEXTURE_RECTANGLE);
+        createtexture(voltex[i], volw, volh, NULL, 3, 1, hdrformat, GL_TEXTURE_RECTANGLE);
 
-    glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, voltex, 0);
+        glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, voltex[i], 0);
 
-    if(glCheckFramebufferStatus_(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        fatal("failed allocating volumetric buffer!");
+        if(glCheckFramebufferStatus_(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            fatal("failed allocating volumetric buffer!");
+    }
 
-    glBindFramebuffer_(GL_FRAMEBUFFER, volfbo);
+    glBindFramebuffer_(GL_FRAMEBUFFER, 0);
 
     loadvolumetricshaders();
 }
 
 void cleanupvolumetric()
 {
-    if(volfbo) { glDeleteFramebuffers_(1, &volfbo); volfbo = 0; }
-    if(voltex) { glDeleteTextures(1, &voltex); voltex = 0; }
+    loopi(2) if(volfbo[i]) { glDeleteFramebuffers_(1, &volfbo[i]); volfbo[i] = 0; }
+    loopi(2) if(voltex[i]) { glDeleteTextures(1, &voltex[i]); voltex[i] = 0; }
     volw = volh = -1;
 
     clearvolumetricshaders();
@@ -2386,13 +2397,14 @@ void cleanupvolumetric()
 
 VARFP(volumetric, 0, 1, 1, cleanupvolumetric());
 VARFP(volreduce, 0, 1, 2, cleanupvolumetric());
+VARFP(volblur, 0, 1, 2, cleanupvolumetric());
+FVARF(volblurthreshold, 0, 0.05f, 1, initwarning("volumetric setup", INIT_LOAD, CHANGE_SHADERS));
 VARFP(volsteps, 1, 12, 64, cleanupvolumetric());
 FVARF(volminstep, 0, 0.0625f, 1e3f, initwarning("volumetric setup", INIT_LOAD, CHANGE_SHADERS));
 FVAR(volprefilter, 0, 4, 1e3f);
 FVAR(voldistclamp, 0, 0.99f, 2);
 CVARR(volcolor, 0x808080);
 FVARR(volscale, 0, 1, 16);
-FVARR(volshadow, 0, 0.25f, 1);
 
 static Shader *deferredlightshader = NULL, *deferredminimapshader = NULL, *deferredmsaapixelshader = NULL, *deferredmsaasampleshader = NULL;
 
@@ -3113,7 +3125,7 @@ void rendervolumetric()
 
     timer *voltimer = begintimer("volumetric lights");
 
-    glBindFramebuffer_(GL_FRAMEBUFFER, volfbo);
+    glBindFramebuffer_(GL_FRAMEBUFFER, volfbo[0]);
     glViewport(0, 0, volw, volh);
 
     glClearColor(0, 0, 0, 0);
@@ -3131,7 +3143,6 @@ void rendervolumetric()
     GLOBALPARAMF(volscale, float(vieww)/volw, float(viewh)/volh, float(volw)/vieww, float(volh)/viewh);
     GLOBALPARAMF(volprefilter, volprefilter);
     GLOBALPARAMF(voldistclamp, farplane*voldistclamp);
-    GLOBALPARAMF(volshadow, 1-volshadow, volshadow);
 
     glBlendFunc(GL_ONE, GL_ONE);
     glEnable(GL_BLEND);
@@ -3223,7 +3234,6 @@ void rendervolumetric()
     if(!outside)
     {
         outside = true;
-        if(depthtestlights) glEnable(GL_DEPTH_TEST);
         glCullFace(GL_BACK);
     }
 
@@ -3231,19 +3241,43 @@ void rendervolumetric()
     glBindBuffer_(GL_ARRAY_BUFFER, 0);
     glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    if(!depthtestlights) glEnable(GL_DEPTH_TEST);
-    else glDepthMask(GL_TRUE);
+    if(depthtestlights)
+    {
+        glDepthMask(GL_TRUE);
 
-    glBindFramebuffer_(GL_FRAMEBUFFER, msaasamples ? mshdrfbo : hdrfbo);
-    glViewport(0, 0, vieww, viewh);
-
-    glDisable(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST);
+    }
 
     int cx1 = int(floor((bsx1*0.5f+0.5f)*volw))&~1,
         cy1 = int(floor((bsy1*0.5f+0.5f)*volh))&~1,
         cx2 = (int(ceil((bsx2*0.5f+0.5f)*volw))&~1) + 2,
-        cy2 = (int(ceil((bsy2*0.5f+0.5f)*volh))&~1) + 2,
-        margin = (1<<volreduce) - 1;
+        cy2 = (int(ceil((bsy2*0.5f+0.5f)*volh))&~1) + 2;
+    if(volblur)
+    {
+        cx1 = max(cx1 - volblur*2, 0);
+        cy1 = max(cy1 - volblur*2, 0);
+        cx2 = min(cx2 + volblur*2, volw);
+        cy2 = min(cy2 + volblur*2, volh);
+        glScissor(cx1, cy1, cx2-cx1, cy2-cy1);
+
+        glDisable(GL_BLEND);
+
+        loopi(2)
+        {
+            glBindFramebuffer_(GL_FRAMEBUFFER, volfbo[(i+1)%2]);
+            glViewport(0, 0, volw, volh);
+            volumetricblurshader[i]->set();
+            glBindTexture(GL_TEXTURE_RECTANGLE, voltex[i%2]);
+            screenquad(volw, volh);
+        }
+
+        glEnable(GL_BLEND);
+    }
+
+    glBindFramebuffer_(GL_FRAMEBUFFER, msaasamples ? mshdrfbo : hdrfbo);
+    glViewport(0, 0, vieww, viewh);
+
+    int margin = (1<<volreduce) - 1;
     cx1 = max((cx1 * vieww) / volw - margin, 0);
     cy1 = max((cy1 * viewh) / volh - margin, 0);
     cx2 = min((cx2 * vieww + margin + volw - 1) / volw, vieww);
@@ -3259,9 +3293,15 @@ void rendervolumetric()
     }
 
     SETSHADER(scalelinear);
-    glBindTexture(GL_TEXTURE_RECTANGLE, voltex);
+    glBindTexture(GL_TEXTURE_RECTANGLE, voltex[0]);
     screenquad(volw, volh);
 
+    if(volblur)
+    {
+        swap(volfbo[0], volfbo[1]);
+        swap(voltex[0], voltex[1]);
+    }
+ 
     if(avatar) glDisable(GL_STENCIL_TEST);
 
     glDisable(GL_SCISSOR_TEST);
