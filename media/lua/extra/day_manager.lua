@@ -88,6 +88,24 @@ M.setup = function(plugins)
     end
 end
 
+local getsunscale = function(dayprog)
+    -- the numbers here are very approximate, in reality they'd depend
+    -- on the which part of the year it is - here the sun is at the horizon
+    -- by 6 AM and 6 PM respectively (equally long night and day) so we need
+    -- the sunlightscale at 0 by 6 PM and rising up to 1 from 6 AM (so that
+    -- we don't get shadows from the bottom) - both dawn and dusk take 2
+    -- hours... TODO: more configurable system where you can set how long
+    -- is day and night (and affect actual seasons)
+    local r1, r2 = 0.67, 0.75 -- dusk: 4 - 6 hrs
+    local d1, d2 = 0.25, 0.33 -- dawn: 6 - 8 hrs
+    if dayprog > d2 and dayprog < r1 then return 1 end
+    if dayprog > r2  or dayprog < d1 then return 0 end
+    if dayprog > r1 then
+        return (r2 - dayprog) / (r2 - r1)
+    end
+    return (dayprog - d1) / (d2 - d1)
+end
+
 local getsunparams = function(daytime, daylen)
     local mid = daylen / 2
     local yaw = 360 - (daytime / daylen) * 360
@@ -97,7 +115,7 @@ local getsunparams = function(daytime, daylen)
     else
         pitch = 90 - ((daytime - mid) / mid) * 180
     end
-    return yaw, pitch, math.max(0, pitch) / 90
+    return yaw, pitch, getsunscale(daytime / daylen)
 end
 
 --[[!
