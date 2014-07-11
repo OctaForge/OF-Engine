@@ -139,10 +139,18 @@ VSlot *editvslot(const VSlot &src, const VSlot &delta)
     return &lookupvslot(0, 0);
 }
 
-void clearslots() { };
-void compactvslots(cube *c, int n) { };
-void compactvslot(int &index) { };
-void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta) { };
+void clearslots() {};
+void compactvslots(cube *c, int n) {};
+void compactvslot(int &index) {};
+void compactvslot(VSlot &vs) {};
+void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta) {};
+VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta) { return &lookupvslot(0, 0); }
+
+int shouldpackvslot(int index) { return 0; }
+void packvslot(vector<uchar> &buf, const VSlot &src) {}
+void packvslot(vector<uchar> &buf, int index) {}
+void packvslot(vector<uchar> &buf, const VSlot *vs) {}
+bool unpackvslot(ucharbuf &buf, VSlot &dst, bool delta) { return true; }
 
 const char *DecalSlot::name() const { return "decal slot"; }
 
@@ -154,7 +162,7 @@ DecalSlot &lookupdecalslot(int index, bool load)
 
 int DecalSlot::cancombine(int type) const { return -1; }
 
-const char *getshaderparamname(const char *name) { return ""; };
+const char *getshaderparamname(const char *name, bool insert) { return ""; };
 
 void setupmaterials(int start, int len) { };
 int findmaterial(const char *name) { return 0; };

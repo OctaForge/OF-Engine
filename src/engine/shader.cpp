@@ -1277,10 +1277,10 @@ COMMAND(isshaderdefined, "s");
 
 static hashset<const char *> shaderparamnames(256);
 
-const char *getshaderparamname(const char *name)
+const char *getshaderparamname(const char *name, bool insert)
 {
     const char *exists = shaderparamnames.find(name, NULL);
-    if(exists) return exists;
+    if(exists || !insert) return exists;
     return shaderparamnames.add(newstring(name));
 }
 

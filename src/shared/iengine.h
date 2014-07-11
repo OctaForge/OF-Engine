@@ -59,7 +59,7 @@ extern bool settexture(const char *name, int clamp = 0);
 
 // octaedit
 
-enum { EDIT_FACE = 0, EDIT_TEX, EDIT_MAT, EDIT_FLIP, EDIT_COPY, EDIT_PASTE, EDIT_ROTATE, EDIT_REPLACE, EDIT_DELCUBE, EDIT_CALCLIGHT, EDIT_REMIP };
+enum { EDIT_FACE = 0, EDIT_TEX, EDIT_MAT, EDIT_FLIP, EDIT_COPY, EDIT_PASTE, EDIT_ROTATE, EDIT_REPLACE, EDIT_DELCUBE, EDIT_CALCLIGHT, EDIT_REMIP, EDIT_VSLOT };
 
 struct selinfo
 {
@@ -99,14 +99,17 @@ extern bool noedit(bool view = false, bool msg = true);
 extern void toggleedit(bool force = true);
 extern void mpeditface(int dir, int mode, selinfo &sel, bool local);
 extern void mpedittex(int tex, int allfaces, selinfo &sel, bool local);
+extern bool mpedittex(int tex, int allfaces, selinfo &sel, ucharbuf &buf);
 extern void mpeditmat(int matid, int filter, selinfo &sel, bool local);
 extern void mpflip(selinfo &sel, bool local);
 extern void mpcopy(editinfo *&e, selinfo &sel, bool local);
 extern void mppaste(editinfo *&e, selinfo &sel, bool local);
 extern void mprotate(int cw, selinfo &sel, bool local);
 extern void mpreplacetex(int oldtex, int newtex, bool insel, selinfo &sel, bool local);
+extern bool mpreplacetex(int oldtex, int newtex, bool insel, selinfo &sel, ucharbuf &buf);
 extern void mpdelcube(selinfo &sel, bool local);
 extern void mpremip(bool local);
+extern bool mpeditvslot(int delta, int allfaces, selinfo &sel, ucharbuf &buf);
 extern void mpcalclight(bool local);
 
 // command
@@ -257,6 +260,14 @@ static inline void text_pos(const char *str, int cursor, int &cx, int &cy, int m
     cy = int(cyf);
 }
 
+// texture
+
+struct VSlot;
+
+extern int shouldpackvslot(int index);
+extern void packvslot(vector<uchar> &buf, int index);
+extern void packvslot(vector<uchar> &buf, const VSlot *vs);
+
 // dynlight
 extern void removetrackeddynlights(physent *owner = NULL);
 
@@ -367,7 +378,7 @@ extern void cleanragdoll(dynent *d);
 
 extern int maxclients;
 
-enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_KICK, DISC_TAGT, DISC_IPBAN, DISC_PRIVATE, DISC_MAXCLIENTS, DISC_TIMEOUT, DISC_OVERFLOW, DISC_NUM };
+enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_KICK, DISC_MSGERR, DISC_TAGT, DISC_IPBAN, DISC_PRIVATE, DISC_MAXCLIENTS, DISC_TIMEOUT, DISC_OVERFLOW, DISC_NUM };
 
 extern void *getclientinfo(int i);
 extern ENetPacket *buildf(const char *format, ...);

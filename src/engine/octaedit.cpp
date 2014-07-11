@@ -41,14 +41,16 @@ void boxsgrid(int orient, vec o, vec s, int g)
 
     gle::defvertex();
     gle::begin(GL_LINES);
-    loop(x, xs) {
+    loop(x, xs)
+    {
         o[R[d]] += g;
         gle::attrib(o);
         o[C[d]] += ys*g;
         gle::attrib(o);
         o[C[d]] = oy;
     }
-    loop(y, ys) {
+    loop(y, ys)
+    {
         o[C[d]] += g;
         o[R[d]] = ox;
         gle::attrib(o);
@@ -860,6 +862,41 @@ static bool packblock(block3 &b, B &buf)
     return true;
 }
 
+struct vslothdr
+{
+    ushort index;
+    ushort slot;
+};
+
+static void packvslots(cube &c, vector<uchar> &buf, vector<ushort> &used)
+{
+    if(c.children)
+    {
+        loopi(8) packvslots(c.children[i], buf, used);
+    }
+    else loopi(6)
+    {
+        ushort index = c.texture[i];
+        if(vslots.inrange(index) && vslots[index]->changed && used.find(index) < 0)
+        {
+            used.add(index);
+            VSlot &vs = *vslots[index];
+            vslothdr &hdr = *(vslothdr *)buf.pad(sizeof(vslothdr));         
+            hdr.index = index;
+            hdr.slot = vs.slot->index;
+            lilswap(&hdr.index, 2);
+            packvslot(buf, vs);
+        }
+    }
+}
+
+static void packvslots(block3 &b, vector<uchar> &buf)
+{
+    vector<ushort> used;
+    cube *c = b.c();
+    loopi(b.size()) packvslots(c[i], buf, used);
+}
+
 template<class B>
 static void unpackcube(cube &c, B &buf)
 {
@@ -897,6 +934,50 @@ static bool unpackblock(block3 *&b, B &buf)
     return true;
 }
 
+struct vslotmap
+{
+    int index;
+    VSlot *vslot;
+
+    vslotmap() {}
+    vslotmap(int index, VSlot *vslot) : index(index), vslot(vslot) {}
+};
+static vector<vslotmap> unpackingvslots;
+
+static void unpackvslots(cube &c, ucharbuf &buf)
+{
+    if(c.children)
+    {
+        loopi(8) unpackvslots(c.children[i], buf);
+    }
+    else loopi(6)
+    {
+        ushort tex = c.texture[i];
+        loopvj(unpackingvslots) if(unpackingvslots[j].index == tex) { c.texture[i] = unpackingvslots[j].vslot->index; break; } 
+    }
+}
+
+static void unpackvslots(block3 &b, ucharbuf &buf)
+{
+    while(buf.remaining() >= int(sizeof(vslothdr)))
+    {
+        vslothdr &hdr = *(vslothdr *)buf.pad(sizeof(vslothdr));
+        lilswap(&hdr.index, 2);
+        Slot &s = lookupslot(hdr.slot, false);
+        VSlot &vs = *s.variants;
+        VSlot ds;
+        if(!unpackvslot(buf, ds, false)) break;
+        if(vs.index < 0 || vs.index == DEFAULT_SKY) continue;
+        VSlot *edit = editvslot(*s.variants, ds);
+        unpackingvslots.add(vslotmap(hdr.index, edit ? edit : &vs));
+    }
+
+    cube *c = b.c();
+    loopi(b.size()) unpackvslots(c[i], buf);
+
+    unpackingvslots.setsize(0);
+}
+ 
 static bool compresseditinfo(const uchar *inbuf, int inlen, uchar *&outbuf, int &outlen)
 {
     uLongf len = compressBound(inlen);
@@ -931,6 +1012,7 @@ bool packeditinfo(editinfo *e, int &inlen, uchar *&outbuf, int &outlen)
 {
     vector<uchar> buf;
     if(!e || !e->copy || !packblock(*e->copy, buf)) return false;
+    packvslots(*e->copy, buf);
     inlen = buf.length();
     return compresseditinfo(buf.getbuf(), buf.length(), outbuf, outlen);
 }
@@ -947,6 +1029,7 @@ bool unpackeditinfo(editinfo *&e, const uchar *inbuf, int inlen, int outlen)
         delete[] outbuf;
         return false;
     }
+    unpackvslots(*e->copy, buf);
     delete[] outbuf;
     return true;
 }
@@ -1327,11 +1410,16 @@ COMMAND(paste, "");
 COMMANDN(undo, editundo, "");
 COMMANDN(redo, editredo, "");
 
-static VSlot *editingvslot = NULL;
+static int *editingvslots[2] = { NULL, NULL };
 
 void compacteditvslots()
 {
-    if(editingvslot && editingvslot->layer) compactvslot(editingvslot->layer);
+    loopi(2)
+    {
+        if(!editingvslots[i]) break;
+        if(*editingvslots[i]) compactvslot(*editingvslots[i]);
+    }
+    loopv(unpackingvslots) compactvslot(*unpackingvslots[i].vslot);
     loopv(editinfos)
     {
         editinfo *e = editinfos[i];
@@ -1555,8 +1643,10 @@ namespace hmap
         int e[2][2];
         int notempty = 0;
 
-        loopk(4) if(c[k]) {
-            loopi(2) loopj(2) {
+        loopk(4) if(c[k])
+        {
+            loopi(2) loopj(2)
+            {
                 e[i][j] = min(8, map[x+i][y+j] - (mapz[x][y]+3-k)*8);
                 notempty |= e[i][j] > 0;
             }
@@ -1694,7 +1784,8 @@ namespace hmap
     }
 }
 
-void edithmap(int dir, int mode) {
+void edithmap(int dir, int mode)
+{
     if((nompedit && multiplayer()) || !hmapsel) return;
     hmap::run(dir, mode);
 }
@@ -1875,25 +1966,15 @@ void tofronttex()                                       // maintain most recentl
 selinfo repsel;
 int reptex = -1;
 
-struct vslotmap
-{
-    int index;
-    VSlot *vslot;
-
-    vslotmap() {}
-    vslotmap(int index, VSlot *vslot) : index(index), vslot(vslot) {}
-};
 static vector<vslotmap> remappedvslots;
 
-VAR(usevdelta, 1, 0, 0);
-
-static VSlot *remapvslot(int index, const VSlot &ds)
+static VSlot *remapvslot(int index, bool delta, const VSlot &ds)
 {
     loopv(remappedvslots) if(remappedvslots[i].index == index) return remappedvslots[i].vslot;
     VSlot &vs = lookupvslot(index, false);
     if(vs.index < 0 || vs.index == DEFAULT_SKY) return NULL;
     VSlot *edit = NULL;
-    if(usevdelta)
+    if(delta)
     {
         VSlot ms;
         mergevslot(ms, vs, ds);
@@ -1905,17 +1986,17 @@ static VSlot *remapvslot(int index, const VSlot &ds)
     return edit;
 }
 
-static void remapvslots(cube &c, const VSlot &ds, int orient, bool &findrep, VSlot *&findedit)
+static void remapvslots(cube &c, bool delta, const VSlot &ds, int orient, bool &findrep, VSlot *&findedit)
 {
     if(c.children)
     {
-        loopi(8) remapvslots(c.children[i], ds, orient, findrep, findedit);
+        loopi(8) remapvslots(c.children[i], delta, ds, orient, findrep, findedit);
         return;
     }
     static VSlot ms;
     if(orient<0) loopi(6)
     {
-        VSlot *edit = remapvslot(c.texture[i], ds);
+        VSlot *edit = remapvslot(c.texture[i], delta, ds);
         if(edit)
         {
             c.texture[i] = edit->index;
@@ -1925,7 +2006,7 @@ static void remapvslots(cube &c, const VSlot &ds, int orient, bool &findrep, VSl
     else
     {
         int i = visibleorient(c, orient);
-        VSlot *edit = remapvslot(c.texture[i], ds);
+        VSlot *edit = remapvslot(c.texture[i], delta, ds);
         if(edit)
         {
             if(findrep)
@@ -1955,21 +2036,18 @@ void edittexcube(cube &c, int tex, int orient, bool &findrep)
     if(c.children) loopi(8) edittexcube(c.children[i], tex, orient, findrep);
 }
 
-VAR(allfaces, 0, 0, 1);
-
-void mpeditvslot(VSlot &ds, int allfaces, selinfo &sel, bool local)
+void mpeditvslot(int delta, VSlot &ds, int allfaces, selinfo &sel, bool local)
 {
     if(local)
     {
+        game::edittrigger(sel, EDIT_VSLOT, delta, allfaces, 0, &ds);
         if(!(lastsel==sel)) tofronttex();
         if(allfaces || !(repsel == sel)) reptex = -1;
         repsel = sel;
     }
     bool findrep = local && !allfaces && reptex < 0;
     VSlot *findedit = NULL;
-    editingvslot = &ds;
-    loopselxyz(remapvslots(c, ds, allfaces ? -1 : sel.orient, findrep, findedit));
-    editingvslot = NULL;
+    loopselxyz(remapvslots(c, delta != 0, ds, allfaces ? -1 : sel.orient, findrep, findedit));
     remappedvslots.setsize(0);
     if(local && findedit)
     {
@@ -1984,9 +2062,24 @@ void mpeditvslot(VSlot &ds, int allfaces, selinfo &sel, bool local)
     }
 }
 
+bool mpeditvslot(int delta, int allfaces, selinfo &sel, ucharbuf &buf)
+{
+    VSlot ds;
+    if(!unpackvslot(buf, ds, delta != 0)) return false;
+    editingvslots[0] = &ds.layer;
+    editingvslots[1] = &ds.decal;
+    mpeditvslot(delta, ds, allfaces, sel, false);
+    editingvslots[0] = NULL;
+    editingvslots[1] = NULL;
+    return true;
+}
+ 
+VAR(allfaces, 0, 0, 1);
+VAR(usevdelta, 1, 0, 0);
+
 void vdelta(uint *body)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     usevdelta++;
     execute(body);
     usevdelta--;
@@ -1995,88 +2088,92 @@ COMMAND(vdelta, "e");
 
 void vrotate(int *n)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_ROTATION;
     ds.rotation = usevdelta ? *n : clamp(*n, 0, 5);
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(vrotate, "i");
 
 void voffset(int *x, int *y)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_OFFSET;
     ds.offset = usevdelta ? ivec2(*x, *y) : ivec2(*x, *y).max(0);
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(voffset, "ii");
 
 void vscroll(float *s, float *t)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_SCROLL;
     ds.scroll = vec2(*s/1000.0f, *t/1000.0f);
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(vscroll, "ff");
 
 void vscale(float *scale)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_SCALE;
     ds.scale = *scale <= 0 ? 1 : (usevdelta ? *scale : clamp(*scale, 1/8.0f, 8.0f));
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(vscale, "f");
 
 void vlayer(int *n)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_LAYER;
     ds.layer = vslots.inrange(*n) ? *n : 0;
-    mpeditvslot(ds, allfaces, sel, true);
+    editingvslots[0] = &ds.layer;
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
+    editingvslots[0] = NULL;
 }
 COMMAND(vlayer, "i");
 
 void vdecal(int *n)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_DECAL;
     ds.decal = vslots.inrange(*n) ? *n : 0;
-    mpeditvslot(ds, allfaces, sel, true);
+    editingvslots[0] = &ds.decal;
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
+    editingvslots[0] = NULL;
 }
 COMMAND(vdecal, "i");
 
 void valpha(float *front, float *back)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_ALPHA;
     ds.alphafront = clamp(*front, 0.0f, 1.0f);
     ds.alphaback = clamp(*back, 0.0f, 1.0f);
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(valpha, "ff");
 
 void vcolor(float *r, float *g, float *b)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_COLOR;
     ds.colorscale = vec(clamp(*r, 0.0f, 2.0f), clamp(*g, 0.0f, 2.0f), clamp(*b, 0.0f, 2.0f));
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(vcolor, "fff");
 
 void vrefract(float *k, float *r, float *g, float *b)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_REFRACT;
     ds.refractscale = clamp(*k, 0.0f, 1.0f);
@@ -2084,22 +2181,22 @@ void vrefract(float *k, float *r, float *g, float *b)
         ds.refractcolor = vec(clamp(*r, 0.0f, 1.0f), clamp(*g, 0.0f, 1.0f), clamp(*b, 0.0f, 1.0f));
     else
         ds.refractcolor = vec(1, 1, 1);
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 
 }
 COMMAND(vrefract, "ffff");
 
 void vreset()
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(vreset, "");
 
 void vshaderparam(const char *name, float *x, float *y, float *z, float *w)
 {
-    if(noedit() || (nompedit && multiplayer())) return;
+    if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_SHPARAM;
     if(name[0])
@@ -2107,7 +2204,7 @@ void vshaderparam(const char *name, float *x, float *y, float *z, float *w)
         SlotShaderParam p = { getshaderparamname(name), -1, {*x, *y, *z, *w} };
         ds.params.add(p);
     }
-    mpeditvslot(ds, allfaces, sel, true);
+    mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(vshaderparam, "sfFFf");
 
@@ -2121,6 +2218,23 @@ void mpedittex(int tex, int allfaces, selinfo &sel, bool local)
     }
     bool findrep = local && !allfaces && reptex < 0;
     loopselxyz(edittexcube(c, tex, allfaces ? -1 : sel.orient, findrep));
+}
+
+bool mpedittex(int tex, int allfaces, selinfo &sel, ucharbuf &buf)
+{
+    if(tex < 0x10000)
+    {
+        mpedittex(tex, allfaces, sel, false);
+        return true;
+    }
+    VSlot ds;
+    if(!unpackvslot(buf, ds, false)) return false;
+    VSlot &vs = *lookupslot(tex & 0xFFFF, false).variants;
+    if(vs.index < 0 || vs.index == DEFAULT_SKY) return false;
+    VSlot *edit = editvslot(vs, ds);
+    tex = edit ? edit->index : vs.index;
+    mpedittex(tex, allfaces, sel, false);
+    return true;
 }
 
 static void filltexlist()
@@ -2273,6 +2387,33 @@ void mpreplacetex(int oldtex, int newtex, bool insel, selinfo &sel, bool local)
         loopi(8) replacetexcube(worldroot[i], oldtex, newtex);
     }
     allchanged();
+}
+
+bool mpreplacetex(int oldtex, int newtex, bool insel, selinfo &sel, ucharbuf &buf)
+{
+    if(oldtex >= 0x10000)
+    {
+        VSlot ds;
+        if(!unpackvslot(buf, ds, false)) return false;
+        VSlot &vs = *lookupslot(oldtex & 0xFFFF, false).variants;
+        if(vs.index < 0 || vs.index == DEFAULT_SKY) return false;
+        VSlot *edit = findvslot(*vs.slot, vs, ds);
+        if(!edit) return false;
+        oldtex = edit->index;
+    }
+    if(newtex >= 0x10000)
+    {
+        VSlot ds;
+        if(!unpackvslot(buf, ds, false)) return false;
+        VSlot &vs = *lookupslot(newtex & 0xFFFF, false).variants;
+        if(vs.index < 0 || vs.index == DEFAULT_SKY) return false;
+        editingvslots[0] = &oldtex;
+        VSlot *edit = editvslot(vs, ds);
+        newtex = edit ? edit->index : vs.index;
+        editingvslots[0] = NULL;
+    }
+    mpreplacetex(oldtex, newtex, insel, sel, false);
+    return true;
 }
 
 void replace(bool insel)

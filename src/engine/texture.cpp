@@ -2007,13 +2007,10 @@ void clearslots()
 
 static void assignvslot(VSlot &vs);
 
-static inline void assignvslotlayer(VSlot &vs)
+static void assignvslotlayer(VSlot &vs)
 {
-    if(vs.layer && vslots.inrange(vs.layer))
-    {
-        VSlot &layer = *vslots[vs.layer];
-        if(layer.index < 0) assignvslot(layer);
-    }
+    if(vs.layer && vslots.inrange(vs.layer) && vslots[vs.layer]->index < 0) assignvslot(*vslots[vs.layer]);
+    if(vs.decal && vslots.inrange(vs.decal) && vslots[vs.decal]->index < 0) assignvslot(*vslots[vs.decal]);
 }
 
 static void assignvslot(VSlot &vs)
@@ -2030,6 +2027,11 @@ void compactvslot(int &index)
         if(vs.index < 0) assignvslot(vs);
         if(!markingvslots) index = vs.index;
     }
+}
+
+void compactvslot(VSlot &vs)
+{
+    if(vs.index < 0) assignvslot(vs);
 }
 
 void compactvslots(cube *c, int n)
@@ -2112,7 +2114,11 @@ int compactvslots(bool cull)
     loopv(vslots)
     {
         VSlot &vs = *vslots[i];
-        if(vs.index >= 0 && vs.layer && vslots.inrange(vs.layer)) vs.layer = vslots[vs.layer]->index;
+        if(vs.index >= 0)
+        {
+            if(vs.layer && vslots.inrange(vs.layer)) vs.layer = vslots[vs.layer]->index;
+            if(vs.decal && vslots.inrange(vs.decal)) vs.decal = vslots[vs.decal]->index;
+        }
     }
     if(cull) cullslots(); /* OF */
     loopv(vslots)
@@ -2318,6 +2324,174 @@ static int comparevslot(const VSlot &dst, const VSlot &src) {
     return changed;
 }
 
+int shouldpackvslot(int index)
+{
+    if(vslots.inrange(index))
+    {
+        VSlot &vs = *vslots[index];
+        if(vs.changed) return 0x10000 + vs.slot->index;
+    }
+    return 0;
+}
+
+void packvslot(vector<uchar> &buf, const VSlot &src)
+{
+    if(src.changed & (1<<VSLOT_SHPARAM))
+    {
+        loopv(src.params)
+        {
+            const SlotShaderParam &p = src.params[i];
+            buf.put(VSLOT_SHPARAM);
+            sendstring(p.name, buf);
+            loopj(4) putfloat(buf, p.val[j]);
+        }
+    }
+    if(src.changed & (1<<VSLOT_SCALE))
+    {
+        buf.put(VSLOT_SCALE);
+        putfloat(buf, src.scale);
+    }
+    if(src.changed & (1<<VSLOT_ROTATION))
+    {
+        buf.put(VSLOT_ROTATION);
+        putfloat(buf, src.rotation);
+    }
+    if(src.changed & (1<<VSLOT_OFFSET))
+    {
+        buf.put(VSLOT_OFFSET);
+        putint(buf, src.offset.x);
+        putint(buf, src.offset.y);
+    }
+    if(src.changed & (1<<VSLOT_SCROLL))
+    {
+        buf.put(VSLOT_SCROLL);
+        putfloat(buf, src.scroll.x);
+        putfloat(buf, src.scroll.y);
+    }
+    if(src.changed & (1<<VSLOT_LAYER))
+    {
+        if(vslots.inrange(src.layer) && !vslots[src.layer]->changed)
+        {
+            buf.put(VSLOT_LAYER);
+            putuint(buf, vslots[src.layer]->slot->index);
+        }
+    }
+    if(src.changed & (1<<VSLOT_ALPHA))
+    {
+        buf.put(VSLOT_ALPHA);
+        putfloat(buf, src.alphafront);
+        putfloat(buf, src.alphaback);
+    }
+    if(src.changed & (1<<VSLOT_COLOR))
+    {
+        buf.put(VSLOT_COLOR);
+        putfloat(buf, src.colorscale.r);
+        putfloat(buf, src.colorscale.g);
+        putfloat(buf, src.colorscale.b);
+    }
+    if(src.changed & (1<<VSLOT_REFRACT))
+    {
+        buf.put(VSLOT_REFRACT);
+        putfloat(buf, src.refractscale);
+        putfloat(buf, src.refractcolor.r);
+        putfloat(buf, src.refractcolor.g);
+        putfloat(buf, src.refractcolor.b);
+    }
+    if(src.changed & (1<<VSLOT_DECAL))
+    {
+        if(vslots.inrange(src.decal) && !vslots[src.decal]->changed)
+        {
+            buf.put(VSLOT_DECAL);
+            putuint(buf, vslots[src.decal]->slot->index);
+        }
+    }
+    buf.put(0);
+}
+
+void packvslot(vector<uchar> &buf, int index)
+{
+    if(vslots.inrange(index)) packvslot(buf, *vslots[index]);
+    else buf.put(0);
+}
+
+void packvslot(vector<uchar> &buf, const VSlot *vs)
+{
+    if(vs) packvslot(buf, *vs);
+    else buf.put(0);
+}
+
+bool unpackvslot(ucharbuf &buf, VSlot &dst, bool delta)
+{
+    while(buf.remaining())
+    {
+        int changed = buf.get();
+        if(!changed) break;
+        switch(changed)
+        {
+            case VSLOT_SHPARAM:
+            {
+                string name;
+                getstring(name, buf);
+                SlotShaderParam p = { NULL, -1, { 0, 0, 0, 0 } };
+                if(name[0]) p.name = getshaderparamname(name, false);
+                loopi(4) p.val[i] = getfloat(buf);
+                if(p.name) dst.params.add(p);
+                break;
+            }
+            case VSLOT_SCALE:
+                dst.scale = getfloat(buf);
+                if(dst.scale <= 0) dst.scale = 1;
+                else if(!delta) dst.scale = clamp(dst.scale, 1/8.0f, 8.0f);
+                break;
+            case VSLOT_ROTATION:
+                dst.rotation = getint(buf);
+                if(!delta) dst.rotation = clamp(dst.rotation, 0, 5);
+                break;
+            case VSLOT_OFFSET:
+                dst.offset.x = getint(buf);
+                dst.offset.y = getint(buf);
+                if(!delta) dst.offset.max(0);
+                break;
+            case VSLOT_SCROLL:
+                dst.scroll.x = getfloat(buf);
+                dst.scroll.y = getfloat(buf);
+                break;
+            case VSLOT_LAYER:
+            {
+                int tex = getuint(buf);
+                dst.layer = slots.inrange(tex) ? slots[tex]->variants->index : 0;
+                break;
+            }
+            case VSLOT_ALPHA:
+                dst.alphafront = clamp(getfloat(buf), 0.0f, 1.0f);
+                dst.alphaback = clamp(getfloat(buf), 0.0f, 1.0f);
+                break;
+            case VSLOT_COLOR:
+                dst.colorscale.r = clamp(getfloat(buf), 0.0f, 2.0f);
+                dst.colorscale.g = clamp(getfloat(buf), 0.0f, 2.0f);
+                dst.colorscale.b = clamp(getfloat(buf), 0.0f, 2.0f);
+                break;
+            case VSLOT_REFRACT:
+                dst.refractscale = clamp(getfloat(buf), 0.0f, 1.0f);
+                dst.refractcolor.r = clamp(getfloat(buf), 0.0f, 1.0f);
+                dst.refractcolor.g = clamp(getfloat(buf), 0.0f, 1.0f);
+                dst.refractcolor.b = clamp(getfloat(buf), 0.0f, 1.0f);
+                break;
+            case VSLOT_DECAL:
+            {
+                int tex = getuint(buf);
+                dst.decal = slots.inrange(tex) ? slots[tex]->variants->index : 0;
+                break;
+            }
+            default:
+                return false;
+        } 
+        dst.changed |= 1<<changed;
+    }
+    if(buf.overread()) return false;
+    return true; 
+}
+ 
 VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta)
 {
     for(VSlot *dst = slot.variants; dst; dst = dst->next)

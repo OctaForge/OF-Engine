@@ -160,7 +160,7 @@ namespace world
     }
 } /* end namespace world */
 
-void mpeditvslot(VSlot &ds, int allfaces, selinfo &sel, bool local);
+void mpeditvslot(int delta, VSlot &ds, int allfaces, selinfo &sel, bool local);
 
 CLUAICOMMAND(edit_cube_create, bool, (int x, int y, int z, int gs), {
     logger::log(logger::DEBUG, "edit_cube_create: %d, %d, %d (%d)",
@@ -333,7 +333,7 @@ selinfo_t &sel, bool local), {
             ds.refractcolor = vec(1, 1, 1);
         }
     }
-    mpeditvslot(ds, allfaces, sel, local);
+    mpeditvslot(0, ds, allfaces, sel, local);
 });
 
 #define VSELHDR \
@@ -348,7 +348,7 @@ selinfo_t &sel, bool local), {
 
 #define VSELFTR \
     if (!sel.validate()) return false; \
-    mpeditvslot(ds, face == -1, sel, true); \
+    mpeditvslot(0, ds, face == -1, sel, true); \
     return true;
 
 CLUAICOMMAND(edit_cube_vrotate, bool, (int x, int y, int z, int gs,
