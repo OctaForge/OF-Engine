@@ -172,30 +172,18 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
     }
     else if(lastupdate != lastmillis) lastupdate = lastmillis;
 
-    hudmatrix.ortho(0, w, h, 0, -1, 1);
-    resethudmatrix();
-    hudshader->set();
 
+    hudnotextureshader->set();
     gle::defvertex(2);
-    gle::deftexcoord0();
 
-    gle::colorf(1, 1, 1);
-    settexture("media/interface/background", 0);
-    float bu = w*0.67f/256.0f, bv = h*0.67f/256.0f;
-    bgquad(0, 0, w, h, backgroundu, backgroundv, bu, bv);
+    gle::colorf(0, 0, 0);
+    gle::attribf(0, 0);
+    gle::attribf(w, 0);
+    gle::attribf(0, h);
+    gle::attribf(w, h);
+    gle::end();
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    settexture("media/interface/shadow", 3);
-    bgquad(0, 0, w, h);
-
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-    float lh = 0.5f*min(w, h), lw = lh*2,
-          lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
-    settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (hudw > 1280 || hudh > 800) ? "<premul>media/interface/logo_1024" : "<premul>media/interface/logo", 3);
-    bgquad(lx, ly, lw, lh);
+    hudshader->set();
 
     if (mapshot)
         lua::call_external("background_render", "sssp", caption, mapname, mapinfo, mapshot);

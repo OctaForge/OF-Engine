@@ -456,7 +456,48 @@ local bg_win = function(mapname, mapinfo, mapshot, caption)
     return win
 end
 
+local hw_tex_size = 0
+local max_tex_size = cs.var_get("maxtexsize")
+
+connect(cs, "maxtexsize_changed", |self, val| do max_tex_size = val end)
+
+local get_logo = function(root, win)
+    if  hw_tex_size == 0 then
+        hw_tex_size = cs.var_get("hwtexsize")
+    end
+    local sz = ((max_tex_size ~= 0) and math.min(max_tex_size, hw_tex_size)
+                                     or hw_tex_size)
+    local w, h = root:get_pixel_w(), root:get_pixel_h()
+    local logo
+    if (sz >= 1024) and ((w > 1280) or (h > 800)) then
+        logo = "<premul>media/interface/logo_1024"
+    else
+        logo = "<premul>media/interface/logo"
+    end
+    win.x, win.y, win.parent, win._root = 0, 0, root, root
+    local proj = win:get_projection()
+    proj:calc()
+    local lw = math.min(proj.pw, proj.ph)
+    return logo, lw, lw / 2
+end
+
+local bg_under = function(root)
+    local win = gui.Overlay()
+    local logo, lw, lh = get_logo(root, win)
+    win:append(gui.Image { file = "media/interface/background",
+        min_w = 1/0, min_h = 1/0 })
+    win:append(gui.Image { file = "media/interface/shadow",
+        min_w = 1/0, min_h = 1/0 })
+    win:append( gui.Image { file = logo, min_w = lw, min_h = lh,
+                            align_v = -1 })
+    return win
+end
+
 set_ext("background_render", function(caption, mapname, mapinfo, mapshot)
+    local root = gui.get_root()
+    root:calc_text_scale()
+    root:layout_dim()
+    gui.__draw_window(bg_under(root))
     gui.__draw_window(bg_win(mapname, mapinfo, mapshot
         and ffi.cast("Texture*", mapshot) or nil, caption))
 end)

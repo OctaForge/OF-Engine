@@ -2607,10 +2607,9 @@ end)
 
 M.__draw_window = function(win)
     -- draw on main root
-    root:calc_text_scale()
-    root:layout_dim()
     win.x, win.y, win.parent, win._root = 0, 0, root, root
     local proj = root:set_projection(win:get_projection())
+    proj:calc()
     win:layout()
     proj:adjust_layout()
     proj:draw()
