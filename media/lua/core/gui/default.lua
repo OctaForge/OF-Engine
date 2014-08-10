@@ -27,7 +27,7 @@ gui.Button.__variants = { default = btnv, nobg = btnvb }
 local btnv_init_clone = |self, btn| do
     local lbl = gui.Label { text = btn.label }
     self:append(lbl)
-    connect(btn, "label_changed", |b, t| do lbl:set_text(t) end)
+    connect(btn, "label,changed", |b, t| do lbl:set_text(t) end)
 end
 
 local btn_build_variant = |color| gui.Gradient {
@@ -35,8 +35,8 @@ local btn_build_variant = |color| gui.Gradient {
     init_clone = |self, btn| do
         self:set_min_w(btn.min_w or 0)
         self:set_min_h(btn.min_h or 0)
-        connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
-        connect(btn, "min_h_changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_w,changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_h,changed", |b, v| self:set_min_w(v))
     end, gui.Outline {
         color = color, clamp_h = true, gui.Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
@@ -48,8 +48,8 @@ local btn_build_variant_nobg = || gui.Filler {
     clamp_h = true, init_clone = |self, btn| do
         self:set_min_w(btn.min_w or 0)
         self:set_min_h(btn.min_h or 0)
-        connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
-        connect(btn, "min_h_changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_w,changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_h,changed", |b, v| self:set_min_w(v))
     end, gui.Spacer {
         pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
     }
@@ -91,9 +91,9 @@ local slotbtn_init_clone = |self, btn| do
     self:set_min_w(btn.min_w or 0)
     self:set_min_h(btn.min_h or 0)
     self:set_index(btn.index or 0)
-    connect(btn, "min_w_changed", |b, v| self:set_min_w(v))
-    connect(btn, "min_h_changed", |b, v| self:set_min_h(v))
-    connect(btn, "index_changed", |b, v| self:set_index(v))
+    connect(btn, "min_w,changed", |b, v| self:set_min_w(v))
+    connect(btn, "min_h,changed", |b, v| self:set_min_h(v))
+    connect(btn, "index,changed", |b, v| self:set_index(v))
 end
 
 gui.Button.__variants.vslot = {
@@ -153,7 +153,7 @@ gui.Filler.__variants = {
                     pad_h = 0.01, pad_v = 0.005, init_clone = |self, ttip| do
                         local lbl = gui.Label { text = ttip.label }
                         self:append(lbl)
-                        connect(ttip, "label_changed", |o, t| do
+                        connect(ttip, "label,changed", |o, t| do
                             lbl:set_text(t) end)
                     end
                 }
@@ -301,7 +301,7 @@ gui.H_Progress_Bar.__variants = {
                 pb:set_bar(bar)
                 self:append(bar)
                 self:append(lbl)
-                connect(pb, "value_changed", |o, v| do
+                connect(pb, "value,changed", |o, v| do
                     lbl:set_text(pb:gen_label())
                 end)
             end
@@ -322,7 +322,7 @@ gui.V_Progress_Bar.__variants = {
                 pb:set_bar(bar)
                 self:append(bar)
                 self:append(lbl)
-                connect(pb, "value_changed", |o, v| do
+                connect(pb, "value,changed", |o, v| do
                     lbl:set_text(pb:gen_label())
                 end)
             end
@@ -339,7 +339,7 @@ local window_build_titlebar = || gui.Gradient {
         init_clone = |self, win| do
             local lbl = gui.Label { text = win.title or win.obj_name }
             self:append(lbl)
-            connect(win, "title_changed", |w, t| do
+            connect(win, "title,changed", |w, t| do
                 lbl:set_text(t or w.obj_name) end)
         end
     }
@@ -459,7 +459,7 @@ end
 local hw_tex_size = 0
 local max_tex_size = cs.var_get("maxtexsize")
 
-connect(cs, "maxtexsize_changed", |self, val| do max_tex_size = val end)
+connect(cs, "maxtexsize,changed", |self, val| do max_tex_size = val end)
 
 local get_logo = function(root, win)
     if  hw_tex_size == 0 then
@@ -602,7 +602,7 @@ local fields = {
 }
 local field_def = function(hb, nm, ent, dv)
     return hb:append(gui.Field { clip_w = 0.4, value = dv }, |ed| do
-        connect(ed, "value_changed", |ed, v| do
+        connect(ed, "value,changed", |ed, v| do
             ent:set_gui_attr(nm, v)
         end)
     end)

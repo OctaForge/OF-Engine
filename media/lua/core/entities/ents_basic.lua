@@ -406,7 +406,7 @@ M.Character = Entity:clone {
         self.render_args_timestamp = -1
 
         -- see world.lua for field meanings
-        connect(self, "physics_trigger_changed", function(self, val)
+        connect(self, "physics_trigger,changed", function(self, val)
             if val == 0 then return end
             self:set_attr("physics_trigger", 0)
 
@@ -1123,10 +1123,10 @@ M.Sound = Static_Entity:clone {
     __activate = (not SERVER) and function(self, ...)
         Static_Entity.__activate(self, ...)
         local f = |self| capi.sound_stop_map(self.uid)
-        connect(self, "sound_name_changed", f)
-        connect(self, "radius_changed", f)
-        connect(self, "size_changed", f)
-        connect(self, "volume_changed", f)
+        connect(self, "sound_name,changed", f)
+        connect(self, "radius,changed", f)
+        connect(self, "size,changed", f)
+        connect(self, "volume,changed", f)
     end or nil,
 
     __get_edit_info = function(self)

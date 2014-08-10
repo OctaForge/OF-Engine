@@ -46,7 +46,7 @@ local Slider_Button
 --[[!
     Implements a base type for either horizontal or vertical slider.
 
-    Changes of "value" performed internally emit the "value_changed" signal
+    Changes of "value" performed internally emit the "value,changed" signal
     with the new value as an argument.
 
     Properties:
@@ -84,7 +84,7 @@ M.Slider = register_type("Slider", Widget, {
 
         local val = min(mx, mn) + newstep * ss
         self.value = val
-        emit(self, "value_changed", val)
+        emit(self, "value,changed", val)
     end,
 
     --! Sets the nth step.
@@ -96,7 +96,7 @@ M.Slider = register_type("Slider", Widget, {
 
         local val = min(mx, mn) + newstep * ss
         self.value = val
-        emit(self, "value_changed", val)
+        emit(self, "value,changed", val)
     end,
 
     --[[!

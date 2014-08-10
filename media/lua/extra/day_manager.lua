@@ -43,7 +43,7 @@ local Day_Manager = Entity:clone {
     __activate = SERVER and function(self)
         Entity.__activate(self)
         self.day_seconds_s = self:get_attr("day_seconds")
-        connect(self, "day_seconds_changed", |self, v| do
+        connect(self, "day_seconds,changed", |self, v| do
             self.day_seconds_s = v
         end)
         self.day_progress_s = 0
@@ -129,10 +129,10 @@ M.plugins = {
     day_night = {
         __activate = (not SERVER) and function(self)
             local daylen
-            connect(self, "day_seconds_changed", |self, v| do
+            connect(self, "day_seconds,changed", |self, v| do
                 daylen = v
             end)
-            connect(self, "day_progress_changed", |self, v| do
+            connect(self, "day_progress,changed", |self, v| do
                 if not daylen then return end
                 if edit.player_is_editing() then return end
                 self.sun_changed_dir = true

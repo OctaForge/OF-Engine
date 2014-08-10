@@ -987,7 +987,7 @@ M.Entity = table.Object:clone {
     end,
 
     --[[!
-        Triggered automatically right before the `_changed` signal. It first
+        Triggered automatically right before the `,changed` signal. It first
         checks if there is a setter function for the given svar and does
         nothing if there isn't. Triggers a setter call on the client or on the
         server when there is no change queue and queues a change otherwise.
@@ -1018,7 +1018,7 @@ M.Entity = table.Object:clone {
 
         If this is on the client and the change didn't come from here (or if
         the property is `client_set`), it performs a local update. The local
-        update first calls $sdata_changed and then triggers the `_changed`
+        update first calls $sdata_changed and then triggers the `,changed`
         signal (before setting). The new value is passed to the signal
         during the emit along with a boolean equaling to `actor_uid != -1`.
 
@@ -1069,7 +1069,7 @@ M.Entity = table.Object:clone {
             -- TODO: avoid assertions
             assert(var:validate(val))
             self:sdata_changed(var, key, val)
-            emit(self, key .. "_changed", val, nfh)
+            emit(self, key .. ",changed", val, nfh)
             self.svar_values[key] = val
         end
     end or function(self, key, val, actor_uid, iop)
@@ -1096,7 +1096,7 @@ M.Entity = table.Object:clone {
         end
 
         self:sdata_changed(var, key, val)
-        emit(self, key .. "_changed", val, actor_uid)
+        emit(self, key .. ",changed", val, actor_uid)
         if self.sdata_update_cancel then
             self.sdata_update_cancel = nil
             return
@@ -1134,7 +1134,7 @@ M.Entity = table.Object:clone {
 
     --[[!
         Cancels a state data update (on the server). Useful when called
-        from `_changed` signal slots.
+        from `,changed` signal slots.
     ]]
     cancel_sdata_update = function(self)
         self.sdata_update_cancel = true

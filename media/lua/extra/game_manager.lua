@@ -41,7 +41,7 @@ M.player_plugin = {
     end,
 
     __activate = function(self)
-        connect(self, "spawn_stage_changed", self.game_manager_on_spawn_stage)
+        connect(self, "spawn_stage,changed", self.game_manager_on_spawn_stage)
         if SERVER then
             get():pick_team(self)
             connect(self, "pre_deactivate", function(self)
@@ -49,7 +49,7 @@ M.player_plugin = {
             end)
             self:game_manager_respawn()
         else
-            connect(self, "client_respawn", function(self)
+            connect(self, "client,respawn", function(self)
                 get():place_player(self)
             end)
         end
@@ -74,7 +74,7 @@ M.player_plugin = {
 
     game_manager_spawn_stage_3 = (not SERVER) and function(self, auid)
         if self == ents.get_player() then
-            emit(self, "client_respawn")
+            emit(self, "client,respawn")
             self:set_attr("spawn_stage", 4)
         end
     end or function(self, auid) end,
@@ -136,13 +136,13 @@ local Game_Manager = Entity:clone {
             player:respawn()
         end
 
-        emit(self, "game_start")
+        emit(self, "game,start")
         self.game_running = true
     end or nil,
 
     end_game = SERVER and function(self)
         self.game_running = false
-        emit(self, "game_end")
+        emit(self, "game,end")
     end or nil,
 
     sync_team_data = SERVER and function(self)

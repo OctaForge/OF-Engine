@@ -207,18 +207,18 @@ M.Scroller = register_type("Scroller", Clipper, {
     --[[!
         Sets the horizontal scroll offset. Takes the "real" offset, that is,
         actual_offset as $get_h_offset describes it (offset 1 would be the
-        full screen height). Emits the h_scroll_changed signal on self with
+        full screen height). Emits the h_scroll,changed signal on self with
         `self:get_h_offset()` as a parameter.
     ]]
     set_h_scroll = function(self, hs)
         self.offset_h = clamp(hs, 0, self:get_h_limit())
-        emit(self, "h_scroll_changed", self:get_h_offset())
+        emit(self, "h_scroll,changed", self:get_h_offset())
     end,
 
     --! See $set_h_scroll.
     set_v_scroll = function(self, vs)
         self.offset_v = clamp(vs, 0, self:get_v_limit())
-        emit(self, "v_scroll_changed", self:get_v_offset())
+        emit(self, "v_scroll,changed", self:get_v_offset())
     end,
 
     --[[!

@@ -1,6 +1,6 @@
 --[[!<
     Lua access to cubescript features, such as code execution and engine
-    variables. You can connect signals in form "varname_changed" to
+    variables. You can connect signals in form "varname,changed" to
     the module.
 
     Author:
@@ -18,14 +18,14 @@ local emit = signal.emit
 --! Module: cubescript
 local M = {
     __connect = function(self, name)
-        local  vn = name:match("(.+)_changed$")
+        local  vn = name:match("(.+),changed$")
         if not vn then return end
         capi.var_make_emit(vn, true)
     end,
 
     __disconnect = function(self, name, id, scount)
         if scount == 0 then
-            local  vn = name:match("(.+)_changed$")
+            local  vn = name:match("(.+),changed$")
             if not vn then return end
             capi.var_make_emit(vn, false)
         end
@@ -161,7 +161,7 @@ M.var_is_hex = capi.var_is_hex
 M.var_exists = capi.var_exists
 
 require("core.externals").set("var_emit_changed", function(name, ...)
-    emit(M, name .. "_changed", ...)
+    emit(M, name .. ",changed", ...)
 end)
 
 return M

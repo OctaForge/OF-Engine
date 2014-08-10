@@ -346,7 +346,7 @@ end
 local quadtri = M.draw_quadtri
 
 local gen_setter = function(name)
-    local sname = name .. "_changed"
+    local sname = name .. ",changed"
     return function(self, val)
         self[name] = val
         emit(self, sname, val)
@@ -474,7 +474,7 @@ M.Color = ffi.metatype("color_t", {
         Note that if you provide nil or false in place of any argument,
         it'll default all color channels it affects to 0xFF.
 
-        The set_(r|g|b|a) methods emit the "(r|g|b|a)_changed" signals
+        The set_(r|g|b|a) methods emit the "(r|g|b|a),changed" signals
         on this structure, passing the new value to the emit call.
     ]]
     __new = function(self, ...)
@@ -516,7 +516,7 @@ cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     cs.var_flags.PERSIST)
 
 local uitextrows = var_get("uitextrows")
-signal.connect(cs, "uitextrows_changed", function(self, n)
+signal.connect(cs, "uitextrows,changed", function(self, n)
     uitextrows = n
 end)
 
@@ -531,7 +531,7 @@ local Widget, Window
     Properties are not made for direct setting from the outside environment.
     Those properties that are meant to be set have a setter method called
     set_PROPNAME. Unless documented otherwise, those functions emit the
-    PROPNAME_changed signal with the given value passed to emit. Some
+    PROPNAME,changed signal with the given value passed to emit. Some
     properties that you don't set and are set from the internals also
     emit signals so you can handle extra events. That is typically documented.
 
@@ -1403,7 +1403,7 @@ M.Widget = register_type("Widget", table.Object, {
 
     --[[!
         Destroys all the children using regular $clear. Emits a signal
-        "children_destroy" afterwards on self.
+        "children,destroy" afterwards on self.
     ]]
     destroy_children = function(self)
         local ch = self.children
@@ -1411,7 +1411,7 @@ M.Widget = register_type("Widget", table.Object, {
             ch[i]:clear()
         end
         self.children = {}
-        emit(self, "children_destroy")
+        emit(self, "children,destroy")
     end,
 
     --[[!
@@ -1495,7 +1495,7 @@ M.Widget = register_type("Widget", table.Object, {
             val.parent = self
             val._root  = self:get_root()
         end
-        emit(self, "container_changed", val)
+        emit(self, "container,changed", val)
         return orig
     end,
 
@@ -2052,7 +2052,7 @@ M.Root = register_type("Root", Widget, {
             self.cursor_y * self.h) ~= nil
         if bce ~= cec then
             self.has_cursor = cec
-            emit(self, "__has_cursor_changed", cec)
+            emit(self, "__has_cursor,changed", cec)
         end
         return cec
     end,
@@ -2487,7 +2487,7 @@ local Root = M.Root
 
 root = Root()
 
-signal.connect(root, "__has_cursor_changed", function(self, val)
+signal.connect(root, "__has_cursor,changed", function(self, val)
     input_cursor_exists_update(val)
 end)
 
@@ -2570,7 +2570,7 @@ end)
 local draw_hud = false
 
 local mmenu = var_get("mainmenu")
-signal.connect(cs, "mainmenu_changed", function(self, v)
+signal.connect(cs, "mainmenu,changed", function(self, v)
     mmenu = v
 end)
 

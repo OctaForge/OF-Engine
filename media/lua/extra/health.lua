@@ -103,7 +103,7 @@ M.player_plugin = {
     end,
 
     __activate = function(self)
-        connect(self, "health_changed", self.health_on_health)
+        connect(self, "health,changed", self.health_on_health)
     end,
 
     --[[!
@@ -325,10 +325,10 @@ M.plugins = {
                         st:set_text(tostring(curh))
                         st:set_color(gethcolor(curh, maxh))
                     end
-                    connect(self, "max_health_changed", |self, v| do
+                    connect(self, "max_health,changed", |self, v| do
                         maxh = v; if curh then updatehud() end
                     end)
-                    connect(self, "health_changed", |self, v| do
+                    connect(self, "health,changed", |self, v| do
                         curh = v; if maxh then updatehud() end
                     end)
                 end)

@@ -60,7 +60,7 @@ local floor_to_fonth = function(n)
 end
 
 local gen_ed_setter = function(name)
-    local sname = name .. "_changed"
+    local sname = name .. ",changed"
     return function(self, val)
         self._needs_calc = true
         self[name] = val
@@ -189,7 +189,7 @@ local init_color = function(col)
 end
 
 local gen_color_setter = function(name)
-    local sname = name .. "_changed"
+    local sname = name .. ",changed"
     return function(self, val)
         self[name] = init_color(val)
         emit(self, sname, val)
@@ -609,13 +609,13 @@ M.Text_Editor = register_type("Text_Editor", Widget, {
     --!
     set_h_scroll = function(self, hs)
         self.offset_h = clamp(hs, 0, self:get_h_limit())
-        emit(self, "h_scroll_changed", self:get_h_offset())
+        emit(self, "h_scroll,changed", self:get_h_offset())
     end,
 
     --!
     set_v_scroll = function(self, vs)
         self.offset_v = clamp(vs, 0, self:get_v_limit())
-        emit(self, "v_scroll_changed", self:get_v_offset())
+        emit(self, "v_scroll,changed", self:get_v_offset())
     end,
 
     --!
@@ -640,12 +640,12 @@ M.Text_Editor = register_type("Text_Editor", Widget, {
     set_key_filter = gen_setter "key_filter",
 
     --[[!
-        Sets the value property, emits value_changed and calls $reset_value.
+        Sets the value property, emits value,changed and calls $reset_value.
     ]]
     set_value = function(self, val)
         val = tostring(val)
         self.value = val
-        emit(self, "value_changed", val)
+        emit(self, "value,changed", val)
         self:reset_value()
     end,
 
@@ -1343,7 +1343,7 @@ M.Field = register_type("Field", Text_Editor, {
         local val = tostring(self.lines[1])
         self.value = val
         -- trigger changed signal
-        emit(self, "value_changed", val)
+        emit(self, "value,changed", val)
     end
 })
 

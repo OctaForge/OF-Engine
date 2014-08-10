@@ -90,7 +90,7 @@ local Game_Player = Player:clone {
         self.marks = {}
         self.color_id = 1
         self.color    = colors[1]
-        connect(self, "new_mark_changed", function(self, nm)
+        connect(self, "new_mark,changed", function(self, nm)
             if #nm == 3 then
                 nm = Vec4(nm[1], nm[2], nm[3], self.color)
             else

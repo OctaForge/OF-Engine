@@ -71,7 +71,7 @@ local init_color = function(col)
 end
 
 local gen_color_setter = function(name)
-    local sname = name .. "_changed"
+    local sname = name .. ",changed"
     return function(self, val)
         self[name] = init_color(val)
         emit(self, sname, val)
@@ -530,28 +530,28 @@ M.Cropped_Image = register_type("Cropped_Image", Image, {
     set_crop_x = function(self, cx)
         cx = get_border_size(self.texture, cx, false)
         self.crop_x = cx
-        emit(self, "crop_x_changed", cx)
+        emit(self, "crop_x,changed", cx)
     end,
 
     --!
     set_crop_y = function(self, cy)
         cy = get_border_size(self.texture, cy, true)
         self.crop_y = cy
-        emit(self, "crop_y_changed", cy)
+        emit(self, "crop_y,changed", cy)
     end,
 
     --!
     set_crop_w = function(self, cw)
         cw = get_border_size(self.texture, cw, false)
         self.crop_w = cw
-        emit(self, "crop_w_changed", cx)
+        emit(self, "crop_w,changed", cx)
     end,
 
     --!
     set_crop_h = function(self, ch)
         ch = get_border_size(self.texture, ch, true)
         self.crop_h = ch
-        emit(self, "crop_h_changed", ch)
+        emit(self, "crop_h,changed", ch)
     end
 })
 
@@ -761,7 +761,7 @@ M.Bordered_Image = register_type("Bordered_Image", Image, {
     set_tex_border = function(self, tb)
         tb = get_border_size(self.texture, tb)
         self.tex_border = tb
-        emit(self, "tex_border_changed", tb)
+        emit(self, "tex_border,changed", tb)
     end,
 
     --! Function: set_screen_border
