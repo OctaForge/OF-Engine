@@ -24,6 +24,8 @@ local parse = M.parse
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
 
+local cond_env = { debug = capi.should_log(1), server = SERVER }
+
 package.loaders[2] = function(modname, ppath)
     local  fname, err = spath(modname, ppath or package.path)
     if not fname then return err end
@@ -31,7 +33,7 @@ package.loaders[2] = function(modname, ppath)
     local toparse = file:read("*all")
     file:close()
     local chunkname = "@" .. fname
-    local parsed  = parse(chunkname, toparse, capi.should_log(1))
+    local parsed  = parse(chunkname, toparse, cond_env)
     local f, err  = load(parsed, chunkname)
     if not f then
         error("error loading module '" .. modname .. "' from file '"
@@ -58,7 +60,7 @@ local load_new = function(ld, chunkname, mode, env)
     else
         chunkname = chunkname or ld
     end
-    local ret, parsed = pcall(parse, chunkname, ld, capi.should_log(1))
+    local ret, parsed = pcall(parse, chunkname, ld, cond_env)
     if not ret then return nil, parsed end
     return load(parsed, chunkname, mode, env)
 end
@@ -77,7 +79,7 @@ end
 local loadfile_new = function(fname, mode, env)
     local  file, chunkname = read_file(fname)
     if not file then return file, chunkname end
-    local ret, parsed = pcall(parse, chunkname, file, capi.should_log(1))
+    local ret, parsed = pcall(parse, chunkname, file, cond_env)
     if not ret then return nil, parsed end
     return load(parsed, chunkname, mode, env)
 end

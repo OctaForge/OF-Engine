@@ -916,10 +916,10 @@ parse_stat = function(ls, cs)
     end
 end
 
-local parse = function(chunkname, input, debug)
+local parse = function(chunkname, input, cond_env)
     local ls = lexer.init(chunkname, input)
     local cs = codegen.init(ls, debug)
-    cs.cond_env["debug"] = true
+    cs.cond_env = cond_env
     ls.cs = cs
     ls:get()
     loopstack[#loopstack + 1] = false
