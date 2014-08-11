@@ -42,7 +42,7 @@ M.player_plugin = {
 
     __activate = function(self)
         connect(self, "spawn_stage,changed", self.game_manager_on_spawn_stage)
-        if SERVER then
+        @[server] do
             get():pick_team(self)
             connect(self, "pre_deactivate", function(self)
                 get():leave_team(self)
@@ -61,29 +61,29 @@ M.player_plugin = {
 
     game_manager_spawn_stage_0 = function(self, auid) end,
 
-    game_manager_spawn_stage_1 = (not SERVER) and function(self, auid)
+    game_manager_spawn_stage_1 = @[not server,function(self, auid)
         self:set_attr("spawn_stage", 2)
-    end or function(self, auid) end,
+    end,function(self, auid) end],
 
-    game_manager_spawn_stage_2 = (SERVER) and function(self, auid)
+    game_manager_spawn_stage_2 = @[server,function(self, auid)
         if auid == self.uid then
             self:set_attr("spawn_stage", 3)
         end
         self:cancel_sdata_update()
-    end or function(self, auid) end,
+    end,function(self, auid) end],
 
-    game_manager_spawn_stage_3 = (not SERVER) and function(self, auid)
+    game_manager_spawn_stage_3 = @[not server,function(self, auid)
         if self == ents.get_player() then
             emit(self, "client,respawn")
             self:set_attr("spawn_stage", 4)
         end
-    end or function(self, auid) end,
+    end,function(self, auid) end],
 
-    game_manager_spawn_stage_4 = (SERVER) and function(self, auid)
+    game_manager_spawn_stage_4 = @[server,function(self, auid)
         self:set_attr("can_move", true)
         self:set_attr("spawn_stage", 0)
         self:cancel_sdata_update()
-    end or function(self, auid) end,
+    end,function(self, auid) end],
 
     game_manager_on_spawn_stage = function(self, stage, auid)
         self["game_manager_spawn_stage_" .. stage](self, auid)
@@ -103,13 +103,13 @@ local Game_Manager = Entity:clone {
         team_data = svars.State_Table()
     },
 
-    __activate = SERVER and function(self)
+    __activate = @[server,function(self)
         Entity.__activate(self)
         self:add_tag("game_manager")
         self.teams = {}
-    end or nil,
+    end],
 
-    get_players = SERVER and function(self)
+    get_players = @[server,function(self)
         local players = {}
         for i, team in pairs(self.teams) do
             for i, v in ipairs(team.player_list) do
@@ -117,9 +117,9 @@ local Game_Manager = Entity:clone {
             end
         end
         return players
-    end or nil,
+    end],
 
-    start_game = SERVER and function(self)
+    start_game = @[server,function(self)
         local players = self:get_players()
 
         for i, team in pairs(self.teams) do
@@ -138,27 +138,27 @@ local Game_Manager = Entity:clone {
 
         emit(self, "game,start")
         self.game_running = true
-    end or nil,
+    end],
 
-    end_game = SERVER and function(self)
+    end_game = @[server,function(self)
         self.game_running = false
         emit(self, "game,end")
-    end or nil,
+    end],
 
-    sync_team_data = SERVER and function(self)
+    sync_team_data = @[server,function(self)
         if not self.deactivated then
             self:set_attr("team_data", self.teams)
         end
-    end or nil,
+    end],
 
-    pick_team = SERVER and function(self, player, sync)
-    end or nil,
+    pick_team = @[server,function(self, player, sync)
+    end],
 
-    set_player_team = SERVER and function(self, player, team, sync)
-    end or nil,
+    set_player_team = @[server,function(self, player, team, sync)
+    end],
 
-    leave_team = SERVER and function(self, player, sync)
-    end or nil,
+    leave_team = @[server,function(self, player, sync)
+    end],
 
     place_player = function(self, player)
         local team = player:get_attr("team")
@@ -202,7 +202,7 @@ get = M.get
 ]]
 M.setup = function(plugins)
     ents.register_prototype(Game_Manager, plugins)
-    if SERVER then
+    @[server] do
         gameman = ents.new("Game_Manager")
         return gameman
     end
