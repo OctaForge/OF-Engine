@@ -265,7 +265,8 @@ local parse_prefix_expr = function(ls, cs)
         local line = ls.line_number
         cs:append("(")
         ls:get()
-        local cs2 = codegen.init(ls, false)
+        local cs2 = codegen.init(ls)
+        cs2.allow_bit = false
         cs2:append_kw("return")
         parse_expr(ls, cs2)
         assert_next(ls, ",")
@@ -449,6 +450,7 @@ end
 local parse_simple_expr = function(ls, cs)
     local tn = ls.token.name
     local unp = Unary_Ops[tn]
+    if not cs.allow_bit and bitops[tn] then unp = nil end
     if unp then
         local bitun = use_bitop(cs, tn)
         if bitun then
@@ -482,6 +484,7 @@ parse_subexpr = function(ls, cs, mp)
     while true do
         local op = tok.name
         local p = Binary_Ops[op]
+        if not cs.allow_bit and bitops[op] then p = nil end
         if not op or not p or p < mp then break end
         local bitop = use_bitop(cs, op)
         if bitop then
@@ -867,7 +870,8 @@ local stat_opts = {
         local noscope = false
         local line = ls.line_number
         ls:get()
-        local cs2 = codegen.init(ls, false)
+        local cs2 = codegen.init(ls)
+        cs2.allow_bit = false
         cs2:append_kw("return")
         parse_expr(ls, cs2)
         local expr = cs2:build()
@@ -918,7 +922,7 @@ end
 
 local parse = function(chunkname, input, cond_env)
     local ls = lexer.init(chunkname, input)
-    local cs = codegen.init(ls, debug)
+    local cs = codegen.init(ls)
     cs.cond_env = cond_env
     ls.cs = cs
     ls:get()

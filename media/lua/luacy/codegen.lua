@@ -8,14 +8,14 @@ local tconc = table.concat
 local space = " "
 local tinsert = table.insert
 
-local init = function(ls, debug)
+local init = function(ls)
     return {
         ls = ls,
         buffer    = {},
         saved     = {},
         cond_env  = {},
-        debug     = debug,
         enabled   = true,
+        allow_bit = true,
         last_line = 1,
         append = function(self, str, pos)
             local linenum = self.ls.line_number
