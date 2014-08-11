@@ -36,14 +36,14 @@ M.handle_frame = function(millis, lastmillis)
         get_ents, get_highest_uid = ents.get_all, ents.get_highest_uid
     end
 
-    debug then log(INFO, "frame.handle_frame: New frame")
+    @[debug] log(INFO, "frame.handle_frame: New frame")
     current_frame = current_frame + 1
 
     current_time       = current_time + millis
     current_frame_time = millis
     last_millis        = lastmillis
 
-    debug then log(INFO, "frame.handle_frame: Acting on entities")
+    @[debug] log(INFO, "frame.handle_frame: Acting on entities")
 
     local storage = get_ents()
     for uid = 1, get_highest_uid() do

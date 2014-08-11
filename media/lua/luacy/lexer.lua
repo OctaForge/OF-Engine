@@ -38,13 +38,13 @@ end
 
 local Keywords = {
     ["and"     ] = true, ["break"   ] = true, ["continue"] = true,
-    ["debug"   ] = true, ["do"      ] = true, ["else"    ] = true,
-    ["elseif"  ] = true, ["end"     ] = true, ["false"   ] = true,
-    ["for"     ] = true, ["function"] = true, ["goto"    ] = true,
-    ["if"      ] = true, ["in"      ] = true, ["local"   ] = true,
-    ["nil"     ] = true, ["not"     ] = true, ["or"      ] = true,
-    ["repeat"  ] = true, ["return"  ] = true, ["then"    ] = true,
-    ["true"    ] = true, ["until"   ] = true, ["while"   ] = true
+    ["do"      ] = true, ["else"    ] = true, ["elseif"  ] = true,
+    ["end"     ] = true, ["false"   ] = true, ["for"     ] = true,
+    ["function"] = true, ["goto"    ] = true, ["if"      ] = true,
+    ["in"      ] = true, ["local"   ] = true, ["nil"     ] = true,
+    ["not"     ] = true, ["or"      ] = true, ["repeat"  ] = true,
+    ["return"  ] = true, ["then"    ] = true, ["true"    ] = true,
+    ["until"   ] = true, ["while"   ] = true
 }
 
 -- protected from the gc
@@ -488,6 +488,14 @@ local lextbl = {
     [48] = function(ls, tok) -- 0
         read_number(ls, tok, {}, true)
         return "<number>"
+    end,
+    [64] = function(ls, tok) -- @
+        local c = next_char(ls)
+        if c == 91 then -- [
+            next_char(ls)
+            return "@["
+        end
+        return "@"
     end
 }
 lextbl[13] = lextbl[10] -- CR, LF

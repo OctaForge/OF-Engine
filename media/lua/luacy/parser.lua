@@ -19,7 +19,7 @@ local assert_tok = function(ls, tok)
 end
 
 local Name_Keywords = {
-    ["<name>"] = true, ["goto"] = true, ["continue"] = true, ["debug"] = true
+    ["<name>"] = true, ["goto"] = true, ["continue"] = true
 }
 
 local assert_name = function(ls)
@@ -838,17 +838,20 @@ local stat_opts = {
         assert_append(ls, cs, "::")
         ls:get()
     end,
-    ["debug"] = function(ls, cs)
-        local lah = ls:lookahead()
-        if lah == "then" then
-            cs.enabled = cs.debug
-            ls:get()
-            ls:get()
-            parse_stat(ls, cs)
-            cs.enabled = true
-        elseif lah == "do" then
-            cs.enabled = cs.debug
-            ls:get()
+    ["@["] = function(ls, cs)
+        local line = ls.line_number
+        ls:get()
+        local cs2 = codegen.init(ls, false)
+        cs2:append_kw("return")
+        parse_expr(ls, cs2)
+        local expr = cs2:build()
+        check_match(ls, "]", "[", line)
+        ls:get()
+        local f = loadstring(expr)
+        if not f then syntax_error(ls, "invalid expression") end
+        setfenv(f, cs.cond_env)
+        cs.enabled = not not f()
+        if ls.token.name == "do" then
             cs:append_kw("do")
             ls:get()
             local line = ls.line_number
@@ -856,10 +859,10 @@ local stat_opts = {
             check_match(ls, "end", "do", line)
             cs:append_kw(ls.token.name)
             ls:get()
-            cs.enabled = true
         else
-            parse_expr_stat(ls, cs)
+            parse_stat(ls, cs)
         end
+        cs.enabled = true
     end
 }
 
@@ -875,6 +878,7 @@ end
 local parse = function(chunkname, input, debug)
     local ls = lexer.init(chunkname, input)
     local cs = codegen.init(ls, debug)
+    cs.cond_env["debug"] = true
     ls.cs = cs
     ls:get()
     loopstack[#loopstack + 1] = false

@@ -992,7 +992,7 @@ local gen_vec_surrogate = function(name, base, ltable)
     surrtbl = {
         name = name,
         new = function(self, ent, var)
-            debug then log.log(log.INFO, name .. ": new: " .. var.name)
+            @[debug] log.log(log.INFO, name .. ": new: " .. var.name)
             local rawt = { entity = ent, variable = var }
             rawt.rawt = rawt
             local ret = newproxy(true)

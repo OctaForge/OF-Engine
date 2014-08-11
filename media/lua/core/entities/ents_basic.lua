@@ -748,7 +748,7 @@ M.Static_Entity = Entity:clone {
     },
 
     __init_svars = function(self, kwargs)
-        debug then log(DEBUG, "Static_Entity.init")
+        @[debug] log(DEBUG, "Static_Entity.init")
 
         kwargs = kwargs or {}
         kwargs.persistent = true
@@ -764,19 +764,19 @@ M.Static_Entity = Entity:clone {
             })
         end
 
-        debug then log(DEBUG, "Static_Entity.init complete")
+        @[debug] log(DEBUG, "Static_Entity.init complete")
     end,
 
     __activate = SERVER and function(self, kwargs)
         kwargs = kwargs or {}
 
-        debug then log(DEBUG, "Static_Entity.__activate")
+        @[debug] log(DEBUG, "Static_Entity.__activate")
         Entity.__activate(self, kwargs)
 
-        debug then log(DEBUG, "Static_Entity: extent setup")
+        @[debug] log(DEBUG, "Static_Entity: extent setup")
         capi.setup_extent(self.uid, self.sauer_type)
 
-        debug then log(DEBUG, "Static_Entity: flush")
+        @[debug] log(DEBUG, "Static_Entity: flush")
         self:flush_queued_svar_changes()
 
         self:set_attr("position", self:get_attr("position"))
@@ -802,7 +802,7 @@ M.Static_Entity = Entity:clone {
             return p.cn end) or { cn }
 
         local uid = self.uid
-        debug then log(DEBUG, "Static_Entity.send_notification_full: "
+        @[debug] log(DEBUG, "Static_Entity.send_notification_full: "
             .. cn .. ", " .. uid)
 
         local scn, sname = self.cn, self.name
@@ -812,7 +812,7 @@ M.Static_Entity = Entity:clone {
                 self:build_sdata({ target_cn = n, compressed = true }))
         end
 
-        debug then log(DEBUG, "Static_Entity.send_notification_full: done")
+        @[debug] log(DEBUG, "Static_Entity.send_notification_full: done")
     end or nil,
 
     --[[!

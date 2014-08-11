@@ -13,6 +13,7 @@ local init = function(ls, debug)
         ls = ls,
         buffer    = {},
         saved     = {},
+        cond_env  = {},
         debug     = debug,
         enabled   = true,
         last_line = 1,
