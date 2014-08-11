@@ -261,6 +261,31 @@ local parse_prefix_expr = function(ls, cs)
         check_match(ls, ")", "(", line)
         cs:append(")")
         ls:get()
+    elseif tn == "@[" then
+        local line = ls.line_number
+        cs:append("(")
+        ls:get()
+        local cs2 = codegen.init(ls, false)
+        cs2:append_kw("return")
+        parse_expr(ls, cs2)
+        assert_next(ls, ",")
+        local expr = cs2:build()
+        local f = loadstring(expr)
+        if not f then syntax_error(ls, "invalid expression") end
+        setfenv(f, cs.cond_env)
+        cs.enabled = not not f()
+        parse_expr(ls, cs)
+        cs.enabled = not cs.enabled
+        if ls.token.name == "," then
+            ls:get()
+            parse_expr(ls, cs)
+        else
+            cs:append_kw("nil")
+        end
+        cs.enabled = true
+        check_match(ls, "]", "@[", line)
+        cs:append(")")
+        ls:get()
     elseif Name_Keywords[tn] then
         local tracked = cs.tracked
         local varn = tok.value or tn
@@ -845,7 +870,7 @@ local stat_opts = {
         cs2:append_kw("return")
         parse_expr(ls, cs2)
         local expr = cs2:build()
-        check_match(ls, "]", "[", line)
+        check_match(ls, "]", "@[", line)
         ls:get()
         local f = loadstring(expr)
         if not f then syntax_error(ls, "invalid expression") end
