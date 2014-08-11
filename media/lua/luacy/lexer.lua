@@ -42,9 +42,9 @@ local Keywords = {
     ["end"     ] = true, ["false"   ] = true, ["for"     ] = true,
     ["function"] = true, ["goto"    ] = true, ["if"      ] = true,
     ["in"      ] = true, ["local"   ] = true, ["nil"     ] = true,
-    ["not"     ] = true, ["or"      ] = true, ["repeat"  ] = true,
-    ["return"  ] = true, ["then"    ] = true, ["true"    ] = true,
-    ["until"   ] = true, ["while"   ] = true
+    ["noscope" ] = true, ["not"     ] = true, ["or"      ] = true,
+    ["repeat"  ] = true, ["return"  ] = true, ["then"    ] = true,
+    ["true"    ] = true, ["until"   ] = true, ["while"   ] = true
 }
 
 -- protected from the gc

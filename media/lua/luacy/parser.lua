@@ -19,7 +19,7 @@ local assert_tok = function(ls, tok)
 end
 
 local Name_Keywords = {
-    ["<name>"] = true, ["goto"] = true, ["continue"] = true
+    ["<name>"] = true, ["goto"] = true, ["continue"] = true, ["noscope"] = true
 }
 
 local assert_name = function(ls)
@@ -864,30 +864,46 @@ local stat_opts = {
         ls:get()
     end,
     ["@["] = function(ls, cs)
+        local noscope = false
         local line = ls.line_number
         ls:get()
         local cs2 = codegen.init(ls, false)
         cs2:append_kw("return")
         parse_expr(ls, cs2)
         local expr = cs2:build()
+        if ls.token.name == "," then
+            ls:get()
+            assert_next(ls, "noscope")
+            noscope = true
+        end
         check_match(ls, "]", "@[", line)
         ls:get()
         local f = loadstring(expr)
         if not f then syntax_error(ls, "invalid expression") end
         setfenv(f, cs.cond_env)
-        cs.enabled = not not f()
+        if noscope then
+            assert_tok(ls, "do")
+        end
         if ls.token.name == "do" then
-            cs:append_kw("do")
+            if not noscope then cs:append_kw("do") end
+            cs.enabled = not not f()
             ls:get()
             local line = ls.line_number
             parse_chunk(ls, cs)
+            if ls.token.name == "else" then
+                cs.enabled = not cs.enabled
+                ls:get()
+                parse_chunk(ls, cs)
+            end
+            cs.enabled = true
             check_match(ls, "end", "do", line)
-            cs:append_kw(ls.token.name)
+            if not noscope then cs:append_kw(ls.token.name) end
             ls:get()
         else
+            cs.enabled = not not f()
             parse_stat(ls, cs)
+            cs.enabled = true
         end
-        cs.enabled = true
     end
 }
 
