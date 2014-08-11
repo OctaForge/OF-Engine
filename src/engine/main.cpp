@@ -1072,7 +1072,7 @@ int main(int argc, char **argv)
 
     initlog("world");
     camera1 = player = game::iterdynents(0);
-    //emptymap(0, true, NULL, false);
+    emptymap(0, true, NULL, false);
 
     initlog("sound");
     initsound();

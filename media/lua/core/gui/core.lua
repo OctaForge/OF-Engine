@@ -2576,7 +2576,9 @@ end)
 
 set_external("gui_clear", function()
     root:reset()
-    var_set("mainmenu", 0, true, false)
+    if mmenu ~= 0 and isconnected() then
+        var_set("mainmenu", 0, true, false)
+    end
     if draw_hud then
         hud:destroy_children()
         draw_hud = false

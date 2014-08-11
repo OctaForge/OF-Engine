@@ -1339,8 +1339,10 @@ void resetmap()
     pruneundos();
     clearmapcrc();
 
-    setvar("gamespeed", 100);
-    setvar("paused", 0);
+#ifndef SERVER
+    gamespeed = 100;
+    paused = 0;
+#endif
 
     entities::clearents();
     outsideents.setsize(0);
