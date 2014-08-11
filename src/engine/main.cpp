@@ -147,32 +147,8 @@ Texture *backgroundmapshot = NULL;
 string backgroundmapname = "";
 char *backgroundmapinfo = NULL;
 
-void bgquad(float x, float y, float w, float h, float tx = 0, float ty = 0, float tw = 1, float th = 1)
-{
-    gle::begin(GL_TRIANGLE_STRIP);
-    gle::attribf(x,   y);   gle::attribf(tx,      ty);
-    gle::attribf(x+w, y);   gle::attribf(tx + tw, ty);
-    gle::attribf(x,   y+h); gle::attribf(tx,      ty + th);
-    gle::attribf(x+w, y+h); gle::attribf(tx + tw, ty + th);
-    gle::end();
-}
-
 void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo)
 {
-    static int lastupdate = -1, lastw = -1, lasth = -1;
-    static float backgroundu = 0, backgroundv = 0;
-    if((renderedframe && !mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
-    {
-        lastupdate = lastmillis;
-        lastw = w;
-        lasth = h;
-
-        backgroundu = rndscale(1);
-        backgroundv = rndscale(1);
-    }
-    else if(lastupdate != lastmillis) lastupdate = lastmillis;
-
-
     hudnotextureshader->set();
     gle::defvertex(2);
 
