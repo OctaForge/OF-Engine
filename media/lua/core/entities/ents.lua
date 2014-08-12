@@ -62,6 +62,9 @@ local storage_sauer = {}
 -- stores all registered entity prototypees
 local proto_storage = {}
 
+-- aliases
+local proto_aliases = {}
+
 --[[
     Stores mapping of state variable names and the associated ids, which
     are used for network transfers; numbers take less space than names,
@@ -247,6 +250,7 @@ M.register_prototype = function(cl, plugins, name)
     end
 
     proto_storage[name] = cl
+    proto_aliases[name:lower()] = name
 
     -- table of properties
     local pt = {}
@@ -299,7 +303,7 @@ end
     using this. It's still useful sometimes, so it's in the API.
 ]]
 M.get_prototype = function(cn)
-    local  t = proto_storage[cn]
+    local  t = proto_storage[cn] or proto_storage[proto_aliases[cn]]
     if not t then
         log(ERROR, "ents.get_prototype: invalid prototype " .. cn)
     end
@@ -450,7 +454,8 @@ end
 local add = function(cn, uid, kwargs, new)
     uid = uid or 1337
 
-    local cl = type(cn) == "table" and cn or proto_storage[cn]
+    local cl = type(cn) == "table" and cn or (proto_storage[cn]
+                                          or  proto_storage[proto_aliases[cn]])
     if not cl then
         log(ERROR, "ents.add: no such entity prototype: " .. tostring(cn))
         assert(false)
