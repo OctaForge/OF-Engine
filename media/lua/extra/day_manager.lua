@@ -26,12 +26,12 @@ local Entity = ents.Entity
 --[[!
     This is the day manager entity prototype.
 ]]
-local Day_Manager = Entity:clone {
-    name = "Day_Manager",
+local DayManager = Entity:clone {
+    name = "DayManager",
 
     __properties = {
-        day_seconds = svars.State_Integer(),
-        day_progress = svars.State_Integer { reliable = false }
+        day_seconds = svars.StateInteger(),
+        day_progress = svars.StateInteger { reliable = false }
     },
 
     __init_svars = function(self)
@@ -67,7 +67,7 @@ local dayman
 --! Gets the day manager instance.
 M.get = function()
     if not dayman then
-        dayman = ents.get_by_prototype("Day_Manager")[1]
+        dayman = ents.get_by_prototype("DayManager")[1]
     end
     assert(dayman)
     return dayman
@@ -81,9 +81,9 @@ get = M.get
     entity.
 ]]
 M.setup = function(plugins)
-    ents.register_prototype(Day_Manager, plugins)
+    ents.register_prototype(DayManager, plugins)
     @[server] do
-        dayman = ents.new("Day_Manager")
+        dayman = ents.new("DayManager")
         return dayman
     end
 end

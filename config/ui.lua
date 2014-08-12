@@ -61,12 +61,12 @@ end
 
 local gen_map_load = || do
     local s
-    return gui.H_Box {
+    return gui.HBox {
         gui.Outline { __init = |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
                 sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.5 }, |sc| do
                     s = sc
-                    sc:append(gui.H_Box { padding = 0.01 }, |hb| do
+                    sc:append(gui.HBox { padding = 0.01 }, |hb| do
                         local im
                         hb:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02,
                             gui.Image { min_w = 0.3, min_h = 0.3,
@@ -74,15 +74,15 @@ local gen_map_load = || do
                                 gui.Outline { clamp = true, color = 0x303030 }
                             }
                         })
-                        hb:append(gui.V_Box(), |vb| do
+                        hb:append(gui.VBox(), |vb| do
                             gen_map_list(im, vb)
                         end)
                     end)
                 end)
             end)
         end, color = 0x303030 },
-        gui.V_Scrollbar { clamp_v = true, __init = |sb| do
-            sb:append(gui.Scroll_Button())
+        gui.VScrollbar { clamp_v = true, __init = |sb| do
+            sb:append(gui.ScrollButton())
             sb:bind_scroller(s)
         end }
     }
@@ -92,9 +92,9 @@ root:new_window("main", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Main menu")
-    win:append(gui.H_Box { clamp_h = true }, |b| do
+    win:append(gui.HBox { clamp_h = true }, |b| do
         local stat
-        b:append(gui.V_Box(), |b| do
+        b:append(gui.VBox(), |b| do
             b:append(gui.Button { label = "Load map", clamp_h = true,
                 variant = "nobg"
             }, |btn| do
@@ -120,7 +120,7 @@ root:new_window("main", gui.Window, |win| do
         b:append(gui.State { state = "default" }, |st| do
             stat = st
             st:update_state("default", gui.Outline { min_w = 0.6, min_h = 0.5,
-                color = 0x303030, gui.V_Box {
+                color = 0x303030, gui.VBox {
                     gui.Label { text = "Welcome to OctaForge!", scale = 1.5,
                         color = 0x88FF88
                     },
@@ -130,14 +130,14 @@ root:new_window("main", gui.Window, |win| do
             })
             st:update_state("load_map", gen_map_load())
             st:update_state("options", gui.Outline { min_w = 0.6, min_h = 0.5,
-                color = 0x303030, gui.V_Box {
+                color = 0x303030, gui.VBox {
                     gui.Label { text = "Coming soon", scale = 1.5,
                         color = 0x88FF88 },
                     gui.Label { text = "No options for now :)" }
                 }
             })
             st:update_state("credits", gui.Outline { min_w = 0.6, min_h = 0.5,
-                color = 0x303030, gui.V_Box {
+                color = 0x303030, gui.VBox {
                     gui.Label { text = "OctaForge is brought to you by:",
                         color = 0x88FF88 },
                     gui.Filler { min_h = 0.01, clamp_h = true },
@@ -191,13 +191,13 @@ root:new_window("editstats", gui.Overlay, |win| do
     win:set_above_hud(true)
     win:append(gui.Filler { variant = "edithud" }, |fl| do
         fl:append(gui.Spacer { pad_h = 0.015, pad_v = 0.01 }, |sp| do
-            sp:append(gui.Eval_Label { scale = -1,
+            sp:append(gui.EvalLabel { scale = -1,
                 func = || cs_execute("getedithud") }):align(-1, 0)
         end)
     end)
 end)
 
-local genblock = |val, color, tcolor| || gui.Color_Filler {
+local genblock = |val, color, tcolor| || gui.ColorFiller {
     color = color, min_w = 0.18, min_h = 0.18,
     gui.Label {
         text = tostring(val), scale = 3.5, color = tcolor
@@ -205,7 +205,7 @@ local genblock = |val, color, tcolor| || gui.Color_Filler {
 }
 
 local blocktypes = {
-    [0] = || gui.Color_Filler {
+    [0] = || gui.ColorFiller {
         color = 0xccc0b3, min_w = 0.18, min_h = 0.18
     },
     [2   ] = genblock(2,    0xEEE4DA, 0x776E65),
@@ -411,7 +411,7 @@ root:new_window("2048", gui.Window, |win| do
     win:set_variant("movable")
     win:set_title("2048 (score: 0)")
     connect(win, "destroy", || do totalscore = 0 end)
-    win:append(gui.Color_Filler { color = 0xBBADA0 }, |cf| do
+    win:append(gui.ColorFiller { color = 0xBBADA0 }, |cf| do
         cf:clamp(true, true, true, true)
         win:append(gui.Spacer { pad_h = 0.025, pad_v = 0.025 }, |sp| do
             sp:append(gui.Grid { columns = 4, padding = 0.025 }, |grid| do

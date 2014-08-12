@@ -15,7 +15,7 @@ local input   = require("core.events.input")
 local M = {}
 
 local Action = actions.Action
-local Action_Queue = actions.Action_Queue
+local ActionQueue = actions.ActionQueue
 
 local ipairs = ipairs
 local compact = table.compact
@@ -25,10 +25,10 @@ local compact = table.compact
     its actor, finishes when both this action and all subactions are done.
 
     See also:
-        - $Parallel_Action
+        - $ParallelAction
 ]]
-M.Container_Action = Action:clone {
-    name = "Container_Action",
+M.ContainerAction = Action:clone {
+    name = "ContainerAction",
 
     --[[!
         Takes kwargs. Those are passed unmodified to the {{$actions.Action}}
@@ -45,7 +45,7 @@ M.Container_Action = Action:clone {
         each into the system using {{$add_action}}.
     ]]
     __start = function(self)
-        local actqueue = Action_Queue(self.actor)
+        local actqueue = ActionQueue(self.actor)
         for i, action in ipairs(self.other_actions) do
             self:add_action(action)
         end
@@ -83,10 +83,10 @@ M.Container_Action = Action:clone {
     for each action.
 
     See also:
-        - $Container_Action
+        - $ContainerAction
 ]]
-M.Parallel_Action = Action:clone {
-    name = "Parallel_Action",
+M.ParallelAction = Action:clone {
+    name = "ParallelAction",
     cancelable = false,
 
     --[[!
@@ -136,7 +136,7 @@ M.Parallel_Action = Action:clone {
         inside, then appends the system into the action queue table inside.
     ]]
     add_action = function(self, action)
-        local actqueue = Action_Queue(self.actor)
+        local actqueue = ActionQueue(self.actor)
         actqueue:enqueue(action)
         local systems = self.action_queues
         systems[#systems + 1] = actqueue
@@ -148,8 +148,8 @@ M.Parallel_Action = Action:clone {
     property, runs, ends and sets back the old animation. Not too useful
     alone, but can be used for inheriting.
 ]]
-M.Local_Animation_Action = Action:clone {
-    name = "Local_Animation_Action",
+M.LocalAnimationAction = Action:clone {
+    name = "LocalAnimationAction",
 
     --[[!
         Gives its actor the new animation. Uses the set_local_animation
@@ -177,7 +177,7 @@ local event_list = {
 --[[!
     An input capture plugin. Contains the __start and __finish methods you
     need to call in order to give your action input capturing capabilities.
-    See $Input_Capture_Action.
+    See $InputCaptureAction.
 ]]
 M.input_capture_plugin = {
     --! Replaces the events.
@@ -206,8 +206,8 @@ M.input_capture_plugin = {
     move, strafe, jump, crouch, click, mouse_move) with provided functions and
     restores them when it finishes. Uses $input_capture_plugin.
 ]]
-M.Input_Capture_Action = Action:clone {
-    name = "Input_Capture_Action",
+M.InputCaptureAction = Action:clone {
+    name = "InputCaptureAction",
 
     --[[!
         Kwargs are passed as-is to the original constructor and a field

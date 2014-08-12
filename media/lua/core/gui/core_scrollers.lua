@@ -231,7 +231,7 @@ M.Scroller = register_type("Scroller", Clipper, {
     scroll_v = function(self, vs) self:set_v_scroll(self.offset_v + vs) end
 })
 
-local Scroll_Button
+local ScrollButton
 
 --[[!
     A base scrollbar widget type. This one is not of much use.
@@ -378,7 +378,7 @@ local clicked_states = {
     A scroll button has seven states, "default", "hovering", "clicked_left",
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
 ]]
-M.Scroll_Button = register_type("Scroll_Button", Widget, {
+M.ScrollButton = register_type("ScrollButton", Widget, {
     __ctor = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
@@ -416,7 +416,7 @@ M.Scroll_Button = register_type("Scroll_Button", Widget, {
         return Widget.clicked(self, cx, cy, code)
     end
 })
-Scroll_Button = M.Scroll_Button
+ScrollButton = M.ScrollButton
 
 --[[!
     A specialization of $Scrollbar. Has the "orient" member set to
@@ -426,7 +426,7 @@ Scroll_Button = M.Scroll_Button
     Has thirteen states - "default", "(left|right)_hovering",
     "(left|right)_clicked_(left|right|middle|back|forward)".
 ]]
-M.H_Scrollbar = register_type("H_Scrollbar", Scrollbar, {
+M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     orient = orient.HORIZONTAL,
 
     bind_scroller = function(self, sc)
@@ -470,7 +470,7 @@ M.H_Scrollbar = register_type("H_Scrollbar", Scrollbar, {
         local  scroll = self.scroller
         if not scroll then return end
 
-        local  btn = self:find_child(Scroll_Button.type, nil, false)
+        local  btn = self:find_child(ScrollButton.type, nil, false)
         if not btn then return end
 
         local as = self.arrow_size
@@ -490,7 +490,7 @@ M.H_Scrollbar = register_type("H_Scrollbar", Scrollbar, {
             return
         end
 
-        local  btn = self:find_child(Scroll_Button.type, nil, false)
+        local  btn = self:find_child(ScrollButton.type, nil, false)
         if not btn then
             Widget.adjust_children(self)
             return
@@ -518,10 +518,10 @@ M.H_Scrollbar = register_type("H_Scrollbar", Scrollbar, {
 }, Scrollbar.type)
 
 --[[!
-    See $H_Scrollbar above. Has states "default", "(up|down)_hovering" and
+    See $HScrollbar above. Has states "default", "(up|down)_hovering" and
     "(up|down)_clicked_(left|right|middle|back|forward)".
 ]]
-M.V_Scrollbar = register_type("V_Scrollbar", Scrollbar, {
+M.VScrollbar = register_type("VScrollbar", Scrollbar, {
     orient = orient.VERTICAL,
 
     bind_scroller = function(self, sc)
@@ -565,7 +565,7 @@ M.V_Scrollbar = register_type("V_Scrollbar", Scrollbar, {
         local  scroll = self.scroller
         if not scroll then return end
 
-        local  btn = self:find_child(Scroll_Button.type, nil, false)
+        local  btn = self:find_child(ScrollButton.type, nil, false)
         if not btn then return end
 
         local as = self.arrow_size
@@ -586,7 +586,7 @@ M.V_Scrollbar = register_type("V_Scrollbar", Scrollbar, {
             return
         end
 
-        local  btn = self:find_child(Scroll_Button.type, nil, false)
+        local  btn = self:find_child(ScrollButton.type, nil, false)
         if not btn then
             Widget.adjust_children(self)
             return

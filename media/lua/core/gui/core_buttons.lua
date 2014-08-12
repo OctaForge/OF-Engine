@@ -67,7 +67,7 @@ local Button = M.Button
     Like $Button, but adds a new state, "menu", when a menu is currently
     opened using this button.
 ]]
-M.Menu_Button = register_type("Menu_Button", Button, {
+M.MenuButton = register_type("MenuButton", Button, {
     choose_state = function(self)
         return self:get_menu() != nil and "menu" or Button.choose_state(self)
     end

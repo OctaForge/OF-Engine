@@ -49,7 +49,7 @@ local Player = ents.Player
         particles.flags.BRIGHT)
 end
 
---[[! Object: Game_Player
+--[[! Object: GamePlayer
     This serves as a base for our player. It defines all the basic entry
     points for the drawing game.
 
@@ -57,11 +57,11 @@ end
         - new_mark - contains mark data. It's required because it has to sync
           over the server (e.g. in coop).
 ]]
-local Game_Player = Player:clone {
-    name = "Game_Player",
+local GamePlayer = Player:clone {
+    name = "GamePlayer",
 
     __properties = {
-        new_mark = svars.State_Array_Float {
+        new_mark = svars.StateArrayFloat {
             client_set = true, has_history = false
         }
     },
@@ -138,7 +138,7 @@ local Game_Player = Player:clone {
     end]
 }
 
-ents.register_prototype(Game_Player, {
+ents.register_prototype(GamePlayer, {
     game_manager.player_plugin,
     health.player_plugin,
     health.plugins.player_hud,
@@ -146,7 +146,7 @@ ents.register_prototype(Game_Player, {
     health.plugins.player_in_deadly_material
 })
 ents.register_prototype(ents.Obstacle, { health.plugins.area },
-    "Health_Area")
+    "HealthArea")
 
 day_manager.setup({ day_manager.plugins.day_night })
 
@@ -166,5 +166,5 @@ day_manager.setup({ day_manager.plugins.day_night })
         end
     end)
 else
-    ents.set_player_prototype("Game_Player")
+    ents.set_player_prototype("GamePlayer")
 end

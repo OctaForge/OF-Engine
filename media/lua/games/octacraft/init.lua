@@ -27,14 +27,14 @@ local health = require("extra.health")
 
 local Player = ents.Player
 
---[[! Object: Game_Player
+--[[! Object: GamePlayer
     This serves as a base for our player.
 ]]
-local Game_Player = Player:clone {
-    name = "Game_Player",
+local GamePlayer = Player:clone {
+    name = "GamePlayer",
 }
 
-ents.register_prototype(Game_Player, {
+ents.register_prototype(GamePlayer, {
     game_manager.player_plugin,
     health.player_plugin,
     health.plugins.player_hud,
@@ -42,17 +42,17 @@ ents.register_prototype(Game_Player, {
     health.plugins.player_in_deadly_material
 })
 ents.register_prototype(ents.Obstacle, { health.plugins.area },
-    "Health_Area")
+    "HealthArea")
 
 day_manager.setup({ day_manager.plugins.day_night })
 
 @[server] do
-    ents.set_player_prototype("Game_Player")
+    ents.set_player_prototype("GamePlayer")
     return
 end
 
-local Mouse_Action = actions.Action:clone {
-    name = "Mouse_Action",
+local MouseAction = actions.Action:clone {
+    name = "MouseAction",
     allow_multiple = false,
     block_size = 4,
 
@@ -101,7 +101,7 @@ inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)
     local gm = game_manager.get()
     if down then
         local pl = ents.get_player()
-        local mact = Mouse_Action()
+        local mact = MouseAction()
         mact.button = btn
         mact.player = pl
         gm.mouse_action = mact

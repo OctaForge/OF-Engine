@@ -19,7 +19,7 @@ local M = {}
 
 local Marker = ents.Marker
 
---[[! Object: lights.Dynamic_Light
+--[[! Object: lights.DynamicLight
     A generic "dynamic light" entity prototype. It's not registered by default
     (a Light from the core set is already dynamic), it serves as a base for
     derived dynamic light types. Inherits from {{$ents.Marker}} entity type of
@@ -29,14 +29,14 @@ local Marker = ents.Marker
     Properties overlap with the core Light entity type (but it lacks flags)
     including newent properties.
 ]]
-local Dynamic_Light = Marker:clone {
-    name = "Dynamic_Light",
+local DynamicLight = Marker:clone {
+    name = "DynamicLight",
 
     __properties = {
-        radius = svars.State_Integer(),
-        red    = svars.State_Integer(),
-        green  = svars.State_Integer(),
-        blue   = svars.State_Integer()
+        radius = svars.StateInteger(),
+        red    = svars.StateInteger(),
+        green  = svars.StateInteger(),
+        blue   = svars.StateInteger()
     },
 
     --! Set to true, as <__run> doesn't work on static entities by default.
@@ -62,14 +62,14 @@ local Dynamic_Light = Marker:clone {
             self:get_attr("blue") / 255)
     end]
 }
-M.Dynamic_Light = Dynamic_Light
+M.DynamicLight = DynamicLight
 
 local max, random = math.max, math.random
 local floor = math.floor
 local flash_flag = lights.flags.FLASH
 
---[[! Object: lights.Flickering_Light
-    A flickering light entity type derived from $Dynamic_Light. This one
+--[[! Object: lights.FlickeringLight
+    A flickering light entity type derived from $DynamicLight. This one
     is registered. Delays are in milliseconds. It adds probability, min delay
     and max delay to newent properties of its parent.
 
@@ -78,17 +78,17 @@ local flash_flag = lights.flags.FLASH
         - min_delay - the minimal flicker delay (defaults to 100).
         - max_delay - the maximal flicker delay (defaults to 300).
 ]]
-M.Flickering_Light = Dynamic_Light:clone {
-    name = "Flickering_Light",
+M.FlickeringLight = DynamicLight:clone {
+    name = "FlickeringLight",
 
     __properties = {
-        probability = svars.State_Float(),
-        min_delay   = svars.State_Integer(),
-        max_delay   = svars.State_Integer(),
+        probability = svars.StateFloat(),
+        min_delay   = svars.StateInteger(),
+        max_delay   = svars.StateInteger(),
     },
 
     __init_svars = function(self, kwargs, nd)
-        Dynamic_Light.__init_svars(self, kwargs, nd)
+        DynamicLight.__init_svars(self, kwargs, nd)
         self:set_attr("probability", 0.5, nd[5])
         self:set_attr("min_delay",   100, nd[6])
         self:set_attr("max_delay",   300, nd[7])
@@ -115,6 +115,6 @@ M.Flickering_Light = Dynamic_Light:clone {
     end]
 }
 
-ents.register_prototype(M.Flickering_Light)
+ents.register_prototype(M.FlickeringLight)
 
 return M

@@ -285,7 +285,7 @@ local ffi_new = ffi.new
     Represents a clip area defined by four points, x1, y1, x2, y2. The latter
     refer to x1+w and y1+h respectively.
 ]]
-M.Clip_Area = ffi.metatype("clip_area_t", {
+M.ClipArea = ffi.metatype("clip_area_t", {
     __new = function(self, x, y, w, h)
         return ffi_new("clip_area_t", x, y, x + w, y + h)
     end,
@@ -317,7 +317,7 @@ M.Clip_Area = ffi.metatype("clip_area_t", {
         end
     }
 })
-local Clip_Area = M.Clip_Area
+local ClipArea = M.ClipArea
 
 --[[!
     An utility function for drawing quads, takes x, y, w, h and optionally
@@ -1740,7 +1740,7 @@ Widget = M.Widget
     Properties:
         - obj_name - can be passed in kwargs as "name".
 ]]
-M.Named_Widget = register_type("Named_Widget", Widget, {
+M.NamedWidget = register_type("NamedWidget", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.obj_name = kwargs.name
@@ -1750,7 +1750,7 @@ M.Named_Widget = register_type("Named_Widget", Widget, {
     --! Function: set_obj_name
     set_obj_name = gen_setter "obj_name"
 })
-local Named_Widget = M.Named_Widget
+local NamedWidget = M.NamedWidget
 
 --[[!
     Tags are special named widgets. They can contain more widgets. They're
@@ -1758,7 +1758,7 @@ local Named_Widget = M.Named_Widget
     replacing something inside without having to iterate through and finding
     it manually.
 ]]
-M.Tag = register_type("Tag", Named_Widget)
+M.Tag = register_type("Tag", NamedWidget)
 local Tag = M.Tag
 
 --[[!
@@ -1772,13 +1772,13 @@ local Tag = M.Tag
           input. If it's false, the window takes input only in free cursor
           mode.
 ]]
-M.Window = register_type("Window", Named_Widget, {
+M.Window = register_type("Window", NamedWidget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         local ig = kwargs.input_grab
         self.input_grab = ig == nil and true or ig
         self.above_hud = kwargs.above_hud or false
-        return Named_Widget.__ctor(self, kwargs)
+        return NamedWidget.__ctor(self, kwargs)
     end,
 
     --! Equivalent to win.parent:hide_window(win.obj_name).
@@ -2079,7 +2079,7 @@ M.Root = register_type("Root", Widget, {
         local l = #cs
         if    l == 0 then gl_scissor_enable() end
 
-        local c = Clip_Area(x, y, w, h)
+        local c = ClipArea(x, y, w, h)
 
         l = l + 1
         cs[l] = c
@@ -2103,7 +2103,7 @@ M.Root = register_type("Root", Widget, {
     end,
 
     --[[!
-        See $Clip_Area.is_fully_clipped. Works on the last clip area on the
+        See $ClipArea.is_fully_clipped. Works on the last clip area on the
         clip stack.
     ]]
     clip_is_fully_clipped = function(self, x, y, w, h)

@@ -151,7 +151,7 @@ local Filler = M.Filler
 
 --[[!
     A base widget type for progress bars. Not useful alone. For working
-    variants, see $H_Progress_Bar and $V_Progress_Bar.
+    variants, see $HProgressBar and $VProgressBar.
 
     Properties:
         - value - the current value, from 0.0 to 1.0. If set out of bounds,
@@ -166,7 +166,7 @@ local Filler = M.Filler
           it'll be called with `self` and the value (not multiplied) as
           arguments, expecting the label string as a return value.
 ]]
-M.Progress_Bar = register_type("Progress_Bar", Filler, {
+M.ProgressBar = register_type("ProgressBar", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.value = kwargs.value or 0
@@ -193,8 +193,8 @@ M.Progress_Bar = register_type("Progress_Bar", Filler, {
     set_label = gen_setter "label"
 })
 
---! A horizontal working variant of $Progress_Bar.
-M.H_Progress_Bar = register_type("H_Progress_Bar", M.Progress_Bar, {
+--! A horizontal working variant of $ProgressBar.
+M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
     adjust_children = function(self)
         local bar = self.bar
         if not bar then return Widget.adjust_children(self) end
@@ -205,8 +205,8 @@ M.H_Progress_Bar = register_type("H_Progress_Bar", M.Progress_Bar, {
     end
 })
 
---! A vertical working variant of $Progress_Bar.
-M.V_Progress_Bar = register_type("V_Progress_Bar", M.Progress_Bar, {
+--! A vertical working variant of $ProgressBar.
+M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
     adjust_children = function(self)
         local bar = self.bar
         if not bar then return Widget.adjust_children(self) end

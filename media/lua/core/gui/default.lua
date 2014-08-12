@@ -67,7 +67,7 @@ local mbtnv, vmbtnv, smbtnv =
     { __properties  = { "label" } },
     { __properties  = { "label" } },
     { __properties  = { "label" } }
-gui.Menu_Button.__variants = { default = mbtnv, visible = vmbtnv,
+gui.MenuButton.__variants = { default = mbtnv, visible = vmbtnv,
     submenu = smbtnv }
 
 mbtnv["default"     ] = btn_build_variant_nobg()
@@ -98,27 +98,27 @@ end
 
 gui.Button.__variants.vslot = {
     __properties = { "index", "min_w", "min_h" },
-    default = gui.VSlot_Viewer { init_clone = slotbtn_init_clone },
-    hovering = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
+    default = gui.VSlotViewer { init_clone = slotbtn_init_clone },
+    hovering = gui.VSlotViewer { init_clone = slotbtn_init_clone,
         gui.Outline { clamp = true, color = 0x606060 } },
-    clicked_left = gui.VSlot_Viewer { init_clone = slotbtn_init_clone,
+    clicked_left = gui.VSlotViewer { init_clone = slotbtn_init_clone,
         gui.Outline { clamp = true, color = 0x505050 } }
 }
 
 gui.Button.__variants.slot = {
     __properties = { "index", "min_w", "min_h" },
-    default = gui.Slot_Viewer { init_clone = slotbtn_init_clone },
-    hovering = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
+    default = gui.SlotViewer { init_clone = slotbtn_init_clone },
+    hovering = gui.SlotViewer { init_clone = slotbtn_init_clone,
         gui.Outline { clamp = true, color = 0x606060 } },
-    clicked_left = gui.Slot_Viewer { init_clone = slotbtn_init_clone,
+    clicked_left = gui.SlotViewer { init_clone = slotbtn_init_clone,
         gui.Outline { clamp = true, color = 0x505050 } }
 }
 
 -- editors
 
-gui.Text_Editor.__variants = {
+gui.TextEditor.__variants = {
     default = {
-        gui.Color_Filler {
+        gui.ColorFiller {
             color = 0x80202020, clamp = true, gui.Outline { clamp = true,
                 color = 0x303030
             }
@@ -129,14 +129,14 @@ gui.Text_Editor.__variants = {
         end
     }
 }
-gui.Field.__variants     = gui.Text_Editor.__variants
-gui.Key_Field.__variants = gui.Text_Editor.__variants
+gui.Field.__variants     = gui.TextEditor.__variants
+gui.KeyField.__variants = gui.TextEditor.__variants
 
 -- menus, tooltips
 
 gui.Filler.__variants = {
     menu = {
-        gui.Color_Filler { color = 0xF0101010, clamp = true,
+        gui.ColorFiller { color = 0xF0101010, clamp = true,
             gui.Outline { color = 0x303030, clamp = true }
         }
     },
@@ -164,11 +164,11 @@ gui.Filler.__variants = {
 
 -- checkboxes, radioboxes
 
-local ckbox_build_variant = |color, tgl| gui.Color_Filler {
+local ckbox_build_variant = |color, tgl| gui.ColorFiller {
     color = 0x202020, min_w = 0.02, min_h = 0.02,
     gui.Outline {
         color = color, clamp = true, tgl and gui.Spacer {
-            pad_h = 0.005, pad_v = 0.005, clamp = true, gui.Color_Filler {
+            pad_h = 0.005, pad_v = 0.005, clamp = true, gui.ColorFiller {
                 clamp = true, color = 0xC0C0C0,
                 gui.Outline { color = color, clamp = true }
             }
@@ -241,24 +241,24 @@ local sb_buildv = |lac, rac| gui.Filler {
     }
 }
 
-gui.Scroll_Button.__variants = {
+gui.ScrollButton.__variants = {
     default = {
-        default = gui.Color_Filler {
+        default = gui.ColorFiller {
             color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
             gui.Outline { clamp = true, color = 0x404040 }
         },
-        hovering = gui.Color_Filler {
+        hovering = gui.ColorFiller {
             color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
             gui.Outline { clamp = true, color = 0x606060 }
         },
-        clicked_left = gui.Color_Filler {
+        clicked_left = gui.ColorFiller {
             color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
             gui.Outline { clamp = true, color = 0x505050 }
         }
     }
 }
 
-gui.H_Scrollbar.__variants = {
+gui.HScrollbar.__variants = {
     default = {
         default            = sb_buildh(0x404040, 0x404040),
         left_hovering      = sb_buildh(0x606060, 0x404040),
@@ -269,7 +269,7 @@ gui.H_Scrollbar.__variants = {
     }
 }
 
-gui.V_Scrollbar.__variants = {
+gui.VScrollbar.__variants = {
     default = {
         default           = sb_buildv(0x404040, 0x404040),
         up_hovering       = sb_buildv(0x606060, 0x404040),
@@ -282,15 +282,15 @@ gui.V_Scrollbar.__variants = {
 
 -- sliders
 
-gui.Slider_Button.__variants = gui.Scroll_Button.__variants
-gui.H_Slider.__variants = gui.H_Scrollbar.__variants
-gui.V_Slider.__variants = gui.V_Scrollbar.__variants
+gui.SliderButton.__variants = gui.ScrollButton.__variants
+gui.HSlider.__variants = gui.HScrollbar.__variants
+gui.VSlider.__variants = gui.VScrollbar.__variants
 
 -- progress bars
 
-gui.H_Progress_Bar.__variants = {
+gui.HProgressBar.__variants = {
     default = {
-        gui.Color_Filler { color = 0xF0101010, clamp = true,
+        gui.ColorFiller { color = 0xF0101010, clamp = true,
             gui.Outline { color = 0x404040, clamp = true },
             init_clone = |self, pb| do
                 local bar = gui.Gradient { color = 0xF0353535,
@@ -309,9 +309,9 @@ gui.H_Progress_Bar.__variants = {
     }
 }
 
-gui.V_Progress_Bar.__variants = {
+gui.VProgressBar.__variants = {
     default = {
-        gui.Color_Filler { color = 0xF0101010, clamp = true,
+        gui.ColorFiller { color = 0xF0101010, clamp = true,
             gui.Outline { color = 0x404040, clamp = true },
             init_clone = |self, pb| do
                 local bar = gui.Gradient { color = 0xF0353535,
@@ -347,7 +347,7 @@ local window_build_titlebar = || gui.Gradient {
 
 local window_build_regular = |mov| gui.Filler {
     clamp = true,
-    gui.V_Box {
+    gui.VBox {
         clamp = true,
         gui.Filler { clamp_h = true,
             mov and gui.Mover { clamp_h = true,
@@ -359,17 +359,17 @@ local window_build_regular = |mov| gui.Filler {
             gui.Spacer { pad_h = 0.009, align_h = 1,
                 gui.Button {
                     variant = false, states = {
-                        default = gui.Color_Filler {
+                        default = gui.ColorFiller {
                             color = 0x101010, min_w = 0.015,
                             min_h = 0.015, gui.Outline { clamp = true,
                                 color = 0x606060 }
                         },
-                        hovering = gui.Color_Filler {
+                        hovering = gui.ColorFiller {
                             color = 0x101010, min_w = 0.015,
                             min_h = 0.015, gui.Outline { clamp = true,
                                 color = 0x808080 }
                         },
-                        clicked_left = gui.Color_Filler {
+                        clicked_left = gui.ColorFiller {
                             color = 0x101010, min_w = 0.015,
                             min_h = 0.015, gui.Outline { clamp = true,
                                 color = 0x707070 }
@@ -381,7 +381,7 @@ local window_build_regular = |mov| gui.Filler {
                 }
             }
         },
-        gui.Color_Filler {
+        gui.ColorFiller {
             color = 0xF0101010, clamp = true, gui.Spacer {
                 pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
                     win:set_container(self)
@@ -389,7 +389,7 @@ local window_build_regular = |mov| gui.Filler {
             }
         },
         states = {
-            default = gui.Color_Filler { min_w = 0.05, min_h = 0.07 }
+            default = gui.ColorFiller { min_w = 0.05, min_h = 0.07 }
         }
     },
     gui.Outline { color = 0x303030, clamp = true }
@@ -397,7 +397,7 @@ local window_build_regular = |mov| gui.Filler {
 
 gui.Window.__variants = {
     borderless = {
-        gui.Color_Filler {
+        gui.ColorFiller {
             color = 0xF0101010, clamp = true,
             gui.Outline { color = 0x303030, clamp = true, gui.Spacer {
                 pad_h = 0.005, pad_v = 0.005, init_clone = |self, win| do
@@ -414,12 +414,12 @@ gui.Window.__variants = {
 
 local progress_bar, progress_label
 local progress_win = gui.Window { __init = |win| do
-    win:append(gui.V_Box(), |b| do
+    win:append(gui.VBox(), |b| do
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
             progress_label = sp:append(gui.Label())
         end)
         b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.01 }, |sp| do
-            progress_bar = sp:append(gui.H_Progress_Bar { min_w = 0.4,
+            progress_bar = sp:append(gui.HProgressBar { min_w = 0.4,
                 min_h = 0.03 })
         end)
     end)
@@ -437,7 +437,7 @@ local bg_win = function(mapname, mapinfo, mapshot, caption)
     local win = gui.Window()
     win:set_input_grab(false)
     win:align(0, 1)
-    win:append(gui.V_Box(), |b| do
+    win:append(gui.VBox(), |b| do
         if mapname then
             b:append(gui.Label { text = mapname, scale = 1.5 })
         end
@@ -525,7 +525,7 @@ root:new_window("changes", gui.Window, |win| do
     win:set_variant("movable")
     win:set_title("Changes")
     connect(win, "destroy", || changes.clear())
-    win:append(gui.V_Box(), |b| do
+    win:append(gui.VBox(), |b| do
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0,
             gui.Label { text = "The following settings have changed:" } })
         b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
@@ -535,7 +535,7 @@ root:new_window("changes", gui.Window, |win| do
         end
         b:append(gui.Filler { clamp_h = true, min_h = 0.01 })
         b:append(gui.Spacer { pad_v = 0.005, pad_h = 0.005, clamp_h = true,
-            gui.H_Box { padding = 0.01,
+            gui.HBox { padding = 0.01,
                 gui.Button { label = "OK", min_w = 0.15,
                     signals = { clicked = || do
                         changes.apply()
@@ -556,7 +556,7 @@ root:new_window("texture", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Textures")
-    win:append(gui.H_Box(), |hb| do
+    win:append(gui.HBox(), |hb| do
         local s
         hb:append(gui.Outline(), |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
@@ -575,15 +575,15 @@ root:new_window("texture", gui.Window, |win| do
                 end)
             end)
         end)
-        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| do
-            sb:append(gui.Scroll_Button())
+        hb:append(gui.VScrollbar { clamp_v = true }, |sb| do
+            sb:append(gui.ScrollButton())
             sb:bind_scroller(s)
         end)
     end)
 end)
 
 local fields = {
-    [svars.State_Boolean] = function(hb, nm, ent, dv)
+    [svars.StateBoolean] = function(hb, nm, ent, dv)
         local tvar = (dv == "true")
         local ret
         hb:append(gui.Filler { min_w = 0.4 }, |f| do
@@ -640,18 +640,18 @@ root:new_window("entity", gui.Window, |win| do
     end
     sort(props)
 
-    win:append(gui.H_Box(), |hb| do
+    win:append(gui.HBox(), |hb| do
         local s
         hb:append(gui.Outline { color = 0x303030 }, |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
                 sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
-                    sc:append(gui.V_Box(), |vb| do
+                    sc:append(gui.VBox(), |vb| do
                         local fpf, pf
                         for i = 1, nfields do
                             local nm = props[i]
                             local sd = sdata[nm]
                             local gn, dv, sv = sd[1], sd[2], sd[3]
-                            vb:append(gui.H_Box { align_h = 1 }, |hb| do
+                            vb:append(gui.HBox { align_h = 1 }, |hb| do
                                 hb:append(gui.Label { text = " "..sd[1]..": " })
                                 local fld = fields[sv.__proto] or field_def
                                 local fd = fld(hb, gn, ent, dv)
@@ -668,8 +668,8 @@ root:new_window("entity", gui.Window, |win| do
                 end)
             end)
         end)
-        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| do
-            sb:append(gui.Scroll_Button())
+        hb:append(gui.VScrollbar { clamp_v = true }, |sb| do
+            sb:append(gui.ScrollButton())
             sb:bind_scroller(s)
         end)
     end)
@@ -683,18 +683,18 @@ root:new_window("entity_new", gui.Window, |win| do
 
     local cnames = {}
     for k, v in pairs(ents.get_all_prototypes()) do
-        if v:is_a(ents.Static_Entity) then
+        if v:is_a(ents.StaticEntity) then
             cnames[#cnames + 1] = k
         end
     end
     sort(cnames)
 
-    win:append(gui.H_Box(), |hb| do
+    win:append(gui.HBox(), |hb| do
         local s
         hb:append(gui.Outline { color = 0x303030 }, |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
                 sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.6 }, |sc| do
-                    sc:append(gui.V_Box(), |vb| do
+                    sc:append(gui.VBox(), |vb| do
                         for i = 1, #cnames do
                             local n = cnames[i]
                             vb:append(gui.Button {
@@ -711,8 +711,8 @@ root:new_window("entity_new", gui.Window, |win| do
                 end)
             end)
         end)
-        hb:append(gui.V_Scrollbar { clamp_v = true }, |sb| do
-            sb:append(gui.Scroll_Button())
+        hb:append(gui.VScrollbar { clamp_v = true }, |sb| do
+            sb:append(gui.ScrollButton())
             sb:bind_scroller(s)
         end)
     end)

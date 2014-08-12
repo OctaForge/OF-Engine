@@ -88,7 +88,7 @@ end
         - solid - if true, it's a solid color rectangle (default), otherwise
           it modulates the color its background.
 ]]
-M.Color_Filler = register_type("Color_Filler", Filler, {
+M.ColorFiller = register_type("ColorFiller", Filler, {
     __ctor = function(self, kwargs)
         kwargs       = kwargs or {}
         self.solid = kwargs.solid != false and true or false
@@ -128,19 +128,19 @@ M.Color_Filler = register_type("Color_Filler", Filler, {
     --! Function: set_color
     set_color = gen_color_setter "color"
 })
-local Color_Filler = M.Color_Filler
+local ColorFiller = M.ColorFiller
 
 --[[!
-    Derived from $Color_Filler.
+    Derived from $ColorFiller.
 
     Properties:
         - horizontal - by default the gradient is vertical, if this is true
           it's horizontal.
         - color2 - the other color of the gradient.
 ]]
-M.Gradient = register_type("Gradient", Color_Filler, {
+M.Gradient = register_type("Gradient", ColorFiller, {
     __ctor = function(self, kwargs)
-        Color_Filler.__ctor(self, kwargs)
+        ColorFiller.__ctor(self, kwargs)
         self.horizontal = kwargs.horizontal
         self.color2 = init_color(kwargs.color2)
     end,
@@ -190,7 +190,7 @@ M.Gradient = register_type("Gradient", Color_Filler, {
     Derived from $Filler. Represents a line.
 
     Properties:
-        - color - see $Color_Filler.
+        - color - see $ColorFiller.
 ]]
 M.Line = register_type("Line", Filler, {
     __ctor = function(self, kwargs)
@@ -223,7 +223,7 @@ M.Line = register_type("Line", Filler, {
     Derived from $Filler. Represents an outline.
 
     Properties:
-        - color - see $Color_Filler.
+        - color - see $ColorFiller.
 ]]
 M.Outline = register_type("Outline", Filler, {
     __ctor = function(self, kwargs)
@@ -285,7 +285,7 @@ end
         - alt_file - alternative filename assuming file fails.
         - min_filter, mag_filter - see GL_TEXTURE_MIN_FILTER and
           GL_TEXTURE_MAG_FILTER as well as filters later in this module.
-        - color - see $Color_Filler.
+        - color - see $ColorFiller.
 ]]
 M.Image = register_type("Image", Filler, {
     __ctor = function(self, kwargs)
@@ -473,7 +473,7 @@ end
         - crop_x, crop_y - the crop x and y position, they default to 0.
         - crop_w, crop_h - the crop dimensions, they default to 1.
 ]]
-M.Cropped_Image = register_type("Cropped_Image", Image, {
+M.CroppedImage = register_type("CroppedImage", Image, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -560,7 +560,7 @@ M.Cropped_Image = register_type("Cropped_Image", Image, {
     images stretch as well, but this uses better quality (and more expensive)
     computations instead of basic stretching.
 ]]
-M.Stretched_Image = register_type("Stretched_Image", Image, {
+M.StretchedImage = register_type("StretchedImage", Image, {
     target = function(self, cx, cy)
         local o = Widget.target(self, cx, cy)
         if    o then return o end
@@ -666,7 +666,7 @@ M.Stretched_Image = register_type("Stretched_Image", Image, {
         - tex_border - determines a texture offset from which to create the
           borders.
 ]]
-M.Bordered_Image = register_type("Bordered_Image", Image, {
+M.BorderedImage = register_type("BorderedImage", Image, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         Image.__ctor(self, kwargs)
@@ -774,7 +774,7 @@ M.Bordered_Image = register_type("Bordered_Image", Image, {
     Properties:
         - tile_w, tile_h - tile width and height, they default to 1.
 ]]
-M.Tiled_Image = register_type("Tiled_Image", Image, {
+M.TiledImage = register_type("TiledImage", Image, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -916,12 +916,12 @@ M.Thumbnail = register_type("Thumbnail", Image, {
 --[[!
     Derived from $Filler. Represents a texture slot thumbnail, for example
     in a texture selector. Regular thumbnail rules and delays are followed
-    like in $Thumbnail. See also $VSlot_Viewer.
+    like in $Thumbnail. See also $VSlotViewer.
 
     Properties:
         - index - the texture slot index (starting with 0, defaults to 0).
 ]]
-M.Slot_Viewer = register_type("Slot_Viewer", Filler, {
+M.SlotViewer = register_type("SlotViewer", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.index = kwargs.index or 0
@@ -943,9 +943,9 @@ M.Slot_Viewer = register_type("Slot_Viewer", Filler, {
 })
 
 --[[!
-    Similar to (and derives from) $Slot_Viewer, but previews vslots.
+    Similar to (and derives from) $SlotViewer, but previews vslots.
 ]]
-M.VSlot_Viewer = register_type("VSlot_Viewer", M.Slot_Viewer, {
+M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
     draw = function(self, sx, sy)
         texture_draw_vslot(self.index, self.w, self.h, sx, sy)
         return Widget.draw(self, sx, sy)
@@ -960,7 +960,7 @@ M.VSlot_Viewer = register_type("VSlot_Viewer", M.Slot_Viewer, {
         - anim - an integer.
         - attachments - an array of tag-attachment pairs.
 ]]
-M.Model_Viewer = register_type("Model_Viewer", Filler, {
+M.ModelViewer = register_type("ModelViewer", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.model = kwargs.model
@@ -1024,7 +1024,7 @@ M.Model_Viewer = register_type("Model_Viewer", Filler, {
         - prefab - the prefab name.
         - color - the color (alpha is ignored).
 ]]
-M.Prefab_Viewer = register_type("Prefab_Viewer", Filler, {
+M.PrefabViewer = register_type("PrefabViewer", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.prefab = kwargs.prefab
@@ -1090,7 +1090,7 @@ local MODULATE = 2
     Properties:
         - style - can be Shape.SOLID, Shape.OUTLINE, Shape.MODULATE (defaults
           to solid).
-        - color - see $Color_Filler.
+        - color - see $ColorFiller.
 ]]
 M.Shape = register_type("Shape", Filler, {
     SOLID    = SOLID,
@@ -1273,7 +1273,7 @@ M.Circle = register_type("Circle", Shape, {
          - scale - the font scale, defaults to 1.
          - wrap - whether to wrap the text, defaults to -1 - not wrapping,
            otherwise it's a number of characters.
-         - color - see $Color_Filler.
+         - color - see $ColorFiller.
 ]]
 M.Label = register_type("Label", Widget, {
     __ctor = function(self, kwargs)
@@ -1363,7 +1363,7 @@ M.Label = register_type("Label", Widget, {
     See $Label. Instead of the property "text", there is "func", which is
     a callable value that returns the text to display.
 ]]
-M.Eval_Label = register_type("Eval_Label", Widget, {
+M.EvalLabel = register_type("EvalLabel", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 

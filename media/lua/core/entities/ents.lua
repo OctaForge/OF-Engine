@@ -618,8 +618,8 @@ M.load = function()
 
         local sn = {
             [1] = "Light",           [2] = "Mapmodel",
-            [3] = "Oriented_Marker", [4] = "Envmap",
-            [6] = "Sound",           [7] = "Spot_Light"
+            [3] = "OrientedMarker", [4] = "Envmap",
+            [6] = "Sound",           [7] = "SpotLight"
         }
 
         for i = 1, #storage_sauer do
@@ -725,10 +725,10 @@ set_external("entities_save_all", M.save)
     The base entity prototype has two basic properties.
 
     Properties:
-        - tags [{{$svars.State_Array}}] - every entity can have an unlimited
+        - tags [{{$svars.StateArray}}] - every entity can have an unlimited
         amount of tags (they're strings). You can use tags to search for
         entities later, other use cases include e.g. marking of player starts.
-        - persistent [{{$svars.State_Booleann}}] - if the entity is persistent,
+        - persistent [{{$svars.StateBooleann}}] - if the entity is persistent,
         it will be saved during map save; if not, it's only temporary (and it
         will disappear when the map ends)
 ]]
@@ -749,8 +749,8 @@ M.Entity = table.Object:clone {
         entity prototype, do not create this table.
     ]]
     __properties = {
-        tags       = svars.State_Array(),
-        persistent = svars.State_Boolean()
+        tags       = svars.StateArray(),
+        persistent = svars.StateBoolean()
     },
 
     --! Makes entity objects return their name on tostring.
@@ -767,7 +767,7 @@ M.Entity = table.Object:clone {
 
         if self.setup_complete then return end
 
-        self.action_queue = actions.Action_Queue(self)
+        self.action_queue = actions.ActionQueue(self)
         -- for caching
         self.svar_values, self.svar_value_timestamps = {}, {}
         -- no longer deactivated
@@ -848,7 +848,7 @@ M.Entity = table.Object:clone {
 
         Kwargs:
             - target_cn [nil] - the client number to check state variables
-            against (see <State_Variable.should_send>). If that is nil,
+            against (see <StateVariable.should_send>). If that is nil,
             no checking happens and stuff is done for all clients.
             - compressed [false] - if true, this function will return the
             sdata in a serialized format (string) with names converted

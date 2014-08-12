@@ -41,7 +41,7 @@ local orient = M.orient
 -- alignment/clamping
 local adjust = M.adjust
 
-local Slider_Button
+local SliderButton
 
 --[[!
     Implements a base type for either horizontal or vertical slider.
@@ -222,7 +222,7 @@ local clicked_states = {
     A slider button has seven states, "default", "hovering", "clicked_left",
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
 ]]
-M.Slider_Button = register_type("Slider_Button", Widget, {
+M.SliderButton = register_type("SliderButton", Widget, {
     __ctor = function(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
@@ -272,7 +272,7 @@ M.Slider_Button = register_type("Slider_Button", Widget, {
         end
     end
 })
-Slider_Button = M.Slider_Button
+SliderButton = M.SliderButton
 
 --[[!
     A specialization of $Slider. Has the "orient" member set to
@@ -282,7 +282,7 @@ Slider_Button = M.Slider_Button
     Has thirteen states - "default", "(left|right)_hovering",
     "(left|right)_clicked_(left|right|middle|back|forward)".
 ]]
-M.H_Slider = register_type("H_Slider", Slider, {
+M.HSlider = register_type("HSlider", Slider, {
     orient = orient.HORIZONTAL,
 
     choose_state = function(self)
@@ -306,7 +306,7 @@ M.H_Slider = register_type("H_Slider", Slider, {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  btn = self:find_child(Slider_Button.type, nil, false)
+        local  btn = self:find_child(SliderButton.type, nil, false)
         if not btn then return end
 
         local as = self.arrow_size
@@ -320,7 +320,7 @@ M.H_Slider = register_type("H_Slider", Slider, {
     end,
 
     adjust_children = function(self)
-        local  btn = self:find_child(Slider_Button.type, nil, false)
+        local  btn = self:find_child(SliderButton.type, nil, false)
         if not btn then return end
         btn._slider = self
 
@@ -346,10 +346,10 @@ M.H_Slider = register_type("H_Slider", Slider, {
 }, Slider.type)
 
 --[[!
-    See $H_Slider above. Has different states, "default", "(up|down)_hovering"
+    See $HSlider above. Has different states, "default", "(up|down)_hovering"
     and  "(up|down)_clicked_(left|right|middle|back|forward)".
 ]]
-M.V_Slider = register_type("V_Slider", Slider, {
+M.VSlider = register_type("VSlider", Slider, {
     choose_state = function(self)
         local ad = self.arrow_dir
 
@@ -371,7 +371,7 @@ M.V_Slider = register_type("V_Slider", Slider, {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  btn = self:find_child(Slider_Button.type, nil, false)
+        local  btn = self:find_child(SliderButton.type, nil, false)
         if not btn then return end
 
         local as = self.arrow_size
@@ -385,7 +385,7 @@ M.V_Slider = register_type("V_Slider", Slider, {
     end,
 
     adjust_children = function(self)
-        local  btn = self:find_child(Slider_Button.type, nil, false)
+        local  btn = self:find_child(SliderButton.type, nil, false)
         if not btn then return end
         btn._slider = self
 

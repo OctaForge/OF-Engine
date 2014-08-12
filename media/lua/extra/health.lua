@@ -39,26 +39,26 @@ local anims = @[not server,{:
 M.anims = anims
 
 --[[!
-    Derives from {{$actions.Local_Animation_Action}} and is queued as a pain
+    Derives from {{$actions.LocalAnimationAction}} and is queued as a pain
     effect. The default duration is 600 milliseconds and it uses the
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
 ]]
-local Pain_Action = @[not server,eactions.Local_Animation_Action:clone {
-    name            = "Pain_Action",
+local PainAction = @[not server,eactions.LocalAnimationAction:clone {
+    name            = "PainAction",
     millis_left     = 600,
     local_animation = anims.pain,
     allow_multiple  = false
 }]
-M.Pain_Action = Pain_Action
+M.PainAction = PainAction
 
 --[[!
     Derives from a regular Action. Represents player death and the default
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
 ]]
-local Death_Action = @[server,actions.Action:clone {
-    name            = "Death_Action",
+local DeathAction = @[server,actions.Action:clone {
+    name            = "DeathAction",
     allow_multiple  = false,
     cancelable      = false,
     millis_left     = 5000,
@@ -80,7 +80,7 @@ local Death_Action = @[server,actions.Action:clone {
         self.actor:game_manager_respawn()
     end
 }]
-M.Death_Action = Death_Action
+M.DeathAction = DeathAction
 
 --[[!
     The player plugin - use it when baking your player entity prototype. Must be
@@ -93,8 +93,8 @@ M.Death_Action = Death_Action
 ]]
 M.player_plugin = {
     __properties = {
-        health = svars.State_Integer     { client_set = true },
-        max_health = svars.State_Integer { client_set = true }
+        health = svars.StateInteger     { client_set = true },
+        max_health = svars.StateInteger { client_set = true }
     },
 
     __init_svars = function(self)
@@ -188,10 +188,10 @@ M.player_plugin = {
             - server_orig - true if the change originated on the server.
     ]]
     health_changed = @[server,function(self, health, diff, server_orig)
-        if health <= 0 then self:enqueue_action(Death_Action()) end
+        if health <= 0 then self:enqueue_action(DeathAction()) end
     end,function(self, health, diff, server_orig)
         if diff <= -5 and health > 0 then
-            self:enqueue_action(Pain_Action())
+            self:enqueue_action(PainAction())
         end
     end],
 
@@ -229,7 +229,7 @@ local is_valid_target = function(ent)
 end
 M.is_valid_target = is_valid_target
 
-local Health_Action = actions.Action:clone {
+local HealthAction = actions.Action:clone {
     cancelable = false,
 
     __ctor = function(self, kwargs)
@@ -272,8 +272,8 @@ M.plugins = {
     ]]
     area = {
         __properties = {
-            health_step = svars.State_Integer(),
-            health_step_millis = svars.State_Integer()
+            health_step = svars.StateInteger(),
+            health_step_millis = svars.StateInteger()
         },
 
         __init_svars = function(self)
@@ -297,7 +297,7 @@ M.plugins = {
                     local prev = self.health_previous_act
                     if not prev or prev.finished then
                         self.health_previous_act = collider:enqueue_action(
-                            Health_Action { millis_left = step_millis,
+                            HealthAction { millis_left = step_millis,
                                 health_step = step })
                     end
                 end

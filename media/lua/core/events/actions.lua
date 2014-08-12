@@ -213,8 +213,8 @@ local Action = M.Action
 --[[!
     An action that never ends.
 ]]
-M.Infinite_Action = Action:clone {
-    name = "Infinite_Action",
+M.InfiniteAction = Action:clone {
+    name = "InfiniteAction",
 
     --[[!
         One of the exceptional cases of the "__run" method; it always returns
@@ -232,8 +232,8 @@ M.Infinite_Action = Action:clone {
         - parent - the parent entity of this action queue.
         - actions - an array of actions.
 ]]
-M.Action_Queue = table.Object:clone {
-    name = "Action_Queue",
+M.ActionQueue = table.Object:clone {
+    name = "ActionQueue",
 
     --[[!
         Initializes the queue.

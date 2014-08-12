@@ -26,18 +26,18 @@ local tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
     --! Module: svars
 local M = {}
 
-local State_Variable, State_Variable_Alias, State_Integer, State_Float,
-      State_Boolean, State_Table, State_String, Array_Surrogate, State_Array,
-      State_Array_Integer, State_Array_Float
+local StateVariable, StateVariableAlias, StateInteger, StateFloat,
+      StateBoolean, StateTable, StateString, ArraySurrogate, StateArray,
+      StateArrayInteger, StateArrayFloat
 
 --! Checks whether the given value is a state variable.
 M.is_svar = function(v)
-    return (type(v) == "table" and v.is_a) and v:is_a(State_Variable)
+    return (type(v) == "table" and v.is_a) and v:is_a(StateVariable)
 end
 
 --! Checks whether the given value is a state variable alias.
 M.is_svar_alias = function(v)
-    return (type(v) == "table" and v.is_a) and v:is_a(State_Variable_Alias)
+    return (type(v) == "table" and v.is_a) and v:is_a(StateVariableAlias)
 end
 
 local define_accessors = function(cl, n, gf, sf, d)
@@ -84,8 +84,8 @@ end
           the value will be cached for better performance (so we don't always
           have to query).
 ]]
-M.State_Variable = table.Object:clone {
-    name = "State_Variable",
+M.StateVariable = table.Object:clone {
+    name = "StateVariable",
 
     --! Makes svar objects return their name on tostring.
     __tostring = function(self)
@@ -94,7 +94,7 @@ M.State_Variable = table.Object:clone {
 
     --! Initializes the svar. Parameters are passed in kwargs (a dict).
     __ctor = function(self, kwargs)
-        @[debug] log(INFO, "State_Variable: init")
+        @[debug] log(INFO, "StateVariable: init")
 
         kwargs = kwargs or {}
 
@@ -128,7 +128,7 @@ M.State_Variable = table.Object:clone {
             - cl - the entity prototype.
     ]]
     register = function(self, name, cl)
-        @[debug] log(DEBUG, "State_Variable: register(" .. name
+        @[debug] log(DEBUG, "StateVariable: register(" .. name
             .. ", " .. cl.name .. ")")
 
         self.name = name
@@ -137,12 +137,12 @@ M.State_Variable = table.Object:clone {
         assert(self.getter)
         assert(self.setter)
 
-        @[debug] log(DEBUG, "State_Variable: register: getter/setter")
+        @[debug] log(DEBUG, "StateVariable: register: getter/setter")
         define_accessors(cl, name, self.getter, self.setter, self)
 
         local an = self.alt_name
         if an then
-            @[debug] log(DEBUG, "State_Variable: register: alt g/s")
+            @[debug] log(DEBUG, "StateVariable: register: alt g/s")
             cl["_SV_" .. an] = self
             define_accessors(cl, an, self.getter, self.setter, self)
         end
@@ -196,7 +196,7 @@ M.State_Variable = table.Object:clone {
         var:read_tests(self)
 
         local vn = var.name
-        @[debug] log(INFO, "State_Variable: getter: " .. vn)
+        @[debug] log(INFO, "StateVariable: getter: " .. vn)
 
         local fr = frame.get_frame()
 
@@ -207,7 +207,7 @@ M.State_Variable = table.Object:clone {
             return self.svar_values[vn]
         end
 
-        @[debug] log(INFO, "State_Variable: getter: getter function")
+        @[debug] log(INFO, "StateVariable: getter: getter function")
 
         local val = var.getter_fun(self.uid)
 
@@ -269,72 +269,72 @@ M.State_Variable = table.Object:clone {
         return tostring(val)
     end
 }
-State_Variable = M.State_Variable
+StateVariable = M.StateVariable
 
 --[[!
-    Specialization of $State_Variable for integer values. Overrides
+    Specialization of $StateVariable for integer values. Overrides
     to_ and from_ wire appropriately, to_wire converts to a string,
     from_wire converts to an integer.
 ]]
-M.State_Integer = State_Variable:clone {
-    name = "State_Integer",
+M.StateInteger = StateVariable:clone {
+    name = "StateInteger",
 
     to_wire   = function(self, val) return tostring(val) end,
     from_wire = function(self, val) return floor(tonumber(val)) end
 }
-State_Integer = M.State_Integer
+StateInteger = M.StateInteger
 
 --[[!
-    Specialization of $State_Variable for float values. Overrides
+    Specialization of $StateVariable for float values. Overrides
     to_ and from_ wire appropriately, to_wire converts to a string
     (with max two places past the floating point represented in the
     string), from_wire converts to a float.
 ]]
-M.State_Float = State_Variable:clone {
-    name = "State_Float",
+M.StateFloat = StateVariable:clone {
+    name = "StateFloat",
 
     to_wire   = function(self, val) return tostring(round(val, 2)) end,
     from_wire = function(self, val) return tonumber(val) end
 }
-State_Float = M.State_Float
+StateFloat = M.StateFloat
 
 --[[!
-    Specialization of $State_Variable for boolean values. Overrides
+    Specialization of $StateVariable for boolean values. Overrides
     to_ and from_ wire appropriately, to_wire converts to a string,
     from_wire converts to a boolean.
 ]]
-M.State_Boolean = State_Variable:clone {
-    name = "State_Boolean",
+M.StateBoolean = StateVariable:clone {
+    name = "StateBoolean",
 
     to_wire   = function(self, val) return tostring(val) end,
     from_wire = function(self, val) return val == "true" and true or false end
 }
-State_Boolean = M.State_Boolean
+StateBoolean = M.StateBoolean
 
 local ts, td = table.serialize, table.deserialize
 
 --[[!
-    Specialization of $State_Variable for table values. Overrides
+    Specialization of $StateVariable for table values. Overrides
     to_ and from_ wire appropriately, to_wire serializes the given
     table, from_wire deserializes it.
 ]]
-M.State_Table = State_Variable:clone {
-    name = "State_Table",
+M.StateTable = StateVariable:clone {
+    name = "StateTable",
 
     to_wire   = function(self, val) return ts(val) end,
     from_wire = function(self, val) return td(val) end
 }
-State_Table = M.State_Table
+StateTable = M.StateTable
 
 --[[!
-    Specialization of $State_Variable for string values. Doesn't
+    Specialization of $StateVariable for string values. Doesn't
     override to_ and from_wire, because the defaults already work
     with strings.
 ]]
-M.State_String = State_Variable:clone {
-    name = "State_String"
+M.StateString = StateVariable:clone {
+    name = "StateString"
 }
-State_String = M.State_String
+StateString = M.StateString
 
 local ctable = capi.table_create
 local getmt, setmt = getmetatable, setmetatable
@@ -343,7 +343,7 @@ local newproxy = newproxy
 --[[!
     Represents a "surrogate" for an array. Behaves like a regular
     array, but does not actually contain anything; it merely serves
-    as an interface for state variables like $State_Array.
+    as an interface for state variables like $StateArray.
 
     You can manipulate this like a regular array (check its length,
     index it, assign indexes) but many of the functions from the
@@ -355,15 +355,15 @@ local newproxy = newproxy
     you have to instantiate them yourself (well, you mostly don't, as
     the entity does it for you).
 ]]
-M.Array_Surrogate = {
-    name = "Array_Surrogate",
+M.ArraySurrogate = {
+    name = "ArraySurrogate",
 
     --[[!
         Constructs the array surrogate. Defines its members "entity"
         and "variable", assigned using the provided arguments.
     ]]
     new = function(self, ent, var)
-        @[debug] log(INFO, "Array_Surrogate: new: " .. var.name)
+        @[debug] log(INFO, "ArraySurrogate: new: " .. var.name)
         local rawt = { entity = ent, variable = var }
         rawt.rawt = rawt -- yay! cycles!
         local ret = newproxy(true)
@@ -389,11 +389,11 @@ M.Array_Surrogate = {
     __index = function(self, name)
         local n = tonumber(name)
         if not n then
-            return Array_Surrogate[name] or rawget(self.rawt, name)
+            return ArraySurrogate[name] or rawget(self.rawt, name)
         end
         local i = floor(n)
         if i != n then
-            return Array_Surrogate[name] or rawget(self.rawt, name)
+            return ArraySurrogate[name] or rawget(self.rawt, name)
         end
 
         local v = self.variable
@@ -438,28 +438,28 @@ M.Array_Surrogate = {
         self[#self + 1] = v
     end
 }
-Array_Surrogate = M.Array_Surrogate
+ArraySurrogate = M.ArraySurrogate
 
 local tc, tcc, map = table.copy, table.concat, table.map
 
 --[[!
-    Specialization of <State_Variable> for arrays. Uses $Array_Surrogate
+    Specialization of <StateVariable> for arrays. Uses $ArraySurrogate
     to provide an array-like "interface". The surrogate is required to
     properly reflect array element changes. This is the first state
     variable object that requires more complex to_wire and from_wire
     functions.
 ]]
-M.State_Array = State_Variable:clone {
-    name = "State_Array",
+M.StateArray = StateVariable:clone {
+    name = "StateArray",
 
     --! An element separator used by the wire format. Defaults to "|".
     separator = "|",
 
     --[[!
         Specifies the surrogate used by the state variable. By default
-        it's $Array_Surrogate, but may be overriden.
+        it's $ArraySurrogate, but may be overriden.
     ]]
-    surrogate = Array_Surrogate,
+    surrogate = ArraySurrogate,
 
     --[[!
         Instead of returning the raw value in non-wire format, this
@@ -468,7 +468,7 @@ M.State_Array = State_Variable:clone {
         for performance reasons. Performs read tests.
 
         See also:
-            - {{$State_Variable.getter}}
+            - {{$StateVariable.getter}}
     ]]
     getter = function(self, var)
         var:read_tests(self)
@@ -486,10 +486,10 @@ M.State_Array = State_Variable:clone {
         is given, it copies the table before setting it.
 
         See also:
-            - {{$State_Variable.setter}}
+            - {{$StateVariable.setter}}
     ]]
     setter = function(self, val, var)
-        @[debug] log(INFO, "State_Array: setter: " .. tostring(val))
+        @[debug] log(INFO, "StateArray: setter: " .. tostring(val))
         var:write_tests(self)
 
         self:set_sdata(var.name,
@@ -535,7 +535,7 @@ M.State_Array = State_Variable:clone {
     ]]
     get_raw = function(self, ent)
         local vn = self.name
-        @[debug] log(INFO, "State_Array: get_raw: " .. vn)
+        @[debug] log(INFO, "StateArray: get_raw: " .. vn)
 
         if not self.getter_fun then
             return ent.svar_values[vn] or {}
@@ -548,7 +548,7 @@ M.State_Array = State_Variable:clone {
             return ent.svar_values[vn]
         end
 
-        @[debug] log(INFO, "State_Array: get_raw: getter function")
+        @[debug] log(INFO, "StateArray: get_raw: getter function")
 
         local val = self.getter_fun(ent.uid)
 
@@ -570,7 +570,7 @@ M.State_Array = State_Variable:clone {
         the surrogate.
     ]]
     get_item = function(self, ent, idx)
-        @[debug] log(INFO, "State_Array: get_item: " .. idx)
+        @[debug] log(INFO, "StateArray: get_item: " .. idx)
         return self:get_raw(ent)[idx]
     end,
 
@@ -579,7 +579,7 @@ M.State_Array = State_Variable:clone {
         an update on all clients by setting the state data on the entity.
     ]]
     set_item = function(self, ent, idx, val)
-        @[debug] log(INFO, "State_Array: set_item: " .. idx .. ", "
+        @[debug] log(INFO, "StateArray: set_item: " .. idx .. ", "
             .. tostring(val))
 
         local a = self:get_raw(ent)
@@ -591,59 +591,59 @@ M.State_Array = State_Variable:clone {
         ent:set_sdata(self.name, a, -1)
     end
 }
-State_Array = M.State_Array
+StateArray = M.StateArray
 
 --[[!
-    A variant of $State_Array for integer contents. Overrides to_wire_item,
+    A variant of $StateArray for integer contents. Overrides to_wire_item,
     which converts a value to a string and from_wire_item, which converts
     it back to an integer.
 ]]
-M.State_Array_Integer = State_Array:clone {
-    name = "State_Array_Integer",
+M.StateArrayInteger = StateArray:clone {
+    name = "StateArrayInteger",
 
     to_wire_item   = tostring,
     from_wire_item = function(v) return floor(tonumber(v)) end
 }
-State_Array_Integer = M.State_Array_Integer
+StateArrayInteger = M.StateArrayInteger
 
 --[[!
-    A variant of $State_Array for floating point contents. Overrides
+    A variant of $StateArray for floating point contents. Overrides
     to_wire_item, which converts a value to a string (with max two places
     past the floating point represented in the string) and from_wire_item,
     which converts it back to a float.
 ]]
-M.State_Array_Float = State_Array:clone {
-    name = "State_Array_Float",
+M.StateArrayFloat = StateArray:clone {
+    name = "StateArrayFloat",
 
     to_wire_item   = function(v) return tostring(round(v, 2)) end,
     from_wire_item = tonumber
 }
-State_Array_Float = M.State_Array_Float
+StateArrayFloat = M.StateArrayFloat
 
 --[[!
-    A specialization of State_Array_Float, providing its own surrogate,
+    A specialization of StateArrayFloat, providing its own surrogate,
     {{$geom.Vec2_Surrogate}}. Other than that, no changes are made.
 ]]
-M.State_Vec2 = State_Array_Float:clone {
-    name = "State_Vec2",
+M.StateVec2 = StateArrayFloat:clone {
+    name = "StateVec2",
     surrogate = geom.Vec2_Surrogate
 }
 
 --[[!
-    A specialization of State_Array_Float, providing its own surrogate,
+    A specialization of StateArrayFloat, providing its own surrogate,
     {{$geom.Vec3_Surrogate}}. Other than that, no changes are made.
 ]]
-M.State_Vec3 = State_Array_Float:clone {
-    name = "State_Vec3",
+M.StateVec3 = StateArrayFloat:clone {
+    name = "StateVec3",
     surrogate = geom.Vec3_Surrogate
 }
 
 --[[!
-    A specialization of State_Array_Float, providing its own surrogate,
+    A specialization of StateArrayFloat, providing its own surrogate,
     {{$geom.Vec4_Surrogate}}. Other than that, no changes are made.
 ]]
-M.State_Vec4 = State_Array_Float:clone {
-    name = "State_Vec4",
+M.StateVec4 = StateArrayFloat:clone {
+    name = "StateVec4",
     surrogate = geom.Vec4_Surrogate
 }
 
@@ -652,8 +652,8 @@ M.State_Vec4 = State_Array_Float:clone {
     the variables they alias are already registered. They provide alternative
     getters and setters.
 ]]
-State_Variable_Alias = State_Variable:clone {
-    name = "State_Variable_Alias",
+StateVariableAlias = StateVariable:clone {
+    name = "StateVariableAlias",
 
     --[[!
         Variable aliases don't really need all the properties, so the parent
@@ -668,20 +668,20 @@ State_Variable_Alias = State_Variable:clone {
     --[[!
         Overriden registration function. It simply sets up the alias
         getter and setter. It also creates the _SV_ prefixed raw accessor
-        pointing to the target var. See {{$State_Variable.register}}.
+        pointing to the target var. See {{$StateVariable.register}}.
     ]]
     register = function(self, name, cl)
-        @[debug] log(DEBUG, "State_Variable_Alias: register(" .. name
+        @[debug] log(DEBUG, "StateVariableAlias: register(" .. name
             .. ", " .. cl.name .. ")")
 
         self.name = name
         local tg = cl["_SV_" .. self.target_name]
         cl["_SV_" .. name] = tg
 
-        @[debug] log(DEBUG, "State_Variable_Alias: register: getter/setter")
+        @[debug] log(DEBUG, "StateVariableAlias: register: getter/setter")
         define_accessors(cl, name, self.getter, self.setter, self)
     end
 }
-M.State_Variable_Alias = State_Variable_Alias
+M.StateVariableAlias = StateVariableAlias
 
 return M

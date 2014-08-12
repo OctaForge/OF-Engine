@@ -1,6 +1,6 @@
 --[[!<
     Various types of particle effects. All of the entity types here
-    derive from {{$ents.Particle_Effect}}.
+    derive from {{$ents.ParticleEffect}}.
 
     Author:
         q66 <quaker66@gmail.com>
@@ -19,7 +19,7 @@ local format = string.format
 local flame, splash = particles.flame, particles.splash
 local pflags = particles.flags
 local quadrenderer = particles.register_renderer_quad
-local Particle_Effect = ents.Particle_Effect
+local ParticleEffect = ents.ParticleEffect
 
 --! Module: particles
 local M = {}
@@ -58,7 +58,7 @@ M.offset_vec = offset_vec
 
 local SMOKE, FLAME = renderers.smoke, renderers.flame
 
---[[! Object: particles.Fire_Effect
+--[[! Object: particles.FireEffect
     A regular fire effect. You can specify radius, height, red, green and blue
     values as newent arguments.
 
@@ -67,19 +67,19 @@ local SMOKE, FLAME = renderers.smoke, renderers.flame
         - height - the fire height, defaults to 0.5.
         - red, green, blue - the color values (they default to 0x903020).
 ]]
-M.Fire_Effect = Particle_Effect:clone {
-    name = "Fire_Effect",
+M.FireEffect = ParticleEffect:clone {
+    name = "FireEffect",
 
     __properties = {
-        radius = svars.State_Float(),
-        height = svars.State_Float(),
-        red    = svars.State_Integer(),
-        green  = svars.State_Integer(),
-        blue   = svars.State_Integer()
+        radius = svars.StateFloat(),
+        height = svars.StateFloat(),
+        red    = svars.StateInteger(),
+        green  = svars.StateInteger(),
+        blue   = svars.StateInteger()
     },
 
     __init_svars = function(self, kwargs, nd)
-        Particle_Effect.__init_svars(self, kwargs, nd)
+        ParticleEffect.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 1.5, nd[1])
         self:set_attr("height", 0.5, nd[2])
         self:set_attr("red",   0x90, nd[3])
@@ -116,21 +116,21 @@ M.Fire_Effect = Particle_Effect:clone {
 
 local STEAM = renderers.steam
 
---[[! Object: particles.Steam_Effect
+--[[! Object: particles.SteamEffect
     A steam effect. You can pass the direction via newent.
 
     Properties:
         - direction - see $offset_vec.
 ]]
-M.Steam_Effect = Particle_Effect:clone {
-    name = "Steam_Effect",
+M.SteamEffect = ParticleEffect:clone {
+    name = "SteamEffect",
 
     __properties = {
-        direction = svars.State_Integer()
+        direction = svars.StateInteger()
     },
 
     __init_svars = function(self, kwargs, nd)
-        Particle_Effect.__init_svars(self, kwargs, nd)
+        ParticleEffect.__init_svars(self, kwargs, nd)
         self:set_attr("direction", 0, nd[1])
     end,
 
@@ -147,7 +147,7 @@ M.Steam_Effect = Particle_Effect:clone {
     end
 }
 
-ents.register_prototype(M.Fire_Effect)
-ents.register_prototype(M.Steam_Effect)
+ents.register_prototype(M.FireEffect)
+ents.register_prototype(M.SteamEffect)
 
 return M

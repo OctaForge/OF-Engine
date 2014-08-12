@@ -45,8 +45,8 @@ M.Teleporter = Obstacle:clone {
     name = "Teleporter",
 
     __properties = {
-        destination = svars.State_Integer(),
-        sound_name  = svars.State_String()
+        destination = svars.StateInteger(),
+        sound_name  = svars.StateString()
     },
 
     __init_svars = function(self, kwargs, nd)

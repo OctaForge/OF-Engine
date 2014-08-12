@@ -32,8 +32,8 @@ local get
 ]]
 M.player_plugin = {
     __properties = {
-        team        = svars.State_String(),
-        spawn_stage = svars.State_Integer()
+        team        = svars.StateString(),
+        spawn_stage = svars.StateInteger()
     },
 
     __init_svars = function(self)
@@ -96,11 +96,11 @@ local rand, floor = math.random, math.floor
 
 local Entity = ents.Entity
 
-local Game_Manager = Entity:clone {
-    name = "Game_Manager",
+local GameManager = Entity:clone {
+    name = "GameManager",
 
     __properties = {
-        team_data = svars.State_Table()
+        team_data = svars.StateTable()
     },
 
     __activate = @[server,function(self)
@@ -189,7 +189,7 @@ local gameman
 --! Gets the current game manager instance.
 M.get = function()
     if not gameman then
-        gameman = ents.get_by_prototype("Game_Manager")[1]
+        gameman = ents.get_by_prototype("GameManager")[1]
     end
     assert(gameman)
     return gameman
@@ -201,9 +201,9 @@ get = M.get
     {{$ents.load}}. On the server, this returns the entity.
 ]]
 M.setup = function(plugins)
-    ents.register_prototype(Game_Manager, plugins)
+    ents.register_prototype(GameManager, plugins)
     @[server] do
-        gameman = ents.new("Game_Manager")
+        gameman = ents.new("GameManager")
         return gameman
     end
 end

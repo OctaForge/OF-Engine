@@ -166,7 +166,7 @@ local Filler = M.Filler
         - console_text - if true (false by default), this will use console
           scaling factor rather than regular text scaling factor.
 ]]
-M.Text_Filler = register_type("Text_Filler", Filler, {
+M.TextFiller = register_type("TextFiller", Filler, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.console_text = kwargs.console_text or false

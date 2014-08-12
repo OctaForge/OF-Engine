@@ -220,13 +220,13 @@ end
         - scale - the text scale, defaults to 1.
         - line_wrap - if true, the text will wrap when it has reached editor
           width.
-        - text_color - the text color (0xFFFFFFFF). See $Color_Filler for
+        - text_color - the text color (0xFFFFFFFF). See $ColorFiller for
           how you can initialize colors.
         - sel_color - the selection color (ARGB: 0xC07B68EE).
         - wrap_color - the wrap symbol color (ARGB: 0xFF3C3C3C).
         - pad_l, pad_r - text left and right padding (both 0 by default).
 ]]
-M.Text_Editor = register_type("Text_Editor", Widget, {
+M.TextEditor = register_type("TextEditor", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -1320,10 +1320,10 @@ M.Text_Editor = register_type("Text_Editor", Widget, {
         text_font_pop()
     end
 })
-local Text_Editor = M.Text_Editor
+local TextEditor = M.TextEditor
 
 --[[!
-    Represents a field, a specialization of $Text_Editor. It has the same
+    Represents a field, a specialization of $TextEditor. It has the same
     properties. The "value" property changed meaning - now it stores the
     current value - there is no fallback for fields (it still is the default
     value though).
@@ -1331,15 +1331,15 @@ local Text_Editor = M.Text_Editor
     Fields are also by default not multiline. You can still explicitly
     override this in kwargs or by setting the property.
 ]]
-M.Field = register_type("Field", Text_Editor, {
+M.Field = register_type("Field", TextEditor, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         kwargs.multiline = kwargs.multiline or false
-        return Text_Editor.__ctor(self, kwargs)
+        return TextEditor.__ctor(self, kwargs)
     end,
 
     commit = function(self)
-        Text_Editor.commit(self)
+        TextEditor.commit(self)
         local val = tostring(self.lines[1])
         self.value = val
         -- trigger changed signal
@@ -1351,7 +1351,7 @@ M.Field = register_type("Field", Text_Editor, {
     Derived from $Field. Represents a keyfield - it catches keypresses and
     inserts key names. Useful when creating an e.g. keybinding GUI.
 ]]
-M.Key_Field = register_type("Key_Field", M.Field, {
+M.KeyField = register_type("KeyField", M.Field, {
     allow_text_input = function(self) return false end,
 
     key_insert = function(self, code)

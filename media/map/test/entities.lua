@@ -25,7 +25,7 @@
 {42,"Light",{attr3="90",attr4="80",position="[686.63|96.81|606.01]",tags="[]",attr5="0",persistent="true",attr2="128",attr1="100"}},
 {43,"Light",{attr3="100",attr4="90",position="[252.52|182.44|615.16]",tags="[]",attr5="0",persistent="true",attr2="128",attr1="150"}},
 {44,"Light",{attr3="100",attr4="90",position="[435.38|139.19|520]",tags="[]",attr5="0",persistent="true",attr2="128",attr1="100"}},
-{45,"Oriented_Marker",{position="[509.6|490.41|162.06]",attr1="90",persistent="true",attr2="0",tags="[player_start]"}},
+{45,"OrientedMarker",{position="[509.6|490.41|162.06]",attr1="90",persistent="true",attr2="0",tags="[player_start]"}},
 {47,"Light",{attr3="40",attr4="30",position="[510.12|96.46|186.46]",tags="[]",attr5="0",persistent="true",attr2="50",attr1="1000"}},
 {48,"Light",{attr3="90",attr4="80",position="[168.56|143.88|187.37]",tags="[]",attr5="0",persistent="true",attr2="128",attr1="100"}},
 {49,"Light",{attr3="90",attr4="80",position="[89.63|19.95|484.07]",tags="[]",attr5="0",persistent="true",attr2="128",attr1="100"}},

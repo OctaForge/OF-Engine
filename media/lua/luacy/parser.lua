@@ -18,13 +18,13 @@ local assert_tok = function(ls, tok)
     syntax_error(ls, "'" .. tok .. "' expected")
 end
 
-local Name_Keywords = {
+local NameKeywords = {
     ["<name>"] = true, ["goto"] = true, ["continue"] = true, ["noscope"] = true
 }
 
 local assert_name = function(ls)
     local n = ls.token.name
-    if not Name_Keywords[n] then
+    if not NameKeywords[n] then
         syntax_error(ls, "'<name>' expected")
     end
 end
@@ -57,7 +57,7 @@ end
 
 local loopstack = {}
 
-local Binary_Ops = {
+local BinaryOps = {
     ["or"] = 1,  ["and"] = 2,
     ["<" ] = 3,  ["<=" ] = 3,  [">"  ] = 3, [">="] = 3,
     ["=="] = 3,  ["~=" ] = 3,  ["!=" ] = 3,
@@ -70,11 +70,11 @@ local Binary_Ops = {
     ["^" ] = 12
 }
 
-local Right_Ass = {
+local RightAss = {
     [".."] = true, ["^"] = true
 }
 
-local Unary_Ops = {
+local UnaryOps = {
     ["-"] = 11, ["not"] = 11, ["~"] = 11, ["#"] = 11
 }
 
@@ -101,7 +101,7 @@ local parse_arg_list = function(ls, cs)
             cs:append(tok.name)
             ls:get()
             break
-        elseif not Name_Keywords[tok.name] then
+        elseif not NameKeywords[tok.name] then
             syntax_error(ls, "<name> or '...' expected")
         end
         cs:append_kw(tok.value or tok.name)
@@ -125,7 +125,7 @@ local parse_table = function(ls, cs)
     local tn = tok.name
     while true do
         if tn == tend then break
-        elseif Name_Keywords[tn] then
+        elseif NameKeywords[tn] then
             if ls:lookahead() == "=" then
                 cs:append_kw(tok.value or tn)
                 ls:get()
@@ -288,7 +288,7 @@ local parse_prefix_expr = function(ls, cs)
         check_match(ls, "]", "@[", line)
         cs:append(")")
         ls:get()
-    elseif Name_Keywords[tn] then
+    elseif NameKeywords[tn] then
         local tracked = cs.tracked
         local varn = tok.value or tn
         if tracked and tracked[varn] then
@@ -450,7 +450,7 @@ end
 
 local parse_simple_expr = function(ls, cs)
     local tn = ls.token.name
-    local unp = Unary_Ops[tn]
+    local unp = UnaryOps[tn]
     if not cs.allow_bit and bitops[tn] then unp = nil end
     if unp then
         local bitun = use_bitop(cs, tn)
@@ -484,7 +484,7 @@ parse_subexpr = function(ls, cs, mp)
     parse_simple_expr(ls, cs)
     while true do
         local op = tok.name
-        local p = Binary_Ops[op]
+        local p = BinaryOps[op]
         if not cs.allow_bit and bitops[op] then p = nil end
         if not op or not p or p < mp then break end
         local bitop = use_bitop(cs, op)
@@ -500,7 +500,7 @@ parse_subexpr = function(ls, cs, mp)
             end
         end
         ls:get()
-        parse_subexpr(ls, cs, Right_Ass[op] and p or p + 1)
+        parse_subexpr(ls, cs, RightAss[op] and p or p + 1)
         cs:append(")")
     end
     cs:unsave()

@@ -60,10 +60,10 @@ end
           be in effect and both default to false.
 
     See also:
-        - $V_Box
+        - $VBox
         - $Grid
 ]]
-M.H_Box = register_type("H_Box", Widget, {
+M.HBox = register_type("HBox", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding    = kwargs.padding    or 0
@@ -143,10 +143,10 @@ M.H_Box = register_type("H_Box", Widget, {
 })
 
 --[[!
-    See $H_Box. This is a vertical variant, for its properties top/bottom
+    See $HBox. This is a vertical variant, for its properties top/bottom
     clamping is relevant rather than left/right.
 ]]
-M.V_Box = register_type("V_Box", Widget, {
+M.VBox = register_type("VBox", Widget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
         self.padding    = kwargs.padding    or 0
@@ -223,7 +223,7 @@ M.V_Box = register_type("V_Box", Widget, {
 
     --! Function: set_homogenous
     set_homogenous = gen_setter "homogenous"
-}, M.H_Box.type)
+}, M.HBox.type)
 
 --[[!
     A grid of elements. As you append, the children will automatically
@@ -240,7 +240,7 @@ M.V_Box = register_type("V_Box", Widget, {
         - padding_v - the vertical padding between grid items
 
     See also:
-        - $H_Box
+        - $HBox
 ]]
 M.Grid = register_type("Grid", Widget, {
     __ctor = function(self, kwargs)
