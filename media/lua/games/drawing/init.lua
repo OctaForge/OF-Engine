@@ -41,11 +41,11 @@ local colors = {
 
 local Player = ents.Player
 
-local SPARK, STREAK
-if not SERVER then
-    SPARK = quadrenderer("spark", "media/particle/spark",
+
+@[not server,noscope] do
+    local SPARK = quadrenderer("spark", "media/particle/spark",
         particles.flags.FLIP | particles.flags.BRIGHT)
-    STREAK = taperenderer("streak", "media/particle/flare",
+    local STREAK = taperenderer("streak", "media/particle/flare",
         particles.flags.BRIGHT)
 end
 
@@ -85,7 +85,7 @@ local Game_Player = Player:clone {
         Called on entity activation. Connects a callback to state data
         change of new_mark.
     ]]
-    __activate = (not SERVER) and function(self, kwargs)
+    __activate = @[not server,function(self, kwargs)
         Player.__activate(self, kwargs)
         self.marks = {}
         self.color_id = 1
@@ -99,12 +99,12 @@ local Game_Player = Player:clone {
             local marks = self.marks
             marks[#marks + 1] = nm
         end)
-    end or nil,
+    end],
 
     --[[! Function: __run
         Called every frame. It goes over the marks and draws everything.
     ]]
-    __run = (not SERVER) and function(self, millis)
+    __run = @[not server,function(self, millis)
         Player.__run(self, millis)
         local last = nil
         local marks = self.marks
@@ -135,7 +135,7 @@ local Game_Player = Player:clone {
                 self:set_attr("new_mark", newp:to_array())
             end
         end
-    end or nil
+    end]
 }
 
 ents.register_prototype(Game_Player, {
@@ -150,7 +150,7 @@ ents.register_prototype(ents.Obstacle, { health.plugins.area },
 
 day_manager.setup({ day_manager.plugins.day_night })
 
-if not SERVER then
+@[not server] do
     inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)
         local ent = ents.get(uid)
         if ent and ent.click then

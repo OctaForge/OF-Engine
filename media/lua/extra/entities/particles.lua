@@ -28,20 +28,13 @@ local M = {}
     Provides some extra renderers - "smoke", "flame" and "steam" used
     by the effect entities. On the client only, on the server this is nil.
 ]]
-local renderers
-
-if SERVER then
-    renderers = {}
-else
-    renderers = {
-        smoke = quadrenderer("smoke", "media/particle/smoke",
-            pflags.FLIP | pflags.LERP),
-        flame = quadrenderer("flame", "media/particle/flames",
-            pflags.HFLIP | pflags.RND4 | pflags.BRIGHT),
-        steam = quadrenderer("steam", "media/particle/steam", pflags.FLIP)
-    }
-    M.renderers = renderers
-end
+local renderers = @[not server,{
+    smoke = quadrenderer("smoke", "media/particle/smoke",
+        pflags.FLIP | pflags.LERP),
+    flame = quadrenderer("flame", "media/particle/flames",
+        pflags.HFLIP | pflags.RND4 | pflags.BRIGHT),
+    steam = quadrenderer("steam", "media/particle/steam", pflags.FLIP)
+},{}]
 
 local cmap = { "x", "y", "z" }
 

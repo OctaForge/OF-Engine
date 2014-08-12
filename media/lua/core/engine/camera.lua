@@ -11,7 +11,7 @@
 
 local capi = require("capi")
 
-if SERVER then return {} end
+@[server] do return {} end
 
 local geom = require("core.lua.geom")
 local Vec3 = geom.Vec3

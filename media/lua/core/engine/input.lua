@@ -8,7 +8,7 @@
         See COPYING.txt.
 ]]
 
-if SERVER then return {} end
+@[server] do return {} end
 
 local capi = require("capi")
 local frame = require("core.events.frame")

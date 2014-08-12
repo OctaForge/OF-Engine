@@ -274,6 +274,7 @@ local parse_prefix_expr = function(ls, cs)
         local f = loadstring(expr)
         if not f then syntax_error(ls, "invalid expression") end
         setfenv(f, cs.cond_env)
+        local old_enabled = cs.enabled
         cs.enabled = not not f()
         parse_expr(ls, cs)
         cs.enabled = not cs.enabled
@@ -283,7 +284,7 @@ local parse_prefix_expr = function(ls, cs)
         else
             cs:append_kw("nil")
         end
-        cs.enabled = true
+        cs.enabled = old_enabled
         check_match(ls, "]", "@[", line)
         cs:append(")")
         ls:get()
@@ -888,6 +889,7 @@ local stat_opts = {
         if noscope then
             assert_tok(ls, "do")
         end
+        local old_enabled = cs.enabled
         if ls.token.name == "do" then
             if not noscope then cs:append_kw("do") end
             cs.enabled = not not f()
@@ -899,14 +901,14 @@ local stat_opts = {
                 ls:get()
                 parse_chunk(ls, cs)
             end
-            cs.enabled = true
+            cs.enabled = old_enabled
             check_match(ls, "end", "do", line)
             if not noscope then cs:append_kw(ls.token.name) end
             ls:get()
         else
             cs.enabled = not not f()
             parse_stat(ls, cs)
-            cs.enabled = true
+            cs.enabled = old_enabled
         end
     end
 }

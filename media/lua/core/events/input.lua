@@ -28,7 +28,7 @@ local get_ext, set_ext = ext.get, ext.set
 
 local event_map
 
-if not SERVER then
+@[not server] do
 --[[! Function: input_yaw
     An external triggered on yaw change. By default it sets the "yawing"
     property on the player to "dir".
@@ -155,7 +155,7 @@ event_map = {
 
 end
 
-if SERVER then
+@[server] do
 --[[! Function: input_click_server
     Serverside external for user-defined clicks. Called assuming
     $input_click_client returns a value that evaluates to false. By default
@@ -203,7 +203,7 @@ M.set_event = function(en, fun)
     if not en then
         return false
     elseif en == "click" then
-        en = SERVER and "input_click_server" or "input_click_client"
+        en = @[server,"input_click_server","input_click_client"]
     else
         en = "input_" .. en
     end
@@ -234,7 +234,7 @@ M.get_event = function(en)
     if not en then
         return nil
     elseif en == "click" then
-        en = SERVER and "input_click_server" or "input_click_client"
+        en = @[server,"input_click_server","input_click_client"]
     else
         en = "input_" .. en
     end

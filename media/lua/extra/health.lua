@@ -31,11 +31,11 @@ local floor = math.floor
     This module adds three new animations, "dead", "dying" and "pain",
     on the client. They're stored in this enumeration.
 ]]
-local anims = (not SERVER) and {:
+local anims = @[not server,{:
     dead  = model.register_anim "dead",
     dying = model.register_anim "dying",
     pain  = model.register_anim "pain"
-:} or nil
+:}]
 M.anims = anims
 
 --[[!
@@ -44,12 +44,12 @@ M.anims = anims
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
 ]]
-local Pain_Action = (not SERVER) and eactions.Local_Animation_Action:clone {
+local Pain_Action = @[not server,eactions.Local_Animation_Action:clone {
     name            = "Pain_Action",
     millis_left     = 600,
     local_animation = anims.pain,
     allow_multiple  = false
-} or nil
+}]
 M.Pain_Action = Pain_Action
 
 --[[!
@@ -57,7 +57,7 @@ M.Pain_Action = Pain_Action
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
 ]]
-local Death_Action = SERVER and actions.Action:clone {
+local Death_Action = @[server,actions.Action:clone {
     name            = "Death_Action",
     allow_multiple  = false,
     cancelable      = false,
@@ -79,7 +79,7 @@ local Death_Action = SERVER and actions.Action:clone {
     __finish = function(self)
         self.actor:game_manager_respawn()
     end
-} or nil
+}]
 M.Death_Action = Death_Action
 
 --[[!
@@ -110,12 +110,12 @@ M.player_plugin = {
         Overrides the serverside spawn stage 4. In addition to the default
         behavior it restores the player's health.
     ]]
-    game_manager_spawn_stage_4 = (SERVER) and function(self, auid)
+    game_manager_spawn_stage_4 = @[server,function(self, auid)
         self:set_attr("health", self:get_attr("max_health"))
         self:set_attr("can_move", true)
         self:set_attr("spawn_stage", 0)
         self:cancel_sdata_update()
-    end or nil,
+    end],
 
     get_animation = function(self)
         local ret = self.__parent_ent_proto.get_animation(self)
@@ -149,7 +149,7 @@ M.player_plugin = {
         Overriden so that the "dying" animation can be used when health is 0
         (and "dead" when at least 1 second after death).
     ]]
-    decide_animation = (not SERVER) and function(self, ...)
+    decide_animation = @[not server,function(self, ...)
         if self:get_attr("health") > 0 then
             return self.__parent_ent_proto.decide_animation(self, ...)
         else
@@ -162,7 +162,7 @@ M.player_plugin = {
             end
             return anim | model.anim_flags.NOPITCH | model.anim_flags.RAGDOLL
         end
-    end or nil,
+    end],
 
     health_on_health = function(self, health, server_orig)
         local oh = self.old_health
@@ -187,13 +187,13 @@ M.player_plugin = {
             - diff - the difference from the old health state.
             - server_orig - true if the change originated on the server.
     ]]
-    health_changed = SERVER and function(self, health, diff, server_orig)
+    health_changed = @[server,function(self, health, diff, server_orig)
         if health <= 0 then self:enqueue_action(Death_Action()) end
-    end or function(self, health, diff, server_orig)
+    end,function(self, health, diff, server_orig)
         if diff <= -5 and health > 0 then
             self:enqueue_action(Pain_Action())
         end
-    end,
+    end],
 
     --[[!
         Adds to player's health. If the provided amount is zero, it does
@@ -304,16 +304,16 @@ M.plugins = {
             end
         end,
 
-        __activate = (not SERVER) and function(self)
+        __activate = @[not server,function(self)
             signal.connect(self, "collision", self.health_area_on_collision)
-        end or nil
+        end]
     },
 
     --[[!
         Displays a simple HUD health status on the player.
     ]]
     player_hud = {
-        __activate = (not SERVER) and function(self)
+        __activate = @[not server,function(self)
             gui.get_hud():append(gui.Spacer { pad_h = 0.1, pad_v = 0.1,
                 align_h = 1, align_v = 1
             }, |sp| do
@@ -333,20 +333,21 @@ M.plugins = {
                     end)
                 end)
             end)
-        end or nil,
-        __deactivate = (not SERVER) and function(self)
+        end],
+
+        __deactivate = @[not server,function(self)
             self.health_hud_status:destroy()
-        end
+        end]
     },
 
     --! Kills the player when he falls off the map.
     player_off_map = {
-        __activate = (not SERVER) and function(self)
+        __activate = @[not server,function(self)
             connect(self, "off_map", |ent| do
                 if not is_valid_target(ent) then return end
                 ent:set_attr("health", 0)
             end)
-        end or nil
+        end]
     },
 
     --[[!
@@ -354,7 +355,7 @@ M.plugins = {
         material and gradually when in lava.
     ]]
     player_in_deadly_material = {
-        __activate = (not SERVER) and function(self)
+        __activate = @[not server,function(self)
             connect(self, "in_deadly", |ent, mat| do
                 if not is_valid_target(ent) then return end
                 if mat == edit.material.LAVA then
@@ -363,7 +364,7 @@ M.plugins = {
                     ent:set_attr("health", 0)
                 end
             end)
-        end or nil
+        end]
     }
 }
 

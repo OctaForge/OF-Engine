@@ -149,7 +149,6 @@ local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
     end
     if not mod then
         env["_G"] = env
-        env["SERVER"] = SERVER
         env["require"] = gen_require(env)
         eloaded["_G"] = env
         for k, v in pairs(ploaded) do
@@ -182,8 +181,7 @@ end
     doesn't have string.dump and a stripped down version of the os module
     containing functions clock, date, difftime and time.
 
-    The environment also contains the special variable SERVER and inherits
-    the metatable of _G.
+    The environment also inherits the metatable of _G.
 
     All the core.* modules that are preloaded outside are preloaded inside
     as well.

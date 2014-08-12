@@ -61,7 +61,7 @@ local animctl = model.anim_control
 local anims = model.anims
 
 local anim_dirs, anim_jump, anim_run
-if not SERVER then
+@[not server] do
     anim_dirs = {
         anims.run_SE, anims.run_S, anims.run_SW,
         anims.run_E,  0,           anims.run_W,
@@ -81,7 +81,7 @@ if not SERVER then
     }
 end
 
-local mrender = (not SERVER) and model.render
+local mrender = @[not server,model.render]
 
 --! Module: ents
 local M = ents
@@ -358,7 +358,7 @@ M.Character = Entity:clone {
     get_editing = function(self) return self:get_attr("client_state") == 4 end,
     get_lagged = function(self) return self:get_attr("client_state") == 3 end,
 
-    __init_svars = SERVER and function(self, kwargs)
+    __init_svars = @[server,function(self, kwargs)
         Entity.__init_svars(self, kwargs)
 
         self:set_attr("model_name", "")
@@ -385,9 +385,9 @@ M.Character = Entity:clone {
         self:set_attr("physics_trigger", 0)
         self:set_attr("jumping_sound", "gk/jump2.ogg")
         self:set_attr("landing_sound", "olpc/AdamKeshen/kik.wav")
-    end or nil,
+    end],
 
-    __activate = SERVER and function(self, kwargs)
+    __activate = @[server,function(self, kwargs)
         self.cn = kwargs and kwargs.cn or -1
         assert(self.cn >= 0)
         capi.setup_character(self.uid, self.cn)
@@ -397,7 +397,7 @@ M.Character = Entity:clone {
         self:set_attr("model_name", self:get_attr("model_name"))
 
         self:flush_queued_svar_changes()
-    end or function(self, kwargs)
+    end,function(self, kwargs)
         Entity.__activate(self, kwargs)
 
         self.cn = kwargs and kwargs.cn or -1
@@ -431,7 +431,7 @@ M.Character = Entity:clone {
                 sound.play(self:get_attr("landing_sound"), pos)
             end
         end)
-    end,
+    end],
 
     __deactivate = function(self)
         capi.destroy_character(self.cn)
@@ -463,7 +463,7 @@ M.Character = Entity:clone {
             - needhud - true if we're in first person mode.
             - fpsshadow - true if we enabled a FPS player shadow.
     ]]
-    __render = (not SERVER) and function(self, hudpass, needhud, fpsshadow)
+    __render = @[not server,function(self, hudpass, needhud, fpsshadow)
         if not self.initialized then return end
         if not hudpass and needhud and not fpsshadow then return end
 
@@ -505,7 +505,7 @@ M.Character = Entity:clone {
         local flags = self:get_render_flags(hudpass, needhud)
 
         mrender(self, mdn, anim, o, yaw, pitch, roll, flags, bt)
-    end or nil,
+    end],
 
     --[[! Function: get_render_flags
         Returns the rendering flags used when rendering the character. By
@@ -515,7 +515,7 @@ M.Character = Entity:clone {
         Arguments:
             - hudpass, needhud - see $__render.
     ]]
-    get_render_flags = (not SERVER) and function(self, hudpass, needhud)
+    get_render_flags = @[not server,function(self, hudpass, needhud)
         local flags
         if self != ents.get_player() then
             flags = model.render_flags.CULL_VFC
@@ -532,15 +532,15 @@ M.Character = Entity:clone {
             end
         end
         return flags
-    end or nil,
+    end],
 
     --[[! Function: get_animation
         Returns the base "action animation" used by $decide_animation. By
         default simply return the `animation` attribute.
     ]]
-    get_animation = (not SERVER) and function(self)
+    get_animation = @[not server,function(self)
         return self:get_attr("animation")
-    end or nil,
+    end],
 
     --[[! Function: decide_animation
         Decides the current animation for the character. Starts with
@@ -554,7 +554,7 @@ M.Character = Entity:clone {
             - move, strafe, crouching, vel, falling, unwater, tinair - see
               the appropriate state variables.
     ]]
-    decide_animation = (not SERVER) and function(self, state, pstate, move,
+    decide_animation = @[not server,function(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
         local anim = self:get_animation()
 
@@ -617,7 +617,7 @@ M.Character = Entity:clone {
             sanim = anims.idle | animctl.LOOP
         end
         return panim | (sanim << anims.SECONDARY)
-    end or nil,
+    end],
 
     --[[!
         Gets the center position of a character, something like gravity center
@@ -693,12 +693,12 @@ M.Player = Character:clone {
         hud_model_name = svars.State_String()
     },
 
-    __init_svars = SERVER and function(self, kwargs)
+    __init_svars = @[server,function(self, kwargs)
         Character.__init_svars(self, kwargs)
 
         self:set_attr("can_edit", false)
         self:set_attr("hud_model_name", "")
-    end or nil
+    end]
 }
 
 ents.register_prototype(Character)
@@ -767,7 +767,7 @@ M.Static_Entity = Entity:clone {
         @[debug] log(DEBUG, "Static_Entity.init complete")
     end,
 
-    __activate = SERVER and function(self, kwargs)
+    __activate = @[server,function(self, kwargs)
         kwargs = kwargs or {}
 
         @[debug] log(DEBUG, "Static_Entity.__activate")
@@ -784,17 +784,17 @@ M.Static_Entity = Entity:clone {
             local an = "attr" .. i
             self:set_attr(an, self:get_attr(an))
         end
-    end or function(self, kwargs)
+    end,function(self, kwargs)
         capi.setup_extent(self.uid, self.sauer_type)
         return Entity.__activate(self, kwargs)
-    end,
+    end],
 
     __deactivate = function(self)
         capi.destroy_extent(self.uid)
         return Entity.__deactivate(self)
     end,
 
-    send_notification_full = SERVER and function(self, cn)
+    send_notification_full = @[server,function(self, cn)
         local acn = msg.ALL_CLIENTS
         cn = cn or acn
 
@@ -813,7 +813,7 @@ M.Static_Entity = Entity:clone {
         end
 
         @[debug] log(DEBUG, "Static_Entity.send_notification_full: done")
-    end or nil,
+    end],
 
     --[[!
         See {{$Character.get_center}}. By default this is the entity position.
@@ -1120,14 +1120,14 @@ M.Sound = Static_Entity:clone {
         self:set_attr("sound_name", "", nd[1])
     end,
 
-    __activate = (not SERVER) and function(self, ...)
+    __activate = @[not server,function(self, ...)
         Static_Entity.__activate(self, ...)
         local f = |self| capi.sound_stop_map(self.uid)
         connect(self, "sound_name,changed", f)
         connect(self, "radius,changed", f)
         connect(self, "size,changed", f)
         connect(self, "volume,changed", f)
-    end or nil,
+    end],
 
     __get_edit_info = function(self)
         return format("radius :\f2 %d \f7| size :\f2 %d \f7| volume :\f2 %d"
@@ -1222,7 +1222,7 @@ M.Mapmodel = Static_Entity:clone {
         attr4 = gen_attr(4, "scale")
     },
 
-    __init_svars = SERVER and function(self, kwargs, nd)
+    __init_svars = @[server,function(self, kwargs, nd)
         Static_Entity.__init_svars(self, kwargs, nd)
         self:set_attr("model_name", "", nd[1])
         self:set_attr("yaw", 0, nd[2])
@@ -1231,12 +1231,12 @@ M.Mapmodel = Static_Entity:clone {
         self:set_attr("scale", 0, nd[5])
         self:set_attr("attachments", {})
         self:set_attr("animation", 3 | (1 << 9))
-    end or nil,
+    end],
 
-    __activate = SERVER and function(self, kwargs)
+    __activate = @[server,function(self, kwargs)
         Static_Entity.__activate(self, kwargs)
         self:set_attr("model_name", self:get_attr("model_name"))
-    end or nil,
+    end],
 
     __get_edit_info = function(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d \f7|"

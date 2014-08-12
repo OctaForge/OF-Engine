@@ -158,7 +158,7 @@ M.State_Variable = table.Object:clone {
         assertion if on the client and client_read is false.
     ]]
     read_tests = function(self, ent)
-        assert(self.client_read or SERVER)
+        assert(self.client_read or @[server,true,false])
     end,
 
     --[[!
@@ -174,7 +174,7 @@ M.State_Variable = table.Object:clone {
                  "(" .. ent.uid .. ")")
         end
 
-        assert(self.client_write or SERVER)
+        assert(self.client_write or @[server,true,false])
         assert(ent.initialized)
     end,
 
@@ -201,7 +201,7 @@ M.State_Variable = table.Object:clone {
         local fr = frame.get_frame()
 
         if not var.getter_fun
-            or (SERVER and self.svar_change_queue)
+            or @[server,self.svar_change_queue]
             or self.svar_value_timestamps[vn] == fr
         then
             return self.svar_values[vn]
@@ -211,7 +211,7 @@ M.State_Variable = table.Object:clone {
 
         local val = var.getter_fun(self.uid)
 
-        if not SERVER or self.svar_change_queue_complete then
+        if @[server,self.svar_change_queue_complete,true] then
             self.svar_values[vn] = val
             self.svar_value_timestamps[vn] = fr
         end
@@ -543,8 +543,7 @@ M.State_Array = State_Variable:clone {
 
         local fr = frame.get_frame()
 
-        if (SERVER and ent.svar_change_queue)
-            or ent.svar_value_timestamps[vn] == fr
+        if @[server,ent.svar_change_queue] or ent.svar_value_timestamps[vn] == fr
         then
             return ent.svar_values[vn]
         end
@@ -553,7 +552,7 @@ M.State_Array = State_Variable:clone {
 
         local val = self.getter_fun(ent.uid)
 
-        if not SERVER or ent.svar_change_queue_complete then
+        if @[server,ent.svar_change_queue_complete,true] then
             ent.svar_values[vn] = val
             ent.svar_value_timestamps[vn] = fr
         end

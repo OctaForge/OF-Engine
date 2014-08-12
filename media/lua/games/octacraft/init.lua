@@ -46,7 +46,7 @@ ents.register_prototype(ents.Obstacle, { health.plugins.area },
 
 day_manager.setup({ day_manager.plugins.day_night })
 
-if SERVER then
+@[server] do
     ents.set_player_prototype("Game_Player")
     return
 end

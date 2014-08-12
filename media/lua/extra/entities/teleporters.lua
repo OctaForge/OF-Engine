@@ -55,10 +55,10 @@ M.Teleporter = Obstacle:clone {
         self:set_attr("sound_name", "", nd[2])
     end,
 
-    __activate = (not SERVER) and function(self, kwargs)
+    __activate = @[not server,function(self, kwargs)
         Obstacle.__activate(self, kwargs)
         connect(self, "collision", self.on_collision)
-    end or nil,
+    end],
 
     on_collision = function(self, collider)
         local dest = self:get_attr("destination")

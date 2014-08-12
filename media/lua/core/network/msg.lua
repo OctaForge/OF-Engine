@@ -31,21 +31,21 @@ M.ALL_CLIENTS = -1
     Client:
         The first argument is the message function directly.
 ]]
-M.send = SERVER and function(cn, mf, ...)
+M.send = @[server,function(cn, mf, ...)
     mf(cn, ...)
-end or function(mf, ...)
+end,function(mf, ...)
     mf(...)
-end
+end]
 
 --[[!
     Shows a message on the client, coming from the server (this only works
     serverside). You need to provide a client number or a client entity, a
     message title and a message text.
 ]]
-M.show_client_message = SERVER and function(cn, title, text)
+M.show_client_message = @[server,function(cn, title, text)
     cn = type(cn) == "table" and cn.cn or cn
     assert(cn)
     send(cn, require("capi").personal_servmsg, title, text)
-end or nil
+end]
 
 return M

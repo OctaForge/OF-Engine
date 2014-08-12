@@ -40,17 +40,17 @@ local Day_Manager = Entity:clone {
         self:set_attr("day_progress", 0)
     end,
 
-    __activate = SERVER and function(self)
+    __activate = @[server,function(self)
         Entity.__activate(self)
         self.day_seconds_s = self:get_attr("day_seconds")
         connect(self, "day_seconds,changed", |self, v| do
             self.day_seconds_s = v
         end)
         self.day_progress_s = 0
-    end or nil,
+    end],
 
     __run = function(self, millis)
-        if not SERVER then return end
+        @[not server] do return end
         Entity.__run(self, millis)
         local dm = self.day_seconds_s * 1000
         if dm == 0 then return end
@@ -82,7 +82,7 @@ get = M.get
 ]]
 M.setup = function(plugins)
     ents.register_prototype(Day_Manager, plugins)
-    if SERVER then
+    @[server] do
         dayman = ents.new("Day_Manager")
         return dayman
     end
@@ -127,7 +127,7 @@ M.plugins = {
         by manipulating the sunlight yaw and pitch.
     ]]
     day_night = {
-        __activate = (not SERVER) and function(self)
+        __activate = @[not server,function(self)
             local daylen
             connect(self, "day_seconds,changed", |self, v| do
                 daylen = v
@@ -141,14 +141,14 @@ M.plugins = {
                 lights.set_sunlight_scale(scale)
                 lights.set_skylight_scale(scale)
             end)
-        end or nil,
+        end],
 
-        __run = (not SERVER) and function(self)
+        __run = @[not server,function(self)
             if self.sun_changed_dir and edit.player_is_editing() then
                 lights.reset_sun()
                 self.sun_changed_dir = false
             end
-        end or nil
+        end]
     }
 }
 

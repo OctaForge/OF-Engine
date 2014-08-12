@@ -365,25 +365,25 @@ end
 local player_prototype = "Player"
 
 --! Sets the player prototype (by name) on the server (invalid on the client).
-M.set_player_prototype = SERVER and function(cl)
+M.set_player_prototype = @[server,function(cl)
     player_prototype = cl
-end or nil
+end]
 
 local vg = cs.var_get
 
 --! Gets an array of players (all of the currently set player prototype).
 M.get_players = function()
-    return storage_by_proto[SERVER and player_prototype or player_entity.name]
+    return storage_by_proto[@[server,player_prototype,player_entity.name]]
         or {}
 end
 local get_players = M.get_players
 
 --! Gets the current player, clientside only.
-M.get_player = (not SERVER) and function()
+M.get_player = @[not server,function()
     return player_entity
-end or nil
+end]
 
-if SERVER then
+@[server] do
     set_external("entity_get_player_prototype", function()
         return player_prototype
     end)
@@ -479,7 +479,7 @@ local add = function(cn, uid, kwargs, new)
         end
     end
 
-    if SERVER and new then
+    if @[server,new] then
         local ndata
         if kwargs then
             ndata = kwargs.newent_data
@@ -584,7 +584,7 @@ set_external("entities_remove_all", M.remove_all)
         - $save
 ]]
 M.load = function()
-    if not SERVER then return end
+    @[not server] do return end
 
     @[debug] log(DEBUG, "ents.load: reading")
     local el = capi.readfile("./entities.lua")
@@ -783,7 +783,7 @@ M.Entity = table.Object:clone {
 
         self.deactivated = true
 
-        if SERVER then
+        @[server] do
             msg.send(msg.ALL_CLIENTS, capi.le_removal, self.uid)
         end
     end,
@@ -916,7 +916,7 @@ M.Entity = table.Object:clone {
         queue and makes the entity initialized). Called by $__init_svars and
         $__activate.
     ]]
-    entity_setup = SERVER and function(self)
+    entity_setup = @[server,function(self)
         if not self.initialized then
             @[debug] log(DEBUG, "Entity.entity_setup: setup")
             self:setup()
@@ -927,7 +927,7 @@ M.Entity = table.Object:clone {
             self.initialized = true
             @[debug] log(DEBUG, "Entity.entity_setup: setup complete")
         end
-    end or nil,
+    end],
 
     --[[! Function: __init_svars
         Initializes the entity before activation on the server. It's
@@ -939,14 +939,14 @@ M.Entity = table.Object:clone {
                for more things.
              - ndata - an array of extra newent arguments in wire format.
     ]]
-    __init_svars = SERVER and function(self, kwargs, ndata)
+    __init_svars = @[server,function(self, kwargs, ndata)
         @[debug] log(DEBUG, "Entity.__init_svars")
 
         self:entity_setup()
 
         self:set_attr("tags", {})
         self:set_attr("persistent", kwargs and kwargs.persistent or false)
-    end or nil,
+    end],
 
     --[[!
         The entity activator. It's called on its creation. It calls
@@ -960,7 +960,7 @@ M.Entity = table.Object:clone {
     ]]
     __activate = function(self, kwargs)
         @[debug] log(DEBUG, "Entity.__activate")
-        if SERVER then
+        @[server] do
             self:entity_setup()
         else
             self:setup()
@@ -970,12 +970,10 @@ M.Entity = table.Object:clone {
             @[debug] log(DEBUG, "Entity.__activate: non-sauer entity: "
                 .. self.name)
             capi.setup_nonsauer(self.uid)
-            if SERVER then
-                self:flush_queued_svar_changes()
-            end
+            @[server] self:flush_queued_svar_changes()
         end
 
-        if SERVER then
+        @[server] do
             local sd = kwargs and kwargs.state_data or nil
             if sd then self:set_sdata_full(sd) end
             self:send_notification_full(msg.ALL_CLIENTS)
@@ -1000,7 +998,7 @@ M.Entity = table.Object:clone {
     sdata_changed = function(self, var, name, val)
         local sfun = var.setter_fun
         if not sfun then return end
-        if not (SERVER and self.svar_change_queue) then
+        if not @[server,self.svar_change_queue] then
             @[debug] log(INFO, "Calling setter function for " .. name)
             sfun(self.uid, val)
             @[debug] log(INFO, "Setter called")
@@ -1037,7 +1035,7 @@ M.Entity = table.Object:clone {
               to convert from wire format (otherwise converts only when setting
               on a specific client number).
     ]]
-    set_sdata = (not SERVER) and function(self, key, val, actor_uid)
+    set_sdata = @[not server,function(self, key, val, actor_uid)
         @[debug] log(DEBUG, "Entity.set_sdata: " .. key .. " = "
             .. serialize(val) .. " for " .. self.uid)
 
@@ -1072,7 +1070,7 @@ M.Entity = table.Object:clone {
             emit(self, key .. ",changed", val, nfh)
             self.svar_values[key] = val
         end
-    end or function(self, key, val, actor_uid, iop)
+    end,function(self, key, val, actor_uid, iop)
         @[debug] log(DEBUG, "Entity.set_sdata: " .. key .. " = "
             .. serialize(val) .. " for " .. self.uid)
 
@@ -1130,7 +1128,7 @@ M.Entity = table.Object:clone {
                 end
             end
         end
-    end,
+    end],
 
     --[[!
         Cancels a state data update (on the server). Useful when called
@@ -1144,7 +1142,7 @@ M.Entity = table.Object:clone {
         On the server, sends a full notification to a specific client
         or all clients.
     ]]
-    send_notification_full = SERVER and function(self, cn)
+    send_notification_full = @[server,function(self, cn)
         local acn = msg.ALL_CLIENTS
         cn = cn or acn
 
@@ -1164,21 +1162,21 @@ M.Entity = table.Object:clone {
         end
 
         @[debug] log(DEBUG, "Entity.send_notification_full: done")
-    end or nil,
+    end],
 
     --[[! Function: queue_svar_change
         Queues a svar change (Happens before full update, when the
         entity is being created). Server only.
     ]]
-    queue_svar_change = SERVER and function(self, key, val)
+    queue_svar_change = @[server,function(self, key, val)
         self.svar_change_queue[key] = val
-    end or nil,
+    end],
 
     --[[! Function: flush_queued_svar_changes
         Flushes the SV change queue (applies all the changes). After this,
         there is no change queue anymore.
     ]]
-    flush_queued_svar_changes = SERVER and function(self)
+    flush_queued_svar_changes = @[server,function(self)
         local changes = self.svar_change_queue
         if not changes then return end
         self.svar_change_queue = nil
@@ -1192,7 +1190,7 @@ M.Entity = table.Object:clone {
         end
 
         self.svar_change_queue_complete = true
-    end or nil,
+    end],
 
     --[[!
         Returns the next attached entity. This implementation doesn't do
@@ -1383,7 +1381,7 @@ end)
     Main render hook. External as `game_render`. Calls individual `render`
     method on each entity (if defined). Clientside only. See also $render_hud.
 ]]
-M.render = (not SERVER) and function(tp, fpsshadow)
+M.render = @[not server,function(tp, fpsshadow)
     @[debug] log(INFO, "game_render")
     local  player = player_entity
     if not player then return end
@@ -1402,7 +1400,7 @@ M.render = (not SERVER) and function(tp, fpsshadow)
             end
         end
     end
-end or nil
+end]
 local render = M.render
 set_external("game_render", render)
 
@@ -1410,7 +1408,7 @@ set_external("game_render", render)
     Renders the player HUD model if needed. External as `game_render_hud`.
     Clientside only. See also $render.
 ]]
-M.render_hud = (not SERVER) and function()
+M.render_hud = @[not server,function()
     @[debug] log(INFO, "game_render_hud")
     local  player = player_entity
     if not player then return end
@@ -1418,7 +1416,7 @@ M.render_hud = (not SERVER) and function()
     if player:get_attr("hud_model_name") and not player:get_editing() then
         player:__render(true, true, false)
     end
-end or nil
+end]
 local render_hud = M.render_hud
 set_external("game_render_hud", render_hud)
 
@@ -1426,14 +1424,14 @@ set_external("game_render_hud", render_hud)
     Assigns the player entity using the given uid. External as `player_init`,
     clientside.
 ]]
-M.init_player = (not SERVER) and function(uid)
+M.init_player = @[not server,function(uid)
     assert(uid)
     @[debug] log(DEBUG, "Initializing player with uid " .. uid)
 
     player_entity = storage[uid]
     assert(player_entity)
     player_entity.controlled_here = true
-end or nil
+end]
 local init_player = M.init_player
 set_external("player_init", init_player)
 
@@ -1481,7 +1479,7 @@ end)
     actually start (checks whether the player exists and whether all the
     entities are initialized). External as `scene_is_ready`.
 !]]
-M.scene_is_ready = (not SERVER) and function()
+M.scene_is_ready = @[not server,function()
     @[debug] log(INFO, "Scene ready?")
 
     if player_entity == nil then
@@ -1500,18 +1498,18 @@ M.scene_is_ready = (not SERVER) and function()
 
     @[debug] log(INFO, "...yes!")
     return true
-end or nil
+end]
 set_external("scene_is_ready", M.scene_is_ready)
 
 --[[! Function: gen_uid
     Generates a new entity unique ID. It's larger than the previous largest
     by one. Serverside. External as `entity_gen_uid`.
 ]]
-M.gen_uid = SERVER and function()
+M.gen_uid = @[server,function()
     @[debug] log(DEBUG, "Generating an UID, last highest UID: "
         .. highest_uid)
     return highest_uid + 1
-end or nil
+end]
 local gen_uid = M.gen_uid
 set_external("entity_gen_uid", gen_uid)
 
@@ -1535,11 +1533,11 @@ end)
     Returns:
          The new entity.
 ]]
-M.new = SERVER and function(cl, kwargs, fuid)
+M.new = @[server,function(cl, kwargs, fuid)
     fuid = fuid or gen_uid()
     @[debug] log(DEBUG, "New entity: " .. fuid)
     return add(cl, fuid, kwargs, true)
-end or nil
+end]
 local ent_new = M.new
 
 set_external("entity_new_with_sd", function(cl, x, y, z, sd, nd)
@@ -1561,7 +1559,7 @@ end)
     send a complete notification for each of them. Takes the client number.
     Works only serverside. External as `entities_send_all`.
 ]]
-M.send = SERVER and function(cn)
+M.send = @[server,function(cn)
     @[debug] log(DEBUG, "Sending active entities to " .. cn)
     local nents, uids = 0, {}
     for uid = 1, highest_uid do
@@ -1575,7 +1573,7 @@ M.send = SERVER and function(cn)
     for i = 1, nents do
         storage[uids[i]]:send_notification_full(cn)
     end
-end or nil
+end]
 set_external("entities_send_all", M.send)
 
 return M

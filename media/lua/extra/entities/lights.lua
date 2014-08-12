@@ -54,13 +54,13 @@ local Dynamic_Light = Marker:clone {
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
     ]]
-    __run = (not SERVER) and function(self, millis)
+    __run = @[not server,function(self, millis)
         Marker.__run(self, millis)
         local pos = self:get_attr("position")
         light_add(pos, self:get_attr("radius"),
             self:get_attr("red") / 255, self:get_attr("green") / 255,
             self:get_attr("blue") / 255)
-    end or nil
+    end]
 }
 M.Dynamic_Light = Dynamic_Light
 
@@ -94,12 +94,12 @@ M.Flickering_Light = Dynamic_Light:clone {
         self:set_attr("max_delay",   300, nd[7])
     end,
 
-    __activate = (not SERVER) and function(self, kwargs)
+    __activate = @[not server,function(self, kwargs)
         Marker.__activate(self, kwargs)
         self.delay = 0
-    end or nil,
+    end],
 
-    __run = (not SERVER) and function(self, millis)
+    __run = @[not server,function(self, millis)
         local d = self.delay - millis
         if  d <= 0 then
             d = max(floor(random() * self:get_attr("max_delay")),
@@ -112,7 +112,7 @@ M.Flickering_Light = Dynamic_Light:clone {
             end
         end
         self.delay = d
-    end or nil
+    end]
 }
 
 ents.register_prototype(M.Flickering_Light)

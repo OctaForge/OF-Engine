@@ -147,7 +147,7 @@ capi.set_dynent_falling = function(ent, fl)
     set_dynent_falling(ent, fl[1], fl[2], fl[3])
 end
 
-if not SERVER then
+@[not server] do
     local get_target_entity_uid in capi
     capi.get_target_entity_uid = function()
         local stor = ffi_new("int[1]")
@@ -168,7 +168,7 @@ capi.strftime = function(fmt)
     return ffi_str(buf)
 end
 
-if not SERVER then
+@[not server] do
     local dynlight_add, dynlight_add_spot in capi
 
     capi.dynlight_add = function(ox, oy, oz, radius, r, g, b, fade, peak,

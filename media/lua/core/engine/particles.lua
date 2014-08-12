@@ -10,7 +10,8 @@
 
 --! Module: particles
 local M = {}
-if SERVER then return M end
+
+@[server] do return M end
 
 local capi = require("capi")
 local ffi = require("ffi")

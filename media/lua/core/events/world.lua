@@ -66,7 +66,7 @@ local FLAG_BELOWGROUND = 2 << 4
           it's the water material id, see $edit).
 ]]
 set_external("physics_state_change", function(uid, loc, flevel, llevel, mat)
-    if SERVER then return end
+    @[server] do return end
 
     if not ents then ents = require("core.entities.ents") end
     local ent = ents.get(uid)
@@ -99,7 +99,7 @@ set_external("event_text_message", function(uid, text)
     emit(_G, "event_text_message", uid, text)
 end)
 
-if SERVER then
+@[server] do
 --[[! Function: event_player_login
     Serverside. Called after a server sends all the active entities to the
     client. Emits a signal of the same name with the unique ID of the player
