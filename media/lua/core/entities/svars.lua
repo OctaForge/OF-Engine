@@ -190,17 +190,17 @@ M.StateVariable = table.Object:clone {
 
         Arguments:
             - self - not the state var, it's an entity.
-            - var - the state var.
+            - svar - the state var.
     ]]
-    getter = function(self, var)
-        var:read_tests(self)
+    getter = function(self, svar)
+        svar:read_tests(self)
 
-        local vn = var.name
+        local vn = svar.name
         @[debug] log(INFO, "StateVariable: getter: " .. vn)
 
         local fr = frame.get_frame()
 
-        if not var.getter_fun
+        if not svar.getter_fun
             or @[server,self.svar_change_queue]
             or self.svar_value_timestamps[vn] == fr
         then
@@ -209,7 +209,7 @@ M.StateVariable = table.Object:clone {
 
         @[debug] log(INFO, "StateVariable: getter: getter function")
 
-        local val = var.getter_fun(self.uid)
+        local val = svar.getter_fun(self.uid)
 
         if @[server,self.svar_change_queue_complete,true] then
             self.svar_values[vn] = val
@@ -225,11 +225,11 @@ M.StateVariable = table.Object:clone {
         Arguments:
             - self - not the state var, it's an entity.
             - val - the value.
-            - var - the state var.
+            - svar - the state var.
     ]]
-    setter = function(self, val, var)
-        var:write_tests(self)
-        self:set_sdata(var.name, val, -1)
+    setter = function(self, val, svar)
+        svar:write_tests(self)
+        self:set_sdata(svar.name, val, -1)
     end,
 
     --[[!
@@ -362,9 +362,9 @@ M.ArraySurrogate = {
         Constructs the array surrogate. Defines its members "entity"
         and "variable", assigned using the provided arguments.
     ]]
-    new = function(self, ent, var)
-        @[debug] log(INFO, "ArraySurrogate: new: " .. var.name)
-        local rawt = { entity = ent, variable = var }
+    new = function(self, ent, svar)
+        @[debug] log(INFO, "ArraySurrogate: new: " .. svar.name)
+        local rawt = { entity = ent, variable = svar }
         rawt.rawt = rawt -- yay! cycles!
         local ret = newproxy(true)
         local mt  = getmt(ret)
@@ -470,13 +470,13 @@ M.StateArray = StateVariable:clone {
         See also:
             - {{$StateVariable.getter}}
     ]]
-    getter = function(self, var)
-        var:read_tests(self)
+    getter = function(self, svar)
+        svar:read_tests(self)
 
-        if not var:get_raw(self) then return nil end
+        if not svar:get_raw(self) then return nil end
 
-        local n = "__as_" .. var.name
-        if not self[n] then self[n] = var.surrogate:new(self, var) end
+        local n = "__as_" .. svar.name
+        if not self[n] then self[n] = svar.surrogate:new(self, svar) end
         return self[n]
     end,
 
@@ -488,11 +488,11 @@ M.StateArray = StateVariable:clone {
         See also:
             - {{$StateVariable.setter}}
     ]]
-    setter = function(self, val, var)
+    setter = function(self, val, svar)
         @[debug] log(INFO, "StateArray: setter: " .. tostring(val))
-        var:write_tests(self)
+        svar:write_tests(self)
 
-        self:set_sdata(var.name,
+        self:set_sdata(svar.name,
             val.to_array and val:to_array() or tc(val), -1)
     end,
 

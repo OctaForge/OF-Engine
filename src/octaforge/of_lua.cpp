@@ -602,13 +602,13 @@ namespace lua
         lua_setfield(L, -2, "capi");
         lua_pop(L, 1); /* _PRELOAD */
 
-        /* load luacy early on */
+        /* load octascript early on */
         lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
         lua_getglobal(L, "require");
-        lua_pushliteral(L, "luacy");
+        lua_pushliteral(L, "octascript");
         lua_call(L, 1, 1);
-        lua_getfield(L, -1, "parse");
-        lua_setfield(L, LUA_REGISTRYINDEX, "luacy_parse");
+        lua_getfield(L, -1, "compile");
+        lua_setfield(L, LUA_REGISTRYINDEX, "octascript_compile");
         lua_pop(L, 2);
 
         load_module("init");
@@ -687,7 +687,7 @@ namespace lua
             buf.advance(asize);
             delete f;
         }
-        lua_getfield(L, LUA_REGISTRYINDEX, "luacy_parse");
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_compile");
         lua_pushvalue(L, fnameidx);
         lua_pushlstring(L, buf.getbuf(), buf.length());
         lua_pushboolean(L, logger::should_log(logger::DEBUG));
@@ -695,19 +695,21 @@ namespace lua
         if (ret) return ret;
         reads rd;
         const char *lstr = lua_tolstring(L, -1, &rd.size);
-        rd.str = newstring(lstr, rd.size);
+        char *dups = new char[rd.size];
+        rd.str = dups;
+        memcpy(dups, lstr, rd.size);
         size_t s;
         const char *fnl = lua_tolstring(L, fnameidx, &s);
         const char *fn = newstring(fnl, s);
         lua_pop(L, 2);
         ret = lua_load(L, read_str, &rd, fn);
-        delete[] rd.str;
+        delete[] dups;
         delete[] fn;
         return ret;
     }
 
     static int load_string(lua_State *L, const char *str, const char *ch) {
-        lua_getfield(L, LUA_REGISTRYINDEX, "luacy_parse");
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_compile");
         lua_pushstring(L, str);
         lua_pushvalue(L, -1);
         lua_pushboolean(L, logger::should_log(logger::DEBUG));
@@ -715,10 +717,12 @@ namespace lua
         if (ret) return ret;
         reads rd;
         const char *lstr = lua_tolstring(L, -1, &rd.size);
-        rd.str = newstring(lstr, rd.size);
+        char *dups = new char[rd.size];
+        rd.str = dups;
+        memcpy(dups, lstr, rd.size);
         lua_pop(L, 1);
         ret = lua_load(L, read_str, &rd, ch ? ch : rd.str);
-        delete[] rd.str;
+        delete[] dups;
         return ret;
     }
 

@@ -1,11 +1,13 @@
 --[[!<
-    Loads the Luacy language, a supetset of Lua (github: quaker66/luacy).
-    This is not an OF project. This init file serves as a loader and it
-    also replaces the default module loader and convenience functions
-    (load, loadstring, loadfile, dofile) with Luacy-enabled ones.
+    Loads OctaScript, a language that compiles to LuaJIT bytecode and is
+    used by OctaForge for scripting.
 
-    Returns the parser module. It's aloded before any other OF library
-    component.
+    This is an OctaForge project that also lives within its own repository
+    on the OctaForge Git as well as on GitHub mirror (quaker66/octascript).
+
+    This init file serves as a loader and it also replaces the default module
+    loader and convenience functions (load, loadstring, loadfile, dofile)
+    with OctaScript-enabled ones.
 
     Author:
         q66 <quaker66@gmail.com>
@@ -16,15 +18,27 @@
 
 local capi = require("capi")
 
-capi.log(1, "Initializing Luacy.")
+capi.log(1, "Initializing OctaScript.")
 
-local M = require("luacy.parser")
-local parse = M.parse
+local parser = require('octascript.parser')
+local generator = require('octascript.generator')
+local util = require("octascript.util")
+
+local M = {}
 
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
 
 local cond_env = { debug = capi.should_log(1), server = SERVER }
+
+local compile = function(fname, src, cond_env)
+    local succ, tree = pcall(parser.parse, fname, src, cond_env)
+    if not succ then error(select(2, util.error(tree))) end
+    local succ, bcode = pcall(generator, tree, fname)
+    if not succ then error(select(2, util.error(bcode))) end
+    return bcode
+end
+M.compile = compile
 
 package.loaders[2] = function(modname, ppath)
     local  fname, err = spath(modname, ppath or package.path)
@@ -33,7 +47,7 @@ package.loaders[2] = function(modname, ppath)
     local toparse = file:read("*all")
     file:close()
     local chunkname = "@" .. fname
-    local parsed  = parse(chunkname, toparse, cond_env)
+    local parsed  = compile(chunkname, toparse, cond_env)
     local f, err  = load(parsed, chunkname)
     if not f then
         error("error loading module '" .. modname .. "' from file '"
@@ -60,7 +74,7 @@ local load_new = function(ld, chunkname, mode, env)
     else
         chunkname = chunkname or ld
     end
-    local ret, parsed = pcall(parse, chunkname, ld, cond_env)
+    local ret, parsed = pcall(compile, chunkname, ld, cond_env)
     if not ret then return nil, parsed end
     return load(parsed, chunkname, mode, env)
 end
@@ -79,14 +93,14 @@ end
 local loadfile_new = function(fname, mode, env)
     local  file, chunkname = read_file(fname)
     if not file then return file, chunkname end
-    local ret, parsed = pcall(parse, chunkname, file, cond_env)
+    local ret, parsed = pcall(compile, chunkname, file, cond_env)
     if not ret then return nil, parsed end
     return load(parsed, chunkname, mode, env)
 end
 
 --[[! Function: load
-    Replaces the default "load" with a version that uses the Luacy compiler.
-    Fully compatible with LuaJIT "load".
+    Replaces the default "load" with a version that uses the OctaScript
+    compiler. Fully compatible with LuaJIT "load".
 ]]
 _G["load"] = load_new
 
@@ -96,13 +110,13 @@ _G["load"] = load_new
 _G["loadstring"] = load_new
 
 --[[! Function: loadfile
-    Replaces the default "loadfile" with a version that uses the Luacy
+    Replaces the default "loadfile" with a version that uses the OctaScript
     compiler. Fully compatible wih LuaJIT "loadfile".
 ]]
 _G["loadfile"] = loadfile_new
 
 --[[! Function: dofile
-    Replaces the default "dofile" with a version that uses the Luacy
+    Replaces the default "dofile" with a version that uses the OctaScript
     compiler. Fully compatible wih LuaJIT "dofile".
 ]]
 _G["dofile"] = function(fname)
@@ -111,6 +125,6 @@ _G["dofile"] = function(fname)
     return func()
 end
 
-capi.log(1, "Luacy initialization complete.")
+capi.log(1, "OctaScript initialization complete.")
 
 return M

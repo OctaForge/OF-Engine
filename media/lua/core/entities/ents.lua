@@ -289,9 +289,9 @@ M.register_prototype = function(cl, plugins, name)
     @[debug] log(DEBUG, "ents.register_prototype: registering state variables")
     for i = 1, #sv_names do
         local name = sv_names[i]
-        local var  = pt[name]
-        @[debug] log(DEBUG, "    " .. name .. " (" .. var.name .. ")")
-        var:register(name, cl)
+        local svar = pt[name]
+        @[debug] log(DEBUG, "    " .. name .. " (" .. svar.name .. ")")
+        svar:register(name, cl)
     end
 end
 
@@ -868,13 +868,13 @@ M.Entity = table.Object:clone {
             .. tostring(comp))
 
         local r, sn = {}, self.name
-        for k, var in pairs(self.__proto) do
-            if is_svar(var) and var.has_history
-            and not (tcn >= 0 and not var:should_send(self, tcn)) then
-                local name = var.name
+        for k, svar in pairs(self.__proto) do
+            if is_svar(svar) and svar.has_history
+            and not (tcn >= 0 and not svar:should_send(self, tcn)) then
+                local name = svar.name
                 local val = self:get_attr(name)
                 if val != nil then
-                    local wval = var:to_wire(val)
+                    local wval = svar:to_wire(val)
                     @[debug] log(DEBUG, "    adding " .. name .. ": "
                         .. wval)
                     local key = (not comp) and name
@@ -996,12 +996,12 @@ M.Entity = table.Object:clone {
         server when there is no change queue and queues a change otherwise.
 
         Arguments:
-            - var - the state variable.
+            - svar - the state variable.
             - name - the state variable name.
             - val - the value to set.
     ]]
-    sdata_changed = function(self, var, name, val)
-        local sfun = var.setter_fun
+    sdata_changed = function(self, svar, name, val)
+        local sfun = svar.setter_fun
         if not sfun then return end
         if not @[server,self.svar_change_queue] then
             @[debug] log(INFO, "Calling setter function for " .. name)
@@ -1044,22 +1044,22 @@ M.Entity = table.Object:clone {
         @[debug] log(DEBUG, "Entity.set_sdata: " .. key .. " = "
             .. serialize(val) .. " for " .. self.uid)
 
-        local var  = self["_SV_" .. key]
-        local csfh = var.custom_sync and self.controlled_here
-        local cset = var.client_set
+        local svar = self["_SV_" .. key]
+        local csfh = svar.custom_sync and self.controlled_here
+        local cset = svar.client_set
 
         local nfh = actor_uid != -1
 
-        -- from client-side script, send a server request unless the var
+        -- from client-side script, send a server request unless the svar
         -- is controlled here (synced using some other method)
         -- if this variable is set on the client, send a notification
         if not nfh and not csfh then
             @[debug] log(DEBUG, "    sending server request/notification.")
             -- TODO: supress sending of the same val, at least for some SVs
-            msg.send(var.reliable and capi.statedata_changerequest
+            msg.send(svar.reliable and capi.statedata_changerequest
                 or capi.statedata_changerequest_unreliable,
-                self.uid, names_to_ids[self.name][var.name],
-                var:to_wire(val))
+                self.uid, names_to_ids[self.name][svar.name],
+                svar:to_wire(val))
         end
 
         -- from a server or set clientside, update now
@@ -1067,11 +1067,11 @@ M.Entity = table.Object:clone {
             @[debug] log(INFO, "    local update")
             -- from the server, in wire format
             if nfh then
-                val = var:from_wire(val)
+                val = svar:from_wire(val)
             end
             -- TODO: avoid assertions
-            assert(var:validate(val))
-            self:sdata_changed(var, key, val)
+            assert(svar:validate(val))
+            self:sdata_changed(svar, key, val)
             emit(self, key .. ",changed", val, nfh)
             self.svar_values[key] = val
         end
@@ -1079,26 +1079,26 @@ M.Entity = table.Object:clone {
         @[debug] log(DEBUG, "Entity.set_sdata: " .. key .. " = "
             .. serialize(val) .. " for " .. self.uid)
 
-        local var = self["_SV_" .. key]
+        local svar = self["_SV_" .. key]
 
-        if not var then
+        if not svar then
             log(WARNING, "Entity.set_sdata: ignoring sdata setting"
                 .. " for an unknown variable " .. key)
             return
         end
 
         if actor_uid and actor_uid != -1 then
-            val = var:from_wire(val)
-            if not var.client_write then
+            val = svar:from_wire(val)
+            if not svar.client_write then
                 log(ERROR, "Entity.set_sdata: client " .. actor_uid
                     .. " tried to change " .. key)
                 return
             end
         elseif iop then
-            val = var:from_wire(val)
+            val = svar:from_wire(val)
         end
 
-        self:sdata_changed(var, key, val)
+        self:sdata_changed(svar, key, val)
         emit(self, key .. ",changed", val, actor_uid)
         if self.sdata_update_cancel then
             self.sdata_update_cancel = nil
@@ -1108,26 +1108,26 @@ M.Entity = table.Object:clone {
         self.svar_values[key] = val
         @[debug] log(INFO, "Entity.set_sdata: new sdata: " .. tostring(val))
 
-        local csfh = var.custom_sync and self.controlled_here
-        if not iop and var.client_read and not csfh then
+        local csfh = svar.custom_sync and self.controlled_here
+        if not iop and svar.client_read and not csfh then
             if not self.sent_notification_full then
                 return
             end
 
             local args = {
-                nil, var.reliable and capi.statedata_update
+                nil, svar.reliable and capi.statedata_update
                     or capi.statedata_update_unreliable,
                 self.uid,
                 names_to_ids[self.name][key],
-                var:to_wire(val),
-                (var.client_set and actor_uid and actor_uid != -1)
+                svar:to_wire(val),
+                (svar.client_set and actor_uid and actor_uid != -1)
                     and storage[actor_uid].cn or msg.ALL_CLIENTS
             }
 
             local cns = map(get_players(), function(p) return p.cn end)
             for i = 1, #cns do
                 local n = cns[i]
-                if var:should_send(self, n) then
+                if svar:should_send(self, n) then
                     args[1] = n
                     msg.send(unpack(args))
                 end
@@ -1223,11 +1223,11 @@ M.Entity = table.Object:clone {
             - $set_gui_attr
     ]]
     get_gui_attr = function(self, prop)
-        local var = self["_SV_GUI_" .. prop]
-        if not var or not var.has_history then return nil end
-        local val = self:get_attr(var.name)
+        local svar = self["_SV_GUI_" .. prop]
+        if not svar or not svar.has_history then return nil end
+        local val = self:get_attr(svar.name)
         if val != nil then
-            return var:to_wire(val)
+            return svar:to_wire(val)
         end
     end,
 
@@ -1239,12 +1239,12 @@ M.Entity = table.Object:clone {
     get_gui_attrs = function(self, sortattrs)
         if sortattrs == nil then sortattrs = true end
         local r = {}
-        for k, var in pairs(self) do
-            if is_svar(var) and var.has_history and var.gui_name != false then
-                local name = var.name
+        for k, svar in pairs(self) do
+            if is_svar(svar) and svar.has_history and svar.gui_name != false then
+                local name = svar.name
                 local val = self:get_attr(name)
                 if val != nil then
-                    r[#r + 1] = { var.gui_name or name, var:to_wire(val) }
+                    r[#r + 1] = { svar.gui_name or name, svar:to_wire(val) }
                 end
             end
         end
@@ -1261,9 +1261,9 @@ M.Entity = table.Object:clone {
             - $get_gui_attr
     ]]
     set_gui_attr = function(self, prop, val)
-        local var = self["_SV_GUI_" .. prop]
-        if not var or not var.has_history then return end
-        self:set_attr(var.name, var:from_wire(val))
+        local svar = self["_SV_GUI_" .. prop]
+        if not svar or not svar.has_history then return end
+        self:set_attr(svar.name, svar:from_wire(val))
     end,
 
     --[[!
@@ -1295,9 +1295,9 @@ M.Entity = table.Object:clone {
     ]]
     set_attr = function(self, prop, val, nd)
         if nd then
-            local var = self["_SV_" .. prop]
-            if var then
-                local nw = var:from_wire(nd)
+            local svar = self["_SV_" .. prop]
+            if svar then
+                local nw = svar:from_wire(nd)
                 if nw != nil then val = nw end
             end
         end

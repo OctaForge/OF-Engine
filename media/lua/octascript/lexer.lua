@@ -1,7 +1,9 @@
---[[ Luacy 0.1 lexer
+--[[
+    OctaScript
 
-    Author: Daniel "q66" Kolesa <quaker66@gmail.com>
-    Available under the terms of the MIT license.
+    Copyright (C) 2014 Daniel "q66" Kolesa
+
+    See COPYING.txt for licensing.
 ]]
 
 local tconc = table.concat
@@ -13,26 +15,19 @@ local strchar = string.char
 local bytemap = {}
 for i = 0, 255 do bytemap[i] = strchar(i) end
 
-local strstream
-if package.preload["ffi"] then
-    local ffi = require("ffi")
-    strstream = function(str)
-        local len = #str
-        local cstr = ffi.new("char[?]", len + 1, str)
-        local i = -1
-        return function()
-            i = i + 1
-            if i >= len then return nil end
-            return cstr[i]
-        end
-    end
-else
-    strstream = function(str)
-        local i = 0
-        return function()
-            i = i + 1
-            return str:byte(i)
-        end
+local ffi = require("ffi")
+
+local uint64, int64 = ffi.typeof("uint64_t"), ffi.typeof("int64_t")
+local complex = ffi.typeof("complex")
+
+local strstream = function(str)
+    local len = #str
+    local cstr = ffi.new("char[?]", len + 1, str)
+    local i = -1
+    return function()
+        i = i + 1
+        if i >= len then return nil end
+        return cstr[i]
     end
 end
 
@@ -44,7 +39,8 @@ local Keywords = {
     ["in"      ] = true, ["local"   ] = true, ["nil"     ] = true,
     ["noscope" ] = true, ["not"     ] = true, ["or"      ] = true,
     ["repeat"  ] = true, ["return"  ] = true, ["then"    ] = true,
-    ["true"    ] = true, ["until"   ] = true, ["while"   ] = true
+    ["true"    ] = true, ["until"   ] = true, ["var"     ] = true,
+    ["while"   ] = true
 }
 
 -- protected from the gc
@@ -90,7 +86,7 @@ local max_custom_len = 79
 local max_fname_len = 72
 local max_str_len = 63
 
-local source_to_msg = function(source)
+local chname_to_source = function(source)
     local c = source:sub(1, 1)
     local srclen = #source
     if c == "@" then
@@ -108,7 +104,7 @@ local source_to_msg = function(source)
 end
 
 local lex_error = function(ls, msg, tok)
-    msg = ("%s:%d: %s"):format(source_to_msg(ls.source), ls.line_number, msg)
+    msg = ("OFS_ERROR%s:%d: %s"):format(ls.source, ls.line_number, msg)
     if tok then
         msg = msg .. " near '" .. tok .. "'"
     end
@@ -142,18 +138,38 @@ end
 local read_binary_number = function(ls, tok)
     local c = ls.current
     local buf = {}
-    while c == 48 or c == 49 or c == 95 do -- 0, 1, _
+    while is_alnum(c) or c == 95 do -- _
         if c ~= 95 then
-            buf[#buf + 1] = bytemap[c]
+            buf[#buf + 1] = bytemap[c]:lower()
         end
         c = next_char(ls)
     end
-    local str = tconc(buf)
-    local num = tonumber(str, 2)
+    local num
+    if (buf[#buf] == "l") and (buf[#buf - 1] == "l") then
+        local n, mi
+        if buf[#buf - 2] == "u" then
+            n, mi = uint64(0), #buf - 3
+        else
+            n, mi = int64(0), #buf - 2
+        end
+        local i = 1
+        while i <= mi and buf[i] do
+            if buf[i] == "0" or buf[i] == "1" then
+                n = 2 * n + tonumber(buf[i])
+                i = i + 1
+            else
+                n = nil
+                break
+            end
+        end
+        num = n
+    else
+        num = tonumber(tconc(buf), 2)
+    end
     if not num then
         lex_error(ls, "malformed number", "0b" .. str)
     end
-    tok.value = tostring(num)
+    tok.value = num
 end
 
 local read_number = function(ls, tok, buf, allow_bin)
@@ -180,23 +196,44 @@ local read_number = function(ls, tok, buf, allow_bin)
         end
     end
     while is_alnum(c) or c == 95 do -- _
-        buf[#buf + 1] = bytemap[c]
+        buf[#buf + 1] = bytemap[c]:lower()
         c = next_char(ls)
     end
-    local str = tconc(buf)
-    local teststr = str
+    local num
     if buf[#buf] == "i" then
         buf[#buf] = nil
-        teststr = tconc(buf)
+        local img = tonumber(tconc(buf))
+        if img then num = complex(0, img) end
+    elseif (buf[#buf] == "l") and (buf[#buf - 1] == "l") then
+        local n, mi
+        if buf[#buf - 2] == "u" then
+            n, mi = uint64(0), #buf - 3
+        else
+            n, mi = int64(0), #buf - 2
+        end
+        local mul, i
+        if buf[1] == "0" and buf[2] == "x" then
+            mul, i = 16, 3
+        else
+            mul, i = 10, 1
+        end
+        while i <= mi and buf[i] do
+            if is_hex_digit(buf[i]:byte()) then
+                n = mul * n + tonumber("0x" .. buf[i])
+                i = i + 1
+            else
+                n = nil
+                break
+            end
+        end
+        num = n
     else
-        local s = str:match("^(.+)[uU][lL][lL]$")
-               or str:match("^(.+)[lL][lL]$")
-        if s then teststr = s end
+        num = tonumber(tconc(buf))
     end
-    if not tonumber(teststr) then
-        lex_error(ls, "malformed number", str)
+    if not num then
+        lex_error(ls, "malformed number", tconc(buf))
     end
-    tok.value = str
+    tok.value = num
 end
 
 local skip_sep = function(ls, buf)
@@ -215,7 +252,7 @@ local skip_sep = function(ls, buf)
 end
 
 local read_long_string = function(ls, tok, sep)
-    local buf = { '"' }
+    local buf = {}
     local c = next_char(ls)
     if is_newline(c) then c = next_line(ls) end
     while true do
@@ -225,21 +262,14 @@ local read_long_string = function(ls, tok, sep)
         elseif c == 93 then -- ]
             local tbuf = {}
             if skip_sep(ls, tbuf) == sep then
-                buf[#buf + 1] = '"'
                 c = next_char(ls)
                 break
             else
                 buf[#buf + 1] = tconc(tbuf)
             end
             c = ls.current
-        elseif tok and c == 34 then -- "
-            buf[#buf + 1] = '\\"'
-            c = next_char(ls)
-        elseif tok and c == 92 then -- \
-            buf[#buf + 1] = "\\\\"
-            c = next_char(ls)
         elseif is_newline(c) then
-            if tok then buf[#buf + 1] = "\\n" end
+            if tok then buf[#buf + 1] = "\n" end
             c = next_line(ls)
         else
             if tok then buf[#buf + 1] = bytemap[c] end
@@ -265,7 +295,7 @@ local read_hex_esc = function(ls)
         err = err .. x
         buf[i] = x
     end
-    return "\\" .. tonumber(tconc(buf))
+    return string.char(tonumber(tconc(buf)))
 end
 
 local read_dec_esc = function(ls)
@@ -281,22 +311,22 @@ local read_dec_esc = function(ls)
     if n > 255 then
         esc_error(ls, s, "decimal escape too large")
     end
-    return "\\" .. n
+    return string.char(n)
 end
 
 local esc_opts = {
-    [97] = "\\a",
-    [98] = "\\b",
-    [102] = "\\f",
-    [110] = "\\n",
-    [114] = "\\r",
-    [116] = "\\t",
-    [118] = "\\v"
+    [97] = "\a",
+    [98] = "\b",
+    [102] = "\f",
+    [110] = "\n",
+    [114] = "\r",
+    [116] = "\t",
+    [118] = "\v"
 }
 
 local read_string = function(ls, tok)
     local delim = ls.current
-    local buf = { bytemap[delim] }
+    local buf = {}
     local c = next_char(ls)
     while c ~= delim do
         if not c then lex_error(ls, "unfinished string", "<eof>")
@@ -313,9 +343,9 @@ local read_string = function(ls, tok)
                 c = next_char(ls)
             elseif is_newline(c) then
                 c = next_line(ls)
-                buf[#buf + 1] = "\\n"
+                buf[#buf + 1] = "\n"
             elseif c == 92 or c == 34 or c == 39 then -- \, ", '
-                buf[#buf + 1] = "\\" .. bytemap[c]
+                buf[#buf + 1] = bytemap[c]
                 c = next_char(ls)
             elseif c == 122 then -- z
                 c = next_char(ls)
@@ -334,7 +364,6 @@ local read_string = function(ls, tok)
             c = next_char(ls)
         end
     end
-    buf[#buf + 1] = bytemap[c]
     next_char(ls)
     tok.value = tconc(buf)
 end
@@ -525,6 +554,8 @@ local lex_default = function(ls, tok)
         local str = tconc(buf)
         if Keywords[str] then
             return str
+        elseif str:sub(1, 5) == "__rt_" then
+            lex_error(ls, "invalid identifier (__rt_ prefix is reserved)", str)
         else
             tok.value = str
             return "<name>"
@@ -612,7 +643,7 @@ local init = function(chunkname, input)
         reader      = reader,
         token       = { name = nil, value = nil },
         ltoken      = { name = nil, value = nil },
-        source      = chunkname,
+        source      = chname_to_source(chunkname),
         current     = current,
         line_number = 1,
         last_line   = 1
