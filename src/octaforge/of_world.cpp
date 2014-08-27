@@ -116,8 +116,7 @@ namespace world
         copystring(tmp, curr_map_id);
         tmp[strlen(curr_map_id) - 7] = '\0';
 
-        defformatstring(buf, "%smedia%c%s%c%s", homedir, PATHDIV, tmp,
-            PATHDIV, fname);
+        defformatstring(buf, "media%c%s%c%s", PATHDIV, tmp, PATHDIV, fname);
 
         if (fileexists(buf, "r")) {
             defformatstring(buff, "%s-%d.bak", buf, (int)time(0));
