@@ -1081,7 +1081,7 @@ int main(int argc, char **argv)
     initing = INIT_LOAD;
     execfile("config/keymap.cfg");
     execfile("config/stdedit.cfg");
-    tools::execfile("config/ui.lua");
+    tools::execfile("config/ui.oct");
     execfile("config/ui.cfg");
     execfile("config/heightmap.cfg");
     execfile("config/blendbrush.cfg");

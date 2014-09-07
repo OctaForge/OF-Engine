@@ -573,7 +573,7 @@ end
 set_external("entities_remove_all", M.remove_all)
 
 --[[!
-    Serverside. Reads a file called `entities.lua` in the map directory,
+    Serverside. Reads a file called `entities.oct` in the map directory,
     serializes it and loads entities from it. The file contains a regular
     Lua serialized table.
 
@@ -592,7 +592,7 @@ M.load = function()
     @[not server] do return end
 
     @[debug] log(DEBUG, "ents.load: reading")
-    var el = capi.readfile("./entities.lua")
+    var el = capi.readfile("./entities.oct")
 
     var entities = {}
     if not el do
@@ -603,9 +603,9 @@ M.load = function()
 
     if #storage_sauer > 0 do
         @[debug] log(DEBUG, "ents.load: loading sauer entities:\n"
-            .. "    reading import.lua for imported models and sounds")
+            .. "    reading import.oct for imported models and sounds")
 
-        var il, im, is = capi.readfile("./import.lua"), {}, {}
+        var il, im, is = capi.readfile("./import.oct"), {}, {}
         if il do
             var it = deserialize(il)
             var itm, its = it.models, it.sounds

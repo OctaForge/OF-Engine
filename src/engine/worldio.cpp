@@ -44,7 +44,7 @@ void mapcfgname()
     const char *mname = game::getclientmap();
     if (!mname[0]) mname = "untitled";
 
-    defformatstring(cfgname, "media/%s.lua", mname);
+    defformatstring(cfgname, "media/%s.oct", mname);
     path(cfgname);
 
     result(cfgname);

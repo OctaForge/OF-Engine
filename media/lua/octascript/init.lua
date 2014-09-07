@@ -47,8 +47,13 @@ package.loaders[2] = function(modname, ppath)
     local toparse = file:read("*all")
     file:close()
     local chunkname = "@" .. fname
-    local parsed  = compile(chunkname, toparse, cond_env)
-    local f, err  = load(parsed, chunkname)
+    local parsed
+    if fname:sub(#fname - 3) == ".lua" then
+        parsed = toparse
+    else
+        parsed = compile(chunkname, toparse, cond_env)
+    end
+    local f, err = load(parsed, chunkname)
     if not f then
         error("error loading module '" .. modname .. "' from file '"
             .. fname .. "':\n" .. err, 2)

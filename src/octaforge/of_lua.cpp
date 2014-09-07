@@ -477,24 +477,36 @@ namespace lua
 
         /* home directory paths */
 #ifndef WIN32
+        lua_pushfstring(L, ";%smedia/?/init.oct", homedir);
         lua_pushfstring(L, ";%smedia/?/init.lua", homedir);
+        lua_pushfstring(L, ";%smedia/?.oct", homedir);
         lua_pushfstring(L, ";%smedia/?.lua", homedir);
+        lua_pushfstring(L, ";%smedia/lua/?/init.oct", homedir);
         lua_pushfstring(L, ";%smedia/lua/?/init.lua", homedir);
+        lua_pushfstring(L, ";%smedia/lua/?.oct", homedir);
         lua_pushfstring(L, ";%smedia/lua/?.lua", homedir);
 #else
+        lua_pushfstring(L, ";%smedia\\?\\init.oct", homedir);
         lua_pushfstring(L, ";%smedia\\?\\init.lua", homedir);
+        lua_pushfstring(L, ";%smedia\\?.oct", homedir);
         lua_pushfstring(L, ";%smedia\\?.lua", homedir);
+        lua_pushfstring(L, ";%smedia\\lua\\?\\init.oct", homedir);
         lua_pushfstring(L, ";%smedia\\lua\\?\\init.lua", homedir);
+        lua_pushfstring(L, ";%smedia\\lua\\?.oct", homedir);
         lua_pushfstring(L, ";%smedia\\lua\\?.lua", homedir);
 #endif
 
         /* root paths */
+        lua_pushliteral(L, ";./media/?/init.oct");
         lua_pushliteral(L, ";./media/?/init.lua");
+        lua_pushliteral(L, ";./media/?.oct");
         lua_pushliteral(L, ";./media/?.lua");
+        lua_pushliteral(L, ";./media/lua/?/init.oct");
         lua_pushliteral(L, ";./media/lua/?/init.lua");
+        lua_pushliteral(L, ";./media/lua/?.oct");
         lua_pushliteral(L, ";./media/lua/?.lua");
 
-        lua_concat  (L,  8);
+        lua_concat  (L, 16);
         lua_setfield(L, -2, "path"); lua_pop(L, 1);
 
         /* stream functions */
@@ -509,7 +521,7 @@ namespace lua
 
     void load_module(const char *name)
     {
-        defformatstring(p, "%s/%s.lua", mod_dir, name);
+        defformatstring(p, "%s/%s.oct", mod_dir, name);
         path(p);
         logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
         if (load_file(L, p) || lua_pcall(L, 0, 0, 0)) {
@@ -625,7 +637,7 @@ namespace lua
         L = NULL;
         init();
 #ifndef SERVER
-        tools::execfile("config/ui.lua");
+        tools::execfile("config/ui.oct");
 #endif
     }
 
