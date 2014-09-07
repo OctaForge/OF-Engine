@@ -441,16 +441,8 @@ local lextbl = {
     end,
     [94] = function(ls) -- ^
         local c = next_char(ls)
-        if c == 64 then -- =
-            next_char(ls)
-            return "^="
-        elseif c == 94 then -- ^
-            c = next_char(ls)
-            if c ~= 61 then return "^^"
-            else next_char(ls); return "^^=" end
-        else
-            return "^"
-        end
+        if c ~= 64 then return "^"
+        else next_char(ls); return "^=" end
     end,
     [123] = function(ls) -- {
         local c = next_char(ls)
@@ -469,8 +461,16 @@ local lextbl = {
     end,
     [42] = function(ls) -- *
         local c = next_char(ls)
-        if c ~= 61 then return "*"
-        else next_char(ls); return "*=" end
+        if c == 61 then
+            next_char(ls)
+            return "*="
+        elseif c == 42 then
+            c = next_char(ls)
+            if c ~= 61 then return "**"
+            else next_char(ls); return "**=" end
+        else
+            return "*"
+        end
     end,
     [43] = function(ls) -- +
         local c = next_char(ls)

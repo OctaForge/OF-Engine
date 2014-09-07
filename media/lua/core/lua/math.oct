@@ -18,7 +18,7 @@ var floor, min, max, abs = math.floor, math.min, math.max, math.abs
     (rounding to integers).
 ]]
 math.round = func(v, d)
-    var m = 10 ^ (d or 0)
+    var m = 10 ** (d or 0)
     return floor(v * m + 0.5) / m
 end
 

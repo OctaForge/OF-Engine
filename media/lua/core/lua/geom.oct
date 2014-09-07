@@ -213,7 +213,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
         end,
         dist = func(self, o)
             var dx, dy = self.x - o.x, self.y - o.y
-            return sqrt(dx ^ 2 + dy ^ 2)
+            return sqrt(dx ** 2 + dy ** 2)
         end,
         lerp = func(self, a, b, t)
             if not t do a, b, t = self, a, b end
@@ -437,7 +437,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
         end,
         dist2 = func(self, o)
             var dx, dy = self.x - o.x, self.y - o.y
-            return sqrt(dx ^ 2 + dy ^ 2)
+            return sqrt(dx ** 2 + dy ** 2)
         end,
         reject = func(self, o, r)
             return self.x > (o.x + r) or self.x < (o.x - r)
@@ -488,7 +488,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             var m = self:squared_len()
             var k = threshold and min(self:dot(n), threshold) or self:dot(n)
             self:project_xy_dir()
-            self:rescale(sqrt(max(m - k ^ 2, 0)))
+            self:rescale(sqrt(max(m - k ** 2, 0)))
             return self
         end,
         lerp = func(self, a, b, t)
@@ -600,10 +600,10 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
                 var n = iton[i]
                 if self[n] < min[n] do
                     var delta = self[n] - min[n]
-                    sqrdist = sqrdist + delta ^ 2
+                    sqrdist = sqrdist + delta ** 2
                 elif self[n] > max[n] do
                     var delta = max[n] - self[n]
-                    sqrdist = sqrdist + delta ^ 2
+                    sqrdist = sqrdist + delta ** 2
                 end
             end
             return sqrt(sqrdist)
@@ -928,11 +928,11 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
         end,
         dist = func(self, o)
             var dx, dy, dz = self.x - o.x, self.y - o.y, self.z - o.z
-            return sqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
+            return sqrt(dx ** 2 + dy ** 2 + dz ** 2)
         end,
         dist2 = func(self, o)
             var dx, dy = self.x - o.x, self.y - o.y
-            return sqrt(dx ^ 2 + dy ^ 2)
+            return sqrt(dx ** 2 + dy ** 2)
         end,
         rotate_around_z = func(self, c, s)
             if type(c) == "number" do
