@@ -256,7 +256,7 @@ M.ActionQueue = table.Object:clone {
     run = func(self, millis)
         var acts = self.actions
         if self._changed do
-            compact(acts, |i, v| not v.finished)
+            compact(acts, \i, v -> not v.finished)
             self._changed = false
         end
         if #acts > 0 do

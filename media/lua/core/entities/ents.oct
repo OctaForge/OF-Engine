@@ -830,7 +830,7 @@ M.Entity = table.Object:clone {
 
         if not self:has_tag(tag) do return end
         self:set_attr("tags", filter(self:get_attr("tags"):to_array(),
-            |i, t| t != tag))
+            \i, t -> t != tag))
     end,
 
     --[[!

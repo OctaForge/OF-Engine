@@ -46,7 +46,7 @@ var is_array = table.is_array
     -- table of numbers
     foo = { bar = 5, baz = 10 }
     -- table of strings
-    bar = map(foo, |v| tostring(v))
+    bar = map(foo, \v -> tostring(v))
     ```
 
     Arguments:
@@ -156,7 +156,7 @@ end
     ```
     var t = { 5, 10, 15, 10, 20, 10, 25 }
     -- the compacted table is { 5, 15, 20, 25 }
-    compact(t, |v| v != 10)
+    compact(t, \v -> v != 10)
     ```
 
     Arguments:

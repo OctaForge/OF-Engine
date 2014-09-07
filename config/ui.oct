@@ -178,9 +178,9 @@ root:new_window("fullconsole", gui.Overlay, func(win)
     win:clamp(true, true, false, false)
     win:align(0, -1)
     capi.console_full_show(true)
-    connect(win, "destroy", || capi.console_full_show(false))
+    connect(win, "destroy", \-> capi.console_full_show(false))
     win:append(gui.Console {
-        min_h = || var_get("fullconsize") / 100
+        min_h = \-> var_get("fullconsize") / 100
     }, func(con)
         con:clamp(true, true, false, false)
     end)
@@ -192,12 +192,12 @@ root:new_window("editstats", gui.Overlay, func(win)
     win:append(gui.Filler { variant = "edithud" }, func(fl)
         fl:append(gui.Spacer { pad_h = 0.015, pad_v = 0.01 }, func(sp)
             sp:append(gui.EvalLabel { scale = -1,
-                callback = || cs_execute("getedithud") }):align(-1, 0)
+                callback = \-> cs_execute("getedithud") }):align(-1, 0)
         end)
     end)
 end)
 
-var genblock = |val, color, tcolor| || gui.ColorFiller {
+var genblock = \val, color, tcolor -> \-> gui.ColorFiller {
     color = color, min_w = 0.18, min_h = 0.18,
     gui.Label {
         text = tostring(val), scale = 3.5, color = tcolor
@@ -205,7 +205,7 @@ var genblock = |val, color, tcolor| || gui.ColorFiller {
 }
 
 var blocktypes = {
-    [0] = || gui.ColorFiller {
+    [0] = \-> gui.ColorFiller {
         color = 0xccc0b3, min_w = 0.18, min_h = 0.18
     },
     [2   ] = genblock(2,    0xEEE4DA, 0x776E65),

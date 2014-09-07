@@ -1122,7 +1122,7 @@ M.Sound = StaticEntity:clone {
 
     __activate = @[not server,func(self, ...)
         StaticEntity.__activate(self, ...)
-        var f = |self| capi.sound_stop_map(self.uid)
+        var f = \self -> capi.sound_stop_map(self.uid)
         connect(self, "sound_name,changed", f)
         connect(self, "radius,changed", f)
         connect(self, "size,changed", f)

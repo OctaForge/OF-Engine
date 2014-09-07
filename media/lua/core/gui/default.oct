@@ -30,13 +30,13 @@ var btnv_init_clone = func(self, btn)
     connect(btn, "label,changed", func(b, t) lbl:set_text(t) end)
 end
 
-var btn_build_variant = |color| gui.Gradient {
+var btn_build_variant = \color -> gui.Gradient {
     color = 0x202020, color2 = 0x101010, clamp_h = true,
     init_clone = func(self, btn)
         self:set_min_w(btn.min_w or 0)
         self:set_min_h(btn.min_h or 0)
-        connect(btn, "min_w,changed", |b, v| self:set_min_w(v))
-        connect(btn, "min_h,changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_w,changed", \b, v -> self:set_min_w(v))
+        connect(btn, "min_h,changed", \b, v -> self:set_min_w(v))
     end, gui.Outline {
         color = color, clamp_h = true, gui.Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
@@ -44,12 +44,12 @@ var btn_build_variant = |color| gui.Gradient {
     }
 }
 
-var btn_build_variant_nobg = || gui.Filler {
+var btn_build_variant_nobg = \-> gui.Filler {
     clamp_h = true, init_clone = func(self, btn)
         self:set_min_w(btn.min_w or 0)
         self:set_min_h(btn.min_h or 0)
-        connect(btn, "min_w,changed", |b, v| self:set_min_w(v))
-        connect(btn, "min_h,changed", |b, v| self:set_min_w(v))
+        connect(btn, "min_w,changed", \b, v -> self:set_min_w(v))
+        connect(btn, "min_h,changed", \b, v -> self:set_min_w(v))
     end, gui.Spacer {
         pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
     }
@@ -91,9 +91,9 @@ var slotbtn_init_clone = func(self, btn)
     self:set_min_w(btn.min_w or 0)
     self:set_min_h(btn.min_h or 0)
     self:set_index(btn.index or 0)
-    connect(btn, "min_w,changed", |b, v| self:set_min_w(v))
-    connect(btn, "min_h,changed", |b, v| self:set_min_h(v))
-    connect(btn, "index,changed", |b, v| self:set_index(v))
+    connect(btn, "min_w,changed", \b, v -> self:set_min_w(v))
+    connect(btn, "min_h,changed", \b, v -> self:set_min_h(v))
+    connect(btn, "index,changed", \b, v -> self:set_index(v))
 end
 
 gui.Button.__variants.vslot = {
@@ -164,7 +164,7 @@ gui.Filler.__variants = {
 
 -- checkboxes, radioboxes
 
-var ckbox_build_variant = |color, tgl| gui.ColorFiller {
+var ckbox_build_variant = \color, tgl -> gui.ColorFiller {
     color = 0x202020, min_w = 0.02, min_h = 0.02,
     gui.Outline {
         color = color, clamp = true, tgl and gui.Spacer {
@@ -176,7 +176,7 @@ var ckbox_build_variant = |color, tgl| gui.ColorFiller {
     }
 }
 
-var rdbtn_build_variant = |color, tgl| gui.Circle {
+var rdbtn_build_variant = \color, tgl -> gui.Circle {
     color = 0x202020, min_w = 0.02, min_h = 0.02,
     gui.Circle {
         style = gui.Circle.OUTLINE, color = color, clamp = true,
@@ -213,7 +213,7 @@ rdbtnv["toggled_focused" ] = rdbtn_build_variant(0x606060, true)
 
 -- scrollbars
 
-var sb_buildh = |lac, rac| gui.Outline {
+var sb_buildh = \lac, rac -> gui.Outline {
     clamp_h = true, color = 0x303030,
     gui.Filler { min_w = 0.02, min_h = 0.02, align_h = -1,
         gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
@@ -227,7 +227,7 @@ var sb_buildh = |lac, rac| gui.Outline {
     }
 }
 
-var sb_buildv = |lac, rac| gui.Filler {
+var sb_buildv = \lac, rac -> gui.Filler {
     clamp_v = true,
     gui.Filler { min_w = 0.02, min_h = 0.02, align_v = -1,
         gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
@@ -332,7 +332,7 @@ gui.VProgressBar.__variants = {
 
 -- windows
 
-var window_build_titlebar = || gui.Gradient {
+var window_build_titlebar = \-> gui.Gradient {
     color = 0xF0202020, color2 = 0xF0101010, clamp_h = true,
     gui.Spacer {
         pad_h = 0.004, pad_v = 0.004,
@@ -345,7 +345,7 @@ var window_build_titlebar = || gui.Gradient {
     }
 }
 
-var window_build_regular = |mov| gui.Filler {
+var window_build_regular = \mov -> gui.Filler {
     clamp = true,
     gui.VBox {
         clamp = true,
@@ -376,7 +376,7 @@ var window_build_regular = |mov| gui.Filler {
                         }
                     },
                     init_clone = func(self, win)
-                        connect(self, "clicked", || win:hide())
+                        connect(self, "clicked", \-> win:hide())
                     end
                 }
             }
@@ -518,13 +518,13 @@ connect(changes, "add", func(self, ctype, desc)
     end
 end)
 
-connect(root, "reset", || cs.var_set("hidechanges", 0))
+connect(root, "reset", \-> cs.var_set("hidechanges", 0))
 
 root:new_window("changes", gui.Window, func(win)
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Changes")
-    connect(win, "destroy", || changes.clear())
+    connect(win, "destroy", \-> changes.clear())
     win:append(gui.VBox(), func(b)
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0,
             gui.Label { text = "The following settings have changed:" } })
@@ -567,7 +567,7 @@ root:new_window("texture", gui.Window, func(win)
                             gr:append(gui.Button { variant = "vslot",
                                 index = mru, min_w = 0.095, min_h = 0.095
                             }, func(b)
-                                connect(b, "clicked", || capi.slot_set(mru))
+                                connect(b, "clicked", \-> capi.slot_set(mru))
                             end)
                         end
                     end)
@@ -587,7 +587,7 @@ var fields = {
         var tvar = (dv == "true")
         var ret
         hb:append(gui.Filler { min_w = 0.4 }, func(f)
-            f:append(gui.Toggle { variant = "checkbox", condition = || tvar,
+            f:append(gui.Toggle { variant = "checkbox", condition = \-> tvar,
                 align_h = -1
             }, func(t)
                 ret = t
