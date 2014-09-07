@@ -424,15 +424,6 @@ local lextbl = {
         end
         while ls.current and not is_newline(ls.current) do next_char(ls) end
     end,
-    [91] = function(ls, tok) -- [
-        local buf = {}
-        local sep = skip_sep(ls, {})
-        if sep >= 0 then
-            read_long_string(ls, tok, sep)
-            return "<string>"
-        elseif sep == -1 then return "["
-        else lex_error(ls, "invalid long string delimiter", tconc(buf)) end
-    end,
     [61] = function(ls) -- =
         local c = next_char(ls)
         if c ~= 61 then return "="
