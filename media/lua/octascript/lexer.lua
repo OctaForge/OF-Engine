@@ -402,6 +402,31 @@ local read_string = function(ls, tok, raw)
     tok.value = tconc(buf)
 end
 
+local read_comment = function(ls)
+    local nest = 0
+    local c = ls.current
+    while true do
+        if c == 47 then -- /
+            c = next_char(ls)
+            if c == 42 then -- *
+                c = next_char(ls)
+                nest = nest + 1
+            end
+        elseif c == 42 then -- *
+            c = next_char(ls)
+            if c == 47 then -- /
+                c = next_char(ls)
+                if nest == 0 then
+                    return
+                end
+                nest = nest - 1
+            end
+        else
+            c = next_char(ls)
+        end
+    end
+end
+
 local lextbl = {
     [10] = function(ls) next_line(ls) end, -- LF
     [32] = function(ls) next_char(ls) end, -- space
@@ -512,6 +537,9 @@ local lextbl = {
             while ls.current and not is_newline(ls.current) do
                 next_char(ls)
             end
+        elseif c == 42 then -- *
+            next_char(ls)
+            read_comment(ls)
         else
             return "/"
         end
