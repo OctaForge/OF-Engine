@@ -1,4 +1,4 @@
---[[!<
+/**<
     Widgets related to scrolling - scrollers, scrollbars and so on.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var signal = require("core.events.signal")
@@ -41,11 +41,11 @@ var adjust = M.adjust
 
 var Clipper = M.Clipper
 
---[[!
+/**
     Derived from $Clipper. Provides a scrollable area without scrollbars.
     There are scrollbars provided further below. Text editors implement
     the same interface as scrollers, thus they can be used as scrollers.
-]]
+*/
 M.Scroller = register_type("Scroller", Clipper, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -57,10 +57,10 @@ M.Scroller = register_type("Scroller", Clipper, {
         return Clipper.__ctor(self, kwargs)
     end,
 
-    --[[!
+    /**
         In addition to the regular clear it takes care of unlinking
         the scrollbars.
-    ]]
+    */
     clear = func(self)
         self:bind_h_scrollbar()
         self:bind_v_scrollbar()
@@ -102,11 +102,11 @@ M.Scroller = register_type("Scroller", Clipper, {
         return Widget.click(self, cx + oh, cy + ov, code)
     end,
 
-    --[[!
+    /**
         A mouse scroll wheel handler. It scrolls in the direction of its
         scrollbar. If both are present, vertical takes precedence. If none
         is present, vertical is used with the default arrow_speed of 0.5.
-    ]]
+    */
     key_hover = func(self, code, isdown)
         var m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
         if code != m4 and code != m5 do
@@ -140,11 +140,11 @@ M.Scroller = register_type("Scroller", Clipper, {
         end
     end,
 
-    --[[!
+    /**
         Binds a horizontal scrollbar widget to the scroller. It sets up both
         sides appropriately. You can do this from the scrollbar side as well.
         Calling with nil unlinks the scrollbar and returns it.
-    ]]
+    */
     bind_h_scrollbar = func(self, sb)
         if not sb do
             sb = self.h_scrollbar
@@ -156,11 +156,11 @@ M.Scroller = register_type("Scroller", Clipper, {
         sb.scroller = self
     end,
 
-    --[[!
+    /**
         Binds a vertical scrollbar widget to the scroller. It sets up both
         sides appropriately. You can do this from the scrollbar side as well.
         Calling with nil unlinks the scrollbar and returns it.
-    ]]
+    */
     bind_v_scrollbar = func(self, sb)
         if not sb do
             sb = self.v_scrollbar
@@ -172,20 +172,20 @@ M.Scroller = register_type("Scroller", Clipper, {
         sb.scroller = self
     end,
 
-    --[[
+    /*
         Returns the horizontal offset limit, that is, the actual width of
         the contents minus the clipper width.
-    ]]
+    */
     get_h_limit = func(self) return max(self.virt_w - self.w, 0) end,
 
     /// See $get_h_limit.
     get_v_limit = func(self) return max(self.virt_h - self.h, 0) end,
 
-    --[[!
+    /**
         Returns the horizontal offset, that is, the portion of the actual
         size of the contents the scroller offsets by. It's computed as
         actual_offset / max(size_of_container, size_of_contents).
-    ]]
+    */
     get_h_offset = func(self)
         return self.offset_h / max(self.virt_w, self.w)
     end,
@@ -195,21 +195,21 @@ M.Scroller = register_type("Scroller", Clipper, {
         return self.offset_v / max(self.virt_h, self.h)
     end,
 
-    --[[!
+    /**
         Returns the horizontal scale, that is,
         size_of_container / max(size_of_container, size_of_contents).
-    ]]
+    */
     get_h_scale = func(self) return self.w / max(self.virt_w, self.w) end,
 
     /// See $get_h_scale.
     get_v_scale = func(self) return self.h / max(self.virt_h, self.h) end,
 
-    --[[!
+    /**
         Sets the horizontal scroll offset. Takes the "real" offset, that is,
         actual_offset as $get_h_offset describes it (offset 1 would be the
         full screen height). Emits the h_scroll,changed signal on self with
         `self:get_h_offset()` as a parameter.
-    ]]
+    */
     set_h_scroll = func(self, hs)
         self.offset_h = clamp(hs, 0, self:get_h_limit())
         emit(self, "h_scroll,changed", self:get_h_offset())
@@ -221,10 +221,10 @@ M.Scroller = register_type("Scroller", Clipper, {
         emit(self, "v_scroll,changed", self:get_v_offset())
     end,
 
-    --[[!
+    /**
         Like $set_h_scroll, but works with deltas (adds the given value
         to the actual offset).
-    ]]
+    */
     scroll_h = func(self, hs) self:set_h_scroll(self.offset_h + hs) end,
 
     /// See $scroll_h.
@@ -233,7 +233,7 @@ M.Scroller = register_type("Scroller", Clipper, {
 
 var ScrollButton
 
---[[!
+/**
     A base scrollbar widget type. This one is not of much use.
 
     Scrollbars can be used with widgets that implement the right interface -
@@ -245,7 +245,7 @@ var ScrollButton
         - arrow_speed - mouse scroll is 0.2 * arrow_speed, arrow scroll is
           frame_time * arrow_speed, when used with text editors mouse scroll
           is 6 * fonth * arrow_speed. Defaults to 0.5.
-]]
+*/
 M.Scrollbar = register_type("Scrollbar", Widget, {
     orient = -1,
 
@@ -258,21 +258,21 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         return Widget.__ctor(self, kwargs)
     end,
 
-    --[[!
+    /**
         In addition to the regular clear it takes care of unlinking
         the scroller.
-    ]]
+    */
     clear = func(self)
         self:bind_scroller()
         return Widget.clear(self)
     end,
 
-    --[[!
+    /**
         This one does nothing, it's further overloaded in horizontal and
         vertical variants. It takes care of linking a scroller to itself
         as well as linking this scrollbar to the scroller. Calling with
         nil unlinks the scroller and returns it.
-    ]]
+    */
     bind_scroller = func(self, sc) end,
 
     choose_direction = func(self, cx, cy)
@@ -284,10 +284,10 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         return Widget.hover(self, cx, cy) or self
     end,
 
-    --[[!
+    /**
         Scrollbars can be clicked on assuming none of the children want
         to be clicked on.
-    ]]
+    */
     click = func(self, cx, cy, code)
         return Widget.click(self, cx, cy, code) or
                      (self:target(cx, cy) and self or nil)
@@ -295,10 +295,10 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
 
     scroll_to = func(self, cx, cy) end,
 
-    --[[!
+    /**
         Mouse scrolling on a scrollbar results in the scroller being scrolled
         by 0.2 in the right direction depending on the scrollbar type.
-    ]]
+    */
     key_hover = func(self, code, isdown)
         var m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
         if code != m4 and code != m5 do
@@ -319,10 +319,10 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         return true
     end,
 
-    --[[!
+    /**
         Clicking inside the scrollbar area but outside the arrow area jumps
         in the scroller.
-    ]]
+    */
     clicked = func(self, cx, cy, code)
         if code == key.MOUSELEFT do
             var d = self:choose_direction(cx, cy)
@@ -370,14 +370,14 @@ var clicked_states = {
     [key.MOUSEFORWARD] = "clicked_forward"
 }
 
---[[!
+/**
     A scroll button you can put inside a scrollbar and drag. The scrollbar
     will adjust the button width (in case of horizontal scrollbar) and height
     (in case of vertical scrollbar) depending on the scroller contents.
 
     A scroll button has seven states, "default", "hovering", "clicked_left",
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
-]]
+*/
 M.ScrollButton = register_type("ScrollButton", Widget, {
     __ctor = func(self, kwargs)
         self.offset_h = 0
@@ -418,14 +418,14 @@ M.ScrollButton = register_type("ScrollButton", Widget, {
 })
 ScrollButton = M.ScrollButton
 
---[[!
+/**
     A specialization of $Scrollbar. Has the "orient" member set to
     the HORIZONTAL field of $orient. Overloads some of the Scrollbar
     methods specifically for horizontal scrolling.
 
     Has thirteen states - "default", "(left|right)_hovering",
     "(left|right)_clicked_(left|right|middle|back|forward)".
-]]
+*/
 M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     orient = orient.HORIZONTAL,
 
@@ -517,10 +517,10 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     end
 }, Scrollbar.type)
 
---[[!
+/**
     See $HScrollbar above. Has states "default", "(up|down)_hovering" and
     "(up|down)_clicked_(left|right|middle|back|forward)".
-]]
+*/
 M.VScrollbar = register_type("VScrollbar", Scrollbar, {
     orient = orient.VERTICAL,
 

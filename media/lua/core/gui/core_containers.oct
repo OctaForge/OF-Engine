@@ -1,4 +1,4 @@
---[[!<
+/**<
     Container GUI widgets.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var max = math.max
 var min = math.min
@@ -42,7 +42,7 @@ var clampsh = func(adj)
     return ((adj & CLAMP_LEFT) != 0) and ((adj & CLAMP_RIGHT) != 0)
 end
 
---[[!
+/**
     A horizontal box. Boxes are containers that hold multiple widgets that
     do not cover each other.
 
@@ -62,7 +62,7 @@ end
     See also:
         - $VBox
         - $Grid
-]]
+*/
 M.HBox = register_type("HBox", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -142,10 +142,10 @@ M.HBox = register_type("HBox", Widget, {
     set_homogenous = gen_setter "homogenous"
 })
 
---[[!
+/**
     See $HBox. This is a vertical variant, for its properties top/bottom
     clamping is relevant rather than left/right.
-]]
+*/
 M.VBox = register_type("VBox", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -225,7 +225,7 @@ M.VBox = register_type("VBox", Widget, {
     set_homogenous = gen_setter "homogenous"
 }, M.HBox.type)
 
---[[!
+/**
     A grid of elements. As you append, the children will automatically
     position themselves according to the max number of columns.
 
@@ -241,7 +241,7 @@ M.VBox = register_type("VBox", Widget, {
 
     See also:
         - $HBox
-]]
+*/
 M.Grid = register_type("Grid", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -330,13 +330,13 @@ M.Grid = register_type("Grid", Widget, {
     set_columns = gen_setter "columns"
 })
 
---[[!
+/**
     Clips the children inside of it by its properties.
 
     Properties:
         - clip_w - the width of the clipper.
         - clip_h - the height of the clipper.
-]]
+*/
 M.Clipper = register_type("Clipper", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}

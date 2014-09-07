@@ -1,10 +1,10 @@
---[[!<
+/**<
     A day manager module. It can control all kinds of things, from a basic
     day-night cycle to weather. It's server controlled (time management
     happens on the server) with clientside effect.
 
     The controller entity runs in the background.
-]]
+*/
 
 /// Module: day_manager
 var M = {}
@@ -23,9 +23,9 @@ var get
 
 var Entity = ents.Entity
 
---[[!
+/**
     This is the day manager entity prototype.
-]]
+*/
 var DayManager = Entity:clone {
     name = "DayManager",
 
@@ -74,12 +74,12 @@ M.get = func()
 end
 get = M.get
 
---[[!
+/**
     Sets up the day manager. You should call this in your map script before
     {{$ents.load}}. You can provide various plugins. This module implements
     a handful of plugins that you can use. On the server this returns the
     entity.
-]]
+*/
 M.setup = func(plugins)
     ents.register_prototype(DayManager, plugins)
     @[server] do
@@ -118,14 +118,14 @@ var getsunparams = func(daytime, daylen)
     return yaw, pitch, getsunscale(daytime / daylen)
 end
 
---[[!
+/**
     Various plugins for the day manager.
-]]
+*/
 M.plugins = {
-    --[[!
+    /**
         A plugin that adds day/night cycles to the day manager. It works
         by manipulating the sunlight yaw and pitch.
-    ]]
+    */
     day_night = {
         __activate = @[not server,func(self)
             var daylen

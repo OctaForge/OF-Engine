@@ -1,4 +1,4 @@
---[[!<
+/**<
     Vector math, matrix math and geometry utilities. Roughly equivalent
     to geom.h in the core engine plus extensions.
 
@@ -7,7 +7,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var ffi  = require("ffi")
@@ -55,7 +55,7 @@ var iton = { [0] = "x", [1] = "y", [2] = "z" }
 
 var M = {}
 
---[[!
+/**
     Normalizes an angle to be within +-180 degrees of some value.
     Useful to know if we need to turn left or right in order to be
     closer to something (we just need to check the sign, after normalizing
@@ -63,7 +63,7 @@ var M = {}
 
     For example, for angle 100 and rel_to 300, this function returns 460
     (as 460 is within 180 degrees of 300, but 100 isn't).
-]]
+*/
 var normalize_angle = func(angle, rel_to)
     while angle < (rel_to - 180.0) do angle = angle + 360.0 end
     while angle > (rel_to + 180.0) do angle = angle - 360.0 end
@@ -620,7 +620,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
                  | floor(clamp(self.b, 0, 1) * 255)
         end,
 
-        --[[!
+        /**
             Returns the distance to the floor below some given position.
 
             Arguments:
@@ -628,7 +628,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
                 - radius - optionally the radius to search within.
                 - lowest - if true, finds the lowest floor instead of highest
                   floor, optional.
-        ]]
+        */
         floor_distance = func(self, max_dist, radius, lowest)
             var rt = capi.ray_floor(self.x, self.y, self.z, max_dist)
             if not radius do return rt end
@@ -648,51 +648,51 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return rt
         end,
 
-        --[[!
+        /**
             Returns true is the line between two given positions is clear
             (if there are no obstructions). Returns false otherwise.
-        ]]
+        */
         is_los = func(self, d)
             return capi.ray_los(self.x, self.y, self.z, d.x, d.y, d.z)
         end,
 
-        --[[!
+        /**
             Calculates the yaw from an origin to a target. Done on 2D data
             only. If the last "reverse" argument is given as true, it
             calculates away from the target. Returns the yaw.
-        ]]
+        */
         yaw_to = func(self, target, reverse)
             return reverse and target:yaw_to(self)
                 or deg(-(atan2(target.x - self.x, target.y - self.y)))
         end,
 
-        --[[!
+        /**
             Calculates the pitch from an origin to a target. Done on 2D data
             only. If the last "reverse" argument is given as true, it
             calculates away from the target. Returns the pitch.
-        ]]
+        */
         pitch_to = func(self, target, reverse)
             return reverse and target:pitch_to(self)
                 or deg(asin((target.z - self.z) / self:dist(target)))
         end,
 
-        --[[!
+        /**
             Checks if the yaw between two points is within acceptable error
             range. Useful to see whether a character is facing closely enough
             to the target, for example. Returns true if it is within the range,
             false otherwise.
-        ]]
+        */
         compare_yaw = func(self, target, yaw, acceptable)
             return abs(normalize_angle(self:yaw_to(target), yaw) - yaw)
                 <= acceptable
         end,
 
-        --[[!
+        /**
             Checks if the pitch between two points is within acceptable error
             range. Useful to see whether a character is facing closely enough
             to the target, for example. Returns true if it is within the range,
             false otherwise.
-        ]]
+        */
         compare_pitch = func(self, target, pitch, acceptable)
             return abs(normalize_angle(self:pitch_to(target), pitch) - pitch)
                 <= acceptable

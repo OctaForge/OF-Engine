@@ -1,4 +1,4 @@
---[[!<
+/**<
     Provides the core logging facilities.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 
@@ -25,7 +25,7 @@ M.WARNING = 2
 /// The ERROR logging level, always printed (incl. the in-engine console).
 M.ERROR = 3
 
---[[! Function: log
+/** Function: log
     Logs some text into the console with the given level. By default, OF
     uses the "WARNING" level. You can change it on engine startup.
 
@@ -38,18 +38,18 @@ M.ERROR = 3
         - $DEBUG
         - $WARNING
         - $ERROR
-]]
+*/
 M.log = capi.log
 
---[[! Function: echo
+/** Function: echo
     Displays some text into both consoles (in-engine and terminal).
 
     Arguments:
         - text - the text to be printed.
-]]
+*/
 M.echo = capi.echo
 
---[[! Function: should_log
+/** Function: should_log
     Returns whether the given logging level should be logged.
 
     Arguments:
@@ -57,7 +57,7 @@ M.echo = capi.echo
 
     Returns:
         Either true or false.
-]]
+*/
 M.should_log = capi.should_log
 
 return M

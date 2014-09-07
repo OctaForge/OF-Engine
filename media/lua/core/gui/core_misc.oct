@@ -1,4 +1,4 @@
---[[!<
+/**<
     Misc widgets.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var signal = require("core.events.signal")
@@ -40,7 +40,7 @@ var key = M.key
 
 var ALIGN_MASK = adjust.ALIGN_MASK
 
---[[!
+/**
     Represents a state as a first class object. Has an arbitrary number of
     states.
 
@@ -48,7 +48,7 @@ var ALIGN_MASK = adjust.ALIGN_MASK
         - state - the current state of the widget, can be either a string or
           a callable value that returns the state when called with self as
           an argument.
-]]
+*/
 M.State = register_type("State", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -66,7 +66,7 @@ M.State = register_type("State", Widget, {
     set_state = gen_setter "state"
 })
 
---[[!
+/**
     A widget using which you can move windows. The window must have the
     floating property set to true or it won't move. It doesn't have any
     appearance or states, those are defined by its children.
@@ -77,7 +77,7 @@ M.State = register_type("State", Widget, {
 
     Properties:
         - window - a reference to the window this belongs to.
-]]
+*/
 M.Mover = register_type("Mover", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -149,7 +149,7 @@ M.Mover = register_type("Mover", Widget, {
 
 var Filler = M.Filler
 
---[[!
+/**
     A base widget type for progress bars. Not useful alone. For working
     variants, see $HProgressBar and $VProgressBar.
 
@@ -165,7 +165,7 @@ var Filler = M.Filler
           is multiplied by 100 before formatting), when it's a callable value
           it'll be called with `self` and the value (not multiplied) as
           arguments, expecting the label string as a return value.
-]]
+*/
 M.ProgressBar = register_type("ProgressBar", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -175,10 +175,10 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    --[[!
+    /**
         Generates a label for the progress bar and returns it. See the `label`
         attribute for semantics.
-    ]]
+    */
     gen_label = func(self)
         var lbl = self.label
         if type(lbl) == "string" do return lbl:format(self.value * 100) end

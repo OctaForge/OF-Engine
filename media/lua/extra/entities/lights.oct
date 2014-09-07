@@ -1,4 +1,4 @@
---[[!<
+/**<
     Various types of light entities.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var svars = require("core.entities.svars")
 var ents = require("core.entities.ents")
@@ -19,7 +19,7 @@ var M = {}
 
 var Marker = ents.Marker
 
---[[! Object: lights.DynamicLight
+/** Object: lights.DynamicLight
     A generic "dynamic light" entity prototype. It's not registered by default
     (a Light from the core set is already dynamic), it serves as a base for
     derived dynamic light types. Inherits from {{$ents.Marker}} entity type of
@@ -28,7 +28,7 @@ var Marker = ents.Marker
 
     Properties overlap with the core Light entity type (but it lacks flags)
     including newent properties.
-]]
+*/
 var DynamicLight = Marker:clone {
     name = "DynamicLight",
 
@@ -50,10 +50,10 @@ var DynamicLight = Marker:clone {
         self:set_attr("blue",   128, nd[3])
     end,
 
-    --[[!
+    /**
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
-    ]]
+    */
     __run = @[not server,func(self, millis)
         Marker.__run(self, millis)
         var pos = self:get_attr("position")
@@ -68,7 +68,7 @@ var max, random = math.max, math.random
 var floor = math.floor
 var flash_flag = lights.flags.FLASH
 
---[[! Object: lights.FlickeringLight
+/** Object: lights.FlickeringLight
     A flickering light entity type derived from $DynamicLight. This one
     is registered. Delays are in milliseconds. It adds probability, min delay
     and max delay to newent properties of its parent.
@@ -77,7 +77,7 @@ var flash_flag = lights.flags.FLASH
         - probability - the flicker probability (from 0 to 1, defaults to 0.5).
         - min_delay - the minimal flicker delay (defaults to 100).
         - max_delay - the maximal flicker delay (defaults to 300).
-]]
+*/
 M.FlickeringLight = DynamicLight:clone {
     name = "FlickeringLight",
 

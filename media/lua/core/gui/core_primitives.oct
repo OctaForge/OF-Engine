@@ -1,4 +1,4 @@
---[[!<
+/**<
     Various primitive widgets (rectangles, text and others).
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var ffi = require("ffi")
@@ -78,7 +78,7 @@ var gen_color_setter = func(name)
     end
 end
 
---[[!
+/**
     Derived from $Filler. Represents a regular rectangle.
 
     Properties:
@@ -87,7 +87,7 @@ end
           in format 0xRRGGBB or 0xAARRGGBB.
         - solid - if true, it's a solid color rectangle (default), otherwise
           it modulates the color its background.
-]]
+*/
 M.ColorFiller = register_type("ColorFiller", Filler, {
     __ctor = func(self, kwargs)
         kwargs       = kwargs or {}
@@ -130,14 +130,14 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
 })
 var ColorFiller = M.ColorFiller
 
---[[!
+/**
     Derived from $ColorFiller.
 
     Properties:
         - horizontal - by default the gradient is vertical, if this is true
           it's horizontal.
         - color2 - the other color of the gradient.
-]]
+*/
 M.Gradient = register_type("Gradient", ColorFiller, {
     __ctor = func(self, kwargs)
         ColorFiller.__ctor(self, kwargs)
@@ -186,12 +186,12 @@ M.Gradient = register_type("Gradient", ColorFiller, {
     set_color2 = gen_color_setter "color2"
 })
 
---[[!
+/**
     Derived from $Filler. Represents a line.
 
     Properties:
         - color - see $ColorFiller.
-]]
+*/
 M.Line = register_type("Line", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -219,12 +219,12 @@ M.Line = register_type("Line", Filler, {
     set_color = gen_color_setter "color"
 })
 
---[[!
+/**
     Derived from $Filler. Represents an outline.
 
     Properties:
         - color - see $ColorFiller.
-]]
+*/
 M.Outline = register_type("Outline", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -272,7 +272,7 @@ var check_alpha_mask = func(tex, x, y)
     return false
 end
 
---[[! Struct: Image
+/** Struct: Image
     Derived from $Filler. Represents a basic image with basic stretching.
 
     Images are basically containers for texture objects. Texture objects
@@ -286,7 +286,7 @@ end
         - min_filter, mag_filter - see GL_TEXTURE_MIN_FILTER and
           GL_TEXTURE_MAG_FILTER as well as filters later in this module.
         - color - see $ColorFiller.
-]]
+*/
 M.Image = register_type("Image", Filler, {
     __ctor = func(self, kwargs)
         kwargs    = kwargs or {}
@@ -311,11 +311,11 @@ M.Image = register_type("Image", Filler, {
         return self.texture.name
     end,
 
-    --[[!
+    /**
         Given the filename and an alternative filename, this reloads the
         texture this holds. If the file argument is nil/false/none, this
         disables the texture (sets the texture to notexture).
-    ]]
+    */
     set_tex = func(self, file, alt)
         if not file do
             self.texture = texture_get_notexture()
@@ -328,10 +328,10 @@ M.Image = register_type("Image", Filler, {
         self.texture = tex
     end,
 
-    --[[!
+    /**
         Images are normally targetable (they're not only where they're
         completely transparent). See also {{$Widget.target}}.
-    ]]
+    */
     target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if    o do return o end
@@ -409,10 +409,10 @@ M.Image = register_type("Image", Filler, {
 })
 var Image = M.Image
 
---[[!
+/**
     Represents a raw texture. Not meant for regular use. It's here to aid
     some of the internal OF UIs. Has only a subset of $Image's features.
-]]
+*/
 M.Texture = register_type("Texture", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -465,14 +465,14 @@ var get_border_size = func(tex, size, vert)
     return abs(n) / (vert and tex.ys or tex.xs)
 end
 
---[[!
+/**
     Deriving from $Image, this represents a cropped image. Negative crop
     values are in pixels.
 
     Properties:
         - crop_x, crop_y - the crop x and y position, they default to 0.
         - crop_w, crop_h - the crop dimensions, they default to 1.
-]]
+*/
 M.CroppedImage = register_type("CroppedImage", Image, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -555,11 +555,11 @@ M.CroppedImage = register_type("CroppedImage", Image, {
     end
 })
 
---[[!
+/**
     Derives from $Image and represents a stretched image type. Regular
     images stretch as well, but this uses better quality (and more expensive)
     computations instead of basic stretching.
-]]
+*/
 M.StretchedImage = register_type("StretchedImage", Image, {
     target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
@@ -655,7 +655,7 @@ M.StretchedImage = register_type("StretchedImage", Image, {
     end
 })
 
---[[!
+/**
     Derives from $Image. Turns the provided image into a border or a frame.
     Use a <Spacer> with screen_border as padding to offset the children away
     from the border. Without any children, this renders only the corners.
@@ -665,7 +665,7 @@ M.StretchedImage = register_type("StretchedImage", Image, {
         - screen_border - determines the border size.
         - tex_border - determines a texture offset from which to create the
           borders.
-]]
+*/
 M.BorderedImage = register_type("BorderedImage", Image, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -768,12 +768,12 @@ M.BorderedImage = register_type("BorderedImage", Image, {
     set_screen_border = gen_setter "screen_border"
 })
 
---[[!
+/**
     Derived from $Image. Represents a tiled image.
 
     Properties:
         - tile_w, tile_h - tile width and height, they default to 1.
-]]
+*/
 M.TiledImage = register_type("TiledImage", Image, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -854,14 +854,14 @@ M.TiledImage = register_type("TiledImage", Image, {
     set_tile_h = gen_setter "tile_h"
 })
 
---[[!
+/**
     Derived from $Image. Represents a thumbnail. You can't supply an alt
     image via kwargs, you can supply the other stuff. A thumbnail's default
     texture is notexture and the delay between loads of different
     thumbnails is defined using the "thumbtime" engine variable which
     defaults to 25 milliseconds. If the thumbnail is requested (by
     targeting it), it loads immediately.
-]]
+*/
 M.Thumbnail = register_type("Thumbnail", Image, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -885,42 +885,42 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         end
     end,
 
-    --[[!
+    /**
         Unlike the regular target in $Image, this force-loads the thumbnail
         texture and do targets. See also {{$Image.target}}.
-    ]]
+    */
     target = func(self, cx, cy)
         self:load(true)
         return Image.target(self, cx, cy)
     end,
 
-    --[[!
+    /**
         Before drawing, this tries to load the thumbnail, but without forcing
         it like $target.
-    ]]
+    */
     draw = func(self, sx, sy)
         self:load()
         return Image.draw(self, sx, sy)
     end,
 
-    --[[!
+    /**
         Loads the fallback texture. If the thumbnail is already loaded,
         doesn't do anything.
-    ]]
+    */
     set_fallback = func(self, fallback)
         if self.loaded do return end
         if fallback do self.texture = texture_load(fallback) end
     end
 })
 
---[[!
+/**
     Derived from $Filler. Represents a texture slot thumbnail, for example
     in a texture selector. Regular thumbnail rules and delays are followed
     like in $Thumbnail. See also $VSlotViewer.
 
     Properties:
         - index - the texture slot index (starting with 0, defaults to 0).
-]]
+*/
 M.SlotViewer = register_type("SlotViewer", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -938,13 +938,13 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
         return Widget.draw(self, sx, sy)
     end,
 
-    --[[! Function: set_index ]]
+    /// Function: set_index
     set_index = gen_setter "index"
 })
 
---[[!
+/**
     Similar to (and derives from) $SlotViewer, but previews vslots.
-]]
+*/
 M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
     draw = func(self, sx, sy)
         texture_draw_vslot(self.index, self.w, self.h, sx, sy)
@@ -952,14 +952,14 @@ M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
     end
 })
 
---[[!
+/**
     Derived from $Filler. Represents a 3D model preview.
 
     Properties:
         - model - the model name (like mapmodel paths).
         - anim - an integer.
         - attachments - an array of tag-attachment pairs.
-]]
+*/
 M.ModelViewer = register_type("ModelViewer", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1017,13 +1017,13 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     set_attachments = gen_setter "attachments"
 })
 
---[[!
+/**
     Derived from $Filler. Represents a 3D prefab preview.
 
     Properties:
         - prefab - the prefab name.
         - color - the color (alpha is ignored).
-]]
+*/
 M.PrefabViewer = register_type("PrefabViewer", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1084,14 +1084,14 @@ var SOLID    = 0
 var OUTLINE  = 1
 var MODULATE = 2
 
---[[!
+/**
     Represents a generic shape that derives from $Filler.
 
     Properties:
         - style - can be Shape.SOLID, Shape.OUTLINE, Shape.MODULATE (defaults
           to solid).
         - color - see $ColorFiller.
-]]
+*/
 M.Shape = register_type("Shape", Filler, {
     SOLID    = SOLID,
     OUTLINE  = OUTLINE,
@@ -1112,13 +1112,13 @@ M.Shape = register_type("Shape", Filler, {
 })
 var Shape = M.Shape
 
---[[!
+/**
     A regular triangle that derives from $Shape.  Its width and height is
     determined by min_w and min_h (same conventions as on $Filler apply).
 
     Properties:
         - angle - the triangle rotation (in degrees).
-]]
+*/
 M.Triangle = register_type("Triangle", Shape, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1199,7 +1199,7 @@ M.Triangle = register_type("Triangle", Shape, {
     set_angle = gen_setter "angle"
 })
 
---[[!
+/**
     A regular circle that derives from $Shape. Its radius is determined
     by min_w and min_h (same conventions as on $Filler apply when it comes
     to widget bounds and the smaller one is used to determine radius).
@@ -1207,7 +1207,7 @@ M.Triangle = register_type("Triangle", Shape, {
     Properties:
         - sides - defaults to 15, specifying the number of sides this circle
           will have (it's not a perfect circle, but rather a polygon).
-]]
+*/
 M.Circle = register_type("Circle", Shape, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1263,7 +1263,7 @@ M.Circle = register_type("Circle", Shape, {
     set_sides = gen_setter "sides"
 })
 
---[[!
+/**
     A regular label. If the scale is negative, it uses console text scaling
     multiplier instead of regular one.
 
@@ -1274,7 +1274,7 @@ M.Circle = register_type("Circle", Shape, {
          - wrap - whether to wrap the text, defaults to -1 - not wrapping,
            otherwise it's a number of characters.
          - color - see $ColorFiller.
-]]
+*/
 M.Label = register_type("Label", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1288,9 +1288,9 @@ M.Label = register_type("Label", Widget, {
         return Widget.__ctor(self, kwargs)
     end,
 
-    --[[!
+    /**
         Labels are always targetable. See also {{$Widget.target}}.
-    ]]
+    */
     target = func(self, cx, cy)
         return Widget.target(self, cx, cy) or self
     end,
@@ -1359,10 +1359,10 @@ M.Label = register_type("Label", Widget, {
     set_color = gen_color_setter "color"
 })
 
---[[!
+/**
     See $Label. Instead of the property "text", there is "func", which is
     a callable value that returns the text to display.
-]]
+*/
 M.EvalLabel = register_type("EvalLabel", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1442,32 +1442,32 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
     set_color = gen_color_setter "color"
 })
 
---[[! Variable: FILTER_LINEAR
+/** Variable: FILTER_LINEAR
     A texture fitler equivalent to GL_LINEAR.
-]]
+*/
 M.FILTER_LINEAR = gl.LINEAR
 
---[[! Variable: FILTER_LINEAR_MIPMAP_LINAER
+/** Variable: FILTER_LINEAR_MIPMAP_LINAER
     A texture fitler equivalent to GL_LINEAR_MIPMAP_LINEAR.
-]]
+*/
 M.FILTER_LINEAR_MIPMAP_LINEAR = gl.LINEAR_MIPMAP_LINEAR
 
---[[! Variable: FILTER_LINEAR_MIPMAP_NEAREST
+/** Variable: FILTER_LINEAR_MIPMAP_NEAREST
     A texture fitler equivalent to GL_LINEAR_MIPMAP_NEAREST.
-]]
+*/
 M.FILTER_LINEAR_MIPMAP_NEAREST = gl.LINEAR_MIPMAP_NEAREST
 
---[[! Variable: FILTER_NEAREST
+/** Variable: FILTER_NEAREST
     A texture fitler equivalent to GL_NEAREST.
-]]
+*/
 M.FILTER_NEAREST = gl.NEAREST
 
---[[! Variable: FILTER_NEAREST_MIPMAP_LINEAR
+/** Variable: FILTER_NEAREST_MIPMAP_LINEAR
     A texture fitler equivalent to GL_NEAREST_MIPMAP_LINEAR.
-]]
+*/
 M.FILTER_NEAREST_MIPMAP_LINEAR = gl.NEAREST_MIPMAP_LINEAR
 
---[[! Variable: FILTER_NEAREST_MIPMAP_NEAREST
+/** Variable: FILTER_NEAREST_MIPMAP_NEAREST
     A texture fitler equivalent to GL_NEAREST_MIPMAP_NEAREST.
-]]
+*/
 M.FILTER_NEAREST_MIPMAP_NEAREST = gl.NEAREST_MIPMAP_NEAREST

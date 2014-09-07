@@ -1,4 +1,4 @@
---[[!<
+/**<
     Loads all required core modules, sets up logging, loads the FFI
     and sets up the default environment.
 
@@ -7,12 +7,12 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
---[[! Object: _G
+/** Object: _G
     Sets up the default _G metatable in that way it won't allow creation
     of global variables and usage of non-existent global variables.
-]]
+*/
 setmetatable(_G, {
     __newindex = func(self, n)
         error("attempt to create a global variable '" .. n .. "'", 2)
@@ -25,7 +25,7 @@ setmetatable(_G, {
 // init a random seed
 math.randomseed(os.time())
 
---[[!
+/**
     Traces what Lua does and logs it into the console. Not in use by
     default. Very verbose. Use only when absolutely required. Uncomment
     the sethook line to use it. Takes two arguments, the caught event and
@@ -36,7 +36,7 @@ math.randomseed(os.time())
     ```
     debug.sethook(trace, "c")
     ```
-]]
+*/
 var trace = func(event, line)
     var s = debug.getinfo(2, "nSl")
     print("DEBUG:")

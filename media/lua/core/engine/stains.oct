@@ -1,4 +1,4 @@
---[[!<
+/**<
     Lua stain API. Works on the client.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 @[server] do return {} end
 
@@ -14,11 +14,11 @@ var capi = require("capi")
 
 /// Module: stains
 return {
-    --[[!
+    /**
         The flags available during stain renderer registration. Use bitwise
         OR to combine them. They include RND4 (picks one of four corners),
         ROTATE, INVMOD, OVERBRIGHT, GLOW, SATURATE.
-    ]]
+    */
     flags = {:
         RND4       = 1 << 0,
         ROTATE     = 1 << 1,
@@ -28,7 +28,7 @@ return {
         SATURATE   = 1 << 5
     :},
 
-    --[[! Function: register_renderer
+    /** Function: register_renderer
         Registers a new stain renderer.
 
         Arguments:
@@ -44,16 +44,16 @@ return {
 
         See also:
             - $flags
-    ]]
+    */
     register_renderer = capi.stain_register_renderer,
 
-    --[[! Function: get_renderer
+    /** Function: get_renderer
         Given a name, returns the id of the renderer of that name or
         nothing (if no such renderer exists).
-    ]]
+    */
     get_renderer = capi.stain_get_renderer,
 
-    --[[!
+    /**
         Creates a stain.
 
         Arguments:
@@ -64,7 +64,7 @@ return {
             - r, g, b - the stain color (floats, typically from 0 to 1).
             - info - optional, specifies the corner to use if it's rnd4
               (0 to 3).
-    ]]
+    */
     add = func(tp, op, sp, rad, r, g, b, inf)
         capi.stain_add(tp, op.x, op.y, op.z, sp.x, sp.y, sp.z, rad, r, g, b,
             inf or 0)

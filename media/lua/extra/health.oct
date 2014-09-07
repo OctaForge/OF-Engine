@@ -1,4 +1,4 @@
---[[!<
+/**<
     A reusable health system that integrates with the game manager and
     other modules (the game manager is required).
 
@@ -7,7 +7,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 /// Module: health
 var M = {}
@@ -27,10 +27,10 @@ var connect, emit = signal.connect, signal.emit
 var min, max = math.min, math.max
 var floor = math.floor
 
---[[!
+/**
     This module adds three new animations, "dead", "dying" and "pain",
     on the client. They're stored in this enumeration.
-]]
+*/
 var anims = @[not server,{:
     dead  = model.register_anim "dead",
     dying = model.register_anim "dying",
@@ -38,12 +38,12 @@ var anims = @[not server,{:
 :}]
 M.anims = anims
 
---[[!
+/**
     Derives from {{$actions.LocalAnimationAction}} and is queued as a pain
     effect. The default duration is 600 milliseconds and it uses the
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
-]]
+*/
 var PainAction = @[not server,eactions.LocalAnimationAction:clone {
     name            = "PainAction",
     millis_left     = 600,
@@ -52,22 +52,22 @@ var PainAction = @[not server,eactions.LocalAnimationAction:clone {
 }]
 M.PainAction = PainAction
 
---[[!
+/**
     Derives from a regular Action. Represents player death and the default
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
-]]
+*/
 var DeathAction = @[server,actions.Action:clone {
     name            = "DeathAction",
     allow_multiple  = false,
     cancelable      = false,
     millis_left     = 5000,
 
-    --[[!
+    /**
         Makes the player unable to move, sets up a possible ragdoll, clears
         the player's actions (except itself as it's not cancelable) and
         emits the "killed" signal on the player.
-    ]]
+    */
     __start = func(self)
         var actor = self.actor
         actor:set_attr("can_move", false)
@@ -82,7 +82,7 @@ var DeathAction = @[server,actions.Action:clone {
 }]
 M.DeathAction = DeathAction
 
---[[!
+/**
     The player plugin - use it when baking your player entity prototype. Must be
     used after the game manager player plugin has been baked in (it overrides
     some of its stuff).
@@ -90,7 +90,7 @@ M.DeathAction = DeathAction
     Properties:
         - health - the player's current health.
         - max_health - the maximum health a player can have.
-]]
+*/
 M.player_plugin = {
     __properties = {
         health = svars.StateInteger     { client_set = true },
@@ -106,10 +106,10 @@ M.player_plugin = {
         connect(self, "health,changed", self.health_on_health)
     end,
 
-    --[[!
+    /**
         Overrides the serverside spawn stage 4. In addition to the default
         behavior it restores the player's health.
-    ]]
+    */
     game_manager_spawn_stage_4 = @[server,func(self, auid)
         self:set_attr("health", self:get_attr("max_health"))
         self:set_attr("can_move", true)
@@ -130,9 +130,9 @@ M.player_plugin = {
         return ret
     end,
 
-    --[[!
+    /**
         Overriden so that the "dying" animation is displayed correctly.
-    ]]
+    */
     decide_base_time = func(self, anim)
         if (anim & model.anims.INDEX) == anims.dying do
             var pbt = self.prev_bt
@@ -145,10 +145,10 @@ M.player_plugin = {
         return self:get_attr("start_time")
     end,
 
-    --[[!
+    /**
         Overriden so that the "dying" animation can be used when health is 0
         (and "dead" when at least 1 second after death).
-    ]]
+    */
     decide_animation = @[not server,func(self, ...)
         if self:get_attr("health") > 0 do
             return self.__parent_ent_proto.decide_animation(self, ...)
@@ -171,7 +171,7 @@ M.player_plugin = {
         self:health_changed(health, health - oh, server_orig)
     end,
 
-    --[[!
+    /**
         There are two variants of this one, for the client and for the server.
 
         Server:
@@ -186,7 +186,7 @@ M.player_plugin = {
             - health - the current health.
             - diff - the difference from the old health state.
             - server_orig - true if the change originated on the server.
-    ]]
+    */
     health_changed = @[server,func(self, health, diff, server_orig)
         if health <= 0 do self:enqueue_action(DeathAction()) end
     end,func(self, health, diff, server_orig)
@@ -195,12 +195,12 @@ M.player_plugin = {
         end
     end],
 
-    --[[!
+    /**
         Adds to player's health. If the provided amount is zero, it does
         nothing. The current health also must be larger than 0. Negative
         amount does damage to the player. The result is always clamped
         at 0 on the bottom and at max_health on the top.
-    ]]
+    */
     health_add = func(self, amount)
         var ch = self:get_attr("health")
         if ch > 0 and amount != 0 do
@@ -210,12 +210,12 @@ M.player_plugin = {
     end
 }
 
---[[! Function: health.is_valid_target
+/** Function: health.is_valid_target
     Returns true if the given player entity is a valid target (for example
     for shooting or other kind of damage). The player must not be editing
     or lagged, its health must be higher than 0 and it must be already
     spawned (the spawn stage must be 0).
-]]
+*/
 var is_valid_target = func(ent)
     if not ent or ent.deactivated do return false end
 
@@ -249,11 +249,11 @@ var gethcolor = func(v, maxv)
     return (floor(g * 0xFF) << 8) | (floor(r * 0xFF) << 16)
 end
 
---[[!
+/**
     A bunch of example uses of the code included in this module.
-]]
+*/
 M.plugins = {
-    --[[!
+    /**
         A plugin that turns an entity (colliding one) into a "health area". It
         hooks a collision signal to the entity that changes the collider's
         health in steps (optionally, and only if it's a valid target). Bake
@@ -269,7 +269,7 @@ M.plugins = {
               is negative, the area won't work in steps, instead it'll kill
               the collider when `health_step` is negative or restore maximum
               health when it's positive.
-    ]]
+    */
     area = {
         __properties = {
             health_step = svars.StateInteger(),
@@ -309,9 +309,9 @@ M.plugins = {
         end]
     },
 
-    --[[!
+    /**
         Displays a simple HUD health status on the player.
-    ]]
+    */
     player_hud = {
         __activate = @[not server,func(self)
             gui.get_hud():append(gui.Spacer { pad_h = 0.1, pad_v = 0.1,
@@ -350,10 +350,10 @@ M.plugins = {
         end]
     },
 
-    --[[!
+    /**
         Kills the player when in a deadly area, at once when in the `death`
         material and gradually when in lava.
-    ]]
+    */
     player_in_deadly_material = {
         __activate = @[not server,func(self)
             connect(self, "in_deadly", func(ent, mat)

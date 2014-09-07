@@ -1,4 +1,4 @@
---[[!<
+/**<
     Various button widgets.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var signal = require("core.events.signal")
 
@@ -35,23 +35,23 @@ var clicked_states = {
     [key.MOUSEFORWARD] = "clicked_forward"
 }
 
---[[!
+/**
     A button has five states, "default", "hovering", "clicked_left",
     "clicked_right" and "clicked_middle". On click it emits the "click" signal
     on itself (which is handled by $Widget, the button itself doesn't do
     anything).
-]]
+*/
 M.Button = register_type("Button", Widget, {
     choose_state = func(self)
         return clicked_states[self:is_clicked()] or
             (self:is_hovering() and "hovering" or "default")
     end,
 
-    --[[!
+    /**
         Buttons can take be hovered on. Assuming `self:target(cx, cy)` returns
         anything, this returns itself. That means if a child can be targeted,
         the hovered widget will be the button itself.
-    ]]
+    */
     hover = func(self, cx, cy)
         return self:target(cx, cy) and self
     end,
@@ -63,17 +63,17 @@ M.Button = register_type("Button", Widget, {
 })
 var Button = M.Button
 
---[[!
+/**
     Like $Button, but adds a new state, "menu", when a menu is currently
     opened using this button.
-]]
+*/
 M.MenuButton = register_type("MenuButton", Button, {
     choose_state = func(self)
         return self:get_menu() != nil and "menu" or Button.choose_state(self)
     end
 })
 
---[[!
+/**
     Derived from $Button. The space key serves the same purpose as clicking
     (when focused).
 
@@ -82,7 +82,7 @@ M.MenuButton = register_type("MenuButton", Button, {
           as true, either the "toggled" or "toggled_hovering" state is used,
           otherwise "default" or "default_hovering" is used. The condition
           is passed the current object as an argument.
-]]
+*/
 M.Toggle = register_type("Toggle", Button, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}

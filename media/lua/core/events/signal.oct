@@ -1,4 +1,4 @@
---[[!<
+/**<
     Lua signal system. Allows connecting and further emitting signals.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var log = require("core.logger")
 
@@ -18,7 +18,7 @@ var tfind = table.find
 /// Module: signal
 var M = {}
 
---[[!
+/**
     Connects a signal to a slot inside a table. The callback has to be a
     function.
 
@@ -47,7 +47,7 @@ var M = {}
     Returns:
         The id for the slot, you can later use that to $disconnect the
         slot, it also returns the number of currently connected slots.
-]]
+*/
 M.connect = func(self, name, callback)
     if type(callback) != "function" do
         log.log(log.ERROR, "Not connecting non-function callback: " .. name)
@@ -72,7 +72,7 @@ M.connect = func(self, name, callback)
     return id, clist.slotcount
 end
 
---[[!
+/**
     Disconnects a slot (or slots).
 
     Arguments:
@@ -85,7 +85,7 @@ end
     Returns:
         The number of connected slots after disconnect (or nil if nothing
         could be disconnected).
-]]
+*/
 M.disconnect = func(self, name, id)
     var clistn = "_sig_conn_" .. name
     var clist  = rawget(self, clistn)
@@ -109,7 +109,7 @@ M.disconnect = func(self, name, id)
     end
 end
 
---[[!
+/**
     Emits a signal, calling all the slots associated with it in the
     order of connection, passing all extra arguments to it (besides
     the "self" argument). External as "signal_emit".
@@ -118,7 +118,7 @@ end
         - self - the table we're emitting on.
         - name - the signal name.
         - ... - any further arguments passed to each callback.
-]]
+*/
 M.emit = func(self, name, ...)
     var clistn = "_sig_conn_" .. name
     var clist  = rawget(self, clistn)

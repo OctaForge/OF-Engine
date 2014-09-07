@@ -1,4 +1,4 @@
---[[!<
+/**<
     A main file for the "octacraft" test game. It's meant to be a
     Minecraft inspired demo with procedural world generation.
 
@@ -7,7 +7,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var log = require("core.logger")
 
@@ -27,9 +27,9 @@ var health = require("extra.health")
 
 var Player = ents.Player
 
---[[! Object: GamePlayer
+/** Object: GamePlayer
     This serves as a base for our player.
-]]
+*/
 var GamePlayer = Player:clone {
     name = "GamePlayer",
 }

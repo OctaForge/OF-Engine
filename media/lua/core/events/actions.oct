@@ -1,4 +1,4 @@
---[[!<
+/**<
     Actions are basically objects that are stored in an action queue.
     You can queue new actions and those will run for example for a period
     of time, depending on the action type. They're used to for example queue
@@ -10,7 +10,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var logging = require("core.logger")
@@ -25,7 +25,7 @@ var createtable = capi.table_create
 /// Module: actions
 var M = {}
 
---[[!
+/**
     Provides the base action object other actions can inherit from.
     Takes care of the basic action infrastructure. It doesn't really
     do anything, though.
@@ -53,14 +53,14 @@ var M = {}
           (i.e. it runs as long as the other action does, and it finishes
           as soon as the other action does). Useful for e.g. animations that
           run in parallel.
-]]
+*/
 M.Action = table.Object:clone {
     name = "Action",
 
-    --[[!
+    /**
         Constructs the action. Takes kwargs, which is an optional argument
         supplying modifiers for the action. It's an associative array.
-    ]]
+    */
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
 
@@ -88,10 +88,10 @@ M.Action = table.Object:clone {
             (self.parallel_to == nil) and kwargs.parallel_to or false
     end,
 
-    --[[!
+    /**
         Overloaded so that tostring(x) where x is an action simply
         returns the name ("Action" for the base action).
-    ]]
+    */
     __tostring = func(self) return self.name end,
 
     priv_start = func(self)
@@ -99,10 +99,10 @@ M.Action = table.Object:clone {
         self:__start()
     end,
 
-    --[[!
+    /**
         By default, empty. Overload in your inherited actions as you need.
         Called when the action flow starts.
-    ]]
+    */
     __start = func(self)
     end,
 
@@ -146,7 +146,7 @@ M.Action = table.Object:clone {
         end
     end,
 
-    --[[!
+    /**
         Override this in inherited actions. By default does almost nothing,
         but the "almost nothing" is important, so make sure to call this
         always at the end of your custom "__run", like this:
@@ -169,7 +169,7 @@ M.Action = table.Object:clone {
         Arguments:
             - millis - the amount of time in milliseconds to simulate this
               iteration.
-    ]]
+    */
     __run = func(self, millis)
         self.millis_left = self.millis_left - millis
         return (self.millis_left <= 0)
@@ -191,17 +191,17 @@ M.Action = table.Object:clone {
         self:__finish()
     end,
 
-    --[[!
+    /**
         By default, empty. Overload in your inherited actions as you need.
         Called when the action finishes.
-    ]]
+    */
     __finish = func(self)
     end,
 
-    --[[!
+    /**
         Forces the action to finish. Effective only when the "cancelable"
         property of the action is true (it is by default).
-    ]]
+    */
     cancel = func(self)
         if  self.cancelable do
             self:priv_finish()
@@ -210,49 +210,49 @@ M.Action = table.Object:clone {
 }
 var Action = M.Action
 
---[[!
+/**
     An action that never ends.
-]]
+*/
 M.InfiniteAction = Action:clone {
     name = "InfiniteAction",
 
-    --[[!
+    /**
         One of the exceptional cases of the "__run" method; it always returns
         false because it doesn't manipulate "millis_left".
-    ]]
+    */
     __run = func(self, millis)
         return false
     end
 }
 
---[[!
+/**
     An action queue.
 
     Fields:
         - parent - the parent entity of this action queue.
         - actions - an array of actions.
-]]
+*/
 M.ActionQueue = table.Object:clone {
     name = "ActionQueue",
 
-    --[[!
+    /**
         Initializes the queue.
 
         Arguments:
             - parent - the parent entity.
-    ]]
+    */
     __ctor = func(self, parent)
         self.parent   = parent
         self.actions  = createtable(4)
         self._changed = false
     end,
 
-    --[[!
+    /**
         Runs the action queue. If there are any actions left from the
         previous frame that are finished, the action array is first
         compacted. Then this runs the first unfinished action in the
         list (providing the millis as an argument).
-    ]]
+    */
     run = func(self, millis)
         var acts = self.actions
         if self._changed do
@@ -268,12 +268,12 @@ M.ActionQueue = table.Object:clone {
         end
     end,
 
-    --[[!
+    /**
         Enqueues an action. If multiple actions of the same type are not
         enabled on the action we're queuing, this first checks the existing
         queue and if it finds an action of the same type, it warns and returns.
         Otherwise it enqueues the action.
-    ]]
+    */
     enqueue = func(self, act)
         var acts = self.actions
         if not act.allow_multiple do
@@ -294,9 +294,9 @@ M.ActionQueue = table.Object:clone {
         act.queue = self
     end,
 
-    --[[!
+    /**
         Clears the action queue (cancels every action in the queue).
-    ]]
+    */
     clear = func(self)
         var acts = self.actions
         for i = 1, #acts do

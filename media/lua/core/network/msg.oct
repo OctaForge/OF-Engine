@@ -1,4 +1,4 @@
---[[!<
+/**<
     Provides an API to the OctaForge message system.
 
     Author:
@@ -6,20 +6,20 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 /// Module: msg
 var M = {}
 
 var type, assert = type, assert
 
---[[!
+/**
     A constant (value -1) used when sending messages. Specifying this constant
     means that the message will be sent to all clients.
-]]
+*/
 M.ALL_CLIENTS = -1
 
---[[!
+/**
     Sends a message. On the client, it simply calls the given message function,
     using the remaining arguments as the call arguments.
 
@@ -30,18 +30,18 @@ M.ALL_CLIENTS = -1
 
     Client:
         The first argument is the message function directly.
-]]
+*/
 M.send = @[server,func(cn, mf, ...)
     mf(cn, ...)
 end,func(mf, ...)
     mf(...)
 end]
 
---[[!
+/**
     Shows a message on the client, coming from the server (this only works
     serverside). You need to provide a client number or a client entity, a
     message title and a message text.
-]]
+*/
 M.show_client_message = @[server,func(cn, title, text)
     cn = type(cn) == "table" and cn.cn or cn
     assert(cn)

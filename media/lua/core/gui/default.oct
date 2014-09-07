@@ -502,10 +502,10 @@ set_ext("background_render", func(caption, mapname, mapinfo, mapshot)
         and ffi.cast("Texture*", mapshot) or nil, caption))
 end)
 
---[[! Variable: applydialog
+/** Variable: applydialog
     An engine variable that controls whether the "apply" dialog will show
     on changes that need restart of some engine subsystem. Defaults to 1.
-]]
+*/
 cs.var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
     cs.var_flags.PERSIST)
 cs.var_new("hidechanges", cs.var_type.int, 0, 0, 1)

@@ -1,4 +1,4 @@
---[[!<
+/**<
     Slider widgets.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var signal = require("core.events.signal")
@@ -43,7 +43,7 @@ var adjust = M.adjust
 
 var SliderButton
 
---[[!
+/**
     Implements a base type for either horizontal or vertical slider.
 
     Changes of "value" performed internally emit the "value,changed" signal
@@ -56,7 +56,7 @@ var SliderButton
         - step_size - the size of one slider step, defaults to 1.
         - step_time - the time to perform a step during arrow scroll,
           defaults to 100.
-]]
+*/
 M.Slider = register_type("Slider", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -99,11 +99,11 @@ M.Slider = register_type("Slider", Widget, {
         emit(self, "value,changed", val)
     end,
 
-    --[[!
+    /**
         You can change the slider value using the up, left keys (goes back
         by one step), down, right keys (goes forward by one step) and mouse
         scroll (goes forward/back by 3 steps).
-    ]]
+    */
     key_hover = func(self, code, isdown)
         if code == key.UP or code == key.LEFT do
             if isdown do self:do_step(-1) end
@@ -125,19 +125,19 @@ M.Slider = register_type("Slider", Widget, {
         return 0
     end,
 
-    --[[!
+    /**
         The slider can be hovered on unless some of its children want the
         hover instead.
-    ]]
+    */
     hover = func(self, cx, cy)
         return Widget.hover(self, cx, cy) or
                      (self:target(cx, cy) and self)
     end,
 
-    --[[!
+    /**
         The slider can be clicked on unless some of its children want the
         click instead.
-    ]]
+    */
     click = func(self, cx, cy, code)
         return Widget.click(self, cx, cy, code) or
                      (self:target(cx, cy) and self)
@@ -145,10 +145,10 @@ M.Slider = register_type("Slider", Widget, {
 
     scroll_to = func(self, cx, cy) end,
 
-    --[[!
+    /**
         Clicking inside the slider area but outside the arrow area jumps
         in the slider.
-    ]]
+    */
     clicked = func(self, cx, cy, code)
         if code == key.MOUSELEFT do
             var d = self.choose_direction(self, cx, cy)
@@ -214,14 +214,14 @@ var clicked_states = {
     [key.MOUSEFORWARD] = "clicked_forward"
 }
 
---[[!
+/**
     A slider button you can put inside a slider and drag. The slider
     will adjust the button width (in case of horizontal slider) and height
     (in case of vertical slider) depending on the slider size and values.
 
     A slider button has seven states, "default", "hovering", "clicked_left",
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
-]]
+*/
 M.SliderButton = register_type("SliderButton", Widget, {
     __ctor = func(self, kwargs)
         self.offset_h = 0
@@ -274,14 +274,14 @@ M.SliderButton = register_type("SliderButton", Widget, {
 })
 SliderButton = M.SliderButton
 
---[[!
+/**
     A specialization of $Slider. Has the "orient" member set to
     the HORIZONTAL field of $orient. Overloads some of the Slider
     methods specifically for horizontal direction.
 
     Has thirteen states - "default", "(left|right)_hovering",
     "(left|right)_clicked_(left|right|middle|back|forward)".
-]]
+*/
 M.HSlider = register_type("HSlider", Slider, {
     orient = orient.HORIZONTAL,
 
@@ -345,10 +345,10 @@ M.HSlider = register_type("HSlider", Slider, {
     end
 }, Slider.type)
 
---[[!
+/**
     See $HSlider above. Has different states, "default", "(up|down)_hovering"
     and  "(up|down)_clicked_(left|right|middle|back|forward)".
-]]
+*/
 M.VSlider = register_type("VSlider", Slider, {
     choose_state = func(self)
         var ad = self.arrow_dir

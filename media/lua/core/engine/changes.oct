@@ -1,4 +1,4 @@
---[[!<
+/**<
     Lua interface to changes queue.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var cs = require("core.engine.cubescript")
 var signal = require("core.events.signal")
@@ -17,9 +17,9 @@ var needsapply = {}
 
 var M = {}
 
---[[!
+/**
     Specifies the change type, can be GFX, SOUND or SHADERS.
-]]
+*/
 M.change = {:
     GFX     = 1 << 0,
     SOUND   = 1 << 1,
@@ -31,10 +31,10 @@ set_external("change_add", func(desc, ctype)
     signal.emit(M, "add", ctype, desc)
 end)
 
---[[!
+/**
     Adds a change of the given type and description to the queue assuming
     a change of the same description doesn't already exist.
-]]
+*/
 M.add = func(ctype, desc)
     for i, v in pairs(needsapply) do
         if v.desc == desc do return end
@@ -44,9 +44,9 @@ M.add = func(ctype, desc)
     }
 end
 
---[[!
+/**
     Clears out changes of the given type. If not given, clears out all.
-]]
+*/
 M.clear = func(ctype)
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
@@ -65,9 +65,9 @@ M.clear = func(ctype)
 end
 set_external("changes_clear", M.clear)
 
---[[!
+/**
     Applies all queued changes.
-]]
+*/
 M.apply = func()
     var changetypes = 0
     for i, v in pairs(needsapply) do
@@ -84,9 +84,9 @@ M.apply = func()
     end
 end
 
---[[!
+/**
     Returns a table of all queued changes' descriptions.
-]]
+*/
 M.get = func()
     return table.map(needsapply, func(v) return v.desc end)
 end

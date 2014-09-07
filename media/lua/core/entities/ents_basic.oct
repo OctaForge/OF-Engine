@@ -1,4 +1,4 @@
---[[!<
+/**<
     A basic entity set (extends over the base entity).
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var ffi = require("ffi")
 var capi = require("capi")
@@ -86,7 +86,7 @@ var mrender = @[not server,model.render]
 /// Module: ents
 var M = ents
 
---[[!
+/**
     Represents the base prototype for any character (NPC, player etc.). Players
     use the $Player entity prototype that inherits from this one.
     Inherited property model_name defaults to "player".
@@ -167,27 +167,27 @@ var M = ents
           liquid material id (water, lava).
         - time_in_air [{{$svars.StateInteger}}] - time in milliseconds spent
           in the air (TODO: unsigned).
-]]
+*/
 M.Character = Entity:clone {
     name = "Character",
 
     // so that it isn't nonsauer
     sauer_type = -1,
 
-    --[[!
+    /**
         Defines the "client states". 0 is ALIVE, 1 is DEAD, 2 is SPAWNING,
         3 is LAGGED, 4 is EDITING, 5 is SPECTATOR.
-    ]]
+    */
     State = {:
         ALIVE = 0, DEAD = 1, SPAWNING = 2, LAGGED = 3, EDITING = 4,
         SPECTATOR = 5
     :},
 
-    --[[!
+    /**
         Defines the "physical states". 0 is FLOATING, 1 is FALLING,
         2 is SLIDING, 3 is SLOPING, 4 is ON_FLOOR, 5 is STEPPING_UP,
         6 is STEPPING_DOWN, 7 is BOUNCING.
-    ]]
+    */
     PhysicalState = {:
         FLOATING = 0, FALLING = 1, SLIDING = 2, SLOPING = 3,
         ON_FLOOR = 4, STEPPING_UP = 5, STEPPING_DOWN = 6, BOUNCING = 7
@@ -326,25 +326,25 @@ M.Character = Entity:clone {
         landing_sound = svars.StateString()
     },
 
-    --[[!
+    /**
         A handler called when the character is about to jump. By default sets
         `jumping` to value of its argument.
 
         Arguments:
             - down - whether the jump key is down.
-    ]]
+    */
     jump = func(self, down)
         self:set_attr("jumping", down)
     end,
 
-    --[[! Function: crouch
+    /** Function: crouch
         A handler called when the character is about to crouch. By default
         checks if `down` is true and if it is, sets `crouching` to -1,
         otherwise sets `crouching` to `abs(crouching)`.
 
         Arguments:
             - down - whether the crouch key is down.
-    ]]
+    */
     crouch = func(self, down)
         if down do
             self:set_attr("crouching", -1)
@@ -438,15 +438,15 @@ M.Character = Entity:clone {
         Entity.__deactivate(self)
     end,
 
-    --[[!
+    /**
         Decides the base time to use for animation rendering of the character.
         By default simply returns `start_time`.
-    ]]
+    */
     decide_base_time = func(self, anim)
         return self:get_attr("start_time")
     end,
 
-    --[[! Function: __render
+    /** Function: __render
         Clientside and run per frame. It renders the character model. Decides
         all the parameters, including animation etc.
 
@@ -462,7 +462,7 @@ M.Character = Entity:clone {
               we're rendering a HUD model right now).
             - needhud - true if we're in first person mode.
             - fpsshadow - true if we enabled a FPS player shadow.
-    ]]
+    */
     __render = @[not server,func(self, hudpass, needhud, fpsshadow)
         if not self.initialized do return end
         if not hudpass and needhud and not fpsshadow do return end
@@ -507,14 +507,14 @@ M.Character = Entity:clone {
         mrender(self, mdn, anim, o, yaw, pitch, roll, flags, bt)
     end],
 
-    --[[! Function: get_render_flags
+    /** Function: get_render_flags
         Returns the rendering flags used when rendering the character. By
         default, it enables some occlusion stuff. Override as needed.
         Called from $__render. Clientside.
 
         Arguments:
             - hudpass, needhud - see $__render.
-    ]]
+    */
     get_render_flags = @[not server,func(self, hudpass, needhud)
         var flags
         if self != ents.get_player() do
@@ -534,15 +534,15 @@ M.Character = Entity:clone {
         return flags
     end],
 
-    --[[! Function: get_animation
+    /** Function: get_animation
         Returns the base "action animation" used by $decide_animation. By
         default simply return the `animation` attribute.
-    ]]
+    */
     get_animation = @[not server,func(self)
         return self:get_attr("animation")
     end],
 
-    --[[! Function: decide_animation
+    /** Function: decide_animation
         Decides the current animation for the character. Starts with
         $get_animation, then adjusts it to take things like moving,
         strafing, swimming etc into account. Returns the animation
@@ -553,7 +553,7 @@ M.Character = Entity:clone {
             - pstate - physical state (see $PhysicalState).
             - move, strafe, crouching, vel, falling, unwater, tinair - see
               the appropriate state variables.
-    ]]
+    */
     decide_animation = @[not server,func(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
         var anim = self:get_animation()
@@ -619,41 +619,41 @@ M.Character = Entity:clone {
         return panim | (sanim << anims.SECONDARY)
     end],
 
-    --[[!
+    /**
         Gets the center position of a character, something like gravity center
         (approximate). Useful for e.g. bots (better to aim at this position,
         the actual `position` is feet position). Override if you need this
         non-standard. By default it's 0.75 * eye_height above feet.
-    ]]
+    */
     get_center = func(self)
         var r = self:get_attr("position"):copy()
         r.z = r.z + self:get_attr("eye_height") * 0.75
         return r
     end,
 
-    --[[!
+    /**
         Given an origin position (e.g. from an attachment tag), this method
         is supposed to fix it so that it corresponds to where player actually
         targeted from. By default just returns origin.
-    ]]
+    */
     get_targeting_origin = func(self, origin)
         return origin
     end,
 
-    --[[!
+    /**
         Sets the `animation` property locally, without notifying the other
         side. Useful when allowing actions to animate the entity (as we mostly
         don't need the changes to reflect elsewhere).
-    ]]
+    */
     set_local_animation = func(self, anim)
         capi.set_animation(self.uid, anim)
         self.svar_values["animation"] = anim
     end,
 
-    --[[!
+    /**
         Sets the `model_name` property locally, without notifying the other
         side.
-    ]]
+    */
     set_local_model_name = func(self, mname)
         capi.set_model_name(self.uid, mname)
         self.svar_values["model_name"] = mname
@@ -661,12 +661,12 @@ M.Character = Entity:clone {
 }
 var Character = M.Character
 
---[[! Function: physics_collide_client
+/** Function: physics_collide_client
     An external called when two clients collide. Takes unique ids of both
     entities. By default emits the "collision" signal on both clients, passing
     the other one as an argument. The client we're testing collisions against
     gets the first emit.
-]]
+*/
 set_external("physics_collide_client", func(cl1, cl2, dx, dy, dz)
     cl1, cl2 = ent_get(cl1), ent_get(cl2)
     emit(cl1, "collision", cl2, dx, dy, dz)
@@ -677,14 +677,14 @@ set_external("entity_set_local_animation", func(uid, anim)
     ent_get(uid):set_local_animation(anim)
 end)
 
---[[!
+/**
     The default entity prototype for player. Inherits from $Character. Adds
     two new properties.
 
     Properties:
         - can_edit [false] - if player can edit, it's true (private edit mode).
         - hud_model_name [""] - the first person model to use for the player.
-]]
+*/
 M.Player = Character:clone {
     name = "Player",
 
@@ -716,7 +716,7 @@ var gen_attr = func(i, name)
     }
 end
 
---[[!
+/**
     A base for any static entity. Inherits from $Entity. Unlike
     dynamic entities (such as $Character$), static entities usually don't
     invoke their `__run` method per frame. To re-enable that, set the
@@ -729,7 +729,7 @@ end
 
     Properties:
         position [{{$svars.StateVec3}}] - the entity position.
-]]
+*/
 M.StaticEntity = Entity:clone {
     name = "StaticEntity",
 
@@ -815,81 +815,81 @@ M.StaticEntity = Entity:clone {
         @[debug] log(DEBUG, "StaticEntity.send_notification_full: done")
     end],
 
-    --[[!
+    /**
         See {{$Character.get_center}}. By default this is the entity position.
         May be overloaded for other entity types.
-    ]]
+    */
     get_center = func(self)
         return self:get_attr("position"):copy()
     end,
 
-    --[[!
+    /**
         Returns the color of the entity icon in edit mode. If an invalid
         value is returned, it defaults to 255, 255, 255 (white). This is
         useful for e.g. light entity that is colored.
-    ]]
+    */
     __get_edit_color = func(self)
         return 255, 255, 255
     end,
 
-    --[[!
+    /**
         Returns any piece of information displayed in in the edit HUD in
         addition to the entity name. Overload for different entity types.
-    ]]
+    */
     __get_edit_info = func(self)
         return nil
     end,
 
-    --[[!
+    /**
         Returns the currently attached entity. Useful mainly for spotlights.
         This refers to the "internally attached" entity that the core engine
         works with.
-    ]]
+    */
     get_attached_entity = func(self)
         return capi.get_attached_entity(self.uid)
     end,
 
-    --[[!
+    /**
         Returns the height above the floor to use when dropping the entity
         to the floor. By default returns 4, may be useful to overload (for
         say, mapmodels).
-    ]]
+    */
     get_edit_drop_height = func(self)
         return 4
     end
 }
 var StaticEntity = M.StaticEntity
 
---[[! Function: entity_get_edit_info
+/** Function: entity_get_edit_info
     An external. Returns `ent.__edit_icon`,
     `ent:{{$StaticEntity.__get_edit_color|__get_edit_color}}()` where `ent`
     is the entity with unique id `uid`.
-]]
+*/
 set_external("entity_get_edit_icon_info", func(uid)
     var ent = ent_get(uid)
     return ent.__edit_icon, ent:__get_edit_color()
 end)
 
---[[! Function: entity_get_edit_info
+/** Function: entity_get_edit_info
     An external. Returns the entity name and the return value of
     {{$StaticEntity.__get_edit_info}}.
-]]
+*/
 set_external("entity_get_edit_info", func(uid)
     var ent = ent_get(uid)
     return ent.name, ent:__get_edit_info()
 end)
 
---[[! Function: entity_get_edit_drop_height
+/** Function: entity_get_edit_drop_height
     An external, see {{$StaticEntity.get_edit_drop_height}}. Takes the uid.
-]]
+*/
 set_external("entity_get_edit_drop_height", func(ent)
     return ent_get(ent):get_edit_drop_height()
 end)
 
---[[!
+/**
     A generic marker without orientation. It doesn't have any default
     additional properties.
-]]
+*/
 M.Marker = StaticEntity:clone {
     name = "Marker",
 
@@ -904,7 +904,7 @@ M.Marker = StaticEntity:clone {
 }
 var Marker = M.Marker
 
---[[!
+/**
     A generic (oriented) marker with a wide variety of uses. Can be used as
     a base for various position markers (e.g. playerstarts).
 
@@ -914,7 +914,7 @@ var Marker = M.Marker
     Properties:
         - attr1 - aka "yaw".
         - attr2 - aka "pitch".
-]]
+*/
 M.OrientedMarker = StaticEntity:clone {
     name = "OrientedMarker",
 
@@ -958,7 +958,7 @@ var lightflags = setmetatable({
     end
 })
 
---[[!
+/**
     A regular point light. In the extension library there are special light
     entity types that are e.g. triggered, flickering and so on. When providing
     properties as extra arguments to newent, you can specify red, green, blue,
@@ -973,7 +973,7 @@ var lightflags = setmetatable({
         - attr3 - green value (alias "green", default 128)
         - attr4 - blue value (alias "blue", default 128)
         - attr5 - shadow type, 0 means dnyamic, 1 disabled, 2 static (default 0).
-]]
+*/
 M.Light = StaticEntity:clone {
     name = "Light",
 
@@ -1013,14 +1013,14 @@ M.Light = StaticEntity:clone {
     end
 }
 
---[[!
+/**
     A spot light. It's attached to the nearest $Light. Properties such as
     color are retrieved from the attached light entity.
 
     Properties:
         - attr1 - alias "radius", defaults to 90, in degrees (90 is a full
           hemisphere, 0 is a line)
-]]
+*/
 M.SpotLight = StaticEntity:clone {
     name = "SpotLight",
 
@@ -1049,7 +1049,7 @@ M.SpotLight = StaticEntity:clone {
     end
 }
 
---[[!
+/**
     An environment map entity prototype. Things reflecting on their surface using
     environment maps can generate their envmap from the nearest envmap entity
     instead of using skybox and reflect geometry that way (statically). You
@@ -1058,7 +1058,7 @@ M.SpotLight = StaticEntity:clone {
     Properties:
         - attr1 - alias "radius", the distance it'll still have effect in,
           defaults to 128.
-]]
+*/
 M.Envmap = StaticEntity:clone {
     name = "Envmap",
 
@@ -1081,7 +1081,7 @@ M.Envmap = StaticEntity:clone {
     end
 }
 
---[[!
+/**
     An ambient sound in the world. Repeats the given sound at entity position.
     You can specify the sound name, volume, radius and size as extra arguments
     to newent.
@@ -1096,7 +1096,7 @@ M.Envmap = StaticEntity:clone {
           default 100).
         - sound_name [{{$svars.StateString}}] - the  path to the sound in
           media/sound (default "").
-]]
+*/
 M.Sound = StaticEntity:clone {
     name = "Sound",
 
@@ -1146,12 +1146,12 @@ set_external("sound_play_map", func(uid)
     ent_get(uid):__play_sound()
 end)
 
---[[!
+/**
     A particle effect entity prototype. You can derive from this to create
     your own effects, but by default this doesn't draw anything and is
     not registered. It also specifies __emit_particles as a composable
     method.
-]]
+*/
 M.ParticleEffect = StaticEntity:clone {
     name = "ParticleEffect",
 
@@ -1173,7 +1173,7 @@ set_external("particle_entity_emit", func(uid)
     ent_get(uid):__emit_particles()
 end)
 
---[[!
+/**
     A model in the world. All attrs default to 0. On mapmodels and all
     entity types derived from mapmodels, the engine emits the `collision`
     signal with the collider entity passed as an argument when collided.
@@ -1193,7 +1193,7 @@ end)
         - attr2 - the model pitch, alias "pitch".
         - attr3 - the model roll, alias "roll".
         - attr4 - the model scale, alias "scale".
-]]
+*/
 M.Mapmodel = StaticEntity:clone {
     name = "Mapmodel",
 
@@ -1258,19 +1258,19 @@ M.Mapmodel = StaticEntity:clone {
     set_local_model_name = Character.set_local_model_name
 }
 
---[[! Function: physics_collide_mapmodel
+/** Function: physics_collide_mapmodel
     An external called when a client collides with a mapmodel. Takes the
     collider entity uid (the client) and the mapmodel entity uid. By default
     emits the `collision` signal on both entities, passing the other one as an
     argument. The mapmodel takes precedence.
-]]
+*/
 set_external("physics_collide_mapmodel", func(collider, entity)
     collider, entity = ent_get(collider), ent_get(entity)
     emit(entity, "collision", collider)
     emit(collider, "collision", entity)
 end)
 
---[[!
+/**
     An entity prototype that emits a `collision` signal on itself when a client
     (player, NPC...) collides with it. You can specify the properties as extra
     arguments to newent.
@@ -1281,7 +1281,7 @@ end)
           10, 10, 10 by default).
         - attr7 - alias "solid", makes the obstacle solid when not 0 (0
           by default).
-]]
+*/
 M.Obstacle = StaticEntity:clone {
     name = "Obstacle",
 
@@ -1323,7 +1323,7 @@ M.Obstacle = StaticEntity:clone {
     end
 }
 
---[[!
+/**
     A decal entity prototype. It represents a decal that sticks to world geometry.
     Refer to Tesseract documentation for decals. You can specify the properties
     as extra arguments to newent, in slot, size, yaw, pitch, roll order
@@ -1333,7 +1333,7 @@ M.Obstacle = StaticEntity:clone {
         - attr1 - alias "slot", the decal slot used.
         - attr2, attr3, attr4 - alias "yaw", "pitch", "roll", 0 by default.
         - atr5 - alias "size", the decal size in cube units.
-]]
+*/
 M.Decal = StaticEntity:clone {
     name = "Decal",
 
@@ -1371,12 +1371,12 @@ M.Decal = StaticEntity:clone {
     end
 }
 
---[[! Function: physics_collide_area
+/** Function: physics_collide_area
     An external called when a client collides with an area. Takes the
     collider entity uid (the client) and the area entity uid. By default emits
     the `collision` signal on both entities, passing the other one as an
     argument. The obstacle takes precedence.
-]]
+*/
 set_external("physics_collide_area", func(collider, entity)
     collider, entity = ent_get(collider), ent_get(entity)
     emit(entity, "collision", collider)

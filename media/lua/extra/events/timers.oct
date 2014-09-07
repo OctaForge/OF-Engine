@@ -1,4 +1,4 @@
---[[!<
+/**<
     Timer objects for general use.
 
     Author:
@@ -6,20 +6,20 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 /// Module: timers
 var M = {}
 
---[[!
+/**
     A general use timer. It's not automatically managed - you have to simulate
     it yourself using the provided methods. That makes it flexible for various
     scenarios (where the timing is not managed by the general event loop).
-]]
+*/
 M.Timer = table.Object:clone {
     name = "Timer",
 
-    --[[!
+    /**
         A timer constructor.
 
         Arguments:
@@ -29,14 +29,14 @@ M.Timer = table.Object:clone {
               extra time to next iteration (if you $tick with a too large
               value, the sum will be larger than the interval), defaults
               to false.
-    ]]
+    */
     __ctor = func(self, interval, carry_over)
         self.interval   = interval
         self.carry_over = carry_over or false
         self.sum        = 0
     end,
 
-    --[[!
+    /**
         Performs one timer tick.
 
         Arguments:
@@ -46,7 +46,7 @@ M.Timer = table.Object:clone {
 
         Returns:
             True if the interval was reached, false otherwise.
-    ]]
+    */
     tick = func(self, millis)
         var sum = self.sum + millis
         var interval = self.interval

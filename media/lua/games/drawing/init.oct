@@ -1,4 +1,4 @@
---[[!<
+/**<
     A test "game" for OctaForge that lets you draw on the world geometry.
     Left click to draw, right click to stop drawing, middle click to change
     colors.
@@ -8,7 +8,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var log = require("core.logger")
 
@@ -49,14 +49,14 @@ var Player = ents.Player
         particles.flags.BRIGHT)
 end
 
---[[! Object: GamePlayer
+/** Object: GamePlayer
     This serves as a base for our player. It defines all the basic entry
     points for the drawing game.
 
     Properties:
         - new_mark - contains mark data. It's required because it has to sync
           over the server (e.g. in coop).
-]]
+*/
 var GamePlayer = Player:clone {
     name = "GamePlayer",
 
@@ -81,10 +81,10 @@ var GamePlayer = Player:clone {
         self.stop_batch = true
     end,
 
-    --[[! Function: __activate
+    /** Function: __activate
         Called on entity activation. Connects a callback to state data
         change of new_mark.
-    ]]
+    */
     __activate = @[not server,func(self, kwargs)
         Player.__activate(self, kwargs)
         self.marks = {}
@@ -101,9 +101,9 @@ var GamePlayer = Player:clone {
         end)
     end],
 
-    --[[! Function: __run
+    /** Function: __run
         Called every frame. It goes over the marks and draws everything.
-    ]]
+    */
     __run = @[not server,func(self, millis)
         Player.__run(self, millis)
         var last = nil

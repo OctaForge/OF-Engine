@@ -1,4 +1,4 @@
---[[!<
+/**<
     Various types of particle effects. All of the entity types here
     derive from {{$ents.ParticleEffect}}.
 
@@ -7,7 +7,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var ents = require("core.entities.ents")
 var svars = require("core.entities.svars")
@@ -24,10 +24,10 @@ var ParticleEffect = ents.ParticleEffect
 /// Module: particles
 var M = {}
 
---[[! Table: particles.renderers
+/** Table: particles.renderers
     Provides some extra renderers - "smoke", "flame" and "steam" used
     by the effect entities. On the client only, on the server this is nil.
-]]
+*/
 var renderers = @[not server,{
     smoke = quadrenderer("smoke", "media/particle/smoke",
         pflags.FLIP | pflags.LERP),
@@ -38,7 +38,7 @@ var renderers = @[not server,{
 
 var cmap = { "x", "y", "z" }
 
---[[! Function: particles.offset_vec
+/** Function: particles.offset_vec
     This adds or subtracts the distance to the vector component given by
     the direction, 0 is z with addition, 1 is x with addition, 2 is
     y with addition, 3 is z with subtraction, 4 is x with subtraction,
@@ -48,7 +48,7 @@ var cmap = { "x", "y", "z" }
         - v - a vector, any object with members x, y, z (that are numbers).
         - dir - a direction (0 to 5 where 0 is up).
         - dist - a distance.
-]]
+*/
 var offset_vec = func(v, dir, dist)
     var e = cmap[((2 + dir) % 3) + 1]
     v[e] = v[e] + ((dir > 2) and -dist or dist)
@@ -58,7 +58,7 @@ M.offset_vec = offset_vec
 
 var SMOKE, FLAME = renderers.smoke, renderers.flame
 
---[[! Object: particles.FireEffect
+/** Object: particles.FireEffect
     A regular fire effect. You can specify radius, height, red, green and blue
     values as newent arguments.
 
@@ -66,7 +66,7 @@ var SMOKE, FLAME = renderers.smoke, renderers.flame
         - radius - the fire radius, defaults to 1.5.
         - height - the fire height, defaults to 0.5.
         - red, green, blue - the color values (they default to 0x903020).
-]]
+*/
 M.FireEffect = ParticleEffect:clone {
     name = "FireEffect",
 
@@ -116,12 +116,12 @@ M.FireEffect = ParticleEffect:clone {
 
 var STEAM = renderers.steam
 
---[[! Object: particles.SteamEffect
+/** Object: particles.SteamEffect
     A steam effect. You can pass the direction via newent.
 
     Properties:
         - direction - see $offset_vec.
-]]
+*/
 M.SteamEffect = ParticleEffect:clone {
     name = "SteamEffect",
 

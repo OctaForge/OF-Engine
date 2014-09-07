@@ -1,4 +1,4 @@
---[[!<
+/**<
     This file patches some of the core API.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var ffi = require("ffi")

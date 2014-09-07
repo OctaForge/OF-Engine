@@ -1,4 +1,4 @@
---[[!<
+/**<
     Provides streams (file streams and others).
 
     Author:
@@ -6,11 +6,11 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 
---[[! Module: stream
+/** Module: stream
     The streams some of the functions in this module define have several
     methods.
 
@@ -30,10 +30,10 @@ var capi = require("capi")
           the stream waits until other streams let it go).
         - `__tostring` - can return two strings, `stream (0xDEADBEEF)` or
           `stream (closed)` depending on its status.
-]]
+*/
 var M = {}
 
---[[! Function: open
+/** Function: open
     Opens a file and returns its stream. This first tries to open a file in
     a mounted zip file. If that fails, it tries to open the file directly
     (see $open_raw).
@@ -47,10 +47,10 @@ var M = {}
         - $open_zip
         - $open_gz
         - $open_utf8
-]]
+*/
 M.open = capi.stream_open
 
---[[! Function: open_raw
+/** Function: open_raw
     Like $open, but doesn't attempt to read in mounted zip files. It
     first searches in the OctaForge home directory and do in the primary
     directory.
@@ -60,10 +60,10 @@ M.open = capi.stream_open
         - $open_zip
         - $open_gz
         - $open_utf8
-]]
+*/
 M.open_raw = capi.stream_open_raw
 
---[[! Function: open_zip
+/** Function: open_zip
     Like $open_raw, but tries to read ONLY in mounted zip files.
 
     See also:
@@ -71,10 +71,10 @@ M.open_raw = capi.stream_open_raw
         - $open_raw
         - $open_gz
         - $open_utf8
-]]
+*/
 M.open_zip = capi.stream_open_zip
 
---[[! Function: open_gz
+/** Function: open_gz
     Like $open, but treats the file as gzip compressed (zlib). It
     (de)compresses on the fly.
 
@@ -94,10 +94,10 @@ M.open_zip = capi.stream_open_zip
         - $open_raw
         - $open_zip
         - $open_utf8
-]]
+*/
 M.open_gz = capi.stream_open_gz
 
---[[! Function: open_utf8
+/** Function: open_utf8
     Like $open, but treats the file as UTF-8 input, translating to the
     Cube 2 charset on the fly. This is often what you don't want, as you want
     to read the input source as UTF-8 instead of the Cube encoding, but it
@@ -117,13 +117,13 @@ M.open_gz = capi.stream_open_gz
         - $open_raw
         - $open_zip
         - $open_gz
-]]
+*/
 M.open_utf8 = capi.stream_open_utf8
 
---[[! Function: type
+/** Function: type
     Checks if the given value is a file stream. Returns `stream` when it is,
     `closed stream` when it's a closed stream and `nil` when it's not a stream.
-]]
+*/
 M.type = capi.stream_type
 
 return M

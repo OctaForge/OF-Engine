@@ -1,4 +1,4 @@
---[[!<
+/**<
     Registers several input events.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var msg = require("core.network.msg")
@@ -15,12 +15,12 @@ var signal = require("core.events.signal")
 var emit = signal.emit
 var ents
 
---[[! Function: input_mouse_move
+/** Function: input_mouse_move
     The default behavior is hardcoded. If the external exists, it takes two
     arguments (yaw and pitch) and should return again yaw and pitch (as two
     return values). Just returning the inputs results in the default behavior,
     so this pretty much works as a filter.
-]]
+*/
 var input_mouse_move
 
 var ext = require("core.externals")
@@ -29,83 +29,83 @@ var get_ext, set_ext = ext.get, ext.set
 var event_map
 
 @[not server] do
---[[! Function: input_yaw
+/** Function: input_yaw
     An external triggered on yaw change. By default it sets the "yawing"
     property on the player to "dir".
 
     Arguments:
         - dir - the yawing direction.
         - down - whether the key was pressed.
-]]
+*/
 set_ext("input_yaw", func(dir, down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("yawing", dir)
 end)
 
---[[! Function: input_pitch
+/** Function: input_pitch
     An external triggered on pitch change. By default it sets the "pitching"
     property on the player to "dir".
 
     Arguments:
         - dir - the pitching direction.
         - down - whether the key was pressed.
-]]
+*/
 set_ext("input_pitch", func(dir, down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("pitching", dir)
 end)
 
---[[! Function: input_move
+/** Function: input_move
     An external triggered during movement. By default it sets the "move"
     property on the player to "dir".
 
     Arguments:
         - dir - the move direction.
         - down - whether the key was pressed.
-]]
+*/
 set_ext("input_move", func(dir, down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("move", dir)
 end)
 
---[[! Function: input_strafe
+/** Function: input_strafe
     An external triggered during strafing. By default it sets the "strafe"
     property on the player to "dir".
 
     Arguments:
         - dir - the strafe direction.
         - down - whether the key was pressed.
-]]
+*/
 set_ext("input_strafe", func(dir, down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("strafe", dir)
 end)
 
---[[! Function: input_jump
+/** Function: input_jump
     An external triggered when the player jumps. By default calls the method
     "jump" on the player, passing "down" as an argument.
 
     Arguments:
         - down - whether the key was pressed.
-]]
+*/
 set_ext("input_jump", func(down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():jump(down)
 end)
 
---[[! Function: input_crouch
+/** Function: input_crouch
     An external triggered when the player crouches. By default calls the method
     "crouch" on the player, passing "down" as an argument.
 
     Arguments:
         - down - whether the key was pressed.
-]]
+*/
 set_ext("input_crouch", func(down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():crouch(down)
 end)
 
---[[! Function: input_click
+/** Function: input_click
     Clientside click input handler. It calls another external,
     $input_click_client, which you can override. If that external doesn't
     return a value that evaluates to true, it sends a click request to the
@@ -118,20 +118,20 @@ end)
         - uid - the unique ID of the entity that was clicked
           (if any, nil otherwise).
         - cx, cy - the cursor position.
-]]
+*/
 set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy)
     if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) do
         msg.send(capi.do_click, btn, down, x, y, z, uid)
     end
 end)
 
---[[! Function: input_click_client
+/** Function: input_click_client
     Clientside external for user-defined clicks. By default it tries to call
     the click method on the given entity assuming the entity exists and it
     has a method of that name. It takes the same arguments as $input_click
     and by default returns false, which means the above external will
     trigger a server request.
-]]
+*/
 set_ext("input_click_client", func(btn, down, x, y, z, uid, cx, cy)
     if not ents do ents = require("core.entities.ents") end
     var ent
@@ -156,13 +156,13 @@ event_map = {
 end
 
 @[server] do
---[[! Function: input_click_server
+/** Function: input_click_server
     Serverside external for user-defined clicks. Called assuming
     $input_click_client returns a value that evaluates to false. By default
     it tries to call the same method on the entity as above but on the server.
     Return values of this one are ignored. The arguments are the same, but
     the cursor position is not there (obviously).
-]]
+*/
 set_ext("input_click_server", func(btn, dn, x, y, z, uid)
     if not ents do ents = require("core.entities.ents") end
     var ent
@@ -181,7 +181,7 @@ end
 var M = {}
 var type, assert = type, assert
 
---[[!
+/**
     Sets an event callback. If the callback is not provided, the default
     callback is used (as before overriding).
 
@@ -198,7 +198,7 @@ var type, assert = type, assert
     Arguments:
         - en - the event name.
         - fun - the callback.
-]]
+*/
 M.set_event = func(en, fun)
     if not en do
         return false
@@ -226,10 +226,10 @@ M.set_event = func(en, fun)
     return ret
 end
 
---[[!
+/**
     Gets an event callback. For naming, see $set_event. Returns nil if the name
     is invalid or the callback doesn't exist and the callback otherwise.
-]]
+*/
 M.get_event = func(en)
     if not en do
         return nil

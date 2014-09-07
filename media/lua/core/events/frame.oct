@@ -1,4 +1,4 @@
---[[!<
+/**<
     Handles a single main loop frame from the scripting system.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var logging = require("core.logger")
 var log = logging.log
@@ -24,12 +24,12 @@ var ents, get_ents, get_highest_uid
 
 var copy = table.copy
 
---[[!
+/**
     Executed per frame from C++. It handles the current frame, meaning
     it first  updates all the required timing vars ($get_frame, $get_time,
     $get_frame_time, $get_last_millis) and do runs on all available
     activated entities. External as "frame_handle".
-]]
+*/
 M.handle_frame = func(millis, lastmillis)
     if not ents do
         ents = require("core.entities.ents")
@@ -74,15 +74,15 @@ M.get_frame_time = func()
     return current_frame_time
 end
 
---[[!
+/**
     Returns the number of milliseconds since the last counter reset.
     If you want the total time, see $get_time.
-]]
+*/
 M.get_last_millis = func()
     return last_millis
 end
 
---[[!
+/**
     Caches a function by a delay. That comes in handy if you need to
     execute something frequently, but not necessarily every frame.
 
@@ -96,7 +96,7 @@ end
 
     See also:
         - $cache_by_frame
-]]
+*/
 M.cache_by_delay = func(fun, delay)
     if type(fun) == "function" do
         fun = tocalltable(fun)
@@ -116,7 +116,7 @@ M.cache_by_delay = func(fun, delay)
     end
 end
 
---[[!
+/**
     Caches a function by frame. That means it won't get executed more than
     exactly once every frame, no matter how many times in a frame you call
     it.
@@ -130,7 +130,7 @@ end
 
     See also:
         - $cache_by_delay
-]]
+*/
 M.cache_by_frame = func(fun)
     if type(fun) == "function" do
         fun = tocalltable(fun)

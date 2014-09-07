@@ -1,4 +1,4 @@
---[[!<
+/**<
     Spacers are widgets that have something to do with space management -
     that is, actual spacers, offsetters, fillers etc.
 
@@ -7,7 +7,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var max  = math.max
 var min  = math.min
@@ -31,12 +31,12 @@ var Widget = M.get_type("Widget")
 // setters
 var gen_setter = M.gen_setter
 
---[[!
+/**
     A spacer will give a widget some padding.
 
     Properties:
         - pad_h, pad_v - the padding values, both default to 0.
-]]
+*/
 M.Spacer = register_type("Spacer", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -76,7 +76,7 @@ M.Spacer = register_type("Spacer", Widget, {
     set_pad_v = gen_setter "pad_v"
 })
 
---[[!
+/**
     A filler will fill at least min_w space horizontally and min_h space
     vertically. It's invisible.
 
@@ -92,7 +92,7 @@ M.Spacer = register_type("Spacer", Widget, {
         - clip_children - when true, it clips children inside (if they have
           parts outside of the filler, they won't be viisble), defaults
           to false (useful for MDI windows for example).
-]]
+*/
 M.Filler = register_type("Filler", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -125,10 +125,10 @@ M.Filler = register_type("Filler", Widget, {
         self.h = max(self.h, min_h)
     end,
 
-    --[[!
+    /**
         Makes sure the filler can take input. Makes it useful for, say, button
         surfaces (when they should be invisible). See also {{$Widget.target}}.
-    ]]
+    */
     target = func(self, cx, cy)
         return Widget.target(self, cx, cy) or self
     end,
@@ -154,7 +154,7 @@ M.Filler = register_type("Filler", Widget, {
 })
 var Filler = M.Filler
 
---[[!
+/**
     Like $Filler, but its min_w and min_h work in terms of text units.
     By default uses regular text scale factor.
 
@@ -165,7 +165,7 @@ var Filler = M.Filler
     Properties:
         - console_text - if true (false by default), this will use console
           scaling factor rather than regular text scaling factor.
-]]
+*/
 M.TextFiller = register_type("TextFiller", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -187,12 +187,12 @@ M.TextFiller = register_type("TextFiller", Filler, {
     end,
 })
 
---[[!
+/**
     Offsets a widget.
 
     Properties:
         - offset_h, offset_v - the offset values.
-]]
+*/
 M.Offsetter = register_type("Offsetter", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}

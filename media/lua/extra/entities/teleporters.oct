@@ -1,4 +1,4 @@
---[[!<
+/**<
     Reusable teleporter entities.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var log = require("core.logger")
 var sound = require("core.engine.sound")
@@ -26,7 +26,7 @@ var M = {}
 
 var Obstacle = ents.Obstacle
 
---[[! Object: teleporters.Teleporter
+/** Object: teleporters.Teleporter
     A regular invisible teleporter. Derives from {{$ents.Obstacle}}. Properties
     can be specified on creation as first two parameters to newent (the rest
     applies to {{$ents.Obstacle}} properties).
@@ -40,7 +40,7 @@ var Obstacle = ents.Obstacle
           teleporter will select one at random.
         - sound_name - name of the sound to play on teleportation, empty
           by default.
-]]
+*/
 M.Teleporter = Obstacle:clone {
     name = "Teleporter",
 

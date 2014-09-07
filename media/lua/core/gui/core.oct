@@ -1,4 +1,4 @@
---[[!<
+/**<
     A basic widget set. This module in particular implements the core of the
     whole system. All modules are documented, but not all methods in each
     widget are documented - only those of a significant meaning to the user
@@ -9,7 +9,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var ffi = require("ffi")
 var capi = require("capi")
@@ -47,21 +47,21 @@ var M = {}
 
 var consts = require("core.gui.constants")
 
---[[! Enum: gl
+/** Enum: gl
     Forwarded from the "constants" module.
-]]
+*/
 M.gl = consts.gl
 var gl = M.gl
 
---[[! Enum: key
+/** Enum: key
     Forwarded from the "constants" module.
-]]
+*/
 M.key = consts.key
 var key = M.key
 
---[[! Enum: mod
+/** Enum: mod
     Forwarded from the "constants" module.
-]]
+*/
 M.mod = consts.mod
 var mod = M.mod
 
@@ -103,7 +103,7 @@ var wtypes_by_type = {}
 
 var lastwtype = 0
 
---[[!
+/**
     Registers a widget type.
 
     Arguments:
@@ -111,7 +111,7 @@ var lastwtype = 0
         - base - the widget type base widget type (defaults to $Widget).
         - obj - the body with custom contents.
         - ftype - the "type" field, by default it just assigns is a new type.
-]]
+*/
 M.register_type = func(name, base, obj, ftype)
     if not ftype do
         lastwtype = lastwtype + 1
@@ -128,10 +128,10 @@ M.register_type = func(name, base, obj, ftype)
 end
 var register_type = M.register_type
 
---[[!
+/**
     Given either a name or type, this function returns the widget type
     with that name or type.
-]]
+*/
 M.get_type = func(n)
     if type(n) == "string" do
         return wtypes_by_name[n]
@@ -141,14 +141,14 @@ M.get_type = func(n)
 end
 var get_type = M.get_type
 
---[[!
+/**
     Loops widget children, executing the function given in the second
     argument with the child passed to it. If the widget has states,
     it first acts on the current state and do on the actual children
     from 1 to N. If the selected state is not available, it tries "default".
 
     See also $loop_children_r.
-]]
+*/
 M.loop_children = func(self, fun)
     var ch = self.children
     var vr = self.vstates
@@ -176,7 +176,7 @@ M.loop_children = func(self, fun)
 end
 var loop_children = M.loop_children
 
---[[!
+/**
     Loops widget children in reverse order, executing the function
     given in the second argument with the child passed to it. First
     goes over all children in reverse order and do if the widget
@@ -184,7 +184,7 @@ var loop_children = M.loop_children
     is not available, it tries "default".
 
     See also $loop_children.
-]]
+*/
 M.loop_children_r = func(self, fun)
     var ch = self.children
     var vr = self.vstates
@@ -212,7 +212,7 @@ M.loop_children_r = func(self, fun)
 end
 var loop_children_r = M.loop_children_r
 
---[[!
+/**
     Similar to $loop_children, takes some extra assumptions - executes only
     for those children that cover the given coordinates. The function is
     executed, passing the computed coordinates alongside the object to
@@ -234,7 +234,7 @@ var loop_children_r = M.loop_children_r
 
     See also:
         - $loop_in_children_r
-]]
+*/
 M.loop_in_children = func(self, cx, cy, fun, ins, useproj)
     return loop_children(self, func(o)
         var ox, oy
@@ -252,10 +252,10 @@ M.loop_in_children = func(self, cx, cy, fun, ins, useproj)
 end
 var loop_in_children = M.loop_in_children
 
---[[!
+/**
     See $loop_in_children and $loop_children_r. This is equal to above,
     just using $loop_children_r instead.
-]]
+*/
 M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj)
     return loop_children_r(self, func(o)
         var ox, oy
@@ -281,19 +281,19 @@ ffi.cdef r"""
 
 var ffi_new = ffi.new
 
---[[!
+/**
     Represents a clip area defined by four points, x1, y1, x2, y2. The latter
     refer to x1+w and y1+h respectively.
-]]
+*/
 M.ClipArea = ffi.metatype("clip_area_t", {
     __new = func(self, x, y, w, h)
         return ffi_new("clip_area_t", x, y, x + w, y + h)
     end,
 
     __index = {
-        --[[!
+        /**
             Intersects the clip area with another one. Writes into self.
-        ]]
+        */
         intersect = func(self, c)
             self.x1 = max(self.x1, c.x1)
             self.y1 = max(self.y1, c.y1)
@@ -301,10 +301,10 @@ M.ClipArea = ffi.metatype("clip_area_t", {
             self.y2 = max(self.y1, min(self.y2, c.y2))
         end,
 
-        --[[!
+        /**
             Given x, y, w, h, checks if the area specified by the coordinates
             is fully clipped by the clip area.
-        ]]
+        */
         is_fully_clipped = func(self, x, y, w, h)
             return self.x1 == self.x2 or self.y1 == self.y2 or x >= self.x2 or
                    y >= self.y2 or (x + w) <= self.x1 or (y + h) <= self.y1
@@ -319,10 +319,10 @@ M.ClipArea = ffi.metatype("clip_area_t", {
 })
 var ClipArea = M.ClipArea
 
---[[!
+/**
     An utility function for drawing quads, takes x, y, w, h and optionally
     tx, ty, tw, th (defaulting to 0, 0, 1, 1).
-]]
+*/
 M.draw_quad = func(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
     gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
@@ -332,10 +332,10 @@ M.draw_quad = func(x, y, w, h, tx, ty, tw, th)
 end
 var quad = M.draw_quad
 
---[[!
+/**
     An utility function for drawing quads, takes x, y, w, h and optionally
     tx, ty, tw, th (defaulting to 0, 0, 1, 1). Used with triangle strip.
-]]
+*/
 M.draw_quadtri = func(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
     gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
@@ -453,12 +453,12 @@ var color_defctor = func(self, r, g, b, a)
     return ffi_new(self, r or 0xFF, g or 0xFF, b or 0xFF, a or 0xFF)
 end
 
---[[!
+/**
     A color structure used for color attributes in all widgets that support
     them. Has fields r, g, b, a ranging from 0 to 255.
-]]
+*/
 M.Color = ffi.metatype("color_t", {
-    --[[!
+    /**
         Depending on the number of arguments, this initializes the color.
 
         With zero argments, everything is initialized to 0xFF (255). With
@@ -476,7 +476,7 @@ M.Color = ffi.metatype("color_t", {
 
         The set_(r|g|b|a) methods emit the "(r|g|b|a),changed" signals
         on this structure, passing the new value to the emit call.
-    ]]
+    */
     __new = func(self, ...)
         var nargs = select("#", ...)
         return (color_ctors[nargs] or color_defctor)(self, ...)
@@ -507,11 +507,11 @@ M.Color = ffi.metatype("color_t", {
     }
 })
 
---[[! Variable: uitextrows
+/** Variable: uitextrows
     Specifies how many rows of text of scale 1 can fit on the screen. Defaults
     to 40. You can change this to tweak the font scale and thus the whole UI
     scale.
-]]
+*/
 cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     cs.var_flags.PERSIST)
 
@@ -522,7 +522,7 @@ end)
 
 var Widget, Window
 
---[[!
+/**
     The basic widget type every other derives from. Provides everything
     needed for a working widget type, but doesn't do anything by itself.
 
@@ -601,13 +601,13 @@ var Widget, Window
         - variant - the current widget variant.
         - variants, states - See above.
         - container - see above.
-]]
+*/
 M.Widget = register_type("Widget", table.Object, {
-    --[[!
+    /**
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting
         widget.
-    ]]
+    */
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
 
@@ -715,11 +715,11 @@ M.Widget = register_type("Widget", table.Object, {
         end
     end,
 
-    --[[!
+    /**
         Clears a widget including its children recursively. Calls the
         "destroy" signal. Removes itself from its widget type' instances
         set. Does nothing if already cleared.
-    ]]
+    */
     clear = func(self)
         if self._cleared do return end
         self:clear_focus()
@@ -743,12 +743,12 @@ M.Widget = register_type("Widget", table.Object, {
         self._cleared = true
     end,
 
-    --[[!
+    /**
         Creates a deep clone of the widget, that is, where each child
         is again a clone of the original child, down the tree. Useful
         for default widget type states, where we need to clone
         these per-instance.
-    ]]
+    */
     deep_clone = func(self, obj, initc)
         var ch, rch = {}, self.children
         var st, rst = {}, self.states
@@ -778,10 +778,10 @@ M.Widget = register_type("Widget", table.Object, {
         return cl
     end,
 
-    --[[!
+    /**
         Sets the variant this widget instance uses. If not provided, "default"
         is set implicitly.
-    ]]
+    */
     set_variant = func(self, variant, disable_asserts)
         self.variant = variant
         var old_vstates = self.vstates
@@ -828,7 +828,7 @@ M.Widget = register_type("Widget", table.Object, {
         if cont and cont._cleared do self.container = nil end
     end,
 
-    --[[!
+    /**
         Call on the widget type. Updates the state widget on the widget type
         and every instance of it. Destroys the old state of that name (if any)
         on the type and on every instance. If the instance already uses a
@@ -843,7 +843,7 @@ M.Widget = register_type("Widget", table.Object, {
             - sname - the state name.
             - sval - the state widget.
             - variant - optional (defaults to "default").
-    ]]
+    */
     update_prototype_state = func(self, sname, sval, variant)
         variant = variant or "default"
         var dstates = rawget(self, "__variants")
@@ -882,17 +882,17 @@ M.Widget = register_type("Widget", table.Object, {
         end end
     end,
 
-    --[[!
+    /**
         Given an associative array of states (and optionally variant), it
         calls $update_prototype_state for each.
-    ]]
+    */
     update_prototype_states = func(self, states, variant)
         for k, v in pairs(states) do
             self:update_prototype_state(k, v, variant)
         end
     end,
 
-    --[[!
+    /**
         Given the state name an a widget, this sets the state of that name
         for the individual widget (unlike $update_prototype_state). That is
         useful when you need widgets with custom appearance but you don't
@@ -900,7 +900,7 @@ M.Widget = register_type("Widget", table.Object, {
         if any.
 
         See also $state_changed.
-    ]]
+    */
     update_state = func(self, state, obj)
         var states = self.states
         var ostate = states[state]
@@ -921,25 +921,25 @@ M.Widget = register_type("Widget", table.Object, {
         end
     end,
 
-    --[[!
+    /**
         Called with the state name and the state widget everytime
         $update_state or $update_prototype_state updates a widget's state.
         Useful for widget type and instance specific things such as updating
         labels on buttons. By default does nothing.
-    ]]
+    */
     state_changed = func(self, sname, obj)
     end,
 
-    --[[!
+    /**
         Returns the state that should be currently used. By default
         returns nil.
-    ]]
+    */
     choose_state = func(self) return nil end,
 
-    --[[!
+    /**
         Takes care of widget positioning and sizing. By default calls
         recursively.
-    ]]
+    */
     layout = func(self)
         self.w = 0
         self.h = 0
@@ -952,21 +952,21 @@ M.Widget = register_type("Widget", table.Object, {
         end)
     end,
 
-    --[[!
+    /**
         Adjusts layout of children widgets. Takes additional optional
         parameters px (0), py (0), pw (self.w), ph (self.h). Basically
         calls $adjust_layout on each child with those parameters.
-    ]]
+    */
     adjust_children = func(self, px, py, pw, ph)
         px, py, pw, ph = px or 0, py or 0, pw or self.w, ph or self.h
         loop_children(self, func(o) o:adjust_layout(px, py, pw, ph) end)
     end,
 
-    --[[!
+    /**
         Layout adjustment hook for self. Adjusts x, y, w, h of the widget
         according to its alignment and clamping. When everything is done,
         calls $adjust_children with no parameters.
-    ]]
+    */
     adjust_layout = func(self, px, py, pw, ph)
         var x, y, w, h, a = self.x, self.y,
             self.w, self.h, self.adjust
@@ -1007,13 +1007,13 @@ M.Widget = register_type("Widget", table.Object, {
         self:adjust_children()
     end,
 
-    --[[!
+    /**
         Given the cursor coordinates, this function should return the
         targeted widget. Returns nil if there is nothing or nothing
         targetable. By default this just loops the children in reverse
         order, calls target on each and returns the result of the first
         target call that actually returns something.
-    ]]
+    */
     target = func(self, cx, cy)
         return loop_in_children_r(self, cx, cy, func(o, ox, oy)
             var c = o.visible and o:target(ox, oy) or nil
@@ -1021,7 +1021,7 @@ M.Widget = register_type("Widget", table.Object, {
         end)
     end,
 
-    --[[!
+    /**
         Called on keypress.  By default it doesn't define any behavior so it
         just loops children in reverse order and returns true if any key calls
         on the children return true or false if they don't. It also handles
@@ -1035,7 +1035,7 @@ M.Widget = register_type("Widget", table.Object, {
             - $key_raw
             - $key_hover
             - $text_input
-    ]]
+    */
     key = func(self, code, isdown)
         var tn = self.tab_next
         if tn and code == key.TAB and self:is_focused() do
@@ -1047,7 +1047,7 @@ M.Widget = register_type("Widget", table.Object, {
         end) or false
     end,
 
-    --[[!
+    /**
         A "raw" key handler that is used in the very beginning of the keypress
         handler. By default, it iterates the children (backwards), tries
         key_raw on each and if that returns true, it returns true too,
@@ -1058,14 +1058,14 @@ M.Widget = register_type("Widget", table.Object, {
             - $key
             - $key_hover
             - $text_input
-    ]]
+    */
     key_raw = func(self, code, isdown)
         return loop_children_r(self, func(o)
             if o.visible and o:key_raw(code, isdown) do return true end
         end) or false
     end,
 
-    --[[!
+    /**
         Called on text input on the widget. Returns true of the input was
         accepted and false otherwise. The default version loops children
         (backwards) and tries on each until it hits true.
@@ -1074,14 +1074,14 @@ M.Widget = register_type("Widget", table.Object, {
             - $key
             - $key_raw
             - $key_hover
-    ]]
+    */
     text_input = func(self, str)
         return loop_children_r(self, func(o)
             if o.visible and o:text_input(str) do return true end
         end) or false
     end,
 
-    --[[!
+    /**
         Occurs on keypress (any key) when hovering over a widget. The default
         just tries to key_hover on its parent (returns false as a fallback).
         Called after $key_raw (if possible) and before mouse clicks and
@@ -1091,7 +1091,7 @@ M.Widget = register_type("Widget", table.Object, {
             - $key
             - $key_raw
             - $key_hover
-    ]]
+    */
     key_hover = func(self, code, isdown)
         var parent = self.parent
         if parent do
@@ -1100,7 +1100,7 @@ M.Widget = register_type("Widget", table.Object, {
         return false
     end,
 
-    --[[!
+    /**
         Called in the drawing phase. By default just loops all the children
         and draws on these (assuming they're not fully clipped).
 
@@ -1108,7 +1108,7 @@ M.Widget = register_type("Widget", table.Object, {
             - sx, sy - the left and upper side coordinates of the widget,
               optional (if not present, they default to "x" and "y" properties
               of the current widget).
-    ]]
+    */
     draw = func(self, sx, sy)
         sx = sx or self.x
         sy = sy or self.y
@@ -1126,7 +1126,7 @@ M.Widget = register_type("Widget", table.Object, {
         end)
     end,
 
-    --[[!
+    /**
         Given the cursor coordinates, this function returns the widget
         currently hovered on. By default it just loops children in
         reverse order using $loop_in_children_r and calls hover recursively
@@ -1137,7 +1137,7 @@ M.Widget = register_type("Widget", table.Object, {
 
         See also:
             - $click
-    ]]
+    */
     hover = func(self, cx, cy)
         var w = self:get_root()
         var isw = (self == w)
@@ -1151,7 +1151,7 @@ M.Widget = register_type("Widget", table.Object, {
         end, true, isw)
     end,
 
-    --[[!
+    /**
         Called every frame on the widget that's being hovered on (assuming
         it exists). It takes the coordinates we're hovering on. By default
         it emits the "hovering" signal on itself, passing the coordinates
@@ -1160,17 +1160,17 @@ M.Widget = register_type("Widget", table.Object, {
         See also:
              - $leaving
              - $holding
-    ]]
+    */
     hovering = func(self, cx, cy)
         emit(self, "hovering", cx, cy)
     end,
 
-    --[[!
+    /**
         Called when a mouse cursor is leaving widget hover. Takes the cx
         and cy arguments like $hovering (they're the last position in the
         widget the cursor was hovering on) and emits the "leaving" signal,
         passing those arguments to it.
-    ]]
+    */
     leaving = func(self, cx, cy)
         emit(self, "leaving", cx, cy)
     end,
@@ -1182,18 +1182,18 @@ M.Widget = register_type("Widget", table.Object, {
         end, false, self == root)
     end,
 
-    --[[!
+    /**
         See $hovering. It's the same, but called only when the widget
         is being held.
-    ]]
+    */
     holding = func(self, cx, cy, code)
         emit(self, "holding", cx, cy, code)
     end,
 
-    --[[!
+    /**
         See $hover. It's identical, only for the click event. This also
         takes the currently clicked mouse button as the last argument.
-    ]]
+    */
     click = func(self, cx, cy, code)
         var w = self:get_root()
         var isw = (self == w)
@@ -1207,7 +1207,7 @@ M.Widget = register_type("Widget", table.Object, {
         end, true, isw)
     end,
 
-    --[[!
+    /**
         Called once on the widget that was clicked. By emits the "clicked"
         signal on itself. Takes the click coords as arguments and passes
         them to the signal. Also takes the clicked mouse button code
@@ -1215,29 +1215,29 @@ M.Widget = register_type("Widget", table.Object, {
 
         See also:
             - $released
-    ]]
+    */
     clicked = func(self, cx, cy, code)
         emit(self, "clicked", cx, cy, code)
     end,
 
-    --[[!
+    /**
         See $clicked. Emits the "released" signal with the same arguments
         as the "clicked" signal above. The coordinates are calculated by
         the time of button release, so they're up to date.
-    ]]
+    */
     released = func(self, cx, cy, code)
         emit(self, "released", cx, cy, code)
     end,
 
-    --[[!
+    /**
         Returns true if the widget takes input in regular cursor mode. That
         is the default behavior. However, that is not always convenient as
         sometimes you want on-screen widgets that take input in free cursor
         mode only.
-    ]]
+    */
     grabs_input = func(self) return true end,
 
-    --[[!
+    /**
         Finds a child widget.
 
         Arguments:
@@ -1251,7 +1251,7 @@ M.Widget = register_type("Widget", table.Object, {
         See also:
             - $find_children
             - $find_sibling
-    ]]
+    */
     find_child = func(self, otype, name, recurse, exclude)
         recurse = (recurse == nil) and true or recurse
         var o = loop_children(self, func(o)
@@ -1272,13 +1272,13 @@ M.Widget = register_type("Widget", table.Object, {
         return o
     end,
 
-    --[[!
+    /**
         See $find_child. Takes an extra argument (optional) which is an
         array. Unlike the above, this finds all possible matches and appends
         them to the given array (if not given, a new array is created). This
         returns the array. If the array is given and not empty, it's not
         erased (all matches append).
-    ]]
+    */
     find_children = func(self, otype, name, recurse, exclude, ret)
         var ch = ret or {}
         recurse = (recurse == nil) and true or recurse
@@ -1298,7 +1298,7 @@ M.Widget = register_type("Widget", table.Object, {
         return ch
     end,
 
-    --[[!
+    /**
         Finds a sibling of a widget. A sibling is basically defined as any
         child of the parent widget that isn't self (searched recursively),
         do any child of the parent widget of that parent widget and so on.
@@ -1310,7 +1310,7 @@ M.Widget = register_type("Widget", table.Object, {
         See also:
             - $find_siblings
             - $find_child
-    ]]
+    */
     find_sibling = func(self, otype, name)
         var prev = self
         var cur  = self.parent
@@ -1338,7 +1338,7 @@ M.Widget = register_type("Widget", table.Object, {
         return ch
     end,
 
-    --[[!
+    /**
         Replaces a widget that has been tagged (inside a tag, the tag itself
         persists).
 
@@ -1350,7 +1350,7 @@ M.Widget = register_type("Widget", table.Object, {
 
         Returns:
             True if the replacement was successful, false otherwise.
-    ]]
+    */
     replace = func(self, tname, obj, fun)
         var tag = self:find_child(Tag.type, tname)
         if not tag do return false end
@@ -1360,14 +1360,14 @@ M.Widget = register_type("Widget", table.Object, {
         return true
     end,
 
-    --[[!
+    /**
         Removes the given widget from the widget's children. Alternatively,
         the argument can be the index of the child in the list. Returns true
         on success and false on failure.
 
         If the last argument "detach" is true, this doesn't clear the widget
         and instead of returning true or false, it returns the widget or nil.
-    ]]
+    */
     remove = func(self, o, detach)
         if type(o) == "number" do
             if #self.children < o do
@@ -1401,10 +1401,10 @@ M.Widget = register_type("Widget", table.Object, {
         self.parent:remove(self, true)
     end,
 
-    --[[!
+    /**
         Destroys all the children using regular $clear. Emits a signal
         "children,destroy" afterwards on self.
-    ]]
+    */
     destroy_children = func(self)
         var ch = self.children
         for i = 1, #ch do
@@ -1414,21 +1414,21 @@ M.Widget = register_type("Widget", table.Object, {
         emit(self, "children,destroy")
     end,
 
-    --[[!
+    /**
         Aligns the widget given the horizontal alignment and the vertical
         alignment. Those can be -1 (top, left), 0 (center) and 1 (bottom,
         right).
-    ]]
+    */
     align = func(self, h, v)
         self.adjust = (self.adjust & ~adjust.ALIGN_MASK)
             | ((clamp(h, -1, 1) + 2) << adjust.ALIGN_HSHIFT)
             | ((clamp(v, -1, 1) + 2) << adjust.ALIGN_VSHIFT)
     end,
 
-    --[[!
+    /**
         Sets the widget clamping, given the left, right, top and bottom
         clamping. The values can be either true or false.
-    ]]
+    */
     clamp = func(self, l, r, t, b)
         self.adjust = (self.adjust & ~adjust.CLAMP_MASK)
             | (l and adjust.CLAMP_LEFT   or 0)
@@ -1437,14 +1437,14 @@ M.Widget = register_type("Widget", table.Object, {
             | (b and adjust.CLAMP_BOTTOM or 0)
     end,
 
-    --[[! Function: get_alignment
+    /** Function: get_alignment
         Returns the horizontal and vertical alignment of the widget in
         the same format as $align arguments.
 
         See also:
             - $align
             - $get_clamping
-    ]]
+    */
     get_alignment = func(self)
         var a   = self.adjust
         var adj = a & adjust.ALIGN_HMASK
@@ -1458,13 +1458,13 @@ M.Widget = register_type("Widget", table.Object, {
         return hal, val
     end,
 
-    --[[!
+    /**
         Returns the left, right, bottom, top clamping as either true or false.
 
         See also:
             - $clamp
             - $get_alignment
-    ]]
+    */
     get_clamping = func(self)
         var a   = self.adjust
         var adj = a & adjust.CLAMP_MASK
@@ -1505,7 +1505,7 @@ M.Widget = register_type("Widget", table.Object, {
     /// Function: set_tab_next
     set_tab_next = gen_setter "tab_next",
 
-    --[[! Function: insert
+    /** Function: insert
         Inserts a widget at the given position in the widget's children.
 
         Arguments:
@@ -1522,7 +1522,7 @@ M.Widget = register_type("Widget", table.Object, {
         See also:
             - $append
             - $prepend
-    ]]
+    */
     insert = func(self, pos, obj, fun, force_ch)
         var children = force_ch and self.children
             or (self.container or self).children
@@ -1533,9 +1533,9 @@ M.Widget = register_type("Widget", table.Object, {
         return obj
     end,
 
-    --[[! Function: append
+    /** Function: append
         Like $insert, but appends to the end of the children list.
-    ]]
+    */
     append = func(self, obj, fun, force_ch)
         var children = force_ch and self.children
             or (self.container or self).children
@@ -1546,9 +1546,9 @@ M.Widget = register_type("Widget", table.Object, {
         return obj
     end,
 
-    --[[! Function: prepend
+    /** Function: prepend
         Like $insert, but prepends (inserts to the beginning of the list).
-    ]]
+    */
     prepend = func(self, obj, fun, force_ch)
         var children = force_ch and self.children
             or (self.container or self).children
@@ -1559,7 +1559,7 @@ M.Widget = register_type("Widget", table.Object, {
         return obj
     end,
 
-    --[[!
+    /**
         Given a menu object (any widget), this shows the menu with this widget
         as the parent.
 
@@ -1581,7 +1581,7 @@ M.Widget = register_type("Widget", table.Object, {
               instead of setting the argument to true and creating a new widget
               every call of "hovering", create a permanent reference to the
               menu elsewhere instead.
-    ]]
+    */
     show_menu = func(self, obj, at_cursor, clear_on_drop)
         var root = self:get_root()
         root:_menu_init(obj, self, #root._menu_stack + 1, at_cursor,
@@ -1589,12 +1589,12 @@ M.Widget = register_type("Widget", table.Object, {
         return obj
     end,
 
-    --[[!
+    /**
         Returns this widget's menu assuming it has one.
-    ]]
+    */
     get_menu = func(self) return self._menu end,
 
-    --[[!
+    /**
         Given a tooltip object (any widget), this shows the tooltip with this
         widget as the parent. The same precautions as for $show_menu apply.
         There is no at_cursor argument (because that's how it behaves by
@@ -1612,31 +1612,31 @@ M.Widget = register_type("Widget", table.Object, {
 
         See also:
             - $show_menu
-    ]]
+    */
     show_tooltip = func(self, obj, clear_on_drop)
         self:get_root():_tooltip_init(obj, self, clear_on_drop)
         return obj
     end,
 
-    --[[! Function: is_field
+    /** Function: is_field
         Returns true if this widget is a textual field, by default false.
-    ]]
+    */
     is_field = func() return false end,
 
-    --[[!
+    /**
         Returns the parent of this widget (or nil if no parent).
         This is just a plain hash table read, no complex retrieval.
-    ]]
+    */
     get_parent = func(self)
         return self.parent
     end,
 
-    --[[!
+    /**
         Returns the root window of this widget. Note that this might do a more
         complex retrieval if root is unassigned and might modify parents (if
         it has to ask parents for root and they don't have it, it uses a
         recursive approach).
-    ]]
+    */
     get_root = func(self)
         var  rt = self._root
         if not rt do
@@ -1652,9 +1652,9 @@ M.Widget = register_type("Widget", table.Object, {
         return rt
     end,
 
-    --[[!
+    /**
         Clears any kind of focus for this widget.
-    ]]
+    */
     clear_focus = func(self)
         var w = self:get_root()
         if self == w._clicked  do w._clicked  = nil end
@@ -1662,13 +1662,13 @@ M.Widget = register_type("Widget", table.Object, {
         if self == w._focused  do w._focused  = nil end
     end,
 
-    --[[!
+    /**
         If the button code is given, this returns true or false depending on
         whether the current widget is clicked in its root and was clicked
         using the given button; otherwise, returns the code of the button
         that it was clicked with if it's clicked, or false if it's not
         clicked at all.
-    ]]
+    */
     is_clicked = func(self, btn)
         var clked = self:get_root()._clicked
         if btn do
@@ -1680,40 +1680,40 @@ M.Widget = register_type("Widget", table.Object, {
         end
     end,
 
-    --[[!
+    /**
         Returns true or false depending on whether the widget is being
         hovered on in its root.
-    ]]
+    */
     is_hovering = func(self) return self == self:get_root()._hovering end,
 
-    --[[!
+    /**
         If the given parameter is true, this widget gets the focus within
         the root.
-    ]]
+    */
     set_focused = func(self, foc)
         if foc do self:get_root()._focused = self end
     end,
 
-    --[[!
+    /**
         Returns true or false depending on whether the widget is focused
         in its root.
-    ]]
+    */
     is_focused = func(self)
         return self == self:get_root()._focused
     end,
 
-    --[[!
+    /**
         Returns false, as normal widgets are not roots.
-    ]]
+    */
     is_root = func(self)
         return false
     end,
 
-    --[[!
+    /**
         Gets the widget's projection. If it doesn't exist it tries to create
         a new one unless the parameter is true. Returns the projection or
         nil.
-    ]]
+    */
     get_projection = func(self, nonew)
         var proj = self._projection
         if proj or nonew do return proj end
@@ -1722,10 +1722,10 @@ M.Widget = register_type("Widget", table.Object, {
         return proj
     end,
 
-    --[[!
+    /**
         Sets the widget's projection to some forced value. Returns the
         projection.
-    ]]
+    */
     set_projection = func(self, proj)
         self._projection = proj
         return proj
@@ -1733,13 +1733,13 @@ M.Widget = register_type("Widget", table.Object, {
 })
 Widget = M.Widget
 
---[[!
+/**
     Named widgets are regular widgets thave have a name that is specific
     to instance.
 
     Properties:
         - obj_name - can be passed in kwargs as "name".
-]]
+*/
 M.NamedWidget = register_type("NamedWidget", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1752,16 +1752,16 @@ M.NamedWidget = register_type("NamedWidget", Widget, {
 })
 var NamedWidget = M.NamedWidget
 
---[[!
+/**
     Tags are special named widgets. They can contain more widgets. They're
     particularly useful when looking up certain part of a GUI structure or
     replacing something inside without having to iterate through and finding
     it manually.
-]]
+*/
 M.Tag = register_type("Tag", NamedWidget)
 var Tag = M.Tag
 
---[[!
+/**
     This is a regular window. It's nothing more than a special case of named
     widget. You can derive custom window types from this (see $Overlay) but
     you have to make sure the widget type stays the same (pass Window.type
@@ -1771,7 +1771,7 @@ var Tag = M.Tag
         - input_grab - true by default, specifies whether this window grabs
           input. If it's false, the window takes input only in free cursor
           mode.
-]]
+*/
 M.Window = register_type("Window", NamedWidget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1796,7 +1796,7 @@ M.Window = register_type("Window", NamedWidget, {
 })
 Window = M.Window
 
---[[!
+/**
     Overlays are windows that take no input under no circumstances. There is no
     difference otherwise. This overloads {{$Widget.grabs_input}} (returns
     false), {{$Widget.target}} (returns nil), {{$Widget.hover}} (returns nil)
@@ -1806,7 +1806,7 @@ Window = M.Window
     Its layout is managed separately, it takes root's dimensions. You can
     freely append into it. It gets cleared everytime you leave the map and it
     doesn't display when mainmenu is active.
-]]
+*/
 M.Overlay = register_type("Overlay", Window, {
     grabs_input = func(self) return false end,
 
@@ -1816,7 +1816,7 @@ M.Overlay = register_type("Overlay", Window, {
 }, Window.type)
 var Overlay = M.Overlay
 
---[[!
+/**
     A root is a structure that derives from $Widget and holds windows.
     It defines the base for calculating dimensions of child widgets as
     well as input hooks. It also provides some window management functions.
@@ -1824,7 +1824,7 @@ var Overlay = M.Overlay
     primary windows. In the future it will be possible to create new
     roots for different purposes (e.g. in-game GUI on a surface) but
     that is not supported at this point.
-]]
+*/
 M.Root = register_type("Root", Widget, {
     __ctor = func(self)
         self.windows     = {}
@@ -1848,11 +1848,11 @@ M.Root = register_type("Root", Widget, {
         return Widget.__ctor(self)
     end,
 
-    --[[!
+    /**
         This custom overload of {{$Widget.grabs_input}} loops children
         (in reverse order) and calls grabs_input on each. If any of them
         returns true, this also returns true, otherwise it returns false.
-    ]]
+    */
     grabs_input = func(self)
         return loop_children_r(self, func(o)
             if o:grabs_input() do return true end
@@ -1872,12 +1872,12 @@ M.Root = register_type("Root", Widget, {
         self.w, self.h = self:get_aspect(true), 1
     end,
 
-    --[[!
+    /**
         Overloads {{$Widget.layout}}. Calculates proper root dimensions
         (takes forced aspect set using an engine variable forceaspect into
         account), then layouts every child (using correct projection separate
         for every window) and do adjusts children.
-    ]]
+    */
     layout = func(self)
         self:layout_dim()
 
@@ -1924,7 +1924,7 @@ M.Root = register_type("Root", Widget, {
         return win
     end,
 
-    --[[!
+    /**
         Creates a window, but doesn't show it. At the time of creation the
         structure is not built, it merely creates a callback that it stores.
         The window is actually built when shown, and destroyed when hidden.
@@ -1942,7 +1942,7 @@ M.Root = register_type("Root", Widget, {
             - win - the window object type (for example $Window or $Overlay).
             - fun - the function to call after the window has been built
               (with the window as an argument).
-    ]]
+    */
     new_window = func(self, name, win, fun)
         var old = self.windows[name]
         var visible = false
@@ -1959,11 +1959,11 @@ M.Root = register_type("Root", Widget, {
         return old
     end,
 
-    --[[!
+    /**
         Triggers a window build. The window has to exist, if it doesn't,
         this just returns true. Otherwise builds the window and returns
         true.
-    ]]
+    */
     show_window = func(self, name)
         var  g = self.windows[name]
         if not g do return false end
@@ -1976,10 +1976,10 @@ M.Root = register_type("Root", Widget, {
         return self.windows[name]
     end,
 
-    --[[!
+    /**
         Hides a window - that is, destroys it. It can be re-built anytime
         later. Returns true if it actually destroyed anything, false otherwise.
-    ]]
+    */
     hide_window = func(self, name)
         var old = self:find_child(Window.type, name, false)
         if old do self:remove(old) end
@@ -1992,7 +1992,7 @@ M.Root = register_type("Root", Widget, {
         return old != nil
     end,
 
-    --[[!
+    /**
         This finds a window of the given name in the children and returns
         `win:replace(tname, obj, fun)`. It's merely a convenient wrapper.
 
@@ -2004,17 +2004,17 @@ M.Root = register_type("Root", Widget, {
 
         Returns:
             The result of replacing, and false if the window doesn't exist.
-    ]]
+    */
     replace_in_window = func(self, wname, tname, obj, fun)
         var win = self:find_child(Window.type, wname, false)
         if not win do return false end
         return win:replace(tname, obj, fun)
     end,
 
-    --[[!
+    /**
         Given a window name, this returns true if that window is currently
         shown and false otherwise.
-    ]]
+    */
     window_visible = func(self, name)
         return self.windows[name](true)
     end,
@@ -2030,20 +2030,20 @@ M.Root = register_type("Root", Widget, {
         return y
     end,
 
-    --[[!
+    /**
         Sets the root's cursor position, given the global pointer
         coordinates. By default this simply copies the given values.
-    ]]
+    */
     set_cursor = func(self, x, y)
         self.cursor_x = x
         self.cursor_y = y
     end,
 
-    --[[!
+    /**
         Returns whether the current root has a cursor. If the argument
         is true, this does an update (re-checks, updates the value and
         emits an internal signal).
-    ]]
+    */
     cursor_exists = func(self, update)
         var cec = self.has_cursor
         if not update do return cec end
@@ -2057,18 +2057,18 @@ M.Root = register_type("Root", Widget, {
         return cec
     end,
 
-    --[[!
+    /**
         Returns true as roots are alway roots.
-    ]]
+    */
     is_root = func(self)
         return true
     end,
 
-    --[[!
+    /**
         Gets the widget's projection. Unlike regular projection getter,
         this doesn't attempt to create a new projection if one doesn't
         exist as roots typically don't have projections.
-    ]]
+    */
     get_projection = func(self)
         return self._projection
     end,
@@ -2088,10 +2088,10 @@ M.Root = register_type("Root", Widget, {
         c:scissor(self)
     end,
 
-    --[[!
+    /**
         Pops a clip area out of the clip stack and scissors (assuming there
         is anything left on the clip stack).
-    ]]
+    */
     clip_pop = func(self)
         var cs = self._clip_stack
         tremove(cs)
@@ -2102,10 +2102,10 @@ M.Root = register_type("Root", Widget, {
         end
     end,
 
-    --[[!
+    /**
         See $ClipArea.is_fully_clipped. Works on the last clip area on the
         clip stack.
-    ]]
+    */
     clip_is_fully_clipped = func(self, x, y, w, h)
         var cs = self._clip_stack
         var l = #cs
@@ -2113,9 +2113,9 @@ M.Root = register_type("Root", Widget, {
         return cs[l]:is_fully_clipped(x, y, w, h)
     end,
 
-    --[[!
+    /**
         Scissors the last area in the clip stack.
-    ]]
+    */
     clip_scissor = func(self)
         var cs = self._clip_stack
         cs[#cs]:scissor(self)
@@ -2309,14 +2309,14 @@ M.Root = register_type("Root", Widget, {
         return o:hold(ox, oy, obj)
     end,
 
-    --[[!
+    /**
         Returns the width of this root window in pixels. By default just
         retrieves HUD width from the engine. Override as needed. The second
         parameter (if provided - if not, then no aspect forcing will be taken
         into consideration) can be either a number specifying forced aspect
         ratio (width divided by height) or true, in which case $get_aspect
         is used.
-    ]]
+    */
     get_pixel_w = func(self, faspect)
         if faspect == true do faspect = self:get_aspect() end
         if faspect do
@@ -2325,15 +2325,15 @@ M.Root = register_type("Root", Widget, {
         return hud_get_w()
     end,
 
-    --[[!
+    /**
         Returns the height of this root window in pixels. By default just
         retrieves HUD height from the engine. Override as needed.
-    ]]
+    */
     get_pixel_h = func(self)
         return hud_get_h()
     end,
 
-    --[[!
+    /**
         If this returns nil, aspect ratio will be auto-computed. Otherwise
         you can return any aspect ratio as a floating point number which is
         a result of division of width by height. By default checks forced
@@ -2343,17 +2343,17 @@ M.Root = register_type("Root", Widget, {
         Keep in mind that if the second provided paremter is true, this will
         return in all cases - as return value of $get_pixel_w divided by
         return value of $get_pixel_h.
-    ]]
+    */
     get_aspect = func(self, forceret)
         var faspect = aspect_get()
         if faspect != 0 do return faspect end
         if forceret do return self:get_pixel_w() / self:get_pixel_h() end
     end,
 
-    --[[!
+    /**
         Returns the number of rows of text that can fit on the screen. Used
         to calculate text scale. By default just returns $uitextrows.
-    ]]
+    */
     get_text_rows = func(self)
         return uitextrows
     end,
@@ -2468,10 +2468,10 @@ M.Root = register_type("Root", Widget, {
         self:cursor_exists(true)
     end,
 
-    --[[!
+    /**
         Resets the root (drops all children, menus and tooltip). Emits
         the "reset" signal at the end.
-    ]]
+    */
     reset = func(self)
         self:destroy_children()
         if self._tooltip and self._tooltip._clear_on_drop do

@@ -1,4 +1,4 @@
---[[!<
+/**<
     Provides extra conversion functions.
 
     Author:
@@ -6,30 +6,30 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 /// Module: conv
 var M = {}
 
---[[!
+/**
     Converts an integral value to be treated as hexadecimal color code to
     r, g, b values (ranging 0-255). Returns three separate values.
-]]
+*/
 M.hex_to_rgb = func(hex)
     return hex >> 16, (hex >> 8) & 0xFF, hex & 0xFF
 end
 
---[[!
+/**
     Converts r, g, b color values (0-255) to a hexadecimal color code.
-]]
+*/
 M.rgb_to_hex = func(r, g, b)
     return b | (g << 8) | (r << 16)
 end
 
---[[!
+/**
     Takes the r, g, b values (0-255) and returns the matching h, s, l
     values (0-1).
-]]
+*/
 M.rgb_to_hsl = func(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
     var mx = math.max(r, g, b)
@@ -52,10 +52,10 @@ M.rgb_to_hsl = func(r, g, b)
     return h, s, l
 end
 
---[[!
+/**
     Takes the r, g, b values (0-255) and returns the matching h, s, v
     values (0-1).
-]]
+*/
 M.rgb_to_hsv = func(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
     var mx = math.max(r, g, b)
@@ -78,10 +78,10 @@ M.rgb_to_hsv = func(r, g, b)
     return h, s, v
 end
 
---[[!
+/**
     Takes the h, s, l values (0-1) and returns the matching r, g, b
     values (0-255).
-]]
+*/
 M.hsl_to_rgb = func(h, s, l)
     var r, g, b
 
@@ -110,10 +110,10 @@ M.hsl_to_rgb = func(h, s, l)
     return (r * 255), (g * 255), (b * 255)
 end
 
---[[!
+/**
     Takes the h, s, v values (0-1) and returns the matching r, g, b
     values (0-255).
-]]
+*/
 M.hsv_to_rgb = func(h, s, v)
     var r, g, b
 

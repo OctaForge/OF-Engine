@@ -1,4 +1,4 @@
---[[!<
+/**<
     Text editors and fields.
 
     Author:
@@ -6,7 +6,7 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 var capi = require("capi")
 var stream = require("core.lua.stream")
@@ -196,7 +196,7 @@ var gen_color_setter = func(name)
     end
 end
 
---[[!
+/**
     Implements a text editor widget. It's a basic editor that supports
     scrolling of text and some extra features like key filter and so on.
     It supports copy-paste that interacts with native system clipboard.
@@ -225,7 +225,7 @@ end
         - sel_color - the selection color (ARGB: 0xC07B68EE).
         - wrap_color - the wrap symbol color (ARGB: 0xFF3C3C3C).
         - pad_l, pad_r - text left and right padding (both 0 by default).
-]]
+*/
 M.TextEditor = register_type("TextEditor", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -274,10 +274,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return Widget.__ctor(self, kwargs)
     end,
 
-    --[[!
+    /**
         Given a readable stream, this loads its contents into the editor.
         It doesn't close the stream and it clears the editor beforehand.
-    ]]
+    */
     load_stream = func(self, stream)
         if not stream do return end
         self:edit_clear(false)
@@ -290,10 +290,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
         if #lines == 0 do lines[1] = editline() end
     end,
 
-    --[[!
+    /**
         Given a writable stream, this writes the contents of the editor
         into it. It doesn't close the stream.
-    ]]
+    */
     save_stream = func(self, stream)
         if not stream do return end
         for i, line in ipairs(self.lines) do
@@ -301,12 +301,12 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    --[[!
+    /**
         Marks a selection. If the provided argument is true, the selection
         position is set to the cursor position (and any change in cursor
         position effectively extends the selection). Otherwise the
         selection is disabled.
-    ]]
+    */
     mark = func(self, enable)
         self.mx = enable and self.cx or -1
         self.my = self.cy
@@ -390,10 +390,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return tostring(editline():combine_lines(self.lines))
     end,
 
-    --[[!
+    /**
         Returns the selected portion of the editor as a string (assuming
         there is one, otherwise it returns nil).
-    ]]
+    */
     selection_to_string = func(self)
         var buf = {}
         var sx, sy, ex, ey = select(2, self:region())
@@ -412,9 +412,9 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    --[[!
+    /**
         Removes "count" lines from line number "start".
-    ]]
+    */
     remove_lines = func(self, start, count)
         self._needs_calc = true
         for i = 1, count do
@@ -422,13 +422,13 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    --[[!
+    /**
         Resets the editor contents - they're set to the "value" property
         (which acts differently on editors and fields - on editors it's just
         an "initial" value, on fields it's the current value, so on fields
         it pretty much cancels out unsaved changes). If "value" is nil,
         do an empty string is used.
-    ]]
+    */
     reset_value = func(self)
         var str = self.value or ""
         var strlines = str:split("\n")
@@ -445,10 +445,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
         if cond do self:edit_clear(strlines) end
     end,
 
-    --[[!
+    /**
         Copies the current selection into system clipboard. Returns the
         copied string or nil if nothing was copied.
-    ]]
+    */
     copy = func(self)
         if not self:region() do return nil end
         self._needs_calc = true
@@ -459,11 +459,11 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    --[[!
+    /**
         Pastes a string from the clipboard into the editor on cursor position.
         Returns the pasted string or nil if nothing was pasted. Deletes the
         current selection if there is one and there is something to paste.
-    ]]
+    */
     paste = func(self)
         if not clipboard_has_text() do return nil end
         self._needs_calc = true
@@ -521,10 +521,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return true
     end,
 
-    --[[!
+    /**
         Given a string, this inserts the string into the editor on cursor
         position (and deletes any selection before that if there is one).
-    ]]
+    */
     insert = func(self, ch)
         if #ch > 1 do
             for c in ch:gmatch(".") do
@@ -639,9 +639,9 @@ M.TextEditor = register_type("TextEditor", Widget, {
     /// Function: set_key_filter
     set_key_filter = gen_setter "key_filter",
 
-    --[[!
+    /**
         Sets the value property, emits value,changed and calls $reset_value.
-    ]]
+    */
     set_value = func(self, val)
         val = tostring(val)
         self.value = val
@@ -1322,7 +1322,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
 })
 var TextEditor = M.TextEditor
 
---[[!
+/**
     Represents a field, a specialization of $TextEditor. It has the same
     properties. The "value" property changed meaning - now it stores the
     current value - there is no fallback for fields (it still is the default
@@ -1330,7 +1330,7 @@ var TextEditor = M.TextEditor
 
     Fields are also by default not multiline. You can still explicitly
     override this in kwargs or by setting the property.
-]]
+*/
 M.Field = register_type("Field", TextEditor, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
@@ -1347,10 +1347,10 @@ M.Field = register_type("Field", TextEditor, {
     end
 })
 
---[[!
+/**
     Derived from $Field. Represents a keyfield - it catches keypresses and
     inserts key names. Useful when creating an e.g. keybinding GUI.
-]]
+*/
 M.KeyField = register_type("KeyField", M.Field, {
     allow_text_input = func(self) return false end,
 

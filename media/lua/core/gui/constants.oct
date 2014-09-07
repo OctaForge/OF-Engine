@@ -1,4 +1,4 @@
---[[!<
+/**<
     Some constants used in the GUI. Non-global, used by the primary GUI
     module and forwarded.
 
@@ -7,12 +7,12 @@
 
     License:
         See COPYING.txt.
-]]
+*/
 
 /// Module: constants
 var M = {}
 
---[[!
+/**
     Contains a list of OpenGL constants used by (and useful in) the GUI.
     Their meaning matches the one in OpenGL (with the GL_ prefix). This table
     contains ALPHA, ALWAYS, BLUE, CLAMP_TO_BORDER, CLAMP_TO_EDGE,
@@ -31,7 +31,7 @@ var M = {}
     TEXTURE_SWIZZLE_A, TEXTURE_SWIZZLE_B, TEXTURE_SWIZZLE_G,
     TEXTURE_SWIZZLE_R, TEXTURE_WRAP_R, TEXTURE_WRAP_S, TEXTURE_WRAP_T,
     TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, ZERO.
-]]
+*/
 M.gl = {:
     ALPHA = 0x1906,
     ALWAYS = 0x0207,
@@ -108,9 +108,9 @@ M.gl = {:
 var scancode_to_keycode = func(x) return (x | (1 << 30)) end
 var char_to_byte = string.byte
 
---[[! Enum: scancode
+/** Enum: scancode
     Contains a list of key scan codes. Not meant for direct use. Use $key.
-]]
+*/
 M.scancode = {
     UNKNOWN = 0,
     A = 4,
@@ -368,11 +368,11 @@ M.scancode = {
 }
 var scancode = M.scancode
 
---[[! Enum: key
+/** Enum: key
     Contains a list of key constants. Matches SDLK_* with the addition of
     mouse buttons (MOUSELEFT, MOUSEMIDDLE, MOUSERIGHT, MOUSEWHEELUP,
     MOUSEWHEELDOWN, MOUSEBACK, MOUSEFORWARD).
-]]
+*/
 M.key = {
     MOUSELEFT      = -1,
     MOUSEMIDDLE    = -2,
