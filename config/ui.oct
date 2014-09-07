@@ -12,7 +12,7 @@ var root = gui.get_root()
 var var_get = cs.var_get
 var cs_execute = cs.execute
 
-var gen_map_list = |img, vb| do
+var gen_map_list = func(img, vb)
     var glob, loc = capi.get_all_map_names()
     vb:append(gui.Label { text = "Global maps", color = 0x88FF88 })
     var current_preview
@@ -20,18 +20,18 @@ var gen_map_list = |img, vb| do
         var map = glob[i]
         vb:append(gui.Button { label = glob[i], clamp_h = true,
             variant = "nobg", min_w = 0.2
-        }, |btn| do
-            signal.connect(btn, "hovering", || do
+        }, func(btn)
+            signal.connect(btn, "hovering", func()
                 if map != current_preview do
                     current_preview = map
                     img:set_tex("media/map/" .. map .. "/map")
                 end
             end)
-            signal.connect(btn, "leaving", || do
+            signal.connect(btn, "leaving", func()
                 current_preview = nil
                 img:set_tex(nil)
             end)
-            signal.connect(btn, "clicked", || do
+            signal.connect(btn, "clicked", func()
                 cs_execute("map " .. map)
             end)
         end)
@@ -41,83 +41,83 @@ var gen_map_list = |img, vb| do
         var map = loc[i]
         vb:append(gui.Button { label = loc[i], clamp_h = true,
             variant = "nobg", min_w = 0.2
-        }, |btn| do
-            signal.connect(btn, "hovering", || do
+        }, func(btn)
+            signal.connect(btn, "hovering", func()
                 if map != current_preview do
                     current_preview = map
                     img:set_tex("media/map/" .. map .. "/map")
                 end
             end)
-            signal.connect(btn, "leaving", || do
+            signal.connect(btn, "leaving", func()
                 current_preview = nil
                 img:set_tex(nil)
             end)
-            signal.connect(btn, "clicked", || do
+            signal.connect(btn, "clicked", func()
                 cs_execute("map " .. map)
             end)
         end)
     end
 end
 
-var gen_map_load = || do
+var gen_map_load = func()
     var s
     return gui.HBox {
-        gui.Outline { __init = |o| do
-            o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
-                sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.5 }, |sc| do
+        gui.Outline { __init = func(o)
+            o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
+                sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.5 }, func(sc)
                     s = sc
-                    sc:append(gui.HBox { padding = 0.01 }, |hb| do
+                    sc:append(gui.HBox { padding = 0.01 }, func(hb)
                         var im
                         hb:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02,
                             gui.Image { min_w = 0.3, min_h = 0.3,
-                                __init = |img| do im = img end,
+                                __init = func(img) im = img end,
                                 gui.Outline { clamp = true, color = 0x303030 }
                             }
                         })
-                        hb:append(gui.VBox(), |vb| do
+                        hb:append(gui.VBox(), func(vb)
                             gen_map_list(im, vb)
                         end)
                     end)
                 end)
             end)
         end, color = 0x303030 },
-        gui.VScrollbar { clamp_v = true, __init = |sb| do
+        gui.VScrollbar { clamp_v = true, __init = func(sb)
             sb:append(gui.ScrollButton())
             sb:bind_scroller(s)
         end }
     }
 end
 
-root:new_window("main", gui.Window, |win| do
+root:new_window("main", gui.Window, func(win)
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("Main menu")
-    win:append(gui.HBox { clamp_h = true }, |b| do
+    win:append(gui.HBox { clamp_h = true }, func(b)
         var stat
-        b:append(gui.VBox(), |b| do
+        b:append(gui.VBox(), func(b)
             b:append(gui.Button { label = "Load map", clamp_h = true,
                 variant = "nobg"
-            }, |btn| do
-                connect(btn, "clicked", || do stat:set_state("load_map") end)
+            }, func(btn)
+                connect(btn, "clicked", func() stat:set_state("load_map") end)
             end)
             b:append(gui.Button { label = "Options", clamp_h = true,
                 variant = "nobg"
-            }, |btn| do
-                connect(btn, "clicked", || do stat:set_state("options") end)
+            }, func(btn)
+                connect(btn, "clicked", func() stat:set_state("options") end)
             end)
             b:append(gui.Button { label = "Credits", clamp_h = true,
                 variant = "nobg"
-            }, |btn| do
-                connect(btn, "clicked", || do stat:set_state("credits") end)
+            }, func(btn)
+                connect(btn, "clicked", func() stat:set_state("credits") end)
             end)
             b:append(gui.Button { label = "Quit", clamp_h = true,
                 variant = "nobg"
-            }, |btn| do
-                connect(btn, "clicked", || do cs_execute("quit") end)
+            }, func(btn)
+                connect(btn, "clicked", func() cs_execute("quit") end)
             end)
         end)
         b:append(gui.Filler { min_w = 0.005, clamp_v = true })
-        b:append(gui.State { state = "default" }, |st| do
+        b:append(gui.State { state = "default" }, func(st)
             stat = st
             st:update_state("default", gui.Outline { min_w = 0.6, min_h = 0.5,
                 color = 0x303030, gui.VBox {
@@ -174,23 +174,23 @@ root:new_window("main", gui.Window, |win| do
     end)
 end)
 
-root:new_window("fullconsole", gui.Overlay, |win| do
+root:new_window("fullconsole", gui.Overlay, func(win)
     win:clamp(true, true, false, false)
     win:align(0, -1)
     capi.console_full_show(true)
     connect(win, "destroy", || capi.console_full_show(false))
     win:append(gui.Console {
         min_h = || var_get("fullconsize") / 100
-    }, |con| do
+    }, func(con)
         con:clamp(true, true, false, false)
     end)
 end)
 
-root:new_window("editstats", gui.Overlay, |win| do
+root:new_window("editstats", gui.Overlay, func(win)
     win:align(-1, 1)
     win:set_above_hud(true)
-    win:append(gui.Filler { variant = "edithud" }, |fl| do
-        fl:append(gui.Spacer { pad_h = 0.015, pad_v = 0.01 }, |sp| do
+    win:append(gui.Filler { variant = "edithud" }, func(fl)
+        fl:append(gui.Spacer { pad_h = 0.015, pad_v = 0.01 }, func(sp)
             sp:append(gui.EvalLabel { scale = -1,
                 callback = || cs_execute("getedithud") }):align(-1, 0)
         end)
@@ -228,11 +228,11 @@ var cleanup = {}
 var totalscore = 0
 var gamestate  = 0
 
-var cleanuptiles = || do
+var cleanuptiles = func()
     for i, v in ipairs(cleanup) do cleanup[i]:destroy() end
 end
 
-var seedtiles = || do
+var seedtiles = func()
     var t1, t2 = math.random(1, 16)
     repeat t2 = math.random(1, 16) until t2 != t1
     var vals = { 2, 4 }
@@ -249,7 +249,7 @@ var seedtiles = || do
     end
 end
 
-var randtile = |grid| do
+var randtile = func(grid)
     var emptyfields = {}
     for i = 1, 16 do
         if tiles[i] == 0 do emptyfields[#emptyfields + 1] = i end
@@ -297,7 +297,7 @@ end
 
 var pendinganims = 0
 
-var guimovetile = |grid, i, j, step, hdir, vdir| do
+var guimovetile = func(grid, i, j, step, hdir, vdir)
     var o = grid:remove(j, true)
     var oadj = o.adjust
     grid:insert(j, blocktypes[0]())
@@ -314,12 +314,12 @@ var guimovetile = |grid, i, j, step, hdir, vdir| do
     grid.parent:append(gui.Animator {
         move_func = dirn, move_speed = mspeed,
         move_dist_x = dx, move_dist_y = dy, o
-    }, |m| do
+    }, func(m)
         m:clamp(true, true, true, true)
-        connect(m, "anim,start", || do
+        connect(m, "anim,start", func()
             pendinganims += 1
         end)
-        connect(m, "anim,end", || do
+        connect(m, "anim,end", func()
             m:set_visible(false)
             cleanup[#cleanup + 1] = m
             grid:remove(i)
@@ -337,7 +337,7 @@ var guimovetile = |grid, i, j, step, hdir, vdir| do
     o.adjust   = 0
 end
 
-var movetile = |grid, off, hdir, vdir| do
+var movetile = func(grid, off, hdir, vdir)
     var dir = (hdir != 0) and hdir or (vdir * 4)
     var lbeg, lend, lstart
     if dir < 0 do
@@ -383,7 +383,7 @@ var movetile = |grid, off, hdir, vdir| do
     end
 end
 
-var movetiles = |grid, h, v| do
+var movetiles = func(grid, h, v)
     if h != 0 do
         movetile(grid, 0,  h, 0)
         movetile(grid, 4,  h, 0)
@@ -406,15 +406,15 @@ var gamestates = {
 }
 
 var seededtiles = false
-root:new_window("2048", gui.Window, |win| do
+root:new_window("2048", gui.Window, func(win)
     win:set_floating(true)
     win:set_variant("movable")
     win:set_title("2048 (score: 0)")
-    connect(win, "destroy", || do totalscore = 0 end)
-    win:append(gui.ColorFiller { color = 0xBBADA0 }, |cf| do
+    connect(win, "destroy", func() totalscore = 0 end)
+    win:append(gui.ColorFiller { color = 0xBBADA0 }, func(cf)
         cf:clamp(true, true, true, true)
-        win:append(gui.Spacer { pad_h = 0.025, pad_v = 0.025 }, |sp| do
-            sp:append(gui.Grid { columns = 4, padding = 0.025 }, |grid| do
+        win:append(gui.Spacer { pad_h = 0.025, pad_v = 0.025 }, func(sp)
+            sp:append(gui.Grid { columns = 4, padding = 0.025 }, func(grid)
                 cf.key = func(self, code, isdown)
                     if isdown do
                         if code == gui.key.LEFT do

@@ -43,7 +43,7 @@ var DayManager = Entity:clone {
     __activate = @[server,func(self)
         Entity.__activate(self)
         self.day_seconds_s = self:get_attr("day_seconds")
-        connect(self, "day_seconds,changed", |self, v| do
+        connect(self, "day_seconds,changed", func(self, v)
             self.day_seconds_s = v
         end)
         self.day_progress_s = 0
@@ -129,10 +129,10 @@ M.plugins = {
     day_night = {
         __activate = @[not server,func(self)
             var daylen
-            connect(self, "day_seconds,changed", |self, v| do
+            connect(self, "day_seconds,changed", func(self, v)
                 daylen = v
             end)
-            connect(self, "day_progress,changed", |self, v| do
+            connect(self, "day_progress,changed", func(self, v)
                 if not daylen do return end
                 if edit.player_is_editing() do return end
                 self.sun_changed_dir = true

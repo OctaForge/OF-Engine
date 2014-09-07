@@ -316,19 +316,19 @@ M.plugins = {
         __activate = @[not server,func(self)
             gui.get_hud():append(gui.Spacer { pad_h = 0.1, pad_v = 0.1,
                 align_h = 1, align_v = 1
-            }, |sp| do
+            }, func(sp)
                 self.health_hud_status = sp:append(gui.Label {
                     scale = 2.5, font = "default_outline"
-                }, |st| do
+                }, func(st)
                     var curh, maxh
-                    var updatehud = || do
+                    var updatehud = func()
                         st:set_text(tostring(curh))
                         st:set_color(gethcolor(curh, maxh))
                     end
-                    connect(self, "max_health,changed", |self, v| do
+                    connect(self, "max_health,changed", func(self, v)
                         maxh = v; if curh do updatehud() end
                     end)
-                    connect(self, "health,changed", |self, v| do
+                    connect(self, "health,changed", func(self, v)
                         curh = v; if maxh do updatehud() end
                     end)
                 end)
@@ -343,7 +343,7 @@ M.plugins = {
     --! Kills the player when he falls off the map.
     player_off_map = {
         __activate = @[not server,func(self)
-            connect(self, "off_map", |ent| do
+            connect(self, "off_map", func(ent)
                 if not is_valid_target(ent) do return end
                 ent:set_attr("health", 0)
             end)
@@ -356,7 +356,7 @@ M.plugins = {
     ]]
     player_in_deadly_material = {
         __activate = @[not server,func(self)
-            connect(self, "in_deadly", |ent, mat| do
+            connect(self, "in_deadly", func(ent, mat)
                 if not is_valid_target(ent) do return end
                 if mat == edit.material.LAVA do
                     ent:health_add(-1)
