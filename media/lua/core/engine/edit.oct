@@ -50,7 +50,7 @@ M.material = {:
 --[[! Function: player_is_editing
     Returns true if player is editing, false otherwise.
 ]]
-M.player_is_editing = func() return capi.editing_get() ~= 0 end
+M.player_is_editing = func() return capi.editing_get() != 0 end
 
 --[[! Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered

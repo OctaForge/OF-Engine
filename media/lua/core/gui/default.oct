@@ -465,7 +465,7 @@ var get_logo = func(root, win)
     if  hw_tex_size == 0 do
         hw_tex_size = cs.var_get("hwtexsize")
     end
-    var sz = ((max_tex_size ~= 0) and math.min(max_tex_size, hw_tex_size)
+    var sz = ((max_tex_size != 0) and math.min(max_tex_size, hw_tex_size)
                                      or hw_tex_size)
     var w, h = root:get_pixel_w(), root:get_pixel_h()
     var logo

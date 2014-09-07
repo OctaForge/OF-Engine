@@ -2049,8 +2049,8 @@ M.Root = register_type("Root", Widget, {
         if not update do return cec end
         var bce = cec
         cec = self:grabs_input() or self:target(self.cursor_x * self.w,
-            self.cursor_y * self.h) ~= nil
-        if bce ~= cec do
+            self.cursor_y * self.h) != nil
+        if bce != cec do
             self.has_cursor = cec
             emit(self, "__has_cursor,changed", cec)
         end
@@ -2346,7 +2346,7 @@ M.Root = register_type("Root", Widget, {
     ]]
     get_aspect = func(self, forceret)
         var faspect = aspect_get()
-        if faspect ~= 0 do return faspect end
+        if faspect != 0 do return faspect end
         if forceret do return self:get_pixel_w() / self:get_pixel_h() end
     end,
 
@@ -2576,7 +2576,7 @@ end)
 
 set_external("gui_clear", func()
     root:reset()
-    if mmenu ~= 0 and isconnected() do
+    if mmenu != 0 and isconnected() do
         var_set("mainmenu", 0, true, false)
     end
     if draw_hud do
