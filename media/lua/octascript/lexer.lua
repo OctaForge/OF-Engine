@@ -375,6 +375,9 @@ local lextbl = {
         if c == 61 then -- =
             next_char(ls)
             return "-="
+        elseif c == 62 then -- >
+            next_char(ls)
+            return "->"
         elseif c ~= 45 then return "-" end
         c = next_char(ls)
         if c == 91 then -- [
