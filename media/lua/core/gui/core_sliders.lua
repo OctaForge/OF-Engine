@@ -8,40 +8,40 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local signal = require("core.events.signal")
+var capi = require("capi")
+var signal = require("core.events.signal")
 
-local get_millis in capi
+var get_millis in capi
 
-local max   = math.max
-local min   = math.min
-local abs   = math.abs
-local clamp = math.clamp
-local round = math.round
-local emit  = signal.emit
+var max   = math.max
+var min   = math.min
+var abs   = math.abs
+var clamp = math.clamp
+var round = math.round
+var emit  = signal.emit
 
 --! Module: core
-local M = require("core.gui.core")
+var M = require("core.gui.core")
 
 -- consts
-local key = M.key
+var key = M.key
 
 -- widget types
-local register_type = M.register_type
+var register_type = M.register_type
 
 -- base widgets
-local Widget = M.get_type("Widget")
+var Widget = M.get_type("Widget")
 
 -- setters
-local gen_setter = M.gen_setter
+var gen_setter = M.gen_setter
 
 -- orientation
-local orient = M.orient
+var orient = M.orient
 
 -- alignment/clamping
-local adjust = M.adjust
+var adjust = M.adjust
 
-local SliderButton
+var SliderButton
 
 --[[!
     Implements a base type for either horizontal or vertical slider.
@@ -76,25 +76,25 @@ M.Slider = register_type("Slider", Widget, {
 
     --! Jumps by n steps on the slider.
     do_step = function(self, n)
-        local mn, mx, ss = self.min_value, self.max_value, self.step_size
+        var mn, mx, ss = self.min_value, self.max_value, self.step_size
 
-        local maxstep = abs(mx - mn) / ss
-        local curstep = (self.value - min(mn, mx)) / ss
-        local newstep = clamp(curstep + n, 0, maxstep)
+        var maxstep = abs(mx - mn) / ss
+        var curstep = (self.value - min(mn, mx)) / ss
+        var newstep = clamp(curstep + n, 0, maxstep)
 
-        local val = min(mx, mn) + newstep * ss
+        var val = min(mx, mn) + newstep * ss
         self.value = val
         emit(self, "value,changed", val)
     end,
 
     --! Sets the nth step.
     set_step = function(self, n)
-        local mn, mx, ss = self.min_value, self.max_value, self.step_size
+        var mn, mx, ss = self.min_value, self.max_value, self.step_size
 
-        local steps   = abs(mx - mn) / ss
-        local newstep = clamp(n, 0, steps)
+        var steps   = abs(mx - mn) / ss
+        var newstep = clamp(n, 0, steps)
 
-        local val = min(mx, mn) + newstep * ss
+        var val = min(mx, mn) + newstep * ss
         self.value = val
         emit(self, "value,changed", val)
     end,
@@ -105,17 +105,17 @@ M.Slider = register_type("Slider", Widget, {
         scroll (goes forward/back by 3 steps).
     ]]
     key_hover = function(self, code, isdown)
-        if code == key.UP or code == key.LEFT then
-            if isdown then self:do_step(-1) end
+        if code == key.UP or code == key.LEFT do
+            if isdown do self:do_step(-1) end
             return true
-        elseif code == key.MOUSEWHEELUP then
-            if isdown then self:do_step(-3) end
+        elif code == key.MOUSEWHEELUP do
+            if isdown do self:do_step(-3) end
             return true
-        elseif code == key.DOWN or code == key.RIGHT then
-            if isdown then self:do_step(1) end
+        elif code == key.DOWN or code == key.RIGHT do
+            if isdown do self:do_step(1) end
             return true
-        elseif code == key.MOUSEWHEELDOWN then
-            if isdown then self:do_step(3) end
+        elif code == key.MOUSEWHEELDOWN do
+            if isdown do self:do_step(3) end
             return true
         end
         return Widget.key_hover(self, code, isdown)
@@ -150,10 +150,10 @@ M.Slider = register_type("Slider", Widget, {
         in the slider.
     ]]
     clicked = function(self, cx, cy, code)
-        if code == key.MOUSELEFT then
-            local d = self.choose_direction(self, cx, cy)
+        if code == key.MOUSELEFT do
+            var d = self.choose_direction(self, cx, cy)
             self.arrow_dir = d
-            if d == 0 then
+            if d == 0 do
                 self:scroll_to(cx, cy)
             end
         end
@@ -161,24 +161,24 @@ M.Slider = register_type("Slider", Widget, {
     end,
 
     arrow_scroll = function(self, d)
-        local tmillis = get_millis(true)
-        if (self.last_step + self.step_time) > tmillis then return end
+        var tmillis = get_millis(true)
+        if (self.last_step + self.step_time) > tmillis do return end
 
         self.last_step = tmillis
         self.do_step(self, d)
     end,
 
     holding = function(self, cx, cy, code)
-        if code == key.MOUSELEFT then
-            local d = self:choose_direction(cx, cy)
+        if code == key.MOUSELEFT do
+            var d = self:choose_direction(cx, cy)
             self.arrow_dir = d
-            if d != 0 then self:arrow_scroll(d) end
+            if d != 0 do self:arrow_scroll(d) end
         end
         Widget.holding(self, cx, cy, code)
     end,
 
     hovering = function(self, cx, cy)
-        if not self:is_clicked(key.MOUSELEFT) then
+        if not self:is_clicked(key.MOUSELEFT) do
             self.arrow_dir = self:choose_direction(cx, cy)
         end
         Widget.hovering(self, cx, cy)
@@ -204,9 +204,9 @@ M.Slider = register_type("Slider", Widget, {
     --! Function: set_arrow_size
     set_arrow_size = gen_setter "arrow_size"
 })
-local Slider = M.Slider
+var Slider = M.Slider
 
-local clicked_states = {
+var clicked_states = {
     [key.MOUSELEFT   ] = "clicked_left",
     [key.MOUSEMIDDLE ] = "clicked_middle",
     [key.MOUSERIGHT  ] = "clicked_right",
@@ -244,8 +244,8 @@ M.SliderButton = register_type("SliderButton", Widget, {
     end,
 
     holding = function(self, cx, cy, code)
-        local p = self.parent
-        if p and code == key.MOUSELEFT and p.type == Slider.type then
+        var p = self.parent
+        if p and code == key.MOUSELEFT and p.type == Slider.type do
             p.arrow_dir = 0
             p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
@@ -253,7 +253,7 @@ M.SliderButton = register_type("SliderButton", Widget, {
     end,
 
     clicked = function(self, cx, cy, code)
-        if code == key.MOUSELEFT then
+        if code == key.MOUSELEFT do
             self.offset_h = cx
             self.offset_v = cy
         end
@@ -261,12 +261,12 @@ M.SliderButton = register_type("SliderButton", Widget, {
     end,
 
     layout = function(self)
-        local lastw = self.w
-        local lasth = self.h
+        var lastw = self.w
+        var lasth = self.h
 
         Widget.layout(self)
 
-        if self:is_clicked(key.MOUSELEFT) then
+        if self:is_clicked(key.MOUSELEFT) do
             self.w = lastw
             self.h = lasth
         end
@@ -286,14 +286,14 @@ M.HSlider = register_type("HSlider", Slider, {
     orient = orient.HORIZONTAL,
 
     choose_state = function(self)
-        local ad = self.arrow_dir
+        var ad = self.arrow_dir
 
-        if ad == -1 then
-            local clicked = clicked_states[self:is_clicked()]
+        if ad == -1 do
+            var clicked = clicked_states[self:is_clicked()]
             return clicked and "left_" .. clicked or
                 (self:is_hovering() and "left_hovering" or "default")
-        elseif ad == 1 then
-            local clicked = clicked_states[self:is_clicked()]
+        elif ad == 1 do
+            var clicked = clicked_states[self:is_clicked()]
             return clicked and "right_" .. clicked or
                 (self:is_hovering() and "right_hovering" or "default")
         end
@@ -301,37 +301,37 @@ M.HSlider = register_type("HSlider", Slider, {
     end,
 
     choose_direction = function(self, cx, cy)
-        local as = self.arrow_size
+        var as = self.arrow_size
         return cx < as and -1 or (cx >= (self.w - as) and 1 or 0)
     end,
 
     scroll_to = function(self, cx, cy)
-        local  btn = self:find_child(SliderButton.type, nil, false)
-        if not btn then return end
+        var  btn = self:find_child(SliderButton.type, nil, false)
+        if not btn do return end
 
-        local as = self.arrow_size
-        local sw, bw = self.w, btn.w
+        var as = self.arrow_size
+        var sw, bw = self.w, btn.w
 
-        local pos = clamp((cx - as - bw / 2) / (sw - 2 * as - bw), 0, 1)
-        local steps = abs(self.max_value - self.min_value) / self.step_size
-        local step = round(steps * pos)
+        var pos = clamp((cx - as - bw / 2) / (sw - 2 * as - bw), 0, 1)
+        var steps = abs(self.max_value - self.min_value) / self.step_size
+        var step = round(steps * pos)
 
         self.set_step(self, step)
     end,
 
     adjust_children = function(self)
-        local  btn = self:find_child(SliderButton.type, nil, false)
-        if not btn then return end
+        var  btn = self:find_child(SliderButton.type, nil, false)
+        if not btn do return end
         btn._slider = self
 
-        local mn, mx, ss = self.min_value, self.max_value, self.step_size
+        var mn, mx, ss = self.min_value, self.max_value, self.step_size
 
-        local steps   = abs(mx - mn) / self.step_size
-        local curstep = (self.value - min(mx, mn)) / ss
+        var steps   = abs(mx - mn) / self.step_size
+        var curstep = (self.value - min(mx, mn)) / ss
 
-        local as = self.arrow_size
+        var as = self.arrow_size
 
-        local width = max(self.w - 2 * as, 0)
+        var width = max(self.w - 2 * as, 0)
 
         btn.w = max(btn.w, width / steps)
         btn.x = as + (width - btn.w) * curstep / steps
@@ -351,14 +351,14 @@ M.HSlider = register_type("HSlider", Slider, {
 ]]
 M.VSlider = register_type("VSlider", Slider, {
     choose_state = function(self)
-        local ad = self.arrow_dir
+        var ad = self.arrow_dir
 
-        if ad == -1 then
-            local clicked = clicked_states[self:is_clicked()]
+        if ad == -1 do
+            var clicked = clicked_states[self:is_clicked()]
             return clicked and "up_" .. clicked or
                 (self:is_hovering() and "up_hovering" or "default")
-        elseif ad == 1 then
-            local clicked = clicked_states[self:is_clicked()]
+        elif ad == 1 do
+            var clicked = clicked_states[self:is_clicked()]
             return clicked and "down_" .. clicked or
                 (self:is_hovering() and "down_hovering" or "default")
         end
@@ -366,37 +366,37 @@ M.VSlider = register_type("VSlider", Slider, {
     end,
 
     choose_direction = function(self, cx, cy)
-        local as = self.arrow_size
+        var as = self.arrow_size
         return cy < as and -1 or (cy >= (self.h - as) and 1 or 0)
     end,
 
     scroll_to = function(self, cx, cy)
-        local  btn = self:find_child(SliderButton.type, nil, false)
-        if not btn then return end
+        var  btn = self:find_child(SliderButton.type, nil, false)
+        if not btn do return end
 
-        local as = self.arrow_size
-        local sh, bh = self.h, btn.h
+        var as = self.arrow_size
+        var sh, bh = self.h, btn.h
 
-        local pos = clamp((cy - as - bh / 2) / (sh - 2 * as - bh), 0, 1)
-        local steps = abs(self.max_value - self.min_value) / self.step_size
-        local step = round(steps * pos)
+        var pos = clamp((cy - as - bh / 2) / (sh - 2 * as - bh), 0, 1)
+        var steps = abs(self.max_value - self.min_value) / self.step_size
+        var step = round(steps * pos)
 
         self.set_step(self, step)
     end,
 
     adjust_children = function(self)
-        local  btn = self:find_child(SliderButton.type, nil, false)
-        if not btn then return end
+        var  btn = self:find_child(SliderButton.type, nil, false)
+        if not btn do return end
         btn._slider = self
 
-        local mn, mx, ss = self.min_value, self.max_value, self.step_size
+        var mn, mx, ss = self.min_value, self.max_value, self.step_size
 
-        local steps   = (max(mx, mn) - min(mx, mn)) / ss + 1
-        local curstep = (self.value - min(mx, mn)) / ss
+        var steps   = (max(mx, mn) - min(mx, mn)) / ss + 1
+        var curstep = (self.value - min(mx, mn)) / ss
 
-        local as = self.arrow_size
+        var as = self.arrow_size
 
-        local height = max(self.h - 2 * as, 0)
+        var height = max(self.h - 2 * as, 0)
 
         btn.h = max(btn.h, height / steps)
         btn.y = as + (height - btn.h) * curstep / steps

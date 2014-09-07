@@ -10,7 +10,7 @@
 
 @[server] do return {} end
 
-local capi = require("capi")
+var capi = require("capi")
 
 --! Module: stains
 return {

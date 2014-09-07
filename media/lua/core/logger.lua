@@ -8,10 +8,10 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
+var capi = require("capi")
 
 --! Module: logger
-local M = {}
+var M = {}
 
 --! The INFO logging level, use for very verbose output.
 M.INFO = 0

@@ -459,8 +459,8 @@ parse_expr = function(ls, ast)
 end
 
 local block_follow = {
-    ["else" ] = true, ["elseif"] = true, ["end"] = true,
-    ["until"] = true, ["<eof>" ] = true
+    ["else" ] = true, ["elif" ] = true, ["end"] = true,
+    ["until"] = true, ["<eof>"] = true
 }
 
 local parse_for_num = function(ls, ast, vname, line)
@@ -630,12 +630,12 @@ local parse_if_stat = function(ls, ast, line)
     local tests, blocks = {}, {}
     ls:get()
     tests[#tests + 1] = parse_expr(ls, ast)
-    assert_next(ls, "then")
+    assert_next(ls, "do")
     blocks[#blocks + 1] = parse_block(ls, ast)
-    while ls.token.name == "elseif" do
+    while ls.token.name == "elif" do
         ls:get()
         tests[#tests + 1] = parse_expr(ls, ast)
-        assert_next(ls, "then")
+        assert_next(ls, "do")
         blocks[#blocks + 1] = parse_block(ls, ast)
     end
     local elseb

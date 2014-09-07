@@ -8,16 +8,16 @@
         See COPYING.txt.
 ]]
 
-local svars = require("core.entities.svars")
-local ents = require("core.entities.ents")
-local lights = require("core.engine.lights")
+var svars = require("core.entities.svars")
+var ents = require("core.entities.ents")
+var lights = require("core.engine.lights")
 
-local light_add = lights.add
+var light_add = lights.add
 
 --! Module: lights
-local M = {}
+var M = {}
 
-local Marker = ents.Marker
+var Marker = ents.Marker
 
 --[[! Object: lights.DynamicLight
     A generic "dynamic light" entity prototype. It's not registered by default
@@ -29,7 +29,7 @@ local Marker = ents.Marker
     Properties overlap with the core Light entity type (but it lacks flags)
     including newent properties.
 ]]
-local DynamicLight = Marker:clone {
+var DynamicLight = Marker:clone {
     name = "DynamicLight",
 
     __properties = {
@@ -56,7 +56,7 @@ local DynamicLight = Marker:clone {
     ]]
     __run = @[not server,function(self, millis)
         Marker.__run(self, millis)
-        local pos = self:get_attr("position")
+        var pos = self:get_attr("position")
         light_add(pos, self:get_attr("radius"),
             self:get_attr("red") / 255, self:get_attr("green") / 255,
             self:get_attr("blue") / 255)
@@ -64,9 +64,9 @@ local DynamicLight = Marker:clone {
 }
 M.DynamicLight = DynamicLight
 
-local max, random = math.max, math.random
-local floor = math.floor
-local flash_flag = lights.flags.FLASH
+var max, random = math.max, math.random
+var floor = math.floor
+var flash_flag = lights.flags.FLASH
 
 --[[! Object: lights.FlickeringLight
     A flickering light entity type derived from $DynamicLight. This one
@@ -100,12 +100,12 @@ M.FlickeringLight = DynamicLight:clone {
     end],
 
     __run = @[not server,function(self, millis)
-        local d = self.delay - millis
-        if  d <= 0 then
+        var d = self.delay - millis
+        if  d <= 0 do
             d = max(floor(random() * self:get_attr("max_delay")),
                 self:get_attr("min_delay"))
-            if random() < self:get_attr("probability") then
-                local pos = self:get_attr("position")
+            if random() < self:get_attr("probability") do
+                var pos = self:get_attr("position")
                 light_add(pos, self:get_attr("radius"),
                     self:get_attr("red") / 255, self:get_attr("green") / 255,
                     self:get_attr("blue") / 255, d, 0, flash_flag)

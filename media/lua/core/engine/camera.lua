@@ -9,14 +9,14 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
+var capi = require("capi")
 
 @[server] do return {} end
 
-local geom = require("core.lua.geom")
-local Vec3 = geom.Vec3
+var geom = require("core.lua.geom")
+var Vec3 = geom.Vec3
 
-local camera_get, camera_get_position in capi
+var camera_get, camera_get_position in capi
 
 --! Module: camera
 return {
@@ -28,7 +28,7 @@ return {
             (as multiple return values).
     ]]
     get = function()
-        local x, y, z, yaw, pitch, roll = camera_get()
+        var x, y, z, yaw, pitch, roll = camera_get()
         return Vec3(x, y, z), yaw, pitch, roll
     end,
 

@@ -10,16 +10,16 @@
 ]]
 
 --! Module: game_manager
-local M = {}
+var M = {}
 
-local log = require("core.logger")
+var log = require("core.logger")
 
-local signal = require("core.events.signal")
-local svars = require("core.entities.svars")
-local ents = require("core.entities.ents")
-local connect, emit = signal.connect, signal.emit
+var signal = require("core.events.signal")
+var svars = require("core.entities.svars")
+var ents = require("core.entities.ents")
+var connect, emit = signal.connect, signal.emit
 
-local get
+var get
 
 --[[!
     Player-side game manager functionality. If you want to use the game
@@ -66,14 +66,14 @@ M.player_plugin = {
     end,function(self, auid) end],
 
     game_manager_spawn_stage_2 = @[server,function(self, auid)
-        if auid == self.uid then
+        if auid == self.uid do
             self:set_attr("spawn_stage", 3)
         end
         self:cancel_sdata_update()
     end,function(self, auid) end],
 
     game_manager_spawn_stage_3 = @[not server,function(self, auid)
-        if self == ents.get_player() then
+        if self == ents.get_player() do
             emit(self, "client,respawn")
             self:set_attr("spawn_stage", 4)
         end
@@ -90,13 +90,13 @@ M.player_plugin = {
     end
 }
 
-local pairs, ipairs = pairs, ipairs
-local tremove = table.remove
-local rand, floor = math.random, math.floor
+var pairs, ipairs = pairs, ipairs
+var tremove = table.remove
+var rand, floor = math.random, math.floor
 
-local Entity = ents.Entity
+var Entity = ents.Entity
 
-local GameManager = Entity:clone {
+var GameManager = Entity:clone {
     name = "GameManager",
 
     __properties = {
@@ -110,7 +110,7 @@ local GameManager = Entity:clone {
     end],
 
     get_players = @[server,function(self)
-        local players = {}
+        var players = {}
         for i, team in pairs(self.teams) do
             for i, v in ipairs(team.player_list) do
                 players[#players + 1] = v
@@ -120,14 +120,14 @@ local GameManager = Entity:clone {
     end],
 
     start_game = @[server,function(self)
-        local players = self:get_players()
+        var players = self:get_players()
 
         for i, team in pairs(self.teams) do
             team.player_list = {}
         end
 
         while #players > 0 do
-            local pl = tremove(players, floor(rand() * #players))
+            var pl = tremove(players, floor(rand() * #players))
             self:pick_team(p, false)
         end
         self:sync_team_data()
@@ -146,7 +146,7 @@ local GameManager = Entity:clone {
     end],
 
     sync_team_data = @[server,function(self)
-        if not self.deactivated then
+        if not self.deactivated do
             self:set_attr("team_data", self.teams)
         end
     end],
@@ -161,15 +161,15 @@ local GameManager = Entity:clone {
     end],
 
     place_player = function(self, player)
-        local team = player:get_attr("team")
-        local st
-        if team == "" then
+        var team = player:get_attr("team")
+        var st
+        if team == "" do
             st = "player_start"
         else
             st = "player_start_" .. team
         end
-        local starts = ents.get_by_tag(st)
-        if starts and #starts > 0 then
+        var starts = ents.get_by_tag(st)
+        if starts and #starts > 0 do
             starts[rand(1, #starts)]:place_entity(player)
             return
         end
@@ -182,13 +182,13 @@ local GameManager = Entity:clone {
     set_local_animation_flags = function(self) end
 }
 
-local assert = assert
+var assert = assert
 
-local gameman
+var gameman
 
 --! Gets the current game manager instance.
 M.get = function()
-    if not gameman then
+    if not gameman do
         gameman = ents.get_by_prototype("GameManager")[1]
     end
     assert(gameman)

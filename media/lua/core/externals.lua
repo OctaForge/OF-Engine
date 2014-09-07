@@ -9,12 +9,12 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
+var capi = require("capi")
 
 --! Module: externals
-local M = {}
+var M = {}
 
-local externals = {}
+var externals = {}
 
 --! Retrieves the external of the given name.
 M.get = function(name)
@@ -23,15 +23,15 @@ end
 
 --! Unsets the external of the given name, returns the previous value or nil.
 M.unset = function(name)
-    local old = externals[name]
-    if old == nil then return nil end
+    var old = externals[name]
+    if old == nil do return nil end
     externals[name] = nil
     return old
 end
 
 --! Sets the external of the given name, returns the previous value or nil.
 M.set = function(name, fun)
-    local old = externals[name]
+    var old = externals[name]
     externals[name] = fun
     return old
 end

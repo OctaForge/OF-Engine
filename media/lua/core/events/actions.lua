@@ -12,18 +12,18 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local logging = require("core.logger")
-local log = logging.log
-local INFO = logging.INFO
-local WARNING = logging.WARNING
+var capi = require("capi")
+var logging = require("core.logger")
+var log = logging.log
+var INFO = logging.INFO
+var WARNING = logging.WARNING
 
-local compact = table.compact
+var compact = table.compact
 
-local createtable = capi.table_create
+var createtable = capi.table_create
 
 --! Module: actions
-local M = {}
+var M = {}
 
 --[[!
     Provides the base action object other actions can inherit from.
@@ -49,7 +49,7 @@ local M = {}
         - cancelable - a boolean specifying whether the action can be
           canceled, same defaults as above apply.
         - parallel_to - the action this one is parallel to, if specified,
-          then this action will mirror the other action's finish status
+          do this action will mirror the other action's finish status
           (i.e. it runs as long as the other action does, and it finishes
           as soon as the other action does). Useful for e.g. animations that
           run in parallel.
@@ -107,36 +107,36 @@ M.Action = table.Object:clone {
     end,
 
     priv_run = function(self, millis)
-        if type(self.actor) == "table" and self.actor.deactivated then
+        if type(self.actor) == "table" and self.actor.deactivated do
             self.priv_finish(self)
             return true
         end
 
-        if not self.begun then
+        if not self.begun do
             self.priv_start(self)
 
-            if self.animation != false then
-                local aanim = self.actor:get_attr("animation")
-                local anim = self.animation
-                if aanim != anim then
+            if self.animation != false do
+                var aanim = self.actor:get_attr("animation")
+                var anim = self.animation
+                if aanim != anim do
                     self.last_animation = aanim
                     self.actor:set_attr("animation", anim)
                 end
             end
         end
 
-        if self.parallel_to == false then
+        if self.parallel_to == false do
             @[debug] log(INFO, "Executing action " .. self.name)
 
-            local finished = self:__run(millis)
-            if    finished then
+            var finished = self:__run(millis)
+            if    finished do
                 self.priv_finish(self)
             end
 
             @[debug] log(INFO, "    finished: " .. tostring(finished))
             return finished
         else
-            if  self.parallel_to.finished then
+            if  self.parallel_to.finished do
                 self.parallel_to = false
                 self.priv_finish(self)
                 return true
@@ -177,13 +177,13 @@ M.Action = table.Object:clone {
 
     priv_finish = function(self)
         self.finished = true
-        local sys = self.queue
-        if sys then sys._changed = true end
+        var sys = self.queue
+        if sys do sys._changed = true end
 
-        if self.animation and self.last_animation != nil then
-            local lanim = self.last_animation
-            local aanim = self.actor:get_attr("animation")
-            if lanim != aanim then
+        if self.animation and self.last_animation != nil do
+            var lanim = self.last_animation
+            var aanim = self.actor:get_attr("animation")
+            if lanim != aanim do
                 self.actor:set_attr("animation", lanim)
             end
         end
@@ -203,12 +203,12 @@ M.Action = table.Object:clone {
         property of the action is true (it is by default).
     ]]
     cancel = function(self)
-        if  self.cancelable then
+        if  self.cancelable do
             self:priv_finish()
         end
     end
 }
-local Action = M.Action
+var Action = M.Action
 
 --[[!
     An action that never ends.
@@ -254,13 +254,13 @@ M.ActionQueue = table.Object:clone {
         list (providing the millis as an argument).
     ]]
     run = function(self, millis)
-        local acts = self.actions
-        if self._changed then
+        var acts = self.actions
+        if self._changed do
             compact(acts, |i, v| not v.finished)
             self._changed = false
         end
-        if #acts > 0 then
-            local act = acts[1]
+        if #acts > 0 do
+            var act = acts[1]
             @[debug] log(INFO, table.concat { "Executing ", act.name })
 
             -- keep the removal for the next frame
@@ -275,11 +275,11 @@ M.ActionQueue = table.Object:clone {
         Otherwise it enqueues the action.
     ]]
     enqueue = function(self, act)
-        local acts = self.actions
-        if not act.allow_multiple then
-            local str = act.name
+        var acts = self.actions
+        if not act.allow_multiple do
+            var str = act.name
             for i = 1, #acts do
-                if str == acts[i].name then
+                if str == acts[i].name do
                     log(WARNING, table.concat { "Action of the type ",
                         str, " is already present in the queue, ",
                         "multiplication explicitly disabled for the ",
@@ -298,7 +298,7 @@ M.ActionQueue = table.Object:clone {
         Clears the action queue (cancels every action in the queue).
     ]]
     clear = function(self)
-        local acts = self.actions
+        var acts = self.actions
         for i = 1, #acts do
             acts[i]:cancel()
         end

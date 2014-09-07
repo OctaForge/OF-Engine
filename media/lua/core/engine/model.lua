@@ -9,13 +9,13 @@
 ]]
 
 --! Module: model
-local M = {}
+var M = {}
 
 @[server] do return M end
 
-local capi = require("capi")
+var capi = require("capi")
 
-local ran = capi.model_register_anim
+var ran = capi.model_register_anim
 
 --[[!
     An enumeration of all basic (pre-defined) animations available in the
@@ -32,13 +32,13 @@ M.anims = {
     mapmodel = ran "mapmodel", edit = ran "edit", lag = ran "lag",
     idle = ran "idle", INDEX = 0x1FF, DIR = 0xE00, SECONDARY = 12
 }
-local anims = M.anims
+var anims = M.anims
 
-local variants = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
-local gen_anim_variants = function(bname, onlysuffix)
-    if not onlysuffix then anims[bname] = ran(bname) end
+var variants = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
+var gen_anim_variants = function(bname, onlysuffix)
+    if not onlysuffix do anims[bname] = ran(bname) end
     for i, v in ipairs(variants) do
-        local nm = bname .. "_" .. v
+        var nm = bname .. "_" .. v
         anims[nm] = ran(nm)
     end
 end
@@ -95,7 +95,7 @@ M.render_flags = {:
 
 --[[! Function: register_anim
     Registers an animation of the given name. Returns the animation number
-    that you can then use. If an animation of the same name already exists,
+    that you can do use. If an animation of the same name already exists,
     it just returns its number. It also returns a second boolean value that
     is true when the animation was actually newly registered and false when
     it just re-returned an already existing animation.
@@ -128,7 +128,7 @@ M.clear = capi.model_clear
 ]]
 M.preload = capi.model_preload
 
-local mrender = capi.model_render
+var mrender = capi.model_render
 
 --[[!
     Renders a model.
@@ -145,26 +145,26 @@ local mrender = capi.model_render
 ]]
 M.render = function(ent, mdl, anim, pos, yaw, pitch, roll, flags,
 btime, trans)
-    local r, g, b, a = 1, 1, 1, 1
-    if trans then
+    var r, g, b, a = 1, 1, 1, 1
+    if trans do
         r, g, b, a = trans.r, trans.g, trans.b, trans.a
     end
     mrender(ent.uid, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll, flags,
         btime, r, g, b, a)
 end
 
-local geom = require("core.lua.geom")
-local Vec3 = geom.Vec3
+var geom = require("core.lua.geom")
+var Vec3 = geom.Vec3
 
 --! Returns the bounding box of the given model as two vec3, center and radius.
 M.get_bounding_box = function(name)
-    local cx, cy, cz, rx, ry, rz = capi.model_get_boundbox(name)
+    var cx, cy, cz, rx, ry, rz = capi.model_get_boundbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
 end
 
 --! See $get_bounding_box - for collision box.
 M.get_collision_box = function(name)
-    local cx, cy, cz, rx, ry, rz = capi.model_get_collisionbox(name)
+    var cx, cy, cz, rx, ry, rz = capi.model_get_collisionbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
 end
 

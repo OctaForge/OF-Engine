@@ -8,16 +8,16 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local ffi = require("ffi")
+var capi = require("capi")
+var ffi = require("ffi")
 
-local ffi_new = ffi.new
+var ffi_new = ffi.new
 
 --! Module: edit
-local M = {}
+var M = {}
 
 -- undocumented, not exposed for the time being
-local matf = {:
+var matf = {:
     INDEX_SHIFT  = 0,
     VOLUME_SHIFT = 2,
     CLIP_SHIFT   = 5,
@@ -260,13 +260,13 @@ ffi.cdef [[
     } cube_t;
 ]]
 
-local edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
+var edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
 edit_raw_edit_material, edit_raw_flip, edit_raw_rotate, edit_raw_edit_vslot,
 edit_get_world_size in capi
 
-local assert = assert
+var assert = assert
 
-local clamp = math.clamp
+var clamp = math.clamp
 
 --[[! Object: Selection
     Represents a selection structure that can be used for procedural editing.
@@ -276,7 +276,7 @@ local clamp = math.clamp
     Fields:
         - corner - the face corner the pointer is the closest to, for a face
           from above 0 is to the origin and 2 is across from 1 (you fill one
-          row and then fill the next row starting from the same side)
+          row and do fill the next row starting from the same side)
         - position - has 3 integer fields, x, y, z, represents the current
           cube origin.
         - selection - has 3 integer fields x, y, z and represents the selection
@@ -293,8 +293,8 @@ local clamp = math.clamp
 ]]
 M.Selection = ffi.metatype("selinfo_t", {
     __eq = function(self, other)
-        local pos, sel = self.position, self.selection
-        local opos, osel = other.position, other.selection
+        var pos, sel = self.position, self.selection
+        var opos, osel = other.position, other.selection
         return  pos.x == opos.x and pos.y == opos.y and pos.z == opos.z
             and sel.x == osel.x and sel.y == osel.y and sel.z == osel.z
             and self.grid_size == other.grid_size
@@ -315,7 +315,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                   to false).
         ]]
         edit_face = function(self, dir, mode, loc)
-            if loc != false then loc = true end
+            if loc != false do loc = true end
             assert(self != nil)
             edit_raw_edit_face(dir, mode, self, loc)
         end,
@@ -327,7 +327,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - loc - see $edit_face.
         ]]
         delete = function(self, loc)
-            if loc != false then loc = true end
+            if loc != false do loc = true end
             assert(self != nil)
             edit_raw_delete_cube(self, loc)
         end,
@@ -341,7 +341,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - loc - see $edit_face.
         ]]
         edit_texture = function(self, tex, all_faces, loc)
-            if loc != false then loc = true end
+            if loc != false do loc = true end
             assert(self != nil)
             edit_raw_edit_texture(tex, all_faces or false, self, loc)
         end,
@@ -354,7 +354,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - loc - see $edit_face.
         ]]
         edit_material = function(self, mat, loc)
-            if loc != false then loc = true end
+            if loc != false do loc = true end
             assert(self != nil)
             edit_raw_edit_material(mat, self, loc)
         end,
@@ -366,7 +366,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - loc - see $edit_face.
         ]]
         flip = function(self, loc)
-            if loc != false then loc = true end
+            if loc != false do loc = true end
             assert(self != nil)
             edit_raw_flip(self, loc)
         end,
@@ -379,7 +379,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - loc - see $edit_face.
         ]]
         rotate = function(self, cw, loc)
-            if loc != false then loc = true end
+            if loc != false do loc = true end
             assert(self != nil)
             edit_raw_rotate(cw, self, loc)
         end,
@@ -393,7 +393,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - loc - see $edit_face.
         ]]
         edit_vslot = function(self, vs, all_faces, loc)
-            if loc != false then loc = true end
+            if loc != false do loc = true end
             assert(self != nil and vs != nil)
             edit_raw_edit_vslot(vs, all_faces or false, self, loc)
         end,
@@ -402,7 +402,7 @@ M.Selection = ffi.metatype("selinfo_t", {
             Returns the selection size in terms of number of cubes.
         ]]
         get_size = function(self)
-            local sel = self.selection
+            var sel = self.selection
             return sel.x * sel.y * sel.z
         end,
 
@@ -411,15 +411,15 @@ M.Selection = ffi.metatype("selinfo_t", {
             false if it's not.
         ]]
         validate = function(self)
-            local world_size = edit_get_world_size()
-            local grid = self.grid_size
-            if grid <= 0 or grid >= world_size then return false end
-            local o, s = self.position, self.selection
+            var world_size = edit_get_world_size()
+            var grid = self.grid_size
+            if grid <= 0 or grid >= world_size do return false end
+            var o, s = self.position, self.selection
             if o.x >= world_size or o.y >= world_size
-            or o.z >= world_size then return false end
-            if o.x < 0 then s.x, o.x = s.x - (grid - 1 - o.x) / grid, 0 end
-            if o.y < 0 then s.y, o.y = s.y - (grid - 1 - o.y) / grid, 0 end
-            if o.z < 0 then s.z, o.z = s.z - (grid - 1 - o.z) / grid, 0 end
+            or o.z >= world_size do return false end
+            if o.x < 0 do s.x, o.x = s.x - (grid - 1 - o.x) / grid, 0 end
+            if o.y < 0 do s.y, o.y = s.y - (grid - 1 - o.y) / grid, 0 end
+            if o.z < 0 do s.z, o.z = s.z - (grid - 1 - o.z) / grid, 0 end
             s.x = clamp(s.x, 0, (world_size - o.x) / grid)
             s.y = clamp(s.y, 0, (world_size - o.y) / grid)
             s.z = clamp(s.z, 0, (world_size - o.z) / grid)
@@ -467,7 +467,7 @@ M.VSlot = ffi.metatype("vslot_t", {
     }
 })
 
-local edit_lookup_cube, edit_lookup_texture in capi
+var edit_lookup_cube, edit_lookup_texture in capi
 
 --[[!
     Looks up a cube at the given origin position with the given size and
@@ -483,8 +483,8 @@ local edit_lookup_cube, edit_lookup_texture in capi
     below, $lookup_material and $lookup_texture.
 ]]
 M.lookup_cube = function(x, y, z, ts)
-    local r = ffi_new("int[4]");
-    local c = edit_lookup_cube(x, y, z, ts, r + 0, r + 1, r + 2, r + 3)
+    var r = ffi_new("int[4]");
+    var c = edit_lookup_cube(x, y, z, ts, r + 0, r + 1, r + 2, r + 3)
     return c, r[0], r[1], r[2], r[3]
 end
 

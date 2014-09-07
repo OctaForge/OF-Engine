@@ -10,42 +10,42 @@
         See COPYING.txt.
 ]]
 
-local log = require("core.logger")
+var log = require("core.logger")
 
-local input = require("core.engine.input")
-local inputev = require("core.events.input")
-local cs = require("core.engine.cubescript")
-local signal = require("core.events.signal")
-local svars = require("core.entities.svars")
-local ents = require("core.entities.ents")
-local conv = require("core.lua.conv")
-local particles = require("core.engine.particles")
+var input = require("core.engine.input")
+var inputev = require("core.events.input")
+var cs = require("core.engine.cubescript")
+var signal = require("core.events.signal")
+var svars = require("core.entities.svars")
+var ents = require("core.entities.ents")
+var conv = require("core.lua.conv")
+var particles = require("core.engine.particles")
 
-local splash, flare = particles.splash, particles.flare
-local quadrenderer, taperenderer = particles.register_renderer_quad,
+var splash, flare = particles.splash, particles.flare
+var quadrenderer, taperenderer = particles.register_renderer_quad,
     particles.register_renderer_tape
 
-local hextorgb = conv.hex_to_rgb
+var hextorgb = conv.hex_to_rgb
 
-local game_manager = require("extra.game_manager")
-local day_manager = require("extra.day_manager")
-local health = require("extra.health")
+var game_manager = require("extra.game_manager")
+var day_manager = require("extra.day_manager")
+var health = require("extra.health")
 
-local connect = signal.connect
-local Vec4 = require("core.lua.geom").Vec4
-local ipairs = ipairs
+var connect = signal.connect
+var Vec4 = require("core.lua.geom").Vec4
+var ipairs = ipairs
 
-local colors = {
+var colors = {
     0xFFFFFF, 0xFF0000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF
 }
 
-local Player = ents.Player
+var Player = ents.Player
 
 
 @[not server,noscope] do
-    local SPARK = quadrenderer("spark", "media/particle/spark",
+    var SPARK = quadrenderer("spark", "media/particle/spark",
         particles.flags.FLIP | particles.flags.BRIGHT)
-    local STREAK = taperenderer("streak", "media/particle/flare",
+    var STREAK = taperenderer("streak", "media/particle/flare",
         particles.flags.BRIGHT)
 end
 
@@ -57,7 +57,7 @@ end
         - new_mark - contains mark data. It's required because it has to sync
           over the server (e.g. in coop).
 ]]
-local GamePlayer = Player:clone {
+var GamePlayer = Player:clone {
     name = "GamePlayer",
 
     __properties = {
@@ -67,7 +67,7 @@ local GamePlayer = Player:clone {
     },
 
     next_color = function(self)
-        if  self.color_id < #colors then
+        if  self.color_id < #colors do
             self.color_id = self.color_id + 1
         else
             self.color_id = 1
@@ -91,12 +91,12 @@ local GamePlayer = Player:clone {
         self.color_id = 1
         self.color    = colors[1]
         connect(self, "new_mark,changed", function(self, nm)
-            if #nm == 3 then
+            if #nm == 3 do
                 nm = Vec4(nm[1], nm[2], nm[3], self.color)
             else
                 nm = nil
             end
-            local marks = self.marks
+            var marks = self.marks
             marks[#marks + 1] = nm
         end)
     end],
@@ -106,32 +106,32 @@ local GamePlayer = Player:clone {
     ]]
     __run = @[not server,function(self, millis)
         Player.__run(self, millis)
-        local last = nil
-        local marks = self.marks
+        var last = nil
+        var marks = self.marks
 
         for i, mark in ipairs(marks) do
-            if last and mark and mark.x >= 0 and last.x >= 0 then
-                local r, g, b = hextorgb(mark.w)
+            if last and mark and mark.x >= 0 and last.x >= 0 do
+                var r, g, b = hextorgb(mark.w)
                 flare(STREAK, mark, last, r / 255, g / 255, b / 255, 0, 1)
                 flare(STREAK, last, mark, r / 255, g / 255, b / 255, 0, 1)
             end
             last = mark
         end
 
-        local newb = #marks == 0 or not marks[#marks - 1]
-        local conb = #marks  > 0 and    marks[#marks - 1]
+        var newb = #marks == 0 or not marks[#marks - 1]
+        var conb = #marks  > 0 and    marks[#marks - 1]
 
-        if conb and not self.stop_batch then
-            local mark = marks[#marks - 1]
-            local r, g, b = hextorgb(mark.w)
+        if conb and not self.stop_batch do
+            var mark = marks[#marks - 1]
+            var r, g, b = hextorgb(mark.w)
             splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
         end
 
-        if self.pressing then
-            local newp = input.get_target_position()
-            local topl = self:get_attr("position"):sub_new(newp)
+        if self.pressing do
+            var newp = input.get_target_position()
+            var topl = self:get_attr("position"):sub_new(newp)
             newp:add(topl:normalize())
-            if newb or marks[#marks - 1]:dist(newp) > 5 then
+            if newb or marks[#marks - 1]:dist(newp) > 5 do
                 self:set_attr("new_mark", newp:to_array())
             end
         end
@@ -152,16 +152,16 @@ day_manager.setup({ day_manager.plugins.day_night })
 
 @[not server] do
     inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)
-        local ent = ents.get(uid)
-        if ent and ent.click then
+        var ent = ents.get(uid)
+        if ent and ent.click do
             return ent:click(btn, down, x, y, z, cx, cy)
         end
-        if btn == 1 then
+        if btn == 1 do
             ents.get_player().pressing   = down
             ents.get_player().stop_batch = false
-        elseif btn == 2 and down then
+        elif btn == 2 and down do
             ents.get_player():reset_mark()
-        elseif btn == 3 and down then
+        elif btn == 3 and down do
             ents.get_player():next_color()
         end
     end)

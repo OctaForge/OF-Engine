@@ -8,23 +8,23 @@
         See COPYING.txt.
 ]]
 
-local log = require("core.logger")
-local sound = require("core.engine.sound")
-local signal = require("core.events.signal")
-local svars = require("core.entities.svars")
-local ents = require("core.entities.ents")
+var log = require("core.logger")
+var sound = require("core.engine.sound")
+var signal = require("core.events.signal")
+var svars = require("core.entities.svars")
+var ents = require("core.entities.ents")
 
-local play = sound.play
-local connect = signal.connect
-local get_by_tag = ents.get_by_tag
+var play = sound.play
+var connect = signal.connect
+var get_by_tag = ents.get_by_tag
 
-local rand = math.random
-local unpack = unpack
+var rand = math.random
+var unpack = unpack
 
 --! Module: teleporters
-local M = {}
+var M = {}
 
-local Obstacle = ents.Obstacle
+var Obstacle = ents.Obstacle
 
 --[[! Object: teleporters.Teleporter
     A regular invisible teleporter. Derives from {{$ents.Obstacle}}. Properties
@@ -61,21 +61,21 @@ M.Teleporter = Obstacle:clone {
     end],
 
     on_collision = function(self, collider)
-        local dest = self:get_attr("destination")
-        if dest <= 0 then return end
-        local dests = get_by_tag("teledest_" .. dest)
-        if #dests == 0 then
+        var dest = self:get_attr("destination")
+        if dest <= 0 do return end
+        var dests = get_by_tag("teledest_" .. dest)
+        if #dests == 0 do
             log.log(log.ERROR, "No teledest found.")
             return
         end
         dests[rand(1, #dests)]:place_entity(collider)
-        local sn = self:get_attr("sound_name")
-        if sn != "" then play(sn) end
+        var sn = self:get_attr("sound_name")
+        if sn != "" do play(sn) end
     end,
 
     get_attached_next = function(self)
-        local dest = self:get_attr("destination")
-        if dest <= 0 then return end
+        var dest = self:get_attr("destination")
+        if dest <= 0 do return end
         return unpack(get_by_tag("teledest_" .. dest))
     end
 }

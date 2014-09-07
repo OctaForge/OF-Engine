@@ -8,37 +8,37 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local signal = require("core.events.signal")
+var capi = require("capi")
+var signal = require("core.events.signal")
 
-local find = table.find
-local tremove = table.remove
-local type = type
-local min, max = math.min, math.max
-local abs = math.abs
-local emit = signal.emit
+var find = table.find
+var tremove = table.remove
+var type = type
+var min, max = math.min, math.max
+var abs = math.abs
+var emit = signal.emit
 
-local get_curtime = capi.get_curtime
+var get_curtime = capi.get_curtime
 
 --! Module: core
-local M = require("core.gui.core")
+var M = require("core.gui.core")
 
 -- widget types
-local register_type = M.register_type
+var register_type = M.register_type
 
 -- base widgets
-local Widget = M.get_type("Widget")
+var Widget = M.get_type("Widget")
 
 -- setters
-local gen_setter = M.gen_setter
+var gen_setter = M.gen_setter
 
 -- adjustment
-local adjust = M.adjust
+var adjust = M.adjust
 
 -- keys
-local key = M.key
+var key = M.key
 
-local ALIGN_MASK = adjust.ALIGN_MASK
+var ALIGN_MASK = adjust.ALIGN_MASK
 
 --[[!
     Represents a state as a first class object. Has an arbitrary number of
@@ -57,8 +57,8 @@ M.State = register_type("State", Widget, {
     end,
 
     choose_state = function(self)
-        local  state = self.state
-        if not state then return end
+        var  state = self.state
+        if not state do return end
         return (type(state) == "string") and state or state(self)
     end,
 
@@ -90,34 +90,34 @@ M.Mover = register_type("Mover", Widget, {
     end,
 
     click = function(self, cx, cy, code)
-        if code != key.MOUSELEFT then
+        if code != key.MOUSELEFT do
             return Widget.click(self, cx, cy, code)
         end
-        local  w = self.window
-        if not w then return self:target(cx, cy) and self end
-        local c = w.parent.children
-        local n = find(c, w)
-        local l = #c
-        if n != l then c[l] = tremove(c, n) end
+        var  w = self.window
+        if not w do return self:target(cx, cy) and self end
+        var c = w.parent.children
+        var n = find(c, w)
+        var l = #c
+        if n != l do c[l] = tremove(c, n) end
         return self:target(cx, cy) and self
     end,
 
     can_move = function(self, cx, cy)
-        local win = self.window
-        local wp = win.parent
+        var win = self.window
+        var wp = win.parent
 
         -- no parent means root; we don't need checking for non-mdi windows
-        if not wp.parent then return true end
+        if not wp.parent do return true end
 
-        local rx, ry, p = self.x, self.y, wp
+        var rx, ry, p = self.x, self.y, wp
         while true do
             rx, ry = rx + p.x, ry + py
-            local  pp = p.parent
-            if not pp then break end
+            var  pp = p.parent
+            if not pp do break end
             p    = pp
         end
 
-        if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) then
+        if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) do
             -- avoid bugs; stop moving when cursor is outside
             self:clear_focus()
             return false
@@ -127,14 +127,14 @@ M.Mover = register_type("Mover", Widget, {
     end,
 
     clicked = function(self, cx, cy, code)
-        if code == key.MOUSELEFT then
+        if code == key.MOUSELEFT do
             self.ox, self.oy = cx, cy
         end
     end,
 
     holding = function(self, cx, cy, code)
-        local w = self.window
-        if w and w.floating and code == key.MOUSELEFT and self:can_move() then
+        var w = self.window
+        if w and w.floating and code == key.MOUSELEFT and self:can_move() do
             -- dealign so that adjust_layout doesn't fuck with x/y
             w.adjust &= ~ALIGN_MASK
             w.x += cx - self.ox
@@ -147,7 +147,7 @@ M.Mover = register_type("Mover", Widget, {
     set_window = gen_setter "window"
 })
 
-local Filler = M.Filler
+var Filler = M.Filler
 
 --[[!
     A base widget type for progress bars. Not useful alone. For working
@@ -180,8 +180,8 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
         attribute for semantics.
     ]]
     gen_label = function(self)
-        local lbl = self.label
-        if type(lbl) == "string" then return lbl:format(self.value * 100) end
+        var lbl = self.label
+        if type(lbl) == "string" do return lbl:format(self.value * 100) end
         return lbl(self, self.value)
     end,
 
@@ -196,8 +196,8 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
 --! A horizontal working variant of $ProgressBar.
 M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
     adjust_children = function(self)
-        local bar = self.bar
-        if not bar then return Widget.adjust_children(self) end
+        var bar = self.bar
+        if not bar do return Widget.adjust_children(self) end
         bar.x = 0
         bar.w = max(min(self.w, self.w * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_HMASK
@@ -208,8 +208,8 @@ M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
 --! A vertical working variant of $ProgressBar.
 M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
     adjust_children = function(self)
-        local bar = self.bar
-        if not bar then return Widget.adjust_children(self) end
+        var bar = self.bar
+        if not bar do return Widget.adjust_children(self) end
         bar.y = 0
         bar.h = max(min(self.h, self.h * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_VMASK
@@ -217,9 +217,9 @@ M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
     end
 })
 
-local sin, pi = math.sin, math.pi
+var sin, pi = math.sin, math.pi
 
-local move_funcs = {
+var move_funcs = {
     ["linear,x" ] = function(p) return 1, 0 end,
     ["linear,y" ] = function(p) return 0, 1 end,
     ["linear,xy"] = function(p) return 1, 1 end,
@@ -237,7 +237,7 @@ local move_funcs = {
     ["sinusoidal,xy"] = function(p) return sin(p * pi), sin(p * pi) end
 }
 
-local min = math.min
+var min = math.min
 
 M.Animator = register_type("Animator", Widget, {
     __ctor = function(self, kwargs)
@@ -257,16 +257,16 @@ M.Animator = register_type("Animator", Widget, {
     end,
 
     get_progress = function(self)
-        local elapsed, rtime = self.move_elapsed, self.move_time
-        local distx = self.move_dist_x
-        local disty = self.move_dist_y
+        var elapsed, rtime = self.move_elapsed, self.move_time
+        var distx = self.move_dist_x
+        var disty = self.move_dist_y
 
-        if distx or disty then
-            local progx, progy = 1, 1
-            if distx and distx != 0 then
+        if distx or disty do
+            var progx, progy = 1, 1
+            if distx and distx != 0 do
                 progx = self.move_moved_x / distx
             end
-            if disty and disty != 0 then
+            if disty and disty != 0 do
                 progy = self.move_moved_y / disty
             end
             return min(progx, progy)
@@ -276,10 +276,10 @@ M.Animator = register_type("Animator", Widget, {
     end,
 
     animate = function(self, o, millis)
-        local mf = self.move_func
-        if type(mf) == "string" then mf = move_funcs[mf] end
+        var mf = self.move_func
+        if type(mf) == "string" do mf = move_funcs[mf] end
 
-        local dx, dy = mf(self.move_elapsed / self.move_time)
+        var dx, dy = mf(self.move_elapsed / self.move_time)
         dx = dx * self.move_speed * (millis / 1000)
         dy = dy * self.move_speed * (millis / 1000)
         o.x = o.x + dx
@@ -289,16 +289,16 @@ M.Animator = register_type("Animator", Widget, {
     end,
 
     layout = function(self)
-        if not self.started then return Widget.layout(self) end
+        if not self.started do return Widget.layout(self) end
 
-        local prog = self:get_progress()
-        if prog >= 1.0 then
+        var prog = self:get_progress()
+        if prog >= 1.0 do
             self.started = false
             emit(self, "anim,end")
             return Widget.layout(self)
         end
 
-        local millis = get_curtime()
+        var millis = get_curtime()
         self.move_elapsed += millis
 
         M.loop_children(self, function(o)

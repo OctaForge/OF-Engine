@@ -8,14 +8,14 @@
         See COPYING.txt.
 ]]
 
-local cs = require("core.engine.cubescript")
-local signal = require("core.events.signal")
+var cs = require("core.engine.cubescript")
+var signal = require("core.events.signal")
 
-local set_external = require("core.externals").set
+var set_external = require("core.externals").set
 
-local needsapply = {}
+var needsapply = {}
 
-local M = {}
+var M = {}
 
 --[[!
     Specifies the change type, can be GFX, SOUND or SHADERS.
@@ -25,7 +25,7 @@ M.change = {:
     SOUND   = 1 << 1,
     SHADERS = 1 << 2
 :}
-local change = M.change
+var change = M.change
 
 set_external("change_add", function(desc, ctype)
     signal.emit(M, "add", ctype, desc)
@@ -37,7 +37,7 @@ end)
 ]]
 M.add = function(ctype, desc)
     for i, v in pairs(needsapply) do
-        if v.desc == desc then return end
+        if v.desc == desc do return end
     end
     needsapply[#needsapply + 1] = {
         ctype = ctype, desc = desc
@@ -51,12 +51,12 @@ M.clear = function(ctype)
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
     needsapply = table.filter(needsapply, function(i, v)
-        if (v.ctype & ctype) == 0 then
+        if (v.ctype & ctype) == 0 do
             return true
         end
 
         v.ctype = (v.ctype & ~ctype)
-        if v.ctype == 0 then
+        if v.ctype == 0 do
             return false
         end
 
@@ -69,17 +69,17 @@ set_external("changes_clear", M.clear)
     Applies all queued changes.
 ]]
 M.apply = function()
-    local changetypes = 0
+    var changetypes = 0
     for i, v in pairs(needsapply) do
         changetypes |= v.ctype
     end
 
-    if (changetypes & change.GFX) != 0 then
+    if (changetypes & change.GFX) != 0 do
         cs.execute("resetgl")
-    elseif (changetypes & change.SHADERS) != 0 then
+    elif (changetypes & change.SHADERS) != 0 do
         cs.execute("resetshaders")
     end
-    if (changetypes & change.SOUND) != 0 then
+    if (changetypes & change.SOUND) != 0 do
         cs.execute("resetsound")
     end
 end

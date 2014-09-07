@@ -8,76 +8,76 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local ffi = require("ffi")
-local ents, get_ent
+var capi = require("capi")
+var ffi = require("ffi")
+var ents, get_ent
 
-local ffi_new = ffi.new
-local tostring = tostring
+var ffi_new = ffi.new
+var tostring = tostring
 
-local gen_getwrap = function(fun, tp)
-    local tpnm = tp .. "[1]"
+var gen_getwrap = function(fun, tp)
+    var tpnm = tp .. "[1]"
     return function(ent)
-        local stor = ffi_new(tpnm)
-        if not fun(ent, stor) then return nil end
+        var stor = ffi_new(tpnm)
+        if not fun(ent, stor) do return nil end
         return stor[0]
     end
 end
 
 capi.get_start_time = gen_getwrap(capi.get_start_time, "int")
 
-local get_selected_entity in capi
+var get_selected_entity in capi
 capi.get_selected_entity = function()
-    if not ents then
+    if not ents do
         ents = require("core.entities.ents")
         get_ent = ents.get
     end
-    local uid = get_selected_entity()
-    if uid >= 0 then return get_ent(uid) end
+    var uid = get_selected_entity()
+    if uid >= 0 do return get_ent(uid) end
     return nil
 end
 
-local get_attached_entity in capi
+var get_attached_entity in capi
 capi.get_attached_entity = function(uid)
-    if not ents then
+    if not ents do
         ents = require("core.entities.ents")
         get_ent = ents.get
     end
-    local auid = get_attached_entity(uid)
-    if auid >= 0 then return get_ent(auid) end
+    var auid = get_attached_entity(uid)
+    if auid >= 0 do return get_ent(auid) end
     return nil
 end
 
-local gettargetent in capi
+var gettargetent in capi
 capi.gettargetent = function()
-    if not ents then
+    if not ents do
         ents = require("core.entities.ents")
         get_ent = ents.get
     end
-    local uid = gettargetent()
-    if uid >= 0 then return get_ent(uid) end
+    var uid = gettargetent()
+    if uid >= 0 do return get_ent(uid) end
     return nil
 end
 
-local get_attr in capi
+var get_attr in capi
 capi.get_attr = function(ent, id)
-    local stor = ffi_new("int[1]")
-    if not get_attr(ent, id, stor) then return nil end
+    var stor = ffi_new("int[1]")
+    if not get_attr(ent, id, stor) do return nil end
     return stor[0]
 end
 
-local get_start_time in capi
+var get_start_time in capi
 capi.get_start_time = function(ent)
-    local stor = ffi_new("int[1]")
-    if not get_start_time(ent, stor) then return nil end
+    var stor = ffi_new("int[1]")
+    if not get_start_time(ent, stor) do return nil end
     return stor[0]
 end
 
-local get_extent_position, set_extent_position in capi
+var get_extent_position, set_extent_position in capi
 
 capi.get_extent_position = function(ent)
-    local stor = ffi_new("double[3]")
-    if not get_extent_position(ent, stor) then return nil end
+    var stor = ffi_new("double[3]")
+    if not get_extent_position(ent, stor) do return nil end
     return { stor[0], stor[1], stor[2] }
 end
 
@@ -111,11 +111,11 @@ capi.get_physstate = gen_getwrap(capi.get_physstate, "int")
 capi.get_inwater = gen_getwrap(capi.get_inwater, "int")
 capi.get_timeinair = gen_getwrap(capi.get_timeinair, "int")
 
-local get_dynent_position, set_dynent_position in capi
+var get_dynent_position, set_dynent_position in capi
 
 capi.get_dynent_position = function(ent)
-    local stor = ffi_new("double[3]")
-    if not get_dynent_position(ent, stor) then return nil end
+    var stor = ffi_new("double[3]")
+    if not get_dynent_position(ent, stor) do return nil end
     return { stor[0], stor[1], stor[2] }
 end
 
@@ -123,11 +123,11 @@ capi.set_dynent_position = function(ent, pos)
     set_dynent_position(ent, pos[1], pos[2], pos[3])
 end
 
-local get_dynent_velocity, set_dynent_velocity in capi
+var get_dynent_velocity, set_dynent_velocity in capi
 
 capi.get_dynent_velocity = function(ent)
-    local stor = ffi_new("double[3]")
-    if not get_dynent_velocity(ent, stor) then return nil end
+    var stor = ffi_new("double[3]")
+    if not get_dynent_velocity(ent, stor) do return nil end
     return { stor[0], stor[1], stor[2] }
 end
 
@@ -135,11 +135,11 @@ capi.set_dynent_velocity = function(ent, vel)
     set_dynent_velocity(ent, vel[1], vel[2], vel[3])
 end
 
-local get_dynent_falling, set_dynent_falling in capi
+var get_dynent_falling, set_dynent_falling in capi
 
 capi.get_dynent_falling = function(ent)
-    local stor = ffi_new("double[3]")
-    if not get_dynent_falling(ent, stor) then return nil end
+    var stor = ffi_new("double[3]")
+    if not get_dynent_falling(ent, stor) do return nil end
     return { stor[0], stor[1], stor[2] }
 end
 
@@ -148,10 +148,10 @@ capi.set_dynent_falling = function(ent, fl)
 end
 
 @[not server] do
-    local get_target_entity_uid in capi
+    var get_target_entity_uid in capi
     capi.get_target_entity_uid = function()
-        local stor = ffi_new("int[1]")
-        if not get_target_entity_uid(stor) then return nil end
+        var stor = ffi_new("int[1]")
+        if not get_target_entity_uid(stor) do return nil end
         return stor[0]
     end
 end
@@ -159,17 +159,17 @@ end
 capi.get_ping = gen_getwrap(capi.get_ping, "int")
 capi.get_plag = gen_getwrap(capi.get_plag, "int")
 
-local ffi_str = ffi.string
+var ffi_str = ffi.string
 
-local strftime in capi
+var strftime in capi
 capi.strftime = function(fmt)
-    local buf = ffi_new("char[512]")
-    if not strftime(buf, 512, fmt) then return nil end
+    var buf = ffi_new("char[512]")
+    if not strftime(buf, 512, fmt) do return nil end
     return ffi_str(buf)
 end
 
 @[not server] do
-    local dynlight_add, dynlight_add_spot in capi
+    var dynlight_add, dynlight_add_spot in capi
 
     capi.dynlight_add = function(ox, oy, oz, radius, r, g, b, fade, peak,
     flags, initrad, ir, ig, ib, ent)
@@ -185,73 +185,73 @@ end
             ib or 0, ent and ent.uid or -1)
     end
 
-    local getfps in capi
+    var getfps in capi
 
     capi.getfps = function()
-        local stor = ffi_new("int[3]")
+        var stor = ffi_new("int[3]")
         getfps(stor)
         return stor[0], stor[1], stor[2]
     end
 
-    local slot_get_name in capi
+    var slot_get_name in capi
 
     capi.slot_get_name = function(idx, subslot)
-        local str = slot_get_name(idx, subslot)
-        if str != nil then return ffi_str(str) end
+        var str = slot_get_name(idx, subslot)
+        if str != nil do return ffi_str(str) end
     end
 
-    local input_get_key_name in capi
+    var input_get_key_name in capi
 
     capi.input_get_key_name = function(n)
         return ffi_str(input_get_key_name(n))
     end
 
-    local camera_get_position, camera_get in capi
+    var camera_get_position, camera_get in capi
 
     capi.camera_get_position = function()
-        local stor = ffi_new("float[3]")
+        var stor = ffi_new("float[3]")
         camera_get_position(stor)
         return stor[0], stor[1], stor[2]
     end
 
     capi.camera_get = function()
-        local stor = ffi_new("float[6]")
+        var stor = ffi_new("float[6]")
         camera_get(stor)
         return stor[0], stor[1], stor[2], stor[3], stor[4], stor[5]
     end
 
-    local text_get_res in capi
+    var text_get_res in capi
 
     capi.text_get_res = function(w, h)
-        local stor = ffi_new("int[2]")
+        var stor = ffi_new("int[2]")
         text_get_res(w, h, stor)
         return stor[0], stor[1]
     end
 
-    local text_get_bounds, text_get_boundsf in capi
+    var text_get_bounds, text_get_boundsf in capi
 
     capi.text_get_bounds = function(text, maxw)
-        local stor = ffi_new("int[2]")
+        var stor = ffi_new("int[2]")
         text_get_bounds(tostring(text), maxw, stor)
         return stor[0], stor[1]
     end
 
     capi.text_get_boundsf = function(text, maxw)
-        local stor = ffi_new("float[2]")
+        var stor = ffi_new("float[2]")
         text_get_boundsf(tostring(text), maxw, stor)
         return stor[0], stor[1]
     end
 
-    local text_get_position, text_get_positionf in capi
+    var text_get_position, text_get_positionf in capi
 
     capi.text_get_position = function(text, cursor, maxw)
-        local stor = ffi_new("int[2]")
+        var stor = ffi_new("int[2]")
         text_get_position(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
     end
 
     capi.text_get_positionf = function(text, cursor, maxw)
-        local stor = ffi_new("float[2]")
+        var stor = ffi_new("float[2]")
         text_get_positionf(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
     end

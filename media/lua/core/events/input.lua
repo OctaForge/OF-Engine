@@ -8,12 +8,12 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local msg = require("core.network.msg")
-local signal = require("core.events.signal")
+var capi = require("capi")
+var msg = require("core.network.msg")
+var signal = require("core.events.signal")
 
-local emit = signal.emit
-local ents
+var emit = signal.emit
+var ents
 
 --[[! Function: input_mouse_move
     The default behavior is hardcoded. If the external exists, it takes two
@@ -21,12 +21,12 @@ local ents
     return values). Just returning the inputs results in the default behavior,
     so this pretty much works as a filter.
 ]]
-local input_mouse_move
+var input_mouse_move
 
-local ext = require("core.externals")
-local get_ext, set_ext = ext.get, ext.set
+var ext = require("core.externals")
+var get_ext, set_ext = ext.get, ext.set
 
-local event_map
+var event_map
 
 @[not server] do
 --[[! Function: input_yaw
@@ -38,7 +38,7 @@ local event_map
         - down - whether the key was pressed.
 ]]
 set_ext("input_yaw", function(dir, down)
-    if not ents then ents = require("core.entities.ents") end
+    if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("yawing", dir)
 end)
 
@@ -51,7 +51,7 @@ end)
         - down - whether the key was pressed.
 ]]
 set_ext("input_pitch", function(dir, down)
-    if not ents then ents = require("core.entities.ents") end
+    if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("pitching", dir)
 end)
 
@@ -64,7 +64,7 @@ end)
         - down - whether the key was pressed.
 ]]
 set_ext("input_move", function(dir, down)
-    if not ents then ents = require("core.entities.ents") end
+    if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("move", dir)
 end)
 
@@ -77,7 +77,7 @@ end)
         - down - whether the key was pressed.
 ]]
 set_ext("input_strafe", function(dir, down)
-    if not ents then ents = require("core.entities.ents") end
+    if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("strafe", dir)
 end)
 
@@ -89,7 +89,7 @@ end)
         - down - whether the key was pressed.
 ]]
 set_ext("input_jump", function(down)
-    if not ents then ents = require("core.entities.ents") end
+    if not ents do ents = require("core.entities.ents") end
     ents.get_player():jump(down)
 end)
 
@@ -101,7 +101,7 @@ end)
         - down - whether the key was pressed.
 ]]
 set_ext("input_crouch", function(down)
-    if not ents then ents = require("core.entities.ents") end
+    if not ents do ents = require("core.entities.ents") end
     ents.get_player():crouch(down)
 end)
 
@@ -120,7 +120,7 @@ end)
         - cx, cy - the cursor position.
 ]]
 set_ext("input_click", function(btn, down, x, y, z, uid, cx, cy)
-    if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) then
+    if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) do
         msg.send(capi.do_click, btn, down, x, y, z, uid)
     end
 end)
@@ -133,10 +133,10 @@ end)
     trigger a server request.
 ]]
 set_ext("input_click_client", function(btn, down, x, y, z, uid, cx, cy)
-    if not ents then ents = require("core.entities.ents") end
-    local ent
-    if uid >= 0 then ent = ents.get(uid) end
-    if ent and ent.click then
+    if not ents do ents = require("core.entities.ents") end
+    var ent
+    if uid >= 0 do ent = ents.get(uid) end
+    if ent and ent.click do
         return ent:click(btn, down, x, y, z, cx, cy)
     end
     return false
@@ -164,10 +164,10 @@ end
     the cursor position is not there (obviously).
 ]]
 set_ext("input_click_server", function(btn, dn, x, y, z, uid)
-    if not ents then ents = require("core.entities.ents") end
-    local ent
-    if uid >= 0 then ent = ents.get(uid) end
-    if ent and ent.click then
+    if not ents do ents = require("core.entities.ents") end
+    var ent
+    if uid >= 0 do ent = ents.get(uid) end
+    if ent and ent.click do
         return ent:click(btn, down, x, y, z)
     end
 end)
@@ -178,8 +178,8 @@ event_map = {
 end
 
 --! Module: input
-local M = {}
-local type, assert = type, assert
+var M = {}
+var type, assert = type, assert
 
 --[[!
     Sets an event callback. If the callback is not provided, the default
@@ -200,28 +200,28 @@ local type, assert = type, assert
         - fun - the callback.
 ]]
 M.set_event = function(en, fun)
-    if not en then
+    if not en do
         return false
-    elseif en == "click" then
+    elif en == "click" do
         en = @[server,"input_click_server","input_click_client"]
     else
         en = "input_" .. en
     end
-    local old = event_map[en]
-    if not old then return false end
-    if fun == nil then
-        if en == "input_mouse_move" then
+    var old = event_map[en]
+    if not old do return false end
+    if fun == nil do
+        if en == "input_mouse_move" do
             unset_ext(en)
             return true
         end
-        if old == true then return true end
+        if old == true do return true end
         set_ext(en, old)
         event_map[en] = true
         return true
     end
     assert(type(fun) == "function")
-    local ret = get_ext(en)
-    if old == true and en != "input_mouse_move" then event_map[en] = ret end
+    var ret = get_ext(en)
+    if old == true and en != "input_mouse_move" do event_map[en] = ret end
     set_ext(en, fun)
     return ret
 end
@@ -231,14 +231,14 @@ end
     is invalid or the callback doesn't exist and the callback otherwise.
 ]]
 M.get_event = function(en)
-    if not en then
+    if not en do
         return nil
-    elseif en == "click" then
+    elif en == "click" do
         en = @[server,"input_click_server","input_click_client"]
     else
         en = "input_" .. en
     end
-    if not event_map[en] then return nil end
+    if not event_map[en] do return nil end
     return get_ext(en)
 end
 

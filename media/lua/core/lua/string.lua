@@ -22,14 +22,14 @@
         - delim - the delimiter to use (defaults to ",")
 
     ```
-    local a = "abc|def|ghi|jkl"
-    local b = split(a, '|')
+    var a = "abc|def|ghi|jkl"
+    var b = split(a, '|')
     assert(table.concat(b) == "abcdefghijkl")
     ```
 ]]
 string.split = function(str, delim)
     delim = delim or ","
-    local r = {}
+    var r = {}
     for ch in str:gmatch("([^" .. delim .. "]+)") do
         r[#r + 1] = ch
     end
@@ -60,7 +60,7 @@ string.insert = function(str, idx, new)
     return table.concat { str:sub(1, idx - 1), new, str:sub(idx) }
 end
 
-local str_escapes = setmetatable({
+var str_escapes = setmetatable({
     ["\n"] = "\\n", ["\r"] = "\\r",
     ["\a"] = "\\a", ["\b"] = "\\b",
     ["\f"] = "\\f", ["\t"] = "\\t",
@@ -80,9 +80,9 @@ local str_escapes = setmetatable({
 string.escape = function(s)
     -- a space optimization: decide which string quote to
     -- use as a delimiter (the one that needs less escaping)
-    local nsq, ndq = 0, 0
+    var nsq, ndq = 0, 0
     for c in s:gmatch("'") do nsq = nsq + 1 end
     for c in s:gmatch('"') do ndq = ndq + 1 end
-    local sd = (ndq > nsq) and "'" or '"'
+    var sd = (ndq > nsq) and "'" or '"'
     return sd .. s:gsub("[\\"..sd.."%z\001-\031]", str_escapes) .. sd
 end

@@ -8,59 +8,59 @@
         See COPYING.txt.
 ]]
 
-local ffi = require("ffi")
-local capi = require("capi")
-local logging = require("core.logger")
-local log = logging.log
-local DEBUG = logging.DEBUG
+var ffi = require("ffi")
+var capi = require("capi")
+var logging = require("core.logger")
+var log = logging.log
+var DEBUG = logging.DEBUG
 
-local camera = require("core.engine.camera")
-local sound = require("core.engine.sound")
-local model = require("core.engine.model")
-local frame = require("core.events.frame")
-local actions = require("core.events.actions")
-local signal = require("core.events.signal")
-local svars = require("core.entities.svars")
-local ents = require("core.entities.ents")
-local msg = require("core.network.msg")
-local cs = require("core.engine.cubescript")
-local conv = require("core.lua.conv")
+var camera = require("core.engine.camera")
+var sound = require("core.engine.sound")
+var model = require("core.engine.model")
+var frame = require("core.events.frame")
+var actions = require("core.events.actions")
+var signal = require("core.events.signal")
+var svars = require("core.entities.svars")
+var ents = require("core.entities.ents")
+var msg = require("core.network.msg")
+var cs = require("core.engine.cubescript")
+var conv = require("core.lua.conv")
 
-local hextorgb = conv.hex_to_rgb
+var hextorgb = conv.hex_to_rgb
 
-local var_get = cs.var_get
+var var_get = cs.var_get
 
-local set_external = require("core.externals").set
+var set_external = require("core.externals").set
 
-local Entity = ents.Entity
-local ent_get = ents.get
+var Entity = ents.Entity
+var ent_get = ents.get
 
-local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
-local connect, emit = signal.connect, signal.emit
-local format = string.format
-local abs = math.abs
-local tconc = table.concat
-local min, max = math.min, math.max
-local clamp = math.clamp
-local map = table.map
+var assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
+var connect, emit = signal.connect, signal.emit
+var format = string.format
+var abs = math.abs
+var tconc = table.concat
+var min, max = math.min, math.max
+var clamp = math.clamp
+var map = table.map
 
-local set_attachments = capi.set_attachments
+var set_attachments = capi.set_attachments
 
 -- physics state flags
-local MASK_MAT = 0x3
-local FLAG_WATER = 1 << 0
-local FLAG_LAVA  = 2 << 0
-local MASK_LIQUID = 0xC
-local FLAG_ABOVELIQUID = 1 << 2
-local FLAG_BELOWLIQUID = 2 << 2
-local MASK_GROUND = 0x30
-local FLAG_ABOVEGROUND = 1 << 4
-local FLAG_BELOWGROUND = 2 << 4
+var MASK_MAT = 0x3
+var FLAG_WATER = 1 << 0
+var FLAG_LAVA  = 2 << 0
+var MASK_LIQUID = 0xC
+var FLAG_ABOVELIQUID = 1 << 2
+var FLAG_BELOWLIQUID = 2 << 2
+var MASK_GROUND = 0x30
+var FLAG_ABOVEGROUND = 1 << 4
+var FLAG_BELOWGROUND = 2 << 4
 
-local animctl = model.anim_control
-local anims = model.anims
+var animctl = model.anim_control
+var anims = model.anims
 
-local anim_dirs, anim_jump, anim_run
+var anim_dirs, anim_jump, anim_run
 @[not server] do
     anim_dirs = {
         anims.run_SE, anims.run_S, anims.run_SW,
@@ -81,10 +81,10 @@ local anim_dirs, anim_jump, anim_run
     }
 end
 
-local mrender = @[not server,model.render]
+var mrender = @[not server,model.render]
 
 --! Module: ents
-local M = ents
+var M = ents
 
 --[[!
     Represents the base prototype for any character (NPC, player etc.). Players
@@ -201,7 +201,7 @@ M.Character = Entity:clone {
         model_name  = svars.StateString  { setter = capi.set_model_name },
         attachments = svars.StateArray   {
             setter = function(self, val)
-                local arr = ffi.new("const char *[?]", #val + 1)
+                var arr = ffi.new("const char *[?]", #val + 1)
                 for i = 1, #val do arr[i - 1] = val end
                 set_attachments(self, arr)
             end
@@ -346,7 +346,7 @@ M.Character = Entity:clone {
             - down - whether the crouch key is down.
     ]]
     crouch = function(self, down)
-        if down then
+        if down do
             self:set_attr("crouching", -1)
         else
             self:set_attr("crouching", abs(self:get_attr("crouching")))
@@ -407,27 +407,27 @@ M.Character = Entity:clone {
 
         -- see world.lua for field meanings
         connect(self, "physics_trigger,changed", function(self, val)
-            if val == 0 then return end
+            if val == 0 do return end
             self:set_attr("physics_trigger", 0)
 
-            local pos = (self != ents.get_player())
+            var pos = (self != ents.get_player())
                 and self:get_attr("position") or nil
 
-            local lst = val & MASK_LIQUID
-            if lst == FLAG_ABOVELIQUID then
-                if (val & MASK_MAT) != FLAG_LAVA then
+            var lst = val & MASK_LIQUID
+            if lst == FLAG_ABOVELIQUID do
+                if (val & MASK_MAT) != FLAG_LAVA do
                     sound.play("yo_frankie/amb_waterdrip_2.wav", pos)
                 end
-            elseif lst == FLAG_BELOWLIQUID then
+            elif lst == FLAG_BELOWLIQUID do
                 sound.play((val & MASK_MAT) == FLAG_LAVA
                     and "yo_frankie/DeathFlash.wav"
                     or "yo_frankie/watersplash2.wav", pos)
             end
 
-            local gst = val & MASK_GROUND
-            if gst == FLAG_ABOVEGROUND then
+            var gst = val & MASK_GROUND
+            if gst == FLAG_ABOVEGROUND do
                 sound.play(self:get_attr("jumping_sound"), pos)
-            elseif gst == FLAG_BELOWGROUND then
+            elif gst == FLAG_BELOWGROUND do
                 sound.play(self:get_attr("landing_sound"), pos)
             end
         end)
@@ -464,45 +464,45 @@ M.Character = Entity:clone {
             - fpsshadow - true if we enabled a FPS player shadow.
     ]]
     __render = @[not server,function(self, hudpass, needhud, fpsshadow)
-        if not self.initialized then return end
-        if not hudpass and needhud and not fpsshadow then return end
+        if not self.initialized do return end
+        if not hudpass and needhud and not fpsshadow do return end
 
-        local state = self:get_attr("client_state")
+        var state = self:get_attr("client_state")
         -- spawning or spectator
-        if state == 5 or state == 2 then return end
+        if state == 5 or state == 2 do return end
         -- editing
-        if not hudpass and needhud and state == 4 then return end
-        local mdn = (hudpass and needhud)
+        if not hudpass and needhud and state == 4 do return end
+        var mdn = (hudpass and needhud)
             and self:get_attr("hud_model_name")
             or  self:get_attr("model_name")
 
-        if mdn == "" then return end
+        if mdn == "" do return end
 
-        local yaw, pitch, roll = self:get_attr("yaw"),
+        var yaw, pitch, roll = self:get_attr("yaw"),
             self:get_attr("pitch"),
             self:get_attr("roll")
-        local o = self:get_attr("position"):copy()
+        var o = self:get_attr("position"):copy()
 
-        if hudpass and needhud and self.hud_model_offset then
+        if hudpass and needhud and self.hud_model_offset do
             o:add(self.hud_model_offset)
         end
 
-        local pstate = self:get_attr("physical_state")
-        local iw = self:get_attr("in_liquid")
-        local mv, sf = self:get_attr("move"), self:get_attr("strafe")
+        var pstate = self:get_attr("physical_state")
+        var iw = self:get_attr("in_liquid")
+        var mv, sf = self:get_attr("move"), self:get_attr("strafe")
 
-        local vel, fall = self:get_attr("velocity"):copy(),
+        var vel, fall = self:get_attr("velocity"):copy(),
             self:get_attr("falling"):copy()
-        local tia = self:get_attr("time_in_air")
+        var tia = self:get_attr("time_in_air")
 
-        local cr = self:get_attr("crouching")
+        var cr = self:get_attr("crouching")
 
-        local anim = self:decide_animation(state, pstate, mv,
+        var anim = self:decide_animation(state, pstate, mv,
             sf, cr, vel, fall, iw, tia)
 
-        local bt = self:decide_base_time(anim)
+        var bt = self:decide_base_time(anim)
 
-        local flags = self:get_render_flags(hudpass, needhud)
+        var flags = self:get_render_flags(hudpass, needhud)
 
         mrender(self, mdn, anim, o, yaw, pitch, roll, flags, bt)
     end],
@@ -516,16 +516,16 @@ M.Character = Entity:clone {
             - hudpass, needhud - see $__render.
     ]]
     get_render_flags = @[not server,function(self, hudpass, needhud)
-        local flags
-        if self != ents.get_player() then
+        var flags
+        if self != ents.get_player() do
             flags = model.render_flags.CULL_VFC
                 | model.render_flags.CULL_OCCLUDED
                 | model.render_flags.CULL_QUERY
         else
             flags = model.render_flags.FULLBRIGHT
         end
-        if needhud then
-            if hudpass then
+        if needhud do
+            if hudpass do
                 flags |= model.render_flags.NOBATCH
             else
                 flags |= model.render_flags.ONLY_SHADOW
@@ -556,64 +556,64 @@ M.Character = Entity:clone {
     ]]
     decide_animation = @[not server,function(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
-        local anim = self:get_animation()
+        var anim = self:get_animation()
 
-        local mask = anims.INDEX | anims.DIR
-        local panim, sanim = anim & mask, (anim >> anims.SECONDARY) & mask
+        var mask = anims.INDEX | anims.DIR
+        var panim, sanim = anim & mask, (anim >> anims.SECONDARY) & mask
 
         -- editing or spectator
-        if state == 4 or state == 5 then
+        if state == 4 or state == 5 do
             panim = anims.edit | animctl.LOOP
         -- lagged
-        elseif state == 3 then
+        elif state == 3 do
             panim = anims.lag | animctl.LOOP
         else
             -- in water and floating or falling
-            if inwater != 0 and pstate <= 1 then
+            if inwater != 0 and pstate <= 1 do
                 sanim = (((move or strafe) or ((vel.z + falling.z) > 0))
                     and anims.swim or anims.sink) | animctl.LOOP
             -- moving or strafing
             else
-                local dir = anim_dirs[(move + 1) * 3 + strafe + 2]
+                var dir = anim_dirs[(move + 1) * 3 + strafe + 2]
                 -- jumping anim
-                if tinair > 100 then
+                if tinair > 100 do
                     sanim = ((dir != 0) and (dir + anims.jump_N - anims.run_N)
                         or anims.jump) | animctl.END
-                elseif dir != 0 then
+                elif dir != 0 do
                     sanim = dir | animctl.LOOP
                 end
             end
 
-            if crouching != 0 then
-                local v = sanim & anims.INDEX
-                if v == anims.idle then
+            if crouching != 0 do
+                var v = sanim & anims.INDEX
+                if v == anims.idle do
                     sanim = sanim & ~anims.INDEX
                     sanim = sanim | anims.crouch
-                elseif v == anims.jump then
+                elif v == anims.jump do
                     sanim = sanim & ~anims.INDEX
                     sanim = sanim | anims.crouch_jump
-                elseif v == anims.swim then
+                elif v == anims.swim do
                     sanim = sanim & ~anims.INDEX
                     sanim = sanim | anims.crouch_swim
-                elseif v == anims.sink then
+                elif v == anims.sink do
                     sanim = sanim & ~anims.INDEX
                     sanim = sanim | anims.crouch_sink
-                elseif v == 0 then
+                elif v == 0 do
                     sanim = anims.crouch | animctl.LOOP
-                elseif anim_run[v] then
+                elif anim_run[v] do
                     sanim = sanim + anims.crouch_N - anims.run_N
-                elseif anim_jump[v] then
+                elif anim_jump[v] do
                     sanim = sanim + anims.crouch_jump_N - anims.jump_N
                 end
             end
 
             if (panim & anims.INDEX) == anims.idle and
-               (sanim & anims.INDEX) != 0 then
+               (sanim & anims.INDEX) != 0 do
                 panim = sanim
             end
         end
 
-        if (sanim & anims.INDEX) == 0 then
+        if (sanim & anims.INDEX) == 0 do
             sanim = anims.idle | animctl.LOOP
         end
         return panim | (sanim << anims.SECONDARY)
@@ -626,7 +626,7 @@ M.Character = Entity:clone {
         non-standard. By default it's 0.75 * eye_height above feet.
     ]]
     get_center = function(self)
-        local r = self:get_attr("position"):copy()
+        var r = self:get_attr("position"):copy()
         r.z = r.z + self:get_attr("eye_height") * 0.75
         return r
     end,
@@ -659,7 +659,7 @@ M.Character = Entity:clone {
         self.svar_values["model_name"] = mname
     end
 }
-local Character = M.Character
+var Character = M.Character
 
 --[[! Function: physics_collide_client
     An external called when two clients collide. Takes unique ids of both
@@ -704,10 +704,10 @@ M.Player = Character:clone {
 ents.register_prototype(Character)
 ents.register_prototype(M.Player)
 
-local c_get_attr = capi.get_attr
-local c_set_attr = capi.set_attr
+var c_get_attr = capi.get_attr
+var c_set_attr = capi.set_attr
 
-local gen_attr = function(i, name)
+var gen_attr = function(i, name)
     i = i - 1
     return svars.StateInteger {
         getter = function(ent)      return c_get_attr(ent, i)      end,
@@ -754,7 +754,7 @@ M.StaticEntity = Entity:clone {
         kwargs.persistent = true
 
         Entity.__init_svars(self, kwargs)
-        if not kwargs.position then
+        if not kwargs.position do
             self:set_attr("position", { 511, 512, 513 })
         else
             self:set_attr("position", {
@@ -781,7 +781,7 @@ M.StaticEntity = Entity:clone {
 
         self:set_attr("position", self:get_attr("position"))
         for i = 1, self.attr_num do
-            local an = "attr" .. i
+            var an = "attr" .. i
             self:set_attr(an, self:get_attr(an))
         end
     end,function(self, kwargs)
@@ -795,19 +795,19 @@ M.StaticEntity = Entity:clone {
     end,
 
     send_notification_full = @[server,function(self, cn)
-        local acn = msg.ALL_CLIENTS
+        var acn = msg.ALL_CLIENTS
         cn = cn or acn
 
-        local cns = (cn == acn) and map(ents.get_players(), function(p)
+        var cns = (cn == acn) and map(ents.get_players(), function(p)
             return p.cn end) or { cn }
 
-        local uid = self.uid
+        var uid = self.uid
         @[debug] log(DEBUG, "StaticEntity.send_notification_full: "
             .. cn .. ", " .. uid)
 
-        local scn, sname = self.cn, self.name
+        var scn, sname = self.cn, self.name
         for i = 1, #cns do
-            local n = cns[i]
+            var n = cns[i]
             msg.send(n, capi.extent_notification_complete, uid, sname,
                 self:build_sdata({ target_cn = n, compressed = true }))
         end
@@ -858,7 +858,7 @@ M.StaticEntity = Entity:clone {
         return 4
     end
 }
-local StaticEntity = M.StaticEntity
+var StaticEntity = M.StaticEntity
 
 --[[! Function: entity_get_edit_info
     An external. Returns `ent.__edit_icon`,
@@ -866,7 +866,7 @@ local StaticEntity = M.StaticEntity
     is the entity with unique id `uid`.
 ]]
 set_external("entity_get_edit_icon_info", function(uid)
-    local ent = ent_get(uid)
+    var ent = ent_get(uid)
     return ent.__edit_icon, ent:__get_edit_color()
 end)
 
@@ -875,7 +875,7 @@ end)
     {{$StaticEntity.__get_edit_info}}.
 ]]
 set_external("entity_get_edit_info", function(uid)
-    local ent = ent_get(uid)
+    var ent = ent_get(uid)
     return ent.name, ent:__get_edit_info()
 end)
 
@@ -902,7 +902,7 @@ M.Marker = StaticEntity:clone {
         ent:set_attr("position", self:get_attr("position"))
     end
 }
-local Marker = M.Marker
+var Marker = M.Marker
 
 --[[!
     A generic (oriented) marker with a wide variety of uses. Can be used as
@@ -946,9 +946,9 @@ M.OrientedMarker = StaticEntity:clone {
             self:get_attr("pitch"))
     end
 }
-local OrientedMarker = M.OrientedMarker
+var OrientedMarker = M.OrientedMarker
 
-local lightflags = setmetatable({
+var lightflags = setmetatable({
     [0] = "dynamic (0)",
     [1] = "none (1)",
     [2] = "static (2)"
@@ -1039,8 +1039,8 @@ M.SpotLight = StaticEntity:clone {
     end,
 
     __get_edit_color = function(self)
-        local ent = self:get_attached_entity()
-        if not ent then return 255, 255, 255 end
+        var ent = self:get_attached_entity()
+        if not ent do return 255, 255, 255 end
         return ent:get_attr("red"), ent:get_attr("green"), ent:get_attr("blue")
     end,
 
@@ -1090,7 +1090,7 @@ M.Envmap = StaticEntity:clone {
         - attr1 - the sound radius (alias "radius", default 100)
         - attr2 - the sound size, if this is 0, the sound is a point source,
           otherwise the sound volume will always be max until the distance
-          specified by this property and then it'll start fading off
+          specified by this property and do it'll start fading off
           (alias "size", default 0).
         - attr3 - the sound volume, from 0 to 100 (alias "volume",
           default 100).
@@ -1122,7 +1122,7 @@ M.Sound = StaticEntity:clone {
 
     __activate = @[not server,function(self, ...)
         StaticEntity.__activate(self, ...)
-        local f = |self| capi.sound_stop_map(self.uid)
+        var f = |self| capi.sound_stop_map(self.uid)
         connect(self, "sound_name,changed", f)
         connect(self, "radius,changed", f)
         connect(self, "size,changed", f)

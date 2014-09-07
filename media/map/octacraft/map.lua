@@ -1,9 +1,9 @@
 -- Octacraft testmap
 -- author: q66 <quaker66@gmail.com>
 
-local ents = require("core.entities.ents")
+var ents = require("core.entities.ents")
 
-local game_manager = require("extra.game_manager")
+var game_manager = require("extra.game_manager")
 
 require("extra.entities.teleporters")
 require("extra.entities.lights")

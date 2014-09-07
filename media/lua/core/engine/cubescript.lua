@@ -10,23 +10,23 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local signal = require("core.events.signal")
+var capi = require("capi")
+var signal = require("core.events.signal")
 
-local emit = signal.emit
+var emit = signal.emit
 
 --! Module: cubescript
-local M = {
+var M = {
     __connect = function(self, name)
-        local  vn = name:match("(.+),changed$")
-        if not vn then return end
+        var  vn = name:match("(.+),changed$")
+        if not vn do return end
         capi.var_make_emit(vn, true)
     end,
 
     __disconnect = function(self, name, id, scount)
-        if scount == 0 then
-            local  vn = name:match("(.+),changed$")
-            if not vn then return end
+        if scount == 0 do
+            var  vn = name:match("(.+),changed$")
+            if not vn do return end
             capi.var_make_emit(vn, false)
         end
     end
@@ -89,7 +89,7 @@ M.var_new = capi.var_new
         - $var_new
 ]]
 M.var_new_checked = function(varn, ...)
-    if not capi.var_exists(varn) then
+    if not capi.var_exists(varn) do
         capi.var_new(varn, ...)
         return true
     end

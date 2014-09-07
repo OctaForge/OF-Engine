@@ -10,10 +10,10 @@
 
 @[server] do return {} end
 
-local capi = require("capi")
+var capi = require("capi")
 
-local play = capi.sound_play
-local vec3 = require("core.lua.geom").Vec3
+var play = capi.sound_play
+var vec3 = require("core.lua.geom").Vec3
 
 --! Module: sound
 return {
@@ -27,7 +27,7 @@ return {
             - vol - an optional volume that defaults to 100.
     ]]
     play = function(name, pos, vol)
-        if not name then return end
+        if not name do return end
         pos = pos or vec3(0)
         play(name, pos.x, pos.y, pos.z, vol or 100)
     end,

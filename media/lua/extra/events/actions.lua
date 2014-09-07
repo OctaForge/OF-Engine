@@ -8,17 +8,17 @@
         See COPYING.txt.
 ]]
 
-local actions = require("core.events.actions")
-local input   = require("core.events.input")
+var actions = require("core.events.actions")
+var input   = require("core.events.input")
 
 --! Module: actions
-local M = {}
+var M = {}
 
-local Action = actions.Action
-local ActionQueue = actions.ActionQueue
+var Action = actions.Action
+var ActionQueue = actions.ActionQueue
 
-local ipairs = ipairs
-local compact = table.compact
+var ipairs = ipairs
+var compact = table.compact
 
 --[[!
     A container action that can queue more actions into itself, which run on
@@ -45,7 +45,7 @@ M.ContainerAction = Action:clone {
         each into the system using {{$add_action}}.
     ]]
     __start = function(self)
-        local actqueue = ActionQueue(self.actor)
+        var actqueue = ActionQueue(self.actor)
         for i, action in ipairs(self.other_actions) do
             self:add_action(action)
         end
@@ -59,7 +59,7 @@ M.ContainerAction = Action:clone {
         everything is done).
     ]]
     __run = function(self, millis)
-        local actqueue = self.action_queue
+        var actqueue = self.action_queue
         actqueue:run(millis)
         return Action.__run(self, millis) and (#actqueue.actions == 0)
     end,
@@ -117,7 +117,7 @@ M.ParallelAction = Action:clone {
         zero - the action won't finish until everything is done).
     ]]
     __run = function(self, millis)
-        local systems = compact(self.action_queues, function(i, actqueue)
+        var systems = compact(self.action_queues, function(i, actqueue)
             actqueue:run(millis)
             return #actqueue.actions != 0
         end)
@@ -136,9 +136,9 @@ M.ParallelAction = Action:clone {
         inside, then appends the system into the action queue table inside.
     ]]
     add_action = function(self, action)
-        local actqueue = ActionQueue(self.actor)
+        var actqueue = ActionQueue(self.actor)
         actqueue:enqueue(action)
-        local systems = self.action_queues
+        var systems = self.action_queues
         systems[#systems + 1] = actqueue
     end
 }
@@ -156,21 +156,21 @@ M.LocalAnimationAction = Action:clone {
         method of an entity.
     ]]
     __start = function(self)
-        local ac = self.actor
+        var ac = self.actor
         self.old_animation = ac:get_attr("animation")
         ac:set_local_animation(self.local_animation)
     end,
 
     --! Resets the animation back.
     __finish = function(self)
-        local ac = self.actor
-        local anim = ac:get_attr("animation")
-        local lanim = self.local_animation
-        if anim == lanim then ac:set_local_animation(self.old_animation) end
+        var ac = self.actor
+        var anim = ac:get_attr("animation")
+        var lanim = self.local_animation
+        if anim == lanim do ac:set_local_animation(self.old_animation) end
     end
 }
 
-local event_list = {
+var event_list = {
     "yaw", "pitch", "move", "strafe", "jump", "crouch", "click", "mouse_move"
 }
 
@@ -182,13 +182,13 @@ local event_list = {
 M.input_capture_plugin = {
     --! Replaces the events.
     __start = function(self)
-        local events = self.events
-        local old_events = {}
+        var events = self.events
+        var old_events = {}
         self.old_events = old_events
         for i = 1, #event_list do
-            local en = event_list[i]
-            local ev = events[en]
-            if ev then old_events[en] = input.set_event(en,
+            var en = event_list[i]
+            var ev = events[en]
+            if ev do old_events[en] = input.set_event(en,
                 function(...) ev(self, ...) end) end
         end
     end,

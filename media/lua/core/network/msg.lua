@@ -9,9 +9,9 @@
 ]]
 
 --! Module: msg
-local M = {}
+var M = {}
 
-local type, assert = type, assert
+var type, assert = type, assert
 
 --[[!
     A constant (value -1) used when sending messages. Specifying this constant

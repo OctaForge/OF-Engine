@@ -8,26 +8,26 @@
         See COPYING.txt.
 ]]
 
-local signal = require("core.events.signal")
+var signal = require("core.events.signal")
 
 --! Module: core
-local M = require("core.gui.core")
+var M = require("core.gui.core")
 
-local emit = signal.emit
+var emit = signal.emit
 
 -- widget types
-local register_type = M.register_type
+var register_type = M.register_type
 
 -- base widgets
-local Widget = M.get_type("Widget")
+var Widget = M.get_type("Widget")
 
 -- setters
-local gen_setter = M.gen_setter
+var gen_setter = M.gen_setter
 
 -- keys
-local key = M.key
+var key = M.key
 
-local clicked_states = {
+var clicked_states = {
     [key.MOUSELEFT   ] = "clicked_left",
     [key.MOUSEMIDDLE ] = "clicked_middle",
     [key.MOUSERIGHT  ] = "clicked_right",
@@ -61,7 +61,7 @@ M.Button = register_type("Button", Widget, {
         return self:target(cx, cy) and self
     end
 })
-local Button = M.Button
+var Button = M.Button
 
 --[[!
     Like $Button, but adds a new state, "menu", when a menu is currently
@@ -91,7 +91,7 @@ M.Toggle = register_type("Toggle", Button, {
     end,
 
     choose_state = function(self)
-        local h, f = self:is_hovering(), self:is_focused()
+        var h, f = self:is_hovering(), self:is_focused()
         return (self.condition and self:condition() and
             (h and "toggled_hovering" or (f and "toggled_focused"
                 or "toggled")) or
@@ -100,7 +100,7 @@ M.Toggle = register_type("Toggle", Button, {
     end,
 
     key = function(self, code, isdown)
-        if self:is_focused() and code == key.SPACE then
+        if self:is_focused() and code == key.SPACE do
             emit(self, isdown and "clicked" or "released", -1, -1, code)
             return true
         end

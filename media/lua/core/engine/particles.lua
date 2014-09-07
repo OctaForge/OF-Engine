@@ -9,14 +9,14 @@
 ]]
 
 --! Module: particles
-local M = {}
+var M = {}
 
 @[server] do return M end
 
-local capi = require("capi")
-local ffi = require("ffi")
+var capi = require("capi")
+var ffi = require("ffi")
 
-local assert = assert
+var assert = assert
 
 ffi.cdef [[
     typedef struct particle_t {
@@ -28,7 +28,7 @@ ffi.cdef [[
     } particle_t;
 ]]
 
-local particle = ffi.metatype("particle_t", {
+var particle = ffi.metatype("particle_t", {
     __index = {
         get_owner = function(self)
             assert(self != nil)
@@ -74,7 +74,7 @@ M.flags = {:
 --[[!
     Contains two predefined renderers that are mandatory - "text" and "icon".
 ]]
-local renderers = {
+var renderers = {
     text = capi.particle_register_renderer_text("text"),
     icon = capi.particle_register_renderer_icon("icon")
 }

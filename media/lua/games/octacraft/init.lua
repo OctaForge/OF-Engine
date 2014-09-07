@@ -9,28 +9,28 @@
         See COPYING.txt.
 ]]
 
-local log = require("core.logger")
+var log = require("core.logger")
 
-local input = require("core.engine.input")
-local inputev = require("core.events.input")
-local actions = require("core.events.actions")
-local edit = require("core.engine.edit")
-local cs = require("core.engine.cubescript")
-local signal = require("core.events.signal")
-local svars = require("core.entities.svars")
-local ents = require("core.entities.ents")
-local geom = require("core.lua.geom")
+var input = require("core.engine.input")
+var inputev = require("core.events.input")
+var actions = require("core.events.actions")
+var edit = require("core.engine.edit")
+var cs = require("core.engine.cubescript")
+var signal = require("core.events.signal")
+var svars = require("core.entities.svars")
+var ents = require("core.entities.ents")
+var geom = require("core.lua.geom")
 
-local game_manager = require("extra.game_manager")
-local day_manager = require("extra.day_manager")
-local health = require("extra.health")
+var game_manager = require("extra.game_manager")
+var day_manager = require("extra.day_manager")
+var health = require("extra.health")
 
-local Player = ents.Player
+var Player = ents.Player
 
 --[[! Object: GamePlayer
     This serves as a base for our player.
 ]]
-local GamePlayer = Player:clone {
+var GamePlayer = Player:clone {
     name = "GamePlayer",
 }
 
@@ -51,7 +51,7 @@ day_manager.setup({ day_manager.plugins.day_night })
     return
 end
 
-local MouseAction = actions.Action:clone {
+var MouseAction = actions.Action:clone {
     name = "MouseAction",
     allow_multiple = false,
     block_size = 4,
@@ -62,10 +62,10 @@ local MouseAction = actions.Action:clone {
     end,
 
     __run = function(self, millis)
-        local cnt = self.counter
+        var cnt = self.counter
         cnt += millis
-        local btn = self.button
-        if (btn == 1 and cnt >= 600) or (btn != 1 and cnt >= 200) then
+        var btn = self.button
+        if (btn == 1 and cnt >= 600) or (btn != 1 and cnt >= 200) do
             self.counter = 0
             self:try_block()
         else
@@ -75,33 +75,33 @@ local MouseAction = actions.Action:clone {
     end,
 
     try_block = function(self)
-        local pl = self.player
-        local tg = input.get_target_position()
-        local pos = pl:get_attr("position"):copy()
+        var pl = self.player
+        var tg = input.get_target_position()
+        var pos = pl:get_attr("position"):copy()
         pos.z += pl:get_attr("eye_height")
-        local bf
-        if self.button == 1 then
+        var bf
+        if self.button == 1 do
             tg:add((tg - pos):normalize())
             bf = edit.cube_delete
         else
             tg:sub((tg - pos):normalize())
             bf = edit.cube_create
         end
-        local bsize = self.block_size
+        var bsize = self.block_size
         bf(tg.x >> bsize << bsize, tg.y >> bsize << bsize,
            tg.z >> bsize << bsize, 1 << bsize)
     end
 }
 
 inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)
-    local ent = ents.get(uid)
-    if ent and ent.click then
+    var ent = ents.get(uid)
+    if ent and ent.click do
         return ent:click(btn, down, x, y, z, cx, cy)
     end
-    local gm = game_manager.get()
-    if down then
-        local pl = ents.get_player()
-        local mact = MouseAction()
+    var gm = game_manager.get()
+    if down do
+        var pl = ents.get_player()
+        var mact = MouseAction()
         mact.button = btn
         mact.player = pl
         gm.mouse_action = mact

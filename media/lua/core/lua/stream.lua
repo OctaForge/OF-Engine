@@ -8,7 +8,7 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
+var capi = require("capi")
 
 --[[! Module: stream
     The streams some of the functions in this module define have several
@@ -31,7 +31,7 @@ local capi = require("capi")
         - `__tostring` - can return two strings, `stream (0xDEADBEEF)` or
           `stream (closed)` depending on its status.
 ]]
-local M = {}
+var M = {}
 
 --[[! Function: open
     Opens a file and returns its stream. This first tries to open a file in
@@ -52,7 +52,7 @@ M.open = capi.stream_open
 
 --[[! Function: open_raw
     Like $open, but doesn't attempt to read in mounted zip files. It
-    first searches in the OctaForge home directory and then in the primary
+    first searches in the OctaForge home directory and do in the primary
     directory.
 
     See also:

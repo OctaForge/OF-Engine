@@ -8,13 +8,13 @@
         See COPYING.txt.
 ]]
 
-local edit = require("core.engine.edit")
-local signal = require("core.events.signal")
+var edit = require("core.engine.edit")
+var signal = require("core.events.signal")
 
-local set_external = require("core.externals").set
+var set_external = require("core.externals").set
 
-local emit = signal.emit
-local ents
+var emit = signal.emit
+var ents
 
 --[[! Function: physics_off_map
     Called when a client falls off the map (keeps calling until the client
@@ -24,7 +24,7 @@ local ents
         - uid - the client entity uid.
 ]]
 set_external("physics_off_map", function(uid)
-    if not ents then ents = require("core.entities.ents") end
+    if not ents do ents = require("core.entities.ents") end
     emit(ents.get(uid), "off_map")
 end)
 
@@ -38,17 +38,17 @@ end)
         - mat - the material id (see $edit).
 ]]
 set_external("physics_in_deadly", function(uid, mat)
-    if not ents then ents = require("core.entities.ents") end
+    if not ents do ents = require("core.entities.ents") end
     emit(ents.get(uid), "in_deadly", mat)
 end)
 
 -- flags for physics_state_change
-local FLAG_WATER = 1 << 0
-local FLAG_LAVA  = 2 << 0
-local FLAG_ABOVELIQUID = 1 << 2
-local FLAG_BELOWLIQUID = 2 << 2
-local FLAG_ABOVEGROUND = 1 << 4
-local FLAG_BELOWGROUND = 2 << 4
+var FLAG_WATER = 1 << 0
+var FLAG_LAVA  = 2 << 0
+var FLAG_ABOVELIQUID = 1 << 2
+var FLAG_BELOWLIQUID = 2 << 2
+var FLAG_ABOVEGROUND = 1 << 4
+var FLAG_BELOWGROUND = 2 << 4
 
 --[[! Function: physics_state_change
     Called when a client changes their physical state.
@@ -68,27 +68,27 @@ local FLAG_BELOWGROUND = 2 << 4
 set_external("physics_state_change", function(uid, loc, flevel, llevel, mat)
     @[server] do return end
 
-    if not ents then ents = require("core.entities.ents") end
-    local ent = ents.get(uid)
+    if not ents do ents = require("core.entities.ents") end
+    var ent = ents.get(uid)
 
-    local flags = 0
-    if mat == edit.material.WATER then
+    var flags = 0
+    if mat == edit.material.WATER do
         flags |= FLAG_WATER
-    elseif mat == edit.material.LAVA then
+    elif mat == edit.material.LAVA do
         flags |= FLAG_LAVA
     end
 
-    if llevel > 0 then -- liquid level
+    if llevel > 0 do -- liquid level
         flags |= FLAG_ABOVELIQUID
-    elseif llevel < 0 then
+    elif llevel < 0 do
         flags |= FLAG_BELOWLIQUID
     end
-    if flevel > 0 then -- floor level
+    if flevel > 0 do -- floor level
         flags |= FLAG_ABOVEGROUND
-    elseif flevel < 0 then
+    elif flevel < 0 do
         flags |= FLAG_BELOWGROUND
     end
-    if flags != 0 then ent:set_attr("physics_trigger", flags) end
+    if flags != 0 do ent:set_attr("physics_trigger", flags) end
 end)
 
 --[[! Function: event_text_message

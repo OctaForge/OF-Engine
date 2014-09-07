@@ -10,7 +10,7 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
+var capi = require("capi")
 
 --! Module: lights
 return {

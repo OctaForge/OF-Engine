@@ -11,14 +11,14 @@
         See COPYING.txt.
 ]]
 
-local ffi = require("ffi")
-local capi = require("capi")
-local cs = require("core.engine.cubescript")
-local signal = require("core.events.signal")
-local logger = require("core.logger")
-local Vec2 = require("core.lua.geom").Vec2
+var ffi = require("ffi")
+var capi = require("capi")
+var cs = require("core.engine.cubescript")
+var signal = require("core.events.signal")
+var logger = require("core.logger")
+var Vec2 = require("core.lua.geom").Vec2
 
-local gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
+var gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_color4ub,
 gle_attrib4ub, gle_defcolorub, gle_disable, hudmatrix_ortho, hudmatrix_reset,
 shader_hud_set, hud_get_w, hud_get_h, hud_get_ss_x, hud_get_ss_y, hud_get_so_x,
@@ -26,50 +26,50 @@ hud_get_so_y, isconnected, text_get_res, text_font_get_h, aspect_get,
 editing_get, console_scale_get, input_get_free_cursor, input_cursor_get_x,
 input_cursor_get_y, input_cursor_exists_update in capi
 
-local set_external = require("core.externals").set
+var set_external = require("core.externals").set
 
-local var_get, var_set = cs.var_get, cs.var_set
+var var_get, var_set = cs.var_get, cs.var_set
 
 -- external locals
-local max   = math.max
-local min   = math.min
-local clamp = math.clamp
-local floor = math.floor
-local ceil  = math.ceil
-local emit  = signal.emit
-local pairs, ipairs = pairs, ipairs
+var max   = math.max
+var min   = math.min
+var clamp = math.clamp
+var floor = math.floor
+var ceil  = math.ceil
+var emit  = signal.emit
+var pairs, ipairs = pairs, ipairs
 
-local tremove = table.remove
-local tinsert = table.insert
+var tremove = table.remove
+var tinsert = table.insert
 
 --! Module: core
-local M = {}
+var M = {}
 
-local consts = require("core.gui.constants")
+var consts = require("core.gui.constants")
 
 --[[! Enum: gl
     Forwarded from the "constants" module.
 ]]
 M.gl = consts.gl
-local gl = M.gl
+var gl = M.gl
 
 --[[! Enum: key
     Forwarded from the "constants" module.
 ]]
 M.key = consts.key
-local key = M.key
+var key = M.key
 
 --[[! Enum: mod
     Forwarded from the "constants" module.
 ]]
 M.mod = consts.mod
-local mod = M.mod
+var mod = M.mod
 
 -- initialized after Root is created
-local root
-local clicked_code
+var root
+var clicked_code
 
-local adjust = {:
+var adjust = {:
     ALIGN_HMASK = 0x3,
     ALIGN_VMASK = 0xC,
     ALIGN_MASK  = ALIGN_HMASK | ALIGN_VMASK,
@@ -98,10 +98,10 @@ local adjust = {:
 :}
 M.adjust = adjust
 
-local wtypes_by_name = {}
-local wtypes_by_type = {}
+var wtypes_by_name = {}
+var wtypes_by_type = {}
 
-local lastwtype = 0
+var lastwtype = 0
 
 --[[!
     Registers a widget type.
@@ -113,7 +113,7 @@ local lastwtype = 0
         - ftype - the "type" field, by default it just assigns is a new type.
 ]]
 M.register_type = function(name, base, obj, ftype)
-    if not ftype then
+    if not ftype do
         lastwtype = lastwtype + 1
         ftype = lastwtype
     end
@@ -126,91 +126,91 @@ M.register_type = function(name, base, obj, ftype)
     wtypes_by_type[ftype] = obj
     return obj
 end
-local register_type = M.register_type
+var register_type = M.register_type
 
 --[[!
     Given either a name or type, this function returns the widget type
     with that name or type.
 ]]
 M.get_type = function(n)
-    if type(n) == "string" then
+    if type(n) == "string" do
         return wtypes_by_name[n]
     else
         return wtypes_by_type[n]
     end
 end
-local get_type = M.get_type
+var get_type = M.get_type
 
 --[[!
     Loops widget children, executing the function given in the second
     argument with the child passed to it. If the widget has states,
-    it first acts on the current state and then on the actual children
+    it first acts on the current state and do on the actual children
     from 1 to N. If the selected state is not available, it tries "default".
 
     See also $loop_children_r.
 ]]
 M.loop_children = function(self, fun)
-    local ch = self.children
-    local vr = self.vstates
-    local st = self.states
+    var ch = self.children
+    var vr = self.vstates
+    var st = self.states
 
-    local s = self:choose_state()
-    if s != nil then
-        local  w = st[s] or st["default"]
-        if not w then w = vr[s] or vr["default"] end
-        if w then
-            local a, b = fun(w)
-            if a != nil then return a, b end
+    var s = self:choose_state()
+    if s != nil do
+        var  w = st[s] or st["default"]
+        if not w do w = vr[s] or vr["default"] end
+        if w do
+            var a, b = fun(w)
+            if a != nil do return a, b end
         end
     end
 
     for i = 1, #vr do
-        local a, b = fun(vr[i])
-        if    a != nil then return a, b end
+        var a, b = fun(vr[i])
+        if    a != nil do return a, b end
     end
 
     for i = 1, #ch do
-        local a, b = fun(ch[i])
-        if    a != nil then return a, b end
+        var a, b = fun(ch[i])
+        if    a != nil do return a, b end
     end
 end
-local loop_children = M.loop_children
+var loop_children = M.loop_children
 
 --[[!
     Loops widget children in reverse order, executing the function
     given in the second argument with the child passed to it. First
-    goes over all children in reverse order and then if the widget
+    goes over all children in reverse order and do if the widget
     has states, it acts on the current state. If the selected state
     is not available, it tries "default".
 
     See also $loop_children.
 ]]
 M.loop_children_r = function(self, fun)
-    local ch = self.children
-    local vr = self.vstates
-    local st = self.states
+    var ch = self.children
+    var vr = self.vstates
+    var st = self.states
 
     for i = #ch, 1, -1 do
-        local a, b = fun(ch[i])
-        if    a != nil then return a, b end
+        var a, b = fun(ch[i])
+        if    a != nil do return a, b end
     end
 
     for i = #vr, 1, -1 do
-        local a, b = fun(vr[i])
-        if    a != nil then return a, b end
+        var a, b = fun(vr[i])
+        if    a != nil do return a, b end
     end
 
-    local s = self:choose_state()
-    if s != nil then
-        local  w = st[s] or st["default"]
-        if not w then w = vr[s] or vr["default"] end
-        if w then
-            local a, b = fun(w)
-            if a != nil then return a, b end
+    var s = self:choose_state()
+    if s != nil do
+        var  w = st[s] or st["default"]
+        if not w do w = vr[s] or vr["default"] end
+        if w do
+            var a, b = fun(w)
+            if a != nil do return a, b end
         end
     end
 end
-local loop_children_r = M.loop_children_r
+var loop_children_r = M.loop_children_r
 
 --[[!
     Similar to $loop_children, takes some extra assumptions - executes only
@@ -228,7 +228,7 @@ local loop_children_r = M.loop_children_r
           function for every child, even if the cursor is not inside the
           child.
         - useproj - false by default, when true, it tries to get the
-          projection of every child and then multiplies cx, cy with
+          projection of every child and do multiplies cx, cy with
           projection values - useful when treating windows (we need
           proper scaling on these and thus also proper input).
 
@@ -237,20 +237,20 @@ local loop_children_r = M.loop_children_r
 ]]
 M.loop_in_children = function(self, cx, cy, fun, ins, useproj)
     return loop_children(self, function(o)
-        local ox, oy
-        if useproj then
-            local proj = o:get_projection()
+        var ox, oy
+        if useproj do
+            var proj = o:get_projection()
             ox, oy = (cx * proj.pw - o.x), (cy * proj.ph - o.y)
         else
             ox, oy = cx - o.x, cy - o.y
         end
-        if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) then
-            local a, b = fun(o, ox, oy)
-            if    a != nil then return a, b end
+        if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) do
+            var a, b = fun(o, ox, oy)
+            if    a != nil do return a, b end
         end
     end)
 end
-local loop_in_children = M.loop_in_children
+var loop_in_children = M.loop_in_children
 
 --[[!
     See $loop_in_children and $loop_children_r. This is equal to above,
@@ -258,20 +258,20 @@ local loop_in_children = M.loop_in_children
 ]]
 M.loop_in_children_r = function(self, cx, cy, fun, ins, useproj)
     return loop_children_r(self, function(o)
-        local ox, oy
-        if useproj then
-            local proj = o:get_projection()
+        var ox, oy
+        if useproj do
+            var proj = o:get_projection()
             ox, oy = (cx * proj.pw - o.x), (cy * proj.ph - o.y)
         else
             ox, oy = cx - o.x, cy - o.y
         end
-        if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) then
-            local a, b = fun(o, ox, oy)
-            if    a != nil then return a, b end
+        if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) do
+            var a, b = fun(o, ox, oy)
+            if    a != nil do return a, b end
         end
     end)
 end
-local loop_in_children_r = M.loop_in_children_r
+var loop_in_children_r = M.loop_in_children_r
 
 ffi.cdef [[
     typedef struct clip_area_t {
@@ -279,7 +279,7 @@ ffi.cdef [[
     } clip_area_t;
 ]]
 
-local ffi_new = ffi.new
+var ffi_new = ffi.new
 
 --[[!
     Represents a clip area defined by four points, x1, y1, x2, y2. The latter
@@ -311,13 +311,13 @@ M.ClipArea = ffi.metatype("clip_area_t", {
         end,
 
         scissor = function(self, root)
-            local sx1, sy1, sx2, sy2 = root:get_projection()
+            var sx1, sy1, sx2, sy2 = root:get_projection()
                 :calc_scissor(self.x1, self.y1, self.x2, self.y2)
             gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
         end
     }
 })
-local ClipArea = M.ClipArea
+var ClipArea = M.ClipArea
 
 --[[!
     An utility function for drawing quads, takes x, y, w, h and optionally
@@ -330,7 +330,7 @@ M.draw_quad = function(x, y, w, h, tx, ty, tw, th)
     gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
     gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
 end
-local quad = M.draw_quad
+var quad = M.draw_quad
 
 --[[!
     An utility function for drawing quads, takes x, y, w, h and optionally
@@ -343,10 +343,10 @@ M.draw_quadtri = function(x, y, w, h, tx, ty, tw, th)
     gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
     gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
 end
-local quadtri = M.draw_quadtri
+var quadtri = M.draw_quadtri
 
-local gen_setter = function(name)
-    local sname = name .. ",changed"
+var gen_setter = function(name)
+    var sname = name .. ",changed"
     return function(self, val)
         self[name] = val
         emit(self, sname, val)
@@ -358,20 +358,20 @@ M.gen_setter = gen_setter
 M.orient = {:
     HORIZONTAL = 0, VERTICAL = 1
 :}
-local orient = M.orient
+var orient = M.orient
 
-local Projection = table.Object:clone {
+var Projection = table.Object:clone {
     __ctor = function(self, obj)
         self.obj = obj
         self.px, self.py, self.pw, self.ph = 0, 0, 0, 0
     end,
 
     calc = function(self)
-        local obj = self.obj
-        local r = obj:get_root()
-        local aspect = r:get_aspect(true)
-        local ph = max(max(obj.h, obj.w / aspect), 1)
-        local pw = aspect * ph
+        var obj = self.obj
+        var r = obj:get_root()
+        var aspect = r:get_aspect(true)
+        var ph = max(max(obj.h, obj.w / aspect), 1)
+        var pw = aspect * ph
         self.px, self.py = 0, 0
         self.pw, self.ph = pw, ph
         return pw, ph
@@ -382,7 +382,7 @@ local Projection = table.Object:clone {
     end,
 
     projection = function(self)
-        local px, py, pw, ph in self
+        var px, py, pw, ph in self
         hudmatrix_ortho(px, px + pw, py + ph, py, -1, 1)
         hudmatrix_reset()
         self.ss_x, self.ss_y = hud_get_ss_x(), hud_get_ss_y()
@@ -390,13 +390,13 @@ local Projection = table.Object:clone {
     end,
 
     calc_scissor = function(self, x1, y1, x2, y2)
-        local obj = self.obj
-        local r = obj:get_root()
-        local sscale  = Vec2(self.ss_x, self.ss_y)
-        local soffset = Vec2(self.so_x, self.so_y)
-        local s1 = Vec2(x1, y2):mul(sscale):add(soffset)
-        local s2 = Vec2(x2, y1):mul(sscale):add(soffset)
-        local hudw, hudh = r:get_pixel_w(), r:get_pixel_h()
+        var obj = self.obj
+        var r = obj:get_root()
+        var sscale  = Vec2(self.ss_x, self.ss_y)
+        var soffset = Vec2(self.so_x, self.so_y)
+        var s1 = Vec2(x1, y2):mul(sscale):add(soffset)
+        var s2 = Vec2(x2, y1):mul(sscale):add(soffset)
+        var hudw, hudh = r:get_pixel_w(), r:get_pixel_h()
         return clamp(floor(s1.x * hudw), 0, hudw),
                clamp(floor(s1.y * hudh), 0, hudh),
                clamp(ceil (s2.x * hudw), 0, hudw),
@@ -404,7 +404,7 @@ local Projection = table.Object:clone {
     end,
 
     draw = function(self, sx, sy)
-        local root = self.obj:get_root()
+        var root = self.obj:get_root()
         root:set_projection(self)
         self:projection()
         shader_hud_set()
@@ -413,7 +413,7 @@ local Projection = table.Object:clone {
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         gle_color3f(1, 1, 1)
 
-        local obj = self.obj
+        var obj = self.obj
         obj:draw(sx or obj.x, sy or obj.y)
 
         gl_blend_disable()
@@ -431,11 +431,11 @@ ffi.cdef [[
     } color_t;
 ]]
 
-local color_ctors = {
+var color_ctors = {
     [0] = function(self) return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) end,
     [1] = function(self, c)
         c = c or 0xFFFFFFFF
-        local a = c >> 24
+        var a = c >> 24
         return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
             (a == 0) and 0xFF or a)
     end,
@@ -449,7 +449,7 @@ local color_ctors = {
     end
 }
 
-local color_defctor = function(self, r, g, b, a)
+var color_defctor = function(self, r, g, b, a)
     return ffi_new(self, r or 0xFF, g or 0xFF, b or 0xFF, a or 0xFF)
 end
 
@@ -478,7 +478,7 @@ M.Color = ffi.metatype("color_t", {
         on this structure, passing the new value to the emit call.
     ]]
     __new = function(self, ...)
-        local nargs = select("#", ...)
+        var nargs = select("#", ...)
         return (color_ctors[nargs] or color_defctor)(self, ...)
     end,
 
@@ -515,12 +515,12 @@ M.Color = ffi.metatype("color_t", {
 cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     cs.var_flags.PERSIST)
 
-local uitextrows = var_get("uitextrows")
+var uitextrows = var_get("uitextrows")
 signal.connect(cs, "uitextrows,changed", function(self, n)
     uitextrows = n
 end)
 
-local Widget, Window
+var Widget, Window
 
 --[[!
     The basic widget type every other derives from. Provides everything
@@ -562,7 +562,7 @@ local Widget, Window
     states.
 
     When selecting the current state of a widget instance, it first tries
-    the "states" member (which is local to the widget instance). If such
+    the "states" member (which is var to the widget instance). If such
     state is found, it's used. Otherwise the widget-global "__variants"
     table is tried, getting the variant self.variant (or "default" if none).
 
@@ -611,15 +611,15 @@ M.Widget = register_type("Widget", table.Object, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
 
-        local instances = rawget(self.__proto, "__instances")
-        if not instances then
+        var instances = rawget(self.__proto, "__instances")
+        if not instances do
             instances = {}
             rawset(self.__proto, "__instances", instances)
         end
         instances[self] = self
 
-        local variants = rawget(self.__proto, "__variants")
-        if not variants then
+        var variants = rawget(self.__proto, "__variants")
+        if not variants do
             variants = {}
             rawset(self.__proto, "__variants", variants)
         end
@@ -632,23 +632,23 @@ M.Widget = register_type("Widget", table.Object, {
         self.adjust = adjust.ALIGN_CENTER
 
         -- alignment and clamping
-        local align_h = kwargs.align_h or 0
-        local align_v = kwargs.align_v or 0
+        var align_h = kwargs.align_h or 0
+        var align_v = kwargs.align_v or 0
 
         -- double negation turns the value into an equivalent boolean
-        local cl = not not kwargs.clamp
-        local clamp_l, clamp_r, clamp_b, clamp_t = cl, cl, cl, cl
+        var cl = not not kwargs.clamp
+        var clamp_l, clamp_r, clamp_b, clamp_t = cl, cl, cl, cl
 
-        local clh, clv = kwargs.clamp_h, kwargs.clamp_v
-        if clh != nil then clamp_l, clamp_r = not not clh, not not clh end
-        if clv != nil then clamp_t, clamp_b = not not clv, not not clv end
+        var clh, clv = kwargs.clamp_h, kwargs.clamp_v
+        if clh != nil do clamp_l, clamp_r = not not clh, not not clh end
+        if clv != nil do clamp_t, clamp_b = not not clv, not not clv end
 
-        local cll, clr, clt, clb = kwargs.clamp_l, kwargs.clamp_r,
+        var cll, clr, clt, clb = kwargs.clamp_l, kwargs.clamp_r,
             kwargs.clamp_t, kwargs.clamp_b
-        if cll != nil then clamp_l = not not cll end
-        if clr != nil then clamp_r = not not clr end
-        if clt != nil then clamp_t = not not clt end
-        if clb != nil then clamp_b = not not clb end
+        if cll != nil do clamp_l = not not cll end
+        if clr != nil do clamp_r = not not clr end
+        if clt != nil do clamp_t = not not clt end
+        if clb != nil do clamp_b = not not clb end
 
         self.floating = kwargs.floating or false
         self.visible  = (kwargs.visible != false) and true or false
@@ -656,7 +656,7 @@ M.Widget = register_type("Widget", table.Object, {
         self:align(align_h, align_v)
         self:clamp(clamp_l, clamp_r, clamp_b, clamp_t)
 
-        if kwargs.signals then
+        if kwargs.signals do
             for k, v in pairs(kwargs.signals) do
                 signal.connect(self, k, v)
             end
@@ -665,11 +665,11 @@ M.Widget = register_type("Widget", table.Object, {
         self.init_clone = kwargs.init_clone
 
         -- extra kwargs
-        local variant = kwargs.variant
-        if variant != false then
-            local dstates = variants[variant or "default"]
-            local props = dstates and dstates.__properties or nil
-            if props then for i, v in ipairs(props) do
+        var variant = kwargs.variant
+        if variant != false do
+            var dstates = variants[variant or "default"]
+            var props = dstates and dstates.__properties or nil
+            if props do for i, v in ipairs(props) do
                 assert(v:sub(1, 1) != "_", "invalid property " .. v)
                 assert(not self["set_" .. v] and self[v] == nil,
                     "cannot override existing property " .. v)
@@ -681,16 +681,16 @@ M.Widget = register_type("Widget", table.Object, {
         self:set_variant(variant, true)
 
         -- prepare for children
-        local ch, states
-        local cont = self.container
-        if cont then
+        var ch, states
+        var cont = self.container
+        if cont do
             ch, states = cont.children, cont.states
         else
             cont = self
             ch, states = {}, {}
             self.children, self.states = ch, states
         end
-        local clen = #ch
+        var clen = #ch
 
         -- children
         for i, v in ipairs(kwargs) do
@@ -701,8 +701,8 @@ M.Widget = register_type("Widget", table.Object, {
         self.children = ch
 
         -- states
-        local ks = kwargs.states
-        if ks then for k, v in pairs(ks) do
+        var ks = kwargs.states
+        if ks do for k, v in pairs(ks) do
             states[k] = v
             v.parent = cont
             v._root  = cont._root
@@ -710,7 +710,7 @@ M.Widget = register_type("Widget", table.Object, {
         self.states = states
 
         -- and init
-        if  kwargs.__init then
+        if  kwargs.__init do
             kwargs.__init(self)
         end
     end,
@@ -721,22 +721,22 @@ M.Widget = register_type("Widget", table.Object, {
         set. Does nothing if already cleared.
     ]]
     clear = function(self)
-        if self._cleared then return end
+        if self._cleared do return end
         self:clear_focus()
 
-        local children = self.children
+        var children = self.children
         for k, v in ipairs(children) do v:clear() end
-        local states = self.states
+        var states = self.states
         for k, v in pairs(states) do v:clear() end
-        local vstates = self.vstates
+        var vstates = self.vstates
         for k, v in pairs(vstates) do v:clear() end
-        local mobjs = self.managed_objects
+        var mobjs = self.managed_objects
         for k, v in pairs(mobjs) do v:clear() end
         self.container = nil
 
         emit(self, "destroy")
-        local insts = rawget(self.__proto, "__instances")
-        if insts then
+        var insts = rawget(self.__proto, "__instances")
+        if insts do
             insts[self] = nil
         end
 
@@ -750,31 +750,31 @@ M.Widget = register_type("Widget", table.Object, {
         these per-instance.
     ]]
     deep_clone = function(self, obj, initc)
-        local ch, rch = {}, self.children
-        local st, rst = {}, self.states
-        local vs, rvs = {}, self.vstates
-        local ic = initc and self.init_clone or nil
-        local cl = self:clone { children = ch, states = st, vstates = vs }
+        var ch, rch = {}, self.children
+        var st, rst = {}, self.states
+        var vs, rvs = {}, self.vstates
+        var ic = initc and self.init_clone or nil
+        var cl = self:clone { children = ch, states = st, vstates = vs }
         for i = 1, #rch do
-            local c = rch[i]
-            local chcl = c:deep_clone(obj, true)
+            var c = rch[i]
+            var chcl = c:deep_clone(obj, true)
             chcl.parent = cl
             chcl._root  = cl._root
             ch[i] = chcl
         end
         for k, v in pairs(rst) do
-            local vcl = v:deep_clone(obj, true)
+            var vcl = v:deep_clone(obj, true)
             vcl.parent = cl
             vcl._root  = cl._root
             st[k] = vcl
         end
         for k, v in pairs(rvs) do
-            local vcl = v:deep_clone(obj, true)
+            var vcl = v:deep_clone(obj, true)
             vcl.parent = cl
             vcl._root  = cl._root
             vs[k] = vcl
         end
-        if ic then ic(cl, obj) end
+        if ic do ic(cl, obj) end
         return cl
     end,
 
@@ -784,36 +784,36 @@ M.Widget = register_type("Widget", table.Object, {
     ]]
     set_variant = function(self, variant, disable_asserts)
         self.variant = variant
-        local old_vstates = self.vstates
-        if old_vstates then for k, v in pairs(old_vstates) do
+        var old_vstates = self.vstates
+        if old_vstates do for k, v in pairs(old_vstates) do
             v:clear()
         end end
-        local manprops = self.managed_properties
+        var manprops = self.managed_properties
         for i = #manprops, 1, -1 do
             self[manprops[i]], manprops[i] = nil, nil
         end
-        local vstates = {}
+        var vstates = {}
         self.vstates = vstates
-        if variant == false then return nil end
-        local variants = rawget(self.__proto, "__variants")
-        local dstates = variants[variant or "default"]
-        if dstates then
-            local notvariants = {
+        if variant == false do return nil end
+        var variants = rawget(self.__proto, "__variants")
+        var dstates = variants[variant or "default"]
+        if dstates do
+            var notvariants = {
                 ["__properties"] = true, ["__init"] = true
             }
             for k, v in pairs(dstates) do
-                if notvariants[k] then continue end
-                local ic = v.init_clone
-                local cl = v:deep_clone(self)
+                if notvariants[k] do continue end
+                var ic = v.init_clone
+                var cl = v:deep_clone(self)
                 vstates[k] = cl
                 cl.parent = self
                 cl._root  = self._root
-                if ic then ic(cl, self) end
+                if ic do ic(cl, self) end
             end
-            local props = dstates.__properties
-            if props then for i, v in ipairs(props) do
-                local nm = "set_" .. v
-                if not disable_asserts then
+            var props = dstates.__properties
+            if props do for i, v in ipairs(props) do
+                var nm = "set_" .. v
+                if not disable_asserts do
                     assert(v:sub(1, 1) != "_", "invalid property " .. v)
                     assert(not self[nm] and self[v] == nil,
                         "cannot override existing property " .. v)
@@ -821,11 +821,11 @@ M.Widget = register_type("Widget", table.Object, {
                 self[nm] = gen_setter(v)
                 manprops[#manprops + 1] = nm
             end end
-            local init = dstates.__init
-            if init then init(self) end
+            var init = dstates.__init
+            if init do init(self) end
         end
-        local cont = self.container
-        if cont and cont._cleared then self.container = nil end
+        var cont = self.container
+        if cont and cont._cleared do self.container = nil end
     end,
 
     --[[!
@@ -846,39 +846,39 @@ M.Widget = register_type("Widget", table.Object, {
     ]]
     update_prototype_state = function(self, sname, sval, variant)
         variant = variant or "default"
-        local dstates = rawget(self, "__variants")
-        if not dstates then
+        var dstates = rawget(self, "__variants")
+        if not dstates do
             dstates = {}
             rawset(self, "__variants", dstates)
         end
-        local variant = dstates[variant]
-        if not variant then
+        var variant = dstates[variant]
+        if not variant do
             variant = {}
             dstates[variant] = variant
         end
-        local oldstate = variant[sname]
+        var oldstate = variant[sname]
         variant[sname] = sval
         oldstate:clear()
 
-        local insts = rawget(self, "__instances")
-        if insts then for v in pairs(insts) do
-            local sts = v.vstates
-            if v.variant == variant then
-                local st = sts[sname]
+        var insts = rawget(self, "__instances")
+        if insts do for v in pairs(insts) do
+            var sts = v.vstates
+            if v.variant == variant do
+                var st = sts[sname]
                 -- update only on widgets actually using the default state
-                if st and st.__proto == oldstate then
-                    local ic = sval.init_clone
-                    local nst = sval:deep_clone(v)
+                if st and st.__proto == oldstate do
+                    var ic = sval.init_clone
+                    var nst = sval:deep_clone(v)
                     nst.parent = v
                     nst._root  = v._root
                     sts[sname] = nst
                     st:clear()
-                    if ic then ic(nst, v) end
+                    if ic do ic(nst, v) end
                     v:state_changed(sname, nst)
                 end
             end
-            local cont = v.container
-            if cont and cont._cleared then v.container = nil end
+            var cont = v.container
+            if cont and cont._cleared do v.container = nil end
         end end
     end,
 
@@ -902,14 +902,14 @@ M.Widget = register_type("Widget", table.Object, {
         See also $state_changed.
     ]]
     update_state = function(self, state, obj)
-        local states = self.states
-        local ostate = states[state]
-        if ostate then ostate:clear() end
+        var states = self.states
+        var ostate = states[state]
+        if ostate do ostate:clear() end
         states[state] = obj
         obj.parent = self
         obj._root  = self._root
-        local cont = self.container
-        if cont and cont._cleared then self.container = nil end
+        var cont = self.container
+        if cont and cont._cleared do self.container = nil end
         self:state_changed(state, obj)
         return obj
     end,
@@ -945,7 +945,7 @@ M.Widget = register_type("Widget", table.Object, {
         self.h = 0
 
         loop_children(self, function(o)
-            if not o.floating then o.x, o.y = 0, 0 end
+            if not o.floating do o.x, o.y = 0, 0 end
             o:layout()
             self.w = max(self.w, o.x + o.w)
             self.h = max(self.h, o.y + o.h)
@@ -968,37 +968,37 @@ M.Widget = register_type("Widget", table.Object, {
         calls $adjust_children with no parameters.
     ]]
     adjust_layout = function(self, px, py, pw, ph)
-        local x, y, w, h, a = self.x, self.y,
+        var x, y, w, h, a = self.x, self.y,
             self.w, self.h, self.adjust
 
-        local adj = a & adjust.ALIGN_HMASK
+        var adj = a & adjust.ALIGN_HMASK
 
-        if adj == adjust.ALIGN_LEFT then
+        if adj == adjust.ALIGN_LEFT do
             x = px
-        elseif adj == adjust.ALIGN_HCENTER then
+        elif adj == adjust.ALIGN_HCENTER do
             x = px + (pw - w) / 2
-        elseif adj == adjust.ALIGN_RIGHT then
+        elif adj == adjust.ALIGN_RIGHT do
             x = px + pw - w
         end
 
         adj = a & adjust.ALIGN_VMASK
 
-        if adj == adjust.ALIGN_TOP then
+        if adj == adjust.ALIGN_TOP do
             y = py
-        elseif adj == adjust.ALIGN_VCENTER then
+        elif adj == adjust.ALIGN_VCENTER do
             y = py + (ph - h) / 2
-        elseif adj == adjust.ALIGN_BOTTOM then
+        elif adj == adjust.ALIGN_BOTTOM do
             y = py + ph - h
         end
 
-        if (a & adjust.CLAMP_MASK) != 0 then
-            if (a & adjust.CLAMP_LEFT ) != 0 then x = px end
-            if (a & adjust.CLAMP_RIGHT) != 0 then
+        if (a & adjust.CLAMP_MASK) != 0 do
+            if (a & adjust.CLAMP_LEFT ) != 0 do x = px end
+            if (a & adjust.CLAMP_RIGHT) != 0 do
                 w = px + pw - x
             end
 
-            if (a & adjust.CLAMP_TOP   ) != 0 then y = py end
-            if (a & adjust.CLAMP_BOTTOM) != 0 then
+            if (a & adjust.CLAMP_TOP   ) != 0 do y = py end
+            if (a & adjust.CLAMP_BOTTOM) != 0 do
                 h = py + ph - y
             end
         end
@@ -1016,8 +1016,8 @@ M.Widget = register_type("Widget", table.Object, {
     ]]
     target = function(self, cx, cy)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c = o.visible and o:target(ox, oy) or nil
-            if c then return c end
+            var c = o.visible and o:target(ox, oy) or nil
+            if c do return c end
         end)
     end,
 
@@ -1037,13 +1037,13 @@ M.Widget = register_type("Widget", table.Object, {
             - $text_input
     ]]
     key = function(self, code, isdown)
-        local tn = self.tab_next
-        if tn and code == key.TAB and self:is_focused() then
-            if isdown then tn:set_focused(true) end
+        var tn = self.tab_next
+        if tn and code == key.TAB and self:is_focused() do
+            if isdown do tn:set_focused(true) end
             return true
         end
         return loop_children_r(self, function(o)
-            if o.visible and o:key(code, isdown) then return true end
+            if o.visible and o:key(code, isdown) do return true end
         end) or false
     end,
 
@@ -1061,7 +1061,7 @@ M.Widget = register_type("Widget", table.Object, {
     ]]
     key_raw = function(self, code, isdown)
         return loop_children_r(self, function(o)
-            if o.visible and o:key_raw(code, isdown) then return true end
+            if o.visible and o:key_raw(code, isdown) do return true end
         end) or false
     end,
 
@@ -1077,7 +1077,7 @@ M.Widget = register_type("Widget", table.Object, {
     ]]
     text_input = function(self, str)
         return loop_children_r(self, function(o)
-            if o.visible and o:text_input(str) then return true end
+            if o.visible and o:text_input(str) do return true end
         end) or false
     end,
 
@@ -1093,8 +1093,8 @@ M.Widget = register_type("Widget", table.Object, {
             - $key_hover
     ]]
     key_hover = function(self, code, isdown)
-        local parent = self.parent
-        if parent then
+        var parent = self.parent
+        if parent do
             return parent:key_hover(code, isdown)
         end
         return false
@@ -1112,15 +1112,15 @@ M.Widget = register_type("Widget", table.Object, {
     draw = function(self, sx, sy)
         sx = sx or self.x
         sy = sy or self.y
-        local root = self:get_root()
+        var root = self:get_root()
 
         loop_children(self, function(o)
-            local ox = o.x
-            local oy = o.y
-            local ow = o.w
-            local oh = o.h
+            var ox = o.x
+            var oy = o.y
+            var ow = o.w
+            var oh = o.h
             if not root:clip_is_fully_clipped(sx + ox, sy + oy, ow, oh)
-            and o.visible then
+            and o.visible do
                 o:draw(sx + ox, sy + oy)
             end
         end)
@@ -1139,15 +1139,15 @@ M.Widget = register_type("Widget", table.Object, {
             - $click
     ]]
     hover = function(self, cx, cy)
-        local w = self:get_root()
-        local isw = (self == w)
+        var w = self:get_root()
+        var isw = (self == w)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c  = o.visible and o:hover(ox, oy) or nil
-            if    c == o then
+            var c  = o.visible and o:hover(ox, oy) or nil
+            if    c == o do
                 w._hover_x = ox
                 w._hover_y = oy
             end
-            if isw or c then return c end
+            if isw or c do return c end
         end, true, isw)
     end,
 
@@ -1177,8 +1177,8 @@ M.Widget = register_type("Widget", table.Object, {
 
     hold = function(self, cx, cy, obj)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            if o == obj then return ox, oy end
-            if o.visible then return o:hold(ox, oy, obj) end
+            if o == obj do return ox, oy end
+            if o.visible do return o:hold(ox, oy, obj) end
         end, false, self == root)
     end,
 
@@ -1195,15 +1195,15 @@ M.Widget = register_type("Widget", table.Object, {
         takes the currently clicked mouse button as the last argument.
     ]]
     click = function(self, cx, cy, code)
-        local w = self:get_root()
-        local isw = (self == w)
+        var w = self:get_root()
+        var isw = (self == w)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
-            local c  = o.visible and o:click(ox, oy, code) or nil
-            if    c == o then
+            var c  = o.visible and o:click(ox, oy, code) or nil
+            if    c == o do
                 w._click_x = ox
                 w._click_y = oy
             end
-            if isw or c then return c end
+            if isw or c do return c end
         end, true, isw)
     end,
 
@@ -1254,18 +1254,18 @@ M.Widget = register_type("Widget", table.Object, {
     ]]
     find_child = function(self, otype, name, recurse, exclude)
         recurse = (recurse == nil) and true or recurse
-        local o = loop_children(self, function(o)
+        var o = loop_children(self, function(o)
             if o != exclude and o.type == otype and
-            (not name or name == o.obj_name) then
+            (not name or name == o.obj_name) do
                 return o
             end
         end)
-        if o then return o end
-        if recurse then
+        if o do return o end
+        if recurse do
             o = loop_children(self, function(o)
-                if o != exclude then
-                    local found = o:find_child(otype, name)
-                    if    found != nil then return found end
+                if o != exclude do
+                    var found = o:find_child(otype, name)
+                    if    found != nil do return found end
                 end
             end)
         end
@@ -1280,17 +1280,17 @@ M.Widget = register_type("Widget", table.Object, {
         erased (all matches append).
     ]]
     find_children = function(self, otype, name, recurse, exclude, ret)
-        local ch = ret or {}
+        var ch = ret or {}
         recurse = (recurse == nil) and true or recurse
         loop_children(self, function(o)
             if o != exclude and o.type == otype and
-            (not name or name == o.obj_name) then
+            (not name or name == o.obj_name) do
                 ch[#ch + 1] = o
             end
         end)
-        if recurse then
+        if recurse do
             loop_children(self, function(o)
-                if o != exclude then
+                if o != exclude do
                     o:find_child(otype, name, true, nil, ch)
                 end
             end)
@@ -1301,7 +1301,7 @@ M.Widget = register_type("Widget", table.Object, {
     --[[!
         Finds a sibling of a widget. A sibling is basically defined as any
         child of the parent widget that isn't self (searched recursively),
-        then any child of the parent widget of that parent widget and so on.
+        do any child of the parent widget of that parent widget and so on.
 
         Arguments:
             - otype - the sibling type.
@@ -1312,12 +1312,12 @@ M.Widget = register_type("Widget", table.Object, {
             - $find_child
     ]]
     find_sibling = function(self, otype, name)
-        local prev = self
-        local cur  = self.parent
+        var prev = self
+        var cur  = self.parent
 
         while cur do
-            local o = cur:find_child(otype, name, true, prev)
-            if    o then return o end
+            var o = cur:find_child(otype, name, true, prev)
+            if    o do return o end
 
             prev = cur
             cur  = cur.parent
@@ -1326,9 +1326,9 @@ M.Widget = register_type("Widget", table.Object, {
 
     --! See $find_sibling. Equivalent to $find_children.
     find_siblings = function(self, otype, name, ret)
-        local ch   = ret or {}
-        local prev = self
-        local cur  = self.parent
+        var ch   = ret or {}
+        var prev = self
+        var cur  = self.parent
 
         while cur do
             cur:find_children(otype, name, true, prev, ch)
@@ -1352,11 +1352,11 @@ M.Widget = register_type("Widget", table.Object, {
             True if the replacement was successful, false otherwise.
     ]]
     replace = function(self, tname, obj, fun)
-        local tag = self:find_child(Tag.type, tname)
-        if not tag then return false end
+        var tag = self:find_child(Tag.type, tname)
+        if not tag do return false end
         tag:destroy_children()
         tag:append(obj)
-        if fun then fun(obj) end
+        if fun do fun(obj) end
         return true
     end,
 
@@ -1369,25 +1369,25 @@ M.Widget = register_type("Widget", table.Object, {
         and instead of returning true or false, it returns the widget or nil.
     ]]
     remove = function(self, o, detach)
-        if type(o) == "number" then
-            if #self.children < o then
-                if detach then return nil end
+        if type(o) == "number" do
+            if #self.children < o do
+                if detach do return nil end
                 return false
             end
-            local r = tremove(self.children, o)
-            if detach then return r end
+            var r = tremove(self.children, o)
+            if detach do return r end
             r:clear()
             return true
         end
         for i = 1, #self.children do
-            if o == self.children[i] then
-                local r = tremove(self.children, i)
-                if detach then return r end
+            if o == self.children[i] do
+                var r = tremove(self.children, i)
+                if detach do return r end
                 r:clear()
                 return true
             end
         end
-        if detach then return nil end
+        if detach do return nil end
         return false
     end,
 
@@ -1406,7 +1406,7 @@ M.Widget = register_type("Widget", table.Object, {
         "children,destroy" afterwards on self.
     ]]
     destroy_children = function(self)
-        local ch = self.children
+        var ch = self.children
         for i = 1, #ch do
             ch[i]:clear()
         end
@@ -1446,13 +1446,13 @@ M.Widget = register_type("Widget", table.Object, {
             - $get_clamping
     ]]
     get_alignment = function(self)
-        local a   = self.adjust
-        local adj = a & adjust.ALIGN_HMASK
-        local hal = (adj == adjust.ALIGN_LEFT) and -1 or
+        var a   = self.adjust
+        var adj = a & adjust.ALIGN_HMASK
+        var hal = (adj == adjust.ALIGN_LEFT) and -1 or
             (adj == adjust.ALIGN_HCENTER and 0 or 1)
 
         adj = a & adjust.ALIGN_VMASK
-        local val = (adj == adjust.ALIGN_BOTTOM) and 1 or
+        var val = (adj == adjust.ALIGN_BOTTOM) and 1 or
             (adj == adjust.ALIGN_VCENTER and 0 or -1)
 
         return hal, val
@@ -1466,9 +1466,9 @@ M.Widget = register_type("Widget", table.Object, {
             - $get_alignment
     ]]
     get_clamping = function(self)
-        local a   = self.adjust
-        local adj = a & adjust.CLAMP_MASK
-        if    adj == 0 then
+        var a   = self.adjust
+        var adj = a & adjust.CLAMP_MASK
+        if    adj == 0 do
             return 0, 0, 0, 0
         end
 
@@ -1485,13 +1485,13 @@ M.Widget = register_type("Widget", table.Object, {
     --! Returns the previous container, erases its parent and root, but doesn't
     --! destroy it.
     set_container = function(self, val)
-        local orig = self.container
-        if orig then
+        var orig = self.container
+        if orig do
             orig.parent = nil
             orig._root  = nil
         end
         self.container = val
-        if val then
+        if val do
             val.parent = self
             val._root  = self:get_root()
         end
@@ -1524,12 +1524,12 @@ M.Widget = register_type("Widget", table.Object, {
             - $prepend
     ]]
     insert = function(self, pos, obj, fun, force_ch)
-        local children = force_ch and self.children
+        var children = force_ch and self.children
             or (self.container or self).children
         tinsert(children, pos, obj)
         obj.parent = self
         obj._root  = self._root
-        if fun then fun(obj) end
+        if fun do fun(obj) end
         return obj
     end,
 
@@ -1537,12 +1537,12 @@ M.Widget = register_type("Widget", table.Object, {
         Like $insert, but appends to the end of the children list.
     ]]
     append = function(self, obj, fun, force_ch)
-        local children = force_ch and self.children
+        var children = force_ch and self.children
             or (self.container or self).children
         children[#children + 1] = obj
         obj.parent = self
         obj._root  = self._root
-        if fun then fun(obj) end
+        if fun do fun(obj) end
         return obj
     end,
 
@@ -1550,12 +1550,12 @@ M.Widget = register_type("Widget", table.Object, {
         Like $insert, but prepends (inserts to the beginning of the list).
     ]]
     prepend = function(self, obj, fun, force_ch)
-        local children = force_ch and self.children
+        var children = force_ch and self.children
             or (self.container or self).children
         tinsert(children, 1, obj)
         obj.parent = self
         obj._root  = self._root
-        if fun then fun(obj) end
+        if fun do fun(obj) end
         return obj
     end,
 
@@ -1583,7 +1583,7 @@ M.Widget = register_type("Widget", table.Object, {
               menu elsewhere instead.
     ]]
     show_menu = function(self, obj, at_cursor, clear_on_drop)
-        local root = self:get_root()
+        var root = self:get_root()
         root:_menu_init(obj, self, #root._menu_stack + 1, at_cursor,
             clear_on_drop)
         return obj
@@ -1638,12 +1638,12 @@ M.Widget = register_type("Widget", table.Object, {
         recursive approach).
     ]]
     get_root = function(self)
-        local  rt = self._root
-        if not rt then
+        var  rt = self._root
+        if not rt do
             -- a recursive approach makes sure parents will
             -- have their roots assigned (for later use - faster)
-            local par = self:get_parent()
-            if par then
+            var par = self:get_parent()
+            if par do
                 rt = par:get_root()
                 self._root = rt
                 return rt
@@ -1656,10 +1656,10 @@ M.Widget = register_type("Widget", table.Object, {
         Clears any kind of focus for this widget.
     ]]
     clear_focus = function(self)
-        local w = self:get_root()
-        if self == w._clicked  then w._clicked  = nil end
-        if self == w._hovering then w._hovering = nil end
-        if self == w._focused  then w._focused  = nil end
+        var w = self:get_root()
+        if self == w._clicked  do w._clicked  = nil end
+        if self == w._hovering do w._hovering = nil end
+        if self == w._focused  do w._focused  = nil end
     end,
 
     --[[!
@@ -1670,10 +1670,10 @@ M.Widget = register_type("Widget", table.Object, {
         clicked at all.
     ]]
     is_clicked = function(self, btn)
-        local clked = self:get_root()._clicked
-        if btn then
+        var clked = self:get_root()._clicked
+        if btn do
             return (self == clked) and (btn == clicked_code)
-        elseif self == clked then
+        elif self == clked do
             return clicked_code
         else
             return false
@@ -1691,7 +1691,7 @@ M.Widget = register_type("Widget", table.Object, {
         the root.
     ]]
     set_focused = function(self, foc)
-        if foc then self:get_root()._focused = self end
+        if foc do self:get_root()._focused = self end
     end,
 
     --[[!
@@ -1715,8 +1715,8 @@ M.Widget = register_type("Widget", table.Object, {
         nil.
     ]]
     get_projection = function(self, nonew)
-        local proj = self._projection
-        if proj or nonew then return proj end
+        var proj = self._projection
+        if proj or nonew do return proj end
         proj = self:get_root():get_projection_object()(self)
         self._projection = proj
         return proj
@@ -1750,7 +1750,7 @@ M.NamedWidget = register_type("NamedWidget", Widget, {
     --! Function: set_obj_name
     set_obj_name = gen_setter "obj_name"
 })
-local NamedWidget = M.NamedWidget
+var NamedWidget = M.NamedWidget
 
 --[[!
     Tags are special named widgets. They can contain more widgets. They're
@@ -1759,7 +1759,7 @@ local NamedWidget = M.NamedWidget
     it manually.
 ]]
 M.Tag = register_type("Tag", NamedWidget)
-local Tag = M.Tag
+var Tag = M.Tag
 
 --[[!
     This is a regular window. It's nothing more than a special case of named
@@ -1775,7 +1775,7 @@ local Tag = M.Tag
 M.Window = register_type("Window", NamedWidget, {
     __ctor = function(self, kwargs)
         kwargs = kwargs or {}
-        local ig = kwargs.input_grab
+        var ig = kwargs.input_grab
         self.input_grab = ig == nil and true or ig
         self.above_hud = kwargs.above_hud or false
         return NamedWidget.__ctor(self, kwargs)
@@ -1814,7 +1814,7 @@ M.Overlay = register_type("Overlay", Window, {
     hover  = function() end,
     click  = function() end
 }, Window.type)
-local Overlay = M.Overlay
+var Overlay = M.Overlay
 
 --[[!
     A root is a structure that derives from $Widget and holds windows.
@@ -1855,13 +1855,13 @@ M.Root = register_type("Root", Widget, {
     ]]
     grabs_input = function(self)
         return loop_children_r(self, function(o)
-            if o:grabs_input() then return true end
+            if o:grabs_input() do return true end
         end) or false
     end,
 
     adjust_children = function(self)
         loop_children(self, function(o)
-            local proj = self:set_projection(o:get_projection())
+            var proj = self:set_projection(o:get_projection())
             proj:adjust_layout()
             self:set_projection(nil)
         end)
@@ -1876,13 +1876,13 @@ M.Root = register_type("Root", Widget, {
         Overloads {{$Widget.layout}}. Calculates proper root dimensions
         (takes forced aspect set using an engine variable forceaspect into
         account), then layouts every child (using correct projection separate
-        for every window) and then adjusts children.
+        for every window) and do adjusts children.
     ]]
     layout = function(self)
         self:layout_dim()
 
         loop_children(self, function(o)
-            if not o.floating then o.x, o.y = 0, 0 end
+            if not o.floating do o.x, o.y = 0, 0 end
             self:set_projection(o:get_projection())
             o:layout()
             self:set_projection(nil)
@@ -1896,31 +1896,31 @@ M.Root = register_type("Root", Widget, {
         sy = sy or self.y
 
         loop_children(self, function(o)
-            local ox = o.x
-            local oy = o.y
-            local ow = o.w
-            local oh = o.h
+            var ox = o.x
+            var oy = o.y
+            var ow = o.w
+            var oh = o.h
             if not self:clip_is_fully_clipped(sx + ox, sy + oy, ow, oh)
-            and o.visible then
+            and o.visible do
                 o:get_projection():draw(sx + ox, sy + oy)
             end
         end)
 
-        local tooltip = self._tooltip
-        local ms = self._menu_stack
+        var tooltip = self._tooltip
+        var ms = self._menu_stack
         for i = 1, #ms do   ms[i]:get_projection():draw() end
-        if tooltip   then tooltip:get_projection():draw() end
+        if tooltip   do tooltip:get_projection():draw() end
     end,
 
     build_window = function(self, name, win, fun)
-        local old = self:find_child(Window.type, name, false)
-        if old then self:remove(old) end
+        var old = self:find_child(Window.type, name, false)
+        if old do self:remove(old) end
         win = win { name = name }
         win.parent = self
         win._root  = self._root
-        local children = self.children
+        var children = self.children
         children[#children + 1] = win
-        if fun then fun(win) end
+        if fun do fun(win) end
         return win
     end,
 
@@ -1944,12 +1944,12 @@ M.Root = register_type("Root", Widget, {
               (with the window as an argument).
     ]]
     new_window = function(self, name, win, fun)
-        local old = self.windows[name]
-        local visible = false
+        var old = self.windows[name]
+        var visible = false
         self.windows[name] = function(vis)
-            if vis == true then
+            if vis == true do
                 return visible
-            elseif vis == false then
+            elif vis == false do
                 visible = false
                 return nil
             end
@@ -1965,8 +1965,8 @@ M.Root = register_type("Root", Widget, {
         true.
     ]]
     show_window = function(self, name)
-        local  g = self.windows[name]
-        if not g then return false end
+        var  g = self.windows[name]
+        if not g do return false end
         g()
         return true
     end,
@@ -1981,10 +1981,10 @@ M.Root = register_type("Root", Widget, {
         later. Returns true if it actually destroyed anything, false otherwise.
     ]]
     hide_window = function(self, name)
-        local old = self:find_child(Window.type, name, false)
-        if old then self:remove(old) end
-        local win = self.windows[name]
-        if not win then
+        var old = self:find_child(Window.type, name, false)
+        if old do self:remove(old) end
+        var win = self.windows[name]
+        if not win do
             logger.log(logger.ERROR, "no such window: " .. name)
             return false
         end
@@ -2006,8 +2006,8 @@ M.Root = register_type("Root", Widget, {
             The result of replacing, and false if the window doesn't exist.
     ]]
     replace_in_window = function(self, wname, tname, obj, fun)
-        local win = self:find_child(Window.type, wname, false)
-        if not win then return false end
+        var win = self:find_child(Window.type, wname, false)
+        if not win do return false end
         return win:replace(tname, obj, fun)
     end,
 
@@ -2020,10 +2020,10 @@ M.Root = register_type("Root", Widget, {
     end,
 
     above_hud = function(self)
-        local y, ch = 1, self.children
+        var y, ch = 1, self.children
         for i = 1, #ch do
-            local w = ch[i]
-            if w.above_hud then
+            var w = ch[i]
+            if w.above_hud do
                 y = min(y, w:get_projection():calc_above_hud())
             end
         end
@@ -2045,12 +2045,12 @@ M.Root = register_type("Root", Widget, {
         emits an internal signal).
     ]]
     cursor_exists = function(self, update)
-        local cec = self.has_cursor
-        if not update then return cec end
-        local bce = cec
+        var cec = self.has_cursor
+        if not update do return cec end
+        var bce = cec
         cec = self:grabs_input() or self:target(self.cursor_x * self.w,
             self.cursor_y * self.h) ~= nil
-        if bce ~= cec then
+        if bce ~= cec do
             self.has_cursor = cec
             emit(self, "__has_cursor,changed", cec)
         end
@@ -2075,16 +2075,16 @@ M.Root = register_type("Root", Widget, {
 
     --! Pushes a clip area into the root's clip stack and scissors.
     clip_push = function(self, x, y, w, h)
-        local cs = self._clip_stack
-        local l = #cs
-        if    l == 0 then gl_scissor_enable() end
+        var cs = self._clip_stack
+        var l = #cs
+        if    l == 0 do gl_scissor_enable() end
 
-        local c = ClipArea(x, y, w, h)
+        var c = ClipArea(x, y, w, h)
 
         l = l + 1
         cs[l] = c
 
-        if l >= 2 then c:intersect(cs[l - 1]) end
+        if l >= 2 do c:intersect(cs[l - 1]) end
         c:scissor(self)
     end,
 
@@ -2093,11 +2093,11 @@ M.Root = register_type("Root", Widget, {
         is anything left on the clip stack).
     ]]
     clip_pop = function(self)
-        local cs = self._clip_stack
+        var cs = self._clip_stack
         tremove(cs)
 
-        local l = #cs
-        if    l == 0 then gl_scissor_disable()
+        var l = #cs
+        if    l == 0 do gl_scissor_disable()
         else cs[l]:scissor(self)
         end
     end,
@@ -2107,9 +2107,9 @@ M.Root = register_type("Root", Widget, {
         clip stack.
     ]]
     clip_is_fully_clipped = function(self, x, y, w, h)
-        local cs = self._clip_stack
-        local l = #cs
-        if    l == 0 then return false end
+        var cs = self._clip_stack
+        var l = #cs
+        if    l == 0 do return false end
         return cs[l]:is_fully_clipped(x, y, w, h)
     end,
 
@@ -2117,14 +2117,14 @@ M.Root = register_type("Root", Widget, {
         Scissors the last area in the clip stack.
     ]]
     clip_scissor = function(self)
-        local cs = self._clip_stack
+        var cs = self._clip_stack
         cs[#cs]:scissor(self)
     end,
 
     _tooltip_init = function(self, o, op, clear_on_drop)
         op.managed_objects[o] = o
-        local oldop = o.parent
-        if oldop then oldop.managed_objects[o] = nil end
+        var oldop = o.parent
+        if oldop do oldop.managed_objects[o] = nil end
 
         self._tooltip  = o
         o.parent       = op
@@ -2136,26 +2136,26 @@ M.Root = register_type("Root", Widget, {
 
         o._clear_on_drop = clear_on_drop
 
-        local x, y = self.cursor_x * self.w + 0.01, self.cursor_y + 0.01
-        local tw, th = o.w, o.h
-        if (x + tw * 0.95) > self.w then
+        var x, y = self.cursor_x * self.w + 0.01, self.cursor_y + 0.01
+        var tw, th = o.w, o.h
+        if (x + tw * 0.95) > self.w do
             x = x - tw + 0.02
-            if x <= 0 then x = 0.02 end
+            if x <= 0 do x = 0.02 end
         end
-        if (y + th * 0.95) > 1 then
+        if (y + th * 0.95) > 1 do
             y = y - th + 0.02
         end
         o.x, o.y = max(0, x), max(0, y)
     end,
 
     _menus_drop = function(self, n)
-        local ms = self._menu_stack
-        local msl = #ms
+        var ms = self._menu_stack
+        var msl = #ms
         n = n or msl
         for i = msl, msl - n + 1, -1 do
-            local o = tremove(ms)
-            local op = o.parent
-            if o._clear_on_drop then
+            var o = tremove(ms)
+            var op = o.parent
+            if o._clear_on_drop do
                 o:clear()
                 op.managed_objects[o] = nil
             end
@@ -2164,16 +2164,16 @@ M.Root = register_type("Root", Widget, {
     end,
 
     _menu_init = function(self, o, op, i, at_cursor, clear_on_drop)
-        if self._menu_nhov == 0 then
+        if self._menu_nhov == 0 do
             self:_menus_drop()
             i = 1
         end
 
         op.managed_objects[o] = o
-        local oldop = o.parent
-        if oldop then oldop.managed_objects[o] = nil end
+        var oldop = o.parent
+        if oldop do oldop.managed_objects[o] = nil end
 
-        local ms = self._menu_stack
+        var ms = self._menu_stack
         ms[i]     = o
         o.is_menu = true
         o.parent  = op
@@ -2183,44 +2183,44 @@ M.Root = register_type("Root", Widget, {
 
         o._clear_on_drop = clear_on_drop
 
-        local prevo = (i > 1) and ms[i - 1] or nil
+        var prevo = (i > 1) and ms[i - 1] or nil
 
         -- initial layout to guess the bounds
-        local proj = self:set_projection(o:get_projection())
+        var proj = self:set_projection(o:get_projection())
         o:layout()
         proj:calc()
-        local pw, ph = proj.pw, proj.ph
+        var pw, ph = proj.pw, proj.ph
         self:set_projection(nil)
 
         -- parent projection (for correct offsets)
-        local fw, fh
-        if not prevo then
-            local win = o.parent
+        var fw, fh
+        if not prevo do
+            var win = o.parent
             while true do
-                local p = win.parent
-                if not p.parent then break end
+                var p = win.parent
+                if not p.parent do break end
                 win = p
             end
-            local proj = win:get_projection()
+            var proj = win:get_projection()
             fw, fh = pw / proj.pw, ph / proj.ph
         else
-            local proj = prevo:get_projection()
+            var proj = prevo:get_projection()
             fw, fh = pw / proj.pw, ph / proj.ph
         end
 
         -- ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
-        local ow, oh, opw, oph = o.w, o.h, op.w * fw, op.h * fh
+        var ow, oh, opw, oph = o.w, o.h, op.w * fw, op.h * fh
 
-        local cx, cy = self.cusror_x, self.cursor_y
+        var cx, cy = self.cusror_x, self.cursor_y
 
         -- when spawning menus right on the cursor
-        if at_cursor then
+        if at_cursor do
             -- compute cursor coords in terms of widget position
-            local x, y = cx * pw, cy * ph
+            var x, y = cx * pw, cy * ph
             -- adjust y so that it's always visible as whole
-            if (y + oh) > ph then y = max(0, y - oh) end
+            if (y + oh) > ph do y = max(0, y - oh) end
             -- adjust x if clipped on the right
-            if (x + ow) > pw then
+            if (x + ow) > pw do
                 x = max(0, x - ow)
             end
             -- set position and return
@@ -2228,26 +2228,26 @@ M.Root = register_type("Root", Widget, {
             return
         end
 
-        local hov = self._hovering
-        local dx, dy = hov and self._hover_x * fw or self._click_x * fw,
+        var hov = self._hovering
+        var dx, dy = hov and self._hover_x * fw or self._click_x * fw,
                        hov and self._hover_y * fh or self._click_y * fh
         -- omx, omy: the base position of the new menu
-        local omx, omy = cx * pw - dx, cy * ph - dy
+        var omx, omy = cx * pw - dx, cy * ph - dy
 
         -- a submenu - uses different alignment - submenus are put next to
         -- their spawners, regular menus are put under their spawners
-        if i != 1 then
+        if i != 1 do
             -- when the current y + height of menu exceeds the screen height,
             -- move the menu up by its height minus the spawner height, make
             -- sure it's at least 0 (so that it's not accidentally moved above
             -- the screen)
-            if omy + oh > ph then
+            if omy + oh > ph do
                 omy = max(0, omy - oh + oph)
             end
             -- when the current x + width of the spawner + width of the menu
             -- exceeds the screen width, move it to the left by its width,
             -- making sure the x is at least 0
-            if (omx + opw + ow) > pw then
+            if (omx + opw + ow) > pw do
                 omx = max(0, omx - ow)
             -- else offset by spawner width
             else
@@ -2258,7 +2258,7 @@ M.Root = register_type("Root", Widget, {
             -- when current y + height of spawner + height of menu exceeds the
             -- screen height, move the menu up by its height, make sure
             -- it's > 0
-            if omy + oph + oh > ph then
+            if omy + oph + oh > ph do
                 omy = max(0, omy - oh)
             -- otherwise move down a bit (by the button height)
             else
@@ -2266,10 +2266,10 @@ M.Root = register_type("Root", Widget, {
             end
             -- adjust x here - when the current x + width of the menu exceeds
             -- the screen width, perform adjustments
-            if (omx + ow) > pw then
+            if (omx + ow) > pw do
                 -- if the menu spawner width exceeds the screen width too,
                 -- put the menu to the right
-                if (omx + opw) > pw then
+                if (omx + opw) > pw do
                     omx = max(0, pw - ow)
                 -- else align it with the spawner
                 else omx = max(0, omx - ow + opw) end
@@ -2279,11 +2279,11 @@ M.Root = register_type("Root", Widget, {
     end,
 
     menu_click = function(self, o, cx, cy, code)
-        local proj = o:get_projection()
-        local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
-        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-            local cl = o:click(ox, oy, code)
-            if cl == o then self._click_x, self._click_y = ox, oy end
+        var proj = o:get_projection()
+        var ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h do
+            var cl = o:click(ox, oy, code)
+            if cl == o do self._click_x, self._click_y = ox, oy end
             return true, cl
         else
             return false
@@ -2291,11 +2291,11 @@ M.Root = register_type("Root", Widget, {
     end,
 
     menu_hover = function(self, o, cx, cy)
-        local proj = o:get_projection()
-        local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
-        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
-            local cl = o:hover(ox, oy)
-            if cl == o then self._hover_x, self._hover_y = ox, oy end
+        var proj = o:get_projection()
+        var ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h do
+            var cl = o:hover(ox, oy)
+            if cl == o do self._hover_x, self._hover_y = ox, oy end
             return true, cl
         else
             return false
@@ -2303,9 +2303,9 @@ M.Root = register_type("Root", Widget, {
     end,
 
     menu_hold = function(self, o, cx, cy, obj)
-        local proj = o:get_projection()
-        local ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
-        if obj == o then return ox, oy end
+        var proj = o:get_projection()
+        var ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
+        if obj == o do return ox, oy end
         return o:hold(ox, oy, obj)
     end,
 
@@ -2318,8 +2318,8 @@ M.Root = register_type("Root", Widget, {
         is used.
     ]]
     get_pixel_w = function(self, faspect)
-        if faspect == true then faspect = self:get_aspect() end
-        if faspect then
+        if faspect == true do faspect = self:get_aspect() end
+        if faspect do
             return ceil(hud_get_w() * faspect)
         end
         return hud_get_w()
@@ -2345,9 +2345,9 @@ M.Root = register_type("Root", Widget, {
         return value of $get_pixel_h.
     ]]
     get_aspect = function(self, forceret)
-        local faspect = aspect_get()
-        if faspect ~= 0 then return faspect end
-        if forceret then return self:get_pixel_w() / self:get_pixel_h() end
+        var faspect = aspect_get()
+        if faspect ~= 0 do return faspect end
+        if forceret do return self:get_pixel_w() / self:get_pixel_h() end
     end,
 
     --[[!
@@ -2360,7 +2360,7 @@ M.Root = register_type("Root", Widget, {
 
     calc_text_scale = function(self)
         self._rtxt_scale = 1 / self:get_text_rows()
-        local tw, th = self:get_pixel_w(true), self:get_pixel_h()
+        var tw, th = self:get_pixel_w(true), self:get_pixel_h()
         tw, th = text_get_res(tw, th)
         self._ctxt_scale = text_font_get_h() * console_scale_get() / th
     end,
@@ -2382,8 +2382,8 @@ M.Root = register_type("Root", Widget, {
     update = function(self, cx, cy)
         self:set_cursor(cx, cy)
 
-        local tooltip = self._tooltip
-        if tooltip and tooltip._clear_on_drop then
+        var tooltip = self._tooltip
+        if tooltip and tooltip._clear_on_drop do
             tooltip:clear()
             tooltip.parent.managed_objects[tooltip] = nil
         end
@@ -2391,35 +2391,35 @@ M.Root = register_type("Root", Widget, {
 
         self:calc_text_scale()
 
-        if self:cursor_exists() and self.visible then
-            local hovering_try
-            local hk, hl
-            local nhov = 0
-            local ms = self._menu_stack
-            if #ms > 0 then
+        if self:cursor_exists() and self.visible do
+            var hovering_try
+            var hk, hl
+            var nhov = 0
+            var ms = self._menu_stack
+            if #ms > 0 do
                 for i = #ms, 1, -1 do
                     hk, hl = self:menu_hover(ms[i], self.cursor_x,
                         self.cursor_y)
-                    if hk then
+                    if hk do
                         hovering_try = hl
-                        if hl then nhov = i end
+                        if hl do nhov = i end
                         break
                     end
                 end
             end
-            local oldhov, oldhx, oldhy
+            var oldhov, oldhx, oldhy
                 = self._hovering, self._hover_x, self._hover_y
-            if hk then
+            if hk do
                 self._hovering = hovering_try
             else
                 self._hovering = self:hover(self.cursor_x, self.cursor_y)
             end
-            if oldhov and oldhov != self._hovering then
+            if oldhov and oldhov != self._hovering do
                 oldhov:leaving(oldhx, oldhy)
             end
-            if self._hovering then
-                 local msl = #ms
-                if msl > 0 and nhov > 0 and msl > nhov then
+            if self._hovering do
+                 var msl = #ms
+                if msl > 0 and nhov > 0 and msl > nhov do
                     self:_menus_drop(msl - nhov)
                 end
                 self._menu_nhov = nhov
@@ -2427,14 +2427,14 @@ M.Root = register_type("Root", Widget, {
                 self._menu_nhov = nil
             end
 
-            if self._clicked then
-                local hx, hy
-                if #ms > 0 then for i = #ms, 1, -1 do
+            if self._clicked do
+                var hx, hy
+                if #ms > 0 do for i = #ms, 1, -1 do
                     hx, hy = self:menu_hold(ms[i], self.cursor_x,
                         self.cursor_y, self._clicked)
-                    if hx then break end
+                    if hx do break end
                 end end
-                if not hx then
+                if not hx do
                     hx, hy = self:hold(self.cursor_x, self.cursor_y,
                         self._clicked)
                 end
@@ -2444,21 +2444,21 @@ M.Root = register_type("Root", Widget, {
             self._hovering, self._clicked = nil, nil
         end
 
-        if self.visible then self:layout() end
+        if self.visible do self:layout() end
 
         tooltip = self._tooltip
-        if tooltip then
-            local proj = self:set_projection(tooltip:get_projection())
+        if tooltip do
+            var proj = self:set_projection(tooltip:get_projection())
             tooltip:layout()
             proj:calc()
             tooltip:adjust_children()
             self:set_projection(nil)
         end
 
-        local ms = self._menu_stack
+        var ms = self._menu_stack
         for i = 1, #ms do
-            local o = ms[i]
-            local proj = self:set_projection(o:get_projection())
+            var o = ms[i]
+            var proj = self:set_projection(o:get_projection())
             o:layout()
             proj:calc()
             o:adjust_children()
@@ -2474,7 +2474,7 @@ M.Root = register_type("Root", Widget, {
     ]]
     reset = function(self)
         self:destroy_children()
-        if self._tooltip and self._tooltip._clear_on_drop then
+        if self._tooltip and self._tooltip._clear_on_drop do
             self._tooltip:clear()
             self._tooltip.parent.managed_objects[self._tooltip] = nil
         end
@@ -2483,7 +2483,7 @@ M.Root = register_type("Root", Widget, {
         emit(self, "reset")
     end
 })
-local Root = M.Root
+var Root = M.Root
 
 root = Root()
 
@@ -2491,7 +2491,7 @@ signal.connect(root, "__has_cursor,changed", function(self, val)
     input_cursor_exists_update(val)
 end)
 
-local hud = Overlay { name = "hud" }
+var hud = Overlay { name = "hud" }
 hud._root = root
 
 --! Returns the HUD overlay.
@@ -2499,58 +2499,58 @@ M.get_hud = function()
     return hud
 end
 
-local mousebuttons = {
+var mousebuttons = {
     [key.MOUSELEFT] = true, [key.MOUSEMIDDLE]  = true, [key.MOUSERIGHT] = true,
     [key.MOUSEBACK] = true, [key.MOUSEFORWARD] = true
 }
 
 set_external("input_keypress", function(code, isdown)
-    if not root:cursor_exists() or not root.visible then
+    if not root:cursor_exists() or not root.visible do
         return false
     end
-    if root:key_raw(code, isdown) then
+    if root:key_raw(code, isdown) do
         return true
     end
-    if root._hovering and root._hovering:key_hover(code, isdown) then
+    if root._hovering and root._hovering:key_hover(code, isdown) do
         return true
     end
-    if mousebuttons[code] then
-        if isdown then
+    if mousebuttons[code] do
+        if isdown do
             clicked_code = code
-            local clicked_try
-            local ck, cl
-            local ms = root._menu_stack
-            if #ms > 0 then
+            var clicked_try
+            var ck, cl
+            var ms = root._menu_stack
+            if #ms > 0 do
                 for i = #ms, 1, -1 do
                     ck, cl = root:menu_click(ms[i], root.cursor_x,
                         root.cursor_y, code)
-                    if ck then
+                    if ck do
                         clicked_try = cl
                         break
                     end
                 end
-                if not ck then root:_menus_drop() end
+                if not ck do root:_menus_drop() end
             end
-            if ck then
+            if ck do
                 root._clicked = clicked_try
             else
                 root._clicked = root:click(root.cursor_x, root.cursor_y, code)
             end
-            if root._clicked then
+            if root._clicked do
                 root._clicked:clicked(root._click_x, root._click_y, code)
             else
                 clicked_code = nil
             end
         else
-            if root._clicked then
-                local hx, hy
-                local ms = root._menu_stack
-                if #ms > 0 then for i = #ms, 1, -1 do
+            if root._clicked do
+                var hx, hy
+                var ms = root._menu_stack
+                if #ms > 0 do for i = #ms, 1, -1 do
                     hx, hy = root:menu_hold(ms[i], root.cursor_x,
                         root.cursor_y, root._clicked)
-                    if hx then break end
+                    if hx do break end
                 end end
-                if not hx then
+                if not hx do
                     hx, hy = root:hold(root.cursor_x, root.cursor_y,
                         root._clicked)
                 end
@@ -2567,19 +2567,19 @@ set_external("input_text", function(str)
     return root:text_input(str)
 end)
 
-local draw_hud = false
+var draw_hud = false
 
-local mmenu = var_get("mainmenu")
+var mmenu = var_get("mainmenu")
 signal.connect(cs, "mainmenu,changed", function(self, v)
     mmenu = v
 end)
 
 set_external("gui_clear", function()
     root:reset()
-    if mmenu ~= 0 and isconnected() then
+    if mmenu ~= 0 and isconnected() do
         var_set("mainmenu", 0, true, false)
     end
-    if draw_hud then
+    if draw_hud do
         hud:destroy_children()
         draw_hud = false
     end
@@ -2587,18 +2587,18 @@ end)
 
 set_external("gui_update", function()
     if mmenu != 0 and not root:window_visible("main") and
-    not isconnected(true) then
+    not isconnected(true) do
         root:show_window("main")
     end
 
     draw_hud = (mmenu == 0 and editing_get() == 0) and hud.visible or false
 
-    local cx, cy = input_cursor_get_x(), input_cursor_get_y()
+    var cx, cy = input_cursor_get_x(), input_cursor_get_y()
 
     root:update(cx, cy)
 
-    if draw_hud then
-        local proj = root:set_projection(hud:get_projection())
+    if draw_hud do
+        var proj = root:set_projection(hud:get_projection())
         hud:layout()
         hud.x, hud.y, hud.w, hud.h = 0, 0, root.w, root.h
         proj:calc()
@@ -2610,7 +2610,7 @@ end)
 M.__draw_window = function(win)
     -- draw on main root
     win.x, win.y, win.parent, win._root = 0, 0, root, root
-    local proj = root:set_projection(win:get_projection())
+    var proj = root:set_projection(win:get_projection())
     proj:calc()
     win:layout()
     proj:adjust_layout()
@@ -2619,10 +2619,10 @@ M.__draw_window = function(win)
 end
 
 set_external("gui_render", function()
-    local w = root
-    if draw_hud or (w.visible and #w.children != 0) then
+    var w = root
+    if draw_hud or (w.visible and #w.children != 0) do
         w:draw()
-        if draw_hud then hud:get_projection():draw() end
+        if draw_hud do hud:get_projection():draw() end
         gle_disable()
     end
 end)

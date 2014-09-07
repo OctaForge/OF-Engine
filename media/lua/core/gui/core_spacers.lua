@@ -9,27 +9,27 @@
         See COPYING.txt.
 ]]
 
-local max  = math.max
-local min  = math.min
-local abs  = math.abs
-local huge = math.huge
+var max  = math.max
+var min  = math.min
+var abs  = math.abs
+var huge = math.huge
 
 --! Module: core
-local M = require("core.gui.core")
+var M = require("core.gui.core")
 
-local capi = require("capi")
+var capi = require("capi")
 
 -- widget types
-local register_type = M.register_type
+var register_type = M.register_type
 
 -- children iteration
-local loop_children, loop_children_r = M.loop_children, M.loop_children_r
+var loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
 -- base widgets
-local Widget = M.get_type("Widget")
+var Widget = M.get_type("Widget")
 
 -- setters
-local gen_setter = M.gen_setter
+var gen_setter = M.gen_setter
 
 --[[!
     A spacer will give a widget some padding.
@@ -47,8 +47,8 @@ M.Spacer = register_type("Spacer", Widget, {
     end,
 
     layout = function(self)
-        local ph, pv = self.pad_h, self.pad_v
-        local w , h  = ph, pv
+        var ph, pv = self.pad_h, self.pad_v
+        var w , h  = ph, pv
 
         loop_children(self, function(o)
             o.x = ph
@@ -64,7 +64,7 @@ M.Spacer = register_type("Spacer", Widget, {
     end,
 
     adjust_children = function(self)
-        local ph, pv = self.pad_h, self.pad_v
+        var ph, pv = self.pad_h, self.pad_v
         Widget.adjust_children(self, ph, pv, self.w - 2 * ph,
             self.h - 2 * pv)
     end,
@@ -107,19 +107,19 @@ M.Filler = register_type("Filler", Widget, {
     layout = function(self)
         Widget.layout(self)
 
-        local min_w = self.min_w
-        local min_h = self.min_h
-        if type(min_w) == "function" then min_w = min_w(self) end
-        if type(min_h) == "function" then min_h = min_h(self) end
+        var min_w = self.min_w
+        var min_h = self.min_h
+        if type(min_w) == "function" do min_w = min_w(self) end
+        if type(min_h) == "function" do min_h = min_h(self) end
 
-        local r = self:get_root()
+        var r = self:get_root()
 
-        if min_w < 0 then min_w = r:get_ui_size(abs(min_w)) end
-        if min_h < 0 then min_h = r:get_ui_size(abs(min_h)) end
+        if min_w < 0 do min_w = r:get_ui_size(abs(min_w)) end
+        if min_h < 0 do min_h = r:get_ui_size(abs(min_h)) end
 
-        local proj = r:get_projection()
-        if min_w == huge then min_w = proj.pw end
-        if min_h == huge then min_h = proj.ph end
+        var proj = r:get_projection()
+        if min_w == huge do min_w = proj.pw end
+        if min_h == huge do min_h = proj.ph end
 
         self.w = max(self.w, min_w)
         self.h = max(self.h, min_h)
@@ -134,7 +134,7 @@ M.Filler = register_type("Filler", Widget, {
     end,
 
     draw = function(self, sx, sy)
-        if self.clip_children then
+        if self.clip_children do
             self:get_root():clip_push(sx, sy, self.w, self.h)
             Widget.draw(self, sx, sy)
             self:get_root():clip_pop()
@@ -152,7 +152,7 @@ M.Filler = register_type("Filler", Widget, {
     --! Function: set_clip_children
     set_clip_children = gen_setter "clip_children"
 })
-local Filler = M.Filler
+var Filler = M.Filler
 
 --[[!
     Like $Filler, but its min_w and min_h work in terms of text units.
@@ -176,12 +176,12 @@ M.TextFiller = register_type("TextFiller", Filler, {
     layout = function(self)
         Widget.layout(self)
 
-        local min_w = self.min_w
-        local min_h = self.min_h
-        if type(min_w) == "function" then min_w = min_w(self) end
-        if type(min_h) == "function" then min_h = min_h(self) end
+        var min_w = self.min_w
+        var min_h = self.min_h
+        if type(min_w) == "function" do min_w = min_w(self) end
+        if type(min_h) == "function" do min_h = min_h(self) end
 
-        local scalef = self:get_root():get_text_scale(self.console_text)
+        var scalef = self:get_root():get_text_scale(self.console_text)
         self.w = max(self.w, min_w * scalef * 0.5)
         self.h = max(self.h, min_h * scalef)
     end,
@@ -205,7 +205,7 @@ M.Offsetter = register_type("Offsetter", Widget, {
     layout = function(self)
         Widget.layout(self)
 
-        local oh, ov = self.offset_h, self.offset_v
+        var oh, ov = self.offset_h, self.offset_v
 
         loop_children(self, function(o)
             o.x = o.x + oh
@@ -217,7 +217,7 @@ M.Offsetter = register_type("Offsetter", Widget, {
     end,
 
     adjust_children = function(self)
-        local oh, ov = self.offset_h, self.offset_v
+        var oh, ov = self.offset_h, self.offset_v
         Widget.adjust_children(self, oh, ov, self.w - oh, self.h - ov)
     end,
 

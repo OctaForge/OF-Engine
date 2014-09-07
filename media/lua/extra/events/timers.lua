@@ -9,7 +9,7 @@
 ]]
 
 --! Module: timers
-local M = {}
+var M = {}
 
 --[[!
     A general use timer. It's not automatically managed - you have to simulate
@@ -48,9 +48,9 @@ M.Timer = table.Object:clone {
             True if the interval was reached, false otherwise.
     ]]
     tick = function(self, millis)
-        local sum = self.sum + millis
-        local interval = self.interval
-        if sum >= interval then
+        var sum = self.sum + millis
+        var interval = self.interval
+        if sum >= interval do
             self.sum = self.carry_over and (sum - interval) or 0
             return true
         else

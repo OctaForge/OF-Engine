@@ -9,7 +9,7 @@
 ]]
 
 --! Module: conv
-local M = {}
+var M = {}
 
 --[[!
     Converts an integral value to be treated as hexadecimal color code to
@@ -32,20 +32,20 @@ end
 ]]
 M.rgb_to_hsl = function(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
-    local mx = math.max(r, g, b)
-    local mn = math.min(r, g, b)
-    local h, s
-    local l = (mx + mn) / 2
+    var mx = math.max(r, g, b)
+    var mn = math.min(r, g, b)
+    var h, s
+    var l = (mx + mn) / 2
 
-    if mx == mn then
+    if mx == mn do
         h = 0
         s = 0
     else
-        local d = mx - mn
+        var d = mx - mn
         s = l > 0.5 and d / (2 - mx - mn) or d / (mx + mn)
-        if     mx == r then h = (g - b) / d + (g < b and 6 or 0)
-        elseif mx == g then h = (b - r) / d + 2
-        elseif mx == b then h = (r - g) / d + 4 end
+        if     mx == r do h = (g - b) / d + (g < b and 6 or 0)
+        elif mx == g do h = (b - r) / d + 2
+        elif mx == b do h = (r - g) / d + 4 end
         h = h / 6
     end
 
@@ -58,20 +58,20 @@ end
 ]]
 M.rgb_to_hsv = function(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
-    local mx = math.max(r, g, b)
-    local mn = math.min(r, g, b)
-    local h, s
-    local v = mx
+    var mx = math.max(r, g, b)
+    var mn = math.min(r, g, b)
+    var h, s
+    var v = mx
 
-    local d = mx - mn
+    var d = mx - mn
     s = (mx == 0) and 0 or (d / mx)
 
-    if mx == mn then
+    if mx == mn do
         h = 0
     else
-        if     mx == r then h = (g - b) / d + (g < b and 6 or 0)
-        elseif mx == g then h = (b - r) / d + 2
-        elseif mx == b then h = (r - g) / d + 4 end
+        if     mx == r do h = (g - b) / d + (g < b and 6 or 0)
+        elif mx == g do h = (b - r) / d + 2
+        elif mx == b do h = (r - g) / d + 4 end
         h = h / 6
     end
 
@@ -83,24 +83,24 @@ end
     values (0-255).
 ]]
 M.hsl_to_rgb = function(h, s, l)
-    local r, g, b
+    var r, g, b
 
-    if s == 0 then
+    if s == 0 do
         r = l
         g = l
         b = l
     else
-        local hue2rgb = function(p, q, t)
-            if t < 0 then t = t + 1 end
-            if t > 1 then t = t - 1 end
-            if t < (1 / 6) then return p + (q - p) * 6 * t end
-            if t < (1 / 2) then return q end
-            if t < (2 / 3) then return p + (q - p) * (2 / 3 - t) * 6 end
+        var hue2rgb = function(p, q, t)
+            if t < 0 do t = t + 1 end
+            if t > 1 do t = t - 1 end
+            if t < (1 / 6) do return p + (q - p) * 6 * t end
+            if t < (1 / 2) do return q end
+            if t < (2 / 3) do return p + (q - p) * (2 / 3 - t) * 6 end
             return p
         end
 
-        local q = l < 0.5 and l * (1 + s) or l + s - l * s
-        local p = 2 * l - q
+        var q = l < 0.5 and l * (1 + s) or l + s - l * s
+        var p = 2 * l - q
 
         r = hue2rgb(p, q, h + 1 / 3)
         g = hue2rgb(p, q, h)
@@ -115,25 +115,25 @@ end
     values (0-255).
 ]]
 M.hsv_to_rgb = function(h, s, v)
-    local r, g, b
+    var r, g, b
 
-    local i = math.floor(h * 6)
-    local f = h * 6 - i
-    local p = v * (1 - s)
-    local q = v * (1 - f * s)
-    local t = v * (1 - (1 - f) * s)
+    var i = math.floor(h * 6)
+    var f = h * 6 - i
+    var p = v * (1 - s)
+    var q = v * (1 - f * s)
+    var t = v * (1 - (1 - f) * s)
 
-    if i % 6 == 0 then
+    if i % 6 == 0 do
         r, g, b = v, t, p
-    elseif i % 6 == 1 then
+    elif i % 6 == 1 do
         r, g, b = q, v, p
-    elseif i % 6 == 2 then
+    elif i % 6 == 2 do
         r, g, b = p, v, t
-    elseif i % 6 == 3 then
+    elif i % 6 == 3 do
         r, g, b = p, q, v
-    elseif i % 6 == 4 then
+    elif i % 6 == 4 do
         r, g, b = t, p, v
-    elseif i % 6 == 5 then
+    elif i % 6 == 5 do
         r, g, b = v, p, q
     end
 

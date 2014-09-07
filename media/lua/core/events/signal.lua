@@ -8,15 +8,15 @@
         See COPYING.txt.
 ]]
 
-local log = require("core.logger")
+var log = require("core.logger")
 
-local type = type
-local rawget, rawset = rawget, rawset
-local clamp = math.clamp
-local tfind = table.find
+var type = type
+var rawget, rawset = rawget, rawset
+var clamp = math.clamp
+var tfind = table.find
 
 --! Module: signal
-local M = {}
+var M = {}
 
 --[[!
     Connects a signal to a slot inside a table. The callback has to be a
@@ -49,25 +49,25 @@ local M = {}
         slot, it also returns the number of currently connected slots.
 ]]
 M.connect = function(self, name, callback)
-    if type(callback) != "function" then
+    if type(callback) != "function" do
         log.log(log.ERROR, "Not connecting non-function callback: " .. name)
         return nil
     end
-    local clistn = "_sig_conn_" .. name
+    var clistn = "_sig_conn_" .. name
 
-    local  clist = rawget(self, clistn)
-    if not clist then
+    var  clist = rawget(self, clistn)
+    if not clist do
            clist = { slotcount = 0 }
            rawset(self, clistn, clist)
     end
 
-    local id = #clist + 1
+    var id = #clist + 1
     clist[id] = callback
 
     clist.slotcount = clist.slotcount + 1
 
-    local cb = rawget(self, "__connect")
-    if    cb then cb (self, name, callback) end
+    var cb = rawget(self, "__connect")
+    if    cb do cb (self, name, callback) end
 
     return id, clist.slotcount
 end
@@ -87,23 +87,23 @@ end
         could be disconnected).
 ]]
 M.disconnect = function(self, name, id)
-    local clistn = "_sig_conn_" .. name
-    local clist  = rawget(self, clistn)
-    local cb     = rawget(self, "__disconnect")
-    if clist then
-        if not id then
+    var clistn = "_sig_conn_" .. name
+    var clist  = rawget(self, clistn)
+    var cb     = rawget(self, "__disconnect")
+    if clist do
+        if not id do
             rawset(self, clistn, nil)
-            if cb then cb(self, name) end
+            if cb do cb(self, name) end
             return 0
         end
-        if type(id) != "number" then
+        if type(id) != "number" do
             id = tfind(clist, id)
         end
-        if id and id <= #clist then
-            local scnt = clist.slotcount - 1
+        if id and id <= #clist do
+            var scnt = clist.slotcount - 1
             clist.slotcount = scnt
             rawset(clist, id, false)
-            if cb then cb(self, name, id, scnt) end
+            if cb do cb(self, name, id, scnt) end
             return scnt
         end
     end
@@ -120,16 +120,16 @@ end
         - ... - any further arguments passed to each callback.
 ]]
 M.emit = function(self, name, ...)
-    local clistn = "_sig_conn_" .. name
-    local clist  = rawget(self, clistn)
-    if not clist then
+    var clistn = "_sig_conn_" .. name
+    var clist  = rawget(self, clistn)
+    if not clist do
         return 0
     end
 
-    local ncalled = 0
+    var ncalled = 0
     for i = 1, #clist do
-        local cb = clist[i]
-        if cb then
+        var cb = clist[i]
+        if cb do
             ncalled = ncalled + 1
             cb(self, ...)
         end

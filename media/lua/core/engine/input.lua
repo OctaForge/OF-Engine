@@ -10,10 +10,10 @@
 
 @[server] do return {} end
 
-local capi = require("capi")
-local frame = require("core.events.frame")
+var capi = require("capi")
+var frame = require("core.events.frame")
 
-local vec3 = require("core.lua.geom").Vec3
+var vec3 = require("core.lua.geom").Vec3
 
 --! Module: input
 return {

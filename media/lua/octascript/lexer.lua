@@ -33,7 +33,7 @@ end
 
 local Keywords = {
     ["and"     ] = true, ["break"   ] = true, ["continue"] = true,
-    ["do"      ] = true, ["else"    ] = true, ["elseif"  ] = true,
+    ["do"      ] = true, ["else"    ] = true, ["elif"    ] = true,
     ["end"     ] = true, ["false"   ] = true, ["for"     ] = true,
     ["function"] = true, ["goto"    ] = true, ["if"      ] = true,
     ["in"      ] = true, ["local"   ] = true, ["nil"     ] = true,

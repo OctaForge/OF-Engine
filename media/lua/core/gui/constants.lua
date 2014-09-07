@@ -10,7 +10,7 @@
 ]]
 
 --! Module: constants
-local M = {}
+var M = {}
 
 --[[!
     Contains a list of OpenGL constants used by (and useful in) the GUI.
@@ -105,8 +105,8 @@ M.gl = {:
     ZERO = 0x0
 :}
 
-local scancode_to_keycode = function(x) return (x | (1 << 30)) end
-local char_to_byte = string.byte
+var scancode_to_keycode = function(x) return (x | (1 << 30)) end
+var char_to_byte = string.byte
 
 --[[! Enum: scancode
     Contains a list of key scan codes. Not meant for direct use. Use $key.
@@ -366,7 +366,7 @@ M.scancode = {
     APP1 = 283,
     APP2 = 284,
 }
-local scancode = M.scancode
+var scancode = M.scancode
 
 --[[! Enum: key
     Contains a list of key constants. Matches SDLK_* with the addition of

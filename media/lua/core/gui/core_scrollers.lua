@@ -8,38 +8,38 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local signal = require("core.events.signal")
+var capi = require("capi")
+var signal = require("core.events.signal")
 
-local get_curtime = capi.get_curtime
+var get_curtime = capi.get_curtime
 
-local max   = math.max
-local min   = math.min
-local clamp = math.clamp
-local emit  = signal.emit
+var max   = math.max
+var min   = math.min
+var clamp = math.clamp
+var emit  = signal.emit
 
 --! Module: core
-local M = require("core.gui.core")
+var M = require("core.gui.core")
 
 -- consts
-local key = M.key
+var key = M.key
 
 -- widget types
-local register_type = M.register_type
+var register_type = M.register_type
 
 -- base widgets
-local Widget = M.get_type("Widget")
+var Widget = M.get_type("Widget")
 
 -- setters
-local gen_setter = M.gen_setter
+var gen_setter = M.gen_setter
 
 -- orientation
-local orient = M.orient
+var orient = M.orient
 
 -- alignment/clamping
-local adjust = M.adjust
+var adjust = M.adjust
 
-local Clipper = M.Clipper
+var Clipper = M.Clipper
 
 --[[!
     Derived from $Clipper. Provides a scrollable area without scrollbars.
@@ -74,18 +74,18 @@ M.Scroller = register_type("Scroller", Clipper, {
     end,
 
     target = function(self, cx, cy)
-        local oh, ov, vw, vh = self.offset_h, self.offset_v,
+        var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
-        if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
+        if ((cx + oh) >= vw) or ((cy + ov) >= vh) do return nil end
         return Widget.target(self, cx + oh, cy + ov)
     end,
 
     hover = function(self, cx, cy)
-        local oh, ov, vw, vh = self.offset_h, self.offset_v,
+        var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
-        if ((cx + oh) >= vw) or ((cy + ov) >= vh) then
+        if ((cx + oh) >= vw) or ((cy + ov) >= vh) do
             self.can_scroll = false
             return nil
         end
@@ -95,10 +95,10 @@ M.Scroller = register_type("Scroller", Clipper, {
     end,
 
     click = function(self, cx, cy, code)
-        local oh, ov, vw, vh = self.offset_h, self.offset_v,
+        var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
-        if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
+        if ((cx + oh) >= vw) or ((cy + ov) >= vh) do return nil end
         return Widget.click(self, cx + oh, cy + ov, code)
     end,
 
@@ -108,18 +108,18 @@ M.Scroller = register_type("Scroller", Clipper, {
         is present, vertical is used with the default arrow_speed of 0.5.
     ]]
     key_hover = function(self, code, isdown)
-        local m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
-        if code != m4 and code != m5 then
+        var m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
+        if code != m4 and code != m5 do
             return Widget.key_hover(self, code, isdown)
         end
 
-        local  sb = self.v_scrollbar or self.h_scrollbar
-        if not self.can_scroll then return false end
-        if not isdown then return true end
+        var  sb = self.v_scrollbar or self.h_scrollbar
+        if not self.can_scroll do return false end
+        if not isdown do return true end
 
-        local adjust = (code == m4 and -0.2 or 0.2) * (sb and sb.arrow_speed
+        var adjust = (code == m4 and -0.2 or 0.2) * (sb and sb.arrow_speed
             or 0.5)
-        if not self.h_scrollbar then
+        if not self.h_scrollbar do
             self:scroll_v(adjust)
         else
             self:scroll_h(adjust)
@@ -131,7 +131,7 @@ M.Scroller = register_type("Scroller", Clipper, {
     draw = function(self, sx, sy)
         if (self.clip_w != 0 and self.virt_w > self.clip_w) or
            (self.clip_h != 0 and self.virt_h > self.clip_h)
-        then
+        do
             self:get_root():clip_push(sx, sy, self.w, self.h)
             Widget.draw(self, sx - self.offset_h, sy - self.offset_v)
             self:get_root():clip_pop()
@@ -146,9 +146,9 @@ M.Scroller = register_type("Scroller", Clipper, {
         Calling with nil unlinks the scrollbar and returns it.
     ]]
     bind_h_scrollbar = function(self, sb)
-        if not sb then
+        if not sb do
             sb = self.h_scrollbar
-            if not sb then return nil end
+            if not sb do return nil end
             sb.scroller, self.h_scrollbar = nil, nil
             return sb
         end
@@ -162,9 +162,9 @@ M.Scroller = register_type("Scroller", Clipper, {
         Calling with nil unlinks the scrollbar and returns it.
     ]]
     bind_v_scrollbar = function(self, sb)
-        if not sb then
+        if not sb do
             sb = self.v_scrollbar
-            if not sb then return nil end
+            if not sb do return nil end
             sb.scroller, self.v_scrollbar = nil, nil
             return sb
         end
@@ -231,7 +231,7 @@ M.Scroller = register_type("Scroller", Clipper, {
     scroll_v = function(self, vs) self:set_v_scroll(self.offset_v + vs) end
 })
 
-local ScrollButton
+var ScrollButton
 
 --[[!
     A base scrollbar widget type. This one is not of much use.
@@ -300,17 +300,17 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         by 0.2 in the right direction depending on the scrollbar type.
     ]]
     key_hover = function(self, code, isdown)
-        local m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
-        if code != m4 and code != m5 then
+        var m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
+        if code != m4 and code != m5 do
             return Widget.key_hover(self, code, isdown)
         end
 
-        local  sc = self.scroller
-        if not sc or not sc.can_scroll then return false end
-        if not isdown then return true end
+        var  sc = self.scroller
+        if not sc or not sc.can_scroll do return false end
+        if not isdown do return true end
 
-        local adjust = (code == m4 and -0.2 or 0.2) * self.arrow_speed
-        if self.orient == 1 then
+        var adjust = (code == m4 and -0.2 or 0.2) * self.arrow_speed
+        if self.orient == 1 do
             sc:scroll_v(adjust)
         else
             sc:scroll_h(adjust)
@@ -324,10 +324,10 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         in the scroller.
     ]]
     clicked = function(self, cx, cy, code)
-        if code == key.MOUSELEFT then
-            local d = self:choose_direction(cx, cy)
+        if code == key.MOUSELEFT do
+            var d = self:choose_direction(cx, cy)
             self.arrow_dir = d
-            if d == 0 then
+            if d == 0 do
                 self:scroll_to(cx, cy)
             end
         end
@@ -337,16 +337,16 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
     arrow_scroll = function(self, d) end,
 
     holding = function(self, cx, cy, code)
-        if code == key.MOUSELEFT then
-            local d = self:choose_direction(cx, cy)
+        if code == key.MOUSELEFT do
+            var d = self:choose_direction(cx, cy)
             self.arrow_dir = d
-            if d != 0 then self:arrow_scroll(d) end
+            if d != 0 do self:arrow_scroll(d) end
         end
         Widget.holding(self, cx, cy, code)
     end,
 
     hovering = function(self, cx, cy)
-        if not self:is_clicked(key.MOUSELEFT) then
+        if not self:is_clicked(key.MOUSELEFT) do
             self.arrow_dir = self:choose_direction(cx, cy)
         end
         Widget.hovering(self, cx, cy)
@@ -360,9 +360,9 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
     --! Function: set_arrow_speed
     set_arrow_speed = gen_setter "arrow_speed"
 })
-local Scrollbar = M.Scrollbar
+var Scrollbar = M.Scrollbar
 
-local clicked_states = {
+var clicked_states = {
     [key.MOUSELEFT   ] = "clicked_left",
     [key.MOUSEMIDDLE ] = "clicked_middle",
     [key.MOUSERIGHT  ] = "clicked_right",
@@ -400,8 +400,8 @@ M.ScrollButton = register_type("ScrollButton", Widget, {
     end,
 
     holding = function(self, cx, cy, code)
-        local p = self.parent
-        if p and code == key.MOUSELEFT and p.type == Scrollbar.type then
+        var p = self.parent
+        if p and code == key.MOUSELEFT and p.type == Scrollbar.type do
             p.arrow_dir = 0
             p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
@@ -409,7 +409,7 @@ M.ScrollButton = register_type("ScrollButton", Widget, {
     end,
 
     clicked = function(self, cx, cy, code)
-        if code == key.MOUSELEFT then
+        if code == key.MOUSELEFT do
             self.offset_h = cx
             self.offset_v = cy
         end
@@ -430,9 +430,9 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     orient = orient.HORIZONTAL,
 
     bind_scroller = function(self, sc)
-        if not sc then
+        if not sc do
             sc = self.scroller
-            if not sc then return nil end
+            if not sc do return nil end
             sc.h_scrollbar = nil
             return sc
         end
@@ -441,14 +441,14 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     end,
 
     choose_state = function(self)
-        local ad = self.arrow_dir
+        var ad = self.arrow_dir
 
-        if ad == -1 then
-            local clicked = clicked_states[self:is_clicked()]
+        if ad == -1 do
+            var clicked = clicked_states[self:is_clicked()]
             return clicked and "left_" .. clicked or
                 (self:is_hovering() and "left_hovering" or "default")
-        elseif ad == 1 then
-            local clicked = clicked_states[self:is_clicked()]
+        elif ad == 1 do
+            var clicked = clicked_states[self:is_clicked()]
             return clicked and "right_" .. clicked or
                 (self:is_hovering() and "right_hovering" or "default")
         end
@@ -456,54 +456,54 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     end,
 
     choose_direction = function(self, cx, cy)
-        local as = self.arrow_size
+        var as = self.arrow_size
         return (cx < as) and -1 or (cx >= (self.w - as) and 1 or 0)
     end,
 
     arrow_scroll = function(self, d)
-        local  scroll = self.scroller
-        if not scroll then return end
+        var  scroll = self.scroller
+        if not scroll do return end
         scroll:scroll_h(d * self.arrow_speed * (get_curtime() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = self.scroller
-        if not scroll then return end
+        var  scroll = self.scroller
+        if not scroll do return end
 
-        local  btn = self:find_child(ScrollButton.type, nil, false)
-        if not btn then return end
+        var  btn = self:find_child(ScrollButton.type, nil, false)
+        if not btn do return end
 
-        local as = self.arrow_size
+        var as = self.arrow_size
 
-        local bscale = (max(self.w - 2 * as, 0) - btn.w) /
+        var bscale = (max(self.w - 2 * as, 0) - btn.w) /
             (1 - scroll:get_h_scale())
 
-        local offset = (bscale > 0.001) and (cx - as) / bscale or 0
+        var offset = (bscale > 0.001) and (cx - as) / bscale or 0
 
         scroll.set_h_scroll(scroll, offset * scroll.virt_w)
     end,
 
     adjust_children = function(self)
-        local  scroll = self.scroller
-        if not scroll then
+        var  scroll = self.scroller
+        if not scroll do
             Widget.adjust_children(self)
             return
         end
 
-        local  btn = self:find_child(ScrollButton.type, nil, false)
-        if not btn then
+        var  btn = self:find_child(ScrollButton.type, nil, false)
+        if not btn do
             Widget.adjust_children(self)
             return
         end
 
-        local as = self.arrow_size
+        var as = self.arrow_size
 
-        local sw, btnw = self.w, btn.w
+        var sw, btnw = self.w, btn.w
 
-        local bw = max(sw - 2 * as, 0) * scroll:get_h_scale()
+        var bw = max(sw - 2 * as, 0) * scroll:get_h_scale()
         btn.w  = max(btnw, bw)
 
-        local bscale = (scroll:get_h_scale() < 1) and
+        var bscale = (scroll:get_h_scale() < 1) and
             (max(sw - 2 * as, 0) - btn.w) / (1 - scroll:get_h_scale()) or 1
 
         btn.x = as + scroll:get_h_offset() * bscale
@@ -525,9 +525,9 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
     orient = orient.VERTICAL,
 
     bind_scroller = function(self, sc)
-        if not sc then
+        if not sc do
             sc = self.scroller
-            if not sc then return nil end
+            if not sc do return nil end
             sc.v_scrollbar = nil
             return sc
         end
@@ -536,14 +536,14 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
     end,
 
     choose_state = function(self)
-        local ad = self.arrow_dir
+        var ad = self.arrow_dir
 
-        if ad == -1 then
-            local clicked = clicked_states[self:is_clicked()]
+        if ad == -1 do
+            var clicked = clicked_states[self:is_clicked()]
             return clicked and "up_" .. clicked or
                 (self:is_hovering() and "up_hovering" or "default")
-        elseif ad == 1 then
-            local clicked = clicked_states[self:is_clicked()]
+        elif ad == 1 do
+            var clicked = clicked_states[self:is_clicked()]
             return clicked and "down_" .. clicked or
                 (self:is_hovering() and "down_hovering" or "default")
         end
@@ -551,56 +551,56 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
     end,
 
     choose_direction = function(self, cx, cy)
-        local as = self.arrow_size
+        var as = self.arrow_size
         return (cy < as) and -1 or (cy >= (self.h - as) and 1 or 0)
     end,
 
     arrow_scroll = function(self, d)
-        local  scroll = self.scroller
-        if not scroll then return end
+        var  scroll = self.scroller
+        if not scroll do return end
         scroll:scroll_v(d * self.arrow_speed * (get_curtime() / 1000))
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = self.scroller
-        if not scroll then return end
+        var  scroll = self.scroller
+        if not scroll do return end
 
-        local  btn = self:find_child(ScrollButton.type, nil, false)
-        if not btn then return end
+        var  btn = self:find_child(ScrollButton.type, nil, false)
+        if not btn do return end
 
-        local as = self.arrow_size
+        var as = self.arrow_size
 
-        local bscale = (max(self.h - 2 * as, 0) - btn.h) /
+        var bscale = (max(self.h - 2 * as, 0) - btn.h) /
             (1 - scroll:get_v_scale())
 
-        local offset = (bscale > 0.001) and
+        var offset = (bscale > 0.001) and
             (cy - as) / bscale or 0
 
         scroll:set_v_scroll(offset * scroll.virt_h)
     end,
 
     adjust_children = function(self)
-        local  scroll = self.scroller
-        if not scroll then
+        var  scroll = self.scroller
+        if not scroll do
             Widget.adjust_children(self)
             return
         end
 
-        local  btn = self:find_child(ScrollButton.type, nil, false)
-        if not btn then
+        var  btn = self:find_child(ScrollButton.type, nil, false)
+        if not btn do
             Widget.adjust_children(self)
             return
         end
 
-        local as = self.arrow_size
+        var as = self.arrow_size
 
-        local sh, btnh = self.h, btn.h
+        var sh, btnh = self.h, btn.h
 
-        local bh = max(sh - 2 * as, 0) * scroll:get_v_scale()
+        var bh = max(sh - 2 * as, 0) * scroll:get_v_scale()
 
         btn.h = max(btnh, bh)
 
-        local bscale = (scroll:get_v_scale() < 1) and
+        var bscale = (scroll:get_v_scale() < 1) and
             (max(sh - 2 * as, 0) - btn.h) / (1 - scroll:get_v_scale()) or 1
 
         btn.y = as + scroll:get_v_offset() * bscale

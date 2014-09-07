@@ -1,4 +1,4 @@
-local log = require("core.logger")
+var log = require("core.logger")
 
 log.log(log.DEBUG, ":::: Lua extensions: streams")
 require("core.lua.stream")

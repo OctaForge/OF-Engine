@@ -8,30 +8,30 @@
         See COPYING.txt.
 ]]
 
-local logging = require("core.logger")
-local log = logging.log
-local INFO = logging.INFO
+var logging = require("core.logger")
+var log = logging.log
+var INFO = logging.INFO
 
-local M = {}
+var M = {}
 
-local current_frame      = 0
-local current_time       = 0
-local current_frame_time = 0
-local last_millis        = 0
+var current_frame      = 0
+var current_time       = 0
+var current_frame_time = 0
+var last_millis        = 0
 
-local require, setmetatable = require, setmetatable
-local ents, get_ents, get_highest_uid
+var require, setmetatable = require, setmetatable
+var ents, get_ents, get_highest_uid
 
-local copy = table.copy
+var copy = table.copy
 
 --[[!
     Executed per frame from C++. It handles the current frame, meaning
     it first  updates all the required timing vars ($get_frame, $get_time,
-    $get_frame_time, $get_last_millis) and then runs on all available
+    $get_frame_time, $get_last_millis) and do runs on all available
     activated entities. External as "frame_handle".
 ]]
 M.handle_frame = function(millis, lastmillis)
-    if not ents then
+    if not ents do
         ents = require("core.entities.ents")
         get_ents, get_highest_uid = ents.get_all, ents.get_highest_uid
     end
@@ -45,17 +45,17 @@ M.handle_frame = function(millis, lastmillis)
 
     @[debug] log(INFO, "frame.handle_frame: Acting on entities")
 
-    local storage = get_ents()
+    var storage = get_ents()
     for uid = 1, get_highest_uid() do
-        local ent = storage[uid]
-        if ent and not ent.deactivated and ent.__per_frame then
+        var ent = storage[uid]
+        if ent and not ent.deactivated and ent.__per_frame do
             ent:__run(millis)
         end
     end
 end
 require("core.externals").set("frame_handle", M.handle_frame)
 
-local tocalltable = function(v)
+var tocalltable = function(v)
     return setmetatable({}, { __call = function(_, ...) return v(...) end })
 end
 
@@ -98,17 +98,17 @@ end
         - $cache_by_frame
 ]]
 M.cache_by_delay = function(fun, delay)
-    if type(fun) == "function" then
+    if type(fun) == "function" do
         fun = tocalltable(fun)
     end
 
-    if type(fun) != "table" then
+    if type(fun) != "table" do
         return nil
     end
 
     fun.last_time = ((-delay) * 2)
     return function(...)
-        if (current_time - fun.last_time) >= delay then
+        if (current_time - fun.last_time) >= delay do
             fun.last_cached_val = fun(...)
             fun.last_time       = current_time
         end
@@ -132,16 +132,16 @@ end
         - $cache_by_delay
 ]]
 M.cache_by_frame = function(fun)
-    if type(fun) == "function" then
+    if type(fun) == "function" do
         fun = tocalltable(fun)
     end
 
-    if type(fun) != "table" then
+    if type(fun) != "table" do
         return nil
     end
 
     return function(...)
-        if fun.last_frame != current_frame then
+        if fun.last_frame != current_frame do
             fun.last_cached_val = fun(...)
             fun.last_frame = current_frame
         end

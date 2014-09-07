@@ -8,25 +8,25 @@
         See COPYING.txt.
 ]]
 
-local logger = require("core.logger")
-local stream = require("core.lua.stream")
+var logger = require("core.logger")
+var stream = require("core.lua.stream")
 
 --! Module: env
-local M = {}
+var M = {}
 
-local env_package = {
+var env_package = {
     preload = {}
 }
 
-local assert  = assert
-local type    = type
-local setfenv = setfenv
-local tconc   = table.concat
+var assert  = assert
+var type    = type
+var setfenv = setfenv
+var tconc   = table.concat
 
 env_package.loaders = {
     function(modname)
-        local  v = env_package.preload[modname]
-        if not v then
+        var  v = env_package.preload[modname]
+        if not v do
             return ("\tno field package.preload['%s']"):format(modname)
         end
         return v
@@ -34,36 +34,36 @@ env_package.loaders = {
     package.loaders[2]
 }
 
-local find_loader = function(modname, env)
+var find_loader = function(modname, env)
     env = env or _G
-    local err = { ("module '%s' not found\n"):format(modname) }
-    local loaders = env_package.loaders
+    var err = { ("module '%s' not found\n"):format(modname) }
+    var loaders = env_package.loaders
     for i = 1, #loaders do
-        local v  = loaders[i](modname)
-        local vt = type(v)
-        if vt == "function" then
+        var v  = loaders[i](modname)
+        var vt = type(v)
+        if vt == "function" do
             return setfenv(v, env)
-        elseif vt == "string" then
+        elif vt == "string" do
             err[#err + 1] = v
         end
     end
     return nil, tconc(err)
 end
 
-local gen_require = function(env)
+var gen_require = function(env)
     return function(modname)
-        local v = env_package.loaded[modname]
-        if v != nil then return v end
-        local  loader, err = find_loader(modname, env)
-        if not loader then
+        var v = env_package.loaded[modname]
+        if v != nil do return v end
+        var  loader, err = find_loader(modname, env)
+        if not loader do
             error(err, 2)
         end
-        local ret    = loader(modname)
-        local loaded = env_package.loaded
-        if ret != nil then
+        var ret    = loader(modname)
+        var loaded = env_package.loaded
+        if ret != nil do
             loaded[modname] = ret
             return ret
-        elseif loaded[modname] == nil then
+        elif loaded[modname] == nil do
             loaded[modname] = true
             return true
         end
@@ -71,7 +71,7 @@ local gen_require = function(env)
     end
 end
 
-local env_structure = {
+var env_structure = {
     ["assert"        ] = true,
     ["bit"           ] = {
         ["arshift"   ] = true,
@@ -118,42 +118,42 @@ local env_structure = {
     ["xpcall"        ] = true
 }
 
-local getmetatable = getmetatable
-local env_replacements = {
+var getmetatable = getmetatable
+var env_replacements = {
     ["getmetatable"] = function(tbl)
         return type(tbl) == "table" and getmetatable(tbl) or nil
     end
 }
 
-local ploaded = package.loaded
+var ploaded = package.loaded
 
-local eloaded = {}
+var eloaded = {}
 env_package.loaded = eloaded
 
-local rawget = rawget
+var rawget = rawget
 
-local disallow = {
+var disallow = {
     ["core.externals"] = true, ["core.lua.stream"] = true
 }
 
-local gen_envtable; gen_envtable = function(tbl, env, rp, mod)
+var gen_envtable; gen_envtable = function(tbl, env, rp, mod)
     for k, v in pairs(tbl) do
-        if v == true then
+        if v == true do
             env[k] = rp and rp[k] or (mod and mod[k] or rawget(_G, k))
-        elseif type(v) == "table" then
+        elif type(v) == "table" do
             env[k] = {}
             gen_envtable(v, env[k], rp and rp[k] or nil,
                 (mod and mod[k] or rawget(_G, k)))
             eloaded[k] = env[k]
         end
     end
-    if not mod then
+    if not mod do
         env["_G"] = env
         env["require"] = gen_require(env)
         eloaded["_G"] = env
         for k, v in pairs(ploaded) do
-            if k:match("core%..+") or k:match("luacy%..+") then
-                if not disallow[k] then
+            if k:match("core%..+") or k:match("luacy%..+") do
+                if not disallow[k] do
                     eloaded[k] = v
                 else
                     eloaded[k] = false
@@ -190,9 +190,9 @@ M.gen_mapscript_env = function()
     env_package.path = package.path
     return gen_envtable(env_structure, {}, env_replacements)
 end
-local gen_mapscript_env = M.gen_mapscript_env
+var gen_mapscript_env = M.gen_mapscript_env
 
-local consolemap = {
+var consolemap = {
     ["capi"                  ] = "capi",
     ["core.engine.camera"    ] = "camera",
     ["core.engine.cubescript"] = "cubescript",
@@ -219,13 +219,13 @@ local consolemap = {
     ["core.network.msg"      ] = "msg"
 }
 
-local consoleenv
-local gen_console_env = function()
-    if consoleenv then return consoleenv end
-    local env = {}
+var consoleenv
+var gen_console_env = function()
+    if consoleenv do return consoleenv end
+    var env = {}
     for k, v in pairs(ploaded) do
-        local cmap = consolemap[k]
-        if cmap then env[cmap] = v end
+        var cmap = consolemap[k]
+        if cmap do env[cmap] = v end
     end
     -- extra fields
     env["echo"   ] = logger.echo
@@ -240,7 +240,7 @@ local gen_console_env = function()
     return env
 end
 
-local ext_set = require("core.externals").set
+var ext_set = require("core.externals").set
 
 --[[! Function: console_lua_run
     An external called when you run Lua code in the console. The console
@@ -277,25 +277,25 @@ local ext_set = require("core.externals").set
         - echo, log, INFO, DEBUG, WARNING, ERROR - logger.*
 ]]
 ext_set("console_lua_run", function(str)
-    local  ret, err = loadstring(str, "=console")
-    if not ret then return err end
+    var  ret, err = loadstring(str, "=console")
+    if not ret do return err end
     ret, err = pcall(setfenv(ret, gen_console_env()))
-    if not ret then return err end
+    if not ret do return err end
     return nil
 end)
 
 ext_set("mapscript_run", function(fname)
-    local fs, err = stream.open(fname)
-    if not fs then error(err, 2) end
-    local f, err = loadstring(fs:read("*a"), "@" .. fname)
+    var fs, err = stream.open(fname)
+    if not fs do error(err, 2) end
+    var f, err = loadstring(fs:read("*a"), "@" .. fname)
     fs:close()
-    if not f then error(err, 2) end
+    if not f do error(err, 2) end
     setfenv(f, gen_mapscript_env())()
 end)
 
 ext_set("mapscript_verify", function(fn)
-    local f, err = loadfile(fn)
-    if not f then
+    var f, err = loadfile(fn)
+    if not f do
         logger.log(logger.ERROR, "Compilation failed: " .. err)
         return false
     end

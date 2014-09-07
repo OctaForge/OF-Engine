@@ -8,14 +8,14 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local ffi = require("ffi")
-local model = require("core.engine.model")
-local cs = require("core.engine.cubescript")
-local signal = require("core.events.signal")
-local geom = require("core.lua.geom")
+var capi = require("capi")
+var ffi = require("ffi")
+var model = require("core.engine.model")
+var cs = require("core.engine.cubescript")
+var signal = require("core.events.signal")
+var geom = require("core.lua.geom")
 
-local gl_blend_func, shader_hudnotexture_set, shader_hud_set, gl_bind_texture,
+var gl_blend_func, shader_hudnotexture_set, shader_hud_set, gl_bind_texture,
 gl_texture_param, shader_hud_set_variant, gle_begin, gle_end, gle_defvertexf,
 gle_deftexcoord0f, gle_color4f, gle_attrib2f, texture_load,
 texture_load_alpha_mask, texture_get_notexture, thumbnail_load,
@@ -26,52 +26,52 @@ hudmatrix_flush, hudmatrix_pop, hudmatrix_translate, text_draw,
 text_get_bounds, text_font_push, text_font_pop, text_font_set,
 console_render_full, text_font_get_w, text_font_get_h, prefab_preview in capi
 
-local max   = math.max
-local min   = math.min
-local abs   = math.abs
-local clamp = math.clamp
-local floor = math.floor
-local ceil  = math.ceil
-local huge  = math.huge
-local emit  = signal.emit
-local tostring = tostring
-local type = type
+var max   = math.max
+var min   = math.min
+var abs   = math.abs
+var clamp = math.clamp
+var floor = math.floor
+var ceil  = math.ceil
+var huge  = math.huge
+var emit  = signal.emit
+var tostring = tostring
+var type = type
 
-local Vec2 = geom.Vec2
-local sincosmod360 = geom.sin_cos_mod_360
-local sincos360 = geom.sin_cos_360
+var Vec2 = geom.Vec2
+var sincosmod360 = geom.sin_cos_mod_360
+var sincos360 = geom.sin_cos_360
 
-local ffi_new = ffi.new
+var ffi_new = ffi.new
 
 --! Module: core
-local M = require("core.gui.core")
+var M = require("core.gui.core")
 
 -- consts
-local gl = M.gl
+var gl = M.gl
 
 -- widget types
-local register_type = M.register_type
+var register_type = M.register_type
 
 -- primitive drawing
-local quad, quadtri = M.draw_quad, M.draw_quadtri
+var quad, quadtri = M.draw_quad, M.draw_quadtri
 
 -- color
-local Color = M.Color
+var Color = M.Color
 
 -- base widgets
-local Widget = M.get_type("Widget")
+var Widget = M.get_type("Widget")
 
 -- setters
-local gen_setter = M.gen_setter
+var gen_setter = M.gen_setter
 
-local Filler = M.Filler
+var Filler = M.Filler
 
-local init_color = function(col)
+var init_color = function(col)
     return col and (type(col) == "number" and Color(col) or col) or Color()
 end
 
-local gen_color_setter = function(name)
-    local sname = name .. ",changed"
+var gen_color_setter = function(name)
+    var sname = name .. ",changed"
     return function(self, val)
         self[name] = init_color(val)
         emit(self, sname, val)
@@ -98,9 +98,9 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local w, h, color, solid in self
+        var w, h, color, solid in self
 
-        if not solid then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+        if not solid do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
         color:init()
 
@@ -115,7 +115,7 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
         gle_end()
         gle_color4f(1, 1, 1, 1)
         shader_hud_set()
-        if not solid then
+        if not solid do
             gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
 
@@ -128,7 +128,7 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
     --! Function: set_color
     set_color = gen_color_setter "color"
 })
-local ColorFiller = M.ColorFiller
+var ColorFiller = M.ColorFiller
 
 --[[!
     Derived from $ColorFiller.
@@ -146,9 +146,9 @@ M.Gradient = register_type("Gradient", ColorFiller, {
     end,
 
     draw = function(self, sx, sy)
-        local w, h, color, color2, solid, horizontal in self
+        var w, h, color, color2, solid, horizontal in self
 
-        if not solid then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+        if not solid do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
 
         gle_defvertexf(2)
@@ -156,7 +156,7 @@ M.Gradient = register_type("Gradient", ColorFiller, {
         gle_begin(gl.TRIANGLE_STRIP)
 
         gle_attrib2f(sx, sy)
-        if horizontal then
+        if horizontal do
             color2:attrib()
         else
             color:attrib()
@@ -164,7 +164,7 @@ M.Gradient = register_type("Gradient", ColorFiller, {
         gle_attrib2f(sx + w, sy)     color:attrib()
         gle_attrib2f(sx,     sy + h) color2:attrib()
         gle_attrib2f(sx + w, sy + h)
-        if horizontal then
+        if horizontal do
             color:attrib()
         else
             color2:attrib()
@@ -172,7 +172,7 @@ M.Gradient = register_type("Gradient", ColorFiller, {
 
         gle_end()
         shader_hud_set()
-        if not solid then
+        if not solid do
             gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
 
@@ -200,7 +200,7 @@ M.Line = register_type("Line", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local color, w, h in self
+        var color, w, h in self
 
         shader_hudnotexture_set()
         color:init()
@@ -233,7 +233,7 @@ M.Outline = register_type("Outline", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local color, w, h in self
+        var color, w, h in self
 
         shader_hudnotexture_set()
         color:init()
@@ -254,18 +254,18 @@ M.Outline = register_type("Outline", Filler, {
     set_color = gen_color_setter "color"
 })
 
-local check_alpha_mask = function(tex, x, y)
-    if tex.alphamask == nil then
-        if texture_load_alpha_mask(tex) == nil then
+var check_alpha_mask = function(tex, x, y)
+    if tex.alphamask == nil do
+        if texture_load_alpha_mask(tex) == nil do
             return true
         end
     end
 
-    local xs, ys = tex.xs, tex.ys
-    local tx, ty = clamp(floor(x * tex.xs), 0, tex.xs - 1),
+    var xs, ys = tex.xs, tex.ys
+    var tx, ty = clamp(floor(x * tex.xs), 0, tex.xs - 1),
                    clamp(floor(y * tex.ys), 0, tex.ys - 1)
 
-    if (tex.alphamask[ty * ((tex.xs + 7) / 8)] & (1 << (tx % 8))) != 0 then
+    if (tex.alphamask[ty * ((tex.xs + 7) / 8)] & (1 << (tx % 8))) != 0 do
         return true
     end
 
@@ -290,11 +290,11 @@ end
 M.Image = register_type("Image", Filler, {
     __ctor = function(self, kwargs)
         kwargs    = kwargs or {}
-        local tex = kwargs.file and texture_load(kwargs.file)
+        var tex = kwargs.file and texture_load(kwargs.file)
 
-        local notexture = texture_get_notexture()
-        local af = kwargs.alt_file
-        if (not tex or tex == notexture) and af then
+        var notexture = texture_get_notexture()
+        var af = kwargs.alt_file
+        if (not tex or tex == notexture) and af do
             tex = texture_load(af)
         end
 
@@ -317,12 +317,12 @@ M.Image = register_type("Image", Filler, {
         disables the texture (sets the texture to notexture).
     ]]
     set_tex = function(self, file, alt)
-        if not file then
+        if not file do
             self.texture = texture_get_notexture()
             return
         end
-        local tex = texture_load(file)
-        if  tex == texture_get_notexture() and alt then
+        var tex = texture_load(file)
+        if  tex == texture_get_notexture() and alt do
             tex = texture_load(alt)
         end
         self.texture = tex
@@ -333,30 +333,30 @@ M.Image = register_type("Image", Filler, {
         completely transparent). See also {{$Widget.target}}.
     ]]
     target = function(self, cx, cy)
-        local o = Widget.target(self, cx, cy)
-        if    o then return o end
+        var o = Widget.target(self, cx, cy)
+        if    o do return o end
 
-        local tex = self.texture
+        var tex = self.texture
         return (tex.bpp < 32 or check_alpha_mask(tex, cx / self.w,
                                                        cy / self.h)) and self
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.min_filter,
+        var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
-        local color = self.color
+        var color = self.color
 
-        if tex == texture_get_notexture() then
+        if tex == texture_get_notexture() do
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 then
+        if minf and minf != 0 do
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf != 0 then
+        if magf and magf != 0 do
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -373,24 +373,24 @@ M.Image = register_type("Image", Filler, {
     layout = function(self)
         Widget.layout(self)
 
-        local min_w = self.min_w
-        local min_h = self.min_h
-        if type(min_w) == "function" then min_w = min_w(self) end
-        if type(min_h) == "function" then min_h = min_h(self) end
+        var min_w = self.min_w
+        var min_h = self.min_h
+        if type(min_w) == "function" do min_w = min_w(self) end
+        if type(min_h) == "function" do min_h = min_h(self) end
 
-        local r = self:get_root()
+        var r = self:get_root()
 
-        if min_w < 0 then min_w = r:get_ui_size(abs(min_w)) end
-        if min_h < 0 then min_h = r:get_ui_size(abs(min_h)) end
+        if min_w < 0 do min_w = r:get_ui_size(abs(min_w)) end
+        if min_h < 0 do min_h = r:get_ui_size(abs(min_h)) end
 
-        local proj = r:get_projection()
-        if min_w == huge then min_w = proj.pw end
-        if min_h == huge then min_h = proj.ph end
+        var proj = r:get_projection()
+        if min_w == huge do min_w = proj.pw end
+        if min_h == huge do min_h = proj.ph end
 
-        if  min_w == 0 or min_h == 0 then
-            local tex = self.texture
-            if min_w == 0 then min_w = r:get_ui_size(tex.w) end
-            if min_h == 0 then min_h = r:get_ui_size(tex.h) end
+        if  min_w == 0 or min_h == 0 do
+            var tex = self.texture
+            if min_w == 0 do min_w = r:get_ui_size(tex.w) end
+            if min_h == 0 do min_h = r:get_ui_size(tex.h) end
         end
 
         self._min_w, self._min_h = min_w, min_h
@@ -407,7 +407,7 @@ M.Image = register_type("Image", Filler, {
     --! Function: set_color
     set_color = gen_color_setter "color"
 })
-local Image = M.Image
+var Image = M.Image
 
 --[[!
     Represents a raw texture. Not meant for regular use. It's here to aid
@@ -421,8 +421,8 @@ M.Texture = register_type("Texture", Filler, {
     end,
 
     target = function(self, cx, cy)
-        local o = Widget.target(self, cx, cy)
-        if    o then return o end
+        var o = Widget.target(self, cx, cy)
+        if    o do return o end
         return self
     end,
 
@@ -439,27 +439,27 @@ M.Texture = register_type("Texture", Filler, {
     layout = function(self)
         Widget.layout(self)
 
-        local min_w = self.min_w
-        local min_h = self.min_h
-        if type(min_w) == "function" then min_w = min_w(self) end
-        if type(min_h) == "function" then min_h = min_h(self) end
+        var min_w = self.min_w
+        var min_h = self.min_h
+        if type(min_w) == "function" do min_w = min_w(self) end
+        if type(min_h) == "function" do min_h = min_h(self) end
 
-        local r = self:get_root()
+        var r = self:get_root()
 
-        if min_w < 0 then min_w = r:get_ui_size(abs(min_w)) end
-        if min_h < 0 then min_h = r:get_ui_size(abs(min_h)) end
+        if min_w < 0 do min_w = r:get_ui_size(abs(min_w)) end
+        if min_h < 0 do min_h = r:get_ui_size(abs(min_h)) end
 
-        local proj = r:get_projection()
-        if min_w == huge then min_w = proj.pw end
-        if min_h == huge then min_h = proj.ph end
+        var proj = r:get_projection()
+        if min_w == huge do min_w = proj.pw end
+        if min_h == huge do min_h = proj.ph end
 
         self.w = max(self.w, min_w)
         self.h = max(self.h, min_h)
     end
 })
 
-local get_border_size = function(tex, size, vert)
-    if size >= 0 then
+var get_border_size = function(tex, size, vert)
+    if size >= 0 do
         return size
     end
     return abs(n) / (vert and tex.ys or tex.xs)
@@ -478,7 +478,7 @@ M.CroppedImage = register_type("CroppedImage", Image, {
         kwargs = kwargs or {}
 
         Image.__ctor(self, kwargs)
-        local tex = self.texture
+        var tex = self.texture
 
         self.crop_x = get_border_size(tex, kwargs.crop_x or 0, false)
         self.crop_y = get_border_size(tex, kwargs.crop_y or 0, true)
@@ -487,30 +487,30 @@ M.CroppedImage = register_type("CroppedImage", Image, {
     end,
 
     target = function(self, cx, cy)
-        local o = Widget.target(self, cx, cy)
-        if    o then return o end
+        var o = Widget.target(self, cx, cy)
+        if    o do return o end
 
-        local tex = self.texture
+        var tex = self.texture
         return (tex.bpp < 32 or check_alpha_mask(tex,
             self.crop_x + cx / self.w * self.crop_w,
             self.crop_y + cy / self.h * self.crop_h)) and self
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.min_filter,
+        var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        if tex == texture_get_notexture() then
+        if tex == texture_get_notexture() do
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 then
+        if minf and minf != 0 do
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf != 0 then
+        if magf and magf != 0 do
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -562,41 +562,41 @@ M.CroppedImage = register_type("CroppedImage", Image, {
 ]]
 M.StretchedImage = register_type("StretchedImage", Image, {
     target = function(self, cx, cy)
-        local o = Widget.target(self, cx, cy)
-        if    o then return o end
-        if self.texture.bpp < 32 then return self end
+        var o = Widget.target(self, cx, cy)
+        if    o do return o end
+        if self.texture.bpp < 32 do return self end
 
-        local mx, my, mw, mh, pw, ph = 0, 0, self._min_w, self._min_h,
+        var mx, my, mw, mh, pw, ph = 0, 0, self._min_w, self._min_h,
                                              self.w,      self.h
 
-        if     pw <= mw          then mx = cx / pw
-        elseif cx <  mw / 2      then mx = cx / mw
-        elseif cx >= pw - mw / 2 then mx = 1 - (pw - cx) / mw
+        if     pw <= mw          do mx = cx / pw
+        elif cx <  mw / 2      do mx = cx / mw
+        elif cx >= pw - mw / 2 do mx = 1 - (pw - cx) / mw
         else   mx = 0.5 end
 
-        if     ph <= mh          then my = cy / ph
-        elseif cy <  mh / 2      then my = cy / mh
-        elseif cy >= ph - mh / 2 then my = 1 - (ph - cy) / mh
+        if     ph <= mh          do my = cy / ph
+        elif cy <  mh / 2      do my = cy / mh
+        elif cy >= ph - mh / 2 do my = 1 - (ph - cy) / mh
         else   my = 0.5 end
 
         return check_alpha_mask(self.texture, mx, my) and self
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.min_filter,
+        var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        if tex == texture_get_notexture() then
+        if tex == texture_get_notexture() do
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 then
+        if minf and minf != 0 do
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf != 0 then
+        if magf and magf != 0 do
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -606,47 +606,47 @@ M.StretchedImage = register_type("StretchedImage", Image, {
         gle_deftexcoord0f(2)
         gle_begin(gl.QUADS)
 
-        local mw, mh, pw, ph = self._min_w, self._min_h, self.w, self.h
+        var mw, mh, pw, ph = self._min_w, self._min_h, self.w, self.h
 
-        local splitw = (mw != 0 and min(mw, pw) or pw) / 2
-        local splith = (mh != 0 and min(mh, ph) or ph) / 2
-        local vy, ty = sy, 0
+        var splitw = (mw != 0 and min(mw, pw) or pw) / 2
+        var splith = (mh != 0 and min(mh, ph) or ph) / 2
+        var vy, ty = sy, 0
 
         for i = 1, 3 do
-            local vh, th = 0, 0
-            if i == 1 then
-                if splith < ph - splith then
+            var vh, th = 0, 0
+            if i == 1 do
+                if splith < ph - splith do
                     vh, th = splith, 0.5
                 else
                     vh, th = ph, 1
                 end
-            elseif i == 2 then
+            elif i == 2 do
                 vh, th = ph - 2 * splith, 0
-            elseif i == 3 then
+            elif i == 3 do
                 vh, th = splith, 0.5
             end
 
-            local vx, tx = sx, 0
+            var vx, tx = sx, 0
 
             for j = 1, 3 do
-                local vw, tw = 0, 0
-                if j == 1 then
-                    if splitw < pw - splitw then
+                var vw, tw = 0, 0
+                if j == 1 do
+                    if splitw < pw - splitw do
                         vw, tw = splitw, 0.5
                     else
                         vw, tw = pw, 1
                     end
-                elseif j == 2 then
+                elif j == 2 do
                     vw, tw = pw - 2 * splitw, 0
-                elseif j == 3 then
+                elif j == 3 do
                     vw, tw = splitw, 0.5
                 end
                 quad(vx, vy, vw, vh, tx, ty, tw, th)
                 vx, tx = vx + vw, tx + tw
-                if  tx >= 1 then break end
+                if  tx >= 1 do break end
             end
             vy, ty = vy + vh, ty + th
-            if  ty >= 1 then break end
+            if  ty >= 1 do break end
         end
 
         gle_end()
@@ -677,50 +677,50 @@ M.BorderedImage = register_type("BorderedImage", Image, {
     layout = function(self)
         Widget.layout(self)
 
-        local sb = self.screen_border
+        var sb = self.screen_border
         self.w = max(self.w, 2 * sb)
         self.h = max(self.h, 2 * sb)
     end,
 
     target = function(self, cx, cy)
-        local o = Widget.target(self, cx, cy)
-        if    o then return o end
+        var o = Widget.target(self, cx, cy)
+        if    o do return o end
 
-        local tex = self.texture
+        var tex = self.texture
 
-        if tex.bpp < 32 then
+        if tex.bpp < 32 do
             return self
         end
 
-        local mx, my, tb, sb = 0, 0, self.tex_border, self.screen_border
-        local pw, ph = self.w, self.h
+        var mx, my, tb, sb = 0, 0, self.tex_border, self.screen_border
+        var pw, ph = self.w, self.h
 
-        if     cx <  sb      then mx = cx / sb * tb
-        elseif cx >= pw - sb then mx = 1 - tb + (cx - (pw - sb)) / sb * tb
+        if     cx <  sb      do mx = cx / sb * tb
+        elif cx >= pw - sb do mx = 1 - tb + (cx - (pw - sb)) / sb * tb
         else   mx = tb + (cx - sb) / (pw - 2 * sb) * (1 - 2 * tb) end
 
-        if     cy <  sb      then my = cy / sb * tb
-        elseif cy >= ph - sb then my = 1 - tb + (cy - (ph - sb)) / sb * tb
+        if     cy <  sb      do my = cy / sb * tb
+        elif cy >= ph - sb do my = 1 - tb + (cy - (ph - sb)) / sb * tb
         else   my = tb + (cy - sb) / (ph - 2 * sb) * (1 - 2 * tb) end
 
         return check_alpha_mask(tex, mx, my) and self
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.min_filter,
+        var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        if tex == texture_get_notexture() then
+        if tex == texture_get_notexture() do
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 then
+        if minf and minf != 0 do
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf != 0 then
+        if magf and magf != 0 do
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
@@ -730,18 +730,18 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         gle_deftexcoord0f(2)
         gle_begin(gl.QUADS)
 
-        local vy, ty = sy, 0
+        var vy, ty = sy, 0
         for i = 1, 3 do
-            local vh, th = 0, 0
-            if i == 2 then
+            var vh, th = 0, 0
+            if i == 2 do
                 vh, th = self.h - 2 * sb, 1 - 2 * tb
             else
                 vh, th = sb, tb
             end
-            local vx, tx = sx, 0
+            var vx, tx = sx, 0
             for j = 1, 3 do
-                local vw, tw = 0, 0
-                if j == 2 then
+                var vw, tw = 0, 0
+                if j == 2 do
                     vw, tw = self.w - 2 * sb, 1 - 2 * tb
                 else
                     vw, tw = sb, tb
@@ -785,51 +785,51 @@ M.TiledImage = register_type("TiledImage", Image, {
     end,
 
     target = function(self, cx, cy)
-        local o = Widget.target(self, cx, cy)
-        if    o then return o end
+        var o = Widget.target(self, cx, cy)
+        if    o do return o end
 
-        local tex = self.texture
+        var tex = self.texture
 
-        if tex.bpp < 32 then return self end
+        if tex.bpp < 32 do return self end
 
-        local tw, th = self.tile_w, self.tile_h
-        local dx, dy = cx % tw, cy % th
+        var tw, th = self.tile_w, self.tile_h
+        var dx, dy = cx % tw, cy % th
 
         return check_alpha_mask(tex, dx / tw, dy / th) and self
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.min_filter,
+        var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
-        if tex == texture_get_notexture() then
+        if tex == texture_get_notexture() do
             return Filler.draw(self, sx, sy)
         end
 
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 then
+        if minf and minf != 0 do
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
-        if magf and magf != 0 then
+        if magf and magf != 0 do
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         self.color:init()
 
-        local pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
+        var pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
 
         -- we cannot use the built in OpenGL texture
         -- repeat with clamped textures
-        if tex.clamp != 0 then
-            local dx, dy = 0, 0
+        if tex.clamp != 0 do
+            var dx, dy = 0, 0
             gle_defvertexf(2)
             gle_deftexcoord0f(2)
             gle_begin(gl.QUADS)
             while dx < pw do
                 while dy < ph do
-                    local dw, dh = min(tw, pw - dx), min(th, ph - dy)
+                    var dw, dh = min(tw, pw - dx), min(th, ph - dy)
                     quad(sx + dx, sy + dy, dw, dh, 0, 0, dw / tw, dh / th)
                     dy = dy + th
                 end
@@ -877,9 +877,9 @@ M.Thumbnail = register_type("Thumbnail", Image, {
     end,
 
     load = function(self, force)
-        if self.loaded then return end
-        local tex = thumbnail_load(self.file, force)
-        if tex != texture_get_notexture() then
+        if self.loaded do return end
+        var tex = thumbnail_load(self.file, force)
+        if tex != texture_get_notexture() do
             self.loaded = true
             self.texture = tex
         end
@@ -887,7 +887,7 @@ M.Thumbnail = register_type("Thumbnail", Image, {
 
     --[[!
         Unlike the regular target in $Image, this force-loads the thumbnail
-        texture and then targets. See also {{$Image.target}}.
+        texture and do targets. See also {{$Image.target}}.
     ]]
     target = function(self, cx, cy)
         self:load(true)
@@ -908,8 +908,8 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         doesn't do anything.
     ]]
     set_fallback = function(self, fallback)
-        if self.loaded then return end
-        if fallback then self.texture = texture_load(fallback) end
+        if self.loaded do return end
+        if fallback do self.texture = texture_load(fallback) end
     end
 })
 
@@ -972,14 +972,14 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
 
     -- turn the table into a ffi-friendly array
     build_attachments = function(self)
-        local att = self.attachments
-        if att == self._last_attachments then
+        var att = self.attachments
+        if att == self._last_attachments do
             return self._c_attachments, #att * 2
         end
-        local n = #att * 2
-        local stor = ffi_new("const char*[?]", n)
+        var n = #att * 2
+        var stor = ffi_new("const char*[?]", n)
         for i = 0, #att - 1 do
-            local at = att[i + 1]
+            var at = att[i + 1]
             stor[i * 2], stor[i * 2 + 1] = at[1], at[2]
         end
         self._c_attachments = stor
@@ -988,22 +988,22 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local w, h in self
-        local csl = #clip_stack > 0
-        if csl then gl_scissor_disable() end
-        local sx1, sy1, sx2, sy2 = self:get_root():get_projection()
+        var w, h in self
+        var csl = #clip_stack > 0
+        if csl do gl_scissor_disable() end
+        var sx1, sy1, sx2, sy2 = self:get_root():get_projection()
             :calc_scissor(sx, sy, sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
-        local anim = self.anim
+        var anim = self.anim
         model_preview(self.model, anim, self:build_attachments())
-        if csl then self:get_root():clip_scissor() end
+        if csl do self:get_root():clip_scissor() end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         gl_blend_enable()
-        if csl then gl_scissor_enable() end
+        if csl do gl_scissor_enable() end
         return Widget.draw(self, sx, sy)
     end,
 
@@ -1034,24 +1034,24 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local prefab = self.prefab
-        if not prefab then return Widget.draw(self, sx, sy) end
-        local w, h in self
-        local csl = #clip_stack > 0
-        if csl then gl_scissor_disable() end
-        local sx1, sy1, sx2, sy2 = self:get_root():get_projection()
+        var prefab = self.prefab
+        if not prefab do return Widget.draw(self, sx, sy) end
+        var w, h in self
+        var csl = #clip_stack > 0
+        if csl do gl_scissor_disable() end
+        var sx1, sy1, sx2, sy2 = self:get_root():get_projection()
             :calc_scissor(sx, sy, sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
-        local col = self.color
+        var col = self.color
         prefab_preview(prefab, col.r / 255, col.g / 255, col.b / 255)
-        if csl then self:get_root():clip_scissor() end
+        if csl do self:get_root():clip_scissor() end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         gl_blend_enable()
-        if csl then gl_scissor_enable() end
+        if csl do gl_scissor_enable() end
         return Widget.draw(self, sx, sy)
     end,
 
@@ -1069,7 +1069,7 @@ M.Console = register_type("Console", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local k = self:draw_scale()
+        var k = self:draw_scale()
         hudmatrix_push()
         hudmatrix_translate(sx, sy, 0)
         hudmatrix_scale(k, k, 1)
@@ -1080,9 +1080,9 @@ M.Console = register_type("Console", Filler, {
     end
 })
 
-local SOLID    = 0
-local OUTLINE  = 1
-local MODULATE = 2
+var SOLID    = 0
+var OUTLINE  = 1
+var MODULATE = 2
 
 --[[!
     Represents a generic shape that derives from $Filler.
@@ -1110,7 +1110,7 @@ M.Shape = register_type("Shape", Filler, {
     --! Function: set_color
     set_color = gen_color_setter "color"
 })
-local Shape = M.Shape
+var Shape = M.Shape
 
 --[[!
     A regular triangle that derives from $Shape.  Its width and height is
@@ -1129,35 +1129,35 @@ M.Triangle = register_type("Triangle", Shape, {
     layout = function(self)
         Widget.layout(self)
 
-        local w, h = self.min_w, self.min_h
-        if type(w) == "function" then w = w(self) end
-        if type(h) == "function" then h = h(self) end
-        local angle = self.angle
-        local r = self:get_root()
+        var w, h = self.min_w, self.min_h
+        if type(w) == "function" do w = w(self) end
+        if type(h) == "function" do h = h(self) end
+        var angle = self.angle
+        var r = self:get_root()
 
-        if w < 0 then w = r:get_ui_size(abs(w)) end
-        if h < 0 then h = r:get_ui_size(abs(h)) end
+        if w < 0 do w = r:get_ui_size(abs(w)) end
+        if h < 0 do h = r:get_ui_size(abs(h)) end
 
-        local proj = r:get_projection()
-        if w == huge then w = proj.pw end
-        if h == huge then h = proj.ph end
+        var proj = r:get_projection()
+        if w == huge do w = proj.pw end
+        if h == huge do h = proj.ph end
 
-        local a = Vec2(0, -h * 2 / 3)
-        local b = Vec2(-w / 2, h / 3)
-        local c = Vec2( w / 2, h / 3)
+        var a = Vec2(0, -h * 2 / 3)
+        var b = Vec2(-w / 2, h / 3)
+        var c = Vec2( w / 2, h / 3)
 
-        if angle != 0 then
-            local rot = sincosmod360(-angle)
+        if angle != 0 do
+            var rot = sincosmod360(-angle)
             a:rotate_around_z(rot)
             b:rotate_around_z(rot)
             c:rotate_around_z(rot)
         end
 
-        local bbmin = Vec2(a):min(b):min(c)
+        var bbmin = Vec2(a):min(b):min(c)
         a:sub(bbmin)
         b:sub(bbmin)
         c:sub(bbmin)
-        local bbmax = Vec2(a):max(b):max(c)
+        var bbmax = Vec2(a):max(b):max(c)
 
         self.ta, self.tb, self.tc = a, b, c
 
@@ -1166,19 +1166,19 @@ M.Triangle = register_type("Triangle", Shape, {
     end,
 
     target = function(self, cx, cy)
-        local o = Widget.target(self, cx, cy)
-        if o then return o end
-        if self.style == OUTLINE then return nil end
-        local a, b, c = self.ta, self.tb, self.tc
-        local side = Vec2(cx, cy):sub(b):cross(Vec2(a):sub(b)) < 0
+        var o = Widget.target(self, cx, cy)
+        if o do return o end
+        if self.style == OUTLINE do return nil end
+        var a, b, c = self.ta, self.tb, self.tc
+        var side = Vec2(cx, cy):sub(b):cross(Vec2(a):sub(b)) < 0
         return ((Vec2(cx, cy):sub(c):cross(Vec2(b):sub(c)) < 0) == side
             and (Vec2(cx, cy):sub(a):cross(Vec2(c):sub(a)) < 0) == side)
             and self or nil
     end,
 
     draw = function(self, sx, sy)
-        local color, style in self
-        if style == MODULATE then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+        var color, style in self
+        if style == MODULATE do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
         color:init()
         gle_defvertexf(2)
@@ -1189,7 +1189,7 @@ M.Triangle = register_type("Triangle", Shape, {
         gle_end()
         gle_color4f(1, 1, 1, 1)
         shader_hud_set()
-        if style == MODULATE then
+        if style == MODULATE do
             gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
         return Shape.draw(self, sx, sy)
@@ -1216,21 +1216,21 @@ M.Circle = register_type("Circle", Shape, {
     end,
 
     target = function(self, cx, cy)
-        local o = Widget.target(self, cx, cy)
-        if o then return o end
-        if self.style == OUTLINE then return nil end
-        local r = min(self.w, self.h)
+        var o = Widget.target(self, cx, cy)
+        if o do return o end
+        if self.style == OUTLINE do return nil end
+        var r = min(self.w, self.h)
         return (Vec2(cx, cy):sub(r):squared_len() <= (r * r)) and self or nil
     end,
 
     draw = function(self, sx, sy)
-        local color, style in self
+        var color, style in self
         shader_hudnotexture_set()
         color:init()
         gle_defvertexf(2)
-        local radius = min(self.w, self.h) / 2
-        local center = Vec2(sx + radius, sy + radius)
-        if style == OUTLINE then
+        var radius = min(self.w, self.h) / 2
+        var center = Vec2(sx + radius, sy + radius)
+        if style == OUTLINE do
             gle_begin(gl.LINE_LOOP)
             for angle = 0, 359, 360 / self.sides do
                 gle_attrib2f(sincos360(angle):mul_new(radius)
@@ -1238,19 +1238,19 @@ M.Circle = register_type("Circle", Shape, {
             end
             gle_end()
         else
-            if style == MODULATE then gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+            if style == MODULATE do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
             gle_begin(gl.TRIANGLE_FAN)
             gle_attrib2f(center.x,          center.y)
             gle_attrib2f(center.x + radius, center.y)
-            local sides = self.sides
+            var sides = self.sides
             for angle = (360 / sides), 359, 360 / sides do
-                local p = sincos360(angle):mul_new(radius):add(center)
+                var p = sincos360(angle):mul_new(radius):add(center)
                 gle_attrib2f(p:unpack())
                 gle_attrib2f(p:unpack())
             end
             gle_attrib2f(center.x + radius, center.y)
             gle_end()
-            if style == MODULATE then
+            if style == MODULATE do
                 gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
             end
         end
@@ -1296,7 +1296,7 @@ M.Label = register_type("Label", Widget, {
     end,
 
     draw_scale = function(self)
-        local scale = self.scale
+        var scale = self.scale
         return (abs(scale) * self:get_root():get_text_scale(scale < 0))
             / text_font_get_h()
     end,
@@ -1306,13 +1306,13 @@ M.Label = register_type("Label", Widget, {
         text_font_set(self.font)
         hudmatrix_push()
 
-        local k = self:draw_scale()
+        var k = self:draw_scale()
         hudmatrix_scale(k, k, 1)
         hudmatrix_flush()
 
-        local w = self.wrap
-        local text = tostring(self.text)
-        local color = self.color
+        var w = self.wrap
+        var text = tostring(self.text)
+        var color = self.color
         text_draw(text, sx / k, sy / k,
             color.r, color.g, color.b, color.a, -1, w <= 0 and -1 or w / k)
 
@@ -1328,12 +1328,12 @@ M.Label = register_type("Label", Widget, {
 
         text_font_push()
         text_font_set(self.font)
-        local k = self:draw_scale()
+        var k = self:draw_scale()
 
-        local w, h = text_get_bounds(self.text,
+        var w, h = text_get_bounds(self.text,
             self.wrap <= 0 and -1 or self.wrap / k)
 
-        if self.wrap <= 0 then
+        if self.wrap <= 0 do
             self.w = max(self.w, w * k)
         else
             self.w = max(self.w, min(self.wrap, w * k))
@@ -1380,23 +1380,23 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
     end,
 
     draw_scale = function(self)
-        local scale = self.scale
+        var scale = self.scale
         return (abs(scale) * self:get_root():get_text_scale(scale < 0))
             / text_font_get_h()
     end,
 
     draw = function(self, sx, sy)
-        local  val = self.val_saved
-        if not val then return Widget.draw(self, sx, sy) end
+        var  val = self.val_saved
+        if not val do return Widget.draw(self, sx, sy) end
 
-        local k = self.scale_saved
+        var k = self.scale_saved
         hudmatrix_push()
         hudmatrix_scale(k, k, 1)
         hudmatrix_flush()
 
-        local w = self.wrap
-        local text = tostring(val) or ""
-        local color = self.color
+        var w = self.wrap
+        var text = tostring(val) or ""
+        var color = self.color
         text_draw(text, sx / k, sy / k,
             color.r, color.g, color.b, color.a, -1, w <= 0 and -1 or w / k)
 
@@ -1409,18 +1409,18 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
     layout = function(self)
         Widget.layout(self)
 
-        local  cmd = self.func
-        if not cmd then return end
-        local val = cmd(self)
+        var  cmd = self.func
+        if not cmd do return end
+        var val = cmd(self)
         self.val_saved = val
 
-        local k = self:draw_scale()
+        var k = self:draw_scale()
         self.scale_saved = k
 
-        local w, h = text_get_bounds(val or "",
+        var w, h = text_get_bounds(val or "",
             self.wrap <= 0 and -1 or self.wrap / k)
 
-        if self.wrap <= 0 then
+        if self.wrap <= 0 do
             self.w = max(self.w, w * k)
         else
             self.w = max(self.w, min(self.wrap, w * k))

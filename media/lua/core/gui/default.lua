@@ -1,36 +1,36 @@
-local capi = require("capi")
-local ffi = require("ffi")
-local cs = require("core.engine.cubescript")
-local edit = require("core.engine.edit")
-local input = require("core.engine.input")
-local changes = require("core.engine.changes")
-local signal = require("core.events.signal")
-local ents = require("core.entities.ents")
-local svars = require("core.entities.svars")
-local gui = require("core.gui.core")
+var capi = require("capi")
+var ffi = require("ffi")
+var cs = require("core.engine.cubescript")
+var edit = require("core.engine.edit")
+var input = require("core.engine.input")
+var changes = require("core.engine.changes")
+var signal = require("core.events.signal")
+var ents = require("core.entities.ents")
+var svars = require("core.entities.svars")
+var gui = require("core.gui.core")
 
-local root = gui.get_root()
+var root = gui.get_root()
 
-local Color = gui.Color
-local connect = signal.connect
-local max = math.max
-local tostring = tostring
-local sort = table.sort
+var Color = gui.Color
+var connect = signal.connect
+var max = math.max
+var tostring = tostring
+var sort = table.sort
 
 -- buttons
 
-local btnp  = { "label", "min_w", "min_h" }
-local btnv  = { __properties = btnp }
-local btnvb = { __properties = btnp }
+var btnp  = { "label", "min_w", "min_h" }
+var btnv  = { __properties = btnp }
+var btnvb = { __properties = btnp }
 gui.Button.__variants = { default = btnv, nobg = btnvb }
 
-local btnv_init_clone = |self, btn| do
-    local lbl = gui.Label { text = btn.label }
+var btnv_init_clone = |self, btn| do
+    var lbl = gui.Label { text = btn.label }
     self:append(lbl)
     connect(btn, "label,changed", |b, t| do lbl:set_text(t) end)
 end
 
-local btn_build_variant = |color| gui.Gradient {
+var btn_build_variant = |color| gui.Gradient {
     color = 0x202020, color2 = 0x101010, clamp_h = true,
     init_clone = |self, btn| do
         self:set_min_w(btn.min_w or 0)
@@ -44,7 +44,7 @@ local btn_build_variant = |color| gui.Gradient {
     }
 }
 
-local btn_build_variant_nobg = || gui.Filler {
+var btn_build_variant_nobg = || gui.Filler {
     clamp_h = true, init_clone = |self, btn| do
         self:set_min_w(btn.min_w or 0)
         self:set_min_h(btn.min_h or 0)
@@ -63,7 +63,7 @@ btnvb["default"     ] = btn_build_variant_nobg()
 btnvb["hovering"    ] = btn_build_variant(0x404040)
 btnvb["clicked_left"] = btn_build_variant(0x303030)
 
-local mbtnv, vmbtnv, smbtnv =
+var mbtnv, vmbtnv, smbtnv =
     { __properties  = { "label" } },
     { __properties  = { "label" } },
     { __properties  = { "label" } }
@@ -87,7 +87,7 @@ smbtnv["clicked_left"] = btn_build_variant(0x404040)
 
 -- (v)slot viewer buttons
 
-local slotbtn_init_clone = |self, btn| do
+var slotbtn_init_clone = |self, btn| do
     self:set_min_w(btn.min_w or 0)
     self:set_min_h(btn.min_h or 0)
     self:set_index(btn.index or 0)
@@ -151,7 +151,7 @@ gui.Filler.__variants = {
             color = 0xF0202020, color2 = 0xF0101010, gui.Outline {
                 color = 0x303030, clamp = true, gui.Spacer {
                     pad_h = 0.01, pad_v = 0.005, init_clone = |self, ttip| do
-                        local lbl = gui.Label { text = ttip.label }
+                        var lbl = gui.Label { text = ttip.label }
                         self:append(lbl)
                         connect(ttip, "label,changed", |o, t| do
                             lbl:set_text(t) end)
@@ -164,7 +164,7 @@ gui.Filler.__variants = {
 
 -- checkboxes, radioboxes
 
-local ckbox_build_variant = |color, tgl| gui.ColorFiller {
+var ckbox_build_variant = |color, tgl| gui.ColorFiller {
     color = 0x202020, min_w = 0.02, min_h = 0.02,
     gui.Outline {
         color = color, clamp = true, tgl and gui.Spacer {
@@ -176,7 +176,7 @@ local ckbox_build_variant = |color, tgl| gui.ColorFiller {
     }
 }
 
-local rdbtn_build_variant = |color, tgl| gui.Circle {
+var rdbtn_build_variant = |color, tgl| gui.Circle {
     color = 0x202020, min_w = 0.02, min_h = 0.02,
     gui.Circle {
         style = gui.Circle.OUTLINE, color = color, clamp = true,
@@ -191,7 +191,7 @@ local rdbtn_build_variant = |color, tgl| gui.Circle {
     }
 }
 
-local ckboxv, rdbtnv = {}, {}
+var ckboxv, rdbtnv = {}, {}
 
 gui.Toggle.__variants = {
     checkbox = ckboxv,
@@ -213,7 +213,7 @@ rdbtnv["toggled_focused" ] = rdbtn_build_variant(0x606060, true)
 
 -- scrollbars
 
-local sb_buildh = |lac, rac| gui.Outline {
+var sb_buildh = |lac, rac| gui.Outline {
     clamp_h = true, color = 0x303030,
     gui.Filler { min_w = 0.02, min_h = 0.02, align_h = -1,
         gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
@@ -227,7 +227,7 @@ local sb_buildh = |lac, rac| gui.Outline {
     }
 }
 
-local sb_buildv = |lac, rac| gui.Filler {
+var sb_buildv = |lac, rac| gui.Filler {
     clamp_v = true,
     gui.Filler { min_w = 0.02, min_h = 0.02, align_v = -1,
         gui.Triangle { style = gui.Triangle.OUTLINE, color = lac,
@@ -293,11 +293,11 @@ gui.HProgressBar.__variants = {
         gui.ColorFiller { color = 0xF0101010, clamp = true,
             gui.Outline { color = 0x404040, clamp = true },
             init_clone = |self, pb| do
-                local bar = gui.Gradient { color = 0xF0353535,
+                var bar = gui.Gradient { color = 0xF0353535,
                     color2 = 0xF0252525, clamp_v = true,
                     gui.Outline { color = 0x404040, clamp = true }
                 }
-                local lbl = gui.Label { text = pb:gen_label(), scale = 0.8 }
+                var lbl = gui.Label { text = pb:gen_label(), scale = 0.8 }
                 pb:set_bar(bar)
                 self:append(bar)
                 self:append(lbl)
@@ -314,11 +314,11 @@ gui.VProgressBar.__variants = {
         gui.ColorFiller { color = 0xF0101010, clamp = true,
             gui.Outline { color = 0x404040, clamp = true },
             init_clone = |self, pb| do
-                local bar = gui.Gradient { color = 0xF0353535,
+                var bar = gui.Gradient { color = 0xF0353535,
                     color2 = 0xF0252525, clamp_h = true, horizontal = true,
                     gui.Outline { color = 0x404040, clamp = true }
                 }
-                local lbl = gui.Label { text = pb:gen_label(), scale = 0.8 }
+                var lbl = gui.Label { text = pb:gen_label(), scale = 0.8 }
                 pb:set_bar(bar)
                 self:append(bar)
                 self:append(lbl)
@@ -332,12 +332,12 @@ gui.VProgressBar.__variants = {
 
 -- windows
 
-local window_build_titlebar = || gui.Gradient {
+var window_build_titlebar = || gui.Gradient {
     color = 0xF0202020, color2 = 0xF0101010, clamp_h = true,
     gui.Spacer {
         pad_h = 0.004, pad_v = 0.004,
         init_clone = |self, win| do
-            local lbl = gui.Label { text = win.title or win.obj_name }
+            var lbl = gui.Label { text = win.title or win.obj_name }
             self:append(lbl)
             connect(win, "title,changed", |w, t| do
                 lbl:set_text(t or w.obj_name) end)
@@ -345,7 +345,7 @@ local window_build_titlebar = || gui.Gradient {
     }
 }
 
-local window_build_regular = |mov| gui.Filler {
+var window_build_regular = |mov| gui.Filler {
     clamp = true,
     gui.VBox {
         clamp = true,
@@ -412,8 +412,8 @@ gui.Window.__variants = {
 
 -- default windows
 
-local progress_bar, progress_label
-local progress_win = gui.Window { __init = |win| do
+var progress_bar, progress_label
+var progress_win = gui.Window { __init = |win| do
     win:append(gui.VBox(), |b| do
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0.01 }, |sp| do
             progress_label = sp:append(gui.Label())
@@ -425,7 +425,7 @@ local progress_win = gui.Window { __init = |win| do
     end)
 end }
 
-local set_ext = require("core.externals").set
+var set_ext = require("core.externals").set
 
 set_ext("progress_render", function(v, text)
     progress_bar:set_value(v)
@@ -433,22 +433,22 @@ set_ext("progress_render", function(v, text)
     gui.__draw_window(progress_win)
 end)
 
-local bg_win = function(mapname, mapinfo, mapshot, caption)
-    local win = gui.Window()
+var bg_win = function(mapname, mapinfo, mapshot, caption)
+    var win = gui.Window()
     win:set_input_grab(false)
     win:align(0, 1)
     win:append(gui.VBox(), |b| do
-        if mapname then
+        if mapname do
             b:append(gui.Label { text = mapname, scale = 1.5 })
         end
-        if mapinfo then b:append(gui.Label { text = mapinfo }) end
-        if mapshot then
+        if mapinfo do b:append(gui.Label { text = mapinfo }) end
+        if mapshot do
             b:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02 }, |sp| do
                 sp:append(gui.Image { min_w = 0.2, min_h = 0.2 },
                     |img| do img.texture = mapshot end)
             end)
         end
-        if caption then
+        if caption do
             b:append(gui.Label { text = caption, scale = 1.5 })
         end
         b:append(gui.Filler { min_h = 0.05 })
@@ -456,34 +456,34 @@ local bg_win = function(mapname, mapinfo, mapshot, caption)
     return win
 end
 
-local hw_tex_size = 0
-local max_tex_size = cs.var_get("maxtexsize")
+var hw_tex_size = 0
+var max_tex_size = cs.var_get("maxtexsize")
 
 connect(cs, "maxtexsize,changed", |self, val| do max_tex_size = val end)
 
-local get_logo = function(root, win)
-    if  hw_tex_size == 0 then
+var get_logo = function(root, win)
+    if  hw_tex_size == 0 do
         hw_tex_size = cs.var_get("hwtexsize")
     end
-    local sz = ((max_tex_size ~= 0) and math.min(max_tex_size, hw_tex_size)
+    var sz = ((max_tex_size ~= 0) and math.min(max_tex_size, hw_tex_size)
                                      or hw_tex_size)
-    local w, h = root:get_pixel_w(), root:get_pixel_h()
-    local logo
-    if (sz >= 1024) and ((w > 1280) or (h > 800)) then
+    var w, h = root:get_pixel_w(), root:get_pixel_h()
+    var logo
+    if (sz >= 1024) and ((w > 1280) or (h > 800)) do
         logo = "<premul>media/interface/logo_1024"
     else
         logo = "<premul>media/interface/logo"
     end
     win.x, win.y, win.parent, win._root = 0, 0, root, root
-    local proj = win:get_projection()
+    var proj = win:get_projection()
     proj:calc()
-    local lw = math.min(proj.pw, proj.ph)
+    var lw = math.min(proj.pw, proj.ph)
     return logo, lw, lw / 2
 end
 
-local bg_under = function(root)
-    local win = gui.Overlay()
-    local logo, lw, lh = get_logo(root, win)
+var bg_under = function(root)
+    var win = gui.Overlay()
+    var logo, lw, lh = get_logo(root, win)
     win:append(gui.Image { file = "media/interface/background",
         min_w = 1/0, min_h = 1/0 })
     win:append(gui.Image { file = "media/interface/shadow",
@@ -494,7 +494,7 @@ local bg_under = function(root)
 end
 
 set_ext("background_render", function(caption, mapname, mapinfo, mapshot)
-    local root = gui.get_root()
+    var root = gui.get_root()
     root:calc_text_scale()
     root:layout_dim()
     gui.__draw_window(bg_under(root))
@@ -511,9 +511,9 @@ cs.var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
 cs.var_new("hidechanges", cs.var_type.int, 0, 0, 1)
 
 connect(changes, "add", |self, ctype, desc| do
-    if cs.var_get("applydialog") == 0 then return end
+    if cs.var_get("applydialog") == 0 do return end
     changes.add(ctype, desc)
-    if cs.var_get("hidechanges") == 0 then
+    if cs.var_get("hidechanges") == 0 do
         root:show_window("changes")
     end
 end)
@@ -557,13 +557,13 @@ root:new_window("texture", gui.Window, |win| do
     win:set_variant("movable")
     win:set_title("Textures")
     win:append(gui.HBox(), |hb| do
-        local s
+        var s
         hb:append(gui.Outline(), |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
                 sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
                     sc:append(gui.Grid { columns = 8, padding = 0.01 }, |gr| do
                         for i = 1, capi.slot_texmru_num() do
-                            local mru = capi.slot_texmru(i - 1)
+                            var mru = capi.slot_texmru(i - 1)
                             gr:append(gui.Button { variant = "vslot",
                                 index = mru, min_w = 0.095, min_h = 0.095
                             }, |b| do
@@ -582,10 +582,10 @@ root:new_window("texture", gui.Window, |win| do
     end)
 end)
 
-local fields = {
+var fields = {
     [svars.StateBoolean] = function(hb, nm, ent, dv)
-        local tvar = (dv == "true")
-        local ret
+        var tvar = (dv == "true")
+        var ret
         hb:append(gui.Filler { min_w = 0.4 }, |f| do
             f:append(gui.Toggle { variant = "checkbox", condition = || tvar,
                 align_h = -1
@@ -600,7 +600,7 @@ local fields = {
         return ret
     end
 }
-local field_def = function(hb, nm, ent, dv)
+var field_def = function(hb, nm, ent, dv)
     return hb:append(gui.Field { clip_w = 0.4, value = dv }, |ed| do
         connect(ed, "value,changed", |ed, v| do
             ent:set_gui_attr(nm, v)
@@ -611,11 +611,11 @@ end
 root:new_window("entity", gui.Window, |win| do
     win:set_floating(true)
     win:set_variant("movable")
-    local  ent = capi.get_selected_entity()
-    if not ent then
+    var  ent = capi.get_selected_entity()
+    if not ent do
         ent = ents.get_player()
     end
-    if not ent then
+    if not ent do
         win:set_title("Entity editing: none")
         win:append(gui.Spacer { pad_h = 0.04, pad_v = 0.03,
             gui.Label { text = "No selected entity" }
@@ -623,16 +623,16 @@ root:new_window("entity", gui.Window, |win| do
         return
     end
     win:set_title(("Entity editing: %s (%d)"):format(ent.name, ent.uid))
-    local props = {}
-    local sdata = {}
-    local sdata_raw = ent:build_sdata()
+    var props = {}
+    var sdata = {}
+    var sdata_raw = ent:build_sdata()
 
-    local nfields = 0
-    local prefix = "_SV_"
+    var nfields = 0
+    var prefix = "_SV_"
     for k, v in pairs(sdata_raw) do
-        local sv = ent[prefix .. k]
-        local gn = sv.gui_name
-        if gn != false then
+        var sv = ent[prefix .. k]
+        var gn = sv.gui_name
+        if gn != false do
             nfields += 1
             sdata[k] = { gn or k, v, sv }
             props[nfields] = k
@@ -641,25 +641,25 @@ root:new_window("entity", gui.Window, |win| do
     sort(props)
 
     win:append(gui.HBox(), |hb| do
-        local s
+        var s
         hb:append(gui.Outline { color = 0x303030 }, |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
                 sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, |sc| do
                     sc:append(gui.VBox(), |vb| do
-                        local fpf, pf
+                        var fpf, pf
                         for i = 1, nfields do
-                            local nm = props[i]
-                            local sd = sdata[nm]
-                            local gn, dv, sv = sd[1], sd[2], sd[3]
+                            var nm = props[i]
+                            var sd = sdata[nm]
+                            var gn, dv, sv = sd[1], sd[2], sd[3]
                             vb:append(gui.HBox { align_h = 1 }, |hb| do
                                 hb:append(gui.Label { text = " "..sd[1]..": " })
-                                local fld = fields[sv.__proto] or field_def
-                                local fd = fld(hb, gn, ent, dv)
-                                if pf then pf:set_tab_next(fd) end
+                                var fld = fields[sv.__proto] or field_def
+                                var fd = fld(hb, gn, ent, dv)
+                                if pf do pf:set_tab_next(fd) end
                                 pf = fd
-                                if not fpf then fpf = fd end
+                                if not fpf do fpf = fd end
                             end)
-                            if fpf and pf and pf != fpf then
+                            if fpf and pf and pf != fpf do
                                 pf:set_tab_next(fpf)
                             end
                         end
@@ -681,22 +681,22 @@ root:new_window("entity_new", gui.Window, |win| do
     win:set_variant("movable")
     win:set_title("New entity")
 
-    local cnames = {}
+    var cnames = {}
     for k, v in pairs(ents.get_all_prototypes()) do
-        if v:is_a(ents.StaticEntity) then
+        if v:is_a(ents.StaticEntity) do
             cnames[#cnames + 1] = k
         end
     end
     sort(cnames)
 
     win:append(gui.HBox(), |hb| do
-        local s
+        var s
         hb:append(gui.Outline { color = 0x303030 }, |o| do
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, |sp| do
                 sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.6 }, |sc| do
                     sc:append(gui.VBox(), |vb| do
                         for i = 1, #cnames do
-                            local n = cnames[i]
+                            var n = cnames[i]
                             vb:append(gui.Button {
                                 variant = "nobg", min_w = 0.3, label = n
                             }, |btn| do

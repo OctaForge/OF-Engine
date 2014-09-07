@@ -8,9 +8,9 @@
         See COPYING.txt.
 ]]
 
-local log = require("core.logger")
+var log = require("core.logger")
 
-local floor, min, max, abs = math.floor, math.min, math.max, math.abs
+var floor, min, max, abs = math.floor, math.min, math.max, math.abs
 
 --[[!
     Rounds a given number and returns it. The second argument can be used to
@@ -18,7 +18,7 @@ local floor, min, max, abs = math.floor, math.min, math.max, math.abs
     (rounding to integers).
 ]]
 math.round = function(v, d)
-    local m = 10 ^ (d or 0)
+    var m = 10 ^ (d or 0)
     return floor(v * m + 0.5) / m
 end
 

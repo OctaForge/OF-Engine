@@ -9,26 +9,26 @@
         See COPYING.txt.
 ]]
 
-local ents = require("core.entities.ents")
-local svars = require("core.entities.svars")
-local particles = require("core.engine.particles")
+var ents = require("core.entities.ents")
+var svars = require("core.entities.svars")
+var particles = require("core.engine.particles")
 
-local min, rand = math.min, math.random
-local format = string.format
+var min, rand = math.min, math.random
+var format = string.format
 
-local flame, splash = particles.flame, particles.splash
-local pflags = particles.flags
-local quadrenderer = particles.register_renderer_quad
-local ParticleEffect = ents.ParticleEffect
+var flame, splash = particles.flame, particles.splash
+var pflags = particles.flags
+var quadrenderer = particles.register_renderer_quad
+var ParticleEffect = ents.ParticleEffect
 
 --! Module: particles
-local M = {}
+var M = {}
 
 --[[! Table: particles.renderers
     Provides some extra renderers - "smoke", "flame" and "steam" used
     by the effect entities. On the client only, on the server this is nil.
 ]]
-local renderers = @[not server,{
+var renderers = @[not server,{
     smoke = quadrenderer("smoke", "media/particle/smoke",
         pflags.FLIP | pflags.LERP),
     flame = quadrenderer("flame", "media/particle/flames",
@@ -36,7 +36,7 @@ local renderers = @[not server,{
     steam = quadrenderer("steam", "media/particle/steam", pflags.FLIP)
 },{}]
 
-local cmap = { "x", "y", "z" }
+var cmap = { "x", "y", "z" }
 
 --[[! Function: particles.offset_vec
     This adds or subtracts the distance to the vector component given by
@@ -49,14 +49,14 @@ local cmap = { "x", "y", "z" }
         - dir - a direction (0 to 5 where 0 is up).
         - dist - a distance.
 ]]
-local offset_vec = function(v, dir, dist)
-    local e = cmap[((2 + dir) % 3) + 1]
+var offset_vec = function(v, dir, dist)
+    var e = cmap[((2 + dir) % 3) + 1]
     v[e] = v[e] + ((dir > 2) and -dist or dist)
     return v
 end
 M.offset_vec = offset_vec
 
-local SMOKE, FLAME = renderers.smoke, renderers.flame
+var SMOKE, FLAME = renderers.smoke, renderers.flame
 
 --[[! Object: particles.FireEffect
     A regular fire effect. You can specify radius, height, red, green and blue
@@ -101,12 +101,12 @@ M.FireEffect = ParticleEffect:clone {
     end,
 
     __emit_particles = function(self)
-        local radius = self:get_attr("radius")
-        local height = self:get_attr("height")
-        local r, g, b = self:get_attr("red"), self:get_attr("green"),
+        var radius = self:get_attr("radius")
+        var height = self:get_attr("height")
+        var r, g, b = self:get_attr("red"), self:get_attr("green"),
             self:get_attr("blue")
-        local pos = self:get_attr("position")
-        local spos = { x = pos.x, y = pos.y,
+        var pos = self:get_attr("position")
+        var spos = { x = pos.x, y = pos.y,
             z = pos.z + 4 * min(radius, height) }
         flame(FLAME, pos, radius, height, r / 255, g / 255, b / 255)
         flame(SMOKE, spos, radius, height, 0x30 / 255, 0x30 / 255,
@@ -114,7 +114,7 @@ M.FireEffect = ParticleEffect:clone {
     end
 }
 
-local STEAM = renderers.steam
+var STEAM = renderers.steam
 
 --[[! Object: particles.SteamEffect
     A steam effect. You can pass the direction via newent.
@@ -139,9 +139,9 @@ M.SteamEffect = ParticleEffect:clone {
     end,
 
     __emit_particles = function(self)
-        local dir = self:get_attr("direction")
-        local pos = self:get_attr("position")
-        local d = offset_vec({ x = pos.x, y = pos.y, z = pos.z }, dir, rand(9))
+        var dir = self:get_attr("direction")
+        var pos = self:get_attr("position")
+        var d = offset_vec({ x = pos.x, y = pos.y, z = pos.z }, dir, rand(9))
         splash(STEAM, d, 50, 1, 0x89 / 255, 0x76 / 255, 0x61 / 255,
             200, 2.4, -20)
     end

@@ -7,26 +7,26 @@
 ]]
 
 --! Module: day_manager
-local M = {}
+var M = {}
 
-local signal = require("core.events.signal")
-local ents = require("core.entities.ents")
-local svars = require("core.entities.svars")
-local lights = require("core.engine.lights")
-local edit = require("core.engine.edit")
+var signal = require("core.events.signal")
+var ents = require("core.entities.ents")
+var svars = require("core.entities.svars")
+var lights = require("core.engine.lights")
+var edit = require("core.engine.edit")
 
-local connect, emit = signal.connect, signal.emit
+var connect, emit = signal.connect, signal.emit
 
-local assert = assert
+var assert = assert
 
-local get
+var get
 
-local Entity = ents.Entity
+var Entity = ents.Entity
 
 --[[!
     This is the day manager entity prototype.
 ]]
-local DayManager = Entity:clone {
+var DayManager = Entity:clone {
     name = "DayManager",
 
     __properties = {
@@ -52,21 +52,21 @@ local DayManager = Entity:clone {
     __run = function(self, millis)
         @[not server] do return end
         Entity.__run(self, millis)
-        local dm = self.day_seconds_s * 1000
-        if dm == 0 then return end
-        local dp = self.day_progress_s
+        var dm = self.day_seconds_s * 1000
+        if dm == 0 do return end
+        var dp = self.day_progress_s
         dp += millis
-        if dp >= dm then dp -= dm end
+        if dp >= dm do dp -= dm end
         self:set_attr("day_progress", dp)
         self.day_progress_s = dp
     end
 }
 
-local dayman
+var dayman
 
 --! Gets the day manager instance.
 M.get = function()
-    if not dayman then
+    if not dayman do
         dayman = ents.get_by_prototype("DayManager")[1]
     end
     assert(dayman)
@@ -88,7 +88,7 @@ M.setup = function(plugins)
     end
 end
 
-local getsunscale = function(dayprog)
+var getsunscale = function(dayprog)
     -- the numbers here are very approximate, in reality they'd depend
     -- on the which part of the year it is - here the sun is at the horizon
     -- by 6 AM and 6 PM respectively (equally long night and day) so we need
@@ -96,21 +96,21 @@ local getsunscale = function(dayprog)
     -- we don't get shadows from the bottom) - both dawn and dusk take 2
     -- hours... TODO: more configurable system where you can set how long
     -- is day and night (and affect actual seasons)
-    local r1, r2 = 0.67, 0.75 -- dusk: 4 - 6 hrs
-    local d1, d2 = 0.25, 0.33 -- dawn: 6 - 8 hrs
-    if dayprog > d2 and dayprog < r1 then return 1 end
-    if dayprog > r2  or dayprog < d1 then return 0 end
-    if dayprog > r1 then
+    var r1, r2 = 0.67, 0.75 -- dusk: 4 - 6 hrs
+    var d1, d2 = 0.25, 0.33 -- dawn: 6 - 8 hrs
+    if dayprog > d2 and dayprog < r1 do return 1 end
+    if dayprog > r2  or dayprog < d1 do return 0 end
+    if dayprog > r1 do
         return (r2 - dayprog) / (r2 - r1)
     end
     return (dayprog - d1) / (d2 - d1)
 end
 
-local getsunparams = function(daytime, daylen)
-    local mid = daylen / 2
-    local yaw = 360 - (daytime / daylen) * 360
-    local pitch
-    if daytime <= mid then
+var getsunparams = function(daytime, daylen)
+    var mid = daylen / 2
+    var yaw = 360 - (daytime / daylen) * 360
+    var pitch
+    if daytime <= mid do
         pitch = (daytime / mid) * 180 - 90
     else
         pitch = 90 - ((daytime - mid) / mid) * 180
@@ -128,15 +128,15 @@ M.plugins = {
     ]]
     day_night = {
         __activate = @[not server,function(self)
-            local daylen
+            var daylen
             connect(self, "day_seconds,changed", |self, v| do
                 daylen = v
             end)
             connect(self, "day_progress,changed", |self, v| do
-                if not daylen then return end
-                if edit.player_is_editing() then return end
+                if not daylen do return end
+                if edit.player_is_editing() do return end
                 self.sun_changed_dir = true
-                local yaw, pitch, scale = getsunparams(v, daylen * 1000)
+                var yaw, pitch, scale = getsunparams(v, daylen * 1000)
                 lights.set_sun_yaw_pitch(yaw, pitch)
                 lights.set_sunlight_scale(scale)
                 lights.set_skylight_scale(scale)
@@ -144,7 +144,7 @@ M.plugins = {
         end],
 
         __run = @[not server,function(self)
-            if self.sun_changed_dir and edit.player_is_editing() then
+            if self.sun_changed_dir and edit.player_is_editing() do
                 lights.reset_sun()
                 self.sun_changed_dir = false
             end

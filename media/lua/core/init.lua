@@ -37,8 +37,8 @@ math.randomseed(os.time())
     debug.sethook(trace, "c")
     ```
 ]]
-local trace = function(event, line)
-    local s = debug.getinfo(2, "nSl")
+var trace = function(event, line)
+    var s = debug.getinfo(2, "nSl")
     print("DEBUG:")
     print("    " .. tostring(s.name))
     print("    " .. tostring(s.namewhat))
@@ -52,14 +52,14 @@ end
 
 --debug.sethook(trace, "c")
 
-local capi = require("capi")
+var capi = require("capi")
 
 -- patch capi
 require("core.capi")
 
 capi.log(1, "Initializing logging.")
 
-local log = require("core.logger")
+var log = require("core.logger")
 
 require("core.externals")
 

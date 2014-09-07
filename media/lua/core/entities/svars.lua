@@ -11,22 +11,22 @@
         See COPYING.txt.
 ]]
 
-local capi = require("capi")
-local logging = require("core.logger")
-local log = logging.log
-local DEBUG = logging.DEBUG
-local INFO  = logging.INFO
+var capi = require("capi")
+var logging = require("core.logger")
+var log = logging.log
+var DEBUG = logging.DEBUG
+var INFO  = logging.INFO
 
-local frame = require("core.events.frame")
-local geom  = require("core.lua.geom")
+var frame = require("core.events.frame")
+var geom  = require("core.lua.geom")
 
-local tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
+var tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
     math.abs, math.round, math.floor, rawget
 
     --! Module: svars
-local M = {}
+var M = {}
 
-local StateVariable, StateVariableAlias, StateInteger, StateFloat,
+var StateVariable, StateVariableAlias, StateInteger, StateFloat,
       StateBoolean, StateTable, StateString, ArraySurrogate, StateArray,
       StateArrayInteger, StateArrayFloat
 
@@ -40,7 +40,7 @@ M.is_svar_alias = function(v)
     return (type(v) == "table" and v.is_a) and v:is_a(StateVariableAlias)
 end
 
-local define_accessors = function(cl, n, gf, sf, d)
+var define_accessors = function(cl, n, gf, sf, d)
     cl["__get_" .. n] = function(self)
         return gf(self, d)
     end
@@ -140,14 +140,14 @@ M.StateVariable = table.Object:clone {
         @[debug] log(DEBUG, "StateVariable: register: getter/setter")
         define_accessors(cl, name, self.getter, self.setter, self)
 
-        local an = self.alt_name
-        if an then
+        var an = self.alt_name
+        if an do
             @[debug] log(DEBUG, "StateVariable: register: alt g/s")
             cl["_SV_" .. an] = self
             define_accessors(cl, an, self.getter, self.setter, self)
         end
-        local gn = self.gui_name
-        if gn != false then
+        var gn = self.gui_name
+        if gn != false do
             cl["_SV_GUI_" .. (gn or name)] = self
         end
     end,
@@ -168,7 +168,7 @@ M.StateVariable = table.Object:clone {
         entity is deactivated/uninitialized).
     ]]
     write_tests = function(self, ent)
-        if ent.deactivated then
+        if ent.deactivated do
             assert(false, "Writing a field " .. self.name ..
                  " of a deactivated entity " .. ent.name ..
                  "(" .. ent.uid .. ")")
@@ -195,23 +195,23 @@ M.StateVariable = table.Object:clone {
     getter = function(self, svar)
         svar:read_tests(self)
 
-        local vn = svar.name
+        var vn = svar.name
         @[debug] log(INFO, "StateVariable: getter: " .. vn)
 
-        local fr = frame.get_frame()
+        var fr = frame.get_frame()
 
         if not svar.getter_fun
             or @[server,self.svar_change_queue]
             or self.svar_value_timestamps[vn] == fr
-        then
+        do
             return self.svar_values[vn]
         end
 
         @[debug] log(INFO, "StateVariable: getter: getter function")
 
-        local val = svar.getter_fun(self.uid)
+        var val = svar.getter_fun(self.uid)
 
-        if @[server,self.svar_change_queue_complete,true] then
+        if @[server,self.svar_change_queue_complete,true] do
             self.svar_values[vn] = val
             self.svar_value_timestamps[vn] = fr
         end
@@ -311,7 +311,7 @@ M.StateBoolean = StateVariable:clone {
 }
 StateBoolean = M.StateBoolean
 
-local ts, td = table.serialize, table.deserialize
+var ts, td = table.serialize, table.deserialize
 
 --[[!
     Specialization of $StateVariable for table values. Overrides
@@ -336,9 +336,9 @@ M.StateString = StateVariable:clone {
 }
 StateString = M.StateString
 
-local ctable = capi.table_create
-local getmt, setmt = getmetatable, setmetatable
-local newproxy = newproxy
+var ctable = capi.table_create
+var getmt, setmt = getmetatable, setmetatable
+var newproxy = newproxy
 
 --[[!
     Represents a "surrogate" for an array. Behaves like a regular
@@ -364,10 +364,10 @@ M.ArraySurrogate = {
     ]]
     new = function(self, ent, svar)
         @[debug] log(INFO, "ArraySurrogate: new: " .. svar.name)
-        local rawt = { entity = ent, variable = svar }
+        var rawt = { entity = ent, variable = svar }
         rawt.rawt = rawt -- yay! cycles!
-        local ret = newproxy(true)
-        local mt  = getmt(ret)
+        var ret = newproxy(true)
+        var mt  = getmt(ret)
         mt.__tostring = self.__tostring
         mt.__index    = setmt(rawt, self)
         mt.__newindex = self.__newindex
@@ -387,16 +387,16 @@ M.ArraySurrogate = {
         regular indexing.
     ]]
     __index = function(self, name)
-        local n = tonumber(name)
-        if not n then
+        var n = tonumber(name)
+        if not n do
             return ArraySurrogate[name] or rawget(self.rawt, name)
         end
-        local i = floor(n)
-        if i != n then
+        var i = floor(n)
+        if i != n do
             return ArraySurrogate[name] or rawget(self.rawt, name)
         end
 
-        local v = self.variable
+        var v = self.variable
         return v:get_item(self.entity, i)
     end,
 
@@ -408,25 +408,25 @@ M.ArraySurrogate = {
         the state variable.
     ]]
     __newindex = function(self, name, val)
-        local n = tonumber(name)
-        if not n then return rawset(self.rawt, name, val) end
-        local i = floor(n)
-        if i != n then return rawset(self.rawt, name, val) end
+        var n = tonumber(name)
+        if not n do return rawset(self.rawt, name, val) end
+        var i = floor(n)
+        if i != n do return rawset(self.rawt, name, val) end
 
-        local v = self.variable
+        var v = self.variable
         v:set_item(self.entity, i, val)
     end,
 
     --! Returns the length of the "array" represented by the state variable.
     __len = function(self)
-        local v = self.variable
+        var v = self.variable
         return v:get_length(self.entity)
     end,
 
     --! Returns a raw array of values stored using the state variable.
     to_array = function(self)
-        local l = #self
-        local r = ctable(l)
+        var l = #self
+        var r = ctable(l)
         for i = 1, l do
             r[#r + 1] = self[i]
         end
@@ -440,7 +440,7 @@ M.ArraySurrogate = {
 }
 ArraySurrogate = M.ArraySurrogate
 
-local tc, tcc, map = table.copy, table.concat, table.map
+var tc, tcc, map = table.copy, table.concat, table.map
 
 --[[!
     Specialization of <StateVariable> for arrays. Uses $ArraySurrogate
@@ -473,10 +473,10 @@ M.StateArray = StateVariable:clone {
     getter = function(self, svar)
         svar:read_tests(self)
 
-        if not svar:get_raw(self) then return nil end
+        if not svar:get_raw(self) do return nil end
 
-        local n = "__as_" .. svar.name
-        if not self[n] then self[n] = svar.surrogate:new(self, svar) end
+        var n = "__as_" .. svar.name
+        if not self[n] do self[n] = svar.surrogate:new(self, svar) end
         return self[n]
     end,
 
@@ -528,31 +528,31 @@ M.StateArray = StateVariable:clone {
     end,
 
     --[[!
-        Returns the raw array of state data. Retrieved from local storage
+        Returns the raw array of state data. Retrieved from var storage
         without syncing assuming there is either no czstin getter function
         or a sufficient cached value. Otherwise returns the result of a
         getter function call and caches it.
     ]]
     get_raw = function(self, ent)
-        local vn = self.name
+        var vn = self.name
         @[debug] log(INFO, "StateArray: get_raw: " .. vn)
 
-        if not self.getter_fun then
+        if not self.getter_fun do
             return ent.svar_values[vn] or {}
         end
 
-        local fr = frame.get_frame()
+        var fr = frame.get_frame()
 
         if @[server,ent.svar_change_queue] or ent.svar_value_timestamps[vn] == fr
-        then
+        do
             return ent.svar_values[vn]
         end
 
         @[debug] log(INFO, "StateArray: get_raw: getter function")
 
-        local val = self.getter_fun(ent.uid)
+        var val = self.getter_fun(ent.uid)
 
-        if @[server,ent.svar_change_queue_complete,true] then
+        if @[server,ent.svar_change_queue_complete,true] do
             ent.svar_values[vn] = val
             ent.svar_value_timestamps[vn] = fr
         end
@@ -582,8 +582,8 @@ M.StateArray = StateVariable:clone {
         @[debug] log(INFO, "StateArray: set_item: " .. idx .. ", "
             .. tostring(val))
 
-        local a = self:get_raw(ent)
-        if type(val) == "string" then
+        var a = self:get_raw(ent)
+        if type(val) == "string" do
             assert(not val:find("%" .. self.separator))
         end
 
@@ -675,7 +675,7 @@ StateVariableAlias = StateVariable:clone {
             .. ", " .. cl.name .. ")")
 
         self.name = name
-        local tg = cl["_SV_" .. self.target_name]
+        var tg = cl["_SV_" .. self.target_name]
         cl["_SV_" .. name] = tg
 
         @[debug] log(DEBUG, "StateVariableAlias: register: getter/setter")
