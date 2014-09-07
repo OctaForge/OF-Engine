@@ -352,35 +352,6 @@ local sexps = {
         return ast.FunctionExpression(body, args, proto.varargs,
             proto.first_line, proto.last_line)
     end,
-    ["|"] = function(ls, ast)
-        local line, lline = ls.line_number
-        local prev_fs = ls.fs
-        local proto = { varargs = false }
-        ls.fs = proto
-        ast:scope_begin()
-        ls:get()
-        local args
-        if ls.token.name ~= "|" then
-            args = parse_params(ls, ast, false)
-        else
-            args = {}
-        end
-        check_match(ls, "|", "|", line)
-        local bline = ls.line_number
-        local body
-        if ls.token.name == "do" then
-            ls:get()
-            body = parse_block(ls, ast, true)
-            lline = ls.line_number
-            check_match(ls, "end", "do", bline)
-        else
-            lline = bline
-            body = { ast.ReturnStatement({ parse_expr(ls, ast) }, bline) }
-        end
-        ast:scope_end()
-        ls.fs = prev_fs
-        return ast.FunctionExpression(body, args, proto.varargs, line, lline)
-    end,
     ["\\"] = function(ls, ast)
         local line, lline = ls.line_number
         local prev_fs = ls.fs
@@ -389,23 +360,15 @@ local sexps = {
         ast:scope_begin()
         ls:get()
         local args
-        if ls.token.name ~= "do" and ls.token.name ~= "->" then
+        if ls.token.name ~= "->" then
             args = parse_params(ls, ast, false)
         else
             args = {}
         end
         local bline = ls.line_number
-        local body
-        if ls.token.name == "do" then
-            ls:get()
-            body = parse_block(ls, ast, true)
-            lline = ls.line_number
-            check_match(ls, "end", "do", bline)
-        else
-            assert_next(ls, "->")
-            lline = bline
-            body = { ast.ReturnStatement({ parse_expr(ls, ast) }, bline) }
-        end
+        assert_next(ls, "->")
+        lline = bline
+        local body = { ast.ReturnStatement({ parse_expr(ls, ast) }, bline) }
         ast:scope_end()
         ls.fs = prev_fs
         return ast.FunctionExpression(body, args, proto.varargs, line, lline)
