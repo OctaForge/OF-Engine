@@ -219,7 +219,7 @@ M.cube_push_corner = capi.edit_cube_push_corner
 ]]
 M.remip = capi.edit_raw_remip
 
-ffi.cdef [[
+ffi.cdef r"""
     typedef struct selinfo_t {
         int corner;
         int cx, cxs, cy, cys;
@@ -258,7 +258,7 @@ ffi.cdef [[
             uchar __visible;
         };
     } cube_t;
-]]
+"""
 
 var edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
 edit_raw_edit_material, edit_raw_flip, edit_raw_rotate, edit_raw_edit_vslot,

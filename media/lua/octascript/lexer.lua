@@ -323,41 +323,76 @@ local esc_opts = {
     [118] = "\v"
 }
 
-local read_string = function(ls, tok)
+local read_string = function(ls, tok, raw)
     local delim = ls.current
     local buf = {}
     local c = next_char(ls)
-    while c ~= delim do
+    local long = false
+    if c == delim then
+        c = next_char(ls)
+        if c == delim then
+            c = next_char(ls)
+            long = true
+        else
+            tok.value = ""
+            return
+        end
+    end
+    while true do
         if not c then lex_error(ls, "unfinished string", "<eof>")
         elseif is_newline(c) then
-            lex_error(ls, "unfinished string", tconc(buf))
+            if not long then
+                lex_error(ls, "unfinished string", tconc(buf))
+            end
+            buf[#buf + 1] = bytemap[c]
+            c = next_char(ls)
         elseif c == 92 then -- \
             c = next_char(ls)
-            local esc = esc_opts[c]
-            if esc then
-                buf[#buf + 1] = esc
-                c = next_char(ls)
-            elseif c == 120 then -- x
-                buf[#buf + 1] = read_hex_esc(ls)
-                c = next_char(ls)
-            elseif is_newline(c) then
-                c = next_line(ls)
-                buf[#buf + 1] = "\n"
-            elseif c == 92 or c == 34 or c == 39 then -- \, ", '
-                buf[#buf + 1] = bytemap[c]
-                c = next_char(ls)
-            elseif c == 122 then -- z
-                c = next_char(ls)
-                while is_white(c) do
-                    c = (is_newline(c) and next_line or next_char)(ls)
+            if raw then
+                buf[#buf + 1] = "\\"
+                if is_newline(c) then
+                    buf[#buf + 1] = "\n"
+                    c = next_char(ls)
                 end
-            elseif c ~= nil then
-                if not is_digit(c) then
-                    esc_error(ls, c, "invalid escape sequence")
+            else
+                local esc = esc_opts[c]
+                if esc then
+                    buf[#buf + 1] = esc
+                    c = next_char(ls)
+                elseif c == 120 then -- x
+                    buf[#buf + 1] = read_hex_esc(ls)
+                    c = next_char(ls)
+                elseif is_newline(c) then
+                    c = next_line(ls)
+                elseif c == 92 or c == 34 or c == 39 then -- \, ", '
+                    buf[#buf + 1] = bytemap[c]
+                    c = next_char(ls)
+                elseif c == 122 then -- z
+                    c = next_char(ls)
+                    while is_white(c) do
+                        c = (is_newline(c) and next_line or next_char)(ls)
+                    end
+                elseif c ~= nil then
+                    if not is_digit(c) then
+                        esc_error(ls, c, "invalid escape sequence")
+                    end
+                    buf[#buf + 1] = read_dec_esc(ls)
+                    c = ls.current
                 end
-                buf[#buf + 1] = read_dec_esc(ls)
-                c = ls.current
             end
+        elseif c == delim then
+            if not long then
+                break
+            end
+            c = next_char(ls)
+            if c == delim then
+                c = next_char(ls)
+                if c == delim then
+                    break
+                end
+                buf[#buf + 1] = bytemap[c]
+            end
+            buf[#buf + 1] = bytemap[c]
         else
             buf[#buf + 1] = bytemap[c]
             c = next_char(ls)
@@ -494,7 +529,7 @@ local lextbl = {
         else return ":" end
     end,
     [34] = function(ls, tok) -- "
-        read_string(ls, tok)
+        read_string(ls, tok, false)
         return "<string>"
     end,
     [46] = function(ls, tok) -- .
@@ -546,8 +581,17 @@ lextbl[57] = lextbl[48] -- 9
 
 local lex_default = function(ls, tok)
     local c = ls.current
-    if c == 95 or is_alpha(c) then -- _
-        local buf = {}
+    local saved_c
+    if c == 82 or c == 114 then -- R, r
+        saved_c = c
+        c = next_char(ls)
+        if c == 34 or c == 39 then -- ", '
+            read_string(ls, tok, true)
+            return "<string>"
+        end
+    end
+    if c == 95 or is_alpha(c) or (saved_c and is_digit(c)) then -- _
+        local buf = { bytemap[saved_c] }
         repeat
             buf[#buf + 1] = bytemap[c]
             c = next_char(ls)
@@ -562,6 +606,9 @@ local lex_default = function(ls, tok)
             tok.value = str
             return "<name>"
         end
+    elseif saved_c then
+        tok.value = bytemap[saved_c]
+        return "<name>"
     else
         local c = bytemap[ls.current]
         next_char(ls)

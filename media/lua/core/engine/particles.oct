@@ -18,7 +18,7 @@ var ffi = require("ffi")
 
 var assert = assert
 
-ffi.cdef [[
+ffi.cdef r"""
     typedef struct particle_t {
         vec3f_t position, direction;
         int gravity, fade, millis;
@@ -26,7 +26,7 @@ ffi.cdef [[
         uchar flags;
         float size, val;
     } particle_t;
-]]
+"""
 
 var particle = ffi.metatype("particle_t", {
     __index = {

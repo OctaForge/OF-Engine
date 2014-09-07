@@ -72,7 +72,7 @@ var chunksize = 256
 var ffi_new, ffi_cast, ffi_copy, ffi_string = ffi.new, ffi.cast, ffi.copy,
 ffi.string
 
-ffi.cdef [[
+ffi.cdef r"""
     void *memmove(void*, const void*, size_t);
     void *malloc(size_t nbytes);
     void free(void *ptr);
@@ -81,7 +81,7 @@ ffi.cdef [[
         int len, maxlen;
         int w, h;
     } editline_t;
-]]
+"""
 var C = ffi.C
 
 var editline_MT = {

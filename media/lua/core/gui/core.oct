@@ -273,11 +273,11 @@ M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj)
 end
 var loop_in_children_r = M.loop_in_children_r
 
-ffi.cdef [[
+ffi.cdef r"""
     typedef struct clip_area_t {
         float x1, y1, x2, y2;
     } clip_area_t;
-]]
+"""
 
 var ffi_new = ffi.new
 
@@ -425,11 +425,11 @@ var Projection = table.Object:clone {
     end
 }
 
-ffi.cdef [[
+ffi.cdef r"""
     typedef struct color_t {
         uchar r, g, b, a;
     } color_t;
-]]
+"""
 
 var color_ctors = {
     [0] = func(self) return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) end,

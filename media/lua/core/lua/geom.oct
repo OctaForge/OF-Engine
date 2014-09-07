@@ -14,31 +14,31 @@ var ffi  = require("ffi")
 var log  = require("core.logger")
 
 var gen_vec2 = func(tp, sf, mt)
-    ffi.cdef(([[
+    ffi.cdef((r"""
         typedef struct vec2%s_t {
             %s x, y;
         } vec2%s_t;
-    ]]):format(sf, tp, sf))
+    """):format(sf, tp, sf))
     return ffi.metatype("vec2" .. sf .. "_t", mt), mt
 end
 
 var gen_vec3 = func(tp, sf, mt)
-    ffi.cdef(([[
+    ffi.cdef((r"""
         typedef union vec3%s_t {
             struct { %s x, y, z; };
             struct { %s r, g, b; };
         } vec3%s_t;
-    ]]):format(sf, tp, tp, sf))
+    """):format(sf, tp, tp, sf))
     return ffi.metatype("vec3" .. sf .. "_t", mt), mt
 end
 
 var gen_vec4 = func(tp, sf, mt)
-    ffi.cdef(([[
+    ffi.cdef((r"""
         typedef union vec4%s_t {
             struct { %s x, y, z, w; };
             struct { %s r, g, b, a; };
         } vec4%s_t;
-    ]]):format(sf, tp, tp, sf))
+    """):format(sf, tp, tp, sf))
     return ffi.metatype("vec4" .. sf .. "_t", mt), mt
 end
 
