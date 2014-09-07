@@ -22,7 +22,7 @@ setmetatable(_G, {
     end
 })
 
--- init a random seed
+// init a random seed
 math.randomseed(os.time())
 
 --[[!
@@ -50,11 +50,11 @@ var trace = func(event, line)
     print("    " .. tostring(s.currentline))
 end
 
---debug.sethook(trace, "c")
+//debug.sethook(trace, "c")
 
 var capi = require("capi")
 
--- patch capi
+// patch capi
 require("core.capi")
 
 capi.log(1, "Initializing logging.")

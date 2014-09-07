@@ -8,7 +8,7 @@
         See COPYING.txt.
 ]]
 
---! Module: conv
+/// Module: conv
 var M = {}
 
 --[[!

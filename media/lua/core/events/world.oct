@@ -42,7 +42,7 @@ set_external("physics_in_deadly", func(uid, mat)
     emit(ents.get(uid), "in_deadly", mat)
 end)
 
--- flags for physics_state_change
+// flags for physics_state_change
 var FLAG_WATER = 1 << 0
 var FLAG_LAVA  = 2 << 0
 var FLAG_ABOVELIQUID = 1 << 2
@@ -78,12 +78,12 @@ set_external("physics_state_change", func(uid, loc, flevel, llevel, mat)
         flags |= FLAG_LAVA
     end
 
-    if llevel > 0 do -- liquid level
+    if llevel > 0 do // liquid level
         flags |= FLAG_ABOVELIQUID
     elif llevel < 0 do
         flags |= FLAG_BELOWLIQUID
     end
-    if flevel > 0 do -- floor level
+    if flevel > 0 do // floor level
         flags |= FLAG_ABOVEGROUND
     elif flevel < 0 do
         flags |= FLAG_BELOWGROUND

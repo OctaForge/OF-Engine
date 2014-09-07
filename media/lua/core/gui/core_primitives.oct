@@ -43,25 +43,25 @@ var sincos360 = geom.sin_cos_360
 
 var ffi_new = ffi.new
 
---! Module: core
+/// Module: core
 var M = require("core.gui.core")
 
--- consts
+// consts
 var gl = M.gl
 
--- widget types
+// widget types
 var register_type = M.register_type
 
--- primitive drawing
+// primitive drawing
 var quad, quadtri = M.draw_quad, M.draw_quadtri
 
--- color
+// color
 var Color = M.Color
 
--- base widgets
+// base widgets
 var Widget = M.get_type("Widget")
 
--- setters
+// setters
 var gen_setter = M.gen_setter
 
 var Filler = M.Filler
@@ -122,10 +122,10 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --! Function: set_solid
+    /// Function: set_solid
     set_solid = gen_setter "solid",
 
-    --! Function: set_color
+    /// Function: set_color
     set_color = gen_color_setter "color"
 })
 var ColorFiller = M.ColorFiller
@@ -179,10 +179,10 @@ M.Gradient = register_type("Gradient", ColorFiller, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --! Function: set_horizontal
+    /// Function: set_horizontal
     set_horizontal = gen_setter "horizontal",
 
-    --! Function: set_color2
+    /// Function: set_color2
     set_color2 = gen_color_setter "color2"
 })
 
@@ -215,7 +215,7 @@ M.Line = register_type("Line", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --! Function: set_color
+    /// Function: set_color
     set_color = gen_color_setter "color"
 })
 
@@ -250,7 +250,7 @@ M.Outline = register_type("Outline", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --! Function: set_color
+    /// Function: set_color
     set_color = gen_color_setter "color"
 })
 
@@ -306,7 +306,7 @@ M.Image = register_type("Image", Filler, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    --!  Returns the loaded texture filename.
+    ///  Returns the loaded texture filename.
     get_tex = func(self)
         return self.texture.name
     end,
@@ -398,13 +398,13 @@ M.Image = register_type("Image", Filler, {
         self.h = max(self.h, min_h)
     end,
 
-    --! Function: set_min_filter
+    /// Function: set_min_filter
     set_min_filter = gen_setter "min_filter",
 
-    --! Function: set_mag_filter
+    /// Function: set_mag_filter
     set_min_filter = gen_setter "mag_filter",
 
-    --! Function: set_color
+    /// Function: set_color
     set_color = gen_color_setter "color"
 })
 var Image = M.Image
@@ -526,28 +526,28 @@ M.CroppedImage = register_type("CroppedImage", Image, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --!
+    ///
     set_crop_x = func(self, cx)
         cx = get_border_size(self.texture, cx, false)
         self.crop_x = cx
         emit(self, "crop_x,changed", cx)
     end,
 
-    --!
+    ///
     set_crop_y = func(self, cy)
         cy = get_border_size(self.texture, cy, true)
         self.crop_y = cy
         emit(self, "crop_y,changed", cy)
     end,
 
-    --!
+    ///
     set_crop_w = func(self, cw)
         cw = get_border_size(self.texture, cw, false)
         self.crop_w = cw
         emit(self, "crop_w,changed", cx)
     end,
 
-    --!
+    ///
     set_crop_h = func(self, ch)
         ch = get_border_size(self.texture, ch, true)
         self.crop_h = ch
@@ -757,14 +757,14 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --!
+    ///
     set_tex_border = func(self, tb)
         tb = get_border_size(self.texture, tb)
         self.tex_border = tb
         emit(self, "tex_border,changed", tb)
     end,
 
-    --! Function: set_screen_border
+    /// Function: set_screen_border
     set_screen_border = gen_setter "screen_border"
 })
 
@@ -820,8 +820,8 @@ M.TiledImage = register_type("TiledImage", Image, {
 
         var pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
 
-        -- we cannot use the built in OpenGL texture
-        -- repeat with clamped textures
+        // we cannot use the built in OpenGL texture
+        // repeat with clamped textures
         if tex.clamp != 0 do
             var dx, dy = 0, 0
             gle_defvertexf(2)
@@ -847,10 +847,10 @@ M.TiledImage = register_type("TiledImage", Image, {
         return Filler.draw(self, sx, sy)
     end,
 
-    --! Function: set_tile_w
+    /// Function: set_tile_w
     set_tile_w = gen_setter "tile_w",
 
-    --! Function: set_tile_h
+    /// Function: set_tile_h
     set_tile_h = gen_setter "tile_h"
 })
 
@@ -970,7 +970,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    -- turn the table into a ffi-friendly array
+    // turn the table into a ffi-friendly array
     build_attachments = func(self)
         var att = self.attachments
         if att == self._last_attachments do
@@ -1007,13 +1007,13 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         return Widget.draw(self, sx, sy)
     end,
 
-    --! Function: set_model
+    /// Function: set_model
     set_model = gen_setter "model",
 
-    --! Function: set_anim
+    /// Function: set_anim
     set_anim = gen_setter "anim",
 
-    --! Function: set_attachments
+    /// Function: set_attachments
     set_attachments = gen_setter "attachments"
 })
 
@@ -1055,14 +1055,14 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
         return Widget.draw(self, sx, sy)
     end,
 
-    --! Function: set_prefab
+    /// Function: set_prefab
     set_prefab = gen_setter "prefab",
 
-    --! Function: set_color
+    /// Function: set_color
     set_color = gen_color_setter "color"
 })
 
---! A full console widget that derives from $Filler.
+/// A full console widget that derives from $Filler.
 M.Console = register_type("Console", Filler, {
     draw_scale = func(self)
         return self:get_root():get_text_scale(true) / text_font_get_h()
@@ -1104,10 +1104,10 @@ M.Shape = register_type("Shape", Filler, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    --! Function: set_style
+    /// Function: set_style
     set_style = gen_setter "style",
 
-    --! Function: set_color
+    /// Function: set_color
     set_color = gen_color_setter "color"
 })
 var Shape = M.Shape
@@ -1195,7 +1195,7 @@ M.Triangle = register_type("Triangle", Shape, {
         return Shape.draw(self, sx, sy)
     end,
 
-    --! Function: set_angle
+    /// Function: set_angle
     set_angle = gen_setter "angle"
 })
 
@@ -1259,7 +1259,7 @@ M.Circle = register_type("Circle", Shape, {
         return Shape.draw(self, sx, sy)
     end,
 
-    --! Function: set_sides
+    /// Function: set_sides
     set_sides = gen_setter "sides"
 })
 
@@ -1343,19 +1343,19 @@ M.Label = register_type("Label", Widget, {
         text_font_pop()
     end,
 
-    --! Function: set_text
+    /// Function: set_text
     set_text = gen_setter "text",
 
-    --! Function: set_font
+    /// Function: set_font
     set_font = gen_setter "font",
 
-    --! Function: set_scale
+    /// Function: set_scale
     set_scale = gen_setter "scale",
 
-    --! Function: set_wrap
+    /// Function: set_wrap
     set_wrap = gen_setter "wrap",
 
-    --! Function: set_color
+    /// Function: set_color
     set_color = gen_color_setter "color"
 })
 
@@ -1429,16 +1429,16 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
         self.h = max(self.h, h * k)
     end,
 
-    --! Function: set_callback
+    /// Function: set_callback
     set_callback = gen_setter "callback",
 
-    --! Function: set_scale
+    /// Function: set_scale
     set_scale = gen_setter "scale",
 
-    --! Function: set_wrap
+    /// Function: set_wrap
     set_wrap = gen_setter "wrap",
 
-    --! Function: set_color
+    /// Function: set_color
     set_color = gen_color_setter "color"
 })
 

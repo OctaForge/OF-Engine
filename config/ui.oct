@@ -260,7 +260,7 @@ var randtile = func(grid)
     grid:remove(n)
     grid:insert(n, blocktypes[tiles[n]]())
     if #emptyfields == 1 do
-        -- check game over (yes if nothing is mergeable)
+        // check game over (yes if nothing is mergeable)
         if gamestate == 0 do
             gamestate = -1
             for a = 1, 2 do

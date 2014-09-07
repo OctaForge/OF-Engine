@@ -177,7 +177,7 @@ event_map = {
 }
 end
 
---! Module: input
+/// Module: input
 var M = {}
 var type, assert = type, assert
 

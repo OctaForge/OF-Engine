@@ -13,10 +13,10 @@ var ffi = require("ffi")
 
 var ffi_new = ffi.new
 
---! Module: edit
+/// Module: edit
 var M = {}
 
--- undocumented, not exposed for the time being
+// undocumented, not exposed for the time being
 var matf = {:
     INDEX_SHIFT  = 0,
     VOLUME_SHIFT = 2,

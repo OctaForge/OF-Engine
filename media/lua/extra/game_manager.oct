@@ -9,7 +9,7 @@
         See COPYING.txt.
 ]]
 
---! Module: game_manager
+/// Module: game_manager
 var M = {}
 
 var log = require("core.logger")
@@ -186,7 +186,7 @@ var assert = assert
 
 var gameman
 
---! Gets the current game manager instance.
+/// Gets the current game manager instance.
 M.get = func()
     if not gameman do
         gameman = ents.get_by_prototype("GameManager")[1]

@@ -46,7 +46,7 @@ var map = table.map
 
 var set_attachments = capi.set_attachments
 
--- physics state flags
+// physics state flags
 var MASK_MAT = 0x3
 var FLAG_WATER = 1 << 0
 var FLAG_LAVA  = 2 << 0
@@ -83,7 +83,7 @@ end
 
 var mrender = @[not server,model.render]
 
---! Module: ents
+/// Module: ents
 var M = ents
 
 --[[!
@@ -171,7 +171,7 @@ var M = ents
 M.Character = Entity:clone {
     name = "Character",
 
-    -- so that it isn't nonsauer
+    // so that it isn't nonsauer
     sauer_type = -1,
 
     --[[!
@@ -405,7 +405,7 @@ M.Character = Entity:clone {
 
         self.render_args_timestamp = -1
 
-        -- see world.lua for field meanings
+        // see world.lua for field meanings
         connect(self, "physics_trigger,changed", func(self, val)
             if val == 0 do return end
             self:set_attr("physics_trigger", 0)
@@ -468,9 +468,9 @@ M.Character = Entity:clone {
         if not hudpass and needhud and not fpsshadow do return end
 
         var state = self:get_attr("client_state")
-        -- spawning or spectator
+        // spawning or spectator
         if state == 5 or state == 2 do return end
-        -- editing
+        // editing
         if not hudpass and needhud and state == 4 do return end
         var mdn = (hudpass and needhud)
             and self:get_attr("hud_model_name")
@@ -561,21 +561,21 @@ M.Character = Entity:clone {
         var mask = anims.INDEX | anims.DIR
         var panim, sanim = anim & mask, (anim >> anims.SECONDARY) & mask
 
-        -- editing or spectator
+        // editing or spectator
         if state == 4 or state == 5 do
             panim = anims.edit | animctl.LOOP
-        -- lagged
+        // lagged
         elif state == 3 do
             panim = anims.lag | animctl.LOOP
         else
-            -- in water and floating or falling
+            // in water and floating or falling
             if inwater != 0 and pstate <= 1 do
                 sanim = (((move or strafe) or ((vel.z + falling.z) > 0))
                     and anims.swim or anims.sink) | animctl.LOOP
-            -- moving or strafing
+            // moving or strafing
             else
                 var dir = anim_dirs[(move + 1) * 3 + strafe + 2]
-                -- jumping anim
+                // jumping anim
                 if tinair > 100 do
                     sanim = ((dir != 0) and (dir + anims.jump_N - anims.run_N)
                         or anims.jump) | animctl.END
@@ -733,7 +733,7 @@ end
 M.StaticEntity = Entity:clone {
     name = "StaticEntity",
 
-    --! The icon that'll be displayed in edit mode.
+    /// The icon that'll be displayed in edit mode.
     __edit_icon = "media/interface/icon/edit_generic",
 
     __per_frame = false,
@@ -897,7 +897,7 @@ M.Marker = StaticEntity:clone {
 
     sauer_type = 1,
 
-    --! Places the given entity on this marker's position.
+    /// Places the given entity on this marker's position.
     place_entity = func(self, ent)
         ent:set_attr("position", self:get_attr("position"))
     end
@@ -934,7 +934,7 @@ M.OrientedMarker = StaticEntity:clone {
         self:set_attr("pitch", 0, nd[2])
     end,
 
-    --! Places the given entity on this marker's position, using yaw and pitch.
+    /// Places the given entity on this marker's position, using yaw and pitch.
     place_entity = func(self, ent)
         ent:set_attr("position", self:get_attr("position"))
         ent:set_attr("yaw", self:get_attr("yaw"))
@@ -1160,12 +1160,12 @@ M.ParticleEffect = StaticEntity:clone {
 
     __plugin_methods = { "__emit_particles" },
 
-    --! Returns 0.
+    /// Returns 0.
     get_edit_drop_height = func(self)
         return 0
     end,
 
-    --! This is what you need to override - draw your particles from here.
+    /// This is what you need to override - draw your particles from here.
     __emit_particles = func(self) end
 }
 
@@ -1246,15 +1246,15 @@ M.Mapmodel = StaticEntity:clone {
             self:get_attr("model_name"))
     end,
 
-    --! Returns 0.
+    /// Returns 0.
     get_edit_drop_height = func(self)
         return 0
     end,
 
-    --! See {{$Character.set_local_animation}}.
+    /// See {{$Character.set_local_animation}}.
     set_local_animation = Character.set_local_animation,
 
-    --! See {{$Character.set_local_model_name}}.
+    /// See {{$Character.set_local_model_name}}.
     set_local_model_name = Character.set_local_model_name
 }
 
@@ -1317,7 +1317,7 @@ M.Obstacle = StaticEntity:clone {
             self:get_attr("b"),    self:get_attr("c"), self:get_attr("solid"))
     end,
 
-    --! Returns 0.
+    /// Returns 0.
     get_edit_drop_height = func(self)
         return 0
     end
@@ -1365,7 +1365,7 @@ M.Decal = StaticEntity:clone {
             self:get_attr("size"))
     end,
 
-    --! Returns 0.
+    /// Returns 0.
     get_edit_drop_height = func(self)
         return 0
     end

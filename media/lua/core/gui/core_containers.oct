@@ -13,25 +13,25 @@ var min = math.min
 
 var createtable = require("capi").table_create
 
---! Module: core
+/// Module: core
 var M = require("core.gui.core")
 
--- consts
+// consts
 var gl, key = M.gl, M.key
 
--- widget types
+// widget types
 var register_type = M.register_type
 
--- children iteration
+// children iteration
 var loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
--- base widgets
+// base widgets
 var Widget = M.get_type("Widget")
 
--- setters
+// setters
 var gen_setter = M.gen_setter
 
--- adjustment
+// adjustment
 var adjust = M.adjust
 
 var CLAMP_LEFT, CLAMP_RIGHT, CLAMP_TOP, CLAMP_BOTTOM in adjust
@@ -132,13 +132,13 @@ M.HBox = register_type("HBox", Widget, {
         return self:adjust_children_regular(nch + nvs)
     end,
 
-    --! Function: set_padding
+    /// Function: set_padding
     set_padding = gen_setter "padding",
 
-    --! Function: set_expand
+    /// Function: set_expand
     set_expand = gen_setter "expand",
 
-    --! Function: set_homogenous
+    /// Function: set_homogenous
     set_homogenous = gen_setter "homogenous"
 })
 
@@ -215,13 +215,13 @@ M.VBox = register_type("VBox", Widget, {
         return self:adjust_children_regular(nch + nvs)
     end,
 
-    --! Function: set_padding
+    /// Function: set_padding
     set_padding = gen_setter "padding",
 
-    --! Function: set_expand
+    /// Function: set_expand
     set_expand = gen_setter "expand",
 
-    --! Function: set_homogenous
+    /// Function: set_homogenous
     set_homogenous = gen_setter "homogenous"
 }, M.HBox.type)
 
@@ -314,19 +314,19 @@ M.Grid = register_type("Grid", Widget, {
         end)
     end,
 
-    --! Function: set_padding_h
+    /// Function: set_padding_h
     set_padding_h = gen_setter "padding_h",
 
-    --! Function: set_padding_v
+    /// Function: set_padding_v
     set_padding_v = gen_setter "padding_v",
 
-    --! Function: set_padding
+    /// Function: set_padding
     set_padding = func(self, v)
         self:set_padding_h(v)
         self:set_padding_v(v)
     end,
 
-    --! Function: set_columns
+    /// Function: set_columns
     set_columns = gen_setter "columns"
 })
 
@@ -375,9 +375,9 @@ M.Clipper = register_type("Clipper", Widget, {
         end
     end,
 
-    --! Function: set_clip_w
+    /// Function: set_clip_w
     set_clip_w = gen_setter "clip_w",
 
-    --! Function: set_clip_h
+    /// Function: set_clip_h
     set_clip_h = gen_setter "clip_h"
 })

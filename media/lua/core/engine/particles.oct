@@ -8,7 +8,7 @@
         See COPYING.txt.
 ]]
 
---! Module: particles
+/// Module: particles
 var M = {}
 
 @[server] do return M end

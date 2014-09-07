@@ -59,17 +59,17 @@ var tocalltable = func(v)
     return setmetatable({}, { __call = func(_, ...) return v(...) end })
 end
 
---! Returns the current Lua frame count.
+/// Returns the current Lua frame count.
 M.get_frame = func()
     return current_frame
 end
 
---! Returns the number of milliseconds elapsed since the scripting system init.
+/// Returns the number of milliseconds elapsed since the scripting system init.
 M.get_time = func()
     return current_time
 end
 
---! Returns the current frame time in milliseconds.
+/// Returns the current frame time in milliseconds.
 M.get_frame_time = func()
     return current_frame_time
 end

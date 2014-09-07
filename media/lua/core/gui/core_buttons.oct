@@ -10,21 +10,21 @@
 
 var signal = require("core.events.signal")
 
---! Module: core
+/// Module: core
 var M = require("core.gui.core")
 
 var emit = signal.emit
 
--- widget types
+// widget types
 var register_type = M.register_type
 
--- base widgets
+// base widgets
 var Widget = M.get_type("Widget")
 
--- setters
+// setters
 var gen_setter = M.gen_setter
 
--- keys
+// keys
 var key = M.key
 
 var clicked_states = {
@@ -56,7 +56,7 @@ M.Button = register_type("Button", Widget, {
         return self:target(cx, cy) and self
     end,
 
-    --! See $hover.
+    /// See $hover.
     click = func(self, cx, cy)
         return self:target(cx, cy) and self
     end
@@ -107,6 +107,6 @@ M.Toggle = register_type("Toggle", Button, {
         return Widget.key(self, code, isdown)
     end,
 
-    --! Function: set_condition
+    /// Function: set_condition
     set_condition = gen_setter "condition"
 })

@@ -11,17 +11,17 @@
 
 var capi = require("capi")
 
---! Module: externals
+/// Module: externals
 var M = {}
 
 var externals = {}
 
---! Retrieves the external of the given name.
+/// Retrieves the external of the given name.
 M.get = func(name)
     return externals[name]
 end
 
---! Unsets the external of the given name, returns the previous value or nil.
+/// Unsets the external of the given name, returns the previous value or nil.
 M.unset = func(name)
     var old = externals[name]
     if old == nil do return nil end
@@ -29,7 +29,7 @@ M.unset = func(name)
     return old
 end
 
---! Sets the external of the given name, returns the previous value or nil.
+/// Sets the external of the given name, returns the previous value or nil.
 M.set = func(name, fun)
     var old = externals[name]
     externals[name] = fun

@@ -29,22 +29,22 @@ var floor = math.floor
 var emit  = signal.emit
 var tostring = tostring
 
---! Module: core
+/// Module: core
 var M = require("core.gui.core")
 
--- consts
+// consts
 var gl, key = M.gl, M.key
 
--- widget types
+// widget types
 var register_type = M.register_type
 
--- color
+// color
 var Color = M.Color
 
--- base widgets
+// base widgets
 var Widget = M.get_type("Widget")
 
--- setters
+// setters
 var gen_setter = M.gen_setter
 
 var mod = require("core.gui.constants").mod
@@ -256,16 +256,16 @@ M.TextEditor = register_type("TextEditor", Widget, {
         self.pad_l = kwargs.pad_l or 0
         self.pad_r = kwargs.pad_r or 0
 
-        -- cursor position - ensured to be valid after a region() or
-        -- currentline()
+        // cursor position - ensured to be valid after a region() or
+        // currentline()
         self.cx, self.cy = 0, 0
-        -- selection mark, mx = -1 if following cursor - avoid direct access,
-        -- instead use region()
+        // selection mark, mx = -1 if following cursor - avoid direct access,
+        // instead use region()
         self.mx, self.my = -1, -1
 
         self.line_wrap = kwargs.line_wrap or false
 
-        -- must always contain at least one line
+        // must always contain at least one line
         self.lines = { editline(kwargs.value) }
 
         self._needs_calc = true
@@ -312,21 +312,21 @@ M.TextEditor = register_type("TextEditor", Widget, {
         self.my = self.cy
     end,
 
-    --! Selects everything in the editor.
+    /// Selects everything in the editor.
     select_all = func(self)
         self.cx, self.cy = 0, 0
         self.mx, self.my = 1 / 0, 1 / 0
     end,
 
-    --! Returns true if the editor contains nothing, false otherwise.
+    /// Returns true if the editor contains nothing, false otherwise.
     is_empty = func(self)
         var lines = self.lines
         return #lines == 1 and lines[1].text[0] == 0
     end,
 
-    -- constrain results to within buffer - s = start, e = end, return true if
-    -- a selection range also ensures that cy is always within lines[] and cx
-    -- is valid
+    // constrain results to within buffer - s = start, e = end, return true if
+    // a selection range also ensures that cy is always within lines[] and cx
+    // is valid
     region = func(self)
         var sx, sy, ex, ey
 
@@ -369,7 +369,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return ((sx != ex) or (sy != ey)), sx, sy, ex, ey
     end,
 
-    -- also ensures that cy is always within lines[] and cx is valid
+    // also ensures that cy is always within lines[] and cx is valid
     current_line = func(self)
         var  n = #self.lines
         assert(n != 0)
@@ -385,7 +385,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return self.lines[self.cy + 1]
     end,
 
-    --! Returns all contents of the editor as a string.
+    /// Returns all contents of the editor as a string.
     to_string = func(self)
         return tostring(editline():combine_lines(self.lines))
     end,
@@ -474,7 +474,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return str
     end,
 
-    --! Deletes the current selection if any, returns true if there was one.
+    /// Deletes the current selection if any, returns true if there was one.
     delete_selection = func(self)
         var b, sx, sy, ex, ey = self:region()
         if not b do
@@ -556,7 +556,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    --!
+    ///
     bind_h_scrollbar = func(self, sb)
         if not sb do
             sb = self.h_scrollbar
@@ -568,7 +568,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         sb.scroller = self
     end,
 
-    --!
+    ///
     bind_v_scrollbar = func(self, sb)
         if not sb do
             sb = self.v_scrollbar
@@ -580,63 +580,63 @@ M.TextEditor = register_type("TextEditor", Widget, {
         sb.scroller = self
     end,
 
-    --!
+    ///
     get_h_limit = func(self) return max(self.virt_w - get_aw(self), 0) end,
-    --!
+    ///
     get_v_limit = func(self) return max(self.virt_h - self.h, 0) end,
 
-    --!
+    ///
     get_h_offset = func(self)
         return self.offset_h / max(self.virt_w, get_aw(self))
     end,
 
-    --!
+    ///
     get_v_offset = func(self)
         return self.offset_v / max(self.virt_h, self.h)
     end,
 
-    --!
+    ///
     get_h_scale = func(self)
         var w = get_aw(self)
         return w / max(self.virt_w, w)
     end,
-    --!
+    ///
     get_v_scale = func(self)
         var h = self.h
         return h / max(self.virt_h, h)
     end,
 
-    --!
+    ///
     set_h_scroll = func(self, hs)
         self.offset_h = clamp(hs, 0, self:get_h_limit())
         emit(self, "h_scroll,changed", self:get_h_offset())
     end,
 
-    --!
+    ///
     set_v_scroll = func(self, vs)
         self.offset_v = clamp(vs, 0, self:get_v_limit())
         emit(self, "v_scroll,changed", self:get_v_offset())
     end,
 
-    --!
+    ///
     scroll_h = func(self, hs) self:set_h_scroll(self.offset_h + hs) end,
-    --!
+    ///
     scroll_v = func(self, vs) self:set_v_scroll(self.offset_v + vs) end,
 
-    --! Function: set_clip_w
+    /// Function: set_clip_w
     set_clip_w = gen_ed_setter "clip_w",
-    --! Function: set_clip_h
+    /// Function: set_clip_h
     set_clip_h = gen_ed_setter "clip_h",
 
-    --! Function: set_pad_l
+    /// Function: set_pad_l
     set_pad_l = gen_ed_setter "pad_l",
-    --! Function: set_pad_r
+    /// Function: set_pad_r
     set_pad_r = gen_ed_setter "pad_r",
 
-    --! Function: set_multiline
+    /// Function: set_multiline
     set_multiline = gen_ed_setter "multiline",
 
-    --! Function: set_key_filter
+    /// Function: set_key_filter
     set_key_filter = gen_setter "key_filter",
 
     --[[!
@@ -649,9 +649,9 @@ M.TextEditor = register_type("TextEditor", Widget, {
         self:reset_value()
     end,
 
-    --! Function: set_font
+    /// Function: set_font
     set_font = gen_ed_setter "font",
-    --! Function: set_line_wrap
+    /// Function: set_line_wrap
     set_line_wrap = gen_ed_setter "line_wrap",
 
     clear = func(self)
@@ -832,7 +832,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
                 if self.cx < current.len do
                     current:del(self.cx, 1)
                 elif self.cy < #self.lines - 1 do
-                    -- combine with next line
+                    // combine with next line
                     current:append(tostring(self.lines[self.cy + 2]))
                     self:remove_lines(self.cy + 2, 1)
                 end
@@ -846,7 +846,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
                     current:del(self.cx - 1, 1)
                     self.cx = self.cx - 1
                 elif self.cy > 0 do
-                    -- combine with previous line
+                    // combine with previous line
                     self.cx = self.lines[self.cy].len
                     self.lines[self.cy]:append(tostring(current))
                     self:remove_lines(self.cy + 1, 1)
@@ -855,7 +855,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
             end
             self._needs_offset = true
         elif code == key.RETURN do
-            -- maintain indentation
+            // maintain indentation
             self._needs_calc = true
             var str = tostring(self:current_line())
             self:insert("\n")
@@ -1012,8 +1012,8 @@ M.TextEditor = register_type("TextEditor", Widget, {
     set_focused = func(self, foc)
         Widget.set_focused(self, foc)
         var ati = foc and self:allow_text_input() or false
-        input_textinput(ati, 1 << 1) -- TI_GUI
-        input_keyrepeat(ati, 1 << 1) -- KR_GUI
+        input_textinput(ati, 1 << 1) // TI_GUI
+        input_keyrepeat(ati, 1 << 1) // KR_GUI
     end,
 
     clicked = func(self, cx, cy, code)
@@ -1177,7 +1177,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var k = self:draw_scale()
         var pw, ph = floor(get_aw(self) / k), floor(self.h / k)
         var max_width = self.line_wrap and pw or -1
-        -- convert from cursor coords into pixel coords
+        // convert from cursor coords into pixel coords
         var psx, psy = text_get_position(tostring(self.lines[sy + 1]), sx,
             max_width)
         var pex, pey = text_get_position(tostring(self.lines[ey + 1]), ex,
@@ -1204,7 +1204,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         maxy = maxy - 1
         if ey >= first_drawable - 1 and sy <= maxy do
             var fonth = text_font_get_h()
-            -- crop top/bottom within window
+            // crop top/bottom within window
             if  sy < first_drawable - 1 do
                 sy = first_drawable - 1
                 psy = 0
@@ -1221,27 +1221,27 @@ M.TextEditor = register_type("TextEditor", Widget, {
             gle_defvertexf(2)
             gle_begin(gl.QUADS)
             if psy == pey do
-                -- one selection line - arbitrary bounds
+                // one selection line - arbitrary bounds
                 gle_attrib2f(x + psx, psy)
                 gle_attrib2f(x + pex, psy)
                 gle_attrib2f(x + pex, pey + fonth)
                 gle_attrib2f(x + psx, pey + fonth)
             else
-                -- multiple selection lines
-                -- first line - always ends in the end of the visible area
+                // multiple selection lines
+                // first line - always ends in the end of the visible area
                 gle_attrib2f(x  + psx, psy)
                 gle_attrib2f(x  + psx, psy + fonth)
                 gle_attrib2f(x2 + pw,  psy + fonth)
                 gle_attrib2f(x2 + pw,  psy)
-                -- between first and last selected line
-                -- a quad that fills the whole space
+                // between first and last selected line
+                // a quad that fills the whole space
                 if (pey - psy) > fonth do
                     gle_attrib2f(x2,      psy + fonth)
                     gle_attrib2f(x2 + pw, psy + fonth)
                     gle_attrib2f(x2 + pw, pey)
                     gle_attrib2f(x2,      pey)
                 end
-                -- last line - starts in the beginning of the visible area
+                // last line - starts in the beginning of the visible area
                 gle_attrib2f(x2,      pey)
                 gle_attrib2f(x2,      pey + fonth)
                 gle_attrib2f(x + pex, pey + fonth)
@@ -1342,7 +1342,7 @@ M.Field = register_type("Field", TextEditor, {
         TextEditor.commit(self)
         var val = tostring(self.lines[1])
         self.value = val
-        -- trigger changed signal
+        // trigger changed signal
         emit(self, "value,changed", val)
     end
 })
@@ -1362,7 +1362,7 @@ M.KeyField = register_type("KeyField", M.Field, {
         end
     end,
 
-    --! Overloaded. Commits on the escape key, inserts the name otherwise.
+    /// Overloaded. Commits on the escape key, inserts the name otherwise.
     key_raw = func(code, isdown)
         if Widget.key_raw(code, isdown) do return true end
         if not self:is_focused() or not isdown do return false end

@@ -12,7 +12,7 @@
 
 var capi = require("capi")
 
---! Module: stains
+/// Module: stains
 return {
     --[[!
         The flags available during stain renderer registration. Use bitwise

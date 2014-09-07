@@ -14,21 +14,21 @@ var min  = math.min
 var abs  = math.abs
 var huge = math.huge
 
---! Module: core
+/// Module: core
 var M = require("core.gui.core")
 
 var capi = require("capi")
 
--- widget types
+// widget types
 var register_type = M.register_type
 
--- children iteration
+// children iteration
 var loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
--- base widgets
+// base widgets
 var Widget = M.get_type("Widget")
 
--- setters
+// setters
 var gen_setter = M.gen_setter
 
 --[[!
@@ -69,10 +69,10 @@ M.Spacer = register_type("Spacer", Widget, {
             self.h - 2 * pv)
     end,
 
-    --! Function: set_pad_h
+    /// Function: set_pad_h
     set_pad_h = gen_setter "pad_h",
 
-    --! Function: set_pad_v
+    /// Function: set_pad_v
     set_pad_v = gen_setter "pad_v"
 })
 
@@ -143,13 +143,13 @@ M.Filler = register_type("Filler", Widget, {
         end
     end,
 
-    --! Function: set_min_w
+    /// Function: set_min_w
     set_min_w = gen_setter "min_w",
 
-    --! Function: set_min_h
+    /// Function: set_min_h
     set_min_h = gen_setter "min_h",
 
-    --! Function: set_clip_children
+    /// Function: set_clip_children
     set_clip_children = gen_setter "clip_children"
 })
 var Filler = M.Filler
@@ -221,9 +221,9 @@ M.Offsetter = register_type("Offsetter", Widget, {
         Widget.adjust_children(self, oh, ov, self.w - oh, self.h - ov)
     end,
 
-    --! Function: set_offset_h
+    /// Function: set_offset_h
     set_offset_h = gen_setter "offset_h",
 
-    --! Function: set_offset_v
+    /// Function: set_offset_v
     set_offset_v = gen_setter "offset_v"
 })

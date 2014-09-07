@@ -8,7 +8,7 @@
         See COPYING.txt.
 ]]
 
---! Module: timers
+/// Module: timers
 var M = {}
 
 --[[!
@@ -59,7 +59,7 @@ M.Timer = table.Object:clone {
         end
     end,
 
-    --! Manually sets sum to interval.
+    /// Manually sets sum to interval.
     prime = func(self)
         self.sum = self.interval
     end

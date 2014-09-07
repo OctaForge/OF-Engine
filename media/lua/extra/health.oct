@@ -9,7 +9,7 @@
         See COPYING.txt.
 ]]
 
---! Module: health
+/// Module: health
 var M = {}
 
 var gui = require("core.gui.core")
@@ -75,7 +75,7 @@ var DeathAction = @[server,actions.Action:clone {
         emit(actor, "killed")
     end,
 
-    --! Triggers a respawn.
+    /// Triggers a respawn.
     __finish = func(self)
         self.actor:game_manager_respawn()
     end
@@ -220,7 +220,7 @@ var is_valid_target = func(ent)
     if not ent or ent.deactivated do return false end
 
     var cs = ent:get_attr("client_state")
-    if cs == 3 or cs == 4 do return false end -- editing, lagged
+    if cs == 3 or cs == 4 do return false end // editing, lagged
 
     var health, sstage = ent:get_attr("health"     ) or 0,
                             ent:get_attr("spawn_stage") or 0
@@ -340,7 +340,7 @@ M.plugins = {
         end]
     },
 
-    --! Kills the player when he falls off the map.
+    /// Kills the player when he falls off the map.
     player_off_map = {
         __activate = @[not server,func(self)
             connect(self, "off_map", func(ent)

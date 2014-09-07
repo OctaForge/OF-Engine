@@ -78,8 +78,8 @@ var str_escapes = setmetatable({
     one that needs less escaping).
 ]]
 string.escape = func(s)
-    -- a space optimization: decide which string quote to
-    -- use as a delimiter (the one that needs less escaping)
+    // a space optimization: decide which string quote to
+    // use as a delimiter (the one that needs less escaping)
     var nsq, ndq = 0, 0
     for c in s:gmatch("'") do nsq = nsq + 1 end
     for c in s:gmatch('"') do ndq = ndq + 1 end

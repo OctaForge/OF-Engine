@@ -23,19 +23,19 @@ var geom  = require("core.lua.geom")
 var tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
     math.abs, math.round, math.floor, rawget
 
-    --! Module: svars
+    /// Module: svars
 var M = {}
 
 var StateVariable, StateVariableAlias, StateInteger, StateFloat,
       StateBoolean, StateTable, StateString, ArraySurrogate, StateArray,
       StateArrayInteger, StateArrayFloat
 
---! Checks whether the given value is a state variable.
+/// Checks whether the given value is a state variable.
 M.is_svar = func(v)
     return (type(v) == "table" and v.is_a) and v:is_a(StateVariable)
 end
 
---! Checks whether the given value is a state variable alias.
+/// Checks whether the given value is a state variable alias.
 M.is_svar_alias = func(v)
     return (type(v) == "table" and v.is_a) and v:is_a(StateVariableAlias)
 end
@@ -87,12 +87,12 @@ end
 M.StateVariable = table.Object:clone {
     name = "StateVariable",
 
-    --! Makes svar objects return their name on tostring.
+    /// Makes svar objects return their name on tostring.
     __tostring = func(self)
         return self.name
     end,
 
-    --! Initializes the svar. Parameters are passed in kwargs (a dict).
+    /// Initializes the svar. Parameters are passed in kwargs (a dict).
     __ctor = func(self, kwargs)
         @[debug] log(INFO, "StateVariable: init")
 
@@ -365,7 +365,7 @@ M.ArraySurrogate = {
     new = func(self, ent, svar)
         @[debug] log(INFO, "ArraySurrogate: new: " .. svar.name)
         var rawt = { entity = ent, variable = svar }
-        rawt.rawt = rawt -- yay! cycles!
+        rawt.rawt = rawt // yay! cycles!
         var ret = newproxy(true)
         var mt  = getmt(ret)
         mt.__tostring = self.__tostring
@@ -375,7 +375,7 @@ M.ArraySurrogate = {
         return ret
     end,
 
-    --! Makes surrogate objects return their names on tostring.
+    /// Makes surrogate objects return their names on tostring.
     __tostring = func(self)
         return self.name
     end,
@@ -417,13 +417,13 @@ M.ArraySurrogate = {
         v:set_item(self.entity, i, val)
     end,
 
-    --! Returns the length of the "array" represented by the state variable.
+    /// Returns the length of the "array" represented by the state variable.
     __len = func(self)
         var v = self.variable
         return v:get_length(self.entity)
     end,
 
-    --! Returns a raw array of values stored using the state variable.
+    /// Returns a raw array of values stored using the state variable.
     to_array = func(self)
         var l = #self
         var r = ctable(l)
@@ -433,7 +433,7 @@ M.ArraySurrogate = {
         return r
     end,
 
-    --! Appends an element. For convenience only.
+    /// Appends an element. For convenience only.
     append = func(self, v)
         self[#self + 1] = v
     end
@@ -452,7 +452,7 @@ var tc, tcc, map = table.copy, table.concat, table.map
 M.StateArray = StateVariable:clone {
     name = "StateArray",
 
-    --! An element separator used by the wire format. Defaults to "|".
+    /// An element separator used by the wire format. Defaults to "|".
     separator = "|",
 
     --[[!
@@ -521,7 +521,7 @@ M.StateArray = StateVariable:clone {
             self.to_wire_item), self.separator) .. "]"
     end,
 
-    --! Converts a string in a format given by $to_wire back to a table.
+    /// Converts a string in a format given by $to_wire back to a table.
     from_wire = func(self, val)
         return (val == "[]") and {} or map(
             val:sub(2, #val - 1):split(self.separator), self.from_wire_item)
@@ -560,7 +560,7 @@ M.StateArray = StateVariable:clone {
         return val
     end,
 
-    --! Retrieves the state array length. Used by the surrogate.
+    /// Retrieves the state array length. Used by the surrogate.
     get_length = func(self, ent)
         return #self:get_raw(ent)
     end,

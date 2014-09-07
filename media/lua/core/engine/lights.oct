@@ -12,7 +12,7 @@
 
 var capi = require("capi")
 
---! Module: lights
+/// Module: lights
 return {
     --[[!
         Provides the available flags for $add and $add_spot. Includes

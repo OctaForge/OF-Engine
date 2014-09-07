@@ -20,25 +20,25 @@ var clamp = math.clamp
 var round = math.round
 var emit  = signal.emit
 
---! Module: core
+/// Module: core
 var M = require("core.gui.core")
 
--- consts
+// consts
 var key = M.key
 
--- widget types
+// widget types
 var register_type = M.register_type
 
--- base widgets
+// base widgets
 var Widget = M.get_type("Widget")
 
--- setters
+// setters
 var gen_setter = M.gen_setter
 
--- orientation
+// orientation
 var orient = M.orient
 
--- alignment/clamping
+// alignment/clamping
 var adjust = M.adjust
 
 var SliderButton
@@ -74,7 +74,7 @@ M.Slider = register_type("Slider", Widget, {
         return Widget.__ctor(self, kwargs)
     end,
 
-    --! Jumps by n steps on the slider.
+    /// Jumps by n steps on the slider.
     do_step = func(self, n)
         var mn, mx, ss = self.min_value, self.max_value, self.step_size
 
@@ -87,7 +87,7 @@ M.Slider = register_type("Slider", Widget, {
         emit(self, "value,changed", val)
     end,
 
-    --! Sets the nth step.
+    /// Sets the nth step.
     set_step = func(self, n)
         var mn, mx, ss = self.min_value, self.max_value, self.step_size
 
@@ -186,22 +186,22 @@ M.Slider = register_type("Slider", Widget, {
 
     move_button = func(self, o, fromx, fromy, tox, toy) end,
 
-    --! Function: set_min_value
+    /// Function: set_min_value
     set_min_value = gen_setter "min_value",
 
-    --! Function: set_max_value
+    /// Function: set_max_value
     set_max_value = gen_setter "max_value",
 
-    --! Function: set_value
+    /// Function: set_value
     set_value = gen_setter "value",
 
-    --! Function: set_step_size
+    /// Function: set_step_size
     set_step_size = gen_setter "step_size",
 
-    --! Function: set_step_time
+    /// Function: set_step_time
     set_step_time = gen_setter "step_time",
 
-    --! Function: set_arrow_size
+    /// Function: set_arrow_size
     set_arrow_size = gen_setter "arrow_size"
 })
 var Slider = M.Slider

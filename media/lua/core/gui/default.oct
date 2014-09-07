@@ -17,7 +17,7 @@ var max = math.max
 var tostring = tostring
 var sort = table.sort
 
--- buttons
+// buttons
 
 var btnp  = { "label", "min_w", "min_h" }
 var btnv  = { __properties = btnp }
@@ -85,7 +85,7 @@ smbtnv["hovering"    ] = btn_build_variant(0x404040)
 smbtnv["menu"        ] = btn_build_variant(0x404040)
 smbtnv["clicked_left"] = btn_build_variant(0x404040)
 
--- (v)slot viewer buttons
+// (v)slot viewer buttons
 
 var slotbtn_init_clone = func(self, btn)
     self:set_min_w(btn.min_w or 0)
@@ -114,7 +114,7 @@ gui.Button.__variants.slot = {
         gui.Outline { clamp = true, color = 0x505050 } }
 }
 
--- editors
+// editors
 
 gui.TextEditor.__variants = {
     default = {
@@ -132,7 +132,7 @@ gui.TextEditor.__variants = {
 gui.Field.__variants     = gui.TextEditor.__variants
 gui.KeyField.__variants = gui.TextEditor.__variants
 
--- menus, tooltips
+// menus, tooltips
 
 gui.Filler.__variants = {
     menu = {
@@ -162,7 +162,7 @@ gui.Filler.__variants = {
     }
 }
 
--- checkboxes, radioboxes
+// checkboxes, radioboxes
 
 var ckbox_build_variant = \color, tgl -> gui.ColorFiller {
     color = 0x202020, min_w = 0.02, min_h = 0.02,
@@ -211,7 +211,7 @@ rdbtnv["toggled"         ] = rdbtn_build_variant(0x404040, true)
 rdbtnv["toggled_hovering"] = rdbtn_build_variant(0x505050, true)
 rdbtnv["toggled_focused" ] = rdbtn_build_variant(0x606060, true)
 
--- scrollbars
+// scrollbars
 
 var sb_buildh = \lac, rac -> gui.Outline {
     clamp_h = true, color = 0x303030,
@@ -280,13 +280,13 @@ gui.VScrollbar.__variants = {
     }
 }
 
--- sliders
+// sliders
 
 gui.SliderButton.__variants = gui.ScrollButton.__variants
 gui.HSlider.__variants = gui.HScrollbar.__variants
 gui.VSlider.__variants = gui.VScrollbar.__variants
 
--- progress bars
+// progress bars
 
 gui.HProgressBar.__variants = {
     default = {
@@ -330,7 +330,7 @@ gui.VProgressBar.__variants = {
     }
 }
 
--- windows
+// windows
 
 var window_build_titlebar = \-> gui.Gradient {
     color = 0xF0202020, color2 = 0xF0101010, clamp_h = true,
@@ -410,7 +410,7 @@ gui.Window.__variants = {
     movable = { __properties = { "title" }, window_build_regular(true)  }
 }
 
--- default windows
+// default windows
 
 var progress_bar, progress_label
 var progress_win = gui.Window { __init = func(win)

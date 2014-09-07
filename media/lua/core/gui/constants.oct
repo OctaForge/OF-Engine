@@ -9,7 +9,7 @@
         See COPYING.txt.
 ]]
 
---! Module: constants
+/// Module: constants
 var M = {}
 
 --[[!
@@ -644,7 +644,7 @@ M.key = {
     SLEEP = scancode_to_keycode(scancode.SLEEP)
 }
 
---! Contains a list of key modifier constants mapping to SDL's KMOD_*.
+/// Contains a list of key modifier constants mapping to SDL's KMOD_*.
 M.mod = {:
     NONE     = 0x0000,
     LSHIFT   = 0x0001,

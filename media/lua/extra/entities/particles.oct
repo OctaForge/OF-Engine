@@ -21,7 +21,7 @@ var pflags = particles.flags
 var quadrenderer = particles.register_renderer_quad
 var ParticleEffect = ents.ParticleEffect
 
---! Module: particles
+/// Module: particles
 var M = {}
 
 --[[! Table: particles.renderers

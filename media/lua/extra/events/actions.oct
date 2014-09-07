@@ -11,7 +11,7 @@
 var actions = require("core.events.actions")
 var input   = require("core.events.input")
 
---! Module: actions
+/// Module: actions
 var M = {}
 
 var Action = actions.Action
@@ -64,7 +64,7 @@ M.ContainerAction = Action:clone {
         return Action.__run(self, millis) and (#actqueue.actions == 0)
     end,
 
-    --! Clears up the action queue.
+    /// Clears up the action queue.
     __finish = func(self)
         self.action_queue:clear()
     end,
@@ -124,7 +124,7 @@ M.ParallelAction = Action:clone {
         return Action.__run(self, millis) and #systems == 0
     end,
 
-    --! Clears up the remaining action queues.
+    /// Clears up the remaining action queues.
     __finish = func(self)
         for i, actqueue in ipairs(self.action_queues) do
             actqueue:clear()
@@ -161,7 +161,7 @@ M.LocalAnimationAction = Action:clone {
         ac:set_local_animation(self.local_animation)
     end,
 
-    --! Resets the animation back.
+    /// Resets the animation back.
     __finish = func(self)
         var ac = self.actor
         var anim = ac:get_attr("animation")
@@ -180,7 +180,7 @@ var event_list = {
     See $InputCaptureAction.
 ]]
 M.input_capture_plugin = {
-    --! Replaces the events.
+    /// Replaces the events.
     __start = func(self)
         var events = self.events
         var old_events = {}
@@ -193,7 +193,7 @@ M.input_capture_plugin = {
         end
     end,
 
-    --! Restores the events.
+    /// Restores the events.
     __finish = func(self)
         for en, ev in pairs(self.old_events) do
             input.set_event(en, ev)

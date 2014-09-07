@@ -8,7 +8,7 @@
         See COPYING.txt.
 ]]
 
---! Module: msg
+/// Module: msg
 var M = {}
 
 var type, assert = type, assert

@@ -38,31 +38,31 @@ var pairs = pairs
 var assert = assert
 var tonumber, tostring = tonumber, tostring
 
---! Module: ents
+/// Module: ents
 var M = {}
 
 var Entity
 
--- clientside only
+// clientside only
 var player_entity
 
--- client and server
+// client and server
 var highest_uid = 1
 
--- basic storage for entities, keys are unique ids and values are entities
+// basic storage for entities, keys are unique ids and values are entities
 var storage = {}
 
--- for caching, keys are prototype names and values are arrays of entities
+// for caching, keys are prototype names and values are arrays of entities
 var storage_by_proto = {}
 
--- for Sauer entity import; used as intermediate storage during map loading,
--- cleared out immediately afterwards
+// for Sauer entity import; used as intermediate storage during map loading,
+// cleared out immediately afterwards
 var storage_sauer = {}
 
--- stores all registered entity prototypees
+// stores all registered entity prototypees
 var proto_storage = {}
 
--- aliases
+// aliases
 var proto_aliases = {}
 
 --[[
@@ -81,7 +81,7 @@ var proto_aliases = {}
 ]]
 var names_to_ids = {}
 
--- see above, used for back-translation
+// see above, used for back-translation
 var ids_to_names = {}
 
 var is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
@@ -252,7 +252,7 @@ M.register_prototype = func(cl, plugins, name)
     proto_storage[name] = cl
     proto_aliases[name:lower()] = name
 
-    -- table of properties
+    // table of properties
     var pt = {}
     var sv_names = {}
 
@@ -347,7 +347,7 @@ M.get_all = func()
 end
 set_external("entities_get_all", M.get_all)
 
---! Returns an array of entities with a common tag.
+/// Returns an array of entities with a common tag.
 M.get_by_tag = func(tag)
     var r = {}
     var l = 1
@@ -361,28 +361,28 @@ M.get_by_tag = func(tag)
     return r
 end
 
---! Returns an array of entities with a common prototype.
+/// Returns an array of entities with a common prototype.
 M.get_by_prototype = func(cl)
     return storage_by_proto[cl] or {}
 end
 
 var player_prototype = "Player"
 
---! Sets the player prototype (by name) on the server (invalid on the client).
+/// Sets the player prototype (by name) on the server (invalid on the client).
 M.set_player_prototype = @[server,func(cl)
     player_prototype = cl
 end]
 
 var vg = cs.var_get
 
---! Gets an array of players (all of the currently set player prototype).
+/// Gets an array of players (all of the currently set player prototype).
 M.get_players = func()
     return storage_by_proto[@[server,player_prototype,player_entity.name]]
         or {}
 end
 var get_players = M.get_players
 
---! Gets the current player, clientside only.
+/// Gets the current player, clientside only.
 M.get_player = @[not server,func()
     return player_entity
 end]
@@ -472,7 +472,7 @@ var add = func(cn, uid, kwargs, new)
     r.uid = uid
     storage[uid] = r
 
-    -- caching
+    // caching
     for k, v in pairs(proto_storage) do
         if r:is_a(v) do
             var sbc = storage_by_proto[k]
@@ -753,7 +753,7 @@ M.Entity = table.Object:clone {
         persistent = svars.StateBoolean()
     },
 
-    --! Makes entity objects return their name on tostring.
+    /// Makes entity objects return their name on tostring.
     __tostring = func(self)
         return self.name
     end,
@@ -768,12 +768,12 @@ M.Entity = table.Object:clone {
         if self.setup_complete do return end
 
         self.action_queue = actions.ActionQueue(self)
-        -- for caching
+        // for caching
         self.svar_values, self.svar_value_timestamps = {}, {}
-        -- no longer deactivated
+        // no longer deactivated
         self.deactivated = false
 
-        -- lock
+        // lock
         self.setup_complete = true
     end,
 
@@ -803,13 +803,13 @@ M.Entity = table.Object:clone {
         self.action_queue:run(millis)
     end,
 
-    --! Enqueues an action into the entity's queue. Returns the action.
+    /// Enqueues an action into the entity's queue. Returns the action.
     enqueue_action = func(self, act)
         self.action_queue:enqueue(act)
         return act
     end,
 
-    --! Clears the entity's action queue.
+    /// Clears the entity's action queue.
     clear_actions = func(self)
         self.action_queue:clear()
     end,
@@ -824,7 +824,7 @@ M.Entity = table.Object:clone {
         end
     end,
 
-    --! Removes the given tag. Checks for its existence first.
+    /// Removes the given tag. Checks for its existence first.
     remove_tag = func(self, tag)
         @[debug] log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
@@ -895,7 +895,7 @@ M.Entity = table.Object:clone {
         return r:sub(2, #r - 1)
     end,
 
-    --! Updates the complete state data on an entity from serialized input.
+    /// Updates the complete state data on an entity from serialized input.
     set_sdata_full = func(self, sdata)
         @[debug] log(DEBUG, "Entity.set_sdata_full: " .. self.uid .. ", "
             .. sdata)
@@ -1050,26 +1050,26 @@ M.Entity = table.Object:clone {
 
         var nfh = actor_uid != -1
 
-        -- from client-side script, send a server request unless the svar
-        -- is controlled here (synced using some other method)
-        -- if this variable is set on the client, send a notification
+        // from client-side script, send a server request unless the svar
+        // is controlled here (synced using some other method)
+        // if this variable is set on the client, send a notification
         if not nfh and not csfh do
             @[debug] log(DEBUG, "    sending server request/notification.")
-            -- TODO: supress sending of the same val, at least for some SVs
+            // TODO: supress sending of the same val, at least for some SVs
             msg.send(svar.reliable and capi.statedata_changerequest
                 or capi.statedata_changerequest_unreliable,
                 self.uid, names_to_ids[self.name][svar.name],
                 svar:to_wire(val))
         end
 
-        -- from a server or set clientside, update now
+        // from a server or set clientside, update now
         if nfh or cset or csfh do
             @[debug] log(INFO, "    var update")
-            -- from the server, in wire format
+            // from the server, in wire format
             if nfh do
                 val = svar:from_wire(val)
             end
-            -- TODO: avoid assertions
+            // TODO: avoid assertions
             assert(svar:validate(val))
             self:sdata_changed(svar, key, val)
             emit(self, key .. ",changed", val, nfh)
@@ -1395,11 +1395,11 @@ M.render = @[not server,func(tp, fpsshadow)
         var entity = storage[uid]
         if entity and not entity.deactivated do
             var rd = entity.__render
-            -- first arg to rd is hudpass, false because we aren't rendering
-            -- the HUD model, second is needhud, which is true if the model
-            -- should be shown as HUD model and that happens if we're not in
-            -- thirdperson and the current entity is the player
-            -- third is whether we're rendering a first person shadow
+            // first arg to rd is hudpass, false because we aren't rendering
+            // the HUD model, second is needhud, which is true if the model
+            // should be shown as HUD model and that happens if we're not in
+            // thirdperson and the current entity is the player
+            // third is whether we're rendering a first person shadow
             if  rd do
                 rd(entity, false, not tp and entity == player, fpsshadow)
             end
@@ -1518,7 +1518,7 @@ end]
 var gen_uid = M.gen_uid
 set_external("entity_gen_uid", gen_uid)
 
---! Returns the highest entity unique ID used.
+/// Returns the highest entity unique ID used.
 M.get_highest_uid = func()
     return highest_uid
 end

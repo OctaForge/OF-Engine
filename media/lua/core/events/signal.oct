@@ -15,7 +15,7 @@ var rawget, rawset = rawget, rawset
 var clamp = math.clamp
 var tfind = table.find
 
---! Module: signal
+/// Module: signal
 var M = {}
 
 --[[!

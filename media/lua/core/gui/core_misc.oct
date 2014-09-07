@@ -20,22 +20,22 @@ var emit = signal.emit
 
 var get_curtime = capi.get_curtime
 
---! Module: core
+/// Module: core
 var M = require("core.gui.core")
 
--- widget types
+// widget types
 var register_type = M.register_type
 
--- base widgets
+// base widgets
 var Widget = M.get_type("Widget")
 
--- setters
+// setters
 var gen_setter = M.gen_setter
 
--- adjustment
+// adjustment
 var adjust = M.adjust
 
--- keys
+// keys
 var key = M.key
 
 var ALIGN_MASK = adjust.ALIGN_MASK
@@ -62,7 +62,7 @@ M.State = register_type("State", Widget, {
         return (type(state) == "string") and state or state(self)
     end,
 
-    --! Function: set_state
+    /// Function: set_state
     set_state = gen_setter "state"
 })
 
@@ -106,7 +106,7 @@ M.Mover = register_type("Mover", Widget, {
         var win = self.window
         var wp = win.parent
 
-        -- no parent means root; we don't need checking for non-mdi windows
+        // no parent means root; we don't need checking for non-mdi windows
         if not wp.parent do return true end
 
         var rx, ry, p = self.x, self.y, wp
@@ -118,7 +118,7 @@ M.Mover = register_type("Mover", Widget, {
         end
 
         if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) do
-            -- avoid bugs; stop moving when cursor is outside
+            // avoid bugs; stop moving when cursor is outside
             self:clear_focus()
             return false
         end
@@ -135,7 +135,7 @@ M.Mover = register_type("Mover", Widget, {
     holding = func(self, cx, cy, code)
         var w = self.window
         if w and w.floating and code == key.MOUSELEFT and self:can_move() do
-            -- dealign so that adjust_layout doesn't fuck with x/y
+            // dealign so that adjust_layout doesn't fuck with x/y
             w.adjust &= ~ALIGN_MASK
             w.x += cx - self.ox
             w.y += cy - self.oy
@@ -143,7 +143,7 @@ M.Mover = register_type("Mover", Widget, {
         Widget.holding(self, cx, cy, code)
     end,
 
-    --! Function: set_window
+    /// Function: set_window
     set_window = gen_setter "window"
 })
 
@@ -185,15 +185,15 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
         return lbl(self, self.value)
     end,
 
-    --! Function: set_value
+    /// Function: set_value
     set_value = gen_setter "value",
-    --! Function: set_bar
+    /// Function: set_bar
     set_bar = gen_setter "bar",
-    --! Function: set_label
+    /// Function: set_label
     set_label = gen_setter "label"
 })
 
---! A horizontal working variant of $ProgressBar.
+/// A horizontal working variant of $ProgressBar.
 M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
     adjust_children = func(self)
         var bar = self.bar
@@ -205,7 +205,7 @@ M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
     end
 })
 
---! A vertical working variant of $ProgressBar.
+/// A vertical working variant of $ProgressBar.
 M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
     adjust_children = func(self)
         var bar = self.bar

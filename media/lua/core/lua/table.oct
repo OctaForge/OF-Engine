@@ -43,9 +43,9 @@ var is_array = table.is_array
     a new table, leaving the old one alone.
 
     ```
-    -- table of numbers
+    // table of numbers
     foo = { bar = 5, baz = 10 }
-    -- table of strings
+    // table of strings
     bar = map(foo, \v -> tostring(v))
     ```
 
@@ -98,9 +98,9 @@ end
     For in-place equivalent, see $compact.
 
     ```
-    -- a table to filter
+    // a table to filter
     foo = { 5, 10, 15, 20 }
-    -- the filtered table, contains just 5, 10, 20
+    // the filtered table, contains just 5, 10, 20
     bar = filter(foo, func(k, v)
         if v == 15 do
             return false
@@ -128,9 +128,9 @@ end
     is not guaranteed to be without holes).
 
     ```
-    -- a table to filter
+    // a table to filter
     foo = { a = 5, b = 10, c = 15, d = 20 }
-    -- the filtered table, contains just key/value pairs a, b, d
+    // the filtered table, contains just key/value pairs a, b, d
     bar = filter_map(foo, func(k, v)
         if k == "c" do
             return false
@@ -155,7 +155,7 @@ end
 
     ```
     var t = { 5, 10, 15, 10, 20, 10, 25 }
-    -- the compacted table is { 5, 15, 20, 25 }
+    // the compacted table is { 5, 15, 20, 25 }
     compact(t, \v -> v != 10)
     ```
 
@@ -253,7 +253,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
         var arr = is_array(v)
         var nline   = arr and kwargs.narr_line or kwargs.nrec_line or 0
         if tables[v] do
-            stream() -- let the stream know about an error
+            stream() // let the stream know about an error
             return false,
                 "circular table reference detected during serialization"
         end
@@ -440,8 +440,8 @@ var lex_get = func(ls)
                 elif c == "\n" or c == "\r" do
                     error(("%d: unfinished string near '<string>'")
                         :format(ls.linenum), 0)
-                -- not complete escape sequence handling: handles only these
-                -- that are or can be in the serialized output
+                // not complete escape sequence handling: handles only these
+                // that are or can be in the serialized output
                 elif c == "\\" do
                     c = ls.rdr()
                     if c == "a" do
@@ -487,7 +487,7 @@ var lex_get = func(ls)
                     ls.curr = ls.rdr()
                 end
             end
-            ls.curr = ls.rdr() -- skip delim
+            ls.curr = ls.rdr() // skip delim
             ls.tname, ls.tval = "<string>", tconc(buf)
             return "<string>"
         elif c:match("[%a_]") do
@@ -678,9 +678,9 @@ table.sort = func(tbl, fun, l, r)
     return introsort(tbl, l, r, fun or defaultcmp)
 end
 
-------------------
--- Object system -
-------------------
+//
+// Object system
+//
 
 --[[!
     Provides the basis for any object in OF. It implements a simple prototypal

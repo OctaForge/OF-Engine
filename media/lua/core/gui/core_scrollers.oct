@@ -18,25 +18,25 @@ var min   = math.min
 var clamp = math.clamp
 var emit  = signal.emit
 
---! Module: core
+/// Module: core
 var M = require("core.gui.core")
 
--- consts
+// consts
 var key = M.key
 
--- widget types
+// widget types
 var register_type = M.register_type
 
--- base widgets
+// base widgets
 var Widget = M.get_type("Widget")
 
--- setters
+// setters
 var gen_setter = M.gen_setter
 
--- orientation
+// orientation
 var orient = M.orient
 
--- alignment/clamping
+// alignment/clamping
 var adjust = M.adjust
 
 var Clipper = M.Clipper
@@ -178,7 +178,7 @@ M.Scroller = register_type("Scroller", Clipper, {
     ]]
     get_h_limit = func(self) return max(self.virt_w - self.w, 0) end,
 
-    --! See $get_h_limit.
+    /// See $get_h_limit.
     get_v_limit = func(self) return max(self.virt_h - self.h, 0) end,
 
     --[[!
@@ -190,7 +190,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         return self.offset_h / max(self.virt_w, self.w)
     end,
 
-    --! See $get_h_offset.
+    /// See $get_h_offset.
     get_v_offset = func(self)
         return self.offset_v / max(self.virt_h, self.h)
     end,
@@ -201,7 +201,7 @@ M.Scroller = register_type("Scroller", Clipper, {
     ]]
     get_h_scale = func(self) return self.w / max(self.virt_w, self.w) end,
 
-    --! See $get_h_scale.
+    /// See $get_h_scale.
     get_v_scale = func(self) return self.h / max(self.virt_h, self.h) end,
 
     --[[!
@@ -215,7 +215,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         emit(self, "h_scroll,changed", self:get_h_offset())
     end,
 
-    --! See $set_h_scroll.
+    /// See $set_h_scroll.
     set_v_scroll = func(self, vs)
         self.offset_v = clamp(vs, 0, self:get_v_limit())
         emit(self, "v_scroll,changed", self:get_v_offset())
@@ -227,7 +227,7 @@ M.Scroller = register_type("Scroller", Clipper, {
     ]]
     scroll_h = func(self, hs) self:set_h_scroll(self.offset_h + hs) end,
 
-    --! See $scroll_h.
+    /// See $scroll_h.
     scroll_v = func(self, vs) self:set_v_scroll(self.offset_v + vs) end
 })
 
@@ -279,7 +279,7 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         return 0
     end,
 
-    --! Scrollbars can be hovered on.
+    /// Scrollbars can be hovered on.
     hover = func(self, cx, cy)
         return Widget.hover(self, cx, cy) or self
     end,
@@ -354,10 +354,10 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
 
     move_button = func(self, o, fromx, fromy, tox, toy) end,
 
-    --! Function: set_arrow_size
+    /// Function: set_arrow_size
     set_arrow_size = gen_setter "arrow_size",
 
-    --! Function: set_arrow_speed
+    /// Function: set_arrow_speed
     set_arrow_speed = gen_setter "arrow_speed"
 })
 var Scrollbar = M.Scrollbar

@@ -22,7 +22,7 @@ var compact = table.compact
 
 var createtable = capi.table_create
 
---! Module: actions
+/// Module: actions
 var M = {}
 
 --[[!
@@ -263,7 +263,7 @@ M.ActionQueue = table.Object:clone {
             var act = acts[1]
             @[debug] log(INFO, table.concat { "Executing ", act.name })
 
-            -- keep the removal for the next frame
+            // keep the removal for the next frame
             act:priv_run(millis)
         end
     end,

@@ -8,7 +8,7 @@
         See COPYING.txt.
 ]]
 
---! Module: model
+/// Module: model
 var M = {}
 
 @[server] do return M end
@@ -156,13 +156,13 @@ end
 var geom = require("core.lua.geom")
 var Vec3 = geom.Vec3
 
---! Returns the bounding box of the given model as two vec3, center and radius.
+/// Returns the bounding box of the given model as two vec3, center and radius.
 M.get_bounding_box = func(name)
     var cx, cy, cz, rx, ry, rz = capi.model_get_boundbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
 end
 
---! See $get_bounding_box - for collision box.
+/// See $get_bounding_box - for collision box.
 M.get_collision_box = func(name)
     var cx, cy, cz, rx, ry, rz = capi.model_get_collisionbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)

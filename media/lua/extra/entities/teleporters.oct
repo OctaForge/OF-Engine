@@ -21,7 +21,7 @@ var get_by_tag = ents.get_by_tag
 var rand = math.random
 var unpack = unpack
 
---! Module: teleporters
+/// Module: teleporters
 var M = {}
 
 var Obstacle = ents.Obstacle

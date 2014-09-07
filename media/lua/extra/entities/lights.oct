@@ -14,7 +14,7 @@ var lights = require("core.engine.lights")
 
 var light_add = lights.add
 
---! Module: lights
+/// Module: lights
 var M = {}
 
 var Marker = ents.Marker
@@ -39,7 +39,7 @@ var DynamicLight = Marker:clone {
         blue   = svars.StateInteger()
     },
 
-    --! Set to true, as <__run> doesn't work on static entities by default.
+    /// Set to true, as <__run> doesn't work on static entities by default.
     __per_frame = true,
 
     __init_svars = func(self, kwargs, nd)

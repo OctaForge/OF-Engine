@@ -6,7 +6,7 @@
     The controller entity runs in the background.
 ]]
 
---! Module: day_manager
+/// Module: day_manager
 var M = {}
 
 var signal = require("core.events.signal")
@@ -64,7 +64,7 @@ var DayManager = Entity:clone {
 
 var dayman
 
---! Gets the day manager instance.
+/// Gets the day manager instance.
 M.get = func()
     if not dayman do
         dayman = ents.get_by_prototype("DayManager")[1]
@@ -89,15 +89,15 @@ M.setup = func(plugins)
 end
 
 var getsunscale = func(dayprog)
-    -- the numbers here are very approximate, in reality they'd depend
-    -- on the which part of the year it is - here the sun is at the horizon
-    -- by 6 AM and 6 PM respectively (equally long night and day) so we need
-    -- the sunlightscale at 0 by 6 PM and rising up to 1 from 6 AM (so that
-    -- we don't get shadows from the bottom) - both dawn and dusk take 2
-    -- hours... TODO: more configurable system where you can set how long
-    -- is day and night (and affect actual seasons)
-    var r1, r2 = 0.67, 0.75 -- dusk: 4 - 6 hrs
-    var d1, d2 = 0.25, 0.33 -- dawn: 6 - 8 hrs
+    // the numbers here are very approximate, in reality they'd depend
+    // on the which part of the year it is - here the sun is at the horizon
+    // by 6 AM and 6 PM respectively (equally long night and day) so we need
+    // the sunlightscale at 0 by 6 PM and rising up to 1 from 6 AM (so that
+    // we don't get shadows from the bottom) - both dawn and dusk take 2
+    // hours... TODO: more configurable system where you can set how long
+    // is day and night (and affect actual seasons)
+    var r1, r2 = 0.67, 0.75 // dusk: 4 - 6 hrs
+    var d1, d2 = 0.25, 0.33 // dawn: 6 - 8 hrs
     if dayprog > d2 and dayprog < r1 do return 1 end
     if dayprog > r2  or dayprog < d1 do return 0 end
     if dayprog > r1 do

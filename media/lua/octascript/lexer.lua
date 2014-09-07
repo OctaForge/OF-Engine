@@ -505,8 +505,16 @@ local lextbl = {
     end,
     [47] = function(ls) -- /
         local c = next_char(ls)
-        if c ~= 61 then return "/"
-        else next_char(ls); return "/=" end
+        if c == 61 then
+            next_char(ls)
+            return "/="
+        elseif c == 47 then
+            while ls.current and not is_newline(ls.current) do
+                next_char(ls)
+            end
+        else
+            return "/"
+        end
     end,
     [124] = function(ls) -- |
         local c = next_char(ls)

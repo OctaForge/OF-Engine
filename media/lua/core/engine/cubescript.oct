@@ -15,7 +15,7 @@ var signal = require("core.events.signal")
 
 var emit = signal.emit
 
---! Module: cubescript
+/// Module: cubescript
 var M = {
     __connect = func(self, name)
         var  vn = name:match("(.+),changed$")
@@ -151,13 +151,13 @@ M.var_get_max = capi.var_get_max
 ]]
 M.var_get_def = capi.var_get_def
 
---! Given a variable name, this returns its type.
+/// Given a variable name, this returns its type.
 M.var_get_type = capi.var_get_type
 
---! Checks if the engine variable of the given name is hex.
+/// Checks if the engine variable of the given name is hex.
 M.var_is_hex = capi.var_is_hex
 
---! Checks for existence of an engine variable.
+/// Checks for existence of an engine variable.
 M.var_exists = capi.var_exists
 
 require("core.externals").set("var_emit_changed", func(name, ...)

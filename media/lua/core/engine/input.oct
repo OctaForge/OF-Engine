@@ -15,7 +15,7 @@ var frame = require("core.events.frame")
 
 var vec3 = require("core.lua.geom").Vec3
 
---! Module: input
+/// Module: input
 return {
     --[[! Function: get_target_entity
         Returns the entity you're targeting.
