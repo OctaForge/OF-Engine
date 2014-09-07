@@ -35,7 +35,7 @@ M.anims = {
 var anims = M.anims
 
 var variants = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
-var gen_anim_variants = function(bname, onlysuffix)
+var gen_anim_variants = func(bname, onlysuffix)
     if not onlysuffix do anims[bname] = ran(bname) end
     for i, v in ipairs(variants) do
         var nm = bname .. "_" .. v
@@ -143,7 +143,7 @@ var mrender = capi.model_render
         - btime - the base time (start_time of an entity) for animations.
         - color - any value with r, g, b, a (for example a vec4).
 ]]
-M.render = function(ent, mdl, anim, pos, yaw, pitch, roll, flags,
+M.render = func(ent, mdl, anim, pos, yaw, pitch, roll, flags,
 btime, trans)
     var r, g, b, a = 1, 1, 1, 1
     if trans do
@@ -157,13 +157,13 @@ var geom = require("core.lua.geom")
 var Vec3 = geom.Vec3
 
 --! Returns the bounding box of the given model as two vec3, center and radius.
-M.get_bounding_box = function(name)
+M.get_bounding_box = func(name)
     var cx, cy, cz, rx, ry, rz = capi.model_get_boundbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
 end
 
 --! See $get_bounding_box - for collision box.
-M.get_collision_box = function(name)
+M.get_collision_box = func(name)
     var cx, cy, cz, rx, ry, rz = capi.model_get_collisionbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
 end

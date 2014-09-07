@@ -50,7 +50,7 @@ M.material = {:
 --[[! Function: player_is_editing
     Returns true if player is editing, false otherwise.
 ]]
-M.player_is_editing = function() return capi.editing_get() ~= 0 end
+M.player_is_editing = func() return capi.editing_get() ~= 0 end
 
 --[[! Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered
@@ -63,7 +63,7 @@ M.add_npc = capi.npcadd
 --[[! Function: delete_npc
     Deletes a bot. Takes the entity, returns nothing. Purely serverside.
 ]]
-M.delete_npc = function(ent) capi.npcdel(ent.uid) end
+M.delete_npc = func(ent) capi.npcdel(ent.uid) end
 
 --[[! Function: new_entity
     Creates a new entity on the position where the edit cursor is aiming.
@@ -292,7 +292,7 @@ var clamp = math.clamp
           - 5 - up
 ]]
 M.Selection = ffi.metatype("selinfo_t", {
-    __eq = function(self, other)
+    __eq = func(self, other)
         var pos, sel = self.position, self.selection
         var opos, osel = other.position, other.selection
         return  pos.x == opos.x and pos.y == opos.y and pos.z == opos.z
@@ -314,7 +314,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                   you're doing and you really want it, you can set force it
                   to false).
         ]]
-        edit_face = function(self, dir, mode, loc)
+        edit_face = func(self, dir, mode, loc)
             if loc != false do loc = true end
             assert(self != nil)
             edit_raw_edit_face(dir, mode, self, loc)
@@ -326,7 +326,7 @@ M.Selection = ffi.metatype("selinfo_t", {
             Arguments:
                 - loc - see $edit_face.
         ]]
-        delete = function(self, loc)
+        delete = func(self, loc)
             if loc != false do loc = true end
             assert(self != nil)
             edit_raw_delete_cube(self, loc)
@@ -340,7 +340,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - all_faces - whether to change all faces (defaults to false).
                 - loc - see $edit_face.
         ]]
-        edit_texture = function(self, tex, all_faces, loc)
+        edit_texture = func(self, tex, all_faces, loc)
             if loc != false do loc = true end
             assert(self != nil)
             edit_raw_edit_texture(tex, all_faces or false, self, loc)
@@ -353,7 +353,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - mat - the material id (see $material).
                 - loc - see $edit_face.
         ]]
-        edit_material = function(self, mat, loc)
+        edit_material = func(self, mat, loc)
             if loc != false do loc = true end
             assert(self != nil)
             edit_raw_edit_material(mat, self, loc)
@@ -365,7 +365,7 @@ M.Selection = ffi.metatype("selinfo_t", {
             Arguments:
                 - loc - see $edit_face.
         ]]
-        flip = function(self, loc)
+        flip = func(self, loc)
             if loc != false do loc = true end
             assert(self != nil)
             edit_raw_flip(self, loc)
@@ -378,7 +378,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - cw - see the rotate command in cubescript.
                 - loc - see $edit_face.
         ]]
-        rotate = function(self, cw, loc)
+        rotate = func(self, cw, loc)
             if loc != false do loc = true end
             assert(self != nil)
             edit_raw_rotate(cw, self, loc)
@@ -392,7 +392,7 @@ M.Selection = ffi.metatype("selinfo_t", {
                 - all_faces - whether to change all faces (defaults to false).
                 - loc - see $edit_face.
         ]]
-        edit_vslot = function(self, vs, all_faces, loc)
+        edit_vslot = func(self, vs, all_faces, loc)
             if loc != false do loc = true end
             assert(self != nil and vs != nil)
             edit_raw_edit_vslot(vs, all_faces or false, self, loc)
@@ -401,7 +401,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         --[[!
             Returns the selection size in terms of number of cubes.
         ]]
-        get_size = function(self)
+        get_size = func(self)
             var sel = self.selection
             return sel.x * sel.y * sel.z
         end,
@@ -410,7 +410,7 @@ M.Selection = ffi.metatype("selinfo_t", {
             Validates the selection and returns true if it's valid and
             false if it's not.
         ]]
-        validate = function(self)
+        validate = func(self)
             var world_size = edit_get_world_size()
             var grid = self.grid_size
             if grid <= 0 or grid >= world_size do return false end
@@ -482,7 +482,7 @@ var edit_lookup_cube, edit_lookup_texture in capi
     Note that this is a raw function. You most likely want to use the two
     below, $lookup_material and $lookup_texture.
 ]]
-M.lookup_cube = function(x, y, z, ts)
+M.lookup_cube = func(x, y, z, ts)
     var r = ffi_new("int[4]");
     var c = edit_lookup_cube(x, y, z, ts, r + 0, r + 1, r + 2, r + 3)
     return c, r[0], r[1], r[2], r[3]

@@ -15,14 +15,14 @@ var M = {}
     Converts an integral value to be treated as hexadecimal color code to
     r, g, b values (ranging 0-255). Returns three separate values.
 ]]
-M.hex_to_rgb = function(hex)
+M.hex_to_rgb = func(hex)
     return hex >> 16, (hex >> 8) & 0xFF, hex & 0xFF
 end
 
 --[[!
     Converts r, g, b color values (0-255) to a hexadecimal color code.
 ]]
-M.rgb_to_hex = function(r, g, b)
+M.rgb_to_hex = func(r, g, b)
     return b | (g << 8) | (r << 16)
 end
 
@@ -30,7 +30,7 @@ end
     Takes the r, g, b values (0-255) and returns the matching h, s, l
     values (0-1).
 ]]
-M.rgb_to_hsl = function(r, g, b)
+M.rgb_to_hsl = func(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
     var mx = math.max(r, g, b)
     var mn = math.min(r, g, b)
@@ -56,7 +56,7 @@ end
     Takes the r, g, b values (0-255) and returns the matching h, s, v
     values (0-1).
 ]]
-M.rgb_to_hsv = function(r, g, b)
+M.rgb_to_hsv = func(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
     var mx = math.max(r, g, b)
     var mn = math.min(r, g, b)
@@ -82,7 +82,7 @@ end
     Takes the h, s, l values (0-1) and returns the matching r, g, b
     values (0-255).
 ]]
-M.hsl_to_rgb = function(h, s, l)
+M.hsl_to_rgb = func(h, s, l)
     var r, g, b
 
     if s == 0 do
@@ -90,7 +90,7 @@ M.hsl_to_rgb = function(h, s, l)
         g = l
         b = l
     else
-        var hue2rgb = function(p, q, t)
+        var hue2rgb = func(p, q, t)
             if t < 0 do t = t + 1 end
             if t > 1 do t = t - 1 end
             if t < (1 / 6) do return p + (q - p) * 6 * t end
@@ -114,7 +114,7 @@ end
     Takes the h, s, v values (0-1) and returns the matching r, g, b
     values (0-255).
 ]]
-M.hsv_to_rgb = function(h, s, v)
+M.hsv_to_rgb = func(h, s, v)
     var r, g, b
 
     var i = math.floor(h * 6)

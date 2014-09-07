@@ -66,13 +66,13 @@ var gen_setter = M.gen_setter
 
 var Filler = M.Filler
 
-var init_color = function(col)
+var init_color = func(col)
     return col and (type(col) == "number" and Color(col) or col) or Color()
 end
 
-var gen_color_setter = function(name)
+var gen_color_setter = func(name)
     var sname = name .. ",changed"
-    return function(self, val)
+    return func(self, val)
         self[name] = init_color(val)
         emit(self, sname, val)
     end
@@ -89,7 +89,7 @@ end
           it modulates the color its background.
 ]]
 M.ColorFiller = register_type("ColorFiller", Filler, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs       = kwargs or {}
         self.solid = kwargs.solid != false and true or false
         self.color = init_color(kwargs.color)
@@ -97,7 +97,7 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var w, h, color, solid in self
 
         if not solid do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
@@ -139,13 +139,13 @@ var ColorFiller = M.ColorFiller
         - color2 - the other color of the gradient.
 ]]
 M.Gradient = register_type("Gradient", ColorFiller, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         ColorFiller.__ctor(self, kwargs)
         self.horizontal = kwargs.horizontal
         self.color2 = init_color(kwargs.color2)
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var w, h, color, color2, solid, horizontal in self
 
         if not solid do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
@@ -193,13 +193,13 @@ M.Gradient = register_type("Gradient", ColorFiller, {
         - color - see $ColorFiller.
 ]]
 M.Line = register_type("Line", Filler, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.color = init_color(kwargs.color)
         return Filler.__ctor(self, kwargs)
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var color, w, h in self
 
         shader_hudnotexture_set()
@@ -226,13 +226,13 @@ M.Line = register_type("Line", Filler, {
         - color - see $ColorFiller.
 ]]
 M.Outline = register_type("Outline", Filler, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.color = init_color(kwargs.color)
         return Filler.__ctor(self, kwargs)
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var color, w, h in self
 
         shader_hudnotexture_set()
@@ -254,7 +254,7 @@ M.Outline = register_type("Outline", Filler, {
     set_color = gen_color_setter "color"
 })
 
-var check_alpha_mask = function(tex, x, y)
+var check_alpha_mask = func(tex, x, y)
     if tex.alphamask == nil do
         if texture_load_alpha_mask(tex) == nil do
             return true
@@ -288,7 +288,7 @@ end
         - color - see $ColorFiller.
 ]]
 M.Image = register_type("Image", Filler, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs    = kwargs or {}
         var tex = kwargs.file and texture_load(kwargs.file)
 
@@ -307,7 +307,7 @@ M.Image = register_type("Image", Filler, {
     end,
 
     --!  Returns the loaded texture filename.
-    get_tex = function(self)
+    get_tex = func(self)
         return self.texture.name
     end,
 
@@ -316,7 +316,7 @@ M.Image = register_type("Image", Filler, {
         texture this holds. If the file argument is nil/false/none, this
         disables the texture (sets the texture to notexture).
     ]]
-    set_tex = function(self, file, alt)
+    set_tex = func(self, file, alt)
         if not file do
             self.texture = texture_get_notexture()
             return
@@ -332,7 +332,7 @@ M.Image = register_type("Image", Filler, {
         Images are normally targetable (they're not only where they're
         completely transparent). See also {{$Widget.target}}.
     ]]
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if    o do return o end
 
@@ -341,7 +341,7 @@ M.Image = register_type("Image", Filler, {
                                                        cy / self.h)) and self
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
         var color = self.color
@@ -370,7 +370,7 @@ M.Image = register_type("Image", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    layout = function(self)
+    layout = func(self)
         Widget.layout(self)
 
         var min_w = self.min_w
@@ -414,19 +414,19 @@ var Image = M.Image
     some of the internal OF UIs. Has only a subset of $Image's features.
 ]]
 M.Texture = register_type("Texture", Filler, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.texture_id = kwargs.texture_id
         return Filler.__ctor(self, kwargs)
     end,
 
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if    o do return o end
         return self
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         gl_bind_texture(self.texture_id)
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
@@ -436,7 +436,7 @@ M.Texture = register_type("Texture", Filler, {
         return Filler.draw(self, sx, sy)
     end,
 
-    layout = function(self)
+    layout = func(self)
         Widget.layout(self)
 
         var min_w = self.min_w
@@ -458,7 +458,7 @@ M.Texture = register_type("Texture", Filler, {
     end
 })
 
-var get_border_size = function(tex, size, vert)
+var get_border_size = func(tex, size, vert)
     if size >= 0 do
         return size
     end
@@ -474,7 +474,7 @@ end
         - crop_w, crop_h - the crop dimensions, they default to 1.
 ]]
 M.CroppedImage = register_type("CroppedImage", Image, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
 
         Image.__ctor(self, kwargs)
@@ -486,7 +486,7 @@ M.CroppedImage = register_type("CroppedImage", Image, {
         self.crop_h = get_border_size(tex, kwargs.crop_h or 1, true)
     end,
 
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if    o do return o end
 
@@ -496,7 +496,7 @@ M.CroppedImage = register_type("CroppedImage", Image, {
             self.crop_y + cy / self.h * self.crop_h)) and self
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
@@ -527,28 +527,28 @@ M.CroppedImage = register_type("CroppedImage", Image, {
     end,
 
     --!
-    set_crop_x = function(self, cx)
+    set_crop_x = func(self, cx)
         cx = get_border_size(self.texture, cx, false)
         self.crop_x = cx
         emit(self, "crop_x,changed", cx)
     end,
 
     --!
-    set_crop_y = function(self, cy)
+    set_crop_y = func(self, cy)
         cy = get_border_size(self.texture, cy, true)
         self.crop_y = cy
         emit(self, "crop_y,changed", cy)
     end,
 
     --!
-    set_crop_w = function(self, cw)
+    set_crop_w = func(self, cw)
         cw = get_border_size(self.texture, cw, false)
         self.crop_w = cw
         emit(self, "crop_w,changed", cx)
     end,
 
     --!
-    set_crop_h = function(self, ch)
+    set_crop_h = func(self, ch)
         ch = get_border_size(self.texture, ch, true)
         self.crop_h = ch
         emit(self, "crop_h,changed", ch)
@@ -561,7 +561,7 @@ M.CroppedImage = register_type("CroppedImage", Image, {
     computations instead of basic stretching.
 ]]
 M.StretchedImage = register_type("StretchedImage", Image, {
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if    o do return o end
         if self.texture.bpp < 32 do return self end
@@ -582,7 +582,7 @@ M.StretchedImage = register_type("StretchedImage", Image, {
         return check_alpha_mask(self.texture, mx, my) and self
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
@@ -667,14 +667,14 @@ M.StretchedImage = register_type("StretchedImage", Image, {
           borders.
 ]]
 M.BorderedImage = register_type("BorderedImage", Image, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         Image.__ctor(self, kwargs)
         self.tex_border = get_border_size(self.texture, kwargs.tex_border or 0)
         self.screen_border = kwargs.screen_border or 0
     end,
 
-    layout = function(self)
+    layout = func(self)
         Widget.layout(self)
 
         var sb = self.screen_border
@@ -682,7 +682,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         self.h = max(self.h, 2 * sb)
     end,
 
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if    o do return o end
 
@@ -706,7 +706,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         return check_alpha_mask(tex, mx, my) and self
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
@@ -758,7 +758,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
     end,
 
     --!
-    set_tex_border = function(self, tb)
+    set_tex_border = func(self, tb)
         tb = get_border_size(self.texture, tb)
         self.tex_border = tb
         emit(self, "tex_border,changed", tb)
@@ -775,7 +775,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         - tile_w, tile_h - tile width and height, they default to 1.
 ]]
 M.TiledImage = register_type("TiledImage", Image, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
 
         self.tile_w = kwargs.tile_w or 1
@@ -784,7 +784,7 @@ M.TiledImage = register_type("TiledImage", Image, {
         return Image.__ctor(self, kwargs)
     end,
 
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if    o do return o end
 
@@ -798,7 +798,7 @@ M.TiledImage = register_type("TiledImage", Image, {
         return check_alpha_mask(tex, dx / tw, dy / th) and self
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
 
@@ -863,7 +863,7 @@ M.TiledImage = register_type("TiledImage", Image, {
     targeting it), it loads immediately.
 ]]
 M.Thumbnail = register_type("Thumbnail", Image, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.file = kwargs.file
         self.texture = kwargs.fallback and texture_load(kwargs.fallback)
@@ -876,7 +876,7 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    load = function(self, force)
+    load = func(self, force)
         if self.loaded do return end
         var tex = thumbnail_load(self.file, force)
         if tex != texture_get_notexture() do
@@ -889,7 +889,7 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         Unlike the regular target in $Image, this force-loads the thumbnail
         texture and do targets. See also {{$Image.target}}.
     ]]
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         self:load(true)
         return Image.target(self, cx, cy)
     end,
@@ -898,7 +898,7 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         Before drawing, this tries to load the thumbnail, but without forcing
         it like $target.
     ]]
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         self:load()
         return Image.draw(self, sx, sy)
     end,
@@ -907,7 +907,7 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         Loads the fallback texture. If the thumbnail is already loaded,
         doesn't do anything.
     ]]
-    set_fallback = function(self, fallback)
+    set_fallback = func(self, fallback)
         if self.loaded do return end
         if fallback do self.texture = texture_load(fallback) end
     end
@@ -922,18 +922,18 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         - index - the texture slot index (starting with 0, defaults to 0).
 ]]
 M.SlotViewer = register_type("SlotViewer", Filler, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.index = kwargs.index or 0
 
         return Filler.__ctor(self, kwargs)
     end,
 
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         return Widget.target(self, cx, cy) or self
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         texture_draw_slot(self.index, self.w, self.h, sx, sy)
         return Widget.draw(self, sx, sy)
     end,
@@ -946,7 +946,7 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
     Similar to (and derives from) $SlotViewer, but previews vslots.
 ]]
 M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         texture_draw_vslot(self.index, self.w, self.h, sx, sy)
         return Widget.draw(self, sx, sy)
     end
@@ -961,7 +961,7 @@ M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
         - attachments - an array of tag-attachment pairs.
 ]]
 M.ModelViewer = register_type("ModelViewer", Filler, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.model = kwargs.model
         self.anim = kwargs.anim or 0
@@ -971,7 +971,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     end,
 
     -- turn the table into a ffi-friendly array
-    build_attachments = function(self)
+    build_attachments = func(self)
         var att = self.attachments
         if att == self._last_attachments do
             return self._c_attachments, #att * 2
@@ -987,7 +987,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         return stor, n
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var w, h in self
         var csl = #clip_stack > 0
         if csl do gl_scissor_disable() end
@@ -1025,7 +1025,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         - color - the color (alpha is ignored).
 ]]
 M.PrefabViewer = register_type("PrefabViewer", Filler, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.prefab = kwargs.prefab
         self.color  = init_color(kwargs.color)
@@ -1033,7 +1033,7 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
         return Filler.__ctor(self, kwargs)
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var prefab = self.prefab
         if not prefab do return Widget.draw(self, sx, sy) end
         var w, h in self
@@ -1064,11 +1064,11 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
 
 --! A full console widget that derives from $Filler.
 M.Console = register_type("Console", Filler, {
-    draw_scale = function(self)
+    draw_scale = func(self)
         return self:get_root():get_text_scale(true) / text_font_get_h()
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var k = self:draw_scale()
         hudmatrix_push()
         hudmatrix_translate(sx, sy, 0)
@@ -1097,7 +1097,7 @@ M.Shape = register_type("Shape", Filler, {
     OUTLINE  = OUTLINE,
     MODULATE = MODULATE,
 
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.style = kwargs.style or 0
         self.color = init_color(kwargs.color)
@@ -1120,13 +1120,13 @@ var Shape = M.Shape
         - angle - the triangle rotation (in degrees).
 ]]
 M.Triangle = register_type("Triangle", Shape, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.angle = kwargs.angle or 0
         return Shape.__ctor(self, kwargs)
     end,
 
-    layout = function(self)
+    layout = func(self)
         Widget.layout(self)
 
         var w, h = self.min_w, self.min_h
@@ -1165,7 +1165,7 @@ M.Triangle = register_type("Triangle", Shape, {
         self.h = max(self.h, bbmax.y)
     end,
 
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if o do return o end
         if self.style == OUTLINE do return nil end
@@ -1176,7 +1176,7 @@ M.Triangle = register_type("Triangle", Shape, {
             and self or nil
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var color, style in self
         if style == MODULATE do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
@@ -1209,13 +1209,13 @@ M.Triangle = register_type("Triangle", Shape, {
           will have (it's not a perfect circle, but rather a polygon).
 ]]
 M.Circle = register_type("Circle", Shape, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.sides = kwargs.sides or 15
         return Shape.__ctor(self, kwargs)
     end,
 
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if o do return o end
         if self.style == OUTLINE do return nil end
@@ -1223,7 +1223,7 @@ M.Circle = register_type("Circle", Shape, {
         return (Vec2(cx, cy):sub(r):squared_len() <= (r * r)) and self or nil
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var color, style in self
         shader_hudnotexture_set()
         color:init()
@@ -1276,7 +1276,7 @@ M.Circle = register_type("Circle", Shape, {
          - color - see $ColorFiller.
 ]]
 M.Label = register_type("Label", Widget, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
 
         self.text  = kwargs.text  or ""
@@ -1291,17 +1291,17 @@ M.Label = register_type("Label", Widget, {
     --[[!
         Labels are always targetable. See also {{$Widget.target}}.
     ]]
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         return Widget.target(self, cx, cy) or self
     end,
 
-    draw_scale = function(self)
+    draw_scale = func(self)
         var scale = self.scale
         return (abs(scale) * self:get_root():get_text_scale(scale < 0))
             / text_font_get_h()
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         text_font_push()
         text_font_set(self.font)
         hudmatrix_push()
@@ -1323,7 +1323,7 @@ M.Label = register_type("Label", Widget, {
         return Widget.draw(self, sx, sy)
     end,
 
-    layout = function(self)
+    layout = func(self)
         Widget.layout(self)
 
         text_font_push()
@@ -1364,28 +1364,28 @@ M.Label = register_type("Label", Widget, {
     a callable value that returns the text to display.
 ]]
 M.EvalLabel = register_type("EvalLabel", Widget, {
-    __ctor = function(self, kwargs)
+    __ctor = func(self, kwargs)
         kwargs = kwargs or {}
 
-        self.func  = kwargs.func  or nil
-        self.scale = kwargs.scale or  1
-        self.wrap  = kwargs.wrap  or -1
-        self.color = init_color(kwargs.color)
+        self.callback = kwargs.callback or nil
+        self.scale    = kwargs.scale    or  1
+        self.wrap     = kwargs.wrap     or -1
+        self.color    = init_color(kwargs.color)
 
         return Widget.__ctor(self, kwargs)
     end,
 
-    target = function(self, cx, cy)
+    target = func(self, cx, cy)
         return Widget.target(self, cx, cy) or self
     end,
 
-    draw_scale = function(self)
+    draw_scale = func(self)
         var scale = self.scale
         return (abs(scale) * self:get_root():get_text_scale(scale < 0))
             / text_font_get_h()
     end,
 
-    draw = function(self, sx, sy)
+    draw = func(self, sx, sy)
         var  val = self.val_saved
         if not val do return Widget.draw(self, sx, sy) end
 
@@ -1406,10 +1406,10 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
         return Widget.draw(self, sx, sy)
     end,
 
-    layout = function(self)
+    layout = func(self)
         Widget.layout(self)
 
-        var  cmd = self.func
+        var  cmd = self.callback
         if not cmd do return end
         var val = cmd(self)
         self.val_saved = val
@@ -1429,8 +1429,8 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
         self.h = max(self.h, h * k)
     end,
 
-    --! Function: set_func
-    set_func = gen_setter "func",
+    --! Function: set_callback
+    set_callback = gen_setter "callback",
 
     --! Function: set_scale
     set_scale = gen_setter "scale",

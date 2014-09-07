@@ -37,7 +37,7 @@ var event_map
         - dir - the yawing direction.
         - down - whether the key was pressed.
 ]]
-set_ext("input_yaw", function(dir, down)
+set_ext("input_yaw", func(dir, down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("yawing", dir)
 end)
@@ -50,7 +50,7 @@ end)
         - dir - the pitching direction.
         - down - whether the key was pressed.
 ]]
-set_ext("input_pitch", function(dir, down)
+set_ext("input_pitch", func(dir, down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("pitching", dir)
 end)
@@ -63,7 +63,7 @@ end)
         - dir - the move direction.
         - down - whether the key was pressed.
 ]]
-set_ext("input_move", function(dir, down)
+set_ext("input_move", func(dir, down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("move", dir)
 end)
@@ -76,7 +76,7 @@ end)
         - dir - the strafe direction.
         - down - whether the key was pressed.
 ]]
-set_ext("input_strafe", function(dir, down)
+set_ext("input_strafe", func(dir, down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():set_attr("strafe", dir)
 end)
@@ -88,7 +88,7 @@ end)
     Arguments:
         - down - whether the key was pressed.
 ]]
-set_ext("input_jump", function(down)
+set_ext("input_jump", func(down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():jump(down)
 end)
@@ -100,7 +100,7 @@ end)
     Arguments:
         - down - whether the key was pressed.
 ]]
-set_ext("input_crouch", function(down)
+set_ext("input_crouch", func(down)
     if not ents do ents = require("core.entities.ents") end
     ents.get_player():crouch(down)
 end)
@@ -119,7 +119,7 @@ end)
           (if any, nil otherwise).
         - cx, cy - the cursor position.
 ]]
-set_ext("input_click", function(btn, down, x, y, z, uid, cx, cy)
+set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy)
     if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) do
         msg.send(capi.do_click, btn, down, x, y, z, uid)
     end
@@ -132,7 +132,7 @@ end)
     and by default returns false, which means the above external will
     trigger a server request.
 ]]
-set_ext("input_click_client", function(btn, down, x, y, z, uid, cx, cy)
+set_ext("input_click_client", func(btn, down, x, y, z, uid, cx, cy)
     if not ents do ents = require("core.entities.ents") end
     var ent
     if uid >= 0 do ent = ents.get(uid) end
@@ -163,7 +163,7 @@ end
     Return values of this one are ignored. The arguments are the same, but
     the cursor position is not there (obviously).
 ]]
-set_ext("input_click_server", function(btn, dn, x, y, z, uid)
+set_ext("input_click_server", func(btn, dn, x, y, z, uid)
     if not ents do ents = require("core.entities.ents") end
     var ent
     if uid >= 0 do ent = ents.get(uid) end
@@ -199,7 +199,7 @@ var type, assert = type, assert
         - en - the event name.
         - fun - the callback.
 ]]
-M.set_event = function(en, fun)
+M.set_event = func(en, fun)
     if not en do
         return false
     elif en == "click" do
@@ -230,7 +230,7 @@ end
     Gets an event callback. For naming, see $set_event. Returns nil if the name
     is invalid or the callback doesn't exist and the callback otherwise.
 ]]
-M.get_event = function(en)
+M.get_event = func(en)
     if not en do
         return nil
     elif en == "click" do

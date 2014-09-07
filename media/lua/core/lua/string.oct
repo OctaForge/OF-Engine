@@ -27,7 +27,7 @@
     assert(table.concat(b) == "abcdefghijkl")
     ```
 ]]
-string.split = function(str, delim)
+string.split = func(str, delim)
     delim = delim or ","
     var r = {}
     for ch in str:gmatch("([^" .. delim .. "]+)") do
@@ -44,7 +44,7 @@ end
         - start - the starting index to delete.
         - count - the number of characters to delete.
 ]]
-string.del = function(str, start, count)
+string.del = func(str, start, count)
     return table.concat { str:sub(1, start - 1), str:sub(start + count) }
 end
 
@@ -56,7 +56,7 @@ end
         - idx - the index where to start the inserted substring.
         - new - the string to insert.
 ]]
-string.insert = function(str, idx, new)
+string.insert = func(str, idx, new)
     return table.concat { str:sub(1, idx - 1), new, str:sub(idx) }
 end
 
@@ -67,7 +67,7 @@ var str_escapes = setmetatable({
     ["\v"] = "\\v", ["\\"] = "\\\\",
     ['"' ] = '\\"', ["'" ] = "\\'"
 }, {
-    __index = function(self, c) return ("\\%03d"):format(c:byte()) end
+    __index = func(self, c) return ("\\%03d"):format(c:byte()) end
 })
 
 --[[!
@@ -77,7 +77,7 @@ var str_escapes = setmetatable({
     result with ' or " depending on the number of nested ' and " (uses the
     one that needs less escaping).
 ]]
-string.escape = function(s)
+string.escape = func(s)
     -- a space optimization: decide which string quote to
     -- use as a delimiter (the one that needs less escaping)
     var nsq, ndq = 0, 0

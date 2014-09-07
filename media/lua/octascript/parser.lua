@@ -345,7 +345,7 @@ local sexps = {
     end,
     ["{"] = parse_table,
     ["{:"] = parse_enum,
-    ["function"] = function(ls, ast)
+    ["func"] = function(ls, ast)
         local line = ls.line_number
         ls:get()
         local args, body, proto = parse_body(ls, ast, line, false)
@@ -575,7 +575,7 @@ local parse_return_stat = function(ls, ast)
 end
 
 local parse_local = function(ls, ast, line)
-    if test_next(ls, "function") then
+    if test_next(ls, "func") then
         assert_tok(ls, "<name>")
         local name = ls.token.value
         ls:get()
@@ -675,7 +675,7 @@ local stat_opts = {
     end,
     ["for"] = parse_for_stat,
     ["repeat"] = parse_repeat_stat,
-    ["function"] = parse_function_stat,
+    ["func"] = parse_function_stat,
     ["local"] = function(ls, ast, line)
         ls:get()
         return parse_local(ls, ast, line)
@@ -818,11 +818,12 @@ parse_body = function(ls, ast, line, ns)
     assert_next(ls, "(")
     local args = parse_params(ls, ast, ns)
     check_match(ls, ")", "(", pline)
+    --assert_next(ls, "do")
     local body = parse_block(ls, ast)
     ast:scope_end()
     local proto = ls.fs
     ls.fs.last_line = ls.line_number
-    check_match(ls, "end", "function", line)
+    check_match(ls, "end", "func", line)
     ls.fs = prev_fs
     return args, body, proto
 end

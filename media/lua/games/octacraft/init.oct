@@ -56,12 +56,12 @@ var MouseAction = actions.Action:clone {
     allow_multiple = false,
     block_size = 4,
 
-    __start = function(self)
+    __start = func(self)
         self.counter = 0
         self:try_block()
     end,
 
-    __run = function(self, millis)
+    __run = func(self, millis)
         var cnt = self.counter
         cnt += millis
         var btn = self.button
@@ -74,7 +74,7 @@ var MouseAction = actions.Action:clone {
         return false
     end,
 
-    try_block = function(self)
+    try_block = func(self)
         var pl = self.player
         var tg = input.get_target_position()
         var pos = pl:get_attr("position"):copy()
@@ -93,7 +93,7 @@ var MouseAction = actions.Action:clone {
     end
 }
 
-inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)
+inputev.set_event("click", func(btn, down, x, y, z, uid, cx, cy)
     var ent = ents.get(uid)
     if ent and ent.click do
         return ent:click(btn, down, x, y, z, cx, cy)

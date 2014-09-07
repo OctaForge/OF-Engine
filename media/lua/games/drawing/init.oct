@@ -66,7 +66,7 @@ var GamePlayer = Player:clone {
         }
     },
 
-    next_color = function(self)
+    next_color = func(self)
         if  self.color_id < #colors do
             self.color_id = self.color_id + 1
         else
@@ -76,7 +76,7 @@ var GamePlayer = Player:clone {
         log.echo(("color switch: 0x%.6X"):format(self.color))
     end,
 
-    reset_mark = function(self)
+    reset_mark = func(self)
         self:set_attr("new_mark", { -1, -1, -1 })
         self.stop_batch = true
     end,
@@ -85,12 +85,12 @@ var GamePlayer = Player:clone {
         Called on entity activation. Connects a callback to state data
         change of new_mark.
     ]]
-    __activate = @[not server,function(self, kwargs)
+    __activate = @[not server,func(self, kwargs)
         Player.__activate(self, kwargs)
         self.marks = {}
         self.color_id = 1
         self.color    = colors[1]
-        connect(self, "new_mark,changed", function(self, nm)
+        connect(self, "new_mark,changed", func(self, nm)
             if #nm == 3 do
                 nm = Vec4(nm[1], nm[2], nm[3], self.color)
             else
@@ -104,7 +104,7 @@ var GamePlayer = Player:clone {
     --[[! Function: __run
         Called every frame. It goes over the marks and draws everything.
     ]]
-    __run = @[not server,function(self, millis)
+    __run = @[not server,func(self, millis)
         Player.__run(self, millis)
         var last = nil
         var marks = self.marks
@@ -151,7 +151,7 @@ ents.register_prototype(ents.Obstacle, { health.plugins.area },
 day_manager.setup({ day_manager.plugins.day_night })
 
 @[not server] do
-    inputev.set_event("click", function(btn, down, x, y, z, uid, cx, cy)
+    inputev.set_event("click", func(btn, down, x, y, z, uid, cx, cy)
         var ent = ents.get(uid)
         if ent and ent.click do
             return ent:click(btn, down, x, y, z, cx, cy)

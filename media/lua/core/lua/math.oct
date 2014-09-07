@@ -17,7 +17,7 @@ var floor, min, max, abs = math.floor, math.min, math.max, math.abs
     specify the number of places past the floating point, defaulting to 0
     (rounding to integers).
 ]]
-math.round = function(v, d)
+math.round = func(v, d)
     var m = 10 ^ (d or 0)
     return floor(v * m + 0.5) / m
 end
@@ -26,7 +26,7 @@ end
     Clamps a number value given by the first argument between third and
     second argument. Globally available.
 ]]
-math.clamp = function(val, low, high)
+math.clamp = func(val, low, high)
     return max(low, min(val, high))
 end
 
@@ -34,7 +34,7 @@ end
     Performs a linear interpolation between the two numerical values,
     given a weight.
 ]]
-math.lerp = function(first, other, weight)
+math.lerp = func(first, other, weight)
     return first + weight * (other - first)
 end
 
@@ -42,6 +42,6 @@ end
     If the distance between the two numerical values is in given radius,
     the second value is returned, otherwise the first is returned.
 ]]
-math.magnet = function(value, other, radius)
+math.magnet = func(value, other, radius)
     return (abs(value - other) <= radius) and other or value
 end

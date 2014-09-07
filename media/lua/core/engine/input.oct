@@ -30,7 +30,7 @@ return {
     --[[! Function: get_target_position
         Returns the position in the world you're targeting.
     ]]
-    get_target_position = frame.cache_by_frame(function()
+    get_target_position = frame.cache_by_frame(func()
         return vec3(capi.gettargetpos())
     end),
 

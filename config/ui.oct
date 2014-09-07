@@ -192,7 +192,7 @@ root:new_window("editstats", gui.Overlay, |win| do
     win:append(gui.Filler { variant = "edithud" }, |fl| do
         fl:append(gui.Spacer { pad_h = 0.015, pad_v = 0.01 }, |sp| do
             sp:append(gui.EvalLabel { scale = -1,
-                func = || cs_execute("getedithud") }):align(-1, 0)
+                callback = || cs_execute("getedithud") }):align(-1, 0)
         end)
     end)
 end)
@@ -415,7 +415,7 @@ root:new_window("2048", gui.Window, |win| do
         cf:clamp(true, true, true, true)
         win:append(gui.Spacer { pad_h = 0.025, pad_v = 0.025 }, |sp| do
             sp:append(gui.Grid { columns = 4, padding = 0.025 }, |grid| do
-                cf.key = function(self, code, isdown)
+                cf.key = func(self, code, isdown)
                     if isdown do
                         if code == gui.key.LEFT do
                             movetiles(grid, -1,  0)

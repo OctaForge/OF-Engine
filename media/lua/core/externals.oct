@@ -17,12 +17,12 @@ var M = {}
 var externals = {}
 
 --! Retrieves the external of the given name.
-M.get = function(name)
+M.get = func(name)
     return externals[name]
 end
 
 --! Unsets the external of the given name, returns the previous value or nil.
-M.unset = function(name)
+M.unset = func(name)
     var old = externals[name]
     if old == nil do return nil end
     externals[name] = nil
@@ -30,7 +30,7 @@ M.unset = function(name)
 end
 
 --! Sets the external of the given name, returns the previous value or nil.
-M.set = function(name, fun)
+M.set = func(name, fun)
     var old = externals[name]
     externals[name] = fun
     return old

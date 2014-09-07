@@ -23,7 +23,7 @@ var ents
     Arguments:
         - uid - the client entity uid.
 ]]
-set_external("physics_off_map", function(uid)
+set_external("physics_off_map", func(uid)
     if not ents do ents = require("core.entities.ents") end
     emit(ents.get(uid), "off_map")
 end)
@@ -37,7 +37,7 @@ end)
         - uid - the client entity uid.
         - mat - the material id (see $edit).
 ]]
-set_external("physics_in_deadly", function(uid, mat)
+set_external("physics_in_deadly", func(uid, mat)
     if not ents do ents = require("core.entities.ents") end
     emit(ents.get(uid), "in_deadly", mat)
 end)
@@ -65,7 +65,7 @@ var FLAG_BELOWGROUND = 2 << 4
         - mat - the material id (fore xample when jumping out of/into water,
           it's the water material id, see $edit).
 ]]
-set_external("physics_state_change", function(uid, loc, flevel, llevel, mat)
+set_external("physics_state_change", func(uid, loc, flevel, llevel, mat)
     @[server] do return end
 
     if not ents do ents = require("core.entities.ents") end
@@ -95,7 +95,7 @@ end)
     Called on a text message event. Emits a signal of the same name with
     the unique ID of the client and the text as arguments on the global table.
 ]]
-set_external("event_text_message", function(uid, text)
+set_external("event_text_message", func(uid, text)
     emit(_G, "event_text_message", uid, text)
 end)
 
@@ -105,7 +105,7 @@ end)
     client. Emits a signal of the same name with the unique ID of the player
     entity as an argument on the global table.
 ]]
-set_external("event_player_login", function(uid)
+set_external("event_player_login", func(uid)
     emit(_G, "event_player_login", uid)
 end)
 end

@@ -200,7 +200,7 @@ M.Character = Entity:clone {
         start_time  = svars.StateInteger { getter = capi.get_start_time },
         model_name  = svars.StateString  { setter = capi.set_model_name },
         attachments = svars.StateArray   {
-            setter = function(self, val)
+            setter = func(self, val)
                 var arr = ffi.new("const char *[?]", #val + 1)
                 for i = 1, #val do arr[i - 1] = val end
                 set_attachments(self, arr)
@@ -333,7 +333,7 @@ M.Character = Entity:clone {
         Arguments:
             - down - whether the jump key is down.
     ]]
-    jump = function(self, down)
+    jump = func(self, down)
         self:set_attr("jumping", down)
     end,
 
@@ -345,7 +345,7 @@ M.Character = Entity:clone {
         Arguments:
             - down - whether the crouch key is down.
     ]]
-    crouch = function(self, down)
+    crouch = func(self, down)
         if down do
             self:set_attr("crouching", -1)
         else
@@ -353,12 +353,12 @@ M.Character = Entity:clone {
         end
     end,
 
-    get_plag = function(self) return capi.get_plag(self.uid) end,
-    get_ping = function(self) return capi.get_ping(self.uid) end,
-    get_editing = function(self) return self:get_attr("client_state") == 4 end,
-    get_lagged = function(self) return self:get_attr("client_state") == 3 end,
+    get_plag = func(self) return capi.get_plag(self.uid) end,
+    get_ping = func(self) return capi.get_ping(self.uid) end,
+    get_editing = func(self) return self:get_attr("client_state") == 4 end,
+    get_lagged = func(self) return self:get_attr("client_state") == 3 end,
 
-    __init_svars = @[server,function(self, kwargs)
+    __init_svars = @[server,func(self, kwargs)
         Entity.__init_svars(self, kwargs)
 
         self:set_attr("model_name", "")
@@ -387,7 +387,7 @@ M.Character = Entity:clone {
         self:set_attr("landing_sound", "olpc/AdamKeshen/kik.wav")
     end],
 
-    __activate = @[server,function(self, kwargs)
+    __activate = @[server,func(self, kwargs)
         self.cn = kwargs and kwargs.cn or -1
         assert(self.cn >= 0)
         capi.setup_character(self.uid, self.cn)
@@ -397,7 +397,7 @@ M.Character = Entity:clone {
         self:set_attr("model_name", self:get_attr("model_name"))
 
         self:flush_queued_svar_changes()
-    end,function(self, kwargs)
+    end,func(self, kwargs)
         Entity.__activate(self, kwargs)
 
         self.cn = kwargs and kwargs.cn or -1
@@ -406,7 +406,7 @@ M.Character = Entity:clone {
         self.render_args_timestamp = -1
 
         -- see world.lua for field meanings
-        connect(self, "physics_trigger,changed", function(self, val)
+        connect(self, "physics_trigger,changed", func(self, val)
             if val == 0 do return end
             self:set_attr("physics_trigger", 0)
 
@@ -433,7 +433,7 @@ M.Character = Entity:clone {
         end)
     end],
 
-    __deactivate = function(self)
+    __deactivate = func(self)
         capi.destroy_character(self.cn)
         Entity.__deactivate(self)
     end,
@@ -442,7 +442,7 @@ M.Character = Entity:clone {
         Decides the base time to use for animation rendering of the character.
         By default simply returns `start_time`.
     ]]
-    decide_base_time = function(self, anim)
+    decide_base_time = func(self, anim)
         return self:get_attr("start_time")
     end,
 
@@ -463,7 +463,7 @@ M.Character = Entity:clone {
             - needhud - true if we're in first person mode.
             - fpsshadow - true if we enabled a FPS player shadow.
     ]]
-    __render = @[not server,function(self, hudpass, needhud, fpsshadow)
+    __render = @[not server,func(self, hudpass, needhud, fpsshadow)
         if not self.initialized do return end
         if not hudpass and needhud and not fpsshadow do return end
 
@@ -515,7 +515,7 @@ M.Character = Entity:clone {
         Arguments:
             - hudpass, needhud - see $__render.
     ]]
-    get_render_flags = @[not server,function(self, hudpass, needhud)
+    get_render_flags = @[not server,func(self, hudpass, needhud)
         var flags
         if self != ents.get_player() do
             flags = model.render_flags.CULL_VFC
@@ -538,7 +538,7 @@ M.Character = Entity:clone {
         Returns the base "action animation" used by $decide_animation. By
         default simply return the `animation` attribute.
     ]]
-    get_animation = @[not server,function(self)
+    get_animation = @[not server,func(self)
         return self:get_attr("animation")
     end],
 
@@ -554,7 +554,7 @@ M.Character = Entity:clone {
             - move, strafe, crouching, vel, falling, unwater, tinair - see
               the appropriate state variables.
     ]]
-    decide_animation = @[not server,function(self, state, pstate, move,
+    decide_animation = @[not server,func(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair)
         var anim = self:get_animation()
 
@@ -625,7 +625,7 @@ M.Character = Entity:clone {
         the actual `position` is feet position). Override if you need this
         non-standard. By default it's 0.75 * eye_height above feet.
     ]]
-    get_center = function(self)
+    get_center = func(self)
         var r = self:get_attr("position"):copy()
         r.z = r.z + self:get_attr("eye_height") * 0.75
         return r
@@ -636,7 +636,7 @@ M.Character = Entity:clone {
         is supposed to fix it so that it corresponds to where player actually
         targeted from. By default just returns origin.
     ]]
-    get_targeting_origin = function(self, origin)
+    get_targeting_origin = func(self, origin)
         return origin
     end,
 
@@ -645,7 +645,7 @@ M.Character = Entity:clone {
         side. Useful when allowing actions to animate the entity (as we mostly
         don't need the changes to reflect elsewhere).
     ]]
-    set_local_animation = function(self, anim)
+    set_local_animation = func(self, anim)
         capi.set_animation(self.uid, anim)
         self.svar_values["animation"] = anim
     end,
@@ -654,7 +654,7 @@ M.Character = Entity:clone {
         Sets the `model_name` property locally, without notifying the other
         side.
     ]]
-    set_local_model_name = function(self, mname)
+    set_local_model_name = func(self, mname)
         capi.set_model_name(self.uid, mname)
         self.svar_values["model_name"] = mname
     end
@@ -667,13 +667,13 @@ var Character = M.Character
     the other one as an argument. The client we're testing collisions against
     gets the first emit.
 ]]
-set_external("physics_collide_client", function(cl1, cl2, dx, dy, dz)
+set_external("physics_collide_client", func(cl1, cl2, dx, dy, dz)
     cl1, cl2 = ent_get(cl1), ent_get(cl2)
     emit(cl1, "collision", cl2, dx, dy, dz)
     emit(cl2, "collision", cl1, dx, dy, dz)
 end)
 
-set_external("entity_set_local_animation", function(uid, anim)
+set_external("entity_set_local_animation", func(uid, anim)
     ent_get(uid):set_local_animation(anim)
 end)
 
@@ -693,7 +693,7 @@ M.Player = Character:clone {
         hud_model_name = svars.StateString()
     },
 
-    __init_svars = @[server,function(self, kwargs)
+    __init_svars = @[server,func(self, kwargs)
         Character.__init_svars(self, kwargs)
 
         self:set_attr("can_edit", false)
@@ -707,11 +707,11 @@ ents.register_prototype(M.Player)
 var c_get_attr = capi.get_attr
 var c_set_attr = capi.set_attr
 
-var gen_attr = function(i, name)
+var gen_attr = func(i, name)
     i = i - 1
     return svars.StateInteger {
-        getter = function(ent)      return c_get_attr(ent, i)      end,
-        setter = function(ent, val) return c_set_attr(ent, i, val) end,
+        getter = func(ent)      return c_get_attr(ent, i)      end,
+        setter = func(ent, val) return c_set_attr(ent, i, val) end,
         gui_name = name, alt_name = name
     }
 end
@@ -747,7 +747,7 @@ M.StaticEntity = Entity:clone {
         }
     },
 
-    __init_svars = function(self, kwargs)
+    __init_svars = func(self, kwargs)
         @[debug] log(DEBUG, "StaticEntity.init")
 
         kwargs = kwargs or {}
@@ -767,7 +767,7 @@ M.StaticEntity = Entity:clone {
         @[debug] log(DEBUG, "StaticEntity.init complete")
     end,
 
-    __activate = @[server,function(self, kwargs)
+    __activate = @[server,func(self, kwargs)
         kwargs = kwargs or {}
 
         @[debug] log(DEBUG, "StaticEntity.__activate")
@@ -784,21 +784,21 @@ M.StaticEntity = Entity:clone {
             var an = "attr" .. i
             self:set_attr(an, self:get_attr(an))
         end
-    end,function(self, kwargs)
+    end,func(self, kwargs)
         capi.setup_extent(self.uid, self.sauer_type)
         return Entity.__activate(self, kwargs)
     end],
 
-    __deactivate = function(self)
+    __deactivate = func(self)
         capi.destroy_extent(self.uid)
         return Entity.__deactivate(self)
     end,
 
-    send_notification_full = @[server,function(self, cn)
+    send_notification_full = @[server,func(self, cn)
         var acn = msg.ALL_CLIENTS
         cn = cn or acn
 
-        var cns = (cn == acn) and map(ents.get_players(), function(p)
+        var cns = (cn == acn) and map(ents.get_players(), func(p)
             return p.cn end) or { cn }
 
         var uid = self.uid
@@ -819,7 +819,7 @@ M.StaticEntity = Entity:clone {
         See {{$Character.get_center}}. By default this is the entity position.
         May be overloaded for other entity types.
     ]]
-    get_center = function(self)
+    get_center = func(self)
         return self:get_attr("position"):copy()
     end,
 
@@ -828,7 +828,7 @@ M.StaticEntity = Entity:clone {
         value is returned, it defaults to 255, 255, 255 (white). This is
         useful for e.g. light entity that is colored.
     ]]
-    __get_edit_color = function(self)
+    __get_edit_color = func(self)
         return 255, 255, 255
     end,
 
@@ -836,7 +836,7 @@ M.StaticEntity = Entity:clone {
         Returns any piece of information displayed in in the edit HUD in
         addition to the entity name. Overload for different entity types.
     ]]
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return nil
     end,
 
@@ -845,7 +845,7 @@ M.StaticEntity = Entity:clone {
         This refers to the "internally attached" entity that the core engine
         works with.
     ]]
-    get_attached_entity = function(self)
+    get_attached_entity = func(self)
         return capi.get_attached_entity(self.uid)
     end,
 
@@ -854,7 +854,7 @@ M.StaticEntity = Entity:clone {
         to the floor. By default returns 4, may be useful to overload (for
         say, mapmodels).
     ]]
-    get_edit_drop_height = function(self)
+    get_edit_drop_height = func(self)
         return 4
     end
 }
@@ -865,7 +865,7 @@ var StaticEntity = M.StaticEntity
     `ent:{{$StaticEntity.__get_edit_color|__get_edit_color}}()` where `ent`
     is the entity with unique id `uid`.
 ]]
-set_external("entity_get_edit_icon_info", function(uid)
+set_external("entity_get_edit_icon_info", func(uid)
     var ent = ent_get(uid)
     return ent.__edit_icon, ent:__get_edit_color()
 end)
@@ -874,7 +874,7 @@ end)
     An external. Returns the entity name and the return value of
     {{$StaticEntity.__get_edit_info}}.
 ]]
-set_external("entity_get_edit_info", function(uid)
+set_external("entity_get_edit_info", func(uid)
     var ent = ent_get(uid)
     return ent.name, ent:__get_edit_info()
 end)
@@ -882,7 +882,7 @@ end)
 --[[! Function: entity_get_edit_drop_height
     An external, see {{$StaticEntity.get_edit_drop_height}}. Takes the uid.
 ]]
-set_external("entity_get_edit_drop_height", function(ent)
+set_external("entity_get_edit_drop_height", func(ent)
     return ent_get(ent):get_edit_drop_height()
 end)
 
@@ -898,7 +898,7 @@ M.Marker = StaticEntity:clone {
     sauer_type = 1,
 
     --! Places the given entity on this marker's position.
-    place_entity = function(self, ent)
+    place_entity = func(self, ent)
         ent:set_attr("position", self:get_attr("position"))
     end
 }
@@ -928,20 +928,20 @@ M.OrientedMarker = StaticEntity:clone {
         attr2 = gen_attr(2, "pitch")
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
         self:set_attr("yaw", 0, nd[1])
         self:set_attr("pitch", 0, nd[2])
     end,
 
     --! Places the given entity on this marker's position, using yaw and pitch.
-    place_entity = function(self, ent)
+    place_entity = func(self, ent)
         ent:set_attr("position", self:get_attr("position"))
         ent:set_attr("yaw", self:get_attr("yaw"))
         ent:set_attr("pitch", self:get_attr("pitch"))
     end,
 
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d", self:get_attr("yaw"),
             self:get_attr("pitch"))
     end
@@ -953,7 +953,7 @@ var lightflags = setmetatable({
     [1] = "none (1)",
     [2] = "static (2)"
 }, {
-    __index = function(self, i)
+    __index = func(self, i)
         return ("invalid (%d)"):format(i)
     end
 })
@@ -990,7 +990,7 @@ M.Light = StaticEntity:clone {
         attr5 = gen_attr(5, "shadow")
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
         self:set_attr("red", 128, nd[1])
         self:set_attr("green", 128, nd[2])
@@ -999,12 +999,12 @@ M.Light = StaticEntity:clone {
         self:set_attr("shadow", 0, nd[5])
     end,
 
-    __get_edit_color = function(self)
+    __get_edit_color = func(self)
         return self:get_attr("red"), self:get_attr("green"),
             self:get_attr("blue")
     end,
 
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return format("red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
             .. "radius :\f2 %d \f7| shadow :\f2 %s",
             self:get_attr("red"), self:get_attr("green"),
@@ -1033,18 +1033,18 @@ M.SpotLight = StaticEntity:clone {
         attr1 = gen_attr(1, "radius")
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 90, nd[1])
     end,
 
-    __get_edit_color = function(self)
+    __get_edit_color = func(self)
         var ent = self:get_attached_entity()
         if not ent do return 255, 255, 255 end
         return ent:get_attr("red"), ent:get_attr("green"), ent:get_attr("blue")
     end,
 
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return format("radius :\f2 %d", self:get_attr("radius"))
     end
 }
@@ -1071,12 +1071,12 @@ M.Envmap = StaticEntity:clone {
         attr1 = gen_attr(1, "radius")
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 128, nd[1])
     end,
 
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return format("radius :\f2 %d", self:get_attr("radius"))
     end
 }
@@ -1112,7 +1112,7 @@ M.Sound = StaticEntity:clone {
         sound_name = svars.StateString()
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 100, nd[3])
         self:set_attr("size", 0, nd[4])
@@ -1120,7 +1120,7 @@ M.Sound = StaticEntity:clone {
         self:set_attr("sound_name", "", nd[1])
     end,
 
-    __activate = @[not server,function(self, ...)
+    __activate = @[not server,func(self, ...)
         StaticEntity.__activate(self, ...)
         var f = |self| capi.sound_stop_map(self.uid)
         connect(self, "sound_name,changed", f)
@@ -1129,20 +1129,20 @@ M.Sound = StaticEntity:clone {
         connect(self, "volume,changed", f)
     end],
 
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return format("radius :\f2 %d \f7| size :\f2 %d \f7| volume :\f2 %d"
             .. "\n\f7name :\f2 %s",
             self:get_attr("radius"), self:get_attr("size"),
             self:get_attr("volume"), self:get_attr("sound_name"))
     end,
 
-    __play_sound = function(self)
+    __play_sound = func(self)
         capi.sound_play_map(self.uid, self:get_attr("sound_name"),
             self:get_attr("volume"), -1)
     end
 }
 
-set_external("sound_play_map", function(uid)
+set_external("sound_play_map", func(uid)
     ent_get(uid):__play_sound()
 end)
 
@@ -1161,15 +1161,15 @@ M.ParticleEffect = StaticEntity:clone {
     __plugin_methods = { "__emit_particles" },
 
     --! Returns 0.
-    get_edit_drop_height = function(self)
+    get_edit_drop_height = func(self)
         return 0
     end,
 
     --! This is what you need to override - draw your particles from here.
-    __emit_particles = function(self) end
+    __emit_particles = func(self) end
 }
 
-set_external("particle_entity_emit", function(uid)
+set_external("particle_entity_emit", func(uid)
     ent_get(uid):__emit_particles()
 end)
 
@@ -1209,8 +1209,8 @@ M.Mapmodel = StaticEntity:clone {
         start_time  = svars.StateInteger { getter = capi.get_start_time   },
         model_name  = svars.StateString  { setter = capi.set_model_name   },
         attachments = svars.StateArray   {
-            setter = function(self, val)
-                return set_attachments(self, map(val, function(str)
+            setter = func(self, val)
+                return set_attachments(self, map(val, func(str)
                     return str:split(",")
                 end))
             end
@@ -1222,7 +1222,7 @@ M.Mapmodel = StaticEntity:clone {
         attr4 = gen_attr(4, "scale")
     },
 
-    __init_svars = @[server,function(self, kwargs, nd)
+    __init_svars = @[server,func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
         self:set_attr("model_name", "", nd[1])
         self:set_attr("yaw", 0, nd[2])
@@ -1233,12 +1233,12 @@ M.Mapmodel = StaticEntity:clone {
         self:set_attr("animation", 3 | (1 << 9))
     end],
 
-    __activate = @[server,function(self, kwargs)
+    __activate = @[server,func(self, kwargs)
         StaticEntity.__activate(self, kwargs)
         self:set_attr("model_name", self:get_attr("model_name"))
     end],
 
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d \f7|"
             .. " scale :\f2 %d\n\f7name :\f2 %s",
             self:get_attr("yaw"), self:get_attr("pitch"),
@@ -1247,7 +1247,7 @@ M.Mapmodel = StaticEntity:clone {
     end,
 
     --! Returns 0.
-    get_edit_drop_height = function(self)
+    get_edit_drop_height = func(self)
         return 0
     end,
 
@@ -1264,7 +1264,7 @@ M.Mapmodel = StaticEntity:clone {
     emits the `collision` signal on both entities, passing the other one as an
     argument. The mapmodel takes precedence.
 ]]
-set_external("physics_collide_mapmodel", function(collider, entity)
+set_external("physics_collide_mapmodel", func(collider, entity)
     collider, entity = ent_get(collider), ent_get(entity)
     emit(entity, "collision", collider)
     emit(collider, "collision", entity)
@@ -1298,7 +1298,7 @@ M.Obstacle = StaticEntity:clone {
         attr7 = gen_attr(7, "solid")
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
         self:set_attr("yaw", 0, nd[4])
         self:set_attr("pitch", 0, nd[5])
@@ -1309,7 +1309,7 @@ M.Obstacle = StaticEntity:clone {
         self:set_attr("solid", 0, nd[7])
     end,
 
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
             .. "a :\f2 %d \f7| b :\f2 %d \f7| c :\f2 %d \f7| solid :\f2 %d",
             self:get_attr("yaw"),  self:get_attr("pitch"),
@@ -1318,7 +1318,7 @@ M.Obstacle = StaticEntity:clone {
     end,
 
     --! Returns 0.
-    get_edit_drop_height = function(self)
+    get_edit_drop_height = func(self)
         return 0
     end
 }
@@ -1348,7 +1348,7 @@ M.Decal = StaticEntity:clone {
         attr5 = gen_attr(5, "size")
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
         self:set_attr("slot",  0, nd[1])
         self:set_attr("yaw",   0, nd[3])
@@ -1357,7 +1357,7 @@ M.Decal = StaticEntity:clone {
         self:set_attr("size",  1, nd[2])
     end,
 
-    __get_edit_info = function(self)
+    __get_edit_info = func(self)
         return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
             .. "slot :\f2 %d \f7| size :\f2 %d",
             self:get_attr("yaw"),  self:get_attr("pitch"),
@@ -1366,7 +1366,7 @@ M.Decal = StaticEntity:clone {
     end,
 
     --! Returns 0.
-    get_edit_drop_height = function(self)
+    get_edit_drop_height = func(self)
         return 0
     end
 }
@@ -1377,7 +1377,7 @@ M.Decal = StaticEntity:clone {
     the `collision` signal on both entities, passing the other one as an
     argument. The obstacle takes precedence.
 ]]
-set_external("physics_collide_area", function(collider, entity)
+set_external("physics_collide_area", func(collider, entity)
     collider, entity = ent_get(collider), ent_get(entity)
     emit(entity, "collision", collider)
     emit(collider, "collision", entity)

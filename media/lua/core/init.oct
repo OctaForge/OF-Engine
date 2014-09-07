@@ -14,10 +14,10 @@
     of global variables and usage of non-existent global variables.
 ]]
 setmetatable(_G, {
-    __newindex = function(self, n)
+    __newindex = func(self, n)
         error("attempt to create a global variable '" .. n .. "'", 2)
     end,
-    __index = function(self, n)
+    __index = func(self, n)
         error("attempt to use a global variable '" .. n .. "'", 2)
     end
 })
@@ -37,7 +37,7 @@ math.randomseed(os.time())
     debug.sethook(trace, "c")
     ```
 ]]
-var trace = function(event, line)
+var trace = func(event, line)
     var s = debug.getinfo(2, "nSl")
     print("DEBUG:")
     print("    " .. tostring(s.name))

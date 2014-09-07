@@ -27,7 +27,7 @@ M.change = {:
 :}
 var change = M.change
 
-set_external("change_add", function(desc, ctype)
+set_external("change_add", func(desc, ctype)
     signal.emit(M, "add", ctype, desc)
 end)
 
@@ -35,7 +35,7 @@ end)
     Adds a change of the given type and description to the queue assuming
     a change of the same description doesn't already exist.
 ]]
-M.add = function(ctype, desc)
+M.add = func(ctype, desc)
     for i, v in pairs(needsapply) do
         if v.desc == desc do return end
     end
@@ -47,10 +47,10 @@ end
 --[[!
     Clears out changes of the given type. If not given, clears out all.
 ]]
-M.clear = function(ctype)
+M.clear = func(ctype)
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
-    needsapply = table.filter(needsapply, function(i, v)
+    needsapply = table.filter(needsapply, func(i, v)
         if (v.ctype & ctype) == 0 do
             return true
         end
@@ -68,7 +68,7 @@ set_external("changes_clear", M.clear)
 --[[!
     Applies all queued changes.
 ]]
-M.apply = function()
+M.apply = func()
     var changetypes = 0
     for i, v in pairs(needsapply) do
         changetypes |= v.ctype
@@ -87,8 +87,8 @@ end
 --[[!
     Returns a table of all queued changes' descriptions.
 ]]
-M.get = function()
-    return table.map(needsapply, function(v) return v.desc end)
+M.get = func()
+    return table.map(needsapply, func(v) return v.desc end)
 end
 
 return M

@@ -34,13 +34,13 @@ var DayManager = Entity:clone {
         day_progress = svars.StateInteger { reliable = false }
     },
 
-    __init_svars = function(self)
+    __init_svars = func(self)
         Entity.__init_svars(self)
         self:set_attr("day_seconds", 40)
         self:set_attr("day_progress", 0)
     end,
 
-    __activate = @[server,function(self)
+    __activate = @[server,func(self)
         Entity.__activate(self)
         self.day_seconds_s = self:get_attr("day_seconds")
         connect(self, "day_seconds,changed", |self, v| do
@@ -49,7 +49,7 @@ var DayManager = Entity:clone {
         self.day_progress_s = 0
     end],
 
-    __run = function(self, millis)
+    __run = func(self, millis)
         @[not server] do return end
         Entity.__run(self, millis)
         var dm = self.day_seconds_s * 1000
@@ -65,7 +65,7 @@ var DayManager = Entity:clone {
 var dayman
 
 --! Gets the day manager instance.
-M.get = function()
+M.get = func()
     if not dayman do
         dayman = ents.get_by_prototype("DayManager")[1]
     end
@@ -80,7 +80,7 @@ get = M.get
     a handful of plugins that you can use. On the server this returns the
     entity.
 ]]
-M.setup = function(plugins)
+M.setup = func(plugins)
     ents.register_prototype(DayManager, plugins)
     @[server] do
         dayman = ents.new("DayManager")
@@ -88,7 +88,7 @@ M.setup = function(plugins)
     end
 end
 
-var getsunscale = function(dayprog)
+var getsunscale = func(dayprog)
     -- the numbers here are very approximate, in reality they'd depend
     -- on the which part of the year it is - here the sun is at the horizon
     -- by 6 AM and 6 PM respectively (equally long night and day) so we need
@@ -106,7 +106,7 @@ var getsunscale = function(dayprog)
     return (dayprog - d1) / (d2 - d1)
 end
 
-var getsunparams = function(daytime, daylen)
+var getsunparams = func(daytime, daylen)
     var mid = daylen / 2
     var yaw = 360 - (daytime / daylen) * 360
     var pitch
@@ -127,7 +127,7 @@ M.plugins = {
         by manipulating the sunlight yaw and pitch.
     ]]
     day_night = {
-        __activate = @[not server,function(self)
+        __activate = @[not server,func(self)
             var daylen
             connect(self, "day_seconds,changed", |self, v| do
                 daylen = v
@@ -143,7 +143,7 @@ M.plugins = {
             end)
         end],
 
-        __run = @[not server,function(self)
+        __run = @[not server,func(self)
             if self.sun_changed_dir and edit.player_is_editing() do
                 lights.reset_sun()
                 self.sun_changed_dir = false

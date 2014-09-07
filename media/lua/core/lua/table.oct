@@ -27,7 +27,7 @@ var ext_set = require("core.externals").set
     there is any non-array element found, returns false. Otherwise
     returns true.
 ]]
-table.is_array = function(t)
+table.is_array = func(t)
     var i = 0
     while t[i + 1] do i = i + 1 end
     for _ in pairs(t) do
@@ -53,7 +53,7 @@ var is_array = table.is_array
         - t - the table.
         - f - the function.
 ]]
-table.map = function(t, f)
+table.map = func(t, f)
     var r = {}
     for i, v in pairs(t) do r[i] = f(v) end
     return r
@@ -62,7 +62,7 @@ end
 --[[!
     Merges two arrays. Contents of the other come after those of the first one.
 ]]
-table.merge = function(ta, tb)
+table.merge = func(ta, tb)
     var l1, l2 = #ta, #tb
     var r = ctable(l1 + l2)
     for i = 1, l1 do r[#r + 1] = ta[i] end
@@ -74,7 +74,7 @@ end
     Merges two associative arrays (maps). When a key overlaps, the latter
     value is preferred.
 ]]
-table.merge_maps = function(ta, tb)
+table.merge_maps = func(ta, tb)
     var r = {}
     for a, b in pairs(ta) do r[a] = b end
     for a, b in pairs(tb) do r[a] = b end
@@ -84,7 +84,7 @@ end
 --[[!
     Returns a copy of the given table. It's a shallow copy.
 ]]
-table.copy = function(t)
+table.copy = func(t)
     var r = ctable(#t)
     for a, b in pairs(t) do r[a] = b end
     return r
@@ -101,7 +101,7 @@ end
     -- a table to filter
     foo = { 5, 10, 15, 20 }
     -- the filtered table, contains just 5, 10, 20
-    bar = filter(foo, function(k, v)
+    bar = filter(foo, func(k, v)
         if v == 15 do
             return false
         else
@@ -117,7 +117,7 @@ end
     See also:
         - $filter_map
 ]]
-table.filter = function(t, f)
+table.filter = func(t, f)
     var r = {}
     for i = 1, #t do if f(i, t[i]) do r[#r + 1] = t[i] end end
     return r
@@ -131,7 +131,7 @@ end
     -- a table to filter
     foo = { a = 5, b = 10, c = 15, d = 20 }
     -- the filtered table, contains just key/value pairs a, b, d
-    bar = filter_map(foo, function(k, v)
+    bar = filter_map(foo, func(k, v)
         if k == "c" do
             return false
         else
@@ -140,7 +140,7 @@ end
     end)
     ```
 ]]
-table.filter_map = function(t, f)
+table.filter_map = func(t, f)
     var r = {}
     for a, b in pairs(t) do if f(a, b) do r[a] = b end end
     return r
@@ -163,7 +163,7 @@ end
         - t - the table.
         - f - the conditional function.
 ]]
-table.compact = function(t, f)
+table.compact = func(t, f)
     var olen, comp = #t, 0
     for i = 1, olen do
         var v = t[i]
@@ -180,7 +180,7 @@ end
          - t - the table.
          - v - the element (its value).
 ]]
-table.find = function(t, v)
+table.find = func(t, v)
     for a, b in pairs(t) do if v == b do return a end end
 end
 
@@ -189,7 +189,7 @@ end
 
     ```
         var a = { 5, 10, 15, 20 }
-        assert(foldr(a, function(a, b) return a + b end) == 50)
+        assert(foldr(a, func(a, b) return a + b end) == 50)
     ```
 
     Arguments:
@@ -200,7 +200,7 @@ end
     See also:
         - $foldl
 ]]
-table.foldr = function(t, fun, z)
+table.foldr = func(t, fun, z)
     var idx = 1
     if not z do
         z   = t[1]
@@ -219,7 +219,7 @@ end
     See also:
         - $foldl
 ]]
-table.foldl = function(t, fun, z)
+table.foldl = func(t, fun, z)
     var len = #t
     if not z do
         z   = t[len]
@@ -232,7 +232,8 @@ table.foldl = function(t, fun, z)
     return z
 end
 
-var function serialize_fn(v, stream, kwargs, simp, tables, indent)
+var serialize_fn
+serialize_fn = func(v, stream, kwargs, simp, tables, indent)
     if simp do
         v = simp(v)
     end
@@ -373,7 +374,7 @@ var defkwp = {
           it (returns another value the original should be replaced with),
           by default there is no simplifier.
 ]]
-var serialize = function(val, kwargs, stream, simplifier)
+var serialize = func(val, kwargs, stream, simplifier)
     if kwargs == true do
         kwargs = defkwp
     elif not kwargs do
@@ -387,7 +388,7 @@ var serialize = function(val, kwargs, stream, simplifier)
         return serialize_fn(val, stream, kwargs, simplifier, {}, 1)
     else
         var t = {}
-        var ret, err = serialize_fn(val, function(out)
+        var ret, err = serialize_fn(val, func(out)
             t[#t + 1] = out end, kwargs, simplifier, {}, 1)
         if not ret do
             return nil, err
@@ -399,7 +400,7 @@ end
 table.serialize = serialize
 ext_set("table_serialize", serialize)
 
-var lex_get = function(ls)
+var lex_get = func(ls)
     while true do
         var c = ls.curr
         if not c do break end
@@ -512,7 +513,8 @@ var lex_get = function(ls)
     end
 end
 
-var function assert_tok(ls, tok, ...)
+var assert_tok
+assert_tok = func(ls, tok, ...)
     if not tok do return end
     if ls.tname != tok do
         error(("%d: unexpected symbol near '%s'"):format(ls.linenum,
@@ -522,7 +524,8 @@ var function assert_tok(ls, tok, ...)
     assert_tok(ls, ...)
 end
 
-var function parse(ls)
+var parse
+parse = func(ls)
     var tok = ls.tname
     if tok == "<string>" or tok == "<number>" do
         var v = ls.tval
@@ -566,7 +569,7 @@ end
     External as "table_deserialize". This returns the deserialized value on
     success and nil + the error message on failure.
 ]]
-table.deserialize = function(s)
+table.deserialize = func(s)
     var stream = (type(s) == "string") and s:gmatch(".") or s
     var ls = { curr = stream(), rdr = stream, linenum = 1 }
     var r, v = pcall(lex_get, ls)
@@ -577,7 +580,7 @@ table.deserialize = function(s)
 end
 ext_set("table_deserialize", table.deserialize)
 
-var sift_down = function(tbl, l, s, e, fun)
+var sift_down = func(tbl, l, s, e, fun)
     var root = s
     while root * 2 - l + 1 <= e do
         var child = root * 2 - l + 1
@@ -595,7 +598,7 @@ var sift_down = function(tbl, l, s, e, fun)
     end
 end
 
-var heapsort = function(tbl, l, r, fun)
+var heapsort = func(tbl, l, r, fun)
     var start = floor((l + r) / 2)
     while start >= l do
         sift_down(tbl, l, start, r, fun)
@@ -609,7 +612,7 @@ var heapsort = function(tbl, l, r, fun)
     end
 end
 
-var partition = function(tbl, l, r, pidx, fun)
+var partition = func(tbl, l, r, pidx, fun)
     var pivot = tbl[pidx]
     tbl[pidx], tbl[r] = tbl[r], tbl[pidx]
     for i = l, r - 1 do
@@ -622,7 +625,7 @@ var partition = function(tbl, l, r, pidx, fun)
     return l
 end
 
-var insertion_sort = function(tbl, l, r, fun)
+var insertion_sort = func(tbl, l, r, fun)
     for i = l, r do
         var j, v = i, tbl[i]
         while j > 1 and not fun(tbl[j - 1], v) do
@@ -633,7 +636,8 @@ var insertion_sort = function(tbl, l, r, fun)
     end
 end
 
-var function introloop(tbl, l, r, depth, fun)
+var introloop
+introloop = func(tbl, l, r, depth, fun)
     if (r - l) > 10 do
         if depth == 0 do
             return heapsort(tbl, l, r, fun)
@@ -644,11 +648,11 @@ var function introloop(tbl, l, r, depth, fun)
     else insertion_sort(tbl, l, r, fun) end
 end
 
-var introsort = function(tbl, l, r, fun)
+var introsort = func(tbl, l, r, fun)
     return introloop(tbl, l, r, 2 * floor(log(r - l + 1) / log(2)), fun)
 end
 
-var defaultcmp = function(a, b) return a < b end
+var defaultcmp = func(a, b) return a < b end
 
 --[[!
     A substitute for the original table.sort. Normally it behaves exactly
@@ -669,7 +673,7 @@ var defaultcmp = function(a, b) return a < b end
     sort to sort small sublists (10 elements and smaller). The
     quicksort part uses a median of three pivot.
 ]]
-table.sort = function(tbl, fun, l, r)
+table.sort = func(tbl, fun, l, r)
     l, r = l or 1, r or #tbl
     return introsort(tbl, l, r, fun or defaultcmp)
 end
@@ -689,7 +693,7 @@ table.Object = {
         passing in any extra arguments (besides the new object as the first
         argument).
     ]]
-    __call = function(self, ...)
+    __call = func(self, ...)
         var r = {
             __index = self, __proto = self, __call = self.__call,
             __tostring = self.__tostring
@@ -711,7 +715,7 @@ table.Object = {
         Returns:
             The new clone.
     ]]
-    clone = function(self, tbl)
+    clone = func(self, tbl)
         tbl = tbl or {}
         tbl.__index, tbl.__proto, tbl.__call = self, self, self.__call
         if not tbl.__tostring do tbl.__tostring = self.__tostring end
@@ -724,7 +728,7 @@ table.Object = {
         object, is a child of the given object, or a child of a child
         of the given object, or anything down the tree.
     ]]
-    is_a = function(self, base)
+    is_a = func(self, base)
         if self == base do return true end
         var pt = self.__proto
         var is = (pt == base)
@@ -739,7 +743,7 @@ table.Object = {
         The default tostring result is in format "Object: NAME" where NAME
         is self.name.
     ]]
-    __tostring = function(self)
+    __tostring = func(self)
         return ("Object: %s"):format(self.name or "unnamed")
     end
 }

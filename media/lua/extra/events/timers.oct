@@ -30,7 +30,7 @@ M.Timer = table.Object:clone {
               value, the sum will be larger than the interval), defaults
               to false.
     ]]
-    __ctor = function(self, interval, carry_over)
+    __ctor = func(self, interval, carry_over)
         self.interval   = interval
         self.carry_over = carry_over or false
         self.sum        = 0
@@ -47,7 +47,7 @@ M.Timer = table.Object:clone {
         Returns:
             True if the interval was reached, false otherwise.
     ]]
-    tick = function(self, millis)
+    tick = func(self, millis)
         var sum = self.sum + millis
         var interval = self.interval
         if sum >= interval do
@@ -60,7 +60,7 @@ M.Timer = table.Object:clone {
     end,
 
     --! Manually sets sum to interval.
-    prime = function(self)
+    prime = func(self)
         self.sum = self.interval
     end
 }

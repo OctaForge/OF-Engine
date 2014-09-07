@@ -49,18 +49,18 @@ M.Teleporter = Obstacle:clone {
         sound_name  = svars.StateString()
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         Obstacle.__init_svars(self, kwargs, { unpack(nd, 3) })
         self:set_attr("destination", 0, nd[1])
         self:set_attr("sound_name", "", nd[2])
     end,
 
-    __activate = @[not server,function(self, kwargs)
+    __activate = @[not server,func(self, kwargs)
         Obstacle.__activate(self, kwargs)
         connect(self, "collision", self.on_collision)
     end],
 
-    on_collision = function(self, collider)
+    on_collision = func(self, collider)
         var dest = self:get_attr("destination")
         if dest <= 0 do return end
         var dests = get_by_tag("teledest_" .. dest)
@@ -73,7 +73,7 @@ M.Teleporter = Obstacle:clone {
         if sn != "" do play(sn) end
     end,
 
-    get_attached_next = function(self)
+    get_attached_next = func(self)
         var dest = self:get_attr("destination")
         if dest <= 0 do return end
         return unpack(get_by_tag("teledest_" .. dest))

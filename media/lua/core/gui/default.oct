@@ -427,13 +427,13 @@ end }
 
 var set_ext = require("core.externals").set
 
-set_ext("progress_render", function(v, text)
+set_ext("progress_render", func(v, text)
     progress_bar:set_value(v)
     progress_label:set_text(text)
     gui.__draw_window(progress_win)
 end)
 
-var bg_win = function(mapname, mapinfo, mapshot, caption)
+var bg_win = func(mapname, mapinfo, mapshot, caption)
     var win = gui.Window()
     win:set_input_grab(false)
     win:align(0, 1)
@@ -461,7 +461,7 @@ var max_tex_size = cs.var_get("maxtexsize")
 
 connect(cs, "maxtexsize,changed", |self, val| do max_tex_size = val end)
 
-var get_logo = function(root, win)
+var get_logo = func(root, win)
     if  hw_tex_size == 0 do
         hw_tex_size = cs.var_get("hwtexsize")
     end
@@ -481,7 +481,7 @@ var get_logo = function(root, win)
     return logo, lw, lw / 2
 end
 
-var bg_under = function(root)
+var bg_under = func(root)
     var win = gui.Overlay()
     var logo, lw, lh = get_logo(root, win)
     win:append(gui.Image { file = "media/interface/background",
@@ -493,7 +493,7 @@ var bg_under = function(root)
     return win
 end
 
-set_ext("background_render", function(caption, mapname, mapinfo, mapshot)
+set_ext("background_render", func(caption, mapname, mapinfo, mapshot)
     var root = gui.get_root()
     root:calc_text_scale()
     root:layout_dim()
@@ -583,7 +583,7 @@ root:new_window("texture", gui.Window, |win| do
 end)
 
 var fields = {
-    [svars.StateBoolean] = function(hb, nm, ent, dv)
+    [svars.StateBoolean] = func(hb, nm, ent, dv)
         var tvar = (dv == "true")
         var ret
         hb:append(gui.Filler { min_w = 0.4 }, |f| do
@@ -600,7 +600,7 @@ var fields = {
         return ret
     end
 }
-var field_def = function(hb, nm, ent, dv)
+var field_def = func(hb, nm, ent, dv)
     return hb:append(gui.Field { clip_w = 0.4, value = dv }, |ed| do
         connect(ed, "value,changed", |ed, v| do
             ent:set_gui_attr(nm, v)

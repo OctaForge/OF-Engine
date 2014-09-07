@@ -65,7 +65,7 @@ return {
             - info - optional, specifies the corner to use if it's rnd4
               (0 to 3).
     ]]
-    add = function(tp, op, sp, rad, r, g, b, inf)
+    add = func(tp, op, sp, rad, r, g, b, inf)
         capi.stain_add(tp, op.x, op.y, op.z, sp.x, sp.y, sp.z, rad, r, g, b,
             inf or 0)
     end

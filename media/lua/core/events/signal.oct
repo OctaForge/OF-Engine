@@ -31,7 +31,7 @@ var M = {}
 
     ```
     Foo = {}
-    signal.connect(Foo, "blah", function(self, a, b, c)
+    signal.connect(Foo, "blah", func(self, a, b, c)
         echo(a)
         echo(b)
         echo(c)
@@ -48,7 +48,7 @@ var M = {}
         The id for the slot, you can later use that to $disconnect the
         slot, it also returns the number of currently connected slots.
 ]]
-M.connect = function(self, name, callback)
+M.connect = func(self, name, callback)
     if type(callback) != "function" do
         log.log(log.ERROR, "Not connecting non-function callback: " .. name)
         return nil
@@ -86,7 +86,7 @@ end
         The number of connected slots after disconnect (or nil if nothing
         could be disconnected).
 ]]
-M.disconnect = function(self, name, id)
+M.disconnect = func(self, name, id)
     var clistn = "_sig_conn_" .. name
     var clist  = rawget(self, clistn)
     var cb     = rawget(self, "__disconnect")
@@ -119,7 +119,7 @@ end
         - name - the signal name.
         - ... - any further arguments passed to each callback.
 ]]
-M.emit = function(self, name, ...)
+M.emit = func(self, name, ...)
     var clistn = "_sig_conn_" .. name
     var clist  = rawget(self, clistn)
     if not clist do

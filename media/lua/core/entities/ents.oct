@@ -91,7 +91,7 @@ var is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
     entity prototype name and an array of state variable names to generate network
     data for.
 ]]
-M.gen_network_data = function(cn, names)
+M.gen_network_data = func(cn, names)
     @[debug] log(DEBUG, "ents.generate_network_data: " .. cn)
     sort(names)
 
@@ -109,7 +109,7 @@ var gen_network_data = M.gen_network_data
     If an entity prototype name is provided, clears the network data generated
     by $gen_network_data for the entity prototype. Otherwise clears it all.
 ]]
-M.clear_network_data = function(cn)
+M.clear_network_data = func(cn)
     if cn == nil do
         @[debug] log(DEBUG, "ents.clear_network_data")
         names_to_ids, ids_to_names = {}, {}
@@ -128,7 +128,7 @@ var assert, type = assert, type
 
 var modprefix = "_PLUGINS_"
 
-var register_plugins = function(cl, plugins, name)
+var register_plugins = func(cl, plugins, name)
     @[debug] log(DEBUG, "ents.register_prototype: registering plugins")
     var cldata = {}
     var properties
@@ -153,7 +153,7 @@ var register_plugins = function(cl, plugins, name)
 
         if not (#cltbl == 0 or (#cltbl == 1 and cltbl[1] == cl[slot])) do
             cldata[slotname] = cltbl
-            cldata[slot] = function(...)
+            cldata[slot] = func(...)
                 for i, fn in ipairs(cltbl) do fn(...) end
             end
         end
@@ -224,7 +224,7 @@ end
           field of the entity prototype name is used; it can also be the second
           argument if you are not providing plugins.
 ]]
-M.register_prototype = function(cl, plugins, name)
+M.register_prototype = func(cl, plugins, name)
     if not name do
         if type(plugins) == "string" do
             name, plugins = plugins, nil
@@ -271,7 +271,7 @@ M.register_prototype = function(cl, plugins, name)
         base = base.__proto
     end
 
-    sort(sv_names, function(n, m)
+    sort(sv_names, func(n, m)
         if is_svar_alias(pt[n]) and not is_svar_alias(pt[m]) do
             return false
         end
@@ -302,7 +302,7 @@ end
     Use with caution! See $register_prototype for the possible dangers of
     using this. It's still useful sometimes, so it's in the API.
 ]]
-M.get_prototype = function(cn)
+M.get_prototype = func(cn)
     var  t = proto_storage[cn] or proto_storage[proto_aliases[cn]]
     if not t do
         log(ERROR, "ents.get_prototype: invalid prototype " .. cn)
@@ -311,7 +311,7 @@ M.get_prototype = function(cn)
 end
 var get_prototype = M.get_prototype
 
-set_external("entity_proto_exists", function(cn)
+set_external("entity_proto_exists", func(cn)
     return not not get_prototype(cn)
 end)
 
@@ -319,7 +319,7 @@ end)
     Returns the internal entity prototype storage (name->prototype mapping),
     use with care.
 ]]
-M.get_all_prototypes = function()
+M.get_all_prototypes = func()
     return proto_storage
 end
 
@@ -327,7 +327,7 @@ end
     Retrieves an entity, given its unique id. If not found, nil. External as
     `entity_get`.
 ]]
-M.get = function(uid)
+M.get = func(uid)
     var r = storage[uid]
     if r do
         @[debug] log(DEBUG, "ents.get: success (" .. uid .. ")")
@@ -342,13 +342,13 @@ var get_ent = M.get
 --[[!
     Returns the whole storage. Use with care. External as `entities_get_all`.
 ]]
-M.get_all = function()
+M.get_all = func()
     return storage
 end
 set_external("entities_get_all", M.get_all)
 
 --! Returns an array of entities with a common tag.
-M.get_by_tag = function(tag)
+M.get_by_tag = func(tag)
     var r = {}
     var l = 1
     for i = 1, highest_uid do
@@ -362,33 +362,33 @@ M.get_by_tag = function(tag)
 end
 
 --! Returns an array of entities with a common prototype.
-M.get_by_prototype = function(cl)
+M.get_by_prototype = func(cl)
     return storage_by_proto[cl] or {}
 end
 
 var player_prototype = "Player"
 
 --! Sets the player prototype (by name) on the server (invalid on the client).
-M.set_player_prototype = @[server,function(cl)
+M.set_player_prototype = @[server,func(cl)
     player_prototype = cl
 end]
 
 var vg = cs.var_get
 
 --! Gets an array of players (all of the currently set player prototype).
-M.get_players = function()
+M.get_players = func()
     return storage_by_proto[@[server,player_prototype,player_entity.name]]
         or {}
 end
 var get_players = M.get_players
 
 --! Gets the current player, clientside only.
-M.get_player = @[not server,function()
+M.get_player = @[not server,func()
     return player_entity
 end]
 
 @[server] do
-    set_external("entity_get_player_prototype", function()
+    set_external("entity_get_player_prototype", func()
         return player_prototype
     end)
 end
@@ -411,14 +411,14 @@ end
         in form of {{$geom.Vec3}}. By default simply returns entity's position,
         the position is do used for subtraction from the given position.
 ]]
-M.get_by_distance = function(pos, kwargs)
+M.get_by_distance = func(pos, kwargs)
     kwargs = kwargs or {}
 
     var md = kwargs.max_distance
     if not md do return nil end
 
     var cl, tg, sr = kwargs.prototype, kwargs.tag, kwargs.sort
-    var fn = kwargs.pos_fun or function(e)
+    var fn = kwargs.pos_fun or func(e)
         return e:get_attr("position"):copy()
     end
 
@@ -437,7 +437,7 @@ M.get_by_distance = function(pos, kwargs)
     end
 
     if sr != false do
-        sort(ret, sr or function(a, b) return a[2] < b[2] end)
+        sort(ret, sr or func(a, b) return a[2] < b[2] end)
     end
     return ret
 end
@@ -451,7 +451,7 @@ end
     we don't want this behavior, for example when loading an entity from a
     file. External as `entity_add`.
 ]]
-var add = function(cn, uid, kwargs, new)
+var add = func(cn, uid, kwargs, new)
     uid = uid or 1337
 
     var cl = type(cn) == "table" and cn or (proto_storage[cn]
@@ -501,11 +501,11 @@ var add = function(cn, uid, kwargs, new)
 end
 M.add = add
 set_external("entity_add", add)
-set_external("entity_add_with_cn", function(cl, uid, cn)
+set_external("entity_add_with_cn", func(cl, uid, cn)
     add(cl, uid, (cn >= 0) and { cn = cn } or nil)
 end)
 
-var add_sauer = function(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
+var add_sauer = func(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
     storage_sauer[#storage_sauer + 1] = {
         et, Vec3(x, y, z), attr1, attr2, attr3, attr4, attr5
     }
@@ -521,7 +521,7 @@ set_external("entity_add_sauer", add_sauer)
     See also:
         - $remove_all
 ]]
-M.remove = function(uid)
+M.remove = func(uid)
     @[debug] log(DEBUG, "ents.remove: " .. uid)
 
     var e = storage[uid]
@@ -536,18 +536,18 @@ M.remove = function(uid)
     for k, v in pairs(proto_storage) do
         if e:is_a(v) do
             storage_by_proto[k] = filter_map(storage_by_proto[k],
-                function(a, b) return (b != e) end)
+                func(a, b) return (b != e) end)
         end
     end
     storage[uid] = nil
 end
 set_external("entity_remove", M.remove)
 
-set_external("entity_clear_actions", function(uid)
+set_external("entity_clear_actions", func(uid)
     get_ent(uid):clear_actions()
 end)
 
-set_external("entity_is_initialized", function(uid)
+set_external("entity_is_initialized", func(uid)
     return get_ent(uid).initialized
 end)
 
@@ -559,7 +559,7 @@ end)
     See also:
         - $remove
 ]]
-M.remove_all = function()
+M.remove_all = func()
     for i = 1, highest_uid do
         var e = storage[i]
         if e do
@@ -588,7 +588,7 @@ set_external("entities_remove_all", M.remove_all)
     See also:
         - $save
 ]]
-M.load = function()
+M.load = func()
     @[not server] do return end
 
     @[debug] log(DEBUG, "ents.load: reading")
@@ -694,7 +694,7 @@ end
     Serializes all loaded entities into format that can be read by $load.
     External as `entities_save_all`.
 ]]
-M.save = function()
+M.save = func()
     var r = {}
     @[debug] log(DEBUG, "ents.save: saving")
 
@@ -754,7 +754,7 @@ M.Entity = table.Object:clone {
     },
 
     --! Makes entity objects return their name on tostring.
-    __tostring = function(self)
+    __tostring = func(self)
         return self.name
     end,
 
@@ -762,7 +762,7 @@ M.Entity = table.Object:clone {
         Performs entity setup. Creates its action queue, caching tables,
         de-deactivates the entity, triggers svar setup and locks.
     ]]
-    setup = function(self)
+    setup = func(self)
         @[debug] log(DEBUG, "Entity: setup")
 
         if self.setup_complete do return end
@@ -782,7 +782,7 @@ M.Entity = table.Object:clone {
         the entity and makes it deactivated. On the server it also sends a
         message to all clients to do the same.
     ]]
-    __deactivate = function(self)
+    __deactivate = func(self)
         self:clear_actions()
         capi.unregister_entity(self.uid)
 
@@ -799,18 +799,18 @@ M.Entity = table.Object:clone {
         long to manage the action queue (how much will the counters change
         internally), specified in milliseconds.
     ]]
-    __run = function(self, millis)
+    __run = func(self, millis)
         self.action_queue:run(millis)
     end,
 
     --! Enqueues an action into the entity's queue. Returns the action.
-    enqueue_action = function(self, act)
+    enqueue_action = func(self, act)
         self.action_queue:enqueue(act)
         return act
     end,
 
     --! Clears the entity's action queue.
-    clear_actions = function(self)
+    clear_actions = func(self)
         self.action_queue:clear()
     end,
 
@@ -818,14 +818,14 @@ M.Entity = table.Object:clone {
         Tags an entity. Modifies the `tags` property. Checks for existence
         of the tag first.
     ]]
-    add_tag = function(self, tag)
+    add_tag = func(self, tag)
         if not self:has_tag(tag) do
             self:get_attr("tags"):append(tag)
         end
     end,
 
     --! Removes the given tag. Checks for its existence first.
-    remove_tag = function(self, tag)
+    remove_tag = func(self, tag)
         @[debug] log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
         if not self:has_tag(tag) do return end
@@ -837,7 +837,7 @@ M.Entity = table.Object:clone {
         Checks if the entity is tagged with the given tag. Returns true if
         found, false if not found.
     ]]
-    has_tag = function(self, tag)
+    has_tag = func(self, tag)
         @[debug] log(DEBUG, "Entity: has_tag (" .. tag .. ")")
         return find(self:get_attr("tags"):to_array(), tag) != nil
     end,
@@ -854,7 +854,7 @@ M.Entity = table.Object:clone {
             sdata in a serialized format (string) with names converted
             to protocol IDs, otherwise raw table.
     ]]
-    build_sdata = function(self, kwargs)
+    build_sdata = func(self, kwargs)
         kwargs = kwargs or {}
         var tcn, comp
         if not kwargs do
@@ -896,7 +896,7 @@ M.Entity = table.Object:clone {
     end,
 
     --! Updates the complete state data on an entity from serialized input.
-    set_sdata_full = function(self, sdata)
+    set_sdata_full = func(self, sdata)
         @[debug] log(DEBUG, "Entity.set_sdata_full: " .. self.uid .. ", "
             .. sdata)
 
@@ -921,7 +921,7 @@ M.Entity = table.Object:clone {
         queue and makes the entity initialized). Called by $__init_svars and
         $__activate.
     ]]
-    entity_setup = @[server,function(self)
+    entity_setup = @[server,func(self)
         if not self.initialized do
             @[debug] log(DEBUG, "Entity.entity_setup: setup")
             self:setup()
@@ -944,7 +944,7 @@ M.Entity = table.Object:clone {
                for more things.
              - ndata - an array of extra newent arguments in wire format.
     ]]
-    __init_svars = @[server,function(self, kwargs, ndata)
+    __init_svars = @[server,func(self, kwargs, ndata)
         @[debug] log(DEBUG, "Entity.__init_svars")
 
         self:entity_setup()
@@ -963,7 +963,7 @@ M.Entity = table.Object:clone {
         On the server, the kwargs are queried for sdata and
         a $set_sdata_full happens.
     ]]
-    __activate = function(self, kwargs)
+    __activate = func(self, kwargs)
         @[debug] log(DEBUG, "Entity.__activate")
         @[server] do
             self:entity_setup()
@@ -1000,7 +1000,7 @@ M.Entity = table.Object:clone {
             - name - the state variable name.
             - val - the value to set.
     ]]
-    sdata_changed = function(self, svar, name, val)
+    sdata_changed = func(self, svar, name, val)
         var sfun = svar.setter_fun
         if not sfun do return end
         if not @[server,self.svar_change_queue] do
@@ -1040,7 +1040,7 @@ M.Entity = table.Object:clone {
               to convert from wire format (otherwise converts only when setting
               on a specific client number).
     ]]
-    set_sdata = @[not server,function(self, key, val, actor_uid)
+    set_sdata = @[not server,func(self, key, val, actor_uid)
         @[debug] log(DEBUG, "Entity.set_sdata: " .. key .. " = "
             .. serialize(val) .. " for " .. self.uid)
 
@@ -1075,7 +1075,7 @@ M.Entity = table.Object:clone {
             emit(self, key .. ",changed", val, nfh)
             self.svar_values[key] = val
         end
-    end,function(self, key, val, actor_uid, iop)
+    end,func(self, key, val, actor_uid, iop)
         @[debug] log(DEBUG, "Entity.set_sdata: " .. key .. " = "
             .. serialize(val) .. " for " .. self.uid)
 
@@ -1124,7 +1124,7 @@ M.Entity = table.Object:clone {
                     and storage[actor_uid].cn or msg.ALL_CLIENTS
             }
 
-            var cns = map(get_players(), function(p) return p.cn end)
+            var cns = map(get_players(), func(p) return p.cn end)
             for i = 1, #cns do
                 var n = cns[i]
                 if svar:should_send(self, n) do
@@ -1139,7 +1139,7 @@ M.Entity = table.Object:clone {
         Cancels a state data update (on the server). Useful when called
         from `,changed` signal slots.
     ]]
-    cancel_sdata_update = function(self)
+    cancel_sdata_update = func(self)
         self.sdata_update_cancel = true
     end,
 
@@ -1147,11 +1147,11 @@ M.Entity = table.Object:clone {
         On the server, sends a full notification to a specific client
         or all clients.
     ]]
-    send_notification_full = @[server,function(self, cn)
+    send_notification_full = @[server,func(self, cn)
         var acn = msg.ALL_CLIENTS
         cn = cn or acn
 
-        var cns = (cn == acn) and map(get_players(), function(p)
+        var cns = (cn == acn) and map(get_players(), func(p)
             return p.cn end) or { cn }
 
         var uid = self.uid
@@ -1173,7 +1173,7 @@ M.Entity = table.Object:clone {
         Queues a svar change (Happens before full update, when the
         entity is being created). Server only.
     ]]
-    queue_svar_change = @[server,function(self, key, val)
+    queue_svar_change = @[server,func(self, key, val)
         self.svar_change_queue[key] = val
     end],
 
@@ -1181,7 +1181,7 @@ M.Entity = table.Object:clone {
         Flushes the SV change queue (applies all the changes). After this,
         there is no change queue anymore.
     ]]
-    flush_queued_svar_changes = @[server,function(self)
+    flush_queued_svar_changes = @[server,func(self)
         var changes = self.svar_change_queue
         if not changes do return end
         self.svar_change_queue = nil
@@ -1203,14 +1203,14 @@ M.Entity = table.Object:clone {
         accordingly. The core entity system doesn't manage attached
         entities at all. See also $get_attached_prev.
     ]]
-    get_attached_next = function(self)
+    get_attached_next = func(self)
     end,
 
     --[[!
         Returns the previous attached entity. Like $get_attached_next,
         you need to overload this.
     ]]
-    get_attached_prev = function(self)
+    get_attached_prev = func(self)
     end,
 
     --[[!
@@ -1222,7 +1222,7 @@ M.Entity = table.Object:clone {
             - $get_gui_attrs
             - $set_gui_attr
     ]]
-    get_gui_attr = function(self, prop)
+    get_gui_attr = func(self, prop)
         var svar = self["_SV_GUI_" .. prop]
         if not svar or not svar.has_history do return nil end
         var val = self:get_attr(svar.name)
@@ -1236,7 +1236,7 @@ M.Entity = table.Object:clone {
         array of key-value pairs. The second argument (defaults to true)
         specifies whether to sort the result by attribute name.
     ]]
-    get_gui_attrs = function(self, sortattrs)
+    get_gui_attrs = func(self, sortattrs)
         if sortattrs == nil do sortattrs = true end
         var r = {}
         for k, svar in pairs(self) do
@@ -1248,7 +1248,7 @@ M.Entity = table.Object:clone {
                 end
             end
         end
-        if sortattrs do sort(r, function(a, b) return a[1] < b[1] end) end
+        if sortattrs do sort(r, func(a, b) return a[1] < b[1] end) end
         return r
     end,
 
@@ -1260,7 +1260,7 @@ M.Entity = table.Object:clone {
             - $set_attr
             - $get_gui_attr
     ]]
-    set_gui_attr = function(self, prop, val)
+    set_gui_attr = func(self, prop, val)
         var svar = self["_SV_GUI_" .. prop]
         if not svar or not svar.has_history do return end
         self:set_attr(svar.name, svar:from_wire(val))
@@ -1273,7 +1273,7 @@ M.Entity = table.Object:clone {
             - $set_attr
             - $get_gui_attr
     ]]
-    get_attr = function(self, prop)
+    get_attr = func(self, prop)
         var fun = self["__get_" .. prop]
         if fun do return fun(self) end
         return nil
@@ -1293,7 +1293,7 @@ M.Entity = table.Object:clone {
             - $get_attr
             - $set_gui_attr
     ]]
-    set_attr = function(self, prop, val, nd)
+    set_attr = func(self, prop, val, nd)
         if nd do
             var svar = self["_SV_" .. prop]
             if svar do
@@ -1311,10 +1311,10 @@ Entity = M.Entity
     See {{$Entity.get_gui_attr}}. Externally accessible as
     `entity_get_gui_attr` (using uid). See also $set_gui_attr.
 ]]
-M.get_gui_attr = function(ent, prop)
+M.get_gui_attr = func(ent, prop)
     return ent:get_gui_attr(prop)
 end
-set_external("entity_get_gui_attr", function(uid, prop)
+set_external("entity_get_gui_attr", func(uid, prop)
     return get_ent(uid):get_gui_attr(prop)
 end)
 
@@ -1322,10 +1322,10 @@ end)
     See {{$Entity.set_gui_attr}}. Externally accessible as
     `entity_set_gui_attr` (using uid). See also $get_gui_attr.
 ]]
-M.set_gui_attr = function(ent, prop, val)
+M.set_gui_attr = func(ent, prop, val)
     return ent:set_gui_attr(prop, val)
 end
-set_external("entity_set_gui_attr", function(uid, prop, val)
+set_external("entity_set_gui_attr", func(uid, prop, val)
     return get_ent(uid):set_gui_attr(prop, val)
 end)
 
@@ -1333,16 +1333,16 @@ end)
     See {{$Entity.get_attr}}. Externally accessible as `entity_get_attr`
     (using the uid). See also $set_attr.
 ]]
-M.get_attr = function(ent, prop)
+M.get_attr = func(ent, prop)
     return ent:get_attr(prop)
 end
-set_external("entity_get_attr", function(uid, prop)
+set_external("entity_get_attr", func(uid, prop)
     var ent = storage[uid]
     if not ent do return nil end
     return ent:get_attr(prop)
 end)
 
-set_external("entity_refresh_attr", function(uid, prop)
+set_external("entity_refresh_attr", func(uid, prop)
     var ent = get_ent(uid)
     ent:set_attr(prop, ent:get_attr(prop))
 end)
@@ -1351,16 +1351,16 @@ end)
     See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`
     (using the uid). See also $get_attr.
 ]]
-M.set_attr = function(ent, prop, val)
+M.set_attr = func(ent, prop, val)
     return ent:set_attr(prop, val)
 end
-set_external("entity_set_attr", function(uid, prop, val)
+set_external("entity_set_attr", func(uid, prop, val)
     var ent = storage[uid]
     if not ent do return nil end
     return ent:set_attr(prop, val)
 end)
 
-set_external("entity_draw_attached", function(uid)
+set_external("entity_draw_attached", func(uid)
     var ent = storage[uid]
     if not ent do return end
     var ents = { ent:get_attached_next() }
@@ -1378,7 +1378,7 @@ end)
 --[[! Function: entity_get_proto_name
     An external that returns the name of the prototype of the given entity uid.
 ]]
-set_external("entity_get_proto_name", function(uid)
+set_external("entity_get_proto_name", func(uid)
     return get_ent(uid).name
 end)
 
@@ -1386,7 +1386,7 @@ end)
     Main render hook. External as `game_render`. Calls individual `render`
     method on each entity (if defined). Clientside only. See also $render_hud.
 ]]
-M.render = @[not server,function(tp, fpsshadow)
+M.render = @[not server,func(tp, fpsshadow)
     @[debug] log(INFO, "game_render")
     var  player = player_entity
     if not player do return end
@@ -1413,7 +1413,7 @@ set_external("game_render", render)
     Renders the player HUD model if needed. External as `game_render_hud`.
     Clientside only. See also $render.
 ]]
-M.render_hud = @[not server,function()
+M.render_hud = @[not server,func()
     @[debug] log(INFO, "game_render_hud")
     var  player = player_entity
     if not player do return end
@@ -1429,7 +1429,7 @@ set_external("game_render_hud", render_hud)
     Assigns the player entity using the given uid. External as `player_init`,
     clientside.
 ]]
-M.init_player = @[not server,function(uid)
+M.init_player = @[not server,func(uid)
     assert(uid)
     @[debug] log(DEBUG, "Initializing player with uid " .. uid)
 
@@ -1454,7 +1454,7 @@ set_external("player_init", init_player)
           of the client that triggered the change. When set to -1, it means
           the server triggered it.
 ]]
-M.set_sdata = function(uid, kpid, value, auid)
+M.set_sdata = func(uid, kpid, value, auid)
     var ent = storage[uid]
     if ent do
         var key = ids_to_names[ent.name][kpid]
@@ -1465,11 +1465,11 @@ M.set_sdata = function(uid, kpid, value, auid)
 end
 set_external("entity_set_sdata", M.set_sdata)
 
-set_external("entity_set_sdata_full", function(uid, sd)
+set_external("entity_set_sdata_full", func(uid, sd)
     get_ent(uid):set_sdata_full(sd)
 end)
 
-set_external("entity_serialize_sdata", function(uid, x, y, z)
+set_external("entity_serialize_sdata", func(uid, x, y, z)
     var sd = get_ent(uid):build_sdata()
     if not x do
         sd.position = nil
@@ -1484,7 +1484,7 @@ end)
     actually start (checks whether the player exists and whether all the
     entities are initialized). External as `scene_is_ready`.
 !]]
-M.scene_is_ready = @[not server,function()
+M.scene_is_ready = @[not server,func()
     @[debug] log(INFO, "Scene ready?")
 
     if player_entity == nil do
@@ -1510,7 +1510,7 @@ set_external("scene_is_ready", M.scene_is_ready)
     Generates a new entity unique ID. It's larger than the previous largest
     by one. Serverside. External as `entity_gen_uid`.
 ]]
-M.gen_uid = @[server,function()
+M.gen_uid = @[server,func()
     @[debug] log(DEBUG, "Generating an UID, last highest UID: "
         .. highest_uid)
     return highest_uid + 1
@@ -1519,11 +1519,11 @@ var gen_uid = M.gen_uid
 set_external("entity_gen_uid", gen_uid)
 
 --! Returns the highest entity unique ID used.
-M.get_highest_uid = function()
+M.get_highest_uid = func()
     return highest_uid
 end
 
-set_external("entity_set_cn", function(uid, cn)
+set_external("entity_set_cn", func(uid, cn)
     get_ent(uid).cn = cn
 end)
 
@@ -1538,21 +1538,21 @@ end)
     Returns:
          The new entity.
 ]]
-M.new = @[server,function(cl, kwargs, fuid)
+M.new = @[server,func(cl, kwargs, fuid)
     fuid = fuid or gen_uid()
     @[debug] log(DEBUG, "New entity: " .. fuid)
     return add(cl, fuid, kwargs, true)
 end]
 var ent_new = M.new
 
-set_external("entity_new_with_sd", function(cl, x, y, z, sd, nd)
+set_external("entity_new_with_sd", func(cl, x, y, z, sd, nd)
     var ent = ent_new(cl, { position = { x = x, y = y, z = z },
         state_data = sd, newent_data = nd })
     @[debug] log(DEBUG, ("Created entity: %d - %s (%f, %f, %f)")
         :format(ent.uid, cl, x, y, z))
 end)
 
-set_external("entity_new_with_cn", function(cl, cn, can_edit, char_name, fuid)
+set_external("entity_new_with_cn", func(cl, cn, can_edit, char_name, fuid)
     var ent = ent_new(cl, { cn = cn }, fuid)
     assert(ent.cn == cn)
     if can_edit do ent:set_attr("can_edit", can_edit) end
@@ -1564,7 +1564,7 @@ end)
     send a complete notification for each of them. Takes the client number.
     Works only serverside. External as `entities_send_all`.
 ]]
-M.send = @[server,function(cn)
+M.send = @[server,func(cn)
     @[debug] log(DEBUG, "Sending active entities to " .. cn)
     var nents, uids = 0, {}
     for uid = 1, highest_uid do

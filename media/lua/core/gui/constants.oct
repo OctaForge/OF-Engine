@@ -105,7 +105,7 @@ M.gl = {:
     ZERO = 0x0
 :}
 
-var scancode_to_keycode = function(x) return (x | (1 << 30)) end
+var scancode_to_keycode = func(x) return (x | (1 << 30)) end
 var char_to_byte = string.byte
 
 --[[! Enum: scancode

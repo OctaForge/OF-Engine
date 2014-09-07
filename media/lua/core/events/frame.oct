@@ -30,7 +30,7 @@ var copy = table.copy
     $get_frame_time, $get_last_millis) and do runs on all available
     activated entities. External as "frame_handle".
 ]]
-M.handle_frame = function(millis, lastmillis)
+M.handle_frame = func(millis, lastmillis)
     if not ents do
         ents = require("core.entities.ents")
         get_ents, get_highest_uid = ents.get_all, ents.get_highest_uid
@@ -55,22 +55,22 @@ M.handle_frame = function(millis, lastmillis)
 end
 require("core.externals").set("frame_handle", M.handle_frame)
 
-var tocalltable = function(v)
-    return setmetatable({}, { __call = function(_, ...) return v(...) end })
+var tocalltable = func(v)
+    return setmetatable({}, { __call = func(_, ...) return v(...) end })
 end
 
 --! Returns the current Lua frame count.
-M.get_frame = function()
+M.get_frame = func()
     return current_frame
 end
 
 --! Returns the number of milliseconds elapsed since the scripting system init.
-M.get_time = function()
+M.get_time = func()
     return current_time
 end
 
 --! Returns the current frame time in milliseconds.
-M.get_frame_time = function()
+M.get_frame_time = func()
     return current_frame_time
 end
 
@@ -78,7 +78,7 @@ end
     Returns the number of milliseconds since the last counter reset.
     If you want the total time, see $get_time.
 ]]
-M.get_last_millis = function()
+M.get_last_millis = func()
     return last_millis
 end
 
@@ -97,7 +97,7 @@ end
     See also:
         - $cache_by_frame
 ]]
-M.cache_by_delay = function(fun, delay)
+M.cache_by_delay = func(fun, delay)
     if type(fun) == "function" do
         fun = tocalltable(fun)
     end
@@ -107,7 +107,7 @@ M.cache_by_delay = function(fun, delay)
     end
 
     fun.last_time = ((-delay) * 2)
-    return function(...)
+    return func(...)
         if (current_time - fun.last_time) >= delay do
             fun.last_cached_val = fun(...)
             fun.last_time       = current_time
@@ -131,7 +131,7 @@ end
     See also:
         - $cache_by_delay
 ]]
-M.cache_by_frame = function(fun)
+M.cache_by_frame = func(fun)
     if type(fun) == "function" do
         fun = tocalltable(fun)
     end
@@ -140,7 +140,7 @@ M.cache_by_frame = function(fun)
         return nil
     end
 
-    return function(...)
+    return func(...)
         if fun.last_frame != current_frame do
             fun.last_cached_val = fun(...)
             fun.last_frame = current_frame

@@ -42,7 +42,7 @@ var DynamicLight = Marker:clone {
     --! Set to true, as <__run> doesn't work on static entities by default.
     __per_frame = true,
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         Marker.__init_svars(self, kwargs, nd)
         self:set_attr("radius", 100, nd[4])
         self:set_attr("red",    128, nd[1])
@@ -54,7 +54,7 @@ var DynamicLight = Marker:clone {
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
     ]]
-    __run = @[not server,function(self, millis)
+    __run = @[not server,func(self, millis)
         Marker.__run(self, millis)
         var pos = self:get_attr("position")
         light_add(pos, self:get_attr("radius"),
@@ -87,19 +87,19 @@ M.FlickeringLight = DynamicLight:clone {
         max_delay   = svars.StateInteger(),
     },
 
-    __init_svars = function(self, kwargs, nd)
+    __init_svars = func(self, kwargs, nd)
         DynamicLight.__init_svars(self, kwargs, nd)
         self:set_attr("probability", 0.5, nd[5])
         self:set_attr("min_delay",   100, nd[6])
         self:set_attr("max_delay",   300, nd[7])
     end,
 
-    __activate = @[not server,function(self, kwargs)
+    __activate = @[not server,func(self, kwargs)
         Marker.__activate(self, kwargs)
         self.delay = 0
     end],
 
-    __run = @[not server,function(self, millis)
+    __run = @[not server,func(self, millis)
         var d = self.delay - millis
         if  d <= 0 do
             d = max(floor(random() * self:get_attr("max_delay")),
