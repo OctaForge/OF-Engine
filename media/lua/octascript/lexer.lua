@@ -235,49 +235,6 @@ local read_number = function(ls, tok, buf, allow_bin)
     tok.value = num
 end
 
-local skip_sep = function(ls, buf)
-    local cnt = 0
-    local s = ls.current
-    assert(s == 91 or s == 93) -- [ ]
-    buf[#buf + 1] = bytemap[s]
-    local c = next_char(ls)
-    local eqs = bytemap[61]
-    while c == 61 do -- =
-        buf[#buf + 1] = eqs
-        c = next_char(ls)
-        cnt = cnt + 1
-    end
-    return c == s and cnt or ((-cnt) - 1)
-end
-
-local read_long_string = function(ls, tok, sep)
-    local buf = {}
-    local c = next_char(ls)
-    if is_newline(c) then c = next_line(ls) end
-    while true do
-        if not c then
-            lex_error(ls, tok and "unfinished long string"
-                or "unfinished long comment", "<eof>")
-        elseif c == 93 then -- ]
-            local tbuf = {}
-            if skip_sep(ls, tbuf) == sep then
-                c = next_char(ls)
-                break
-            else
-                buf[#buf + 1] = tconc(tbuf)
-            end
-            c = ls.current
-        elseif is_newline(c) then
-            if tok then buf[#buf + 1] = "\n" end
-            c = next_line(ls)
-        else
-            if tok then buf[#buf + 1] = bytemap[c] end
-            c = next_char(ls)
-        end
-    end
-    if tok then tok.value = tconc(buf) end
-end
-
 local esc_error = function(ls, str, msg)
     lex_error(ls, msg, "\\" .. str)
 end
@@ -438,16 +395,7 @@ local lextbl = {
         elseif c == 62 then -- >
             next_char(ls)
             return "->"
-        elseif c ~= 45 then return "-" end
-        c = next_char(ls)
-        if c == 91 then -- [
-            local sep = skip_sep(ls, {})
-            if sep >= 0 then
-                read_long_string(ls, nil, sep)
-                return
-            end
-        end
-        while ls.current and not is_newline(ls.current) do next_char(ls) end
+        else return "-" end
     end,
     [61] = function(ls) -- =
         local c = next_char(ls)
