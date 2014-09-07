@@ -36,11 +36,10 @@ local Keywords = {
     ["do"     ] = true, ["else"    ] = true, ["elif"    ] = true,
     ["end"    ] = true, ["false"   ] = true, ["for"     ] = true,
     ["func"   ] = true, ["goto"    ] = true, ["if"      ] = true,
-    ["in"     ] = true, ["local"   ] = true, ["nil"     ] = true,
-    ["noscope"] = true, ["not"     ] = true, ["or"      ] = true,
-    ["repeat" ] = true, ["return"  ] = true, ["then"    ] = true,
-    ["true"   ] = true, ["until"   ] = true, ["var"     ] = true,
-    ["while"  ] = true
+    ["in"     ] = true, ["nil"     ] = true, ["noscope" ] = true,
+    ["not"    ] = true, ["or"      ] = true, ["repeat"  ] = true,
+    ["return" ] = true, ["then"    ] = true, ["true"    ] = true,
+    ["until"  ] = true, ["var"     ] = true, ["while"   ] = true
 }
 
 -- protected from the gc

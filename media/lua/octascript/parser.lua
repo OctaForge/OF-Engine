@@ -676,7 +676,7 @@ local stat_opts = {
     ["for"] = parse_for_stat,
     ["repeat"] = parse_repeat_stat,
     ["func"] = parse_function_stat,
-    ["local"] = function(ls, ast, line)
+    ["var"] = function(ls, ast, line)
         ls:get()
         return parse_local(ls, ast, line)
     end,
@@ -751,7 +751,6 @@ local stat_opts = {
         return nil, false
     end
 }
-stat_opts["var"] = stat_opts["local"]
 
 parse_stat = function(ls, ast)
     local opt = stat_opts[ls.token.name]
