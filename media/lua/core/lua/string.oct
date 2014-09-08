@@ -30,7 +30,7 @@
 string.split = func(str, delim)
     delim = delim or ","
     var r = {}
-    for ch in str:gmatch("([^" .. delim .. "]+)") do
+    for ch in str:gmatch("([^" ~ delim ~ "]+)") do
         r[#r + 1] = ch
     end
     return r
@@ -84,5 +84,5 @@ string.escape = func(s)
     for c in s:gmatch("'") do nsq = nsq + 1 end
     for c in s:gmatch('"') do ndq = ndq + 1 end
     var sd = (ndq > nsq) and "'" or '"'
-    return sd .. s:gsub("[\\"..sd.."%z\001-\031]", str_escapes) .. sd
+    return sd ~ s:gsub("[\\" ~ sd ~ "%z\001-\031]", str_escapes) ~ sd
 end

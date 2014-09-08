@@ -346,7 +346,7 @@ end
 var quadtri = M.draw_quadtri
 
 var gen_setter = func(name)
-    var sname = name .. ",changed"
+    var sname = name ~ ",changed"
     return func(self, val)
         self[name] = val
         emit(self, sname, val)
@@ -578,7 +578,7 @@ var Widget, Window
     is called with self as an argument after initialization of the variant.
 
     Note that you can't override existing properties (as in, either self[name]
-    or self["set_" .. name] exists) and if you set a different variant, all
+    or self["set_" ~ name] exists) and if you set a different variant, all
     custom properties are discarded and replaced. Properties starting with an
     underscore are not allowed (reserved for private fields).
 
@@ -670,9 +670,9 @@ M.Widget = register_type("Widget", table.Object, {
             var dstates = variants[variant or "default"]
             var props = dstates and dstates.__properties or nil
             if props do for i, v in ipairs(props) do
-                assert(v:sub(1, 1) != "_", "invalid property " .. v)
-                assert(not self["set_" .. v] and self[v] == nil,
-                    "cannot override existing property " .. v)
+                assert(v:sub(1, 1) != "_", "invalid property " ~ v)
+                assert(not self["set_" ~ v] and self[v] == nil,
+                    "cannot override existing property " ~ v)
                 self[v] = kwargs[v]
             end end
         end
@@ -812,11 +812,11 @@ M.Widget = register_type("Widget", table.Object, {
             end
             var props = dstates.__properties
             if props do for i, v in ipairs(props) do
-                var nm = "set_" .. v
+                var nm = "set_" ~ v
                 if not disable_asserts do
-                    assert(v:sub(1, 1) != "_", "invalid property " .. v)
+                    assert(v:sub(1, 1) != "_", "invalid property " ~ v)
                     assert(not self[nm] and self[v] == nil,
-                        "cannot override existing property " .. v)
+                        "cannot override existing property " ~ v)
                 end
                 self[nm] = gen_setter(v)
                 manprops[#manprops + 1] = nm
@@ -1985,7 +1985,7 @@ M.Root = register_type("Root", Widget, {
         if old do self:remove(old) end
         var win = self.windows[name]
         if not win do
-            logger.log(logger.ERROR, "no such window: " .. name)
+            logger.log(logger.ERROR, "no such window: " ~ name)
             return false
         end
         win(false) // set visible to false

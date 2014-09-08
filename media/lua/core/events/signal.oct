@@ -50,10 +50,10 @@ var M = {}
 */
 M.connect = func(self, name, callback)
     if type(callback) != "function" do
-        log.log(log.ERROR, "Not connecting non-function callback: " .. name)
+        log.log(log.ERROR, "Not connecting non-function callback: " ~ name)
         return nil
     end
-    var clistn = "_sig_conn_" .. name
+    var clistn = "_sig_conn_" ~ name
 
     var  clist = rawget(self, clistn)
     if not clist do
@@ -87,7 +87,7 @@ end
         could be disconnected).
 */
 M.disconnect = func(self, name, id)
-    var clistn = "_sig_conn_" .. name
+    var clistn = "_sig_conn_" ~ name
     var clist  = rawget(self, clistn)
     var cb     = rawget(self, "__disconnect")
     if clist do
@@ -120,7 +120,7 @@ end
         - ... - any further arguments passed to each callback.
 */
 M.emit = func(self, name, ...)
-    var clistn = "_sig_conn_" .. name
+    var clistn = "_sig_conn_" ~ name
     var clist  = rawget(self, clistn)
     if not clist do
         return 0

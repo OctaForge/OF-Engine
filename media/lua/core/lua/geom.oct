@@ -19,7 +19,7 @@ var gen_vec2 = func(tp, sf, mt)
             %s x, y;
         } vec2%s_t;
     """):format(sf, tp, sf))
-    return ffi.metatype("vec2" .. sf .. "_t", mt), mt
+    return ffi.metatype("vec2" ~ sf ~ "_t", mt), mt
 end
 
 var gen_vec3 = func(tp, sf, mt)
@@ -29,7 +29,7 @@ var gen_vec3 = func(tp, sf, mt)
             struct { %s r, g, b; };
         } vec3%s_t;
     """):format(sf, tp, tp, sf))
-    return ffi.metatype("vec3" .. sf .. "_t", mt), mt
+    return ffi.metatype("vec3" ~ sf ~ "_t", mt), mt
 end
 
 var gen_vec4 = func(tp, sf, mt)
@@ -39,7 +39,7 @@ var gen_vec4 = func(tp, sf, mt)
             struct { %s r, g, b, a; };
         } vec4%s_t;
     """):format(sf, tp, tp, sf))
-    return ffi.metatype("vec4" .. sf .. "_t", mt), mt
+    return ffi.metatype("vec4" ~ sf ~ "_t", mt), mt
 end
 
 var ffi_new = ffi.new
@@ -992,7 +992,7 @@ var gen_vec_surrogate = func(name, base, ltable)
     surrtbl = {
         name = name,
         new = func(self, ent, svar)
-            @[debug] log.log(log.INFO, name .. ": new: " .. svar.name)
+            @[debug] log.log(log.INFO, name ~ ": new: " ~ svar.name)
             var rawt = { entity = ent, variable = svar }
             rawt.rawt = rawt
             var ret = newproxy(true)

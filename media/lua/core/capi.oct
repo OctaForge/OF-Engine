@@ -16,7 +16,7 @@ var ffi_new = ffi.new
 var tostring = tostring
 
 var gen_getwrap = func(fun, tp)
-    var tpnm = tp .. "[1]"
+    var tpnm = tp ~ "[1]"
     return func(ent)
         var stor = ffi_new(tpnm)
         if not fun(ent, stor) do return nil end

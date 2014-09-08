@@ -445,11 +445,11 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
 
         if ad == -1 do
             var clicked = clicked_states[self:is_clicked()]
-            return clicked and "left_" .. clicked or
+            return clicked and "left_" ~ clicked or
                 (self:is_hovering() and "left_hovering" or "default")
         elif ad == 1 do
             var clicked = clicked_states[self:is_clicked()]
-            return clicked and "right_" .. clicked or
+            return clicked and "right_" ~ clicked or
                 (self:is_hovering() and "right_hovering" or "default")
         end
         return "default"
@@ -540,11 +540,11 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
 
         if ad == -1 do
             var clicked = clicked_states[self:is_clicked()]
-            return clicked and "up_" .. clicked or
+            return clicked and "up_" ~ clicked or
                 (self:is_hovering() and "up_hovering" or "default")
         elif ad == 1 do
             var clicked = clicked_states[self:is_clicked()]
-            return clicked and "down_" .. clicked or
+            return clicked and "down_" ~ clicked or
                 (self:is_hovering() and "down_hovering" or "default")
         end
         return "default"

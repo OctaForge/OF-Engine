@@ -41,10 +41,10 @@ M.is_svar_alias = func(v)
 end
 
 var define_accessors = func(cl, n, gf, sf, d)
-    cl["__get_" .. n] = func(self)
+    cl["__get_" ~ n] = func(self)
         return gf(self, d)
     end
-    cl["__set_" .. n] = func(self, v)
+    cl["__set_" ~ n] = func(self, v)
         return sf(self, v, d)
     end
 end
@@ -128,11 +128,11 @@ M.StateVariable = table.Object:clone {
             - cl - the entity prototype.
     */
     register = func(self, name, cl)
-        @[debug] log(DEBUG, "StateVariable: register(" .. name
-            .. ", " .. cl.name .. ")")
+        @[debug] log(DEBUG, "StateVariable: register(" ~ name
+            ~ ", " ~ cl.name ~ ")")
 
         self.name = name
-        cl["_SV_" .. name] = self
+        cl["_SV_" ~ name] = self
 
         assert(self.getter)
         assert(self.setter)
@@ -143,12 +143,12 @@ M.StateVariable = table.Object:clone {
         var an = self.alt_name
         if an do
             @[debug] log(DEBUG, "StateVariable: register: alt g/s")
-            cl["_SV_" .. an] = self
+            cl["_SV_" ~ an] = self
             define_accessors(cl, an, self.getter, self.setter, self)
         end
         var gn = self.gui_name
         if gn != false do
-            cl["_SV_GUI_" .. (gn or name)] = self
+            cl["_SV_GUI_" ~ (gn or name)] = self
         end
     end,
 
@@ -169,9 +169,9 @@ M.StateVariable = table.Object:clone {
     */
     write_tests = func(self, ent)
         if ent.deactivated do
-            assert(false, "Writing a field " .. self.name ..
-                 " of a deactivated entity " .. ent.name ..
-                 "(" .. ent.uid .. ")")
+            assert(false, "Writing a field " ~ self.name ~
+                 " of a deactivated entity " ~ ent.name ~
+                 "(" ~ ent.uid ~ ")")
         end
 
         assert(self.client_write or @[server,true,false])
@@ -196,7 +196,7 @@ M.StateVariable = table.Object:clone {
         svar:read_tests(self)
 
         var vn = svar.name
-        @[debug] log(INFO, "StateVariable: getter: " .. vn)
+        @[debug] log(INFO, "StateVariable: getter: " ~ vn)
 
         var fr = frame.get_frame()
 
@@ -363,7 +363,7 @@ M.ArraySurrogate = {
         and "variable", assigned using the provided arguments.
     */
     new = func(self, ent, svar)
-        @[debug] log(INFO, "ArraySurrogate: new: " .. svar.name)
+        @[debug] log(INFO, "ArraySurrogate: new: " ~ svar.name)
         var rawt = { entity = ent, variable = svar }
         rawt.rawt = rawt // yay! cycles!
         var ret = newproxy(true)
@@ -475,7 +475,7 @@ M.StateArray = StateVariable:clone {
 
         if not svar:get_raw(self) do return nil end
 
-        var n = "__as_" .. svar.name
+        var n = "__as_" ~ svar.name
         if not self[n] do self[n] = svar.surrogate:new(self, svar) end
         return self[n]
     end,
@@ -489,7 +489,7 @@ M.StateArray = StateVariable:clone {
             - {{$StateVariable.setter}}
     */
     setter = func(self, val, svar)
-        @[debug] log(INFO, "StateArray: setter: " .. tostring(val))
+        @[debug] log(INFO, "StateArray: setter: " ~ tostring(val))
         svar:write_tests(self)
 
         self:set_sdata(svar.name,
@@ -517,8 +517,8 @@ M.StateArray = StateVariable:clone {
         array or an array surrogate.
     */
     to_wire = func(self, val)
-        return "[" .. tcc(map(val.to_array and val:to_array() or val,
-            self.to_wire_item), self.separator) .. "]"
+        return "[" ~ tcc(map(val.to_array and val:to_array() or val,
+            self.to_wire_item), self.separator) ~ "]"
     end,
 
     /// Converts a string in a format given by $to_wire back to a table.
@@ -535,7 +535,7 @@ M.StateArray = StateVariable:clone {
     */
     get_raw = func(self, ent)
         var vn = self.name
-        @[debug] log(INFO, "StateArray: get_raw: " .. vn)
+        @[debug] log(INFO, "StateArray: get_raw: " ~ vn)
 
         if not self.getter_fun do
             return ent.svar_values[vn] or {}
@@ -570,7 +570,7 @@ M.StateArray = StateVariable:clone {
         the surrogate.
     */
     get_item = func(self, ent, idx)
-        @[debug] log(INFO, "StateArray: get_item: " .. idx)
+        @[debug] log(INFO, "StateArray: get_item: " ~ idx)
         return self:get_raw(ent)[idx]
     end,
 
@@ -579,12 +579,12 @@ M.StateArray = StateVariable:clone {
         an update on all clients by setting the state data on the entity.
     */
     set_item = func(self, ent, idx, val)
-        @[debug] log(INFO, "StateArray: set_item: " .. idx .. ", "
-            .. tostring(val))
+        @[debug] log(INFO, "StateArray: set_item: " ~ idx ~ ", "
+            ~ tostring(val))
 
         var a = self:get_raw(ent)
         if type(val) == "string" do
-            assert(not val:find("%" .. self.separator))
+            assert(not val:find("%" ~ self.separator))
         end
 
         a[idx] = val
@@ -671,12 +671,12 @@ StateVariableAlias = StateVariable:clone {
         pointing to the target var. See {{$StateVariable.register}}.
     */
     register = func(self, name, cl)
-        @[debug] log(DEBUG, "StateVariableAlias: register(" .. name
-            .. ", " .. cl.name .. ")")
+        @[debug] log(DEBUG, "StateVariableAlias: register(" ~ name
+            ~ ", " ~ cl.name ~ ")")
 
         self.name = name
-        var tg = cl["_SV_" .. self.target_name]
-        cl["_SV_" .. name] = tg
+        var tg = cl["_SV_" ~ self.target_name]
+        cl["_SV_" ~ name] = tg
 
         @[debug] log(DEBUG, "StateVariableAlias: register: getter/setter")
         define_accessors(cl, name, self.getter, self.setter, self)

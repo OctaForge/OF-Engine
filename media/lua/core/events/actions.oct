@@ -126,14 +126,14 @@ M.Action = table.Object:clone {
         end
 
         if self.parallel_to == false do
-            @[debug] log(INFO, "Executing action " .. self.name)
+            @[debug] log(INFO, "Executing action " ~ self.name)
 
             var finished = self:__run(millis)
             if    finished do
                 self.priv_finish(self)
             end
 
-            @[debug] log(INFO, "    finished: " .. tostring(finished))
+            @[debug] log(INFO, "    finished: " ~ tostring(finished))
             return finished
         else
             if  self.parallel_to.finished do

@@ -205,7 +205,7 @@ M.set_event = func(en, fun)
     elif en == "click" do
         en = @[server,"input_click_server","input_click_client"]
     else
-        en = "input_" .. en
+        en = "input_" ~ en
     end
     var old = event_map[en]
     if not old do return false end
@@ -236,7 +236,7 @@ M.get_event = func(en)
     elif en == "click" do
         en = @[server,"input_click_server","input_click_client"]
     else
-        en = "input_" .. en
+        en = "input_" ~ en
     end
     if not event_map[en] do return nil end
     return get_ext(en)

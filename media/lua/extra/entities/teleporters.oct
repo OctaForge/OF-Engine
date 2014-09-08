@@ -63,7 +63,7 @@ M.Teleporter = Obstacle:clone {
     on_collision = func(self, collider)
         var dest = self:get_attr("destination")
         if dest <= 0 do return end
-        var dests = get_by_tag("teledest_" .. dest)
+        var dests = get_by_tag("teledest_" ~ dest)
         if #dests == 0 do
             log.log(log.ERROR, "No teledest found.")
             return
@@ -76,7 +76,7 @@ M.Teleporter = Obstacle:clone {
     get_attached_next = func(self)
         var dest = self:get_attr("destination")
         if dest <= 0 do return end
-        return unpack(get_by_tag("teledest_" .. dest))
+        return unpack(get_by_tag("teledest_" ~ dest))
     end
 }
 

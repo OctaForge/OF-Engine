@@ -630,7 +630,7 @@ root:new_window("entity", gui.Window, func(win)
     var nfields = 0
     var prefix = "_SV_"
     for k, v in pairs(sdata_raw) do
-        var sv = ent[prefix .. k]
+        var sv = ent[prefix ~ k]
         var gn = sv.gui_name
         if gn != false do
             nfields += 1
@@ -652,7 +652,8 @@ root:new_window("entity", gui.Window, func(win)
                             var sd = sdata[nm]
                             var gn, dv, sv = sd[1], sd[2], sd[3]
                             vb:append(gui.HBox { align_h = 1 }, func(hb)
-                                hb:append(gui.Label { text = " "..sd[1]..": " })
+                                hb:append(gui.Label { text = " " ~ sd[1]
+                                    ~ ": " })
                                 var fld = fields[sv.__proto] or field_def
                                 var fd = fld(hb, gn, ent, dv)
                                 if pf do pf:set_tab_next(fd) end

@@ -161,7 +161,7 @@ M.var_is_hex = capi.var_is_hex
 M.var_exists = capi.var_exists
 
 require("core.externals").set("var_emit_changed", func(name, ...)
-    emit(M, name .. ",changed", ...)
+    emit(M, name ~ ",changed", ...)
 end)
 
 return M

@@ -309,7 +309,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
         stream("}")
     else
         stream()
-        return false, ("invalid value type: " .. tv)
+        return false, ("invalid value type: " ~ tv)
     end
     return true
 end

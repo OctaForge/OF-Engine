@@ -24,7 +24,7 @@ var gen_map_list = func(img, vb)
             signal.connect(btn, "hovering", func()
                 if map != current_preview do
                     current_preview = map
-                    img:set_tex("media/map/" .. map .. "/map")
+                    img:set_tex("media/map/" ~ map ~ "/map")
                 end
             end)
             signal.connect(btn, "leaving", func()
@@ -32,7 +32,7 @@ var gen_map_list = func(img, vb)
                 img:set_tex(nil)
             end)
             signal.connect(btn, "clicked", func()
-                cs_execute("map " .. map)
+                cs_execute("map " ~ map)
             end)
         end)
     end
@@ -45,7 +45,7 @@ var gen_map_list = func(img, vb)
             signal.connect(btn, "hovering", func()
                 if map != current_preview do
                     current_preview = map
-                    img:set_tex("media/map/" .. map .. "/map")
+                    img:set_tex("media/map/" ~ map ~ "/map")
                 end
             end)
             signal.connect(btn, "leaving", func()
@@ -53,7 +53,7 @@ var gen_map_list = func(img, vb)
                 img:set_tex(nil)
             end)
             signal.connect(btn, "clicked", func()
-                cs_execute("map " .. map)
+                cs_execute("map " ~ map)
             end)
         end)
     end
@@ -125,7 +125,7 @@ root:new_window("main", gui.Window, func(win)
                         color = 0x88FF88
                     },
                     gui.Label { text = "Please start by clicking one of the "
-                        .. "menu items." }
+                        ~ "menu items." }
                 }
             })
             st:update_state("load_map", gen_map_load())
@@ -165,7 +165,7 @@ root:new_window("main", gui.Window, func(win)
                         color = 0x88FF88 },
                     gui.Filler { min_h = 0.01, clamp_h = true },
                     gui.Label { text = 'Wouter \f1"aardappel"\f7 van '
-                        ..'Oortmerssen' },
+                        ~ 'Oortmerssen' },
                     gui.Label { text = 'Lee \f1"eihrul"\f7 Salzman' },
                     gui.Label { text = "and others",  scale = 0.8 },
                 }

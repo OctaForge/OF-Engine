@@ -71,7 +71,7 @@ var init_color = func(col)
 end
 
 var gen_color_setter = func(name)
-    var sname = name .. ",changed"
+    var sname = name ~ ",changed"
     return func(self, val)
         self[name] = init_color(val)
         emit(self, sname, val)

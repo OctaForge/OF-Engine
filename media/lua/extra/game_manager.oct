@@ -86,7 +86,7 @@ M.player_plugin = {
     end,func(self, auid) end],
 
     game_manager_on_spawn_stage = func(self, stage, auid)
-        self["game_manager_spawn_stage_" .. stage](self, auid)
+        self["game_manager_spawn_stage_" ~ stage](self, auid)
     end
 }
 
@@ -166,7 +166,7 @@ var GameManager = Entity:clone {
         if team == "" do
             st = "player_start"
         else
-            st = "player_start_" .. team
+            st = "player_start_" ~ team
         end
         var starts = ents.get_by_tag(st)
         if starts and #starts > 0 do
@@ -174,7 +174,7 @@ var GameManager = Entity:clone {
             return
         end
         log.log(log.WARNING, ('player start not found (\"%s\"), '
-            .. 'placing player elsewhere'):format(st))
+            ~ 'placing player elsewhere'):format(st))
         player:set_attr("position", { 512, 512, 571 })
     end,
 
