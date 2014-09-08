@@ -278,7 +278,7 @@ M.ActionQueue = table.Object:clone {
         var acts = self.actions
         if not act.allow_multiple do
             var str = act.name
-            for i = 1, #acts do
+            for i in 1 .. #acts do
                 if str == acts[i].name do
                     log(WARNING, table.concat { "Action of the type ",
                         str, " is already present in the queue, ",
@@ -299,7 +299,7 @@ M.ActionQueue = table.Object:clone {
     */
     clear = func(self)
         var acts = self.actions
-        for i = 1, #acts do
+        for i in 1 .. #acts do
             acts[i]:cancel()
         end
     end

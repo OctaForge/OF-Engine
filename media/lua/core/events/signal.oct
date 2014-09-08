@@ -127,7 +127,7 @@ M.emit = func(self, name, ...)
     end
 
     var ncalled = 0
-    for i = 1, #clist do
+    for i in 1 .. #clist do
         var cb = clist[i]
         if cb do
             ncalled = ncalled + 1

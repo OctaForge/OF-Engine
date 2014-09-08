@@ -185,7 +185,7 @@ M.input_capture_plugin = {
         var events = self.events
         var old_events = {}
         self.old_events = old_events
-        for i = 1, #event_list do
+        for i in 1 .. #event_list do
             var en = event_list[i]
             var ev = events[en]
             if ev do old_events[en] = input.set_event(en,

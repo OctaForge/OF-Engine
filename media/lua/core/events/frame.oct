@@ -46,7 +46,7 @@ M.handle_frame = func(millis, lastmillis)
     @[debug] log(INFO, "frame.handle_frame: Acting on entities")
 
     var storage = get_ents()
-    for uid = 1, get_highest_uid() do
+    for uid in 1 .. get_highest_uid() do
         var ent = storage[uid]
         if ent and not ent.deactivated and ent.__per_frame do
             ent:__run(millis)

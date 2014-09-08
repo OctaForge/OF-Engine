@@ -596,7 +596,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
                 return self:dist_to_bb(o, o:add_new(size))
             end
             var sqrdist = 0
-            for i = 0, 2 do
+            for i in 0 .. 2 do
                 var n = iton[i]
                 if self[n] < min[n] do
                     var delta = self[n] - min[n]
@@ -638,8 +638,8 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             var f = min
             if lowest do f = max end
 
-            for x = 1, #tbl do
-                for y = 1, #tbl do
+            for x in 1 .. #tbl do
+                for y in 1 .. #tbl do
                     var o = self:add_new(Vec3(tbl[x], tbl[y], 0))
                     rt = f(rt, capi.ray_floor(o.x, o.y, o.z, max_dist))
                 end

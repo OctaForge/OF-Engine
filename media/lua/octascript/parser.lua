@@ -67,13 +67,15 @@ local UnaryOps = {
 local parse_expr
 local parse_stat, parse_chunk, parse_block, parse_body
 
-local parse_expr_list = function(ls, ast)
+local parse_expr_list = function(ls, ast, exprs)
     local tok = ls.token
-    local exprs = {}
-    while true do
-        exprs[#exprs + 1] = parse_expr(ls, ast)
-        if not test_next(ls, ",") then
-            break
+    exprs = exprs or {}
+    if #exprs == 0 or test_next(ls, ",") then
+        while true do
+            exprs[#exprs + 1] = parse_expr(ls, ast)
+            if not test_next(ls, ",") then
+                break
+            end
         end
     end
     local exp = exprs[#exprs]
@@ -455,51 +457,39 @@ local block_follow = {
     ["until"] = true, ["<eof>"] = true
 }
 
-local parse_for_num = function(ls, ast, vname, line)
-    assert_next(ls, "=")
-    local init = parse_expr(ls, ast)
-    assert_next(ls, ",")
-    local last = parse_expr(ls, ast)
-    local step
-    if test_next(ls, ",") then
-        step = parse_expr(ls, ast)
-    else
-        step = ast.Literal(1)
-    end
-    assert_next(ls, "do")
-    local body = parse_block(ls, ast)
-    return ast.ForStatement(ast.Identifier(vname), init, last, step, body, line)
-end
-
-local parse_for_iter = function(ls, ast, iname, line)
-    local vars = { ast.Identifier(iname) }
+local parse_for_stat = function(ls, ast, line)
+    ls:get()
+    assert_tok(ls, "<name>")
+    local varn = ls.token.value
+    ls:get()
+    local vars = { ast.Identifier(varn) }
     while test_next(ls, ",") do
         assert_tok(ls, "<name>")
         vars[#vars + 1] = ast.Identifier(ls.token.value)
         ls:get()
     end
     assert_next(ls, "in")
-    local exps = parse_expr_list(ls, ast)
+    local exp = parse_expr(ls, ast)
+    if #vars == 1 and test_next(ls, "..") then
+        local init = exp
+        local last = parse_expr(ls, ast)
+        local step
+        if test_next(ls, "..") then
+            step = parse_expr(ls, ast)
+        else
+            step = ast.Literal(1)
+        end
+        assert_next(ls, "do")
+        local body = parse_block(ls, ast)
+        check_match(ls, "end", "for", line)
+        return ast.ForStatement(vars[1], init, last, step, body,
+            line)
+    end
+    local exps = parse_expr_list(ls, ast, { exp })
     assert_next(ls, "do")
     local body = parse_block(ls, ast)
-    return ast.ForInStatement(vars, exps, body, line)
-end
-
-local parse_for_stat = function(ls, ast, line)
-    ls:get()
-    assert_tok(ls, "<name>")
-    local varn = ls.token.value
-    ls:get()
-    local st
-    if ls.token.name == "=" then
-        st = parse_for_num(ls, ast, varn, line)
-    elseif ls.token.name == "," or ls.token.name == "in" then
-        st = parse_for_iter(ls, ast, varn, line)
-    else
-        syntax_error(ls, "'=' or 'in' expected")
-    end
     check_match(ls, "end", "for", line)
-    return st
+    return ast.ForInStatement(vars, exps, body, line)
 end
 
 local parse_repeat_stat = function(ls, ast, line)

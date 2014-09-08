@@ -398,7 +398,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var buf = {}
         var sx, sy, ex, ey = select(2, self:region())
 
-        for i = 1, 1 + ey - sy do
+        for i in 1 .. 1 + ey - sy do
             var y = sy + i - 1
             var line = tostring(self.lines[y + 1])
             var len  = #line
@@ -417,7 +417,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     */
     remove_lines = func(self, start, count)
         self._needs_calc = true
-        for i = 1, count do
+        for i in 1 .. count do
             table.remove(self.lines, start)
         end
     end,
@@ -435,7 +435,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var lines = self.lines
         var cond = #strlines != #lines
         if not cond do
-            for i = 1, #strlines do
+            for i in 1 .. #strlines do
                 if strlines[i] != tostring(lines[i]) do
                     cond = true
                     break
@@ -675,7 +675,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
             if type(init) != "table" do
                 init = init:split("\n")
             end
-            for i = 1, #init do lines[i] = editline(init[i]) end
+            for i in 1 .. #init do lines[i] = editline(init[i]) end
             if #lines == 0 do lines[1] = editline() end
             self.lines = lines
         end
@@ -867,10 +867,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
             var b, sx, sy, ex, ey = self:region()
             if b do
                 self._needs_calc = true
-                for i = sy, ey do
+                for i in sy .. ey do
                     if input_is_modifier_pressed(mod.SHIFT) do
                         var rem = 0
-                        for j = 1, min(4, self.lines[i + 1].len) do
+                        for j in 1 .. min(4, self.lines[i + 1].len) do
                             if tostring(self.lines[i + 1]):sub(j, j) == " "
                             do
                                 rem = rem + 1
@@ -901,7 +901,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
                         lines[cy + 1]:del(0, 1)
                         self.cx = self.cx - 1
                     else
-                        for j = 1, min(4, #lines[cy + 1]) do
+                        for j in 1 .. min(4, #lines[cy + 1]) do
                             if tostring(lines[cy + 1]):sub(1, 1) == " " do
                                 lines[cy + 1]:del(0, 1)
                                 self.cx = self.cx - 1
@@ -951,7 +951,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         if fd do
             var h = 0
             hitx, hity = (hitx + self.offset_h) / k, hity / k
-            for i = fd, #self.lines do
+            for i in fd .. #self.lines do
                 if h > ph do break end
                 var linestr = tostring(self.lines[i])
                 var width, height = self.lines[i]:get_bounds()
@@ -1060,7 +1060,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var ov = 0
         var k = self:draw_scale()
         maxw -= (self.pad_l + self.pad_r) / k
-        for i = 1, #lines do
+        for i in 1 .. #lines do
             var tw, th = lines[i]:calc_bounds(maxw)
             w, h = max(w, tw), h + th
         end
@@ -1072,7 +1072,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     get_first_drawable_line = func(self)
         var lines = self.lines
         var ov = self.offset_v / self:draw_scale()
-        for i = 1, #lines do
+        for i in 1 .. #lines do
             var tw, th = lines[i]:get_bounds()
             ov -= th
             if ov < 0 do return i end
@@ -1082,7 +1082,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     get_last_drawable_line = func(self)
         var lines = self.lines
         var ov = (self.offset_v + self.h) / self:draw_scale()
-        for i = 1, #lines do
+        for i in 1 .. #lines do
             var tw, th = lines[i]:get_bounds()
             ov -= th
             if ov <= 0 do return i end
@@ -1112,7 +1112,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var oov = self.offset_v
 
         var yoff = 0
-        for i = 1, cy do
+        for i in 1 .. cy do
             var tw, th = lines[i]:get_bounds()
             yoff += th
         end
@@ -1185,7 +1185,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var maxy = #self.lines
         var h = 0
         var sc = self.sel_color
-        for i = first_drawable, maxy do
+        for i in first_drawable .. maxy do
             if h > ph do
                 maxy = i
                 break
@@ -1301,7 +1301,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
             var h = 0
             var fonth = text_font_get_h()
             var tc = self.text_color
-            for i = fd, #self.lines do
+            for i in fd .. #self.lines do
                 var line = tostring(self.lines[i])
                 var width, height = text_get_bounds(line,
                     max_width)

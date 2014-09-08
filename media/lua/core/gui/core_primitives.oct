@@ -612,7 +612,7 @@ M.StretchedImage = register_type("StretchedImage", Image, {
         var splith = (mh != 0 and min(mh, ph) or ph) / 2
         var vy, ty = sy, 0
 
-        for i = 1, 3 do
+        for i in 1 .. 3 do
             var vh, th = 0, 0
             if i == 1 do
                 if splith < ph - splith do
@@ -628,7 +628,7 @@ M.StretchedImage = register_type("StretchedImage", Image, {
 
             var vx, tx = sx, 0
 
-            for j = 1, 3 do
+            for j in 1 .. 3 do
                 var vw, tw = 0, 0
                 if j == 1 do
                     if splitw < pw - splitw do
@@ -731,7 +731,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         gle_begin(gl.QUADS)
 
         var vy, ty = sy, 0
-        for i = 1, 3 do
+        for i in 1 .. 3 do
             var vh, th = 0, 0
             if i == 2 do
                 vh, th = self.h - 2 * sb, 1 - 2 * tb
@@ -739,7 +739,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
                 vh, th = sb, tb
             end
             var vx, tx = sx, 0
-            for j = 1, 3 do
+            for j in 1 .. 3 do
                 var vw, tw = 0, 0
                 if j == 2 do
                     vw, tw = self.w - 2 * sb, 1 - 2 * tb
@@ -978,7 +978,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         end
         var n = #att * 2
         var stor = ffi_new("const char*[?]", n)
-        for i = 0, #att - 1 do
+        for i in 0 .. #att - 1 do
             var at = att[i + 1]
             stor[i * 2], stor[i * 2 + 1] = at[1], at[2]
         end
@@ -1232,7 +1232,7 @@ M.Circle = register_type("Circle", Shape, {
         var center = Vec2(sx + radius, sy + radius)
         if style == OUTLINE do
             gle_begin(gl.LINE_LOOP)
-            for angle = 0, 359, 360 / self.sides do
+            for angle in 0 .. 359 .. 360 / self.sides do
                 gle_attrib2f(sincos360(angle):mul_new(radius)
                     :add(center):unpack())
             end
@@ -1243,7 +1243,7 @@ M.Circle = register_type("Circle", Shape, {
             gle_attrib2f(center.x,          center.y)
             gle_attrib2f(center.x + radius, center.y)
             var sides = self.sides
-            for angle = (360 / sides), 359, 360 / sides do
+            for angle in (360 / sides) .. 359 .. 360 / sides do
                 var p = sincos360(angle):mul_new(radius):add(center)
                 gle_attrib2f(p:unpack())
                 gle_attrib2f(p:unpack())

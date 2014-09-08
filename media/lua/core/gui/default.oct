@@ -562,7 +562,7 @@ root:new_window("texture", gui.Window, func(win)
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
                 sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
                     sc:append(gui.Grid { columns = 8, padding = 0.01 }, func(gr)
-                        for i = 1, capi.slot_texmru_num() do
+                        for i in 1 .. capi.slot_texmru_num() do
                             var mru = capi.slot_texmru(i - 1)
                             gr:append(gui.Button { variant = "vslot",
                                 index = mru, min_w = 0.095, min_h = 0.095
@@ -647,7 +647,7 @@ root:new_window("entity", gui.Window, func(win)
                 sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
                     sc:append(gui.VBox(), func(vb)
                         var fpf, pf
-                        for i = 1, nfields do
+                        for i in 1 .. nfields do
                             var nm = props[i]
                             var sd = sdata[nm]
                             var gn, dv, sv = sd[1], sd[2], sd[3]
@@ -696,7 +696,7 @@ root:new_window("entity_new", gui.Window, func(win)
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
                 sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.6 }, func(sc)
                     sc:append(gui.VBox(), func(vb)
-                        for i = 1, #cnames do
+                        for i in 1 .. #cnames do
                             var n = cnames[i]
                             vb:append(gui.Button {
                                 variant = "nobg", min_w = 0.3, label = n
