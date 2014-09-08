@@ -157,6 +157,7 @@ local parse_enum = function(ls, ast)
         assert_tok(ls, "<name>")
         local val
         local nm = ls.token.value
+        ast.current.vars[nm] = true
         ls:get()
         if test_next(ls, "=") then
             val = parse_expr(ls, ast)
@@ -462,10 +463,11 @@ local parse_for_stat = function(ls, ast, line)
     assert_tok(ls, "<name>")
     local varn = ls.token.value
     ls:get()
-    local vars = { ast.Identifier(varn) }
+    ast:scope_begin()
+    local vars = { ast:var_declare(varn) }
     while test_next(ls, ",") do
         assert_tok(ls, "<name>")
-        vars[#vars + 1] = ast.Identifier(ls.token.value)
+        vars[#vars + 1] = ast:var_declare(ls.token.value)
         ls:get()
     end
     assert_next(ls, "in")
@@ -489,6 +491,7 @@ local parse_for_stat = function(ls, ast, line)
     assert_next(ls, "do")
     local body = parse_block(ls, ast)
     check_match(ls, "end", "for", line)
+    ast:scope_end()
     return ast.ForInStatement(vars, exps, body, line)
 end
 
@@ -588,6 +591,7 @@ local parse_function_stat = function(ls, ast, line)
     ls:get()
     assert_tok(ls, "<name>")
     local v = ast.Identifier(ls.token.value)
+    local ov = v
     ls:get()
     while ls.token.name == "." do
         v = parse_expr_field(ls, ast, v)
@@ -595,6 +599,9 @@ local parse_function_stat = function(ls, ast, line)
     if ls.token.name == ":" then
         ns = true
         v = parse_expr_field(ls, ast, v)
+    end
+    if v == ov then
+        ast.current.vars[v.name] = true
     end
     local args, body, proto = parse_body(ls, ast, line, ns)
     return ast.FunctionDeclaration(v, body, args, proto.varargs, false,
