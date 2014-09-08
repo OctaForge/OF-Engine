@@ -557,14 +557,7 @@ local parse_return_stat = function(ls, ast)
 end
 
 local parse_local = function(ls, ast, line)
-    if test_next(ls, "func") then
-        assert_tok(ls, "<name>")
-        local name = ls.token.value
-        ls:get()
-        local args, body, proto = parse_body(ls, ast, line, false)
-        return ast.FunctionDeclaration(ast:var_declare(name), body, args,
-            proto.varargs, true, proto.first_line, proto.last_line)
-    end
+    ls:get()
     local vl = {}
     repeat
         assert_tok(ls, "<name>")
@@ -577,6 +570,17 @@ local parse_local = function(ls, ast, line)
     end
     return ast.LocalDeclaration(ast, vl, test_next(ls, "=")
         and parse_expr_list(ls, ast) or {}, line)
+end
+
+local parse_rec = function(ls, ast, line)
+    ls:get()
+    assert_next(ls, "func")
+    assert_tok(ls, "<name>")
+    local name = ls.token.value
+    ls:get()
+    local args, body, proto = parse_body(ls, ast, line, false)
+    return ast.FunctionDeclaration(ast:var_declare(name), body, args,
+        proto.varargs, true, proto.first_line, proto.last_line)
 end
 
 local parse_function_stat = function(ls, ast, line)
@@ -658,10 +662,8 @@ local stat_opts = {
     ["for"] = parse_for_stat,
     ["repeat"] = parse_repeat_stat,
     ["func"] = parse_function_stat,
-    ["var"] = function(ls, ast, line)
-        ls:get()
-        return parse_local(ls, ast, line)
-    end,
+    ["var"] = parse_local,
+    ["rec"] = parse_rec,
     ["return"] = parse_return_stat,
     ["break"] = function(ls, ast, line)
         ls:get()
