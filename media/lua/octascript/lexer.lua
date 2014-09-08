@@ -379,7 +379,7 @@ local read_comment = function(ls)
                 nest = nest - 1
             end
         else
-            c = next_char(ls)
+            c = (is_newline(c) and next_line or next_char)(ls)
         end
     end
 end
