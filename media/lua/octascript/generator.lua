@@ -645,11 +645,16 @@ local TestRule = {
 local StatementRule = {
     FunctionDeclaration = function(self, node)
         local path = node.id
-        if node.locald then
+        if not node.locald then
+            if path.kind == "Identifier" then
+                self.ctx:newvar(path.name, self:expr_tonextreg(node))
+            else
+                self:expr_tolhs(self:lhs_expr_emit(path), node)
+            end
+        else
             self.ctx:newvar(path.name)
+            self:expr_tolhs(self:lhs_expr_emit(path), node)
         end
-        local lhs = self:lhs_expr_emit(path)
-        self:expr_tolhs(lhs, node)
     end,
 
     CallExpression = function(self, node)
