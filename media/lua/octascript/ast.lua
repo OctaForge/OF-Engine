@@ -187,7 +187,7 @@ M.Identifier = Identifier
 
 local new_scope = function(parent)
     return {
-        vars = {},
+        vars = parent and setmetatable({}, { __index = parent.vars }) or {},
         parent = parent
     }
 end
