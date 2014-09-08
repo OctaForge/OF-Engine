@@ -32,6 +32,8 @@ if not has_jit then
     jit = { version_num = 20000 } -- fallback
 end
 
+local jit_v21 = jit.version_num >= 20100
+
 local typeof = getmetatable
 
 local function enum(t)
@@ -64,8 +66,6 @@ end
 local BC_ABC = 0
 local BC_AD  = 1
 local BC_AJ  = 2
-
-local jit_v21 = jit.version_num >= 20100
 
 local BC, BC_MODE = enum_mode {
     { 'ISLT'  , BC_AD  },
@@ -1217,7 +1217,7 @@ Dump = {
     HEAD_1 = 0x1b;
     HEAD_2 = 0x4c;
     HEAD_3 = 0x4a;
-    VERS   = 0x01;
+    VERS   = jit_v21 and 0x02 or 0x01;
     BE     = 0x01;
     STRIP  = 0x02;
     FFI    = 0x04;
