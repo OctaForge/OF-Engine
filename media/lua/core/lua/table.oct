@@ -65,8 +65,8 @@ end
 table.merge = func(ta, tb)
     var l1, l2 = #ta, #tb
     var r = ctable(l1 + l2)
-    for i in 1 .. l1 do r[#r + 1] = ta[i] end
-    for i in 1 .. l2 do r[#r + 1] = tb[i] end
+    for i in 1 to l1 do r[#r + 1] = ta[i] end
+    for i in 1 to l2 do r[#r + 1] = tb[i] end
     return r
 end
 
@@ -119,7 +119,7 @@ end
 */
 table.filter = func(t, f)
     var r = {}
-    for i in 1 .. #t do if f(i, t[i]) do r[#r + 1] = t[i] end end
+    for i in 1 to #t do if f(i, t[i]) do r[#r + 1] = t[i] end end
     return r
 end
 
@@ -165,11 +165,11 @@ end
 */
 table.compact = func(t, f)
     var olen, comp = #t, 0
-    for i in 1 .. olen do
+    for i in 1 to olen do
         var v = t[i]
         if not f(i, v) do comp += 1 elif comp > 0 do t[i - comp] = v end
     end
-    for i in olen .. olen - comp + 1 .. -1 do t[i] = nil end
+    for i in olen to olen - comp + 1 by -1 do t[i] = nil end
     return t
 end
 
@@ -207,7 +207,7 @@ table.foldr = func(t, fun, z)
         idx = 2
     end
 
-    for i in idx .. #t do
+    for i in idx to #t do
         z = fun(z, t[i])
     end
     return z
@@ -226,7 +226,7 @@ table.foldl = func(t, fun, z)
         len = len - 1
     end
     
-    for i in len .. 1 .. -1 do
+    for i in len to 1 by -1 do
         z = fun(z, t[i])
     end
     return z
@@ -275,7 +275,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
                 end
             end
             if mline and indstr and n == 0 do
-                for i in 1 .. indent do stream(indstr) end
+                for i in 1 to indent do stream(indstr) end
             end
             if arr do
                 var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
@@ -304,7 +304,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
             if mline do stream("\n") end
         end
         if mline and indstr do
-            for i in 2 .. indent do stream(indstr) end
+            for i in 2 to indent do stream(indstr) end
         end
         stream("}")
     else
@@ -615,7 +615,7 @@ end
 var partition = func(tbl, l, r, pidx, fun)
     var pivot = tbl[pidx]
     tbl[pidx], tbl[r] = tbl[r], tbl[pidx]
-    for i in l .. r - 1 do
+    for i in l to r - 1 do
         if fun(tbl[i], pivot) do
             tbl[i], tbl[l] = tbl[l], tbl[i]
             l = l + 1
@@ -626,7 +626,7 @@ var partition = func(tbl, l, r, pidx, fun)
 end
 
 var insertion_sort = func(tbl, l, r, fun)
-    for i in l .. r do
+    for i in l to r do
         var j, v = i, tbl[i]
         while j > 1 and not fun(tbl[j - 1], v) do
             tbl[j] = tbl[j - 1]

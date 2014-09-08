@@ -164,12 +164,12 @@ M.loop_children = func(self, fun)
         end
     end
 
-    for i in 1 .. #vr do
+    for i in 1 to #vr do
         var a, b = fun(vr[i])
         if    a != nil do return a, b end
     end
 
-    for i in 1 .. #ch do
+    for i in 1 to #ch do
         var a, b = fun(ch[i])
         if    a != nil do return a, b end
     end
@@ -190,12 +190,12 @@ M.loop_children_r = func(self, fun)
     var vr = self.vstates
     var st = self.states
 
-    for i in #ch .. 1 .. -1 do
+    for i in #ch to 1 by -1 do
         var a, b = fun(ch[i])
         if    a != nil do return a, b end
     end
 
-    for i in #vr .. 1 .. -1 do
+    for i in #vr to 1 by -1 do
         var a, b = fun(vr[i])
         if    a != nil do return a, b end
     end
@@ -755,7 +755,7 @@ M.Widget = register_type("Widget", table.Object, {
         var vs, rvs = {}, self.vstates
         var ic = initc and self.init_clone or nil
         var cl = self:clone { children = ch, states = st, vstates = vs }
-        for i in 1 .. #rch do
+        for i in 1 to #rch do
             var c = rch[i]
             var chcl = c:deep_clone(obj, true)
             chcl.parent = cl
@@ -789,7 +789,7 @@ M.Widget = register_type("Widget", table.Object, {
             v:clear()
         end end
         var manprops = self.managed_properties
-        for i in #manprops .. 1 .. -1 do
+        for i in #manprops to 1 by -1 do
             self[manprops[i]], manprops[i] = nil, nil
         end
         var vstates = {}
@@ -1379,7 +1379,7 @@ M.Widget = register_type("Widget", table.Object, {
             r:clear()
             return true
         end
-        for i in 1 .. #self.children do
+        for i in 1 to #self.children do
             if o == self.children[i] do
                 var r = tremove(self.children, i)
                 if detach do return r end
@@ -1407,7 +1407,7 @@ M.Widget = register_type("Widget", table.Object, {
     */
     destroy_children = func(self)
         var ch = self.children
-        for i in 1 .. #ch do
+        for i in 1 to #ch do
             ch[i]:clear()
         end
         self.children = {}
@@ -1908,7 +1908,7 @@ M.Root = register_type("Root", Widget, {
 
         var tooltip = self._tooltip
         var ms = self._menu_stack
-        for i in 1 .. #ms do   ms[i]:get_projection():draw() end
+        for i in 1 to #ms do   ms[i]:get_projection():draw() end
         if tooltip   do tooltip:get_projection():draw() end
     end,
 
@@ -2021,7 +2021,7 @@ M.Root = register_type("Root", Widget, {
 
     above_hud = func(self)
         var y, ch = 1, self.children
-        for i in 1 .. #ch do
+        for i in 1 to #ch do
             var w = ch[i]
             if w.above_hud do
                 y = min(y, w:get_projection():calc_above_hud())
@@ -2152,7 +2152,7 @@ M.Root = register_type("Root", Widget, {
         var ms = self._menu_stack
         var msl = #ms
         n = n or msl
-        for i in msl .. msl - n + 1 .. -1 do
+        for i in msl to msl - n + 1 by -1 do
             var o = tremove(ms)
             var op = o.parent
             if o._clear_on_drop do
@@ -2397,7 +2397,7 @@ M.Root = register_type("Root", Widget, {
             var nhov = 0
             var ms = self._menu_stack
             if #ms > 0 do
-                for i in #ms .. 1 .. -1 do
+                for i in #ms to 1 by -1 do
                     hk, hl = self:menu_hover(ms[i], self.cursor_x,
                         self.cursor_y)
                     if hk do
@@ -2429,7 +2429,7 @@ M.Root = register_type("Root", Widget, {
 
             if self._clicked do
                 var hx, hy
-                if #ms > 0 do for i in #ms .. 1 .. -1 do
+                if #ms > 0 do for i in #ms to 1 by -1 do
                     hx, hy = self:menu_hold(ms[i], self.cursor_x,
                         self.cursor_y, self._clicked)
                     if hx do break end
@@ -2456,7 +2456,7 @@ M.Root = register_type("Root", Widget, {
         end
 
         var ms = self._menu_stack
-        for i in 1 .. #ms do
+        for i in 1 to #ms do
             var o = ms[i]
             var proj = self:set_projection(o:get_projection())
             o:layout()
@@ -2521,7 +2521,7 @@ set_external("input_keypress", func(code, isdown)
             var ck, cl
             var ms = root._menu_stack
             if #ms > 0 do
-                for i in #ms .. 1 .. -1 do
+                for i in #ms to 1 by -1 do
                     ck, cl = root:menu_click(ms[i], root.cursor_x,
                         root.cursor_y, code)
                     if ck do
@@ -2545,7 +2545,7 @@ set_external("input_keypress", func(code, isdown)
             if root._clicked do
                 var hx, hy
                 var ms = root._menu_stack
-                if #ms > 0 do for i in #ms .. 1 .. -1 do
+                if #ms > 0 do for i in #ms to 1 by -1 do
                     hx, hy = root:menu_hold(ms[i], root.cursor_x,
                         root.cursor_y, root._clicked)
                     if hx do break end

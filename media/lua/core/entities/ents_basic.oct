@@ -202,7 +202,7 @@ M.Character = Entity:clone {
         attachments = svars.StateArray   {
             setter = func(self, val)
                 var arr = ffi.new("const char *[?]", #val + 1)
-                for i in 1 .. #val do arr[i - 1] = val end
+                for i in 1 to #val do arr[i - 1] = val end
                 set_attachments(self, arr)
             end
         },
@@ -780,7 +780,7 @@ M.StaticEntity = Entity:clone {
         self:flush_queued_svar_changes()
 
         self:set_attr("position", self:get_attr("position"))
-        for i in 1 .. self.attr_num do
+        for i in 1 to self.attr_num do
             var an = "attr" ~ i
             self:set_attr(an, self:get_attr(an))
         end
@@ -806,7 +806,7 @@ M.StaticEntity = Entity:clone {
             ~ cn ~ ", " ~ uid)
 
         var scn, sname = self.cn, self.name
-        for i in 1 .. #cns do
+        for i in 1 to #cns do
             var n = cns[i]
             msg.send(n, capi.extent_notification_complete, uid, sname,
                 self:build_sdata({ target_cn = n, compressed = true }))

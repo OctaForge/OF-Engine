@@ -470,11 +470,11 @@ local parse_for_stat = function(ls, ast, line)
     end
     assert_next(ls, "in")
     local exp = parse_expr(ls, ast)
-    if #vars == 1 and test_next(ls, "..") then
+    if #vars == 1 and test_next(ls, "to") then
         local init = exp
         local last = parse_expr(ls, ast)
         local step
-        if test_next(ls, "..") then
+        if test_next(ls, "by") then
             step = parse_expr(ls, ast)
         else
             step = ast.Literal(1)

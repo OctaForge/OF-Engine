@@ -427,7 +427,7 @@ M.ArraySurrogate = {
     to_array = func(self)
         var l = #self
         var r = ctable(l)
-        for i in 1 .. l do
+        for i in 1 to l do
             r[#r + 1] = self[i]
         end
         return r

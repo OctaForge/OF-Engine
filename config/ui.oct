@@ -16,7 +16,7 @@ var gen_map_list = func(img, vb)
     var glob, loc = capi.get_all_map_names()
     vb:append(gui.Label { text = "Global maps", color = 0x88FF88 })
     var current_preview
-    for i in 1 .. #glob do
+    for i in 1 to #glob do
         var map = glob[i]
         vb:append(gui.Button { label = glob[i], clamp_h = true,
             variant = "nobg", min_w = 0.2
@@ -37,7 +37,7 @@ var gen_map_list = func(img, vb)
         end)
     end
     vb:append(gui.Label { text = "Local maps", color = 0x8888FF })
-    for i in 1 .. #loc do
+    for i in 1 to #loc do
         var map = loc[i]
         vb:append(gui.Button { label = loc[i], clamp_h = true,
             variant = "nobg", min_w = 0.2
@@ -238,7 +238,7 @@ var seedtiles = func()
     var vals = { 2, 4 }
     var tv1, tv2 = vals[math.random(1, 2)],
                      vals[math.random(1, 2)]
-    for i in 1 .. 16 do
+    for i in 1 to 16 do
         if i == t1 do
             tiles[i] = tv1
         elif i == t2 do
@@ -251,7 +251,7 @@ end
 
 var randtile = func(grid)
     var emptyfields = {}
-    for i in 1 .. 16 do
+    for i in 1 to 16 do
         if tiles[i] == 0 do emptyfields[#emptyfields + 1] = i end
     end
     if #emptyfields == 0 do return end
@@ -263,7 +263,7 @@ var randtile = func(grid)
         // check game over (yes if nothing is mergeable)
         if gamestate == 0 do
             gamestate = -1
-            for a in 1 .. 2 do
+            for a in 1 to 2 do
                 var ia, ib, ic, ja, jb, jc
                 if a == 1 do
                     ia, ib, ic = 0, 12, 4
@@ -272,8 +272,8 @@ var randtile = func(grid)
                     ia, ib, ic = 0, 3, 1
                     ja, jb, jc = 1, 13, 4
                 end
-                for i in ia .. ib .. ic do
-                    for j in ja + i .. jb + i .. jc do
+                for i in ia to ib by ic do
+                    for j in ja + i to jb + i by jc do
                         if tiles[j] == tiles[j + jc] do
                             gamestate = 0
                             break
@@ -284,7 +284,7 @@ var randtile = func(grid)
                 if gamestate >= 0 do break end
             end
             if gamestate == 0 do
-                for i in 1 .. #tiles do
+                for i in 1 to #tiles do
                     if tiles[i] == 2048 do
                         gamestate = 1
                         break
@@ -354,9 +354,9 @@ var movetile = func(grid, off, hdir, vdir)
         end
     end
     var jm = false
-    for i in lbeg .. lend .. -dir do
+    for i in lbeg to lend by -dir do
         var nnz
-        for j in i + dir .. lstart .. dir do
+        for j in i + dir to lstart by dir do
             if tiles[j + off] != 0 do
                 nnz = j
                 break
@@ -371,7 +371,7 @@ var movetile = func(grid, off, hdir, vdir)
         elif tiles[i + off] != 0 do
             jm = false
             var fz
-            for j in i + dir .. lstart .. dir do
+            for j in i + dir to lstart by dir do
                 if tiles[j + off] == 0 do fz = j end
             end
             if fz do
@@ -438,7 +438,7 @@ root:new_window("2048", gui.Window, func(win)
                     seedtiles()
                     seededtiles = true
                 end
-                for i in 1 .. #tiles do
+                for i in 1 to #tiles do
                     grid:append(blocktypes[tiles[i]]())
                 end
             end)

@@ -96,7 +96,7 @@ M.gen_network_data = func(cn, names)
     sort(names)
 
     var ntoi, iton = {}, {}
-    for id in 1 .. #names do
+    for id in 1 to #names do
         var name = names[id]
         ntoi[name], iton[id] = tostring(id), name
     end
@@ -287,7 +287,7 @@ M.register_prototype = func(cl, plugins, name)
     gen_network_data(name, sv_names)
 
     @[debug] log(DEBUG, "ents.register_prototype: registering state variables")
-    for i in 1 .. #sv_names do
+    for i in 1 to #sv_names do
         var name = sv_names[i]
         var svar = pt[name]
         @[debug] log(DEBUG, "    " ~ name ~ " (" ~ svar.name ~ ")")
@@ -351,7 +351,7 @@ set_external("entities_get_all", M.get_all)
 M.get_by_tag = func(tag)
     var r = {}
     var l = 1
-    for i in 1 .. highest_uid do
+    for i in 1 to highest_uid do
         var ent = storage[i]
         if ent and ent:has_tag(tag) do
             r[l] = ent
@@ -425,7 +425,7 @@ M.get_by_distance = func(pos, kwargs)
     if type(cl) == "table" do cl = cl.name end
 
     var ret = {}
-    for uid in 1 .. highest_uid do
+    for uid in 1 to highest_uid do
         var ent = storage[uid]
         if ent and ((not cl or cl == ent.name) and (not tg or ent:has_tag(tg)))
         do
@@ -560,7 +560,7 @@ end)
         - $remove
 */
 M.remove_all = func()
-    for i in 1 .. highest_uid do
+    for i in 1 to highest_uid do
         var e = storage[i]
         if e do
             emit(e, "pre_deactivate")
@@ -622,7 +622,7 @@ M.load = func()
             [6] = "Sound",           [7] = "SpotLight"
         }
 
-        for i in 1 .. #storage_sauer do
+        for i in 1 to #storage_sauer do
             var e = storage_sauer[i]
             var et = e[1]
             var o, attr1, attr2, attr3, attr4, attr5
@@ -681,7 +681,7 @@ M.load = func()
     end
 
     @[debug] log(DEBUG, "ents.load: loading all entities")
-    for i in 1 .. #entities do
+    for i in 1 to #entities do
         var e = entities[i]
         var uid, cn = e[1], e[2]
         @[debug] log(DEBUG, "    " ~ uid ~ ", " ~ cn)
@@ -698,7 +698,7 @@ M.save = func()
     var r = {}
     @[debug] log(DEBUG, "ents.save: saving")
 
-    for uid in 1 .. highest_uid do
+    for uid in 1 to highest_uid do
         var entity = storage[uid]
         if entity and entity:get_attr("persistent") do
             var en = entity.name
@@ -1125,7 +1125,7 @@ M.Entity = table.Object:clone {
             }
 
             var cns = map(get_players(), func(p) return p.cn end)
-            for i in 1 .. #cns do
+            for i in 1 to #cns do
                 var n = cns[i]
                 if svar:should_send(self, n) do
                     args[1] = n
@@ -1159,7 +1159,7 @@ M.Entity = table.Object:clone {
             ~ uid)
 
         var scn, sname = self.cn, self.name
-        for i in 1 .. #cns do
+        for i in 1 to #cns do
             var n = cns[i]
             msg.send(n, capi.le_notification_complete,
                 scn and scn or acn, uid, sname, self:build_sdata(
@@ -1365,12 +1365,12 @@ set_external("entity_draw_attached", func(uid)
     if not ent do return end
     var ents = { ent:get_attached_next() }
     if #ents > 0 do
-        for i in 1 .. #ents do capi.entity_draw_attachment(uid, ents[i].uid) end
+        for i in 1 to #ents do capi.entity_draw_attachment(uid, ents[i].uid) end
         return
     end
     ents = { ent:get_attached_prev() }
     if #ents > 0 do
-        for i in 1 .. #ents do capi.entity_draw_attachment(ents[i].uid, uid) end
+        for i in 1 to #ents do capi.entity_draw_attachment(ents[i].uid, uid) end
         return
     end
 end)
@@ -1391,7 +1391,7 @@ M.render = @[not server,func(tp, fpsshadow)
     var  player = player_entity
     if not player do return end
 
-    for uid in 1 .. highest_uid do
+    for uid in 1 to highest_uid do
         var entity = storage[uid]
         if entity and not entity.deactivated do
             var rd = entity.__render
@@ -1493,7 +1493,7 @@ M.scene_is_ready = @[not server,func()
     end
 
     @[debug] log(INFO, "...player ready, trying other entities.")
-    for uid in 1 .. highest_uid do
+    for uid in 1 to highest_uid do
         var ent = storage[uid]
         if ent and not ent.initialized do
             @[debug] log(INFO, "...entity " ~ uid ~ " not ready.")
@@ -1567,7 +1567,7 @@ end)
 M.send = @[server,func(cn)
     @[debug] log(DEBUG, "Sending active entities to " ~ cn)
     var nents, uids = 0, {}
-    for uid in 1 .. highest_uid do
+    for uid in 1 to highest_uid do
         if storage[uid] do
             nents = nents + 1
             uids[nents] = uid
@@ -1575,7 +1575,7 @@ M.send = @[server,func(cn)
     end
     sort(uids)
     msg.send(cn, capi.notify_numents, nents)
-    for i in 1 .. nents do
+    for i in 1 to nents do
         storage[uids[i]]:send_notification_full(cn)
     end
 end]
