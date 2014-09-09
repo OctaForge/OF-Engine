@@ -754,17 +754,13 @@ local StatementRule = {
         local nvars = #node.names
 
         local base = self.ctx.freereg
-        self:expr_toreg(node.expression, base)
-        self.ctx:nextreg()
+        local tbase = base + nvars
+        self.ctx:setreg(tbase)
+        self:expr_toreg(node.expression, tbase)
 
-        for i = 2, nvars do
-            self.ctx:op_tget(self.ctx.freereg, base,
-                self:property_tagged(node.names[i].name))
-            self.ctx:nextreg()
-        end
-        -- reduce register waste
-        self.ctx:op_tget(base, base, self:property_tagged(node.names[1].name))
         for i = 1, nvars do
+            self.ctx:op_tget(base + (i - 1), tbase,
+                self:property_tagged(node.names[i].name))
             self.ctx:newvar(node.names[i].name, base + (i - 1))
         end
     end,
@@ -963,20 +959,16 @@ local StatementRule = {
         local free = self.ctx.freereg
         local fields = node.fields
         if fields then
-            self.ctx:op_gget(free, "require")
+            local base = free + #fields
+            self.ctx:setreg(base)
+            self.ctx:op_gget(base, "require")
             self.ctx:nextreg()
             self:expr_tonextreg(node.modname)
-            self.ctx.freereg = free
-            self.ctx:op_call(free, 1, 1)
-            self.ctx:nextreg()
-            for i = 2, #fields do
-                self.ctx:op_tget(self.ctx.freereg, free,
-                    self:property_tagged(fields[i][1]))
-                self.ctx:nextreg()
-            end
-            -- reduce register waste
-            self.ctx:op_tget(free, free, self:property_tagged(fields[1][1]))
+            self.ctx.freereg = base
+            self.ctx:op_call(base, 1, 1)
             for i = 1, #fields do
+                self.ctx:op_tget(free + (i - 1), base,
+                    self:property_tagged(fields[i][1]))
                 self.ctx:newvar(fields[i][2].name, free + (i - 1))
             end
         else
