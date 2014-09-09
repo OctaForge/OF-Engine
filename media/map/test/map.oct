@@ -1,16 +1,15 @@
 // OctaForge test map
 // author: q66 <quaker66@gmail.com>
 
-var ents = require("core.entities.ents")
+import core.entities.ents
+import extra.game_manager
 
-var game_manager = require("extra.game_manager")
-
-require("extra.entities.teleporters")
-require("extra.entities.lights")
-require("extra.entities.particles")
+import extra.entities.teleporters
+import extra.entities.lights
+import extra.entities.particles
 
 // drawing game
-require("games.drawing")
+import games.drawing
 
 // this is how you initialize game manager
 game_manager.setup()

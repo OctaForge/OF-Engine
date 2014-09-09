@@ -1,7 +1,7 @@
-var capi = require("capi")
-var signal = require("core.events.signal")
-var gui = require("core.gui.core")
-var cs = require("core.engine.cubescript")
+import capi
+import core.events.signal
+import core.gui.core as gui
+import core.engine.cubescript as cs
 
 var abs = math.abs
 

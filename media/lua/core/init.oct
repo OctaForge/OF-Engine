@@ -61,7 +61,7 @@ capi.log(1, "Initializing logging.")
 
 import core.logger as log
 
-require("core.externals")
+require core.externals as nil
 
 log.log(log.DEBUG, "Initializing the core library.")
 
