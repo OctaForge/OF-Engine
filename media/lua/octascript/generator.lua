@@ -757,14 +757,15 @@ local StatementRule = {
         self:expr_toreg(node.expression, base)
         self.ctx:nextreg()
 
-        local mbase = self.ctx.freereg
-        for i = 1, nvars do
-            self.ctx:op_tget(self.ctx.freereg, base, "S",
-                self.ctx:const(node.names[i].name))
+        for i = 2, nvars do
+            self.ctx:op_tget(self.ctx.freereg, base,
+                self:property_tagged(node.names[i].name))
             self.ctx:nextreg()
         end
+        -- reduce register waste
+        self.ctx:op_tget(base, base, self:property_tagged(node.names[1].name))
         for i = 1, nvars do
-            self.ctx:newvar(node.names[i].name, mbase + (i - 1))
+            self.ctx:newvar(node.names[i].name, base + (i - 1))
         end
     end,
 
@@ -960,8 +961,24 @@ local StatementRule = {
 
     ImportStatement = function(self, node)
         local free = self.ctx.freereg
-        if node.fields then
-            -- from statement, no-op for now
+        local fields = node.fields
+        if fields then
+            self.ctx:op_gget(free, "require")
+            self.ctx:nextreg()
+            self:expr_tonextreg(node.modname)
+            self.ctx.freereg = free
+            self.ctx:op_call(free, 1, 1)
+            self.ctx:nextreg()
+            for i = 2, #fields do
+                self.ctx:op_tget(self.ctx.freereg, free,
+                    self:property_tagged(fields[i][1]))
+                self.ctx:nextreg()
+            end
+            -- reduce register waste
+            self.ctx:op_tget(free, free, self:property_tagged(fields[1][1]))
+            for i = 1, #fields do
+                self.ctx:newvar(fields[i][2].name, free + (i - 1))
+            end
         else
             self.ctx:op_gget(free, "require")
             self.ctx:nextreg()
