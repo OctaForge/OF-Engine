@@ -2,14 +2,14 @@ import core.logger as log
 
 log.log(log.DEBUG, ":::: Core UI implementation.")
 
-require("core.gui.core")
-require("core.gui.core_containers")
-require("core.gui.core_spacers")
-require("core.gui.core_primitives")
-require("core.gui.core_scrollers")
-require("core.gui.core_sliders")
-require("core.gui.core_buttons")
-require("core.gui.core_editors")
-require("core.gui.core_misc")
+import core.gui.core as nil
+import core.gui.core_containers as nil
+import core.gui.core_spacers as nil
+import core.gui.core_primitives as nil
+import core.gui.core_scrollers as nil
+import core.gui.core_sliders as nil
+import core.gui.core_buttons as nil
+import core.gui.core_editors as nil
+import core.gui.core_misc as nil
 
-require("core.gui.default")
+import core.gui.default as nil

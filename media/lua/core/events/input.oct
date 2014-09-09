@@ -23,7 +23,7 @@ var ents
 */
 var input_mouse_move
 
-var ext = require("core.externals")
+import core.externals as ext
 var get_ext, set_ext, unset_ext = ext.get, ext.set, ext.unset
 
 var event_map

@@ -1,31 +1,31 @@
 import core.logger as log
 
 log.log(log.DEBUG, ":::: Cubescript utilities.")
-require("core.engine.cubescript")
+import core.engine.cubescript as nil
 
 log.log(log.DEBUG, ":::: Input.")
-require("core.engine.input")
+import core.engine.input as nil
 
 log.log(log.DEBUG, ":::: Camera.")
-require("core.engine.camera")
+import core.engine.camera as nil
 
 log.log(log.DEBUG, ":::: Sound.")
-require("core.engine.sound")
+import core.engine.sound as nil
 
 log.log(log.DEBUG, ":::: Models.")
-require("core.engine.model")
+import core.engine.model as nil
 
 log.log(log.DEBUG, ":::: Lights.")
-require("core.engine.lights")
+import core.engine.lights as nil
 
 log.log(log.DEBUG, ":::: Stains.")
-require("core.engine.stains")
+import core.engine.stains as nil
 
 log.log(log.DEBUG, ":::: Particles.")
-require("core.engine.particles")
+import core.engine.particles as nil
 
 log.log(log.DEBUG, ":::: Editing.")
-require("core.engine.edit")
+import core.engine.edit as nil
 
 log.log(log.DEBUG, ":::: Changes.")
-require("core.engine.changes")
+import core.engine.changes as nil
