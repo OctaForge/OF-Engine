@@ -958,6 +958,21 @@ local StatementRule = {
         end
     end,
 
+    ImportStatement = function(self, node)
+        if node.fields then
+            -- from statement
+            print("from statement")
+            print(node.modname)
+            for k, v in ipairs(node.fields) do
+                print(v[1], v[2].name)
+            end
+        else
+            -- import statement
+            print("import")
+            print(node.modname.name)
+        end
+    end,
+
     Chunk = function(self, node, name)
         self:block_emit(node.body)
         self:close_proto()

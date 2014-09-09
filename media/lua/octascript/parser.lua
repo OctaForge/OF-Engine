@@ -664,6 +664,45 @@ local parse_goto_stat = function(ls, ast, line)
     return ast.GotoStatement(name, line)
 end
 
+local parse_import_stat = function(ls, ast, line)
+    ls:get()
+    local modname = {}
+    repeat
+        assert_tok(ls, "<name>")
+        modname[#modname + 1] = ls.token.value
+        ls:get()
+    until not test_next(ls, ".")
+    return ast.ImportStatement(ast:var_declare(table.concat(modname, ".")),
+        nil, line)
+end
+
+local parse_from_stat = function(ls, ast, line)
+    ls:get()
+    local modname = {}
+    repeat
+        assert_tok(ls, "<name>")
+        modname[#modname + 1] = ls.token.value
+        ls:get()
+    until not test_next(ls, ".")
+    assert_next(ls, "import")
+    local fnames = {}
+    repeat
+        assert_tok(ls, "<name>")
+        local field = { ls.token.value }
+        ls:get()
+        if ls.token.name == "as" then
+            ls:get()
+            assert_tok(ls, "<name>")
+            field[2] = ast:var_declare(ls.token.value)
+            ls:get()
+        else
+            field[2] = ast:var_declare(field[1])
+        end
+        fnames[#fnames + 1] = field
+    until not test_next(ls, ",")
+    return ast.ImportStatement(table.concat(modname, "."), fnames, line)
+end
+
 local stat_opts = {
     ["if"] = parse_if_stat,
     ["while"] = parse_while_stat,
@@ -688,6 +727,8 @@ local stat_opts = {
         return ast.ContinueStatement(line), true
     end,
     ["goto"] = parse_goto_stat,
+    ["import"] = parse_import_stat,
+    ["from"] = parse_from_stat,
     ["::"] = parse_label,
     ["@["] = function(ls, ast)
         local line = ls.line_number

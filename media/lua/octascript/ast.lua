@@ -886,4 +886,33 @@ M.GotoStatement = Statement:clone {
     end
 }
 
+M.ImportStatement = Statement:clone {
+    kind = "ImportStatement",
+
+    properties = {
+        modname = {
+            type = "choice",
+            values = { { type = "literal", value = "string" }, "Identifier" }
+        },
+        fields  = {
+            optional = true,
+            type = "list",
+            kind = {
+                type = "list",
+                kind = {
+                    type = "choice",
+                    values = { { type = "literal", value = "string" },
+                               "Identifier" }
+                }
+            }
+        }
+    },
+
+    __ctor = function(self, modname, fields, line)
+        self.modname = modname
+        self.fields = fields
+        Node.__ctor(self)
+    end
+}
+
 return M
