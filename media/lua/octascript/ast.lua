@@ -641,6 +641,19 @@ M.CallExpression = Expression:clone {
     end
 }
 
+M.ImportExpression = Expression:clone {
+    kind = "ImportExpression",
+
+    properties = {
+        modname = "Literal"
+    },
+
+    __ctor = function(self, modname, line)
+        self.modname = Literal(modname)
+        Node.__ctor(self)
+    end
+}
+
 M.ReturnStatement = Statement:clone {
     kind = "ReturnStatement",
 

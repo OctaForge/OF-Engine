@@ -328,6 +328,18 @@ end
 
 local parse_subexpr
 
+local parse_import_expr = function(ls, ast)
+    local line = ls.line_number
+    ls:get()
+    local modname = {}
+    repeat
+        assert_tok(ls, "<name>")
+        modname[#modname + 1] = ls.token.value
+        ls:get()
+    until not test_next(ls, ".")
+    return ast.ImportExpression(table.concat(modname, "."), line)
+end
+
 local sexps = {
     ["<number>"] = function(ls, ast)
         local r = ast.Literal(ls.token.value, ls.line_number)
@@ -390,7 +402,8 @@ local sexps = {
         local texpr = parse_expr(ls, ast)
         return ast.IfExpression(cond, texpr, test_next(ls, "else")
             and parse_expr(ls, ast) or ast.Literal(nil))
-    end
+    end,
+    ["import"] = parse_import_expr
 }
 sexps["<string>"] = sexps["<number>"]
 

@@ -435,6 +435,16 @@ local ExpressionRule = {
 
     ParenthesizedExpression = function(self, node, dest, jreg)
         self:expr_toreg(node.expression, dest, jreg)
+    end,
+
+    ImportExpression = function(self, node, dest)
+        local free = self.ctx.freereg
+        self.ctx:op_gget(free, "require")
+        self.ctx:nextreg()
+        self:expr_tonextreg(node.modname)
+        self.ctx.freereg = free
+        self.ctx:op_call(free, 0, 1)
+        mov_toreg(self, dest, free)
     end
 }
 
