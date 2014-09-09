@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var log = require("core.logger")
+import core.logger as log
 
 var floor, min, max, abs = math.floor, math.min, math.max, math.abs
 

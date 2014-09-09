@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var log = require("core.logger")
+import core.logger as log
 var sound = require("core.engine.sound")
 import core.events.signal
 import core.entities.svars

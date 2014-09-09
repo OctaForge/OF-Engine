@@ -1,4 +1,4 @@
-var log = require("core.logger")
+import core.logger as log
 
 log.log(log.DEBUG, ":::: Cubescript utilities.")
 require("core.engine.cubescript")

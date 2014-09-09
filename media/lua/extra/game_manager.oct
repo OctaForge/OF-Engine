@@ -12,7 +12,7 @@
 /// Module: game_manager
 var M = {}
 
-var log = require("core.logger")
+import core.logger as log
 
 import core.events.signal
 import core.entities.svars

@@ -1,4 +1,4 @@
-var log = require("core.logger")
+import core.logger as log
 
 log.log(log.DEBUG, ":::: State variables.")
 require("core.entities.svars")

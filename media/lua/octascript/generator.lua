@@ -17,12 +17,12 @@ local util = require("octascript.util")
 local const_eval
 
 local binop_apply = function(op, lhs, rhs)
-    if     op == "+"              then return lhs + rhs
-    elseif op == "-"              then return lhs - rhs
-    elseif op == "*"              then return lhs * rhs
+    if     op == "+" then return lhs + rhs
+    elseif op == "-" then return lhs - rhs
+    elseif op == "*" then return lhs * rhs
     elseif op == "/" then return lhs / rhs
-    elseif op == "%"              then return lhs % rhs
-    elseif op == "^"              then return lhs ^ rhs
+    elseif op == "%" then return lhs % rhs
+    elseif op == "^" then return lhs ^ rhs
     end
 end
 

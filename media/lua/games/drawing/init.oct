@@ -10,11 +10,11 @@
         See COPYING.txt.
 */
 
-var log = require("core.logger")
+import core.logger as log
 
 import core.engine.input
-var inputev = require("core.events.input")
-var cs = require("core.engine.cubescript")
+import core.events.input as inputev
+import core.engine.cubescript as cs
 import core.events.signal
 import core.entities.svars
 import core.entities.ents
@@ -32,7 +32,7 @@ import extra.day_manager
 import extra.health
 
 var connect = signal.connect
-var Vec4 = require("core.lua.geom").Vec4
+from core.lua.geom import Vec4
 var ipairs = ipairs
 
 var colors = {
