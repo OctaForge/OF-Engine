@@ -327,7 +327,8 @@ local ExpressionRule = {
                     self.ctx:const(1))
             end
             prev_reg = v
-            self.ctx:op_tset(free, "S", self.ctx:const(node.keys[i]), v)
+            local kt, kv = self:property_tagged(node.keys[i])
+            self.ctx:op_tset(free, kt, kv, v)
             self.ctx:newvar(node.keys[i], v)
             self.ctx:nextreg()
         end
