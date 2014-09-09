@@ -24,7 +24,7 @@ var ents
 var input_mouse_move
 
 var ext = require("core.externals")
-var get_ext, set_ext = ext.get, ext.set
+var get_ext, set_ext, unset_ext = ext.get, ext.set, ext.unset
 
 var event_map
 
@@ -168,7 +168,7 @@ set_ext("input_click_server", func(btn, dn, x, y, z, uid)
     var ent
     if uid >= 0 do ent = ents.get(uid) end
     if ent and ent.click do
-        return ent:click(btn, down, x, y, z)
+        return ent:click(btn, dn, x, y, z)
     end
 end)
 

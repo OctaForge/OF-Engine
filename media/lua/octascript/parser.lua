@@ -252,6 +252,9 @@ parse_cond_expr = function(ls, ast, mp)
     return lhs
 end
 
+local whitelist = {}
+for k, v in pairs(_G) do whitelist[k] = true end
+
 local parse_prefix_expr = function(ls, ast)
     local tok = ls.token
     local tn = tok.name
@@ -279,6 +282,10 @@ local parse_prefix_expr = function(ls, ast)
         return cond and exp1 or exp2
     elseif tn == "<name>" then
         local val = tok.value
+        if not whitelist[val] and not ast.current.vars[val] then
+            syntax_error(ls, "attempt to use undeclared variable '"
+                .. val .. "'")
+        end
         ls:get()
         return ast.Identifier(val), "var"
     else

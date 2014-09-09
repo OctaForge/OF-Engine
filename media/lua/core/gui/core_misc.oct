@@ -111,7 +111,7 @@ M.Mover = register_type("Mover", Widget, {
 
         var rx, ry, p = self.x, self.y, wp
         while true do
-            rx, ry = rx + p.x, ry + py
+            rx, ry = rx + p.x, ry + p.y
             var  pp = p.parent
             if not pp do break end
             p    = pp

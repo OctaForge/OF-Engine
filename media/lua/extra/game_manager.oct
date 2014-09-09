@@ -128,7 +128,7 @@ var GameManager = Entity:clone {
 
         while #players > 0 do
             var pl = tremove(players, floor(rand() * #players))
-            self:pick_team(p, false)
+            self:pick_team(pl, false)
         end
         self:sync_team_data()
 

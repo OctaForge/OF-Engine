@@ -37,6 +37,8 @@ end,func(mf, ...)
     mf(...)
 end]
 
+var send = M.send
+
 /**
     Shows a message on the client, coming from the server (this only works
     serverside). You need to provide a client number or a client entity, a

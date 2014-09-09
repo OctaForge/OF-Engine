@@ -462,7 +462,7 @@ var get_border_size = func(tex, size, vert)
     if size >= 0 do
         return size
     end
-    return abs(n) / (vert and tex.ys or tex.xs)
+    return abs(size) / (vert and tex.ys or tex.xs)
 end
 
 /**
@@ -544,7 +544,7 @@ M.CroppedImage = register_type("CroppedImage", Image, {
     set_crop_w = func(self, cw)
         cw = get_border_size(self.texture, cw, false)
         self.crop_w = cw
-        emit(self, "crop_w,changed", cx)
+        emit(self, "crop_w,changed", cw)
     end,
 
     ///
@@ -729,6 +729,8 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
         gle_begin(gl.QUADS)
+
+        var tb, sb = self.tex_border, self.screen_border
 
         var vy, ty = sy, 0
         for i in 1 to 3 do
@@ -989,16 +991,17 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
 
     draw = func(self, sx, sy)
         var w, h in self
-        var csl = #clip_stack > 0
+        var root = self:get_root()
+        var csl = #root._clip_stack > 0
         if csl do gl_scissor_disable() end
-        var sx1, sy1, sx2, sy2 = self:get_root():get_projection()
-            :calc_scissor(sx, sy, sx + w, sy + h)
+        var sx1, sy1, sx2, sy2 = root:get_projection():calc_scissor(sx, sy,
+            sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         var anim = self.anim
         model_preview(self.model, anim, self:build_attachments())
-        if csl do self:get_root():clip_scissor() end
+        if csl do root:clip_scissor() end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -1037,16 +1040,17 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
         var prefab = self.prefab
         if not prefab do return Widget.draw(self, sx, sy) end
         var w, h in self
-        var csl = #clip_stack > 0
+        var root = self:get_root()
+        var csl = #root._clip_stack > 0
         if csl do gl_scissor_disable() end
-        var sx1, sy1, sx2, sy2 = self:get_root():get_projection()
-            :calc_scissor(sx, sy, sx + w, sy + h)
+        var sx1, sy1, sx2, sy2 = root:get_projection():calc_scissor(sx, sy,
+            sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         var col = self.color
         prefab_preview(prefab, col.r / 255, col.g / 255, col.b / 255)
-        if csl do self:get_root():clip_scissor() end
+        if csl do root:clip_scissor() end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
