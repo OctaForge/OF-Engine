@@ -10,7 +10,7 @@
 
 @[server] do return {} end
 
-var capi = require("capi")
+import capi
 
 var play = capi.sound_play
 var vec3 = require("core.lua.geom").Vec3

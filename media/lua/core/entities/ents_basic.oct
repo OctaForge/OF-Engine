@@ -8,21 +8,21 @@
         See COPYING.txt.
 */
 
-var ffi = require("ffi")
-var capi = require("capi")
+import ffi
+import capi
 var logging = require("core.logger")
 var log = logging.log
 var DEBUG = logging.DEBUG
 
-var camera = require("core.engine.camera")
+import core.engine.camera
 var sound = require("core.engine.sound")
 import core.engine.model
-var frame = require("core.events.frame")
+import core.events.frame
 import core.events.actions
 import core.events.signal
 import core.entities.svars
 import core.entities.ents
-var msg = require("core.network.msg")
+import core.network.msg
 var cs = require("core.engine.cubescript")
 import core.lua.conv
 

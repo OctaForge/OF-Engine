@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 
 var ctable = capi.table_create
 var pairs, ipairs = pairs, ipairs

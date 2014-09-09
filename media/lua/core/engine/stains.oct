@@ -10,7 +10,7 @@
 
 @[server] do return {} end
 
-var capi = require("capi")
+import capi
 
 /// Module: stains
 return {

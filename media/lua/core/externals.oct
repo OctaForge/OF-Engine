@@ -9,7 +9,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 
 /// Module: externals
 var M = {}

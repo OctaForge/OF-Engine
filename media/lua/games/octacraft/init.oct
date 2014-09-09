@@ -14,12 +14,12 @@ var log = require("core.logger")
 import core.engine.input
 var inputev = require("core.events.input")
 import core.events.actions
-var edit = require("core.engine.edit")
+import core.engine.edit
 var cs = require("core.engine.cubescript")
 import core.events.signal
 import core.entities.svars
 import core.entities.ents
-var geom = require("core.lua.geom")
+import core.lua.geom
 
 import extra.game_manager
 import extra.day_manager

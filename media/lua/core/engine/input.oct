@@ -10,8 +10,8 @@
 
 @[server] do return {} end
 
-var capi = require("capi")
-var frame = require("core.events.frame")
+import capi
+import core.events.frame
 
 var vec3 = require("core.lua.geom").Vec3
 

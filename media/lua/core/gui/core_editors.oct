@@ -8,10 +8,10 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
-var stream = require("core.lua.stream")
+import capi
+import core.lua.stream
 import core.events.signal
-var ffi = require("ffi")
+import ffi
 
 var clipboard_set_text, clipboard_get_text, clipboard_has_text, text_draw,
 text_get_bounds, text_get_position, text_is_visible, input_is_modifier_pressed,

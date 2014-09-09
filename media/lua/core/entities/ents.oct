@@ -10,7 +10,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 var logging = require("core.logger")
 var log = logging.log
 var DEBUG   = logging.DEBUG
@@ -18,8 +18,8 @@ var INFO    = logging.INFO
 var ERROR   = logging.ERROR
 var WARNING = logging.WARNING
 
-var msg = require("core.network.msg")
-var frame = require("core.events.frame")
+import core.network.msg
+import core.events.frame
 import core.events.actions
 import core.events.signal
 import core.entities.svars

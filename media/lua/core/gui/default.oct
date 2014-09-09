@@ -1,7 +1,7 @@
-var capi = require("capi")
-var ffi = require("ffi")
+import capi
+import ffi
 var cs = require("core.engine.cubescript")
-var edit = require("core.engine.edit")
+import core.engine.edit
 import core.engine.input
 var changes = require("core.engine.changes")
 import core.events.signal

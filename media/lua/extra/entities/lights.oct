@@ -10,7 +10,7 @@
 
 import core.entities.svars
 import core.entities.ents
-var lights = require("core.engine.lights")
+import core.engine.lights
 
 var light_add = lights.add
 

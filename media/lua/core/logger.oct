@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 
 /// Module: logger
 var M = {}

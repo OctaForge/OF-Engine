@@ -13,8 +13,8 @@ var M = {}
 
 @[server] do return M end
 
-var capi = require("capi")
-var ffi = require("ffi")
+import capi
+import ffi
 
 var assert = assert
 

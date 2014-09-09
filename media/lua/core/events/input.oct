@@ -8,8 +8,8 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
-var msg = require("core.network.msg")
+import capi
+import core.network.msg
 import core.events.signal
 
 var emit = signal.emit

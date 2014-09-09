@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var edit = require("core.engine.edit")
+import core.engine.edit
 import core.events.signal
 
 var set_external = require("core.externals").set

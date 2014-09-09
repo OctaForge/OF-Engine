@@ -10,7 +10,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 import core.events.signal
 
 var emit = signal.emit

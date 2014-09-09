@@ -13,11 +13,11 @@
 var M = {}
 
 var gui = require("core.gui.core")
-var frame = require("core.events.frame")
+import core.events.frame
 import core.events.actions
 import core.events.signal
 import core.engine.model
-var edit = require("core.engine.edit")
+import core.engine.edit
 import core.entities.svars
 import core.entities.ents
 

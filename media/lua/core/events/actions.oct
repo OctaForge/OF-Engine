@@ -12,7 +12,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 var logging = require("core.logger")
 var log = logging.log
 var INFO = logging.INFO

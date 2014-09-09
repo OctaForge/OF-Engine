@@ -12,8 +12,8 @@ var M = {}
 import core.events.signal
 import core.entities.ents
 import core.entities.svars
-var lights = require("core.engine.lights")
-var edit = require("core.engine.edit")
+import core.engine.lights
+import core.engine.edit
 
 var connect, emit = signal.connect, signal.emit
 

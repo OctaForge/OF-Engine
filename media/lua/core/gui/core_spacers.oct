@@ -17,7 +17,7 @@ var huge = math.huge
 /// Module: core
 var M = require("core.gui.core")
 
-var capi = require("capi")
+import capi
 
 // widget types
 var register_type = M.register_type

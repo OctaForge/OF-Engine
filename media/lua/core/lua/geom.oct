@@ -9,7 +9,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 var ffi  = require("ffi")
 var log  = require("core.logger")
 

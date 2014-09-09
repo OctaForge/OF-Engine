@@ -13,7 +13,7 @@ var M = {}
 
 @[server] do return M end
 
-var capi = require("capi")
+import capi
 
 var ran = capi.model_register_anim
 
@@ -153,7 +153,7 @@ btime, trans)
         btime, r, g, b, a)
 end
 
-var geom = require("core.lua.geom")
+import core.lua.geom
 var Vec3 = geom.Vec3
 
 /// Returns the bounding box of the given model as two vec3, center and radius.

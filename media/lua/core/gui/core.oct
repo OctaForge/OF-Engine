@@ -11,8 +11,8 @@
         See COPYING.txt.
 */
 
-var ffi = require("ffi")
-var capi = require("capi")
+import ffi
+import capi
 var cs = require("core.engine.cubescript")
 import core.events.signal
 var logger = require("core.logger")

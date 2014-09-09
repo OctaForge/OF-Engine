@@ -8,8 +8,8 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
-var ffi = require("ffi")
+import capi
+import ffi
 var ents, get_ent
 
 var ffi_new = ffi.new

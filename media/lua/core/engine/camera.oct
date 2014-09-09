@@ -9,11 +9,11 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 
 @[server] do return {} end
 
-var geom = require("core.lua.geom")
+import core.lua.geom
 var Vec3 = geom.Vec3
 
 var camera_get, camera_get_position in capi

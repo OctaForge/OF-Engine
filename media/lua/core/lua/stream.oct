@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 
 /** Module: stream
     The streams some of the functions in this module define have several

@@ -10,7 +10,7 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 
 /// Module: lights
 return {

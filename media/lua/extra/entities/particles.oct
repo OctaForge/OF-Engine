@@ -11,7 +11,7 @@
 
 import core.entities.ents
 import core.entities.svars
-var particles = require("core.engine.particles")
+import core.engine.particles
 
 var min, rand = math.min, math.random
 var format = string.format

@@ -19,7 +19,7 @@ import core.events.signal
 import core.entities.svars
 import core.entities.ents
 import core.lua.conv
-var particles = require("core.engine.particles")
+import core.engine.particles
 
 var splash, flare = particles.splash, particles.flare
 var quadrenderer, taperenderer = particles.register_renderer_quad,

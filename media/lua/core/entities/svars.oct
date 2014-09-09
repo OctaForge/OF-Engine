@@ -11,13 +11,13 @@
         See COPYING.txt.
 */
 
-var capi = require("capi")
+import capi
 var logging = require("core.logger")
 var log = logging.log
 var DEBUG = logging.DEBUG
 var INFO  = logging.INFO
 
-var frame = require("core.events.frame")
+import core.events.frame
 var geom  = require("core.lua.geom")
 
 var tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
