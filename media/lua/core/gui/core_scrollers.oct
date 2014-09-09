@@ -19,7 +19,7 @@ var clamp = math.clamp
 var emit  = signal.emit
 
 /// Module: core
-var M = require("core.gui.core")
+import core.gui.core as M
 
 // consts
 var key = M.key

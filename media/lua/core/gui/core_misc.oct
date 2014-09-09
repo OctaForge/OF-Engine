@@ -21,7 +21,7 @@ var emit = signal.emit
 var get_curtime = capi.get_curtime
 
 /// Module: core
-var M = require("core.gui.core")
+import core.gui.core as M
 
 // widget types
 var register_type = M.register_type

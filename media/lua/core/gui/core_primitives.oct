@@ -44,7 +44,7 @@ var sincos360 = geom.sin_cos_360
 var ffi_new = ffi.new
 
 /// Module: core
-var M = require("core.gui.core")
+import core.gui.core as M
 
 // consts
 var gl = M.gl

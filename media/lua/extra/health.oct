@@ -12,7 +12,7 @@
 /// Module: health
 var M = {}
 
-var gui = require("core.gui.core")
+import core.gui.core as gui
 import core.events.frame
 import core.events.actions
 import core.events.signal
@@ -21,7 +21,7 @@ import core.engine.edit
 import core.entities.svars
 import core.entities.ents
 
-var eactions = require("extra.events.actions")
+import extra.events.actions as eactions
 
 var connect, emit = signal.connect, signal.emit
 var min, max = math.min, math.max

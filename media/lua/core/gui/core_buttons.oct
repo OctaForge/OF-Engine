@@ -11,7 +11,7 @@
 import core.events.signal
 
 /// Module: core
-var M = require("core.gui.core")
+import core.gui.core as M
 
 var emit = signal.emit
 

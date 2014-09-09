@@ -30,7 +30,7 @@ var emit  = signal.emit
 var tostring = tostring
 
 /// Module: core
-var M = require("core.gui.core")
+import core.gui.core as M
 
 // consts
 var gl, key = M.gl, M.key

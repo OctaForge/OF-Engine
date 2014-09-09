@@ -15,7 +15,7 @@ var abs  = math.abs
 var huge = math.huge
 
 /// Module: core
-var M = require("core.gui.core")
+import core.gui.core as M
 
 import capi
 

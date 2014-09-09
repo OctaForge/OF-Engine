@@ -9,7 +9,7 @@
 */
 
 import core.events.actions
-var input   = require("core.events.input")
+import core.events.input
 
 /// Module: actions
 var M = {}
