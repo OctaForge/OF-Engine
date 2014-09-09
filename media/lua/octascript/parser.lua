@@ -672,8 +672,19 @@ local parse_import_stat = function(ls, ast, line)
         modname[#modname + 1] = ls.token.value
         ls:get()
     until not test_next(ls, ".")
-    return ast.ImportStatement(ast:var_declare(table.concat(modname, ".")),
-        nil, line)
+    local varn = modname[#modname]
+    if ls.token.name == "as" then
+        ls:get()
+        if ls.token.name == "nil" then
+            varn = nil
+        else
+            assert_tok(ls, "<name>")
+            varn = ls.token.value
+        end
+        ls:get()
+    end
+    return ast.ImportStatement(varn and ast:var_declare(varn) or nil,
+        table.concat(modname, "."), nil, line)
 end
 
 local parse_from_stat = function(ls, ast, line)
@@ -700,7 +711,7 @@ local parse_from_stat = function(ls, ast, line)
         end
         fnames[#fnames + 1] = field
     until not test_next(ls, ",")
-    return ast.ImportStatement(table.concat(modname, "."), fnames, line)
+    return ast.ImportStatement(nil, table.concat(modname, "."), fnames, line)
 end
 
 local stat_opts = {

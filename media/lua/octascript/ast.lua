@@ -429,6 +429,8 @@ M.Literal = Expression:clone {
     end
 }
 
+local Literal = M.Literal
+
 M.Vararg = Identifier:clone {
     kind = "Vararg",
     properties = {},
@@ -890,10 +892,12 @@ M.ImportStatement = Statement:clone {
     kind = "ImportStatement",
 
     properties = {
-        modname = {
-            type = "choice",
-            values = { { type = "literal", value = "string" }, "Identifier" }
+        varname = {
+            optional = true,
+            type = "node",
+            kind = "Identifier"
         },
+        modname = "Literal",
         fields  = {
             optional = true,
             type = "list",
@@ -908,8 +912,9 @@ M.ImportStatement = Statement:clone {
         }
     },
 
-    __ctor = function(self, modname, fields, line)
-        self.modname = modname
+    __ctor = function(self, varname, modname, fields, line)
+        self.varname = varname
+        self.modname = Literal(modname)
         self.fields = fields
         Node.__ctor(self)
     end

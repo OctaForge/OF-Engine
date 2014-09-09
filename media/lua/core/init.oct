@@ -52,35 +52,35 @@ end
 
 //debug.sethook(trace, "c")
 
-var capi = require("capi")
+import capi
 
 // patch capi
-require("core.capi")
+import core.capi as nil
 
 capi.log(1, "Initializing logging.")
 
-var log = require("core.logger")
+import core.logger as log
 
 require("core.externals")
 
 log.log(log.DEBUG, "Initializing the core library.")
 
 log.log(log.DEBUG, ":: Lua extensions.")
-require("core.lua")
+import core.lua as nil
 
 log.log(log.DEBUG, ":: Network system.")
-require("core.network")
+import core.network as nil
 
 log.log(log.DEBUG, ":: Event system.")
-require("core.events")
+import core.events as nil
 
 log.log(log.DEBUG, ":: Engine system.")
-require("core.engine")
+import core.engine as nil
 
 log.log(log.DEBUG, ":: Entity system.")
-require("core.entities")
+import core.entities as nil
 
 log.log(log.DEBUG, ":: GUI.")
-require("core.gui")
+import core.gui as nil
 
 log.log(log.DEBUG, "Core scripting initialization complete.")

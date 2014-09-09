@@ -959,17 +959,20 @@ local StatementRule = {
     end,
 
     ImportStatement = function(self, node)
+        local free = self.ctx.freereg
         if node.fields then
-            -- from statement
-            print("from statement")
-            print(node.modname)
-            for k, v in ipairs(node.fields) do
-                print(v[1], v[2].name)
-            end
+            -- from statement, no-op for now
         else
-            -- import statement
-            print("import")
-            print(node.modname.name)
+            self.ctx:op_gget(free, "require")
+            self.ctx:nextreg()
+            self:expr_tonextreg(node.modname)
+            self.ctx.freereg = free
+            if not node.varname then
+                self.ctx:op_call(free, 0, 1)
+            else
+                self.ctx:op_call(free, 1, 1)
+                self.ctx:newvar(node.varname.name)
+            end
         end
     end,
 
