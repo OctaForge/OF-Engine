@@ -11,7 +11,7 @@
 */
 
 var capi = require("capi")
-var signal = require("core.events.signal")
+import core.events.signal
 
 var emit = signal.emit
 

@@ -9,7 +9,7 @@
 */
 
 var cs = require("core.engine.cubescript")
-var signal = require("core.events.signal")
+import core.events.signal
 
 var set_external = require("core.externals").set
 

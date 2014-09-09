@@ -9,8 +9,8 @@
         See COPYING.txt.
 */
 
-var ents = require("core.entities.ents")
-var svars = require("core.entities.svars")
+import core.entities.ents
+import core.entities.svars
 var particles = require("core.engine.particles")
 
 var min, rand = math.min, math.random

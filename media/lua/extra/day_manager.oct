@@ -9,9 +9,9 @@
 /// Module: day_manager
 var M = {}
 
-var signal = require("core.events.signal")
-var ents = require("core.entities.ents")
-var svars = require("core.entities.svars")
+import core.events.signal
+import core.entities.ents
+import core.entities.svars
 var lights = require("core.engine.lights")
 var edit = require("core.engine.edit")
 

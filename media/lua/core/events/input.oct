@@ -10,7 +10,7 @@
 
 var capi = require("capi")
 var msg = require("core.network.msg")
-var signal = require("core.events.signal")
+import core.events.signal
 
 var emit = signal.emit
 var ents

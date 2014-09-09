@@ -20,11 +20,11 @@ var WARNING = logging.WARNING
 
 var msg = require("core.network.msg")
 var frame = require("core.events.frame")
-var actions = require("core.events.actions")
-var signal = require("core.events.signal")
-var svars = require("core.entities.svars")
+import core.events.actions
+import core.events.signal
+import core.entities.svars
 var cs = require("core.engine.cubescript")
-var model = require("core.engine.model")
+import core.engine.model
 
 var set_external = require("core.externals").set
 

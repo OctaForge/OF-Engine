@@ -10,7 +10,7 @@
 
 var capi = require("capi")
 var stream = require("core.lua.stream")
-var signal = require("core.events.signal")
+import core.events.signal
 var ffi = require("ffi")
 
 var clipboard_set_text, clipboard_get_text, clipboard_has_text, text_draw,

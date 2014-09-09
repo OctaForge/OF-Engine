@@ -10,9 +10,9 @@
 
 var capi = require("capi")
 var ffi = require("ffi")
-var model = require("core.engine.model")
+import core.engine.model
 var cs = require("core.engine.cubescript")
-var signal = require("core.events.signal")
+import core.events.signal
 var geom = require("core.lua.geom")
 
 var gl_blend_func, shader_hudnotexture_set, shader_hud_set, gl_bind_texture,

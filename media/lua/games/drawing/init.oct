@@ -12,13 +12,13 @@
 
 var log = require("core.logger")
 
-var input = require("core.engine.input")
+import core.engine.input
 var inputev = require("core.events.input")
 var cs = require("core.engine.cubescript")
-var signal = require("core.events.signal")
-var svars = require("core.entities.svars")
-var ents = require("core.entities.ents")
-var conv = require("core.lua.conv")
+import core.events.signal
+import core.entities.svars
+import core.entities.ents
+import core.lua.conv
 var particles = require("core.engine.particles")
 
 var splash, flare = particles.splash, particles.flare
@@ -27,9 +27,9 @@ var quadrenderer, taperenderer = particles.register_renderer_quad,
 
 var hextorgb = conv.hex_to_rgb
 
-var game_manager = require("extra.game_manager")
-var day_manager = require("extra.day_manager")
-var health = require("extra.health")
+import extra.game_manager
+import extra.day_manager
+import extra.health
 
 var connect = signal.connect
 var Vec4 = require("core.lua.geom").Vec4

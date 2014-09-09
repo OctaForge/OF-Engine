@@ -8,8 +8,8 @@
         See COPYING.txt.
 */
 
-var svars = require("core.entities.svars")
-var ents = require("core.entities.ents")
+import core.entities.svars
+import core.entities.ents
 var lights = require("core.engine.lights")
 
 var light_add = lights.add

@@ -11,19 +11,19 @@
 
 var log = require("core.logger")
 
-var input = require("core.engine.input")
+import core.engine.input
 var inputev = require("core.events.input")
-var actions = require("core.events.actions")
+import core.events.actions
 var edit = require("core.engine.edit")
 var cs = require("core.engine.cubescript")
-var signal = require("core.events.signal")
-var svars = require("core.entities.svars")
-var ents = require("core.entities.ents")
+import core.events.signal
+import core.entities.svars
+import core.entities.ents
 var geom = require("core.lua.geom")
 
-var game_manager = require("extra.game_manager")
-var day_manager = require("extra.day_manager")
-var health = require("extra.health")
+import extra.game_manager
+import extra.day_manager
+import extra.health
 
 var Player = ents.Player
 

@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var actions = require("core.events.actions")
+import core.events.actions
 var input   = require("core.events.input")
 
 /// Module: actions

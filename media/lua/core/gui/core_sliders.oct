@@ -9,7 +9,7 @@
 */
 
 var capi = require("capi")
-var signal = require("core.events.signal")
+import core.events.signal
 
 var get_millis in capi
 

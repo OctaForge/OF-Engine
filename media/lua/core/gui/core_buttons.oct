@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var signal = require("core.events.signal")
+import core.events.signal
 
 /// Module: core
 var M = require("core.gui.core")

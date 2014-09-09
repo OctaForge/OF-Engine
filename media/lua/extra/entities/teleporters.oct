@@ -10,9 +10,9 @@
 
 var log = require("core.logger")
 var sound = require("core.engine.sound")
-var signal = require("core.events.signal")
-var svars = require("core.entities.svars")
-var ents = require("core.entities.ents")
+import core.events.signal
+import core.entities.svars
+import core.entities.ents
 
 var play = sound.play
 var connect = signal.connect

@@ -2,11 +2,11 @@ var capi = require("capi")
 var ffi = require("ffi")
 var cs = require("core.engine.cubescript")
 var edit = require("core.engine.edit")
-var input = require("core.engine.input")
+import core.engine.input
 var changes = require("core.engine.changes")
-var signal = require("core.events.signal")
-var ents = require("core.entities.ents")
-var svars = require("core.entities.svars")
+import core.events.signal
+import core.entities.ents
+import core.entities.svars
 var gui = require("core.gui.core")
 
 var root = gui.get_root()

@@ -14,7 +14,7 @@
 var ffi = require("ffi")
 var capi = require("capi")
 var cs = require("core.engine.cubescript")
-var signal = require("core.events.signal")
+import core.events.signal
 var logger = require("core.logger")
 var Vec2 = require("core.lua.geom").Vec2
 

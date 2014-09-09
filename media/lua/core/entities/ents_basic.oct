@@ -16,15 +16,15 @@ var DEBUG = logging.DEBUG
 
 var camera = require("core.engine.camera")
 var sound = require("core.engine.sound")
-var model = require("core.engine.model")
+import core.engine.model
 var frame = require("core.events.frame")
-var actions = require("core.events.actions")
-var signal = require("core.events.signal")
-var svars = require("core.entities.svars")
-var ents = require("core.entities.ents")
+import core.events.actions
+import core.events.signal
+import core.entities.svars
+import core.entities.ents
 var msg = require("core.network.msg")
 var cs = require("core.engine.cubescript")
-var conv = require("core.lua.conv")
+import core.lua.conv
 
 var hextorgb = conv.hex_to_rgb
 

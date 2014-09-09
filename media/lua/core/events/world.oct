@@ -9,7 +9,7 @@
 */
 
 var edit = require("core.engine.edit")
-var signal = require("core.events.signal")
+import core.events.signal
 
 var set_external = require("core.externals").set
 

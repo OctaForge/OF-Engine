@@ -14,12 +14,12 @@ var M = {}
 
 var gui = require("core.gui.core")
 var frame = require("core.events.frame")
-var actions = require("core.events.actions")
-var signal = require("core.events.signal")
-var model = require("core.engine.model")
+import core.events.actions
+import core.events.signal
+import core.engine.model
 var edit = require("core.engine.edit")
-var svars = require("core.entities.svars")
-var ents = require("core.entities.ents")
+import core.entities.svars
+import core.entities.ents
 
 var eactions = require("extra.events.actions")
 

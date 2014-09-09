@@ -14,9 +14,9 @@ var M = {}
 
 var log = require("core.logger")
 
-var signal = require("core.events.signal")
-var svars = require("core.entities.svars")
-var ents = require("core.entities.ents")
+import core.events.signal
+import core.entities.svars
+import core.entities.ents
 var connect, emit = signal.connect, signal.emit
 
 var get
