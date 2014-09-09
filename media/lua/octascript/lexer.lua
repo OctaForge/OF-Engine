@@ -32,11 +32,12 @@ local strstream = function(str)
 end
 
 local Keywords = {
-    ["and"     ] = true, ["break"   ] = true, ["by"      ] = true,
-    ["continue"] = true, ["do"      ] = true, ["else"    ] = true,
-    ["elif"    ] = true, ["end"     ] = true, ["false"   ] = true,
-    ["for"     ] = true, ["func"    ] = true, ["goto"    ] = true,
-    ["if"      ] = true, ["in"      ] = true, ["nil"     ] = true,
+    ["and"     ] = true, ["as"      ] = true, ["break"   ] = true,
+    ["by"      ] = true, ["continue"] = true, ["do"      ] = true,
+    ["else"    ] = true, ["elif"    ] = true, ["end"     ] = true,
+    ["false"   ] = true, ["for"     ] = true, ["from"    ] = true,
+    ["func"    ] = true, ["goto"    ] = true, ["if"      ] = true,
+    ["import"  ] = true, ["in"      ] = true, ["nil"     ] = true,
     ["noscope" ] = true, ["not"     ] = true, ["or"      ] = true,
     ["rec"     ] = true, ["repeat"  ] = true, ["return"  ] = true,
     ["then"    ] = true, ["to"      ] = true, ["true"    ] = true,

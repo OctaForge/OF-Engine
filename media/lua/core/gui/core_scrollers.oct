@@ -456,8 +456,8 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     end,
 
     choose_direction = func(self, cx, cy)
-        var as = self.arrow_size
-        return (cx < as) and -1 or (cx >= (self.w - as) and 1 or 0)
+        var asz = self.arrow_size
+        return (cx < asz) and -1 or (cx >= (self.w - asz) and 1 or 0)
     end,
 
     arrow_scroll = func(self, d)
@@ -473,12 +473,12 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
         var  btn = self:find_child(ScrollButton.type, nil, false)
         if not btn do return end
 
-        var as = self.arrow_size
+        var asz = self.arrow_size
 
-        var bscale = (max(self.w - 2 * as, 0) - btn.w) /
+        var bscale = (max(self.w - 2 * asz, 0) - btn.w) /
             (1 - scroll:get_h_scale())
 
-        var offset = (bscale > 0.001) and (cx - as) / bscale or 0
+        var offset = (bscale > 0.001) and (cx - asz) / bscale or 0
 
         scroll.set_h_scroll(scroll, offset * scroll.virt_w)
     end,
@@ -496,17 +496,17 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
             return
         end
 
-        var as = self.arrow_size
+        var asz = self.arrow_size
 
         var sw, btnw = self.w, btn.w
 
-        var bw = max(sw - 2 * as, 0) * scroll:get_h_scale()
+        var bw = max(sw - 2 * asz, 0) * scroll:get_h_scale()
         btn.w  = max(btnw, bw)
 
         var bscale = (scroll:get_h_scale() < 1) and
-            (max(sw - 2 * as, 0) - btn.w) / (1 - scroll:get_h_scale()) or 1
+            (max(sw - 2 * asz, 0) - btn.w) / (1 - scroll:get_h_scale()) or 1
 
-        btn.x = as + scroll:get_h_offset() * bscale
+        btn.x = asz + scroll:get_h_offset() * bscale
         btn.adjust = btn.adjust & ~adjust.ALIGN_HMASK
 
         Widget.adjust_children(self)
@@ -551,8 +551,8 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
     end,
 
     choose_direction = func(self, cx, cy)
-        var as = self.arrow_size
-        return (cy < as) and -1 or (cy >= (self.h - as) and 1 or 0)
+        var asz = self.arrow_size
+        return (cy < asz) and -1 or (cy >= (self.h - asz) and 1 or 0)
     end,
 
     arrow_scroll = func(self, d)
@@ -568,13 +568,13 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
         var  btn = self:find_child(ScrollButton.type, nil, false)
         if not btn do return end
 
-        var as = self.arrow_size
+        var asz = self.arrow_size
 
-        var bscale = (max(self.h - 2 * as, 0) - btn.h) /
+        var bscale = (max(self.h - 2 * asz, 0) - btn.h) /
             (1 - scroll:get_v_scale())
 
         var offset = (bscale > 0.001) and
-            (cy - as) / bscale or 0
+            (cy - asz) / bscale or 0
 
         scroll:set_v_scroll(offset * scroll.virt_h)
     end,
@@ -592,18 +592,18 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
             return
         end
 
-        var as = self.arrow_size
+        var asz = self.arrow_size
 
         var sh, btnh = self.h, btn.h
 
-        var bh = max(sh - 2 * as, 0) * scroll:get_v_scale()
+        var bh = max(sh - 2 * asz, 0) * scroll:get_v_scale()
 
         btn.h = max(btnh, bh)
 
         var bscale = (scroll:get_v_scale() < 1) and
-            (max(sh - 2 * as, 0) - btn.h) / (1 - scroll:get_v_scale()) or 1
+            (max(sh - 2 * asz, 0) - btn.h) / (1 - scroll:get_v_scale()) or 1
 
-        btn.y = as + scroll:get_v_offset() * bscale
+        btn.y = asz + scroll:get_v_offset() * bscale
         btn.adjust = btn.adjust & ~adjust.ALIGN_VMASK
 
         Widget.adjust_children(self)

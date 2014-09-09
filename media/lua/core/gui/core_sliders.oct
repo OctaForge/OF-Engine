@@ -301,18 +301,18 @@ M.HSlider = register_type("HSlider", Slider, {
     end,
 
     choose_direction = func(self, cx, cy)
-        var as = self.arrow_size
-        return cx < as and -1 or (cx >= (self.w - as) and 1 or 0)
+        var asz = self.arrow_size
+        return cx < asz and -1 or (cx >= (self.w - asz) and 1 or 0)
     end,
 
     scroll_to = func(self, cx, cy)
         var  btn = self:find_child(SliderButton.type, nil, false)
         if not btn do return end
 
-        var as = self.arrow_size
+        var asz = self.arrow_size
         var sw, bw = self.w, btn.w
 
-        var pos = clamp((cx - as - bw / 2) / (sw - 2 * as - bw), 0, 1)
+        var pos = clamp((cx - asz - bw / 2) / (sw - 2 * asz - bw), 0, 1)
         var steps = abs(self.max_value - self.min_value) / self.step_size
         var step = round(steps * pos)
 
@@ -329,12 +329,12 @@ M.HSlider = register_type("HSlider", Slider, {
         var steps   = abs(mx - mn) / self.step_size
         var curstep = (self.value - min(mx, mn)) / ss
 
-        var as = self.arrow_size
+        var asz = self.arrow_size
 
-        var width = max(self.w - 2 * as, 0)
+        var width = max(self.w - 2 * asz, 0)
 
         btn.w = max(btn.w, width / steps)
-        btn.x = as + (width - btn.w) * curstep / steps
+        btn.x = asz + (width - btn.w) * curstep / steps
         btn.adjust = btn.adjust & ~adjust.ALIGN_HMASK
 
         Widget.adjust_children(self)
@@ -366,18 +366,18 @@ M.VSlider = register_type("VSlider", Slider, {
     end,
 
     choose_direction = func(self, cx, cy)
-        var as = self.arrow_size
-        return cy < as and -1 or (cy >= (self.h - as) and 1 or 0)
+        var asz = self.arrow_size
+        return cy < asz and -1 or (cy >= (self.h - asz) and 1 or 0)
     end,
 
     scroll_to = func(self, cx, cy)
         var  btn = self:find_child(SliderButton.type, nil, false)
         if not btn do return end
 
-        var as = self.arrow_size
+        var asz = self.arrow_size
         var sh, bh = self.h, btn.h
 
-        var pos = clamp((cy - as - bh / 2) / (sh - 2 * as - bh), 0, 1)
+        var pos = clamp((cy - asz - bh / 2) / (sh - 2 * asz - bh), 0, 1)
         var steps = abs(self.max_value - self.min_value) / self.step_size
         var step = round(steps * pos)
 
@@ -394,12 +394,12 @@ M.VSlider = register_type("VSlider", Slider, {
         var steps   = (max(mx, mn) - min(mx, mn)) / ss + 1
         var curstep = (self.value - min(mx, mn)) / ss
 
-        var as = self.arrow_size
+        var asz = self.arrow_size
 
-        var height = max(self.h - 2 * as, 0)
+        var height = max(self.h - 2 * asz, 0)
 
         btn.h = max(btn.h, height / steps)
-        btn.y = as + (height - btn.h) * curstep / steps
+        btn.y = asz + (height - btn.h) * curstep / steps
         btn.adjust = btn.adjust & ~adjust.ALIGN_VMASK
 
         Widget.adjust_children(self)
