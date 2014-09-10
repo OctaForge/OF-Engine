@@ -29,7 +29,7 @@ capi.get_start_time = gen_getwrap(capi.get_start_time, "int")
 var get_selected_entity in capi
 capi.get_selected_entity = func()
     if not ents do
-        ents = require("core.entities.ents")
+        ents = import core.entities.ents
         get_ent = ents.get
     end
     var uid = get_selected_entity()
@@ -40,7 +40,7 @@ end
 var get_attached_entity in capi
 capi.get_attached_entity = func(uid)
     if not ents do
-        ents = require("core.entities.ents")
+        ents = import core.entities.ents
         get_ent = ents.get
     end
     var auid = get_attached_entity(uid)
@@ -51,7 +51,7 @@ end
 var gettargetent in capi
 capi.gettargetent = func()
     if not ents do
-        ents = require("core.entities.ents")
+        ents = import core.entities.ents
         get_ent = ents.get
     end
     var uid = gettargetent()
