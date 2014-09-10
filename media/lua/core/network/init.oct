@@ -1,4 +1,4 @@
 import core.logger as log
 
 log.log(log.DEBUG, ":::: Messages.")
-require("core.network.msg")
+import core.network.msg as nil

@@ -1,13 +1,13 @@
 import capi
 import ffi
-var cs = require("core.engine.cubescript")
+import core.engine.cubescript as cs
 import core.engine.edit
 import core.engine.input
-var changes = require("core.engine.changes")
+import core.engine.changes
 import core.events.signal
 import core.entities.ents
 import core.entities.svars
-var gui = require("core.gui.core")
+import core.gui.core as gui
 
 var root = gui.get_root()
 
@@ -425,7 +425,7 @@ var progress_win = gui.Window { __init = func(win)
     end)
 end }
 
-var set_ext = require("core.externals").set
+from core.externals import set as set_ext
 
 set_ext("progress_render", func(v, text)
     progress_bar:set_value(v)

@@ -19,7 +19,7 @@ var tconc = table.concat
 var pcall = pcall
 var floor, log = math.floor, math.log
 
-var ext_set = require("core.externals").set
+from core.externals import set as ext_set
 
 /**
     Checks whether the given table is an array (that is, contains only a

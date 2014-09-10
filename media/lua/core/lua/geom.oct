@@ -10,8 +10,8 @@
 */
 
 import capi
-var ffi  = require("ffi")
-var log  = require("core.logger")
+import ffi
+import core.logger as log
 
 var gen_vec2 = func(tp, sf, mt)
     ffi.cdef((r"""
