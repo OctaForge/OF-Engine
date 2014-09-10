@@ -24,7 +24,7 @@ var ents
         - uid - the client entity uid.
 */
 set_external("physics_off_map", func(uid)
-    if not ents do ents = require("core.entities.ents") end
+    if not ents do ents = import core.entities.ents end
     emit(ents.get(uid), "off_map")
 end)
 
@@ -38,7 +38,7 @@ end)
         - mat - the material id (see $edit).
 */
 set_external("physics_in_deadly", func(uid, mat)
-    if not ents do ents = require("core.entities.ents") end
+    if not ents do ents = import core.entities.ents end
     emit(ents.get(uid), "in_deadly", mat)
 end)
 
@@ -68,7 +68,7 @@ var FLAG_BELOWGROUND = 2 << 4
 set_external("physics_state_change", func(uid, loc, flevel, llevel, mat)
     @[server] do return end
 
-    if not ents do ents = require("core.entities.ents") end
+    if not ents do ents = import core.entities.ents end
     var ent = ents.get(uid)
 
     var flags = 0

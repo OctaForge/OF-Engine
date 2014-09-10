@@ -13,10 +13,11 @@
 
 import ffi
 import capi
-var cs = require("core.engine.cubescript")
+import core.engine.cubescript as cs
 import core.events.signal
-var logger = require("core.logger")
-var Vec2 = require("core.lua.geom").Vec2
+import core.logger
+
+from core.lua.geom import Vec2
 
 var gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_color4ub,
@@ -26,7 +27,7 @@ hud_get_so_y, isconnected, text_get_res, text_font_get_h, aspect_get,
 editing_get, console_scale_get, input_get_free_cursor, input_cursor_get_x,
 input_cursor_get_y, input_cursor_exists_update in capi
 
-var set_external = require("core.externals").set
+from core.externals import set as set_external
 
 var var_get, var_set = cs.var_get, cs.var_set
 
@@ -45,7 +46,7 @@ var tinsert = table.insert
 /// Module: core
 var M = {}
 
-var consts = require("core.gui.constants")
+import core.gui.constants as consts
 
 /** Enum: gl
     Forwarded from the "constants" module.

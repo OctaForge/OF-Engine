@@ -11,7 +11,7 @@
 var max = math.max
 var min = math.min
 
-var createtable = require("capi").table_create
+from capi import table_create as createtable
 
 /// Module: core
 import core.gui.core as M

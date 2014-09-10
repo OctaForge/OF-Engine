@@ -8,10 +8,10 @@
         See COPYING.txt.
 */
 
-var cs = require("core.engine.cubescript")
+import core.engine.cubescript as cs
 import core.events.signal
 
-var set_external = require("core.externals").set
+from core.externals import set as set_external
 
 var needsapply = {}
 

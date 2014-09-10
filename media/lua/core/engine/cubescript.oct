@@ -160,7 +160,7 @@ M.var_is_hex = capi.var_is_hex
 /// Checks for existence of an engine variable.
 M.var_exists = capi.var_exists
 
-require("core.externals").set("var_emit_changed", func(name, ...)
+;(import core.externals).set("var_emit_changed", func(name, ...)
     emit(M, name ~ ",changed", ...)
 end)
 

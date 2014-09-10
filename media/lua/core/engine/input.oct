@@ -13,7 +13,7 @@
 import capi
 import core.events.frame
 
-var vec3 = require("core.lua.geom").Vec3
+from core.lua.geom import Vec3
 
 /// Module: input
 return {
@@ -31,7 +31,7 @@ return {
         Returns the position in the world you're targeting.
     */
     get_target_position = frame.cache_by_frame(func()
-        return vec3(capi.gettargetpos())
+        return Vec3(capi.gettargetpos())
     end),
 
     /** Function: save_mouse_position
