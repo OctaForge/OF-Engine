@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-var logging = require("core.logger")
+import core.logger as logging
 var log = logging.log
 var INFO = logging.INFO
 
@@ -19,7 +19,7 @@ var current_time       = 0
 var current_frame_time = 0
 var last_millis        = 0
 
-var require, setmetatable = require, setmetatable
+var setmetatable = setmetatable
 var ents, get_ents, get_highest_uid
 
 var copy = table.copy
@@ -32,7 +32,7 @@ var copy = table.copy
 */
 M.handle_frame = func(millis, lastmillis)
     if not ents do
-        ents = require("core.entities.ents")
+        ents = import core.entities.ents
         get_ents, get_highest_uid = ents.get_all, ents.get_highest_uid
     end
 
@@ -53,7 +53,7 @@ M.handle_frame = func(millis, lastmillis)
         end
     end
 end
-require("core.externals").set("frame_handle", M.handle_frame)
+(import core.externals).set("frame_handle", M.handle_frame)
 
 var tocalltable = func(v)
     return setmetatable({}, { __call = func(_, ...) return v(...) end })

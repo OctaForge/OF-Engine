@@ -10,12 +10,12 @@
 
 import ffi
 import capi
-var logging = require("core.logger")
+import core.logger as logging
 var log = logging.log
 var DEBUG = logging.DEBUG
 
 import core.engine.camera
-var sound = require("core.engine.sound")
+import core.engine.sound
 import core.engine.model
 import core.events.frame
 import core.events.actions
@@ -23,14 +23,14 @@ import core.events.signal
 import core.entities.svars
 import core.entities.ents
 import core.network.msg
-var cs = require("core.engine.cubescript")
+import core.engine.cubescript as cs
 import core.lua.conv
 
 var hextorgb = conv.hex_to_rgb
 
 var var_get = cs.var_get
 
-var set_external = require("core.externals").set
+from core.externals import set as set_external
 
 var Entity = ents.Entity
 var ent_get = ents.get

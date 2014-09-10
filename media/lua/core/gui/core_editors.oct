@@ -47,7 +47,7 @@ var Widget = M.get_type("Widget")
 // setters
 var gen_setter = M.gen_setter
 
-var mod = require("core.gui.constants").mod
+from core.gui.constants import mod
 
 var floor_to_fontw = func(n)
     var fw = text_font_get_w()

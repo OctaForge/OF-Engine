@@ -11,7 +11,9 @@
 */
 
 import capi
-var logging = require("core.logger")
+
+import core.logger as logging
+
 var log = logging.log
 var DEBUG   = logging.DEBUG
 var INFO    = logging.INFO
@@ -23,16 +25,18 @@ import core.events.frame
 import core.events.actions
 import core.events.signal
 import core.entities.svars
-var cs = require("core.engine.cubescript")
+import core.engine.cubescript as cs
 import core.engine.model
 
-var set_external = require("core.externals").set
+from core.externals import set as set_external
 
 var filter, filter_map, map, sort, concat, find, serialize, deserialize
     = table.filter, table.filter_map, table.map, table.sort,
       table.concat, table.find, table.serialize, table.deserialize
 
-var Vec3, emit = require("core.lua.geom").Vec3, signal.emit
+from core.lua.geom import Vec3
+
+var emit = signal.emit
 var max, floor = math.max, math.floor
 var pairs = pairs
 var assert = assert

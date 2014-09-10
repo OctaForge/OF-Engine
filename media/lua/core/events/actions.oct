@@ -13,7 +13,7 @@
 */
 
 import capi
-var logging = require("core.logger")
+import core.logger as logging
 var log = logging.log
 var INFO = logging.INFO
 var WARNING = logging.WARNING
