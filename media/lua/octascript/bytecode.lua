@@ -26,11 +26,7 @@
 local bit  = require 'bit'
 local ffi  = require 'ffi'
 local util = require 'octascript.util'
-
-local has_jit, jit = pcall(function() return require 'jit' end)
-if not has_jit then
-    jit = { version_num = 20000 } -- fallback
-end
+local jit  = require 'jit'
 
 local jit_v21 = jit.version_num >= 20100
 
@@ -167,7 +163,7 @@ local BC, BC_MODE = enum_mode {
     { 'FUNCCW', BC_AD  },
 }
 
-local VKNIL    = 0
+local VKNIL   = 0
 local VKFALSE = 1
 local VKTRUE  = 2
 
@@ -183,12 +179,12 @@ local KTAB = enum {
     [0] = "NIL", "FALSE", "TRUE", "INT", "NUM", "STR",
 }
 
-local FOR_IDX    = "(for index)";
+local FOR_IDX   = "(for index)";
 local FOR_STOP  = "(for limit)";
 local FOR_STEP  = "(for step)";
-local FOR_GEN    = "(for generator)";
+local FOR_GEN   = "(for generator)";
 local FOR_STATE = "(for state)";
-local FOR_CTL    = "(for control)";
+local FOR_CTL   = "(for control)";
 
 ffi.cdef[[
     void *malloc(size_t);
@@ -202,7 +198,7 @@ ffi.cdef[[
     } Buf;
 ]]
 
-Buf = { }
+Buf = {}
 Buf.new = function(size)
     if not size then
         size = 2048
@@ -215,7 +211,7 @@ end
 Buf.__gc = function(self)
     ffi.C.free(self.data)
 end
-Buf.__index = { }
+Buf.__index = {}
 Buf.__index.need = function(self, size)
     local need_size = self.offs + size
     if self.size <= need_size then
@@ -317,8 +313,8 @@ end
 
 ffi.metatype('Buf', Buf)
 
-Ins = { }
-Ins.__index = { }
+Ins = {}
+Ins.__index = {}
 function Ins.new(op, a, b, c)
     return setmetatable({
         op;
@@ -378,8 +374,8 @@ local function tnewsize(narry, nhash)
 end
 Ins.__index.tnewsize = tnewsize
 
-KObj = { }
-KObj.__index = { }
+KObj = {}
+KObj.__index = {}
 function KObj.new(v)
     return setmetatable({ v }, KObj)
 end
@@ -466,8 +462,8 @@ function KObj.__index:write_table(buf, v)
     end
 end
 
-KNum = { }
-KNum.__index = { }
+KNum = {}
+KNum.__index = {}
 function KNum.new(v)
     return setmetatable({ v }, KNum)
 end
@@ -557,17 +553,17 @@ function Proto.new(flags, outer)
     local proto = setmetatable({
         flags  = flags or 0;
         outer  = outer;
-        params = { };
-        upvals = { };
-        code   = { };
-        kobj   = { };
-        knum   = { };
-        debug  = { };
-        lninfo = { };
-        labels = { };
-        tohere = { };
-        kcache = { };
-        varinfo = { };
+        params = {};
+        upvals = {};
+        code   = {};
+        kobj   = {};
+        knum   = {};
+        debug  = {};
+        lninfo = {};
+        labels = {};
+        tohere = {};
+        kcache = {};
+        varinfo = {};
         freereg   = 0;
         currline  = 1;
         lastline  = 1;
@@ -580,7 +576,7 @@ function Proto.new(flags, outer)
     proto:enter()
     return proto
 end
-Proto.__index = { }
+Proto.__index = {}
 function Proto.__index:nextreg(num)
     num = num or 1
     local reg = self.freereg
@@ -599,10 +595,10 @@ end
 function Proto.__index:enter()
     local outer = self.scope
     self.scope = {
-        actvars    = { };
+        actvars    = {};
         basereg    = self.freereg;
-        goto_labels = { };
-        goto_fixups = { };
+        goto_labels = {};
+        goto_fixups = {};
         outer      = outer;
     }
     goto_label_append(self, nil) -- Add a label without name.
@@ -844,7 +840,7 @@ function Proto.__index:label_var_lookup(scope, var)
 end
 function Proto.__index:upval(name)
     if not self.upvals[name] then
-        local proto, upval = self.outer, { }
+        local proto, upval = self.outer, {}
         local var, scope
         while proto do
             var, scope = scope_var_lookup(proto.scope, name)
@@ -878,7 +874,7 @@ function Proto.__index:upval(name)
     return self.upvals[name].idx
 end
 function Proto.__index:here(name)
-    if name == nil then name = util.gen_id() end
+    if name == nil then name = util.genid() end
     if self.tohere[name] then
         -- forward jump
         local back = self.tohere[name]
@@ -899,7 +895,7 @@ function Proto.__index:enable_jump(name)
     end
     local here = self.tohere[name]
     if not here then
-        here = { }
+        here = {}
         self.tohere[name] = here
     end
     here[#here + 1] = #self.code + 1
@@ -986,7 +982,8 @@ function Proto.__index:current_loop(cont)
         scope = scope.outer
     end
     assert(scope, "no loop to " .. (cont and "continue" or "break"))
-    return scope.loop_basereg, cont and scope.loop_cont or scope.loop_exit, need_uclo
+    return scope.loop_basereg, cont and scope.loop_cont or scope.loop_exit,
+        need_uclo
 end
 function Proto.__index:global_uclo()
     local scope = self.scope
@@ -1146,7 +1143,6 @@ end
 function Proto.__index:close_block(reg, exit)
     if self.scope.need_uclo then
         if exit then
-            --assert(not self.labels[name], "expected forward jump")
             self:enable_jump(exit)
             self:emit(BC.UCLO, reg, NO_JMP)
         else
@@ -1154,7 +1150,6 @@ function Proto.__index:close_block(reg, exit)
         end
     else
         if exit then
-            --assert(not self.labels[name], "expected forward jump")
             self:enable_jump(exit)
             return self:emit(BC.JMP, reg, NO_JMP)
         end
@@ -1223,7 +1218,7 @@ Dump = {
     FFI    = 0x04;
     DEBUG  = false;
 }
-Dump.__index = { }
+Dump.__index = {}
 function Dump.new(main, name, flags)
     local self =  setmetatable({
         main  = main or Proto.new(Proto.VARARG);

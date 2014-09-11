@@ -239,7 +239,7 @@ local ExpressionRule = {
 
     Table = function(self, node, dest)
         if #node.array_entries == 0 and #node.hash_keys == 0 then
-            self.ctx:op_tnew(dest, 0)
+            self.ctx:op_tnew(dest, 0, 0)
             return
         end
 
@@ -311,7 +311,7 @@ local ExpressionRule = {
 
     Enum = function(self, node, dest)
         if #node.keys == 0 then
-            self.ctx:op_tnew(dest, 0)
+            self.ctx:op_tnew(dest, 0, 0)
             return
         end
 
@@ -349,7 +349,7 @@ local ExpressionRule = {
         local free = self.ctx.freereg
         local o = node.operator
         if cmpop[o] then
-            local l = util.gen_id()
+            local l = util.genid()
             self:test_emit(node, l, jreg, false, EXPR_RESULT_BOTH, dest)
             self.ctx:here(l)
         elseif dirop[o] then
@@ -390,14 +390,14 @@ local ExpressionRule = {
     LogicalExpression = function(self, node, dest, jreg)
         local negate = (node.operator == "or")
         local lstore = store_bit(negate)
-        local l = util.gen_id()
+        local l = util.genid()
         self:test_emit(node.left, l, jreg, negate, lstore, dest)
         self:expr_toreg(node.right, dest, jreg)
         self.ctx:here(l)
     end,
 
     IfExpression = function(self, node, dest, jreg)
-        local tl, fl = util.gen_id(), util.gen_id()
+        local tl, fl = util.genid(), util.genid()
         self:test_emit(node.cond, fl, jreg, false, 0, dest)
         self:expr_toreg(node.texpr, dest, jreg)
         self.ctx:jump(tl, jreg)
@@ -599,7 +599,7 @@ local TestRule = {
             local use_imbranch = has_branch(store, negate)
             if use_imbranch then
                 local test, swap = compare_op(not negate, o)
-                local altlabel = util.gen_id()
+                local altlabel = util.genid()
                 self.ctx:op_comp(test, a, btag, b, altlabel, free, swap)
                 self.ctx:op_load(dest, negate)
                 self.ctx:jump(jmp, jreg)
@@ -631,7 +631,7 @@ local TestRule = {
         local lstore = bit.band(store, store_bit(or_operator))
         local imbranch = xor(negate, or_operator)
         if imbranch then
-            local templ = util.gen_id()
+            local templ = util.genid()
             self:test_emit(node.left, templ, jreg, not negate, lstore, dest)
             self:test_emit(node.right, jmp, jreg, negate, store, dest)
             self.ctx:here(templ)
@@ -642,7 +642,7 @@ local TestRule = {
     end,
 
     IfExpression = function(self, node, jmp, jreg, negate, store, dest)
-         local tl, fl = util.gen_id(), util.gen_id()
+         local tl, fl = util.genid(), util.genid()
          local lstore = store_bit(negate)
          self:test_emit(node.cond, fl, jreg, false, 0, dest)
          self:test_emit(node.texpr, jmp, jreg, negate, lstore, dest)
@@ -698,14 +698,14 @@ local StatementRule = {
         local ncons = #node.tests
         -- Count the number of branches, including the "else" branch.
         local count = node.alternate and ncons + 1 or ncons
-        local local_exit = count > 1 and util.gen_id()
+        local local_exit = count > 1 and util.genid()
         -- Set the exit point to the extern exit if given or set to local
         -- exit (potentially false).
         local exit = root_exit or local_exit
 
         for i = 1, ncons do
             local test, block = node.tests[i], node.cons[i]
-            local next_test = util.gen_id()
+            local next_test = util.genid()
             -- Set the exit point to jump on at the end of for this block.
             -- If this is the last branch (count == 1) set to false.
             local bexit = count > 1 and exit
@@ -826,7 +826,7 @@ local StatementRule = {
 
     WhileStatement = function(self, node)
         local free = self.ctx.freereg
-        local loop, exit, cont = util.gen_id(), util.gen_id(), util.gen_id()
+        local loop, exit, cont = util.genid(), util.genid(), util.genid()
         self:loop_enter(exit, free, cont)
         self.ctx:here(loop)
         self:test_emit(node.test, exit, free)
@@ -841,7 +841,7 @@ local StatementRule = {
 
     RepeatStatement = function(self, node)
         local free = self.ctx.freereg
-        local loop, exit, cont = util.gen_id(), util.gen_id(), util.gen_id()
+        local loop, exit, cont = util.genid(), util.genid(), util.genid()
         self:loop_enter(exit, free, cont)
         self.ctx:here(loop)
         self.ctx:loop(exit)
@@ -867,7 +867,7 @@ local StatementRule = {
 
     ForStatement = function(self, node)
         local free = self.ctx.freereg
-        local exit, cont = util.gen_id(), util.gen_id()
+        local exit, cont = util.genid(), util.genid()
         local init = node.init
         local name = init.id.name
 
@@ -896,7 +896,7 @@ local StatementRule = {
         local free = self.ctx.freereg
         local iter = free + 3
 
-        local loop, exit, cont = util.gen_id(), util.gen_id(), util.gen_id()
+        local loop, exit, cont = util.genid(), util.genid(), util.genid()
 
         local vars = node.namelist.names
         local iter_list = node.explist
@@ -921,7 +921,7 @@ local StatementRule = {
             self.ctx:setreg(iter + i)
         end
 
-        local ltop = self.ctx:here(util.gen_id())
+        local ltop = self.ctx:here(util.genid())
         self:block_emit(node.body)
         self.ctx:here(cont)
         self:loop_leave()

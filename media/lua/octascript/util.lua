@@ -24,7 +24,7 @@ M.Object = {
 }
 
 local ID = 0
-M.gen_id = function()
+M.genid = function()
    ID = ID + 1
    return '__' .. ID
 end
