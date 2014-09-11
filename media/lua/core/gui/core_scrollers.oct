@@ -77,7 +77,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
-        if ((cx + oh) >= vw) or ((cy + ov) >= vh) do return nil end
+        if ((cx + oh) >= vw) or ((cy + ov) >= vh) do return none end
         return Widget.target(self, cx + oh, cy + ov)
     end,
 
@@ -87,7 +87,7 @@ M.Scroller = register_type("Scroller", Clipper, {
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) do
             self.can_scroll = false
-            return nil
+            return none
         end
 
         self.can_scroll = true
@@ -98,7 +98,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
-        if ((cx + oh) >= vw) or ((cy + ov) >= vh) do return nil end
+        if ((cx + oh) >= vw) or ((cy + ov) >= vh) do return none end
         return Widget.click(self, cx + oh, cy + ov, code)
     end,
 
@@ -143,13 +143,13 @@ M.Scroller = register_type("Scroller", Clipper, {
     /**
         Binds a horizontal scrollbar widget to the scroller. It sets up both
         sides appropriately. You can do this from the scrollbar side as well.
-        Calling with nil unlinks the scrollbar and returns it.
+        Calling with none unlinks the scrollbar and returns it.
     */
     bind_h_scrollbar = func(self, sb)
         if not sb do
             sb = self.h_scrollbar
-            if not sb do return nil end
-            sb.scroller, self.h_scrollbar = nil, nil
+            if not sb do return none end
+            sb.scroller, self.h_scrollbar = none, none
             return sb
         end
         self.h_scrollbar = sb
@@ -159,13 +159,13 @@ M.Scroller = register_type("Scroller", Clipper, {
     /**
         Binds a vertical scrollbar widget to the scroller. It sets up both
         sides appropriately. You can do this from the scrollbar side as well.
-        Calling with nil unlinks the scrollbar and returns it.
+        Calling with none unlinks the scrollbar and returns it.
     */
     bind_v_scrollbar = func(self, sb)
         if not sb do
             sb = self.v_scrollbar
-            if not sb do return nil end
-            sb.scroller, self.v_scrollbar = nil, nil
+            if not sb do return none end
+            sb.scroller, self.v_scrollbar = none, none
             return sb
         end
         self.v_scrollbar = sb
@@ -271,7 +271,7 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         This one does nothing, it's further overloaded in horizontal and
         vertical variants. It takes care of linking a scroller to itself
         as well as linking this scrollbar to the scroller. Calling with
-        nil unlinks the scroller and returns it.
+        none unlinks the scroller and returns it.
     */
     bind_scroller = func(self, sc) end,
 
@@ -290,7 +290,7 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
     */
     click = func(self, cx, cy, code)
         return Widget.click(self, cx, cy, code) or
-                     (self:target(cx, cy) and self or nil)
+                     (self:target(cx, cy) and self or none)
     end,
 
     scroll_to = func(self, cx, cy) end,
@@ -392,11 +392,11 @@ M.ScrollButton = register_type("ScrollButton", Widget, {
     end,
 
     hover = func(self, cx, cy)
-        return self:target(cx, cy) and self or nil
+        return self:target(cx, cy) and self or none
     end,
 
     click = func(self, cx, cy)
-        return self:target(cx, cy) and self or nil
+        return self:target(cx, cy) and self or none
     end,
 
     holding = func(self, cx, cy, code)
@@ -432,8 +432,8 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     bind_scroller = func(self, sc)
         if not sc do
             sc = self.scroller
-            if not sc do return nil end
-            sc.h_scrollbar = nil
+            if not sc do return none end
+            sc.h_scrollbar = none
             return sc
         end
         self.scroller = sc
@@ -470,7 +470,7 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
         var  scroll = self.scroller
         if not scroll do return end
 
-        var  btn = self:find_child(ScrollButton.type, nil, false)
+        var  btn = self:find_child(ScrollButton.type, none, false)
         if not btn do return end
 
         var asz = self.arrow_size
@@ -490,7 +490,7 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
             return
         end
 
-        var  btn = self:find_child(ScrollButton.type, nil, false)
+        var  btn = self:find_child(ScrollButton.type, none, false)
         if not btn do
             Widget.adjust_children(self)
             return
@@ -527,8 +527,8 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
     bind_scroller = func(self, sc)
         if not sc do
             sc = self.scroller
-            if not sc do return nil end
-            sc.v_scrollbar = nil
+            if not sc do return none end
+            sc.v_scrollbar = none
             return sc
         end
         self.scroller = sc
@@ -565,7 +565,7 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
         var  scroll = self.scroller
         if not scroll do return end
 
-        var  btn = self:find_child(ScrollButton.type, nil, false)
+        var  btn = self:find_child(ScrollButton.type, none, false)
         if not btn do return end
 
         var asz = self.arrow_size
@@ -586,7 +586,7 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
             return
         end
 
-        var  btn = self:find_child(ScrollButton.type, nil, false)
+        var  btn = self:find_child(ScrollButton.type, none, false)
         if not btn do
             Widget.adjust_children(self)
             return

@@ -172,7 +172,7 @@ var ckbox_build_variant = \color, tgl -> gui.ColorFiller {
                 clamp = true, color = 0xC0C0C0,
                 gui.Outline { color = color, clamp = true }
             }
-        } or nil
+        } or none
     }
 }
 
@@ -187,7 +187,7 @@ var rdbtn_build_variant = \color, tgl -> gui.Circle {
                     clamp = true
                 }
             }
-        } or nil
+        } or none
     }
 }
 
@@ -499,7 +499,7 @@ set_ext("background_render", func(caption, mapname, mapinfo, mapshot)
     root:layout_dim()
     gui.__draw_window(bg_under(root))
     gui.__draw_window(bg_win(mapname, mapinfo, mapshot
-        and ffi.cast("Texture*", mapshot) or nil, caption))
+        and ffi.cast("Texture*", mapshot) or none, caption))
 end)
 
 /** Variable: applydialog

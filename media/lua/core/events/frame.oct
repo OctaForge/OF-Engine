@@ -103,7 +103,7 @@ M.cache_by_delay = func(fun, delay)
     end
 
     if type(fun) != "table" do
-        return nil
+        return none
     end
 
     fun.last_time = ((-delay) * 2)
@@ -137,7 +137,7 @@ M.cache_by_frame = func(fun)
     end
 
     if type(fun) != "table" do
-        return nil
+        return none
     end
 
     return func(...)

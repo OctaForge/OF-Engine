@@ -19,7 +19,7 @@ var gen_getwrap = func(fun, tp)
     var tpnm = tp ~ "[1]"
     return func(ent)
         var stor = ffi_new(tpnm)
-        if not fun(ent, stor) do return nil end
+        if not fun(ent, stor) do return none end
         return stor[0]
     end
 end
@@ -34,7 +34,7 @@ capi.get_selected_entity = func()
     end
     var uid = get_selected_entity()
     if uid >= 0 do return get_ent(uid) end
-    return nil
+    return none
 end
 
 var get_attached_entity in capi
@@ -45,7 +45,7 @@ capi.get_attached_entity = func(uid)
     end
     var auid = get_attached_entity(uid)
     if auid >= 0 do return get_ent(auid) end
-    return nil
+    return none
 end
 
 var gettargetent in capi
@@ -56,20 +56,20 @@ capi.gettargetent = func()
     end
     var uid = gettargetent()
     if uid >= 0 do return get_ent(uid) end
-    return nil
+    return none
 end
 
 var get_attr in capi
 capi.get_attr = func(ent, id)
     var stor = ffi_new("int[1]")
-    if not get_attr(ent, id, stor) do return nil end
+    if not get_attr(ent, id, stor) do return none end
     return stor[0]
 end
 
 var get_start_time in capi
 capi.get_start_time = func(ent)
     var stor = ffi_new("int[1]")
-    if not get_start_time(ent, stor) do return nil end
+    if not get_start_time(ent, stor) do return none end
     return stor[0]
 end
 
@@ -77,7 +77,7 @@ var get_extent_position, set_extent_position in capi
 
 capi.get_extent_position = func(ent)
     var stor = ffi_new("double[3]")
-    if not get_extent_position(ent, stor) do return nil end
+    if not get_extent_position(ent, stor) do return none end
     return { stor[0], stor[1], stor[2] }
 end
 
@@ -115,7 +115,7 @@ var get_dynent_position, set_dynent_position in capi
 
 capi.get_dynent_position = func(ent)
     var stor = ffi_new("double[3]")
-    if not get_dynent_position(ent, stor) do return nil end
+    if not get_dynent_position(ent, stor) do return none end
     return { stor[0], stor[1], stor[2] }
 end
 
@@ -127,7 +127,7 @@ var get_dynent_velocity, set_dynent_velocity in capi
 
 capi.get_dynent_velocity = func(ent)
     var stor = ffi_new("double[3]")
-    if not get_dynent_velocity(ent, stor) do return nil end
+    if not get_dynent_velocity(ent, stor) do return none end
     return { stor[0], stor[1], stor[2] }
 end
 
@@ -139,7 +139,7 @@ var get_dynent_falling, set_dynent_falling in capi
 
 capi.get_dynent_falling = func(ent)
     var stor = ffi_new("double[3]")
-    if not get_dynent_falling(ent, stor) do return nil end
+    if not get_dynent_falling(ent, stor) do return none end
     return { stor[0], stor[1], stor[2] }
 end
 
@@ -151,7 +151,7 @@ end
     var get_target_entity_uid in capi
     capi.get_target_entity_uid = func()
         var stor = ffi_new("int[1]")
-        if not get_target_entity_uid(stor) do return nil end
+        if not get_target_entity_uid(stor) do return none end
         return stor[0]
     end
 end
@@ -164,7 +164,7 @@ var ffi_str = ffi.string
 var strftime in capi
 capi.strftime = func(fmt)
     var buf = ffi_new("char[512]")
-    if not strftime(buf, 512, fmt) do return nil end
+    if not strftime(buf, 512, fmt) do return none end
     return ffi_str(buf)
 end
 
@@ -197,7 +197,7 @@ end
 
     capi.slot_get_name = func(idx, subslot)
         var str = slot_get_name(idx, subslot)
-        if str != nil do return ffi_str(str) end
+        if str != none do return ffi_str(str) end
     end
 
     var input_get_key_name in capi

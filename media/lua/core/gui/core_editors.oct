@@ -98,7 +98,7 @@ var editline_MT = {
         empty = func(self) return self.len <= 0 end,
         clear = func(self)
             C.free(self.text)
-            self.text = nil
+            self.text = none
             self.len, self.maxlen = 0, 0
         end,
         grow = func(self, total, nocopy)
@@ -392,7 +392,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
     /**
         Returns the selected portion of the editor as a string (assuming
-        there is one, otherwise it returns nil).
+        there is one, otherwise it returns none).
     */
     selection_to_string = func(self)
         var buf = {}
@@ -426,7 +426,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         Resets the editor contents - they're set to the "value" property
         (which acts differently on editors and fields - on editors it's just
         an "initial" value, on fields it's the current value, so on fields
-        it pretty much cancels out unsaved changes). If "value" is nil,
+        it pretty much cancels out unsaved changes). If "value" is none,
         do an empty string is used.
     */
     reset_value = func(self)
@@ -447,10 +447,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
     /**
         Copies the current selection into system clipboard. Returns the
-        copied string or nil if nothing was copied.
+        copied string or none if nothing was copied.
     */
     copy = func(self)
-        if not self:region() do return nil end
+        if not self:region() do return none end
         self._needs_calc = true
         var str = self:selection_to_string()
         if str do
@@ -461,15 +461,15 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
     /**
         Pastes a string from the clipboard into the editor on cursor position.
-        Returns the pasted string or nil if nothing was pasted. Deletes the
+        Returns the pasted string or none if nothing was pasted. Deletes the
         current selection if there is one and there is something to paste.
     */
     paste = func(self)
-        if not clipboard_has_text() do return nil end
+        if not clipboard_has_text() do return none end
         self._needs_calc = true
         if self:region() do self:delete_selection() end
         var  str = clipboard_get_text()
-        if not str do return nil end
+        if not str do return none end
         self:insert(str)
         return str
     end,
@@ -560,8 +560,8 @@ M.TextEditor = register_type("TextEditor", Widget, {
     bind_h_scrollbar = func(self, sb)
         if not sb do
             sb = self.h_scrollbar
-            if not sb do return nil end
-            sb.scroller, self.h_scrollbar = nil, nil
+            if not sb do return none end
+            sb.scroller, self.h_scrollbar = none, none
             return sb
         end
         self.h_scrollbar = sb
@@ -572,8 +572,8 @@ M.TextEditor = register_type("TextEditor", Widget, {
     bind_v_scrollbar = func(self, sb)
         if not sb do
             sb = self.v_scrollbar
-            if not sb do return nil end
-            sb.scroller, self.v_scrollbar = nil, nil
+            if not sb do return none end
+            sb.scroller, self.v_scrollbar = none, none
             return sb
         end
         self.v_scrollbar = sb

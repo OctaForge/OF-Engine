@@ -114,12 +114,12 @@ var gen_network_data = M.gen_network_data
     by $gen_network_data for the entity prototype. Otherwise clears it all.
 */
 M.clear_network_data = func(cn)
-    if cn == nil do
+    if cn == none do
         @[debug] log(DEBUG, "ents.clear_network_data")
         names_to_ids, ids_to_names = {}, {}
     else
         @[debug] log(DEBUG, "ents.clear_network_data: " ~ cn)
-        names_to_ids[cn], ids_to_names[cn] = nil, nil
+        names_to_ids[cn], ids_to_names[cn] = none, none
     end
 end
 
@@ -231,7 +231,7 @@ end
 M.register_prototype = func(cl, plugins, name)
     if not name do
         if type(plugins) == "string" do
-            name, plugins = plugins, nil
+            name, plugins = plugins, none
         else
             name = cl.name
         end
@@ -301,7 +301,7 @@ end
 
 /**
     Returns the entity prototype with the given name. If it doesn't exist,
-    logs an error message and returns nil.
+    logs an error message and returns none.
 
     Use with caution! See $register_prototype for the possible dangers of
     using this. It's still useful sometimes, so it's in the API.
@@ -328,7 +328,7 @@ M.get_all_prototypes = func()
 end
 
 /**
-    Retrieves an entity, given its unique id. If not found, nil. External as
+    Retrieves an entity, given its unique id. If not found, none. External as
     `entity_get`.
 */
 M.get = func(uid)
@@ -409,7 +409,7 @@ end
         sort - by default, the resulting array is sorted by distance
         from lowest to highest. This can be either a function (passed
         to {{$table.sort}}, refer to its documentation), a boolean value
-        false (which means it won't be sorted) or nil (which means
+        false (which means it won't be sorted) or none (which means
         it will be sorted using the default method).
         pos_fun - a function taking an entity and returning a position
         in form of {{$geom.Vec3}}. By default simply returns entity's position,
@@ -419,7 +419,7 @@ M.get_by_distance = func(pos, kwargs)
     kwargs = kwargs or {}
 
     var md = kwargs.max_distance
-    if not md do return nil end
+    if not md do return none end
 
     var cl, tg, sr = kwargs.prototype, kwargs.tag, kwargs.sort
     var fn = kwargs.pos_fun or func(e)
@@ -492,7 +492,7 @@ var add = func(cn, uid, kwargs, new)
         var ndata
         if kwargs do
             ndata = kwargs.newent_data
-            kwargs.newent_data = nil
+            kwargs.newent_data = none
             if ndata do ndata = deserialize(ndata) end
         end
         r:__init_svars(kwargs, ndata or {})
@@ -506,7 +506,7 @@ end
 M.add = add
 set_external("entity_add", add)
 set_external("entity_add_with_cn", func(cl, uid, cn)
-    add(cl, uid, (cn >= 0) and { cn = cn } or nil)
+    add(cl, uid, (cn >= 0) and { cn = cn } or none)
 end)
 
 var add_sauer = func(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
@@ -543,7 +543,7 @@ M.remove = func(uid)
                 func(a, b) return (b != e) end)
         end
     end
-    storage[uid] = nil
+    storage[uid] = none
 end
 set_external("entity_remove", M.remove)
 
@@ -668,7 +668,7 @@ M.load = func()
                             = ent.attr2, ent.attr3, ent.attr4
                         ent.sound_name = "@REPLACE@"
                     end
-                    ent.attr4, ent.attr5 = nil, nil
+                    ent.attr4, ent.attr5 = none, none
                 elif et == 3 do
                     ent.tags = "[start_]"
                 end
@@ -843,7 +843,7 @@ M.Entity = table.Object:clone {
     */
     has_tag = func(self, tag)
         @[debug] log(DEBUG, "Entity: has_tag (" ~ tag ~ ")")
-        return find(self:get_attr("tags"):to_array(), tag) != nil
+        return find(self:get_attr("tags"):to_array(), tag) != none
     end,
 
     /**
@@ -851,8 +851,8 @@ M.Entity = table.Object:clone {
         entity has.
 
         Kwargs:
-            - target_cn [nil] - the client number to check state variables
-            against (see <StateVariable.should_send>). If that is nil,
+            - target_cn [none] - the client number to check state variables
+            against (see <StateVariable.should_send>). If that is none,
             no checking happens and stuff is done for all clients.
             - compressed [false] - if true, this function will return the
             sdata in a serialized format (string) with names converted
@@ -877,7 +877,7 @@ M.Entity = table.Object:clone {
             and not (tcn >= 0 and not svar:should_send(self, tcn)) do
                 var name = svar.name
                 var val = self:get_attr(name)
-                if val != nil do
+                if val != none do
                     var wval = svar:to_wire(val)
                     @[debug] log(DEBUG, "    adding " ~ name ~ ": "
                         ~ wval)
@@ -914,7 +914,7 @@ M.Entity = table.Object:clone {
         for k, v in pairs(raw) do
             k = tonumber(k) and ids_to_names[sn][k] or k
             @[debug] log(DEBUG, "    " ~ k ~ " = " ~ tostring(v))
-            self:set_sdata(k, v, nil, true)
+            self:set_sdata(k, v, none, true)
             @[debug] log(DEBUG, "    ... done.")
         end
         @[debug] log(DEBUG, "Entity.set_sdata_full: complete")
@@ -983,7 +983,7 @@ M.Entity = table.Object:clone {
         end
 
         @[server] do
-            var sd = kwargs and kwargs.state_data or nil
+            var sd = kwargs and kwargs.state_data or none
             if sd do self:set_sdata_full(sd) end
             self:send_notification_full(msg.ALL_CLIENTS)
             self.sent_notification_full = true
@@ -1105,7 +1105,7 @@ M.Entity = table.Object:clone {
         self:sdata_changed(svar, key, val)
         emit(self, key ~ ",changed", val, actor_uid)
         if self.sdata_update_cancel do
-            self.sdata_update_cancel = nil
+            self.sdata_update_cancel = none
             return
         end
 
@@ -1119,7 +1119,7 @@ M.Entity = table.Object:clone {
             end
 
             var args = {
-                nil, svar.reliable and capi.statedata_update
+                none, svar.reliable and capi.statedata_update
                     or capi.statedata_update_unreliable,
                 self.uid,
                 names_to_ids[self.name][key],
@@ -1188,7 +1188,7 @@ M.Entity = table.Object:clone {
     flush_queued_svar_changes = @[server,func(self)
         var changes = self.svar_change_queue
         if not changes do return end
-        self.svar_change_queue = nil
+        self.svar_change_queue = none
 
         for k, v in pairs(changes) do
             var rv = self.svar_values[k]
@@ -1228,9 +1228,9 @@ M.Entity = table.Object:clone {
     */
     get_gui_attr = func(self, prop)
         var svar = self["_SV_GUI_" ~ prop]
-        if not svar or not svar.has_history do return nil end
+        if not svar or not svar.has_history do return none end
         var val = self:get_attr(svar.name)
-        if val != nil do
+        if val != none do
             return svar:to_wire(val)
         end
     end,
@@ -1241,13 +1241,13 @@ M.Entity = table.Object:clone {
         specifies whether to sort the result by attribute name.
     */
     get_gui_attrs = func(self, sortattrs)
-        if sortattrs == nil do sortattrs = true end
+        if sortattrs == none do sortattrs = true end
         var r = {}
         for k, svar in pairs(self) do
             if is_svar(svar) and svar.has_history and svar.gui_name != false do
                 var name = svar.name
                 var val = self:get_attr(name)
-                if val != nil do
+                if val != none do
                     r[#r + 1] = { svar.gui_name or name, svar:to_wire(val) }
                 end
             end
@@ -1280,7 +1280,7 @@ M.Entity = table.Object:clone {
     get_attr = func(self, prop)
         var fun = self["__get_" ~ prop]
         if fun do return fun(self) end
-        return nil
+        return none
     end,
 
     /** Function: set_attr
@@ -1302,11 +1302,11 @@ M.Entity = table.Object:clone {
             var svar = self["_SV_" ~ prop]
             if svar do
                 var nw = svar:from_wire(nd)
-                if nw != nil do val = nw end
+                if nw != none do val = nw end
             end
         end
         var fun = self["__set_" ~ prop]
-        return fun and fun(self, val) or nil
+        return fun and fun(self, val) or none
     end
 }
 Entity = M.Entity
@@ -1342,7 +1342,7 @@ M.get_attr = func(ent, prop)
 end
 set_external("entity_get_attr", func(uid, prop)
     var ent = storage[uid]
-    if not ent do return nil end
+    if not ent do return none end
     return ent:get_attr(prop)
 end)
 
@@ -1360,7 +1360,7 @@ M.set_attr = func(ent, prop, val)
 end
 set_external("entity_set_attr", func(uid, prop, val)
     var ent = storage[uid]
-    if not ent do return nil end
+    if not ent do return none end
     return ent:set_attr(prop, val)
 end)
 
@@ -1476,7 +1476,7 @@ end)
 set_external("entity_serialize_sdata", func(uid, x, y, z)
     var sd = get_ent(uid):build_sdata()
     if not x do
-        sd.position = nil
+        sd.position = none
     else
         sd.position = ("[%f|%f|%f]"):format(x, y, z)
     end
@@ -1491,7 +1491,7 @@ end)
 M.scene_is_ready = @[not server,func()
     @[debug] log(INFO, "Scene ready?")
 
-    if player_entity == nil do
+    if player_entity == none do
         @[debug] log(INFO, "...not ready, player entity missing.")
         return false
     end

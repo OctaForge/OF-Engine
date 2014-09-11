@@ -316,7 +316,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         */
         edit_face = func(self, dir, mode, loc)
             if loc != false do loc = true end
-            assert(self != nil)
+            assert(self != none)
             edit_raw_edit_face(dir, mode, self, loc)
         end,
 
@@ -328,7 +328,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         */
         delete = func(self, loc)
             if loc != false do loc = true end
-            assert(self != nil)
+            assert(self != none)
             edit_raw_delete_cube(self, loc)
         end,
 
@@ -342,7 +342,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         */
         edit_texture = func(self, tex, all_faces, loc)
             if loc != false do loc = true end
-            assert(self != nil)
+            assert(self != none)
             edit_raw_edit_texture(tex, all_faces or false, self, loc)
         end,
 
@@ -355,7 +355,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         */
         edit_material = func(self, mat, loc)
             if loc != false do loc = true end
-            assert(self != nil)
+            assert(self != none)
             edit_raw_edit_material(mat, self, loc)
         end,
 
@@ -367,7 +367,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         */
         flip = func(self, loc)
             if loc != false do loc = true end
-            assert(self != nil)
+            assert(self != none)
             edit_raw_flip(self, loc)
         end,
 
@@ -380,7 +380,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         */
         rotate = func(self, cw, loc)
             if loc != false do loc = true end
-            assert(self != nil)
+            assert(self != none)
             edit_raw_rotate(cw, self, loc)
         end,
 
@@ -394,7 +394,7 @@ M.Selection = ffi.metatype("selinfo_t", {
         */
         edit_vslot = func(self, vs, all_faces, loc)
             if loc != false do loc = true end
-            assert(self != nil and vs != nil)
+            assert(self != none and vs != none)
             edit_raw_edit_vslot(vs, all_faces or false, self, loc)
         end,
 

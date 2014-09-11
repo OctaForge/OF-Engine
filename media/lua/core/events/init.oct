@@ -1,16 +1,16 @@
 import core.logger as log
 
 log.log(log.DEBUG, ":::: Frame handling.")
-import core.events.frame as nil
+import core.events.frame as none
 
 log.log(log.DEBUG, ":::: Signal system.")
-import core.events.signal as nil
+import core.events.signal as none
 
 log.log(log.DEBUG, ":::: Action system.")
-import core.events.actions as nil
+import core.events.actions as none
 
 log.log(log.DEBUG, ":::: World events.")
-import core.events.world as nil
+import core.events.world as none
 
 log.log(log.DEBUG, ":::: Input events.")
-import core.events.input as nil
+import core.events.input as none

@@ -26,7 +26,7 @@ var M = {}
 
 /** Table: particles.renderers
     Provides some extra renderers - "smoke", "flame" and "steam" used
-    by the effect entities. On the client only, on the server this is nil.
+    by the effect entities. On the client only, on the server this is none.
 */
 var renderers = @[not server,{
     smoke = quadrenderer("smoke", "media/particle/smoke",

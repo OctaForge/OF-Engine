@@ -28,8 +28,8 @@ var gen_map_list = func(img, vb)
                 end
             end)
             signal.connect(btn, "leaving", func()
-                current_preview = nil
-                img:set_tex(nil)
+                current_preview = none
+                img:set_tex(none)
             end)
             signal.connect(btn, "clicked", func()
                 cs_execute("map " ~ map)
@@ -49,8 +49,8 @@ var gen_map_list = func(img, vb)
                 end
             end)
             signal.connect(btn, "leaving", func()
-                current_preview = nil
-                img:set_tex(nil)
+                current_preview = none
+                img:set_tex(none)
             end)
             signal.connect(btn, "clicked", func()
                 cs_execute("map " ~ map)
@@ -427,7 +427,7 @@ root:new_window("2048", gui.Window, func(win)
                             movetiles(grid,  0,  1)
                         end
                     end
-                    if gamestate < 0 do cf.key = nil end
+                    if gamestate < 0 do cf.key = none end
                     win:set_title(gamestates[gamestate]:format(totalscore))
                     return gui.Widget.key(self, code, isdown)
                 end

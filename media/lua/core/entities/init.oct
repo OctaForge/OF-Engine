@@ -1,10 +1,10 @@
 import core.logger as log
 
 log.log(log.DEBUG, ":::: State variables.")
-import core.entities.svars as nil
+import core.entities.svars as none
 
 log.log(log.DEBUG, ":::: Entities.")
-import core.entities.ents as nil
+import core.entities.ents as none
 
 log.log(log.DEBUG, ":::: Entities: basic set.")
-import core.entities.ents_basic as nil
+import core.entities.ents_basic as none

@@ -116,7 +116,7 @@ end)
         - down - whether it was pressed.
         - x, y, z - the position of the click in the world.
         - uid - the unique ID of the entity that was clicked
-          (if any, nil otherwise).
+          (if any, none otherwise).
         - cx, cy - the cursor position.
 */
 set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy)
@@ -192,8 +192,8 @@ var type, assert = type, assert
     server respectively.
 
     This function returns false when no or invalid name is provided,
-    true when callback is nil and the previous callback in other cases
-    (nil if the callback doesn't exist - mouse_move).
+    true when callback is none and the previous callback in other cases
+    (none if the callback doesn't exist - mouse_move).
 
     Arguments:
         - en - the event name.
@@ -209,7 +209,7 @@ M.set_event = func(en, fun)
     end
     var old = event_map[en]
     if not old do return false end
-    if fun == nil do
+    if fun == none do
         if en == "input_mouse_move" do
             unset_ext(en)
             return true
@@ -227,18 +227,18 @@ M.set_event = func(en, fun)
 end
 
 /**
-    Gets an event callback. For naming, see $set_event. Returns nil if the name
+    Gets an event callback. For naming, see $set_event. Returns none if the name
     is invalid or the callback doesn't exist and the callback otherwise.
 */
 M.get_event = func(en)
     if not en do
-        return nil
+        return none
     elif en == "click" do
         en = @[server,"input_click_server","input_click_client"]
     else
         en = "input_" ~ en
     end
-    if not event_map[en] do return nil end
+    if not event_map[en] do return none end
     return get_ext(en)
 end
 

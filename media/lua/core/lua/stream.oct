@@ -17,7 +17,7 @@ import capi
     Methods:
         - `close()` - closes the stream.
         - `lines()` - returns an iterator function that returns the next line
-          every time it's called, until it returns nil.
+          every time it's called, until it returns none.
         - `read(...)` - see the `read` method of a Lua file handle, the only
           difference is that this doesn't support the `*n` format.
         - `seek([whence] [, offset])` - see the `seek` method of a Lua file
@@ -122,7 +122,7 @@ M.open_utf8 = capi.stream_open_utf8
 
 /** Function: type
     Checks if the given value is a file stream. Returns `stream` when it is,
-    `closed stream` when it's a closed stream and `nil` when it's not a stream.
+    `closed stream` when it's a closed stream and `none` when it's not a stream.
 */
 M.type = capi.stream_type
 

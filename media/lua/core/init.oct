@@ -55,32 +55,32 @@ end
 import capi
 
 // patch capi
-import core.capi as nil
+import core.capi as none
 
 capi.log(1, "Initializing logging.")
 
 import core.logger as log
 
-import core.externals as nil
+import core.externals as none
 
 log.log(log.DEBUG, "Initializing the core library.")
 
 log.log(log.DEBUG, ":: Lua extensions.")
-import core.lua as nil
+import core.lua as none
 
 log.log(log.DEBUG, ":: Network system.")
-import core.network as nil
+import core.network as none
 
 log.log(log.DEBUG, ":: Event system.")
-import core.events as nil
+import core.events as none
 
 log.log(log.DEBUG, ":: Engine system.")
-import core.engine as nil
+import core.engine as none
 
 log.log(log.DEBUG, ":: Entity system.")
-import core.entities as nil
+import core.entities as none
 
 log.log(log.DEBUG, ":: GUI.")
-import core.gui as nil
+import core.gui as none
 
 log.log(log.DEBUG, "Core scripting initialization complete.")

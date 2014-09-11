@@ -169,7 +169,7 @@ table.compact = func(t, f)
         var v = t[i]
         if not f(i, v) do comp += 1 elif comp > 0 do t[i - comp] = v end
     end
-    for i in olen to olen - comp + 1 by -1 do t[i] = nil end
+    for i in olen to olen - comp + 1 by -1 do t[i] = none end
     return t
 end
 
@@ -315,7 +315,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
 end
 
 var defkw = {
-    multiline = false, indent = nil, assign = "=", table_sep = ",",
+    multiline = false, indent = none, assign = "=", table_sep = ",",
     end_sep = false, optimize_keys = true
 }
 
@@ -337,16 +337,16 @@ var defkwp = {
     serializer allows strings, numbers, booleans and tables.
 
     Circular tables can't be serialized. The function normally returns either
-    the string output or nil + an error message (which can signalize either
+    the string output or none + an error message (which can signalize either
     circular references or invalid types).
 
     The function allows you to pass in a "kwargs" table as the second argument.
     It's a table of options. Those can be multiline (boolean, false by default,
-    pretty much pretty-printing), indent (string, nil by default, specifies
+    pretty much pretty-printing), indent (string, none by default, specifies
     how an indent level looks), assign (string, "=" by default, specifies how
     an assignment between a key and a value looks), table_sep (table separator,
     by default ",", can also be ";" for tables, separates items in all cases),
-    item_sep (item separator, string, nil by default, comes after table_sep
+    item_sep (item separator, string, none by default, comes after table_sep
     but only if it isn't followed by a newline), narr_line (number, 0 by
     default, how many array elements to fit on a line), nrec_line (same,
     just for key-value pairs), end_sep (boolean, false by default, makes
@@ -355,7 +355,7 @@ var defkwp = {
     that it doesn't use string literals for keys that can be expressed
     as Lua names).
 
-    If kwargs is nil or false, the values above are used. If kwargs is a
+    If kwargs is none or false, the values above are used. If kwargs is a
     boolean value true, pretty-printing defaults are used (multiline is
     true, indent is 4 spaces, assign is " = ", table_sep is ",", item_sep
     is one space, narr_line is 4, nrec_line is 2, end_sep is false,
@@ -380,7 +380,7 @@ var serialize = func(val, kwargs, stream, simplifier)
     elif not kwargs do
         kwargs = defkw
     else
-        if  kwargs.optimize_keys == nil do
+        if  kwargs.optimize_keys == none do
             kwargs.optimize_keys = true
         end
     end
@@ -391,7 +391,7 @@ var serialize = func(val, kwargs, stream, simplifier)
         var ret, err = serialize_fn(val, func(out)
             t[#t + 1] = out end, kwargs, simplifier, {}, 1)
         if not ret do
-            return nil, err
+            return none, err
         else
             return tconc(t)
         end
@@ -404,7 +404,7 @@ var lex_get = func(ls)
     while true do
         var c = ls.curr
         if not c do break end
-        ls.tname, ls.tval = nil, nil
+        ls.tname, ls.tval = none, none
         if c == "\n" or c == "\r" do
             var prev = c
             c = ls.rdr()
@@ -434,7 +434,7 @@ var lex_get = func(ls)
             var buf = {}
             while ls.curr != d do
                 var c = ls.curr
-                if c == nil do
+                if c == none do
                     error(("%d: unfinished string near '<eos>'")
                         :format(ls.linenum), 0)
                 elif c == "\n" or c == "\r" do
@@ -498,8 +498,8 @@ var lex_get = func(ls)
                 ls.curr = ls.rdr()
             end
             var str = tconc(buf)
-            if str == "true" or str == "false" or str == "nil" do
-                ls.tname, ls.tval = str, nil
+            if str == "true" or str == "false" or str == "none" do
+                ls.tname, ls.tval = str, none
                 return str
             else
                 ls.tname, ls.tval = "<name>", str
@@ -507,7 +507,7 @@ var lex_get = func(ls)
             end
         else
             ls.curr = ls.rdr()
-            ls.tname, ls.tval = c, nil
+            ls.tname, ls.tval = c, none
             return c
         end
     end
@@ -533,7 +533,7 @@ parse = func(ls)
         return v
     elif tok == "true"  do lex_get(ls) return true
     elif tok == "false" do lex_get(ls) return false
-    elif tok == "nil"   do lex_get(ls) return nil
+    elif tok == "none"   do lex_get(ls) return none
     else
         assert_tok(ls, "{")
         var tbl = {}
@@ -567,15 +567,15 @@ end
     so it's safe (doesn't evaluate anything). The input can also be a callable
     value that return the next character each call.
     External as "table_deserialize". This returns the deserialized value on
-    success and nil + the error message on failure.
+    success and none + the error message on failure.
 */
 table.deserialize = func(s)
     var stream = (type(s) == "string") and s:gmatch(".") or s
     var ls = { curr = stream(), rdr = stream, linenum = 1 }
     var r, v = pcall(lex_get, ls)
-    if not r do return nil, v end
+    if not r do return none, v end
     r, v = pcall(parse, ls)
-    if not r do return nil, v end
+    if not r do return none, v end
     return v
 end
 ext_set("table_deserialize", table.deserialize)

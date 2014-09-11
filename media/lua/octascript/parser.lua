@@ -346,7 +346,7 @@ local sexps = {
         ls:get()
         return r
     end,
-    ["nil"] = function(ls, ast)
+    ["none"] = function(ls, ast)
         ls:get()
         return ast.Literal(nil)
     end,
@@ -688,7 +688,7 @@ local parse_import_stat = function(ls, ast, line)
     local varn = modname[#modname]
     if ls.token.name == "as" then
         ls:get()
-        if ls.token.name == "nil" then
+        if ls.token.name == "none" then
             varn = nil
         else
             assert_tok(ls, "<name>")

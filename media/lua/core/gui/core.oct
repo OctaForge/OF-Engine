@@ -156,23 +156,23 @@ M.loop_children = func(self, fun)
     var st = self.states
 
     var s = self:choose_state()
-    if s != nil do
+    if s != none do
         var  w = st[s] or st["default"]
         if not w do w = vr[s] or vr["default"] end
         if w do
             var a, b = fun(w)
-            if a != nil do return a, b end
+            if a != none do return a, b end
         end
     end
 
     for i in 1 to #vr do
         var a, b = fun(vr[i])
-        if    a != nil do return a, b end
+        if    a != none do return a, b end
     end
 
     for i in 1 to #ch do
         var a, b = fun(ch[i])
-        if    a != nil do return a, b end
+        if    a != none do return a, b end
     end
 end
 var loop_children = M.loop_children
@@ -193,21 +193,21 @@ M.loop_children_r = func(self, fun)
 
     for i in #ch to 1 by -1 do
         var a, b = fun(ch[i])
-        if    a != nil do return a, b end
+        if    a != none do return a, b end
     end
 
     for i in #vr to 1 by -1 do
         var a, b = fun(vr[i])
-        if    a != nil do return a, b end
+        if    a != none do return a, b end
     end
 
     var s = self:choose_state()
-    if s != nil do
+    if s != none do
         var  w = st[s] or st["default"]
         if not w do w = vr[s] or vr["default"] end
         if w do
             var a, b = fun(w)
-            if a != nil do return a, b end
+            if a != none do return a, b end
         end
     end
 end
@@ -247,7 +247,7 @@ M.loop_in_children = func(self, cx, cy, fun, ins, useproj)
         end
         if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) do
             var a, b = fun(o, ox, oy)
-            if    a != nil do return a, b end
+            if    a != none do return a, b end
         end
     end)
 end
@@ -268,7 +268,7 @@ M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj)
         end
         if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) do
             var a, b = fun(o, ox, oy)
-            if    a != nil do return a, b end
+            if    a != none do return a, b end
         end
     end)
 end
@@ -418,7 +418,7 @@ var Projection = table.Object:clone {
         obj:draw(sx or obj.x, sy or obj.y)
 
         gl_blend_disable()
-        root:set_projection(nil)
+        root:set_projection(none)
     end,
 
     calc_above_hud = func(self)
@@ -472,7 +472,7 @@ M.Color = ffi.metatype("color_t", {
         you're providing the r, g, b and possibly a values. If only three
         arguments are provided, the alpha defaults to 0xFF.
 
-        Note that if you provide nil or false in place of any argument,
+        Note that if you provide none or false in place of any argument,
         it'll default all color channels it affects to 0xFF.
 
         The set_(r|g|b|a) methods emit the "(r|g|b|a),changed" signals
@@ -641,15 +641,15 @@ M.Widget = register_type("Widget", table.Object, {
         var clamp_l, clamp_r, clamp_b, clamp_t = cl, cl, cl, cl
 
         var clh, clv = kwargs.clamp_h, kwargs.clamp_v
-        if clh != nil do clamp_l, clamp_r = not not clh, not not clh end
-        if clv != nil do clamp_t, clamp_b = not not clv, not not clv end
+        if clh != none do clamp_l, clamp_r = not not clh, not not clh end
+        if clv != none do clamp_t, clamp_b = not not clv, not not clv end
 
         var cll, clr, clt, clb = kwargs.clamp_l, kwargs.clamp_r,
             kwargs.clamp_t, kwargs.clamp_b
-        if cll != nil do clamp_l = not not cll end
-        if clr != nil do clamp_r = not not clr end
-        if clt != nil do clamp_t = not not clt end
-        if clb != nil do clamp_b = not not clb end
+        if cll != none do clamp_l = not not cll end
+        if clr != none do clamp_r = not not clr end
+        if clt != none do clamp_t = not not clt end
+        if clb != none do clamp_b = not not clb end
 
         self.floating = kwargs.floating or false
         self.visible  = (kwargs.visible != false) and true or false
@@ -669,10 +669,10 @@ M.Widget = register_type("Widget", table.Object, {
         var variant = kwargs.variant
         if variant != false do
             var dstates = variants[variant or "default"]
-            var props = dstates and dstates.__properties or nil
+            var props = dstates and dstates.__properties or none
             if props do for i, v in ipairs(props) do
                 assert(v:sub(1, 1) != "_", "invalid property " ~ v)
-                assert(not self["set_" ~ v] and self[v] == nil,
+                assert(not self["set_" ~ v] and self[v] == none,
                     "cannot override existing property " ~ v)
                 self[v] = kwargs[v]
             end end
@@ -733,12 +733,12 @@ M.Widget = register_type("Widget", table.Object, {
         for k, v in pairs(vstates) do v:clear() end
         var mobjs = self.managed_objects
         for k, v in pairs(mobjs) do v:clear() end
-        self.container = nil
+        self.container = none
 
         emit(self, "destroy")
         var insts = rawget(self.__proto, "__instances")
         if insts do
-            insts[self] = nil
+            insts[self] = none
         end
 
         self._cleared = true
@@ -754,7 +754,7 @@ M.Widget = register_type("Widget", table.Object, {
         var ch, rch = {}, self.children
         var st, rst = {}, self.states
         var vs, rvs = {}, self.vstates
-        var ic = initc and self.init_clone or nil
+        var ic = initc and self.init_clone or none
         var cl = self:clone { children = ch, states = st, vstates = vs }
         for i in 1 to #rch do
             var c = rch[i]
@@ -791,11 +791,11 @@ M.Widget = register_type("Widget", table.Object, {
         end end
         var manprops = self.managed_properties
         for i in #manprops to 1 by -1 do
-            self[manprops[i]], manprops[i] = nil, nil
+            self[manprops[i]], manprops[i] = none, none
         end
         var vstates = {}
         self.vstates = vstates
-        if variant == false do return nil end
+        if variant == false do return none end
         var variants = rawget(self.__proto, "__variants")
         var dstates = variants[variant or "default"]
         if dstates do
@@ -816,7 +816,7 @@ M.Widget = register_type("Widget", table.Object, {
                 var nm = "set_" ~ v
                 if not disable_asserts do
                     assert(v:sub(1, 1) != "_", "invalid property " ~ v)
-                    assert(not self[nm] and self[v] == nil,
+                    assert(not self[nm] and self[v] == none,
                         "cannot override existing property " ~ v)
                 end
                 self[nm] = gen_setter(v)
@@ -826,7 +826,7 @@ M.Widget = register_type("Widget", table.Object, {
             if init do init(self) end
         end
         var cont = self.container
-        if cont and cont._cleared do self.container = nil end
+        if cont and cont._cleared do self.container = none end
     end,
 
     /**
@@ -879,7 +879,7 @@ M.Widget = register_type("Widget", table.Object, {
                 end
             end
             var cont = v.container
-            if cont and cont._cleared do v.container = nil end
+            if cont and cont._cleared do v.container = none end
         end end
     end,
 
@@ -910,7 +910,7 @@ M.Widget = register_type("Widget", table.Object, {
         obj.parent = self
         obj._root  = self._root
         var cont = self.container
-        if cont and cont._cleared do self.container = nil end
+        if cont and cont._cleared do self.container = none end
         self:state_changed(state, obj)
         return obj
     end,
@@ -933,9 +933,9 @@ M.Widget = register_type("Widget", table.Object, {
 
     /**
         Returns the state that should be currently used. By default
-        returns nil.
+        returns none.
     */
-    choose_state = func(self) return nil end,
+    choose_state = func(self) return none end,
 
     /**
         Takes care of widget positioning and sizing. By default calls
@@ -1010,14 +1010,14 @@ M.Widget = register_type("Widget", table.Object, {
 
     /**
         Given the cursor coordinates, this function should return the
-        targeted widget. Returns nil if there is nothing or nothing
+        targeted widget. Returns none if there is nothing or nothing
         targetable. By default this just loops the children in reverse
         order, calls target on each and returns the result of the first
         target call that actually returns something.
     */
     target = func(self, cx, cy)
         return loop_in_children_r(self, cx, cy, func(o, ox, oy)
-            var c = o.visible and o:target(ox, oy) or nil
+            var c = o.visible and o:target(ox, oy) or none
             if c do return c end
         end)
     end,
@@ -1131,7 +1131,7 @@ M.Widget = register_type("Widget", table.Object, {
         Given the cursor coordinates, this function returns the widget
         currently hovered on. By default it just loops children in
         reverse order using $loop_in_children_r and calls hover recursively
-        on each (and returns the one that first returns a non-nil value).
+        on each (and returns the one that first returns a non-none value).
         If the hover call returns itself, it means we're hovering on the
         widget the method was called on and the current hover coords
         are set up appropriately.
@@ -1143,7 +1143,7 @@ M.Widget = register_type("Widget", table.Object, {
         var w = self:get_root()
         var isw = (self == w)
         return loop_in_children_r(self, cx, cy, func(o, ox, oy)
-            var c  = o.visible and o:hover(ox, oy) or nil
+            var c  = o.visible and o:hover(ox, oy) or none
             if    c == o do
                 w._hover_x = ox
                 w._hover_y = oy
@@ -1199,7 +1199,7 @@ M.Widget = register_type("Widget", table.Object, {
         var w = self:get_root()
         var isw = (self == w)
         return loop_in_children_r(self, cx, cy, func(o, ox, oy)
-            var c  = o.visible and o:click(ox, oy, code) or nil
+            var c  = o.visible and o:click(ox, oy, code) or none
             if    c == o do
                 w._click_x = ox
                 w._click_y = oy
@@ -1254,7 +1254,7 @@ M.Widget = register_type("Widget", table.Object, {
             - $find_sibling
     */
     find_child = func(self, otype, name, recurse, exclude)
-        recurse = (recurse == nil) and true or recurse
+        recurse = (recurse == none) and true or recurse
         var o = loop_children(self, func(o)
             if o != exclude and o.type == otype and
             (not name or name == o.obj_name) do
@@ -1266,7 +1266,7 @@ M.Widget = register_type("Widget", table.Object, {
             o = loop_children(self, func(o)
                 if o != exclude do
                     var found = o:find_child(otype, name)
-                    if    found != nil do return found end
+                    if    found != none do return found end
                 end
             end)
         end
@@ -1282,7 +1282,7 @@ M.Widget = register_type("Widget", table.Object, {
     */
     find_children = func(self, otype, name, recurse, exclude, ret)
         var ch = ret or {}
-        recurse = (recurse == nil) and true or recurse
+        recurse = (recurse == none) and true or recurse
         loop_children(self, func(o)
             if o != exclude and o.type == otype and
             (not name or name == o.obj_name) do
@@ -1292,7 +1292,7 @@ M.Widget = register_type("Widget", table.Object, {
         if recurse do
             loop_children(self, func(o)
                 if o != exclude do
-                    o:find_child(otype, name, true, nil, ch)
+                    o:find_child(otype, name, true, none, ch)
                 end
             end)
         end
@@ -1367,12 +1367,12 @@ M.Widget = register_type("Widget", table.Object, {
         on success and false on failure.
 
         If the last argument "detach" is true, this doesn't clear the widget
-        and instead of returning true or false, it returns the widget or nil.
+        and instead of returning true or false, it returns the widget or none.
     */
     remove = func(self, o, detach)
         if type(o) == "number" do
             if #self.children < o do
-                if detach do return nil end
+                if detach do return none end
                 return false
             end
             var r = tremove(self.children, o)
@@ -1388,7 +1388,7 @@ M.Widget = register_type("Widget", table.Object, {
                 return true
             end
         end
-        if detach do return nil end
+        if detach do return none end
         return false
     end,
 
@@ -1488,8 +1488,8 @@ M.Widget = register_type("Widget", table.Object, {
     set_container = func(self, val)
         var orig = self.container
         if orig do
-            orig.parent = nil
-            orig._root  = nil
+            orig.parent = none
+            orig._root  = none
         end
         self.container = val
         if val do
@@ -1625,7 +1625,7 @@ M.Widget = register_type("Widget", table.Object, {
     is_field = func() return false end,
 
     /**
-        Returns the parent of this widget (or nil if no parent).
+        Returns the parent of this widget (or none if no parent).
         This is just a plain hash table read, no complex retrieval.
     */
     get_parent = func(self)
@@ -1658,9 +1658,9 @@ M.Widget = register_type("Widget", table.Object, {
     */
     clear_focus = func(self)
         var w = self:get_root()
-        if self == w._clicked  do w._clicked  = nil end
-        if self == w._hovering do w._hovering = nil end
-        if self == w._focused  do w._focused  = nil end
+        if self == w._clicked  do w._clicked  = none end
+        if self == w._hovering do w._hovering = none end
+        if self == w._focused  do w._focused  = none end
     end,
 
     /**
@@ -1713,7 +1713,7 @@ M.Widget = register_type("Widget", table.Object, {
     /**
         Gets the widget's projection. If it doesn't exist it tries to create
         a new one unless the parameter is true. Returns the projection or
-        nil.
+        none.
     */
     get_projection = func(self, nonew)
         var proj = self._projection
@@ -1777,7 +1777,7 @@ M.Window = register_type("Window", NamedWidget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         var ig = kwargs.input_grab
-        self.input_grab = ig == nil and true or ig
+        self.input_grab = ig == none and true or ig
         self.above_hud = kwargs.above_hud or false
         return NamedWidget.__ctor(self, kwargs)
     end,
@@ -1800,8 +1800,8 @@ Window = M.Window
 /**
     Overlays are windows that take no input under no circumstances. There is no
     difference otherwise. This overloads {{$Widget.grabs_input}} (returns
-    false), {{$Widget.target}} (returns nil), {{$Widget.hover}} (returns nil)
-    and {{$Widget.click}} (returns nil).
+    false), {{$Widget.target}} (returns none), {{$Widget.hover}} (returns none)
+    and {{$Widget.click}} (returns none).
 
     There is one default overlay - the HUD. You can retrieve it using $get_hud.
     Its layout is managed separately, it takes root's dimensions. You can
@@ -1835,15 +1835,15 @@ M.Root = register_type("Root", Widget, {
         self._root       = self
         self._clip_stack = {}
         self._menu_stack = {}
-        self._menu_nhov  = nil
-        self._tooltip    = nil
+        self._menu_nhov  = none
+        self._tooltip    = none
         self._hover_x    = 0
         self._hover_y    = 0
         self._click_x    = 0
         self._click_y    = 0
-        self._clicked    = nil
-        self._hovering   = nil
-        self._focused    = nil
+        self._clicked    = none
+        self._hovering   = none
+        self._focused    = none
         self._rtxt_scale = 0
         self._ctxt_scale = 0
         return Widget.__ctor(self)
@@ -1864,7 +1864,7 @@ M.Root = register_type("Root", Widget, {
         loop_children(self, func(o)
             var proj = self:set_projection(o:get_projection())
             proj:adjust_layout()
-            self:set_projection(nil)
+            self:set_projection(none)
         end)
     end,
 
@@ -1886,7 +1886,7 @@ M.Root = register_type("Root", Widget, {
             if not o.floating do o.x, o.y = 0, 0 end
             self:set_projection(o:get_projection())
             o:layout()
-            self:set_projection(nil)
+            self:set_projection(none)
         end)
 
         self:adjust_children()
@@ -1952,7 +1952,7 @@ M.Root = register_type("Root", Widget, {
                 return visible
             elif vis == false do
                 visible = false
-                return nil
+                return none
             end
             self:build_window(name, win, fun)
             visible = true
@@ -1990,7 +1990,7 @@ M.Root = register_type("Root", Widget, {
             return false
         end
         win(false) // set visible to false
-        return old != nil
+        return old != none
     end,
 
     /**
@@ -2050,7 +2050,7 @@ M.Root = register_type("Root", Widget, {
         if not update do return cec end
         var bce = cec
         cec = self:grabs_input() or self:target(self.cursor_x * self.w,
-            self.cursor_y * self.h) != nil
+            self.cursor_y * self.h) != none
         if bce != cec do
             self.has_cursor = cec
             emit(self, "__has_cursor,changed", cec)
@@ -2125,7 +2125,7 @@ M.Root = register_type("Root", Widget, {
     _tooltip_init = func(self, o, op, clear_on_drop)
         op.managed_objects[o] = o
         var oldop = o.parent
-        if oldop do oldop.managed_objects[o] = nil end
+        if oldop do oldop.managed_objects[o] = none end
 
         self._tooltip  = o
         o.parent       = op
@@ -2133,7 +2133,7 @@ M.Root = register_type("Root", Widget, {
         op._root       = self
         self:set_projection(o:get_projection())
         o:layout()
-        self:set_projection(nil)
+        self:set_projection(none)
 
         o._clear_on_drop = clear_on_drop
 
@@ -2158,9 +2158,9 @@ M.Root = register_type("Root", Widget, {
             var op = o.parent
             if o._clear_on_drop do
                 o:clear()
-                op.managed_objects[o] = nil
+                op.managed_objects[o] = none
             end
-            op._menu = nil
+            op._menu = none
         end
     end,
 
@@ -2172,7 +2172,7 @@ M.Root = register_type("Root", Widget, {
 
         op.managed_objects[o] = o
         var oldop = o.parent
-        if oldop do oldop.managed_objects[o] = nil end
+        if oldop do oldop.managed_objects[o] = none end
 
         var ms = self._menu_stack
         ms[i]     = o
@@ -2184,14 +2184,14 @@ M.Root = register_type("Root", Widget, {
 
         o._clear_on_drop = clear_on_drop
 
-        var prevo = (i > 1) and ms[i - 1] or nil
+        var prevo = (i > 1) and ms[i - 1] or none
 
         // initial layout to guess the bounds
         var proj = self:set_projection(o:get_projection())
         o:layout()
         proj:calc()
         var pw, ph = proj.pw, proj.ph
-        self:set_projection(nil)
+        self:set_projection(none)
 
         // parent projection (for correct offsets)
         var fw, fh
@@ -2335,10 +2335,10 @@ M.Root = register_type("Root", Widget, {
     end,
 
     /**
-        If this returns nil, aspect ratio will be auto-computed. Otherwise
+        If this returns none, aspect ratio will be auto-computed. Otherwise
         you can return any aspect ratio as a floating point number which is
         a result of division of width by height. By default checks forced
-        aspect variable in the engine and returns nil if it's 0 or the
+        aspect variable in the engine and returns none if it's 0 or the
         value. Override as needed.
 
         Keep in mind that if the second provided paremter is true, this will
@@ -2386,9 +2386,9 @@ M.Root = register_type("Root", Widget, {
         var tooltip = self._tooltip
         if tooltip and tooltip._clear_on_drop do
             tooltip:clear()
-            tooltip.parent.managed_objects[tooltip] = nil
+            tooltip.parent.managed_objects[tooltip] = none
         end
-        tooltip, self._tooltip = nil, nil
+        tooltip, self._tooltip = none, none
 
         self:calc_text_scale()
 
@@ -2425,7 +2425,7 @@ M.Root = register_type("Root", Widget, {
                 end
                 self._menu_nhov = nhov
                 self._hovering:hovering(self._hover_x, self._hover_y)
-                self._menu_nhov = nil
+                self._menu_nhov = none
             end
 
             if self._clicked do
@@ -2442,7 +2442,7 @@ M.Root = register_type("Root", Widget, {
                 self._clicked:holding(hx, hy, clicked_code)
             end
         else
-            self._hovering, self._clicked = nil, nil
+            self._hovering, self._clicked = none, none
         end
 
         if self.visible do self:layout() end
@@ -2453,7 +2453,7 @@ M.Root = register_type("Root", Widget, {
             tooltip:layout()
             proj:calc()
             tooltip:adjust_children()
-            self:set_projection(nil)
+            self:set_projection(none)
         end
 
         var ms = self._menu_stack
@@ -2463,7 +2463,7 @@ M.Root = register_type("Root", Widget, {
             o:layout()
             proj:calc()
             o:adjust_children()
-            self:set_projection(nil)
+            self:set_projection(none)
         end
 
         self:cursor_exists(true)
@@ -2477,9 +2477,9 @@ M.Root = register_type("Root", Widget, {
         self:destroy_children()
         if self._tooltip and self._tooltip._clear_on_drop do
             self._tooltip:clear()
-            self._tooltip.parent.managed_objects[self._tooltip] = nil
+            self._tooltip.parent.managed_objects[self._tooltip] = none
         end
-        self._tooltip = nil
+        self._tooltip = none
         self:_menus_drop()
         emit(self, "reset")
     end
@@ -2540,7 +2540,7 @@ set_external("input_keypress", func(code, isdown)
             if root._clicked do
                 root._clicked:clicked(root._click_x, root._click_y, code)
             else
-                clicked_code = nil
+                clicked_code = none
             end
         else
             if root._clicked do
@@ -2557,7 +2557,7 @@ set_external("input_keypress", func(code, isdown)
                 end
                 root._clicked:released(hx, hy, code)
             end
-            clicked_code, root._clicked = nil, nil
+            clicked_code, root._clicked = none, none
         end
         return true
     end
@@ -2604,7 +2604,7 @@ set_external("gui_update", func()
         hud.x, hud.y, hud.w, hud.h = 0, 0, root.w, root.h
         proj:calc()
         hud:adjust_children()
-        root:set_projection(nil)
+        root:set_projection(none)
     end
 end)
 
@@ -2616,7 +2616,7 @@ M.__draw_window = func(win)
     win:layout()
     proj:adjust_layout()
     proj:draw()
-    root:set_projection(nil)
+    root:set_projection(none)
 end
 
 set_external("gui_render", func()

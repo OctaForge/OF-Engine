@@ -1,4 +1,4 @@
 import core.logger as log
 
 log.log(log.DEBUG, ":::: Messages.")
-import core.network.msg as nil
+import core.network.msg as none

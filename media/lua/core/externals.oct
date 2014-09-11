@@ -21,15 +21,15 @@ M.get = func(name)
     return externals[name]
 end
 
-/// Unsets the external of the given name, returns the previous value or nil.
+/// Unsets the external of the given name, returns the previous value or none.
 M.unset = func(name)
     var old = externals[name]
-    if old == nil do return nil end
-    externals[name] = nil
+    if old == none do return none end
+    externals[name] = none
     return old
 end
 
-/// Sets the external of the given name, returns the previous value or nil.
+/// Sets the external of the given name, returns the previous value or none.
 M.set = func(name, fun)
     var old = externals[name]
     externals[name] = fun

@@ -31,11 +31,11 @@ ffi.cdef r"""
 var particle = ffi.metatype("particle_t", {
     __index = {
         get_owner = func(self)
-            assert(self != nil)
+            assert(self != none)
             return capi.particle_get_owner(self)
         end,
         set_owner = func(self, ent)
-            assert(self != nil)
+            assert(self != none)
             capi.particle_set_owner(self, ent.uid)
         end
     }
