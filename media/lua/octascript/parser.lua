@@ -403,7 +403,29 @@ local sexps = {
         return ast.IfExpression(cond, texpr, test_next(ls, "else")
             and parse_expr(ls, ast) or ast.Literal(nil))
     end,
-    ["import"] = parse_import_expr
+    ["import"] = parse_import_expr,
+    ["@"] = function(ls, ast)
+        local line = ls.line_number
+        ls:get()
+        assert_tok(ls, "<name>")
+        local decn = ls.token.value
+        if not whitelist[decn] and not ast.current.vars[decn] then
+            syntax_error(ls, "attempt to use undeclared variable '"
+                .. decn .. "'")
+        end
+        ls:get()
+        local params
+        if ls.token.name == "(" then
+            local ln = ls.line_number
+            ls:get()
+            params = parse_expr_list(ls, ast)
+            check_match(ls, ")", "(", ln)
+        else
+            params = {}
+        end
+        table.insert(params, 1, parse_expr(ls, ast))
+        return ast.CallExpression(ast.Identifier(decn), params, line)
+    end
 }
 sexps["<string>"] = sexps["<number>"]
 
@@ -595,7 +617,7 @@ local parse_local = function(ls, ast, line)
         and parse_expr_list(ls, ast) or {}, line)
 end
 
-local parse_rec = function(ls, ast, line)
+local parse_rec = function(ls, ast, line, decn, params)
     ls:get()
     assert_next(ls, "func")
     assert_tok(ls, "<name>")
@@ -603,10 +625,11 @@ local parse_rec = function(ls, ast, line)
     ls:get()
     local args, body, proto = parse_body(ls, ast, line, false)
     return ast.FunctionDeclaration(ast:var_declare(name), body, args,
-        proto.varargs, true, proto.first_line, proto.last_line)
+        proto.varargs, true, decn, params, line, proto.first_line,
+        proto.last_line)
 end
 
-local parse_function_stat = function(ls, ast, line)
+local parse_function_stat = function(ls, ast, line, decn, params)
     local ns = false
     ls:get()
     assert_tok(ls, "<name>")
@@ -625,7 +648,7 @@ local parse_function_stat = function(ls, ast, line)
     end
     local args, body, proto = parse_body(ls, ast, line, ns)
     return ast.FunctionDeclaration(v, body, args, proto.varargs, false,
-        proto.first_line, proto.last_line)
+        decn, params, line, proto.first_line, proto.last_line)
 end
 
 local parse_while_stat = function(ls, ast, line)
@@ -812,6 +835,31 @@ local stat_opts = {
             return stat, last
         end
         return nil, false
+    end,
+    ["@"] = function(ls, ast, line)
+        ls:get()
+        assert_tok(ls, "<name>")
+        local decn = ls.token.value
+        if not whitelist[decn] and not ast.current.vars[decn] then
+            syntax_error(ls, "attempt to use undeclared variable '"
+                .. decn .. "'")
+        end
+        ls:get()
+        local params
+        if ls.token.name == "(" then
+            local ln = ls.line_number
+            ls:get()
+            params = parse_expr_list(ls, ast)
+            check_match(ls, ")", "(", ln)
+        else
+            params = {}
+        end
+        if ls.token.name == "rec" then
+            return parse_rec(ls, ast, line, decn, params)
+        else
+            assert_tok(ls, "func")
+            return parse_function_stat(ls, ast, line, decn, params)
+        end
     end
 }
 

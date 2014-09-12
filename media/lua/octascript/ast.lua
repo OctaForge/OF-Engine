@@ -243,10 +243,16 @@ M.FunctionDeclaration = Statement:clone {
             type = "literal",
             value = "boolean",
             default = false
+        },
+        decorator = {
+            type = "node",
+            kind = "CallExpression",
+            optional = true
         }
     },
 
-    __ctor = function(self, id, body, params, vararg, locald, firstline, lastline)
+    __ctor = function(self, id, body, params, vararg, locald, decname,
+    decparams, decline, firstline, lastline)
         self.id = id
         self.body = body
         self.params = params
@@ -254,6 +260,12 @@ M.FunctionDeclaration = Statement:clone {
         self.locald = locald
         self.firstline = firstline
         self.lastline = lastline
+        if decname then
+            table.insert(decparams, 1, M.FunctionExpression(body, params,
+                vararg, firstline, lastline))
+            self.decorator = M.CallExpression(M.Identifier(decname), decparams,
+                decline)
+        end
         Node.__ctor(self)
     end
 }
