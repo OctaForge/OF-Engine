@@ -359,7 +359,10 @@ local function hsize2hbits(s)
     end
     return c
 end
-local function tnewsize(narry, nhash)
+local function tabsize(narr, nrec)
+    return bit.bor(narr, bit.lshift(hsize2hbits(nrec), 11))
+end
+function Ins.__index.tnewsize(narry, nhash)
     if narry then
         if narry < 3 then
             narry = 3
@@ -369,10 +372,8 @@ local function tnewsize(narry, nhash)
     else
         narry = 0
     end
-    nhash = nhash or 0
-    return bit.bor(narry, bit.lshift(hsize2hbits(nhash), 11))
+    return tabsize(narry, nhash or 0)
 end
-Ins.__index.tnewsize = tnewsize
 
 KObj = {}
 KObj.__index = {}
@@ -1106,7 +1107,7 @@ function Proto.__index:op_tdup(dest, index)
     return self:emit(BC.TDUP, dest, index)
 end
 function Proto.__index:op_tnew(dest, narr, nrec)
-    return self:emit(BC.TNEW, dest, tnewsize(narr, nrec))
+    return self:emit(BC.TNEW, dest, tabsize(narr or 0, nrec or 0))
 end
 function Proto.__index:op_tget(dest, tab, ktag, key)
     local ins_name = 'TGET' .. ktag
