@@ -657,6 +657,7 @@ M.ImportExpression = Expression:clone {
 
     __ctor = function(self, modname, line)
         self.modname = Literal(modname)
+        self.line = line
         Node.__ctor(self)
     end
 }
@@ -670,6 +671,23 @@ M.TypeofExpression = Expression:clone {
 
     __ctor = function(self, expression, line)
         self.expression = expression
+        self.line = line
+        Node.__ctor(self)
+    end
+}
+
+M.TryExpression = Expression:clone {
+    kind = "TryExpression",
+
+    properties = {
+        expression = "Expression",
+        handler = { type = "node", kind = "Expression", optional = true }
+    },
+
+    __ctor = function(self, expression, handler, line)
+        self.expression = expression
+        self.handler = handler
+        self.line = line
         Node.__ctor(self)
     end
 }

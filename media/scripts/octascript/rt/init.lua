@@ -21,4 +21,7 @@ M.bit_arshift = bit.arshift
 M.type = type
 M.import = require
 
+M.pcall = pcall
+M.xpcall = xpcall
+
 return M

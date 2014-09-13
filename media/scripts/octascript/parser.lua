@@ -178,13 +178,13 @@ local parse_enum = function(ls, ast)
     return ast.Enum(hkeys, hvals, line)
 end
 
-local parse_args = function(ls, ast)
+local parse_args = function(ls, ast, nocheck)
     local tok = ls.token
     local tn = tok.name
     local args
     if tn == "(" then
         local line = ls.line_number
-        if line ~= ls.last_line then syntax_error(ls,
+        if not nocheck and line ~= ls.last_line then syntax_error(ls,
             "ambiguous syntax (function call x new statement)")
         end
         ls:get()
@@ -255,6 +255,7 @@ end
 local whitelist = {}
 for k, v in pairs(_G) do whitelist[k] = true end
 
+local parse_primary_expr
 local parse_prefix_expr = function(ls, ast)
     local tok = ls.token
     local tn = tok.name
@@ -279,23 +280,42 @@ local parse_prefix_expr = function(ls, ast)
             exp2 = ast.Literal(nil, ls.line_number)
         end
         check_match(ls, "]", "@[", line)
-        return cond and exp1 or exp2
+        return cond and exp1 or exp2, "expr"
     elseif tn == "<name>" then
+        local line = ls.line_number
         local val = tok.value
         if not whitelist[val] and not ast.current.vars[val] then
             syntax_error(ls, "attempt to use undeclared variable '"
                 .. val .. "'")
         end
         ls:get()
-        return ast.Identifier(val), "var"
+        return ast.Identifier(val, line), "var"
+    elseif tn == "try" then
+        local line = ls.line_number
+        ls:get()
+        local handler
+        if tok.name == "[" then
+            local bline = ls.line_number
+            ls:get()
+            handler = parse_expr(ls, ast)
+            check_match(ls, "]", "[", bline)
+        end
+        local exp, tp = parse_primary_expr(ls, ast)
+        if tp ~= "call" then
+            syntax_error(ls, "function call expected")
+        end
+        return ast.TryExpression(exp, handler, line), "try"
     else
         syntax_error(ls, "unexpected symbol")
     end
 end
 
-local parse_primary_expr = function(ls, ast)
+parse_primary_expr = function(ls, ast)
     local line = ls.line_number
     local exp, tp = parse_prefix_expr(ls, ast)
+    if tp == "try" then
+        return exp, tp
+    end
     local tok = ls.token
     while true do
         local nm = tok.name
@@ -554,7 +574,7 @@ end
 local parse_expr_stat = function(ls, ast)
     local line = ls.line_number
     local var, vk = parse_primary_expr(ls, ast)
-    if vk == "call" then
+    if vk == "call" or vk == "try" then
         return ast.ExpressionStatement(var, line)
     end
     local vlist = {}
@@ -856,13 +876,15 @@ local gen_rt = function(ls, ast)
         ast.Identifier("__rt_core") })
     ret[#ret + 1] = ast.LocalDeclaration(ast, {
         "__rt_bnot", "__rt_bor", "__rt_band", "__rt_bxor", "__rt_lshift",
-        "__rt_rshift", "__rt_arshift", "__rt_type", "__rt_import"
+        "__rt_rshift", "__rt_arshift", "__rt_type", "__rt_import",
+        "__rt_pcall", "__rt_xpcall"
     }, {
         gen_memb(ast, "bit_bnot"), gen_memb(ast, "bit_bor"),
         gen_memb(ast, "bit_band"), gen_memb(ast, "bit_bxor"),
         gen_memb(ast, "bit_lshift"), gen_memb(ast, "bit_rshift"),
         gen_memb(ast, "bit_arshift"), gen_memb(ast, "type"),
-        gen_memb(ast, "import")
+        gen_memb(ast, "import"), gen_memb(ast, "pcall"),
+        gen_memb(ast, "xpcall")
     })
     return ret
 end

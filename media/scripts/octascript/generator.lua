@@ -532,6 +532,24 @@ local LHSExpressionRule = {
     end
 }
 
+local emit_call_ins = function(self, free, narg, want, mres, use_tail)
+    if mres then
+        if use_tail then
+            self.ctx:close_uvals()
+            self.ctx:op_callmt(free, narg - 1)
+        else
+            self.ctx:op_callm(free, want, narg - 1)
+        end
+    else
+        if use_tail then
+            self.ctx:close_uvals()
+            self.ctx:op_callt(free, narg)
+        else
+            self.ctx:op_call(free, want, narg)
+        end
+    end
+end
+
 local emit_call_expression = function(self, node, want, use_tail, use_self)
     local free = self.ctx.freereg
 
@@ -559,21 +577,8 @@ local emit_call_expression = function(self, node, want, use_tail, use_self)
 
     if use_self then narg = narg + 1 end
     self.ctx.freereg = free
-    if mres then
-        if use_tail then
-            self.ctx:close_uvals()
-            self.ctx:op_callmt(free, narg - 1)
-        else
-            self.ctx:op_callm(free, want, narg - 1)
-        end
-    else
-        if use_tail then
-            self.ctx:close_uvals()
-            self.ctx:op_callt(free, narg)
-        else
-            self.ctx:op_call(free, want, narg)
-        end
-    end
+
+    emit_call_ins(self, free, narg, want, mres, use_tail)
 
     return want == MULTIRES, use_tail
 end
@@ -599,6 +604,59 @@ local MultiExprRule = {
 
     SendExpression = function(self, node, want, tail)
         return emit_call_expression(self, node, want, tail, true)
+    end,
+
+    TryExpression = function(self, node, want, tail)
+        local free = self.ctx.freereg
+
+        local call = node.expression
+        local handler = node.handler
+
+        gen_ident(self, handler and "__rt_xpcall" or "__rt_pcall", free)
+        self.ctx:nextreg()
+
+        local base = self.ctx.freereg
+        local use_self = call.kind == "SendExpression"
+
+        if use_self then
+            local obj = self:expr_toanyreg(call.receiver)
+            if handler then
+                self:expr_toreg(handler, base + 1)
+                self.ctx:op_move(base + 2, obj)
+                self.ctx:setreg(base + 2)
+            else
+                self.ctx:op_move(base + 1, obj)
+                self.ctx:setreg(base + 1)
+            end
+            local method_type, method = self:property_tagged(call.method.name)
+            self.ctx:op_tget(base, obj, method_type, method)
+            self.ctx:nextreg()
+        else
+            self:expr_tonextreg(call.callee)
+            if handler then
+                self:expr_tonextreg(handler)
+            end
+        end
+
+        local narg = #call.arguments
+        for i=1, narg - 1 do
+            self:expr_tonextreg(call.arguments[i])
+        end
+        local mres = false
+        if narg > 0 then
+            local lastarg = call.arguments[narg]
+            mres = self:expr_tomultireg(lastarg, MULTIRES)
+            self.ctx:nextreg()
+        end
+
+        narg = narg + 1
+        if use_self then narg = narg + 1 end
+        if handler  then narg = narg + 1 end
+        self.ctx.freereg = free
+
+        emit_call_ins(self, free, narg, want, mres, use_tail)
+
+        return want == MULTIRES, use_tail
     end
 }
 
@@ -726,6 +784,10 @@ local StatementRule = {
     end,
 
     SendExpression = function(self, node)
+        self:expr_tomultireg(node, 0, false)
+    end,
+
+    TryExpression = function(self, node)
         self:expr_tomultireg(node, 0, false)
     end,
 
