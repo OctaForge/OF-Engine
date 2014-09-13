@@ -429,46 +429,15 @@ local sexps = {
 }
 sexps["<string>"] = sexps["<number>"]
 
-local unop_func = {
-    ["~"] = "__rt_bnot"
-}
-
-local gen_unexp = function(ast, op, exp, line)
-    local func = unop_func[op]
-    if func then
-        return ast.CallExpression(ast.Identifier(func, line), { exp }, line)
-    else
-        return ast.UnaryExpression(op, exp, line)
-    end
-end
-
 local parse_simple_expr = function(ls, ast)
     local line = ls.line_number
     local tn = ls.token.name
     local unp = UnaryOps[tn]
     if unp then
         ls:get()
-        return gen_unexp(ast, tn, parse_subexpr(ls, ast, unp), line)
+        return ast.UnaryExpression(tn, parse_subexpr(ls, ast, unp), line)
     else
         return (sexps[tn] or parse_primary_expr)(ls, ast)
-    end
-end
-
-local bitop_func = {
-    ["|"  ] = "__rt_bor",
-    ["&"  ] = "__rt_band",
-    ["^"  ] = "__rt_bxor",
-    ["<<" ] = "__rt_lshift",
-    [">>>"] = "__rt_rshift",
-    [">>" ] = "__rt_arshift"
-}
-
-local gen_binexp = function(ast, op, lhs, rhs, line)
-    local func = bitop_func[op]
-    if func then
-        return ast.CallExpression(ast.Identifier(func, line), { lhs, rhs }, line)
-    else
-        return ast.BinaryExpression(op, lhs, rhs, line)
     end
 end
 
@@ -481,7 +450,7 @@ parse_subexpr = function(ls, ast, mp)
         local p = BinaryOps[op]
         if not op or not p or p < mp then break end
         ls:get()
-        lhs = gen_binexp(ast, op, lhs, parse_subexpr(ls, ast, RightAss[op]
+        lhs = ast.BinaryExpression(op, lhs, parse_subexpr(ls, ast, RightAss[op]
             and p or p + 1), line)
     end
     return lhs
@@ -567,7 +536,8 @@ parse_assignment = function(ls, ast, vlist, var, vk)
         ls:get()
         local line2 = ls.line_number
         return ast.AssignmentExpression(vlist, {
-            gen_binexp(ast, assops[op], vlist[1], parse_expr(ls, ast), line2)
+            ast.BinaryExpression(assops[op], vlist[1], parse_expr(ls, ast),
+                line2)
         }, line)
     end
     assert_next(ls, "=")

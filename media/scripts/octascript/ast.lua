@@ -511,7 +511,7 @@ M.UnaryExpression = Expression:clone {
     properties = {
         operator = {
             type = "enum",
-            values = { "not", "-", "#" },
+            values = { "not", "-", "#", "~" },
         },
         argument = "Expression"
     },
@@ -534,18 +534,13 @@ local concat_append = function(ts, node)
     end
 end
 
-local bitops = {
-    ["&" ] = "band",   ["|" ] = "bor",     ["^^" ] = "bxor",
-    ["<<"] = "lshift", [">>"] = "arshift", [">>>"] = "rshift",
-    ["~" ] = "bnot"
-}
-
 M.BinaryExpression = Expression:clone {
     binary_properties = {
         operator = {
             type = "enum",
             values = {
-                "+", "-", "*", "/", "**", "%", "==", "!=", ">=", ">", "<=", "<"
+                "+", "-", "*", "/", "**", "%", "==", "!=", ">=", ">", "<=",
+                "<", "|", "&", "^", "<<", ">>", ">>>"
             }
         },
         left = "Expression",

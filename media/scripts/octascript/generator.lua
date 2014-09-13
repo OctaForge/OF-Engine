@@ -11,18 +11,25 @@
 
 local bc   = require("octascript.bytecode")
 local util = require("octascript.util")
+local bit  = require("bit")
 
 -- constant folding for numbers
 
 local const_eval
 
 local binop_apply = function(op, lhs, rhs)
-    if     op == "+"  then return lhs + rhs
-    elseif op == "-"  then return lhs - rhs
-    elseif op == "*"  then return lhs * rhs
-    elseif op == "/"  then return lhs / rhs
-    elseif op == "%"  then return lhs % rhs
-    elseif op == "**" then return lhs ^ rhs
+    if     op == "+"   then return lhs + rhs
+    elseif op == "-"   then return lhs - rhs
+    elseif op == "*"   then return lhs * rhs
+    elseif op == "/"   then return lhs / rhs
+    elseif op == "%"   then return lhs % rhs
+    elseif op == "**"  then return lhs ^ rhs
+    elseif op == "|"   then return bit.bor(lhs, rhs)
+    elseif op == "&"   then return bit.band(lhs, rhs)
+    elseif op == "^"   then return bit.bxor(lhs, rhs)
+    elseif op == "<<"  then return bit.lshift(lhs, rhs)
+    elseif op == ">>"  then return bit.rshift(lhs, rhs)
+    elseif op == ">>>" then return bit.arshift(lhs, rhs)
     end
 end
 
@@ -46,6 +53,9 @@ local Rules = {
         if node.operator == "-" then
             local v = const_eval(node.argument)
             if v then return -v end
+        elseif node.operator == "~" then
+            local v = const_eval(node.argument)
+            if v then return bit.bnot(v) end
         end
     end
 }
@@ -206,6 +216,32 @@ local dirop = {
     ["%"] = "MOD",
 }
 
+-- Bit operations
+local bitop = {
+    ["|"  ] = "__rt_bor",
+    ["&"  ] = "__rt_band",
+    ["^"  ] = "__rt_bxor",
+    ["<<" ] = "__rt_lshift",
+    [">>>"] = "__rt_rshift",
+    [">>" ] = "__rt_arshift"
+}
+
+local gen_ident = function(self, name, dest)
+    local var, uval = self.ctx:lookup(name)
+    if var then
+        if uval then
+            -- Ensure variable is marked as upvalue in proto in take
+            -- the upvalue index.
+            local uv = self.ctx:upval(name)
+            self.ctx:op_uget(dest, uv)
+        else
+            mov_toreg(self.ctx, dest, var.idx)
+        end
+    else
+        self.ctx:op_gget(dest, name)
+    end
+end
+
 -- ExpressionRule's entries take a node and a destination register (dest)
 -- used to store the result. At the end of the call no new registers are
 -- marked as used.
@@ -218,19 +254,7 @@ local ExpressionRule = {
 
     Identifier = function(self, node, dest)
         local name = node.name
-        local var, uval = self.ctx:lookup(name)
-        if var then
-            if uval then
-                -- Ensure variable is marked as upvalue in proto in take
-                -- the upvalue index.
-                local uv = self.ctx:upval(name)
-                self.ctx:op_uget(dest, uv)
-            else
-                mov_toreg(self.ctx, dest, var.idx)
-            end
-        else
-            self.ctx:op_gget(dest, name)
-        end
+        gen_ident(self, node.name, dest)
     end,
 
     Vararg = function(self, node, dest)
@@ -359,6 +383,14 @@ local ExpressionRule = {
             assert(not (atag == "N" and btag == "N"),
                 "operands are both constants")
             self.ctx:op_infix(dirop[o], dest, atag, a, btag, b)
+        elseif bitop[o] then
+            gen_ident(self, bitop[o], free)
+            self.ctx:nextreg()
+            self:expr_tonextreg(node.left)
+            self:expr_tonextreg(node.right)
+            self.ctx.freereg = free
+            self.ctx:op_call(free, 1, 2)
+            mov_toreg(self.ctx, dest, free)
         else
             local a = self:expr_toanyreg(node.left)
             local b = self:expr_toanyreg(node.right)
@@ -373,9 +405,18 @@ local ExpressionRule = {
 
     UnaryExpression = function(self, node, dest)
         local free = self.ctx.freereg
+        local o = node.operator
+        if o == "~" then
+            gen_ident(self, "__rt_bnot", free)
+            self.ctx:nextreg()
+            self:expr_tonextreg(node.argument)
+            self.ctx.freereg = free
+            self.ctx:op_call(free, 1, 1)
+            mov_toreg(self.ctx, dest, free)
+            return
+        end
         local a = self:expr_toanyreg(node.argument)
         self.ctx.freereg = free
-        local o = node.operator
         if o == "-" then
             self.ctx:op_unm(dest, a)
         elseif o == "#" then
@@ -444,7 +485,7 @@ local ExpressionRule = {
         self:expr_tonextreg(node.modname)
         self.ctx.freereg = free
         self.ctx:op_call(free, 0, 1)
-        mov_toreg(self, dest, free)
+        mov_toreg(self.ctx, dest, free)
     end
 }
 
