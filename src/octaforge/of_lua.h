@@ -6,7 +6,7 @@ namespace lua
     extern lua_State *L;
     bool reg_fun   (const char *name, lua_CFunction fun);
     bool reg_cfun  (const char *name, const char *sig, void *fun);
-    void init      (const char *dir = "media/lua/core");
+    void init      (const char *dir = "media/scripts/core");
     void reset     ();
     void close     ();
     int load_string(const char *str, const char *ch = NULL);
