@@ -16,7 +16,6 @@ var setmetatable = setmetatable
 var rawget, rawset = rawget, rawset
 var tostring = tostring
 var tconc = table.concat
-var pcall = pcall
 var floor, log = math.floor, math.log
 
 from core.externals import set as ext_set
@@ -424,8 +423,8 @@ var lex_get = func(ls)
             end
             var str = tconc(buf)
             var num = tonumber(str)
-            if not num do error(("%d: malformed number near '%s'")
-                :format(ls.linenum, str), 0) end
+            if not num do raise[0] ("%d: malformed number near '%s'")
+                :format(ls.linenum, str) end
             ls.tname, ls.tval = "<number>", num
             return "<number>"
         elif c == '"' or c == "'" do
@@ -435,11 +434,11 @@ var lex_get = func(ls)
             while ls.curr != d do
                 var c = ls.curr
                 if c == none do
-                    error(("%d: unfinished string near '<eos>'")
-                        :format(ls.linenum), 0)
+                    raise[0] ("%d: unfinished string near '<eos>'")
+                        :format(ls.linenum)
                 elif c == "\n" or c == "\r" do
-                    error(("%d: unfinished string near '<string>'")
-                        :format(ls.linenum), 0)
+                    raise[0] ("%d: unfinished string near '<string>'")
+                        :format(ls.linenum)
                 // not complete escape sequence handling: handles only these
                 // that are or can be in the serialized output
                 elif c == "\\" do
@@ -462,12 +461,12 @@ var lex_get = func(ls)
                         buf[#buf + 1] = c
                         ls.curr = ls.rdr()
                     elif not c do
-                        error(("%d: unfinished string near '<eos>'")
-                            :format(ls.linenum), 0)
+                        raise[0] ("%d: unfinished string near '<eos>'")
+                            :format(ls.linenum)
                     else
                         if not c:match("%d") do
-                            error(("%d: invalid escape sequence")
-                                :format(ls.linenum), 0)
+                            raise[0] ("%d: invalid escape sequence")
+                                :format(ls.linenum)
                         end
                         var dbuf = { c }
                         c = ls.rdr()
@@ -517,8 +516,7 @@ var assert_tok
 assert_tok = func(ls, tok, ...)
     if not tok do return end
     if ls.tname != tok do
-        error(("%d: unexpected symbol near '%s'"):format(ls.linenum,
-            ls.tname), 0)
+        raise[0] ("%d: unexpected symbol near '%s'"):format(ls.linenum, ls.tname)
     end
     lex_get(ls)
     assert_tok(ls, ...)
@@ -572,9 +570,9 @@ end
 table.deserialize = func(s)
     var stream = (typeof s == "string") and s:gmatch(".") or s
     var ls = { curr = stream(), rdr = stream, linenum = 1 }
-    var r, v = pcall(lex_get, ls)
+    var r, v = try lex_get(ls)
     if not r do return none, v end
-    r, v = pcall(parse, ls)
+    r, v = try parse(ls)
     if not r do return none, v end
     return v
 end

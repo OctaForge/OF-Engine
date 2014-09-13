@@ -654,9 +654,9 @@ local MultiExprRule = {
         if handler  then narg = narg + 1 end
         self.ctx.freereg = free
 
-        emit_call_ins(self, free, narg, want, mres, use_tail)
+        emit_call_ins(self, free, narg, want, mres, tail)
 
-        return want == MULTIRES, use_tail
+        return want == MULTIRES, tail
     end
 }
 

@@ -15,10 +15,10 @@
 */
 setmetatable(_G, {
     __newindex = func(self, n)
-        error("attempt to create a global variable '" ~ n ~ "'", 2)
+        raise[2] "attempt to create a global variable '" ~ n ~ "'"
     end,
     __index = func(self, n)
-        error("attempt to use a global variable '" ~ n ~ "'", 2)
+        raise[2] "attempt to use a global variable '" ~ n ~ "'"
     end
 })
 
