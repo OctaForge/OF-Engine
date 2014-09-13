@@ -23,5 +23,6 @@ M.import = require
 
 M.pcall = pcall
 M.xpcall = xpcall
+M.error = error
 
 return M

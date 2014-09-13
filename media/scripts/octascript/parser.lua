@@ -853,6 +853,17 @@ local stat_opts = {
             assert_tok(ls, "func")
             return parse_function_stat(ls, ast, line, decn, params)
         end
+    end,
+    ["raise"] = function(ls, ast, line)
+        ls:get()
+        local level
+        if ls.token.name == "[" then
+            local bline = ls.line_number
+            ls:get()
+            level = parse_expr(ls, ast)
+            check_match(ls, "]", "[", bline)
+        end
+        return ast.RaiseStatement(parse_expr(ls, ast), level, line)
     end
 }
 
@@ -877,14 +888,14 @@ local gen_rt = function(ls, ast)
     ret[#ret + 1] = ast.LocalDeclaration(ast, {
         "__rt_bnot", "__rt_bor", "__rt_band", "__rt_bxor", "__rt_lshift",
         "__rt_rshift", "__rt_arshift", "__rt_type", "__rt_import",
-        "__rt_pcall", "__rt_xpcall"
+        "__rt_pcall", "__rt_xpcall", "__rt_error"
     }, {
         gen_memb(ast, "bit_bnot"), gen_memb(ast, "bit_bor"),
         gen_memb(ast, "bit_band"), gen_memb(ast, "bit_bxor"),
         gen_memb(ast, "bit_lshift"), gen_memb(ast, "bit_rshift"),
         gen_memb(ast, "bit_arshift"), gen_memb(ast, "type"),
         gen_memb(ast, "import"), gen_memb(ast, "pcall"),
-        gen_memb(ast, "xpcall")
+        gen_memb(ast, "xpcall"), gen_memb(ast, "error")
     })
     return ret
 end

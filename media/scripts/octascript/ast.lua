@@ -727,6 +727,26 @@ M.ContinueStatement = Statement:clone {
     end
 }
 
+M.RaiseStatement = Statement:clone {
+    kind = "RaiseStatement",
+
+    properties = {
+        expression = "Expression",
+        level = {
+            type = "node",
+            kind = "Expression",
+            optional = true
+        },
+    },
+
+    __ctor = function(self, expression, level, line)
+        self.expression = expression
+        self.level = level
+        self.line = line
+        Node.__ctor(self)
+    end
+}
+
 M.LabelStatement = Statement:clone {
     kind = "LabelStatement",
 
