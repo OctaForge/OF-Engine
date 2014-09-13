@@ -661,6 +661,19 @@ M.ImportExpression = Expression:clone {
     end
 }
 
+M.TypeofExpression = Expression:clone {
+    kind = "TypeofExpression",
+
+    properties = {
+        expression = "Expression"
+    },
+
+    __ctor = function(self, expression, line)
+        self.expression = expression
+        Node.__ctor(self)
+    end
+}
+
 M.ReturnStatement = Statement:clone {
     kind = "ReturnStatement",
 

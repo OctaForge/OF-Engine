@@ -480,11 +480,21 @@ local ExpressionRule = {
 
     ImportExpression = function(self, node, dest)
         local free = self.ctx.freereg
-        self.ctx:op_gget(free, "require")
+        gen_ident(self, "require", free)
         self.ctx:nextreg()
         self:expr_tonextreg(node.modname)
         self.ctx.freereg = free
-        self.ctx:op_call(free, 0, 1)
+        self.ctx:op_call(free, 1, 1)
+        mov_toreg(self.ctx, dest, free)
+    end,
+
+    TypeofExpression = function(self, node, dest)
+        local free = self.ctx.freereg
+        gen_ident(self, "type", free)
+        self.ctx:nextreg()
+        self:expr_tonextreg(node.expression)
+        self.ctx.freereg = free
+        self.ctx:op_call(free, 1, 1)
         mov_toreg(self.ctx, dest, free)
     end
 }
@@ -1015,7 +1025,7 @@ local StatementRule = {
         if fields then
             local base = free + #fields
             self.ctx:setreg(base)
-            self.ctx:op_gget(base, "require")
+            gen_ident(self, "require", base)
             self.ctx:nextreg()
             self:expr_tonextreg(node.modname)
             self.ctx.freereg = base
@@ -1026,7 +1036,7 @@ local StatementRule = {
                 self.ctx:newvar(fields[i][2].name, free + (i - 1))
             end
         else
-            self.ctx:op_gget(free, "require")
+            gen_ident(self, "require", free)
             self.ctx:nextreg()
             self:expr_tonextreg(node.modname)
             self.ctx.freereg = free

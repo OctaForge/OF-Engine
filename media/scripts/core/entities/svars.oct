@@ -34,12 +34,12 @@ var StateVariable, StateVariableAlias, StateInteger, StateFloat,
 
 /// Checks whether the given value is a state variable.
 M.is_svar = func(v)
-    return (type(v) == "table" and v.is_a) and v:is_a(StateVariable)
+    return (typeof v == "table" and v.is_a) and v:is_a(StateVariable)
 end
 
 /// Checks whether the given value is a state variable alias.
 M.is_svar_alias = func(v)
-    return (type(v) == "table" and v.is_a) and v:is_a(StateVariableAlias)
+    return (typeof v == "table" and v.is_a) and v:is_a(StateVariableAlias)
 end
 
 var define_accessors = func(cl, n, gf, sf, d)
@@ -585,7 +585,7 @@ M.StateArray = StateVariable:clone {
             ~ tostring(val))
 
         var a = self:get_raw(ent)
-        if type(val) == "string" do
+        if typeof val == "string" do
             assert(not val:find("%" ~ self.separator))
         end
 

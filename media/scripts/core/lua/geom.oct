@@ -73,7 +73,7 @@ M.normalize_angle = normalize_angle
 
 var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
     __new = func(self, x, y)
-        if type(x) == "number" do
+        if typeof x == "number" do
             if not y do
                 return ffi_new(self, x, x)
             else
@@ -124,7 +124,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
         end,
         cross = func(self, o) return self.x * o.y + self.y * o.x end,
         mul = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y = self.x * o, self.y * o
             else
                 self.x, self.y = self.x * o.x, self.y * o.y
@@ -132,7 +132,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
             return self
         end,
         div = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y = self.x / o, self.y / o
             else
                 self.x, self.y = self.x / o.x, self.y / o.y
@@ -140,7 +140,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
             return self
         end,
         add = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y = self.x + o, self.y + o
             else
                 self.x, self.y = self.x + o.x, self.y + o.y
@@ -148,7 +148,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
             return self
         end,
         sub = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y = self.x - o, self.y - o
             else
                 self.x, self.y = self.x - o.x, self.y - o.y
@@ -156,28 +156,28 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
             return self
         end,
         mul_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec2(self.x * o, self.y * o)
             else
                 return Vec2(self.x * o.x, self.y * o.y)
             end
         end,
         div_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec2(self.x / o, self.y / o)
             else
                 return Vec2(self.x / o.x, self.y / o.y)
             end
         end,
         add_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec2(self.x + o, self.y + o)
             else
                 return Vec2(self.x + o.x, self.y + o.y)
             end
         end,
         sub_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec2(self.x - o, self.y - o)
             else
                 return Vec2(self.x - o.x, self.y - o.y)
@@ -188,7 +188,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
             return self
         end,
         min = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y = min(self.x, o), min(self.y, o)
             else
                 self.x, self.y = min(self.x, o.x), min(self.y, o.y)
@@ -196,7 +196,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
             return self
         end,
         max = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y = max(self.x, o), max(self.y, o)
             else
                 self.x, self.y = max(self.x, o.x), max(self.y, o.y)
@@ -223,7 +223,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
         end,
         avg = func(self, b) return self:add(b):mul(0.5) end,
         rotate_around_z = func(self, c, s)
-            if type(c) == "number" do
+            if typeof c == "number" do
                 if not s do
                     var angle = c
                     return self:rotate_around_z(cos(angle), sin(angle))
@@ -242,7 +242,7 @@ M.Vec2 = Vec2
 
 var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
     __new = func(self, x, y, z)
-        if type(x) == "number" do
+        if typeof x == "number" do
             if not y and not z do
                 return ffi_new(self, x, x, x)
             else
@@ -321,7 +321,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return m > 0.99 and m < 1.01
         end,
         mul = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = self.x * o, self.y * o, self.z * o
             else
                 self.x, self.y, self.z = self.x * o.x, self.y * o.y,
@@ -330,7 +330,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         div = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = self.x / o, self.y / o, self.z / o
             else
                 self.x, self.y, self.z = self.x / o.x, self.y / o.y,
@@ -339,7 +339,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         add = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = self.x + o, self.y + o, self.z + o
             else
                 self.x, self.y, self.z = self.x + o.x, self.y + o.y,
@@ -352,7 +352,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         sub = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = self.x - o, self.y - o, self.z - o
             else
                 self.x, self.y, self.z = self.x - o.x, self.y - o.y,
@@ -365,28 +365,28 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         mul_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec3(self.x * o, self.y * o, self.z * o)
             else
                 return Vec3(self.x * o.x, self.y * o.y, self.z * o.z)
             end
         end,
         div_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec3(self.x / o, self.y / o, self.z / o)
             else
                 return Vec3(self.x / o.x, self.y / o.y, self.z / o.z)
             end
         end,
         add_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec3(self.x + o, self.y + o, self.z + o)
             else
                 return Vec3(self.x + o.x, self.y + o.y, self.z + o.z)
             end
         end,
         sub_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec3(self.x - o, self.y - o, self.z - o)
             else
                 return Vec3(self.x - o.x, self.y - o.y, self.z - o.z)
@@ -401,7 +401,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         min = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = min(self.x, o), min(self.y, o),
                     min(self.z, o)
             else
@@ -411,7 +411,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         max = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = max(self.x, o), max(self.y, o),
                     max(self.z, o)
             else
@@ -505,7 +505,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         rotate_around_z = func(self, c, s)
-            if type(c) == "number" do
+            if typeof c == "number" do
                 if not s do
                     var angle = c
                     return self:rotate_around_z(cos(angle), sin(angle))
@@ -519,7 +519,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             end
         end,
         rotate_around_x = func(self, c, s)
-            if type(c) == "number" do
+            if typeof c == "number" do
                 if not s do
                     var angle = c
                     return self:rotate_around_x(cos(angle), sin(angle))
@@ -533,7 +533,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             end
         end,
         rotate_around_y = func(self, c, s)
-            if type(c) == "number" do
+            if typeof c == "number" do
                 if not s do
                     var angle = c
                     return self:rotate_around_y(cos(angle), sin(angle))
@@ -548,7 +548,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
         end,
         rotate = func(self, c, s, d)
             if not d do
-                if type(c) == "number" do
+                if typeof c == "number" do
                     var angle, d = c, s
                     return self:rotate(cos(angle), sin(angle), d)
                 else
@@ -580,7 +580,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             t:project(self):project(s)
         end,
         inside_bb = func(self, bbmin, bbmax)
-            if type(bbmax) == "number" do
+            if typeof bbmax == "number" do
                 var o, size = bbmin, bbmax
                 return self.x >= o.x and self.x <= (o.x + size)
                    and self.y >= o.y and self.y <= (o.y + size)
@@ -591,7 +591,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
                and self.z >= bbmin.z and self.z <= bbmax.z
         end,
         dist_to_bb = func(self, min, max)
-            if type(max) == "number" do
+            if typeof max == "number" do
                 var o, size = min, max
                 return self:dist_to_bb(o, o:add_new(size))
             end
@@ -703,7 +703,7 @@ M.Vec3 = Vec3
 
 var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
     __new = func(self, x, y, z, w)
-        if type(x) == "number" do
+        if typeof x == "number" do
             if not y and not z and not w do
                 return ffi_new(self, x, x, x, x)
             else
@@ -773,7 +773,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
         end,
         avg = func(self, b) return self:add(b):mul(0.5) end,
         mul3 = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = self.x * o, self.y * o, self.z * o
             else
                 self.x, self.y, self.z = self.x * o.x, self.y * o.y,
@@ -782,7 +782,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         div3 = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = self.x / o, self.y / o, self.z / o
             else
                 self.x, self.y, self.z = self.x / o.x, self.y / o.y,
@@ -791,7 +791,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         add3 = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = self.x + o, self.y + o, self.z + o
             else
                 self.x, self.y, self.z = self.x + o.x, self.y + o.y,
@@ -800,7 +800,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         sub3 = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z = self.x - o, self.y - o, self.z - o
             else
                 self.x, self.y, self.z = self.x - o.x, self.y - o.y,
@@ -809,7 +809,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         mul = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z, self.w = self.x * o, self.y * o,
                     self.z * o, self.w * o
             else
@@ -819,7 +819,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         div = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z, self.w = self.x / o, self.y / o,
                     self.z / o, self.w / o
             else
@@ -829,7 +829,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         add = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z, self.w = self.x + o, self.y + o,
                     self.z + o, self.w + o
             else
@@ -843,7 +843,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         sub = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z, self.w = self.x - o, self.y - o,
                     self.z - o, self.w - o
             else
@@ -857,7 +857,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         mul_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec4(self.x * o, self.y * o, self.z * o, self.w * o)
             else
                 return Vec4(self.x * o.x, self.y * o.y, self.z * o.z,
@@ -865,7 +865,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             end
         end,
         div_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec4(self.x / o, self.y / o, self.z / o, self.w / o)
             else
                 return Vec4(self.x / o.x, self.y / o.y, self.z / o.z,
@@ -873,7 +873,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             end
         end,
         add_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec4(self.x + o, self.y + o, self.z + o, self.w + o)
             else
                 return Vec4(self.x + o.x, self.y + o.y, self.z + o.z,
@@ -881,7 +881,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             end
         end,
         sub_new = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 return Vec4(self.x - o, self.y - o, self.z - o, self.w - o)
             else
                 return Vec4(self.x - o.x, self.y - o.y, self.z - o.z,
@@ -897,7 +897,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         min = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z, self.w = min(self.x, o),
                     min(self.y, o), min(self.z, o), min(self.w, o)
             else
@@ -907,7 +907,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return self
         end,
         max = func(self, o)
-            if type(o) == "number" do
+            if typeof o == "number" do
                 self.x, self.y, self.z, self.w = max(self.x, o),
                     max(self.y, o), max(self.z, o), max(self.w, o)
             else
@@ -935,7 +935,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return sqrt(dx ** 2 + dy ** 2)
         end,
         rotate_around_z = func(self, c, s)
-            if type(c) == "number" do
+            if typeof c == "number" do
                 if not s do
                     var angle = c
                     return self:rotate_around_z(cos(angle), sin(angle))
@@ -949,7 +949,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             end
         end,
         rotate_around_x = func(self, c, s)
-            if type(c) == "number" do
+            if typeof c == "number" do
                 if not s do
                     var angle = c
                     return self:rotate_around_x(cos(angle), sin(angle))
@@ -963,7 +963,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             end
         end,
         rotate_around_y = func(self, c, s)
-            if type(c) == "number" do
+            if typeof c == "number" do
                 if not s do
                     var angle = c
                     return self:rotate_around_y(cos(angle), sin(angle))

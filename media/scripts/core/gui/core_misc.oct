@@ -59,7 +59,7 @@ M.State = register_type("State", Widget, {
     choose_state = func(self)
         var  state = self.state
         if not state do return end
-        return (type(state) == "string") and state or state(self)
+        return (typeof state == "string") and state or state(self)
     end,
 
     /// Function: set_state
@@ -181,7 +181,7 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
     */
     gen_label = func(self)
         var lbl = self.label
-        if type(lbl) == "string" do return lbl:format(self.value * 100) end
+        if typeof lbl == "string" do return lbl:format(self.value * 100) end
         return lbl(self, self.value)
     end,
 
@@ -277,7 +277,7 @@ M.Animator = register_type("Animator", Widget, {
 
     animate = func(self, o, millis)
         var mf = self.move_func
-        if type(mf) == "string" do mf = move_funcs[mf] end
+        if typeof mf == "string" do mf = move_funcs[mf] end
 
         var dx, dy = mf(self.move_elapsed / self.move_time)
         dx = dx * self.move_speed * (millis / 1000)

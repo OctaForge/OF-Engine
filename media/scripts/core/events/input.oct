@@ -219,7 +219,7 @@ M.set_event = func(en, fun)
         event_map[en] = true
         return true
     end
-    assert(type(fun) == "function")
+    assert(typeof fun == "function")
     var ret = get_ext(en)
     if old == true and en != "input_mouse_move" do event_map[en] = ret end
     set_ext(en, fun)

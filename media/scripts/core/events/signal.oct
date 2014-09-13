@@ -49,7 +49,7 @@ var M = {}
         slot, it also returns the number of currently connected slots.
 */
 M.connect = func(self, name, callback)
-    if type(callback) != "function" do
+    if typeof callback != "function" do
         log.log(log.ERROR, "Not connecting non-function callback: " ~ name)
         return none
     end
@@ -96,7 +96,7 @@ M.disconnect = func(self, name, id)
             if cb do cb(self, name) end
             return 0
         end
-        if type(id) != "number" do
+        if typeof id != "number" do
             id = tfind(clist, id)
         end
         if id and id <= #clist do

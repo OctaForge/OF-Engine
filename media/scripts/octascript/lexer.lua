@@ -41,8 +41,8 @@ local Keywords = {
     ["noscope" ] = true, ["not"     ] = true, ["null"    ] = true,
     ["or"      ] = true, ["rec"     ] = true, ["repeat"  ] = true,
     ["return"  ] = true, ["then"    ] = true, ["to"      ] = true,
-    ["true"    ] = true, ["until"   ] = true, ["var"     ] = true,
-    ["while"   ] = true
+    ["true"    ] = true, ["typeof"  ] = true, ["until"   ] = true,
+    ["var"     ] = true, ["while"   ] = true
 }
 
 -- protected from the gc

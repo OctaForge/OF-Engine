@@ -150,7 +150,7 @@ var register_plugins = func(cl, plugins, name)
         var cltbl = { cl[slot] }
         for j, plugin in ipairs(plugins) do
             var sl = plugin[slot]
-            var tp = type(sl)
+            var tp = typeof sl
             if sl and tp == "function" or tp == "table" or tp == "userdata"
             do cltbl[#cltbl + 1] = sl end
         end
@@ -167,7 +167,7 @@ var register_plugins = func(cl, plugins, name)
         for name, elem in pairs(plugin) do
             if not clmethset[name] do
                 if name == "__properties" do
-                    assert(type(elem) == "table")
+                    assert(typeof elem == "table")
                     if not properties do
                         properties = elem
                     else
@@ -230,7 +230,7 @@ end
 */
 M.register_prototype = func(cl, plugins, name)
     if not name do
-        if type(plugins) == "string" do
+        if typeof plugins == "string" do
             name, plugins = plugins, none
         else
             name = cl.name
@@ -426,7 +426,7 @@ M.get_by_distance = func(pos, kwargs)
         return e:get_attr("position"):copy()
     end
 
-    if type(cl) == "table" do cl = cl.name end
+    if typeof cl == "table" do cl = cl.name end
 
     var ret = {}
     for uid in 1 to highest_uid do
@@ -458,8 +458,8 @@ end
 var add = func(cn, uid, kwargs, new)
     uid = uid or 1337
 
-    var cl = type(cn) == "table" and cn or (proto_storage[cn]
-                                          or  proto_storage[proto_aliases[cn]])
+    var cl = typeof cn == "table" and cn or (proto_storage[cn]
+                                         or  proto_storage[proto_aliases[cn]])
     if not cl do
         log(ERROR, "ents.add: no such entity prototype: " ~ tostring(cn))
         assert(false)
@@ -906,7 +906,7 @@ M.Entity = table.Object:clone {
 
         sdata = sdata:sub(1, 1) != "{" and "{" ~ sdata ~ "}" or sdata
         var raw = deserialize(sdata)
-        assert(type(raw) == "table")
+        assert(typeof raw == "table")
 
         self.initialized = true
 

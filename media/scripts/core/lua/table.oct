@@ -237,7 +237,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
     if simp do
         v = simp(v)
     end
-    var tv = type(v)
+    var tv = typeof v
     if tv == "string" do
         stream(v:escape())
     elif tv == "number" or tv == "boolean" do
@@ -282,7 +282,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
                     indent + 1)
                 if not ret do return ret, err end
             else
-                if optk and type(k) == "string"
+                if optk and typeof k == "string"
                 and k:match("^[%a_][%w_]*$") do
                     stream(k)
                 else
@@ -570,7 +570,7 @@ end
     success and none + the error message on failure.
 */
 table.deserialize = func(s)
-    var stream = (type(s) == "string") and s:gmatch(".") or s
+    var stream = (typeof s == "string") and s:gmatch(".") or s
     var ls = { curr = stream(), rdr = stream, linenum = 1 }
     var r, v = pcall(lex_get, ls)
     if not r do return none, v end

@@ -67,7 +67,7 @@ var gen_setter = M.gen_setter
 var Filler = M.Filler
 
 var init_color = func(col)
-    return col and (type(col) == "number" and Color(col) or col) or Color()
+    return col and (typeof col == "number" and Color(col) or col) or Color()
 end
 
 var gen_color_setter = func(name)
@@ -375,8 +375,8 @@ M.Image = register_type("Image", Filler, {
 
         var min_w = self.min_w
         var min_h = self.min_h
-        if type(min_w) == "function" do min_w = min_w(self) end
-        if type(min_h) == "function" do min_h = min_h(self) end
+        if typeof min_w == "function" do min_w = min_w(self) end
+        if typeof min_h == "function" do min_h = min_h(self) end
 
         var r = self:get_root()
 
@@ -441,8 +441,8 @@ M.Texture = register_type("Texture", Filler, {
 
         var min_w = self.min_w
         var min_h = self.min_h
-        if type(min_w) == "function" do min_w = min_w(self) end
-        if type(min_h) == "function" do min_h = min_h(self) end
+        if typeof min_w == "function" do min_w = min_w(self) end
+        if typeof min_h == "function" do min_h = min_h(self) end
 
         var r = self:get_root()
 
@@ -1134,8 +1134,8 @@ M.Triangle = register_type("Triangle", Shape, {
         Widget.layout(self)
 
         var w, h = self.min_w, self.min_h
-        if type(w) == "function" do w = w(self) end
-        if type(h) == "function" do h = h(self) end
+        if typeof w == "function" do w = w(self) end
+        if typeof h == "function" do h = h(self) end
         var angle = self.angle
         var r = self:get_root()
 

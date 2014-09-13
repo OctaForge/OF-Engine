@@ -340,6 +340,8 @@ local parse_import_expr = function(ls, ast)
     return ast.ImportExpression(table.concat(modname, "."), line)
 end
 
+local parse_simple_expr
+
 local sexps = {
     ["<number>"] = function(ls, ast)
         local r = ast.Literal(ls.token.value, ls.line_number)
@@ -425,11 +427,16 @@ local sexps = {
         end
         table.insert(params, 1, parse_expr(ls, ast))
         return ast.CallExpression(ast.Identifier(decn), params, line)
+    end,
+    ["typeof"] = function(ls, ast)
+        local line = ls.line_number
+        ls:get()
+        return ast.TypeofExpression(parse_simple_expr(ls, ast), line)
     end
 }
 sexps["<string>"] = sexps["<number>"]
 
-local parse_simple_expr = function(ls, ast)
+parse_simple_expr = function(ls, ast)
     local line = ls.line_number
     local tn = ls.token.name
     local unp = UnaryOps[tn]

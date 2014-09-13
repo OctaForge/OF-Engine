@@ -185,7 +185,7 @@ var editline = ffi.metatype("editline_t", editline_MT)
 var get_aw = func(self) return self.w - self.pad_l - self.pad_r end
 
 var init_color = func(col)
-    return col and (type(col) == "number" and Color(col) or col) or Color()
+    return col and (typeof col == "number" and Color(col) or col) or Color()
 end
 
 var gen_color_setter = func(name)
@@ -672,7 +672,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         else
             init = init or ""
             var lines = {}
-            if type(init) != "table" do
+            if typeof init != "table" do
                 init = init:split("\n")
             end
             for i in 1 to #init do lines[i] = editline(init[i]) end

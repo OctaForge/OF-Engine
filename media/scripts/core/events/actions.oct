@@ -107,7 +107,7 @@ M.Action = table.Object:clone {
     end,
 
     priv_run = func(self, millis)
-        if type(self.actor) == "table" and self.actor.deactivated do
+        if typeof self.actor == "table" and self.actor.deactivated do
             self.priv_finish(self)
             return true
         end

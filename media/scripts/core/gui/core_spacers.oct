@@ -109,8 +109,8 @@ M.Filler = register_type("Filler", Widget, {
 
         var min_w = self.min_w
         var min_h = self.min_h
-        if type(min_w) == "function" do min_w = min_w(self) end
-        if type(min_h) == "function" do min_h = min_h(self) end
+        if typeof min_w == "function" do min_w = min_w(self) end
+        if typeof min_h == "function" do min_h = min_h(self) end
 
         var r = self:get_root()
 
@@ -178,8 +178,8 @@ M.TextFiller = register_type("TextFiller", Filler, {
 
         var min_w = self.min_w
         var min_h = self.min_h
-        if type(min_w) == "function" do min_w = min_w(self) end
-        if type(min_h) == "function" do min_h = min_h(self) end
+        if typeof min_w == "function" do min_w = min_w(self) end
+        if typeof min_h == "function" do min_h = min_h(self) end
 
         var scalef = self:get_root():get_text_scale(self.console_text)
         self.w = max(self.w, min_w * scalef * 0.5)

@@ -134,7 +134,7 @@ var register_type = M.register_type
     with that name or type.
 */
 M.get_type = func(n)
-    if type(n) == "string" do
+    if typeof n == "string" do
         return wtypes_by_name[n]
     else
         return wtypes_by_type[n]
@@ -1370,7 +1370,7 @@ M.Widget = register_type("Widget", table.Object, {
         and instead of returning true or false, it returns the widget or none.
     */
     remove = func(self, o, detach)
-        if type(o) == "number" do
+        if typeof o == "number" do
             if #self.children < o do
                 if detach do return none end
                 return false

@@ -98,11 +98,11 @@ end
         - $cache_by_frame
 */
 M.cache_by_delay = func(fun, delay)
-    if type(fun) == "function" do
+    if typeof fun == "function" do
         fun = tocalltable(fun)
     end
 
-    if type(fun) != "table" do
+    if typeof fun != "table" do
         return none
     end
 
@@ -132,11 +132,11 @@ end
         - $cache_by_delay
 */
 M.cache_by_frame = func(fun)
-    if type(fun) == "function" do
+    if typeof fun == "function" do
         fun = tocalltable(fun)
     end
 
-    if type(fun) != "table" do
+    if typeof fun != "table" do
         return none
     end
 
