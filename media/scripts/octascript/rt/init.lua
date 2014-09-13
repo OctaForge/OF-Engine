@@ -19,5 +19,6 @@ M.bit_rshift  = bit.rshift
 M.bit_arshift = bit.arshift
 
 M.type = type
+M.import = require
 
 return M
