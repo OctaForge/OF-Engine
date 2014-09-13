@@ -846,21 +846,22 @@ parse_stat = function(ls, ast)
 end
 
 local gen_memb = function(ast, name)
-    return ast.MemberExpression(ast.Identifier("__rt_bit"),
+    return ast.MemberExpression(ast.Identifier("__rt_core"),
         ast.Identifier(name), false)
 end
 
 local gen_rt = function(ls, ast)
     local ret = {}
-    ret[#ret + 1] = ast.LocalDeclaration(ast, { "__rt_bit" }, {
-        ast.CallExpression(ast.Identifier("require"), { ast.Literal("bit") }) })
+    ret[#ret + 1] = ast.LocalDeclaration(ast, { "__rt_core" }, {
+        ast.Identifier("__rt_core") })
     ret[#ret + 1] = ast.LocalDeclaration(ast, {
         "__rt_bnot", "__rt_bor", "__rt_band", "__rt_bxor", "__rt_lshift",
         "__rt_rshift", "__rt_arshift"
     }, {
-        gen_memb(ast, "bnot"), gen_memb(ast, "bor"), gen_memb(ast, "band"),
-        gen_memb(ast, "bxor"), gen_memb(ast, "lshift"),
-        gen_memb(ast, "rshift"), gen_memb(ast, "arshift")
+        gen_memb(ast, "bit_bnot"), gen_memb(ast, "bit_bor"),
+        gen_memb(ast, "bit_band"), gen_memb(ast, "bit_bxor"),
+        gen_memb(ast, "bit_lshift"), gen_memb(ast, "bit_rshift"),
+        gen_memb(ast, "bit_arshift")
     })
     return ret
 end

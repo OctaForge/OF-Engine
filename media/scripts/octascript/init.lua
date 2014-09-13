@@ -24,6 +24,8 @@ local parser = require('octascript.parser')
 local generator = require('octascript.generator')
 local util = require("octascript.util")
 
+rawset(_G, "__rt_core", require("octascript.rt"))
+
 local M = {}
 
 local io_open, load, error = io.open, load, error
