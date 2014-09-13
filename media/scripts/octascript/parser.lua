@@ -454,10 +454,6 @@ local parse_simple_expr = function(ls, ast)
     end
 end
 
-local op_to_lua = {
-    ["!="] = "~=", ["**"] = "^", ["~"] = ".."
-}
-
 local bitop_func = {
     ["|"  ] = "__rt_bor",
     ["&"  ] = "__rt_band",
@@ -472,7 +468,7 @@ local gen_binexp = function(ast, op, lhs, rhs, line)
     if func then
         return ast.CallExpression(ast.Identifier(func, line), { lhs, rhs }, line)
     else
-        return ast.BinaryExpression(op_to_lua[op] or op, lhs, rhs, line)
+        return ast.BinaryExpression(op, lhs, rhs, line)
     end
 end
 

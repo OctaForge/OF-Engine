@@ -545,7 +545,7 @@ M.BinaryExpression = Expression:clone {
         operator = {
             type = "enum",
             values = {
-                "+", "-", "*", "/", "^", "%", "==", "~=", ">=", ">", "<=", "<"
+                "+", "-", "*", "/", "**", "%", "==", "!=", ">=", ">", "<=", "<"
             }
         },
         left = "Expression",
@@ -569,7 +569,7 @@ M.BinaryExpression = Expression:clone {
     },
 
     __ctor = function(self, op, lhs, rhs, line)
-        if op == ".." then
+        if op == "~" then
             self.kind = "ConcatenateExpression"
             self.properties = self.concat_properties
             local terms = {}

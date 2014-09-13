@@ -17,12 +17,12 @@ local util = require("octascript.util")
 local const_eval
 
 local binop_apply = function(op, lhs, rhs)
-    if     op == "+" then return lhs + rhs
-    elseif op == "-" then return lhs - rhs
-    elseif op == "*" then return lhs * rhs
-    elseif op == "/" then return lhs / rhs
-    elseif op == "%" then return lhs % rhs
-    elseif op == "^" then return lhs ^ rhs
+    if     op == "+"  then return lhs + rhs
+    elseif op == "-"  then return lhs - rhs
+    elseif op == "*"  then return lhs * rhs
+    elseif op == "/"  then return lhs / rhs
+    elseif op == "%"  then return lhs % rhs
+    elseif op == "**" then return lhs ^ rhs
     end
 end
 
@@ -118,7 +118,7 @@ local cmpop = {
     ["<="] = { "LE", false },
     [">="] = { "LE", true  },
     ["=="] = { "EQ", false },
-    ["~="] = { "NE", false },
+    ["!="] = { "NE", false },
 }
 
 -- the same of above but for the inverse tests
@@ -128,7 +128,7 @@ local cmpopinv = {
     ["<="] = { "GT", false },
     [">="] = { "GT", true  },
     ["=="] = { "NE", false },
-    ["~="] = { "EQ", false },
+    ["!="] = { "EQ", false },
 }
 
 local lang_error = function(msg, chunkname, line)
@@ -363,7 +363,7 @@ local ExpressionRule = {
             local a = self:expr_toanyreg(node.left)
             local b = self:expr_toanyreg(node.right)
             self.ctx.freereg = free
-            if o == "^" then
+            if o == "**" then
                 self.ctx:op_pow(dest, a, b)
             else
                 error("bad binary operator: "..o, 2)
@@ -582,7 +582,7 @@ local TestRule = {
         if cmpop[o] then
             local free = self.ctx.freereg
             local atag, a, btag, b
-            if o == "==" or o == "~=" then
+            if o == "==" or o == "!=" then
                 atag, a = self:expr_toanyreg_tagged(node.left, EXPR_EMIT_VSNP)
                 if atag == "V" then
                     btag, b = self:expr_toanyreg_tagged(node.right,
