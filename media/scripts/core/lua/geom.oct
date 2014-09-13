@@ -43,7 +43,6 @@ var gen_vec4 = func(tp, sf, mt)
 end
 
 var ffi_new = ffi.new
-var type = type
 var sin, cos, abs, min, max, sqrt, floor = math.sin, math.cos, math.abs,
     math.min, math.max, math.sqrt, math.floor
 var clamp = func(v, l, h)

@@ -12,7 +12,7 @@ import capi
 
 var ctable = capi.table_create
 var pairs, ipairs = pairs, ipairs
-var type, setmetatable = type, setmetatable
+var setmetatable = setmetatable
 var rawget, rawset = rawget, rawset
 var tostring = tostring
 var tconc = table.concat

@@ -10,7 +10,6 @@
 
 import core.logger as log
 
-var type = type
 var rawget, rawset = rawget, rawset
 var clamp = math.clamp
 var tfind = table.find

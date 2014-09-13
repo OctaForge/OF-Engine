@@ -128,7 +128,7 @@ var plugin_slots = {
 }
 
 var ipairs, pairs = ipairs, pairs
-var assert, type = assert, type
+var assert = assert
 
 var modprefix = "_PLUGINS_"
 

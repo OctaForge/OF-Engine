@@ -179,7 +179,7 @@ end
 
 /// Module: input
 var M = {}
-var type, assert = type, assert
+var assert = assert
 
 /**
     Sets an event callback. If the callback is not provided, the default

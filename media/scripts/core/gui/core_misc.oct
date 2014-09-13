@@ -13,7 +13,6 @@ import core.events.signal
 
 var find = table.find
 var tremove = table.remove
-var type = type
 var min, max = math.min, math.max
 var abs = math.abs
 var emit = signal.emit
