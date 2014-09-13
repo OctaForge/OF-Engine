@@ -856,12 +856,12 @@ local gen_rt = function(ls, ast)
         ast.Identifier("__rt_core") })
     ret[#ret + 1] = ast.LocalDeclaration(ast, {
         "__rt_bnot", "__rt_bor", "__rt_band", "__rt_bxor", "__rt_lshift",
-        "__rt_rshift", "__rt_arshift"
+        "__rt_rshift", "__rt_arshift", "__rt_type"
     }, {
         gen_memb(ast, "bit_bnot"), gen_memb(ast, "bit_bor"),
         gen_memb(ast, "bit_band"), gen_memb(ast, "bit_bxor"),
         gen_memb(ast, "bit_lshift"), gen_memb(ast, "bit_rshift"),
-        gen_memb(ast, "bit_arshift")
+        gen_memb(ast, "bit_arshift"), gen_memb(ast, "type")
     })
     return ret
 end

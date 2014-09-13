@@ -490,7 +490,7 @@ local ExpressionRule = {
 
     TypeofExpression = function(self, node, dest)
         local free = self.ctx.freereg
-        gen_ident(self, "type", free)
+        gen_ident(self, "__rt_type", free)
         self.ctx:nextreg()
         self:expr_tonextreg(node.expression)
         self.ctx.freereg = free

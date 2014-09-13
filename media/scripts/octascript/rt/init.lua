@@ -18,4 +18,6 @@ M.bit_lshift  = bit.lshift
 M.bit_rshift  = bit.rshift
 M.bit_arshift = bit.arshift
 
+M.type = type
+
 return M
