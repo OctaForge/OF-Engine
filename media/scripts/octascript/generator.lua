@@ -161,7 +161,7 @@ local EXPR_EMIT_VSNP = { value = true, string = true, number = true, primitive =
 local EXPR_EMIT_VSB  = { value = true, string = true, byte = true }
 
 local store_bit = function(cond)
-    return cond and EXPR_RESULT_TRUE or EXPR_RESULT_FALSE
+    return (cond and cond ~= util.null) and EXPR_RESULT_TRUE or EXPR_RESULT_FALSE
 end
 
 local xor = function(lhs, rhs)
@@ -249,7 +249,11 @@ end
 -- a the expression terminate with a tail call instruction.
 local ExpressionRule = {
     Literal = function(self, node, dest)
-        self.ctx:op_load(dest, node.value)
+        if node.value == nil and type(node.value) == "cdata" then
+            gen_ident(self, "__rt_null", dest)
+        else
+            self.ctx:op_load(dest, node.value)
+        end
     end,
 
     Identifier = function(self, node, dest)

@@ -6,6 +6,8 @@
     See COPYING.txt for licensing.
 ]]
 
+local ffi = require("ffi")
+
 local M = {}
 
 M.Object = {
@@ -36,5 +38,7 @@ M.error = function(msg)
         error(msg)
     end
 end
+
+M.null = ffi.cast("void*", 0)
 
 return M

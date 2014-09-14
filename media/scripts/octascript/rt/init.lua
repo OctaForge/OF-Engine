@@ -9,6 +9,7 @@
 local M = {}
 
 local bit = require("bit")
+local ffi = require("ffi")
 
 M.bit_bnot    = bit.bnot
 M.bit_bor     = bit.bor
@@ -24,5 +25,7 @@ M.import = require
 M.pcall = pcall
 M.xpcall = xpcall
 M.error = error
+
+M.null = ffi.cast("void*", 0)
 
 return M

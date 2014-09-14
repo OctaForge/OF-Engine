@@ -8,6 +8,7 @@
 
 local astgen = require("octascript.ast")
 local lexer = require("octascript.lexer")
+local util = require("octascript.util")
 
 local syntax_error = lexer.syntax_error
 local iskw = lexer.is_keyword
@@ -371,6 +372,10 @@ local sexps = {
     ["none"] = function(ls, ast)
         ls:get()
         return ast.Literal(nil)
+    end,
+    ["null"] = function(ls, ast)
+        ls:get()
+        return ast.Literal(util.null)
     end,
     ["true"] = function(ls, ast)
         ls:get()
@@ -888,14 +893,15 @@ local gen_rt = function(ls, ast)
     ret[#ret + 1] = ast.LocalDeclaration(ast, {
         "__rt_bnot", "__rt_bor", "__rt_band", "__rt_bxor", "__rt_lshift",
         "__rt_rshift", "__rt_arshift", "__rt_type", "__rt_import",
-        "__rt_pcall", "__rt_xpcall", "__rt_error"
+        "__rt_pcall", "__rt_xpcall", "__rt_error", "__rt_null"
     }, {
         gen_memb(ast, "bit_bnot"), gen_memb(ast, "bit_bor"),
         gen_memb(ast, "bit_band"), gen_memb(ast, "bit_bxor"),
         gen_memb(ast, "bit_lshift"), gen_memb(ast, "bit_rshift"),
         gen_memb(ast, "bit_arshift"), gen_memb(ast, "type"),
         gen_memb(ast, "import"), gen_memb(ast, "pcall"),
-        gen_memb(ast, "xpcall"), gen_memb(ast, "error")
+        gen_memb(ast, "xpcall"), gen_memb(ast, "error"),
+        gen_memb(ast, "null")
     })
     return ret
 end
