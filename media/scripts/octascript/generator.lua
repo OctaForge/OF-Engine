@@ -249,7 +249,7 @@ end
 -- a the expression terminate with a tail call instruction.
 local ExpressionRule = {
     Literal = function(self, node, dest)
-        if node.value == nil and type(node.value) == "cdata" then
+        if node.value == util.null and type(node.value) == "cdata" then
             gen_ident(self, "__rt_null", dest)
         else
             self.ctx:op_load(dest, node.value)
