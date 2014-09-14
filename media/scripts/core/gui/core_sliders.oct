@@ -306,7 +306,7 @@ M.HSlider = register_type("HSlider", Slider, {
     end,
 
     scroll_to = func(self, cx, cy)
-        var  btn = self:find_child(SliderButton.type, none, false)
+        var  btn = self:find_child(SliderButton.type, undef, false)
         if not btn do return end
 
         var asz = self.arrow_size
@@ -320,7 +320,7 @@ M.HSlider = register_type("HSlider", Slider, {
     end,
 
     adjust_children = func(self)
-        var  btn = self:find_child(SliderButton.type, none, false)
+        var  btn = self:find_child(SliderButton.type, undef, false)
         if not btn do return end
         btn._slider = self
 
@@ -371,7 +371,7 @@ M.VSlider = register_type("VSlider", Slider, {
     end,
 
     scroll_to = func(self, cx, cy)
-        var  btn = self:find_child(SliderButton.type, none, false)
+        var  btn = self:find_child(SliderButton.type, undef, false)
         if not btn do return end
 
         var asz = self.arrow_size
@@ -385,7 +385,7 @@ M.VSlider = register_type("VSlider", Slider, {
     end,
 
     adjust_children = func(self)
-        var  btn = self:find_child(SliderButton.type, none, false)
+        var  btn = self:find_child(SliderButton.type, undef, false)
         if not btn do return end
         btn._slider = self
 

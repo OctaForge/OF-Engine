@@ -242,8 +242,8 @@ M.Animator = register_type("Animator", Widget, {
     __ctor = func(self, kwargs)
         self.move_func    = kwargs.move_func
         self.move_time    = kwargs.move_time   or 2000
-        self.move_dist_x  = kwargs.move_dist_x or none
-        self.move_dist_y  = kwargs.move_dist_y or none
+        self.move_dist_x  = kwargs.move_dist_x or undef
+        self.move_dist_y  = kwargs.move_dist_y or undef
         self.move_speed   = kwargs.move_speed  or 0.2
         self:reset()
         return Widget.__ctor(self, kwargs)

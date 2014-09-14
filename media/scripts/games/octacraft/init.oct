@@ -108,6 +108,6 @@ inputev.set_event("click", func(btn, down, x, y, z, uid, cx, cy)
         gm:enqueue_action(mact)
     else
         gm.mouse_action:cancel()
-        gm.mouse_action = none
+        gm.mouse_action = undef
     end
 end)

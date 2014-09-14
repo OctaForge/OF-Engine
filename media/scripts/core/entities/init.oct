@@ -1,10 +1,10 @@
 import core.logger as log
 
 log.log(log.DEBUG, ":::: State variables.")
-import core.entities.svars as none
+import core.entities.svars as undef
 
 log.log(log.DEBUG, ":::: Entities.")
-import core.entities.ents as none
+import core.entities.ents as undef
 
 log.log(log.DEBUG, ":::: Entities: basic set.")
-import core.entities.ents_basic as none
+import core.entities.ents_basic as undef

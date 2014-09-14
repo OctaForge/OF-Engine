@@ -55,32 +55,32 @@ end
 import capi
 
 // patch capi
-import core.capi as none
+import core.capi as undef
 
 capi.log(1, "Initializing logging.")
 
 import core.logger as log
 
-import core.externals as none
+import core.externals as undef
 
 log.log(log.DEBUG, "Initializing the core library.")
 
 log.log(log.DEBUG, ":: Lua extensions.")
-import core.lua as none
+import core.lua as undef
 
 log.log(log.DEBUG, ":: Network system.")
-import core.network as none
+import core.network as undef
 
 log.log(log.DEBUG, ":: Event system.")
-import core.events as none
+import core.events as undef
 
 log.log(log.DEBUG, ":: Engine system.")
-import core.engine as none
+import core.engine as undef
 
 log.log(log.DEBUG, ":: Entity system.")
-import core.entities as none
+import core.entities as undef
 
 log.log(log.DEBUG, ":: GUI.")
-import core.gui as none
+import core.gui as undef
 
 log.log(log.DEBUG, "Core scripting initialization complete.")

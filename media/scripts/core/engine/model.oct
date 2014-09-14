@@ -104,7 +104,7 @@ M.register_anim = ran
 
 /** Function: get_anim
     Returns the animation number for the given animation name. If no such
-    animation exists, returns none.
+    animation exists, returns undef.
 */
 M.get_anim = capi.model_get_anim
 

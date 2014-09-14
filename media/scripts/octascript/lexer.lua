@@ -37,12 +37,12 @@ local Keywords = {
     ["else"    ] = true, ["elif"    ] = true, ["end"     ] = true,
     ["false"   ] = true, ["for"     ] = true, ["from"    ] = true,
     ["func"    ] = true, ["goto"    ] = true, ["if"      ] = true,
-    ["import"  ] = true, ["in"      ] = true, ["none"    ] = true,
-    ["noscope" ] = true, ["not"     ] = true, ["null"    ] = true,
-    ["or"      ] = true, ["raise"   ] = true, ["rec"     ] = true,
-    ["repeat"  ] = true, ["return"  ] = true, ["then"    ] = true,
-    ["to"      ] = true, ["true"    ] = true, ["try"     ] = true,
-    ["typeof"  ] = true, ["until"   ] = true, ["var"     ] = true,
+    ["import"  ] = true, ["in"      ] = true, ["noscope" ] = true,
+    ["not"     ] = true, ["null"    ] = true, ["or"      ] = true,
+    ["raise"   ] = true, ["rec"     ] = true, ["repeat"  ] = true,
+    ["return"  ] = true, ["then"    ] = true, ["to"      ] = true,
+    ["true"    ] = true, ["try"     ] = true, ["typeof"  ] = true,
+    ["undef"   ] = true, ["until"   ] = true, ["var"     ] = true,
     ["while"   ] = true
 }
 

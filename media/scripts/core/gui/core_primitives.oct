@@ -254,8 +254,8 @@ M.Outline = register_type("Outline", Filler, {
 })
 
 var check_alpha_mask = func(tex, x, y)
-    if tex.alphamask == none do
-        if texture_load_alpha_mask(tex) == none do
+    if tex.alphamask == undef do
+        if texture_load_alpha_mask(tex) == undef do
             return true
         end
     end
@@ -312,7 +312,7 @@ M.Image = register_type("Image", Filler, {
 
     /**
         Given the filename and an alternative filename, this reloads the
-        texture this holds. If the file argument is none/false, this
+        texture this holds. If the file argument is undef/false, this
         disables the texture (sets the texture to notexture).
     */
     set_tex = func(self, file, alt)
@@ -1171,12 +1171,12 @@ M.Triangle = register_type("Triangle", Shape, {
     target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if o do return o end
-        if self.style == OUTLINE do return none end
+        if self.style == OUTLINE do return undef end
         var a, b, c = self.ta, self.tb, self.tc
         var side = Vec2(cx, cy):sub(b):cross(Vec2(a):sub(b)) < 0
         return ((Vec2(cx, cy):sub(c):cross(Vec2(b):sub(c)) < 0) == side
             and (Vec2(cx, cy):sub(a):cross(Vec2(c):sub(a)) < 0) == side)
-            and self or none
+            and self or undef
     end,
 
     draw = func(self, sx, sy)
@@ -1221,9 +1221,9 @@ M.Circle = register_type("Circle", Shape, {
     target = func(self, cx, cy)
         var o = Widget.target(self, cx, cy)
         if o do return o end
-        if self.style == OUTLINE do return none end
+        if self.style == OUTLINE do return undef end
         var r = min(self.w, self.h)
-        return (Vec2(cx, cy):sub(r):squared_len() <= (r * r)) and self or none
+        return (Vec2(cx, cy):sub(r):squared_len() <= (r * r)) and self or undef
     end,
 
     draw = func(self, sx, sy)
@@ -1283,7 +1283,7 @@ M.Label = register_type("Label", Widget, {
         kwargs = kwargs or {}
 
         self.text  = kwargs.text  or ""
-        self.font  = kwargs.font  or none
+        self.font  = kwargs.font  or undef
         self.scale = kwargs.scale or  1
         self.wrap  = kwargs.wrap  or -1
         self.color = init_color(kwargs.color)
@@ -1370,7 +1370,7 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
 
-        self.callback = kwargs.callback or none
+        self.callback = kwargs.callback or undef
         self.scale    = kwargs.scale    or  1
         self.wrap     = kwargs.wrap     or -1
         self.color    = init_color(kwargs.color)

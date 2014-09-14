@@ -94,7 +94,7 @@ var GamePlayer = Player:clone {
             if #nm == 3 do
                 nm = Vec4(nm[1], nm[2], nm[3], self.color)
             else
-                nm = none
+                nm = undef
             end
             var marks = self.marks
             marks[#marks + 1] = nm
@@ -106,7 +106,7 @@ var GamePlayer = Player:clone {
     */
     __run = @[not server,func(self, millis)
         Player.__run(self, millis)
-        var last = none
+        var last = undef
         var marks = self.marks
 
         for i, mark in ipairs(marks) do

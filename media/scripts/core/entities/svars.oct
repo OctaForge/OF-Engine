@@ -66,9 +66,9 @@ end
           other clients won't see it (but the server will).
         - custom_sync [false] - the state variable will use a custom sync
           method (useful for Cube 2 dynents).
-        - gui_name [none] - the name shown in the editing GUI for the svar.
+        - gui_name [undef] - the name shown in the editing GUI for the svar.
           Can be set to false to hide it from the editing GUI completely.
-        - alt_name [none] - an alternative accessor name.
+        - alt_name [undef] - an alternative accessor name.
         - reliable [true] - the messages sent for this svar will be reliable,
           that is, always sent; you cannot send a big number of them. For
           e.g. position updates, you're better off with unreliable messages
@@ -76,11 +76,11 @@ end
         - has_history [true] - the var will retain its state and e.g.
           when a new client requests it, it'll receive the values set
           previously (even if set long before the connection).
-        - getter_fun [none] - provided in kwargs as just "getter", a custom
+        - getter_fun [undef] - provided in kwargs as just "getter", a custom
           getter for the state var, used typically with C functions (to handle
           C-side entity changes), takes one argument, an entity this state
           var belongs to.
-        - setter_fun [none] - provided in kwargs as just "setter", a custom
+        - setter_fun [undef] - provided in kwargs as just "setter", a custom
           setter similar to getter. Takes two arguments, the entity and the
           value we're setting. Note that even with getter and setter functions
           the value will be cached for better performance (so we don't always
@@ -475,7 +475,7 @@ M.StateArray = StateVariable:clone {
     getter = func(self, svar)
         svar:read_tests(self)
 
-        if not svar:get_raw(self) do return none end
+        if not svar:get_raw(self) do return undef end
 
         var n = "__as_" ~ svar.name
         if not self[n] do self[n] = svar.surrogate:new(self, svar) end

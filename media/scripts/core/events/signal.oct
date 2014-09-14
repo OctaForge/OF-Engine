@@ -50,7 +50,7 @@ var M = {}
 M.connect = func(self, name, callback)
     if typeof callback != "function" do
         log.log(log.ERROR, "Not connecting non-function callback: " ~ name)
-        return none
+        return undef
     end
     var clistn = "_sig_conn_" ~ name
 
@@ -82,7 +82,7 @@ end
           with the signal.
 
     Returns:
-        The number of connected slots after disconnect (or none if nothing
+        The number of connected slots after disconnect (or undef if nothing
         could be disconnected).
 */
 M.disconnect = func(self, name, id)
@@ -91,7 +91,7 @@ M.disconnect = func(self, name, id)
     var cb     = rawget(self, "__disconnect")
     if clist do
         if not id do
-            rawset(self, clistn, none)
+            rawset(self, clistn, undef)
             if cb do cb(self, name) end
             return 0
         end

@@ -2,14 +2,14 @@ import core.logger as log
 
 log.log(log.DEBUG, ":::: Core UI implementation.")
 
-import core.gui.core as none
-import core.gui.core_containers as none
-import core.gui.core_spacers as none
-import core.gui.core_primitives as none
-import core.gui.core_scrollers as none
-import core.gui.core_sliders as none
-import core.gui.core_buttons as none
-import core.gui.core_editors as none
-import core.gui.core_misc as none
+import core.gui.core as undef
+import core.gui.core_containers as undef
+import core.gui.core_spacers as undef
+import core.gui.core_primitives as undef
+import core.gui.core_scrollers as undef
+import core.gui.core_sliders as undef
+import core.gui.core_buttons as undef
+import core.gui.core_editors as undef
+import core.gui.core_misc as undef
 
-import core.gui.default as none
+import core.gui.default as undef

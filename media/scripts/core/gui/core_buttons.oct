@@ -69,7 +69,7 @@ var Button = M.Button
 */
 M.MenuButton = register_type("MenuButton", Button, {
     choose_state = func(self)
-        return self:get_menu() != none and "menu" or Button.choose_state(self)
+        return self:get_menu() != undef and "menu" or Button.choose_state(self)
     end
 })
 

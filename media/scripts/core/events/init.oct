@@ -1,16 +1,16 @@
 import core.logger as log
 
 log.log(log.DEBUG, ":::: Frame handling.")
-import core.events.frame as none
+import core.events.frame as undef
 
 log.log(log.DEBUG, ":::: Signal system.")
-import core.events.signal as none
+import core.events.signal as undef
 
 log.log(log.DEBUG, ":::: Action system.")
-import core.events.actions as none
+import core.events.actions as undef
 
 log.log(log.DEBUG, ":::: World events.")
-import core.events.world as none
+import core.events.world as undef
 
 log.log(log.DEBUG, ":::: Input events.")
-import core.events.input as none
+import core.events.input as undef

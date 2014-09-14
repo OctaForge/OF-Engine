@@ -103,7 +103,7 @@ M.cache_by_delay = func(fun, delay)
     end
 
     if typeof fun != "table" do
-        return none
+        return undef
     end
 
     fun.last_time = ((-delay) * 2)
@@ -137,7 +137,7 @@ M.cache_by_frame = func(fun)
     end
 
     if typeof fun != "table" do
-        return none
+        return undef
     end
 
     return func(...)

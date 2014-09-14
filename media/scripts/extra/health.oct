@@ -123,7 +123,7 @@ M.player_plugin = {
         if self:get_attr("health") > 0 do
             if (ret & INDEX) == anims.dying or (ret & INDEX) == anims.dead do
                 self:set_local_animation(idle | model.anim_control.LOOP)
-                self.prev_bt = none
+                self.prev_bt = undef
                 ret = self:get_attr("animation")
             end
         end
