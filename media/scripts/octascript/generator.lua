@@ -407,7 +407,7 @@ local ExpressionRule = {
         end
     end,
 
-    UnaryExpression = function(self, node, dest)
+    UnaryExpression = function(self, node, dest, jreg)
         local free = self.ctx.freereg
         local o = node.operator
         if o == "~" then
@@ -425,8 +425,22 @@ local ExpressionRule = {
             self.ctx:op_unm(dest, a)
         elseif o == "#" then
             self.ctx:op_len(dest, a)
+        --elseif o == "not" then
+        --    self.ctx:op_not(dest, a)
         elseif o == "not" then
-            self.ctx:op_not(dest, a)
+            local l, al1, al2 = util.genid(), util.genid(), util.genid()
+            self.ctx:op_comp("NE", a, "P", self.ctx:kpri(false), al1, free, false)
+            self.ctx:op_load(dest, true)
+            self.ctx:jump(l, jreg)
+            self.ctx:here(al1)
+            self.ctx.freereg = free
+            self.ctx:op_comp("EQ", a, "P", self.ctx:kpri(nil), al2, free, false)
+            self.ctx:op_load(dest, false)
+            self.ctx:jump(l, jreg)
+            self.ctx:here(al2)
+            self.ctx.freereg = free
+            self.ctx:op_load(dest, true)
+            self.ctx:here(l)
         else
             error("bad unary operator: "..o, 2)
         end
@@ -731,12 +745,12 @@ local TestRule = {
     end,
 
     UnaryExpression = function(self, node, jmp, jreg, negate, store, dest)
-        if node.operator == "not" and store == 0 then
-            self:test_emit(node.argument, jmp, jreg, not negate)
-        else
+        --if node.operator == "not" and store == 0 then
+        --    self:test_emit(node.argument, jmp, jreg, not negate)
+        --else
             self:expr_test(node, jmp, jreg, negate, store,
                 dest or self.ctx.freereg)
-        end
+        --end
     end,
 
     LogicalExpression = function(self, node, jmp, jreg, negate, store, dest)
