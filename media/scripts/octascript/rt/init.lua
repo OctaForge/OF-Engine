@@ -19,14 +19,20 @@ M.bit_lshift  = bit.lshift
 M.bit_rshift  = bit.rshift
 M.bit_arshift = bit.arshift
 
-M.type = type
+local type = type
+
+M.type = function(v)
+    if v == nil then
+        return "undef"
+    end
+    return type(v)
+end
+
 M.import = require
 
 M.pcall = pcall
 M.xpcall = xpcall
 M.error = error
-
-local type = type
 
 M.null = ffi.cast("void*", 0)
 
