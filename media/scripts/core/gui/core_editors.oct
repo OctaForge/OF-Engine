@@ -27,7 +27,8 @@ var abs   = math.abs
 var clamp = math.clamp
 var floor = math.floor
 var emit  = signal.emit
-var tostring = tostring
+
+from std.conv import tostring
 
 from std.util import select, assert
 

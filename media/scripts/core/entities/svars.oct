@@ -22,11 +22,10 @@ var INFO  = logging.INFO
 import core.events.frame
 import core.lua.geom
 
-var tostring, tonumber, abs, round, floor = tostring, tonumber,
-    math.abs, math.round, math.floor
+var abs, round, floor = math.abs, math.round, math.floor
 
 from std.table import rawget, rawset
-
+from std.conv import tonumber, tostring
 from std.util import assert
 
     /// Module: svars

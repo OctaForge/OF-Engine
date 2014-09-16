@@ -13,7 +13,8 @@ import ffi
 var ents, get_ent
 
 var ffi_new = ffi.new
-var tostring = tostring
+
+from std.conv import tostring
 
 var gen_getwrap = func(fun, tp)
     var tpnm = tp ~ "[1]"

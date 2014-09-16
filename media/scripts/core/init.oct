@@ -13,6 +13,7 @@ import std.table
 
 from std.math import randomseed
 from std.os   import time
+from std.conv import tostring
 
 /** Object: _G
     Sets up the default _G metatable in that way it won't allow creation

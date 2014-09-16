@@ -39,7 +39,8 @@ from core.lua.geom import Vec3
 var emit = signal.emit
 var max, floor = math.max, math.floor
 var pairs = pairs
-var tonumber, tostring = tonumber, tostring
+
+from std.conv import tonumber, tostring
 
 from std.table import unpack
 from std.util import assert

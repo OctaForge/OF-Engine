@@ -22,6 +22,8 @@ var compact = table.compact
 
 var createtable = capi.table_create
 
+from std.conv import tostring
+
 /// Module: actions
 var M = {}
 

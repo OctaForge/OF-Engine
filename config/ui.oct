@@ -3,6 +3,8 @@ import core.events.signal
 import core.gui.core as gui
 import core.engine.cubescript as cs
 
+from std.conv import tostring
+
 var abs = math.abs
 
 var connect = signal.connect

@@ -14,8 +14,9 @@ var root = gui.get_root()
 var Color = gui.Color
 var connect = signal.connect
 var max = math.max
-var tostring = tostring
 var sort = table.sort
+
+from std.conv import tostring
 
 // buttons
 

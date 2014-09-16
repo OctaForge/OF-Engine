@@ -34,7 +34,8 @@ var floor = math.floor
 var ceil  = math.ceil
 var huge  = math.huge
 var emit  = signal.emit
-var tostring = tostring
+
+from std.conv import tostring
 
 var Vec2 = geom.Vec2
 var sincosmod360 = geom.sin_cos_mod_360

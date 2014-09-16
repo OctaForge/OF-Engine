@@ -23,6 +23,8 @@ import core.entities.ents
 
 import extra.events.actions as eactions
 
+from std.conv import tostring
+
 var connect, emit = signal.connect, signal.emit
 var min, max = math.min, math.max
 var floor = math.floor

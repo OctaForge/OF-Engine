@@ -35,7 +35,8 @@ from core.externals import set as set_external
 var Entity = ents.Entity
 var ent_get = ents.get
 
-var tonumber, tostring = tonumber, tostring
+from std.conv import tonumber
+
 var connect, emit = signal.connect, signal.emit
 var format = string.format
 var abs = math.abs
