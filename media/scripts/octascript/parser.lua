@@ -253,9 +253,6 @@ parse_cond_expr = function(ls, ast, mp)
     return lhs
 end
 
-local whitelist = {}
-for k, v in pairs(_G) do whitelist[k] = true end
-
 local parse_primary_expr
 local parse_prefix_expr = function(ls, ast)
     local tok = ls.token
@@ -285,7 +282,7 @@ local parse_prefix_expr = function(ls, ast)
     elseif tn == "<name>" then
         local line = ls.line_number
         local val = tok.value
-        if not whitelist[val] and not ast.current.vars[val] then
+        if not ast.current.vars[val] then
             syntax_error(ls, "attempt to use undeclared variable '"
                 .. val .. "'")
         end
@@ -436,7 +433,7 @@ local sexps = {
         ls:get()
         assert_tok(ls, "<name>")
         local decn = ls.token.value
-        if not whitelist[decn] and not ast.current.vars[decn] then
+        if not ast.current.vars[decn] then
             syntax_error(ls, "attempt to use undeclared variable '"
                 .. decn .. "'")
         end
@@ -838,7 +835,7 @@ local stat_opts = {
         ls:get()
         assert_tok(ls, "<name>")
         local decn = ls.token.value
-        if not whitelist[decn] and not ast.current.vars[decn] then
+        if not ast.current.vars[decn] then
             syntax_error(ls, "attempt to use undeclared variable '"
                 .. decn .. "'")
         end
