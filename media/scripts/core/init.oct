@@ -11,6 +11,9 @@
 
 import std.table
 
+from std.math import randomseed
+from std.os   import time
+
 /** Object: _G
     Sets up the default _G metatable in that way it won't allow creation
     of global variables and usage of non-existent global variables.
@@ -25,7 +28,7 @@ table.setmt(_G, {
 })
 
 // init a random seed
-math.randomseed(os.time())
+randomseed(time())
 
 /**
     Traces what Lua does and logs it into the console. Not in use by
