@@ -91,12 +91,15 @@ set_external("physics_state_change", func(uid, loc, flevel, llevel, mat)
     if flags != 0 do ent:set_attr("physics_trigger", flags) end
 end)
 
+import std.environ
+var globals = environ.get(0)
+
 /** Function: event_text_message
     Called on a text message event. Emits a signal of the same name with
     the unique ID of the client and the text as arguments on the global table.
 */
 set_external("event_text_message", func(uid, text)
-    emit(_G, "event_text_message", uid, text)
+    emit(globals, "event_text_message", uid, text)
 end)
 
 @[server] do
@@ -106,6 +109,6 @@ end)
     entity as an argument on the global table.
 */
 set_external("event_player_login", func(uid)
-    emit(_G, "event_player_login", uid)
+    emit(globals, "event_player_login", uid)
 end)
 end

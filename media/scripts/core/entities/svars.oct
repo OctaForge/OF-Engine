@@ -341,9 +341,9 @@ M.StateString = StateVariable:clone {
 StateString = M.StateString
 
 var ctable = capi.table_create
-var newproxy = newproxy
 
 from std.table import getmt, setmt
+from std.util import proxy as newproxy
 
 /**
     Represents a "surrogate" for an array. Behaves like a regular

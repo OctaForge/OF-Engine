@@ -107,28 +107,30 @@ local loadfile_new = function(fname, mode, env)
     return load(parsed, chunkname, mode, env)
 end
 
+local eval = package.loaded["std.eval"]
+
 --[[! Function: load
     Replaces the default "load" with a version that uses the OctaScript
     compiler. Fully compatible with LuaJIT "load".
 ]]
-_G["load"] = load_new
+eval["load"] = load_new
 
 --[[! Function: loadstring
     An alias for "load".
 ]]
-_G["loadstring"] = load_new
+eval["loadstring"] = load_new
 
 --[[! Function: loadfile
     Replaces the default "loadfile" with a version that uses the OctaScript
     compiler. Fully compatible wih LuaJIT "loadfile".
 ]]
-_G["loadfile"] = loadfile_new
+eval["loadfile"] = loadfile_new
 
 --[[! Function: dofile
     Replaces the default "dofile" with a version that uses the OctaScript
     compiler. Fully compatible wih LuaJIT "dofile".
 ]]
-_G["dofile"] = function(fname)
+eval["dofile"] = function(fname)
     local  func, err = loadfile_new(fname)
     if not func then error(err, 0) end
     return func()
