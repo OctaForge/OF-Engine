@@ -51,4 +51,6 @@ debug.setmetatable(nil, {
     __tostring = function() return "undef" end
 })
 
+M.print = print
+
 return M

@@ -869,6 +869,11 @@ local stat_opts = {
             check_match(ls, "]", "[", bline)
         end
         return ast.RaiseStatement(parse_expr(ls, ast), level, line)
+    end,
+    ["print"] = function(ls, ast, line)
+        ls:get()
+        return ast.ExpressionStatement(ast.CallExpression(ast.Identifier(
+            "__rt_print"), parse_expr_list(ls, ast)), line)
     end
 }
 
@@ -893,7 +898,8 @@ local gen_rt = function(ls, ast)
     ret[#ret + 1] = ast.LocalDeclaration(ast, {
         "__rt_bnot", "__rt_bor", "__rt_band", "__rt_bxor", "__rt_lshift",
         "__rt_rshift", "__rt_arshift", "__rt_type", "__rt_import",
-        "__rt_pcall", "__rt_xpcall", "__rt_error", "__rt_null"
+        "__rt_pcall", "__rt_xpcall", "__rt_error", "__rt_null",
+        "__rt_print"
     }, {
         gen_memb(ast, "bit_bnot"), gen_memb(ast, "bit_bor"),
         gen_memb(ast, "bit_band"), gen_memb(ast, "bit_bxor"),
@@ -901,7 +907,7 @@ local gen_rt = function(ls, ast)
         gen_memb(ast, "bit_arshift"), gen_memb(ast, "type"),
         gen_memb(ast, "import"), gen_memb(ast, "pcall"),
         gen_memb(ast, "xpcall"), gen_memb(ast, "error"),
-        gen_memb(ast, "null")
+        gen_memb(ast, "null"), gen_memb(ast, "print")
     })
     return ret
 end

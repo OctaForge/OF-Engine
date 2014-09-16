@@ -18,7 +18,6 @@ local std = {
         create  = coroutine.create
     },
     io = {
-        print   = print,
         input   = io.input,
         tmpfile = io.tmpfile,
         read    = io.read,
