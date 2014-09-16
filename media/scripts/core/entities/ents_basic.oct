@@ -38,7 +38,6 @@ var ent_get = ents.get
 from std.conv import tonumber
 
 var connect, emit = signal.connect, signal.emit
-var format = string.format
 var abs = math.abs
 var tconc = table.concat
 var min, max = math.min, math.max
@@ -945,7 +944,7 @@ M.OrientedMarker = StaticEntity:clone {
     end,
 
     __get_edit_info = func(self)
-        return format("yaw :\f2 %d \f7| pitch :\f2 %d", self:get_attr("yaw"),
+        return ("yaw :\f2 %d \f7| pitch :\f2 %d"):format(self:get_attr("yaw"),
             self:get_attr("pitch"))
     end
 }
@@ -1010,8 +1009,8 @@ M.Light = StaticEntity:clone {
     end,
 
     __get_edit_info = func(self)
-        return format("red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
-            ~ "radius :\f2 %d \f7| shadow :\f2 %s",
+        return ("red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
+            ~ "radius :\f2 %d \f7| shadow :\f2 %s"):format(
             self:get_attr("red"), self:get_attr("green"),
             self:get_attr("blue"), self:get_attr("radius"),
             lightflags[self:get_attr("shadow")])
@@ -1050,7 +1049,7 @@ M.SpotLight = StaticEntity:clone {
     end,
 
     __get_edit_info = func(self)
-        return format("radius :\f2 %d", self:get_attr("radius"))
+        return ("radius :\f2 %d"):format(self:get_attr("radius"))
     end
 }
 
@@ -1082,7 +1081,7 @@ M.Envmap = StaticEntity:clone {
     end,
 
     __get_edit_info = func(self)
-        return format("radius :\f2 %d", self:get_attr("radius"))
+        return ("radius :\f2 %d"):format(self:get_attr("radius"))
     end
 }
 
@@ -1135,8 +1134,8 @@ M.Sound = StaticEntity:clone {
     end],
 
     __get_edit_info = func(self)
-        return format("radius :\f2 %d \f7| size :\f2 %d \f7| volume :\f2 %d"
-            ~ "\n\f7name :\f2 %s",
+        return ("radius :\f2 %d \f7| size :\f2 %d \f7| volume :\f2 %d"
+            ~ "\n\f7name :\f2 %s"):format(
             self:get_attr("radius"), self:get_attr("size"),
             self:get_attr("volume"), self:get_attr("sound_name"))
     end,
@@ -1244,8 +1243,8 @@ M.Mapmodel = StaticEntity:clone {
     end],
 
     __get_edit_info = func(self)
-        return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d \f7|"
-            ~ " scale :\f2 %d\n\f7name :\f2 %s",
+        return ("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d \f7|"
+            ~ " scale :\f2 %d\n\f7name :\f2 %s"):format(
             self:get_attr("yaw"), self:get_attr("pitch"),
             self:get_attr("roll"), self:get_attr("scale"),
             self:get_attr("model_name"))
@@ -1315,8 +1314,8 @@ M.Obstacle = StaticEntity:clone {
     end,
 
     __get_edit_info = func(self)
-        return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
-            ~ "a :\f2 %d \f7| b :\f2 %d \f7| c :\f2 %d \f7| solid :\f2 %d",
+        return ("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
+            ~ "a :\f2 %d \f7| b :\f2 %d \f7| c :\f2 %d \f7| solid :\f2 %d"):format(
             self:get_attr("yaw"),  self:get_attr("pitch"),
             self:get_attr("roll"), self:get_attr("a"),
             self:get_attr("b"),    self:get_attr("c"), self:get_attr("solid"))
@@ -1363,8 +1362,8 @@ M.Decal = StaticEntity:clone {
     end,
 
     __get_edit_info = func(self)
-        return format("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
-            ~ "slot :\f2 %d \f7| size :\f2 %d",
+        return ("yaw :\f2 %d \f7| pitch :\f2 %d \f7| roll :\f2 %d\n\f7"
+            ~ "slot :\f2 %d \f7| size :\f2 %d"):format(
             self:get_attr("yaw"),  self:get_attr("pitch"),
             self:get_attr("roll"), self:get_attr("slot"),
             self:get_attr("size"))
