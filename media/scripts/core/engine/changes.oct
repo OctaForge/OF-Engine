@@ -13,7 +13,7 @@ import core.events.signal
 
 from core.externals import set as set_external
 
-from std.table import pairs
+from std.table import pairs, filter, map
 
 var needsapply = {}
 
@@ -52,7 +52,7 @@ end
 M.clear = func(ctype)
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
-    needsapply = table.filter(needsapply, func(i, v)
+    needsapply = filter(needsapply, func(i, v)
         if (v.ctype & ctype) == 0 do
             return true
         end
@@ -90,7 +90,7 @@ end
     Returns a table of all queued changes' descriptions.
 */
 M.get = func()
-    return table.map(needsapply, func(v) return v.desc end)
+    return map(needsapply, func(v) return v.desc end)
 end
 
 return M

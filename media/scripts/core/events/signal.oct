@@ -10,10 +10,8 @@
 
 import core.logger as log
 
-from std.table import rawget, rawset
+from std.table import rawget, rawset, find as tfind
 from std.math import clamp
-
-var tfind = table.find
 
 /// Module: signal
 var M = {}

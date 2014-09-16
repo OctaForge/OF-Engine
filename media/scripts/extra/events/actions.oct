@@ -17,9 +17,7 @@ var M = {}
 var Action = actions.Action
 var ActionQueue = actions.ActionQueue
 
-var compact = table.compact
-
-from std.table import ipairs
+from std.table import ipairs, compact
 
 /**
     A container action that can queue more actions into itself, which run on

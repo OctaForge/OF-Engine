@@ -13,11 +13,10 @@ var root = gui.get_root()
 
 var Color = gui.Color
 var connect = signal.connect
-var sort = table.sort
 
 from std.conv import tostring
 from std.math import min
-from std.table import pairs, ipairs
+from std.table import pairs, ipairs, sort
 
 // buttons
 

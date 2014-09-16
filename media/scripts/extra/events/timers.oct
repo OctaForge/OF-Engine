@@ -11,12 +11,14 @@
 /// Module: timers
 var M = {}
 
+from std.table import Object
+
 /**
     A general use timer. It's not automatically managed - you have to simulate
     it yourself using the provided methods. That makes it flexible for various
     scenarios (where the timing is not managed by the general event loop).
 */
-M.Timer = table.Object:clone {
+M.Timer = Object:clone {
     name = "Timer",
 
     /**

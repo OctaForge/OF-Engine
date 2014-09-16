@@ -22,7 +22,7 @@ var INFO  = logging.INFO
 import core.events.frame
 import core.lua.geom
 
-from std.table import rawget, rawset
+from std.table import rawget, rawset, Object
 from std.math import abs, round, floor
 from std.conv import tonumber, tostring
 from std.util import assert
@@ -88,7 +88,7 @@ end
           the value will be cached for better performance (so we don't always
           have to query).
 */
-M.StateVariable = table.Object:clone {
+M.StateVariable = Object:clone {
     name = "StateVariable",
 
     /// Makes svar objects return their name on tostring.
@@ -315,7 +315,7 @@ M.StateBoolean = StateVariable:clone {
 }
 StateBoolean = M.StateBoolean
 
-var ts, td = table.serialize, table.deserialize
+from std.table import serialize as ts, deserialize as td
 
 /**
     Specialization of $StateVariable for table values. Overrides
@@ -445,7 +445,7 @@ M.ArraySurrogate = {
 }
 ArraySurrogate = M.ArraySurrogate
 
-var tc, tcc, map = table.copy, table.concat, table.map
+from std.table import copy as tcopy, concat as tconcat, map
 
 /**
     Specialization of <StateVariable> for arrays. Uses $ArraySurrogate
@@ -498,7 +498,7 @@ M.StateArray = StateVariable:clone {
         svar:write_tests(self)
 
         self:set_sdata(svar.name,
-            val.to_array and val:to_array() or tc(val), -1)
+            val.to_array and val:to_array() or tcopy(val), -1)
     end,
 
     /** Function: to_wire_item
@@ -522,7 +522,7 @@ M.StateArray = StateVariable:clone {
         array or an array surrogate.
     */
     to_wire = func(self, val)
-        return "[" ~ tcc(map(val.to_array and val:to_array() or val,
+        return "[" ~ tconcat(map(val.to_array and val:to_array() or val,
             self.to_wire_item), self.separator) ~ "]"
     end,
 

@@ -31,13 +31,10 @@ from core.externals import set as set_external
 
 var var_get, var_set = cs.var_get, cs.var_set
 
-// external locals
-var emit  = signal.emit
+var emit = signal.emit
 
-var tremove = table.remove
-var tinsert = table.insert
-
-from std.table import rawget, rawset, pairs, ipairs
+from std.table import rawget, rawset, pairs, ipairs, Object, remove as tremove,
+    insert as tinsert
 from std.util import select
 from std.math import min, max, clamp, floor, ceil
 from std.util import assert
@@ -360,7 +357,7 @@ M.orient = {:
 :}
 var orient = M.orient
 
-var Projection = table.Object:clone {
+var Projection = Object:clone {
     __ctor = func(self, obj)
         self.obj = obj
         self.px, self.py, self.pw, self.ph = 0, 0, 0, 0
@@ -602,7 +599,7 @@ var Widget, Window, Tag
         - variants, states - See above.
         - container - see above.
 */
-M.Widget = register_type("Widget", table.Object, {
+M.Widget = register_type("Widget", Object, {
     /**
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting

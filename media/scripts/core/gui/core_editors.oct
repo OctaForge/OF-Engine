@@ -23,7 +23,8 @@ text_font_get_w, text_font_get_h in capi
 
 var emit = signal.emit
 
-from std.table import ipairs
+from std.table import ipairs, concat as tconcat, insert as tinsert,
+    remove as tremove
 from std.math import min, max, abs, clamp, floor
 from std.conv import tostring
 from std.util import select, assert
@@ -407,7 +408,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
 
         if #buf > 0 do
-            return table.concat(buf)
+            return tconcat(buf)
         end
     end,
 
@@ -417,7 +418,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     remove_lines = func(self, start, count)
         self._needs_calc = true
         for i in 1 to count do
-            table.remove(self.lines, start)
+            tremove(self.lines, start)
         end
     end,
 
@@ -542,7 +543,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
                 var newline = editline(tostring(current):sub(self.cx + 1))
                 current:chop(self.cx)
                 self.cy = min(#self.lines, self.cy + 1)
-                table.insert(self.lines, self.cy + 1, newline)
+                tinsert(self.lines, self.cy + 1, newline)
             else
                 current:chop(self.cx)
             end
@@ -1038,7 +1039,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
             for ch in str:gmatch(".") do
                 if filter:find(ch) do buf[#buf + 1] = ch end
             end
-            self:insert(table.concat(buf))
+            self:insert(tconcat(buf))
         end
         return true
     end,

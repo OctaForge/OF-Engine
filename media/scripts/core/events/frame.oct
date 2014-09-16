@@ -19,11 +19,9 @@ var current_time       = 0
 var current_frame_time = 0
 var last_millis        = 0
 
-from std.table import setmt
+from std.table import setmt, copy
 
 var ents, get_ents, get_highest_uid
-
-var copy = table.copy
 
 /**
     Executed per frame from C++. It handles the current frame, meaning

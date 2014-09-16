@@ -11,11 +11,10 @@
 import capi
 import core.events.signal
 
-var find = table.find
-var tremove = table.remove
 var emit = signal.emit
 
 from std.math import min, max, abs, sin, pi
+from std.table import remove as tremove, find
 
 var get_curtime = capi.get_curtime
 

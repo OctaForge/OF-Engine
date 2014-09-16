@@ -30,15 +30,12 @@ import core.engine.model
 
 from core.externals import set as set_external
 
-var filter, filter_map, map, sort, concat, find, serialize, deserialize
-    = table.filter, table.filter_map, table.map, table.sort,
-      table.concat, table.find, table.serialize, table.deserialize
-
 from core.lua.geom import Vec3
 
 var emit = signal.emit
 
-from std.table import pairs, ipairs
+from std.table import pairs, ipairs, filter, filter_map, map, sort, concat,
+    find, serialize, deserialize, Object
 from std.math import max, floor
 from std.conv import tonumber, tostring
 from std.table import unpack
@@ -735,7 +732,7 @@ set_external("entities_save_all", M.save)
         it will be saved during map save; if not, it's only temporary (and it
         will disappear when the map ends)
 */
-M.Entity = table.Object:clone {
+M.Entity = Object:clone {
     name = "Entity",
 
     /**

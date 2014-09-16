@@ -11,13 +11,14 @@
 import capi
 
 var ctable = capi.table_create
-var tconc = table.concat
 
 from core.externals import set as ext_set
 
 from std.conv import tonumber, tostring
 from std.math import floor, log
-from std.table import ipairs
+from std.table import ipairs, concat as tconc
+
+import std.table
 
 /**
     Checks whether the given table is an array (that is, contains only a

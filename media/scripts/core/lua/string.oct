@@ -15,6 +15,7 @@
 */
 
 import std.string
+from std.table import concat as tconcat
 
 /**
     Splits a string using the given parameters.
@@ -47,7 +48,7 @@ end
         - count - the number of characters to delete.
 */
 string.del = func(str, start, count)
-    return table.concat { str:sub(1, start - 1), str:sub(start + count) }
+    return tconcat { str:sub(1, start - 1), str:sub(start + count) }
 end
 
 /**
@@ -59,7 +60,7 @@ end
         - new - the string to insert.
 */
 string.insert = func(str, idx, new)
-    return table.concat { str:sub(1, idx - 1), new, str:sub(idx) }
+    return tconcat { str:sub(1, idx - 1), new, str:sub(idx) }
 end
 
 from std.table import setmt
