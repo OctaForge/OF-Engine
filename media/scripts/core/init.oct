@@ -9,11 +9,13 @@
         See COPYING.txt.
 */
 
+import std.table
+
 /** Object: _G
     Sets up the default _G metatable in that way it won't allow creation
     of global variables and usage of non-existent global variables.
 */
-setmetatable(_G, {
+table.setmt(_G, {
     __newindex = func(self, n)
         raise[2] "attempt to create a global variable '" ~ n ~ "'"
     end,

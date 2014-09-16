@@ -1110,10 +1110,15 @@ local StatementRule = {
             self:expr_tonextreg(node.modname)
             self.ctx.freereg = base
             self.ctx:op_call(base, 1, 1)
+            self.ctx.freereg = free
             for i = 1, #fields do
                 self.ctx:op_tget(free + (i - 1), base,
                     self:property_tagged(fields[i][1]))
+            end
+            self.ctx.freereg = free
+            for i = 1, #fields do
                 self.ctx:newvar(fields[i][2].name, free + (i - 1))
+                self.ctx:nextreg()
             end
         else
             gen_ident(self, "__rt_import", free)

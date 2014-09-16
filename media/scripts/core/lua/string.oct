@@ -60,7 +60,9 @@ string.insert = func(str, idx, new)
     return table.concat { str:sub(1, idx - 1), new, str:sub(idx) }
 end
 
-var str_escapes = setmetatable({
+from std.table import setmt
+
+var str_escapes = setmt({
     ["\n"] = "\\n", ["\r"] = "\\r",
     ["\a"] = "\\a", ["\b"] = "\\b",
     ["\f"] = "\\f", ["\t"] = "\\t",

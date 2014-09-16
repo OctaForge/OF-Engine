@@ -948,7 +948,9 @@ M.OrientedMarker = StaticEntity:clone {
 }
 var OrientedMarker = M.OrientedMarker
 
-var lightflags = setmetatable({
+from std.table import setmt
+
+var lightflags = setmt({
     [0] = "dynamic (0)",
     [1] = "none (1)",
     [2] = "static (2)"

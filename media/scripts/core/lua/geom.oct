@@ -980,7 +980,8 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
 M.Vec4 = Vec4
 
 var newproxy = newproxy
-var getmt, setmt = getmetatable, setmetatable
+
+from std.table import getmt, setmt
 
 var ntoi2 = { x = 1, y = 2 }
 var ntoi3 = { x = 1, y = 2, z = 3, r = 1, g = 2, b = 3 }

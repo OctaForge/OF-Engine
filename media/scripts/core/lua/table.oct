@@ -12,7 +12,6 @@ import capi
 
 var ctable = capi.table_create
 var pairs, ipairs = pairs, ipairs
-var setmetatable = setmetatable
 var rawget, rawset = rawget, rawset
 var tostring = tostring
 var tconc = table.concat
@@ -680,6 +679,8 @@ end
 // Object system
 //
 
+from std.table import setmt
+
 /**
     Provides the basis for any object in OF. It implements a simple prototypal
     OO system.
@@ -696,7 +697,7 @@ table.Object = {
             __index = self, __proto = self, __call = self.__call,
             __tostring = self.__tostring
         }
-        setmetatable(r, r)
+        setmt(r, r)
         if self.__ctor do self.__ctor(r, ...) end
         return r
     end,
@@ -717,7 +718,7 @@ table.Object = {
         tbl = tbl or {}
         tbl.__index, tbl.__proto, tbl.__call = self, self, self.__call
         if not tbl.__tostring do tbl.__tostring = self.__tostring end
-        setmetatable(tbl, tbl)
+        setmt(tbl, tbl)
         return tbl
     end,
 
