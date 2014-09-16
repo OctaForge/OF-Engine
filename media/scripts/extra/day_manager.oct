@@ -17,7 +17,7 @@ import core.engine.edit
 
 var connect, emit = signal.connect, signal.emit
 
-var assert = assert
+from std.util import assert
 
 var get
 

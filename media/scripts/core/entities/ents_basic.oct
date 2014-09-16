@@ -35,7 +35,7 @@ from core.externals import set as set_external
 var Entity = ents.Entity
 var ent_get = ents.get
 
-var assert, tonumber, tostring = assert, tonumber, tostring
+var tonumber, tostring = tonumber, tostring
 var connect, emit = signal.connect, signal.emit
 var format = string.format
 var abs = math.abs
@@ -43,6 +43,8 @@ var tconc = table.concat
 var min, max = math.min, math.max
 var clamp = math.clamp
 var map = table.map
+
+from std.util import assert
 
 var set_attachments = capi.set_attachments
 

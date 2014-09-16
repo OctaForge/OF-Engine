@@ -182,7 +182,7 @@ var GameManager = Entity:clone {
     set_local_animation_flags = func(self) end
 }
 
-var assert = assert
+from std.util import assert
 
 var gameman
 

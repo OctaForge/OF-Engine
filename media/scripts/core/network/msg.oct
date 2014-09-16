@@ -11,7 +11,7 @@
 /// Module: msg
 var M = {}
 
-var assert = assert
+from std.util import assert
 
 import capi
 

@@ -39,10 +39,10 @@ from core.lua.geom import Vec3
 var emit = signal.emit
 var max, floor = math.max, math.floor
 var pairs = pairs
-var assert = assert
 var tonumber, tostring = tonumber, tostring
 
 from std.table import unpack
+from std.util import assert
 
 /// Module: ents
 var M = {}
@@ -130,7 +130,6 @@ var plugin_slots = {
 }
 
 var ipairs, pairs = ipairs, pairs
-var assert = assert
 
 var modprefix = "_PLUGINS_"
 

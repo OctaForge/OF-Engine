@@ -27,6 +27,8 @@ var tostring, tonumber, abs, round, floor = tostring, tonumber,
 
 from std.table import rawget, rawset
 
+from std.util import assert
+
     /// Module: svars
 var M = {}
 

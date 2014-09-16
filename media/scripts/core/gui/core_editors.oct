@@ -29,7 +29,7 @@ var floor = math.floor
 var emit  = signal.emit
 var tostring = tostring
 
-from std.util import select
+from std.util import select, assert
 
 /// Module: core
 import core.gui.core as M

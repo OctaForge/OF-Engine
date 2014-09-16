@@ -16,7 +16,7 @@ var M = {}
 import capi
 import ffi
 
-var assert = assert
+from std.util import assert
 
 ffi.cdef r"""
     typedef struct particle_t {

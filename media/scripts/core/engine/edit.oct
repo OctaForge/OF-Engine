@@ -264,7 +264,7 @@ var edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
 edit_raw_edit_material, edit_raw_flip, edit_raw_rotate, edit_raw_edit_vslot,
 edit_get_world_size in capi
 
-var assert = assert
+from std.util import assert
 
 var clamp = math.clamp
 

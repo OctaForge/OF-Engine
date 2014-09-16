@@ -179,7 +179,8 @@ end
 
 /// Module: input
 var M = {}
-var assert = assert
+
+from std.util import assert
 
 /**
     Sets an event callback. If the callback is not provided, the default
