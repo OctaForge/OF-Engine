@@ -28,8 +28,8 @@ var clamp = math.clamp
 var floor = math.floor
 var emit  = signal.emit
 
+from std.table import ipairs
 from std.conv import tostring
-
 from std.util import select, assert
 
 /// Module: core

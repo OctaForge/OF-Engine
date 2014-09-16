@@ -13,6 +13,8 @@ import core.events.signal
 
 from core.externals import set as set_external
 
+from std.table import pairs
+
 var needsapply = {}
 
 var M = {}

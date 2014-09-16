@@ -13,7 +13,7 @@ import capi
 import ffi
 import core.logger as log
 
-from std.table import rawget, rawset
+from std.table import rawget, rawset, pairs
 
 var gen_vec2 = func(tp, sf, mt)
     ffi.cdef((r"""

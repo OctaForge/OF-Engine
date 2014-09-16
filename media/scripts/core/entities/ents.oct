@@ -38,7 +38,8 @@ from core.lua.geom import Vec3
 
 var emit = signal.emit
 var max, floor = math.max, math.floor
-var pairs = pairs
+
+from std.table import pairs, ipairs
 
 from std.conv import tonumber, tostring
 
@@ -129,8 +130,6 @@ end
 var plugin_slots = {
     "__init_svars", "__activate", "__deactivate", "__run", "__render"
 }
-
-var ipairs, pairs = ipairs, pairs
 
 var modprefix = "_PLUGINS_"
 

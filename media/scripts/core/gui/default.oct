@@ -17,6 +17,7 @@ var max = math.max
 var sort = table.sort
 
 from std.conv import tostring
+from std.table import pairs, ipairs
 
 // buttons
 

@@ -15,6 +15,8 @@ var M = {}
 
 import capi
 
+from std.table import ipairs
+
 var ran = capi.model_register_anim
 
 /**

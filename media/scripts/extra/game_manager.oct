@@ -90,7 +90,8 @@ M.player_plugin = {
     end
 }
 
-var pairs, ipairs = pairs, ipairs
+from std.table import pairs, ipairs
+
 var tremove = table.remove
 var rand, floor = math.random, math.floor
 

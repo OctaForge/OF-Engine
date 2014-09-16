@@ -4,6 +4,7 @@ import core.gui.core as gui
 import core.engine.cubescript as cs
 
 from std.conv import tostring
+from std.table import ipairs
 
 var abs = math.abs
 
