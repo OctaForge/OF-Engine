@@ -902,10 +902,15 @@ local StatementRule = {
         self.ctx:setreg(tbase)
         self:expr_toreg(node.expression, tbase)
 
+        self.ctx.freereg = base
         for i = 1, nvars do
             self.ctx:op_tget(base + (i - 1), tbase,
                 self:property_tagged(node.names[i].name))
+        end
+        self.ctx.freereg = base
+        for i = 1, nvars do
             self.ctx:newvar(node.names[i].name, base + (i - 1))
+            self.ctx:nextreg()
         end
     end,
 
