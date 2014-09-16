@@ -26,6 +26,8 @@ local util = require("octascript.util")
 
 rawset(_G, "__rt_core", require("octascript.rt"))
 
+require("octascript.std")
+
 local M = {}
 
 local io_open, load, error = io.open, load, error
