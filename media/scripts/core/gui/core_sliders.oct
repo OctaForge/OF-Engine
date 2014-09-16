@@ -13,12 +13,9 @@ import core.events.signal
 
 var get_millis in capi
 
-var max   = math.max
-var min   = math.min
-var abs   = math.abs
-var clamp = math.clamp
-var round = math.round
-var emit  = signal.emit
+from std.math import min, max, abs, clamp, round
+
+var emit = signal.emit
 
 /// Module: core
 import core.gui.core as M

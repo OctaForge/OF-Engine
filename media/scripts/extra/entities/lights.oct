@@ -64,8 +64,8 @@ var DynamicLight = Marker:clone {
 }
 M.DynamicLight = DynamicLight
 
-var max, random = math.max, math.random
-var floor = math.floor
+from std.math import max, random, floor
+
 var flash_flag = lights.flags.FLASH
 
 /** Object: lights.FlickeringLight

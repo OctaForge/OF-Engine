@@ -24,10 +24,9 @@ import core.entities.ents
 import extra.events.actions as eactions
 
 from std.conv import tostring
+from std.math import min, max, floor
 
 var connect, emit = signal.connect, signal.emit
-var min, max = math.min, math.max
-var floor = math.floor
 
 /**
     This module adds three new animations, "dead", "dying" and "pain",

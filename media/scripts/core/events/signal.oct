@@ -11,8 +11,8 @@
 import core.logger as log
 
 from std.table import rawget, rawset
+from std.math import clamp
 
-var clamp = math.clamp
 var tfind = table.find
 
 /// Module: signal

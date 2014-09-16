@@ -10,7 +10,8 @@
 
 import core.logger as log
 
-var floor, min, max, abs = math.floor, math.min, math.max, math.abs
+import std.math
+from std.math import floor, min, max, abs
 
 /**
     Rounds a given number and returns it. The second argument can be used to

@@ -37,12 +37,10 @@ var filter, filter_map, map, sort, concat, find, serialize, deserialize
 from core.lua.geom import Vec3
 
 var emit = signal.emit
-var max, floor = math.max, math.floor
 
 from std.table import pairs, ipairs
-
+from std.math import max, floor
 from std.conv import tonumber, tostring
-
 from std.table import unpack
 from std.util import assert
 

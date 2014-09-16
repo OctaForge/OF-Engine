@@ -21,14 +21,10 @@ shader_hudnotexture_set, shader_hud_set, gle_color4ub, gle_defvertexf,
 gle_begin, gle_end, gle_attrib2f, text_font_push, text_font_pop, text_font_set,
 text_font_get_w, text_font_get_h in capi
 
-var max   = math.max
-var min   = math.min
-var abs   = math.abs
-var clamp = math.clamp
-var floor = math.floor
-var emit  = signal.emit
+var emit = signal.emit
 
 from std.table import ipairs
+from std.math import min, max, abs, clamp, floor
 from std.conv import tostring
 from std.util import select, assert
 

@@ -9,10 +9,7 @@
         See COPYING.txt.
 */
 
-var max  = math.max
-var min  = math.min
-var abs  = math.abs
-var huge = math.huge
+from std.math import min, max, abs, huge
 
 /// Module: core
 import core.gui.core as M

@@ -32,19 +32,14 @@ from core.externals import set as set_external
 var var_get, var_set = cs.var_get, cs.var_set
 
 // external locals
-var max   = math.max
-var min   = math.min
-var clamp = math.clamp
-var floor = math.floor
-var ceil  = math.ceil
 var emit  = signal.emit
 
 var tremove = table.remove
 var tinsert = table.insert
 
-from std.util import select
-
 from std.table import rawget, rawset, pairs, ipairs
+from std.util import select
+from std.math import min, max, clamp, floor, ceil
 from std.util import assert
 
 /// Module: core

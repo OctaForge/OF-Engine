@@ -13,10 +13,10 @@ var root = gui.get_root()
 
 var Color = gui.Color
 var connect = signal.connect
-var max = math.max
 var sort = table.sort
 
 from std.conv import tostring
+from std.math import min
 from std.table import pairs, ipairs
 
 // buttons
@@ -467,7 +467,7 @@ var get_logo = func(root, win)
     if  hw_tex_size == 0 do
         hw_tex_size = cs.var_get("hwtexsize")
     end
-    var sz = ((max_tex_size != 0) and math.min(max_tex_size, hw_tex_size)
+    var sz = ((max_tex_size != 0) and min(max_tex_size, hw_tex_size)
                                      or hw_tex_size)
     var w, h = root:get_pixel_w(), root:get_pixel_h()
     var logo
@@ -479,7 +479,7 @@ var get_logo = func(root, win)
     win.x, win.y, win.parent, win._root = 0, 0, root, root
     var proj = win:get_projection()
     proj:calc()
-    var lw = math.min(proj.pw, proj.ph)
+    var lw = min(proj.pw, proj.ph)
     return logo, lw, lw / 2
 end
 

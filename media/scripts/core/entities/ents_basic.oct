@@ -36,12 +36,10 @@ var Entity = ents.Entity
 var ent_get = ents.get
 
 from std.conv import tonumber
+from std.math import abs, min, max, clamp
 
 var connect, emit = signal.connect, signal.emit
-var abs = math.abs
 var tconc = table.concat
-var min, max = math.min, math.max
-var clamp = math.clamp
 var map = table.map
 
 from std.util import assert

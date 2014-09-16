@@ -26,16 +26,10 @@ hudmatrix_flush, hudmatrix_pop, hudmatrix_translate, text_draw,
 text_get_bounds, text_font_push, text_font_pop, text_font_set,
 console_render_full, text_font_get_w, text_font_get_h, prefab_preview in capi
 
-var max   = math.max
-var min   = math.min
-var abs   = math.abs
-var clamp = math.clamp
-var floor = math.floor
-var ceil  = math.ceil
-var huge  = math.huge
-var emit  = signal.emit
+var emit = signal.emit
 
 from std.conv import tostring
+from std.math import min, max, abs, clamp, floor, ceil, huge
 
 var Vec2 = geom.Vec2
 var sincosmod360 = geom.sin_cos_mod_360

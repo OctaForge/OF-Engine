@@ -14,6 +14,7 @@ import ffi
 import core.logger as log
 
 from std.table import rawget, rawset, pairs
+from std.math import sin, cos, abs, min, max, sqrt, floor, atan2, asin, deg
 
 var gen_vec2 = func(tp, sf, mt)
     ffi.cdef((r"""
@@ -45,12 +46,9 @@ var gen_vec4 = func(tp, sf, mt)
 end
 
 var ffi_new = ffi.new
-var sin, cos, abs, min, max, sqrt, floor = math.sin, math.cos, math.abs,
-    math.min, math.max, math.sqrt, math.floor
 var clamp = func(v, l, h)
     return max(l, min(v, h))
 end
-var atan2, asin, deg = math.atan2, math.asin, math.deg
 
 var iton = { [0] = "x", [1] = "y", [2] = "z" }
 

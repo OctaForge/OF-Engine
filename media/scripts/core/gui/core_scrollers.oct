@@ -13,9 +13,8 @@ import core.events.signal
 
 var get_curtime = capi.get_curtime
 
-var max   = math.max
-var min   = math.min
-var clamp = math.clamp
+from std.math import min, max, clamp
+
 var emit  = signal.emit
 
 /// Module: core

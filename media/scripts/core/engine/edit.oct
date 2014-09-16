@@ -265,8 +265,7 @@ edit_raw_edit_material, edit_raw_flip, edit_raw_rotate, edit_raw_edit_vslot,
 edit_get_world_size in capi
 
 from std.util import assert
-
-var clamp = math.clamp
+from std.math import clamp
 
 /** Object: Selection
     Represents a selection structure that can be used for procedural editing.

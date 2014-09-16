@@ -13,9 +13,9 @@ import core.events.signal
 
 var find = table.find
 var tremove = table.remove
-var min, max = math.min, math.max
-var abs = math.abs
 var emit = signal.emit
+
+from std.math import min, max, abs, sin, pi
 
 var get_curtime = capi.get_curtime
 
@@ -216,8 +216,6 @@ M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
     end
 })
 
-var sin, pi = math.sin, math.pi
-
 var move_funcs = {
     ["linear,x" ] = func(p) return 1, 0 end,
     ["linear,y" ] = func(p) return 0, 1 end,
@@ -235,8 +233,6 @@ var move_funcs = {
     ["sinusoidal,y" ] = func(p) return 0,           sin(p * pi) end,
     ["sinusoidal,xy"] = func(p) return sin(p * pi), sin(p * pi) end
 }
-
-var min = math.min
 
 M.Animator = register_type("Animator", Widget, {
     __ctor = func(self, kwargs)

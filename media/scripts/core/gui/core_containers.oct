@@ -8,8 +8,7 @@
         See COPYING.txt.
 */
 
-var max = math.max
-var min = math.min
+from std.math import min, max
 
 from capi import table_create as createtable
 

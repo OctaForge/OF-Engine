@@ -13,7 +13,7 @@ import core.entities.ents
 import core.entities.svars
 import core.engine.particles
 
-var min, rand = math.min, math.random
+from std.math import min, random as rand
 
 var flame, splash = particles.flame, particles.splash
 var pflags = particles.flags

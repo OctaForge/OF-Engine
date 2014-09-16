@@ -91,9 +91,9 @@ M.player_plugin = {
 }
 
 from std.table import pairs, ipairs
+from std.math import random as rand, floor
 
 var tremove = table.remove
-var rand, floor = math.random, math.floor
 
 var Entity = ents.Entity
 

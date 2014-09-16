@@ -11,6 +11,8 @@
 /// Module: conv
 var M = {}
 
+from std.math import min, max, floor
+
 /**
     Converts an integral value to be treated as hexadecimal color code to
     r, g, b values (ranging 0-255). Returns three separate values.
@@ -32,8 +34,8 @@ end
 */
 M.rgb_to_hsl = func(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
-    var mx = math.max(r, g, b)
-    var mn = math.min(r, g, b)
+    var mx = max(r, g, b)
+    var mn = min(r, g, b)
     var h, s
     var l = (mx + mn) / 2
 
@@ -58,8 +60,8 @@ end
 */
 M.rgb_to_hsv = func(r, g, b)
     r, g, b = (r / 255), (g / 255), (b / 255)
-    var mx = math.max(r, g, b)
-    var mn = math.min(r, g, b)
+    var mx = max(r, g, b)
+    var mn = min(r, g, b)
     var h, s
     var v = mx
 
@@ -117,7 +119,7 @@ end
 M.hsv_to_rgb = func(h, s, v)
     var r, g, b
 
-    var i = math.floor(h * 6)
+    var i = floor(h * 6)
     var f = h * 6 - i
     var p = v * (1 - s)
     var q = v * (1 - f * s)

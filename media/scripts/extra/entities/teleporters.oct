@@ -18,8 +18,7 @@ var play = sound.play
 var connect = signal.connect
 var get_by_tag = ents.get_by_tag
 
-var rand = math.random
-
+from std.math import random as rand
 from std.table import unpack
 
 /// Module: teleporters

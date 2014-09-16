@@ -22,9 +22,8 @@ var INFO  = logging.INFO
 import core.events.frame
 import core.lua.geom
 
-var abs, round, floor = math.abs, math.round, math.floor
-
 from std.table import rawget, rawset
+from std.math import abs, round, floor
 from std.conv import tonumber, tostring
 from std.util import assert
 
