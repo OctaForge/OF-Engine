@@ -43,6 +43,10 @@ var pairs, ipairs = pairs, ipairs
 var tremove = table.remove
 var tinsert = table.insert
 
+from std.util import select
+
+from std.table import rawget, rawset
+
 /// Module: core
 var M = {}
 

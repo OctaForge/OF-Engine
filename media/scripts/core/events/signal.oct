@@ -10,7 +10,8 @@
 
 import core.logger as log
 
-var rawget, rawset = rawget, rawset
+from std.table import rawget, rawset
+
 var clamp = math.clamp
 var tfind = table.find
 

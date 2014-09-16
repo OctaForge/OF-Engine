@@ -12,7 +12,6 @@ import capi
 
 var ctable = capi.table_create
 var pairs, ipairs = pairs, ipairs
-var rawget, rawset = rawget, rawset
 var tostring = tostring
 var tconc = table.concat
 var floor, log = math.floor, math.log

@@ -90,7 +90,8 @@ local std = {
         _VERSION     = "OctaScript 0.1",
         proxy        = newproxy,
         rawequal     = rawequal,
-        assert       = assert
+        assert       = assert,
+        select       = select
     },
 }
 

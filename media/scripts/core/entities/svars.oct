@@ -22,8 +22,10 @@ var INFO  = logging.INFO
 import core.events.frame
 import core.lua.geom
 
-var tostring, tonumber, abs, round, floor, rawget = tostring, tonumber,
-    math.abs, math.round, math.floor, rawget
+var tostring, tonumber, abs, round, floor = tostring, tonumber,
+    math.abs, math.round, math.floor
+
+from std.table import rawget, rawset
 
     /// Module: svars
 var M = {}

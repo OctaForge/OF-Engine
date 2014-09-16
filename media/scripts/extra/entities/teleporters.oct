@@ -19,7 +19,8 @@ var connect = signal.connect
 var get_by_tag = ents.get_by_tag
 
 var rand = math.random
-var unpack = unpack
+
+from std.table import unpack
 
 /// Module: teleporters
 var M = {}

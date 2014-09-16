@@ -42,6 +42,8 @@ var pairs = pairs
 var assert = assert
 var tonumber, tostring = tonumber, tostring
 
+from std.table import unpack
+
 /// Module: ents
 var M = {}
 

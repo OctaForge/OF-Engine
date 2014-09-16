@@ -13,6 +13,8 @@ import capi
 import ffi
 import core.logger as log
 
+from std.table import rawget, rawset
+
 var gen_vec2 = func(tp, sf, mt)
     ffi.cdef((r"""
         typedef struct vec2%s_t {
