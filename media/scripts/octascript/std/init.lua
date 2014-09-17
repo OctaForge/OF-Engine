@@ -83,12 +83,7 @@ local std = {
         get = getfenv,
         set = setfenv
     },
-    eval = {
-        load       = load,
-        dofile     = dofile,
-        loadfile   = loadfile,
-        loadstring = loadstring
-    },
+    eval = {},
     gc = {
         collect = collectgarbage,
         info    = gcinfo
@@ -119,6 +114,55 @@ local compile = function(fname, src)
     return bcode
 end
 std.eval.compile = compile
+
+local tconc, type = table.concat, type
+local pcall = pcall
+local io_read = io.read
+
+std.eval.load = function(ld, chunkname, mode, env)
+    if type(ld) ~= "string" then
+        local buf = {}
+        local ret = ld()
+        while ret do
+            buf[#buf + 1] = ret
+            ret = ld()
+        end
+        ld = tconc(buf)
+        chunkname = chunkname or "=(load)"
+    else
+        chunkname = chunkname or ld
+    end
+    local ret, parsed = pcall(compile, chunkname, ld)
+    if not ret then return nil, parsed end
+    return load(parsed, chunkname, mode, env)
+end
+std.eval.loadstring = std.eval.load
+
+local read_file = function(fname)
+    if not fname then
+        return io_read("*all"), "=stdin"
+    end
+    local  file, err = io_open(fname, "rb")
+    if not file then return file, err end
+    local cont = file:read("*all")
+    file:close()
+    return cont, "@" .. fname
+end
+
+local loadfile_f = function(fname, mode, env)
+    local  file, chunkname = read_file(fname)
+    if not file then return file, chunkname end
+    local ret, parsed = pcall(compile, chunkname, file)
+    if not ret then return nil, parsed end
+    return load(parsed, chunkname, mode, env)
+end
+std.eval.loadfile = loadfile_f
+
+std.eval.dofile = function(fname)
+    local  func, err = loadfile_f(fname)
+    if not func then error(err, 0) end
+    return func()
+end
 
 rt.import = require
 
