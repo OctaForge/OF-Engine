@@ -28,8 +28,6 @@ M.type = function(v)
     return type(v)
 end
 
-M.import = require
-
 M.pcall = pcall
 M.xpcall = xpcall
 M.error = error

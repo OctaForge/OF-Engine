@@ -92,8 +92,14 @@ local std = {
         assert       = assert,
         select       = select
     },
+    ["jit.opt"] = require("jit.opt"),
+    ["jit.util"] = require("jit.util")
 }
 
 for k, v in pairs(std) do
     loaded["std." .. k] = v
 end
+
+local rt = require("octascript.rt")
+
+rt.import = require
