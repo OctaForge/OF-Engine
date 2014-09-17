@@ -115,6 +115,30 @@ local compile = function(fname, src)
 end
 std.eval.compile = compile
 
+local io_open, load, error = io.open, load, error
+local spath = package.searchpath
+
+package.loaders[2] = function(modname, ppath)
+    local  fname, err = spath(modname, ppath or package.path)
+    if not fname then return err end
+    local file = io_open(fname, "rb")
+    local toparse = file:read("*all")
+    file:close()
+    local chunkname = "@" .. fname
+    local parsed
+    if fname:sub(#fname - 3) == ".lua" then
+        parsed = toparse
+    else
+        parsed = compile(chunkname, toparse)
+    end
+    local f, err = load(parsed, chunkname)
+    if not f then
+        error("error loading module '" .. modname .. "' from file '"
+            .. fname .. "':\n" .. err, 2)
+    end
+    return f
+end
+
 local tconc, type = table.concat, type
 local pcall = pcall
 local io_read = io.read
