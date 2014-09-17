@@ -44,6 +44,7 @@ local std = {
     jit = require("jit"),
     bit = require("bit"),
     package = {
+        cond_env   = {},
         preload    = package.preload,
         path       = package.path,
         loaded     = package.loaded,
@@ -86,14 +87,7 @@ local std = {
         load       = load,
         dofile     = dofile,
         loadfile   = loadfile,
-        loadstring = loadstring,
-        compile    = function(fname, src, cond_env)
-            local succ, tree = pcall(parser.parse, fname, src, cond_env)
-            if not succ then error(select(2, util.error(tree))) end
-            local succ, bcode = pcall(generator, tree, fname)
-            if not succ then error(select(2, util.error(bcode))) end
-            return bcode
-        end
+        loadstring = loadstring
     },
     gc = {
         collect = collectgarbage,
@@ -115,7 +109,16 @@ for k, v in pairs(std) do
     loaded["std." .. k] = v
 end
 
-local rt = require("octascript.rt")
+local pkg = std.package
+
+local compile = function(fname, src)
+    local succ, tree = pcall(parser.parse, fname, src, pkg.cond_env)
+    if not succ then error(select(2, util.error(tree))) end
+    local succ, bcode = pcall(generator, tree, fname)
+    if not succ then error(select(2, util.error(bcode))) end
+    return bcode
+end
+std.eval.compile = compile
 
 rt.import = require
 

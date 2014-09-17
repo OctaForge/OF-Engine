@@ -27,13 +27,9 @@ local M = {}
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
 
-local cond_env = { debug = capi.should_log(1), server = SERVER }
+std.package.cond_env = { debug = capi.should_log(1), server = SERVER }
 
-local std_compile = std.eval.compile
-
-local compile = function(fname, src)
-    return std_compile(fname, src, cond_env)
-end
+local compile = std.eval.compile
 M.compile = compile
 
 package.loaders[2] = function(modname, ppath)
