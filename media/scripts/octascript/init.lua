@@ -28,6 +28,7 @@ std.package.cond_env = { debug = capi.should_log(1), server = SERVER }
 
 local compile = std.eval.compile
 M.compile = compile
+M.env = require("octascript.rt").env
 
 capi.log(1, "OctaScript initialization complete.")
 

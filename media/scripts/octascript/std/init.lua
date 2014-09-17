@@ -11,8 +11,7 @@ local generator = require('octascript.generator')
 local util = require("octascript.util")
 
 local rt = require("octascript.rt")
-
-rawset(_G, "__rt_core", rt)
+local rt_env = rt.env
 
 local loaded = package.loaded
 
@@ -81,7 +80,8 @@ local std = {
     },
     environ = {
         get = getfenv,
-        set = setfenv
+        set = setfenv,
+        globals = rt_env
     },
     eval = {},
     gc = {
@@ -129,7 +129,7 @@ package.loaders[2] = function(modname, ppath)
     if fname:sub(#fname - 3) == ".lua" then
         f, err = load(toparse, chunkname)
     else
-        f, err = load(compile(chunkname, toparse), chunkname, "b")
+        f, err = load(compile(chunkname, toparse), chunkname, "b", rt_env)
     end
     if not f then
         error("error loading module '" .. modname .. "' from file '"
@@ -147,6 +147,7 @@ local isbcode = function(s)
 end
 
 std.eval.load = function(ld, chunkname, mode, env)
+    env = env or rt_env
     if type(ld) ~= "string" then
         local buf = {}
         local ret = ld()
@@ -181,6 +182,7 @@ local read_file = function(fname)
 end
 
 local loadfile_f = function(fname, mode, env)
+    env = env or rt_env
     local  file, chunkname = read_file(fname)
     if not file then return file, chunkname end
     if mode ~= "t" and isbcode(file) then

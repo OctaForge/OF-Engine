@@ -621,6 +621,8 @@ namespace lua
         lua_call(L, 1, 1);
         lua_getfield(L, -1, "compile");
         lua_setfield(L, LUA_REGISTRYINDEX, "octascript_compile");
+        lua_getfield(L, -1, "env");
+        lua_setfield(L, LUA_REGISTRYINDEX, "octascript_env");
         lua_pop(L, 2);
 
         load_module("init");
@@ -714,6 +716,10 @@ namespace lua
         const char *fn = newstring(fnl, s);
         lua_pop(L, 2);
         ret = lua_load(L, read_str, &rd, fn);
+        if (!ret) {
+            lua_getfield(L, LUA_REGISTRYINDEX, "octascript_env");
+            lua_setfenv(L, -2);
+        }
         delete[] dups;
         delete[] fn;
         return ret;
@@ -732,6 +738,10 @@ namespace lua
         memcpy(dups, lstr, rd.size);
         lua_pop(L, 1);
         ret = lua_load(L, read_str, &rd, ch ? ch : rd.str);
+        if (!ret) {
+            lua_getfield(L, LUA_REGISTRYINDEX, "octascript_env");
+            lua_setfenv(L, -2);
+        }
         delete[] dups;
         return ret;
     }

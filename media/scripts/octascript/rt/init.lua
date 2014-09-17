@@ -51,4 +51,6 @@ debug.setmetatable(nil, {
 
 M.print = print
 
+M.env = { __rt_core = M }
+
 return M
