@@ -702,8 +702,7 @@ namespace lua
         lua_getfield(L, LUA_REGISTRYINDEX, "octascript_compile");
         lua_pushvalue(L, fnameidx);
         lua_pushlstring(L, buf.getbuf(), buf.length());
-        lua_pushboolean(L, logger::should_log(logger::DEBUG));
-        int ret = lua_pcall(L, 3, 1, 0);
+        int ret = lua_pcall(L, 2, 1, 0);
         if (ret) return ret;
         reads rd;
         const char *lstr = lua_tolstring(L, -1, &rd.size);
@@ -724,8 +723,7 @@ namespace lua
         lua_getfield(L, LUA_REGISTRYINDEX, "octascript_compile");
         lua_pushstring(L, str);
         lua_pushvalue(L, -1);
-        lua_pushboolean(L, logger::should_log(logger::DEBUG));
-        int ret = lua_pcall(L, 3, 1, 0);
+        int ret = lua_pcall(L, 2, 1, 0);
         if (ret) return ret;
         reads rd;
         const char *lstr = lua_tolstring(L, -1, &rd.size);

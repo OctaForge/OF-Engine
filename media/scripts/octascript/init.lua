@@ -35,7 +35,7 @@ local spath = package.searchpath
 
 local cond_env = { debug = capi.should_log(1), server = SERVER }
 
-local compile = function(fname, src, cond_env)
+local compile = function(fname, src)
     local succ, tree = pcall(parser.parse, fname, src, cond_env)
     if not succ then error(select(2, util.error(tree))) end
     local succ, bcode = pcall(generator, tree, fname)
@@ -55,7 +55,7 @@ package.loaders[2] = function(modname, ppath)
     if fname:sub(#fname - 3) == ".lua" then
         parsed = toparse
     else
-        parsed = compile(chunkname, toparse, cond_env)
+        parsed = compile(chunkname, toparse)
     end
     local f, err = load(parsed, chunkname)
     if not f then
@@ -83,7 +83,7 @@ local load_new = function(ld, chunkname, mode, env)
     else
         chunkname = chunkname or ld
     end
-    local ret, parsed = pcall(compile, chunkname, ld, cond_env)
+    local ret, parsed = pcall(compile, chunkname, ld)
     if not ret then return nil, parsed end
     return load(parsed, chunkname, mode, env)
 end
@@ -102,7 +102,7 @@ end
 local loadfile_new = function(fname, mode, env)
     local  file, chunkname = read_file(fname)
     if not file then return file, chunkname end
-    local ret, parsed = pcall(compile, chunkname, file, cond_env)
+    local ret, parsed = pcall(compile, chunkname, file)
     if not ret then return nil, parsed end
     return load(parsed, chunkname, mode, env)
 end
