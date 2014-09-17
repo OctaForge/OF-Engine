@@ -167,15 +167,15 @@ local find_loader = function(modname, env)
     return nil, tconc(err)
 end
 
-rt.import = function(modname)
-    local v = pkg.loaded[modname]
+rt.import = function(modname, loaded)
+    loaded = loaded or pkg.loaded
+    local v = loaded[modname]
     if v ~= nil then return v end
     local loader, err = find_loader(modname, rt_env)
     if not loader then
         error(err, 2)
     end
     local ret = loader(modname)
-    local loaded = pkg.loaded
     if ret ~= nil then
         loaded[modname] = ret
         return ret
