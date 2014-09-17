@@ -125,13 +125,12 @@ package.loaders[2] = function(modname, ppath)
     local toparse = file:read("*all")
     file:close()
     local chunkname = "@" .. fname
-    local parsed
+    local f, err
     if fname:sub(#fname - 3) == ".lua" then
-        parsed = toparse
+        f, err = load(toparse, chunkname)
     else
-        parsed = compile(chunkname, toparse)
+        f, err = load(compile(chunkname, toparse), chunkname, "b")
     end
-    local f, err = load(parsed, chunkname)
     if not f then
         error("error loading module '" .. modname .. "' from file '"
             .. fname .. "':\n" .. err, 2)
@@ -142,6 +141,10 @@ end
 local tconc, type = table.concat, type
 local pcall = pcall
 local io_read = io.read
+
+local isbcode = function(s)
+    return s:sub(1, 3) == "\x1B\x4C\x4A"
+end
 
 std.eval.load = function(ld, chunkname, mode, env)
     if type(ld) ~= "string" then
@@ -156,9 +159,13 @@ std.eval.load = function(ld, chunkname, mode, env)
     else
         chunkname = chunkname or ld
     end
-    local ret, parsed = pcall(compile, chunkname, ld)
-    if not ret then return nil, parsed end
-    return load(parsed, chunkname, mode, env)
+    if mode ~= "t" and isbcode(ld) then
+        return load(ld, chunkname, mode, env)
+    else
+        local ret, parsed = pcall(compile, chunkname, ld)
+        if not ret then return nil, parsed end
+        return load(parsed, chunkname, "b", env)
+    end
 end
 std.eval.loadstring = std.eval.load
 
@@ -176,9 +183,13 @@ end
 local loadfile_f = function(fname, mode, env)
     local  file, chunkname = read_file(fname)
     if not file then return file, chunkname end
-    local ret, parsed = pcall(compile, chunkname, file)
-    if not ret then return nil, parsed end
-    return load(parsed, chunkname, mode, env)
+    if mode ~= "t" and isbcode(file) then
+        return load(file, chunkname, mode, env)
+    else
+        local ret, parsed = pcall(compile, chunkname, file)
+        if not ret then return nil, parsed end
+        return load(parsed, chunkname, "b", env)
+    end
 end
 std.eval.loadfile = loadfile_f
 
