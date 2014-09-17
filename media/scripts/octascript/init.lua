@@ -20,12 +20,6 @@ local capi = require("capi")
 
 capi.log(1, "Initializing OctaScript.")
 
-local parser = require('octascript.parser')
-local generator = require('octascript.generator')
-local util = require("octascript.util")
-
-rawset(_G, "__rt_core", require("octascript.rt"))
-
 local std = require("octascript.std")
 
 local M = {}
@@ -63,9 +57,8 @@ package.loaders[2] = function(modname, ppath)
     return f
 end
 
-local loadfile, dofile = loadfile, dofile
 local tconc, type = table.concat, type
-local assert, pcall = assert, pcall
+local pcall = pcall
 local io_read = io.read
 
 local load_new = function(ld, chunkname, mode, env)

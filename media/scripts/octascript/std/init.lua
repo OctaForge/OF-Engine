@@ -8,6 +8,11 @@
 
 local parser = require('octascript.parser')
 local generator = require('octascript.generator')
+local util = require("octascript.util")
+
+local rt = require("octascript.rt")
+
+rawset(_G, "__rt_core", rt)
 
 local loaded = package.loaded
 
