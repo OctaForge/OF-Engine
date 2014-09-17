@@ -95,19 +95,22 @@ from std.environ import globals
 
 /** Function: event_text_message
     Called on a text message event. Emits a signal of the same name with
-    the unique ID of the client and the text as arguments on the global table.
+    the unique ID of the client and the text as arguments on the entities
+    storage table.
 */
 set_external("event_text_message", func(uid, text)
-    emit(globals, "event_text_message", uid, text)
+    if not ents do ents = import core.entities.ents end
+    emit(ents.get_all(), "event_text_message", uid, text)
 end)
 
 @[server] do
 /** Function: event_player_login
     Serverside. Called after a server sends all the active entities to the
     client. Emits a signal of the same name with the unique ID of the player
-    entity as an argument on the global table.
+    entity as an argument on the entities storage table.
 */
 set_external("event_player_login", func(uid)
-    emit(globals, "event_player_login", uid)
+    if not ents do ents = import core.entities.ents end
+    emit(ents.get_all(), "event_player_login", uid)
 end)
 end
