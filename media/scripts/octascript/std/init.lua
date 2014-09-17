@@ -13,8 +13,6 @@ local util = require("octascript.util")
 local rt = require("octascript.rt")
 local rt_env = rt.env
 
-local loaded = package.loaded
-
 local std = {
     coroutine = {
         yield   = coroutine.yield,
@@ -44,13 +42,15 @@ local std = {
     bit = require("bit"),
     package = {
         cond_env   = {},
+        loaded     = {
+            ["capi"] = package.loaded.capi,
+            ["ffi" ] = package.loaded.ffi
+        },
         preload    = package.preload,
         path       = package.path,
-        loaded     = package.loaded,
         loadlib    = package.loadlib,
         cpath      = package.cpath,
         searchpath = package.searchpath,
-        loaders    = package.loaders,
         config     = package.config
     },
     debug = require("debug"),
@@ -100,11 +100,12 @@ local std = {
     ["jit.util"] = require("jit.util")
 }
 
+local pkg = std.package
+local loaded = pkg.loaded
+
 for k, v in pairs(std) do
     loaded["std." .. k] = v
 end
-
-local pkg = std.package
 
 local compile = function(fname, src)
     local succ, tree = pcall(parser.parse, fname, src, pkg.cond_env)
@@ -118,27 +119,73 @@ std.eval.compile = compile
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
 
-package.loaders[2] = function(modname, ppath)
-    local  fname, err = spath(modname, ppath or package.path)
-    if not fname then return err end
-    local file = io_open(fname, "rb")
-    local toparse = file:read("*all")
-    file:close()
-    local chunkname = "@" .. fname
-    local f, err
-    if fname:sub(#fname - 3) == ".lua" then
-        f, err = load(toparse, chunkname)
-    else
-        f, err = load(compile(chunkname, toparse), chunkname, "b", rt_env)
+pkg.loaders = {
+    function(modname)
+        local v = pkg.preload[modname]
+        if not v then
+            return ("\tno field package.preload['%s']"):format(modname)
+        end
+        return v
+    end,
+    function(modname, ppath)
+        local  fname, err = spath(modname, ppath or pkg.path)
+        if not fname then return err end
+        local file = io_open(fname, "rb")
+        local toparse = file:read("*all")
+        file:close()
+        local chunkname = "@" .. fname
+        local f, err
+        if fname:sub(#fname - 3) == ".lua" then
+            f, err = load(toparse, chunkname)
+        else
+            f, err = load(compile(chunkname, toparse), chunkname, "b", rt_env)
+        end
+        if not f then
+            error("error loading module '" .. modname .. "' from file '"
+                .. fname .. "':\n" .. err, 2)
+        end
+        return f
     end
-    if not f then
-        error("error loading module '" .. modname .. "' from file '"
-            .. fname .. "':\n" .. err, 2)
+}
+
+local type = type
+local tconc = table.concat
+local setfenv = setfenv
+
+local find_loader = function(modname, env)
+    local err = { ("module '%s' not found\n"):format(modname) }
+    local loaders = pkg.loaders
+    for i = 1, #loaders do
+        local v = loaders[i](modname)
+        local vt = type(v)
+        if vt == "function" then
+            return v
+        elseif vt == "string" then
+            err[#err + 1] = v
+        end
     end
-    return f
+    return nil, tconc(err)
 end
 
-local tconc, type = table.concat, type
+rt.import = function(modname)
+    local v = pkg.loaded[modname]
+    if v ~= nil then return v end
+    local loader, err = find_loader(modname, rt_env)
+    if not loader then
+        error(err, 2)
+    end
+    local ret = loader(modname)
+    local loaded = pkg.loaded
+    if ret ~= nil then
+        loaded[modname] = ret
+        return ret
+    elseif loaded[modname] == nil then
+        loaded[modname] = true
+        return true
+    end
+    return loaded[modname]
+end
+
 local pcall = pcall
 local io_read = io.read
 
@@ -200,7 +247,5 @@ std.eval.dofile = function(fname)
     if not func then error(err, 0) end
     return func()
 end
-
-rt.import = require
 
 return std
