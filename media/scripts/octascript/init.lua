@@ -26,7 +26,7 @@ local util = require("octascript.util")
 
 rawset(_G, "__rt_core", require("octascript.rt"))
 
-require("octascript.std")
+local std = require("octascript.std")
 
 local M = {}
 
@@ -35,12 +35,10 @@ local spath = package.searchpath
 
 local cond_env = { debug = capi.should_log(1), server = SERVER }
 
+local std_compile = std.eval.compile
+
 local compile = function(fname, src)
-    local succ, tree = pcall(parser.parse, fname, src, cond_env)
-    if not succ then error(select(2, util.error(tree))) end
-    local succ, bcode = pcall(generator, tree, fname)
-    if not succ then error(select(2, util.error(bcode))) end
-    return bcode
+    return std_compile(fname, src, cond_env)
 end
 M.compile = compile
 

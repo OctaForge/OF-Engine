@@ -6,6 +6,9 @@
     See COPYING.txt for licensing.
 ]]
 
+local parser = require('octascript.parser')
+local generator = require('octascript.generator')
+
 local loaded = package.loaded
 
 local std = {
@@ -78,7 +81,14 @@ local std = {
         load       = load,
         dofile     = dofile,
         loadfile   = loadfile,
-        loadstring = loadstring
+        loadstring = loadstring,
+        compile    = function(fname, src, cond_env)
+            local succ, tree = pcall(parser.parse, fname, src, cond_env)
+            if not succ then error(select(2, util.error(tree))) end
+            local succ, bcode = pcall(generator, tree, fname)
+            if not succ then error(select(2, util.error(bcode))) end
+            return bcode
+        end
     },
     gc = {
         collect = collectgarbage,
@@ -103,3 +113,5 @@ end
 local rt = require("octascript.rt")
 
 rt.import = require
+
+return std
