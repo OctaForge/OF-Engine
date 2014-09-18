@@ -1,7 +1,7 @@
 /**<
-    Lua light API. You typically need to run each of the functions every
-    frame to make it continuous (unless there are extended fade times
-    or something else).
+    OctaScript light API. You typically need to run each of the functions every
+    frame to make it continuous (unless there are extended fade times or
+    something else).
 
     Author:
         q66 <quaker66@gmail.com>

@@ -24,7 +24,7 @@ import core.entities.svars
 import core.entities.ents
 import core.network.msg
 import core.engine.cubescript as cs
-import core.lua.conv
+import core.octascript.conv
 
 var hextorgb = conv.hex_to_rgb
 
@@ -404,7 +404,7 @@ M.Character = Entity:clone {
 
         self.render_args_timestamp = -1
 
-        // see world.lua for field meanings
+        // see world.oct for field meanings
         connect(self, "physics_trigger,changed", func(self, val)
             if val == 0 do return end
             self:set_attr("physics_trigger", 0)

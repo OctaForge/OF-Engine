@@ -20,7 +20,7 @@ from std.conv  import tostring
 randomseed(time())
 
 /**
-    Traces what Lua does and logs it into the console. Not in use by
+    Traces what OctaScript does and logs it into the console. Not in use by
     default. Very verbose. Use only when absolutely required. Uncomment
     the sethook line to use it. Takes two arguments, the caught event and
     the line on which the event was caught.
@@ -59,8 +59,8 @@ import core.externals as undef
 
 log.log(log.DEBUG, "Initializing the core library.")
 
-log.log(log.DEBUG, ":: Lua extensions.")
-import core.lua as undef
+log.log(log.DEBUG, ":: OctaScript extensions.")
+import core.octascript as undef
 
 log.log(log.DEBUG, ":: Network system.")
 import core.network as undef

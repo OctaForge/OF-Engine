@@ -9,7 +9,7 @@
 */
 
 import capi
-import core.lua.stream
+import core.octascript.stream
 import core.events.signal
 import ffi
 

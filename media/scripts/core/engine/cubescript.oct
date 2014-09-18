@@ -1,7 +1,6 @@
 /**<
-    Lua access to cubescript features, such as code execution and engine
-    variables. You can connect signals in form "varname,changed" to
-    the module.
+    OctaScript access to cubescript features, such as code execution and engine
+    variables. You can connect signals in form "varname,changed" to the module.
 
     Author:
         q66 <quaker66@gmail.com>

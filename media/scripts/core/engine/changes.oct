@@ -1,5 +1,5 @@
 /**<
-    Lua interface to changes queue.
+    OctaScript interface to changes queue.
 
     Author:
         q66 <quaker66@gmail.com>

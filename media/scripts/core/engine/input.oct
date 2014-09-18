@@ -13,7 +13,7 @@
 import capi
 import core.events.frame
 
-from core.lua.geom import Vec3
+from core.octascript.geom import Vec3
 
 /// Module: input
 return {

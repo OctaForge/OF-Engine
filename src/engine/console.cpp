@@ -387,7 +387,7 @@ struct hline
                 execute(buf + 1);
             else {
                 const char *err;
-                int npop = lua::call_external_ret("console_lua_run", "s", "s",
+                int npop = lua::call_external_ret("console_oct_run", "s", "s",
                     buf + 2, &err);
                 if (err) conoutf(CON_ERROR, "%s", err);
                 lua::pop_external_ret(npop);

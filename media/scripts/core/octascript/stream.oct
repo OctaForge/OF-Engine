@@ -18,11 +18,11 @@ import capi
         - `close()` - closes the stream.
         - `lines()` - returns an iterator function that returns the next line
           every time it's called, until it returns undef.
-        - `read(...)` - see the `read` method of a Lua file handle, the only
-          difference is that this doesn't support the `*n` format.
-        - `seek([whence] [, offset])` - see the `seek` method of a Lua file
-          handle.
-        - `write(...)` - see the `write` method of a Lua file handle.
+        - `read(...)` - see the `read` method of a OctaScript file handle, the
+          only difference is that this doesn't support the `*n` format.
+        - `seek([whence] [, offset])` - see the `seek` method of a OctaScript
+          file handle.
+        - `write(...)` - see the `write` method of a OctaScript file handle.
 
     Metamethods:
         - `__gc` - automatically closes the stream when the last variable

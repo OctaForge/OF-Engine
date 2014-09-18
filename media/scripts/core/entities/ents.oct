@@ -30,7 +30,7 @@ import core.engine.model
 
 from core.externals import set as set_external
 
-from core.lua.geom import Vec3
+from core.octascript.geom import Vec3
 
 var emit = signal.emit
 
@@ -575,7 +575,7 @@ set_external("entities_remove_all", M.remove_all)
 /**
     Serverside. Reads a file called `entities.oct` in the map directory,
     serializes it and loads entities from it. The file contains a regular
-    Lua serialized table.
+    OctaScript serialized table.
 
     It also attempts to load previously queued Sauer entities. On the client
     this function does nothing.

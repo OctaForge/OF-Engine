@@ -18,7 +18,7 @@ import core.engine.cubescript as cs
 import core.events.signal
 import core.entities.svars
 import core.entities.ents
-import core.lua.conv
+import core.octascript.conv
 import core.engine.particles
 
 var splash, flare = particles.splash, particles.flare
@@ -32,7 +32,7 @@ import extra.day_manager
 import extra.health
 
 var connect = signal.connect
-from core.lua.geom import Vec4
+from core.octascript.geom import Vec4
 
 from std.table import ipairs
 

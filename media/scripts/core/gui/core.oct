@@ -17,7 +17,7 @@ import core.engine.cubescript as cs
 import core.events.signal
 import core.logger
 
-from core.lua.geom import Vec2
+from core.octascript.geom import Vec2
 
 var gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
 gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_color4ub,

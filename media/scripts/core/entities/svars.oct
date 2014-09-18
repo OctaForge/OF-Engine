@@ -20,7 +20,7 @@ var DEBUG = logging.DEBUG
 var INFO  = logging.INFO
 
 import core.events.frame
-import core.lua.geom
+import core.octascript.geom
 
 from std.table import rawget, rawset, Object
 from std.math import abs, round, floor
@@ -356,9 +356,7 @@ from std.util import proxy as newproxy
 
     Note that surrogates are not regular objects created using the
     prototypal system. They're manually managed with metatables and
-    proxies in order to gain features such as __len under Lua 5.1 and
-    you have to instantiate them yourself (well, you mostly don't, as
-    the entity does it for you).
+    proxies in order to more closely emulate the appropriate semantics.
 */
 M.ArraySurrogate = {
     name = "ArraySurrogate",

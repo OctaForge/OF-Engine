@@ -1,11 +1,5 @@
 /**<
-    Lua string extensions. Contains all the functionality of the original
-    string module as well and makes the default __index of the global string
-    metatable point to this module so you can use the new functionality more
-    conveniently.
-
-    It does not contain string.dump. It contains byte, char, find, format,
-    gmatch, gsub, len, lower, match, rep, reverse, sub, upper.
+    OctaScript string extensions.
 
     Author:
         q66 <quaker66@gmail.com>
@@ -76,7 +70,7 @@ var str_escapes = setmt({
 })
 
 /**
-    Escapes a string. Works similarly to the Lua %q format but it tries
+    Escapes a string. Works similarly to the OctaScript %q format but it tries
     to be more compact (e.g. uses \r instead of \13), doesn't insert newlines
     in the result (\n instead) and automatically decides if to delimit the
     result with ' or " depending on the number of nested ' and " (uses the

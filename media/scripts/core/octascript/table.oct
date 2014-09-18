@@ -1,5 +1,5 @@
 /**<
-    Lua table extensions.
+    OctaScript table extensions.
 
     Author:
         q66 <quaker66@gmail.com>
@@ -330,10 +330,10 @@ var defkwp = {
     avoids whitespace and newlines. Arrays and associative arrays are
     serialized differently (for compact output).
 
-    Besides tables this can also serialize other Lua values. It serializes
-    them in the same way as values inside a table, returning their literal
-    representation (if serializable, otherwise just their tostring). The
-    serializer allows strings, numbers, booleans and tables.
+    Besides tables this can also serialize other OctaScript values. It
+    serializes them in the same way as values inside a table, returning their
+    literal representation (if serializable, otherwise just their tostring).
+    The serializer allows strings, numbers, booleans and tables.
 
     Circular tables can't be serialized. The function normally returns either
     the string output or undef + an error message (which can signalize either
@@ -352,7 +352,7 @@ var defkwp = {
     the serializer put table_sep after every item including the last one),
     optimize_keys (boolean, true by default, optimizes string keys like
     that it doesn't use string literals for keys that can be expressed
-    as Lua names).
+    as OctaScript names).
 
     If kwargs is undef or false, the values above are used. If kwargs is a
     boolean value true, pretty-printing defaults are used (multiline is
@@ -661,8 +661,8 @@ var defaultcmp = func(a, b) return a < b end
     considerably faster than vanilla table.sort (about 3x).
 
     Thanks to custom indexes and independence on type assumptions this
-    can sort not only Lua arrays in a raw form, but also any kind of
-    "virtual" array (for example a state array surrogate) or a FFI
+    can sort not only OctaScript arrays in a raw form, but also any kind
+    of "virtual" array (for example a state array surrogate) or a FFI
     array.
 
     The sorting algorithm used here is introsort. It's a modification

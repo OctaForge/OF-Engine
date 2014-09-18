@@ -1,5 +1,5 @@
 /**<
-    Lua model API. Clientside.
+    OctaScript model API. Clientside.
 
     Author:
         q66 <quaker66@gmail.com>
@@ -112,8 +112,8 @@ M.get_anim = capi.model_get_anim
 
 /** Function: find_anims
     Finds animations whose names match the given pattern. It's a regular
-    Lua pattern. It also accepts integers (as in animation numbers). It
-    returns an array of all animation numbers that match the input. The
+    OctaScript pattern. It also accepts integers (as in animation numbers).
+    It returns an array of all animation numbers that match the input. The
     result is sorted.
 */
 M.find_anims = capi.model_find_anims
@@ -155,7 +155,7 @@ btime, trans)
         btime, r, g, b, a)
 end
 
-import core.lua.geom
+import core.octascript.geom
 var Vec3 = geom.Vec3
 
 /// Returns the bounding box of the given model as two vec3, center and radius.

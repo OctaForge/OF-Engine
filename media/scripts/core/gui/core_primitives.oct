@@ -13,7 +13,7 @@ import ffi
 import core.engine.model
 import core.engine.cubescript as cs
 import core.events.signal
-import core.lua.geom
+import core.octascript.geom
 
 var gl_blend_func, shader_hudnotexture_set, shader_hud_set, gl_bind_texture,
 gl_texture_param, shader_hud_set_variant, gle_begin, gle_end, gle_defvertexf,

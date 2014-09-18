@@ -13,7 +13,7 @@ import capi
 
 @[server] do return {} end
 
-import core.lua.geom
+import core.octascript.geom
 var Vec3 = geom.Vec3
 
 var camera_get, camera_get_position in capi

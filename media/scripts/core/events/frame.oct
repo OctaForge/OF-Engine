@@ -58,7 +58,7 @@ var tocalltable = func(v)
     return setmt({}, { __call = func(_, ...) return v(...) end })
 end
 
-/// Returns the current Lua frame count.
+/// Returns the current OctaScript frame count.
 M.get_frame = func()
     return current_frame
 end
