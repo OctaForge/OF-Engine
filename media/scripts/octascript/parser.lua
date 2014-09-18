@@ -282,7 +282,7 @@ local parse_prefix_expr = function(ls, ast)
     elseif tn == "<name>" then
         local line = ls.line_number
         local val = tok.value
-        if not ast.current.vars[val] then
+        if not ls.allow_globals and not ast.current.vars[val] then
             syntax_error(ls, "attempt to use undeclared variable '"
                 .. val .. "'")
         end
@@ -433,7 +433,7 @@ local sexps = {
         ls:get()
         assert_tok(ls, "<name>")
         local decn = ls.token.value
-        if not ast.current.vars[decn] then
+        if not ls.allow_globals and not ast.current.vars[decn] then
             syntax_error(ls, "attempt to use undeclared variable '"
                 .. decn .. "'")
         end
@@ -835,7 +835,7 @@ local stat_opts = {
         ls:get()
         assert_tok(ls, "<name>")
         local decn = ls.token.value
-        if not ast.current.vars[decn] then
+        if not ls.allow_globals and not ast.current.vars[decn] then
             syntax_error(ls, "attempt to use undeclared variable '"
                 .. decn .. "'")
         end
@@ -962,9 +962,10 @@ parse_block = function(ls, ast)
     return block
 end
 
-local parse = function(chunkname, input, cond_env)
+local parse = function(chunkname, input, cond_env, allow_globals)
     local ast = astgen.new()
     local ls = lexer.init(chunkname, input)
+    ls.allow_globals = allow_globals
     ls:get()
     ls.cond_env = cond_env
     ls.fs = { varargs = true }
