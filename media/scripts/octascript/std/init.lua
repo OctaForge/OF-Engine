@@ -215,7 +215,6 @@ std.eval.load = function(ld, chunkname, mode, env)
         return load(parsed, chunkname, "b", env)
     end
 end
-std.eval.loadstring = std.eval.load
 
 local read_file = function(fname)
     if not fname then

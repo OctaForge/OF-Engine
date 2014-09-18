@@ -5,10 +5,6 @@
     This is an OctaForge project that also lives within its own repository
     on the OctaForge Git as well as on GitHub mirror (quaker66/octascript).
 
-    This init file serves as a loader and it also replaces the default module
-    loader and convenience functions (load, loadstring, loadfile, dofile)
-    with OctaScript-enabled ones.
-
     Author:
         q66 <quaker66@gmail.com>
 
