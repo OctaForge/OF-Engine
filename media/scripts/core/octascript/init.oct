@@ -9,9 +9,6 @@ import core.octascript.string as undef
 log.log(log.DEBUG, ":::: OctaScript extensions: table")
 import core.octascript.table as undef
 
-log.log(log.DEBUG, ":::: OctaScript extensions: math")
-import core.octascript.math as undef
-
 log.log(log.DEBUG, ":::: OctaScript extensions: geom")
 import core.octascript.geom as undef
 

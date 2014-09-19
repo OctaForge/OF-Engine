@@ -13,6 +13,59 @@ local util = require("octascript.util")
 local rt = require("octascript.rt")
 local rt_env = rt.env
 
+local floor, min, max, abs = math.floor, math.min, math.max, math.abs
+
+local stbl = { [true] = 1, [false] = 0 }
+
+local std_math = {
+    --[[
+        Rounds a given number and returns it. The second argument can be used
+        to specify the number of places past the floating point, defaulting to
+        0 (rounding to integers).
+    ]]
+    round = function(v, d)
+        local m = 10 ^ (d or 0)
+        return floor(v * m + 0.5) / m
+    end,
+
+    --[[
+        Clamps a number value given by the first argument between third and
+        second argument. Globally available.
+    ]]
+    clamp = function(val, low, high)
+        return max(low, min(val, high))
+    end,
+
+    --[[
+        Performs a linear interpolation between the two numerical values,
+        given a weight.
+    ]]
+    lerp = function(first, other, weight)
+        return first + weight * (other - first)
+    end,
+
+    --[[
+        If the distance between the two numerical values is in given radius,
+        the second value is returned, otherwise the first is returned.
+    ]]
+    magnet = function(value, other, radius)
+        return (abs(value - other) <= radius) and other or value
+    end,
+
+    --[[
+        Returns the sign (1 for positive, 0 for zero, -1 for negative) of
+        a number.
+    ]]
+    sign = function(value)
+        return stbl[value > 0] - stbl[value < 0]
+    end
+}
+
+for k, v in pairs(math) do
+    if not std_math[k] then std_math[k] = v end
+end
+
+
 local std = {
     coroutine = {
         yield   = coroutine.yield,
@@ -71,7 +124,7 @@ local std = {
         getmt    = getmetatable,
         unpack   = unpack
     },
-    math   = require("math"),
+    math   = std_math,
     os     = require("os"),
     string = require("string"),
     conv   = {
