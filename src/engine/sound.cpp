@@ -58,7 +58,8 @@ struct soundchannel
 
     soundchannel(int id) : id(id) { reset(); }
 
-    bool hasloc() const { return loc.x >= -1e15f; }
+    bool hasloc() const { return getloc().x >= -1e15f; }
+    const vec &getloc() const { return ent ? ent->o : loc; }
     void clearloc() { loc = vec(-1e16f, -1e16f, -1e16f); }
 
     void reset()
@@ -79,11 +80,7 @@ int maxchannels = 0;
 
 soundchannel &newchannel(int n, soundslot *slot, const vec *loc = NULL, extentity *ent = NULL, int flags = 0, int radius = 0)
 {
-    if(ent)
-    {
-        loc = &ent->o;
-        ent->flags |= EF_SOUND;
-    }
+    if(ent) ent->flags |= EF_SOUND;
     while(!channels.inrange(n)) channels.add(channels.length());
     soundchannel &chan = channels[n];
     chan.reset();
@@ -467,7 +464,7 @@ bool updatechannel(soundchannel &chan)
     if(chan.hasloc())
     {
         vec v;
-        float dist = chan.loc.dist(camera1->o, v);
+        float dist = chan.getloc().dist(camera1->o, v);
         int rad = maxsoundradius;
         if(chan.ent)
         {
