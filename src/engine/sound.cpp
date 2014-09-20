@@ -835,13 +835,22 @@ float z, int vol), {
     }
 });
 
-CLUAICOMMAND(sound_play_map, bool, (int uid, const char *name, int vol,
+CLUAICOMMAND(sound_find_add, int, (const char *name, int vol, bool map), {
+    if (!name)
+         return false;
+    soundtype &sounds = map ? mapsounds : gamesounds;
+    int id = sounds.findsound(name, vol);
+    if (id < 0)
+        return sounds.addsound(name, vol, 0);
+    return id;
+})
+
+CLUAICOMMAND(sound_play_map, bool, (int uid, int id, int vol,
 int loops), {
+    if (id < 0) return false;
     LUA_GET_ENT(entity, uid, "_C.sound_play_map", return false;);
     extentity *ent = entity->staticEntity;
     assert(ent);
-    int id = mapsounds.findsound(name, vol);
-    if(id < 0) id = mapsounds.addsound(name, vol, 0);
     return playsound(id, NULL, ent, SND_MAP, loops, 0, -1, 0, -1) >= 0;
 })
 
