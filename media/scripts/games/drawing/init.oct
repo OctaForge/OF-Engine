@@ -18,14 +18,13 @@ import core.engine.cubescript as cs
 import core.events.signal
 import core.entities.svars
 import core.entities.ents
-import core.octascript.conv
 import core.engine.particles
 
 var splash, flare = particles.splash, particles.flare
 var quadrenderer, taperenderer = particles.register_renderer_quad,
     particles.register_renderer_tape
 
-var hextorgb = conv.hex_to_rgb
+from std.conv import hex_to_rgb as hextorgb
 
 import extra.game_manager
 import extra.day_manager

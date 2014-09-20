@@ -24,9 +24,8 @@ import core.entities.svars
 import core.entities.ents
 import core.network.msg
 import core.engine.cubescript as cs
-import core.octascript.conv
 
-var hextorgb = conv.hex_to_rgb
+from std.conv import hex_to_rgb as hextorgb
 
 var var_get = cs.var_get
 

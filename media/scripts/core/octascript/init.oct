@@ -9,8 +9,5 @@ import core.octascript.table as undef
 log.log(log.DEBUG, ":::: OctaScript extensions: geom")
 import core.octascript.geom as undef
 
-log.log(log.DEBUG, ":::: Type conversions.")
-import core.octascript.conv as undef
-
 log.log(log.DEBUG, ":::: Environment support.")
 import core.octascript.env as undef
