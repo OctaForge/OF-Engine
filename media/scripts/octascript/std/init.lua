@@ -65,6 +65,67 @@ for k, v in pairs(math) do
     if not std_math[k] then std_math[k] = v end
 end
 
+local tconc = table.concat
+
+local str_esc = setmetatable({
+    ["\n"] = "\\n", ["\r"] = "\\r",
+    ["\a"] = "\\a", ["\b"] = "\\b",
+    ["\f"] = "\\f", ["\t"] = "\\t",
+    ["\v"] = "\\v", ["\\"] = "\\\\",
+    ['"' ] = '\\"', ["'" ] = "\\'"
+}, {
+    __index = function(self, c) return ("\\%03d"):format(c:byte()) end
+})
+
+local std_string = {
+    --[[
+        Splits a given string with optional delimiter (defaults to ",")
+    ]]
+    split = function(self, delim)
+        delim = delim or ","
+        local r, i = {}, 1
+        for ch in self:gmatch("([^" .. delim .. "]+)") do
+            r[i] = ch
+            i = i + 1
+        end
+        return r
+    end,
+
+    --[[
+        Removes a substring in a string, returns the new string.
+    ]]
+    remove = function(self, start, count)
+        return tconc { self:sub(1, start - 1), self:sub(start + count) }
+    end,
+
+    --[[
+        Inserts a substring into a string, returns the new string.
+    ]]
+    insert = function(self, idx, new)
+        return tconc { self:sub(1, idx - 1), new, self:sub(idx) }
+    end,
+
+    --[[
+        Escapes a string. Works similarly to the OctaScript %q format but it
+        tries to be more compact (e.g. uses \r instead of \13), doesn't insert
+        newlines in the result (\n instead) and automatically decides if to
+        delimit the result with ' or " depending on the number of nested '
+        and " (uses the one that needs less escaping).
+    ]]
+    escape = function(self)
+        local nsq, ndq = 0, 0
+        for c in self:gmatch("'") do nsq = nsq + 1 end
+        for c in self:gmatch('"') do ndq = ndq + 1 end
+        local sd = (ndq > nsq) and "'" or '"'
+        return sd .. self:gsub("[\\" .. sd .. "%z\001-\031]", str_esc) .. sd
+    end
+}
+
+for k, v in pairs(string) do
+    if not std_string[k] then std_string[k] = v end
+end
+
+debug.getmetatable("").__index = std_string
 
 local std = {
     coroutine = {
@@ -126,7 +187,7 @@ local std = {
     },
     math   = std_math,
     os     = require("os"),
-    string = require("string"),
+    string = std_string,
     conv   = {
         tostring = tostring,
         tonumber = tonumber
