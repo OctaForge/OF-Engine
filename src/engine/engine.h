@@ -718,7 +718,7 @@ extern void cleanupsky();
 extern int mainmenu;
 
 // sound
-extern void clearmapsounds();
+extern void stopmapsounds();
 extern void checkmapsounds();
 extern void updatesounds();
 

@@ -75,7 +75,7 @@ void calcmatbb(vtxarray *va, const ivec &co, int size, vector<materialsurface> &
 
 void cleanupvolumetric() {};
 void cleardeferredlightshaders() {};
-void clearmapsounds() { };
+void stopmapsounds() { };
 void clearparticles() { };
 void clearstains() { };
 void clearlights() { };

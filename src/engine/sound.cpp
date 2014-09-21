@@ -266,8 +266,6 @@ static struct soundtype
         return s;
     }
 
-    void clear() {}
-
     void reset()
     {
         loopv(channels)
@@ -279,7 +277,6 @@ static struct soundtype
                 freechannel(i);
             }
         }
-        clear();
     }
 
     void cleanupsamples()
@@ -343,12 +340,6 @@ void stopmapsounds()
         Mix_HaltChannel(i);
         freechannel(i);
     }
-}
-
-void clearmapsounds()
-{
-    stopmapsounds();
-    mapsounds.clear();
 }
 
 void stopmapsound(extentity *e)

@@ -1325,7 +1325,7 @@ void splitocta(cube *c, int size)
 void resetmap()
 {
     clearoverrides();
-    clearmapsounds();
+    stopmapsounds();
 #ifndef SERVER
     resetblendmap();
     clearlights();
