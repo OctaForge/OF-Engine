@@ -255,8 +255,9 @@ static struct soundtype
     hashnameset<soundsample> samples;
     vector<soundslot> slots;
     const char *dir;
+    int flags;
 
-    soundtype(const char *dir) : dir(dir) {}
+    soundtype(const char *dir, int flags) : dir(dir), flags(flags) {}
 
     int findslot(const char *name, int vol)
     {
@@ -303,7 +304,7 @@ static struct soundtype
         loopv(channels)
         {
             soundchannel &chan = channels[i];
-            if(chan.inuse && slots.inbuf(chan.slot))
+            if(chan.inuse && flags == (chan.flags & SND_MAP))
             {
                 Mix_HaltChannel(i);
                 freechannel(i);
@@ -337,7 +338,7 @@ static struct soundtype
     {
         return chan.inuse && chan.slot == &c;
     }
-} gamesounds(""), mapsounds("");
+} gamesounds("", 0), mapsounds("", SND_MAP);
 
 void soundreset()
 {
