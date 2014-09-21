@@ -426,7 +426,7 @@ namespace game
                         o.x, o.y, o.z, 0x32FF64, 2000, 4.0f, -8);
                 }
                 if (chat_sound[0])
-                    playsoundname(chat_sound);
+                    playsound(chat_sound);
 #endif
                 conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text);
                 break;

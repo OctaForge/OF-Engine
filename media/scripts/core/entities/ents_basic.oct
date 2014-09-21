@@ -1122,28 +1122,11 @@ M.Sound = StaticEntity:clone {
 
     __activate = @[not server,func(self, ...)
         StaticEntity.__activate(self, ...)
-        self._soundslot_id = -1
         var f = \self -> capi.sound_stop_map(self.uid)
-        connect(self, "sound_name,changed", func(self, v)
-            capi.sound_stop_map(self.uid)
-            var vol = self:get_attr("volume")
-            if not v or v == "" or vol <= 0 do
-                self._soundslot_id = -1
-            else
-                self._soundslot_id = capi.sound_find_add(v, vol, true)
-            end
-        end)
+        connect(self, "sound_name,changed", f)
         connect(self, "radius,changed", f)
         connect(self, "size,changed", f)
-        connect(self, "volume,changed", func(self, v)
-            capi.sound_stop_map(self.uid)
-            var snd = self:get_attr("sound_name")
-            if not snd or snd == "" or v <= 0 do
-                self._soundslot_id = -1
-            else
-                self._soundslot_id = capi.sound_find_add(snd, v, true)
-            end
-        end)
+        connect(self, "volume,changed", f)
     end],
 
     __get_edit_info = func(self)
@@ -1154,7 +1137,7 @@ M.Sound = StaticEntity:clone {
     end,
 
     __play_sound = func(self)
-        capi.sound_play_map(self.uid, self._soundslot_id,
+        capi.sound_play_map(self.uid, self:get_attr("sound_name"),
             self:get_attr("volume"), -1)
     end
 }
