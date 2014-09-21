@@ -487,11 +487,6 @@ VARP(maxsoundsatonce, 0, 7, 100);
 
 VAR(dbgsound, 0, 0, 1);
 
-void preloadsound(int n)
-{
-    gamesounds.preloadsound(n);
-}
-
 /* OF */
 #define PRELOADFUN(type) \
     int preload##type##sound(const char *name, int vol) \
@@ -755,12 +750,12 @@ void updatemumble()
 
 /* OF */
 
-int get_sound_id(const char *s, int vol) {
+static int get_sound_id(const char *s, int vol) {
     if (!vol) vol = 100;
     return gamesounds.findslot(s, vol);
 }
 
-void stop_sound_by_id(int id) {
+static void stop_sound_by_id(int id) {
     loopv(channels) {
         soundchannel &chan = channels[i];
         if (chan.inuse && chan.id == id) {
