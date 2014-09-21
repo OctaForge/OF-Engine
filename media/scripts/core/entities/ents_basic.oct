@@ -1082,7 +1082,7 @@ M.Envmap = StaticEntity:clone {
 }
 
 /**
-    An sound effect prototype. You can use this to make your own sound effect
+    A sound effect prototype. You can use this to make your own sound effect
     types.
 
     Properties:
