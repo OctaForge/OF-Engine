@@ -1082,9 +1082,8 @@ M.Envmap = StaticEntity:clone {
 }
 
 /**
-    An ambient sound in the world. Repeats the given sound at entity position.
-    You can specify the sound name, volume, radius and size as extra arguments
-    to newent.
+    An sound effect prototype. You can use this to make your own sound effect
+    types.
 
     Properties:
         - attr1 - the sound radius (alias "radius", default 100)
@@ -1092,41 +1091,78 @@ M.Envmap = StaticEntity:clone {
           otherwise the sound volume will always be max until the distance
           specified by this property and do it'll start fading off
           (alias "size", default 0).
-        - attr3 - the sound volume, from 0 to 100 (alias "volume",
-          default 100).
-        - sound_name [{{$svars.StateString}}] - the  path to the sound in
-          media/sound (default "").
 */
-M.Sound = StaticEntity:clone {
+M.SoundEffect = StaticEntity:clone {
     name = "Sound",
 
     __edit_icon = "media/interface/icon/edit_sound",
 
     sauer_type = 6,
-    attr_num   = 3,
+    attr_num   = 2,
 
     __properties = {
         attr1 = gen_attr(1, "radius"),
-        attr2 = gen_attr(2, "size"),
-        attr3 = gen_attr(3, "volume"),
-        sound_name = svars.StateString()
+        attr2 = gen_attr(2, "size")
     },
 
     __init_svars = func(self, kwargs, nd)
         StaticEntity.__init_svars(self, kwargs, nd)
-        self:set_attr("radius", 100, nd[3])
-        self:set_attr("size", 0, nd[4])
+        self:set_attr("radius", 100, nd[1])
+        self:set_attr("size", 0, nd[2])
+    end,
+
+    __activate = @[not server,func(self, ...)
+        StaticEntity.__activate(self, ...)
+        connect(self, "radius,changed", self.sound_stop)
+        connect(self, "size,changed", self.sound_stop)
+    end],
+
+    /** Stop all sounds currently assigned to the entity. */
+    sound_stop = func(self)
+        capi.sound_stop_map(self.uid)
+    end,
+
+    /** Play a sound on this entity. The last loops parameter is optional. */
+    sound_play = func(self, name, volume, loops)
+        capi.sound_play_map(self.uid, name, volume, loops or -1)
+    end,
+
+    /** Override to play sounds. */
+    __play_sound = func(self) end
+}
+
+var SoundEffect = M.SoundEffect
+
+/**
+    A generic ambient sound entity. Repeats the given sound at the entity
+    position. You can specify (in addition to default radius and size) the
+    sound name and volume. The extra arguments to newent go as follows:
+    sound name, volume, radius, size.
+
+    Properties:
+        - volume [{{$svars.StateInteger}}] - the sound volume, from 0 to 100
+          (default 100)
+        - sound_name [{{$svars.StateString}}] - the  path to the sound in
+          media/sound (default "").
+*/
+M.AmbientSound = SoundEffect:clone {
+    name = "AmbientSound",
+
+    __properties = {
+        volume = svars.StateInteger(),
+        sound_name = svars.StateString()
+    },
+
+    __init_svars = func(self, kwargs, nd)
+        SoundEffect.__init_svars(self, kwargs, { nd[3], nd[4] })
         self:set_attr("volume", 100, nd[2])
         self:set_attr("sound_name", "", nd[1])
     end,
 
     __activate = @[not server,func(self, ...)
-        StaticEntity.__activate(self, ...)
-        var f = \self -> capi.sound_stop_map(self.uid)
-        connect(self, "sound_name,changed", f)
-        connect(self, "radius,changed", f)
-        connect(self, "size,changed", f)
-        connect(self, "volume,changed", f)
+        SoundEffect.__activate(self, ...)
+        connect(self, "sound_name,changed", self.sound_stop)
+        connect(self, "volume,changed", self.sound_stop)
     end],
 
     __get_edit_info = func(self)
@@ -1137,8 +1173,7 @@ M.Sound = StaticEntity:clone {
     end,
 
     __play_sound = func(self)
-        capi.sound_play_map(self.uid, self:get_attr("sound_name"),
-            self:get_attr("volume"), -1)
+        self:sound_play(self:get_attr("sound_name"), self:get_attr("volume"))
     end
 }
 
@@ -1388,6 +1423,6 @@ ents.register_prototype(M.OrientedMarker)
 ents.register_prototype(M.Light)
 ents.register_prototype(M.SpotLight)
 ents.register_prototype(M.Envmap)
-ents.register_prototype(M.Sound)
+ents.register_prototype(M.AmbientSound)
 ents.register_prototype(M.Mapmodel)
 ents.register_prototype(M.Obstacle)
