@@ -35,9 +35,9 @@ struct soundchannel
     int id;
     bool inuse;
     vec loc;
-    soundslot *slot;
+    soundsample *sample;
     extentity *ent;
-    int radius, volume, pan, flags;
+    int svolume, radius, volume, pan, flags;
     bool dirty;
 
     soundchannel(int id) : id(id) { reset(); }
@@ -50,10 +50,10 @@ struct soundchannel
     {
         inuse = false;
         clearloc();
-        slot = NULL;
+        sample = NULL;
         ent = NULL;
         radius = 0;
-        volume = -1;
+        volume = svolume = -1;
         pan = -1;
         flags = 0;
         dirty = false;
@@ -62,7 +62,7 @@ struct soundchannel
 vector<soundchannel> channels;
 int maxchannels = 0;
 
-soundchannel &newchannel(int n, soundslot *slot, const vec *loc = NULL, extentity *ent = NULL, int flags = 0, int radius = 0)
+soundchannel &newchannel(int n, soundsample *sample, int volume, const vec *loc = NULL, extentity *ent = NULL, int flags = 0, int radius = 0)
 {
     if(ent) ent->flags |= EF_SOUND;
     while(!channels.inrange(n)) channels.add(channels.length());
@@ -70,8 +70,9 @@ soundchannel &newchannel(int n, soundslot *slot, const vec *loc = NULL, extentit
     chan.reset();
     chan.inuse = true;
     if(loc) chan.loc = *loc;
-    chan.slot = slot;
+    chan.sample = sample;
     chan.ent = ent;
+    chan.svolume = volume;
     chan.flags = 0;
     chan.radius = radius;
     return chan;
@@ -279,16 +280,8 @@ static struct soundtype
             s->name = n;
             s->chunk = NULL;
         }
-        soundslot *oldslots = slots.getbuf();
         int oldlen = slots.length();
         soundslot &slot = slots.add();
-        // soundslots.add() may relocate slot pointers
-        if(slots.getbuf() != oldslots) loopv(channels)
-        {
-            soundchannel &chan = channels[i];
-            if(chan.inuse && chan.slot >= oldslots && chan.slot < &oldslots[oldlen])
-                chan.slot = &slots[chan.slot - oldslots];
-        }
         slot.sample = s;
         slot.volume = vol ? vol : 100;
         return oldlen;
@@ -336,7 +329,7 @@ static struct soundtype
 
     bool playing(const soundchannel &chan, const soundslot &c) const
     {
-        return chan.inuse && chan.slot == &c;
+        return chan.inuse && chan.sample == c.sample && chan.svolume == c.volume;
     }
 } gamesounds("", 0), mapsounds("", SND_MAP);
 
@@ -420,7 +413,7 @@ VARP(maxsoundradius, 0, 340, 10000);
 
 bool updatechannel(soundchannel &chan)
 {
-    if(!chan.slot) return false;
+    if(!chan.sample) return false;
     int vol = soundvol, pan = 255/2;
     if(chan.hasloc())
     {
@@ -444,7 +437,7 @@ bool updatechannel(soundchannel &chan)
             pan = int(255.9f*(0.5f - 0.5f*v.x/v.magnitude2())); // range is from 0 (left) to 255 (right)
         }
     }
-    vol = (vol*MAXVOL*chan.slot->volume)/255/255;
+    vol = (vol*MAXVOL*chan.svolume)/255/255;
     vol = min(vol, MAXVOL);
     if(vol == chan.volume && pan == chan.pan) return false;
     chan.volume = vol;
@@ -567,7 +560,7 @@ int playsound(int n, const vec *loc, extentity *ent, int flags, int loops, int f
     if(chanid < 0) loopv(channels) if(!channels[i].volume) { Mix_HaltChannel(i); freechannel(i); chanid = i; break; }
     if(chanid < 0) return -1;
 
-    soundchannel &chan = newchannel(chanid, &slot, loc, ent, flags, radius);
+    soundchannel &chan = newchannel(chanid, slot.sample, slot.volume, loc, ent, flags, radius);
     updatechannel(chan);
     int playing = -1;
     if(fade)
@@ -593,7 +586,7 @@ void stopsounds()
 bool stopsound(int n, int chanid, int fade)
 {
     if(!gamesounds.slots.inrange(n) || !channels.inrange(chanid) || !gamesounds.playing(channels[chanid], gamesounds.slots[n])) return false;
-    if(dbgsound) conoutf("stopsound: %s%s", gamesounds.dir, channels[chanid].slot->sample->name);
+    if(dbgsound) conoutf("stopsound: %s%s", gamesounds.dir, channels[chanid].sample->name);
     if(!fade || !Mix_FadeOutChannel(chanid, fade))
     {
         Mix_HaltChannel(chanid);
