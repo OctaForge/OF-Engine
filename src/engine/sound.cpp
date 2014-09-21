@@ -321,10 +321,19 @@ static struct soundtype
         }
     }
 
-    void preloadsound(int n)
+    bool preloadsound(const char *name)
     {
-        if(nosound || !slots.inrange(n)) return;
-        slots[n].sample->load(dir, true);
+        if (nosound) return true;
+        soundsample *s = samples.access(name);
+        if(!s)
+        {
+            char *n = newstring(name);
+            s = &samples[n];
+            s->name = n;
+            s->chunk = NULL;
+        }
+        if (!s) return false;
+        return s->load(dir, true);
     }
 
     bool playing(const soundchannel &chan, const soundsample *sample, int volume) const
@@ -486,20 +495,6 @@ void updatesounds()
 VARP(maxsoundsatonce, 0, 7, 100);
 
 VAR(dbgsound, 0, 0, 1);
-
-/* OF */
-#define PRELOADFUN(type) \
-    int preload##type##sound(const char *name, int vol) \
-    { \
-        int id = type##sounds.findslot(name, vol); \
-        if (id < 0) id = type##sounds.addslot(name, vol); \
-        if (!type##sounds.slots.inrange(id)) { conoutf(CON_WARN, "cannot preload sound: %s", name); return -1; } \
-        type##sounds.preloadsound(id); \
-        return id; \
-    }
-
-PRELOADFUN(map)
-PRELOADFUN(game)
 
 int playsound(int n, const vec *loc, extentity *ent, int flags, int loops, int fade, int chanid, int radius, int expire)
 {
@@ -806,28 +801,38 @@ CLUAICOMMAND(sound_stop_map, bool, (int uid), {
     return true;
 });
 
-CLUAICOMMAND(sound_preload_map, int, (const char *name, int vol), {
+#define PRELOADFUN(type) \
+    static bool preload##type##sound(const char *name) \
+    { \
+        if (!type##sounds.preloadsound(name)) { conoutf(CON_WARN, "cannot preload sound: %s", name); return false; } \
+        return true; \
+    }
+
+PRELOADFUN(map)
+PRELOADFUN(game)
+
+CLUAICOMMAND(sound_preload_map, bool, (const char *name), {
     defformatstring(buf, "preloading sound '%s' ...", name);
     renderprogress(0, buf);
-    return preloadmapsound(name, vol);
+    return preloadmapsound(name);
 });
 
-ICOMMAND(preloadmapsound, "si", (char *name, int *vol), {
+ICOMMAND(preloadmapsound, "s", (char *name), {
     if (!name[0]) return;
     defformatstring(buf, "preloading sound '%s' ...", name);
     renderprogress(0, buf);
-    intret(preloadmapsound(name, *vol ? *vol : 100));
+    intret(preloadmapsound(name));
 });
 
-CLUAICOMMAND(sound_preload_game, int, (const char *name, int vol), {
+CLUAICOMMAND(sound_preload_game, bool, (const char *name), {
     defformatstring(buf, "preloading sound '%s' ...", name);
     renderprogress(0, buf);
-    return preloadgamesound(name, vol);
+    return preloadgamesound(name);
 });
 
-ICOMMAND(preloadgamesound, "si", (char *name, int *vol), {
+ICOMMAND(preloadgamesound, "s", (char *name), {
     if (!name[0]) return;
     defformatstring(buf, "preloading sound '%s' ...", name);
     renderprogress(0, buf);
-    intret(preloadgamesound(name, *vol ? *vol : 100));
+    intret(preloadgamesound(name));
 });
