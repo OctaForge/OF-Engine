@@ -1751,7 +1751,7 @@ static void dumpvslot(stream *f, const VSlot &vs, int indent) {
     }
 }
 
-static void dumpslot(stream *f, const Slot &s, int index, int indent) {
+static void dumpslot(stream *f, const Slot &s, int index, bool decal, int indent) {
     if (index >= 0) {
         printindent(f, indent);
         f->printf("setshader \"%s\"\n", s.shader->name);
@@ -1768,7 +1768,9 @@ static void dumpslot(stream *f, const Slot &s, int index, int indent) {
         const Slot::Tex &st = s.sts[i];
         printindent(f, indent);
         f->printf("texture ");
-        if (index >= 0) {
+        if (decal && !i) {
+            f->printf("decal");
+        } else if (index >= 0) {
             f->printf("%c", slotvariants[st.type]);
         } else if (!i) {
             f->printf("%s", findmaterialname(-index));
@@ -1785,7 +1787,7 @@ static void dumpslot(stream *f, const Slot &s, int index, int indent) {
                 f->printf("\n");
         } else f->printf("\n");
     }
-    if (index >= 0) {
+    if (index >= 0 && !decal) {
         if (s.grass) {
             printindent(f, indent);
             f->printf("texgrass \"%s\"\n", s.grass);
@@ -1822,7 +1824,7 @@ static void dumpslotrange(stream *f, int firstslot, int nslots, int indent = 0) 
                 ++ind;
             }
         }
-        dumpslot(f, s, i, ind);
+        dumpslot(f, s, i, false, ind);
         if (i != (nextfirstslot - 1)) f->printf("\n");
     }
     if (endgroup) {
@@ -1856,10 +1858,17 @@ void writemediacfg(int level) {
             case MAT_GLASS:
             case MAT_WATER:
             case MAT_LAVA:
-                dumpslot(f, materialslots[i], -i, 0);
+                dumpslot(f, materialslots[i], -i, false, 0);
                 f->printf("\n");
                 break;
         }
+    }
+    f->printf("// decal slots\ndecalreset\n\n");
+    loopv(decalslots) {
+        const DecalSlot &ds = *decalslots[i];
+        renderprogress(i / float(decalslots.length()), "saving decal slots...");
+        dumpslot(f, ds, i, true, 0);
+        f->printf("decaldepth %f %f\n\n", ds.depth, ds.fade);
     }
     f->printf("// texture slots\ntexturereset\n\n");
     if (!firsttexpack) {
