@@ -440,6 +440,15 @@ namespace game
                 if(d) unpackeditinfo(d->edit, q.buf, q.maxlen, unpacklen);
                 break;
             }
+            case N_UNDO:
+            case N_REDO:
+            {
+                int cn = getint(p), unpacklen = getint(p), packlen = getint(p);
+                gameent *d = getclient(cn);
+                ucharbuf q = p.subbuf(max(packlen, 0));
+                if(d) unpackundo(q.buf, q.maxlen, unpacklen);
+                break;
+            }
 
             case N_EDITF:              // coop editing messages
             case N_EDITT:
@@ -670,7 +679,7 @@ assert(0);
             }
             case EDIT_TEX:
             {
-                int tex1 = shouldpackvslot(arg1);
+                int tex1 = shouldpacktex(arg1);
                 if(addmsg(N_EDITF + op, "ri9i6",
                     sel.o.x, sel.o.y, sel.o.z, sel.s.x, sel.s.y, sel.s.z, sel.grid, sel.orient,
                     sel.cx, sel.cxs, sel.cy, sel.cys, sel.corner,
@@ -685,7 +694,7 @@ assert(0);
             }
             case EDIT_REPLACE:
             {
-                int tex1 = shouldpackvslot(arg1), tex2 = shouldpackvslot(arg2);
+                int tex1 = shouldpacktex(arg1), tex2 = shouldpacktex(arg2);
                 if(addmsg(N_EDITF + op, "ri9i7",
                     sel.o.x, sel.o.y, sel.o.z, sel.s.x, sel.s.y, sel.s.z, sel.grid, sel.orient,
                     sel.cx, sel.cxs, sel.cy, sel.cys, sel.corner,
@@ -716,6 +725,18 @@ assert(0);
                     int offset = messages.length();
                     packvslot(messages, vs);
                     *(ushort *)&messages[offset-2] = lilswap(ushort(messages.length() - offset));
+                }
+                break;
+            }
+            case EDIT_UNDO:
+            case EDIT_REDO:
+            {
+                uchar *outbuf = NULL;
+                int inlen = 0, outlen = 0;
+                if(packundo(op, inlen, outbuf, outlen))
+                {
+                    if(addmsg(N_EDITF + op, "ri2", inlen, outlen)) messages.put(outbuf, outlen);
+                    delete[] outbuf;
                 }
                 break;
             }

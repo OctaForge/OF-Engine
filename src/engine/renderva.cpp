@@ -2346,6 +2346,7 @@ void cleanupdecals(decalrenderer &cur)
 {
     disablepolygonoffset(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_TRUE);
     maskgbuffer("cnd");
@@ -2378,20 +2379,20 @@ void renderdecals()
         maskgbuffer("c");
         for(vtxarray *va = decalva; va; va = va->next) if(va->decaltris && va->occluded < OCCLUDE_BB)
         {
-            vverts += 3*va->decaltris;
             mergedecals(cur, va);
             if(!batchdecals && decalbatches.length()) renderdecalbatches(cur, 0);
         }
         if(decalbatches.length()) renderdecalbatches(cur, 0);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
+        if(usepacknorm())
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
+        }
         maskgbuffer("n");
         cur.vbuf = 0;
-        GLOBALPARAMF(colorparams, 1, 1, 1, 1);
         for(vtxarray *va = decalva; va; va = va->next) if(va->decaltris && va->occluded < OCCLUDE_BB)
         {
-            vverts += 3*va->decaltris;
             mergedecals(cur, va);
             if(!batchdecals && decalbatches.length()) renderdecalbatches(cur, 1);
         }
@@ -2404,7 +2405,6 @@ void renderdecals()
         maskgbuffer("cn");
         for(vtxarray *va = decalva; va; va = va->next) if(va->decaltris && va->occluded < OCCLUDE_BB)
         {
-            vverts += 3*va->decaltris;
             mergedecals(cur, va);
             if(!batchdecals && decalbatches.length()) renderdecalbatches(cur, 0);
         }

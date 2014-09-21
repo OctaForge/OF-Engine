@@ -4004,8 +4004,8 @@ MATHICMD(|, 0, );
 MATHICMD(^~, 0, );
 MATHICMD(&~, 0, );
 MATHICMD(|~, 0, );
-MATHICMD(<<, 0, );
-MATHICMD(>>, 0, );
+MATHCMD("<<", i, int, val = val2 < 32 ? val << max(val2, 0) : 0, 0, );
+MATHCMD(">>", i, int, val = val2 < 32 ? val >> max(val2, 0) : 0, 0, );
 
 MATHFCMD(+, 0, );
 MATHFCMD(*, 1, );
@@ -4056,6 +4056,7 @@ ICOMMAND(tan, "f", (float *a), floatret(tan(*a*RAD)));
 ICOMMAND(asin, "f", (float *a), floatret(asin(*a)/RAD));
 ICOMMAND(acos, "f", (float *a), floatret(acos(*a)/RAD));
 ICOMMAND(atan, "f", (float *a), floatret(atan(*a)/RAD));
+ICOMMAND(atan2, "ff", (float *y, float *x), floatret(atan2(*y, *x)/RAD));
 ICOMMAND(sqrt, "f", (float *a), floatret(sqrt(*a)));
 ICOMMAND(loge, "f", (float *a), floatret(log(*a)));
 ICOMMAND(log2, "f", (float *a), floatret(log(*a)/M_LN2));
@@ -4074,6 +4075,8 @@ MINMAXCMD(min, i, int, min);
 MINMAXCMD(max, i, int, max);
 MINMAXCMD(minf, f, float, min);
 MINMAXCMD(maxf, f, float, max);
+
+ICOMMAND(bitscan, "i", (int *n), intret(bitscan(*n)));
 
 ICOMMAND(abs, "i", (int *n), intret(abs(*n)));
 ICOMMAND(absf, "f", (float *n), floatret(fabs(*n)));

@@ -182,6 +182,8 @@ void pophudmatrix(bool flush, bool flushparams) {};
 
 void findanims(const char *pattern, vector<int> &anims) {};
 
+void genstainmmtri(stainrenderer *s, const vec v[3]) {};
+
 #ifdef WINDOWS // needs stubs too, works for now
 #include "GL/gl.h"
 PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements_ = NULL;

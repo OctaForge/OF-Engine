@@ -420,7 +420,7 @@ struct animmodel : model
 
         static inline void fixqtangent(quat &q, float bt)
         {
-            static const float bias = -1.5f/65535, biasscale = sqrtf(1 + bias*bias);
+            static const float bias = -1.5f/65535, biasscale = sqrtf(1 - bias*bias);
             if(bt < 0)
             {
                 if(q.w >= 0) q.neg();

@@ -290,8 +290,6 @@ static inline void masktiles(uint *tiles, float sx1, float sy1, float sx2, float
 
 enum { SM_NONE = 0, SM_REFLECT, SM_CUBEMAP, SM_CASCADE, SM_SPOT };
 
-enum { L_NOSHADOW = 1<<0, L_NODYNSHADOW = 1<<1, L_VOLUMETRIC = 1<<2 };
-
 extern int shadowmapping;
 
 extern vec shadoworigin, shadowdir;
@@ -353,6 +351,7 @@ enum { AA_UNUSED = 0, AA_LUMA, AA_VELOCITY, AA_VELOCITY_MASKED, AA_SPLIT, AA_SPL
 
 extern void cleanupgbuffer();
 extern void initgbuffer();
+extern bool usepacknorm();
 extern void maskgbuffer(const char *mask);
 extern void bindgdepth();
 extern void preparegbuffer(bool depthclear = true);
@@ -396,6 +395,7 @@ extern void cleanupaa();
 // ents
 extern bool haveselent();
 extern undoblock *copyundoents(undoblock *u);
+extern void pasteundoent(int idx, const entity &ue);
 extern void pasteundoents(undoblock *u);
 
 // octaedit
@@ -475,7 +475,7 @@ extern void rendershadowmesh(shadowmesh *m);
 
 extern void updatedynlights();
 extern int finddynlights();
-extern bool getdynlight(int n, vec &o, float &radius, vec &color, vec &dir, int &spot);
+extern bool getdynlight(int n, vec &o, float &radius, vec &color, vec &dir, int &spot, int &flags);
 
 // material
 
@@ -698,12 +698,15 @@ extern void renderparticles(int layer = PL_ALL);
 extern void cleanupparticles();
 
 // stain
-enum { STAINBUF_OPAQUE = 0, STAINBUF_TRANSPARENT, NUMSTAINBUFS };
+enum { STAINBUF_OPAQUE = 0, STAINBUF_TRANSPARENT, STAINBUF_MAPMODEL, NUMSTAINBUFS };
+
+struct stainrenderer;
 
 extern void initstains();
 extern void clearstains();
 extern void renderstains(int sbuf, bool gbuf);
 extern void cleanupstains();
+extern void genstainmmtri(stainrenderer *s, const vec v[3]);
 
 // rendersky
 extern int skytexture, skyshadow, explicitsky;

@@ -45,6 +45,7 @@ extern "C" {
   #ifndef __GNUC__
     #include <eh.h>
     #include <dbghelp.h>
+    #include <intrin.h>
   #endif
   #define ZLIB_DLL
 #endif

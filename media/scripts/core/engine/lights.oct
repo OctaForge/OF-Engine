@@ -20,9 +20,9 @@ return {
         (flashing light).
     */
     flags = {:
-        SHRINK = 1 << 0,
-        EXPAND = 1 << 1,
-        FLASH  = 1 << 2
+        SHRINK = 1 << 8,
+        EXPAND = 1 << 9,
+        FLASH  = 1 << 10
     :},
 
     /**

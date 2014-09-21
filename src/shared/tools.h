@@ -11,6 +11,7 @@
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
+typedef unsigned long ulong;
 typedef signed long long int llong;
 typedef unsigned long long int ullong;
 
@@ -78,6 +79,30 @@ static inline T clamp(T a, U b, U c)
 {
     return max(T(b), min(a, T(c)));
 }
+
+#ifdef __GNUC__
+#define bitscan(mask) (__builtin_ffs(mask)-1)
+#else
+#ifdef WIN32
+#pragma intrinsic(_BitScanForward)
+static inline int bitscan(uint mask)
+{
+    ulong i;
+    return _BitScanForward(&i, mask) ? i : -1;
+}
+#else
+static inline int bitscan(uint mask)
+{   
+    if(!mask) return -1;
+    int i = 1;
+    if(!(mask&0xFFFF)) { i += 16; mask >>= 16; }
+    if(!(mask&0xFF)) { i += 8; mask >>= 8; }
+    if(!(mask&0xF)) { i += 4; mask >>= 4; }
+    if(!(mask&3)) { i += 2; mask >>= 2; }
+    return i - (mask&1);
+}
+#endif
+#endif
 
 #define rnd(x) ((int)(randomMT()&0x7FFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0x7FFFFFFF)*double(x)/double(0x7FFFFFFF)))
@@ -551,7 +576,7 @@ template <class T> struct vector
         *this = v;
     }
 
-    ~vector() { shrink(0); if(buf) delete[] (uchar *)buf; }
+    ~vector() { shrink(0); if(buf) free(buf); }
 
     vector<T> &operator=(const vector<T> &v)
     {
@@ -637,15 +662,10 @@ template <class T> struct vector
     {
         int olen = alen;
         if(!alen) alen = max(MINSIZE, sz);
-        else while(alen < sz) alen *= 2;
+        else while(alen < sz) alen += alen/2;
         if(alen <= olen) return;
-        uchar *newbuf = new uchar[alen*sizeof(T)];
-        if(olen > 0)
-        {
-            if(ulen > 0) memcpy(newbuf, (void *)buf, ulen*sizeof(T));
-            delete[] (uchar *)buf;
-        }
-        buf = (T *)newbuf;
+        buf = (T *)realloc(buf, alen*sizeof(T));
+        if(!buf) abort();
     }
 
     databuf<T> reserve(int sz)
@@ -1496,6 +1516,15 @@ extern void getstring(char *t, ucharbuf &p, size_t len);
 template<size_t N> static inline void getstring(char (&t)[N], ucharbuf &p) { getstring(t, p, N); }
 extern void filtertext(char *dst, const char *src, bool whitespace, size_t len);
 template<size_t N> static inline void filtertext(char (&dst)[N], const char *src, bool whitespace = true) { filtertext(dst, src, whitespace, N-1); }
+
+struct ipmask
+{
+    enet_uint32 ip, mask;
+
+    void parse(const char *name);
+    int print(char *buf) const;
+    bool check(enet_uint32 host) const { return (host & mask) == ip; }
+};
 
 #endif
 

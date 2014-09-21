@@ -2016,7 +2016,7 @@ void clearslots()
 
 static void assignvslot(VSlot &vs);
 
-static void assignvslotlayer(VSlot &vs)
+static inline void assignvslotlayer(VSlot &vs)
 {
     if(vs.layer && vslots.inrange(vs.layer) && vslots[vs.layer]->index < 0) assignvslot(*vslots[vs.layer]);
     if(vs.decal && vslots.inrange(vs.decal) && vslots[vs.decal]->index < 0) assignvslot(*vslots[vs.decal]);
@@ -2333,16 +2333,6 @@ static int comparevslot(const VSlot &dst, const VSlot &src) {
     return changed;
 }
 
-int shouldpackvslot(int index)
-{
-    if(vslots.inrange(index))
-    {
-        VSlot &vs = *vslots[index];
-        if(vs.changed) return 0x10000 + vs.slot->index;
-    }
-    return 0;
-}
-
 void packvslot(vector<uchar> &buf, const VSlot &src)
 {
     if(src.changed & (1<<VSLOT_SHPARAM))
@@ -2379,11 +2369,8 @@ void packvslot(vector<uchar> &buf, const VSlot &src)
     }
     if(src.changed & (1<<VSLOT_LAYER))
     {
-        if(vslots.inrange(src.layer) && !vslots[src.layer]->changed)
-        {
-            buf.put(VSLOT_LAYER);
-            putuint(buf, vslots[src.layer]->slot->index);
-        }
+        buf.put(VSLOT_LAYER);
+        putuint(buf, vslots.inrange(src.layer) && !vslots[src.layer]->changed ? src.layer : 0);
     }
     if(src.changed & (1<<VSLOT_ALPHA))
     {
@@ -2408,11 +2395,8 @@ void packvslot(vector<uchar> &buf, const VSlot &src)
     }
     if(src.changed & (1<<VSLOT_DECAL))
     {
-        if(vslots.inrange(src.decal) && !vslots[src.decal]->changed)
-        {
-            buf.put(VSLOT_DECAL);
-            putuint(buf, vslots[src.decal]->slot->index);
-        }
+        buf.put(VSLOT_DECAL);
+        putuint(buf, vslots.inrange(src.decal) && !vslots[src.decal]->changed ? src.decal : 0);
     }
     buf.put(0);
 }
@@ -2468,7 +2452,7 @@ bool unpackvslot(ucharbuf &buf, VSlot &dst, bool delta)
             case VSLOT_LAYER:
             {
                 int tex = getuint(buf);
-                dst.layer = slots.inrange(tex) ? slots[tex]->variants->index : 0;
+                dst.layer = vslots.inrange(tex) ? tex : 0;
                 break;
             }
             case VSLOT_ALPHA:
@@ -2489,7 +2473,7 @@ bool unpackvslot(ucharbuf &buf, VSlot &dst, bool delta)
             case VSLOT_DECAL:
             {
                 int tex = getuint(buf);
-                dst.decal = slots.inrange(tex) ? slots[tex]->variants->index : 0;
+                dst.decal = vslots.inrange(tex) ? tex : 0;
                 break;
             }
             default:

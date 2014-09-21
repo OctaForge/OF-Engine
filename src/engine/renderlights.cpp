@@ -127,11 +127,16 @@ void clearbilateralshaders()
     loopk(2) bilateralshader[k] = NULL;
 }
 
+void setbilateralparams(int radius, float depth)
+{
+    float sigma = blursigma*2*radius;
+    LOCALPARAMF(bilateralparams, 1.0f/(M_LN2*2*sigma*sigma), 1.0f/(M_LN2*depth*depth));
+}
+
 void setbilateralshader(int radius, int pass, float depth)
 {
     bilateralshader[pass]->set();
-    float sigma = blursigma*2*radius;
-    LOCALPARAMF(bilateralparams, 1.0f/(M_LN2*2*sigma*sigma), 1.0f/(M_LN2*depth*depth));
+    setbilateralparams(radius, depth);
 }
 
 static Shader *ambientobscuranceshader = NULL;
@@ -1352,7 +1357,7 @@ void viewrefract()
 #define RH_MAXSPLITS 4
 #define RH_MAXGRID 64
 
-GLuint rhtex[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }, rhfbo = 0;
+GLuint rhtex[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }, rhrb[4] = { 0, 0, 0, 0 }, rhfbo = 0;
 uint rhclearmasks[2][RH_MAXSPLITS][(RH_MAXGRID+2+31)/32];
 GLuint rsmdepthtex = 0, rsmcolortex = 0, rsmnormaltex = 0, rsmfbo = 0;
 
@@ -1406,9 +1411,11 @@ void setupradiancehints()
 
     if(rhrect) loopi(4)
     {
-        if(!rhtex[4+i]) glGenTextures(1, &rhtex[4+i]);
-        createtexture(rhtex[4+i], (rhgrid + 2*rhborder)*(rhgrid + 2*rhborder), (rhgrid + 2*rhborder)*rhsplits, NULL, 3, 0, rhformat, GL_TEXTURE_RECTANGLE);
-        glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_RECTANGLE, rhtex[4+i], 0);
+        if(!rhrb[i]) glGenRenderbuffers_(1, &rhrb[i]);
+        glBindRenderbuffer_(GL_RENDERBUFFER, rhrb[i]);
+        glRenderbufferStorage_(GL_RENDERBUFFER, rhformat, (rhgrid + 2*rhborder)*(rhgrid + 2*rhborder), (rhgrid + 2*rhborder)*rhsplits);
+        glBindRenderbuffer_(GL_RENDERBUFFER, 0);
+        glFramebufferRenderbuffer_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, rhrb[i]);
     }
     else loopi(4) glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_3D, rhtex[i], 0, 0);
 
@@ -1453,6 +1460,7 @@ void cleanupradiancehints()
     clearradiancehintscache();
 
     loopi(8) if(rhtex[i]) { glDeleteTextures(1, &rhtex[i]); rhtex[i] = 0; }
+    loopi(4) if(rhrb[i]) { glDeleteRenderbuffers_(1, &rhrb[i]); rhrb[i] = 0; }
     if(rhfbo) { glDeleteFramebuffers_(1, &rhfbo); rhfbo = 0; }
     if(rsmdepthtex) { glDeleteTextures(1, &rsmdepthtex); rsmdepthtex = 0; }
     if(rsmcolortex) { glDeleteTextures(1, &rsmcolortex); rsmcolortex = 0; }
@@ -1980,9 +1988,6 @@ void cascadedshadowmap::getprojmatrix()
         split.proj.identity();
         split.proj.settranslation(2*split.offset.x/sm.size - 1, 2*split.offset.y/sm.size - 1, 2*split.offset.z - 1);
         split.proj.setscale(2*split.scale.x/sm.size, 2*split.scale.y/sm.size, 2*split.scale.z);
-
-        const float bias = (smfilter > 2 ? csmbias2 : csmbias) * (-512.0f / sm.size) * (split.farplane - split.nearplane) / (splits[0].farplane - splits[0].nearplane);
-        split.offset.add(vec(sm.x, sm.y, bias));
     }
 }
 
@@ -2003,21 +2008,23 @@ void cascadedshadowmap::gencullplanes()
 
 void cascadedshadowmap::bindparams()
 {
-    static GlobalShaderParam splitcenter("splitcenter"), splitbounds("splitbounds"), splitscale("splitscale"), splitoffset("splitoffset");
-    vec *splitcenterv = splitcenter.reserve<vec>(csmsplits),
-        *splitboundsv = splitbounds.reserve<vec>(csmsplits),
-        *splitscalev = splitscale.reserve<vec>(csmsplits),
-        *splitoffsetv = splitoffset.reserve<vec>(csmsplits);
+    GLOBALPARAM(csmmatrix, matrix3(model));
+
+    static GlobalShaderParam csmtc("csmtc"), csmoffset("csmoffset");
+    vec4 *csmtcv = csmtc.reserve<vec4>(csmsplits);
+    vec *csmoffsetv = csmoffset.reserve<vec>(csmsplits);
     loopi(csmsplits)
-    {
+    {   
         cascadedshadowmap::splitinfo &split = splits[i];
         if(split.idx < 0) continue;
-        splitcenterv[i] = split.center;
-        splitboundsv[i] = split.bounds;
-        splitscalev[i] = split.scale;
-        splitoffsetv[i] = split.offset;
+        const shadowmapinfo &sm = shadowmaps[split.idx];
+
+        csmtcv[i] = vec4(vec2(split.center).mul(-split.scale.x), split.scale.x, split.bounds.x*split.scale.x);
+
+        const float bias = (smfilter > 2 ? csmbias2 : csmbias) * (-512.0f / sm.size) * (split.farplane - split.nearplane) / (splits[0].farplane - splits[0].nearplane);
+        csmoffsetv[i] = vec(sm.x, sm.y, 0.5f + bias).add2(0.5f*sm.size);
     }
-    GLOBALPARAM(csmmatrix, matrix3(model));
+    GLOBALPARAMF(csmz, splits[0].center.z*-splits[0].scale.z, splits[0].scale.z);
 }
 
 cascadedshadowmap csm;
@@ -2265,19 +2272,17 @@ void radiancehints::setup()
 
 void radiancehints::bindparams()
 {
-    static GlobalShaderParam rhbb("rhbb"), rhscale("rhscale"), rhoffset("rhoffset");
-    vec4 *rhbbv = rhbb.reserve<vec4>(rhsplits);
-    vec *rhscalev = rhscale.reserve<vec>(rhsplits),
-        *rhoffsetv = rhoffset.reserve<vec>(rhsplits);
+    float step = 2*splits[0].bounds/rhgrid;
+    GLOBALPARAMF(rhnudge, rhnudge*step);
+
+    static GlobalShaderParam rhtc("rhtc");
+    vec4 *rhtcv = rhtc.reserve<vec4>(rhsplits);
     loopi(rhsplits)
     {
         splitinfo &split = splits[i];
-        rhbbv[i] = vec4(split.center, split.bounds*(1 + rhborder*2*0.5f/rhgrid));
-        rhscalev[i] = split.scale;
-        rhoffsetv[i] = split.offset;
+        rhtcv[i] = vec4(vec(split.center).mul(-split.scale.x), split.scale.x);//split.bounds*(1 + rhborder*2*0.5f/rhgrid));
     }
-    float step = 2*splits[0].bounds/rhgrid;
-    GLOBALPARAMF(rhnudge, rhnudge*step);
+    GLOBALPARAMF(rhbounds, 0.5f*(rhgrid + rhborder)/float(rhgrid + 2*rhborder));
 }
 
 bool useradiancehints()
@@ -2317,16 +2322,16 @@ VAR(forcespotlights, 1, 0, 0);
 
 extern int spotlights;
 
-static Shader *volumetricshader = NULL, *volumetricblurshader[2] = { NULL, NULL };
+static Shader *volumetricshader = NULL, *volumetricbilateralshader[2] = { NULL, NULL };
 
 void clearvolumetricshaders()
 {
     volumetricshader = NULL;
 
-    loopi(2) volumetricblurshader[i] = NULL;
+    loopi(2) volumetricbilateralshader[i] = NULL;
 }
 
-extern int volsteps, volblur;
+extern int volsteps, volbilateral, volblur, volreduce;
 
 Shader *loadvolumetricshader()
 {
@@ -2349,14 +2354,12 @@ void loadvolumetricshaders()
 {
     volumetricshader = loadvolumetricshader();
 
-    if(volblur) loopi(2)
+    if(volbilateral) loopi(2)
     {
-        defformatstring(name, "volumetricblur%c%d", 'x' + i, volblur);
-        volumetricblurshader[i] = generateshader(name, "volumetricblurshader %d", volblur);
+        defformatstring(name, "volumetricbilateral%c%d%d", 'x' + i, volbilateral, volreduce);
+        volumetricbilateralshader[i] = generateshader(name, "volumetricbilateralshader %d %d", volbilateral, volreduce);
     }
 }
-
-extern int volreduce;
 
 static int volw = -1, volh = -1;
 static GLuint volfbo[2] = { 0, 0 }, voltex[2] = { 0, 0 };
@@ -2366,7 +2369,7 @@ void setupvolumetric(int w, int h)
     volw = w>>volreduce;
     volh = h>>volreduce;
 
-    loopi(volblur ? 2 : 1)
+    loopi(volbilateral || volblur ? 2 : 1)
     {
         if(!voltex[i]) glGenTextures(1, &voltex[i]);
         if(!volfbo[i]) glGenFramebuffers_(1, &volfbo[i]);
@@ -2397,13 +2400,14 @@ void cleanupvolumetric()
 
 VARFP(volumetric, 0, 1, 1, cleanupvolumetric());
 VARFP(volreduce, 0, 1, 2, cleanupvolumetric());
-VARFP(volblur, 0, 1, 2, cleanupvolumetric());
-FVARF(volblurthreshold, 0, 0.05f, 1, initwarning("volumetric setup", INIT_LOAD, CHANGE_SHADERS));
+VARFP(volbilateral, 0, 1, 3, cleanupvolumetric());
+FVAR(volbilateraldepth, 0, 4, 1e3f);
+VARFP(volblur, 0, 1, 3, cleanupvolumetric());
 VARFP(volsteps, 1, 12, 64, cleanupvolumetric());
-FVARF(volminstep, 0, 0.0625f, 1e3f, initwarning("volumetric setup", INIT_LOAD, CHANGE_SHADERS));
+FVAR(volminstep, 0, 0.0625f, 1e3f);
 FVAR(volprefilter, 0, 4, 1e3f);
 FVAR(voldistclamp, 0, 0.99f, 2);
-CVARR(volcolor, 0x808080);
+CVAR1R(volcolor, 0x808080);
 FVARR(volscale, 0, 1, 16);
 
 static Shader *deferredlightshader = NULL, *deferredminimapshader = NULL, *deferredmsaapixelshader = NULL, *deferredmsaasampleshader = NULL;
@@ -2758,7 +2762,7 @@ static inline void setlightparams(int i, const lightinfo &l)
     {
         shadowmapinfo &sm = shadowmaps[l.shadowmap];
         float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3,
-              bias = (smfilter > 2 ? smbias2 : smbias) * (smcullside ? 1 : -1) * smnearclip * (1024.0f / sm.size);
+              bias = (smfilter > 2 || smsize > 12 ? smbias2 : smbias) * (smcullside ? 1 : -1) * smnearclip * (1024.0f / sm.size);
         int border = smfilter > 2 ? smborder2 : smborder;
         if(l.spot > 0)
         {
@@ -3141,6 +3145,7 @@ void rendervolumetric()
 
     GLOBALPARAMF(shadowatlasscale, 1.0f/shadowatlaspacker.w, 1.0f/shadowatlaspacker.h);
     GLOBALPARAMF(volscale, float(vieww)/volw, float(viewh)/volh, float(volw)/vieww, float(volh)/viewh);
+    GLOBALPARAMF(volminstep, volminstep);
     GLOBALPARAMF(volprefilter, volprefilter);
     GLOBALPARAMF(voldistclamp, farplane*voldistclamp);
 
@@ -3252,23 +3257,38 @@ void rendervolumetric()
         cy1 = int(floor((bsy1*0.5f+0.5f)*volh))&~1,
         cx2 = (int(ceil((bsx2*0.5f+0.5f)*volw))&~1) + 2,
         cy2 = (int(ceil((bsy2*0.5f+0.5f)*volh))&~1) + 2;
-    if(volblur)
+    if(volbilateral || volblur)
     {
-        cx1 = max(cx1 - volblur*2, 0);
-        cy1 = max(cy1 - volblur*2, 0);
-        cx2 = min(cx2 + volblur*2, volw);
-        cy2 = min(cy2 + volblur*2, volh);
+        int radius = (volbilateral ? volbilateral : volblur)*2;
+        cx1 = max(cx1 - radius, 0);
+        cy1 = max(cy1 - radius, 0);
+        cx2 = min(cx2 + radius, volw);
+        cy2 = min(cy2 + radius, volh);
         glScissor(cx1, cy1, cx2-cx1, cy2-cy1);
 
         glDisable(GL_BLEND);
 
-        loopi(2)
+        if(volbilateral) loopi(2)
         {
             glBindFramebuffer_(GL_FRAMEBUFFER, volfbo[(i+1)%2]);
             glViewport(0, 0, volw, volh);
-            volumetricblurshader[i]->set();
+            volumetricbilateralshader[i]->set();
+            setbilateralparams(volbilateral, volbilateraldepth);
             glBindTexture(GL_TEXTURE_RECTANGLE, voltex[i%2]);
-            screenquad(volw, volh);
+            screenquadoffset(0.25f, 0.25f, vieww, viewh);
+        }
+        else
+        {
+            float blurweights[MAXBLURRADIUS+1], bluroffsets[MAXBLURRADIUS+1];
+            setupblurkernel(volblur, blurweights, bluroffsets);
+            loopi(2)
+            {
+                glBindFramebuffer_(GL_FRAMEBUFFER, volfbo[(i+1)%2]);
+                glViewport(0, 0, volw, volh);
+                setblurshader(i%2, 1, volblur, blurweights, bluroffsets, GL_TEXTURE_RECTANGLE);
+                glBindTexture(GL_TEXTURE_RECTANGLE, voltex[i%2]);
+                screenquad(volw, volh);
+            }
         }
 
         glEnable(GL_BLEND);
@@ -3296,7 +3316,7 @@ void rendervolumetric()
     glBindTexture(GL_TEXTURE_RECTANGLE, voltex[0]);
     screenquad(volw, volh);
 
-    if(volblur)
+    if(volbilateral || volblur)
     {
         swap(volfbo[0], volfbo[1]);
         swap(voltex[0], voltex[1]);
@@ -3382,7 +3402,7 @@ void collectlights()
         l.flags = e->attr[4];
         l.query = NULL;
         l.o = e->o;
-        l.color = vec(e->attr[1], e->attr[2], e->attr[3]);
+        l.color = vec(e->attr[1], e->attr[2], e->attr[3]).max(0);
         l.radius = e->attr[0];
         if(e->attached && e->attached->type == ET_SPOTLIGHT)
         {
@@ -3408,16 +3428,16 @@ void collectlights()
     {
         vec o, color, dir;
         float radius;
-        int spot;
-        if(!getdynlight(i, o, radius, color, dir, spot)) continue;
+        int spot, flags;
+        if(!getdynlight(i, o, radius, color, dir, spot, flags)) continue;
 
         lightinfo &l = lights.add();
         l.ent = -1;
         l.shadowmap = -1;
-        l.flags = 0;
+        l.flags = flags;
         l.query = NULL;
         l.o = o;
-        l.color = vec(color).mul(255);
+        l.color = vec(color).mul(255).max(0);
         l.radius = radius;
         if(spot > 0)
         {
@@ -3786,7 +3806,7 @@ void radiancehints::renderslices()
     gle::deftexcoord0(3);
 
     memset(rhclearmasks[0], 0xFF, sizeof(rhclearmasks[0]));
-
+    int cx = -1, cy = -1;
     loopirev(rhsplits)
     {
         splitinfo &split = splits[i];
@@ -3897,24 +3917,21 @@ void radiancehints::renderslices()
 
                 rhclearmasks[0][i][j/32] &= ~(1 << (j%32));
             }
-            else
-            {
-            noborder:
-                if(rhborder) glClear(GL_COLOR_BUFFER_BIT);
-            }
 
-            if(j < rhborder || j >= rhgrid + rhborder) continue;
+        noborder:
+            if(j < rhborder || j >= rhgrid + rhborder)
+            {
+            skipped:
+                if(rhclearmasks[0][i][j/32] & (1 << (j%32)) && (!rhrect || (cx < 0 && !(rhclearmasks[1][i][j/32] & (1 << (j%32)))))) { glClear(GL_COLOR_BUFFER_BIT); cx = sx; cy = sy; }
+                continue;
+            }
 
             if(rhclipgrid)
             {
-                if(z < cmin.z || z > cmax.z)
-                {
-                    if(!rhborder) glClear(GL_COLOR_BUFFER_BIT);
-                    continue;
-                }
+                if(z < cmin.z || z > cmax.z) goto skipped;
                 if(x1 < cmin.x || x2 > cmax.x || y1 < cmin.y || y2 > cmax.y)
                 {
-                    if(!rhborder) glClear(GL_COLOR_BUFFER_BIT);
+                    if(rhclearmasks[0][i][j/32] & (1 << (j%32))) glClear(GL_COLOR_BUFFER_BIT);
                     tx1 = max(x1, cmin.x);
                     tx2 = min(x2, cmax.x);
                     ty1 = max(y1, cmin.y);
@@ -4013,7 +4030,11 @@ void radiancehints::renderslices()
             glBindTexture(GL_TEXTURE_3D, rhtex[k]);
             loopj(sh)
             {
-                if(rhclearmasks[0][i][j/32] & rhclearmasks[1][i][j/32] & (1 << (j%32))) continue;
+                if(rhclearmasks[0][i][j/32] & (1 << (j%32)))
+                {
+                    if(!(rhclearmasks[1][i][j/32] & (1 << (j%32)))) glCopyTexSubImage3D_(GL_TEXTURE_3D, 0, 0, 0, sy+j, cx, cy, sw, sh);
+                    continue;
+                }
                 glCopyTexSubImage3D_(GL_TEXTURE_3D, 0, 0, 0, sy+j, j*sw, sy, sw, sh);
             }
         }
@@ -4729,6 +4750,7 @@ void rendergbuffer(bool depthclear)
         rendermodelbatches();
         GLERROR;
         renderstains(STAINBUF_OPAQUE, true);
+        renderstains(STAINBUF_MAPMODEL, true);
         GLERROR;
         renderavatar();
         GLERROR;
@@ -4815,7 +4837,11 @@ void shadegbuffer()
     else renderlights();
     GLERROR;
 
-    if(!drawtex) renderstains(STAINBUF_OPAQUE, false);
+    if(!drawtex)
+    {
+        renderstains(STAINBUF_OPAQUE, false);
+        renderstains(STAINBUF_MAPMODEL, false);
+    }
 
     endtimer(shtimer);
     endtimer(shcputimer);
@@ -4827,7 +4853,7 @@ void setuplights()
     setupgbuffer();
     if(bloomw < 0 || bloomh < 0) setupbloom(gw, gh);
     if(ao && (aow < 0 || aoh < 0)) setupao(gw, gh);
-    if(volumetriclights && volumetric && (volw || volh < 0)) setupvolumetric(gw, gh);
+    if(volumetriclights && volumetric && (volw < 0 || volh < 0)) setupvolumetric(gw, gh);
     if(!shadowatlasfbo) setupshadowatlas();
     if(useradiancehints() && !rhfbo) setupradiancehints();
     if(!deferredlightshader) loaddeferredlightshaders();

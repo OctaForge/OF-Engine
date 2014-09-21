@@ -59,7 +59,7 @@ extern bool settexture(const char *name, int clamp = 0);
 
 // octaedit
 
-enum { EDIT_FACE = 0, EDIT_TEX, EDIT_MAT, EDIT_FLIP, EDIT_COPY, EDIT_PASTE, EDIT_ROTATE, EDIT_REPLACE, EDIT_DELCUBE, EDIT_CALCLIGHT, EDIT_REMIP, EDIT_VSLOT };
+enum { EDIT_FACE = 0, EDIT_TEX, EDIT_MAT, EDIT_FLIP, EDIT_COPY, EDIT_PASTE, EDIT_ROTATE, EDIT_REPLACE, EDIT_DELCUBE, EDIT_CALCLIGHT, EDIT_REMIP, EDIT_VSLOT, EDIT_UNDO, EDIT_REDO };
 
 struct selinfo
 {
@@ -91,10 +91,13 @@ extern editinfo *localedit;
 
 extern bool editmode;
 
+extern int shouldpacktex(int index);
 extern bool packeditinfo(editinfo *e, int &inlen, uchar *&outbuf, int &outlen);
 extern bool unpackeditinfo(editinfo *&e, const uchar *inbuf, int inlen, int outlen);
 extern void freeeditinfo(editinfo *&e);
 extern void pruneundos(int maxremain = 0);
+extern bool packundo(int op, int &inlen, uchar *&outbuf, int &outlen);
+extern bool unpackundo(const uchar *inbuf, int inlen, int outlen);
 extern bool noedit(bool view = false, bool msg = true);
 extern void toggleedit(bool force = true);
 extern void mpeditface(int dir, int mode, selinfo &sel, bool local);
@@ -264,11 +267,21 @@ static inline void text_pos(const char *str, int cursor, int &cx, int &cy, int m
 
 struct VSlot;
 
-extern int shouldpackvslot(int index);
 extern void packvslot(vector<uchar> &buf, int index);
 extern void packvslot(vector<uchar> &buf, const VSlot *vs);
 
+// renderlights
+
+enum { L_NOSHADOW = 1<<0, L_NODYNSHADOW = 1<<1, L_VOLUMETRIC = 1<<2 };
+
 // dynlight
+enum
+{
+    DL_SHRINK = 1<<8,
+    DL_EXPAND = 1<<9,
+    DL_FLASH  = 1<<10
+};
+
 extern void removetrackeddynlights(physent *owner = NULL);
 
 // renderparticles
