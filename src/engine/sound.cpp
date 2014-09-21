@@ -327,9 +327,9 @@ static struct soundtype
         slots[n].sample->load(dir, true);
     }
 
-    bool playing(const soundchannel &chan, const soundslot &c) const
+    bool playing(const soundchannel &chan, const soundsample *sample, int volume) const
     {
-        return chan.inuse && chan.sample == c.sample && chan.svolume == c.volume;
+        return chan.inuse && chan.sample == sample && chan.svolume == volume;
     }
 } gamesounds("", 0), mapsounds("", SND_MAP);
 
@@ -520,7 +520,7 @@ int playsound(int n, const vec *loc, extentity *ent, int flags, int loops, int f
         int rad = radius > 0 ? (maxsoundradius ? min(maxsoundradius, radius) : radius) : maxsoundradius;
         if(camera1->o.dist(*loc) > 1.5f*rad)
         {
-            if(channels.inrange(chanid) && sounds.playing(channels[chanid], slot))
+            if(channels.inrange(chanid) && sounds.playing(channels[chanid], slot.sample, slot.volume))
             {
                 Mix_HaltChannel(chanid);
                 freechannel(chanid);
@@ -541,7 +541,7 @@ int playsound(int n, const vec *loc, extentity *ent, int flags, int loops, int f
     if(channels.inrange(chanid))
     {
         soundchannel &chan = channels[chanid];
-        if(sounds.playing(chan, slot))
+        if(sounds.playing(chan, slot.sample, slot.volume))
         {
             if(loc) chan.loc = *loc;
             else if(chan.hasloc()) chan.clearloc();
@@ -585,7 +585,8 @@ void stopsounds()
 
 bool stopsound(int n, int chanid, int fade)
 {
-    if(!gamesounds.slots.inrange(n) || !channels.inrange(chanid) || !gamesounds.playing(channels[chanid], gamesounds.slots[n])) return false;
+    const vector<soundslot> &slots = gamesounds.slots;
+    if(!slots.inrange(n) || !channels.inrange(chanid) || !gamesounds.playing(channels[chanid], slots[n].sample, slots[n].volume)) return false;
     if(dbgsound) conoutf("stopsound: %s%s", gamesounds.dir, channels[chanid].sample->name);
     if(!fade || !Mix_FadeOutChannel(chanid, fade))
     {
