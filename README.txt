@@ -1,10 +1,6 @@
 OctaForge
 ================
 
-This is OctaForge developer beta (0.3.0, Nvember 23 2013)
-
-In sync with Tesseract.
-
 For installation, read INSTALL.
 To run it, launch bin_unix/client_YOUROS_YOURARCH on *nix
 and bin_winYOURARCH\client_win_YOURARCH.exe on Windows from
