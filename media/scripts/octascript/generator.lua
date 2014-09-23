@@ -218,12 +218,12 @@ local dirop = {
 
 -- Bit operations
 local bitop = {
-    ["|"  ] = "__rt_bor",
-    ["&"  ] = "__rt_band",
-    ["^"  ] = "__rt_bxor",
-    ["<<" ] = "__rt_lshift",
-    [">>>"] = "__rt_rshift",
-    [">>" ] = "__rt_arshift"
+    ["|"  ] = "bor",
+    ["&"  ] = "band",
+    ["^"  ] = "bxor",
+    ["<<" ] = "lshift",
+    [">>>"] = "rshift",
+    [">>" ] = "arshift"
 }
 
 local gen_ident = function(self, name, dest)
@@ -242,6 +242,10 @@ local gen_ident = function(self, name, dest)
     end
 end
 
+local gen_rt = function(self, name, dest)
+    gen_ident(self, "__rt_" .. name, dest)
+end
+
 -- ExpressionRule's entries take a node and a destination register (dest)
 -- used to store the result. At the end of the call no new registers are
 -- marked as used.
@@ -250,7 +254,7 @@ end
 local ExpressionRule = {
     Literal = function(self, node, dest)
         if node.value == util.null and type(node.value) == "cdata" then
-            gen_ident(self, "__rt_null", dest)
+            gen_rt(self, "null", dest)
         else
             self.ctx:op_load(dest, node.value)
         end
@@ -388,7 +392,7 @@ local ExpressionRule = {
                 "operands are both constants")
             self.ctx:op_infix(dirop[o], dest, atag, a, btag, b)
         elseif bitop[o] then
-            gen_ident(self, bitop[o], free)
+            gen_rt(self, bitop[o], free)
             self.ctx:nextreg()
             self:expr_tonextreg(node.left)
             self:expr_tonextreg(node.right)
@@ -411,7 +415,7 @@ local ExpressionRule = {
         local free = self.ctx.freereg
         local o = node.operator
         if o == "~" then
-            gen_ident(self, "__rt_bnot", free)
+            gen_rt(self, "bnot", free)
             self.ctx:nextreg()
             self:expr_tonextreg(node.argument)
             self.ctx.freereg = free
@@ -498,7 +502,7 @@ local ExpressionRule = {
 
     ImportExpression = function(self, node, dest)
         local free = self.ctx.freereg
-        gen_ident(self, "__rt_import", free)
+        gen_rt(self, "import", free)
         self.ctx:nextreg()
         self:expr_tonextreg(node.modname)
         self.ctx.freereg = free
@@ -508,7 +512,7 @@ local ExpressionRule = {
 
     TypeofExpression = function(self, node, dest)
         local free = self.ctx.freereg
-        gen_ident(self, "__rt_type", free)
+        gen_rt(self, "type", free)
         self.ctx:nextreg()
         self:expr_tonextreg(node.expression)
         self.ctx.freereg = free
@@ -630,7 +634,7 @@ local MultiExprRule = {
         local call = node.expression
         local handler = node.handler
 
-        gen_ident(self, handler and "__rt_xpcall" or "__rt_pcall", free)
+        gen_rt(self, handler and "xpcall" or "pcall", free)
         self.ctx:nextreg()
 
         local base = self.ctx.freereg
@@ -1110,7 +1114,7 @@ local StatementRule = {
         if fields then
             local base = free + #fields
             self.ctx:setreg(base)
-            gen_ident(self, "__rt_import", base)
+            gen_rt(self, "import", base)
             self.ctx:nextreg()
             self:expr_tonextreg(node.modname)
             self.ctx.freereg = base
@@ -1126,7 +1130,7 @@ local StatementRule = {
                 self.ctx:nextreg()
             end
         else
-            gen_ident(self, "__rt_import", free)
+            gen_rt(self, "import", free)
             self.ctx:nextreg()
             self:expr_tonextreg(node.modname)
             self.ctx.freereg = free
@@ -1141,7 +1145,7 @@ local StatementRule = {
 
     RaiseStatement = function(self, node)
         local free = self.ctx.freereg
-        gen_ident(self, "__rt_error", free)
+        gen_rt(self, "error", free)
         self.ctx:nextreg()
         self:expr_tonextreg(node.expression)
         local nargs = 1
