@@ -58,7 +58,7 @@ local BinaryOps = {
 }
 
 local RightAss = {
-    ["~"] = true, ["**"] = true
+    ["**"] = true
 }
 
 local UnaryOps = {
