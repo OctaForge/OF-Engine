@@ -11,7 +11,7 @@
         See COPYING.txt.
 */
 
-import ffi
+import std.ffi
 import capi
 import core.engine.cubescript as cs
 import core.events.signal

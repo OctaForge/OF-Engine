@@ -9,7 +9,7 @@
 */
 
 import capi
-import ffi
+import std.ffi
 var ents, get_ent
 
 var ffi_new = ffi.new

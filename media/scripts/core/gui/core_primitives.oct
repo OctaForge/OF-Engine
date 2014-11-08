@@ -9,7 +9,7 @@
 */
 
 import capi
-import ffi
+import std.ffi
 import core.engine.model
 import core.engine.cubescript as cs
 import core.events.signal

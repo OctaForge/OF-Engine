@@ -293,10 +293,12 @@ local std = {
     package = {
         cond_env   = {},
         loaded     = {
-            ["capi"] = package.loaded.capi,
-            ["ffi" ] = package.loaded.ffi
+            ["capi"   ] = package.loaded.capi,
+            ["std.ffi"] = package.loaded.ffi
         },
-        preload    = package.preload,
+        preload    = {
+            ["std.ffi"] = package.preload.ffi
+        },
         path       = package.path,
         loadlib    = package.loadlib,
         cpath      = package.cpath,

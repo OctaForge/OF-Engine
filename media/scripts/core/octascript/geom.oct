@@ -10,7 +10,7 @@
 */
 
 import capi
-import ffi
+import std.ffi
 import core.logger as log
 
 from std.table import rawget, rawset, pairs

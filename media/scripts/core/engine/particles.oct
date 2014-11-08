@@ -14,7 +14,7 @@ var M = {}
 @[server] do return M end
 
 import capi
-import ffi
+import std.ffi
 
 from std.util import assert
 

@@ -1,5 +1,5 @@
 import capi
-import ffi
+import std.ffi
 import core.engine.cubescript as cs
 import core.engine.edit
 import core.engine.input

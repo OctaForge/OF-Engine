@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-import ffi
+import std.ffi
 import capi
 import core.logger as logging
 var log = logging.log
