@@ -357,6 +357,8 @@ for k, v in pairs(std) do
     loaded["std." .. k] = v
 end
 
+loaded["std"] = std
+
 local compile = function(fname, src, allowg)
     local succ, tree = pcall(parser.parse, fname, src, pkg.cond_env, allowg)
     if not succ then error(select(2, util.error(tree))) end
