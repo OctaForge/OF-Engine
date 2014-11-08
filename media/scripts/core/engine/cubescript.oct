@@ -17,14 +17,14 @@ var emit = signal.emit
 /// Module: cubescript
 var M = {
     __connect = func(self, name)
-        var  vn = name:match("(.+),changed$")
+        var  vn = name:find_match("(.+),changed$")
         if not vn do return end
         capi.var_make_emit(vn, true)
     end,
 
     __disconnect = func(self, name, id, scount)
         if scount == 0 do
-            var  vn = name:match("(.+),changed$")
+            var  vn = name:find_match("(.+),changed$")
             if not vn do return end
             capi.var_make_emit(vn, false)
         end

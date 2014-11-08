@@ -1024,7 +1024,7 @@ var gen_vec_surrogate = func(name, base, ltable)
         end
     }
     for k, v in pairs(base.__index) do
-        if not k:match("^from_.+$") do surrtbl[k] = v end
+        if not k:find_match("^from_.+$") do surrtbl[k] = v end
     end
     return surrtbl
 end

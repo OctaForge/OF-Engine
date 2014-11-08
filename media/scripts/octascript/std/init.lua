@@ -122,6 +122,7 @@ local std_string = {
 }
 
 for k, v in pairs(string) do
+    if k == "match" then k = "find_match" end
     if not std_string[k] then std_string[k] = v end
 end
 

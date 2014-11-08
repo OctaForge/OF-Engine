@@ -282,7 +282,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
                 if not ret do return ret, err end
             else
                 if optk and typeof k == "string"
-                and k:match("^[%a_][%w_]*$") do
+                and k:find_match("^[%a_][%w_]*$") do
                     stream(k)
                 else
                     stream("[")
@@ -417,7 +417,7 @@ var lex_get = func(ls)
         elif c == "." or c:byte() >= 48 and c:byte() <= 57 do
             var buf = { ls.curr }
             ls.curr = ls.rdr()
-            while ls.curr and ls.curr:match("[epxEPX0-9.+-]") do
+            while ls.curr and ls.curr:find_match("[epxEPX0-9.+-]") do
                 buf[#buf + 1] = ls.curr
                 ls.curr = ls.rdr()
             end
@@ -464,16 +464,16 @@ var lex_get = func(ls)
                         raise[0] ("%d: unfinished string near '<eos>'")
                             :format(ls.linenum)
                     else
-                        if not c:match("%d") do
+                        if not c:find_match("%d") do
                             raise[0] ("%d: invalid escape sequence")
                                 :format(ls.linenum)
                         end
                         var dbuf = { c }
                         c = ls.rdr()
-                        if c:match("%d") do
+                        if c:find_match("%d") do
                             dbuf[2] = c
                             c = ls.rdr()
-                            if c:match("%d") do
+                            if c:find_match("%d") do
                                 dbuf[3] = c
                                 c = ls.rdr()
                             end
@@ -489,10 +489,10 @@ var lex_get = func(ls)
             ls.curr = ls.rdr() // skip delim
             ls.tname, ls.tval = "<string>", tconc(buf)
             return "<string>"
-        elif c:match("[%a_]") do
+        elif c:find_match("[%a_]") do
             var buf = { c }
             ls.curr = ls.rdr()
-            while ls.curr and ls.curr:match("[%w_]") do
+            while ls.curr and ls.curr:find_match("[%w_]") do
                 buf[#buf + 1] = ls.curr
                 ls.curr = ls.rdr()
             end
