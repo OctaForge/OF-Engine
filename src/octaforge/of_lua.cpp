@@ -749,4 +749,7 @@ namespace lua
     int load_string(const char *str, const char *ch) {
         return load_string(L, str, ch);
     }
+
+    CLUAICOMMAND(raw_alloc, void *, (size_t nbytes), return (void*) new uchar[nbytes];)
+    CLUAICOMMAND(raw_free, void, (void *ptr), delete[] (uchar*)ptr;)
 } /* end namespace lua */

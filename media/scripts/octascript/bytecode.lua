@@ -38,7 +38,7 @@ local function enum(t)
 end
 
 -- forward declarations
-local Buf, Ins, Proto, Dump, KNum, KObj
+local Alloc, Buf, Ins, Proto, Dump, KNum, KObj
 
 local MAX_REG = 200
 local MAX_UVS = 60
@@ -187,10 +187,6 @@ local FOR_STATE = "(for state)";
 local FOR_CTL   = "(for control)";
 
 ffi.cdef[[
-    void *malloc(size_t);
-    void *realloc(void*, size_t);
-    int free(void*);
-
     typedef struct Buf {
         size_t size;
         size_t offs;
@@ -198,27 +194,57 @@ ffi.cdef[[
     } Buf;
 ]]
 
+-- fallback memory allocator (uses luajit gc)
+local alloc_refs = {}
+local mem_alloc = function(nbytes)
+    local v = ffi.new("uint8_t[?]", nbytes)
+    alloc_refs[tonumber(ffi.cast("intptr_t", v))] = v
+    return v
+end
+local mem_free = function(v)
+    alloc_refs[tonumber(ffi.cast("intptr_t", v))] = nil
+end
+
+-- memory allocator interface, defaults to fallback
+-- if you set custom, do it early on (before loading anything)
+Alloc = { new = mem_alloc, free = mem_free }
+Alloc.set = function(new, del)
+    Alloc.new  = new
+    Alloc.free = del
+end
+Alloc.reset = function()
+    Alloc.new  = mem_alloc
+    Alloc.free = mem_free
+end
+
 Buf = {}
 Buf.new = function(size)
     if not size then
         size = 2048
     end
     local self = ffi.new('Buf', size)
-    self.data  = ffi.C.malloc(size)
+    self.data  = Alloc.new(size)
     self.offs  = 0
     return self
 end
 Buf.__gc = function(self)
-    ffi.C.free(self.data)
+    Alloc.free(self.data)
+    self.data = nil
 end
 Buf.__index = {}
 Buf.__index.need = function(self, size)
+    local curr_size = self.size
     local need_size = self.offs + size
-    if self.size <= need_size then
-        while self.size <= need_size do
-            self.size = self.size * 2
+    if curr_size <= need_size then
+        local new_size  = curr_size
+        while new_size <= need_size do
+            new_size = new_size * 2
         end
-        self.data = ffi.C.realloc(ffi.cast('void*', self.data), self.size)
+        self.size = new_size
+        local nd, od = Alloc.new(new_size), self.data
+        ffi.copy(nd, od, curr_size)
+        Alloc.free(od)
+        self.data = nd
     end
 end
 Buf.__index.put = function(self, v)
@@ -1256,6 +1282,7 @@ function Dump.__index:pack()
 end
 
 return {
+    Alloc = Alloc;
     Buf   = Buf;
     Ins   = Ins;
     KNum  = KNum;

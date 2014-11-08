@@ -26,6 +26,10 @@ local compile = std.eval.compile
 M.compile = compile
 M.env = require("octascript.rt").env
 
+-- plug in custom allocator for better performance
+local bc = require("octascript.bytecode")
+bc.Alloc.set(capi.raw_alloc, capi.raw_free)
+
 capi.log(1, "OctaScript initialization complete.")
 
 return M

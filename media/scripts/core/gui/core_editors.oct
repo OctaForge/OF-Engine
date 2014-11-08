@@ -74,8 +74,6 @@ ffi.string
 
 ffi.cdef r"""
     void *memmove(void*, const void*, size_t);
-    void *malloc(size_t nbytes);
-    void free(void *ptr);
     typedef struct editline_t {
         char *text;
         int len, maxlen;
@@ -97,18 +95,18 @@ var editline_MT = {
     __index = {
         empty = func(self) return self.len <= 0 end,
         clear = func(self)
-            C.free(self.text)
+            capi.raw_free(self.text)
             self.text = undef
             self.len, self.maxlen = 0, 0
         end,
         grow = func(self, total, nocopy)
             if total + 1 <= self.maxlen do return false end
             self.maxlen = (total + chunksize) - total % chunksize
-            var newtext = ffi_cast("char*", C.malloc(self.maxlen))
+            var newtext = ffi_cast("char*", capi.raw_alloc(self.maxlen))
             if not nocopy do
                 ffi_copy(newtext, self.text, self.len + 1)
             end
-            C.free(self.text)
+            capi.raw_free(self.text)
             self.text = newtext
             return true
         end,
