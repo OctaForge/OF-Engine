@@ -195,10 +195,12 @@ ffi.cdef[[
 ]]
 
 -- fallback memory allocator (uses luajit gc)
+local alloc_change_safe = true
 local alloc_refs = {}
 local mem_alloc = function(nbytes)
     local v = ffi.new("uint8_t[?]", nbytes)
     alloc_refs[tonumber(ffi.cast("intptr_t", v))] = v
+    alloc_change_safe = false
     return v
 end
 local mem_free = function(v)
@@ -209,6 +211,9 @@ end
 -- if you set custom, do it early on (before loading anything)
 Alloc = { new = mem_alloc, free = mem_free }
 Alloc.set = function(new, del)
+    if not alloc_change_safe then
+        error("allocator changed after use", 2)
+    end
     Alloc.new  = new
     Alloc.free = del
 end
