@@ -44,6 +44,18 @@ local check_match = function(ls, a, b, line)
     ls:get()
 end
 
+local parse_str = function(ls, ast)
+    local lnum = ls.line_number
+    local t, n = { ls.token.value }, 1
+    ls:get()
+    while ls.token.name == "<string>" do
+        n = n + 1
+        t[n] = ls.token.value
+        ls:get()
+    end
+    return ast.Literal(table.concat(t), lnum)
+end
+
 local BinaryOps = {
     ["or"] = 1,  ["and"] = 2,
     ["<" ] = 3,  ["<=" ] = 3,  [">"  ] = 3, [">="] = 3,
@@ -199,9 +211,7 @@ local parse_args = function(ls, ast, nocheck)
     elseif tn == "{" then
         args = { (parse_table(ls, ast)) }
     elseif tn == "<string>" then
-        local val = tok.value
-        ls:get()
-        args = { ast.Literal(val) }
+        args = { parse_str(ls, ast) }
     else
         syntax_error(ls, "function arguments expected")
     end
@@ -366,6 +376,7 @@ local sexps = {
         ls:get()
         return r
     end,
+    ["<string>"] = parse_str,
     ["undef"] = function(ls, ast)
         ls:get()
         return ast.Literal(nil)
@@ -456,7 +467,6 @@ local sexps = {
         return ast.TypeofExpression(parse_simple_expr(ls, ast), line)
     end
 }
-sexps["<string>"] = sexps["<number>"]
 
 parse_simple_expr = function(ls, ast)
     local line = ls.line_number
