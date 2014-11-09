@@ -830,14 +830,8 @@ local stat_opts = {
     end,
     ["raise"] = function(ls, ast, line)
         ls:get()
-        local level
-        if ls.token.name == "[" then
-            local bline = ls.line_number
-            ls:get()
-            level = parse_expr(ls, ast)
-            check_match(ls, "]", "[", bline)
-        end
-        return ast.RaiseStatement(parse_expr(ls, ast), level, line)
+        return ast.ExpressionStatement(ast.CallExpression(ast.Identifier(
+            "__rt_error"), parse_expr_list(ls, ast)), line)
     end,
     ["print"] = function(ls, ast, line)
         ls:get()

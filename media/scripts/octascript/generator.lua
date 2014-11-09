@@ -1143,20 +1143,6 @@ local StatementRule = {
         end
     end,
 
-    RaiseStatement = function(self, node)
-        local free = self.ctx.freereg
-        gen_rt(self, "error", free)
-        self.ctx:nextreg()
-        self:expr_tonextreg(node.expression)
-        local nargs = 1
-        if node.level then
-            self:expr_tonextreg(node.level)
-            nargs = 2
-        end
-        self.ctx.freereg = free
-        self.ctx:op_call(free, 0, nargs)
-    end,
-
     Chunk = function(self, node, name)
         self:block_emit(node.body)
         self:close_proto()

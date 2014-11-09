@@ -423,8 +423,8 @@ var lex_get = func(ls)
             end
             var str = tconc(buf)
             var num = tonumber(str)
-            if not num do raise[0] ("%d: malformed number near '%s'")
-                :format(ls.linenum, str) end
+            if not num do raise ("%d: malformed number near '%s'")
+                :format(ls.linenum, str), 0 end
             ls.tname, ls.tval = "<number>", num
             return "<number>"
         elif c == '"' or c == "'" do
@@ -434,11 +434,11 @@ var lex_get = func(ls)
             while ls.curr != d do
                 var c = ls.curr
                 if c == undef do
-                    raise[0] ("%d: unfinished string near '<eos>'")
-                        :format(ls.linenum)
+                    raise ("%d: unfinished string near '<eos>'")
+                        :format(ls.linenum), 0
                 elif c == "\n" or c == "\r" do
-                    raise[0] ("%d: unfinished string near '<string>'")
-                        :format(ls.linenum)
+                    raise ("%d: unfinished string near '<string>'")
+                        :format(ls.linenum), 0
                 // not complete escape sequence handling: handles only these
                 // that are or can be in the serialized output
                 elif c == "\\" do
@@ -461,12 +461,12 @@ var lex_get = func(ls)
                         buf[#buf + 1] = c
                         ls.curr = ls.rdr()
                     elif not c do
-                        raise[0] ("%d: unfinished string near '<eos>'")
-                            :format(ls.linenum)
+                        raise ("%d: unfinished string near '<eos>'")
+                            :format(ls.linenum), 0
                     else
                         if not c:find_match("%d") do
-                            raise[0] ("%d: invalid escape sequence")
-                                :format(ls.linenum)
+                            raise ("%d: invalid escape sequence")
+                                :format(ls.linenum), 0
                         end
                         var dbuf = { c }
                         c = ls.rdr()
@@ -516,7 +516,7 @@ var assert_tok
 assert_tok = func(ls, tok, ...)
     if not tok do return end
     if ls.tname != tok do
-        raise[0] ("%d: unexpected symbol near '%s'"):format(ls.linenum, ls.tname)
+        raise ("%d: unexpected symbol near '%s'"):format(ls.linenum, ls.tname), 0
     end
     lex_get(ls)
     assert_tok(ls, ...)
