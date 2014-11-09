@@ -389,7 +389,12 @@ local read_string = function(ls, raw, expand)
                     ibuf[#ibuf + 1] = bytemap[c]
                     c = next_char(ls)
                 end
-                terms[#terms + 1] = ls.ast.Identifier(tconc(ibuf), dlnum)
+                local varn = tconc(ibuf)
+                if not ls.allow_globals and not ls.ast.current.vars[varn] then
+                    lex_error(ls, "attempt to use undeclared variable '"
+                        .. varn .. "'", "$" .. varn)
+                end
+                terms[#terms + 1] = ls.ast.Identifier(varn, dlnum)
             end
             lnum = ls.line_number
             buf  = {}
