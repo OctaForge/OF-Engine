@@ -284,7 +284,7 @@ local esc_opts = {
     [118] = "\v"
 }
 
-local read_string = function(ls, tok, raw)
+local read_string = function(ls, tok, raw, expand)
     local delim = ls.current
     local buf = {}
     local c = next_char(ls)
@@ -508,7 +508,7 @@ local lextbl = {
         else return ":" end
     end,
     [34] = function(ls, tok) -- "
-        read_string(ls, tok, false)
+        read_string(ls, tok, false, false)
         return "<string>"
     end,
     [46] = function(ls, tok) -- .
@@ -560,17 +560,27 @@ lextbl[57] = lextbl[48] -- 9
 
 local lex_default = function(ls, tok)
     local c = ls.current
-    local saved_c
-    if c == 82 or c == 114 then -- R, r
-        saved_c = c
+    local sc1, sc2
+    local has_r = (c == 82 or c == 114) -- R, r
+    local has_e = (c == 69 or c == 101) -- E, e
+    if has_r or has_e then
+        sc1 = c
         c = next_char(ls)
+        local cond_r = (has_e and (c == 82 or c == 114))
+        local cond_e = (has_r and (c == 69 or c == 101))
+        if cond_e or cond_r then
+            if     cond_e then has_e = true
+            elseif cond_r then has_r = true end
+            sc2 = c
+            c = next_char(ls)
+        end
         if c == 34 or c == 39 then -- ", '
-            read_string(ls, tok, true)
+            read_string(ls, tok, has_r, has_e)
             return "<string>"
         end
     end
-    if c == 95 or is_alpha(c) or (saved_c and is_digit(c)) then -- _
-        local buf = { bytemap[saved_c] }
+    if c == 95 or is_alpha(c) or (sc1 and is_digit(c)) then -- _
+        local buf = { bytemap[sc1], sc2 and bytemap[sc2] or nil }
         repeat
             buf[#buf + 1] = bytemap[c]
             c = next_char(ls)
@@ -585,8 +595,8 @@ local lex_default = function(ls, tok)
             tok.value = str
             return "<name>"
         end
-    elseif saved_c then
-        tok.value = bytemap[saved_c]
+    elseif sc1 then
+        tok.value = bytemap[sc1] .. (sc2 and bytemap[sc2] or "")
         return "<name>"
     else
         local c = bytemap[ls.current]
