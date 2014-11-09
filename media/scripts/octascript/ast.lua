@@ -589,6 +589,23 @@ M.BinaryExpression = Expression:clone {
     end
 }
 
+M.ConcatenateExpression = Expression:clone {
+    kind = "ConcatenateExpression",
+
+    properties = {
+        terms = {
+            type = "list",
+            kind = "Expression"
+        }
+    },
+
+    __ctor = function(self, terms, line)
+        self.terms = terms
+        self.line  = line
+        Node.__ctor(self)
+    end
+}
+
 M.IfExpression = Expression:clone {
     kind = "IfExpression",
 

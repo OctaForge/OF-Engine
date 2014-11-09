@@ -286,15 +286,8 @@ local esc_opts = {
     [118] = "\v"
 }
 
-local STR_SHORTSQ = 1
-local STR_SHORTDQ = 2
-local STR_LONGSQ  = 3
-local STR_LONGDQ  = 4
-
-local strstack = {}
-
-local read_string
-read_string = function(ls, buf, raw, expand)
+local read_string = function(ls, raw, expand, buf)
+::beg::
     local delim = ls.current
     local c = next_char(ls)
     local long = false
@@ -304,10 +297,10 @@ read_string = function(ls, buf, raw, expand)
             c = next_char(ls)
             long = true
         else
-            buf[#buf + 1] = ""
-            return
+            return ""
         end
     end
+    buf = buf or {}
     while true do
         if not c then lex_error(ls, "unfinished string", "<eof>")
         elseif is_newline(c) then
@@ -375,8 +368,9 @@ read_string = function(ls, buf, raw, expand)
         c = ls.current
     end
     if c == 34 or c == 39 then -- ", '
-        read_string(ls, buf, raw, expand)
+        goto beg
     end
+    return tconc(buf)
 end
 
 local read_comment = function(ls)
@@ -524,9 +518,7 @@ lextbl = {
         else return ":" end
     end,
     [34] = function(ls, tok) -- "
-        local buf = {}
-        read_string(ls, buf, false, false)
-        tok.value = tconc(buf)
+        tok.value = read_string(ls, false, false)
         return "<string>"
     end,
     [46] = function(ls, tok) -- .
@@ -593,10 +585,7 @@ local lex_default = function(ls, tok)
             c = next_char(ls)
         end
         if c == 34 or c == 39 then -- ", '
-            local buf = {}
-            read_string(ls, buf, has_r, has_e)
-            tok.value = tconc(buf)
-            return "<string>"
+            return lextbl[c](ls, tok)
         end
     end
     if c == 95 or is_alpha(c) or (sc1 and is_digit(c)) then -- _
@@ -694,17 +683,17 @@ local skip_shebang = function(rdr)
     return c
 end
 
-local init = function(chunkname, input)
+local init = function(chunkname, input, sline)
     local reader  = type(input) == "string" and strstream(input) or input
-    local current = skip_shebang(reader)
+    local current = sline and reader() or skip_shebang(reader)
     return setmetatable({
         reader      = reader,
         token       = { name = nil, value = nil },
         ltoken      = { name = nil, value = nil },
         source      = chname_to_source(chunkname),
         current     = current,
-        line_number = 1,
-        last_line   = 1
+        line_number = sline or 1,
+        last_line   = sline or 1
     }, State_MT)
 end
 
