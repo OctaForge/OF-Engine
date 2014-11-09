@@ -293,7 +293,8 @@ local STR_LONGDQ  = 4
 
 local strstack = {}
 
-local read_string = function(ls, buf, raw, expand)
+local read_string
+read_string = function(ls, buf, raw, expand)
     local delim = ls.current
     local c = next_char(ls)
     local long = false
