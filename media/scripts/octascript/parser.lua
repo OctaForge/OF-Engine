@@ -46,14 +46,9 @@ end
 
 local parse_str = function(ls, ast)
     local lnum = ls.line_number
-    local t, n = { ls.token.value }, 1
+    local sval = ls.token.value
     ls:get()
-    while ls.token.name == "<string>" do
-        n = n + 1
-        t[n] = ls.token.value
-        ls:get()
-    end
-    return ast.Literal(table.concat(t), lnum)
+    return ast.Literal(sval, lnum)
 end
 
 local BinaryOps = {

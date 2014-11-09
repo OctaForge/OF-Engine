@@ -118,6 +118,8 @@ local syntax_error = function(ls, msg)
     lex_error(ls, msg, ls.token.value or ls.token.name)
 end
 
+local lextbl
+
 local next_char = function(ls)
     local c = ls.reader()
     ls.current = c
@@ -284,9 +286,15 @@ local esc_opts = {
     [118] = "\v"
 }
 
-local read_string = function(ls, tok, raw, expand)
+local STR_SHORTSQ = 1
+local STR_SHORTDQ = 2
+local STR_LONGSQ  = 3
+local STR_LONGDQ  = 4
+
+local strstack = {}
+
+local read_string = function(ls, buf, raw, expand)
     local delim = ls.current
-    local buf = {}
     local c = next_char(ls)
     local long = false
     if c == delim then
@@ -295,7 +303,7 @@ local read_string = function(ls, tok, raw, expand)
             c = next_char(ls)
             long = true
         else
-            tok.value = ""
+            buf[#buf + 1] = ""
             return
         end
     end
@@ -359,8 +367,15 @@ local read_string = function(ls, tok, raw, expand)
             c = next_char(ls)
         end
     end
-    next_char(ls)
-    tok.value = tconc(buf)
+    c = next_char(ls)
+    -- skip whitespace
+    while (c >= 9 and c <= 13) or (c == 32) do
+        lextbl[c](ls)
+        c = ls.current
+    end
+    if c == 34 or c == 39 then -- ", '
+        read_string(ls, buf, raw, expand)
+    end
 end
 
 local read_comment = function(ls)
@@ -388,7 +403,7 @@ local read_comment = function(ls)
     end
 end
 
-local lextbl = {
+lextbl = {
     [10] = function(ls) next_line(ls) end, -- LF
     [32] = function(ls) next_char(ls) end, -- space
     [45] = function(ls) -- -
@@ -508,7 +523,9 @@ local lextbl = {
         else return ":" end
     end,
     [34] = function(ls, tok) -- "
-        read_string(ls, tok, false, false)
+        local buf = {}
+        read_string(ls, buf, false, false)
+        tok.value = tconc(buf)
         return "<string>"
     end,
     [46] = function(ls, tok) -- .
@@ -575,7 +592,9 @@ local lex_default = function(ls, tok)
             c = next_char(ls)
         end
         if c == 34 or c == 39 then -- ", '
-            read_string(ls, tok, has_r, has_e)
+            local buf = {}
+            read_string(ls, buf, has_r, has_e)
+            tok.value = tconc(buf)
             return "<string>"
         end
     end
