@@ -42,7 +42,7 @@ M.player_plugin = {
 
     __activate = func(self)
         connect(self, "spawn_stage,changed", self.game_manager_on_spawn_stage)
-        @[server] do
+        @[server] then
             get():pick_team(self)
             connect(self, "pre_deactivate", func(self)
                 get():leave_team(self)

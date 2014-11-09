@@ -42,7 +42,7 @@ var colors = {
 var Player = ents.Player
 
 
-@[not server,noscope] do
+@[not server] then
     var SPARK = quadrenderer("spark", "media/particle/spark",
         particles.flags.FLIP | particles.flags.BRIGHT)
     var STREAK = taperenderer("streak", "media/particle/flare",
@@ -150,7 +150,7 @@ ents.register_prototype(ents.Obstacle, { health.plugins.area },
 
 day_manager.setup({ day_manager.plugins.day_night })
 
-@[not server] do
+@[not server] then
     inputev.set_event("click", func(btn, down, x, y, z, uid, cx, cy)
         var ent = ents.get(uid)
         if ent and ent.click do

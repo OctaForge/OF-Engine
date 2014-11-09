@@ -778,51 +778,19 @@ local stat_opts = {
     ["::"] = parse_label,
     ["@["] = function(ls, ast)
         local line = ls.line_number
-        local noscope = false
         ls:get()
         local cond = parse_cond_expr(ls, ast)
-        if ls.token.name == "," then
-            ls:get()
-            assert_next(ls, "noscope")
-            noscope = true
-        end
         check_match(ls, "]", "@[", line)
-        if noscope then
-            assert_tok(ls, "do")
-        end
-        if ls.token.name == "do" then
+        if ls.token.name == "then" then
             local line = ls.line_number
-            if not noscope then
-                ast:scope_begin()
-            end
             ls:get()
             local tblock, tlast = parse_chunk(ls, ast)
-            if not noscope then
-                ast:scope_end()
-            end
             local fblock, flast
             if ls.token.name == "else" then
-                if not noscope then
-                    ast:scope_begin()
-                end
                 ls:get()
                 fblock, flast = parse_chunk(ls, ast)
-                if not noscope then
-                    ast:scope_end()
-                end
             end
-            check_match(ls, "end", "do", line)
-            if not noscope then
-                if cond then
-                    if tblock then
-                        return ast.DoStatement(tblock, line)
-                    end
-                else
-                    if fblock then
-                        return ast.DoStatement(fblock, line)
-                    end
-                end
-            end
+            check_match(ls, "end", "then", line)
             if cond then
                 return tblock, tlast, true
             else

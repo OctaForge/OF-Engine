@@ -962,7 +962,7 @@ M.Entity = Object:clone {
     */
     __activate = func(self, kwargs)
         @[debug] log(DEBUG, "Entity.__activate")
-        @[server] do
+        @[server] then
             self:entity_setup()
         else
             self:setup()
@@ -974,12 +974,11 @@ M.Entity = Object:clone {
             @[server] self:flush_queued_svar_changes()
         end
 
-        @[server] do
+        @[server] then
             var sd = kwargs and kwargs.state_data or undef
             if sd do self:set_sdata_full(sd) end
             self:send_notification_full(msg.ALL_CLIENTS)
             self.sent_notification_full = true
-            
         else
             self.initialized = false
         end
