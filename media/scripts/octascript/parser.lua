@@ -154,6 +154,19 @@ local parse_table = function(ls, ast)
     return ast.Table(avals, hkeys, hvals, line)
 end
 
+local parse_array = function(ls, ast)
+    local line = ls.line_number
+    assert_next(ls, "[")
+    local elist
+    if ls.token.name ~= "]" then
+        elist = parse_expr_list(ls, ast)
+    else
+        elist = {}
+    end
+    check_match(ls, "]", "[", line)
+    return ast.CallExpression(ast.Identifier("__rt_array"), elist)
+end
+
 local parse_enum = function(ls, ast)
     local line = ls.line_number
     local tok = ls.token
@@ -395,6 +408,7 @@ local sexps = {
         return ast.Vararg()
     end,
     ["{"] = parse_table,
+    ["["] = parse_array,
     ["{:"] = parse_enum,
     ["func"] = function(ls, ast)
         local line = ls.line_number
@@ -862,7 +876,7 @@ local gen_rt = function(ls, ast)
         "__rt_bnot", "__rt_bor", "__rt_band", "__rt_bxor", "__rt_lshift",
         "__rt_rshift", "__rt_arshift", "__rt_type", "__rt_import",
         "__rt_pcall", "__rt_xpcall", "__rt_error", "__rt_null",
-        "__rt_print"
+        "__rt_print", "__rt_array"
     }, {
         gen_memb(ast, "bit_bnot"), gen_memb(ast, "bit_bor"),
         gen_memb(ast, "bit_band"), gen_memb(ast, "bit_bxor"),
@@ -870,7 +884,8 @@ local gen_rt = function(ls, ast)
         gen_memb(ast, "bit_arshift"), gen_memb(ast, "type"),
         gen_memb(ast, "import"), gen_memb(ast, "pcall"),
         gen_memb(ast, "xpcall"), gen_memb(ast, "error"),
-        gen_memb(ast, "null"), gen_memb(ast, "print")
+        gen_memb(ast, "null"), gen_memb(ast, "print"),
+        gen_memb(ast, "array")
     })
     return ret
 end
