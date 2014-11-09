@@ -286,8 +286,12 @@ local esc_opts = {
     [118] = "\v"
 }
 
-local read_string = function(ls, raw, expand, buf)
+local read_string = function(ls, raw, expand)
+    local terms = {}
+    local buf
 ::beg::
+    local lnum = ls.line_number
+    local olnum = lnum
     local delim = ls.current
     local c = next_char(ls)
     local long = false
@@ -297,7 +301,7 @@ local read_string = function(ls, raw, expand, buf)
             c = next_char(ls)
             long = true
         else
-            return ""
+            return ls.ast.Literal("", lnum)
         end
     end
     buf = buf or {}
@@ -312,10 +316,15 @@ local read_string = function(ls, raw, expand, buf)
         elseif c == 92 then -- \
             c = next_char(ls)
             if raw then
-                buf[#buf + 1] = "\\"
-                if is_newline(c) then
-                    buf[#buf + 1] = "\n"
+                if expand and c == 36 then -- $
+                    buf[#buf + 1] = "$"
                     c = next_char(ls)
+                else
+                    buf[#buf + 1] = "\\"
+                    if is_newline(c) then
+                        buf[#buf + 1] = "\n"
+                        c = next_char(ls)
+                    end
                 end
             else
                 local esc = esc_opts[c]
@@ -335,6 +344,9 @@ local read_string = function(ls, raw, expand, buf)
                     while is_white(c) do
                         c = (is_newline(c) and next_line or next_char)(ls)
                     end
+                elseif expand and c == 36 then -- $
+                    buf[#buf + 1] = bytemap[c]
+                    c = next_char(ls)
                 elseif c ~= nil then
                     if not is_digit(c) then
                         esc_error(ls, c, "invalid escape sequence")
@@ -343,6 +355,45 @@ local read_string = function(ls, raw, expand, buf)
                     c = ls.current
                 end
             end
+        elseif expand and c == 36 then -- $
+            local conc = tconc(buf)
+            if conc ~= "" then
+                terms[#terms + 1] = ls.ast.Literal(conc, lnum)
+            end
+            local dlnum = ls.line_number
+            c = next_char(ls)
+            if c == 40 then -- (
+                c = next_char(ls)
+                -- lex here, then parse from inside out
+                ls:get()
+                local expr = ls:parse_expr(ls.ast)
+                if ls.token.name ~= ")" then
+                    if dlnum == ls.line_number then
+                        syntax_error("')' expected")
+                    else
+                        syntax_error(ls, "')' expected (to close '$(' at line "
+                            .. dlnum .. ")")
+                    end
+                end
+                terms[#terms + 1] = expr
+                c = ls.current
+            else
+                -- make sure a valid identifier follows
+                local ibuf = {}
+                if c ~= 95 and not is_alpha(c) then -- _
+                    lex_error(ls, "invalid identifier", "$" .. bytemap[c])
+                end
+                ibuf[1] = bytemap[c]
+                c = next_char(ls)
+                while c == 95 or is_alnum(c) do
+                    ibuf[#ibuf + 1] = bytemap[c]
+                    c = next_char(ls)
+                end
+                terms[#terms + 1] = ls.ast.Identifier(tconc(ibuf), dlnum)
+            end
+            lnum = ls.line_number
+            buf  = {}
+            -- continue lexing string
         elseif c == delim then
             if not long then
                 break
@@ -370,7 +421,22 @@ local read_string = function(ls, raw, expand, buf)
     if c == 34 or c == 39 then -- ", '
         goto beg
     end
-    return tconc(buf)
+    local conc = tconc(buf)
+    if #terms == 0 then
+        return ls.ast.Literal(conc, lnum)
+    end
+    if conc ~= "" then
+        terms[#terms + 1] = ls.ast.Literal(conc, lnum)
+    end
+    if #terms == 1 then
+        local v = terms[1]
+        local k = v.kind
+        if k == "CallExpression" or k == "SendExpression" or k == "Vararg" then
+            v = ls.ast.ParenthesizedExpression(v)
+        end
+        return v
+    end
+    return ls.ast.ConcatenateExpression(terms, olnum)
 end
 
 local read_comment = function(ls)
@@ -585,7 +651,8 @@ local lex_default = function(ls, tok)
             c = next_char(ls)
         end
         if c == 34 or c == 39 then -- ", '
-            return lextbl[c](ls, tok)
+            tok.value = read_string(ls, has_r, has_e)
+            return "<string>"
         end
     end
     if c == 95 or is_alpha(c) or (sc1 and is_digit(c)) then -- _
@@ -683,17 +750,19 @@ local skip_shebang = function(rdr)
     return c
 end
 
-local init = function(chunkname, input, sline)
+local init = function(chunkname, input, ast, parse_expr)
     local reader  = type(input) == "string" and strstream(input) or input
-    local current = sline and reader() or skip_shebang(reader)
+    local current = skip_shebang(reader)
     return setmetatable({
         reader      = reader,
         token       = { name = nil, value = nil },
         ltoken      = { name = nil, value = nil },
         source      = chname_to_source(chunkname),
         current     = current,
-        line_number = sline or 1,
-        last_line   = sline or 1
+        line_number = 1,
+        last_line   = 1,
+        ast         = ast,
+        parse_expr  = parse_expr
     }, State_MT)
 end
 

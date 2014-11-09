@@ -44,13 +44,6 @@ local check_match = function(ls, a, b, line)
     ls:get()
 end
 
-local parse_str = function(ls, ast)
-    local lnum = ls.line_number
-    local sval = ls.token.value
-    ls:get()
-    return ast.Literal(sval, lnum)
-end
-
 local BinaryOps = {
     ["or"] = 1,  ["and"] = 2,
     ["<" ] = 3,  ["<=" ] = 3,  [">"  ] = 3, [">="] = 3,
@@ -74,6 +67,12 @@ local UnaryOps = {
 
 local parse_expr
 local parse_stat, parse_chunk, parse_block, parse_body
+
+local parse_str = function(ls, ast)
+    local nd = ls.token.value
+    ls:get()
+    return nd
+end
 
 local parse_expr_list = function(ls, ast, exprs)
     local tok = ls.token
@@ -969,7 +968,7 @@ end
 
 local parse = function(chunkname, input, cond_env, allow_globals)
     local ast = astgen.new()
-    local ls = lexer.init(chunkname, input)
+    local ls = lexer.init(chunkname, input, ast, parse_expr)
     ls.allow_globals = allow_globals
     ls:get()
     ls.cond_env = cond_env
