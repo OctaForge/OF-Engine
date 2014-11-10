@@ -531,7 +531,7 @@ root:new_window("changes", gui.Window, func(win)
             gui.Label { text = "The following settings have changed:" } })
         b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
             gui.Line { clamp_h = true, color = 0x303030 } })
-        for i, v in ipairs(changes.get()) do
+        for i, v in changes.get():each() do
             b:append(gui.Label { text = v })
         end
         b:append(gui.Filler { clamp_h = true, min_h = 0.01 })

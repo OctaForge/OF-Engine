@@ -13,9 +13,7 @@ import core.events.signal
 
 from core.externals import set as set_external
 
-from std.table import pairs, filter, map, len
-
-var needsapply = {}
+var needsapply = []
 
 var M = {}
 
@@ -38,10 +36,10 @@ end)
     a change of the same description doesn't already exist.
 */
 M.add = func(ctype, desc)
-    for i, v in pairs(needsapply) do
+    for i, v in needsapply:each() do
         if v.desc == desc do return end
     end
-    needsapply[len(needsapply) + 1] = {
+    needsapply:push {
         ctype = ctype, desc = desc
     }
 end
@@ -52,18 +50,18 @@ end
 M.clear = func(ctype)
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
-    needsapply = filter(needsapply, func(i, v)
+    var na = []
+    for i, v in needsapply:each() do
         if (v.ctype & ctype) == 0 do
-            return true
+            na:push(v)
+        else
+            v.ctype = (v.ctype & ~ctype)
+            if v.ctype != 0 do
+                na:push(v)
+            end
         end
-
-        v.ctype = (v.ctype & ~ctype)
-        if v.ctype == 0 do
-            return false
-        end
-
-        return true
-    end)
+    end
+    needsapply = na
 end
 set_external("changes_clear", M.clear)
 
@@ -72,7 +70,7 @@ set_external("changes_clear", M.clear)
 */
 M.apply = func()
     var changetypes = 0
-    for i, v in pairs(needsapply) do
+    for i, v in needsapply:each() do
         changetypes |= v.ctype
     end
 
@@ -90,7 +88,9 @@ end
     Returns a table of all queued changes' descriptions.
 */
 M.get = func()
-    return map(needsapply, func(v) return v.desc end)
+    var ret = []
+    for i, v in needsapply:each() do ret:push(v.desc) end
+    return ret
 end
 
 return M
