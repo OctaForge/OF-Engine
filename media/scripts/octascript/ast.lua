@@ -511,7 +511,7 @@ M.UnaryExpression = Expression:clone {
     properties = {
         operator = {
             type = "enum",
-            values = { "not", "-", "#", "~" },
+            values = { "not", "-", "~" },
         },
         argument = "Expression"
     },

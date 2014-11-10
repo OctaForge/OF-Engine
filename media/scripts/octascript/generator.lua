@@ -427,8 +427,6 @@ local ExpressionRule = {
         self.ctx.freereg = free
         if o == "-" then
             self.ctx:op_unm(dest, a)
-        elseif o == "#" then
-            self.ctx:op_len(dest, a)
         --elseif o == "not" then
         --    self.ctx:op_not(dest, a)
         elseif o == "not" then

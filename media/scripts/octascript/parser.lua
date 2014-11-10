@@ -62,7 +62,7 @@ local RightAss = {
 }
 
 local UnaryOps = {
-    ["-"] = 11, ["not"] = 11, ["~"] = 11, ["#"] = 11
+    ["-"] = 11, ["not"] = 11, ["~"] = 11
 }
 
 local parse_expr
