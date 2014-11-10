@@ -508,20 +508,22 @@ local array = array_mt.__index
 local setmt = setmetatable
 
 array.map = function(self, f)
-    local r = {}
-    for i = 0, self.__size - 1 do
+    local sz = self.__size
+    local r = { __size = sz }
+    for i = 0, sz - 1 do
         r[i] = f(self[i])
     end
     return setmt(r, array_mt)
 end
 
 array.merge = function(self, o)
-    local r = {}
     local sz = self.__size
+    local oz = o.__size
+    local r = { __size = sz + oz }
     for i = 0, sz - 1 do
         r[i] = self[i]
     end
-    for i = 0, o.__size - 1 do
+    for i = 0, oz - 1 do
         r[sz + i] = o[i]
     end
     return setmt(r, array_mt)
@@ -537,6 +539,7 @@ array.filter = function(self, f)
             j = j + 1
         end
     end
+    r.__size = j
     return setmt(r, array_mt)
 end
 

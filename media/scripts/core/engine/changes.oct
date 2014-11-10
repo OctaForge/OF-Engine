@@ -50,18 +50,16 @@ end
 M.clear = func(ctype)
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
-    var na = []
-    for i, v in needsapply:each() do
+    needsapply = needsapply:filter(func(v)
         if (v.ctype & ctype) == 0 do
-            na:push(v)
-        else
-            v.ctype = (v.ctype & ~ctype)
-            if v.ctype != 0 do
-                na:push(v)
-            end
+            return true
         end
-    end
-    needsapply = na
+        v.ctype = (v.ctype & ~ctype)
+        if v.ctype == 0 do
+            return false
+        end
+        return true
+    end)
 end
 set_external("changes_clear", M.clear)
 
@@ -88,9 +86,7 @@ end
     Returns a table of all queued changes' descriptions.
 */
 M.get = func()
-    var ret = []
-    for i, v in needsapply:each() do ret:push(v.desc) end
-    return ret
+    return needsapply:map(\v -> v.desc)
 end
 
 return M
