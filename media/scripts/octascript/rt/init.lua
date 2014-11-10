@@ -61,6 +61,7 @@ local tinsert = table.insert
 local tremove = table.remove
 local tconcat = table.concat
 local setmt = setmetatable
+local unpack = unpack
 
 local ArrayMT = {
     __metatable = false,
@@ -167,6 +168,17 @@ local ArrayMT = {
                 error("invalid upper bound for 'concat'", 2)
             end
             return tconcat(self, delim, i or 0, j and (j - 1) or (size - 1))
+        end,
+
+        unpack = function(self, i, j)
+            if i and i < 0 then
+                error("invalid lower bound for 'unpack'", 2)
+            end
+            local size = self.__size
+            if j and j > size then
+                error("invalid upper bound for 'unpack'", 2)
+            end
+            return unpack(self, i or 0, j and (j - 1) or (size - 1))
         end
     }
 }

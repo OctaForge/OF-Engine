@@ -312,7 +312,6 @@ local std = {
         foreachi = table.foreachi,
         sort     = table.sort,
         remove   = table.remove,
-        maxn     = table.maxn,
         concat   = table.concat,
         insert   = table.insert,
         rawget   = rawget,
