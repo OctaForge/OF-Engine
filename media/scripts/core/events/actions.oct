@@ -21,7 +21,7 @@ var WARNING = logging.WARNING
 var createtable = capi.table_create
 
 from std.conv import tostring
-from std.table import compact, Object, concat as tconcat
+from std.table import compact, Object, concat as tconcat, len
 
 /// Module: actions
 var M = {}
@@ -260,7 +260,7 @@ M.ActionQueue = Object:clone {
             compact(acts, \i, v -> not v.finished)
             self._changed = false
         end
-        if #acts > 0 do
+        if len(acts) > 0 do
             var act = acts[1]
             @[debug] log(INFO, tconcat { "Executing ", act.name })
 
@@ -279,7 +279,7 @@ M.ActionQueue = Object:clone {
         var acts = self.actions
         if not act.allow_multiple do
             var str = act.name
-            for i in 1 to #acts do
+            for i in 1 to len(acts) do
                 if str == acts[i].name do
                     log(WARNING, tconcat { "Action of the type ",
                         str, " is already present in the queue, ",
@@ -290,7 +290,7 @@ M.ActionQueue = Object:clone {
             end
         end
 
-        acts[#acts + 1] = act
+        acts[len(acts) + 1] = act
         act.actor = self.parent
         act.queue = self
     end,
@@ -300,7 +300,7 @@ M.ActionQueue = Object:clone {
     */
     clear = func(self)
         var acts = self.actions
-        for i in 1 to #acts do
+        for i in 1 to len(acts) do
             acts[i]:cancel()
         end
     end

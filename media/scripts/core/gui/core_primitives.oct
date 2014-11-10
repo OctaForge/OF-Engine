@@ -30,6 +30,7 @@ var emit = signal.emit
 
 from std.conv import tostring
 from std.math import min, max, abs, clamp, floor, ceil, huge
+from std.table import len
 
 var Vec2 = geom.Vec2
 var sincosmod360 = geom.sin_cos_mod_360
@@ -970,11 +971,11 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     build_attachments = func(self)
         var att = self.attachments
         if att == self._last_attachments do
-            return self._c_attachments, #att * 2
+            return self._c_attachments, len(att) * 2
         end
-        var n = #att * 2
+        var n = len(att) * 2
         var stor = ffi_new("const char*[?]", n)
-        for i in 0 to #att - 1 do
+        for i in 0 to len(att) - 1 do
             var at = att[i + 1]
             stor[i * 2], stor[i * 2 + 1] = at[1], at[2]
         end
@@ -986,7 +987,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     draw = func(self, sx, sy)
         var w, h in self
         var root = self:get_root()
-        var csl = #root._clip_stack > 0
+        var csl = len(root._clip_stack) > 0
         if csl do gl_scissor_disable() end
         var sx1, sy1, sx2, sy2 = root:get_projection():calc_scissor(sx, sy,
             sx + w, sy + h)
@@ -1035,7 +1036,7 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
         if not prefab do return Widget.draw(self, sx, sy) end
         var w, h in self
         var root = self:get_root()
-        var csl = #root._clip_stack > 0
+        var csl = len(root._clip_stack) > 0
         if csl do gl_scissor_disable() end
         var sx1, sy1, sx2, sy2 = root:get_projection():calc_scissor(sx, sy,
             sx + w, sy + h)

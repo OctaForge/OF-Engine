@@ -9,6 +9,7 @@
 */
 
 from std.math import min, max
+from std.table import len
 
 from capi import table_create as createtable
 
@@ -83,8 +84,8 @@ M.HBox = register_type("HBox", Widget, {
             self.h = max(self.h, o.y + o.h)
             if ex and clampsh(o.adjust) do ncl += 1 end
         end)
-        self.w = subw + self.padding * max(#self.vstates + 
-            #self.children - 1, 0)
+        self.w = subw + self.padding * max(len(self.vstates) + 
+            len(self.children) - 1, 0)
         self.subw, self.ncl = subw, ncl
     end,
 
@@ -121,7 +122,7 @@ M.HBox = register_type("HBox", Widget, {
     end,
 
     adjust_children = func(self)
-        var nch, nvs = #self.children, #self.vstates
+        var nch, nvs = len(self.children), len(self.vstates)
         if nch == 0 and nvs == 0 do return end
         if self.homogenous do
             return self:adjust_children_homogenous(nch + nvs)
@@ -166,8 +167,8 @@ M.VBox = register_type("VBox", Widget, {
             self.w = max(self.w, o.x + o.w)
             if ex and clampsv(o.adjust) do ncl += 1 end
         end)
-        self.h = subh + self.padding * max(#self.vstates +
-            #self.children - 1, 0)
+        self.h = subh + self.padding * max(len(self.vstates) +
+            len(self.children) - 1, 0)
         self.subh, self.ncl = subh, ncl
     end,
 
@@ -204,7 +205,7 @@ M.VBox = register_type("VBox", Widget, {
     end,
 
     adjust_children = func(self)
-        var nch, nvs = #self.children, #self.vstates
+        var nch, nvs = len(self.children), len(self.vstates)
         if nch == 0 and nvs == 0 do return end
         if self.homogenous do
             return self:adjust_children_homogenous(nch + nvs)
@@ -260,14 +261,14 @@ M.Grid = register_type("Grid", Widget, {
         loop_children(self, func(o)
             o:layout()
 
-            if #widths < column do
-                widths[#widths + 1] = o.w
+            if len(widths) < column do
+                widths[len(widths) + 1] = o.w
             elif o.w > widths[column] do
                 widths[column] = o.w
             end
 
-            if #heights < row do
-                heights[#heights + 1] = o.h
+            if len(heights) < row do
+                heights[len(heights) + 1] = o.h
             elif o.h > heights[row] do
                 heights[row] = o.h
             end
@@ -279,20 +280,20 @@ M.Grid = register_type("Grid", Widget, {
         end)
 
         var subw, subh = 0, 0
-        for i in 1 to #widths  do subw +=  widths[i] end
-        for i in 1 to #heights do subh += heights[i] end
-        self.w = subw + ph * max(#widths  - 1, 0)
-        self.h = subh + pv * max(#heights - 1, 0)
+        for i in 1 to len(widths)  do subw +=  widths[i] end
+        for i in 1 to len(heights) do subh += heights[i] end
+        self.w = subw + ph * max(len(widths)  - 1, 0)
+        self.h = subh + pv * max(len(heights) - 1, 0)
         self.subw, self.subh = subw, subh
     end,
 
     adjust_children = func(self)
-        if #self.children == 0 and #self.vstates == 0 do return end
+        if len(self.children) == 0 and len(self.vstates) == 0 do return end
         var widths, heights = self.widths, self.heights
         var column , row     = 1, 1
         var offsetx, offsety = 0, 0
-        var cspace = (self.w - self.subw) / max(#widths  - 1, 1)
-        var rspace = (self.h - self.subh) / max(#heights - 1, 1)
+        var cspace = (self.w - self.subw) / max(len(widths)  - 1, 1)
+        var rspace = (self.h - self.subh) / max(len(heights) - 1, 1)
         var columns = self.columns
 
         loop_children(self, func(o)

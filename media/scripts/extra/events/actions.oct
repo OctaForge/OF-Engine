@@ -17,7 +17,7 @@ var M = {}
 var Action = actions.Action
 var ActionQueue = actions.ActionQueue
 
-from std.table import pairs, ipairs, compact
+from std.table import pairs, ipairs, compact, len
 
 /**
     A container action that can queue more actions into itself, which run on
@@ -60,7 +60,7 @@ M.ContainerAction = Action:clone {
     __run = func(self, millis)
         var actqueue = self.action_queue
         actqueue:run(millis)
-        return Action.__run(self, millis) and (#actqueue.actions == 0)
+        return Action.__run(self, millis) and (len(actqueue.actions) == 0)
     end,
 
     /// Clears up the action queue.
@@ -118,9 +118,9 @@ M.ParallelAction = Action:clone {
     __run = func(self, millis)
         var systems = compact(self.action_queues, func(i, actqueue)
             actqueue:run(millis)
-            return #actqueue.actions != 0
+            return len(actqueue.actions) != 0
         end)
-        return Action.__run(self, millis) and #systems == 0
+        return Action.__run(self, millis) and len(systems) == 0
     end,
 
     /// Clears up the remaining action queues.
@@ -138,7 +138,7 @@ M.ParallelAction = Action:clone {
         var actqueue = ActionQueue(self.actor)
         actqueue:enqueue(action)
         var systems = self.action_queues
-        systems[#systems + 1] = actqueue
+        systems[len(systems) + 1] = actqueue
     end
 }
 
@@ -184,7 +184,7 @@ M.input_capture_plugin = {
         var events = self.events
         var old_events = {}
         self.old_events = old_events
-        for i in 1 to #event_list do
+        for i in 1 to len(event_list) do
             var en = event_list[i]
             var ev = events[en]
             if ev do old_events[en] = input.set_event(en,

@@ -34,7 +34,7 @@ var var_get, var_set = cs.var_get, cs.var_set
 var emit = signal.emit
 
 from std.table import rawget, rawset, pairs, ipairs, Object, remove as tremove,
-    insert as tinsert
+    insert as tinsert, len
 from std.util import select
 from std.math import min, max, clamp, floor, ceil
 from std.util import assert
@@ -161,12 +161,12 @@ M.loop_children = func(self, fun)
         end
     end
 
-    for i in 1 to #vr do
+    for i in 1 to len(vr) do
         var a, b = fun(vr[i])
         if    a != undef do return a, b end
     end
 
-    for i in 1 to #ch do
+    for i in 1 to len(ch) do
         var a, b = fun(ch[i])
         if    a != undef do return a, b end
     end
@@ -187,12 +187,12 @@ M.loop_children_r = func(self, fun)
     var vr = self.vstates
     var st = self.states
 
-    for i in #ch to 1 by -1 do
+    for i in len(ch) to 1 by -1 do
         var a, b = fun(ch[i])
         if    a != undef do return a, b end
     end
 
-    for i in #vr to 1 by -1 do
+    for i in len(vr) to 1 by -1 do
         var a, b = fun(vr[i])
         if    a != undef do return a, b end
     end
@@ -687,7 +687,7 @@ M.Widget = register_type("Widget", Object, {
             ch, states = {}, {}
             self.children, self.states = ch, states
         end
-        var clen = #ch
+        var clen = len(ch)
 
         // children
         for i, v in ipairs(kwargs) do
@@ -752,7 +752,7 @@ M.Widget = register_type("Widget", Object, {
         var vs, rvs = {}, self.vstates
         var ic = initc and self.init_clone or undef
         var cl = self:clone { children = ch, states = st, vstates = vs }
-        for i in 1 to #rch do
+        for i in 1 to len(rch) do
             var c = rch[i]
             var chcl = c:deep_clone(obj, true)
             chcl.parent = cl
@@ -786,7 +786,7 @@ M.Widget = register_type("Widget", Object, {
             v:clear()
         end end
         var manprops = self.managed_properties
-        for i in #manprops to 1 by -1 do
+        for i in len(manprops) to 1 by -1 do
             self[manprops[i]], manprops[i] = undef, undef
         end
         var vstates = {}
@@ -816,7 +816,7 @@ M.Widget = register_type("Widget", Object, {
                         "cannot override existing property " ~ v)
                 end
                 self[nm] = gen_setter(v)
-                manprops[#manprops + 1] = nm
+                manprops[len(manprops) + 1] = nm
             end end
             var init = dstates.__init
             if init do init(self) end
@@ -1282,7 +1282,7 @@ M.Widget = register_type("Widget", Object, {
         loop_children(self, func(o)
             if o != exclude and o.type == otype and
             (not name or name == o.obj_name) do
-                ch[#ch + 1] = o
+                ch[len(ch) + 1] = o
             end
         end)
         if recurse do
@@ -1367,7 +1367,7 @@ M.Widget = register_type("Widget", Object, {
     */
     remove = func(self, o, detach)
         if typeof o == "number" do
-            if #self.children < o do
+            if len(self.children) < o do
                 if detach do return undef end
                 return false
             end
@@ -1376,7 +1376,7 @@ M.Widget = register_type("Widget", Object, {
             r:clear()
             return true
         end
-        for i in 1 to #self.children do
+        for i in 1 to len(self.children) do
             if o == self.children[i] do
                 var r = tremove(self.children, i)
                 if detach do return r end
@@ -1404,7 +1404,7 @@ M.Widget = register_type("Widget", Object, {
     */
     destroy_children = func(self)
         var ch = self.children
-        for i in 1 to #ch do
+        for i in 1 to len(ch) do
             ch[i]:clear()
         end
         self.children = {}
@@ -1536,7 +1536,7 @@ M.Widget = register_type("Widget", Object, {
     append = func(self, obj, fun, force_ch)
         var children = force_ch and self.children
             or (self.container or self).children
-        children[#children + 1] = obj
+        children[len(children) + 1] = obj
         obj.parent = self
         obj._root  = self._root
         if fun do fun(obj) end
@@ -1581,7 +1581,7 @@ M.Widget = register_type("Widget", Object, {
     */
     show_menu = func(self, obj, at_cursor, clear_on_drop)
         var root = self:get_root()
-        root:_menu_init(obj, self, #root._menu_stack + 1, at_cursor,
+        root:_menu_init(obj, self, len(root._menu_stack) + 1, at_cursor,
             clear_on_drop)
         return obj
     end,
@@ -1905,8 +1905,8 @@ M.Root = register_type("Root", Widget, {
 
         var tooltip = self._tooltip
         var ms = self._menu_stack
-        for i in 1 to #ms do   ms[i]:get_projection():draw() end
-        if tooltip   do tooltip:get_projection():draw() end
+        for i in 1 to len(ms) do   ms[i]:get_projection():draw() end
+        if tooltip            do tooltip:get_projection():draw() end
     end,
 
     build_window = func(self, name, win, fun)
@@ -1916,7 +1916,7 @@ M.Root = register_type("Root", Widget, {
         win.parent = self
         win._root  = self._root
         var children = self.children
-        children[#children + 1] = win
+        children[len(children) + 1] = win
         if fun do fun(win) end
         return win
     end,
@@ -2018,7 +2018,7 @@ M.Root = register_type("Root", Widget, {
 
     above_hud = func(self)
         var y, ch = 1, self.children
-        for i in 1 to #ch do
+        for i in 1 to len(ch) do
             var w = ch[i]
             if w.above_hud do
                 y = min(y, w:get_projection():calc_above_hud())
@@ -2073,7 +2073,7 @@ M.Root = register_type("Root", Widget, {
     /// Pushes a clip area into the root's clip stack and scissors.
     clip_push = func(self, x, y, w, h)
         var cs = self._clip_stack
-        var l = #cs
+        var l = len(cs)
         if    l == 0 do gl_scissor_enable() end
 
         var c = ClipArea(x, y, w, h)
@@ -2093,7 +2093,7 @@ M.Root = register_type("Root", Widget, {
         var cs = self._clip_stack
         tremove(cs)
 
-        var l = #cs
+        var l = len(cs)
         if    l == 0 do gl_scissor_disable()
         else cs[l]:scissor(self)
         end
@@ -2105,7 +2105,7 @@ M.Root = register_type("Root", Widget, {
     */
     clip_is_fully_clipped = func(self, x, y, w, h)
         var cs = self._clip_stack
-        var l = #cs
+        var l = len(cs)
         if    l == 0 do return false end
         return cs[l]:is_fully_clipped(x, y, w, h)
     end,
@@ -2115,7 +2115,7 @@ M.Root = register_type("Root", Widget, {
     */
     clip_scissor = func(self)
         var cs = self._clip_stack
-        cs[#cs]:scissor(self)
+        cs[len(cs)]:scissor(self)
     end,
 
     _tooltip_init = func(self, o, op, clear_on_drop)
@@ -2147,7 +2147,7 @@ M.Root = register_type("Root", Widget, {
 
     _menus_drop = func(self, n)
         var ms = self._menu_stack
-        var msl = #ms
+        var msl = len(ms)
         n = n or msl
         for i in msl to msl - n + 1 by -1 do
             var o = tremove(ms)
@@ -2393,8 +2393,8 @@ M.Root = register_type("Root", Widget, {
             var hk, hl
             var nhov = 0
             var ms = self._menu_stack
-            if #ms > 0 do
-                for i in #ms to 1 by -1 do
+            if len(ms) > 0 do
+                for i in len(ms) to 1 by -1 do
                     hk, hl = self:menu_hover(ms[i], self.cursor_x,
                         self.cursor_y)
                     if hk do
@@ -2415,7 +2415,7 @@ M.Root = register_type("Root", Widget, {
                 oldhov:leaving(oldhx, oldhy)
             end
             if self._hovering do
-                 var msl = #ms
+                 var msl = len(ms)
                 if msl > 0 and nhov > 0 and msl > nhov do
                     self:_menus_drop(msl - nhov)
                 end
@@ -2426,7 +2426,7 @@ M.Root = register_type("Root", Widget, {
 
             if self._clicked do
                 var hx, hy
-                if #ms > 0 do for i in #ms to 1 by -1 do
+                if len(ms) > 0 do for i in len(ms) to 1 by -1 do
                     hx, hy = self:menu_hold(ms[i], self.cursor_x,
                         self.cursor_y, self._clicked)
                     if hx do break end
@@ -2453,7 +2453,7 @@ M.Root = register_type("Root", Widget, {
         end
 
         var ms = self._menu_stack
-        for i in 1 to #ms do
+        for i in 1 to len(ms) do
             var o = ms[i]
             var proj = self:set_projection(o:get_projection())
             o:layout()
@@ -2517,8 +2517,8 @@ set_external("input_keypress", func(code, isdown)
             var clicked_try
             var ck, cl
             var ms = root._menu_stack
-            if #ms > 0 do
-                for i in #ms to 1 by -1 do
+            if len(ms) > 0 do
+                for i in len(ms) to 1 by -1 do
                     ck, cl = root:menu_click(ms[i], root.cursor_x,
                         root.cursor_y, code)
                     if ck do
@@ -2542,7 +2542,7 @@ set_external("input_keypress", func(code, isdown)
             if root._clicked do
                 var hx, hy
                 var ms = root._menu_stack
-                if #ms > 0 do for i in #ms to 1 by -1 do
+                if len(ms) > 0 do for i in len(ms) to 1 by -1 do
                     hx, hy = root:menu_hold(ms[i], root.cursor_x,
                         root.cursor_y, root._clicked)
                     if hx do break end
@@ -2617,7 +2617,7 @@ end
 
 set_external("gui_render", func()
     var w = root
-    if draw_hud or (w.visible and #w.children != 0) do
+    if draw_hud or (w.visible and len(w.children) != 0) do
         w:draw()
         if draw_hud do hud:get_projection():draw() end
         gle_disable()

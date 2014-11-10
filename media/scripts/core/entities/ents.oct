@@ -35,7 +35,7 @@ from core.octascript.geom import Vec3
 var emit = signal.emit
 
 from std.table import pairs, ipairs, filter, filter_map, map, sort, concat,
-    find, serialize, deserialize, Object
+    find, serialize, deserialize, Object, len
 from std.math import max, floor
 from std.conv import tonumber, tostring
 from std.table import unpack
@@ -99,7 +99,7 @@ M.gen_network_data = func(cn, names)
     sort(names)
 
     var ntoi, iton = {}, {}
-    for id in 1 to #names do
+    for id in 1 to len(names) do
         var name = names[id]
         ntoi[name], iton[id] = tostring(id), name
     end
@@ -134,7 +134,7 @@ var register_plugins = func(cl, plugins, name)
     var properties
 
     var clmeths = cl["__plugin_methods"] or {}
-    for i, v in ipairs(plugin_slots) do clmeths[#clmeths + 1] = v end
+    for i, v in ipairs(plugin_slots) do clmeths[len(clmeths) + 1] = v end
     var clmethset = {}
     for i, v in ipairs(clmeths) do clmethset[v] = true end
 
@@ -148,10 +148,10 @@ var register_plugins = func(cl, plugins, name)
             var sl = plugin[slot]
             var tp = typeof sl
             if sl and tp == "function" or tp == "table" or tp == "userdata"
-            do cltbl[#cltbl + 1] = sl end
+            do cltbl[len(cltbl) + 1] = sl end
         end
 
-        if not (#cltbl == 0 or (#cltbl == 1 and cltbl[1] == cl[slot])) do
+        if not (len(cltbl) == 0 or (len(cltbl) == 1 and cltbl[1] == cl[slot])) do
             cldata[slotname] = cltbl
             cldata[slot] = func(...)
                 for i, fn in ipairs(cltbl) do fn(...) end
@@ -263,7 +263,7 @@ M.register_prototype = func(cl, plugins, name)
             for n, v in pairs(props) do
                 if not pt[n] and svars.is_svar(v) do
                     pt[n] = v
-                    sv_names[#sv_names + 1] = n
+                    sv_names[len(sv_names) + 1] = n
                 end
             end
         end
@@ -287,7 +287,7 @@ M.register_prototype = func(cl, plugins, name)
     gen_network_data(name, sv_names)
 
     @[debug] log(DEBUG, "ents.register_prototype: registering state variables")
-    for i in 1 to #sv_names do
+    for i in 1 to len(sv_names) do
         var name = sv_names[i]
         var svar = pt[name]
         @[debug] log(DEBUG, e"    $name ($(svar.name))")
@@ -429,9 +429,9 @@ M.get_by_distance = func(pos, kwargs)
         var ent = storage[uid]
         if ent and ((not cl or cl == ent.name) and (not tg or ent:has_tag(tg)))
         do
-            var dist = #(pos - fn(ent))
+            var dist = (pos - fn(ent)):magnitude()
             if dist <= md do
-                ret[#ret + 1] = { ent, dist }
+                ret[len(ret) + 1] = { ent, dist }
             end
         end
     end
@@ -479,7 +479,7 @@ var add = func(cn, uid, kwargs, new)
             if not sbc do
                 storage_by_proto[k] = { r }
             else
-                sbc[#sbc + 1] = r
+                sbc[len(sbc) + 1] = r
             end
         end
     end
@@ -506,7 +506,7 @@ set_external("entity_add_with_cn", func(cl, uid, cn)
 end)
 
 var add_sauer = func(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
-    storage_sauer[#storage_sauer + 1] = {
+    storage_sauer[len(storage_sauer) + 1] = {
         et, Vec3(x, y, z), attr1, attr2, attr3, attr4, attr5
     }
 end
@@ -601,7 +601,7 @@ M.load = func()
         entities = deserialize(el)
     end
 
-    if #storage_sauer > 0 do
+    if len(storage_sauer) > 0 do
         @[debug] log(DEBUG, "ents.load: loading sauer entities:\n"
             "    reading import.oct for imported models and sounds")
 
@@ -617,18 +617,18 @@ M.load = func()
         huid = huid + 1
 
         var sn = {
-            [1] = "Light",           [2] = "Mapmodel",
+            [1] = "Light",          [2] = "Mapmodel",
             [3] = "OrientedMarker", [4] = "Envmap",
-            [6] = "Sound",           [7] = "SpotLight"
+            [6] = "Sound",          [7] = "SpotLight"
         }
 
-        for i in 1 to #storage_sauer do
+        for i in 1 to len(storage_sauer) do
             var e = storage_sauer[i]
             var et = e[1]
             var o, attr1, attr2, attr3, attr4, attr5
                 = e[2], e[3], e[4], e[5], e[6], e[7]
             if sn[et] do
-                entities[#entities + 1] = {
+                entities[len(entities) + 1] = {
                     huid, sn[et], {
                         attr1 = tostring(attr1), attr2 = tostring(attr2),
                         attr3 = tostring(attr3), attr4 = tostring(attr4),
@@ -640,21 +640,21 @@ M.load = func()
                     }
                 }
 
-                var ent = entities[#entities][3]
+                var ent = entities[len(entities)][3]
 
                 if et == 2 do
-                    ent.model_name = (#im <= attr2) and
+                    ent.model_name = (len(im) <= attr2) and
                         (e"@REPLACE_$attr2@") or im[attr2 + 1]
                     ent.attr2 = ent.attr3
                     ent.attr3 = "0"
                     ent.animation = model.anims.mapmodel
                         | model.anim_control.LOOP
                 elif et == 6 do
-                    if #is > attr1 do
+                    if len(is) > attr1 do
                         var snd = is[attr1 + 1]
                         ent.sound_name = snd[1]
                         ent.attr1, ent.attr2 = ent.attr2, ent.attr3
-                        if #snd > 1 do
+                        if len(snd) > 1 do
                             ent.attr3 = snd[2]
                         else
                             ent.attr3 = ent.attr4
@@ -681,7 +681,7 @@ M.load = func()
     end
 
     @[debug] log(DEBUG, "ents.load: loading all entities")
-    for i in 1 to #entities do
+    for i in 1 to len(entities) do
         var e = entities[i]
         var uid, cn = e[1], e[2]
         @[debug] log(DEBUG, e"    $uid, $cn")
@@ -703,7 +703,7 @@ M.save = func()
         if entity and entity:get_attr("persistent") do
             var en = entity.name
             @[debug] log(DEBUG, e"    $uid, $en")
-            r[#r + 1] = serialize({ uid, en, entity:build_sdata() })
+            r[len(r) + 1] = serialize({ uid, en, entity:build_sdata() })
         end
     end
 
@@ -890,7 +890,7 @@ M.Entity = Object:clone {
 
         r = serialize(r)
         @[debug] log(DEBUG, e"Entity.build_sdata compressed: $r")
-        return r:sub(2, #r - 1)
+        return r:sub(2, r:len() - 1)
     end,
 
     /// Updates the complete state data on an entity from serialized input.
@@ -1118,7 +1118,7 @@ M.Entity = Object:clone {
             }
 
             var cns = map(get_players(), func(p) return p.cn end)
-            for i in 1 to #cns do
+            for i in 1 to len(cns) do
                 var n = cns[i]
                 if svar:should_send(self, n) do
                     args[1] = n
@@ -1151,7 +1151,7 @@ M.Entity = Object:clone {
         @[debug] log(DEBUG, e"Entity.send_notification_full: $cn, $uid")
 
         var scn, sname = self.cn, self.name
-        for i in 1 to #cns do
+        for i in 1 to len(cns) do
             var n = cns[i]
             msg.send(n, capi.le_notification_complete,
                 scn and scn or acn, uid, sname, self:build_sdata(
@@ -1235,7 +1235,7 @@ M.Entity = Object:clone {
                 var name = svar.name
                 var val = self:get_attr(name)
                 if val != undef do
-                    r[#r + 1] = { svar.gui_name or name, svar:to_wire(val) }
+                    r[len(r) + 1] = { svar.gui_name or name, svar:to_wire(val) }
                 end
             end
         end
@@ -1355,13 +1355,13 @@ set_external("entity_draw_attached", func(uid)
     var ent = storage[uid]
     if not ent do return end
     var ents = { ent:get_attached_next() }
-    if #ents > 0 do
-        for i in 1 to #ents do capi.entity_draw_attachment(uid, ents[i].uid) end
+    if len(ents) > 0 do
+        for i in 1 to len(ents) do capi.entity_draw_attachment(uid, ents[i].uid) end
         return
     end
     ents = { ent:get_attached_prev() }
-    if #ents > 0 do
-        for i in 1 to #ents do capi.entity_draw_attachment(ents[i].uid, uid) end
+    if len(ents) > 0 do
+        for i in 1 to len(ents) do capi.entity_draw_attachment(ents[i].uid, uid) end
         return
     end
 end)

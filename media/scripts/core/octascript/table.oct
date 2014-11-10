@@ -16,13 +16,13 @@ from core.externals import set as ext_set
 
 from std.conv import tonumber, tostring
 from std.math import floor, log
-from std.table import pairs, ipairs, concat as tconc
+from std.table import pairs, ipairs, concat as tconc, len
 
 import std.table
 
 /**
     Checks whether the given table is an array (that is, contains only a
-    consecutive sequence of values with indexes from 1 to #table). If
+    consecutive sequence of values with indexes from 1 to len(table)). If
     there is any non-array element found, returns false. Otherwise
     returns true.
 */
@@ -62,10 +62,10 @@ end
     Merges two arrays. Contents of the other come after those of the first one.
 */
 table.merge = func(ta, tb)
-    var l1, l2 = #ta, #tb
+    var l1, l2 = len(ta), len(tb)
     var r = ctable(l1 + l2)
-    for i in 1 to l1 do r[#r + 1] = ta[i] end
-    for i in 1 to l2 do r[#r + 1] = tb[i] end
+    for i in 1 to l1 do r[len(r) + 1] = ta[i] end
+    for i in 1 to l2 do r[len(r) + 1] = tb[i] end
     return r
 end
 
@@ -84,7 +84,7 @@ end
     Returns a copy of the given table. It's a shallow copy.
 */
 table.copy = func(t)
-    var r = ctable(#t)
+    var r = ctable(len(t))
     for a, b in pairs(t) do r[a] = b end
     return r
 end
@@ -118,7 +118,7 @@ end
 */
 table.filter = func(t, f)
     var r = {}
-    for i in 1 to #t do if f(i, t[i]) do r[#r + 1] = t[i] end end
+    for i in 1 to len(t) do if f(i, t[i]) do r[len(r) + 1] = t[i] end end
     return r
 end
 
@@ -163,7 +163,7 @@ end
         - f - the conditional function.
 */
 table.compact = func(t, f)
-    var olen, comp = #t, 0
+    var olen, comp = len(t), 0
     for i in 1 to olen do
         var v = t[i]
         if not f(i, v) do comp += 1 elif comp > 0 do t[i - comp] = v end
@@ -206,7 +206,7 @@ table.foldr = func(t, fun, z)
         idx = 2
     end
 
-    for i in idx to #t do
+    for i in idx to len(t) do
         z = fun(z, t[i])
     end
     return z
@@ -219,7 +219,7 @@ end
         - $foldl
 */
 table.foldl = func(t, fun, z)
-    var len = #t
+    var len = len(t)
     if not z do
         z   = t[len]
         len = len - 1
@@ -388,7 +388,7 @@ var serialize = func(val, kwargs, stream, simplifier)
     else
         var t = {}
         var ret, err = serialize_fn(val, func(out)
-            t[#t + 1] = out end, kwargs, simplifier, {}, 1)
+            t[len(t) + 1] = out end, kwargs, simplifier, {}, 1)
         if not ret do
             return undef, err
         else
@@ -418,7 +418,7 @@ var lex_get = func(ls)
             var buf = { ls.curr }
             ls.curr = ls.rdr()
             while ls.curr and ls.curr:find_match("[epxEPX0-9.+-]") do
-                buf[#buf + 1] = ls.curr
+                buf[len(buf) + 1] = ls.curr
                 ls.curr = ls.rdr()
             end
             var str = tconc(buf)
@@ -444,21 +444,21 @@ var lex_get = func(ls)
                 elif c == "\\" do
                     c = ls.rdr()
                     if c == "a" do
-                        buf[#buf + 1] = "\a" ls.curr = ls.rdr()
+                        buf[len(buf) + 1] = "\a" ls.curr = ls.rdr()
                     elif c == "b" do
-                        buf[#buf + 1] = "\b" ls.curr = ls.rdr()
+                        buf[len(buf) + 1] = "\b" ls.curr = ls.rdr()
                     elif c == "f" do
-                        buf[#buf + 1] = "\f" ls.curr = ls.rdr()
+                        buf[len(buf) + 1] = "\f" ls.curr = ls.rdr()
                     elif c == "n" do
-                        buf[#buf + 1] = "\n" ls.curr = ls.rdr()
+                        buf[len(buf) + 1] = "\n" ls.curr = ls.rdr()
                     elif c == "r" do
-                        buf[#buf + 1] = "\r" ls.curr = ls.rdr()
+                        buf[len(buf) + 1] = "\r" ls.curr = ls.rdr()
                     elif c == "t" do
-                        buf[#buf + 1] = "\t" ls.curr = ls.rdr()
+                        buf[len(buf) + 1] = "\t" ls.curr = ls.rdr()
                     elif c == "v" do
-                        buf[#buf + 1] = "\v" ls.curr = ls.rdr()
+                        buf[len(buf) + 1] = "\v" ls.curr = ls.rdr()
                     elif c == "\\" or c == '"' or c == "'" do
-                        buf[#buf + 1] = c
+                        buf[len(buf) + 1] = c
                         ls.curr = ls.rdr()
                     elif not c do
                         raise ("%d: unfinished string near '<eos>'")
@@ -479,10 +479,10 @@ var lex_get = func(ls)
                             end
                         end
                         ls.curr = c
-                        buf[#buf + 1] = tconc(dbuf):char()
+                        buf[len(buf) + 1] = tconc(dbuf):char()
                     end
                 else
-                    buf[#buf + 1] = c
+                    buf[len(buf) + 1] = c
                     ls.curr = ls.rdr()
                 end
             end
@@ -493,7 +493,7 @@ var lex_get = func(ls)
             var buf = { c }
             ls.curr = ls.rdr()
             while ls.curr and ls.curr:find_match("[%w_]") do
-                buf[#buf + 1] = ls.curr
+                buf[len(buf) + 1] = ls.curr
                 ls.curr = ls.rdr()
             end
             var str = tconc(buf)
@@ -551,7 +551,7 @@ parse = func(ls)
                 assert_tok(ls, "]", "=")
                 tbl[key] = parse(ls)
             else
-                tbl[#tbl + 1] = parse(ls)
+                tbl[len(tbl) + 1] = parse(ls)
             end
         until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
         assert_tok(ls, "}")
@@ -672,7 +672,7 @@ var defaultcmp = func(a, b) return a < b end
     quicksort part uses a median of three pivot.
 */
 table.sort = func(tbl, fun, l, r)
-    l, r = l or 1, r or #tbl
+    l, r = l or 1, r or len(tbl)
     return introsort(tbl, l, r, fun or defaultcmp)
 end
 

@@ -19,7 +19,7 @@ var connect = signal.connect
 var get_by_tag = ents.get_by_tag
 
 from std.math import random as rand
-from std.table import unpack
+from std.table import unpack, len
 
 /// Module: teleporters
 var M = {}
@@ -64,11 +64,11 @@ M.Teleporter = Obstacle:clone {
         var dest = self:get_attr("destination")
         if dest <= 0 do return end
         var dests = get_by_tag("teledest_" ~ dest)
-        if #dests == 0 do
+        if len(dests) == 0 do
             log.log(log.ERROR, "No teledest found.")
             return
         end
-        dests[rand(1, #dests)]:place_entity(collider)
+        dests[rand(1, len(dests))]:place_entity(collider)
         var sn = self:get_attr("sound_name")
         if sn != "" do play(sn) end
     end,

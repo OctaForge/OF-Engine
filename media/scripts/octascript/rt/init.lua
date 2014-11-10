@@ -151,7 +151,7 @@ local ArrayMT = {
             return self[self.__size - 1]
         end,
 
-        length = function(self)
+        len = function(self)
             return self.__size
         end,
 

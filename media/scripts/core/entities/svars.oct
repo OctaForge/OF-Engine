@@ -22,7 +22,7 @@ var INFO  = logging.INFO
 import core.events.frame
 import core.octascript.geom
 
-from std.table import rawget, rawset, Object
+from std.table import rawget, rawset, Object, len
 from std.math import abs, round, floor
 from std.conv import tonumber, tostring
 from std.util import assert
@@ -374,7 +374,6 @@ M.ArraySurrogate = {
         mt.__tostring = self.__tostring
         mt.__index    = setmt(rawt, self)
         mt.__newindex = self.__newindex
-        mt.__len      = self.__len
         return ret
     end,
 
@@ -421,24 +420,24 @@ M.ArraySurrogate = {
     end,
 
     /// Returns the length of the "array" represented by the state variable.
-    __len = func(self)
+    len = func(self)
         var v = self.variable
         return v:get_length(self.entity)
     end,
 
     /// Returns a raw array of values stored using the state variable.
     to_array = func(self)
-        var l = #self
+        var l = self:len()
         var r = ctable(l)
         for i in 1 to l do
-            r[#r + 1] = self[i]
+            r[len(r) + 1] = self[i]
         end
         return r
     end,
 
     /// Appends an element. For convenience only.
     append = func(self, v)
-        self[#self + 1] = v
+        self[self:len() + 1] = v
     end
 }
 ArraySurrogate = M.ArraySurrogate
@@ -527,12 +526,12 @@ M.StateArray = StateVariable:clone {
     /// Converts a string in a format given by $to_wire back to a table.
     from_wire = func(self, val)
         return (val == "[]") and {} or map(
-            val:sub(2, #val - 1):split(self.separator), self.from_wire_item)
+            val:sub(2, val:len() - 1):split(self.separator), self.from_wire_item)
     end,
 
     /**
         Returns the raw array of state data. Retrieved from var storage
-        without syncing assuming there is either no czstin getter function
+        without syncing assuming there is either no existing getter function
         or a sufficient cached value. Otherwise returns the result of a
         getter function call and caches it.
     */
@@ -565,7 +564,7 @@ M.StateArray = StateVariable:clone {
 
     /// Retrieves the state array length. Used by the surrogate.
     get_length = func(self, ent)
-        return #self:get_raw(ent)
+        return len(self:get_raw(ent))
     end,
 
     /**

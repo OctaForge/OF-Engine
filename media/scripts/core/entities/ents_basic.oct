@@ -36,7 +36,7 @@ var ent_get = ents.get
 
 from std.conv import tonumber
 from std.math import abs, min, max, clamp
-from std.table import concat as tconc, map
+from std.table import concat as tconc, map, len
 
 var connect, emit = signal.connect, signal.emit
 
@@ -199,8 +199,8 @@ M.Character = Entity:clone {
         model_name  = svars.StateString  { setter = capi.set_model_name },
         attachments = svars.StateArray   {
             setter = func(self, val)
-                var arr = ffi.new("const char *[?]", #val + 1)
-                for i in 1 to #val do arr[i - 1] = val end
+                var arr = ffi.new("const char *[?]", len(val) + 1)
+                for i in 1 to len(val) do arr[i - 1] = val[i] end
                 set_attachments(self, arr)
             end
         },
@@ -804,7 +804,7 @@ M.StaticEntity = Entity:clone {
             ~ cn ~ ", " ~ uid)
 
         var scn, sname = self.cn, self.name
-        for i in 1 to #cns do
+        for i in 1 to len(cns) do
             var n = cns[i]
             msg.send(n, capi.extent_notification_complete, uid, sname,
                 self:build_sdata({ target_cn = n, compressed = true }))

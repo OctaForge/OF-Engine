@@ -321,7 +321,8 @@ local std = {
         next     = next,
         setmt    = setmetatable,
         getmt    = getmetatable,
-        unpack   = unpack
+        unpack   = unpack,
+        len      = function(t) return #t end
     },
     math   = std_math,
     os     = require("os"),

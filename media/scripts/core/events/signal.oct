@@ -10,7 +10,7 @@
 
 import core.logger as log
 
-from std.table import rawget, rawset, find as tfind
+from std.table import rawget, rawset, find as tfind, len
 from std.math import clamp
 
 /// Module: signal
@@ -59,7 +59,7 @@ M.connect = func(self, name, callback)
            rawset(self, clistn, clist)
     end
 
-    var id = #clist + 1
+    var id = len(clist) + 1
     clist[id] = callback
 
     clist.slotcount = clist.slotcount + 1
@@ -97,7 +97,7 @@ M.disconnect = func(self, name, id)
         if typeof id != "number" do
             id = tfind(clist, id)
         end
-        if id and id <= #clist do
+        if id and id <= len(clist) do
             var scnt = clist.slotcount - 1
             clist.slotcount = scnt
             rawset(clist, id, false)
@@ -125,7 +125,7 @@ M.emit = func(self, name, ...)
     end
 
     var ncalled = 0
-    for i in 1 to #clist do
+    for i in 1 to len(clist) do
         var cb = clist[i]
         if cb do
             ncalled = ncalled + 1

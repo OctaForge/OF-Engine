@@ -90,7 +90,7 @@ M.player_plugin = {
     end
 }
 
-from std.table import pairs, ipairs, remove as tremove
+from std.table import pairs, ipairs, remove as tremove, len
 from std.math import random as rand, floor
 
 var Entity = ents.Entity
@@ -112,7 +112,7 @@ var GameManager = Entity:clone {
         var players = {}
         for i, team in pairs(self.teams) do
             for i, v in ipairs(team.player_list) do
-                players[#players + 1] = v
+                players[len(players) + 1] = v
             end
         end
         return players
@@ -125,8 +125,8 @@ var GameManager = Entity:clone {
             team.player_list = {}
         end
 
-        while #players > 0 do
-            var pl = tremove(players, floor(rand() * #players))
+        while len(players) > 0 do
+            var pl = tremove(players, floor(rand() * len(players)))
             self:pick_team(pl, false)
         end
         self:sync_team_data()
@@ -168,8 +168,8 @@ var GameManager = Entity:clone {
             st = "player_start_" ~ team
         end
         var starts = ents.get_by_tag(st)
-        if starts and #starts > 0 do
-            starts[rand(1, #starts)]:place_entity(player)
+        if starts and len(starts) > 0 do
+            starts[rand(1, len(starts))]:place_entity(player)
             return
         end
         log.log(log.WARNING, ('player start not found (\"%s\"), '

@@ -13,7 +13,7 @@ import capi
 import std.ffi
 import core.logger as log
 
-from std.table import rawget, rawset, pairs
+from std.table import rawget, rawset, pairs, len
 from std.math import sin, cos, abs, min, max, sqrt, floor, atan2, asin, deg
 
 var gen_vec2 = func(tp, sf, mt)
@@ -90,7 +90,6 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
     __div = func(self, o) return self:div_new(o) end,
     __add = func(self, o) return self:add_new(o) end,
     __sub = func(self, o) return self:sub_new(o) end,
-    __len = func(self) return self:magnitude() end,
     __index = {
         from_ffi_array = func(self, o)
             return ffi_new(self, o[0], o[1])
@@ -261,7 +260,6 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
     __div = func(self, o) return self:div_new(o) end,
     __add = func(self, o) return self:add_new(o) end,
     __sub = func(self, o) return self:sub_new(o) end,
-    __len = func(self) return self:magnitude() end,
     __index = {
         from_ffi_array = func(self, o)
             return ffi_new(self, o[0], o[1], o[2])
@@ -637,8 +635,8 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             var f = min
             if lowest do f = max end
 
-            for x in 1 to #tbl do
-                for y in 1 to #tbl do
+            for x in 1 to len(tbl) do
+                for y in 1 to len(tbl) do
                     var o = self:add_new(Vec3(tbl[x], tbl[y], 0))
                     rt = f(rt, capi.ray_floor(o.x, o.y, o.z, max_dist))
                 end
@@ -723,7 +721,6 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
     __div = func(self, o) return self:div_new(o) end,
     __add = func(self, o) return self:add_new(o) end,
     __sub = func(self, o) return self:sub_new(o) end,
-    __len = func(self) return self:magnitude() end,
     __index = {
         from_ffi_array = func(self, o)
             return ffi_new(self, o[0], o[1], o[2], o[3])
@@ -999,9 +996,8 @@ var gen_vec_surrogate = func(name, base, ltable)
             mt.__tostring = self.__tostring
             mt.__index    = setmt(rawt, self)
             mt.__newindex = self.__newindex
-            mt.__eq, mt.__len, mt.__mul, mt.__div, mt.__add, mt.__sub
-                = base.__eq, base.__len, base.__mul, base.__div, base.__add,
-                  base.__sub
+            mt.__eq, mt.__mul, mt.__div, mt.__add, mt.__sub
+                = base.__eq, base.__mul, base.__div, base.__add, base.__sub
             return ret
         end,
         __tostring = (ltable.w and func(self)

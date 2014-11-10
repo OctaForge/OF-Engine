@@ -33,7 +33,7 @@ import extra.health
 var connect = signal.connect
 from core.octascript.geom import Vec4
 
-from std.table import ipairs
+from std.table import ipairs, len
 
 var colors = {
     0xFFFFFF, 0xFF0000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF
@@ -67,7 +67,7 @@ var GamePlayer = Player:clone {
     },
 
     next_color = func(self)
-        if  self.color_id < #colors do
+        if  self.color_id < len(colors) do
             self.color_id = self.color_id + 1
         else
             self.color_id = 1
@@ -91,13 +91,13 @@ var GamePlayer = Player:clone {
         self.color_id = 1
         self.color    = colors[1]
         connect(self, "new_mark,changed", func(self, nm)
-            if #nm == 3 do
+            if len(nm) == 3 do
                 nm = Vec4(nm[1], nm[2], nm[3], self.color)
             else
                 nm = undef
             end
             var marks = self.marks
-            marks[#marks + 1] = nm
+            marks[len(marks) + 1] = nm
         end)
     end],
 
@@ -118,11 +118,11 @@ var GamePlayer = Player:clone {
             last = mark
         end
 
-        var newb = #marks == 0 or not marks[#marks - 1]
-        var conb = #marks  > 0 and    marks[#marks - 1]
+        var newb = len(marks) == 0 or not marks[len(marks) - 1]
+        var conb = len(marks)  > 0 and    marks[len(marks) - 1]
 
         if conb and not self.stop_batch do
-            var mark = marks[#marks - 1]
+            var mark = marks[len(marks) - 1]
             var r, g, b = hextorgb(mark.w)
             splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
         end
@@ -131,7 +131,7 @@ var GamePlayer = Player:clone {
             var newp = input.get_target_position()
             var topl = self:get_attr("position"):sub_new(newp)
             newp:add(topl:normalize())
-            if newb or marks[#marks - 1]:dist(newp) > 5 do
+            if newb or marks[len(marks) - 1]:dist(newp) > 5 do
                 self:set_attr("new_mark", newp:to_array())
             end
         end

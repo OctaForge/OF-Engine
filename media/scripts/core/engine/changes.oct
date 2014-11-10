@@ -13,7 +13,7 @@ import core.events.signal
 
 from core.externals import set as set_external
 
-from std.table import pairs, filter, map
+from std.table import pairs, filter, map, len
 
 var needsapply = {}
 
@@ -41,7 +41,7 @@ M.add = func(ctype, desc)
     for i, v in pairs(needsapply) do
         if v.desc == desc do return end
     end
-    needsapply[#needsapply + 1] = {
+    needsapply[len(needsapply) + 1] = {
         ctype = ctype, desc = desc
     }
 end

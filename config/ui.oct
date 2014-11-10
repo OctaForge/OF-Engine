@@ -4,7 +4,7 @@ import core.gui.core as gui
 import core.engine.cubescript as cs
 
 from std.conv import tostring
-from std.table import ipairs
+from std.table import ipairs, len
 
 import std.math
 
@@ -19,7 +19,7 @@ var gen_map_list = func(img, vb)
     var glob, loc = capi.get_all_map_names()
     vb:append(gui.Label { text = "Global maps", color = 0x88FF88 })
     var current_preview
-    for i in 1 to #glob do
+    for i in 1 to len(glob) do
         var map = glob[i]
         vb:append(gui.Button { label = glob[i], clamp_h = true,
             variant = "nobg", min_w = 0.2
@@ -40,7 +40,7 @@ var gen_map_list = func(img, vb)
         end)
     end
     vb:append(gui.Label { text = "Local maps", color = 0x8888FF })
-    for i in 1 to #loc do
+    for i in 1 to len(loc) do
         var map = loc[i]
         vb:append(gui.Button { label = loc[i], clamp_h = true,
             variant = "nobg", min_w = 0.2
@@ -255,14 +255,14 @@ end
 var randtile = func(grid)
     var emptyfields = {}
     for i in 1 to 16 do
-        if tiles[i] == 0 do emptyfields[#emptyfields + 1] = i end
+        if tiles[i] == 0 do emptyfields[len(emptyfields) + 1] = i end
     end
-    if #emptyfields == 0 do return end
-    var n = emptyfields[math.random(1, #emptyfields)]
+    if len(emptyfields) == 0 do return end
+    var n = emptyfields[math.random(1, len(emptyfields))]
     tiles[n] = ({ 2, 4 })[math.random(1, 2)]
     grid:remove(n)
     grid:insert(n, blocktypes[tiles[n]]())
-    if #emptyfields == 1 do
+    if len(emptyfields) == 1 do
         // check game over (yes if nothing is mergeable)
         if gamestate == 0 do
             gamestate = -1
@@ -287,7 +287,7 @@ var randtile = func(grid)
                 if gamestate >= 0 do break end
             end
             if gamestate == 0 do
-                for i in 1 to #tiles do
+                for i in 1 to len(tiles) do
                     if tiles[i] == 2048 do
                         gamestate = 1
                         break
@@ -324,7 +324,7 @@ var guimovetile = func(grid, i, j, step, hdir, vdir)
         end)
         connect(m, "anim,end", func()
             m:set_visible(false)
-            cleanup[#cleanup + 1] = m
+            cleanup[len(cleanup) + 1] = m
             grid:remove(i)
             grid:insert(i, blocktypes[tiles[i]]())
             pendinganims -= 1
@@ -441,7 +441,7 @@ root:new_window("2048", gui.Window, func(win)
                     seedtiles()
                     seededtiles = true
                 end
-                for i in 1 to #tiles do
+                for i in 1 to len(tiles) do
                     grid:append(blocktypes[tiles[i]]())
                 end
             end)
