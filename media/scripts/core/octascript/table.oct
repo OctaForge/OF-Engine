@@ -201,7 +201,7 @@ end
 */
 table.foldr = func(t, fun, z)
     var idx = 1
-    if not z do
+    if z == undef do
         z   = t[1]
         idx = 2
     end
@@ -220,7 +220,7 @@ end
 */
 table.foldl = func(t, fun, z)
     var len = len(t)
-    if not z do
+    if z == undef do
         z   = t[len]
         len = len - 1
     end

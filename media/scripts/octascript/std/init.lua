@@ -499,4 +499,107 @@ std.eval.dofile = function(fname, mode, env, allowg)
     return func()
 end
 
+-- array utilities
+-- optimized by accessing internals
+
+local array_mt = rt.array_mt
+local array = array_mt.__index
+
+local setmt = setmetatable
+
+array.map = function(self, f)
+    local r = {}
+    for i = 0, self.__size - 1 do
+        r[i] = f(self[i])
+    end
+    return setmt(r, array_mt)
+end
+
+array.merge = function(self, o)
+    local r = {}
+    local sz = self.__size
+    for i = 0, sz - 1 do
+        r[i] = self[i]
+    end
+    for i = 0, o.__size - 1 do
+        r[sz + i] = o[i]
+    end
+    return setmt(r, array_mt)
+end
+
+array.filter = function(self, f)
+    local r = {}
+    local j = 0
+    for i = 0, self.__size - 1 do
+        local v = self[i]
+        if f(v) then
+            r[j] = v
+            j = j + 1
+        end
+    end
+    return setmt(r, array_mt)
+end
+
+array.compact = function(self, f)
+    local sz, comp = self.__size, 0
+    for i = 0, sz - 1 do
+        local v = self[i]
+        if not f(v) then
+            comp = comp + 1
+        elseif comp > 0 then
+            self[i - comp] = v
+        end
+    end
+    for i = sz - 1, sz - comp, -1 do
+        self[i] = nil
+    end
+    self.__size = sz - comp
+    return self
+end
+
+array.find = function(self, v)
+    for i = 0, self.__size - 1 do
+        if self[i] == v then
+            return i
+        end
+    end
+    return nil
+end
+
+array.rfind = function(self, v)
+    for i = self.__size - 1, 0 do
+        if self[i] == v then
+            return i
+        end
+    end
+    return nil
+end
+
+array.foldr = function(self, fun, z)
+    local idx = 0
+    if  z == nil then
+        z   = self[0]
+        idx = 1
+    end
+    for i = idx, self.__size - 1 do
+        z = fun(z, self[i])
+    end
+    return z
+end
+
+array.foldl = function(self, fun, z)
+    local sz = self.__size
+    if z == nil then
+        z  = self[sz - 1]
+        sz = sz - 1
+    end
+    for i = sz - 1, 0, -1 do
+        z = fun(z, self[i])
+    end
+    return z
+end
+
+std["array"] = array
+loaded["std.array"] = array
+
 return std

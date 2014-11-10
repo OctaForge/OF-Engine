@@ -63,7 +63,8 @@ local tconcat = table.concat
 local setmt = setmetatable
 local unpack = unpack
 
-local ArrayMT = {
+local ArrayMT
+ArrayMT = {
     __metatable = false,
 
     __tostring = function(self)
@@ -179,9 +180,19 @@ local ArrayMT = {
                 error("invalid upper bound for 'unpack'", 2)
             end
             return unpack(self, i or 0, j and (j - 1) or (size - 1))
+        end,
+
+        copy = function(self)
+            local r = {}
+            for i = 0, self.__size do
+                r[i] = self[i]
+            end
+            return setmt(r, ArrayMT)
         end
     }
 }
+
+M.array_mt = ArrayMT
 
 M.array = function(...)
     return setmt({ __size = select("#", ...),
