@@ -796,16 +796,14 @@ M.StaticEntity = Entity:clone {
         var acn = msg.ALL_CLIENTS
         cn = cn or acn
 
-        var cns = (cn == acn) and map(ents.get_players(), func(p)
-            return p.cn end) or { cn }
+        var cns = (cn == acn) and ents.get_players():map(\p -> p.cn) or [ cn ]
 
         var uid = self.uid
         @[debug] log(DEBUG, "StaticEntity.send_notification_full: "
             ~ cn ~ ", " ~ uid)
 
         var scn, sname = self.cn, self.name
-        for i in 1 to len(cns) do
-            var n = cns[i]
+        for i, n in cns:each() do
             msg.send(n, capi.extent_notification_complete, uid, sname,
                 self:build_sdata({ target_cn = n, compressed = true }))
         end

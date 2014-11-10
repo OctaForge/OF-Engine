@@ -35,9 +35,9 @@ from core.octascript.geom import Vec4
 
 from std.table import ipairs, len
 
-var colors = {
+var colors = [
     0xFFFFFF, 0xFF0000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF
-}
+]
 
 var Player = ents.Player
 
@@ -67,10 +67,10 @@ var GamePlayer = Player:clone {
     },
 
     next_color = func(self)
-        if  self.color_id < len(colors) do
-            self.color_id = self.color_id + 1
+        if  self.color_id < (colors:len() - 1) do
+            self.color_id += 1
         else
-            self.color_id = 1
+            self.color_id = 0
         end
         self.color = colors[self.color_id]
         log.echo(("color switch: 0x%.6X"):format(self.color))
@@ -88,8 +88,8 @@ var GamePlayer = Player:clone {
     __activate = @[not server,func(self, kwargs)
         Player.__activate(self, kwargs)
         self.marks = {}
-        self.color_id = 1
-        self.color    = colors[1]
+        self.color_id = 0
+        self.color    = colors[0]
         connect(self, "new_mark,changed", func(self, nm)
             if len(nm) == 3 do
                 nm = Vec4(nm[1], nm[2], nm[3], self.color)

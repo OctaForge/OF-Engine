@@ -67,7 +67,7 @@ var dayman
 /// Gets the day manager instance.
 M.get = func()
     if not dayman do
-        dayman = ents.get_by_prototype("DayManager")[1]
+        dayman = ents.get_by_prototype("DayManager"):first()
     end
     assert(dayman)
     return dayman

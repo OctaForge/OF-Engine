@@ -60,7 +60,7 @@ var storage_by_proto = {}
 
 // for Sauer entity import; used as intermediate storage during map loading,
 // cleared out immediately afterwards
-var storage_sauer = {}
+var storage_sauer = []
 
 // stores all registered entity prototypees
 var proto_storage = {}
@@ -363,7 +363,7 @@ end
 
 /// Returns an array of entities with a common prototype.
 M.get_by_prototype = func(cl)
-    return storage_by_proto[cl] or {}
+    return storage_by_proto[cl] or []
 end
 
 var player_prototype = "Player"
@@ -378,7 +378,7 @@ var vg = cs.var_get
 /// Gets an array of players (all of the currently set player prototype).
 M.get_players = func()
     return storage_by_proto[@[server,player_prototype,player_entity.name]]
-        or {}
+        or []
 end
 var get_players = M.get_players
 
@@ -477,9 +477,9 @@ var add = func(cn, uid, kwargs, new)
         if r:is_a(v) do
             var sbc = storage_by_proto[k]
             if not sbc do
-                storage_by_proto[k] = { r }
+                storage_by_proto[k] = [ r ]
             else
-                sbc[len(sbc) + 1] = r
+                sbc:push(r)
             end
         end
     end
@@ -506,9 +506,9 @@ set_external("entity_add_with_cn", func(cl, uid, cn)
 end)
 
 var add_sauer = func(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
-    storage_sauer[len(storage_sauer) + 1] = {
+    storage_sauer:push([
         et, Vec3(x, y, z), attr1, attr2, attr3, attr4, attr5
-    }
+    ])
 end
 M.add_sauer = add_sauer
 set_external("entity_add_sauer", add_sauer)
@@ -535,8 +535,7 @@ M.remove = func(uid)
 
     for k, v in pairs(proto_storage) do
         if e:is_a(v) do
-            storage_by_proto[k] = filter_map(storage_by_proto[k],
-                func(a, b) return (b != e) end)
+            storage_by_proto[k]:compact(\v -> v != e)
         end
     end
     storage[uid] = undef
@@ -601,7 +600,7 @@ M.load = func()
         entities = deserialize(el)
     end
 
-    if len(storage_sauer) > 0 do
+    if storage_sauer:len() > 0 do
         @[debug] log(DEBUG, "ents.load: loading sauer entities:\n"
             "    reading import.oct for imported models and sounds")
 
@@ -622,11 +621,10 @@ M.load = func()
             [6] = "Sound",          [7] = "SpotLight"
         }
 
-        for i in 1 to len(storage_sauer) do
-            var e = storage_sauer[i]
-            var et = e[1]
+        for i, e in storage_sauer:each() do
+            var et = e[0]
             var o, attr1, attr2, attr3, attr4, attr5
-                = e[2], e[3], e[4], e[5], e[6], e[7]
+                = e[1], e[2], e[3], e[4], e[5], e[6]
             if sn[et] do
                 entities[len(entities) + 1] = {
                     huid, sn[et], {
@@ -677,7 +675,7 @@ M.load = func()
             end
         end
 
-        storage_sauer = {}
+        storage_sauer = []
     end
 
     @[debug] log(DEBUG, "ents.load: loading all entities")
@@ -1117,9 +1115,8 @@ M.Entity = Object:clone {
                     and storage[actor_uid].cn or msg.ALL_CLIENTS
             }
 
-            var cns = map(get_players(), func(p) return p.cn end)
-            for i in 1 to len(cns) do
-                var n = cns[i]
+            var cns = get_players():map(\p -> p.cn)
+            for i, n in cns:each() do
                 if svar:should_send(self, n) do
                     args[1] = n
                     msg.send(unpack(args))
@@ -1144,15 +1141,13 @@ M.Entity = Object:clone {
         var acn = msg.ALL_CLIENTS
         cn = cn or acn
 
-        var cns = (cn == acn) and map(get_players(), func(p)
-            return p.cn end) or { cn }
+        var cns = (cn == acn) and get_players():map(\p -> p.cn) or [ cn ]
 
         var uid = self.uid
         @[debug] log(DEBUG, e"Entity.send_notification_full: $cn, $uid")
 
         var scn, sname = self.cn, self.name
-        for i in 1 to len(cns) do
-            var n = cns[i]
+        for i, n in cns:each() do
             msg.send(n, capi.le_notification_complete,
                 scn and scn or acn, uid, sname, self:build_sdata(
                     { target_cn = n, compressed = true }))

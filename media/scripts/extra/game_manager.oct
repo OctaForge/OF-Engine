@@ -109,10 +109,10 @@ var GameManager = Entity:clone {
     end],
 
     get_players = @[server,func(self)
-        var players = {}
+        var players = []
         for i, team in pairs(self.teams) do
             for i, v in ipairs(team.player_list) do
-                players[len(players) + 1] = v
+                players:push(v)
             end
         end
         return players
@@ -125,13 +125,13 @@ var GameManager = Entity:clone {
             team.player_list = {}
         end
 
-        while len(players) > 0 do
-            var pl = tremove(players, floor(rand() * len(players)))
+        while players:len() > 0 do
+            var pl = players:remove(rand(0, players:len() - 1))
             self:pick_team(pl, false)
         end
         self:sync_team_data()
 
-        for i, player in pairs(self:get_players()) do
+        for i, player in self:get_players():each() do
             player:respawn()
         end
 
@@ -188,7 +188,7 @@ var gameman
 /// Gets the current game manager instance.
 M.get = func()
     if not gameman do
-        gameman = ents.get_by_prototype("GameManager")[1]
+        gameman = ents.get_by_prototype("GameManager"):first()
     end
     assert(gameman)
     return gameman
