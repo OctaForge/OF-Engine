@@ -225,44 +225,44 @@ var blocktypes = {
     [4096] = genblock(4096, 0x3C3A32, 0xF9F6F2)
 }
 
-var tiles   = {}
-var cleanup = {}
+var tiles   = []
+var cleanup = []
 
 var totalscore = 0
 var gamestate  = 0
 
 var cleanuptiles = func()
-    for i, v in ipairs(cleanup) do cleanup[i]:destroy() end
+    for i, v in cleanup:each() do v:destroy() end
 end
 
 var seedtiles = func()
-    var t1, t2 = math.random(1, 16)
-    repeat t2 = math.random(1, 16) until t2 != t1
-    var vals = { 2, 4 }
-    var tv1, tv2 = vals[math.random(1, 2)],
-                     vals[math.random(1, 2)]
-    for i in 1 to 16 do
+    var t1, t2 = math.random(0, 15)
+    repeat t2 = math.random(0, 15) until t2 != t1
+    var vals = [ 2, 4 ]
+    var tv1, tv2 = vals[math.random(0, 1)],
+                   vals[math.random(0, 1)]
+    for i in 0 to 15 do
         if i == t1 do
-            tiles[i] = tv1
+            tiles:push(tv1)
         elif i == t2 do
-            tiles[i] = tv2
+            tiles:push(tv2)
         else
-            tiles[i] = 0
+            tiles:push(0)
         end
     end
 end
 
 var randtile = func(grid)
-    var emptyfields = {}
-    for i in 1 to 16 do
-        if tiles[i] == 0 do emptyfields[len(emptyfields) + 1] = i end
+    var emptyfields = []
+    for i in 0 to 15 do
+        if tiles[i] == 0 do emptyfields:push(i) end
     end
-    if len(emptyfields) == 0 do return end
-    var n = emptyfields[math.random(1, len(emptyfields))]
-    tiles[n] = ({ 2, 4 })[math.random(1, 2)]
-    grid:remove(n)
-    grid:insert(n, blocktypes[tiles[n]]())
-    if len(emptyfields) == 1 do
+    if emptyfields:empty() do return end
+    var n = emptyfields[math.random(0, emptyfields:len() - 1)]
+    tiles[n] = ([ 2, 4 ])[math.random(0, 1)]
+    grid:remove(n + 1)
+    grid:insert(n + 1, blocktypes[tiles[n]]())
+    if emptyfields:len() == 1 do
         // check game over (yes if nothing is mergeable)
         if gamestate == 0 do
             gamestate = -1
@@ -277,7 +277,7 @@ var randtile = func(grid)
                 end
                 for i in ia to ib by ic do
                     for j in ja + i to jb + i by jc do
-                        if tiles[j] == tiles[j + jc] do
+                        if tiles[j - 1] == tiles[j + jc - 1] do
                             gamestate = 0
                             break
                         end
@@ -287,7 +287,7 @@ var randtile = func(grid)
                 if gamestate >= 0 do break end
             end
             if gamestate == 0 do
-                for i in 1 to len(tiles) do
+                for i in 0 to tiles:len() - 1 do
                     if tiles[i] == 2048 do
                         gamestate = 1
                         break
@@ -324,9 +324,9 @@ var guimovetile = func(grid, i, j, step, hdir, vdir)
         end)
         connect(m, "anim,end", func()
             m:set_visible(false)
-            cleanup[len(cleanup) + 1] = m
+            cleanup:push(m)
             grid:remove(i)
-            grid:insert(i, blocktypes[tiles[i]]())
+            grid:insert(i, blocktypes[tiles[i - 1]]())
             pendinganims -= 1
             if pendinganims == 0 do
                 randtile(grid)
@@ -360,26 +360,26 @@ var movetile = func(grid, off, hdir, vdir)
     for i in lbeg to lend by -dir do
         var nnz
         for j in i + dir to lstart by dir do
-            if tiles[j + off] != 0 do
+            if tiles[j + off - 1] != 0 do
                 nnz = j
                 break
             end
         end
-        if nnz and not jm and tiles[nnz + off] == tiles[i + off] do
+        if nnz and not jm and tiles[nnz + off - 1] == tiles[i + off - 1] do
             jm = true
-            tiles[nnz + off] += tiles[i + off]
-            tiles[i + off] = 0
+            tiles[nnz + off - 1] += tiles[i + off - 1]
+            tiles[i + off - 1] = 0
             guimovetile(grid, nnz + off, i + off, -dir, hdir, vdir)
-            totalscore += tiles[nnz + off]
-        elif tiles[i + off] != 0 do
+            totalscore += tiles[nnz + off - 1]
+        elif tiles[i + off - 1] != 0 do
             jm = false
             var fz
             for j in i + dir to lstart by dir do
-                if tiles[j + off] == 0 do fz = j end
+                if tiles[j + off - 1] == 0 do fz = j end
             end
             if fz do
-                tiles[fz + off] = tiles[i + off]
-                tiles[i + off] = 0
+                tiles[fz + off - 1] = tiles[i + off - 1]
+                tiles[i + off - 1] = 0
                 guimovetile(grid, fz + off, i + off, -dir, hdir, vdir)
             end
         end
@@ -435,13 +435,13 @@ root:new_window("2048", gui.Window, func(win)
                     return gui.Widget.key(self, code, isdown)
                 end
                 if gamestate < 0 do
-                    totalscore, gamestate, seededtiles, tiles = 0, 0, false, {}
+                    totalscore, gamestate, seededtiles, tiles = 0, 0, false, []
                 end
                 if not seededtiles do
                     seedtiles()
                     seededtiles = true
                 end
-                for i in 1 to len(tiles) do
+                for i in 0 to tiles:len() - 1 do
                     grid:append(blocktypes[tiles[i]]())
                 end
             end)
