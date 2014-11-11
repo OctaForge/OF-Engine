@@ -683,13 +683,13 @@ root:new_window("entity_new", gui.Window, func(win)
     win:set_variant("movable")
     win:set_title("New entity")
 
-    var cnames = {}
+    var cnames = []
     for k, v in pairs(ents.get_all_prototypes()) do
         if v:is_a(ents.StaticEntity) do
-            cnames[len(cnames) + 1] = k
+            cnames:push(k)
         end
     end
-    sort(cnames)
+    cnames:sort()
 
     win:append(gui.HBox(), func(hb)
         var s
@@ -697,8 +697,7 @@ root:new_window("entity_new", gui.Window, func(win)
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
                 sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.6 }, func(sc)
                     sc:append(gui.VBox(), func(vb)
-                        for i in 1 to len(cnames) do
-                            var n = cnames[i]
+                        for i, n in cnames:each() do
                             vb:append(gui.Button {
                                 variant = "nobg", min_w = 0.3, label = n
                             }, func(btn)

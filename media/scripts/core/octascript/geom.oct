@@ -630,13 +630,13 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             var rt = capi.ray_floor(self.x, self.y, self.z, max_dist)
             if not radius do return rt end
 
-            var tbl = { -radius / 2, 0, radius / 2 }
+            var tbl = [ -radius / 2, 0, radius / 2 ]
 
             var f = min
             if lowest do f = max end
 
-            for x in 1 to len(tbl) do
-                for y in 1 to len(tbl) do
+            for x in 0 to tbl:len() - 1 do
+                for y in 0 to tbl:len() - 1 do
                     var o = self:add_new(Vec3(tbl[x], tbl[y], 0))
                     rt = f(rt, capi.ray_floor(o.x, o.y, o.z, max_dist))
                 end

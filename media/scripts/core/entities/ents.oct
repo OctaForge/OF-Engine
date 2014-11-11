@@ -349,13 +349,11 @@ set_external("entities_get_all", M.get_all)
 
 /// Returns an array of entities with a common tag.
 M.get_by_tag = func(tag)
-    var r = {}
-    var l = 1
+    var r = []
     for i in 1 to highest_uid do
         var ent = storage[i]
         if ent and ent:has_tag(tag) do
-            r[l] = ent
-            l = l + 1
+            r:push(ent)
         end
     end
     return r

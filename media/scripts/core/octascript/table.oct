@@ -676,6 +676,13 @@ table.sort = func(tbl, fun, l, r)
     return introsort(tbl, l, r, fun or defaultcmp)
 end
 
+import std.array
+
+array.sort = func(self, fun, l, r)
+    l, r = l or 0, r or self:len() - 1
+    return introsort(self, l, r, fun or defaultcmp)
+end
+
 //
 // Object system
 //

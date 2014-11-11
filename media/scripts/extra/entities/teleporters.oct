@@ -64,11 +64,11 @@ M.Teleporter = Obstacle:clone {
         var dest = self:get_attr("destination")
         if dest <= 0 do return end
         var dests = get_by_tag("teledest_" ~ dest)
-        if len(dests) == 0 do
+        if dests:len() == 0 do
             log.log(log.ERROR, "No teledest found.")
             return
         end
-        dests[rand(1, len(dests))]:place_entity(collider)
+        dests[rand(0, dests:len() - 1)]:place_entity(collider)
         var sn = self:get_attr("sound_name")
         if sn != "" do play(sn) end
     end,
@@ -76,7 +76,7 @@ M.Teleporter = Obstacle:clone {
     get_attached_next = func(self)
         var dest = self:get_attr("destination")
         if dest <= 0 do return end
-        return unpack(get_by_tag("teledest_" ~ dest))
+        return get_by_tag("teledest_" ~ dest):unpack()
     end
 }
 

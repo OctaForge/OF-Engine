@@ -168,8 +168,8 @@ var GameManager = Entity:clone {
             st = "player_start_" ~ team
         end
         var starts = ents.get_by_tag(st)
-        if starts and len(starts) > 0 do
-            starts[rand(1, len(starts))]:place_entity(player)
+        if starts and starts:len() > 0 do
+            starts[rand(0, starts:len() - 1)]:place_entity(player)
             return
         end
         log.log(log.WARNING, ('player start not found (\"%s\"), '
