@@ -987,7 +987,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     draw = func(self, sx, sy)
         var w, h in self
         var root = self:get_root()
-        var csl = len(root._clip_stack) > 0
+        var csl = not root._clip_stack:empty()
         if csl do gl_scissor_disable() end
         var sx1, sy1, sx2, sy2 = root:get_projection():calc_scissor(sx, sy,
             sx + w, sy + h)
@@ -1036,7 +1036,7 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
         if not prefab do return Widget.draw(self, sx, sy) end
         var w, h in self
         var root = self:get_root()
-        var csl = len(root._clip_stack) > 0
+        var csl = not root._clip_stack:empty()
         if csl do gl_scissor_disable() end
         var sx1, sy1, sx2, sy2 = root:get_projection():calc_scissor(sx, sy,
             sx + w, sy + h)

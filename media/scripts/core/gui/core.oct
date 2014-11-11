@@ -1829,7 +1829,7 @@ M.Root = register_type("Root", Widget, {
         self.cursor_y    = 0.499
         self.has_cursor  = false
         self._root       = self
-        self._clip_stack = {}
+        self._clip_stack = []
         self._menu_stack = {}
         self._menu_nhov  = undef
         self._tooltip    = undef
@@ -2073,15 +2073,12 @@ M.Root = register_type("Root", Widget, {
     /// Pushes a clip area into the root's clip stack and scissors.
     clip_push = func(self, x, y, w, h)
         var cs = self._clip_stack
-        var l = len(cs)
-        if    l == 0 do gl_scissor_enable() end
+        if cs:empty() do gl_scissor_enable() end
 
         var c = ClipArea(x, y, w, h)
+        cs:push(c)
 
-        l = l + 1
-        cs[l] = c
-
-        if l >= 2 do c:intersect(cs[l - 1]) end
+        if cs:len() >= 2 do c:intersect(cs[cs:len() - 2]) end
         c:scissor(self)
     end,
 
@@ -2091,11 +2088,9 @@ M.Root = register_type("Root", Widget, {
     */
     clip_pop = func(self)
         var cs = self._clip_stack
-        tremove(cs)
-
-        var l = len(cs)
-        if    l == 0 do gl_scissor_disable()
-        else cs[l]:scissor(self)
+        cs:pop()
+        if cs:empty() do gl_scissor_disable()
+        else cs:last():scissor(self)
         end
     end,
 
@@ -2105,17 +2100,15 @@ M.Root = register_type("Root", Widget, {
     */
     clip_is_fully_clipped = func(self, x, y, w, h)
         var cs = self._clip_stack
-        var l = len(cs)
-        if    l == 0 do return false end
-        return cs[l]:is_fully_clipped(x, y, w, h)
+        if cs:empty() do return false end
+        return cs:last():is_fully_clipped(x, y, w, h)
     end,
 
     /**
         Scissors the last area in the clip stack.
     */
     clip_scissor = func(self)
-        var cs = self._clip_stack
-        cs[len(cs)]:scissor(self)
+        self._clip_stack:last():scissor(self)
     end,
 
     _tooltip_init = func(self, o, op, clear_on_drop)
