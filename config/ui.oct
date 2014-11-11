@@ -260,8 +260,8 @@ var randtile = func(grid)
     if emptyfields:empty() do return end
     var n = emptyfields[math.random(0, emptyfields:len() - 1)]
     tiles[n] = ([ 2, 4 ])[math.random(0, 1)]
-    grid:remove(n + 1)
-    grid:insert(n + 1, blocktypes[tiles[n]]())
+    grid:remove(n)
+    grid:insert(n, blocktypes[tiles[n]]())
     if emptyfields:len() == 1 do
         // check game over (yes if nothing is mergeable)
         if gamestate == 0 do
@@ -301,9 +301,9 @@ end
 var pendinganims = 0
 
 var guimovetile = func(grid, i, j, step, hdir, vdir)
-    var o = grid:remove(j, true)
+    var o = grid:remove(j - 1, true)
     var oadj = o.adjust
-    grid:insert(j, blocktypes[0]())
+    grid:insert(j - 1, blocktypes[0]())
     var n = (j - i) / step
     var dist = 0.205 * n
     var dirn, mspeed, dx, dy
@@ -325,8 +325,8 @@ var guimovetile = func(grid, i, j, step, hdir, vdir)
         connect(m, "anim,end", func()
             m:set_visible(false)
             cleanup:push(m)
-            grid:remove(i)
-            grid:insert(i, blocktypes[tiles[i - 1]]())
+            grid:remove(i - 1)
+            grid:insert(i - 1, blocktypes[tiles[i - 1]]())
             pendinganims -= 1
             if pendinganims == 0 do
                 randtile(grid)

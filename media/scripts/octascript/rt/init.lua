@@ -57,8 +57,6 @@ M.env = { __rt_core = M }
 -- Arrays
 
 local select = select
-local tinsert = table.insert
-local tremove = table.remove
 local tconcat = table.concat
 local setmt = setmetatable
 local unpack = unpack
@@ -94,12 +92,15 @@ ArrayMT = {
                 error("attempt to insert into negative index", 2)
             end
             local size = self.__size
-            tinsert(self, n, v)
-            if n >= size then
-                self.__size = n + 1
-            else
+            if n < size then
+                for i = self.__size - 1, n, -1 do
+                    self[i + 1] = self[i]
+                end
                 self.__size = size + 1
+            else
+                self.__size = n + 1
             end
+            self[n] = v
         end,
 
         remove = function(self, n)
@@ -107,7 +108,11 @@ ArrayMT = {
             if n < 0 or n >= size then
                 error("attempt to remove an invalid index", 2)
             end
-            local v = tremove(self, n)
+            local v = self[n]
+            for i = n + 1, size - 1 do
+                self[i - 1] = self[i]
+            end
+            self[size - 1] = nil
             self.__size = size - 1
             return v
         end,

@@ -163,12 +163,12 @@ M.loop_children = func(self, fun)
 
     for i in 1 to len(vr) do
         var a, b = fun(vr[i])
-        if    a != undef do return a, b end
+        if  a != undef do return a, b end
     end
 
-    for i in 1 to len(ch) do
-        var a, b = fun(ch[i])
-        if    a != undef do return a, b end
+    for i, o in ch:each() do
+        var a, b = fun(o)
+        if  a != undef do return a, b end
     end
 end
 var loop_children = M.loop_children
@@ -187,14 +187,14 @@ M.loop_children_r = func(self, fun)
     var vr = self.vstates
     var st = self.states
 
-    for i in len(ch) to 1 by -1 do
-        var a, b = fun(ch[i])
-        if    a != undef do return a, b end
+    for i, o in ch:each_r() do
+        var a, b = fun(o)
+        if  a != undef do return a, b end
     end
 
     for i in len(vr) to 1 by -1 do
         var a, b = fun(vr[i])
-        if    a != undef do return a, b end
+        if  a != undef do return a, b end
     end
 
     var s = self:choose_state()
@@ -684,14 +684,13 @@ M.Widget = register_type("Widget", Object, {
             ch, states = cont.children, cont.states
         else
             cont = self
-            ch, states = {}, {}
+            ch, states = [], {}
             self.children, self.states = ch, states
         end
-        var clen = len(ch)
 
         // children
         for i, v in ipairs(kwargs) do
-            ch[clen + i] = v
+            ch:push(v)
             v.parent = cont
             v._root  = cont._root
         end
@@ -722,7 +721,7 @@ M.Widget = register_type("Widget", Object, {
         self:clear_focus()
 
         var children = self.children
-        for k, v in ipairs(children) do v:clear() end
+        for k, v in children:each() do v:clear() end
         var states = self.states
         for k, v in pairs(states) do v:clear() end
         var vstates = self.vstates
@@ -747,17 +746,16 @@ M.Widget = register_type("Widget", Object, {
         these per-instance.
     */
     deep_clone = func(self, obj, initc)
-        var ch, rch = {}, self.children
+        var ch, rch = [], self.children
         var st, rst = {}, self.states
         var vs, rvs = {}, self.vstates
         var ic = initc and self.init_clone or undef
         var cl = self:clone { children = ch, states = st, vstates = vs }
-        for i in 1 to len(rch) do
-            var c = rch[i]
+        for i, c in rch:each() do
             var chcl = c:deep_clone(obj, true)
             chcl.parent = cl
             chcl._root  = cl._root
-            ch[i] = chcl
+            ch:push(chcl)
         end
         for k, v in pairs(rst) do
             var vcl = v:deep_clone(obj, true)
@@ -1277,12 +1275,12 @@ M.Widget = register_type("Widget", Object, {
         erased (all matches append).
     */
     find_children = func(self, otype, name, recurse, exclude, ret)
-        var ch = ret or {}
+        var ch = ret or []
         recurse = (recurse == undef) and true or recurse
         loop_children(self, func(o)
             if o != exclude and o.type == otype and
             (not name or name == o.obj_name) do
-                ch[len(ch) + 1] = o
+                ch:push(o)
             end
         end)
         if recurse do
@@ -1323,7 +1321,7 @@ M.Widget = register_type("Widget", Object, {
 
     /// See $find_sibling. Equivalent to $find_children.
     find_siblings = func(self, otype, name, ret)
-        var ch   = ret or {}
+        var ch   = ret or []
         var prev = self
         var cur  = self.parent
 
@@ -1367,18 +1365,18 @@ M.Widget = register_type("Widget", Object, {
     */
     remove = func(self, o, detach)
         if typeof o == "number" do
-            if len(self.children) < o do
+            if self.children:len() < (o + 1) do
                 if detach do return undef end
                 return false
             end
-            var r = tremove(self.children, o)
+            var r = self.children:remove(o)
             if detach do return r end
             r:clear()
             return true
         end
-        for i in 1 to len(self.children) do
-            if o == self.children[i] do
-                var r = tremove(self.children, i)
+        for i, c in self.children:each() do
+            if o == c do
+                var r = self.children:remove(i)
                 if detach do return r end
                 r:clear()
                 return true
@@ -1404,10 +1402,10 @@ M.Widget = register_type("Widget", Object, {
     */
     destroy_children = func(self)
         var ch = self.children
-        for i in 1 to len(ch) do
-            ch[i]:clear()
+        for i, o in ch:each() do
+            o:clear()
         end
-        self.children = {}
+        self.children = []
         emit(self, "children,destroy")
     end,
 
@@ -1523,7 +1521,7 @@ M.Widget = register_type("Widget", Object, {
     insert = func(self, pos, obj, fun, force_ch)
         var children = force_ch and self.children
             or (self.container or self).children
-        tinsert(children, pos, obj)
+        children:insert(pos, obj)
         obj.parent = self
         obj._root  = self._root
         if fun do fun(obj) end
@@ -1536,7 +1534,7 @@ M.Widget = register_type("Widget", Object, {
     append = func(self, obj, fun, force_ch)
         var children = force_ch and self.children
             or (self.container or self).children
-        children[len(children) + 1] = obj
+        children:push(obj)
         obj.parent = self
         obj._root  = self._root
         if fun do fun(obj) end
@@ -1549,7 +1547,7 @@ M.Widget = register_type("Widget", Object, {
     prepend = func(self, obj, fun, force_ch)
         var children = force_ch and self.children
             or (self.container or self).children
-        tinsert(children, 1, obj)
+        children:insert(0, obj)
         obj.parent = self
         obj._root  = self._root
         if fun do fun(obj) end
@@ -1914,8 +1912,7 @@ M.Root = register_type("Root", Widget, {
         win = win { name = name }
         win.parent = self
         win._root  = self._root
-        var children = self.children
-        children[len(children) + 1] = win
+        self.children:push(win)
         if fun do fun(win) end
         return win
     end,
@@ -2016,9 +2013,8 @@ M.Root = register_type("Root", Widget, {
     end,
 
     above_hud = func(self)
-        var y, ch = 1, self.children
-        for i in 1 to len(ch) do
-            var w = ch[i]
+        var y = 1
+        for i, w in self.children:each() do
             if w.above_hud do
                 y = min(y, w:get_projection():calc_above_hud())
             end
@@ -2604,7 +2600,7 @@ end
 
 set_external("gui_render", func()
     var w = root
-    if draw_hud or (w.visible and len(w.children) != 0) do
+    if draw_hud or (w.visible and not w.children:empty()) do
         w:draw()
         if draw_hud do hud:get_projection():draw() end
         gle_disable()

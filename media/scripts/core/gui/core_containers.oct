@@ -85,7 +85,7 @@ M.HBox = register_type("HBox", Widget, {
             if ex and clampsh(o.adjust) do ncl += 1 end
         end)
         self.w = subw + self.padding * max(len(self.vstates) + 
-            len(self.children) - 1, 0)
+            self.children:len() - 1, 0)
         self.subw, self.ncl = subw, ncl
     end,
 
@@ -122,7 +122,7 @@ M.HBox = register_type("HBox", Widget, {
     end,
 
     adjust_children = func(self)
-        var nch, nvs = len(self.children), len(self.vstates)
+        var nch, nvs = self.children:len(), len(self.vstates)
         if nch == 0 and nvs == 0 do return end
         if self.homogenous do
             return self:adjust_children_homogenous(nch + nvs)
@@ -168,7 +168,7 @@ M.VBox = register_type("VBox", Widget, {
             if ex and clampsv(o.adjust) do ncl += 1 end
         end)
         self.h = subh + self.padding * max(len(self.vstates) +
-            len(self.children) - 1, 0)
+            self.children:len() - 1, 0)
         self.subh, self.ncl = subh, ncl
     end,
 
@@ -205,7 +205,7 @@ M.VBox = register_type("VBox", Widget, {
     end,
 
     adjust_children = func(self)
-        var nch, nvs = len(self.children), len(self.vstates)
+        var nch, nvs = self.children:len(), len(self.vstates)
         if nch == 0 and nvs == 0 do return end
         if self.homogenous do
             return self:adjust_children_homogenous(nch + nvs)
@@ -288,7 +288,7 @@ M.Grid = register_type("Grid", Widget, {
     end,
 
     adjust_children = func(self)
-        if len(self.children) == 0 and len(self.vstates) == 0 do return end
+        if self.children:len() == 0 and len(self.vstates) == 0 do return end
         var widths, heights = self.widths, self.heights
         var column , row     = 1, 1
         var offsetx, offsety = 0, 0

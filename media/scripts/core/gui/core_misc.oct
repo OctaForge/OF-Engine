@@ -94,9 +94,8 @@ M.Mover = register_type("Mover", Widget, {
         var  w = self.window
         if not w do return self:target(cx, cy) and self end
         var c = w.parent.children
-        var n = find(c, w)
-        var l = len(c)
-        if n != l do c[l] = tremove(c, n) end
+        var n  =  c:find(w)
+        if  n != (c:len() - 1) do c:push(c:remove(n)) end
         return self:target(cx, cy) and self
     end,
 
