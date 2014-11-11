@@ -1581,8 +1581,7 @@ M.Widget = register_type("Widget", Object, {
     */
     show_menu = func(self, obj, at_cursor, clear_on_drop)
         var root = self:get_root()
-        root:_menu_init(obj, self, len(root._menu_stack) + 1, at_cursor,
-            clear_on_drop)
+        root:_menu_init(obj, self, at_cursor, clear_on_drop)
         return obj
     end,
 
@@ -1830,7 +1829,7 @@ M.Root = register_type("Root", Widget, {
         self.has_cursor  = false
         self._root       = self
         self._clip_stack = []
-        self._menu_stack = {}
+        self._menu_stack = []
         self._menu_nhov  = undef
         self._tooltip    = undef
         self._hover_x    = 0
@@ -1905,7 +1904,7 @@ M.Root = register_type("Root", Widget, {
 
         var tooltip = self._tooltip
         var ms = self._menu_stack
-        for i in 1 to len(ms) do   ms[i]:get_projection():draw() end
+        for i, o in ms:each() do       o:get_projection():draw() end
         if tooltip            do tooltip:get_projection():draw() end
     end,
 
@@ -2140,23 +2139,22 @@ M.Root = register_type("Root", Widget, {
 
     _menus_drop = func(self, n)
         var ms = self._menu_stack
-        var msl = len(ms)
-        n = n or msl
-        for i in msl to msl - n + 1 by -1 do
-            var o = tremove(ms)
+        n = n or ms:len()
+        while n > 0 do
+            var o = ms:pop()
             var op = o.parent
             if o._clear_on_drop do
                 o:clear()
                 op.managed_objects[o] = undef
             end
             op._menu = undef
+            n -= 1
         end
     end,
 
-    _menu_init = func(self, o, op, i, at_cursor, clear_on_drop)
-        if self._menu_nhov == 0 do
+    _menu_init = func(self, o, op, at_cursor, clear_on_drop)
+        if self._menu_nhov < 0 do
             self:_menus_drop()
-            i = 1
         end
 
         op.managed_objects[o] = o
@@ -2164,7 +2162,7 @@ M.Root = register_type("Root", Widget, {
         if oldop do oldop.managed_objects[o] = undef end
 
         var ms = self._menu_stack
-        ms[i]     = o
+        ms:push(o)
         o.is_menu = true
         o.parent  = op
         o._root   = self
@@ -2173,7 +2171,7 @@ M.Root = register_type("Root", Widget, {
 
         o._clear_on_drop = clear_on_drop
 
-        var prevo = (i > 1) and ms[i - 1] or undef
+        var prevo = (ms:len() > 1) and ms[ms:len() - 2] or undef
 
         // initial layout to guess the bounds
         var proj = self:set_projection(o:get_projection())
@@ -2220,13 +2218,13 @@ M.Root = register_type("Root", Widget, {
 
         var hov = self._hovering
         var dx, dy = hov and self._hover_x * fw or self._click_x * fw,
-                       hov and self._hover_y * fh or self._click_y * fh
+                     hov and self._hover_y * fh or self._click_y * fh
         // omx, omy: the base position of the new menu
         var omx, omy = cx * pw - dx, cy * ph - dy
 
         // a submenu - uses different alignment - submenus are put next to
         // their spawners, regular menus are put under their spawners
-        if i != 1 do
+        if ms:len() > 1 do
             // when the current y + height of menu exceeds the screen height,
             // move the menu up by its height minus the spawner height, make
             // sure it's at least 0 (so that it's not accidentally moved above
@@ -2384,17 +2382,15 @@ M.Root = register_type("Root", Widget, {
         if self:cursor_exists() and self.visible do
             var hovering_try
             var hk, hl
-            var nhov = 0
+            var nhov = -1
             var ms = self._menu_stack
-            if len(ms) > 0 do
-                for i in len(ms) to 1 by -1 do
-                    hk, hl = self:menu_hover(ms[i], self.cursor_x,
-                        self.cursor_y)
-                    if hk do
-                        hovering_try = hl
-                        if hl do nhov = i end
-                        break
-                    end
+            for i, v in ms:each_r() do
+                hk, hl = self:menu_hover(v, self.cursor_x,
+                    self.cursor_y)
+                if hk do
+                    hovering_try = hl
+                    if hl do nhov = i end
+                    break
                 end
             end
             var oldhov, oldhx, oldhy
@@ -2408,9 +2404,9 @@ M.Root = register_type("Root", Widget, {
                 oldhov:leaving(oldhx, oldhy)
             end
             if self._hovering do
-                 var msl = len(ms)
-                if msl > 0 and nhov > 0 and msl > nhov do
-                    self:_menus_drop(msl - nhov)
+                var msl = ms:len()
+                if msl > 0 and nhov >= 0 and (msl - 1) > nhov do
+                    self:_menus_drop(msl - nhov + 1)
                 end
                 self._menu_nhov = nhov
                 self._hovering:hovering(self._hover_x, self._hover_y)
@@ -2419,11 +2415,11 @@ M.Root = register_type("Root", Widget, {
 
             if self._clicked do
                 var hx, hy
-                if len(ms) > 0 do for i in len(ms) to 1 by -1 do
-                    hx, hy = self:menu_hold(ms[i], self.cursor_x,
-                        self.cursor_y, self._clicked)
+                for i, v in ms:each_r() do
+                    hx, hy = self:menu_hold(v, self.cursor_x, self.cursor_y,
+                        self._clicked)
                     if hx do break end
-                end end
+                end
                 if not hx do
                     hx, hy = self:hold(self.cursor_x, self.cursor_y,
                         self._clicked)
@@ -2445,9 +2441,7 @@ M.Root = register_type("Root", Widget, {
             self:set_projection(undef)
         end
 
-        var ms = self._menu_stack
-        for i in 1 to len(ms) do
-            var o = ms[i]
+        for i, o in self._menu_stack:each() do
             var proj = self:set_projection(o:get_projection())
             o:layout()
             proj:calc()
@@ -2510,10 +2504,10 @@ set_external("input_keypress", func(code, isdown)
             var clicked_try
             var ck, cl
             var ms = root._menu_stack
-            if len(ms) > 0 do
-                for i in len(ms) to 1 by -1 do
-                    ck, cl = root:menu_click(ms[i], root.cursor_x,
-                        root.cursor_y, code)
+            if not ms:empty() do
+                for i, v in ms:each_r() do
+                    ck, cl = root:menu_click(v, root.cursor_x, root.cursor_y,
+                        code)
                     if ck do
                         clicked_try = cl
                         break
@@ -2535,11 +2529,11 @@ set_external("input_keypress", func(code, isdown)
             if root._clicked do
                 var hx, hy
                 var ms = root._menu_stack
-                if len(ms) > 0 do for i in len(ms) to 1 by -1 do
-                    hx, hy = root:menu_hold(ms[i], root.cursor_x,
+                for i, v in ms:each_r() do
+                    hx, hy = root:menu_hold(v, root.cursor_x,
                         root.cursor_y, root._clicked)
                     if hx do break end
-                end end
+                end
                 if not hx do
                     hx, hy = root:hold(root.cursor_x, root.cursor_y,
                         root._clicked)

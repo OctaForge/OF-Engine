@@ -120,8 +120,20 @@ ArrayMT = {
             return nil
         end,
 
+        __array_iter_r = function(self, i)
+            local j = i - 1
+            if j >= 0 then
+                return j, self[j]
+            end
+            return nil
+        end,
+
         each = function(self)
             return self.__array_iter, self, -1
+        end,
+
+        each_r = function(self)
+            return self.__array_iter_r, self, self.__size
         end,
 
         resize = function(self, n, v)

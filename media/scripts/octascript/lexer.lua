@@ -312,7 +312,7 @@ local read_string = function(ls, raw, expand)
                 lex_error(ls, "unfinished string", tconc(buf))
             end
             buf[#buf + 1] = bytemap[c]
-            c = next_char(ls)
+            c = next_line(ls)
         elseif c == 92 then -- \
             c = next_char(ls)
             if raw then

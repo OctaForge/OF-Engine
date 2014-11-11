@@ -569,7 +569,7 @@ array.find = function(self, v)
     return nil
 end
 
-array.rfind = function(self, v)
+array.find_r = function(self, v)
     for i = self.__size - 1, 0 do
         if self[i] == v then
             return i
