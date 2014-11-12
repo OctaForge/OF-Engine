@@ -622,7 +622,7 @@ M.Widget = register_type("Widget", Object, {
         end
 
         self.managed_objects = {}
-        self.managed_properties = {}
+        self.managed_properties = []
 
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
 
@@ -784,8 +784,9 @@ M.Widget = register_type("Widget", Object, {
             v:clear()
         end end
         var manprops = self.managed_properties
-        for i in len(manprops) to 1 by -1 do
-            self[manprops[i]], manprops[i] = undef, undef
+        for i, v in manprops:each_r() do
+            self[v] = undef
+            manprops:pop()
         end
         var vstates = {}
         self.vstates = vstates
@@ -814,7 +815,7 @@ M.Widget = register_type("Widget", Object, {
                         "cannot override existing property " ~ v)
                 end
                 self[nm] = gen_setter(v)
-                manprops[len(manprops) + 1] = nm
+                manprops:push(nm)
             end end
             var init = dstates.__init
             if init do init(self) end
