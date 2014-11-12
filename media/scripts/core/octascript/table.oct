@@ -415,13 +415,13 @@ var lex_get = func(ls)
         elif c == " " or c == "\t" or c == "\f" or c == "\v" do
             ls.curr = ls.rdr()
         elif c == "." or c:byte() >= 48 and c:byte() <= 57 do
-            var buf = { ls.curr }
+            var buf = [ ls.curr ]
             ls.curr = ls.rdr()
             while ls.curr and ls.curr:find_match("[epxEPX0-9.+-]") do
-                buf[len(buf) + 1] = ls.curr
+                buf:push(ls.curr)
                 ls.curr = ls.rdr()
             end
-            var str = tconc(buf)
+            var str = buf:concat()
             var num = tonumber(str)
             if not num do raise ("%d: malformed number near '%s'")
                 :format(ls.linenum, str), 0 end
@@ -430,7 +430,7 @@ var lex_get = func(ls)
         elif c == '"' or c == "'" do
             var d = ls.curr
             ls.curr = ls.rdr()
-            var buf = {}
+            var buf = []
             while ls.curr != d do
                 var c = ls.curr
                 if c == undef do
@@ -444,21 +444,21 @@ var lex_get = func(ls)
                 elif c == "\\" do
                     c = ls.rdr()
                     if c == "a" do
-                        buf[len(buf) + 1] = "\a" ls.curr = ls.rdr()
+                        buf:push("\a") ls.curr = ls.rdr()
                     elif c == "b" do
-                        buf[len(buf) + 1] = "\b" ls.curr = ls.rdr()
+                        buf:push("\b") ls.curr = ls.rdr()
                     elif c == "f" do
-                        buf[len(buf) + 1] = "\f" ls.curr = ls.rdr()
+                        buf:push("\f") ls.curr = ls.rdr()
                     elif c == "n" do
-                        buf[len(buf) + 1] = "\n" ls.curr = ls.rdr()
+                        buf:push("\n") ls.curr = ls.rdr()
                     elif c == "r" do
-                        buf[len(buf) + 1] = "\r" ls.curr = ls.rdr()
+                        buf:push("\r") ls.curr = ls.rdr()
                     elif c == "t" do
-                        buf[len(buf) + 1] = "\t" ls.curr = ls.rdr()
+                        buf:push("\t") ls.curr = ls.rdr()
                     elif c == "v" do
-                        buf[len(buf) + 1] = "\v" ls.curr = ls.rdr()
+                        buf:push("\v")ls.curr = ls.rdr()
                     elif c == "\\" or c == '"' or c == "'" do
-                        buf[len(buf) + 1] = c
+                        buf:push(c)
                         ls.curr = ls.rdr()
                     elif not c do
                         raise ("%d: unfinished string near '<eos>'")
@@ -468,35 +468,35 @@ var lex_get = func(ls)
                             raise ("%d: invalid escape sequence")
                                 :format(ls.linenum), 0
                         end
-                        var dbuf = { c }
+                        var dbuf = [ c ]
                         c = ls.rdr()
                         if c:find_match("%d") do
-                            dbuf[2] = c
+                            dbuf:push(c)
                             c = ls.rdr()
                             if c:find_match("%d") do
-                                dbuf[3] = c
+                                dbuf:push(c)
                                 c = ls.rdr()
                             end
                         end
                         ls.curr = c
-                        buf[len(buf) + 1] = tconc(dbuf):char()
+                        buf:push(dbuf:concat():char())
                     end
                 else
-                    buf[len(buf) + 1] = c
+                    buf:push(c)
                     ls.curr = ls.rdr()
                 end
             end
             ls.curr = ls.rdr() // skip delim
-            ls.tname, ls.tval = "<string>", tconc(buf)
+            ls.tname, ls.tval = "<string>", buf:concat()
             return "<string>"
         elif c:find_match("[%a_]") do
-            var buf = { c }
+            var buf = [ c ]
             ls.curr = ls.rdr()
             while ls.curr and ls.curr:find_match("[%w_]") do
-                buf[len(buf) + 1] = ls.curr
+                buf:push(ls.curr)
                 ls.curr = ls.rdr()
             end
-            var str = tconc(buf)
+            var str = buf:concat()
             if str == "true" or str == "false" or str == "undef" do
                 ls.tname, ls.tval = str, undef
                 return str
