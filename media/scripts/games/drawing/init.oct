@@ -87,7 +87,7 @@ var GamePlayer = Player:clone {
     */
     __activate = @[not server,func(self, kwargs)
         Player.__activate(self, kwargs)
-        self.marks = {}
+        self.marks = []
         self.color_id = 0
         self.color    = colors[0]
         connect(self, "new_mark,changed", func(self, nm)
@@ -96,8 +96,7 @@ var GamePlayer = Player:clone {
             else
                 nm = undef
             end
-            var marks = self.marks
-            marks[len(marks) + 1] = nm
+            self.marks:push(nm)
         end)
     end],
 
@@ -109,7 +108,7 @@ var GamePlayer = Player:clone {
         var last = undef
         var marks = self.marks
 
-        for i, mark in ipairs(marks) do
+        for i, mark in marks:each() do
             if last and mark and mark.x >= 0 and last.x >= 0 do
                 var r, g, b = hextorgb(mark.w)
                 flare(STREAK, mark, last, r / 255, g / 255, b / 255, 0, 1)
@@ -118,11 +117,11 @@ var GamePlayer = Player:clone {
             last = mark
         end
 
-        var newb = len(marks) == 0 or not marks[len(marks) - 1]
-        var conb = len(marks)  > 0 and    marks[len(marks) - 1]
+        var newb =     marks:empty() or not marks[marks:len() - 2]
+        var conb = not marks:empty() and    marks[marks:len() - 2]
 
         if conb and not self.stop_batch do
-            var mark = marks[len(marks) - 1]
+            var mark = marks[marks:len() - 2]
             var r, g, b = hextorgb(mark.w)
             splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
         end
@@ -131,7 +130,7 @@ var GamePlayer = Player:clone {
             var newp = input.get_target_position()
             var topl = self:get_attr("position"):sub_new(newp)
             newp:add(topl:normalize())
-            if newb or marks[len(marks) - 1]:dist(newp) > 5 do
+            if newb or marks[marks:len() - 2]:dist(newp) > 5 do
                 self:set_attr("new_mark", newp:to_array())
             end
         end
