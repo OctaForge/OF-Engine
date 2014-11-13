@@ -663,7 +663,7 @@ root:new_window("entity", gui.Window, func(win)
                             var sd = sdata[nm]
                             var gn, dv, sv = sd[0], sd[1], sd[2]
                             vb:append(gui.HBox { align_h = 1 }, func(hb)
-                                hb:append(gui.Label { text = " " ~ sd[1]
+                                hb:append(gui.Label { text = " " ~ sd[0]
                                     ~ ": " })
                                 var fld = fields[sv.__proto] or field_def
                                 var fd = fld(hb, gn, ent, dv)
