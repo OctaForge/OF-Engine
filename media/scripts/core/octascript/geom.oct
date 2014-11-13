@@ -50,7 +50,7 @@ var clamp = func(v, l, h)
     return max(l, min(v, h))
 end
 
-var iton = { [0] = "x", [1] = "y", [2] = "z" }
+var iton = { $(0) = "x", $(1) = "y", $(2) = "z" }
 
 var M = {}
 

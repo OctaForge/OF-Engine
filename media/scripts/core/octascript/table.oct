@@ -285,11 +285,11 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
                 and k:find_match("^[%a_][%w_]*$") do
                     stream(k)
                 else
-                    stream("[")
+                    stream("$(")
                     var ret, err = serialize_fn(k, stream, kwargs, simp,
                         tables, indent + 1)
                     if not ret do return ret, err end
-                    stream("]")
+                    stream(")")
                 end
                 stream(asstr)
                 var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
@@ -313,7 +313,6 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
         var isepstr = kwargs.item_sep
         var endsep  = kwargs.end_sep
         var nline   = kwargs.narr_line or 0
-        print "NLINE", nline
         if tables[v] do
             stream() // let the stream know about an error
             return false,
@@ -603,10 +602,11 @@ parse = func(ls)
                 lex_get(ls)
                 assert_tok(ls, "=")
                 tbl[key] = parse(ls)
-            elif ls.tname == "[" do
+            elif ls.tname == "$" do
                 lex_get(ls)
+                assert_tok(ls, "(")
                 var key = parse(ls)
-                assert_tok(ls, "]", "=")
+                assert_tok(ls, ")", "=")
                 tbl[key] = parse(ls)
             else
                 tbl[len(tbl) + 1] = parse(ls)

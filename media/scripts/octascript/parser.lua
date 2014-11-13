@@ -127,11 +127,12 @@ local parse_table = function(ls, ast)
     local hkeys, hvals, avals = {}, {}, {}
     while tok.name ~= "}" do
         local key
-        if tok.name == "[" then
+        if tok.name == "$" then
             local line = ls.line_number
             ls:get()
+            assert_next(ls, "(")
             key = parse_expr(ls, ast)
-            check_match(ls, "]", "[", line)
+            check_match(ls, ")", "$(", line)
             assert_next(ls, "=")
         elseif tok.name == "<name>" and ls:lookahead() == "=" then
             local val = ls.token.value

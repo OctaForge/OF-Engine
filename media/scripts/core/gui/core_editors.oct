@@ -718,11 +718,11 @@ M.TextEditor = register_type("TextEditor", Widget, {
             return Widget.key_hover(self, code, isdown)
         end
         var hoverkeys = {
-            [key.MOUSEWHEELUP  ] = true,
-            [key.MOUSEWHEELDOWN] = true,
-            [key.PAGEUP        ] = true,
-            [key.PAGEDOWN      ] = true,
-            [key.HOME          ] = true
+            $(key.MOUSEWHEELUP  ) = true,
+            $(key.MOUSEWHEELDOWN) = true,
+            $(key.PAGEUP        ) = true,
+            $(key.PAGEDOWN      ) = true,
+            $(key.HOME          ) = true
         }
         if hoverkeys[code] do
             if isdown do self:key_edit(code) end

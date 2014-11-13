@@ -204,11 +204,11 @@ M.Slider = register_type("Slider", Widget, {
 var Slider = M.Slider
 
 var clicked_states = {
-    [key.MOUSELEFT   ] = "clicked_left",
-    [key.MOUSEMIDDLE ] = "clicked_middle",
-    [key.MOUSERIGHT  ] = "clicked_right",
-    [key.MOUSEBACK   ] = "clicked_back",
-    [key.MOUSEFORWARD] = "clicked_forward"
+    $(key.MOUSELEFT   ) = "clicked_left",
+    $(key.MOUSEMIDDLE ) = "clicked_middle",
+    $(key.MOUSERIGHT  ) = "clicked_right",
+    $(key.MOUSEBACK   ) = "clicked_back",
+    $(key.MOUSEFORWARD) = "clicked_forward"
 }
 
 /**

@@ -67,15 +67,15 @@ var anim_dirs, anim_jump, anim_run
     }
 
     anim_jump = {
-        [anims.jump_N] = true, [anims.jump_NE] = true, [anims.jump_NW] = true,
-        [anims.jump_S] = true, [anims.jump_SE] = true, [anims.jump_SW] = true,
-        [anims.jump_E] = true, [anims.jump_W ] = true
+        $(anims.jump_N) = true, $(anims.jump_NE) = true, $(anims.jump_NW) = true,
+        $(anims.jump_S) = true, $(anims.jump_SE) = true, $(anims.jump_SW) = true,
+        $(anims.jump_E) = true, $(anims.jump_W ) = true
     }
 
     anim_run = {
-        [anims.run_N] = true, [anims.run_NE] = true, [anims.run_NW] = true,
-        [anims.run_S] = true, [anims.run_SE] = true, [anims.run_SW] = true,
-        [anims.run_E] = true, [anims.run_W ] = true
+        $(anims.run_N) = true, $(anims.run_NE) = true, $(anims.run_NW) = true,
+        $(anims.run_S) = true, $(anims.run_SE) = true, $(anims.run_SW) = true,
+        $(anims.run_E) = true, $(anims.run_W ) = true
     }
 end
 
@@ -947,9 +947,9 @@ var OrientedMarker = M.OrientedMarker
 from std.table import setmt
 
 var lightflags = setmt({
-    [0] = "dynamic (0)",
-    [1] = "none (1)",
-    [2] = "static (2)"
+    $(0) = "dynamic (0)",
+    $(1) = "none (1)",
+    $(2) = "static (2)"
 }, {
     __index = func(self, i)
         return ("invalid (%d)"):format(i)

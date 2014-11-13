@@ -614,9 +614,9 @@ M.load = func()
         huid = huid + 1
 
         var sn = {
-            [1] = "Light",          [2] = "Mapmodel",
-            [3] = "OrientedMarker", [4] = "Envmap",
-            [6] = "Sound",          [7] = "SpotLight"
+            $(1) = "Light",          $(2) = "Mapmodel",
+            $(3) = "OrientedMarker", $(4) = "Envmap",
+            $(6) = "Sound",          $(7) = "SpotLight"
         }
 
         for i, e in storage_sauer:each() do

@@ -143,14 +143,14 @@ set_ext("input_click_client", func(btn, down, x, y, z, uid, cx, cy)
 end)
 
 event_map = {
-    ["input_yaw"         ] = true,
-    ["input_pitch"       ] = true,
-    ["input_move"        ] = true,
-    ["input_strafe"      ] = true,
-    ["input_jump"        ] = true,
-    ["input_crouch"      ] = true,
-    ["input_click_client"] = true,
-    ["input_mouse_move"  ] = true
+    $("input_yaw"         ) = true,
+    $("input_pitch"       ) = true,
+    $("input_move"        ) = true,
+    $("input_strafe"      ) = true,
+    $("input_jump"        ) = true,
+    $("input_crouch"      ) = true,
+    $("input_click_client") = true,
+    $("input_mouse_move"  ) = true
 }
 
 end
@@ -173,7 +173,7 @@ set_ext("input_click_server", func(btn, dn, x, y, z, uid)
 end)
 
 event_map = {
-    ["input_click_server"] = true
+    $("input_click_server") = true
 }
 end
 

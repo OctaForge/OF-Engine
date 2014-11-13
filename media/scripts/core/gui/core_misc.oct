@@ -215,21 +215,21 @@ M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
 })
 
 var move_funcs = {
-    ["linear,x" ] = func(p) return 1, 0 end,
-    ["linear,y" ] = func(p) return 0, 1 end,
-    ["linear,xy"] = func(p) return 1, 1 end,
+    $("linear,x" ) = func(p) return 1, 0 end,
+    $("linear,y" ) = func(p) return 0, 1 end,
+    $("linear,xy") = func(p) return 1, 1 end,
 
-    ["speedup,x" ] = func(p) return p, 0 end,
-    ["speedup,y" ] = func(p) return 0, p end,
-    ["speedup,xy"] = func(p) return p, p end,
+    $("speedup,x" ) = func(p) return p, 0 end,
+    $("speedup,y" ) = func(p) return 0, p end,
+    $("speedup,xy") = func(p) return p, p end,
 
-    ["slowdown,x" ] = func(p) return 1 - p,     0 end,
-    ["slowdown,y" ] = func(p) return 0,     1 - p end,
-    ["slowdown,xy"] = func(p) return 1 - p, 1 - p end,
+    $("slowdown,x" ) = func(p) return 1 - p,     0 end,
+    $("slowdown,y" ) = func(p) return 0,     1 - p end,
+    $("slowdown,xy") = func(p) return 1 - p, 1 - p end,
 
-    ["sinusoidal,x" ] = func(p) return sin(p * pi),           0 end,
-    ["sinusoidal,y" ] = func(p) return 0,           sin(p * pi) end,
-    ["sinusoidal,xy"] = func(p) return sin(p * pi), sin(p * pi) end
+    $("sinusoidal,x" ) = func(p) return sin(p * pi),           0 end,
+    $("sinusoidal,y" ) = func(p) return 0,           sin(p * pi) end,
+    $("sinusoidal,xy") = func(p) return sin(p * pi), sin(p * pi) end
 }
 
 M.Animator = register_type("Animator", Widget, {

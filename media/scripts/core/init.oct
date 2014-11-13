@@ -78,3 +78,5 @@ log.log(log.DEBUG, ":: GUI.")
 import core.gui as undef
 
 log.log(log.DEBUG, "Core scripting initialization complete.")
+
+import std

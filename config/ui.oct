@@ -208,21 +208,21 @@ var genblock = \val, color, tcolor -> \-> gui.ColorFiller {
 }
 
 var blocktypes = {
-    [0] = \-> gui.ColorFiller {
+    $(0) = \-> gui.ColorFiller {
         color = 0xccc0b3, min_w = 0.18, min_h = 0.18
     },
-    [2   ] = genblock(2,    0xEEE4DA, 0x776E65),
-    [4   ] = genblock(4,    0xEDE0C8, 0x776E65),
-    [8   ] = genblock(8,    0xF2B179, 0xF9F6F2),
-    [16  ] = genblock(16,   0xF59563, 0xF9F6F2),
-    [32  ] = genblock(32,   0xF67C5F, 0xF9F6F2),
-    [64  ] = genblock(64,   0xF65E3B, 0xF9F6F2),
-    [128 ] = genblock(128,  0xEDCF72, 0xF9F6F2),
-    [256 ] = genblock(256,  0xEDCC61, 0xF9F6F2),
-    [512 ] = genblock(512,  0xEDC850, 0xF9F6F2),
-    [1024] = genblock(1024, 0xEDC53F, 0xF9F6F2),
-    [2048] = genblock(2048, 0xEDC22E, 0xF9F6F2),
-    [4096] = genblock(4096, 0x3C3A32, 0xF9F6F2)
+    $(2   ) = genblock(2,    0xEEE4DA, 0x776E65),
+    $(4   ) = genblock(4,    0xEDE0C8, 0x776E65),
+    $(8   ) = genblock(8,    0xF2B179, 0xF9F6F2),
+    $(16  ) = genblock(16,   0xF59563, 0xF9F6F2),
+    $(32  ) = genblock(32,   0xF67C5F, 0xF9F6F2),
+    $(64  ) = genblock(64,   0xF65E3B, 0xF9F6F2),
+    $(128 ) = genblock(128,  0xEDCF72, 0xF9F6F2),
+    $(256 ) = genblock(256,  0xEDCC61, 0xF9F6F2),
+    $(512 ) = genblock(512,  0xEDC850, 0xF9F6F2),
+    $(1024) = genblock(1024, 0xEDC53F, 0xF9F6F2),
+    $(2048) = genblock(2048, 0xEDC22E, 0xF9F6F2),
+    $(4096) = genblock(4096, 0x3C3A32, 0xF9F6F2)
 }
 
 var tiles   = []
@@ -403,9 +403,9 @@ var movetiles = func(grid, h, v)
 end
 
 var gamestates = {
-    [-1] = "2048 (game over, score: %d)",
-    [ 0] = "2048 (score: %d)",
-    [ 1] = "2048 (you won! score: %d)"
+    $(-1) = "2048 (game over, score: %d)",
+    $( 0) = "2048 (score: %d)",
+    $( 1) = "2048 (you won! score: %d)"
 }
 
 var seededtiles = false
