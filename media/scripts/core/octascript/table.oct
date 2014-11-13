@@ -306,6 +306,52 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
             for i in 2 to indent do stream(indstr) end
         end
         stream("}")
+    elif tv == "array" do
+        var mline   = kwargs.multiline
+        var indstr  = kwargs.indent
+        var sepstr  = kwargs.array_sep or ","
+        var isepstr = kwargs.item_sep
+        var endsep  = kwargs.end_sep
+        var nline   = kwargs.narr_line or 0
+        print "NLINE", nline
+        if tables[v] do
+            stream() // let the stream know about an error
+            return false,
+                "circular array reference detected during serialization"
+        end
+        tables[v] = true
+        stream("[")
+        if mline do stream("\n") end
+        var first = true
+        var n = 0
+        for i, v in v:each() do
+            if first do first = false
+            else
+                stream(sepstr)
+                if mline do
+                    if n == 0 do
+                        stream("\n")
+                    elif isepstr do
+                        stream(isepstr)
+                    end
+                end
+            end
+            if mline and indstr and n == 0 do
+                for i in 1 to indent do stream(indstr) end
+            end
+            var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
+                indent + 1)
+            if not ret do return ret, err end
+            n = (n + 1) % nline
+        end
+        if not first do
+            if endsep do stream(sepstr) end
+            if mline do stream("\n") end
+        end
+        if mline and indstr do
+            for i in 2 to indent do stream(indstr) end
+        end
+        stream("]")
     else
         stream()
         return false, ("invalid value type: " ~ tv)
@@ -315,13 +361,13 @@ end
 
 var defkw = {
     multiline = false, indent = undef, assign = "=", table_sep = ",",
-    end_sep = false, optimize_keys = true
+    array_sep = ",", end_sep = false, optimize_keys = true
 }
 
 var defkwp = {
     multiline = true, indent = "    ", assign = " = ", table_sep = ",",
-    item_sep = " ", narr_line = 4, nrec_line = 2, end_sep = false,
-    optimize_keys = true
+    array_sep = ", ", item_sep = " ", narr_line = 4, nrec_line = 2,
+    end_sep = false, optimize_keys = true
 }
 
 /**
@@ -345,20 +391,21 @@ var defkwp = {
     how an indent level looks), assign (string, "=" by default, specifies how
     an assignment between a key and a value looks), table_sep (table separator,
     by default ",", can also be ";" for tables, separates items in all cases),
-    item_sep (item separator, string, undef by default, comes after table_sep
-    but only if it isn't followed by a newline), narr_line (number, 0 by
-    default, how many array elements to fit on a line), nrec_line (same,
-    just for key-value pairs), end_sep (boolean, false by default, makes
-    the serializer put table_sep after every item including the last one),
-    optimize_keys (boolean, true by default, optimizes string keys like
-    that it doesn't use string literals for keys that can be expressed
-    as OctaScript names).
+    array_sep (array item separator, by default ","), item_sep (item separator,
+    string, undef by default, comes after array_sep/table_sep but only if it
+    isn't followed by a newline), narr_line (number, 0 by default, how many
+    array elements to fit on a line), nrec_line (same, just for key-value
+    pairs), end_sep (boolean, false by default, makes the serializer put
+    array_sep or table_sep after every item including the last one),
+    optimize_keys (boolean, true by default, optimizes string keys like that
+    it doesn't use string literals for keys that can be expressed as OctaScript
+    names).
 
     If kwargs is undef or false, the values above are used. If kwargs is a
     boolean value true, pretty-printing defaults are used (multiline is
-    true, indent is 4 spaces, assign is " = ", table_sep is ",", item_sep
-    is one space, narr_line is 4, nrec_line is 2, end_sep is false,
-    optimize_keys is true).
+    true, indent is 4 spaces, assign is " = ", table_sep is ",", array_sep is
+    "," item_sep is one space, narr_line is 4, nrec_line is 2, end_sep is
+    false, optimize_keys is true).
 
     This function is externally available as "table_serialize".
 
