@@ -14,7 +14,7 @@ from core.externals import set as ext_set
 
 from std.conv import tonumber, tostring
 from std.math import floor, log
-from std.table import pairs, ipairs
+from std.table import pairs
 
 import std.table
 

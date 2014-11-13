@@ -20,7 +20,7 @@ from std.table import pairs
 
 // buttons
 
-var btnp  = { "label", "min_w", "min_h" }
+var btnp  = [ "label", "min_w", "min_h" ]
 var btnv  = { __properties = btnp }
 var btnvb = { __properties = btnp }
 gui.Button.__variants = { default = btnv, nobg = btnvb }
@@ -65,9 +65,9 @@ btnvb["hovering"    ] = btn_build_variant(0x404040)
 btnvb["clicked_left"] = btn_build_variant(0x303030)
 
 var mbtnv, vmbtnv, smbtnv =
-    { __properties  = { "label" } },
-    { __properties  = { "label" } },
-    { __properties  = { "label" } }
+    { __properties  = [ "label" ] },
+    { __properties  = [ "label" ] },
+    { __properties  = [ "label" ] }
 gui.MenuButton.__variants = { default = mbtnv, visible = vmbtnv,
     submenu = smbtnv }
 
@@ -98,7 +98,7 @@ var slotbtn_init_clone = func(self, btn)
 end
 
 gui.Button.__variants.vslot = {
-    __properties = { "index", "min_w", "min_h" },
+    __properties = [ "index", "min_w", "min_h" ],
     default = gui.VSlotViewer { init_clone = slotbtn_init_clone },
     hovering = gui.VSlotViewer { init_clone = slotbtn_init_clone,
         gui.Outline { clamp = true, color = 0x606060 } },
@@ -107,7 +107,7 @@ gui.Button.__variants.vslot = {
 }
 
 gui.Button.__variants.slot = {
-    __properties = { "index", "min_w", "min_h" },
+    __properties = [ "index", "min_w", "min_h" ],
     default = gui.SlotViewer { init_clone = slotbtn_init_clone },
     hovering = gui.SlotViewer { init_clone = slotbtn_init_clone,
         gui.Outline { clamp = true, color = 0x606060 } },
@@ -147,7 +147,7 @@ gui.Filler.__variants = {
         }
     },
     tooltip = {
-        __properties = { "label" },
+        __properties = [ "label" ],
         gui.Gradient {
             color = 0xF0202020, color2 = 0xF0101010, gui.Outline {
                 color = 0x303030, clamp = true, gui.Spacer {
@@ -407,8 +407,8 @@ gui.Window.__variants = {
             } }
         }
     },
-    regular = { __properties = { "title" }, window_build_regular(false) },
-    movable = { __properties = { "title" }, window_build_regular(true)  }
+    regular = { __properties = [ "title" ], window_build_regular(false) },
+    movable = { __properties = [ "title" ], window_build_regular(true)  }
 }
 
 // default windows

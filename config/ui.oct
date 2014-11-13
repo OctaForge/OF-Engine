@@ -64,7 +64,7 @@ end
 
 var gen_map_load = func()
     var s
-    return gui.HBox {
+    return gui.HBox { children = [
         gui.Outline { __init = func(o)
             o:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
                 sp:append(gui.Scroller { clip_w = 0.6, clip_h = 0.5 }, func(sc)
@@ -72,10 +72,14 @@ var gen_map_load = func()
                     sc:append(gui.HBox { padding = 0.01 }, func(hb)
                         var im
                         hb:append(gui.Spacer { pad_h = 0.02, pad_v = 0.02,
-                            gui.Image { min_w = 0.3, min_h = 0.3,
-                                __init = func(img) im = img end,
-                                gui.Outline { clamp = true, color = 0x303030 }
-                            }
+                            children = [
+                                gui.Image { min_w = 0.3, min_h = 0.3,
+                                    __init = func(img) im = img end,
+                                    children = [
+                                        gui.Outline { clamp = true, color = 0x303030 }
+                                    ]
+                                }
+                            ]
                         })
                         hb:append(gui.VBox(), func(vb)
                             gen_map_list(im, vb)
@@ -88,7 +92,7 @@ var gen_map_load = func()
             sb:append(gui.ScrollButton())
             sb:bind_scroller(s)
         end }
-    }
+    ] }
 end
 
 root:new_window("main", gui.Window, func(win)
@@ -123,24 +127,26 @@ root:new_window("main", gui.Window, func(win)
         b:append(gui.State { state = "default" }, func(st)
             stat = st
             st:update_state("default", gui.Outline { min_w = 0.6, min_h = 0.5,
-                color = 0x303030, gui.VBox {
+                color = 0x303030, children = [ gui.VBox { children = [
                     gui.Label { text = "Welcome to OctaForge!", scale = 1.5,
                         color = 0x88FF88
                     },
                     gui.Label { text = "Please start by clicking one of the "
                         ~ "menu items." }
-                }
+                ] } ]
             })
             st:update_state("load_map", gen_map_load())
             st:update_state("options", gui.Outline { min_w = 0.6, min_h = 0.5,
-                color = 0x303030, gui.VBox {
+                color = 0x303030, children = [ gui.VBox { children = [
                     gui.Label { text = "Coming soon", scale = 1.5,
                         color = 0x88FF88 },
                     gui.Label { text = "No options for now :)" }
-                }
+                ] } ]
             })
-            st:update_state("credits", gui.Outline { min_w = 0.6, min_h = 0.5,
-                color = 0x303030, gui.VBox {
+            st:update_state("credits", gui.Outline {
+                min_w = 0.6, min_h = 0.5,
+                color = 0x303030,
+                children = [ gui.VBox { children = [
                     gui.Label { text = "OctaForge is brought to you by:",
                         color = 0x88FF88 },
                     gui.Filler { min_h = 0.01, clamp_h = true },
@@ -170,8 +176,8 @@ root:new_window("main", gui.Window, func(win)
                     gui.Label { text = 'Wouter \f1"aardappel"\f7 van '
                         ~ 'Oortmerssen' },
                     gui.Label { text = 'Lee \f1"eihrul"\f7 Salzman' },
-                    gui.Label { text = "and others",  scale = 0.8 },
-                }
+                    gui.Label { text = "and others",  scale = 0.8 }
+                ] } ]
             })
         end)
     end)
@@ -202,9 +208,9 @@ end)
 
 var genblock = \val, color, tcolor -> \-> gui.ColorFiller {
     color = color, min_w = 0.18, min_h = 0.18,
-    gui.Label {
+    children = [ gui.Label {
         text = tostring(val), scale = 3.5, color = tcolor
-    }
+    } ]
 }
 
 var blocktypes = {
@@ -316,7 +322,7 @@ var guimovetile = func(grid, i, j, step, hdir, vdir)
     end
     grid.parent:append(gui.Animator {
         move_func = dirn, move_speed = mspeed,
-        move_dist_x = dx, move_dist_y = dy, o
+        move_dist_x = dx, move_dist_y = dy, children = [ o ]
     }, func(m)
         m:clamp(true, true, true, true)
         connect(m, "anim,start", func()

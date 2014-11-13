@@ -666,7 +666,7 @@ M.Widget = register_type("Widget", Object, {
         if variant != false do
             var dstates = variants[variant or "default"]
             var props = dstates and dstates.__properties or undef
-            if props do for i, v in ipairs(props) do
+            if props do for i, v in props:each() do
                 assert(v:sub(1, 1) != "_", "invalid property " ~ v)
                 assert(not self["set_" ~ v] and self[v] == undef,
                     "cannot override existing property " ~ v)
@@ -693,6 +693,13 @@ M.Widget = register_type("Widget", Object, {
             ch:push(v)
             v.parent = cont
             v._root  = cont._root
+        end
+        if kwargs.children do
+            for i, v in kwargs.children:each() do
+                ch:push(v)
+                v.parent = cont
+                v._root  = cont._root
+            end
         end
         self.children = ch
 
@@ -807,7 +814,7 @@ M.Widget = register_type("Widget", Object, {
                 if ic do ic(cl, self) end
             end
             var props = dstates.__properties
-            if props do for i, v in ipairs(props) do
+            if props do for i, v in props:each() do
                 var nm = "set_" ~ v
                 if not disable_asserts do
                     assert(v:sub(1, 1) != "_", "invalid property " ~ v)
