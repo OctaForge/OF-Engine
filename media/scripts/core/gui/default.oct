@@ -38,11 +38,11 @@ var btn_build_variant = \color -> gui.Gradient {
         self:set_min_h(btn.min_h or 0)
         connect(btn, "min_w,changed", \b, v -> self:set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self:set_min_w(v))
-    end, gui.Outline {
-        color = color, clamp_h = true, gui.Spacer {
+    end, children = [ gui.Outline {
+        color = color, clamp_h = true, children = [ gui.Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
-        }
-    }
+        } ]
+    } ]
 }
 
 var btn_build_variant_nobg = \-> gui.Filler {
@@ -51,9 +51,9 @@ var btn_build_variant_nobg = \-> gui.Filler {
         self:set_min_h(btn.min_h or 0)
         connect(btn, "min_w,changed", \b, v -> self:set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self:set_min_w(v))
-    end, gui.Spacer {
+    end, children = [ gui.Spacer {
         pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
-    }
+    } ]
 }
 
 btnv["default"     ] = btn_build_variant(0x303030)
@@ -101,18 +101,18 @@ gui.Button.__variants.vslot = {
     __properties = [ "index", "min_w", "min_h" ],
     default = gui.VSlotViewer { init_clone = slotbtn_init_clone },
     hovering = gui.VSlotViewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0x606060 } },
+        children = [ gui.Outline { clamp = true, color = 0x606060 } ] },
     clicked_left = gui.VSlotViewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0x505050 } }
+        children = [ gui.Outline { clamp = true, color = 0x505050 } ] }
 }
 
 gui.Button.__variants.slot = {
     __properties = [ "index", "min_w", "min_h" ],
     default = gui.SlotViewer { init_clone = slotbtn_init_clone },
     hovering = gui.SlotViewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0x606060 } },
+        children = [ gui.Outline { clamp = true, color = 0x606060 } ] },
     clicked_left = gui.SlotViewer { init_clone = slotbtn_init_clone,
-        gui.Outline { clamp = true, color = 0x505050 } }
+        children = [ gui.Outline { clamp = true, color = 0x505050 } ] }
 }
 
 // editors
@@ -120,9 +120,11 @@ gui.Button.__variants.slot = {
 gui.TextEditor.__variants = {
     default = {
         gui.ColorFiller {
-            color = 0x80202020, clamp = true, gui.Outline { clamp = true,
-                color = 0x303030
-            }
+            color = 0x80202020, clamp = true, children = [
+                gui.Outline { clamp = true,
+                    color = 0x303030
+                }
+            ]
         },
         __init = func(ed)
             ed:set_pad_l(0.005)
@@ -138,27 +140,27 @@ gui.KeyField.__variants = gui.TextEditor.__variants
 gui.Filler.__variants = {
     menu = {
         gui.ColorFiller { color = 0xF0101010, clamp = true,
-            gui.Outline { color = 0x303030, clamp = true }
+            children = [ gui.Outline { color = 0x303030, clamp = true } ]
         }
     },
     edithud = {
         gui.Gradient { color = 0xF0303030, color2 = 0xF0101010, clamp = true,
-            gui.Outline { color = 0x404040, clamp = true }
+            children = [ gui.Outline { color = 0x404040, clamp = true } ]
         }
     },
     tooltip = {
         __properties = [ "label" ],
         gui.Gradient {
-            color = 0xF0202020, color2 = 0xF0101010, gui.Outline {
-                color = 0x303030, clamp = true, gui.Spacer {
+            color = 0xF0202020, color2 = 0xF0101010, children = [ gui.Outline {
+                color = 0x303030, clamp = true, children = [ gui.Spacer {
                     pad_h = 0.01, pad_v = 0.005, init_clone = func(self, ttip)
                         var lbl = gui.Label { text = ttip.label }
                         self:append(lbl)
                         connect(ttip, "label,changed", func(o, t)
                             lbl:set_text(t) end)
                     end
-                }
-            }
+                } ]
+            } ]
         }
     }
 }
@@ -348,63 +350,70 @@ var window_build_titlebar = \-> gui.Gradient {
 
 var window_build_regular = \mov -> gui.Filler {
     clamp = true,
-    gui.VBox {
+    children = [ gui.VBox {
         clamp = true,
         gui.Filler { clamp_h = true,
-            mov and gui.Mover { clamp_h = true,
-                init_clone = func(self, win)
-                    self:set_window(win)
-                end,
-                window_build_titlebar()
-            } or window_build_titlebar(),
-            gui.Spacer { pad_h = 0.009, align_h = 1,
-                gui.Button {
-                    variant = false, states = {
-                        default = gui.ColorFiller {
-                            color = 0x101010, min_w = 0.015,
-                            min_h = 0.015, gui.Outline { clamp = true,
-                                color = 0x606060 }
-                        },
-                        hovering = gui.ColorFiller {
-                            color = 0x101010, min_w = 0.015,
-                            min_h = 0.015, gui.Outline { clamp = true,
-                                color = 0x808080 }
-                        },
-                        clicked_left = gui.ColorFiller {
-                            color = 0x101010, min_w = 0.015,
-                            min_h = 0.015, gui.Outline { clamp = true,
-                                color = 0x707070 }
-                        }
-                    },
+            children = [
+                mov and gui.Mover { clamp_h = true,
                     init_clone = func(self, win)
-                        connect(self, "clicked", \-> win:hide())
-                    end
+                        self:set_window(win)
+                    end,
+                    children = [ window_build_titlebar() ]
+                } or window_build_titlebar(),
+                gui.Spacer { pad_h = 0.009, align_h = 1,
+                    children = [ gui.Button {
+                        variant = false, states = {
+                            default = gui.ColorFiller {
+                                color = 0x101010, min_w = 0.015,
+                                min_h = 0.015, children = [
+                                    gui.Outline { clamp = true, color = 0x606060 }
+                                ]
+                            },
+                            hovering = gui.ColorFiller {
+                                color = 0x101010, min_w = 0.015,
+                                min_h = 0.015, children = [
+                                    gui.Outline { clamp = true, color = 0x808080 }
+                                ]
+                            },
+                            clicked_left = gui.ColorFiller {
+                                color = 0x101010, min_w = 0.015,
+                                min_h = 0.015, children = [
+                                    gui.Outline { clamp = true, color = 0x707070 }
+                                ]
+                            }
+                        },
+                        init_clone = func(self, win)
+                            connect(self, "clicked", \-> win:hide())
+                        end
+                    } ]
                 }
-            }
+            ]
         },
         gui.ColorFiller {
-            color = 0xF0101010, clamp = true, gui.Spacer {
+            color = 0xF0101010, clamp = true, children = [ gui.Spacer {
                 pad_h = 0.005, pad_v = 0.005, init_clone = func(self, win)
                     win:set_container(self)
                 end
-            }
+            } ]
         },
         states = {
             default = gui.ColorFiller { min_w = 0.05, min_h = 0.07 }
         }
     },
-    gui.Outline { color = 0x303030, clamp = true }
+    gui.Outline { color = 0x303030, clamp = true } ]
 }
 
 gui.Window.__variants = {
     borderless = {
         gui.ColorFiller {
             color = 0xF0101010, clamp = true,
-            gui.Outline { color = 0x303030, clamp = true, gui.Spacer {
-                pad_h = 0.005, pad_v = 0.005, init_clone = func(self, win)
-                    win:set_container(self)
-                end
-            } }
+            children = [ gui.Outline { color = 0x303030, clamp = true,
+                children = [ gui.Spacer {
+                    pad_h = 0.005, pad_v = 0.005, init_clone = func(self, win)
+                        win:set_container(self)
+                    end
+                } ]
+            } ]
         }
     },
     regular = { __properties = [ "title" ], window_build_regular(false) },
@@ -528,27 +537,31 @@ root:new_window("changes", gui.Window, func(win)
     connect(win, "destroy", \-> changes.clear())
     win:append(gui.VBox(), func(b)
         b:append(gui.Spacer { pad_h = 0.01, pad_v = 0,
-            gui.Label { text = "The following settings have changed:" } })
+            children = [
+                gui.Label { text = "The following settings have changed:" }
+            ] })
         b:append(gui.Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
-            gui.Line { clamp_h = true, color = 0x303030 } })
+            children = [ gui.Line { clamp_h = true, color = 0x303030 } ] })
         for i, v in changes.get():each() do
             b:append(gui.Label { text = v })
         end
         b:append(gui.Filler { clamp_h = true, min_h = 0.01 })
         b:append(gui.Spacer { pad_v = 0.005, pad_h = 0.005, clamp_h = true,
-            gui.HBox { padding = 0.01,
-                gui.Button { label = "OK", min_w = 0.15,
-                    signals = { clicked = func()
-                        changes.apply()
-                        root:hide_window("changes")
-                    end }
-                },
-                gui.Button { label = "Cancel", min_w = 0.15,
-                    signals = { clicked = func()
-                        root:hide_window("changes")
-                    end }
-                }
-            }
+            children = [ gui.HBox { padding = 0.01,
+                children = [
+                    gui.Button { label = "OK", min_w = 0.15,
+                        signals = { clicked = func()
+                            changes.apply()
+                            root:hide_window("changes")
+                        end }
+                    },
+                    gui.Button { label = "Cancel", min_w = 0.15,
+                        signals = { clicked = func()
+                            root:hide_window("changes")
+                        end }
+                    }
+                ]
+            } ]
         })
     end)
 end)
@@ -619,13 +632,13 @@ root:new_window("entity", gui.Window, func(win)
     if not ent do
         win:set_title("Entity editing: none")
         win:append(gui.Spacer { pad_h = 0.04, pad_v = 0.03,
-            gui.Label { text = "No selected entity" }
+            children = [ gui.Label { text = "No selected entity" } ]
         })
         return
     end
     win:set_title(("Entity editing: %s (%d)"):format(ent.name, ent.uid))
     var props = []
-    var sdata = {}
+    var sdata = []
     var sdata_raw = ent:build_sdata()
 
     var prefix = "_SV_"
@@ -633,7 +646,7 @@ root:new_window("entity", gui.Window, func(win)
         var sv = ent[prefix ~ k]
         var gn = sv.gui_name
         if gn != false do
-            sdata[k] = { gn or k, v, sv }
+            sdata[k] = [ gn or k, v, sv ]
             props:push(k)
         end
     end
@@ -648,7 +661,7 @@ root:new_window("entity", gui.Window, func(win)
                         var fpf, pf
                         for i, nm in props:each() do
                             var sd = sdata[nm]
-                            var gn, dv, sv = sd[1], sd[2], sd[3]
+                            var gn, dv, sv = sd[0], sd[1], sd[2]
                             vb:append(gui.HBox { align_h = 1 }, func(hb)
                                 hb:append(gui.Label { text = " " ~ sd[1]
                                     ~ ": " })
