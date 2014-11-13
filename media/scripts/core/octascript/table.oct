@@ -532,6 +532,17 @@ parse = func(ls)
     elif tok == "true"  do lex_get(ls) return true
     elif tok == "false" do lex_get(ls) return false
     elif tok == "undef" do lex_get(ls) return undef
+    elif tok == "[" do
+        lex_get(ls)
+        var ret = []
+        if ls.tname == "]" do
+            lex_get(ls)
+            return ret
+        end
+        repeat
+            ret:push(parse(ls))
+        until ls.tname != "," or not lex_get(ls)
+        assert_tok(ls, "]")
     else
         assert_tok(ls, "{")
         var tbl = {}
