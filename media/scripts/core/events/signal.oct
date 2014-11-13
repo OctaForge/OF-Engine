@@ -10,7 +10,7 @@
 
 import core.logger as log
 
-from std.table import rawget, rawset, len, pairs
+from std.table import rawget, rawset
 from std.math import clamp
 
 /// Module: signal
@@ -98,14 +98,14 @@ M.disconnect = func(self, name, id)
             return 0
         end
         if typeof id != "number" do
-            for k, v in pairs(clist) do
+            for i, v in clist:each() do
                 if v == id do
                     id = k
                     break
                 end
             end
         end
-        if id and id <= len(clist) do
+        if id and id < clist:len() do
             var scnt = clist.slotcount - 1
             clist.slotcount = scnt
             clist[id] = false
