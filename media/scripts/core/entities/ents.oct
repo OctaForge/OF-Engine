@@ -150,7 +150,7 @@ var register_plugins = func(cl, plugins, name)
             do cltbl:push(sl) end
         end
 
-        if not (cltbl:empty() or (cltbl:len() == 1 and cltbl[1] == cl[slot])) do
+        if not (cltbl:empty() or (cltbl:len() == 1 and cltbl[0] == cl[slot])) do
             cldata[slotname] = cltbl
             cldata[slot] = func(...)
                 for i, fn in cltbl:each() do fn(...) end
@@ -433,7 +433,7 @@ M.get_by_distance = func(pos, kwargs)
     end
 
     if sr != false do
-        ret:sort(sr or \a, b -> a[2] < b[2])
+        ret:sort(sr or \a, b -> a[1] < b[1])
     end
     return ret
 end
@@ -1100,7 +1100,7 @@ M.Entity = Object:clone {
                 return
             end
 
-            var args = {
+            var args = [
                 undef, svar.reliable and capi.statedata_update
                     or capi.statedata_update_unreliable,
                 self.uid,
@@ -1108,13 +1108,13 @@ M.Entity = Object:clone {
                 svar:to_wire(val),
                 (svar.client_set and actor_uid and actor_uid != -1)
                     and storage[actor_uid].cn or msg.ALL_CLIENTS
-            }
+            ]
 
             var cns = get_players():map(\p -> p.cn)
             for i, n in cns:each() do
                 if svar:should_send(self, n) do
-                    args[1] = n
-                    msg.send(unpack(args))
+                    args[0] = n
+                    msg.send(args:unpack())
                 end
             end
         end
@@ -1229,7 +1229,7 @@ M.Entity = Object:clone {
                 end
             end
         end
-        if sortattrs do r:sort(\a, b -> a[1] < b[1]) end
+        if sortattrs do r:sort(\a, b -> a[0] < b[0]) end
         return r
     end,
 
