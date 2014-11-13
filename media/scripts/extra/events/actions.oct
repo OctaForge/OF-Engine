@@ -60,7 +60,7 @@ M.ContainerAction = Action:clone {
     __run = func(self, millis)
         var actqueue = self.action_queue
         actqueue:run(millis)
-        return Action.__run(self, millis) and (len(actqueue.actions) == 0)
+        return Action.__run(self, millis) and actqueue.actions:empty()
     end,
 
     /// Clears up the action queue.
@@ -118,7 +118,7 @@ M.ParallelAction = Action:clone {
     __run = func(self, millis)
         var systems = compact(self.action_queues, func(i, actqueue)
             actqueue:run(millis)
-            return len(actqueue.actions) != 0
+            return not actqueue.actions:empty()
         end)
         return Action.__run(self, millis) and len(systems) == 0
     end,

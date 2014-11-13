@@ -244,7 +244,7 @@ M.ActionQueue = Object:clone {
     */
     __ctor = func(self, parent)
         self.parent   = parent
-        self.actions  = createtable(4)
+        self.actions  = []
         self._changed = false
     end,
 
@@ -257,13 +257,12 @@ M.ActionQueue = Object:clone {
     run = func(self, millis)
         var acts = self.actions
         if self._changed do
-            compact(acts, \i, v -> not v.finished)
+            acts:compact(\v -> not v.finished)
             self._changed = false
         end
-        if len(acts) > 0 do
-            var act = acts[1]
-            @[debug] log(INFO, tconcat { "Executing ", act.name })
-
+        if not acts:empty() do
+            var act = acts:first()
+            @[debug] log(INFO, e"Executing $(act.name)")
             // keep the removal for the next frame
             act:priv_run(millis)
         end
@@ -279,18 +278,16 @@ M.ActionQueue = Object:clone {
         var acts = self.actions
         if not act.allow_multiple do
             var str = act.name
-            for i in 1 to len(acts) do
-                if str == acts[i].name do
-                    log(WARNING, tconcat { "Action of the type ",
-                        str, " is already present in the queue, ",
-                        "multiplication explicitly disabled for the ",
-                        "action." })
+            for i, qact in acts:each() do
+                if str == qact.name do
+                    log(WARNING, e"Action of the type $str is already present "
+                        "in the queue, multiplication explicitly disabled for "
+                        "the action.")
                     return
                 end
             end
         end
-
-        acts[len(acts) + 1] = act
+        acts:push(act)
         act.actor = self.parent
         act.queue = self
     end,
@@ -299,9 +296,8 @@ M.ActionQueue = Object:clone {
         Clears the action queue (cancels every action in the queue).
     */
     clear = func(self)
-        var acts = self.actions
-        for i in 1 to len(acts) do
-            acts[i]:cancel()
+        for i, act in self.actions:each() do
+            act:cancel()
         end
     end
 }
