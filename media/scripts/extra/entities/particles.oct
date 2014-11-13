@@ -35,7 +35,7 @@ var renderers = @[not server,{
     steam = quadrenderer("steam", "media/particle/steam", pflags.FLIP)
 },{}]
 
-var cmap = { "x", "y", "z" }
+var cmap = [ "x", "y", "z" ]
 
 /** Function: particles.offset_vec
     This adds or subtracts the distance to the vector component given by
@@ -49,7 +49,7 @@ var cmap = { "x", "y", "z" }
         - dist - a distance.
 */
 var offset_vec = func(v, dir, dist)
-    var e = cmap[((2 + dir) % 3) + 1]
+    var e = cmap[((2 + dir) % 3)]
     v[e] = v[e] + ((dir > 2) and -dist or dist)
     return v
 end

@@ -60,11 +60,11 @@ var anims = model.anims
 
 var anim_dirs, anim_jump, anim_run
 @[not server] do
-    anim_dirs = {
+    anim_dirs = [
         anims.run_SE, anims.run_S, anims.run_SW,
         anims.run_E,  0,           anims.run_W,
         anims.run_NE, anims.run_N, anims.run_NW
-    }
+    ]
 
     anim_jump = {
         $(anims.jump_N) = true, $(anims.jump_NE) = true, $(anims.jump_NW) = true,
@@ -572,7 +572,7 @@ M.Character = Entity:clone {
                     and anims.swim or anims.sink) | animctl.LOOP
             // moving or strafing
             else
-                var dir = anim_dirs[(move + 1) * 3 + strafe + 2]
+                var dir = anim_dirs[(move + 1) * 3 + strafe + 1]
                 // jumping anim
                 if tinair > 100 do
                     sanim = ((dir != 0) and (dir + anims.jump_N - anims.run_N)

@@ -174,7 +174,7 @@ var GameManager = Entity:clone {
         end
         log.log(log.WARNING, ('player start not found (\"%s\"), '
             ~ 'placing player elsewhere'):format(st))
-        player:set_attr("position", { 512, 512, 571 })
+        player:set_attr("position", [ 512, 512, 571 ])
     end,
 
     set_local_animation = func(self) end,
