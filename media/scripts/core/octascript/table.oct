@@ -432,13 +432,13 @@ var serialize = func(val, kwargs, stream, simplifier)
     if stream do
         return serialize_fn(val, stream, kwargs, simplifier, {}, 1)
     else
-        var t = {}
-        var ret, err = serialize_fn(val, func(out)
-            t[len(t) + 1] = out end, kwargs, simplifier, {}, 1)
+        var t = []
+        var ret, err = serialize_fn(val, func(out) t:push(out) end,
+            kwargs, simplifier, {}, 1)
         if not ret do
             return undef, err
         else
-            return tconc(t)
+            return t:concat()
         end
     end
 end

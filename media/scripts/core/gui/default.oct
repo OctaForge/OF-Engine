@@ -16,7 +16,7 @@ var connect = signal.connect
 
 from std.conv import tostring
 from std.math import min
-from std.table import pairs, ipairs, sort, len
+from std.table import pairs
 
 // buttons
 
@@ -624,22 +624,20 @@ root:new_window("entity", gui.Window, func(win)
         return
     end
     win:set_title(("Entity editing: %s (%d)"):format(ent.name, ent.uid))
-    var props = {}
+    var props = []
     var sdata = {}
     var sdata_raw = ent:build_sdata()
 
-    var nfields = 0
     var prefix = "_SV_"
     for k, v in pairs(sdata_raw) do
         var sv = ent[prefix ~ k]
         var gn = sv.gui_name
         if gn != false do
-            nfields += 1
             sdata[k] = { gn or k, v, sv }
-            props[nfields] = k
+            props:push(k)
         end
     end
-    sort(props)
+    props:sort()
 
     win:append(gui.HBox(), func(hb)
         var s
@@ -648,8 +646,7 @@ root:new_window("entity", gui.Window, func(win)
                 sp:append(gui.Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
                     sc:append(gui.VBox(), func(vb)
                         var fpf, pf
-                        for i in 1 to nfields do
-                            var nm = props[i]
+                        for i, nm in props:each() do
                             var sd = sdata[nm]
                             var gn, dv, sv = sd[1], sd[2], sd[3]
                             vb:append(gui.HBox { align_h = 1 }, func(hb)
