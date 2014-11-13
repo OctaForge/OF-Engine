@@ -91,18 +91,14 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
     __add = func(self, o) return self:add_new(o) end,
     __sub = func(self, o) return self:sub_new(o) end,
     __index = {
-        from_ffi_array = func(self, o)
+        from_array = func(self, o)
             return ffi_new(self, o[0], o[1])
         end,
-        from_array = func(self, o)
-            return ffi_new(self, o[1], o[2])
-        end,
-
         copy = func(self)
             return Vec2(self.x, self.y)
         end,
         to_array = func(self)
-            return { self.x, self.y }
+            return [ self.x, self.y ]
         end,
         unpack = func(self)
             return self.x, self.y
@@ -261,11 +257,8 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
     __add = func(self, o) return self:add_new(o) end,
     __sub = func(self, o) return self:sub_new(o) end,
     __index = {
-        from_ffi_array = func(self, o)
-            return ffi_new(self, o[0], o[1], o[2])
-        end,
         from_array = func(self, o)
-            return ffi_new(self, o[1], o[2], o[3])
+            return ffi_new(self, o[0], o[1], o[2])
         end,
         from_vec2 = func(self, o, z)
             return ffi_new(self, o.x, o.y, z or 0)
@@ -286,7 +279,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return Vec3(self.x, self.y, self.z)
         end,
         to_array = func(self)
-            return { self.x, self.y, self.z }
+            return [ self.x, self.y, self.z ]
         end,
         unpack2 = func(self)
             return self.x, self.y
@@ -722,11 +715,8 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
     __add = func(self, o) return self:add_new(o) end,
     __sub = func(self, o) return self:sub_new(o) end,
     __index = {
-        from_ffi_array = func(self, o)
-            return ffi_new(self, o[0], o[1], o[2], o[3])
-        end,
         from_array = func(self, o)
-            return ffi_new(self, o[1], o[2], o[3], o[4])
+            return ffi_new(self, o[0], o[1], o[2], o[3])
         end,
         from_vec3 = func(self, o, w)
             return ffi_new(self, o.x, o.y, o.z, w or 0)
@@ -736,7 +726,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             return Vec4(self.x, self.y, self.z, self.w)
         end,
         to_array = func(self)
-            return { self.x, self.y, self.z, self.w }
+            return [ self.x, self.y, self.z, self.w ]
         end,
         unpack3 = func(self)
             return self.x, self.y, self.z
@@ -979,9 +969,9 @@ M.Vec4 = Vec4
 from std.table import getmt, setmt
 from std.util import proxy as newproxy
 
-var ntoi2 = { x = 1, y = 2 }
-var ntoi3 = { x = 1, y = 2, z = 3, r = 1, g = 2, b = 3 }
-var ntoi4 = { x = 1, y = 2, z = 3, w = 4, r = 1, g = 2, b = 3, a = 4 }
+var ntoi2 = { x = 0, y = 1 }
+var ntoi3 = { x = 0, y = 1, z = 2, r = 0, g = 1, b = 2 }
+var ntoi4 = { x = 0, y = 1, z = 2, w = 3, r = 0, g = 1, b = 2, a = 3 }
 
 var gen_vec_surrogate = func(name, base, ltable)
     var surrtbl

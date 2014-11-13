@@ -17,6 +17,11 @@ local floor, min, max, abs = math.floor, math.min, math.max, math.abs
 
 local stbl = { [true] = 1, [false] = 0 }
 
+local array_mt = rt.array_mt
+local array = array_mt.__index
+
+local setmt = setmetatable
+
 local std_math = {
     --[[
         Rounds a given number and returns it. The second argument can be used
@@ -83,11 +88,13 @@ local std_string = {
     ]]
     split = function(self, delim)
         delim = delim or ","
-        local r, i = {}, 1
+        local r, i = {}, 0
         for ch in self:gmatch("([^" .. delim .. "]+)") do
             r[i] = ch
             i = i + 1
         end
+        r.__size = i
+        r = setmt(r, array_mt)
         return r
     end,
 
@@ -501,11 +508,6 @@ end
 
 -- array utilities
 -- optimized by accessing internals
-
-local array_mt = rt.array_mt
-local array = array_mt.__index
-
-local setmt = setmetatable
 
 array.map = function(self, f)
     local sz = self.__size

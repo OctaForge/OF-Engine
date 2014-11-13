@@ -207,8 +207,9 @@ ArrayMT = {
         end,
 
         copy = function(self)
-            local r = {}
-            for i = 0, self.__size do
+            local sz = self.__size
+            local r = { __size = sz }
+            for i = 0, sz - 1 do
                 r[i] = self[i]
             end
             return setmt(r, ArrayMT)

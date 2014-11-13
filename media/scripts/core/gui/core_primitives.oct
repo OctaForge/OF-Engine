@@ -962,7 +962,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         kwargs = kwargs or {}
         self.model = kwargs.model
         self.anim = kwargs.anim or 0
-        self.attachments = kwargs.attachments or {}
+        self.attachments = kwargs.attachments or []
 
         return Filler.__ctor(self, kwargs)
     end,
@@ -971,13 +971,13 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     build_attachments = func(self)
         var att = self.attachments
         if att == self._last_attachments do
-            return self._c_attachments, len(att) * 2
+            return self._c_attachments, att:len() * 2
         end
-        var n = len(att) * 2
+        var n = att:len() * 2
         var stor = ffi_new("const char*[?]", n)
-        for i in 0 to len(att) - 1 do
-            var at = att[i + 1]
-            stor[i * 2], stor[i * 2 + 1] = at[1], at[2]
+        for i in 0 to att:len() - 1 do
+            var at = att[i]
+            stor[i * 2], stor[i * 2 + 1] = at[0], at[1]
         end
         self._c_attachments = stor
         self._last_attachments = att

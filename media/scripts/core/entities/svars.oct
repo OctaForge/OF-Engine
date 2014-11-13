@@ -345,6 +345,8 @@ var ctable = capi.table_create
 from std.table import getmt, setmt
 from std.util import proxy as newproxy
 
+import std.array
+
 /**
     Represents a "surrogate" for an array. Behaves like a regular
     array, but does not actually contain anything; it merely serves
@@ -389,6 +391,9 @@ M.ArraySurrogate = {
         regular indexing.
     */
     __index = func(self, name)
+        if name == "__size" do
+            return self:len()
+        end
         var n = tonumber(name)
         if not n do
             return ArraySurrogate[name] or rawget(self.rawt, name)
@@ -428,17 +433,30 @@ M.ArraySurrogate = {
     /// Returns a raw array of values stored using the state variable.
     to_array = func(self)
         var l = self:len()
-        var r = ctable(l)
-        for i in 1 to l do
-            r[len(r) + 1] = self[i]
+        var r = []
+        for i in 0 to l - 1 do
+            r:push(self[i])
         end
         return r
     end,
 
     /// Appends an element. For convenience only.
-    append = func(self, v)
-        self[self:len() + 1] = v
-    end
+    push = func(self, v)
+        self.variable:push_item(self.entity, v)
+    end,
+
+    map = array.map,
+    merge = array.merge,
+    filter = array.filter,
+    find = array.find,
+    find_r = array.find_r,
+    foldr = array.foldr,
+    foldl = array.foldl,
+    each = array.each,
+    each_r = array.each_r,
+    first = array.first,
+    last = array.last,
+    empty = array.empty
 }
 ArraySurrogate = M.ArraySurrogate
 
@@ -495,7 +513,7 @@ M.StateArray = StateVariable:clone {
         svar:write_tests(self)
 
         self:set_sdata(svar.name,
-            val.to_array and val:to_array() or tcopy(val), -1)
+            val.to_array and val:to_array() or val:copy(), -1)
     end,
 
     /** Function: to_wire_item
@@ -519,14 +537,14 @@ M.StateArray = StateVariable:clone {
         array or an array surrogate.
     */
     to_wire = func(self, val)
-        return "[" ~ tconcat(map(val.to_array and val:to_array() or val,
-            self.to_wire_item), self.separator) ~ "]"
+        return "[" ~ (val.to_array and val:to_array() or val)
+            :map(self.to_wire_item):concat(self.separator) ~ "]"
     end,
 
     /// Converts a string in a format given by $to_wire back to a table.
     from_wire = func(self, val)
-        return (val == "[]") and {} or map(
-            val:sub(2, val:len() - 1):split(self.separator), self.from_wire_item)
+        return (val == "[]") and [] or val:sub(2, val:len() - 1)
+            :split(self.separator):map(self.from_wire_item)
     end,
 
     /**
@@ -540,7 +558,7 @@ M.StateArray = StateVariable:clone {
         @[debug] log(INFO, "StateArray: get_raw: " ~ vn)
 
         if not self.getter_fun do
-            return ent.svar_values[vn] or {}
+            return ent.svar_values[vn] or []
         end
 
         var fr = frame.get_frame()
@@ -564,7 +582,7 @@ M.StateArray = StateVariable:clone {
 
     /// Retrieves the state array length. Used by the surrogate.
     get_length = func(self, ent)
-        return len(self:get_raw(ent))
+        return self:get_raw(ent):len()
     end,
 
     /**
@@ -576,6 +594,14 @@ M.StateArray = StateVariable:clone {
         return self:get_raw(ent)[idx]
     end,
 
+    _get_raw_common = func(self, ent, val)
+        var a = self:get_raw(ent)
+        if typeof val == "string" do
+            assert(not val:find("%" ~ self.separator))
+        end
+        return a
+    end,
+
     /**
         Sets an element in the state array. Used by the surrogate. Performs
         an update on all clients by setting the state data on the entity.
@@ -583,13 +609,15 @@ M.StateArray = StateVariable:clone {
     set_item = func(self, ent, idx, val)
         @[debug] log(INFO, "StateArray: set_item: " ~ idx ~ ", "
             ~ tostring(val))
-
-        var a = self:get_raw(ent)
-        if typeof val == "string" do
-            assert(not val:find("%" ~ self.separator))
-        end
-
+        var a = self:_get_raw_common(ent, val)
         a[idx] = val
+        ent:set_sdata(self.name, a, -1)
+    end,
+
+    push_item = func(self, ent, val)
+        @[debug] log(INFO, "StateArray: push: " ~ tostring(val))
+        var a = self:_get_raw_common(ent, val)
+        a:push(val)
         ent:set_sdata(self.name, a, -1)
     end
 }

@@ -813,7 +813,7 @@ M.Entity = Object:clone {
     */
     add_tag = func(self, tag)
         if not self:has_tag(tag) do
-            self:get_attr("tags"):append(tag)
+            self:get_attr("tags"):push(tag)
         end
     end,
 
@@ -822,8 +822,7 @@ M.Entity = Object:clone {
         @[debug] log(DEBUG, e"Entity: remove_tag ($tag)")
 
         if not self:has_tag(tag) do return end
-        self:set_attr("tags", filter(self:get_attr("tags"):to_array(),
-            \i, t -> t != tag))
+        self:set_attr("tags", self:get_attr("tags"):filter(\t -> t != tag))
     end,
 
     /**
@@ -832,7 +831,7 @@ M.Entity = Object:clone {
     */
     has_tag = func(self, tag)
         @[debug] log(DEBUG, e"Entity: has_tag ($tag)")
-        return find(self:get_attr("tags"):to_array(), tag) != undef
+        return self:get_attr("tags"):to_array():find(tag) != undef
     end,
 
     /**
@@ -939,7 +938,7 @@ M.Entity = Object:clone {
 
         self:entity_setup()
 
-        self:set_attr("tags", {})
+        self:set_attr("tags", [])
         self:set_attr("persistent", kwargs and kwargs.persistent or false)
     end],
 

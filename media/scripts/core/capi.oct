@@ -79,11 +79,11 @@ var get_extent_position, set_extent_position in capi
 capi.get_extent_position = func(ent)
     var stor = ffi_new("double[3]")
     if not get_extent_position(ent, stor) do return undef end
-    return { stor[0], stor[1], stor[2] }
+    return [ stor[0], stor[1], stor[2] ]
 end
 
 capi.set_extent_position = func(ent, pos)
-    set_extent_position(ent, pos[1], pos[2], pos[3])
+    set_extent_position(ent, pos[0], pos[1], pos[2])
 end
 
 capi.get_maxspeed = gen_getwrap(capi.get_maxspeed, "float")
@@ -117,11 +117,11 @@ var get_dynent_position, set_dynent_position in capi
 capi.get_dynent_position = func(ent)
     var stor = ffi_new("double[3]")
     if not get_dynent_position(ent, stor) do return undef end
-    return { stor[0], stor[1], stor[2] }
+    return [ stor[0], stor[1], stor[2] ]
 end
 
 capi.set_dynent_position = func(ent, pos)
-    set_dynent_position(ent, pos[1], pos[2], pos[3])
+    set_dynent_position(ent, pos[0], pos[1], pos[2])
 end
 
 var get_dynent_velocity, set_dynent_velocity in capi
@@ -129,11 +129,11 @@ var get_dynent_velocity, set_dynent_velocity in capi
 capi.get_dynent_velocity = func(ent)
     var stor = ffi_new("double[3]")
     if not get_dynent_velocity(ent, stor) do return undef end
-    return { stor[0], stor[1], stor[2] }
+    return [ stor[0], stor[1], stor[2] ]
 end
 
 capi.set_dynent_velocity = func(ent, vel)
-    set_dynent_velocity(ent, vel[1], vel[2], vel[3])
+    set_dynent_velocity(ent, vel[0], vel[1], vel[2])
 end
 
 var get_dynent_falling, set_dynent_falling in capi
@@ -141,11 +141,11 @@ var get_dynent_falling, set_dynent_falling in capi
 capi.get_dynent_falling = func(ent)
     var stor = ffi_new("double[3]")
     if not get_dynent_falling(ent, stor) do return undef end
-    return { stor[0], stor[1], stor[2] }
+    return [ stor[0], stor[1], stor[2] ]
 end
 
 capi.set_dynent_falling = func(ent, fl)
-    set_dynent_falling(ent, fl[1], fl[2], fl[3])
+    set_dynent_falling(ent, fl[0], fl[1], fl[2])
 end
 
 @[not server] do

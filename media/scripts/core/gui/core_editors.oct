@@ -436,10 +436,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var str = self.value or ""
         var strlines = str:split("\n")
         var lines = self.lines
-        var cond = len(strlines) != lines:len()
+        var cond = strlines:len() != lines:len()
         if not cond do
-            for i in 1 to len(strlines) do
-                if strlines[i] != tostring(lines[i - 1]) do
+            for i, strl in strlines:each() do
+                if strl != tostring(lines[i]) do
                     cond = true
                     break
                 end
@@ -675,10 +675,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
         else
             init = init or ""
             var lines = []
-            if typeof init != "table" do
+            if typeof init != "array" do
                 init = init:split("\n")
             end
-            for i in 1 to len(init) do lines:push(editline(init[i])) end
+            for i, v in init:each() do lines:push(editline(v)) end
             if lines:empty() do lines:push(editline()) end
             self.lines = lines
         end
