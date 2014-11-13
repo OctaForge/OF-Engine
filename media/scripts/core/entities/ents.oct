@@ -696,12 +696,12 @@ M.save = func()
         if entity and entity:get_attr("persistent") do
             var en = entity.name
             @[debug] log(DEBUG, e"    $uid, $en")
-            r[len(r) + 1] = serialize({ uid, en, entity:build_sdata() })
+            r:push(serialize([ uid, en, entity:build_sdata() ]))
         end
     end
 
     @[debug] log(DEBUG, "ents.save: done")
-    return e"{\n$(concat(r, ",\n"))\n}\n"
+    return e"[\n$(concat(r, ",\n"))\n]\n"
 end
 set_external("entities_save_all", M.save)
 
