@@ -199,8 +199,8 @@ M.Character = Entity:clone {
         model_name  = svars.StateString  { setter = capi.set_model_name },
         attachments = svars.StateArray   {
             setter = func(self, val)
-                var arr = ffi.new("const char *[?]", len(val) + 1)
-                for i in 0 to len(val) - 1 do arr[i] = val[i] end
+                var arr = ffi.new("const char *[?]", val:len() + 1)
+                for i, v in val:each() do arr[i] = v end
                 set_attachments(self, arr)
             end
         },
@@ -1243,7 +1243,9 @@ M.Mapmodel = StaticEntity:clone {
         model_name  = svars.StateString  { setter = capi.set_model_name   },
         attachments = svars.StateArray   {
             setter = func(self, val)
-                return set_attachments(self, val:to_array():map(\str -> str:split(",")))
+                var arr = ffi.new("const char *[?]", val:len() + 1)
+                for i, v in val:each() do arr[i] = v end
+                set_attachments(self, arr)
             end
         },
 
