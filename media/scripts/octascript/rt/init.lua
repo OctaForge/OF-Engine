@@ -26,7 +26,12 @@ M.type = function(v)
     if v == nil then
         return "undef"
     end
-    return type(v)
+    local tp = type(v)
+    if tp == "table" and v.__OCT_actually_is_array then
+        -- this ugly hack until we move to 2.1 where debug.getmetatable is JIT'd
+        return "array"
+    end
+    return tp
 end
 
 M.pcall = pcall
@@ -70,6 +75,8 @@ ArrayMT = {
     end,
 
     __index = {
+        __OCT_actually_is_array = true,
+
         push = function(self, x)
             local size = self.__size
             self[size] = x
