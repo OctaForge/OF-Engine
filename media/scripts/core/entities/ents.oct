@@ -143,7 +143,7 @@ var register_plugins = func(cl, plugins, name)
         assert(not cl[slotname])
 
         var cltbl = [ cl[slot] ]
-        for j, plugin in ipairs(plugins) do
+        for j, plugin in plugins:each() do
             var sl = plugin[slot]
             var tp = typeof sl
             if sl and tp == "function" or tp == "table" or tp == "userdata"
@@ -158,7 +158,7 @@ var register_plugins = func(cl, plugins, name)
         end
     end
 
-    for i, plugin in ipairs(plugins) do
+    for i, plugin in plugins:each() do
         for name, elem in pairs(plugin) do
             if not clmethset[name] do
                 if name == "__properties" do
@@ -178,11 +178,11 @@ var register_plugins = func(cl, plugins, name)
     end
 
     var ret = cl:clone(cldata)
-    ret.name           = name
-    ret.__properties   = properties
+    ret.name               = name
+    ret.__properties       = properties
     ret.__raw_ent_proto    = cl
     ret.__parent_ent_proto = cl.__proto
-    ret.__plugins      = plugins
+    ret.__plugins          = plugins
     return ret
 end
 

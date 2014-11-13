@@ -138,17 +138,17 @@ var GamePlayer = Player:clone {
     end]
 }
 
-ents.register_prototype(GamePlayer, {
+ents.register_prototype(GamePlayer, [
     game_manager.player_plugin,
     health.player_plugin,
     health.plugins.player_hud,
     health.plugins.player_off_map,
     health.plugins.player_in_deadly_material
-})
-ents.register_prototype(ents.Obstacle, { health.plugins.area },
+])
+ents.register_prototype(ents.Obstacle, [ health.plugins.area ],
     "HealthArea")
 
-day_manager.setup({ day_manager.plugins.day_night })
+day_manager.setup([ day_manager.plugins.day_night ])
 
 @[not server] then
     inputev.set_event("click", func(btn, down, x, y, z, uid, cx, cy)
