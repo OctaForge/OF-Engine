@@ -100,7 +100,7 @@ M.disconnect = func(self, name, id)
         if typeof id != "number" do
             for i, v in clist:each() do
                 if v == id do
-                    id = k
+                    id = i
                     break
                 end
             end

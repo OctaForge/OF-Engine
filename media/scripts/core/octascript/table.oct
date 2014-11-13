@@ -14,18 +14,9 @@ from core.externals import set as ext_set
 
 from std.conv import tonumber, tostring
 from std.math import floor, log
-from std.table import pairs, ipairs, concat as tconc, len
+from std.table import pairs, ipairs
 
 import std.table
-
-var is_array = func(t)
-    var i = 0
-    while t[i + 1] do i = i + 1 end
-    for _ in pairs(t) do
-        i = i - 1 if i < 0 do return false end
-    end
-    return i == 0
-end
 
 /**
     Merges two associative arrays (maps). When a key overlaps, the latter
@@ -77,7 +68,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
     var tv = typeof v
     if tv == "string" do
         stream(v:escape())
-    elif tv == "number" or tv == "boolean" do
+    elif tv == "number" or tv == "boolean" or tv == "undef" do
         stream(tostring(v))
     elif tv == "table" do
         var mline   = kwargs.multiline
@@ -87,8 +78,8 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
         var isepstr = kwargs.item_sep
         var endsep  = kwargs.end_sep
         var optk    = kwargs.optimize_keys
-        var arr = is_array(v)
-        var nline   = arr and kwargs.narr_line or kwargs.nrec_line or 0
+        var ni      = table.len(v)
+        var nline   = kwargs.nrec_line or 0
         if tables[v] do
             stream() // let the stream know about an error
             return false,
@@ -99,7 +90,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
         if mline do stream("\n") end
         var first = true
         var n = 0
-        for k, v in (arr and ipairs or pairs)(v) do
+        func loophdr()
             if first do first = false
             else
                 stream(sepstr)
@@ -114,26 +105,33 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
             if mline and indstr and n == 0 do
                 for i in 1 to indent do stream(indstr) end
             end
-            if arr do
-                var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
-                    indent + 1)
-                if not ret do return ret, err end
-            else
-                if optk and typeof k == "string"
-                and k:find_match("^[%a_][%w_]*$") do
-                    stream(k)
-                else
-                    stream("$(")
-                    var ret, err = serialize_fn(k, stream, kwargs, simp,
-                        tables, indent + 1)
-                    if not ret do return ret, err end
-                    stream(")")
-                end
-                stream(asstr)
-                var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
-                    indent + 1)
-                if not ret do return ret, err end
+        end
+        for i in 1 to ni do
+            loophdr()
+            var ret, err = serialize_fn(v[i], stream, kwargs, simp, tables,
+                indent + 1)
+            if not ret do return ret, err end
+            n = (n + 1) % nline
+        end
+        for k, v in pairs(v) do
+            if typeof k == "number" and k >= 1 and k <= ni do
+                continue
             end
+            loophdr()
+            if optk and typeof k == "string"
+            and k:find_match("^[%a_][%w_]*$") do
+                stream(k)
+            else
+                stream("$(")
+                var ret, err = serialize_fn(k, stream, kwargs, simp,
+                    tables, indent + 1)
+                if not ret do return ret, err end
+                stream(")")
+            end
+            stream(asstr)
+            var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
+                indent + 1)
+            if not ret do return ret, err end
             n = (n + 1) % nline
         end
         if not first do
@@ -435,6 +433,7 @@ parse = func(ls)
             lex_get(ls)
             return tbl
         end
+        var arri = 1
         repeat
             if ls.tname == "<name>" do
                 var key = ls.tval
@@ -448,7 +447,8 @@ parse = func(ls)
                 assert_tok(ls, ")", "=")
                 tbl[key] = parse(ls)
             else
-                tbl[len(tbl) + 1] = parse(ls)
+                tbl[arri] = parse(ls)
+                arri = arri + 1
             end
         until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
         assert_tok(ls, "}")
