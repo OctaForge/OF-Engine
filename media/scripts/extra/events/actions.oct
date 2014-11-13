@@ -36,7 +36,7 @@ M.ContainerAction = Action:clone {
     */
     __ctor = func(self, kwargs)
         Action.__ctor(self, kwargs)
-        self.other_actions = kwargs.actions or {}
+        self.other_actions = kwargs.actions or []
     end,
 
     /**
@@ -45,7 +45,7 @@ M.ContainerAction = Action:clone {
     */
     __start = func(self)
         var actqueue = ActionQueue(self.actor)
-        for i, action in ipairs(self.other_actions) do
+        for i, action in self.other_actions:each() do
             self:add_action(action)
         end
         self.action_queue = actqueue
@@ -95,8 +95,8 @@ M.ParallelAction = Action:clone {
     */
     __ctor = func(self, kwargs)
         Action.__ctor(self, kwargs)
-        self.action_queues = {}
-        self.other_actions = kwargs.actions or {}
+        self.action_queues = []
+        self.other_actions = kwargs.actions or []
     end,
 
     /**
@@ -104,7 +104,7 @@ M.ParallelAction = Action:clone {
         each into the system using {{$add_action}}.
     */
     __start = func(self)
-        for i, action in ipairs(self.other_actions) do
+        for i, action in self.other_actions:each() do
             self:add_action(action)
         end
     end,
@@ -116,16 +116,16 @@ M.ParallelAction = Action:clone {
         zero - the action won't finish until everything is done).
     */
     __run = func(self, millis)
-        var systems = compact(self.action_queues, func(i, actqueue)
+        var systems = self.action_queues:compact(func(actqueue)
             actqueue:run(millis)
             return not actqueue.actions:empty()
         end)
-        return Action.__run(self, millis) and len(systems) == 0
+        return Action.__run(self, millis) and systems:empty()
     end,
 
     /// Clears up the remaining action queues.
     __finish = func(self)
-        for i, actqueue in ipairs(self.action_queues) do
+        for i, actqueue in self.action_queues:each() do
             actqueue:clear()
         end
     end,
@@ -137,8 +137,7 @@ M.ParallelAction = Action:clone {
     add_action = func(self, action)
         var actqueue = ActionQueue(self.actor)
         actqueue:enqueue(action)
-        var systems = self.action_queues
-        systems[len(systems) + 1] = actqueue
+        self.action_queues:push(actqueue)
     end
 }
 
@@ -169,9 +168,9 @@ M.LocalAnimationAction = Action:clone {
     end
 }
 
-var event_list = {
+var event_list = [
     "yaw", "pitch", "move", "strafe", "jump", "crouch", "click", "mouse_move"
-}
+]
 
 /**
     An input capture plugin. Contains the __start and __finish methods you
@@ -184,8 +183,7 @@ M.input_capture_plugin = {
         var events = self.events
         var old_events = {}
         self.old_events = old_events
-        for i in 1 to len(event_list) do
-            var en = event_list[i]
+        for i, en in event_list:each() do
             var ev = events[en]
             if ev do old_events[en] = input.set_event(en,
                 func(...) ev(self, ...) end) end
