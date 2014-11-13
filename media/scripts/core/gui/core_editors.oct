@@ -396,7 +396,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         there is one, otherwise it returns undef).
     */
     selection_to_string = func(self)
-        var buf = {}
+        var buf = []
         var sx, sy, ex, ey = select(2, self:region())
 
         for i in 1 to 1 + ey - sy do
@@ -404,12 +404,12 @@ M.TextEditor = register_type("TextEditor", Widget, {
             var line = tostring(self.lines[y])
             var len  = line:len()
             if y == sy do line = line:sub(sx + 1) end
-            buf[len(buf) + 1] = line
-            buf[len(buf) + 1] = "\n"
+            buf:push(line)
+            buf:push("\n")
         end
 
-        if len(buf) > 0 do
-            return tconcat(buf)
+        if buf:len() > 0 do
+            return buf:concat()
         end
     end,
 
@@ -1038,11 +1038,11 @@ M.TextEditor = register_type("TextEditor", Widget, {
         if not filter do
             self:insert(str)
         else
-            var buf = {}
+            var buf = []
             for ch in str:gmatch(".") do
-                if filter:find(ch) do buf[len(buf) + 1] = ch end
+                if filter:find(ch) do buf:push(ch) end
             end
-            self:insert(tconcat(buf))
+            self:insert(buf:concat())
         end
         return true
     end,
