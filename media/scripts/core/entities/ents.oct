@@ -646,10 +646,10 @@ M.load = func()
                 elif et == 6 do
                     if is:len() > attr1 do
                         var snd = is[attr1]
-                        ent.sound_name = snd[1]
+                        ent.sound_name = snd[0]
                         ent.attr1, ent.attr2 = ent.attr2, ent.attr3
-                        if len(snd) > 1 do
-                            ent.attr3 = snd[2]
+                        if snd:len() > 1 do
+                            ent.attr3 = snd[1]
                         else
                             ent.attr3 = ent.attr4
                         end
