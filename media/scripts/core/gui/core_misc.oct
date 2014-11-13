@@ -14,7 +14,6 @@ import core.events.signal
 var emit = signal.emit
 
 from std.math import min, max, abs, sin, pi
-from std.table import remove as tremove, find, len
 
 var get_curtime = capi.get_curtime
 

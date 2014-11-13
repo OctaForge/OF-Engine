@@ -10,8 +10,6 @@
 
 import capi
 
-var ctable = capi.table_create
-
 from core.externals import set as ext_set
 
 from std.conv import tonumber, tostring
@@ -20,13 +18,7 @@ from std.table import pairs, ipairs, concat as tconc, len
 
 import std.table
 
-/**
-    Checks whether the given table is an array (that is, contains only a
-    consecutive sequence of values with indexes from 1 to len(table)). If
-    there is any non-array element found, returns false. Otherwise
-    returns true.
-*/
-table.is_array = func(t)
+var is_array = func(t)
     var i = 0
     while t[i + 1] do i = i + 1 end
     for _ in pairs(t) do
@@ -35,45 +27,11 @@ table.is_array = func(t)
     return i == 0
 end
 
-var is_array = table.is_array
-
-/**
-    Implements the standard functional "map" higher order function. Returns
-    a new table, leaving the old one alone.
-
-    ```
-    // table of numbers
-    foo = { bar = 5, baz = 10 }
-    // table of strings
-    bar = map(foo, \v -> tostring(v))
-    ```
-
-    Arguments:
-        - t - the table.
-        - f - the function.
-*/
-table.map = func(t, f)
-    var r = {}
-    for i, v in pairs(t) do r[i] = f(v) end
-    return r
-end
-
-/**
-    Merges two arrays. Contents of the other come after those of the first one.
-*/
-table.merge = func(ta, tb)
-    var l1, l2 = len(ta), len(tb)
-    var r = ctable(l1 + l2)
-    for i in 1 to l1 do r[len(r) + 1] = ta[i] end
-    for i in 1 to l2 do r[len(r) + 1] = tb[i] end
-    return r
-end
-
 /**
     Merges two associative arrays (maps). When a key overlaps, the latter
     value is preferred.
 */
-table.merge_maps = func(ta, tb)
+table.merge = func(ta, tb)
     var r = {}
     for a, b in pairs(ta) do r[a] = b end
     for a, b in pairs(tb) do r[a] = b end
@@ -84,47 +42,13 @@ end
     Returns a copy of the given table. It's a shallow copy.
 */
 table.copy = func(t)
-    var r = ctable(len(t))
+    var r = {}
     for a, b in pairs(t) do r[a] = b end
     return r
 end
 
 /**
-    Implements the standard functional "filter" higher order function.
-    Returns a new table, leaving the old one alone. The given function
-    takes two arguments, the index and the value.
-
-    For in-place equivalent, see $compact.
-
-    ```
-    // a table to filter
-    foo = { 5, 10, 15, 20 }
-    // the filtered table, contains just 5, 10, 20
-    bar = filter(foo, func(k, v)
-        if v == 15 do
-            return false
-        else
-            return true
-        end
-    end)
-    ```
-
-    Arguments:
-        - t - the table.
-        - f - the function.
-
-    See also:
-        - $filter_map
-*/
-table.filter = func(t, f)
-    var r = {}
-    for i in 1 to len(t) do if f(i, t[i]) do r[len(r) + 1] = t[i] end end
-    return r
-end
-
-/**
-    See $filter. Works the same, but operates on a hash map (the result
-    is not guaranteed to be without holes).
+    Filters a map.
 
     ```
     // a table to filter
@@ -139,96 +63,10 @@ end
     end)
     ```
 */
-table.filter_map = func(t, f)
+table.filter = func(t, f)
     var r = {}
     for a, b in pairs(t) do if f(a, b) do r[a] = b end end
     return r
-end
-
-/**
-    Compacts an array - simply discards items that do not meet the condition
-    (which is given by the function). If the function returns true (given the
-    index and the value), the item stays; otherwise goes away (and items after
-    that are shifted down). Returns the array. Works in-place on the array,
-    unlike $filter.
-
-    ```
-    var t = { 5, 10, 15, 10, 20, 10, 25 }
-    // the compacted table is { 5, 15, 20, 25 }
-    compact(t, \v -> v != 10)
-    ```
-
-    Arguments:
-        - t - the table.
-        - f - the conditional function.
-*/
-table.compact = func(t, f)
-    var olen, comp = len(t), 0
-    for i in 1 to olen do
-        var v = t[i]
-        if not f(i, v) do comp += 1 elif comp > 0 do t[i - comp] = v end
-    end
-    for i in olen to olen - comp + 1 by -1 do t[i] = undef end
-    return t
-end
-
-/**
-    Finds the key of an element in the given table.
-
-    Arguments:
-         - t - the table.
-         - v - the element (its value).
-*/
-table.find = func(t, v)
-    for a, b in pairs(t) do if v == b do return a end end
-end
-
-/**
-    Implements the standard functional right fold higher order function.
-
-    ```
-        var a = { 5, 10, 15, 20 }
-        assert(foldr(a, func(a, b) return a + b end) == 50)
-    ```
-
-    Arguments:
-        - t - the table.
-        - fun - the function.
-        - z - the default value.
-
-    See also:
-        - $foldl
-*/
-table.foldr = func(t, fun, z)
-    var idx = 1
-    if z == undef do
-        z   = t[1]
-        idx = 2
-    end
-
-    for i in idx to len(t) do
-        z = fun(z, t[i])
-    end
-    return z
-end
-
-/**
-    Implements the standard functional left fold higher order function.
-
-    See also:
-        - $foldl
-*/
-table.foldl = func(t, fun, z)
-    var len = len(t)
-    if z == undef do
-        z   = t[len]
-        len = len - 1
-    end
-    
-    for i in len to 1 by -1 do
-        z = fun(z, t[i])
-    end
-    return z
 end
 
 var serialize_fn
@@ -711,32 +549,20 @@ end
 
 var defaultcmp = func(a, b) return a < b end
 
+import std.array
+
 /**
-    A substitute for the original table.sort. Normally it behaves exactly
-    like table.sort (takes a table, optionally a comparison function and
-    sorts the table in-place), but it also takes two other arguments
-    specifying from where to where to sort the table (the starting
-    and ending indexes, both are inclusive). Under LuaJIT it's also
-    considerably faster than vanilla table.sort (about 3x).
-
-    Thanks to custom indexes and independence on type assumptions this
-    can sort not only OctaScript arrays in a raw form, but also any kind
-    of "virtual" array (for example a state array surrogate) or a FFI
-    array.
-
     The sorting algorithm used here is introsort. It's a modification
     of quicksort that switches to heapsort when the recursion depth
     exceeds 2 * floor(log(nitems) / log(2)). It also uses insertion
     sort to sort small sublists (10 elements and smaller). The
     quicksort part uses a median of three pivot.
+
+    The l and r default to 0 and x:len() - 1 respectively. You can override
+    them to sort any kind of structure, even one that doesn't provide a len
+    method or one that is 1-indexed. The deafult comparison function uses the
+    "less than" operator.
 */
-table.sort = func(tbl, fun, l, r)
-    l, r = l or 1, r or len(tbl)
-    return introsort(tbl, l, r, fun or defaultcmp)
-end
-
-import std.array
-
 array.sort = func(self, fun, l, r)
     l, r = l or 0, r or self:len() - 1
     return introsort(self, l, r, fun or defaultcmp)

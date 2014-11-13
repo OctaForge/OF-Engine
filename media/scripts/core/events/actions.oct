@@ -18,10 +18,8 @@ var log = logging.log
 var INFO = logging.INFO
 var WARNING = logging.WARNING
 
-var createtable = capi.table_create
-
 from std.conv import tostring
-from std.table import compact, Object, concat as tconcat, len
+from std.table import Object
 
 /// Module: actions
 var M = {}

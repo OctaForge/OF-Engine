@@ -10,7 +10,7 @@
 
 import core.logger as log
 
-from std.table import rawget, rawset, find as tfind, len
+from std.table import rawget, rawset, len, pairs
 from std.math import clamp
 
 /// Module: signal
@@ -95,7 +95,12 @@ M.disconnect = func(self, name, id)
             return 0
         end
         if typeof id != "number" do
-            id = tfind(clist, id)
+            for k, v in pairs(clist) do
+                if v == id do
+                    id = k
+                    break
+                end
+            end
         end
         if id and id <= len(clist) do
             var scnt = clist.slotcount - 1

@@ -34,8 +34,7 @@ from core.octascript.geom import Vec3
 
 var emit = signal.emit
 
-from std.table import pairs, filter, filter_map, map, concat,
-    find, serialize, deserialize, Object, len
+from std.table import pairs, serialize, deserialize, Object
 from std.math import max, floor
 from std.conv import tonumber, tostring
 from std.table import unpack
@@ -688,7 +687,7 @@ end
     External as `entities_save_all`.
 */
 M.save = func()
-    var r = {}
+    var r = []
     @[debug] log(DEBUG, "ents.save: saving")
 
     for uid in 1 to highest_uid do
@@ -701,7 +700,7 @@ M.save = func()
     end
 
     @[debug] log(DEBUG, "ents.save: done")
-    return e"[\n$(concat(r, ",\n"))\n]\n"
+    return e"[\n$(r:concat(",\n"))\n]\n"
 end
 set_external("entities_save_all", M.save)
 

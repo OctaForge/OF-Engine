@@ -340,8 +340,6 @@ M.StateString = StateVariable:clone {
 }
 StateString = M.StateString
 
-var ctable = capi.table_create
-
 from std.table import getmt, setmt
 from std.util import proxy as newproxy
 
@@ -459,8 +457,6 @@ M.ArraySurrogate = {
     empty = array.empty
 }
 ArraySurrogate = M.ArraySurrogate
-
-from std.table import copy as tcopy, concat as tconcat, map
 
 /**
     Specialization of <StateVariable> for arrays. Uses $ArraySurrogate

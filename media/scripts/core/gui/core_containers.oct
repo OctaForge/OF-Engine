@@ -11,8 +11,6 @@
 from std.math import min, max
 from std.table import len
 
-from capi import table_create as createtable
-
 /// Module: core
 import core.gui.core as M
 
