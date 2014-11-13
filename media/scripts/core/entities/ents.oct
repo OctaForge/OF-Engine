@@ -589,7 +589,7 @@ M.load = func()
     @[debug] log(DEBUG, "ents.load: reading")
     var el = capi.readfile("./entities.oct")
 
-    var entities = {}
+    var entities = []
     if not el do
         @[debug] log(DEBUG, "ents.load: nothing to read")
     else
@@ -600,7 +600,7 @@ M.load = func()
         @[debug] log(DEBUG, "ents.load: loading sauer entities:\n"
             "    reading import.oct for imported models and sounds")
 
-        var il, im, is = capi.readfile("./import.oct"), {}, {}
+        var il, im, is = capi.readfile("./import.oct"), [], []
         if il do
             var it = deserialize(il)
             var itm, its = it.models, it.sounds
@@ -622,7 +622,7 @@ M.load = func()
             var o, attr1, attr2, attr3, attr4, attr5
                 = e[1], e[2], e[3], e[4], e[5], e[6]
             if sn[et] do
-                entities[len(entities) + 1] = {
+                entities:push([
                     huid, sn[et], {
                         attr1 = tostring(attr1), attr2 = tostring(attr2),
                         attr3 = tostring(attr3), attr4 = tostring(attr4),
@@ -632,20 +632,20 @@ M.load = func()
                         model_name = "", attachments = "[]",
                         tags = "[]", persistent = "true"
                     }
-                }
+                ])
 
-                var ent = entities[len(entities)][3]
+                var ent = entities:last()[2]
 
                 if et == 2 do
-                    ent.model_name = (len(im) <= attr2) and
-                        (e"@REPLACE_$attr2@") or im[attr2 + 1]
+                    ent.model_name = (im:len() <= attr2) and
+                        (e"@REPLACE_$attr2@") or im[attr2]
                     ent.attr2 = ent.attr3
                     ent.attr3 = "0"
                     ent.animation = model.anims.mapmodel
                         | model.anim_control.LOOP
                 elif et == 6 do
-                    if len(is) > attr1 do
-                        var snd = is[attr1 + 1]
+                    if is:len() > attr1 do
+                        var snd = is[attr1]
                         ent.sound_name = snd[1]
                         ent.attr1, ent.attr2 = ent.attr2, ent.attr3
                         if len(snd) > 1 do
@@ -675,11 +675,10 @@ M.load = func()
     end
 
     @[debug] log(DEBUG, "ents.load: loading all entities")
-    for i in 1 to len(entities) do
-        var e = entities[i]
-        var uid, cn = e[1], e[2]
+    for i, e in entities:each() do
+        var uid, cn = e[0], e[1]
         @[debug] log(DEBUG, e"    $uid, $cn")
-        add(cn, uid, { state_data = serialize(e[3]) })
+        add(cn, uid, { state_data = serialize(e[2]) })
     end
     @[debug] log(DEBUG, "ents.load: done")
 end

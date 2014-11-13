@@ -589,6 +589,7 @@ parse = func(ls)
             ret:push(parse(ls))
         until ls.tname != "," or not lex_get(ls)
         assert_tok(ls, "]")
+        return ret
     else
         assert_tok(ls, "{")
         var tbl = {}
