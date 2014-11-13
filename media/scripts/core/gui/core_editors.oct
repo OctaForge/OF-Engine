@@ -23,7 +23,7 @@ text_font_get_w, text_font_get_h in capi
 
 var emit = signal.emit
 
-from std.table import ipairs, concat as tconcat, insert as tinsert,
+from std.table import concat as tconcat, insert as tinsert,
     remove as tremove, len
 from std.math import min, max, abs, clamp, floor
 from std.conv import tostring

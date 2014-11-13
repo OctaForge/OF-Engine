@@ -33,8 +33,6 @@ import extra.health
 var connect = signal.connect
 from core.octascript.geom import Vec4
 
-from std.table import ipairs, len
-
 var colors = [
     0xFFFFFF, 0xFF0000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF
 ]

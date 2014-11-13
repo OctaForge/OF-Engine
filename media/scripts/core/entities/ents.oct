@@ -34,7 +34,7 @@ from core.octascript.geom import Vec3
 
 var emit = signal.emit
 
-from std.table import pairs, ipairs, filter, filter_map, map, concat,
+from std.table import pairs, filter, filter_map, map, concat,
     find, serialize, deserialize, Object, len
 from std.math import max, floor
 from std.conv import tonumber, tostring

@@ -90,7 +90,7 @@ M.player_plugin = {
     end
 }
 
-from std.table import pairs, ipairs, remove as tremove, len
+from std.table import pairs, remove as tremove, len
 from std.math import random as rand, floor
 
 var Entity = ents.Entity
@@ -111,7 +111,7 @@ var GameManager = Entity:clone {
     get_players = @[server,func(self)
         var players = []
         for i, team in pairs(self.teams) do
-            for i, v in ipairs(team.player_list) do
+            for i, v in team.player_list:each() do
                 players:push(v)
             end
         end
@@ -122,7 +122,7 @@ var GameManager = Entity:clone {
         var players = self:get_players()
 
         for i, team in pairs(self.teams) do
-            team.player_list = {}
+            team.player_list = []
         end
 
         while players:len() > 0 do
