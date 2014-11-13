@@ -802,7 +802,8 @@ M.Widget = register_type("Widget", Object, {
         var dstates = variants[variant or "default"]
         if dstates do
             var notvariants = {
-                $("__properties") = true, $("__init") = true
+                $("__properties") = true, $("__init") = true,
+                $("__children") = true
             }
             for k, v in pairs(dstates) do
                 if notvariants[k] do continue end
@@ -813,6 +814,16 @@ M.Widget = register_type("Widget", Object, {
                 cl._root  = self._root
                 if ic do ic(cl, self) end
             end
+            var children = dstates.__children
+            if children do for i, v in children:each() do
+                i = i + 1
+                var ic = v.init_clone
+                var cl = v:deep_clone(self)
+                vstates[i] = cl
+                cl.parent = self
+                cl._root  = self._root
+                if ic do ic(cl, self) end
+            end end
             var props = dstates.__properties
             if props do for i, v in props:each() do
                 var nm = "set_" ~ v
