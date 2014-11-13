@@ -1191,7 +1191,7 @@ M.ParticleEffect = StaticEntity:clone {
     __edit_icon  = "media/interface/icon/edit_particles",
     sauer_type = 7,
 
-    __plugin_methods = { "__emit_particles" },
+    __plugin_methods = [ "__emit_particles" ],
 
     /// Returns 0.
     get_edit_drop_height = func(self)

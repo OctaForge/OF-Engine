@@ -121,9 +121,9 @@ M.clear_network_data = func(cn)
     end
 end
 
-var plugin_slots = {
+var plugin_slots = [
     "__init_svars", "__activate", "__deactivate", "__run", "__render"
-}
+]
 
 var modprefix = "_PLUGINS_"
 
@@ -132,28 +132,28 @@ var register_plugins = func(cl, plugins, name)
     var cldata = {}
     var properties
 
-    var clmeths = cl["__plugin_methods"] or {}
-    for i, v in ipairs(plugin_slots) do clmeths[len(clmeths) + 1] = v end
+    var clmeths = cl["__plugin_methods"] or []
+    for i, v in plugin_slots:each() do clmeths:push(v) end
     var clmethset = {}
-    for i, v in ipairs(clmeths) do clmethset[v] = true end
+    for i, v in clmeths:each() do clmethset[v] = true end
 
     var clname = cl.name
-    for i, slot in ipairs(clmeths) do
+    for i, slot in clmeths:each() do
         var slotname = modprefix ~ clname ~ slot
         assert(not cl[slotname])
 
-        var cltbl = { cl[slot] }
+        var cltbl = [ cl[slot] ]
         for j, plugin in ipairs(plugins) do
             var sl = plugin[slot]
             var tp = typeof sl
             if sl and tp == "function" or tp == "table" or tp == "userdata"
-            do cltbl[len(cltbl) + 1] = sl end
+            do cltbl:push(sl) end
         end
 
-        if not (len(cltbl) == 0 or (len(cltbl) == 1 and cltbl[1] == cl[slot])) do
+        if not (cltbl:empty() or (cltbl:len() == 1 and cltbl[1] == cl[slot])) do
             cldata[slotname] = cltbl
             cldata[slot] = func(...)
-                for i, fn in ipairs(cltbl) do fn(...) end
+                for i, fn in cltbl:each() do fn(...) end
             end
         end
     end
@@ -1345,14 +1345,14 @@ end)
 set_external("entity_draw_attached", func(uid)
     var ent = storage[uid]
     if not ent do return end
-    var ents = { ent:get_attached_next() }
-    if len(ents) > 0 do
-        for i in 1 to len(ents) do capi.entity_draw_attachment(uid, ents[i].uid) end
+    var ents = [ ent:get_attached_next() ]
+    if not ents:empty() do
+        for i, ent in ents:each() do capi.entity_draw_attachment(uid, ent.uid) end
         return
     end
-    ents = { ent:get_attached_prev() }
-    if len(ents) > 0 do
-        for i in 1 to len(ents) do capi.entity_draw_attachment(ents[i].uid, uid) end
+    ents = [ ent:get_attached_prev() ]
+    if not ents:empty() do
+        for i, ent in ents:each() do capi.entity_draw_attachment(ent.uid, uid) end
         return
     end
 end)
