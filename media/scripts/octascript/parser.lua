@@ -159,13 +159,39 @@ local parse_array = function(ls, ast)
     local line = ls.line_number
     assert_next(ls, "[")
     local elist
+    local multiexp
+    local first
     if ls.token.name ~= "]" then
-        elist = parse_expr_list(ls, ast)
+        first = parse_expr(ls, ast)
+        if ls.token.name ~= "]" then
+            assert_next(ls, ",")
+            elist = parse_expr_list(ls, ast)
+        else
+            elist = {}
+        end
+        local last = elist[#elist] or first
+        local kind = last.kind
+        if kind == "CallExpression" or kind == "SendExpression" or kind == "Vararg" then
+            multiexp = last
+            if last == first then
+                first = nil
+            else
+                elist[#elist] = nil
+            end
+        end
     else
         elist = {}
     end
     check_match(ls, "]", "[", line)
-    return ast.CallExpression(ast.Identifier("__rt_array"), elist)
+    local hkeys = {}
+    local hvals = {}
+    local size_hint = #elist
+    if first then
+        size_hint = size_hint + 1
+        hkeys[1] = ast.Literal(0)
+        hvals[1] = first
+    end
+    return ast.CallExpression(ast.Identifier("__rt_array"), { ast.Table(elist, hkeys, hvals), ast.Literal(size_hint), multiexp })
 end
 
 local parse_enum = function(ls, ast)

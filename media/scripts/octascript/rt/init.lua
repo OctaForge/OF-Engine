@@ -219,10 +219,15 @@ ArrayMT = {
 
 M.array_mt = ArrayMT
 
-M.array = function(...)
-    return setmt({ __size = select("#", ...),
-        [0] = select(1, ...), select(2, ...)
-    }, ArrayMT)
+M.array = function(t, size, ...)
+    local n = select("#", ...)
+    t.__size = size + n
+    if n > 0 then
+        for i = 1, n do
+            t[size + i - 1] = select(i, ...)
+        end
+    end
+    return setmt(t, ArrayMT)
 end
 
 return M
