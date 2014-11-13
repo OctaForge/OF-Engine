@@ -37,7 +37,6 @@ var emit = signal.emit
 from std.table import pairs, serialize, deserialize, Object
 from std.math import max, floor
 from std.conv import tonumber, tostring
-from std.table import unpack
 from std.util import assert
 
 /// Module: ents
@@ -486,7 +485,7 @@ var add = func(cn, uid, kwargs, new)
             kwargs.newent_data = undef
             if ndata do ndata = deserialize(ndata) end
         end
-        r:__init_svars(kwargs, ndata or {})
+        r:__init_svars(kwargs, ndata or [])
     end
 
     @[debug] log(DEBUG, "ents.add: activate")

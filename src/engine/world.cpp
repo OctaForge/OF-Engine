@@ -1098,7 +1098,7 @@ void newent(const char *cl, const char *sd) {
 ICOMMAND(newent, "V", (tagval *args, int numargs), {
     const char *cl = args[0].getstr();
     vector<char> buf;
-    buf.add('{');
+    buf.add('[');
     for (int i = 1; i < numargs; ++i) {
         const char *str = args[i].getstr();
         int len = strlen(str);
@@ -1109,7 +1109,7 @@ ICOMMAND(newent, "V", (tagval *args, int numargs), {
         buf.add('"');
         if (i < (numargs - 1)) buf.add(',');
     }
-    buf.add('}');
+    buf.add(']');
     buf.add('\0');
     newent(cl, NULL, buf.getbuf(), worldpos);
 });

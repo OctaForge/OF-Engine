@@ -79,11 +79,11 @@ M.FireEffect = ParticleEffect:clone {
 
     __init_svars = func(self, kwargs, nd)
         ParticleEffect.__init_svars(self, kwargs, nd)
-        self:set_attr("radius", 1.5, nd[1])
-        self:set_attr("height", 0.5, nd[2])
-        self:set_attr("red",   0x90, nd[3])
-        self:set_attr("green", 0x30, nd[4])
-        self:set_attr("blue",  0x20, nd[5])
+        self:set_attr("radius", 1.5, nd[0])
+        self:set_attr("height", 0.5, nd[1])
+        self:set_attr("red",   0x90, nd[2])
+        self:set_attr("green", 0x30, nd[3])
+        self:set_attr("blue",  0x20, nd[4])
     end,
 
     __get_edit_color = func(self)
@@ -130,7 +130,7 @@ M.SteamEffect = ParticleEffect:clone {
 
     __init_svars = func(self, kwargs, nd)
         ParticleEffect.__init_svars(self, kwargs, nd)
-        self:set_attr("direction", 0, nd[1])
+        self:set_attr("direction", 0, nd[0])
     end,
 
     __get_edit_info = func(self)
