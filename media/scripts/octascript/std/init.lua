@@ -405,8 +405,8 @@ std.eval.compile = compile
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
 
-pkg.loaders = {
-    function(modname)
+pkg.loaders = setmt({
+    [0] = function(modname)
         local v = pkg.preload[modname]
         if not v then
             return ("\tno field package.preload['%s']"):format(modname)
@@ -431,8 +431,9 @@ pkg.loaders = {
                 .. fname .. "':\n" .. err, 2)
         end
         return f
-    end
-}
+    end,
+    __size = 2
+}, array_mt)
 
 local type = type
 local tconc = table.concat
@@ -441,7 +442,7 @@ local setfenv = setfenv
 local find_loader = function(modname, env)
     local err = { ("module '%s' not found\n"):format(modname) }
     local loaders = pkg.loaders
-    for i = 1, #loaders do
+    for i = 0, loaders.__size - 1 do
         local v = loaders[i](modname)
         local vt = type(v)
         if vt == "function" then
