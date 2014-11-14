@@ -880,14 +880,14 @@ M.Entity = Object:clone {
 
         r = serialize(r)
         @[debug] log(DEBUG, e"Entity.build_sdata compressed: $r")
-        return r:sub(2, r:len() - 1)
+        return r:sub(1, r:len() - 1)
     end,
 
     /// Updates the complete state data on an entity from serialized input.
     set_sdata_full = func(self, sdata)
         @[debug] log(DEBUG, e"Entity.set_sdata_full: $(self.uid), $sdata")
 
-        sdata = sdata:sub(1, 1) != "{" and e"{$sdata}" or sdata
+        sdata = sdata:sub(0, 1) != "{" and e"{$sdata}" or sdata
         var raw = deserialize(sdata)
         assert(typeof raw == "table")
 

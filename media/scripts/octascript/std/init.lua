@@ -82,6 +82,13 @@ local str_esc = setmetatable({
     __index = function(self, c) return ("\\%03d"):format(c:byte()) end
 })
 
+local str_sub = string.sub
+local str_byte = string.byte
+local str_find = string.find
+local str_match = string.match
+
+local unpack = unpack
+
 local std_string = {
     --[[
         Splits a given string with optional delimiter (defaults to ",")
@@ -98,18 +105,47 @@ local std_string = {
         return r
     end,
 
+    byte = function(self, i, j)
+        return str_byte(self, i and i + 1 or 1, j)
+    end,
+
+    find_match = function(self, pat, init)
+        init = init and ((init >= 0) and (init + 1) or init) or 1
+        return str_match(self, pat, init)
+    end,
+
+    -- TODO: find a solution for this without an alloc...
+    find = function(self, pat, init, plain)
+        init = init and ((init >= 0) and (init + 1) or init) or 1
+        local ret = { str_find(self, pat, init, plain) }
+        if not ret[1] then
+            return nil
+        end
+        if not ret[3] then
+            return ret[1] - 1, ret[2]
+        end
+        return ret[1] - 1, unpack(ret, 2)
+    end,
+
+    sub = function(self, i, j)
+        i = i and ((i >= 0) and (i + 1) or i) or nil
+        return str_sub(self, i, j)
+    end,
+
     --[[
         Removes a substring in a string, returns the new string.
     ]]
-    remove = function(self, start, count)
-        return tconc { self:sub(1, start - 1), self:sub(start + count) }
+    remove = function(self, start, endn)
+        local slen = self:len()
+        endn = (endn == nil or endn == 0) and slen or endn
+        return tconc { str_sub(self, 1, start), str_sub(self, endn + 1) }
     end,
 
     --[[
         Inserts a substring into a string, returns the new string.
     ]]
     insert = function(self, idx, new)
-        return tconc { self:sub(1, idx - 1), new, self:sub(idx) }
+        return tconc { str_sub(self, 1, idx), new, str_sub(self, idx + 1) }
     end,
 
     --[[
@@ -129,8 +165,7 @@ local std_string = {
 }
 
 for k, v in pairs(string) do
-    if k == "match" then k = "find_match" end
-    if not std_string[k] then std_string[k] = v end
+    if not std_string[k] and k ~= "match" then std_string[k] = v end
 end
 
 local band, bor, lsh, rsh = bit.band, bit.bor, bit.lshift, bit.rshift
