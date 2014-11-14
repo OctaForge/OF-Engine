@@ -33,7 +33,7 @@ var var_get, var_set = cs.var_get, cs.var_set
 
 var emit = signal.emit
 
-from std.table import rawget, rawset, pairs, ipairs, Object, remove as tremove,
+from std.table import rawget, rawset, pairs, Object, remove as tremove,
     insert as tinsert, len
 from std.util import select
 from std.math import min, max, clamp, floor, ceil
@@ -689,11 +689,6 @@ M.Widget = register_type("Widget", Object, {
         end
 
         // children
-        for i, v in ipairs(kwargs) do
-            ch:push(v)
-            v.parent = cont
-            v._root  = cont._root
-        end
         if kwargs.children do
             for i, v in kwargs.children:each() do
                 ch:push(v)
