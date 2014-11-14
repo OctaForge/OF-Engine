@@ -78,7 +78,6 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
         var isepstr = kwargs.item_sep
         var endsep  = kwargs.end_sep
         var optk    = kwargs.optimize_keys
-        var ni      = table.len(v)
         var nline   = kwargs.nrec_line or 0
         if tables[v] do
             stream() // let the stream know about an error
@@ -90,7 +89,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
         if mline do stream("\n") end
         var first = true
         var n = 0
-        func loophdr()
+        for k, v in pairs(v) do
             if first do first = false
             else
                 stream(sepstr)
@@ -105,19 +104,6 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
             if mline and indstr and n == 0 do
                 for i in 1 to indent do stream(indstr) end
             end
-        end
-        for i in 1 to ni do
-            loophdr()
-            var ret, err = serialize_fn(v[i], stream, kwargs, simp, tables,
-                indent + 1)
-            if not ret do return ret, err end
-            n = (n + 1) % nline
-        end
-        for k, v in pairs(v) do
-            if typeof k == "number" and k >= 1 and k <= ni do
-                continue
-            end
-            loophdr()
             if optk and typeof k == "string"
             and k:find_match("^[%a_][%w_]*$") do
                 stream(k)
