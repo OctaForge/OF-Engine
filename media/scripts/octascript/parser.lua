@@ -124,7 +124,7 @@ local parse_table = function(ls, ast)
     local line = ls.line_number
     local tok = ls.token
     assert_next(ls, "{")
-    local hkeys, hvals, avals = {}, {}, {}
+    local hkeys, hvals = {}, {}
     while tok.name ~= "}" do
         local key
         if tok.name == "$" then
@@ -133,26 +133,20 @@ local parse_table = function(ls, ast)
             assert_next(ls, "(")
             key = parse_expr(ls, ast)
             check_match(ls, ")", "$(", line)
-            assert_next(ls, "=")
-        elseif tok.name == "<name>" and ls:lookahead() == "=" then
+        elseif tok.name == "<name>" then
             local val = ls.token.value
             ls:get()
             key = ast.Literal(val)
-            assert_next(ls, "=")
         end
-        local val = parse_expr(ls, ast)
-        if key then
-            hkeys[#hkeys + 1] = key
-            hvals[#hvals + 1] = val
-        else
-            avals[#avals + 1] = val
-        end
+        assert_next(ls, "=")
+        hkeys[#hkeys + 1] = key
+        hvals[#hvals + 1] = parse_expr(ls, ast)
         if not test_next(ls, ",") and not test_next(ls, ";") then
             break
         end
     end
     check_match(ls, "}", "{", line)
-    return ast.Table(avals, hkeys, hvals, line)
+    return ast.Table({}, hkeys, hvals, line)
 end
 
 local parse_array = function(ls, ast)

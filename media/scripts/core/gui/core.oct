@@ -816,10 +816,9 @@ M.Widget = register_type("Widget", Object, {
             end
             var children = dstates.__children
             if children do for i, v in children:each() do
-                i = i + 1
                 var ic = v.init_clone
                 var cl = v:deep_clone(self)
-                vstates[i] = cl
+                vstates[i + 1] = cl
                 cl.parent = self
                 cl._root  = self._root
                 if ic do ic(cl, self) end
