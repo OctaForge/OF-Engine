@@ -220,12 +220,14 @@ ArrayMT = {
 M.array_mt = ArrayMT
 
 M.array = function(t, size, ...)
+    if not ... then
+        t.__size = size
+        return setmt(t, ArrayMT)
+    end
     local n = select("#", ...)
     t.__size = size + n
-    if n > 0 then
-        for i = 1, n do
-            t[size + i - 1] = select(i, ...)
-        end
+    for i = 1, n do
+        t[size + i - 1] = select(i, ...)
     end
     return setmt(t, ArrayMT)
 end
