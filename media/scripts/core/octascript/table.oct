@@ -426,15 +426,12 @@ parse = func(ls)
                 lex_get(ls)
                 assert_tok(ls, "=")
                 tbl[key] = parse(ls)
-            elif ls.tname == "$" do
-                lex_get(ls)
+            else
+                assert_tok(ls, "$")
                 assert_tok(ls, "(")
                 var key = parse(ls)
                 assert_tok(ls, ")", "=")
                 tbl[key] = parse(ls)
-            else
-                tbl[arri] = parse(ls)
-                arri = arri + 1
             end
         until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
         assert_tok(ls, "}")
