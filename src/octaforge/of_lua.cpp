@@ -43,11 +43,6 @@ namespace lua
 
     void setup_binds();
 
-    LUAICOMMAND(table_create, {
-        lua_createtable(L, luaL_optinteger(L, 1, 0), luaL_optinteger(L, 2, 0));
-        return 1;
-    });
-
     static int external_handler = LUA_REFNIL;
 
     static bool push_external(lua_State *L, const char *name) {

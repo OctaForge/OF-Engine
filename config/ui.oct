@@ -19,9 +19,8 @@ var gen_map_list = func(img, vb)
     var glob, loc = capi.get_all_map_names()
     vb:append(gui.Label { text = "Global maps", color = 0x88FF88 })
     var current_preview
-    for i in 1 to len(glob) do
-        var map = glob[i]
-        vb:append(gui.Button { label = glob[i], clamp_h = true,
+    for i, map in glob:each() do
+        vb:append(gui.Button { label = map, clamp_h = true,
             variant = "nobg", min_w = 0.2
         }, func(btn)
             signal.connect(btn, "hovering", func()
@@ -40,9 +39,8 @@ var gen_map_list = func(img, vb)
         end)
     end
     vb:append(gui.Label { text = "Local maps", color = 0x8888FF })
-    for i in 1 to len(loc) do
-        var map = loc[i]
-        vb:append(gui.Button { label = loc[i], clamp_h = true,
+    for i, map in loc:each() do
+        vb:append(gui.Button { label = map, clamp_h = true,
             variant = "nobg", min_w = 0.2
         }, func(btn)
             signal.connect(btn, "hovering", func()

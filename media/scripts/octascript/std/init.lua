@@ -321,8 +321,7 @@ local std = {
         next     = next,
         setmt    = setmetatable,
         getmt    = getmetatable,
-        unpack   = unpack,
-        len      = function(t) return #t end
+        unpack   = unpack
     },
     math   = std_math,
     os     = require("os"),
@@ -595,6 +594,11 @@ array.foldl = function(self, fun, z)
         z = fun(z, self[i])
     end
     return z
+end
+
+array.from_table = function(tbl, n)
+    tbl.__size = n
+    return setmt(tbl, array_mt)
 end
 
 std["array"] = array

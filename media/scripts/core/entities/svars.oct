@@ -27,7 +27,7 @@ from std.math import abs, round, floor
 from std.conv import tonumber, tostring
 from std.util import assert
 
-    /// Module: svars
+/// Module: svars
 var M = {}
 
 var StateVariable, StateVariableAlias, StateInteger, StateFloat,
