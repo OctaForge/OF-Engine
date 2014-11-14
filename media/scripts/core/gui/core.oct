@@ -33,7 +33,7 @@ var var_get, var_set = cs.var_get, cs.var_set
 
 var emit = signal.emit
 
-from std.table import rawget, rawset, pairs, Object, len
+from std.table import rawget, rawset, pairs, Object
 from std.util import select
 from std.math import min, max, clamp, floor, ceil
 from std.util import assert
@@ -147,6 +147,7 @@ var get_type = M.get_type
 */
 M.loop_children = func(self, fun)
     var ch = self.children
+    var vc = self.vchildren
     var vr = self.vstates
     var st = self.states
 
@@ -160,8 +161,8 @@ M.loop_children = func(self, fun)
         end
     end
 
-    for i in 1 to len(vr) do
-        var a, b = fun(vr[i])
+    for i, o in vc:each() do
+        var a, b = fun(o)
         if  a != undef do return a, b end
     end
 
@@ -183,6 +184,7 @@ var loop_children = M.loop_children
 */
 M.loop_children_r = func(self, fun)
     var ch = self.children
+    var vc = self.vchildren
     var vr = self.vstates
     var st = self.states
 
@@ -191,8 +193,8 @@ M.loop_children_r = func(self, fun)
         if  a != undef do return a, b end
     end
 
-    for i in len(vr) to 1 by -1 do
-        var a, b = fun(vr[i])
+    for i, o in vc:each_r() do
+        var a, b = fun(o)
         if  a != undef do return a, b end
     end
 
@@ -723,6 +725,8 @@ M.Widget = register_type("Widget", Object, {
 
         var children = self.children
         for k, v in children:each() do v:clear() end
+        var vchildren = self.vchildren
+        for k, v in vchildren:each() do v:clear() end
         var states = self.states
         for k, v in pairs(states) do v:clear() end
         var vstates = self.vstates
@@ -748,15 +752,23 @@ M.Widget = register_type("Widget", Object, {
     */
     deep_clone = func(self, obj, initc)
         var ch, rch = [], self.children
+        var vc, rvc = [], self.vchildren
         var st, rst = {}, self.states
         var vs, rvs = {}, self.vstates
         var ic = initc and self.init_clone or undef
-        var cl = self:clone { children = ch, states = st, vstates = vs }
+        var cl = self:clone { children = ch, vchildren = vc,
+            states = st, vstates = vs }
         for i, c in rch:each() do
             var chcl = c:deep_clone(obj, true)
             chcl.parent = cl
             chcl._root  = cl._root
             ch:push(chcl)
+        end
+        for i, c in rvc:each() do
+            var chcl = c:deep_clone(obj, true)
+            chcl.parent = cl
+            chcl._root  = cl._root
+            vc:push(chcl)
         end
         for k, v in pairs(rst) do
             var vcl = v:deep_clone(obj, true)
@@ -784,6 +796,10 @@ M.Widget = register_type("Widget", Object, {
         if old_vstates do for k, v in pairs(old_vstates) do
             v:clear()
         end end
+        var old_vchildren = self.vchildren
+        if old_vchildren do for i, v in old_vchildren:each() do
+            v:clear()
+        end end
         var manprops = self.managed_properties
         for i, v in manprops:each_r() do
             self[v] = undef
@@ -791,6 +807,8 @@ M.Widget = register_type("Widget", Object, {
         end
         var vstates = {}
         self.vstates = vstates
+        var vchildren = []
+        self.vchildren = vchildren
         if variant == false do return undef end
         var variants = rawget(self.__proto, "__variants")
         var dstates = variants[variant or "default"]
@@ -812,7 +830,7 @@ M.Widget = register_type("Widget", Object, {
             if children do for i, v in children:each() do
                 var ic = v.init_clone
                 var cl = v:deep_clone(self)
-                vstates[i + 1] = cl
+                vchildren:push(cl)
                 cl.parent = self
                 cl._root  = self._root
                 if ic do ic(cl, self) end
