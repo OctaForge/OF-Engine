@@ -36,7 +36,6 @@ var ent_get = ents.get
 
 from std.conv import tonumber
 from std.math import abs, min, max, clamp
-from std.table import concat as tconc, len
 
 var connect, emit = signal.connect, signal.emit
 
