@@ -260,8 +260,34 @@ end
 end
 
 var get_all_map_names in capi
-
 capi.get_all_map_names = func()
     var t1, s1, t2, s2 = get_all_map_names()
     return from_table(t1, s1), from_table(t2, s2)
+end
+
+@[not server] do
+    var findanims in capi
+    capi.findanims = func(pattern)
+        return from_table(findanims(pattern))
+    end
+
+    var texture_get_packs in capi
+    capi.texture_get_packs = func()
+        var t, s = texture_get_packs()
+        from_table(t, s)
+        for i, v in t:each() do
+            from_table(v)
+        end
+        return t
+    end
+
+    var texture_get_data in capi
+    capi.texture_get_data = func(fn)
+        var w, h, t = texture_get_data(fn)
+        from_table(t, w)
+        for i, v in t:each() do
+            from_table(v, h)
+        end
+        return w, h, t
+    end
 end

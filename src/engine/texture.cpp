@@ -1701,15 +1701,16 @@ ICOMMAND(texpackreload, "s", (const char *pack), {
 
 LUAICOMMAND(texture_get_packs, {
     lua_createtable(L, texpacks.numelems, 0);
-    int i = 1;
+    int i = 0;
     for (texpack *tp = firsttexpack; tp; tp = tp->next) {
         lua_createtable(L, 3, 0);
-        lua_pushstring (L, tp->name);      lua_rawseti(L, -2, 1);
-        lua_pushinteger(L, tp->firstslot); lua_rawseti(L, -2, 2);
-        lua_pushinteger(L, tp->nslots);    lua_rawseti(L, -2, 3);
+        lua_pushstring (L, tp->name);      lua_rawseti(L, -2, 0);
+        lua_pushinteger(L, tp->firstslot); lua_rawseti(L, -2, 1);
+        lua_pushinteger(L, tp->nslots);    lua_rawseti(L, -2, 2);
         lua_rawseti(L, -2, i++);
     }
-    return 1;
+    lua_pushinteger(L, i);
+    return 2;
 });
 
 /* diffuse, normal, glow, envmap, spec, depth, unknown */
@@ -4133,7 +4134,7 @@ LUAICOMMAND(texture_get_data, {
 
     lua_createtable(L,  d.w, 0);
     for (int x = 0; x < d.w; ++x) {
-        lua_pushinteger(L, x + 1);
+        lua_pushinteger(L, x);
         lua_createtable(L,  d.h, 0);
         for (int y = 0; y < d.h; ++y) {
             uchar *p = d.data + y * d.pitch + x * d.bpp;
@@ -4155,7 +4156,7 @@ LUAICOMMAND(texture_get_data, {
             uchar r; uchar g; uchar b; uchar a;
             SDL_GetRGBA(ret, ((SDL_Surface*)d.owner)->format, &r, &g, &b, &a);
 
-            lua_pushinteger(L, y + 1);
+            lua_pushinteger(L, y);
             lua_createtable(L, 0, 4);
             lua_pushinteger(L, r); lua_setfield(L, -2, "r");
             lua_pushinteger(L, g); lua_setfield(L, -2, "g");

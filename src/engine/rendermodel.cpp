@@ -1043,11 +1043,12 @@ LUAICOMMAND(findanims, {
     findanims(luaL_checkstring(L, 1), anims);
     lua_createtable(L, anims.length(), 0);
     for (int i = 0; i < anims.length(); ++i) {
-        lua_pushinteger(L, i + 1);
+        lua_pushinteger(L, i);
         lua_pushinteger(L, anims[i]);
         lua_settable   (L, -3);
     }
-    return 1;
+    lua_pushinteger(L, anims.length());
+    return 2;
 });
 
 void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks) // model skin sharing
