@@ -117,6 +117,10 @@ local parse_params = function(ls, ast)
     return args
 end
 
+local allowed_keys = { ["<number>"] = true, ["<string>"] = true,
+    ["null"] = true, ["true"] = true, ["false"] = true
+}
+
 local parse_table = function(ls, ast)
     local line = ls.line_number
     local tok = ls.token
@@ -134,7 +138,7 @@ local parse_table = function(ls, ast)
             local val = ls.token.value
             ls:get()
             key = ast.Literal(val)
-        else
+        elseif allowed_keys[tok.name] then
             key = parse_simple_expr(ls, ast)
         end
         if ls.token.name ~= ":" then
