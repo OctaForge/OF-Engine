@@ -358,16 +358,22 @@ parse_primary_expr = function(ls, ast)
         if nm == "." then
             ls:get()
             assert_tok(ls, "<name>")
-            local key = ast.Identifier(ls.token.value)
+            local key = ls.token.value
             ls:get()
-            exp, tp = ast.MemberExpression(exp, key, false), "indexed"
+            nm = tok.name
+            if nm == "(" or nm == "<string>" or nm == "{" then
+                exp, tp = ast.SendExpression(exp, key, parse_args(ls, ast)),
+                    "call"
+            else
+                exp, tp = ast.MemberExpression(exp, ast.Identifier(key), false),
+                    "indexed"
+            end
         elseif nm == ":" then
             ls:get()
             assert_tok(ls, "<name>")
             local key = ls.token.value
             ls:get()
-            local args = parse_args(ls, ast)
-            exp, tp = ast.SendExpression(exp, key, args), "call"
+            exp, tp = ast.SendExpression(exp, key, parse_args(ls, ast)), "call"
         elseif nm == "::" then
             ls:get()
             assert_tok(ls, "<name>")
