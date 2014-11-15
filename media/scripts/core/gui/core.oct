@@ -2510,8 +2510,8 @@ M.get_hud = func()
 end
 
 var mousebuttons = {
-    $(key.MOUSELEFT): true, $(key.MOUSEMIDDLE) : true, $(key.MOUSERIGHT): true,
-    $(key.MOUSEBACK): true, $(key.MOUSEFORWARD): true
+    (key.MOUSELEFT): true, (key.MOUSEMIDDLE) : true, (key.MOUSERIGHT): true,
+    (key.MOUSEBACK): true, (key.MOUSEFORWARD): true
 }
 
 set_external("input_keypress", func(code, isdown)

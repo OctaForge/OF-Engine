@@ -407,9 +407,9 @@ var movetiles = func(grid, h, v)
 end
 
 var gamestates = {
-    $(-1): "2048 (game over, score: %d)",
-    $( 0): "2048 (score: %d)",
-    $( 1): "2048 (you won! score: %d)"
+    (-1): "2048 (game over, score: %d)",
+    ( 0): "2048 (score: %d)",
+    ( 1): "2048 (you won! score: %d)"
 }
 
 var seededtiles = false

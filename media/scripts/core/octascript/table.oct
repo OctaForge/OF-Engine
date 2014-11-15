@@ -113,7 +113,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
                     tables, indent + 1)
                 if not ret do return ret, err end
             else
-                stream("$(")
+                stream("(")
                 var ret, err = serialize_fn(k, stream, kwargs, simp,
                     tables, indent + 1)
                 if not ret do return ret, err end
@@ -437,7 +437,6 @@ parse = func(ls)
             elif allowed_keys[ls.tname] do
                 key = parse(ls)
             else
-                assert_tok(ls, "$")
                 assert_tok(ls, "(")
                 key = parse(ls)
                 assert_tok(ls, ")")
