@@ -442,7 +442,7 @@ parse = func(ls)
                 key = parse(ls)
                 assert_tok(ls, ")")
             end
-            if ls.tname == ":" do lex_get(ls) else assert_tok(ls, "=") end
+            assert_tok(ls, ":")
             tbl[key] = parse(ls)
         until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
         assert_tok(ls, "}")
