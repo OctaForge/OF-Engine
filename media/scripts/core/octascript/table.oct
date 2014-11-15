@@ -10,53 +10,7 @@
 
 import capi
 
-from std.conv import tonumber
 from std.math import floor, log
-from std.table import pairs
-
-import std.table
-
-/**
-    Merges two associative arrays (maps). When a key overlaps, the latter
-    value is preferred.
-*/
-table.merge = func(ta, tb)
-    var r = {}
-    for a, b in pairs(ta) do r[a] = b end
-    for a, b in pairs(tb) do r[a] = b end
-    return r
-end
-
-/**
-    Returns a copy of the given table. It's a shallow copy.
-*/
-table.copy = func(t)
-    var r = {}
-    for a, b in pairs(t) do r[a] = b end
-    return r
-end
-
-/**
-    Filters a map.
-
-    ```
-    // a table to filter
-    foo = { a = 5, b = 10, c = 15, d = 20 }
-    // the filtered table, contains just key/value pairs a, b, d
-    bar = filter_map(foo, func(k, v)
-        if k == "c" do
-            return false
-        else
-            return true
-        end
-    end)
-    ```
-*/
-table.filter = func(t, f)
-    var r = {}
-    for a, b in pairs(t) do if f(a, b) do r[a] = b end end
-    return r
-end
 
 var sift_down = func(tbl, l, s, e, fun)
     var root = s
@@ -155,6 +109,7 @@ end
 // Object system
 //
 
+import std.table
 from std.table import setmt
 
 /**

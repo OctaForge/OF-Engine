@@ -306,6 +306,8 @@ local std_conv = {
 
 debug.getmetatable("").__index = std_string
 
+local pairs = pairs
+
 local std = {
     coroutine = {
         yield   = coroutine.yield,
@@ -356,7 +358,26 @@ local std = {
         next     = next,
         setmt    = setmetatable,
         getmt    = getmetatable,
-        unpack   = unpack
+        unpack   = unpack,
+
+        merge = function(ta, tb)
+            local r = {}
+            for a, b in pairs(ta) do r[a] = b end
+            for a, b in pairs(tb) do r[a] = b end
+            return r
+        end,
+
+        copy = function(t)
+            local r = {}
+            for a, b in pairs(t) do r[a] = b end
+            return r
+        end,
+
+        filter = function(t, f)
+            local r = {}
+            for a, b in pairs(t) do if f(a, b) then r[a] = b end end
+            return r
+        end
     },
     math   = std_math,
     os     = require("os"),
