@@ -96,11 +96,8 @@ local parse_expr_list = function(ls, ast, exprs)
     return exprs
 end
 
-local parse_params = function(ls, ast, ns)
+local parse_params = function(ls, ast)
     local args = {}
-    if ns then
-        args[1] = ast:var_declare("self")
-    end
     if ls.token.name ~= ")" then
         repeat
             if ls.token.name == "<name>" then
@@ -441,7 +438,7 @@ local sexps = {
     ["func"] = function(ls, ast)
         local line = ls.line_number
         ls:get()
-        local args, body, proto = parse_body(ls, ast, line, false)
+        local args, body, proto = parse_body(ls, ast, line)
         return ast.FunctionExpression(body, args, proto.varargs,
             proto.first_line, proto.last_line)
     end,
@@ -454,7 +451,7 @@ local sexps = {
         ls:get()
         local args
         if ls.token.name ~= "->" then
-            args = parse_params(ls, ast, false)
+            args = parse_params(ls, ast)
         else
             args = {}
         end
@@ -664,7 +661,7 @@ local parse_rec = function(ls, ast, line, decn, params)
     assert_tok(ls, "<name>")
     local name = ls.token.value
     ls:get()
-    local args, body, proto = parse_body(ls, ast, line, false)
+    local args, body, proto = parse_body(ls, ast, line)
     return ast.FunctionDeclaration(ast:var_declare(name), body, args,
         proto.varargs, true, decn, params, line, proto.first_line,
         proto.last_line)
@@ -680,14 +677,10 @@ local parse_function_stat = function(ls, ast, line, decn, params)
     while ls.token.name == "." do
         v = parse_expr_field(ls, ast, v)
     end
-    if ls.token.name == ":" then
-        ns = true
-        v = parse_expr_field(ls, ast, v)
-    end
     if v == ov then
         ast.current.vars[v.name] = true
     end
-    local args, body, proto = parse_body(ls, ast, line, ns)
+    local args, body, proto = parse_body(ls, ast, line)
     return ast.FunctionDeclaration(v, body, args, proto.varargs, false,
         decn, params, line, proto.first_line, proto.last_line)
 end
@@ -944,14 +937,14 @@ parse_chunk = function(ls, ast, toplevel)
     return body, last
 end
 
-parse_body = function(ls, ast, line, ns)
+parse_body = function(ls, ast, line)
     local prev_fs = ls.fs
     ls.fs = { varargs = false }
     ast:scope_begin()
     ls.fs.first_line = line
     local pline = ls.line_number
     assert_next(ls, "(")
-    local args = parse_params(ls, ast, ns)
+    local args = parse_params(ls, ast)
     check_match(ls, ")", "(", pline)
     --assert_next(ls, "do")
     local body = parse_block(ls, ast)
