@@ -34,9 +34,9 @@ from core.octascript.geom import Vec3
 
 var emit = signal.emit
 
-from std.table import pairs, serialize, deserialize, Object
+from std.table import pairs, Object
 from std.math import max, floor
-from std.conv import tonumber, tostring
+from std.conv import tonumber, tostring, serialize, deserialize
 from std.util import assert
 
 /// Module: ents

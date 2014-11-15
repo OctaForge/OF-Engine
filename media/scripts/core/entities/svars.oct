@@ -315,7 +315,7 @@ M.StateBoolean = StateVariable.clone {
 }
 StateBoolean = M.StateBoolean
 
-from std.table import serialize as ts, deserialize as td
+from std.conv import serialize as ts, deserialize as td
 
 /**
     Specialization of $StateVariable for table values. Overrides
