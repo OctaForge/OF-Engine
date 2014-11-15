@@ -135,7 +135,11 @@ local parse_table = function(ls, ast)
             ls:get()
             key = ast.Literal(val)
         end
-        assert_next(ls, "=")
+        if ls.token.name ~= ":" then
+            assert_next(ls, "=")
+        else
+            ls:get()
+        end
         hkeys[#hkeys + 1] = key
         hvals[#hvals + 1] = parse_expr(ls, ast)
         if not test_next(ls, ",") and not test_next(ls, ";") then
