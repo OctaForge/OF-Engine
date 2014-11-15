@@ -65,7 +65,7 @@ M.Action = Object:clone {
 
         self.begun      = false
         self.finished   = false
-        self.start_time = capi.get_current_time()
+        self.start_time = capi::get_current_time()
 
         self.millis_left = (self.millis_left) or
             kwargs.millis_left or 0
@@ -107,12 +107,12 @@ M.Action = Object:clone {
 
     priv_run = func(self, millis)
         if typeof self.actor == "table" and self.actor.deactivated do
-            self.priv_finish(self)
+            self::priv_finish(self)
             return true
         end
 
         if not self.begun do
-            self.priv_start(self)
+            self::priv_start(self)
 
             if self.animation != false do
                 var aanim = self.actor:get_attr("animation")
@@ -129,7 +129,7 @@ M.Action = Object:clone {
 
             var finished = self:__run(millis)
             if    finished do
-                self.priv_finish(self)
+                self::priv_finish(self)
             end
 
             @[debug] log(INFO, "    finished: " ~ tostring(finished))
@@ -137,7 +137,7 @@ M.Action = Object:clone {
         else
             if  self.parallel_to.finished do
                 self.parallel_to = false
-                self.priv_finish(self)
+                self::priv_finish(self)
                 return true
             else
                 return false
@@ -153,7 +153,7 @@ M.Action = Object:clone {
         ```
         Foo.__run = func(self, millis)
             echo("run")
-            return self.__proto.__proto.__run(self, millis)
+            return self.__proto.__proto::__run(self, millis)
         end
         ```
 

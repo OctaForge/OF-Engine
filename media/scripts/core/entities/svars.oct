@@ -202,7 +202,7 @@ M.StateVariable = Object:clone {
         var vn = svar.name
         @[debug] log(INFO, "StateVariable: getter: " ~ vn)
 
-        var fr = frame.get_frame()
+        var fr = frame::get_frame()
 
         if not svar.getter_fun
             or @[server,self.svar_change_queue]
@@ -213,7 +213,7 @@ M.StateVariable = Object:clone {
 
         @[debug] log(INFO, "StateVariable: getter: getter function")
 
-        var val = svar.getter_fun(self.uid)
+        var val = svar::getter_fun(self.uid)
 
         if @[server,self.svar_change_queue_complete,true] do
             self.svar_values[vn] = val
@@ -557,7 +557,7 @@ M.StateArray = StateVariable:clone {
             return ent.svar_values[vn] or []
         end
 
-        var fr = frame.get_frame()
+        var fr = frame::get_frame()
 
         if @[server,ent.svar_change_queue] or ent.svar_value_timestamps[vn] == fr
         do
@@ -566,7 +566,7 @@ M.StateArray = StateVariable:clone {
 
         @[debug] log(INFO, "StateArray: get_raw: getter function")
 
-        var val = self.getter_fun(ent.uid)
+        var val = self::getter_fun(ent.uid)
 
         if @[server,ent.svar_change_queue_complete,true] do
             ent.svar_values[vn] = val

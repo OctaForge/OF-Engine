@@ -46,7 +46,7 @@ return {
             - $add_spot
     */
     add = func(pos, rad, r, g, b, fade, peak, flags, irad, ir, ig, ib, own)
-        capi.dynlight_add(pos.x, pos.y, pos.z, rad, r, g, b, fade, peak,
+        capi::dynlight_add(pos.x, pos.y, pos.z, rad, r, g, b, fade, peak,
             flags, irad, ir, ig, ib, own)
     end,
 
@@ -73,7 +73,7 @@ return {
     */
     add_spot = func(o, dir, rad, spot, r, g, b, fade, peak, flags, irad,
     ir, ig, ib, own)
-        capi.dynlight_add_spot(o.x, o.y, o.z, dir.x, dir.y, dir.z,
+        capi::dynlight_add_spot(o.x, o.y, o.z, dir.x, dir.y, dir.z,
             rad, spot, r, g, b, fade, peak, flags, irad, ir, ig, ib, own)
     end,
 
@@ -87,27 +87,27 @@ return {
             - pitch - sunlight pitch, from -90 to 90, defaulting to 0.
     */
     set_sun_yaw_pitch = func(yaw, pitch)
-        capi.sunlight_set_yaw_pitch(yaw or 0, pitch or 0)
+        capi::sunlight_set_yaw_pitch(yaw or 0, pitch or 0)
     end,
 
     /**
         Sets the sunlight scale temporarily.
     */
     set_sunlight_scale = func(s)
-        capi.sunlight_set_scale(s or 0)
+        capi::sunlight_set_scale(s or 0)
     end,
 
     /**
         Sets the skylight scale temporarily.
     */
     set_skylight_scale = func(s)
-        capi.skylight_set_scale(s or 0)
+        capi::skylight_set_scale(s or 0)
     end,
 
     /**
         Resets the sun light yaw, pitch and scale back to variable values.
     */
     reset_sun = func()
-        capi.sunlight_reset()
+        capi::sunlight_reset()
     end
 }

@@ -24,7 +24,7 @@ import core.gui.core as M
 var register_type = M.register_type
 
 // base widgets
-var Widget = M.get_type("Widget")
+var Widget = M::get_type("Widget")
 
 // setters
 var gen_setter = M.gen_setter
@@ -50,7 +50,7 @@ M.State = register_type("State", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.state = kwargs.state
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     choose_state = func(self)
@@ -79,7 +79,7 @@ M.Mover = register_type("Mover", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.window = kwargs.window
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     hover = func(self, cx, cy)
@@ -88,7 +88,7 @@ M.Mover = register_type("Mover", Widget, {
 
     click = func(self, cx, cy, code)
         if code != key.MOUSELEFT do
-            return Widget.click(self, cx, cy, code)
+            return Widget::click(self, cx, cy, code)
         end
         var  w = self.window
         if not w do return self:target(cx, cy) and self end
@@ -136,7 +136,7 @@ M.Mover = register_type("Mover", Widget, {
             w.x += cx - self.ox
             w.y += cy - self.oy
         end
-        Widget.holding(self, cx, cy, code)
+        Widget::holding(self, cx, cy, code)
     end,
 
     /// Function: set_window
@@ -168,7 +168,7 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
         self.value = kwargs.value or 0
         self.bar = kwargs.bar
         self.label = kwargs.label or "%d%%"
-        return Filler.__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs)
     end,
 
     /**
@@ -193,11 +193,11 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
 M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
     adjust_children = func(self)
         var bar = self.bar
-        if not bar do return Widget.adjust_children(self) end
+        if not bar do return Widget::adjust_children(self) end
         bar.x = 0
         bar.w = max(min(self.w, self.w * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_HMASK
-        Widget.adjust_children(self)
+        Widget::adjust_children(self)
     end
 })
 
@@ -205,11 +205,11 @@ M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
 M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
     adjust_children = func(self)
         var bar = self.bar
-        if not bar do return Widget.adjust_children(self) end
+        if not bar do return Widget::adjust_children(self) end
         bar.y = 0
         bar.h = max(min(self.h, self.h * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_VMASK
-        Widget.adjust_children(self)
+        Widget::adjust_children(self)
     end
 })
 
@@ -239,7 +239,7 @@ M.Animator = register_type("Animator", Widget, {
         self.move_dist_y  = kwargs.move_dist_y or undef
         self.move_speed   = kwargs.move_speed  or 0.2
         self:reset()
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     reset = func(self)
@@ -281,19 +281,19 @@ M.Animator = register_type("Animator", Widget, {
     end,
 
     layout = func(self)
-        if not self.started do return Widget.layout(self) end
+        if not self.started do return Widget::layout(self) end
 
         var prog = self:get_progress()
         if prog >= 1.0 do
             self.started = false
             emit(self, "anim,end")
-            return Widget.layout(self)
+            return Widget::layout(self)
         end
 
         var millis = get_curtime()
         self.move_elapsed += millis
 
-        M.loop_children(self, func(o)
+        M::loop_children(self, func(o)
             o:layout()
             self:animate(o, millis)
             self.w = max(self.w, o.x + o.w)

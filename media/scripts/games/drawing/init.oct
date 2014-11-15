@@ -59,7 +59,7 @@ var GamePlayer = Player:clone {
     name = "GamePlayer",
 
     __properties = {
-        new_mark = svars.StateArrayFloat {
+        new_mark = svars::StateArrayFloat {
             client_set = true, has_history = false
         }
     },
@@ -71,7 +71,7 @@ var GamePlayer = Player:clone {
             self.color_id = 0
         end
         self.color = colors[self.color_id]
-        log.echo(("color switch: 0x%.6X"):format(self.color))
+        log::echo(("color switch: 0x%.6X"):format(self.color))
     end,
 
     reset_mark = func(self)
@@ -84,7 +84,7 @@ var GamePlayer = Player:clone {
         change of new_mark.
     */
     __activate = @[not server,func(self, kwargs)
-        Player.__activate(self, kwargs)
+        Player::__activate(self, kwargs)
         self.marks = []
         self.color_id = 0
         self.color    = colors[0]
@@ -102,7 +102,7 @@ var GamePlayer = Player:clone {
         Called every frame. It goes over the marks and draws everything.
     */
     __run = @[not server,func(self, millis)
-        Player.__run(self, millis)
+        Player::__run(self, millis)
         var last = undef
         var marks = self.marks
 
@@ -125,7 +125,7 @@ var GamePlayer = Player:clone {
         end
 
         if self.pressing do
-            var newp = input.get_target_position()
+            var newp = input::get_target_position()
             var topl = self:get_attr("position"):sub_new(newp)
             newp:add(topl:normalize())
             if newb or marks[marks:len() - 2]:dist(newp) > 5 do
@@ -135,33 +135,33 @@ var GamePlayer = Player:clone {
     end]
 }
 
-ents.register_prototype(GamePlayer, [
+ents::register_prototype(GamePlayer, [
     game_manager.player_plugin,
     health.player_plugin,
     health.plugins.player_hud,
     health.plugins.player_off_map,
     health.plugins.player_in_deadly_material
 ])
-ents.register_prototype(ents.Obstacle, [ health.plugins.area ],
+ents::register_prototype(ents.Obstacle, [ health.plugins.area ],
     "HealthArea")
 
-day_manager.setup([ day_manager.plugins.day_night ])
+day_manager::setup([ day_manager.plugins.day_night ])
 
 @[not server] then
-    inputev.set_event("click", func(btn, down, x, y, z, uid, cx, cy)
-        var ent = ents.get(uid)
+    inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy)
+        var ent = ents::get(uid)
         if ent and ent.click do
             return ent:click(btn, down, x, y, z, cx, cy)
         end
         if btn == 1 do
-            ents.get_player().pressing   = down
-            ents.get_player().stop_batch = false
+            ents::get_player().pressing   = down
+            ents::get_player().stop_batch = false
         elif btn == 2 and down do
-            ents.get_player():reset_mark()
+            ents::get_player():reset_mark()
         elif btn == 3 and down do
-            ents.get_player():next_color()
+            ents::get_player():next_color()
         end
     end)
 else
-    ents.set_player_prototype("GamePlayer")
+    ents::set_player_prototype("GamePlayer")
 end

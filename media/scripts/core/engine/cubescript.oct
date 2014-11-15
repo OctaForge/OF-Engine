@@ -19,14 +19,14 @@ var M = {
     __connect = func(self, name)
         var  vn = name:find_match("(.+),changed$")
         if not vn do return end
-        capi.var_make_emit(vn, true)
+        capi::var_make_emit(vn, true)
     end,
 
     __disconnect = func(self, name, id, scount)
         if scount == 0 do
             var  vn = name:find_match("(.+),changed$")
             if not vn do return end
-            capi.var_make_emit(vn, false)
+            capi::var_make_emit(vn, false)
         end
     end
 }
@@ -88,8 +88,8 @@ M.var_new = capi.var_new
         - $var_new
 */
 M.var_new_checked = func(varn, ...)
-    if not capi.var_exists(varn) do
-        capi.var_new(varn, ...)
+    if not capi::var_exists(varn) do
+        capi::var_new(varn, ...)
         return true
     end
     return false
@@ -159,7 +159,7 @@ M.var_is_hex = capi.var_is_hex
 /// Checks for existence of an engine variable.
 M.var_exists = capi.var_exists
 
-;(import core.externals).set("var_emit_changed", func(name, ...)
+;(import core.externals)::set("var_emit_changed", func(name, ...)
     emit(M, name ~ ",changed", ...)
 end)
 

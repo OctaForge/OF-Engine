@@ -1,4 +1,4 @@
 import core.logger as log
 
-log.log(log.DEBUG, ":::: Messages.")
+log::log(log.DEBUG, ":::: Messages.")
 import core.network.msg as undef

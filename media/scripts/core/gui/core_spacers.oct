@@ -23,7 +23,7 @@ var register_type = M.register_type
 var loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
 // base widgets
-var Widget = M.get_type("Widget")
+var Widget = M::get_type("Widget")
 
 // setters
 var gen_setter = M.gen_setter
@@ -40,7 +40,7 @@ M.Spacer = register_type("Spacer", Widget, {
         self.pad_h = kwargs.pad_h or 0
         self.pad_v = kwargs.pad_v or 0
 
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     layout = func(self)
@@ -62,7 +62,7 @@ M.Spacer = register_type("Spacer", Widget, {
 
     adjust_children = func(self)
         var ph, pv = self.pad_h, self.pad_v
-        Widget.adjust_children(self, ph, pv, self.w - 2 * ph,
+        Widget::adjust_children(self, ph, pv, self.w - 2 * ph,
             self.h - 2 * pv)
     end,
 
@@ -98,11 +98,11 @@ M.Filler = register_type("Filler", Widget, {
 
         self.clip_children = kwargs.clip_children or false
 
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     layout = func(self)
-        Widget.layout(self)
+        Widget::layout(self)
 
         var min_w = self.min_w
         var min_h = self.min_h
@@ -127,16 +127,16 @@ M.Filler = register_type("Filler", Widget, {
         surfaces (when they should be invisible). See also {{$Widget.target}}.
     */
     target = func(self, cx, cy)
-        return Widget.target(self, cx, cy) or self
+        return Widget::target(self, cx, cy) or self
     end,
 
     draw = func(self, sx, sy)
         if self.clip_children do
             self:get_root():clip_push(sx, sy, self.w, self.h)
-            Widget.draw(self, sx, sy)
+            Widget::draw(self, sx, sy)
             self:get_root():clip_pop()
         else
-            return Widget.draw(self, sx, sy)
+            return Widget::draw(self, sx, sy)
         end
     end,
 
@@ -167,11 +167,11 @@ M.TextFiller = register_type("TextFiller", Filler, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.console_text = kwargs.console_text or false
-        return Filler.__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs)
     end,
 
     layout = func(self)
-        Widget.layout(self)
+        Widget::layout(self)
 
         var min_w = self.min_w
         var min_h = self.min_h
@@ -196,11 +196,11 @@ M.Offsetter = register_type("Offsetter", Widget, {
         self.offset_h = kwargs.offset_h or 0
         self.offset_v = kwargs.offset_v or 0
 
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     layout = func(self)
-        Widget.layout(self)
+        Widget::layout(self)
 
         var oh, ov = self.offset_h, self.offset_v
 
@@ -215,7 +215,7 @@ M.Offsetter = register_type("Offsetter", Widget, {
 
     adjust_children = func(self)
         var oh, ov = self.offset_h, self.offset_v
-        Widget.adjust_children(self, oh, ov, self.w - oh, self.h - ov)
+        Widget::adjust_children(self, oh, ov, self.w - oh, self.h - ov)
     end,
 
     /// Function: set_offset_h

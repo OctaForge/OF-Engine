@@ -40,7 +40,7 @@ var register_type = M.register_type
 var Color = M.Color
 
 // base widgets
-var Widget = M.get_type("Widget")
+var Widget = M::get_type("Widget")
 
 // setters
 var gen_setter = M.gen_setter
@@ -70,7 +70,7 @@ var chunksize = 256
 var ffi_new, ffi_cast, ffi_copy, ffi_string = ffi.new, ffi.cast, ffi.copy,
 ffi.string
 
-ffi.cdef r"""
+ffi::cdef r"""
     void *memmove(void*, const void*, size_t);
     typedef struct editline_t {
         char *text;
@@ -93,18 +93,18 @@ var editline_MT = {
     __index = {
         empty = func(self) return self.len <= 0 end,
         clear = func(self)
-            capi.raw_free(self.text)
+            capi::raw_free(self.text)
             self.text = undef
             self.len, self.maxlen = 0, 0
         end,
         grow = func(self, total, nocopy)
             if total + 1 <= self.maxlen do return false end
             self.maxlen = (total + chunksize) - total % chunksize
-            var newtext = ffi_cast("char*", capi.raw_alloc(self.maxlen))
+            var newtext = ffi_cast("char*", capi::raw_alloc(self.maxlen))
             if not nocopy do
                 ffi_copy(newtext, self.text, self.len + 1)
             end
-            capi.raw_free(self.text)
+            capi::raw_free(self.text)
             self.text = newtext
             return true
         end,
@@ -117,7 +117,7 @@ var editline_MT = {
         prepend = func(self, str)
             var slen = str:len()
             self:grow(self.len + slen)
-            C.memmove(self.text + slen, self.text, self.len + 1)
+            C::memmove(self.text + slen, self.text, self.len + 1)
             ffi_copy(self.text, str)
             self.len += slen
             return self
@@ -135,7 +135,7 @@ var editline_MT = {
             end
             if count <= 0 or start >= self.len do return self end
             if start + count > self.len do count = self.len - start - 1 end
-            C.memmove(self.text + start, self.text + start + count,
+            C::memmove(self.text + start, self.text + start + count,
                 self.len + 1 - (start + count))
             self.len -= count
             return self
@@ -151,7 +151,7 @@ var editline_MT = {
             start = clamp(start, 0, self.len)
             self:grow(self.len + count)
             if self.len == 0 do self.text[0] = 0 end
-            C.memmove(self.text + start + count, self.text + start,
+            C::memmove(self.text + start + count, self.text + start,
                 self.len - start + 1)
             ffi_copy(self.text + start, str, count)
             self.len += count
@@ -179,7 +179,7 @@ var editline_MT = {
         end
     }
 }
-var editline = ffi.metatype("editline_t", editline_MT)
+var editline = ffi::metatype("editline_t", editline_MT)
 
 var get_aw = func(self) return self.w - self.pad_l - self.pad_r end
 
@@ -270,7 +270,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         self._needs_calc = true
         self._needs_offset = false
 
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     /**
@@ -659,7 +659,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         self:set_focused(false)
         self:bind_h_scrollbar()
         self:bind_v_scrollbar()
-        return Widget.clear(self)
+        return Widget::clear(self)
     end,
 
     edit_clear = func(self, init)
@@ -692,7 +692,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     key = func(self, code, isdown)
-        if Widget.key(self, code, isdown) do return true end
+        if Widget::key(self, code, isdown) do return true end
         if not self:is_focused() do return false end
 
         if code == key.ESCAPE do
@@ -713,7 +713,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
     key_hover = func(self, code, isdown)
         if not self.multiline do
-            return Widget.key_hover(self, code, isdown)
+            return Widget::key_hover(self, code, isdown)
         end
         var hoverkeys = {
             $(key.MOUSEWHEELUP  ) = true,
@@ -726,7 +726,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
             if isdown do self:key_edit(code) end
             return true
         end
-        return Widget.key_hover(self, code, isdown)
+        return Widget::key_hover(self, code, isdown)
     end,
 
     key_edit = func(self, code)
@@ -973,7 +973,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     target = func(self, cx, cy)
-        return Widget.target(self, cx, cy) or self
+        return Widget::target(self, cx, cy) or self
     end,
 
     hover = func(self, cx, cy)
@@ -1007,11 +1007,11 @@ M.TextEditor = register_type("TextEditor", Widget, {
             self:hit(cx, cy, max(abs(cx - self._oh), abs(cy - self._ov))
                 > (text_font_get_h() / 8 * self:draw_scale()))
         end
-        Widget.holding(self, cx, cy, code)
+        Widget::holding(self, cx, cy, code)
     end,
 
     set_focused = func(self, foc)
-        Widget.set_focused(self, foc)
+        Widget::set_focused(self, foc)
         var ati = foc and self:allow_text_input() or false
         input_textinput(ati, 1 << 1) // TI_GUI
         input_keyrepeat(ati, 1 << 1) // KR_GUI
@@ -1022,13 +1022,13 @@ M.TextEditor = register_type("TextEditor", Widget, {
         self:mark()
         self._oh, self._ov = cx, cy
 
-        return Widget.clicked(self, cx, cy, code)
+        return Widget::clicked(self, cx, cy, code)
     end,
 
     allow_text_input = func(self) return true end,
 
     text_input = func(self, str)
-        if Widget.text_input(self, str) do return true end
+        if Widget::text_input(self, str) do return true end
         if not self:is_focused() or not self:allow_text_input() do
             return false
         end
@@ -1124,7 +1124,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     layout = func(self)
-        Widget.layout(self)
+        Widget::layout(self)
 
         self._prev_tw = self.text_w
 
@@ -1158,7 +1158,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     adjust_layout = func(self, px, py, pw, ph)
-        Widget.adjust_layout(self, px, py, pw, ph)
+        Widget::adjust_layout(self, px, py, pw, ph)
         if self._needs_offset do
             self:region()
             var k = self:draw_scale()
@@ -1265,7 +1265,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     draw = func(self, sx, sy)
-        Widget.draw(self, sx, sy)
+        Widget::draw(self, sx, sy)
 
         text_font_push()
         text_font_set(self.font)
@@ -1333,11 +1333,11 @@ M.Field = register_type("Field", TextEditor, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         kwargs.multiline = kwargs.multiline or false
-        return TextEditor.__ctor(self, kwargs)
+        return TextEditor::__ctor(self, kwargs)
     end,
 
     commit = func(self)
-        TextEditor.commit(self)
+        TextEditor::commit(self)
         var val = tostring(self.lines[0])
         self.value = val
         // trigger changed signal
@@ -1362,7 +1362,7 @@ M.KeyField = register_type("KeyField", M.Field, {
 
     /// Overloaded. Commits on the escape key, inserts the name otherwise.
     key_raw = func(code, isdown)
-        if Widget.key_raw(code, isdown) do return true end
+        if Widget::key_raw(code, isdown) do return true end
         if not self:is_focused() or not isdown do return false end
         if code == key.ESCAPE do self:commit()
         else self:key_insert(code) end

@@ -23,7 +23,7 @@ var register_type = M.register_type
 var loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
 // base widgets
-var Widget = M.get_type("Widget")
+var Widget = M::get_type("Widget")
 
 // setters
 var gen_setter = M.gen_setter
@@ -66,7 +66,7 @@ M.HBox = register_type("HBox", Widget, {
         self.padding    = kwargs.padding    or 0
         self.expand     = kwargs.expand     or false
         self.homogenous = kwargs.homogenous or false
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     layout = func(self)
@@ -149,7 +149,7 @@ M.VBox = register_type("VBox", Widget, {
         self.padding    = kwargs.padding    or 0
         self.expand     = kwargs.expand     or false
         self.homogenous = kwargs.homogenous or false
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     layout = func(self)
@@ -245,7 +245,7 @@ M.Grid = register_type("Grid", Widget, {
         self.columns = kwargs.columns or 0
         self.padding_h = kwargs.padding_h or kwargs.padding or 0
         self.padding_v = kwargs.padding_v or kwargs.padding or 0
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     layout = func(self)
@@ -342,11 +342,11 @@ M.Clipper = register_type("Clipper", Widget, {
         self.virt_w = 0
         self.virt_h = 0
 
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     layout = func(self)
-        Widget.layout(self)
+        Widget::layout(self)
     
         self.virt_w = self.w
         self.virt_h = self.h
@@ -356,7 +356,7 @@ M.Clipper = register_type("Clipper", Widget, {
     end,
 
     adjust_children = func(self)
-        Widget.adjust_children(self, 0, 0, self.virt_w, self.virt_h)
+        Widget::adjust_children(self, 0, 0, self.virt_w, self.virt_h)
     end,
 
     draw = func(self, sx, sy)
@@ -365,10 +365,10 @@ M.Clipper = register_type("Clipper", Widget, {
         if (w != 0 and self.virt_w > w) or (h != 0 and self.virt_h > h)
         do
             self:get_root():clip_push(sx, sy, w, h)
-            Widget.draw(self, sx, sy)
+            Widget::draw(self, sx, sy)
             self:get_root():clip_pop()
         else
-            return Widget.draw(self, sx, sy)
+            return Widget::draw(self, sx, sy)
         end
     end,
 

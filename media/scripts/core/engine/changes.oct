@@ -28,7 +28,7 @@ M.change = {:
 var change = M.change
 
 set_external("change_add", func(desc, ctype)
-    signal.emit(M, "add", ctype, desc)
+    signal::emit(M, "add", ctype, desc)
 end)
 
 /**
@@ -73,12 +73,12 @@ M.apply = func()
     end
 
     if (changetypes & change.GFX) != 0 do
-        cs.execute("resetgl")
+        cs::execute("resetgl")
     elif (changetypes & change.SHADERS) != 0 do
-        cs.execute("resetshaders")
+        cs::execute("resetshaders")
     end
     if (changetypes & change.SOUND) != 0 do
-        cs.execute("resetsound")
+        cs::execute("resetsound")
     end
 end
 

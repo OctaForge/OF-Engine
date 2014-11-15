@@ -30,18 +30,18 @@ var DayManager = Entity:clone {
     name = "DayManager",
 
     __properties = {
-        day_seconds = svars.StateInteger(),
-        day_progress = svars.StateInteger { reliable = false }
+        day_seconds = svars::StateInteger(),
+        day_progress = svars::StateInteger { reliable = false }
     },
 
     __init_svars = func(self)
-        Entity.__init_svars(self)
+        Entity::__init_svars(self)
         self:set_attr("day_seconds", 40)
         self:set_attr("day_progress", 0)
     end,
 
     __activate = @[server,func(self)
-        Entity.__activate(self)
+        Entity::__activate(self)
         self.day_seconds_s = self:get_attr("day_seconds")
         connect(self, "day_seconds,changed", func(self, v)
             self.day_seconds_s = v
@@ -51,7 +51,7 @@ var DayManager = Entity:clone {
 
     __run = func(self, millis)
         @[not server] do return end
-        Entity.__run(self, millis)
+        Entity::__run(self, millis)
         var dm = self.day_seconds_s * 1000
         if dm == 0 do return end
         var dp = self.day_progress_s
@@ -67,7 +67,7 @@ var dayman
 /// Gets the day manager instance.
 M.get = func()
     if not dayman do
-        dayman = ents.get_by_prototype("DayManager"):first()
+        dayman = ents::get_by_prototype("DayManager"):first()
     end
     assert(dayman)
     return dayman
@@ -81,9 +81,9 @@ get = M.get
     entity.
 */
 M.setup = func(plugins)
-    ents.register_prototype(DayManager, plugins)
+    ents::register_prototype(DayManager, plugins)
     @[server] do
-        dayman = ents.new("DayManager")
+        dayman = ents::new("DayManager")
         return dayman
     end
 end
@@ -134,18 +134,18 @@ M.plugins = {
             end)
             connect(self, "day_progress,changed", func(self, v)
                 if not daylen do return end
-                if edit.player_is_editing() do return end
+                if edit::player_is_editing() do return end
                 self.sun_changed_dir = true
                 var yaw, pitch, scale = getsunparams(v, daylen * 1000)
-                lights.set_sun_yaw_pitch(yaw, pitch)
-                lights.set_sunlight_scale(scale)
-                lights.set_skylight_scale(scale)
+                lights::set_sun_yaw_pitch(yaw, pitch)
+                lights::set_sunlight_scale(scale)
+                lights::set_skylight_scale(scale)
             end)
         end],
 
         __run = @[not server,func(self)
-            if self.sun_changed_dir and edit.player_is_editing() do
-                lights.reset_sun()
+            if self.sun_changed_dir and edit::player_is_editing() do
+                lights::reset_sun()
                 self.sun_changed_dir = false
             end
         end]

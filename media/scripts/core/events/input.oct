@@ -39,7 +39,7 @@ var event_map
 */
 set_ext("input_yaw", func(dir, down)
     if not ents do ents = import core.entities.ents end
-    ents.get_player():set_attr("yawing", dir)
+    ents::get_player():set_attr("yawing", dir)
 end)
 
 /** Function: input_pitch
@@ -52,7 +52,7 @@ end)
 */
 set_ext("input_pitch", func(dir, down)
     if not ents do ents = import core.entities.ents end
-    ents.get_player():set_attr("pitching", dir)
+    ents::get_player():set_attr("pitching", dir)
 end)
 
 /** Function: input_move
@@ -65,7 +65,7 @@ end)
 */
 set_ext("input_move", func(dir, down)
     if not ents do ents = import core.entities.ents end
-    ents.get_player():set_attr("move", dir)
+    ents::get_player():set_attr("move", dir)
 end)
 
 /** Function: input_strafe
@@ -78,7 +78,7 @@ end)
 */
 set_ext("input_strafe", func(dir, down)
     if not ents do ents = import core.entities.ents end
-    ents.get_player():set_attr("strafe", dir)
+    ents::get_player():set_attr("strafe", dir)
 end)
 
 /** Function: input_jump
@@ -90,7 +90,7 @@ end)
 */
 set_ext("input_jump", func(down)
     if not ents do ents = import core.entities.ents end
-    ents.get_player():jump(down)
+    ents::get_player():jump(down)
 end)
 
 /** Function: input_crouch
@@ -102,7 +102,7 @@ end)
 */
 set_ext("input_crouch", func(down)
     if not ents do ents = import core.entities.ents end
-    ents.get_player():crouch(down)
+    ents::get_player():crouch(down)
 end)
 
 /** Function: input_click
@@ -121,7 +121,7 @@ end)
 */
 set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy)
     if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) do
-        msg.send(capi.do_click, btn, down, x, y, z, uid)
+        msg::send(capi.do_click, btn, down, x, y, z, uid)
     end
 end)
 
@@ -135,7 +135,7 @@ end)
 set_ext("input_click_client", func(btn, down, x, y, z, uid, cx, cy)
     if not ents do ents = import core.entities.ents end
     var ent
-    if uid >= 0 do ent = ents.get(uid) end
+    if uid >= 0 do ent = ents::get(uid) end
     if ent and ent.click do
         return ent:click(btn, down, x, y, z, cx, cy)
     end
@@ -166,7 +166,7 @@ end
 set_ext("input_click_server", func(btn, dn, x, y, z, uid)
     if not ents do ents = import core.entities.ents end
     var ent
-    if uid >= 0 do ent = ents.get(uid) end
+    if uid >= 0 do ent = ents::get(uid) end
     if ent and ent.click do
         return ent:click(btn, dn, x, y, z)
     end

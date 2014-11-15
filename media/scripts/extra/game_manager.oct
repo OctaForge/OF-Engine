@@ -32,8 +32,8 @@ var get
 */
 M.player_plugin = {
     __properties = {
-        team        = svars.StateString(),
-        spawn_stage = svars.StateInteger()
+        team        = svars::StateString(),
+        spawn_stage = svars::StateInteger()
     },
 
     __init_svars = func(self)
@@ -73,7 +73,7 @@ M.player_plugin = {
     end,func(self, auid) end],
 
     game_manager_spawn_stage_3 = @[not server,func(self, auid)
-        if self == ents.get_player() do
+        if self == ents::get_player() do
             emit(self, "client,respawn")
             self:set_attr("spawn_stage", 4)
         end
@@ -99,11 +99,11 @@ var GameManager = Entity:clone {
     name = "GameManager",
 
     __properties = {
-        team_data = svars.StateTable()
+        team_data = svars::StateTable()
     },
 
     __activate = @[server,func(self)
-        Entity.__activate(self)
+        Entity::__activate(self)
         self:add_tag("game_manager")
         self.teams = {}
     end],
@@ -167,12 +167,12 @@ var GameManager = Entity:clone {
         else
             st = "player_start_" ~ team
         end
-        var starts = ents.get_by_tag(st)
+        var starts = ents::get_by_tag(st)
         if starts and starts:len() > 0 do
             starts[rand(0, starts:len() - 1)]:place_entity(player)
             return
         end
-        log.log(log.WARNING, ('player start not found (\"%s\"), '
+        log::log(log.WARNING, ('player start not found (\"%s\"), '
             ~ 'placing player elsewhere'):format(st))
         player:set_attr("position", [ 512, 512, 571 ])
     end,
@@ -188,7 +188,7 @@ var gameman
 /// Gets the current game manager instance.
 M.get = func()
     if not gameman do
-        gameman = ents.get_by_prototype("GameManager"):first()
+        gameman = ents::get_by_prototype("GameManager"):first()
     end
     assert(gameman)
     return gameman
@@ -200,9 +200,9 @@ get = M.get
     {{$ents.load}}. On the server, this returns the entity.
 */
 M.setup = func(plugins)
-    ents.register_prototype(GameManager, plugins)
+    ents::register_prototype(GameManager, plugins)
     @[server] do
-        gameman = ents.new("GameManager")
+        gameman = ents::new("GameManager")
         return gameman
     end
 end

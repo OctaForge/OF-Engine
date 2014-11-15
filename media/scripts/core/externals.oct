@@ -36,6 +36,6 @@ M.set = func(name, fun)
     return old
 end
 
-capi.external_hook(M.get)
+capi::external_hook(M.get)
 
 return M

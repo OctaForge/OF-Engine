@@ -12,8 +12,8 @@ import extra.entities.particles
 import games.octacraft
 
 // this is how you initialize game manager
-game_manager.setup()
+game_manager::setup()
 
 // this function will run on server only (condition inside it)
 // it loads the entities into server storage and sends to clients
-ents.load()
+ents::load()

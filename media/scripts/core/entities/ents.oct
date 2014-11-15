@@ -258,7 +258,7 @@ M.register_prototype = func(cl, plugins, name)
         var props = base.__properties
         if props do
             for n, v in pairs(props) do
-                if not pt[n] and svars.is_svar(v) do
+                if not pt[n] and svars::is_svar(v) do
                     pt[n] = v
                     sv_names:push(n)
                 end
@@ -585,7 +585,7 @@ M.load = func()
     @[not server] do return end
 
     @[debug] log(DEBUG, "ents.load: reading")
-    var el = capi.readfile("./entities.oct")
+    var el = capi::readfile("./entities.oct")
 
     var entities = []
     if not el do
@@ -598,7 +598,7 @@ M.load = func()
         @[debug] log(DEBUG, "ents.load: loading sauer entities:\n"
             "    reading import.oct for imported models and sounds")
 
-        var il, im, is = capi.readfile("./import.oct"), [], []
+        var il, im, is = capi::readfile("./import.oct"), [], []
         if il do
             var it = deserialize(il)
             var itm, its = it.models, it.sounds
@@ -740,8 +740,8 @@ M.Entity = Object:clone {
         entity prototype, do not create this table.
     */
     __properties = {
-        tags       = svars.StateArray(),
-        persistent = svars.StateBoolean()
+        tags       = svars::StateArray(),
+        persistent = svars::StateBoolean()
     },
 
     /// Makes entity objects return their name on tostring.
@@ -758,7 +758,7 @@ M.Entity = Object:clone {
 
         if self.setup_complete do return end
 
-        self.action_queue = actions.ActionQueue(self)
+        self.action_queue = actions::ActionQueue(self)
         // for caching
         self.svar_values, self.svar_value_timestamps = {}, {}
         // no longer deactivated
@@ -775,12 +775,12 @@ M.Entity = Object:clone {
     */
     __deactivate = func(self)
         self:clear_actions()
-        capi.unregister_entity(self.uid)
+        capi::unregister_entity(self.uid)
 
         self.deactivated = true
 
         @[server] do
-            msg.send(msg.ALL_CLIENTS, capi.le_removal, self.uid)
+            msg::send(msg.ALL_CLIENTS, capi.le_removal, self.uid)
         end
     end,
 
@@ -960,7 +960,7 @@ M.Entity = Object:clone {
 
         if not self.sauer_type do
             @[debug] log(DEBUG, e"Entity.__activate: non-sauer entity: $(self.name)")
-            capi.setup_nonsauer(self.uid)
+            capi::setup_nonsauer(self.uid)
             @[server] self:flush_queued_svar_changes()
         end
 
@@ -994,7 +994,7 @@ M.Entity = Object:clone {
             @[debug] log(INFO, "Setter called")
 
             self.svar_values[name] = val
-            self.svar_value_timestamps[name] = frame.get_frame()
+            self.svar_value_timestamps[name] = frame::get_frame()
         else
             self:queue_svar_change(name, val)
         end
@@ -1040,7 +1040,7 @@ M.Entity = Object:clone {
         if not nfh and not csfh do
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
-            msg.send(svar.reliable and capi.statedata_changerequest
+            msg::send(svar.reliable and capi.statedata_changerequest
                 or capi.statedata_changerequest_unreliable,
                 self.uid, names_to_ids[self.name][svar.name],
                 svar:to_wire(val))
@@ -1111,7 +1111,7 @@ M.Entity = Object:clone {
             for i, n in cns:each() do
                 if svar:should_send(self, n) do
                     args[0] = n
-                    msg.send(args:unpack())
+                    msg::send(args:unpack())
                 end
             end
         end
@@ -1140,7 +1140,7 @@ M.Entity = Object:clone {
 
         var scn, sname = self.cn, self.name
         for i, n in cns:each() do
-            msg.send(n, capi.le_notification_complete,
+            msg::send(n, capi.le_notification_complete,
                 scn and scn or acn, uid, sname, self:build_sdata(
                     { target_cn = n, compressed = true }))
         end
@@ -1343,12 +1343,12 @@ set_external("entity_draw_attached", func(uid)
     if not ent do return end
     var ents = [ ent:get_attached_next() ]
     if not ents:empty() do
-        for i, ent in ents:each() do capi.entity_draw_attachment(uid, ent.uid) end
+        for i, ent in ents:each() do capi::entity_draw_attachment(uid, ent.uid) end
         return
     end
     ents = [ ent:get_attached_prev() ]
     if not ents:empty() do
-        for i, ent in ents:each() do capi.entity_draw_attachment(ent.uid, uid) end
+        for i, ent in ents:each() do capi::entity_draw_attachment(ent.uid, uid) end
         return
     end
 end)
@@ -1549,7 +1549,7 @@ M.send = @[server,func(cn)
         end
     end
     uids:sort()
-    msg.send(cn, capi.notify_numents, uids:len())
+    msg::send(cn, capi.notify_numents, uids:len())
     for i, uid in uids:each() do
         storage[uid]:send_notification_full(cn)
     end

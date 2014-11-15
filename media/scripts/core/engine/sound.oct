@@ -40,7 +40,7 @@ return {
             - name - the sound name.
             - vol - an optional volume that defaults to 100.
     */
-    stop = func(name, vol) capi.sound_stop(name, vol or 100) end,
+    stop = func(name, vol) capi::sound_stop(name, vol or 100) end,
 
     /** Function: preload_map
         Preloads a map sound so that it doesn't have to be loaded on the fly
@@ -54,7 +54,7 @@ return {
             - $preload_game
     */
     preload_map = func(name, vol)
-        return capi.sound_preload_map(name, vol or 100)
+        return capi::sound_preload_map(name, vol or 100)
     end,
 
     /** Function: preload_game
@@ -69,6 +69,6 @@ return {
             - $preload_map
     */
     preload_game = func(name, vol)
-        return capi.sound_preload_game(name, vol or 100)
+        return capi::sound_preload_game(name, vol or 100)
     end
 }

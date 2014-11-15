@@ -271,7 +271,7 @@ M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj)
 end
 var loop_in_children_r = M.loop_in_children_r
 
-ffi.cdef r"""
+ffi::cdef r"""
     typedef struct clip_area_t {
         float x1, y1, x2, y2;
     } clip_area_t;
@@ -283,7 +283,7 @@ var ffi_new = ffi.new
     Represents a clip area defined by four points, x1, y1, x2, y2. The latter
     refer to x1+w and y1+h respectively.
 */
-M.ClipArea = ffi.metatype("clip_area_t", {
+M.ClipArea = ffi::metatype("clip_area_t", {
     __new = func(self, x, y, w, h)
         return ffi_new("clip_area_t", x, y, x + w, y + h)
     end,
@@ -423,7 +423,7 @@ var Projection = Object:clone {
     end
 }
 
-ffi.cdef r"""
+ffi::cdef r"""
     typedef struct color_t {
         uchar r, g, b, a;
     } color_t;
@@ -455,7 +455,7 @@ end
     A color structure used for color attributes in all widgets that support
     them. Has fields r, g, b, a ranging from 0 to 255.
 */
-M.Color = ffi.metatype("color_t", {
+M.Color = ffi::metatype("color_t", {
     /**
         Depending on the number of arguments, this initializes the color.
 
@@ -510,11 +510,11 @@ M.Color = ffi.metatype("color_t", {
     to 40. You can change this to tweak the font scale and thus the whole UI
     scale.
 */
-cs.var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
+cs::var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     cs.var_flags.PERSIST)
 
 var uitextrows = var_get("uitextrows")
-signal.connect(cs, "uitextrows,changed", func(self, n)
+signal::connect(cs, "uitextrows,changed", func(self, n)
     uitextrows = n
 end)
 
@@ -656,7 +656,7 @@ M.Widget = register_type("Widget", Object, {
 
         if kwargs.signals do
             for k, v in pairs(kwargs.signals) do
-                signal.connect(self, k, v)
+                signal::connect(self, k, v)
             end
         end
 
@@ -710,7 +710,7 @@ M.Widget = register_type("Widget", Object, {
 
         // and init
         if  kwargs.__init do
-            kwargs.__init(self)
+            kwargs::__init(self)
         end
     end,
 
@@ -1768,7 +1768,7 @@ M.NamedWidget = register_type("NamedWidget", Widget, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.obj_name = kwargs.name
-        return Widget.__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs)
     end,
 
     /// Function: set_obj_name
@@ -1802,7 +1802,7 @@ M.Window = register_type("Window", NamedWidget, {
         var ig = kwargs.input_grab
         self.input_grab = ig == undef and true or ig
         self.above_hud = kwargs.above_hud or false
-        return NamedWidget.__ctor(self, kwargs)
+        return NamedWidget::__ctor(self, kwargs)
     end,
 
     /// Equivalent to win.parent:hide_window(win.obj_name).
@@ -1869,7 +1869,7 @@ M.Root = register_type("Root", Widget, {
         self._focused    = undef
         self._rtxt_scale = 0
         self._ctxt_scale = 0
-        return Widget.__ctor(self)
+        return Widget::__ctor(self)
     end,
 
     /**
@@ -2008,7 +2008,7 @@ M.Root = register_type("Root", Widget, {
         if old do self:remove(old) end
         var win = self.windows[name]
         if not win do
-            logger.log(logger.ERROR, "no such window: " ~ name)
+            logger::log(logger.ERROR, "no such window: " ~ name)
             return false
         end
         win(false) // set visible to false
@@ -2497,7 +2497,7 @@ var Root = M.Root
 
 root = Root()
 
-signal.connect(root, "__has_cursor,changed", func(self, val)
+signal::connect(root, "__has_cursor,changed", func(self, val)
     input_cursor_exists_update(val)
 end)
 
@@ -2580,7 +2580,7 @@ end)
 var draw_hud = false
 
 var mmenu = var_get("mainmenu")
-signal.connect(cs, "mainmenu,changed", func(self, v)
+signal::connect(cs, "mainmenu,changed", func(self, v)
     mmenu = v
 end)
 

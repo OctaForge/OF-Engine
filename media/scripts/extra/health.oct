@@ -33,9 +33,9 @@ var connect, emit = signal.connect, signal.emit
     on the client. They're stored in this enumeration.
 */
 var anims = @[not server,{:
-    dead  = model.register_anim "dead",
-    dying = model.register_anim "dying",
-    pain  = model.register_anim "pain"
+    dead  = model::register_anim "dead",
+    dying = model::register_anim "dying",
+    pain  = model::register_anim "pain"
 :}]
 M.anims = anims
 
@@ -94,8 +94,8 @@ M.DeathAction = DeathAction
 */
 M.player_plugin = {
     __properties = {
-        health = svars.StateInteger     { client_set = true },
-        max_health = svars.StateInteger { client_set = true }
+        health = svars::StateInteger     { client_set = true },
+        max_health = svars::StateInteger { client_set = true }
     },
 
     __init_svars = func(self)
@@ -119,7 +119,7 @@ M.player_plugin = {
     end],
 
     get_animation = func(self)
-        var ret = self.__parent_ent_proto.get_animation(self)
+        var ret = self.__parent_ent_proto::get_animation(self)
         var INDEX, idle = model.anims.INDEX, model.anims.idle
         if self:get_attr("health") > 0 do
             if (ret & INDEX) == anims.dying or (ret & INDEX) == anims.dead do
@@ -138,7 +138,7 @@ M.player_plugin = {
         if (anim & model.anims.INDEX) == anims.dying do
             var pbt = self.prev_bt
             if not pbt do
-                pbt = frame.get_last_millis()
+                pbt = frame::get_last_millis()
                 self.prev_bt = pbt
             end
             return pbt
@@ -152,11 +152,11 @@ M.player_plugin = {
     */
     decide_animation = @[not server,func(self, ...)
         if self:get_attr("health") > 0 do
-            return self.__parent_ent_proto.decide_animation(self, ...)
+            return self.__parent_ent_proto::decide_animation(self, ...)
         else
             var anim
             var pbt = self.prev_bt
-            if pbt and (frame.get_last_millis() - pbt) > 1000 do
+            if pbt and (frame::get_last_millis() - pbt) > 1000 do
                 anim = anims.dead | model.anim_control.LOOP
             else
                 anim = anims.dying
@@ -234,7 +234,7 @@ var HealthAction = actions.Action:clone {
     cancelable = false,
 
     __ctor = func(self, kwargs)
-        actions.Action.__ctor(self, kwargs)
+        actions.Action::__ctor(self, kwargs)
         self.health_step = kwargs.health_step
     end,
 
@@ -273,8 +273,8 @@ M.plugins = {
     */
     area = {
         __properties = {
-            health_step = svars.StateInteger(),
-            health_step_millis = svars.StateInteger()
+            health_step = svars::StateInteger(),
+            health_step_millis = svars::StateInteger()
         },
 
         __init_svars = func(self)
@@ -283,7 +283,7 @@ M.plugins = {
         end,
 
         health_area_on_collision = func(self, collider)
-            if collider != ents.get_player() do return end
+            if collider != ents::get_player() do return end
             if is_valid_target(collider) do
                 var step = self:get_attr("health_step")
                 if    step == 0 do return end
@@ -306,7 +306,7 @@ M.plugins = {
         end,
 
         __activate = @[not server,func(self)
-            signal.connect(self, "collision", self.health_area_on_collision)
+            signal::connect(self, "collision", self.health_area_on_collision)
         end]
     },
 
@@ -315,10 +315,10 @@ M.plugins = {
     */
     player_hud = {
         __activate = @[not server,func(self)
-            gui.get_hud():append(gui.Spacer { pad_h = 0.1, pad_v = 0.1,
+            gui::get_hud():append(gui::Spacer { pad_h = 0.1, pad_v = 0.1,
                 align_h = 1, align_v = 1
             }, func(sp)
-                self.health_hud_status = sp:append(gui.Label {
+                self.health_hud_status = sp:append(gui::Label {
                     scale = 2.5, font = "default_outline"
                 }, func(st)
                     var curh, maxh

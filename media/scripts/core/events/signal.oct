@@ -29,12 +29,12 @@ var M = {}
 
     ```
     Foo = {}
-    signal.connect(Foo, "blah", func(self, a, b, c)
+    signal::connect(Foo, "blah", func(self, a, b, c)
         echo(a)
         echo(b)
         echo(c)
     end)
-    signal.emit(Foo, "blah", 5, 10, 15)
+    signal::emit(Foo, "blah", 5, 10, 15)
     ```
 
     Arguments:
@@ -48,7 +48,7 @@ var M = {}
 */
 M.connect = func(self, name, callback)
     if typeof callback != "function" do
-        log.log(log.ERROR, "Not connecting non-function callback: " ~ name)
+        log::log(log.ERROR, "Not connecting non-function callback: " ~ name)
         return undef
     end
     var clistn = "_sig_conn_" ~ name

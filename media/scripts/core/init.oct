@@ -28,11 +28,11 @@ randomseed(time())
     Does not get logged, just printed into the console.
 
     ```
-    debug.sethook(trace, "c")
+    debug::sethook(trace, "c")
     ```
 */
 var trace = func(event, line)
-    var s = debug.getinfo(2, "nSl")
+    var s = debug::getinfo(2, "nSl")
     print "DEBUG:"
     print "    " ~ tostring(s.name)
     print "    " ~ tostring(s.namewhat)
@@ -44,39 +44,39 @@ var trace = func(event, line)
     print "    " ~ tostring(s.currentline)
 end
 
-//debug.sethook(trace, "c")
+//debug::sethook(trace, "c")
 
 import capi
 
 // patch capi
 import core.capi as undef
 
-capi.log(1, "Initializing logging.")
+capi::log(1, "Initializing logging.")
 
 import core.logger as log
 
 import core.externals as undef
 
-log.log(log.DEBUG, "Initializing the core library.")
+log::log(log.DEBUG, "Initializing the core library.")
 
-log.log(log.DEBUG, ":: OctaScript extensions.")
+log::log(log.DEBUG, ":: OctaScript extensions.")
 import core.octascript as undef
 
-log.log(log.DEBUG, ":: Network system.")
+log::log(log.DEBUG, ":: Network system.")
 import core.network as undef
 
-log.log(log.DEBUG, ":: Event system.")
+log::log(log.DEBUG, ":: Event system.")
 import core.events as undef
 
-log.log(log.DEBUG, ":: Engine system.")
+log::log(log.DEBUG, ":: Engine system.")
 import core.engine as undef
 
-log.log(log.DEBUG, ":: Entity system.")
+log::log(log.DEBUG, ":: Entity system.")
 import core.entities as undef
 
-log.log(log.DEBUG, ":: GUI.")
+log::log(log.DEBUG, ":: GUI.")
 import core.gui as undef
 
-log.log(log.DEBUG, "Core scripting initialization complete.")
+log::log(log.DEBUG, "Core scripting initialization complete.")
 
 import std

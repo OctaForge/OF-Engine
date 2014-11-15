@@ -19,7 +19,7 @@ var emit = signal.emit
 var register_type = M.register_type
 
 // base widgets
-var Widget = M.get_type("Widget")
+var Widget = M::get_type("Widget")
 
 // setters
 var gen_setter = M.gen_setter
@@ -69,7 +69,7 @@ var Button = M.Button
 */
 M.MenuButton = register_type("MenuButton", Button, {
     choose_state = func(self)
-        return self:get_menu() != undef and "menu" or Button.choose_state(self)
+        return self:get_menu() != undef and "menu" or Button::choose_state(self)
     end
 })
 
@@ -87,7 +87,7 @@ M.Toggle = register_type("Toggle", Button, {
     __ctor = func(self, kwargs)
         kwargs = kwargs or {}
         self.condition = kwargs.condition
-        return Button.__ctor(self, kwargs)
+        return Button::__ctor(self, kwargs)
     end,
 
     choose_state = func(self)
@@ -104,7 +104,7 @@ M.Toggle = register_type("Toggle", Button, {
             emit(self, isdown and "clicked" or "released", -1, -1, code)
             return true
         end
-        return Widget.key(self, code, isdown)
+        return Widget::key(self, code, isdown)
     end,
 
     /// Function: set_condition

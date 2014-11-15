@@ -44,18 +44,18 @@ M.Teleporter = Obstacle:clone {
     name = "Teleporter",
 
     __properties = {
-        destination = svars.StateInteger(),
-        sound_name  = svars.StateString()
+        destination = svars::StateInteger(),
+        sound_name  = svars::StateString()
     },
 
     __init_svars = func(self, kwargs, nd)
-        Obstacle.__init_svars(self, kwargs, [ nd:unpack(2) ])
+        Obstacle::__init_svars(self, kwargs, [ nd:unpack(2) ])
         self:set_attr("destination", 0, nd[0])
         self:set_attr("sound_name", "", nd[1])
     end,
 
     __activate = @[not server,func(self, kwargs)
-        Obstacle.__activate(self, kwargs)
+        Obstacle::__activate(self, kwargs)
         connect(self, "collision", self.on_collision)
     end],
 
@@ -64,7 +64,7 @@ M.Teleporter = Obstacle:clone {
         if dest <= 0 do return end
         var dests = get_by_tag("teledest_" ~ dest)
         if dests:len() == 0 do
-            log.log(log.ERROR, "No teledest found.")
+            log::log(log.ERROR, "No teledest found.")
             return
         end
         dests[rand(0, dests:len() - 1)]:place_entity(collider)
@@ -79,6 +79,6 @@ M.Teleporter = Obstacle:clone {
     end
 }
 
-ents.register_prototype(M.Teleporter)
+ents::register_prototype(M.Teleporter)
 
 return M

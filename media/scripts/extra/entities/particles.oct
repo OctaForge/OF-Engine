@@ -70,15 +70,15 @@ M.FireEffect = ParticleEffect:clone {
     name = "FireEffect",
 
     __properties = {
-        radius = svars.StateFloat(),
-        height = svars.StateFloat(),
-        red    = svars.StateInteger(),
-        green  = svars.StateInteger(),
-        blue   = svars.StateInteger()
+        radius = svars::StateFloat(),
+        height = svars::StateFloat(),
+        red    = svars::StateInteger(),
+        green  = svars::StateInteger(),
+        blue   = svars::StateInteger()
     },
 
     __init_svars = func(self, kwargs, nd)
-        ParticleEffect.__init_svars(self, kwargs, nd)
+        ParticleEffect::__init_svars(self, kwargs, nd)
         self:set_attr("radius", 1.5, nd[0])
         self:set_attr("height", 0.5, nd[1])
         self:set_attr("red",   0x90, nd[2])
@@ -125,11 +125,11 @@ M.SteamEffect = ParticleEffect:clone {
     name = "SteamEffect",
 
     __properties = {
-        direction = svars.StateInteger()
+        direction = svars::StateInteger()
     },
 
     __init_svars = func(self, kwargs, nd)
-        ParticleEffect.__init_svars(self, kwargs, nd)
+        ParticleEffect::__init_svars(self, kwargs, nd)
         self:set_attr("direction", 0, nd[0])
     end,
 
@@ -146,7 +146,7 @@ M.SteamEffect = ParticleEffect:clone {
     end
 }
 
-ents.register_prototype(M.FireEffect)
-ents.register_prototype(M.SteamEffect)
+ents::register_prototype(M.FireEffect)
+ents::register_prototype(M.SteamEffect)
 
 return M

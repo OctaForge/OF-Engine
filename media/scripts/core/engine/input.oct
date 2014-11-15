@@ -20,7 +20,7 @@ return {
     /** Function: get_target_entity
         Returns the entity you're targeting.
     */
-    get_target_entity = frame.cache_by_frame(capi.gettargetent),
+    get_target_entity = frame::cache_by_frame(capi.gettargetent),
 
     /** Function: set_target_entity
         Sets the entiyt you're targeting.
@@ -30,8 +30,8 @@ return {
     /** Function: get_target_position
         Returns the position in the world you're targeting.
     */
-    get_target_position = frame.cache_by_frame(func()
-        return Vec3(capi.gettargetpos())
+    get_target_position = frame::cache_by_frame(func()
+        return Vec3(capi::gettargetpos())
     end),
 
     /** Function: save_mouse_position

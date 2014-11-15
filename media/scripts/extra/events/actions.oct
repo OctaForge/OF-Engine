@@ -35,7 +35,7 @@ M.ContainerAction = Action:clone {
         it as an action source.
     */
     __ctor = func(self, kwargs)
-        Action.__ctor(self, kwargs)
+        Action::__ctor(self, kwargs)
         self.other_actions = kwargs.actions or []
     end,
 
@@ -60,7 +60,7 @@ M.ContainerAction = Action:clone {
     __run = func(self, millis)
         var actqueue = self.action_queue
         actqueue:run(millis)
-        return Action.__run(self, millis) and actqueue.actions:empty()
+        return Action::__run(self, millis) and actqueue.actions:empty()
     end,
 
     /// Clears up the action queue.
@@ -94,7 +94,7 @@ M.ParallelAction = Action:clone {
         it as an action source.
     */
     __ctor = func(self, kwargs)
-        Action.__ctor(self, kwargs)
+        Action::__ctor(self, kwargs)
         self.action_queues = []
         self.other_actions = kwargs.actions or []
     end,
@@ -120,7 +120,7 @@ M.ParallelAction = Action:clone {
             actqueue:run(millis)
             return not actqueue.actions:empty()
         end)
-        return Action.__run(self, millis) and systems:empty()
+        return Action::__run(self, millis) and systems:empty()
     end,
 
     /// Clears up the remaining action queues.
@@ -185,7 +185,7 @@ M.input_capture_plugin = {
         self.old_events = old_events
         for i, en in event_list:each() do
             var ev = events[en]
-            if ev do old_events[en] = input.set_event(en,
+            if ev do old_events[en] = input::set_event(en,
                 func(...) ev(self, ...) end) end
         end
     end,
@@ -193,7 +193,7 @@ M.input_capture_plugin = {
     /// Restores the events.
     __finish = func(self)
         for en, ev in pairs(self.old_events) do
-            input.set_event(en, ev)
+            input::set_event(en, ev)
         end
     end
 }
@@ -213,7 +213,7 @@ M.InputCaptureAction = Action:clone {
         an empty table as a fallback.
     */
     __ctor = func(self, kwargs)
-        Action.__ctor(self, kwargs)
+        Action::__ctor(self, kwargs)
         self.events = kwargs.events or self.events or {}
     end,
 

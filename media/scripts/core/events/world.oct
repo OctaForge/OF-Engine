@@ -25,7 +25,7 @@ var ents
 */
 set_external("physics_off_map", func(uid)
     if not ents do ents = import core.entities.ents end
-    emit(ents.get(uid), "off_map")
+    emit(ents::get(uid), "off_map")
 end)
 
 /** Function: physics_in_deadly
@@ -39,7 +39,7 @@ end)
 */
 set_external("physics_in_deadly", func(uid, mat)
     if not ents do ents = import core.entities.ents end
-    emit(ents.get(uid), "in_deadly", mat)
+    emit(ents::get(uid), "in_deadly", mat)
 end)
 
 // flags for physics_state_change
@@ -69,7 +69,7 @@ set_external("physics_state_change", func(uid, loc, flevel, llevel, mat)
     @[server] do return end
 
     if not ents do ents = import core.entities.ents end
-    var ent = ents.get(uid)
+    var ent = ents::get(uid)
 
     var flags = 0
     if mat == edit.material.WATER do
@@ -100,7 +100,7 @@ from std.environ import globals
 */
 set_external("event_text_message", func(uid, text)
     if not ents do ents = import core.entities.ents end
-    emit(ents.get_all(), "event_text_message", uid, text)
+    emit(ents::get_all(), "event_text_message", uid, text)
 end)
 
 @[server] do
@@ -111,6 +111,6 @@ end)
 */
 set_external("event_player_login", func(uid)
     if not ents do ents = import core.entities.ents end
-    emit(ents.get_all(), "event_player_login", uid)
+    emit(ents::get_all(), "event_player_login", uid)
 end)
 end

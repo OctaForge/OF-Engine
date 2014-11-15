@@ -52,7 +52,7 @@ M.handle_frame = func(millis, lastmillis)
         end
     end
 end
-(import core.externals).set("frame_handle", M.handle_frame)
+(import core.externals)::set("frame_handle", M.handle_frame)
 
 var tocalltable = func(v)
     return setmt({}, { __call = func(_, ...) return v(...) end })

@@ -50,7 +50,7 @@ M.material = {:
 /** Function: player_is_editing
     Returns true if player is editing, false otherwise.
 */
-M.player_is_editing = func() return capi.editing_get() != 0 end
+M.player_is_editing = func() return capi::editing_get() != 0 end
 
 /** Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered
@@ -63,7 +63,7 @@ M.add_npc = capi.npcadd
 /** Function: delete_npc
     Deletes a bot. Takes the entity, returns nothing. Purely serverside.
 */
-M.delete_npc = func(ent) capi.npcdel(ent.uid) end
+M.delete_npc = func(ent) capi::npcdel(ent.uid) end
 
 /** Function: new_entity
     Creates a new entity on the position where the edit cursor is aiming.
@@ -219,7 +219,7 @@ M.cube_push_corner = capi.edit_cube_push_corner
 */
 M.remip = capi.edit_raw_remip
 
-ffi.cdef r"""
+ffi::cdef r"""
     typedef struct selinfo_t {
         int corner;
         int cx, cxs, cy, cys;
@@ -290,7 +290,7 @@ from std.math import clamp
           - 4 - down
           - 5 - up
 */
-M.Selection = ffi.metatype("selinfo_t", {
+M.Selection = ffi::metatype("selinfo_t", {
     __eq = func(self, other)
         var pos, sel = self.position, self.selection
         var opos, osel = other.position, other.selection
@@ -461,7 +461,7 @@ M.vslot_flags = {:
         - alpha_front, alpha_back, r, g, b - floats.
         - refract_scale, refract_r, refract_g, refract_b - flots.
 */
-M.VSlot = ffi.metatype("vslot_t", {
+M.VSlot = ffi::metatype("vslot_t", {
     __index = {
     }
 })

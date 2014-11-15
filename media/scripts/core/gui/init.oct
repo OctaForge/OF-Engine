@@ -1,6 +1,6 @@
 import core.logger as log
 
-log.log(log.DEBUG, ":::: Core UI implementation.")
+log::log(log.DEBUG, ":::: Core UI implementation.")
 
 import core.gui.core as undef
 import core.gui.core_containers as undef
