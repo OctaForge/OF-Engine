@@ -65,7 +65,7 @@ local UnaryOps = {
     ["-"] = 11, ["not"] = 11, ["~"] = 11
 }
 
-local parse_expr
+local parse_expr, parse_simple_expr
 local parse_stat, parse_chunk, parse_block, parse_body
 
 local parse_str = function(ls, ast)
@@ -134,6 +134,8 @@ local parse_table = function(ls, ast)
             local val = ls.token.value
             ls:get()
             key = ast.Literal(val)
+        else
+            key = parse_simple_expr(ls, ast)
         end
         if ls.token.name ~= ":" then
             assert_next(ls, "=")
@@ -403,8 +405,6 @@ local parse_import_expr = function(ls, ast)
     until not test_next(ls, ".")
     return ast.ImportExpression(table.concat(modname, "."), line)
 end
-
-local parse_simple_expr
 
 local sexps = {
     ["<number>"] = function(ls, ast)
