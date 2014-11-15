@@ -22,7 +22,8 @@ var INFO  = logging.INFO
 import core.events.frame
 import core.octascript.geom
 
-from std.table import rawget, rawset, Object
+from std.object import Object
+from std.table import rawget, rawset
 from std.math import abs, round, floor
 from std.conv import tonumber, tostring
 from std.util import assert

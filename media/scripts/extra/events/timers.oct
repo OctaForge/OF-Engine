@@ -11,7 +11,7 @@
 /// Module: timers
 var M = {}
 
-from std.table import Object
+from std.object import Object
 
 /**
     A general use timer. It's not automatically managed - you have to simulate

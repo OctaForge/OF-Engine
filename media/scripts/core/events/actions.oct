@@ -19,7 +19,7 @@ var INFO = logging.INFO
 var WARNING = logging.WARNING
 
 from std.conv import tostring
-from std.table import Object
+from std.object import Object
 
 /// Module: actions
 var M = {}

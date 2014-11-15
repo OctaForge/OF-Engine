@@ -5,9 +5,6 @@ import core.logger as log
 log::log(log.DEBUG, ":::: OctaScript extensions: streams")
 import core.octascript.stream as undef
 
-log::log(log.DEBUG, ":::: OctaScript extensions: table")
-import core.octascript.table as undef
-
 log::log(log.DEBUG, ":::: OctaScript extensions: geom")
 import core.octascript.geom as undef
 

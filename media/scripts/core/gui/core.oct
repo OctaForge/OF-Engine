@@ -33,7 +33,8 @@ var var_get, var_set = cs.var_get, cs.var_set
 
 var emit = signal.emit
 
-from std.table import rawget, rawset, pairs, Object
+from std.object import Object
+from std.table import rawget, rawset, pairs
 from std.util import select
 from std.math import min, max, clamp, floor, ceil
 from std.util import assert
