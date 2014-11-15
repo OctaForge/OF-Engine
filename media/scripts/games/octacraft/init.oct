@@ -31,7 +31,7 @@ var Player = ents.Player
     This serves as a base for our player.
 */
 var GamePlayer = Player.clone {
-    name = "GamePlayer"
+    name: "GamePlayer"
 }
 
 ents::register_prototype(GamePlayer, [
@@ -52,16 +52,16 @@ day_manager::setup([ day_manager.plugins.day_night ])
 end
 
 var MouseAction = actions.Action.clone {
-    name = "MouseAction",
-    allow_multiple = false,
-    block_size = 4,
+    name: "MouseAction",
+    allow_multiple: false,
+    block_size: 4,
 
-    __start = func(self)
+    __start: func(self)
         self.counter = 0
         self.try_block()
     end,
 
-    __run = func(self, millis)
+    __run: func(self, millis)
         var cnt = self.counter
         cnt += millis
         var btn = self.button
@@ -74,7 +74,7 @@ var MouseAction = actions.Action.clone {
         return false
     end,
 
-    try_block = func(self)
+    try_block: func(self)
         var pl = self.player
         var tg = input::get_target_position()
         var pos = pl.get_attr("position").copy()

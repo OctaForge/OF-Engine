@@ -46,7 +46,7 @@ var Clipper = M.Clipper
     the same interface as scrollers, thus they can be used as scrollers.
 */
 M.Scroller = register_type("Scroller", Clipper, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
 
         self.offset_h = 0
@@ -60,19 +60,19 @@ M.Scroller = register_type("Scroller", Clipper, {
         In addition to the regular clear it takes care of unlinking
         the scrollbars.
     */
-    clear = func(self)
+    clear: func(self)
         self.bind_h_scrollbar()
         self.bind_v_scrollbar()
         return Clipper::clear(self)
     end,
 
-    layout = func(self)
+    layout: func(self)
         Clipper::layout(self)
         self.offset_h = min(self.offset_h, self.get_h_limit())
         self.offset_v = min(self.offset_v, self.get_v_limit())
     end,
 
-    target = func(self, cx, cy)
+    target: func(self, cx, cy)
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
@@ -80,7 +80,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         return Widget::target(self, cx + oh, cy + ov)
     end,
 
-    hover = func(self, cx, cy)
+    hover: func(self, cx, cy)
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
@@ -93,7 +93,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         return Widget::hover(self, cx + oh, cy + ov) or self
     end,
 
-    click = func(self, cx, cy, code)
+    click: func(self, cx, cy, code)
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
@@ -106,7 +106,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         scrollbar. If both are present, vertical takes precedence. If none
         is present, vertical is used with the default arrow_speed of 0.5.
     */
-    key_hover = func(self, code, isdown)
+    key_hover: func(self, code, isdown)
         var m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
         if code != m4 and code != m5 do
             return Widget::key_hover(self, code, isdown)
@@ -127,7 +127,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         return true
     end,
 
-    draw = func(self, sx, sy)
+    draw: func(self, sx, sy)
         if (self.clip_w != 0 and self.virt_w > self.clip_w) or
            (self.clip_h != 0 and self.virt_h > self.clip_h)
         do
@@ -144,7 +144,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         sides appropriately. You can do this from the scrollbar side as well.
         Calling with undef unlinks the scrollbar and returns it.
     */
-    bind_h_scrollbar = func(self, sb)
+    bind_h_scrollbar: func(self, sb)
         if not sb do
             sb = self.h_scrollbar
             if not sb do return undef end
@@ -160,7 +160,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         sides appropriately. You can do this from the scrollbar side as well.
         Calling with undef unlinks the scrollbar and returns it.
     */
-    bind_v_scrollbar = func(self, sb)
+    bind_v_scrollbar: func(self, sb)
         if not sb do
             sb = self.v_scrollbar
             if not sb do return undef end
@@ -175,22 +175,22 @@ M.Scroller = register_type("Scroller", Clipper, {
         Returns the horizontal offset limit, that is, the actual width of
         the contents minus the clipper width.
     */
-    get_h_limit = func(self) return max(self.virt_w - self.w, 0) end,
+    get_h_limit: func(self) return max(self.virt_w - self.w, 0) end,
 
     /// See $get_h_limit.
-    get_v_limit = func(self) return max(self.virt_h - self.h, 0) end,
+    get_v_limit: func(self) return max(self.virt_h - self.h, 0) end,
 
     /**
         Returns the horizontal offset, that is, the portion of the actual
         size of the contents the scroller offsets by. It's computed as
         actual_offset / max(size_of_container, size_of_contents).
     */
-    get_h_offset = func(self)
+    get_h_offset: func(self)
         return self.offset_h / max(self.virt_w, self.w)
     end,
 
     /// See $get_h_offset.
-    get_v_offset = func(self)
+    get_v_offset: func(self)
         return self.offset_v / max(self.virt_h, self.h)
     end,
 
@@ -198,10 +198,10 @@ M.Scroller = register_type("Scroller", Clipper, {
         Returns the horizontal scale, that is,
         size_of_container / max(size_of_container, size_of_contents).
     */
-    get_h_scale = func(self) return self.w / max(self.virt_w, self.w) end,
+    get_h_scale: func(self) return self.w / max(self.virt_w, self.w) end,
 
     /// See $get_h_scale.
-    get_v_scale = func(self) return self.h / max(self.virt_h, self.h) end,
+    get_v_scale: func(self) return self.h / max(self.virt_h, self.h) end,
 
     /**
         Sets the horizontal scroll offset. Takes the "real" offset, that is,
@@ -209,13 +209,13 @@ M.Scroller = register_type("Scroller", Clipper, {
         full screen height). Emits the h_scroll,changed signal on self with
         `self.get_h_offset()` as a parameter.
     */
-    set_h_scroll = func(self, hs)
+    set_h_scroll: func(self, hs)
         self.offset_h = clamp(hs, 0, self.get_h_limit())
         emit(self, "h_scroll,changed", self.get_h_offset())
     end,
 
     /// See $set_h_scroll.
-    set_v_scroll = func(self, vs)
+    set_v_scroll: func(self, vs)
         self.offset_v = clamp(vs, 0, self.get_v_limit())
         emit(self, "v_scroll,changed", self.get_v_offset())
     end,
@@ -224,10 +224,10 @@ M.Scroller = register_type("Scroller", Clipper, {
         Like $set_h_scroll, but works with deltas (adds the given value
         to the actual offset).
     */
-    scroll_h = func(self, hs) self.set_h_scroll(self.offset_h + hs) end,
+    scroll_h: func(self, hs) self.set_h_scroll(self.offset_h + hs) end,
 
     /// See $scroll_h.
-    scroll_v = func(self, vs) self.set_v_scroll(self.offset_v + vs) end
+    scroll_v: func(self, vs) self.set_v_scroll(self.offset_v + vs) end
 })
 
 var ScrollButton
@@ -246,9 +246,9 @@ var ScrollButton
           is 6 * fonth * arrow_speed. Defaults to 0.5.
 */
 M.Scrollbar = register_type("Scrollbar", Widget, {
-    orient = -1,
+    orient: -1,
 
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         self.arrow_size  = kwargs.arrow_size  or 0
         self.arrow_speed = kwargs.arrow_speed or 0.5
@@ -261,7 +261,7 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         In addition to the regular clear it takes care of unlinking
         the scroller.
     */
-    clear = func(self)
+    clear: func(self)
         self.bind_scroller()
         return Widget::clear(self)
     end,
@@ -272,14 +272,14 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         as well as linking this scrollbar to the scroller. Calling with
         undef unlinks the scroller and returns it.
     */
-    bind_scroller = func(self, sc) end,
+    bind_scroller: func(self, sc) end,
 
-    choose_direction = func(self, cx, cy)
+    choose_direction: func(self, cx, cy)
         return 0
     end,
 
     /// Scrollbars can be hovered on.
-    hover = func(self, cx, cy)
+    hover: func(self, cx, cy)
         return Widget::hover(self, cx, cy) or self
     end,
 
@@ -287,18 +287,18 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         Scrollbars can be clicked on assuming none of the children want
         to be clicked on.
     */
-    click = func(self, cx, cy, code)
+    click: func(self, cx, cy, code)
         return Widget::click(self, cx, cy, code) or
                      (self.target(cx, cy) and self or undef)
     end,
 
-    scroll_to = func(self, cx, cy) end,
+    scroll_to: func(self, cx, cy) end,
 
     /**
         Mouse scrolling on a scrollbar results in the scroller being scrolled
         by 0.2 in the right direction depending on the scrollbar type.
     */
-    key_hover = func(self, code, isdown)
+    key_hover: func(self, code, isdown)
         var m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
         if code != m4 and code != m5 do
             return Widget::key_hover(self, code, isdown)
@@ -322,7 +322,7 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         Clicking inside the scrollbar area but outside the arrow area jumps
         in the scroller.
     */
-    clicked = func(self, cx, cy, code)
+    clicked: func(self, cx, cy, code)
         if code == key.MOUSELEFT do
             var d = self.choose_direction(cx, cy)
             self.arrow_dir = d
@@ -333,9 +333,9 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         return Widget::clicked(self, cx, cy, code)
     end,
 
-    arrow_scroll = func(self, d) end,
+    arrow_scroll: func(self, d) end,
 
-    holding = func(self, cx, cy, code)
+    holding: func(self, cx, cy, code)
         if code == key.MOUSELEFT do
             var d = self.choose_direction(cx, cy)
             self.arrow_dir = d
@@ -344,20 +344,20 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         Widget::holding(self, cx, cy, code)
     end,
 
-    hovering = func(self, cx, cy)
+    hovering: func(self, cx, cy)
         if not self.is_clicked(key.MOUSELEFT) do
             self.arrow_dir = self.choose_direction(cx, cy)
         end
         Widget::hovering(self, cx, cy)
     end,
 
-    move_button = func(self, o, fromx, fromy, tox, toy) end,
+    move_button: func(self, o, fromx, fromy, tox, toy) end,
 
     /// Function: set_arrow_size
-    set_arrow_size = gen_setter "arrow_size",
+    set_arrow_size: gen_setter "arrow_size",
 
     /// Function: set_arrow_speed
-    set_arrow_speed = gen_setter "arrow_speed"
+    set_arrow_speed: gen_setter "arrow_speed"
 })
 var Scrollbar = M.Scrollbar
 
@@ -378,27 +378,27 @@ var clicked_states = {
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
 */
 M.ScrollButton = register_type("ScrollButton", Widget, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         self.offset_h = 0
         self.offset_v = 0
 
         return Widget::__ctor(self, kwargs)
     end,
 
-    choose_state = func(self)
+    choose_state: func(self)
         return clicked_states[self.is_clicked()] or
             (self.is_hovering() and "hovering" or "default")
     end,
 
-    hover = func(self, cx, cy)
+    hover: func(self, cx, cy)
         return self.target(cx, cy) and self or undef
     end,
 
-    click = func(self, cx, cy)
+    click: func(self, cx, cy)
         return self.target(cx, cy) and self or undef
     end,
 
-    holding = func(self, cx, cy, code)
+    holding: func(self, cx, cy, code)
         var p = self.parent
         if p and code == key.MOUSELEFT and p.type == Scrollbar.type do
             p.arrow_dir = 0
@@ -407,7 +407,7 @@ M.ScrollButton = register_type("ScrollButton", Widget, {
         Widget::holding(self, cx, cy, code)
     end,
 
-    clicked = func(self, cx, cy, code)
+    clicked: func(self, cx, cy, code)
         if code == key.MOUSELEFT do
             self.offset_h = cx
             self.offset_v = cy
@@ -426,9 +426,9 @@ ScrollButton = M.ScrollButton
     "(left|right)_clicked_(left|right|middle|back|forward)".
 */
 M.HScrollbar = register_type("HScrollbar", Scrollbar, {
-    orient = orient.HORIZONTAL,
+    orient: orient.HORIZONTAL,
 
-    bind_scroller = func(self, sc)
+    bind_scroller: func(self, sc)
         if not sc do
             sc = self.scroller
             if not sc do return undef end
@@ -439,7 +439,7 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
         sc.h_scrollbar = self
     end,
 
-    choose_state = func(self)
+    choose_state: func(self)
         var ad = self.arrow_dir
 
         if ad == -1 do
@@ -454,18 +454,18 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
         return "default"
     end,
 
-    choose_direction = func(self, cx, cy)
+    choose_direction: func(self, cx, cy)
         var asz = self.arrow_size
         return (cx < asz) and -1 or (cx >= (self.w - asz) and 1 or 0)
     end,
 
-    arrow_scroll = func(self, d)
+    arrow_scroll: func(self, d)
         var  scroll = self.scroller
         if not scroll do return end
         scroll.scroll_h(d * self.arrow_speed * (get_curtime() / 1000))
     end,
 
-    scroll_to = func(self, cx, cy)
+    scroll_to: func(self, cx, cy)
         var  scroll = self.scroller
         if not scroll do return end
 
@@ -482,7 +482,7 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
         scroll::set_h_scroll(scroll, offset * scroll.virt_w)
     end,
 
-    adjust_children = func(self)
+    adjust_children: func(self)
         var  scroll = self.scroller
         if not scroll do
             Widget::adjust_children(self)
@@ -511,7 +511,7 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
         Widget::adjust_children(self)
     end,
 
-    move_button = func(self, o, fromx, fromy, tox, toy)
+    move_button: func(self, o, fromx, fromy, tox, toy)
         self.scroll_to(o.x + tox - fromx, o.y + toy)
     end
 }, Scrollbar.type)
@@ -521,9 +521,9 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     "(up|down)_clicked_(left|right|middle|back|forward)".
 */
 M.VScrollbar = register_type("VScrollbar", Scrollbar, {
-    orient = orient.VERTICAL,
+    orient: orient.VERTICAL,
 
-    bind_scroller = func(self, sc)
+    bind_scroller: func(self, sc)
         if not sc do
             sc = self.scroller
             if not sc do return undef end
@@ -534,7 +534,7 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
         sc.v_scrollbar = self
     end,
 
-    choose_state = func(self)
+    choose_state: func(self)
         var ad = self.arrow_dir
 
         if ad == -1 do
@@ -549,18 +549,18 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
         return "default"
     end,
 
-    choose_direction = func(self, cx, cy)
+    choose_direction: func(self, cx, cy)
         var asz = self.arrow_size
         return (cy < asz) and -1 or (cy >= (self.h - asz) and 1 or 0)
     end,
 
-    arrow_scroll = func(self, d)
+    arrow_scroll: func(self, d)
         var  scroll = self.scroller
         if not scroll do return end
         scroll.scroll_v(d * self.arrow_speed * (get_curtime() / 1000))
     end,
 
-    scroll_to = func(self, cx, cy)
+    scroll_to: func(self, cx, cy)
         var  scroll = self.scroller
         if not scroll do return end
 
@@ -578,7 +578,7 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
         scroll.set_v_scroll(offset * scroll.virt_h)
     end,
 
-    adjust_children = func(self)
+    adjust_children: func(self)
         var  scroll = self.scroller
         if not scroll do
             Widget::adjust_children(self)
@@ -608,7 +608,7 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
         Widget::adjust_children(self)
     end,
 
-    move_button = func(self, o, fromx, fromy, tox, toy)
+    move_button: func(self, o, fromx, fromy, tox, toy)
         self.scroll_to(o.x + tox, o.y + toy - fromy)
     end
 }, Scrollbar.type)

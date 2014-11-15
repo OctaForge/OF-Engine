@@ -186,14 +186,14 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
 end
 
 var defkw = {
-    multiline = false, indent = undef, assign = ":", table_sep = ",",
-    array_sep = ",", end_sep = false, optimize_keys = true
+    multiline: false, indent: undef, assign: ":", table_sep: ",",
+    array_sep: ",", end_sep: false, optimize_keys: true
 }
 
 var defkwp = {
-    multiline = true, indent = "    ", assign = ": ", table_sep = ",",
-    array_sep = ", ", item_sep = " ", narr_line = 4, nrec_line = 2,
-    end_sep = false, optimize_keys = true
+    multiline: true, indent: "    ", assign: ": ", table_sep: ",",
+    array_sep: ", ", item_sep: " ", narr_line: 4, nrec_line: 2,
+    end_sep: false, optimize_keys: true
 }
 
 /**
@@ -460,7 +460,7 @@ end
 */
 table.deserialize = func(s)
     var stream = (typeof s == "string") and s.gmatch(".") or s
-    var ls = { curr = stream(), rdr = stream, linenum = 1 }
+    var ls = { curr: stream(), rdr: stream, linenum: 1 }
     var r, v = try lex_get(ls)
     if not r do return undef, v end
     r, v = try parse(ls)
@@ -579,10 +579,10 @@ table.Object = {
         passing in any extra arguments (besides the new object as the first
         argument).
     */
-    __call = func(self, ...)
+    __call: func(self, ...)
         var r = {
-            __index = self, __proto = self, __call = self.__call,
-            __tostring = self.__tostring
+            __index: self, __proto: self, __call: self.__call,
+            __tostring: self.__tostring
         }
         setmt(r, r)
         if self.__ctor do self::__ctor(r, ...) end
@@ -601,7 +601,7 @@ table.Object = {
         Returns:
             The new clone.
     */
-    clone = func(self, tbl)
+    clone: func(self, tbl)
         tbl = tbl or {}
         tbl.__index, tbl.__proto, tbl.__call = self, self, self.__call
         if not tbl.__tostring do tbl.__tostring = self.__tostring end
@@ -614,7 +614,7 @@ table.Object = {
         object, is a child of the given object, or a child of a child
         of the given object, or anything down the tree.
     */
-    is_a = func(self, base)
+    is_a: func(self, base)
         if self == base do return true end
         var pt = self.__proto
         var is = (pt == base)
@@ -629,7 +629,7 @@ table.Object = {
         The default tostring result is in format "Object: NAME" where NAME
         is self.name.
     */
-    __tostring = func(self)
+    __tostring: func(self)
         return ("Object: %s").format(self.name or "unnamed")
     end
 }

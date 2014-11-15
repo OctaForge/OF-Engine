@@ -55,7 +55,7 @@ end
 (import core.externals)::set("frame_handle", M.handle_frame)
 
 var tocalltable = func(v)
-    return setmt({}, { __call = func(_, ...) return v(...) end })
+    return setmt({}, { __call: func(_, ...) return v(...) end })
 end
 
 /// Returns the current OctaScript frame count.

@@ -31,16 +31,16 @@ var get
         - spawn_stage - the current spawn stage the player is going through.
 */
 M.player_plugin = {
-    __properties = {
-        team        = svars::StateString(),
-        spawn_stage = svars::StateInteger()
+    __properties: {
+        team       : svars::StateString(),
+        spawn_stage: svars::StateInteger()
     },
 
-    __init_svars = func(self)
+    __init_svars: func(self)
         self.set_attr("team", "")
     end,
 
-    __activate = func(self)
+    __activate: func(self)
         connect(self, "spawn_stage,changed", self.game_manager_on_spawn_stage)
         @[server] then
             get().pick_team(self)
@@ -55,37 +55,37 @@ M.player_plugin = {
         end
     end,
 
-    game_manager_respawn = func(self)
+    game_manager_respawn: func(self)
         self.set_attr("spawn_stage", 1)
     end,
 
-    game_manager_spawn_stage_0 = func(self, auid) end,
+    game_manager_spawn_stage_0: func(self, auid) end,
 
-    game_manager_spawn_stage_1 = @[not server,func(self, auid)
+    game_manager_spawn_stage_1: @[not server,func(self, auid)
         self.set_attr("spawn_stage", 2)
     end,func(self, auid) end],
 
-    game_manager_spawn_stage_2 = @[server,func(self, auid)
+    game_manager_spawn_stage_2: @[server,func(self, auid)
         if auid == self.uid do
             self.set_attr("spawn_stage", 3)
         end
         self.cancel_sdata_update()
     end,func(self, auid) end],
 
-    game_manager_spawn_stage_3 = @[not server,func(self, auid)
+    game_manager_spawn_stage_3: @[not server,func(self, auid)
         if self == ents::get_player() do
             emit(self, "client,respawn")
             self.set_attr("spawn_stage", 4)
         end
     end,func(self, auid) end],
 
-    game_manager_spawn_stage_4 = @[server,func(self, auid)
+    game_manager_spawn_stage_4: @[server,func(self, auid)
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
         self.cancel_sdata_update()
     end,func(self, auid) end],
 
-    game_manager_on_spawn_stage = func(self, stage, auid)
+    game_manager_on_spawn_stage: func(self, stage, auid)
         self["game_manager_spawn_stage_" ~ stage](self, auid)
     end
 }
@@ -96,19 +96,19 @@ from std.math import random as rand, floor
 var Entity = ents.Entity
 
 var GameManager = Entity.clone {
-    name = "GameManager",
+    name: "GameManager",
 
-    __properties = {
-        team_data = svars::StateTable()
+    __properties: {
+        team_data: svars::StateTable()
     },
 
-    __activate = @[server,func(self)
+    __activate: @[server,func(self)
         Entity::__activate(self)
         self.add_tag("game_manager")
         self.teams = {}
     end],
 
-    get_players = @[server,func(self)
+    get_players: @[server,func(self)
         var players = []
         for i, team in pairs(self.teams) do
             for i, v in team.player_list.each() do
@@ -118,7 +118,7 @@ var GameManager = Entity.clone {
         return players
     end],
 
-    start_game = @[server,func(self)
+    start_game: @[server,func(self)
         var players = self.get_players()
 
         for i, team in pairs(self.teams) do
@@ -139,27 +139,27 @@ var GameManager = Entity.clone {
         self.game_running = true
     end],
 
-    end_game = @[server,func(self)
+    end_game: @[server,func(self)
         self.game_running = false
         emit(self, "game,end")
     end],
 
-    sync_team_data = @[server,func(self)
+    sync_team_data: @[server,func(self)
         if not self.deactivated do
             self.set_attr("team_data", self.teams)
         end
     end],
 
-    pick_team = @[server,func(self, player, sync)
+    pick_team: @[server,func(self, player, sync)
     end],
 
-    set_player_team = @[server,func(self, player, team, sync)
+    set_player_team: @[server,func(self, player, team, sync)
     end],
 
-    leave_team = @[server,func(self, player, sync)
+    leave_team: @[server,func(self, player, sync)
     end],
 
-    place_player = func(self, player)
+    place_player: func(self, player)
         var team = player.get_attr("team")
         var st
         if team == "" do
@@ -177,8 +177,8 @@ var GameManager = Entity.clone {
         player.set_attr("position", [ 512, 512, 571 ])
     end,
 
-    set_local_animation = func(self) end,
-    set_local_animation_flags = func(self) end
+    set_local_animation: func(self) end,
+    set_local_animation_flags: func(self) end
 }
 
 from std.util import assert

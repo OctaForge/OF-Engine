@@ -29,12 +29,12 @@ ffi::cdef r"""
 """
 
 var particle = ffi::metatype("particle_t", {
-    __index = {
-        get_owner = func(self)
+    __index: {
+        get_owner: func(self)
             assert(self != undef)
             return capi::particle_get_owner(self)
         end,
-        set_owner = func(self, ent)
+        set_owner: func(self, ent)
             assert(self != undef)
             capi::particle_set_owner(self, ent.uid)
         end
@@ -54,29 +54,29 @@ var particle = ffi::metatype("particle_t", {
     VFLIP and ROT).
 */
 M.flags = {:
-    MOD      = 1 << 8,
-    RND4     = 1 << 9,
-    LERP     = 1 << 10,
-    TRACK    = 1 << 11,
-    BRIGHT   = 1 << 12,
-    SOFT     = 1 << 13,
-    HFLIP    = 1 << 14,
-    VFLIP    = 1 << 15,
-    ROT      = 1 << 16,
-    FEW      = 1 << 17,
-    ICONGRID = 1 << 18,
-    SHRINK   = 1 << 19,
-    GROW     = 1 << 20,
-    COLLIDE  = 1 << 21,
-    FLIP     = HFLIP | VFLIP | ROT
+    MOD     : 1 << 8,
+    RND4    : 1 << 9,
+    LERP    : 1 << 10,
+    TRACK   : 1 << 11,
+    BRIGHT  : 1 << 12,
+    SOFT    : 1 << 13,
+    HFLIP   : 1 << 14,
+    VFLIP   : 1 << 15,
+    ROT     : 1 << 16,
+    FEW     : 1 << 17,
+    ICONGRID: 1 << 18,
+    SHRINK  : 1 << 19,
+    GROW    : 1 << 20,
+    COLLIDE : 1 << 21,
+    FLIP    : HFLIP | VFLIP | ROT
 :}
 
 /**
     Contains two predefined renderers that are mandatory - "text" and "icon".
 */
 var renderers = {
-    text = capi::particle_register_renderer_text("text"),
-    icon = capi::particle_register_renderer_icon("icon")
+    text: capi::particle_register_renderer_text("text"),
+    icon: capi::particle_register_renderer_icon("icon")
 }
 M.renderers = renderers
 

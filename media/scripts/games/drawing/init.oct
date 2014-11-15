@@ -56,15 +56,15 @@ end
           over the server (e.g. in coop).
 */
 var GamePlayer = Player.clone {
-    name = "GamePlayer",
+    name: "GamePlayer",
 
-    __properties = {
-        new_mark = svars::StateArrayFloat {
-            client_set = true, has_history = false
+    __properties: {
+        new_mark: svars::StateArrayFloat {
+            client_set: true, has_history: false
         }
     },
 
-    next_color = func(self)
+    next_color: func(self)
         if  self.color_id < (colors.len() - 1) do
             self.color_id += 1
         else
@@ -74,7 +74,7 @@ var GamePlayer = Player.clone {
         log::echo(("color switch: 0x%.6X").format(self.color))
     end,
 
-    reset_mark = func(self)
+    reset_mark: func(self)
         self.set_attr("new_mark", [ -1, -1, -1 ])
         self.stop_batch = true
     end,
@@ -83,7 +83,7 @@ var GamePlayer = Player.clone {
         Called on entity activation. Connects a callback to state data
         change of new_mark.
     */
-    __activate = @[not server,func(self, kwargs)
+    __activate: @[not server,func(self, kwargs)
         Player::__activate(self, kwargs)
         self.marks = []
         self.color_id = 0
@@ -101,7 +101,7 @@ var GamePlayer = Player.clone {
     /** Function: __run
         Called every frame. It goes over the marks and draws everything.
     */
-    __run = @[not server,func(self, millis)
+    __run: @[not server,func(self, millis)
         Player::__run(self, millis)
         var last = undef
         var marks = self.marks

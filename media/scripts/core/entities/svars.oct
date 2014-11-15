@@ -89,15 +89,15 @@ end
           have to query).
 */
 M.StateVariable = Object.clone {
-    name = "StateVariable",
+    name: "StateVariable",
 
     /// Makes svar objects return their name on tostring.
-    __tostring = func(self)
+    __tostring: func(self)
         return self.name
     end,
 
     /// Initializes the svar. Parameters are passed in kwargs (a dict).
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         @[debug] log(INFO, "StateVariable: init")
 
         kwargs = kwargs or {}
@@ -131,7 +131,7 @@ M.StateVariable = Object.clone {
             - name - the state var name.
             - cl - the entity prototype.
     */
-    register = func(self, name, cl)
+    register: func(self, name, cl)
         @[debug] log(DEBUG, "StateVariable: register(" ~ name
             ~ ", " ~ cl.name ~ ")")
 
@@ -161,7 +161,7 @@ M.StateVariable = Object.clone {
         read, on the client we can't if client_read is false. Fails an
         assertion if on the client and client_read is false.
     */
-    read_tests = func(self, ent)
+    read_tests: func(self, ent)
         assert(self.client_read or @[server,true,false])
     end,
 
@@ -171,7 +171,7 @@ M.StateVariable = Object.clone {
         assertion if on the client and client_read is false (or if an
         entity is deactivated/uninitialized).
     */
-    write_tests = func(self, ent)
+    write_tests: func(self, ent)
         if ent.deactivated do
             assert(false, "Writing a field " ~ self.name ~
                  " of a deactivated entity " ~ ent.name ~
@@ -196,7 +196,7 @@ M.StateVariable = Object.clone {
             - self - not the state var, it's an entity.
             - svar - the state var.
     */
-    getter = func(self, svar)
+    getter: func(self, svar)
         svar.read_tests(self)
 
         var vn = svar.name
@@ -231,7 +231,7 @@ M.StateVariable = Object.clone {
             - val - the value.
             - svar - the state var.
     */
-    setter = func(self, val, svar)
+    setter: func(self, val, svar)
         svar.write_tests(self)
         self.set_sdata(svar.name, val, -1)
     end,
@@ -240,7 +240,7 @@ M.StateVariable = Object.clone {
         Validates a state variable value. The default simply returns
         true. Can be overriden.
     */
-    validate = func(self, val) return true end,
+    validate: func(self, val) return true end,
 
     /**
         Checks whether changes of this variable should be synced with other
@@ -251,7 +251,7 @@ M.StateVariable = Object.clone {
             - ent - the entity.
             - tcn - target client number.
     */
-    should_send = func(self, ent, tcn)
+    should_send: func(self, ent, tcn)
         return (not self.client_private) or (ent.cn == tcn)
     end,
 
@@ -261,7 +261,7 @@ M.StateVariable = Object.clone {
         side it's simply converted back to the original format using
         $from_wire. By default simply converts to string.
     */
-    to_wire = func(self, val)
+    to_wire: func(self, val)
         return tostring(val)
     end,
 
@@ -269,7 +269,7 @@ M.StateVariable = Object.clone {
         Converts the given value in wire format back to the original
         format. See $to_wire. By default simply returns a string.
     */
-    from_wire = func(self, val)
+    from_wire: func(self, val)
         return tostring(val)
     end
 }
@@ -281,10 +281,10 @@ StateVariable = M.StateVariable
     from_wire converts to an integer.
 */
 M.StateInteger = StateVariable.clone {
-    name = "StateInteger",
+    name: "StateInteger",
 
-    to_wire   = func(self, val) return tostring(val) end,
-    from_wire = func(self, val) return floor(tonumber(val)) end
+    to_wire  : func(self, val) return tostring(val) end,
+    from_wire: func(self, val) return floor(tonumber(val)) end
 }
 StateInteger = M.StateInteger
 
@@ -295,10 +295,10 @@ StateInteger = M.StateInteger
     string), from_wire converts to a float.
 */
 M.StateFloat = StateVariable.clone {
-    name = "StateFloat",
+    name: "StateFloat",
 
-    to_wire   = func(self, val) return tostring(round(val, 2)) end,
-    from_wire = func(self, val) return tonumber(val) end
+    to_wire  : func(self, val) return tostring(round(val, 2)) end,
+    from_wire: func(self, val) return tonumber(val) end
 }
 StateFloat = M.StateFloat
 
@@ -308,10 +308,10 @@ StateFloat = M.StateFloat
     from_wire converts to a boolean.
 */
 M.StateBoolean = StateVariable.clone {
-    name = "StateBoolean",
+    name: "StateBoolean",
 
-    to_wire   = func(self, val) return tostring(val) end,
-    from_wire = func(self, val) return val == "true" and true or false end
+    to_wire  : func(self, val) return tostring(val) end,
+    from_wire: func(self, val) return val == "true" and true or false end
 }
 StateBoolean = M.StateBoolean
 
@@ -323,10 +323,10 @@ from std.table import serialize as ts, deserialize as td
     table, from_wire deserializes it.
 */
 M.StateTable = StateVariable.clone {
-    name = "StateTable",
+    name: "StateTable",
 
-    to_wire   = func(self, val) return ts(val) end,
-    from_wire = func(self, val) return td(val) end
+    to_wire  : func(self, val) return ts(val) end,
+    from_wire: func(self, val) return td(val) end
 }
 StateTable = M.StateTable
 
@@ -336,7 +336,7 @@ StateTable = M.StateTable
     with strings.
 */
 M.StateString = StateVariable.clone {
-    name = "StateString"
+    name: "StateString"
 }
 StateString = M.StateString
 
@@ -359,15 +359,15 @@ import std.array
     proxies in order to more closely emulate the appropriate semantics.
 */
 M.ArraySurrogate = {
-    name = "ArraySurrogate",
+    name: "ArraySurrogate",
 
     /**
         Constructs the array surrogate. Defines its members "entity"
         and "variable", assigned using the provided arguments.
     */
-    new = func(self, ent, svar)
+    new: func(self, ent, svar)
         @[debug] log(INFO, "ArraySurrogate: new: " ~ svar.name)
-        var rawt = { entity = ent, variable = svar }
+        var rawt = { entity: ent, variable: svar }
         rawt.rawt = rawt // yay! cycles!
         var ret = newproxy(true)
         var mt  = getmt(ret)
@@ -378,7 +378,7 @@ M.ArraySurrogate = {
     end,
 
     /// Makes surrogate objects return their names on tostring.
-    __tostring = func(self)
+    __tostring: func(self)
         return self.name
     end,
 
@@ -388,7 +388,7 @@ M.ArraySurrogate = {
         and flooring it. On invalid indexes, it simply fallbacks to
         regular indexing.
     */
-    __index = func(self, name)
+    __index: func(self, name)
         if name == "__size" do
             return self.len()
         end
@@ -412,7 +412,7 @@ M.ArraySurrogate = {
         to regular setting. Otherwise sets the corresponding element using
         the state variable.
     */
-    __newindex = func(self, name, val)
+    __newindex: func(self, name, val)
         var n = tonumber(name)
         if not n do return rawset(self.rawt, name, val) end
         var i = floor(n)
@@ -423,13 +423,13 @@ M.ArraySurrogate = {
     end,
 
     /// Returns the length of the "array" represented by the state variable.
-    len = func(self)
+    len: func(self)
         var v = self.variable
         return v.get_length(self.entity)
     end,
 
     /// Returns a raw array of values stored using the state variable.
-    to_array = func(self)
+    to_array: func(self)
         var l = self.len()
         var r = []
         for i in 0 to l - 1 do
@@ -439,22 +439,22 @@ M.ArraySurrogate = {
     end,
 
     /// Appends an element. For convenience only.
-    push = func(self, v)
+    push: func(self, v)
         self.variable.push_item(self.entity, v)
     end,
 
-    map = array.map,
-    merge = array.merge,
-    filter = array.filter,
-    find = array.find,
-    find_r = array.find_r,
-    foldr = array.foldr,
-    foldl = array.foldl,
-    each = array.each,
-    each_r = array.each_r,
-    first = array.first,
-    last = array.last,
-    empty = array.empty
+    map: array.map,
+    merge: array.merge,
+    filter: array.filter,
+    find: array.find,
+    find_r: array.find_r,
+    foldr: array.foldr,
+    foldl: array.foldl,
+    each: array.each,
+    each_r: array.each_r,
+    first: array.first,
+    last: array.last,
+    empty: array.empty
 }
 ArraySurrogate = M.ArraySurrogate
 
@@ -466,16 +466,16 @@ ArraySurrogate = M.ArraySurrogate
     functions.
 */
 M.StateArray = StateVariable.clone {
-    name = "StateArray",
+    name: "StateArray",
 
     /// An element separator used by the wire format. Defaults to "|".
-    separator = "|",
+    separator: "|",
 
     /**
         Specifies the surrogate used by the state variable. By default
         it's $ArraySurrogate, but may be overriden.
     */
-    surrogate = ArraySurrogate,
+    surrogate: ArraySurrogate,
 
     /**
         Instead of returning the raw value in non-wire format, this
@@ -486,7 +486,7 @@ M.StateArray = StateVariable.clone {
         See also:
             - {{$StateVariable.getter}}
     */
-    getter = func(self, svar)
+    getter: func(self, svar)
         svar.read_tests(self)
 
         if not svar.get_raw(self) do return undef end
@@ -504,7 +504,7 @@ M.StateArray = StateVariable.clone {
         See also:
             - {{$StateVariable.setter}}
     */
-    setter = func(self, val, svar)
+    setter: func(self, val, svar)
         @[debug] log(INFO, "StateArray: setter: " ~ tostring(val))
         svar.write_tests(self)
 
@@ -517,14 +517,14 @@ M.StateArray = StateVariable.clone {
         $to_wire for each value of the array before including it in
         the result.
     */
-    to_wire_item = tostring,
+    to_wire_item: tostring,
 
     /** Function: from_wire_item
         This is not a regular method, it has no self. It's called by
         $from_wire for each value of the array before including it in
         the result.
     */
-    from_wire_item = tostring,
+    from_wire_item: tostring,
 
     /**
         Returns the contents of the state array in a wire format. It
@@ -532,13 +532,13 @@ M.StateArray = StateVariable.clone {
         $separator. It ends with a "]". The value can be either an
         array or an array surrogate.
     */
-    to_wire = func(self, val)
+    to_wire: func(self, val)
         return "[" ~ (val.to_array and val.to_array() or val)
             .map(self.to_wire_item).concat(self.separator) ~ "]"
     end,
 
     /// Converts a string in a format given by $to_wire back to a table.
-    from_wire = func(self, val)
+    from_wire: func(self, val)
         return (val == "[]") and [] or val.sub(1, val.len() - 1)
             .split(self.separator).map(self.from_wire_item)
     end,
@@ -549,7 +549,7 @@ M.StateArray = StateVariable.clone {
         or a sufficient cached value. Otherwise returns the result of a
         getter function call and caches it.
     */
-    get_raw = func(self, ent)
+    get_raw: func(self, ent)
         var vn = self.name
         @[debug] log(INFO, "StateArray: get_raw: " ~ vn)
 
@@ -577,7 +577,7 @@ M.StateArray = StateVariable.clone {
     end,
 
     /// Retrieves the state array length. Used by the surrogate.
-    get_length = func(self, ent)
+    get_length: func(self, ent)
         return self.get_raw(ent).len()
     end,
 
@@ -585,12 +585,12 @@ M.StateArray = StateVariable.clone {
         Retrieves a specific element from the state array. Used by
         the surrogate.
     */
-    get_item = func(self, ent, idx)
+    get_item: func(self, ent, idx)
         @[debug] log(INFO, "StateArray: get_item: " ~ idx)
         return self.get_raw(ent)[idx]
     end,
 
-    _get_raw_common = func(self, ent, val)
+    _get_raw_common: func(self, ent, val)
         var a = self.get_raw(ent)
         if typeof val == "string" do
             assert(not val.find("%" ~ self.separator))
@@ -602,7 +602,7 @@ M.StateArray = StateVariable.clone {
         Sets an element in the state array. Used by the surrogate. Performs
         an update on all clients by setting the state data on the entity.
     */
-    set_item = func(self, ent, idx, val)
+    set_item: func(self, ent, idx, val)
         @[debug] log(INFO, "StateArray: set_item: " ~ idx ~ ", "
             ~ tostring(val))
         var a = self._get_raw_common(ent, val)
@@ -610,7 +610,7 @@ M.StateArray = StateVariable.clone {
         ent.set_sdata(self.name, a, -1)
     end,
 
-    push_item = func(self, ent, val)
+    push_item: func(self, ent, val)
         @[debug] log(INFO, "StateArray: push: " ~ tostring(val))
         var a = self._get_raw_common(ent, val)
         a.push(val)
@@ -625,10 +625,10 @@ StateArray = M.StateArray
     it back to an integer.
 */
 M.StateArrayInteger = StateArray.clone {
-    name = "StateArrayInteger",
+    name: "StateArrayInteger",
 
-    to_wire_item   = tostring,
-    from_wire_item = func(v) return floor(tonumber(v)) end
+    to_wire_item  : tostring,
+    from_wire_item: func(v) return floor(tonumber(v)) end
 }
 StateArrayInteger = M.StateArrayInteger
 
@@ -639,10 +639,10 @@ StateArrayInteger = M.StateArrayInteger
     which converts it back to a float.
 */
 M.StateArrayFloat = StateArray.clone {
-    name = "StateArrayFloat",
+    name: "StateArrayFloat",
 
-    to_wire_item   = func(v) return tostring(round(v, 2)) end,
-    from_wire_item = tonumber
+    to_wire_item  : func(v) return tostring(round(v, 2)) end,
+    from_wire_item: tonumber
 }
 StateArrayFloat = M.StateArrayFloat
 
@@ -651,8 +651,8 @@ StateArrayFloat = M.StateArrayFloat
     {{$geom.Vec2_Surrogate}}. Other than that, no changes are made.
 */
 M.StateVec2 = StateArrayFloat.clone {
-    name = "StateVec2",
-    surrogate = geom.Vec2_Surrogate
+    name: "StateVec2",
+    surrogate: geom.Vec2_Surrogate
 }
 
 /**
@@ -660,8 +660,8 @@ M.StateVec2 = StateArrayFloat.clone {
     {{$geom.Vec3_Surrogate}}. Other than that, no changes are made.
 */
 M.StateVec3 = StateArrayFloat.clone {
-    name = "StateVec3",
-    surrogate = geom.Vec3_Surrogate
+    name: "StateVec3",
+    surrogate: geom.Vec3_Surrogate
 }
 
 /**
@@ -669,8 +669,8 @@ M.StateVec3 = StateArrayFloat.clone {
     {{$geom.Vec4_Surrogate}}. Other than that, no changes are made.
 */
 M.StateVec4 = StateArrayFloat.clone {
-    name = "StateVec4",
-    surrogate = geom.Vec4_Surrogate
+    name: "StateVec4",
+    surrogate: geom.Vec4_Surrogate
 }
 
 /**
@@ -679,7 +679,7 @@ M.StateVec4 = StateArrayFloat.clone {
     getters and setters.
 */
 StateVariableAlias = StateVariable.clone {
-    name = "StateVariableAlias",
+    name: "StateVariableAlias",
 
     /**
         Variable aliases don't really need all the properties, so the parent
@@ -687,7 +687,7 @@ StateVariableAlias = StateVariable.clone {
         given by the constructor argument, which specifies the name of
         the state variable they point to.
     */
-    __ctor = func(self, tname)
+    __ctor: func(self, tname)
         self.target_name = tname
     end,
 
@@ -696,7 +696,7 @@ StateVariableAlias = StateVariable.clone {
         getter and setter. It also creates the _SV_ prefixed raw accessor
         pointing to the target var. See {{$StateVariable.register}}.
     */
-    register = func(self, name, cl)
+    register: func(self, name, cl)
         @[debug] log(DEBUG, "StateVariableAlias: register(" ~ name
             ~ ", " ~ cl.name ~ ")")
 

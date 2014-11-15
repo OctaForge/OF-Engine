@@ -27,20 +27,20 @@ var Entity = ents.Entity
     This is the day manager entity prototype.
 */
 var DayManager = Entity.clone {
-    name = "DayManager",
+    name: "DayManager",
 
-    __properties = {
-        day_seconds = svars::StateInteger(),
-        day_progress = svars::StateInteger { reliable = false }
+    __properties: {
+        day_seconds: svars::StateInteger(),
+        day_progress: svars::StateInteger { reliable: false }
     },
 
-    __init_svars = func(self)
+    __init_svars: func(self)
         Entity::__init_svars(self)
         self.set_attr("day_seconds", 40)
         self.set_attr("day_progress", 0)
     end,
 
-    __activate = @[server,func(self)
+    __activate: @[server,func(self)
         Entity::__activate(self)
         self.day_seconds_s = self.get_attr("day_seconds")
         connect(self, "day_seconds,changed", func(self, v)
@@ -49,7 +49,7 @@ var DayManager = Entity.clone {
         self.day_progress_s = 0
     end],
 
-    __run = func(self, millis)
+    __run: func(self, millis)
         @[not server] do return end
         Entity::__run(self, millis)
         var dm = self.day_seconds_s * 1000
@@ -126,8 +126,8 @@ M.plugins = {
         A plugin that adds day/night cycles to the day manager. It works
         by manipulating the sunlight yaw and pitch.
     */
-    day_night = {
-        __activate = @[not server,func(self)
+    day_night: {
+        __activate: @[not server,func(self)
             var daylen
             connect(self, "day_seconds,changed", func(self, v)
                 daylen = v
@@ -143,7 +143,7 @@ M.plugins = {
             end)
         end],
 
-        __run = @[not server,func(self)
+        __run: @[not server,func(self)
             if self.sun_changed_dir and edit::player_is_editing() do
                 lights::reset_sun()
                 self.sun_changed_dir = false

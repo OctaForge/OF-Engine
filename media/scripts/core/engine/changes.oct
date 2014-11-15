@@ -21,9 +21,9 @@ var M = {}
     Specifies the change type, can be GFX, SOUND or SHADERS.
 */
 M.change = {:
-    GFX     = 1 << 0,
-    SOUND   = 1 << 1,
-    SHADERS = 1 << 2
+    GFX    : 1 << 0,
+    SOUND  : 1 << 1,
+    SHADERS: 1 << 2
 :}
 var change = M.change
 
@@ -40,7 +40,7 @@ M.add = func(ctype, desc)
         if v.desc == desc do return end
     end
     needsapply.push {
-        ctype = ctype, desc = desc
+        ctype: ctype, desc: desc
     }
 end
 

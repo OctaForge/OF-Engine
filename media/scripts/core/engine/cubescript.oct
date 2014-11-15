@@ -16,13 +16,13 @@ var emit = signal.emit
 
 /// Module: cubescript
 var M = {
-    __connect = func(self, name)
+    __connect: func(self, name)
         var  vn = name.find_match("(.+),changed$")
         if not vn do return end
         capi::var_make_emit(vn, true)
     end,
 
-    __disconnect = func(self, name, id, scount)
+    __disconnect: func(self, name, id, scount)
         if scount == 0 do
             var  vn = name.find_match("(.+),changed$")
             if not vn do return end
@@ -41,7 +41,7 @@ M.execute = capi.cubescript
     and "string".
 */
 M.var_type = {:
-    int = 0, float = 1, string = 2
+    int: 0, float: 1, string: 2
 :}
 
 /**
@@ -53,10 +53,10 @@ M.var_type = {:
     OVERRIDE is implicit and HEX and READONLY will still work.
 */
 M.var_flags = {:
-    PERSIST  = 1 << 0,
-    OVERRIDE = 1 << 1,
-    HEX      = 1 << 2,
-    READONLY = 1 << 3
+    PERSIST : 1 << 0,
+    OVERRIDE: 1 << 1,
+    HEX     : 1 << 2,
+    READONLY: 1 << 3
 :}
 
 /**

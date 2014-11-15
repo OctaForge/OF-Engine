@@ -29,8 +29,8 @@ var ran = capi.model_register_anim
     just the animation from a combined animation/control integer.
 */
 M.anims = {
-    mapmodel = ran "mapmodel", edit = ran "edit", lag = ran "lag",
-    idle = ran "idle", INDEX = 0x1FF, DIR = 0xE00, SECONDARY = 12
+    mapmodel: ran "mapmodel", edit: ran "edit", lag: ran "lag",
+    idle: ran "idle", INDEX: 0x1FF, DIR: 0xE00, SECONDARY: 12
 }
 var anims = M.anims
 
@@ -60,23 +60,23 @@ anims.crouch_swim = ran "crouch_swim"
     LOOP, CLAMP, REVERSE, LOOPREV, CLAMPREV, START, END.
 */
 M.anim_control = {:
-    LOOP     = 1 << 9,
-    CLAMP    = 1 << 10,
-    REVERSE  = 1 << 11,
-    LOOPREV  = LOOP  | REVERSE,
-    CLAMPREV = CLAMP | REVERSE,
-    START    = LOOP  | CLAMP,
-    END      = LOOP  | CLAMP | REVERSE
+    LOOP    : 1 << 9,
+    CLAMP   : 1 << 10,
+    REVERSE : 1 << 11,
+    LOOPREV : LOOP  | REVERSE,
+    CLAMPREV: CLAMP | REVERSE,
+    START   : LOOP  | CLAMP,
+    END     : LOOP  | CLAMP | REVERSE
 :}
 
 M.anim_flags = {:
-    NOSKIN     = 1 << 24,
-    SETTIME    = 1 << 25,
-    FULLBRIGHT = 1 << 26,
-    NORENDER   = 1 << 27,
-    RAGDOLL    = 1 << 28,
-    SETSPEED   = 1 << 29,
-    NOPITCH    = 1 << 30
+    NOSKIN    : 1 << 24,
+    SETTIME   : 1 << 25,
+    FULLBRIGHT: 1 << 26,
+    NORENDER  : 1 << 27,
+    RAGDOLL   : 1 << 28,
+    SETSPEED  : 1 << 29,
+    NOPITCH   : 1 << 30
 :}
 
 /**
@@ -88,9 +88,9 @@ M.anim_flags = {:
     shadow render.
 */
 M.render_flags = {:
-    CULL_VFC   = 1 << 0, CULL_DIST  = 1 << 1, CULL_OCCLUDED = 1 << 2,
-    CULL_QUERY = 1 << 3, FULLBRIGHT = 1 << 4, NORENDER      = 1 << 5,
-    MAPMODEL   = 1 << 6, NOBATCH    = 1 << 7, ONLY_SHADOW   = 1 << 8
+    CULL_VFC  : 1 << 0, CULL_DIST : 1 << 1, CULL_OCCLUDED: 1 << 2,
+    CULL_QUERY: 1 << 3, FULLBRIGHT: 1 << 4, NORENDER     : 1 << 5,
+    MAPMODEL  : 1 << 6, NOBATCH   : 1 << 7, ONLY_SHADOW  : 1 << 8
 :}
 
 /** Function: register_anim

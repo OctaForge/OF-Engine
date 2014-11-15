@@ -21,38 +21,38 @@ from std.table import pairs
 // buttons
 
 var btnp  = [ "label", "min_w", "min_h" ]
-var btnv  = { __properties = btnp }
-var btnvb = { __properties = btnp }
-gui.Button.__variants = { default = btnv, nobg = btnvb }
+var btnv  = { __properties: btnp }
+var btnvb = { __properties: btnp }
+gui.Button.__variants = { default: btnv, nobg: btnvb }
 
 var btnv_init_clone = func(self, btn)
-    var lbl = gui::Label { text = btn.label }
+    var lbl = gui::Label { text: btn.label }
     self.append(lbl)
     connect(btn, "label,changed", func(b, t) lbl.set_text(t) end)
 end
 
 var btn_build_variant = \color -> gui::Gradient {
-    color = 0x202020, color2 = 0x101010, clamp_h = true,
-    init_clone = func(self, btn)
+    color: 0x202020, color2: 0x101010, clamp_h: true,
+    init_clone: func(self, btn)
         self.set_min_w(btn.min_w or 0)
         self.set_min_h(btn.min_h or 0)
         connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
-    end, children = [ gui::Outline {
-        color = color, clamp_h = true, children = [ gui::Spacer {
-            pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
+    end, children: [ gui::Outline {
+        color: color, clamp_h: true, children: [ gui::Spacer {
+            pad_h: 0.01, pad_v: 0.005, init_clone: btnv_init_clone
         } ]
     } ]
 }
 
 var btn_build_variant_nobg = \-> gui::Filler {
-    clamp_h = true, init_clone = func(self, btn)
+    clamp_h: true, init_clone: func(self, btn)
         self.set_min_w(btn.min_w or 0)
         self.set_min_h(btn.min_h or 0)
         connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
-    end, children = [ gui::Spacer {
-        pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
+    end, children: [ gui::Spacer {
+        pad_h: 0.01, pad_v: 0.005, init_clone: btnv_init_clone
     } ]
 }
 
@@ -65,11 +65,11 @@ btnvb["hovering"    ] = btn_build_variant(0x404040)
 btnvb["clicked_left"] = btn_build_variant(0x303030)
 
 var mbtnv, vmbtnv, smbtnv =
-    { __properties  = [ "label" ] },
-    { __properties  = [ "label" ] },
-    { __properties  = [ "label" ] }
-gui.MenuButton.__variants = { default = mbtnv, visible = vmbtnv,
-    submenu = smbtnv }
+    { __properties: [ "label" ] },
+    { __properties: [ "label" ] },
+    { __properties: [ "label" ] }
+gui.MenuButton.__variants = { default: mbtnv, visible: vmbtnv,
+    submenu: smbtnv }
 
 mbtnv["default"     ] = btn_build_variant_nobg()
 mbtnv["hovering"    ] = btn_build_variant_nobg()
@@ -98,66 +98,66 @@ var slotbtn_init_clone = func(self, btn)
 end
 
 gui.Button.__variants.vslot = {
-    __properties = [ "index", "min_w", "min_h" ],
-    default = gui::VSlotViewer { init_clone = slotbtn_init_clone },
-    hovering = gui::VSlotViewer { init_clone = slotbtn_init_clone,
-        children = [ gui::Outline { clamp = true, color = 0x606060 } ] },
-    clicked_left = gui::VSlotViewer { init_clone = slotbtn_init_clone,
-        children = [ gui::Outline { clamp = true, color = 0x505050 } ] }
+    __properties: [ "index", "min_w", "min_h" ],
+    default: gui::VSlotViewer { init_clone: slotbtn_init_clone },
+    hovering: gui::VSlotViewer { init_clone: slotbtn_init_clone,
+        children: [ gui::Outline { clamp: true, color: 0x606060 } ] },
+    clicked_left: gui::VSlotViewer { init_clone: slotbtn_init_clone,
+        children: [ gui::Outline { clamp: true, color: 0x505050 } ] }
 }
 
 gui.Button.__variants.slot = {
-    __properties = [ "index", "min_w", "min_h" ],
-    default = gui::SlotViewer { init_clone = slotbtn_init_clone },
-    hovering = gui::SlotViewer { init_clone = slotbtn_init_clone,
-        children = [ gui::Outline { clamp = true, color = 0x606060 } ] },
-    clicked_left = gui::SlotViewer { init_clone = slotbtn_init_clone,
-        children = [ gui::Outline { clamp = true, color = 0x505050 } ] }
+    __properties: [ "index", "min_w", "min_h" ],
+    default: gui::SlotViewer { init_clone: slotbtn_init_clone },
+    hovering: gui::SlotViewer { init_clone: slotbtn_init_clone,
+        children: [ gui::Outline { clamp: true, color: 0x606060 } ] },
+    clicked_left: gui::SlotViewer { init_clone: slotbtn_init_clone,
+        children: [ gui::Outline { clamp: true, color: 0x505050 } ] }
 }
 
 // editors
 
 gui.TextEditor.__variants = {
-    default = {
-        __children = [
+    default: {
+        __children: [
             gui::ColorFiller {
-                color = 0x80202020, clamp = true, children = [
-                    gui::Outline { clamp = true,
-                        color = 0x303030
+                color: 0x80202020, clamp: true, children: [
+                    gui::Outline { clamp: true,
+                        color: 0x303030
                     }
                 ]
             }
         ],
-        __init = func(ed)
+        __init: func(ed)
             ed.set_pad_l(0.005)
             ed.set_pad_r(0.005)
         end
     }
 }
-gui.Field.__variants     = gui.TextEditor.__variants
+gui.Field.__variants    = gui.TextEditor.__variants
 gui.KeyField.__variants = gui.TextEditor.__variants
 
 // menus, tooltips
 
 gui.Filler.__variants = {
-    menu = {
-        __children = [ gui::ColorFiller { color = 0xF0101010, clamp = true,
-            children = [ gui::Outline { color = 0x303030, clamp = true } ]
+    menu: {
+        __children: [ gui::ColorFiller { color: 0xF0101010, clamp: true,
+            children: [ gui::Outline { color: 0x303030, clamp: true } ]
         } ]
     },
-    edithud = {
-        __children = [ gui::Gradient { color = 0xF0303030, color2 = 0xF0101010,
-            clamp = true,
-            children = [ gui::Outline { color = 0x404040, clamp = true } ]
+    edithud: {
+        __children: [ gui::Gradient { color: 0xF0303030, color2: 0xF0101010,
+            clamp: true,
+            children: [ gui::Outline { color: 0x404040, clamp: true } ]
         } ]
     },
-    tooltip = {
-        __properties = [ "label" ],
-        __children = [ gui::Gradient {
-            color = 0xF0202020, color2 = 0xF0101010, children = [ gui::Outline {
-                color = 0x303030, clamp = true, children = [ gui::Spacer {
-                    pad_h = 0.01, pad_v = 0.005, init_clone = func(self, ttip)
-                        var lbl = gui::Label { text = ttip.label }
+    tooltip: {
+        __properties: [ "label" ],
+        __children: [ gui::Gradient {
+            color: 0xF0202020, color2: 0xF0101010, children: [ gui::Outline {
+                color: 0x303030, clamp: true, children: [ gui::Spacer {
+                    pad_h: 0.01, pad_v: 0.005, init_clone: func(self, ttip)
+                        var lbl = gui::Label { text: ttip.label }
                         self.append(lbl)
                         connect(ttip, "label,changed", func(o, t)
                             lbl.set_text(t) end)
@@ -171,13 +171,13 @@ gui.Filler.__variants = {
 // checkboxes, radioboxes
 
 var ckbox_build_variant = \color, tgl -> gui::ColorFiller {
-    color = 0x202020, min_w = 0.02, min_h = 0.02,
-    children = [ gui::Outline {
-        color = color, clamp = true, children = tgl and [ gui::Spacer {
-            pad_h = 0.005, pad_v = 0.005, clamp = true, children = [
+    color: 0x202020, min_w: 0.02, min_h: 0.02,
+    children: [ gui::Outline {
+        color: color, clamp: true, children: tgl and [ gui::Spacer {
+            pad_h: 0.005, pad_v: 0.005, clamp: true, children: [
                 gui::ColorFiller {
-                    clamp = true, color = 0xC0C0C0,
-                    children = [ gui::Outline { color = color, clamp = true } ]
+                    clamp: true, color: 0xC0C0C0,
+                    children: [ gui::Outline { color: color, clamp: true } ]
                 }
             ]
         } ] or undef
@@ -185,15 +185,15 @@ var ckbox_build_variant = \color, tgl -> gui::ColorFiller {
 }
 
 var rdbtn_build_variant = \color, tgl -> gui::Circle {
-    color = 0x202020, min_w = 0.02, min_h = 0.02,
-    children = [ gui::Circle {
-        style = gui.Circle.OUTLINE, color = color, clamp = true,
-        children = tgl and [ gui::Spacer {
-            pad_h = 0.005, pad_v = 0.005, clamp = true, children = [
+    color: 0x202020, min_w: 0.02, min_h: 0.02,
+    children: [ gui::Circle {
+        style: gui.Circle.OUTLINE, color: color, clamp: true,
+        children: tgl and [ gui::Spacer {
+            pad_h: 0.005, pad_v: 0.005, clamp: true, children: [
                 gui::Circle {
-                    clamp = true, color = 0xC0C0C0, children = [ gui::Circle {
-                        style = gui.Circle.OUTLINE, color = color,
-                        clamp = true
+                    clamp: true, color: 0xC0C0C0, children: [ gui::Circle {
+                        style: gui.Circle.OUTLINE, color: color,
+                        clamp: true
                     } ]
                 }
             ]
@@ -204,8 +204,8 @@ var rdbtn_build_variant = \color, tgl -> gui::Circle {
 var ckboxv, rdbtnv = {}, {}
 
 gui.Toggle.__variants = {
-    checkbox = ckboxv,
-    radiobutton = rdbtnv
+    checkbox: ckboxv,
+    radiobutton: rdbtnv
 }
 
 ckboxv["default"         ] = ckbox_build_variant(0x303030)
@@ -224,71 +224,71 @@ rdbtnv["toggled_focused" ] = rdbtn_build_variant(0x606060, true)
 // scrollbars
 
 var sb_buildh = \lac, rac -> gui::Outline {
-    clamp_h = true, color = 0x303030, children = [
-        gui::Filler { min_w = 0.02, min_h = 0.02, align_h = -1,
-            children = [ gui::Triangle { style = gui.Triangle.OUTLINE,
-                color = lac, min_w = 0.01, min_h = 0.01, angle = 90
+    clamp_h: true, color: 0x303030, children: [
+        gui::Filler { min_w: 0.02, min_h: 0.02, align_h: -1,
+            children: [ gui::Triangle { style: gui.Triangle.OUTLINE,
+                color: lac, min_w: 0.01, min_h: 0.01, angle: 90
             } ]
         },
-        gui::Filler { min_w = 0.02, min_h = 0.02, align_h = 1,
-            children = [ gui::Triangle { style = gui.Triangle.OUTLINE,
-                color = rac, min_w = 0.01, min_h = 0.01, angle = -90
+        gui::Filler { min_w: 0.02, min_h: 0.02, align_h: 1,
+            children: [ gui::Triangle { style: gui.Triangle.OUTLINE,
+                color: rac, min_w: 0.01, min_h: 0.01, angle: -90
             } ]
         }
     ]
 }
 
 var sb_buildv = \lac, rac -> gui::Filler {
-    clamp_v = true, children = [
-        gui::Filler { min_w = 0.02, min_h = 0.02, align_v = -1,
-            children = [ gui::Triangle { style = gui.Triangle.OUTLINE,
-                color = lac, min_w = 0.01, min_h = 0.01
+    clamp_v: true, children: [
+        gui::Filler { min_w: 0.02, min_h: 0.02, align_v: -1,
+            children: [ gui::Triangle { style: gui.Triangle.OUTLINE,
+                color: lac, min_w: 0.01, min_h: 0.01
             } ]
         },
-        gui::Filler { min_w = 0.02, min_h = 0.02, align_v = 1,
-            children = [ gui::Triangle { style = gui.Triangle.OUTLINE,
-                color = rac, min_w = 0.01, min_h = 0.01, angle = 180
+        gui::Filler { min_w: 0.02, min_h: 0.02, align_v: 1,
+            children: [ gui::Triangle { style: gui.Triangle.OUTLINE,
+                color: rac, min_w: 0.01, min_h: 0.01, angle: 180
             } ]
         }
     ]
 }
 
 gui.ScrollButton.__variants = {
-    default = {
-        default = gui::ColorFiller {
-            color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
-            children = [ gui::Outline { clamp = true, color = 0x404040 } ]
+    default: {
+        default: gui::ColorFiller {
+            color: 0x181818, clamp: true, min_w: 0.015, min_h: 0.015,
+            children: [ gui::Outline { clamp: true, color: 0x404040 } ]
         },
-        hovering = gui::ColorFiller {
-            color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
-            children = [ gui::Outline { clamp = true, color = 0x606060 } ]
+        hovering: gui::ColorFiller {
+            color: 0x181818, clamp: true, min_w: 0.015, min_h: 0.015,
+            children: [ gui::Outline { clamp: true, color: 0x606060 } ]
         },
-        clicked_left = gui::ColorFiller {
-            color = 0x181818, clamp = true, min_w = 0.015, min_h = 0.015,
-            children = [ gui::Outline { clamp = true, color = 0x505050 } ]
+        clicked_left: gui::ColorFiller {
+            color: 0x181818, clamp: true, min_w: 0.015, min_h: 0.015,
+            children: [ gui::Outline { clamp: true, color: 0x505050 } ]
         }
     }
 }
 
 gui.HScrollbar.__variants = {
-    default = {
-        default            = sb_buildh(0x404040, 0x404040),
-        left_hovering      = sb_buildh(0x606060, 0x404040),
-        left_clicked_left  = sb_buildh(0x505050, 0x404040),
-        right_hovering     = sb_buildh(0x404040, 0x606060),
-        right_clicked_left = sb_buildh(0x404040, 0x505050),
-        __init = func(self) self.set_arrow_size(0.02) end
+    default: {
+        default           : sb_buildh(0x404040, 0x404040),
+        left_hovering     : sb_buildh(0x606060, 0x404040),
+        left_clicked_left : sb_buildh(0x505050, 0x404040),
+        right_hovering    : sb_buildh(0x404040, 0x606060),
+        right_clicked_left: sb_buildh(0x404040, 0x505050),
+        __init: func(self) self.set_arrow_size(0.02) end
     }
 }
 
 gui.VScrollbar.__variants = {
-    default = {
-        default           = sb_buildv(0x404040, 0x404040),
-        up_hovering       = sb_buildv(0x606060, 0x404040),
-        up_clicked_left   = sb_buildv(0x505050, 0x404040),
-        down_hovering     = sb_buildv(0x404040, 0x606060),
-        down_clicked_left = sb_buildv(0x404040, 0x505050),
-        __init = func(self) self.set_arrow_size(0.02) end
+    default: {
+        default          : sb_buildv(0x404040, 0x404040),
+        up_hovering      : sb_buildv(0x606060, 0x404040),
+        up_clicked_left  : sb_buildv(0x505050, 0x404040),
+        down_hovering    : sb_buildv(0x404040, 0x606060),
+        down_clicked_left: sb_buildv(0x404040, 0x505050),
+        __init: func(self) self.set_arrow_size(0.02) end
     }
 }
 
@@ -301,15 +301,15 @@ gui.VSlider.__variants = gui.VScrollbar.__variants
 // progress bars
 
 gui.HProgressBar.__variants = {
-    default = {
-        __children = [ gui::ColorFiller { color = 0xF0101010, clamp = true,
-            children = [ gui::Outline { color = 0x404040, clamp = true } ],
-            init_clone = func(self, pb)
-                var bar = gui::Gradient { color = 0xF0353535,
-                    color2 = 0xF0252525, clamp_v = true,
-                    children = [ gui::Outline { color = 0x404040, clamp = true } ]
+    default: {
+        __children: [ gui::ColorFiller { color: 0xF0101010, clamp: true,
+            children: [ gui::Outline { color: 0x404040, clamp: true } ],
+            init_clone: func(self, pb)
+                var bar = gui::Gradient { color: 0xF0353535,
+                    color2: 0xF0252525, clamp_v: true,
+                    children: [ gui::Outline { color: 0x404040, clamp: true } ]
                 }
-                var lbl = gui::Label { text = pb.gen_label(), scale = 0.8 }
+                var lbl = gui::Label { text: pb.gen_label(), scale: 0.8 }
                 pb.set_bar(bar)
                 self.append(bar)
                 self.append(lbl)
@@ -322,17 +322,17 @@ gui.HProgressBar.__variants = {
 }
 
 gui.VProgressBar.__variants = {
-    default = {
-        __children = [ gui::ColorFiller { color = 0xF0101010, clamp = true,
-            children = [ gui::Outline { color = 0x404040, clamp = true } ],
-            init_clone = func(self, pb)
-                var bar = gui::Gradient { color = 0xF0353535,
-                    color2 = 0xF0252525, clamp_h = true, horizontal = true,
-                    children = [
-                        gui::Outline { color = 0x404040, clamp = true }
+    default: {
+        __children: [ gui::ColorFiller { color: 0xF0101010, clamp: true,
+            children: [ gui::Outline { color: 0x404040, clamp: true } ],
+            init_clone: func(self, pb)
+                var bar = gui::Gradient { color: 0xF0353535,
+                    color2: 0xF0252525, clamp_h: true, horizontal: true,
+                    children: [
+                        gui::Outline { color: 0x404040, clamp: true }
                     ]
                 }
-                var lbl = gui::Label { text = pb.gen_label(), scale = 0.8 }
+                var lbl = gui::Label { text: pb.gen_label(), scale: 0.8 }
                 pb.set_bar(bar)
                 self.append(bar)
                 self.append(lbl)
@@ -347,11 +347,11 @@ gui.VProgressBar.__variants = {
 // windows
 
 var window_build_titlebar = \-> gui::Gradient {
-    color = 0xF0202020, color2 = 0xF0101010, clamp_h = true,
-    children = [ gui::Spacer {
-        pad_h = 0.004, pad_v = 0.004,
-        init_clone = func(self, win)
-            var lbl = gui::Label { text = win.title or win.obj_name }
+    color: 0xF0202020, color2: 0xF0101010, clamp_h: true,
+    children: [ gui::Spacer {
+        pad_h: 0.004, pad_v: 0.004,
+        init_clone: func(self, win)
+            var lbl = gui::Label { text: win.title or win.obj_name }
             self.append(lbl)
             connect(win, "title,changed", func(w, t)
                 lbl.set_text(t or w.obj_name) end)
@@ -360,41 +360,41 @@ var window_build_titlebar = \-> gui::Gradient {
 }
 
 var window_build_regular = \mov -> gui::Filler {
-    clamp = true,
-    children = [ gui::VBox {
-        clamp = true,
-        children = [
-            gui::Filler { clamp_h = true,
-                children = [
-                    mov and gui::Mover { clamp_h = true,
-                        init_clone = func(self, win)
+    clamp: true,
+    children: [ gui::VBox {
+        clamp: true,
+        children: [
+            gui::Filler { clamp_h: true,
+                children: [
+                    mov and gui::Mover { clamp_h: true,
+                        init_clone: func(self, win)
                             self.set_window(win)
                         end,
-                        children = [ window_build_titlebar() ]
+                        children: [ window_build_titlebar() ]
                     } or window_build_titlebar(),
-                    gui::Spacer { pad_h = 0.009, align_h = 1,
-                        children = [ gui::Button {
-                            variant = false, states = {
-                                default = gui::ColorFiller {
-                                    color = 0x101010, min_w = 0.015,
-                                    min_h = 0.015, children = [
-                                        gui::Outline { clamp = true, color = 0x606060 }
+                    gui::Spacer { pad_h: 0.009, align_h: 1,
+                        children: [ gui::Button {
+                            variant: false, states: {
+                                default: gui::ColorFiller {
+                                    color: 0x101010, min_w: 0.015,
+                                    min_h: 0.015, children: [
+                                        gui::Outline { clamp: true, color: 0x606060 }
                                     ]
                                 },
-                                hovering = gui::ColorFiller {
-                                    color = 0x101010, min_w = 0.015,
-                                    min_h = 0.015, children = [
-                                        gui::Outline { clamp = true, color = 0x808080 }
+                                hovering: gui::ColorFiller {
+                                    color: 0x101010, min_w: 0.015,
+                                    min_h: 0.015, children: [
+                                        gui::Outline { clamp: true, color: 0x808080 }
                                     ]
                                 },
-                                clicked_left = gui::ColorFiller {
-                                    color = 0x101010, min_w = 0.015,
-                                    min_h = 0.015, children = [
-                                        gui::Outline { clamp = true, color = 0x707070 }
+                                clicked_left: gui::ColorFiller {
+                                    color: 0x101010, min_w: 0.015,
+                                    min_h: 0.015, children: [
+                                        gui::Outline { clamp: true, color: 0x707070 }
                                     ]
                                 }
                             },
-                            init_clone = func(self, win)
+                            init_clone: func(self, win)
                                 connect(self, "clicked", \-> win.hide())
                             end
                         } ]
@@ -402,50 +402,50 @@ var window_build_regular = \mov -> gui::Filler {
                 ]
             },
             gui::ColorFiller {
-                color = 0xF0101010, clamp = true, children = [ gui::Spacer {
-                    pad_h = 0.005, pad_v = 0.005, init_clone = func(self, win)
+                color: 0xF0101010, clamp: true, children: [ gui::Spacer {
+                    pad_h: 0.005, pad_v: 0.005, init_clone: func(self, win)
                         win.set_container(self)
                     end
                 } ]
             }
         ],
-        states = {
-            default = gui::ColorFiller { min_w = 0.05, min_h = 0.07 }
+        states: {
+            default: gui::ColorFiller { min_w: 0.05, min_h: 0.07 }
         }
     },
-    gui::Outline { color = 0x303030, clamp = true } ]
+    gui::Outline { color: 0x303030, clamp: true } ]
 }
 
 gui.Window.__variants = {
-    borderless = {
-        __children = [ gui::ColorFiller {
-            color = 0xF0101010, clamp = true,
-            children = [ gui::Outline { color = 0x303030, clamp = true,
-                children = [ gui::Spacer {
-                    pad_h = 0.005, pad_v = 0.005, init_clone = func(self, win)
+    borderless: {
+        __children: [ gui::ColorFiller {
+            color: 0xF0101010, clamp: true,
+            children: [ gui::Outline { color: 0x303030, clamp: true,
+                children: [ gui::Spacer {
+                    pad_h: 0.005, pad_v: 0.005, init_clone: func(self, win)
                         win.set_container(self)
                     end
                 } ]
             } ]
         } ]
     },
-    regular = { __properties = [ "title" ],
-        __children = [ window_build_regular(false) ] },
-    movable = { __properties = [ "title" ],
-        __children = [ window_build_regular(true) ] }
+    regular: { __properties: [ "title" ],
+        __children: [ window_build_regular(false) ] },
+    movable: { __properties: [ "title" ],
+        __children: [ window_build_regular(true) ] }
 }
 
 // default windows
 
 var progress_bar, progress_label
-var progress_win = gui::Window { __init = func(win)
+var progress_win = gui::Window { __init: func(win)
     win.append(gui::VBox(), func(b)
-        b.append(gui::Spacer { pad_h = 0.01, pad_v = 0.01 }, func(sp)
+        b.append(gui::Spacer { pad_h: 0.01, pad_v: 0.01 }, func(sp)
             progress_label = sp.append(gui::Label())
         end)
-        b.append(gui::Spacer { pad_h = 0.02, pad_v = 0.01 }, func(sp)
-            progress_bar = sp.append(gui::HProgressBar { min_w = 0.4,
-                min_h = 0.03 })
+        b.append(gui::Spacer { pad_h: 0.02, pad_v: 0.01 }, func(sp)
+            progress_bar = sp.append(gui::HProgressBar { min_w: 0.4,
+                min_h: 0.03 })
         end)
     end)
 end }
@@ -464,19 +464,19 @@ var bg_win = func(mapname, mapinfo, mapshot, caption)
     win.align(0, 1)
     win.append(gui::VBox(), func(b)
         if mapname do
-            b.append(gui::Label { text = mapname, scale = 1.5 })
+            b.append(gui::Label { text: mapname, scale: 1.5 })
         end
-        if mapinfo do b.append(gui::Label { text = mapinfo }) end
+        if mapinfo do b.append(gui::Label { text: mapinfo }) end
         if mapshot do
-            b.append(gui::Spacer { pad_h = 0.02, pad_v = 0.02 }, func(sp)
-                sp.append(gui::Image { min_w = 0.2, min_h = 0.2 },
+            b.append(gui::Spacer { pad_h: 0.02, pad_v: 0.02 }, func(sp)
+                sp.append(gui::Image { min_w: 0.2, min_h: 0.2 },
                     func(img) img.texture = mapshot end)
             end)
         end
         if caption do
-            b.append(gui::Label { text = caption, scale = 1.5 })
+            b.append(gui::Label { text: caption, scale: 1.5 })
         end
-        b.append(gui::Filler { min_h = 0.05 })
+        b.append(gui::Filler { min_h: 0.05 })
     end)
     return win
 end
@@ -509,12 +509,12 @@ end
 var bg_under = func(root)
     var win = gui::Overlay()
     var logo, lw, lh = get_logo(root, win)
-    win.append(gui::Image { file = "media/interface/background",
-        min_w = 1/0, min_h = 1/0 })
-    win.append(gui::Image { file = "media/interface/shadow",
-        min_w = 1/0, min_h = 1/0 })
-    win.append( gui::Image { file = logo, min_w = lw, min_h = lh,
-                            align_v = -1 })
+    win.append(gui::Image { file: "media/interface/background",
+        min_w: 1/0, min_h: 1/0 })
+    win.append(gui::Image { file: "media/interface/shadow",
+        min_w: 1/0, min_h: 1/0 })
+    win.append( gui::Image { file: logo, min_w: lw, min_h: lh,
+                            align_v: -1 })
     return win
 end
 
@@ -551,27 +551,27 @@ root.new_window("changes", gui.Window, func(win)
     win.set_title("Changes")
     connect(win, "destroy", \-> changes::clear())
     win.append(gui::VBox(), func(b)
-        b.append(gui::Spacer { pad_h = 0.01, pad_v = 0,
-            children = [
-                gui::Label { text = "The following settings have changed:" }
+        b.append(gui::Spacer { pad_h: 0.01, pad_v: 0,
+            children: [
+                gui::Label { text: "The following settings have changed:" }
             ] })
-        b.append(gui::Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
-            children = [ gui::Line { clamp_h = true, color = 0x303030 } ] })
+        b.append(gui::Spacer { pad_v: 0.01, pad_h: 0.005, clamp_h: true,
+            children: [ gui::Line { clamp_h: true, color: 0x303030 } ] })
         for i, v in changes::get().each() do
-            b.append(gui::Label { text = v })
+            b.append(gui::Label { text: v })
         end
-        b.append(gui::Filler { clamp_h = true, min_h = 0.01 })
-        b.append(gui::Spacer { pad_v = 0.005, pad_h = 0.005, clamp_h = true,
-            children = [ gui::HBox { padding = 0.01,
-                children = [
-                    gui::Button { label = "OK", min_w = 0.15,
-                        signals = { clicked = func()
+        b.append(gui::Filler { clamp_h: true, min_h: 0.01 })
+        b.append(gui::Spacer { pad_v: 0.005, pad_h: 0.005, clamp_h: true,
+            children: [ gui::HBox { padding: 0.01,
+                children: [
+                    gui::Button { label: "OK", min_w: 0.15,
+                        signals: { clicked: func()
                             changes::apply()
                             root.hide_window("changes")
                         end }
                     },
-                    gui::Button { label = "Cancel", min_w = 0.15,
-                        signals = { clicked = func()
+                    gui::Button { label: "Cancel", min_w: 0.15,
+                        signals: { clicked: func()
                             root.hide_window("changes")
                         end }
                     }
@@ -588,13 +588,13 @@ root.new_window("texture", gui.Window, func(win)
     win.append(gui::HBox(), func(hb)
         var s
         hb.append(gui::Outline(), func(o)
-            o.append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
-                sp.append(gui::Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
-                    sc.append(gui::Grid { columns = 8, padding = 0.01 }, func(gr)
+            o.append(gui::Spacer { pad_h: 0.005, pad_v: 0.005 }, func(sp)
+                sp.append(gui::Scroller { clip_w: 0.9, clip_h: 0.6 }, func(sc)
+                    sc.append(gui::Grid { columns: 8, padding: 0.01 }, func(gr)
                         for i in 1 to capi::slot_texmru_num() do
                             var mru = capi::slot_texmru(i - 1)
-                            gr.append(gui::Button { variant = "vslot",
-                                index = mru, min_w = 0.095, min_h = 0.095
+                            gr.append(gui::Button { variant: "vslot",
+                                index: mru, min_w: 0.095, min_h: 0.095
                             }, func(b)
                                 connect(b, "clicked", \-> capi::slot_set(mru))
                             end)
@@ -604,7 +604,7 @@ root.new_window("texture", gui.Window, func(win)
                 end)
             end)
         end)
-        hb.append(gui::VScrollbar { clamp_v = true }, func(sb)
+        hb.append(gui::VScrollbar { clamp_v: true }, func(sb)
             sb.append(gui::ScrollButton())
             sb.bind_scroller(s)
         end)
@@ -615,9 +615,9 @@ var fields = {
     $(svars.StateBoolean): func(hb, nm, ent, dv)
         var tvar = (dv == "true")
         var ret
-        hb.append(gui::Filler { min_w = 0.4 }, func(f)
-            f.append(gui::Toggle { variant = "checkbox", condition = \-> tvar,
-                align_h = -1
+        hb.append(gui::Filler { min_w: 0.4 }, func(f)
+            f.append(gui::Toggle { variant: "checkbox", condition: \-> tvar,
+                align_h: -1
             }, func(t)
                 ret = t
                 signal::connect(t, "released", func()
@@ -630,7 +630,7 @@ var fields = {
     end
 }
 var field_def = func(hb, nm, ent, dv)
-    return hb.append(gui::Field { clip_w = 0.4, value = dv }, func(ed)
+    return hb.append(gui::Field { clip_w: 0.4, value: dv }, func(ed)
         connect(ed, "value,changed", func(ed, v)
             ent.set_gui_attr(nm, v)
         end)
@@ -646,8 +646,8 @@ root.new_window("entity", gui.Window, func(win)
     end
     if not ent do
         win.set_title("Entity editing: none")
-        win.append(gui::Spacer { pad_h = 0.04, pad_v = 0.03,
-            children = [ gui::Label { text = "No selected entity" } ]
+        win.append(gui::Spacer { pad_h: 0.04, pad_v: 0.03,
+            children: [ gui::Label { text: "No selected entity" } ]
         })
         return
     end
@@ -669,16 +669,16 @@ root.new_window("entity", gui.Window, func(win)
 
     win.append(gui::HBox(), func(hb)
         var s
-        hb.append(gui::Outline { color = 0x303030 }, func(o)
-            o.append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
-                sp.append(gui::Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
+        hb.append(gui::Outline { color: 0x303030 }, func(o)
+            o.append(gui::Spacer { pad_h: 0.005, pad_v: 0.005 }, func(sp)
+                sp.append(gui::Scroller { clip_w: 0.9, clip_h: 0.6 }, func(sc)
                     sc.append(gui::VBox(), func(vb)
                         var fpf, pf
                         for i, nm in props.each() do
                             var sd = sdata[nm]
                             var gn, dv, sv = sd[0], sd[1], sd[2]
-                            vb.append(gui::HBox { align_h = 1 }, func(hb)
-                                hb.append(gui::Label { text = " " ~ sd[0]
+                            vb.append(gui::HBox { align_h: 1 }, func(hb)
+                                hb.append(gui::Label { text: " " ~ sd[0]
                                     ~ ": " })
                                 var fld = fields[sv.__proto] or field_def
                                 var fd = fld(hb, gn, ent, dv)
@@ -695,7 +695,7 @@ root.new_window("entity", gui.Window, func(win)
                 end)
             end)
         end)
-        hb.append(gui::VScrollbar { clamp_v = true }, func(sb)
+        hb.append(gui::VScrollbar { clamp_v: true }, func(sb)
             sb.append(gui::ScrollButton())
             sb.bind_scroller(s)
         end)
@@ -718,13 +718,13 @@ root.new_window("entity_new", gui.Window, func(win)
 
     win.append(gui::HBox(), func(hb)
         var s
-        hb.append(gui::Outline { color = 0x303030 }, func(o)
-            o.append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
-                sp.append(gui::Scroller { clip_w = 0.6, clip_h = 0.6 }, func(sc)
+        hb.append(gui::Outline { color: 0x303030 }, func(o)
+            o.append(gui::Spacer { pad_h: 0.005, pad_v: 0.005 }, func(sp)
+                sp.append(gui::Scroller { clip_w: 0.6, clip_h: 0.6 }, func(sc)
                     sc.append(gui::VBox(), func(vb)
                         for i, n in cnames.each() do
                             vb.append(gui::Button {
-                                variant = "nobg", min_w = 0.3, label = n
+                                variant: "nobg", min_w: 0.3, label: n
                             }, func(btn)
                                 connect(btn, "clicked", func()
                                     edit::new_entity(n)
@@ -737,7 +737,7 @@ root.new_window("entity_new", gui.Window, func(win)
                 end)
             end)
         end)
-        hb.append(gui::VScrollbar { clamp_v = true }, func(sb)
+        hb.append(gui::VScrollbar { clamp_v: true }, func(sb)
             sb.append(gui::ScrollButton())
             sb.bind_scroller(s)
         end)

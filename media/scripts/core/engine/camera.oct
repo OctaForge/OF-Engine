@@ -27,24 +27,24 @@ return {
             The camera position (as a vec3) followed by yaw, pitch and roll
             (as multiple return values).
     */
-    get = func()
+    get: func()
         var x, y, z, yaw, pitch, roll = camera_get()
         return Vec3(x, y, z), yaw, pitch, roll
     end,
 
     /// Returns the camera position (as a vec3).
-    get_position = func()
+    get_position: func()
         return Vec3(camera_get_position())
     end,
 
     /// Returns the camera yaw.
-    get_yaw = capi.camera_get_yaw,
+    get_yaw: capi.camera_get_yaw,
 
     /// Returns the camera pitch.
-    get_pitch = capi.camera_get_pitch,
+    get_pitch: capi.camera_get_pitch,
 
     /// Returns the camera roll.
-    get_roll = capi.camear_get_roll,
+    get_roll: capi.camear_get_roll,
 
     /**
         Forces the camera.
@@ -54,20 +54,20 @@ return {
             - yaw, pitch, roll - the resulting camera yaw, pitch and roll.
             - fov - the camera fov, which is optional.
     */
-    force = capi.camera_force,
+    force: capi.camera_force,
 
     /// Forces the camera position. Takes x, y, z.
-    force_position = capi.camera_force_position,
+    force_position: capi.camera_force_position,
 
     /// Forces the camera yaw.
-    force_yaw = capi.camera_force_yaw,
+    force_yaw: capi.camera_force_yaw,
 
     /// Forces the camera pitch.
-    force_pitch = capi.camera_force_pitch,
+    force_pitch: capi.camera_force_pitch,
 
     /// Forces the camera roll.
-    force_roll = capi.camera_force_roll,
+    force_roll: capi.camera_force_roll,
 
     /// Forces the camera field of view.
-    force_fov = capi.camera_force_fov
+    force_fov: capi.camera_force_fov
 }

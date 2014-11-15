@@ -530,7 +530,7 @@ M.key = {
     VOLUMEUP: scancode_to_keycode(scancode.VOLUMEUP),
     VOLUMEDOWN: scancode_to_keycode(scancode.VOLUMEDOWN),
     KP_COMMA: scancode_to_keycode(scancode.KP_COMMA),
-    KP_EQUALSAS400 =
+    KP_EQUALSAS400:
         scancode_to_keycode(scancode.KP_EQUALSAS400),
 
     ALTERASE: scancode_to_keycode(scancode.ALTERASE),
@@ -548,12 +548,12 @@ M.key = {
 
     KP_00: scancode_to_keycode(scancode.KP_00),
     KP_000: scancode_to_keycode(scancode.KP_000),
-    THOUSANDSSEPARATOR =
+    THOUSANDSSEPARATOR:
         scancode_to_keycode(scancode.THOUSANDSSEPARATOR),
-    DECIMALSEPARATOR =
+    DECIMALSEPARATOR:
         scancode_to_keycode(scancode.DECIMALSEPARATOR),
     CURRENCYUNIT: scancode_to_keycode(scancode.CURRENCYUNIT),
-    CURRENCYSUBUNIT =
+    CURRENCYSUBUNIT:
         scancode_to_keycode(scancode.CURRENCYSUBUNIT),
     KP_LEFTPAREN: scancode_to_keycode(scancode.KP_LEFTPAREN),
     KP_RIGHTPAREN: scancode_to_keycode(scancode.KP_RIGHTPAREN),
@@ -573,11 +573,11 @@ M.key = {
     KP_LESS: scancode_to_keycode(scancode.KP_LESS),
     KP_GREATER: scancode_to_keycode(scancode.KP_GREATER),
     KP_AMPERSAND: scancode_to_keycode(scancode.KP_AMPERSAND),
-    KP_DBLAMPERSAND =
+    KP_DBLAMPERSAND:
         scancode_to_keycode(scancode.KP_DBLAMPERSAND),
-    KP_VERTICALBAR =
+    KP_VERTICALBAR:
         scancode_to_keycode(scancode.KP_VERTICALBAR),
-    KP_DBLVERTICALBAR =
+    KP_DBLVERTICALBAR:
         scancode_to_keycode(scancode.KP_DBLVERTICALBAR),
     KP_COLON: scancode_to_keycode(scancode.KP_COLON),
     KP_HASH: scancode_to_keycode(scancode.KP_HASH),
@@ -588,9 +588,9 @@ M.key = {
     KP_MEMRECALL: scancode_to_keycode(scancode.KP_MEMRECALL),
     KP_MEMCLEAR: scancode_to_keycode(scancode.KP_MEMCLEAR),
     KP_MEMADD: scancode_to_keycode(scancode.KP_MEMADD),
-    KP_MEMSUBTRACT =
+    KP_MEMSUBTRACT:
         scancode_to_keycode(scancode.KP_MEMSUBTRACT),
-    KP_MEMMULTIPLY =
+    KP_MEMMULTIPLY:
         scancode_to_keycode(scancode.KP_MEMMULTIPLY),
     KP_MEMDIVIDE: scancode_to_keycode(scancode.KP_MEMDIVIDE),
     KP_PLUSMINUS: scancode_to_keycode(scancode.KP_PLUSMINUS),
@@ -599,7 +599,7 @@ M.key = {
     KP_BINARY: scancode_to_keycode(scancode.KP_BINARY),
     KP_OCTAL: scancode_to_keycode(scancode.KP_OCTAL),
     KP_DECIMAL: scancode_to_keycode(scancode.KP_DECIMAL),
-    KP_HEXADECIMAL =
+    KP_HEXADECIMAL:
         scancode_to_keycode(scancode.KP_HEXADECIMAL),
 
     LCTRL: scancode_to_keycode(scancode.LCTRL),
@@ -631,11 +631,11 @@ M.key = {
     AC_REFRESH: scancode_to_keycode(scancode.AC_REFRESH),
     AC_BOOKMARKS: scancode_to_keycode(scancode.AC_BOOKMARKS),
 
-    BRIGHTNESSDOWN =
+    BRIGHTNESSDOWN:
         scancode_to_keycode(scancode.BRIGHTNESSDOWN),
     BRIGHTNESSUP: scancode_to_keycode(scancode.BRIGHTNESSUP),
     DISPLAYSWITCH: scancode_to_keycode(scancode.DISPLAYSWITCH),
-    KBDILLUMTOGGLE =
+    KBDILLUMTOGGLE:
         scancode_to_keycode(scancode.KBDILLUMTOGGLE),
     KBDILLUMDOWN: scancode_to_keycode(scancode.KBDILLUMDOWN),
     KBDILLUMUP: scancode_to_keycode(scancode.KBDILLUMUP),

@@ -47,20 +47,20 @@ var ALIGN_MASK = adjust.ALIGN_MASK
           an argument.
 */
 M.State = register_type("State", Widget, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         self.state = kwargs.state
         return Widget::__ctor(self, kwargs)
     end,
 
-    choose_state = func(self)
+    choose_state: func(self)
         var  state = self.state
         if not state do return end
         return (typeof state == "string") and state or state(self)
     end,
 
     /// Function: set_state
-    set_state = gen_setter "state"
+    set_state: gen_setter "state"
 })
 
 /**
@@ -76,17 +76,17 @@ M.State = register_type("State", Widget, {
         - window - a reference to the window this belongs to.
 */
 M.Mover = register_type("Mover", Widget, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         self.window = kwargs.window
         return Widget::__ctor(self, kwargs)
     end,
 
-    hover = func(self, cx, cy)
+    hover: func(self, cx, cy)
         return self.target(cx, cy) and self
     end,
 
-    click = func(self, cx, cy, code)
+    click: func(self, cx, cy, code)
         if code != key.MOUSELEFT do
             return Widget::click(self, cx, cy, code)
         end
@@ -98,7 +98,7 @@ M.Mover = register_type("Mover", Widget, {
         return self.target(cx, cy) and self
     end,
 
-    can_move = func(self, cx, cy)
+    can_move: func(self, cx, cy)
         var win = self.window
         var wp = win.parent
 
@@ -122,13 +122,13 @@ M.Mover = register_type("Mover", Widget, {
         return true
     end,
 
-    clicked = func(self, cx, cy, code)
+    clicked: func(self, cx, cy, code)
         if code == key.MOUSELEFT do
             self.ox, self.oy = cx, cy
         end
     end,
 
-    holding = func(self, cx, cy, code)
+    holding: func(self, cx, cy, code)
         var w = self.window
         if w and w.floating and code == key.MOUSELEFT and self.can_move() do
             // dealign so that adjust_layout doesn't fuck with x/y
@@ -140,7 +140,7 @@ M.Mover = register_type("Mover", Widget, {
     end,
 
     /// Function: set_window
-    set_window = gen_setter "window"
+    set_window: gen_setter "window"
 })
 
 var Filler = M.Filler
@@ -163,7 +163,7 @@ var Filler = M.Filler
           arguments, expecting the label string as a return value.
 */
 M.ProgressBar = register_type("ProgressBar", Filler, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         self.value = kwargs.value or 0
         self.bar = kwargs.bar
@@ -175,23 +175,23 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
         Generates a label for the progress bar and returns it. See the `label`
         attribute for semantics.
     */
-    gen_label = func(self)
+    gen_label: func(self)
         var lbl = self.label
         if typeof lbl == "string" do return lbl.format(self.value * 100) end
         return lbl(self, self.value)
     end,
 
     /// Function: set_value
-    set_value = gen_setter "value",
+    set_value: gen_setter "value",
     /// Function: set_bar
-    set_bar = gen_setter "bar",
+    set_bar: gen_setter "bar",
     /// Function: set_label
-    set_label = gen_setter "label"
+    set_label: gen_setter "label"
 })
 
 /// A horizontal working variant of $ProgressBar.
 M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
-    adjust_children = func(self)
+    adjust_children: func(self)
         var bar = self.bar
         if not bar do return Widget::adjust_children(self) end
         bar.x = 0
@@ -203,7 +203,7 @@ M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
 
 /// A vertical working variant of $ProgressBar.
 M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
-    adjust_children = func(self)
+    adjust_children: func(self)
         var bar = self.bar
         if not bar do return Widget::adjust_children(self) end
         bar.y = 0
@@ -232,7 +232,7 @@ var move_funcs = {
 }
 
 M.Animator = register_type("Animator", Widget, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         self.move_func    = kwargs.move_func
         self.move_time    = kwargs.move_time   or 2000
         self.move_dist_x  = kwargs.move_dist_x or undef
@@ -242,13 +242,13 @@ M.Animator = register_type("Animator", Widget, {
         return Widget::__ctor(self, kwargs)
     end,
 
-    reset = func(self)
+    reset: func(self)
         self.move_elapsed = 0
         self.move_moved_x = 0
         self.move_moved_y = 0
     end,
 
-    get_progress = func(self)
+    get_progress: func(self)
         var elapsed, rtime = self.move_elapsed, self.move_time
         var distx = self.move_dist_x
         var disty = self.move_dist_y
@@ -267,7 +267,7 @@ M.Animator = register_type("Animator", Widget, {
         return elapsed / rtime
     end,
 
-    animate = func(self, o, millis)
+    animate: func(self, o, millis)
         var mf = self.move_func
         if typeof mf == "string" do mf = move_funcs[mf] end
 
@@ -280,7 +280,7 @@ M.Animator = register_type("Animator", Widget, {
         self.move_moved_y = self.move_moved_y + abs(dy)
     end,
 
-    layout = func(self)
+    layout: func(self)
         if not self.started do return Widget::layout(self) end
 
         var prog = self.get_progress()
@@ -301,13 +301,13 @@ M.Animator = register_type("Animator", Widget, {
         end)
     end,
 
-    start = func(self)
+    start: func(self)
         self.started = true
         self.reset()
         emit(self, "anim,start")
     end,
 
-    stop = func(self)
+    stop: func(self)
         self.started = false
         emit(self, "anim,stop")
     end

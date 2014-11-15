@@ -35,7 +35,7 @@ var gen_setter = M.gen_setter
         - pad_h, pad_v - the padding values, both default to 0.
 */
 M.Spacer = register_type("Spacer", Widget, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         self.pad_h = kwargs.pad_h or 0
         self.pad_v = kwargs.pad_v or 0
@@ -43,7 +43,7 @@ M.Spacer = register_type("Spacer", Widget, {
         return Widget::__ctor(self, kwargs)
     end,
 
-    layout = func(self)
+    layout: func(self)
         var ph, pv = self.pad_h, self.pad_v
         var w , h  = ph, pv
 
@@ -60,17 +60,17 @@ M.Spacer = register_type("Spacer", Widget, {
         self.h = h + pv
     end,
 
-    adjust_children = func(self)
+    adjust_children: func(self)
         var ph, pv = self.pad_h, self.pad_v
         Widget::adjust_children(self, ph, pv, self.w - 2 * ph,
             self.h - 2 * pv)
     end,
 
     /// Function: set_pad_h
-    set_pad_h = gen_setter "pad_h",
+    set_pad_h: gen_setter "pad_h",
 
     /// Function: set_pad_v
-    set_pad_v = gen_setter "pad_v"
+    set_pad_v: gen_setter "pad_v"
 })
 
 /**
@@ -91,7 +91,7 @@ M.Spacer = register_type("Spacer", Widget, {
           to false (useful for MDI windows for example).
 */
 M.Filler = register_type("Filler", Widget, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         self.min_w = kwargs.min_w or 0
         self.min_h = kwargs.min_h or 0
@@ -101,7 +101,7 @@ M.Filler = register_type("Filler", Widget, {
         return Widget::__ctor(self, kwargs)
     end,
 
-    layout = func(self)
+    layout: func(self)
         Widget::layout(self)
 
         var min_w = self.min_w
@@ -126,11 +126,11 @@ M.Filler = register_type("Filler", Widget, {
         Makes sure the filler can take input. Makes it useful for, say, button
         surfaces (when they should be invisible). See also {{$Widget.target}}.
     */
-    target = func(self, cx, cy)
+    target: func(self, cx, cy)
         return Widget::target(self, cx, cy) or self
     end,
 
-    draw = func(self, sx, sy)
+    draw: func(self, sx, sy)
         if self.clip_children do
             self.get_root().clip_push(sx, sy, self.w, self.h)
             Widget::draw(self, sx, sy)
@@ -141,13 +141,13 @@ M.Filler = register_type("Filler", Widget, {
     end,
 
     /// Function: set_min_w
-    set_min_w = gen_setter "min_w",
+    set_min_w: gen_setter "min_w",
 
     /// Function: set_min_h
-    set_min_h = gen_setter "min_h",
+    set_min_h: gen_setter "min_h",
 
     /// Function: set_clip_children
-    set_clip_children = gen_setter "clip_children"
+    set_clip_children: gen_setter "clip_children"
 })
 var Filler = M.Filler
 
@@ -164,13 +164,13 @@ var Filler = M.Filler
           scaling factor rather than regular text scaling factor.
 */
 M.TextFiller = register_type("TextFiller", Filler, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         self.console_text = kwargs.console_text or false
         return Filler::__ctor(self, kwargs)
     end,
 
-    layout = func(self)
+    layout: func(self)
         Widget::layout(self)
 
         var min_w = self.min_w
@@ -191,7 +191,7 @@ M.TextFiller = register_type("TextFiller", Filler, {
         - offset_h, offset_v - the offset values.
 */
 M.Offsetter = register_type("Offsetter", Widget, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         self.offset_h = kwargs.offset_h or 0
         self.offset_v = kwargs.offset_v or 0
@@ -199,7 +199,7 @@ M.Offsetter = register_type("Offsetter", Widget, {
         return Widget::__ctor(self, kwargs)
     end,
 
-    layout = func(self)
+    layout: func(self)
         Widget::layout(self)
 
         var oh, ov = self.offset_h, self.offset_v
@@ -213,14 +213,14 @@ M.Offsetter = register_type("Offsetter", Widget, {
         self.h = self.h + ov
     end,
 
-    adjust_children = func(self)
+    adjust_children: func(self)
         var oh, ov = self.offset_h, self.offset_v
         Widget::adjust_children(self, oh, ov, self.w - oh, self.h - ov)
     end,
 
     /// Function: set_offset_h
-    set_offset_h = gen_setter "offset_h",
+    set_offset_h: gen_setter "offset_h",
 
     /// Function: set_offset_v
-    set_offset_v = gen_setter "offset_v"
+    set_offset_v: gen_setter "offset_v"
 })

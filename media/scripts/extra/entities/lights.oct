@@ -30,19 +30,19 @@ var Marker = ents.Marker
     including newent properties.
 */
 var DynamicLight = Marker.clone {
-    name = "DynamicLight",
+    name: "DynamicLight",
 
-    __properties = {
-        radius = svars::StateInteger(),
-        red    = svars::StateInteger(),
-        green  = svars::StateInteger(),
-        blue   = svars::StateInteger()
+    __properties: {
+        radius: svars::StateInteger(),
+        red   : svars::StateInteger(),
+        green : svars::StateInteger(),
+        blue  : svars::StateInteger()
     },
 
     /// Set to true, as <__run> doesn't work on static entities by default.
-    __per_frame = true,
+    __per_frame: true,
 
-    __init_svars = func(self, kwargs, nd)
+    __init_svars: func(self, kwargs, nd)
         Marker::__init_svars(self, kwargs, nd)
         self.set_attr("radius", 100, nd[3])
         self.set_attr("red",    128, nd[0])
@@ -54,7 +54,7 @@ var DynamicLight = Marker.clone {
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
     */
-    __run = @[not server,func(self, millis)
+    __run: @[not server,func(self, millis)
         Marker::__run(self, millis)
         var pos = self.get_attr("position")
         light_add(pos, self.get_attr("radius"),
@@ -79,27 +79,27 @@ var flash_flag = lights.flags.FLASH
         - max_delay - the maximal flicker delay (defaults to 300).
 */
 M.FlickeringLight = DynamicLight.clone {
-    name = "FlickeringLight",
+    name: "FlickeringLight",
 
-    __properties = {
-        probability = svars::StateFloat(),
-        min_delay   = svars::StateInteger(),
-        max_delay   = svars::StateInteger(),
+    __properties: {
+        probability: svars::StateFloat(),
+        min_delay  : svars::StateInteger(),
+        max_delay  : svars::StateInteger(),
     },
 
-    __init_svars = func(self, kwargs, nd)
+    __init_svars: func(self, kwargs, nd)
         DynamicLight::__init_svars(self, kwargs, nd)
         self.set_attr("probability", 0.5, nd[4])
         self.set_attr("min_delay",   100, nd[5])
         self.set_attr("max_delay",   300, nd[6])
     end,
 
-    __activate = @[not server,func(self, kwargs)
+    __activate: @[not server,func(self, kwargs)
         Marker::__activate(self, kwargs)
         self.delay = 0
     end],
 
-    __run = @[not server,func(self, millis)
+    __run: @[not server,func(self, millis)
         var d = self.delay - millis
         if  d <= 0 do
             d = max(floor(random() * self.get_attr("max_delay")),

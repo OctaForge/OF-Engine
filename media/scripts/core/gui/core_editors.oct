@@ -81,23 +81,23 @@ ffi::cdef r"""
 var C = ffi.C
 
 var editline_MT = {
-    __new = func(self, x)
+    __new: func(self, x)
         return ffi_new(self).set(x or "")
     end,
-    __tostring = func(self)
+    __tostring: func(self)
         return ffi_string(self.text, self.len)
     end,
-    __gc = func(self)
+    __gc: func(self)
         self.clear()
     end,
-    __index = {
-        empty = func(self) return self.len <= 0 end,
-        clear = func(self)
+    __index: {
+        empty: func(self) return self.len <= 0 end,
+        clear: func(self)
             capi::raw_free(self.text)
             self.text = undef
             self.len, self.maxlen = 0, 0
         end,
-        grow = func(self, total, nocopy)
+        grow: func(self, total, nocopy)
             if total + 1 <= self.maxlen do return false end
             self.maxlen = (total + chunksize) - total % chunksize
             var newtext = ffi_cast("char*", capi::raw_alloc(self.maxlen))
@@ -108,13 +108,13 @@ var editline_MT = {
             self.text = newtext
             return true
         end,
-        set = func(self, str)
+        set: func(self, str)
             self.grow(str.len(), true)
             ffi_copy(self.text, str)
             self.len = str.len()
             return self
         end,
-        prepend = func(self, str)
+        prepend: func(self, str)
             var slen = str.len()
             self.grow(self.len + slen)
             C::memmove(self.text + slen, self.text, self.len + 1)
@@ -122,13 +122,13 @@ var editline_MT = {
             self.len += slen
             return self
         end,
-        append = func(self, str)
+        append: func(self, str)
             self.grow(self.len + str.len())
             ffi_copy(self.text + self.len, str)
             self.len += str.len()
             return self
         end,
-        del = func(self, start, count)
+        del: func(self, start, count)
             if not self.text do return self end
             if start < 0 do
                 count, start = count + start, 0
@@ -140,13 +140,13 @@ var editline_MT = {
             self.len -= count
             return self
         end,
-        chop = func(self, newlen)
+        chop: func(self, newlen)
             if not self.text do return self end
             self.len = clamp(newlen, 0, self.len)
             self.text[self.len] = 0
             return self
         end,
-        insert = func(self, str, start, count)
+        insert: func(self, str, start, count)
             if not count or count <= 0 do count = str.len() end
             start = clamp(start, 0, self.len)
             self.grow(self.len + count)
@@ -157,7 +157,7 @@ var editline_MT = {
             self.len += count
             return self
         end,
-        combine_lines = func(self, src)
+        combine_lines: func(self, src)
             if src.empty() do self.set("")
             else for i, v in src.each() do
                 if i != 0 do self.append("\n") end
@@ -166,15 +166,15 @@ var editline_MT = {
             end end
             return self
         end,
-        calc_bounds = func(self, maxw)
+        calc_bounds: func(self, maxw)
             var w, h = text_get_bounds(tostring(self), maxw)
             self.w, self.h = w, h
             return w, h
         end,
-        get_bounds = func(self)
+        get_bounds: func(self)
             return self.w, self.h
         end,
-        len = func(self)
+        len: func(self)
             return self.len
         end
     }
@@ -226,7 +226,7 @@ end
         - pad_l, pad_r - text left and right padding (both 0 by default).
 */
 M.TextEditor = register_type("TextEditor", Widget, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
 
         self.clip_w = kwargs.clip_w or 0
@@ -277,7 +277,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         Given a readable stream, this loads its contents into the editor.
         It doesn't close the stream and it clears the editor beforehand.
     */
-    load_stream = func(self, stream)
+    load_stream: func(self, stream)
         if not stream do return end
         self.edit_clear(false)
         var lines = self.lines
@@ -293,7 +293,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         Given a writable stream, this writes the contents of the editor
         into it. It doesn't close the stream.
     */
-    save_stream = func(self, stream)
+    save_stream: func(self, stream)
         if not stream do return end
         for i, line in self.lines.each() do
             stream.write(line.text, "\n")
@@ -306,19 +306,19 @@ M.TextEditor = register_type("TextEditor", Widget, {
         position effectively extends the selection). Otherwise the
         selection is disabled.
     */
-    mark = func(self, enable)
+    mark: func(self, enable)
         self.mx = enable and self.cx or -1
         self.my = self.cy
     end,
 
     /// Selects everything in the editor.
-    select_all = func(self)
+    select_all: func(self)
         self.cx, self.cy = 0, 0
         self.mx, self.my = 1 / 0, 1 / 0
     end,
 
     /// Returns true if the editor contains nothing, false otherwise.
-    is_empty = func(self)
+    is_empty: func(self)
         var lines = self.lines
         return lines.len() == 1 and lines[0].text[0] == 0
     end,
@@ -326,7 +326,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     // constrain results to within buffer - s = start, e = end, return true if
     // a selection range also ensures that cy is always within lines[] and cx
     // is valid
-    region = func(self)
+    region: func(self)
         var sx, sy, ex, ey
 
         var n = self.lines.len()
@@ -369,7 +369,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     // also ensures that cy is always within lines[] and cx is valid
-    current_line = func(self)
+    current_line: func(self)
         var n = self.lines.len()
         assert(n != 0)
 
@@ -385,7 +385,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     /// Returns all contents of the editor as a string.
-    to_string = func(self)
+    to_string: func(self)
         return tostring(editline().combine_lines(self.lines))
     end,
 
@@ -393,7 +393,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         Returns the selected portion of the editor as a string (assuming
         there is one, otherwise it returns undef).
     */
-    selection_to_string = func(self)
+    selection_to_string: func(self)
         var buf = []
         var sx, sy, ex, ey = select(2, self.region())
 
@@ -414,7 +414,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     /**
         Removes "count" lines from line number "start".
     */
-    remove_lines = func(self, start, count)
+    remove_lines: func(self, start, count)
         self._needs_calc = true
         var lines = self.lines
         for i in start + count - 1 to lines.len() - 1 do
@@ -430,7 +430,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         it pretty much cancels out unsaved changes). If "value" is undef,
         do an empty string is used.
     */
-    reset_value = func(self)
+    reset_value: func(self)
         var str = self.value or ""
         var strlines = str.split("\n")
         var lines = self.lines
@@ -450,7 +450,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         Copies the current selection into system clipboard. Returns the
         copied string or undef if nothing was copied.
     */
-    copy = func(self)
+    copy: func(self)
         if not self.region() do return undef end
         self._needs_calc = true
         var str = self.selection_to_string()
@@ -465,7 +465,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         Returns the pasted string or undef if nothing was pasted. Deletes the
         current selection if there is one and there is something to paste.
     */
-    paste = func(self)
+    paste: func(self)
         if not clipboard_has_text() do return undef end
         self._needs_calc = true
         if self.region() do self.delete_selection() end
@@ -476,7 +476,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     /// Deletes the current selection if any, returns true if there was one.
-    delete_selection = func(self)
+    delete_selection: func(self)
         var b, sx, sy, ex, ey = self.region()
         if not b do
             self.mark()
@@ -526,7 +526,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         Given a string, this inserts the string into the editor on cursor
         position (and deletes any selection before that if there is one).
     */
-    insert = func(self, ch)
+    insert: func(self, ch)
         if ch.len() > 1 do
             for c in ch.gmatch(".") do
                 self.insert(c)
@@ -558,7 +558,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     ///
-    bind_h_scrollbar = func(self, sb)
+    bind_h_scrollbar: func(self, sb)
         if not sb do
             sb = self.h_scrollbar
             if not sb do return undef end
@@ -570,7 +570,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     ///
-    bind_v_scrollbar = func(self, sb)
+    bind_v_scrollbar: func(self, sb)
         if not sb do
             sb = self.v_scrollbar
             if not sb do return undef end
@@ -582,68 +582,68 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     ///
-    get_h_limit = func(self) return max(self.virt_w - get_aw(self), 0) end,
+    get_h_limit: func(self) return max(self.virt_w - get_aw(self), 0) end,
     ///
-    get_v_limit = func(self) return max(self.virt_h - self.h, 0) end,
+    get_v_limit: func(self) return max(self.virt_h - self.h, 0) end,
 
     ///
-    get_h_offset = func(self)
+    get_h_offset: func(self)
         return self.offset_h / max(self.virt_w, get_aw(self))
     end,
 
     ///
-    get_v_offset = func(self)
+    get_v_offset: func(self)
         return self.offset_v / max(self.virt_h, self.h)
     end,
 
     ///
-    get_h_scale = func(self)
+    get_h_scale: func(self)
         var w = get_aw(self)
         return w / max(self.virt_w, w)
     end,
     ///
-    get_v_scale = func(self)
+    get_v_scale: func(self)
         var h = self.h
         return h / max(self.virt_h, h)
     end,
 
     ///
-    set_h_scroll = func(self, hs)
+    set_h_scroll: func(self, hs)
         self.offset_h = clamp(hs, 0, self.get_h_limit())
         emit(self, "h_scroll,changed", self.get_h_offset())
     end,
 
     ///
-    set_v_scroll = func(self, vs)
+    set_v_scroll: func(self, vs)
         self.offset_v = clamp(vs, 0, self.get_v_limit())
         emit(self, "v_scroll,changed", self.get_v_offset())
     end,
 
     ///
-    scroll_h = func(self, hs) self.set_h_scroll(self.offset_h + hs) end,
+    scroll_h: func(self, hs) self.set_h_scroll(self.offset_h + hs) end,
     ///
-    scroll_v = func(self, vs) self.set_v_scroll(self.offset_v + vs) end,
+    scroll_v: func(self, vs) self.set_v_scroll(self.offset_v + vs) end,
 
     /// Function: set_clip_w
-    set_clip_w = gen_ed_setter "clip_w",
+    set_clip_w: gen_ed_setter "clip_w",
     /// Function: set_clip_h
-    set_clip_h = gen_ed_setter "clip_h",
+    set_clip_h: gen_ed_setter "clip_h",
 
     /// Function: set_pad_l
-    set_pad_l = gen_ed_setter "pad_l",
+    set_pad_l: gen_ed_setter "pad_l",
     /// Function: set_pad_r
-    set_pad_r = gen_ed_setter "pad_r",
+    set_pad_r: gen_ed_setter "pad_r",
 
     /// Function: set_multiline
-    set_multiline = gen_ed_setter "multiline",
+    set_multiline: gen_ed_setter "multiline",
 
     /// Function: set_key_filter
-    set_key_filter = gen_setter "key_filter",
+    set_key_filter: gen_setter "key_filter",
 
     /**
         Sets the value property, emits value,changed and calls $reset_value.
     */
-    set_value = func(self, val)
+    set_value: func(self, val)
         val = tostring(val)
         self.value = val
         emit(self, "value,changed", val)
@@ -651,18 +651,18 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     /// Function: set_font
-    set_font = gen_ed_setter "font",
+    set_font: gen_ed_setter "font",
     /// Function: set_line_wrap
-    set_line_wrap = gen_ed_setter "line_wrap",
+    set_line_wrap: gen_ed_setter "line_wrap",
 
-    clear = func(self)
+    clear: func(self)
         self.set_focused(false)
         self.bind_h_scrollbar()
         self.bind_v_scrollbar()
         return Widget::clear(self)
     end,
 
-    edit_clear = func(self, init)
+    edit_clear: func(self, init)
         self._needs_calc = true
         self.cx, self.cy =  0,  0
         self.mx, self.my = -1, -1
@@ -682,7 +682,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    movement_mark = func(self)
+    movement_mark: func(self)
         self._needs_offset = true
         if input_is_modifier_pressed(mod.SHIFT) do
             if not self.region() do self.mark(true) end
@@ -691,7 +691,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    key = func(self, code, isdown)
+    key: func(self, code, isdown)
         if Widget::key(self, code, isdown) do return true end
         if not self.is_focused() do return false end
 
@@ -711,7 +711,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return true
     end,
 
-    key_hover = func(self, code, isdown)
+    key_hover: func(self, code, isdown)
         if not self.multiline do
             return Widget::key_hover(self, code, isdown)
         end
@@ -729,7 +729,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return Widget::key_hover(self, code, isdown)
     end,
 
-    key_edit = func(self, code)
+    key_edit: func(self, code)
         var mod_keys = (ffi.os == "OSX") and mod.GUI or mod.CTRL
         if code == key.UP do
             self.movement_mark()
@@ -942,7 +942,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    hit = func(self, hitx, hity, dragged)
+    hit: func(self, hitx, hity, dragged)
         var k = self.draw_scale()
         var pw, ph = floor(get_aw(self) / k), floor(self.h / k)
         var max_width = self.line_wrap and pw or -1
@@ -972,29 +972,29 @@ M.TextEditor = register_type("TextEditor", Widget, {
         text_font_pop()
     end,
 
-    target = func(self, cx, cy)
+    target: func(self, cx, cy)
         return Widget::target(self, cx, cy) or self
     end,
 
-    hover = func(self, cx, cy)
+    hover: func(self, cx, cy)
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
         self.can_scroll = ((cx + oh) < vw) and ((cy + ov) < vh)
         return self.target(cx, cy) and self
     end,
 
-    click = func(self, cx, cy)
+    click: func(self, cx, cy)
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
         self.can_scroll = ((cx + oh) < vw) and ((cy + ov) < vh)
         return self.target(cx, cy) and self
     end,
 
-    commit = func(self)
+    commit: func(self)
         self.set_focused(false)
     end,
 
-    holding = func(self, cx, cy, code)
+    holding: func(self, cx, cy, code)
         if code == key.MOUSELEFT do
             var w, h, hs, vs = self.w, self.h, 0, 0
             if     cy > h do vs = cy - h
@@ -1010,14 +1010,14 @@ M.TextEditor = register_type("TextEditor", Widget, {
         Widget::holding(self, cx, cy, code)
     end,
 
-    set_focused = func(self, foc)
+    set_focused: func(self, foc)
         Widget::set_focused(self, foc)
         var ati = foc and self.allow_text_input() or false
         input_textinput(ati, 1 << 1) // TI_GUI
         input_keyrepeat(ati, 1 << 1) // KR_GUI
     end,
 
-    clicked = func(self, cx, cy, code)
+    clicked: func(self, cx, cy, code)
         self.set_focused(true)
         self.mark()
         self._oh, self._ov = cx, cy
@@ -1025,9 +1025,9 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return Widget::clicked(self, cx, cy, code)
     end,
 
-    allow_text_input = func(self) return true end,
+    allow_text_input: func(self) return true end,
 
-    text_input = func(self, str)
+    text_input: func(self, str)
         if Widget::text_input(self, str) do return true end
         if not self.is_focused() or not self.allow_text_input() do
             return false
@@ -1045,13 +1045,13 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return true
     end,
 
-    draw_scale = func(self)
+    draw_scale: func(self)
         var scale = self.scale
         return (abs(scale) * self.get_root().get_text_scale(scale < 0))
             / text_font_get_h()
     end,
 
-    calc_dimensions = func(self, maxw)
+    calc_dimensions: func(self, maxw)
         if not self._needs_calc do
             return self.text_w, self.text_h
         end
@@ -1069,7 +1069,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return w, h
     end,
 
-    get_first_drawable_line = func(self)
+    get_first_drawable_line: func(self)
         var ov = self.offset_v / self.draw_scale()
         for i, line in self.lines.each() do
             var tw, th = line.get_bounds()
@@ -1078,7 +1078,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    get_last_drawable_line = func(self)
+    get_last_drawable_line: func(self)
         var ov = (self.offset_v + self.h) / self.draw_scale()
         for i, line in self.lines.each() do
             var tw, th = line.get_bounds()
@@ -1087,7 +1087,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    fix_h_offset = func(self, k, maxw, del)
+    fix_h_offset: func(self, k, maxw, del)
         var fontw = text_font_get_w() * k
         var x, y = text_get_position(tostring(self.lines[self.cy]),
             self.cx, maxw)
@@ -1103,7 +1103,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    fix_v_offset = func(self, k)
+    fix_v_offset: func(self, k)
         var lines = self.lines
 
         var cy = self.cy
@@ -1123,7 +1123,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    layout = func(self)
+    layout: func(self)
         Widget::layout(self)
 
         self._prev_tw = self.text_w
@@ -1157,7 +1157,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         text_font_pop()
     end,
 
-    adjust_layout = func(self, px, py, pw, ph)
+    adjust_layout: func(self, px, py, pw, ph)
         Widget::adjust_layout(self, px, py, pw, ph)
         if self._needs_offset do
             self.region()
@@ -1169,7 +1169,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    draw_selection = func(self, first_drawable, x, x2, y)
+    draw_selection: func(self, first_drawable, x, x2, y)
         var selection, sx, sy, ex, ey = self.region()
         if not selection do return end
         var k = self.draw_scale()
@@ -1250,7 +1250,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         end
     end,
 
-    draw_line_wrap = func(self, h, height)
+    draw_line_wrap: func(self, h, height)
         if not self.line_wrap do return end
         var fonth = text_font_get_h()
         shader_hudnotexture_set()
@@ -1264,7 +1264,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         shader_hud_set()
     end,
 
-    draw = func(self, sx, sy)
+    draw: func(self, sx, sy)
         Widget::draw(self, sx, sy)
 
         text_font_push()
@@ -1330,13 +1330,13 @@ var TextEditor = M.TextEditor
     override this in kwargs or by setting the property.
 */
 M.Field = register_type("Field", TextEditor, {
-    __ctor = func(self, kwargs)
+    __ctor: func(self, kwargs)
         kwargs = kwargs or {}
         kwargs.multiline = kwargs.multiline or false
         return TextEditor::__ctor(self, kwargs)
     end,
 
-    commit = func(self)
+    commit: func(self)
         TextEditor::commit(self)
         var val = tostring(self.lines[0])
         self.value = val
@@ -1350,9 +1350,9 @@ M.Field = register_type("Field", TextEditor, {
     inserts key names. Useful when creating an e.g. keybinding GUI.
 */
 M.KeyField = register_type("KeyField", M.Field, {
-    allow_text_input = func(self) return false end,
+    allow_text_input: func(self) return false end,
 
-    key_insert = func(self, code)
+    key_insert: func(self, code)
         var keyname = input_get_key_name(code)
         if keyname do
             if not self.is_empty() do self.insert(" ") end
@@ -1361,7 +1361,7 @@ M.KeyField = register_type("KeyField", M.Field, {
     end,
 
     /// Overloaded. Commits on the escape key, inserts the name otherwise.
-    key_raw = func(code, isdown)
+    key_raw: func(code, isdown)
         if Widget::key_raw(code, isdown) do return true end
         if not self.is_focused() or not isdown do return false end
         if code == key.ESCAPE do self.commit()
