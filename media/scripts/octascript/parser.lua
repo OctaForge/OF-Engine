@@ -207,7 +207,10 @@ local parse_enum = function(ls, ast)
         local nm = ls.token.value
         ast.current.vars[nm] = true
         ls:get()
-        if test_next(ls, "=") then
+        if tok.name == ":" then
+            ls:get()
+            val = parse_expr(ls, ast)
+        elseif test_next(ls, "=") then
             val = parse_expr(ls, ast)
         else
             val = false
