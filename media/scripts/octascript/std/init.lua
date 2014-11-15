@@ -435,6 +435,8 @@ pkg.loaders = setmt({
     __size = 2
 }, array_mt)
 
+package.loaders[2] = pkg.loaders[1]
+
 local type = type
 local tconc = table.concat
 local setfenv = setfenv

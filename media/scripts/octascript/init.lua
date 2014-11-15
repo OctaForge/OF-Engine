@@ -30,6 +30,8 @@ M.env = require("octascript.rt").env
 local bc = require("octascript.bytecode")
 bc.Alloc.set(capi.raw_alloc, capi.raw_free)
 
+require("octascript.std.native")
+
 capi.log(1, "OctaScript initialization complete.")
 
 return M
