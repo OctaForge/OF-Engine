@@ -368,6 +368,13 @@ parse_primary_expr = function(ls, ast)
             ls:get()
             local args = parse_args(ls, ast)
             exp, tp = ast.SendExpression(exp, key, args), "call"
+        elseif nm == "::" then
+            ls:get()
+            assert_tok(ls, "<name>")
+            local key = ast.Identifier(ls.token.value)
+            ls:get()
+            exp, tp = ast.CallExpression(ast.MemberExpression(exp, key, false),
+                parse_args(ls, ast), line), "call"
         elseif nm == "[" then
             local line = ls.line_number
             ls:get()
