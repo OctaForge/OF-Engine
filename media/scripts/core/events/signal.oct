@@ -62,8 +62,8 @@ M.connect = func(self, name, callback)
            rawset(self, clistn, clist)
     end
 
-    var id = clist:len()
-    clist:push(callback)
+    var id = clist.len()
+    clist.push(callback)
 
     clist.slotcount = clist.slotcount + 1
 
@@ -98,14 +98,14 @@ M.disconnect = func(self, name, id)
             return 0
         end
         if typeof id != "number" do
-            for i, v in clist:each() do
+            for i, v in clist.each() do
                 if v == id do
                     id = i
                     break
                 end
             end
         end
-        if id and id < clist:len() do
+        if id and id < clist.len() do
             var scnt = clist.slotcount - 1
             clist.slotcount = scnt
             clist[id] = false
@@ -133,7 +133,7 @@ M.emit = func(self, name, ...)
     end
 
     var ncalled = 0
-    for i, cb in clist:each() do
+    for i, cb in clist.each() do
         if cb do
             ncalled = ncalled + 1
             cb(self, ...)

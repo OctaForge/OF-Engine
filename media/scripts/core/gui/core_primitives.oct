@@ -97,7 +97,7 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
 
         if not solid do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
-        color:init()
+        color.init()
 
         gle_defvertexf(2)
         gle_begin(gl.TRIANGLE_STRIP)
@@ -152,17 +152,17 @@ M.Gradient = register_type("Gradient", ColorFiller, {
 
         gle_attrib2f(sx, sy)
         if horizontal do
-            color2:attrib()
+            color2.attrib()
         else
-            color:attrib()
+            color.attrib()
         end
-        gle_attrib2f(sx + w, sy)     color:attrib()
-        gle_attrib2f(sx,     sy + h) color2:attrib()
+        gle_attrib2f(sx + w, sy)     color.attrib()
+        gle_attrib2f(sx,     sy + h) color2.attrib()
         gle_attrib2f(sx + w, sy + h)
         if horizontal do
-            color:attrib()
+            color.attrib()
         else
-            color2:attrib()
+            color2.attrib()
         end
 
         gle_end()
@@ -198,7 +198,7 @@ M.Line = register_type("Line", Filler, {
         var color, w, h in self
 
         shader_hudnotexture_set()
-        color:init()
+        color.init()
         gle_defvertexf(2)
         gle_begin(gl.LINE_LOOP)
         gle_attrib2f(sx,     sy)
@@ -231,7 +231,7 @@ M.Outline = register_type("Outline", Filler, {
         var color, w, h in self
 
         shader_hudnotexture_set()
-        color:init()
+        color.init()
         gle_defvertexf(2)
         gle_begin(gl.LINE_LOOP)
         gle_attrib2f(sx,     sy)
@@ -355,7 +355,7 @@ M.Image = register_type("Image", Filler, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        color:init()
+        color.init()
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
         gle_begin(gl.TRIANGLE_STRIP)
@@ -373,19 +373,19 @@ M.Image = register_type("Image", Filler, {
         if typeof min_w == "function" do min_w = min_w(self) end
         if typeof min_h == "function" do min_h = min_h(self) end
 
-        var r = self:get_root()
+        var r = self.get_root()
 
-        if min_w < 0 do min_w = r:get_ui_size(abs(min_w)) end
-        if min_h < 0 do min_h = r:get_ui_size(abs(min_h)) end
+        if min_w < 0 do min_w = r.get_ui_size(abs(min_w)) end
+        if min_h < 0 do min_h = r.get_ui_size(abs(min_h)) end
 
-        var proj = r:get_projection()
+        var proj = r.get_projection()
         if min_w == huge do min_w = proj.pw end
         if min_h == huge do min_h = proj.ph end
 
         if  min_w == 0 or min_h == 0 do
             var tex = self.texture
-            if min_w == 0 do min_w = r:get_ui_size(tex.w) end
-            if min_h == 0 do min_h = r:get_ui_size(tex.h) end
+            if min_w == 0 do min_w = r.get_ui_size(tex.w) end
+            if min_h == 0 do min_h = r.get_ui_size(tex.h) end
         end
 
         self._min_w, self._min_h = min_w, min_h
@@ -439,12 +439,12 @@ M.Texture = register_type("Texture", Filler, {
         if typeof min_w == "function" do min_w = min_w(self) end
         if typeof min_h == "function" do min_h = min_h(self) end
 
-        var r = self:get_root()
+        var r = self.get_root()
 
-        if min_w < 0 do min_w = r:get_ui_size(abs(min_w)) end
-        if min_h < 0 do min_h = r:get_ui_size(abs(min_h)) end
+        if min_w < 0 do min_w = r.get_ui_size(abs(min_w)) end
+        if min_h < 0 do min_h = r.get_ui_size(abs(min_h)) end
 
-        var proj = r:get_projection()
+        var proj = r.get_projection()
         if min_w == huge do min_w = proj.pw end
         if min_h == huge do min_h = proj.ph end
 
@@ -509,7 +509,7 @@ M.CroppedImage = register_type("CroppedImage", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        self.color:init()
+        self.color.init()
 
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
@@ -595,7 +595,7 @@ M.StretchedImage = register_type("StretchedImage", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        self.color:init()
+        self.color.init()
 
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
@@ -719,7 +719,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        self.color:init()
+        self.color.init()
 
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
@@ -813,7 +813,7 @@ M.TiledImage = register_type("TiledImage", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        self.color:init()
+        self.color.init()
 
         var pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
 
@@ -887,7 +887,7 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         texture and do targets. See also {{$Image.target}}.
     */
     target = func(self, cx, cy)
-        self:load(true)
+        self.load(true)
         return Image::target(self, cx, cy)
     end,
 
@@ -896,7 +896,7 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         it like $target.
     */
     draw = func(self, sx, sy)
-        self:load()
+        self.load()
         return Image::draw(self, sx, sy)
     end,
 
@@ -971,11 +971,11 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     build_attachments = func(self)
         var att = self.attachments
         if att == self._last_attachments do
-            return self._c_attachments, att:len() * 2
+            return self._c_attachments, att.len() * 2
         end
-        var n = att:len() * 2
+        var n = att.len() * 2
         var stor = ffi_new("const char*[?]", n)
-        for i in 0 to att:len() - 1 do
+        for i in 0 to att.len() - 1 do
             var at = att[i]
             stor[i * 2], stor[i * 2 + 1] = at[0], at[1]
         end
@@ -986,17 +986,17 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
 
     draw = func(self, sx, sy)
         var w, h in self
-        var root = self:get_root()
-        var csl = not root._clip_stack:empty()
+        var root = self.get_root()
+        var csl = not root._clip_stack.empty()
         if csl do gl_scissor_disable() end
-        var sx1, sy1, sx2, sy2 = root:get_projection():calc_scissor(sx, sy,
+        var sx1, sy1, sx2, sy2 = root.get_projection().calc_scissor(sx, sy,
             sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         var anim = self.anim
-        model_preview(self.model, anim, self:build_attachments())
-        if csl do root:clip_scissor() end
+        model_preview(self.model, anim, self.build_attachments())
+        if csl do root.clip_scissor() end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -1035,17 +1035,17 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
         var prefab = self.prefab
         if not prefab do return Widget::draw(self, sx, sy) end
         var w, h in self
-        var root = self:get_root()
-        var csl = not root._clip_stack:empty()
+        var root = self.get_root()
+        var csl = not root._clip_stack.empty()
         if csl do gl_scissor_disable() end
-        var sx1, sy1, sx2, sy2 = root:get_projection():calc_scissor(sx, sy,
+        var sx1, sy1, sx2, sy2 = root.get_projection().calc_scissor(sx, sy,
             sx + w, sy + h)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         var col = self.color
         prefab_preview(prefab, col.r / 255, col.g / 255, col.b / 255)
-        if csl do root:clip_scissor() end
+        if csl do root.clip_scissor() end
         model_preview_end()
         shader_hud_set()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -1064,11 +1064,11 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
 /// A full console widget that derives from $Filler.
 M.Console = register_type("Console", Filler, {
     draw_scale = func(self)
-        return self:get_root():get_text_scale(true) / text_font_get_h()
+        return self.get_root().get_text_scale(true) / text_font_get_h()
     end,
 
     draw = func(self, sx, sy)
-        var k = self:draw_scale()
+        var k = self.draw_scale()
         hudmatrix_push()
         hudmatrix_translate(sx, sy, 0)
         hudmatrix_scale(k, k, 1)
@@ -1132,12 +1132,12 @@ M.Triangle = register_type("Triangle", Shape, {
         if typeof w == "function" do w = w(self) end
         if typeof h == "function" do h = h(self) end
         var angle = self.angle
-        var r = self:get_root()
+        var r = self.get_root()
 
-        if w < 0 do w = r:get_ui_size(abs(w)) end
-        if h < 0 do h = r:get_ui_size(abs(h)) end
+        if w < 0 do w = r.get_ui_size(abs(w)) end
+        if h < 0 do h = r.get_ui_size(abs(h)) end
 
-        var proj = r:get_projection()
+        var proj = r.get_projection()
         if w == huge do w = proj.pw end
         if h == huge do h = proj.ph end
 
@@ -1147,16 +1147,16 @@ M.Triangle = register_type("Triangle", Shape, {
 
         if angle != 0 do
             var rot = sincosmod360(-angle)
-            a:rotate_around_z(rot)
-            b:rotate_around_z(rot)
-            c:rotate_around_z(rot)
+            a.rotate_around_z(rot)
+            b.rotate_around_z(rot)
+            c.rotate_around_z(rot)
         end
 
-        var bbmin = Vec2(a):min(b):min(c)
-        a:sub(bbmin)
-        b:sub(bbmin)
-        c:sub(bbmin)
-        var bbmax = Vec2(a):max(b):max(c)
+        var bbmin = Vec2(a).min(b).min(c)
+        a.sub(bbmin)
+        b.sub(bbmin)
+        c.sub(bbmin)
+        var bbmax = Vec2(a).max(b).max(c)
 
         self.ta, self.tb, self.tc = a, b, c
 
@@ -1169,9 +1169,9 @@ M.Triangle = register_type("Triangle", Shape, {
         if o do return o end
         if self.style == OUTLINE do return undef end
         var a, b, c = self.ta, self.tb, self.tc
-        var side = Vec2(cx, cy):sub(b):cross(Vec2(a):sub(b)) < 0
-        return ((Vec2(cx, cy):sub(c):cross(Vec2(b):sub(c)) < 0) == side
-            and (Vec2(cx, cy):sub(a):cross(Vec2(c):sub(a)) < 0) == side)
+        var side = Vec2(cx, cy).sub(b).cross(Vec2(a).sub(b)) < 0
+        return ((Vec2(cx, cy).sub(c).cross(Vec2(b).sub(c)) < 0) == side
+            and (Vec2(cx, cy).sub(a).cross(Vec2(c).sub(a)) < 0) == side)
             and self or undef
     end,
 
@@ -1179,12 +1179,12 @@ M.Triangle = register_type("Triangle", Shape, {
         var color, style in self
         if style == MODULATE do gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         shader_hudnotexture_set()
-        color:init()
+        color.init()
         gle_defvertexf(2)
         gle_begin(style == OUTLINE and gl.LINE_LOOP or gl.TRIANGLES)
-        gle_attrib2f(Vec2(sx, sy):add(self.ta):unpack())
-        gle_attrib2f(Vec2(sx, sy):add(self.tb):unpack())
-        gle_attrib2f(Vec2(sx, sy):add(self.tc):unpack())
+        gle_attrib2f(Vec2(sx, sy).add(self.ta).unpack())
+        gle_attrib2f(Vec2(sx, sy).add(self.tb).unpack())
+        gle_attrib2f(Vec2(sx, sy).add(self.tc).unpack())
         gle_end()
         gle_color4f(1, 1, 1, 1)
         shader_hud_set()
@@ -1219,21 +1219,21 @@ M.Circle = register_type("Circle", Shape, {
         if o do return o end
         if self.style == OUTLINE do return undef end
         var r = min(self.w, self.h)
-        return (Vec2(cx, cy):sub(r):squared_len() <= (r * r)) and self or undef
+        return (Vec2(cx, cy).sub(r).squared_len() <= (r * r)) and self or undef
     end,
 
     draw = func(self, sx, sy)
         var color, style in self
         shader_hudnotexture_set()
-        color:init()
+        color.init()
         gle_defvertexf(2)
         var radius = min(self.w, self.h) / 2
         var center = Vec2(sx + radius, sy + radius)
         if style == OUTLINE do
             gle_begin(gl.LINE_LOOP)
             for angle in 0 to 359 by 360 / self.sides do
-                gle_attrib2f(sincos360(angle):mul_new(radius)
-                    :add(center):unpack())
+                gle_attrib2f(sincos360(angle).mul_new(radius)
+                    .add(center).unpack())
             end
             gle_end()
         else
@@ -1243,9 +1243,9 @@ M.Circle = register_type("Circle", Shape, {
             gle_attrib2f(center.x + radius, center.y)
             var sides = self.sides
             for angle in (360 / sides) to 359 by 360 / sides do
-                var p = sincos360(angle):mul_new(radius):add(center)
-                gle_attrib2f(p:unpack())
-                gle_attrib2f(p:unpack())
+                var p = sincos360(angle).mul_new(radius).add(center)
+                gle_attrib2f(p.unpack())
+                gle_attrib2f(p.unpack())
             end
             gle_attrib2f(center.x + radius, center.y)
             gle_end()
@@ -1296,7 +1296,7 @@ M.Label = register_type("Label", Widget, {
 
     draw_scale = func(self)
         var scale = self.scale
-        return (abs(scale) * self:get_root():get_text_scale(scale < 0))
+        return (abs(scale) * self.get_root().get_text_scale(scale < 0))
             / text_font_get_h()
     end,
 
@@ -1305,7 +1305,7 @@ M.Label = register_type("Label", Widget, {
         text_font_set(self.font)
         hudmatrix_push()
 
-        var k = self:draw_scale()
+        var k = self.draw_scale()
         hudmatrix_scale(k, k, 1)
         hudmatrix_flush()
 
@@ -1327,7 +1327,7 @@ M.Label = register_type("Label", Widget, {
 
         text_font_push()
         text_font_set(self.font)
-        var k = self:draw_scale()
+        var k = self.draw_scale()
 
         var w, h = text_get_bounds(self.text,
             self.wrap <= 0 and -1 or self.wrap / k)
@@ -1380,7 +1380,7 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
 
     draw_scale = func(self)
         var scale = self.scale
-        return (abs(scale) * self:get_root():get_text_scale(scale < 0))
+        return (abs(scale) * self.get_root().get_text_scale(scale < 0))
             / text_font_get_h()
     end,
 
@@ -1413,7 +1413,7 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
         var val = cmd(self)
         self.val_saved = val
 
-        var k = self:draw_scale()
+        var k = self.draw_scale()
         self.scale_saved = k
 
         var w, h = text_get_bounds(val or "",

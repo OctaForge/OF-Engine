@@ -67,7 +67,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
     end
     var tv = typeof v
     if tv == "string" do
-        stream(v:escape())
+        stream(v.escape())
     elif tv == "number" or tv == "boolean" or tv == "undef" do
         stream(tostring(v))
     elif tv == "table" do
@@ -105,7 +105,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
                 for i in 1 to indent do stream(indstr) end
             end
             if optk and typeof k == "string"
-            and k:find_match("^[%a_][%w_]*$") do
+            and k.find_match("^[%a_][%w_]*$") do
                 stream(k)
             else
                 stream("$(")
@@ -145,7 +145,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
         if mline do stream("\n") end
         var first = true
         var n = 0
-        for i, v in v:each() do
+        for i, v in v.each() do
             if first do first = false
             else
                 stream(sepstr)
@@ -255,12 +255,12 @@ var serialize = func(val, kwargs, stream, simplifier)
         return serialize_fn(val, stream, kwargs, simplifier, {}, 1)
     else
         var t = []
-        var ret, err = serialize_fn(val, func(out) t:push(out) end,
+        var ret, err = serialize_fn(val, func(out) t.push(out) end,
             kwargs, simplifier, {}, 1)
         if not ret do
             return undef, err
         else
-            return t:concat()
+            return t.concat()
         end
     end
 end
@@ -282,17 +282,17 @@ var lex_get = func(ls)
             ls.linenum = ls.linenum + 1
         elif c == " " or c == "\t" or c == "\f" or c == "\v" do
             ls.curr = ls::rdr()
-        elif c == "." or c:byte() >= 48 and c:byte() <= 57 do
+        elif c == "." or c.byte() >= 48 and c.byte() <= 57 do
             var buf = [ ls.curr ]
             ls.curr = ls::rdr()
-            while ls.curr and ls.curr:find_match("[epxEPX0-9.+-]") do
-                buf:push(ls.curr)
+            while ls.curr and ls.curr.find_match("[epxEPX0-9.+-]") do
+                buf.push(ls.curr)
                 ls.curr = ls::rdr()
             end
-            var str = buf:concat()
+            var str = buf.concat()
             var num = tonumber(str)
             if not num do raise ("%d: malformed number near '%s'")
-                :format(ls.linenum, str), 0 end
+                .format(ls.linenum, str), 0 end
             ls.tname, ls.tval = "<number>", num
             return "<number>"
         elif c == '"' or c == "'" do
@@ -303,68 +303,68 @@ var lex_get = func(ls)
                 var c = ls.curr
                 if c == undef do
                     raise ("%d: unfinished string near '<eos>'")
-                        :format(ls.linenum), 0
+                        .format(ls.linenum), 0
                 elif c == "\n" or c == "\r" do
                     raise ("%d: unfinished string near '<string>'")
-                        :format(ls.linenum), 0
+                        .format(ls.linenum), 0
                 // not complete escape sequence handling: handles only these
                 // that are or can be in the serialized output
                 elif c == "\\" do
                     c = ls::rdr()
                     if c == "a" do
-                        buf:push("\a") ls.curr = ls::rdr()
+                        buf.push("\a") ls.curr = ls::rdr()
                     elif c == "b" do
-                        buf:push("\b") ls.curr = ls::rdr()
+                        buf.push("\b") ls.curr = ls::rdr()
                     elif c == "f" do
-                        buf:push("\f") ls.curr = ls::rdr()
+                        buf.push("\f") ls.curr = ls::rdr()
                     elif c == "n" do
-                        buf:push("\n") ls.curr = ls::rdr()
+                        buf.push("\n") ls.curr = ls::rdr()
                     elif c == "r" do
-                        buf:push("\r") ls.curr = ls::rdr()
+                        buf.push("\r") ls.curr = ls::rdr()
                     elif c == "t" do
-                        buf:push("\t") ls.curr = ls::rdr()
+                        buf.push("\t") ls.curr = ls::rdr()
                     elif c == "v" do
-                        buf:push("\v")ls.curr = ls::rdr()
+                        buf.push("\v")ls.curr = ls::rdr()
                     elif c == "\\" or c == '"' or c == "'" do
-                        buf:push(c)
+                        buf.push(c)
                         ls.curr = ls::rdr()
                     elif not c do
                         raise ("%d: unfinished string near '<eos>'")
-                            :format(ls.linenum), 0
+                            .format(ls.linenum), 0
                     else
-                        if not c:find_match("%d") do
+                        if not c.find_match("%d") do
                             raise ("%d: invalid escape sequence")
-                                :format(ls.linenum), 0
+                                .format(ls.linenum), 0
                         end
                         var dbuf = [ c ]
                         c = ls::rdr()
-                        if c:find_match("%d") do
-                            dbuf:push(c)
+                        if c.find_match("%d") do
+                            dbuf.push(c)
                             c = ls::rdr()
-                            if c:find_match("%d") do
-                                dbuf:push(c)
+                            if c.find_match("%d") do
+                                dbuf.push(c)
                                 c = ls::rdr()
                             end
                         end
                         ls.curr = c
-                        buf:push(dbuf:concat():char())
+                        buf.push(dbuf.concat().char())
                     end
                 else
-                    buf:push(c)
+                    buf.push(c)
                     ls.curr = ls::rdr()
                 end
             end
             ls.curr = ls::rdr() // skip delim
-            ls.tname, ls.tval = "<string>", buf:concat()
+            ls.tname, ls.tval = "<string>", buf.concat()
             return "<string>"
-        elif c:find_match("[%a_]") do
+        elif c.find_match("[%a_]") do
             var buf = [ c ]
             ls.curr = ls::rdr()
-            while ls.curr and ls.curr:find_match("[%w_]") do
-                buf:push(ls.curr)
+            while ls.curr and ls.curr.find_match("[%w_]") do
+                buf.push(ls.curr)
                 ls.curr = ls::rdr()
             end
-            var str = buf:concat()
+            var str = buf.concat()
             if str == "true" or str == "false" or str == "undef" do
                 ls.tname, ls.tval = str, undef
                 return str
@@ -384,7 +384,7 @@ var assert_tok
 assert_tok = func(ls, tok, ...)
     if not tok do return end
     if ls.tname != tok do
-        raise ("%d: unexpected symbol near '%s'"):format(ls.linenum, ls.tname), 0
+        raise ("%d: unexpected symbol near '%s'").format(ls.linenum, ls.tname), 0
     end
     lex_get(ls)
     assert_tok(ls, ...)
@@ -408,7 +408,7 @@ parse = func(ls)
             return ret
         end
         repeat
-            ret:push(parse(ls))
+            ret.push(parse(ls))
         until ls.tname != "," or not lex_get(ls)
         assert_tok(ls, "]")
         return ret
@@ -448,7 +448,7 @@ end
     success and undef + the error message on failure.
 */
 table.deserialize = func(s)
-    var stream = (typeof s == "string") and s:gmatch(".") or s
+    var stream = (typeof s == "string") and s.gmatch(".") or s
     var ls = { curr = stream(), rdr = stream, linenum = 1 }
     var r, v = try lex_get(ls)
     if not r do return undef, v end
@@ -541,13 +541,13 @@ import std.array
     sort to sort small sublists (10 elements and smaller). The
     quicksort part uses a median of three pivot.
 
-    The l and r default to 0 and x:len() - 1 respectively. You can override
+    The l and r default to 0 and x.len() - 1 respectively. You can override
     them to sort any kind of structure, even one that doesn't provide a len
     method or one that is 1-indexed. The deafult comparison function uses the
     "less than" operator.
 */
 array.sort = func(self, fun, l, r)
-    l, r = l or 0, r or self:len() - 1
+    l, r = l or 0, r or self.len() - 1
     return introsort(self, l, r, fun or defaultcmp)
 end
 
@@ -619,6 +619,6 @@ table.Object = {
         is self.name.
     */
     __tostring = func(self)
-        return ("Object: %s"):format(self.name or "unnamed")
+        return ("Object: %s").format(self.name or "unnamed")
     end
 }

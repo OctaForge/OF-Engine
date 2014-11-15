@@ -280,7 +280,7 @@ end
         True on success, false on failure (with invalid type).
 */
 M.text = func(tp, o, text, r, g, b, fade, size, gravity, owner)
-    return capi::particle_text(tp, o.x, o.y, o.z, text, text:len(), r, g, b, fade,
+    return capi::particle_text(tp, o.x, o.y, o.z, text, text.len(), r, g, b, fade,
         size, gravity or 0, owner and owner.uid or -1)
 end
 

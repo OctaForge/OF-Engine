@@ -53,7 +53,7 @@ var M = {}
           as soon as the other action does). Useful for e.g. animations that
           run in parallel.
 */
-M.Action = Object:clone {
+M.Action = Object.clone {
     name = "Action",
 
     /**
@@ -95,7 +95,7 @@ M.Action = Object:clone {
 
     priv_start = func(self)
         self.begun = true
-        self:__start()
+        self.__start()
     end,
 
     /**
@@ -115,11 +115,11 @@ M.Action = Object:clone {
             self::priv_start(self)
 
             if self.animation != false do
-                var aanim = self.actor:get_attr("animation")
+                var aanim = self.actor.get_attr("animation")
                 var anim = self.animation
                 if aanim != anim do
                     self.last_animation = aanim
-                    self.actor:set_attr("animation", anim)
+                    self.actor.set_attr("animation", anim)
                 end
             end
         end
@@ -127,7 +127,7 @@ M.Action = Object:clone {
         if self.parallel_to == false do
             @[debug] log(INFO, "Executing action " ~ self.name)
 
-            var finished = self:__run(millis)
+            var finished = self.__run(millis)
             if    finished do
                 self::priv_finish(self)
             end
@@ -181,13 +181,13 @@ M.Action = Object:clone {
 
         if self.animation and self.last_animation != undef do
             var lanim = self.last_animation
-            var aanim = self.actor:get_attr("animation")
+            var aanim = self.actor.get_attr("animation")
             if lanim != aanim do
-                self.actor:set_attr("animation", lanim)
+                self.actor.set_attr("animation", lanim)
             end
         end
 
-        self:__finish()
+        self.__finish()
     end,
 
     /**
@@ -203,7 +203,7 @@ M.Action = Object:clone {
     */
     cancel = func(self)
         if  self.cancelable do
-            self:priv_finish()
+            self.priv_finish()
         end
     end
 }
@@ -212,7 +212,7 @@ var Action = M.Action
 /**
     An action that never ends.
 */
-M.InfiniteAction = Action:clone {
+M.InfiniteAction = Action.clone {
     name = "InfiniteAction",
 
     /**
@@ -231,7 +231,7 @@ M.InfiniteAction = Action:clone {
         - parent - the parent entity of this action queue.
         - actions - an array of actions.
 */
-M.ActionQueue = Object:clone {
+M.ActionQueue = Object.clone {
     name = "ActionQueue",
 
     /**
@@ -255,14 +255,14 @@ M.ActionQueue = Object:clone {
     run = func(self, millis)
         var acts = self.actions
         if self._changed do
-            acts:compact(\v -> not v.finished)
+            acts.compact(\v -> not v.finished)
             self._changed = false
         end
-        if not acts:empty() do
-            var act = acts:first()
+        if not acts.empty() do
+            var act = acts.first()
             @[debug] log(INFO, e"Executing $(act.name)")
             // keep the removal for the next frame
-            act:priv_run(millis)
+            act.priv_run(millis)
         end
     end,
 
@@ -276,7 +276,7 @@ M.ActionQueue = Object:clone {
         var acts = self.actions
         if not act.allow_multiple do
             var str = act.name
-            for i, qact in acts:each() do
+            for i, qact in acts.each() do
                 if str == qact.name do
                     log(WARNING, e"Action of the type $str is already present "
                         "in the queue, multiplication explicitly disabled for "
@@ -285,7 +285,7 @@ M.ActionQueue = Object:clone {
                 end
             end
         end
-        acts:push(act)
+        acts.push(act)
         act.actor = self.parent
         act.queue = self
     end,
@@ -294,8 +294,8 @@ M.ActionQueue = Object:clone {
         Clears the action queue (cancels every action in the queue).
     */
     clear = func(self)
-        for i, act in self.actions:each() do
-            act:cancel()
+        for i, act in self.actions.each() do
+            act.cancel()
         end
     end
 }

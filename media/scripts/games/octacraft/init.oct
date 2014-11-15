@@ -30,8 +30,8 @@ var Player = ents.Player
 /** Object: GamePlayer
     This serves as a base for our player.
 */
-var GamePlayer = Player:clone {
-    name = "GamePlayer",
+var GamePlayer = Player.clone {
+    name = "GamePlayer"
 }
 
 ents::register_prototype(GamePlayer, [
@@ -51,14 +51,14 @@ day_manager::setup([ day_manager.plugins.day_night ])
     return
 end
 
-var MouseAction = actions.Action:clone {
+var MouseAction = actions.Action.clone {
     name = "MouseAction",
     allow_multiple = false,
     block_size = 4,
 
     __start = func(self)
         self.counter = 0
-        self:try_block()
+        self.try_block()
     end,
 
     __run = func(self, millis)
@@ -67,7 +67,7 @@ var MouseAction = actions.Action:clone {
         var btn = self.button
         if (btn == 1 and cnt >= 600) or (btn != 1 and cnt >= 200) do
             self.counter = 0
-            self:try_block()
+            self.try_block()
         else
             self.counter = cnt
         end
@@ -77,14 +77,14 @@ var MouseAction = actions.Action:clone {
     try_block = func(self)
         var pl = self.player
         var tg = input::get_target_position()
-        var pos = pl:get_attr("position"):copy()
-        pos.z += pl:get_attr("eye_height")
+        var pos = pl.get_attr("position").copy()
+        pos.z += pl.get_attr("eye_height")
         var bf
         if self.button == 1 do
-            tg:add((tg - pos):normalize())
+            tg.add((tg - pos).normalize())
             bf = edit.cube_delete
         else
-            tg:sub((tg - pos):normalize())
+            tg.sub((tg - pos).normalize())
             bf = edit.cube_create
         end
         var bsize = self.block_size
@@ -96,7 +96,7 @@ var MouseAction = actions.Action:clone {
 inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy)
     var ent = ents::get(uid)
     if ent and ent.click do
-        return ent:click(btn, down, x, y, z, cx, cy)
+        return ent.click(btn, down, x, y, z, cx, cy)
     end
     var gm = game_manager::get()
     if down do
@@ -105,9 +105,9 @@ inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy)
         mact.button = btn
         mact.player = pl
         gm.mouse_action = mact
-        gm:enqueue_action(mact)
+        gm.enqueue_action(mact)
     else
-        gm.mouse_action:cancel()
+        gm.mouse_action.cancel()
         gm.mouse_action = undef
     end
 end)

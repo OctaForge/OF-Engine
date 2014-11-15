@@ -27,17 +27,17 @@ gui.Button.__variants = { default = btnv, nobg = btnvb }
 
 var btnv_init_clone = func(self, btn)
     var lbl = gui::Label { text = btn.label }
-    self:append(lbl)
-    connect(btn, "label,changed", func(b, t) lbl:set_text(t) end)
+    self.append(lbl)
+    connect(btn, "label,changed", func(b, t) lbl.set_text(t) end)
 end
 
 var btn_build_variant = \color -> gui::Gradient {
     color = 0x202020, color2 = 0x101010, clamp_h = true,
     init_clone = func(self, btn)
-        self:set_min_w(btn.min_w or 0)
-        self:set_min_h(btn.min_h or 0)
-        connect(btn, "min_w,changed", \b, v -> self:set_min_w(v))
-        connect(btn, "min_h,changed", \b, v -> self:set_min_w(v))
+        self.set_min_w(btn.min_w or 0)
+        self.set_min_h(btn.min_h or 0)
+        connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
+        connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     end, children = [ gui::Outline {
         color = color, clamp_h = true, children = [ gui::Spacer {
             pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
@@ -47,10 +47,10 @@ var btn_build_variant = \color -> gui::Gradient {
 
 var btn_build_variant_nobg = \-> gui::Filler {
     clamp_h = true, init_clone = func(self, btn)
-        self:set_min_w(btn.min_w or 0)
-        self:set_min_h(btn.min_h or 0)
-        connect(btn, "min_w,changed", \b, v -> self:set_min_w(v))
-        connect(btn, "min_h,changed", \b, v -> self:set_min_w(v))
+        self.set_min_w(btn.min_w or 0)
+        self.set_min_h(btn.min_h or 0)
+        connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
+        connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     end, children = [ gui::Spacer {
         pad_h = 0.01, pad_v = 0.005, init_clone = btnv_init_clone
     } ]
@@ -89,12 +89,12 @@ smbtnv["clicked_left"] = btn_build_variant(0x404040)
 // (v)slot viewer buttons
 
 var slotbtn_init_clone = func(self, btn)
-    self:set_min_w(btn.min_w or 0)
-    self:set_min_h(btn.min_h or 0)
-    self:set_index(btn.index or 0)
-    connect(btn, "min_w,changed", \b, v -> self:set_min_w(v))
-    connect(btn, "min_h,changed", \b, v -> self:set_min_h(v))
-    connect(btn, "index,changed", \b, v -> self:set_index(v))
+    self.set_min_w(btn.min_w or 0)
+    self.set_min_h(btn.min_h or 0)
+    self.set_index(btn.index or 0)
+    connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
+    connect(btn, "min_h,changed", \b, v -> self.set_min_h(v))
+    connect(btn, "index,changed", \b, v -> self.set_index(v))
 end
 
 gui.Button.__variants.vslot = {
@@ -129,8 +129,8 @@ gui.TextEditor.__variants = {
             }
         ],
         __init = func(ed)
-            ed:set_pad_l(0.005)
-            ed:set_pad_r(0.005)
+            ed.set_pad_l(0.005)
+            ed.set_pad_r(0.005)
         end
     }
 }
@@ -158,9 +158,9 @@ gui.Filler.__variants = {
                 color = 0x303030, clamp = true, children = [ gui::Spacer {
                     pad_h = 0.01, pad_v = 0.005, init_clone = func(self, ttip)
                         var lbl = gui::Label { text = ttip.label }
-                        self:append(lbl)
+                        self.append(lbl)
                         connect(ttip, "label,changed", func(o, t)
-                            lbl:set_text(t) end)
+                            lbl.set_text(t) end)
                     end
                 } ]
             } ]
@@ -277,7 +277,7 @@ gui.HScrollbar.__variants = {
         left_clicked_left  = sb_buildh(0x505050, 0x404040),
         right_hovering     = sb_buildh(0x404040, 0x606060),
         right_clicked_left = sb_buildh(0x404040, 0x505050),
-        __init = func(self) self:set_arrow_size(0.02) end
+        __init = func(self) self.set_arrow_size(0.02) end
     }
 }
 
@@ -288,7 +288,7 @@ gui.VScrollbar.__variants = {
         up_clicked_left   = sb_buildv(0x505050, 0x404040),
         down_hovering     = sb_buildv(0x404040, 0x606060),
         down_clicked_left = sb_buildv(0x404040, 0x505050),
-        __init = func(self) self:set_arrow_size(0.02) end
+        __init = func(self) self.set_arrow_size(0.02) end
     }
 }
 
@@ -309,12 +309,12 @@ gui.HProgressBar.__variants = {
                     color2 = 0xF0252525, clamp_v = true,
                     children = [ gui::Outline { color = 0x404040, clamp = true } ]
                 }
-                var lbl = gui::Label { text = pb:gen_label(), scale = 0.8 }
-                pb:set_bar(bar)
-                self:append(bar)
-                self:append(lbl)
+                var lbl = gui::Label { text = pb.gen_label(), scale = 0.8 }
+                pb.set_bar(bar)
+                self.append(bar)
+                self.append(lbl)
                 connect(pb, "value,changed", func(o, v)
-                    lbl:set_text(pb:gen_label())
+                    lbl.set_text(pb.gen_label())
                 end)
             end
         } ]
@@ -332,12 +332,12 @@ gui.VProgressBar.__variants = {
                         gui::Outline { color = 0x404040, clamp = true }
                     ]
                 }
-                var lbl = gui::Label { text = pb:gen_label(), scale = 0.8 }
-                pb:set_bar(bar)
-                self:append(bar)
-                self:append(lbl)
+                var lbl = gui::Label { text = pb.gen_label(), scale = 0.8 }
+                pb.set_bar(bar)
+                self.append(bar)
+                self.append(lbl)
                 connect(pb, "value,changed", func(o, v)
-                    lbl:set_text(pb:gen_label())
+                    lbl.set_text(pb.gen_label())
                 end)
             end
         } ]
@@ -352,9 +352,9 @@ var window_build_titlebar = \-> gui::Gradient {
         pad_h = 0.004, pad_v = 0.004,
         init_clone = func(self, win)
             var lbl = gui::Label { text = win.title or win.obj_name }
-            self:append(lbl)
+            self.append(lbl)
             connect(win, "title,changed", func(w, t)
-                lbl:set_text(t or w.obj_name) end)
+                lbl.set_text(t or w.obj_name) end)
         end
     } ]
 }
@@ -368,7 +368,7 @@ var window_build_regular = \mov -> gui::Filler {
                 children = [
                     mov and gui::Mover { clamp_h = true,
                         init_clone = func(self, win)
-                            self:set_window(win)
+                            self.set_window(win)
                         end,
                         children = [ window_build_titlebar() ]
                     } or window_build_titlebar(),
@@ -395,7 +395,7 @@ var window_build_regular = \mov -> gui::Filler {
                                 }
                             },
                             init_clone = func(self, win)
-                                connect(self, "clicked", \-> win:hide())
+                                connect(self, "clicked", \-> win.hide())
                             end
                         } ]
                     }
@@ -404,7 +404,7 @@ var window_build_regular = \mov -> gui::Filler {
             gui::ColorFiller {
                 color = 0xF0101010, clamp = true, children = [ gui::Spacer {
                     pad_h = 0.005, pad_v = 0.005, init_clone = func(self, win)
-                        win:set_container(self)
+                        win.set_container(self)
                     end
                 } ]
             }
@@ -423,7 +423,7 @@ gui.Window.__variants = {
             children = [ gui::Outline { color = 0x303030, clamp = true,
                 children = [ gui::Spacer {
                     pad_h = 0.005, pad_v = 0.005, init_clone = func(self, win)
-                        win:set_container(self)
+                        win.set_container(self)
                     end
                 } ]
             } ]
@@ -439,12 +439,12 @@ gui.Window.__variants = {
 
 var progress_bar, progress_label
 var progress_win = gui::Window { __init = func(win)
-    win:append(gui::VBox(), func(b)
-        b:append(gui::Spacer { pad_h = 0.01, pad_v = 0.01 }, func(sp)
-            progress_label = sp:append(gui::Label())
+    win.append(gui::VBox(), func(b)
+        b.append(gui::Spacer { pad_h = 0.01, pad_v = 0.01 }, func(sp)
+            progress_label = sp.append(gui::Label())
         end)
-        b:append(gui::Spacer { pad_h = 0.02, pad_v = 0.01 }, func(sp)
-            progress_bar = sp:append(gui::HProgressBar { min_w = 0.4,
+        b.append(gui::Spacer { pad_h = 0.02, pad_v = 0.01 }, func(sp)
+            progress_bar = sp.append(gui::HProgressBar { min_w = 0.4,
                 min_h = 0.03 })
         end)
     end)
@@ -453,30 +453,30 @@ end }
 from core.externals import set as set_ext
 
 set_ext("progress_render", func(v, text)
-    progress_bar:set_value(v)
-    progress_label:set_text(text)
+    progress_bar.set_value(v)
+    progress_label.set_text(text)
     gui::__draw_window(progress_win)
 end)
 
 var bg_win = func(mapname, mapinfo, mapshot, caption)
     var win = gui::Window()
-    win:set_input_grab(false)
-    win:align(0, 1)
-    win:append(gui::VBox(), func(b)
+    win.set_input_grab(false)
+    win.align(0, 1)
+    win.append(gui::VBox(), func(b)
         if mapname do
-            b:append(gui::Label { text = mapname, scale = 1.5 })
+            b.append(gui::Label { text = mapname, scale = 1.5 })
         end
-        if mapinfo do b:append(gui::Label { text = mapinfo }) end
+        if mapinfo do b.append(gui::Label { text = mapinfo }) end
         if mapshot do
-            b:append(gui::Spacer { pad_h = 0.02, pad_v = 0.02 }, func(sp)
-                sp:append(gui::Image { min_w = 0.2, min_h = 0.2 },
+            b.append(gui::Spacer { pad_h = 0.02, pad_v = 0.02 }, func(sp)
+                sp.append(gui::Image { min_w = 0.2, min_h = 0.2 },
                     func(img) img.texture = mapshot end)
             end)
         end
         if caption do
-            b:append(gui::Label { text = caption, scale = 1.5 })
+            b.append(gui::Label { text = caption, scale = 1.5 })
         end
-        b:append(gui::Filler { min_h = 0.05 })
+        b.append(gui::Filler { min_h = 0.05 })
     end)
     return win
 end
@@ -492,7 +492,7 @@ var get_logo = func(root, win)
     end
     var sz = ((max_tex_size != 0) and min(max_tex_size, hw_tex_size)
                                      or hw_tex_size)
-    var w, h = root:get_pixel_w(), root:get_pixel_h()
+    var w, h = root.get_pixel_w(), root.get_pixel_h()
     var logo
     if (sz >= 1024) and ((w > 1280) or (h > 800)) do
         logo = "<premul>media/interface/logo_1024"
@@ -500,8 +500,8 @@ var get_logo = func(root, win)
         logo = "<premul>media/interface/logo"
     end
     win.x, win.y, win.parent, win._root = 0, 0, root, root
-    var proj = win:get_projection()
-    proj:calc()
+    var proj = win.get_projection()
+    proj.calc()
     var lw = min(proj.pw, proj.ph)
     return logo, lw, lw / 2
 end
@@ -509,19 +509,19 @@ end
 var bg_under = func(root)
     var win = gui::Overlay()
     var logo, lw, lh = get_logo(root, win)
-    win:append(gui::Image { file = "media/interface/background",
+    win.append(gui::Image { file = "media/interface/background",
         min_w = 1/0, min_h = 1/0 })
-    win:append(gui::Image { file = "media/interface/shadow",
+    win.append(gui::Image { file = "media/interface/shadow",
         min_w = 1/0, min_h = 1/0 })
-    win:append( gui::Image { file = logo, min_w = lw, min_h = lh,
+    win.append( gui::Image { file = logo, min_w = lw, min_h = lh,
                             align_v = -1 })
     return win
 end
 
 set_ext("background_render", func(caption, mapname, mapinfo, mapshot)
     var root = gui::get_root()
-    root:calc_text_scale()
-    root:layout_dim()
+    root.calc_text_scale()
+    root.layout_dim()
     gui::__draw_window(bg_under(root))
     gui::__draw_window(bg_win(mapname, mapinfo, mapshot
         and ffi::cast("Texture*", mapshot) or undef, caption))
@@ -539,40 +539,40 @@ connect(changes, "add", func(self, ctype, desc)
     if cs::var_get("applydialog") == 0 do return end
     changes::add(ctype, desc)
     if cs::var_get("hidechanges") == 0 do
-        root:show_window("changes")
+        root.show_window("changes")
     end
 end)
 
 connect(root, "reset", \-> cs::var_set("hidechanges", 0))
 
-root:new_window("changes", gui.Window, func(win)
-    win:set_floating(true)
-    win:set_variant("movable")
-    win:set_title("Changes")
+root.new_window("changes", gui.Window, func(win)
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("Changes")
     connect(win, "destroy", \-> changes::clear())
-    win:append(gui::VBox(), func(b)
-        b:append(gui::Spacer { pad_h = 0.01, pad_v = 0,
+    win.append(gui::VBox(), func(b)
+        b.append(gui::Spacer { pad_h = 0.01, pad_v = 0,
             children = [
                 gui::Label { text = "The following settings have changed:" }
             ] })
-        b:append(gui::Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
+        b.append(gui::Spacer { pad_v = 0.01, pad_h = 0.005, clamp_h = true,
             children = [ gui::Line { clamp_h = true, color = 0x303030 } ] })
-        for i, v in changes::get():each() do
-            b:append(gui::Label { text = v })
+        for i, v in changes::get().each() do
+            b.append(gui::Label { text = v })
         end
-        b:append(gui::Filler { clamp_h = true, min_h = 0.01 })
-        b:append(gui::Spacer { pad_v = 0.005, pad_h = 0.005, clamp_h = true,
+        b.append(gui::Filler { clamp_h = true, min_h = 0.01 })
+        b.append(gui::Spacer { pad_v = 0.005, pad_h = 0.005, clamp_h = true,
             children = [ gui::HBox { padding = 0.01,
                 children = [
                     gui::Button { label = "OK", min_w = 0.15,
                         signals = { clicked = func()
                             changes::apply()
-                            root:hide_window("changes")
+                            root.hide_window("changes")
                         end }
                     },
                     gui::Button { label = "Cancel", min_w = 0.15,
                         signals = { clicked = func()
-                            root:hide_window("changes")
+                            root.hide_window("changes")
                         end }
                     }
                 ]
@@ -581,19 +581,19 @@ root:new_window("changes", gui.Window, func(win)
     end)
 end)
 
-root:new_window("texture", gui.Window, func(win)
-    win:set_floating(true)
-    win:set_variant("movable")
-    win:set_title("Textures")
-    win:append(gui::HBox(), func(hb)
+root.new_window("texture", gui.Window, func(win)
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("Textures")
+    win.append(gui::HBox(), func(hb)
         var s
-        hb:append(gui::Outline(), func(o)
-            o:append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
-                sp:append(gui::Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
-                    sc:append(gui::Grid { columns = 8, padding = 0.01 }, func(gr)
+        hb.append(gui::Outline(), func(o)
+            o.append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
+                sp.append(gui::Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
+                    sc.append(gui::Grid { columns = 8, padding = 0.01 }, func(gr)
                         for i in 1 to capi::slot_texmru_num() do
                             var mru = capi::slot_texmru(i - 1)
-                            gr:append(gui::Button { variant = "vslot",
+                            gr.append(gui::Button { variant = "vslot",
                                 index = mru, min_w = 0.095, min_h = 0.095
                             }, func(b)
                                 connect(b, "clicked", \-> capi::slot_set(mru))
@@ -604,9 +604,9 @@ root:new_window("texture", gui.Window, func(win)
                 end)
             end)
         end)
-        hb:append(gui::VScrollbar { clamp_v = true }, func(sb)
-            sb:append(gui::ScrollButton())
-            sb:bind_scroller(s)
+        hb.append(gui::VScrollbar { clamp_v = true }, func(sb)
+            sb.append(gui::ScrollButton())
+            sb.bind_scroller(s)
         end)
     end)
 end)
@@ -615,14 +615,14 @@ var fields = {
     $(svars.StateBoolean) = func(hb, nm, ent, dv)
         var tvar = (dv == "true")
         var ret
-        hb:append(gui::Filler { min_w = 0.4 }, func(f)
-            f:append(gui::Toggle { variant = "checkbox", condition = \-> tvar,
+        hb.append(gui::Filler { min_w = 0.4 }, func(f)
+            f.append(gui::Toggle { variant = "checkbox", condition = \-> tvar,
                 align_h = -1
             }, func(t)
                 ret = t
                 signal::connect(t, "released", func()
                     tvar = not tvar
-                    ent:set_gui_attr(nm, tostring(tvar))
+                    ent.set_gui_attr(nm, tostring(tvar))
                 end)
             end)
         end)
@@ -630,31 +630,31 @@ var fields = {
     end
 }
 var field_def = func(hb, nm, ent, dv)
-    return hb:append(gui::Field { clip_w = 0.4, value = dv }, func(ed)
+    return hb.append(gui::Field { clip_w = 0.4, value = dv }, func(ed)
         connect(ed, "value,changed", func(ed, v)
-            ent:set_gui_attr(nm, v)
+            ent.set_gui_attr(nm, v)
         end)
     end)
 end
 
-root:new_window("entity", gui.Window, func(win)
-    win:set_floating(true)
-    win:set_variant("movable")
+root.new_window("entity", gui.Window, func(win)
+    win.set_floating(true)
+    win.set_variant("movable")
     var  ent = capi::get_selected_entity()
     if not ent do
         ent = ents::get_player()
     end
     if not ent do
-        win:set_title("Entity editing: none")
-        win:append(gui::Spacer { pad_h = 0.04, pad_v = 0.03,
+        win.set_title("Entity editing: none")
+        win.append(gui::Spacer { pad_h = 0.04, pad_v = 0.03,
             children = [ gui::Label { text = "No selected entity" } ]
         })
         return
     end
-    win:set_title(("Entity editing: %s (%d)"):format(ent.name, ent.uid))
+    win.set_title(("Entity editing: %s (%d)").format(ent.name, ent.uid))
     var props = []
     var sdata = []
-    var sdata_raw = ent:build_sdata()
+    var sdata_raw = ent.build_sdata()
 
     var prefix = "_SV_"
     for k, v in pairs(sdata_raw) do
@@ -662,32 +662,32 @@ root:new_window("entity", gui.Window, func(win)
         var gn = sv.gui_name
         if gn != false do
             sdata[k] = [ gn or k, v, sv ]
-            props:push(k)
+            props.push(k)
         end
     end
-    props:sort()
+    props.sort()
 
-    win:append(gui::HBox(), func(hb)
+    win.append(gui::HBox(), func(hb)
         var s
-        hb:append(gui::Outline { color = 0x303030 }, func(o)
-            o:append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
-                sp:append(gui::Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
-                    sc:append(gui::VBox(), func(vb)
+        hb.append(gui::Outline { color = 0x303030 }, func(o)
+            o.append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
+                sp.append(gui::Scroller { clip_w = 0.9, clip_h = 0.6 }, func(sc)
+                    sc.append(gui::VBox(), func(vb)
                         var fpf, pf
-                        for i, nm in props:each() do
+                        for i, nm in props.each() do
                             var sd = sdata[nm]
                             var gn, dv, sv = sd[0], sd[1], sd[2]
-                            vb:append(gui::HBox { align_h = 1 }, func(hb)
-                                hb:append(gui::Label { text = " " ~ sd[0]
+                            vb.append(gui::HBox { align_h = 1 }, func(hb)
+                                hb.append(gui::Label { text = " " ~ sd[0]
                                     ~ ": " })
                                 var fld = fields[sv.__proto] or field_def
                                 var fd = fld(hb, gn, ent, dv)
-                                if pf do pf:set_tab_next(fd) end
+                                if pf do pf.set_tab_next(fd) end
                                 pf = fd
                                 if not fpf do fpf = fd end
                             end)
                             if fpf and pf and pf != fpf do
-                                pf:set_tab_next(fpf)
+                                pf.set_tab_next(fpf)
                             end
                         end
                     end)
@@ -695,40 +695,40 @@ root:new_window("entity", gui.Window, func(win)
                 end)
             end)
         end)
-        hb:append(gui::VScrollbar { clamp_v = true }, func(sb)
-            sb:append(gui::ScrollButton())
-            sb:bind_scroller(s)
+        hb.append(gui::VScrollbar { clamp_v = true }, func(sb)
+            sb.append(gui::ScrollButton())
+            sb.bind_scroller(s)
         end)
     end)
 end)
 
-root:new_window("entity_new", gui.Window, func(win)
+root.new_window("entity_new", gui.Window, func(win)
     input::save_mouse_position()
-    win:set_floating(true)
-    win:set_variant("movable")
-    win:set_title("New entity")
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("New entity")
 
     var cnames = []
     for k, v in pairs(ents::get_all_prototypes()) do
-        if v:is_a(ents.StaticEntity) do
-            cnames:push(k)
+        if v.is_a(ents.StaticEntity) do
+            cnames.push(k)
         end
     end
-    cnames:sort()
+    cnames.sort()
 
-    win:append(gui::HBox(), func(hb)
+    win.append(gui::HBox(), func(hb)
         var s
-        hb:append(gui::Outline { color = 0x303030 }, func(o)
-            o:append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
-                sp:append(gui::Scroller { clip_w = 0.6, clip_h = 0.6 }, func(sc)
-                    sc:append(gui::VBox(), func(vb)
-                        for i, n in cnames:each() do
-                            vb:append(gui::Button {
+        hb.append(gui::Outline { color = 0x303030 }, func(o)
+            o.append(gui::Spacer { pad_h = 0.005, pad_v = 0.005 }, func(sp)
+                sp.append(gui::Scroller { clip_w = 0.6, clip_h = 0.6 }, func(sc)
+                    sc.append(gui::VBox(), func(vb)
+                        for i, n in cnames.each() do
+                            vb.append(gui::Button {
                                 variant = "nobg", min_w = 0.3, label = n
                             }, func(btn)
                                 connect(btn, "clicked", func()
                                     edit::new_entity(n)
-                                    root:hide_window("entity_new")
+                                    root.hide_window("entity_new")
                                 end)
                             end)
                         end
@@ -737,9 +737,9 @@ root:new_window("entity_new", gui.Window, func(win)
                 end)
             end)
         end)
-        hb:append(gui::VScrollbar { clamp_v = true }, func(sb)
-            sb:append(gui::ScrollButton())
-            sb:bind_scroller(s)
+        hb.append(gui::VScrollbar { clamp_v = true }, func(sb)
+            sb.append(gui::ScrollButton())
+            sb.bind_scroller(s)
         end)
     end)
 end)

@@ -83,7 +83,7 @@ M.Mover = register_type("Mover", Widget, {
     end,
 
     hover = func(self, cx, cy)
-        return self:target(cx, cy) and self
+        return self.target(cx, cy) and self
     end,
 
     click = func(self, cx, cy, code)
@@ -91,11 +91,11 @@ M.Mover = register_type("Mover", Widget, {
             return Widget::click(self, cx, cy, code)
         end
         var  w = self.window
-        if not w do return self:target(cx, cy) and self end
+        if not w do return self.target(cx, cy) and self end
         var c = w.parent.children
-        var n  =  c:find(w)
-        if  n != (c:len() - 1) do c:push(c:remove(n)) end
-        return self:target(cx, cy) and self
+        var n  =  c.find(w)
+        if  n != (c.len() - 1) do c.push(c.remove(n)) end
+        return self.target(cx, cy) and self
     end,
 
     can_move = func(self, cx, cy)
@@ -115,7 +115,7 @@ M.Mover = register_type("Mover", Widget, {
 
         if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) do
             // avoid bugs; stop moving when cursor is outside
-            self:clear_focus()
+            self.clear_focus()
             return false
         end
 
@@ -130,7 +130,7 @@ M.Mover = register_type("Mover", Widget, {
 
     holding = func(self, cx, cy, code)
         var w = self.window
-        if w and w.floating and code == key.MOUSELEFT and self:can_move() do
+        if w and w.floating and code == key.MOUSELEFT and self.can_move() do
             // dealign so that adjust_layout doesn't fuck with x/y
             w.adjust &= ~ALIGN_MASK
             w.x += cx - self.ox
@@ -177,7 +177,7 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
     */
     gen_label = func(self)
         var lbl = self.label
-        if typeof lbl == "string" do return lbl:format(self.value * 100) end
+        if typeof lbl == "string" do return lbl.format(self.value * 100) end
         return lbl(self, self.value)
     end,
 
@@ -238,7 +238,7 @@ M.Animator = register_type("Animator", Widget, {
         self.move_dist_x  = kwargs.move_dist_x or undef
         self.move_dist_y  = kwargs.move_dist_y or undef
         self.move_speed   = kwargs.move_speed  or 0.2
-        self:reset()
+        self.reset()
         return Widget::__ctor(self, kwargs)
     end,
 
@@ -283,7 +283,7 @@ M.Animator = register_type("Animator", Widget, {
     layout = func(self)
         if not self.started do return Widget::layout(self) end
 
-        var prog = self:get_progress()
+        var prog = self.get_progress()
         if prog >= 1.0 do
             self.started = false
             emit(self, "anim,end")
@@ -294,8 +294,8 @@ M.Animator = register_type("Animator", Widget, {
         self.move_elapsed += millis
 
         M::loop_children(self, func(o)
-            o:layout()
-            self:animate(o, millis)
+            o.layout()
+            self.animate(o, millis)
             self.w = max(self.w, o.x + o.w)
             self.h = max(self.h, o.y + o.h)
         end)
@@ -303,7 +303,7 @@ M.Animator = register_type("Animator", Widget, {
 
     start = func(self)
         self.started = true
-        self:reset()
+        self.reset()
         emit(self, "anim,start")
     end,
 

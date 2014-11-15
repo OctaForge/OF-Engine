@@ -45,7 +45,7 @@ M.anims = anims
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
 */
-var PainAction = @[not server,eactions.LocalAnimationAction:clone {
+var PainAction = @[not server,eactions.LocalAnimationAction.clone {
     name            = "PainAction",
     millis_left     = 600,
     local_animation = anims.pain,
@@ -58,7 +58,7 @@ M.PainAction = PainAction
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
 */
-var DeathAction = @[server,actions.Action:clone {
+var DeathAction = @[server,actions.Action.clone {
     name            = "DeathAction",
     allow_multiple  = false,
     cancelable      = false,
@@ -71,14 +71,14 @@ var DeathAction = @[server,actions.Action:clone {
     */
     __start = func(self)
         var actor = self.actor
-        actor:set_attr("can_move", false)
-        actor:clear_actions()
+        actor.set_attr("can_move", false)
+        actor.clear_actions()
         emit(actor, "killed")
     end,
 
     /// Triggers a respawn.
     __finish = func(self)
-        self.actor:game_manager_respawn()
+        self.actor.game_manager_respawn()
     end
 }]
 M.DeathAction = DeathAction
@@ -99,8 +99,8 @@ M.player_plugin = {
     },
 
     __init_svars = func(self)
-        self:set_attr("health", 100)
-        self:set_attr("max_health", 100)
+        self.set_attr("health", 100)
+        self.set_attr("max_health", 100)
     end,
 
     __activate = func(self)
@@ -112,20 +112,20 @@ M.player_plugin = {
         behavior it restores the player's health.
     */
     game_manager_spawn_stage_4 = @[server,func(self, auid)
-        self:set_attr("health", self:get_attr("max_health"))
-        self:set_attr("can_move", true)
-        self:set_attr("spawn_stage", 0)
-        self:cancel_sdata_update()
+        self.set_attr("health", self.get_attr("max_health"))
+        self.set_attr("can_move", true)
+        self.set_attr("spawn_stage", 0)
+        self.cancel_sdata_update()
     end],
 
     get_animation = func(self)
         var ret = self.__parent_ent_proto::get_animation(self)
         var INDEX, idle = model.anims.INDEX, model.anims.idle
-        if self:get_attr("health") > 0 do
+        if self.get_attr("health") > 0 do
             if (ret & INDEX) == anims.dying or (ret & INDEX) == anims.dead do
-                self:set_local_animation(idle | model.anim_control.LOOP)
+                self.set_local_animation(idle | model.anim_control.LOOP)
                 self.prev_bt = undef
-                ret = self:get_attr("animation")
+                ret = self.get_attr("animation")
             end
         end
         return ret
@@ -143,7 +143,7 @@ M.player_plugin = {
             end
             return pbt
         end
-        return self:get_attr("start_time")
+        return self.get_attr("start_time")
     end,
 
     /**
@@ -151,7 +151,7 @@ M.player_plugin = {
         (and "dead" when at least 1 second after death).
     */
     decide_animation = @[not server,func(self, ...)
-        if self:get_attr("health") > 0 do
+        if self.get_attr("health") > 0 do
             return self.__parent_ent_proto::decide_animation(self, ...)
         else
             var anim
@@ -169,7 +169,7 @@ M.player_plugin = {
         var oh = self.old_health
         self.old_health = health
         if not oh do return end
-        self:health_changed(health, health - oh, server_orig)
+        self.health_changed(health, health - oh, server_orig)
     end,
 
     /**
@@ -189,10 +189,10 @@ M.player_plugin = {
             - server_orig - true if the change originated on the server.
     */
     health_changed = @[server,func(self, health, diff, server_orig)
-        if health <= 0 do self:enqueue_action(DeathAction()) end
+        if health <= 0 do self.enqueue_action(DeathAction()) end
     end,func(self, health, diff, server_orig)
         if diff <= -5 and health > 0 do
-            self:enqueue_action(PainAction())
+            self.enqueue_action(PainAction())
         end
     end],
 
@@ -203,10 +203,10 @@ M.player_plugin = {
         at 0 on the bottom and at max_health on the top.
     */
     health_add = func(self, amount)
-        var ch = self:get_attr("health")
+        var ch = self.get_attr("health")
         if ch > 0 and amount != 0 do
-            var mh = self:get_attr("max_health")
-            self:set_attr("health", min(mh, max(0, ch + amount)))
+            var mh = self.get_attr("max_health")
+            self.set_attr("health", min(mh, max(0, ch + amount)))
         end
     end
 }
@@ -220,17 +220,17 @@ M.player_plugin = {
 var is_valid_target = func(ent)
     if not ent or ent.deactivated do return false end
 
-    var cs = ent:get_attr("client_state")
+    var cs = ent.get_attr("client_state")
     if cs == 3 or cs == 4 do return false end // editing, lagged
 
-    var health, sstage = ent:get_attr("health"     ) or 0,
-                            ent:get_attr("spawn_stage") or 0
+    var health, sstage = ent.get_attr("health"     ) or 0,
+                            ent.get_attr("spawn_stage") or 0
 
     return health > 0 and sstage == 0
 end
 M.is_valid_target = is_valid_target
 
-var HealthAction = actions.Action:clone {
+var HealthAction = actions.Action.clone {
     cancelable = false,
 
     __ctor = func(self, kwargs)
@@ -239,7 +239,7 @@ var HealthAction = actions.Action:clone {
     end,
 
     __finish = func(self)
-        self.actor:health_add(self.health_step)
+        self.actor.health_add(self.health_step)
     end
 }
 
@@ -278,26 +278,26 @@ M.plugins = {
         },
 
         __init_svars = func(self)
-            self:set_attr("health_step", -10)
-            self:set_attr("health_step_millis", 1000)
+            self.set_attr("health_step", -10)
+            self.set_attr("health_step_millis", 1000)
         end,
 
         health_area_on_collision = func(self, collider)
             if collider != ents::get_player() do return end
             if is_valid_target(collider) do
-                var step = self:get_attr("health_step")
+                var step = self.get_attr("health_step")
                 if    step == 0 do return end
-                var step_millis = self:get_attr("health_step_millis")
+                var step_millis = self.get_attr("health_step_millis")
                 if    step_millis == 0 do return end
     
                 if step_millis < 0 do
-                    var oldhealth = collider:get_attr("health")
-                    collider:set_attr("health", step < 0 and 0
-                        or max(oldhealth, collider:get_attr("max_health")))
+                    var oldhealth = collider.get_attr("health")
+                    collider.set_attr("health", step < 0 and 0
+                        or max(oldhealth, collider.get_attr("max_health")))
                 else
                     var prev = self.health_previous_act
                     if not prev or prev.finished do
-                        self.health_previous_act = collider:enqueue_action(
+                        self.health_previous_act = collider.enqueue_action(
                             HealthAction { millis_left = step_millis,
                                 health_step = step })
                     end
@@ -315,16 +315,16 @@ M.plugins = {
     */
     player_hud = {
         __activate = @[not server,func(self)
-            gui::get_hud():append(gui::Spacer { pad_h = 0.1, pad_v = 0.1,
+            gui::get_hud().append(gui::Spacer { pad_h = 0.1, pad_v = 0.1,
                 align_h = 1, align_v = 1
             }, func(sp)
-                self.health_hud_status = sp:append(gui::Label {
+                self.health_hud_status = sp.append(gui::Label {
                     scale = 2.5, font = "default_outline"
                 }, func(st)
                     var curh, maxh
                     var updatehud = func()
-                        st:set_text(tostring(curh))
-                        st:set_color(gethcolor(curh, maxh))
+                        st.set_text(tostring(curh))
+                        st.set_color(gethcolor(curh, maxh))
                     end
                     connect(self, "max_health,changed", func(self, v)
                         maxh = v; if curh do updatehud() end
@@ -337,7 +337,7 @@ M.plugins = {
         end],
 
         __deactivate = @[not server,func(self)
-            self.health_hud_status:destroy()
+            self.health_hud_status.destroy()
         end]
     },
 
@@ -346,7 +346,7 @@ M.plugins = {
         __activate = @[not server,func(self)
             connect(self, "off_map", func(ent)
                 if not is_valid_target(ent) do return end
-                ent:set_attr("health", 0)
+                ent.set_attr("health", 0)
             end)
         end]
     },
@@ -360,9 +360,9 @@ M.plugins = {
             connect(self, "in_deadly", func(ent, mat)
                 if not is_valid_target(ent) do return end
                 if mat == edit.material.LAVA do
-                    ent:health_add(-1)
+                    ent.health_add(-1)
                 else
-                    ent:set_attr("health", 0)
+                    ent.set_attr("health", 0)
                 end
             end)
         end]

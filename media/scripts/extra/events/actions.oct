@@ -26,7 +26,7 @@ from std.table import pairs
     See also:
         - $ParallelAction
 */
-M.ContainerAction = Action:clone {
+M.ContainerAction = Action.clone {
     name = "ContainerAction",
 
     /**
@@ -45,8 +45,8 @@ M.ContainerAction = Action:clone {
     */
     __start = func(self)
         var actqueue = ActionQueue(self.actor)
-        for i, action in self.other_actions:each() do
-            self:add_action(action)
+        for i, action in self.other_actions.each() do
+            self.add_action(action)
         end
         self.action_queue = actqueue
     end,
@@ -59,20 +59,20 @@ M.ContainerAction = Action:clone {
     */
     __run = func(self, millis)
         var actqueue = self.action_queue
-        actqueue:run(millis)
-        return Action::__run(self, millis) and actqueue.actions:empty()
+        actqueue.run(millis)
+        return Action::__run(self, millis) and actqueue.actions.empty()
     end,
 
     /// Clears up the action queue.
     __finish = func(self)
-        self.action_queue:clear()
+        self.action_queue.clear()
     end,
 
     /**
         Given an action, this queues it into the action queue inside.
     */
     add_action = func(self, action)
-        self.action_queue:enqueue(action)
+        self.action_queue.enqueue(action)
     end
 }
 
@@ -84,7 +84,7 @@ M.ContainerAction = Action:clone {
     See also:
         - $ContainerAction
 */
-M.ParallelAction = Action:clone {
+M.ParallelAction = Action.clone {
     name = "ParallelAction",
     cancelable = false,
 
@@ -104,8 +104,8 @@ M.ParallelAction = Action:clone {
         each into the system using {{$add_action}}.
     */
     __start = func(self)
-        for i, action in self.other_actions:each() do
-            self:add_action(action)
+        for i, action in self.other_actions.each() do
+            self.add_action(action)
         end
     end,
 
@@ -116,17 +116,17 @@ M.ParallelAction = Action:clone {
         zero - the action won't finish until everything is done).
     */
     __run = func(self, millis)
-        var systems = self.action_queues:compact(func(actqueue)
-            actqueue:run(millis)
-            return not actqueue.actions:empty()
+        var systems = self.action_queues.compact(func(actqueue)
+            actqueue.run(millis)
+            return not actqueue.actions.empty()
         end)
-        return Action::__run(self, millis) and systems:empty()
+        return Action::__run(self, millis) and systems.empty()
     end,
 
     /// Clears up the remaining action queues.
     __finish = func(self)
-        for i, actqueue in self.action_queues:each() do
-            actqueue:clear()
+        for i, actqueue in self.action_queues.each() do
+            actqueue.clear()
         end
     end,
 
@@ -136,8 +136,8 @@ M.ParallelAction = Action:clone {
     */
     add_action = func(self, action)
         var actqueue = ActionQueue(self.actor)
-        actqueue:enqueue(action)
-        self.action_queues:push(actqueue)
+        actqueue.enqueue(action)
+        self.action_queues.push(actqueue)
     end
 }
 
@@ -146,7 +146,7 @@ M.ParallelAction = Action:clone {
     property, runs, ends and sets back the old animation. Not too useful
     alone, but can be used for inheriting.
 */
-M.LocalAnimationAction = Action:clone {
+M.LocalAnimationAction = Action.clone {
     name = "LocalAnimationAction",
 
     /**
@@ -155,16 +155,16 @@ M.LocalAnimationAction = Action:clone {
     */
     __start = func(self)
         var ac = self.actor
-        self.old_animation = ac:get_attr("animation")
-        ac:set_local_animation(self.local_animation)
+        self.old_animation = ac.get_attr("animation")
+        ac.set_local_animation(self.local_animation)
     end,
 
     /// Resets the animation back.
     __finish = func(self)
         var ac = self.actor
-        var anim = ac:get_attr("animation")
+        var anim = ac.get_attr("animation")
         var lanim = self.local_animation
-        if anim == lanim do ac:set_local_animation(self.old_animation) end
+        if anim == lanim do ac.set_local_animation(self.old_animation) end
     end
 }
 
@@ -183,7 +183,7 @@ M.input_capture_plugin = {
         var events = self.events
         var old_events = {}
         self.old_events = old_events
-        for i, en in event_list:each() do
+        for i, en in event_list.each() do
             var ev = events[en]
             if ev do old_events[en] = input::set_event(en,
                 func(...) ev(self, ...) end) end
@@ -203,7 +203,7 @@ M.input_capture_plugin = {
     move, strafe, jump, crouch, click, mouse_move) with provided functions and
     restores them when it finishes. Uses $input_capture_plugin.
 */
-M.InputCaptureAction = Action:clone {
+M.InputCaptureAction = Action.clone {
     name = "InputCaptureAction",
 
     /**

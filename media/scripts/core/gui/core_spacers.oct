@@ -50,7 +50,7 @@ M.Spacer = register_type("Spacer", Widget, {
         loop_children(self, func(o)
             o.x = ph
             o.y = pv
-            o:layout()
+            o.layout()
 
             w = max(w, o.x + o.w)
             h = max(h, o.y + o.h)
@@ -109,12 +109,12 @@ M.Filler = register_type("Filler", Widget, {
         if typeof min_w == "function" do min_w = min_w(self) end
         if typeof min_h == "function" do min_h = min_h(self) end
 
-        var r = self:get_root()
+        var r = self.get_root()
 
-        if min_w < 0 do min_w = r:get_ui_size(abs(min_w)) end
-        if min_h < 0 do min_h = r:get_ui_size(abs(min_h)) end
+        if min_w < 0 do min_w = r.get_ui_size(abs(min_w)) end
+        if min_h < 0 do min_h = r.get_ui_size(abs(min_h)) end
 
-        var proj = r:get_projection()
+        var proj = r.get_projection()
         if min_w == huge do min_w = proj.pw end
         if min_h == huge do min_h = proj.ph end
 
@@ -132,9 +132,9 @@ M.Filler = register_type("Filler", Widget, {
 
     draw = func(self, sx, sy)
         if self.clip_children do
-            self:get_root():clip_push(sx, sy, self.w, self.h)
+            self.get_root().clip_push(sx, sy, self.w, self.h)
             Widget::draw(self, sx, sy)
-            self:get_root():clip_pop()
+            self.get_root().clip_pop()
         else
             return Widget::draw(self, sx, sy)
         end
@@ -178,7 +178,7 @@ M.TextFiller = register_type("TextFiller", Filler, {
         if typeof min_w == "function" do min_w = min_w(self) end
         if typeof min_h == "function" do min_h = min_h(self) end
 
-        var scalef = self:get_root():get_text_scale(self.console_text)
+        var scalef = self.get_root().get_text_scale(self.console_text)
         self.w = max(self.w, min_w * scalef * 0.5)
         self.h = max(self.h, min_h * scalef)
     end,

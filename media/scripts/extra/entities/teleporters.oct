@@ -40,7 +40,7 @@ var Obstacle = ents.Obstacle
         - sound_name - name of the sound to play on teleportation, empty
           by default.
 */
-M.Teleporter = Obstacle:clone {
+M.Teleporter = Obstacle.clone {
     name = "Teleporter",
 
     __properties = {
@@ -49,9 +49,9 @@ M.Teleporter = Obstacle:clone {
     },
 
     __init_svars = func(self, kwargs, nd)
-        Obstacle::__init_svars(self, kwargs, [ nd:unpack(2) ])
-        self:set_attr("destination", 0, nd[0])
-        self:set_attr("sound_name", "", nd[1])
+        Obstacle::__init_svars(self, kwargs, [ nd.unpack(2) ])
+        self.set_attr("destination", 0, nd[0])
+        self.set_attr("sound_name", "", nd[1])
     end,
 
     __activate = @[not server,func(self, kwargs)
@@ -60,22 +60,22 @@ M.Teleporter = Obstacle:clone {
     end],
 
     on_collision = func(self, collider)
-        var dest = self:get_attr("destination")
+        var dest = self.get_attr("destination")
         if dest <= 0 do return end
         var dests = get_by_tag("teledest_" ~ dest)
-        if dests:len() == 0 do
+        if dests.len() == 0 do
             log::log(log.ERROR, "No teledest found.")
             return
         end
-        dests[rand(0, dests:len() - 1)]:place_entity(collider)
-        var sn = self:get_attr("sound_name")
+        dests[rand(0, dests.len() - 1)].place_entity(collider)
+        var sn = self.get_attr("sound_name")
         if sn != "" do play(sn) end
     end,
 
     get_attached_next = func(self)
-        var dest = self:get_attr("destination")
+        var dest = self.get_attr("destination")
         if dest <= 0 do return end
-        return get_by_tag("teledest_" ~ dest):unpack()
+        return get_by_tag("teledest_" ~ dest).unpack()
     end
 }
 

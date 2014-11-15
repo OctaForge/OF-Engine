@@ -36,10 +36,10 @@ end)
     a change of the same description doesn't already exist.
 */
 M.add = func(ctype, desc)
-    for i, v in needsapply:each() do
+    for i, v in needsapply.each() do
         if v.desc == desc do return end
     end
-    needsapply:push {
+    needsapply.push {
         ctype = ctype, desc = desc
     }
 end
@@ -50,7 +50,7 @@ end
 M.clear = func(ctype)
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
-    needsapply = needsapply:filter(func(v)
+    needsapply = needsapply.filter(func(v)
         if (v.ctype & ctype) == 0 do
             return true
         end
@@ -68,7 +68,7 @@ set_external("changes_clear", M.clear)
 */
 M.apply = func()
     var changetypes = 0
-    for i, v in needsapply:each() do
+    for i, v in needsapply.each() do
         changetypes |= v.ctype
     end
 
@@ -86,7 +86,7 @@ end
     Returns a table of all queued changes' descriptions.
 */
 M.get = func()
-    return needsapply:map(\v -> v.desc)
+    return needsapply.map(\v -> v.desc)
 end
 
 return M

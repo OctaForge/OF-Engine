@@ -55,7 +55,7 @@ end
         - new_mark - contains mark data. It's required because it has to sync
           over the server (e.g. in coop).
 */
-var GamePlayer = Player:clone {
+var GamePlayer = Player.clone {
     name = "GamePlayer",
 
     __properties = {
@@ -65,17 +65,17 @@ var GamePlayer = Player:clone {
     },
 
     next_color = func(self)
-        if  self.color_id < (colors:len() - 1) do
+        if  self.color_id < (colors.len() - 1) do
             self.color_id += 1
         else
             self.color_id = 0
         end
         self.color = colors[self.color_id]
-        log::echo(("color switch: 0x%.6X"):format(self.color))
+        log::echo(("color switch: 0x%.6X").format(self.color))
     end,
 
     reset_mark = func(self)
-        self:set_attr("new_mark", [ -1, -1, -1 ])
+        self.set_attr("new_mark", [ -1, -1, -1 ])
         self.stop_batch = true
     end,
 
@@ -89,12 +89,12 @@ var GamePlayer = Player:clone {
         self.color_id = 0
         self.color    = colors[0]
         connect(self, "new_mark,changed", func(self, nm)
-            if nm:len() == 3 do
+            if nm.len() == 3 do
                 nm = Vec4(nm[0], nm[1], nm[2], self.color)
             else
                 nm = undef
             end
-            self.marks:push(nm)
+            self.marks.push(nm)
         end)
     end],
 
@@ -106,7 +106,7 @@ var GamePlayer = Player:clone {
         var last = undef
         var marks = self.marks
 
-        for i, mark in marks:each() do
+        for i, mark in marks.each() do
             if last and mark and mark.x >= 0 and last.x >= 0 do
                 var r, g, b = hextorgb(mark.w)
                 flare(STREAK, mark, last, r / 255, g / 255, b / 255, 0, 1)
@@ -115,21 +115,21 @@ var GamePlayer = Player:clone {
             last = mark
         end
 
-        var newb =     marks:empty() or not marks[marks:len() - 2]
-        var conb = not marks:empty() and    marks[marks:len() - 2]
+        var newb =     marks.empty() or not marks[marks.len() - 2]
+        var conb = not marks.empty() and    marks[marks.len() - 2]
 
         if conb and not self.stop_batch do
-            var mark = marks[marks:len() - 2]
+            var mark = marks[marks.len() - 2]
             var r, g, b = hextorgb(mark.w)
             splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
         end
 
         if self.pressing do
             var newp = input::get_target_position()
-            var topl = self:get_attr("position"):sub_new(newp)
-            newp:add(topl:normalize())
-            if newb or marks[marks:len() - 2]:dist(newp) > 5 do
-                self:set_attr("new_mark", newp:to_array())
+            var topl = self.get_attr("position").sub_new(newp)
+            newp.add(topl.normalize())
+            if newb or marks[marks.len() - 2].dist(newp) > 5 do
+                self.set_attr("new_mark", newp.to_array())
             end
         end
     end]
@@ -151,15 +151,15 @@ day_manager::setup([ day_manager.plugins.day_night ])
     inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy)
         var ent = ents::get(uid)
         if ent and ent.click do
-            return ent:click(btn, down, x, y, z, cx, cy)
+            return ent.click(btn, down, x, y, z, cx, cy)
         end
         if btn == 1 do
             ents::get_player().pressing   = down
             ents::get_player().stop_batch = false
         elif btn == 2 and down do
-            ents::get_player():reset_mark()
+            ents::get_player().reset_mark()
         elif btn == 3 and down do
-            ents::get_player():next_color()
+            ents::get_player().next_color()
         end
     end)
 else

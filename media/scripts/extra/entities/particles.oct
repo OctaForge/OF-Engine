@@ -66,7 +66,7 @@ var SMOKE, FLAME = renderers.smoke, renderers.flame
         - height - the fire height, defaults to 0.5.
         - red, green, blue - the color values (they default to 0x903020).
 */
-M.FireEffect = ParticleEffect:clone {
+M.FireEffect = ParticleEffect.clone {
     name = "FireEffect",
 
     __properties = {
@@ -79,32 +79,32 @@ M.FireEffect = ParticleEffect:clone {
 
     __init_svars = func(self, kwargs, nd)
         ParticleEffect::__init_svars(self, kwargs, nd)
-        self:set_attr("radius", 1.5, nd[0])
-        self:set_attr("height", 0.5, nd[1])
-        self:set_attr("red",   0x90, nd[2])
-        self:set_attr("green", 0x30, nd[3])
-        self:set_attr("blue",  0x20, nd[4])
+        self.set_attr("radius", 1.5, nd[0])
+        self.set_attr("height", 0.5, nd[1])
+        self.set_attr("red",   0x90, nd[2])
+        self.set_attr("green", 0x30, nd[3])
+        self.set_attr("blue",  0x20, nd[4])
     end,
 
     __get_edit_color = func(self)
-        return self:get_attr("red"), self:get_attr("green"),
-            self:get_attr("blue")
+        return self.get_attr("red"), self.get_attr("green"),
+            self.get_attr("blue")
     end,
 
     __get_edit_info = func(self)
         return ("red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
-            ~ "radius :\f2 %.3f \f7| height :\f2 %.3f"):format(
-            self:get_attr("red"), self:get_attr("green"),
-            self:get_attr("blue"), self:get_attr("radius"),
-            self:get_attr("height"))
+            ~ "radius :\f2 %.3f \f7| height :\f2 %.3f").format(
+            self.get_attr("red"), self.get_attr("green"),
+            self.get_attr("blue"), self.get_attr("radius"),
+            self.get_attr("height"))
     end,
 
     __emit_particles = func(self)
-        var radius = self:get_attr("radius")
-        var height = self:get_attr("height")
-        var r, g, b = self:get_attr("red"), self:get_attr("green"),
-            self:get_attr("blue")
-        var pos = self:get_attr("position")
+        var radius = self.get_attr("radius")
+        var height = self.get_attr("height")
+        var r, g, b = self.get_attr("red"), self.get_attr("green"),
+            self.get_attr("blue")
+        var pos = self.get_attr("position")
         var spos = { x = pos.x, y = pos.y,
             z = pos.z + 4 * min(radius, height) }
         flame(FLAME, pos, radius, height, r / 255, g / 255, b / 255)
@@ -121,7 +121,7 @@ var STEAM = renderers.steam
     Properties:
         - direction - see $offset_vec.
 */
-M.SteamEffect = ParticleEffect:clone {
+M.SteamEffect = ParticleEffect.clone {
     name = "SteamEffect",
 
     __properties = {
@@ -130,16 +130,16 @@ M.SteamEffect = ParticleEffect:clone {
 
     __init_svars = func(self, kwargs, nd)
         ParticleEffect::__init_svars(self, kwargs, nd)
-        self:set_attr("direction", 0, nd[0])
+        self.set_attr("direction", 0, nd[0])
     end,
 
     __get_edit_info = func(self)
-        return ("direction :\f2 %d"):format(self:get_attr("direction"))
+        return ("direction :\f2 %d").format(self.get_attr("direction"))
     end,
 
     __emit_particles = func(self)
-        var dir = self:get_attr("direction")
-        var pos = self:get_attr("position")
+        var dir = self.get_attr("direction")
+        var pos = self.get_attr("position")
         var d = offset_vec({ x = pos.x, y = pos.y, z = pos.z }, dir, rand(9))
         splash(STEAM, d, 50, 1, 0x89 / 255, 0x76 / 255, 0x61 / 255,
             200, 2.4, -20)

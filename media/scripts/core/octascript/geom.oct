@@ -21,7 +21,7 @@ var gen_vec2 = func(tp, sf, mt)
         typedef struct vec2%s_t {
             %s x, y;
         } vec2%s_t;
-    """):format(sf, tp, sf))
+    """).format(sf, tp, sf))
     return ffi::metatype("vec2" ~ sf ~ "_t", mt), mt
 end
 
@@ -31,7 +31,7 @@ var gen_vec3 = func(tp, sf, mt)
             struct { %s x, y, z; };
             struct { %s r, g, b; };
         } vec3%s_t;
-    """):format(sf, tp, tp, sf))
+    """).format(sf, tp, tp, sf))
     return ffi::metatype("vec3" ~ sf ~ "_t", mt), mt
 end
 
@@ -41,7 +41,7 @@ var gen_vec4 = func(tp, sf, mt)
             struct { %s x, y, z, w; };
             struct { %s r, g, b, a; };
         } vec4%s_t;
-    """):format(sf, tp, tp, sf))
+    """).format(sf, tp, tp, sf))
     return ffi::metatype("vec4" ~ sf ~ "_t", mt), mt
 end
 
@@ -83,13 +83,13 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
         end
     end,
     __tostring = func(self)
-        return ("Vec2 <%f, %f>"):format(self.x, self.y)
+        return ("Vec2 <%f, %f>").format(self.x, self.y)
     end,
     __eq = func(self, o) return self.x == o.x and self.y == o.y end,
-    __mul = func(self, o) return self:mul_new(o) end,
-    __div = func(self, o) return self:div_new(o) end,
-    __add = func(self, o) return self:add_new(o) end,
-    __sub = func(self, o) return self:sub_new(o) end,
+    __mul = func(self, o) return self.mul_new(o) end,
+    __div = func(self, o) return self.div_new(o) end,
+    __add = func(self, o) return self.add_new(o) end,
+    __sub = func(self, o) return self.sub_new(o) end,
     __index = {
         from_array = func(self, o)
             return ffi_new(self, o[0], o[1])
@@ -110,10 +110,10 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
         dot_abs = func(self, o)
             return abs(self.x * o.x) + abs(self.y * o.y)
         end,
-        squared_len = func(self) return self:dot(self) end,
-        magnitude = func(self) return sqrt(self:squared_len()) end,
+        squared_len = func(self) return self.dot(self) end,
+        magnitude = func(self) return sqrt(self.squared_len()) end,
         normalize = func(self)
-            self:div(self:magnitude())
+            self.div(self.magnitude())
             return self
         end,
         cross = func(self, o) return self.x * o.y + self.y * o.x end,
@@ -215,19 +215,19 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
                              a.y * (b.y - a.y) * t
             return self
         end,
-        avg = func(self, b) return self:add(b):mul(0.5) end,
+        avg = func(self, b) return self.add(b).mul(0.5) end,
         rotate_around_z = func(self, c, s)
             if typeof c == "number" do
                 if not s do
                     var angle = c
-                    return self:rotate_around_z(cos(angle), sin(angle))
+                    return self.rotate_around_z(cos(angle), sin(angle))
                 else
                     var rx, ry = self.x, self.y
                     self.x, self.y = c * rx - s * ry, c * ry + s * rx
                     return self
                 end
             else
-                return self:rotate_around_z(c.x, c.y)
+                return self.rotate_around_z(c.x, c.y)
             end
         end
     }
@@ -247,15 +247,15 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
         end
     end,
     __tostring = func(self)
-        return ("Vec3 <%f, %f, %f>"):format(self.x, self.y, self.z)
+        return ("Vec3 <%f, %f, %f>").format(self.x, self.y, self.z)
     end,
     __eq = func(self, o)
         return self.x == o.x and self.y == o.y and self.z == o.z
     end,
-    __mul = func(self, o) return self:mul_new(o) end,
-    __div = func(self, o) return self:div_new(o) end,
-    __add = func(self, o) return self:add_new(o) end,
-    __sub = func(self, o) return self:sub_new(o) end,
+    __mul = func(self, o) return self.mul_new(o) end,
+    __div = func(self, o) return self.div_new(o) end,
+    __add = func(self, o) return self.add_new(o) end,
+    __sub = func(self, o) return self.sub_new(o) end,
     __index = {
         from_array = func(self, o)
             return ffi_new(self, o[0], o[1], o[2])
@@ -302,12 +302,12 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
         dot_z = func(self, o)
             return self.z * o.z
         end,
-        squared_len = func(self) return self:dot(self) end,
-        magnitude2 = func(self) return sqrt(self:dot2(self)) end,
-        magnitude = func(self) return sqrt(self:squared_len()) end,
-        normalize = func(self) return self:div(self:magnitude()) end,
+        squared_len = func(self) return self.dot(self) end,
+        magnitude2 = func(self) return sqrt(self.dot2(self)) end,
+        magnitude = func(self) return sqrt(self.squared_len()) end,
+        normalize = func(self) return self.div(self.magnitude()) end,
         is_normalized = func(self)
-            var m = self:squared_len()
+            var m = self.squared_len()
             return m > 0.99 and m < 1.01
         end,
         mul = func(self, o)
@@ -420,10 +420,10 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         squared_dist = func(self, e)
-            return self:sub_new(e):squared_len()
+            return self.sub_new(e).squared_len()
         end,
         dist = func(self, e)
-            return self:sub_new(e):magnitude()
+            return self.sub_new(e).magnitude()
         end,
         dist2 = func(self, o)
             var dx, dy = self.x - o.x, self.y - o.y
@@ -435,7 +435,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
         end,
         cross = func(self, a, b, o)
             if o do
-                return self:cross(a:sub_new(o), b:sub_new(o))
+                return self.cross(a.sub_new(o), b.sub_new(o))
             end
             self.x, self.y, self.z = a.y * b.z - a.z * b.y,
                                      a.z * b.x - a.x * b.z,
@@ -455,14 +455,14 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         reflect = func(self, n)
-            var k = 2 * self:dot(n)
+            var k = 2 * self.dot(n)
             self.x, self.y, self.z = self.x - k * n.x,
                                      self.y - k * n.y,
                                      self.z - k * n.z
             return self
         end,
         project = func(self, n)
-            var k = self:dot(n)
+            var k = self.dot(n)
             self.x, self.y, self.z = self.x - k * n.x,
                                      self.y - k * n.y,
                                      self.z - k * n.z
@@ -475,10 +475,10 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         project_xy = func(self, n, threshold)
-            var m = self:squared_len()
-            var k = threshold and min(self:dot(n), threshold) or self:dot(n)
-            self:project_xy_dir()
-            self:rescale(sqrt(max(m - k ** 2, 0)))
+            var m = self.squared_len()
+            var k = threshold and min(self.dot(n), threshold) or self.dot(n)
+            self.project_xy_dir()
+            self.rescale(sqrt(max(m - k ** 2, 0)))
             return self
         end,
         lerp = func(self, a, b, t)
@@ -488,62 +488,62 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
                                      a.z * (b.z - a.z) * t
             return self
         end,
-        avg = func(self, b) return self:add(b):mul(0.5) end,
+        avg = func(self, b) return self.add(b).mul(0.5) end,
         rescale = func(self, k)
-            var mag = self:magnitude()
-            if mag > 1e-6 do self:mul(k / mag) end
+            var mag = self.magnitude()
+            if mag > 1e-6 do self.mul(k / mag) end
             return self
         end,
         rotate_around_z = func(self, c, s)
             if typeof c == "number" do
                 if not s do
                     var angle = c
-                    return self:rotate_around_z(cos(angle), sin(angle))
+                    return self.rotate_around_z(cos(angle), sin(angle))
                 else
                     var rx, ry = self.x, self.y
                     self.x, self.y = c * rx - s * ry, c * ry + s * rx
                     return self
                 end
             else
-                return self:rotate_around_z(c.x, c.y)
+                return self.rotate_around_z(c.x, c.y)
             end
         end,
         rotate_around_x = func(self, c, s)
             if typeof c == "number" do
                 if not s do
                     var angle = c
-                    return self:rotate_around_x(cos(angle), sin(angle))
+                    return self.rotate_around_x(cos(angle), sin(angle))
                 else
                     var ry, rz = self.y, self.z
                     self.y, self.z = c * ry - s * rz, c * rz + s * ry
                     return self
                 end
             else
-                return self:rotate_around_x(c.x, c.y)
+                return self.rotate_around_x(c.x, c.y)
             end
         end,
         rotate_around_y = func(self, c, s)
             if typeof c == "number" do
                 if not s do
                     var angle = c
-                    return self:rotate_around_y(cos(angle), sin(angle))
+                    return self.rotate_around_y(cos(angle), sin(angle))
                 else
                     var rx, rz = self.x, self.z
                     self.x, self.z = c * rx + s * rz, c * rz - s * rx
                     return self
                 end
             else
-                return self:rotate_around_y(c.x, c.y)
+                return self.rotate_around_y(c.x, c.y)
             end
         end,
         rotate = func(self, c, s, d)
             if not d do
                 if typeof c == "number" do
                     var angle, d = c, s
-                    return self:rotate(cos(angle), sin(angle), d)
+                    return self.rotate(cos(angle), sin(angle), d)
                 else
                     var sc, d = c, s
-                    return self:rotate(sc.x, sc.y, d)
+                    return self.rotate(sc.x, sc.y, d)
                 end
             else
                 var x, y, z = self.x, self.y, self.z
@@ -566,8 +566,8 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             return self
         end,
         orthonormalize = func(self, s, t)
-            s:project(self)
-            t:project(self):project(s)
+            s.project(self)
+            t.project(self).project(s)
         end,
         inside_bb = func(self, bbmin, bbmax)
             if typeof bbmax == "number" do
@@ -583,7 +583,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
         dist_to_bb = func(self, min, max)
             if typeof max == "number" do
                 var o, size = min, max
-                return self:dist_to_bb(o, o:add_new(size))
+                return self.dist_to_bb(o, o.add_new(size))
             end
             var sqrdist = 0
             for i in 0 to 2 do
@@ -628,9 +628,9 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             var f = min
             if lowest do f = max end
 
-            for x in 0 to tbl:len() - 1 do
-                for y in 0 to tbl:len() - 1 do
-                    var o = self:add_new(Vec3(tbl[x], tbl[y], 0))
+            for x in 0 to tbl.len() - 1 do
+                for y in 0 to tbl.len() - 1 do
+                    var o = self.add_new(Vec3(tbl[x], tbl[y], 0))
                     rt = f(rt, capi::ray_floor(o.x, o.y, o.z, max_dist))
                 end
             end
@@ -652,7 +652,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             calculates away from the target. Returns the yaw.
         */
         yaw_to = func(self, target, reverse)
-            return reverse and target:yaw_to(self)
+            return reverse and target.yaw_to(self)
                 or deg(-(atan2(target.x - self.x, target.y - self.y)))
         end,
 
@@ -662,8 +662,8 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             calculates away from the target. Returns the pitch.
         */
         pitch_to = func(self, target, reverse)
-            return reverse and target:pitch_to(self)
-                or deg(asin((target.z - self.z) / self:dist(target)))
+            return reverse and target.pitch_to(self)
+                or deg(asin((target.z - self.z) / self.dist(target)))
         end,
 
         /**
@@ -673,7 +673,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             false otherwise.
         */
         compare_yaw = func(self, target, yaw, acceptable)
-            return abs(normalize_angle(self:yaw_to(target), yaw) - yaw)
+            return abs(normalize_angle(self.yaw_to(target), yaw) - yaw)
                 <= acceptable
         end,
 
@@ -684,7 +684,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
             false otherwise.
         */
         compare_pitch = func(self, target, pitch, acceptable)
-            return abs(normalize_angle(self:pitch_to(target), pitch) - pitch)
+            return abs(normalize_angle(self.pitch_to(target), pitch) - pitch)
                 <= acceptable
         end
     }
@@ -704,16 +704,16 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
         end
     end,
     __tostring = func(self)
-        return ("Vec3 <%f, %f, %f, %f>"):format(self.x, self.y, self.z, self.w)
+        return ("Vec3 <%f, %f, %f, %f>").format(self.x, self.y, self.z, self.w)
     end,
     __eq = func(self, o)
         return self.x == o.x and self.y == o.y
            and self.z == o.z and self.w == o.w
     end,
-    __mul = func(self, o) return self:mul_new(o) end,
-    __div = func(self, o) return self:div_new(o) end,
-    __add = func(self, o) return self:add_new(o) end,
-    __sub = func(self, o) return self:sub_new(o) end,
+    __mul = func(self, o) return self.mul_new(o) end,
+    __div = func(self, o) return self.div_new(o) end,
+    __add = func(self, o) return self.add_new(o) end,
+    __sub = func(self, o) return self.sub_new(o) end,
     __index = {
         from_array = func(self, o)
             return ffi_new(self, o[0], o[1], o[2], o[3])
@@ -745,10 +745,10 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
         dot = func(self, o)
             return self.x * o.x + self.y * o.y + self.z * o.z + self.w * o.w
         end,
-        squared_len = func(self) return self:dot(self) end,
-        magnitude3 = func(self) return sqrt(self:dot3(self)) end,
-        magnitude = func(self) return sqrt(self:squared_len()) end,
-        normalize = func(self) return self:div(self:magnitude()) end,
+        squared_len = func(self) return self.dot(self) end,
+        magnitude3 = func(self) return sqrt(self.dot3(self)) end,
+        magnitude = func(self) return sqrt(self.squared_len()) end,
+        normalize = func(self) return self.div(self.magnitude()) end,
         lerp = func(self, a, b, t)
             if not t do a, b, t = self, a, b end
             self.x, self.y, self.z, self.w = a.x + (b.x - a.x) * t,
@@ -757,7 +757,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
                                              a.w * (b.w - a.w) * t
             return self
         end,
-        avg = func(self, b) return self:add(b):mul(0.5) end,
+        avg = func(self, b) return self.add(b).mul(0.5) end,
         mul3 = func(self, o)
             if typeof o == "number" do
                 self.x, self.y, self.z = self.x * o, self.y * o, self.z * o
@@ -924,42 +924,42 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
             if typeof c == "number" do
                 if not s do
                     var angle = c
-                    return self:rotate_around_z(cos(angle), sin(angle))
+                    return self.rotate_around_z(cos(angle), sin(angle))
                 else
                     var rx, ry = self.x, self.y
                     self.x, self.y = c * rx - s * ry, c * ry + s * rx
                     return self
                 end
             else
-                return self:rotate_around_z(c.x, c.y)
+                return self.rotate_around_z(c.x, c.y)
             end
         end,
         rotate_around_x = func(self, c, s)
             if typeof c == "number" do
                 if not s do
                     var angle = c
-                    return self:rotate_around_x(cos(angle), sin(angle))
+                    return self.rotate_around_x(cos(angle), sin(angle))
                 else
                     var ry, rz = self.y, self.z
                     self.y, self.z = c * ry - s * rz, c * rz + s * ry
                     return self
                 end
             else
-                return self:rotate_around_x(c.x, c.y)
+                return self.rotate_around_x(c.x, c.y)
             end
         end,
         rotate_around_y = func(self, c, s)
             if typeof c == "number" do
                 if not s do
                     var angle = c
-                    return self:rotate_around_y(cos(angle), sin(angle))
+                    return self.rotate_around_y(cos(angle), sin(angle))
                 else
                     var rx, rz = self.x, self.z
                     self.x, self.z = c * rx + s * rz, c * rz - s * rx
                     return self
                 end
             else
-                return self:rotate_around_y(c.x, c.y)
+                return self.rotate_around_y(c.x, c.y)
             end
         end
     }
@@ -991,26 +991,26 @@ var gen_vec_surrogate = func(name, base, ltable)
             return ret
         end,
         __tostring = (ltable.w and func(self)
-            return ("%s <%f, %f, %f, %f>"):format(name, self.x, self.y,
+            return ("%s <%f, %f, %f, %f>").format(name, self.x, self.y,
                 self.z, self.w)
         end or (ltable.z and func(self)
-            return ("%s <%f, %f, %f>"):format(name, self.x, self.y, self.z)
+            return ("%s <%f, %f, %f>").format(name, self.x, self.y, self.z)
         end or func(self)
-            return ("%s <%f, %f>"):format(name, self.x, self.y)
+            return ("%s <%f, %f>").format(name, self.x, self.y)
         end)),
         __index = func(self, n)
             var i = ltable[n]
-            if i do return self.variable:get_item(self.entity, i) end
+            if i do return self.variable.get_item(self.entity, i) end
             return surrtbl[n] or rawget(self.rawt, n)
         end,
         __newindex = func(self, n, val)
             var i = ltable[n]
-            if i do return self.variable:set_item(self.entity, i, val) end
+            if i do return self.variable.set_item(self.entity, i, val) end
             rawset(self.rawt, n, val)
         end
     }
     for k, v in pairs(base.__index) do
-        if not k:find_match("^from_.+$") do surrtbl[k] = v end
+        if not k.find_match("^from_.+$") do surrtbl[k] = v end
     end
     return surrtbl
 end

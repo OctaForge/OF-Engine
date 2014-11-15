@@ -26,7 +26,7 @@ var Entity = ents.Entity
 /**
     This is the day manager entity prototype.
 */
-var DayManager = Entity:clone {
+var DayManager = Entity.clone {
     name = "DayManager",
 
     __properties = {
@@ -36,13 +36,13 @@ var DayManager = Entity:clone {
 
     __init_svars = func(self)
         Entity::__init_svars(self)
-        self:set_attr("day_seconds", 40)
-        self:set_attr("day_progress", 0)
+        self.set_attr("day_seconds", 40)
+        self.set_attr("day_progress", 0)
     end,
 
     __activate = @[server,func(self)
         Entity::__activate(self)
-        self.day_seconds_s = self:get_attr("day_seconds")
+        self.day_seconds_s = self.get_attr("day_seconds")
         connect(self, "day_seconds,changed", func(self, v)
             self.day_seconds_s = v
         end)
@@ -57,7 +57,7 @@ var DayManager = Entity:clone {
         var dp = self.day_progress_s
         dp += millis
         if dp >= dm do dp -= dm end
-        self:set_attr("day_progress", dp)
+        self.set_attr("day_progress", dp)
         self.day_progress_s = dp
     end
 }
@@ -67,7 +67,7 @@ var dayman
 /// Gets the day manager instance.
 M.get = func()
     if not dayman do
-        dayman = ents::get_by_prototype("DayManager"):first()
+        dayman = ents::get_by_prototype("DayManager").first()
     end
     assert(dayman)
     return dayman

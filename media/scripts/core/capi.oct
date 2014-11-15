@@ -275,7 +275,7 @@ end
     capi.texture_get_packs = func()
         var t, s = texture_get_packs()
         from_table(t, s)
-        for i, v in t:each() do
+        for i, v in t.each() do
             from_table(v)
         end
         return t
@@ -285,7 +285,7 @@ end
     capi.texture_get_data = func(fn)
         var w, h, t = texture_get_data(fn)
         from_table(t, w)
-        for i, v in t:each() do
+        for i, v in t.each() do
             from_table(v, h)
         end
         return w, h, t

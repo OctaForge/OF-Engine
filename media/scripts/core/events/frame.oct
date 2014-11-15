@@ -48,7 +48,7 @@ M.handle_frame = func(millis, lastmillis)
     for uid in 1 to get_highest_uid() do
         var ent = storage[uid]
         if ent and not ent.deactivated and ent.__per_frame do
-            ent:__run(millis)
+            ent.__run(millis)
         end
     end
 end
