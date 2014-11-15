@@ -410,3 +410,100 @@ conv.deserialize = func(s)
     if not r do return undef, v end
     return v
 end
+
+// ARRAY SORT
+
+import std.array
+
+from std.math import floor, log
+
+var sift_down = func(tbl, l, s, e, fun)
+    var root = s
+    while root * 2 - l + 1 <= e do
+        var child = root * 2 - l + 1
+        var swap  = root
+        if fun(tbl[swap], tbl[child]) do
+            swap = child
+        end
+        if child + 1 <= e and fun(tbl[swap], tbl[child + 1]) do
+            swap = child + 1
+        end
+        if swap != root do
+            tbl[root], tbl[swap] = tbl[swap], tbl[root]
+            root = swap
+        else return end
+    end
+end
+
+var heapsort = func(tbl, l, r, fun)
+    var start = floor((l + r) / 2)
+    while start >= l do
+        sift_down(tbl, l, start, r, fun)
+        start = start - 1
+    end
+    var e = r
+    while e > l do
+        tbl[e], tbl[l] = tbl[l], tbl[e]
+        e = e - 1
+        sift_down(tbl, l, l, e, fun)
+    end
+end
+
+var partition = func(tbl, l, r, pidx, fun)
+    var pivot = tbl[pidx]
+    tbl[pidx], tbl[r] = tbl[r], tbl[pidx]
+    for i in l to r - 1 do
+        if fun(tbl[i], pivot) do
+            tbl[i], tbl[l] = tbl[l], tbl[i]
+            l = l + 1
+        end
+    end
+    tbl[l], tbl[r] = tbl[r], tbl[l]
+    return l
+end
+
+var insertion_sort = func(tbl, l, r, fun)
+    for i in l to r do
+        var j, v = i, tbl[i]
+        while j > 1 and not fun(tbl[j - 1], v) do
+            tbl[j] = tbl[j - 1]
+            j = j - 1
+        end
+        tbl[j] = v
+    end
+end
+
+var introloop
+introloop = func(tbl, l, r, depth, fun)
+    if (r - l) > 10 do
+        if depth == 0 do
+            return heapsort(tbl, l, r, fun)
+        end
+        var pidx = partition(tbl, l, r, floor((l + r) / 2), fun)
+        introloop(tbl, l, pidx - 1, depth - 1, fun)
+        introloop(tbl, pidx + 1, r, depth - 1, fun)
+    else insertion_sort(tbl, l, r, fun) end
+end
+
+var introsort = func(tbl, l, r, fun)
+    return introloop(tbl, l, r, 2 * floor(log(r - l + 1) / log(2)), fun)
+end
+
+var defaultcmp = func(a, b) return a < b end
+
+/**
+    The sorting algorithm used here is introsort. It's a modification
+    of quicksort that switches to heapsort when the recursion depth
+    exceeds 2 * floor(log(nitems) / log(2)). It also uses insertion
+    sort to sort small sublists (10 elements and smaller). The
+    quicksort part uses a median of three pivot.
+
+    The l and r default to 0 and x.len() - 1 respectively. You can override
+    them to sort any kind of structure, even one that doesn't provide a len
+    method or one that is 1-indexed. The deafult comparison function uses the
+    "less than" operator.
+*/
+array.sort = func(self, fun, l, r)
+    l, r = l or 0, r or self.len() - 1
+    return introsort(self, l, r, fun or defaultcmp)
+end
