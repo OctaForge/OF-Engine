@@ -722,7 +722,6 @@ local parse_label = function(ls, ast, line)
     assert_tok(ls, "<name>")
     local name = ls.token.value
     ls:get()
-    assert_next(ls, "::")
     return ast.LabelStatement(name, line)
 end
 
@@ -810,7 +809,7 @@ local stat_opts = {
     ["goto"] = parse_goto_stat,
     ["import"] = parse_import_stat,
     ["from"] = parse_from_stat,
-    ["::"] = parse_label,
+    ["#"] = parse_label,
     ["@["] = function(ls, ast)
         local line = ls.line_number
         ls:get()
