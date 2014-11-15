@@ -612,7 +612,7 @@ root.new_window("texture", gui.Window, func(win)
 end)
 
 var fields = {
-    $(svars.StateBoolean) = func(hb, nm, ent, dv)
+    $(svars.StateBoolean): func(hb, nm, ent, dv)
         var tvar = (dv == "true")
         var ret
         hb.append(gui::Filler { min_w = 0.4 }, func(f)

@@ -73,7 +73,7 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
     elif tv == "table" do
         var mline   = kwargs.multiline
         var indstr  = kwargs.indent
-        var asstr   = kwargs.assign or "="
+        var asstr   = kwargs.assign or ":"
         var sepstr  = kwargs.table_sep or ","
         var isepstr = kwargs.item_sep
         var endsep  = kwargs.end_sep
@@ -104,9 +104,14 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
             if mline and indstr and n == 0 do
                 for i in 1 to indent do stream(indstr) end
             end
-            if optk and typeof k == "string"
+            var tk = typeof k
+            if optk and tk == "string"
             and k.find_match("^[%a_][%w_]*$") do
                 stream(k)
+            elif tk == "string" or tk == "number" or tk == "boolean" do
+                var ret, err = serialize_fn(k, stream, kwargs, simp,
+                    tables, indent + 1)
+                if not ret do return ret, err end
             else
                 stream("$(")
                 var ret, err = serialize_fn(k, stream, kwargs, simp,
@@ -181,12 +186,12 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent)
 end
 
 var defkw = {
-    multiline = false, indent = undef, assign = "=", table_sep = ",",
+    multiline = false, indent = undef, assign = ":", table_sep = ",",
     array_sep = ",", end_sep = false, optimize_keys = true
 }
 
 var defkwp = {
-    multiline = true, indent = "    ", assign = " = ", table_sep = ",",
+    multiline = true, indent = "    ", assign = ": ", table_sep = ",",
     array_sep = ", ", item_sep = " ", narr_line = 4, nrec_line = 2,
     end_sep = false, optimize_keys = true
 }
@@ -390,6 +395,9 @@ assert_tok = func(ls, tok, ...)
     assert_tok(ls, ...)
 end
 
+var allowed_keys = { "<number>": true, "<string>": true, "true": true,
+    "false": true, "null": true }
+
 var parse
 parse = func(ls)
     var tok = ls.tname
@@ -400,6 +408,7 @@ parse = func(ls)
     elif tok == "true"  do lex_get(ls) return true
     elif tok == "false" do lex_get(ls) return false
     elif tok == "undef" do lex_get(ls) return undef
+    elif tok == "null"  do lex_get(ls) return null
     elif tok == "[" do
         lex_get(ls)
         var ret = []
@@ -421,18 +430,20 @@ parse = func(ls)
         end
         var arri = 1
         repeat
+            var key
             if ls.tname == "<name>" do
-                var key = ls.tval
+                key = ls.tval
                 lex_get(ls)
-                assert_tok(ls, "=")
-                tbl[key] = parse(ls)
+            elif allowed_keys[ls.tname] do
+                key = parse(ls)
             else
                 assert_tok(ls, "$")
                 assert_tok(ls, "(")
-                var key = parse(ls)
-                assert_tok(ls, ")", "=")
-                tbl[key] = parse(ls)
+                key = parse(ls)
+                assert_tok(ls, ")")
             end
+            if ls.tname == ":" do lex_get(ls) else assert_tok(ls, "=") end
+            tbl[key] = parse(ls)
         until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
         assert_tok(ls, "}")
         return tbl

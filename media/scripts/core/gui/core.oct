@@ -430,19 +430,19 @@ ffi::cdef r"""
 """
 
 var color_ctors = {
-    $(0) = func(self) return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) end,
-    $(1) = func(self, c)
+    0: func(self) return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) end,
+    1: func(self, c)
         c = c or 0xFFFFFFFF
         var a = c >> 24
         return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
             (a == 0) and 0xFF or a)
     end,
-    $(2) = func(self, c, a)
+    2: func(self, c, a)
         c = c or 0xFFFFFF
         return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
             a or 0xFF)
     end,
-    $(3) = func(self, r, g, b)
+    3: func(self, r, g, b)
         return ffi_new(self, r or 0xFF, g or 0xFF, b or 0xFF, 0xFF)
     end
 }
@@ -814,8 +814,8 @@ M.Widget = register_type("Widget", Object, {
         var dstates = variants[variant or "default"]
         if dstates do
             var notvariants = {
-                $("__properties") = true, $("__init") = true,
-                $("__children") = true
+                "__properties": true, "__init": true,
+                "__children": true
             }
             for k, v in pairs(dstates) do
                 if notvariants[k] do continue end
@@ -2510,8 +2510,8 @@ M.get_hud = func()
 end
 
 var mousebuttons = {
-    $(key.MOUSELEFT) = true, $(key.MOUSEMIDDLE)  = true, $(key.MOUSERIGHT) = true,
-    $(key.MOUSEBACK) = true, $(key.MOUSEFORWARD) = true
+    $(key.MOUSELEFT): true, $(key.MOUSEMIDDLE) : true, $(key.MOUSERIGHT): true,
+    $(key.MOUSEBACK): true, $(key.MOUSEFORWARD): true
 }
 
 set_external("input_keypress", func(code, isdown)
