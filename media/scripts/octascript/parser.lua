@@ -141,11 +141,7 @@ local parse_table = function(ls, ast)
         elseif allowed_keys[tok.name] then
             key = parse_simple_expr(ls, ast)
         end
-        if ls.token.name ~= ":" then
-            assert_next(ls, "=")
-        else
-            ls:get()
-        end
+        assert_next(ls, ":")
         hkeys[#hkeys + 1] = key
         hvals[#hvals + 1] = parse_expr(ls, ast)
         if not test_next(ls, ",") and not test_next(ls, ";") then
@@ -207,10 +203,7 @@ local parse_enum = function(ls, ast)
         local nm = ls.token.value
         ast.current.vars[nm] = true
         ls:get()
-        if tok.name == ":" then
-            ls:get()
-            val = parse_expr(ls, ast)
-        elseif test_next(ls, "=") then
+        if test_next(ls, ":") then
             val = parse_expr(ls, ast)
         else
             val = false
