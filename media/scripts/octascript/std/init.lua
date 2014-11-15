@@ -569,19 +569,6 @@ array.map = function(self, f)
     return setmt(r, array_mt)
 end
 
-array.merge = function(self, o)
-    local sz = self.__size
-    local oz = o.__size
-    local r = { __size = sz + oz }
-    for i = 0, sz - 1 do
-        r[i] = self[i]
-    end
-    for i = 0, oz - 1 do
-        r[sz + i] = o[i]
-    end
-    return setmt(r, array_mt)
-end
-
 array.filter = function(self, f)
     local r = {}
     local j = 0

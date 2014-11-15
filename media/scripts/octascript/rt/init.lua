@@ -74,6 +74,10 @@ ArrayMT = {
         return "array(" .. self.__size .. ")"
     end,
 
+    __concat = function(self, b)
+        return self:merge(b)
+    end,
+
     __index = {
         __OCT_actually_is_array = true,
 
@@ -211,6 +215,19 @@ ArrayMT = {
             local r = { __size = sz }
             for i = 0, sz - 1 do
                 r[i] = self[i]
+            end
+            return setmt(r, ArrayMT)
+        end,
+
+        merge = function(self, o)
+            local sz = self.__size
+            local oz = o.__size
+            local r = { __size = sz + oz }
+            for i = 0, sz - 1 do
+                r[i] = self[i]
+            end
+            for i = 0, oz - 1 do
+                r[sz + i] = o[i]
             end
             return setmt(r, ArrayMT)
         end
