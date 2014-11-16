@@ -476,8 +476,8 @@ local ExpressionRule = {
 
     FunctionExpression = function(self, node, dest)
         local free = self.ctx.freereg
-        local func = self.ctx:child()
-        self.ctx = func
+        local child = self.ctx:child()
+        self.ctx = child
         for i=1, #node.params do
             if node.params[i].kind == "Vararg" then
                 self.ctx.flags = bit.bor(self.ctx.flags, bc.Proto.VARARG)
@@ -489,9 +489,9 @@ local ExpressionRule = {
         self:close_proto()
         self.ctx:set_line(node.firstline, node.lastline)
 
-        self.ctx = self.ctx.outer
+        self.ctx = self.ctx:parent()
         self.ctx.freereg = free
-        self.ctx:op_fnew(dest, func.idx)
+        self.ctx:op_fnew(dest, child.idx)
     end,
 
     ParenthesizedExpression = function(self, node, dest, jreg)
@@ -1151,11 +1151,11 @@ local Generator = util.Object:clone {
     __ctor = function(self, tree, name)
         self.line = 0
         self.main = bc.Proto.new(bc.Proto.VARARG)
-        self.dump = bc.Dump.new(self.main, name)
         self.ctx = self.main
         self.chunkname = tree.chunkname
         self:emit(tree)
         self.ctx:set_line(tree.firstline, tree.lastline)
+        self.dump = bc.Dump.new(self.main, name)
     end,
 
     block_enter = function(self)
