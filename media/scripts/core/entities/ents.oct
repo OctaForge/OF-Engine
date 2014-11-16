@@ -240,11 +240,11 @@ M.register_prototype = func(cl, plugins, name)
     if plugins do
         cl = register_plugins(cl, plugins, name)
     else
-        cl = cl.clone {
+        cl = cl.clone({
             name: name,
             __raw_ent_proto: cl,
             __parent_ent_proto: cl.__proto
-        }
+        })
     end
 
     proto_storage[name] = cl
@@ -724,7 +724,7 @@ set_external("entities_save_all", M.save)
         it will be saved during map save; if not, it's only temporary (and it
         will disappear when the map ends)
 */
-M.Entity = Object.clone {
+M.Entity = Object.clone({
     name: "Entity",
 
     /**
@@ -1283,7 +1283,7 @@ M.Entity = Object.clone {
         var fun = self[e"__set_$prop"]
         return fun and fun(self, val) or undef
     end
-}
+})
 Entity = M.Entity
 
 /**

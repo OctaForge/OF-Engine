@@ -26,12 +26,12 @@ var Entity = ents.Entity
 /**
     This is the day manager entity prototype.
 */
-var DayManager = Entity.clone {
+var DayManager = Entity.clone({
     name: "DayManager",
 
     __properties: {
         day_seconds: svars::StateInteger(),
-        day_progress: svars::StateInteger { reliable: false }
+        day_progress: svars::StateInteger({ reliable: false })
     },
 
     __init_svars: func(self)
@@ -60,7 +60,7 @@ var DayManager = Entity.clone {
         self.set_attr("day_progress", dp)
         self.day_progress_s = dp
     end
-}
+})
 
 var dayman
 

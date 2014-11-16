@@ -95,7 +95,7 @@ from std.math import random as rand, floor
 
 var Entity = ents.Entity
 
-var GameManager = Entity.clone {
+var GameManager = Entity.clone({
     name: "GameManager",
 
     __properties: {
@@ -179,7 +179,7 @@ var GameManager = Entity.clone {
 
     set_local_animation: func(self) end,
     set_local_animation_flags: func(self) end
-}
+})
 
 from std.util import assert
 

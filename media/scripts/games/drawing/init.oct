@@ -55,13 +55,13 @@ end
         - new_mark - contains mark data. It's required because it has to sync
           over the server (e.g. in coop).
 */
-var GamePlayer = Player.clone {
+var GamePlayer = Player.clone({
     name: "GamePlayer",
 
     __properties: {
-        new_mark: svars::StateArrayFloat {
+        new_mark: svars::StateArrayFloat({
             client_set: true, has_history: false
-        }
+        })
     },
 
     next_color: func(self)
@@ -133,7 +133,7 @@ var GamePlayer = Player.clone {
             end
         end
     end]
-}
+})
 
 ents::register_prototype(GamePlayer, [
     game_manager.player_plugin,

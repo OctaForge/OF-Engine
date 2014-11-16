@@ -165,7 +165,7 @@ var M = ents
         - time_in_air [{{$svars.StateInteger}}] - time in milliseconds spent
           in the air (TODO: unsigned).
 */
-M.Character = Entity.clone {
+M.Character = Entity.clone({
     name: "Character",
 
     // so that it isn't nonsauer
@@ -190,133 +190,133 @@ M.Character = Entity.clone {
     :},
 
     __properties: {
-        animation: svars::StateInteger {
+        animation: svars::StateInteger({
             setter: capi.set_animation, client_set: true
-        },
-        start_time : svars::StateInteger { getter: capi.get_start_time },
-        model_name : svars::StateString  { setter: capi.set_model_name },
-        attachments: svars::StateArray   {
+        }),
+        start_time : svars::StateInteger({ getter: capi.get_start_time }),
+        model_name : svars::StateString({ setter: capi.set_model_name }),
+        attachments: svars::StateArray({
             setter: func(self, val)
                 var arr = ffi::new("const char *[?]", val.len() + 1)
                 for i, v in val.each() do arr[i] = v end
                 set_attachments(self, arr)
             end
-        },
+        }),
 
         character_name: svars::StateString(),
         facing_speed  : svars::StateInteger(),
 
-        movement_speed: svars::StateFloat {
+        movement_speed: svars::StateFloat({
             getter: capi.get_maxspeed, setter: capi.set_maxspeed
-        },
-        yaw: svars::StateFloat {
+        }),
+        yaw: svars::StateFloat({
             getter: capi.get_yaw, setter: capi.set_yaw,
             custom_sync: true
-        },
-        pitch: svars::StateFloat {
+        }),
+        pitch: svars::StateFloat({
             getter: capi.get_pitch, setter: capi.set_pitch,
             custom_sync: true
-        },
-        roll: svars::StateFloat {
+        }),
+        roll: svars::StateFloat({
             getter: capi.get_roll, setter: capi.set_roll,
             custom_sync: true
-        },
-        move: svars::StateInteger {
+        }),
+        move: svars::StateInteger({
             getter: capi.get_move, setter: capi.set_move,
             custom_sync: true, gui_name: false
-        },
-        strafe: svars::StateInteger {
+        }),
+        strafe: svars::StateInteger({
             getter: capi.get_strafe, setter: capi.set_strafe,
             custom_sync: true, gui_name: false
-        },
-        yawing: svars::StateInteger {
+        }),
+        yawing: svars::StateInteger({
             getter: capi.get_yawing, setter: capi.set_yawing,
             custom_sync: true, gui_name: false
-        },
-        pitching: svars::StateInteger {
+        }),
+        pitching: svars::StateInteger({
             getter: capi.get_pitching, setter: capi.set_pitching,
             custom_sync: true, gui_name: false
-        },
-        crouching: svars::StateInteger {
+        }),
+        crouching: svars::StateInteger({
             getter: capi.get_crouching, setter: capi.set_crouching,
             custom_sync: true, gui_name: false
-        },
-        jumping: svars::StateBoolean {
+        }),
+        jumping: svars::StateBoolean({
             getter: capi.get_jumping, setter: capi.set_jumping,
             custom_sync: true, gui_name: false
-        },
-        position: svars::StateVec3 {
+        }),
+        position: svars::StateVec3({
             getter: capi.get_dynent_position,
             setter: capi.set_dynent_position,
             custom_sync: true
-        },
-        velocity: svars::StateVec3 {
+        }),
+        velocity: svars::StateVec3({
             getter: capi.get_dynent_velocity,
             setter: capi.set_dynent_velocity,
             custom_sync: true
-        },
-        falling: svars::StateVec3 {
+        }),
+        falling: svars::StateVec3({
             getter: capi.get_dynent_falling,
             setter: capi.set_dynent_falling,
             custom_sync: true, gui_name: false
-        },
-        radius: svars::StateFloat {
+        }),
+        radius: svars::StateFloat({
             getter: capi.get_radius, setter: capi.set_radius
-        },
-        above_eye: svars::StateFloat {
+        }),
+        above_eye: svars::StateFloat({
             getter: capi.get_aboveeye, setter: capi.set_aboveeye
-        },
-        eye_height: svars::StateFloat {
+        }),
+        eye_height: svars::StateFloat({
             getter: capi.get_eyeheight, setter: capi.set_eyeheight
-        },
-        max_height: svars::StateFloat {
+        }),
+        max_height: svars::StateFloat({
             getter: capi.get_maxheight, setter: capi.set_maxheight
-        },
-        crouch_height: svars::StateFloat {
+        }),
+        crouch_height: svars::StateFloat({
             getter: capi.get_crouchheight, setter: capi.set_crouchheight
-        },
-        crouch_speed: svars::StateFloat {
+        }),
+        crouch_speed: svars::StateFloat({
             getter: capi.get_crouchspeed, setter: capi.set_crouchspeed
-        },
-        crouch_time: svars::StateInteger {
+        }),
+        crouch_time: svars::StateInteger({
             getter: capi.get_crouchtime, setter: capi.set_crouchtime
-        },
-        jump_velocity: svars::StateFloat {
+        }),
+        jump_velocity: svars::StateFloat({
             getter: capi.get_jumpvel, setter: capi.set_jumpvel
-        },
-        gravity: svars::StateFloat {
+        }),
+        gravity: svars::StateFloat({
             getter: capi.get_gravity, setter: capi.set_gravity
-        },
-        blocked: svars::StateBoolean {
+        }),
+        blocked: svars::StateBoolean({
             getter: capi.get_blocked, setter: capi.set_blocked,
             gui_name: false
-        },
-        can_move: svars::StateBoolean {
+        }),
+        can_move: svars::StateBoolean({
             setter: capi.set_can_move, client_set: true
-        },
-        map_defined_position_data: svars::StateInteger {
+        }),
+        map_defined_position_data: svars::StateInteger({
             getter: capi.get_mapdefinedposdata,
             setter: capi.set_mapdefinedposdata,
             custom_sync: true, gui_name: false
-        },
-        client_state: svars::StateInteger {
+        }),
+        client_state: svars::StateInteger({
             getter: capi.get_clientstate, setter: capi.set_clientstate,
             custom_sync: true, gui_name: false
-        },
-        physical_state: svars::StateInteger {
+        }),
+        physical_state: svars::StateInteger({
             getter: capi.get_physstate, setter: capi.set_physstate,
             custom_sync: true, gui_name: false
-        },
-        in_liquid: svars::StateInteger {
+        }),
+        in_liquid: svars::StateInteger({
             getter: capi.get_inwater, setter: capi.set_inwater,
             custom_sync: true, gui_name: false
-        },
-        time_in_air: svars::StateInteger {
+        }),
+        time_in_air: svars::StateInteger({
             getter: capi.get_timeinair, setter: capi.set_timeinair,
             custom_sync: true, gui_name: false
-        },
+        }),
 
-        physics_trigger: svars::StateInteger { gui_name: false },
+        physics_trigger: svars::StateInteger({ gui_name: false }),
 
         jumping_sound: svars::StateString(),
         landing_sound: svars::StateString()
@@ -654,7 +654,7 @@ M.Character = Entity.clone {
         capi::set_model_name(self.uid, mname)
         self.svar_values["model_name"] = mname
     end
-}
+})
 var Character = M.Character
 
 /** Function: physics_collide_client
@@ -681,7 +681,7 @@ end)
         - can_edit [false] - if player can edit, it's true (private edit mode).
         - hud_model_name [""] - the first person model to use for the player.
 */
-M.Player = Character.clone {
+M.Player = Character.clone({
     name: "Player",
 
     __properties: {
@@ -695,7 +695,7 @@ M.Player = Character.clone {
         self.set_attr("can_edit", false)
         self.set_attr("hud_model_name", "")
     end]
-}
+})
 
 ents::register_prototype(Character)
 ents::register_prototype(M.Player)
@@ -705,11 +705,11 @@ var c_set_attr = capi.set_attr
 
 var gen_attr = func(i, name)
     i = i - 1
-    return svars::StateInteger {
+    return svars::StateInteger({
         getter: func(ent)      return c_get_attr(ent, i)      end,
         setter: func(ent, val) return c_set_attr(ent, i, val) end,
         gui_name: name, alt_name: name
-    }
+    })
 end
 
 /**
@@ -726,7 +726,7 @@ end
     Properties:
         position [{{$svars.StateVec3}}] - the entity position.
 */
-M.StaticEntity = Entity.clone {
+M.StaticEntity = Entity.clone({
     name: "StaticEntity",
 
     /// The icon that'll be displayed in edit mode.
@@ -737,10 +737,10 @@ M.StaticEntity = Entity.clone {
     attr_num  : 0,
 
     __properties: {
-        position: svars::StateVec3 {
+        position: svars::StateVec3({
             getter: capi.get_extent_position,
             setter: capi.set_extent_position
-        }
+        })
     },
 
     __init_svars: func(self, kwargs)
@@ -851,7 +851,7 @@ M.StaticEntity = Entity.clone {
     get_edit_drop_height: func(self)
         return 4
     end
-}
+})
 var StaticEntity = M.StaticEntity
 
 /** Function: entity_get_edit_info
@@ -884,7 +884,7 @@ end)
     A generic marker without orientation. It doesn't have any default
     additional properties.
 */
-M.Marker = StaticEntity.clone {
+M.Marker = StaticEntity.clone({
     name: "Marker",
 
     __edit_icon: "media/interface/icon/edit_marker",
@@ -895,7 +895,7 @@ M.Marker = StaticEntity.clone {
     place_entity: func(self, ent)
         ent.set_attr("position", self.get_attr("position"))
     end
-}
+})
 var Marker = M.Marker
 
 /**
@@ -909,7 +909,7 @@ var Marker = M.Marker
         - attr1 - aka "yaw".
         - attr2 - aka "pitch".
 */
-M.OrientedMarker = StaticEntity.clone {
+M.OrientedMarker = StaticEntity.clone({
     name: "OrientedMarker",
 
     __edit_icon: "media/interface/icon/edit_marker",
@@ -939,7 +939,7 @@ M.OrientedMarker = StaticEntity.clone {
         return ("yaw :\f2 %d \f7| pitch :\f2 %d").format(self.get_attr("yaw"),
             self.get_attr("pitch"))
     end
-}
+})
 var OrientedMarker = M.OrientedMarker
 
 from std.table import setmt
@@ -970,7 +970,7 @@ var lightflags = setmt({
         - attr4 - blue value (alias "blue", default 128)
         - attr5 - shadow type, 0 means dnyamic, 1 disabled, 2 static (default 0).
 */
-M.Light = StaticEntity.clone {
+M.Light = StaticEntity.clone({
     name: "Light",
 
     __edit_icon: "media/interface/icon/edit_light",
@@ -1007,7 +1007,7 @@ M.Light = StaticEntity.clone {
             self.get_attr("blue"), self.get_attr("radius"),
             lightflags[self.get_attr("shadow")])
     end
-}
+})
 
 /**
     A spot light. It's attached to the nearest $Light. Properties such as
@@ -1017,7 +1017,7 @@ M.Light = StaticEntity.clone {
         - attr1 - alias "radius", defaults to 90, in degrees (90 is a full
           hemisphere, 0 is a line)
 */
-M.SpotLight = StaticEntity.clone {
+M.SpotLight = StaticEntity.clone({
     name: "SpotLight",
 
     __edit_icon: "media/interface/icon/edit_spotlight",
@@ -1043,7 +1043,7 @@ M.SpotLight = StaticEntity.clone {
     __get_edit_info: func(self)
         return ("radius :\f2 %d").format(self.get_attr("radius"))
     end
-}
+})
 
 /**
     An environment map entity prototype. Things reflecting on their surface using
@@ -1055,7 +1055,7 @@ M.SpotLight = StaticEntity.clone {
         - attr1 - alias "radius", the distance it'll still have effect in,
           defaults to 128.
 */
-M.Envmap = StaticEntity.clone {
+M.Envmap = StaticEntity.clone({
     name: "Envmap",
 
     __edit_icon: "media/interface/icon/edit_envmap",
@@ -1075,7 +1075,7 @@ M.Envmap = StaticEntity.clone {
     __get_edit_info: func(self)
         return ("radius :\f2 %d").format(self.get_attr("radius"))
     end
-}
+})
 
 /**
     A sound effect prototype. You can use this to make your own sound effect
@@ -1088,7 +1088,7 @@ M.Envmap = StaticEntity.clone {
           specified by this property and do it'll start fading off
           (alias "size", default 0).
 */
-M.SoundEffect = StaticEntity.clone {
+M.SoundEffect = StaticEntity.clone({
     name: "Sound",
 
     __edit_icon: "media/interface/icon/edit_sound",
@@ -1125,7 +1125,7 @@ M.SoundEffect = StaticEntity.clone {
 
     /** Override to play sounds. */
     __play_sound: func(self) end
-}
+})
 
 var SoundEffect = M.SoundEffect
 
@@ -1141,7 +1141,7 @@ var SoundEffect = M.SoundEffect
         - sound_name [{{$svars.StateString}}] - the  path to the sound in
           media/sound (default "").
 */
-M.AmbientSound = SoundEffect.clone {
+M.AmbientSound = SoundEffect.clone({
     name: "AmbientSound",
 
     __properties: {
@@ -1171,7 +1171,7 @@ M.AmbientSound = SoundEffect.clone {
     __play_sound: func(self)
         self.sound_play(self.get_attr("sound_name"), self.get_attr("volume"))
     end
-}
+})
 
 set_external("sound_play_map", func(uid)
     ent_get(uid).__play_sound()
@@ -1183,7 +1183,7 @@ end)
     not registered. It also specifies __emit_particles as a composable
     method.
 */
-M.ParticleEffect = StaticEntity.clone {
+M.ParticleEffect = StaticEntity.clone({
     name: "ParticleEffect",
 
     __edit_icon : "media/interface/icon/edit_particles",
@@ -1198,7 +1198,7 @@ M.ParticleEffect = StaticEntity.clone {
 
     /// This is what you need to override - draw your particles from here.
     __emit_particles: func(self) end
-}
+})
 
 set_external("particle_entity_emit", func(uid)
     ent_get(uid).__emit_particles()
@@ -1225,7 +1225,7 @@ end)
         - attr3 - the model roll, alias "roll".
         - attr4 - the model scale, alias "scale".
 */
-M.Mapmodel = StaticEntity.clone {
+M.Mapmodel = StaticEntity.clone({
     name: "Mapmodel",
 
     __edit_icon: "media/interface/icon/edit_mapmodel",
@@ -1234,18 +1234,18 @@ M.Mapmodel = StaticEntity.clone {
     attr_num  : 4,
 
     __properties: {
-        animation: svars::StateInteger {
+        animation: svars::StateInteger({
             setter: capi.set_animation, client_set: true
-        },
-        start_time : svars::StateInteger { getter: capi.get_start_time   },
-        model_name : svars::StateString  { setter: capi.set_model_name   },
-        attachments: svars::StateArray   {
+        }),
+        start_time : svars::StateInteger({ getter: capi.get_start_time }),
+        model_name : svars::StateString({ setter: capi.set_model_name }),
+        attachments: svars::StateArray({
             setter: func(self, val)
                 var arr = ffi::new("const char *[?]", val.len() + 1)
                 for i, v in val.each() do arr[i] = v end
                 set_attachments(self, arr)
             end
-        },
+        }),
 
         attr1: gen_attr(1, "yaw"),
         attr2: gen_attr(2, "pitch"),
@@ -1287,7 +1287,7 @@ M.Mapmodel = StaticEntity.clone {
 
     /// See {{$Character.set_local_model_name}}.
     set_local_model_name: Character.set_local_model_name
-}
+})
 
 /** Function: physics_collide_mapmodel
     An external called when a client collides with a mapmodel. Takes the
@@ -1313,7 +1313,7 @@ end)
         - attr7 - alias "solid", makes the obstacle solid when not 0 (0
           by default).
 */
-M.Obstacle = StaticEntity.clone {
+M.Obstacle = StaticEntity.clone({
     name: "Obstacle",
 
     sauer_type: 9,
@@ -1352,7 +1352,7 @@ M.Obstacle = StaticEntity.clone {
     get_edit_drop_height: func(self)
         return 0
     end
-}
+})
 
 /**
     A decal entity prototype. It represents a decal that sticks to world geometry.
@@ -1365,7 +1365,7 @@ M.Obstacle = StaticEntity.clone {
         - attr2, attr3, attr4 - alias "yaw", "pitch", "roll", 0 by default.
         - atr5 - alias "size", the decal size in cube units.
 */
-M.Decal = StaticEntity.clone {
+M.Decal = StaticEntity.clone({
     name: "Decal",
 
     sauer_type: 10,
@@ -1400,7 +1400,7 @@ M.Decal = StaticEntity.clone {
     get_edit_drop_height: func(self)
         return 0
     end
-}
+})
 
 /** Function: physics_collide_area
     An external called when a client collides with an area. Takes the

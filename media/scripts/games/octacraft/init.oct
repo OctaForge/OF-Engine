@@ -30,9 +30,9 @@ var Player = ents.Player
 /** Object: GamePlayer
     This serves as a base for our player.
 */
-var GamePlayer = Player.clone {
+var GamePlayer = Player.clone({
     name: "GamePlayer"
-}
+})
 
 ents::register_prototype(GamePlayer, [
     game_manager.player_plugin,
@@ -51,7 +51,7 @@ day_manager::setup([ day_manager.plugins.day_night ])
     return
 end
 
-var MouseAction = actions.Action.clone {
+var MouseAction = actions.Action.clone({
     name: "MouseAction",
     allow_multiple: false,
     block_size: 4,
@@ -91,7 +91,7 @@ var MouseAction = actions.Action.clone {
         bf(tg.x >> bsize << bsize, tg.y >> bsize << bsize,
            tg.z >> bsize << bsize, 1 << bsize)
     end
-}
+})
 
 inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy)
     var ent = ents::get(uid)

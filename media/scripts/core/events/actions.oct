@@ -53,7 +53,7 @@ var M = {}
           as soon as the other action does). Useful for e.g. animations that
           run in parallel.
 */
-M.Action = Object.clone {
+M.Action = Object.clone({
     name: "Action",
 
     /**
@@ -206,13 +206,13 @@ M.Action = Object.clone {
             self.priv_finish()
         end
     end
-}
+})
 var Action = M.Action
 
 /**
     An action that never ends.
 */
-M.InfiniteAction = Action.clone {
+M.InfiniteAction = Action.clone({
     name: "InfiniteAction",
 
     /**
@@ -222,7 +222,7 @@ M.InfiniteAction = Action.clone {
     __run: func(self, millis)
         return false
     end
-}
+})
 
 /**
     An action queue.
@@ -231,7 +231,7 @@ M.InfiniteAction = Action.clone {
         - parent - the parent entity of this action queue.
         - actions - an array of actions.
 */
-M.ActionQueue = Object.clone {
+M.ActionQueue = Object.clone({
     name: "ActionQueue",
 
     /**
@@ -298,6 +298,6 @@ M.ActionQueue = Object.clone {
             act.cancel()
         end
     end
-}
+})
 
 return M

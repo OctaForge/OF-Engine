@@ -40,7 +40,7 @@ var Obstacle = ents.Obstacle
         - sound_name - name of the sound to play on teleportation, empty
           by default.
 */
-M.Teleporter = Obstacle.clone {
+M.Teleporter = Obstacle.clone({
     name: "Teleporter",
 
     __properties: {
@@ -77,7 +77,7 @@ M.Teleporter = Obstacle.clone {
         if dest <= 0 do return end
         return get_by_tag("teledest_" ~ dest).unpack()
     end
-}
+})
 
 ents::register_prototype(M.Teleporter)
 

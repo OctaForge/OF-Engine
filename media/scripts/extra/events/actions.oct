@@ -26,7 +26,7 @@ from std.table import pairs
     See also:
         - $ParallelAction
 */
-M.ContainerAction = Action.clone {
+M.ContainerAction = Action.clone({
     name: "ContainerAction",
 
     /**
@@ -74,7 +74,7 @@ M.ContainerAction = Action.clone {
     add_action: func(self, action)
         self.action_queue.enqueue(action)
     end
-}
+})
 
 /**
     A container action that executes its actions in parallel. It's not
@@ -84,7 +84,7 @@ M.ContainerAction = Action.clone {
     See also:
         - $ContainerAction
 */
-M.ParallelAction = Action.clone {
+M.ParallelAction = Action.clone({
     name: "ParallelAction",
     cancelable: false,
 
@@ -139,14 +139,14 @@ M.ParallelAction = Action.clone {
         actqueue.enqueue(action)
         self.action_queues.push(actqueue)
     end
-}
+})
 
 /**
     Action that starts, sets its actor's animation to its local_animation
     property, runs, ends and sets back the old animation. Not too useful
     alone, but can be used for inheriting.
 */
-M.LocalAnimationAction = Action.clone {
+M.LocalAnimationAction = Action.clone({
     name: "LocalAnimationAction",
 
     /**
@@ -166,7 +166,7 @@ M.LocalAnimationAction = Action.clone {
         var lanim = self.local_animation
         if anim == lanim do ac.set_local_animation(self.old_animation) end
     end
-}
+})
 
 var event_list = [
     "yaw", "pitch", "move", "strafe", "jump", "crouch", "click", "mouse_move"
@@ -203,7 +203,7 @@ M.input_capture_plugin = {
     move, strafe, jump, crouch, click, mouse_move) with provided functions and
     restores them when it finishes. Uses $input_capture_plugin.
 */
-M.InputCaptureAction = Action.clone {
+M.InputCaptureAction = Action.clone({
     name: "InputCaptureAction",
 
     /**
@@ -219,6 +219,6 @@ M.InputCaptureAction = Action.clone {
 
     __start: M.input_capture_plugin.__start,
     __finish: M.input_capture_plugin.__finish,
-}
+})
 
 return M

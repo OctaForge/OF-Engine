@@ -39,9 +39,9 @@ M.add = func(ctype, desc)
     for i, v in needsapply.each() do
         if v.desc == desc do return end
     end
-    needsapply.push {
+    needsapply.push({
         ctype: ctype, desc: desc
-    }
+    })
 end
 
 /**

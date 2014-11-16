@@ -359,7 +359,7 @@ M.orient = {:
 :}
 var orient = M.orient
 
-var Projection = Object.clone {
+var Projection = Object.clone({
     __ctor: func(self, obj)
         self.obj = obj
         self.px, self.py, self.pw, self.ph = 0, 0, 0, 0
@@ -422,7 +422,7 @@ var Projection = Object.clone {
     calc_above_hud: func(self)
         return 1 - (self.obj.y * self.ss_y + self.so_y)
     end
-}
+})
 
 ffi::cdef(r"""
     typedef struct color_t {
@@ -757,8 +757,8 @@ M.Widget = register_type("Widget", Object, {
         var st, rst = {}, self.states
         var vs, rvs = {}, self.vstates
         var ic = initc and self.init_clone or undef
-        var cl = self.clone { children: ch, vchildren: vc,
-            states: st, vstates: vs }
+        var cl = self.clone({ children: ch, vchildren: vc,
+            states: st, vstates: vs })
         for i, c in rch.each() do
             var chcl = c.deep_clone(obj, true)
             chcl.parent = cl
@@ -1940,7 +1940,7 @@ M.Root = register_type("Root", Widget, {
     build_window: func(self, name, win, fun)
         var old = self.find_child(Window.type, name, false)
         if old do self.remove(old) end
-        win = win { name: name }
+        win = win({ name: name })
         win.parent = self
         win._root  = self._root
         self.children.push(win)
@@ -2502,7 +2502,7 @@ signal::connect(root, "__has_cursor,changed", func(self, val)
     input_cursor_exists_update(val)
 end)
 
-var hud = Overlay { name: "hud" }
+var hud = Overlay({ name: "hud" })
 hud._root = root
 
 /// Returns the HUD overlay.

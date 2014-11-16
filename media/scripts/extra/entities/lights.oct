@@ -29,7 +29,7 @@ var Marker = ents.Marker
     Properties overlap with the core Light entity type (but it lacks flags)
     including newent properties.
 */
-var DynamicLight = Marker.clone {
+var DynamicLight = Marker.clone({
     name: "DynamicLight",
 
     __properties: {
@@ -61,7 +61,7 @@ var DynamicLight = Marker.clone {
             self.get_attr("red") / 255, self.get_attr("green") / 255,
             self.get_attr("blue") / 255)
     end]
-}
+})
 M.DynamicLight = DynamicLight
 
 from std.math import max, random, floor
@@ -78,7 +78,7 @@ var flash_flag = lights.flags.FLASH
         - min_delay - the minimal flicker delay (defaults to 100).
         - max_delay - the maximal flicker delay (defaults to 300).
 */
-M.FlickeringLight = DynamicLight.clone {
+M.FlickeringLight = DynamicLight.clone({
     name: "FlickeringLight",
 
     __properties: {
@@ -113,7 +113,7 @@ M.FlickeringLight = DynamicLight.clone {
         end
         self.delay = d
     end]
-}
+})
 
 ents::register_prototype(M.FlickeringLight)
 

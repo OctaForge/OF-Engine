@@ -238,8 +238,6 @@ local parse_args = function(ls, ast, nocheck)
             args = parse_expr_list(ls, ast)
         end
         check_match(ls, ")", "(", line)
-    elseif tn == "{" then
-        args = { (parse_table(ls, ast)) }
     else
         syntax_error(ls, "function arguments expected")
     end
@@ -361,7 +359,7 @@ parse_primary_expr = function(ls, ast)
             local key = ls.token.value
             ls:get()
             nm = tok.name
-            if nm == "(" or nm == "{" then
+            if nm == "(" then
                 exp, tp = ast.SendExpression(exp, key, parse_args(ls, ast)),
                     "call"
             else
@@ -381,7 +379,7 @@ parse_primary_expr = function(ls, ast)
             local key = parse_expr(ls, ast)
             check_match(ls, "]", "[", line)
             exp, tp = ast.MemberExpression(exp, key, true), "indexed"
-        elseif nm == "(" or nm == "{" then
+        elseif nm == "(" then
             exp, tp = ast.CallExpression(exp, parse_args(ls, ast), line), "call"
         else
             return exp, tp

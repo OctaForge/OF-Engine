@@ -45,12 +45,12 @@ M.anims = anims
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
 */
-var PainAction = @[not server,eactions.LocalAnimationAction.clone {
+var PainAction = @[not server,eactions.LocalAnimationAction.clone({
     name           : "PainAction",
     millis_left    : 600,
     local_animation: anims.pain,
     allow_multiple : false
-}]
+})]
 M.PainAction = PainAction
 
 /**
@@ -58,7 +58,7 @@ M.PainAction = PainAction
     duration is 5 seconds. Like pain, it cannot be used more than once at
      a time and it's not cancelable. It only exists on the server.
 */
-var DeathAction = @[server,actions.Action.clone {
+var DeathAction = @[server,actions.Action.clone({
     name          : "DeathAction",
     allow_multiple: false,
     cancelable    : false,
@@ -80,7 +80,7 @@ var DeathAction = @[server,actions.Action.clone {
     __finish: func(self)
         self.actor.game_manager_respawn()
     end
-}]
+})]
 M.DeathAction = DeathAction
 
 /**
@@ -94,8 +94,8 @@ M.DeathAction = DeathAction
 */
 M.player_plugin = {
     __properties: {
-        health: svars::StateInteger     { client_set: true },
-        max_health: svars::StateInteger { client_set: true }
+        health: svars::StateInteger({ client_set: true }),
+        max_health: svars::StateInteger({ client_set: true })
     },
 
     __init_svars: func(self)
@@ -230,7 +230,7 @@ var is_valid_target = func(ent)
 end
 M.is_valid_target = is_valid_target
 
-var HealthAction = actions.Action.clone {
+var HealthAction = actions.Action.clone({
     cancelable: false,
 
     __ctor: func(self, kwargs)
@@ -241,7 +241,7 @@ var HealthAction = actions.Action.clone {
     __finish: func(self)
         self.actor.health_add(self.health_step)
     end
-}
+})
 
 var gethcolor = func(v, maxv)
     var mid = maxv / 2
@@ -298,8 +298,8 @@ M.plugins = {
                     var prev = self.health_previous_act
                     if not prev or prev.finished do
                         self.health_previous_act = collider.enqueue_action(
-                            HealthAction { millis_left: step_millis,
-                                health_step: step })
+                            HealthAction({ millis_left: step_millis,
+                                health_step: step }))
                     end
                 end
             end
@@ -315,12 +315,12 @@ M.plugins = {
     */
     player_hud: {
         __activate: @[not server,func(self)
-            gui::get_hud().append(gui::Spacer { pad_h: 0.1, pad_v: 0.1,
+            gui::get_hud().append(gui::Spacer({ pad_h: 0.1, pad_v: 0.1,
                 align_h: 1, align_v: 1
-            }, func(sp)
-                self.health_hud_status = sp.append(gui::Label {
+            }), func(sp)
+                self.health_hud_status = sp.append(gui::Label({
                     scale: 2.5, font: "default_outline"
-                }, func(st)
+                }), func(st)
                     var curh, maxh
                     var updatehud = func()
                         st.set_text(tostring(curh))

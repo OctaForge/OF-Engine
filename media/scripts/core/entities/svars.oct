@@ -89,7 +89,7 @@ end
           the value will be cached for better performance (so we don't always
           have to query).
 */
-M.StateVariable = Object.clone {
+M.StateVariable = Object.clone({
     name: "StateVariable",
 
     /// Makes svar objects return their name on tostring.
@@ -273,7 +273,7 @@ M.StateVariable = Object.clone {
     from_wire: func(self, val)
         return tostring(val)
     end
-}
+})
 StateVariable = M.StateVariable
 
 /**
@@ -281,12 +281,12 @@ StateVariable = M.StateVariable
     to_ and from_ wire appropriately, to_wire converts to a string,
     from_wire converts to an integer.
 */
-M.StateInteger = StateVariable.clone {
+M.StateInteger = StateVariable.clone({
     name: "StateInteger",
 
     to_wire  : func(self, val) return tostring(val) end,
     from_wire: func(self, val) return floor(tonumber(val)) end
-}
+})
 StateInteger = M.StateInteger
 
 /**
@@ -295,12 +295,12 @@ StateInteger = M.StateInteger
     (with max two places past the floating point represented in the
     string), from_wire converts to a float.
 */
-M.StateFloat = StateVariable.clone {
+M.StateFloat = StateVariable.clone({
     name: "StateFloat",
 
     to_wire  : func(self, val) return tostring(round(val, 2)) end,
     from_wire: func(self, val) return tonumber(val) end
-}
+})
 StateFloat = M.StateFloat
 
 /**
@@ -308,12 +308,12 @@ StateFloat = M.StateFloat
     to_ and from_ wire appropriately, to_wire converts to a string,
     from_wire converts to a boolean.
 */
-M.StateBoolean = StateVariable.clone {
+M.StateBoolean = StateVariable.clone({
     name: "StateBoolean",
 
     to_wire  : func(self, val) return tostring(val) end,
     from_wire: func(self, val) return val == "true" and true or false end
-}
+})
 StateBoolean = M.StateBoolean
 
 from std.conv import serialize as ts, deserialize as td
@@ -323,12 +323,12 @@ from std.conv import serialize as ts, deserialize as td
     to_ and from_ wire appropriately, to_wire serializes the given
     table, from_wire deserializes it.
 */
-M.StateTable = StateVariable.clone {
+M.StateTable = StateVariable.clone({
     name: "StateTable",
 
     to_wire  : func(self, val) return ts(val) end,
     from_wire: func(self, val) return td(val) end
-}
+})
 StateTable = M.StateTable
 
 /**
@@ -336,9 +336,9 @@ StateTable = M.StateTable
     override to_ and from_wire, because the defaults already work
     with strings.
 */
-M.StateString = StateVariable.clone {
+M.StateString = StateVariable.clone({
     name: "StateString"
-}
+})
 StateString = M.StateString
 
 from std.table import getmt, setmt
@@ -466,7 +466,7 @@ ArraySurrogate = M.ArraySurrogate
     variable object that requires more complex to_wire and from_wire
     functions.
 */
-M.StateArray = StateVariable.clone {
+M.StateArray = StateVariable.clone({
     name: "StateArray",
 
     /// An element separator used by the wire format. Defaults to "|".
@@ -617,7 +617,7 @@ M.StateArray = StateVariable.clone {
         a.push(val)
         ent.set_sdata(self.name, a, -1)
     end
-}
+})
 StateArray = M.StateArray
 
 /**
@@ -625,12 +625,12 @@ StateArray = M.StateArray
     which converts a value to a string and from_wire_item, which converts
     it back to an integer.
 */
-M.StateArrayInteger = StateArray.clone {
+M.StateArrayInteger = StateArray.clone({
     name: "StateArrayInteger",
 
     to_wire_item  : tostring,
     from_wire_item: func(v) return floor(tonumber(v)) end
-}
+})
 StateArrayInteger = M.StateArrayInteger
 
 /**
@@ -639,47 +639,47 @@ StateArrayInteger = M.StateArrayInteger
     past the floating point represented in the string) and from_wire_item,
     which converts it back to a float.
 */
-M.StateArrayFloat = StateArray.clone {
+M.StateArrayFloat = StateArray.clone({
     name: "StateArrayFloat",
 
     to_wire_item  : func(v) return tostring(round(v, 2)) end,
     from_wire_item: tonumber
-}
+})
 StateArrayFloat = M.StateArrayFloat
 
 /**
     A specialization of StateArrayFloat, providing its own surrogate,
     {{$geom.Vec2_Surrogate}}. Other than that, no changes are made.
 */
-M.StateVec2 = StateArrayFloat.clone {
+M.StateVec2 = StateArrayFloat.clone({
     name: "StateVec2",
     surrogate: geom.Vec2_Surrogate
-}
+})
 
 /**
     A specialization of StateArrayFloat, providing its own surrogate,
     {{$geom.Vec3_Surrogate}}. Other than that, no changes are made.
 */
-M.StateVec3 = StateArrayFloat.clone {
+M.StateVec3 = StateArrayFloat.clone({
     name: "StateVec3",
     surrogate: geom.Vec3_Surrogate
-}
+})
 
 /**
     A specialization of StateArrayFloat, providing its own surrogate,
     {{$geom.Vec4_Surrogate}}. Other than that, no changes are made.
 */
-M.StateVec4 = StateArrayFloat.clone {
+M.StateVec4 = StateArrayFloat.clone({
     name: "StateVec4",
     surrogate: geom.Vec4_Surrogate
-}
+})
 
 /**
     Aliases a state variable. Aliases are always registered last so that
     the variables they alias are already registered. They provide alternative
     getters and setters.
 */
-StateVariableAlias = StateVariable.clone {
+StateVariableAlias = StateVariable.clone({
     name: "StateVariableAlias",
 
     /**
@@ -708,7 +708,7 @@ StateVariableAlias = StateVariable.clone {
         @[debug] log(DEBUG, "StateVariableAlias: register: getter/setter")
         define_accessors(cl, name, self.getter, self.setter, self)
     end
-}
+})
 M.StateVariableAlias = StateVariableAlias
 
 return M
