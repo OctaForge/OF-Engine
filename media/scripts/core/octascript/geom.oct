@@ -17,31 +17,31 @@ from std.table import rawget, rawset, pairs
 from std.math import sin, cos, abs, min, max, sqrt, floor, atan2, asin, deg
 
 var gen_vec2 = func(tp, sf, mt)
-    ffi::cdef((r"""
+    ffi::cdef(r"""
         typedef struct vec2%s_t {
             %s x, y;
         } vec2%s_t;
-    """).format(sf, tp, sf))
+    """.format(sf, tp, sf))
     return ffi::metatype("vec2" ~ sf ~ "_t", mt), mt
 end
 
 var gen_vec3 = func(tp, sf, mt)
-    ffi::cdef((r"""
+    ffi::cdef(r"""
         typedef union vec3%s_t {
             struct { %s x, y, z; };
             struct { %s r, g, b; };
         } vec3%s_t;
-    """).format(sf, tp, tp, sf))
+    """.format(sf, tp, tp, sf))
     return ffi::metatype("vec3" ~ sf ~ "_t", mt), mt
 end
 
 var gen_vec4 = func(tp, sf, mt)
-    ffi::cdef((r"""
+    ffi::cdef(r"""
         typedef union vec4%s_t {
             struct { %s x, y, z, w; };
             struct { %s r, g, b, a; };
         } vec4%s_t;
-    """).format(sf, tp, tp, sf))
+    """.format(sf, tp, tp, sf))
     return ffi::metatype("vec4" ~ sf ~ "_t", mt), mt
 end
 
@@ -83,7 +83,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
         end
     end,
     __tostring: func(self)
-        return ("Vec2 <%f, %f>").format(self.x, self.y)
+        return "Vec2 <%f, %f>".format(self.x, self.y)
     end,
     __eq: func(self, o) return self.x == o.x and self.y == o.y end,
     __mul: func(self, o) return self.mul_new(o) end,
@@ -247,7 +247,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
         end
     end,
     __tostring: func(self)
-        return ("Vec3 <%f, %f, %f>").format(self.x, self.y, self.z)
+        return "Vec3 <%f, %f, %f>".format(self.x, self.y, self.z)
     end,
     __eq: func(self, o)
         return self.x == o.x and self.y == o.y and self.z == o.z
@@ -704,7 +704,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
         end
     end,
     __tostring: func(self)
-        return ("Vec3 <%f, %f, %f, %f>").format(self.x, self.y, self.z, self.w)
+        return "Vec3 <%f, %f, %f, %f>".format(self.x, self.y, self.z, self.w)
     end,
     __eq: func(self, o)
         return self.x == o.x and self.y == o.y
@@ -991,12 +991,12 @@ var gen_vec_surrogate = func(name, base, ltable)
             return ret
         end,
         __tostring: (ltable.w and func(self)
-            return ("%s <%f, %f, %f, %f>").format(name, self.x, self.y,
+            return "%s <%f, %f, %f, %f>".format(name, self.x, self.y,
                 self.z, self.w)
         end or (ltable.z and func(self)
-            return ("%s <%f, %f, %f>").format(name, self.x, self.y, self.z)
+            return "%s <%f, %f, %f>".format(name, self.x, self.y, self.z)
         end or func(self)
-            return ("%s <%f, %f>").format(name, self.x, self.y)
+            return "%s <%f, %f>".format(name, self.x, self.y)
         end)),
         __index: func(self, n)
             var i = ltable[n]

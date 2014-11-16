@@ -333,7 +333,7 @@ var assert_tok
 assert_tok = func(ls, tok, ...)
     if not tok do return end
     if ls.tname != tok do
-        raise ("%d: unexpected symbol near '%s'").format(ls.linenum, ls.tname), 0
+        raise "%d: unexpected symbol near '%s'".format(ls.linenum, ls.tname), 0
     end
     lex_get(ls)
     assert_tok(ls, ...)
@@ -578,6 +578,6 @@ object.Object = {
         is self.name.
     */
     __tostring: func(self)
-        return ("Object: %s").format(self.name or "unnamed")
+        return "Object: %s".format(self.name or "unnamed")
     end
 }

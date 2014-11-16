@@ -71,7 +71,7 @@ var GamePlayer = Player.clone({
             self.color_id = 0
         end
         self.color = colors[self.color_id]
-        log::echo(("color switch: 0x%.6X").format(self.color))
+        log::echo("color switch: 0x%.6X".format(self.color))
     end,
 
     reset_mark: func(self)

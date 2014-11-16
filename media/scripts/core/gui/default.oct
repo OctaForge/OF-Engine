@@ -651,7 +651,7 @@ root.new_window("entity", gui.Window, func(win)
         }))
         return
     end
-    win.set_title(("Entity editing: %s (%d)").format(ent.name, ent.uid))
+    win.set_title("Entity editing: %s (%d)".format(ent.name, ent.uid))
     var props = []
     var sdata = []
     var sdata_raw = ent.build_sdata()

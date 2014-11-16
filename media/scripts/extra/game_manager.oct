@@ -172,8 +172,8 @@ var GameManager = Entity.clone({
             starts[rand(0, starts.len() - 1)].place_entity(player)
             return
         end
-        log::log(log.WARNING, ('player start not found (\"%s\"), '
-            ~ 'placing player elsewhere').format(st))
+        log::log(log.WARNING, 'player start not found (\"%s\"), '
+                              'placing player elsewhere'.format(st))
         player.set_attr("position", [ 512, 512, 571 ])
     end,
 
