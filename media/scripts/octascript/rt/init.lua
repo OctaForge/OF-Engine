@@ -180,6 +180,20 @@ ArrayMT = {
             return self[self.__size - 1]
         end,
 
+        rest = function(self)
+            local sz = self.__size - 1
+            if sz < 0 then
+                error("attempt to get tail of an empty array", 2)
+            elseif sz == 0 then
+                return setmt({ __size = 0 }, ArrayMT)
+            end
+            local r = { __size = sz }
+            for i = 1, sz do
+                r[i - 1] = self[i]
+            end
+            return setmt(r, ArrayMT)
+        end,
+
         len = function(self)
             return self.__size
         end,
