@@ -663,6 +663,7 @@ local parse_rec = function(ls, ast, line, decn, params)
     assert_next(ls, "func")
     assert_tok(ls, "<name>")
     local name = ls.token.value
+    ast.current.vars[name] = true
     ls:get()
     local args, body, proto = parse_body(ls, ast, line)
     return ast.FunctionDeclaration(ast:var_declare(name), body, args,
