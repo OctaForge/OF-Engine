@@ -175,19 +175,19 @@ M.Character = Entity.clone({
         Defines the "client states". 0 is ALIVE, 1 is DEAD, 2 is SPAWNING,
         3 is LAGGED, 4 is EDITING, 5 is SPECTATOR.
     */
-    State: {:
+    State: enum {
         ALIVE: 0, DEAD: 1, SPAWNING: 2, LAGGED: 3, EDITING: 4, SPECTATOR: 5
-    :},
+    },
 
     /**
         Defines the "physical states". 0 is FLOATING, 1 is FALLING,
         2 is SLIDING, 3 is SLOPING, 4 is ON_FLOOR, 5 is STEPPING_UP,
         6 is STEPPING_DOWN, 7 is BOUNCING.
     */
-    PhysicalState: {:
+    PhysicalState: enum {
         FLOATING: 0, FALLING: 1, SLIDING: 2, SLOPING: 3, ON_FLOOR: 4,
         STEPPING_UP: 5, STEPPING_DOWN: 6, BOUNCING: 7
-    :},
+    },
 
     __properties: {
         animation: svars::StateInteger({

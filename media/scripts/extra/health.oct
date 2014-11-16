@@ -32,11 +32,11 @@ var connect, emit = signal.connect, signal.emit
     This module adds three new animations, "dead", "dying" and "pain",
     on the client. They're stored in this enumeration.
 */
-var anims = @[not server,{:
+var anims = @[not server,enum {
     dead : model::register_anim("dead"),
     dying: model::register_anim("dying"),
     pain : model::register_anim("pain")
-:}]
+}]
 M.anims = anims
 
 /**

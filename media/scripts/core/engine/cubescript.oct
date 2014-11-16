@@ -40,9 +40,9 @@ M.execute = capi.cubescript
     Defines cubescript/engine variable types. Contains "int", "float"
     and "string".
 */
-M.var_type = {:
+M.var_type = enum {
     int: 0, float: 1, string: 2
-:}
+}
 
 /**
     Defines flags that can be passed during variable creation. Includes
@@ -52,12 +52,12 @@ M.var_type = {:
     In a "safe" environment (run within a mapscript), PERSIST has no effect,
     OVERRIDE is implicit and HEX and READONLY will still work.
 */
-M.var_flags = {:
+M.var_flags = enum {
     PERSIST : 1 << 0,
     OVERRIDE: 1 << 1,
     HEX     : 1 << 2,
     READONLY: 1 << 3
-:}
+}
 
 /**
     Resets an engine variable of the given name.

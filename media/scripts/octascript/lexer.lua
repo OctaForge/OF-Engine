@@ -35,21 +35,21 @@ local Keywords = {
     ["and"     ] = true, ["as"      ] = true, ["break"   ] = true,
     ["by"      ] = true, ["continue"] = true, ["do"      ] = true,
     ["else"    ] = true, ["elif"    ] = true, ["end"     ] = true,
-    ["false"   ] = true, ["for"     ] = true, ["from"    ] = true,
-    ["func"    ] = true, ["goto"    ] = true, ["if"      ] = true,
-    ["import"  ] = true, ["in"      ] = true, ["match"   ] = true,
-    ["not"     ] = true, ["null"    ] = true, ["or"      ] = true,
-    ["print"   ] = true, ["raise"   ] = true, ["rec"     ] = true,
-    ["repeat"  ] = true, ["return"  ] = true, ["then"    ] = true,
-    ["to"      ] = true, ["true"    ] = true, ["try"     ] = true,
-    ["typeof"  ] = true, ["undef"   ] = true, ["until"   ] = true,
-    ["var"     ] = true, ["while"   ] = true
+    ["enum"    ] = true, ["false"   ] = true, ["for"     ] = true,
+    ["from"    ] = true, ["func"    ] = true, ["goto"    ] = true,
+    ["if"      ] = true, ["import"  ] = true, ["in"      ] = true,
+    ["match"   ] = true, ["not"     ] = true, ["null"    ] = true,
+    ["or"      ] = true, ["print"   ] = true, ["raise"   ] = true,
+    ["rec"     ] = true, ["repeat"  ] = true, ["return"  ] = true,
+    ["then"    ] = true, ["to"      ] = true, ["true"    ] = true,
+    ["try"     ] = true, ["typeof"  ] = true, ["undef"   ] = true,
+    ["until"   ] = true, ["var"     ] = true, ["while"   ] = true
 }
 
 -- protected from the gc
 local Tokens = {
-    "..", "...", "==", ">=", "<=", "~=" , "!=", "::", "{:", ":}" , "^^", "<<",
-    ">>", ">>>", "<name>", "<string>", "<number>", "<eof>",
+    "..", "...", "==", ">=", "<=", "~=" , "!=", "::", "^^", "<<", ">>", ">>>",
+    "<name>", "<string>", "<number>", "<eof>",
 
     "..=", "|=", "&=", "^^=", "<<=", ">>=", ">>>=", "+=", "-=", "*=", "/=",
     "%=", "^="
@@ -584,9 +584,8 @@ lextbl = {
     end,
     [58] = function(ls) -- :
         local c = next_char(ls)
-        if     c == 125 then next_char(ls); return ":}" -- }
-        elseif c == 58 then next_char(ls); return "::"
-        else return ":" end
+        if c ~= 58 then return ":"
+        else next_char(ls); return "::" end
     end,
     [34] = function(ls, tok) -- "
         tok.value = read_string(ls, false, false)

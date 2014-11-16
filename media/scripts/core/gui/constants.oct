@@ -32,7 +32,7 @@ var M = {}
     TEXTURE_SWIZZLE_R, TEXTURE_WRAP_R, TEXTURE_WRAP_S, TEXTURE_WRAP_T,
     TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, ZERO.
 */
-M.gl = {:
+M.gl = enum {
     ALPHA: 0x1906,
     ALWAYS: 0x0207,
     BLUE: 0x1905,
@@ -103,7 +103,7 @@ M.gl = {:
     TRIANGLE_FAN: 0x0006,
     TRIANGLE_STRIP: 0x0005,
     ZERO: 0x0
-:}
+}
 
 var scancode_to_keycode = func(x) return (x | (1 << 30)) end
 
@@ -644,7 +644,7 @@ M.key = {
 }
 
 /// Contains a list of key modifier constants mapping to SDL's KMOD_*.
-M.mod = {:
+M.mod = enum {
     NONE    : 0x0000,
     LSHIFT  : 0x0001,
     RSHIFT  : 0x0002,
@@ -662,6 +662,6 @@ M.mod = {:
     CTRL    : LCTRL  | RCTRL,
     ALT     : LALT   | RALT,
     GUI     : LGUI   | RGUI
-:}
+}
 
 return M

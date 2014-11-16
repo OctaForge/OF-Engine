@@ -66,7 +66,7 @@ var mod = M.mod
 var root
 var clicked_code
 
-var adjust = {:
+var adjust = enum {
     ALIGN_HMASK: 0x3,
     ALIGN_VMASK: 0xC,
     ALIGN_MASK : ALIGN_HMASK | ALIGN_VMASK,
@@ -92,7 +92,7 @@ var adjust = {:
     CLAMP_RIGHT  : 1 << 5,
     CLAMP_TOP    : 1 << 6,
     CLAMP_BOTTOM : 1 << 7,
-:}
+}
 M.adjust = adjust
 
 var wtypes_by_name = {}
@@ -354,9 +354,9 @@ end
 M.gen_setter = gen_setter
 
 /// Defines the possible orientations on widgets - HORIZONTAL and VERTICAL.
-M.orient = {:
+M.orient = enum {
     HORIZONTAL: 0, VERTICAL: 1
-:}
+}
 var orient = M.orient
 
 var Projection = Object.clone({

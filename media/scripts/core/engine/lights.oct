@@ -19,11 +19,11 @@ return {
         SHRINK (shrinking light), EXPAND (expanding light) and FLASH
         (flashing light).
     */
-    flags: {:
+    flags: enum {
         SHRINK: 1 << 8,
         EXPAND: 1 << 9,
         FLASH : 1 << 10
-    :},
+    },
 
     /**
         Creates a light with the given parameters, for one frame unless

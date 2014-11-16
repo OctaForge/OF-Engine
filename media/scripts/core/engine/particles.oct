@@ -53,7 +53,7 @@ var particle = ffi::metatype("particle_t", {
     COLLIDE (colliding particle with stain),  FLIP (a combination of HFLIP,
     VFLIP and ROT).
 */
-M.flags = {:
+M.flags = enum {
     MOD     : 1 << 8,
     RND4    : 1 << 9,
     LERP    : 1 << 10,
@@ -69,7 +69,7 @@ M.flags = {:
     GROW    : 1 << 20,
     COLLIDE : 1 << 21,
     FLIP    : HFLIP | VFLIP | ROT
-:}
+}
 
 /**
     Contains two predefined renderers that are mandatory - "text" and "icon".

@@ -193,10 +193,11 @@ end
 local parse_enum = function(ls, ast)
     local line = ls.line_number
     local tok = ls.token
-    assert_next(ls, "{:")
+    ls:get()
+    assert_next(ls, "{")
     ast:scope_begin()
     local hkeys, hvals = {}, {}
-    while tok.name ~= ":}" do
+    while tok.name ~= "}" do
         assert_tok(ls, "<name>")
         local val
         local nm = ls.token.value
@@ -217,7 +218,7 @@ local parse_enum = function(ls, ast)
         hvals[1] = ast.Literal(1)
     end
     ast:scope_end()
-    check_match(ls, ":}", "{:", line)
+    check_match(ls, "}", "{", line)
     return ast.Enum(hkeys, hvals, line)
 end
 
@@ -433,7 +434,7 @@ local sexps = {
     end,
     ["{"] = parse_table,
     ["["] = parse_array,
-    ["{:"] = parse_enum,
+    ["enum"] = parse_enum,
     ["func"] = function(ls, ast)
         local line = ls.line_number
         ls:get()
