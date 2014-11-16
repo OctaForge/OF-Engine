@@ -290,11 +290,41 @@ parse_cond_expr = function(ls, ast, mp)
     return lhs
 end
 
+local pexps = {
+    ["<number>"] = function(ls, ast)
+        local r = ast.Literal(ls.token.value, ls.line_number)
+        ls:get()
+        return r
+    end,
+    ["<string>"] = parse_str,
+    ["undef"] = function(ls, ast)
+        ls:get()
+        return ast.Literal(nil)
+    end,
+    ["null"] = function(ls, ast)
+        ls:get()
+        return ast.Literal(util.null)
+    end,
+    ["true"] = function(ls, ast)
+        ls:get()
+        return ast.Literal(true)
+    end,
+    ["false"] = function(ls, ast)
+        ls:get()
+        return ast.Literal(false)
+    end,
+    ["{"] = parse_table,
+    ["["] = parse_array,
+    ["enum"] = parse_enum
+}
+
 local parse_primary_expr
 local parse_prefix_expr = function(ls, ast)
     local tok = ls.token
     local tn = tok.name
-    if tn == "(" then
+    if pexps[tn] then
+        return pexps[tn](ls, ast)
+    elseif tn == "(" then
         local line = ls.line_number
         ls:get()
         local exp = parse_expr(ls, ast)
@@ -403,28 +433,6 @@ local parse_import_expr = function(ls, ast)
 end
 
 local sexps = {
-    ["<number>"] = function(ls, ast)
-        local r = ast.Literal(ls.token.value, ls.line_number)
-        ls:get()
-        return r
-    end,
-    ["<string>"] = parse_str,
-    ["undef"] = function(ls, ast)
-        ls:get()
-        return ast.Literal(nil)
-    end,
-    ["null"] = function(ls, ast)
-        ls:get()
-        return ast.Literal(util.null)
-    end,
-    ["true"] = function(ls, ast)
-        ls:get()
-        return ast.Literal(true)
-    end,
-    ["false"] = function(ls, ast)
-        ls:get()
-        return ast.Literal(false)
-    end,
     ["..."] = function(ls, ast)
         if not ls.fs.varargs then
             syntax_error(ls, "cannot use \"...\" outside a vararg function")
@@ -432,9 +440,6 @@ local sexps = {
         ls:get()
         return ast.Vararg()
     end,
-    ["{"] = parse_table,
-    ["["] = parse_array,
-    ["enum"] = parse_enum,
     ["func"] = function(ls, ast)
         local line = ls.line_number
         ls:get()
