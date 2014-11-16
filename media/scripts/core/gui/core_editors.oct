@@ -70,14 +70,14 @@ var chunksize = 256
 var ffi_new, ffi_cast, ffi_copy, ffi_string = ffi.new, ffi.cast, ffi.copy,
 ffi.string
 
-ffi::cdef r"""
+ffi::cdef(r"""
     void *memmove(void*, const void*, size_t);
     typedef struct editline_t {
         char *text;
         int len, maxlen;
         int w, h;
     } editline_t;
-"""
+""")
 var C = ffi.C
 
 var editline_MT = {
@@ -625,20 +625,20 @@ M.TextEditor = register_type("TextEditor", Widget, {
     scroll_v: func(self, vs) self.set_v_scroll(self.offset_v + vs) end,
 
     /// Function: set_clip_w
-    set_clip_w: gen_ed_setter "clip_w",
+    set_clip_w: gen_ed_setter("clip_w"),
     /// Function: set_clip_h
-    set_clip_h: gen_ed_setter "clip_h",
+    set_clip_h: gen_ed_setter("clip_h"),
 
     /// Function: set_pad_l
-    set_pad_l: gen_ed_setter "pad_l",
+    set_pad_l: gen_ed_setter("pad_l"),
     /// Function: set_pad_r
-    set_pad_r: gen_ed_setter "pad_r",
+    set_pad_r: gen_ed_setter("pad_r"),
 
     /// Function: set_multiline
-    set_multiline: gen_ed_setter "multiline",
+    set_multiline: gen_ed_setter("multiline"),
 
     /// Function: set_key_filter
-    set_key_filter: gen_setter "key_filter",
+    set_key_filter: gen_setter("key_filter"),
 
     /**
         Sets the value property, emits value,changed and calls $reset_value.
@@ -651,9 +651,9 @@ M.TextEditor = register_type("TextEditor", Widget, {
     end,
 
     /// Function: set_font
-    set_font: gen_ed_setter "font",
+    set_font: gen_ed_setter("font"),
     /// Function: set_line_wrap
-    set_line_wrap: gen_ed_setter "line_wrap",
+    set_line_wrap: gen_ed_setter("line_wrap"),
 
     clear: func(self)
         self.set_focused(false)
@@ -860,7 +860,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
             self._needs_calc = true
             var str = tostring(self.current_line())
             self.insert("\n")
-            for c in str.gmatch "." do if c == " " or c == "\t" do
+            for c in str.gmatch(".") do if c == " " or c == "\t" do
                 self.insert(c) else break
             end end
             self._needs_offset = true

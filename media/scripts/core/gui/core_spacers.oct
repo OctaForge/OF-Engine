@@ -67,10 +67,10 @@ M.Spacer = register_type("Spacer", Widget, {
     end,
 
     /// Function: set_pad_h
-    set_pad_h: gen_setter "pad_h",
+    set_pad_h: gen_setter("pad_h"),
 
     /// Function: set_pad_v
-    set_pad_v: gen_setter "pad_v"
+    set_pad_v: gen_setter("pad_v")
 })
 
 /**
@@ -141,13 +141,13 @@ M.Filler = register_type("Filler", Widget, {
     end,
 
     /// Function: set_min_w
-    set_min_w: gen_setter "min_w",
+    set_min_w: gen_setter("min_w"),
 
     /// Function: set_min_h
-    set_min_h: gen_setter "min_h",
+    set_min_h: gen_setter("min_h"),
 
     /// Function: set_clip_children
-    set_clip_children: gen_setter "clip_children"
+    set_clip_children: gen_setter("clip_children")
 })
 var Filler = M.Filler
 
@@ -219,8 +219,8 @@ M.Offsetter = register_type("Offsetter", Widget, {
     end,
 
     /// Function: set_offset_h
-    set_offset_h: gen_setter "offset_h",
+    set_offset_h: gen_setter("offset_h"),
 
     /// Function: set_offset_v
-    set_offset_v: gen_setter "offset_v"
+    set_offset_v: gen_setter("offset_v")
 })

@@ -108,5 +108,5 @@ M.Toggle = register_type("Toggle", Button, {
     end,
 
     /// Function: set_condition
-    set_condition: gen_setter "condition"
+    set_condition: gen_setter("condition")
 })

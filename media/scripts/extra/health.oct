@@ -33,9 +33,9 @@ var connect, emit = signal.connect, signal.emit
     on the client. They're stored in this enumeration.
 */
 var anims = @[not server,{:
-    dead : model::register_anim "dead",
-    dying: model::register_anim "dying",
-    pain : model::register_anim "pain"
+    dead : model::register_anim("dead"),
+    dying: model::register_anim("dying"),
+    pain : model::register_anim("pain")
 :}]
 M.anims = anims
 

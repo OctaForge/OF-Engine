@@ -272,11 +272,11 @@ M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj)
 end
 var loop_in_children_r = M.loop_in_children_r
 
-ffi::cdef r"""
+ffi::cdef(r"""
     typedef struct clip_area_t {
         float x1, y1, x2, y2;
     } clip_area_t;
-"""
+""")
 
 var ffi_new = ffi.new
 
@@ -424,11 +424,11 @@ var Projection = Object.clone {
     end
 }
 
-ffi::cdef r"""
+ffi::cdef(r"""
     typedef struct color_t {
         uchar r, g, b, a;
     } color_t;
-"""
+""")
 
 var color_ctors = {
     0: func(self) return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) end,
@@ -496,13 +496,13 @@ M.Color = ffi::metatype("color_t", {
         def: func() gle_defcolorub(4) end,
 
         /// Function: set_r
-        set_r: gen_setter "r",
+        set_r: gen_setter("r"),
         /// Function: set_g
-        set_g: gen_setter "g",
+        set_g: gen_setter("g"),
         /// Function: set_b
-        set_b: gen_setter "b",
+        set_b: gen_setter("b"),
         /// Function: set_a
-        set_a: gen_setter "a"
+        set_a: gen_setter("a")
     }
 })
 
@@ -1503,10 +1503,10 @@ M.Widget = register_type("Widget", Object, {
     end,
 
     /// Function: set_floating
-    set_floating: gen_setter "floating",
+    set_floating: gen_setter("floating"),
 
     /// Function: set_visible
-    set_visible: gen_setter "visible",
+    set_visible: gen_setter("visible"),
 
     /// Returns the previous container, erases its parent and root, but doesn't
     /// destroy it.
@@ -1526,10 +1526,10 @@ M.Widget = register_type("Widget", Object, {
     end,
 
     /// Function: set_init_clone
-    set_init_clone: gen_setter "init_clone",
+    set_init_clone: gen_setter("init_clone"),
 
     /// Function: set_tab_next
-    set_tab_next: gen_setter "tab_next",
+    set_tab_next: gen_setter("tab_next"),
 
     /** Function: insert
         Inserts a widget at the given position in the widget's children.
@@ -1773,7 +1773,7 @@ M.NamedWidget = register_type("NamedWidget", Widget, {
     end,
 
     /// Function: set_obj_name
-    set_obj_name: gen_setter "obj_name"
+    set_obj_name: gen_setter("obj_name")
 })
 var NamedWidget = M.NamedWidget
 
@@ -1814,10 +1814,10 @@ M.Window = register_type("Window", NamedWidget, {
     grabs_input: func(self) return self.input_grab end,
 
     /// Function: set_input_grab
-    set_input_grab: gen_setter "input_grab",
+    set_input_grab: gen_setter("input_grab"),
 
     /// Function: set_above_hud
-    set_above_hud: gen_setter "above_hud"
+    set_above_hud: gen_setter("above_hud")
 })
 Window = M.Window
 

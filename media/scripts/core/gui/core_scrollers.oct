@@ -354,10 +354,10 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
     move_button: func(self, o, fromx, fromy, tox, toy) end,
 
     /// Function: set_arrow_size
-    set_arrow_size: gen_setter "arrow_size",
+    set_arrow_size: gen_setter("arrow_size"),
 
     /// Function: set_arrow_speed
-    set_arrow_speed: gen_setter "arrow_speed"
+    set_arrow_speed: gen_setter("arrow_speed")
 })
 var Scrollbar = M.Scrollbar
 

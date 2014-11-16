@@ -29,8 +29,8 @@ var ran = capi.model_register_anim
     just the animation from a combined animation/control integer.
 */
 M.anims = {
-    mapmodel: ran "mapmodel", edit: ran "edit", lag: ran "lag",
-    idle: ran "idle", INDEX: 0x1FF, DIR: 0xE00, SECONDARY: 12
+    mapmodel: ran("mapmodel"), edit: ran("edit"), lag: ran("lag"),
+    idle: ran("idle"), INDEX: 0x1FF, DIR: 0xE00, SECONDARY: 12
 }
 var anims = M.anims
 
@@ -44,16 +44,16 @@ var gen_anim_variants = func(bname, onlysuffix)
 end
 
 gen_anim_variants("run", true)
-gen_anim_variants "jump"
+gen_anim_variants("jump")
 
-anims.sink = ran "sink"
-anims.swim = ran "swim"
+anims.sink = ran("sink")
+anims.swim = ran("swim")
 
-gen_anim_variants "crouch"
-gen_anim_variants "crouch_jump"
+gen_anim_variants("crouch")
+gen_anim_variants("crouch_jump")
 
-anims.crouch_sink = ran "crouch_sink"
-anims.crouch_swim = ran "crouch_swim"
+anims.crouch_sink = ran("crouch_sink")
+anims.crouch_swim = ran("crouch_swim")
 
 /**
     Provides means to control the animation direction and looping. Contains

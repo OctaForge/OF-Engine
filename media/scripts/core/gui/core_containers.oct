@@ -130,13 +130,13 @@ M.HBox = register_type("HBox", Widget, {
     end,
 
     /// Function: set_padding
-    set_padding: gen_setter "padding",
+    set_padding: gen_setter("padding"),
 
     /// Function: set_expand
-    set_expand: gen_setter "expand",
+    set_expand: gen_setter("expand"),
 
     /// Function: set_homogenous
-    set_homogenous: gen_setter "homogenous"
+    set_homogenous: gen_setter("homogenous")
 })
 
 /**
@@ -213,13 +213,13 @@ M.VBox = register_type("VBox", Widget, {
     end,
 
     /// Function: set_padding
-    set_padding: gen_setter "padding",
+    set_padding: gen_setter("padding"),
 
     /// Function: set_expand
-    set_expand: gen_setter "expand",
+    set_expand: gen_setter("expand"),
 
     /// Function: set_homogenous
-    set_homogenous: gen_setter "homogenous"
+    set_homogenous: gen_setter("homogenous")
 }, M.HBox.type)
 
 /**
@@ -312,10 +312,10 @@ M.Grid = register_type("Grid", Widget, {
     end,
 
     /// Function: set_padding_h
-    set_padding_h: gen_setter "padding_h",
+    set_padding_h: gen_setter("padding_h"),
 
     /// Function: set_padding_v
-    set_padding_v: gen_setter "padding_v",
+    set_padding_v: gen_setter("padding_v"),
 
     /// Function: set_padding
     set_padding: func(self, v)
@@ -324,7 +324,7 @@ M.Grid = register_type("Grid", Widget, {
     end,
 
     /// Function: set_columns
-    set_columns: gen_setter "columns"
+    set_columns: gen_setter("columns")
 })
 
 /**
@@ -373,8 +373,8 @@ M.Clipper = register_type("Clipper", Widget, {
     end,
 
     /// Function: set_clip_w
-    set_clip_w: gen_setter "clip_w",
+    set_clip_w: gen_setter("clip_w"),
 
     /// Function: set_clip_h
-    set_clip_h: gen_setter "clip_h"
+    set_clip_h: gen_setter("clip_h")
 })

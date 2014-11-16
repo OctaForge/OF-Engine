@@ -240,8 +240,6 @@ local parse_args = function(ls, ast, nocheck)
         check_match(ls, ")", "(", line)
     elseif tn == "{" then
         args = { (parse_table(ls, ast)) }
-    elseif tn == "<string>" then
-        args = { parse_str(ls, ast) }
     else
         syntax_error(ls, "function arguments expected")
     end
@@ -363,7 +361,7 @@ parse_primary_expr = function(ls, ast)
             local key = ls.token.value
             ls:get()
             nm = tok.name
-            if nm == "(" or nm == "<string>" or nm == "{" then
+            if nm == "(" or nm == "{" then
                 exp, tp = ast.SendExpression(exp, key, parse_args(ls, ast)),
                     "call"
             else
@@ -383,7 +381,7 @@ parse_primary_expr = function(ls, ast)
             local key = parse_expr(ls, ast)
             check_match(ls, "]", "[", line)
             exp, tp = ast.MemberExpression(exp, key, true), "indexed"
-        elseif nm == "(" or nm == "<string>" or nm == "{" then
+        elseif nm == "(" or nm == "{" then
             exp, tp = ast.CallExpression(exp, parse_args(ls, ast), line), "call"
         else
             return exp, tp

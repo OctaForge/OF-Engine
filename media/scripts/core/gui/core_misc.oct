@@ -60,7 +60,7 @@ M.State = register_type("State", Widget, {
     end,
 
     /// Function: set_state
-    set_state: gen_setter "state"
+    set_state: gen_setter("state")
 })
 
 /**
@@ -140,7 +140,7 @@ M.Mover = register_type("Mover", Widget, {
     end,
 
     /// Function: set_window
-    set_window: gen_setter "window"
+    set_window: gen_setter("window")
 })
 
 var Filler = M.Filler
@@ -182,11 +182,11 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
     end,
 
     /// Function: set_value
-    set_value: gen_setter "value",
+    set_value: gen_setter("value"),
     /// Function: set_bar
-    set_bar: gen_setter "bar",
+    set_bar: gen_setter("bar"),
     /// Function: set_label
-    set_label: gen_setter "label"
+    set_label: gen_setter("label")
 })
 
 /// A horizontal working variant of $ProgressBar.
