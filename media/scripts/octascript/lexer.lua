@@ -390,7 +390,7 @@ local read_string = function(ls, raw, expand)
                     c = next_char(ls)
                 end
                 local varn = tconc(ibuf)
-                if not ls.allow_globals and not ls.ast.current.vars[varn] then
+                if not ls.ast:var_visible(varn, ls.allow_globals) then
                     lex_error(ls, "attempt to use undeclared variable '"
                         .. varn .. "'", "$" .. varn)
                 end

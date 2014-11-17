@@ -44,6 +44,13 @@ local check_match = function(ls, a, b, line)
     ls:get()
 end
 
+local check_visible = function(ls, ast, vname)
+    if not ast:var_visible(vname, ls.allow_globals) then
+        syntax_error(ls, "attempt to use undeclared variable '"
+                     .. vname .. "'")
+    end
+end
+
 local BinaryOps = {
     ["or"] = 1,  ["and"] = 2,
     ["<" ] = 3,  ["<=" ] = 3,  [">"  ] = 3, [">="] = 3,
@@ -182,8 +189,7 @@ local parse_enum = function(ls, ast)
     while tok.name ~= "}" do
         assert_tok(ls, "<name>")
         local val
-        local nm = ls.token.value
-        ast.current.vars[nm] = true
+        local nm = ast:var_declare(ls.token.value, true)
         ls:get()
         if test_next(ls, ":") then
             val = parse_expr(ls, ast)
@@ -331,10 +337,7 @@ local parse_prefix_expr = function(ls, ast)
     elseif tn == "<name>" then
         local line = ls.line_number
         local val = tok.value
-        if not ls.allow_globals and not ast.current.vars[val] then
-            syntax_error(ls, "attempt to use undeclared variable '"
-                .. val .. "'")
-        end
+        check_visible(ls, ast, val)
         ls:get()
         return ast.Identifier(val, line), "var"
     elseif tn == "try" then
@@ -464,10 +467,7 @@ local sexps = {
         ls:get()
         assert_tok(ls, "<name>")
         local decn = ls.token.value
-        if not ls.allow_globals and not ast.current.vars[decn] then
-            syntax_error(ls, "attempt to use undeclared variable '"
-                .. decn .. "'")
-        end
+        check_visible(ls, ast, decn)
         ls:get()
         local params
         if ls.token.name == "(" then
@@ -646,13 +646,11 @@ local parse_rec = function(ls, ast, line, decn, params)
     ls:get()
     assert_next(ls, "func")
     assert_tok(ls, "<name>")
-    local name = ls.token.value
-    ast.current.vars[name] = true
+    local id = ast:var_declare(ls.token.value)
     ls:get()
     local args, body, proto = parse_body(ls, ast, line)
-    return ast.FunctionDeclaration(ast:var_declare(name), body, args,
-        proto.varargs, true, decn, params, line, proto.first_line,
-        proto.last_line)
+    return ast.FunctionDeclaration(id, body, args, proto.varargs, true, decn,
+        params, line, proto.first_line, proto.last_line)
 end
 
 local parse_function_stat = function(ls, ast, line, decn, params)
@@ -666,7 +664,7 @@ local parse_function_stat = function(ls, ast, line, decn, params)
         v = parse_expr_field(ls, ast, v)
     end
     if v == ov then
-        ast.current.vars[v.name] = true
+        ast:var_declare(v.name, true)
     end
     local args, body, proto = parse_body(ls, ast, line)
     return ast.FunctionDeclaration(v, body, args, proto.varargs, false,
@@ -829,10 +827,7 @@ local stat_opts = {
         ls:get()
         assert_tok(ls, "<name>")
         local decn = ls.token.value
-        if not ls.allow_globals and not ast.current.vars[decn] then
-            syntax_error(ls, "attempt to use undeclared variable '"
-                .. decn .. "'")
-        end
+        check_visible(ls, ast, decn)
         ls:get()
         local params
         if ls.token.name == "(" then

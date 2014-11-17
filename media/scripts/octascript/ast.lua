@@ -200,10 +200,15 @@ M.scope_end = function(self)
     self.current = self.current.parent
 end
 
-M.var_declare = function(self, name)
-    local id = Identifier(name)
+M.var_declare = function(self, name, noret)
     self.current.vars[name] = true
-    return id
+    if not noret then return Identifier(name) end
+    return name
+end
+
+M.var_visible = function(self, name, ag)
+    if ag then return true end
+    return not not self.current.vars[name]
 end
 
 M.ParenthesizedExpression = Expression:clone {
