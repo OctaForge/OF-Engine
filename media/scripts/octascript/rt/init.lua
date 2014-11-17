@@ -255,10 +255,11 @@ ArrayMT = {
             if j and (j <= 0 or j >= self.__size) then
                 error("invalid slice range end", 2)
             end
-            j = j or self.__size
+            j = (j or self.__size) - 1
             local r = {}
             local idx = 0
-            for a = i, j - 1, step or 1 do
+            if step < 0 then i, j = j, i end
+            for a = i, j, step or 1 do
                 r[idx] = self[a]
                 idx = idx + 1
             end
