@@ -206,11 +206,6 @@ M.var_declare = function(self, name, noret)
     return name
 end
 
-M.var_visible = function(self, name, ag)
-    if ag then return true end
-    return not not self.current.vars[name]
-end
-
 M.ParenthesizedExpression = Expression:clone {
     kind = "ParenthesizedExpression",
 

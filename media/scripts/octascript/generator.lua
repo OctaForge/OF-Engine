@@ -237,8 +237,11 @@ local gen_ident = function(self, name, dest)
         else
             mov_toreg(self.ctx, dest, var.idx)
         end
-    else
+    elseif name == "__rt_core" then
         self.ctx:op_gget(dest, name)
+    else
+        lang_error("undeclared variable '" .. name .. "'", self.chunkname,
+            self.ctx.currline)
     end
 end
 

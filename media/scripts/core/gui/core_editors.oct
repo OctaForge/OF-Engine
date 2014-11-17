@@ -1361,8 +1361,8 @@ M.KeyField = register_type("KeyField", M.Field, {
     end,
 
     /// Overloaded. Commits on the escape key, inserts the name otherwise.
-    key_raw: func(code, isdown)
-        if Widget::key_raw(code, isdown) do return true end
+    key_raw: func(self, code, isdown)
+        if Widget::key_raw(self, code, isdown) do return true end
         if not self.is_focused() or not isdown do return false end
         if code == key.ESCAPE do self.commit()
         else self.key_insert(code) end

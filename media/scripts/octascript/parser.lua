@@ -44,13 +44,6 @@ local check_match = function(ls, a, b, line)
     ls:get()
 end
 
-local check_visible = function(ls, ast, vname)
-    if not ast:var_visible(vname, ls.allow_globals) then
-        syntax_error(ls, "attempt to use undeclared variable '"
-                     .. vname .. "'")
-    end
-end
-
 local BinaryOps = {
     ["or"] = 1,  ["and"] = 2,
     ["<" ] = 3,  ["<=" ] = 3,  [">"  ] = 3, [">="] = 3,
@@ -337,7 +330,6 @@ local parse_prefix_expr = function(ls, ast)
     elseif tn == "<name>" then
         local line = ls.line_number
         local val = tok.value
-        check_visible(ls, ast, val)
         ls:get()
         return ast.Identifier(val, line), "var"
     elseif tn == "try" then
@@ -467,7 +459,6 @@ local sexps = {
         ls:get()
         assert_tok(ls, "<name>")
         local decn = ls.token.value
-        check_visible(ls, ast, decn)
         ls:get()
         local params
         if ls.token.name == "(" then
@@ -827,7 +818,6 @@ local stat_opts = {
         ls:get()
         assert_tok(ls, "<name>")
         local decn = ls.token.value
-        check_visible(ls, ast, decn)
         ls:get()
         local params
         if ls.token.name == "(" then
