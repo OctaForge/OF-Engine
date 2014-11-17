@@ -103,7 +103,7 @@ local parse_params = function(ls, ast)
             if ls.token.name == "<name>" then
                 local name = ls.token.value
                 ls:get()
-                args[#args + 1] = ast:var_declare(name)
+                args[#args + 1] = ast.Identifier(name)
             elseif ls.token.name == "..." then
                 ls:get()
                 ls.fs.varargs = true
@@ -177,12 +177,11 @@ local parse_enum = function(ls, ast)
     local tok = ls.token
     ls:get()
     assert_next(ls, "{")
-    ast:scope_begin()
     local hkeys, hvals = {}, {}
     while tok.name ~= "}" do
         assert_tok(ls, "<name>")
         local val
-        local nm = ast:var_declare(ls.token.value, true)
+        local nm = ls.token.value
         ls:get()
         if test_next(ls, ":") then
             val = parse_expr(ls, ast)
@@ -198,7 +197,6 @@ local parse_enum = function(ls, ast)
     if hvals[1] == false then
         hvals[1] = ast.Literal(1)
     end
-    ast:scope_end()
     check_match(ls, "}", "{", line)
     return ast.Enum(hkeys, hvals, line)
 end
@@ -429,7 +427,6 @@ local sexps = {
         local prev_fs = ls.fs
         local proto = { varargs = false }
         ls.fs = proto
-        ast:scope_begin()
         ls:get()
         local args
         if ls.token.name ~= "->" then
@@ -441,7 +438,6 @@ local sexps = {
         assert_next(ls, "->")
         lline = bline
         local body = { ast.ReturnStatement({ parse_expr(ls, ast) }, bline) }
-        ast:scope_end()
         ls.fs = prev_fs
         return ast.FunctionExpression(body, args, proto.varargs, line, lline)
     end,
@@ -520,11 +516,10 @@ local parse_for_stat = function(ls, ast, line)
     assert_tok(ls, "<name>")
     local varn = ls.token.value
     ls:get()
-    ast:scope_begin()
-    local vars = { ast:var_declare(varn) }
+    local vars = { ast.Identifier(varn) }
     while test_next(ls, ",") do
         assert_tok(ls, "<name>")
-        vars[#vars + 1] = ast:var_declare(ls.token.value)
+        vars[#vars + 1] = ast.Identifier(ls.token.value)
         ls:get()
     end
     assert_next(ls, "in")
@@ -548,17 +543,14 @@ local parse_for_stat = function(ls, ast, line)
     assert_next(ls, "do")
     local body = parse_block(ls, ast)
     check_match(ls, "end", "for", line)
-    ast:scope_end()
     return ast.ForInStatement(vars, exps, body, line)
 end
 
 local parse_repeat_stat = function(ls, ast, line)
-    ast:scope_begin()
     ls:get()
     local body = parse_block(ls, ast)
     check_match(ls, "until", "repeat", line)
     local cond = parse_expr(ls, ast)
-    ast:scope_end()
     return ast.RepeatStatement(cond, body, line)
 end
 
@@ -637,7 +629,7 @@ local parse_rec = function(ls, ast, line, decn, params)
     ls:get()
     assert_next(ls, "func")
     assert_tok(ls, "<name>")
-    local id = ast:var_declare(ls.token.value)
+    local id = ast.Identifier(ls.token.value)
     ls:get()
     local args, body, proto = parse_body(ls, ast, line)
     return ast.FunctionDeclaration(id, body, args, proto.varargs, true, decn,
@@ -654,9 +646,6 @@ local parse_function_stat = function(ls, ast, line, decn, params)
     while ls.token.name == "." do
         v = parse_expr_field(ls, ast, v)
     end
-    if v == ov then
-        ast:var_declare(v.name, true)
-    end
     local args, body, proto = parse_body(ls, ast, line)
     return ast.FunctionDeclaration(v, body, args, proto.varargs, false,
         decn, params, line, proto.first_line, proto.last_line)
@@ -665,11 +654,9 @@ end
 local parse_while_stat = function(ls, ast, line)
     ls:get()
     local cond = parse_expr(ls, ast)
-    ast:scope_begin()
     assert_next(ls, "do")
     local body = parse_block(ls, ast)
     check_match(ls, "end", "while", line)
-    ast:scope_end()
     return ast.WhileStatement(cond, body, line)
 end
 
@@ -729,7 +716,7 @@ local parse_import_stat = function(ls, ast, line)
         end
         ls:get()
     end
-    return ast.ImportStatement(varn and ast:var_declare(varn) or nil,
+    return ast.ImportStatement(varn and ast.Identifier(varn) or nil,
         table.concat(modname, "."), nil, line)
 end
 
@@ -750,10 +737,10 @@ local parse_from_stat = function(ls, ast, line)
         if ls.token.name == "as" then
             ls:get()
             assert_tok(ls, "<name>")
-            field[2] = ast:var_declare(ls.token.value)
+            field[2] = ast.Identifier(ls.token.value)
             ls:get()
         else
-            field[2] = ast:var_declare(field[1])
+            field[2] = ast.Identifier(field[1])
         end
         fnames[#fnames + 1] = field
     until not test_next(ls, ",")
@@ -913,15 +900,12 @@ end
 parse_body = function(ls, ast, line)
     local prev_fs = ls.fs
     ls.fs = { varargs = false }
-    ast:scope_begin()
     ls.fs.first_line = line
     local pline = ls.line_number
     assert_next(ls, "(")
     local args = parse_params(ls, ast)
     check_match(ls, ")", "(", pline)
-    --assert_next(ls, "do")
     local body = parse_block(ls, ast)
-    ast:scope_end()
     local proto = ls.fs
     ls.fs.last_line = ls.line_number
     check_match(ls, "end", "func", line)
@@ -930,10 +914,7 @@ parse_body = function(ls, ast, line)
 end
 
 parse_block = function(ls, ast)
-    ast:scope_begin()
-    local block, last = parse_chunk(ls, ast)
-    ast:scope_end()
-    return block
+    return (parse_chunk(ls, ast))
 end
 
 local parse = function(chunkname, input, cond_env, allow_globals)
@@ -943,10 +924,8 @@ local parse = function(chunkname, input, cond_env, allow_globals)
     ls:get()
     ls.cond_env = cond_env
     ls.fs = { varargs = true }
-    ast:scope_begin()
     local args = { ast.Vararg() }
     local chunk = parse_chunk(ls, ast, true)
-    ast:scope_end()
     return chunk
 end
 

@@ -185,27 +185,6 @@ local Identifier = Expression:clone {
 }
 M.Identifier = Identifier
 
-local new_scope = function(parent)
-    return {
-        vars = parent and setmetatable({}, { __index = parent.vars }) or {},
-        parent = parent
-    }
-end
-
-M.scope_begin = function(self)
-    self.current = new_scope(self.current)
-end
-
-M.scope_end = function(self)
-    self.current = self.current.parent
-end
-
-M.var_declare = function(self, name, noret)
-    self.current.vars[name] = true
-    if not noret then return Identifier(name) end
-    return name
-end
-
 M.ParenthesizedExpression = Expression:clone {
     kind = "ParenthesizedExpression",
 
@@ -339,7 +318,7 @@ M.LocalDeclaration = Statement:clone {
     __ctor = function(self, ast, vlist, exps, line)
         local ids = {}
         for i, v in ipairs(vlist) do
-            ids[i] = ast:var_declare(v)
+            ids[i] = ast.Identifier(v)
         end
         self.names = ids
         self.expressions = exps
@@ -362,7 +341,7 @@ M.LocalMemberDeclaration = Statement:clone {
     __ctor = function(self, ast, vlist, exp, line)
         local ids = {}
         for i, v in ipairs(vlist) do
-            ids[i] = ast:var_declare(v)
+            ids[i] = ast.Identifier(v)
         end
         self.names = ids
         self.expression = exp
