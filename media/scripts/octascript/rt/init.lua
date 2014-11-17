@@ -65,6 +65,7 @@ local select = select
 local tconcat = table.concat
 local setmt = setmetatable
 local unpack = unpack
+local round = math.round
 
 local ArrayMT
 ArrayMT = {
@@ -246,10 +247,8 @@ ArrayMT = {
             return setmt(r, ArrayMT)
         end,
 
-        slice = function(self, i, j)
-            if not i then
-                error("nothing to slice", 2)
-            end
+        slice = function(self, i, j, step)
+            i = i or 0
             if i < 0 or i >= self.__size then
                 error("invalid slice range start", 2)
             end
@@ -257,12 +256,13 @@ ArrayMT = {
                 error("invalid slice range end", 2)
             end
             j = j or self.__size
-            local r = { __size = j - i }
+            local r = {}
             local idx = 0
-            for a = i, j - 1 do
+            for a = i, j - 1, step or 1 do
                 r[idx] = self[a]
                 idx = idx + 1
             end
+            r.__size = idx
             return setmt(r, ArrayMT)
         end
     }
