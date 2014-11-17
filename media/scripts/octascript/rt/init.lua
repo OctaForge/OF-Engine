@@ -244,6 +244,26 @@ ArrayMT = {
                 r[sz + i] = o[i]
             end
             return setmt(r, ArrayMT)
+        end,
+
+        slice = function(self, i, j)
+            if not i then
+                error("nothing to slice", 2)
+            end
+            if i < 0 or i >= self.__size then
+                error("invalid slice range start", 2)
+            end
+            if j and (j <= 0 or j >= self.__size) then
+                error("invalid slice range end", 2)
+            end
+            j = j or self.__size
+            local r = { __size = j - i }
+            local idx = 0
+            for a = i, j - 1 do
+                r[idx] = self[a]
+                idx = idx + 1
+            end
+            return setmt(r, ArrayMT)
         end
     }
 }
