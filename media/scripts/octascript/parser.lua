@@ -350,39 +350,6 @@ local parse_prefix_expr = function(ls, ast)
     end
 end
 
-local parse_index = function(ls, ast, exp)
-    local tok = ls.token
-    local line = ls.line_number
-    ls:get()
-
-    if tok.name == "]" then
-        ls:get()
-        return ast.SendExpression(exp, "copy", {}), "call"
-    end
-
-    local exprs = {}
-    while true do
-        if tok.name == "," or tok.name == "]" then
-            exprs[#exprs + 1] = ast.Literal(nil)
-            if tok.name == "]" then break end
-        else
-            exprs[#exprs + 1] = parse_expr(ls, ast)
-        end
-        if #exprs >= 3 then break end
-        if not test_next(ls, ",") then
-            break
-        end
-    end
-
-    check_match(ls, "]", "[", line)
-
-    if #exprs == 1 then
-        return ast.MemberExpression(exp, exprs[1], true), "indexed"
-    end
-
-    return ast.SendExpression(exp, "slice", exprs), "call"
-end
-
 parse_primary_expr = function(ls, ast)
     local line = ls.line_number
     local exp, tp = parse_prefix_expr(ls, ast)
@@ -413,7 +380,11 @@ parse_primary_expr = function(ls, ast)
             exp, tp = ast.CallExpression(ast.MemberExpression(exp, key, false),
                 parse_args(ls, ast), line), "call"
         elseif nm == "[" then
-            exp, tp = parse_index(ls, ast, exp)
+            local line = ls.line_number
+            ls:get()
+            local key = parse_expr(ls, ast)
+            check_match(ls, "]", "[", line)
+            exp, tp = ast.MemberExpression(exp, key, true), "indexed"
         elseif nm == "(" then
             exp, tp = ast.CallExpression(exp, parse_args(ls, ast), line), "call"
         else
