@@ -341,6 +341,74 @@ local ExpressionRule = {
         self.ctx.freereg = free
     end,
 
+    Array = function(self, node, dest)
+        local fields = node.fields
+        local szhint = #fields
+
+        local free = self.ctx.freereg
+
+        gen_rt(self, "array", free)
+        self.ctx:nextreg()
+
+        local mexp
+        if node.multi_expr then
+            mexp = fields[#fields]
+            szhint = szhint - 1
+            fields[#fields] = nil
+        end
+
+        local treg = self.ctx.freereg
+        local ins = self.ctx:op_tnew(treg, 0, 0)
+        self.ctx:nextreg()
+
+        local narray = 0
+
+        local t
+        local vtop = self.ctx.freereg
+
+        for k = 1, szhint do
+            local expr = fields[k]
+            local is_const, expr_val = const_eval_try(expr)
+            if is_const then
+                if not t then t = emit_tdup(self, treg, ins) end
+                t.array[k - 1] = expr_val
+                narray = k
+            else
+                local ktag, kval
+                if (k - 1) < 256 then
+                    ktag, kval = "B", k - 1
+                else
+                    ktag, kval = "V", self.ctx:nextreg()
+                    self.ctx:op_load(kval, k - 1)
+                end
+                local v = self:expr_toanyreg(expr)
+                self.ctx:op_tset(treg, ktag, kval, v)
+                self.ctx.freereg = vtop
+            end
+        end
+
+        if t then
+            t.narray, t.nhash = narray, 0
+        elseif szhint > 0 then
+            local sz = ins.tnewsize(#fields, 0)
+            ins:rewrite(bc.BC.TNEW, treg, sz)
+        end
+
+        self.ctx:op_load(self.ctx:nextreg(), szhint)
+        local mres = false
+        if mexp then
+            mres = self:expr_tomultireg(mexp, MULTIRES)
+            self.ctx:nextreg()
+        end
+        self.ctx.freereg = free
+        if mres then
+            self.ctx:op_callm(free, 1, 2)
+        else
+            self.ctx:op_call(free, 1, 2)
+        end
+        mov_toreg(self.ctx, dest, free)
+    end,
+
     Enum = function(self, node, dest)
         if #node.keys == 0 then
             self.ctx:op_tnew(dest, 0, 0)

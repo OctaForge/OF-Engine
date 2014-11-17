@@ -479,6 +479,22 @@ M.Table = Expression:clone {
     end
 }
 
+M.Array = Expression:clone {
+    kind = "Array",
+
+    properties = {
+        fields = { type = "list", kind = "Expression", },
+        multi_expr = { type = "literal", value = "boolean" }
+    },
+
+    __ctor = function(self, fields, mexp, line)
+        self.fields = fields
+        self.multi_expr = mexp
+        self.line = line
+        Node.__ctor(self)
+    end
+}
+
 M.Enum = Expression:clone {
     kind = "Enum",
 
