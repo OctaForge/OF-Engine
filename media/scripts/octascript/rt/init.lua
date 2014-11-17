@@ -258,8 +258,9 @@ ArrayMT = {
             j = (j or self.__size) - 1
             local r = {}
             local idx = 0
+            step = step or 1
             if step < 0 then i, j = j, i end
-            for a = i, j, step or 1 do
+            for a = i, j, step do
                 r[idx] = self[a]
                 idx = idx + 1
             end
