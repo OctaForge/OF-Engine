@@ -540,7 +540,7 @@ M.StateArray = StateVariable.clone({
 
     /// Converts a string in a format given by $to_wire back to a table.
     from_wire: func(self, val)
-        return (val == "[]") and [] or val.sub(1, val.len() - 1)
+        return (val == "[]") and [] or val[1,val.len() - 1]
             .split(self.separator).map(self.from_wire_item)
     end,
 

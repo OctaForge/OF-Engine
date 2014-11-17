@@ -127,9 +127,14 @@ local std_string = {
         return ret[1] - 1, unpack(ret, 2)
     end,
 
-    sub = function(self, i, j)
+    slice = function(self, i, j)
         i = i and ((i >= 0) and (i + 1) or i) or nil
         return str_sub(self, i, j)
+    end,
+
+    -- to allow str[]
+    copy = function(self)
+        return self
     end,
 
     --[[
