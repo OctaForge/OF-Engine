@@ -139,7 +139,7 @@ M.SteamEffect = ParticleEffect.clone({
     __emit_particles: func(self)
         var dir = self.get_attr("direction")
         var pos = self.get_attr("position")
-        var d = offset_vec({ x: pos.x, y: pos.y, z: pos.z }, dir, rand(9))
+        var d = offset_vec({ x: pos.x, y: pos.y, z: pos.z }, dir, rand(10))
         splash(STEAM, d, 50, 1, 0x89 / 255, 0x76 / 255, 0x61 / 255,
             200, 2.4, -20)
     end

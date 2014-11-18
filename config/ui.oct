@@ -240,11 +240,11 @@ var cleanuptiles = func()
 end
 
 var seedtiles = func()
-    var t1, t2 = math::random(0, 15)
-    repeat t2 = math::random(0, 15) until t2 != t1
+    var t1, t2 = math::random(0, 16)
+    repeat t2 = math::random(0, 16) until t2 != t1
     var vals = [ 2, 4 ]
-    var tv1, tv2 = vals[math::random(0, 1)],
-                   vals[math::random(0, 1)]
+    var tv1, tv2 = vals[math::random(0, 2)],
+                   vals[math::random(0, 2)]
     for i in 0 to 15 do
         if i == t1 do
             tiles.push(tv1)
@@ -262,8 +262,8 @@ var randtile = func(grid)
         if tiles[i] == 0 do emptyfields.push(i) end
     end
     if emptyfields.empty() do return end
-    var n = emptyfields[math::random(0, emptyfields.len() - 1)]
-    tiles[n] = ([ 2, 4 ])[math::random(0, 1)]
+    var n = emptyfields[math::random(0, emptyfields.len())]
+    tiles[n] = ([ 2, 4 ])[math::random(0, 2)]
     grid.remove(n)
     grid.insert(n, blocktypes[tiles[n]]())
     if emptyfields.len() == 1 do

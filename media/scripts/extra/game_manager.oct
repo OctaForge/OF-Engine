@@ -126,7 +126,7 @@ var GameManager = Entity.clone({
         end
 
         while players.len() > 0 do
-            var pl = players.remove(rand(0, players.len() - 1))
+            var pl = players.remove(rand(0, players.len()))
             self.pick_team(pl, false)
         end
         self.sync_team_data()
@@ -169,7 +169,7 @@ var GameManager = Entity.clone({
         end
         var starts = ents::get_by_tag(st)
         if starts and starts.len() > 0 do
-            starts[rand(0, starts.len() - 1)].place_entity(player)
+            starts[rand(0, starts.len())].place_entity(player)
             return
         end
         log::log(log.WARNING, 'player start not found (\"%s\"), '

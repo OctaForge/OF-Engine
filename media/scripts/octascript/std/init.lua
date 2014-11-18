@@ -14,6 +14,7 @@ local rt = require("octascript.rt")
 local rt_env = rt.env
 
 local floor, min, max, abs = math.floor, math.min, math.max, math.abs
+local random = math.random
 
 local stbl = { [true] = 1, [false] = 0 }
 
@@ -63,6 +64,16 @@ local std_math = {
     ]]
     sign = function(value)
         return stbl[value > 0] - stbl[value < 0]
+    end,
+
+    random = function(m, n)
+        if not m and not n then
+            return random()
+        elseif not n then
+            return random(m - 1)
+        else
+            return random(m, n - 1)
+        end
     end
 }
 

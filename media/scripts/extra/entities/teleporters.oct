@@ -67,7 +67,7 @@ M.Teleporter = Obstacle.clone({
             log::log(log.ERROR, "No teledest found.")
             return
         end
-        dests[rand(0, dests.len() - 1)].place_entity(collider)
+        dests[rand(0, dests.len())].place_entity(collider)
         var sn = self.get_attr("sound_name")
         if sn != "" do play(sn) end
     end,
