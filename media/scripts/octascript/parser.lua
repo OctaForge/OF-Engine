@@ -511,6 +511,17 @@ local block_follow = {
     ["until"] = true, ["<eof>"] = true
 }
 
+local parse_construct_body = function(ls, ast)
+    if ls.token.name ~= "{" then
+        return { parse_stat(ls, ast) }
+    end
+    local bln = ls.line_number
+    ls:get()
+    local body = parse_block(ls, ast)
+    check_match(ls, "}", "{", line)
+    return body
+end
+
 local parse_for_stat = function(ls, ast, line)
     ls:get()
     assert_tok(ls, "<name>")
@@ -533,25 +544,18 @@ local parse_for_stat = function(ls, ast, line)
         else
             step = ast.Literal(1)
         end
-        assert_next(ls, "{")
-        local body = parse_block(ls, ast)
-        check_match(ls, "}", "{", line)
+        local body = parse_construct_body(ls, ast)
         return ast.ForStatement(vars[1], init, last, step, body,
             line)
     end
     local exps = parse_expr_list(ls, ast, { exp })
-    assert_next(ls, "{")
-    local body = parse_block(ls, ast)
-    check_match(ls, "}", "{", line)
+    local body = parse_construct_body(ls, ast)
     return ast.ForInStatement(vars, exps, body, line)
 end
 
 local parse_repeat_stat = function(ls, ast, line)
     ls:get()
-    local bln = ls.line_number
-    assert_next(ls, "{")
-    local body = parse_block(ls, ast)
-        check_match(ls, "}", "{", bln)
+    local body = parse_construct_body(ls, ast)
     check_match(ls, "until", "repeat", line)
     local cond = parse_expr(ls, ast)
     return ast.RepeatStatement(cond, body, line)
@@ -657,9 +661,7 @@ end
 local parse_while_stat = function(ls, ast, line)
     ls:get()
     local cond = parse_expr(ls, ast)
-    assert_next(ls, "{")
-    local body = parse_block(ls, ast)
-    check_match(ls, "}", "{", line)
+    local body = parse_construct_body(ls, ast)
     return ast.WhileStatement(cond, body, line)
 end
 
@@ -667,25 +669,16 @@ local parse_if_stat = function(ls, ast, line)
     local tests, blocks = {}, {}
     ls:get()
     tests[#tests + 1] = parse_expr(ls, ast)
-    local bln = ls.line_number
-    assert_next(ls, "{")
-    blocks[#blocks + 1] = parse_block(ls, ast)
-    check_match(ls, "}", "{", bln)
+    blocks[#blocks + 1] = parse_construct_body(ls, ast)
     local elseb
     while ls.token.name == "else" do
         ls:get()
         if ls.token.name == "if" then
             ls:get()
             tests[#tests + 1] = parse_expr(ls, ast)
-            bln = ls.line_number
-            assert_next(ls, "{")
-            blocks[#blocks + 1] = parse_block(ls, ast)
-            check_match(ls, "}", "{", bln)
+            blocks[#blocks + 1] = parse_construct_body(ls, ast)
         else
-            bln = ls.line_number
-            assert_next(ls, "{")
-            elseb = parse_block(ls, ast)
-            check_match(ls, "}", "{", bln)
+            elseb = parse_construct_body(ls, ast)
             break
         end
     end
