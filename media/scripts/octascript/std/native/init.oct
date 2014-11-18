@@ -16,17 +16,17 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent) {
     var tv = typeof v
     if tv == "string" {
         stream(v.escape())
-    } else if tv == "number" or tv == "boolean" or tv == "undef" {
+    } else if tv == "number" || tv == "boolean" || tv == "undef" {
         stream(tostring(v))
     } else if tv == "table" {
         var mline   = kwargs.multiline
         var indstr  = kwargs.indent
-        var asstr   = kwargs.assign or ":"
-        var sepstr  = kwargs.table_sep or ","
+        var asstr   = kwargs.assign || ":"
+        var sepstr  = kwargs.table_sep || ","
         var isepstr = kwargs.item_sep
         var endsep  = kwargs.end_sep
         var optk    = kwargs.optimize_keys
-        var nline   = kwargs.nrec_line or 0
+        var nline   = kwargs.nrec_line || 0
         if tables[v] {
             stream() // let the stream know about an error
             return false,
@@ -49,45 +49,45 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent) {
                     }
                 }
             }
-            if mline and indstr and n == 0 {
+            if mline && indstr && n == 0 {
                 for i in 1 to indent { stream(indstr) }
             }
             var tk = typeof k
-            if optk and tk == "string"
-            and k.find_match("^[%a_][%w_]*$") {
+            if optk && tk == "string"
+            && k.find_match("^[%a_][%w_]*$") {
                 stream(k)
-            } else if tk == "string" or tk == "number" or tk == "boolean" {
+            } else if tk == "string" || tk == "number" || tk == "boolean" {
                 var ret, err = serialize_fn(k, stream, kwargs, simp,
                     tables, indent + 1)
-                if not ret { return ret, err }
+                if !ret { return ret, err }
             } else {
                 stream("(")
                 var ret, err = serialize_fn(k, stream, kwargs, simp,
                     tables, indent + 1)
-                if not ret { return ret, err }
+                if !ret { return ret, err }
                 stream(")")
             }
             stream(asstr)
             var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
                 indent + 1)
-            if not ret { return ret, err }
+            if !ret { return ret, err }
             n = (n + 1) % nline
         }
-        if not first {
+        if !first {
             if endsep { stream(sepstr) }
             if mline { stream("\n") }
         }
-        if mline and indstr {
+        if mline && indstr {
             for i in 2 to indent { stream(indstr) }
         }
         stream("}")
     } else if tv == "array" {
         var mline   = kwargs.multiline
         var indstr  = kwargs.indent
-        var sepstr  = kwargs.array_sep or ","
+        var sepstr  = kwargs.array_sep || ","
         var isepstr = kwargs.item_sep
         var endsep  = kwargs.end_sep
-        var nline   = kwargs.narr_line or 0
+        var nline   = kwargs.narr_line || 0
         if tables[v] {
             stream() // let the stream know about an error
             return false,
@@ -110,19 +110,19 @@ serialize_fn = func(v, stream, kwargs, simp, tables, indent) {
                     }
                 }
             }
-            if mline and indstr and n == 0 {
+            if mline && indstr && n == 0 {
                 for i in 1 to indent { stream(indstr) }
             }
             var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
                 indent + 1)
-            if not ret { return ret, err }
+            if !ret { return ret, err }
             n = (n + 1) % nline
         }
-        if not first {
+        if !first {
             if endsep { stream(sepstr) }
             if mline { stream("\n") }
         }
-        if mline and indstr {
+        if mline && indstr {
             for i in 2 to indent { stream(indstr) }
         }
         stream("]")
@@ -195,7 +195,7 @@ var defkwp = {
 conv.serialize = func(val, kwargs, stream, simplifier) {
     if kwargs == true {
         kwargs = defkwp
-    } else if not kwargs {
+    } else if !kwargs {
         kwargs = defkw
     } else {
         if  kwargs.optimize_keys == undef {
@@ -208,7 +208,7 @@ conv.serialize = func(val, kwargs, stream, simplifier) {
         var t = []
         var ret, err = serialize_fn(val, func(out) { t.push(out) },
             kwargs, simplifier, {}, 1)
-        if not ret {
+        if !ret {
             return undef, err
         } else {
             return t.concat()
@@ -219,32 +219,32 @@ conv.serialize = func(val, kwargs, stream, simplifier) {
 var lex_get = func(ls) {
     while true {
         var c = ls.curr
-        if not c { break }
+        if !c { break }
         ls.tname, ls.tval = undef, undef
-        if c == "\n" or c == "\r" {
+        if c == "\n" || c == "\r" {
             var prev = c
             c = ls::rdr()
-            if (c == "\n" or c == "\r") and c != prev {
+            if (c == "\n" || c == "\r") && c != prev {
                 c = ls::rdr()
             }
             ls.curr = c
             ls.linenum = ls.linenum + 1
-        } else if c == " " or c == "\t" or c == "\f" or c == "\v" {
+        } else if c == " " || c == "\t" || c == "\f" || c == "\v" {
             ls.curr = ls::rdr()
-        } else if c == "." or c.byte() >= 48 and c.byte() <= 57 {
+        } else if c == "." || c.byte() >= 48 && c.byte() <= 57 {
             var buf = [ ls.curr ]
             ls.curr = ls::rdr()
-            while ls.curr and ls.curr.find_match("[epxEPX0-9.+-]") {
+            while ls.curr && ls.curr.find_match("[epxEPX0-9.+-]") {
                 buf.push(ls.curr)
                 ls.curr = ls::rdr()
             }
             var str = buf.concat()
             var num = tonumber(str)
-            if not num { raise ("%d: malformed number near '%s'")
+            if !num { raise ("%d: malformed number near '%s'")
                 .format(ls.linenum, str), 0 }
             ls.tname, ls.tval = "<number>", num
             return "<number>"
-        } else if c == '"' or c == "'" {
+        } else if c == '"' || c == "'" {
             var d = ls.curr
             ls.curr = ls::rdr()
             var buf = []
@@ -253,7 +253,7 @@ var lex_get = func(ls) {
                 if c == undef {
                     raise ("%d: unfinished string near '<eos>'")
                         .format(ls.linenum), 0
-                } else if c == "\n" or c == "\r" {
+                } else if c == "\n" || c == "\r" {
                     raise ("%d: unfinished string near '<string>'")
                         .format(ls.linenum), 0
                 // not complete escape sequence handling: handles only these
@@ -274,14 +274,14 @@ var lex_get = func(ls) {
                         buf.push("\t") ls.curr = ls::rdr()
                     } else if c == "v" {
                         buf.push("\v")ls.curr = ls::rdr()
-                    } else if c == "\\" or c == '"' or c == "'" {
+                    } else if c == "\\" || c == '"' || c == "'" {
                         buf.push(c)
                         ls.curr = ls::rdr()
-                    } else if not c {
+                    } else if !c {
                         raise ("%d: unfinished string near '<eos>'")
                             .format(ls.linenum), 0
                     } else {
-                        if not c.find_match("%d") {
+                        if !c.find_match("%d") {
                             raise ("%d: invalid escape sequence")
                                 .format(ls.linenum), 0
                         }
@@ -309,12 +309,12 @@ var lex_get = func(ls) {
         } else if c.find_match("[%a_]") {
             var buf = [ c ]
             ls.curr = ls::rdr()
-            while ls.curr and ls.curr.find_match("[%w_]") {
+            while ls.curr && ls.curr.find_match("[%w_]") {
                 buf.push(ls.curr)
                 ls.curr = ls::rdr()
             }
             var str = buf.concat()
-            if str == "true" or str == "false" or str == "undef" {
+            if str == "true" || str == "false" || str == "undef" {
                 ls.tname, ls.tval = str, undef
                 return str
             } else {
@@ -331,7 +331,7 @@ var lex_get = func(ls) {
 
 var assert_tok
 assert_tok = func(ls, tok, ...) {
-    if not tok { return }
+    if !tok { return }
     if ls.tname != tok {
         raise "%d: unexpected symbol near '%s'".format(ls.linenum, ls.tname), 0
     }
@@ -345,7 +345,7 @@ var allowed_keys = { "<number>": true, "<string>": true, "true": true,
 var parse
 parse = func(ls) {
     var tok = ls.tname
-    if tok == "<string>" or tok == "<number>" {
+    if tok == "<string>" || tok == "<number>" {
         var v = ls.tval
         lex_get(ls)
         return v
@@ -362,7 +362,7 @@ parse = func(ls) {
         }
         repeat {
             ret.push(parse(ls))
-        } until ls.tname != "," or not lex_get(ls)
+        } until ls.tname != "," || !lex_get(ls)
         assert_tok(ls, "]")
         return ret
     } else {
@@ -387,7 +387,7 @@ parse = func(ls) {
             }
             assert_tok(ls, ":")
             tbl[key] = parse(ls)
-        } until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
+        } until (ls.tname != "," && ls.tname != ";") || !lex_get(ls)
         assert_tok(ls, "}")
         return tbl
     }
@@ -402,12 +402,12 @@ parse = func(ls) {
     message on failure.
 */
 conv.deserialize = func(s) {
-    var stream = (typeof s == "string") and s.gmatch(".") or s
+    var stream = (typeof s == "string") && s.gmatch(".") || s
     var ls = { curr: stream(), rdr: stream, linenum: 1 }
     var r, v = try lex_get(ls)
-    if not r { return undef, v }
+    if !r { return undef, v }
     r, v = try parse(ls)
-    if not r { return undef, v }
+    if !r { return undef, v }
     return v
 }
 
@@ -425,7 +425,7 @@ var sift_down = func(tbl, l, s, e, fun) {
         if fun(tbl[swap], tbl[child]) {
             swap = child
         }
-        if child + 1 <= e and fun(tbl[swap], tbl[child + 1]) {
+        if child + 1 <= e && fun(tbl[swap], tbl[child + 1]) {
             swap = child + 1
         }
         if swap != root {
@@ -465,7 +465,7 @@ var partition = func(tbl, l, r, pidx, fun) {
 var insertion_sort = func(tbl, l, r, fun) {
     for i in l to r {
         var j, v = i, tbl[i]
-        while j > 1 and not fun(tbl[j - 1], v) {
+        while j > 1 && !fun(tbl[j - 1], v) {
             tbl[j] = tbl[j - 1]
             j = j - 1
         }
@@ -504,8 +504,8 @@ var defaultcmp = func(a, b) { return a < b }
     "less than" operator.
 */
 array.sort = func(self, fun, l, r) {
-    l, r = l or 0, r or self.len() - 1
-    return introsort(self, l, r, fun or defaultcmp)
+    l, r = l || 0, r || self.len() - 1
+    return introsort(self, l, r, fun || defaultcmp)
 }
 
 // OBJECT SYSTEM
@@ -550,9 +550,9 @@ object.Object = {
             The new clone.
     */
     clone: func(self, tbl) {
-        tbl = tbl or {}
+        tbl = tbl || {}
         tbl.__index, tbl.__proto, tbl.__call = self, self, self.__call
-        if not tbl.__tostring { tbl.__tostring = self.__tostring }
+        if !tbl.__tostring { tbl.__tostring = self.__tostring }
         setmt(tbl, tbl)
         return tbl
     },
@@ -566,7 +566,7 @@ object.Object = {
         if self == base { return true }
         var pt = self.__proto
         var is = (pt == base)
-        while not is and pt {
+        while !is && pt {
             pt = pt.__proto
             is = (pt == base)
         }
@@ -578,6 +578,6 @@ object.Object = {
         is self.name.
     */
     __tostring: func(self) {
-        return "Object: %s".format(self.name or "unnamed")
+        return "Object: %s".format(self.name || "unnamed")
     }
 }

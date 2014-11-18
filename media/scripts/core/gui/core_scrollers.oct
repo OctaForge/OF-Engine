@@ -47,7 +47,7 @@ var Clipper = M.Clipper
 */
 M.Scroller = register_type("Scroller", Clipper, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
         self.offset_h = 0
         self.offset_v = 0
@@ -76,7 +76,7 @@ M.Scroller = register_type("Scroller", Clipper, {
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
-        if ((cx + oh) >= vw) or ((cy + ov) >= vh) { return undef }
+        if ((cx + oh) >= vw) || ((cy + ov) >= vh) { return undef }
         return Widget::target(self, cx + oh, cy + ov)
     },
 
@@ -84,20 +84,20 @@ M.Scroller = register_type("Scroller", Clipper, {
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
-        if ((cx + oh) >= vw) or ((cy + ov) >= vh) {
+        if ((cx + oh) >= vw) || ((cy + ov) >= vh) {
             self.can_scroll = false
             return undef
         }
 
         self.can_scroll = true
-        return Widget::hover(self, cx + oh, cy + ov) or self
+        return Widget::hover(self, cx + oh, cy + ov) || self
     },
 
     click: func(self, cx, cy, code) {
         var oh, ov, vw, vh = self.offset_h, self.offset_v,
             self.virt_w, self.virt_h
 
-        if ((cx + oh) >= vw) or ((cy + ov) >= vh) { return undef }
+        if ((cx + oh) >= vw) || ((cy + ov) >= vh) { return undef }
         return Widget::click(self, cx + oh, cy + ov, code)
     },
 
@@ -108,17 +108,17 @@ M.Scroller = register_type("Scroller", Clipper, {
     */
     key_hover: func(self, code, isdown) {
         var m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
-        if code != m4 and code != m5 {
+        if code != m4 && code != m5 {
             return Widget::key_hover(self, code, isdown)
         }
 
-        var  sb = self.v_scrollbar or self.h_scrollbar
-        if not self.can_scroll { return false }
-        if not isdown { return true }
+        var  sb = self.v_scrollbar || self.h_scrollbar
+        if !self.can_scroll { return false }
+        if !isdown { return true }
 
-        var adjust = (code == m4 and -0.2 or 0.2) * (sb and sb.arrow_speed
-            or 0.5)
-        if not self.h_scrollbar {
+        var adjust = (code == m4 && -0.2 || 0.2) * (sb && sb.arrow_speed
+            || 0.5)
+        if !self.h_scrollbar {
             self.scroll_v(adjust)
         } else {
             self.scroll_h(adjust)
@@ -128,8 +128,8 @@ M.Scroller = register_type("Scroller", Clipper, {
     },
 
     draw: func(self, sx, sy) {
-        if (self.clip_w != 0 and self.virt_w > self.clip_w) or
-           (self.clip_h != 0 and self.virt_h > self.clip_h)
+        if (self.clip_w != 0 && self.virt_w > self.clip_w) ||
+           (self.clip_h != 0 && self.virt_h > self.clip_h)
         {
             self.get_root().clip_push(sx, sy, self.w, self.h)
             Widget::draw(self, sx - self.offset_h, sy - self.offset_v)
@@ -145,9 +145,9 @@ M.Scroller = register_type("Scroller", Clipper, {
         Calling with undef unlinks the scrollbar and returns it.
     */
     bind_h_scrollbar: func(self, sb) {
-        if not sb {
+        if !sb {
             sb = self.h_scrollbar
-            if not sb { return undef }
+            if !sb { return undef }
             sb.scroller, self.h_scrollbar = undef, undef
             return sb
         }
@@ -161,9 +161,9 @@ M.Scroller = register_type("Scroller", Clipper, {
         Calling with undef unlinks the scrollbar and returns it.
     */
     bind_v_scrollbar: func(self, sb) {
-        if not sb {
+        if !sb {
             sb = self.v_scrollbar
-            if not sb { return undef }
+            if !sb { return undef }
             sb.scroller, self.v_scrollbar = undef, undef
             return sb
         }
@@ -249,9 +249,9 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
     orient: -1,
 
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.arrow_size  = kwargs.arrow_size  or 0
-        self.arrow_speed = kwargs.arrow_speed or 0.5
+        kwargs = kwargs || {}
+        self.arrow_size  = kwargs.arrow_size  || 0
+        self.arrow_speed = kwargs.arrow_speed || 0.5
         self.arrow_dir   = 0
 
         return Widget::__ctor(self, kwargs)
@@ -280,7 +280,7 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
 
     /// Scrollbars can be hovered on.
     hover: func(self, cx, cy) {
-        return Widget::hover(self, cx, cy) or self
+        return Widget::hover(self, cx, cy) || self
     },
 
     /**
@@ -288,8 +288,8 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
         to be clicked on.
     */
     click: func(self, cx, cy, code) {
-        return Widget::click(self, cx, cy, code) or
-                     (self.target(cx, cy) and self or undef)
+        return Widget::click(self, cx, cy, code) ||
+                     (self.target(cx, cy) && self || undef)
     },
 
     scroll_to: func(self, cx, cy) { },
@@ -300,15 +300,15 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
     */
     key_hover: func(self, code, isdown) {
         var m4, m5 = key.MOUSEWHEELUP, key.MOUSEWHEELDOWN
-        if code != m4 and code != m5 {
+        if code != m4 && code != m5 {
             return Widget::key_hover(self, code, isdown)
         }
 
         var  sc = self.scroller
-        if not sc or not sc.can_scroll { return false }
-        if not isdown { return true }
+        if !sc || !sc.can_scroll { return false }
+        if !isdown { return true }
 
-        var adjust = (code == m4 and -0.2 or 0.2) * self.arrow_speed
+        var adjust = (code == m4 && -0.2 || 0.2) * self.arrow_speed
         if self.orient == 1 {
             sc.scroll_v(adjust)
         } else {
@@ -345,7 +345,7 @@ M.Scrollbar = register_type("Scrollbar", Widget, {
     },
 
     hovering: func(self, cx, cy) {
-        if not self.is_clicked(key.MOUSELEFT) {
+        if !self.is_clicked(key.MOUSELEFT) {
             self.arrow_dir = self.choose_direction(cx, cy)
         }
         Widget::hovering(self, cx, cy)
@@ -386,21 +386,21 @@ M.ScrollButton = register_type("ScrollButton", Widget, {
     },
 
     choose_state: func(self) {
-        return clicked_states[self.is_clicked()] or
-            (self.is_hovering() and "hovering" or "default")
+        return clicked_states[self.is_clicked()] ||
+            (self.is_hovering() && "hovering" || "default")
     },
 
     hover: func(self, cx, cy) {
-        return self.target(cx, cy) and self or undef
+        return self.target(cx, cy) && self || undef
     },
 
     click: func(self, cx, cy) {
-        return self.target(cx, cy) and self or undef
+        return self.target(cx, cy) && self || undef
     },
 
     holding: func(self, cx, cy, code) {
         var p = self.parent
-        if p and code == key.MOUSELEFT and p.type == Scrollbar.type {
+        if p && code == key.MOUSELEFT && p.type == Scrollbar.type {
             p.arrow_dir = 0
             p.move_button(self, self.offset_h, self.offset_v, cx, cy)
         }
@@ -429,9 +429,9 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
     orient: orient.HORIZONTAL,
 
     bind_scroller: func(self, sc) {
-        if not sc {
+        if !sc {
             sc = self.scroller
-            if not sc { return undef }
+            if !sc { return undef }
             sc.h_scrollbar = undef
             return sc
         }
@@ -444,53 +444,53 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
 
         if ad == -1 {
             var clicked = clicked_states[self.is_clicked()]
-            return clicked and "left_" ~ clicked or
-                (self.is_hovering() and "left_hovering" or "default")
+            return clicked && "left_" ~ clicked ||
+                (self.is_hovering() && "left_hovering" || "default")
         } else if ad == 1 {
             var clicked = clicked_states[self.is_clicked()]
-            return clicked and "right_" ~ clicked or
-                (self.is_hovering() and "right_hovering" or "default")
+            return clicked && "right_" ~ clicked ||
+                (self.is_hovering() && "right_hovering" || "default")
         }
         return "default"
     },
 
     choose_direction: func(self, cx, cy) {
         var asz = self.arrow_size
-        return (cx < asz) and -1 or (cx >= (self.w - asz) and 1 or 0)
+        return (cx < asz) && -1 || (cx >= (self.w - asz) && 1 || 0)
     },
 
     arrow_scroll: func(self, d) {
         var  scroll = self.scroller
-        if not scroll { return }
+        if !scroll { return }
         scroll.scroll_h(d * self.arrow_speed * (get_curtime() / 1000))
     },
 
     scroll_to: func(self, cx, cy) {
         var  scroll = self.scroller
-        if not scroll { return }
+        if !scroll { return }
 
         var  btn = self.find_child(ScrollButton.type, undef, false)
-        if not btn { return }
+        if !btn { return }
 
         var asz = self.arrow_size
 
         var bscale = (max(self.w - 2 * asz, 0) - btn.w) /
             (1 - scroll.get_h_scale())
 
-        var offset = (bscale > 0.001) and (cx - asz) / bscale or 0
+        var offset = (bscale > 0.001) && (cx - asz) / bscale || 0
 
         scroll::set_h_scroll(scroll, offset * scroll.virt_w)
     },
 
     adjust_children: func(self) {
         var  scroll = self.scroller
-        if not scroll {
+        if !scroll {
             Widget::adjust_children(self)
             return
         }
 
         var  btn = self.find_child(ScrollButton.type, undef, false)
-        if not btn {
+        if !btn {
             Widget::adjust_children(self)
             return
         }
@@ -502,8 +502,8 @@ M.HScrollbar = register_type("HScrollbar", Scrollbar, {
         var bw = max(sw - 2 * asz, 0) * scroll.get_h_scale()
         btn.w  = max(btnw, bw)
 
-        var bscale = (scroll.get_h_scale() < 1) and
-            (max(sw - 2 * asz, 0) - btn.w) / (1 - scroll.get_h_scale()) or 1
+        var bscale = (scroll.get_h_scale() < 1) &&
+            (max(sw - 2 * asz, 0) - btn.w) / (1 - scroll.get_h_scale()) || 1
 
         btn.x = asz + scroll.get_h_offset() * bscale
         btn.adjust = btn.adjust & ~adjust.ALIGN_HMASK
@@ -524,9 +524,9 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
     orient: orient.VERTICAL,
 
     bind_scroller: func(self, sc) {
-        if not sc {
+        if !sc {
             sc = self.scroller
-            if not sc { return undef }
+            if !sc { return undef }
             sc.v_scrollbar = undef
             return sc
         }
@@ -539,54 +539,54 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
 
         if ad == -1 {
             var clicked = clicked_states[self.is_clicked()]
-            return clicked and "up_" ~ clicked or
-                (self.is_hovering() and "up_hovering" or "default")
+            return clicked && "up_" ~ clicked ||
+                (self.is_hovering() && "up_hovering" || "default")
         } else if ad == 1 {
             var clicked = clicked_states[self.is_clicked()]
-            return clicked and "down_" ~ clicked or
-                (self.is_hovering() and "down_hovering" or "default")
+            return clicked && "down_" ~ clicked ||
+                (self.is_hovering() && "down_hovering" || "default")
         }
         return "default"
     },
 
     choose_direction: func(self, cx, cy) {
         var asz = self.arrow_size
-        return (cy < asz) and -1 or (cy >= (self.h - asz) and 1 or 0)
+        return (cy < asz) && -1 || (cy >= (self.h - asz) && 1 || 0)
     },
 
     arrow_scroll: func(self, d) {
         var  scroll = self.scroller
-        if not scroll { return }
+        if !scroll { return }
         scroll.scroll_v(d * self.arrow_speed * (get_curtime() / 1000))
     },
 
     scroll_to: func(self, cx, cy) {
         var  scroll = self.scroller
-        if not scroll { return }
+        if !scroll { return }
 
         var  btn = self.find_child(ScrollButton.type, undef, false)
-        if not btn { return }
+        if !btn { return }
 
         var asz = self.arrow_size
 
         var bscale = (max(self.h - 2 * asz, 0) - btn.h) /
             (1 - scroll.get_v_scale())
 
-        var offset = (bscale > 0.001) and
-            (cy - asz) / bscale or 0
+        var offset = (bscale > 0.001) &&
+            (cy - asz) / bscale || 0
 
         scroll.set_v_scroll(offset * scroll.virt_h)
     },
 
     adjust_children: func(self) {
         var  scroll = self.scroller
-        if not scroll {
+        if !scroll {
             Widget::adjust_children(self)
             return
         }
 
         var  btn = self.find_child(ScrollButton.type, undef, false)
-        if not btn {
+        if !btn {
             Widget::adjust_children(self)
             return
         }
@@ -599,8 +599,8 @@ M.VScrollbar = register_type("VScrollbar", Scrollbar, {
 
         btn.h = max(btnh, bh)
 
-        var bscale = (scroll.get_v_scale() < 1) and
-            (max(sh - 2 * asz, 0) - btn.h) / (1 - scroll.get_v_scale()) or 1
+        var bscale = (scroll.get_v_scale() < 1) &&
+            (max(sh - 2 * asz, 0) - btn.h) / (1 - scroll.get_v_scale()) || 1
 
         btn.y = asz + scroll.get_v_offset() * bscale
         btn.adjust = btn.adjust & ~adjust.ALIGN_VMASK

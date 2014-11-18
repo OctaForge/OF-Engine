@@ -30,7 +30,7 @@ var ents, get_ents, get_highest_uid
     activated entities. External as "frame_handle".
 */
 M.handle_frame = func(millis, lastmillis) {
-    if not ents {
+    if !ents {
         ents = import core.entities.ents
         get_ents, get_highest_uid = ents.get_all, ents.get_highest_uid
     }
@@ -47,7 +47,7 @@ M.handle_frame = func(millis, lastmillis) {
     var storage = get_ents()
     for uid in 1 to get_highest_uid() {
         var ent = storage[uid]
-        if ent and not ent.deactivated and ent.__per_frame {
+        if ent && !ent.deactivated && ent.__per_frame {
             ent.__run(millis)
         }
     }

@@ -45,14 +45,14 @@ local check_match = function(ls, a, b, line)
 end
 
 local BinaryOps = {
-    ["or"] = 1,  ["and"] = 2,
-    ["<" ] = 3,  ["<=" ] = 3,  [">"  ] = 3, [">="] = 3,
-    ["=="] = 3,  ["!=" ] = 3,
+    ["||"] = 1,  ["&&"] = 2,
+    ["<" ] = 3,  ["<="] = 3,  [">"  ] = 3, [">="] = 3,
+    ["=="] = 3,  ["!="] = 3,
     ["~" ] = 4,
-    ["|" ] = 5,  ["^"  ] = 6,  ["&"  ] = 7,
-    ["<<"] = 8,  [">>" ] = 8,  [">>>"] = 8,
-    ["+" ] = 9,  ["-"  ] = 9,
-    ["*" ] = 10, ["/"  ] = 10, ["%"  ] = 10,
+    ["|" ] = 5,  ["^" ] = 6,  ["&"  ] = 7,
+    ["<<"] = 8,  [">>"] = 8,  [">>>"] = 8,
+    ["+" ] = 9,  ["-" ] = 9,
+    ["*" ] = 10, ["/" ] = 10, ["%"  ] = 10,
     -- unary here --
     ["**"] = 12
 }
@@ -62,7 +62,7 @@ local RightAss = {
 }
 
 local UnaryOps = {
-    ["-"] = 11, ["not"] = 11, ["~"] = 11
+    ["-"] = 11, ["!"] = 11, ["~"] = 11
 }
 
 local parse_expr, parse_simple_expr
@@ -227,7 +227,7 @@ end
 local parse_cond_expr
 
 local parse_cond_sexpr = function(ls, ast)
-    if ls.token.name == "not" then
+    if ls.token.name == "!" then
         ls:get()
         return not parse_cond_expr(ls, ast, 3)
     elseif ls.token.name == "(" then
@@ -249,19 +249,19 @@ parse_cond_expr = function(ls, ast, mp)
     local lhs = parse_cond_sexpr(ls, ast)
     while true do
         local op, p = ls.token.name
-        if op == "or" then
+        if op == "||" then
             p = 1
-        elseif op == "and" then
+        elseif op == "&&" then
             p = 2
         else
             break
         end
         if p < mp then break end
         ls:get()
-        if op == "and" then
+        if op == "&&" then
             local rhs = parse_cond_expr(ls, ast, p + 1)
             lhs = lhs and rhs
-        elseif op == "or" then
+        elseif op == "||" then
             local rhs = parse_cond_expr(ls, ast, p + 1)
             lhs = lhs or rhs
         end

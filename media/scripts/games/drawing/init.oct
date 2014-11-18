@@ -39,9 +39,9 @@ var colors = [
 
 var Player = ents.Player
 
-@[not server] var SPARK = quadrenderer("spark", "media/particle/spark",
+@[!server] var SPARK = quadrenderer("spark", "media/particle/spark",
         particles.flags.FLIP | particles.flags.BRIGHT)
-@[not server] var STREAK = taperenderer("streak", "media/particle/flare",
+@[!server] var STREAK = taperenderer("streak", "media/particle/flare",
         particles.flags.BRIGHT)
 
 /** Object: GamePlayer
@@ -80,7 +80,7 @@ var GamePlayer = Player.clone({
         Called on entity activation. Connects a callback to state data
         change of new_mark.
     */
-    __activate: @[not server,func(self, kwargs) {
+    __activate: @[!server,func(self, kwargs) {
         Player::__activate(self, kwargs)
         self.marks = []
         self.color_id = 0
@@ -98,13 +98,13 @@ var GamePlayer = Player.clone({
     /** Function: __run
         Called every frame. It goes over the marks and draws everything.
     */
-    __run: @[not server,func(self, millis) {
+    __run: @[!server,func(self, millis) {
         Player::__run(self, millis)
         var last = undef
         var marks = self.marks
 
         for i, mark in marks.each() {
-            if last and mark and mark.x >= 0 and last.x >= 0 {
+            if last && mark && mark.x >= 0 && last.x >= 0 {
                 var r, g, b = hextorgb(mark.w)
                 flare(STREAK, mark, last, r / 255, g / 255, b / 255, 0, 1)
                 flare(STREAK, last, mark, r / 255, g / 255, b / 255, 0, 1)
@@ -112,10 +112,10 @@ var GamePlayer = Player.clone({
             last = mark
         }
 
-        var newb =     marks.empty() or not marks[marks.len() - 2]
-        var conb = not marks.empty() and    marks[marks.len() - 2]
+        var newb =     marks.empty() || !marks[marks.len() - 2]
+        var conb = !marks.empty() &&    marks[marks.len() - 2]
 
-        if conb and not self.stop_batch {
+        if conb && !self.stop_batch {
             var mark = marks[marks.len() - 2]
             var r, g, b = hextorgb(mark.w)
             splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
@@ -125,7 +125,7 @@ var GamePlayer = Player.clone({
             var newp = input::get_target_position()
             var topl = self.get_attr("position").sub_new(newp)
             newp.add(topl.normalize())
-            if newb or marks[marks.len() - 2].dist(newp) > 5 {
+            if newb || marks[marks.len() - 2].dist(newp) > 5 {
                 self.set_attr("new_mark", newp.to_array())
             }
         }
@@ -144,18 +144,18 @@ ents::register_prototype(ents.Obstacle, [ health.plugins.area ],
 
 day_manager::setup([ day_manager.plugins.day_night ])
 
-@[not server] {
+@[!server] {
     inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy) {
         var ent = ents::get(uid)
-        if ent and ent.click {
+        if ent && ent.click {
             return ent.click(btn, down, x, y, z, cx, cy)
         }
         if btn == 1 {
             ents::get_player().pressing   = down
             ents::get_player().stop_batch = false
-        } else if btn == 2 and down {
+        } else if btn == 2 && down {
             ents::get_player().reset_mark()
-        } else if btn == 3 and down {
+        } else if btn == 3 && down {
             ents::get_player().next_color()
         }
     })

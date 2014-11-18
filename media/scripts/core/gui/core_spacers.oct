@@ -36,9 +36,9 @@ var gen_setter = M.gen_setter
 */
 M.Spacer = register_type("Spacer", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.pad_h = kwargs.pad_h or 0
-        self.pad_v = kwargs.pad_v or 0
+        kwargs = kwargs || {}
+        self.pad_h = kwargs.pad_h || 0
+        self.pad_v = kwargs.pad_v || 0
 
         return Widget::__ctor(self, kwargs)
     },
@@ -92,11 +92,11 @@ M.Spacer = register_type("Spacer", Widget, {
 */
 M.Filler = register_type("Filler", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.min_w = kwargs.min_w or 0
-        self.min_h = kwargs.min_h or 0
+        kwargs = kwargs || {}
+        self.min_w = kwargs.min_w || 0
+        self.min_h = kwargs.min_h || 0
 
-        self.clip_children = kwargs.clip_children or false
+        self.clip_children = kwargs.clip_children || false
 
         return Widget::__ctor(self, kwargs)
     },
@@ -127,7 +127,7 @@ M.Filler = register_type("Filler", Widget, {
         surfaces (when they should be invisible). See also {{$Widget.target}}.
     */
     target: func(self, cx, cy) {
-        return Widget::target(self, cx, cy) or self
+        return Widget::target(self, cx, cy) || self
     },
 
     draw: func(self, sx, sy) {
@@ -165,8 +165,8 @@ var Filler = M.Filler
 */
 M.TextFiller = register_type("TextFiller", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.console_text = kwargs.console_text or false
+        kwargs = kwargs || {}
+        self.console_text = kwargs.console_text || false
         return Filler::__ctor(self, kwargs)
     },
 
@@ -192,9 +192,9 @@ M.TextFiller = register_type("TextFiller", Filler, {
 */
 M.Offsetter = register_type("Offsetter", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.offset_h = kwargs.offset_h or 0
-        self.offset_v = kwargs.offset_v or 0
+        kwargs = kwargs || {}
+        self.offset_h = kwargs.offset_h || 0
+        self.offset_v = kwargs.offset_v || 0
 
         return Widget::__ctor(self, kwargs)
     },

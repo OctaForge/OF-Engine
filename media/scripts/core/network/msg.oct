@@ -47,7 +47,7 @@ var send = M.send
     message title and a message text.
 */
 M.show_client_message = @[server,func(cn, title, text) {
-    cn = typeof cn == "table" and cn.cn or cn
+    cn = typeof cn == "table" && cn.cn || cn
     assert(cn)
     send(cn, capi.personal_servmsg, title, text)
 }]

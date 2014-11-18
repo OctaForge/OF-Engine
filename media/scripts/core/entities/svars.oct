@@ -37,12 +37,12 @@ var StateVariable, StateVariableAlias, StateInteger, StateFloat,
 
 /// Checks whether the given value is a state variable.
 M.is_svar = func(v) {
-    return (typeof v == "table" and v.is_a) and v.is_a(StateVariable)
+    return (typeof v == "table" && v.is_a) && v.is_a(StateVariable)
 }
 
 /// Checks whether the given value is a state variable alias.
 M.is_svar_alias = func(v) {
-    return (typeof v == "table" and v.is_a) and v.is_a(StateVariableAlias)
+    return (typeof v == "table" && v.is_a) && v.is_a(StateVariableAlias)
 }
 
 var define_accessors = func(cl, n, gf, sf, d) {
@@ -101,19 +101,19 @@ M.StateVariable = Object.clone({
     __ctor: func(self, kwargs) {
         @[debug] log(INFO, "StateVariable: init")
 
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
-        self.client_read    = kwargs.client_read    or true
-        self.client_write   = kwargs.client_write   or true
-        self.client_set     = kwargs.client_set     or false
-        self.client_private = kwargs.client_private or false
+        self.client_read    = kwargs.client_read    || true
+        self.client_write   = kwargs.client_write   || true
+        self.client_set     = kwargs.client_set     || false
+        self.client_private = kwargs.client_private || false
 
-        self.custom_sync = kwargs.custom_sync or false
+        self.custom_sync = kwargs.custom_sync || false
 
         self.gui_name, self.alt_name = kwargs.gui_name, kwargs.alt_name
 
-        self.reliable    = kwargs.reliable    or true
-        self.has_history = kwargs.has_history or true
+        self.reliable    = kwargs.reliable    || true
+        self.has_history = kwargs.has_history || true
 
         self.getter_fun = kwargs.getter
         self.setter_fun = kwargs.setter
@@ -153,7 +153,7 @@ M.StateVariable = Object.clone({
         }
         var gn = self.gui_name
         if gn != false {
-            cl["_SV_GUI_" ~ (gn or name)] = self
+            cl["_SV_GUI_" ~ (gn || name)] = self
         }
     },
 
@@ -163,7 +163,7 @@ M.StateVariable = Object.clone({
         assertion if on the client and client_read is false.
     */
     read_tests: func(self, ent) {
-        assert(self.client_read or @[server,true,false])
+        assert(self.client_read || @[server,true,false])
     },
 
     /**
@@ -179,7 +179,7 @@ M.StateVariable = Object.clone({
                  "(" ~ ent.uid ~ ")")
         }
 
-        assert(self.client_write or @[server,true,false])
+        assert(self.client_write || @[server,true,false])
         assert(ent.initialized)
     },
 
@@ -205,9 +205,9 @@ M.StateVariable = Object.clone({
 
         var fr = frame::get_frame()
 
-        if not svar.getter_fun
-            or @[server,self.svar_change_queue]
-            or self.svar_value_timestamps[vn] == fr
+        if !svar.getter_fun
+            || @[server,self.svar_change_queue]
+            || self.svar_value_timestamps[vn] == fr
         {
             return self.svar_values[vn]
         }
@@ -253,7 +253,7 @@ M.StateVariable = Object.clone({
             - tcn - target client number.
     */
     should_send: func(self, ent, tcn) {
-        return (not self.client_private) or (ent.cn == tcn)
+        return (!self.client_private) || (ent.cn == tcn)
     },
 
     /**
@@ -312,7 +312,7 @@ M.StateBoolean = StateVariable.clone({
     name: "StateBoolean",
 
     to_wire  : func(self, val) { return tostring(val) },
-    from_wire: func(self, val) { return val == "true" and true or false }
+    from_wire: func(self, val) { return val == "true" && true || false }
 })
 StateBoolean = M.StateBoolean
 
@@ -369,7 +369,7 @@ M.ArraySurrogate = {
     new: func(self, ent, svar) {
         @[debug] log(INFO, "ArraySurrogate: new: " ~ svar.name)
         var rawt = { entity: ent, variable: svar }
-        rawt.rawt = rawt // yay! cycles!
+        rawt.rawt = rawt // yay!cycles!
         var ret = newproxy(true)
         var mt  = getmt(ret)
         mt.__tostring = self.__tostring
@@ -394,12 +394,12 @@ M.ArraySurrogate = {
             return self.len()
         }
         var n = tonumber(name)
-        if not n {
-            return ArraySurrogate[name] or rawget(self.rawt, name)
+        if !n {
+            return ArraySurrogate[name] || rawget(self.rawt, name)
         }
         var i = floor(n)
         if i != n {
-            return ArraySurrogate[name] or rawget(self.rawt, name)
+            return ArraySurrogate[name] || rawget(self.rawt, name)
         }
 
         var v = self.variable
@@ -415,7 +415,7 @@ M.ArraySurrogate = {
     */
     __newindex: func(self, name, val) {
         var n = tonumber(name)
-        if not n { return rawset(self.rawt, name, val) }
+        if !n { return rawset(self.rawt, name, val) }
         var i = floor(n)
         if i != n { return rawset(self.rawt, name, val) }
 
@@ -490,10 +490,10 @@ M.StateArray = StateVariable.clone({
     getter: func(self, svar) {
         svar.read_tests(self)
 
-        if not svar.get_raw(self) { return undef }
+        if !svar.get_raw(self) { return undef }
 
         var n = "__as_" ~ svar.name
-        if not self[n] { self[n] = svar.surrogate.new(self, svar) }
+        if !self[n] { self[n] = svar.surrogate.new(self, svar) }
         return self[n]
     },
 
@@ -510,7 +510,7 @@ M.StateArray = StateVariable.clone({
         svar.write_tests(self)
 
         self.set_sdata(svar.name,
-            val.to_array and val.to_array() or val.copy(), -1)
+            val.to_array && val.to_array() || val.copy(), -1)
     },
 
     /** Function: to_wire_item
@@ -534,13 +534,13 @@ M.StateArray = StateVariable.clone({
         array or an array surrogate.
     */
     to_wire: func(self, val) {
-        return "[" ~ (val.to_array and val.to_array() or val)
+        return "[" ~ (val.to_array && val.to_array() || val)
             .map(self.to_wire_item).concat(self.separator) ~ "]"
     },
 
     /// Converts a string in a format given by $to_wire back to a table.
     from_wire: func(self, val) {
-        return (val == "[]") and [] or val.sub(1, val.len() - 1)
+        return (val == "[]") && [] || val.sub(1, val.len() - 1)
             .split(self.separator).map(self.from_wire_item)
     },
 
@@ -554,13 +554,13 @@ M.StateArray = StateVariable.clone({
         var vn = self.name
         @[debug] log(INFO, "StateArray: get_raw: " ~ vn)
 
-        if not self.getter_fun {
-            return ent.svar_values[vn] or []
+        if !self.getter_fun {
+            return ent.svar_values[vn] || []
         }
 
         var fr = frame::get_frame()
 
-        if @[server,ent.svar_change_queue] or ent.svar_value_timestamps[vn] == fr
+        if @[server,ent.svar_change_queue] || ent.svar_value_timestamps[vn] == fr
         {
             return ent.svar_values[vn]
         }
@@ -594,7 +594,7 @@ M.StateArray = StateVariable.clone({
     _get_raw_common: func(self, ent, val) {
         var a = self.get_raw(ent)
         if typeof val == "string" {
-            assert(not val.find("%" ~ self.separator))
+            assert(!val.find("%" ~ self.separator))
         }
         return a
     },

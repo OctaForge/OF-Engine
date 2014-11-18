@@ -24,7 +24,7 @@ var ents
         - uid - the client entity uid.
 */
 set_external("physics_off_map", func(uid) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     emit(ents::get(uid), "off_map")
 })
 
@@ -38,7 +38,7 @@ set_external("physics_off_map", func(uid) {
         - mat - the material id (see $edit).
 */
 set_external("physics_in_deadly", func(uid, mat) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     emit(ents::get(uid), "in_deadly", mat)
 })
 
@@ -68,7 +68,7 @@ var FLAG_BELOWGROUND = 2 << 4
 set_external("physics_state_change", func(uid, loc, flevel, llevel, mat) {
     @[server] { return }
 
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     var ent = ents::get(uid)
 
     var flags = 0
@@ -99,7 +99,7 @@ from std.environ import globals
     storage table.
 */
 set_external("event_text_message", func(uid, text) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     emit(ents::get_all(), "event_text_message", uid, text)
 })
 
@@ -110,7 +110,7 @@ set_external("event_text_message", func(uid, text) {
     entity as an argument on the entities storage table.
 */
 set_external("event_player_login", func(uid) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     emit(ents::get_all(), "event_player_login", uid)
 })
 }

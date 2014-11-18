@@ -61,7 +61,7 @@ M.player_plugin = {
 
     game_manager_spawn_stage_0: func(self, auid) { },
 
-    game_manager_spawn_stage_1: @[not server,func(self, auid) {
+    game_manager_spawn_stage_1: @[!server,func(self, auid) {
         self.set_attr("spawn_stage", 2)
     },func(self, auid) { }],
 
@@ -72,7 +72,7 @@ M.player_plugin = {
         self.cancel_sdata_update()
     },func(self, auid) { }],
 
-    game_manager_spawn_stage_3: @[not server,func(self, auid) {
+    game_manager_spawn_stage_3: @[!server,func(self, auid) {
         if self == ents::get_player() {
             emit(self, "client,respawn")
             self.set_attr("spawn_stage", 4)
@@ -145,7 +145,7 @@ var GameManager = Entity.clone({
     }],
 
     sync_team_data: @[server,func(self) {
-        if not self.deactivated {
+        if !self.deactivated {
             self.set_attr("team_data", self.teams)
         }
     }],
@@ -168,11 +168,11 @@ var GameManager = Entity.clone({
             st = "player_start_" ~ team
         }
         var starts = ents::get_by_tag(st)
-        if starts and starts.len() > 0 {
+        if starts && starts.len() > 0 {
             starts[rand(0, starts.len())].place_entity(player)
             return
         }
-        log::log(log.WARNING, 'player start not found (\"%s\"), '
+        log::log(log.WARNING, 'player start !found (\"%s\"), '
                               'placing player elsewhere'.format(st))
         player.set_attr("position", [ 512, 512, 571 ])
     },
@@ -187,7 +187,7 @@ var gameman
 
 /// Gets the current game manager instance.
 M.get = func() {
-    if not gameman {
+    if !gameman {
         gameman = ents::get_by_prototype("GameManager").first()
     }
     assert(gameman)

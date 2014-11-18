@@ -15,5 +15,5 @@ import games.octacraft
 game_manager::setup()
 
 // this function will run on server only (condition inside it)
-// it loads the entities into server storage and sends to clients
+// it loads the entities into server storage && sends to clients
 ents::load()

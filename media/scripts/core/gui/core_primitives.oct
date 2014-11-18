@@ -62,7 +62,7 @@ var gen_setter = M.gen_setter
 var Filler = M.Filler
 
 var init_color = func(col) {
-    return col and (typeof col == "number" and Color(col) or col) or Color()
+    return col && (typeof col == "number" && Color(col) || col) || Color()
 }
 
 var gen_color_setter = func(name) {
@@ -85,8 +85,8 @@ var gen_color_setter = func(name) {
 */
 M.ColorFiller = register_type("ColorFiller", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs       = kwargs or {}
-        self.solid = kwargs.solid != false and true or false
+        kwargs       = kwargs || {}
+        self.solid = kwargs.solid != false && true || false
         self.color = init_color(kwargs.color)
 
         return Filler::__ctor(self, kwargs)
@@ -95,7 +95,7 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
     draw: func(self, sx, sy) {
         var w, h, color, solid in self
 
-        if not solid { gl_blend_func(gl.ZERO, gl.SRC_COLOR) }
+        if !solid { gl_blend_func(gl.ZERO, gl.SRC_COLOR) }
         shader_hudnotexture_set()
         color.init()
 
@@ -110,7 +110,7 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
         gle_end()
         gle_color4f(1, 1, 1, 1)
         shader_hud_set()
-        if not solid {
+        if !solid {
             gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         }
 
@@ -143,7 +143,7 @@ M.Gradient = register_type("Gradient", ColorFiller, {
     draw: func(self, sx, sy) {
         var w, h, color, color2, solid, horizontal in self
 
-        if not solid { gl_blend_func(gl.ZERO, gl.SRC_COLOR) }
+        if !solid { gl_blend_func(gl.ZERO, gl.SRC_COLOR) }
         shader_hudnotexture_set()
 
         gle_defvertexf(2)
@@ -167,7 +167,7 @@ M.Gradient = register_type("Gradient", ColorFiller, {
 
         gle_end()
         shader_hud_set()
-        if not solid {
+        if !solid {
             gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         }
 
@@ -189,7 +189,7 @@ M.Gradient = register_type("Gradient", ColorFiller, {
 */
 M.Line = register_type("Line", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.color = init_color(kwargs.color)
         return Filler::__ctor(self, kwargs)
     },
@@ -222,7 +222,7 @@ M.Line = register_type("Line", Filler, {
 */
 M.Outline = register_type("Outline", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.color = init_color(kwargs.color)
         return Filler::__ctor(self, kwargs)
     },
@@ -284,16 +284,16 @@ var check_alpha_mask = func(tex, x, y) {
 */
 M.Image = register_type("Image", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs    = kwargs or {}
-        var tex = kwargs.file and texture_load(kwargs.file)
+        kwargs    = kwargs || {}
+        var tex = kwargs.file && texture_load(kwargs.file)
 
         var notexture = texture_get_notexture()
         var af = kwargs.alt_file
-        if (not tex or tex == notexture) and af {
+        if (!tex || tex == notexture) && af {
             tex = texture_load(af)
         }
 
-        self.texture = tex or notexture
+        self.texture = tex || notexture
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
         self.color = init_color(kwargs.color)
@@ -312,12 +312,12 @@ M.Image = register_type("Image", Filler, {
         disables the texture (sets the texture to notexture).
     */
     set_tex: func(self, file, alt) {
-        if not file {
+        if !file {
             self.texture = texture_get_notexture()
             return
         }
         var tex = texture_load(file)
-        if  tex == texture_get_notexture() and alt {
+        if  tex == texture_get_notexture() && alt {
             tex = texture_load(alt)
         }
         self.texture = tex
@@ -332,8 +332,8 @@ M.Image = register_type("Image", Filler, {
         if    o { return o }
 
         var tex = self.texture
-        return (tex.bpp < 32 or check_alpha_mask(tex, cx / self.w,
-                                                       cy / self.h)) and self
+        return (tex.bpp < 32 || check_alpha_mask(tex, cx / self.w,
+                                                       cy / self.h)) && self
     },
 
     draw: func(self, sx, sy) {
@@ -348,10 +348,10 @@ M.Image = register_type("Image", Filler, {
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 {
+        if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         }
-        if magf and magf != 0 {
+        if magf && magf != 0 {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
 
@@ -382,7 +382,7 @@ M.Image = register_type("Image", Filler, {
         if min_w == huge { min_w = proj.pw }
         if min_h == huge { min_h = proj.ph }
 
-        if  min_w == 0 or min_h == 0 {
+        if  min_w == 0 || min_h == 0 {
             var tex = self.texture
             if min_w == 0 { min_w = r.get_ui_size(tex.w) }
             if min_h == 0 { min_h = r.get_ui_size(tex.h) }
@@ -410,7 +410,7 @@ var Image = M.Image
 */
 M.Texture = register_type("Texture", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.texture_id = kwargs.texture_id
         return Filler::__ctor(self, kwargs)
     },
@@ -457,7 +457,7 @@ var get_border_size = func(tex, size, vert) {
     if size >= 0 {
         return size
     }
-    return abs(size) / (vert and tex.ys or tex.xs)
+    return abs(size) / (vert && tex.ys || tex.xs)
 }
 
 /**
@@ -470,15 +470,15 @@ var get_border_size = func(tex, size, vert) {
 */
 M.CroppedImage = register_type("CroppedImage", Image, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
         Image::__ctor(self, kwargs)
         var tex = self.texture
 
-        self.crop_x = get_border_size(tex, kwargs.crop_x or 0, false)
-        self.crop_y = get_border_size(tex, kwargs.crop_y or 0, true)
-        self.crop_w = get_border_size(tex, kwargs.crop_w or 1, false)
-        self.crop_h = get_border_size(tex, kwargs.crop_h or 1, true)
+        self.crop_x = get_border_size(tex, kwargs.crop_x || 0, false)
+        self.crop_y = get_border_size(tex, kwargs.crop_y || 0, true)
+        self.crop_w = get_border_size(tex, kwargs.crop_w || 1, false)
+        self.crop_h = get_border_size(tex, kwargs.crop_h || 1, true)
     },
 
     target: func(self, cx, cy) {
@@ -486,9 +486,9 @@ M.CroppedImage = register_type("CroppedImage", Image, {
         if    o { return o }
 
         var tex = self.texture
-        return (tex.bpp < 32 or check_alpha_mask(tex,
+        return (tex.bpp < 32 || check_alpha_mask(tex,
             self.crop_x + cx / self.w * self.crop_w,
-            self.crop_y + cy / self.h * self.crop_h)) and self
+            self.crop_y + cy / self.h * self.crop_h)) && self
     },
 
     draw: func(self, sx, sy) {
@@ -502,10 +502,10 @@ M.CroppedImage = register_type("CroppedImage", Image, {
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 {
+        if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         }
-        if magf and magf != 0 {
+        if magf && magf != 0 {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
 
@@ -574,7 +574,7 @@ M.StretchedImage = register_type("StretchedImage", Image, {
         } else if cy >= ph - mh / 2 { my = 1 - (ph - cy) / mh
         } else {  my = 0.5 }
 
-        return check_alpha_mask(self.texture, mx, my) and self
+        return check_alpha_mask(self.texture, mx, my) && self
     },
 
     draw: func(self, sx, sy) {
@@ -588,10 +588,10 @@ M.StretchedImage = register_type("StretchedImage", Image, {
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 {
+        if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         }
-        if magf and magf != 0 {
+        if magf && magf != 0 {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
 
@@ -603,8 +603,8 @@ M.StretchedImage = register_type("StretchedImage", Image, {
 
         var mw, mh, pw, ph = self._min_w, self._min_h, self.w, self.h
 
-        var splitw = (mw != 0 and min(mw, pw) or pw) / 2
-        var splith = (mh != 0 and min(mh, ph) or ph) / 2
+        var splitw = (mw != 0 && min(mw, pw) || pw) / 2
+        var splith = (mh != 0 && min(mh, ph) || ph) / 2
         var vy, ty = sy, 0
 
         for i in 1 to 3 {
@@ -663,10 +663,10 @@ M.StretchedImage = register_type("StretchedImage", Image, {
 */
 M.BorderedImage = register_type("BorderedImage", Image, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         Image::__ctor(self, kwargs)
-        self.tex_border = get_border_size(self.texture, kwargs.tex_border or 0)
-        self.screen_border = kwargs.screen_border or 0
+        self.tex_border = get_border_size(self.texture, kwargs.tex_border || 0)
+        self.screen_border = kwargs.screen_border || 0
     },
 
     layout: func(self) {
@@ -698,7 +698,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         } else if cy >= ph - sb { my = 1 - tb + (cy - (ph - sb)) / sb * tb
         } else {  my = tb + (cy - sb) / (ph - 2 * sb) * (1 - 2 * tb) }
 
-        return check_alpha_mask(tex, mx, my) and self
+        return check_alpha_mask(tex, mx, my) && self
     },
 
     draw: func(self, sx, sy) {
@@ -712,10 +712,10 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 {
+        if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         }
-        if magf and magf != 0 {
+        if magf && magf != 0 {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
 
@@ -773,10 +773,10 @@ M.BorderedImage = register_type("BorderedImage", Image, {
 */
 M.TiledImage = register_type("TiledImage", Image, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
-        self.tile_w = kwargs.tile_w or 1
-        self.tile_h = kwargs.tile_h or 1
+        self.tile_w = kwargs.tile_w || 1
+        self.tile_h = kwargs.tile_h || 1
 
         return Image::__ctor(self, kwargs)
     },
@@ -792,7 +792,7 @@ M.TiledImage = register_type("TiledImage", Image, {
         var tw, th = self.tile_w, self.tile_h
         var dx, dy = cx % tw, cy % th
 
-        return check_alpha_mask(tex, dx / tw, dy / th) and self
+        return check_alpha_mask(tex, dx / tw, dy / th) && self
     },
 
     draw: func(self, sx, sy) {
@@ -806,10 +806,10 @@ M.TiledImage = register_type("TiledImage", Image, {
         shader_hud_set_variant(tex)
         gl_bind_texture(tex.id)
 
-        if minf and minf != 0 {
+        if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         }
-        if magf and magf != 0 {
+        if magf && magf != 0 {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
 
@@ -861,10 +861,10 @@ M.TiledImage = register_type("TiledImage", Image, {
 */
 M.Thumbnail = register_type("Thumbnail", Image, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.file = kwargs.file
-        self.texture = kwargs.fallback and texture_load(kwargs.fallback)
-            or texture_get_notexture()
+        self.texture = kwargs.fallback && texture_load(kwargs.fallback)
+            || texture_get_notexture()
 
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
@@ -920,14 +920,14 @@ M.Thumbnail = register_type("Thumbnail", Image, {
 */
 M.SlotViewer = register_type("SlotViewer", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.index = kwargs.index or 0
+        kwargs = kwargs || {}
+        self.index = kwargs.index || 0
 
         return Filler::__ctor(self, kwargs)
     },
 
     target: func(self, cx, cy) {
-        return Widget::target(self, cx, cy) or self
+        return Widget::target(self, cx, cy) || self
     },
 
     draw: func(self, sx, sy) {
@@ -959,10 +959,10 @@ M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
 */
 M.ModelViewer = register_type("ModelViewer", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.model = kwargs.model
-        self.anim = kwargs.anim or 0
-        self.attachments = kwargs.attachments or []
+        self.anim = kwargs.anim || 0
+        self.attachments = kwargs.attachments || []
 
         return Filler::__ctor(self, kwargs)
     },
@@ -987,7 +987,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
     draw: func(self, sx, sy) {
         var w, h in self
         var root = self.get_root()
-        var csl = not root._clip_stack.empty()
+        var csl = !root._clip_stack.empty()
         if csl { gl_scissor_disable() }
         var sx1, sy1, sx2, sy2 = root.get_projection().calc_scissor(sx, sy,
             sx + w, sy + h)
@@ -1024,7 +1024,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
 */
 M.PrefabViewer = register_type("PrefabViewer", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.prefab = kwargs.prefab
         self.color  = init_color(kwargs.color)
 
@@ -1033,10 +1033,10 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
 
     draw: func(self, sx, sy) {
         var prefab = self.prefab
-        if not prefab { return Widget::draw(self, sx, sy) }
+        if !prefab { return Widget::draw(self, sx, sy) }
         var w, h in self
         var root = self.get_root()
-        var csl = not root._clip_stack.empty()
+        var csl = !root._clip_stack.empty()
         if csl { gl_scissor_disable() }
         var sx1, sy1, sx2, sy2 = root.get_projection().calc_scissor(sx, sy,
             sx + w, sy + h)
@@ -1097,8 +1097,8 @@ M.Shape = register_type("Shape", Filler, {
     MODULATE: MODULATE,
 
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.style = kwargs.style or 0
+        kwargs = kwargs || {}
+        self.style = kwargs.style || 0
         self.color = init_color(kwargs.color)
         return Filler::__ctor(self, kwargs)
     },
@@ -1120,8 +1120,8 @@ var Shape = M.Shape
 */
 M.Triangle = register_type("Triangle", Shape, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.angle = kwargs.angle or 0
+        kwargs = kwargs || {}
+        self.angle = kwargs.angle || 0
         return Shape::__ctor(self, kwargs)
     },
 
@@ -1171,8 +1171,8 @@ M.Triangle = register_type("Triangle", Shape, {
         var a, b, c = self.ta, self.tb, self.tc
         var side = Vec2(cx, cy).sub(b).cross(Vec2(a).sub(b)) < 0
         return ((Vec2(cx, cy).sub(c).cross(Vec2(b).sub(c)) < 0) == side
-            and (Vec2(cx, cy).sub(a).cross(Vec2(c).sub(a)) < 0) == side)
-            and self or undef
+            && (Vec2(cx, cy).sub(a).cross(Vec2(c).sub(a)) < 0) == side)
+            && self || undef
     },
 
     draw: func(self, sx, sy) {
@@ -1181,7 +1181,7 @@ M.Triangle = register_type("Triangle", Shape, {
         shader_hudnotexture_set()
         color.init()
         gle_defvertexf(2)
-        gle_begin(style == OUTLINE and gl.LINE_LOOP or gl.TRIANGLES)
+        gle_begin(style == OUTLINE && gl.LINE_LOOP || gl.TRIANGLES)
         gle_attrib2f(Vec2(sx, sy).add(self.ta).unpack())
         gle_attrib2f(Vec2(sx, sy).add(self.tb).unpack())
         gle_attrib2f(Vec2(sx, sy).add(self.tc).unpack())
@@ -1209,8 +1209,8 @@ M.Triangle = register_type("Triangle", Shape, {
 */
 M.Circle = register_type("Circle", Shape, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.sides = kwargs.sides or 15
+        kwargs = kwargs || {}
+        self.sides = kwargs.sides || 15
         return Shape::__ctor(self, kwargs)
     },
 
@@ -1219,7 +1219,7 @@ M.Circle = register_type("Circle", Shape, {
         if o { return o }
         if self.style == OUTLINE { return undef }
         var r = min(self.w, self.h)
-        return (Vec2(cx, cy).sub(r).squared_len() <= (r * r)) and self or undef
+        return (Vec2(cx, cy).sub(r).squared_len() <= (r * r)) && self || undef
     },
 
     draw: func(self, sx, sy) {
@@ -1276,12 +1276,12 @@ M.Circle = register_type("Circle", Shape, {
 */
 M.Label = register_type("Label", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
-        self.text  = kwargs.text  or ""
-        self.font  = kwargs.font  or undef
-        self.scale = kwargs.scale or  1
-        self.wrap  = kwargs.wrap  or -1
+        self.text  = kwargs.text  || ""
+        self.font  = kwargs.font  || undef
+        self.scale = kwargs.scale ||  1
+        self.wrap  = kwargs.wrap  || -1
         self.color = init_color(kwargs.color)
 
         return Widget::__ctor(self, kwargs)
@@ -1291,7 +1291,7 @@ M.Label = register_type("Label", Widget, {
         Labels are always targetable. See also {{$Widget.target}}.
     */
     target: func(self, cx, cy) {
-        return Widget::target(self, cx, cy) or self
+        return Widget::target(self, cx, cy) || self
     },
 
     draw_scale: func(self) {
@@ -1313,7 +1313,7 @@ M.Label = register_type("Label", Widget, {
         var text = tostring(self.text)
         var color = self.color
         text_draw(text, sx / k, sy / k,
-            color.r, color.g, color.b, color.a, -1, w <= 0 and -1 or w / k)
+            color.r, color.g, color.b, color.a, -1, w <= 0 && -1 || w / k)
 
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
@@ -1330,7 +1330,7 @@ M.Label = register_type("Label", Widget, {
         var k = self.draw_scale()
 
         var w, h = text_get_bounds(self.text,
-            self.wrap <= 0 and -1 or self.wrap / k)
+            self.wrap <= 0 && -1 || self.wrap / k)
 
         if self.wrap <= 0 {
             self.w = max(self.w, w * k)
@@ -1364,18 +1364,18 @@ M.Label = register_type("Label", Widget, {
 */
 M.EvalLabel = register_type("EvalLabel", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
-        self.callback = kwargs.callback or undef
-        self.scale    = kwargs.scale    or  1
-        self.wrap     = kwargs.wrap     or -1
+        self.callback = kwargs.callback || undef
+        self.scale    = kwargs.scale    ||  1
+        self.wrap     = kwargs.wrap     || -1
         self.color    = init_color(kwargs.color)
 
         return Widget::__ctor(self, kwargs)
     },
 
     target: func(self, cx, cy) {
-        return Widget::target(self, cx, cy) or self
+        return Widget::target(self, cx, cy) || self
     },
 
     draw_scale: func(self) {
@@ -1386,7 +1386,7 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
 
     draw: func(self, sx, sy) {
         var  val = self.val_saved
-        if not val { return Widget::draw(self, sx, sy) }
+        if !val { return Widget::draw(self, sx, sy) }
 
         var k = self.scale_saved
         hudmatrix_push()
@@ -1394,10 +1394,10 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
         hudmatrix_flush()
 
         var w = self.wrap
-        var text = tostring(val) or ""
+        var text = tostring(val) || ""
         var color = self.color
         text_draw(text, sx / k, sy / k,
-            color.r, color.g, color.b, color.a, -1, w <= 0 and -1 or w / k)
+            color.r, color.g, color.b, color.a, -1, w <= 0 && -1 || w / k)
 
         gle_color4f(1, 1, 1, 1)
         hudmatrix_pop()
@@ -1409,15 +1409,15 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
         Widget::layout(self)
 
         var  cmd = self.callback
-        if not cmd { return }
+        if !cmd { return }
         var val = cmd(self)
         self.val_saved = val
 
         var k = self.draw_scale()
         self.scale_saved = k
 
-        var w, h = text_get_bounds(val or "",
-            self.wrap <= 0 and -1 or self.wrap / k)
+        var w, h = text_get_bounds(val || "",
+            self.wrap <= 0 && -1 || self.wrap / k)
 
         if self.wrap <= 0 {
             self.w = max(self.w, w * k)

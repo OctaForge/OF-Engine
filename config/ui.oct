@@ -149,7 +149,7 @@ root.new_window("main", gui.Window, func(win) {
                         color: 0x88FF88 }),
                     gui::Filler({ min_h: 0.01, clamp_h: true }),
                     gui::Label({ text: 'Daniel \f1"q66"\f7 Kolesa' }),
-                    gui::Label({ text: "project leader and main programmer",
+                    gui::Label({ text: "project leader && main programmer",
                         scale: 0.8 }),
                     gui::Filler({ min_h: 0.008, clamp_h: true }),
                     gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
@@ -161,7 +161,7 @@ root.new_window("main", gui.Window, func(win) {
                         color: 0x88FF88 }),
                     gui::Filler({ min_h: 0.01, clamp_h: true }),
                     gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
-                    gui::Label({ text: "and others",  scale: 0.8 }),
+                    gui::Label({ text: "&& others",  scale: 0.8 }),
                     gui::Filler({ min_h: 0.01, clamp_h: true }),
                     gui::Label({ text: "And Syntensity created by:",
                         color: 0x88FF88 }),
@@ -174,7 +174,7 @@ root.new_window("main", gui.Window, func(win) {
                     gui::Label({ text: 'Wouter \f1"aardappel"\f7 van '
                         ~ 'Oortmerssen' }),
                     gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
-                    gui::Label({ text: "and others",  scale: 0.8 })
+                    gui::Label({ text: "&& others",  scale: 0.8 })
                 ] }) ]
             }))
         })
@@ -345,7 +345,7 @@ var guimovetile = func(grid, i, j, step, hdir, vdir) {
 }
 
 var movetile = func(grid, off, hdir, vdir) {
-    var dir = (hdir != 0) and hdir or (vdir * 4)
+    var dir = (hdir != 0) && hdir || (vdir * 4)
     var lbeg, lend, lstart
     if dir < 0 {
         if hdir != 0 {
@@ -369,7 +369,7 @@ var movetile = func(grid, off, hdir, vdir) {
                 break
             }
         }
-        if nnz and not jm and tiles[nnz + off - 1] == tiles[i + off - 1] {
+        if nnz && !jm && tiles[nnz + off - 1] == tiles[i + off - 1] {
             jm = true
             tiles[nnz + off - 1] += tiles[i + off - 1]
             tiles[i + off - 1] = 0
@@ -409,7 +409,7 @@ var movetiles = func(grid, h, v) {
 var gamestates = {
     (-1): "2048 (game over, score: %d)",
     ( 0): "2048 (score: %d)",
-    ( 1): "2048 (you won! score: %d)"
+    ( 1): "2048 (you won!score: %d)"
 }
 
 var seededtiles = false
@@ -441,7 +441,7 @@ root.new_window("2048", gui.Window, func(win) {
                 if gamestate < 0 {
                     totalscore, gamestate, seededtiles, tiles = 0, 0, false, []
                 }
-                if not seededtiles {
+                if !seededtiles {
                     seedtiles()
                     seededtiles = true
                 }

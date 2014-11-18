@@ -48,15 +48,15 @@ var ALIGN_MASK = adjust.ALIGN_MASK
 */
 M.State = register_type("State", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.state = kwargs.state
         return Widget::__ctor(self, kwargs)
     },
 
     choose_state: func(self) {
         var  state = self.state
-        if not state { return }
-        return (typeof state == "string") and state or state(self)
+        if !state { return }
+        return (typeof state == "string") && state || state(self)
     },
 
     /// Function: set_state
@@ -77,13 +77,13 @@ M.State = register_type("State", Widget, {
 */
 M.Mover = register_type("Mover", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.window = kwargs.window
         return Widget::__ctor(self, kwargs)
     },
 
     hover: func(self, cx, cy) {
-        return self.target(cx, cy) and self
+        return self.target(cx, cy) && self
     },
 
     click: func(self, cx, cy, code) {
@@ -91,11 +91,11 @@ M.Mover = register_type("Mover", Widget, {
             return Widget::click(self, cx, cy, code)
         }
         var  w = self.window
-        if not w { return self.target(cx, cy) and self }
+        if !w { return self.target(cx, cy) && self }
         var c = w.parent.children
         var n  =  c.find(w)
         if  n != (c.len() - 1) { c.push(c.remove(n)) }
-        return self.target(cx, cy) and self
+        return self.target(cx, cy) && self
     },
 
     can_move: func(self, cx, cy) {
@@ -103,17 +103,17 @@ M.Mover = register_type("Mover", Widget, {
         var wp = win.parent
 
         // no parent means root; we don't need checking for non-mdi windows
-        if not wp.parent { return true }
+        if !wp.parent { return true }
 
         var rx, ry, p = self.x, self.y, wp
         while true {
             rx, ry = rx + p.x, ry + p.y
             var  pp = p.parent
-            if not pp { break }
+            if !pp { break }
             p    = pp
         }
 
-        if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) {
+        if cx < rx || cy < ry || cx > (rx + wp.w) || cy > (ry + wp.h) {
             // avoid bugs; stop moving when cursor is outside
             self.clear_focus()
             return false
@@ -130,7 +130,7 @@ M.Mover = register_type("Mover", Widget, {
 
     holding: func(self, cx, cy, code) {
         var w = self.window
-        if w and w.floating and code == key.MOUSELEFT and self.can_move() {
+        if w && w.floating && code == key.MOUSELEFT && self.can_move() {
             // dealign so that adjust_layout doesn't fuck with x/y
             w.adjust &= ~ALIGN_MASK
             w.x += cx - self.ox
@@ -164,10 +164,10 @@ var Filler = M.Filler
 */
 M.ProgressBar = register_type("ProgressBar", Filler, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.value = kwargs.value or 0
+        kwargs = kwargs || {}
+        self.value = kwargs.value || 0
         self.bar = kwargs.bar
-        self.label = kwargs.label or "%d%%"
+        self.label = kwargs.label || "%d%%"
         return Filler::__ctor(self, kwargs)
     },
 
@@ -193,7 +193,7 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
 M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
     adjust_children: func(self) {
         var bar = self.bar
-        if not bar { return Widget::adjust_children(self) }
+        if !bar { return Widget::adjust_children(self) }
         bar.x = 0
         bar.w = max(min(self.w, self.w * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_HMASK
@@ -205,7 +205,7 @@ M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
 M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
     adjust_children: func(self) {
         var bar = self.bar
-        if not bar { return Widget::adjust_children(self) }
+        if !bar { return Widget::adjust_children(self) }
         bar.y = 0
         bar.h = max(min(self.h, self.h * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_VMASK
@@ -234,10 +234,10 @@ var move_funcs = {
 M.Animator = register_type("Animator", Widget, {
     __ctor: func(self, kwargs) {
         self.move_func    = kwargs.move_func
-        self.move_time    = kwargs.move_time   or 2000
-        self.move_dist_x  = kwargs.move_dist_x or undef
-        self.move_dist_y  = kwargs.move_dist_y or undef
-        self.move_speed   = kwargs.move_speed  or 0.2
+        self.move_time    = kwargs.move_time   || 2000
+        self.move_dist_x  = kwargs.move_dist_x || undef
+        self.move_dist_y  = kwargs.move_dist_y || undef
+        self.move_speed   = kwargs.move_speed  || 0.2
         self.reset()
         return Widget::__ctor(self, kwargs)
     },
@@ -253,12 +253,12 @@ M.Animator = register_type("Animator", Widget, {
         var distx = self.move_dist_x
         var disty = self.move_dist_y
 
-        if distx or disty {
+        if distx || disty {
             var progx, progy = 1, 1
-            if distx and distx != 0 {
+            if distx && distx != 0 {
                 progx = self.move_moved_x / distx
             }
-            if disty and disty != 0 {
+            if disty && disty != 0 {
                 progy = self.move_moved_y / disty
             }
             return min(progx, progy)
@@ -281,7 +281,7 @@ M.Animator = register_type("Animator", Widget, {
     },
 
     layout: func(self) {
-        if not self.started { return Widget::layout(self) }
+        if !self.started { return Widget::layout(self) }
 
         var prog = self.get_progress()
         if prog >= 1.0 {

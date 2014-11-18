@@ -34,7 +34,7 @@ M.Timer = Object:clone {
     */
     __ctor: func(self, interval, carry_over) {
         self.interval   = interval
-        self.carry_over = carry_over or false
+        self.carry_over = carry_over || false
         self.sum        = 0
     },
 
@@ -53,7 +53,7 @@ M.Timer = Object:clone {
         var sum = self.sum + millis
         var interval = self.interval
         if sum >= interval {
-            self.sum = self.carry_over and (sum - interval) or 0
+            self.sum = self.carry_over && (sum - interval) || 0
             return true
         } else {
             self.sum = sum

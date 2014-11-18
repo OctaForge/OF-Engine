@@ -32,7 +32,7 @@ var connect, emit = signal.connect, signal.emit
     This module adds three new animations, "dead", "dying" and "pain",
     on the client. They're stored in this enumeration.
 */
-var anims = @[not server,enum {
+var anims = @[!server,enum {
     dead : model::register_anim("dead"),
     dying: model::register_anim("dying"),
     pain : model::register_anim("pain")
@@ -45,7 +45,7 @@ M.anims = anims
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
 */
-var PainAction = @[not server,eactions.LocalAnimationAction.clone({
+var PainAction = @[!server,eactions.LocalAnimationAction.clone({
     name           : "PainAction",
     millis_left    : 600,
     local_animation: anims.pain,
@@ -122,7 +122,7 @@ M.player_plugin = {
         var ret = self.__parent_ent_proto::get_animation(self)
         var INDEX, idle = model.anims.INDEX, model.anims.idle
         if self.get_attr("health") > 0 {
-            if (ret & INDEX) == anims.dying or (ret & INDEX) == anims.dead {
+            if (ret & INDEX) == anims.dying || (ret & INDEX) == anims.dead {
                 self.set_local_animation(idle | model.anim_control.LOOP)
                 self.prev_bt = undef
                 ret = self.get_attr("animation")
@@ -137,7 +137,7 @@ M.player_plugin = {
     decide_base_time: func(self, anim) {
         if (anim & model.anims.INDEX) == anims.dying {
             var pbt = self.prev_bt
-            if not pbt {
+            if !pbt {
                 pbt = frame::get_last_millis()
                 self.prev_bt = pbt
             }
@@ -150,13 +150,13 @@ M.player_plugin = {
         Overriden so that the "dying" animation can be used when health is 0
         (and "dead" when at least 1 second after death).
     */
-    decide_animation: @[not server,func(self, ...) {
+    decide_animation: @[!server,func(self, ...) {
         if self.get_attr("health") > 0 {
             return self.__parent_ent_proto::decide_animation(self, ...)
         } else {
             var anim
             var pbt = self.prev_bt
-            if pbt and (frame::get_last_millis() - pbt) > 1000 {
+            if pbt && (frame::get_last_millis() - pbt) > 1000 {
                 anim = anims.dead | model.anim_control.LOOP
             } else {
                 anim = anims.dying
@@ -168,7 +168,7 @@ M.player_plugin = {
     health_on_health: func(self, health, server_orig) {
         var oh = self.old_health
         self.old_health = health
-        if not oh { return }
+        if !oh { return }
         self.health_changed(health, health - oh, server_orig)
     },
 
@@ -191,7 +191,7 @@ M.player_plugin = {
     health_changed: @[server,func(self, health, diff, server_orig) {
         if health <= 0 { self.enqueue_action(DeathAction()) }
     },func(self, health, diff, server_orig) {
-        if diff <= -5 and health > 0 {
+        if diff <= -5 && health > 0 {
             self.enqueue_action(PainAction())
         }
     }],
@@ -204,7 +204,7 @@ M.player_plugin = {
     */
     health_add: func(self, amount) {
         var ch = self.get_attr("health")
-        if ch > 0 and amount != 0 {
+        if ch > 0 && amount != 0 {
             var mh = self.get_attr("max_health")
             self.set_attr("health", min(mh, max(0, ch + amount)))
         }
@@ -218,15 +218,15 @@ M.player_plugin = {
     spawned (the spawn stage must be 0).
 */
 var is_valid_target = func(ent) {
-    if not ent or ent.deactivated { return false }
+    if !ent || ent.deactivated { return false }
 
     var cs = ent.get_attr("client_state")
-    if cs == 3 or cs == 4 { return false } // editing, lagged
+    if cs == 3 || cs == 4 { return false } // editing, lagged
 
-    var health, sstage = ent.get_attr("health"     ) or 0,
-                            ent.get_attr("spawn_stage") or 0
+    var health, sstage = ent.get_attr("health"     ) || 0,
+                            ent.get_attr("spawn_stage") || 0
 
-    return health > 0 and sstage == 0
+    return health > 0 && sstage == 0
 }
 M.is_valid_target = is_valid_target
 
@@ -292,11 +292,11 @@ M.plugins = {
     
                 if step_millis < 0 {
                     var oldhealth = collider.get_attr("health")
-                    collider.set_attr("health", step < 0 and 0
-                        or max(oldhealth, collider.get_attr("max_health")))
+                    collider.set_attr("health", step < 0 && 0
+                        || max(oldhealth, collider.get_attr("max_health")))
                 } else {
                     var prev = self.health_previous_act
-                    if not prev or prev.finished {
+                    if !prev || prev.finished {
                         self.health_previous_act = collider.enqueue_action(
                             HealthAction({ millis_left: step_millis,
                                 health_step: step }))
@@ -305,7 +305,7 @@ M.plugins = {
             }
         },
 
-        __activate: @[not server,func(self) {
+        __activate: @[!server,func(self) {
             signal::connect(self, "collision", self.health_area_on_collision)
         }]
     },
@@ -314,7 +314,7 @@ M.plugins = {
         Displays a simple HUD health status on the player.
     */
     player_hud: {
-        __activate: @[not server,func(self) {
+        __activate: @[!server,func(self) {
             gui::get_hud().append(gui::Spacer({ pad_h: 0.1, pad_v: 0.1,
                 align_h: 1, align_v: 1
             }), func(sp) {
@@ -336,16 +336,16 @@ M.plugins = {
             })
         }],
 
-        __deactivate: @[not server,func(self) {
+        __deactivate: @[!server,func(self) {
             self.health_hud_status.destroy()
         }]
     },
 
     /// Kills the player when he falls off the map.
     player_off_map: {
-        __activate: @[not server,func(self) {
+        __activate: @[!server,func(self) {
             connect(self, "off_map", func(ent) {
-                if not is_valid_target(ent) { return }
+                if !is_valid_target(ent) { return }
                 ent.set_attr("health", 0)
             })
         }]
@@ -356,9 +356,9 @@ M.plugins = {
         material and gradually when in lava.
     */
     player_in_deadly_material: {
-        __activate: @[not server,func(self) {
+        __activate: @[!server,func(self) {
             connect(self, "in_deadly", func(ent, mat) {
-                if not is_valid_target(ent) { return }
+                if !is_valid_target(ent) { return }
                 if mat == edit.material.LAVA {
                     ent.health_add(-1)
                 } else {

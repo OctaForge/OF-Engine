@@ -67,6 +67,6 @@ return {
     */
     add: func(tp, op, sp, rad, r, g, b, inf) {
         capi::stain_add(tp, op.x, op.y, op.z, sp.x, sp.y, sp.z, rad, r, g, b,
-            inf or 0)
+            inf || 0)
     }
 }

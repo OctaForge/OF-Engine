@@ -50,7 +50,7 @@ var DayManager = Entity.clone({
     }],
 
     __run: func(self, millis) {
-        @[not server] { return }
+        @[!server] { return }
         Entity::__run(self, millis)
         var dm = self.day_seconds_s * 1000
         if dm == 0 { return }
@@ -66,7 +66,7 @@ var dayman
 
 /// Gets the day manager instance.
 M.get = func() {
-    if not dayman {
+    if !dayman {
         dayman = ents::get_by_prototype("DayManager").first()
     }
     assert(dayman)
@@ -98,8 +98,8 @@ var getsunscale = func(dayprog) {
     // is day and night (and affect actual seasons)
     var r1, r2 = 0.67, 0.75 // dusk: 4 - 6 hrs
     var d1, d2 = 0.25, 0.33 // dawn: 6 - 8 hrs
-    if dayprog > d2 and dayprog < r1 { return 1 }
-    if dayprog > r2  or dayprog < d1 { return 0 }
+    if dayprog > d2 && dayprog < r1 { return 1 }
+    if dayprog > r2 || dayprog < d1 { return 0 }
     if dayprog > r1 {
         return (r2 - dayprog) / (r2 - r1)
     }
@@ -127,13 +127,13 @@ M.plugins = {
         by manipulating the sunlight yaw and pitch.
     */
     day_night: {
-        __activate: @[not server,func(self) {
+        __activate: @[!server,func(self) {
             var daylen
             connect(self, "day_seconds,changed", func(self, v) {
                 daylen = v
             })
             connect(self, "day_progress,changed", func(self, v) {
-                if not daylen { return }
+                if !daylen { return }
                 if edit::player_is_editing() { return }
                 self.sun_changed_dir = true
                 var yaw, pitch, scale = getsunparams(v, daylen * 1000)
@@ -143,8 +143,8 @@ M.plugins = {
             })
         }],
 
-        __run: @[not server,func(self) {
-            if self.sun_changed_dir and edit::player_is_editing() {
+        __run: @[!server,func(self) {
+            if self.sun_changed_dir && edit::player_is_editing() {
                 lights::reset_sun()
                 self.sun_changed_dir = false
             }

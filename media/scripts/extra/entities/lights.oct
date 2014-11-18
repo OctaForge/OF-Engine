@@ -54,7 +54,7 @@ var DynamicLight = Marker.clone({
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
     */
-    __run: @[not server,func(self, millis) {
+    __run: @[!server,func(self, millis) {
         Marker::__run(self, millis)
         var pos = self.get_attr("position")
         light_add(pos, self.get_attr("radius"),
@@ -94,12 +94,12 @@ M.FlickeringLight = DynamicLight.clone({
         self.set_attr("max_delay",   300, nd[6])
     },
 
-    __activate: @[not server,func(self, kwargs) {
+    __activate: @[!server,func(self, kwargs) {
         Marker::__activate(self, kwargs)
         self.delay = 0
     }],
 
-    __run: @[not server,func(self, millis) {
+    __run: @[!server,func(self, millis) {
         var d = self.delay - millis
         if  d <= 0 {
             d = max(floor(random() * self.get_attr("max_delay")),

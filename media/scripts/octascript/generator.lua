@@ -84,8 +84,8 @@ end
 local bool_const_eval
 
 local bool_apply = function(op, lhs, rhs)
-    if     op == "and" then return lhs and rhs
-    elseif op == "or"  then return lhs or  rhs
+    if     op == "&&" then return lhs and rhs
+    elseif op == "||" then return lhs or  rhs
     end
 end
 
@@ -106,7 +106,7 @@ local BoolRules = {
     end,
 
     UnaryExpression = function(node)
-        if node.operator == "not" then
+        if node.operator == "!" then
             local v = bool_const_eval(node.argument)
             if v ~= nil then return not v end
         end
@@ -498,9 +498,9 @@ local ExpressionRule = {
         self.ctx.freereg = free
         if o == "-" then
             self.ctx:op_unm(dest, a)
-        --elseif o == "not" then
+        --elseif o == "!" then
         --    self.ctx:op_not(dest, a)
-        elseif o == "not" then
+        elseif o == "!" then
             local l, al1, al2 = util.genid(), util.genid(), util.genid()
             self.ctx:op_comp("NE", a, "P", self.ctx:kpri(false), al1, free, false)
             self.ctx:op_load(dest, true)
@@ -520,7 +520,7 @@ local ExpressionRule = {
     end,
 
     LogicalExpression = function(self, node, dest, jreg)
-        local negate = (node.operator == "or")
+        local negate = (node.operator == "||")
         local lstore = store_bit(negate)
         local l = util.genid()
         self:test_emit(node.left, l, jreg, negate, lstore, dest)
@@ -818,7 +818,7 @@ local TestRule = {
     end,
 
     UnaryExpression = function(self, node, jmp, jreg, negate, store, dest)
-        --if node.operator == "not" and store == 0 then
+        --if node.operator == "!" and store == 0 then
         --    self:test_emit(node.argument, jmp, jreg, not negate)
         --else
             self:expr_test(node, jmp, jreg, negate, store,
@@ -827,7 +827,7 @@ local TestRule = {
     end,
 
     LogicalExpression = function(self, node, jmp, jreg, negate, store, dest)
-        local or_operator = (node.operator == "or")
+        local or_operator = (node.operator == "||")
         local lstore = bit.band(store, store_bit(or_operator))
         local imbranch = xor(negate, or_operator)
         if imbranch then

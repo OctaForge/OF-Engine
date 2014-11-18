@@ -110,12 +110,12 @@ var lastwtype = 0
         - ftype - the "type" field, by default it just assigns is a new type.
 */
 M.register_type = func(name, base, obj, ftype) {
-    if not ftype {
+    if !ftype {
         lastwtype = lastwtype + 1
         ftype = lastwtype
     }
-    base = base or wtypes_by_type[1]
-    obj = obj or {}
+    base = base || wtypes_by_type[1]
+    obj = obj || {}
     obj.type = ftype
     obj.name = name
     obj = base.clone(obj)
@@ -154,8 +154,8 @@ M.loop_children = func(self, fun) {
 
     var s = self.choose_state()
     if s != undef {
-        var  w = st[s] or st["default"]
-        if not w { w = vr[s] or vr["default"] }
+        var  w = st[s] || st["default"]
+        if !w { w = vr[s] || vr["default"] }
         if w {
             var a, b = fun(w)
             if a != undef { return a, b }
@@ -201,8 +201,8 @@ M.loop_children_r = func(self, fun) {
 
     var s = self.choose_state()
     if s != undef {
-        var  w = st[s] or st["default"]
-        if not w { w = vr[s] or vr["default"] }
+        var  w = st[s] || st["default"]
+        if !w { w = vr[s] || vr["default"] }
         if w {
             var a, b = fun(w)
             if a != undef { return a, b }
@@ -243,7 +243,7 @@ M.loop_in_children = func(self, cx, cy, fun, ins, useproj) {
         } else {
             ox, oy = cx - o.x, cy - o.y
         }
-        if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) {
+        if ins == false || (ox >= 0 && ox < o.w && oy >= 0 && oy < o.h) {
             var a, b = fun(o, ox, oy)
             if    a != undef { return a, b }
         }
@@ -264,7 +264,7 @@ M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj) {
         } else {
             ox, oy = cx - o.x, cy - o.y
         }
-        if ins == false or (ox >= 0 and ox < o.w and oy >= 0 and oy < o.h) {
+        if ins == false || (ox >= 0 && ox < o.w && oy >= 0 && oy < o.h) {
             var a, b = fun(o, ox, oy)
             if    a != undef { return a, b }
         }
@@ -305,8 +305,8 @@ M.ClipArea = ffi::metatype("clip_area_t", {
             is fully clipped by the clip area.
         */
         is_fully_clipped: func(self, x, y, w, h) {
-            return self.x1 == self.x2 or self.y1 == self.y2 or x >= self.x2 or
-                   y >= self.y2 or (x + w) <= self.x1 or (y + h) <= self.y1
+            return self.x1 == self.x2 || self.y1 == self.y2 || x >= self.x2 ||
+                   y >= self.y2 || (x + w) <= self.x1 || (y + h) <= self.y1
         },
 
         scissor: func(self, root) {
@@ -323,7 +323,7 @@ var ClipArea = M.ClipArea
     tx, ty, tw, th (defaulting to 0, 0, 1, 1).
 */
 M.draw_quad = func(x, y, w, h, tx, ty, tw, th) {
-    tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
+    tx, ty, tw, th = tx || 0, ty || 0, tw || 1, th || 1
     gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
     gle_attrib2f(x + w, y)     gle_attrib2f(tx + tw, ty)
     gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
@@ -336,7 +336,7 @@ var quad = M.draw_quad
     tx, ty, tw, th (defaulting to 0, 0, 1, 1). Used with triangle strip.
 */
 M.draw_quadtri = func(x, y, w, h, tx, ty, tw, th) {
-    tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
+    tx, ty, tw, th = tx || 0, ty || 0, tw || 1, th || 1
     gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
     gle_attrib2f(x + w, y)     gle_attrib2f(tx + tw, ty)
     gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
@@ -413,7 +413,7 @@ var Projection = Object.clone({
         gle_color3f(1, 1, 1)
 
         var obj = self.obj
-        obj.draw(sx or obj.x, sy or obj.y)
+        obj.draw(sx || obj.x, sy || obj.y)
 
         gl_blend_disable()
         root.set_projection(undef)
@@ -433,23 +433,23 @@ ffi::cdef(r"""
 var color_ctors = {
     0: func(self) { return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) },
     1: func(self, c) {
-        c = c or 0xFFFFFFFF
+        c = c || 0xFFFFFFFF
         var a = c >> 24
         return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
-            (a == 0) and 0xFF or a)
+            (a == 0) && 0xFF || a)
     },
     2: func(self, c, a) {
-        c = c or 0xFFFFFF
+        c = c || 0xFFFFFF
         return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
-            a or 0xFF)
+            a || 0xFF)
     },
     3: func(self, r, g, b) {
-        return ffi_new(self, r or 0xFF, g or 0xFF, b or 0xFF, 0xFF)
+        return ffi_new(self, r || 0xFF, g || 0xFF, b || 0xFF, 0xFF)
     }
 }
 
 var color_defctor = func(self, r, g, b, a) {
-    return ffi_new(self, r or 0xFF, g or 0xFF, b or 0xFF, a or 0xFF)
+    return ffi_new(self, r || 0xFF, g || 0xFF, b || 0xFF, a || 0xFF)
 }
 
 /**
@@ -478,7 +478,7 @@ M.Color = ffi::metatype("color_t", {
     */
     __new: func(self, ...) {
         var nargs = select("#", ...)
-        return (color_ctors[nargs] or color_defctor)(self, ...)
+        return (color_ctors[nargs] || color_defctor)(self, ...)
     },
 
     __index: {
@@ -608,17 +608,17 @@ M.Widget = register_type("Widget", Object, {
         widget.
     */
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
         var instances = rawget(self.__proto, "__instances")
-        if not instances {
+        if !instances {
             instances = {}
             rawset(self.__proto, "__instances", instances)
         }
         instances[self] = self
 
         var variants = rawget(self.__proto, "__variants")
-        if not variants {
+        if !variants {
             variants = {}
             rawset(self.__proto, "__variants", variants)
         }
@@ -631,26 +631,26 @@ M.Widget = register_type("Widget", Object, {
         self.adjust = adjust.ALIGN_CENTER
 
         // alignment and clamping
-        var align_h = kwargs.align_h or 0
-        var align_v = kwargs.align_v or 0
+        var align_h = kwargs.align_h || 0
+        var align_v = kwargs.align_v || 0
 
         // double negation turns the value into an equivalent boolean
-        var cl = not not kwargs.clamp
+        var cl = !!kwargs.clamp
         var clamp_l, clamp_r, clamp_b, clamp_t = cl, cl, cl, cl
 
         var clh, clv = kwargs.clamp_h, kwargs.clamp_v
-        if clh != undef { clamp_l, clamp_r = not not clh, not not clh }
-        if clv != undef { clamp_t, clamp_b = not not clv, not not clv }
+        if clh != undef { clamp_l, clamp_r = !!clh, !!clh }
+        if clv != undef { clamp_t, clamp_b = !!clv, !!clv }
 
         var cll, clr, clt, clb = kwargs.clamp_l, kwargs.clamp_r,
             kwargs.clamp_t, kwargs.clamp_b
-        if cll != undef { clamp_l = not not cll }
-        if clr != undef { clamp_r = not not clr }
-        if clt != undef { clamp_t = not not clt }
-        if clb != undef { clamp_b = not not clb }
+        if cll != undef { clamp_l = !!cll }
+        if clr != undef { clamp_r = !!clr }
+        if clt != undef { clamp_t = !!clt }
+        if clb != undef { clamp_b = !!clb }
 
-        self.floating = kwargs.floating or false
-        self.visible  = (kwargs.visible != false) and true or false
+        self.floating = kwargs.floating || false
+        self.visible  = (kwargs.visible != false) && true || false
 
         self.align(align_h, align_v)
         self.clamp(clamp_l, clamp_r, clamp_b, clamp_t)
@@ -666,11 +666,11 @@ M.Widget = register_type("Widget", Object, {
         // extra kwargs
         var variant = kwargs.variant
         if variant != false {
-            var dstates = variants[variant or "default"]
-            var props = dstates and dstates.__properties or undef
+            var dstates = variants[variant || "default"]
+            var props = dstates && dstates.__properties || undef
             if props { for i, v in props.each() {
                 assert(v.sub(0, 1) != "_", "invalid property " ~ v)
-                assert(not self["set_" ~ v] and self[v] == undef,
+                assert(!self["set_" ~ v] && self[v] == undef,
                     "cannot override existing property " ~ v)
                 self[v] = kwargs[v]
             } }
@@ -756,7 +756,7 @@ M.Widget = register_type("Widget", Object, {
         var vc, rvc = [], self.vchildren
         var st, rst = {}, self.states
         var vs, rvs = {}, self.vstates
-        var ic = initc and self.init_clone or undef
+        var ic = initc && self.init_clone || undef
         var cl = self.clone({ children: ch, vchildren: vc,
             states: st, vstates: vs })
         for i, c in rch.each() {
@@ -812,7 +812,7 @@ M.Widget = register_type("Widget", Object, {
         self.vchildren = vchildren
         if variant == false { return undef }
         var variants = rawget(self.__proto, "__variants")
-        var dstates = variants[variant or "default"]
+        var dstates = variants[variant || "default"]
         if dstates {
             var notvariants = {
                 "__properties": true, "__init": true,
@@ -839,9 +839,9 @@ M.Widget = register_type("Widget", Object, {
             var props = dstates.__properties
             if props { for i, v in props.each() {
                 var nm = "set_" ~ v
-                if not disable_asserts {
+                if !disable_asserts {
                     assert(v.sub(0, 1) != "_", "invalid property " ~ v)
-                    assert(not self[nm] and self[v] == undef,
+                    assert(!self[nm] && self[v] == undef,
                         "cannot override existing property " ~ v)
                 }
                 self[nm] = gen_setter(v)
@@ -851,7 +851,7 @@ M.Widget = register_type("Widget", Object, {
             if init { init(self) }
         }
         var cont = self.container
-        if cont and cont._cleared { self.container = undef }
+        if cont && cont._cleared { self.container = undef }
     },
 
     /**
@@ -871,14 +871,14 @@ M.Widget = register_type("Widget", Object, {
             - variant - optional (defaults to "default").
     */
     update_prototype_state: func(self, sname, sval, variant) {
-        variant = variant or "default"
+        variant = variant || "default"
         var dstates = rawget(self, "__variants")
-        if not dstates {
+        if !dstates {
             dstates = {}
             rawset(self, "__variants", dstates)
         }
         var variant = dstates[variant]
-        if not variant {
+        if !variant {
             variant = {}
             dstates[variant] = variant
         }
@@ -892,7 +892,7 @@ M.Widget = register_type("Widget", Object, {
             if v.variant == variant {
                 var st = sts[sname]
                 // update only on widgets actually using the default state
-                if st and st.__proto == oldstate {
+                if st && st.__proto == oldstate {
                     var ic = sval.init_clone
                     var nst = sval.deep_clone(v)
                     nst.parent = v
@@ -904,7 +904,7 @@ M.Widget = register_type("Widget", Object, {
                 }
             }
             var cont = v.container
-            if cont and cont._cleared { v.container = undef }
+            if cont && cont._cleared { v.container = undef }
         } }
     },
 
@@ -935,7 +935,7 @@ M.Widget = register_type("Widget", Object, {
         obj.parent = self
         obj._root  = self._root
         var cont = self.container
-        if cont and cont._cleared { self.container = undef }
+        if cont && cont._cleared { self.container = undef }
         self.state_changed(state, obj)
         return obj
     },
@@ -971,7 +971,7 @@ M.Widget = register_type("Widget", Object, {
         self.h = 0
 
         loop_children(self, func(o) {
-            if not o.floating { o.x, o.y = 0, 0 }
+            if !o.floating { o.x, o.y = 0, 0 }
             o.layout()
             self.w = max(self.w, o.x + o.w)
             self.h = max(self.h, o.y + o.h)
@@ -984,7 +984,7 @@ M.Widget = register_type("Widget", Object, {
         calls $adjust_layout on each child with those parameters.
     */
     adjust_children: func(self, px, py, pw, ph) {
-        px, py, pw, ph = px or 0, py or 0, pw or self.w, ph or self.h
+        px, py, pw, ph = px || 0, py || 0, pw || self.w, ph || self.h
         loop_children(self, func(o) { o.adjust_layout(px, py, pw, ph) })
     },
 
@@ -1042,7 +1042,7 @@ M.Widget = register_type("Widget", Object, {
     */
     target: func(self, cx, cy) {
         return loop_in_children_r(self, cx, cy, func(o, ox, oy) {
-            var c = o.visible and o.target(ox, oy) or undef
+            var c = o.visible && o.target(ox, oy) || undef
             if c { return c }
         })
     },
@@ -1064,13 +1064,13 @@ M.Widget = register_type("Widget", Object, {
     */
     key: func(self, code, isdown) {
         var tn = self.tab_next
-        if tn and code == key.TAB and self.is_focused() {
+        if tn && code == key.TAB && self.is_focused() {
             if isdown { tn.set_focused(true) }
             return true
         }
         return loop_children_r(self, func(o) {
-            if o.visible and o.key(code, isdown) { return true }
-        }) or false
+            if o.visible && o.key(code, isdown) { return true }
+        }) || false
     },
 
     /**
@@ -1087,8 +1087,8 @@ M.Widget = register_type("Widget", Object, {
     */
     key_raw: func(self, code, isdown) {
         return loop_children_r(self, func(o) {
-            if o.visible and o.key_raw(code, isdown) { return true }
-        }) or false
+            if o.visible && o.key_raw(code, isdown) { return true }
+        }) || false
     },
 
     /**
@@ -1103,8 +1103,8 @@ M.Widget = register_type("Widget", Object, {
     */
     text_input: func(self, str) {
         return loop_children_r(self, func(o) {
-            if o.visible and o.text_input(str) { return true }
-        }) or false
+            if o.visible && o.text_input(str) { return true }
+        }) || false
     },
 
     /**
@@ -1136,8 +1136,8 @@ M.Widget = register_type("Widget", Object, {
               of the current widget).
     */
     draw: func(self, sx, sy) {
-        sx = sx or self.x
-        sy = sy or self.y
+        sx = sx || self.x
+        sy = sy || self.y
         var root = self.get_root()
 
         loop_children(self, func(o) {
@@ -1145,8 +1145,8 @@ M.Widget = register_type("Widget", Object, {
             var oy = o.y
             var ow = o.w
             var oh = o.h
-            if not root.clip_is_fully_clipped(sx + ox, sy + oy, ow, oh)
-            and o.visible {
+            if !root.clip_is_fully_clipped(sx + ox, sy + oy, ow, oh)
+            && o.visible {
                 o.draw(sx + ox, sy + oy)
             }
         })
@@ -1168,12 +1168,12 @@ M.Widget = register_type("Widget", Object, {
         var w = self.get_root()
         var isw = (self == w)
         return loop_in_children_r(self, cx, cy, func(o, ox, oy) {
-            var c  = o.visible and o.hover(ox, oy) or undef
+            var c  = o.visible && o.hover(ox, oy) || undef
             if    c == o {
                 w._hover_x = ox
                 w._hover_y = oy
             }
-            if isw or c { return c }
+            if isw || c { return c }
         }, true, isw)
     },
 
@@ -1224,12 +1224,12 @@ M.Widget = register_type("Widget", Object, {
         var w = self.get_root()
         var isw = (self == w)
         return loop_in_children_r(self, cx, cy, func(o, ox, oy) {
-            var c  = o.visible and o.click(ox, oy, code) or undef
+            var c  = o.visible && o.click(ox, oy, code) || undef
             if    c == o {
                 w._click_x = ox
                 w._click_y = oy
             }
-            if isw or c { return c }
+            if isw || c { return c }
         }, true, isw)
     },
 
@@ -1279,10 +1279,10 @@ M.Widget = register_type("Widget", Object, {
             - $find_sibling
     */
     find_child: func(self, otype, name, recurse, exclude) {
-        recurse = (recurse == undef) and true or recurse
+        recurse = (recurse == undef) && true || recurse
         var o = loop_children(self, func(o) {
-            if o != exclude and o.type == otype and
-            (not name or name == o.obj_name) {
+            if o != exclude && o.type == otype &&
+            (!name || name == o.obj_name) {
                 return o
             }
         })
@@ -1306,11 +1306,11 @@ M.Widget = register_type("Widget", Object, {
         erased (all matches append).
     */
     find_children: func(self, otype, name, recurse, exclude, ret) {
-        var ch = ret or []
-        recurse = (recurse == undef) and true or recurse
+        var ch = ret || []
+        recurse = (recurse == undef) && true || recurse
         loop_children(self, func(o) {
-            if o != exclude and o.type == otype and
-            (not name or name == o.obj_name) {
+            if o != exclude && o.type == otype &&
+            (!name || name == o.obj_name) {
                 ch.push(o)
             }
         })
@@ -1352,7 +1352,7 @@ M.Widget = register_type("Widget", Object, {
 
     /// See $find_sibling. Equivalent to $find_children.
     find_siblings: func(self, otype, name, ret) {
-        var ch   = ret or []
+        var ch   = ret || []
         var prev = self
         var cur  = self.parent
 
@@ -1379,7 +1379,7 @@ M.Widget = register_type("Widget", Object, {
     */
     replace: func(self, tname, obj, fun) {
         var tag = self.find_child(Tag.type, tname)
-        if not tag { return false }
+        if !tag { return false }
         tag.destroy_children()
         tag.append(obj)
         if fun { fun(obj) }
@@ -1457,10 +1457,10 @@ M.Widget = register_type("Widget", Object, {
     */
     clamp: func(self, l, r, t, b) {
         self.adjust = (self.adjust & ~adjust.CLAMP_MASK)
-            | (l and adjust.CLAMP_LEFT   or 0)
-            | (r and adjust.CLAMP_RIGHT  or 0)
-            | (t and adjust.CLAMP_TOP    or 0)
-            | (b and adjust.CLAMP_BOTTOM or 0)
+            | (l && adjust.CLAMP_LEFT   || 0)
+            | (r && adjust.CLAMP_RIGHT  || 0)
+            | (t && adjust.CLAMP_TOP    || 0)
+            | (b && adjust.CLAMP_BOTTOM || 0)
     },
 
     /** Function: get_alignment
@@ -1474,12 +1474,12 @@ M.Widget = register_type("Widget", Object, {
     get_alignment: func(self) {
         var a   = self.adjust
         var adj = a & adjust.ALIGN_HMASK
-        var hal = (adj == adjust.ALIGN_LEFT) and -1 or
-            (adj == adjust.ALIGN_HCENTER and 0 or 1)
+        var hal = (adj == adjust.ALIGN_LEFT) && -1 ||
+            (adj == adjust.ALIGN_HCENTER && 0 || 1)
 
         adj = a & adjust.ALIGN_VMASK
-        var val = (adj == adjust.ALIGN_BOTTOM) and 1 or
-            (adj == adjust.ALIGN_VCENTER and 0 or -1)
+        var val = (adj == adjust.ALIGN_BOTTOM) && 1 ||
+            (adj == adjust.ALIGN_VCENTER && 0 || -1)
 
         return hal, val
     },
@@ -1550,8 +1550,8 @@ M.Widget = register_type("Widget", Object, {
             - $prepend
     */
     insert: func(self, pos, obj, fun, force_ch) {
-        var children = force_ch and self.children
-            or (self.container or self).children
+        var children = force_ch && self.children
+            || (self.container || self).children
         children.insert(pos, obj)
         obj.parent = self
         obj._root  = self._root
@@ -1563,8 +1563,8 @@ M.Widget = register_type("Widget", Object, {
         Like $insert, but appends to the end of the children list.
     */
     append: func(self, obj, fun, force_ch) {
-        var children = force_ch and self.children
-            or (self.container or self).children
+        var children = force_ch && self.children
+            || (self.container || self).children
         children.push(obj)
         obj.parent = self
         obj._root  = self._root
@@ -1576,8 +1576,8 @@ M.Widget = register_type("Widget", Object, {
         Like $insert, but prepends (inserts to the beginning of the list).
     */
     prepend: func(self, obj, fun, force_ch) {
-        var children = force_ch and self.children
-            or (self.container or self).children
+        var children = force_ch && self.children
+            || (self.container || self).children
         children.insert(0, obj)
         obj.parent = self
         obj._root  = self._root
@@ -1664,7 +1664,7 @@ M.Widget = register_type("Widget", Object, {
     */
     get_root: func(self) {
         var  rt = self._root
-        if not rt {
+        if !rt {
             // a recursive approach makes sure parents will
             // have their roots assigned (for later use - faster)
             var par = self.get_parent()
@@ -1697,7 +1697,7 @@ M.Widget = register_type("Widget", Object, {
     is_clicked: func(self, btn) {
         var clked = self.get_root()._clicked
         if btn {
-            return (self == clked) and (btn == clicked_code)
+            return (self == clked) && (btn == clicked_code)
         } else if self == clked {
             return clicked_code
         } else {
@@ -1741,7 +1741,7 @@ M.Widget = register_type("Widget", Object, {
     */
     get_projection: func(self, nonew) {
         var proj = self._projection
-        if proj or nonew { return proj }
+        if proj || nonew { return proj }
         proj = self.get_root().get_projection_object()(self)
         self._projection = proj
         return proj
@@ -1767,7 +1767,7 @@ Widget = M.Widget
 */
 M.NamedWidget = register_type("NamedWidget", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         self.obj_name = kwargs.name
         return Widget::__ctor(self, kwargs)
     },
@@ -1799,10 +1799,10 @@ Tag = M.Tag
 */
 M.Window = register_type("Window", NamedWidget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         var ig = kwargs.input_grab
-        self.input_grab = ig == undef and true or ig
-        self.above_hud = kwargs.above_hud or false
+        self.input_grab = ig == undef && true || ig
+        self.above_hud = kwargs.above_hud || false
         return NamedWidget::__ctor(self, kwargs)
     },
 
@@ -1881,7 +1881,7 @@ M.Root = register_type("Root", Widget, {
     grabs_input: func(self) {
         return loop_children_r(self, func(o) {
             if o.grabs_input() { return true }
-        }) or false
+        }) || false
     },
 
     adjust_children: func(self) {
@@ -1907,7 +1907,7 @@ M.Root = register_type("Root", Widget, {
         self.layout_dim()
 
         loop_children(self, func(o) {
-            if not o.floating { o.x, o.y = 0, 0 }
+            if !o.floating { o.x, o.y = 0, 0 }
             self.set_projection(o.get_projection())
             o.layout()
             self.set_projection(undef)
@@ -1917,16 +1917,16 @@ M.Root = register_type("Root", Widget, {
     },
 
     draw: func(self, sx, sy) {
-        sx = sx or self.x
-        sy = sy or self.y
+        sx = sx || self.x
+        sy = sy || self.y
 
         loop_children(self, func(o) {
             var ox = o.x
             var oy = o.y
             var ow = o.w
             var oh = o.h
-            if not self.clip_is_fully_clipped(sx + ox, sy + oy, ow, oh)
-            and o.visible {
+            if !self.clip_is_fully_clipped(sx + ox, sy + oy, ow, oh)
+            && o.visible {
                 o.get_projection().draw(sx + ox, sy + oy)
             }
         })
@@ -1990,7 +1990,7 @@ M.Root = register_type("Root", Widget, {
     */
     show_window: func(self, name) {
         var  g = self.windows[name]
-        if not g { return false }
+        if !g { return false }
         g()
         return true
     },
@@ -2008,7 +2008,7 @@ M.Root = register_type("Root", Widget, {
         var old = self.find_child(Window.type, name, false)
         if old { self.remove(old) }
         var win = self.windows[name]
-        if not win {
+        if !win {
             logger::log(logger.ERROR, "no such window: " ~ name)
             return false
         }
@@ -2031,7 +2031,7 @@ M.Root = register_type("Root", Widget, {
     */
     replace_in_window: func(self, wname, tname, obj, fun) {
         var win = self.find_child(Window.type, wname, false)
-        if not win { return false }
+        if !win { return false }
         return win.replace(tname, obj, fun)
     },
 
@@ -2069,9 +2069,9 @@ M.Root = register_type("Root", Widget, {
     */
     cursor_exists: func(self, update) {
         var cec = self.has_cursor
-        if not update { return cec }
+        if !update { return cec }
         var bce = cec
-        cec = self.grabs_input() or self.target(self.cursor_x * self.w,
+        cec = self.grabs_input() || self.target(self.cursor_x * self.w,
             self.cursor_y * self.h) != undef
         if bce != cec {
             self.has_cursor = cec
@@ -2166,7 +2166,7 @@ M.Root = register_type("Root", Widget, {
 
     _menus_drop: func(self, n) {
         var ms = self._menu_stack
-        n = n or ms.len()
+        n = n || ms.len()
         while n > 0 {
             var o = ms.pop()
             var op = o.parent
@@ -2198,7 +2198,7 @@ M.Root = register_type("Root", Widget, {
 
         o._clear_on_drop = clear_on_drop
 
-        var prevo = (ms.len() > 1) and ms[ms.len() - 2] or undef
+        var prevo = (ms.len() > 1) && ms[ms.len() - 2] || undef
 
         // initial layout to guess the bounds
         var proj = self.set_projection(o.get_projection())
@@ -2209,11 +2209,11 @@ M.Root = register_type("Root", Widget, {
 
         // parent projection (for correct offsets)
         var fw, fh
-        if not prevo {
+        if !prevo {
             var win = o.parent
             while true {
                 var p = win.parent
-                if not p.parent { break }
+                if !p.parent { break }
                 win = p
             }
             var proj = win.get_projection()
@@ -2244,8 +2244,8 @@ M.Root = register_type("Root", Widget, {
         }
 
         var hov = self._hovering
-        var dx, dy = hov and self._hover_x * fw or self._click_x * fw,
-                     hov and self._hover_y * fh or self._click_y * fh
+        var dx, dy = hov && self._hover_x * fw || self._click_x * fw,
+                     hov && self._hover_y * fh || self._click_y * fh
         // omx, omy: the base position of the new menu
         var omx, omy = cx * pw - dx, cy * ph - dy
 
@@ -2296,7 +2296,7 @@ M.Root = register_type("Root", Widget, {
     menu_click: func(self, o, cx, cy, code) {
         var proj = o.get_projection()
         var ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
-        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h {
+        if ox >= 0 && ox < o.w && oy >= 0 && oy < o.h {
             var cl = o.click(ox, oy, code)
             if cl == o { self._click_x, self._click_y = ox, oy }
             return true, cl
@@ -2308,7 +2308,7 @@ M.Root = register_type("Root", Widget, {
     menu_hover: func(self, o, cx, cy) {
         var proj = o.get_projection()
         var ox, oy = cx * proj.pw - o.x, cy * proj.ph - o.y
-        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h {
+        if ox >= 0 && ox < o.w && oy >= 0 && oy < o.h {
             var cl = o.hover(ox, oy)
             if cl == o { self._hover_x, self._hover_y = ox, oy }
             return true, cl
@@ -2381,7 +2381,7 @@ M.Root = register_type("Root", Widget, {
     },
 
     get_text_scale: func(self, con) {
-        return con and self._ctxt_scale or self._rtxt_scale
+        return con && self._ctxt_scale || self._rtxt_scale
     },
 
     /// Returns the projection object used by windows of this root.
@@ -2398,7 +2398,7 @@ M.Root = register_type("Root", Widget, {
         self.set_cursor(cx, cy)
 
         var tooltip = self._tooltip
-        if tooltip and tooltip._clear_on_drop {
+        if tooltip && tooltip._clear_on_drop {
             tooltip.clear()
             tooltip.parent.managed_objects[tooltip] = undef
         }
@@ -2406,7 +2406,7 @@ M.Root = register_type("Root", Widget, {
 
         self.calc_text_scale()
 
-        if self.cursor_exists() and self.visible {
+        if self.cursor_exists() && self.visible {
             var hovering_try
             var hk, hl
             var nhov = -1
@@ -2427,12 +2427,12 @@ M.Root = register_type("Root", Widget, {
             } else {
                 self._hovering = self.hover(self.cursor_x, self.cursor_y)
             }
-            if oldhov and oldhov != self._hovering {
+            if oldhov && oldhov != self._hovering {
                 oldhov.leaving(oldhx, oldhy)
             }
             if self._hovering {
                 var msl = ms.len()
-                if msl > 0 and nhov >= 0 and (msl - 1) > nhov {
+                if msl > 0 && nhov >= 0 && (msl - 1) > nhov {
                     self._menus_drop(msl - nhov + 1)
                 }
                 self._menu_nhov = nhov
@@ -2447,7 +2447,7 @@ M.Root = register_type("Root", Widget, {
                         self._clicked)
                     if hx { break }
                 }
-                if not hx {
+                if !hx {
                     hx, hy = self.hold(self.cursor_x, self.cursor_y,
                         self._clicked)
                 }
@@ -2485,7 +2485,7 @@ M.Root = register_type("Root", Widget, {
     */
     reset: func(self) {
         self.destroy_children()
-        if self._tooltip and self._tooltip._clear_on_drop {
+        if self._tooltip && self._tooltip._clear_on_drop {
             self._tooltip.clear()
             self._tooltip.parent.managed_objects[self._tooltip] = undef
         }
@@ -2516,13 +2516,13 @@ var mousebuttons = {
 }
 
 set_external("input_keypress", func(code, isdown) {
-    if not root.cursor_exists() or not root.visible {
+    if !root.cursor_exists() || !root.visible {
         return false
     }
     if root.key_raw(code, isdown) {
         return true
     }
-    if root._hovering and root._hovering.key_hover(code, isdown) {
+    if root._hovering && root._hovering.key_hover(code, isdown) {
         return true
     }
     if mousebuttons[code] {
@@ -2531,7 +2531,7 @@ set_external("input_keypress", func(code, isdown) {
             var clicked_try
             var ck, cl
             var ms = root._menu_stack
-            if not ms.empty() {
+            if !ms.empty() {
                 for i, v in ms.each_r() {
                     ck, cl = root.menu_click(v, root.cursor_x, root.cursor_y,
                         code)
@@ -2540,7 +2540,7 @@ set_external("input_keypress", func(code, isdown) {
                         break
                     }
                 }
-                if not ck { root._menus_drop() }
+                if !ck { root._menus_drop() }
             }
             if ck {
                 root._clicked = clicked_try
@@ -2561,7 +2561,7 @@ set_external("input_keypress", func(code, isdown) {
                         root.cursor_y, root._clicked)
                     if hx { break }
                 }
-                if not hx {
+                if !hx {
                     hx, hy = root.hold(root.cursor_x, root.cursor_y,
                         root._clicked)
                 }
@@ -2587,7 +2587,7 @@ signal::connect(cs, "mainmenu,changed", func(self, v) {
 
 set_external("gui_clear", func() {
     root.reset()
-    if mmenu != 0 and isconnected() {
+    if mmenu != 0 && isconnected() {
         var_set("mainmenu", 0, true, false)
     }
     if draw_hud {
@@ -2597,12 +2597,12 @@ set_external("gui_clear", func() {
 })
 
 set_external("gui_update", func() {
-    if mmenu != 0 and not root.window_visible("main") and
-    not isconnected(true) {
+    if mmenu != 0 && !root.window_visible("main") &&
+    !isconnected(true) {
         root.show_window("main")
     }
 
-    draw_hud = (mmenu == 0 and editing_get() == 0) and hud.visible or false
+    draw_hud = (mmenu == 0 && editing_get() == 0) && hud.visible || false
 
     var cx, cy = input_cursor_get_x(), input_cursor_get_y()
 
@@ -2631,7 +2631,7 @@ M.__draw_window = func(win) {
 
 set_external("gui_render", func() {
     var w = root
-    if draw_hud or (w.visible and not w.children.empty()) {
+    if draw_hud || (w.visible && !w.children.empty()) {
         w.draw()
         if draw_hud { hud.get_projection().draw() }
         gle_disable()

@@ -18,14 +18,14 @@ var emit = signal.emit
 var M = {
     __connect: func(self, name) {
         var  vn = name.find_match("(.+),changed$")
-        if not vn { return }
+        if !vn { return }
         capi::var_make_emit(vn, true)
     },
 
     __disconnect: func(self, name, id, scount) {
         if scount == 0 {
             var  vn = name.find_match("(.+),changed$")
-            if not vn { return }
+            if !vn { return }
             capi::var_make_emit(vn, false)
         }
     }
@@ -88,7 +88,7 @@ M.var_new = capi.var_new
         - $var_new
 */
 M.var_new_checked = func(varn, ...) {
-    if not capi::var_exists(varn) {
+    if !capi::var_exists(varn) {
         capi::var_new(varn, ...)
         return true
     }

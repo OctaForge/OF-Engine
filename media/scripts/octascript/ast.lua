@@ -506,7 +506,7 @@ M.UnaryExpression = Expression:clone {
     properties = {
         operator = {
             type = "enum",
-            values = { "not", "-", "~" },
+            values = { "!", "-", "~" },
         },
         argument = "Expression"
     },
@@ -552,7 +552,7 @@ M.BinaryExpression = Expression:clone {
     logical_properties = {
         operator = {
             type = "enum",
-            values = { "and", "or" }
+            values = { "&&", "||" }
         },
         left = "Expression",
         right = "Expression"
@@ -568,7 +568,7 @@ M.BinaryExpression = Expression:clone {
             self.terms = terms
             self.line = lhs.line
         else
-            if op == "and" or op == "or" then
+            if op == "&&" or op == "||" then
                 self.kind = "LogicalExpression"
                 self.properties = self.logical_properties
             else

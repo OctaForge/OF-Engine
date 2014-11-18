@@ -34,8 +34,8 @@ var btnv_init_clone = func(self, btn) {
 var btn_build_variant = \color -> gui::Gradient({
     color: 0x202020, color2: 0x101010, clamp_h: true,
     init_clone: func(self, btn) {
-        self.set_min_w(btn.min_w or 0)
-        self.set_min_h(btn.min_h or 0)
+        self.set_min_w(btn.min_w || 0)
+        self.set_min_h(btn.min_h || 0)
         connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     }, children: [ gui::Outline({
@@ -47,8 +47,8 @@ var btn_build_variant = \color -> gui::Gradient({
 
 var btn_build_variant_nobg = \-> gui::Filler({
     clamp_h: true, init_clone: func(self, btn) {
-        self.set_min_w(btn.min_w or 0)
-        self.set_min_h(btn.min_h or 0)
+        self.set_min_w(btn.min_w || 0)
+        self.set_min_h(btn.min_h || 0)
         connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     }, children: [ gui::Spacer({
@@ -89,9 +89,9 @@ smbtnv["clicked_left"] = btn_build_variant(0x404040)
 // (v)slot viewer buttons
 
 var slotbtn_init_clone = func(self, btn) {
-    self.set_min_w(btn.min_w or 0)
-    self.set_min_h(btn.min_h or 0)
-    self.set_index(btn.index or 0)
+    self.set_min_w(btn.min_w || 0)
+    self.set_min_h(btn.min_h || 0)
+    self.set_index(btn.index || 0)
     connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
     connect(btn, "min_h,changed", \b, v -> self.set_min_h(v))
     connect(btn, "index,changed", \b, v -> self.set_index(v))
@@ -173,14 +173,14 @@ gui.Filler.__variants = {
 var ckbox_build_variant = \color, tgl -> gui::ColorFiller({
     color: 0x202020, min_w: 0.02, min_h: 0.02,
     children: [ gui::Outline({
-        color: color, clamp: true, children: tgl and [ gui::Spacer({
+        color: color, clamp: true, children: tgl && [ gui::Spacer({
             pad_h: 0.005, pad_v: 0.005, clamp: true, children: [
                 gui::ColorFiller({
                     clamp: true, color: 0xC0C0C0,
                     children: [ gui::Outline({ color: color, clamp: true }) ]
                 })
             ]
-        }) ] or undef
+        }) ] || undef
     }) ]
 })
 
@@ -188,7 +188,7 @@ var rdbtn_build_variant = \color, tgl -> gui::Circle({
     color: 0x202020, min_w: 0.02, min_h: 0.02,
     children: [ gui::Circle({
         style: gui.Circle.OUTLINE, color: color, clamp: true,
-        children: tgl and [ gui::Spacer({
+        children: tgl && [ gui::Spacer({
             pad_h: 0.005, pad_v: 0.005, clamp: true, children: [
                 gui::Circle({
                     clamp: true, color: 0xC0C0C0, children: [ gui::Circle({
@@ -197,7 +197,7 @@ var rdbtn_build_variant = \color, tgl -> gui::Circle({
                     }) ]
                 })
             ]
-        }) ] or undef
+        }) ] || undef
     }) ]
 })
 
@@ -351,10 +351,10 @@ var window_build_titlebar = \-> gui::Gradient({
     children: [ gui::Spacer({
         pad_h: 0.004, pad_v: 0.004,
         init_clone: func(self, win) {
-            var lbl = gui::Label({ text: win.title or win.obj_name })
+            var lbl = gui::Label({ text: win.title || win.obj_name })
             self.append(lbl)
             connect(win, "title,changed", func(w, t) {
-                lbl.set_text(t or w.obj_name) })
+                lbl.set_text(t || w.obj_name) })
         }
     }) ]
 })
@@ -366,12 +366,12 @@ var window_build_regular = \mov -> gui::Filler({
         children: [
             gui::Filler({ clamp_h: true,
                 children: [
-                    mov and gui::Mover({ clamp_h: true,
+                    mov && gui::Mover({ clamp_h: true,
                         init_clone: func(self, win) {
                             self.set_window(win)
                         },
                         children: [ window_build_titlebar() ]
-                    }) or window_build_titlebar(),
+                    }) || window_build_titlebar(),
                     gui::Spacer({ pad_h: 0.009, align_h: 1,
                         children: [ gui::Button({
                             variant: false, states: {
@@ -490,11 +490,11 @@ var get_logo = func(root, win) {
     if  hw_tex_size == 0 {
         hw_tex_size = cs::var_get("hwtexsize")
     }
-    var sz = ((max_tex_size != 0) and min(max_tex_size, hw_tex_size)
-                                     or hw_tex_size)
+    var sz = ((max_tex_size != 0) && min(max_tex_size, hw_tex_size)
+                                     || hw_tex_size)
     var w, h = root.get_pixel_w(), root.get_pixel_h()
     var logo
-    if (sz >= 1024) and ((w > 1280) or (h > 800)) {
+    if (sz >= 1024) && ((w > 1280) || (h > 800)) {
         logo = "<premul>media/interface/logo_1024"
     } else {
         logo = "<premul>media/interface/logo"
@@ -524,7 +524,7 @@ set_ext("background_render", func(caption, mapname, mapinfo, mapshot) {
     root.layout_dim()
     gui::__draw_window(bg_under(root))
     gui::__draw_window(bg_win(mapname, mapinfo, mapshot
-        and ffi::cast("Texture*", mapshot) or undef, caption))
+        && ffi::cast("Texture*", mapshot) || undef, caption))
 })
 
 /** Variable: applydialog
@@ -621,7 +621,7 @@ var fields = {
             }), func(t) {
                 ret = t
                 signal::connect(t, "released", func() {
-                    tvar = not tvar
+                    tvar = !tvar
                     ent.set_gui_attr(nm, tostring(tvar))
                 })
             })
@@ -641,10 +641,10 @@ root.new_window("entity", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     var  ent = capi::get_selected_entity()
-    if not ent {
+    if !ent {
         ent = ents::get_player()
     }
-    if not ent {
+    if !ent {
         win.set_title("Entity editing: none")
         win.append(gui::Spacer({ pad_h: 0.04, pad_v: 0.03,
             children: [ gui::Label({ text: "No selected entity" }) ]
@@ -661,7 +661,7 @@ root.new_window("entity", gui.Window, func(win) {
         var sv = ent[prefix ~ k]
         var gn = sv.gui_name
         if gn != false {
-            sdata[k] = [ gn or k, v, sv ]
+            sdata[k] = [ gn || k, v, sv ]
             props.push(k)
         }
     }
@@ -680,13 +680,13 @@ root.new_window("entity", gui.Window, func(win) {
                             vb.append(gui::HBox({ align_h: 1 }), func(hb) {
                                 hb.append(gui::Label({ text: " " ~ sd[0]
                                     ~ ": " }))
-                                var fld = fields[sv.__proto] or field_def
+                                var fld = fields[sv.__proto] || field_def
                                 var fd = fld(hb, gn, ent, dv)
                                 if pf { pf.set_tab_next(fd) }
                                 pf = fd
-                                if not fpf { fpf = fd }
+                                if !fpf { fpf = fd }
                             })
-                            if fpf and pf and pf != fpf {
+                            if fpf && pf && pf != fpf {
                                 pf.set_tab_next(fpf)
                             }
                         }

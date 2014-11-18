@@ -36,7 +36,7 @@ M.ContainerAction = Action.clone({
     */
     __ctor: func(self, kwargs) {
         Action::__ctor(self, kwargs)
-        self.other_actions = kwargs.actions or []
+        self.other_actions = kwargs.actions || []
     },
 
     /**
@@ -60,7 +60,7 @@ M.ContainerAction = Action.clone({
     __run: func(self, millis) {
         var actqueue = self.action_queue
         actqueue.run(millis)
-        return Action::__run(self, millis) and actqueue.actions.empty()
+        return Action::__run(self, millis) && actqueue.actions.empty()
     },
 
     /// Clears up the action queue.
@@ -96,7 +96,7 @@ M.ParallelAction = Action.clone({
     __ctor: func(self, kwargs) {
         Action::__ctor(self, kwargs)
         self.action_queues = []
-        self.other_actions = kwargs.actions or []
+        self.other_actions = kwargs.actions || []
     },
 
     /**
@@ -118,9 +118,9 @@ M.ParallelAction = Action.clone({
     __run: func(self, millis) {
         var systems = self.action_queues.compact(func(actqueue) {
             actqueue.run(millis)
-            return not actqueue.actions.empty()
+            return !actqueue.actions.empty()
         })
-        return Action::__run(self, millis) and systems.empty()
+        return Action::__run(self, millis) && systems.empty()
     },
 
     /// Clears up the remaining action queues.
@@ -214,7 +214,7 @@ M.InputCaptureAction = Action.clone({
     */
     __ctor: func(self, kwargs) {
         Action::__ctor(self, kwargs)
-        self.events = kwargs.events or self.events or {}
+        self.events = kwargs.events || self.events || {}
     },
 
     __start: M.input_capture_plugin.__start,

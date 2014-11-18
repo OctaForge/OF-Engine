@@ -48,7 +48,7 @@ M.add = func(ctype, desc) {
     Clears out changes of the given type. If not given, clears out all.
 */
 M.clear = func(ctype) {
-    ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
+    ctype = ctype || (change.GFX | change.SOUND | change.SHADERS)
 
     needsapply = needsapply.filter(func(v) {
         if (v.ctype & ctype) == 0 {

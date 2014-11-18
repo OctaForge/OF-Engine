@@ -33,10 +33,10 @@ var adjust = M.adjust
 
 var CLAMP_LEFT, CLAMP_RIGHT, CLAMP_TOP, CLAMP_BOTTOM in adjust
 var clampsv = func(adj) {
-    return ((adj & CLAMP_TOP) != 0) and ((adj & CLAMP_BOTTOM) != 0)
+    return ((adj & CLAMP_TOP) != 0) && ((adj & CLAMP_BOTTOM) != 0)
 }
 var clampsh = func(adj) {
-    return ((adj & CLAMP_LEFT) != 0) and ((adj & CLAMP_RIGHT) != 0)
+    return ((adj & CLAMP_LEFT) != 0) && ((adj & CLAMP_RIGHT) != 0)
 }
 
 /**
@@ -62,10 +62,10 @@ var clampsh = func(adj) {
 */
 M.HBox = register_type("HBox", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.padding    = kwargs.padding    or 0
-        self.expand     = kwargs.expand     or false
-        self.homogenous = kwargs.homogenous or false
+        kwargs = kwargs || {}
+        self.padding    = kwargs.padding    || 0
+        self.expand     = kwargs.expand     || false
+        self.homogenous = kwargs.homogenous || false
         return Widget::__ctor(self, kwargs)
     },
 
@@ -79,7 +79,7 @@ M.HBox = register_type("HBox", Widget, {
             o.layout()
             subw += o.w
             self.h = max(self.h, o.y + o.h)
-            if ex and clampsh(o.adjust) { ncl += 1 }
+            if ex && clampsh(o.adjust) { ncl += 1 }
         })
         self.w = subw + self.padding * max(self.vchildren.len() +
             self.children.len() - 1, 0)
@@ -112,7 +112,7 @@ M.HBox = register_type("HBox", Widget, {
         var offset, space = 0, ((self.w - self.subw) / self.ncl - dpad)
         loop_children(self, func(o) {
             o.x = offset
-            o.adjust_layout(o.x, 0, o.w + (clampsh(o.adjust) and space or 0),
+            o.adjust_layout(o.x, 0, o.w + (clampsh(o.adjust) && space || 0),
                 self.h)
             offset += o.w + pad
         })
@@ -120,10 +120,10 @@ M.HBox = register_type("HBox", Widget, {
 
     adjust_children: func(self) {
         var nch, nvs = self.children.len(), self.vchildren.len()
-        if nch == 0 and nvs == 0 { return }
+        if nch == 0 && nvs == 0 { return }
         if self.homogenous {
             return self.adjust_children_homogenous(nch + nvs)
-        } else if self.expand and self.ncl != 0 {
+        } else if self.expand && self.ncl != 0 {
             return self.adjust_children_expand(nch + nvs)
         }
         return self.adjust_children_regular(nch + nvs)
@@ -145,10 +145,10 @@ M.HBox = register_type("HBox", Widget, {
 */
 M.VBox = register_type("VBox", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.padding    = kwargs.padding    or 0
-        self.expand     = kwargs.expand     or false
-        self.homogenous = kwargs.homogenous or false
+        kwargs = kwargs || {}
+        self.padding    = kwargs.padding    || 0
+        self.expand     = kwargs.expand     || false
+        self.homogenous = kwargs.homogenous || false
         return Widget::__ctor(self, kwargs)
     },
 
@@ -162,7 +162,7 @@ M.VBox = register_type("VBox", Widget, {
             o.layout()
             subh += o.h
             self.w = max(self.w, o.x + o.w)
-            if ex and clampsv(o.adjust) { ncl += 1 }
+            if ex && clampsv(o.adjust) { ncl += 1 }
         })
         self.h = subh + self.padding * max(self.vchildren.len() +
             self.children.len() - 1, 0)
@@ -196,17 +196,17 @@ M.VBox = register_type("VBox", Widget, {
         loop_children(self, func(o) {
             o.y = offset
             o.adjust_layout(0, o.y, self.w,
-                o.h + (clampsv(o.adjust) and space or 0))
+                o.h + (clampsv(o.adjust) && space || 0))
             offset += o.h + pad
         })
     },
 
     adjust_children: func(self) {
         var nch, nvs = self.children.len(), self.vchildren.len()
-        if nch == 0 and nvs == 0 { return }
+        if nch == 0 && nvs == 0 { return }
         if self.homogenous {
             return self.adjust_children_homogenous(nch + nvs)
-        } else if self.expand and self.ncl != 0 {
+        } else if self.expand && self.ncl != 0 {
             return self.adjust_children_expand(nch + nvs)
         }
         return self.adjust_children_regular(nch + nvs)
@@ -241,10 +241,10 @@ M.VBox = register_type("VBox", Widget, {
 */
 M.Grid = register_type("Grid", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.columns = kwargs.columns or 0
-        self.padding_h = kwargs.padding_h or kwargs.padding or 0
-        self.padding_v = kwargs.padding_v or kwargs.padding or 0
+        kwargs = kwargs || {}
+        self.columns = kwargs.columns || 0
+        self.padding_h = kwargs.padding_h || kwargs.padding || 0
+        self.padding_v = kwargs.padding_v || kwargs.padding || 0
         return Widget::__ctor(self, kwargs)
     },
 
@@ -285,7 +285,7 @@ M.Grid = register_type("Grid", Widget, {
     },
 
     adjust_children: func(self) {
-        if self.children.empty() and self.vchildren.empty() { return }
+        if self.children.empty() && self.vchildren.empty() { return }
         var widths, heights = self.widths, self.heights
         var column , row     = 0, 0
         var offsetx, offsety = 0, 0
@@ -336,9 +336,9 @@ M.Grid = register_type("Grid", Widget, {
 */
 M.Clipper = register_type("Clipper", Widget, {
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
-        self.clip_w = kwargs.clip_w or 0
-        self.clip_h = kwargs.clip_h or 0
+        kwargs = kwargs || {}
+        self.clip_w = kwargs.clip_w || 0
+        self.clip_h = kwargs.clip_h || 0
         self.virt_w = 0
         self.virt_h = 0
 
@@ -362,7 +362,7 @@ M.Clipper = register_type("Clipper", Widget, {
     draw: func(self, sx, sy) {
         var w, h in self
 
-        if (w != 0 and self.virt_w > w) or (h != 0 and self.virt_h > h)
+        if (w != 0 && self.virt_w > w) || (h != 0 && self.virt_h > h)
         {
             self.get_root().clip_push(sx, sy, w, h)
             Widget::draw(self, sx, sy)

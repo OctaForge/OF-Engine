@@ -294,10 +294,10 @@ M.Selection = ffi::metatype("selinfo_t", {
     __eq: func(self, other) {
         var pos, sel = self.position, self.selection
         var opos, osel = other.position, other.selection
-        return  pos.x == opos.x and pos.y == opos.y and pos.z == opos.z
-            and sel.x == osel.x and sel.y == osel.y and sel.z == osel.z
-            and self.grid_size == other.grid_size
-            and self.orientation == other.orientation
+        return  pos.x == opos.x && pos.y == opos.y && pos.z == opos.z
+            && sel.x == osel.x && sel.y == osel.y && sel.z == osel.z
+            && self.grid_size == other.grid_size
+            && self.orientation == other.orientation
     },
 
     __index: {
@@ -342,7 +342,7 @@ M.Selection = ffi::metatype("selinfo_t", {
         edit_texture: func(self, tex, all_faces, loc) {
             if loc != false { loc = true }
             assert(self != undef)
-            edit_raw_edit_texture(tex, all_faces or false, self, loc)
+            edit_raw_edit_texture(tex, all_faces || false, self, loc)
         },
 
         /**
@@ -393,8 +393,8 @@ M.Selection = ffi::metatype("selinfo_t", {
         */
         edit_vslot: func(self, vs, all_faces, loc) {
             if loc != false { loc = true }
-            assert(self != undef and vs != undef)
-            edit_raw_edit_vslot(vs, all_faces or false, self, loc)
+            assert(self != undef && vs != undef)
+            edit_raw_edit_vslot(vs, all_faces || false, self, loc)
         },
 
         /**
@@ -412,17 +412,17 @@ M.Selection = ffi::metatype("selinfo_t", {
         validate: func(self) {
             var world_size = edit_get_world_size()
             var grid = self.grid_size
-            if grid <= 0 or grid >= world_size { return false }
+            if grid <= 0 || grid >= world_size { return false }
             var o, s = self.position, self.selection
-            if o.x >= world_size or o.y >= world_size
-            or o.z >= world_size { return false }
+            if o.x >= world_size || o.y >= world_size
+            || o.z >= world_size { return false }
             if o.x < 0 { s.x, o.x = s.x - (grid - 1 - o.x) / grid, 0 }
             if o.y < 0 { s.y, o.y = s.y - (grid - 1 - o.y) / grid, 0 }
             if o.z < 0 { s.z, o.z = s.z - (grid - 1 - o.z) / grid, 0 }
             s.x = clamp(s.x, 0, (world_size - o.x) / grid)
             s.y = clamp(s.y, 0, (world_size - o.y) / grid)
             s.z = clamp(s.z, 0, (world_size - o.z) / grid)
-            return s.x > 0 and s.y > 0 and s.z > 0
+            return s.x > 0 && s.y > 0 && s.z > 0
         }
     }
 })

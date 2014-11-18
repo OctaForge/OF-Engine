@@ -61,30 +61,30 @@ M.Action = Object.clone({
         supplying modifiers for the action. It's an associative array.
     */
     __ctor: func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
         self.begun      = false
         self.finished   = false
         self.start_time = capi::get_current_time()
 
-        self.millis_left = (self.millis_left) or
-            kwargs.millis_left or 0
+        self.millis_left = (self.millis_left) ||
+            kwargs.millis_left || 0
 
-        self.animation    = (self.animation == undef) and
-            kwargs.animation or false
+        self.animation    = (self.animation == undef) &&
+            kwargs.animation || false
 
         self.actor = false
 
         self.allow_multiple =
-            (self.allow_multiple   == undef) and
-            (kwargs.allow_multiple == undef) and true or false
+            (self.allow_multiple   == undef) &&
+            (kwargs.allow_multiple == undef) && true || false
 
         self.cancelable =
-            (self.cancelable   == undef) and
-            (kwargs.cancelable == undef) and true or false
+            (self.cancelable   == undef) &&
+            (kwargs.cancelable == undef) && true || false
 
         self.parallel_to =
-            (self.parallel_to == undef) and kwargs.parallel_to or false
+            (self.parallel_to == undef) && kwargs.parallel_to || false
     },
 
     /**
@@ -106,12 +106,12 @@ M.Action = Object.clone({
     },
 
     priv_run: func(self, millis) {
-        if typeof self.actor == "table" and self.actor.deactivated {
+        if typeof self.actor == "table" && self.actor.deactivated {
             self::priv_finish(self)
             return true
         }
 
-        if not self.begun {
+        if !self.begun {
             self::priv_start(self)
 
             if self.animation != false {
@@ -179,7 +179,7 @@ M.Action = Object.clone({
         var sys = self.queue
         if sys { sys._changed = true }
 
-        if self.animation and self.last_animation != undef {
+        if self.animation && self.last_animation != undef {
             var lanim = self.last_animation
             var aanim = self.actor.get_attr("animation")
             if lanim != aanim {
@@ -255,10 +255,10 @@ M.ActionQueue = Object.clone({
     run: func(self, millis) {
         var acts = self.actions
         if self._changed {
-            acts.compact(\v -> not v.finished)
+            acts.compact(\v -> !v.finished)
             self._changed = false
         }
-        if not acts.empty() {
+        if !acts.empty() {
             var act = acts.first()
             @[debug] log(INFO, e"Executing $(act.name)")
             // keep the removal for the next frame
@@ -274,7 +274,7 @@ M.ActionQueue = Object.clone({
     */
     enqueue: func(self, act) {
         var acts = self.actions
-        if not act.allow_multiple {
+        if !act.allow_multiple {
             var str = act.name
             for i, qact in acts.each() {
                 if str == qact.name {

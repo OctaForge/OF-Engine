@@ -28,7 +28,7 @@ var get_ext, set_ext, unset_ext = ext.get, ext.set, ext.unset
 
 var event_map
 
-@[not server] {
+@[!server] {
 /** Function: input_yaw
     An external triggered on yaw change. By default it sets the "yawing"
     property on the player to "dir".
@@ -38,7 +38,7 @@ var event_map
         - down - whether the key was pressed.
 */
 set_ext("input_yaw", func(dir, down) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     ents::get_player().set_attr("yawing", dir)
 })
 
@@ -51,7 +51,7 @@ set_ext("input_yaw", func(dir, down) {
         - down - whether the key was pressed.
 */
 set_ext("input_pitch", func(dir, down) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     ents::get_player().set_attr("pitching", dir)
 })
 
@@ -64,7 +64,7 @@ set_ext("input_pitch", func(dir, down) {
         - down - whether the key was pressed.
 */
 set_ext("input_move", func(dir, down) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     ents::get_player().set_attr("move", dir)
 })
 
@@ -77,7 +77,7 @@ set_ext("input_move", func(dir, down) {
         - down - whether the key was pressed.
 */
 set_ext("input_strafe", func(dir, down) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     ents::get_player().set_attr("strafe", dir)
 })
 
@@ -89,7 +89,7 @@ set_ext("input_strafe", func(dir, down) {
         - down - whether the key was pressed.
 */
 set_ext("input_jump", func(down) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     ents::get_player().jump(down)
 })
 
@@ -101,7 +101,7 @@ set_ext("input_jump", func(down) {
         - down - whether the key was pressed.
 */
 set_ext("input_crouch", func(down) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     ents::get_player().crouch(down)
 })
 
@@ -120,7 +120,7 @@ set_ext("input_crouch", func(down) {
         - cx, cy - the cursor position.
 */
 set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy) {
-    if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) {
+    if !get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) {
         msg::send(capi.do_click, btn, down, x, y, z, uid)
     }
 })
@@ -133,10 +133,10 @@ set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy) {
     trigger a server request.
 */
 set_ext("input_click_client", func(btn, down, x, y, z, uid, cx, cy) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     var ent
     if uid >= 0 { ent = ents::get(uid) }
-    if ent and ent.click {
+    if ent && ent.click {
         return ent.click(btn, down, x, y, z, cx, cy)
     }
     return false
@@ -164,10 +164,10 @@ event_map = {
     the cursor position is not there (obviously).
 */
 set_ext("input_click_server", func(btn, dn, x, y, z, uid) {
-    if not ents { ents = import core.entities.ents }
+    if !ents { ents = import core.entities.ents }
     var ent
     if uid >= 0 { ent = ents::get(uid) }
-    if ent and ent.click {
+    if ent && ent.click {
         return ent.click(btn, dn, x, y, z)
     }
 })
@@ -201,7 +201,7 @@ from std.util import assert
         - fun - the callback.
 */
 M.set_event = func(en, fun) {
-    if not en {
+    if !en {
         return false
     } else if en == "click" {
         en = @[server,"input_click_server","input_click_client"]
@@ -209,7 +209,7 @@ M.set_event = func(en, fun) {
         en = "input_" ~ en
     }
     var old = event_map[en]
-    if not old { return false }
+    if !old { return false }
     if fun == undef {
         if en == "input_mouse_move" {
             unset_ext(en)
@@ -222,7 +222,7 @@ M.set_event = func(en, fun) {
     }
     assert(typeof fun == "function")
     var ret = get_ext(en)
-    if old == true and en != "input_mouse_move" { event_map[en] = ret }
+    if old == true && en != "input_mouse_move" { event_map[en] = ret }
     set_ext(en, fun)
     return ret
 }
@@ -232,14 +232,14 @@ M.set_event = func(en, fun) {
     name is invalid or the callback doesn't exist and the callback otherwise.
 */
 M.get_event = func(en) {
-    if not en {
+    if !en {
         return undef
     } else if en == "click" {
         en = @[server,"input_click_server","input_click_client"]
     } else {
         en = "input_" ~ en
     }
-    if not event_map[en] { return undef }
+    if !event_map[en] { return undef }
     return get_ext(en)
 }
 

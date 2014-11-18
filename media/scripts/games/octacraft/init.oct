@@ -65,7 +65,7 @@ var MouseAction = actions.Action.clone({
         var cnt = self.counter
         cnt += millis
         var btn = self.button
-        if (btn == 1 and cnt >= 600) or (btn != 1 and cnt >= 200) {
+        if (btn == 1 && cnt >= 600) || (btn != 1 && cnt >= 200) {
             self.counter = 0
             self.try_block()
         } else {
@@ -95,7 +95,7 @@ var MouseAction = actions.Action.clone({
 
 inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy) {
     var ent = ents::get(uid)
-    if ent and ent.click {
+    if ent && ent.click {
         return ent.click(btn, down, x, y, z, cx, cy)
     }
     var gm = game_manager::get()

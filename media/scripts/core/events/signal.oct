@@ -54,7 +54,7 @@ M.connect = func(self, name, callback) {
     var clistn = "_sig_conn_" ~ name
 
     var  clist = rawget(self, clistn)
-    if not clist {
+    if !clist {
            clist = []
            // nasty, as this should be just an array... we can still
            // do this though, and we're trying to keep things contained
@@ -92,7 +92,7 @@ M.disconnect = func(self, name, id) {
     var clist  = rawget(self, clistn)
     var cb     = rawget(self, "__disconnect")
     if clist {
-        if not id {
+        if !id {
             rawset(self, clistn, undef)
             if cb { cb(self, name) }
             return 0
@@ -105,7 +105,7 @@ M.disconnect = func(self, name, id) {
                 }
             }
         }
-        if id and id < clist.len() {
+        if id && id < clist.len() {
             var scnt = clist.slotcount - 1
             clist.slotcount = scnt
             clist[id] = false
@@ -128,7 +128,7 @@ M.disconnect = func(self, name, id) {
 M.emit = func(self, name, ...) {
     var clistn = "_sig_conn_" ~ name
     var clist  = rawget(self, clistn)
-    if not clist {
+    if !clist {
         return 0
     }
 

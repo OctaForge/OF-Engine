@@ -58,7 +58,7 @@ var animctl = model.anim_control
 var anims = model.anims
 
 var anim_dirs, anim_jump, anim_run
-@[not server] {
+@[!server] {
     anim_dirs = [
         anims.run_SE, anims.run_S, anims.run_SW,
         anims.run_E,  0,           anims.run_W,
@@ -78,7 +78,7 @@ var anim_dirs, anim_jump, anim_run
     }
 }
 
-var mrender = @[not server,model.render]
+var mrender = @[!server,model.render]
 
 /// Module: ents
 var M = ents
@@ -361,7 +361,7 @@ M.Character = Entity.clone({
         self.set_attr("attachments", [])
         self.set_attr("animation", 3 | (1 << 9))
 
-        self.cn = kwargs and kwargs.cn or -1
+        self.cn = kwargs && kwargs.cn || -1
         self.set_attr("character_name", "none")
         self.set_attr("model_name", "player")
         self.set_attr("eye_height", 18.0)
@@ -384,7 +384,7 @@ M.Character = Entity.clone({
     }],
 
     __activate: @[server,func(self, kwargs) {
-        self.cn = kwargs and kwargs.cn or -1
+        self.cn = kwargs && kwargs.cn || -1
         assert(self.cn >= 0)
         capi::setup_character(self.uid, self.cn)
 
@@ -396,7 +396,7 @@ M.Character = Entity.clone({
     },func(self, kwargs) {
         Entity::__activate(self, kwargs)
 
-        self.cn = kwargs and kwargs.cn or -1
+        self.cn = kwargs && kwargs.cn || -1
         capi::setup_character(self.uid, self.cn)
 
         self.render_args_timestamp = -1
@@ -407,7 +407,7 @@ M.Character = Entity.clone({
             self.set_attr("physics_trigger", 0)
 
             var pos = (self != ents::get_player())
-                and self.get_attr("position") or undef
+                && self.get_attr("position") || undef
 
             var lst = val & MASK_LIQUID
             if lst == FLAG_ABOVELIQUID {
@@ -416,8 +416,8 @@ M.Character = Entity.clone({
                 }
             } else if lst == FLAG_BELOWLIQUID {
                 sound::play((val & MASK_MAT) == FLAG_LAVA
-                    and "yo_frankie/DeathFlash.wav"
-                    or "yo_frankie/watersplash2.wav", pos)
+                    && "yo_frankie/DeathFlash.wav"
+                    || "yo_frankie/watersplash2.wav", pos)
             }
 
             var gst = val & MASK_GROUND
@@ -459,18 +459,18 @@ M.Character = Entity.clone({
             - needhud - true if we're in first person mode.
             - fpsshadow - true if we enabled a FPS player shadow.
     */
-    __render: @[not server,func(self, hudpass, needhud, fpsshadow) {
-        if not self.initialized { return }
-        if not hudpass and needhud and not fpsshadow { return }
+    __render: @[!server,func(self, hudpass, needhud, fpsshadow) {
+        if !self.initialized { return }
+        if !hudpass && needhud && !fpsshadow { return }
 
         var state = self.get_attr("client_state")
         // spawning or spectator
-        if state == 5 or state == 2 { return }
+        if state == 5 || state == 2 { return }
         // editing
-        if not hudpass and needhud and state == 4 { return }
-        var mdn = (hudpass and needhud)
-            and self.get_attr("hud_model_name")
-            or  self.get_attr("model_name")
+        if !hudpass && needhud && state == 4 { return }
+        var mdn = (hudpass && needhud)
+            && self.get_attr("hud_model_name")
+            ||  self.get_attr("model_name")
 
         if mdn == "" { return }
 
@@ -479,7 +479,7 @@ M.Character = Entity.clone({
             self.get_attr("roll")
         var o = self.get_attr("position").copy()
 
-        if hudpass and needhud and self.hud_model_offset {
+        if hudpass && needhud && self.hud_model_offset {
             o.add(self.hud_model_offset)
         }
 
@@ -511,7 +511,7 @@ M.Character = Entity.clone({
         Arguments:
             - hudpass, needhud - see $__render.
     */
-    get_render_flags: @[not server,func(self, hudpass, needhud) {
+    get_render_flags: @[!server,func(self, hudpass, needhud) {
         var flags
         if self != ents::get_player() {
             flags = model.render_flags.CULL_VFC
@@ -534,7 +534,7 @@ M.Character = Entity.clone({
         Returns the base "action animation" used by $decide_animation. By
         default simply return the `animation` attribute.
     */
-    get_animation: @[not server,func(self) {
+    get_animation: @[!server,func(self) {
         return self.get_attr("animation")
     }],
 
@@ -550,7 +550,7 @@ M.Character = Entity.clone({
             - move, strafe, crouching, vel, falling, unwater, tinair - see
               the appropriate state variables.
     */
-    decide_animation: @[not server,func(self, state, pstate, move,
+    decide_animation: @[!server,func(self, state, pstate, move,
     strafe, crouching, vel, falling, inwater, tinair) {
         var anim = self.get_animation()
 
@@ -558,23 +558,23 @@ M.Character = Entity.clone({
         var panim, sanim = anim & mask, (anim >> anims.SECONDARY) & mask
 
         // editing or spectator
-        if state == 4 or state == 5 {
+        if state == 4 || state == 5 {
             panim = anims.edit | animctl.LOOP
         // lagged
         } else if state == 3 {
             panim = anims.lag | animctl.LOOP
         } else {
             // in water and floating or falling
-            if inwater != 0 and pstate <= 1 {
-                sanim = (((move or strafe) or ((vel.z + falling.z) > 0))
-                    and anims.swim or anims.sink) | animctl.LOOP
+            if inwater != 0 && pstate <= 1 {
+                sanim = (((move || strafe) || ((vel.z + falling.z) > 0))
+                    && anims.swim || anims.sink) | animctl.LOOP
             // moving or strafing
             } else {
                 var dir = anim_dirs[(move + 1) * 3 + strafe + 1]
                 // jumping anim
                 if tinair > 100 {
-                    sanim = ((dir != 0) and (dir + anims.jump_N - anims.run_N)
-                        or anims.jump) | animctl.END
+                    sanim = ((dir != 0) && (dir + anims.jump_N - anims.run_N)
+                        || anims.jump) | animctl.END
                 } else if dir != 0 {
                     sanim = dir | animctl.LOOP
                 }
@@ -603,7 +603,7 @@ M.Character = Entity.clone({
                 }
             }
 
-            if (panim & anims.INDEX) == anims.idle and
+            if (panim & anims.INDEX) == anims.idle &&
                (sanim & anims.INDEX) != 0 {
                 panim = sanim
             }
@@ -746,11 +746,11 @@ M.StaticEntity = Entity.clone({
     __init_svars: func(self, kwargs) {
         @[debug] log(DEBUG, "StaticEntity.init")
 
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
         kwargs.persistent = true
 
         Entity::__init_svars(self, kwargs)
-        if not kwargs.position {
+        if !kwargs.position {
             self.set_attr("position", [ 511, 512, 513 ])
         } else {
             self.set_attr("position", [
@@ -764,7 +764,7 @@ M.StaticEntity = Entity.clone({
     },
 
     __activate: @[server,func(self, kwargs) {
-        kwargs = kwargs or {}
+        kwargs = kwargs || {}
 
         @[debug] log(DEBUG, "StaticEntity.__activate")
         Entity::__activate(self, kwargs)
@@ -792,9 +792,9 @@ M.StaticEntity = Entity.clone({
 
     send_notification_full: @[server,func(self, cn) {
         var acn = msg.ALL_CLIENTS
-        cn = cn or acn
+        cn = cn || acn
 
-        var cns = (cn == acn) and ents::get_players().map(\p -> p.cn) or [ cn ]
+        var cns = (cn == acn) && ents::get_players().map(\p -> p.cn) || [ cn ]
 
         var uid = self.uid
         @[debug] log(DEBUG, "StaticEntity.send_notification_full: "
@@ -1036,7 +1036,7 @@ M.SpotLight = StaticEntity.clone({
 
     __get_edit_color: func(self) {
         var ent = self.get_attached_entity()
-        if not ent { return 255, 255, 255 }
+        if !ent { return 255, 255, 255 }
         return ent.get_attr("red"), ent.get_attr("green"), ent.get_attr("blue")
     },
 
@@ -1107,7 +1107,7 @@ M.SoundEffect = StaticEntity.clone({
         self.set_attr("size", 0, nd[1])
     },
 
-    __activate: @[not server,func(self, ...) {
+    __activate: @[!server,func(self, ...) {
         StaticEntity::__activate(self, ...)
         connect(self, "radius,changed", self.sound_stop)
         connect(self, "size,changed", self.sound_stop)
@@ -1120,7 +1120,7 @@ M.SoundEffect = StaticEntity.clone({
 
     /** Play a sound on this entity. The last loops parameter is optional. */
     sound_play: func(self, name, volume, loops) {
-        capi::sound_play_map(self.uid, name, volume, loops or -1)
+        capi::sound_play_map(self.uid, name, volume, loops || -1)
     },
 
     /** Override to play sounds. */
@@ -1155,7 +1155,7 @@ M.AmbientSound = SoundEffect.clone({
         self.set_attr("sound_name", "", nd[0])
     },
 
-    __activate: @[not server,func(self, ...) {
+    __activate: @[!server,func(self, ...) {
         SoundEffect::__activate(self, ...)
         connect(self, "sound_name,changed", self.sound_stop)
         connect(self, "volume,changed", self.sound_stop)
