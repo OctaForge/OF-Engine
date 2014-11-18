@@ -28,7 +28,7 @@ var get_ext, set_ext, unset_ext = ext.get, ext.set, ext.unset
 
 var event_map
 
-@[not server] do
+@[not server] {
 /** Function: input_yaw
     An external triggered on yaw change. By default it sets the "yawing"
     property on the player to "dir".
@@ -37,10 +37,10 @@ var event_map
         - dir - the yawing direction.
         - down - whether the key was pressed.
 */
-set_ext("input_yaw", func(dir, down)
-    if not ents do ents = import core.entities.ents end
+set_ext("input_yaw", func(dir, down) {
+    if not ents { ents = import core.entities.ents }
     ents::get_player().set_attr("yawing", dir)
-end)
+})
 
 /** Function: input_pitch
     An external triggered on pitch change. By default it sets the "pitching"
@@ -50,10 +50,10 @@ end)
         - dir - the pitching direction.
         - down - whether the key was pressed.
 */
-set_ext("input_pitch", func(dir, down)
-    if not ents do ents = import core.entities.ents end
+set_ext("input_pitch", func(dir, down) {
+    if not ents { ents = import core.entities.ents }
     ents::get_player().set_attr("pitching", dir)
-end)
+})
 
 /** Function: input_move
     An external triggered during movement. By default it sets the "move"
@@ -63,10 +63,10 @@ end)
         - dir - the move direction.
         - down - whether the key was pressed.
 */
-set_ext("input_move", func(dir, down)
-    if not ents do ents = import core.entities.ents end
+set_ext("input_move", func(dir, down) {
+    if not ents { ents = import core.entities.ents }
     ents::get_player().set_attr("move", dir)
-end)
+})
 
 /** Function: input_strafe
     An external triggered during strafing. By default it sets the "strafe"
@@ -76,10 +76,10 @@ end)
         - dir - the strafe direction.
         - down - whether the key was pressed.
 */
-set_ext("input_strafe", func(dir, down)
-    if not ents do ents = import core.entities.ents end
+set_ext("input_strafe", func(dir, down) {
+    if not ents { ents = import core.entities.ents }
     ents::get_player().set_attr("strafe", dir)
-end)
+})
 
 /** Function: input_jump
     An external triggered when the player jumps. By default calls the method
@@ -88,10 +88,10 @@ end)
     Arguments:
         - down - whether the key was pressed.
 */
-set_ext("input_jump", func(down)
-    if not ents do ents = import core.entities.ents end
+set_ext("input_jump", func(down) {
+    if not ents { ents = import core.entities.ents }
     ents::get_player().jump(down)
-end)
+})
 
 /** Function: input_crouch
     An external triggered when the player crouches. By default calls the method
@@ -100,10 +100,10 @@ end)
     Arguments:
         - down - whether the key was pressed.
 */
-set_ext("input_crouch", func(down)
-    if not ents do ents = import core.entities.ents end
+set_ext("input_crouch", func(down) {
+    if not ents { ents = import core.entities.ents }
     ents::get_player().crouch(down)
-end)
+})
 
 /** Function: input_click
     Clientside click input handler. It calls another external,
@@ -119,11 +119,11 @@ end)
           (if any, undef otherwise).
         - cx, cy - the cursor position.
 */
-set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy)
-    if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) do
+set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy) {
+    if not get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) {
         msg::send(capi.do_click, btn, down, x, y, z, uid)
-    end
-end)
+    }
+})
 
 /** Function: input_click_client
     Clientside external for user-defined clicks. By default it tries to call
@@ -132,15 +132,15 @@ end)
     and by default returns false, which means the above external will
     trigger a server request.
 */
-set_ext("input_click_client", func(btn, down, x, y, z, uid, cx, cy)
-    if not ents do ents = import core.entities.ents end
+set_ext("input_click_client", func(btn, down, x, y, z, uid, cx, cy) {
+    if not ents { ents = import core.entities.ents }
     var ent
-    if uid >= 0 do ent = ents::get(uid) end
-    if ent and ent.click do
+    if uid >= 0 { ent = ents::get(uid) }
+    if ent and ent.click {
         return ent.click(btn, down, x, y, z, cx, cy)
-    end
+    }
     return false
-end)
+})
 
 event_map = {
     "input_yaw"         : true,
@@ -153,9 +153,9 @@ event_map = {
     "input_mouse_move"  : true
 }
 
-end
+}
 
-@[server] do
+@[server] {
 /** Function: input_click_server
     Serverside external for user-defined clicks. Called assuming
     $input_click_client returns a value that evaluates to false. By default
@@ -163,19 +163,19 @@ end
     Return values of this one are ignored. The arguments are the same, but
     the cursor position is not there (obviously).
 */
-set_ext("input_click_server", func(btn, dn, x, y, z, uid)
-    if not ents do ents = import core.entities.ents end
+set_ext("input_click_server", func(btn, dn, x, y, z, uid) {
+    if not ents { ents = import core.entities.ents }
     var ent
-    if uid >= 0 do ent = ents::get(uid) end
-    if ent and ent.click do
+    if uid >= 0 { ent = ents::get(uid) }
+    if ent and ent.click {
         return ent.click(btn, dn, x, y, z)
-    end
-end)
+    }
+})
 
 event_map = {
     "input_click_server": true
 }
-end
+}
 
 /// Module: input
 var M = {}
@@ -200,47 +200,47 @@ from std.util import assert
         - en - the event name.
         - fun - the callback.
 */
-M.set_event = func(en, fun)
-    if not en do
+M.set_event = func(en, fun) {
+    if not en {
         return false
-    elif en == "click" do
+    } else if en == "click" {
         en = @[server,"input_click_server","input_click_client"]
-    else
+    } else {
         en = "input_" ~ en
-    end
+    }
     var old = event_map[en]
-    if not old do return false end
-    if fun == undef do
-        if en == "input_mouse_move" do
+    if not old { return false }
+    if fun == undef {
+        if en == "input_mouse_move" {
             unset_ext(en)
             return true
-        end
-        if old == true do return true end
+        }
+        if old == true { return true }
         set_ext(en, old)
         event_map[en] = true
         return true
-    end
+    }
     assert(typeof fun == "function")
     var ret = get_ext(en)
-    if old == true and en != "input_mouse_move" do event_map[en] = ret end
+    if old == true and en != "input_mouse_move" { event_map[en] = ret }
     set_ext(en, fun)
     return ret
-end
+}
 
 /**
     Gets an event callback. For naming, see $set_event. Returns undef if the
     name is invalid or the callback doesn't exist and the callback otherwise.
 */
-M.get_event = func(en)
-    if not en do
+M.get_event = func(en) {
+    if not en {
         return undef
-    elif en == "click" do
+    } else if en == "click" {
         en = @[server,"input_click_server","input_click_client"]
-    else
+    } else {
         en = "input_" ~ en
-    end
-    if not event_map[en] do return undef end
+    }
+    if not event_map[en] { return undef }
     return get_ext(en)
-end
+}
 
 return M

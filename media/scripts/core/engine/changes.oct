@@ -27,66 +27,66 @@ M.change = enum {
 }
 var change = M.change
 
-set_external("change_add", func(desc, ctype)
+set_external("change_add", func(desc, ctype) {
     signal::emit(M, "add", ctype, desc)
-end)
+})
 
 /**
     Adds a change of the given type and description to the queue assuming
     a change of the same description doesn't already exist.
 */
-M.add = func(ctype, desc)
-    for i, v in needsapply.each() do
-        if v.desc == desc do return end
-    end
+M.add = func(ctype, desc) {
+    for i, v in needsapply.each() {
+        if v.desc == desc { return }
+    }
     needsapply.push({
         ctype: ctype, desc: desc
     })
-end
+}
 
 /**
     Clears out changes of the given type. If not given, clears out all.
 */
-M.clear = func(ctype)
+M.clear = func(ctype) {
     ctype = ctype or (change.GFX | change.SOUND | change.SHADERS)
 
-    needsapply = needsapply.filter(func(v)
-        if (v.ctype & ctype) == 0 do
+    needsapply = needsapply.filter(func(v) {
+        if (v.ctype & ctype) == 0 {
             return true
-        end
+        }
         v.ctype = (v.ctype & ~ctype)
-        if v.ctype == 0 do
+        if v.ctype == 0 {
             return false
-        end
+        }
         return true
-    end)
-end
+    })
+}
 set_external("changes_clear", M.clear)
 
 /**
     Applies all queued changes.
 */
-M.apply = func()
+M.apply = func() {
     var changetypes = 0
-    for i, v in needsapply.each() do
+    for i, v in needsapply.each() {
         changetypes |= v.ctype
-    end
+    }
 
-    if (changetypes & change.GFX) != 0 do
+    if (changetypes & change.GFX) != 0 {
         cs::execute("resetgl")
-    elif (changetypes & change.SHADERS) != 0 do
+    } else if (changetypes & change.SHADERS) != 0 {
         cs::execute("resetshaders")
-    end
-    if (changetypes & change.SOUND) != 0 do
+    }
+    if (changetypes & change.SOUND) != 0 {
         cs::execute("resetsound")
-    end
-end
+    }
+}
 
 /**
     Returns a table of all queued changes' descriptions.
 */
-M.get = func()
+M.get = func() {
     return needsapply.map(\v -> v.desc)
-end
+}
 
 return M

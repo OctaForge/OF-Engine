@@ -46,68 +46,68 @@ ents::register_prototype(ents.Obstacle, [ health.plugins.area ],
 
 day_manager::setup([ day_manager.plugins.day_night ])
 
-@[server] do
+@[server] {
     ents::set_player_prototype("GamePlayer")
     return
-end
+}
 
 var MouseAction = actions.Action.clone({
     name: "MouseAction",
     allow_multiple: false,
     block_size: 4,
 
-    __start: func(self)
+    __start: func(self) {
         self.counter = 0
         self.try_block()
-    end,
+    },
 
-    __run: func(self, millis)
+    __run: func(self, millis) {
         var cnt = self.counter
         cnt += millis
         var btn = self.button
-        if (btn == 1 and cnt >= 600) or (btn != 1 and cnt >= 200) do
+        if (btn == 1 and cnt >= 600) or (btn != 1 and cnt >= 200) {
             self.counter = 0
             self.try_block()
-        else
+        } else {
             self.counter = cnt
-        end
+        }
         return false
-    end,
+    },
 
-    try_block: func(self)
+    try_block: func(self) {
         var pl = self.player
         var tg = input::get_target_position()
         var pos = pl.get_attr("position").copy()
         pos.z += pl.get_attr("eye_height")
         var bf
-        if self.button == 1 do
+        if self.button == 1 {
             tg.add((tg - pos).normalize())
             bf = edit.cube_delete
-        else
+        } else {
             tg.sub((tg - pos).normalize())
             bf = edit.cube_create
-        end
+        }
         var bsize = self.block_size
         bf(tg.x >> bsize << bsize, tg.y >> bsize << bsize,
            tg.z >> bsize << bsize, 1 << bsize)
-    end
+    }
 })
 
-inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy)
+inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy) {
     var ent = ents::get(uid)
-    if ent and ent.click do
+    if ent and ent.click {
         return ent.click(btn, down, x, y, z, cx, cy)
-    end
+    }
     var gm = game_manager::get()
-    if down do
+    if down {
         var pl = ents::get_player()
         var mact = MouseAction()
         mact.button = btn
         mact.player = pl
         gm.mouse_action = mact
         gm.enqueue_action(mact)
-    else
+    } else {
         gm.mouse_action.cancel()
         gm.mouse_action = undef
-    end
-end)
+    }
+})

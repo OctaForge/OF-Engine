@@ -42,24 +42,24 @@ var clicked_states = {
     anything).
 */
 M.Button = register_type("Button", Widget, {
-    choose_state: func(self)
+    choose_state: func(self) {
         return clicked_states[self.is_clicked()] or
             (self.is_hovering() and "hovering" or "default")
-    end,
+    },
 
     /**
         Buttons can take be hovered on. Assuming `self.target(cx, cy)` returns
         anything, this returns itself. That means if a child can be targeted,
         the hovered widget will be the button itself.
     */
-    hover: func(self, cx, cy)
+    hover: func(self, cx, cy) {
         return self.target(cx, cy) and self
-    end,
+    },
 
     /// See $hover.
-    click: func(self, cx, cy)
+    click: func(self, cx, cy) {
         return self.target(cx, cy) and self
-    end
+    }
 })
 var Button = M.Button
 
@@ -68,9 +68,9 @@ var Button = M.Button
     opened using this button.
 */
 M.MenuButton = register_type("MenuButton", Button, {
-    choose_state: func(self)
+    choose_state: func(self) {
         return self.get_menu() != undef and "menu" or Button::choose_state(self)
-    end
+    }
 })
 
 /**
@@ -84,28 +84,28 @@ M.MenuButton = register_type("MenuButton", Button, {
           is passed the current object as an argument.
 */
 M.Toggle = register_type("Toggle", Button, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.condition = kwargs.condition
         return Button::__ctor(self, kwargs)
-    end,
+    },
 
-    choose_state: func(self)
+    choose_state: func(self) {
         var h, f = self.is_hovering(), self.is_focused()
         return (self.condition and self.condition() and
             (h and "toggled_hovering" or (f and "toggled_focused"
                 or "toggled")) or
             (h and "default_hovering" or (f and "default_focused"
                 or "default")))
-    end,
+    },
 
-    key: func(self, code, isdown)
-        if self.is_focused() and code == key.SPACE do
+    key: func(self, code, isdown) {
+        if self.is_focused() and code == key.SPACE {
             emit(self, isdown and "clicked" or "released", -1, -1, code)
             return true
-        end
+        }
         return Widget::key(self, code, isdown)
-    end,
+    },
 
     /// Function: set_condition
     set_condition: gen_setter("condition")

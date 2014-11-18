@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-@[server] do return {} end
+@[server] { return {} }
 
 import capi
 import core.events.frame
@@ -30,9 +30,9 @@ return {
     /** Function: get_target_position
         Returns the position in the world you're targeting.
     */
-    get_target_position: frame::cache_by_frame(func()
+    get_target_position: frame::cache_by_frame(func() {
         return Vec3(capi::gettargetpos())
-    end),
+    }),
 
     /** Function: save_mouse_position
         Saves the mouse position in an internal storage. That's later

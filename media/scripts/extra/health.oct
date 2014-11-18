@@ -69,17 +69,17 @@ var DeathAction = @[server,actions.Action.clone({
         the player's actions (except itself as it's not cancelable) and
         emits the "killed" signal on the player.
     */
-    __start: func(self)
+    __start: func(self) {
         var actor = self.actor
         actor.set_attr("can_move", false)
         actor.clear_actions()
         emit(actor, "killed")
-    end,
+    },
 
     /// Triggers a respawn.
-    __finish: func(self)
+    __finish: func(self) {
         self.actor.game_manager_respawn()
-    end
+    }
 })]
 M.DeathAction = DeathAction
 
@@ -98,79 +98,79 @@ M.player_plugin = {
         max_health: svars::StateInteger({ client_set: true })
     },
 
-    __init_svars: func(self)
+    __init_svars: func(self) {
         self.set_attr("health", 100)
         self.set_attr("max_health", 100)
-    end,
+    },
 
-    __activate: func(self)
+    __activate: func(self) {
         connect(self, "health,changed", self.health_on_health)
-    end,
+    },
 
     /**
         Overrides the serverside spawn stage 4. In addition to the default
         behavior it restores the player's health.
     */
-    game_manager_spawn_stage_4: @[server,func(self, auid)
+    game_manager_spawn_stage_4: @[server,func(self, auid) {
         self.set_attr("health", self.get_attr("max_health"))
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
         self.cancel_sdata_update()
-    end],
+    }],
 
-    get_animation: func(self)
+    get_animation: func(self) {
         var ret = self.__parent_ent_proto::get_animation(self)
         var INDEX, idle = model.anims.INDEX, model.anims.idle
-        if self.get_attr("health") > 0 do
-            if (ret & INDEX) == anims.dying or (ret & INDEX) == anims.dead do
+        if self.get_attr("health") > 0 {
+            if (ret & INDEX) == anims.dying or (ret & INDEX) == anims.dead {
                 self.set_local_animation(idle | model.anim_control.LOOP)
                 self.prev_bt = undef
                 ret = self.get_attr("animation")
-            end
-        end
+            }
+        }
         return ret
-    end,
+    },
 
     /**
         Overriden so that the "dying" animation is displayed correctly.
     */
-    decide_base_time: func(self, anim)
-        if (anim & model.anims.INDEX) == anims.dying do
+    decide_base_time: func(self, anim) {
+        if (anim & model.anims.INDEX) == anims.dying {
             var pbt = self.prev_bt
-            if not pbt do
+            if not pbt {
                 pbt = frame::get_last_millis()
                 self.prev_bt = pbt
-            end
+            }
             return pbt
-        end
+        }
         return self.get_attr("start_time")
-    end,
+    },
 
     /**
         Overriden so that the "dying" animation can be used when health is 0
         (and "dead" when at least 1 second after death).
     */
-    decide_animation: @[not server,func(self, ...)
-        if self.get_attr("health") > 0 do
+    decide_animation: @[not server,func(self, ...) {
+        if self.get_attr("health") > 0 {
             return self.__parent_ent_proto::decide_animation(self, ...)
-        else
+        } else {
             var anim
             var pbt = self.prev_bt
-            if pbt and (frame::get_last_millis() - pbt) > 1000 do
+            if pbt and (frame::get_last_millis() - pbt) > 1000 {
                 anim = anims.dead | model.anim_control.LOOP
-            else
+            } else {
                 anim = anims.dying
-            end
+            }
             return anim | model.anim_flags.NOPITCH | model.anim_flags.RAGDOLL
-        end
-    end],
+        }
+    }],
 
-    health_on_health: func(self, health, server_orig)
+    health_on_health: func(self, health, server_orig) {
         var oh = self.old_health
         self.old_health = health
-        if not oh do return end
+        if not oh { return }
         self.health_changed(health, health - oh, server_orig)
-    end,
+    },
 
     /**
         There are two variants of this one, for the client and for the server.
@@ -188,13 +188,13 @@ M.player_plugin = {
             - diff - the difference from the old health state.
             - server_orig - true if the change originated on the server.
     */
-    health_changed: @[server,func(self, health, diff, server_orig)
-        if health <= 0 do self.enqueue_action(DeathAction()) end
-    end,func(self, health, diff, server_orig)
-        if diff <= -5 and health > 0 do
+    health_changed: @[server,func(self, health, diff, server_orig) {
+        if health <= 0 { self.enqueue_action(DeathAction()) }
+    },func(self, health, diff, server_orig) {
+        if diff <= -5 and health > 0 {
             self.enqueue_action(PainAction())
-        end
-    end],
+        }
+    }],
 
     /**
         Adds to player's health. If the provided amount is zero, it does
@@ -202,13 +202,13 @@ M.player_plugin = {
         amount does damage to the player. The result is always clamped
         at 0 on the bottom and at max_health on the top.
     */
-    health_add: func(self, amount)
+    health_add: func(self, amount) {
         var ch = self.get_attr("health")
-        if ch > 0 and amount != 0 do
+        if ch > 0 and amount != 0 {
             var mh = self.get_attr("max_health")
             self.set_attr("health", min(mh, max(0, ch + amount)))
-        end
-    end
+        }
+    }
 }
 
 /** Function: health.is_valid_target
@@ -217,38 +217,38 @@ M.player_plugin = {
     or lagged, its health must be higher than 0 and it must be already
     spawned (the spawn stage must be 0).
 */
-var is_valid_target = func(ent)
-    if not ent or ent.deactivated do return false end
+var is_valid_target = func(ent) {
+    if not ent or ent.deactivated { return false }
 
     var cs = ent.get_attr("client_state")
-    if cs == 3 or cs == 4 do return false end // editing, lagged
+    if cs == 3 or cs == 4 { return false } // editing, lagged
 
     var health, sstage = ent.get_attr("health"     ) or 0,
                             ent.get_attr("spawn_stage") or 0
 
     return health > 0 and sstage == 0
-end
+}
 M.is_valid_target = is_valid_target
 
 var HealthAction = actions.Action.clone({
     cancelable: false,
 
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         actions.Action::__ctor(self, kwargs)
         self.health_step = kwargs.health_step
-    end,
+    },
 
-    __finish: func(self)
+    __finish: func(self) {
         self.actor.health_add(self.health_step)
-    end
+    }
 })
 
-var gethcolor = func(v, maxv)
+var gethcolor = func(v, maxv) {
     var mid = maxv / 2
     var r = 1 - max(v - mid, 0) * (1 / mid)
     var g = min(v, mid) * (1 / mid)
     return (floor(g * 0xFF) << 8) | (floor(r * 0xFF) << 16)
-end
+}
 
 /**
     A bunch of example uses of the code included in this module.
@@ -277,78 +277,78 @@ M.plugins = {
             health_step_millis: svars::StateInteger()
         },
 
-        __init_svars: func(self)
+        __init_svars: func(self) {
             self.set_attr("health_step", -10)
             self.set_attr("health_step_millis", 1000)
-        end,
+        },
 
-        health_area_on_collision: func(self, collider)
-            if collider != ents::get_player() do return end
-            if is_valid_target(collider) do
+        health_area_on_collision: func(self, collider) {
+            if collider != ents::get_player() { return }
+            if is_valid_target(collider) {
                 var step = self.get_attr("health_step")
-                if    step == 0 do return end
+                if    step == 0 { return }
                 var step_millis = self.get_attr("health_step_millis")
-                if    step_millis == 0 do return end
+                if    step_millis == 0 { return }
     
-                if step_millis < 0 do
+                if step_millis < 0 {
                     var oldhealth = collider.get_attr("health")
                     collider.set_attr("health", step < 0 and 0
                         or max(oldhealth, collider.get_attr("max_health")))
-                else
+                } else {
                     var prev = self.health_previous_act
-                    if not prev or prev.finished do
+                    if not prev or prev.finished {
                         self.health_previous_act = collider.enqueue_action(
                             HealthAction({ millis_left: step_millis,
                                 health_step: step }))
-                    end
-                end
-            end
-        end,
+                    }
+                }
+            }
+        },
 
-        __activate: @[not server,func(self)
+        __activate: @[not server,func(self) {
             signal::connect(self, "collision", self.health_area_on_collision)
-        end]
+        }]
     },
 
     /**
         Displays a simple HUD health status on the player.
     */
     player_hud: {
-        __activate: @[not server,func(self)
+        __activate: @[not server,func(self) {
             gui::get_hud().append(gui::Spacer({ pad_h: 0.1, pad_v: 0.1,
                 align_h: 1, align_v: 1
-            }), func(sp)
+            }), func(sp) {
                 self.health_hud_status = sp.append(gui::Label({
                     scale: 2.5, font: "default_outline"
-                }), func(st)
+                }), func(st) {
                     var curh, maxh
-                    var updatehud = func()
+                    var updatehud = func() {
                         st.set_text(tostring(curh))
                         st.set_color(gethcolor(curh, maxh))
-                    end
-                    connect(self, "max_health,changed", func(self, v)
-                        maxh = v; if curh do updatehud() end
-                    end)
-                    connect(self, "health,changed", func(self, v)
-                        curh = v; if maxh do updatehud() end
-                    end)
-                end)
-            end)
-        end],
+                    }
+                    connect(self, "max_health,changed", func(self, v) {
+                        maxh = v; if curh { updatehud() }
+                    })
+                    connect(self, "health,changed", func(self, v) {
+                        curh = v; if maxh { updatehud() }
+                    })
+                })
+            })
+        }],
 
-        __deactivate: @[not server,func(self)
+        __deactivate: @[not server,func(self) {
             self.health_hud_status.destroy()
-        end]
+        }]
     },
 
     /// Kills the player when he falls off the map.
     player_off_map: {
-        __activate: @[not server,func(self)
-            connect(self, "off_map", func(ent)
-                if not is_valid_target(ent) do return end
+        __activate: @[not server,func(self) {
+            connect(self, "off_map", func(ent) {
+                if not is_valid_target(ent) { return }
                 ent.set_attr("health", 0)
-            end)
-        end]
+            })
+        }]
     },
 
     /**
@@ -356,16 +356,16 @@ M.plugins = {
         material and gradually when in lava.
     */
     player_in_deadly_material: {
-        __activate: @[not server,func(self)
-            connect(self, "in_deadly", func(ent, mat)
-                if not is_valid_target(ent) do return end
-                if mat == edit.material.LAVA do
+        __activate: @[not server,func(self) {
+            connect(self, "in_deadly", func(ent, mat) {
+                if not is_valid_target(ent) { return }
+                if mat == edit.material.LAVA {
                     ent.health_add(-1)
-                else
+                } else {
                     ent.set_attr("health", 0)
-                end
-            end)
-        end]
+                }
+            })
+        }]
     }
 }
 

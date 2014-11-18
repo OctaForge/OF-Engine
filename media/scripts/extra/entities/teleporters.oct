@@ -48,35 +48,35 @@ M.Teleporter = Obstacle.clone({
         sound_name : svars::StateString()
     },
 
-    __init_svars: func(self, kwargs, nd)
+    __init_svars: func(self, kwargs, nd) {
         Obstacle::__init_svars(self, kwargs, [ nd.unpack(2) ])
         self.set_attr("destination", 0, nd[0])
         self.set_attr("sound_name", "", nd[1])
-    end,
+    },
 
-    __activate: @[not server,func(self, kwargs)
+    __activate: @[not server,func(self, kwargs) {
         Obstacle::__activate(self, kwargs)
         connect(self, "collision", self.on_collision)
-    end],
+    }],
 
-    on_collision: func(self, collider)
+    on_collision: func(self, collider) {
         var dest = self.get_attr("destination")
-        if dest <= 0 do return end
+        if dest <= 0 { return }
         var dests = get_by_tag("teledest_" ~ dest)
-        if dests.len() == 0 do
+        if dests.len() == 0 {
             log::log(log.ERROR, "No teledest found.")
             return
-        end
+        }
         dests[rand(0, dests.len())].place_entity(collider)
         var sn = self.get_attr("sound_name")
-        if sn != "" do play(sn) end
-    end,
+        if sn != "" { play(sn) }
+    },
 
-    get_attached_next: func(self)
+    get_attached_next: func(self) {
         var dest = self.get_attr("destination")
-        if dest <= 0 do return end
+        if dest <= 0 { return }
         return get_by_tag("teledest_" ~ dest).unpack()
-    end
+    }
 })
 
 ents::register_prototype(M.Teleporter)

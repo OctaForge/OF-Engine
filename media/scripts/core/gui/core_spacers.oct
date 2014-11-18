@@ -35,36 +35,36 @@ var gen_setter = M.gen_setter
         - pad_h, pad_v - the padding values, both default to 0.
 */
 M.Spacer = register_type("Spacer", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.pad_h = kwargs.pad_h or 0
         self.pad_v = kwargs.pad_v or 0
 
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         var ph, pv = self.pad_h, self.pad_v
         var w , h  = ph, pv
 
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.x = ph
             o.y = pv
             o.layout()
 
             w = max(w, o.x + o.w)
             h = max(h, o.y + o.h)
-        end)
+        })
 
         self.w = w + ph
         self.h = h + pv
-    end,
+    },
 
-    adjust_children: func(self)
+    adjust_children: func(self) {
         var ph, pv = self.pad_h, self.pad_v
         Widget::adjust_children(self, ph, pv, self.w - 2 * ph,
             self.h - 2 * pv)
-    end,
+    },
 
     /// Function: set_pad_h
     set_pad_h: gen_setter("pad_h"),
@@ -91,7 +91,7 @@ M.Spacer = register_type("Spacer", Widget, {
           to false (useful for MDI windows for example).
 */
 M.Filler = register_type("Filler", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.min_w = kwargs.min_w or 0
         self.min_h = kwargs.min_h or 0
@@ -99,46 +99,46 @@ M.Filler = register_type("Filler", Widget, {
         self.clip_children = kwargs.clip_children or false
 
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         Widget::layout(self)
 
         var min_w = self.min_w
         var min_h = self.min_h
-        if typeof min_w == "function" do min_w = min_w(self) end
-        if typeof min_h == "function" do min_h = min_h(self) end
+        if typeof min_w == "function" { min_w = min_w(self) }
+        if typeof min_h == "function" { min_h = min_h(self) }
 
         var r = self.get_root()
 
-        if min_w < 0 do min_w = r.get_ui_size(abs(min_w)) end
-        if min_h < 0 do min_h = r.get_ui_size(abs(min_h)) end
+        if min_w < 0 { min_w = r.get_ui_size(abs(min_w)) }
+        if min_h < 0 { min_h = r.get_ui_size(abs(min_h)) }
 
         var proj = r.get_projection()
-        if min_w == huge do min_w = proj.pw end
-        if min_h == huge do min_h = proj.ph end
+        if min_w == huge { min_w = proj.pw }
+        if min_h == huge { min_h = proj.ph }
 
         self.w = max(self.w, min_w)
         self.h = max(self.h, min_h)
-    end,
+    },
 
     /**
         Makes sure the filler can take input. Makes it useful for, say, button
         surfaces (when they should be invisible). See also {{$Widget.target}}.
     */
-    target: func(self, cx, cy)
+    target: func(self, cx, cy) {
         return Widget::target(self, cx, cy) or self
-    end,
+    },
 
-    draw: func(self, sx, sy)
-        if self.clip_children do
+    draw: func(self, sx, sy) {
+        if self.clip_children {
             self.get_root().clip_push(sx, sy, self.w, self.h)
             Widget::draw(self, sx, sy)
             self.get_root().clip_pop()
-        else
+        } else {
             return Widget::draw(self, sx, sy)
-        end
-    end,
+        }
+    },
 
     /// Function: set_min_w
     set_min_w: gen_setter("min_w"),
@@ -164,24 +164,24 @@ var Filler = M.Filler
           scaling factor rather than regular text scaling factor.
 */
 M.TextFiller = register_type("TextFiller", Filler, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.console_text = kwargs.console_text or false
         return Filler::__ctor(self, kwargs)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         Widget::layout(self)
 
         var min_w = self.min_w
         var min_h = self.min_h
-        if typeof min_w == "function" do min_w = min_w(self) end
-        if typeof min_h == "function" do min_h = min_h(self) end
+        if typeof min_w == "function" { min_w = min_w(self) }
+        if typeof min_h == "function" { min_h = min_h(self) }
 
         var scalef = self.get_root().get_text_scale(self.console_text)
         self.w = max(self.w, min_w * scalef * 0.5)
         self.h = max(self.h, min_h * scalef)
-    end,
+    },
 })
 
 /**
@@ -191,32 +191,32 @@ M.TextFiller = register_type("TextFiller", Filler, {
         - offset_h, offset_v - the offset values.
 */
 M.Offsetter = register_type("Offsetter", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.offset_h = kwargs.offset_h or 0
         self.offset_v = kwargs.offset_v or 0
 
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         Widget::layout(self)
 
         var oh, ov = self.offset_h, self.offset_v
 
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.x = o.x + oh
             o.y = o.y + ov
-        end)
+        })
 
         self.w = self.w + oh
         self.h = self.h + ov
-    end,
+    },
 
-    adjust_children: func(self)
+    adjust_children: func(self) {
         var oh, ov = self.offset_h, self.offset_v
         Widget::adjust_children(self, oh, ov, self.w - oh, self.h - ov)
-    end,
+    },
 
     /// Function: set_offset_h
     set_offset_h: gen_setter("offset_h"),

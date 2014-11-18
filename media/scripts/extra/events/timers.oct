@@ -32,11 +32,11 @@ M.Timer = Object:clone {
               value, the sum will be larger than the interval), defaults
               to false.
     */
-    __ctor: func(self, interval, carry_over)
+    __ctor: func(self, interval, carry_over) {
         self.interval   = interval
         self.carry_over = carry_over or false
         self.sum        = 0
-    end,
+    },
 
     /**
         Performs one timer tick.
@@ -49,22 +49,22 @@ M.Timer = Object:clone {
         Returns:
             True if the interval was reached, false otherwise.
     */
-    tick: func(self, millis)
+    tick: func(self, millis) {
         var sum = self.sum + millis
         var interval = self.interval
-        if sum >= interval do
+        if sum >= interval {
             self.sum = self.carry_over and (sum - interval) or 0
             return true
-        else
+        } else {
             self.sum = sum
             return false
-        end
-    end,
+        }
+    },
 
     /// Manually sets sum to interval.
-    prime: func(self)
+    prime: func(self) {
         self.sum = self.interval
-    end
+    }
 }
 
 return M

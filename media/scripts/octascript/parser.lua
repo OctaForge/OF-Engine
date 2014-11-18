@@ -444,7 +444,7 @@ local sexps = {
     ["if"] = function(ls, ast)
         ls:get()
         local cond = parse_expr(ls, ast)
-        assert_next(ls, "then")
+        assert_next(ls, ":")
         local texpr = parse_expr(ls, ast)
         return ast.IfExpression(cond, texpr, test_next(ls, "else")
             and parse_expr(ls, ast) or ast.Literal(nil))
@@ -507,7 +507,7 @@ parse_expr = function(ls, ast)
 end
 
 local block_follow = {
-    ["else" ] = true, ["elif" ] = true, ["end"] = true,
+    ["else" ] = true, ["elif" ] = true, ["}"] = true,
     ["until"] = true, ["<eof>"] = true
 }
 
@@ -533,16 +533,16 @@ local parse_for_stat = function(ls, ast, line)
         else
             step = ast.Literal(1)
         end
-        assert_next(ls, "do")
+        assert_next(ls, "{")
         local body = parse_block(ls, ast)
-        check_match(ls, "end", "for", line)
+        check_match(ls, "}", "{", line)
         return ast.ForStatement(vars[1], init, last, step, body,
             line)
     end
     local exps = parse_expr_list(ls, ast, { exp })
-    assert_next(ls, "do")
+    assert_next(ls, "{")
     local body = parse_block(ls, ast)
-    check_match(ls, "end", "for", line)
+    check_match(ls, "}", "{", line)
     return ast.ForInStatement(vars, exps, body, line)
 end
 
@@ -654,9 +654,9 @@ end
 local parse_while_stat = function(ls, ast, line)
     ls:get()
     local cond = parse_expr(ls, ast)
-    assert_next(ls, "do")
+    assert_next(ls, "{")
     local body = parse_block(ls, ast)
-    check_match(ls, "end", "while", line)
+    check_match(ls, "}", "{", line)
     return ast.WhileStatement(cond, body, line)
 end
 
@@ -664,20 +664,28 @@ local parse_if_stat = function(ls, ast, line)
     local tests, blocks = {}, {}
     ls:get()
     tests[#tests + 1] = parse_expr(ls, ast)
-    assert_next(ls, "do")
+    local bln = ls.line_number
+    assert_next(ls, "{")
     blocks[#blocks + 1] = parse_block(ls, ast)
-    while ls.token.name == "elif" do
-        ls:get()
-        tests[#tests + 1] = parse_expr(ls, ast)
-        assert_next(ls, "do")
-        blocks[#blocks + 1] = parse_block(ls, ast)
-    end
+    check_match(ls, "}", "{", bln)
     local elseb
-    if ls.token.name == "else" then
+    while ls.token.name == "else" do
         ls:get()
-        elseb = parse_block(ls, ast)
+        if ls.token.name == "if" then
+            ls:get()
+            tests[#tests + 1] = parse_expr(ls, ast)
+            bln = ls.line_number
+            assert_next(ls, "{")
+            blocks[#blocks + 1] = parse_block(ls, ast)
+            check_match(ls, "}", "{", bln)
+        else
+            bln = ls.line_number
+            assert_next(ls, "{")
+            elseb = parse_block(ls, ast)
+            check_match(ls, "}", "{", bln)
+            break
+        end
     end
-    check_match(ls, "end", "if", line)
     return ast.IfStatement(tests, blocks, elseb, line)
 end
 
@@ -750,10 +758,10 @@ end
 local stat_opts = {
     ["if"] = parse_if_stat,
     ["while"] = parse_while_stat,
-    ["do"] = function(ls, ast, line)
+    ["{"] = function(ls, ast, line)
         ls:get()
         local body = parse_block(ls, ast)
-        check_match(ls, "end", "do", line)
+        check_match(ls, "}", "{", line)
         return ast.DoStatement(body, line)
     end,
     ["for"] = parse_for_stat,
@@ -779,20 +787,23 @@ local stat_opts = {
         ls:get()
         local cond = parse_cond_expr(ls, ast)
         check_match(ls, "]", "@[", line)
-        if ls.token.name == "then" then
+        if ls.token.name == "{" then
             local line = ls.line_number
             ls:get()
             local tblock, tlast = parse_chunk(ls, ast)
             local fblock, flast
+            check_match(ls, "}", "{", line)
             if ls.token.name == "else" then
                 ls:get()
+                line = ls.line_number
+                assert_next(ls, "{")
                 fblock, flast = parse_chunk(ls, ast)
+                check_match(ls, "}", "{", line)
             end
-            check_match(ls, "end", "then", line)
             if cond then
-                return tblock, tlast, true
+                return tblock, false, true
             else
-                return fblock, flast, true
+                return fblock, false, true
             end
         end
         local stat, last = parse_stat(ls, ast)
@@ -905,10 +916,12 @@ parse_body = function(ls, ast, line)
     assert_next(ls, "(")
     local args = parse_params(ls, ast)
     check_match(ls, ")", "(", pline)
+    local bln = ls.line_number
+    assert_next(ls, "{")
     local body = parse_block(ls, ast)
     local proto = ls.fs
     ls.fs.last_line = ls.line_number
-    check_match(ls, "end", "func", line)
+    check_match(ls, "}", "{", bln)
     ls.fs = prev_fs
     return args, body, proto
 end

@@ -105,7 +105,7 @@ M.gl = enum {
     ZERO: 0x0
 }
 
-var scancode_to_keycode = func(x) return (x | (1 << 30)) end
+var scancode_to_keycode = func(x) { return (x | (1 << 30)) }
 
 /** Enum: scancode
     Contains a list of key scan codes. Not meant for direct use. Use $key.

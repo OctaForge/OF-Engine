@@ -33,11 +33,11 @@ M.ALL_CLIENTS = -1
     Client:
         The first argument is the message function directly.
 */
-M.send = @[server,func(cn, mf, ...)
+M.send = @[server,func(cn, mf, ...) {
     mf(cn, ...)
-end,func(mf, ...)
+},func(mf, ...) {
     mf(...)
-end]
+}]
 
 var send = M.send
 
@@ -46,10 +46,10 @@ var send = M.send
     serverside). You need to provide a client number or a client entity, a
     message title and a message text.
 */
-M.show_client_message = @[server,func(cn, title, text)
+M.show_client_message = @[server,func(cn, title, text) {
     cn = typeof cn == "table" and cn.cn or cn
     assert(cn)
     send(cn, capi.personal_servmsg, title, text)
-end]
+}]
 
 return M

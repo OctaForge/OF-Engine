@@ -93,32 +93,32 @@ var is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
     entity prototype name and an array of state variable names to generate network
     data for.
 */
-M.gen_network_data = func(cn, names)
+M.gen_network_data = func(cn, names) {
     @[debug] log(DEBUG, e"ents.generate_network_data: $cn")
     names.sort()
 
     var ntoi, iton = {}, {}
-    for id, name in names.each() do
+    for id, name in names.each() {
         ntoi[name], iton[id + 1] = tostring(id + 1), name
-    end
+    }
 
     names_to_ids[cn], ids_to_names[cn] = ntoi, iton
-end
+}
 var gen_network_data = M.gen_network_data
 
 /**
     If an entity prototype name is provided, clears the network data generated
     by $gen_network_data for the entity prototype. Otherwise clears it all.
 */
-M.clear_network_data = func(cn)
-    if cn == undef do
+M.clear_network_data = func(cn) {
+    if cn == undef {
         @[debug] log(DEBUG, "ents.clear_network_data")
         names_to_ids, ids_to_names = {}, {}
-    else
+    } else {
         @[debug] log(DEBUG, e"ents.clear_network_data: $cn")
         names_to_ids[cn], ids_to_names[cn] = undef, undef
-    end
-end
+    }
+}
 
 var plugin_slots = [
     "__init_svars", "__activate", "__deactivate", "__run", "__render"
@@ -126,55 +126,55 @@ var plugin_slots = [
 
 var modprefix = "_PLUGINS_"
 
-var register_plugins = func(cl, plugins, name)
+var register_plugins = func(cl, plugins, name) {
     @[debug] log(DEBUG, "ents.register_prototype: registering plugins")
     var cldata = {}
     var properties
 
     var clmeths = cl["__plugin_methods"] or []
-    for i, v in plugin_slots.each() do clmeths.push(v) end
+    for i, v in plugin_slots.each() { clmeths.push(v) }
     var clmethset = {}
-    for i, v in clmeths.each() do clmethset[v] = true end
+    for i, v in clmeths.each() { clmethset[v] = true }
 
     var clname = cl.name
-    for i, slot in clmeths.each() do
+    for i, slot in clmeths.each() {
         var slotname = modprefix ~ clname ~ slot
         assert(not cl[slotname])
 
         var cltbl = [ cl[slot] ]
-        for j, plugin in plugins.each() do
+        for j, plugin in plugins.each() {
             var sl = plugin[slot]
             var tp = typeof sl
             if sl and tp == "function" or tp == "table" or tp == "userdata"
-            do cltbl.push(sl) end
-        end
+            { cltbl.push(sl) }
+        }
 
-        if not (cltbl.empty() or (cltbl.len() == 1 and cltbl[0] == cl[slot])) do
+        if not (cltbl.empty() or (cltbl.len() == 1 and cltbl[0] == cl[slot])) {
             cldata[slotname] = cltbl
-            cldata[slot] = func(...)
-                for i, fn in cltbl.each() do fn(...) end
-            end
-        end
-    end
+            cldata[slot] = func(...) {
+                for i, fn in cltbl.each() { fn(...) }
+            }
+        }
+    }
 
-    for i, plugin in plugins.each() do
-        for name, elem in pairs(plugin) do
-            if not clmethset[name] do
-                if name == "__properties" do
+    for i, plugin in plugins.each() {
+        for name, elem in pairs(plugin) {
+            if not clmethset[name] {
+                if name == "__properties" {
                     assert(typeof elem == "table")
-                    if not properties do
+                    if not properties {
                         properties = elem
-                    else
-                        for propn, propv in pairs(elem) do
+                    } else {
+                        for propn, propv in pairs(elem) {
                             properties[propn] = propv
-                        end
-                    end
-                else
+                        }
+                    }
+                } else {
                     cldata[name] = elem
-                end
-            end
-        end
-    end
+                }
+            }
+        }
+    }
 
     var ret = cl.clone(cldata)
     ret.name               = name
@@ -183,7 +183,7 @@ var register_plugins = func(cl, plugins, name)
     ret.__parent_ent_proto = cl.__proto
     ret.__plugins          = plugins
     return ret
-end
+}
 
 /**
     Registers an entity prototype. The registered prototype is always a clone
@@ -222,14 +222,14 @@ end
           field of the entity prototype name is used; it can also be the second
           argument if you are not providing plugins.
 */
-M.register_prototype = func(cl, plugins, name)
-    if not name do
-        if typeof plugins == "string" do
+M.register_prototype = func(cl, plugins, name) {
+    if not name {
+        if typeof plugins == "string" {
             name, plugins = plugins, undef
-        else
+        } else {
             name = cl.name
-        end
-    end
+        }
+    }
     assert(name)
 
     @[debug] log(DEBUG, e"ents.register_prototype: $name")
@@ -237,15 +237,15 @@ M.register_prototype = func(cl, plugins, name)
     assert(not proto_storage[name],
         "an entity prototype with the same name already exists")
 
-    if plugins do
+    if plugins {
         cl = register_plugins(cl, plugins, name)
-    else
+    } else {
         cl = cl.clone({
             name: name,
             __raw_ent_proto: cl,
             __parent_ent_proto: cl.__proto
         })
-    end
+    }
 
     proto_storage[name] = cl
     proto_aliases[name.lower()] = name
@@ -255,29 +255,29 @@ M.register_prototype = func(cl, plugins, name)
     var sv_names = []
 
     var base = cl
-    while base do
+    while base {
         var props = base.__properties
-        if props do
-            for n, v in pairs(props) do
-                if not pt[n] and svars::is_svar(v) do
+        if props {
+            for n, v in pairs(props) {
+                if not pt[n] and svars::is_svar(v) {
                     pt[n] = v
                     sv_names.push(n)
-                end
-            end
-        end
-        if base == Entity do break end
+                }
+            }
+        }
+        if base == Entity { break }
         base = base.__proto
-    end
+    }
 
-    sv_names.sort(func(n, m)
-        if is_svar_alias(pt[n]) and not is_svar_alias(pt[m]) do
+    sv_names.sort(func(n, m) {
+        if is_svar_alias(pt[n]) and not is_svar_alias(pt[m]) {
             return false
-        end
-        if not is_svar_alias(pt[n]) and is_svar_alias(pt[m]) do
+        }
+        if not is_svar_alias(pt[n]) and is_svar_alias(pt[m]) {
             return true
-        end
+        }
         return n < m
-    end)
+    })
 
     @[debug] log(DEBUG, e"ents.register_prototype: generating protocol data for "
         "{ $(sv_names.concat(', ')) }")
@@ -285,12 +285,12 @@ M.register_prototype = func(cl, plugins, name)
     gen_network_data(name, sv_names)
 
     @[debug] log(DEBUG, "ents.register_prototype: registering state variables")
-    for i, name in sv_names.each() do
+    for i, name in sv_names.each() {
         var svar = pt[name]
         @[debug] log(DEBUG, e"    $name ($(svar.name))")
         svar.register(name, cl)
-    end
-end
+    }
+}
 
 /**
     Returns the entity prototype with the given name. If it doesn't exist,
@@ -299,94 +299,94 @@ end
     Use with caution! See $register_prototype for the possible dangers of
     using this. It's still useful sometimes, so it's in the API.
 */
-M.get_prototype = func(cn)
+M.get_prototype = func(cn) {
     var  t = proto_storage[cn] or proto_storage[proto_aliases[cn]]
-    if not t do
+    if not t {
         log(ERROR, e"ents.get_prototype: invalid prototype $cn")
-    end
+    }
     return t
-end
+}
 var get_prototype = M.get_prototype
 
-set_external("entity_proto_exists", func(cn)
+set_external("entity_proto_exists", func(cn) {
     return not not get_prototype(cn)
-end)
+})
 
 /**
     Returns the internal entity prototype storage (name->prototype mapping),
     use with care.
 */
-M.get_all_prototypes = func()
+M.get_all_prototypes = func() {
     return proto_storage
-end
+}
 
 /**
     Retrieves an entity, given its unique id. If not found, undef. External as
     `entity_get`.
 */
-M.get = func(uid)
+M.get = func(uid) {
     var r = storage[uid]
-    if r do
+    if r {
         @[debug] log(DEBUG, e"ents.get: success ($uid)")
         return r
-    else
+    } else {
         @[debug] log(DEBUG, e"ents.get: no such entity ($uid)")
-    end
-end
+    }
+}
 set_external("entity_get", M.get)
 var get_ent = M.get
 
 /**
     Returns the whole storage. Use with care. External as `entities_get_all`.
 */
-M.get_all = func()
+M.get_all = func() {
     return storage
-end
+}
 set_external("entities_get_all", M.get_all)
 
 /// Returns an array of entities with a common tag.
-M.get_by_tag = func(tag)
+M.get_by_tag = func(tag) {
     var r = []
-    for i in 1 to highest_uid do
+    for i in 1 to highest_uid {
         var ent = storage[i]
-        if ent and ent.has_tag(tag) do
+        if ent and ent.has_tag(tag) {
             r.push(ent)
-        end
-    end
+        }
+    }
     return r
-end
+}
 
 /// Returns an array of entities with a common prototype.
-M.get_by_prototype = func(cl)
+M.get_by_prototype = func(cl) {
     return storage_by_proto[cl] or []
-end
+}
 
 var player_prototype = "Player"
 
 /// Sets the player prototype (by name) on the server (invalid on the client).
-M.set_player_prototype = @[server,func(cl)
+M.set_player_prototype = @[server,func(cl) {
     player_prototype = cl
-end]
+}]
 
 var vg = cs.var_get
 
 /// Gets an array of players (all of the currently set player prototype).
-M.get_players = func()
+M.get_players = func() {
     return storage_by_proto[@[server,player_prototype,player_entity.name]]
         or []
-end
+}
 var get_players = M.get_players
 
 /// Gets the current player, clientside only.
-M.get_player = @[not server,func()
+M.get_player = @[not server,func() {
     return player_entity
-end]
+}]
 
-@[server] do
-    set_external("entity_get_player_prototype", func()
+@[server] {
+    set_external("entity_get_player_prototype", func() {
         return player_prototype
-    end)
-end
+    })
+}
 
 /**
     Finds all entities whose maximum distance from pos equals
@@ -406,36 +406,36 @@ end
         in form of {{$geom.Vec3}}. By default simply returns entity's position,
         the position is do used for subtraction from the given position.
 */
-M.get_by_distance = func(pos, kwargs)
+M.get_by_distance = func(pos, kwargs) {
     kwargs = kwargs or {}
 
     var md = kwargs.max_distance
-    if not md do return undef end
+    if not md { return undef }
 
     var cl, tg, sr = kwargs.prototype, kwargs.tag, kwargs.sort
-    var fn = kwargs.pos_fun or func(e)
+    var fn = kwargs.pos_fun or func(e) {
         return e.get_attr("position").copy()
-    end
+    }
 
-    if typeof cl == "table" do cl = cl.name end
+    if typeof cl == "table" { cl = cl.name }
 
     var ret = []
-    for uid in 1 to highest_uid do
+    for uid in 1 to highest_uid {
         var ent = storage[uid]
         if ent and ((not cl or cl == ent.name) and (not tg or ent.has_tag(tg)))
-        do
+        {
             var dist = (pos - fn(ent)).magnitude()
-            if dist <= md do
+            if dist <= md {
                 ret.push([ ent, dist ])
-            end
-        end
-    end
+            }
+        }
+    }
 
-    if sr != false do
+    if sr != false {
         ret.sort(sr or \a, b -> a[1] < b[1])
-    end
+    }
     return ret
-end
+}
 
 /**
     Inserts an entity of the given prototype or prototype name into the storage.
@@ -446,65 +446,65 @@ end
     we don't want this behavior, for example when loading an entity from a
     file. External as `entity_add`.
 */
-var add = func(cn, uid, kwargs, new)
+var add = func(cn, uid, kwargs, new) {
     uid = uid or 1337
 
     var cl = typeof cn == "table" and cn or (proto_storage[cn]
                                          or  proto_storage[proto_aliases[cn]])
-    if not cl do
+    if not cl {
         log(ERROR, e"ents.add: no such entity prototype: $(tostring(cn))")
         assert(false)
-    end
+    }
 
     @[debug] log(DEBUG, e"ents.add: $(cl.name) ($uid)")
     assert(not storage[uid])
 
-    if uid > highest_uid do
+    if uid > highest_uid {
         highest_uid = uid
-    end
+    }
 
     var r = cl()
     r.uid = uid
     storage[uid] = r
 
     // caching
-    for k, v in pairs(proto_storage) do
-        if r.is_a(v) do
+    for k, v in pairs(proto_storage) {
+        if r.is_a(v) {
             var sbc = storage_by_proto[k]
-            if not sbc do
+            if not sbc {
                 storage_by_proto[k] = [ r ]
-            else
+            } else {
                 sbc.push(r)
-            end
-        end
-    end
+            }
+        }
+    }
 
-    if @[server,new] do
+    if @[server,new] {
         var ndata
-        if kwargs do
+        if kwargs {
             ndata = kwargs.newent_data
             kwargs.newent_data = undef
-            if ndata do ndata = deserialize(ndata) end
-        end
+            if ndata { ndata = deserialize(ndata) }
+        }
         r.__init_svars(kwargs, ndata or [])
-    end
+    }
 
     @[debug] log(DEBUG, "ents.add: activate")
     r.__activate(kwargs)
     @[debug] log(DEBUG, "ents.add: activated")
     return r
-end
+}
 M.add = add
 set_external("entity_add", add)
-set_external("entity_add_with_cn", func(cl, uid, cn)
+set_external("entity_add_with_cn", func(cl, uid, cn) {
     add(cl, uid, (cn >= 0) and { cn: cn } or undef)
-end)
+})
 
-var add_sauer = func(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
+var add_sauer = func(et, x, y, z, attr1, attr2, attr3, attr4, attr5) {
     storage_sauer.push([
         et, Vec3(x, y, z), attr1, attr2, attr3, attr4, attr5
     ])
-end
+}
 M.add_sauer = add_sauer
 set_external("entity_add_sauer", add_sauer)
 
@@ -516,34 +516,34 @@ set_external("entity_add_sauer", add_sauer)
     See also:
         - $remove_all
 */
-M.remove = func(uid)
+M.remove = func(uid) {
     @[debug] log(DEBUG, e"ents.remove: $uid")
 
     var e = storage[uid]
-    if not e do
+    if not e {
         log(WARNING, "ents.remove: does not exist.")
         return
-    end
+    }
 
     emit(e, "pre_deactivate")
     e.__deactivate()
 
-    for k, v in pairs(proto_storage) do
-        if e.is_a(v) do
+    for k, v in pairs(proto_storage) {
+        if e.is_a(v) {
             storage_by_proto[k].compact(\v -> v != e)
-        end
-    end
+        }
+    }
     storage[uid] = undef
-end
+}
 set_external("entity_remove", M.remove)
 
-set_external("entity_clear_actions", func(uid)
+set_external("entity_clear_actions", func(uid) {
     get_ent(uid).clear_actions()
-end)
+})
 
-set_external("entity_is_initialized", func(uid)
+set_external("entity_is_initialized", func(uid) {
     return get_ent(uid).initialized
-end)
+})
 
 /**
     Removes all entities from both storages. It's equivalent to looping
@@ -553,17 +553,17 @@ end)
     See also:
         - $remove
 */
-M.remove_all = func()
-    for i in 1 to highest_uid do
+M.remove_all = func() {
+    for i in 1 to highest_uid {
         var e = storage[i]
-        if e do
+        if e {
             emit(e, "pre_deactivate")
             e.__deactivate()
-        end
-    end
+        }
+    }
     storage = {}
     storage_by_proto = {}
-end
+}
 set_external("entities_remove_all", M.remove_all)
 
 /**
@@ -582,30 +582,30 @@ set_external("entities_remove_all", M.remove_all)
     See also:
         - $save
 */
-M.load = func()
-    @[not server] do return end
+M.load = func() {
+    @[not server] { return }
 
     @[debug] log(DEBUG, "ents.load: reading")
     var el = capi::readfile("./entities.oct")
 
     var entities = []
-    if not el do
+    if not el {
         @[debug] log(DEBUG, "ents.load: nothing to read")
-    else
+    } else {
         entities = deserialize(el)
-    end
+    }
 
-    if storage_sauer.len() > 0 do
+    if storage_sauer.len() > 0 {
         @[debug] log(DEBUG, "ents.load: loading sauer entities:\n"
             "    reading import.oct for imported models and sounds")
 
         var il, im, is = capi::readfile("./import.oct"), [], []
-        if il do
+        if il {
             var it = deserialize(il)
             var itm, its = it.models, it.sounds
-            if itm do im = itm end
-            if its do is = its end
-        end
+            if itm { im = itm }
+            if its { is = its }
+        }
 
         var huid = max(2, highest_uid)
         huid = huid + 1
@@ -616,11 +616,11 @@ M.load = func()
             6: "Sound",          7: "SpotLight"
         }
 
-        for i, e in storage_sauer.each() do
+        for i, e in storage_sauer.each() {
             var et = e[0]
             var o, attr1, attr2, attr3, attr4, attr5
                 = e[1], e[2], e[3], e[4], e[5], e[6]
-            if sn[et] do
+            if sn[et] {
                 entities.push([
                     huid, sn[et], {
                         attr1: tostring(attr1), attr2: tostring(attr2),
@@ -635,73 +635,73 @@ M.load = func()
 
                 var ent = entities.last()[2]
 
-                if et == 2 do
+                if et == 2 {
                     ent.model_name = (im.len() <= attr2) and
                         (e"@REPLACE_$attr2@") or im[attr2]
                     ent.attr2 = ent.attr3
                     ent.attr3 = "0"
                     ent.animation = model.anims.mapmodel
                         | model.anim_control.LOOP
-                elif et == 6 do
-                    if is.len() > attr1 do
+                } else if et == 6 {
+                    if is.len() > attr1 {
                         var snd = is[attr1]
                         ent.sound_name = snd[0]
                         ent.attr1, ent.attr2 = ent.attr2, ent.attr3
-                        if snd.len() > 1 do
+                        if snd.len() > 1 {
                             ent.attr3 = snd[1]
-                        else
+                        } else {
                             ent.attr3 = ent.attr4
-                        end
-                    else
+                        }
+                    } else {
                         ent.attr1, ent.attr2, ent.attr3
                             = ent.attr2, ent.attr3, ent.attr4
                         ent.sound_name = "@REPLACE@"
-                    end
+                    }
                     ent.attr4, ent.attr5 = undef, undef
-                elif et == 3 do
+                } else if et == 3 {
                     ent.tags = "[start_]"
-                end
+                }
 
                 huid = huid + 1
-            else
+            } else {
                 log(WARNING, "unsupported sauer entity: %d: (%f, %f,"
                     " %f) %d %d %d %d %d".format(et, o.x, o.y, o.z, attr1,
                     attr2, attr3, attr4, attr5))
-            end
-        end
+            }
+        }
 
         storage_sauer = []
-    end
+    }
 
     @[debug] log(DEBUG, "ents.load: loading all entities")
-    for i, e in entities.each() do
+    for i, e in entities.each() {
         var uid, cn = e[0], e[1]
         @[debug] log(DEBUG, e"    $uid, $cn")
         add(cn, uid, { state_data: serialize(e[2]) })
-    end
+    }
     @[debug] log(DEBUG, "ents.load: done")
-end
+}
 
 /**
     Serializes all loaded entities into format that can be read by $load.
     External as `entities_save_all`.
 */
-M.save = func()
+M.save = func() {
     var r = []
     @[debug] log(DEBUG, "ents.save: saving")
 
-    for uid in 1 to highest_uid do
+    for uid in 1 to highest_uid {
         var entity = storage[uid]
-        if entity and entity.get_attr("persistent") do
+        if entity and entity.get_attr("persistent") {
             var en = entity.name
             @[debug] log(DEBUG, e"    $uid, $en")
             r.push(serialize([ uid, en, entity.build_sdata() ]))
-        end
-    end
+        }
+    }
 
     @[debug] log(DEBUG, "ents.save: done")
     return e"[\n$(r.concat(",\n"))\n]\n"
-end
+}
 set_external("entities_save_all", M.save)
 
 /**
@@ -746,18 +746,18 @@ M.Entity = Object.clone({
     },
 
     /// Makes entity objects return their name on tostring.
-    __tostring: func(self)
+    __tostring: func(self) {
         return self.name
-    end,
+    },
 
     /**
         Performs entity setup. Creates its action queue, caching tables,
         de-deactivates the entity, triggers svar setup and locks.
     */
-    setup: func(self)
+    setup: func(self) {
         @[debug] log(DEBUG, "Entity: setup")
 
-        if self.setup_complete do return end
+        if self.setup_complete { return }
 
         self.action_queue = actions::ActionQueue(self)
         // for caching
@@ -767,23 +767,23 @@ M.Entity = Object.clone({
 
         // lock
         self.setup_complete = true
-    end,
+    },
 
     /**
         The default entity deactivator. Clears the action queue, unregisters
         the entity and makes it deactivated. On the server it also sends a
         message to all clients to do the same.
     */
-    __deactivate: func(self)
+    __deactivate: func(self) {
         self.clear_actions()
         capi::unregister_entity(self.uid)
 
         self.deactivated = true
 
-        @[server] do
+        @[server] {
             msg::send(msg.ALL_CLIENTS, capi.le_removal, self.uid)
-        end
-    end,
+        }
+    },
 
     /**
         Called per frame unless $__per_frame is false. All inherited prototypes
@@ -791,47 +791,47 @@ M.Entity = Object.clone({
         long to manage the action queue (how much will the counters change
         internally), specified in milliseconds.
     */
-    __run: func(self, millis)
+    __run: func(self, millis) {
         self.action_queue.run(millis)
-    end,
+    },
 
     /// Enqueues an action into the entity's queue. Returns the action.
-    enqueue_action: func(self, act)
+    enqueue_action: func(self, act) {
         self.action_queue.enqueue(act)
         return act
-    end,
+    },
 
     /// Clears the entity's action queue.
-    clear_actions: func(self)
+    clear_actions: func(self) {
         self.action_queue.clear()
-    end,
+    },
 
     /**
         Tags an entity. Modifies the `tags` property. Checks for existence
         of the tag first.
     */
-    add_tag: func(self, tag)
-        if not self.has_tag(tag) do
+    add_tag: func(self, tag) {
+        if not self.has_tag(tag) {
             self.get_attr("tags").push(tag)
-        end
-    end,
+        }
+    },
 
     /// Removes the given tag. Checks for its existence first.
-    remove_tag: func(self, tag)
+    remove_tag: func(self, tag) {
         @[debug] log(DEBUG, e"Entity: remove_tag ($tag)")
 
-        if not self.has_tag(tag) do return end
+        if not self.has_tag(tag) { return }
         self.set_attr("tags", self.get_attr("tags").filter(\t -> t != tag))
-    end,
+    },
 
     /**
         Checks if the entity is tagged with the given tag. Returns true if
         found, false if not found.
     */
-    has_tag: func(self, tag)
+    has_tag: func(self, tag) {
         @[debug] log(DEBUG, e"Entity: has_tag ($tag)")
         return self.get_attr("tags").to_array().find(tag) != undef
-    end,
+    },
 
     /**
         Builds sdata (state data, property mappings) from the properties the
@@ -845,47 +845,47 @@ M.Entity = Object.clone({
             sdata in a serialized format (string) with names converted
             to protocol IDs, otherwise raw table.
     */
-    build_sdata: func(self, kwargs)
+    build_sdata: func(self, kwargs) {
         kwargs = kwargs or {}
         var tcn, comp
-        if not kwargs do
+        if not kwargs {
             tcn, comp = msg.ALL_CLIENTS, false
-        else
+        } else {
             tcn, comp = kwargs.target_cn or msg.ALL_CLIENTS,
                         kwargs.compressed or false
-        end
+        }
 
         @[debug] log(DEBUG, e"Entity.build_sdata: $tcn, $(tostring(comp))")
 
         var r, sn = {}, self.name
-        for k, svar in pairs(self.__proto) do
+        for k, svar in pairs(self.__proto) {
             if is_svar(svar) and svar.has_history
-            and not (tcn >= 0 and not svar.should_send(self, tcn)) do
+            and not (tcn >= 0 and not svar.should_send(self, tcn)) {
                 var name = svar.name
                 var val = self.get_attr(name)
-                if val != undef do
+                if val != undef {
                     var wval = svar.to_wire(val)
                     @[debug] log(DEBUG, e"    adding $name: $wval")
                     var key = (not comp) and name
                         or tonumber(names_to_ids[sn][name])
                     r[key] = wval
                     @[debug] log(DEBUG, e"    currently $(serialize(r))")
-                end
-            end
-        end
+                }
+            }
+        }
 
         @[debug] log(DEBUG, e"Entity.build_sdata result: $(serialize(r))")
-        if not comp do
+        if not comp {
             return r
-        end
+        }
 
         r = serialize(r)
         @[debug] log(DEBUG, e"Entity.build_sdata compressed: $r")
         return r.sub(1, r.len() - 1)
-    end,
+    },
 
     /// Updates the complete state data on an entity from serialized input.
-    set_sdata_full: func(self, sdata)
+    set_sdata_full: func(self, sdata) {
         @[debug] log(DEBUG, e"Entity.set_sdata_full: $(self.uid), $sdata")
 
         sdata = sdata.sub(0, 1) != "{" and e"{$sdata}" or sdata
@@ -895,22 +895,22 @@ M.Entity = Object.clone({
         self.initialized = true
 
         var sn = self.name
-        for k, v in pairs(raw) do
+        for k, v in pairs(raw) {
             k = tonumber(k) and ids_to_names[sn][k] or k
             @[debug] log(DEBUG, e"    $k = $(tostring(v))")
             self.set_sdata(k, v, undef, true)
             @[debug] log(DEBUG, "    ... done.")
-        end
+        }
         @[debug] log(DEBUG, "Entity.set_sdata_full: complete")
-    end,
+    },
 
     /** Function: entity_setup
         Takes care of a proper entity setup (calls $setup, inits the change
         queue and makes the entity initialized). Called by $__init_svars and
         $__activate.
     */
-    entity_setup: @[server,func(self)
-        if not self.initialized do
+    entity_setup: @[server,func(self) {
+        if not self.initialized {
             @[debug] log(DEBUG, "Entity.entity_setup: setup")
             self.setup()
 
@@ -919,8 +919,8 @@ M.Entity = Object.clone({
 
             self.initialized = true
             @[debug] log(DEBUG, "Entity.entity_setup: setup complete")
-        end
-    end],
+        }
+    }],
 
     /** Function: __init_svars
         Initializes the entity before activation on the server. It's
@@ -932,14 +932,14 @@ M.Entity = Object.clone({
                for more things.
              - ndata - an array of extra newent arguments in wire format.
     */
-    __init_svars: @[server,func(self, kwargs, ndata)
+    __init_svars: @[server,func(self, kwargs, ndata) {
         @[debug] log(DEBUG, "Entity.__init_svars")
 
         self.entity_setup()
 
         self.set_attr("tags", [])
         self.set_attr("persistent", kwargs and kwargs.persistent or false)
-    end],
+    }],
 
     /**
         The entity activator. It's called on its creation. It calls
@@ -951,29 +951,29 @@ M.Entity = Object.clone({
         On the server, the kwargs are queried for sdata and
         a $set_sdata_full happens.
     */
-    __activate: func(self, kwargs)
+    __activate: func(self, kwargs) {
         @[debug] log(DEBUG, "Entity.__activate")
-        @[server] then
+        @[server] {
             self.entity_setup()
-        else
+        } else {
             self.setup()
-        end
+        }
 
-        if not self.sauer_type do
+        if not self.sauer_type {
             @[debug] log(DEBUG, e"Entity.__activate: non-sauer entity: $(self.name)")
             capi::setup_nonsauer(self.uid)
             @[server] self.flush_queued_svar_changes()
-        end
+        }
 
-        @[server] then
+        @[server] {
             var sd = kwargs and kwargs.state_data or undef
-            if sd do self.set_sdata_full(sd) end
+            if sd { self.set_sdata_full(sd) }
             self.send_notification_full(msg.ALL_CLIENTS)
             self.sent_notification_full = true
-        else
+        } else {
             self.initialized = false
-        end
-    end,
+        }
+    },
 
     /**
         Triggered automatically right before the `,changed` signal. It first
@@ -986,20 +986,20 @@ M.Entity = Object.clone({
             - name - the state variable name.
             - val - the value to set.
     */
-    sdata_changed: func(self, svar, name, val)
+    sdata_changed: func(self, svar, name, val) {
         var sfun = svar.setter_fun
-        if not sfun do return end
-        if not @[server,self.svar_change_queue] do
+        if not sfun { return }
+        if not @[server,self.svar_change_queue] {
             @[debug] log(INFO, e"Calling setter function for $name")
             sfun(self.uid, val)
             @[debug] log(INFO, "Setter called")
 
             self.svar_values[name] = val
             self.svar_value_timestamps[name] = frame::get_frame()
-        else
+        } else {
             self.queue_svar_change(name, val)
-        end
-    end,
+        }
+    },
 
     /** Function: set_sdata
         The entity state data setter. Has different variants for the client
@@ -1026,7 +1026,7 @@ M.Entity = Object.clone({
               to convert from wire format (otherwise converts only when setting
               on a specific client number).
     */
-    set_sdata: @[not server,func(self, key, val, actor_uid)
+    set_sdata: @[not server,func(self, key, val, actor_uid) {
         @[debug] log(DEBUG, e"Entity.set_sdata: $key = $(serialize(val)) for $(self.uid)")
 
         var svar = self[e"_SV_$key"]
@@ -1038,65 +1038,65 @@ M.Entity = Object.clone({
         // from client-side script, send a server request unless the svar
         // is controlled here (synced using some other method)
         // if this variable is set on the client, send a notification
-        if not nfh and not csfh do
+        if not nfh and not csfh {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
             msg::send(svar.reliable and capi.statedata_changerequest
                 or capi.statedata_changerequest_unreliable,
                 self.uid, names_to_ids[self.name][svar.name],
                 svar.to_wire(val))
-        end
+        }
 
         // from a server or set clientside, update now
-        if nfh or cset or csfh do
+        if nfh or cset or csfh {
             @[debug] log(INFO, "    var update")
             // from the server, in wire format
-            if nfh do
+            if nfh {
                 val = svar.from_wire(val)
-            end
+            }
             // TODO: avoid assertions
             assert(svar.validate(val))
             self.sdata_changed(svar, key, val)
             emit(self, e"$key,changed", val, nfh)
             self.svar_values[key] = val
-        end
-    end,func(self, key, val, actor_uid, iop)
+        }
+    },func(self, key, val, actor_uid, iop) {
         @[debug] log(DEBUG, e"Entity.set_sdata: $key = $(serialize(val)) for $(self.uid)")
 
         var svar = self[e"_SV_$key"]
 
-        if not svar do
+        if not svar {
             log(WARNING, e"Entity.set_sdata: ignoring sdata setting"
                 " for an unknown variable $key")
             return
-        end
+        }
 
-        if actor_uid and actor_uid != -1 do
+        if actor_uid and actor_uid != -1 {
             val = svar.from_wire(val)
-            if not svar.client_write do
+            if not svar.client_write {
                 log(ERROR, e"Entity.set_sdata: client $actor_uid tried to"
                     " change $key")
                 return
-            end
-        elif iop do
+            }
+        } else if iop {
             val = svar.from_wire(val)
-        end
+        }
 
         self.sdata_changed(svar, key, val)
         emit(self, e"$key,changed", val, actor_uid)
-        if self.sdata_update_cancel do
+        if self.sdata_update_cancel {
             self.sdata_update_cancel = undef
             return
-        end
+        }
 
         self.svar_values[key] = val
         @[debug] log(INFO, e"Entity.set_sdata: new sdata: $(tostring(val))")
 
         var csfh = svar.custom_sync and self.controlled_here
-        if not iop and svar.client_read and not csfh do
-            if not self.sent_notification_full do
+        if not iop and svar.client_read and not csfh {
+            if not self.sent_notification_full {
                 return
-            end
+            }
 
             var args = [
                 undef, svar.reliable and capi.statedata_update
@@ -1109,28 +1109,28 @@ M.Entity = Object.clone({
             ]
 
             var cns = get_players().map(\p -> p.cn)
-            for i, n in cns.each() do
-                if svar.should_send(self, n) do
+            for i, n in cns.each() {
+                if svar.should_send(self, n) {
                     args[0] = n
                     msg::send(args.unpack())
-                end
-            end
-        end
-    end],
+                }
+            }
+        }
+    }],
 
     /**
         Cancels a state data update (on the server). Useful when called
         from `,changed` signal slots.
     */
-    cancel_sdata_update: func(self)
+    cancel_sdata_update: func(self) {
         self.sdata_update_cancel = true
-    end,
+    },
 
     /** Function: send_notification_full
         On the server, sends a full notification to a specific client
         or all clients.
     */
-    send_notification_full: @[server,func(self, cn)
+    send_notification_full: @[server,func(self, cn) {
         var acn = msg.ALL_CLIENTS
         cn = cn or acn
 
@@ -1140,57 +1140,57 @@ M.Entity = Object.clone({
         @[debug] log(DEBUG, e"Entity.send_notification_full: $cn, $uid")
 
         var scn, sname = self.cn, self.name
-        for i, n in cns.each() do
+        for i, n in cns.each() {
             msg::send(n, capi.le_notification_complete,
                 scn and scn or acn, uid, sname, self.build_sdata(
                     { target_cn: n, compressed: true }))
-        end
+        }
 
         @[debug] log(DEBUG, "Entity.send_notification_full: done")
-    end],
+    }],
 
     /** Function: queue_svar_change
         Queues a svar change (Happens before full update, when the
         entity is being created). Server only.
     */
-    queue_svar_change: @[server,func(self, key, val)
+    queue_svar_change: @[server,func(self, key, val) {
         self.svar_change_queue[key] = val
-    end],
+    }],
 
     /** Function: flush_queued_svar_changes
         Flushes the SV change queue (applies all the changes). After this,
         there is no change queue anymore.
     */
-    flush_queued_svar_changes: @[server,func(self)
+    flush_queued_svar_changes: @[server,func(self) {
         var changes = self.svar_change_queue
-        if not changes do return end
+        if not changes { return }
         self.svar_change_queue = undef
 
-        for k, v in pairs(changes) do
+        for k, v in pairs(changes) {
             var rv = self.svar_values[k]
             @[debug] log(DEBUG, e"Entity: flushing queued svar change: $k == "
                 "$(tostring(v)) (real: $(tostring(rv)))")
             self.set_attr(k, rv)
-        end
+        }
 
         self.svar_change_queue_complete = true
-    end],
+    }],
 
     /**
-        Returns the next attached entity. This implementation doesn't do
+        Returns the next attached entity. This implementation doesn't {
         anything though - you need to overload it for your entity type
         accordingly. The core entity system doesn't manage attached
         entities at all. See also $get_attached_prev.
     */
-    get_attached_next: func(self)
-    end,
+    get_attached_next: func(self) {
+    },
 
     /**
         Returns the previous attached entity. Like $get_attached_next,
         you need to overload this.
     */
-    get_attached_prev: func(self)
-    end,
+    get_attached_prev: func(self) {
+    },
 
     /**
         Given a GUI property name (`gui_name` or `name` if not defined in the
@@ -1201,35 +1201,35 @@ M.Entity = Object.clone({
             - $get_gui_attrs
             - $set_gui_attr
     */
-    get_gui_attr: func(self, prop)
+    get_gui_attr: func(self, prop) {
         var svar = self[e"_SV_GUI_$prop"]
-        if not svar or not svar.has_history do return undef end
+        if not svar or not svar.has_history { return undef }
         var val = self.get_attr(svar.name)
-        if val != undef do
+        if val != undef {
             return svar.to_wire(val)
-        end
-    end,
+        }
+    },
 
     /**
         Like $get_gui_attr, but returns all available attributes as an
         array of key-value pairs. The second argument (defaults to true)
         specifies whether to sort the result by attribute name.
     */
-    get_gui_attrs: func(self, sortattrs)
-        if sortattrs == undef do sortattrs = true end
+    get_gui_attrs: func(self, sortattrs) {
+        if sortattrs == undef { sortattrs = true }
         var r = []
-        for k, svar in pairs(self) do
-            if is_svar(svar) and svar.has_history and svar.gui_name != false do
+        for k, svar in pairs(self) {
+            if is_svar(svar) and svar.has_history and svar.gui_name != false {
                 var name = svar.name
                 var val = self.get_attr(name)
-                if val != undef do
+                if val != undef {
                     r.push([ svar.gui_name or name, svar.to_wire(val) ])
-                end
-            end
-        end
-        if sortattrs do r.sort(\a, b -> a[0] < b[0]) end
+                }
+            }
+        }
+        if sortattrs { r.sort(\a, b -> a[0] < b[0]) }
         return r
-    end,
+    },
 
     /**
         Given a GUI property name and a value in a wire format, this sets
@@ -1239,11 +1239,11 @@ M.Entity = Object.clone({
             - $set_attr
             - $get_gui_attr
     */
-    set_gui_attr: func(self, prop, val)
+    set_gui_attr: func(self, prop, val) {
         var svar = self[e"_SV_GUI_$prop"]
-        if not svar or not svar.has_history do return end
+        if not svar or not svar.has_history { return }
         self.set_attr(svar.name, svar.from_wire(val))
-    end,
+    },
 
     /**
         Returns the entity property of the given name.
@@ -1252,11 +1252,11 @@ M.Entity = Object.clone({
             - $set_attr
             - $get_gui_attr
     */
-    get_attr: func(self, prop)
+    get_attr: func(self, prop) {
         var fun = self[e"__get_$prop"]
-        if fun do return fun(self) end
+        if fun { return fun(self) }
         return undef
-    end,
+    },
 
     /** Function: set_attr
         Sets the entity property of the given name to the given value.
@@ -1272,17 +1272,17 @@ M.Entity = Object.clone({
             - $get_attr
             - $set_gui_attr
     */
-    set_attr: func(self, prop, val, nd)
-        if nd do
+    set_attr: func(self, prop, val, nd) {
+        if nd {
             var svar = self[e"_SV_$prop"]
-            if svar do
+            if svar {
                 var nw = svar.from_wire(nd)
-                if nw != undef do val = nw end
-            end
-        end
+                if nw != undef { val = nw }
+            }
+        }
         var fun = self[e"__set_$prop"]
         return fun and fun(self, val) or undef
-    end
+    }
 })
 Entity = M.Entity
 
@@ -1290,101 +1290,101 @@ Entity = M.Entity
     See {{$Entity.get_gui_attr}}. Externally accessible as
     `entity_get_gui_attr` (using uid). See also $set_gui_attr.
 */
-M.get_gui_attr = func(ent, prop)
+M.get_gui_attr = func(ent, prop) {
     return ent.get_gui_attr(prop)
-end
-set_external("entity_get_gui_attr", func(uid, prop)
+}
+set_external("entity_get_gui_attr", func(uid, prop) {
     return get_ent(uid).get_gui_attr(prop)
-end)
+})
 
 /**
     See {{$Entity.set_gui_attr}}. Externally accessible as
     `entity_set_gui_attr` (using uid). See also $get_gui_attr.
 */
-M.set_gui_attr = func(ent, prop, val)
+M.set_gui_attr = func(ent, prop, val) {
     return ent.set_gui_attr(prop, val)
-end
-set_external("entity_set_gui_attr", func(uid, prop, val)
+}
+set_external("entity_set_gui_attr", func(uid, prop, val) {
     return get_ent(uid).set_gui_attr(prop, val)
-end)
+})
 
 /**
     See {{$Entity.get_attr}}. Externally accessible as `entity_get_attr`
     (using the uid). See also $set_attr.
 */
-M.get_attr = func(ent, prop)
+M.get_attr = func(ent, prop) {
     return ent.get_attr(prop)
-end
-set_external("entity_get_attr", func(uid, prop)
+}
+set_external("entity_get_attr", func(uid, prop) {
     var ent = storage[uid]
-    if not ent do return undef end
+    if not ent { return undef }
     return ent.get_attr(prop)
-end)
+})
 
-set_external("entity_refresh_attr", func(uid, prop)
+set_external("entity_refresh_attr", func(uid, prop) {
     var ent = get_ent(uid)
     ent.set_attr(prop, ent.get_attr(prop))
-end)
+})
 
 /**
     See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`
     (using the uid). See also $get_attr.
 */
-M.set_attr = func(ent, prop, val)
+M.set_attr = func(ent, prop, val) {
     return ent.set_attr(prop, val)
-end
-set_external("entity_set_attr", func(uid, prop, val)
+}
+set_external("entity_set_attr", func(uid, prop, val) {
     var ent = storage[uid]
-    if not ent do return undef end
+    if not ent { return undef }
     return ent.set_attr(prop, val)
-end)
+})
 
-set_external("entity_draw_attached", func(uid)
+set_external("entity_draw_attached", func(uid) {
     var ent = storage[uid]
-    if not ent do return end
+    if not ent { return }
     var ents = [ ent.get_attached_next() ]
-    if not ents.empty() do
-        for i, ent in ents.each() do capi::entity_draw_attachment(uid, ent.uid) end
+    if not ents.empty() {
+        for i, ent in ents.each() { capi::entity_draw_attachment(uid, ent.uid) }
         return
-    end
+    }
     ents = [ ent.get_attached_prev() ]
-    if not ents.empty() do
-        for i, ent in ents.each() do capi::entity_draw_attachment(ent.uid, uid) end
+    if not ents.empty() {
+        for i, ent in ents.each() { capi::entity_draw_attachment(ent.uid, uid) }
         return
-    end
-end)
+    }
+})
 
 /** Function: entity_get_proto_name
     An external that returns the name of the prototype of the given entity uid.
 */
-set_external("entity_get_proto_name", func(uid)
+set_external("entity_get_proto_name", func(uid) {
     return get_ent(uid).name
-end)
+})
 
 /** Function: render
     Main render hook. External as `game_render`. Calls individual `render`
     method on each entity (if defined). Clientside only. See also $render_hud.
 */
-M.render = @[not server,func(tp, fpsshadow)
+M.render = @[not server,func(tp, fpsshadow) {
     @[debug] log(INFO, "game_render")
     var  player = player_entity
-    if not player do return end
+    if not player { return }
 
-    for uid in 1 to highest_uid do
+    for uid in 1 to highest_uid {
         var entity = storage[uid]
-        if entity and not entity.deactivated do
+        if entity and not entity.deactivated {
             var rd = entity.__render
             // first arg to rd is hudpass, false because we aren't rendering
             // the HUD model, second is needhud, which is true if the model
             // should be shown as HUD model and that happens if we're not in
             // thirdperson and the current entity is the player
             // third is whether we're rendering a first person shadow
-            if  rd do
+            if  rd {
                 rd(entity, false, not tp and entity == player, fpsshadow)
-            end
-        end
-    end
-end]
+            }
+        }
+    }
+}]
 var render = M.render
 set_external("game_render", render)
 
@@ -1392,15 +1392,15 @@ set_external("game_render", render)
     Renders the player HUD model if needed. External as `game_render_hud`.
     Clientside only. See also $render.
 */
-M.render_hud = @[not server,func()
+M.render_hud = @[not server,func() {
     @[debug] log(INFO, "game_render_hud")
     var  player = player_entity
-    if not player do return end
+    if not player { return }
 
-    if player.get_attr("hud_model_name") and not player.get_editing() do
+    if player.get_attr("hud_model_name") and not player.get_editing() {
         player.__render(true, true, false)
-    end
-end]
+    }
+}]
 var render_hud = M.render_hud
 set_external("game_render_hud", render_hud)
 
@@ -1408,14 +1408,14 @@ set_external("game_render_hud", render_hud)
     Assigns the player entity using the given uid. External as `player_init`,
     clientside.
 */
-M.init_player = @[not server,func(uid)
+M.init_player = @[not server,func(uid) {
     assert(uid)
     @[debug] log(DEBUG, e"Initializing player with uid $uid")
 
     player_entity = storage[uid]
     assert(player_entity)
     player_entity.controlled_here = true
-end]
+}]
 var init_player = M.init_player
 set_external("player_init", init_player)
 
@@ -1433,76 +1433,76 @@ set_external("player_init", init_player)
           of the client that triggered the change. When set to -1, it means
           the server triggered it.
 */
-M.set_sdata = func(uid, kpid, value, auid)
+M.set_sdata = func(uid, kpid, value, auid) {
     var ent = storage[uid]
-    if ent do
+    if ent {
         var key = ids_to_names[ent.name][kpid]
         @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
         ent.set_sdata(key, value, auid)
-    end
-end
+    }
+}
 set_external("entity_set_sdata", M.set_sdata)
 
-set_external("entity_set_sdata_full", func(uid, sd)
+set_external("entity_set_sdata_full", func(uid, sd) {
     get_ent(uid).set_sdata_full(sd)
-end)
+})
 
-set_external("entity_serialize_sdata", func(uid, x, y, z)
+set_external("entity_serialize_sdata", func(uid, x, y, z) {
     var sd = get_ent(uid).build_sdata()
-    if not x do
+    if not x {
         sd.position = undef
-    else
+    } else {
         sd.position = "[%f|%f|%f]".format(x, y, z)
-    end
+    }
     return serialize(sd) or "{}"
-end)
+})
 
 /** Function: scene_is_ready
     On the client, used to check if the current scene is ready and we can
     actually start (checks whether the player exists and whether all the
     entities are initialized). External as `scene_is_ready`.
 */
-M.scene_is_ready = @[not server,func()
+M.scene_is_ready = @[not server,func() {
     @[debug] log(INFO, "Scene ready?")
 
-    if player_entity == undef do
+    if player_entity == undef {
         @[debug] log(INFO, "...not ready, player entity missing.")
         return false
-    end
+    }
 
     @[debug] log(INFO, "...player ready, trying other entities.")
-    for uid in 1 to highest_uid do
+    for uid in 1 to highest_uid {
         var ent = storage[uid]
-        if ent and not ent.initialized do
+        if ent and not ent.initialized {
             @[debug] log(INFO, e"...entity $uid not ready.")
             return false
-        end
-    end
+        }
+    }
 
     @[debug] log(INFO, "...yes!")
     return true
-end]
+}]
 set_external("scene_is_ready", M.scene_is_ready)
 
 /** Function: gen_uid
     Generates a new entity unique ID. It's larger than the previous largest
     by one. Serverside. External as `entity_gen_uid`.
 */
-M.gen_uid = @[server,func()
+M.gen_uid = @[server,func() {
     @[debug] log(DEBUG, e"Generating an UID, last highest UID: $highest_uid")
     return highest_uid + 1
-end]
+}]
 var gen_uid = M.gen_uid
 set_external("entity_gen_uid", gen_uid)
 
 /// Returns the highest entity unique ID used.
-M.get_highest_uid = func()
+M.get_highest_uid = func() {
     return highest_uid
-end
+}
 
-set_external("entity_set_cn", func(uid, cn)
+set_external("entity_set_cn", func(uid, cn) {
     get_ent(uid).cn = cn
-end)
+})
 
 /** Function: new
     Creates a new entity on the server. External as `entity_new`.
@@ -1515,46 +1515,46 @@ end)
     Returns:
          The new entity.
 */
-M.new = @[server,func(cl, kwargs, fuid)
+M.new = @[server,func(cl, kwargs, fuid) {
     fuid = fuid or gen_uid()
     @[debug] log(DEBUG, e"New entity: $fuid")
     return add(cl, fuid, kwargs, true)
-end]
+}]
 var ent_new = M.new
 
-set_external("entity_new_with_sd", func(cl, x, y, z, sd, nd)
+set_external("entity_new_with_sd", func(cl, x, y, z, sd, nd) {
     var ent = ent_new(cl, { position: { x: x, y: y, z: z },
         state_data: sd, newent_data: nd })
     @[debug] log(DEBUG, ("Created entity: %d - %s (%f, %f, %f)")
         .format(ent.uid, cl, x, y, z))
-end)
+})
 
-set_external("entity_new_with_cn", func(cl, cn, can_edit, char_name, fuid)
+set_external("entity_new_with_cn", func(cl, cn, can_edit, char_name, fuid) {
     var ent = ent_new(cl, { cn: cn }, fuid)
     assert(ent.cn == cn)
-    if can_edit do ent.set_attr("can_edit", can_edit) end
+    if can_edit { ent.set_attr("can_edit", can_edit) }
     ent.set_attr("character_name", char_name)
-end)
+})
 
 /** Function: send
-    Notifies a client of the number of entities on the server and do
+    Notifies a client of the number of entities on the server and {
     send a complete notification for each of them. Takes the client number.
     Works only serverside. External as `entities_send_all`.
 */
-M.send = @[server,func(cn)
+M.send = @[server,func(cn) {
     @[debug] log(DEBUG, e"Sending active entities to $cn")
     var uids = []
-    for uid in 1 to highest_uid do
-        if storage[uid] do
+    for uid in 1 to highest_uid {
+        if storage[uid] {
             uids.push(uid)
-        end
-    end
+        }
+    }
     uids.sort()
     msg::send(cn, capi.notify_numents, uids.len())
-    for i, uid in uids.each() do
+    for i, uid in uids.each() {
         storage[uid].send_notification_full(cn)
-    end
-end]
+    }
+}]
 set_external("entities_send_all", M.send)
 
 return M

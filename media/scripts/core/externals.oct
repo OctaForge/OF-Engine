@@ -17,24 +17,24 @@ var M = {}
 var externals = {}
 
 /// Retrieves the external of the given name.
-M.get = func(name)
+M.get = func(name) {
     return externals[name]
-end
+}
 
 /// Unsets the external of the given name, returns the previous value or undef.
-M.unset = func(name)
+M.unset = func(name) {
     var old = externals[name]
-    if old == undef do return undef end
+    if old == undef { return undef }
     externals[name] = undef
     return old
-end
+}
 
 /// Sets the external of the given name, returns the previous value or undef.
-M.set = func(name, fun)
+M.set = func(name, fun) {
     var old = externals[name]
     externals[name] = fun
     return old
-end
+}
 
 capi::external_hook(M.get)
 

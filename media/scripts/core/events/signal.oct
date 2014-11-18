@@ -29,11 +29,11 @@ var M = {}
 
     ```
     Foo = {}
-    signal::connect(Foo, "blah", func(self, a, b, c)
+    signal::connect(Foo, "blah", func(self, a, b, c) {
         echo(a)
         echo(b)
         echo(c)
-    end)
+    })
     signal::emit(Foo, "blah", 5, 10, 15)
     ```
 
@@ -46,21 +46,21 @@ var M = {}
         The id for the slot, you can later use that to $disconnect the
         slot, it also returns the number of currently connected slots.
 */
-M.connect = func(self, name, callback)
-    if typeof callback != "function" do
+M.connect = func(self, name, callback) {
+    if typeof callback != "function" {
         log::log(log.ERROR, "Not connecting non-function callback: " ~ name)
         return undef
-    end
+    }
     var clistn = "_sig_conn_" ~ name
 
     var  clist = rawget(self, clistn)
-    if not clist do
+    if not clist {
            clist = []
            // nasty, as this should be just an array... we can still
            // do this though, and we're trying to keep things contained
            clist.slotcount = 0
            rawset(self, clistn, clist)
-    end
+    }
 
     var id = clist.len()
     clist.push(callback)
@@ -68,10 +68,10 @@ M.connect = func(self, name, callback)
     clist.slotcount = clist.slotcount + 1
 
     var cb = rawget(self, "__connect")
-    if    cb do cb (self, name, callback) end
+    if    cb { cb (self, name, callback) }
 
     return id, clist.slotcount
-end
+}
 
 /**
     Disconnects a slot (or slots).
@@ -87,33 +87,33 @@ end
         The number of connected slots after disconnect (or undef if nothing
         could be disconnected).
 */
-M.disconnect = func(self, name, id)
+M.disconnect = func(self, name, id) {
     var clistn = "_sig_conn_" ~ name
     var clist  = rawget(self, clistn)
     var cb     = rawget(self, "__disconnect")
-    if clist do
-        if not id do
+    if clist {
+        if not id {
             rawset(self, clistn, undef)
-            if cb do cb(self, name) end
+            if cb { cb(self, name) }
             return 0
-        end
-        if typeof id != "number" do
-            for i, v in clist.each() do
-                if v == id do
+        }
+        if typeof id != "number" {
+            for i, v in clist.each() {
+                if v == id {
                     id = i
                     break
-                end
-            end
-        end
-        if id and id < clist.len() do
+                }
+            }
+        }
+        if id and id < clist.len() {
             var scnt = clist.slotcount - 1
             clist.slotcount = scnt
             clist[id] = false
-            if cb do cb(self, name, id, scnt) end
+            if cb { cb(self, name, id, scnt) }
             return scnt
-        end
-    end
-end
+        }
+    }
+}
 
 /**
     Emits a signal, calling all the slots associated with it in the
@@ -125,22 +125,22 @@ end
         - name - the signal name.
         - ... - any further arguments passed to each callback.
 */
-M.emit = func(self, name, ...)
+M.emit = func(self, name, ...) {
     var clistn = "_sig_conn_" ~ name
     var clist  = rawget(self, clistn)
-    if not clist do
+    if not clist {
         return 0
-    end
+    }
 
     var ncalled = 0
-    for i, cb in clist.each() do
-        if cb do
+    for i, cb in clist.each() {
+        if cb {
             ncalled = ncalled + 1
             cb(self, ...)
-        end
-    end
+        }
+    }
 
     return ncalled
-end
+}
 
 return M

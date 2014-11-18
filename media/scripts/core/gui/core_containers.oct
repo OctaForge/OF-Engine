@@ -32,12 +32,12 @@ var gen_setter = M.gen_setter
 var adjust = M.adjust
 
 var CLAMP_LEFT, CLAMP_RIGHT, CLAMP_TOP, CLAMP_BOTTOM in adjust
-var clampsv = func(adj)
+var clampsv = func(adj) {
     return ((adj & CLAMP_TOP) != 0) and ((adj & CLAMP_BOTTOM) != 0)
-end
-var clampsh = func(adj)
+}
+var clampsh = func(adj) {
     return ((adj & CLAMP_LEFT) != 0) and ((adj & CLAMP_RIGHT) != 0)
-end
+}
 
 /**
     A horizontal box. Boxes are containers that hold multiple widgets that
@@ -61,73 +61,73 @@ end
         - $Grid
 */
 M.HBox = register_type("HBox", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.padding    = kwargs.padding    or 0
         self.expand     = kwargs.expand     or false
         self.homogenous = kwargs.homogenous or false
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         self.w, self.h = 0, 0
         var subw = 0
         var ncl, ex = 0, self.expand
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.x = subw
             o.y = 0
             o.layout()
             subw += o.w
             self.h = max(self.h, o.y + o.h)
-            if ex and clampsh(o.adjust) do ncl += 1 end
-        end)
+            if ex and clampsh(o.adjust) { ncl += 1 }
+        })
         self.w = subw + self.padding * max(self.vchildren.len() +
             self.children.len() - 1, 0)
         self.subw, self.ncl = subw, ncl
-    end,
+    },
 
-    adjust_children_regular: func(self, no, hmg)
+    adjust_children_regular: func(self, no, hmg) {
         var offset, space = 0, (self.w - self.subw) / max(no - 1, 1)
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.x = offset
             offset += o.w + space
             o.adjust_layout(o.x, 0, o.w, self.h)
-        end)
-    end,
+        })
+    },
 
-    adjust_children_homogenous: func(self, no)
+    adjust_children_homogenous: func(self, no) {
         var pad = self.padding
         var offset, space = 0, (self.w - self.subw - (no - 1) * pad)
             / max(no, 1)
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.x = offset
             offset += o.w + space + pad
             o.adjust_layout(o.x, 0, o.w + space, self.h)
-        end)
-    end,
+        })
+    },
 
-    adjust_children_expand: func(self, no)
+    adjust_children_expand: func(self, no) {
         var pad = self.padding
         var dpad = pad * max(no - 1, 0)
         var offset, space = 0, ((self.w - self.subw) / self.ncl - dpad)
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.x = offset
             o.adjust_layout(o.x, 0, o.w + (clampsh(o.adjust) and space or 0),
                 self.h)
             offset += o.w + pad
-        end)
-    end,
+        })
+    },
 
-    adjust_children: func(self)
+    adjust_children: func(self) {
         var nch, nvs = self.children.len(), self.vchildren.len()
-        if nch == 0 and nvs == 0 do return end
-        if self.homogenous do
+        if nch == 0 and nvs == 0 { return }
+        if self.homogenous {
             return self.adjust_children_homogenous(nch + nvs)
-        elif self.expand and self.ncl != 0 do
+        } else if self.expand and self.ncl != 0 {
             return self.adjust_children_expand(nch + nvs)
-        end
+        }
         return self.adjust_children_regular(nch + nvs)
-    end,
+    },
 
     /// Function: set_padding
     set_padding: gen_setter("padding"),
@@ -144,73 +144,73 @@ M.HBox = register_type("HBox", Widget, {
     clamping is relevant rather than left/right.
 */
 M.VBox = register_type("VBox", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.padding    = kwargs.padding    or 0
         self.expand     = kwargs.expand     or false
         self.homogenous = kwargs.homogenous or false
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         self.w, self.h = 0, 0
         var subh = 0
         var ncl, ex = 0, self.expand
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.x = 0
             o.y = subh
             o.layout()
             subh += o.h
             self.w = max(self.w, o.x + o.w)
-            if ex and clampsv(o.adjust) do ncl += 1 end
-        end)
+            if ex and clampsv(o.adjust) { ncl += 1 }
+        })
         self.h = subh + self.padding * max(self.vchildren.len() +
             self.children.len() - 1, 0)
         self.subh, self.ncl = subh, ncl
-    end,
+    },
 
-    adjust_children_regular: func(self, no)
+    adjust_children_regular: func(self, no) {
         var offset, space = 0, (self.h - self.subh) / max(no - 1, 1)
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.y = offset
             offset += o.h + space
             o.adjust_layout(0, o.y, self.w, o.h)
-        end)
-    end,
+        })
+    },
 
-    adjust_children_homogenous: func(self, no)
+    adjust_children_homogenous: func(self, no) {
         var pad = self.padding
         var offset, space = 0, (self.h - self.subh - (no - 1) * pad)
             / max(no, 1)
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.y = offset
             offset += o.h + space + pad
             o.adjust_layout(0, o.y, self.w, o.h + space)
-        end)
-    end,
+        })
+    },
 
-    adjust_children_expand: func(self, no)
+    adjust_children_expand: func(self, no) {
         var pad = self.padding
         var dpad = pad * max(no - 1, 0)
         var offset, space = 0, ((self.h - self.subh) / self.ncl - dpad)
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.y = offset
             o.adjust_layout(0, o.y, self.w,
                 o.h + (clampsv(o.adjust) and space or 0))
             offset += o.h + pad
-        end)
-    end,
+        })
+    },
 
-    adjust_children: func(self)
+    adjust_children: func(self) {
         var nch, nvs = self.children.len(), self.vchildren.len()
-        if nch == 0 and nvs == 0 do return end
-        if self.homogenous do
+        if nch == 0 and nvs == 0 { return }
+        if self.homogenous {
             return self.adjust_children_homogenous(nch + nvs)
-        elif self.expand and self.ncl != 0 do
+        } else if self.expand and self.ncl != 0 {
             return self.adjust_children_expand(nch + nvs)
-        end
+        }
         return self.adjust_children_regular(nch + nvs)
-    end,
+    },
 
     /// Function: set_padding
     set_padding: gen_setter("padding"),
@@ -240,52 +240,52 @@ M.VBox = register_type("VBox", Widget, {
         - $HBox
 */
 M.Grid = register_type("Grid", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.columns = kwargs.columns or 0
         self.padding_h = kwargs.padding_h or kwargs.padding or 0
         self.padding_v = kwargs.padding_v or kwargs.padding or 0
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         var widths, heights = [], []
         self.widths, self.heights = widths, heights
 
         var column, row = 0, 0
         var columns, ph, pv = self.columns, self.padding_h, self.padding_v
 
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.layout()
 
-            if column >= widths.len() do
+            if column >= widths.len() {
                 widths.push(o.w)
-            elif o.w > widths[column] do
+            } else if o.w > widths[column] {
                 widths[column] = o.w
-            end
+            }
 
-            if row >= heights.len() do
+            if row >= heights.len() {
                 heights.push(o.h)
-            elif o.h > heights[row] do
+            } else if o.h > heights[row] {
                 heights[row] = o.h
-            end
+            }
 
             column = (column + 1) % columns
-            if column == 0 do
+            if column == 0 {
                 row += 1
-            end
-        end)
+            }
+        })
 
         var subw, subh = 0, 0
-        for i, v in widths .each() do subw += v end
-        for i, v in heights.each() do subh += v end
+        for i, v in widths .each() { subw += v }
+        for i, v in heights.each() { subh += v }
         self.w = subw + ph * max(widths .len() - 1, 0)
         self.h = subh + pv * max(heights.len() - 1, 0)
         self.subw, self.subh = subw, subh
-    end,
+    },
 
-    adjust_children: func(self)
-        if self.children.empty() and self.vchildren.empty() do return end
+    adjust_children: func(self) {
+        if self.children.empty() and self.vchildren.empty() { return }
         var widths, heights = self.widths, self.heights
         var column , row     = 0, 0
         var offsetx, offsety = 0, 0
@@ -293,7 +293,7 @@ M.Grid = register_type("Grid", Widget, {
         var rspace = (self.h - self.subh) / max(heights.len() - 1, 1)
         var columns = self.columns
 
-        loop_children(self, func(o)
+        loop_children(self, func(o) {
             o.x = offsetx
             o.y = offsety
 
@@ -303,13 +303,13 @@ M.Grid = register_type("Grid", Widget, {
             offsetx += wc + cspace
             column = (column + 1) % columns
 
-            if column == 0 do
+            if column == 0 {
                 offsetx = 0
                 offsety += hr + rspace
                 row += 1
-            end
-        end)
-    end,
+            }
+        })
+    },
 
     /// Function: set_padding_h
     set_padding_h: gen_setter("padding_h"),
@@ -318,10 +318,10 @@ M.Grid = register_type("Grid", Widget, {
     set_padding_v: gen_setter("padding_v"),
 
     /// Function: set_padding
-    set_padding: func(self, v)
+    set_padding: func(self, v) {
         self.set_padding_h(v)
         self.set_padding_v(v)
-    end,
+    },
 
     /// Function: set_columns
     set_columns: gen_setter("columns")
@@ -335,7 +335,7 @@ M.Grid = register_type("Grid", Widget, {
         - clip_h - the height of the clipper.
 */
 M.Clipper = register_type("Clipper", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.clip_w = kwargs.clip_w or 0
         self.clip_h = kwargs.clip_h or 0
@@ -343,9 +343,9 @@ M.Clipper = register_type("Clipper", Widget, {
         self.virt_h = 0
 
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         Widget::layout(self)
     
         self.virt_w = self.w
@@ -353,24 +353,24 @@ M.Clipper = register_type("Clipper", Widget, {
 
         self.w = min(self.w, self.clip_w)
         self.h = min(self.h, self.clip_h)
-    end,
+    },
 
-    adjust_children: func(self)
+    adjust_children: func(self) {
         Widget::adjust_children(self, 0, 0, self.virt_w, self.virt_h)
-    end,
+    },
 
-    draw: func(self, sx, sy)
+    draw: func(self, sx, sy) {
         var w, h in self
 
         if (w != 0 and self.virt_w > w) or (h != 0 and self.virt_h > h)
-        do
+        {
             self.get_root().clip_push(sx, sy, w, h)
             Widget::draw(self, sx, sy)
             self.get_root().clip_pop()
-        else
+        } else {
             return Widget::draw(self, sx, sy)
-        end
-    end,
+        }
+    },
 
     /// Function: set_clip_w
     set_clip_w: gen_setter("clip_w"),

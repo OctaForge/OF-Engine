@@ -48,11 +48,11 @@ var cmap = [ "x", "y", "z" ]
         - dir - a direction (0 to 5 where 0 is up).
         - dist - a distance.
 */
-var offset_vec = func(v, dir, dist)
+var offset_vec = func(v, dir, dist) {
     var e = cmap[((2 + dir) % 3)]
     v[e] = v[e] + ((dir > 2) and -dist or dist)
     return v
-end
+}
 M.offset_vec = offset_vec
 
 var SMOKE, FLAME = renderers.smoke, renderers.flame
@@ -77,29 +77,29 @@ M.FireEffect = ParticleEffect.clone({
         blue  : svars::StateInteger()
     },
 
-    __init_svars: func(self, kwargs, nd)
+    __init_svars: func(self, kwargs, nd) {
         ParticleEffect::__init_svars(self, kwargs, nd)
         self.set_attr("radius", 1.5, nd[0])
         self.set_attr("height", 0.5, nd[1])
         self.set_attr("red",   0x90, nd[2])
         self.set_attr("green", 0x30, nd[3])
         self.set_attr("blue",  0x20, nd[4])
-    end,
+    },
 
-    __get_edit_color: func(self)
+    __get_edit_color: func(self) {
         return self.get_attr("red"), self.get_attr("green"),
             self.get_attr("blue")
-    end,
+    },
 
-    __get_edit_info: func(self)
+    __get_edit_info: func(self) {
         return "red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
                "radius :\f2 %.3f \f7| height :\f2 %.3f".format(
             self.get_attr("red"), self.get_attr("green"),
             self.get_attr("blue"), self.get_attr("radius"),
             self.get_attr("height"))
-    end,
+    },
 
-    __emit_particles: func(self)
+    __emit_particles: func(self) {
         var radius = self.get_attr("radius")
         var height = self.get_attr("height")
         var r, g, b = self.get_attr("red"), self.get_attr("green"),
@@ -109,7 +109,7 @@ M.FireEffect = ParticleEffect.clone({
         flame(FLAME, pos, radius, height, r / 255, g / 255, b / 255)
         flame(SMOKE, spos, radius, height, 0x30 / 255, 0x30 / 255,
             0x20 / 255, 2000, 1, 4, 100, -20)
-    end
+    }
 })
 
 var STEAM = renderers.steam
@@ -127,22 +127,22 @@ M.SteamEffect = ParticleEffect.clone({
         direction: svars::StateInteger()
     },
 
-    __init_svars: func(self, kwargs, nd)
+    __init_svars: func(self, kwargs, nd) {
         ParticleEffect::__init_svars(self, kwargs, nd)
         self.set_attr("direction", 0, nd[0])
-    end,
+    },
 
-    __get_edit_info: func(self)
+    __get_edit_info: func(self) {
         return "direction :\f2 %d".format(self.get_attr("direction"))
-    end,
+    },
 
-    __emit_particles: func(self)
+    __emit_particles: func(self) {
         var dir = self.get_attr("direction")
         var pos = self.get_attr("position")
         var d = offset_vec({ x: pos.x, y: pos.y, z: pos.z }, dir, rand(10))
         splash(STEAM, d, 50, 1, 0x89 / 255, 0x76 / 255, 0x61 / 255,
             200, 2.4, -20)
-    end
+    }
 })
 
 ents::register_prototype(M.FireEffect)

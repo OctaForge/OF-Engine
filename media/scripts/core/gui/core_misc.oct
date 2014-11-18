@@ -47,17 +47,17 @@ var ALIGN_MASK = adjust.ALIGN_MASK
           an argument.
 */
 M.State = register_type("State", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.state = kwargs.state
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    choose_state: func(self)
+    choose_state: func(self) {
         var  state = self.state
-        if not state do return end
+        if not state { return }
         return (typeof state == "string") and state or state(self)
-    end,
+    },
 
     /// Function: set_state
     set_state: gen_setter("state")
@@ -76,68 +76,68 @@ M.State = register_type("State", Widget, {
         - window - a reference to the window this belongs to.
 */
 M.Mover = register_type("Mover", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.window = kwargs.window
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    hover: func(self, cx, cy)
+    hover: func(self, cx, cy) {
         return self.target(cx, cy) and self
-    end,
+    },
 
-    click: func(self, cx, cy, code)
-        if code != key.MOUSELEFT do
+    click: func(self, cx, cy, code) {
+        if code != key.MOUSELEFT {
             return Widget::click(self, cx, cy, code)
-        end
+        }
         var  w = self.window
-        if not w do return self.target(cx, cy) and self end
+        if not w { return self.target(cx, cy) and self }
         var c = w.parent.children
         var n  =  c.find(w)
-        if  n != (c.len() - 1) do c.push(c.remove(n)) end
+        if  n != (c.len() - 1) { c.push(c.remove(n)) }
         return self.target(cx, cy) and self
-    end,
+    },
 
-    can_move: func(self, cx, cy)
+    can_move: func(self, cx, cy) {
         var win = self.window
         var wp = win.parent
 
         // no parent means root; we don't need checking for non-mdi windows
-        if not wp.parent do return true end
+        if not wp.parent { return true }
 
         var rx, ry, p = self.x, self.y, wp
-        while true do
+        while true {
             rx, ry = rx + p.x, ry + p.y
             var  pp = p.parent
-            if not pp do break end
+            if not pp { break }
             p    = pp
-        end
+        }
 
-        if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) do
+        if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) {
             // avoid bugs; stop moving when cursor is outside
             self.clear_focus()
             return false
-        end
+        }
 
         return true
-    end,
+    },
 
-    clicked: func(self, cx, cy, code)
-        if code == key.MOUSELEFT do
+    clicked: func(self, cx, cy, code) {
+        if code == key.MOUSELEFT {
             self.ox, self.oy = cx, cy
-        end
-    end,
+        }
+    },
 
-    holding: func(self, cx, cy, code)
+    holding: func(self, cx, cy, code) {
         var w = self.window
-        if w and w.floating and code == key.MOUSELEFT and self.can_move() do
+        if w and w.floating and code == key.MOUSELEFT and self.can_move() {
             // dealign so that adjust_layout doesn't fuck with x/y
             w.adjust &= ~ALIGN_MASK
             w.x += cx - self.ox
             w.y += cy - self.oy
-        end
+        }
         Widget::holding(self, cx, cy, code)
-    end,
+    },
 
     /// Function: set_window
     set_window: gen_setter("window")
@@ -163,23 +163,23 @@ var Filler = M.Filler
           arguments, expecting the label string as a return value.
 */
 M.ProgressBar = register_type("ProgressBar", Filler, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.value = kwargs.value or 0
         self.bar = kwargs.bar
         self.label = kwargs.label or "%d%%"
         return Filler::__ctor(self, kwargs)
-    end,
+    },
 
     /**
         Generates a label for the progress bar and returns it. See the `label`
         attribute for semantics.
     */
-    gen_label: func(self)
+    gen_label: func(self) {
         var lbl = self.label
-        if typeof lbl == "string" do return lbl.format(self.value * 100) end
+        if typeof lbl == "string" { return lbl.format(self.value * 100) }
         return lbl(self, self.value)
-    end,
+    },
 
     /// Function: set_value
     set_value: gen_setter("value"),
@@ -191,48 +191,48 @@ M.ProgressBar = register_type("ProgressBar", Filler, {
 
 /// A horizontal working variant of $ProgressBar.
 M.HProgressBar = register_type("HProgressBar", M.ProgressBar, {
-    adjust_children: func(self)
+    adjust_children: func(self) {
         var bar = self.bar
-        if not bar do return Widget::adjust_children(self) end
+        if not bar { return Widget::adjust_children(self) }
         bar.x = 0
         bar.w = max(min(self.w, self.w * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_HMASK
         Widget::adjust_children(self)
-    end
+    }
 })
 
 /// A vertical working variant of $ProgressBar.
 M.VProgressBar = register_type("VProgressBar", M.ProgressBar, {
-    adjust_children: func(self)
+    adjust_children: func(self) {
         var bar = self.bar
-        if not bar do return Widget::adjust_children(self) end
+        if not bar { return Widget::adjust_children(self) }
         bar.y = 0
         bar.h = max(min(self.h, self.h * self.value), 0)
         bar.adjust &= ~adjust.ALIGN_VMASK
         Widget::adjust_children(self)
-    end
+    }
 })
 
 var move_funcs = {
-    "linear,x" : func(p) return 1, 0 end,
-    "linear,y" : func(p) return 0, 1 end,
-    "linear,xy": func(p) return 1, 1 end,
+    "linear,x" : func(p) { return 1, 0 },
+    "linear,y" : func(p) { return 0, 1 },
+    "linear,xy": func(p) { return 1, 1 },
 
-    "speedup,x" : func(p) return p, 0 end,
-    "speedup,y" : func(p) return 0, p end,
-    "speedup,xy": func(p) return p, p end,
+    "speedup,x" : func(p) { return p, 0 },
+    "speedup,y" : func(p) { return 0, p },
+    "speedup,xy": func(p) { return p, p },
 
-    "slowdown,x" : func(p) return 1 - p,     0 end,
-    "slowdown,y" : func(p) return 0,     1 - p end,
-    "slowdown,xy": func(p) return 1 - p, 1 - p end,
+    "slowdown,x" : func(p) { return 1 - p,     0 },
+    "slowdown,y" : func(p) { return 0,     1 - p },
+    "slowdown,xy": func(p) { return 1 - p, 1 - p },
 
-    "sinusoidal,x" : func(p) return sin(p * pi),           0 end,
-    "sinusoidal,y" : func(p) return 0,           sin(p * pi) end,
-    "sinusoidal,xy": func(p) return sin(p * pi), sin(p * pi) end
+    "sinusoidal,x" : func(p) { return sin(p * pi),           0 },
+    "sinusoidal,y" : func(p) { return 0,           sin(p * pi) },
+    "sinusoidal,xy": func(p) { return sin(p * pi), sin(p * pi) }
 }
 
 M.Animator = register_type("Animator", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         self.move_func    = kwargs.move_func
         self.move_time    = kwargs.move_time   or 2000
         self.move_dist_x  = kwargs.move_dist_x or undef
@@ -240,36 +240,36 @@ M.Animator = register_type("Animator", Widget, {
         self.move_speed   = kwargs.move_speed  or 0.2
         self.reset()
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    reset: func(self)
+    reset: func(self) {
         self.move_elapsed = 0
         self.move_moved_x = 0
         self.move_moved_y = 0
-    end,
+    },
 
-    get_progress: func(self)
+    get_progress: func(self) {
         var elapsed, rtime = self.move_elapsed, self.move_time
         var distx = self.move_dist_x
         var disty = self.move_dist_y
 
-        if distx or disty do
+        if distx or disty {
             var progx, progy = 1, 1
-            if distx and distx != 0 do
+            if distx and distx != 0 {
                 progx = self.move_moved_x / distx
-            end
-            if disty and disty != 0 do
+            }
+            if disty and disty != 0 {
                 progy = self.move_moved_y / disty
-            end
+            }
             return min(progx, progy)
-        end
+        }
 
         return elapsed / rtime
-    end,
+    },
 
-    animate: func(self, o, millis)
+    animate: func(self, o, millis) {
         var mf = self.move_func
-        if typeof mf == "string" do mf = move_funcs[mf] end
+        if typeof mf == "string" { mf = move_funcs[mf] }
 
         var dx, dy = mf(self.move_elapsed / self.move_time)
         dx = dx * self.move_speed * (millis / 1000)
@@ -278,37 +278,37 @@ M.Animator = register_type("Animator", Widget, {
         o.y = o.y + dy
         self.move_moved_x = self.move_moved_x + abs(dx)
         self.move_moved_y = self.move_moved_y + abs(dy)
-    end,
+    },
 
-    layout: func(self)
-        if not self.started do return Widget::layout(self) end
+    layout: func(self) {
+        if not self.started { return Widget::layout(self) }
 
         var prog = self.get_progress()
-        if prog >= 1.0 do
+        if prog >= 1.0 {
             self.started = false
             emit(self, "anim,end")
             return Widget::layout(self)
-        end
+        }
 
         var millis = get_curtime()
         self.move_elapsed += millis
 
-        M::loop_children(self, func(o)
+        M::loop_children(self, func(o) {
             o.layout()
             self.animate(o, millis)
             self.w = max(self.w, o.x + o.w)
             self.h = max(self.h, o.y + o.h)
-        end)
-    end,
+        })
+    },
 
-    start: func(self)
+    start: func(self) {
         self.started = true
         self.reset()
         emit(self, "anim,start")
-    end,
+    },
 
-    stop: func(self)
+    stop: func(self) {
         self.started = false
         emit(self, "anim,stop")
-    end
+    }
 })

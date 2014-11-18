@@ -34,22 +34,22 @@ M.ContainerAction = Action.clone({
         constructor. This action looks up the field `actions` in it and uses
         it as an action source.
     */
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         Action::__ctor(self, kwargs)
         self.other_actions = kwargs.actions or []
-    end,
+    },
 
     /**
         Iterates over the action array given in the constructor, adding
         each into the system using {{$add_action}}.
     */
-    __start: func(self)
+    __start: func(self) {
         var actqueue = ActionQueue(self.actor)
-        for i, action in self.other_actions.each() do
+        for i, action in self.other_actions.each() {
             self.add_action(action)
-        end
+        }
         self.action_queue = actqueue
-    end,
+    },
 
     /**
         Runs all the action queue for the given `millis`, returns the same as
@@ -57,23 +57,23 @@ M.ContainerAction = Action.clone({
         of actions in the system must be zero - the action won't finish until
         everything is done).
     */
-    __run: func(self, millis)
+    __run: func(self, millis) {
         var actqueue = self.action_queue
         actqueue.run(millis)
         return Action::__run(self, millis) and actqueue.actions.empty()
-    end,
+    },
 
     /// Clears up the action queue.
-    __finish: func(self)
+    __finish: func(self) {
         self.action_queue.clear()
-    end,
+    },
 
     /**
         Given an action, this queues it into the action queue inside.
     */
-    add_action: func(self, action)
+    add_action: func(self, action) {
         self.action_queue.enqueue(action)
-    end
+    }
 })
 
 /**
@@ -93,21 +93,21 @@ M.ParallelAction = Action.clone({
         constructor. This action looks up the field `actions` in it and uses
         it as an action source.
     */
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         Action::__ctor(self, kwargs)
         self.action_queues = []
         self.other_actions = kwargs.actions or []
-    end,
+    },
 
     /**
         Iterates over the action array given in the constructor, adding
         each into the system using {{$add_action}}.
     */
-    __start: func(self)
-        for i, action in self.other_actions.each() do
+    __start: func(self) {
+        for i, action in self.other_actions.each() {
             self.add_action(action)
-        end
-    end,
+        }
+    },
 
     /**
         Runs all the action queues saved inside, filtering out those that
@@ -115,30 +115,30 @@ M.ParallelAction = Action.clone({
         addition of another condition (the number of systems must be
         zero - the action won't finish until everything is done).
     */
-    __run: func(self, millis)
-        var systems = self.action_queues.compact(func(actqueue)
+    __run: func(self, millis) {
+        var systems = self.action_queues.compact(func(actqueue) {
             actqueue.run(millis)
             return not actqueue.actions.empty()
-        end)
+        })
         return Action::__run(self, millis) and systems.empty()
-    end,
+    },
 
     /// Clears up the remaining action queues.
-    __finish: func(self)
-        for i, actqueue in self.action_queues.each() do
+    __finish: func(self) {
+        for i, actqueue in self.action_queues.each() {
             actqueue.clear()
-        end
-    end,
+        }
+    },
 
     /**
         Given an action, creates an action queue and queues the given action
         inside, then appends the system into the action queue table inside.
     */
-    add_action: func(self, action)
+    add_action: func(self, action) {
         var actqueue = ActionQueue(self.actor)
         actqueue.enqueue(action)
         self.action_queues.push(actqueue)
-    end
+    }
 })
 
 /**
@@ -153,19 +153,19 @@ M.LocalAnimationAction = Action.clone({
         Gives its actor the new animation. Uses the set_local_animation
         method of an entity.
     */
-    __start: func(self)
+    __start: func(self) {
         var ac = self.actor
         self.old_animation = ac.get_attr("animation")
         ac.set_local_animation(self.local_animation)
-    end,
+    },
 
     /// Resets the animation back.
-    __finish: func(self)
+    __finish: func(self) {
         var ac = self.actor
         var anim = ac.get_attr("animation")
         var lanim = self.local_animation
-        if anim == lanim do ac.set_local_animation(self.old_animation) end
-    end
+        if anim == lanim { ac.set_local_animation(self.old_animation) }
+    }
 })
 
 var event_list = [
@@ -179,23 +179,23 @@ var event_list = [
 */
 M.input_capture_plugin = {
     /// Replaces the events.
-    __start: func(self)
+    __start: func(self) {
         var events = self.events
         var old_events = {}
         self.old_events = old_events
-        for i, en in event_list.each() do
+        for i, en in event_list.each() {
             var ev = events[en]
-            if ev do old_events[en] = input::set_event(en,
-                func(...) ev(self, ...) end) end
-        end
-    end,
+            if ev { old_events[en] = input::set_event(en,
+                func(...) { ev(self, ...) }) }
+        }
+    },
 
     /// Restores the events.
-    __finish: func(self)
-        for en, ev in pairs(self.old_events) do
+    __finish: func(self) {
+        for en, ev in pairs(self.old_events) {
             input::set_event(en, ev)
-        end
-    end
+        }
+    }
 }
 
 /**
@@ -212,10 +212,10 @@ M.InputCaptureAction = Action.clone({
         If that fails, it uses `self.events`. If that alos fails, it uses
         an empty table as a fallback.
     */
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         Action::__ctor(self, kwargs)
         self.events = kwargs.events or self.events or {}
-    end,
+    },
 
     __start: M.input_capture_plugin.__start,
     __finish: M.input_capture_plugin.__finish,

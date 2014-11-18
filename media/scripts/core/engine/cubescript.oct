@@ -16,19 +16,19 @@ var emit = signal.emit
 
 /// Module: cubescript
 var M = {
-    __connect: func(self, name)
+    __connect: func(self, name) {
         var  vn = name.find_match("(.+),changed$")
-        if not vn do return end
+        if not vn { return }
         capi::var_make_emit(vn, true)
-    end,
+    },
 
-    __disconnect: func(self, name, id, scount)
-        if scount == 0 do
+    __disconnect: func(self, name, id, scount) {
+        if scount == 0 {
             var  vn = name.find_match("(.+),changed$")
-            if not vn do return end
+            if not vn { return }
             capi::var_make_emit(vn, false)
-        end
-    end
+        }
+    }
 }
 
 /**
@@ -87,13 +87,13 @@ M.var_new = capi.var_new
     See also:
         - $var_new
 */
-M.var_new_checked = func(varn, ...)
-    if not capi::var_exists(varn) do
+M.var_new_checked = func(varn, ...) {
+    if not capi::var_exists(varn) {
         capi::var_new(varn, ...)
         return true
-    end
+    }
     return false
-end
+}
 
 /**
     Sets an engine variable value.
@@ -159,8 +159,8 @@ M.var_is_hex = capi.var_is_hex
 /// Checks for existence of an engine variable.
 M.var_exists = capi.var_exists
 
-;(import core.externals)::set("var_emit_changed", func(name, ...)
+;(import core.externals)::set("var_emit_changed", func(name, ...) {
     emit(M, name ~ ",changed", ...)
-end)
+})
 
 return M

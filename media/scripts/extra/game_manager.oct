@@ -36,58 +36,58 @@ M.player_plugin = {
         spawn_stage: svars::StateInteger()
     },
 
-    __init_svars: func(self)
+    __init_svars: func(self) {
         self.set_attr("team", "")
-    end,
+    },
 
-    __activate: func(self)
+    __activate: func(self) {
         connect(self, "spawn_stage,changed", self.game_manager_on_spawn_stage)
-        @[server] then
+        @[server] {
             get().pick_team(self)
-            connect(self, "pre_deactivate", func(self)
+            connect(self, "pre_deactivate", func(self) {
                 get().leave_team(self)
-            end)
+            })
             self.game_manager_respawn()
-        else
-            connect(self, "client,respawn", func(self)
+        } else {
+            connect(self, "client,respawn", func(self) {
                 get().place_player(self)
-            end)
-        end
-    end,
+            })
+        }
+    },
 
-    game_manager_respawn: func(self)
+    game_manager_respawn: func(self) {
         self.set_attr("spawn_stage", 1)
-    end,
+    },
 
-    game_manager_spawn_stage_0: func(self, auid) end,
+    game_manager_spawn_stage_0: func(self, auid) { },
 
-    game_manager_spawn_stage_1: @[not server,func(self, auid)
+    game_manager_spawn_stage_1: @[not server,func(self, auid) {
         self.set_attr("spawn_stage", 2)
-    end,func(self, auid) end],
+    },func(self, auid) { }],
 
-    game_manager_spawn_stage_2: @[server,func(self, auid)
-        if auid == self.uid do
+    game_manager_spawn_stage_2: @[server,func(self, auid) {
+        if auid == self.uid {
             self.set_attr("spawn_stage", 3)
-        end
+        }
         self.cancel_sdata_update()
-    end,func(self, auid) end],
+    },func(self, auid) { }],
 
-    game_manager_spawn_stage_3: @[not server,func(self, auid)
-        if self == ents::get_player() do
+    game_manager_spawn_stage_3: @[not server,func(self, auid) {
+        if self == ents::get_player() {
             emit(self, "client,respawn")
             self.set_attr("spawn_stage", 4)
-        end
-    end,func(self, auid) end],
+        }
+    },func(self, auid) { }],
 
-    game_manager_spawn_stage_4: @[server,func(self, auid)
+    game_manager_spawn_stage_4: @[server,func(self, auid) {
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
         self.cancel_sdata_update()
-    end,func(self, auid) end],
+    },func(self, auid) { }],
 
-    game_manager_on_spawn_stage: func(self, stage, auid)
+    game_manager_on_spawn_stage: func(self, stage, auid) {
         self["game_manager_spawn_stage_" ~ stage](self, auid)
-    end
+    }
 }
 
 from std.table import pairs
@@ -102,83 +102,83 @@ var GameManager = Entity.clone({
         team_data: svars::StateTable()
     },
 
-    __activate: @[server,func(self)
+    __activate: @[server,func(self) {
         Entity::__activate(self)
         self.add_tag("game_manager")
         self.teams = {}
-    end],
+    }],
 
-    get_players: @[server,func(self)
+    get_players: @[server,func(self) {
         var players = []
-        for i, team in pairs(self.teams) do
-            for i, v in team.player_list.each() do
+        for i, team in pairs(self.teams) {
+            for i, v in team.player_list.each() {
                 players.push(v)
-            end
-        end
+            }
+        }
         return players
-    end],
+    }],
 
-    start_game: @[server,func(self)
+    start_game: @[server,func(self) {
         var players = self.get_players()
 
-        for i, team in pairs(self.teams) do
+        for i, team in pairs(self.teams) {
             team.player_list = []
-        end
+        }
 
-        while players.len() > 0 do
+        while players.len() > 0 {
             var pl = players.remove(rand(0, players.len()))
             self.pick_team(pl, false)
-        end
+        }
         self.sync_team_data()
 
-        for i, player in self.get_players().each() do
+        for i, player in self.get_players().each() {
             player.respawn()
-        end
+        }
 
         emit(self, "game,start")
         self.game_running = true
-    end],
+    }],
 
-    end_game: @[server,func(self)
+    end_game: @[server,func(self) {
         self.game_running = false
         emit(self, "game,end")
-    end],
+    }],
 
-    sync_team_data: @[server,func(self)
-        if not self.deactivated do
+    sync_team_data: @[server,func(self) {
+        if not self.deactivated {
             self.set_attr("team_data", self.teams)
-        end
-    end],
+        }
+    }],
 
-    pick_team: @[server,func(self, player, sync)
-    end],
+    pick_team: @[server,func(self, player, sync) {
+    }],
 
-    set_player_team: @[server,func(self, player, team, sync)
-    end],
+    set_player_team: @[server,func(self, player, team, sync) {
+    }],
 
-    leave_team: @[server,func(self, player, sync)
-    end],
+    leave_team: @[server,func(self, player, sync) {
+    }],
 
-    place_player: func(self, player)
+    place_player: func(self, player) {
         var team = player.get_attr("team")
         var st
-        if team == "" do
+        if team == "" {
             st = "player_start"
-        else
+        } else {
             st = "player_start_" ~ team
-        end
+        }
         var starts = ents::get_by_tag(st)
-        if starts and starts.len() > 0 do
+        if starts and starts.len() > 0 {
             starts[rand(0, starts.len())].place_entity(player)
             return
-        end
+        }
         log::log(log.WARNING, 'player start not found (\"%s\"), '
                               'placing player elsewhere'.format(st))
         player.set_attr("position", [ 512, 512, 571 ])
-    end,
+    },
 
-    set_local_animation: func(self) end,
-    set_local_animation_flags: func(self) end
+    set_local_animation: func(self) { },
+    set_local_animation_flags: func(self) { }
 })
 
 from std.util import assert
@@ -186,25 +186,25 @@ from std.util import assert
 var gameman
 
 /// Gets the current game manager instance.
-M.get = func()
-    if not gameman do
+M.get = func() {
+    if not gameman {
         gameman = ents::get_by_prototype("GameManager").first()
-    end
+    }
     assert(gameman)
     return gameman
-end
+}
 get = M.get
 
 /**
     Sets up the game manager. You should call this in your mapscript before
     {{$ents.load}}. On the server, this returns the entity.
 */
-M.setup = func(plugins)
+M.setup = func(plugins) {
     ents::register_prototype(GameManager, plugins)
-    @[server] do
+    @[server] {
         gameman = ents::new("GameManager")
         return gameman
-    end
-end
+    }
+}
 
 return M

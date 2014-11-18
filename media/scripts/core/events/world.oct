@@ -23,10 +23,10 @@ var ents
     Arguments:
         - uid - the client entity uid.
 */
-set_external("physics_off_map", func(uid)
-    if not ents do ents = import core.entities.ents end
+set_external("physics_off_map", func(uid) {
+    if not ents { ents = import core.entities.ents }
     emit(ents::get(uid), "off_map")
-end)
+})
 
 /** Function: physics_in_deadly
     Called when a client is in a deadly material (lava or death). By default
@@ -37,10 +37,10 @@ end)
         - uid - the client entity uid.
         - mat - the material id (see $edit).
 */
-set_external("physics_in_deadly", func(uid, mat)
-    if not ents do ents = import core.entities.ents end
+set_external("physics_in_deadly", func(uid, mat) {
+    if not ents { ents = import core.entities.ents }
     emit(ents::get(uid), "in_deadly", mat)
-end)
+})
 
 // flags for physics_state_change
 var FLAG_WATER = 1 << 0
@@ -65,31 +65,31 @@ var FLAG_BELOWGROUND = 2 << 4
         - mat - the material id (fore xample when jumping out of/into water,
           it's the water material id, see $edit).
 */
-set_external("physics_state_change", func(uid, loc, flevel, llevel, mat)
-    @[server] do return end
+set_external("physics_state_change", func(uid, loc, flevel, llevel, mat) {
+    @[server] { return }
 
-    if not ents do ents = import core.entities.ents end
+    if not ents { ents = import core.entities.ents }
     var ent = ents::get(uid)
 
     var flags = 0
-    if mat == edit.material.WATER do
+    if mat == edit.material.WATER {
         flags |= FLAG_WATER
-    elif mat == edit.material.LAVA do
+    } else if mat == edit.material.LAVA {
         flags |= FLAG_LAVA
-    end
+    }
 
-    if llevel > 0 do // liquid level
+    if llevel > 0 { // liquid level
         flags |= FLAG_ABOVELIQUID
-    elif llevel < 0 do
+    } else if llevel < 0 {
         flags |= FLAG_BELOWLIQUID
-    end
-    if flevel > 0 do // floor level
+    }
+    if flevel > 0 { // floor level
         flags |= FLAG_ABOVEGROUND
-    elif flevel < 0 do
+    } else if flevel < 0 {
         flags |= FLAG_BELOWGROUND
-    end
-    if flags != 0 do ent.set_attr("physics_trigger", flags) end
-end)
+    }
+    if flags != 0 { ent.set_attr("physics_trigger", flags) }
+})
 
 from std.environ import globals
 
@@ -98,19 +98,19 @@ from std.environ import globals
     the unique ID of the client and the text as arguments on the entities
     storage table.
 */
-set_external("event_text_message", func(uid, text)
-    if not ents do ents = import core.entities.ents end
+set_external("event_text_message", func(uid, text) {
+    if not ents { ents = import core.entities.ents }
     emit(ents::get_all(), "event_text_message", uid, text)
-end)
+})
 
-@[server] do
+@[server] {
 /** Function: event_player_login
     Serverside. Called after a server sends all the active entities to the
     client. Emits a signal of the same name with the unique ID of the player
     entity as an argument on the entities storage table.
 */
-set_external("event_player_login", func(uid)
-    if not ents do ents = import core.entities.ents end
+set_external("event_player_login", func(uid) {
+    if not ents { ents = import core.entities.ents }
     emit(ents::get_all(), "event_player_login", uid)
-end)
-end
+})
+}

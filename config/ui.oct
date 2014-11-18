@@ -15,114 +15,114 @@ var root = gui::get_root()
 var var_get = cs.var_get
 var cs_execute = cs.execute
 
-var gen_map_list = func(img, vb)
+var gen_map_list = func(img, vb) {
     var glob, loc = capi::get_all_map_names()
     vb.append(gui::Label({ text: "Global maps", color: 0x88FF88 }))
     var current_preview
-    for i, map in glob.each() do
+    for i, map in glob.each() {
         vb.append(gui::Button({ label: map, clamp_h: true,
             variant: "nobg", min_w: 0.2
-        }), func(btn)
-            signal::connect(btn, "hovering", func()
-                if map != current_preview do
+        }), func(btn) {
+            signal::connect(btn, "hovering", func() {
+                if map != current_preview {
                     current_preview = map
                     img.set_tex("media/map/" ~ map ~ "/map")
-                end
-            end)
-            signal::connect(btn, "leaving", func()
+                }
+            })
+            signal::connect(btn, "leaving", func() {
                 current_preview = undef
                 img.set_tex(undef)
-            end)
-            signal::connect(btn, "clicked", func()
+            })
+            signal::connect(btn, "clicked", func() {
                 cs_execute("map " ~ map)
-            end)
-        end)
-    end
+            })
+        })
+    }
     vb.append(gui::Label({ text: "Local maps", color: 0x8888FF }))
-    for i, map in loc.each() do
+    for i, map in loc.each() {
         vb.append(gui::Button({ label: map, clamp_h: true,
             variant: "nobg", min_w: 0.2
-        }), func(btn)
-            signal::connect(btn, "hovering", func()
-                if map != current_preview do
+        }), func(btn) {
+            signal::connect(btn, "hovering", func() {
+                if map != current_preview {
                     current_preview = map
                     img.set_tex("media/map/" ~ map ~ "/map")
-                end
-            end)
-            signal::connect(btn, "leaving", func()
+                }
+            })
+            signal::connect(btn, "leaving", func() {
                 current_preview = undef
                 img.set_tex(undef)
-            end)
-            signal::connect(btn, "clicked", func()
+            })
+            signal::connect(btn, "clicked", func() {
                 cs_execute("map " ~ map)
-            end)
-        end)
-    end
-end
+            })
+        })
+    }
+}
 
-var gen_map_load = func()
+var gen_map_load = func() {
     var s
     return gui::HBox({ children: [
-        gui::Outline({ __init: func(o)
-            o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp)
-                sp.append(gui::Scroller({ clip_w: 0.6, clip_h: 0.5 }), func(sc)
+        gui::Outline({ __init: func(o) {
+            o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+                sp.append(gui::Scroller({ clip_w: 0.6, clip_h: 0.5 }), func(sc) {
                     s = sc
-                    sc.append(gui::HBox({ padding: 0.01 }), func(hb)
+                    sc.append(gui::HBox({ padding: 0.01 }), func(hb) {
                         var im
                         hb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02,
                             children: [
                                 gui::Image({ min_w: 0.3, min_h: 0.3,
-                                    __init: func(img) im = img end,
+                                    __init: func(img) { im = img },
                                     children: [
                                         gui::Outline({ clamp: true, color: 0x303030 })
                                     ]
                                 })
                             ]
                         }))
-                        hb.append(gui::VBox(), func(vb)
+                        hb.append(gui::VBox(), func(vb) {
                             gen_map_list(im, vb)
-                        end)
-                    end)
-                end)
-            end)
-        end, color: 0x303030 }),
-        gui::VScrollbar({ clamp_v: true, __init: func(sb)
+                        })
+                    })
+                })
+            })
+        }, color: 0x303030 }),
+        gui::VScrollbar({ clamp_v: true, __init: func(sb) {
             sb.append(gui::ScrollButton())
             sb.bind_scroller(s)
-        end })
+        } })
     ] })
-end
+}
 
-root.new_window("main", gui.Window, func(win)
+root.new_window("main", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("Main menu")
-    win.append(gui::HBox({ clamp_h: true }), func(b)
+    win.append(gui::HBox({ clamp_h: true }), func(b) {
         var stat
-        b.append(gui::VBox(), func(b)
+        b.append(gui::VBox(), func(b) {
             b.append(gui::Button({ label: "Load map", clamp_h: true,
                 variant: "nobg"
-            }), func(btn)
-                connect(btn, "clicked", func() stat.set_state("load_map") end)
-            end)
+            }), func(btn) {
+                connect(btn, "clicked", func() { stat.set_state("load_map") })
+            })
             b.append(gui::Button({ label: "Options", clamp_h: true,
                 variant: "nobg"
-            }), func(btn)
-                connect(btn, "clicked", func() stat.set_state("options") end)
-            end)
+            }), func(btn) {
+                connect(btn, "clicked", func() { stat.set_state("options") })
+            })
             b.append(gui::Button({ label: "Credits", clamp_h: true,
                 variant: "nobg"
-            }), func(btn)
-                connect(btn, "clicked", func() stat.set_state("credits") end)
-            end)
+            }), func(btn) {
+                connect(btn, "clicked", func() { stat.set_state("credits") })
+            })
             b.append(gui::Button({ label: "Quit", clamp_h: true,
                 variant: "nobg"
-            }), func(btn)
-                connect(btn, "clicked", func() cs_execute("quit") end)
-            end)
-        end)
+            }), func(btn) {
+                connect(btn, "clicked", func() { cs_execute("quit") })
+            })
+        })
         b.append(gui::Filler({ min_w: 0.005, clamp_v: true }))
-        b.append(gui::State({ state: "default" }), func(st)
+        b.append(gui::State({ state: "default" }), func(st) {
             stat = st
             st.update_state("default", gui::Outline({ min_w: 0.6, min_h: 0.5,
                 color: 0x303030, children: [ gui::VBox({ children: [
@@ -177,32 +177,32 @@ root.new_window("main", gui.Window, func(win)
                     gui::Label({ text: "and others",  scale: 0.8 })
                 ] }) ]
             }))
-        end)
-    end)
-end)
+        })
+    })
+})
 
-root.new_window("fullconsole", gui.Overlay, func(win)
+root.new_window("fullconsole", gui.Overlay, func(win) {
     win.clamp(true, true, false, false)
     win.align(0, -1)
     capi::console_full_show(true)
     connect(win, "destroy", \-> capi::console_full_show(false))
     win.append(gui::Console({
         min_h: \-> var_get("fullconsize") / 100
-    }), func(con)
+    }), func(con) {
         con.clamp(true, true, false, false)
-    end)
-end)
+    })
+})
 
-root.new_window("editstats", gui.Overlay, func(win)
+root.new_window("editstats", gui.Overlay, func(win) {
     win.align(-1, 1)
     win.set_above_hud(true)
-    win.append(gui::Filler({ variant: "edithud" }), func(fl)
-        fl.append(gui::Spacer({ pad_h: 0.015, pad_v: 0.01 }), func(sp)
+    win.append(gui::Filler({ variant: "edithud" }), func(fl) {
+        fl.append(gui::Spacer({ pad_h: 0.015, pad_v: 0.01 }), func(sp) {
             sp.append(gui::EvalLabel({ scale: -1,
                 callback: \-> cs_execute("getedithud") })).align(-1, 0)
-        end)
-    end)
-end)
+        })
+    })
+})
 
 var genblock = \val, color, tcolor -> \-> gui::ColorFiller({
     color: color, min_w: 0.18, min_h: 0.18,
@@ -235,176 +235,176 @@ var cleanup = []
 var totalscore = 0
 var gamestate  = 0
 
-var cleanuptiles = func()
-    for i, v in cleanup.each() do v.destroy() end
-end
+var cleanuptiles = func() {
+    for i, v in cleanup.each() { v.destroy() }
+}
 
-var seedtiles = func()
+var seedtiles = func() {
     var t1, t2 = math::random(0, 16)
     repeat t2 = math::random(0, 16) until t2 != t1
     var vals = [ 2, 4 ]
     var tv1, tv2 = vals[math::random(0, 2)],
                    vals[math::random(0, 2)]
-    for i in 0 to 15 do
-        if i == t1 do
+    for i in 0 to 15 {
+        if i == t1 {
             tiles.push(tv1)
-        elif i == t2 do
+        } else if i == t2 {
             tiles.push(tv2)
-        else
+        } else {
             tiles.push(0)
-        end
-    end
-end
+        }
+    }
+}
 
-var randtile = func(grid)
+var randtile = func(grid) {
     var emptyfields = []
-    for i in 0 to 15 do
-        if tiles[i] == 0 do emptyfields.push(i) end
-    end
-    if emptyfields.empty() do return end
+    for i in 0 to 15 {
+        if tiles[i] == 0 { emptyfields.push(i) }
+    }
+    if emptyfields.empty() { return }
     var n = emptyfields[math::random(0, emptyfields.len())]
     tiles[n] = ([ 2, 4 ])[math::random(0, 2)]
     grid.remove(n)
     grid.insert(n, blocktypes[tiles[n]]())
-    if emptyfields.len() == 1 do
+    if emptyfields.len() == 1 {
         // check game over (yes if nothing is mergeable)
-        if gamestate == 0 do
+        if gamestate == 0 {
             gamestate = -1
-            for a in 1 to 2 do
+            for a in 1 to 2 {
                 var ia, ib, ic, ja, jb, jc
-                if a == 1 do
+                if a == 1 {
                     ia, ib, ic = 0, 12, 4
                     ja, jb, jc = 1, 3, 1
-                else
+                } else {
                     ia, ib, ic = 0, 3, 1
                     ja, jb, jc = 1, 13, 4
-                end
-                for i in ia to ib by ic do
-                    for j in ja + i to jb + i by jc do
-                        if tiles[j - 1] == tiles[j + jc - 1] do
+                }
+                for i in ia to ib by ic {
+                    for j in ja + i to jb + i by jc {
+                        if tiles[j - 1] == tiles[j + jc - 1] {
                             gamestate = 0
                             break
-                        end
-                    end
-                    if gamestate >= 0 do break end
-                end
-                if gamestate >= 0 do break end
-            end
-            if gamestate == 0 do
-                for i in 0 to tiles.len() - 1 do
-                    if tiles[i] == 2048 do
+                        }
+                    }
+                    if gamestate >= 0 { break }
+                }
+                if gamestate >= 0 { break }
+            }
+            if gamestate == 0 {
+                for i in 0 to tiles.len() - 1 {
+                    if tiles[i] == 2048 {
                         gamestate = 1
                         break
-                    end
-                end
-            end
-        end
-    end
-end
+                    }
+                }
+            }
+        }
+    }
+}
 
 var pendinganims = 0
 
-var guimovetile = func(grid, i, j, step, hdir, vdir)
+var guimovetile = func(grid, i, j, step, hdir, vdir) {
     var o = grid.remove(j - 1, true)
     var oadj = o.adjust
     grid.insert(j - 1, blocktypes[0]())
     var n = (j - i) / step
     var dist = 0.205 * n
     var dirn, mspeed, dx, dy
-    if hdir != 0 do
+    if hdir != 0 {
         dirn, mspeed = "speedup,x", 3 * n * hdir
         dx, dy = dist, 0
-    else
+    } else {
         dirn, mspeed = "speedup,y", 3 * n * vdir
         dx, dy = 0, dist
-    end
+    }
     grid.parent.append(gui::Animator({
         move_func: dirn, move_speed: mspeed,
         move_dist_x: dx, move_dist_y: dy, children: [ o ]
-    }), func(m)
+    }), func(m) {
         m.clamp(true, true, true, true)
-        connect(m, "anim,start", func()
+        connect(m, "anim,start", func() {
             pendinganims += 1
-        end)
-        connect(m, "anim,end", func()
+        })
+        connect(m, "anim,end", func() {
             m.set_visible(false)
             cleanup.push(m)
             grid.remove(i - 1)
             grid.insert(i - 1, blocktypes[tiles[i - 1]]())
             pendinganims -= 1
-            if pendinganims == 0 do
+            if pendinganims == 0 {
                 randtile(grid)
-            end
+            }
             grid.layout()
-        end)
+        })
         m.start()
         grid.parent.append(m)
-    end)
+    })
     o.floating = true
     o.adjust   = 0
-end
+}
 
-var movetile = func(grid, off, hdir, vdir)
+var movetile = func(grid, off, hdir, vdir) {
     var dir = (hdir != 0) and hdir or (vdir * 4)
     var lbeg, lend, lstart
-    if dir < 0 do
-        if hdir != 0 do
+    if dir < 0 {
+        if hdir != 0 {
             lbeg, lend, lstart = 2, 4, 1
-        else
+        } else {
             lbeg, lend, lstart = 5, 13, 1
-        end
-    else
-        if hdir != 0 do
+        }
+    } else {
+        if hdir != 0 {
             lbeg, lend, lstart = 3, 1, 4
-        else
+        } else {
             lbeg, lend, lstart = 9, 1, 13
-        end
-    end
+        }
+    }
     var jm = false
-    for i in lbeg to lend by -dir do
+    for i in lbeg to lend by -dir {
         var nnz
-        for j in i + dir to lstart by dir do
-            if tiles[j + off - 1] != 0 do
+        for j in i + dir to lstart by dir {
+            if tiles[j + off - 1] != 0 {
                 nnz = j
                 break
-            end
-        end
-        if nnz and not jm and tiles[nnz + off - 1] == tiles[i + off - 1] do
+            }
+        }
+        if nnz and not jm and tiles[nnz + off - 1] == tiles[i + off - 1] {
             jm = true
             tiles[nnz + off - 1] += tiles[i + off - 1]
             tiles[i + off - 1] = 0
             guimovetile(grid, nnz + off, i + off, -dir, hdir, vdir)
             totalscore += tiles[nnz + off - 1]
-        elif tiles[i + off - 1] != 0 do
+        } else if tiles[i + off - 1] != 0 {
             jm = false
             var fz
-            for j in i + dir to lstart by dir do
-                if tiles[j + off - 1] == 0 do fz = j end
-            end
-            if fz do
+            for j in i + dir to lstart by dir {
+                if tiles[j + off - 1] == 0 { fz = j }
+            }
+            if fz {
                 tiles[fz + off - 1] = tiles[i + off - 1]
                 tiles[i + off - 1] = 0
                 guimovetile(grid, fz + off, i + off, -dir, hdir, vdir)
-            end
-        end
-    end
-end
+            }
+        }
+    }
+}
 
-var movetiles = func(grid, h, v)
-    if h != 0 do
+var movetiles = func(grid, h, v) {
+    if h != 0 {
         movetile(grid, 0,  h, 0)
         movetile(grid, 4,  h, 0)
         movetile(grid, 8,  h, 0)
         movetile(grid, 12, h, 0)
-    end
-    if v != 0 do
+    }
+    if v != 0 {
         movetile(grid, 0, 0, v)
         movetile(grid, 1, 0, v)
         movetile(grid, 2, 0, v)
         movetile(grid, 3, 0, v)
-    end
+    }
     cleanuptiles()
-end
+}
 
 var gamestates = {
     (-1): "2048 (game over, score: %d)",
@@ -413,42 +413,42 @@ var gamestates = {
 }
 
 var seededtiles = false
-root.new_window("2048", gui.Window, func(win)
+root.new_window("2048", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("2048 (score: 0)")
-    connect(win, "destroy", func() totalscore = 0 end)
-    win.append(gui::ColorFiller({ color: 0xBBADA0 }), func(cf)
+    connect(win, "destroy", func() { totalscore = 0 })
+    win.append(gui::ColorFiller({ color: 0xBBADA0 }), func(cf) {
         cf.clamp(true, true, true, true)
-        win.append(gui::Spacer({ pad_h: 0.025, pad_v: 0.025 }), func(sp)
-            sp.append(gui::Grid({ columns: 4, padding: 0.025 }), func(grid)
-                cf.key = func(self, code, isdown)
-                    if isdown do
-                        if code == gui.key.LEFT do
+        win.append(gui::Spacer({ pad_h: 0.025, pad_v: 0.025 }), func(sp) {
+            sp.append(gui::Grid({ columns: 4, padding: 0.025 }), func(grid) {
+                cf.key = func(self, code, isdown) {
+                    if isdown {
+                        if code == gui.key.LEFT {
                             movetiles(grid, -1,  0)
-                        elif code == gui.key.RIGHT do
+                        } else if code == gui.key.RIGHT {
                             movetiles(grid,  1,  0)
-                        elif code == gui.key.UP do
+                        } else if code == gui.key.UP {
                             movetiles(grid,  0, -1)
-                        elif code == gui.key.DOWN do
+                        } else if code == gui.key.DOWN {
                             movetiles(grid,  0,  1)
-                        end
-                    end
-                    if gamestate < 0 do cf.key = undef end
+                        }
+                    }
+                    if gamestate < 0 { cf.key = undef }
                     win.set_title(gamestates[gamestate].format(totalscore))
                     return gui.Widget::key(self, code, isdown)
-                end
-                if gamestate < 0 do
+                }
+                if gamestate < 0 {
                     totalscore, gamestate, seededtiles, tiles = 0, 0, false, []
-                end
-                if not seededtiles do
+                }
+                if not seededtiles {
                     seedtiles()
                     seededtiles = true
-                end
-                for i in 0 to tiles.len() - 1 do
+                }
+                for i in 0 to tiles.len() - 1 {
                     grid.append(blocktypes[tiles[i]]())
-                end
-            end)
-        end)
-    end)
-end)
+                }
+            })
+        })
+    })
+})

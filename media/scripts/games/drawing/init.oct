@@ -39,13 +39,10 @@ var colors = [
 
 var Player = ents.Player
 
-
-@[not server] then
-    var SPARK = quadrenderer("spark", "media/particle/spark",
+@[not server] var SPARK = quadrenderer("spark", "media/particle/spark",
         particles.flags.FLIP | particles.flags.BRIGHT)
-    var STREAK = taperenderer("streak", "media/particle/flare",
+@[not server] var STREAK = taperenderer("streak", "media/particle/flare",
         particles.flags.BRIGHT)
-end
 
 /** Object: GamePlayer
     This serves as a base for our player. It defines all the basic entry
@@ -64,75 +61,75 @@ var GamePlayer = Player.clone({
         })
     },
 
-    next_color: func(self)
-        if  self.color_id < (colors.len() - 1) do
+    next_color: func(self) {
+        if  self.color_id < (colors.len() - 1) {
             self.color_id += 1
-        else
+        } else {
             self.color_id = 0
-        end
+        }
         self.color = colors[self.color_id]
         log::echo("color switch: 0x%.6X".format(self.color))
-    end,
+    },
 
-    reset_mark: func(self)
+    reset_mark: func(self) {
         self.set_attr("new_mark", [ -1, -1, -1 ])
         self.stop_batch = true
-    end,
+    },
 
     /** Function: __activate
         Called on entity activation. Connects a callback to state data
         change of new_mark.
     */
-    __activate: @[not server,func(self, kwargs)
+    __activate: @[not server,func(self, kwargs) {
         Player::__activate(self, kwargs)
         self.marks = []
         self.color_id = 0
         self.color    = colors[0]
-        connect(self, "new_mark,changed", func(self, nm)
-            if nm.len() == 3 do
+        connect(self, "new_mark,changed", func(self, nm) {
+            if nm.len() == 3 {
                 nm = Vec4(nm[0], nm[1], nm[2], self.color)
-            else
+            } else {
                 nm = undef
-            end
+            }
             self.marks.push(nm)
-        end)
-    end],
+        })
+    }],
 
     /** Function: __run
         Called every frame. It goes over the marks and draws everything.
     */
-    __run: @[not server,func(self, millis)
+    __run: @[not server,func(self, millis) {
         Player::__run(self, millis)
         var last = undef
         var marks = self.marks
 
-        for i, mark in marks.each() do
-            if last and mark and mark.x >= 0 and last.x >= 0 do
+        for i, mark in marks.each() {
+            if last and mark and mark.x >= 0 and last.x >= 0 {
                 var r, g, b = hextorgb(mark.w)
                 flare(STREAK, mark, last, r / 255, g / 255, b / 255, 0, 1)
                 flare(STREAK, last, mark, r / 255, g / 255, b / 255, 0, 1)
-            end
+            }
             last = mark
-        end
+        }
 
         var newb =     marks.empty() or not marks[marks.len() - 2]
         var conb = not marks.empty() and    marks[marks.len() - 2]
 
-        if conb and not self.stop_batch do
+        if conb and not self.stop_batch {
             var mark = marks[marks.len() - 2]
             var r, g, b = hextorgb(mark.w)
             splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
-        end
+        }
 
-        if self.pressing do
+        if self.pressing {
             var newp = input::get_target_position()
             var topl = self.get_attr("position").sub_new(newp)
             newp.add(topl.normalize())
-            if newb or marks[marks.len() - 2].dist(newp) > 5 do
+            if newb or marks[marks.len() - 2].dist(newp) > 5 {
                 self.set_attr("new_mark", newp.to_array())
-            end
-        end
-    end]
+            }
+        }
+    }]
 })
 
 ents::register_prototype(GamePlayer, [
@@ -147,21 +144,21 @@ ents::register_prototype(ents.Obstacle, [ health.plugins.area ],
 
 day_manager::setup([ day_manager.plugins.day_night ])
 
-@[not server] then
-    inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy)
+@[not server] {
+    inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy) {
         var ent = ents::get(uid)
-        if ent and ent.click do
+        if ent and ent.click {
             return ent.click(btn, down, x, y, z, cx, cy)
-        end
-        if btn == 1 do
+        }
+        if btn == 1 {
             ents::get_player().pressing   = down
             ents::get_player().stop_batch = false
-        elif btn == 2 and down do
+        } else if btn == 2 and down {
             ents::get_player().reset_mark()
-        elif btn == 3 and down do
+        } else if btn == 3 and down {
             ents::get_player().next_color()
-        end
-    end)
-else
+        }
+    })
+} else {
     ents::set_player_prototype("GamePlayer")
-end
+}

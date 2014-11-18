@@ -11,7 +11,7 @@
 /// Module: model
 var M = {}
 
-@[server] do return M end
+@[server] { return M }
 
 import capi
 
@@ -35,13 +35,13 @@ M.anims = {
 var anims = M.anims
 
 var variants = [ "N", "NE", "E", "SE", "S", "SW", "W", "NW" ]
-var gen_anim_variants = func(bname, onlysuffix)
-    if not onlysuffix do anims[bname] = ran(bname) end
-    for i, v in variants.each() do
+var gen_anim_variants = func(bname, onlysuffix) {
+    if not onlysuffix { anims[bname] = ran(bname) }
+    for i, v in variants.each() {
         var nm = bname ~ "_" ~ v
         anims[nm] = ran(nm)
-    end
-end
+    }
+}
 
 gen_anim_variants("run", true)
 gen_anim_variants("jump")
@@ -144,29 +144,29 @@ var mrender = capi.model_render
         - color - any value with r, g, b, a (for example a vec4).
 */
 M.render = func(ent, mdl, anim, pos, yaw, pitch, roll, flags,
-btime, trans)
+btime, trans) {
     var r, g, b, a = 1, 1, 1, 1
-    if trans do
+    if trans {
         r, g, b, a = trans.r, trans.g, trans.b, trans.a
-    end
+    }
     mrender(ent.uid, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll, flags,
         btime, r, g, b, a)
-end
+}
 
 import core.octascript.geom
 var Vec3 = geom.Vec3
 
 /// Returns the bounding box of the given model as two vec3, center and radius.
-M.get_bounding_box = func(name)
+M.get_bounding_box = func(name) {
     var cx, cy, cz, rx, ry, rz = capi::model_get_boundbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
-end
+}
 
 /// See $get_bounding_box - for collision box.
-M.get_collision_box = func(name)
+M.get_collision_box = func(name) {
     var cx, cy, cz, rx, ry, rz = capi::model_get_collisionbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
-end
+}
 
 /** Function: get_mesh
     Returns the mesh information about the given model as a table.

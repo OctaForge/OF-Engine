@@ -33,15 +33,14 @@ end
 
 local Keywords = {
     ["and"     ] = true, ["as"      ] = true, ["break"   ] = true,
-    ["by"      ] = true, ["continue"] = true, ["do"      ] = true,
-    ["else"    ] = true, ["elif"    ] = true, ["end"     ] = true,
-    ["enum"    ] = true, ["false"   ] = true, ["for"     ] = true,
-    ["from"    ] = true, ["func"    ] = true, ["goto"    ] = true,
-    ["if"      ] = true, ["import"  ] = true, ["in"      ] = true,
-    ["match"   ] = true, ["not"     ] = true, ["null"    ] = true,
-    ["or"      ] = true, ["print"   ] = true, ["raise"   ] = true,
-    ["rec"     ] = true, ["repeat"  ] = true, ["return"  ] = true,
-    ["then"    ] = true, ["to"      ] = true, ["true"    ] = true,
+    ["by"      ] = true, ["continue"] = true, ["else"    ] = true,
+    ["elif"    ] = true, ["enum"    ] = true, ["false"   ] = true,
+    ["for"     ] = true, ["from"    ] = true, ["func"    ] = true,
+    ["goto"    ] = true, ["if"      ] = true, ["import"  ] = true,
+    ["in"      ] = true, ["match"   ] = true, ["not"     ] = true,
+    ["null"    ] = true, ["or"      ] = true, ["print"   ] = true,
+    ["raise"   ] = true, ["rec"     ] = true, ["repeat"  ] = true,
+    ["return"  ] = true, ["to"      ] = true, ["true"    ] = true,
     ["try"     ] = true, ["typeof"  ] = true, ["undef"   ] = true,
     ["until"   ] = true, ["var"     ] = true, ["while"   ] = true
 }

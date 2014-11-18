@@ -17,75 +17,75 @@ var ffi_new = ffi.new
 from std.conv import tostring
 from std.array import from_table
 
-var gen_getwrap = func(fun, tp)
+var gen_getwrap = func(fun, tp) {
     var tpnm = tp ~ "[1]"
-    return func(ent)
+    return func(ent) {
         var stor = ffi_new(tpnm)
-        if not fun(ent, stor) do return undef end
+        if not fun(ent, stor) { return undef }
         return stor[0]
-    end
-end
+    }
+}
 
 capi.get_start_time = gen_getwrap(capi.get_start_time, "int")
 
 var get_selected_entity in capi
-capi.get_selected_entity = func()
-    if not ents do
+capi.get_selected_entity = func() {
+    if not ents {
         ents = import core.entities.ents
         get_ent = ents.get
-    end
+    }
     var uid = get_selected_entity()
-    if uid >= 0 do return get_ent(uid) end
+    if uid >= 0 { return get_ent(uid) }
     return undef
-end
+}
 
 var get_attached_entity in capi
-capi.get_attached_entity = func(uid)
-    if not ents do
+capi.get_attached_entity = func(uid) {
+    if not ents {
         ents = import core.entities.ents
         get_ent = ents.get
-    end
+    }
     var auid = get_attached_entity(uid)
-    if auid >= 0 do return get_ent(auid) end
+    if auid >= 0 { return get_ent(auid) }
     return undef
-end
+}
 
 var gettargetent in capi
-capi.gettargetent = func()
-    if not ents do
+capi.gettargetent = func() {
+    if not ents {
         ents = import core.entities.ents
         get_ent = ents.get
-    end
+    }
     var uid = gettargetent()
-    if uid >= 0 do return get_ent(uid) end
+    if uid >= 0 { return get_ent(uid) }
     return undef
-end
+}
 
 var get_attr in capi
-capi.get_attr = func(ent, id)
+capi.get_attr = func(ent, id) {
     var stor = ffi_new("int[1]")
-    if not get_attr(ent, id, stor) do return undef end
+    if not get_attr(ent, id, stor) { return undef }
     return stor[0]
-end
+}
 
 var get_start_time in capi
-capi.get_start_time = func(ent)
+capi.get_start_time = func(ent) {
     var stor = ffi_new("int[1]")
-    if not get_start_time(ent, stor) do return undef end
+    if not get_start_time(ent, stor) { return undef }
     return stor[0]
-end
+}
 
 var get_extent_position, set_extent_position in capi
 
-capi.get_extent_position = func(ent)
+capi.get_extent_position = func(ent) {
     var stor = ffi_new("double[3]")
-    if not get_extent_position(ent, stor) do return undef end
+    if not get_extent_position(ent, stor) { return undef }
     return [ stor[0], stor[1], stor[2] ]
-end
+}
 
-capi.set_extent_position = func(ent, pos)
+capi.set_extent_position = func(ent, pos) {
     set_extent_position(ent, pos[0], pos[1], pos[2])
-end
+}
 
 capi.get_maxspeed = gen_getwrap(capi.get_maxspeed, "float")
 capi.get_crouchtime = gen_getwrap(capi.get_crouchtime, "int")
@@ -115,48 +115,48 @@ capi.get_timeinair = gen_getwrap(capi.get_timeinair, "int")
 
 var get_dynent_position, set_dynent_position in capi
 
-capi.get_dynent_position = func(ent)
+capi.get_dynent_position = func(ent) {
     var stor = ffi_new("double[3]")
-    if not get_dynent_position(ent, stor) do return undef end
+    if not get_dynent_position(ent, stor) { return undef }
     return [ stor[0], stor[1], stor[2] ]
-end
+}
 
-capi.set_dynent_position = func(ent, pos)
+capi.set_dynent_position = func(ent, pos) {
     set_dynent_position(ent, pos[0], pos[1], pos[2])
-end
+}
 
 var get_dynent_velocity, set_dynent_velocity in capi
 
-capi.get_dynent_velocity = func(ent)
+capi.get_dynent_velocity = func(ent) {
     var stor = ffi_new("double[3]")
-    if not get_dynent_velocity(ent, stor) do return undef end
+    if not get_dynent_velocity(ent, stor) { return undef }
     return [ stor[0], stor[1], stor[2] ]
-end
+}
 
-capi.set_dynent_velocity = func(ent, vel)
+capi.set_dynent_velocity = func(ent, vel) {
     set_dynent_velocity(ent, vel[0], vel[1], vel[2])
-end
+}
 
 var get_dynent_falling, set_dynent_falling in capi
 
-capi.get_dynent_falling = func(ent)
+capi.get_dynent_falling = func(ent) {
     var stor = ffi_new("double[3]")
-    if not get_dynent_falling(ent, stor) do return undef end
+    if not get_dynent_falling(ent, stor) { return undef }
     return [ stor[0], stor[1], stor[2] ]
-end
+}
 
-capi.set_dynent_falling = func(ent, fl)
+capi.set_dynent_falling = func(ent, fl) {
     set_dynent_falling(ent, fl[0], fl[1], fl[2])
-end
+}
 
-@[not server] do
+@[not server] {
     var get_target_entity_uid in capi
-    capi.get_target_entity_uid = func()
+    capi.get_target_entity_uid = func() {
         var stor = ffi_new("int[1]")
-        if not get_target_entity_uid(stor) do return undef end
+        if not get_target_entity_uid(stor) { return undef }
         return stor[0]
-    end
-end
+    }
+}
 
 capi.get_ping = gen_getwrap(capi.get_ping, "int")
 capi.get_plag = gen_getwrap(capi.get_plag, "int")
@@ -164,130 +164,130 @@ capi.get_plag = gen_getwrap(capi.get_plag, "int")
 var ffi_str = ffi.string
 
 var strftime in capi
-capi.strftime = func(fmt)
+capi.strftime = func(fmt) {
     var buf = ffi_new("char[512]")
-    if not strftime(buf, 512, fmt) do return undef end
+    if not strftime(buf, 512, fmt) { return undef }
     return ffi_str(buf)
-end
+}
 
-@[not server] do
+@[not server] {
     var dynlight_add, dynlight_add_spot in capi
 
     capi.dynlight_add = func(ox, oy, oz, radius, r, g, b, fade, peak,
-    flags, initrad, ir, ig, ib, ent)
+    flags, initrad, ir, ig, ib, ent) {
         return dynlight_add(ox, oy, oz, radius, r, g, b, fade or 0, peak or 0,
             flags or 0, initrad or 0, ir or 0, ig or 0, ib or 0,
             ent and ent.uid or -1)
-    end
+    }
 
     capi.dynlight_add_spot = func(ox, oy, oz, dx, dy, dz, radius, spot,
-    r, g, b, fade, peak, flags, initrad, ir, ig, ib, ent)
+    r, g, b, fade, peak, flags, initrad, ir, ig, ib, ent) {
         return dynlight_add_spot(ox, oy, oz, dx, dy, dz, radius, r, g, b,
             fade or 0, peak or 0, flags or 0, initrad or 0, ir or 0, ig or 0,
             ib or 0, ent and ent.uid or -1)
-    end
+    }
 
     var getfps in capi
 
-    capi.getfps = func()
+    capi.getfps = func() {
         var stor = ffi_new("int[3]")
         getfps(stor)
         return stor[0], stor[1], stor[2]
-    end
+    }
 
     var slot_get_name in capi
 
-    capi.slot_get_name = func(idx, subslot)
+    capi.slot_get_name = func(idx, subslot) {
         var str = slot_get_name(idx, subslot)
-        if str != undef do return ffi_str(str) end
-    end
+        if str != undef { return ffi_str(str) }
+    }
 
     var input_get_key_name in capi
 
-    capi.input_get_key_name = func(n)
+    capi.input_get_key_name = func(n) {
         return ffi_str(input_get_key_name(n))
-    end
+    }
 
     var camera_get_position, camera_get in capi
 
-    capi.camera_get_position = func()
+    capi.camera_get_position = func() {
         var stor = ffi_new("float[3]")
         camera_get_position(stor)
         return stor[0], stor[1], stor[2]
-    end
+    }
 
-    capi.camera_get = func()
+    capi.camera_get = func() {
         var stor = ffi_new("float[6]")
         camera_get(stor)
         return stor[0], stor[1], stor[2], stor[3], stor[4], stor[5]
-    end
+    }
 
     var text_get_res in capi
 
-    capi.text_get_res = func(w, h)
+    capi.text_get_res = func(w, h) {
         var stor = ffi_new("int[2]")
         text_get_res(w, h, stor)
         return stor[0], stor[1]
-    end
+    }
 
     var text_get_bounds, text_get_boundsf in capi
 
-    capi.text_get_bounds = func(text, maxw)
+    capi.text_get_bounds = func(text, maxw) {
         var stor = ffi_new("int[2]")
         text_get_bounds(tostring(text), maxw, stor)
         return stor[0], stor[1]
-    end
+    }
 
-    capi.text_get_boundsf = func(text, maxw)
+    capi.text_get_boundsf = func(text, maxw) {
         var stor = ffi_new("float[2]")
         text_get_boundsf(tostring(text), maxw, stor)
         return stor[0], stor[1]
-    end
+    }
 
     var text_get_position, text_get_positionf in capi
 
-    capi.text_get_position = func(text, cursor, maxw)
+    capi.text_get_position = func(text, cursor, maxw) {
         var stor = ffi_new("int[2]")
         text_get_position(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
-    end
+    }
 
-    capi.text_get_positionf = func(text, cursor, maxw)
+    capi.text_get_positionf = func(text, cursor, maxw) {
         var stor = ffi_new("float[2]")
         text_get_positionf(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
-    end
-end
+    }
+}
 
 var get_all_map_names in capi
-capi.get_all_map_names = func()
+capi.get_all_map_names = func() {
     var t1, s1, t2, s2 = get_all_map_names()
     return from_table(t1, s1), from_table(t2, s2)
-end
+}
 
-@[not server] do
+@[not server] {
     var findanims in capi
-    capi.findanims = func(pattern)
+    capi.findanims = func(pattern) {
         return from_table(findanims(pattern))
-    end
+    }
 
     var texture_get_packs in capi
-    capi.texture_get_packs = func()
+    capi.texture_get_packs = func() {
         var t, s = texture_get_packs()
         from_table(t, s)
-        for i, v in t.each() do
+        for i, v in t.each() {
             from_table(v)
-        end
+        }
         return t
-    end
+    }
 
     var texture_get_data in capi
-    capi.texture_get_data = func(fn)
+    capi.texture_get_data = func(fn) {
         var w, h, t = texture_get_data(fn)
         from_table(t, w)
-        for i, v in t.each() do
+        for i, v in t.each() {
             from_table(v, h)
-        end
+        }
         return w, h, t
-    end
-end
+    }
+}

@@ -55,7 +55,7 @@ var SliderButton
           defaults to 100.
 */
 M.Slider = register_type("Slider", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         kwargs = kwargs or {}
         self.min_value = kwargs.min_value or 0
         self.max_value = kwargs.max_value or 0
@@ -69,10 +69,10 @@ M.Slider = register_type("Slider", Widget, {
         self.arrow_dir = 0
 
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
     /// Jumps by n steps on the slider.
-    do_step: func(self, n)
+    do_step: func(self, n) {
         var mn, mx, ss = self.min_value, self.max_value, self.step_size
 
         var maxstep = abs(mx - mn) / ss
@@ -82,10 +82,10 @@ M.Slider = register_type("Slider", Widget, {
         var val = min(mx, mn) + newstep * ss
         self.value = val
         emit(self, "value,changed", val)
-    end,
+    },
 
     /// Sets the nth step.
-    set_step: func(self, n)
+    set_step: func(self, n) {
         var mn, mx, ss = self.min_value, self.max_value, self.step_size
 
         var steps   = abs(mx - mn) / ss
@@ -94,94 +94,94 @@ M.Slider = register_type("Slider", Widget, {
         var val = min(mx, mn) + newstep * ss
         self.value = val
         emit(self, "value,changed", val)
-    end,
+    },
 
     /**
         You can change the slider value using the up, left keys (goes back
         by one step), down, right keys (goes forward by one step) and mouse
         scroll (goes forward/back by 3 steps).
     */
-    key_hover: func(self, code, isdown)
-        if code == key.UP or code == key.LEFT do
-            if isdown do self.do_step(-1) end
+    key_hover: func(self, code, isdown) {
+        if code == key.UP or code == key.LEFT {
+            if isdown { self.do_step(-1) }
             return true
-        elif code == key.MOUSEWHEELUP do
-            if isdown do self.do_step(-3) end
+        } else if code == key.MOUSEWHEELUP {
+            if isdown { self.do_step(-3) }
             return true
-        elif code == key.DOWN or code == key.RIGHT do
-            if isdown do self.do_step(1) end
+        } else if code == key.DOWN or code == key.RIGHT {
+            if isdown { self.do_step(1) }
             return true
-        elif code == key.MOUSEWHEELDOWN do
-            if isdown do self.do_step(3) end
+        } else if code == key.MOUSEWHEELDOWN {
+            if isdown { self.do_step(3) }
             return true
-        end
+        }
         return Widget::key_hover(self, code, isdown)
-    end,
+    },
 
-    choose_direction: func(self, cx, cy)
+    choose_direction: func(self, cx, cy) {
         return 0
-    end,
+    },
 
     /**
         The slider can be hovered on unless some of its children want the
         hover instead.
     */
-    hover: func(self, cx, cy)
+    hover: func(self, cx, cy) {
         return Widget::hover(self, cx, cy) or
                      (self.target(cx, cy) and self)
-    end,
+    },
 
     /**
         The slider can be clicked on unless some of its children want the
         click instead.
     */
-    click: func(self, cx, cy, code)
+    click: func(self, cx, cy, code) {
         return Widget::click(self, cx, cy, code) or
                      (self.target(cx, cy) and self)
-    end,
+    },
 
-    scroll_to: func(self, cx, cy) end,
+    scroll_to: func(self, cx, cy) { },
 
     /**
         Clicking inside the slider area but outside the arrow area jumps
         in the slider.
     */
-    clicked: func(self, cx, cy, code)
-        if code == key.MOUSELEFT do
+    clicked: func(self, cx, cy, code) {
+        if code == key.MOUSELEFT {
             var d = self::choose_direction(self, cx, cy)
             self.arrow_dir = d
-            if d == 0 do
+            if d == 0 {
                 self.scroll_to(cx, cy)
-            end
-        end
+            }
+        }
         return Widget::clicked(self, cx, cy, code)
-    end,
+    },
 
-    arrow_scroll: func(self, d)
+    arrow_scroll: func(self, d) {
         var tmillis = get_millis(true)
-        if (self.last_step + self.step_time) > tmillis do return end
+        if (self.last_step + self.step_time) > tmillis { return }
 
         self.last_step = tmillis
         self::do_step(self, d)
-    end,
+    },
 
-    holding: func(self, cx, cy, code)
-        if code == key.MOUSELEFT do
+    holding: func(self, cx, cy, code) {
+        if code == key.MOUSELEFT {
             var d = self.choose_direction(cx, cy)
             self.arrow_dir = d
-            if d != 0 do self.arrow_scroll(d) end
-        end
+            if d != 0 { self.arrow_scroll(d) }
+        }
         Widget::holding(self, cx, cy, code)
-    end,
+    },
 
-    hovering: func(self, cx, cy)
-        if not self.is_clicked(key.MOUSELEFT) do
+    hovering: func(self, cx, cy) {
+        if not self.is_clicked(key.MOUSELEFT) {
             self.arrow_dir = self.choose_direction(cx, cy)
-        end
+        }
         Widget::hovering(self, cx, cy)
-    end,
+    },
 
-    move_button: func(self, o, fromx, fromy, tox, toy) end,
+    move_button: func(self, o, fromx, fromy, tox, toy) { },
 
     /// Function: set_min_value
     set_min_value: gen_setter("min_value"),
@@ -220,54 +220,54 @@ var clicked_states = {
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
 */
 M.SliderButton = register_type("SliderButton", Widget, {
-    __ctor: func(self, kwargs)
+    __ctor: func(self, kwargs) {
         self.offset_h = 0
         self.offset_v = 0
 
         return Widget::__ctor(self, kwargs)
-    end,
+    },
 
-    choose_state: func(self)
+    choose_state: func(self) {
         return clicked_states[self.is_clicked()] or
             (self.is_hovering() and "hovering" or "default")
-    end,
+    },
 
-    hover: func(self, cx, cy)
+    hover: func(self, cx, cy) {
         return self.target(cx, cy) and self
-    end,
+    },
 
-    click: func(self, cx, cy)
+    click: func(self, cx, cy) {
         return self.target(cx, cy) and self
-    end,
+    },
 
-    holding: func(self, cx, cy, code)
+    holding: func(self, cx, cy, code) {
         var p = self.parent
-        if p and code == key.MOUSELEFT and p.type == Slider.type do
+        if p and code == key.MOUSELEFT and p.type == Slider.type {
             p.arrow_dir = 0
             p.move_button(self, self.offset_h, self.offset_v, cx, cy)
-        end
+        }
         Widget::holding(self, cx, cy, code)
-    end,
+    },
 
-    clicked: func(self, cx, cy, code)
-        if code == key.MOUSELEFT do
+    clicked: func(self, cx, cy, code) {
+        if code == key.MOUSELEFT {
             self.offset_h = cx
             self.offset_v = cy
-        end
+        }
         return Widget::clicked(self, cx, cy, code)
-    end,
+    },
 
-    layout: func(self)
+    layout: func(self) {
         var lastw = self.w
         var lasth = self.h
 
         Widget::layout(self)
 
-        if self.is_clicked(key.MOUSELEFT) do
+        if self.is_clicked(key.MOUSELEFT) {
             self.w = lastw
             self.h = lasth
-        end
-    end
+        }
+    }
 })
 SliderButton = M.SliderButton
 
@@ -282,29 +282,29 @@ SliderButton = M.SliderButton
 M.HSlider = register_type("HSlider", Slider, {
     orient: orient.HORIZONTAL,
 
-    choose_state: func(self)
+    choose_state: func(self) {
         var ad = self.arrow_dir
 
-        if ad == -1 do
+        if ad == -1 {
             var clicked = clicked_states[self.is_clicked()]
             return clicked and "left_" ~ clicked or
                 (self.is_hovering() and "left_hovering" or "default")
-        elif ad == 1 do
+        } else if ad == 1 {
             var clicked = clicked_states[self.is_clicked()]
             return clicked and "right_" ~ clicked or
                 (self.is_hovering() and "right_hovering" or "default")
-        end
+        }
         return "default"
-    end,
+    },
 
-    choose_direction: func(self, cx, cy)
+    choose_direction: func(self, cx, cy) {
         var asz = self.arrow_size
         return cx < asz and -1 or (cx >= (self.w - asz) and 1 or 0)
-    end,
+    },
 
-    scroll_to: func(self, cx, cy)
+    scroll_to: func(self, cx, cy) {
         var  btn = self.find_child(SliderButton.type, undef, false)
-        if not btn do return end
+        if not btn { return }
 
         var asz = self.arrow_size
         var sw, bw = self.w, btn.w
@@ -314,11 +314,11 @@ M.HSlider = register_type("HSlider", Slider, {
         var step = round(steps * pos)
 
         self::set_step(self, step)
-    end,
+    },
 
-    adjust_children: func(self)
+    adjust_children: func(self) {
         var  btn = self.find_child(SliderButton.type, undef, false)
-        if not btn do return end
+        if not btn { return }
         btn._slider = self
 
         var mn, mx, ss = self.min_value, self.max_value, self.step_size
@@ -335,11 +335,11 @@ M.HSlider = register_type("HSlider", Slider, {
         btn.adjust = btn.adjust & ~adjust.ALIGN_HMASK
 
         Widget::adjust_children(self)
-    end,
+    },
 
-    move_button: func(self, o, fromx, fromy, tox, toy)
+    move_button: func(self, o, fromx, fromy, tox, toy) {
         self.scroll_to(o.x + o.w / 2 + tox - fromx, o.y + toy)
-    end
+    }
 }, Slider.type)
 
 /**
@@ -347,29 +347,29 @@ M.HSlider = register_type("HSlider", Slider, {
     and  "(up|down)_clicked_(left|right|middle|back|forward)".
 */
 M.VSlider = register_type("VSlider", Slider, {
-    choose_state: func(self)
+    choose_state: func(self) {
         var ad = self.arrow_dir
 
-        if ad == -1 do
+        if ad == -1 {
             var clicked = clicked_states[self.is_clicked()]
             return clicked and "up_" ~ clicked or
                 (self.is_hovering() and "up_hovering" or "default")
-        elif ad == 1 do
+        } else if ad == 1 {
             var clicked = clicked_states[self.is_clicked()]
             return clicked and "down_" ~ clicked or
                 (self.is_hovering() and "down_hovering" or "default")
-        end
+        }
         return "default"
-    end,
+    },
 
-    choose_direction: func(self, cx, cy)
+    choose_direction: func(self, cx, cy) {
         var asz = self.arrow_size
         return cy < asz and -1 or (cy >= (self.h - asz) and 1 or 0)
-    end,
+    },
 
-    scroll_to: func(self, cx, cy)
+    scroll_to: func(self, cx, cy) {
         var  btn = self.find_child(SliderButton.type, undef, false)
-        if not btn do return end
+        if not btn { return }
 
         var asz = self.arrow_size
         var sh, bh = self.h, btn.h
@@ -379,11 +379,11 @@ M.VSlider = register_type("VSlider", Slider, {
         var step = round(steps * pos)
 
         self::set_step(self, step)
-    end,
+    },
 
-    adjust_children: func(self)
+    adjust_children: func(self) {
         var  btn = self.find_child(SliderButton.type, undef, false)
-        if not btn do return end
+        if not btn { return }
         btn._slider = self
 
         var mn, mx, ss = self.min_value, self.max_value, self.step_size
@@ -400,9 +400,9 @@ M.VSlider = register_type("VSlider", Slider, {
         btn.adjust = btn.adjust & ~adjust.ALIGN_VMASK
 
         Widget::adjust_children(self)
-    end,
+    },
 
-    move_button: func(self, o, fromx, fromy, tox, toy)
+    move_button: func(self, o, fromx, fromy, tox, toy) {
         self::scroll_to(self, o.x + o.h / 2 + tox, o.y + toy - fromy)
-    end
+    }
 }, Slider.type)
