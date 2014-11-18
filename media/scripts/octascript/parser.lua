@@ -548,7 +548,10 @@ end
 
 local parse_repeat_stat = function(ls, ast, line)
     ls:get()
+    local bln = ls.line_number
+    assert_next(ls, "{")
     local body = parse_block(ls, ast)
+        check_match(ls, "}", "{", bln)
     check_match(ls, "until", "repeat", line)
     local cond = parse_expr(ls, ast)
     return ast.RepeatStatement(cond, body, line)

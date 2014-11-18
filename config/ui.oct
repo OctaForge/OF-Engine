@@ -241,7 +241,7 @@ var cleanuptiles = func() {
 
 var seedtiles = func() {
     var t1, t2 = math::random(0, 16)
-    repeat t2 = math::random(0, 16) until t2 != t1
+    repeat { t2 = math::random(0, 16) } until t2 != t1
     var vals = [ 2, 4 ]
     var tv1, tv2 = vals[math::random(0, 2)],
                    vals[math::random(0, 2)]

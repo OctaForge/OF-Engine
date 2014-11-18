@@ -360,9 +360,9 @@ parse = func(ls) {
             lex_get(ls)
             return ret
         }
-        repeat
+        repeat {
             ret.push(parse(ls))
-        until ls.tname != "," or not lex_get(ls)
+        } until ls.tname != "," or not lex_get(ls)
         assert_tok(ls, "]")
         return ret
     } else {
@@ -373,7 +373,7 @@ parse = func(ls) {
             return tbl
         }
         var arri = 1
-        repeat
+        repeat {
             var key
             if ls.tname == "<name>" {
                 key = ls.tval
@@ -387,7 +387,7 @@ parse = func(ls) {
             }
             assert_tok(ls, ":")
             tbl[key] = parse(ls)
-        until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
+        } until (ls.tname != "," and ls.tname != ";") or not lex_get(ls)
         assert_tok(ls, "}")
         return tbl
     }
