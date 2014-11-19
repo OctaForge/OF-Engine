@@ -201,15 +201,12 @@ local parse_enum = function(ls, ast)
     return ast.Enum(hkeys, hvals, line)
 end
 
-local parse_args = function(ls, ast, nocheck)
+local parse_args = function(ls, ast)
     local tok = ls.token
     local tn = tok.name
     local args
     if tn == "(" then
         local line = ls.line_number
-        if not nocheck and line ~= ls.last_line then syntax_error(ls,
-            "ambiguous syntax (function call x new statement)")
-        end
         ls:get()
         tn = tok.name
         if tn == ")" then
