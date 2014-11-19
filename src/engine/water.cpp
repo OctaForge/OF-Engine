@@ -82,7 +82,10 @@ void rendercaustics(float surface, float syl, float syr)
 
 void renderwaterfog(int mat, float surface)
 {
-    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_NOTEQUAL);
+    glDepthMask(GL_FALSE);
+    glDepthRange(1, 1); 
+
     glEnable(GL_BLEND);
 
     glActiveTexture_(GL_TEXTURE9);
@@ -126,17 +129,20 @@ void renderwaterfog(int mat, float surface)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     SETSHADER(waterfog);
-    gle::defvertex(2);
+    gle::defvertex(3);
     gle::begin(GL_TRIANGLE_STRIP);
-    gle::attribf(1, -1);
-    gle::attribf(-1, -1);
-    gle::attribf(1, syr);
-    gle::attribf(-1, syl);
+    gle::attribf(1, -1, 1);
+    gle::attribf(-1, -1, 1);
+    gle::attribf(1, syr, 1);
+    gle::attribf(-1, syl, 1);
     gle::end();
     gle::disable();
 
     glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
+        
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    glDepthRange(0, 1);
 }
 
 /* vertex water */

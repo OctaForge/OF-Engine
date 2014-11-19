@@ -125,6 +125,7 @@ static inline int bitscan(uint mask)
 #define PI (3.14159265358979f)
 #define SQRT2 (1.4142135623731f)
 #define SQRT3 (1.73205080756888f)
+#define SQRT5 (2.23606797749979f)
 #define RAD (PI / 180.0f)
 
 #ifdef WIN32
@@ -596,7 +597,7 @@ template <class T> struct vector
         *this = v;
     }
 
-    ~vector() { shrink(0); if(buf) free(buf); }
+    ~vector() { shrink(0); if(buf) delete[] (uchar *)buf; }
 
     vector<T> &operator=(const vector<T> &v)
     {
@@ -684,8 +685,13 @@ template <class T> struct vector
         if(!alen) alen = max(MINSIZE, sz);
         else while(alen < sz) alen += alen/2;
         if(alen <= olen) return;
-        buf = (T *)realloc(buf, alen*sizeof(T));
-        if(!buf) abort();
+        uchar *newbuf = new uchar[alen*sizeof(T)];
+        if(olen > 0)
+        {
+            if(ulen > 0) memcpy(newbuf, (void *)buf, ulen*sizeof(T));
+            delete[] (uchar *)buf;
+        }
+        buf = (T *)newbuf;
     }
 
     databuf<T> reserve(int sz)

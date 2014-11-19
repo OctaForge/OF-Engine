@@ -2456,8 +2456,7 @@ bool unpackvslot(ucharbuf &buf, VSlot &dst, bool delta)
             {
                 string name;
                 getstring(name, buf);
-                SlotShaderParam p = { NULL, -1, { 0, 0, 0, 0 } };
-                if(name[0]) p.name = getshaderparamname(name, false);
+                SlotShaderParam p = { name[0] ? getshaderparamname(name) : NULL, -1, 0, { 0, 0, 0, 0 } };
                 loopi(4) p.val[i] = getfloat(buf);
                 if(p.name) dst.params.add(p);
                 break;

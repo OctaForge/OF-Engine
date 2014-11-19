@@ -152,6 +152,8 @@ void packvslot(vector<uchar> &buf, int index) {}
 void packvslot(vector<uchar> &buf, const VSlot *vs) {}
 bool unpackvslot(ucharbuf &buf, VSlot &dst, bool delta) { return true; }
 
+bool shouldreuseparams(Slot &s, VSlot &p) { return true; }
+
 const char *DecalSlot::name() const { return "decal slot"; }
 
 DecalSlot &lookupdecalslot(int index, bool load)

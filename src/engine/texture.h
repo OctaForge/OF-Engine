@@ -2,8 +2,6 @@ extern int renderpath;
 
 enum { R_GLSLANG = 0 };
 
-enum { SHPARAM_LOOKUP = 0, SHPARAM_VERTEX, SHPARAM_PIXEL, SHPARAM_UNIFORM };
-
 struct GlobalShaderParamState
 {
     const char *name;
@@ -75,13 +73,19 @@ struct LocalShaderParamState : ShaderParamBinding
 
 struct SlotShaderParam
 {
+    enum
+    {
+        REUSE = 1<<0
+    };
+
     const char *name;
-    int loc;
+    int loc, flags;
     float val[4];
 };
 
 struct SlotShaderParamState : LocalShaderParamState
 {
+    int flags;
     float val[4];
 
     SlotShaderParamState() {}
@@ -91,6 +95,7 @@ struct SlotShaderParamState : LocalShaderParamState
         loc = -1;
         size = 1;
         format = GL_FLOAT_VEC4;
+        flags = p.flags;
         memcpy(val, p.val, sizeof(val));
     }
 };
@@ -193,6 +198,10 @@ struct Shader
 
     bool isdynamic() const { return (type&SHADER_DYNAMIC)!=0; }
 
+    static inline bool isnull(const Shader *s) { return !s; }
+
+    bool isnull() const { return isnull(this); }
+
     int numvariants(int row) const
     {
         if(row < 0 || row >= MAXVARIANTROWS || !variantrows) return 0;
@@ -227,14 +236,14 @@ struct Shader
 
     void setvariant(int col, int row)
     {
-        if(!this || !loaded()) return;
+        if(isnull() || !loaded()) return;
         setvariant_(col, row);
         lastshader->flushparams();
     }
 
     void setvariant(int col, int row, Slot &slot)
     {
-        if(!this || !loaded()) return;
+        if(isnull() || !loaded()) return;
         setvariant_(col, row);
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot);
@@ -242,7 +251,7 @@ struct Shader
 
     void setvariant(int col, int row, Slot &slot, VSlot &vslot)
     {
-        if(!this || !loaded()) return;
+        if(isnull() || !loaded()) return;
         setvariant_(col, row);
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot, vslot);
@@ -255,14 +264,14 @@ struct Shader
 
     void set()
     {
-        if(!this || !loaded()) return;
+        if(isnull() || !loaded()) return;
         set_();
         lastshader->flushparams();
     }
 
     void set(Slot &slot)
     {
-        if(!this || !loaded()) return;
+        if(isnull() || !loaded()) return;
         set_();
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot);
@@ -270,7 +279,7 @@ struct Shader
 
     void set(Slot &slot, VSlot &vslot)
     {
-        if(!this || !loaded()) return;
+        if(isnull() || !loaded()) return;
         set_();
         lastshader->flushparams(&slot);
         lastshader->setslotparams(slot, vslot);
@@ -436,7 +445,6 @@ struct LocalShaderParam
 
     void setu(uint x = 0, uint y = 0, uint z = 0, uint w = 0) { sett<uint>(x, y, z, w); }
     void setv(const uint *u, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform1uiv_(b->loc, n, u); }
-
 };
 
 #define LOCALPARAM(name, vals) do { static LocalShaderParam param( #name ); param.set(vals); } while(0)
@@ -642,7 +650,7 @@ struct VSlot
 
     void reset()
     {
-        params.shrink(0);
+        params.setsize(0);
         linked = false;
         scale = 1;
         rotation = 0;
@@ -711,9 +719,9 @@ struct Slot
     void reset()
     {
         smooth = -1;
-        sts.shrink(0);
+        sts.setsize(0);
         shader = NULL;
-        params.shrink(0);
+        params.setsize(0);
         loaded = false;
         texmask = 0;
         DELETEA(grass);
@@ -826,6 +834,7 @@ extern void linkslotshader(Slot &s, bool load = true);
 extern void linkvslotshader(VSlot &s, bool load = true);
 extern void linkslotshaders();
 extern const char *getshaderparamname(const char *name, bool insert = true);
+extern bool shouldreuseparams(Slot &s, VSlot &p);
 extern void setupshaders();
 extern void reloadshaders();
 extern void cleanupshaders();

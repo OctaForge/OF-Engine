@@ -397,14 +397,15 @@ var Projection = Object.clone({
         var s2 = Vec2(x2, y1).mul(sscale).add(soffset)
         var hudw, hudh = r.get_pixel_w(), r.get_pixel_h()
         var sx1, sy1, sx2, sy2 =
-            floor(s1.x * hudw), floor(s1.y * hudh),
-            ceil (s2.x * hudw), ceil (s2.y * hudh)
+            floor(s1.x * hudw + 0.5), floor(s1.y * hudh + 0.5),
+            floor(s2.x * hudw + 0.5), floor(s2.y * hudh + 0.5)
         if clip {
             sx1 = clamp(sx1, 0, hudw)
             sy1 = clamp(sy1, 0, hudh)
             sx2 = clamp(sx2, 0, hudw)
             sy2 = clamp(sy2, 0, hudh)
         }
+        return sx1, sy1, sx2, sy2
     },
 
     draw: func(self, sx, sy) {

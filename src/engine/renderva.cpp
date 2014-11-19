@@ -233,13 +233,6 @@ void visiblecubes(bool cull)
     }
 }
 
-static inline bool insideva(const vtxarray *va, const vec &v, int margin = 2)
-{
-    int size = va->size + margin;
-    return v.x>=va->o.x-margin && v.y>=va->o.y-margin && v.z>=va->o.z-margin &&
-           v.x<=va->o.x+size && v.y<=va->o.y+size && v.z<=va->o.z+size;
-}
-
 ///////// occlusion queries /////////////
 
 #define MAXQUERY 2048
@@ -428,12 +421,6 @@ extern int octaentsize;
 
 static octaentities *visiblemms, **lastvisiblemms;
 
-static inline bool insideoe(const octaentities *oe, const vec &v, int margin = 1)
-{
-    return v.x>=oe->bbmin.x-margin && v.y>=oe->bbmin.y-margin && v.z>=oe->bbmin.z-margin &&
-           v.x<=oe->bbmax.x+margin && v.y<=oe->bbmax.y+margin && v.z<=oe->bbmax.z+margin;
-}
-
 void findvisiblemms(const vector<extentity *> &ents)
 {
     visiblemms = NULL;
@@ -534,7 +521,7 @@ void rendermapmodels()
     bool queried = false;
     for(octaentities *oe = visiblemms; oe; oe = oe->next) if(oe->distance<0)
     {
-        oe->query = doquery && !insideoe(oe, camera1->o) ? newquery(oe) : NULL;
+        oe->query = doquery && !camera1->o.insidebb(oe->bbmin, oe->bbmax, 1) ? newquery(oe) : NULL;
         if(!oe->query) continue;
         if(!queried)
         {
@@ -1390,10 +1377,16 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
     if(cur.alphaing)
     {
         float alpha = cur.alphaing > 1 ? vslot.alphafront : vslot.alphaback;
-        if(cur.colorscale != vslot.colorscale || cur.alphascale != alpha)
+        if(cur.alphascale != alpha)
         {
-            cur.colorscale = vslot.colorscale;
             cur.alphascale = alpha;
+            cur.refractscale = 0;
+            goto changecolorparams;
+        }
+        if(cur.colorscale != vslot.colorscale)
+        {
+        changecolorparams:
+            cur.colorscale = vslot.colorscale;
             GLOBALPARAMF(colorparams, alpha*vslot.colorscale.x, alpha*vslot.colorscale.y, alpha*vslot.colorscale.z, alpha);
         }
         if(cur.alphaing > 1 && vslot.refractscale > 0 && (cur.refractscale != vslot.refractscale || cur.refractcolor != vslot.refractcolor))
@@ -1716,7 +1709,7 @@ void rendergeom()
     {
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs)
         {
-            if(!insideva(va, camera1->o))
+            if(!camera1->o.insidebb(va->o, va->size, 2))
             {
                 if(va->parent && va->parent->occluded >= OCCLUDE_BB)
                 {
@@ -2044,6 +2037,11 @@ bool renderexplicitsky(bool outline)
                     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                 }
+                else if(editmode)
+                {
+                    maskgbuffer("d");
+                    SETSHADER(depth);
+                }
                 else
                 {
                     nocolorshader->set();
@@ -2065,6 +2063,10 @@ bool renderexplicitsky(bool outline)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         disablepolygonoffset(GL_POLYGON_OFFSET_LINE);
         glDepthMask(GL_TRUE);
+    }
+    else if(editmode)
+    {
+        maskgbuffer("cnd");
     }
     else
     {
@@ -2115,8 +2117,8 @@ struct decalbatch
         if(es.envmap > b.es.envmap) return 1;
         if(slot.Slot::params.length() < b.slot.Slot::params.length()) return -1;
         if(slot.Slot::params.length() > b.slot.Slot::params.length()) return 1;
-        if(es.orient < b.es.orient) return -1;
-        if(es.orient > b.es.orient) return 1;
+        if(es.reuse < b.es.reuse) return -1;
+        if(es.reuse > b.es.reuse) return 1;
         return 0;
     }
 };
@@ -2281,7 +2283,13 @@ static void changeslottmus(decalrenderer &cur, int pass, DecalSlot &slot)
 static inline void changeshader(decalrenderer &cur, int pass, decalbatch &b)
 {
     DecalSlot &slot = b.slot;
-    if(pass) slot.shader->setvariant(0, 0, slot);
+    if(b.es.reuse)
+    {
+        VSlot &reuse = lookupvslot(b.es.reuse);
+        if(pass) slot.shader->setvariant(0, 0, slot, reuse);
+        else slot.shader->set(slot, reuse);
+    }
+    else if(pass) slot.shader->setvariant(0, 0, slot);
     else slot.shader->set(slot);
     cur.globals = GlobalShaderParamState::nextversion;
 }

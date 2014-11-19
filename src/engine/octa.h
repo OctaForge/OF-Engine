@@ -3,7 +3,11 @@
 struct elementset
 {
     ushort texture, envmap;
-    uchar orient, layer;
+    union
+    {
+        struct { uchar orient, layer; };
+        ushort reuse;
+    };
     ushort length, minvert, maxvert;
 };
 

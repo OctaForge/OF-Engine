@@ -220,14 +220,14 @@ static inline uint hthash(const sortkey &k)
 
 struct decalkey
 {
-    ushort tex, envmap;
+    ushort tex, envmap, reuse;
 
     decalkey() {}
-    decalkey(ushort tex, ushort envmap = EMID_NONE)
-     : tex(tex), envmap(envmap)
+    decalkey(ushort tex, ushort envmap = EMID_NONE, ushort reuse = 0)
+     : tex(tex), envmap(envmap), reuse(reuse)
     {}
 
-    bool operator==(const decalkey &o) const { return tex==o.tex && envmap==o.envmap; }
+    bool operator==(const decalkey &o) const { return tex==o.tex && envmap==o.envmap && reuse==o.reuse; }
 
     static inline bool sort(const decalkey &x, const decalkey &y)
     {
@@ -235,7 +235,8 @@ struct decalkey
         {
             if(x.envmap < y.envmap) return true;
             if(x.envmap > y.envmap) return false;
-            return false;
+            if(x.reuse < y.reuse) return true;
+            else return false;
         }
         DecalSlot &xs = lookupdecalslot(x.tex, false), &ys = lookupdecalslot(y.tex, false);
         if(xs.slot->shader < ys.slot->shader) return true;
@@ -353,6 +354,8 @@ struct vacollect : verthash
             if(k.layer == LAYER_BLEND || k.alpha != NO_ALPHA) continue;
             const sortval &t = indices[k];
             if(t.tris.empty()) continue;
+            decalkey tkey(key);
+            if(shouldreuseparams(s, lookupvslot(k.tex, false))) tkey.reuse = k.tex;
             for(int j = 0; j < t.tris.length(); j += 3)
             {
                 const vertex &t0 = verts[t.tris[j]], &t1 = verts[t.tris[j+1]], &t2 = verts[t.tris[j+2]];
@@ -388,7 +391,7 @@ struct vacollect : verthash
                     v.tangent.lerp(t0.tangent, t1.tangent, t2.tangent, b0, b1, b2);
                     idx[k] = addvert(v);
                 }
-                vector<ushort> &tris = decalindices[key].tris;
+                vector<ushort> &tris = decalindices[tkey].tris;
                 loopk(nump-2) if(idx[0] != idx[k+1] && idx[k+1] != idx[k+2] && idx[k+2] != idx[0])
                 {
                     tris.add(idx[0]);
@@ -572,8 +575,7 @@ struct vacollect : verthash
                 const sortval &t = decalindices[k];
                 elementset &e = va->decalelems[i];
                 e.texture = k.tex;
-                e.orient = O_TOP;
-                e.layer = LAYER_TOP;
+                e.reuse = k.reuse;
                 e.envmap = k.envmap;
                 ushort *startbuf = curbuf;
                 e.minvert = USHRT_MAX;
