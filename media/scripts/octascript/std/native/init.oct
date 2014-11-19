@@ -240,8 +240,9 @@ var lex_get = func(ls) {
             }
             var str = buf.concat()
             var num = tonumber(str)
-            if !num { raise ("%d: malformed number near '%s'")
-                .format(ls.linenum, str), 0 }
+            if !num {
+                raise "%d: malformed number near '%s'".format(ls.linenum, str), 0
+            }
             ls.tname, ls.tval = "<number>", num
             return "<number>"
         } else if c == '"' || c == "'" {
@@ -251,11 +252,9 @@ var lex_get = func(ls) {
             while ls.curr != d {
                 var c = ls.curr
                 if c == undef {
-                    raise ("%d: unfinished string near '<eos>'")
-                        .format(ls.linenum), 0
+                    raise "%d: unfinished string near '<eos>'".format(ls.linenum), 0
                 } else if c == "\n" || c == "\r" {
-                    raise ("%d: unfinished string near '<string>'")
-                        .format(ls.linenum), 0
+                    raise "%d: unfinished string near '<string>'".format(ls.linenum), 0
                 // not complete escape sequence handling: handles only these
                 // that are or can be in the serialized output
                 } else if c == "\\" {
@@ -278,12 +277,10 @@ var lex_get = func(ls) {
                         buf.push(c)
                         ls.curr = ls::rdr()
                     } else if !c {
-                        raise ("%d: unfinished string near '<eos>'")
-                            .format(ls.linenum), 0
+                        raise "%d: unfinished string near '<eos>'".format(ls.linenum), 0
                     } else {
                         if !c.find_match("%d") {
-                            raise ("%d: invalid escape sequence")
-                                .format(ls.linenum), 0
+                            raise "%d: invalid escape sequence".format(ls.linenum), 0
                         }
                         var dbuf = [ c ]
                         c = ls::rdr()

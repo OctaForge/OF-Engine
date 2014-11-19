@@ -10,6 +10,7 @@
 */
 
 import capi
+import core.externals
 import core.events.signal
 
 var emit = signal.emit
@@ -159,7 +160,7 @@ M.var_is_hex = capi.var_is_hex
 /// Checks for existence of an engine variable.
 M.var_exists = capi.var_exists
 
-;(import core.externals)::set("var_emit_changed", func(name, ...) {
+externals::set("var_emit_changed", func(name, ...) {
     emit(M, name ~ ",changed", ...)
 })
 
