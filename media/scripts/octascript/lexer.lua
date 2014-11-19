@@ -88,24 +88,24 @@ local max_fname_len = 72
 local max_str_len = 63
 
 local chname_to_source = function(source)
-    local c = source:sub(1, 1)
+    local c = string.sub(source, 1, 1)
     local srclen = #source
     if c == "@" then
         if srclen <= (max_fname_len + 1) then
-            return source:sub(2)
+            return string.sub(source, 2)
         else
-            return "..." .. source:sub(srclen - max_fname_len + 1)
+            return "..." .. string.sub(source, srclen - max_fname_len + 1)
         end
     elseif c == "=" then
-        return source:sub(2, max_custom_len + 1)
+        return string.sub(source, 2, max_custom_len + 1)
     else
-        return '[string "' .. source:sub(1, max_str_len)
+        return '[string "' .. string.sub(source, 1, max_str_len)
             .. ((srclen > max_str_len) and '..."]' or '"]')
     end
 end
 
 local lex_error = function(ls, msg, tok)
-    msg = ("OFS_ERROR%s:%d: %s"):format(ls.source, ls.line_number, msg)
+    msg = string.format("OFS_ERROR%s:%d: %s", ls.source, ls.line_number, msg)
     if tok then
         msg = msg .. " near '" .. tok .. "'"
     end
@@ -143,7 +143,7 @@ local read_binary_number = function(ls, tok)
     local buf = {}
     while is_alnum(c) or c == 95 do -- _
         if c ~= 95 then
-            buf[#buf + 1] = bytemap[c]:lower()
+            buf[#buf + 1] = string.lower(bytemap[c])
         end
         c = next_char(ls)
     end
@@ -199,7 +199,7 @@ local read_number = function(ls, tok, buf, allow_bin)
         end
     end
     while is_alnum(c) or c == 95 do -- _
-        buf[#buf + 1] = bytemap[c]:lower()
+        buf[#buf + 1] = string.lower(bytemap[c])
         c = next_char(ls)
     end
     local num
@@ -221,7 +221,7 @@ local read_number = function(ls, tok, buf, allow_bin)
             mul, i = 10, 1
         end
         while i <= mi and buf[i] do
-            if is_hex_digit(buf[i]:byte()) then
+            if is_hex_digit(string.byte(buf[i])) then
                 n = mul * n + tonumber("0x" .. buf[i])
                 i = i + 1
             else
@@ -521,11 +521,6 @@ lextbl = {
         if c ~= 64 then return "^"
         else next_char(ls); return "^=" end
     end,
-    [123] = function(ls) -- {
-        local c = next_char(ls)
-        if c ~= 58 then return "{" -- :
-        else next_char(ls); return "{:" end
-    end,
     [37] = function(ls) -- %
         local c = next_char(ls)
         if c ~= 61 then return "%"
@@ -676,7 +671,7 @@ local lex_default = function(ls, tok)
         local str = tconc(buf)
         if Keywords[str] then
             return str
-        elseif str:sub(1, 5) == "__rt_" then
+        elseif string.sub(str, 1, 5) == "__rt_" then
             lex_error(ls, "invalid identifier (__rt_ prefix is reserved)", str)
         else
             tok.value = str

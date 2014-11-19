@@ -90,13 +90,14 @@ local str_esc = setmetatable({
     ["\v"] = "\\v", ["\\"] = "\\\\",
     ['"' ] = '\\"', ["'" ] = "\\'"
 }, {
-    __index = function(self, c) return ("\\%03d"):format(c:byte()) end
+    __index = function(self, c) return string.format("\\%03d", c:byte()) end
 })
 
 local str_sub = string.sub
 local str_byte = string.byte
 local str_find = string.find
 local str_match = string.match
+local str_gmatch = string.gmatch
 
 local unpack = unpack
 
@@ -107,7 +108,7 @@ local std_string = {
     split = function(self, delim)
         delim = delim or ","
         local r, i = {}, 0
-        for ch in self:gmatch("([^" .. delim .. "]+)") do
+        for ch in str_gmatch(self, "([^" .. delim .. "]+)") do
             r[i] = ch
             i = i + 1
         end

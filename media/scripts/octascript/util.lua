@@ -32,8 +32,8 @@ M.genid = function()
 end
 
 M.error = function(msg)
-   if msg:sub(1, 9) == "OFS_ERROR" then
-        return false, "octascript: " .. msg:sub(10)
+   if string.sub(msg, 1, 9) == "OFS_ERROR" then
+        return false, "octascript: " .. string.sub(msg, 10)
     else
         error(msg)
     end
