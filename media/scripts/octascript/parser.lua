@@ -45,24 +45,42 @@ local check_match = function(ls, a, b, line)
 end
 
 local BinaryOps = {
-    ["||"] = 1,  ["&&"] = 2,
-    ["<" ] = 3,  ["<="] = 3,  [">"  ] = 3, [">="] = 3,
-    ["=="] = 3,  ["!="] = 3,
-    ["~" ] = 4,
-    ["|" ] = 5,  ["^" ] = 6,  ["&"  ] = 7,
-    ["<<"] = 8,  [">>"] = 8,  [">>>"] = 8,
-    ["+" ] = 9,  ["-" ] = 9,
-    ["*" ] = 10, ["/" ] = 10, ["%"  ] = 10,
+    ["="  ] = 1,
+
+    ["+=" ] = 1, ["-=" ] = 1, ["*="  ] = 1, ["/="] = 1, ["%="] = 1,
+    ["**="] = 1, ["~=" ] = 1,
+
+    ["&=" ] = 1, ["|=" ] = 1, ["^="  ] = 1,
+    ["<<="] = 1, [">>="] = 1, [">>>="] = 1,
+
+    ["||"] = 2,  ["&&"] = 3,
+    ["<" ] = 4,  ["<="] = 4,  [">"  ] = 4, [">="] = 4,
+    ["=="] = 4,  ["!="] = 4,
+    ["~" ] = 5,
+    ["|" ] = 6,  ["^" ] = 7,  ["&"  ] = 8,
+    ["<<"] = 9,  [">>"] = 9,  [">>>"] = 9,
+    ["+" ] = 10, ["-" ] = 10,
+    ["*" ] = 11, ["/" ] = 11, ["%"  ] = 11,
     -- unary here --
-    ["**"] = 12
+    ["**"] = 13
 }
 
+local ass_prec = 1
+
 local RightAss = {
-    ["**"] = true
+    ["**" ] = true
 }
 
 local UnaryOps = {
-    ["-"] = 11, ["!"] = 11, ["~"] = 11
+    ["-"] = 12, ["!"] = 12, ["~"] = 12
+}
+
+local AssOps = {
+    ["+=" ] = "+" , ["-=" ] = "-" , ["*="] = "*", ["/="] = "/", ["%="] = "%",
+    ["**="] = "**", ["~=" ] = "~",
+
+    ["&=" ] = "&",  ["|=" ] = "|",  ["^="  ] = "^",
+    ["<<="] = "<<", [">>="] = ">>", [">>>="] = ">>>"
 }
 
 local parse_expr, parse_simple_expr
@@ -492,9 +510,24 @@ parse_subexpr = function(ls, ast, mp)
         local op = tok.name
         local p = BinaryOps[op]
         if not op or not p or p < mp then break end
+        if p == ass_prec and not lhs:is_lvalue() then
+            syntax_error(ls, "lvalue expected")
+        end
         ls:get()
-        lhs = ast.BinaryExpression(op, lhs, parse_subexpr(ls, ast, RightAss[op]
-            and p or p + 1), line)
+        local np = (p == ass_prec or RightAss[op]) and p or (p + 1)
+        if op == "=" then
+            lhs = ast.AssignmentExpression({ lhs }, { parse_subexpr(ls, ast,
+                np) }, line)
+        elseif AssOps[op] then
+            local line2 = ls.line_number
+            lhs = ast.AssignmentExpression({ lhs }, {
+                ast.BinaryExpression(AssOps[op], lhs, parse_subexpr(ls, ast,
+                    np), line2)
+            }, line)
+        else
+            lhs = ast.BinaryExpression(op, lhs, parse_subexpr(ls, ast, np),
+                line)
+        end
     end
     return lhs
 end
@@ -558,14 +591,6 @@ local parse_repeat_stat = function(ls, ast, line)
     return ast.RepeatStatement(cond, body, line)
 end
 
-local assops = {
-    ["+=" ] = "+" , ["-=" ] = "-" , ["*="] = "*", ["/="] = "/", ["%="] = "%",
-    ["**="] = "**", ["~=" ] = "~",
-
-    ["&=" ] = "&",  ["|=" ] = "|",  ["^="  ] = "^",
-    ["<<="] = "<<", [">>="] = ">>", [">>>="] = ">>>"
-}
-
 local parse_assignment
 parse_assignment = function(ls, ast, vlist, var, vk)
     local line = ls.line_number
@@ -577,12 +602,12 @@ parse_assignment = function(ls, ast, vlist, var, vk)
         ls:get()
         local nv, nvk = parse_primary_expr(ls, ast)
         return parse_assignment(ls, ast, vlist, nv, nvk)
-    elseif #vlist == 1 and assops[ls.token.name] then
+    elseif #vlist == 1 and AssOps[ls.token.name] then
         local op = ls.token.name
         ls:get()
         local line2 = ls.line_number
         return ast.AssignmentExpression(vlist, {
-            ast.BinaryExpression(assops[op], vlist[1], parse_expr(ls, ast),
+            ast.BinaryExpression(AssOps[op], vlist[1], parse_expr(ls, ast),
                 line2)
         }, line)
     end

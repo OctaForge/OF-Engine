@@ -159,6 +159,10 @@ local Node = util.Object:clone {
             return false, "expected " .. tag
         end
         return true
+    end,
+
+    is_lvalue = function(self)
+        return false
     end
 }
 
@@ -181,6 +185,10 @@ local Identifier = Expression:clone {
         self.name = name
         self.line = line
         Node.__ctor(self)
+    end,
+
+    is_lvalue = function(self)
+        return true
     end
 }
 M.Identifier = Identifier
@@ -394,6 +402,10 @@ M.MemberExpression = Expression:clone {
         self.computed = computed
         self.line = line
         Node.__ctor(self)
+    end,
+
+    is_lvalue = function(self)
+        return true
     end
 }
 

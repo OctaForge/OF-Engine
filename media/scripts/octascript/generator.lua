@@ -587,6 +587,16 @@ local ExpressionRule = {
         self.ctx.freereg = free
         self.ctx:op_call(free, 1, 1)
         mov_toreg(self.ctx, dest, free)
+    end,
+
+    AssignmentExpression = function(self, node, dest)
+        local free = self.ctx.freereg
+        -- we only allow 1 lhs/rhs in expression form
+        local lhs = self:lhs_expr_emit(node.left[1])
+        local exp = self:expr_tonextreg(node.right[1])
+        self:assign(lhs, exp)
+        self.ctx.freereg = free
+        mov_toreg(self.ctx, dest, exp)
     end
 }
 
