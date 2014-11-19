@@ -278,7 +278,7 @@ struct vslot_t {
     int offset_x, offset_y;
     float scroll_s, scroll_t;
     float scale;
-    int layer, decal;
+    int layer, detail;
     float alpha_front, alpha_back;
     float r, g, b;
     float refract_scale;
@@ -294,7 +294,7 @@ enum {
     VFLAG_ALPHA = 1 << VSLOT_ALPHA,
     VFLAG_COLOR = 1 << VSLOT_COLOR,
     VFLAG_REFRACT = 1 << VSLOT_REFRACT,
-    VFLAG_DECAL = 1 << VSLOT_DECAL
+    VFLAG_DETAIL = 1 << VSLOT_DETAIL
 };
 
 CLUAICOMMAND(edit_raw_edit_vslot, void, (const vslot_t &v, bool allfaces,
@@ -311,8 +311,8 @@ selinfo_t &sel, bool local), {
         ds.scale = v.scale <= 0 ? 1 : clamp(v.scale, 1 / 8.0f, 8.0f);
     if (ds.changed & VFLAG_LAYER)
         ds.layer = vslots.inrange(v.layer) ? v.layer : 0;
-    if (ds.changed & VFLAG_DECAL)
-        ds.decal = vslots.inrange(v.decal) ? v.decal : 0;
+    if (ds.changed & VFLAG_DETAIL)
+        ds.detail = vslots.inrange(v.detail) ? v.detail : 0;
     if (ds.changed & VFLAG_ALPHA) {
         ds.alphafront = clamp(v.alpha_front, 0.0f, 1.0f);
         ds.alphaback = clamp(v.alpha_back, 0.0f, 1.0f);
@@ -405,14 +405,14 @@ int face, int n), {
     VSELFTR
 });
 
-CLUAICOMMAND(edit_cube_vdecal, bool, (int x, int y, int z, int gs,
+CLUAICOMMAND(edit_cube_vdetail, bool, (int x, int y, int z, int gs,
 int face, int n), {
-    logger::log(logger::DEBUG, "edit_cube_vdecal: %d, %d, %d (%d, %d, %d)",
+    logger::log(logger::DEBUG, "edit_cube_vdetail: %d, %d, %d (%d, %d, %d)",
         x, y, z, gs, face, n);
     VSELHDR
     VSlot ds;
-    ds.changed = 1 << VSLOT_DECAL;
-    ds.decal = vslots.inrange(n) ? n : 0;
+    ds.changed = 1 << VSLOT_DETAIL;
+    ds.detail = vslots.inrange(n) ? n : 0;
     VSELFTR
 });
 

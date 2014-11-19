@@ -94,6 +94,13 @@ void mdlspec(float *percent)
 }
 COMMAND(mdlspec, "f");
 
+void mdlgloss(int *gloss)
+{
+    checkmdl;
+    loadingmodel->setgloss(clamp(*gloss, 0, 2));
+}
+COMMAND(mdlgloss, "i");
+
 void mdlalphatest(float *cutoff)
 {
     checkmdl;

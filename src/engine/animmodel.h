@@ -75,10 +75,10 @@ struct animmodel : model
 
     struct shaderparams
     {
-        float spec, glow, glowdelta, glowpulse, fullbright, envmapmin, envmapmax, scrollu, scrollv, alphatest;
+        float spec, gloss, glow, glowdelta, glowpulse, fullbright, envmapmin, envmapmax, scrollu, scrollv, alphatest;
         vec color;
 
-        shaderparams() : spec(1.0f), glow(3.0f), glowdelta(0), glowpulse(0), fullbright(0), envmapmin(0), envmapmax(0), scrollu(0), scrollv(0), alphatest(0.9f), color(1, 1, 1) {}
+        shaderparams() : spec(1.0f), gloss(1), glow(3.0f), glowdelta(0), glowpulse(0), fullbright(0), envmapmin(0), envmapmax(0), scrollu(0), scrollv(0), alphatest(0.9f), color(1, 1, 1) {}
     };
 
     struct shaderparamskey
@@ -155,7 +155,7 @@ struct animmodel : model
                 curpulse -= floor(curpulse);
                 curglow += glowdelta*2*fabs(curpulse - 0.5f);
             }
-            LOCALPARAMF(maskscale, spec, curglow);
+            LOCALPARAMF(maskscale, spec, gloss, curglow);
             if(envmapped()) LOCALPARAMF(envmapscale, envmapmin-envmapmax, envmapmax);
 #endif
         }
@@ -327,7 +327,7 @@ struct animmodel : model
             m.tex = s.tex;
             if(canrender) m.flags |= BIH::MESH_RENDER;
             if(cancollide) m.flags |= BIH::MESH_COLLIDE;
-            if(s.alphatested() && !(s.tex->type&Texture::COMPRESSED)) m.flags |= BIH::MESH_ALPHA;
+            if(s.alphatested()) m.flags |= BIH::MESH_ALPHA;
             if(noclip) m.flags |= BIH::MESH_NOCLIP;
             genBIH(m);
         }
@@ -1532,6 +1532,12 @@ struct animmodel : model
         loopv(parts) loopvj(parts[i]->skins) parts[i]->skins[j].spec = spec;
     }
 
+    void setgloss(int gloss)
+    {
+        if(parts.empty()) loaddefaultparts();
+        loopv(parts) loopvj(parts[i]->skins) parts[i]->skins[j].gloss = gloss;
+    }
+
     void setglow(float glow, float delta, float pulse)
     {
         if(parts.empty()) loaddefaultparts();
@@ -1744,6 +1750,11 @@ template<class MDL, class MESH> struct modelcommands
         loopskins(meshname, s, s.spec = spec);
     }
 
+    static void setgloss(char *meshname, int *gloss)
+    {
+        loopskins(meshname, s, s.gloss = clamp(*gloss, 0, 2));
+    }
+
     static void setglow(char *meshname, float *percent, float *delta, float *pulse)
     {
         float glow = *percent > 0 ? *percent/100.0f : 0.0f, glowdelta = *delta/100.0f, glowpulse = *pulse > 0 ? *pulse/1000.0f : 0;
@@ -1834,6 +1845,7 @@ template<class MDL, class MESH> struct modelcommands
         {
             modelcommand(setskin, "skin", "sssff");
             modelcommand(setspec, "spec", "sf");
+            modelcommand(setgloss, "gloss", "si");
             modelcommand(setglow, "glow", "sfff");
             modelcommand(setalphatest, "alphatest", "sf");
             modelcommand(setcullface, "cullface", "si");

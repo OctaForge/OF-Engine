@@ -487,7 +487,7 @@ void renderlava()
         float glowmin = getlavaglowmin(k), glowmax = getlavaglowmax(k);
         int spec = getlavaspec(k);
         LOCALPARAMF(lavaglow, 0.5f*(glowmin + (glowmax-glowmin)*t));
-        LOCALPARAMF(lavaspec, 0.5f*spec/100.0f);
+        LOCALPARAMF(lavaspec, spec/100.0f);
 
         if(lavasurfs[k].length())
         {
@@ -561,7 +561,7 @@ void renderwaterfalls()
         int spec = getwaterfallspec(k);
         GLOBALPARAMF(waterfallcolor, color.x*colorscale, color.y*colorscale, color.z*colorscale);
         GLOBALPARAMF(waterfallrefract, refractcolor.x*refractscale, refractcolor.y*refractscale, refractcolor.z*refractscale, refract*viewh);
-        GLOBALPARAMF(waterfallspec, 0.5f*spec/100.0f);
+        GLOBALPARAMF(waterfallspec, spec/100.0f);
 
         if(waterfallenv) SETSHADER(waterfallenv);
         else SETSHADER(waterfall);
@@ -626,7 +626,7 @@ void renderwater()
             deepfade.y ? calcfogdensity(deepfade.y) : -1e4f,
             deepfade.z ? calcfogdensity(deepfade.z) : -1e4f,
             deep ? calcfogdensity(deep) : -1e4f);
-        GLOBALPARAMF(waterspec, 0.5f*spec/100.0f);
+        GLOBALPARAMF(waterspec, spec/100.0f);
         GLOBALPARAMF(waterreflect, reflectscale, reflectscale, reflectscale, waterreflectstep);
         GLOBALPARAMF(waterrefract, refractcolor.x*refractscale, refractcolor.y*refractscale, refractcolor.z*refractscale, refract*viewh);
 

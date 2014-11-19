@@ -1425,23 +1425,23 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
         }
     }
 
-    if(pass == RENDERPASS_GBUFFER && vslot.decal)
+    if(pass == RENDERPASS_GBUFFER && vslot.detail)
     {
-        VSlot &decal = lookupvslot(vslot.decal);
-        loopvj(decal.slot->sts)
+        VSlot &detail = lookupvslot(vslot.detail);
+        loopvj(detail.slot->sts)
         {
-            Slot::Tex &t = decal.slot->sts[j];
+            Slot::Tex &t = detail.slot->sts[j];
             switch(t.type)
             {
                 case TEX_DIFFUSE:
                     if(slot.shader->type&SHADER_TRIPLANAR)
                     {
-                        float scale = TEX_SCALE/decal.scale;
-                        GLOBALPARAMF(decalscale, scale/t.t->xs, scale/t.t->ys);
+                        float scale = TEX_SCALE/detail.scale;
+                        GLOBALPARAMF(detailscale, scale/t.t->xs, scale/t.t->ys);
                     }
                     // fall-through
                 case TEX_NORMAL:
-                    bindslottex(cur, TEX_DECAL + t.type, t.t);
+                    bindslottex(cur, TEX_DETAIL + t.type, t.t);
                     break;
             }
         }
@@ -1942,9 +1942,9 @@ int findalphavas()
         if(va->occluded >= OCCLUDE_BB) continue;
         if(va->occluded >= OCCLUDE_GEOM && pvsoccluded(va->alphamin, va->alphamax)) continue;
         if(va->curvfc==VFC_FOGGED) continue;
-        alphavas.add(va);
         float sx1 = -1, sx2 = 1, sy1 = -1, sy2 = 1;
-        if(!calcbbscissor(va->alphamin, va->alphamax, sx1, sy1, sx2, sy2)) { sx1 = sy1 = -1; sx2 = sy2 = 1; }
+        if(!calcbbscissor(va->alphamin, va->alphamax, sx1, sy1, sx2, sy2)) continue;
+        alphavas.add(va);
         masktiles(alphatiles, sx1, sy1, sx2, sy2);
         alphafrontsx1 = min(alphafrontsx1, sx1);
         alphafrontsy1 = min(alphafrontsy1, sy1);
@@ -1960,8 +1960,8 @@ int findalphavas()
         }
         if(va->refracttris)
         {
+            if(!calcbbscissor(va->refractmin, va->refractmax, sx1, sy1, sx2, sy2)) continue;
             alpharefractvas++;
-            if(!calcbbscissor(va->refractmin, va->refractmax, sx1, sy1, sx2, sy2)) { sx1 = sy1 = -1; sx2 = sy2 = 1; }
             alpharefractsx1 = min(alpharefractsx1, sx1);
             alpharefractsy1 = min(alpharefractsy1, sy1);
             alpharefractsx2 = max(alpharefractsx2, sx2);

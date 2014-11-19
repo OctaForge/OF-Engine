@@ -2174,7 +2174,7 @@ bool mpeditvslot(int delta, int allfaces, selinfo &sel, ucharbuf &buf)
 {
     VSlot ds;
     if(!unpackvslot(buf, ds, delta != 0)) return false;
-    editingvslot(ds.layer, ds.decal);
+    editingvslot(ds.layer, ds.detail);
     mpeditvslot(delta, ds, allfaces, sel, false);
     return true;
 }
@@ -2246,20 +2246,20 @@ void vlayer(int *n)
 }
 COMMAND(vlayer, "i");
 
-void vdecal(int *n)
+void vdetail(int *n)
 {
     if(noedit()) return;
     VSlot ds;
-    ds.changed = 1<<VSLOT_DECAL;
+    ds.changed = 1<<VSLOT_DETAIL;
     if(vslots.inrange(*n))
     {
-        ds.decal = *n;
-        if(vslots[ds.decal]->changed && nompedit && multiplayer()) return;
+        ds.detail = *n;
+        if(vslots[ds.detail]->changed && nompedit && multiplayer()) return;
     }
-    editingvslot(ds.decal);
+    editingvslot(ds.detail);
     mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
-COMMAND(vdecal, "i");
+COMMAND(vdetail, "i");
 
 void valpha(float *front, float *back)
 {
@@ -2745,9 +2745,9 @@ void rendertexturepanel(int w, int h)
             int s = (i == 3 ? 285 : 220), ti = curtexindex+i-3;
             if(ti>=0 && ti<texmru.length())
             {
-                VSlot &vslot = lookupvslot(texmru[ti]), *layer = NULL, *decal = NULL;
+                VSlot &vslot = lookupvslot(texmru[ti]), *layer = NULL, *detail = NULL;
                 Slot &slot = *vslot.slot;
-                Texture *tex = slot.sts.empty() ? notexture : slot.sts[0].t, *glowtex = NULL, *layertex = NULL, *decaltex = NULL;
+                Texture *tex = slot.sts.empty() ? notexture : slot.sts[0].t, *glowtex = NULL, *layertex = NULL, *detailtex = NULL;
                 if(slot.texmask&(1<<TEX_GLOW))
                 {
                     loopvj(slot.sts) if(slot.sts[j].type==TEX_GLOW) { glowtex = slot.sts[j].t; break; }
@@ -2757,10 +2757,10 @@ void rendertexturepanel(int w, int h)
                     layer = &lookupvslot(vslot.layer);
                     layertex = layer->slot->sts.empty() ? notexture : layer->slot->sts[0].t;
                 }
-                if(vslot.decal)
+                if(vslot.detail)
                 {
-                    decal = &lookupvslot(vslot.decal);
-                    decaltex = decal->slot->sts.empty() ? notexture : decal->slot->sts[0].t;
+                    detail = &lookupvslot(vslot.detail);
+                    detailtex = detail->slot->sts.empty() ? notexture : detail->slot->sts[0].t;
                 }
                 float sx = min(1.0f, tex->xs/(float)tex->ys), sy = min(1.0f, tex->ys/(float)tex->xs);
                 int x = w*1800/h-s-50, r = s;
@@ -2789,9 +2789,9 @@ void rendertexturepanel(int w, int h)
                     gle::attribf(x,   y+r); gle::attrib(tc[3]);
                     gle::attribf(x+r, y+r); gle::attrib(tc[2]);
                     xtraverts += gle::end();
-                    if(j==1 && decaltex)
+                    if(j==1 && detailtex)
                     {
-                        glBindTexture(GL_TEXTURE_2D, decaltex->id);
+                        glBindTexture(GL_TEXTURE_2D, detailtex->id);
                         gle::begin(GL_TRIANGLE_STRIP);
                         gle::attribf(x,     y);     gle::attrib(tc[0]);
                         gle::attribf(x+r/2, y);     gle::attrib(tc[1]);

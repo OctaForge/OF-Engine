@@ -449,7 +449,6 @@ VARF(gstencil, 0, 0, 1, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS)
 VARF(gdepthstencil, 0, 2, 2, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
 VAR(ghasstencil, 1, 0, 0);
 VARFP(msaa, 0, 0, 16, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
-VARFP(csaa, 0, 0, 16, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
 VARF(msaadepthstencil, 0, 2, 2, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
 VARF(msaastencil, 0, 0, 1, initwarning("MSAA setup", INIT_LOAD, CHANGE_SHADERS));
 VARF(msaaedgedetect, 0, 1, 1, cleanupgbuffer());
@@ -461,8 +460,6 @@ VAR(msaamaxdepthtexsamples, 1, 0, 0);
 VAR(msaamaxcolortexsamples, 1, 0, 0);
 VAR(msaaminsamples, 1, 0, 0);
 VAR(msaasamples, 1, 0, 0);
-VAR(msaamincolorsamples, 1, 0, 0);
-VAR(msaacolorsamples, 1, 0, 0);
 
 void checkmsaasamples()
 {
@@ -470,28 +467,17 @@ void checkmsaasamples()
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tex);
 
-    GLint samples, colorsamples;
-    if(msaamincolorsamples < msaaminsamples)
-    {
-        glTexImage2DMultisampleCoverageNV_(GL_TEXTURE_2D_MULTISAMPLE, msaaminsamples, msaamincolorsamples, GL_RGBA8, 1, 1, GL_TRUE);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_COVERAGE_SAMPLES_NV, &samples);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_COLOR_SAMPLES_NV, &colorsamples);
-        msaasamples = samples;
-        msaacolorsamples = colorsamples;
-    }
-    else
-    {
-        glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaaminsamples, GL_RGBA8, 1, 1, GL_TRUE);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_SAMPLES, &samples);
-        msaacolorsamples = msaasamples = samples;
-    }
+    GLint samples;
+    glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaaminsamples, GL_RGBA8, 1, 1, GL_TRUE);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_SAMPLES, &samples);
+    msaasamples = samples;
 
     glDeleteTextures(1, &tex);
 }
 
 void initgbuffer()
 {
-    msaamaxsamples = msaamaxdepthtexsamples = msaamaxcolortexsamples = msaaminsamples = msaasamples = msaamincolorsamples = msaacolorsamples = 0;
+    msaamaxsamples = msaamaxdepthtexsamples = msaamaxcolortexsamples = msaaminsamples = msaasamples = 0;
     msaapositions.setsize(0);
 
     if(hasFBMS && hasFBB && hasTMS)
@@ -505,21 +491,11 @@ void initgbuffer()
         msaamaxcolortexsamples = val;
     }
 
-    int maxsamples = min(msaamaxsamples, msaamaxcolortexsamples), reqsamples = min(max(msaa, csaa), maxsamples);
+    int maxsamples = min(msaamaxsamples, msaamaxcolortexsamples), reqsamples = min(msaa, maxsamples);
     if(reqsamples >= 2)
     {
         msaaminsamples = 2;
         while(msaaminsamples*2 <= reqsamples) msaaminsamples *= 2;
-        if(hasNVFBMSC && hasNVTMS)
-        {
-            if(msaa)
-            {
-                int colorsamples = min(msaa, maxsamples);
-                msaamincolorsamples = 2;
-                while(msaamincolorsamples*2 <= colorsamples) msaamincolorsamples *= 2;
-            }
-        }
-        else msaamincolorsamples = msaaminsamples;
     }
 
     int lineardepth = glineardepth;
@@ -549,7 +525,7 @@ void initgbuffer()
 
 VARF(forcepacknorm, 0, 0, 1, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
 
-bool usepacknorm() { return forcepacknorm || msaasamples || (!useavatarmask() && gdepthformat!=1); }
+bool usepacknorm() { return forcepacknorm || msaasamples || !useavatarmask(); }
 ICOMMAND(usepacknorm, "", (), intret(usepacknorm() ? 1 : 0));
 
 void maskgbuffer(const char *mask)
@@ -581,7 +557,6 @@ void cleanupmsbuffer()
     if(mshdrtex) { glDeleteTextures(1, &mshdrtex); mshdrtex = 0; }
     if(msrefractfbo) { glDeleteFramebuffers_(1, &msrefractfbo); msrefractfbo = 0; }
     if(msrefracttex) { glDeleteTextures(1, &msrefracttex); msrefracttex = 0; }
-    msaacolorsamples = 0;
 }
 
 void bindmsdepth()
@@ -600,22 +575,6 @@ void bindmsdepth()
     }
 }
 
-static void texms(GLenum format, int w, int h)
-{
-    if(msaacolorsamples < msaasamples)
-        glTexImage2DMultisampleCoverageNV_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, msaacolorsamples, format, w, h, GL_TRUE);
-    else
-        glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, format, w, h, GL_TRUE);
-}
-
-static void rbms(GLenum format, int w, int h)
-{
-    if(msaacolorsamples < msaasamples)
-        glRenderbufferStorageMultisampleCoverageNV_(GL_RENDERBUFFER, msaasamples, msaacolorsamples, format, w, h);
-    else
-        glRenderbufferStorageMultisample_(GL_RENDERBUFFER, msaasamples, format, w, h);
-}
-
 void setupmsbuffer(int w, int h)
 {
     if(!msdepthtex) glGenTextures(1, &msdepthtex);
@@ -630,21 +589,21 @@ void setupmsbuffer(int w, int h)
     {
         if(!msdepthrb) glGenRenderbuffers_(1, &msdepthrb);
         glBindRenderbuffer_(GL_RENDERBUFFER, msdepthrb);
-        rbms(ghasstencil > 1 ? stencilformat : GL_DEPTH_COMPONENT, w, h);
+        glRenderbufferStorageMultisample_(GL_RENDERBUFFER, msaasamples, ghasstencil > 1 ? stencilformat : GL_DEPTH_COMPONENT, w, h);
         glBindRenderbuffer_(GL_RENDERBUFFER, 0);
     }
     if(ghasstencil == 1)
     {
         if(!msstencilrb) glGenRenderbuffers_(1, &msstencilrb);
         glBindRenderbuffer_(GL_RENDERBUFFER, msstencilrb);
-        rbms(GL_STENCIL_INDEX8, w, h);
+        glRenderbufferStorageMultisample_(GL_RENDERBUFFER, msaasamples, GL_STENCIL_INDEX8, w, h);
         glBindRenderbuffer_(GL_RENDERBUFFER, 0);
     }
 
     static const GLenum depthformats[] = { GL_RGBA8, GL_R16F, GL_R32F };
     GLenum depthformat = gdepthformat ? depthformats[gdepthformat-1] : (ghasstencil > 1 ? stencilformat : GL_DEPTH_COMPONENT);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msdepthtex);
-    texms(depthformat, w, h);
+    glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, depthformat, w, h, GL_TRUE);
 
     bindmsdepth();
 
@@ -654,7 +613,7 @@ void setupmsbuffer(int w, int h)
         GLenum format = gethdrformat(prec);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, mshdrtex);
         glGetError();
-        texms(format, w, h);
+        glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, format, w, h, GL_TRUE);
         if(glGetError() == GL_NO_ERROR)
         {
             glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, mshdrtex, 0);
@@ -679,11 +638,11 @@ void setupmsbuffer(int w, int h)
     maskgbuffer("cndg");
 
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, mscolortex);
-    texms(GL_RGBA8, w, h);
+    glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, GL_RGBA8, w, h, GL_TRUE);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msnormaltex);
-    texms(GL_RGBA8, w, h);
+    glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, GL_RGBA8, w, h, GL_TRUE);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msglowtex);
-    texms(hasAFBO ? hdrformat : GL_RGBA8, w, h);
+    glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, hasAFBO ? hdrformat : GL_RGBA8, w, h, GL_TRUE);
 
     bindmsdepth();
     glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, mscolortex, 0);
@@ -696,7 +655,7 @@ void setupmsbuffer(int w, int h)
         if(hasAFBO)
         {
             glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msglowtex);
-            texms(hasAFBO ? hdrformat : GL_RGBA8, w, h);
+            glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, GL_RGBA8, w, h, GL_TRUE);
             glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D_MULTISAMPLE, msglowtex, 0);
             if(glCheckFramebufferStatus_(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
                 fatal("failed allocating MSAA g-buffer!");
@@ -721,7 +680,7 @@ void setupmsbuffer(int w, int h)
     glBindFramebuffer_(GL_FRAMEBUFFER, msrefractfbo);
 
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msrefracttex);
-    texms(GL_RGB, w, h);
+    glTexImage2DMultisample_(GL_TEXTURE_2D_MULTISAMPLE, msaasamples, GL_RGB, w, h, GL_TRUE);
 
     glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msrefracttex, 0);
     bindmsdepth();
@@ -968,18 +927,13 @@ void loadhdrshaders(int aa)
             useshaderbyname("hdrnopluma");
             if(msaasamples && (hasMSS || msaasamples==2) && msaatonemap) useshaderbyname("msaatonemapluma");
             break;
-        case AA_VELOCITY:
-            useshaderbyname("hdrtonemapvelocity");
-            useshaderbyname("hdrnopvelocity");
-            if(msaasamples && (hasMSS || msaasamples==2) && msaatonemap) useshaderbyname("msaatonemapvelocity");
-            break;
-        case AA_VELOCITY_MASKED:
-            if(!msaasamples && ghasstencil) useshaderbyname("hdrtonemapvelocity");
+        case AA_MASKED:
+            if(!msaasamples && ghasstencil) useshaderbyname("hdrtonemapstencil");
             else
             {
-                useshaderbyname("hdrtonemapvelocitymasked");
-                useshaderbyname("hdrnopvelocitymasked");
-                if(msaasamples && (hasMSS || msaasamples==2) && msaatonemap) useshaderbyname("msaatonemapvelocitymasked");
+                useshaderbyname("hdrtonemapmasked");
+                useshaderbyname("hdrnopmasked");
+                if(msaasamples && (hasMSS || msaasamples==2) && msaatonemap) useshaderbyname("msaatonemapmasked");
             }
             break;
         case AA_SPLIT:
@@ -988,11 +942,8 @@ void loadhdrshaders(int aa)
         case AA_SPLIT_LUMA:
             useshaderbyname("msaatonemapsplitluma");
             break;
-        case AA_SPLIT_VELOCITY:
-            useshaderbyname("msaatonemapsplitvelocity");
-            break;
-        case AA_SPLIT_VELOCITY_MASKED:
-            useshaderbyname("msaatonemapsplitvelocitymasked");
+        case AA_SPLIT_MASKED:
+            useshaderbyname("msaatonemapsplitmasked");
             break;
         default:
             break;
@@ -1191,12 +1142,8 @@ void processhdr(GLuint outfbo, int aa)
         switch(aa)
         {
             case AA_SPLIT_LUMA: SETSHADER(msaatonemapsplitluma); break;
-            case AA_SPLIT_VELOCITY:
-                SETSHADER(msaatonemapsplitvelocity);
-                setaavelocityparams(GL_TEXTURE3);
-                break;
-            case AA_SPLIT_VELOCITY_MASKED:
-                SETSHADER(msaatonemapsplitvelocitymasked);
+            case AA_SPLIT_MASKED:
+                SETSHADER(msaatonemapsplitmasked);
                 setaavelocityparams(GL_TEXTURE3);
                 break;
             default: SETSHADER(msaatonemapsplit); break;
@@ -1214,26 +1161,22 @@ void processhdr(GLuint outfbo, int aa)
         switch(aa)
         {
             case AA_LUMA: SETSHADER(hdrtonemapluma); break;
-            case AA_VELOCITY:
-                SETSHADER(hdrtonemapvelocity);
-                setaavelocityparams(GL_TEXTURE3);
-                break;
-            case AA_VELOCITY_MASKED:
+            case AA_MASKED:
                 if(!msaasamples && ghasstencil)
                 {
+                    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
                     glStencilFunc(GL_EQUAL, 0, 0x80);
                     glEnable(GL_STENCIL_TEST);
-                    SETSHADER(hdrtonemapvelocity);
-                    setaavelocityparams(GL_TEXTURE3);
+                    SETSHADER(hdrtonemap);
                     screenquad(vieww, viewh, b0w, b0h);
 
                     glStencilFunc(GL_EQUAL, 0x80, 0x80);
-                    SETSHADER(hdrtonemap);
+                    SETSHADER(hdrtonemapstencil);
                     screenquad(vieww, viewh, b0w, b0h);
                     glDisable(GL_STENCIL_TEST);
                     goto done;
                 }
-                SETSHADER(hdrtonemapvelocitymasked);
+                SETSHADER(hdrtonemapmasked);
                 setaavelocityparams(GL_TEXTURE3);
                 break;
             default: SETSHADER(hdrtonemap); break;
@@ -1255,12 +1198,8 @@ void processhdr(GLuint outfbo, int aa)
         else switch(aa)
         {
             case AA_LUMA: SETSHADER(msaatonemapluma); break;
-            case AA_VELOCITY:
-                SETSHADER(msaatonemapvelocity);
-                setaavelocityparams(GL_TEXTURE3);
-                break;
-            case AA_VELOCITY_MASKED:
-                SETSHADER(msaatonemapvelocitymasked);
+            case AA_MASKED:
+                SETSHADER(msaatonemapmasked);
                 setaavelocityparams(GL_TEXTURE3);
                 break;
             default: SETSHADER(msaatonemap); break;
@@ -1281,12 +1220,8 @@ void processhdr(GLuint outfbo, int aa)
                 else switch(aa)
                 {
                     case AA_LUMA: SETSHADER(hdrnopluma); break;
-                    case AA_VELOCITY:
-                        SETSHADER(hdrnopvelocity);
-                        setaavelocityparams(GL_TEXTURE3);
-                        break;
-                    case AA_VELOCITY_MASKED:
-                        SETSHADER(hdrnopvelocitymasked);
+                    case AA_MASKED:
+                        SETSHADER(hdrnopmasked);
                         setaavelocityparams(GL_TEXTURE3);
                         break;
                     default: SETSHADER(hdrnop); break;
@@ -2203,9 +2138,9 @@ struct radiancehints
         float nearplane, farplane;
         vec offset, scale;
         vec center; float bounds;
-        vec cached;
+        vec cached; bool copied;
 
-        splitinfo() : center(-1e16f, -1e16f, -1e16f), bounds(-1e16f), cached(-1e16f, -1e16f, -1e16f) {}
+        splitinfo() : center(-1e16f, -1e16f, -1e16f), bounds(-1e16f), cached(-1e16f, -1e16f, -1e16f), copied(false) {}
 
         void clearcache() { bounds = -1e16f; }
     } splits[RH_MAXSPLITS];
@@ -3762,7 +3697,14 @@ void radiancehints::renderslices()
     if(!rhrect)
     {
         glViewport(0, 0, sw, sh);
-        if(rhcache) loopi(4) swap(rhtex[i], rhtex[i+4]);
+        if(rhcache)
+        {
+            loopi(4) swap(rhtex[i], rhtex[i+4]);
+            uint clearmasks[RH_MAXSPLITS][(RH_MAXGRID+2+31)/32]; 
+            memcpy(clearmasks, rhclearmasks[0], sizeof(clearmasks));
+            memcpy(rhclearmasks[0], rhclearmasks[1], sizeof(clearmasks));
+            memcpy(rhclearmasks[1], clearmasks, sizeof(clearmasks));
+        }
     }
 
     GLOBALPARAMF(rhatten, 1.0f/(gidist*gidist));
@@ -3805,29 +3747,13 @@ void radiancehints::renderslices()
     gle::defvertex(2);
     gle::deftexcoord0(3);
 
-    memset(rhclearmasks[0], 0xFF, sizeof(rhclearmasks[0]));
+    bool prevcached = true;
     int cx = -1, cy = -1;
     loopirev(rhsplits)
     {
         splitinfo &split = splits[i];
-        if((rhrect || !rhcache || hasCI) && split.cached == split.center && !rhforce)
-        {
-            bool bordercached = true;
-            if(rhborder) for(int k = i+1; k < rhsplits; k++) if(splits[k].cached != splits[k].center) { bordercached = false; break; }
-            if(bordercached)
-            {
-                if(rhrect || !rhcache) continue;
-                loopk(4) glCopyImageSubData_(rhtex[4+k], GL_TEXTURE_3D, 0, 0, 0, i*sh, rhtex[k], GL_TEXTURE_3D, 0, 0, 0, i*sh, sw, sh, sh);
-                continue;
-            }
-        }
-
         float cellradius = split.bounds/rhgrid, step = 2*cellradius, nudge = rhnudge*2*splits[0].bounds/rhgrid + rhworldbias*step;
-        GLOBALPARAM(rhcenter, split.center);
-        GLOBALPARAMF(rhbounds, split.bounds);
-        GLOBALPARAMF(rhspread, cellradius);
-
-        vec cmin, cmax, bmin(1e16f, 1e16f, 1e16f), bmax(-1e16f, -1e16f, -1e16f), dmin(1e16f, 1e16f, 1e16f), dmax(-1e16f, -1e16f, -1e16f);
+        vec cmin, cmax, dmin(1e16f, 1e16f, 1e16f), dmax(-1e16f, -1e16f, -1e16f), bmin(1e16f, 1e16f, 1e16f), bmax(-1e16f, -1e16f, -1e16f);
         loopk(3)
         {
             cmin[k] = floor((worldmin[k] - nudge - (split.center[k] - split.bounds))/step)*step + split.center[k] - split.bounds;
@@ -3844,11 +3770,30 @@ void radiancehints::renderslices()
             dmax[k] = max(dmax[k], (float)ceil((dynmax[k] + gidist + cellradius - (split.center[k] - split.bounds))/step)*step + split.center[k] - split.bounds);
         }
 
+        if((rhrect || !rhcache || hasCI) && split.cached == split.center && (!rhborder || prevcached) && !rhforce &&
+           (dmin.x > split.center.x + split.bounds || dmax.x < split.center.x - split.bounds ||
+            dmin.y > split.center.y + split.bounds || dmax.y < split.center.y - split.bounds ||
+            dmin.z > split.center.z + split.bounds || dmax.z < split.center.z - split.bounds))
+        {
+            if(rhrect || !rhcache || split.copied) continue;
+            split.copied = true;
+            loopk(4) glCopyImageSubData_(rhtex[4+k], GL_TEXTURE_3D, 0, 0, 0, i*sh, rhtex[k], GL_TEXTURE_3D, 0, 0, 0, i*sh, sw, sh, sh);
+            continue;
+        }
+
+        prevcached = false;
+        split.copied = false;
+
+        GLOBALPARAM(rhcenter, split.center);
+        GLOBALPARAMF(rhbounds, split.bounds);
+        GLOBALPARAMF(rhspread, cellradius);
+
         if(rhborder && i + 1 < rhsplits)
         {
             GLOBALPARAMF(bordercenter, 0.5f, 0.5f, float(i+1 + 0.5f)/rhsplits);
             GLOBALPARAMF(borderrange, 0.5f - 0.5f/(rhgrid+2), 0.5f - 0.5f/(rhgrid+2), (0.5f - 0.5f/(rhgrid+2))/rhsplits);
             GLOBALPARAMF(borderscale, rhgrid+2, rhgrid+2, (rhgrid+2)*rhsplits);
+
             splitinfo &next = splits[i+1];
             loopk(3)
             {
@@ -3857,28 +3802,35 @@ void radiancehints::renderslices()
             }
         }
 
+        uint clearmasks[(RH_MAXGRID+2+31)/32];
+        memset(clearmasks, 0xFF, sizeof(clearmasks));
+
         int sy = rhrect ? i*sh : 0;
         loopjrev(sh)
         {
             int sx = rhrect ? j*sw : 0;
-            if(rhrect)
-            {
-                glViewport(sx, sy, sw, sh);
-                glScissor(sx, sy, sw, sh);
-            }
-            else
-            {
-                glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_3D, rhtex[0], 0, i*sh + j);
-                glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_3D, rhtex[1], 0, i*sh + j);
-                glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_3D, rhtex[2], 0, i*sh + j);
-                glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_3D, rhtex[3], 0, i*sh + j);
-            }
+
+            #define BIND_SLICE do { \
+                if(rhrect) \
+                { \
+                    glViewport(sx, sy, sw, sh); \
+                    glScissor(sx, sy, sw, sh); \
+                } \
+                else \
+                { \
+                    glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_3D, rhtex[0], 0, i*sh + j); \
+                    glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_3D, rhtex[1], 0, i*sh + j); \
+                    glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_3D, rhtex[2], 0, i*sh + j); \
+                    glFramebufferTexture3D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_3D, rhtex[3], 0, i*sh + j); \
+                } \
+            } while(0)
 
             float x1 = split.center.x - split.bounds, x2 = split.center.x + split.bounds,
                   y1 = split.center.y - split.bounds, y2 = split.center.y + split.bounds,
                   z = split.center.z - split.bounds + (j-rhborder+0.5f)*step,
                   vx1 = -1 + rhborder*2.0f/(rhgrid+2), vx2 = 1 - rhborder*2.0f/(rhgrid+2), vy1 = -1 + rhborder*2.0f/(rhgrid+2), vy2 = 1 - rhborder*2.0f/(rhgrid+2),
                   tx1 = x1, tx2 = x2, ty1 = y1, ty2 = y2;
+            bool clipped = false;
 
             if(rhborder && i + 1 < rhsplits)
             {
@@ -3901,8 +3853,7 @@ void radiancehints::renderslices()
                         bvx2 += 2*(btx2 - bx2)/(bx2 - bx1);
                         bvy1 += 2*(bty1 - by1)/(by2 - by1);
                         bvy2 += 2*(bty2 - by2)/(by2 - by1);
-
-                        glClear(GL_COLOR_BUFFER_BIT);
+                        clipped = true;
                     }
                 }
 
@@ -3912,17 +3863,26 @@ void radiancehints::renderslices()
                 bty2 = bty2*next.scale.y + next.offset.y;
                 bz = bz*next.scale.z + next.offset.z;
 
+                BIND_SLICE;
+                if(clipped) glClear(GL_COLOR_BUFFER_BIT);
+
                 SETSHADER(radiancehintsborder);
                 rhquad(bvx1, bvy1, bvx2, bvy2, btx1, bty1, btx2, bty2, bz);
 
-                rhclearmasks[0][i][j/32] &= ~(1 << (j%32));
+                clearmasks[j/32] &= ~(1 << (j%32));
             }
 
         noborder:
             if(j < rhborder || j >= rhgrid + rhborder)
             {
             skipped:
-                if(rhclearmasks[0][i][j/32] & (1 << (j%32)) && (!rhrect || (cx < 0 && !(rhclearmasks[1][i][j/32] & (1 << (j%32)))))) { glClear(GL_COLOR_BUFFER_BIT); cx = sx; cy = sy; }
+                if(clearmasks[j/32] & (1 << (j%32)) && (!rhrect || cx < 0) && !(rhclearmasks[0][i][j/32] & (1 << (j%32))))
+                {
+                    BIND_SLICE;
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    cx = sx;
+                    cy = sy;
+                }
                 continue;
             }
 
@@ -3931,20 +3891,25 @@ void radiancehints::renderslices()
                 if(z < cmin.z || z > cmax.z) goto skipped;
                 if(x1 < cmin.x || x2 > cmax.x || y1 < cmin.y || y2 > cmax.y)
                 {
-                    if(rhclearmasks[0][i][j/32] & (1 << (j%32))) glClear(GL_COLOR_BUFFER_BIT);
                     tx1 = max(x1, cmin.x);
                     tx2 = min(x2, cmax.x);
                     ty1 = max(y1, cmin.y);
                     ty2 = min(y2, cmax.y);
-                    if(tx1 > tx2 || ty1 > ty2) continue;
+                    if(tx1 > tx2 || ty1 > ty2) goto skipped;
                     vx1 += 2*rhgrid/float(sw)*(tx1 - x1)/(x2 - x1);
                     vx2 += 2*rhgrid/float(sw)*(tx2 - x2)/(x2 - x1);
                     vy1 += 2*rhgrid/float(sh)*(ty1 - y1)/(y2 - y1);
                     vy2 += 2*rhgrid/float(sh)*(ty2 - y2)/(y2 - y1);
+                    clipped = true;
                 }
             }
 
-            rhclearmasks[0][i][j/32] &= ~(1 << (j%32));
+            if(clearmasks[j/32] & (1 << (j%32)))
+            {
+                BIND_SLICE;
+                if(clipped || (rhborder && i + 1 >= rhsplits)) glClear(GL_COLOR_BUFFER_BIT); 
+                clearmasks[j/32] &= ~(1 << (j%32));
+            }
 
             if(rhcache && z > split.cached.z - split.bounds && z < split.cached.z + split.bounds)
             {
@@ -4030,15 +3995,15 @@ void radiancehints::renderslices()
             glBindTexture(GL_TEXTURE_3D, rhtex[k]);
             loopj(sh)
             {
-                if(rhclearmasks[0][i][j/32] & (1 << (j%32)))
+                if(clearmasks[j/32] & (1 << (j%32)))
                 {
-                    if(!(rhclearmasks[1][i][j/32] & (1 << (j%32)))) glCopyTexSubImage3D_(GL_TEXTURE_3D, 0, 0, 0, sy+j, cx, cy, sw, sh);
+                    if(!(rhclearmasks[0][i][j/32] & (1 << (j%32)))) glCopyTexSubImage3D_(GL_TEXTURE_3D, 0, 0, 0, sy+j, cx, cy, sw, sh);
                     continue;
                 }
                 glCopyTexSubImage3D_(GL_TEXTURE_3D, 0, 0, 0, sy+j, j*sw, sy, sw, sh);
             }
         }
-        memcpy(rhclearmasks[1][i], rhclearmasks[0][i], sizeof(rhclearmasks[0][i]));
+        memcpy(rhclearmasks[0][i], clearmasks, sizeof(clearmasks));
     }
 
     gle::disable();
@@ -4752,8 +4717,8 @@ void rendergbuffer(bool depthclear)
         renderstains(STAINBUF_OPAQUE, true);
         renderstains(STAINBUF_MAPMODEL, true);
         GLERROR;
-        renderavatar();
-        GLERROR;
+        //renderavatar();
+        //GLERROR;
     }
 
     endtimer(gtimer);

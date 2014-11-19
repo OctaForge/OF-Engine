@@ -215,6 +215,25 @@ extern char *tempformatstring(const char *fmt, ...) PRINTFARGS(1, 2);
 #define defformatstring(d,...) string d; formatstring(d, __VA_ARGS__)
 #define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
 
+template<size_t N> inline bool matchstring(const char *s, size_t len, const char (&d)[N])
+{
+    return len == N-1 && !memcmp(s, d, N-1);
+}
+
+inline char *newstring(size_t l)                { return new char[l+1]; }
+inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
+inline char *newstring(const char *s)           { size_t l = strlen(s); char *d = newstring(l); memcpy(d, s, l+1); return d; }
+
+inline char *newconcatstring(const char *s, const char *t)
+{
+    size_t slen = strlen(s), tlen = strlen(t);
+    char *r = newstring(slen + tlen);
+    memcpy(r, s, slen);
+    memcpy(&r[slen], t, tlen);
+    r[slen+tlen] = '\0';
+    return r;
+}
+
 #define loopv(v)    for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   for(int j = 0; j<(v).length(); j++)
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)
@@ -518,6 +537,7 @@ struct stringslice
     const char *end() const { return &str[len]; }
 };
 
+inline char *newstring(const stringslice &s) { return newstring(s.str, s.len); }
 inline const char *stringptr(const char *s) { return s; }
 inline const char *stringptr(const stringslice &s) { return s.str; }
 inline int stringlen(const char *s) { return int(strlen(s)); }
@@ -1301,21 +1321,6 @@ template <class T, int SIZE> struct reversequeue : queue<T, SIZE>
     T &operator[](int offset) { return queue<T, SIZE>::added(offset); }
     const T &operator[](int offset) const { return queue<T, SIZE>::added(offset); }
 };
-
-inline char *newstring(size_t l)                { return new char[l+1]; }
-inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
-inline char *newstring(const char *s)           { size_t l = strlen(s); char *d = newstring(l); memcpy(d, s, l+1); return d; }
-inline char *newstring(const stringslice &s)    { return newstring(s.str, s.len); }
-
-inline char *newconcatstring(const char *s, const char *t)
-{
-    size_t slen = strlen(s), tlen = strlen(t);
-    char *r = newstring(slen + tlen);
-    memcpy(r, s, slen);
-    memcpy(&r[slen], t, tlen);
-    r[slen+tlen] = '\0';
-    return r;
-}
 
 static inline bool islittleendian() { union { int i; uchar b[sizeof(int)]; } conv; conv.i = 1; return conv.b[0] != 0; }
 #ifdef SDL_BYTEORDER

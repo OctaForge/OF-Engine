@@ -990,7 +990,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         var csl = !root._clip_stack.empty()
         if csl { gl_scissor_disable() }
         var sx1, sy1, sx2, sy2 = root.get_projection().calc_scissor(sx, sy,
-            sx + w, sy + h)
+            sx + w, sy + h, true)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
@@ -1039,7 +1039,7 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
         var csl = !root._clip_stack.empty()
         if csl { gl_scissor_disable() }
         var sx1, sy1, sx2, sy2 = root.get_projection().calc_scissor(sx, sy,
-            sx + w, sy + h)
+            sx + w, sy + h, true)
         gl_blend_disable()
         gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)

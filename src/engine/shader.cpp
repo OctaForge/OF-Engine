@@ -338,8 +338,8 @@ static void bindworldtexlocs(Shader &s)
     UNIFORMTEX("normalmap", TEX_NORMAL);
     UNIFORMTEX("glowmap", TEX_GLOW);
     UNIFORMTEX("envmap", TEX_ENVMAP);
-    UNIFORMTEX("decaldiffusemap", TEX_DECAL+TEX_DIFFUSE);
-    UNIFORMTEX("decalnormalmap", TEX_DECAL+TEX_NORMAL);
+    UNIFORMTEX("detaildiffusemap", TEX_DETAIL+TEX_DIFFUSE);
+    UNIFORMTEX("detailnormalmap", TEX_DETAIL+TEX_NORMAL);
     UNIFORMTEX("blendmap", 7);
     UNIFORMTEX("refractmask", 7);
     UNIFORMTEX("refractlight", 8);
@@ -420,17 +420,17 @@ static void findfragdatalocs(Shader &s, const char *ps, const char *macroname, i
         GLenum format = GL_FLOAT_VEC4;
         if(ps > type)
         {
-            if(!strncmp(type, "vec3", ps-type)) format = GL_FLOAT_VEC3;
-            else if(!strncmp(type, "vec2", ps-type)) format = GL_FLOAT_VEC2;
-            else if(!strncmp(type, "float", ps-type)) format = GL_FLOAT;
-            else if(!strncmp(type, "ivec4", ps-type)) format = GL_INT_VEC4;
-            else if(!strncmp(type, "ivec3", ps-type)) format = GL_INT_VEC3;
-            else if(!strncmp(type, "ivec2", ps-type)) format = GL_INT_VEC2;
-            else if(!strncmp(type, "int", ps-type)) format = GL_INT;
-            else if(!strncmp(type, "uvec4", ps-type)) format = GL_UNSIGNED_INT_VEC4;
-            else if(!strncmp(type, "uvec3", ps-type)) format = GL_UNSIGNED_INT_VEC3;
-            else if(!strncmp(type, "uvec2", ps-type)) format = GL_UNSIGNED_INT_VEC2;
-            else if(!strncmp(type, "uint", ps-type)) format = GL_UNSIGNED_INT;
+            if(matchstring(type, ps-type, "vec3")) format = GL_FLOAT_VEC3;
+            else if(matchstring(type, ps-type, "vec2")) format = GL_FLOAT_VEC2;
+            else if(matchstring(type, ps-type, "float")) format = GL_FLOAT;
+            else if(matchstring(type, ps-type, "ivec4")) format = GL_INT_VEC4;
+            else if(matchstring(type, ps-type, "ivec3")) format = GL_INT_VEC3;
+            else if(matchstring(type, ps-type, "ivec2")) format = GL_INT_VEC2;
+            else if(matchstring(type, ps-type, "int")) format = GL_INT;
+            else if(matchstring(type, ps-type, "uvec4")) format = GL_UNSIGNED_INT_VEC4;
+            else if(matchstring(type, ps-type, "uvec3")) format = GL_UNSIGNED_INT_VEC3;
+            else if(matchstring(type, ps-type, "uvec2")) format = GL_UNSIGNED_INT_VEC2;
+            else if(matchstring(type, ps-type, "uint")) format = GL_UNSIGNED_INT;
         }
 
         s.fragdatalocs.add(FragDataLoc(getshaderparamname(name), loc, format, index));

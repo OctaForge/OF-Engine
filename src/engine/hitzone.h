@@ -65,7 +65,7 @@ struct skelbih
     if((skelmodel::intersectmode&RAY_ALPHAPOLY)==RAY_ALPHAPOLY) \
     { \
         Texture *tex = s[t.mesh].tex; \
-        if((tex->type&(Texture::ALPHA|Texture::COMPRESSED)) == Texture::ALPHA && (tex->alphamask || loadalphamask(tex))) \
+        if(tex->type&Texture::ALPHA && (tex->alphamask || loadalphamask(tex))) \
         { \
             int si = clamp(int(tex->xs * (va.tc.x + u*(vb.tc.x - va.tc.x) + v*(vc.tc.x - va.tc.x))), 0, tex->xs-1), \
                 ti = clamp(int(tex->ys * (va.tc.y + u*(vb.tc.y - va.tc.y) + v*(vc.tc.y - va.tc.y))), 0, tex->ys-1); \

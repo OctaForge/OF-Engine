@@ -173,12 +173,12 @@ M.cube_vscale = capi.cube_vscale
 */
 M.cube_vlayer = capi.cube_vlayer
 
-/** Function: cube_vdecal
-    Like vdecal, arguments are x, y, z, gridsize, face followed
-    by vdecal arguments. The face argument follows the semantics
+/** Function: cube_vdetail
+    Like vdetail, arguments are x, y, z, gridsize, face followed
+    by vdetail arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_vdecal = capi.cube_vdecal
+M.cube_vdetail = capi.cube_vdetail
 
 /** Function: cube_valpha
     Like valpha, arguments are x, y, z, gridsize, face followed
