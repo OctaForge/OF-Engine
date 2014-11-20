@@ -358,8 +358,8 @@ M.LocalMemberDeclaration = Statement:clone {
     end
 }
 
-M.AssignmentExpression = Statement:clone {
-    kind = "AssignmentExpression",
+M.AssignmentStatement = Statement:clone {
+    kind = "AssignmentStatement",
 
     properties = {
         left = {
@@ -378,6 +378,22 @@ M.AssignmentExpression = Statement:clone {
     __ctor = function(self, vars, exps, line)
         self.left = vars
         self.right = exps
+        self.line = line
+        Node.__ctor(self)
+    end
+}
+
+M.AssignmentExpression = Expression:clone {
+    kind = "AssignmentExpression",
+
+    properties = {
+        left = "Expression",
+        right = "Expression"
+    },
+
+    __ctor = function(self, left, right, line)
+        self.left = left
+        self.right = right
         self.line = line
         Node.__ctor(self)
     end

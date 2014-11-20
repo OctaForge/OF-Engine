@@ -591,9 +591,8 @@ local ExpressionRule = {
 
     AssignmentExpression = function(self, node, dest)
         local free = self.ctx.freereg
-        -- we only allow 1 lhs/rhs in expression form
-        local lhs = self:lhs_expr_emit(node.left[1])
-        local exp = self:expr_tonextreg(node.right[1])
+        local lhs = self:lhs_expr_emit(node.left)
+        local exp = self:expr_tonextreg(node.right)
         self:assign(lhs, exp)
         self.ctx.freereg = free
         mov_toreg(self.ctx, dest, exp)
@@ -997,7 +996,7 @@ local StatementRule = {
         end
     end,
 
-    AssignmentExpression = function(self, node)
+    AssignmentStatement = function(self, node)
         local free = self.ctx.freereg
         local nvars = #node.left
         local nexps = #node.right

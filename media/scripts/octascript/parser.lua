@@ -46,33 +46,32 @@ end
 
 local BinaryOps = {
     ["="  ] = 1,
-
     ["+=" ] = 1, ["-=" ] = 1, ["*="  ] = 1, ["/="] = 1, ["%="] = 1,
     ["**="] = 1, ["~=" ] = 1,
-
     ["&=" ] = 1, ["|=" ] = 1, ["^="  ] = 1,
     ["<<="] = 1, [">>="] = 1, [">>>="] = 1,
-
-    ["||"] = 2,  ["&&"] = 3,
-    ["<" ] = 4,  ["<="] = 4,  [">"  ] = 4, [">="] = 4,
-    ["=="] = 4,  ["!="] = 4,
-    ["~" ] = 5,
-    ["|" ] = 6,  ["^" ] = 7,  ["&"  ] = 8,
-    ["<<"] = 9,  [">>"] = 9,  [">>>"] = 9,
-    ["+" ] = 10, ["-" ] = 10,
-    ["*" ] = 11, ["/" ] = 11, ["%"  ] = 11,
+    -- ternary here--
+    ["||"] = 3,  ["&&"] = 4,
+    ["<" ] = 5,  ["<="] = 5,  [">"  ] = 5, [">="] = 5,
+    ["=="] = 5,  ["!="] = 5,
+    ["~" ] = 6,
+    ["|" ] = 7,  ["^" ] = 8,  ["&"  ] = 9,
+    ["<<"] = 10, [">>"] = 10, [">>>"] = 10,
+    ["+" ] = 11, ["-" ] = 11,
+    ["*" ] = 12, ["/" ] = 12, ["%"  ] = 12,
     -- unary here --
-    ["**"] = 13
+    ["**"] = 14
 }
 
 local ass_prec = 1
+local if_prec = 2
 
 local RightAss = {
     ["**" ] = true
 }
 
 local UnaryOps = {
-    ["-"] = 12, ["!"] = 12, ["~"] = 12
+    ["-"] = 13, ["!"] = 13, ["~"] = 13
 }
 
 local AssOps = {
@@ -456,14 +455,6 @@ local sexps = {
         ls.fs = prev_fs
         return ast.FunctionExpression(body, args, proto.varargs, line, lline)
     end,
-    ["if"] = function(ls, ast)
-        ls:get()
-        local cond = parse_expr(ls, ast)
-        assert_next(ls, ":")
-        local texpr = parse_expr(ls, ast)
-        return ast.IfExpression(cond, texpr, test_next(ls, "else")
-            and parse_expr(ls, ast) or ast.Literal(nil))
-    end,
     ["import"] = parse_import_expr,
     ["@"] = function(ls, ast)
         local line = ls.line_number
@@ -492,13 +483,22 @@ local sexps = {
 
 parse_simple_expr = function(ls, ast)
     local line = ls.line_number
-    local tn = ls.token.name
+    local tok = ls.token
+    local tn = tok.name
     local unp = UnaryOps[tn]
     if unp then
         ls:get()
         return ast.UnaryExpression(tn, parse_subexpr(ls, ast, unp), line)
     else
-        return (sexps[tn] or parse_primary_expr)(ls, ast)
+        local cond = (sexps[tn] or parse_primary_expr)(ls, ast)
+        if tok.name ~= "?" then
+            return cond
+        end
+        ls:get()
+        local texpr = parse_expr(ls, ast)
+        assert_next(ls, ":")
+        local fexpr = parse_subexpr(ls, ast, if_prec)
+        return ast.IfExpression(cond, texpr, fexpr)
     end
 end
 
@@ -516,14 +516,11 @@ parse_subexpr = function(ls, ast, mp)
         ls:get()
         local np = (p == ass_prec or RightAss[op]) and p or (p + 1)
         if op == "=" then
-            lhs = ast.AssignmentExpression({ lhs }, { parse_subexpr(ls, ast,
-                np) }, line)
+            lhs = ast.AssignmentExpression(lhs, parse_subexpr(ls, ast, np), line)
         elseif AssOps[op] then
             local line2 = ls.line_number
-            lhs = ast.AssignmentExpression({ lhs }, {
-                ast.BinaryExpression(AssOps[op], lhs, parse_subexpr(ls, ast,
-                    np), line2)
-            }, line)
+            lhs = ast.AssignmentExpression(lhs, ast.BinaryExpression(AssOps[op],
+                lhs, parse_subexpr(ls, ast, np), line2), line)
         else
             lhs = ast.BinaryExpression(op, lhs, parse_subexpr(ls, ast, np),
                 line)
@@ -606,13 +603,13 @@ parse_assignment = function(ls, ast, vlist, var, vk)
         local op = ls.token.name
         ls:get()
         local line2 = ls.line_number
-        return ast.AssignmentExpression(vlist, {
+        return ast.AssignmentStatement(vlist, {
             ast.BinaryExpression(AssOps[op], vlist[1], parse_expr(ls, ast),
                 line2)
         }, line)
     end
     assert_next(ls, "=")
-    return ast.AssignmentExpression(vlist, parse_expr_list(ls, ast), line)
+    return ast.AssignmentStatement(vlist, parse_expr_list(ls, ast), line)
 end
 
 local parse_expr_stat = function(ls, ast)
