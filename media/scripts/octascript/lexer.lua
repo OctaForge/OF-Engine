@@ -28,6 +28,9 @@ local strstream = function(str)
         i = i + 1
         if i >= len then return nil end
         return cstr[i]
+    end, function(j)
+        i = i - (j or 1)
+        return cstr[i]
     end
 end
 
@@ -119,7 +122,13 @@ end
 local lextbl
 
 local next_char = function(ls)
-    local c = ls.reader()
+    local c = ls.getc()
+    ls.current = c
+    return c
+end
+
+local unget_chars = function(ls, n)
+    local c = ls.ungetc(n)
     ls.current = c
     return c
 end
@@ -416,9 +425,31 @@ local read_string = function(ls, raw, expand)
         lextbl[c](ls)
         c = ls.current
     end
-    if c == 34 or c == 39 then -- ", '
+
+    local has_r = (c == 82 or c == 114) -- R, r
+    local has_e = (c == 69 or c == 101) -- E, e
+    if has_r or has_e then
+        local sn = 1
+        c = next_char(ls)
+        local cond_r = (has_e and (c == 82 or c == 114))
+        local cond_e = (has_r and (c == 69 or c == 101))
+        if cond_e or cond_r then
+            if     cond_e then has_e = true
+            elseif cond_r then has_r = true end
+            sn = 2
+            c = next_char(ls)
+        end
+        if c == 34 or c == 39 then -- ", '
+            raw, expand = has_r, has_e
+            goto beg
+        else
+            unget_chars(ls, sn)
+        end
+    elseif c == 34 or c == 39 then -- ", '
+        raw, expand = false, false
         goto beg
     end
+
     local conc = tconc(buf)
     if #terms == 0 then
         return ls.ast.Literal(conc, lnum)
@@ -757,10 +788,16 @@ local skip_shebang = function(rdr)
 end
 
 local init = function(chunkname, input, ast, parse_expr)
-    local reader  = type(input) == "string" and strstream(input) or input
-    local current = skip_shebang(reader)
+    local get, unget
+    if type(input) ~= "string" then
+        get, unget = input.get, input.unget
+    else
+        get, unget = strstream(input)
+    end
+    local current = skip_shebang(get)
     return setmetatable({
-        reader      = reader,
+        getc        = get,
+        ungetc      = unget,
         token       = { name = nil, value = nil },
         ltoken      = { name = nil, value = nil },
         source      = chname_to_source(chunkname),
