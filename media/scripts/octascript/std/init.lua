@@ -454,7 +454,7 @@ pkg.loaders = setmt({
         file:close()
         local chunkname = "@" .. fname
         local f, err
-        if fname:sub(#fname - 3) == ".lua" then
+        if fname:sub(#fname - 4) == ".lua" then
             f, err = load(toparse, chunkname)
         else
             f, err = load(compile(chunkname, toparse), chunkname, "b", rt_env)
