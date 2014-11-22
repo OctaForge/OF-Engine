@@ -279,8 +279,8 @@ M.register_prototype = func(cl, plugins, name) {
         return n < m
     })
 
-    @[debug] log(DEBUG, e"ents.register_prototype: generating protocol data for "
-        "{ $(sv_names.concat(', ')) }")
+    @[debug] log(DEBUG, "ents.register_prototype: generating protocol data for "
+        e"{ $(sv_names.concat(', ')) }")
 
     gen_network_data(name, sv_names)
 
@@ -1066,16 +1066,16 @@ M.Entity = Object.clone({
         var svar = self[e"_SV_$key"]
 
         if !svar {
-            log(WARNING, e"Entity.set_sdata: ignoring sdata setting"
-                " for an unknown variable $key")
+            log(WARNING, "Entity.set_sdata: ignoring sdata setting"
+                e" for an unknown variable $key")
             return
         }
 
         if actor_uid && actor_uid != -1 {
             val = svar.from_wire(val)
             if !svar.client_write {
-                log(ERROR, e"Entity.set_sdata: client $actor_uid tried to"
-                    " change $key")
+                log(ERROR, "Entity.set_sdata: client $actor_uid tried to"
+                    e" change $key")
                 return
             }
         } else if iop {
@@ -1169,7 +1169,7 @@ M.Entity = Object.clone({
         for k, v in pairs(changes) {
             var rv = self.svar_values[k]
             @[debug] log(DEBUG, e"Entity: flushing queued svar change: $k == "
-                "$(tostring(v)) (real: $(tostring(rv)))")
+                e"$(tostring(v)) (real: $(tostring(rv)))")
             self.set_attr(k, rv)
         }
 
