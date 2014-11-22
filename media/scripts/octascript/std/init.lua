@@ -468,7 +468,9 @@ pkg.loaders = setmt({
     __size = 2
 }, array_mt)
 
-package.loaders[2] = pkg.loaders[1]
+package.loaders[2] = function(modname)
+    return pkg.loaders[1](modname, package.path)
+end
 
 local type = type
 local tconc = table.concat
