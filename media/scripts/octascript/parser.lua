@@ -91,6 +91,17 @@ local parse_str = function(ls, ast)
     return nd
 end
 
+local multirets = {
+    ["CallExpression"] = true,
+    ["SendExpression"] = true,
+    ["TryExpression" ] = true,
+    ["Vararg"        ] = true
+}
+
+local is_multi_ret = function(kind)
+    return multirets[kind] ~= nil
+end
+
 local parse_expr_list = function(ls, ast, exprs)
     local tok = ls.token
     exprs = exprs or {}
@@ -104,9 +115,7 @@ local parse_expr_list = function(ls, ast, exprs)
     end
     local exp = exprs[#exprs]
     local k = exp.kind
-    if exp.parenthesized and (k == "CallExpression" or k == "SendExpression"
-                                                    or k == "Vararg")
-    then
+    if exp.parenthesized and is_multi_ret(k) then
         exp.parenthesized = nil
         exprs[#exprs] = ast.ParenthesizedExpression(exp)
     end
@@ -176,9 +185,7 @@ local parse_array = function(ls, ast)
     local first
     if ls.token.name ~= "]" then
         elist = parse_expr_list(ls, ast)
-        local last = elist[#elist]
-        local kind = last.kind
-        if kind == "CallExpression" or kind == "SendExpression" or kind == "Vararg" then
+        if is_multi_ret(elist[#elist].kind) then
             multiexp = true
         end
     else
