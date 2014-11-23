@@ -237,7 +237,8 @@ local gen_ident = function(self, name, dest)
         else
             mov_toreg(self.ctx, dest, var.idx)
         end
-    elseif name == "__rt_core" or self.globals == true or self.globals[name] then
+    elseif name == "__rt_core" or self.globals == true
+    or (self.globals and self.globals[name]) then
         self.ctx:op_gget(dest, name)
     else
         lang_error("undeclared variable '" .. name .. "'", self.chunkname,
@@ -1268,8 +1269,11 @@ local Generator = util.Object:clone {
             self.ctx:op_uset(lhs.uv, "V", expr)
         elseif lhs.tag == "local" then
             mov_toreg(self.ctx, lhs.target, expr)
-        else
+        elseif self.globals == true or (self.globals and self.globals[lhs.name]) then
             self.ctx:op_gset(expr, lhs.name)
+        else
+            lang_error("undeclared variable '" .. lhs.name .. "'", self.chunkname,
+                self.ctx.currline)
         end
     end,
 
@@ -1484,6 +1488,6 @@ local Generator = util.Object:clone {
     end
 }
 
-return function(tree, name)
-    return Generator(tree, name).dump:pack()
+return function(tree, name, allowg)
+    return Generator(tree, name, allowg).dump:pack()
 end
