@@ -427,9 +427,9 @@ end
 loaded["std"] = std
 
 local compile = function(fname, src, allowg)
-    local succ, tree = pcall(parser.parse, fname, src, pkg.cond_env, allowg)
+    local succ, tree = pcall(parser.parse, fname, src, pkg.cond_env)
     if not succ then error(select(2, util.error(tree))) end
-    local succ, bcode = pcall(generator, tree, fname)
+    local succ, bcode = pcall(generator, tree, fname, allowg)
     if not succ then error(select(2, util.error(bcode))) end
     return bcode
 end
