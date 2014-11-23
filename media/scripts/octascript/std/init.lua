@@ -465,11 +465,45 @@ pkg.loaders = setmt({
         end
         return f
     end,
-    __size = 2
+    function(modname, ppath)
+        local  fname, err = spath(modname, ppath or pkg.cpath)
+        if not fname then return err end
+        local smodname = string.gsub(string.match(modname, "[^-]*%-(.*)")
+            or modname, "%.", "_")
+        local f, err = package.loadlib(fname, "luaopen_" .. smodname)
+        if not f then
+            error("error loading module '" .. modname .. "' from file '"
+                .. fname .. "':\n" .. err, 2)
+        end
+        return f
+    end,
+    function(modname, ppath)
+        local rmodname, smodname = string.match(modname, "([^.]*)%.(.*)")
+        if not rmodname then
+            rmodname = modname
+            smodname = ""
+        end
+        local  fname, err = spath(rmodname, ppath or pkg.cpath)
+        if not fname then return err end
+        smodname = string.gsub(smodname, "%.", "_")
+        local f, err = package.loadlib(fname, "luaopen_" .. smodname)
+        if not f then
+            error("error loading module '" .. modname .. "' from file '"
+                .. fname .. "':\n" .. err, 2)
+        end
+        return f
+    end,
+    __size = 4
 }, array_mt)
 
 package.loaders[2] = function(modname)
     return pkg.loaders[1](modname, package.path)
+end
+package.loaders[3] = function(modname)
+    return pkg.loaders[2](modname, package.cpath)
+end
+package.loaders[4] = function(modname)
+    return pkg.loaders[3](modname, package.cpath)
 end
 
 local type = type
