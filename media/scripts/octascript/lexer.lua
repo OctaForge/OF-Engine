@@ -421,7 +421,7 @@ local read_string = function(ls, raw, expand)
     end
     c = next_char(ls)
     -- skip whitespace
-    while (c >= 9 and c <= 13) or (c == 32) do
+    while c and ((c >= 9 and c <= 13) or (c == 32)) do
         lextbl[c](ls)
         c = ls.current
     end
