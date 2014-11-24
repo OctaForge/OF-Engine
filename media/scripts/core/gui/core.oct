@@ -705,7 +705,7 @@ M.Widget = register_type("Widget", Object, {
             }
         }
         var ach = [ ... ]
-        for i, v in ach.each() {
+        for i, v in ach.each() if v {
             ch.push(v)
             v.parent = cont
             v._root  = cont._root
