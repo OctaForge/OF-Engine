@@ -1,0 +1,41 @@
+# Nano syntax file for OctaScript
+# by Daniel "q66" Kolesa <quaker66@gmail.com>
+# NCSA licensed
+#
+syntax "octascript" "\.oct$"
+
+# Decimal integer literals
+color brightred "([0-9]|[1-9][0-9_]*)([Ll][Ll]|[Uu][Ll][Ll])?"
+# Binary integer literals
+color brightred "(0[bB][01_]*)([Ll][Ll]|[Uu][Ll][Ll])?"
+# Hexadecimal integer literals
+color brightred "(0[xX]([0-9a-fA-F][0-9a-fA-F_]*|[0-9a-fA-F_]*[0-9a-fA-F]))([Ll][Ll]|[Uu][Ll][Ll])?"
+
+# Float literals
+color brightred "[0-9][0-9_]*\.([0-9][0-9_]*)([eE][+-]?([0-9][0-9_]*))?i?"
+color brightred "[0-9][0-9_]*([eE][+-]?([0-9][0-9_]*))i?"
+color brightred "[^.]\.([0-9][0-9_]*)([eE][+-]?([0-9][0-9_]*))?i?"
+color brightred "[0-9][0-9_]*i?"
+
+color brightwhite "\<[[:alpha:]_][[:alnum:]_]*\>"
+
+# general stuff
+color green "[[:<:]](__add|__call|__concat|__div|__eq|__index|__le|__lt|__metatable|__mode|__mul|__newindex|__pairs|__pow|__sub|__tostring|__unm)[[:>:]]"
+color brightgreen "[[:<:]](false|null|true|undef)[[:>:]]"
+color brightgreen "[[:<:]](self|typeof)[[:>:]]"
+color brightcyan "[[:<:]](as|by|else|enum|for|from|if|import|in|raise|rec|to|try|until|var|while)[[:>:]]"
+color brightcyan "[[:<:]](goto|continue|break|return|print)[[:>:]]"
+
+# Numbers
+
+# strings
+color brightyellow "['][^']*[^\\][']" "[']{3}.*[^\\][']{3}"
+color brightyellow "["][^"]*[^\\]["]" "["]{3}.*[^\\]["]{3}"
+color brightyellow start=""""[^"]" end=""""" start="'''[^']" end="'''"
+
+## Comment highlighting
+color brightblue "//.*"
+color brightblue start="/\*" end="\*/"
+
+## Trailing whitespace
+color ,green "[[:space:]]+$"

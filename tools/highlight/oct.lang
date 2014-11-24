@@ -1,0 +1,41 @@
+-- OctaScript highlight langdef by Daniel "q66" Kolesa <quaker66@gmail.com>
+-- NCSA licensed
+
+Description="OctaScript"
+
+Digits = [[ (?:0x|0X)[0-9a-fA-F]+|\d*[\.\_]?\d+(?:[eE][\-\+]\d+)?[lLuUbfdm]* ]]
+
+Keywords = {
+    { Id = 1, List = {
+        "as", "break", "by", "continue", "else", "enum", "false", "for", "from",
+        "func", "goto", "if", "import", "in", "null", "print", "raise", "rec",
+        "repeat", "return", "self", "to", "true", "try", "typeof", "undef",
+        "until", "var", "while"
+    } },
+    { Id = 2, Regex = [[@\w+]], },
+    { Id = 2, List = {
+        "__add", "__call", "__concat", "__div", "__eq", "__index", "__le",
+        "__lt", "__metatable", "__mode", "__mul", "__newindex", "__pairs",
+        "__pow", "__sub", "__tostring", "__unm"
+    } },
+    { Id = 4, Regex = [[(\w+)\s*\(]] }
+}
+
+Strings = {
+    Delimiter = [["""|'''|"|']],
+    RawPrefix = "r"
+}
+
+IgnoreCase = false
+
+Comments = {
+    { Block = false,
+        Delimiter = { [[\/\/]] },
+    },
+    { Block = true,
+        Nested = true,
+        Delimiter = { [[\/\*]],[[\*\/]] }
+    }
+}
+
+Operators=[[\(|\)|\[|\]|\{|\}|\,|\;|\:|\&|\||\^|<|>|\!|\=|\/|\*|\%|\+|\-|.]]

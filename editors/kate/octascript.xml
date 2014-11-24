@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<!-- Author: q66 <quaker66@gmail.com> -->
+<!-- bits taken from javascript.xml and python.xml -->
+<language name="OctaScript" version="1.0" kateversion="2.4" section="Scripts" extensions="*.oct"
+                    mimetype="text/x-octascript;application/x-octascript" indenter="cstyle"
+                    author="Daniel 'q66' Kolesa" license="NCSA">
+    <highlighting>
+        <list name="keywords">
+            <item>as</item>
+            <item>break</item>
+            <item>by</item>
+            <item>continue</item>
+            <item>else</item>
+            <item>enum</item>
+            <item>for</item>
+            <item>from</item>
+            <item>func</item>
+            <item>goto</item>
+            <item>if</item>
+            <item>import</item>
+            <item>in</item>
+            <item>print</item>
+            <item>raise</item>
+            <item>rec</item>
+            <item>repeat</item>
+            <item>return</item>
+            <item>self</item>
+            <item>to</item>
+            <item>try</item>
+            <item>typeof</item>
+            <item>until</item>
+            <item>var</item>
+            <item>while</item>
+        </list>
+        <list name="primitives">
+            <item>false</item>
+            <item>null</item>
+            <item>true</item>
+            <item>undef</item>
+        </list>
+        <list name="metamethods">
+            <item>__add</item>
+            <item>__call</item>
+            <item>__concat</item>
+            <item>__div</item>
+            <item>__eq</item>
+            <item>__index</item>
+            <item>__le</item>
+            <item>__lt</item>
+            <item>__metatable</item>
+            <item>__mode</item>
+            <item>__mul</item>
+            <item>__newindex</item>
+            <item>__pairs</item>
+            <item>__pow</item>
+            <item>__sub</item>
+            <item>__tostring</item>
+            <item>__unm</item>
+        </list>
+
+        <contexts>
+            <!-- Shebang context -->
+            <context name="Shebang" lineEndContext="Normal" attribute="Syntax Error" fallthrough="true" fallthroughContext="Normal">
+                <Detect2Chars column="0" char="#" char1="!" context="Comment" attribute="Comment"/>
+            </context>
+
+            <!-- Normal context -->
+            <context name="Normal" attribute="Normal" lineEndContext="#stay">
+                <DetectSpaces/>
+
+                <!-- Number literal context -->
+                <RegExpr context="NumberLiteral" String="\d" attribute="" lookAhead="true"/>
+
+                <!-- Float starting with a dot -->
+                <RegExpr attribute="Float" context="#stay" String="\.\d[\d_]*([eE][-+]?\d[\d_]*)?i?"/>
+
+                <!-- Matching standard keywords -->
+                <keyword attribute="Keyword" String="keywords"/>
+                <keyword attribute="Keyword" String="primitives"/>
+                <keyword attribute="Keyword" String="metamethods"/>
+
+                <!-- Matching an object member: foo.bar.baz -->
+                <RegExpr attribute="Index" context="Call" String="[a-zA-Z_]\w*(?=\s*[\.\[])"/>
+                <!-- Matching function calls: foo() -->
+                <RegExpr attribute="Call" String="[a-zA-Z_]\w*(?=\s*\()"/>
+                <DetectChar context="Call" char="."/>
+
+                <!-- Matching comments -->
+                <IncludeRules context="##Doxygen"/>
+                <Detect2Chars attribute="Comment" context="Comment" char="/" char1="/"/>
+                <Detect2Chars attribute="Comment" context="CommentNested" char="/" char1="*" beginRegion="CommentNested"/>
+
+                <!-- Matching ternaries -->
+                <DetectChar attribute="Symbol" context="Ternary" char="?"/>
+
+                <!-- Matching hash literals -->
+                <DetectChar attribute="Symbol" context="Table" char="{" beginRegion="Brace"/>
+
+                <AnyChar attribute="Symbol" String=":!%&amp;+,-/.*&lt;=&gt;?|~^&#59;"/>
+
+                <IncludeRules context="StringVariants"/>
+            </context>
+
+            <!-- Number literal context -->
+            <context name="NumberLiteral" attribute="Normal" lineEndContext="#stay" fallthrough="true" fallthroughContext="#pop">
+                <RegExpr attribute="Float" context="#pop" String="0[xX][\da-fA-F_]*(\.[\da-fA-F_]*)?[pP][-+]?\d[\d_]*i?"/>
+                <RegExpr attribute="Float" context="#pop" String="\d[_\d]*(\.(?!\.)[_\d]*([eE][-+]?\d[_\d]*)?i?|[eE][-+]?\d[_\d]*i?|i?)"/>
+
+                <RegExpr attribute="Binary"  context="#pop" String="0[bB]_*[01][01_]*([lL][lL]|[uU][lL][lL])?"/>
+                <RegExpr attribute="Hex"     context="#pop" String="0[xX]_*[\da-fA-F][\da-fA-F_]*([lL][lL]|[uU][lL][lL])?"/>
+                <RegExpr attribute="Decimal" context="#pop" String="\d+[\d_]*([lL][lL]|[uU][lL][lL])?"/>
+            </context>
+
+            <!-- Indexing/call context -->
+            <context name="Call" attribute="Normal" lineEndContext="#pop" fallthrough="true" fallthroughContext="#pop">
+                <DetectChar char="."/>
+                <RegExpr attribute="Index" context="Call" String="[a-zA-Z_]\w*(?=\s*[\.\[])"/>
+                <RegExpr attribute="Call" String="[a-zA-Z_]\w*"/>
+            </context>
+
+            <!-- Ternary context -->
+            <context name="Ternary" attribute="Normal" lineEndContext="#stay">
+                <DetectChar context="#pop" char=":"/>
+                <IncludeRules context="Normal"/>
+            </context>
+
+            <!-- Table context -->
+            <context name="Table" attribute="Normal" lineEndContext="#stay">
+                <keyword attribute="Keyword" String="keywords"/>
+                <RegExpr attribute="TableKey" String="[a-zA-Z_]\w*\s*(?=:)"/>
+                <DetectChar attribute="Symbol" char="}" endRegion="Brace" context="#pop"/>
+                <IncludeRules context="Normal"/>
+            </context>
+
+            <context name="String" attribute="String" lineEndContext="#pop">
+                <HlCStringChar attribute="Char"/>
+                <LineContinue/>
+                <DetectChar attribute="String" context="#pop" char="&quot;"/>
+            </context>
+            <context name="StringSQ" attribute="String" lineEndContext="#pop">
+                <HlCStringChar attribute="Char"/>
+                <LineContinue/>
+                <DetectChar attribute="String" context="#pop" char="'"/>
+            </context>
+
+            <!-- Single line comment context -->
+            <context name="Comment" attribute="Comment" lineEndContext="#pop">
+                <IncludeRules context="##Alerts"/>
+                <IncludeRules context="##Modelines"/>
+            </context>
+
+            <!-- Multiline comment context -->
+            <context name="CommentNested" attribute="Comment" lineEndContext="#stay">
+                <IncludeRules context="##Alerts"/>
+                <IncludeRules context="##Modelines"/>
+                <Detect2Chars attribute="Comment" context="CommentNested" char="/" char1="*" beginRegion="CommentNested"/>
+                <Detect2Chars attribute="Comment" context="#pop" char="*" char1="/" endRegion="CommentNested"/>
+            </context>
+
+            <!-- String contexts -->
+            <context name="StringVariants" attribute="Normal" lineEndContext="#stay">
+                <DetectSpaces/>
+                <!-- ''' -->
+                <StringDetect attribute="String" String="'''" context="TripleStringSQ" beginRegion="TripleStringSQ"/>
+                <StringDetect attribute="String" String="e'''" insensitive="true" context="EvalTripleStringSQ" beginRegion="TripleStringSQ"/>
+                <!-- """ -->
+                <StringDetect attribute="String" String="&quot;&quot;&quot;" context="TripleStringDQ" beginRegion="TripleStringDQ"/>
+                <StringDetect attribute="String" String="e&quot;&quot;&quot;" insensitive="true" context="EvalTripleStringDQ" beginRegion="TripleStringDQ"/>
+                <!-- ' -->
+                <DetectChar attribute="String" char="'" context="SingleStringSQ"/>
+                <StringDetect attribute="String" String="e'" insensitive="true" context="EvalSingleStringSQ"/>
+                <!-- " -->
+                <DetectChar attribute="String" char="&quot;" context="SingleStringDQ"/>
+                <StringDetect attribute="String" String="e&quot;" insensitive="true" context="EvalSingleStringDQ"/>
+                <!-- ''' -->
+                <StringDetect attribute="StringRaw" String="r'''" insensitive="true" context="RawTripleStringSQ" beginRegion="TripleStringSQ"/>
+                <StringDetect attribute="StringRaw" String="re'''" insensitive="true" context="RawEvalTripleStringSQ" beginRegion="TripleStringSQ"/>
+                <StringDetect attribute="StringRaw" String="er'''" insensitive="true" context="RawEvalTripleStringSQ" beginRegion="TripleStringSQ"/>
+                <!-- """ -->
+                <StringDetect attribute="StringRaw" String="r&quot;&quot;&quot;" insensitive="true" context="RawTripleStringDQ" beginRegion="TripleStringDQ"/>
+                <StringDetect attribute="StringRaw" String="re&quot;&quot;&quot;" insensitive="true" context="RawEvalTripleStringDQ" beginRegion="TripleStringDQ"/>
+                <StringDetect attribute="StringRaw" String="er&quot;&quot;&quot;" insensitive="true" context="RawEvalTripleStringDQ" beginRegion="TripleStringDQ"/>
+                <!-- ' -->
+                <StringDetect attribute="StringRaw" String="r'" insensitive="true" context="RawSingleStringSQ"/>
+                <StringDetect attribute="StringRaw" String="re'" insensitive="true" context="RawEvalSingleStringSQ"/>
+                <StringDetect attribute="StringRaw" String="er'" insensitive="true" context="RawEvalSingleStringSQ"/>
+                <!-- " -->
+                <StringDetect attribute="StringRaw" String="r&quot;" insensitive="true" context="RawSingleStringDQ"/>
+                <StringDetect attribute="StringRaw" String="re&quot;" insensitive="true" context="RawEvalSingleStringDQ"/>
+                <StringDetect attribute="StringRaw" String="er&quot;" insensitive="true" context="RawEvalSingleStringDQ"/>
+            </context>
+
+            <context name="StringEscapes">
+                <HlCStringChar attribute="StringChar"/>
+                <Detect2Chars attribute="StringChar" char="\\" char1="z"/>
+                <RegExpr attribute="StringChar" String="\\$"/>
+            </context>
+
+            <context name="StringEscapesEval">
+                <HlCStringChar attribute="StringChar"/>
+                <Detect2Chars attribute="StringChar" char="\\" char1="z"/>
+                <Detect2Chars attribute="StringChar" char="\\" char1="$"/>
+                <RegExpr attribute="StringChar" String="\\$"/>
+            </context>
+
+            <context name="StringEscapesRaw">
+                <HlCStringChar attribute="StringRaw"/>
+                <Detect2Chars attribute="StringRaw" char="\\" char1="z"/>
+                <RegExpr attribute="StringRaw" String="\\$"/>
+            </context>
+
+            <context name="StringEscapesRawEval">
+                <HlCStringChar attribute="StringRaw"/>
+                <Detect2Chars attribute="StringRaw" char="\\" char1="z"/>
+                <Detect2Chars attribute="StringRaw" char="\\" char1="$"/>
+                <RegExpr attribute="StringRaw" String="\\$"/>
+            </context>
+
+            <context name="StringInterpAll">
+                <RegExpr attribute="StringInterp" String="\$[a-zA-Z_]\w*"/>
+                <Detect2Chars attribute="StringInterp" context="StringInterp" char="$" char1="(" beginRegion="StringInterp"/>
+            </context>
+
+            <context name="StringInterp" attribute="Normal" lineEndContext="#stay">
+                <DetectChar attribute="Normal" char="(" context="StringInterpParens" beginRegion="StringInterpParens"/>
+                <DetectChar attribute="StringInterp" char=")" context="#pop" endRegion="StringInterp"/>
+                <IncludeRules context="Normal"/>
+            </context>
+
+            <context name="StringInterpParens" attribute="Normal" lineEndContext="#stay">
+                <DetectChar attribute="Normal" char="(" context="StringInterpParens" beginRegion="StringInterpParens"/>
+                <DetectChar attribute="Normal" char=")" context="#pop" endRegion="StringInterpParens"/>
+                <IncludeRules context="Normal"/>
+            </context>
+
+            <context name="#CheckForString" attribute="Normal" lineEndContext="#pop" fallthrough="true" fallthroughContext="#pop">
+                <DetectSpaces/>
+                <LineContinue attribute="NormalText" context="CheckForStringNext"/>
+            </context>
+
+            <context name="CheckForStringNext" attribute="Normal" lineEndContext="#pop" fallthrough="true" fallthroughContext="#pop">
+                <DetectSpaces/>
+                <LineContinue attribute="NormalText" context="CheckForStringNext"/>
+                <IncludeRules context="StringVariants"/>
+            </context>
+
+            <context name="SingleStringSQ" attribute="String" lineEndContext="#stay">
+                <IncludeRules context="StringEscapes"/>
+                <DetectChar attribute="String" char="'" context="#pop"/>
+            </context>
+            <context name="SingleStringDQ" attribute="String" lineEndContext="#stay">
+                <IncludeRules context="StringEscapes"/>
+                <DetectChar attribute="String" char="&quot;" context="#pop"/>
+            </context>
+
+            <context name="TripleStringSQ" attribute="String" lineEndContext="#stay" noIndentationBasedFolding="true">
+                <IncludeRules context="StringEscapes"/>
+                <StringDetect attribute="String" String="'''" context="#pop#CheckForString" endRegion="TripleStringSQ"/>
+            </context>
+            <context name="TripleStringDQ" attribute="String" lineEndContext="#stay" noIndentationBasedFolding="true">
+                <IncludeRules context="StringEscapes"/>
+                <StringDetect attribute="String" String="&quot;&quot;&quot;" context="#pop#CheckForString" endRegion="TripleStringDQ"/>
+            </context>
+
+            <context name="RawSingleStringSQ" attribute="StringRaw" lineEndContext="#stay">
+                <IncludeRules context="StringEscapesRaw"/>
+                <DetectChar attribute="StringRaw" char="'" context="#pop"/>
+            </context>
+            <context name="RawSingleStringDQ" attribute="StringRaw" lineEndContext="#stay">
+                <IncludeRules context="StringEscapesRaw"/>
+                <DetectChar attribute="StringRaw" char="&quot;" context="#pop"/>
+            </context>
+
+            <context name="RawTripleStringSQ" attribute="StringRaw" lineEndContext="#stay" noIndentationBasedFolding="true">
+                <IncludeRules context="StringEscapesRaw"/>
+                <StringDetect attribute="String" String="'''" context="#pop#CheckForString" endRegion="TripleStringSQ"/>
+            </context>
+            <context name="RawTripleStringDQ" attribute="StringRaw" lineEndContext="#stay" noIndentationBasedFolding="true">
+                <IncludeRules context="StringEscapesRaw"/>
+                <StringDetect attribute="String" String="&quot;&quot;&quot;" context="#pop#CheckForString" endRegion="TripleStringDQ"/>
+            </context>
+
+            <context name="EvalSingleStringSQ" attribute="String" lineEndContext="#stay">
+                <IncludeRules context="StringEscapesEval"/>
+                <IncludeRules context="StringInterpAll"/>
+                <DetectChar attribute="String" char="'" context="#pop"/>
+            </context>
+            <context name="EvalSingleStringDQ" attribute="String" lineEndContext="#stay">
+                <IncludeRules context="StringEscapesEval"/>
+                <IncludeRules context="StringInterpAll"/>
+                <DetectChar attribute="String" char="&quot;" context="#pop"/>
+            </context>
+
+            <context name="EvalTripleStringSQ" attribute="String" lineEndContext="#stay" noIndentationBasedFolding="true">
+                <IncludeRules context="StringEscapesEval"/>
+                <IncludeRules context="StringInterpAll"/>
+                <StringDetect attribute="String" String="'''" context="#pop#CheckForString" endRegion="TripleStringSQ"/>
+            </context>
+            <context name="EvalTripleStringDQ" attribute="String" lineEndContext="#stay" noIndentationBasedFolding="true">
+                <IncludeRules context="StringEscapesEval"/>
+                <IncludeRules context="StringInterpAll"/>
+                <StringDetect attribute="String" String="&quot;&quot;&quot;" context="#pop#CheckForString" endRegion="TripleStringDQ"/>
+            </context>
+
+            <context name="RawEvalSingleStringSQ" attribute="StringRaw" lineEndContext="#stay">
+                <IncludeRules context="StringEscapesRawEval"/>
+                <IncludeRules context="StringInterpAll"/>
+                <DetectChar attribute="StringRaw" char="'" context="#pop"/>
+            </context>
+            <context name="RawEvalSingleStringDQ" attribute="StringRaw" lineEndContext="#stay">
+                <IncludeRules context="StringEscapesRawEval"/>
+                <IncludeRules context="StringInterpAll"/>
+                <DetectChar attribute="StringRaw" char="&quot;" context="#pop"/>
+            </context>
+
+            <context name="RawEvalTripleStringSQ" attribute="StringRaw" lineEndContext="#stay" noIndentationBasedFolding="true">
+                <IncludeRules context="StringEscapesRawEval"/>
+                <IncludeRules context="StringInterpAll"/>
+                <StringDetect attribute="String" String="'''" context="#pop#CheckForString" endRegion="TripleStringSQ"/>
+            </context>
+            <context name="RawEvalTripleStringDQ" attribute="StringRaw" lineEndContext="#stay" noIndentationBasedFolding="true">
+                <IncludeRules context="StringEscapesRawEval"/>
+                <IncludeRules context="StringInterpAll"/>
+                <StringDetect attribute="String" String="&quot;&quot;&quot;" context="#pop#CheckForString" endRegion="TripleStringDQ"/>
+            </context>
+        </contexts>
+
+        <itemDatas>
+            <itemData name="Normal"        defStyleNum="dsNormal"       spellChecking="false"/>
+            <itemData name="Keyword"       defStyleNum="dsKeyword"      spellChecking="false"/>
+            <itemData name="Function"      defStyleNum="dsFunction"     spellChecking="false"/>
+            <itemData name="Index"         defStyleNum="dsOthers"       spellChecking="false"/>
+            <itemData name="Call"          defStyleNum="dsFunction"     spellChecking="false"/>
+
+            <itemData name="Decimal"       defStyleNum="dsDecVal"       spellChecking="false"/>
+            <itemData name="Hex"           defStyleNum="dsBaseN"        spellChecking="false"/>
+            <itemData name="Binary"        defStyleNum="dsBaseN"        spellChecking="false"/>
+            <itemData name="Float"         defStyleNum="dsFloat"        spellChecking="false"/>
+            <itemData name="StringChar"    defStyleNum="dsChar"         spellChecking="false"/>
+            <itemData name="StringInterp"  defStyleNum="dsOthers"       spellChecking="false"/>
+            <itemData name="String"        defStyleNum="dsString"/>
+            <itemData name="StringRaw"     defStyleNum="dsString"/>
+
+            <itemData name="Comment"       defStyleNum="dsComment"/>
+            <itemData name="Symbol"        defStyleNum="dsNormal"       spellChecking="false"/>
+            <itemData name="Region Marker" defStyleNum="dsRegionMarker" spellChecking="false"/>
+            <itemData name="TableKey"      defStyleNum="dsDataType"     spellChecking="false"/>
+        </itemDatas>
+    </highlighting>
+    <general>
+        <comments>
+            <comment name="singleLine" start="//"/>
+            <comment name="multiLine" start="/*" end="*/" region="CommentNested"/>
+        </comments>
+        <keywords casesensitive="1"/>
+    </general>
+</language>
