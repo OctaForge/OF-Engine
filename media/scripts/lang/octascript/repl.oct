@@ -1,0 +1,133 @@
+// An OctaScript REPL
+// Part of OctaScript
+// Written by Daniel "q66" Kolesa <quaker66@gmail.com>
+// NCSA licensed
+
+import replutil
+import std.io
+import std.debug
+import std.eval
+
+from std.util import _VERSION
+
+func repl_header() {
+    print e"$_VERSION REPL (interactive shell)"
+}
+
+func repl_traceback(msg) {
+    msg = debug::traceback(msg, 2)
+    return msg.find_match("^(.*stdin:%d: in main chunk).*$") || msg
+        || "(no error message)"
+}
+
+from std.conv import serialize
+
+func print_ret(stat, ...) {
+    if !(...) {
+        return stat
+    }
+    var msg = [ ... ].map(\v -> serialize(v)).concat(", ")
+    if !stat {
+        io.stderr.write(msg, "\n\n")
+        io.stderr.flush()
+    } else {
+        io::write(msg, "\n")
+        io::flush()
+    }
+    return stat
+}
+
+func hook_interrupt() {
+    debug::sethook()
+    raise "interrupted!", 3
+}
+
+func sig_interrupt() {
+    replutil::signal()
+    debug::sethook(hook_interrupt, "crl", 1)
+}
+
+func do_call(f, ...) {
+    replutil::signal(sig_interrupt)
+    var rets = [ try[repl_traceback] f(...) ]
+    replutil::signal()
+    return rets.unpack()
+}
+
+func input_incomplete(ln) {
+    return ln && ln.find_match("^.*<eof>'") != undef
+}
+
+func input_get_prompt(n) {
+    return ">".rep(n) ~ " "
+}
+
+func input_get_line(n) {
+    var line = replutil::readline(input_get_prompt(n))
+    if !line {
+        return undef
+    }
+    var ln = line.len()
+
+    if line.sub(ln - 1) == "\n" {
+        line = line.sub(0, ln - 1)
+    }
+    return (n == 1 && line.sub(0, 1) == "=") ?
+        ("return " ~ line.sub(1)) : line
+}
+
+func input_load_line() {
+    var line = input_get_line(1)
+    if !line {
+        return undef
+    }
+    var f, err
+    while true {
+        var stat, ret = eval::load(line, "=stdin", "t", undef, true)
+        if !stat {
+            var bs = line.sub(line.len() - 1) == "\\"
+            if !input_incomplete(ret) && !bs {
+                f, err = undef, ret
+                break
+            } else if bs {
+                line = line.sub(0, line.len() - 1)
+            }
+        } else {
+            f, err = stat, ret
+            break
+        }
+        var ln = input_get_line(2)
+        if !ln {
+            return f, err
+        }
+        line = line ~ "\n" ~ ln
+    }
+    return f, err
+}
+
+func repl_run() {
+    replutil::signal()
+    while true {
+        var stat, msg = input_load_line()
+        if stat {
+            print_ret(do_call(stat))
+        } else {
+            print_ret(stat, msg)
+        }
+    }
+    io::write("\n")
+    io::flush()
+}
+
+func dotty() {
+    repl_header()
+    repl_run()
+}
+
+try (func(argv) {
+    if replutil::isatty() {
+        dotty()
+    } else {
+        raise "only interactive REPL supported for now"
+    }
+})([ ... ])

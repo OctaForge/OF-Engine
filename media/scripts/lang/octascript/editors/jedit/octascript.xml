@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<!DOCTYPE MODE SYSTEM "xmode.dtd">
+
+<!-- OctaScript mode by Daniel "q66" Kolesa -->
+<!-- NCSA licensed -->
+
+<MODE>
+    <PROPS>
+        <PROPERTY NAME="commentStart" VALUE="/*"/>
+        <PROPERTY NAME="commentEnd" VALUE="*/"/>
+        <PROPERTY NAME="lineComment" VALUE="//"/>
+        <PROPERTY NAME="wordBreakChars" VALUE=",+-=&lt;&gt;/?^&amp;*"/>
+        <PROPERTY NAME="indentOpenBrackets" VALUE="{"/>
+        <PROPERTY NAME="indentCloseBrackets" VALUE="}"/>
+        <PROPERTY NAME="unalignedOpenBrackets" VALUE="(" />
+        <PROPERTY NAME="unalignedCloseBrackets" VALUE=")" />
+    </PROPS>
+    <RULES IGNORE_CASE="FALSE" NO_WORD_SEP="_:." HIGHLIGHT_DIGITS="TRUE"
+           DIGIT_RE="[0-9][0-9a-zA-Z]*">
+        <IMPORT DELEGATE="CORE"/>
+    </RULES>
+    <RULES IGNORE_CASE="FALSE" SET="CORE" HIGHLIGHT_DIGITS="TRUE"
+           DIGIT_RE="[0-9][0-9a-zA-Z]*">
+
+        <SEQ TYPE="COMMENT1">/**/</SEQ>
+        <SPAN TYPE="COMMENT3" DELEGATE="doxygen::DOXYGEN">
+            <BEGIN>/**&lt;</BEGIN>
+            <END>*/</END>
+        </SPAN>
+        <SPAN TYPE="COMMENT3" DELEGATE="doxygen::DOXYGEN">
+            <BEGIN>/**</BEGIN>
+            <END>*/</END>
+        </SPAN>
+        <SPAN TYPE="COMMENT3" DELEGATE="doxygen::DOXYGEN">
+            <BEGIN>/*!</BEGIN>
+            <END>*/</END>
+        </SPAN>
+        <SPAN TYPE="COMMENT3" DELEGATE="doxygen::DOXYGEN">
+            <BEGIN>/*!&lt;</BEGIN>
+            <END>*/</END>
+        </SPAN>
+        <SPAN TYPE="COMMENT1" DELEGATE="NESTED_COMMENT">
+            <BEGIN>/*</BEGIN>
+            <END>*/</END>
+        </SPAN>
+
+        <EOL_SPAN TYPE="COMMENT3" DELEGATE="doxygen::DOXYGEN">///&lt;</EOL_SPAN>
+        <EOL_SPAN TYPE="COMMENT3" DELEGATE="doxygen::DOXYGEN">///</EOL_SPAN>
+        <EOL_SPAN TYPE="COMMENT3" DELEGATE="doxygen::DOXYGEN">//!&lt;</EOL_SPAN>
+        <EOL_SPAN TYPE="COMMENT3" DELEGATE="doxygen::DOXYGEN">//!</EOL_SPAN>
+
+        <EOL_SPAN TYPE="COMMENT1">//</EOL_SPAN>
+
+        <EOL_SPAN AT_LINE_START="TRUE" TYPE="COMMENT2">#!</EOL_SPAN>
+
+        <SPAN_REGEXP TYPE="LITERAL1" DELEGATE="EXPAND_STRING">
+          <BEGIN>[eE][rR]?(["'])</BEGIN>
+          <END>$1</END>
+        </SPAN_REGEXP>
+        <SPAN_REGEXP TYPE="LITERAL1" DELEGATE="EXPAND_STRING">
+          <BEGIN>[rR][eE](["'])</BEGIN>
+          <END>$1</END>
+        </SPAN_REGEXP>
+        <SPAN_REGEXP TYPE="LITERAL1">
+          <BEGIN>[rR]?(["'])</BEGIN>
+          <END>$1</END>
+        </SPAN_REGEXP>
+
+        <!-- Function calls -->
+        <MARK_PREVIOUS TYPE="FUNCTION" MATCH_TYPE="OPERATOR">(</MARK_PREVIOUS>
+        <SEQ TYPE="OPERATOR">)</SEQ>
+
+        <!-- Operators -->
+        <SEQ TYPE="OPERATOR">=</SEQ>
+        <SEQ TYPE="OPERATOR">!</SEQ>
+        <SEQ TYPE="OPERATOR">+</SEQ>
+        <SEQ TYPE="OPERATOR">-</SEQ>
+        <SEQ TYPE="OPERATOR">/</SEQ>
+        <SEQ TYPE="OPERATOR">*</SEQ>
+        <SEQ TYPE="OPERATOR">&gt;</SEQ>
+        <SEQ TYPE="OPERATOR">&lt;</SEQ>
+        <SEQ TYPE="OPERATOR">%</SEQ>
+        <SEQ TYPE="OPERATOR">&amp;</SEQ>
+        <SEQ TYPE="OPERATOR">|</SEQ>
+        <SEQ TYPE="OPERATOR">^</SEQ>
+        <SEQ TYPE="OPERATOR">~</SEQ>
+        <SEQ TYPE="OPERATOR">?</SEQ>
+        <SEQ TYPE="OPERATOR">:</SEQ>
+        <SEQ TYPE="OPERATOR">.</SEQ>
+        <SEQ TYPE="OPERATOR">,</SEQ>
+        <SEQ TYPE="OPERATOR">[</SEQ>
+        <SEQ TYPE="OPERATOR">]</SEQ>
+        <SEQ TYPE="OPERATOR">)</SEQ>
+        <SEQ TYPE="OPERATOR">}</SEQ>
+        <SEQ TYPE="OPERATOR">{</SEQ>
+        <SEQ TYPE="OPERATOR">;</SEQ>
+        <SEQ TYPE="OPERATOR">..</SEQ>
+        <SEQ TYPE="OPERATOR">...</SEQ>
+        <SEQ TYPE="OPERATOR">\</SEQ>
+        <SEQ TYPE="OPERATOR">@[</SEQ>
+        <SEQ TYPE="OPERATOR">#</SEQ>
+
+        <KEYWORDS>
+            <KEYWORD1>as</KEYWORD1>
+            <KEYWORD1>break</KEYWORD1>
+            <KEYWORD1>by</KEYWORD1>
+            <KEYWORD1>continue</KEYWORD1>
+            <KEYWORD1>else</KEYWORD1>
+            <KEYWORD1>enum</KEYWORD1>
+            <KEYWORD1>for</KEYWORD1>
+            <KEYWORD1>from</KEYWORD1>
+            <KEYWORD1>func</KEYWORD1>
+            <KEYWORD1>goto</KEYWORD1>
+            <KEYWORD1>if</KEYWORD1>
+            <KEYWORD1>import</KEYWORD1>
+            <KEYWORD1>in</KEYWORD1>
+            <KEYWORD1>print</KEYWORD1>
+            <KEYWORD1>raise</KEYWORD1>
+            <KEYWORD1>rec</KEYWORD1>
+            <KEYWORD1>repeat</KEYWORD1>
+            <KEYWORD1>return</KEYWORD1>
+            <KEYWORD1>to</KEYWORD1>
+            <KEYWORD1>try</KEYWORD1>
+            <KEYWORD1>typeof</KEYWORD1>
+            <KEYWORD1>until</KEYWORD1>
+            <KEYWORD1>var</KEYWORD1>
+            <KEYWORD1>while</KEYWORD1>
+
+            <KEYWORD3>false</KEYWORD3>
+            <KEYWORD3>null</KEYWORD3>
+            <KEYWORD3>true</KEYWORD3>
+            <KEYWORD3>undef</KEYWORD3>
+
+            <LITERAL2>self</LITERAL2>
+
+            <KEYWORD2>__add</KEYWORD2>
+            <KEYWORD2>__call</KEYWORD2>
+            <KEYWORD2>__concat</KEYWORD2>
+            <KEYWORD2>__div</KEYWORD2>
+            <KEYWORD2>__eq</KEYWORD2>
+            <KEYWORD2>__index</KEYWORD2>
+            <KEYWORD2>__le</KEYWORD2>
+            <KEYWORD2>__lt</KEYWORD2>
+            <KEYWORD2>__metatable</KEYWORD2>
+            <KEYWORD2>__mode</KEYWORD2>
+            <KEYWORD2>__mul</KEYWORD2>
+            <KEYWORD2>__newindex</KEYWORD2>
+            <KEYWORD2>__pairs</KEYWORD2>
+            <KEYWORD2>__pow</KEYWORD2>
+            <KEYWORD2>__sub</KEYWORD2>
+            <KEYWORD2>__tostring</KEYWORD2>
+            <KEYWORD2>__unm</KEYWORD2>
+        </KEYWORDS>
+    </RULES>
+    <RULES SET="NESTED_COMMENT" DEFAULT="COMMENT1">
+        <SPAN TYPE="COMMENT1" DELEGATE="NESTED_COMMENT">
+            <BEGIN>/*</BEGIN>
+            <END>*/</END>
+        </SPAN>
+    </RULES>
+
+    <RULES SET="EXPAND_STRING" DEFAULT="LITERAL1">
+        <SEQ_REGEXP TYPE="LITERAL1" HASH_CHAR="\">\\["'$\\]</SEQ_REGEXP>
+        <SPAN TYPE="LITERAL4" DELEGATE="NESTED_EXPAND_STRING">
+            <BEGIN>$(</BEGIN>
+            <END>)</END>
+        </SPAN>
+        <SEQ_REGEXP TYPE="LITERAL4"
+            HASH_CHAR="$">\$[_a-zA-Z][_a-zA-Z0-9]*</SEQ_REGEXP>
+    </RULES>
+
+    <RULES SET="NESTED_EXPAND_STRING" HIGHLIGHT_DIGITS="TRUE"
+           DIGIT_RE="[0-9][0-9a-zA-Z]*">
+       <SEQ_REGEXP TYPE="FUNCTION">(\p{Alpha}\w*)(?=\()</SEQ_REGEXP>
+        <SPAN TYPE="OPERATOR" DELEGATE="NESTED_EXPAND_STRING">
+            <BEGIN>(</BEGIN>
+            <END>)</END>
+        </SPAN>
+        <IMPORT DELEGATE="CORE"/>
+    </RULES>
+</MODE>
+

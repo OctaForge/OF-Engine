@@ -1,0 +1,580 @@
+import std
+import std.package
+
+import std.conv
+
+from std.conv import tonumber, tostring
+from std.table import pairs
+
+/* SERIALIZER */
+
+var serialize_fn
+serialize_fn = func(v, stream, kwargs, simp, tables, indent) {
+    if simp {
+        v = simp(v)
+    }
+    var tv = typeof v
+    if tv == "string" {
+        stream(v.escape())
+    } else if tv == "number" || tv == "boolean" || tv == "undef" {
+        stream(tostring(v))
+    } else if tv == "table" {
+        var mline   = kwargs.multiline
+        var indstr  = kwargs.indent
+        var asstr   = kwargs.assign || ":"
+        var sepstr  = kwargs.table_sep || ","
+        var isepstr = kwargs.item_sep
+        var endsep  = kwargs.end_sep
+        var optk    = kwargs.optimize_keys
+        var nline   = kwargs.nrec_line || 0
+        if tables[v] {
+            stream() // let the stream know about an error
+            return false,
+                "circular table reference detected during serialization"
+        }
+        tables[v] = true
+        stream("{")
+        if mline { stream("\n") }
+        var first = true
+        var n = 0
+        for k, v in pairs(v) {
+            if first { first = false
+            } else {
+                stream(sepstr)
+                if mline {
+                    if n == 0 {
+                        stream("\n")
+                    } else if isepstr {
+                        stream(isepstr)
+                    }
+                }
+            }
+            if mline && indstr && n == 0 {
+                for i in 1 to indent { stream(indstr) }
+            }
+            var tk = typeof k
+            if optk && tk == "string"
+            && k.find_match("^[%a_][%w_]*$") {
+                stream(k)
+            } else if tk == "string" || tk == "number" || tk == "boolean" {
+                var ret, err = serialize_fn(k, stream, kwargs, simp,
+                    tables, indent + 1)
+                if !ret { return ret, err }
+            } else {
+                stream("(")
+                var ret, err = serialize_fn(k, stream, kwargs, simp,
+                    tables, indent + 1)
+                if !ret { return ret, err }
+                stream(")")
+            }
+            stream(asstr)
+            var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
+                indent + 1)
+            if !ret { return ret, err }
+            n = (n + 1) % nline
+        }
+        if !first {
+            if endsep { stream(sepstr) }
+            if mline { stream("\n") }
+        }
+        if mline && indstr {
+            for i in 2 to indent { stream(indstr) }
+        }
+        stream("}")
+    } else if tv == "array" {
+        var mline   = kwargs.multiline
+        var indstr  = kwargs.indent
+        var sepstr  = kwargs.array_sep || ","
+        var isepstr = kwargs.item_sep
+        var endsep  = kwargs.end_sep
+        var nline   = kwargs.narr_line || 0
+        if tables[v] {
+            stream() // let the stream know about an error
+            return false,
+                "circular array reference detected during serialization"
+        }
+        tables[v] = true
+        stream("[")
+        if mline { stream("\n") }
+        var first = true
+        var n = 0
+        for i, v in v.each() {
+            if first { first = false
+            } else {
+                stream(sepstr)
+                if mline {
+                    if n == 0 {
+                        stream("\n")
+                    } else if isepstr {
+                        stream(isepstr)
+                    }
+                }
+            }
+            if mline && indstr && n == 0 {
+                for i in 1 to indent { stream(indstr) }
+            }
+            var ret, err = serialize_fn(v, stream, kwargs, simp, tables,
+                indent + 1)
+            if !ret { return ret, err }
+            n = (n + 1) % nline
+        }
+        if !first {
+            if endsep { stream(sepstr) }
+            if mline { stream("\n") }
+        }
+        if mline && indstr {
+            for i in 2 to indent { stream(indstr) }
+        }
+        stream("]")
+    } else {
+        stream()
+        return false, ("invalid value type: " ~ tv)
+    }
+    return true
+}
+
+var defkw = {
+    multiline: false, indent: undef, assign: ":", table_sep: ",",
+    array_sep: ",", end_sep: false, optimize_keys: true
+}
+
+var defkwp = {
+    multiline: true, indent: "    ", assign: ": ", table_sep: ",",
+    array_sep: ", ", item_sep: " ", narr_line: 4, nrec_line: 2,
+    end_sep: false, optimize_keys: true
+}
+
+/**
+    Serializes a given table, returning a string containing a literal
+    representation of the table. It tries to be compact by default so it
+    avoids whitespace and newlines. Arrays and associative arrays are
+    serialized differently (for compact output).
+
+    Besides tables this can also serialize other OctaScript values. It
+    serializes them in the same way as values inside a table, returning their
+    literal representation (if serializable, otherwise just their tostring).
+    The serializer allows strings, numbers, booleans and tables.
+
+    Circular tables can't be serialized. The function normally returns either
+    the string output or undef + an error message (which can signalize either
+    circular references or invalid types).
+
+    The function allows you to pass in a "kwargs" table as the second argument.
+    It's a table of options. Those can be multiline (boolean, false by default,
+    pretty much pretty-printing), indent (string, undef by default, specifies
+    how an indent level looks), assign (string, "=" by default, specifies how
+    an assignment between a key and a value looks), table_sep (table separator,
+    by default ",", can also be ";" for tables, separates items in all cases),
+    array_sep (array item separator, by default ","), item_sep (item separator,
+    string, undef by default, comes after array_sep/table_sep but only if it
+    isn't followed by a newline), narr_line (number, 0 by default, how many
+    array elements to fit on a line), nrec_line (same, just for key-value
+    pairs), end_sep (boolean, false by default, makes the serializer put
+    array_sep or table_sep after every item including the last one),
+    optimize_keys (boolean, true by default, optimizes string keys like that
+    it doesn't use string literals for keys that can be expressed as OctaScript
+    names).
+
+    If kwargs is undef or false, the values above are used. If kwargs is a
+    boolean value true, pretty-printing defaults are used (multiline is
+    true, indent is 4 spaces, assign is " = ", table_sep is ",", array_sep is
+    "," item_sep is one space, narr_line is 4, nrec_line is 2, end_sep is
+    false, optimize_keys is true).
+
+    Arguments:
+        - val - the value to serialize.
+        - kwargs - see above.
+        - stream - optionally a function that is called every time a new piece
+          is saved - when a custom stream is supplied, the function doesn't
+          return a string, but it returns true or false depending on whether
+          it succeeded and a potential error message.
+        - simplifier - optionally a function that takes a value and simplifies
+          it (returns another value the original should be replaced with),
+          by default there is no simplifier.
+*/
+conv.serialize = func(val, kwargs, stream, simplifier) {
+    if kwargs == true {
+        kwargs = defkwp
+    } else if !kwargs {
+        kwargs = defkw
+    } else {
+        if  kwargs.optimize_keys == undef {
+            kwargs.optimize_keys = true
+        }
+    }
+    if stream {
+        return serialize_fn(val, stream, kwargs, simplifier, {}, 1)
+    } else {
+        var t = []
+        var ret, err = serialize_fn(val, func(out) { t.push(out) },
+            kwargs, simplifier, {}, 1)
+        if !ret {
+            return undef, err
+        } else {
+            return t.concat()
+        }
+    }
+}
+
+var lex_get = func(ls) {
+    while true {
+        var c = ls.curr
+        if !c { break }
+        ls.tname, ls.tval = undef, undef
+        if c == "\n" || c == "\r" {
+            var prev = c
+            c = ls::rdr()
+            if (c == "\n" || c == "\r") && c != prev {
+                c = ls::rdr()
+            }
+            ls.curr = c
+            ls.linenum = ls.linenum + 1
+        } else if c == " " || c == "\t" || c == "\f" || c == "\v" {
+            ls.curr = ls::rdr()
+        } else if c == "." || c.byte() >= 48 && c.byte() <= 57 {
+            var buf = [ ls.curr ]
+            ls.curr = ls::rdr()
+            while ls.curr && ls.curr.find_match("[epxEPX0-9.+-]") {
+                buf.push(ls.curr)
+                ls.curr = ls::rdr()
+            }
+            var str = buf.concat()
+            var num = tonumber(str)
+            if !num {
+                raise "%d: malformed number near '%s'".format(ls.linenum, str), 0
+            }
+            ls.tname, ls.tval = "<number>", num
+            return "<number>"
+        } else if c == '"' || c == "'" {
+            var d = ls.curr
+            ls.curr = ls::rdr()
+            var buf = []
+            while ls.curr != d {
+                var c = ls.curr
+                if c == undef {
+                    raise "%d: unfinished string near '<eos>'".format(ls.linenum), 0
+                } else if c == "\n" || c == "\r" {
+                    raise "%d: unfinished string near '<string>'".format(ls.linenum), 0
+                // not complete escape sequence handling: handles only these
+                // that are or can be in the serialized output
+                } else if c == "\\" {
+                    c = ls::rdr()
+                    if c == "a" {
+                        buf.push("\a") ls.curr = ls::rdr()
+                    } else if c == "b" {
+                        buf.push("\b") ls.curr = ls::rdr()
+                    } else if c == "f" {
+                        buf.push("\f") ls.curr = ls::rdr()
+                    } else if c == "n" {
+                        buf.push("\n") ls.curr = ls::rdr()
+                    } else if c == "r" {
+                        buf.push("\r") ls.curr = ls::rdr()
+                    } else if c == "t" {
+                        buf.push("\t") ls.curr = ls::rdr()
+                    } else if c == "v" {
+                        buf.push("\v")ls.curr = ls::rdr()
+                    } else if c == "\\" || c == '"' || c == "'" {
+                        buf.push(c)
+                        ls.curr = ls::rdr()
+                    } else if !c {
+                        raise "%d: unfinished string near '<eos>'".format(ls.linenum), 0
+                    } else {
+                        if !c.find_match("%d") {
+                            raise "%d: invalid escape sequence".format(ls.linenum), 0
+                        }
+                        var dbuf = [ c ]
+                        c = ls::rdr()
+                        if c.find_match("%d") {
+                            dbuf.push(c)
+                            c = ls::rdr()
+                            if c.find_match("%d") {
+                                dbuf.push(c)
+                                c = ls::rdr()
+                            }
+                        }
+                        ls.curr = c
+                        buf.push(dbuf.concat().char())
+                    }
+                } else {
+                    buf.push(c)
+                    ls.curr = ls::rdr()
+                }
+            }
+            ls.curr = ls::rdr() // skip delim
+            ls.tname, ls.tval = "<string>", buf.concat()
+            return "<string>"
+        } else if c.find_match("[%a_]") {
+            var buf = [ c ]
+            ls.curr = ls::rdr()
+            while ls.curr && ls.curr.find_match("[%w_]") {
+                buf.push(ls.curr)
+                ls.curr = ls::rdr()
+            }
+            var str = buf.concat()
+            if str == "true" || str == "false" || str == "undef" {
+                ls.tname, ls.tval = str, undef
+                return str
+            } else {
+                ls.tname, ls.tval = "<name>", str
+                return "<name>"
+            }
+        } else {
+            ls.curr = ls::rdr()
+            ls.tname, ls.tval = c, undef
+            return c
+        }
+    }
+}
+
+var assert_tok
+assert_tok = func(ls, tok, ...) {
+    if !tok { return }
+    if ls.tname != tok {
+        raise "%d: unexpected symbol near '%s'".format(ls.linenum, ls.tname), 0
+    }
+    lex_get(ls)
+    assert_tok(ls, ...)
+}
+
+var allowed_keys = { "<number>": true, "<string>": true, "true": true,
+    "false": true, "null": true }
+
+var parse
+parse = func(ls) {
+    var tok = ls.tname
+    if tok == "<string>" || tok == "<number>" {
+        var v = ls.tval
+        lex_get(ls)
+        return v
+    } else if tok == "true"  { lex_get(ls) return true
+    } else if tok == "false" { lex_get(ls) return false
+    } else if tok == "undef" { lex_get(ls) return undef
+    } else if tok == "null"  { lex_get(ls) return null
+    } else if tok == "[" {
+        lex_get(ls)
+        var ret = []
+        if ls.tname == "]" {
+            lex_get(ls)
+            return ret
+        }
+        repeat {
+            ret.push(parse(ls))
+        } until ls.tname != "," || !lex_get(ls)
+        assert_tok(ls, "]")
+        return ret
+    } else {
+        assert_tok(ls, "{")
+        var tbl = {}
+        if ls.tname == "}" {
+            lex_get(ls)
+            return tbl
+        }
+        var arri = 1
+        repeat {
+            var key
+            if ls.tname == "<name>" {
+                key = ls.tval
+                lex_get(ls)
+            } else if allowed_keys[ls.tname] {
+                key = parse(ls)
+            } else {
+                assert_tok(ls, "(")
+                key = parse(ls)
+                assert_tok(ls, ")")
+            }
+            assert_tok(ls, ":")
+            tbl[key] = parse(ls)
+        } until (ls.tname != "," && ls.tname != ";") || !lex_get(ls)
+        assert_tok(ls, "}")
+        return tbl
+    }
+}
+
+/**
+    Takes a previously serialized table and converts it back to the original.
+    Uses a simple tokenizer and a recursive descent parser to build the result
+    so it's safe (doesn't evaluate anything). The input can also be a callable
+    value that return the next character each call.
+    This returns the deserialized value on success and undef + the error
+    message on failure.
+*/
+conv.deserialize = func(s) {
+    var stream = (typeof s == "string") && s.gmatch(".") || s
+    var ls = { curr: stream(), rdr: stream, linenum: 1 }
+    var r, v = try lex_get(ls)
+    if !r { return undef, v }
+    r, v = try parse(ls)
+    if !r { return undef, v }
+    return v
+}
+
+// ARRAY SORT
+
+import std.array
+
+from std.math import floor, log
+
+var sift_down = func(tbl, l, s, e, fun) {
+    var root = s
+    while root * 2 - l + 1 <= e {
+        var child = root * 2 - l + 1
+        var swap  = root
+        if fun(tbl[swap], tbl[child]) {
+            swap = child
+        }
+        if child + 1 <= e && fun(tbl[swap], tbl[child + 1]) {
+            swap = child + 1
+        }
+        if swap != root {
+            tbl[root], tbl[swap] = tbl[swap], tbl[root]
+            root = swap
+        } else { return }
+    }
+}
+
+var heapsort = func(tbl, l, r, fun) {
+    var start = floor((l + r) / 2)
+    while start >= l {
+        sift_down(tbl, l, start, r, fun)
+        start = start - 1
+    }
+    var e = r
+    while e > l {
+        tbl[e], tbl[l] = tbl[l], tbl[e]
+        e = e - 1
+        sift_down(tbl, l, l, e, fun)
+    }
+}
+
+var partition = func(tbl, l, r, pidx, fun) {
+    var pivot = tbl[pidx]
+    tbl[pidx], tbl[r] = tbl[r], tbl[pidx]
+    for i in l to r - 1 {
+        if fun(tbl[i], pivot) {
+            tbl[i], tbl[l] = tbl[l], tbl[i]
+            l = l + 1
+        }
+    }
+    tbl[l], tbl[r] = tbl[r], tbl[l]
+    return l
+}
+
+var insertion_sort = func(tbl, l, r, fun) {
+    for i in l to r {
+        var j, v = i, tbl[i]
+        while j > 1 && !fun(tbl[j - 1], v) {
+            tbl[j] = tbl[j - 1]
+            j = j - 1
+        }
+        tbl[j] = v
+    }
+}
+
+var introloop
+introloop = func(tbl, l, r, depth, fun) {
+    if (r - l) > 10 {
+        if depth == 0 {
+            return heapsort(tbl, l, r, fun)
+        }
+        var pidx = partition(tbl, l, r, floor((l + r) / 2), fun)
+        introloop(tbl, l, pidx - 1, depth - 1, fun)
+        introloop(tbl, pidx + 1, r, depth - 1, fun)
+    } else { insertion_sort(tbl, l, r, fun) }
+}
+
+var introsort = func(tbl, l, r, fun) {
+    return introloop(tbl, l, r, 2 * floor(log(r - l + 1) / log(2)), fun)
+}
+
+var defaultcmp = func(a, b) { return a < b }
+
+/**
+    The sorting algorithm used here is introsort. It's a modification
+    of quicksort that switches to heapsort when the recursion depth
+    exceeds 2 * floor(log(nitems) / log(2)). It also uses insertion
+    sort to sort small sublists (10 elements and smaller). The
+    quicksort part uses a median of three pivot.
+
+    The l and r default to 0 and x.len() - 1 respectively. You can override
+    them to sort any kind of structure, even one that doesn't provide a len
+    method or one that is 1-indexed. The deafult comparison function uses the
+    "less than" operator.
+*/
+array.sort = func(self, fun, l, r) {
+    l, r = l || 0, r || self.len() - 1
+    return introsort(self, l, r, fun || defaultcmp)
+}
+
+// OBJECT SYSTEM
+
+var object = {}
+package.loaded["std.object"] = object
+std["object"] = object
+
+from std.table import setmt
+
+/**
+    Provides the basis for any object in OF. It implements a simple prototypal
+    OO system.
+*/
+object.Object = {
+    /**
+        When you call an object, it's identical to $clone, but it also
+        tries to call a __ctor field of the current object on the result,
+        passing in any extra arguments (besides the new object as the first
+        argument).
+    */
+    __call: func(self, ...) {
+        var r = {
+            __index: self, __proto: self, __call: self.__call,
+            __tostring: self.__tostring
+        }
+        setmt(r, r)
+        if self.__ctor { self::__ctor(r, ...) }
+        return r
+    },
+
+    /**
+        "Clones" an object. It's not an actual clone as it's delegative
+        (doesn't copy, only hooks a metatable). Thanks to its delegative
+        nature changes in parents also reflect in children.
+
+        Arguments:
+            tbl - optionally a table to serve as a basis for the new clone
+            (this will modify the table and hook its metatable properly).
+
+        Returns:
+            The new clone.
+    */
+    clone: func(self, tbl) {
+        tbl = tbl || {}
+        tbl.__index, tbl.__proto, tbl.__call = self, self, self.__call
+        if !tbl.__tostring { tbl.__tostring = self.__tostring }
+        setmt(tbl, tbl)
+        return tbl
+    },
+
+    /**
+        Checks whether the current object is a either equal to the given
+        object, is a child of the given object, or a child of a child
+        of the given object, or anything down the tree.
+    */
+    is_a: func(self, base) {
+        if self == base { return true }
+        var pt = self.__proto
+        var is = (pt == base)
+        while !is && pt {
+            pt = pt.__proto
+            is = (pt == base)
+        }
+        return is
+    },
+
+    /**
+        The default tostring result is in format "Object: NAME" where NAME
+        is self.name.
+    */
+    __tostring: func(self) {
+        return "Object: %s".format(self.name || "unnamed")
+    }
+}
