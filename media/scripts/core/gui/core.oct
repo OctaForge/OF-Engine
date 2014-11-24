@@ -613,7 +613,7 @@ M.Widget = register_type("Widget", Object, {
         table contains properties that should be set on the resulting
         widget.
     */
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
 
         var instances = rawget(self.__proto, "__instances")
@@ -703,6 +703,12 @@ M.Widget = register_type("Widget", Object, {
                 v.parent = cont
                 v._root  = cont._root
             }
+        }
+        var ach = [ ... ]
+        for i, v in ach.each() {
+            ch.push(v)
+            v.parent = cont
+            v._root  = cont._root
         }
         self.children = ch
 
@@ -1772,10 +1778,10 @@ Widget = M.Widget
         - obj_name - can be passed in kwargs as "name".
 */
 M.NamedWidget = register_type("NamedWidget", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.obj_name = kwargs.name
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     /// Function: set_obj_name
@@ -1804,12 +1810,12 @@ Tag = M.Tag
           mode.
 */
 M.Window = register_type("Window", NamedWidget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         var ig = kwargs.input_grab
         self.input_grab = ig == undef && true || ig
         self.above_hud = kwargs.above_hud || false
-        return NamedWidget::__ctor(self, kwargs)
+        return NamedWidget::__ctor(self, kwargs, ...)
     },
 
     /// Equivalent to win.parent.hide_window(win.obj_name).

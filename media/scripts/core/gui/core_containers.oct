@@ -61,12 +61,12 @@ var clampsh = func(adj) {
         - $Grid
 */
 M.HBox = register_type("HBox", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.padding    = kwargs.padding    || 0
         self.expand     = kwargs.expand     || false
         self.homogenous = kwargs.homogenous || false
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     layout: func(self) {
@@ -144,12 +144,12 @@ M.HBox = register_type("HBox", Widget, {
     clamping is relevant rather than left/right.
 */
 M.VBox = register_type("VBox", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.padding    = kwargs.padding    || 0
         self.expand     = kwargs.expand     || false
         self.homogenous = kwargs.homogenous || false
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     layout: func(self) {
@@ -240,12 +240,12 @@ M.VBox = register_type("VBox", Widget, {
         - $HBox
 */
 M.Grid = register_type("Grid", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.columns = kwargs.columns || 0
         self.padding_h = kwargs.padding_h || kwargs.padding || 0
         self.padding_v = kwargs.padding_v || kwargs.padding || 0
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     layout: func(self) {
@@ -335,14 +335,14 @@ M.Grid = register_type("Grid", Widget, {
         - clip_h - the height of the clipper.
 */
 M.Clipper = register_type("Clipper", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.clip_w = kwargs.clip_w || 0
         self.clip_h = kwargs.clip_h || 0
         self.virt_w = 0
         self.virt_h = 0
 
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     layout: func(self) {

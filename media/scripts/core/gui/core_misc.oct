@@ -47,10 +47,10 @@ var ALIGN_MASK = adjust.ALIGN_MASK
           an argument.
 */
 M.State = register_type("State", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.state = kwargs.state
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     choose_state: func(self) {
@@ -76,10 +76,10 @@ M.State = register_type("State", Widget, {
         - window - a reference to the window this belongs to.
 */
 M.Mover = register_type("Mover", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.window = kwargs.window
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     hover: func(self, cx, cy) {
@@ -163,12 +163,12 @@ var Filler = M.Filler
           arguments, expecting the label string as a return value.
 */
 M.ProgressBar = register_type("ProgressBar", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.value = kwargs.value || 0
         self.bar = kwargs.bar
         self.label = kwargs.label || "%d%%"
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     /**
@@ -232,14 +232,14 @@ var move_funcs = {
 }
 
 M.Animator = register_type("Animator", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         self.move_func    = kwargs.move_func
         self.move_time    = kwargs.move_time   || 2000
         self.move_dist_x  = kwargs.move_dist_x || undef
         self.move_dist_y  = kwargs.move_dist_y || undef
         self.move_speed   = kwargs.move_speed  || 0.2
         self.reset()
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     reset: func(self) {

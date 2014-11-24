@@ -84,12 +84,12 @@ var gen_color_setter = func(name) {
           it modulates the color its background.
 */
 M.ColorFiller = register_type("ColorFiller", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs       = kwargs || {}
         self.solid = kwargs.solid != false && true || false
         self.color = init_color(kwargs.color)
 
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     draw: func(self, sx, sy) {
@@ -134,8 +134,8 @@ var ColorFiller = M.ColorFiller
         - color2 - the other color of the gradient.
 */
 M.Gradient = register_type("Gradient", ColorFiller, {
-    __ctor: func(self, kwargs) {
-        ColorFiller::__ctor(self, kwargs)
+    __ctor: func(self, kwargs, ...) {
+        ColorFiller::__ctor(self, kwargs, ...)
         self.horizontal = kwargs.horizontal
         self.color2 = init_color(kwargs.color2)
     },
@@ -188,10 +188,10 @@ M.Gradient = register_type("Gradient", ColorFiller, {
         - color - see $ColorFiller.
 */
 M.Line = register_type("Line", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.color = init_color(kwargs.color)
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     draw: func(self, sx, sy) {
@@ -221,10 +221,10 @@ M.Line = register_type("Line", Filler, {
         - color - see $ColorFiller.
 */
 M.Outline = register_type("Outline", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.color = init_color(kwargs.color)
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     draw: func(self, sx, sy) {
@@ -283,7 +283,7 @@ var check_alpha_mask = func(tex, x, y) {
         - color - see $ColorFiller.
 */
 M.Image = register_type("Image", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs    = kwargs || {}
         var tex = kwargs.file && texture_load(kwargs.file)
 
@@ -298,7 +298,7 @@ M.Image = register_type("Image", Filler, {
         self.mag_filter = kwargs.mag_filter
         self.color = init_color(kwargs.color)
 
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     ///  Returns the loaded texture filename.
@@ -409,10 +409,10 @@ var Image = M.Image
     some of the internal OF UIs. Has only a subset of $Image's features.
 */
 M.Texture = register_type("Texture", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.texture_id = kwargs.texture_id
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     target: func(self, cx, cy) {
@@ -469,10 +469,10 @@ var get_border_size = func(tex, size, vert) {
         - crop_w, crop_h - the crop dimensions, they default to 1.
 */
 M.CroppedImage = register_type("CroppedImage", Image, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
 
-        Image::__ctor(self, kwargs)
+        Image::__ctor(self, kwargs, ...)
         var tex = self.texture
 
         self.crop_x = get_border_size(tex, kwargs.crop_x || 0, false)
@@ -662,9 +662,9 @@ M.StretchedImage = register_type("StretchedImage", Image, {
           borders.
 */
 M.BorderedImage = register_type("BorderedImage", Image, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
-        Image::__ctor(self, kwargs)
+        Image::__ctor(self, kwargs, ...)
         self.tex_border = get_border_size(self.texture, kwargs.tex_border || 0)
         self.screen_border = kwargs.screen_border || 0
     },
@@ -772,13 +772,13 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         - tile_w, tile_h - tile width and height, they default to 1.
 */
 M.TiledImage = register_type("TiledImage", Image, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
 
         self.tile_w = kwargs.tile_w || 1
         self.tile_h = kwargs.tile_h || 1
 
-        return Image::__ctor(self, kwargs)
+        return Image::__ctor(self, kwargs, ...)
     },
 
     target: func(self, cx, cy) {
@@ -860,7 +860,7 @@ M.TiledImage = register_type("TiledImage", Image, {
     targeting it), it loads immediately.
 */
 M.Thumbnail = register_type("Thumbnail", Image, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.file = kwargs.file
         self.texture = kwargs.fallback && texture_load(kwargs.fallback)
@@ -870,7 +870,7 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         self.mag_filter = kwargs.mag_filter
         self.color = init_color(kwargs.color)
 
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     load: func(self, force) {
@@ -919,11 +919,11 @@ M.Thumbnail = register_type("Thumbnail", Image, {
         - index - the texture slot index (starting with 0, defaults to 0).
 */
 M.SlotViewer = register_type("SlotViewer", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.index = kwargs.index || 0
 
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     target: func(self, cx, cy) {
@@ -958,13 +958,13 @@ M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
         - attachments - an array of tag-attachment pairs.
 */
 M.ModelViewer = register_type("ModelViewer", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.model = kwargs.model
         self.anim = kwargs.anim || 0
         self.attachments = kwargs.attachments || []
 
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     // turn the table into a ffi-friendly array
@@ -1023,12 +1023,12 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         - color - the color (alpha is ignored).
 */
 M.PrefabViewer = register_type("PrefabViewer", Filler, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.prefab = kwargs.prefab
         self.color  = init_color(kwargs.color)
 
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     draw: func(self, sx, sy) {
@@ -1096,11 +1096,11 @@ M.Shape = register_type("Shape", Filler, {
     OUTLINE : OUTLINE,
     MODULATE: MODULATE,
 
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.style = kwargs.style || 0
         self.color = init_color(kwargs.color)
-        return Filler::__ctor(self, kwargs)
+        return Filler::__ctor(self, kwargs, ...)
     },
 
     /// Function: set_style
@@ -1119,10 +1119,10 @@ var Shape = M.Shape
         - angle - the triangle rotation (in degrees).
 */
 M.Triangle = register_type("Triangle", Shape, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.angle = kwargs.angle || 0
-        return Shape::__ctor(self, kwargs)
+        return Shape::__ctor(self, kwargs, ...)
     },
 
     layout: func(self) {
@@ -1208,10 +1208,10 @@ M.Triangle = register_type("Triangle", Shape, {
           will have (it's not a perfect circle, but rather a polygon).
 */
 M.Circle = register_type("Circle", Shape, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.sides = kwargs.sides || 15
-        return Shape::__ctor(self, kwargs)
+        return Shape::__ctor(self, kwargs, ...)
     },
 
     target: func(self, cx, cy) {
@@ -1275,7 +1275,7 @@ M.Circle = register_type("Circle", Shape, {
          - color - see $ColorFiller.
 */
 M.Label = register_type("Label", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
 
         self.text  = kwargs.text  || ""
@@ -1284,7 +1284,7 @@ M.Label = register_type("Label", Widget, {
         self.wrap  = kwargs.wrap  || -1
         self.color = init_color(kwargs.color)
 
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     /**
@@ -1363,7 +1363,7 @@ M.Label = register_type("Label", Widget, {
     a callable value that returns the text to display.
 */
 M.EvalLabel = register_type("EvalLabel", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
 
         self.callback = kwargs.callback || undef
@@ -1371,7 +1371,7 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
         self.wrap     = kwargs.wrap     || -1
         self.color    = init_color(kwargs.color)
 
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     target: func(self, cx, cy) {

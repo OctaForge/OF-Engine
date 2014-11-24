@@ -55,7 +55,7 @@ var SliderButton
           defaults to 100.
 */
 M.Slider = register_type("Slider", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.min_value = kwargs.min_value || 0
         self.max_value = kwargs.max_value || 0
@@ -68,7 +68,7 @@ M.Slider = register_type("Slider", Widget, {
         self.last_step = 0
         self.arrow_dir = 0
 
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     /// Jumps by n steps on the slider.
@@ -218,11 +218,11 @@ var clicked_states = {
     "clicked_right", "clicked_middle", "clicked_back" and "clicked_forward".
 */
 M.SliderButton = register_type("SliderButton", Widget, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         self.offset_h = 0
         self.offset_v = 0
 
-        return Widget::__ctor(self, kwargs)
+        return Widget::__ctor(self, kwargs, ...)
     },
 
     choose_state: func(self) {

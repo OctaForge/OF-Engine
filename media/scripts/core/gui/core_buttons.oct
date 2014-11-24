@@ -84,10 +84,10 @@ M.MenuButton = register_type("MenuButton", Button, {
           is passed the current object as an argument.
 */
 M.Toggle = register_type("Toggle", Button, {
-    __ctor: func(self, kwargs) {
+    __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.condition = kwargs.condition
-        return Button::__ctor(self, kwargs)
+        return Button::__ctor(self, kwargs, ...)
     },
 
     choose_state: func(self) {
