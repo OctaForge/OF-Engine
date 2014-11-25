@@ -47,8 +47,13 @@ void MessageManager::registerMessageType(MessageType *newMessageType)
 bool MessageManager::receive(int type, int receiver, int sender, ucharbuf &p)
 {
     if (messageTypes.access(type) == NULL) {
-        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type %d from %d: Type not found in our extensions to Sauer", type, sender);
-        return false; // This isn't one of our messages, hopefully it's a sauer one
+        /* try Lua message hook */
+        bool haslua = false;
+        lua::pop_external_ret(lua::call_external_ret("message_receive", "iiip",
+            "b", type, receiver, sender, (void*)&p, &haslua));
+        if (!haslua)
+            logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type %d from %d: Type not found in our extensions to Sauer", type, sender);
+        return haslua;
     }
 
     MessageType *message_type = messageTypes[type];

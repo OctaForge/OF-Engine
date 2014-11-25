@@ -12,14 +12,49 @@
 var M = {}
 
 from std.util import assert
+from std.conv import tonumber
+from core.externals import set as setext
 
 import capi
+
+var message_types = {}
+var current_mid = 2048
 
 /**
     A constant (value -1) used when sending messages. Specifying this constant
     means that the message will be sent to all clients.
 */
 M.ALL_CLIENTS = -1
+
+/**
+    Registers a message receiver and returns its ID.
+*/
+M.register = func(receiver) {
+    message_types[current_mid] = receiver
+    current_mid += 1
+    return current_mid - 1
+}
+
+import std.ffi
+
+ffi::cdef("typedef struct ucharbuf ucharbuf;")
+
+ffi::metatype("ucharbuf", {
+    __index: {
+    }
+})
+
+var ubuft = ffi["typeof"]("ucharbuf")
+
+setext("message_receive", func(tp, receiver, sender, p) {
+    tp = tonumber(tp)
+    var recv = message_types[tp]
+    if  recv == undef {
+        return false
+    }
+    recv(tp, tonumber(receiver), tonumber(sender), ffi::cast(ubuft, p))
+    return true
+})
 
 /**
     Shows a message on the client, coming from the server (this only works
