@@ -633,9 +633,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(!loadmapheader(f, ogzname, hdr, ohdr, thdr, numents)) { delete f; return false; }
 
     resetmap();
+#ifndef SERVER
     Texture *mapshot = textureload(picname, 3, true, false);
     renderbackground("loading...", mapshot, mname, game::getmapinfo());
-
+#endif
     setvar("mapversion", hdr.version, true, false);
 
     renderprogress(0, "clearing world...");

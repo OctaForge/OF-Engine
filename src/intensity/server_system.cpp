@@ -4,18 +4,11 @@
 
 int thirdperson   = 0;
 int gamespeed     = 0;
-int envmapradius  = 0;
-int showmat       = 0;
-int outline       = 0;
-int glversion     = 0;
 int texdefscale   = 0;
 int maxvsuniforms = 0;
 int shadowmapping = 0;
 
-int intel_mapbufferrange_bug;
-int xtravertsva;
-
-float ldrscale = 1.0f;
+int xtravertsva = 0;
 
 void serverkeepalive()
 {
@@ -56,15 +49,10 @@ void renderprogress(float bar, const char *text)
 void clearparticleemitters() { };
 
 vec worldpos;
-vec camdir;
 dynent *player = NULL;
 physent *camera1 = NULL;
 float loadprogress = 0.333;
-int xtraverts = 0;
 
-bool hasVBO = false;
-
-Shader *hudshader = NULL, *ldrnotextureshader = NULL;
 bool inbetweenframes = false;
 int explicitsky = 0;
 vtxarray *visibleva = NULL;
@@ -78,18 +66,13 @@ void cleardeferredlightshaders() {};
 void stopmapsounds() { };
 void clearparticles() { };
 void clearstains() { };
-void clearlights() { };
 void clearlightcache(int e) { };
 void initlights() { };
-void setsurfaces(cube &c, const surfaceinfo *surfs, const vertinfo *verts, int numverts) { };
 void setsurface(cube &c, int orient, const surfaceinfo &src, const vertinfo *srcverts, int numsrcverts) { };
 void brightencube(cube &c) { };
 Texture *textureload(const char *name, int clamp, bool mipit, bool msg) { return notexture; };
-void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool force) { };
-void writebinds(stream *f) { };
 int isvisiblesphere(float rad, const vec &cv) { return 0; };
 Shader *lookupshaderbyname(const char *name) { return NULL; };
-Shader *useshaderbyname(const char *name) { return NULL; };
 ushort closestenvmap(int orient, const ivec &co, int size) { return 0; };
 ushort closestenvmap(const vec &o) { return 0; };
 GLuint lookupenvmap(ushort emid) { return 0; };
@@ -98,18 +81,10 @@ Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient) { r
 
 vector<VSlot *> vslots;
 
-int Slot::findtextype(int type, int last) const
-{
-    return -1;
-}
-
 int Slot::cancombine(int type) const
 {
     return -1;
 }
-
-void Slot::load(int index, Slot::Tex &t) {}
-void Slot::load() {}
 
 const char *Slot::name() const { return "slot"; }
 
@@ -146,7 +121,6 @@ void compactvslot(VSlot &vs) {};
 void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta) {};
 VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta) { return &lookupvslot(0, 0); }
 
-int shouldpackvslot(int index) { return 0; }
 void packvslot(vector<uchar> &buf, const VSlot &src) {}
 void packvslot(vector<uchar> &buf, int index) {}
 void packvslot(vector<uchar> &buf, const VSlot *vs) {}
@@ -176,11 +150,7 @@ void initenvmaps() { };
 int optimizematsurfs(materialsurface *matbuf, int matsurfs) { return 0; };
 void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks) {};
 
-matrix4 hudmatrix, aamaskmatrix, shadowmatrix, camprojmatrix;
-
-void pushhudmatrix() {};
-void flushhudmatrix(bool flushparams) {};
-void pophudmatrix(bool flush, bool flushparams) {};
+matrix4 shadowmatrix, camprojmatrix;
 
 void findanims(const char *pattern, vector<int> &anims) {};
 
