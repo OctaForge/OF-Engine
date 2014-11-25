@@ -33,7 +33,6 @@ else()
         ../engine/rendermodel
         ../engine/bih
         ../shared/geom
-        ../shared/glemu
         ../engine/client
         ../engine/octaedit
         ../intensity/network_system

@@ -615,6 +615,7 @@ void entdrag(const vec &ray)
     entmoving = 2;
 }
 
+#ifndef SERVER
 VAR(showentradius, 0, 1, 1);
 
 void renderentring(const extentity &e, float radius, int axis)
@@ -897,6 +898,7 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
 
     gle::disable();
 }
+#endif
 
 bool enttoggle(int id)
 {

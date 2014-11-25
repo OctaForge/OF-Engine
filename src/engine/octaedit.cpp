@@ -2,6 +2,7 @@
 
 extern int outline;
 
+#ifndef SERVER
 bool boxoutline = false;
 
 void boxs(int orient, vec o, const vec &s)
@@ -59,6 +60,7 @@ void boxsgrid(int orient, vec o, vec s, int g)
     }
     xtraverts += gle::end();
 }
+#endif
 
 selinfo sel, lastsel, savedsel;
 
@@ -301,6 +303,7 @@ extern float rayent(const vec &o, const vec &ray, float radius, int mode, int si
 VAR(gridlookup, 0, 0, 1);
 VAR(passthroughcube, 0, 1, 1);
 
+#ifndef SERVER
 /* lamiae */
 VARP(showselgrid, 0, 1, 1);
 
@@ -517,6 +520,7 @@ void rendereditcursor()
 
     glDisable(GL_BLEND);
 }
+#endif
 
 void tryedit()
 {
@@ -2725,6 +2729,7 @@ void editmat(char *name, char *filtername)
 
 COMMAND(editmat, "ss");
 
+#ifndef SERVER
 void rendertexturepanel(int w, int h)
 {
     if((texpaneltimer -= curtime)>0 && editmode)
@@ -2829,7 +2834,6 @@ void rendertexturepanel(int w, int h)
     }
 }
 
-#ifndef SERVER
 #define EDITSTAT(name, type, val) \
     ICOMMAND(editstat##name, "", (), \
     { \

@@ -421,7 +421,6 @@ SERVER_OBJ = \
 	engine/rendermodel.o \
 	engine/bih.o \
 	shared/geom.o \
-	shared/glemu.o \
 	engine/client.o \
 	engine/octaedit.o \
 	intensity/network_system.o \
