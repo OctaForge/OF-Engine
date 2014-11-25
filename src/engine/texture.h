@@ -39,6 +39,7 @@ struct GlobalShaderParamUse : ShaderParamBinding
 
     void flush()
     {
+#ifndef SERVER
         if(version == param->version) return;
         switch(format)
         {
@@ -63,6 +64,7 @@ struct GlobalShaderParamUse : ShaderParamBinding
             case GL_FLOAT_MAT4: glUniformMatrix4fv_(loc, 1, GL_FALSE, param->fval); break;
         }
         version = param->version;
+#endif
     }
 };
 
@@ -371,6 +373,7 @@ struct LocalShaderParam
         return s->localparams.inrange(remap) ? &s->localparams[remap] : NULL;
     }
 
+#ifndef SERVER
     void setf(float x = 0, float y = 0, float z = 0, float w = 0)
     {
         ShaderParamBinding *b = resolve();
@@ -445,6 +448,7 @@ struct LocalShaderParam
 
     void setu(uint x = 0, uint y = 0, uint z = 0, uint w = 0) { sett<uint>(x, y, z, w); }
     void setv(const uint *u, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform1uiv_(b->loc, n, u); }
+#endif
 };
 
 #define LOCALPARAM(name, vals) do { static LocalShaderParam param( #name ); param.set(vals); } while(0)
