@@ -149,6 +149,7 @@ char *backgroundmapinfo = NULL;
 
 void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo)
 {
+    resethudmatrix();
     hudnotextureshader->set();
     gle::defvertex(2);
 
