@@ -22,26 +22,6 @@ import capi
 M.ALL_CLIENTS = -1
 
 /**
-    Sends a message. On the client, it simply calls the given message function,
-    using the remaining arguments as the call arguments.
-
-    Server:
-        On the server the first argument is a client number and the second
-        argument is the message function. Using $ALL_CLIENTS as the client
-        number, you can send the message to all clients.
-
-    Client:
-        The first argument is the message function directly.
-*/
-M.send = @[server,func(cn, mf, ...) {
-    mf(cn, ...)
-},func(mf, ...) {
-    mf(...)
-}]
-
-var send = M.send
-
-/**
     Shows a message on the client, coming from the server (this only works
     serverside). You need to provide a client number or a client entity, a
     message title and a message text.
@@ -49,7 +29,7 @@ var send = M.send
 M.show_client_message = @[server,func(cn, title, text) {
     cn = typeof cn == "table" && cn.cn || cn
     assert(cn)
-    send(cn, capi.personal_servmsg, title, text)
+    capi::personal_servmsg(cn, title, text)
 }]
 
 return M

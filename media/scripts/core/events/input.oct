@@ -9,7 +9,6 @@
 */
 
 import capi
-import core.network.msg
 import core.events.signal
 
 var emit = signal.emit
@@ -121,7 +120,7 @@ set_ext("input_crouch", func(down) {
 */
 set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy) {
     if !get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) {
-        msg::send(capi.do_click, btn, down, x, y, z, uid)
+        capi::do_click(btn, down, x, y, z, uid)
     }
 })
 

@@ -781,7 +781,7 @@ M.Entity = Object.clone({
         self.deactivated = true
 
         @[server] {
-            msg::send(msg.ALL_CLIENTS, capi.le_removal, self.uid)
+            capi::le_removal(msg.ALL_CLIENTS, self.uid)
         }
     },
 
@@ -1041,10 +1041,9 @@ M.Entity = Object.clone({
         if !nfh && !csfh {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
-            msg::send(svar.reliable && capi.statedata_changerequest
-                || capi.statedata_changerequest_unreliable,
-                self.uid, names_to_ids[self.name][svar.name],
-                svar.to_wire(val))
+            var mf = svar.reliable && capi.statedata_changerequest
+                || capi.statedata_changerequest_unreliable
+            mf(self.uid, names_to_ids[self.name][svar.name], svar.to_wire(val))
         }
 
         // from a server or set clientside, update now
@@ -1098,21 +1097,17 @@ M.Entity = Object.clone({
                 return
             }
 
-            var args = [
-                undef, svar.reliable && capi.statedata_update
-                    || capi.statedata_update_unreliable,
-                self.uid,
-                names_to_ids[self.name][key],
-                svar.to_wire(val),
-                (svar.client_set && actor_uid && actor_uid != -1)
-                    && storage[actor_uid].cn || msg.ALL_CLIENTS
-            ]
+            var mf = svar.reliable && capi.statedata_update
+                                   || capi.statedata_update_unreliable
+            var kid = names_to_ids[self.name][key]
+            var wval = svar.to_wire(val)
+            var acn = (svar.client_set && actor_uid && actor_uid != -1)
+                && storage[actor_uid].cn || msg.ALL_CLIENTS
 
             var cns = get_players().map(\p -> p.cn)
             for i, n in cns.each() {
                 if svar.should_send(self, n) {
-                    args[0] = n
-                    msg::send(args.unpack())
+                    mf(n, self.uid, kid, wval, acn)
                 }
             }
         }
@@ -1141,9 +1136,8 @@ M.Entity = Object.clone({
 
         var scn, sname = self.cn, self.name
         for i, n in cns.each() {
-            msg::send(n, capi.le_notification_complete,
-                scn && scn || acn, uid, sname, self.build_sdata(
-                    { target_cn: n, compressed: true }))
+            capi::le_notification_complete(n, scn && scn || acn, uid, sname,
+                self.build_sdata({ target_cn: n, compressed: true }))
         }
 
         @[debug] log(DEBUG, "Entity.send_notification_full: done")
@@ -1550,7 +1544,7 @@ M.send = @[server,func(cn) {
         }
     }
     uids.sort()
-    msg::send(cn, capi.notify_numents, uids.len())
+    capi::notify_numents(cn, uids.len())
     for i, uid in uids.each() {
         storage[uid].send_notification_full(cn)
     }

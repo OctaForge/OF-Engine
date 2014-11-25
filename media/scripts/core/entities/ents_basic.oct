@@ -802,7 +802,7 @@ M.StaticEntity = Entity.clone({
 
         var scn, sname = self.cn, self.name
         for i, n in cns.each() {
-            msg::send(n, capi.extent_notification_complete, uid, sname,
+            capi::extent_notification_complete(n, uid, sname,
                 self.build_sdata({ target_cn: n, compressed: true }))
         }
 
