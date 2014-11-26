@@ -572,7 +572,8 @@ namespace lua
             "struct particle_t; typedef struct particle_t particle_t;\n"
             "struct selinfo_t; typedef struct selinfo_t selinfo_t;\n"
             "struct vslot_t; typedef struct vslot_t vslot_t;\n"
-            "struct cube_t; typedef struct cube_t cube_t;\n");
+            "struct cube_t; typedef struct cube_t cube_t;\n"
+            "struct ucharbuf; typedef struct ucharbuf ucharbuf;\n");
         lua_call(L, 1, 0);
         lua_getfield(L, -1, "cast");
         lua_replace(L, -2);
