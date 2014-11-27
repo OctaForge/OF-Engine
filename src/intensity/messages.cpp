@@ -24,7 +24,7 @@ namespace server
 namespace MessageSystem
 {
 
-    void send_AnyMessage(int clientNumber, int chan, bool toDummyServer, ENetPacket *packet, int exclude=-1) {
+    void send_AnyMessage(int clientNumber, int chan, ENetPacket *packet, int exclude=-1) {
         INDENT_LOG(logger::DEBUG);
 
         int start, finish;
@@ -35,13 +35,6 @@ namespace MessageSystem
 
         for (int clientNumber = start; clientNumber < finish; clientNumber++) {
             if (clientNumber == exclude) continue;
-            #ifdef SERVER
-                int testUniqueId = server::getUniqueId(clientNumber);
-                if (testUniqueId == -9000) {
-                    if (!toDummyServer) continue;
-                }
-                logger::log(logger::DEBUG, "Sending to %d (%d)", clientNumber, testUniqueId);
-            #endif
             sendpacket(clientNumber, chan, packet, -1);
         }
 
@@ -53,7 +46,7 @@ namespace MessageSystem
     void send_PersonalServerMessage(int clientNumber, const char* title, const char* content)
     {
         logger::log(logger::DEBUG, "Sending a message of type PersonalServerMessage (1001)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("riss", 1001, title, content));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riss", 1001, title, content));
     }
 
 #ifndef SERVER
@@ -128,7 +121,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)");
         server::getUniqueId(clientNumber) = uid;
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("rii", 1004, uid));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1004, uid));
     }
 
 #ifndef SERVER
@@ -149,7 +142,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)");
         if (success) server::createluaEntity(clientNumber);
 
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("riii", 1005, success, local));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riii", 1005, success, local));
     }
 
 #ifndef SERVER
@@ -176,7 +169,7 @@ namespace MessageSystem
     void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode)
     {
         logger::log(logger::DEBUG, "Sending a message of type PrepareForNewScenario (1006)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("ris", 1006, scenarioCode));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("ris", 1006, scenarioCode));
     }
 
 #ifndef SERVER
@@ -215,7 +208,7 @@ namespace MessageSystem
     void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc)
     {
         logger::log(logger::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("riss", 1008, mid, sc));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riss", 1008, mid, sc));
     }
 
 #ifndef SERVER
@@ -305,7 +298,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "Sending a message of type StateDataUpdate (1011)");
         INDENT_LOG(logger::DEBUG);
 
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("riiisi", 1011, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiisi", 1011, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
     }
 
     void StateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
@@ -380,7 +373,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataUpdate (1013)");
 
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("iiisi", 1013, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("iiisi", 1013, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
     }
 
     void UnreliableStateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
@@ -423,7 +416,7 @@ namespace MessageSystem
     void send_NotifyNumEntities(int clientNumber, int num)
     {
         logger::log(logger::DEBUG, "Sending a message of type NotifyNumEntities (1015)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("rii", 1015, num));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1015, num));
     }
 
 #ifndef SERVER
@@ -441,7 +434,7 @@ namespace MessageSystem
     void send_AllActiveEntitiesSent(int clientNumber)
     {
         logger::log(logger::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("ri", 1016));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("ri", 1016));
     }
 
 #ifndef SERVER
@@ -500,7 +493,7 @@ namespace MessageSystem
     void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
         logger::log(logger::DEBUG, "Sending a message of type LogicEntityCompleteNotification (1018)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData));
     }
 
     void LogicEntityCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
@@ -597,7 +590,7 @@ namespace MessageSystem
     void send_LogicEntityRemoval(int clientNumber, int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type LogicEntityRemoval (1020)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("rii", 1020, uid));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1020, uid));
     }
 
 #ifndef SERVER
@@ -617,7 +610,7 @@ namespace MessageSystem
     void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
         logger::log(logger::DEBUG, "Sending a message of type ExtentCompleteNotification (1021)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("riiss", 1021, otherUniqueId, otherClass, stateData));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiss", 1021, otherUniqueId, otherClass, stateData));
     }
 
 #ifndef SERVER
@@ -659,7 +652,7 @@ namespace MessageSystem
     void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
     {
         logger::log(logger::DEBUG, "Sending a message of type InitS2C (1022)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("riii", 1022, explicitClientNumber, protocolVersion));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riii", 1022, explicitClientNumber, protocolVersion));
     }
 
 #ifndef SERVER
@@ -715,7 +708,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)");
 
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, true, buildf("riii", 1029, otherClientNumber, mode), otherClientNumber);
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riii", 1029, otherClientNumber, mode), otherClientNumber);
     }
 
     void EditModeS2C::receive(int receiver, int sender, ucharbuf &p)
@@ -811,7 +804,7 @@ namespace MessageSystem
     void send_NotifyPrivateEditMode(int clientNumber)
     {
         logger::log(logger::DEBUG, "Sending a message of type NotifyPrivateEditMode (1035)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, false, buildf("ri", 1035));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("ri", 1035));
     }
 
 #ifndef SERVER

@@ -596,16 +596,6 @@ void server_init()//int argc, char* argv[])
 
     // Init server
     initserver(true, true);
-
-    // Generate 'dummy' singleton client. This is to whom we send position updates on the server so our internal
-    // gameclient is updates.
-
-    localconnect();
-    assert(clients.length() == 1); // Ensure noone else connected before
-
-    gameent* gameEntity = game::newclient(0); // Create a new gameclient for this client
-    gameEntity->uid = -9000;
-    server::getUniqueId(0) = -9000;
 }
 
 void serverkeepalive();
@@ -629,7 +619,7 @@ void server_runslice()
 
     if (server::shutdown_if_idle && (time(0) - shutdown_idle_last_update) >= (server::shutdown_idle_interval))
     {
-        if (clients.length() <= 1)
+        if (clients.length() <= 0)
         {
             extern bool should_quit;
             should_quit = true;

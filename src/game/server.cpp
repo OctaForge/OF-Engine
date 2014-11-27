@@ -82,7 +82,7 @@ namespace server
 
         void reset()
         {
-            uniqueId = -9000 - 5; // Kripken: Negative, and also different from dummy singleton
+            uniqueId = -9000;
             isAdmin = false; // Kripken
 
             name[0] = team[0] = 0;
@@ -354,45 +354,35 @@ namespace server
             logger::log(logger::INFO, "Processing update relaying for %d:%d", ci.clientnum, ci.uniqueId);
 
 #ifdef SERVER
-            // Kripken: FIXME: Send position updates only to real clients, not local ones. For multiple local
-            // ones, a single manual sending suffices, which is done to the singleton dummy client
-            gameent* currClient = game::getclient(ci.clientnum);
-            if (!currClient) continue; // We have a server client, but no FPSClient client yet, because we have not yet
-                                       // finished the player's login, only after which do we create the lua entity,
-                                       // which then gets a client added to the FPSClient (and the remote client's FPSClient)
-            if (ci.uniqueId == -9000) // Send also to singleton dummy client
+            continue;
 #endif
+            ENetPacket *packet;
+            if(psize && (pkt[i].posoff<0 || psize-ci.position.length()>0))
             {
+                // Kripken: Trickery with offsets here prevents relaying back to the same client. Ditto below
+                packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+ci.position.length()],
+                                            pkt[i].posoff<0 ? psize : psize-ci.position.length(),
+                                            ENET_PACKET_FLAG_NO_ALLOCATE);
 
-                ENetPacket *packet;
-                if(psize && (pkt[i].posoff<0 || psize-ci.position.length()>0))
-                {
-                    // Kripken: Trickery with offsets here prevents relaying back to the same client. Ditto below
-                    packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+ci.position.length()],
-                                                pkt[i].posoff<0 ? psize : psize-ci.position.length(),
-                                                ENET_PACKET_FLAG_NO_ALLOCATE);
+                logger::log(logger::INFO, "Sending positions packet to %d", ci.clientnum);
 
-                    logger::log(logger::INFO, "Sending positions packet to %d", ci.clientnum);
+                sendpacket(ci.clientnum, 0, packet); // Kripken: Sending queue of position changes, in channel 0?
 
-                    sendpacket(ci.clientnum, 0, packet); // Kripken: Sending queue of position changes, in channel 0?
+                if(!packet->referenceCount) enet_packet_destroy(packet);
+                else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+            }
 
-                    if(!packet->referenceCount) enet_packet_destroy(packet);
-                    else { ++ws.uses; packet->freeCallback = cleanworldstate; }
-                }
+            if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
+            {
+                packet = enet_packet_create(&ws.messages[pkt[i].msgoff<0 ? 0 : pkt[i].msgoff+pkt[i].msglen],
+                                            pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen,
+                                            (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
 
-                if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
-                {
-                    packet = enet_packet_create(&ws.messages[pkt[i].msgoff<0 ? 0 : pkt[i].msgoff+pkt[i].msglen],
-                                                pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen,
-                                                (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
+                logger::log(logger::INFO, "Sending messages packet to %d", ci.clientnum);
 
-                    logger::log(logger::INFO, "Sending messages packet to %d", ci.clientnum);
-
-                    sendpacket(ci.clientnum, 1, packet);
-                    if(!packet->referenceCount) enet_packet_destroy(packet);
-                    else { ++ws.uses; packet->freeCallback = cleanworldstate; }
-                }
-
+                sendpacket(ci.clientnum, 1, packet);
+                if(!packet->referenceCount) enet_packet_destroy(packet);
+                else { ++ws.uses; packet->freeCallback = cleanworldstate; }
             }
 
             // Kripken: Do this, if we sent to this client or if not - either way. Note that the only reason
@@ -460,7 +450,7 @@ namespace server
         // it sends it to all *other* clients. This is in tune with the server-as-a-relay-server approach in Sauer.
         // Note that it puts the message in the messages for the current client. This is apparently what prevents
         // the client from getting it back.
-        #define QUEUE_MSG { if(ci->uniqueId == -9000 || !ci->local) while(curmsg<p.length()) ci->messages.add(p.buf[curmsg++]); } // Kripken: We need to send messages through the dummy singleton
+        #define QUEUE_MSG { if(!ci->local) while(curmsg<p.length()) ci->messages.add(p.buf[curmsg++]); } // Kripken: We need to send messages through the dummy singleton
         #define QUEUE_BUF(body) { \
             if(!ci->local) \
             { \
@@ -725,7 +715,6 @@ namespace server
             {
                 clientinfo *ci = (clientinfo *)getinfo(i);
                 if (!ci) continue;
-                if (ci->uniqueId == -9000) continue;
                 if (ci->local) continue;
 
                 logger::log(logger::DEBUG, "luaEntities creation: Adding %d", i);
@@ -802,11 +791,7 @@ namespace server
         clients.removeobj(ci);
 
 #ifdef SERVER
-        /*
-         * Check for 1 because there is always at least
-         * the dummy singleton client on the server!
-         */
-        if (shutdown_if_empty && clients.length() <= 1)
+        if (shutdown_if_empty && clients.length() <= 0)
             should_quit = true;
 #endif
     }
