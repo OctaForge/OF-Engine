@@ -156,6 +156,11 @@ void findanims(const char *pattern, vector<int> &anims) {};
 
 void genstainmmtri(stainrenderer *s, const vec v[3]) {};
 
+void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll) {}
+void dropenttofloor(entity *e) {}
+bool pointincube(const clipplanes &p, const vec &v) { return false; }
+void resetclipplanes() {}
+
 #ifdef WINDOWS // needs stubs too, works for now
 #include "GL/gl.h"
 PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements_ = NULL;

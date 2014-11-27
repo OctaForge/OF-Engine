@@ -693,22 +693,6 @@ assert(0);
         logger::log(logger::INFO, "Client: Requesting map: %s", name);
     }
 
-    void gotoplayer(const char *arg)
-    {
-        if(player1->state!=CS_SPECTATOR && player1->state!=CS_EDITING) return;
-        int i = parseplayer(arg);
-        if(i>=0 && i!=player1->clientnum)
-        {
-            gameent *d = getclient(i);
-            if(!d) return;
-            player1->o = d->o;
-            vec dir;
-            vecfromyawpitch(player1->yaw, player1->pitch, 1, 0, dir);
-            player1->o.add(dir.mul(-32));
-            player1->resetinterp();
-        }
-    }
-
     void adddynlights()
     {
     }

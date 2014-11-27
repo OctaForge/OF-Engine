@@ -416,9 +416,6 @@ SERVER_OBJ = \
 	engine/worldio.o \
 	intensity/engine_additions.o \
 	engine/octa.o \
-	engine/physics.o \
-	engine/rendermodel.o \
-	engine/bih.o \
 	shared/geom.o \
 	engine/client.o \
 	engine/octaedit.o \

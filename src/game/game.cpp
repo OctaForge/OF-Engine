@@ -130,6 +130,7 @@ namespace game
     VARP(smoothmove, 0, 75, 100);
     VARP(smoothdist, 0, 32, 64);
 
+#ifndef SERVER
     void predictplayer(gameent *d, bool move)
     {
         d->o = d->newpos;
@@ -188,6 +189,7 @@ namespace game
             logger::log(logger::INFO, "                                      to %f,%f,%f", d->o.x, d->o.y, d->o.z);
         }
     }
+#endif
 
     void moveControlledEntities()
     {
@@ -384,7 +386,9 @@ namespace game
 #endif
         players.removeobj(d);
         DELETEP(clients[cn]);
+#ifndef SERVER
         cleardynentcache();
+#endif
     }
 
     void initclient()

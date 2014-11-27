@@ -87,7 +87,9 @@ namespace entities
         extentity *ext = entity->staticEntity;
         if (!ext) return;
         removeentity(ext);
+#ifndef SERVER
         if (name[0]) ext->m = loadmodel(name);
+#endif
         addentity(ext);
     });
 

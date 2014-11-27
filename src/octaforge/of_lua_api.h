@@ -290,6 +290,7 @@ namespace lapi_binds
 
     /* World */
 
+#ifndef SERVER
     int _lua_iscolliding(lua_State *L) {
         int uid = luaL_checkinteger(L, 5);
         CLogicEntity *ignore = (uid != -1) ? LogicSystem::getLogicEntity(uid)
@@ -326,6 +327,10 @@ namespace lapi_binds
         GRAVITY = luaL_checknumber(L, 1);
         return 0;
     }
+#else
+    LAPI_EMPTY(iscolliding)
+    LAPI_EMPTY(setgravity)
+#endif
 
 #ifndef SERVER
     int _lua_hasmap(lua_State *L) {
