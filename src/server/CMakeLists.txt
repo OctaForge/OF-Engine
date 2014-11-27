@@ -21,7 +21,6 @@ else()
         ../engine/server
         ../game/game
         ../game/server
-        ../game/client
         ../intensity/message_system
         ../intensity/server_system
         ../intensity/messages
@@ -30,7 +29,6 @@ else()
         ../intensity/engine_additions
         ../engine/octa
         ../shared/geom
-        ../engine/client
         ../engine/octaedit
         ../engine/octarender
         ../shared/stream

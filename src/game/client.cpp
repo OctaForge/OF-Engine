@@ -10,14 +10,9 @@
 #include "message_system.h"
 #include "targeting.h"
 
-#ifndef SERVER
-    #include "of_localserver.h"
-    extern int enthover;
-    extern int freecursor, freeeditcursor;
-#endif
-
-// Enable to let *server* do physics for players - useful for debugging. Must also be defined in game.cpp!
-#define SERVER_DRIVEN_PLAYERS 0
+#include "of_localserver.h"
+extern int enthover;
+extern int freecursor, freeeditcursor;
 
 namespace game
 {
@@ -66,19 +61,13 @@ namespace game
         logger::log(logger::DEBUG, "client.h: gamedisconnect()");
         connected = false;
         player1->clientnum = -1;
-#ifndef SERVER
         if(editmode) toggleedit();
-#endif
         player1->lifesequence = 0;
         spectator = false;
 //        loopv(players) clientdisconnected(i, false); Kripken: When we disconnect, we should shut down anyhow...
         logger::log(logger::WARNING, "Not doing normal Sauer disconnecting of other clients");
 
-        #ifndef SERVER
-            ClientSystem::onDisconnect();
-        #else
-            assert(0); // What to do...?
-        #endif
+        ClientSystem::onDisconnect();
 
         if (player->ragdoll)
             cleanragdoll(player);
@@ -87,7 +76,6 @@ namespace game
 
     bool allowedittoggle()
     {
-#ifndef SERVER
         if(editmode) return true;
         if (!ClientSystem::isAdmin())
         {
@@ -96,20 +84,14 @@ namespace game
         }
 
         return true;
-#else // SERVER
-        assert(0);
-        return false;
-#endif
     }
 
     void edittoggled(bool on)
     {
-#ifndef SERVER
         MessageSystem::send_EditModeC2S(on);
 //        addmsg(N_EDITMODE, "ri", on ? 1 : 0);
         disablezoom();
         enthover = -1; // Would be nice if sauer did this, but it doesn't... so without it you still hover on a nonseen edit ent
-#endif
     }
 
     int parseplayer(const char *arg)
@@ -219,9 +201,7 @@ namespace game
 
     void toserver(char *text)
     {
-#ifndef SERVER
         if (ClientSystem::scenarioStarted())
-#endif
         {
             conoutf(CON_CHAT, "%s:\f0 %s", colorname(player1), text);
             addmsg(N_TEXT, "rcs", player1, text);
@@ -229,7 +209,6 @@ namespace game
     }
     COMMANDN(say, toserver, "C");
 
-#ifndef SERVER
     static void sendposition(gameent *d, packetbuf &q)
     {
         putint(q, N_POS);
@@ -285,11 +264,9 @@ namespace game
             }
         }
     }
-#endif
 
     void sendposition(gameent *d, bool reliable)
     {
-#ifndef SERVER
         logger::log(logger::INFO, "sendposition?, %d)", curtime);
         if (ClientSystem::loggedIn && ClientSystem::scenarioStarted())
         {
@@ -297,7 +274,6 @@ namespace game
             sendposition(d, q);
             sendclientpacket(q.finalize(), 0, d->clientnum); // Disable this to stop client from updating server with position
         }
-#endif
     }
 
     void sendmessages(gameent *d)
@@ -329,18 +305,15 @@ namespace game
         if(totalmillis - lastupdate < 40 && !force) return;    // don't update faster than the rate
         lastupdate = totalmillis;
 
-#ifndef SERVER
         if (ClientSystem::scenarioStarted())
             sendposition(player1);
 
         sendmessages(player1);
-#endif
         flushclient();
     }
 
     void updatepos(gameent *d)
     {
-#ifndef SERVER
         const float r = player1->radius+d->radius;
         const float dx = player1->o.x-d->o.x;
         const float dy = player1->o.y-d->o.y;
@@ -352,7 +325,6 @@ namespace game
             if(fx<fy) d->o.y += dy<0 ? r-fy : -(r-fy);  // push aside
             else      d->o.x += dx<0 ? r-fx : -(r-fx);
         }
-#endif
         int lagtime = totalmillis-d->lastupdate;
         if(lagtime)
         {
@@ -363,7 +335,6 @@ namespace game
 
     void parsepositions(ucharbuf &p)
     {
-#ifndef SERVER
         int type;
         while(p.remaining()) switch(type = getint(p))
         {
@@ -445,7 +416,6 @@ namespace game
                 neterr("positions-type");
                 return;
         }
-#endif
     }
 
     void parsepacketclient(int chan, packetbuf &p)   // processes any updates from the server
@@ -502,7 +472,6 @@ namespace game
                 if(!d) return;
                 getstring(text, p);
                 filtertext(text, text);
-#ifndef SERVER
                 if (d->state != CS_SPECTATOR) {
                     const vec &o = d->abovehead();
                     lua::call_external("particle_draw_text", "sfffiifi", text,
@@ -510,7 +479,6 @@ namespace game
                 }
                 if (chat_sound[0])
                     playsound(chat_sound);
-#endif
                 conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text);
                 break;
             }
@@ -602,24 +570,17 @@ namespace game
                 break;
             }
             case N_REMIP:
-              #ifndef SERVER
                 if(!d) return;
                 conoutf("%s remipped", colorname(d));
                 mpremip(false);
-              #endif
                 break;
             case N_CALCLIGHT:
-              #ifndef SERVER
                 if(!d) return;
                 conoutf("%s calced lights", colorname(d));
                 mpcalclight(false);
-              #endif
                 break;
 
             case N_PONG:
-#ifdef SERVER
-assert(0);
-#endif
                 // Kripken: Do not let clients know other clients' pings
                 player1->ping = (player1->ping*5+lastmillis-getint(p))/6;
 //                addmsg(N_CLIENTPING, "i", player1->ping = (player1->ping*5+totalmillis-getint(p))/6);
@@ -642,11 +603,7 @@ assert(0);
             default:
             {
                 logger::log(logger::INFO, "Client: Handling a non-typical message: %d", type);
-#ifndef SERVER
                 if (!MessageSystem::MessageManager::receive(type, ClientSystem::playerNumber, cn, p))
-#else
-                if (!MessageSystem::MessageManager::receive(type, 0, cn, p)) // Server's internal client is num '0'
-#endif
                 {
                     assert(0);
                     neterr("messages-type-client");
@@ -659,7 +616,6 @@ assert(0);
         }
     }
 
-#ifndef SERVER
     ICOMMAND(map, "s", (char *name), {
         if (!name || !name[0])
             local_server::stop();
@@ -668,7 +624,6 @@ assert(0);
     })
 
     ICOMMAND(hasmap, "", (), intret(local_server::is_running()));
-#endif
 
     void changemap(const char *name, int mode)        // forced map change from the server // Kripken : TODO: Deprecated, Remove
     {
@@ -676,9 +631,7 @@ assert(0);
 
         mode = 0;
         gamemode = mode;
-#ifndef SERVER
         if(editmode) toggleedit();
-#endif
         if((gamemode==1 && !name[0]) || (!load_world(name) && remote))
         {
             emptymap(0, true, name);
@@ -696,13 +649,11 @@ assert(0);
 
     void edittrigger(const selinfo &sel, int op, int arg1, int arg2, int arg3, const VSlot *vs)
     {
-#ifndef SERVER
         if(!ClientSystem::isAdmin())
         {
             logger::log(logger::WARNING, "vartrigger invalid");
             return;
         }
-#endif
 
         switch(op)
         {

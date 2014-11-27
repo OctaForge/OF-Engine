@@ -3,9 +3,7 @@
 #include "engine.h"
 #include "game.h" // INTENSITY: Need this for gameent, below
 
-#ifndef SERVER
-    #include "client_system.h" // INTENSITY
-#endif
+#include "client_system.h" // INTENSITY
 
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
@@ -13,11 +11,7 @@ int connmillis = 0, connattempts = 0, discmillis = 0;
 
 bool multiplayer(bool msg)
 {
-#ifndef SERVER // INTENSITY
     bool val = !ClientSystem::editingAlone; // INTENSITY
-#else // SERVER - the old sauer code
-    bool val = curpeer || hasnonlocalclients();
-#endif // INTENSITY end
     if(val && msg) conoutf(CON_ERROR, "You must be in private edit mode for that"); // INTENSITY: Message contents
     return val;
 }
@@ -68,7 +62,6 @@ VARP(connectport, 0, 0, 0xFFFF);
 
 void connectserv(const char *servername, int serverport, const char *serverpassword)
 {
-#ifndef SERVER
     if(connpeer)
     {
         conoutf("aborting connection attempt");
@@ -114,7 +107,6 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
     enet_host_flush(clienthost);
     connmillis = totalmillis;
     connattempts = 0;
-#endif
 }
 
 void disconnect(bool async, bool cleanup)
@@ -136,9 +128,7 @@ void disconnect(bool async, bool cleanup)
         discmillis = 0;
         conoutf("disconnected");
         game::gamedisconnect(cleanup);
-#ifndef SERVER
         setvar("mainmenu", 1);
-#endif
     }
     if(!connpeer && clienthost)
     {
@@ -219,13 +209,9 @@ void gets2c()           // get updates from the server
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
-#ifndef SERVER // INTENSITY
             if(discmillis) conoutf("attempting to disconnect...");
             else localservertoclient(event.channelID, event.packet);
             enet_packet_destroy(event.packet);
-#else // SERVER
-            assert(0);
-#endif
             break;
 
         case ENET_EVENT_TYPE_DISCONNECT:
