@@ -133,7 +133,6 @@ struct animmodel : model
 
         void setshaderparams(mesh &m, const animstate *as, bool skinned = true)
         {
-#ifndef SERVER
             if(key->checkversion() && Shader::lastshader->owner == key) return;
             Shader::lastshader->owner = key;
 
@@ -157,12 +156,10 @@ struct animmodel : model
             }
             LOCALPARAMF(maskscale, spec, gloss, curglow);
             if(envmapped()) LOCALPARAMF(envmapscale, envmapmin-envmapmax, envmapmax);
-#endif
         }
 
         Shader *loadshader()
         {
-#ifndef SERVER
             #define DOMODELSHADER(name, body) \
                 do { \
                     static Shader *name##shader = NULL; \
@@ -202,9 +199,6 @@ struct animmodel : model
             defformatstring(name, "model%s", opts);
             shader = generateshader(name, "modelshader \"%s\"", opts);
             return shader;
-#else
-            return NULL;
-#endif
         }
 
         void cleanup()
@@ -219,11 +213,9 @@ struct animmodel : model
 
         void preloadshader()
         {
-#ifndef SERVER
             loadshader();
             useshaderbyname(alphatested() && owner->model->alphashadow ? "alphashadowmodel" : "shadowmodel");
             if(useradiancehints()) useshaderbyname(alphatested() ? "rsmalphamodel" : "rsmmodel");
-#endif
         }
 
         void setshader(mesh &m, const animstate *as)
@@ -233,7 +225,6 @@ struct animmodel : model
 
         void bind(mesh &b, const animstate *as)
         {
-#ifndef SERVER
             if(!cullface && enablecullface) { glDisable(GL_CULL_FACE); enablecullface = false; }
             else if(cullface && !enablecullface) { glEnable(GL_CULL_FACE); enablecullface = true; }
 
@@ -296,7 +287,6 @@ struct animmodel : model
             if(activetmu != 0) glActiveTexture_(GL_TEXTURE0);
             setshader(b, as);
             setshaderparams(b, as);
-#endif
         }
     };
 

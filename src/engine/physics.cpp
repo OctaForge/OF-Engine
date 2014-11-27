@@ -1965,7 +1965,6 @@ void interppos(physent *pl)
 
 void moveplayer(physent *pl, int moveres, bool local)
 {
-#ifndef SERVER
     if(physsteps <= 0)
     {
         if(local) interppos(pl);
@@ -1982,9 +1981,6 @@ void moveplayer(physent *pl, int moveres, bool local)
         pl->deltapos.sub(pl->newpos);
         interppos(pl);
     }
-#else
-    assert(false);
-#endif
 }
 
 bool bounce(physent *d, float elasticity, float waterfric, float grav)
