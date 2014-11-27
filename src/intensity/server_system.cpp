@@ -31,7 +31,6 @@ GlobalShaderParamState *getglobalparam(const char *name) { return NULL; };
 void renderprogress(float bar, const char *text)
 {
     // Keep connection alive
-    clientkeepalive();
     serverkeepalive();
 
     printf("|");
@@ -160,6 +159,13 @@ void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll) {}
 void dropenttofloor(entity *e) {}
 bool pointincube(const clipplanes &p, const vec &v) { return false; }
 void resetclipplanes() {}
+bool multiplayer(bool msg) { return false; }
+
+namespace game {
+    bool allowedittoggle() { return false; }
+    void edittrigger(const selinfo &sel, int op, int arg1, int arg2, int arg3, const VSlot *vs) {}
+    int parseplayer(const char *arg) { return -1; }
+}
 
 #ifdef WINDOWS // needs stubs too, works for now
 #include "GL/gl.h"

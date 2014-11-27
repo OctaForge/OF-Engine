@@ -19,21 +19,6 @@ struct PersonalServerMessage : MessageType
 
 void send_PersonalServerMessage(int clientNumber, const char* title, const char* content);
 
-
-// RequestServerMessageToAll
-
-struct RequestServerMessageToAll : MessageType
-{
-    RequestServerMessageToAll() : MessageType(1002, "RequestServerMessageToAll") { };
-
-#ifdef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_RequestServerMessageToAll(const char* message);
-
-
 // LoginRequest
 
 struct LoginRequest : MessageType
@@ -331,21 +316,6 @@ struct EditModeS2C : MessageType
 };
 
 void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode);
-
-
-// RequestMap
-
-struct RequestMap : MessageType
-{
-    RequestMap() : MessageType(1030, "RequestMap") { };
-
-#ifdef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_RequestMap();
-
 
 // DoClick
 

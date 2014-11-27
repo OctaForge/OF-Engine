@@ -98,6 +98,7 @@ namespace lapi_binds
         return 0;
     }
 
+#ifndef SERVER
     int _lua_statedata_changerequest(lua_State *L) {
         const char *val = luaL_optstring(L, 3, "");
         send_StateDataChangeRequest(luaL_checkinteger(L, 1),
@@ -111,6 +112,10 @@ namespace lapi_binds
             luaL_checkinteger(L, 2), val);
         return 0;
     }
+#else
+    LAPI_EMPTY(statedata_changerequest)
+    LAPI_EMPTY(statedata_changerequest_unreliable)
+#endif
 
     int _lua_notify_numents(lua_State *L) {
         send_NotifyNumEntities(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
@@ -145,12 +150,16 @@ namespace lapi_binds
         return 0;
     }
 
+#ifndef SERVER
     int _lua_do_click(lua_State *L) {
         send_DoClick(luaL_checkinteger(L, 1), lua_toboolean(L, 2),
             luaL_checknumber(L, 3), luaL_checknumber (L, 4),
             luaL_checknumber(L, 5), luaL_checkinteger(L, 6));
         return 0;
     }
+#else
+    LAPI_EMPTY(do_click)
+#endif
 
     int _lua_extent_notification_complete(lua_State *L) {
         const char *oc = luaL_checkstring(L, 3);
@@ -168,9 +177,6 @@ namespace lapi_binds
         ClientSystem::connect(luaL_checkstring(L, 1), luaL_checkinteger(L, 2));
         return 0;
     }
-#else
-    LAPI_EMPTY(connect)
-#endif
 
     int _lua_isconnected(lua_State *L) {
         lua_pushboolean(L, isconnected(lua_toboolean(L, 1),
@@ -230,6 +236,19 @@ namespace lapi_binds
         lua_pushinteger(L, f ? f->clientnum : -1);
         return 1;
     }
+#else
+    LAPI_EMPTY(connect)
+    LAPI_EMPTY(isconnected)
+    LAPI_EMPTY(haslocalclients)
+    LAPI_EMPTY(connectedip)
+    LAPI_EMPTY(connectedport)
+    LAPI_EMPTY(connectserv)
+    LAPI_EMPTY(lanconnect)
+    LAPI_EMPTY(disconnect)
+    LAPI_EMPTY(localconnect)
+    LAPI_EMPTY(localdisconnect)
+    LAPI_EMPTY(getfollow)
+#endif
 
 #ifndef SERVER
     static void do_upload(bool skipmedia, int medialevel) {

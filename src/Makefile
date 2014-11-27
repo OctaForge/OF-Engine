@@ -408,7 +408,6 @@ SERVER_OBJ = \
 	engine/server.o \
 	game/game.o \
 	game/server.o \
-	game/client.o \
 	intensity/message_system.o \
 	intensity/server_system.o \
 	intensity/messages.o \
@@ -417,7 +416,6 @@ SERVER_OBJ = \
 	intensity/engine_additions.o \
 	engine/octa.o \
 	shared/geom.o \
-	engine/client.o \
 	engine/octaedit.o \
 	engine/octarender.o \
 	shared/stream.o \

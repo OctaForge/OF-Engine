@@ -222,9 +222,11 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
             break;
         }
 
+#ifndef SERVER
         case ST_LOCAL:
             localservertoclient(chan, packet);
             break;
+#endif
     }
 }
 
@@ -470,6 +472,7 @@ void flushserver(bool force)
     if(server::sendpackets(force) && serverhost) enet_host_flush(serverhost);
 }
 
+#ifndef SERVER
 void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 {
 #ifndef SERVER
@@ -500,6 +503,7 @@ int localconnect() // INTENSITY: Added returning client num
     server::localconnect(c.num);
     return c.num; // INTENSITY: Added returning client num
 }
+#endif
 
 static bool dedicatedserver = false;
 
@@ -602,11 +606,6 @@ void serverkeepalive();
 
 void server_runslice()
 {
-    /* Keep connection alive?
-     *
-    clientkeepalive();
-    serverkeepalive();*/
-
     serverslice(true, 5);
 
     if(lastmillis) game::updateworld();

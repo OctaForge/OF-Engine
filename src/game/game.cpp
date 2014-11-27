@@ -335,11 +335,13 @@ namespace game
 
         if(cn < 0 || cn > max(0xFF, MAXCLIENTS)) // + MAXBOTS))
         {
+#ifndef SERVER
             neterr("clientnum", false);
+#endif
             return NULL;
         }
 
-#ifndef SERVER // INTENSITY
+#ifndef SERVER
         if(cn == player1->clientnum)
         {
             player1->uid = -5412; // Wipe uid of new client

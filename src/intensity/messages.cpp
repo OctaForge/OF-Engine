@@ -60,29 +60,9 @@ namespace MessageSystem
     }
 #endif
 
-
-// RequestServerMessageToAll
-
-    void send_RequestServerMessageToAll(const char* message)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type RequestServerMessageToAll (1002)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1002, "rs", message);
-    }
-
-#ifdef SERVER
-    void RequestServerMessageToAll::receive(int receiver, int sender, ucharbuf &p)
-    {
-        char message[MAXTRANS];
-        getstring(message, p);
-
-        send_PersonalServerMessage(-1, "Message from Client", message);
-    }
-#endif
-
 // LoginRequest
 
+#ifndef SERVER
     void send_LoginRequest()
     {
         logger::log(logger::DEBUG, "Sending a message of type LoginRequest (1003)");
@@ -90,6 +70,7 @@ namespace MessageSystem
 
         game::addmsg(1003, "r");
     }
+#endif
 
 #ifdef SERVER
     void LoginRequest::receive(int receiver, int sender, ucharbuf &p)
@@ -186,6 +167,7 @@ namespace MessageSystem
 
 // RequestCurrentScenario
 
+#ifndef SERVER
     void send_RequestCurrentScenario()
     {
         logger::log(logger::DEBUG, "Sending a message of type RequestCurrentScenario (1007)");
@@ -193,6 +175,7 @@ namespace MessageSystem
 
         game::addmsg(1007, "r");
     }
+#endif
 
 #ifdef SERVER
     void RequestCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
@@ -227,6 +210,7 @@ namespace MessageSystem
 
 // RestartMap
 
+#ifndef SERVER
     void send_RestartMap()
     {
         logger::log(logger::DEBUG, "Sending a message of type RestartMap (1009)");
@@ -234,6 +218,7 @@ namespace MessageSystem
 
         game::addmsg(1009, "r");
     }
+#endif
 
 #ifdef SERVER
     void RestartMap::receive(int receiver, int sender, ucharbuf &p)
@@ -251,6 +236,7 @@ namespace MessageSystem
 
 // NewEntityRequest
 
+#ifndef SERVER
     void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData, const char *newent_data)
     {
         logger::log(logger::DEBUG, "Sending a message of type NewEntityRequest (1010)");
@@ -258,6 +244,7 @@ namespace MessageSystem
 
         game::addmsg(1010, "rsiiiss", _class, int(x*DMF), int(y*DMF), int(z*DMF), stateData, newent_data);
     }
+#endif
 
 #ifdef SERVER
     void NewEntityRequest::receive(int receiver, int sender, ucharbuf &p)
@@ -332,6 +319,7 @@ namespace MessageSystem
 
 // StateDataChangeRequest
 
+#ifndef SERVER
     void send_StateDataChangeRequest(int uid, int keyProtocolId, const char* value)
     {        // This isn't a perfect way to differentiate transient state data changes from permanent ones
         // that justify saying 'changes were made', but for now it will do. Note that even checking
@@ -346,6 +334,7 @@ namespace MessageSystem
 
         game::addmsg(1012, "riis", uid, keyProtocolId, value);
     }
+#endif
 
 #ifdef SERVER
     void StateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
@@ -390,6 +379,7 @@ namespace MessageSystem
 
 // UnreliableStateDataChangeRequest
 
+#ifndef SERVER
     void send_UnreliableStateDataChangeRequest(int uid, int keyProtocolId, const char* value)
     {
         logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)");
@@ -397,6 +387,7 @@ namespace MessageSystem
 
         game::addmsg(1014, "iis", uid, keyProtocolId, value);
     }
+#endif
 
 #ifdef SERVER
     void UnreliableStateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
@@ -447,6 +438,7 @@ namespace MessageSystem
 
 // ActiveEntitiesRequest
 
+#ifndef SERVER
     void send_ActiveEntitiesRequest(const char* scenarioCode)
     {
         logger::log(logger::DEBUG, "Sending a message of type ActiveEntitiesRequest (1017)");
@@ -454,6 +446,7 @@ namespace MessageSystem
 
         game::addmsg(1017, "rs", scenarioCode);
     }
+#endif
 
 #ifdef SERVER
     void ActiveEntitiesRequest::receive(int receiver, int sender, ucharbuf &p)
@@ -560,6 +553,7 @@ namespace MessageSystem
 
 // RequestLogicEntityRemoval
 
+#ifndef SERVER
     void send_RequestLogicEntityRemoval(int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)");
@@ -567,6 +561,7 @@ namespace MessageSystem
 
         game::addmsg(1019, "ri", uid);
     }
+#endif
 
 #ifdef SERVER
     void RequestLogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
@@ -684,6 +679,7 @@ namespace MessageSystem
 
 // EditModeC2S
 
+#ifndef SERVER
     void send_EditModeC2S(int mode)
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeC2S (1028)");
@@ -691,6 +687,7 @@ namespace MessageSystem
 
         game::addmsg(1028, "ri", mode);
     }
+#endif
 
 #ifdef SERVER
     void EditModeC2S::receive(int receiver, int sender, ucharbuf &p)
@@ -732,27 +729,9 @@ namespace MessageSystem
         }
     }
 
-
-// RequestMap
-
-    void send_RequestMap()
-    {
-        logger::log(logger::DEBUG, "Sending a message of type RequestMap (1030)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1030, "r");
-    }
-
-#ifdef SERVER
-    void RequestMap::receive(int receiver, int sender, ucharbuf &p)
-    {
-        if (!world::scenario_code[0]) return;
-        world::send_curr_map(sender);
-    }
-#endif
-
 // DoClick
 
+#ifndef SERVER
     void send_DoClick(int button, int down, float x, float y, float z, int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type DoClick (1031)");
@@ -760,6 +739,7 @@ namespace MessageSystem
 
         game::addmsg(1031, "riiiiii", button, down, int(x*DMF), int(y*DMF), int(z*DMF), uid);
     }
+#endif
 
 #ifdef SERVER
     void DoClick::receive(int receiver, int sender, ucharbuf &p)
@@ -783,6 +763,7 @@ namespace MessageSystem
 
 // RequestPrivateEditMode
 
+#ifndef SERVER
     void send_RequestPrivateEditMode()
     {
         logger::log(logger::DEBUG, "Sending a message of type RequestPrivateEditMode (1034)");
@@ -790,6 +771,7 @@ namespace MessageSystem
 
         game::addmsg(1034, "r");
     }
+#endif
 
 #ifdef SERVER
     void RequestPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
@@ -821,7 +803,6 @@ namespace MessageSystem
 void MessageManager::registerAll()
 {
     registerMessageType( new PersonalServerMessage() );
-    registerMessageType( new RequestServerMessageToAll() );
     registerMessageType( new LoginRequest() );
     registerMessageType( new YourUniqueId() );
     registerMessageType( new LoginResponse() );
@@ -844,7 +825,6 @@ void MessageManager::registerAll()
     registerMessageType( new InitS2C() );
     registerMessageType( new EditModeC2S() );
     registerMessageType( new EditModeS2C() );
-    registerMessageType( new RequestMap() );
     registerMessageType( new DoClick() );
     registerMessageType( new RequestPrivateEditMode() );
     registerMessageType( new NotifyPrivateEditMode() );

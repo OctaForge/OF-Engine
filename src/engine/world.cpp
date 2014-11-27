@@ -997,6 +997,7 @@ COMMAND(entpush, "i");
 
 void delent()
 {
+#ifndef SERVER
     if(noentedit()) return;
 
     loopv(entgroup) entfocus(
@@ -1005,6 +1006,7 @@ void delent()
     );
 
     entcancel();
+#endif
 }
 
 VAR(entdrop, 0, 2, 3);
@@ -1270,6 +1272,7 @@ COMMAND(intensitypasteent, "");
 
 /* OF */
 void enttype(char *type, int *numargs) {
+#ifndef SERVER
     if (*numargs >= 1) {
         groupedit(
             vec pos(e.o);
@@ -1283,6 +1286,7 @@ void enttype(char *type, int *numargs) {
             "i", "s", e.uid, &name));
         result(name ? name : "");
     })
+#endif
 }
 
 /* OF */

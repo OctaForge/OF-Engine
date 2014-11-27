@@ -104,15 +104,12 @@ namespace game
 
     void edittoggled(bool on)
     {
+#ifndef SERVER
         MessageSystem::send_EditModeC2S(on);
 //        addmsg(N_EDITMODE, "ri", on ? 1 : 0);
-#ifndef SERVER
         disablezoom();
+        enthover = -1; // Would be nice if sauer did this, but it doesn't... so without it you still hover on a nonseen edit ent
 #endif
-
-        #ifndef SERVER
-            enthover = -1; // Would be nice if sauer did this, but it doesn't... so without it you still hover on a nonseen edit ent
-        #endif
     }
 
     int parseplayer(const char *arg)
