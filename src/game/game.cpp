@@ -209,7 +209,7 @@ namespace game
                 );
 
                 // Ignore intentions to move, if immobile
-                if ( !ClientSystem::playerLogicEntity->canMove )
+                if ( !LogicSystem::getLogicEntity(player1)->canMove )
                 {
                     player1->turn_move = player1->move = player1->look_updown_move = player1->strafe = player1->jumping = 0;
                 }

@@ -69,27 +69,11 @@ struct gameent : dynent
 
     void *ai; // TODO: If we want, import rest of AI code
 
-    CLogicEntity *logicEntity;
-
-    char turn_move, look_updown_move;    // Kripken: New movements
-
-    //! An integer, reserved for use in the position protocol update system. This is meant to be used by
-    //! individual maps, which place their own data here, and use it however they want (for rendering, etc.).
-    //! The engine itself just sends this inside the protocol updates.
-    //! The reason this is needed, and why a normal StateData cannot be used, is that StateData is sent
-    //! in channel 1, using reliable transmission, whereas some information must be sent along with the
-    //! position info in channel 0, which is unreliable. This information will arrive faster (if there
-    //! are dropped packets or network congestion), and will be synched with the position info, as it
-    //! is a part of it. So, for example, this could contain animation information, that must be synched
-    //! with the position very closely.
-    //! This data is an unsigned integer. It is set to '0' initially and when the entity resets (so it
-    //! would make sense for maps to consider that value the initialized value).
-    unsigned int mapDefinedPositionData;
-
+    char turn_move, look_updown_move;
     int uid;
 
     gameent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), ai(NULL)
-                                                                      , mapDefinedPositionData(0), uid(-821)
+                                                                      , uid(-821)
                { name[0] = team[0] = info[0] = 0; respawn(); }
     ~gameent()
     {
@@ -113,8 +97,6 @@ struct gameent : dynent
     {
         dynent::reset();
         turn_move = look_updown_move = 0;
-
-        mapDefinedPositionData = 0;
     }
 
     virtual void stopmoving() // OF: virtual

@@ -14,7 +14,6 @@
 #include "of_world.h"
 
 int            ClientSystem::playerNumber       = -1;
-CLogicEntity  *ClientSystem::playerLogicEntity  = NULL;
 bool           ClientSystem::loggedIn           = false;
 bool           ClientSystem::editingAlone       = false;
 int            ClientSystem::uniqueId           = -1;
@@ -105,7 +104,7 @@ void ClientSystem::frameTrigger(int curtime)
         gameent *fp = (gameent*)player;
         float fs;
         lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
-            "f", ClientSystem::playerLogicEntity->getUniqueId(), "facing_speed", &fs));
+            "f", game::player1->uid, "facing_speed", &fs));
         if (fp->turn_move || fabs(x - 0.5) > 0.495)
         {
             player->yaw += fs * (
@@ -158,11 +157,11 @@ void ClientSystem::prepareForNewScenario(const char *sc)
 bool ClientSystem::isAdmin()
 {
     if (!loggedIn) return false;
-    if (!playerLogicEntity) return false;
+    if (!game::player1) return false;
 
     bool b;
     lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
-        "b", playerLogicEntity->getUniqueId(), "can_edit", &b));
+        "b", game::player1->uid, "can_edit", &b));
     return b;
 }
 

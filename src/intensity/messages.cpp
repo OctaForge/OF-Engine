@@ -534,8 +534,6 @@ namespace MessageSystem
             if (otherUniqueId == ClientSystem::uniqueId)
             {
                 logger::log(logger::DEBUG, "Linking player information, uid: %d", otherUniqueId);
-                // Note in C++
-                ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
                 lua::call_external("player_init", "i", ClientSystem::uniqueId);
             }

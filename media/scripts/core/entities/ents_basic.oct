@@ -155,9 +155,6 @@ var M = ents
           currently blocked from moving. Floor is not considered an obstacle.
         - can_move [{{$svars.StateBoolean}}] - when false, the character can't
           move. Defaults to true.
-        - map_defined_position_data [{{$svars.StateInteger}}] - position
-          protocol data specific to the current map, see fpsent (TODO: make
-          unsigned).
         - client_state [{{$svars.StateInteger}}] - see $State.
         - physical_state [{{$svars.StateInteger}}] - see $PhysicalState.
         - in_liquid [{{$svars.StateInteger}}] - either 0 (in the air) or the
@@ -293,11 +290,6 @@ M.Character = Entity.clone({
         }),
         can_move: svars::StateBoolean({
             setter: capi.set_can_move, client_set: true
-        }),
-        map_defined_position_data: svars::StateInteger({
-            getter: capi.get_mapdefinedposdata,
-            setter: capi.set_mapdefinedposdata,
-            custom_sync: true, gui_name: false
         }),
         client_state: svars::StateInteger({
             getter: capi.get_clientstate, setter: capi.set_clientstate,

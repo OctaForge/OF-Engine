@@ -11,9 +11,6 @@ struct ClientSystem
     //! The client number of the PC. A copy of player1->clientnum, but nicer name
     static int           playerNumber;
 
-    //! Convenient way to get at the player's logic entity
-    static CLogicEntity *playerLogicEntity;
-
     //! Whether logged in to a _remote_ server. There is no 'login' locally, just 'connecting'.
     static bool          loggedIn;
 
