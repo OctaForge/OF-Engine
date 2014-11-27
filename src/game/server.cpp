@@ -452,7 +452,7 @@ namespace server
         }
         if(p.packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
         char text[MAXTRANS];
-        int cn = -1, type;
+        int type;
         clientinfo *ci = sender>=0 ? (clientinfo *)getinfo(sender) : NULL;
 
         if (ci == NULL) logger::log(logger::ERROR, "ci is null. Sender: %ld", (long) sender); // Kripken
@@ -481,40 +481,32 @@ namespace server
           { // Kripken: Mangling sauer indentation as little as possible
             case N_POS: // Kripken: position update for a client
             {
-                NetworkSystem::PositionUpdater::QuantizedInfo info;
-                info.generateFrom(p);
-
-                // Kripken: This is a dummy read, we don't do anything with it (but relay)
-                // But we do disconnect on errors
-                cn = info.clientNumber;
-                if(cn<0 || cn>=getnumclients()) // || cn!=sender) - we have multiple NPCs on single server TODO: But apply to clients?
+                int pcn = getuint(p);
+                p.get();
+                uint flags = getuint(p);
+                clientinfo *cp = getinfo(pcn);
+                vec pos;
+                loopk(3)
                 {
-                    disconnect_client(sender, DISC_CN);
-                    return;
+                    int n = p.get(); n |= p.get()<<8; if(flags&(1<<k)) { n |= p.get()<<16; if(n&0x800000) n |= -1<<24; }
+                    pos[k] = n/DMF;
                 }
-
-#ifndef SERVER
-                if ( !isRunningCurrentScenario(sender) ) break; // Silently ignore info from previous scenario
-#endif
-
-                //if(!ci->local) // Kripken: We relay even our local clients, PCs need to hear about NPC positions
-                // && (ci->state.state==CS_ALIVE || ci->state.state==CS_EDITING)) // Kripken: We handle death differently
+                loopk(3) p.get();
+                int mag = p.get(); if(flags&(1<<3)) mag |= p.get()<<8;
+                int dir = p.get(); dir |= p.get()<<8;
+                if(flags&(1<<4))
                 {
-                    logger::log(logger::INFO, "SERVER: relaying N_POS data for client %d", cn);
-
-                    // Modify the info depending on various server parameters
-                    //NetworkSystem::PositionUpdater::processServerPositionReception(info);
-
-                    // Queue the info to be sent to the clients
-                    int maxLength = p.length()*2 + 100; // Kripken: The server almost always DECREASES the size, but be careful
-                    unsigned char* data = new unsigned char[maxLength];
-                    ucharbuf temp(data, maxLength);
-                    info.applyToBuffer(temp);
-                    ci->position.setsize(0);
-                    loopk(temp.length()) ci->position.add(temp.buf[k]);
-                    delete[] data;
+                    p.get(); if(flags&(1<<5)) p.get();
+                    if(flags&(1<<6)) loopk(2) p.get();
                 }
-//                if(smode && ci->state.state==CS_ALIVE) smode->moved(ci, oldpos, ci->state.o); // Kripken:Gametype(ctf etc.)-specific stuff
+                if(cp)
+                {
+                    if((!ci->local || hasnonlocalclients()) && (cp->state.state==CS_ALIVE || cp->state.state==CS_EDITING))
+                    {
+                        cp->position.setsize(0);
+                        while(curmsg<p.length()) cp->position.add(p.buf[curmsg++]);
+                    }
+                }
                 break;
             }
 
@@ -777,22 +769,11 @@ namespace server
 
         // Notify of uid *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
-        if (!ci->local)
-            MessageSystem::send_YourUniqueId(cn, uid);
+        MessageSystem::send_YourUniqueId(cn, uid);
 
         ci->uniqueId = uid;
 
         lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, uid);
-
-        // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
-        if (ci->local)
-        {
-            gameEntity = game::getclient(cn); // It was created since gameEntity was def'd
-            assert(gameEntity);
-
-            game::spawnplayer(gameEntity);
-        }
-
         return uid;
 #endif
     }

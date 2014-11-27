@@ -62,7 +62,7 @@ struct gameent : dynent
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int lastpain;
     editinfo *edit;
-    float deltayaw, deltapitch, newyaw, newpitch;
+    float deltayaw, deltapitch, deltaroll, newyaw, newpitch, newroll;
     int smoothmillis;
 
     string name, team, info;

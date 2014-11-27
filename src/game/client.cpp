@@ -22,6 +22,8 @@
 
 namespace game
 {
+    extern int smoothmove, smoothdist;
+
     int lastping = 0; // Kripken: Last time we sent out a ping
 
     bool connected = false, remote = false;
@@ -231,37 +233,75 @@ namespace game
     }
     COMMANDN(say, toserver, "C");
 
+#ifndef SERVER
+    static void sendposition(gameent *d, packetbuf &q)
+    {
+        putint(q, N_POS);
+        putuint(q, d->clientnum);
+        // 3 bits phys state, 1 bit life sequence, 2 bits move, 2 bits strafe
+        uchar physstate = d->physstate | ((d->lifesequence&1)<<3) | ((d->move&3)<<4) | ((d->strafe&3)<<6);
+        q.put(physstate);
+        ivec o = ivec(vec(d->o.x, d->o.y, d->o.z-d->eyeheight).mul(DMF));
+        uint vel = min(int(d->vel.magnitude()*DVELF), 0xFFFF), fall = min(int(d->falling.magnitude()*DVELF), 0xFFFF);
+        // 3 bits position, 1 bit velocity, 3 bits falling, 1 bit material, 1 bit crouching
+        uint flags = 0;
+        if(o.x < 0 || o.x > 0xFFFF) flags |= 1<<0;
+        if(o.y < 0 || o.y > 0xFFFF) flags |= 1<<1;
+        if(o.z < 0 || o.z > 0xFFFF) flags |= 1<<2;
+        if(vel > 0xFF) flags |= 1<<3;
+        if(fall > 0)
+        {
+            flags |= 1<<4;
+            if(fall > 0xFF) flags |= 1<<5;
+            if(d->falling.x || d->falling.y || d->falling.z > 0) flags |= 1<<6;
+        }
+        if((lookupmaterial(d->feetpos())&MATF_CLIP) == MAT_GAMECLIP) flags |= 1<<7;
+        if(d->crouching < 0) flags |= 1<<8;
+        putuint(q, flags);
+        loopk(3)
+        {
+            q.put(o[k]&0xFF);
+            q.put((o[k]>>8)&0xFF);
+            if(o[k] < 0 || o[k] > 0xFFFF) q.put((o[k]>>16)&0xFF);
+        }
+        uint dir = (d->yaw < 0 ? 360 + int(d->yaw)%360 : int(d->yaw)%360) + clamp(int(d->pitch+90), 0, 180)*360;
+        q.put(dir&0xFF);
+        q.put((dir>>8)&0xFF);
+        q.put(clamp(int(d->roll+90), 0, 180));
+        q.put(vel&0xFF);
+        if(vel > 0xFF) q.put((vel>>8)&0xFF);
+        float velyaw, velpitch;
+        vectoyawpitch(d->vel, velyaw, velpitch);
+        uint veldir = (velyaw < 0 ? 360 + int(velyaw)%360 : int(velyaw)%360) + clamp(int(velpitch+90), 0, 180)*360;
+        q.put(veldir&0xFF);
+        q.put((veldir>>8)&0xFF);
+        if(fall > 0)
+        {
+            q.put(fall&0xFF);
+            if(fall > 0xFF) q.put((fall>>8)&0xFF);
+            if(d->falling.x || d->falling.y || d->falling.z > 0)
+            {
+                float fallyaw, fallpitch;
+                vectoyawpitch(d->falling, fallyaw, fallpitch);
+                uint falldir = (fallyaw < 0 ? 360 + int(fallyaw)%360 : int(fallyaw)%360) + clamp(int(fallpitch+90), 0, 180)*360;
+                q.put(falldir&0xFF);
+                q.put((falldir>>8)&0xFF);
+            }
+        }
+    }
+#endif
+
     void sendposition(gameent *d, bool reliable)
     {
-        logger::log(logger::INFO, "sendposition?, %d)", curtime);
-
-//        if(d->state==CS_ALIVE || d->state==CS_EDITING) // Kripken: We handle death differently.
-//        {
-#ifndef SERVER // If not logged in, or scenario not started, no need to send positions to self server (even can be buggy that way)
-        if (ClientSystem::loggedIn && ClientSystem::scenarioStarted())
-#else // SERVER
-        if (d->uid != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
-#endif
-        {
-            logger::log(logger::INFO, "sendpacketclient: Sending for client %d: %f,%f,%f",
-                                         d->clientnum, d->o.x, d->o.y, d->o.z);
-
-            // send position updates separately so as to not stall out aiming
-            packetbuf q(100, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
-
-            NetworkSystem::PositionUpdater::QuantizedInfo info;
-            info.generateFrom(d);
-            info.applyToBuffer(q);
-
 #ifndef SERVER
-    #if (SERVER_DRIVEN_PLAYERS == 0)
+        logger::log(logger::INFO, "sendposition?, %d)", curtime);
+        if (ClientSystem::loggedIn && ClientSystem::scenarioStarted())
+        {
+            packetbuf q(100, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+            sendposition(d, q);
             sendclientpacket(q.finalize(), 0, d->clientnum); // Disable this to stop client from updating server with position
-    #endif
-#else
-            localclienttoserver(0, q.finalize(), d->clientnum); // Kripken: Send directly to server, we are its internal headless client
-                                            // We feed the correct clientnum here, this is a new functionality of this func
-#endif
         }
+#endif
     }
 
     void sendmessages(gameent *d)
@@ -327,15 +367,81 @@ namespace game
 
     void parsepositions(ucharbuf &p)
     {
+#ifndef SERVER
         int type;
         while(p.remaining()) switch(type = getint(p))
         {
             case N_POS:                        // position of another client
             {
-                NetworkSystem::PositionUpdater::QuantizedInfo info;
-                info.generateFrom(p);
-                info.applyToEntity();
-
+                int cn = getuint(p), physstate = p.get(), flags = getuint(p);
+                vec o, vel, falling;
+                float yaw, pitch, roll;
+                loopk(3)
+                {
+                    int n = p.get(); n |= p.get()<<8; if(flags&(1<<k)) { n |= p.get()<<16; if(n&0x800000) n |= -1<<24; }
+                    o[k] = n/DMF;
+                }
+                int dir = p.get(); dir |= p.get()<<8;
+                yaw = dir%360;
+                pitch = clamp(dir/360, 0, 180)-90;
+                roll = clamp(int(p.get()), 0, 180)-90;
+                int mag = p.get(); if(flags&(1<<3)) mag |= p.get()<<8;
+                dir = p.get(); dir |= p.get()<<8;
+                vecfromyawpitch(dir%360, clamp(dir/360, 0, 180)-90, 1, 0, vel);
+                vel.mul(mag/DVELF);
+                if(flags&(1<<4))
+                {
+                    mag = p.get(); if(flags&(1<<5)) mag |= p.get()<<8;
+                    if(flags&(1<<6))
+                    {
+                        dir = p.get(); dir |= p.get()<<8;
+                        vecfromyawpitch(dir%360, clamp(dir/360, 0, 180)-90, 1, 0, falling);
+                    }
+                    else falling = vec(0, 0, -1);
+                    falling.mul(mag/DVELF);
+                }
+                else falling = vec(0, 0, 0);
+                int seqcolor = (physstate>>3)&1;
+                gameent *d = getclient(cn);
+                if(!d || d->lifesequence < 0 || seqcolor!=(d->lifesequence&1) || d->state==CS_DEAD) continue;
+                float oldyaw = d->yaw, oldpitch = d->pitch, oldroll = d->roll;
+                d->yaw = yaw;
+                d->pitch = pitch;
+                d->roll = roll;
+                d->move = (physstate>>4)&2 ? -1 : (physstate>>4)&1;
+                d->strafe = (physstate>>6)&2 ? -1 : (physstate>>6)&1;
+                d->crouching = (flags&(1<<8))!=0 ? -1 : abs(d->crouching);
+                vec oldpos(d->o);
+                if(allowmove(d))
+                {
+                    d->o = o;
+                    d->o.z += d->eyeheight;
+                    d->vel = vel;
+                    d->falling = falling;
+                    d->physstate = physstate&7;
+                }
+                updatephysstate(d);
+                updatepos(d);
+                if(smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < smoothdist)
+                {
+                    d->newpos = d->o;
+                    d->newyaw = d->yaw;
+                    d->newpitch = d->pitch;
+                    d->newroll = d->roll;
+                    d->o = oldpos;
+                    d->yaw = oldyaw;
+                    d->pitch = oldpitch;
+                    d->roll = oldroll;
+                    (d->deltapos = oldpos).sub(d->newpos);
+                    d->deltayaw = oldyaw - d->newyaw;
+                    if(d->deltayaw > 180) d->deltayaw -= 360;
+                    else if(d->deltayaw < -180) d->deltayaw += 360;
+                    d->deltapitch = oldpitch - d->newpitch;
+                    d->deltaroll = oldroll - d->newroll;
+                    d->smoothmillis = lastmillis;
+                }
+                else d->smoothmillis = 0;
+                if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
                 break;
             }
 
@@ -343,6 +449,7 @@ namespace game
                 neterr("positions-type");
                 return;
         }
+#endif
     }
 
     void parsepacketclient(int chan, packetbuf &p)   // processes any updates from the server
