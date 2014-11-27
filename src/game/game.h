@@ -79,9 +79,6 @@ struct gameent : dynent
 
     char turn_move, look_updown_move;    // Kripken: New movements
 
-    int physsteps, physframetime, lastphysframe; // Kripken: Moved this here from physics.cpp: now done on a per-ent basis
-    vec lastPhysicsPosition; // Kripken: The position before the last physics calculation of frame rates, etc.
-
     //! An integer, reserved for use in the position protocol update system. This is meant to be used by
     //! individual maps, which place their own data here, and use it however they want (for rendering, etc.).
     //! The engine itself just sends this inside the protocol updates.
@@ -102,7 +99,6 @@ struct gameent : dynent
 #ifdef SERVER
                                                                       , serverControlled(false)
 #endif
-                                                                      , physsteps(0), physframetime(5), lastphysframe(0), lastPhysicsPosition(0,0,0)
                                                                       , mapDefinedPositionData(0), uid(-821)
                { name[0] = team[0] = info[0] = 0; respawn(); }
     ~gameent()
@@ -128,10 +124,6 @@ struct gameent : dynent
         dynent::reset();
         turn_move = look_updown_move = 0;
 
-        physsteps = 0;
-        physframetime = 5;
-        lastphysframe = lastmillis; // So we don't move too much on our first frame
-        lastPhysicsPosition = vec(0,0,0);
         mapDefinedPositionData = 0;
     }
 

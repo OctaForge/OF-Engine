@@ -1315,11 +1315,6 @@ set_external("entity_get_attr", func(uid, prop) {
     return ent.get_attr(prop)
 })
 
-set_external("entity_refresh_attr", func(uid, prop) {
-    var ent = get_ent(uid)
-    ent.set_attr(prop, ent.get_attr(prop))
-})
-
 /**
     See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`
     (using the uid). See also $get_attr.

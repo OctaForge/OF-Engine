@@ -337,11 +337,6 @@ namespace game
             if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
             d->lastupdate = totalmillis;
         }
-
-        // The client's position has been changed, not by running physics, but by info from the remote
-        // client. This counts as if we ran physics, though, since next time we *DO* need to run
-        // physics, we don't want to go back any more than this!
-        d->lastphysframe = lastmillis;
     }
 
     void parsepositions(ucharbuf &p)

@@ -35,17 +35,6 @@ struct TargetingControl
     //! @param forceEntityCheck Set to true to find target entities even if default mouse targeting (hover targeting) is off
     static void determineMouseTarget(bool forceEntityCheck=false);
 #endif
-
-    //! Calculate the movement of a physical entity. Takes into account both
-    //! actual movement since the last calculation here, and the velocity
-    static float calculateMovement(physent* entity);
-
-    //! Calculates how long a physics frame should be for a particular physics entity. On
-    //! the client, this depends on how visible the other entity is (no need for 200fps of
-    //! physics for something that is only a few pixels large), the screen resolution, etc.
-    //! On the server, this will (TODO) depend on how the entity is visible by any of
-    //! the players.
-    static void calcPhysicsFrames(physent *entity);
 };
 
 #endif

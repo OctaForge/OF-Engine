@@ -1966,26 +1966,13 @@ void interppos(physent *pl)
 void moveplayer(physent *pl, int moveres, bool local)
 {
 #ifndef SERVER
-    // INTENSITY: Don't move an entity not fully set up yet
-    if (!pl || !LogicSystem::getLogicEntity(pl)) return;
-
-    // INTENSITY: Calculate how many physics frames, on a per-entity basis
-    TargetingControl::calcPhysicsFrames(pl);
-
-    // INTENSITY: Per-entity frame times
-    gameent* gameEntity = (gameent*)pl;
-    physsteps = gameEntity->physsteps, physframetime = gameEntity->physframetime, lastphysframe = gameEntity->lastphysframe;
-    // INTENSITY
-
     if(physsteps <= 0)
     {
         if(local) interppos(pl);
         return;
     }
 
-    if(local) pl->o = pl->newpos; // Kripken: Note: with this active, position updates from the server
-                                  // get overwritten, unless we also change newpos.
-
+    if(local) pl->o = pl->newpos;
     loopi(physsteps-1) moveplayer(pl, moveres, local, physframetime);
     if(local) pl->deltapos = pl->o;
     moveplayer(pl, moveres, local, physframetime);

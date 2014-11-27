@@ -16,10 +16,6 @@
 #include "of_tools.h"
 #include "of_world.h"
 
-
-// Enable to let *server* do physics for players - useful for debugging. Must also be defined in client.cpp!
-#define SERVER_DRIVEN_PLAYERS 0
-
 namespace game
 {
     VAR(useminimap, 0, 0, 1); // do we want the minimap? Set from JS.
@@ -173,18 +169,7 @@ namespace game
 
             logger::log(logger::INFO, "otherplayers: moving %d from %f,%f,%f", d->uid, d->o.x, d->o.y, d->o.z);
 
-            // TODO: Currently serverside physics for otherplayers run like clientside physics - if
-            // there is *ANY* lag, run physics. But we can probably save a lot of CPU on the server
-            // if we don't run physics if the lag is 'reasonable'. Note that this is already sort of
-            // done by having say lower fps on the server - if the last update was recent enough
-            // then the frame decision system may decide we need 0 frames at the moment. But, it
-            // might be better to also add an explicit condition, that we don't just check for 0
-            // lagtime as below, but also for lagtime within say 1-2 frames at the server's fps rate.
-#if (SERVER_DRIVEN_PLAYERS == 0)
-            const int lagtime = totalmillis-d->lastupdate; // Change to '1' to have server ALWAYS run physics
-#else
-            const int lagtime = 1;
-#endif
+            const int lagtime = totalmillis-d->lastupdate;
 
             if(!lagtime) continue;
             if(lagtime>1000 && d->state==CS_ALIVE)
@@ -200,21 +185,12 @@ namespace game
             if(d->state==CS_ALIVE || d->state==CS_EDITING)
             {
                 crouchplayer(d, 10, false);
-#if (SERVER_DRIVEN_PLAYERS == 0)
                 if(smoothmove && d->smoothmillis>0) predictplayer(d, true); // Disable to force server to always move clients
                 else moveplayer(d, 1, false);
-#else
-                moveplayer(d, 1, false);
-#endif
             }
             else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 1, true);
 
             logger::log(logger::INFO, "                                      to %f,%f,%f", d->o.x, d->o.y, d->o.z);
-
-#if (SERVER_DRIVEN_PLAYERS == 1)
-            // Enable this to let server drive client movement
-            lua::call_external("entity_refresh_attr", "is", d->uid, "position");
-#endif
         }
     }
 
@@ -243,9 +219,7 @@ namespace game
 
 //                if(player1->ragdoll && !(player1->anim&ANIM_RAGDOLL)) cleanragdoll(player1); XXX Needed? See below
                 crouchplayer(player1, 10, true);
-#if (SERVER_DRIVEN_PLAYERS == 0)
                 moveplayer(player1, 10, true); // Disable this to stop play from moving by client command
-#endif
 
                 logger::log(logger::INFO, "                              moveplayer(): %f,%f,%f.",
                     player1->o.x,
@@ -317,6 +291,7 @@ namespace game
         if (runWorld)
         {
             #ifndef SERVER
+                physicsframe();
                 game::otherplayers(curtime); // Server doesn't need smooth interpolation of other players
             #endif
 
