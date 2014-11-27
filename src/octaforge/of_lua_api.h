@@ -58,17 +58,11 @@ namespace lapi_binds
     /* edit */
 
 #ifndef SERVER
-    int _lua_requestprivedit(lua_State *L) {
-        MessageSystem::send_RequestPrivateEditMode();
-        return 0;
-    }
-
     int _lua_hasprivedit(lua_State *L) {
-        lua_pushboolean(L, ClientSystem::editingAlone);
+        lua_pushboolean(L, !multiplayer());
         return 1;
     }
 #else
-    LAPI_EMPTY(requestprivedit)
     LAPI_EMPTY(hasprivedit)
 #endif
 
@@ -424,7 +418,6 @@ namespace lapi_binds
     LUACOMMAND(readfile, _lua_readfile);
 
     /* edit */
-    LUACOMMAND(requestprivedit, _lua_requestprivedit);
     LUACOMMAND(hasprivedit, _lua_hasprivedit);
 
     /* input */

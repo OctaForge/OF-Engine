@@ -11,8 +11,8 @@ int connmillis = 0, connattempts = 0, discmillis = 0;
 
 bool multiplayer(bool msg)
 {
-    bool val = !ClientSystem::editingAlone; // INTENSITY
-    if(val && msg) conoutf(CON_ERROR, "You must be in private edit mode for that"); // INTENSITY: Message contents
+    bool val = curpeer || hasnonlocalclients();
+    if(val && msg) conoutf(CON_ERROR, "operation not available in multiplayer");
     return val;
 }
 

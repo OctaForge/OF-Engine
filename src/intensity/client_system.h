@@ -14,9 +14,6 @@ struct ClientSystem
     //! Whether logged in to a _remote_ server. There is no 'login' locally, just 'connecting'.
     static bool          loggedIn;
 
-    //! Whether we are only connecting locally
-    static bool          editingAlone;
-
     //! UniqueID of the player in the current module. Set in a successful response to
     //! logging in. When we then load a map, this is used to create the player's
     //! LogicEntity.

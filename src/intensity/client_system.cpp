@@ -15,7 +15,6 @@
 
 int            ClientSystem::playerNumber       = -1;
 bool           ClientSystem::loggedIn           = false;
-bool           ClientSystem::editingAlone       = false;
 int            ClientSystem::uniqueId           = -1;
 /* the buffer is large enough to hold the uuid */
 string         ClientSystem::currScenarioCode   = "";
@@ -25,8 +24,6 @@ bool _mapCompletelyReceived = false;
 
 void ClientSystem::connect(const char *host, int port)
 {
-    editingAlone = false;
-
     connectserv((char *)host, port, "");
 }
 
@@ -41,7 +38,6 @@ void ClientSystem::login(int clientNumber)
 
 void ClientSystem::finishLogin(bool local)
 {
-    editingAlone = local;
     loggedIn = true;
 
     logger::log(logger::DEBUG, "Now logged in, with unique_ID: %d", uniqueId);
@@ -54,7 +50,6 @@ void ClientSystem::doDisconnect()
 
 void ClientSystem::onDisconnect()
 {
-    editingAlone = false;
     playerNumber = -1;
     loggedIn     = false;
     _scenarioStarted  = false;
@@ -133,8 +128,6 @@ void ClientSystem::finishLoadWorld()
     finish_load_world();
 
     _mapCompletelyReceived = true; // We have the original map + static entities (still, scenarioStarted might want more stuff)
-
-    ClientSystem::editingAlone = false; // Assume not in this mode
 
     lua::call_external("gui_clear", ""); // (see prepareForMap)
 }

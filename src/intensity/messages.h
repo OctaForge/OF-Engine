@@ -330,32 +330,4 @@ struct DoClick : MessageType
 
 void send_DoClick(int button, int down, float x, float y, float z, int uid);
 
-
-// RequestPrivateEditMode
-
-struct RequestPrivateEditMode : MessageType
-{
-    RequestPrivateEditMode() : MessageType(1034, "RequestPrivateEditMode") { };
-
-#ifdef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_RequestPrivateEditMode();
-
-
-// NotifyPrivateEditMode
-
-struct NotifyPrivateEditMode : MessageType
-{
-    NotifyPrivateEditMode() : MessageType(1035, "NotifyPrivateEditMode") { };
-
-#ifndef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_NotifyPrivateEditMode(int clientNumber);
-
 #endif

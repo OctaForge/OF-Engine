@@ -753,42 +753,6 @@ namespace MessageSystem
     }
 #endif
 
-// RequestPrivateEditMode
-
-#ifndef SERVER
-    void send_RequestPrivateEditMode()
-    {
-        logger::log(logger::DEBUG, "Sending a message of type RequestPrivateEditMode (1034)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1034, "r");
-    }
-#endif
-
-#ifdef SERVER
-    void RequestPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
-    {
-        if (!world::scenario_code[0]) return;
-        send_NotifyPrivateEditMode(sender);
-    }
-#endif
-
-// NotifyPrivateEditMode
-
-    void send_NotifyPrivateEditMode(int clientNumber)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type NotifyPrivateEditMode (1035)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("ri", 1035));
-    }
-
-#ifndef SERVER
-    void NotifyPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
-    {
-        conoutf("Server: You are now in private edit mode");
-        ClientSystem::editingAlone = true;
-    }
-#endif
-
 
 // Register all messages
 
@@ -818,8 +782,6 @@ void MessageManager::registerAll()
     registerMessageType( new EditModeC2S() );
     registerMessageType( new EditModeS2C() );
     registerMessageType( new DoClick() );
-    registerMessageType( new RequestPrivateEditMode() );
-    registerMessageType( new NotifyPrivateEditMode() );
 }
 
 }
