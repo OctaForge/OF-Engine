@@ -83,7 +83,6 @@ else()
         ../engine/pvs
         ../intensity/engine_additions
         ../intensity/targeting
-        ../intensity/network_system
         ../shared/stream
         ../shared/zip
         ../engine/movie

@@ -5,7 +5,6 @@
 
 #include "game.h" // INTENSITY: needed for gameent
  // INTENSITY
-#include "network_system.h"
 #include "message_system.h"
 #include "of_world.h"
 
@@ -220,9 +219,6 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
         case ST_TCPIP:
         {
             enet_peer_send(clients[n]->peer, chan, packet);
-
-            //NetworkSystem::Cataloger::packetSent(chan, packet->dataLength); // INTENSITY
-
             break;
         }
 
@@ -608,8 +604,8 @@ void server_init()//int argc, char* argv[])
     assert(clients.length() == 1); // Ensure noone else connected before
 
     gameent* gameEntity = game::newclient(0); // Create a new gameclient for this client
-    gameEntity->uid = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
-    server::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
+    gameEntity->uid = -9000;
+    server::getUniqueId(0) = -9000;
 }
 
 void serverkeepalive();

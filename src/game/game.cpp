@@ -6,8 +6,6 @@
 #include "engine.h"
 #include "game.h"
 
-#include "network_system.h"
-
 #ifndef SERVER
     #include "client_system.h"
 #endif

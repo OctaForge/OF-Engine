@@ -13,7 +13,6 @@
 #define _fileno fileno
 #endif
 
-#include "network_system.h"
 #include "message_system.h"
 
 #ifndef SERVER
@@ -83,7 +82,7 @@ namespace server
 
         void reset()
         {
-            uniqueId = DUMMY_SINGLETON_CLIENT_UNIQUE_ID - 5; // Kripken: Negative, and also different from dummy singleton
+            uniqueId = -9000 - 5; // Kripken: Negative, and also different from dummy singleton
             isAdmin = false; // Kripken
 
             name[0] = team[0] = 0;
@@ -361,7 +360,7 @@ namespace server
             if (!currClient) continue; // We have a server client, but no FPSClient client yet, because we have not yet
                                        // finished the player's login, only after which do we create the lua entity,
                                        // which then gets a client added to the FPSClient (and the remote client's FPSClient)
-            if (ci.uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) // Send also to singleton dummy client
+            if (ci.uniqueId == -9000) // Send also to singleton dummy client
 #endif
             {
 
@@ -461,7 +460,7 @@ namespace server
         // it sends it to all *other* clients. This is in tune with the server-as-a-relay-server approach in Sauer.
         // Note that it puts the message in the messages for the current client. This is apparently what prevents
         // the client from getting it back.
-        #define QUEUE_MSG { if(ci->uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID || !ci->local) while(curmsg<p.length()) ci->messages.add(p.buf[curmsg++]); } // Kripken: We need to send messages through the dummy singleton
+        #define QUEUE_MSG { if(ci->uniqueId == -9000 || !ci->local) while(curmsg<p.length()) ci->messages.add(p.buf[curmsg++]); } // Kripken: We need to send messages through the dummy singleton
         #define QUEUE_BUF(body) { \
             if(!ci->local) \
             { \
@@ -726,7 +725,7 @@ namespace server
             {
                 clientinfo *ci = (clientinfo *)getinfo(i);
                 if (!ci) continue;
-                if (ci->uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) continue;
+                if (ci->uniqueId == -9000) continue;
                 if (ci->local) continue;
 
                 logger::log(logger::DEBUG, "luaEntities creation: Adding %d", i);

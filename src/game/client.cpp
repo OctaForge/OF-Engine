@@ -8,7 +8,6 @@
 
 #include "client_system.h"
 #include "message_system.h"
-#include "network_system.h"
 #include "targeting.h"
 
 #ifndef SERVER

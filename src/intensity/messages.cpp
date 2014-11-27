@@ -12,7 +12,6 @@
 
 #include "client_system.h"
 #include "message_system.h"
-#include "network_system.h"
 #include "of_world.h"
 #include "of_tools.h"
 
@@ -38,7 +37,7 @@ namespace MessageSystem
             if (clientNumber == exclude) continue;
             #ifdef SERVER
                 int testUniqueId = server::getUniqueId(clientNumber);
-                if (testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) {
+                if (testUniqueId == -9000) {
                     if (!toDummyServer) continue;
                 }
                 logger::log(logger::DEBUG, "Sending to %d (%d)", clientNumber, testUniqueId);

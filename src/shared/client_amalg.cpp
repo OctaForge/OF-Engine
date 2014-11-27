@@ -55,7 +55,6 @@
 #include "engine/pvs.cpp"
 #include "intensity/engine_additions.cpp"
 #include "intensity/targeting.cpp"
-#include "intensity/network_system.cpp"
 #include "shared/stream.cpp"
 #include "shared/zip.cpp"
 #include "engine/movie.cpp"

@@ -35,7 +35,6 @@ else()
         ../shared/geom
         ../engine/client
         ../engine/octaedit
-        ../intensity/network_system
         ../engine/octarender
         ../shared/stream
         ../shared/zip

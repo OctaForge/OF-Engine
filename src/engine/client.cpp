@@ -7,10 +7,6 @@
     #include "client_system.h" // INTENSITY
 #endif
 
-#include "network_system.h" // INTENSITY
-
-
-
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
@@ -171,8 +167,6 @@ void sendclientpacket(ENetPacket *packet, int chan, int cn) // INTENSITY: added 
 {
     if(curpeer) enet_peer_send(curpeer, chan, packet);
     else localclienttoserver(chan, packet, cn); // INTENSITY: added cn
-
-    //NetworkSystem::Cataloger::packetSent(chan, packet->dataLength); // INTENSITY
 }
 
 void flushclient()
