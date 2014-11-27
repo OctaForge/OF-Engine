@@ -361,7 +361,7 @@ namespace server
             if (!currClient) continue; // We have a server client, but no FPSClient client yet, because we have not yet
                                        // finished the player's login, only after which do we create the lua entity,
                                        // which then gets a client added to the FPSClient (and the remote client's FPSClient)
-            if (!currClient->serverControlled || ci.uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) // Send also to singleton dummy client
+            if (ci.uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) // Send also to singleton dummy client
 #endif
             {
 
@@ -735,7 +735,7 @@ namespace server
                 clientinfo *ci = (clientinfo *)getinfo(i);
                 if (!ci) continue;
                 if (ci->uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) continue;
-                if (ci->local) continue; // No need for NPCs created during the map script - they already exist
+                if (ci->local) continue;
 
                 logger::log(logger::DEBUG, "luaEntities creation: Adding %d", i);
 
@@ -789,8 +789,6 @@ namespace server
         {
             gameEntity = game::getclient(cn); // It was created since gameEntity was def'd
             assert(gameEntity);
-
-            gameEntity->serverControlled = true; // Mark this as an NPC the server should control
 
             game::spawnplayer(gameEntity);
         }

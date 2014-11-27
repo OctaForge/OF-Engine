@@ -69,12 +69,6 @@ struct gameent : dynent
 
     void *ai; // TODO: If we want, import rest of AI code
 
-    int lastServerUpdate; // Kripken: This is the last time we sent the server an update. Might be different per NPC.
-
-#ifdef SERVER
-    bool serverControlled; // Kripken: Set to true for NPCs that this server controls. For now, that means all NPCs
-#endif
-
     CLogicEntity *logicEntity;
 
     char turn_move, look_updown_move;    // Kripken: New movements
@@ -95,10 +89,6 @@ struct gameent : dynent
     int uid;
 
     gameent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), ai(NULL)
-                                                                      , lastServerUpdate(0)
-#ifdef SERVER
-                                                                      , serverControlled(false)
-#endif
                                                                       , mapDefinedPositionData(0), uid(-821)
                { name[0] = team[0] = info[0] = 0; respawn(); }
     ~gameent()

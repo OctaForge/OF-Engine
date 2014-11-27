@@ -223,7 +223,7 @@ namespace game
     {
 #ifndef SERVER
         if (ClientSystem::scenarioStarted())
-#endif // XXX - Need a similar check for NPCs on the server, if/when we have them
+#endif
         {
             conoutf(CON_CHAT, "%s:\f0 %s", colorname(player1), text);
             addmsg(N_TEXT, "rcs", player1, text);
@@ -297,16 +297,7 @@ namespace game
         if (ClientSystem::scenarioStarted())
             sendposition(player1);
 
-        sendmessages(player1); // XXX - need to send messages from NPCs?
-#else // SERVER
-        loopv(players)
-        {
-            gameent *d = players[i];
-            if (d->serverControlled && d->uid != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
-            {
-                sendposition(d);
-            }
-        }
+        sendmessages(player1);
 #endif
         flushclient();
     }
@@ -314,11 +305,6 @@ namespace game
     void updatepos(gameent *d)
     {
 #ifndef SERVER
-        // Only the client cares if other clients overlap him. NPCs on the server don't mind.
-        // update the position of other clients in the game in our world
-        // don't care if he's in the scenery or other players,
-        // just don't overlap with our client
-
         const float r = player1->radius+d->radius;
         const float dx = player1->o.x-d->o.x;
         const float dy = player1->o.y-d->o.y;
@@ -378,7 +364,6 @@ namespace game
                 break;
 
             case 2:
-                // kripken: TODO: For now, this should only be for players, not NPCs on the server
                 assert(0);
 //                receivefile(p.get_buf(), p.maxlen);
                 break;
@@ -405,7 +390,7 @@ namespace game
             {
                 int cn = getint(p), len = getuint(p);
                 ucharbuf q = p.subbuf(len);
-                parsemessages(cn, getclient(cn), q); // Only the client needs relayed Sauer messages, not the NPCs.
+                parsemessages(cn, getclient(cn), q);
                 break;
             }
 

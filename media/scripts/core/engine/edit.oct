@@ -52,19 +52,6 @@ M.material = enum {
 */
 M.player_is_editing = func() { return capi::editing_get() != 0 }
 
-/** Function: add_npc
-    Adds a bot into the world onto the starting position. Bots are considered
-    clients. You can define their AI via their entity prototype. This is purely
-    serverside. Takes the entity prototype name the bot should be. Returns the bot
-    entity's uid.
-*/
-M.add_npc = capi.npcadd
-
-/** Function: delete_npc
-    Deletes a bot. Takes the entity, returns nothing. Purely serverside.
-*/
-M.delete_npc = func(ent) { capi::npcdel(ent.uid) }
-
 /** Function: new_entity
     Creates a new entity on the position where the edit cursor is aiming.
     Takes the entity prototype name as an argument. Also callable from cubescript

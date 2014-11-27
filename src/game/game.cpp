@@ -162,11 +162,6 @@ namespace game
 
             if (d->uid < 0) continue;
 
-            #ifdef SERVER
-                if (d->serverControlled)
-                    continue; // On the server, 'other players' are only PCs
-            #endif
-
             logger::log(logger::INFO, "otherplayers: moving %d from %f,%f,%f", d->uid, d->o.x, d->o.y, d->o.z);
 
             const int lagtime = totalmillis-d->lastupdate;
@@ -233,32 +228,6 @@ namespace game
         }
         else
             logger::log(logger::INFO, "Player does not yet exist, or scenario not started, do not run moveplayer() etc.");
-
-#else // SERVER
-    #if 1
-        // Loop over NPCs we control, moving and sending their info c2sinfo for each.
-        loopv(players)
-        {
-            gameent* npc = players[i];
-            if (!npc->serverControlled || npc->uid == DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
-                continue;
-
-            // We do this so lua need not worry in the NPC behaviour code
-            while(npc->yaw < -180.0f) npc->yaw += 360.0f;
-            while(npc->yaw > +180.0f) npc->yaw -= 360.0f;
-
-            while(npc->pitch < -180.0f) npc->pitch += 360.0f;
-            while(npc->pitch > +180.0f) npc->pitch -= 360.0f;
-
-            // Apply physics to actually move the player
-            moveplayer(npc, 10, false); // FIXME: Use Config param for resolution and local. 1, false does seem ok though
-
-            logger::log(logger::INFO, "updateworld, server-controlled client %d: moved to %f,%f,%f", i,
-                                            npc->o.x, npc->o.y, npc->o.z);
-
-            //?? Dummy singleton still needs to send the messages vector. XXX - do we need this even without NPCs? XXX - works without it
-        }
-    #endif
 #endif
     }
 
@@ -266,9 +235,6 @@ namespace game
     {
         logger::log(logger::INFO, "updateworld(?, %d)", curtime);
         INDENT_LOG(logger::INFO);
-
-        // SERVER used to initialize turn_move, move, look_updown_move and strafe to 0 for NPCs here
-
         if(!curtime)
         {
 #ifndef SERVER
@@ -325,8 +291,6 @@ namespace game
 #ifndef SERVER
         // clientnum might be -1, if we have yet to get S2C telling us our clientnum, i.e., we are only partially connected
         if(player1->clientnum>=0) c2sinfo(); //player1, // do this last, to reduce the effective frame lag
-#else // SERVER
-        c2sinfo(); // Send all the info for all the NPCs
 #endif
     }
 

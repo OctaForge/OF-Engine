@@ -32,7 +32,7 @@ int QuantizedInfo::getLifeSequence()
 
 void QuantizedInfo::generateFrom(gameent *d)
 {
-    clientNumber = d->clientnum; // Kripken: Changed player1 to d, so this will work for NPCs as well
+    clientNumber = d->clientnum;
 
     position.x = (int)(d->o.x*DMF);              // quantize coordinates to 1/4th of a cube, between 1 and 3 bytes
     position.y = (int)(d->o.y*DMF);
@@ -151,14 +151,6 @@ void QuantizedInfo::applyToEntity(gameent *d)
         return;
     } else
         logger::log(logger::INFO, "Applying position update for client %d", clientNumber);
-
-    #ifdef SERVER
-    if(d->serverControlled) // Server does not need to update positions of its own NPCs. TODO: Don't even send to here.
-    {
-        logger::log(logger::INFO, "Not applying position update for server NPC: (uid: %d , addr %d):", d->uid, d != NULL);
-        return;
-    }
-    #endif
 
     #ifndef SERVER
     float oldyaw = d->yaw, oldpitch = d->pitch;

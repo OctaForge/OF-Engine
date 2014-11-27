@@ -57,37 +57,6 @@ namespace lapi_binds
 
     /* edit */
 
-#ifdef SERVER
-    int _lua_npcadd(lua_State *L) {
-        int cn = localconnect();
-
-        defformatstring(buf, "Bot.%d", cn);
-        logger::log(logger::DEBUG, "New NPC with client number: %i", cn);
-
-        const char *cl = luaL_checkstring(L, 1);
-        lua_pushinteger(L, server::createluaEntity(cn, cl ? cl : "", buf));
-        return 1;
-    }
-
-    int _lua_npcdel(lua_State *L) {
-        int uid = luaL_checkinteger(L, 1);
-        LUA_GET_ENT(entity, uid, "_C.npcdel", return 0)
-        gameent *fp = (gameent*)entity->dynamicEntity;
-        localdisconnect(true, fp->clientnum);
-        return 0;
-    }
-#else
-    int _lua_npcadd(lua_State *L) {
-        logger::log(logger::ERROR, "_C.npcadd: server-only function.");
-        return 0;
-    }
-
-    int _lua_npcdel(lua_State *L) {
-        logger::log(logger::ERROR, "_C.npcdel: server-only function.");
-        return 0;
-    }
-#endif
-
 #ifndef SERVER
     int _lua_requestprivedit(lua_State *L) {
         MessageSystem::send_RequestPrivateEditMode();
@@ -431,8 +400,6 @@ namespace lapi_binds
     LUACOMMAND(readfile, _lua_readfile);
 
     /* edit */
-    LUACOMMAND(npcadd, _lua_npcadd);
-    LUACOMMAND(npcdel, _lua_npcdel);
     LUACOMMAND(requestprivedit, _lua_requestprivedit);
     LUACOMMAND(hasprivedit, _lua_hasprivedit);
 

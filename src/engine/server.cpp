@@ -608,10 +608,6 @@ void server_init()//int argc, char* argv[])
     assert(clients.length() == 1); // Ensure noone else connected before
 
     gameent* gameEntity = game::newclient(0); // Create a new gameclient for this client
-
-    gameEntity->serverControlled = true; // Mark this as not controlled by server, so we don't try to actually do anything with it
-                                        // After all it doesn't really exist
-
     gameEntity->uid = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
     server::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
 }

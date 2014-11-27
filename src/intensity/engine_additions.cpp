@@ -361,9 +361,9 @@ void LogicSystem::setupCharacter(int uid, int cn)
     else
     #endif
     {
-        logger::log(logger::DEBUG, "This is a remote client or NPC, do a newClient for the gameent");
+        logger::log(logger::DEBUG, "This is a remote client, do a newClient for the gameent");
 
-        // This is another client, perhaps NPC. Connect this new client using newClient
+        // This is another client. Connect this new client using newClient
         gameEntity = game::newclient(cn);
     }
 
@@ -405,21 +405,6 @@ void LogicSystem::dismantleCharacter(int cn)
     #endif
     {
         logger::log(logger::DEBUG, "Dismantling other client %d\r\n", cn);
-
-#ifdef SERVER
-        gameent* gameEntity = game::getclient(cn);
-        bool isNPC = gameEntity->serverControlled;
-#endif
-
         game::clientdisconnected(cn);
-
-#ifdef SERVER
-        if (isNPC)
-        {
-            /* The server connections of NPCs are removed when they are dismantled -
-             * they must be re-created manually in the new scenario, unlike players */
-            localdisconnect(true, cn);
-        }
-#endif
     }
 }
