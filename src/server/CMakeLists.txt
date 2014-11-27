@@ -29,9 +29,6 @@ else()
         ../engine/worldio
         ../intensity/engine_additions
         ../engine/octa
-        ../engine/physics
-        ../engine/rendermodel
-        ../engine/bih
         ../shared/geom
         ../engine/client
         ../engine/octaedit
