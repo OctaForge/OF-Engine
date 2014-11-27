@@ -3,6 +3,7 @@
 #include "engine.h"
 #include "of_tools.h" // OF
 #include "client_system.h"
+#include "game.h"
 #include "targeting.h"
 
 #define MAXCONLINES 1000
@@ -887,8 +888,7 @@ bool k_turn_left, k_turn_right, k_look_up, k_look_down;
 ICOMMAND(name, "", (), { \
     if (ClientSystem::scenarioStarted()) \
     { \
-        CLogicEntity *e = ClientSystem::playerLogicEntity; \
-        lua::call_external("entity_clear_actions", "i", e->getUniqueId()); \
+        lua::call_external("entity_clear_actions", "i", game::player1->uid); \
         s = (addreleaseaction(newstring(#name)) != 0); \
         lua::call_external("input_" #v, "ib", s ? d : (os ? -(d) : 0), s); \
     } \
@@ -908,8 +908,7 @@ SCRIPT_DIR(right, strafe, strafe, -1, player->k_right, player->k_left);
 ICOMMAND(jump, "", (), {
     if (ClientSystem::scenarioStarted())
     {
-        CLogicEntity *e = ClientSystem::playerLogicEntity;
-        lua::call_external("entity_clear_actions", "i", e->getUniqueId());
+        lua::call_external("entity_clear_actions", "i", game::player1->uid);
         bool down = (addreleaseaction(newstring("jump")) != 0);
         lua::call_external("input_jump", "b", down);
     }
@@ -918,8 +917,7 @@ ICOMMAND(jump, "", (), {
 ICOMMAND(crouch, "", (), {
     if (ClientSystem::scenarioStarted())
     {
-        CLogicEntity *e = ClientSystem::playerLogicEntity;
-        lua::call_external("entity_clear_actions", "i", e->getUniqueId());
+        lua::call_external("entity_clear_actions", "i", game::player1->uid);
         bool down = (addreleaseaction(newstring("crouch")) != 0);
         lua::call_external("input_crouch", "b", down);
     }

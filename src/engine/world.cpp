@@ -2,9 +2,6 @@
 
 #include "engine.h"
 
-#ifndef SERVER
-#include "client_system.h"
-#endif
 #include "message_system.h" // INTENSITY
 #include "of_tools.h"
 
@@ -1081,7 +1078,7 @@ void newent(const char *cl, const char *sd, const char *nd, vec fp)
 {
     #ifndef SERVER
         fp.mul(FAR_PLACING_FACTOR);
-        vec cp = ClientSystem::playerLogicEntity->dynamicEntity->o;
+        vec cp = player->o;
         cp.mul(1 - FAR_PLACING_FACTOR);
         cp.add(fp);
 

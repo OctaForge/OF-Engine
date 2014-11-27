@@ -194,11 +194,11 @@ namespace game
     void moveControlledEntities()
     {
 #ifndef SERVER
-        if (ClientSystem::playerLogicEntity)
+        if (player1)
         {
             bool b;
             lua::pop_external_ret(lua::call_external_ret("entity_is_initialized",
-                "i", "b", ClientSystem::playerLogicEntity->getUniqueId(), &b));
+                "i", "b", player1->uid, &b));
             if (b)
             {
                 logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.",
