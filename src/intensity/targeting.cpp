@@ -8,9 +8,6 @@
 
 #include "targeting.h"
 
-#ifndef SERVER
-#include "client_system.h"
-
 vec           TargetingControl::targetPosition;
 CLogicEntity *TargetingControl::targetLogicEntity = NULL;
 
@@ -124,11 +121,11 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 
             // If not edit mode, ignore the player itself
             if (!editmode && TargetingControl::targetLogicEntity &&
-                TargetingControl::targetLogicEntity->getUniqueId() == ClientSystem::uniqueId)
+                TargetingControl::targetLogicEntity->getUniqueId() == game::player1->uid)
             {
                 // Try to see if the player was the sole cause of collision - move it away, test, then move it back
-                vec save = ClientSystem::playerLogicEntity->dynamicEntity->o;
-                ClientSystem::playerLogicEntity->dynamicEntity->o.add(10000.0);
+                vec save = game::player1->o;
+                game::player1->o.add(10000.0);
 
                 TargetingControl::intersectClosest(camera1->o,
                                                    worldpos,
@@ -136,7 +133,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
                                                    dist,
                                                    TargetingControl::targetLogicEntity);
 
-                ClientSystem::playerLogicEntity->dynamicEntity->o = save;
+                game::player1->o = save;
             }
 
             has_mouse_target = TargetingControl::targetLogicEntity != NULL;
@@ -157,5 +154,3 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
         }
     }
 }
-
-#endif

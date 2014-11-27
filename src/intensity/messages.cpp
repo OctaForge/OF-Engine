@@ -75,24 +75,18 @@ namespace MessageSystem
 #ifdef SERVER
     void LoginRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        #ifdef SERVER
-            if (!world::scenario_code[0])
-            {
-                send_PersonalServerMessage(
-                    sender,
-                    "Login failure",
-                    "Login failure: instance is not running a map"
-                );
-                force_network_flush();
-                disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
-            }
-            server::setAdmin(sender, true);
-            send_LoginResponse(sender, true, true);
-        #else // CLIENT, during a localconnect
-            ClientSystem::uniqueId = 9999; // Dummy safe uid value for localconnects. Just set it here, brute force
-            // Notify client of results of login
-            send_LoginResponse(sender, true, true);
-        #endif
+        if (!world::scenario_code[0])
+        {
+            send_PersonalServerMessage(
+                sender,
+                "Login failure",
+                "Login failure: instance is not running a map"
+            );
+            force_network_flush();
+            disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
+        }
+        server::setAdmin(sender, true);
+        send_LoginResponse(sender, true, true);
     }
 #endif
 
