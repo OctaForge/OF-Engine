@@ -728,15 +728,6 @@ namespace server
             return -1;
         }
 
-        gameent* gameEntity = game::getclient(cn);
-        if (gameEntity)
-        {
-            // Already created an entity
-            logger::log(logger::WARNING, "createluaEntity(%d): already have gameEntity, and hence lua entity. Kicking.", cn);
-            disconnect_client(cn, DISC_KICK);
-            return -1;
-        }
-
         // Use the PC class, unless told otherwise
         string pcclass;
         if (!_class[0]) {

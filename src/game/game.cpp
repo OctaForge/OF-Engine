@@ -6,10 +6,7 @@
 #include "engine.h"
 #include "game.h"
 
-#ifndef SERVER
-    #include "client_system.h"
-#endif
-
+#include "client_system.h"
 #include "message_system.h"
 #include "of_tools.h"
 #include "of_world.h"
@@ -28,7 +25,6 @@ namespace game
 
     void follow(char *arg)
     {
-#ifndef SERVER
         if(arg[0] ? player1->state==CS_SPECTATOR : following>=0)
         {
             following = arg[0] ? parseplayer(arg) : -1;
@@ -36,7 +32,6 @@ namespace game
             followdir = 0;
             conoutf("follow %s", following>=0 ? "on" : "off");
         }
-#endif
     }
 
     void nextfollow(int dir)
@@ -96,13 +91,9 @@ namespace game
 
     gameent *hudplayer()
     {
-#ifndef SERVER
         if(thirdperson) return player1;
         gameent *target = followingplayer();
         return target ? target : player1;
-#else
-        return NULL;
-#endif
     }
 
     void setupcamera()
@@ -136,7 +127,6 @@ namespace game
     VARP(smoothmove, 0, 75, 100);
     VARP(smoothdist, 0, 32, 64);
 
-#ifndef SERVER
     void predictplayer(gameent *d, bool move)
     {
         d->o = d->newpos;
@@ -195,11 +185,9 @@ namespace game
             logger::log(logger::INFO, "                                      to %f,%f,%f", d->o.x, d->o.y, d->o.z);
         }
     }
-#endif
 
     void moveControlledEntities()
     {
-#ifndef SERVER
         if (player1)
         {
             bool b;
@@ -236,7 +224,6 @@ namespace game
         }
         else
             logger::log(logger::INFO, "Player does not yet exist, or scenario not started, do not run moveplayer() etc.");
-#endif
     }
 
     void updateworld()        // main game update loop
@@ -245,18 +232,12 @@ namespace game
         INDENT_LOG(logger::INFO);
         if(!curtime)
         {
-#ifndef SERVER
             gets2c();
             if(player1->clientnum>=0) c2sinfo();
-#endif
             return;
         }
 
-#ifndef SERVER
         bool runWorld = ClientSystem::scenarioStarted();
-#else
-        bool runWorld = (lua::L != NULL);
-#endif
         //===================
         // Run physics
         //===================
@@ -264,52 +245,38 @@ namespace game
 
         if (runWorld)
         {
-            #ifndef SERVER
-                physicsframe();
-                game::otherplayers(curtime); // Server doesn't need smooth interpolation of other players
-            #endif
-
+            physicsframe();
+            game::otherplayers(curtime); // Server doesn't need smooth interpolation of other players
             game::moveControlledEntities();
-
             loopv(game::players)
             {
                 gameent* gameEntity = game::players[i];
                 CLogicEntity *entity = LogicSystem::getLogicEntity(gameEntity);
                 if (!entity) continue;
-#ifndef SERVER
                 moveragdoll(gameEntity);
-#endif
             }
             LogicSystem::manageActions(curtime);
         }
 
-#ifndef SERVER
         //================================================================
         // Get messages - *AFTER* otherplayers, which applies smoothness,
         // and after actions, since gets2c may destroy the engine
         //================================================================
 
         gets2c();
-#endif
 
         //============================================
         // Send network updates, last for least lag
         //============================================
 
-#ifndef SERVER
         // clientnum might be -1, if we have yet to get S2C telling us our clientnum, i.e., we are only partially connected
         if(player1->clientnum>=0) c2sinfo(); //player1, // do this last, to reduce the effective frame lag
-#endif
     }
 
     void spawnplayer(gameent *d)   // place at random spawn. also used by monsters!
     {
         spawnstate(d);
-        #ifndef SERVER
-            d->state = spectator ? CS_SPECTATOR : (d==player1 && editmode ? CS_EDITING : CS_ALIVE);
-        #else // SERVER
-            d->state = CS_ALIVE;
-        #endif
+        d->state = spectator ? CS_SPECTATOR : (d==player1 && editmode ? CS_EDITING : CS_ALIVE);
     }
 
     // inputs
@@ -341,19 +308,15 @@ namespace game
 
         if(cn < 0 || cn > max(0xFF, MAXCLIENTS)) // + MAXBOTS))
         {
-#ifndef SERVER
             neterr("clientnum", false);
-#endif
             return NULL;
         }
 
-#ifndef SERVER
         if(cn == player1->clientnum)
         {
             player1->uid = -5412; // Wipe uid of new client
             return player1;
         }
-#endif
 
         while(cn >= clients.length()) clients.add(NULL);
 
@@ -368,9 +331,7 @@ namespace game
 
     gameent *getclient(int cn)   // ensure valid entity
     {
-#ifndef SERVER // INTENSITY
         if(cn == player1->clientnum) return player1;
-#endif
         return clients.inrange(cn) ? clients[cn] : NULL;
     }
 
@@ -388,24 +349,18 @@ namespace game
         if(!d) return;
         if(notify && d->name[0]) conoutf("player %s disconnected", colorname(d));
 //        removeweapons(d);
-#ifndef SERVER
         removetrackedparticles(d);
         removetrackeddynlights(d);
-#endif
         players.removeobj(d);
         DELETEP(clients[cn]);
-#ifndef SERVER
         cleardynentcache();
-#endif
     }
 
     void initclient()
     {
         player1 = spawnstate(new gameent);
         filtertext(player1->name, "unnamed", false, 32);
-#ifndef SERVER
         players.add(player1);
-#endif
     }
 
     void preload() { }; // We use our own preloading system, but need to add the above projectiles etc.
@@ -416,18 +371,11 @@ namespace game
 //        clearmovables();
 //        clearprojectiles();
 //        clearbouncers();
-
-#ifndef SERVER
         spawnplayer(player1);
         disablezoom();
-#endif
 //        if(*name) conoutf(CON_GAMEINFO, "\f2game mode is %s", gameserver::modestr(gamemode));
 
         //execident("mapstart");
-
-#ifdef SERVER
-        server::resetScenario();
-#endif
     }
 
     void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material)
@@ -469,7 +417,6 @@ namespace game
         return cname;
     }
 
-#ifndef SERVER
     void drawhudmodel(gameent *d, int anim, float speed = 0, int base = 0)
     {
         logger::log(logger::WARNING, "Rendering hudmodel is deprecated for now");
@@ -493,11 +440,9 @@ namespace game
     void gameplayhud(int w, int h)
     {
     }
-#endif
 
     void particletrack(physent *owner, vec &o, vec &d)
     {
-#ifndef SERVER
         if(owner->type!=ENT_PLAYER) return;
 //        gameent *pl = (gameent *)owner;
         float dist = o.dist(d);
@@ -509,9 +454,6 @@ namespace game
             float newdist = raycube(owner->o, d, dist, RAY_CLIPMAT|RAY_ALPHAPOLY);
             d.mul(min(newdist, dist)).add(owner->o);
         }
-#else // SERVER
-        assert(0);
-#endif
     }
 
     void newmap(int size)

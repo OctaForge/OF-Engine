@@ -26,9 +26,9 @@ var gen_getwrap = func(fun, tp) {
     }
 }
 
-capi.get_start_time = gen_getwrap(capi.get_start_time, "int")
-
 @[!server] {
+    capi.get_start_time = gen_getwrap(capi.get_start_time, "int")
+
     var get_selected_entity in capi
     capi.get_selected_entity = func() {
         if !ents {
@@ -67,13 +67,6 @@ var get_attr in capi
 capi.get_attr = func(ent, id) {
     var stor = ffi_new("int[1]")
     if !get_attr(ent, id, stor) { return undef }
-    return stor[0]
-}
-
-var get_start_time in capi
-capi.get_start_time = func(ent) {
-    var stor = ffi_new("int[1]")
-    if !get_start_time(ent, stor) { return undef }
     return stor[0]
 }
 

@@ -12,7 +12,6 @@
 #include "shared/tools.cpp"
 #include "engine/command.cpp"
 #include "engine/server.cpp"
-#include "game/game.cpp"
 #include "game/server.cpp"
 #include "intensity/message_system.cpp"
 #include "intensity/messages.cpp"

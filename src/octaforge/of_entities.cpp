@@ -88,6 +88,7 @@ namespace entities
 
     /* Entity attributes */
 
+#ifndef SERVER
     CLUAICOMMAND(set_animation, void, (int uid, int anim), {
         LUA_GET_ENT(entity, uid, "_C.setanim", return)
         entity->setAnimation(anim);
@@ -104,13 +105,11 @@ namespace entities
         LUA_GET_ENT(entity, uid, "_C.setmodelname", return)
         logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")",
             entity->uniqueId, name);
-#ifndef SERVER
         extentity *ext = entity->staticEntity;
         if (!ext) return;
         removeentity(ext);
         if (name[0]) ext->m = loadmodel(name);
         addentity(ext);
-#endif
     });
 
     CLUAICOMMAND(set_attachments, void, (int uid, const char **attach), {
@@ -132,6 +131,7 @@ namespace entities
         LUA_GET_ENT(entity, uid, "_C.setcanmove", return)
         entity->canMove = b;
     });
+#endif
 
     /* Extents */
 

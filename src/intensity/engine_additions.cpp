@@ -240,8 +240,6 @@ void LogicSystem::setupCharacter(int uid, int cn)
     logger::log(logger::DEBUG, "setupCharacter: %d, %d", uid, cn);
     INDENT_LOG(logger::DEBUG);
 
-    gameent* gameEntity;
-
     #ifndef SERVER
         logger::log(logger::DEBUG, "client numbers: %d, %d", ClientSystem::playerNumber, cn);
 
@@ -251,7 +249,9 @@ void LogicSystem::setupCharacter(int uid, int cn)
 
     assert(cn >= 0);
 
-    #ifndef SERVER
+#ifndef SERVER
+    gameent* gameEntity;
+
     // If this is the player. There should already have been created an gameent for this client,
     // which we can fetch with the valid client #
     logger::log(logger::DEBUG, "UIDS: in ClientSystem %d, and given to us%d", ClientSystem::uniqueId, uid);
@@ -266,7 +266,6 @@ void LogicSystem::setupCharacter(int uid, int cn)
         gameEntity->uid = -77;
     }
     else
-    #endif
     {
         logger::log(logger::DEBUG, "This is a remote client, do a newClient for the gameent");
 
@@ -277,6 +276,9 @@ void LogicSystem::setupCharacter(int uid, int cn)
     // Register with the C++ system.
     gameEntity->uid = uid;
     CLogicEntity *newEntity = new CLogicEntity(gameEntity);
+#else
+    CLogicEntity *newEntity = new CLogicEntity();
+#endif
     newEntity->uniqueId = uid;
     registerLogicEntity(newEntity);
 }
@@ -307,13 +309,13 @@ void LogicSystem::dismantleExtent(int uid)
 
 void LogicSystem::dismantleCharacter(int cn)
 {
-    #ifndef SERVER
+#ifndef SERVER
     if (cn == ClientSystem::playerNumber)
         logger::log(logger::DEBUG, "Not dismantling own client\r\n", cn);
     else
-    #endif
     {
         logger::log(logger::DEBUG, "Dismantling other client %d\r\n", cn);
         game::clientdisconnected(cn);
     }
+#endif
 }
