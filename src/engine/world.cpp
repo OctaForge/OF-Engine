@@ -612,7 +612,6 @@ void entdrag(const vec &ray)
     entmoving = 2;
 }
 
-#ifndef SERVER
 VAR(showentradius, 0, 1, 1);
 
 void renderentring(const extentity &e, float radius, int axis)
@@ -895,7 +894,6 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
 
     gle::disable();
 }
-#endif
 
 bool enttoggle(int id)
 {
@@ -994,7 +992,6 @@ COMMAND(entpush, "i");
 
 void delent()
 {
-#ifndef SERVER
     if(noentedit()) return;
 
     loopv(entgroup) entfocus(
@@ -1003,7 +1000,6 @@ void delent()
     );
 
     entcancel();
-#endif
 }
 
 VAR(entdrop, 0, 2, 3);
@@ -1076,17 +1072,13 @@ vec saved_pos;
 
 void newent(const char *cl, const char *sd, const char *nd, vec fp)
 {
-    #ifndef SERVER
-        fp.mul(FAR_PLACING_FACTOR);
-        vec cp = player->o;
-        cp.mul(1 - FAR_PLACING_FACTOR);
-        cp.add(fp);
+    fp.mul(FAR_PLACING_FACTOR);
+    vec cp = player->o;
+    cp.mul(1 - FAR_PLACING_FACTOR);
+    cp.add(fp);
 
-        if (!sd || !sd[0]) sd = "{}";
-        MessageSystem::send_NewEntityRequest(cl, cp.x, cp.y, cp.z, sd, nd ? nd : "");
-    #else // SERVER
-        assert(0); // Where?
-    #endif
+    if (!sd || !sd[0]) sd = "{}";
+    MessageSystem::send_NewEntityRequest(cl, cp.x, cp.y, cp.z, sd, nd ? nd : "");
 }
 
 #undef FAR_PLACING_FACTOR
@@ -1095,7 +1087,6 @@ void newent(const char *cl, const char *sd) {
     newent(cl, sd, NULL, saved_pos);
 }
 
-#ifndef SERVER
 ICOMMAND(newent, "V", (tagval *args, int numargs), {
     const char *cl = args[0].getstr();
     vector<char> buf;
@@ -1131,27 +1122,6 @@ ICOMMAND(save_mouse_position, "", (), saved_pos = worldpos);
 CLUAICOMMAND(save_mouse_position, void, (), {
     saved_pos = worldpos;
 });
-#endif
-
-/* OF */
-static const int attrnums[] = {
-    0, /* ET_EMPTY */
-    0, /* ET_MARKER */
-    2, /* ET_ORIENTED_MARKER */
-    5, /* ET_LIGHT */
-    1, /* ET_SPOTLIGHT */
-    1, /* ET_ENVMAP */
-    2, /* ET_SOUND */
-    0, /* ET_PARTICLES */
-    4, /* ET_MAPMODEL */
-    7, /* ET_OBSTACLE */
-    5  /* ET_DECAL */
-};
-
-int getattrnum(int type) {
-    return attrnums[(type >= 0 &&
-        (size_t)type < (sizeof(attrnums) / sizeof(int))) ? type : 0];
-}
 
 int entcopygrid;
 vector<extentity> entcopybuf; // INTENSITY: extentity, for uniqueID
@@ -1269,7 +1239,6 @@ COMMAND(intensitypasteent, "");
 
 /* OF */
 void enttype(char *type, int *numargs) {
-#ifndef SERVER
     if (*numargs >= 1) {
         groupedit(
             vec pos(e.o);
@@ -1283,7 +1252,6 @@ void enttype(char *type, int *numargs) {
             "i", "s", e.uid, &name));
         result(name ? name : "");
     })
-#endif
 }
 
 /* OF */
@@ -1337,11 +1305,9 @@ void resetmap()
 {
     clearoverrides();
     stopmapsounds();
-#ifndef SERVER
     resetblendmap();
     clearlights();
     clearpvs();
-#endif
     clearslots();
     clearparticles();
     clearstains();
@@ -1350,10 +1316,8 @@ void resetmap()
     pruneundos();
     clearmapcrc();
 
-#ifndef SERVER
     gamespeed = 100;
     paused = 0;
-#endif
 
     entities::clearents();
     outsideents.setsize(0);
@@ -1364,9 +1328,7 @@ void resetmap()
 void startmap(const char *name)
 {
     game::startmap(name);
-#ifndef SERVER
     ovr::reset();
-#endif
 }
 
 bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main empty world creation routine
@@ -1389,10 +1351,8 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
-#ifndef SERVER
     extern void clear_texpacks(int n = 0); clear_texpacks();
     lua::call_external("gui_clear", "");
-#endif
 
     if (usecfg)
     {
@@ -1429,10 +1389,7 @@ bool enlargemap(bool force)
 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
-#ifndef SERVER
     enlargeblendmap();
-#endif
-
     allchanged();
 
     return true;
@@ -1473,10 +1430,7 @@ void shrinkmap()
     vector<extentity *> &ents = entities::getents();
     loopv(ents) ents[i]->o.sub(vec(offset));
 
-#ifndef SERVER
     shrinkblendmap(octant);
-#endif
-
     allchanged();
 
     conoutf("shrunk map to size %d", worldscale);

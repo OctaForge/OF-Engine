@@ -16,6 +16,10 @@ var ffi_new = ffi.new
 /// Module: edit
 var M = {}
 
+@[server] {
+    return M
+}
+
 // undocumented, not exposed for the time being
 var matf = enum {
     INDEX_SHIFT : 0,

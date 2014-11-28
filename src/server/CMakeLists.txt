@@ -24,13 +24,8 @@ else()
         ../intensity/message_system
         ../intensity/server_system
         ../intensity/messages
-        ../engine/world
-        ../engine/worldio
         ../intensity/engine_additions
-        ../engine/octa
         ../shared/geom
-        ../engine/octaedit
-        ../engine/octarender
         ../shared/stream
         ../shared/zip
         ../octaforge/of_lua

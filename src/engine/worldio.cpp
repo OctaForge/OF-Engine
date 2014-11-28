@@ -5,14 +5,8 @@
 
 // INTENSITY
 #include "message_system.h"
-#ifndef SERVER
-    #include "client_system.h"
-#endif
+#include "client_system.h"
 #include "of_world.h"
-#ifdef SERVER
-#include "of_localserver.h"
-#include "of_tools.h"
-#endif
 
 string ogzname, bakname, cfgname, picname;
 
@@ -461,7 +455,6 @@ void loadvslots(stream *f, int numvslots)
 
 bool save_world(const char *mname, bool nolms)
 {
-#ifndef SERVER
     if (!mname || !mname[0]) mname = game::getclientmap();
     setmapfilenames(mname[0] ? mname : "untitled");
     if(savebak) backup(ogzname, bakname);
@@ -548,9 +541,6 @@ bool save_world(const char *mname, bool nolms)
     conoutf("wrote map file %s", ogzname);
 
     return true;
-#else
-    return false;
-#endif
 }
 
 static uint mapcrc = 0;
@@ -633,10 +623,8 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(!loadmapheader(f, ogzname, hdr, ohdr, thdr, numents)) { delete f; return false; }
 
     resetmap();
-#ifndef SERVER
     Texture *mapshot = textureload(picname, 3, true, false);
     renderbackground("loading...", mapshot, mname, game::getmapinfo());
-#endif
     setvar("mapversion", hdr.version, true, false);
 
     renderprogress(0, "clearing world...");
@@ -791,8 +779,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     renderprogress(0, "validating...");
     validatec(worldroot, hdr.worldsize>>1);
 
-#ifndef SERVER // INTENSITY: Server doesn't need lightmaps, pvs and blendmap (and current code for server wouldn't clean
-              //            them up if we did read them, so would have a leak)
     if(!failed)
     {
         if(mapversion <= 0) loopi(ohdr.lightmaps)
@@ -811,29 +797,21 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         if(hdr.numpvs > 0) loadpvs(f, hdr.numpvs);
         if(hdr.blendmap) loadblendmap(f, hdr.blendmap);
     }
-#endif // INTENSITY
 
 //    mapcrc = f->getcrc(); // INTENSITY: We use our own signatures
     delete f;
 
-#ifndef SERVER
     extern void clear_texpacks(int n = 0); clear_texpacks();
     lua::call_external("gui_clear", "");
-#endif
 
     identflags |= IDF_OVERRIDDEN;
     execfile("config/default_map_settings.cfg", false);
     if (lua::L) world::run_mapscript();
     identflags &= ~IDF_OVERRIDDEN;
 
-#ifndef SERVER // INTENSITY: Stop, finish loading later when we have all the entities
     renderprogress(0, "requesting entities...");
     logger::log(logger::DEBUG, "Requesting active entities...");
     MessageSystem::send_ActiveEntitiesRequest(ClientSystem::currScenarioCode); // Ask for other players, which are not part of the map proper
-#else // SERVER
-    logger::log(logger::DEBUG, "Finishing loading of the world...");
-    finish_load_world();
-#endif
 
     return true;
 }
@@ -847,13 +825,9 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
 
     loadprogress = 0;
 
-#ifndef SERVER
     preloadusedmapmodels(true);
-#endif
     game::preload();
-#ifndef SERVER
     flushpreloadedmodels();
-#endif
 
     entitiesinoctanodes();
     attachentities();
@@ -868,10 +842,6 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     world::loading = false; // INTENSITY
 
     logoutf("[[MAP LOADING]] - Success."); // INTENSITY
-#ifdef SERVER
-    defformatstring(path, "%s%s", homedir, SERVER_READYFILE);
-    tools::fempty(path);
-#endif
 
     return true;
 }

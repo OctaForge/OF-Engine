@@ -271,10 +271,7 @@ namespace server
                     return -1;
                 }
             }
-            if(type < N_EDITENT || type > N_EDITVAR || !editmode)
-            {
-                if(++ci->overflow >= 200) return -2;
-            }
+            if(++ci->overflow >= 200) return -2;
         }
         return type;
     }

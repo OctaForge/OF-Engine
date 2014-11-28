@@ -320,9 +320,10 @@ void LogicSystem::setupExtent(int uid, int type)
     int numattrs = getattrnum(type);
     for (int i = 0; i < numattrs; ++i) e->attr.add(0);
 
-    extern void addentity(extentity* entity);
+#ifndef SERVER
     addentity(e);
     attachentity(*e);
+#endif
 
     LogicSystem::setUniqueId(e, uid);
     LogicSystem::registerLogicEntity(e);
@@ -388,8 +389,8 @@ void LogicSystem::dismantleExtent(int uid)
     extentity* extent = getLogicEntity(uid)->staticEntity;
 #ifndef SERVER
     if (extent->type == ET_SOUND) stopmapsound(extent);
-#endif
     removeentity(extent);
+#endif
     extent->type = ET_EMPTY;
 
 //    delete extent; extent = NULL; // For symmetry with the "new extentity" this should be here, but sauer does it

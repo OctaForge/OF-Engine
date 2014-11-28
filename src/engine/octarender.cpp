@@ -601,9 +601,7 @@ struct vacollect : verthash
         if(grasstris.length())
         {
             va->grasstris.move(grasstris);
-#ifndef SERVER
             loadgrassshaders();
-#endif
         }
 
         if(mapmodels.length()) va->mapmodels.put(mapmodels.getbuf(), mapmodels.length());
@@ -1719,14 +1717,11 @@ void allchanged(bool load)
     entitiesinoctanodes();
     tjoints.setsize(0);
     if(filltjoints) findtjoints();
-#ifndef SERVER
     octarender();
-#endif
     if(load) precachetextures();
     setupmaterials();
     clearshadowcache();
     updatevabbs(true);
-#ifndef SERVER
     if(load)
     {
         genshadowmeshes();
@@ -1735,7 +1730,6 @@ void allchanged(bool load)
         genenvmaps();
         drawminimap();
     }
-#endif
 }
 
 void recalc()

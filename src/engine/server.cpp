@@ -633,23 +633,6 @@ int server_main(int argc, char **argv)
 int main(int argc, char **argv)
 #endif
 {
-    // Pre-initializations
-    static Texture dummyTexture;
-
-    dummyTexture.name = (char*)"";
-    dummyTexture.type = Texture::IMAGE;
-    dummyTexture.w = 1;
-    dummyTexture.h = 1;
-    dummyTexture.xs = 1;
-    dummyTexture.ys = 1;
-    dummyTexture.bpp = 8;
-    dummyTexture.clamp = 1;
-    dummyTexture.mipmap = 0;
-    dummyTexture.canreduce = 0;
-    dummyTexture.id = -1;
-
-    notexture = &dummyTexture;
-
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
     setlogfile(NULL);
 

@@ -2,7 +2,6 @@
 
 extern int outline;
 
-#ifndef SERVER
 bool boxoutline = false;
 
 void boxs(int orient, vec o, const vec &s)
@@ -60,7 +59,6 @@ void boxsgrid(int orient, vec o, vec s, int g)
     }
     xtraverts += gle::end();
 }
-#endif
 
 selinfo sel, lastsel, savedsel;
 
@@ -131,7 +129,6 @@ void cancelsel()
 
 void toggleedit(bool force)
 {
-#ifndef SERVER
     if(!force)
     {
         if(!isconnected()) return;
@@ -155,7 +152,6 @@ void toggleedit(bool force)
     editing = entediting = editmode;
     if(!force) game::edittoggled(editmode);
     execident("edittoggled");
-#endif
 }
 
 bool noedit(bool view, bool msg)
@@ -230,10 +226,8 @@ cube &blockcube(int x, int y, int z, const block3 &b, int rgrid) // looks up a w
 int selchildcount = 0, selchildmat = -1;
 
 ICOMMAND(havesel, "", (), intret(havesel ? selchildcount : 0));
-#ifndef SERVER
 ICOMMAND(selchildcount, "", (), { if(selchildcount < 0) result(tempformatstring("1/%d", -selchildcount)); else intret(selchildcount); });
 ICOMMAND(selchildmat, "s", (char *prefix), { if(selchildmat > 0) result(getmaterialdesc(selchildmat, prefix)); });
-#endif
 
 void countselchild(cube *c, const ivec &cor, int size)
 {
@@ -303,7 +297,6 @@ extern float rayent(const vec &o, const vec &ray, float radius, int mode, int si
 VAR(gridlookup, 0, 0, 1);
 VAR(passthroughcube, 0, 1, 1);
 
-#ifndef SERVER
 /* lamiae */
 VARP(showselgrid, 0, 1, 1);
 
@@ -313,12 +306,8 @@ void rendereditcursor()
         od  = dimension(orient),
         odc = dimcoord(orient);
 
-    #ifndef SERVER
-        extern int cursor_exists;
-        bool hidecursor = cursor_exists || blendpaintmode;
-    #else
-        bool hidecursor = false;
-    #endif
+    extern int cursor_exists;
+    bool hidecursor = cursor_exists || blendpaintmode;
 
     bool hovering = false;
     hmapsel = false;
@@ -520,15 +509,12 @@ void rendereditcursor()
 
     glDisable(GL_BLEND);
 }
-#endif
 
 void tryedit()
 {
-#ifndef SERVER // CubeCreate
     extern int hidehud;
     if(!editmode || hidehud || mainmenu) return;
     if(blendpaintmode) trypaintblendmap();
-#endif
 }
 
 //////////// ready changes to vertex arrays ////////////
@@ -576,9 +562,7 @@ void commitchanges(bool force)
     resetclipplanes();
     entitiesinoctanodes();
     inbetweenframes = false;
-#ifndef SERVER
     octarender();
-#endif
     inbetweenframes = true;
     setupmaterials(oldlen);
     clearshadowcache();
@@ -1163,7 +1147,6 @@ void pasteblock(block3 &b, selinfo &sel, bool local)
     sel.orient = o;
 }
 
-#ifndef SERVER
 struct prefabheader
 {
     char magic[4];
@@ -1475,7 +1458,6 @@ void previewprefab(const char *name, const vec &color)
 CLUAICOMMAND(prefab_preview, void, (const char *name, float r, float g, float b), {
     previewprefab(name, vec(r, g, b));
 })
-#endif
 
 void mpcopy(editinfo *&e, selinfo &sel, bool local)
 {
@@ -2468,14 +2450,12 @@ void gettexname(int *tex, int *subslot)
     result(slot.sts[*subslot].name);
 }
 
-#ifndef SERVER
 void getslottex(int *idx)
 {
     if(*idx < 0 || !slots.inrange(*idx)) { intret(-1); return; }
     Slot &slot = lookupslot(*idx, false);
     intret(slot.variants->index);
 }
-#endif
 
 COMMANDN(edittex, edittex_, "i");
 ICOMMAND(settex, "i", (int *tex), { if(!vslots.inrange(*tex) || noedit()) return; filltexlist(); edittex(*tex); });
@@ -2492,11 +2472,9 @@ ICOMMAND(looptexmru, "re", (ident *id, uint *body),
     loopv(texmru) { loopiter(id, stack, texmru[i]); execute(body); }
     loopend(id, stack);
 });
-#ifndef SERVER
 ICOMMAND(numvslots, "", (), intret(vslots.length()));
 ICOMMAND(numslots, "", (), intret(slots.length()));
 COMMAND(getslottex, "i");
-#endif
 
 void replacetexcube(cube &c, int oldtex, int newtex)
 {
@@ -2729,7 +2707,6 @@ void editmat(char *name, char *filtername)
 
 COMMAND(editmat, "ss");
 
-#ifndef SERVER
 void rendertexturepanel(int w, int h)
 {
     if((texpaneltimer -= curtime)>0 && editmode)
@@ -2904,4 +2881,3 @@ CLUAICOMMAND(slot_check_vslot, bool, (int idx), {
     VSlot &vslot = lookupvslot(texmru[idx], false);
     return vslot.slot->sts.length() && (vslot.slot->loaded || vslot.slot->thumbnail);
 });
-#endif

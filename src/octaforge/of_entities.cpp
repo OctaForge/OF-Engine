@@ -18,6 +18,26 @@ void addentity(extentity* entity);
 
 extern int efocus;
 
+/* OF */
+static const int attrnums[] = {
+    0, /* ET_EMPTY */
+    0, /* ET_MARKER */
+    2, /* ET_ORIENTED_MARKER */
+    5, /* ET_LIGHT */
+    1, /* ET_SPOTLIGHT */
+    1, /* ET_ENVMAP */
+    2, /* ET_SOUND */
+    0, /* ET_PARTICLES */
+    4, /* ET_MAPMODEL */
+    7, /* ET_OBSTACLE */
+    5  /* ET_DECAL */
+};
+
+int getattrnum(int type) {
+    return attrnums[(type >= 0 &&
+        (size_t)type < (sizeof(attrnums) / sizeof(int))) ? type : 0];
+}
+
 namespace entities
 {
     struct Entity_Storage {
@@ -84,13 +104,13 @@ namespace entities
         LUA_GET_ENT(entity, uid, "_C.setmodelname", return)
         logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")",
             entity->getUniqueId(), name);
+#ifndef SERVER
         extentity *ext = entity->staticEntity;
         if (!ext) return;
         removeentity(ext);
-#ifndef SERVER
         if (name[0]) ext->m = loadmodel(name);
-#endif
         addentity(ext);
+#endif
     });
 
     CLUAICOMMAND(set_attachments, void, (int uid, const char **attach), {
@@ -126,9 +146,13 @@ namespace entities
         LUA_GET_ENT(entity, uid, "_C.set_attr", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
+#ifndef SERVER
         if (!world::loading) removeentity(ext);
+#endif
         ext->attr[a] = v;
+#ifndef SERVER
         if (!world::loading) addentity(ext);
+#endif
     });
     CLUAICOMMAND(FAST_set_attr, void, (int uid, int a, int v), {
         LUA_GET_ENT(entity, uid, "_C.FAST_set_attr", return)
@@ -156,11 +180,15 @@ namespace entities
         extentity *ext = entity->staticEntity;
         assert(ext);
 
+#ifndef SERVER
         removeentity(ext);
+#endif
         ext->o.x = x;
         ext->o.y = y;
         ext->o.z = z;
+#ifndef SERVER
         addentity(ext);
+#endif
     });
 
     /* Dynents */
@@ -298,6 +326,7 @@ namespace entities
         return true;
     });
 
+#ifndef SERVER
     CLUAICOMMAND(get_selected_entity, int, (), {
         const vector<extentity *> &ents = entities::getents();
         if (!ents.inrange(efocus)) return -1;
@@ -310,4 +339,5 @@ namespace entities
         if (!e || !e->attached) return -1;
         return e->attached->uid;
     });
+#endif
 } /* end namespace entities */

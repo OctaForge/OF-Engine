@@ -28,26 +28,28 @@ var gen_getwrap = func(fun, tp) {
 
 capi.get_start_time = gen_getwrap(capi.get_start_time, "int")
 
-var get_selected_entity in capi
-capi.get_selected_entity = func() {
-    if !ents {
-        ents = import core.entities.ents
-        get_ent = ents.get
+@[!server] {
+    var get_selected_entity in capi
+    capi.get_selected_entity = func() {
+        if !ents {
+            ents = import core.entities.ents
+            get_ent = ents.get
+        }
+        var uid = get_selected_entity()
+        if uid >= 0 { return get_ent(uid) }
+        return undef
     }
-    var uid = get_selected_entity()
-    if uid >= 0 { return get_ent(uid) }
-    return undef
-}
 
-var get_attached_entity in capi
-capi.get_attached_entity = func(uid) {
-    if !ents {
-        ents = import core.entities.ents
-        get_ent = ents.get
+    var get_attached_entity in capi
+    capi.get_attached_entity = func(uid) {
+        if !ents {
+            ents = import core.entities.ents
+            get_ent = ents.get
+        }
+        var auid = get_attached_entity(uid)
+        if auid >= 0 { return get_ent(auid) }
+        return undef
     }
-    var auid = get_attached_entity(uid)
-    if auid >= 0 { return get_ent(auid) }
-    return undef
 }
 
 var gettargetent in capi

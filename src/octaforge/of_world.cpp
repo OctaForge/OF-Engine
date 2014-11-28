@@ -8,6 +8,7 @@
 
 #include "cube.h"
 #include "of_tools.h"
+#include "of_world.h"
 #include "game.h"
 #include "engine.h"
 
@@ -77,12 +78,10 @@ namespace world
 
     bool set_map(const char *id) {
         generate_scenario_code();
-
 #ifdef SERVER
         send_PrepareForNewScenario(-1, scenario_code);
         force_network_flush();
 #endif
-
         copystring(curr_map_id, id);
 
         string buf;
@@ -90,12 +89,19 @@ namespace world
         int len = strlen(id);
         assert(len > 7);
         memcpy(buf + len - 7, "/map", 5);
-
+#ifndef SERVER
         if (!load_world(buf)) {
             logger::log(logger::ERROR, "Failed to load world!");
             return false;
         }
-
+#else
+        identflags |= IDF_OVERRIDDEN;
+        if (lua::L) run_mapscript();
+        identflags &= ~IDF_OVERRIDDEN;
+        server::resetScenario();
+        defformatstring(path, "%sSERVER_READY", homedir);
+        tools::fempty(path);
+#endif
 #ifdef SERVER
         server::createluaEntity(-1);
         send_curr_map(-1);
@@ -156,6 +162,7 @@ namespace world
     }
 } /* end namespace world */
 
+#ifndef SERVER
 void mpeditvslot(int delta, VSlot &ds, int allfaces, selinfo &sel, bool local);
 
 CLUAICOMMAND(edit_cube_create, bool, (int x, int y, int z, int gs), {
@@ -516,3 +523,4 @@ CLUAICOMMAND(edit_lookup_material, ushort, (int x, int y, int z, int ts), {
 CLUAICOMMAND(edit_get_material, int, (float x, float y, float z), {
     return lookupmaterial(vec(x, y, z));
 });
+#endif

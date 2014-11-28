@@ -831,9 +831,9 @@ M.StaticEntity = Entity.clone({
         This refers to the "internally attached" entity that the core engine
         works with.
     */
-    get_attached_entity: func(self) {
+    get_attached_entity: @[!server,func(self) {
         return capi::get_attached_entity(self.uid)
-    },
+    }],
 
     /**
         Returns the height above the floor to use when dropping the entity
