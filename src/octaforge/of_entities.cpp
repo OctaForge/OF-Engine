@@ -301,18 +301,13 @@ namespace entities
     CLUAICOMMAND(get_selected_entity, int, (), {
         const vector<extentity *> &ents = entities::getents();
         if (!ents.inrange(efocus)) return -1;
-        extentity &e = *ents[efocus];
-        CLogicEntity *ret = LogicSystem::getLogicEntity(e);
-        if (ret) return ret->getUniqueId();
-        return -1;
+        return ents[efocus]->uid;
     });
 
     CLUAICOMMAND(get_attached_entity, int, (int uid), {
         LUA_GET_ENT(entity, uid, "_C.get_attached_entity", return 0)
         extentity *e = entity->staticEntity;
         if (!e || !e->attached) return -1;
-        CLogicEntity *ae = LogicSystem::getLogicEntity(*e->attached);
-        if (!ae) return -1;
-        return ae->getUniqueId();
+        return e->attached->uid;
     });
 } /* end namespace entities */

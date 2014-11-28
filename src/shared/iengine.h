@@ -369,7 +369,7 @@ extern void rendermodel(const char *mdl, int anim, const vec &o, float yaw = 0, 
 extern int intersectmodel(const char *mdl, int anim, const vec &pos, float yaw, float pitch, float roll, const vec &o, const vec &ray, float &dist, int mode = 0, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float size = 1);
 extern void abovemodel(vec &o, const char *mdl);
 extern void interpolateorientation(dynent *d, float &interpyaw, float &interppitch);
-extern void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity); // INTENSITY: Added entity
+extern void setbbfrommodel(dynent *d, const char *mdl);
 extern model *loadmodel(const char *name, bool msg = false);
 extern void preloadmodel(const char *name);
 extern void flushpreloadedmodels(bool msg = true);

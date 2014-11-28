@@ -1070,7 +1070,7 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&mas
     tryload(masks, NULL, NULL, "masks");
 }
 
-void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSITY: Added entity
+void setbbfrommodel(dynent *d, const char *mdl)
 {
     model *m = loadmodel(mdl);
     if(!m) return;
