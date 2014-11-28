@@ -336,7 +336,7 @@ namespace gle
 
 /* OF: GL lua stuff */
 
-#ifndef SERVER
+#ifndef STANDALONE
 CLUAICOMMAND(gle_begin, void, (uint mode), gle::begin(mode););
 CLUAICOMMAND(gle_beginn, void, (uint mode, int numverts), gle::begin(mode, numverts););
 CLUACOMMAND(gle_end, int, (), gle::end);

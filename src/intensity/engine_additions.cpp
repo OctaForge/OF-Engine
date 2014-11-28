@@ -32,7 +32,7 @@ int CLogicEntity::getStartTime()
 int getanimid(const char *name);
 
 void CLogicEntity::clear_attachments() {
-#ifndef SERVER
+#ifndef STANDALONE
     for (int i = 0; i < attachments.length() - 1; i++) {
         delete[] (char*)attachments[i].tag;
         delete[] (char*)attachments[i].name;
@@ -43,7 +43,7 @@ void CLogicEntity::clear_attachments() {
 }
 
 void CLogicEntity::setAttachments(const char **attach) {
-#ifndef SERVER
+#ifndef STANDALONE
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
@@ -95,7 +95,7 @@ void CLogicEntity::setAnimation(int _anim)
 
 vec& CLogicEntity::getAttachmentPosition(const char *tag)
 {
-#ifdef SERVER
+#ifdef STANDALONE
     static vec r = vec(0);
     return r;
 #else
@@ -225,7 +225,7 @@ void LogicSystem::setupExtent(int uid, int type)
     int numattrs = getattrnum(type);
     for (int i = 0; i < numattrs; ++i) e->attr.add(0);
 
-#ifndef SERVER
+#ifndef STANDALONE
     addentity(e);
     attachentity(*e);
 #endif
@@ -240,7 +240,7 @@ void LogicSystem::setupCharacter(int uid, int cn)
     logger::log(logger::DEBUG, "setupCharacter: %d, %d", uid, cn);
     INDENT_LOG(logger::DEBUG);
 
-    #ifndef SERVER
+    #ifndef STANDALONE
         logger::log(logger::DEBUG, "client numbers: %d, %d", ClientSystem::playerNumber, cn);
 
         if (uid == ClientSystem::uniqueId)
@@ -249,7 +249,7 @@ void LogicSystem::setupCharacter(int uid, int cn)
 
     assert(cn >= 0);
 
-#ifndef SERVER
+#ifndef STANDALONE
     gameent* gameEntity;
 
     // If this is the player. There should already have been created an gameent for this client,
@@ -297,7 +297,7 @@ void LogicSystem::dismantleExtent(int uid)
     logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uid);
 
     extentity* extent = getLogicEntity(uid)->staticEntity;
-#ifndef SERVER
+#ifndef STANDALONE
     if (extent->type == ET_SOUND) stopmapsound(extent);
     removeentity(extent);
 #endif
@@ -309,7 +309,7 @@ void LogicSystem::dismantleExtent(int uid)
 
 void LogicSystem::dismantleCharacter(int cn)
 {
-#ifndef SERVER
+#ifndef STANDALONE
     if (cn == ClientSystem::playerNumber)
         logger::log(logger::DEBUG, "Not dismantling own client\r\n", cn);
     else

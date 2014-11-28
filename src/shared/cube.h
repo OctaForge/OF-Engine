@@ -59,7 +59,7 @@ extern "C" {
 #include <SDL_opengl.h>
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
 #ifdef main
 #undef main
 #endif
@@ -84,7 +84,7 @@ extern "C" {
 #include "ents.h"
 #include "command.h"
 
-#ifndef SERVER
+#ifndef STANDALONE
 #include "glexts.h"
 #include "glemu.h"
 #endif

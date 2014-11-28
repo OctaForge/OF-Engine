@@ -7,7 +7,7 @@
 #include "of_lua.h"
 #include "of_tools.h"
 
-#ifndef SERVER
+#ifndef STANDALONE
     #include "client_system.h"
     #include "targeting.h"
 #endif
@@ -392,7 +392,7 @@ namespace lua
         });
 
     STREAMOPEN2ARGS(stream_open_raw, openrawfile)
-#ifndef SERVER
+#ifndef STANDALONE
     STREAMOPEN2ARGS(stream_open_zip, openzipfile)
 #endif
     STREAMOPEN2ARGS(stream_open, openfile)
@@ -583,7 +583,7 @@ namespace lua
 
     void setup_binds()
     {
-#ifndef SERVER
+#ifndef STANDALONE
         lua_pushboolean(L, false);
 #else
         lua_pushboolean(L, true);
@@ -639,7 +639,7 @@ namespace lua
     }
 
     void reset() {
-#ifndef SERVER
+#ifndef STANDALONE
         deleteparticles();
         deletestains();
         clearanims();
@@ -648,7 +648,7 @@ namespace lua
         lua_close(L);
         L = NULL;
         init();
-#ifndef SERVER
+#ifndef STANDALONE
         tools::execfile("config/ui.oct");
 #endif
     }

@@ -88,7 +88,7 @@ namespace entities
 
     /* Entity attributes */
 
-#ifndef SERVER
+#ifndef STANDALONE
     CLUAICOMMAND(set_animation, void, (int uid, int anim), {
         LUA_GET_ENT(entity, uid, "_C.setanim", return)
         entity->setAnimation(anim);
@@ -146,11 +146,11 @@ namespace entities
         LUA_GET_ENT(entity, uid, "_C.set_attr", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
-#ifndef SERVER
+#ifndef STANDALONE
         if (!world::loading) removeentity(ext);
 #endif
         ext->attr[a] = v;
-#ifndef SERVER
+#ifndef STANDALONE
         if (!world::loading) addentity(ext);
 #endif
     });
@@ -180,20 +180,20 @@ namespace entities
         extentity *ext = entity->staticEntity;
         assert(ext);
 
-#ifndef SERVER
+#ifndef STANDALONE
         removeentity(ext);
 #endif
         ext->o.x = x;
         ext->o.y = y;
         ext->o.z = z;
-#ifndef SERVER
+#ifndef STANDALONE
         addentity(ext);
 #endif
     });
 
     /* Dynents */
 
-#ifndef SERVER
+#ifndef STANDALONE
     #define DYNENT_ACCESSORS(n, t, an) \
     CLUAICOMMAND(get_##n, bool, (int uid, t *val), { \
         LUA_GET_ENT(entity, uid, "_C.get"#n, return false) \

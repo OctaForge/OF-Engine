@@ -548,13 +548,13 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files, int filte
         formatstring(s, "%s%s", pf.dir, dirname);
         if(listdir(s, false, ext, files, filter)) dirs++;
     }
-#ifndef SERVER
+#ifndef STANDALONE
     if (flags&LIST_ZIP) dirs += listzipfiles(dirname, ext, files);
 #endif
     return dirs;
 }
 
-#ifndef SERVER
+#ifndef STANDALONE
 static Sint64 rwopsseek(SDL_RWops *rw, Sint64 pos, int whence)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
@@ -1192,7 +1192,7 @@ stream *openrawfile(const char *filename, const char *mode)
 
 stream *openfile(const char *filename, const char *mode)
 {
-#ifndef SERVER
+#ifndef STANDALONE
     stream *s = openzipfile(filename, mode);
     if(s) return s;
 #endif

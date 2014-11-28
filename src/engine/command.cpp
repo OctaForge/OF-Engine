@@ -771,7 +771,7 @@ void setvarchecked(ident *id, int val)
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
     else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
         debugcode("cannot override variable %s in a safe context", id->name);
-#ifndef SERVER
+#ifndef STANDALONE
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
 #else
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN)
@@ -810,7 +810,7 @@ void setfvarchecked(ident *id, float val)
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
     else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
         debugcode("cannot override variable %s in a safe context", id->name);
-#ifndef SERVER
+#ifndef STANDALONE
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
 #else
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN)
@@ -829,7 +829,7 @@ void setsvarchecked(ident *id, const char *val)
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
     else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
         debugcode("cannot override variable %s in a safe context", id->name);
-#ifndef SERVER
+#ifndef STANDALONE
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
 #else
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN)
@@ -1340,7 +1340,7 @@ static void compilelookup(vector<uint> &code, const char *&p, int ltype, int pre
                         case 'r': compileident(code); numargs++; break;
                         case '$': compileident(code, id); numargs++; break;
                         case 'N': compileint(code, -1); numargs++; break;
-#ifndef SERVER
+#ifndef STANDALONE
                         case 'D': comtype = CODE_COMD; numargs++; break;
 #endif
                         case 'C': comtype = CODE_COMC; goto compilecomv;
@@ -1803,7 +1803,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                     case 'r': if(more) more = compilearg(code, p, VAL_IDENT, prevargs+numargs); if(!more) { if(rep) break; compileident(code); fakeargs++; } numargs++; break;
                     case '$': compileident(code, id); numargs++; break;
                     case 'N': compileint(code, numargs-fakeargs); numargs++; break;
-#ifndef SERVER
+#ifndef STANDALONE
                     case 'D': comtype = CODE_COMD; numargs++; break;
 #endif
                     case 'C': comtype = CODE_COMC; if(more) while(numargs < MAXARGS && (more = compilearg(code, p, VAL_CANY, prevargs+numargs))) numargs++; goto compilecomv;
@@ -2146,7 +2146,7 @@ static const uint *skipcode(const uint *code, tagval &result = noret)
     }
 }
 
-#ifndef SERVER
+#ifndef STANDALONE
 static inline uint *copycode(const uint *src)
 {
     const uint *end = skipcode(src);
@@ -2215,7 +2215,7 @@ static inline void callcommand(ident *id, tagval *args, int numargs, bool lookup
         case 'r': if(++i >= numargs) { if(rep) break; args[i].setident(dummyident); fakeargs++; } else forceident(args[i]); break;
         case '$': if(++i < numargs) freearg(args[i]); args[i].setident(id); break;
         case 'N': if(++i < numargs) freearg(args[i]); args[i].setint(lookup ? -1 : i-fakeargs); break;
-#ifndef SERVER
+#ifndef STANDALONE
         case 'D': if(++i < numargs) freearg(args[i]); addreleaseaction(id, args, i); fakeargs++; break;
 #endif
         case 'C': { i = max(i+1, numargs); vector<char> buf; ((comfun1)id->fun)(conc(buf, args, i, true)); goto cleanup; }
@@ -2654,7 +2654,7 @@ static const uint *runcode(const uint *code, tagval &result)
                 freeargs(args, numargs, offset);
                 continue;
             }
-#ifndef SERVER
+#ifndef STANDALONE
             case CODE_COMD|RET_NULL: case CODE_COMD|RET_STR: case CODE_COMD|RET_FLOAT: case CODE_COMD|RET_INT:
             {
                 ident *id = identmap[op>>8];
@@ -3141,7 +3141,7 @@ bool validateblock(const char *s)
     return brakdepth == 0;
 }
 
-#ifndef SERVER
+#ifndef STANDALONE
 void writecfg(const char *name)
 {
     stream *f = openutf8file(path(name && name[0] ? name : "config/saved.cfg", true), "w");
@@ -3848,7 +3848,7 @@ void findfile_(char *name)
     copystring(fname, name);
     path(fname);
     intret(
-#ifndef SERVER
+#ifndef STANDALONE
         findzipfile(fname) || 
 #endif
         fileexists(fname, "e") || findfile(fname, "e") ? 1 : 0
@@ -4263,7 +4263,7 @@ CLUAICOMMAND(get_millis, int, (bool total), {
 CLUAICOMMAND(get_curtime, int, (), return curtime;);
 
 CLUAICOMMAND(get_current_time, int, (), {
-#ifdef SERVER
+#ifdef STANDALONE
     return enet_time_get();
 #else
     extern int clockrealbase;

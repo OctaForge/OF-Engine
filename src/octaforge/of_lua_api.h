@@ -57,7 +57,7 @@ namespace lapi_binds
 
     /* edit */
 
-#ifndef SERVER
+#ifndef STANDALONE
     int _lua_hasprivedit(lua_State *L) {
         lua_pushboolean(L, !multiplayer());
         return 1;
@@ -68,7 +68,7 @@ namespace lapi_binds
 
     /* input */
 
-#ifndef SERVER
+#ifndef STANDALONE
     int _lua_set_targeted_entity(lua_State *L) {
         if (TargetingControl::targetLogicEntity)
             delete TargetingControl::targetLogicEntity;
@@ -92,7 +92,7 @@ namespace lapi_binds
         return 0;
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     int _lua_statedata_changerequest(lua_State *L) {
         const char *val = luaL_optstring(L, 3, "");
         send_StateDataChangeRequest(luaL_checkinteger(L, 1),
@@ -144,7 +144,7 @@ namespace lapi_binds
         return 0;
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     int _lua_do_click(lua_State *L) {
         send_DoClick(luaL_checkinteger(L, 1), lua_toboolean(L, 2),
             luaL_checknumber(L, 3), luaL_checknumber (L, 4),
@@ -166,7 +166,7 @@ namespace lapi_binds
 
     /* network */
 
-#ifndef SERVER
+#ifndef STANDALONE
     int _lua_connect(lua_State *L) {
         ClientSystem::connect(luaL_checkstring(L, 1), luaL_checkinteger(L, 2));
         return 0;
@@ -244,7 +244,7 @@ namespace lapi_binds
     LAPI_EMPTY(getfollow)
 #endif
 
-#ifndef SERVER
+#ifndef STANDALONE
     static void do_upload(bool skipmedia, int medialevel) {
         renderprogress(0.1f, "compiling scripts...");
 
@@ -279,7 +279,7 @@ namespace lapi_binds
     LAPI_EMPTY(restart_map)
 #endif
 
-#ifndef SERVER
+#ifndef STANDALONE
     int _lua_gettargetpos(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
         vec o(TargetingControl::targetPosition);
@@ -303,7 +303,7 @@ namespace lapi_binds
 
     /* World */
 
-#ifndef SERVER
+#ifndef STANDALONE
     int _lua_iscolliding(lua_State *L) {
         int uid = luaL_checkinteger(L, 5);
         CLogicEntity *ignore = (uid != -1) ? LogicSystem::getLogicEntity(uid)
@@ -345,7 +345,7 @@ namespace lapi_binds
     LAPI_EMPTY(setgravity)
 #endif
 
-#ifndef SERVER
+#ifndef STANDALONE
     int _lua_hasmap(lua_State *L) {
         lua_pushboolean(L, local_server::is_running());
         return 1;

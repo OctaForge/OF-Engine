@@ -4,7 +4,7 @@
 #include "cube.h"
 #include "world.h"
 
-#ifndef SERVER
+#ifndef STANDALONE
 
 #include "octa.h"
 #include "light.h"

@@ -192,7 +192,7 @@ struct dynent : physent                         // animated characters, or chara
 
     virtual ~dynent() // OF: virtual
     {
-#ifndef SERVER
+#ifndef STANDALONE
         extern void cleanragdoll(dynent *d);
         if(ragdoll) cleanragdoll(this);
 #endif

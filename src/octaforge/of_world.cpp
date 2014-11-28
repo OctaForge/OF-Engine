@@ -37,7 +37,7 @@ namespace world
 
     void trigger_received_entity() {
         num_received_entities++;
-#ifndef SERVER
+#ifndef STANDALONE
         if (num_expected_entities > 0) {
             float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
             if (loading) {
@@ -70,7 +70,7 @@ namespace world
         }
     }
 
-#ifdef SERVER
+#ifdef STANDALONE
     void send_curr_map(int cn) {
         if (!scenario_code[0]) return;
         send_NotifyAboutCurrentScenario(cn, curr_map_id, scenario_code);
@@ -79,7 +79,7 @@ namespace world
 
     bool set_map(const char *id) {
         generate_scenario_code();
-#ifdef SERVER
+#ifdef STANDALONE
         send_PrepareForNewScenario(-1, scenario_code);
         force_network_flush();
 #endif
@@ -90,7 +90,7 @@ namespace world
         int len = strlen(id);
         assert(len > 7);
         memcpy(buf + len - 7, "/map", 5);
-#ifndef SERVER
+#ifndef STANDALONE
         if (!load_world(buf)) {
             logger::log(logger::ERROR, "Failed to load world!");
             return false;
@@ -100,10 +100,10 @@ namespace world
         if (lua::L) run_mapscript();
         identflags &= ~IDF_OVERRIDDEN;
         server::resetScenario();
-        defformatstring(path, "%sSERVER_READY", homedir);
+        defformatstring(path, "%sSTANDALONE_READY", homedir);
         tools::fempty(path);
 #endif
-#ifdef SERVER
+#ifdef STANDALONE
         server::createluaEntity(-1);
         send_curr_map(-1);
 #endif
@@ -155,7 +155,7 @@ namespace world
     void run_mapscript() {
         int oldflags = identflags;
         identflags |= IDF_SAFE;
-#ifndef SERVER
+#ifndef STANDALONE
         execfile(get_mapfile_path("media.cfg"), false);
 #endif
         lua::call_external("mapscript_run", "s", get_mapfile_path("map.oct"));
@@ -163,7 +163,7 @@ namespace world
     }
 } /* end namespace world */
 
-#ifndef SERVER
+#ifndef STANDALONE
 void mpeditvslot(int delta, VSlot &ds, int allfaces, selinfo &sel, bool local);
 
 CLUAICOMMAND(edit_cube_create, bool, (int x, int y, int z, int gs), {

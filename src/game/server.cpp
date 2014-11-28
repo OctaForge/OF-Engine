@@ -15,7 +15,7 @@
 
 #include "message_system.h"
 
-#ifndef SERVER
+#ifndef STANDALONE
     #include "client_system.h"
 #endif
 #include "of_world.h"
@@ -304,7 +304,7 @@ namespace server
             if(ci.position.empty()) pkt[i].posoff = -1;
             else
             {
-                logger::log(logger::INFO, "SERVER: prepping relayed N_POS data for sending %d, size: %d", ci.clientnum,
+                logger::log(logger::INFO, "STANDALONE: prepping relayed N_POS data for sending %d, size: %d", ci.clientnum,
                              ci.position.length());
 
                 pkt[i].posoff = ws.positions.length();
@@ -324,7 +324,7 @@ namespace server
             }
         }
 
-        logger::log(logger::INFO, "SERVER: prepping sum of relayed data for sending, size: %d,%d", ws.positions.length(), ws.messages.length());
+        logger::log(logger::INFO, "STANDALONE: prepping sum of relayed data for sending, size: %d,%d", ws.positions.length(), ws.messages.length());
 
         int psize = ws.positions.length(), msize = ws.messages.length();
         if(psize)
@@ -349,7 +349,7 @@ namespace server
 
             logger::log(logger::INFO, "Processing update relaying for %d:%d", ci.clientnum, ci.uniqueId);
 
-#ifdef SERVER
+#ifdef STANDALONE
             continue;
 #endif
             ENetPacket *packet;
@@ -700,10 +700,10 @@ namespace server
     // it leaves the entity on the stack and returns true or leaves nothing and returns false.
     int createluaEntity(int cn, const char *_class, const char *uname)
     {
-#ifndef SERVER
+#ifndef STANDALONE
         assert(0);
         return false;
-#else // SERVER
+#else // STANDALONE
         // cn of -1 means "all of them"
         if (cn == -1)
         {
@@ -777,7 +777,7 @@ namespace server
         if(smode) smode->leavegame(ci, true);
         clients.removeobj(ci);
 
-#ifdef SERVER
+#ifdef STANDALONE
         if (shutdown_if_empty && clients.length() <= 0)
             should_quit = true;
 #endif
@@ -787,7 +787,7 @@ namespace server
     int laninfoport() { return -1; }
     int serverport(int infoport)
     {
-        return TESSERACT_SERVER_PORT;
+        return TESSERACT_STANDALONE_PORT;
     }
 
     bool servercompatible(char *name, char *sdec, char *map, int ping, const vector<int> &attr, int np)

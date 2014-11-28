@@ -48,7 +48,7 @@ namespace local_server {
         && lastmillis - last_connect_trial >= 1000) {
             if (is_ready()) {
                 ready = true;
-                ClientSystem::connect("127.0.0.1", TESSERACT_SERVER_PORT);
+                ClientSystem::connect("127.0.0.1", TESSERACT_STANDALONE_PORT);
             }
             else {
                 conoutf("Waiting for server to finish starting up .. (%d)",
@@ -139,7 +139,7 @@ namespace local_server {
     }
 
     static bool is_ready() {
-        defformatstring(path, "%s%s", homedir, SERVER_READYFILE);
+        defformatstring(path, "%s%s", homedir, STANDALONE_READYFILE);
         if (fileexists(path, "r")) {
             tools::fdel(path);
             return true;

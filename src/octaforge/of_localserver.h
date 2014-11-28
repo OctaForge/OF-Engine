@@ -6,8 +6,8 @@
  * license: see COPYING.txt
  */
 
-#ifndef OF_LOCALSERVER_H
-#define OF_LOCALSERVER_H
+#ifndef OF_LOCALSTANDALONE_H
+#define OF_LOCALSTANDALONE_H
 
 namespace local_server
 {
@@ -17,6 +17,6 @@ namespace local_server
     void stop();
 } /* end namespace local_server */
 
-#define SERVER_READYFILE "SERVER_READY"
+#define STANDALONE_READYFILE "STANDALONE_READY"
 
 #endif

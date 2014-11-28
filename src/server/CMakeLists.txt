@@ -1,4 +1,4 @@
-add_definitions(-DSERVER)
+add_definitions(-DSTANDALONE)
 add_definitions(-DBINARY_ARCH=${OF_TARGET_ARCH} -DBINARY_OS=${OF_PLATFORM_BIN})
 add_definitions(-DBINARY_ARCH_STR=\"${OF_TARGET_ARCH}\")
 add_definitions(-DBINARY_OS_STR=\"${OF_PLATFORM_BIN}\")

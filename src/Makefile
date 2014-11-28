@@ -371,7 +371,7 @@ CLIENT_OBJB = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 ####################
 
 SERVER_CXXFLAGS := $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti -DSERVER \
+	-fsigned-char -fno-exceptions -fno-rtti -DSTANDALONE \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS) \
 	-DBINARY_ARCH_STR=\"$(TARGET_BINARCH)\" -DBINARY_OS_STR=\"$(TARGET_BINOS)\"
 
@@ -584,7 +584,7 @@ depend:
 		-Igame \
 		-Iintensity \
 		-Ioctaforge \
-		-DSERVER \
+		-DSTANDALONE \
 		-p$$\(OBJDIR\)/server/ \
 		$(subst .o,.cpp,$(SERVER_OBJ))
 

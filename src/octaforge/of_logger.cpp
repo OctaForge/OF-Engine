@@ -79,7 +79,7 @@ namespace logger
         }
 #endif
 
-#ifndef SERVER
+#ifndef STANDALONE
         if (level == ERROR) {
             conoutf(CON_ERROR, "[[%s]] - %s", level_s, buf);
         }

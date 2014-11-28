@@ -22,7 +22,7 @@ namespace world
     bool set_map(const char *id);
     bool restart_map();
 
-#ifdef SERVER
+#ifdef STANDALONE
     void send_curr_map(int cn);
 #endif
 

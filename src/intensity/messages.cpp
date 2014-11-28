@@ -6,7 +6,7 @@
 #include "engine.h"
 #include "game.h"
 
-#ifndef SERVER
+#ifndef STANDALONE
     #include "targeting.h"
 #endif
 
@@ -49,7 +49,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riss", 1001, title, content));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void PersonalServerMessage::receive(int receiver, int sender, ucharbuf &p)
     {
         char title[MAXTRANS];
@@ -62,7 +62,7 @@ namespace MessageSystem
 
 // LoginRequest
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_LoginRequest()
     {
         logger::log(logger::DEBUG, "Sending a message of type LoginRequest (1003)");
@@ -72,7 +72,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void LoginRequest::receive(int receiver, int sender, ucharbuf &p)
     {
         if (!world::scenario_code[0])
@@ -99,7 +99,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1004, uid));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void YourUniqueId::receive(int receiver, int sender, ucharbuf &p)
     {
         int uid = getint(p);
@@ -120,7 +120,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riii", 1005, success, local));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void LoginResponse::receive(int receiver, int sender, ucharbuf &p)
     {
         bool success = getint(p);
@@ -147,7 +147,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("ris", 1006, scenarioCode));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void PrepareForNewScenario::receive(int receiver, int sender, ucharbuf &p)
     {
         char scenarioCode[MAXTRANS];
@@ -161,7 +161,7 @@ namespace MessageSystem
 
 // RequestCurrentScenario
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_RequestCurrentScenario()
     {
         logger::log(logger::DEBUG, "Sending a message of type RequestCurrentScenario (1007)");
@@ -171,7 +171,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void RequestCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
     {
 
@@ -188,7 +188,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riss", 1008, mid, sc));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void NotifyAboutCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
     {
         char mid[MAXTRANS];
@@ -204,7 +204,7 @@ namespace MessageSystem
 
 // RestartMap
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_RestartMap()
     {
         logger::log(logger::DEBUG, "Sending a message of type RestartMap (1009)");
@@ -214,7 +214,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void RestartMap::receive(int receiver, int sender, ucharbuf &p)
     {
         if (!world::scenario_code[0]) return;
@@ -230,7 +230,7 @@ namespace MessageSystem
 
 // NewEntityRequest
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData, const char *newent_data)
     {
         logger::log(logger::DEBUG, "Sending a message of type NewEntityRequest (1010)");
@@ -240,7 +240,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void NewEntityRequest::receive(int receiver, int sender, ucharbuf &p)
     {
         char _class[MAXTRANS];
@@ -290,7 +290,7 @@ namespace MessageSystem
         getstring(value, p);
         int originalClientNumber = getint(p);
 
-        #ifdef SERVER
+        #ifdef STANDALONE
             #define STATE_DATA_UPDATE \
                 uid = uid;  /* Prevent warnings */ \
                 keyProtocolId = keyProtocolId; \
@@ -313,7 +313,7 @@ namespace MessageSystem
 
 // StateDataChangeRequest
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_StateDataChangeRequest(int uid, int keyProtocolId, const char* value)
     {        // This isn't a perfect way to differentiate transient state data changes from permanent ones
         // that justify saying 'changes were made', but for now it will do. Note that even checking
@@ -330,7 +330,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void StateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
     {
         int uid = getint(p);
@@ -373,7 +373,7 @@ namespace MessageSystem
 
 // UnreliableStateDataChangeRequest
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_UnreliableStateDataChangeRequest(int uid, int keyProtocolId, const char* value)
     {
         logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)");
@@ -383,7 +383,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void UnreliableStateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
     {
         int uid = getint(p);
@@ -404,7 +404,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1015, num));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void NotifyNumEntities::receive(int receiver, int sender, ucharbuf &p)
     {
         int num = getint(p);
@@ -422,7 +422,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("ri", 1016));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void AllActiveEntitiesSent::receive(int receiver, int sender, ucharbuf &p)
     {
         ClientSystem::finishLoadWorld();
@@ -432,7 +432,7 @@ namespace MessageSystem
 
 // ActiveEntitiesRequest
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_ActiveEntitiesRequest(const char* scenarioCode)
     {
         logger::log(logger::DEBUG, "Sending a message of type ActiveEntitiesRequest (1017)");
@@ -442,13 +442,13 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void ActiveEntitiesRequest::receive(int receiver, int sender, ucharbuf &p)
     {
         char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
-        #ifdef SERVER
+        #ifdef STANDALONE
             if (!world::scenario_code[0]) return;
             // Mark the client as running the current scenario, if indeed doing so
             server::setClientScenario(sender, scenarioCode);
@@ -492,7 +492,7 @@ namespace MessageSystem
         char stateData[MAXTRANS];
         getstring(stateData, p);
 
-        #ifdef SERVER
+        #ifdef STANDALONE
             return;
         #endif
         if (!LogicSystem::initialized)
@@ -503,7 +503,7 @@ namespace MessageSystem
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-#ifndef SERVER
+#ifndef STANDALONE
             if (otherClientNumber >= 0) // If this is another client, then send the clientnumber, critical for setup
             {
                 // If this is the player, validate it is the clientNumber we already have
@@ -529,7 +529,7 @@ namespace MessageSystem
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s", stateData);
         lua::call_external("entity_set_sdata_full", "is", entity->uniqueId, stateData);
-        #ifndef SERVER
+        #ifndef STANDALONE
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
             {
@@ -545,7 +545,7 @@ namespace MessageSystem
 
 // RequestLogicEntityRemoval
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_RequestLogicEntityRemoval(int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)");
@@ -555,7 +555,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void RequestLogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
     {
         int uid = getint(p);
@@ -580,7 +580,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1020, uid));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void LogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
     {
         int uid = getint(p);
@@ -600,7 +600,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiss", 1021, otherUniqueId, otherClass, stateData));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void ExtentCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
     {
         int otherUniqueId = getint(p);
@@ -642,7 +642,7 @@ namespace MessageSystem
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riii", 1022, explicitClientNumber, protocolVersion));
     }
 
-#ifndef SERVER
+#ifndef STANDALONE
     void InitS2C::receive(int receiver, int sender, ucharbuf &p)
     {
         int explicitClientNumber = getint(p);
@@ -655,7 +655,7 @@ namespace MessageSystem
             disconnect();
             return;
         }
-        #ifndef SERVER
+        #ifndef STANDALONE
             gameent *player1 = game::player1;
         #else
             assert(0);
@@ -663,7 +663,7 @@ namespace MessageSystem
         #endif
         player1->clientnum = explicitClientNumber; // we are now fully connected
                                                    // Kripken: Well, sauer would be, we still need more...
-        #ifndef SERVER
+        #ifndef STANDALONE
         ClientSystem::login(explicitClientNumber); // Finish the login process, send server our user/pass.
         #endif
     }
@@ -671,7 +671,7 @@ namespace MessageSystem
 
 // EditModeC2S
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_EditModeC2S(int mode)
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeC2S (1028)");
@@ -681,7 +681,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void EditModeC2S::receive(int receiver, int sender, ucharbuf &p)
     {
         int mode = getint(p);
@@ -693,7 +693,7 @@ namespace MessageSystem
 
 // EditModeS2C
 
-#ifdef SERVER
+#ifdef STANDALONE
     void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode)
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)");
@@ -702,7 +702,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifndef SERVER
+#ifndef STANDALONE
     void EditModeS2C::receive(int receiver, int sender, ucharbuf &p)
     {
         int otherClientNumber = getint(p);
@@ -727,7 +727,7 @@ namespace MessageSystem
 
 // DoClick
 
-#ifndef SERVER
+#ifndef STANDALONE
     void send_DoClick(int button, int down, float x, float y, float z, int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type DoClick (1031)");
@@ -737,7 +737,7 @@ namespace MessageSystem
     }
 #endif
 
-#ifdef SERVER
+#ifdef STANDALONE
     void DoClick::receive(int receiver, int sender, ucharbuf &p)
     {
         int button = getint(p);

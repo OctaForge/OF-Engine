@@ -87,7 +87,7 @@ void logoutfv(const char *fmt, va_list args)
     if(f) writelogv(f, fmt, args);
 }
 
-#ifdef SERVER
+#ifdef STANDALONE
 void fatal(const char *s, ...)
 {
     defvformatstring(msg,s,s);
@@ -220,7 +220,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
             break;
         }
 
-#ifndef SERVER
+#ifndef STANDALONE
         case ST_LOCAL:
             localservertoclient(chan, packet);
             break;
@@ -363,7 +363,7 @@ static int serverinfointercept(ENetHost *host, ENetEvent *event)
 int uprate = 0;
 const char *ip = "";
 
-#ifdef SERVER // INTENSITY: Added server
+#ifdef STANDALONE // INTENSITY: Added server
 int curtime = 0, lastmillis = 0, totalmillis = 0;
 #endif
 
@@ -470,10 +470,10 @@ void flushserver(bool force)
     if(server::sendpackets(force) && serverhost) enet_host_flush(serverhost);
 }
 
-#ifndef SERVER
+#ifndef STANDALONE
 void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 {
-#ifndef SERVER
+#ifndef STANDALONE
     bool disconnected = false;
 #endif
     loopv(clients) if(clients[i]->type==ST_LOCAL)
@@ -481,12 +481,12 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
         if (cn != -1 && cn != clients[i]->num) continue; // INTENSITY: if cn given, only process that one
         server::localdisconnect(i);
         delclient(clients[i]);
-#ifndef SERVER
+#ifndef STANDALONE
         disconnected = true;
 #endif
     }
 
-#ifndef SERVER // INTENSITY: Added this
+#ifndef STANDALONE // INTENSITY: Added this
     if(!disconnected) return;
     game::gamedisconnect(cleanup);
     setvar("mainmenu", 1);
@@ -586,7 +586,7 @@ bool serveroption(char *opt)
 
 vector<const char *> gameargs;
 
-#ifdef SERVER
+#ifdef STANDALONE
 void server_init()//int argc, char* argv[])
 {
     if(enet_initialize()<0) fatal("Unable to initialise network module");
@@ -746,7 +746,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 {
     vector<char *> args;
     char *buf = parsecommandline(GetCommandLine(), args);
-#ifndef SERVER
+#ifndef STANDALONE
     SDL_SetMainReady();
     int status = SDL_main(args.length()-1, args.getbuf());
 #else

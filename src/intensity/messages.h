@@ -12,7 +12,7 @@ struct PersonalServerMessage : MessageType
 {
     PersonalServerMessage() : MessageType(1001, "PersonalServerMessage") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -25,7 +25,7 @@ struct LoginRequest : MessageType
 {
     LoginRequest() : MessageType(1003, "LoginRequest") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -39,7 +39,7 @@ struct YourUniqueId : MessageType
 {
     YourUniqueId() : MessageType(1004, "YourUniqueId") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -53,7 +53,7 @@ struct LoginResponse : MessageType
 {
     LoginResponse() : MessageType(1005, "LoginResponse") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -67,7 +67,7 @@ struct PrepareForNewScenario : MessageType
 {
     PrepareForNewScenario() : MessageType(1006, "PrepareForNewScenario") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -81,7 +81,7 @@ struct RequestCurrentScenario : MessageType
 {
     RequestCurrentScenario() : MessageType(1007, "RequestCurrentScenario") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -95,7 +95,7 @@ struct NotifyAboutCurrentScenario : MessageType
 {
     NotifyAboutCurrentScenario() : MessageType(1008, "NotifyAboutCurrentScenario") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -109,7 +109,7 @@ struct RestartMap : MessageType
 {
     RestartMap() : MessageType(1009, "RestartMap") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -123,7 +123,7 @@ struct NewEntityRequest : MessageType
 {
     NewEntityRequest() : MessageType(1010, "NewEntityRequest") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -149,7 +149,7 @@ struct StateDataChangeRequest : MessageType
 {
     StateDataChangeRequest() : MessageType(1012, "StateDataChangeRequest") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -175,7 +175,7 @@ struct UnreliableStateDataChangeRequest : MessageType
 {
     UnreliableStateDataChangeRequest() : MessageType(1014, "UnreliableStateDataChangeRequest") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -189,7 +189,7 @@ struct NotifyNumEntities : MessageType
 {
     NotifyNumEntities() : MessageType(1015, "NotifyNumEntities") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -203,7 +203,7 @@ struct AllActiveEntitiesSent : MessageType
 {
     AllActiveEntitiesSent() : MessageType(1016, "AllActiveEntitiesSent") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -217,7 +217,7 @@ struct ActiveEntitiesRequest : MessageType
 {
     ActiveEntitiesRequest() : MessageType(1017, "ActiveEntitiesRequest") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -243,7 +243,7 @@ struct RequestLogicEntityRemoval : MessageType
 {
     RequestLogicEntityRemoval() : MessageType(1019, "RequestLogicEntityRemoval") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -257,7 +257,7 @@ struct LogicEntityRemoval : MessageType
 {
     LogicEntityRemoval() : MessageType(1020, "LogicEntityRemoval") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -271,7 +271,7 @@ struct ExtentCompleteNotification : MessageType
 {
     ExtentCompleteNotification() : MessageType(1021, "ExtentCompleteNotification") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -285,7 +285,7 @@ struct InitS2C : MessageType
 {
     InitS2C() : MessageType(1022, "InitS2C") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -298,7 +298,7 @@ struct EditModeC2S : MessageType
 {
     EditModeC2S() : MessageType(1028, "EditModeC2S") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -312,7 +312,7 @@ struct EditModeS2C : MessageType
 {
     EditModeS2C() : MessageType(1029, "EditModeS2C") { };
 
-#ifndef SERVER
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
@@ -325,7 +325,7 @@ struct DoClick : MessageType
 {
     DoClick() : MessageType(1031, "DoClick") { };
 
-#ifdef SERVER
+#ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };

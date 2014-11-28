@@ -52,7 +52,7 @@ enum
     N_SERVCMD, NUMSV
 };
 
-#define TESSERACT_SERVER_PORT 42000
+#define TESSERACT_STANDALONE_PORT 42000
 #define PROTOCOL_VERSION 2 // bump when protocol changes
 
 struct gameent : dynent
@@ -77,7 +77,7 @@ struct gameent : dynent
                { name[0] = team[0] = info[0] = 0; respawn(); }
     ~gameent()
     {
-#ifndef SERVER
+#ifndef STANDALONE
         freeeditinfo(edit);
 #endif
      }
