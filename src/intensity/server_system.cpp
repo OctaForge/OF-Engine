@@ -3,12 +3,7 @@
 #include "engine.h"
 
 int thirdperson   = 0;
-int gamespeed     = 0;
 int texdefscale   = 0;
-int maxvsuniforms = 0;
-int shadowmapping = 0;
-
-int xtravertsva = 0;
 
 void serverkeepalive()
 {
@@ -18,15 +13,6 @@ void serverkeepalive()
 }
 
 Texture *notexture = NULL;
-
-Shader *Shader::lastshader = NULL;
-void Shader::allocparams(Slot*) { assert(0); }
-void Shader::bindprograms() { assert(0); };
-int Shader::uniformlocversion() { return 0; };
-
-int GlobalShaderParamState::nextversion = 0;
-void GlobalShaderParamState::resetversions() {}
-GlobalShaderParamState *getglobalparam(const char *name) { return NULL; };
 
 void renderprogress(float bar, const char *text)
 {
@@ -69,14 +55,9 @@ void clearlightcache(int e) { };
 void initlights() { };
 void setsurface(cube &c, int orient, const surfaceinfo &src, const vertinfo *srcverts, int numsrcverts) { };
 void brightencube(cube &c) { };
-Texture *textureload(const char *name, int clamp, bool mipit, bool msg) { return notexture; };
 int isvisiblesphere(float rad, const vec &cv) { return 0; };
-Shader *lookupshaderbyname(const char *name) { return NULL; };
 ushort closestenvmap(int orient, const ivec &co, int size) { return 0; };
 ushort closestenvmap(const vec &o) { return 0; };
-GLuint lookupenvmap(ushort emid) { return 0; };
-uchar *loadalphamask(Texture *t) { return NULL; };
-Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient) { return notexture; };
 
 vector<VSlot *> vslots;
 
@@ -141,19 +122,10 @@ const char *getshaderparamname(const char *name, bool insert) { return ""; };
 
 void setupmaterials(int start, int len) { };
 int findmaterial(const char *name) { return 0; };
-void enablepolygonoffset(GLenum type) { };
-void disablepolygonoffset(GLenum type) { };
 void genmatsurfs(const cube &c, const ivec &co, int size, vector<materialsurface> &matsurfs) { };
 void resetqueries() { };
 void initenvmaps() { };
 int optimizematsurfs(materialsurface *matbuf, int matsurfs) { return 0; };
-void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks) {};
-
-matrix4 shadowmatrix, camprojmatrix;
-
-void findanims(const char *pattern, vector<int> &anims) {};
-
-void genstainmmtri(stainrenderer *s, const vec v[3]) {};
 
 void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll) {}
 void dropenttofloor(entity *e) {}
@@ -167,33 +139,15 @@ namespace game {
     int parseplayer(const char *arg) { return -1; }
 }
 
-#ifdef WINDOWS // needs stubs too, works for now
-#include "GL/gl.h"
-PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements_ = NULL;
-#else // stubs everywhere!
-void glEnable(GLenum cap) {};
-void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indicies) {};
-#endif
-
 #ifndef __APPLE__
 PFNGLDELETEBUFFERSARBPROC         glDeleteBuffers_            = NULL;
 PFNGLGENBUFFERSARBPROC            glGenBuffers_               = NULL;
 PFNGLBINDBUFFERARBPROC            glBindBuffer_               = NULL;
 PFNGLBUFFERDATAARBPROC            glBufferData_               = NULL;
-PFNGLUNIFORM4FVPROC               glUniform4fv_               = NULL;
-PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_  = NULL;
-PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
-PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;
-PFNGLGETUNIFORMLOCATIONPROC       glGetUniformLocation_       = NULL;
 #else
 void glDeleteBuffers(GLsizei n, const GLuint *buffers) {};
 void glGenBuffers(GLsizei n, GLuint *buffers) {};
 void glBindBuffer(GLenum target, GLuint buffer) {};
 void glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage) {};
-void glUniform4fv(GLint location, GLsizei count, const GLfloat *value) {};
-void glEnableVertexAttribArray(GLuint index) {}
-void glDisableVertexAttribArray(GLuint index) {}
-void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer) {};
-GLint glGetUniformLocation(GLuint program, const GLchar *name) { return 0; };
 #endif
 
