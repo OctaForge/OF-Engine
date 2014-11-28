@@ -545,7 +545,7 @@ namespace lua
     }
 
     static int capi_newindex(lua_State *L) {
-        luaL_error(L, "attempt to write into the C API");
+        luaL_error(L, "attempt to write into the C API (%s)", lua_tostring(L, 2));
         return 0;
     }
 

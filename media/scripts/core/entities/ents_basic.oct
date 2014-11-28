@@ -188,123 +188,152 @@ M.Character = Entity.clone({
 
     __properties: {
         animation: svars::StateInteger({
-            setter: capi.set_animation, client_set: true
+            setter: @[!server,capi.set_animation], client_set: true
         }),
-        start_time : svars::StateInteger({ getter: capi.get_start_time }),
-        model_name : svars::StateString({ setter: capi.set_model_name }),
+        start_time : svars::StateInteger({
+            getter: @[!server,capi.get_start_time]
+        }),
+        model_name : svars::StateString({
+            setter: @[!server,capi.set_model_name]
+        }),
         attachments: svars::StateArray({
-            setter: func(self, val) {
+            setter: @[!server,func(self, val) {
                 var arr = ffi::new("const char *[?]", val.len() + 1)
                 for i, v in val.each() { arr[i] = v }
                 set_attachments(self, arr)
-            }
+            }]
         }),
 
         character_name: svars::StateString(),
         facing_speed  : svars::StateInteger(),
 
         movement_speed: svars::StateFloat({
-            getter: capi.get_maxspeed, setter: capi.set_maxspeed
+            getter: @[!server,capi.get_maxspeed],
+            setter: @[!server,capi.set_maxspeed]
         }),
         yaw: svars::StateFloat({
-            getter: capi.get_yaw, setter: capi.set_yaw,
+            getter: @[!server,capi.get_yaw],
+            setter: @[!server,capi.set_yaw],
             custom_sync: true
         }),
         pitch: svars::StateFloat({
-            getter: capi.get_pitch, setter: capi.set_pitch,
+            getter: @[!server,capi.get_pitch],
+            setter: @[!server,capi.set_pitch],
             custom_sync: true
         }),
         roll: svars::StateFloat({
-            getter: capi.get_roll, setter: capi.set_roll,
+            getter: @[!server,capi.get_roll],
+            setter: @[!server,capi.set_roll],
             custom_sync: true
         }),
         move: svars::StateInteger({
-            getter: capi.get_move, setter: capi.set_move,
+            getter: @[!server,capi.get_move],
+            setter: @[!server,capi.set_move],
             custom_sync: true, gui_name: false
         }),
         strafe: svars::StateInteger({
-            getter: capi.get_strafe, setter: capi.set_strafe,
+            getter: @[!server,capi.get_strafe],
+            setter: @[!server,capi.set_strafe],
             custom_sync: true, gui_name: false
         }),
         yawing: svars::StateInteger({
-            getter: capi.get_yawing, setter: capi.set_yawing,
+            getter: @[!server,capi.get_yawing],
+            setter: @[!server,capi.set_yawing],
             custom_sync: true, gui_name: false
         }),
         pitching: svars::StateInteger({
-            getter: capi.get_pitching, setter: capi.set_pitching,
+            getter: @[!server,capi.get_pitching],
+            setter: @[!server,capi.set_pitching],
             custom_sync: true, gui_name: false
         }),
         crouching: svars::StateInteger({
-            getter: capi.get_crouching, setter: capi.set_crouching,
+            getter: @[!server,capi.get_crouching],
+            setter: @[!server,capi.set_crouching],
             custom_sync: true, gui_name: false
         }),
         jumping: svars::StateBoolean({
-            getter: capi.get_jumping, setter: capi.set_jumping,
+            getter: @[!server,capi.get_jumping],
+            setter: @[!server,capi.set_jumping],
             custom_sync: true, gui_name: false
         }),
         position: svars::StateVec3({
-            getter: capi.get_dynent_position,
-            setter: capi.set_dynent_position,
+            getter: @[!server,capi.get_dynent_position],
+            setter: @[!server,capi.set_dynent_position],
             custom_sync: true
         }),
         velocity: svars::StateVec3({
-            getter: capi.get_dynent_velocity,
-            setter: capi.set_dynent_velocity,
+            getter: @[!server,capi.get_dynent_velocity],
+            setter: @[!server,capi.set_dynent_velocity],
             custom_sync: true
         }),
         falling: svars::StateVec3({
-            getter: capi.get_dynent_falling,
-            setter: capi.set_dynent_falling,
+            getter: @[!server,capi.get_dynent_falling],
+            setter: @[!server,capi.set_dynent_falling],
             custom_sync: true, gui_name: false
         }),
         radius: svars::StateFloat({
-            getter: capi.get_radius, setter: capi.set_radius
+            getter: @[!server,capi.get_radius],
+            setter: @[!server,capi.set_radius]
         }),
         above_eye: svars::StateFloat({
-            getter: capi.get_aboveeye, setter: capi.set_aboveeye
+            getter: @[!server,capi.get_aboveeye],
+            setter: @[!server,capi.set_aboveeye]
         }),
         eye_height: svars::StateFloat({
-            getter: capi.get_eyeheight, setter: capi.set_eyeheight
+            getter: @[!server,capi.get_eyeheight],
+            setter: @[!server,capi.set_eyeheight]
         }),
         max_height: svars::StateFloat({
-            getter: capi.get_maxheight, setter: capi.set_maxheight
+            getter: @[!server,capi.get_maxheight],
+            setter: @[!server,capi.set_maxheight]
         }),
         crouch_height: svars::StateFloat({
-            getter: capi.get_crouchheight, setter: capi.set_crouchheight
+            getter: @[!server,capi.get_crouchheight],
+            setter: @[!server,capi.set_crouchheight]
         }),
         crouch_speed: svars::StateFloat({
-            getter: capi.get_crouchspeed, setter: capi.set_crouchspeed
+            getter: @[!server,capi.get_crouchspeed],
+            setter: @[!server,capi.set_crouchspeed]
         }),
         crouch_time: svars::StateInteger({
-            getter: capi.get_crouchtime, setter: capi.set_crouchtime
+            getter: @[!server,capi.get_crouchtime],
+            setter: @[!server,capi.set_crouchtime]
         }),
         jump_velocity: svars::StateFloat({
-            getter: capi.get_jumpvel, setter: capi.set_jumpvel
+            getter: @[!server,capi.get_jumpvel],
+            setter: @[!server,capi.set_jumpvel]
         }),
         gravity: svars::StateFloat({
-            getter: capi.get_gravity, setter: capi.set_gravity
+            getter: @[!server,capi.get_gravity],
+            setter: @[!server,capi.set_gravity]
         }),
         blocked: svars::StateBoolean({
-            getter: capi.get_blocked, setter: capi.set_blocked,
+            getter: @[!server,capi.get_blocked],
+            setter: @[!server,capi.set_blocked],
             gui_name: false
         }),
         can_move: svars::StateBoolean({
-            setter: capi.set_can_move, client_set: true
+            setter: @[!server,capi.set_can_move],
+            client_set: true
         }),
         client_state: svars::StateInteger({
-            getter: capi.get_clientstate, setter: capi.set_clientstate,
+            getter: @[!server,capi.get_clientstate],
+            setter: @[!server,capi.set_clientstate],
             custom_sync: true, gui_name: false
         }),
         physical_state: svars::StateInteger({
-            getter: capi.get_physstate, setter: capi.set_physstate,
+            getter: @[!server,capi.get_physstate],
+            setter: @[!server,capi.set_physstate],
             custom_sync: true, gui_name: false
         }),
         in_liquid: svars::StateInteger({
-            getter: capi.get_inwater, setter: capi.set_inwater,
+            getter: @[!server,capi.get_inwater],
+            setter: @[!server,capi.set_inwater],
             custom_sync: true, gui_name: false
         }),
         time_in_air: svars::StateInteger({
-            getter: capi.get_timeinair, setter: capi.set_timeinair,
+            getter: @[!server,capi.get_timeinair],
+            setter: @[!server,capi.set_timeinair],
             custom_sync: true, gui_name: false
         }),
 
@@ -341,10 +370,10 @@ M.Character = Entity.clone({
         }
     },
 
-    get_plag: func(self) { return capi::get_plag(self.uid) },
-    get_ping: func(self) { return capi::get_ping(self.uid) },
-    get_editing: func(self) { return self.get_attr("client_state") == 4 },
-    get_lagged: func(self) { return self.get_attr("client_state") == 3 },
+    get_plag: @[!server,func(self) { return capi::get_plag(self.uid) }],
+    get_ping: @[!server,func(self) { return capi::get_ping(self.uid) }],
+    get_editing: @[!server,func(self) { return self.get_attr("client_state") == 4 }],
+    get_lagged: @[!server,func(self) { return self.get_attr("client_state") == 3 }],
 
     __init_svars: @[server,func(self, kwargs) {
         Entity::__init_svars(self, kwargs)
@@ -352,6 +381,7 @@ M.Character = Entity.clone({
         self.set_attr("model_name", "")
         self.set_attr("attachments", [])
         self.set_attr("animation", 3 | (1 << 9))
+        self.set_attr("start_time", 0) // so that server has some value
 
         self.cn = kwargs && kwargs.cn || -1
         self.set_attr("character_name", "none")
@@ -366,9 +396,26 @@ M.Character = Entity.clone({
         self.set_attr("above_eye", 2.0)
         self.set_attr("movement_speed", 100.0)
         self.set_attr("facing_speed", 120)
-        self.set_attr("position", [ 512, 512, 550 ])
         self.set_attr("radius", 4.1)
         self.set_attr("can_move", true)
+
+        // initialize custom-synced with default vals
+        self.set_attr("yaw", 0)
+        self.set_attr("pitch", 0)
+        self.set_attr("roll", 0)
+        self.set_attr("move", 0)
+        self.set_attr("strafe", 0)
+        self.set_attr("yawing", 0)
+        self.set_attr("pitching", 0)
+        self.set_attr("crouching", 0)
+        self.set_attr("jumping", false)
+        self.set_attr("position", [ 512, 512, 550 ])
+        self.set_attr("velocity", [ 0, 0, 0 ])
+        self.set_attr("falling", [ 0, 0, 0 ])
+        self.set_attr("client_state", 0)
+        self.set_attr("physical_state", 0)
+        self.set_attr("in_liquid", 0)
+        self.set_attr("time_in_air", 0)
 
         self.set_attr("physics_trigger", 0)
         self.set_attr("jumping_sound", "gk/jump2.ogg")

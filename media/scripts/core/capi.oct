@@ -89,65 +89,67 @@ capi.set_extent_position = func(ent, pos) {
     set_extent_position(ent, pos[0], pos[1], pos[2])
 }
 
-capi.get_maxspeed = gen_getwrap(capi.get_maxspeed, "float")
-capi.get_crouchtime = gen_getwrap(capi.get_crouchtime, "int")
-capi.get_radius = gen_getwrap(capi.get_radius, "float")
-capi.get_eyeheight = gen_getwrap(capi.get_eyeheight, "float")
-capi.get_maxheight = gen_getwrap(capi.get_maxheight, "float")
-capi.get_crouchheight = gen_getwrap(capi.get_crouchheight, "float")
-capi.get_crouchspeed = gen_getwrap(capi.get_crouchspeed, "float")
-capi.get_jumpvel = gen_getwrap(capi.get_jumpvel, "float")
-capi.get_gravity = gen_getwrap(capi.get_gravity, "float")
-capi.get_aboveeye = gen_getwrap(capi.get_aboveeye, "float")
-capi.get_yaw = gen_getwrap(capi.get_yaw, "float")
-capi.get_pitch = gen_getwrap(capi.get_pitch, "float")
-capi.get_roll = gen_getwrap(capi.get_roll, "float")
-capi.get_move = gen_getwrap(capi.get_move, "int")
-capi.get_strafe = gen_getwrap(capi.get_strafe, "int")
-capi.get_yawing = gen_getwrap(capi.get_yawing, "int")
-capi.get_crouching = gen_getwrap(capi.get_crouching, "int")
-capi.get_pitching = gen_getwrap(capi.get_pitching, "int")
-capi.get_jumping = gen_getwrap(capi.get_jumping, "bool")
-capi.get_blocked = gen_getwrap(capi.get_blocked, "bool")
-capi.get_clientstate = gen_getwrap(capi.get_clientstate, "int")
-capi.get_physstate = gen_getwrap(capi.get_physstate, "int")
-capi.get_inwater = gen_getwrap(capi.get_inwater, "int")
-capi.get_timeinair = gen_getwrap(capi.get_timeinair, "int")
+@[!server] {
+    capi.get_maxspeed = gen_getwrap(capi.get_maxspeed, "float")
+    capi.get_crouchtime = gen_getwrap(capi.get_crouchtime, "int")
+    capi.get_radius = gen_getwrap(capi.get_radius, "float")
+    capi.get_eyeheight = gen_getwrap(capi.get_eyeheight, "float")
+    capi.get_maxheight = gen_getwrap(capi.get_maxheight, "float")
+    capi.get_crouchheight = gen_getwrap(capi.get_crouchheight, "float")
+    capi.get_crouchspeed = gen_getwrap(capi.get_crouchspeed, "float")
+    capi.get_jumpvel = gen_getwrap(capi.get_jumpvel, "float")
+    capi.get_gravity = gen_getwrap(capi.get_gravity, "float")
+    capi.get_aboveeye = gen_getwrap(capi.get_aboveeye, "float")
+    capi.get_yaw = gen_getwrap(capi.get_yaw, "float")
+    capi.get_pitch = gen_getwrap(capi.get_pitch, "float")
+    capi.get_roll = gen_getwrap(capi.get_roll, "float")
+    capi.get_move = gen_getwrap(capi.get_move, "int")
+    capi.get_strafe = gen_getwrap(capi.get_strafe, "int")
+    capi.get_yawing = gen_getwrap(capi.get_yawing, "int")
+    capi.get_crouching = gen_getwrap(capi.get_crouching, "int")
+    capi.get_pitching = gen_getwrap(capi.get_pitching, "int")
+    capi.get_jumping = gen_getwrap(capi.get_jumping, "bool")
+    capi.get_blocked = gen_getwrap(capi.get_blocked, "bool")
+    capi.get_clientstate = gen_getwrap(capi.get_clientstate, "int")
+    capi.get_physstate = gen_getwrap(capi.get_physstate, "int")
+    capi.get_inwater = gen_getwrap(capi.get_inwater, "int")
+    capi.get_timeinair = gen_getwrap(capi.get_timeinair, "int")
 
-var get_dynent_position, set_dynent_position in capi
+    var get_dynent_position, set_dynent_position in capi
 
-capi.get_dynent_position = func(ent) {
-    var stor = ffi_new("double[3]")
-    if !get_dynent_position(ent, stor) { return undef }
-    return [ stor[0], stor[1], stor[2] ]
-}
+    capi.get_dynent_position = func(ent) {
+        var stor = ffi_new("double[3]")
+        if !get_dynent_position(ent, stor) { return undef }
+        return [ stor[0], stor[1], stor[2] ]
+    }
 
-capi.set_dynent_position = func(ent, pos) {
-    set_dynent_position(ent, pos[0], pos[1], pos[2])
-}
+    capi.set_dynent_position = func(ent, pos) {
+        set_dynent_position(ent, pos[0], pos[1], pos[2])
+    }
 
-var get_dynent_velocity, set_dynent_velocity in capi
+    var get_dynent_velocity, set_dynent_velocity in capi
 
-capi.get_dynent_velocity = func(ent) {
-    var stor = ffi_new("double[3]")
-    if !get_dynent_velocity(ent, stor) { return undef }
-    return [ stor[0], stor[1], stor[2] ]
-}
+    capi.get_dynent_velocity = func(ent) {
+        var stor = ffi_new("double[3]")
+        if !get_dynent_velocity(ent, stor) { return undef }
+        return [ stor[0], stor[1], stor[2] ]
+    }
 
-capi.set_dynent_velocity = func(ent, vel) {
-    set_dynent_velocity(ent, vel[0], vel[1], vel[2])
-}
+    capi.set_dynent_velocity = func(ent, vel) {
+        set_dynent_velocity(ent, vel[0], vel[1], vel[2])
+    }
 
-var get_dynent_falling, set_dynent_falling in capi
+    var get_dynent_falling, set_dynent_falling in capi
 
-capi.get_dynent_falling = func(ent) {
-    var stor = ffi_new("double[3]")
-    if !get_dynent_falling(ent, stor) { return undef }
-    return [ stor[0], stor[1], stor[2] ]
-}
+    capi.get_dynent_falling = func(ent) {
+        var stor = ffi_new("double[3]")
+        if !get_dynent_falling(ent, stor) { return undef }
+        return [ stor[0], stor[1], stor[2] ]
+    }
 
-capi.set_dynent_falling = func(ent, fl) {
-    set_dynent_falling(ent, fl[0], fl[1], fl[2])
+    capi.set_dynent_falling = func(ent, fl) {
+        set_dynent_falling(ent, fl[0], fl[1], fl[2])
+    }
 }
 
 @[!server] {
@@ -159,8 +161,10 @@ capi.set_dynent_falling = func(ent, fl) {
     }
 }
 
-capi.get_ping = gen_getwrap(capi.get_ping, "int")
-capi.get_plag = gen_getwrap(capi.get_plag, "int")
+@[!server] {
+    capi.get_ping = gen_getwrap(capi.get_ping, "int")
+    capi.get_plag = gen_getwrap(capi.get_plag, "int")
+}
 
 var ffi_str = ffi.string
 

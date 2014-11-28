@@ -193,6 +193,7 @@ namespace entities
 
     /* Dynents */
 
+#ifndef SERVER
     #define DYNENT_ACCESSORS(n, t, an) \
     CLUAICOMMAND(get_##n, bool, (int uid, t *val), { \
         LUA_GET_ENT(entity, uid, "_C.get"#n, return false) \
@@ -300,7 +301,6 @@ namespace entities
     DYNENTVEC(falling, falling)
     #undef DYNENTVEC
 
-#ifndef SERVER
     CLUAICOMMAND(get_target_entity_uid, bool, (int *uid), {
         if (TargetingControl::targetLogicEntity) {
             *uid = TargetingControl::targetLogicEntity->getUniqueId();
@@ -308,7 +308,6 @@ namespace entities
         }
         return false;
     });
-#endif
 
     CLUAICOMMAND(get_plag, bool, (int uid, int *val), {
         LUA_GET_ENT(entity, uid, "_C.getplag", return false)
@@ -326,7 +325,6 @@ namespace entities
         return true;
     });
 
-#ifndef SERVER
     CLUAICOMMAND(get_selected_entity, int, (), {
         const vector<extentity *> &ents = entities::getents();
         if (!ents.inrange(efocus)) return -1;
