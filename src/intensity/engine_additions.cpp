@@ -19,29 +19,6 @@ extern int getattrnum(int type);
 // Logic Entities
 //=========================
 
-int CLogicEntity::getUniqueId()
-{
-    switch (getType())
-    {
-        case LE_DYNAMIC:
-            return ((gameent*)dynamicEntity)->uid;
-        case LE_STATIC:
-            return staticEntity->uid;
-        default:
-            return uniqueId; // This can be made to work for the others, if we ensure that uniqueId is set. Would be faster
-    };
-}
-
-int CLogicEntity::getType()
-{
-    if (dynamicEntity != NULL)
-        return LE_DYNAMIC;
-    else if (staticEntity != NULL)
-        return LE_STATIC;
-    else
-        return LE_NONSAUER;
-}
-
 int CLogicEntity::getAnimation()
 {
     return anim;
@@ -129,7 +106,7 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
         if ((lastmillis - *((int*)(pos + 1))) < 500) return *pos;
     }
     static vec missing; // Returned if no such tag, or no recent attachment position info. Note: Only one of these, static!
-    if (getType() == LE_DYNAMIC) {
+    if (dynamicEntity) {
         missing = dynamicEntity->o;
     } else {
         if (staticEntity->type == ET_MAPMODEL) {
@@ -182,10 +159,10 @@ void LogicSystem::init()
 
 void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
 {
-    logger::log(logger::DEBUG, "C registerLogicEntity: %d", newEntity->getUniqueId());
+    logger::log(logger::DEBUG, "C registerLogicEntity: %d", newEntity->uniqueId);
     INDENT_LOG(logger::DEBUG);
 
-    int uniqueId = newEntity->getUniqueId();
+    int uniqueId = newEntity->uniqueId;
     assert(!logicEntities.access(uniqueId));
     logicEntities.access(uniqueId, newEntity);
 
@@ -254,6 +231,7 @@ void LogicSystem::setupExtent(int uid, int type)
 #endif
     e->uid = uid;
     CLogicEntity *newEntity = new CLogicEntity(e);
+    newEntity->uniqueId = uid;
     registerLogicEntity(newEntity);
 }
 
@@ -299,6 +277,7 @@ void LogicSystem::setupCharacter(int uid, int cn)
     // Register with the C++ system.
     gameEntity->uid = uid;
     CLogicEntity *newEntity = new CLogicEntity(gameEntity);
+    newEntity->uniqueId = uid;
     registerLogicEntity(newEntity);
 }
 

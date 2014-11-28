@@ -638,7 +638,7 @@ bool plcollide(physent *d, const vec &dir)    // collide with player
             CLogicEntity *dl = LogicSystem::getLogicEntity(d);
             CLogicEntity *ol = LogicSystem::getLogicEntity(o);
             if (dl && ol) lua::call_external("physics_collide_client", "iifff",
-                dl->getUniqueId(), ol->getUniqueId(), collidewall.x, collidewall.y, collidewall.z);
+                dl->uniqueId, ol->uniqueId, collidewall.x, collidewall.y, collidewall.z);
             return true;
         }
     }
@@ -815,7 +815,7 @@ bool areacollide(physent *d, const vec &dir, float cutoff, CLogicEntity *el) {
 collision:
     CLogicEntity *dl = LogicSystem::getLogicEntity(d);
     if (dl) lua::call_external("physics_collide_area", "ii",
-        dl->getUniqueId(), el->getUniqueId());
+        dl->uniqueId, el->uniqueId);
     return e.attr[6];
 }
 
@@ -899,7 +899,7 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
 collision:
         CLogicEntity *dl = LogicSystem::getLogicEntity(d);
         if (dl) lua::call_external("physics_collide_mapmodel", "ii",
-            dl->getUniqueId(), el->getUniqueId());
+            dl->uniqueId, el->uniqueId);
         return true;
     }
     return false;
@@ -1713,7 +1713,7 @@ float dropheight(entity &e) {
     if (!ent) return 4.0f;
     float ret;
     lua::pop_external_ret(lua::call_external_ret("entity_get_edit_drop_height",
-        "i", "f", ent->getUniqueId(), &ret));
+        "i", "f", ent->uniqueId, &ret));
     return ret;
 }
 

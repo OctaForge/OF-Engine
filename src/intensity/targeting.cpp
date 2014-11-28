@@ -121,7 +121,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 
             // If not edit mode, ignore the player itself
             if (!editmode && TargetingControl::targetLogicEntity &&
-                TargetingControl::targetLogicEntity->getUniqueId() == game::player1->uid)
+                TargetingControl::targetLogicEntity->uniqueId == game::player1->uid)
             {
                 // Try to see if the player was the sole cause of collision - move it away, test, then move it back
                 vec save = game::player1->o;

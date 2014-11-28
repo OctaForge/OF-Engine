@@ -11,8 +11,6 @@ struct entlinkpos {
 
 struct CLogicEntity
 {
-    enum {LE_DYNAMIC, LE_STATIC, LE_NONSAUER}; //!< Possible types for a logic entity, correspond to Sauer types
-
     physent*   dynamicEntity;      //!< Only one of dynamicEntity and staticEntity should be not null, corresponding to the type
     extentity* staticEntity;       //!< Only one of dynamicEntity and staticEntity should be not null, corresponding to the type
 
@@ -48,15 +46,6 @@ struct CLogicEntity
     ~CLogicEntity() { clear_attachments(); }
 
     void clear_attachments();
-
-    //! Returns the unique ID for this entity
-    int   getUniqueId();
-
-    //! Returns the type, i.e., dynamic (player - physent/gameent), or static (mapmodel). In the future, also lights, etc.
-    int   getType();
-
-    bool  isDynamic() { return getType() == LE_DYNAMIC; };
-    bool  isStatic()  { return getType() == LE_STATIC;  };
 
     //! The sauer code for the current running animation
     int  getAnimation();

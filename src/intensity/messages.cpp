@@ -523,12 +523,12 @@ namespace MessageSystem
                 return;
             }
         } else
-            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create", entity != NULL, entity->getUniqueId(),
+            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create", entity != NULL, entity->uniqueId,
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s", stateData);
-        lua::call_external("entity_set_sdata_full", "is", entity->getUniqueId(), stateData);
+        lua::call_external("entity_set_sdata_full", "is", entity->uniqueId, stateData);
         #ifndef SERVER
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
@@ -622,12 +622,12 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else
-            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create", entity != NULL, entity->getUniqueId(),
+            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create", entity != NULL, entity->uniqueId,
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData");
-        lua::call_external("entity_set_sdata_full", "is", entity->getUniqueId(), stateData);
+        lua::call_external("entity_set_sdata_full", "is", entity->uniqueId, stateData);
         // Events post-reception
         world::trigger_received_entity();
     }
@@ -753,7 +753,7 @@ namespace MessageSystem
         CLogicEntity *entity = NULL;
         if (uid != -1) entity = LogicSystem::getLogicEntity(uid);
         assert(lua::call_external("input_click_server", "ibfffi", button, down,
-            x, y, z, entity ? entity->getUniqueId() : -1));
+            x, y, z, entity ? entity->uniqueId : -1));
     }
 #endif
 

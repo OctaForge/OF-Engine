@@ -873,7 +873,7 @@ void mouse##num##click() { \
     cursor_get_position(x, y); \
 \
     assert(lua::call_external("input_click", "ibfffiff", num, down, \
-        pos.x, pos.y, pos.z, tle ? tle->getUniqueId() : -1, x, y)); \
+        pos.x, pos.y, pos.z, tle ? tle->uniqueId : -1, x, y)); \
 } \
 COMMAND(mouse##num##click, "");
 

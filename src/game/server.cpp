@@ -216,7 +216,6 @@ namespace server
 
     void *newinfo() { return new clientinfo; }
     void deleteinfo(void *ci) { delete (clientinfo *)ci; }
-    int getUniqueIdFromInfo(void *ci) { return ((clientinfo *)ci)->uniqueId; }
 
     void sendservmsg(const char *s) { sendf(-1, 1, "ris", N_SERVMSG, s); }
 

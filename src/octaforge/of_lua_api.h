@@ -291,7 +291,7 @@ namespace lapi_binds
         TargetingControl::determineMouseTarget(true);
         CLogicEntity *target = TargetingControl::targetLogicEntity;
         if (target)
-            lua_pushinteger(L, target->getUniqueId());
+            lua_pushinteger(L, target->uniqueId);
         else
             lua_pushinteger(L, -1);
         return 1;
@@ -320,7 +320,7 @@ namespace lapi_binds
         tester.eyeheight = tester.aboveeye  = r;
 
         if (collide(&tester, vec(0))) {
-            if (ignore && ignore->isDynamic() &&
+            if (ignore && ignore->dynamicEntity &&
                 ignore->dynamicEntity == collideplayer
             ) {
                 vec save = ignore->dynamicEntity->o;

@@ -1099,7 +1099,7 @@ int preparerd(lua_State *L, int &anim, CLogicEntity *self) {
         if (fp->ragdoll || !ragdoll) {
             if (!ragdoll) anim &= ~ANIM_RAGDOLL;
             lua::call_external("entity_set_local_animation", "ii",
-                self->getUniqueId(), anim);
+                self->uniqueId, anim);
         }
     } else if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1) {
         thirdperson = oldtp; oldtp = -1;

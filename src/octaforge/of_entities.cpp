@@ -103,7 +103,7 @@ namespace entities
         if (!name) name = "";
         LUA_GET_ENT(entity, uid, "_C.setmodelname", return)
         logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")",
-            entity->getUniqueId(), name);
+            entity->uniqueId, name);
 #ifndef SERVER
         extentity *ext = entity->staticEntity;
         if (!ext) return;
@@ -167,7 +167,7 @@ namespace entities
         assert(ext);
         logger::log(logger::INFO,
             "_C.getextent0(%d): x: %f, y: %f, z: %f",
-            entity->getUniqueId(), ext->o.x, ext->o.y, ext->o.z);
+            entity->uniqueId, ext->o.x, ext->o.y, ext->o.z);
         pos[0] = ext->o.x;
         pos[1] = ext->o.y;
         pos[2] = ext->o.z;
@@ -303,7 +303,7 @@ namespace entities
 
     CLUAICOMMAND(get_target_entity_uid, bool, (int *uid), {
         if (TargetingControl::targetLogicEntity) {
-            *uid = TargetingControl::targetLogicEntity->getUniqueId();
+            *uid = TargetingControl::targetLogicEntity->uniqueId;
             return true;
         }
         return false;
