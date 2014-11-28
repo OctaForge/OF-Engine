@@ -392,7 +392,9 @@ namespace lua
         });
 
     STREAMOPEN2ARGS(stream_open_raw, openrawfile)
+#ifndef SERVER
     STREAMOPEN2ARGS(stream_open_zip, openzipfile)
+#endif
     STREAMOPEN2ARGS(stream_open, openfile)
 
     #undef STREAMOPEN2ARGS

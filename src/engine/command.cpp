@@ -2146,7 +2146,7 @@ static const uint *skipcode(const uint *code, tagval &result = noret)
     }
 }
 
-#ifndef STANDALONE
+#ifndef SERVER
 static inline uint *copycode(const uint *src)
 {
     const uint *end = skipcode(src);
@@ -3847,7 +3847,12 @@ void findfile_(char *name)
     string fname;
     copystring(fname, name);
     path(fname);
-    intret(findzipfile(fname) || fileexists(fname, "e") || findfile(fname, "e") ? 1 : 0);
+    intret(
+#ifndef SERVER
+        findzipfile(fname) || 
+#endif
+        fileexists(fname, "e") || findfile(fname, "e") ? 1 : 0
+    );
 }
 COMMANDN(findfile, findfile_, "s");
 

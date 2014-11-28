@@ -8,6 +8,8 @@
 #include "client_system.h"
 #include "of_world.h"
 
+extern int getattrnum(int type);
+
 string ogzname, bakname, cfgname, picname;
 
 VARP(savebak, 0, 2, 2);

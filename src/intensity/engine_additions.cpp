@@ -13,6 +13,7 @@
 // WorldSystem
 extern void removeentity(extentity* entity);
 extern void addentity(extentity* entity);
+extern int getattrnum(int type);
 
 //=========================
 // Logic Entities

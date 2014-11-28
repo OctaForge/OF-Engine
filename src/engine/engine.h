@@ -2,8 +2,10 @@
 #define __ENGINE_H__
 
 #include "cube.h"
-
 #include "world.h"
+
+#ifndef SERVER
+
 #include "octa.h"
 #include "light.h"
 #include "bih.h"
@@ -657,7 +659,6 @@ extern void attachentities();
 extern void attachentity(extentity &e);
 extern void freeoctaentities(cube &c);
 extern bool pointinsel(const selinfo &sel, const vec &o);
-extern int  getattrnum(int type); /* OF */
 
 extern void resetmap();
 extern void startmap(const char *name);
@@ -770,6 +771,8 @@ namespace recorder
     extern void capture(bool overlay = true);
     extern void cleanup();
 }
+
+#endif
 
 #endif
 

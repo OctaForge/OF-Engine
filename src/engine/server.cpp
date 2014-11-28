@@ -610,8 +610,6 @@ void server_runslice()
 
     if(lastmillis) game::updateworld();
 
-    checksleep(lastmillis);
-
     static time_t shutdown_idle_last_update = 0;
     if (!shutdown_idle_last_update)
          shutdown_idle_last_update = time(0);

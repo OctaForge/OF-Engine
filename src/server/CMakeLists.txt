@@ -24,9 +24,7 @@ else()
         ../intensity/message_system
         ../intensity/messages
         ../intensity/engine_additions
-        ../shared/geom
         ../shared/stream
-        ../shared/zip
         ../octaforge/of_lua
         ../octaforge/of_world
         ../octaforge/of_logger

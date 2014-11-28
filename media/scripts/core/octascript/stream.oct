@@ -64,7 +64,8 @@ M.open = capi.stream_open
 M.open_raw = capi.stream_open_raw
 
 /** Function: open_zip
-    Like $open_raw, but tries to read ONLY in mounted zip files.
+    Like $open_raw, but tries to read ONLY in mounted zip files. Works only
+    on the client.
 
     See also:
         - $open
@@ -72,7 +73,7 @@ M.open_raw = capi.stream_open_raw
         - $open_gz
         - $open_utf8
 */
-M.open_zip = capi.stream_open_zip
+M.open_zip = @[server,func() { return undef },capi.stream_open_zip]
 
 /** Function: open_gz
     Like $open, but treats the file as gzip compressed (zlib). It
