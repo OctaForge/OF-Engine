@@ -475,7 +475,7 @@ static inline void rendermapmodel(extentity &e)
     if (!entity)
     {
         logger::log(logger::ERROR, "Trying to show a missing mapmodel");
-        logger::log(logger::ERROR, "                                  %d", LogicSystem::getUniqueId(&e));
+        logger::log(logger::ERROR, "                                  %d", e.uid);
         assert(0);
     }
     int anim    = entity->getAnimation(); // ANIM_MAPMODEL|ANIM_LOOP

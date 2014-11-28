@@ -24,9 +24,9 @@ int CLogicEntity::getUniqueId()
     switch (getType())
     {
         case LE_DYNAMIC:
-            return LogicSystem::getUniqueId(dynamicEntity);
+            return ((gameent*)dynamicEntity)->uid;
         case LE_STATIC:
-            return LogicSystem::getUniqueId(staticEntity);
+            return staticEntity->uid;
         default:
             return uniqueId; // This can be made to work for the others, if we ensure that uniqueId is set. Would be faster
     };
@@ -192,48 +192,6 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     logger::log(logger::DEBUG, "C registerLogicEntity completes");
 }
 
-CLogicEntity *LogicSystem::registerLogicEntity(physent* entity)
-{
-    if (getUniqueId(entity) < 0)
-    {
-        logger::log(logger::ERROR, "Trying to register an entity with an invalid unique Id: %d (D)", getUniqueId(entity));
-        assert(0);
-    }
-
-    CLogicEntity *newEntity = new CLogicEntity(entity);
-
-    logger::log(logger::DEBUG, "adding physent %d", newEntity->getUniqueId());
-
-    registerLogicEntity(newEntity);
-
-    return newEntity;
-}
-
-CLogicEntity *LogicSystem::registerLogicEntity(extentity* entity)
-{
-    if (getUniqueId(entity) < 0)
-    {
-        logger::log(logger::ERROR, "Trying to register an entity with an invalid unique Id: %d (S)", getUniqueId(entity));
-        assert(0);
-    }
-
-    CLogicEntity *newEntity = new CLogicEntity(entity);
-
-//    logger::log(logger::DEBUG, "adding entity %d : %d,%d,%d,%d", entity->type, entity->attr[0], entity->attr[1], entity->attr[2], entity->attr[3]);
-
-    registerLogicEntity(newEntity);
-
-    return newEntity;
-}
-
-void LogicSystem::registerLogicEntityNonSauer(int uniqueId)
-{
-    CLogicEntity *newEntity = new CLogicEntity(uniqueId);
-    logger::log(logger::DEBUG, "adding non-Sauer entity %d", uniqueId);
-    registerLogicEntity(newEntity);
-//    return newEntity;
-}
-
 void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
 {
     logger::log(logger::DEBUG, "UNregisterLogicEntity by UniqueID: %d", uniqueId);
@@ -274,47 +232,7 @@ CLogicEntity *LogicSystem::getLogicEntity(const extentity &extent)
 
 CLogicEntity *LogicSystem::getLogicEntity(physent* entity)
 {
-    return getLogicEntity(getUniqueId(entity)); // TODO: do this directly, without the intermediary getUniqueId, for speed?
-}
-
-int LogicSystem::getUniqueId(extentity* staticEntity)
-{
-    return staticEntity->uid;
-}
-
-int LogicSystem::getUniqueId(physent* dynamicEntity)
-{
-    return ((gameent*)dynamicEntity)->uid;
-}
-
-// TODO: Use this whereever it should be used
-void LogicSystem::setUniqueId(extentity* staticEntity, int uniqueId)
-{
-    if (getUniqueId(staticEntity) >= 0)
-    {
-        logger::log(logger::ERROR, "Trying to set to %d a unique Id that has already been set, to %d (S)",
-                                     uniqueId,
-                                     getUniqueId(staticEntity));
-        assert(0);
-    }
-
-    staticEntity->uid = uniqueId;
-}
-
-// TODO: Use this whereever it should be used
-void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
-{
-    logger::log(logger::DEBUG, "Setting a unique ID: %d (of addr: %d)", uniqueId, dynamicEntity != NULL);
-
-    if (getUniqueId(dynamicEntity) >= 0)
-    {
-        logger::log(logger::ERROR, "Trying to set to %d a unique Id that has already been set, to %d (D)",
-                                     uniqueId,
-                                     getUniqueId(dynamicEntity));
-        assert(0);
-    }
-
-    ((gameent*)dynamicEntity)->uid = uniqueId;
+    return getLogicEntity(((gameent*)entity)->uid);
 }
 
 void LogicSystem::setupExtent(int uid, int type)
@@ -334,9 +252,9 @@ void LogicSystem::setupExtent(int uid, int type)
     addentity(e);
     attachentity(*e);
 #endif
-
-    LogicSystem::setUniqueId(e, uid);
-    LogicSystem::registerLogicEntity(e);
+    e->uid = uid;
+    CLogicEntity *newEntity = new CLogicEntity(e);
+    registerLogicEntity(newEntity);
 }
 
 void LogicSystem::setupCharacter(int uid, int cn)
@@ -379,9 +297,9 @@ void LogicSystem::setupCharacter(int uid, int cn)
     }
 
     // Register with the C++ system.
-
-    LogicSystem::setUniqueId(gameEntity, uid);
-    LogicSystem::registerLogicEntity(gameEntity);
+    gameEntity->uid = uid;
+    CLogicEntity *newEntity = new CLogicEntity(gameEntity);
+    registerLogicEntity(newEntity);
 }
 
 void LogicSystem::setupNonSauer(int uid)
@@ -389,7 +307,8 @@ void LogicSystem::setupNonSauer(int uid)
     logger::log(logger::DEBUG, "setupNonSauer: %d\r\n", uid);
     INDENT_LOG(logger::DEBUG);
 
-    LogicSystem::registerLogicEntityNonSauer(uid);
+    CLogicEntity *newEntity = new CLogicEntity(uid);
+    registerLogicEntity(newEntity);
 }
 
 void LogicSystem::dismantleExtent(int uid)

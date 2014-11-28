@@ -693,13 +693,16 @@ namespace MessageSystem
 
 // EditModeS2C
 
+#ifdef SERVER
     void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode)
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)");
 
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riii", 1029, otherClientNumber, mode), otherClientNumber);
     }
+#endif
 
+#ifndef SERVER
     void EditModeS2C::receive(int receiver, int sender, ucharbuf &p)
     {
         int otherClientNumber = getint(p);
@@ -720,6 +723,7 @@ namespace MessageSystem
             }
         }
     }
+#endif
 
 // DoClick
 

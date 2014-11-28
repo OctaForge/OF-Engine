@@ -3,8 +3,6 @@
 
 #include "engine.h"
 
-#include "game.h" // INTENSITY: needed for gameent
- // INTENSITY
 #include "message_system.h"
 #include "of_world.h"
 
@@ -608,7 +606,7 @@ void server_runslice()
 {
     serverslice(true, 5);
 
-    if(lastmillis) game::updateworld();
+    if(lastmillis) LogicSystem::manageActions(curtime);
 
     static time_t shutdown_idle_last_update = 0;
     if (!shutdown_idle_last_update)

@@ -162,7 +162,7 @@ namespace game
 
     void otherplayers(int curtime)
     {
-        loopv(players) if(players[i] && LogicSystem::getUniqueId(players[i]) >= 0) // Need a complete entity for this
+        loopv(players) if(players[i] && players[i]->uid >= 0) // Need a complete entity for this
         {
             gameent *d = players[i];
             if(d == player1 || d->ai) continue;
@@ -432,7 +432,7 @@ namespace game
 
     void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material)
     {
-        lua::call_external("physics_state_change", "ibiii", LogicSystem::getUniqueId(d),
+        lua::call_external("physics_state_change", "ibiii", ((gameent*)d)->uid,
             local, floorlevel, waterlevel, material);
     }
 
@@ -454,7 +454,7 @@ namespace game
         static string cns;
         const char *cn;
         int n = lua::call_external_ret("entity_get_attr", "is", "s",
-            LogicSystem::getUniqueId(d), "character_name", &cn);
+            d->uid, "character_name", &cn);
         copystring(cns, cn);
         lua::pop_external_ret(n);
         return cns;

@@ -1,6 +1,7 @@
 // renderparticles.cpp
 
 #include "engine.h"
+#include "game.h"
 
 Shader *particleshader = NULL, *particlenotextureshader = NULL, *particlesoftshader = NULL, *particletextshader = NULL;
 
@@ -144,7 +145,7 @@ struct particle {
 typedef particle particle_t;
 
 CLUAICOMMAND(particle_get_owner, int, (particle_t *part), {
-    if (part->owner) return LogicSystem::getUniqueId(part->owner);
+    if (part->owner) return ((gameent*)part->owner)->uid;
     return -1;
 })
 

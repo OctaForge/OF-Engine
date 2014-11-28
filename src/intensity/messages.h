@@ -312,7 +312,9 @@ struct EditModeS2C : MessageType
 {
     EditModeS2C() : MessageType(1029, "EditModeS2C") { };
 
+#ifndef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
+#endif
 };
 
 void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode);

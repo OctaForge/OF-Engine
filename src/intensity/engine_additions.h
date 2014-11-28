@@ -92,12 +92,6 @@ struct LogicSystem
     //! Register a logic entity in the LogicSystem system. Must be done so that entities are accessible and are managed.
     static void          registerLogicEntity(CLogicEntity *newEntity);
 
-    static CLogicEntity *registerLogicEntity(physent* entity);
-    static CLogicEntity *registerLogicEntity(extentity* entity);
-
-    //! Register a Logic Entity that is not based on a Sauer type, i.e., is not a physent or an extent
-    static void           registerLogicEntityNonSauer(int uniqueId);
-
     //! Unregisters a C++ GE, removes it from the set of currently running entities. Needs to not overload the other,
     //! but have a different name, because we expose this in the lua embedding
     static void          unregisterLogicEntityByUniqueId(int uniqueId);
@@ -110,16 +104,6 @@ struct LogicSystem
     static CLogicEntity *getLogicEntity(int uniqueId);
     static CLogicEntity *getLogicEntity(const extentity &extent);
     static CLogicEntity *getLogicEntity(physent* entity);
-
-    static int           getUniqueId(extentity* staticEntity);
-    static int           getUniqueId(physent*    dynamicEntity);
-
-    //! Done only in initial preparation of an entity - never afterwards. Note: This is a member of LogicSystem because it would be
-    //! invalid as a member of LogicEntity - a LogicEntity, if it exists, must have a valid Id! (i.e., >= 0)
-    static void          setUniqueId(extentity* staticEntity, int uniqueId);
-
-    //! Done only in initial preparation of an entity - never afterwards
-    static void          setUniqueId(physent* dynamicEntity, int uniqueId);
 
     static void setupExtent(int uid, int type);
 
