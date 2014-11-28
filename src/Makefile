@@ -409,7 +409,6 @@ SERVER_OBJ = \
 	game/game.o \
 	game/server.o \
 	intensity/message_system.o \
-	intensity/server_system.o \
 	intensity/messages.o \
 	intensity/engine_additions.o \
 	shared/geom.o \

@@ -771,7 +771,11 @@ void setvarchecked(ident *id, int val)
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
     else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
         debugcode("cannot override variable %s in a safe context", id->name);
+#ifndef SERVER
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
+#else
+    else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN)
+#endif
     {
         OVERRIDEVAR(return, id->overrideval.i = *id->storage.i, , )
         if(val < id->minval || val > id->maxval) val = clampvar(id, val, id->minval, id->maxval);
@@ -806,7 +810,11 @@ void setfvarchecked(ident *id, float val)
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
     else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
         debugcode("cannot override variable %s in a safe context", id->name);
+#ifndef SERVER
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
+#else
+    else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN)
+#endif
     {
         OVERRIDEVAR(return, id->overrideval.f = *id->storage.f, , );
         if(val < id->minvalf || val > id->maxvalf) val = clampfvar(id, val, id->minvalf, id->maxvalf);
@@ -821,7 +829,11 @@ void setsvarchecked(ident *id, const char *val)
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
     else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
         debugcode("cannot override variable %s in a safe context", id->name);
+#ifndef SERVER
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
+#else
+    else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN)
+#endif
     {
         OVERRIDEVAR(return, id->overrideval.s = *id->storage.s, delete[] id->overrideval.s, delete[] *id->storage.s);
         *id->storage.s = newstring(val);

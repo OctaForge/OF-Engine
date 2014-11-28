@@ -28,6 +28,7 @@ namespace game
 
     void follow(char *arg)
     {
+#ifndef SERVER
         if(arg[0] ? player1->state==CS_SPECTATOR : following>=0)
         {
             following = arg[0] ? parseplayer(arg) : -1;
@@ -35,6 +36,7 @@ namespace game
             followdir = 0;
             conoutf("follow %s", following>=0 ? "on" : "off");
         }
+#endif
     }
 
     void nextfollow(int dir)
@@ -94,9 +96,13 @@ namespace game
 
     gameent *hudplayer()
     {
+#ifndef SERVER
         if(thirdperson) return player1;
         gameent *target = followingplayer();
         return target ? target : player1;
+#else
+        return NULL;
+#endif
     }
 
     void setupcamera()

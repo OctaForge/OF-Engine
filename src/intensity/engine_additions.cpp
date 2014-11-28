@@ -54,15 +54,18 @@ int CLogicEntity::getStartTime()
 int getanimid(const char *name);
 
 void CLogicEntity::clear_attachments() {
+#ifndef SERVER
     for (int i = 0; i < attachments.length() - 1; i++) {
         delete[] (char*)attachments[i].tag;
         delete[] (char*)attachments[i].name;
     }
     attachments.setsize(0);
     attachment_positions.clear();
+#endif
 }
 
 void CLogicEntity::setAttachments(const char **attach) {
+#ifndef SERVER
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
@@ -91,6 +94,7 @@ void CLogicEntity::setAttachments(const char **attach) {
         }
     }
     attachments.add(modelattach());
+#endif
 }
 
 void CLogicEntity::setAnimation(int _anim)
@@ -113,6 +117,10 @@ void CLogicEntity::setAnimation(int _anim)
 
 vec& CLogicEntity::getAttachmentPosition(const char *tag)
 {
+#ifdef SERVER
+    static vec r = vec(0);
+    return r;
+#else
     // If last actual render - which actually calculated the attachment positions - was recent
     // enough, use that data
     vec *pos = (vec*)attachment_positions.access(tag);
@@ -140,6 +148,7 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
         }
     }
     return missing;
+#endif
 }
 
 //=========================

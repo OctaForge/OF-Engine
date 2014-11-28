@@ -22,7 +22,6 @@ else()
         ../game/game
         ../game/server
         ../intensity/message_system
-        ../intensity/server_system
         ../intensity/messages
         ../intensity/engine_additions
         ../shared/geom

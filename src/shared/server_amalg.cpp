@@ -15,7 +15,6 @@
 #include "game/game.cpp"
 #include "game/server.cpp"
 #include "intensity/message_system.cpp"
-#include "intensity/server_system.cpp"
 #include "intensity/messages.cpp"
 #include "intensity/engine_additions.cpp"
 #include "shared/geom.cpp"

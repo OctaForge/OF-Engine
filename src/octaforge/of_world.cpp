@@ -37,7 +37,7 @@ namespace world
 
     void trigger_received_entity() {
         num_received_entities++;
-
+#ifndef SERVER
         if (num_expected_entities > 0) {
             float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
             if (loading) {
@@ -45,6 +45,7 @@ namespace world
                 renderprogress(val, buf);
             }
         }
+#endif
     }
 
     /*
