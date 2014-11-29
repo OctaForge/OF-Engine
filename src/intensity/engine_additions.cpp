@@ -216,7 +216,7 @@ void LogicSystem::setupExtent(int uid, int type)
 {
     logger::log(logger::DEBUG, "setupExtent: %d, %d", uid, type);
     INDENT_LOG(logger::DEBUG);
-
+#ifndef STANDALONE
     extentity *e = new extentity;
     entities::getents().add(e);
 
@@ -225,12 +225,13 @@ void LogicSystem::setupExtent(int uid, int type)
     int numattrs = getattrnum(type);
     for (int i = 0; i < numattrs; ++i) e->attr.add(0);
 
-#ifndef STANDALONE
     addentity(e);
     attachentity(*e);
-#endif
     e->uid = uid;
     CLogicEntity *newEntity = new CLogicEntity(e);
+#else
+    CLogicEntity *newEntity = new CLogicEntity();
+#endif
     newEntity->uniqueId = uid;
     registerLogicEntity(newEntity);
 }
@@ -294,17 +295,17 @@ void LogicSystem::setupNonSauer(int uid)
 
 void LogicSystem::dismantleExtent(int uid)
 {
+#ifndef STANDALONE
     logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uid);
 
     extentity* extent = getLogicEntity(uid)->staticEntity;
-#ifndef STANDALONE
     if (extent->type == ET_SOUND) stopmapsound(extent);
     removeentity(extent);
-#endif
     extent->type = ET_EMPTY;
 
 //    delete extent; extent = NULL; // For symmetry with the "new extentity" this should be here, but sauer does it
                                                      // in clearents() in the next load_world.
+#endif
 }
 
 void LogicSystem::dismantleCharacter(int cn)

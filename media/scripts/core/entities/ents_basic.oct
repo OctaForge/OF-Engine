@@ -745,8 +745,8 @@ var c_set_attr = capi.set_attr
 var gen_attr = func(i, name) {
     i = i - 1
     return svars::StateInteger({
-        getter: func(ent) {      return c_get_attr(ent, i)      },
-        setter: func(ent, val) { return c_set_attr(ent, i, val) },
+        getter: @[!server,func(ent) {      return c_get_attr(ent, i)      }],
+        setter: @[!server,func(ent, val) { return c_set_attr(ent, i, val) }],
         gui_name: name, alt_name: name
     })
 }
@@ -777,8 +777,8 @@ M.StaticEntity = Entity.clone({
 
     __properties: {
         position: svars::StateVec3({
-            getter: capi.get_extent_position,
-            setter: capi.set_extent_position
+            getter: @[!server,capi.get_extent_position],
+            setter: @[!server,capi.set_extent_position]
         })
     },
 
@@ -1274,16 +1274,20 @@ M.Mapmodel = StaticEntity.clone({
 
     __properties: {
         animation: svars::StateInteger({
-            setter: capi.set_animation, client_set: true
+            setter: @[!server,capi.set_animation], client_set: true
         }),
-        start_time : svars::StateInteger({ getter: capi.get_start_time }),
-        model_name : svars::StateString({ setter: capi.set_model_name }),
+        start_time : svars::StateInteger({
+            getter: @[!server,capi.get_start_time]
+        }),
+        model_name : svars::StateString({
+            setter: @[!server,capi.set_model_name]
+        }),
         attachments: svars::StateArray({
-            setter: func(self, val) {
+            setter: @[!server,func(self, val) {
                 var arr = ffi::new("const char *[?]", val.len() + 1)
                 for i, v in val.each() { arr[i] = v }
                 set_attachments(self, arr)
-            }
+            }]
         }),
 
         attr1: gen_attr(1, "yaw"),

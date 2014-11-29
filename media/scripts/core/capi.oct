@@ -50,39 +50,37 @@ var gen_getwrap = func(fun, tp) {
         if auid >= 0 { return get_ent(auid) }
         return undef
     }
-}
 
-var gettargetent in capi
-capi.gettargetent = func() {
-    if !ents {
-        ents = import core.entities.ents
-        get_ent = ents.get
+    var gettargetent in capi
+    capi.gettargetent = func() {
+        if !ents {
+            ents = import core.entities.ents
+            get_ent = ents.get
+        }
+        var uid = gettargetent()
+        if uid >= 0 { return get_ent(uid) }
+        return undef
     }
-    var uid = gettargetent()
-    if uid >= 0 { return get_ent(uid) }
-    return undef
-}
 
-var get_attr in capi
-capi.get_attr = func(ent, id) {
-    var stor = ffi_new("int[1]")
-    if !get_attr(ent, id, stor) { return undef }
-    return stor[0]
-}
+    var get_attr in capi
+    capi.get_attr = func(ent, id) {
+        var stor = ffi_new("int[1]")
+        if !get_attr(ent, id, stor) { return undef }
+        return stor[0]
+    }
 
-var get_extent_position, set_extent_position in capi
+    var get_extent_position, set_extent_position in capi
 
-capi.get_extent_position = func(ent) {
-    var stor = ffi_new("double[3]")
-    if !get_extent_position(ent, stor) { return undef }
-    return [ stor[0], stor[1], stor[2] ]
-}
+    capi.get_extent_position = func(ent) {
+        var stor = ffi_new("double[3]")
+        if !get_extent_position(ent, stor) { return undef }
+        return [ stor[0], stor[1], stor[2] ]
+    }
 
-capi.set_extent_position = func(ent, pos) {
-    set_extent_position(ent, pos[0], pos[1], pos[2])
-}
+    capi.set_extent_position = func(ent, pos) {
+        set_extent_position(ent, pos[0], pos[1], pos[2])
+    }
 
-@[!server] {
     capi.get_maxspeed = gen_getwrap(capi.get_maxspeed, "float")
     capi.get_crouchtime = gen_getwrap(capi.get_crouchtime, "int")
     capi.get_radius = gen_getwrap(capi.get_radius, "float")

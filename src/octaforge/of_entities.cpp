@@ -131,7 +131,6 @@ namespace entities
         LUA_GET_ENT(entity, uid, "_C.setcanmove", return)
         entity->canMove = b;
     });
-#endif
 
     /* Extents */
 
@@ -146,13 +145,9 @@ namespace entities
         LUA_GET_ENT(entity, uid, "_C.set_attr", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
-#ifndef STANDALONE
         if (!world::loading) removeentity(ext);
-#endif
         ext->attr[a] = v;
-#ifndef STANDALONE
         if (!world::loading) addentity(ext);
-#endif
     });
     CLUAICOMMAND(FAST_set_attr, void, (int uid, int a, int v), {
         LUA_GET_ENT(entity, uid, "_C.FAST_set_attr", return)
@@ -180,20 +175,15 @@ namespace entities
         extentity *ext = entity->staticEntity;
         assert(ext);
 
-#ifndef STANDALONE
         removeentity(ext);
-#endif
         ext->o.x = x;
         ext->o.y = y;
         ext->o.z = z;
-#ifndef STANDALONE
         addentity(ext);
-#endif
     });
 
     /* Dynents */
 
-#ifndef STANDALONE
     #define DYNENT_ACCESSORS(n, t, an) \
     CLUAICOMMAND(get_##n, bool, (int uid, t *val), { \
         LUA_GET_ENT(entity, uid, "_C.get"#n, return false) \
