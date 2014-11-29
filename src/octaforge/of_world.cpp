@@ -11,6 +11,7 @@
 #include "of_world.h"
 #include "game.h"
 #include "engine.h"
+#include "client_system.h"
 
 void force_network_flush();
 namespace MessageSystem
@@ -22,8 +23,6 @@ using namespace MessageSystem;
 
 namespace world
 {
-    bool loading = false;
-
     string curr_map_id = "";
     string scenario_code = "";
 
@@ -40,7 +39,7 @@ namespace world
 #ifndef STANDALONE
         if (num_expected_entities > 0) {
             float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
-            if (loading) {
+            if (!ClientSystem::scenarioStarted()) {
                 defformatstring(buf, "received entity %d ...", num_received_entities);
                 renderprogress(val, buf);
             }

@@ -607,7 +607,6 @@ static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octahe
 
 bool load_world(const char *mname, const char *cname)        // still supports all map formats that have existed since the earliest cube betas!
 {
-    world::loading = true; // INTENSITY
     LogicSystem::init(); // INTENSITY: Start our game data system, wipe all existing LogicEntities, and add the player
 
     setmapfilenames(mname, cname);
@@ -841,7 +840,6 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     startmap(cname ? cname : mname);
 
     logger::log(logger::DEBUG, "load_world complete."); // INTENSITY
-    world::loading = false; // INTENSITY
 
     logoutf("[[MAP LOADING]] - Success."); // INTENSITY
 

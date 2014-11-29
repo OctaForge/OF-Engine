@@ -155,9 +155,9 @@ namespace entities
         LUA_GET_ENT(entity, uid, "_C.set_attr", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
-        if (!world::loading) removeentity(ext);
+        if (ClientSystem::scenarioStarted()) removeentity(ext);
         ext->attr[a] = v;
-        if (!world::loading) addentity(ext);
+        if (ClientSystem::scenarioStarted()) addentity(ext);
     });
     CLUAICOMMAND(FAST_set_attr, void, (int uid, int a, int v), {
         LUA_GET_ENT(entity, uid, "_C.FAST_set_attr", return)
