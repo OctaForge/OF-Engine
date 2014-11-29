@@ -267,13 +267,10 @@ namespace game
 
     void sendposition(gameent *d, bool reliable)
     {
-        logger::log(logger::INFO, "sendposition?, %d)", curtime);
-        if (ClientSystem::loggedIn && ClientSystem::scenarioStarted())
-        {
-            packetbuf q(100, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
-            sendposition(d, q);
-            sendclientpacket(q.finalize(), 0, d->clientnum); // Disable this to stop client from updating server with position
-        }
+        if(d->state != CS_ALIVE && d->state != CS_EDITING) return;
+        packetbuf q(100, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+        sendposition(d, q);
+        sendclientpacket(q.finalize(), 0);
     }
 
     void sendmessages(gameent *d)
@@ -293,7 +290,7 @@ namespace game
             putint(p, totalmillis);
             lastping = totalmillis;
         }
-        sendclientpacket(p.finalize(), 1, d->clientnum);
+        sendclientpacket(p.finalize(), 1);
     }
 
     void c2sinfo(bool force) // send update to the server

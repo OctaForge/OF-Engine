@@ -14,12 +14,6 @@ namespace game
 
     void rendergame()
     {
-        if (!ClientSystem::loggedIn) // If not logged in remotely, do not render, because entities lack all the fields like model_name
-                                     // in the future, perhaps add these, if we want local rendering
-        {
-            logger::log(logger::INFO, "Not logged in remotely, so not rendering");
-            return;
-        }
         bool tp = isthirdperson();
         lua::call_external("game_render", "bb", tp, !tp && playerfpsshadow);
     }

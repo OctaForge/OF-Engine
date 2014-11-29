@@ -174,7 +174,7 @@ namespace lapi_binds
 
 #ifndef STANDALONE
     int _lua_connect(lua_State *L) {
-        ClientSystem::connect(luaL_checkstring(L, 1), luaL_checkinteger(L, 2));
+        connectserv((char*)luaL_checkstring(L, 1), luaL_checkinteger(L, 2), "");
         return 0;
     }
 

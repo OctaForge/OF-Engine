@@ -6,6 +6,7 @@
  * license: see COPYING.txt
  */
 
+#include "engine.h"
 #include "cube.h"
 #include "game.h"
 #include "of_localserver.h"
@@ -47,7 +48,7 @@ namespace local_server {
         && lastmillis - last_connect_trial >= 1000) {
             if (is_ready()) {
                 ready = true;
-                ClientSystem::connect("127.0.0.1", TESSERACT_STANDALONE_PORT);
+                connectserv((char*)"127.0.0.1", TESSERACT_STANDALONE_PORT, "");
             }
             else {
                 conoutf("Waiting for server to finish starting up .. (%d)",

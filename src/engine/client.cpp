@@ -153,10 +153,10 @@ void trydisconnect(bool local)
     else conoutf("not connected");
 }
 
-void sendclientpacket(ENetPacket *packet, int chan, int cn) // INTENSITY: added cn
+void sendclientpacket(ENetPacket *packet, int chan)
 {
     if(curpeer) enet_peer_send(curpeer, chan, packet);
-    else localclienttoserver(chan, packet, cn); // INTENSITY: added cn
+    else localclienttoserver(chan, packet);
 }
 
 void flushclient()

@@ -328,16 +328,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     if(p.overread()) { disconnect_client(sender, DISC_EOP); return; }
 }
 
-void localclienttoserver(int chan, ENetPacket *packet, int cn) // INTENSITY: Added cn
+void localclienttoserver(int chan, ENetPacket *packet)
 {
     client *c = NULL;
-    if (cn == -1) // INTENSITY
-    {
-        loopv(clients) if(clients[i]->type==ST_LOCAL) { c = clients[i]; break; }
-    } else {
-        c = clients[cn]; // INTENSITY
-    }
-
+    loopv(clients) if(clients[i]->type==ST_LOCAL) { c = clients[i]; break; }
     if(c) process(packet, c->num, chan);
 }
 

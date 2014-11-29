@@ -116,24 +116,14 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)");
         if (success) server::createluaEntity(clientNumber);
 
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riii", 1005, success, local));
+        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("ri", 1005));
     }
 
 #ifndef STANDALONE
     void LoginResponse::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool success = getint(p);
-        bool local = getint(p);
-
-        if (success)
-        {
-            ClientSystem::finishLogin(local); // This player will be known as 'uniqueID' in the current module
-            conoutf("Login was successful.");
-            send_RequestCurrentScenario();
-        } else {
-            conoutf("Login failure. Please check your username and password.");
-            disconnect();
-        }
+        conoutf("Login was successful.");
+        send_RequestCurrentScenario();
     }
 #endif
 

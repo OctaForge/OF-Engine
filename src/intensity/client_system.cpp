@@ -14,18 +14,12 @@
 #include "of_world.h"
 
 int            ClientSystem::playerNumber       = -1;
-bool           ClientSystem::loggedIn           = false;
 int            ClientSystem::uniqueId           = -1;
 /* the buffer is large enough to hold the uuid */
 string         ClientSystem::currScenarioCode   = "";
 
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
-
-void ClientSystem::connect(const char *host, int port)
-{
-    connectserv((char *)host, port, "");
-}
 
 void ClientSystem::login(int clientNumber)
 {
@@ -36,22 +30,9 @@ void ClientSystem::login(int clientNumber)
     MessageSystem::send_LoginRequest();
 }
 
-void ClientSystem::finishLogin(bool local)
-{
-    loggedIn = true;
-
-    logger::log(logger::DEBUG, "Now logged in, with unique_ID: %d", uniqueId);
-}
-
-void ClientSystem::doDisconnect()
-{
-    disconnect();
-}
-
 void ClientSystem::onDisconnect()
 {
     playerNumber = -1;
-    loggedIn     = false;
     _scenarioStarted  = false;
     _mapCompletelyReceived = false;
 
@@ -149,9 +130,7 @@ void ClientSystem::prepareForNewScenario(const char *sc)
 
 bool ClientSystem::isAdmin()
 {
-    if (!loggedIn) return false;
     if (!game::player1) return false;
-
     bool b;
     lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
         "b", game::player1->uid, "can_edit", &b));

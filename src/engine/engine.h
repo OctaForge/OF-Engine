@@ -561,7 +561,7 @@ extern void serverslice(bool dedicated, uint timeout);
 extern void updatetime();
 
 extern ENetSocket connectmaster();
-extern void localclienttoserver(int chan, ENetPacket *, int cn=-1); // INTENSITY: Added cn
+extern void localclienttoserver(int chan, ENetPacket *);
 extern int localconnect(); // INTENSITY: Added returning of client number
 extern bool serveroption(char *opt);
 

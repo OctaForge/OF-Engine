@@ -1347,7 +1347,9 @@ set_external("entity_draw_attached", func(uid) {
     An external that returns the name of the prototype of the given entity uid.
 */
 set_external("entity_get_proto_name", func(uid) {
-    return get_ent(uid).name
+    var ent = get_ent(uid)
+    if !ent { return undef }
+    return ent.name
 })
 
 /** Function: render

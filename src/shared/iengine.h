@@ -404,7 +404,7 @@ extern void sendserverinforeply(ucharbuf &p);
 extern bool isdedicatedserver();
 
 // client
-extern void sendclientpacket(ENetPacket *packet, int chan, int cn=-1); // INTENSITY: added cn
+extern void sendclientpacket(ENetPacket *packet, int chan);
 extern void flushclient();
 extern void disconnect(bool async = false, bool cleanup = true);
 extern bool isconnected(bool attempt = false, bool local = true);
