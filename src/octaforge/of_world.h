@@ -11,8 +11,6 @@
 
 namespace world
 {
-    extern bool loading;
-
     extern string curr_map_id;
     extern string scenario_code;
 

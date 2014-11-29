@@ -55,12 +55,8 @@ namespace world
 #endif
         copystring(curr_map_id, id);
 
-        string buf;
-        copystring(buf, id);
-        int len = strlen(id);
-        assert(len > 7);
-        memcpy(buf + len - 7, "/map", 5);
 #ifndef STANDALONE
+        defformatstring(buf, "map/%s/map", id);
         if (!load_world(buf)) {
             logger::log(logger::ERROR, "Failed to load world!");
             return false;
@@ -80,11 +76,8 @@ namespace world
     }
 
     void export_ents(const char *fname) {
-        string tmp;
-        copystring(tmp, curr_map_id);
-        tmp[strlen(curr_map_id) - 7] = '\0';
-
-        defformatstring(buf, "media%c%s%c%s", PATHDIV, tmp, PATHDIV, fname);
+        defformatstring(buf, "media%cmap%c%s%c%s", PATHDIV, PATHDIV, curr_map_id,
+            PATHDIV, fname);
 
         if (fileexists(buf, "r")) {
             defformatstring(buff, "%s-%d.bak", buf, (int)time(0));
@@ -107,11 +100,7 @@ namespace world
 
     static string mapfile_path = "";
     const char *get_mapfile_path(const char *rpath) {
-        string aloc;
-        copystring(aloc, curr_map_id);
-        aloc[strlen(curr_map_id) - 7] = '\0';
-
-        formatstring(mapfile_path, "media/%s/%s", aloc, rpath);
+        formatstring(mapfile_path, "media/map/%s/%s", curr_map_id, rpath);
         path(mapfile_path);
         return mapfile_path;
     }

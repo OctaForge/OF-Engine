@@ -59,10 +59,7 @@ namespace game
     const char *getclientmap()
     {
         if (!world::curr_map_id[0]) return clientmap;
-        string buf;
-        copystring(buf, world::curr_map_id);
-        buf[strlen(world::curr_map_id) - 7] = '\0';
-        formatstring(clientmap, "%s/map", buf);
+        formatstring(clientmap, "map/%s/map", world::curr_map_id);
         return clientmap;
     }
 
