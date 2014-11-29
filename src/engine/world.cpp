@@ -124,7 +124,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     break;
                 case ET_OBSTACLE: /* OF */
                 case ET_MAPMODEL:
-                    if(e.m)
+                    if(e.m || e.type == ET_OBSTACLE)
                     {
                         if(va)
                         {
@@ -172,7 +172,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     break;
                 case ET_OBSTACLE: /* OF */
                 case ET_MAPMODEL:
-                    if(e.m)
+                    if(e.m || e.type == ET_OBSTACLE)
                     {
                         oe.mapmodels.removeobj(id);
                         if(va)

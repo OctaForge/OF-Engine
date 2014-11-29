@@ -469,7 +469,7 @@ M.Character = Entity.clone({
     }],
 
     __deactivate: func(self) {
-        capi::destroy_character(self.cn)
+        @[!server] capi::destroy_character(self.cn)
         Entity::__deactivate(self)
     },
 
@@ -825,7 +825,7 @@ M.StaticEntity = Entity.clone({
     }],
 
     __deactivate: func(self) {
-        capi::destroy_extent(self.uid)
+        @[!server] capi::destroy_extent(self.uid)
         return Entity::__deactivate(self)
     },
 

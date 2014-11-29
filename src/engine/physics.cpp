@@ -634,11 +634,8 @@ bool plcollide(physent *d, const vec &dir)    // collide with player
                 default: continue;
             }
             collideplayer = o;
-            /* OF */
-            CLogicEntity *dl = LogicSystem::getLogicEntity(d);
-            CLogicEntity *ol = LogicSystem::getLogicEntity(o);
-            if (dl && ol) lua::call_external("physics_collide_client", "iifff",
-                dl->uniqueId, ol->uniqueId, collidewall.x, collidewall.y, collidewall.z);
+            lua::call_external("physics_collide_client", "iifff",
+                ((gameent*)d)->uid, ((gameent*)o)->uid, collidewall.x, collidewall.y, collidewall.z);
             return true;
         }
     }
@@ -784,8 +781,7 @@ static bool fuzzycollideellipse(physent *d, const vec &dir, float cutoff, const 
 
 /* area collisions: OF */
 
-bool areacollide(physent *d, const vec &dir, float cutoff, CLogicEntity *el) {
-    extentity &e = *el->staticEntity;
+bool areacollide(physent *d, const vec &dir, float cutoff, const extentity &e) {
     int yaw = e.attr[0], pitch = e.attr[1], roll = e.attr[2];
     int a = e.attr[3], b = e.attr[4], c = e.attr[5];
     switch (d->collidetype) {
@@ -813,9 +809,7 @@ bool areacollide(physent *d, const vec &dir, float cutoff, CLogicEntity *el) {
     }
     return false;
 collision:
-    CLogicEntity *dl = LogicSystem::getLogicEntity(d);
-    if (dl) lua::call_external("physics_collide_area", "ii",
-        dl->uniqueId, el->uniqueId);
+    lua::call_external("physics_collide_area", "ii", ((gameent*)d)->uid, e.uid);
     return e.attr[6];
 }
 
@@ -828,10 +822,8 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
     {
         extentity &e = *ents[oc.mapmodels[i]];
         if(e.flags&EF_NOCOLLIDE) continue;
-        CLogicEntity *el = LogicSystem::getLogicEntity(e);
-        if (!el) continue;
         if (e.type == ET_OBSTACLE) { /* OF */
-            if (areacollide(d, dir, cutoff, el)) return true;
+            if (areacollide(d, dir, cutoff, e)) return true;
             continue;
         }
         model *m = e.collide;
@@ -897,9 +889,8 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         /* OF - collision handling; "return false" replaced with gotos above */
         continue;
 collision:
-        CLogicEntity *dl = LogicSystem::getLogicEntity(d);
-        if (dl) lua::call_external("physics_collide_mapmodel", "ii",
-            dl->uniqueId, el->uniqueId);
+        lua::call_external("physics_collide_mapmodel", "ii",
+            ((gameent*)d)->uid, e.uid);
         return true;
     }
     return false;
@@ -1709,11 +1700,9 @@ bool droptofloor(vec &o, float radius, float height)
 
 /* OF */
 float dropheight(entity &e) {
-    CLogicEntity *ent = LogicSystem::getLogicEntity((extentity&)e);
-    if (!ent) return 4.0f;
     float ret;
     lua::pop_external_ret(lua::call_external_ret("entity_get_edit_drop_height",
-        "i", "f", ent->uniqueId, &ret));
+        "i", "f", ((extentity&)e).uid, &ret));
     return ret;
 }
 

@@ -182,14 +182,6 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
     delete ptr;
 }
 
-void LogicSystem::manageActions(long millis)
-{
-    logger::log(logger::INFO, "manageActions: %d", millis);
-    INDENT_LOG(logger::INFO);
-    if (lua::L) lua::call_external("frame_handle", "ii", millis, lastmillis);
-    logger::log(logger::INFO, "manageActions complete");
-}
-
 CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
 {
     if (!logicEntities.access(uniqueId))
@@ -291,32 +283,4 @@ void LogicSystem::setupNonSauer(int uid)
 
     CLogicEntity *newEntity = new CLogicEntity(uid);
     registerLogicEntity(newEntity);
-}
-
-void LogicSystem::dismantleExtent(int uid)
-{
-#ifndef STANDALONE
-    logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uid);
-
-    extentity* extent = getLogicEntity(uid)->staticEntity;
-    if (extent->type == ET_SOUND) stopmapsound(extent);
-    removeentity(extent);
-    extent->type = ET_EMPTY;
-
-//    delete extent; extent = NULL; // For symmetry with the "new extentity" this should be here, but sauer does it
-                                                     // in clearents() in the next load_world.
-#endif
-}
-
-void LogicSystem::dismantleCharacter(int cn)
-{
-#ifndef STANDALONE
-    if (cn == ClientSystem::playerNumber)
-        logger::log(logger::DEBUG, "Not dismantling own client\r\n", cn);
-    else
-    {
-        logger::log(logger::DEBUG, "Dismantling other client %d\r\n", cn);
-        game::clientdisconnected(cn);
-    }
-#endif
 }

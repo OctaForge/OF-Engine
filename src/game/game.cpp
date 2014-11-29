@@ -255,7 +255,7 @@ namespace game
                 if (!entity) continue;
                 moveragdoll(gameEntity);
             }
-            LogicSystem::manageActions(curtime);
+            lua::call_external("frame_handle", "ii", curtime, lastmillis);
         }
 
         //================================================================

@@ -85,11 +85,6 @@ struct LogicSystem
     //! but have a different name, because we expose this in the lua embedding
     static void          unregisterLogicEntityByUniqueId(int uniqueId);
 
-    //! Tells the ActionSystems of all of our logic entities to manage themselves, i.e., to run their actions accordingly
-    //! This is done both on the client and the server, even on entities not controlled by each. The reason is that we
-    //! may e.g. have visual effects on an NPC running on the client, and so forth
-    static void          manageActions(long millis);
-
     static CLogicEntity *getLogicEntity(int uniqueId);
     static CLogicEntity *getLogicEntity(const extentity &extent);
     static CLogicEntity *getLogicEntity(physent* entity);
@@ -99,8 +94,5 @@ struct LogicSystem
     static void setupCharacter(int uid, int cn);
 
     static void setupNonSauer(int uid);
-
-    static void dismantleExtent(int uid);
-    static void dismantleCharacter(int cn);
 };
 

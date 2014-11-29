@@ -10,7 +10,11 @@
 #include "engine.h"
 #include "game.h"
 
+#ifndef STANDALONE
+#include "client_system.h"
 #include "targeting.h"
+#endif
+
 #include "of_world.h"
 
 void removeentity(extentity* entity);
@@ -78,13 +82,19 @@ namespace entities
         LogicSystem::setupNonSauer(uid);
     });
 
+#ifndef STANDALONE
     CLUAICOMMAND(destroy_extent, void, (int uid), {
-        LogicSystem::dismantleExtent(uid);
+        extentity* extent = LogicSystem::getLogicEntity(uid)->staticEntity;
+        if (extent->type == ET_SOUND) stopmapsound(extent);
+        removeentity(extent);
+        extent->type = ET_EMPTY;
     });
 
     CLUAICOMMAND(destroy_character, void, (int cn), {
-        LogicSystem::dismantleCharacter(cn);
+        if (cn != ClientSystem::playerNumber)
+            game::clientdisconnected(cn);
     });
+#endif
 
     /* Entity attributes */
 

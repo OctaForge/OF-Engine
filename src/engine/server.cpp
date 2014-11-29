@@ -606,7 +606,8 @@ void server_runslice()
 {
     serverslice(true, 5);
 
-    if(lastmillis) LogicSystem::manageActions(curtime);
+    if(lastmillis && lua::L)
+        lua::call_external("frame_handle", "ii", curtime, lastmillis);
 
     static time_t shutdown_idle_last_update = 0;
     if (!shutdown_idle_last_update)
