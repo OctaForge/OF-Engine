@@ -19,7 +19,6 @@
     #include "client_system.h"
 #endif
 #include "of_world.h"
-#include "of_tools.h"
 
 extern bool should_quit;
 

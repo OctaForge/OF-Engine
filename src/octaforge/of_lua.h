@@ -21,6 +21,8 @@ namespace lua
 
     void pop_external_ret(lua_State *L, int n);
     void pop_external_ret(int n);
+
+    bool execfile(const char *cfgfile, bool msg = true);
 }
 
 #define LUACOMMAND(name, fun) \

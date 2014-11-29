@@ -8,7 +8,6 @@
 #include "engine/engine.h"
 #include "game/game.h"
 
-#include "octaforge/of_tools.cpp"
 #include "engine/blend.cpp"
 #include "engine/serverbrowser.cpp"
 #include "intensity/messages.cpp"

@@ -5,7 +5,6 @@
 #include "game.h"
 
 #include "of_lua.h"
-#include "of_tools.h"
 
 #ifndef STANDALONE
     #include "client_system.h"
@@ -649,7 +648,7 @@ namespace lua
         L = NULL;
         init();
 #ifndef STANDALONE
-        tools::execfile("config/ui.oct");
+        lua::execfile("config/ui.oct");
 #endif
     }
 
@@ -758,6 +757,31 @@ namespace lua
 
     int load_string(const char *str, const char *ch) {
         return load_string(L, str, ch);
+    }
+
+    bool execfile(const char *cfgfile, bool msg)
+    {
+        string s;
+        copystring(s, cfgfile);
+        char *buf = loadfile(path(s), NULL);
+        if(!buf)
+        {
+            if(msg) {
+                logger::log(logger::ERROR, "could not read \"%s\"", cfgfile);
+            }
+            return false;
+        }
+        defformatstring(chunk, "@%s", cfgfile);
+        if (lua::load_string(buf,  chunk) || lua_pcall(lua::L, 0, 0, 0)) {
+            if (msg) {
+                logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
+            }
+            lua_pop(lua::L, 1);
+            delete[] buf;
+            return false;
+        }
+        delete[] buf;
+        return true;
     }
 
     CLUAICOMMAND(raw_alloc, void *, (size_t nbytes), return (void*) new uchar[nbytes];)

@@ -7,7 +7,6 @@
  */
 
 #include "cube.h"
-#include "of_tools.h"
 #include "of_world.h"
 #include "game.h"
 #include "engine.h"
@@ -79,7 +78,7 @@ namespace world
         identflags &= ~IDF_OVERRIDDEN;
         server::resetScenario();
         defformatstring(path, "%sSTANDALONE_READY", homedir);
-        tools::fempty(path);
+        FILE *f = fopen(path, "w"); if (f) fclose(f);
 #endif
 #ifdef STANDALONE
         server::createluaEntity(-1);
@@ -102,7 +101,7 @@ namespace world
 
         if (fileexists(buf, "r")) {
             defformatstring(buff, "%s-%d.bak", buf, (int)time(0));
-            tools::fcopy(buf, buff);
+            rename(buf, buff);
         }
 
         stream *f = openutf8file(buf, "w");

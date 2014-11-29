@@ -8,7 +8,6 @@
 
 #include "message_system.h"
 #include "client_system.h"
-#include "of_tools.h"
 
 // WorldSystem
 extern void removeentity(extentity* entity);

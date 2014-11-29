@@ -1,7 +1,6 @@
 // console.cpp: the console buffer, its display, and command line control
 
 #include "engine.h"
-#include "of_tools.h" // OF
 #include "client_system.h"
 #include "game.h"
 #include "targeting.h"

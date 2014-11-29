@@ -8,7 +8,6 @@
 
 #include "cube.h"
 #include "game.h"
-#include "of_tools.h"
 #include "of_localserver.h"
 #include "client_system.h"
 
@@ -141,7 +140,11 @@ namespace local_server {
     static bool is_ready() {
         defformatstring(path, "%s%s", homedir, STANDALONE_READYFILE);
         if (fileexists(path, "r")) {
-            tools::fdel(path);
+#ifdef WIN32
+            DeleteFile(path);
+#else
+            remove(path);
+#endif
             return true;
         }
         else return false;

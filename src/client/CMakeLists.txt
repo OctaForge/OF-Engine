@@ -35,7 +35,6 @@ if(OF_BUILD_AMALG)
     set(CLIENT_SOURCES ../shared/client_amalg)
 else()
     set(CLIENT_SOURCES
-        ../octaforge/of_tools
         ../engine/blend
         ../engine/serverbrowser
         ../intensity/messages

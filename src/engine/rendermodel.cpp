@@ -16,7 +16,6 @@ extern vector<int> lua_anims;
 #include "hitzone.h"
 
 #include "client_system.h"
-#include "of_tools.h"
 
 static model *(__cdecl *modeltypes[NUMMODELTYPES])(const char *);
 

@@ -15,7 +15,6 @@ if(OF_BUILD_AMALG)
     set(SERVER_SOURCES ../shared/server_amalg)
 else()
     set(SERVER_SOURCES
-        ../octaforge/of_tools
         ../shared/tools
         ../engine/command
         ../engine/server

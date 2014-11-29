@@ -8,7 +8,6 @@
 #include "engine/engine.h"
 #include "game/game.h"
 
-#include "octaforge/of_tools.cpp"
 #include "shared/tools.cpp"
 #include "engine/command.cpp"
 #include "engine/server.cpp"

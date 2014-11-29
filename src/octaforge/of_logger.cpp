@@ -8,7 +8,6 @@
 
 #include "cube.h"
 #include "engine.h"
-#include "of_tools.h"
 
 namespace logger
 {

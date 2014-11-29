@@ -1,5 +1,4 @@
 #include "cube.h"
-#include "of_tools.h"
 
 ///////////////////////// character conversion ///////////////
 
@@ -242,6 +241,28 @@ struct packagedir
 };
 vector<packagedir> packagedirs;
 
+/* OF */
+static bool valrpath(const char *path)
+{
+    int level = -1;
+    char  *p = newstring(path);
+    char  *t = strtok(p, "/\\");
+    while (t)
+    {
+        if (!strcmp(t, "..")) level--;
+        else if (strcmp(t, ".") && strcmp(t, "")) level++;
+        if (level < 0)
+        {
+            delete[] p;
+            return false;
+        }
+        t = strtok(NULL, "/\\");
+    }
+    level--;
+    delete[] p;
+    return (level >= 0);
+}
+
 char *makerelpath(const char *dir, const char *file, const char *prefix, const char *cmd)
 {
     static string tmp;
@@ -264,7 +285,10 @@ char *makerelpath(const char *dir, const char *file, const char *prefix, const c
         concatstring(tmp, pname);
     }
     else concatstring(tmp, file);
-    if (!tools::valrpath(tmp)) { printf("Relative path not validated: %s\r\n", tmp); assert(0); }; // INTENSITY
+    if (!valrpath(tmp)) { /* OF */
+        printf("Relative path not validated: %s\r\n", tmp);
+        assert(0);
+    };
     return tmp;
 }
 
