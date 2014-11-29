@@ -175,7 +175,7 @@ namespace MessageSystem
     {
 
         if (!world::scenario_code[0]) return;
-        world::send_curr_map(sender);
+        send_NotifyAboutCurrentScenario(sender, world::curr_map_id, world::scenario_code);
     }
 #endif
 
@@ -200,32 +200,6 @@ namespace MessageSystem
     }
 #endif
 
-
-// RestartMap
-
-#ifndef STANDALONE
-    void send_RestartMap()
-    {
-        logger::log(logger::DEBUG, "Sending a message of type RestartMap (1009)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1009, "r");
-    }
-#endif
-
-#ifdef STANDALONE
-    void RestartMap::receive(int receiver, int sender, ucharbuf &p)
-    {
-        if (!world::scenario_code[0]) return;
-        if (!server::isAdmin(sender))
-        {
-            logger::log(logger::WARNING, "Non-admin tried to restart the map");
-            send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot restart the map");
-            return;
-        }
-        world::restart_map();
-    }
-#endif
 
 // NewEntityRequest
 
@@ -731,7 +705,6 @@ void MessageManager::registerAll()
     registerMessageType( new PrepareForNewScenario() );
     registerMessageType( new RequestCurrentScenario() );
     registerMessageType( new NotifyAboutCurrentScenario() );
-    registerMessageType( new RestartMap() );
     registerMessageType( new NewEntityRequest() );
     registerMessageType( new StateDataUpdate() );
     registerMessageType( new StateDataChangeRequest() );

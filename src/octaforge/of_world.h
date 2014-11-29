@@ -17,11 +17,6 @@ namespace world
     extern string scenario_code;
 
     bool set_map(const char *id);
-    bool restart_map();
-
-#ifdef STANDALONE
-    void send_curr_map(int cn);
-#endif
 
     void export_ents(const char *fname);
     const char *get_mapfile_path(const char *rpath);

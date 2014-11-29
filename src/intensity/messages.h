@@ -103,20 +103,6 @@ struct NotifyAboutCurrentScenario : MessageType
 void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc);
 
 
-// RestartMap
-
-struct RestartMap : MessageType
-{
-    RestartMap() : MessageType(1009, "RestartMap") { };
-
-#ifdef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_RestartMap();
-
-
 // NewEntityRequest
 
 struct NewEntityRequest : MessageType

@@ -275,14 +275,8 @@ namespace lapi_binds
     ICOMMAND(savemap, "ii", (int *skipmedia, int *medialevel), {
         do_upload(*skipmedia != 0, *medialevel);
     });
-
-    int _lua_restart_map(lua_State *L) {
-        MessageSystem::send_RestartMap();
-        return 0;
-    }
 #else
     LAPI_EMPTY(do_upload)
-    LAPI_EMPTY(restart_map)
 #endif
 
 #ifndef STANDALONE
@@ -453,7 +447,6 @@ namespace lapi_binds
     LUACOMMAND(localdisconnect, _lua_localdisconnect);
     LUACOMMAND(getfollow, _lua_getfollow);
     LUACOMMAND(do_upload, _lua_do_upload);
-    LUACOMMAND(restart_map, _lua_restart_map);
 
     /* world */
     LUACOMMAND(gettargetpos, _lua_gettargetpos);
