@@ -33,9 +33,6 @@ struct ClientSystem
     //! Whether the scenario has actually started, i.e., we have received everything we need from the server to get going
     static bool scenarioStarted();
 
-    //! Stuff done on each frame
-    static void frameTrigger(int curtime);
-
     static void finishLoadWorld();
 
     static void prepareForNewScenario(const char *sc);

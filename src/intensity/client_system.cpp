@@ -60,49 +60,6 @@ bool ClientSystem::scenarioStarted()
     return _mapCompletelyReceived && _scenarioStarted;
 }
 
-extern void cursor_get_position(float &x, float &y);
-extern int cursor_exists;
-
-void ClientSystem::frameTrigger(int curtime)
-{
-    if (scenarioStarted())
-    {
-        float delta = float(curtime)/1000.0f;
-
-        /* turn if mouse is at borders */
-        float x, y;
-        cursor_get_position(x, y);
-
-        /* do not scroll with mouse */
-        if (cursor_exists) x = y = 0.5;
-
-        /* turning */
-        gameent *fp = (gameent*)player;
-        float fs;
-        lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
-            "f", game::player1->uid, "facing_speed", &fs));
-        if (fp->turn_move || fabs(x - 0.5) > 0.495)
-        {
-            player->yaw += fs * (
-                fp->turn_move ? fp->turn_move : (x > 0.5 ? 1 : -1)
-            ) * delta;
-        }
-
-        if (fp->look_updown_move || fabs(y - 0.5) > 0.495)
-        {
-            player->pitch += fs * (
-                fp->look_updown_move ? fp->look_updown_move : (y > 0.5 ? -1 : 1)
-            ) * delta;
-        }
-
-        /* normalize and limit the yaw and pitch values to appropriate ranges */
-        extern void fixcamerarange();
-        fixcamerarange();
-
-        TargetingControl::determineMouseTarget();
-    }
-}
-
 void ClientSystem::finishLoadWorld()
 {
     extern bool finish_load_world();

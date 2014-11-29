@@ -1182,7 +1182,8 @@ int main(int argc, char **argv)
         swapbuffers();
         renderedframe = inbetweenframes = true;
 
-        ClientSystem::frameTrigger(curtime); // INTENSITY
+        extern void modifyedgeturn(int curtime);
+        modifyedgeturn(curtime);
     }
 
     ASSERT(0);

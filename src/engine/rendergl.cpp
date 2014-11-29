@@ -2,6 +2,7 @@
 
 #include "engine.h"
 
+#include "game.h"
 #include "targeting.h" // INTENSITY
 #include "client_system.h"
 
@@ -1432,25 +1433,58 @@ void fixcamerarange()
 void modifyorient(float yaw, float pitch)
 {
     // OF: Let scripts customize mousemoving
-    if (lua::L) {
-        float ryaw, rpitch;
-        int n = lua::call_external_ret("input_mouse_move", "ff", "ff", yaw,
-            pitch, &ryaw, &rpitch);
-        if (n < 0) {
-            camera1->yaw   += yaw;
-            camera1->pitch += pitch;
-        } else {
-            lua::pop_external_ret(n);
-            camera1->yaw   += ryaw;
-            camera1->pitch += rpitch;
-        }
-        fixcamerarange();
-        if(camera1!=player && !detachedcamera)
-        {
-            player->yaw   = camera1->yaw;
-            player->pitch = camera1->pitch;
-        }
+    float ryaw, rpitch;
+    int n = lua::call_external_ret("input_mouse_move", "ff", "ff", yaw,
+        pitch, &ryaw, &rpitch);
+    if (n < 0) {
+        camera1->yaw   += yaw;
+        camera1->pitch += pitch;
+    } else {
+        lua::pop_external_ret(n);
+        camera1->yaw   += ryaw;
+        camera1->pitch += rpitch;
     }
+    if(camera1!=player && !detachedcamera)
+    {
+        player->yaw   = camera1->yaw;
+        player->pitch = camera1->pitch;
+    }
+    fixcamerarange();
+}
+
+extern void cursor_get_position(float &x, float &y);
+extern int cursor_exists;
+
+void modifyedgeturn(int curtime) {
+    float delta = curtime / 1000.0f;
+    float x, y, fs;
+    gameent *fp = (gameent*)player;
+
+    cursor_get_position(x, y);
+
+    if (cursor_exists) goto noturn;
+
+    lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
+        "f", game::player1->uid, "facing_speed", &fs));
+
+    if (fp->turn_move || fabs(x - 0.5) > 0.495)
+    {
+        player->yaw += fs * (
+            fp->turn_move ? fp->turn_move : (x > 0.5 ? 1 : -1)
+        ) * delta;
+    }
+
+    if (fp->look_updown_move || fabs(y - 0.5) > 0.495)
+    {
+        player->pitch += fs * (
+            fp->look_updown_move ? fp->look_updown_move : (y > 0.5 ? -1 : 1)
+        ) * delta;
+    }
+
+noturn:
+    fixcamerarange();
+
+    TargetingControl::determineMouseTarget();
 }
 
 void mousemove(int dx, int dy)
