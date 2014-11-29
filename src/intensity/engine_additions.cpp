@@ -273,3 +273,19 @@ void LogicSystem::setupNonSauer(int uid)
     CLogicEntity *newEntity = new CLogicEntity(uid);
     registerLogicEntity(newEntity);
 }
+
+CLUAICOMMAND(unregister_entity, void, (int uid), {
+    LogicSystem::unregisterLogicEntityByUniqueId(uid);
+});
+
+CLUAICOMMAND(setup_extent, void, (int uid, int type), {
+    LogicSystem::setupExtent(uid, type);
+});
+
+CLUAICOMMAND(setup_character, void, (int uid, int cn), {
+    LogicSystem::setupCharacter(uid, cn);
+});
+
+CLUAICOMMAND(setup_nonsauer, void, (int uid), {
+    LogicSystem::setupNonSauer(uid);
+});

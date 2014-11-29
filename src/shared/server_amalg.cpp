@@ -20,4 +20,3 @@
 #include "octaforge/of_lua.cpp"
 #include "octaforge/of_world.cpp"
 #include "octaforge/of_logger.cpp"
-#include "octaforge/of_entities.cpp"

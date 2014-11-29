@@ -9,12 +9,8 @@
 #include "cube.h"
 #include "engine.h"
 #include "game.h"
-
-#ifndef STANDALONE
 #include "client_system.h"
 #include "targeting.h"
-#endif
-
 #include "of_world.h"
 
 void removeentity(extentity* entity);
@@ -64,25 +60,6 @@ namespace entities
             delete storage.data.pop();
     }
 
-    /* OF Lua entity API */
-
-    CLUAICOMMAND(unregister_entity, void, (int uid), {
-        LogicSystem::unregisterLogicEntityByUniqueId(uid);
-    });
-
-    CLUAICOMMAND(setup_extent, void, (int uid, int type), {
-        LogicSystem::setupExtent(uid, type);
-    });
-
-    CLUAICOMMAND(setup_character, void, (int uid, int cn), {
-        LogicSystem::setupCharacter(uid, cn);
-    });
-
-    CLUAICOMMAND(setup_nonsauer, void, (int uid), {
-        LogicSystem::setupNonSauer(uid);
-    });
-
-#ifndef STANDALONE
     CLUAICOMMAND(destroy_extent, void, (int uid), {
         extentity* extent = LogicSystem::getLogicEntity(uid)->staticEntity;
         if (extent->type == ET_SOUND) stopmapsound(extent);
@@ -94,11 +71,9 @@ namespace entities
         if (cn != ClientSystem::playerNumber)
             game::clientdisconnected(cn);
     });
-#endif
 
     /* Entity attributes */
 
-#ifndef STANDALONE
     CLUAICOMMAND(set_animation, void, (int uid, int anim), {
         LUA_GET_ENT(entity, uid, "_C.setanim", return)
         entity->setAnimation(anim);
@@ -337,5 +312,4 @@ namespace entities
         if (!e || !e->attached) return -1;
         return e->attached->uid;
     });
-#endif
 } /* end namespace entities */

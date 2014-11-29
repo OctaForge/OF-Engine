@@ -26,8 +26,7 @@ else()
         ../shared/stream
         ../octaforge/of_lua
         ../octaforge/of_world
-        ../octaforge/of_logger
-        ../octaforge/of_entities)
+        ../octaforge/of_logger)
 endif()
 
 set(SERVER_LIBS enet ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${EXTRA_LIBS})
