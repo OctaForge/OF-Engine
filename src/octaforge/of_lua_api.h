@@ -111,11 +111,7 @@ namespace lapi_binds
     LAPI_EMPTY(statedata_changerequest_unreliable)
 #endif
 
-    int _lua_notify_numents(lua_State *L) {
-        send_NotifyNumEntities(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
-        return 0;
-    }
-
+#ifdef STANDALONE
     int _lua_le_notification_complete(lua_State *L) {
         const char *oc = luaL_checkstring(L, 4);
         const char *sd = luaL_checkstring(L, 5);
@@ -143,6 +139,12 @@ namespace lapi_binds
             luaL_checkinteger(L, 5));
         return 0;
     }
+#else
+    LAPI_EMPTY(le_notification_complete)
+    LAPI_EMPTY(le_removal)
+    LAPI_EMPTY(statedata_update)
+    LAPI_EMPTY(statedata_update_unreliable)
+#endif
 
 #ifndef STANDALONE
     int _lua_do_click(lua_State *L) {
@@ -155,6 +157,7 @@ namespace lapi_binds
     LAPI_EMPTY(do_click)
 #endif
 
+#ifdef STANDALONE
     int _lua_extent_notification_complete(lua_State *L) {
         const char *oc = luaL_checkstring(L, 3);
         const char *sd = luaL_checkstring(L, 4);
@@ -163,6 +166,9 @@ namespace lapi_binds
             oc ? oc : "", sd ? sd : "");
         return 0;
     }
+#else
+    LAPI_EMPTY(extent_notification_complete)
+#endif
 
     /* network */
 
@@ -427,7 +433,6 @@ namespace lapi_binds
     LUACOMMAND(personal_servmsg, _lua_personal_servmsg);
     LUACOMMAND(statedata_changerequest, _lua_statedata_changerequest);
     LUACOMMAND(statedata_changerequest_unreliable, _lua_statedata_changerequest_unreliable);
-    LUACOMMAND(notify_numents, _lua_notify_numents);
     LUACOMMAND(le_notification_complete, _lua_le_notification_complete);
     LUACOMMAND(le_removal, _lua_le_removal);
     LUACOMMAND(statedata_update, _lua_statedata_update);

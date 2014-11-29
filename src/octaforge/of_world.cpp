@@ -26,27 +26,6 @@ namespace world
     string curr_map_id = "";
     string scenario_code = "";
 
-    static int num_expected_entities = 0;
-    static int num_received_entities = 0;
-
-    void set_num_expected_entities(int num) {
-        num_expected_entities = num;
-        num_received_entities = 0;
-    }
-
-    void trigger_received_entity() {
-        num_received_entities++;
-#ifndef STANDALONE
-        if (num_expected_entities > 0) {
-            float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
-            if (!ClientSystem::scenarioStarted()) {
-                defformatstring(buf, "received entity %d ...", num_received_entities);
-                renderprogress(val, buf);
-            }
-        }
-#endif
-    }
-
     /*
      * Scenario code UUID (version 4) generator for OctaForge
      * Based on a JS snippet from here

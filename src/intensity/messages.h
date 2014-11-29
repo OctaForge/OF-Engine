@@ -137,7 +137,9 @@ struct StateDataUpdate : MessageType
 {
     StateDataUpdate() : MessageType(1011, "StateDataUpdate") { };
 
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
+#endif
 };
 
 void send_StateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber);
@@ -163,7 +165,9 @@ struct UnreliableStateDataUpdate : MessageType
 {
     UnreliableStateDataUpdate() : MessageType(1013, "UnreliableStateDataUpdate") { };
 
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
+#endif
 };
 
 void send_UnreliableStateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber);
@@ -181,21 +185,6 @@ struct UnreliableStateDataChangeRequest : MessageType
 };
 
 void send_UnreliableStateDataChangeRequest(int uid, int keyProtocolId, const char* value);
-
-
-// NotifyNumEntities
-
-struct NotifyNumEntities : MessageType
-{
-    NotifyNumEntities() : MessageType(1015, "NotifyNumEntities") { };
-
-#ifndef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_NotifyNumEntities(int clientNumber, int num);
-
 
 // AllActiveEntitiesSent
 
@@ -231,7 +220,9 @@ struct LogicEntityCompleteNotification : MessageType
 {
     LogicEntityCompleteNotification() : MessageType(1018, "LogicEntityCompleteNotification") { };
 
+#ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
+#endif
 };
 
 void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData);

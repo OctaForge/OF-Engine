@@ -1539,7 +1539,6 @@ M.send = @[server,func(cn) {
         }
     }
     uids.sort()
-    capi::notify_numents(cn, uids.len())
     for i, uid in uids.each() {
         storage[uid].send_notification_full(cn)
     }

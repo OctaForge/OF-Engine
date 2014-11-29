@@ -274,6 +274,7 @@ namespace MessageSystem
 
 // StateDataUpdate
 
+#ifdef STANDALONE
     void send_StateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
     {
         logger::log(logger::DEBUG, "Sending a message of type StateDataUpdate (1011)");
@@ -281,7 +282,9 @@ namespace MessageSystem
 
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiisi", 1011, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
     }
+#endif
 
+#ifndef STANDALONE
     void StateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
     {
         int uid = getint(p);
@@ -290,25 +293,17 @@ namespace MessageSystem
         getstring(value, p);
         int originalClientNumber = getint(p);
 
-        #ifdef STANDALONE
-            #define STATE_DATA_UPDATE \
-                uid = uid;  /* Prevent warnings */ \
-                keyProtocolId = keyProtocolId; \
-                originalClientNumber = originalClientNumber; \
-                return; /* We do send this to the NPCs sometimes, as it is sent during their creation (before they are fully */ \
-                        /* registered even). But we have no need to process it on the server. */
-        #else
-            #define STATE_DATA_UPDATE \
-                assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
-                \
-                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s", uid, keyProtocolId, value); \
-                \
-                if (!LogicSystem::initialized) \
-                    return; \
-                lua::call_external("entity_set_sdata", "iis", uid, keyProtocolId, value);
-        #endif
+        #define STATE_DATA_UPDATE \
+            assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
+            \
+            logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s", uid, keyProtocolId, value); \
+            \
+            if (!LogicSystem::initialized) \
+                return; \
+            lua::call_external("entity_set_sdata", "iis", uid, keyProtocolId, value);
         STATE_DATA_UPDATE
     }
+#endif
 
 
 // StateDataChangeRequest
@@ -352,13 +347,16 @@ namespace MessageSystem
 
 // UnreliableStateDataUpdate
 
+#ifdef STANDALONE
     void send_UnreliableStateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
     {
         logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataUpdate (1013)");
 
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("iiisi", 1013, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
     }
+#endif
 
+#ifndef STANDALONE
     void UnreliableStateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
     {
         int uid = getint(p);
@@ -369,6 +367,7 @@ namespace MessageSystem
 
         STATE_DATA_UPDATE
     }
+#endif
 
 
 // UnreliableStateDataChangeRequest
@@ -395,24 +394,6 @@ namespace MessageSystem
         STATE_DATA_REQUEST
     }
 #endif
-
-// NotifyNumEntities
-
-    void send_NotifyNumEntities(int clientNumber, int num)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type NotifyNumEntities (1015)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1015, num));
-    }
-
-#ifndef STANDALONE
-    void NotifyNumEntities::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int num = getint(p);
-
-        world::set_num_expected_entities(num);
-    }
-#endif
-
 
 // AllActiveEntitiesSent
 
@@ -448,41 +429,34 @@ namespace MessageSystem
         char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
-        #ifdef STANDALONE
-            if (!world::scenario_code[0]) return;
-            // Mark the client as running the current scenario, if indeed doing so
-            server::setClientScenario(sender, scenarioCode);
-            if ( !server::isRunningCurrentScenario(sender) )
-            {
-                logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s",
-                    sender, scenarioCode
-                );
-                send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
-                return;
-            }
-            assert(lua::call_external("entities_send_all", "i", sender));
-            MessageSystem::send_AllActiveEntitiesSent(sender);
-            assert(lua::call_external("event_player_login", "i", server::getUniqueId(sender)));
-        #else // CLIENT
-            // Send just enough info for the player's LE
-            send_LogicEntityCompleteNotification( sender,
-                                                  sender,
-                                                  9999, // TODO: this same constant appears in multiple places
-                                                  "player",
-                                                  "{}" );
-            MessageSystem::send_AllActiveEntitiesSent(sender);
-        #endif
+        if (!world::scenario_code[0]) return;
+        // Mark the client as running the current scenario, if indeed doing so
+        server::setClientScenario(sender, scenarioCode);
+        if ( !server::isRunningCurrentScenario(sender) )
+        {
+            logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s",
+                sender, scenarioCode
+            );
+            send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
+            return;
+        }
+        assert(lua::call_external("entities_send_all", "i", sender));
+        MessageSystem::send_AllActiveEntitiesSent(sender);
+        assert(lua::call_external("event_player_login", "i", server::getUniqueId(sender)));
     }
 #endif
 
 // LogicEntityCompleteNotification
 
+#ifdef STANDALONE
     void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
         logger::log(logger::DEBUG, "Sending a message of type LogicEntityCompleteNotification (1018)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData));
     }
+#endif
 
+#ifndef STANDALONE
     void LogicEntityCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
     {
         int otherClientNumber = getint(p);
@@ -492,9 +466,6 @@ namespace MessageSystem
         char stateData[MAXTRANS];
         getstring(stateData, p);
 
-        #ifdef STANDALONE
-            return;
-        #endif
         if (!LogicSystem::initialized)
             return;
         logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s", otherClientNumber, otherUniqueId, otherClass);
@@ -503,7 +474,6 @@ namespace MessageSystem
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-#ifndef STANDALONE
             if (otherClientNumber >= 0) // If this is another client, then send the clientnumber, critical for setup
             {
                 // If this is the player, validate it is the clientNumber we already have
@@ -514,7 +484,6 @@ namespace MessageSystem
                     assert(otherClientNumber == ClientSystem::playerNumber);
                 }
             }
-#endif
             lua::call_external("entity_add_with_cn", "sii", otherClass, otherUniqueId, otherClientNumber);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
@@ -529,18 +498,16 @@ namespace MessageSystem
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s", stateData);
         lua::call_external("entity_set_sdata_full", "is", entity->uniqueId, stateData);
-        #ifndef STANDALONE
-            // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
-            if (otherUniqueId == ClientSystem::uniqueId)
-            {
-                logger::log(logger::DEBUG, "Linking player information, uid: %d", otherUniqueId);
-                // Note in lua
-                lua::call_external("player_init", "i", ClientSystem::uniqueId);
-            }
-        #endif
-        // Events post-reception
-        world::trigger_received_entity();
+        // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
+        if (otherUniqueId == ClientSystem::uniqueId)
+        {
+            logger::log(logger::DEBUG, "Linking player information, uid: %d", otherUniqueId);
+            // Note in lua
+            lua::call_external("player_init", "i", ClientSystem::uniqueId);
+        }
+        renderprogress(0, "receiving entities...");
     }
+#endif
 
 
 // RequestLogicEntityRemoval
@@ -574,11 +541,13 @@ namespace MessageSystem
 
 // LogicEntityRemoval
 
+#ifdef STANDALONE
     void send_LogicEntityRemoval(int clientNumber, int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type LogicEntityRemoval (1020)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1020, uid));
     }
+#endif
 
 #ifndef STANDALONE
     void LogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
@@ -594,11 +563,13 @@ namespace MessageSystem
 
 // ExtentCompleteNotification
 
+#ifdef STANDALONE
     void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
         logger::log(logger::DEBUG, "Sending a message of type ExtentCompleteNotification (1021)");
         send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiss", 1021, otherUniqueId, otherClass, stateData));
     }
+#endif
 
 #ifndef STANDALONE
     void ExtentCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
@@ -628,8 +599,7 @@ namespace MessageSystem
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData");
         lua::call_external("entity_set_sdata_full", "is", entity->uniqueId, stateData);
-        // Events post-reception
-        world::trigger_received_entity();
+        renderprogress(0, "receiving entities...");
     }
 #endif
 
@@ -655,17 +625,10 @@ namespace MessageSystem
             disconnect();
             return;
         }
-        #ifndef STANDALONE
             gameent *player1 = game::player1;
-        #else
-            assert(0);
-            gameent *player1 = NULL;
-        #endif
         player1->clientnum = explicitClientNumber; // we are now fully connected
                                                    // Kripken: Well, sauer would be, we still need more...
-        #ifndef STANDALONE
         ClientSystem::login(explicitClientNumber); // Finish the login process, send server our user/pass.
-        #endif
     }
 #endif
 
@@ -775,7 +738,6 @@ void MessageManager::registerAll()
     registerMessageType( new StateDataChangeRequest() );
     registerMessageType( new UnreliableStateDataUpdate() );
     registerMessageType( new UnreliableStateDataChangeRequest() );
-    registerMessageType( new NotifyNumEntities() );
     registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new ActiveEntitiesRequest() );
     registerMessageType( new LogicEntityCompleteNotification() );
