@@ -86,8 +86,6 @@ struct LogicSystem
     static void          unregisterLogicEntityByUniqueId(int uniqueId);
 
     static CLogicEntity *getLogicEntity(int uniqueId);
-    static CLogicEntity *getLogicEntity(const extentity &extent);
-    static CLogicEntity *getLogicEntity(physent* entity);
 
     static void setupExtent(int uid, int type);
 

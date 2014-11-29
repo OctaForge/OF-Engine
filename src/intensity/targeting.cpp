@@ -61,10 +61,10 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
     if (ents.inrange(enthover))
     {
         dist = -7654; // TODO: Calculate
-        entity = LogicSystem::getLogicEntity(*ents[enthover]);
+        entity = LogicSystem::getLogicEntity(ents[enthover]->uid);
     } else {
         // Manually check if we are hovering, using ray intersections. TODO: Not needed for extents?
-        CLogicEntity *ignore = (gameent*)targeter ? LogicSystem::getLogicEntity(targeter) : NULL;
+        CLogicEntity *ignore = targeter ? LogicSystem::getLogicEntity(((gameent*)targeter)->uid) : NULL;
         float dynamicDist, staticDist;
         dynent* dynamicEntity;
         extentity* staticEntity;
@@ -73,6 +73,7 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
 
         dist = -1;
 
+        gameent *d = (gameent*)dynamicEntity;
         if (dynamicEntity == NULL && staticEntity == NULL)
         {
             dist = -1;
@@ -80,18 +81,18 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
         } else if (dynamicEntity != NULL && staticEntity == NULL)
         {
             dist = dynamicDist;
-            entity = LogicSystem::getLogicEntity(dynamicEntity);
+            entity = LogicSystem::getLogicEntity(d->uid);
         } else if (dynamicEntity == NULL && staticEntity != NULL)
         {
             dist = staticDist;
-            entity = LogicSystem::getLogicEntity(*staticEntity);
+            entity = LogicSystem::getLogicEntity(staticEntity->uid);
         } else if (staticDist < dynamicDist)
         {
             dist = staticDist;
-            entity = LogicSystem::getLogicEntity(*staticEntity);
+            entity = LogicSystem::getLogicEntity(staticEntity->uid);
         } else {
             dist = dynamicDist;
-            entity = LogicSystem::getLogicEntity(dynamicEntity);
+            entity = LogicSystem::getLogicEntity(d->uid);
         }
     }
 }

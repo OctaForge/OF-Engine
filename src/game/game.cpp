@@ -171,7 +171,7 @@ namespace game
             }
 
             // Ignore intentions to move, if immobile
-            if ( !LogicSystem::getLogicEntity(d)->canMove )
+            if ( !LogicSystem::getLogicEntity(d->uid)->canMove )
                 d->turn_move = d->move = d->look_updown_move = d->strafe = d->jumping = 0;
 
             if(d->state==CS_ALIVE || d->state==CS_EDITING)
@@ -203,7 +203,7 @@ namespace game
                 );
 
                 // Ignore intentions to move, if immobile
-                if ( !LogicSystem::getLogicEntity(player1)->canMove )
+                if ( !LogicSystem::getLogicEntity(player1->uid)->canMove )
                 {
                     player1->turn_move = player1->move = player1->look_updown_move = player1->strafe = player1->jumping = 0;
                 }
@@ -251,7 +251,7 @@ namespace game
             loopv(game::players)
             {
                 gameent* gameEntity = game::players[i];
-                CLogicEntity *entity = LogicSystem::getLogicEntity(gameEntity);
+                CLogicEntity *entity = LogicSystem::getLogicEntity(gameEntity->uid);
                 if (!entity) continue;
                 moveragdoll(gameEntity);
             }

@@ -193,17 +193,6 @@ CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
     return logicEntities[uniqueId];
 }
 
-CLogicEntity *LogicSystem::getLogicEntity(const extentity &extent)
-{
-    return getLogicEntity(extent.uid);
-}
-
-
-CLogicEntity *LogicSystem::getLogicEntity(physent* entity)
-{
-    return getLogicEntity(((gameent*)entity)->uid);
-}
-
 void LogicSystem::setupExtent(int uid, int type)
 {
     logger::log(logger::DEBUG, "setupExtent: %d, %d", uid, type);

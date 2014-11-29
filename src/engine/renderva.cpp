@@ -471,7 +471,7 @@ VAR(oqmm, 0, 4, 8);
 
 static inline void rendermapmodel(extentity &e)
 {
-    CLogicEntity *entity = LogicSystem::getLogicEntity(e);
+    CLogicEntity *entity = LogicSystem::getLogicEntity(e.uid);
     if (!entity)
     {
         logger::log(logger::ERROR, "Trying to show a missing mapmodel");
