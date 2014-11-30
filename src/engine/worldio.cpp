@@ -564,7 +564,7 @@ static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octahe
     {
         if(hdr.version>MAPVERSION) { conoutf(CON_ERROR, "map %s requires a newer version of OctaForge", ogzname); return false; }
         if(f->read(&hdr.worldsize, 5*sizeof(int)) != 5*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
-        lilswap(&hdr.worldsize, 6);
+        lilswap(&hdr.worldsize, 5);
         if(hdr.worldsize <= 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
         numents = 0;
     }
@@ -574,8 +574,8 @@ static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octahe
         if(f->read(&thdr.worldsize, 6*sizeof(int)) != 6*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
         lilswap(&thdr.worldsize, 6);
         if(thdr.worldsize <= 0|| thdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
-         memcpy(hdr.magic, "OFMF", 4);
-        hdr.version = 0;
+        memcpy(hdr.magic, "OFMF", 4);
+        hdr.version = 1;
         hdr.headersize = sizeof(hdr);
         hdr.worldsize = thdr.worldsize;
         hdr.numpvs = thdr.numpvs;
@@ -604,6 +604,14 @@ static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octahe
 
     return true;
 }
+
+struct tessentity
+{
+    vec o;
+    short attr[5];
+    uchar type;
+    uchar reserved;
+};
 
 bool load_world(const char *mname, const char *cname)        // still supports all map formats that have existed since the earliest cube betas!
 {
@@ -704,7 +712,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(strcmp(gametype, game::gameident())!=0)
     {
         samegame = false;
-        conoutf(CON_WARN, "WARNING: loading map from %s game, ignoring entities except for lights/mapmodels", gametype);
+        conoutf(CON_WARN, "WARNING: loading map from %s game", gametype);
     }
     int eif = f->getlil<ushort>();
     int extrasize = f->getlil<ushort>();
@@ -716,18 +724,17 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     ushort nummru = f->getlil<ushort>();
     loopi(nummru) texmru.add(f->getlil<ushort>());
 
-    if (numents) renderprogress(0, "loading in-map entities...");
+    if (numents) {
+        renderprogress(0, "found Tesseract in-map entities...");
+        printf("if you want to add these entities into the map, use these commands:\n");
+    }
 
     loopi(min(numents, MAXENTS))
     {
-        extentity e;
-        e.o.x = f->getlil<float>();
-        e.o.y = f->getlil<float>();
-        e.o.z = f->getlil<float>();
-        loopj(5) e.attr.add(f->getlil<short>());
-        e.type = f->getchar();
-        while (e.attr.length() < getattrnum(e.type)) e.attr.add(0);
-        f->getchar();
+        tessentity e;
+        f->read(&e, sizeof(tessentity));
+        lilswap(&e.o.x, 3);
+        lilswap(e.attr, 5);
 
         if (!samegame)
         {
@@ -745,20 +752,74 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         switch (e.type) // check if to write the entity
         {
             case 1: /* LIGHT */
+                printf("// <red> <green> <blue> <radius> <shadow>\n");
+                printf("newentpos %f %f %f light %d %d %d %d %d\n\n",
+                    e.o.x, e.o.y, e.o.z,
+                    e.attr[1], e.attr[2], e.attr[3], e.attr[0], e.attr[4]);
+                break;
             case 2: /* MAPMODEL */
+                printf("// mapmodel id: %d, convert to model_name\n", e.attr[0]);
+                printf("// <model_name> <yaw> <pitch> <roll> <scale>\n");
+                printf("// newentpos %f %f %f mapmodel <model_name> %d %d %d %d\n\n",
+                    e.o.x, e.o.y, e.o.z,
+                    e.attr[1], e.attr[2], e.attr[3], e.attr[4]);
+                break;
             case 3: /* PLAYERSTART */
+                printf("// <yaw> <pitch>, team: %d\n", e.attr[1]);
+                printf("newentpos %f %f %f orientedmarker %d\n\n",
+                    e.o.x, e.o.y, e.o.z, e.attr[0]);
+                break;
             case 4: /* ENVMAP */
+                printf("// <radius>\n");
+                printf("newentpos %f %f %f envmap %d\n\n", e.o.x, e.o.y, e.o.z,
+                    e.attr[0]);
+                break;
             case 5: /* PARTICLES */
+                printf("// particles, no direct mapping\n");
+                printf("// original attributes: <%f %f %f> %d %d %d %d %d\n\n",
+                    e.o.x, e.o.y, e.o.z,
+                    e.attr[0], e.attr[1], e.attr[2], e.attr[3], e.attr[4]);
+                break;
             case 6: /* SOUND */
+                printf("// sound id: %d, convert to sound_name and sound_volume\n",
+                    e.attr[0]);
+                printf("// <sound_name> <volume> <radius> <size>\n");
+                printf("// newentpos %f %f %f ambientsound <sound_name> <sound_volume> %d %d\n\n",
+                    e.o.x, e.o.y, e.o.z, e.attr[1], e.attr[2]);
+                break;
             case 7: /* SPOTLIGHT */
-            case 19: /* TELEPORT */
-            case 20: /* TELEDEST */
-            case 23: /* JUMPPAD */
-                lua::call_external("entity_add_sauer", "ifffiiiii", e.type,
-                    e.o.x, e.o.y, e.o.z, e.attr[0], e.attr[1], e.attr[2],
-                    e.attr[3], e.attr[4]);
+                printf("// <radius>\n");
+                printf("newentpos %f %f %f spotlight %d\n\n", e.o.x, e.o.y,
+                    e.o.z, e.attr[0]);
+                break;
+            case 8: /* DECAL */
+                printf("// <decalslot> <yaw> <pitch> <roll> <size>\n");
+                printf("newentpos %f %f %f decal %d %d %d %d %d\n\n",
+                    e.o.x, e.o.y, e.o.z,
+                    e.attr[0], e.attr[1], e.attr[2], e.attr[3], e.attr[4]);
+            case 9: /* TELEPORT */
+                printf("// teleport, no core mapping\n");
+                printf("// original attributes: <%f %f %f> %d %d\n\n",
+                    e.o.x, e.o.y, e.o.z, e.attr[0], e.attr[1]);
+                break;
+            case 10: /* TELEDEST */
+                printf("// teledest, no core mapping\n");
+                printf("// original attributes: <%f %f %f> %d %d %d\n\n",
+                    e.o.x, e.o.y, e.o.z, e.attr[0], e.attr[1], e.attr[2]);
+                break;
+            case 11: /* JUMPPAD */
+                printf("// jumppad, no core mapping\n");
+                printf("// original attributes: <%f %f %f> %d %d %d\n\n",
+                    e.o.x, e.o.y, e.o.z, e.attr[0], e.attr[1], e.attr[2]);
+                break;
+            case 12: /* FLAG */
+                printf("// flag, no core mapping\n");
+                printf("// original attributes: <%f %f %f> %d\n\n",
+                    e.o.x, e.o.y, e.o.z, e.attr[0]);
                 break;
             default:
+                printf("// unknown entity <%f %f %f> (%d)\n\n",
+                    e.o.x, e.o.y, e.o.z, e.type);
                 break;
         }
     }

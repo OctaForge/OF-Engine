@@ -41,7 +41,7 @@ struct tmapheader
 
 struct mapheader
 {
-    char magic[4];              // "OFMF"
+    char magic[4];              // "TMAP"
     int version;                // any >8bit quantity is little endian
     int headersize;             // sizeof(header)
     int worldsize;

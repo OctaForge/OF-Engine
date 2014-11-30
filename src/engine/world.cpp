@@ -1105,6 +1105,27 @@ ICOMMAND(newent, "V", (tagval *args, int numargs), {
     newent(cl, NULL, buf.getbuf(), worldpos);
 });
 
+ICOMMAND(newentpos, "V", (tagval *args, int numargs), {
+    if (numargs < 4) return;
+    vec pos(args[0].getfloat(), args[1].getfloat(), args[2].getfloat());
+    const char *cl = args[3].getstr();
+    vector<char> buf;
+    buf.add('[');
+    for (int i = 4; i < numargs; ++i) {
+        const char *str = args[i].getstr();
+        int len = strlen(str);
+        buf.reserve(len + 2);
+        buf.add('"');
+        memcpy(&buf[buf.ulen], str, len);
+        buf.advance(len);
+        buf.add('"');
+        if (i < (numargs - 1)) buf.add(',');
+    }
+    buf.add(']');
+    buf.add('\0');
+    newent(cl, NULL, buf.getbuf(), pos);
+})
+
 LUAICOMMAND(new_entity, {
     vec pos = saved_pos;
     if (!lua_isnoneornil(L, 3)) {

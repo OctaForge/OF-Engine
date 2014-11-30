@@ -57,10 +57,6 @@ var storage = {}
 // for caching, keys are prototype names and values are arrays of entities
 var storage_by_proto = {}
 
-// for Sauer entity import; used as intermediate storage during map loading,
-// cleared out immediately afterwards
-var storage_sauer = []
-
 // stores all registered entity prototypees
 var proto_storage = {}
 
@@ -500,14 +496,6 @@ set_external("entity_add_with_cn", func(cl, uid, cn) {
     add(cl, uid, (cn >= 0) && { cn: cn } || undef)
 })
 
-var add_sauer = func(et, x, y, z, attr1, attr2, attr3, attr4, attr5) {
-    storage_sauer.push([
-        et, Vec3(x, y, z), attr1, attr2, attr3, attr4, attr5
-    ])
-}
-M.add_sauer = add_sauer
-set_external("entity_add_sauer", add_sauer)
-
 /**
     Removes an entity of the given uid. First emits the `pre_deactivate`
     signal on it, then deactivates it and do clears it out from both
@@ -593,84 +581,6 @@ M.load = func() {
         @[debug] log(DEBUG, "ents.load: nothing to read")
     } else {
         entities = deserialize(el)
-    }
-
-    if storage_sauer.len() > 0 {
-        @[debug] log(DEBUG, "ents.load: loading sauer entities:\n"
-            "    reading import.oct for imported models && sounds")
-
-        var il, im, is = capi::readfile("./import.oct"), [], []
-        if il {
-            var it = deserialize(il)
-            var itm, its = it.models, it.sounds
-            if itm { im = itm }
-            if its { is = its }
-        }
-
-        var huid = max(2, highest_uid)
-        huid = huid + 1
-
-        var sn = {
-            1: "Light",          2: "Mapmodel",
-            3: "OrientedMarker", 4: "Envmap",
-            6: "Sound",          7: "SpotLight"
-        }
-
-        for i, e in storage_sauer.each() {
-            var et = e[0]
-            var o, attr1, attr2, attr3, attr4, attr5
-                = e[1], e[2], e[3], e[4], e[5], e[6]
-            if sn[et] {
-                entities.push([
-                    huid, sn[et], {
-                        attr1: tostring(attr1), attr2: tostring(attr2),
-                        attr3: tostring(attr3), attr4: tostring(attr4),
-                        attr5: tostring(attr5),
-
-                        position: "[%i|%i|%i]".format(o.x, o.y, o.z),
-                        model_name: "", attachments: "[]",
-                        tags: "[]", persistent: "true"
-                    }
-                ])
-
-                var ent = entities.last()[2]
-
-                if et == 2 {
-                    ent.model_name = (im.len() <= attr2) &&
-                        (e"@REPLACE_$attr2@") || im[attr2]
-                    ent.attr2 = ent.attr3
-                    ent.attr3 = "0"
-                    ent.animation = model.anims.mapmodel
-                        | model.anim_control.LOOP
-                } else if et == 6 {
-                    if is.len() > attr1 {
-                        var snd = is[attr1]
-                        ent.sound_name = snd[0]
-                        ent.attr1, ent.attr2 = ent.attr2, ent.attr3
-                        if snd.len() > 1 {
-                            ent.attr3 = snd[1]
-                        } else {
-                            ent.attr3 = ent.attr4
-                        }
-                    } else {
-                        ent.attr1, ent.attr2, ent.attr3
-                            = ent.attr2, ent.attr3, ent.attr4
-                        ent.sound_name = "@REPLACE@"
-                    }
-                    ent.attr4, ent.attr5 = undef, undef
-                } else if et == 3 {
-                    ent.tags = "[start_]"
-                }
-
-                huid = huid + 1
-            } else {
-                log(WARNING, "unsupported sauer entity: %d: (%f, %f,"
-                    " %f) %d %d %d %d %d".format(et, o.x, o.y, o.z, attr1,
-                    attr2, attr3, attr4, attr5))
-            }
-        }
-
-        storage_sauer = []
     }
 
     @[debug] log(DEBUG, "ents.load: loading all entities")
