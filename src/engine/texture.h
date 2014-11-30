@@ -1,7 +1,3 @@
-extern int renderpath;
-
-enum { R_GLSLANG = 0 };
-
 struct GlobalShaderParamState
 {
     const char *name;

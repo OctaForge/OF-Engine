@@ -2807,7 +2807,7 @@ void rendertexturepanel(int w, int h)
 
         gle::disable();
         pophudmatrix(true, false);
-        hudshader->set();
+        resethudshader();
     }
 }
 

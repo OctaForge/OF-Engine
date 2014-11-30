@@ -1246,7 +1246,6 @@ M.TextEditor = register_type("TextEditor", Widget, {
                 gle_attrib2f(x + pex, pey)
             }
             gle_end()
-            shader_hud_set()
         }
     },
 
@@ -1261,11 +1260,12 @@ M.TextEditor = register_type("TextEditor", Widget, {
         gle_attrib2f(0, h + fonth)
         gle_attrib2f(0, h + height)
         gle_end()
-        shader_hud_set()
     },
 
     draw: func(self, sx, sy) {
         Widget::draw(self, sx, sy)
+
+        self.change_draw(M.changes.SHADER | M.changes.COLOR)
 
         text_font_push()
         text_font_set(self.font)

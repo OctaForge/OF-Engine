@@ -152,6 +152,7 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
     hudnotextureshader->set();
     gle::defvertex(2);
 
+    gle::begin(GL_TRIANGLE_STRIP);
     gle::colorf(0, 0, 0);
     gle::attribf(0, 0);
     gle::attribf(w, 0);

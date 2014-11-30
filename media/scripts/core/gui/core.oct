@@ -359,6 +359,41 @@ M.orient = enum {
 }
 var orient = M.orient
 
+var changes = enum {
+    SHADER: 1 << 0,
+    COLOR : 1 << 1,
+    BLEND : 1 << 2
+}
+M.changes = changes
+
+var changed = 0
+
+var blend = enum {
+    ALPHA, MOD
+}
+M.blend = blend
+
+var blendtype = blend.ALPHA
+
+var blend_change = func(type, src, dst) {
+    if blendtype != type {
+        blendtype = type
+        gl_blend_func(src, dst)
+    }
+}
+
+var blend_reset = func() {
+    blend_change(blend.ALPHA, gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+}
+
+var blend_mod = func() {
+    blend_change(blend.MOD, gl.ZERO, gl.SRC_COLOR)
+}
+
+M.blend_change = blend_change
+M.blend_reset  = blend_reset
+M.blend_mod    = blend_mod
+
 var Projection = Object.clone({
     __ctor: func(self, obj) {
         self.obj = obj
@@ -414,12 +449,18 @@ var Projection = Object.clone({
         self.projection()
         shader_hud_set()
 
+        blendtype = blend.ALPHA
         gl_blend_enable()
         gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         gle_color3f(1, 1, 1)
 
+        changed = 0
+        root._drawing = undef
+
         var obj = self.obj
         obj.draw(sx || obj.x, sy || obj.y)
+
+        obj.stop_draw()
 
         gl_blend_disable()
         root.set_projection(undef)
@@ -1136,6 +1177,41 @@ M.Widget = register_type("Widget", Object, {
             return parent.key_hover(code, isdown)
         }
         return false
+    },
+
+    start_draw: func(self) {},
+    end_draw: func(self) {},
+
+    end_draw_change: func(self, change) {
+        self.end_draw()
+        changed &= ~change
+        if changed != 0 {
+            if (changed & changes.SHADER) != 0 { shader_hud_set() }
+            if (changed & changes.COLOR ) != 0 { gle_color3f(1, 1, 1) }
+            if (changed & changes.BLEND ) != 0 { blend_reset() }
+        }
+    },
+
+    change_draw: func(self, change) {
+        var root = self.get_root()
+        change = change || 0
+        if !root._drawing {
+            self.start_draw()
+            changed = change
+        } else if root._drawing.type != self.type {
+            root._drawing.end_draw(change)
+            self.start_draw()
+            changed = change
+        }
+        root._drawing = self
+    },
+
+    stop_draw: func(self) {
+        var root = self.get_root()
+        if  root._drawing {
+            root._drawing.end_draw_change(0)
+            root._drawing = undef
+        }
     },
 
     /**
@@ -1880,6 +1956,7 @@ M.Root = register_type("Root", Widget, {
         self._clicked    = undef
         self._hovering   = undef
         self._focused    = undef
+        self._drawing    = undef
         self._rtxt_scale = 0
         self._ctxt_scale = 0
         return Widget::__ctor(self)

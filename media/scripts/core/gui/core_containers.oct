@@ -364,8 +364,10 @@ M.Clipper = register_type("Clipper", Widget, {
 
         if (w != 0 && self.virt_w > w) || (h != 0 && self.virt_h > h)
         {
+            self.stop_draw()
             self.get_root().clip_push(sx, sy, w, h)
             Widget::draw(self, sx, sy)
+            self.stop_draw()
             self.get_root().clip_pop()
         } else {
             return Widget::draw(self, sx, sy)

@@ -539,6 +539,8 @@ struct textrenderer : listrenderer<textparticle>
 
     void endrender()
     {
+        gle::disable();
+
         textshader = NULL;
 
         popfont();

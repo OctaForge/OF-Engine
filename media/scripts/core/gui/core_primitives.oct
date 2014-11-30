@@ -92,27 +92,24 @@ M.ColorFiller = register_type("ColorFiller", Filler, {
         return Filler::__ctor(self, kwargs, ...)
     },
 
+    start_draw: func(self) {
+        shader_hudnotexture_set()
+        gle_defvertexf(2)
+    },
+
     draw: func(self, sx, sy) {
         var w, h, color, solid in self
 
-        if !solid { gl_blend_func(gl.ZERO, gl.SRC_COLOR) }
-        shader_hudnotexture_set()
+        self.change_draw(M.changes.SHADER | M.changes.COLOR | M.changes.BLEND)
+        if !solid { M::blend_mod() } else { M::blend_reset() }
         color.init()
 
-        gle_defvertexf(2)
         gle_begin(gl.TRIANGLE_STRIP)
-
         gle_attrib2f(sx,     sy)
         gle_attrib2f(sx + w, sy)
         gle_attrib2f(sx,     sy + h)
         gle_attrib2f(sx + w, sy + h)
-
         gle_end()
-        gle_color4f(1, 1, 1, 1)
-        shader_hud_set()
-        if !solid {
-            gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-        }
 
         return Filler::draw(self, sx, sy)
     },
@@ -140,14 +137,19 @@ M.Gradient = register_type("Gradient", ColorFiller, {
         self.color2 = init_color(kwargs.color2)
     },
 
+    start_draw: func(self) {
+        var color in self
+        shader_hudnotexture_set()
+        gle_defvertexf(2)
+        color::def()
+    },
+
     draw: func(self, sx, sy) {
         var w, h, color, color2, solid, horizontal in self
 
-        if !solid { gl_blend_func(gl.ZERO, gl.SRC_COLOR) }
-        shader_hudnotexture_set()
+        self.change_draw(M.changes.SHADER | M.changes.COLOR | M.changes.BLEND)
+        if !solid { M::blend_mod() } else { M::blend_reset() }
 
-        gle_defvertexf(2)
-        color::def()
         gle_begin(gl.TRIANGLE_STRIP)
 
         gle_attrib2f(sx, sy)
@@ -166,10 +168,6 @@ M.Gradient = register_type("Gradient", ColorFiller, {
         }
 
         gle_end()
-        shader_hud_set()
-        if !solid {
-            gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-        }
 
         return Filler::draw(self, sx, sy)
     },
@@ -194,18 +192,21 @@ M.Line = register_type("Line", Filler, {
         return Filler::__ctor(self, kwargs, ...)
     },
 
+    start_draw: func(self) {
+        shader_hudnotexture_set()
+        gle_defvertexf(2)
+    },
+
     draw: func(self, sx, sy) {
         var color, w, h in self
 
-        shader_hudnotexture_set()
+        self.change_draw(M.changes.SHADER | M.changes.COLOR)
         color.init()
-        gle_defvertexf(2)
+
         gle_begin(gl.LINE_LOOP)
         gle_attrib2f(sx,     sy)
         gle_attrib2f(sx + w, sy + h)
         gle_end()
-        gle_color4f(1, 1, 1, 1)
-        shader_hud_set()
 
         return Filler::draw(self, sx, sy)
     },
@@ -227,20 +228,23 @@ M.Outline = register_type("Outline", Filler, {
         return Filler::__ctor(self, kwargs, ...)
     },
 
+    start_draw: func(self) {
+        shader_hudnotexture_set()
+        gle_defvertexf(2)
+    },
+
     draw: func(self, sx, sy) {
         var color, w, h in self
 
-        shader_hudnotexture_set()
+        self.change_draw(M.changes.SHADER | M.changes.COLOR)
         color.init()
-        gle_defvertexf(2)
+
         gle_begin(gl.LINE_LOOP)
         gle_attrib2f(sx,     sy)
         gle_attrib2f(sx + w, sy)
         gle_attrib2f(sx + w, sy + h)
         gle_attrib2f(sx,     sy + h)
         gle_end()
-        gle_color4f(1, 1, 1, 1)
-        shader_hud_set()
 
         return Filler::draw(self, sx, sy)
     },
@@ -258,7 +262,7 @@ var check_alpha_mask = func(tex, x, y) {
 
     var xs, ys = tex.xs, tex.ys
     var tx, ty = clamp(floor(x * tex.xs), 0, tex.xs - 1),
-                   clamp(floor(y * tex.ys), 0, tex.ys - 1)
+                 clamp(floor(y * tex.ys), 0, tex.ys - 1)
 
     if (tex.alphamask[ty * ((tex.xs + 7) / 8)] & (1 << (tx % 8))) != 0 {
         return true
@@ -266,6 +270,8 @@ var check_alpha_mask = func(tex, x, y) {
 
     return false
 }
+
+var lasttex
 
 /** Struct: Image
     Derived from $Filler. Represents a basic image with basic stretching.
@@ -336,17 +342,37 @@ M.Image = register_type("Image", Filler, {
                                                        cy / self.h)) && self
     },
 
+    start_draw: func(self) {
+        lasttex = undef
+        gle_defvertexf(2)
+        gle_deftexcoord0f(2)
+        gle_begin(gl.TRIANGLE_STRIP)
+    },
+
+    end_draw: func(self) {
+        gle_end()
+    },
+
     draw: func(self, sx, sy) {
         var minf, magf, tex = self.min_filter,
-                                self.mag_filter, self.texture
+                              self.mag_filter, self.texture
         var color = self.color
 
         if tex == texture_get_notexture() {
             return Filler::draw(self, sx, sy)
         }
 
-        shader_hud_set_variant(tex)
-        gl_bind_texture(tex.id)
+        self.change_draw()
+        color.init()
+
+        if lasttex != tex {
+            if lasttex {
+                gle_end()
+            }
+            lasttex = tex
+            shader_hud_set_variant(tex)
+            gl_bind_texture(tex.id)
+        }
 
         if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -355,12 +381,7 @@ M.Image = register_type("Image", Filler, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
 
-        color.init()
-        gle_defvertexf(2)
-        gle_deftexcoord0f(2)
-        gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.w, self.h)
-        gle_end()
 
         return Filler::draw(self, sx, sy)
     },
@@ -421,13 +442,21 @@ M.Texture = register_type("Texture", Filler, {
         return self
     },
 
-    draw: func(self, sx, sy) {
-        gl_bind_texture(self.texture_id)
+    start_draw: func(self) {
+        lasttex = undef
         gle_defvertexf(2)
         gle_deftexcoord0f(2)
         gle_begin(gl.TRIANGLE_STRIP)
-        quadtri(sx, sy, self.w, self.h)
+    },
+
+    end_draw: func(self) {
         gle_end()
+    },
+
+    draw: func(self, sx, sy) {
+        self.change_draw()
+        gl_bind_texture(self.texture_id)
+        quadtri(sx, sy, self.w, self.h)
         return Filler::draw(self, sx, sy)
     },
 
@@ -491,16 +520,37 @@ M.CroppedImage = register_type("CroppedImage", Image, {
             self.crop_y + cy / self.h * self.crop_h)) && self
     },
 
+    start_draw: func(self) {
+        lasttex = undef
+        gle_defvertexf(2)
+        gle_deftexcoord0f(2)
+        gle_begin(gl.TRIANGLE_STRIP)
+    },
+
+    end_draw: func(self) {
+        gle_end()
+    },
+
     draw: func(self, sx, sy) {
         var minf, magf, tex = self.min_filter,
-                                self.mag_filter, self.texture
+                              self.mag_filter, self.texture
+        var color = self.color
 
         if tex == texture_get_notexture() {
             return Filler::draw(self, sx, sy)
         }
 
-        shader_hud_set_variant(tex)
-        gl_bind_texture(tex.id)
+        self.change_draw()
+        color.init()
+
+        if lasttex != tex {
+            if lasttex {
+                gle_end()
+            }
+            lasttex = tex
+            shader_hud_set_variant(tex)
+            gl_bind_texture(tex.id)
+        }
 
         if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -509,14 +559,8 @@ M.CroppedImage = register_type("CroppedImage", Image, {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
 
-        self.color.init()
-
-        gle_defvertexf(2)
-        gle_deftexcoord0f(2)
-        gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.w, self.h,
             self.crop_x, self.crop_y, self.crop_w, self.crop_h)
-        gle_end()
 
         return Filler::draw(self, sx, sy)
     },
@@ -577,16 +621,37 @@ M.StretchedImage = register_type("StretchedImage", Image, {
         return check_alpha_mask(self.texture, mx, my) && self
     },
 
+    start_draw: func(self) {
+        lasttex = undef
+        gle_defvertexf(2)
+        gle_deftexcoord0f(2)
+        gle_begin(gl.QUADS)
+    },
+
+    end_draw: func(self) {
+        gle_end()
+    },
+
     draw: func(self, sx, sy) {
         var minf, magf, tex = self.min_filter,
-                                self.mag_filter, self.texture
+                              self.mag_filter, self.texture
+        var color = self.color
 
         if tex == texture_get_notexture() {
             return Filler::draw(self, sx, sy)
         }
 
-        shader_hud_set_variant(tex)
-        gl_bind_texture(tex.id)
+        self.change_draw()
+        color.init()
+
+        if lasttex != tex {
+            if lasttex {
+                gle_end()
+            }
+            lasttex = tex
+            shader_hud_set_variant(tex)
+            gl_bind_texture(tex.id)
+        }
 
         if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -594,12 +659,6 @@ M.StretchedImage = register_type("StretchedImage", Image, {
         if magf && magf != 0 {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
-
-        self.color.init()
-
-        gle_defvertexf(2)
-        gle_deftexcoord0f(2)
-        gle_begin(gl.QUADS)
 
         var mw, mh, pw, ph = self._min_w, self._min_h, self.w, self.h
 
@@ -643,8 +702,6 @@ M.StretchedImage = register_type("StretchedImage", Image, {
             vy, ty = vy + vh, ty + th
             if  ty >= 1 { break }
         }
-
-        gle_end()
 
         return Filler::draw(self, sx, sy)
     }
@@ -701,16 +758,37 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         return check_alpha_mask(tex, mx, my) && self
     },
 
+    start_draw: func(self) {
+        lasttex = undef
+        gle_defvertexf(2)
+        gle_deftexcoord0f(2)
+        gle_begin(gl.QUADS)
+    },
+
+    end_draw: func(self) {
+        gle_end()
+    },
+
     draw: func(self, sx, sy) {
         var minf, magf, tex = self.min_filter,
-                                self.mag_filter, self.texture
+                              self.mag_filter, self.texture
+        var color = self.color
 
         if tex == texture_get_notexture() {
             return Filler::draw(self, sx, sy)
         }
 
-        shader_hud_set_variant(tex)
-        gl_bind_texture(tex.id)
+        self.change_draw()
+        color.init()
+
+        if lasttex != tex {
+            if lasttex {
+                gle_end()
+            }
+            lasttex = tex
+            shader_hud_set_variant(tex)
+            gl_bind_texture(tex.id)
+        }
 
         if minf && minf != 0 {
             gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -718,12 +796,6 @@ M.BorderedImage = register_type("BorderedImage", Image, {
         if magf && magf != 0 {
             gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         }
-
-        self.color.init()
-
-        gle_defvertexf(2)
-        gle_deftexcoord0f(2)
-        gle_begin(gl.QUADS)
 
         var tb, sb = self.tex_border, self.screen_border
 
@@ -748,8 +820,6 @@ M.BorderedImage = register_type("BorderedImage", Image, {
             }
             vy, ty = vy + vh, ty + th
         }
-
-        gle_end()
 
         return Filler::draw(self, sx, sy)
     },
@@ -795,6 +865,71 @@ M.TiledImage = register_type("TiledImage", Image, {
         return check_alpha_mask(tex, dx / tw, dy / th) && self
     },
 
+    start_draw: func(self) {
+        var tex in self
+        lasttex = undef
+        gle_defvertexf(2)
+        gle_deftexcoord0f(2)
+        if tex.clamp != 0 {
+            gle_begin(gl.QUADS)
+        } else {
+            gle_begin(gl.TRIANGLE_STRIP)
+        }
+    },
+
+    end_draw: func(self) {
+        gle_end()
+    },
+
+    draw: func(self, sx, sy) {
+        var minf, magf, tex = self.min_filter,
+                              self.mag_filter, self.texture
+        var color = self.color
+
+        if tex == texture_get_notexture() {
+            return Filler::draw(self, sx, sy)
+        }
+
+        self.change_draw()
+        color.init()
+
+        if lasttex != tex {
+            if lasttex {
+                gle_end()
+            }
+            lasttex = tex
+            shader_hud_set_variant(tex)
+            gl_bind_texture(tex.id)
+        }
+
+        if minf && minf != 0 {
+            gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+        }
+        if magf && magf != 0 {
+            gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+        }
+
+        var pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
+
+        // we cannot use the built in OpenGL texture
+        // repeat with clamped textures
+        if tex.clamp != 0 {
+            var dx, dy = 0, 0
+            while dx < pw {
+                while dy < ph {
+                    var dw, dh = min(tw, pw - dx), min(th, ph - dy)
+                    quad(sx + dx, sy + dy, dw, dh, 0, 0, dw / tw, dh / th)
+                    dy = dy + th
+                }
+                dx, dy = dy + tw, 0
+            }
+        } else {
+            quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
+        }
+
+        return Filler::draw(self, sx, sy)
+    },
+
     draw: func(self, sx, sy) {
         var minf, magf, tex = self.min_filter,
                                 self.mag_filter, self.texture
@@ -815,31 +950,7 @@ M.TiledImage = register_type("TiledImage", Image, {
 
         self.color.init()
 
-        var pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
 
-        // we cannot use the built in OpenGL texture
-        // repeat with clamped textures
-        if tex.clamp != 0 {
-            var dx, dy = 0, 0
-            gle_defvertexf(2)
-            gle_deftexcoord0f(2)
-            gle_begin(gl.QUADS)
-            while dx < pw {
-                while dy < ph {
-                    var dw, dh = min(tw, pw - dx), min(th, ph - dy)
-                    quad(sx + dx, sy + dy, dw, dh, 0, 0, dw / tw, dh / th)
-                    dy = dy + th
-                }
-                dx, dy = dy + tw, 0
-            }
-            gle_end()
-        } else {
-            gle_defvertexf(2)
-            gle_deftexcoord0f(2)
-            gle_begin(gl.TRIANGLE_STRIP)
-            quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
-            gle_end()
-        }
 
         return Filler::draw(self, sx, sy)
     },
@@ -931,6 +1042,7 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
     },
 
     draw: func(self, sx, sy) {
+        self.change_draw(M.changes.SHADER | M.changes.COLOR)
         texture_draw_slot(self.index, self.w, self.h, sx, sy)
         return Widget::draw(self, sx, sy)
     },
@@ -944,10 +1056,26 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
 */
 M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
     draw: func(self, sx, sy) {
+        self.change_draw(M.changes.SHADER | M.changes.COLOR)
         texture_draw_vslot(self.index, self.w, self.h, sx, sy)
         return Widget::draw(self, sx, sy)
     }
 })
+
+var view_start_draw = func(self) {
+    gl_blend_disable()
+    gle_disable()
+    var root = self.get_root()
+    var csl = !root._clip_stack.empty()
+    if csl { gl_scissor_disable() }
+}
+
+var view_end_draw = func(self) {
+    gl_blend_enable()
+    var root = self.get_root()
+    var csl = !root._clip_stack.empty()
+    if csl { gl_scissor_enable() }
+}
 
 /**
     Derived from $Filler. Represents a 3D model preview.
@@ -984,24 +1112,21 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         return stor, n
     },
 
+    start_draw: view_start_draw,
+    end_draw: view_end_draw,
+
     draw: func(self, sx, sy) {
+        self.change_draw(M.changes.SHADER)
         var w, h in self
         var root = self.get_root()
         var csl = !root._clip_stack.empty()
-        if csl { gl_scissor_disable() }
         var sx1, sy1, sx2, sy2 = root.get_projection().calc_scissor(sx, sy,
             sx + w, sy + h, true)
-        gl_blend_disable()
-        gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         var anim = self.anim
         model_preview(self.model, anim, self.build_attachments())
         if csl { root.clip_scissor() }
         model_preview_end()
-        shader_hud_set()
-        gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-        gl_blend_enable()
-        if csl { gl_scissor_enable() }
         return Widget::draw(self, sx, sy)
     },
 
@@ -1031,26 +1156,23 @@ M.PrefabViewer = register_type("PrefabViewer", Filler, {
         return Filler::__ctor(self, kwargs, ...)
     },
 
+    start_draw: view_start_draw,
+    end_draw: view_end_draw,
+
     draw: func(self, sx, sy) {
+        self.change_draw(M.changes.SHADER)
         var prefab = self.prefab
         if !prefab { return Widget::draw(self, sx, sy) }
         var w, h in self
         var root = self.get_root()
         var csl = !root._clip_stack.empty()
-        if csl { gl_scissor_disable() }
         var sx1, sy1, sx2, sy2 = root.get_projection().calc_scissor(sx, sy,
             sx + w, sy + h, true)
-        gl_blend_disable()
-        gle_disable()
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         var col = self.color
         prefab_preview(prefab, col.r / 255, col.g / 255, col.b / 255)
         if csl { root.clip_scissor() }
         model_preview_end()
-        shader_hud_set()
-        gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-        gl_blend_enable()
-        if csl { gl_scissor_enable() }
         return Widget::draw(self, sx, sy)
     },
 
@@ -1068,6 +1190,8 @@ M.Console = register_type("Console", Filler, {
     },
 
     draw: func(self, sx, sy) {
+        self.change_draw(M.changes.SHADER | M.changes.COLOR)
+
         var k = self.draw_scale()
         hudmatrix_push()
         hudmatrix_translate(sx, sy, 0)
@@ -1101,6 +1225,11 @@ M.Shape = register_type("Shape", Filler, {
         self.style = kwargs.style || 0
         self.color = init_color(kwargs.color)
         return Filler::__ctor(self, kwargs, ...)
+    },
+
+    start_draw: func(self) {
+        shader_hudnotexture_set()
+        gle_defvertexf(2)
     },
 
     /// Function: set_style
@@ -1177,20 +1306,14 @@ M.Triangle = register_type("Triangle", Shape, {
 
     draw: func(self, sx, sy) {
         var color, style in self
-        if style == MODULATE { gl_blend_func(gl.ZERO, gl.SRC_COLOR) }
-        shader_hudnotexture_set()
+        self.change_draw(M.changes.SHADER | M.changes.COLOR | M.changes.BLEND)
+        if style == MODULATE { M::blend_mod() } else { M::blend_reset() }
         color.init()
-        gle_defvertexf(2)
         gle_begin(style == OUTLINE && gl.LINE_LOOP || gl.TRIANGLES)
         gle_attrib2f(Vec2(sx, sy).add(self.ta).unpack())
         gle_attrib2f(Vec2(sx, sy).add(self.tb).unpack())
         gle_attrib2f(Vec2(sx, sy).add(self.tc).unpack())
         gle_end()
-        gle_color4f(1, 1, 1, 1)
-        shader_hud_set()
-        if style == MODULATE {
-            gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-        }
         return Shape::draw(self, sx, sy)
     },
 
@@ -1224,9 +1347,9 @@ M.Circle = register_type("Circle", Shape, {
 
     draw: func(self, sx, sy) {
         var color, style in self
-        shader_hudnotexture_set()
+        self.change_draw(M.changes.SHADER | M.changes.COLOR | M.changes.BLEND)
+        if style == MODULATE { M::blend_mod() } else { M::blend_reset() }
         color.init()
-        gle_defvertexf(2)
         var radius = min(self.w, self.h) / 2
         var center = Vec2(sx + radius, sy + radius)
         if style == OUTLINE {
@@ -1237,7 +1360,6 @@ M.Circle = register_type("Circle", Shape, {
             }
             gle_end()
         } else {
-            if style == MODULATE { gl_blend_func(gl.ZERO, gl.SRC_COLOR) }
             gle_begin(gl.TRIANGLE_FAN)
             gle_attrib2f(center.x,          center.y)
             gle_attrib2f(center.x + radius, center.y)
@@ -1249,12 +1371,7 @@ M.Circle = register_type("Circle", Shape, {
             }
             gle_attrib2f(center.x + radius, center.y)
             gle_end()
-            if style == MODULATE {
-                gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-            }
         }
-        gle_color4f(1, 1, 1, 1)
-        shader_hud_set()
         return Shape::draw(self, sx, sy)
     },
 
@@ -1301,6 +1418,8 @@ M.Label = register_type("Label", Widget, {
     },
 
     draw: func(self, sx, sy) {
+        self.change_draw(M.changes.SHADER | M.changes.COLOR)
+
         text_font_push()
         text_font_set(self.font)
         hudmatrix_push()
@@ -1387,6 +1506,8 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
     draw: func(self, sx, sy) {
         var  val = self.val_saved
         if !val { return Widget::draw(self, sx, sy) }
+
+        self.change_draw(M.changes.SHADER | M.changes.COLOR)
 
         var k = self.scale_saved
         hudmatrix_push()

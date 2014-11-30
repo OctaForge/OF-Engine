@@ -131,8 +131,10 @@ M.Scroller = register_type("Scroller", Clipper, {
         if (self.clip_w != 0 && self.virt_w > self.clip_w) ||
            (self.clip_h != 0 && self.virt_h > self.clip_h)
         {
+            self.stop_draw()
             self.get_root().clip_push(sx, sy, self.w, self.h)
             Widget::draw(self, sx - self.offset_h, sy - self.offset_v)
+            self.stop_draw()
             self.get_root().clip_pop()
         } else {
             return Widget::draw(self, sx, sy)

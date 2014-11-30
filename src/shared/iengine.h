@@ -305,6 +305,7 @@ extern void resethudmatrix();
 extern void pushhudmatrix();
 extern void flushhudmatrix(bool flushparams = true);
 extern void pophudmatrix(bool flush = true, bool flushparams = true);
+extern void resethudshader();
 
 // worldio
 extern bool load_world(const char *mname, const char *cname = NULL);
