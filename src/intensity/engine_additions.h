@@ -29,9 +29,6 @@ struct CLogicEntity
     //! The start time of the current animation for this entity
     int startTime;
 
-    //! Whether this entity can move on its own volition
-    bool canMove;
-
     CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8), anim(0), startTime(0)
         { attachments.add(modelattach()); };
     CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity),

@@ -167,7 +167,7 @@ namespace game
             }
 
             // Ignore intentions to move, if immobile
-            if ( !LogicSystem::getLogicEntity(d->uid)->canMove )
+            if (!d->can_move)
                 d->turn_move = d->move = d->look_updown_move = d->strafe = d->jumping = 0;
 
             if(d->state==CS_ALIVE || d->state==CS_EDITING)
@@ -199,10 +199,8 @@ namespace game
                 );
 
                 // Ignore intentions to move, if immobile
-                if ( !LogicSystem::getLogicEntity(player1->uid)->canMove )
-                {
+                if (!player1->can_move)
                     player1->turn_move = player1->move = player1->look_updown_move = player1->strafe = player1->jumping = 0;
-                }
 
 //                if(player1->ragdoll && !(player1->anim&ANIM_RAGDOLL)) cleanragdoll(player1); XXX Needed? See below
                 crouchplayer(player1, 10, true);

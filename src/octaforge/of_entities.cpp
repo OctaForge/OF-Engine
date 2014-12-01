@@ -114,7 +114,7 @@ namespace entities
 
     CLUAICOMMAND(set_can_move, void, (int uid, bool b), {
         LUA_GET_ENT(entity, uid, "_C.setcanmove", return)
-        entity->canMove = b;
+        ((gameent*)entity->dynamicEntity)->can_move = b;
     });
 
     /* Extents */

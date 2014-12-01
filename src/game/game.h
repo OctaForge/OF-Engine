@@ -64,6 +64,7 @@ struct gameent : dynent
     editinfo *edit;
     float deltayaw, deltapitch, deltaroll, newyaw, newpitch, newroll;
     int smoothmillis;
+    bool can_move;
 
     string name, team, info;
 
@@ -72,7 +73,7 @@ struct gameent : dynent
     char turn_move, look_updown_move;
     int uid;
 
-    gameent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), ai(NULL)
+    gameent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), can_move(false), ai(NULL)
                                                                       , uid(-821)
                { name[0] = team[0] = info[0] = 0; respawn(); }
     ~gameent()
