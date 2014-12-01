@@ -10,7 +10,6 @@
 #include "engine.h"
 #include "game.h"
 #include "client_system.h"
-#include "targeting.h"
 #include "of_world.h"
 
 void removeentity(extentity* entity);
@@ -276,8 +275,14 @@ namespace entities
     #undef DYNENTVEC
 
     CLUAICOMMAND(get_target_entity_uid, bool, (int *uid), {
-        if (TargetingControl::targetLogicEntity) {
-            *uid = TargetingControl::targetLogicEntity->uniqueId;
+        extentity *ext;
+        gameent *ent;
+        game::gettarget(NULL, &ext, (dynent**)&ent);
+        if (ext) {
+            *uid = ext->uid;
+            return true;
+        } else if (ent) {
+            *uid = ent->uid;
             return true;
         }
         return false;

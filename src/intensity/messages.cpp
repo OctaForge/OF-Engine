@@ -6,10 +6,6 @@
 #include "engine.h"
 #include "game.h"
 
-#ifndef STANDALONE
-    #include "targeting.h"
-#endif
-
 #include "client_system.h"
 #include "message_system.h"
 #include "of_world.h"

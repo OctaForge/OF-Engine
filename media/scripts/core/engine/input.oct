@@ -22,11 +22,6 @@ return {
     */
     get_target_entity: frame::cache_by_frame(capi.gettargetent),
 
-    /** Function: set_target_entity
-        Sets the entiyt you're targeting.
-    */
-    set_target_entity: capi.set_targeted_entity,
-
     /** Function: get_target_position
         Returns the position in the world you're targeting.
     */

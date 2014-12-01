@@ -8,7 +8,6 @@
 
 #ifndef STANDALONE
     #include "client_system.h"
-    #include "targeting.h"
 #endif
 #include "message_system.h"
 

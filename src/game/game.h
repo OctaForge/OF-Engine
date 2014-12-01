@@ -156,6 +156,9 @@ namespace game
     extern int playermodel;
 
     extern void swayhudgun(int curtime);
+
+    void determinetarget(bool force = false, vec *pos = NULL, extentity **extent = NULL, dynent **dynent = NULL);
+    void gettarget(vec *pos, extentity **extent, dynent **dynent);
 }
 
 namespace server

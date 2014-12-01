@@ -10,6 +10,9 @@
 #include "message_system.h"
 #include "of_world.h"
 
+extern float rayent(const vec &o, const vec &ray, float radius, int mode, int size, int &orient, int &ent);
+extern int enthover;
+
 namespace game
 {
     VAR(useminimap, 0, 0, 1); // do we want the minimap? Set from JS.
@@ -495,6 +498,113 @@ namespace game
     void dynlighttrack(physent *owner, vec &o, vec &hud)
     {
         return;
+    }
+
+    static vec targetpos;
+    static extentity *targetextent = NULL;
+    static dynent *targetdynent = NULL;
+
+    static void target_intersect_dynamic(vec &from, vec &to, physent *targeter,
+    float &dist, dynent *&target) {
+        dynent *best = NULL;
+        float bdist = 1e16f;
+        loopi(numdynents()) {
+            dynent *o = iterdynents(i);
+            if (!o || o == targeter) continue;
+            if (!intersect(o, from, to)) continue;
+            float dist = from.dist(o->o);
+            if (dist < bdist) {
+                best = o;
+                bdist = dist;
+            }
+        }
+        dist = bdist;
+        target = best;
+    }
+
+    static void target_intersect_static(vec &from, vec &to, physent *targeter,
+    float &dist, extentity *&target) {
+        vec unitv;
+        float maxdist = to.dist(from, unitv);
+        unitv.div(maxdist);
+
+        vec hitpos;
+        int orient, ent;
+        dist = rayent(from, unitv, 1e16f, RAY_CLIPMAT|RAY_ALPHAPOLY, 0, orient, ent);
+
+        if (ent != -1)
+            target = entities::getents()[ent];
+        else {
+            target = NULL;
+            dist = -1;
+        };
+    }
+
+    static void target_intersect_closest(vec &from, vec &to, physent *targeter,
+    float &dist) {
+        const vector<extentity *> &ents = entities::getents();
+        if (ents.inrange(enthover)) {
+            dist = from.dist(ents[enthover]->o);
+            targetextent = ents[enthover];
+            targetdynent = NULL;
+            return;
+        }
+        float ddist, sdist;
+        target_intersect_dynamic(from, to, targeter, ddist, targetdynent);
+        target_intersect_static(from, to, targeter, sdist, targetextent);
+        if (!targetextent && !targetdynent) {
+            dist = -1;
+        } else if (targetdynent && !targetextent) {
+            dist = ddist;
+        } else if (targetextent && !targetdynent) {
+            dist = sdist;
+        } else if (sdist < ddist) {
+            dist = sdist;
+        } else {
+            dist = ddist;
+        }
+    }
+
+    VAR(has_mouse_target, 1, 0, 0);
+
+    void determinetarget(bool force, vec *pos, extentity **extent, dynent **dynent) {
+        if (!editmode && !force) {
+            targetdynent = NULL;
+            targetextent = NULL;
+            targetpos = worldpos;
+            has_mouse_target = 0;
+        } else {
+            static long lastcheck = -1;
+            if (lastcheck != lastmillis) {
+                float dist;
+                target_intersect_closest(camera1->o, worldpos, camera1, dist);
+                if (!editmode && targetdynent && ((gameent*)targetdynent)->uid == player1->uid) {
+                    vec save = player1->o;
+                    player1->o.add(1e16f);
+                    target_intersect_closest(camera1->o, worldpos, camera1, dist);
+                    player1->o = save;
+                }
+                has_mouse_target = (targetdynent || targetextent);
+                if (has_mouse_target) {
+                    vec temp(worldpos);
+                    temp.sub(camera1->o);
+                    temp.normalize();
+                    temp.mul(dist);
+                    temp.add(camera1->o);
+                    targetpos = temp;
+                } else {
+                    targetpos = worldpos;
+                }
+                lastcheck = lastmillis;
+            }
+        }
+        gettarget(pos, extent, dynent);
+    }
+
+    void gettarget(vec *pos, extentity **extent, dynent **dynent) {
+        if (pos) *pos = targetpos;
+        if (extent) *extent = targetextent;
+        if (dynent) *dynent = targetdynent;
     }
 }
 

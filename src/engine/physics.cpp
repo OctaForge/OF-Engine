@@ -7,8 +7,6 @@
 #include "mpr.h"
 #include "game.h" // INTENSITY: for gameent
 
-#include "targeting.h" // INTENSITY
-
 const int MAXCLIPPLANES = 1024;
 static clipplanes clipcache[MAXCLIPPLANES];
 static int clipcacheversion = -2;

@@ -3,7 +3,6 @@
 #include "engine.h"
 
 #include "game.h"
-#include "targeting.h" // INTENSITY
 #include "client_system.h"
 
 bool hasVAO = false, hasTR = false, hasTSW = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasS3TC = false, hasFXT1 = false, hasLATC = false, hasRGTC = false, hasAF = false, hasFBB = false, hasFBMS = false, hasTMS = false, hasMSS = false, hasFBMSBS = false, hasUBO = false, hasMBR = false, hasDB2 = false, hasDBB = false, hasTG = false, hasTQ = false, hasPF = false, hasTRG = false, hasTI = false, hasHFV = false, hasHFP = false, hasDBT = false, hasDC = false, hasDBGO = false, hasEGPU4 = false, hasGPU4 = false, hasGPU5 = false, hasBFE = false, hasEAL = false, hasCR = false, hasOQ2 = false, hasCB = false, hasCI = false;
@@ -1485,8 +1484,7 @@ void modifyedgeturn(int curtime) {
 
 noturn:
     fixcamerarange();
-
-    TargetingControl::determineMouseTarget();
+    game::determinetarget();
 }
 
 void mousemove(int dx, int dy)

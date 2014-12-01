@@ -232,6 +232,7 @@ float loadprogress = 0;
 
 void renderprogressview(float bar, const char *text) { // also used during loading
     lua::call_external("progress_render", "fs", bar, text ? text : "");
+    gle::disable();
 }
 
 void renderprogress(float bar, const char *text)   // also used during loading

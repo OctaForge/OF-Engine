@@ -3,7 +3,6 @@
 #include "engine.h"
 #include "client_system.h"
 #include "game.h"
-#include "targeting.h"
 
 #define MAXCONLINES 1000
 struct cline { char *line; int type, outtime; };
@@ -866,16 +865,16 @@ void mouse##num##click() { \
     if (!(lua::L && ClientSystem::scenarioStarted())) \
         return; \
 \
-    TargetingControl::determineMouseTarget(true); \
-    vec pos = TargetingControl::targetPosition; \
-\
-    CLogicEntity *tle = TargetingControl::targetLogicEntity; \
+    vec pos; \
+    extentity *ext; \
+    gameent *ent; \
+    game::determinetarget(true, &pos, &ext, (dynent**)&ent); \
 \
     float x, y; \
     cursor_get_position(x, y); \
 \
     assert(lua::call_external("input_click", "ibfffiff", num, down, \
-        pos.x, pos.y, pos.z, tle ? tle->uniqueId : -1, x, y)); \
+        pos.x, pos.y, pos.z, ext ? ext->uid : (ent ? ent->uid : -1), x, y)); \
 } \
 COMMAND(mouse##num##click, "");
 

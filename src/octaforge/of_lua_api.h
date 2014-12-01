@@ -66,22 +66,6 @@ namespace lapi_binds
     LAPI_EMPTY(hasprivedit)
 #endif
 
-    /* input */
-
-#ifndef STANDALONE
-    int _lua_set_targeted_entity(lua_State *L) {
-        if (TargetingControl::targetLogicEntity)
-            delete TargetingControl::targetLogicEntity;
-
-        TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(
-            luaL_checkinteger(L, 1));
-        lua_pushboolean(L, TargetingControl::targetLogicEntity != NULL);
-        return 1;
-    }
-#else
-    LAPI_EMPTY(set_targeted_entity)
-#endif
-
     /* messages */
 
     int _lua_personal_servmsg(lua_State *L) {
@@ -281,17 +265,20 @@ namespace lapi_binds
 
 #ifndef STANDALONE
     int _lua_gettargetpos(lua_State *L) {
-        TargetingControl::determineMouseTarget(true);
-        vec o(TargetingControl::targetPosition);
+        vec o;
+        game::determinetarget(true, &o);
         lua_pushnumber(L, o.x); lua_pushnumber(L, o.y); lua_pushnumber(L, o.z);
         return 3;
     }
 
     int _lua_gettargetent(lua_State *L) {
-        TargetingControl::determineMouseTarget(true);
-        CLogicEntity *target = TargetingControl::targetLogicEntity;
-        if (target)
-            lua_pushinteger(L, target->uniqueId);
+        extentity *ext;
+        gameent *ent;
+        game::determinetarget(true, NULL, &ext, (dynent**)&ent);
+        if (ext)
+            lua_pushinteger(L, ext->uid);
+        else if (ent)
+            lua_pushinteger(L, ent->uid);
         else
             lua_pushinteger(L, -1);
         return 1;
@@ -419,9 +406,6 @@ namespace lapi_binds
 
     /* edit */
     LUACOMMAND(hasprivedit, _lua_hasprivedit);
-
-    /* input */
-    LUACOMMAND(set_targeted_entity, _lua_set_targeted_entity);
 
     /* messages */
     LUACOMMAND(personal_servmsg, _lua_personal_servmsg);

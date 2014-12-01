@@ -8,8 +8,6 @@
 
 #include "message_system.h"
 
-#include "targeting.h"
-
 #include "client_system.h"
 #include "of_world.h"
 

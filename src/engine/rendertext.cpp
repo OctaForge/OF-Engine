@@ -419,7 +419,6 @@ void draw_text(const char *str, float left, float top, int r, int g, int b, int 
         draw_char(tex, '_', left+cx, top+cy, scale);
         xtraverts += gle::end();
     }
-    gle::disable();
     #undef TEXTINDEX
     #undef TEXTWHITE
     #undef TEXTLINE
