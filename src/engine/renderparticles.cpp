@@ -149,9 +149,8 @@ CLUAICOMMAND(particle_get_owner, int, (particle_t *part), {
     return -1;
 })
 
-CLUAICOMMAND(particle_set_owner, void, (particle_t *part, int uid), {
-    CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
-    if (ent && ent->dynamicEntity) part->owner = ent->dynamicEntity;
+CLUAICOMMAND(particle_set_owner, void, (particle_t *part, physent *owner), {
+    part->owner = owner;
 })
 
 struct partvert
@@ -1188,20 +1187,11 @@ static inline particle *newparticle(const vec &o, const vec &d, int fade, int ty
 
 bool canaddparticles() { return !minimized; }
 
-#define PART_GET_OWNER(uid) \
-    physent *owner = NULL; \
-    if (uid != -1) { \
-        CLogicEntity *ent = LogicSystem::getLogicEntity(uid); \
-        assert(ent && ent->dynamicEntity); \
-        owner = ent->dynamicEntity; \
-    }
-
 CLUAICOMMAND(particle_new, particle_t*, (int type, float ox, float oy, float oz,
 float dx, float dy, float dz, float r, float g, float b, int fade,
-float size, int gravity, int uid), {
+float size, int gravity, physent *owner), {
     if (!canaddparticles()) return NULL;
     if (!parts.inrange(type) || parts[type]->type&PT_SPECIAL) return NULL;
-    PART_GET_OWNER(uid)
     particle *part = newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade, type,
         vec(r, g, b), size, gravity);
     part->owner = owner;
@@ -1237,9 +1227,8 @@ static void splash(int type, const vec &color, int radius, int num, int fade, co
 
 CLUAICOMMAND(particle_splash, bool, (int type, float ox, float oy, float oz,
 int radius, int num, float r, float g, float b, int fade, float size,
-int gravity, int delay, int uid, bool unbounded), {
+int gravity, int delay, physent *owner, bool unbounded), {
     if (!parts.inrange(type)) return false;
-    PART_GET_OWNER(uid)
     if ((!unbounded && !canemitparticles()) || (delay > 0 && rnd(delay) != 0))
         return true;
     splash(type, vec(r, g, b), radius, num, fade, vec(ox, oy, oz), size,
@@ -1251,9 +1240,8 @@ VARP(maxtrail, 1, 500, 10000);
 
 CLUAICOMMAND(particle_trail, bool, (int type, float ox, float oy, float oz,
 float dx, float dy, float dz, float r, float g, float b, int fade,
-float size, int gravity, int uid), {
+float size, int gravity, physent *owner), {
     if (!parts.inrange(type)) return false;
-    PART_GET_OWNER(uid)
     if (!canaddparticles()) return true;
     vec s(ox, oy, oz);
     vec e(dx, dy, dz);
@@ -1285,10 +1273,9 @@ void particle_textcopy(const vec &s, const char *t, int type, int fade, const ve
 
 CLUAICOMMAND(particle_text, bool, (int type, float ox, float oy, float oz,
 const char *text, size_t slen, float r, float g, float b, int fade,
-float size, int gravity, int uid), {
+float size, int gravity, physent *owner), {
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TEXT)
         return false;
-    PART_GET_OWNER(uid)
 
     if (!canaddparticles()) return true;
 
@@ -1304,10 +1291,9 @@ float size, int gravity, int uid), {
 
 CLUAICOMMAND(particle_icon_generic, bool, (int type, float ox, float oy,
 float oz, int ix, int iy, float r, float g, float b, int fade, float size,
-int gravity, int uid), {
+int gravity, physent *owner), {
     if (!parts.inrange(type) || !(parts[type]->type&PT_ICONGRID))
         return false;
-    PART_GET_OWNER(uid)
     if (!canaddparticles()) return true;
     particle *p = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
@@ -1318,10 +1304,9 @@ int gravity, int uid), {
 
 CLUAICOMMAND(particle_icon, bool, (int type, float ox, float oy, float oz,
 const char *icon, float r, float g, float b, int fade, float size,
-int gravity, int uid), {
+int gravity, physent *owner), {
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_ICON)
         return false;
-    PART_GET_OWNER(uid)
     if (!canaddparticles()) return true;
     particle *part = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
@@ -1332,10 +1317,9 @@ int gravity, int uid), {
 
 CLUAICOMMAND(particle_meter, bool, (int type, float ox, float oy, float oz,
 int val, float r, float g, float b, int r2, int g2, int b2, int fade,
-float size, int uid), {
+float size, physent *owner), {
     if (!parts.inrange(type) || !(parts[type]->type&(PT_METER|PT_METERVS)))
         return false;
-    PART_GET_OWNER(uid)
     if (!canaddparticles()) return true;
     meterparticle *p = (meterparticle*)newparticle(vec(ox, oy, oz),
         vec(0, 0, 1), fade, type, vec(r, g, b), size);
@@ -1347,9 +1331,8 @@ float size, int uid), {
 
 CLUAICOMMAND(particle_flare, bool, (int type, float ox, float oy, float oz,
 float dx, float dy, float dz, float r, float g, float b, int fade,
-float size, int uid), {
+float size, physent *owner), {
     if (!parts.inrange(type)) return false;
-    PART_GET_OWNER(uid)
     if (!canaddparticles()) return true;
     newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade,
         type, vec(r, g, b), size)->owner = owner;
@@ -1358,10 +1341,9 @@ float size, int uid), {
 
 CLUAICOMMAND(particle_fireball, bool, (int type, float ox, float oy,
 float oz, float r, float g, float b, int fade, float size, float maxsize,
-int uid), {
+physent *owner), {
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FIREBALL)
         return false;
-    PART_GET_OWNER(uid)
     if (!canaddparticles()) return true;
     float growth = maxsize - size;
     if(fade < 0) fade = int(growth*20);
@@ -1395,9 +1377,8 @@ float oz, bool sun, bool sparkle, float r, float g, float b), {
  */
 CLUAICOMMAND(particle_shape, bool, (int type, float ox, float oy, float oz,
 int radius, int dir, int num, float r, float g, float b, int fade,
-float size, int gravity, int vel, int uid), {
+float size, int gravity, int vel, physent *owner), {
     if (!parts.inrange(type)) return false;
-    PART_GET_OWNER(uid)
     if (!canaddparticles() || !canemitparticles()) return true;
     vec p(ox, oy, oz);
     int basetype = parts[type]->type&0xFF;
@@ -1489,9 +1470,8 @@ float size, int gravity, int vel, int uid), {
 
 CLUAICOMMAND(particle_flame, bool, (int type, float ox, float oy, float oz,
 float radius, float height, float r, float g, float b, int fade,
-int density, float scale, float speed, int gravity, int uid), {
+int density, float scale, float speed, int gravity, physent *owner), {
     if (!parts.inrange(type)) return false;
-    PART_GET_OWNER(uid)
     if (!canaddparticles() || !canemitparticles()) return true;
 
     float size = scale * min(radius, height);
@@ -1608,5 +1588,3 @@ void updateparticles()
         }
     }
 }
-
-#undef PART_GET_OWNER
