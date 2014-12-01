@@ -41,7 +41,7 @@ var connect, emit = signal.connect, signal.emit
 
 from std.util import assert
 
-var set_attachments = capi.set_attachments
+var set_attachments_dyn, set_attachments_ext in capi
 
 // physics state flags
 var MASK_MAT = 0x3
@@ -193,14 +193,12 @@ M.Character = Entity.clone({
         start_time : svars::StateInteger({
             getter: @[!server,capi.get_start_time_dyn]
         }),
-        model_name : svars::StateString({
-            setter: @[!server,capi.set_model_name]
-        }),
+        model_name : svars::StateString(),
         attachments: svars::StateArray({
             setter: @[!server,func(self, val) {
                 var arr = ffi::new("const char *[?]", val.len() + 1)
                 for i, v in val.each() { arr[i] = v }
-                set_attachments(self, arr)
+                set_attachments_dyn(self, arr)
             }]
         }),
 
@@ -1288,7 +1286,7 @@ M.Mapmodel = StaticEntity.clone({
             setter: @[!server,func(self, val) {
                 var arr = ffi::new("const char *[?]", val.len() + 1)
                 for i, v in val.each() { arr[i] = v }
-                set_attachments(self, arr)
+                set_attachments_ext(self, arr)
             }]
         }),
 

@@ -901,7 +901,7 @@ M.Entity = Object.clone({
         if !sfun { return }
         if !@[server,self.svar_change_queue] {
             @[debug] log(INFO, e"Calling setter function for $name")
-            sfun(self.uid, val)
+            sfun(self.__centity, val)
             @[debug] log(INFO, "Setter called")
 
             self.svar_values[name] = val

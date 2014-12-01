@@ -74,52 +74,50 @@ namespace entities
 
     /* Entity attributes */
 
-    CLUAICOMMAND(set_animation_dyn, void, (int uid, int anim), {
-        LUA_GET_ENT(entity, uid, "_C.setanim", return)
-        gameent *d = (gameent*)entity->dynamicEntity;
-        if (!d) return;
+    CLUAICOMMAND(set_animation_dyn, void, (physent *ent, int anim), {
+        if (!ent) return;
+        gameent *d = (gameent*)ent;
         d->anim = anim;
         d->start_time = lastmillis;
     });
 
-    CLUAICOMMAND(get_start_time_dyn, bool, (int uid, int *val), {
-        LUA_GET_ENT(entity, uid, "_C.getstarttime", return false)
-        gameent *d = (gameent*)entity->dynamicEntity;
-        if (!d) return false;
+    CLUAICOMMAND(get_start_time_dyn, bool, (physent *ent, int *val), {
+        if (!ent) return false;
+        gameent *d = (gameent*)ent;
         *val = d->start_time;
         return true;
     });
 
-    CLUAICOMMAND(set_animation_ext, void, (int uid, int anim), {
-        LUA_GET_ENT(entity, uid, "_C.setanim", return)
-        extentity *ext = entity->staticEntity;
+    CLUAICOMMAND(set_animation_ext, void, (extentity *ext, int anim), {
         if (!ext) return;
         ext->anim = anim;
         ext->start_time = lastmillis;
     });
 
-    CLUAICOMMAND(get_start_time_ext, bool, (int uid, int *val), {
-        LUA_GET_ENT(entity, uid, "_C.getstarttime", return false)
-        extentity *ext = entity->staticEntity;
+    CLUAICOMMAND(get_start_time_ext, bool, (extentity *ext, int *val), {
         if (!ext) return false;
         *val = ext->start_time;
         return true;
     });
 
-    CLUAICOMMAND(set_model_name, void, (int uid, const char *name), {
-        if (!name) name = "";
-        LUA_GET_ENT(entity, uid, "_C.setmodelname", return)
-        logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")",
-            entity->uniqueId, name);
-        extentity *ext = entity->staticEntity;
+    CLUAICOMMAND(set_model_name, void, (extentity *ext, const char *name), {
         if (!ext) return;
         removeentity(ext);
-        if (name[0]) ext->m = loadmodel(name);
+        if (name[0]) ext->m = loadmodel(name ? name : "");
         addentity(ext);
     });
 
-    CLUAICOMMAND(set_attachments, void, (int uid, const char **attach), {
-        LUA_GET_ENT(entity, uid, "_C.setattachments", return)
+    CLUAICOMMAND(set_attachments_dyn, void, (physent *ent, const char **attach), {
+        if (!ent) return;
+        CLogicEntity *entity = LogicSystem::getLogicEntity(((gameent*)ent)->uid);
+        if (!entity) return;
+        entity->setAttachments(attach);
+    });
+
+    CLUAICOMMAND(set_attachments_ext, void, (extentity *ext, const char **attach), {
+        if (!ext) return;
+        CLogicEntity *entity = LogicSystem::getLogicEntity(ext->uid);
+        if (!entity) return;
         entity->setAttachments(attach);
     });
 
@@ -133,54 +131,41 @@ namespace entities
         return 3;
     });
 
-    CLUAICOMMAND(set_can_move, void, (int uid, bool b), {
-        LUA_GET_ENT(entity, uid, "_C.setcanmove", return)
-        ((gameent*)entity->dynamicEntity)->can_move = b;
+    CLUAICOMMAND(set_can_move, void, (physent *ent, bool b), {
+        if (!ent) return;
+        gameent *d = (gameent*)ent;
+        d->can_move = b;
     });
 
     /* Extents */
 
-    CLUAICOMMAND(get_attr, bool, (int uid, int a, int *val), {
-        LUA_GET_ENT(entity, uid, "_C.get_attr", return false)
-        extentity *ext = entity->staticEntity;
+    CLUAICOMMAND(get_attr, bool, (extentity *ext, int a, int *val), {
         assert(ext);
         *val = ext->attr[a];
         return true;
     });
-    CLUAICOMMAND(set_attr, void, (int uid, int a, int v), {
-        LUA_GET_ENT(entity, uid, "_C.set_attr", return)
-        extentity *ext = entity->staticEntity;
+    CLUAICOMMAND(set_attr, void, (extentity *ext, int a, int v), {
         assert(ext);
         if (ClientSystem::scenarioStarted()) removeentity(ext);
         ext->attr[a] = v;
         if (ClientSystem::scenarioStarted()) addentity(ext);
     });
-    CLUAICOMMAND(FAST_set_attr, void, (int uid, int a, int v), {
-        LUA_GET_ENT(entity, uid, "_C.FAST_set_attr", return)
-        extentity *ext = entity->staticEntity;
+    CLUAICOMMAND(FAST_set_attr, void, (extentity *ext, int a, int v), {
         assert(ext);
         ext->attr[a] = v;
     });
 
-    CLUAICOMMAND(get_extent_position, bool, (int uid, double *pos), {
-        LUA_GET_ENT(entity, uid, "_C.getextent0", return false)
-        extentity *ext = entity->staticEntity;
+    CLUAICOMMAND(get_extent_position, bool, (extentity *ext, double *pos), {
         assert(ext);
-        logger::log(logger::INFO,
-            "_C.getextent0(%d): x: %f, y: %f, z: %f",
-            entity->uniqueId, ext->o.x, ext->o.y, ext->o.z);
         pos[0] = ext->o.x;
         pos[1] = ext->o.y;
         pos[2] = ext->o.z;
         return true;
     });
 
-    CLUAICOMMAND(set_extent_position, void, (int uid, double x, double y,
+    CLUAICOMMAND(set_extent_position, void, (extentity *ext, double x, double y,
     double z), {
-        LUA_GET_ENT(entity, uid, "_C.setextent0", return)
-        extentity *ext = entity->staticEntity;
         assert(ext);
-
         removeentity(ext);
         ext->o.x = x;
         ext->o.y = y;
@@ -191,16 +176,14 @@ namespace entities
     /* Dynents */
 
     #define DYNENT_ACCESSORS(n, t, an) \
-    CLUAICOMMAND(get_##n, bool, (int uid, t *val), { \
-        LUA_GET_ENT(entity, uid, "_C.get"#n, return false) \
-        gameent *d = (gameent*)entity->dynamicEntity; \
+    CLUAICOMMAND(get_##n, bool, (physent *ent, t *val), { \
+        gameent *d = (gameent*)ent; \
         assert(d); \
         *val = d->an; \
         return true; \
     }); \
-    CLUAICOMMAND(set_##n, void, (int uid, t v), { \
-        LUA_GET_ENT(entity, uid, "_C.set"#n, return) \
-        gameent *d = (gameent*)entity->dynamicEntity; \
+    CLUAICOMMAND(set_##n, void, (physent *ent, t v), { \
+        gameent *d = (gameent*)ent; \
         assert(d); \
         d->an = v; \
     });
@@ -231,9 +214,8 @@ namespace entities
     DYNENT_ACCESSORS(timeinair, int, timeinair)
     #undef DYNENT_ACCESSORS
 
-    CLUAICOMMAND(get_dynent_position, bool, (int uid, double *pos), {
-        LUA_GET_ENT(entity, uid, "_C.getdynent0", return false)
-        gameent *d = (gameent*)entity->dynamicEntity;
+    CLUAICOMMAND(get_dynent_position, bool, (physent *ent, double *pos), {
+        gameent *d = (gameent*)ent;
         assert(d);
         pos[0] = d->o.x;
         pos[1] = d->o.y;
@@ -241,10 +223,9 @@ namespace entities
         return true;
     });
 
-    CLUAICOMMAND(set_dynent_position, void, (int uid, double x, double y,
+    CLUAICOMMAND(set_dynent_position, void, (physent *ent, double x, double y,
     double z), {
-        LUA_GET_ENT(entity, uid, "_C.setdynent0", return)
-        gameent *d = (gameent*)entity->dynamicEntity;
+        gameent *d = (gameent*)ent;
         assert(d);
 
         d->o.x = x;
@@ -263,9 +244,8 @@ namespace entities
         );
     });
 
-    CLUAICOMMAND(get_dynent_position, bool, (int uid, double *pos), {
-        LUA_GET_ENT(entity, uid, "_C.getdynent0", return false)
-        gameent *d = (gameent*)entity->dynamicEntity;
+    CLUAICOMMAND(get_dynent_position, bool, (physent *ent, double *pos), {
+        gameent *d = (gameent*)ent;
         assert(d);
         pos[0] = d->o.x;
         pos[1] = d->o.y;
@@ -274,19 +254,17 @@ namespace entities
     });
 
     #define DYNENTVEC(name, prop) \
-        CLUAICOMMAND(get_dynent_##name, bool, (int uid, double *val), { \
-            LUA_GET_ENT(entity, uid, "_C.getdynent"#name, return false) \
-            gameent *d = (gameent*)entity->dynamicEntity; \
+        CLUAICOMMAND(get_dynent_##name, bool, (physent *ent, double *val), { \
+            gameent *d = (gameent*)ent; \
             assert(d); \
             val[0] = d->o.x; \
             val[1] = d->o.y; \
             val[2] = d->o.z; \
             return true; \
         }); \
-        CLUAICOMMAND(set_dynent_##name, void, (int uid, double x, \
+        CLUAICOMMAND(set_dynent_##name, void, (physent *ent, double x, \
         double y, double z), { \
-            LUA_GET_ENT(entity, uid, "_C.setdynent"#name, return) \
-            gameent *d = (gameent*)entity->dynamicEntity; \
+            gameent *d = (gameent*)ent; \
             assert(d); \
             d->prop.x = x; \
             d->prop.y = y; \

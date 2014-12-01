@@ -214,7 +214,7 @@ M.StateVariable = Object.clone({
 
         @[debug] log(INFO, "StateVariable: getter: getter function")
 
-        var val = svar::getter_fun(self.uid)
+        var val = svar::getter_fun(self.__centity)
 
         if @[server,self.svar_change_queue_complete,true] {
             self.svar_values[vn] = val
@@ -567,7 +567,7 @@ M.StateArray = StateVariable.clone({
 
         @[debug] log(INFO, "StateArray: get_raw: getter function")
 
-        var val = self::getter_fun(ent.uid)
+        var val = self::getter_fun(ent.__centity)
 
         if @[server,ent.svar_change_queue_complete,true] {
             ent.svar_values[vn] = val
