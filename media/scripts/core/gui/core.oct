@@ -1199,7 +1199,7 @@ M.Widget = register_type("Widget", Object, {
             self.start_draw()
             changed = change
         } else if root._drawing.type != self.type {
-            root._drawing.end_draw(change)
+            root._drawing.end_draw_change(change)
             self.start_draw()
             changed = change
         }
