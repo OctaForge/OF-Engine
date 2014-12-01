@@ -434,8 +434,9 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s", otherClientNumber, otherUniqueId, otherClass);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
-        CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
-        if (entity == NULL)
+        bool ent_exists = false;
+        lua::pop_external_ret(lua::call_external_ret("entity_exists", "i", "b", otherUniqueId, &ent_exists));
+        if (!ent_exists)
         {
             if (otherClientNumber >= 0) // If this is another client, then send the clientnumber, critical for setup
             {
@@ -447,20 +448,18 @@ namespace MessageSystem
                     assert(otherClientNumber == ClientSystem::playerNumber);
                 }
             }
-            lua::call_external("entity_add_with_cn", "sii", otherClass, otherUniqueId, otherClientNumber);
-            entity = LogicSystem::getLogicEntity(otherUniqueId);
-            if (!entity)
+            lua::pop_external_ret(lua::call_external_ret("entity_add_with_cn", "sii", "b", otherClass, otherUniqueId, otherClientNumber, &ent_exists));
+            if (!ent_exists)
             {
                 logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring", otherUniqueId, otherClass);
                 return;
             }
         } else
-            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create", entity != NULL, entity->uniqueId,
-                                            otherUniqueId);
+            logger::log(logger::DEBUG, "Existing LogicEntity %d, no need to create", otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s", stateData);
-        lua::call_external("entity_set_sdata_full", "is", entity->uniqueId, stateData);
+        lua::call_external("entity_set_sdata_full", "is", otherUniqueId, stateData);
         // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
         if (otherUniqueId == ClientSystem::uniqueId)
         {
@@ -548,20 +547,19 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s", otherUniqueId, otherClass);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
-        CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
-        if (entity == NULL)
+        bool ent_exists = false;
+        lua::pop_external_ret(lua::call_external_ret("entity_exists", "i", "b", otherUniqueId, &ent_exists));
+        if (!ent_exists)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity");
-            lua::call_external("entity_add", "si", otherClass, otherUniqueId);
-            entity = LogicSystem::getLogicEntity(otherUniqueId);
-            assert(entity != NULL);
+            lua::pop_external_ret(lua::call_external_ret("entity_add", "si", "b", otherClass, otherUniqueId, &ent_exists));
+            assert(ent_exists);
         } else
-            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create", entity != NULL, entity->uniqueId,
-                                            otherUniqueId);
+            logger::log(logger::DEBUG, "Existing LogicEntity %d, no need to create", otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData");
-        lua::call_external("entity_set_sdata_full", "is", entity->uniqueId, stateData);
+        lua::call_external("entity_set_sdata_full", "is", otherUniqueId, stateData);
         renderprogress(0, "receiving entities...");
     }
 #endif

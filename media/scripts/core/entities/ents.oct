@@ -317,8 +317,7 @@ M.get_all_prototypes = func() {
 }
 
 /**
-    Retrieves an entity, given its unique id. If not found, undef. External as
-    `entity_get`.
+    Retrieves an entity, given its unique id. If not found, undef.
 */
 M.get = func(uid) {
     var r = storage[uid]
@@ -329,8 +328,9 @@ M.get = func(uid) {
         @[debug] log(DEBUG, e"ents.get: no such entity ($uid)")
     }
 }
-set_external("entity_get", M.get)
 var get_ent = M.get
+
+set_external("entity_exists", func(uid) { return get_ent(uid) != undef })
 
 /**
     Returns the whole storage. Use with care. External as `entities_get_all`.
@@ -446,7 +446,7 @@ var add = func(cn, uid, kwargs, new) {
     uid = uid || 1337
 
     var cl = typeof cn == "table" && cn || (proto_storage[cn]
-                                         ||  proto_storage[proto_aliases[cn]])
+                                        ||  proto_storage[proto_aliases[cn]])
     if !cl {
         log(ERROR, e"ents.add: no such entity prototype: $(tostring(cn))")
         assert(false)
@@ -491,9 +491,11 @@ var add = func(cn, uid, kwargs, new) {
     return r
 }
 M.add = add
-set_external("entity_add", add)
+set_external("entity_add", func(cn, uid, kwargs, new) {
+    return add(cn, uid, kwargs, new) != undef
+})
 set_external("entity_add_with_cn", func(cl, uid, cn) {
-    add(cl, uid, (cn >= 0) && { cn: cn } || undef)
+    return add(cl, uid, (cn >= 0) && { cn: cn } || undef) != undef
 })
 
 /**

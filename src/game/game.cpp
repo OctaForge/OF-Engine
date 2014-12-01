@@ -245,8 +245,6 @@ namespace game
             loopv(game::players)
             {
                 gameent* gameEntity = game::players[i];
-                CLogicEntity *entity = LogicSystem::getLogicEntity(gameEntity->uid);
-                if (!entity) continue;
                 moveragdoll(gameEntity);
             }
             lua::call_external("frame_handle", "ii", curtime, lastmillis);
