@@ -173,14 +173,14 @@ capi.strftime = func(fmt) {
     flags, initrad, ir, ig, ib, ent) {
         return dynlight_add(ox, oy, oz, radius, r, g, b, fade || 0, peak || 0,
             flags || 0, initrad || 0, ir || 0, ig || 0, ib || 0,
-            ent && ent.uid || -1)
+            ent && ent.__centity || null)
     }
 
     capi.dynlight_add_spot = func(ox, oy, oz, dx, dy, dz, radius, spot,
     r, g, b, fade, peak, flags, initrad, ir, ig, ib, ent) {
         return dynlight_add_spot(ox, oy, oz, dx, dy, dz, radius, r, g, b,
             fade || 0, peak || 0, flags || 0, initrad || 0, ir || 0, ig || 0,
-            ib || 0, ent && ent.uid || -1)
+            ib || 0, ent && ent.__centity || null)
     }
 
     var getfps in capi

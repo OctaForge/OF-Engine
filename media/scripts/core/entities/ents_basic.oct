@@ -435,7 +435,7 @@ M.Character = Entity.clone({
         Entity::__activate(self, kwargs)
 
         self.cn = kwargs && kwargs.cn || -1
-        capi::setup_character(self.uid, self.cn)
+        self.__centity = capi::setup_character(self.uid, self.cn)
 
         self.render_args_timestamp = -1
 
@@ -468,7 +468,10 @@ M.Character = Entity.clone({
     }],
 
     __deactivate: func(self) {
-        @[!server] capi::destroy_character(self.cn)
+        @[!server] {
+            self.__centity = undef
+            capi::destroy_character(self.cn)
+        }
         Entity::__deactivate(self)
     },
 
@@ -816,12 +819,15 @@ M.StaticEntity = Entity.clone({
             self.set_attr(an, self.get_attr(an))
         }
     },func(self, kwargs) {
-        capi::setup_extent(self.uid, self.sauer_type)
+        self.__centity = capi::setup_extent(self.uid, self.sauer_type)
         return Entity::__activate(self, kwargs)
     }],
 
     __deactivate: func(self) {
-        @[!server] capi::destroy_extent(self.uid)
+        @[!server] {
+            self.__centity = undef
+            capi::destroy_extent(self.uid)
+        }
         return Entity::__deactivate(self)
     },
 

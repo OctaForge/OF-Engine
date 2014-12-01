@@ -219,18 +219,9 @@ void queuedynlight(const vec &o, float radius, const vec &color, int fade, int p
     dynlight_queue.add(d);
 }
 
-#define DYNLIGHT_GET_OWNER(owner, uid) \
-    physent *owner = NULL; \
-    if (uid >= 0) { \
-        CLogicEntity *ent = LogicSystem::getLogicEntity(uid); \
-        assert(ent && ent->dynamicEntity); \
-        owner = ent->dynamicEntity; \
-    }
-
 CLUAICOMMAND(dynlight_add, bool, (float ox, float oy, float oz,
 float radius, float r, float g, float b, int fade, int peak, int flags,
-float initradius, float ir, float ig, float ib, int uid), {
-    DYNLIGHT_GET_OWNER(owner, uid);
+float initradius, float ir, float ig, float ib, physent *owner), {
     queuedynlight(vec(ox, oy, oz), radius, vec(r, g, b), fade, peak, flags,
         initradius, vec(ir, ig, ib), owner, vec(0, 0, 0), 0);
     return true;
@@ -239,8 +230,7 @@ float initradius, float ir, float ig, float ib, int uid), {
 CLUAICOMMAND(dynlight_add_spot, bool, (float ox, float oy, float oz,
 float dx, float dy, float dz, float radius, int spot, float r, float g,
 float b, int fade, int peak, int flags, int initradius, float ir, float ig,
-float ib, int uid), {
-    DYNLIGHT_GET_OWNER(owner, uid);
+float ib, physent *owner), {
     queuedynlight(vec(ox, oy, oz), radius, vec(r, g, b), fade, peak, flags,
         initradius, vec(ir, ig, ib), owner, vec(dx, dy, dz), spot);
     return true;

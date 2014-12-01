@@ -87,9 +87,9 @@ struct LogicSystem
 
     static CLogicEntity *getLogicEntity(int uniqueId);
 
-    static void setupExtent(int uid, int type);
+    static extentity *setupExtent(int uid, int type);
 
-    static void setupCharacter(int uid, int cn);
+    static physent *setupCharacter(int uid, int cn);
 
     static void setupNonSauer(int uid);
 };

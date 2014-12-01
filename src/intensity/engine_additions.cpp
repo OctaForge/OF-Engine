@@ -183,7 +183,7 @@ CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
     return logicEntities[uniqueId];
 }
 
-void LogicSystem::setupExtent(int uid, int type)
+extentity *LogicSystem::setupExtent(int uid, int type)
 {
     logger::log(logger::DEBUG, "setupExtent: %d, %d", uid, type);
     INDENT_LOG(logger::DEBUG);
@@ -201,9 +201,10 @@ void LogicSystem::setupExtent(int uid, int type)
     CLogicEntity *newEntity = new CLogicEntity(e);
     newEntity->uniqueId = uid;
     registerLogicEntity(newEntity);
+    return e;
 }
 
-void LogicSystem::setupCharacter(int uid, int cn)
+physent *LogicSystem::setupCharacter(int uid, int cn)
 {
     logger::log(logger::DEBUG, "setupCharacter: %d, %d", uid, cn);
     INDENT_LOG(logger::DEBUG);
@@ -243,6 +244,7 @@ void LogicSystem::setupCharacter(int uid, int cn)
     CLogicEntity *newEntity = new CLogicEntity(gameEntity);
     newEntity->uniqueId = uid;
     registerLogicEntity(newEntity);
+    return gameEntity;
 }
 
 void LogicSystem::setupNonSauer(int uid)
@@ -258,12 +260,12 @@ CLUAICOMMAND(unregister_entity, void, (int uid), {
     LogicSystem::unregisterLogicEntityByUniqueId(uid);
 });
 
-CLUAICOMMAND(setup_extent, void, (int uid, int type), {
-    LogicSystem::setupExtent(uid, type);
+CLUAICOMMAND(setup_extent, extentity *, (int uid, int type), {
+    return LogicSystem::setupExtent(uid, type);
 });
 
-CLUAICOMMAND(setup_character, void, (int uid, int cn), {
-    LogicSystem::setupCharacter(uid, cn);
+CLUAICOMMAND(setup_character, physent *, (int uid, int cn), {
+    return LogicSystem::setupCharacter(uid, cn);
 });
 
 CLUAICOMMAND(setup_nonsauer, void, (int uid), {
