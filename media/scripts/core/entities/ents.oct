@@ -1239,17 +1239,20 @@ set_external("entity_set_attr", func(uid, prop, val) {
 })
 
 set_external("entity_draw_attached", func(uid) {
-    var ent = storage[uid]
-    if !ent { return }
-    var ents = [ ent.get_attached_next() ]
+    var fent = storage[uid]
+    if !fent { return }
+    var ents = [ fent.get_attached_next() ]
     if !ents.empty() {
-        for i, ent in ents.each() { capi::entity_draw_attachment(uid, ent.uid) }
+        for i, ent in ents.each() {
+            capi::entity_draw_attachment(fent.__centity, ent.__centity)
+        }
         return
     }
-    ents = [ ent.get_attached_prev() ]
+    ents = [ fent.get_attached_prev() ]
     if !ents.empty() {
-        for i, ent in ents.each() { capi::entity_draw_attachment(ent.uid, uid) }
-        return
+        for i, ent in ents.each() {
+            capi::entity_draw_attachment(ent.__centity, fent.__centity)
+        }
     }
 })
 

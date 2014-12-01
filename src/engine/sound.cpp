@@ -688,11 +688,9 @@ float z, int vol), {
     }
 });
 
-CLUAICOMMAND(sound_play_map, bool, (int uid, const char *name, int vol,
+CLUAICOMMAND(sound_play_map, bool, (extentity *ent, const char *name, int vol,
 int loops), {
-    LUA_GET_ENT(entity, uid, "_C.sound_play_map", return false;);
-    extentity *ent = entity->staticEntity;
-    assert(ent);
+    if (!ent) return false;
     return playsound(name, NULL, ent, vol, SND_MAP, loops, 0, -1, 0, -1) >= 0;
 })
 
@@ -706,10 +704,8 @@ CLUAICOMMAND(sound_stop, void, (const char *s, int vol), {
     }
 });
 
-CLUAICOMMAND(sound_stop_map, bool, (int uid), {
-    LUA_GET_ENT(entity, uid, "_C.sound_stop_map", return false;);
-    extentity *ent = entity->staticEntity;
-    assert(ent);
+CLUAICOMMAND(sound_stop_map, bool, (extentity *ent), {
+    if (!ent) return false;
     stopmapsound(ent);
     return true;
 });

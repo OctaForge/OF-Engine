@@ -816,11 +816,9 @@ void renderentradius(extentity &e, bool color)
     }
 }
 
-CLUAICOMMAND(entity_draw_attachment, void, (int uid1, int uid2), {
-    CLogicEntity *e1 = LogicSystem::getLogicEntity(uid1);
-    CLogicEntity *e2 = LogicSystem::getLogicEntity(uid2);
-    if (!e1 || !e2 || !e1->staticEntity || !e2->staticEntity) return;
-    renderentattachment(*e1->staticEntity, e2->staticEntity);
+CLUAICOMMAND(entity_draw_attachment, void, (extentity *e1, extentity *e2), {
+    if (!e1 || !e2) return;
+    renderentattachment(*e1, e2);
 });
 
 static void renderentbox(const vec &eo, vec es)

@@ -1156,12 +1156,12 @@ M.SoundEffect = StaticEntity.clone({
 
     /** Stop all sounds currently assigned to the entity. */
     sound_stop: func(self) {
-        capi::sound_stop_map(self.uid)
+        capi::sound_stop_map(self.__centity)
     },
 
     /** Play a sound on this entity. The last loops parameter is optional. */
     sound_play: func(self, name, volume, loops) {
-        capi::sound_play_map(self.uid, name, volume, loops || -1)
+        capi::sound_play_map(self.__centity, name, volume, loops || -1)
     },
 
     /** Override to play sounds. */
