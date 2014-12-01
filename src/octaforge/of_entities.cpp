@@ -283,17 +283,15 @@ namespace entities
         return false;
     });
 
-    CLUAICOMMAND(get_plag, bool, (int uid, int *val), {
-        LUA_GET_ENT(entity, uid, "_C.getplag", return false)
-        gameent *p = (gameent*)entity->dynamicEntity;
+    CLUAICOMMAND(get_plag, bool, (physent *d, int *val), {
+        gameent *p = (gameent*)d;
         assert(p);
         *val = p->plag;
         return true;
     });
 
-    CLUAICOMMAND(get_ping, bool, (int uid, int *val), {
-        LUA_GET_ENT(entity, uid, "_C.getping", return false)
-        gameent *p = (gameent*)entity->dynamicEntity;
+    CLUAICOMMAND(get_ping, bool, (physent *d, int *val), {
+        gameent *p = (gameent*)d;
         assert(p);
         *val = p->ping;
         return true;
@@ -305,9 +303,7 @@ namespace entities
         return ents[efocus]->uid;
     });
 
-    CLUAICOMMAND(get_attached_entity, int, (int uid), {
-        LUA_GET_ENT(entity, uid, "_C.get_attached_entity", return 0)
-        extentity *e = entity->staticEntity;
+    CLUAICOMMAND(get_attached_entity, int, (extentity *e), {
         if (!e || !e->attached) return -1;
         return e->attached->uid;
     });
