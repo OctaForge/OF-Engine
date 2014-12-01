@@ -50,8 +50,6 @@ struct animmodel : model
                 fr1 = (info.frame+info.range-1)-(fr1-info.frame);
                 fr2 = (info.frame+info.range-1)-(fr2-info.frame);
             }
-
-            assert(fr1 >= 0); // INTENSITY: Guard against an old bug of ours, see setAnimation in engine_additions.cpp
         }
 
         bool operator==(const animpos &a) const { return fr1==a.fr1 && fr2==a.fr2 && (fr1==fr2 || t==a.t); }

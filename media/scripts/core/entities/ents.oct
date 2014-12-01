@@ -686,7 +686,7 @@ M.Entity = Object.clone({
     */
     __deactivate: func(self) {
         self.clear_actions()
-        capi::unregister_entity(self.uid)
+        @[!server] capi::unregister_entity(self.uid)
 
         self.deactivated = true
 
@@ -871,7 +871,7 @@ M.Entity = Object.clone({
 
         if !self.sauer_type {
             @[debug] log(DEBUG, e"Entity.__activate: non-sauer entity: $(self.name)")
-            capi::setup_nonsauer(self.uid)
+            @[!server] capi::setup_nonsauer(self.uid)
             @[server] self.flush_queued_svar_changes()
         }
 

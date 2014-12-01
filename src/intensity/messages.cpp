@@ -676,10 +676,8 @@ namespace MessageSystem
         if (!world::scenario_code[0]) return;
         if (!server::isRunningCurrentScenario(sender)) return; // Silently ignore info from previous scenario
 
-        CLogicEntity *entity = NULL;
-        if (uid != -1) entity = LogicSystem::getLogicEntity(uid);
         assert(lua::call_external("input_click_server", "ibfffi", button, down,
-            x, y, z, entity ? entity->uniqueId : -1));
+            x, y, z, uid));
     }
 #endif
 

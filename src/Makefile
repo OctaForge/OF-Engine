@@ -407,7 +407,6 @@ SERVER_OBJ = \
 	game/server.o \
 	intensity/message_system.o \
 	intensity/messages.o \
-	intensity/engine_additions.o \
 	shared/stream.o \
 	octaforge/of_lua.o \
 	octaforge/of_world.o \
@@ -654,7 +653,6 @@ $(OBJDIR)/server/engine/server.o: engine/engine.h shared/cube.h shared/tools.h s
 $(OBJDIR)/server/game/server.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h game/game.h intensity/message_system.h intensity/messages.h octaforge/of_world.h
 $(OBJDIR)/server/intensity/message_system.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/engine.h engine/world.h game/game.h intensity/message_system.h intensity/messages.h
 $(OBJDIR)/server/intensity/messages.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/engine.h engine/world.h game/game.h intensity/client_system.h intensity/message_system.h intensity/messages.h octaforge/of_world.h
-$(OBJDIR)/server/intensity/engine_additions.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/engine.h engine/world.h game/game.h intensity/message_system.h intensity/messages.h intensity/client_system.h
 $(OBJDIR)/server/shared/stream.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h
 $(OBJDIR)/server/octaforge/of_lua.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h engine/engine.h engine/world.h game/game.h intensity/message_system.h intensity/messages.h octaforge/of_world.h octaforge/of_localserver.h octaforge/of_lua_api.h
 $(OBJDIR)/server/octaforge/of_world.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h intensity/engine_additions.h octaforge/of_world.h game/game.h engine/engine.h engine/world.h intensity/client_system.h

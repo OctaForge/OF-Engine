@@ -425,7 +425,6 @@ M.Character = Entity.clone({
     __activate: @[server,func(self, kwargs) {
         self.cn = kwargs && kwargs.cn || -1
         assert(self.cn >= 0)
-        capi::setup_character(self.uid, self.cn)
 
         Entity::__activate(self, kwargs)
 
@@ -807,9 +806,6 @@ M.StaticEntity = Entity.clone({
 
         @[debug] log(DEBUG, "StaticEntity.__activate")
         Entity::__activate(self, kwargs)
-
-        @[debug] log(DEBUG, "StaticEntity: extent setup")
-        capi::setup_extent(self.uid, self.sauer_type)
 
         @[debug] log(DEBUG, "StaticEntity: flush")
         self.flush_queued_svar_changes()
