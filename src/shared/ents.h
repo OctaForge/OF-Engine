@@ -33,9 +33,9 @@ struct extentity : entity                       // part of the entity that doesn
     extentity *attached;
 
     model *m, *collide;
-    int uid;
+    int anim, start_time, uid;
 
-    extentity() : flags(0), attached(NULL), m(NULL), collide(NULL), uid(-1) {}
+    extentity() : flags(0), attached(NULL), m(NULL), collide(NULL), anim(0), start_time(0), uid(-1) {}
 
     bool spawned() const { return (flags&EF_SPAWNED) != 0; }
     void setspawned(bool val) { if(val) flags |= EF_SPAWNED; else flags &= ~EF_SPAWNED; }

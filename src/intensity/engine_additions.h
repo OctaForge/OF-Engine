@@ -23,38 +23,23 @@ struct CLogicEntity
     //! as they require a call to rendering
     hashtable<const char*, entlinkpos> attachment_positions;
 
-    //! The current animation for this entity
-    int anim;
-
-    //! The start time of the current animation for this entity
-    int startTime;
-
-    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8), anim(0), startTime(0)
+    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8)
         { attachments.add(modelattach()); };
     CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity),
-        staticEntity(NULL), uniqueId(-8), anim(0), startTime(0)
+        staticEntity(NULL), uniqueId(-8)
         { attachments.add(modelattach()); };
     CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL),
-        staticEntity(_staticEntity), uniqueId(-8), anim(0), startTime(0)
+        staticEntity(_staticEntity), uniqueId(-8)
         { attachments.add(modelattach()); };
     CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL),
-        uniqueId(_uniqueId), anim(0), startTime(0)
+        uniqueId(_uniqueId)
         { attachments.add(modelattach()); }; // This is a non-Sauer LE
     ~CLogicEntity() { clear_attachments(); }
 
     void clear_attachments();
 
-    //! The sauer code for the current running animation
-    int  getAnimation();
-
-    //! When the current animation started
-    int getStartTime();
-
     //! Updates the attachments based on lua information. Refreshes what is needed in Sauer
     void setAttachments(const char **attach);
-
-    //! Updates the animation based on lua information. Refreshes what is needed in Sauer. In particular sets the start time.
-    void setAnimation(int anim);
 
     vec& getAttachmentPosition(const char *tag);
 };

@@ -74,14 +74,35 @@ namespace entities
 
     /* Entity attributes */
 
-    CLUAICOMMAND(set_animation, void, (int uid, int anim), {
+    CLUAICOMMAND(set_animation_dyn, void, (int uid, int anim), {
         LUA_GET_ENT(entity, uid, "_C.setanim", return)
-        entity->setAnimation(anim);
+        gameent *d = (gameent*)entity->dynamicEntity;
+        if (!d) return;
+        d->anim = anim;
+        d->start_time = lastmillis;
     });
 
-    CLUAICOMMAND(get_start_time, bool, (int uid, int *val), {
+    CLUAICOMMAND(get_start_time_dyn, bool, (int uid, int *val), {
         LUA_GET_ENT(entity, uid, "_C.getstarttime", return false)
-        *val = entity->getStartTime();
+        gameent *d = (gameent*)entity->dynamicEntity;
+        if (!d) return false;
+        *val = d->start_time;
+        return true;
+    });
+
+    CLUAICOMMAND(set_animation_ext, void, (int uid, int anim), {
+        LUA_GET_ENT(entity, uid, "_C.setanim", return)
+        extentity *ext = entity->staticEntity;
+        if (!ext) return;
+        ext->anim = anim;
+        ext->start_time = lastmillis;
+    });
+
+    CLUAICOMMAND(get_start_time_ext, bool, (int uid, int *val), {
+        LUA_GET_ENT(entity, uid, "_C.getstarttime", return false)
+        extentity *ext = entity->staticEntity;
+        if (!ext) return false;
+        *val = ext->start_time;
         return true;
     });
 

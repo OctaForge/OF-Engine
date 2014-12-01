@@ -27,7 +27,8 @@ var gen_getwrap = func(fun, tp) {
 }
 
 @[!server] {
-    capi.get_start_time = gen_getwrap(capi.get_start_time, "int")
+    capi.get_start_time_dyn = gen_getwrap(capi.get_start_time_dyn, "int")
+    capi.get_start_time_ext = gen_getwrap(capi.get_start_time_ext, "int")
 
     var get_selected_entity in capi
     capi.get_selected_entity = func() {

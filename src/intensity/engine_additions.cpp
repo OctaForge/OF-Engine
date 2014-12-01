@@ -18,16 +18,6 @@ extern int getattrnum(int type);
 // Logic Entities
 //=========================
 
-int CLogicEntity::getAnimation()
-{
-    return anim;
-}
-
-int CLogicEntity::getStartTime()
-{
-    return startTime;
-}
-
 int getanimid(const char *name);
 
 void CLogicEntity::clear_attachments() {
@@ -68,24 +58,6 @@ void CLogicEntity::setAttachments(const char **attach) {
         }
     }
     attachments.add(modelattach());
-}
-
-void CLogicEntity::setAnimation(int _anim)
-{
-    logger::log(logger::DEBUG, "setAnimation: %u", _anim);
-
-    // This is important as this is called before setupExtent.
-    if ((!this) || (!staticEntity && !dynamicEntity))
-        return;
-
-    logger::log(logger::DEBUG, "(2) setAnimation: %u", _anim);
-
-    anim = _anim;
-    startTime = lastmillis; // tools::currtime(); XXX Do NOT want the actual time! We
-                            // need 'lastmillis', sauer's clock, which doesn't advance *inside* frames,
-                            // because otherwise the starttime may be
-                            // LATER than lastmillis, while sauer's animation system does lastmillis-basetime,
-                            // leading to a negative number and segfaults in finding frame data
 }
 
 vec& CLogicEntity::getAttachmentPosition(const char *tag)

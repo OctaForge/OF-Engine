@@ -188,10 +188,10 @@ M.Character = Entity.clone({
 
     __properties: {
         animation: svars::StateInteger({
-            setter: @[!server,capi.set_animation], client_set: true
+            setter: @[!server,capi.set_animation_dyn], client_set: true
         }),
         start_time : svars::StateInteger({
-            getter: @[!server,capi.get_start_time]
+            getter: @[!server,capi.get_start_time_dyn]
         }),
         model_name : svars::StateString({
             setter: @[!server,capi.set_model_name]
@@ -1276,10 +1276,10 @@ M.Mapmodel = StaticEntity.clone({
 
     __properties: {
         animation: svars::StateInteger({
-            setter: @[!server,capi.set_animation], client_set: true
+            setter: @[!server,capi.set_animation_ext], client_set: true
         }),
         start_time : svars::StateInteger({
-            getter: @[!server,capi.get_start_time]
+            getter: @[!server,capi.get_start_time_ext]
         }),
         model_name : svars::StateString({
             setter: @[!server,capi.set_model_name]
