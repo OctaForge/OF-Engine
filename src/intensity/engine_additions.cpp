@@ -10,92 +10,13 @@
 #include "client_system.h"
 
 // WorldSystem
-extern void removeentity(extentity* entity);
 extern void addentity(extentity* entity);
 extern int getattrnum(int type);
-
-//=========================
-// Logic Entities
-//=========================
-
-int getanimid(const char *name);
-
-void CLogicEntity::clear_attachments() {
-    for (int i = 0; i < attachments.length() - 1; i++) {
-        delete[] (char*)attachments[i].tag;
-        delete[] (char*)attachments[i].name;
-    }
-    attachments.setsize(0);
-    attachment_positions.clear();
-}
-
-void CLogicEntity::setAttachments(const char **attach) {
-    // This is important as this is called before setupExtent.
-    if ((!this) || (!staticEntity && !dynamicEntity))
-        return;
-
-    // Clean out old data
-    clear_attachments();
-
-    while (*attach) {
-        const char *str = *attach++;
-        if (!str[0]) continue;
-        const char *name = strchr(str, ',');
-        char *tag = NULL;
-        if (name) {
-            const char *sp = str + (str[0] == '*');
-            tag = (char*)memcpy(new char[name - sp + 1], sp, name - sp);
-            tag[name - sp] = '\0';
-            name++;
-        } else tag = newstring(str + (str[0] == '*'));
-        if (str[0] == '*') {
-            entlinkpos *pos = attachment_positions.access(tag);
-            modelattach &a = attachments.add(modelattach(tag, (vec*)(pos ? pos
-                : &attachment_positions.access(tag, entlinkpos()))));
-            a.name = name ? newstring(name) : NULL;
-        } else {
-            attachments.add(modelattach(tag, newstring(name ? name : "")));
-        }
-    }
-    attachments.add(modelattach());
-}
-
-vec& CLogicEntity::getAttachmentPosition(const char *tag)
-{
-    // If last actual render - which actually calculated the attachment positions - was recent
-    // enough, use that data
-    vec *pos = (vec*)attachment_positions.access(tag);
-    if (pos) {
-        if ((lastmillis - *((int*)(pos + 1))) < 500) return *pos;
-    }
-    static vec missing; // Returned if no such tag, or no recent attachment position info. Note: Only one of these, static!
-    if (dynamicEntity) {
-        missing = dynamicEntity->o;
-    } else {
-        if (staticEntity->type == ET_MAPMODEL) {
-            vec center, radius;
-            if (staticEntity->m) {
-                staticEntity->m->collisionbox(center, radius);
-                if (staticEntity->attr[3] > 0) {
-                    float scale = staticEntity->attr[3] / 100.0f;
-                    center.mul(scale); radius.mul(scale);
-                }
-                rotatebb(center, radius, staticEntity->attr[0], staticEntity->attr[1], staticEntity->attr[2]);
-                center.add(staticEntity->o);
-                missing = center;
-            } else missing = staticEntity->o;
-        } else {
-            missing = staticEntity->o;
-        }
-    }
-    return missing;
-}
 
 //=========================
 // LogicSystem
 //=========================
 
-LogicSystem::LogicEntityMap LogicSystem::logicEntities;
 bool LogicSystem::initialized = false;
 
 void LogicSystem::clear(bool restart_lua)
@@ -106,7 +27,6 @@ void LogicSystem::clear(bool restart_lua)
     if (lua::L)
     {
         lua::call_external("entities_remove_all", "");
-        enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
         if (restart_lua) lua::reset();
     }
 
@@ -119,47 +39,15 @@ void LogicSystem::init()
     LogicSystem::initialized = true;
 }
 
-void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
-{
-    logger::log(logger::DEBUG, "C registerLogicEntity: %d", newEntity->uniqueId);
+CLUAICOMMAND(setup_extent, extentity *, (int uid, int type), {
+    logger::log(logger::DEBUG, "setup_extent: %d, %d", uid, type);
     INDENT_LOG(logger::DEBUG);
-
-    int uniqueId = newEntity->uniqueId;
-    assert(!logicEntities.access(uniqueId));
-    logicEntities.access(uniqueId, newEntity);
-
-    logger::log(logger::DEBUG, "C registerLogicEntity completes");
-}
-
-void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
-{
-    logger::log(logger::DEBUG, "UNregisterLogicEntity by UniqueID: %d", uniqueId);
-
-    if (!logicEntities.access(uniqueId)) return;
-
-    CLogicEntity *ptr = logicEntities[uniqueId];
-    logicEntities.remove(uniqueId);
-
-    ptr->clear_attachments();
-    delete ptr;
-}
-
-CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
-{
-    if (!logicEntities.access(uniqueId))
-    {
-        logger::log(logger::INFO, "(C++) Trying to get a non-existant logic entity %d", uniqueId);
-        return NULL;
+    extentity *e;
+    if (type == ET_MAPMODEL) {
+        e = new modelentity;
+    } else {
+        e = new extentity;
     }
-
-    return logicEntities[uniqueId];
-}
-
-extentity *LogicSystem::setupExtent(int uid, int type)
-{
-    logger::log(logger::DEBUG, "setupExtent: %d, %d", uid, type);
-    INDENT_LOG(logger::DEBUG);
-    extentity *e = new extentity;
     entities::getents().add(e);
 
     e->type = type;
@@ -170,15 +58,11 @@ extentity *LogicSystem::setupExtent(int uid, int type)
     addentity(e);
     attachentity(*e);
     e->uid = uid;
-    CLogicEntity *newEntity = new CLogicEntity(e);
-    newEntity->uniqueId = uid;
-    registerLogicEntity(newEntity);
     return e;
-}
+});
 
-physent *LogicSystem::setupCharacter(int uid, int cn)
-{
-    logger::log(logger::DEBUG, "setupCharacter: %d, %d", uid, cn);
+CLUAICOMMAND(setup_character, physent *, (int uid, int cn), {
+    logger::log(logger::DEBUG, "setup_character: %d, %d", uid, cn);
     INDENT_LOG(logger::DEBUG);
 
     logger::log(logger::DEBUG, "client numbers: %d, %d", ClientSystem::playerNumber, cn);
@@ -213,33 +97,5 @@ physent *LogicSystem::setupCharacter(int uid, int cn)
 
     // Register with the C++ system.
     gameEntity->uid = uid;
-    CLogicEntity *newEntity = new CLogicEntity(gameEntity);
-    newEntity->uniqueId = uid;
-    registerLogicEntity(newEntity);
     return gameEntity;
-}
-
-void LogicSystem::setupNonSauer(int uid)
-{
-    logger::log(logger::DEBUG, "setupNonSauer: %d\r\n", uid);
-    INDENT_LOG(logger::DEBUG);
-
-    CLogicEntity *newEntity = new CLogicEntity(uid);
-    registerLogicEntity(newEntity);
-}
-
-CLUAICOMMAND(unregister_entity, void, (int uid), {
-    LogicSystem::unregisterLogicEntityByUniqueId(uid);
-});
-
-CLUAICOMMAND(setup_extent, extentity *, (int uid, int type), {
-    return LogicSystem::setupExtent(uid, type);
-});
-
-CLUAICOMMAND(setup_character, physent *, (int uid, int cn), {
-    return LogicSystem::setupCharacter(uid, cn);
-});
-
-CLUAICOMMAND(setup_nonsauer, void, (int uid), {
-    LogicSystem::setupNonSauer(uid);
 });

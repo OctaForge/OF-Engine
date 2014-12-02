@@ -823,8 +823,8 @@ M.StaticEntity = Entity.clone({
 
     __deactivate: func(self) {
         @[!server] {
+            capi::destroy_extent(self.__centity)
             self.__centity = undef
-            capi::destroy_extent(self.uid)
         }
         return Entity::__deactivate(self)
     },

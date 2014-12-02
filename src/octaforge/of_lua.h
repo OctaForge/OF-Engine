@@ -56,12 +56,4 @@ namespace lua
         body; \
     }
 
-#define LUA_GET_ENT(name, uid, _log, retexpr) \
-    CLogicEntity *name = LogicSystem::getLogicEntity(uid); \
-    if (!name) { \
-        logger::log(logger::ERROR, "Cannot find CLE for entity %i (%s).", \
-            uid, _log); \
-        retexpr; \
-    }
-
 #endif

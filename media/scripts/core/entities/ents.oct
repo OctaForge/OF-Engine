@@ -682,16 +682,13 @@ M.Entity = Object.clone({
     },
 
     /**
-        The default entity deactivator. Clears the action queue, unregisters
-        the entity and makes it deactivated. On the server it also sends a
-        message to all clients to do the same.
+        The default entity deactivator. Clears the action queue and deactivates
+        the entity. On the server it also sends a message to all clients to do
+        the same.
     */
     __deactivate: func(self) {
         self.clear_actions()
-        @[!server] capi::unregister_entity(self.uid)
-
         self.deactivated = true
-
         @[server] {
             capi::le_removal(msg.ALL_CLIENTS, self.uid)
         }
@@ -873,7 +870,6 @@ M.Entity = Object.clone({
 
         if !self.sauer_type {
             @[debug] log(DEBUG, e"Entity.__activate: non-sauer entity: $(self.name)")
-            @[!server] capi::setup_nonsauer(self.uid)
             @[server] self.flush_queued_svar_changes()
         }
 

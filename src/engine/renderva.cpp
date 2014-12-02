@@ -471,14 +471,8 @@ VAR(oqmm, 0, 4, 8);
 
 static inline void rendermapmodel(extentity &e)
 {
-    CLogicEntity *entity = LogicSystem::getLogicEntity(e.uid);
-    if (!entity)
-    {
-        logger::log(logger::ERROR, "Trying to show a missing mapmodel");
-        logger::log(logger::ERROR, "                                  %d", e.uid);
-        assert(0);
-    }
-    rendermapmodel(entity, e.anim, e.o, e.attr[0], e.attr[1], e.attr[2], MDL_CULL_VFC | MDL_CULL_DIST, e.start_time, e.attr[3] > 0 ? e.attr[3]/100.0f : 1.0f); // OF
+    modelentity &em = (modelentity&)e;
+    rendermapmodel(&em, em.anim, e.o, e.attr[0], e.attr[1], e.attr[2], MDL_CULL_VFC | MDL_CULL_DIST, em.start_time, e.attr[3] > 0 ? e.attr[3]/100.0f : 1.0f); // OF
 }
 
 void rendermapmodels()
@@ -495,6 +489,7 @@ void rendermapmodels()
         loopv(oe->mapmodels)
         {
             extentity &e = *ents[oe->mapmodels[i]];
+            if(e.type != ET_MAPMODEL) continue;
             if(!(e.flags&EF_RENDER)) continue;
             if(!rendered)
             {
@@ -2575,7 +2570,7 @@ static void genshadowmeshmapmodels(shadowmesh &m, int sides, shadowdrawinfo draw
         if(!(e.flags&EF_RENDER)) continue;
         e.flags &= ~EF_RENDER;
 
-        model *mm = e.m;
+        model *mm = (e.type == ET_MAPMODEL) ? ((modelentity&)e).m : NULL;
         if(!mm || !mm->shadow || mm->animated() || (mm->alphashadow && mm->alphatested())) continue;
 
         matrix4x3 orient;

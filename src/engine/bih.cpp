@@ -294,7 +294,7 @@ BIH::~BIH()
 
 bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist, int mode, float &dist)
 {
-    model *m = e.m;
+    model *m = (e.type == ET_MAPMODEL) ? ((const modelentity&)e).m : NULL;
     if(!m) return false;
     if(mode&RAY_SHADOW)
     {

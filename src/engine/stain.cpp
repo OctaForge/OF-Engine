@@ -674,7 +674,8 @@ struct stainrenderer
         loopv(oe.mapmodels)
         {
             extentity &e = *ents[oe.mapmodels[i]];
-            model *m = e.m;
+            if (e.type != ET_MAPMODEL) continue;
+            model *m = ((modelentity&)e).m;
 
             vec center, radius;
             float rejectradius = m->collisionbox(center, radius), scale = e.attr[3] > 0 ? e.attr[3]/100.0f : 1;

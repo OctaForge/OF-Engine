@@ -149,8 +149,8 @@ btime, trans) {
     if trans {
         r, g, b, a = trans.r, trans.g, trans.b, trans.a
     }
-    mrender(ent.uid, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll, flags,
-        btime, r, g, b, a)
+    mrender(ent.__centity, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll,
+        flags, btime, r, g, b, a)
 }
 
 import core.octascript.geom

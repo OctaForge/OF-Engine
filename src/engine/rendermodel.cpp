@@ -340,17 +340,17 @@ void flushpreloadedmodels(bool msg)
 
 void preloadusedmapmodels(bool msg, bool bih) {
     vector<extentity *> &ents = entities::getents();
-    vector<extentity *> used;
+    vector<modelentity *> used;
     loopv(ents) {
         extentity *e = ents[i];
-        if (e->type != ET_MAPMODEL || !e->m) continue;
-        used.add(e);
+        if (e->type != ET_MAPMODEL || !((modelentity*)e)->m) continue;
+        used.add((modelentity*)e);
     }
 
     vector<const char *> col;
     loopv(used) {
         loadprogress = float(i + 1) / used.length();
-        extentity &e = *used[i];
+        modelentity &e = *used[i];
         model *m = e.m;
         if (bih)
             m->preloadBIH();
@@ -429,9 +429,10 @@ void clearmodel(char *name)
     const vector<extentity *> &ents = entities::getents();
     loopv(ents) {
         extentity &e = *ents[i];
-        if (e.m == m) {
-            e.m = _new;
-            e.collide = NULL;
+        modelentity &em = (modelentity&)e;
+        if (e.type == ET_MAPMODEL && em.m == m) {
+            em.m = _new;
+            em.collide = NULL;
         }
     }
 }
@@ -857,10 +858,10 @@ void clearbatchedmapmodels()
     }
 }
 
-void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
+void rendermapmodel(modelentity *e, int anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
 {
     if(!e) return;
-    model *m = e->staticEntity->m;
+    model *m = e->m;
     if(!m) return;
     modelattach *a = e->attachments.length() > 1 ? e->attachments.getbuf() : NULL;
 
@@ -1087,8 +1088,7 @@ VARP(ragdoll, 0, 1, 1);
 
 static int oldtp = -1;
 
-int preparerd(lua_State *L, int &anim, CLogicEntity *self) {
-    gameent *fp = (gameent*)self->dynamicEntity;
+int preparerd(lua_State *L, int &anim, gameent *fp) {
     if (!fp) return anim;
     if (anim&ANIM_RAGDOLL) {
         if (fp->clientnum == ClientSystem::playerNumber && !thirdperson && oldtp < 0) {
@@ -1098,7 +1098,7 @@ int preparerd(lua_State *L, int &anim, CLogicEntity *self) {
         if (fp->ragdoll || !ragdoll) {
             if (!ragdoll) anim &= ~ANIM_RAGDOLL;
             lua::call_external("entity_set_local_animation", "ii",
-                self->uniqueId, anim);
+                fp->uid, anim);
         }
     } else if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1) {
         thirdperson = oldtp; oldtp = -1;
@@ -1106,18 +1106,13 @@ int preparerd(lua_State *L, int &anim, CLogicEntity *self) {
     return anim;
 }
 
-CLUAICOMMAND(model_render, void, (int uid, const char *name, int anim,
+CLUAICOMMAND(model_render, void, (physent *ent, const char *name, int anim,
 float x, float y, float z, float yaw, float pitch, float roll, int flags,
 int basetime, float r, float g, float b, float a), {
-    LUA_GET_ENT(entity, uid, "_C.rendermodel", return)
-
-    anim = preparerd(lua::L, anim, entity);
-    gameent *fp = NULL;
-
-    if (entity->dynamicEntity) fp = (gameent*)entity->dynamicEntity;
-
+    gameent *fp = (gameent*)ent;
+    anim = preparerd(lua::L, anim, fp);
     rendermodel(name, anim, vec(x, y, z), yaw, pitch, roll, flags, fp,
-        entity->attachments.getbuf(), basetime, 0, 1, vec4(r, g, b, a));
+        fp ? fp->attachments.getbuf() : NULL, basetime, 0, 1, vec4(r, g, b, a));
 });
 
 #define SMDLBOX(nm) LUAICOMMAND(model_get_##nm, { \
@@ -1248,4 +1243,42 @@ void clearanims() {
         (void)value; /* supress warnings */
     });
     animmap.clear();
+}
+
+void clear_attachments(vector<modelattach> &attachments, hashtable<const char *, entlinkpos> &attachment_positions) {
+    for (int i = 0; i < attachments.length() - 1; i++) {
+        delete[] (char*)attachments[i].tag;
+        delete[] (char*)attachments[i].name;
+    }
+    attachments.setsize(0);
+    attachment_positions.clear();
+}
+
+void set_attachments(vector<modelattach> &attachments,
+hashtable<const char *, entlinkpos> &attachment_positions,
+const char **attach) {
+    // Clean out old data
+    clear_attachments(attachments, attachment_positions);
+
+    while (*attach) {
+        const char *str = *attach++;
+        if (!str[0]) continue;
+        const char *name = strchr(str, ',');
+        char *tag = NULL;
+        if (name) {
+            const char *sp = str + (str[0] == '*');
+            tag = (char*)memcpy(new char[name - sp + 1], sp, name - sp);
+            tag[name - sp] = '\0';
+            name++;
+        } else tag = newstring(str + (str[0] == '*'));
+        if (str[0] == '*') {
+            entlinkpos *pos = attachment_positions.access(tag);
+            modelattach &a = attachments.add(modelattach(tag, (vec*)(pos ? pos
+                : &attachment_positions.access(tag, entlinkpos()))));
+            a.name = name ? newstring(name) : NULL;
+        } else {
+            attachments.add(modelattach(tag, newstring(name ? name : "")));
+        }
+    }
+    attachments.add(modelattach());
 }

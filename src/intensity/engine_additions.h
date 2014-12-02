@@ -1,78 +1,14 @@
-
-// Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
-// This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
-
-struct entlinkpos {
-    vec pos;
-    int millis;
-    entlinkpos(const vec &pos = vec(0), int millis = 0):
-        pos(pos), millis(millis) {}
-};
-
-struct CLogicEntity
-{
-    physent*   dynamicEntity;      //!< Only one of dynamicEntity and staticEntity should be not null, corresponding to the type
-    extentity* staticEntity;       //!< Only one of dynamicEntity and staticEntity should be not null, corresponding to the type
-
-    int uniqueId; //!< Only used for nonSauer
-
-    //! The attachments for this entity
-    vector<modelattach> attachments;
-
-    //! For attachments that are position markers, the positions go here XXX: Note that current these are readable only clientside
-    //! as they require a call to rendering
-    hashtable<const char*, entlinkpos> attachment_positions;
-
-    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), uniqueId(-8)
-        { attachments.add(modelattach()); };
-    CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity),
-        staticEntity(NULL), uniqueId(-8)
-        { attachments.add(modelattach()); };
-    CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL),
-        staticEntity(_staticEntity), uniqueId(-8)
-        { attachments.add(modelattach()); };
-    CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL),
-        uniqueId(_uniqueId)
-        { attachments.add(modelattach()); }; // This is a non-Sauer LE
-    ~CLogicEntity() { clear_attachments(); }
-
-    void clear_attachments();
-
-    //! Updates the attachments based on lua information. Refreshes what is needed in Sauer
-    void setAttachments(const char **attach);
-
-    vec& getAttachmentPosition(const char *tag);
-};
-
 //! The main storage for LogicEntities and management of them. All entities appear in the central list
 //! of logic entities here, as well as other scenario-wide data.
 
 struct LogicSystem
 {
-    typedef hashtable<int, CLogicEntity*> LogicEntityMap;
-
     static bool initialized;
-    static LogicEntityMap logicEntities; //!< All the entities in the scenario
 
     //! Called before a map loads. Empties list of entities, and unloads the PC logic entity. Removes the lua engine
     static void clear(bool restart_lua = false);
 
     //! Calls clear(), and creates a new lua engine
     static void init();
-
-    //! Register a logic entity in the LogicSystem system. Must be done so that entities are accessible and are managed.
-    static void          registerLogicEntity(CLogicEntity *newEntity);
-
-    //! Unregisters a C++ GE, removes it from the set of currently running entities. Needs to not overload the other,
-    //! but have a different name, because we expose this in the lua embedding
-    static void          unregisterLogicEntityByUniqueId(int uniqueId);
-
-    static CLogicEntity *getLogicEntity(int uniqueId);
-
-    static extentity *setupExtent(int uid, int type);
-
-    static physent *setupCharacter(int uid, int cn);
-
-    static void setupNonSauer(int uid);
 };
 

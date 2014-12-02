@@ -818,7 +818,7 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
     const vector<extentity *> &ents = entities::getents();
     loopv(oc.mapmodels)
     {
-        extentity &e = *ents[oc.mapmodels[i]];
+        modelentity &e = *(modelentity*)ents[oc.mapmodels[i]];
         if(e.flags&EF_NOCOLLIDE) continue;
         if (e.type == ET_OBSTACLE) { /* OF */
             if (areacollide(d, dir, cutoff, e)) return true;

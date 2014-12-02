@@ -59,11 +59,10 @@ namespace entities
             delete storage.data.pop();
     }
 
-    CLUAICOMMAND(destroy_extent, void, (int uid), {
-        extentity* extent = LogicSystem::getLogicEntity(uid)->staticEntity;
-        if (extent->type == ET_SOUND) stopmapsound(extent);
-        removeentity(extent);
-        extent->type = ET_EMPTY;
+    CLUAICOMMAND(destroy_extent, void, (extentity *ext), {
+        if (ext->type == ET_SOUND) stopmapsound(ext);
+        removeentity(ext);
+        ext->type = ET_EMPTY;
     });
 
     CLUAICOMMAND(destroy_character, void, (int cn), {
@@ -89,45 +88,60 @@ namespace entities
 
     CLUAICOMMAND(set_animation_ext, void, (extentity *ext, int anim), {
         if (!ext) return;
-        ext->anim = anim;
-        ext->start_time = lastmillis;
+        ((modelentity*)ext)->anim = anim;
+        ((modelentity*)ext)->start_time = lastmillis;
     });
 
     CLUAICOMMAND(get_start_time_ext, bool, (extentity *ext, int *val), {
         if (!ext) return false;
-        *val = ext->start_time;
+        *val = ((modelentity*)ext)->start_time;
         return true;
     });
 
     CLUAICOMMAND(set_model_name, void, (extentity *ext, const char *name), {
         if (!ext) return;
         removeentity(ext);
-        if (name[0]) ext->m = loadmodel(name ? name : "");
+        if (name[0]) ((modelentity*)ext)->m = loadmodel(name ? name : "");
         addentity(ext);
     });
 
     CLUAICOMMAND(set_attachments_dyn, void, (physent *ent, const char **attach), {
         if (!ent) return;
-        CLogicEntity *entity = LogicSystem::getLogicEntity(((gameent*)ent)->uid);
-        if (!entity) return;
-        entity->setAttachments(attach);
+        gameent *d = (gameent*)ent;
+        set_attachments(d->attachments, d->attachment_positions, attach);
     });
 
     CLUAICOMMAND(set_attachments_ext, void, (extentity *ext, const char **attach), {
-        if (!ext) return;
-        CLogicEntity *entity = LogicSystem::getLogicEntity(ext->uid);
-        if (!entity) return;
-        entity->setAttachments(attach);
+        if (!ext || ext->type != ET_MAPMODEL) return;
+        modelentity *e = (modelentity*)ext;
+        set_attachments(e->attachments, e->attachment_positions, attach);
     });
 
-    LUAICOMMAND(get_attachment_position, {
-        int uid = luaL_checkinteger(L, 1);
-        const char *attachment = "";
-        if (!lua_isnoneornil(L, 2)) attachment = luaL_checkstring(L, 2);
-        LUA_GET_ENT(entity, uid, "_C.getattachmentpos", return 0)
-        const vec& o = entity->getAttachmentPosition(attachment);
-        lua_pushnumber(L, o.x); lua_pushnumber(L, o.y); lua_pushnumber(L, o.z);
-        return 3;
+    static bool get_attachment_pos(const char *tag,
+    hashtable<const char *, entlinkpos> &attachment_positions,
+    float *x, float *y, float *z) {
+        vec *pos = (vec*)attachment_positions.access(tag);
+        if (pos) {
+            if ((lastmillis - *((int*)(pos + 1))) < 500) {
+                *x = pos->x;
+                *y = pos->y;
+                *z = pos->z;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    CLUAICOMMAND(get_attachment_pos_ext, bool, (extentity *ext, const char *tag,
+    float *x, float *y, float *z), {
+        if (!ext || ext->type != ET_MAPMODEL) return false;
+        return get_attachment_pos(tag, ((modelentity*)ext)->attachment_positions, x, y, z);
+    });
+
+    CLUAICOMMAND(get_attachment_pos_dyn, bool, (physent *ent, const char *tag,
+    float *x, float *y, float *z), {
+        if (!ent) return false;
+        return get_attachment_pos(tag, ((gameent*)ent)->attachment_positions, x, y, z);
     });
 
     CLUAICOMMAND(set_can_move, void, (physent *ent, bool b), {

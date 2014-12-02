@@ -291,44 +291,31 @@ namespace lapi_binds
     /* World */
 
 #ifndef STANDALONE
-    int _lua_iscolliding(lua_State *L) {
-        int uid = luaL_checkinteger(L, 5);
-        CLogicEntity *ignore = (uid != -1) ? LogicSystem::getLogicEntity(uid)
-            : NULL;
-
+    CLUAICOMMAND(iscolliding, bool, (float x, float y, float z, float r, physent *ignore), {
         physent tester;
-
         tester.reset();
         tester.type = ENT_BOUNCE;
-        tester.o    = vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-                               luaL_checknumber(L, 3));
-        float r = luaL_checknumber(L, 4);
+        tester.o    = vec(x, y, z);
         tester.radius    = tester.xradius = tester.yradius = r;
         tester.eyeheight = tester.aboveeye  = r;
-
         if (collide(&tester, vec(0))) {
-            if (ignore && ignore->dynamicEntity &&
-                ignore->dynamicEntity == collideplayer
-            ) {
-                vec save = ignore->dynamicEntity->o;
-                avoidcollision(ignore->dynamicEntity, vec(1), &tester, 0.1f);
-
+            if (ignore && ignore == collideplayer) {
+                vec save = ignore->o;
+                avoidcollision(ignore, vec(1), &tester, 0.1f);
                 bool ret = collide(&tester, vec(0));
-                ignore->dynamicEntity->o = save;
-
-                lua_pushboolean(L, ret);
+                ignore->o = save;
+                return ret;
             }
-            else lua_pushboolean(L, true);
-        } else lua_pushboolean(L, false);
-        return 1;
-    }
+            return true;
+        }
+        return false;
+    });
 
     int _lua_setgravity(lua_State *L) {
         GRAVITY = luaL_checknumber(L, 1);
         return 0;
     }
 #else
-    LAPI_EMPTY(iscolliding)
     LAPI_EMPTY(setgravity)
 #endif
 
@@ -435,7 +422,6 @@ namespace lapi_binds
     /* world */
     LUACOMMAND(gettargetpos, _lua_gettargetpos);
     LUACOMMAND(gettargetent, _lua_gettargetent);
-    LUACOMMAND(iscolliding, _lua_iscolliding);
     LUACOMMAND(setgravity, _lua_setgravity);
     LUACOMMAND(hasmap, _lua_hasmap);
     LUACOMMAND(get_map_preview_filename, _lua_get_map_preview_filename);

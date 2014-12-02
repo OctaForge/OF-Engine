@@ -1,7 +1,5 @@
 // the interface the game uses to access the engine
 
-struct CLogicEntity;
-
 extern int curtime;                     // current frame time
 extern int lastmillis;                  // last time
 extern int elapsedtime;                 // elapsed frame time
@@ -364,6 +362,31 @@ struct modelattach
     modelattach() : tag(NULL), name(NULL), anim(-1), basetime(0), pos(NULL), m(NULL) {}
     modelattach(const char *tag, const char *name, int anim = -1, int basetime = 0) : tag(tag), name(name), anim(anim), basetime(basetime), pos(NULL), m(NULL) {}
     modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), anim(-1), basetime(0), pos(pos), m(NULL) {}
+};
+
+struct entlinkpos {
+    vec pos;
+    int millis;
+    entlinkpos(const vec &pos = vec(0), int millis = 0):
+        pos(pos), millis(millis) {}
+};
+
+extern void clear_attachments(vector<modelattach> &attachments, hashtable<const char *, entlinkpos> &attachment_positions);
+extern void set_attachments(vector<modelattach> &attachments, hashtable<const char *, entlinkpos> &attachment_positions, const char **attach);
+
+struct modelentity: extentity {
+    model *m, *collide;
+    int anim, start_time;
+    vector<modelattach> attachments;
+    hashtable<const char*, entlinkpos> attachment_positions;
+
+    modelentity(): extentity(), m(NULL), collide(NULL), anim(0), start_time(0) {
+        attachments.add(modelattach());
+    }
+
+    ~modelentity() {
+        clear_attachments(attachments, attachment_positions);
+    }
 };
 
 extern void rendermodel(const char *mdl, int anim, const vec &o, float yaw = 0, float pitch = 0, float roll = 0, int cull = MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float size = 1, const vec4 &color = vec4(1, 1, 1, 1));
