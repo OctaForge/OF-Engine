@@ -15,6 +15,8 @@ extern int enthover;
 
 namespace game
 {
+    bool haslogicsys = false;
+
     VAR(useminimap, 0, 0, 1); // do we want the minimap? Set from JS.
 
     int gamemode = 0;

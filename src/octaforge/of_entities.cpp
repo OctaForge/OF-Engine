@@ -326,4 +326,38 @@ namespace entities
         if (!e || !e->attached) return -1;
         return e->attached->uid;
     });
+
+    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type), {
+        extentity *e;
+        if (type == ET_MAPMODEL) {
+            e = new modelentity;
+        } else {
+            e = new extentity;
+        }
+        entities::getents().add(e);
+
+        e->type = type;
+        e->o = vec(0, 0, 0);
+        int numattrs = getattrnum(type);
+        for (int i = 0; i < numattrs; ++i) e->attr.add(0);
+
+        addentity(e);
+        attachentity(*e);
+        e->uid = uid;
+        return e;
+    });
+
+    CLUAICOMMAND(setup_character, physent *, (int uid, int cn), {
+        if (uid == ClientSystem::uniqueId)
+            lua::call_external("entity_set_cn", "ii", uid, (cn = ClientSystem::playerNumber));
+        assert(cn >= 0);
+        gameent *d;
+        if (uid == ClientSystem::uniqueId) {
+            d = game::getclient(cn);
+        } else {
+            d = game::newclient(cn);
+        }
+        d->uid = uid;
+        return d;
+    });
 } /* end namespace entities */

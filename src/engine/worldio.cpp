@@ -615,7 +615,8 @@ struct tessentity
 
 bool load_world(const char *mname, const char *cname)        // still supports all map formats that have existed since the earliest cube betas!
 {
-    LogicSystem::init(); // INTENSITY: Start our game data system, wipe all existing LogicEntities, and add the player
+    lua::init();
+    game::haslogicsys = true;
 
     setmapfilenames(mname, cname);
 

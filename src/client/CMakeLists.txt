@@ -80,8 +80,6 @@ else()
         ../engine/stain
         ../engine/sound
         ../engine/pvs
-        ../intensity/engine_additions
-        ../intensity/targeting
         ../shared/stream
         ../shared/zip
         ../engine/movie

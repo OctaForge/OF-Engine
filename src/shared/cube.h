@@ -94,7 +94,6 @@ extern "C" {
 
 #include "of_logger.h"
 #include "of_lua.h"
-#include "engine_additions.h"
 
 #endif
 

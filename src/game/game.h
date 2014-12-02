@@ -170,6 +170,8 @@ namespace game
 
     void determinetarget(bool force = false, vec *pos = NULL, extentity **extent = NULL, dynent **dynent = NULL);
     void gettarget(vec *pos, extentity **extent, dynent **dynent);
+
+    extern bool haslogicsys;
 }
 
 namespace server

@@ -38,7 +38,9 @@ void ClientSystem::onDisconnect()
     stopsounds();
 
     // we also must get the lua system into clear state
-    LogicSystem::clear(true);
+    lua::call_external("entities_remove_all", "");
+    lua::reset();
+    game::haslogicsys = false;
 }
 
 bool ClientSystem::scenarioStarted()
@@ -78,7 +80,8 @@ void ClientSystem::prepareForNewScenario(const char *sc)
     // Clear the logic system, as it is no longer valid - were it running, we might try to process messages from
     // the new map being set up on the server, even though they are irrelevant to the existing engine, set up for
     // another map with its Classes etc.
-    LogicSystem::clear();
+    lua::call_external("entities_remove_all", "");
+    game::haslogicsys = false;
 
     copystring(currScenarioCode, sc);
 }

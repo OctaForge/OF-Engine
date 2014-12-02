@@ -257,7 +257,7 @@ namespace MessageSystem
             \
             logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s", uid, keyProtocolId, value); \
             \
-            if (!LogicSystem::initialized) \
+            if (!game::haslogicsys) \
                 return; \
             lua::call_external("entity_set_sdata", "iis", uid, keyProtocolId, value);
         STATE_DATA_UPDATE
@@ -425,7 +425,7 @@ namespace MessageSystem
         char stateData[MAXTRANS];
         getstring(stateData, p);
 
-        if (!LogicSystem::initialized)
+        if (!game::haslogicsys)
             return;
         logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s", otherClientNumber, otherUniqueId, otherClass);
         INDENT_LOG(logger::DEBUG);
@@ -512,7 +512,7 @@ namespace MessageSystem
     {
         int uid = getint(p);
 
-        if (!LogicSystem::initialized)
+        if (!game::haslogicsys)
             return;
         lua::call_external("entity_remove", "i", uid);
     }
@@ -538,7 +538,7 @@ namespace MessageSystem
         char stateData[MAXTRANS];
         getstring(stateData, p);
 
-        if (!LogicSystem::initialized)
+        if (!game::haslogicsys)
             return;
         logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s", otherUniqueId, otherClass);
         INDENT_LOG(logger::DEBUG);
