@@ -16,6 +16,8 @@ namespace server
     int& getUniqueId(int clientNumber);
 }
 
+extern ENetPacket *buildfva(const char *format, va_list args, int &exclude);
+
 namespace MessageSystem
 {
 
@@ -35,6 +37,31 @@ namespace MessageSystem
 
         if(!packet->referenceCount) enet_packet_destroy(packet);
     }
+
+    CLUAICOMMAND(msg_send, void, (int cn, int exclude, const char *fmt, ...), {
+        bool reliable = false;
+        va_list args;
+        va_start(args, fmt);
+        if (*fmt == 'r') { reliable = true; ++fmt; }
+        packetbuf p(MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+        while (*fmt) switch (*fmt++) {
+            case 'i': {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putint(p, (int)va_arg(args, double));
+                break;
+            }
+            case 'f': {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putfloat(p, (float)va_arg(args, double));
+                break;
+            }
+            case 's': sendstring(va_arg(args, const char *), p); break;
+        }
+        va_end(args);
+        ENetPacket *packet = p.finalize();
+        p.packet = NULL;
+        send_AnyMessage(cn, MAIN_CHANNEL, packet, exclude);
+    })
 
     // PersonalServerMessage
 
@@ -101,6 +128,7 @@ namespace MessageSystem
 
         logger::log(logger::DEBUG, "Told my unique ID: %d", uid);
         ClientSystem::uniqueId = uid;
+        lua::call_external("player_set_uid", "i", uid);
     }
 #endif
 
@@ -405,68 +433,6 @@ namespace MessageSystem
     }
 #endif
 
-// LogicEntityCompleteNotification
-
-#ifdef STANDALONE
-    void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type LogicEntityCompleteNotification (1018)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData));
-    }
-#endif
-
-#ifndef STANDALONE
-    void LogicEntityCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int otherClientNumber = getint(p);
-        int otherUniqueId = getint(p);
-        char otherClass[MAXTRANS];
-        getstring(otherClass, p);
-        char stateData[MAXTRANS];
-        getstring(stateData, p);
-
-        if (!game::haslogicsys)
-            return;
-        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s", otherClientNumber, otherUniqueId, otherClass);
-        INDENT_LOG(logger::DEBUG);
-        // If a logic entity does not yet exist, create one
-        bool ent_exists = false;
-        lua::pop_external_ret(lua::call_external_ret("entity_exists", "i", "b", otherUniqueId, &ent_exists));
-        if (!ent_exists)
-        {
-            if (otherClientNumber >= 0) // If this is another client, then send the clientnumber, critical for setup
-            {
-                // If this is the player, validate it is the clientNumber we already have
-                if (otherUniqueId == ClientSystem::uniqueId)
-                {
-                    logger::log(logger::DEBUG, "This is the player's entity (%d), validating client num: %d,%d",
-                        otherUniqueId, otherClientNumber, ClientSystem::playerNumber);
-                    assert(otherClientNumber == ClientSystem::playerNumber);
-                }
-            }
-            lua::pop_external_ret(lua::call_external_ret("entity_add_with_cn", "sii", "b", otherClass, otherUniqueId, otherClientNumber, &ent_exists));
-            if (!ent_exists)
-            {
-                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring", otherUniqueId, otherClass);
-                return;
-            }
-        } else
-            logger::log(logger::DEBUG, "Existing LogicEntity %d, no need to create", otherUniqueId);
-        // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
-        // are remotely connected (TODO: make this not segfault for localconnect)
-        logger::log(logger::DEBUG, "Updating stateData with: %s", stateData);
-        lua::call_external("entity_set_sdata_full", "is", otherUniqueId, stateData);
-        // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
-        if (otherUniqueId == ClientSystem::uniqueId)
-        {
-            logger::log(logger::DEBUG, "Linking player information, uid: %d", otherUniqueId);
-            // Note in lua
-            lua::call_external("player_init", "i", ClientSystem::uniqueId);
-        }
-        renderprogress(0, "receiving entities...");
-    }
-#endif
-
 
 // RequestLogicEntityRemoval
 
@@ -694,7 +660,6 @@ void MessageManager::registerAll()
     registerMessageType( new UnreliableStateDataChangeRequest() );
     registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new ActiveEntitiesRequest() );
-    registerMessageType( new LogicEntityCompleteNotification() );
     registerMessageType( new RequestLogicEntityRemoval() );
     registerMessageType( new LogicEntityRemoval() );
     registerMessageType( new ExtentCompleteNotification() );

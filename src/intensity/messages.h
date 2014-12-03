@@ -199,21 +199,6 @@ struct ActiveEntitiesRequest : MessageType
 
 void send_ActiveEntitiesRequest(const char* scenarioCode);
 
-
-// LogicEntityCompleteNotification
-
-struct LogicEntityCompleteNotification : MessageType
-{
-    LogicEntityCompleteNotification() : MessageType(1018, "LogicEntityCompleteNotification") { };
-
-#ifndef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData);
-
-
 // RequestLogicEntityRemoval
 
 struct RequestLogicEntityRemoval : MessageType

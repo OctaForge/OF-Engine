@@ -96,14 +96,6 @@ namespace lapi_binds
 #endif
 
 #ifdef STANDALONE
-    int _lua_le_notification_complete(lua_State *L) {
-        const char *oc = luaL_checkstring(L, 4);
-        const char *sd = luaL_checkstring(L, 5);
-        send_LogicEntityCompleteNotification(luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), oc, sd ? sd : "");
-        return 0;
-    }
-
     int _lua_le_removal(lua_State *L) {
         send_LogicEntityRemoval(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
         return 0;
@@ -124,7 +116,6 @@ namespace lapi_binds
         return 0;
     }
 #else
-    LAPI_EMPTY(le_notification_complete)
     LAPI_EMPTY(le_removal)
     LAPI_EMPTY(statedata_update)
     LAPI_EMPTY(statedata_update_unreliable)
@@ -398,7 +389,6 @@ namespace lapi_binds
     LUACOMMAND(personal_servmsg, _lua_personal_servmsg);
     LUACOMMAND(statedata_changerequest, _lua_statedata_changerequest);
     LUACOMMAND(statedata_changerequest_unreliable, _lua_statedata_changerequest_unreliable);
-    LUACOMMAND(le_notification_complete, _lua_le_notification_complete);
     LUACOMMAND(le_removal, _lua_le_removal);
     LUACOMMAND(statedata_update, _lua_statedata_update);
     LUACOMMAND(statedata_update_unreliable, _lua_statedata_update_unreliable);

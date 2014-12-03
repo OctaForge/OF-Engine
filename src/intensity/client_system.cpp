@@ -41,6 +41,7 @@ void ClientSystem::onDisconnect()
     lua::call_external("entities_remove_all", "");
     lua::reset();
     game::haslogicsys = false;
+    lua::call_external("has_logic_sys_set", "b", false);
 }
 
 bool ClientSystem::scenarioStarted()
@@ -82,6 +83,7 @@ void ClientSystem::prepareForNewScenario(const char *sc)
     // another map with its Classes etc.
     lua::call_external("entities_remove_all", "");
     game::haslogicsys = false;
+    lua::call_external("has_logic_sys_set", "b", false);
 
     copystring(currScenarioCode, sc);
 }

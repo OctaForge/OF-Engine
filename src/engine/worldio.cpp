@@ -617,6 +617,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 {
     lua::init();
     game::haslogicsys = true;
+    lua::call_external("has_logic_sys_set", "b", true);
 
     setmapfilenames(mname, cname);
 

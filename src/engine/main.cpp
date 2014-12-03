@@ -274,6 +274,8 @@ void renderprogress(float bar, const char *text)   // also used during loading
     swapbuffers(false);
 }
 
+CLUACOMMAND(renderprogress, void, (float, const char *), renderprogress);
+
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
 
 bool shouldgrab = false, grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false;
