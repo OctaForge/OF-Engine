@@ -63,25 +63,6 @@ namespace MessageSystem
         send_AnyMessage(cn, MAIN_CHANNEL, packet, exclude);
     })
 
-    // PersonalServerMessage
-
-    void send_PersonalServerMessage(int clientNumber, const char* title, const char* content)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type PersonalServerMessage (1001)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riss", 1001, title, content));
-    }
-
-#ifndef STANDALONE
-    void PersonalServerMessage::receive(int receiver, int sender, ucharbuf &p)
-    {
-        char title[MAXTRANS];
-        getstring(title, p);
-        char content[MAXTRANS];
-        getstring(content, p);
-        assert(lua::call_external("gui_show_message", "ss", title, content));
-    }
-#endif
-
 // LoginRequest
 
 #ifndef STANDALONE
@@ -99,7 +80,7 @@ namespace MessageSystem
     {
         if (!world::scenario_code[0])
         {
-            send_PersonalServerMessage(
+            lua::call_external("show_client_message", "iss",
                 sender,
                 "Login failure",
                 "Login failure: instance is not running a map"
@@ -244,7 +225,7 @@ namespace MessageSystem
         if (!server::isAdmin(sender))
         {
             logger::log(logger::WARNING, "Non-admin tried to add an entity");
-            send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot create entities");
+            lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot create entities");
             return;
         }
         // Validate class
@@ -365,7 +346,7 @@ namespace MessageSystem
             logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s",
                 sender, scenarioCode
             );
-            send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
+            lua::call_external("show_client_message", "iss", sender, "Invalid scenario", "An error occured in synchronizing scenarios");
             return;
         }
         assert(lua::call_external("entities_send_all", "i", sender));
@@ -396,7 +377,7 @@ namespace MessageSystem
         if (!server::isAdmin(sender))
         {
             logger::log(logger::WARNING, "Non-admin tried to remove an entity");
-            send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot remove entities");
+            lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot remove entities");
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
@@ -523,7 +504,6 @@ namespace MessageSystem
 
 void MessageManager::registerAll()
 {
-    registerMessageType( new PersonalServerMessage() );
     registerMessageType( new LoginRequest() );
     registerMessageType( new YourUniqueId() );
     registerMessageType( new LoginResponse() );

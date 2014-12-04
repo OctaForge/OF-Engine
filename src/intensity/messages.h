@@ -5,20 +5,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-
-// PersonalServerMessage
-
-struct PersonalServerMessage : MessageType
-{
-    PersonalServerMessage() : MessageType(1001, "PersonalServerMessage") { };
-
-#ifndef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_PersonalServerMessage(int clientNumber, const char* title, const char* content);
-
 // LoginRequest
 
 struct LoginRequest : MessageType

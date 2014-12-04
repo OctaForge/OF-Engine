@@ -70,6 +70,12 @@ setext("message_receive", func(tp, receiver, sender, p) {
     return true
 })
 
+var psnid = M::register(@[!server,func(tp, receiver, sender, p) {
+    var title = p.get_string()
+    var content = p.get_string()
+    // TODO: show message
+}])
+
 /**
     Shows a message on the client, coming from the server (this only works
     serverside). You need to provide a client number or a client entity, a
@@ -78,7 +84,8 @@ setext("message_receive", func(tp, receiver, sender, p) {
 M.show_client_message = @[server,func(cn, title, text) {
     cn = typeof cn == "table" && cn.cn || cn
     assert(cn)
-    capi::personal_servmsg(cn, title, text)
+    capi::msg_send(cn, -1, "riss", psnid, title || "", text || "")
 }]
+setext("show_client_message", M.show_client_message)
 
 return M

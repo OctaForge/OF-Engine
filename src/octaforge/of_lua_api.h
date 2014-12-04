@@ -68,14 +68,6 @@ namespace lapi_binds
 
     /* messages */
 
-    int _lua_personal_servmsg(lua_State *L) {
-        const char *title   = luaL_checkstring(L, 2);
-        const char *content = luaL_checkstring(L, 3);
-        send_PersonalServerMessage(luaL_checkinteger(L, 1),
-            title ? title : "", content ? content : "");
-        return 0;
-    }
-
 #ifndef STANDALONE
     int _lua_statedata_changerequest(lua_State *L) {
         const char *val = luaL_optstring(L, 3, "");
@@ -347,7 +339,6 @@ namespace lapi_binds
     LUACOMMAND(hasprivedit, _lua_hasprivedit);
 
     /* messages */
-    LUACOMMAND(personal_servmsg, _lua_personal_servmsg);
     LUACOMMAND(statedata_changerequest, _lua_statedata_changerequest);
     LUACOMMAND(statedata_changerequest_unreliable, _lua_statedata_changerequest_unreliable);
     LUACOMMAND(do_click, _lua_do_click);
