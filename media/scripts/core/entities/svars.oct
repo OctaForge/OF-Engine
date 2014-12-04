@@ -103,8 +103,8 @@ M.StateVariable = Object.clone({
 
         kwargs = kwargs || {}
 
-        self.client_read    = kwargs.client_read    || true
-        self.client_write   = kwargs.client_write   || true
+        self.client_read    = (kwargs.client_read  != undef) ? kwargs.client_read  : true
+        self.client_write   = (kwargs.client_write != undef) ? kwargs.client_write : true
         self.client_set     = kwargs.client_set     || false
         self.client_private = kwargs.client_private || false
 
@@ -112,8 +112,8 @@ M.StateVariable = Object.clone({
 
         self.gui_name, self.alt_name = kwargs.gui_name, kwargs.alt_name
 
-        self.reliable    = kwargs.reliable    || true
-        self.has_history = kwargs.has_history || true
+        self.reliable    = (kwargs.reliable    != undef) ? kwargs.reliable    : true
+        self.has_history = (kwargs.has_history != undef) ? kwargs.has_history : true
 
         self.getter_fun = kwargs.getter
         self.setter_fun = kwargs.setter

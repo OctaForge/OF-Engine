@@ -932,6 +932,28 @@ M.Entity = Object.clone({
         capi::msg_send(cn, -1, "rii", self.msgid_le_rem, uid)
     },
 
+    msgid_sdata_update: msg::register(@[!server,func(tp, receiver, sender, p) {
+        var uid = p.get_int()
+        var kpid = p.get_int()
+        var value = p.get_string()
+        var ocn = p.get_int()
+        @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $value")
+        if !has_logic_sys {
+            return
+        }
+        var ent = storage[uid]
+        if ent {
+            var key = ids_to_names[ent.name][kpid]
+            @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
+            ent.set_sdata(key, value)
+        }
+    }]),
+
+    msg_sdata_update_send: func(self, cn, reliable, uid, kpid, value, ocn) {
+        capi::msg_send(cn, ocn, reliable ? "riiisi" : "iiisi",
+            self.msgid_sdata_update, uid, kpid, value, ocn)
+    },
+
     /**
         Triggered automatically right before the `,changed` signal. It first
         checks if there is a setter function for the given svar and does
@@ -1054,8 +1076,6 @@ M.Entity = Object.clone({
                 return
             }
 
-            var mf = svar.reliable && capi.statedata_update
-                                   || capi.statedata_update_unreliable
             var kid = names_to_ids[self.name][key]
             var wval = svar.to_wire(val)
             var acn = (svar.client_set && actor_uid && actor_uid != -1)
@@ -1064,7 +1084,8 @@ M.Entity = Object.clone({
             var cns = get_players().map(\p -> p.cn)
             for i, n in cns.each() {
                 if svar.should_send(self, n) {
-                    mf(n, self.uid, kid, wval, acn)
+                    self.msg_sdata_update_send(n, svar.reliable, self.uid,
+                        tonumber(kid), wval, acn)
                 }
             }
         }
@@ -1360,8 +1381,6 @@ set_external("player_set_uid", func(uid) { player_uid = uid })
 /**
     Converts the protocol ID to a real key and sets the state data on the
     entity with the given unique ID.
-
-    External as `entity_set_sdata`.
 
     Arguments:
         - uid - an unique ID.

@@ -259,40 +259,6 @@ namespace MessageSystem
     }
 #endif
 
-// StateDataUpdate
-
-#ifdef STANDALONE
-    void send_StateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type StateDataUpdate (1011)");
-        INDENT_LOG(logger::DEBUG);
-
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiisi", 1011, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
-    }
-#endif
-
-#ifndef STANDALONE
-    void StateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int uid = getint(p);
-        int keyProtocolId = getint(p);
-        char value[MAXTRANS];
-        getstring(value, p);
-        int originalClientNumber = getint(p);
-
-        #define STATE_DATA_UPDATE \
-            assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
-            \
-            logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s", uid, keyProtocolId, value); \
-            \
-            if (!game::haslogicsys) \
-                return; \
-            lua::call_external("entity_set_sdata", "iis", uid, keyProtocolId, value);
-        STATE_DATA_UPDATE
-    }
-#endif
-
-
 // StateDataChangeRequest
 
 #ifndef STANDALONE
@@ -331,31 +297,6 @@ namespace MessageSystem
         STATE_DATA_REQUEST
     }
 #endif
-
-// UnreliableStateDataUpdate
-
-#ifdef STANDALONE
-    void send_UnreliableStateDataUpdate(int clientNumber, int uid, int keyProtocolId, const char* value, int originalClientNumber)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataUpdate (1013)");
-
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("iiisi", 1013, uid, keyProtocolId, value, originalClientNumber), originalClientNumber);
-    }
-#endif
-
-#ifndef STANDALONE
-    void UnreliableStateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int uid = getint(p);
-        int keyProtocolId = getint(p);
-        char value[MAXTRANS];
-        getstring(value, p);
-        int originalClientNumber = getint(p);
-
-        STATE_DATA_UPDATE
-    }
-#endif
-
 
 // UnreliableStateDataChangeRequest
 
@@ -590,9 +531,7 @@ void MessageManager::registerAll()
     registerMessageType( new RequestCurrentScenario() );
     registerMessageType( new NotifyAboutCurrentScenario() );
     registerMessageType( new NewEntityRequest() );
-    registerMessageType( new StateDataUpdate() );
     registerMessageType( new StateDataChangeRequest() );
-    registerMessageType( new UnreliableStateDataUpdate() );
     registerMessageType( new UnreliableStateDataChangeRequest() );
     registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new ActiveEntitiesRequest() );

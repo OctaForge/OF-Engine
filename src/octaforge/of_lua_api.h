@@ -95,26 +95,6 @@ namespace lapi_binds
     LAPI_EMPTY(statedata_changerequest_unreliable)
 #endif
 
-#ifdef STANDALONE
-    int _lua_statedata_update(lua_State *L) {
-        const char *val = luaL_checkstring(L, 4);
-        send_StateDataUpdate(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-            luaL_checkinteger(L, 3), val ? val : "" , luaL_checkinteger(L, 5));
-        return 0;
-    }
-
-    int _lua_statedata_update_unreliable(lua_State *L) {
-        const char *val = luaL_checkstring(L, 4);
-        send_UnreliableStateDataUpdate(luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), val ? val : "",
-            luaL_checkinteger(L, 5));
-        return 0;
-    }
-#else
-    LAPI_EMPTY(statedata_update)
-    LAPI_EMPTY(statedata_update_unreliable)
-#endif
-
 #ifndef STANDALONE
     int _lua_do_click(lua_State *L) {
         send_DoClick(luaL_checkinteger(L, 1), lua_toboolean(L, 2),
@@ -370,8 +350,6 @@ namespace lapi_binds
     LUACOMMAND(personal_servmsg, _lua_personal_servmsg);
     LUACOMMAND(statedata_changerequest, _lua_statedata_changerequest);
     LUACOMMAND(statedata_changerequest_unreliable, _lua_statedata_changerequest_unreliable);
-    LUACOMMAND(statedata_update, _lua_statedata_update);
-    LUACOMMAND(statedata_update_unreliable, _lua_statedata_update_unreliable);
     LUACOMMAND(do_click, _lua_do_click);
 
     /* network */
