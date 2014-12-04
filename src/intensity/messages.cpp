@@ -463,48 +463,6 @@ namespace MessageSystem
     }
 #endif
 
-// ExtentCompleteNotification
-
-#ifdef STANDALONE
-    void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type ExtentCompleteNotification (1021)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("riiss", 1021, otherUniqueId, otherClass, stateData));
-    }
-#endif
-
-#ifndef STANDALONE
-    void ExtentCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int otherUniqueId = getint(p);
-        char otherClass[MAXTRANS];
-        getstring(otherClass, p);
-        char stateData[MAXTRANS];
-        getstring(stateData, p);
-
-        if (!game::haslogicsys)
-            return;
-        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s", otherUniqueId, otherClass);
-        INDENT_LOG(logger::DEBUG);
-        // If a logic entity does not yet exist, create one
-        bool ent_exists = false;
-        lua::pop_external_ret(lua::call_external_ret("entity_exists", "i", "b", otherUniqueId, &ent_exists));
-        if (!ent_exists)
-        {
-            logger::log(logger::DEBUG, "Creating new active LogicEntity");
-            lua::pop_external_ret(lua::call_external_ret("entity_add", "si", "b", otherClass, otherUniqueId, &ent_exists));
-            assert(ent_exists);
-        } else
-            logger::log(logger::DEBUG, "Existing LogicEntity %d, no need to create", otherUniqueId);
-        // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
-        // are remotely connected (TODO: make this not segfault for localconnect)
-        logger::log(logger::DEBUG, "Updating stateData");
-        lua::call_external("entity_set_sdata_full", "is", otherUniqueId, stateData);
-        renderprogress(0, "receiving entities...");
-    }
-#endif
-
-
 // InitS2C
 
     void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
@@ -639,7 +597,6 @@ void MessageManager::registerAll()
     registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new ActiveEntitiesRequest() );
     registerMessageType( new RequestLogicEntityRemoval() );
-    registerMessageType( new ExtentCompleteNotification() );
     registerMessageType( new InitS2C() );
     registerMessageType( new EditModeC2S() );
     registerMessageType( new EditModeS2C() );

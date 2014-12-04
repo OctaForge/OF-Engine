@@ -126,19 +126,6 @@ namespace lapi_binds
     LAPI_EMPTY(do_click)
 #endif
 
-#ifdef STANDALONE
-    int _lua_extent_notification_complete(lua_State *L) {
-        const char *oc = luaL_checkstring(L, 3);
-        const char *sd = luaL_checkstring(L, 4);
-        send_ExtentCompleteNotification(
-            luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-            oc ? oc : "", sd ? sd : "");
-        return 0;
-    }
-#else
-    LAPI_EMPTY(extent_notification_complete)
-#endif
-
     /* network */
 
 #ifndef STANDALONE
@@ -386,7 +373,6 @@ namespace lapi_binds
     LUACOMMAND(statedata_update, _lua_statedata_update);
     LUACOMMAND(statedata_update_unreliable, _lua_statedata_update_unreliable);
     LUACOMMAND(do_click, _lua_do_click);
-    LUACOMMAND(extent_notification_complete, _lua_extent_notification_complete);
 
     /* network */
     LUACOMMAND(connect, _lua_connect);

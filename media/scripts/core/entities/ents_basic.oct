@@ -13,6 +13,7 @@ import capi
 import core.logger as logging
 var log = logging.log
 var DEBUG = logging.DEBUG
+var ERROR = logging.ERROR
 
 import core.engine.camera
 import core.engine.sound
@@ -829,6 +830,33 @@ M.StaticEntity = Entity.clone({
         return Entity::__deactivate(self)
     },
 
+    msgid_extent_cn: msg::register(@[!server,func(tp, receiver, sender, p) {
+        var ouid = p.get_int()
+        var oc   = p.get_string()
+        var sd   = p.get_string()
+        if !ents::has_logic_sys() {
+            return
+        }
+        var ent = ents::get(ouid)
+        if ent == undef {
+            ent = ents::add(oc, ouid)
+            if ent == undef {
+                log(ERROR, "received an entity that cannot be created")
+                return
+            }
+        } else {
+            @[debug] log(DEBUG, e"existing static entity $ouid, no need to create")
+        }
+        @[debug] log(DEBUG, e"updating state data with $sd")
+        ent.set_sdata_full(sd)
+        capi::renderprogress(0, "receiving entities...")
+    }]),
+
+    msg_extent_cn_send: func(self, cn, ouid, oc, sd) {
+        capi::msg_send(cn, -1, "riiss", self.msgid_extent_cn, ouid, oc,
+                       sd || "")
+    },
+
     send_notification_full: @[server,func(self, cn) {
         var acn = msg.ALL_CLIENTS
         cn = cn || acn
@@ -841,7 +869,7 @@ M.StaticEntity = Entity.clone({
 
         var scn, sname = self.cn, self.name
         for i, n in cns.each() {
-            capi::extent_notification_complete(n, uid, sname,
+            self.msg_extent_cn_send(n, uid, sname,
                 self.build_sdata({ target_cn: n, compressed: true }))
         }
 

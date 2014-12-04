@@ -88,6 +88,10 @@ var is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
 var has_logic_sys = false
 set_external("has_logic_sys_set", func(v) { has_logic_sys = v })
 
+M.has_logic_sys = func() {
+    return has_logic_sys
+}
+
 /**
     Generates the required network data for an entity prototype. You pass the
     entity prototype name and an array of state variable names to generate network
@@ -444,7 +448,7 @@ M.get_by_distance = func(pos, kwargs) {
     `__init_svars` method will be called on the server on the entity instead
     of just assigning an uid. That means it's a newly created entity. Sometimes
     we don't want this behavior, for example when loading an entity from a
-    file. External as `entity_add`.
+    file.
 */
 var add = func(cn, uid, kwargs, new) {
     uid = uid || 1337
@@ -495,9 +499,6 @@ var add = func(cn, uid, kwargs, new) {
     return r
 }
 M.add = add
-set_external("entity_add", func(cn, uid, kwargs, new) {
-    return add(cn, uid, kwargs, new) != undef
-})
 
 /**
     Removes an entity of the given uid. First emits the `pre_deactivate`
@@ -1379,10 +1380,6 @@ M.set_sdata = func(uid, kpid, value, auid) {
     }
 }
 set_external("entity_set_sdata", M.set_sdata)
-
-set_external("entity_set_sdata_full", func(uid, sd) {
-    get_ent(uid).set_sdata_full(sd)
-})
 
 set_external("entity_serialize_sdata", func(uid, x, y, z) {
     var sd = get_ent(uid).build_sdata()

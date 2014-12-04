@@ -212,20 +212,6 @@ struct RequestLogicEntityRemoval : MessageType
 
 void send_RequestLogicEntityRemoval(int uid);
 
-// ExtentCompleteNotification
-
-struct ExtentCompleteNotification : MessageType
-{
-    ExtentCompleteNotification() : MessageType(1021, "ExtentCompleteNotification") { };
-
-#ifndef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData);
-
-
 // InitS2C
 
 struct InitS2C : MessageType
