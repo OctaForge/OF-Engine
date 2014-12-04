@@ -198,6 +198,47 @@ namespace game
         return true;
     }
 
+    CLUAICOMMAND(msg_add, bool, (int type, const char *fmt, ...), {
+        logger::log(logger::INFO, "client: addmsg: adding a scripting message of type %d", type);
+        if (!connected) return false;
+        static uchar buf[MAXTRANS];
+        ucharbuf p(buf, sizeof(buf));
+        putint(p, type);
+        int numi = 1;
+        int numf = 0;
+        int nums = 0;
+        bool reliable = false;
+        if (fmt) {
+            va_list args;
+            va_start(args, fmt);
+            while (*fmt) switch (*fmt++) {
+                case 'r': reliable = true; break;
+                case 'i': {
+                    int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                    loopi(n) putint(p, (int)va_arg(args, double));
+                    numi += n;
+                    break;
+                }
+                case 'f': {
+                    int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                    loopi(n) putfloat(p, (float)va_arg(args, double));
+                    numf += n;
+                    break;
+                }
+                case 's': sendstring(va_arg(args, const char *), p); nums++; break;
+            }
+            va_end(args);
+        }
+        int num = nums || numf ? 0 : numi;
+        int msgsize = server::msgsizelookup(type);
+        if (type < INTENSITY_MSG_TYPE_MIN) {
+            if (msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
+        }
+        if (reliable) messagereliable = true;
+        messages.put(buf, p.length());
+        return true;
+    });
+
     void toserver(char *text)
     {
         if (ClientSystem::scenarioStarted())
