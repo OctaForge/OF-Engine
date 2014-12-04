@@ -463,28 +463,6 @@ namespace MessageSystem
     }
 #endif
 
-// LogicEntityRemoval
-
-#ifdef STANDALONE
-    void send_LogicEntityRemoval(int clientNumber, int uid)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type LogicEntityRemoval (1020)");
-        send_AnyMessage(clientNumber, MAIN_CHANNEL, buildf("rii", 1020, uid));
-    }
-#endif
-
-#ifndef STANDALONE
-    void LogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int uid = getint(p);
-
-        if (!game::haslogicsys)
-            return;
-        lua::call_external("entity_remove", "i", uid);
-    }
-#endif
-
-
 // ExtentCompleteNotification
 
 #ifdef STANDALONE
@@ -661,7 +639,6 @@ void MessageManager::registerAll()
     registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new ActiveEntitiesRequest() );
     registerMessageType( new RequestLogicEntityRemoval() );
-    registerMessageType( new LogicEntityRemoval() );
     registerMessageType( new ExtentCompleteNotification() );
     registerMessageType( new InitS2C() );
     registerMessageType( new EditModeC2S() );

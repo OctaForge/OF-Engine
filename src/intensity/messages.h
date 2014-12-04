@@ -212,21 +212,6 @@ struct RequestLogicEntityRemoval : MessageType
 
 void send_RequestLogicEntityRemoval(int uid);
 
-
-// LogicEntityRemoval
-
-struct LogicEntityRemoval : MessageType
-{
-    LogicEntityRemoval() : MessageType(1020, "LogicEntityRemoval") { };
-
-#ifndef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_LogicEntityRemoval(int clientNumber, int uid);
-
-
 // ExtentCompleteNotification
 
 struct ExtentCompleteNotification : MessageType

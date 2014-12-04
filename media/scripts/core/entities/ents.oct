@@ -40,9 +40,6 @@ from std.math import max, floor
 from std.conv import tonumber, tostring, serialize, deserialize
 from std.util import assert
 
-// send funcs
-var send_le_notification_complete
-
 /// Module: ents
 var M = {}
 
@@ -529,6 +526,7 @@ M.remove = func(uid) {
     }
     storage[uid] = undef
 }
+var ent_remove = M.remove
 set_external("entity_remove", M.remove)
 
 set_external("entity_clear_actions", func(uid) {
@@ -694,7 +692,7 @@ M.Entity = Object.clone({
         self.clear_actions()
         self.deactivated = true
         @[server] {
-            capi::le_removal(msg.ALL_CLIENTS, self.uid)
+            self.msg_le_rem_send(msg.ALL_CLIENTS, self.uid)
         }
     },
 
@@ -887,6 +885,52 @@ M.Entity = Object.clone({
         }
     },
 
+    msgid_le_cn: msg::register(@[!server,func(tp, receiver, sender, p) {
+        var ocn  = p.get_int()
+        var ouid = p.get_int()
+        var oc   = p.get_string()
+        var sd   = p.get_string()
+        if !has_logic_sys {
+            return
+        }
+        var ent = get_ent(ouid)
+        if ent == undef {
+            ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)
+            if ent == undef {
+                log(ERROR, "received an entity that cannot be created")
+                return
+            }
+        } else {
+            @[debug] log(DEBUG, e"existing entity $ouid, no need to create")
+        }
+        @[debug] log(DEBUG, e"updating state data with $sd")
+        ent.set_sdata_full(sd)
+        if ouid == player_uid {
+            @[debug] log(DEBUG, e"initializing player with uid $ouid")
+            player_entity = storage[ouid]
+            assert(player_entity)
+            player_entity.controlled_here = true
+        }
+        capi::renderprogress(0, "receiving entities...")
+    }]),
+
+    msg_le_cn_send: func(self, cn, ocn, ouid, oc, sd) {
+        capi::msg_send(cn, -1, "riiiss", self.msgid_le_cn, ocn, ouid, oc,
+                       sd || "")
+    },
+
+    msgid_le_rem: msg::register(@[!server,func(tp, receiver, sender, p) {
+        var uid = p.get_int()
+        if !has_logic_sys {
+            return
+        }
+        ent_remove(uid)
+    }]),
+
+    msg_le_rem_send: func(self, cn, uid) {
+        capi::msg_send(cn, -1, "rii", self.msgid_le_rem, uid)
+    },
+
     /**
         Triggered automatically right before the `,changed` signal. It first
         checks if there is a setter function for the given svar and does
@@ -1048,7 +1092,7 @@ M.Entity = Object.clone({
 
         var scn, sname = self.cn, self.name
         for i, n in cns.each() {
-            send_le_notification_complete(n, scn && scn || acn, uid, sname,
+            self.msg_le_cn_send(n, scn && scn || acn, uid, sname,
                 self.build_sdata({ target_cn: n, compressed: true }))
         }
 
@@ -1310,20 +1354,6 @@ M.render_hud = @[!server,func() {
 var render_hud = M.render_hud
 set_external("game_render_hud", render_hud)
 
-/** Function: init_player
-    Assigns the player entity using the given uid. External as `player_init`,
-    clientside.
-*/
-M.init_player = @[!server,func(uid) {
-    assert(uid)
-    @[debug] log(DEBUG, e"Initializing player with uid $uid")
-
-    player_entity = storage[uid]
-    assert(player_entity)
-    player_entity.controlled_here = true
-}]
-var init_player = M.init_player
-set_external("player_init", init_player)
 set_external("player_set_uid", func(uid) { player_uid = uid })
 
 /**
@@ -1462,40 +1492,5 @@ M.send = @[server,func(cn) {
     }
 }]
 set_external("entities_send_all", M.send)
-
-import core.network.msg
-
-var le_cn_id = msg::register(@[!server,func(tp, receiver, sender, p) {
-    var ocn  = p.get_int()
-    var ouid = p.get_int()
-    var oc   = p.get_string()
-    var sd   = p.get_string()
-
-    if !has_logic_sys {
-        return
-    }
-
-    var ent = get_ent(ouid)
-    if ent == undef {
-        ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)
-        if ent == undef {
-            log(ERROR, "received an entity that cannot be created")
-            return
-        }
-    } else {
-        @[debug] log(DEBUG, e"existing entity $ouid, no need to create")
-    }
-
-    @[debug] log(DEBUG, e"updating state data with $sd")
-    ent.set_sdata_full(sd)
-    if ouid == player_uid {
-        init_player(ouid)
-    }
-    capi::renderprogress(0, "receiving entities...")
-}])
-
-send_le_notification_complete = func(cn, ocn, ouid, oc, sd) {
-    capi::msg_send(cn, -1, "riiiss", le_cn_id, ocn, ouid, oc, sd || "")
-}
 
 return M
