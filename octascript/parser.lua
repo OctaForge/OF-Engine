@@ -497,15 +497,7 @@ parse_simple_expr = function(ls, ast)
         ls:get()
         return ast.UnaryExpression(tn, parse_subexpr(ls, ast, unp), line)
     else
-        local cond = (sexps[tn] or parse_primary_expr)(ls, ast)
-        if tok.name ~= "?" then
-            return cond
-        end
-        ls:get()
-        local texpr = parse_expr(ls, ast)
-        assert_next(ls, ":")
-        local fexpr = parse_subexpr(ls, ast, if_prec)
-        return ast.IfExpression(cond, texpr, fexpr)
+        return (sexps[tn] or parse_primary_expr)(ls, ast)
     end
 end
 
@@ -515,14 +507,19 @@ parse_subexpr = function(ls, ast, mp)
     local lhs  = parse_simple_expr(ls, ast)
     while true do
         local op = tok.name
-        local p = BinaryOps[op]
+        local p = BinaryOps[op] or (op == "?" and if_prec or nil)
         if not op or not p or p < mp then break end
         if p == ass_prec and not lhs:is_lvalue() then
             syntax_error(ls, "lvalue expected")
         end
         ls:get()
         local np = (p == ass_prec or RightAss[op]) and p or (p + 1)
-        if op == "=" then
+        if op == "?" then
+            local texpr = parse_expr(ls, ast)
+            assert_next(ls, ":")
+            local fexpr = parse_subexpr(ls, ast, if_prec)
+            lhs = ast.IfExpression(lhs, texpr, fexpr)
+        elseif op == "=" then
             lhs = ast.AssignmentExpression(lhs, parse_subexpr(ls, ast, np), line)
         elseif AssOps[op] then
             local line2 = ls.line_number
