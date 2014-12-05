@@ -131,6 +131,8 @@ namespace server
         return (ci ? ci->uniqueId : DUMMY); // Kind of a hack, but we do use this to both set and get... maybe need two methods separate
     }
 
+    CLUAICOMMAND(cn_get_uid, int, (int cn), return getUniqueId(cn););
+
 
     struct worldstate
     {

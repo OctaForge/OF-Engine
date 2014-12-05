@@ -102,32 +102,6 @@ struct NewEntityRequest : MessageType
 
 void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData, const char *newent_data);
 
-// StateDataChangeRequest
-
-struct StateDataChangeRequest : MessageType
-{
-    StateDataChangeRequest() : MessageType(1012, "StateDataChangeRequest") { };
-
-#ifdef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_StateDataChangeRequest(int uid, int keyProtocolId, const char* value);
-
-// UnreliableStateDataChangeRequest
-
-struct UnreliableStateDataChangeRequest : MessageType
-{
-    UnreliableStateDataChangeRequest() : MessageType(1014, "UnreliableStateDataChangeRequest") { };
-
-#ifdef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_UnreliableStateDataChangeRequest(int uid, int keyProtocolId, const char* value);
-
 // AllActiveEntitiesSent
 
 struct AllActiveEntitiesSent : MessageType

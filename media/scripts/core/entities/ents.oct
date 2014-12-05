@@ -954,6 +954,29 @@ M.Entity = Object.clone({
             self.msgid_sdata_update, uid, kpid, value, ocn)
     },
 
+    msgid_sdata_changereq: msg::register(@[server,func(tp, receiver, sender, p) {
+        var uid = p.get_int()
+        var kpid = p.get_int()
+        var value = p.get_string()
+
+        if tonumber(capi::have_scenario_code()) == 0 { return }
+
+        var auid = capi::cn_get_uid(sender)
+        @[debug] log(DEBUG, e"client $auid tried to change $kpid to value $value")
+        if tonumber(capi::is_running_current_scenario(sender)) == 0 { return }
+        var ent = storage[uid]
+        if ent {
+            var key = ids_to_names[ent.name][kpid]
+            @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
+            ent.set_sdata(key, value, auid)
+        }
+    }]),
+
+    msg_sdata_changereq_send: func(self, reliable, uid, kpid, value) {
+        capi::msg_add(self.msgid_sdata_changereq, reliable ? "riis" : "iis",
+            uid, kpid, value || "")
+    },
+
     /**
         Triggered automatically right before the `,changed` signal. It first
         checks if there is a setter function for the given svar and does
@@ -1020,9 +1043,8 @@ M.Entity = Object.clone({
         if !nfh && !csfh {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
-            var mf = svar.reliable && capi.statedata_changerequest
-                || capi.statedata_changerequest_unreliable
-            mf(self.uid, names_to_ids[self.name][svar.name], svar.to_wire(val))
+            self.msg_sdata_changereq_send(svar.reliable, self.uid,
+                tonumber(names_to_ids[self.name][svar.name]), svar.to_wire(val))
         }
 
         // from a server or set clientside, update now
@@ -1398,7 +1420,6 @@ M.set_sdata = func(uid, kpid, value, auid) {
         ent.set_sdata(key, value, auid)
     }
 }
-set_external("entity_set_sdata", M.set_sdata)
 
 set_external("entity_serialize_sdata", func(uid, x, y, z) {
     var sd = get_ent(uid).build_sdata()

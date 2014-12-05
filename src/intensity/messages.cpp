@@ -240,70 +240,6 @@ namespace MessageSystem
     }
 #endif
 
-// StateDataChangeRequest
-
-#ifndef STANDALONE
-    void send_StateDataChangeRequest(int uid, int keyProtocolId, const char* value)
-    {        // This isn't a perfect way to differentiate transient state data changes from permanent ones
-        // that justify saying 'changes were made', but for now it will do. Note that even checking
-        // for changes to persistent entities is not enough - transient changes on them are generally
-        // not expected to count as 'changes'. So this check, of editmode, is the best simple solution
-        // there is - if you're in edit mode, the change counts as a 'real change', that you probably
-        // want saved.
-        // Note: We don't do this with unreliable messages, meaningless anyhow.
-
-        logger::log(logger::DEBUG, "Sending a message of type StateDataChangeRequest (1012)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1012, "riis", uid, keyProtocolId, value);
-    }
-#endif
-
-#ifdef STANDALONE
-    void StateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int uid = getint(p);
-        int keyProtocolId = getint(p);
-        char value[MAXTRANS];
-        getstring(value, p);
-
-        if (!world::scenario_code[0]) return;
-        #define STATE_DATA_REQUEST \
-        int actorUniqueId = server::getUniqueId(sender); \
-        \
-        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s", actorUniqueId, keyProtocolId, value); \
-        \
-        if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
-        lua::call_external("entity_set_sdata", "iisi", uid, keyProtocolId, value, actorUniqueId);
-        STATE_DATA_REQUEST
-    }
-#endif
-
-// UnreliableStateDataChangeRequest
-
-#ifndef STANDALONE
-    void send_UnreliableStateDataChangeRequest(int uid, int keyProtocolId, const char* value)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1014, "iis", uid, keyProtocolId, value);
-    }
-#endif
-
-#ifdef STANDALONE
-    void UnreliableStateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int uid = getint(p);
-        int keyProtocolId = getint(p);
-        char value[MAXTRANS];
-        getstring(value, p);
-
-        if (!world::scenario_code[0]) return;
-        STATE_DATA_REQUEST
-    }
-#endif
-
 // AllActiveEntitiesSent
 
     void send_AllActiveEntitiesSent(int clientNumber)
@@ -480,8 +416,6 @@ void MessageManager::registerAll()
     registerMessageType( new RequestCurrentScenario() );
     registerMessageType( new NotifyAboutCurrentScenario() );
     registerMessageType( new NewEntityRequest() );
-    registerMessageType( new StateDataChangeRequest() );
-    registerMessageType( new UnreliableStateDataChangeRequest() );
     registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new ActiveEntitiesRequest() );
     registerMessageType( new RequestLogicEntityRemoval() );

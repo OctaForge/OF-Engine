@@ -66,27 +66,6 @@ namespace lapi_binds
     LAPI_EMPTY(hasprivedit)
 #endif
 
-    /* messages */
-
-#ifndef STANDALONE
-    int _lua_statedata_changerequest(lua_State *L) {
-        const char *val = luaL_optstring(L, 3, "");
-        send_StateDataChangeRequest(luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2), val);
-        return 0;
-    }
-
-    int _lua_statedata_changerequest_unreliable(lua_State *L) {
-        const char *val = luaL_optstring(L, 3, "");
-        send_UnreliableStateDataChangeRequest(luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2), val);
-        return 0;
-    }
-#else
-    LAPI_EMPTY(statedata_changerequest)
-    LAPI_EMPTY(statedata_changerequest_unreliable)
-#endif
-
     /* network */
 
 #ifndef STANDALONE
@@ -326,10 +305,6 @@ namespace lapi_binds
 
     /* edit */
     LUACOMMAND(hasprivedit, _lua_hasprivedit);
-
-    /* messages */
-    LUACOMMAND(statedata_changerequest, _lua_statedata_changerequest);
-    LUACOMMAND(statedata_changerequest_unreliable, _lua_statedata_changerequest_unreliable);
 
     /* network */
     LUACOMMAND(connect, _lua_connect);
