@@ -87,17 +87,6 @@ namespace lapi_binds
     LAPI_EMPTY(statedata_changerequest_unreliable)
 #endif
 
-#ifndef STANDALONE
-    int _lua_do_click(lua_State *L) {
-        send_DoClick(luaL_checkinteger(L, 1), lua_toboolean(L, 2),
-            luaL_checknumber(L, 3), luaL_checknumber (L, 4),
-            luaL_checknumber(L, 5), luaL_checkinteger(L, 6));
-        return 0;
-    }
-#else
-    LAPI_EMPTY(do_click)
-#endif
-
     /* network */
 
 #ifndef STANDALONE
@@ -341,7 +330,6 @@ namespace lapi_binds
     /* messages */
     LUACOMMAND(statedata_changerequest, _lua_statedata_changerequest);
     LUACOMMAND(statedata_changerequest_unreliable, _lua_statedata_changerequest_unreliable);
-    LUACOMMAND(do_click, _lua_do_click);
 
     /* network */
     LUACOMMAND(connect, _lua_connect);

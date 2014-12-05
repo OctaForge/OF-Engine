@@ -873,5 +873,7 @@ namespace server
 
         return ci->runningCurrentScenario;
     }
+
+    CLUAICOMMAND(is_running_current_scenario, bool, (int cn), return isRunningCurrentScenario(cn););
 };
 

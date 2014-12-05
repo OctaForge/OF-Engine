@@ -469,37 +469,6 @@ namespace MessageSystem
     }
 #endif
 
-// DoClick
-
-#ifndef STANDALONE
-    void send_DoClick(int button, int down, float x, float y, float z, int uid)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type DoClick (1031)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1031, "riiiiii", button, down, int(x*DMF), int(y*DMF), int(z*DMF), uid);
-    }
-#endif
-
-#ifdef STANDALONE
-    void DoClick::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int button = getint(p);
-        int down = getint(p);
-        float x = float(getint(p))/DMF;
-        float y = float(getint(p))/DMF;
-        float z = float(getint(p))/DMF;
-        int uid = getint(p);
-
-        if (!world::scenario_code[0]) return;
-        if (!server::isRunningCurrentScenario(sender)) return; // Silently ignore info from previous scenario
-
-        assert(lua::call_external("input_click_server", "ibfffi", button, down,
-            x, y, z, uid));
-    }
-#endif
-
-
 // Register all messages
 
 void MessageManager::registerAll()
@@ -519,7 +488,6 @@ void MessageManager::registerAll()
     registerMessageType( new InitS2C() );
     registerMessageType( new EditModeC2S() );
     registerMessageType( new EditModeS2C() );
-    registerMessageType( new DoClick() );
 }
 
 }

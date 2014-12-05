@@ -47,6 +47,8 @@ namespace world
         }
     }
 
+    CLUAICOMMAND(have_scenario_code, bool, (), return scenario_code[0];);
+
     bool set_map(const char *id) {
         generate_scenario_code();
 #ifdef STANDALONE

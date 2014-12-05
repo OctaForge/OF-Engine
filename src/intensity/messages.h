@@ -208,17 +208,4 @@ struct EditModeS2C : MessageType
 
 void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode);
 
-// DoClick
-
-struct DoClick : MessageType
-{
-    DoClick() : MessageType(1031, "DoClick") { };
-
-#ifdef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_DoClick(int button, int down, float x, float y, float z, int uid);
-
 #endif
