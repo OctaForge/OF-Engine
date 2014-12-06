@@ -195,51 +195,6 @@ namespace MessageSystem
     }
 #endif
 
-
-// NewEntityRequest
-
-#ifndef STANDALONE
-    void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData, const char *newent_data)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type NewEntityRequest (1010)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1010, "rsiiiss", _class, int(x*DMF), int(y*DMF), int(z*DMF), stateData, newent_data);
-    }
-#endif
-
-#ifdef STANDALONE
-    void NewEntityRequest::receive(int receiver, int sender, ucharbuf &p)
-    {
-        char _class[MAXTRANS];
-        getstring(_class, p);
-        float x = float(getint(p))/DMF;
-        float y = float(getint(p))/DMF;
-        float z = float(getint(p))/DMF;
-        char stateData[MAXTRANS];
-        getstring(stateData, p);
-        char newent_data[MAXTRANS];
-        getstring(newent_data, p);
-
-        if (!world::scenario_code[0]) return;
-        if (!server::isAdmin(sender))
-        {
-            logger::log(logger::WARNING, "Non-admin tried to add an entity");
-            lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot create entities");
-            return;
-        }
-        // Validate class
-        bool b;
-        lua::pop_external_ret(lua::call_external_ret("entity_proto_exists", "s", "b", _class, &b));
-        if (!b) return;
-        // Add entity
-        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s|%s", _class, x, y, z, stateData, newent_data);
-        if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        // Create
-        lua::call_external("entity_new_with_sd", "sfffss", _class, x, y, z, stateData, newent_data);
-    }
-#endif
-
 // AllActiveEntitiesSent
 
     void send_AllActiveEntitiesSent(int clientNumber)
@@ -385,7 +340,6 @@ void MessageManager::registerAll()
     registerMessageType( new PrepareForNewScenario() );
     registerMessageType( new RequestCurrentScenario() );
     registerMessageType( new NotifyAboutCurrentScenario() );
-    registerMessageType( new NewEntityRequest() );
     registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new ActiveEntitiesRequest() );
     registerMessageType( new InitS2C() );

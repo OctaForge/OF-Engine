@@ -88,20 +88,6 @@ struct NotifyAboutCurrentScenario : MessageType
 
 void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc);
 
-
-// NewEntityRequest
-
-struct NewEntityRequest : MessageType
-{
-    NewEntityRequest() : MessageType(1010, "NewEntityRequest") { };
-
-#ifdef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData, const char *newent_data);
-
 // AllActiveEntitiesSent
 
 struct AllActiveEntitiesSent : MessageType

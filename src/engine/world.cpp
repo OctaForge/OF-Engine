@@ -1076,7 +1076,8 @@ void newent(const char *cl, const char *sd, const char *nd, vec fp)
     cp.add(fp);
 
     if (!sd || !sd[0]) sd = "{}";
-    MessageSystem::send_NewEntityRequest(cl, cp.x, cp.y, cp.z, sd, nd ? nd : "");
+    game::addmsg(N_ENTREQUESTNEW, "rsiiiss", cl, int(cp.x*DMF), int(cp.y*DMF),
+        int(cp.z*DMF), sd, nd ? nd : "");
 }
 
 #undef FAR_PLACING_FACTOR
@@ -1262,8 +1263,8 @@ void enttype(char *type, int *numargs) {
         groupedit(
             vec pos(e.o);
             game::addmsg(N_ENTREQUESTREMOVE, "ri", e.uid);
-            MessageSystem::send_NewEntityRequest(type, pos.x, pos.y, pos.z,
-                "{}", "");
+            game::addmsg(N_ENTREQUESTNEW, "rsiiiss", type, int(pos.x*DMF),
+                int(pos.y*DMF), int(pos.z*DMF), "{}", "");
         );
     } else entfocus(efocus, {
         const char *name;
