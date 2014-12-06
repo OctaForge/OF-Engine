@@ -1,6 +1,7 @@
 // world.cpp: core map management stuff
 
 #include "engine.h"
+#include "game.h"
 
 #include "message_system.h" // INTENSITY
 
@@ -993,7 +994,7 @@ void delent()
 
     loopv(entgroup) entfocus(
         entgroup[i],
-        MessageSystem::send_RequestLogicEntityRemoval(e.uid)
+        game::addmsg(N_ENTREQUESTREMOVE, "ri", e.uid)
     );
 
     entcancel();
@@ -1260,7 +1261,7 @@ void enttype(char *type, int *numargs) {
     if (*numargs >= 1) {
         groupedit(
             vec pos(e.o);
-            MessageSystem::send_RequestLogicEntityRemoval(e.uid);
+            game::addmsg(N_ENTREQUESTREMOVE, "ri", e.uid);
             MessageSystem::send_NewEntityRequest(type, pos.x, pos.y, pos.z,
                 "{}", "");
         );

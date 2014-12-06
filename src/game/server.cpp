@@ -598,6 +598,18 @@ namespace server
                break;
             }
 
+            case N_ENTREQUESTREMOVE: {
+                int uid = getint(p);
+                if (!world::scenario_code[0]) return;
+                if (!server::isAdmin(sender)) {
+                    logger::log(logger::WARNING, "Non-admin tried to remove an entity");
+                    lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot remove entities");
+                    return;
+                }
+                if (!server::isRunningCurrentScenario(sender)) return; // Silently ignore info from previous scenario
+                lua::call_external("entity_remove", "i", uid);
+            }
+
             /* TODO: expose this */
             case N_SERVCMD:
                 getstring(text, p);
@@ -823,6 +835,9 @@ namespace server
             N_ADDBOT, 2, N_DELBOT, 1, N_INITAI, 0, N_FROMAI, 2, N_BOTLIMIT, 2, N_BOTBALANCE, 2,
             N_MAPCRC, 0, N_CHECKMAPS, 1,
             N_SWITCHNAME, 0, N_SWITCHMODEL, 2, N_SWITCHTEAM, 0,
+            N_SERVCMD, 0,
+
+            N_ENTREQUESTREMOVE, 0,
             -1
         };
         for(int *p = msgsizes; *p>=0; p += 2) if(*p==msg) return p[1];

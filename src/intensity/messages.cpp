@@ -291,36 +291,6 @@ namespace MessageSystem
     }
 #endif
 
-
-// RequestLogicEntityRemoval
-
-#ifndef STANDALONE
-    void send_RequestLogicEntityRemoval(int uid)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1019, "ri", uid);
-    }
-#endif
-
-#ifdef STANDALONE
-    void RequestLogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int uid = getint(p);
-
-        if (!world::scenario_code[0]) return;
-        if (!server::isAdmin(sender))
-        {
-            logger::log(logger::WARNING, "Non-admin tried to remove an entity");
-            lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot remove entities");
-            return;
-        }
-        if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua::call_external("entity_remove", "i", uid);
-    }
-#endif
-
 // InitS2C
 
     void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
@@ -418,7 +388,6 @@ void MessageManager::registerAll()
     registerMessageType( new NewEntityRequest() );
     registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new ActiveEntitiesRequest() );
-    registerMessageType( new RequestLogicEntityRemoval() );
     registerMessageType( new InitS2C() );
     registerMessageType( new EditModeC2S() );
     registerMessageType( new EditModeS2C() );

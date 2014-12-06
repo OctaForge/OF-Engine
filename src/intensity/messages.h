@@ -129,19 +129,6 @@ struct ActiveEntitiesRequest : MessageType
 
 void send_ActiveEntitiesRequest(const char* scenarioCode);
 
-// RequestLogicEntityRemoval
-
-struct RequestLogicEntityRemoval : MessageType
-{
-    RequestLogicEntityRemoval() : MessageType(1019, "RequestLogicEntityRemoval") { };
-
-#ifdef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_RequestLogicEntityRemoval(int uid);
-
 // InitS2C
 
 struct InitS2C : MessageType
