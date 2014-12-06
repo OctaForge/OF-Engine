@@ -22,6 +22,11 @@
 
 extern bool should_quit;
 
+namespace MessageSystem {
+    extern void send_LoginResponse(int clientNumber, bool success, bool local);
+}
+extern void force_network_flush();
+
 namespace server
 {
     struct server_entity            // server side version of "entity" type
@@ -637,6 +642,21 @@ namespace server
                 break;
             }
 
+            case N_LOGINREQUEST:
+                if (!world::scenario_code[0])
+                {
+                    lua::call_external("show_client_message", "iss",
+                        sender,
+                        "Login failure",
+                        "Login failure: instance is not running a map"
+                    );
+                    force_network_flush();
+                    disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
+                }
+                server::setAdmin(sender, true);
+                MessageSystem::send_LoginResponse(sender, true, true);
+                break;
+
             /* TODO: expose this */
             case N_SERVCMD:
                 getstring(text, p);
@@ -865,6 +885,8 @@ namespace server
             N_SERVCMD, 0,
 
             N_ENTREQUESTNEW, 0, N_ENTREQUESTREMOVE, 0,
+            N_LOGINREQUEST, 0,
+
             -1
         };
         for(int *p = msgsizes; *p>=0; p += 2) if(*p==msg) return p[1];

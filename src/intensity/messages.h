@@ -5,19 +5,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-// LoginRequest
-
-struct LoginRequest : MessageType
-{
-    LoginRequest() : MessageType(1003, "LoginRequest") { };
-
-#ifdef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_LoginRequest();
-
 
 // YourUniqueId
 

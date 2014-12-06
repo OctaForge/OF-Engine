@@ -25,7 +25,7 @@ void ClientSystem::login(int clientNumber)
 
     playerNumber = clientNumber;
 
-    MessageSystem::send_LoginRequest();
+    game::addmsg(N_LOGINREQUEST, "r");
 }
 
 void ClientSystem::onDisconnect()

@@ -63,36 +63,6 @@ namespace MessageSystem
         send_AnyMessage(cn, MAIN_CHANNEL, packet, exclude);
     })
 
-// LoginRequest
-
-#ifndef STANDALONE
-    void send_LoginRequest()
-    {
-        logger::log(logger::DEBUG, "Sending a message of type LoginRequest (1003)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1003, "r");
-    }
-#endif
-
-#ifdef STANDALONE
-    void LoginRequest::receive(int receiver, int sender, ucharbuf &p)
-    {
-        if (!world::scenario_code[0])
-        {
-            lua::call_external("show_client_message", "iss",
-                sender,
-                "Login failure",
-                "Login failure: instance is not running a map"
-            );
-            force_network_flush();
-            disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
-        }
-        server::setAdmin(sender, true);
-        send_LoginResponse(sender, true, true);
-    }
-#endif
-
 // YourUniqueId
 
     void send_YourUniqueId(int clientNumber, int uid)
@@ -334,7 +304,6 @@ namespace MessageSystem
 
 void MessageManager::registerAll()
 {
-    registerMessageType( new LoginRequest() );
     registerMessageType( new YourUniqueId() );
     registerMessageType( new LoginResponse() );
     registerMessageType( new PrepareForNewScenario() );
