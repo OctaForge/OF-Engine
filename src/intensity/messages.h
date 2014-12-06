@@ -88,20 +88,6 @@ struct AllActiveEntitiesSent : MessageType
 
 void send_AllActiveEntitiesSent(int clientNumber);
 
-
-// ActiveEntitiesRequest
-
-struct ActiveEntitiesRequest : MessageType
-{
-    ActiveEntitiesRequest() : MessageType(1017, "ActiveEntitiesRequest") { };
-
-#ifdef STANDALONE
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_ActiveEntitiesRequest(const char* scenarioCode);
-
 // InitS2C
 
 struct InitS2C : MessageType

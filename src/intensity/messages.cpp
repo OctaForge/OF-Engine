@@ -180,42 +180,6 @@ namespace MessageSystem
     }
 #endif
 
-
-// ActiveEntitiesRequest
-
-#ifndef STANDALONE
-    void send_ActiveEntitiesRequest(const char* scenarioCode)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type ActiveEntitiesRequest (1017)");
-        INDENT_LOG(logger::DEBUG);
-
-        game::addmsg(1017, "rs", scenarioCode);
-    }
-#endif
-
-#ifdef STANDALONE
-    void ActiveEntitiesRequest::receive(int receiver, int sender, ucharbuf &p)
-    {
-        char scenarioCode[MAXTRANS];
-        getstring(scenarioCode, p);
-
-        if (!world::scenario_code[0]) return;
-        // Mark the client as running the current scenario, if indeed doing so
-        server::setClientScenario(sender, scenarioCode);
-        if ( !server::isRunningCurrentScenario(sender) )
-        {
-            logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s",
-                sender, scenarioCode
-            );
-            lua::call_external("show_client_message", "iss", sender, "Invalid scenario", "An error occured in synchronizing scenarios");
-            return;
-        }
-        assert(lua::call_external("entities_send_all", "i", sender));
-        MessageSystem::send_AllActiveEntitiesSent(sender);
-        assert(lua::call_external("event_player_login", "i", server::getUniqueId(sender)));
-    }
-#endif
-
 // InitS2C
 
     void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
@@ -310,7 +274,6 @@ void MessageManager::registerAll()
     registerMessageType( new RequestCurrentScenario() );
     registerMessageType( new NotifyAboutCurrentScenario() );
     registerMessageType( new AllActiveEntitiesSent() );
-    registerMessageType( new ActiveEntitiesRequest() );
     registerMessageType( new InitS2C() );
     registerMessageType( new EditModeC2S() );
     registerMessageType( new EditModeS2C() );

@@ -21,10 +21,6 @@
 #include "of_world.h"
 
 extern bool should_quit;
-
-namespace MessageSystem {
-    extern void send_LoginResponse(int clientNumber, bool success, bool local);
-}
 extern void force_network_flush();
 
 namespace server
@@ -642,6 +638,24 @@ namespace server
                 break;
             }
 
+            case N_ACTIVEENTSREQUEST: {
+                char scenario_code[MAXTRANS];
+                getstring(scenario_code, p);
+                if (!world::scenario_code[0]) return;
+                // Mark the client as running the current scenario, if indeed doing so
+                server::setClientScenario(sender, scenario_code);
+                if (!server::isRunningCurrentScenario(sender)) {
+                    logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s",
+                        sender, scenario_code);
+                    lua::call_external("show_client_message", "iss", sender, "Invalid scenario", "An error occured in synchronizing scenarios");
+                    return;
+                }
+                assert(lua::call_external("entities_send_all", "i", sender));
+                MessageSystem::send_AllActiveEntitiesSent(sender);
+                assert(lua::call_external("event_player_login", "i", server::getUniqueId(sender)));
+                break;
+            }
+
             case N_LOGINREQUEST:
                 if (!world::scenario_code[0])
                 {
@@ -885,6 +899,7 @@ namespace server
             N_SERVCMD, 0,
 
             N_ENTREQUESTNEW, 0, N_ENTREQUESTREMOVE, 0,
+            N_ACTIVEENTSREQUEST, 0,
             N_LOGINREQUEST, 0,
 
             -1
