@@ -15,12 +15,6 @@ string ClientSystem::currScenarioCode   = "";
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
 
-void ClientSystem::login(int clientNumber)
-{
-    logger::log(logger::DEBUG, "ClientSystem::login()");
-    game::addmsg(N_LOGINREQUEST, "r");
-}
-
 void ClientSystem::onDisconnect()
 {
     _scenarioStarted  = false;
@@ -78,14 +72,5 @@ void ClientSystem::prepareForNewScenario(const char *sc)
     lua::call_external("has_logic_sys_set", "b", false);
 
     copystring(currScenarioCode, sc);
-}
-
-bool ClientSystem::isAdmin()
-{
-    if (!game::player1) return false;
-    bool b;
-    lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
-        "b", game::player1->uid, "can_edit", &b));
-    return b;
 }
 

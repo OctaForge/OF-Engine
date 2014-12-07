@@ -73,11 +73,18 @@ namespace game
             cleanragdoll(player);
     }
 
+    static bool is_admin() {
+        if (!player1) return false;
+        bool b;
+        lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
+            "b", game::player1->uid, "can_edit", &b));
+        return b;
+    }
 
     bool allowedittoggle()
     {
         if(editmode) return true;
-        if (!ClientSystem::isAdmin())
+        if (!is_admin())
         {
             conoutf("You are not authorized to enter edit mode\r\n");
             return false;
@@ -675,7 +682,7 @@ namespace game
                     break;
                 }
                 game::player1->clientnum = ecn;
-                ClientSystem::login(ecn);
+                game::addmsg(N_LOGINREQUEST, "r");
                 break;
             }
 
@@ -741,7 +748,7 @@ namespace game
 
     void edittrigger(const selinfo &sel, int op, int arg1, int arg2, int arg3, const VSlot *vs)
     {
-        if(!ClientSystem::isAdmin())
+        if(!is_admin())
         {
             logger::log(logger::WARNING, "vartrigger invalid");
             return;

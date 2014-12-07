@@ -8,21 +8,9 @@
 
 struct ClientSystem
 {
-    //! UniqueID of the player in the current module. Set in a successful response to
-    //! logging in. When we then load a map, this is used to create the player's
-    //! LogicEntity.
-    static int           uniqueId;
-
     //! An identifier for the current scenario the client is active in. Used to check with the
     //! server, when the server starts a new scenario, to know when we are in sync or not
     static string currScenarioCode;
-
-    // Functions
-
-    //! After connected at the enet level, validate ourselves to the server using the transactionCode we received from the master server
-    //!
-    //! clientNumber: The client # the server gave to us. Placed in playerNumber.
-    static void login(int clientNumber);
 
     //! Marks the status as not logged in. Called on a disconnect from sauer's client.h:gamedisconnect()
     static void onDisconnect();
@@ -33,9 +21,6 @@ struct ClientSystem
     static void finishLoadWorld();
 
     static void prepareForNewScenario(const char *sc);
-
-    //! Check if this user has admin privileges, which allows entering edit mode and using the Sauer console (/slash)
-    static bool isAdmin();
 };
 
 #endif
