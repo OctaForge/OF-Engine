@@ -873,7 +873,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     renderprogress(0, "requesting entities...");
     logger::log(logger::DEBUG, "Requesting active entities...");
-    game::addmsg(N_ACTIVEENTSREQUEST, "rs", ClientSystem::currScenarioCode); // Ask for other players, which are not part of the map proper
+    game::addmsg(N_ACTIVEENTSREQUEST, "rs", game::curr_scenario_code); // Ask for other players, which are not part of the map proper
 
     return true;
 }

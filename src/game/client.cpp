@@ -24,6 +24,8 @@ namespace game
 
     bool spectator = false;
 
+    string curr_scenario_code = "";
+
     void parsemessages(int cn, gameent *d, ucharbuf &p);
 
     void initclientnet()
@@ -663,7 +665,7 @@ namespace game
                 char sc[MAXTRANS];
                 getstring(text, p);
                 getstring(sc, p);
-                copystring(ClientSystem::currScenarioCode, sc);
+                copystring(curr_scenario_code, sc);
                 world::set_map(text);
                 break;
             }

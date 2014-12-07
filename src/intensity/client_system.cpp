@@ -9,9 +9,6 @@
 #include "client_system.h"
 #include "of_world.h"
 
-/* the buffer is large enough to hold the uuid */
-string ClientSystem::currScenarioCode   = "";
-
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
 
@@ -71,6 +68,6 @@ void ClientSystem::prepareForNewScenario(const char *sc)
     game::haslogicsys = false;
     lua::call_external("has_logic_sys_set", "b", false);
 
-    copystring(currScenarioCode, sc);
+    copystring(game::curr_scenario_code, sc);
 }
 

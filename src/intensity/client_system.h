@@ -8,10 +8,6 @@
 
 struct ClientSystem
 {
-    //! An identifier for the current scenario the client is active in. Used to check with the
-    //! server, when the server starts a new scenario, to know when we are in sync or not
-    static string currScenarioCode;
-
     //! Marks the status as not logged in. Called on a disconnect from sauer's client.h:gamedisconnect()
     static void onDisconnect();
 
