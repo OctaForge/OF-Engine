@@ -327,7 +327,7 @@ static int serverinfointercept(ENetHost *host, ENetEvent *event)
 int uprate = 0;
 const char *ip = "";
 
-#ifdef STANDALONE // INTENSITY: Added server
+#ifdef STANDALONE
 int curtime = 0, lastmillis = 0, totalmillis = 0;
 #endif
 
@@ -414,56 +414,32 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
     if(server::sendpackets()) enet_host_flush(serverhost);
 }
 
-// INTENSITY: Added this, so we can flush out messages at will, e.g., login failure messages,
-// which must be done before the next cycle as it might disconnect the other client before
-// sending anything.
-void force_network_flush()
-{
-    if (!serverhost)
-    {
-        logger::log(logger::ERROR, "Trying to force_flush, but no serverhost yet");
-        return;
-    }
-
-//    if(sv->sendpackets())
-        enet_host_flush(serverhost);
-}
-
 void flushserver(bool force)
 {
     if(server::sendpackets(force) && serverhost) enet_host_flush(serverhost);
 }
 
 #ifndef STANDALONE
-void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
+void localdisconnect(bool cleanup)
 {
-#ifndef STANDALONE
     bool disconnected = false;
-#endif
     loopv(clients) if(clients[i]->type==ST_LOCAL)
     {
-        if (cn != -1 && cn != clients[i]->num) continue; // INTENSITY: if cn given, only process that one
         server::localdisconnect(i);
         delclient(clients[i]);
-#ifndef STANDALONE
         disconnected = true;
-#endif
     }
-
-#ifndef STANDALONE // INTENSITY: Added this
     if(!disconnected) return;
     game::gamedisconnect(cleanup);
-    setvar("mainmenu", 1);
-#endif
+    mainmenu = 1;
 }
 
-int localconnect() // INTENSITY: Added returning client num
+void localconnect()
 {
     client &c = addclient(ST_LOCAL);
     copystring(c.hostname, "local");
     game::gameconnect(false);
     server::localconnect(c.num);
-    return c.num; // INTENSITY: Added returning client num
 }
 #endif
 
@@ -505,14 +481,7 @@ bool setuplistenserver(bool dedicated)
     }
     serverhost = enet_host_create(&address, min(maxclients + server::reserveclients(), MAXCLIENTS), server::numchannels(), 0, serveruprate);
     if(!serverhost)
-    {
-        // INTENSITY: Do *NOT* fatally quit on this error. It can lead to repeated restarts etc.
-        // of the sort that standby mode is meant to prevent, but standby does not protect from this.
-        // So, just wait to be manually restarted.
-        //return servererror(dedicated, "could not create server host");
-        logger::log(logger::ERROR, "***!!! could not create server host (awaiting manual restart) !!!***");
-        return false;
-    }
+        return servererror(dedicated, "could not create server host");
     serverhost->duplicatePeers = maxdupclients ? maxdupclients : MAXCLIENTS;
     serverhost->intercept = serverinfointercept;
     return true;

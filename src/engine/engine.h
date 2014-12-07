@@ -562,7 +562,7 @@ extern void updatetime();
 
 extern ENetSocket connectmaster();
 extern void localclienttoserver(int chan, ENetPacket *);
-extern int localconnect(); // INTENSITY: Added returning of client number
+extern void localconnect();
 extern bool serveroption(char *opt);
 
 // serverbrowser
@@ -572,7 +572,7 @@ extern void addserver(const char *name, int port = 0, const char *password = NUL
 extern void writeservercfg();
 
 // client
-extern void localdisconnect(bool cleanup = true, int cn=-1); // INTENSITY: Added client number
+extern void localdisconnect(bool cleanup = true);
 extern void localservertoclient(int chan, ENetPacket *packet);
 extern void connectserv(const char *servername, int port, const char *serverpassword);
 extern void abortconnect();

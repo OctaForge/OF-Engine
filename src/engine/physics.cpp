@@ -5,7 +5,7 @@
 
 #include "engine.h"
 #include "mpr.h"
-#include "game.h" // INTENSITY: for gameent
+#include "game.h"
 
 const int MAXCLIPPLANES = 1024;
 static clipplanes clipcache[MAXCLIPPLANES];
@@ -421,7 +421,7 @@ const float STAIRHEIGHT = 4.1f;
 const float FLOORZ = 0.867f;
 const float SLOPEZ = 0.5f;
 const float WALLZ = 0.2f;
-float GRAVITY = 200; // INTENSITY: Removed 'const' (and 'external') and the value itself
+float GRAVITY = 200;
 
 bool ellipseboxcollide(physent *d, const vec &dir, const vec &o, const vec &center, float yaw, float xr, float yr, float hi, float lo)
 {
@@ -1854,8 +1854,8 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     int material = lookupmaterial(vec(pl->o.x, pl->o.y, pl->o.z + (3*pl->aboveeye - pl->eyeheight)/4));
     bool water = isliquid(material&MATF_VOLUME);
-    bool floating =(pl->type==ENT_PLAYER && (pl->state==CS_EDITING || pl->state==CS_SPECTATOR)) || // INTENSITY: Added second line
-                   (pl->type==ENT_CAMERA && editmode && thirdperson && pl == camera1);             // so editmode camera works ok in 3rdp
+    bool floating =(pl->type==ENT_PLAYER && (pl->state==CS_EDITING || pl->state==CS_SPECTATOR)) ||
+                   (pl->type==ENT_CAMERA && editmode && thirdperson && pl == camera1);
 
     float secs = curtime/1000.f;
 
@@ -2031,7 +2031,7 @@ bool entinmap(dynent *d, bool avoidplayers)        // brute force but effective 
 {
     d->o.z += d->eyeheight; // pos specified is at feet
     vec orig = d->o;
-    loopi(999)              // try max 100 times // INTENSITY: Raised to 999 - we really want this to succeed
+    loopi(100)              // try max 100 times
     {
         if(i)
         {

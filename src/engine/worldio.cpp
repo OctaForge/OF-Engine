@@ -1,9 +1,8 @@
 // worldio.cpp: loading & saving of maps and savegames
 
 #include "engine.h"
-#include "game.h" // INTENSITY
+#include "game.h"
 
-// INTENSITY
 #include "client_system.h"
 #include "of_world.h"
 
@@ -381,7 +380,7 @@ void savevslots(stream *f, int numvslots)
         lastroot = i+1;
     }
     if(lastroot < numvslots) f->putlil<int>(-(numvslots - lastroot));
-    if (numvslots > 0) delete[] prev; // INTENSITY - check for numvslots, for server
+    delete[] prev;
 }
 
 void loadvslot(stream *f, VSlot &vs, int changed)
@@ -549,10 +548,10 @@ static uint mapcrc = 0;
 uint getmapcrc() { return mapcrc; }
 void clearmapcrc() { mapcrc = 0; }
 
-bool finish_load_world(); // INTENSITY: Added this, and use it inside load_world
+bool finish_load_world();
 
-const char *_saved_mname = NULL; // INTENSITY
-const char *_saved_cname = NULL; // INTENSITY
+const char *_saved_mname = NULL;
+const char *_saved_cname = NULL;
 
 static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octaheader &ohdr, tmapheader &thdr, int &numents)
 {
@@ -620,8 +619,8 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     setmapfilenames(mname, cname);
 
-    _saved_mname = mname; // INTENSITY
-    _saved_cname = cname; // INTENSITY
+    _saved_mname = mname;
+    _saved_cname = cname;
 
     stream *f = opengzfile(ogzname, "rb");
     if(!f) { conoutf(CON_ERROR, "could not read map %s", ogzname); return false; }
@@ -861,7 +860,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         if(hdr.blendmap) loadblendmap(f, hdr.blendmap);
     }
 
-//    mapcrc = f->getcrc(); // INTENSITY: We use our own signatures
+    mapcrc = f->getcrc();
     delete f;
 
     extern void clear_texpacks(int n = 0); clear_texpacks();
@@ -879,12 +878,12 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     return true;
 }
 
-bool finish_load_world() // INTENSITY: Second half, after all entities received
+bool finish_load_world()
 {
-    renderprogress(0, "finalizing world..."); // INTENSITY
+    renderprogress(0, "finalizing world...");
 
-    const char *mname = _saved_mname; // INTENSITY
-    const char *cname = _saved_cname; // INTENSITY
+    const char *mname = _saved_mname;
+    const char *cname = _saved_cname;
 
     loadprogress = 0;
 
@@ -897,13 +896,10 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     initlights();
     allchanged(true);
 
-//    if(maptitle[0] && strcmp(maptitle, "Untitled Map by Unknown")) conoutf(CON_ECHO, "%s", maptitle); // INTENSITY
-
     startmap(cname ? cname : mname);
 
-    logger::log(logger::DEBUG, "load_world complete."); // INTENSITY
-
-    logoutf("[[MAP LOADING]] - Success."); // INTENSITY
+    logger::log(logger::DEBUG, "load_world complete.");
+    logoutf("[[MAP LOADING]] - Success.");
 
     return true;
 }

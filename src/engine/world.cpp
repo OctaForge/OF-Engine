@@ -265,8 +265,8 @@ static inline bool modifyoctaent(int flags, int id) {
     return entities::getents().inrange(id) && modifyoctaent(flags, id, *entities::getents()[id]);
 }
 
-              void addentity(int id)        { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
-              void removeentity(int id)     { modifyoctaent(MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
+              void addentity(int id)        { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); }
+              void removeentity(int id)     { modifyoctaent(MODOE_UPDATEBB, id); }
 static inline void addentityedit(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB|MODOE_CHANGED, id); }
 static inline void removeentityedit(int id) { modifyoctaent(MODOE_UPDATEBB|MODOE_CHANGED, id); }
 
@@ -538,16 +538,16 @@ void entrotate(int *cw)
 
 void entselectionbox(const entity &e, vec &eo, vec &es)
 {
-    extentity* _e = (extentity*)&e; // INTENSITY
+    extentity* _e = (extentity*)&e;
 
     model *m = NULL;
-    if(e.type == ET_MAPMODEL && (m = ((modelentity*)_e)->m)) // INTENSITY
+    if(e.type == ET_MAPMODEL && (m = ((modelentity*)_e)->m))
     {
         mmcollisionbox(*_e, m, eo, es);
         es.max(entselradius);
         eo.add(e.o);
     }
-    else if(e.type == ET_OBSTACLE && e.attr[3] && e.attr[4] && e.attr[5]) /* OF */
+    else if(e.type == ET_OBSTACLE && e.attr[3] && e.attr[4] && e.attr[5])
     {
         eo = vec(0, 0, 0);
         es = vec(e.attr[3], e.attr[4], e.attr[5]);
@@ -1007,8 +1007,8 @@ bool dropentity(entity &e, int drop = -1)
     if(drop<0) drop = entdrop;
     if(e.type == ET_MAPMODEL)
     {
-        modelentity& ext = *((modelentity*)&e); // INTENSITY
-        model *m = ext.m; // INTENSITY
+        modelentity& ext = *((modelentity*)&e);
+        model *m = ext.m;
         if(m)
         {
             vec center;
@@ -1142,7 +1142,7 @@ CLUAICOMMAND(save_mouse_position, void, (), {
 });
 
 int entcopygrid;
-vector<extentity> entcopybuf; // INTENSITY: extentity, for uniqueID
+vector<extentity> entcopybuf;
 
 void entcopy()
 {
@@ -1158,11 +1158,10 @@ void entpaste()
 {
     if(noentedit() || entcopybuf.empty()) return;
     entcancel();
-//    int last = entities::getents().length()-1; // INTENSITY
     float m = float(sel.grid)/float(entcopygrid);
     loopv(entcopybuf)
     {
-        const extentity &c = entcopybuf[i]; // INTENSITY: extentity, for uniqueID
+        const extentity &c = entcopybuf[i];
         vec o = vec(c.o).mul(m).add(vec(sel.o));
 
         const char *cn;
@@ -1176,8 +1175,6 @@ void entpaste()
         newent(cn, sd);
         lua::pop_external_ret(npop);
     }
-// INTENSITY   int j = 0;
-// INTENSITY   groupeditundo(e.type = entcopybuf[j++].type;);
 }
 
 COMMAND(delent, "");
@@ -1226,7 +1223,7 @@ COMMAND(nearestent,  "");
 static string copied_class = {'\0'};
 static char copied_sdata[4096] = {'\0'};
 
-void intensityentcopy() // INTENSITY
+void ofentcopy()
 {
     if (efocus < 0) {
         copied_class[0] = copied_sdata[0] = '\0'; return;
@@ -1247,13 +1244,13 @@ void intensityentcopy() // INTENSITY
     lua::pop_external_ret(npop);
 }
 
-void intensitypasteent() // INTENSITY
+void ofpasteent()
 {
     newent(copied_class, copied_sdata);
 }
 
-COMMAND(intensityentcopy, "");
-COMMAND(intensitypasteent, "");
+COMMAND(ofentcopy, "");
+COMMAND(ofpasteent, "");
 
 /* OF */
 void enttype(char *type, int *numargs) {

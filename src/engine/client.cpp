@@ -1,9 +1,7 @@
 // client.cpp, mostly network related client game code
 
 #include "engine.h"
-#include "game.h" // INTENSITY: Need this for gameent, below
-
-#include "client_system.h" // INTENSITY
+#include "client_system.h"
 
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;

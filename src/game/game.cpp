@@ -469,15 +469,6 @@ namespace game
 
     void parseoptions(vector<const char *> &args)
     {
-        loopv(args)
-        {
-            #ifdef INTENSITY_PLUGIN
-                if (args[i][1] == 'P')
-                {
-                    PluginListener::initialize();
-                }
-            #endif
-        }
     }
 
     const char *getmapinfo()

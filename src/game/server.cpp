@@ -19,7 +19,6 @@
 #include "of_world.h"
 
 extern bool should_quit;
-extern void force_network_flush();
 
 namespace server
 {
@@ -405,7 +404,7 @@ namespace server
     {
         if(clients.empty()) return false;
         enet_uint32 curtime = enet_time_get()-lastsend;
-        if(curtime<40 && !force) return false; // kripken: Server sends packets at most every 40ms? FIXME: fast rate, we might slow or dynamic this
+        if(curtime<40 && !force) return false;
         bool flush = buildworldstate();
         lastsend += curtime - (curtime%40);
         return flush;
@@ -662,7 +661,7 @@ namespace server
                         "Login failure",
                         "Login failure: instance is not running a map"
                     );
-                    force_network_flush();
+                    flushserver(true);
                     disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
                 }
                 setAdmin(sender, true);
@@ -782,15 +781,8 @@ namespace server
         return ci->isAdmin;
     }
 
-    // INTENSITY: Called when logging in, and also when the map restarts (need a new entity).
-    // Creates a new lua entity, in the process of which a uniqueId is generated.
-    // it leaves the entity on the stack and returns true or leaves nothing and returns false.
     int createluaEntity(int cn, const char *_class, const char *uname)
     {
-#ifndef STANDALONE
-        assert(0);
-        return false;
-#else // STANDALONE
         // cn of -1 means "all of them"
         if (cn == -1)
         {
@@ -839,7 +831,6 @@ namespace server
 
         lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, uid);
         return uid;
-#endif
     }
 
     int clientconnect(int n, uint ip)

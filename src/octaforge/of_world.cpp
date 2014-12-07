@@ -12,8 +12,6 @@
 #include "engine.h"
 #include "client_system.h"
 
-void force_network_flush();
-
 namespace world
 {
     string curr_map_id = "";
@@ -47,7 +45,7 @@ namespace world
         generate_scenario_code();
 #ifdef STANDALONE
         sendf(-1, 1, "ris", N_PREPFORNEWSCENARIO, scenario_code);
-        force_network_flush();
+        flushserver(true);
 #endif
         copystring(curr_map_id, id);
 

@@ -447,7 +447,7 @@ VAR(ragdollwaterexpireoffset, 0, 4000, 30000);
 
 void ragdolldata::move(dynent *pl, float ts)
 {
-    extern float GRAVITY; // INTENSITY: Removed 'const'
+    extern float GRAVITY;
     #define GRAVITY (pl->gravity >= 0 ? pl->gravity : GRAVITY) /* OF */
     if(collidemillis && lastmillis > collidemillis) return;
 

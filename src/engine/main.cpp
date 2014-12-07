@@ -1,8 +1,7 @@
 // main.cpp: initialisation & main loop
 
 #include "engine.h"
-
-#include "client_system.h" // INTENSITY
+#include "client_system.h"
 #include "of_localserver.h"
 
 #ifdef WIN32
