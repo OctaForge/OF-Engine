@@ -817,6 +817,7 @@ namespace server
         int uid;
         lua::pop_external_ret(lua::call_external_ret("entity_gen_uid", "", "i", &uid));
 
+        getUniqueId(cn) = uid;
         // Notify of uid *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
         MessageSystem::send_YourUniqueId(cn, uid);

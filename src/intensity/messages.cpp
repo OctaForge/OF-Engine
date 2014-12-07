@@ -10,12 +10,6 @@
 #include "message_system.h"
 #include "of_world.h"
 
-void force_network_flush();
-namespace server
-{
-    int& getUniqueId(int clientNumber);
-}
-
 namespace MessageSystem
 {
 // YourUniqueId
@@ -23,7 +17,6 @@ namespace MessageSystem
     void send_YourUniqueId(int clientNumber, int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)");
-        server::getUniqueId(clientNumber) = uid;
         sendf(clientNumber, MAIN_CHANNEL, "rii", 1004, uid);
     }
 
@@ -82,8 +75,6 @@ namespace MessageSystem
     void send_RequestCurrentScenario()
     {
         logger::log(logger::DEBUG, "Sending a message of type RequestCurrentScenario (1007)");
-        INDENT_LOG(logger::DEBUG);
-
         game::addmsg(1007, "r");
     }
 #endif
@@ -167,8 +158,6 @@ namespace MessageSystem
     void send_EditModeC2S(int mode)
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeC2S (1028)");
-        INDENT_LOG(logger::DEBUG);
-
         game::addmsg(1028, "ri", mode);
     }
 #endif
