@@ -7,7 +7,6 @@
 #include "game.h"
 
 #include "client_system.h"
-#include "message_system.h"
 #include "of_world.h"
 
 extern float rayent(const vec &o, const vec &ray, float radius, int mode, int size, int &orient, int &ent);

@@ -19,8 +19,6 @@ else()
         ../engine/command
         ../engine/server
         ../game/server
-        ../intensity/message_system
-        ../intensity/messages
         ../shared/stream
         ../octaforge/of_lua
         ../octaforge/of_world

@@ -2,8 +2,6 @@
 // runs dedicated or as client coroutine
 
 #include "engine.h"
-
-#include "message_system.h"
 #include "of_world.h"
 
 #ifdef WIN32

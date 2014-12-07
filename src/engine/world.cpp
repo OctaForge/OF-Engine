@@ -3,8 +3,6 @@
 #include "engine.h"
 #include "game.h"
 
-#include "message_system.h" // INTENSITY
-
 VARR(mapversion, 1, MAPVERSION, 0);
 VARNR(mapscale, worldscale, 1, 0, 0);
 VARNR(mapsize, worldsize, 1, 0, 0);

@@ -9,7 +9,6 @@
 #ifndef STANDALONE
     #include "client_system.h"
 #endif
-#include "message_system.h"
 
 #include "of_world.h"
 #include "of_localserver.h"

@@ -10,8 +10,6 @@
 
 #include "engine/blend.cpp"
 #include "engine/serverbrowser.cpp"
-#include "intensity/messages.cpp"
-#include "intensity/message_system.cpp"
 #include "intensity/client_system.cpp"
 #include "game/game.cpp"
 #include "game/server.cpp"

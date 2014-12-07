@@ -7,7 +7,6 @@
 #include "game.h"
 
 #include "client_system.h"
-#include "message_system.h"
 
 #include "of_localserver.h"
 #include "of_world.h"

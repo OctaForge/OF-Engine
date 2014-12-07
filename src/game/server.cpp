@@ -13,8 +13,6 @@
 #define _fileno fileno
 #endif
 
-#include "message_system.h"
-
 #ifndef STANDALONE
     #include "client_system.h"
 #endif

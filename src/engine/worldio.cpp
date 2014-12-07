@@ -4,7 +4,6 @@
 #include "game.h" // INTENSITY
 
 // INTENSITY
-#include "message_system.h"
 #include "client_system.h"
 #include "of_world.h"
 

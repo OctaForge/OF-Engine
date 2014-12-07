@@ -37,8 +37,6 @@ else()
     set(CLIENT_SOURCES
         ../engine/blend
         ../engine/serverbrowser
-        ../intensity/messages
-        ../intensity/message_system
         ../intensity/client_system
         ../game/game
         ../game/server

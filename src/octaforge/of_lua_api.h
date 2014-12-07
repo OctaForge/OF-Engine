@@ -11,8 +11,6 @@ void writemediacfg(int level);
 
 namespace lapi_binds
 {
-    using namespace MessageSystem;
-
     int _lua_log(lua_State *L) {
         logger::log((logger::loglevel)luaL_checkinteger(L, 1),
             "%s", luaL_checkstring(L, 2));

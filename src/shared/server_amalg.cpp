@@ -12,8 +12,6 @@
 #include "engine/command.cpp"
 #include "engine/server.cpp"
 #include "game/server.cpp"
-#include "intensity/message_system.cpp"
-#include "intensity/messages.cpp"
 #include "shared/stream.cpp"
 #include "octaforge/of_lua.cpp"
 #include "octaforge/of_world.cpp"
