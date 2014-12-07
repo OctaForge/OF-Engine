@@ -667,6 +667,32 @@ namespace game
                 ClientSystem::finishLoadWorld();
                 break;
 
+            case N_INITS2C: {
+                int ecn = getint(p);
+                int pv = getint(p);
+                logger::log(logger::DEBUG, "N_INITS2C gave us cn/protocol: %d/%d", ecn, pv);
+                if (pv != PROTOCOL_VERSION) {
+                    conoutf(CON_ERROR, "You are using a different network protocol (you: %d, server: %d)", PROTOCOL_VERSION, pv);
+                    disconnect();
+                    break;
+                }
+                game::player1->clientnum = ecn;
+                ClientSystem::login(ecn);
+                break;
+            }
+
+            case N_EDITMODES2C: {
+                int ocn = getint(p);
+                int mode = getint(p);
+                dynent *d = game::getclient(ocn);
+                if (!d) break;
+                if (mode) {
+                    d->editstate = d->state;
+                    d->state     = CS_EDITING;
+                } else d->state = d->editstate;
+                break;
+            }
+
             default:
             {
                 logger::log(logger::INFO, "Client: Handling a non-typical message: %d", type);

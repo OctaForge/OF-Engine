@@ -609,31 +609,31 @@ namespace server
                 getstring(sdata, p);
                 char newent_data[MAXTRANS];
                 getstring(newent_data, p);
-                if (!world::scenario_code[0]) return;
+                if (!world::scenario_code[0]) break;
                 if (!server::isAdmin(sender)) {
                     logger::log(logger::WARNING, "Non-admin tried to add an entity");
                     lua::call_external("show_client_message", "iss", sender, "Server",
                         "You are not an administrator, and cannot create entities");
-                    return;
+                    break;
                 }
                 bool b;
                 lua::pop_external_ret(lua::call_external_ret("entity_proto_exists", "s", "b", _class, &b));
-                if (!b) return;
+                if (!b) break;
                 logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s|%s", _class, x, y, z, sdata, newent_data);
-                if (!server::isRunningCurrentScenario(sender)) return; // Silently ignore info from previous scenario
+                if (!server::isRunningCurrentScenario(sender)) break; // Silently ignore info from previous scenario
                 lua::call_external("entity_new_with_sd", "sfffss", _class, x, y, z, sdata, newent_data);
                 break;
             }
 
             case N_ENTREQUESTREMOVE: {
                 int uid = getint(p);
-                if (!world::scenario_code[0]) return;
+                if (!world::scenario_code[0]) break;
                 if (!server::isAdmin(sender)) {
                     logger::log(logger::WARNING, "Non-admin tried to remove an entity");
                     lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot remove entities");
-                    return;
+                    break;
                 }
-                if (!server::isRunningCurrentScenario(sender)) return; // Silently ignore info from previous scenario
+                if (!server::isRunningCurrentScenario(sender)) break; // Silently ignore info from previous scenario
                 lua::call_external("entity_remove", "i", uid);
                 break;
             }
@@ -641,14 +641,14 @@ namespace server
             case N_ACTIVEENTSREQUEST: {
                 char scenario_code[MAXTRANS];
                 getstring(scenario_code, p);
-                if (!world::scenario_code[0]) return;
+                if (!world::scenario_code[0]) break;
                 // Mark the client as running the current scenario, if indeed doing so
                 server::setClientScenario(sender, scenario_code);
                 if (!server::isRunningCurrentScenario(sender)) {
                     logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s",
                         sender, scenario_code);
                     lua::call_external("show_client_message", "iss", sender, "Invalid scenario", "An error occured in synchronizing scenarios");
-                    return;
+                    break;
                 }
                 assert(lua::call_external("entities_send_all", "i", sender));
                 sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
@@ -671,6 +671,18 @@ namespace server
                 createluaEntity(sender);
                 sendf(sender, 1, "ri", N_LOGINRESPONSE);
                 break;
+
+            case N_REQUESTCURRENTSCENARIO:
+                if (!world::scenario_code[0]) break;
+                sendf(-1, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, world::curr_map_id, world::scenario_code);
+                break;
+
+            case N_EDITMODEC2S: {
+                int mode = getint(p);
+                if (!world::scenario_code[0] || !server::isRunningCurrentScenario(sender)) break;
+                sendf(-1, 1, "rxiii", sender, N_EDITMODES2C, sender, mode); // Relay
+                break;
+            }
 
             /* TODO: expose this */
             case N_SERVCMD:
