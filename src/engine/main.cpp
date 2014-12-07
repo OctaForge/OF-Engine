@@ -1105,9 +1105,6 @@ int main(int argc, char **argv)
     game::loadconfigs();
     initing = NOT_INITING;
 
-    initlog("messages");
-    MessageSystem::MessageManager::registerAll();
-
     initlog("render");
     restoregamma();
     restorevsync();

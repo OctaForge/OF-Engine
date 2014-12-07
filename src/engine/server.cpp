@@ -559,9 +559,6 @@ void server_init()//int argc, char* argv[])
     atexit(enet_deinitialize);
     enet_time_set(0);
 
-    conoutf("Registering messages");
-    MessageSystem::MessageManager::registerAll();
-
     // Init server
     initserver(true, true);
 }

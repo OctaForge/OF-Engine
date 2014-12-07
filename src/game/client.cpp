@@ -696,11 +696,12 @@ namespace game
             default:
             {
                 logger::log(logger::INFO, "Client: Handling a non-typical message: %d", type);
-                if (!MessageSystem::MessageManager::receive(type, ClientSystem::playerNumber, cn, p))
-                {
+                bool hashandler = false;
+                lua::pop_external_ret(lua::call_external_ret("message_receive", "iiip",
+                    "b", type, ClientSystem::playerNumber, cn, (void*)&p, &hashandler));
+                if (!hashandler) {
+                    logger::log(logger::DEBUG, "No scripting handler for message %d from %d", type, cn);
                     assert(0);
-                    neterr("messages-type-client");
-                    printf("Quitting\r\n");
                     return;
                 }
                 break;
