@@ -8,6 +8,15 @@
 
 struct ClientSystem
 {
+    //! UniqueID of the player in the current module. Set in a successful response to
+    //! logging in. When we then load a map, this is used to create the player's
+    //! LogicEntity.
+    static int           uniqueId;
+
+    //! An identifier for the current scenario the client is active in. Used to check with the
+    //! server, when the server starts a new scenario, to know when we are in sync or not
+    static string currScenarioCode;
+
     // Functions
 
     //! After connected at the enet level, validate ourselves to the server using the transactionCode we received from the master server

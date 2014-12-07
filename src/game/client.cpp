@@ -656,7 +656,7 @@ namespace game
                 char sc[MAXTRANS];
                 getstring(text, p);
                 getstring(sc, p);
-                copystring(world::scenario_code, sc);
+                copystring(ClientSystem::currScenarioCode, sc);
                 world::set_map(text);
                 break;
             }
