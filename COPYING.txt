@@ -34,10 +34,12 @@ For OctaForge developers and contributors, refer to CONTRIBUTORS.txt.
 
 OctaForge contains portions of source code from other projects, including:
 
-    * Syntensity - MIT licensed, created by Alon 'kripken' Zakai
-    * Luacy - MIT licensed, created by Daniel 'q66' Kolesa
+    * OctaScript - NCSA licensed, created by Daniel "q66" Kolesa
     * Cube 2/Sauerbraten - see src/readme_sauerbraten.txt
     * Tesseract - created by Lee 'eihrul' Salzman, see src/readme_tesseract.txt
+
+The engine is originally based on the Syntensity project by Alon "kripken"
+Zakai, but modern OctaForge no longer contains Syntensity code.
 
 Additionally, some code is taken from (or is inspired by) the Lamiae
 RPG engine by Kevin 'Hirato Kirata' Meyer, mostly in the UI part (zlib
