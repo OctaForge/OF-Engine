@@ -12,44 +12,6 @@
 
 namespace MessageSystem
 {
-// YourUniqueId
-#ifndef STANDALONE
-    void YourUniqueId::receive(int receiver, int sender, ucharbuf &p)
-    {
-        int uid = getint(p);
-
-        logger::log(logger::DEBUG, "Told my unique ID: %d", uid);
-        ClientSystem::uniqueId = uid;
-        lua::call_external("player_set_uid", "i", uid);
-    }
-#endif
-
-
-// LoginResponse
-
-#ifndef STANDALONE
-    void LoginResponse::receive(int receiver, int sender, ucharbuf &p)
-    {
-        conoutf("Login was successful.");
-        game::addmsg(N_REQUESTCURRENTSCENARIO, "r");
-    }
-#endif
-
-
-// PrepareForNewScenario
-
-#ifndef STANDALONE
-    void PrepareForNewScenario::receive(int receiver, int sender, ucharbuf &p)
-    {
-        char scenarioCode[MAXTRANS];
-        getstring(scenarioCode, p);
-        assert(lua::call_external("gui_show_message", "ss", "Server",
-            "Map is being prepared on the server, please wait..."));
-        ClientSystem::prepareForNewScenario(scenarioCode);
-    }
-#endif
-
-
 // RequestCurrentScenario
 
 #ifdef STANDALONE
@@ -58,30 +20,6 @@ namespace MessageSystem
 
         if (!world::scenario_code[0]) return;
         sendf(-1, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, world::curr_map_id, world::scenario_code);
-    }
-#endif
-
-// NotifyAboutCurrentScenario
-
-#ifndef STANDALONE
-    void NotifyAboutCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
-    {
-        char mid[MAXTRANS];
-        getstring(mid, p);
-        char sc[MAXTRANS];
-        getstring(sc, p);
-
-        copystring(ClientSystem::currScenarioCode, sc);
-        world::set_map(mid);
-    }
-#endif
-
-// AllActiveEntitiesSent
-
-#ifndef STANDALONE
-    void AllActiveEntitiesSent::receive(int receiver, int sender, ucharbuf &p)
-    {
-        ClientSystem::finishLoadWorld();
     }
 #endif
 
@@ -148,12 +86,7 @@ namespace MessageSystem
 
 void MessageManager::registerAll()
 {
-    registerMessageType( new YourUniqueId() );
-    registerMessageType( new LoginResponse() );
-    registerMessageType( new PrepareForNewScenario() );
     registerMessageType( new RequestCurrentScenario() );
-    registerMessageType( new NotifyAboutCurrentScenario() );
-    registerMessageType( new AllActiveEntitiesSent() );
     registerMessageType( new InitS2C() );
     registerMessageType( new EditModeC2S() );
     registerMessageType( new EditModeS2C() );

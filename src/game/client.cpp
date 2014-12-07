@@ -10,6 +10,8 @@
 #include "message_system.h"
 
 #include "of_localserver.h"
+#include "of_world.h"
+
 extern int enthover;
 extern int freecursor, freeeditcursor;
 
@@ -629,6 +631,40 @@ namespace game
 
             case N_SERVCMD:
                 getstring(text, p);
+                break;
+
+            case N_YOURUID: {
+                int uid = getint(p);
+                logger::log(logger::DEBUG, "Told my unique ID: %d", uid);
+                ClientSystem::uniqueId = uid;
+                lua::call_external("player_set_uid", "i", uid);
+                break;
+            }
+
+            case N_LOGINRESPONSE: {
+                conoutf("Login was successful.");
+                game::addmsg(N_REQUESTCURRENTSCENARIO, "r");
+                break;
+            }
+
+            case N_PREPFORNEWSCENARIO:
+                getstring(text, p);
+                assert(lua::call_external("gui_show_message", "ss", "Server",
+                    "Map is being prepared on the server, please wait..."));
+                ClientSystem::prepareForNewScenario(text);
+                break;
+
+            case N_NOTIFYABOUTCURRENTSCENARIO: {
+                char sc[MAXTRANS];
+                getstring(text, p);
+                getstring(sc, p);
+                copystring(ClientSystem::currScenarioCode, sc);
+                world::set_map(text);
+                break;
+            }
+
+            case N_ALLACTIVEENTSSENT:
+                ClientSystem::finishLoadWorld();
                 break;
 
             default:
