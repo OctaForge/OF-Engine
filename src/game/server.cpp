@@ -651,7 +651,7 @@ namespace server
                     return;
                 }
                 assert(lua::call_external("entities_send_all", "i", sender));
-                MessageSystem::send_AllActiveEntitiesSent(sender);
+                sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
                 assert(lua::call_external("event_player_login", "i", server::getUniqueId(sender)));
                 break;
             }
@@ -669,7 +669,7 @@ namespace server
                 }
                 setAdmin(sender, true);
                 createluaEntity(sender);
-                MessageSystem::send_LoginResponse(sender, true, true);
+                sendf(sender, 1, "ri", N_LOGINRESPONSE);
                 break;
 
             /* TODO: expose this */
@@ -820,7 +820,7 @@ namespace server
         getUniqueId(cn) = uid;
         // Notify of uid *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
-        MessageSystem::send_YourUniqueId(cn, uid);
+        sendf(cn, 1, "rii", N_YOURUID, uid);
 
         ci->uniqueId = uid;
         ci->connected = true;
@@ -840,7 +840,7 @@ namespace server
         clients.add(ci);
 
         // Start the connection handshake process
-        MessageSystem::send_InitS2C(n, n, PROTOCOL_VERSION);
+        sendf(n, 1, "riii", N_INITS2C, n, PROTOCOL_VERSION);
 
         return DISC_NONE;
     }

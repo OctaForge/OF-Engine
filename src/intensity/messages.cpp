@@ -13,13 +13,6 @@
 namespace MessageSystem
 {
 // YourUniqueId
-
-    void send_YourUniqueId(int clientNumber, int uid)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)");
-        sendf(clientNumber, 1, "rii", N_YOURUID, uid);
-    }
-
 #ifndef STANDALONE
     void YourUniqueId::receive(int receiver, int sender, ucharbuf &p)
     {
@@ -34,28 +27,16 @@ namespace MessageSystem
 
 // LoginResponse
 
-    void send_LoginResponse(int clientNumber, bool success, bool local)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)");
-        sendf(clientNumber, 1, "ri", N_LOGINRESPONSE);
-    }
-
 #ifndef STANDALONE
     void LoginResponse::receive(int receiver, int sender, ucharbuf &p)
     {
         conoutf("Login was successful.");
-        send_RequestCurrentScenario();
+        game::addmsg(N_REQUESTCURRENTSCENARIO, "r");
     }
 #endif
 
 
 // PrepareForNewScenario
-
-    void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type PrepareForNewScenario (1006)");
-        sendf(clientNumber, 1, "ris", N_PREPFORNEWSCENARIO, scenarioCode);
-    }
 
 #ifndef STANDALONE
     void PrepareForNewScenario::receive(int receiver, int sender, ucharbuf &p)
@@ -71,30 +52,16 @@ namespace MessageSystem
 
 // RequestCurrentScenario
 
-#ifndef STANDALONE
-    void send_RequestCurrentScenario()
-    {
-        logger::log(logger::DEBUG, "Sending a message of type RequestCurrentScenario (1007)");
-        game::addmsg(N_REQUESTCURRENTSCENARIO, "r");
-    }
-#endif
-
 #ifdef STANDALONE
     void RequestCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
     {
 
         if (!world::scenario_code[0]) return;
-        send_NotifyAboutCurrentScenario(sender, world::curr_map_id, world::scenario_code);
+        sendf(-1, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, world::curr_map_id, world::scenario_code);
     }
 #endif
 
 // NotifyAboutCurrentScenario
-
-    void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)");
-        sendf(clientNumber, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, mid, sc);
-    }
 
 #ifndef STANDALONE
     void NotifyAboutCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
@@ -111,12 +78,6 @@ namespace MessageSystem
 
 // AllActiveEntitiesSent
 
-    void send_AllActiveEntitiesSent(int clientNumber)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)");
-        sendf(clientNumber, 1, "ri", N_ALLACTIVEENTSSENT);
-    }
-
 #ifndef STANDALONE
     void AllActiveEntitiesSent::receive(int receiver, int sender, ucharbuf &p)
     {
@@ -125,12 +86,6 @@ namespace MessageSystem
 #endif
 
 // InitS2C
-
-    void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type InitS2C (1022)");
-        sendf(clientNumber, 1, "riii", N_INITS2C, explicitClientNumber, protocolVersion);
-    }
 
 #ifndef STANDALONE
     void InitS2C::receive(int receiver, int sender, ucharbuf &p)
@@ -154,33 +109,17 @@ namespace MessageSystem
 
 // EditModeC2S
 
-#ifndef STANDALONE
-    void send_EditModeC2S(int mode)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type EditModeC2S (1028)");
-        game::addmsg(N_EDITMODEC2S, "ri", mode);
-    }
-#endif
-
 #ifdef STANDALONE
     void EditModeC2S::receive(int receiver, int sender, ucharbuf &p)
     {
         int mode = getint(p);
 
         if (!world::scenario_code[0] || !server::isRunningCurrentScenario(sender)) return;
-        send_EditModeS2C(-1, sender, mode); // Relay
+        sendf(-1, 1, "rxiii", sender, N_EDITMODES2C, sender, mode); // Relay
     }
 #endif
 
 // EditModeS2C
-
-#ifdef STANDALONE
-    void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode)
-    {
-        logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)");
-        sendf(clientNumber, 1, "rxiii", otherClientNumber, N_EDITMODES2C, otherClientNumber, mode);
-    }
-#endif
 
 #ifndef STANDALONE
     void EditModeS2C::receive(int receiver, int sender, ucharbuf &p)

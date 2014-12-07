@@ -87,8 +87,7 @@ namespace game
 
     void edittoggled(bool on)
     {
-        MessageSystem::send_EditModeC2S(on);
-//        addmsg(N_EDITMODE, "ri", on ? 1 : 0);
+        addmsg(N_EDITMODEC2S, "ri", on ? 1 : 0);
         disablezoom();
         enthover = -1; // Would be nice if sauer did this, but it doesn't... so without it you still hover on a nonseen edit ent
     }

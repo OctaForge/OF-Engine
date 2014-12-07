@@ -18,9 +18,6 @@ struct YourUniqueId : MessageType
 #endif
 };
 
-void send_YourUniqueId(int clientNumber, int uid);
-
-
 // LoginResponse
 
 struct LoginResponse : MessageType
@@ -31,9 +28,6 @@ struct LoginResponse : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
-
-void send_LoginResponse(int clientNumber, bool success, bool local);
-
 
 // PrepareForNewScenario
 
@@ -46,9 +40,6 @@ struct PrepareForNewScenario : MessageType
 #endif
 };
 
-void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode);
-
-
 // RequestCurrentScenario
 
 struct RequestCurrentScenario : MessageType
@@ -59,9 +50,6 @@ struct RequestCurrentScenario : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
-
-void send_RequestCurrentScenario();
-
 
 // NotifyAboutCurrentScenario
 
@@ -74,8 +62,6 @@ struct NotifyAboutCurrentScenario : MessageType
 #endif
 };
 
-void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc);
-
 // AllActiveEntitiesSent
 
 struct AllActiveEntitiesSent : MessageType
@@ -86,8 +72,6 @@ struct AllActiveEntitiesSent : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
-
-void send_AllActiveEntitiesSent(int clientNumber);
 
 // InitS2C
 
@@ -100,8 +84,6 @@ struct InitS2C : MessageType
 #endif
 };
 
-void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion);
-
 // EditModeC2S
 
 struct EditModeC2S : MessageType
@@ -113,9 +95,6 @@ struct EditModeC2S : MessageType
 #endif
 };
 
-void send_EditModeC2S(int mode);
-
-
 // EditModeS2C
 
 struct EditModeS2C : MessageType
@@ -126,7 +105,5 @@ struct EditModeS2C : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 #endif
 };
-
-void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode);
 
 #endif

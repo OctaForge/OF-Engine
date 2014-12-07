@@ -13,12 +13,6 @@
 #include "client_system.h"
 
 void force_network_flush();
-namespace MessageSystem
-{
-    void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode);
-    void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc);
-}
-using namespace MessageSystem;
 
 namespace world
 {
@@ -52,7 +46,7 @@ namespace world
     bool set_map(const char *id) {
         generate_scenario_code();
 #ifdef STANDALONE
-        send_PrepareForNewScenario(-1, scenario_code);
+        sendf(-1, 1, "ris", N_PREPFORNEWSCENARIO, scenario_code);
         force_network_flush();
 #endif
         copystring(curr_map_id, id);
@@ -71,7 +65,7 @@ namespace world
         defformatstring(path, "%sSTANDALONE_READY", homedir);
         FILE *f = fopen(path, "w"); if (f) fclose(f);
         server::createluaEntity(-1);
-        send_NotifyAboutCurrentScenario(-1, curr_map_id, scenario_code);
+        sendf(-1, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, curr_map_id, scenario_code);
 #endif
 
         return true;
