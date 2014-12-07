@@ -1,7 +1,7 @@
 // main.cpp: initialisation & main loop
 
 #include "engine.h"
-#include "client_system.h"
+#include "game.h"
 #include "of_localserver.h"
 
 #ifdef WIN32
@@ -1173,7 +1173,7 @@ int main(int argc, char **argv)
 
         if(minimized) continue;
 
-        gl_setupframe(!mainmenu && ClientSystem::scenarioStarted());
+        gl_setupframe(!mainmenu && game::scenario_started());
 
         inbetweenframes = false;
 

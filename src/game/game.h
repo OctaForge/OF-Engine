@@ -183,6 +183,7 @@ namespace game
 
     extern bool haslogicsys;
     extern string curr_scenario_code;
+    extern bool scenario_started();
 }
 
 namespace server

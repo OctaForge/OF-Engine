@@ -10,7 +10,6 @@
 #include "cube.h"
 #include "game.h"
 #include "of_localserver.h"
-#include "client_system.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

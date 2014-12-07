@@ -6,8 +6,6 @@
 #include "game.h"
 #include "crypto.h"
 
-#include "client_system.h"
-
 namespace game
 {
     VARP(playerfpsshadow, 0, 1, 1);

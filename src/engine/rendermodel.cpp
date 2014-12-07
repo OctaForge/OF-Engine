@@ -15,8 +15,6 @@ extern vector<int> lua_anims;
 #include "skelmodel.h"
 #include "hitzone.h"
 
-#include "client_system.h"
-
 static model *(__cdecl *modeltypes[NUMMODELTYPES])(const char *);
 
 static int addmodeltype(int type, model *(__cdecl *loader)(const char *))

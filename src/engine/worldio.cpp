@@ -2,8 +2,6 @@
 
 #include "engine.h"
 #include "game.h"
-
-#include "client_system.h"
 #include "of_world.h"
 
 extern int getattrnum(int type);

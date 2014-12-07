@@ -1,7 +1,6 @@
 // console.cpp: the console buffer, its display, and command line control
 
 #include "engine.h"
-#include "client_system.h"
 #include "game.h"
 
 #define MAXCONLINES 1000
@@ -862,7 +861,7 @@ void mouse##num##click() { \
     bool down = (addreleaseaction(newstring(QUOT(mouse##num##click))) != 0); \
     logger::log(logger::INFO, "mouse click: %i (down: %i)", num, down); \
 \
-    if (!(lua::L && ClientSystem::scenarioStarted())) \
+    if (!(lua::L && game::scenario_started())) \
         return; \
 \
     vec pos; \
@@ -887,7 +886,7 @@ bool k_turn_left, k_turn_right, k_look_up, k_look_down;
 
 #define SCRIPT_DIR(name, v, p, d, s, os) \
 ICOMMAND(name, "", (), { \
-    if (ClientSystem::scenarioStarted()) \
+    if (game::scenario_started()) \
     { \
         lua::call_external("entity_clear_actions", "i", game::player1->uid); \
         s = (addreleaseaction(newstring(#name)) != 0); \
@@ -907,7 +906,7 @@ SCRIPT_DIR(left,   strafe, strafe,  1, player->k_left, player->k_right);
 SCRIPT_DIR(right, strafe, strafe, -1, player->k_right, player->k_left);
 
 ICOMMAND(jump, "", (), {
-    if (ClientSystem::scenarioStarted())
+    if (game::scenario_started())
     {
         lua::call_external("entity_clear_actions", "i", game::player1->uid);
         bool down = (addreleaseaction(newstring("jump")) != 0);
@@ -916,7 +915,7 @@ ICOMMAND(jump, "", (), {
 });
 
 ICOMMAND(crouch, "", (), {
-    if (ClientSystem::scenarioStarted())
+    if (game::scenario_started())
     {
         lua::call_external("entity_clear_actions", "i", game::player1->uid);
         bool down = (addreleaseaction(newstring("crouch")) != 0);

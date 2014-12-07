@@ -6,13 +6,12 @@
 #include "engine.h"
 #include "game.h"
 
-#include "client_system.h"
-
 #include "of_localserver.h"
 #include "of_world.h"
 
 extern int enthover;
 extern int freecursor, freeeditcursor;
+extern bool finish_load_world();
 
 namespace game
 {
@@ -25,6 +24,8 @@ namespace game
     bool spectator = false;
 
     string curr_scenario_code = "";
+    static bool _scenario_started = false;
+    static bool map_completely_received = false;
 
     void parsemessages(int cn, gameent *d, ucharbuf &p);
 
@@ -69,7 +70,13 @@ namespace game
 //        loopv(players) clientdisconnected(i, false); Kripken: When we disconnect, we should shut down anyhow...
         logger::log(logger::WARNING, "Not doing normal Sauer disconnecting of other clients");
 
-        ClientSystem::onDisconnect();
+        _scenario_started  = false;
+        map_completely_received = false;
+        stopsounds();
+        lua::call_external("entities_remove_all", "");
+        lua::reset();
+        haslogicsys = false;
+        lua::call_external("has_logic_sys_set", "b", false);
 
         if (player->ragdoll)
             cleanragdoll(player);
@@ -245,7 +252,7 @@ namespace game
 
     void toserver(char *text)
     {
-        if (ClientSystem::scenarioStarted())
+        if (game::scenario_started())
         {
             conoutf(CON_CHAT, "%s:\f0 %s", colorname(player1), text);
             addmsg(N_TEXT, "rcs", player1, text);
@@ -346,7 +353,7 @@ namespace game
         if(totalmillis - lastupdate < 40 && !force) return;    // don't update faster than the rate
         lastupdate = totalmillis;
 
-        if (ClientSystem::scenarioStarted())
+        if (game::scenario_started())
             sendposition(player1);
 
         sendmessages(player1);
@@ -658,7 +665,12 @@ namespace game
                 getstring(text, p);
                 assert(lua::call_external("gui_show_message", "ss", "Server",
                     "Map is being prepared on the server, please wait..."));
-                ClientSystem::prepareForNewScenario(text);
+                map_completely_received = false;
+                setvar("mainmenu", 1);
+                lua::call_external("entities_remove_all", "");
+                game::haslogicsys = false;
+                lua::call_external("has_logic_sys_set", "b", false);
+                copystring(game::curr_scenario_code, text);
                 break;
 
             case N_NOTIFYABOUTCURRENTSCENARIO: {
@@ -671,7 +683,9 @@ namespace game
             }
 
             case N_ALLACTIVEENTSSENT:
-                ClientSystem::finishLoadWorld();
+                finish_load_world();
+                map_completely_received = true;
+                lua::call_external("gui_clear", "");
                 break;
 
             case N_INITS2C: {
@@ -860,6 +874,14 @@ namespace game
                 break;
             }
         }
+    }
+
+    bool scenario_started() {
+        if (map_completely_received && !_scenario_started) {
+            lua::pop_external_ret(lua::call_external_ret("scene_is_ready", "",
+                "b", &_scenario_started));
+        }
+        return map_completely_received && _scenario_started;
     }
 };
 

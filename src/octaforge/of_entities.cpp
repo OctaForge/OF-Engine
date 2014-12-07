@@ -9,7 +9,6 @@
 #include "cube.h"
 #include "engine.h"
 #include "game.h"
-#include "client_system.h"
 #include "of_world.h"
 
 void removeentity(extentity* entity);
@@ -159,9 +158,9 @@ namespace entities
     });
     CLUAICOMMAND(set_attr, void, (extentity *ext, int a, int v), {
         assert(ext);
-        if (ClientSystem::scenarioStarted()) removeentity(ext);
+        if (game::scenario_started()) removeentity(ext);
         ext->attr[a] = v;
-        if (ClientSystem::scenarioStarted()) addentity(ext);
+        if (game::scenario_started()) addentity(ext);
     });
     CLUAICOMMAND(FAST_set_attr, void, (extentity *ext, int a, int v), {
         assert(ext);

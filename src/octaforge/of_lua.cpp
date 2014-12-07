@@ -5,11 +5,6 @@
 #include "game.h"
 
 #include "of_lua.h"
-
-#ifndef STANDALONE
-    #include "client_system.h"
-#endif
-
 #include "of_world.h"
 #include "of_localserver.h"
 

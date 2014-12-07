@@ -10,7 +10,6 @@
 #include "of_world.h"
 #include "game.h"
 #include "engine.h"
-#include "client_system.h"
 
 namespace world
 {

@@ -13,9 +13,6 @@
 #define _fileno fileno
 #endif
 
-#ifndef STANDALONE
-    #include "client_system.h"
-#endif
 #include "of_world.h"
 
 extern bool should_quit;

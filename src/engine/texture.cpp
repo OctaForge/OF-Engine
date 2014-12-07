@@ -1,7 +1,7 @@
 // texture.cpp: texture slot management
 
 #include "engine.h"
-#include "client_system.h"
+#include "game.h"
 #include "of_world.h"
 
 #ifdef __APPLE__
@@ -540,7 +540,7 @@ VARF(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARF(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(aniso, 0, 0, 16, initwarning("texture filtering", INIT_LOAD));
 /* OF */
-VARFR(texdefscale, 1, 16, 64, if (ClientSystem::scenarioStarted()) initwarning("texture scale", INIT_LOAD));
+VARFR(texdefscale, 1, 16, 64, if (game::scenario_started()) initwarning("texture scale", INIT_LOAD));
 
 extern int usetexcompress;
 

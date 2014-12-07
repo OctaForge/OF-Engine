@@ -5,8 +5,6 @@
 #include "cube.h"
 #include "engine.h"
 #include "game.h"
-
-#include "client_system.h"
 #include "of_world.h"
 
 extern float rayent(const vec &o, const vec &ray, float radius, int mode, int size, int &orient, int &ent);
@@ -235,7 +233,7 @@ namespace game
             return;
         }
 
-        bool runWorld = ClientSystem::scenarioStarted();
+        bool runWorld = game::scenario_started();
         //===================
         // Run physics
         //===================
