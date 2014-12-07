@@ -16,8 +16,6 @@ namespace server
     int& getUniqueId(int clientNumber);
 }
 
-extern ENetPacket *buildfva(const char *format, va_list args, int &exclude);
-
 namespace MessageSystem
 {
 // YourUniqueId

@@ -207,7 +207,6 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
 {
     if(n<0)
     {
-        if (getnumclients() <= 0) return; // INTENSITY: Added this, because otherwise sending to '-1' when there are no clients segfaults
         server::recordpacket(chan, packet->data, packet->dataLength);
         loopv(clients) if(i!=exclude && server::allowbroadcast(i)) sendpacket(i, chan, packet);
         return;
@@ -228,11 +227,14 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
     }
 }
 
-ENetPacket *buildfva(const char *format, va_list args, int &exclude)
+ENetPacket *sendf(int cn, int chan, const char *format, ...)
 {
+    int exclude = -1;
     bool reliable = false;
     if(*format=='r') { reliable = true; ++format; }
     packetbuf p(MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+    va_list args;
+    va_start(args, format);
     while(*format) switch(*format++)
     {
         case 'x':
@@ -268,39 +270,9 @@ ENetPacket *buildfva(const char *format, va_list args, int &exclude)
         }
     }
     va_end(args);
-    ENetPacket *pa = p.finalize();
-    p.packet = NULL;
-    return pa;
-}
-
-ENetPacket *buildf(const char *format, ...)
-{
-    int exclude = -1;
-
-    va_list args;
-    va_start(args, format);
-    ENetPacket *packet = buildfva(format, args, exclude);
-    va_end(args);
-
-    return packet;
-}
-
-ENetPacket *sendf(int cn, int chan, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-
-    int exclude = -1;
-    ENetPacket *packet = buildfva(format, args, exclude);
+    ENetPacket *packet = p.finalize();
     sendpacket(cn, chan, packet, exclude);
-
-    va_end(args);
-
-    if (packet->referenceCount)
-        return packet;
-
-    enet_packet_destroy(packet);
-    return NULL;
+    return packet->referenceCount > 0 ? packet : NULL;
 }
 
 const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "message error", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };
