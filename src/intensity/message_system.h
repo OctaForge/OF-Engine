@@ -6,13 +6,6 @@
 
 #include "tools.h"
 
-//! All out new messages types should have higher value. This might be lower than the current '1000', and it might
-//! then fit into a char, for better network bandwidth...
-#define INTENSITY_MSG_TYPE_MIN 1000
-
-//! As per Sauer: 0 is fast positions, 1 is (reliable?) standard messages
-#define MAIN_CHANNEL 1
-
 //! Extensions to the Sauerbraten client-server messaging system
 
 //! Instead of hard-coding messages into gameserver.h as in Sauerbraten, we instead have the
@@ -37,7 +30,7 @@ struct MessageType
     int         type_code; //!< Each message type has a unique code, as in Sauer.
     const char *type_name; //!< Message names are useful for debugging, but not sent over the wire
 
-    MessageType(int code, const char *name) : type_code(code), type_name(name) { assert(type_code >= INTENSITY_MSG_TYPE_MIN); };
+    MessageType(int code, const char *name) : type_code(code), type_name(name) {};
     virtual ~MessageType() { };
 
     //! Receive a message

@@ -18,7 +18,8 @@ from core.externals import set as setext
 import capi
 
 var message_types = {}
-var current_mid = 2048
+// scripting messages start after the first byte
+var current_mid = 256
 
 /**
     A constant (value -1) used when sending messages. Specifying this constant

@@ -17,7 +17,7 @@ namespace MessageSystem
     void send_YourUniqueId(int clientNumber, int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)");
-        sendf(clientNumber, MAIN_CHANNEL, "rii", 1004, uid);
+        sendf(clientNumber, 1, "rii", N_YOURUID, uid);
     }
 
 #ifndef STANDALONE
@@ -37,7 +37,7 @@ namespace MessageSystem
     void send_LoginResponse(int clientNumber, bool success, bool local)
     {
         logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)");
-        sendf(clientNumber, MAIN_CHANNEL, "ri", 1005);
+        sendf(clientNumber, 1, "ri", N_LOGINRESPONSE);
     }
 
 #ifndef STANDALONE
@@ -54,7 +54,7 @@ namespace MessageSystem
     void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode)
     {
         logger::log(logger::DEBUG, "Sending a message of type PrepareForNewScenario (1006)");
-        sendf(clientNumber, MAIN_CHANNEL, "ris", 1006, scenarioCode);
+        sendf(clientNumber, 1, "ris", N_PREPFORNEWSCENARIO, scenarioCode);
     }
 
 #ifndef STANDALONE
@@ -75,7 +75,7 @@ namespace MessageSystem
     void send_RequestCurrentScenario()
     {
         logger::log(logger::DEBUG, "Sending a message of type RequestCurrentScenario (1007)");
-        game::addmsg(1007, "r");
+        game::addmsg(N_REQUESTCURRENTSCENARIO, "r");
     }
 #endif
 
@@ -93,7 +93,7 @@ namespace MessageSystem
     void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc)
     {
         logger::log(logger::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)");
-        sendf(clientNumber, MAIN_CHANNEL, "riss", 1008, mid, sc);
+        sendf(clientNumber, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, mid, sc);
     }
 
 #ifndef STANDALONE
@@ -114,7 +114,7 @@ namespace MessageSystem
     void send_AllActiveEntitiesSent(int clientNumber)
     {
         logger::log(logger::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)");
-        sendf(clientNumber, MAIN_CHANNEL, "ri", 1016);
+        sendf(clientNumber, 1, "ri", N_ALLACTIVEENTSSENT);
     }
 
 #ifndef STANDALONE
@@ -129,7 +129,7 @@ namespace MessageSystem
     void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
     {
         logger::log(logger::DEBUG, "Sending a message of type InitS2C (1022)");
-        sendf(clientNumber, MAIN_CHANNEL, "riii", 1022, explicitClientNumber, protocolVersion);
+        sendf(clientNumber, 1, "riii", N_INITS2C, explicitClientNumber, protocolVersion);
     }
 
 #ifndef STANDALONE
@@ -158,7 +158,7 @@ namespace MessageSystem
     void send_EditModeC2S(int mode)
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeC2S (1028)");
-        game::addmsg(1028, "ri", mode);
+        game::addmsg(N_EDITMODEC2S, "ri", mode);
     }
 #endif
 
@@ -178,7 +178,7 @@ namespace MessageSystem
     void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode)
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)");
-        sendf(clientNumber, MAIN_CHANNEL, "rxiii", otherClientNumber, 1029, otherClientNumber, mode);
+        sendf(clientNumber, 1, "rxiii", otherClientNumber, N_EDITMODES2C, otherClientNumber, mode);
     }
 #endif
 

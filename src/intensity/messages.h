@@ -5,12 +5,13 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
+#include "game.h"
 
 // YourUniqueId
 
 struct YourUniqueId : MessageType
 {
-    YourUniqueId() : MessageType(1004, "YourUniqueId") { };
+    YourUniqueId() : MessageType(N_YOURUID, "YourUniqueId") { };
 
 #ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
@@ -24,7 +25,7 @@ void send_YourUniqueId(int clientNumber, int uid);
 
 struct LoginResponse : MessageType
 {
-    LoginResponse() : MessageType(1005, "LoginResponse") { };
+    LoginResponse() : MessageType(N_LOGINRESPONSE, "LoginResponse") { };
 
 #ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
@@ -38,7 +39,7 @@ void send_LoginResponse(int clientNumber, bool success, bool local);
 
 struct PrepareForNewScenario : MessageType
 {
-    PrepareForNewScenario() : MessageType(1006, "PrepareForNewScenario") { };
+    PrepareForNewScenario() : MessageType(N_PREPFORNEWSCENARIO, "PrepareForNewScenario") { };
 
 #ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
@@ -52,7 +53,7 @@ void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode);
 
 struct RequestCurrentScenario : MessageType
 {
-    RequestCurrentScenario() : MessageType(1007, "RequestCurrentScenario") { };
+    RequestCurrentScenario() : MessageType(N_REQUESTCURRENTSCENARIO, "RequestCurrentScenario") { };
 
 #ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
@@ -66,7 +67,7 @@ void send_RequestCurrentScenario();
 
 struct NotifyAboutCurrentScenario : MessageType
 {
-    NotifyAboutCurrentScenario() : MessageType(1008, "NotifyAboutCurrentScenario") { };
+    NotifyAboutCurrentScenario() : MessageType(N_NOTIFYABOUTCURRENTSCENARIO, "NotifyAboutCurrentScenario") { };
 
 #ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
@@ -79,7 +80,7 @@ void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const ch
 
 struct AllActiveEntitiesSent : MessageType
 {
-    AllActiveEntitiesSent() : MessageType(1016, "AllActiveEntitiesSent") { };
+    AllActiveEntitiesSent() : MessageType(N_ALLACTIVEENTSSENT, "AllActiveEntitiesSent") { };
 
 #ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
@@ -92,7 +93,7 @@ void send_AllActiveEntitiesSent(int clientNumber);
 
 struct InitS2C : MessageType
 {
-    InitS2C() : MessageType(1022, "InitS2C") { };
+    InitS2C() : MessageType(N_INITS2C, "InitS2C") { };
 
 #ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
@@ -105,7 +106,7 @@ void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersio
 
 struct EditModeC2S : MessageType
 {
-    EditModeC2S() : MessageType(1028, "EditModeC2S") { };
+    EditModeC2S() : MessageType(N_EDITMODEC2S, "EditModeC2S") { };
 
 #ifdef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);
@@ -119,7 +120,7 @@ void send_EditModeC2S(int mode);
 
 struct EditModeS2C : MessageType
 {
-    EditModeS2C() : MessageType(1029, "EditModeS2C") { };
+    EditModeS2C() : MessageType(N_EDITMODES2C, "EditModeS2C") { };
 
 #ifndef STANDALONE
     void receive(int receiver, int sender, ucharbuf &p);

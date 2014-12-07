@@ -180,10 +180,7 @@ namespace game
         }
         int num = nums || numf ? 0 : numi, msgsize = server::msgsizelookup(type);
         // Kripken: ignore message sizes for non-sauer messages, i.e., ones we added
-        if (type < INTENSITY_MSG_TYPE_MIN)
-        {
-            if(msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
-        }
+        if((type & 0xFF) == type && msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
         if(reliable) messagereliable = true;
         if(mcn != messagecn)
         {
@@ -231,9 +228,7 @@ namespace game
         }
         int num = nums || numf ? 0 : numi;
         int msgsize = server::msgsizelookup(type);
-        if (type < INTENSITY_MSG_TYPE_MIN) {
-            if (msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
-        }
+        if ((type & 0xFF) == type && msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
         if (reliable) messagereliable = true;
         messages.put(buf, p.length());
         return true;

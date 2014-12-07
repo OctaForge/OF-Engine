@@ -902,8 +902,12 @@ namespace server
             N_SERVCMD, 0,
 
             N_ENTREQUESTNEW, 0, N_ENTREQUESTREMOVE, 0,
-            N_ACTIVEENTSREQUEST, 0,
-            N_LOGINREQUEST, 0,
+            N_ACTIVEENTSREQUEST, 0, N_ALLACTIVEENTSSENT, 0,
+            N_LOGINREQUEST, 0, N_LOGINRESPONSE, 0,
+            N_YOURUID, 0,
+            N_PREPFORNEWSCENARIO, 0, N_REQUESTCURRENTSCENARIO, 0, N_NOTIFYABOUTCURRENTSCENARIO, 0,
+            N_INITS2C, 0,
+            N_EDITMODEC2S, 0, N_EDITMODES2C, 0,
 
             -1
         };
@@ -982,7 +986,7 @@ namespace server
         va_end(args);
         ENetPacket *packet = p.finalize();
         p.packet = NULL;
-        sendpacket(cn, MAIN_CHANNEL, packet, exclude);
+        sendpacket(cn, 1, packet, exclude);
         if(!packet->referenceCount) enet_packet_destroy(packet);
     })
 };
