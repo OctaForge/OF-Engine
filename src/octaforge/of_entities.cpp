@@ -66,7 +66,7 @@ namespace entities
     });
 
     CLUAICOMMAND(destroy_character, void, (int cn), {
-        if (cn != ClientSystem::playerNumber)
+        if (cn != game::player1->clientnum)
             game::clientdisconnected(cn);
     });
 
@@ -348,11 +348,11 @@ namespace entities
     });
 
     CLUAICOMMAND(setup_character, physent *, (int uid, int cn), {
-        if (uid == ClientSystem::uniqueId)
-            lua::call_external("entity_set_cn", "ii", uid, (cn = ClientSystem::playerNumber));
+        if (uid == game::player1->uid)
+            lua::call_external("entity_set_cn", "ii", uid, (cn = game::player1->clientnum));
         assert(cn >= 0);
         gameent *d;
-        if (uid == ClientSystem::uniqueId) {
+        if (uid == game::player1->uid) {
             d = game::getclient(cn);
         } else {
             d = game::newclient(cn);

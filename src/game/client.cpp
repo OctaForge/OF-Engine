@@ -635,7 +635,6 @@ namespace game
             case N_YOURUID: {
                 int uid = getint(p);
                 logger::log(logger::DEBUG, "Told my unique ID: %d", uid);
-                ClientSystem::uniqueId = uid;
                 lua::call_external("player_set_uid", "i", uid);
                 break;
             }
@@ -697,7 +696,7 @@ namespace game
                 logger::log(logger::INFO, "Client: Handling a non-typical message: %d", type);
                 bool hashandler = false;
                 lua::pop_external_ret(lua::call_external_ret("message_receive", "iiip",
-                    "b", type, ClientSystem::playerNumber, cn, (void*)&p, &hashandler));
+                    "b", type, game::player1->clientnum, cn, (void*)&p, &hashandler));
                 if (!hashandler) {
                     logger::log(logger::DEBUG, "No scripting handler for message %d from %d", type, cn);
                     assert(0);

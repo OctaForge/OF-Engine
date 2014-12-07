@@ -9,10 +9,8 @@
 #include "client_system.h"
 #include "of_world.h"
 
-int            ClientSystem::playerNumber       = -1;
-int            ClientSystem::uniqueId           = -1;
 /* the buffer is large enough to hold the uuid */
-string         ClientSystem::currScenarioCode   = "";
+string ClientSystem::currScenarioCode   = "";
 
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
@@ -20,15 +18,11 @@ bool _mapCompletelyReceived = false;
 void ClientSystem::login(int clientNumber)
 {
     logger::log(logger::DEBUG, "ClientSystem::login()");
-
-    playerNumber = clientNumber;
-
     game::addmsg(N_LOGINREQUEST, "r");
 }
 
 void ClientSystem::onDisconnect()
 {
-    playerNumber = -1;
     _scenarioStarted  = false;
     _mapCompletelyReceived = false;
 

@@ -8,9 +8,6 @@
 
 struct ClientSystem
 {
-    //! The client number of the PC. A copy of player1->clientnum, but nicer name
-    static int           playerNumber;
-
     //! UniqueID of the player in the current module. Set in a successful response to
     //! logging in. When we then load a map, this is used to create the player's
     //! LogicEntity.
