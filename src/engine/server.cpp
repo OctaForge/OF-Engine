@@ -300,7 +300,7 @@ ENetPacket *sendf(int cn, int chan, const char *format, ...)
         return packet;
 
     enet_packet_destroy(packet);
-    return 0;
+    return NULL;
 }
 
 const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "message error", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };

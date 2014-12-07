@@ -667,7 +667,8 @@ namespace server
                     force_network_flush();
                     disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
                 }
-                server::setAdmin(sender, true);
+                setAdmin(sender, true);
+                createluaEntity(sender);
                 MessageSystem::send_LoginResponse(sender, true, true);
                 break;
 
@@ -821,6 +822,7 @@ namespace server
         MessageSystem::send_YourUniqueId(cn, uid);
 
         ci->uniqueId = uid;
+        ci->connected = true;
 
         lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, uid);
         return uid;
@@ -919,8 +921,8 @@ namespace server
 
     bool allowbroadcast(int n)
     {
-        clientinfo *ci = (clientinfo *)getinfo(n);
-        return ci && ci->connected; // XXX FIXME - code is wrong, but rare crashes if fix it by removing 'connected' bit
+        clientinfo *ci = getinfo(n);
+        return ci && ci->connected;
     }
 
     int reserveclients() { return 3+1; }
@@ -956,5 +958,31 @@ namespace server
     }
 
     CLUAICOMMAND(is_running_current_scenario, bool, (int cn), return isRunningCurrentScenario(cn););
+
+    CLUAICOMMAND(msg_send, void, (int cn, int exclude, const char *fmt, ...), {
+        bool reliable = false;
+        va_list args;
+        va_start(args, fmt);
+        if (*fmt == 'r') { reliable = true; ++fmt; }
+        packetbuf p(MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+        while (*fmt) switch (*fmt++) {
+            case 'i': {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putint(p, (int)va_arg(args, double));
+                break;
+            }
+            case 'f': {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putfloat(p, (float)va_arg(args, double));
+                break;
+            }
+            case 's': sendstring(va_arg(args, const char *), p); break;
+        }
+        va_end(args);
+        ENetPacket *packet = p.finalize();
+        p.packet = NULL;
+        sendpacket(cn, MAIN_CHANNEL, packet, exclude);
+        if(!packet->referenceCount) enet_packet_destroy(packet);
+    })
 };
 

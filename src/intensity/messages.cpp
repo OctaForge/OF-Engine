@@ -20,56 +20,13 @@ extern ENetPacket *buildfva(const char *format, va_list args, int &exclude);
 
 namespace MessageSystem
 {
-
-    void send_AnyMessage(int clientNumber, int exclude, ENetPacket *packet) {
-        INDENT_LOG(logger::DEBUG);
-
-        int start, finish;
-        if (clientNumber == -1) 
-            start = 0, finish = getnumclients();            // send to all
-        else
-            start = clientNumber, finish = clientNumber+1;  // send to one
-
-        for (int clientNumber = start; clientNumber < finish; clientNumber++) {
-            if (clientNumber == exclude) continue;
-            sendpacket(clientNumber, MAIN_CHANNEL, packet, -1);
-        }
-
-        if(!packet->referenceCount) enet_packet_destroy(packet);
-    }
-
-    CLUAICOMMAND(msg_send, void, (int cn, int exclude, const char *fmt, ...), {
-        bool reliable = false;
-        va_list args;
-        va_start(args, fmt);
-        if (*fmt == 'r') { reliable = true; ++fmt; }
-        packetbuf p(MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
-        while (*fmt) switch (*fmt++) {
-            case 'i': {
-                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putint(p, (int)va_arg(args, double));
-                break;
-            }
-            case 'f': {
-                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putfloat(p, (float)va_arg(args, double));
-                break;
-            }
-            case 's': sendstring(va_arg(args, const char *), p); break;
-        }
-        va_end(args);
-        ENetPacket *packet = p.finalize();
-        p.packet = NULL;
-        send_AnyMessage(cn, exclude, packet);
-    })
-
 // YourUniqueId
 
     void send_YourUniqueId(int clientNumber, int uid)
     {
         logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)");
         server::getUniqueId(clientNumber) = uid;
-        send_AnyMessage(clientNumber, -1, buildf("rii", 1004, uid));
+        sendf(clientNumber, MAIN_CHANNEL, "rii", 1004, uid);
     }
 
 #ifndef STANDALONE
@@ -89,9 +46,7 @@ namespace MessageSystem
     void send_LoginResponse(int clientNumber, bool success, bool local)
     {
         logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)");
-        if (success) server::createluaEntity(clientNumber);
-
-        send_AnyMessage(clientNumber, -1, buildf("ri", 1005));
+        sendf(clientNumber, MAIN_CHANNEL, "ri", 1005);
     }
 
 #ifndef STANDALONE
@@ -108,7 +63,7 @@ namespace MessageSystem
     void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode)
     {
         logger::log(logger::DEBUG, "Sending a message of type PrepareForNewScenario (1006)");
-        send_AnyMessage(clientNumber, -1, buildf("ris", 1006, scenarioCode));
+        sendf(clientNumber, MAIN_CHANNEL, "ris", 1006, scenarioCode);
     }
 
 #ifndef STANDALONE
@@ -149,7 +104,7 @@ namespace MessageSystem
     void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc)
     {
         logger::log(logger::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)");
-        send_AnyMessage(clientNumber, -1, buildf("riss", 1008, mid, sc));
+        sendf(clientNumber, MAIN_CHANNEL, "riss", 1008, mid, sc);
     }
 
 #ifndef STANDALONE
@@ -170,7 +125,7 @@ namespace MessageSystem
     void send_AllActiveEntitiesSent(int clientNumber)
     {
         logger::log(logger::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)");
-        send_AnyMessage(clientNumber, -1, buildf("ri", 1016));
+        sendf(clientNumber, MAIN_CHANNEL, "ri", 1016);
     }
 
 #ifndef STANDALONE
@@ -185,7 +140,7 @@ namespace MessageSystem
     void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion)
     {
         logger::log(logger::DEBUG, "Sending a message of type InitS2C (1022)");
-        send_AnyMessage(clientNumber, -1, buildf("riii", 1022, explicitClientNumber, protocolVersion));
+        sendf(clientNumber, MAIN_CHANNEL, "riii", 1022, explicitClientNumber, protocolVersion);
     }
 
 #ifndef STANDALONE
@@ -236,8 +191,7 @@ namespace MessageSystem
     void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode)
     {
         logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)");
-
-        send_AnyMessage(clientNumber, otherClientNumber, buildf("riii", 1029, otherClientNumber, mode));
+        sendf(clientNumber, MAIN_CHANNEL, "rxiii", otherClientNumber, 1029, otherClientNumber, mode);
     }
 #endif
 
