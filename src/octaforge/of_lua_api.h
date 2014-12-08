@@ -38,15 +38,6 @@ namespace lapi_binds
     /* edit */
 
 #ifndef STANDALONE
-    int _lua_hasprivedit(lua_State *L) {
-        lua_pushboolean(L, !multiplayer());
-        return 1;
-    }
-#else
-    LAPI_EMPTY(hasprivedit)
-#endif
-
-#ifndef STANDALONE
     int _lua_gettargetpos(lua_State *L) {
         vec o;
         game::determinetarget(true, &o);
@@ -69,46 +60,6 @@ namespace lapi_binds
 #else
     LAPI_EMPTY(gettargetpos)
     LAPI_EMPTY(gettargetent)
-#endif
-
-    /* World */
-
-#ifndef STANDALONE
-    CLUAICOMMAND(iscolliding, bool, (float x, float y, float z, float r, physent *ignore), {
-        physent tester;
-        tester.reset();
-        tester.type = ENT_BOUNCE;
-        tester.o    = vec(x, y, z);
-        tester.radius    = tester.xradius = tester.yradius = r;
-        tester.eyeheight = tester.aboveeye  = r;
-        if (collide(&tester, vec(0))) {
-            if (ignore && ignore == collideplayer) {
-                vec save = ignore->o;
-                avoidcollision(ignore, vec(1), &tester, 0.1f);
-                bool ret = collide(&tester, vec(0));
-                ignore->o = save;
-                return ret;
-            }
-            return true;
-        }
-        return false;
-    });
-
-    int _lua_setgravity(lua_State *L) {
-        GRAVITY = luaL_checknumber(L, 1);
-        return 0;
-    }
-#else
-    LAPI_EMPTY(setgravity)
-#endif
-
-#ifndef STANDALONE
-    int _lua_hasmap(lua_State *L) {
-        lua_pushboolean(L, local_server::is_running());
-        return 1;
-    }
-#else
-    LAPI_EMPTY(hasmap)
 #endif
 
     int _lua_get_map_preview_filename(lua_State *L) {
@@ -171,14 +122,9 @@ namespace lapi_binds
 
     LUACOMMAND(readfile, _lua_readfile);
 
-    /* edit */
-    LUACOMMAND(hasprivedit, _lua_hasprivedit);
-
     /* world */
     LUACOMMAND(gettargetpos, _lua_gettargetpos);
     LUACOMMAND(gettargetent, _lua_gettargetent);
-    LUACOMMAND(setgravity, _lua_setgravity);
-    LUACOMMAND(hasmap, _lua_hasmap);
     LUACOMMAND(get_map_preview_filename, _lua_get_map_preview_filename);
     LUACOMMAND(get_all_map_names, _lua_get_all_map_names);
 }
