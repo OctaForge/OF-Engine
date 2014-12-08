@@ -107,4 +107,18 @@ namespace world
         lua::call_external("mapscript_run", "s", get_mapfile_path("map.oct"));
         identflags = oldflags;
     }
+
+    LUAICOMMAND(readfile, {
+        const char *p = luaL_checkstring(L, 1);
+        string buf;
+        copystring(buf, world::get_mapfile_path(p));
+        char *loaded = NULL;
+        if (!(loaded = loadfile(path(buf), NULL))) {
+            logger::log(logger::ERROR, "count not read \"%s\"", p);
+            return 0;
+        }
+        lua_pushstring(L, loaded);
+        delete[] loaded;
+        return 1;
+    });
 } /* end namespace world */

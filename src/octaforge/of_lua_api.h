@@ -10,33 +10,6 @@ extern physent *collideplayer;
 
 namespace lapi_binds
 {
-    int _lua_readfile(lua_State *L) {
-        const char *p = luaL_checkstring(L, 1);
-
-        if (!p || !p[0] || p[0] == '/' ||p[0] == '\\'
-        || strstr(p, "..") || strchr(p, '~')) {
-            return 0;
-        }
-
-        char *loaded = NULL;
-        string buf;
-
-        if (strlen(p) >= 2 && p[0] == '.' && (p[1] == '/' || p[1] == '\\')) {
-            copystring(buf, world::get_mapfile_path(p + 2));
-        } else {
-            formatstring(buf, "media/%s", p);
-        }
-
-        if (!(loaded = loadfile(path(buf), NULL))) {
-            logger::log(logger::ERROR, "count not read \"%s\"", p);
-            return 0;
-        }
-        lua_pushstring(L, loaded);
-        return 1;
-    }
-
-    /* edit */
-
 #ifndef STANDALONE
     int _lua_gettargetpos(lua_State *L) {
         vec o;
@@ -61,23 +34,6 @@ namespace lapi_binds
     LAPI_EMPTY(gettargetpos)
     LAPI_EMPTY(gettargetent)
 #endif
-
-    int _lua_get_map_preview_filename(lua_State *L) {
-        defformatstring(buf, "media/map/%s/preview.png",
-            luaL_checkstring(L, 1));
-        if (fileexists(path(buf), "r")) {
-            lua_pushstring(L, buf);
-            return 1;
-        }
-
-        defformatstring(buff, "%s%s", homedir, buf);
-        if (fileexists(path(buff), "r")) {
-            lua_pushstring(L, buff);
-            return 1;
-        }
-
-        return 0;
-    }
 
     int _lua_get_all_map_names(lua_State *L) {
         vector<char*> dirs;
@@ -120,11 +76,8 @@ namespace lapi_binds
         return 4;
     }
 
-    LUACOMMAND(readfile, _lua_readfile);
-
     /* world */
     LUACOMMAND(gettargetpos, _lua_gettargetpos);
     LUACOMMAND(gettargetent, _lua_gettargetent);
-    LUACOMMAND(get_map_preview_filename, _lua_get_map_preview_filename);
     LUACOMMAND(get_all_map_names, _lua_get_all_map_names);
 }

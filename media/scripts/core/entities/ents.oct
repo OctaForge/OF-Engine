@@ -579,7 +579,7 @@ M.load = func() {
     @[!server] { return }
 
     @[debug] log(DEBUG, "ents.load: reading")
-    var el = capi::readfile("./entities.oct")
+    var el = capi::readfile("entities.oct")
 
     var entities = []
     if !el {
