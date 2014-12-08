@@ -14,7 +14,7 @@ var ents, get_ent
 
 var ffi_new = ffi.new
 
-from std.conv import tostring
+from std.conv import tostring, tonumber
 from std.array import from_table
 
 var gen_getwrap = func(fun, tp) {
@@ -287,9 +287,9 @@ capi.get_all_map_names = func() {
         }
         return w, h, t
     }
-}
 
-var should_log in capi
-capi.should_log = func(level) {
-    return should_log(level) != 0
+    var isconnected in capi
+    capi.isconnected = func(attempt, local) {
+        return isconnected(attempt || false, local || false)
+    }
 }

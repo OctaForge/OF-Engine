@@ -1110,3 +1110,22 @@ void writecollideobj(char *name)
 COMMAND(writecollideobj, "s");
 
 ICOMMAND(export_entities, "s", (char *fn), world::export_ents(fn));
+
+extern void writemediacfg(int level);
+
+ICOMMAND(savemap, "ii", (int *skipmedia, int *medialevel), {
+    renderprogress(0.1f, "compiling scripts...");
+
+    bool b;
+    lua::pop_external_ret(lua::call_external_ret("mapscript_verify", "s",
+        "b", world::get_mapfile_path("map.oct"), &b));
+    if (!b) return;
+
+    renderprogress(0.3, "generating map...");
+    save_world(game::getclientmap());
+
+    renderprogress(0.4, "exporting entities...");
+    world::export_ents("entities.oct");
+
+    if (!*skipmedia) writemediacfg(*medialevel);
+});

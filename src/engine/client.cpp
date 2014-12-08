@@ -39,6 +39,10 @@ bool isconnected(bool attempt, bool local)
     return curpeer || (attempt && connpeer) || (local && haslocalclients());
 }
 
+CLUAICOMMAND(isconnected, bool, (bool attempt, bool local), {
+    return isconnected(attempt, local);
+});
+
 const ENetAddress *connectedpeer()
 {
     return curpeer ? &curpeer->address : NULL;

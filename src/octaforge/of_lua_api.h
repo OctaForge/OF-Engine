@@ -7,7 +7,6 @@ namespace game
 
 extern float GRAVITY;
 extern physent *collideplayer;
-void writemediacfg(int level);
 
 namespace lapi_binds
 {
@@ -45,115 +44,6 @@ namespace lapi_binds
     }
 #else
     LAPI_EMPTY(hasprivedit)
-#endif
-
-    /* network */
-
-#ifndef STANDALONE
-    int _lua_connect(lua_State *L) {
-        connectserv((char*)luaL_checkstring(L, 1), luaL_checkinteger(L, 2), "");
-        return 0;
-    }
-
-    int _lua_isconnected(lua_State *L) {
-        lua_pushboolean(L, isconnected(lua_toboolean(L, 1),
-            lua_toboolean(L, 2)));
-        return 1;
-    }
-
-    int _lua_haslocalclients(lua_State *L) {
-        lua_pushboolean(L, haslocalclients());
-        return 1;
-    }
-
-    int _lua_connectedip(lua_State *L) {
-        const ENetAddress *addr = connectedpeer();
-        char hn[128];
-        if (addr && enet_address_get_host_ip(addr, hn, sizeof(hn)) >= 0) {
-            lua_pushstring(L, hn);
-            return 1;
-        }
-        return 0;
-    }
-
-    int _lua_connectedport(lua_State *L) {
-        const ENetAddress *addr = connectedpeer();
-        lua_pushinteger(L, addr ? addr->port : -1);
-        return 1;
-    }
-
-    int _lua_connectserv(lua_State *L) {
-        connectserv(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
-            luaL_optstring(L, 3, NULL));
-        return 0;
-    }
-
-    int _lua_lanconnect(lua_State *L) {
-        connectserv(NULL, luaL_checkinteger(L, 1), luaL_optstring(L, 2, NULL));
-        return 0;
-    }
-
-    int _lua_disconnect(lua_State *L) {
-        trydisconnect(lua_toboolean(L, 1));
-        return 0;
-    }
-
-    int _lua_localconnect(lua_State *L) {
-        if (!isconnected() && !haslocalclients()) localconnect();
-        return 0;
-    }
-
-    int _lua_localdisconnect(lua_State *L) {
-        if (haslocalclients()) localdisconnect();
-        return 0;
-    }
-
-    int _lua_getfollow(lua_State *L) {
-        gameent *f = game::followingplayer();
-        lua_pushinteger(L, f ? f->clientnum : -1);
-        return 1;
-    }
-#else
-    LAPI_EMPTY(connect)
-    LAPI_EMPTY(isconnected)
-    LAPI_EMPTY(haslocalclients)
-    LAPI_EMPTY(connectedip)
-    LAPI_EMPTY(connectedport)
-    LAPI_EMPTY(connectserv)
-    LAPI_EMPTY(lanconnect)
-    LAPI_EMPTY(disconnect)
-    LAPI_EMPTY(localconnect)
-    LAPI_EMPTY(localdisconnect)
-    LAPI_EMPTY(getfollow)
-#endif
-
-#ifndef STANDALONE
-    static void do_upload(bool skipmedia, int medialevel) {
-        renderprogress(0.1f, "compiling scripts...");
-
-        bool b;
-        lua::pop_external_ret(lua::call_external_ret("mapscript_verify", "s",
-            "b", world::get_mapfile_path("map.oct"), &b));
-        if (!b) return;
-
-        renderprogress(0.3, "generating map...");
-        save_world(game::getclientmap());
-
-        renderprogress(0.4, "exporting entities...");
-        world::export_ents("entities.oct");
-
-        if (!skipmedia) writemediacfg(medialevel);
-    }
-
-    int _lua_do_upload(lua_State *L) {
-        do_upload(lua_toboolean(L, 1), luaL_optinteger(L, 2, 0));
-        return 0;
-    }
-    ICOMMAND(savemap, "ii", (int *skipmedia, int *medialevel), {
-        do_upload(*skipmedia != 0, *medialevel);
-    });
-#else
-    LAPI_EMPTY(do_upload)
 #endif
 
 #ifndef STANDALONE
@@ -283,20 +173,6 @@ namespace lapi_binds
 
     /* edit */
     LUACOMMAND(hasprivedit, _lua_hasprivedit);
-
-    /* network */
-    LUACOMMAND(connect, _lua_connect);
-    LUACOMMAND(isconnected, _lua_isconnected);
-    LUACOMMAND(haslocalclients, _lua_haslocalclients);
-    LUACOMMAND(connectedip, _lua_connectedip);
-    LUACOMMAND(connectedport, _lua_connectedport);
-    LUACOMMAND(connectserv, _lua_connectserv);
-    LUACOMMAND(lanconnect, _lua_lanconnect);
-    LUACOMMAND(disconnect, _lua_disconnect);
-    LUACOMMAND(localconnect, _lua_localconnect);
-    LUACOMMAND(localdisconnect, _lua_localdisconnect);
-    LUACOMMAND(getfollow, _lua_getfollow);
-    LUACOMMAND(do_upload, _lua_do_upload);
 
     /* world */
     LUACOMMAND(gettargetpos, _lua_gettargetpos);
