@@ -288,3 +288,8 @@ capi.get_all_map_names = func() {
         return w, h, t
     }
 }
+
+var should_log in capi
+capi.should_log = func(level) {
+    return should_log(level) != 0
+}

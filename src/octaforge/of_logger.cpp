@@ -106,4 +106,16 @@ namespace logger
     {
         if (done) current_indent--;
     }
+
+    CLUAICOMMAND(log, void, (int level, const char *msg), {
+        log((loglevel)level, "%s", msg);
+    });
+
+    CLUAICOMMAND(should_log, bool, (int level), {
+        return should_log((loglevel)level);
+    });
+
+    CLUAICOMMAND(echo, void, (const char *msg), {
+        conoutf("\f1%s", msg);
+    });
 } /* end namespace logger */

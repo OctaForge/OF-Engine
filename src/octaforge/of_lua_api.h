@@ -11,23 +11,6 @@ void writemediacfg(int level);
 
 namespace lapi_binds
 {
-    int _lua_log(lua_State *L) {
-        logger::log((logger::loglevel)luaL_checkinteger(L, 1),
-            "%s", luaL_checkstring(L, 2));
-        return 0;
-    }
-
-    int _lua_should_log(lua_State *L) {
-        lua_pushboolean(L, logger::should_log(
-            (logger::loglevel)luaL_checkinteger(L, 1)));
-        return 1;
-    }
-
-    int _lua_echo(lua_State *L) {
-        conoutf("\f1%s", luaL_checkstring(L, 1));
-        return 0;
-    }
-
     int _lua_readfile(lua_State *L) {
         const char *p = luaL_checkstring(L, 1);
 
@@ -296,9 +279,6 @@ namespace lapi_binds
         return 4;
     }
 
-    LUACOMMAND(log, _lua_log);
-    LUACOMMAND(should_log, _lua_should_log);
-    LUACOMMAND(echo, _lua_echo);
     LUACOMMAND(readfile, _lua_readfile);
 
     /* edit */
