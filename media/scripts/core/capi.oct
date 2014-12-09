@@ -261,15 +261,13 @@ capi.strftime = func(fmt) {
         text_get_positionf(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
     }
-}
 
-var get_all_map_names in capi
-capi.get_all_map_names = func() {
-    var t1, s1, t2, s2 = get_all_map_names()
-    return from_table(t1, s1), from_table(t2, s2)
-}
+    var get_all_map_names in capi
+    capi.get_all_map_names = func() {
+        var t1, s1, t2, s2 = get_all_map_names()
+        return from_table(t1, s1), from_table(t2, s2)
+    }
 
-@[!server] {
     var findanims in capi
     capi.findanims = func(pattern) {
         return from_table(findanims(pattern))

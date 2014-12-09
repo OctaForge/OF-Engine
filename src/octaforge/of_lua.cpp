@@ -8,13 +8,6 @@
 #include "of_world.h"
 #include "of_localserver.h"
 
-#define LAPI_EMPTY(name) int _lua_##name(lua_State *L) \
-{ logger::log(logger::DEBUG, "stub: _C."#name"\n"); return 0; }
-
-#include "of_lua_api.h"
-
-#undef LAPI_EMPTY
-
 void deleteparticles();
 void deletestains();
 void clearanims();
