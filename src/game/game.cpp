@@ -596,5 +596,24 @@ namespace game
         if (extent) *extent = targetextent;
         if (dynent) *dynent = targetdynent;
     }
+
+    CLUAICOMMAND(gettargetent, int, (), {
+        extentity *ext;
+        gameent *ent;
+        game::determinetarget(true, NULL, &ext, (dynent**)&ent);
+        if (ext)
+            return ext->uid;
+        else if (ent)
+            return ent->uid;
+        return -1;
+    });
+
+    CLUAICOMMAND(gettargetpos, void, (float *v), {
+        vec o;
+        game::determinetarget(true, &o);
+        v[0] = o.x;
+        v[1] = o.y;
+        v[2] = o.z;
+    });
 }
 

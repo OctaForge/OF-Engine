@@ -63,6 +63,13 @@ var gen_getwrap = func(fun, tp) {
         return undef
     }
 
+    var gettargetpos in capi
+    capi.gettargetpos = func() {
+        var stor = ffi_new("float[3]")
+        gettargetpos(stor)
+        return tonumber(stor[0]), tonumber(stor[1]), tonumber(stor[2])
+    }
+
     var get_attr in capi
     capi.get_attr = func(ent, id) {
         var stor = ffi_new("int[1]")
