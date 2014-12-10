@@ -82,17 +82,6 @@ var mrender = @[!server,model.render]
 
 /// Module: ents
 var M = ents
-
-var cent_storage = {}
-
-var iptr = ffi["typeof"]("intptr_t")
-var cent_to_addr = func(cent) {
-    return tonumber(ffi::cast(iptr, cent))
-}
-
-M.get_by_centity = func(cent) {
-    return cent_storage[cent_to_addr(cent)]
-}
 var get_by_centity = M.get_by_centity
 
 /**
@@ -446,7 +435,7 @@ M.Character = Entity.clone({
 
         self.cn = kwargs && kwargs.cn || -1
         self.__centity = capi::setup_character(self.uid, self.cn)
-        cent_storage[cent_to_addr(self.__centity)] = self
+        M::set_centity(self.__centity, self)
 
         self.render_args_timestamp = -1
 
@@ -480,7 +469,7 @@ M.Character = Entity.clone({
 
     __deactivate: func(self) {
         @[!server] {
-            cent_storage[cent_to_addr(self.__centity)] = undef
+            M::set_centity(self.__centity, undef)
             self.__centity = undef
             capi::destroy_character(self.cn)
         }
@@ -835,13 +824,13 @@ M.StaticEntity = Entity.clone({
         }
     },func(self, kwargs) {
         self.__centity = capi::setup_extent(self.uid, self.sauer_type)
-        cent_storage[cent_to_addr(self.__centity)] = self
+        M::set_centity(self.__centity, self)
         return Entity::__activate(self, kwargs)
     }],
 
     __deactivate: func(self) {
         @[!server] {
-            cent_storage[cent_to_addr(self.__centity)] = undef
+            M::set_centity(self.__centity, undef)
             capi::destroy_extent(self.__centity)
             self.__centity = undef
         }

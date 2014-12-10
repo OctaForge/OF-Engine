@@ -85,8 +85,8 @@ namespace game
     static bool is_admin() {
         if (!player1) return false;
         bool b;
-        lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
-            "b", game::player1->uid, "can_edit", &b));
+        lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "ps",
+            "b", game::player1, "can_edit", &b));
         return b;
     }
 

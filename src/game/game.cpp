@@ -395,8 +395,8 @@ namespace game
     {
         static string cns;
         const char *cn;
-        int n = lua::call_external_ret("entity_get_attr", "is", "s",
-            d->uid, "character_name", &cn);
+        int n = lua::call_external_ret("entity_get_attr", "ps", "s",
+            d, "character_name", &cn);
         copystring(cns, cn);
         lua::pop_external_ret(n);
         return cns;

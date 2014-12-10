@@ -1166,7 +1166,7 @@ void entpaste()
 
         const char *cn;
         lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
-            "i", "s", c.uid, &cn));
+            "p", "s", &c, &cn));
 
         const char *sd;
         int npop = lua::call_external_ret("entity_serialize_sdata", "ifff", "s",
@@ -1233,7 +1233,7 @@ void ofentcopy()
 
     const char *name;
     lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
-        "i", "s", e.uid, &name));
+        "p", "s", &e, &name));
     copystring(copied_class, name);
 
     const char *sd;
@@ -1264,7 +1264,7 @@ void enttype(char *type, int *numargs) {
     } else entfocus(efocus, {
         const char *name;
         lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
-            "i", "s", e.uid, &name));
+            "p", "s", &e, &name));
         result(name ? name : "");
     })
 }

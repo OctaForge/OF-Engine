@@ -1463,8 +1463,8 @@ void modifyedgeturn(int curtime) {
 
     if (cursor_exists) goto noturn;
 
-    lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "is",
-        "f", game::player1->uid, "facing_speed", &fs));
+    lua::pop_external_ret(lua::call_external_ret("entity_get_attr", "ps",
+        "f", game::player1, "facing_speed", &fs));
 
     if (fp->turn_move || fabs(x - 0.5) > 0.495)
     {

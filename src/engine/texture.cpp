@@ -1965,7 +1965,7 @@ sounds:
             lua_pushvalue(lua::L, -1);
             const extentity &e = *sounds[i];
             const char *sn;
-            int n = lua::call_external_ret("entity_get_attr", "is", "s", e.uid,
+            int n = lua::call_external_ret("entity_get_attr", "ps", "s", &e,
                 "sound_name", &sn);
             f->printf("preloadmapsound \"%s\" %d\n", sn, e.attr[2]);
             lua::pop_external_ret(n);
