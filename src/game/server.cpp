@@ -52,9 +52,6 @@ namespace server
         ENetPacket *clipboard;
         int lastclipboard, needclipboard;
 
-        //! The current scenario being run by the client
-        bool runningCurrentScenario;
-
         clientinfo() : clipboard(NULL) { reset(); }
         ~clientinfo() { cleanclipboard(); }
 
@@ -64,8 +61,6 @@ namespace server
             timesync = false;
             lastevent = 0;
             overflow = 0;
-
-            runningCurrentScenario = false;
         }
 
         void cleanclipboard(bool fullclean = true)
@@ -614,7 +609,6 @@ namespace server
                 lua::pop_external_ret(lua::call_external_ret("entity_proto_exists", "s", "b", _class, &b));
                 if (!b) break;
                 logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s|%s", _class, x, y, z, sdata, newent_data);
-                if (!server::isRunningCurrentScenario(sender)) break; // Silently ignore info from previous scenario
                 lua::call_external("entity_new_with_sd", "sfffss", _class, x, y, z, sdata, newent_data);
                 break;
             }
@@ -627,7 +621,6 @@ namespace server
                     lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot remove entities");
                     break;
                 }
-                if (!server::isRunningCurrentScenario(sender)) break; // Silently ignore info from previous scenario
                 lua::call_external("entity_remove", "i", uid);
                 break;
             }
@@ -636,14 +629,6 @@ namespace server
                 char scenario_code[MAXTRANS];
                 getstring(scenario_code, p);
                 if (!world::scenario_code[0]) break;
-                // Mark the client as running the current scenario, if indeed doing so
-                server::setClientScenario(sender, scenario_code);
-                if (!server::isRunningCurrentScenario(sender)) {
-                    logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s",
-                        sender, scenario_code);
-                    lua::call_external("show_client_message", "iss", sender, "Invalid scenario", "An error occured in synchronizing scenarios");
-                    break;
-                }
                 assert(lua::call_external("entities_send_all", "i", sender));
                 sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
                 assert(lua::call_external("event_player_login", "i", server::getUniqueId(sender)));
@@ -673,7 +658,7 @@ namespace server
 
             case N_EDITMODEC2S: {
                 int mode = getint(p);
-                if (!world::scenario_code[0] || !server::isRunningCurrentScenario(sender)) break;
+                if (!world::scenario_code[0]) break;
                 sendf(-1, 1, "rxiii", sender, N_EDITMODES2C, sender, mode); // Relay
                 break;
             }
@@ -703,8 +688,6 @@ namespace server
                     int size = msgsizelookup(type);
                     if(size<=0) { disconnect_client(sender, DISC_TAGT); return; }
                     loopi(size-1) getint(p);
-
-                    if ( !isRunningCurrentScenario(sender) ) break; // Silently ignore info from previous scenario
 
                     if(ci && ci->state.state!=CS_SPECTATOR) QUEUE_MSG;
 
@@ -946,23 +929,6 @@ namespace server
             ci->mapchange(); // Old sauer method to reset scenario/game/map transient info
         }
     }
-
-    void setClientScenario(int cn, const char *sc)
-    {
-        clientinfo *ci = getinfo(cn);
-        if (!ci) return;
-        ci->runningCurrentScenario = !strcmp(world::scenario_code, sc);
-    }
-
-    bool isRunningCurrentScenario(int clientNumber)
-    {
-        clientinfo *ci = getinfo(clientNumber);
-        if (!ci) return false;
-
-        return ci->runningCurrentScenario;
-    }
-
-    CLUAICOMMAND(is_running_current_scenario, bool, (int cn), return isRunningCurrentScenario(cn););
 
     CLUAICOMMAND(msg_send, void, (int cn, int exclude, const char *fmt, ...), {
         bool reliable = false;

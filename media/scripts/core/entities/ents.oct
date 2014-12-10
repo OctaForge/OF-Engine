@@ -963,7 +963,6 @@ M.Entity = Object.clone({
 
         var auid = capi::cn_get_uid(sender)
         @[debug] log(DEBUG, e"client $auid tried to change $kpid to value $value")
-        if tonumber(capi::is_running_current_scenario(sender)) == 0 { return }
         var ent = storage[uid]
         if ent {
             var key = ids_to_names[ent.name][kpid]

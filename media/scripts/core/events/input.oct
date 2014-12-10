@@ -41,8 +41,6 @@ var msgid_click = msg::register(@[server,func(tp, receiver, sender, p) {
     var uid = p.get_int()
 
     if tonumber(capi::have_scenario_code()) == 0 { return }
-    if tonumber(capi::is_running_current_scenario(sender)) == 0 { return }
-
     get_ext("input_click_server")(btn, down, x, y, z, uid)
 }])
 
