@@ -82,7 +82,6 @@ struct gameent : dynent
     void *ai; // TODO: If we want, import rest of AI code
 
     char turn_move, look_updown_move;
-    int uid;
 
 #ifndef STANDALONE
     vector<modelattach> attachments;
@@ -90,7 +89,6 @@ struct gameent : dynent
 #endif
 
     gameent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), anim(0), start_time(0), can_move(false), ai(NULL)
-                                                                      , uid(-821)
     {
         name[0] = team[0] = info[0] = 0; respawn();
 #ifndef STANDALONE

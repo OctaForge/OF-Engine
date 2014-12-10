@@ -1495,10 +1495,6 @@ M.get_highest_uid = func() {
     return highest_uid
 }
 
-set_external("entity_set_cn", func(uid, cn) {
-    get_ent(uid).cn = cn
-})
-
 /** Function: new
     Creates a new entity on the server. External as `entity_new`.
 

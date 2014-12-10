@@ -64,11 +64,6 @@ namespace entities
         ext->type = ET_EMPTY;
     });
 
-    CLUAICOMMAND(destroy_character, void, (int cn), {
-        if (cn != game::player1->clientnum)
-            game::clientdisconnected(cn);
-    });
-
     /* Entity attributes */
 
     CLUAICOMMAND(set_animation_dyn, void, (physent *ent, int anim), {
@@ -327,17 +322,7 @@ namespace entities
         return e;
     });
 
-    CLUAICOMMAND(setup_character, physent *, (int uid, int cn), {
-        if (uid == game::player1->uid)
-            lua::call_external("entity_set_cn", "ii", uid, (cn = game::player1->clientnum));
-        assert(cn >= 0);
-        gameent *d;
-        if (uid == game::player1->uid) {
-            d = game::getclient(cn);
-        } else {
-            d = game::newclient(cn);
-        }
-        d->uid = uid;
-        return d;
+    CLUAICOMMAND(setup_character, physent *, (), {
+        return game::player1;
     });
 } /* end namespace entities */

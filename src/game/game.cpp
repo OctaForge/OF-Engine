@@ -150,7 +150,7 @@ namespace game
 
     void otherplayers(int curtime)
     {
-        loopv(players) if(players[i] && players[i]->uid >= 0) // Need a complete entity for this
+        loopv(players)
         {
             gameent *d = players[i];
             if(d == player1 || d->ai) continue;
@@ -163,19 +163,16 @@ namespace game
                 continue;
             }
 
-            // Ignore intentions to move, if immobile
             if (!d->can_move)
                 d->turn_move = d->move = d->look_updown_move = d->strafe = d->jumping = 0;
 
             if(d->state==CS_ALIVE || d->state==CS_EDITING)
             {
                 crouchplayer(d, 10, false);
-                if(smoothmove && d->smoothmillis>0) predictplayer(d, true); // Disable to force server to always move clients
+                if(smoothmove && d->smoothmillis>0) predictplayer(d, true);
                 else moveplayer(d, 1, false);
             }
             else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 1, true);
-
-            logger::log(logger::INFO, "                                      to %f,%f,%f", d->o.x, d->o.y, d->o.z);
         }
     }
 
@@ -295,10 +292,7 @@ namespace game
         }
 
         if(cn == player1->clientnum)
-        {
-            player1->uid = -5412; // Wipe uid of new client
             return player1;
-        }
 
         while(cn >= clients.length()) clients.add(NULL);
 
@@ -603,5 +597,7 @@ namespace game
         v[1] = o.y;
         v[2] = o.z;
     });
+
+    CLUAICOMMAND(player_get_cn, int, (), return player1->clientnum);
 }
 

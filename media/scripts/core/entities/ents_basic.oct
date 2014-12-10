@@ -433,8 +433,8 @@ M.Character = Entity.clone({
     },func(self, kwargs) {
         Entity::__activate(self, kwargs)
 
-        self.cn = kwargs && kwargs.cn || -1
-        self.__centity = capi::setup_character(self.uid, self.cn)
+        self.cn = capi::player_get_cn()
+        self.__centity = capi::setup_character()
         M::set_centity(self.__centity, self)
 
         self.render_args_timestamp = -1
@@ -471,7 +471,6 @@ M.Character = Entity.clone({
         @[!server] {
             M::set_centity(self.__centity, undef)
             self.__centity = undef
-            capi::destroy_character(self.cn)
         }
         Entity::__deactivate(self)
     },
