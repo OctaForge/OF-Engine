@@ -365,7 +365,7 @@ void checkmapsounds()
         if(camera1->o.dist(e.o) < e.attr[0])
         {
             if(!(e.flags&EF_SOUND))
-                lua::call_external("sound_play_map", "i", e.uid);
+                lua::call_external("sound_play_map", "p", &e);
         }
         else if(e.flags&EF_SOUND) stopmapsound(&e);
     }

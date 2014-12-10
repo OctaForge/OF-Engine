@@ -1490,7 +1490,7 @@ int density, float scale, float speed, int gravity, physent *owner), {
 enum { PART_TEXT = 0, PART_ICON };
 
 static void makeparticles(const extentity &e) {
-    lua::call_external("particle_entity_emit", "i", e.uid);
+    lua::call_external("particle_entity_emit", "p", &e);
 }
 
 void seedparticles()
@@ -1580,7 +1580,7 @@ void updateparticles()
             const char *icon;
             float r, g, b;
             lua::pop_external_ret(lua::call_external_ret("entity_get_edit_icon_info",
-                "i", "sfff", e.uid, &icon, &r, &g, &b));
+                "p", "sfff", &e, &icon, &r, &g, &b));
 
             particle_textcopy(e.o, name, PART_TEXT, 1, vec(0.12f, 0.78f, 0.31f), 2.0f, 0);
             ((iconparticle*)newparticle(e.o, vec(0, 0, 0), 0, PART_ICON,

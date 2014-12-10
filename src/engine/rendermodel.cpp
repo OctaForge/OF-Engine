@@ -1095,8 +1095,7 @@ int preparerd(lua_State *L, int &anim, gameent *fp) {
 
         if (fp->ragdoll || !ragdoll) {
             if (!ragdoll) anim &= ~ANIM_RAGDOLL;
-            lua::call_external("entity_set_local_animation", "ii",
-                fp->uid, anim);
+            lua::call_external("entity_set_local_animation", "pi", fp, anim);
         }
     } else if (fp == game::player1 && oldtp != -1) {
         thirdperson = oldtp; oldtp = -1;

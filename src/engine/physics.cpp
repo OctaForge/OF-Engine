@@ -632,8 +632,8 @@ bool plcollide(physent *d, const vec &dir)    // collide with player
                 default: continue;
             }
             collideplayer = o;
-            lua::call_external("physics_collide_client", "iifff",
-                ((gameent*)d)->uid, ((gameent*)o)->uid, collidewall.x, collidewall.y, collidewall.z);
+            lua::call_external("physics_collide_client", "ppfff",
+                d, o, collidewall.x, collidewall.y, collidewall.z);
             return true;
         }
     }
@@ -807,7 +807,7 @@ bool areacollide(physent *d, const vec &dir, float cutoff, const extentity &e) {
     }
     return false;
 collision:
-    lua::call_external("physics_collide_area", "ii", ((gameent*)d)->uid, e.uid);
+    lua::call_external("physics_collide_area", "pp", d, &e);
     return e.attr[6];
 }
 
@@ -887,8 +887,7 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         /* OF - collision handling; "return false" replaced with gotos above */
         continue;
 collision:
-        lua::call_external("physics_collide_mapmodel", "ii",
-            ((gameent*)d)->uid, e.uid);
+        lua::call_external("physics_collide_mapmodel", "pp", d, &e);
         return true;
     }
     return false;
@@ -1700,7 +1699,7 @@ bool droptofloor(vec &o, float radius, float height)
 float dropheight(entity &e) {
     float ret;
     lua::pop_external_ret(lua::call_external_ret("entity_get_edit_drop_height",
-        "i", "f", ((extentity&)e).uid, &ret));
+        "p", "f", &e, &ret));
     return ret;
 }
 
@@ -1914,9 +1913,9 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     pl->inwater = water ? material&MATF_VOLUME : MAT_AIR;
 
     if (material&MAT_DEATH)
-        lua::call_external("physics_in_deadly", "ii", ((gameent*)pl)->uid, material&MATF_VOLUME);
+        lua::call_external("physics_in_deadly", "pi", pl, material&MATF_VOLUME);
     else if (pl->o.z < 0)
-        lua::call_external("physics_off_map", "i", ((gameent*)pl)->uid);
+        lua::call_external("physics_off_map", "p", pl);
     return true;
 }
 

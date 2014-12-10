@@ -21,11 +21,13 @@ var ents
     changes its state). By default emits the `off_map` signal on the client.
 
     Arguments:
-        - uid - the client entity uid.
+        - cent - the client entity.
 */
-set_external("physics_off_map", func(uid) {
+set_external("physics_off_map", func(cent) {
     if !ents { ents = import core.entities.ents }
-    emit(ents::get(uid), "off_map")
+    var ent = ents::get_by_centity(cent)
+    if !ent { return }
+    emit(ent, "off_map")
 })
 
 /** Function: physics_in_deadly
@@ -34,12 +36,14 @@ set_external("physics_off_map", func(uid) {
     an extra argument.
 
     Arguments:
-        - uid - the client entity uid.
+        - cent - the client entity.
         - mat - the material id (see $edit).
 */
-set_external("physics_in_deadly", func(uid, mat) {
+set_external("physics_in_deadly", func(cent, mat) {
     if !ents { ents = import core.entities.ents }
-    emit(ents::get(uid), "in_deadly", mat)
+    var ent = ents::get_by_centity(cent)
+    if !ent { return }
+    emit(ent, "in_deadly", mat)
 })
 
 // flags for physics_state_change
