@@ -249,11 +249,6 @@ namespace entities
 
         /* no need to interpolate to the last position - just jump */
         d->resetinterp();
-
-        logger::log(
-            logger::INFO, "(%i).setdynent0(%f, %f, %f)",
-            d->uid, d->o.x, d->o.y, d->o.z
-        );
     });
 
     CLUAICOMMAND(get_dynent_position, bool, (physent *ent, double *pos), {
@@ -287,20 +282,6 @@ namespace entities
     DYNENTVEC(falling, falling)
     #undef DYNENTVEC
 
-    CLUAICOMMAND(get_target_entity_uid, bool, (int *uid), {
-        extentity *ext;
-        gameent *ent;
-        game::gettarget(NULL, &ext, (dynent**)&ent);
-        if (ext) {
-            *uid = ext->uid;
-            return true;
-        } else if (ent) {
-            *uid = ent->uid;
-            return true;
-        }
-        return false;
-    });
-
     CLUAICOMMAND(get_plag, bool, (physent *d, int *val), {
         gameent *p = (gameent*)d;
         assert(p);
@@ -315,15 +296,15 @@ namespace entities
         return true;
     });
 
-    CLUAICOMMAND(get_selected_entity, int, (), {
+    CLUAICOMMAND(get_selected_entity, extentity *, (), {
         const vector<extentity *> &ents = entities::getents();
-        if (!ents.inrange(efocus)) return -1;
-        return ents[efocus]->uid;
+        if (!ents.inrange(efocus)) return NULL;
+        return ents[efocus];
     });
 
-    CLUAICOMMAND(get_attached_entity, int, (extentity *e), {
-        if (!e || !e->attached) return -1;
-        return e->attached->uid;
+    CLUAICOMMAND(get_attached_entity, extentity *, (extentity *e), {
+        if (!e || !e->attached) return NULL;
+        return e->attached;
     });
 
     CLUAICOMMAND(setup_extent, extentity *, (int uid, int type), {

@@ -155,8 +155,6 @@ namespace game
             gameent *d = players[i];
             if(d == player1 || d->ai) continue;
 
-            if (d->uid < 0) continue;
-
             logger::log(logger::INFO, "otherplayers: moving %d from %f,%f,%f", d->uid, d->o.x, d->o.y, d->o.z);
 
             const int lagtime = totalmillis-d->lastupdate;
@@ -193,13 +191,6 @@ namespace game
                 "i", "b", player1->uid, &b));
             if (b)
             {
-                logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.",
-                    player1->uid, (void*)player1,
-                    player1->o.x,
-                    player1->o.y,
-                    player1->o.z
-                );
-
                 // Ignore intentions to move, if immobile
                 if (!player1->can_move)
                     player1->turn_move = player1->move = player1->look_updown_move = player1->strafe = player1->jumping = 0;
@@ -568,7 +559,7 @@ namespace game
             if (lastcheck != lastmillis) {
                 float dist;
                 target_intersect_closest(camera1->o, worldpos, camera1, dist);
-                if (!editmode && targetdynent && ((gameent*)targetdynent)->uid == player1->uid) {
+                if (!editmode && targetdynent && targetdynent == player1) {
                     vec save = player1->o;
                     player1->o.add(1e16f);
                     target_intersect_closest(camera1->o, worldpos, camera1, dist);
@@ -597,15 +588,15 @@ namespace game
         if (dynent) *dynent = targetdynent;
     }
 
-    CLUAICOMMAND(gettargetent, int, (), {
+    CLUAICOMMAND(gettargetent, void *, (), {
         extentity *ext;
         gameent *ent;
         game::determinetarget(true, NULL, &ext, (dynent**)&ent);
         if (ext)
-            return ext->uid;
+            return (void*)ext;
         else if (ent)
-            return ent->uid;
-        return -1;
+            return (void*)ent;
+        return NULL;
     });
 
     CLUAICOMMAND(gettargetpos, void, (float *v), {

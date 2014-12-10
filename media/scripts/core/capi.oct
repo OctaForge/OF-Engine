@@ -10,7 +10,7 @@
 
 import capi
 import std.ffi
-var ents, get_ent
+var ents, get_by_centity
 
 var ffi_new = ffi.new
 
@@ -34,33 +34,27 @@ var gen_getwrap = func(fun, tp) {
     capi.get_selected_entity = func() {
         if !ents {
             ents = import core.entities.ents
-            get_ent = ents.get
+            get_by_centity = ents.get_by_centity
         }
-        var uid = get_selected_entity()
-        if uid >= 0 { return get_ent(uid) }
-        return undef
+        return get_by_centity(get_selected_entity())
     }
 
     var get_attached_entity in capi
-    capi.get_attached_entity = func(uid) {
+    capi.get_attached_entity = func(ent) {
         if !ents {
             ents = import core.entities.ents
-            get_ent = ents.get
+            get_by_centity = ents.get_by_centity
         }
-        var auid = get_attached_entity(uid)
-        if auid >= 0 { return get_ent(auid) }
-        return undef
+        return get_by_centity(get_attached_entity(ent.__centity))
     }
 
     var gettargetent in capi
     capi.gettargetent = func() {
         if !ents {
             ents = import core.entities.ents
-            get_ent = ents.get
+            get_by_centity = ents.get_by_centity
         }
-        var uid = gettargetent()
-        if uid >= 0 { return get_ent(uid) }
-        return undef
+        return get_by_centity(gettargetent())
     }
 
     var gettargetpos in capi
@@ -149,18 +143,7 @@ var gen_getwrap = func(fun, tp) {
     capi.set_dynent_falling = func(ent, fl) {
         set_dynent_falling(ent, fl[0], fl[1], fl[2])
     }
-}
 
-@[!server] {
-    var get_target_entity_uid in capi
-    capi.get_target_entity_uid = func() {
-        var stor = ffi_new("int[1]")
-        if !get_target_entity_uid(stor) { return undef }
-        return stor[0]
-    }
-}
-
-@[!server] {
     capi.get_ping = gen_getwrap(capi.get_ping, "int")
     capi.get_plag = gen_getwrap(capi.get_plag, "int")
 }

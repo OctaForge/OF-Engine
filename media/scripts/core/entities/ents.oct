@@ -1343,9 +1343,9 @@ set_external("entity_set_attr", func(uid, prop, val) {
     return ent.set_attr(prop, val)
 })
 
-set_external("entity_draw_attached", func(uid) {
-    var fent = storage[uid]
-    if !fent { return }
+set_external("entity_draw_attached", func(cent) {
+    var fent = get_by_centity(cent)
+    if !fent { return undef }
     var ents = [ fent.get_attached_next() ]
     if !ents.empty() {
         for i, ent in ents.each() {
@@ -1436,8 +1436,10 @@ M.set_sdata = func(uid, kpid, value, auid) {
     }
 }
 
-set_external("entity_serialize_sdata", func(uid, x, y, z) {
-    var sd = get_ent(uid).build_sdata()
+set_external("entity_serialize_sdata", func(cent, x, y, z) {
+    var ent = get_by_centity(cent)
+    if !ent { return undef }
+    var sd = ent.build_sdata()
     if !x {
         sd.position = undef
     } else {

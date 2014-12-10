@@ -144,9 +144,8 @@ struct particle {
 
 typedef particle particle_t;
 
-CLUAICOMMAND(particle_get_owner, int, (particle_t *part), {
-    if (part->owner) return ((gameent*)part->owner)->uid;
-    return -1;
+CLUAICOMMAND(particle_get_owner, physent *, (particle_t *part), {
+    return part->owner;
 })
 
 CLUAICOMMAND(particle_set_owner, void, (particle_t *part, physent *owner), {

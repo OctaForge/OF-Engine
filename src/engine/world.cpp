@@ -810,7 +810,7 @@ void renderentradius(extentity &e, bool color)
         default:
         attach:
             if (color) gle::colorf(0, 1, 1);
-            lua::call_external("entity_draw_attached", "i", e.uid);
+            lua::call_external("entity_draw_attached", "p", &e);
             break;
     }
 }
@@ -1169,8 +1169,8 @@ void entpaste()
             "p", "s", &c, &cn));
 
         const char *sd;
-        int npop = lua::call_external_ret("entity_serialize_sdata", "ifff", "s",
-            c.uid, o.x, o.y, o.z, &sd);
+        int npop = lua::call_external_ret("entity_serialize_sdata", "pfff", "s",
+            &c, o.x, o.y, o.z, &sd);
 
         newent(cn, sd);
         lua::pop_external_ret(npop);
@@ -1188,7 +1188,7 @@ void printent(extentity &e, char *buf, int len) {
     int npop = lua::call_external_ret("entity_get_edit_info", "p", "ss", &e,
         &name, &info);
     if (!info || !info[0]) nformatstring(buf, len, "%s", name);
-    else nformatstring(buf, len, "%s\n\f7%s (\f2%d\f7)", info, name, e.uid);
+    else nformatstring(buf, len, "%s\n\f7%s", info, name);
     lua::pop_external_ret(npop);
 }
 
@@ -1237,8 +1237,8 @@ void ofentcopy()
     copystring(copied_class, name);
 
     const char *sd;
-    int npop = lua::call_external_ret("entity_serialize_sdata", "i", "s",
-        e.uid, &sd);
+    int npop = lua::call_external_ret("entity_serialize_sdata", "p", "s",
+        &e, &sd);
 
     copystring(copied_sdata, sd, sizeof(copied_sdata));
     lua::pop_external_ret(npop);
