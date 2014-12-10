@@ -93,8 +93,7 @@ var MouseAction = actions.Action.clone({
     }
 })
 
-inputev::set_event("click", func(btn, down, x, y, z, uid, cx, cy) {
-    var ent = ents::get(uid)
+inputev::set_event("click", func(btn, down, x, y, z, ent, cx, cy) {
     if ent && ent.click {
         return ent.click(btn, down, x, y, z, cx, cy)
     }

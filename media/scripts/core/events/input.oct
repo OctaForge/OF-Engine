@@ -39,9 +39,10 @@ var msgid_click = msg::register(@[server,func(tp, receiver, sender, p) {
     var y = tonumber(p.get_int()) / DMF
     var z = tonumber(p.get_int()) / DMF
     var uid = p.get_int()
-
+    if !ents { ents = import core.entities.ents }
+    var ent = (uid >= 0) ? ents::get(uid) : undef
     if tonumber(capi::have_scenario_code()) == 0 { return }
-    get_ext("input_click_server")(btn, down, x, y, z, uid)
+    get_ext("input_click_server")(btn, down, x, y, z, ent)
 }])
 
 @[!server] {
@@ -135,10 +136,12 @@ set_ext("input_crouch", func(down) {
           (if any, undef otherwise).
         - cx, cy - the cursor position.
 */
-set_ext("input_click", func(btn, down, x, y, z, uid, cx, cy) {
-    if !get_ext("input_click_client")(btn, down, x, y, z, uid, cx, cy) {
+set_ext("input_click", func(btn, down, x, y, z, cent, cx, cy) {
+    if !ents { ents = import core.entities.ents }
+    var ent = ents::get_by_centity(cent)
+    if !get_ext("input_click_client")(btn, down, x, y, z, ent, cx, cy) {
         capi::msg_add(msgid_click, "riiiiii", btn, down ? 1 : 0, floor(x * DMF),
-            floor(y * DMF), floor(z * DMF), uid)
+            floor(y * DMF), floor(z * DMF), ent ? ent.uid : -1)
     }
 })
 
@@ -180,10 +183,7 @@ event_map = {
     Return values of this one are ignored. The arguments are the same, but
     the cursor position is not there (obviously).
 */
-set_ext("input_click_server", func(btn, dn, x, y, z, uid) {
-    if !ents { ents = import core.entities.ents }
-    var ent
-    if uid >= 0 { ent = ents::get(uid) }
+set_ext("input_click_server", func(btn, dn, x, y, z, ent) {
     if ent && ent.click {
         return ent.click(btn, dn, x, y, z)
     }

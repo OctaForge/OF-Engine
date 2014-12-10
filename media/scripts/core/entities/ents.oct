@@ -546,12 +546,16 @@ M.remove = func(uid) {
 var ent_remove = M.remove
 set_external("entity_remove", M.remove)
 
-set_external("entity_clear_actions", func(uid) {
-    get_ent(uid).clear_actions()
+set_external("entity_clear_actions", func(cent) {
+    var ent = get_by_centity(cent)
+    if !ent { return }
+    ent.clear_actions()
 })
 
-set_external("entity_is_initialized", func(uid) {
-    return get_ent(uid).initialized
+set_external("entity_is_initialized", func(cent) {
+    var ent = get_by_centity(cent)
+    if !ent { return false }
+    return ent.initialized
 })
 
 /**

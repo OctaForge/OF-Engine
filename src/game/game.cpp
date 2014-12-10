@@ -155,10 +155,7 @@ namespace game
             gameent *d = players[i];
             if(d == player1 || d->ai) continue;
 
-            logger::log(logger::INFO, "otherplayers: moving %d from %f,%f,%f", d->uid, d->o.x, d->o.y, d->o.z);
-
             const int lagtime = totalmillis-d->lastupdate;
-
             if(!lagtime) continue;
             if(lagtime>1000 && d->state==CS_ALIVE)
             {
@@ -188,7 +185,7 @@ namespace game
         {
             bool b;
             lua::pop_external_ret(lua::call_external_ret("entity_is_initialized",
-                "i", "b", player1->uid, &b));
+                "p", "b", player1, &b));
             if (b)
             {
                 // Ignore intentions to move, if immobile
