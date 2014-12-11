@@ -843,7 +843,7 @@ M.StaticEntity = Entity.clone({
         if !ents::has_logic_sys() {
             return
         }
-        var ent = ents::get(ouid)
+        var ent = ents::get_static(ouid)
         if ent == undef {
             ent = ents::add(oc, ouid)
             if ent == undef {

@@ -340,9 +340,9 @@ M.get_all_prototypes = func() {
 }
 
 /**
-    Retrieves an entity, given its unique id. If not found, undef.
+    Retrieves a logic entity, given its unique id. If not found, undef.
 */
-M.get = func(uid) {
+M.get_logic = func(uid) {
     var r = storage[uid]
     if r {
         @[debug] log(DEBUG, e"ents.get: success ($uid)")
@@ -351,7 +351,9 @@ M.get = func(uid) {
         @[debug] log(DEBUG, e"ents.get: no such entity ($uid)")
     }
 }
-var get_ent = M.get
+M.get_dynamic = M.get_logic
+M.get_static  = M.get_logic
+var get_ent = M.get_logic
 
 set_external("entity_exists", func(uid) { return get_ent(uid) != undef })
 
