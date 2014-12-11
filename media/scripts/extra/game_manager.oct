@@ -167,7 +167,7 @@ var GameManager = Entity.clone({
         } else {
             st = "player_start_" ~ team
         }
-        var starts = ents::get_by_tag(st)
+        var starts = ents::get_static_by_tag(st)
         if starts && starts.len() > 0 {
             starts[rand(0, starts.len())].place_entity(player)
             return

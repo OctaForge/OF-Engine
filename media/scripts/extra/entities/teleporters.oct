@@ -14,9 +14,10 @@ import core.events.signal
 import core.entities.svars
 import core.entities.ents
 
+from core.entities.ents import get_static_by_tag
+
 var play = sound.play
 var connect = signal.connect
-var get_by_tag = ents.get_by_tag
 
 from std.math import random as rand
 
@@ -62,7 +63,7 @@ M.Teleporter = Obstacle.clone({
     on_collision: func(self, collider) {
         var dest = self.get_attr("destination")
         if dest <= 0 { return }
-        var dests = get_by_tag("teledest_" ~ dest)
+        var dests = get_static_by_tag("teledest_" ~ dest)
         if dests.len() == 0 {
             log::log(log.ERROR, "No teledest found.")
             return
@@ -75,7 +76,7 @@ M.Teleporter = Obstacle.clone({
     get_attached_next: func(self) {
         var dest = self.get_attr("destination")
         if dest <= 0 { return }
-        return get_by_tag("teledest_" ~ dest).unpack()
+        return get_static_by_tag("teledest_" ~ dest).unpack()
     }
 })
 

@@ -358,7 +358,7 @@ var get_ent = M.get_logic
 set_external("entity_exists", func(uid) { return get_ent(uid) != undef })
 
 /// Returns an array of entities with a common tag.
-M.get_by_tag = func(tag) {
+M.get_logic_by_tag = func(tag) {
     var r = []
     for i in 1 to highest_uid {
         var ent = storage[i]
@@ -368,6 +368,8 @@ M.get_by_tag = func(tag) {
     }
     return r
 }
+M.get_dynamic_by_tag = M.get_logic_by_tag
+M.get_static_by_tag  = M.get_logic_by_tag
 
 /// Returns an array of entities with a common prototype.
 M.get_by_prototype = func(cl) {
