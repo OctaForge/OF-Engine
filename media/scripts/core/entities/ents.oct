@@ -56,9 +56,6 @@ var highest_uid = 1
 // basic storage for entities, keys are unique ids and values are entities
 var storage = {}
 
-// for caching, keys are prototype names and values are arrays of entities
-var storage_by_proto = {}
-
 // stores all registered entity prototypees
 var proto_storage = {}
 
@@ -310,6 +307,8 @@ M.register_prototype = func(cl, plugins, name) {
         @[debug] log(DEBUG, e"    $name ($(svar.name))")
         svar.register(name, cl)
     }
+
+    cl.__instances = []
 }
 
 /**
@@ -370,7 +369,8 @@ M.get_by_tag = func(tag) {
 
 /// Returns an array of entities with a common prototype.
 M.get_by_prototype = func(cl) {
-    return storage_by_proto[cl] || []
+    var v = proto_storage[cl]
+    return v ? v.__instances : []
 }
 
 var player_prototype = "Player"
@@ -384,8 +384,8 @@ var vg = cs.var_get
 
 /// Gets an array of players (all of the currently set player prototype).
 M.get_players = func() {
-    return storage_by_proto[@[server,player_prototype,player_entity.name]]
-        || []
+    var v = proto_storage[@[server,player_prototype,player_entity.name]]
+    return v ? v.__instances : []
 }
 var get_players = M.get_players
 
@@ -480,16 +480,7 @@ var add = func(cn, uid, kwargs, new) {
     storage[uid] = r
 
     // caching
-    for k, v in pairs(proto_storage) {
-        if r.is_a(v) {
-            var sbc = storage_by_proto[k]
-            if !sbc {
-                storage_by_proto[k] = [ r ]
-            } else {
-                sbc.push(r)
-            }
-        }
-    }
+    cl.__instances.push(r)
 
     if @[server,new] {
         var ndata
@@ -527,12 +518,7 @@ M.remove = func(uid) {
 
     emit(e, "pre_deactivate")
     e.__deactivate()
-
-    for k, v in pairs(proto_storage) {
-        if e.is_a(v) {
-            storage_by_proto[k].compact(\v -> v != e)
-        }
-    }
+    e.__proto.__instances.compact(\v -> v != e)
     storage[uid] = undef
 }
 var ent_remove = M.remove
@@ -566,8 +552,10 @@ M.remove_all = func() {
             e.__deactivate()
         }
     }
+    for n, v in pairs(proto_storage) {
+        v.__instances = []
+    }
     storage = {}
-    storage_by_proto = {}
 }
 set_external("entities_remove_all", M.remove_all)
 
