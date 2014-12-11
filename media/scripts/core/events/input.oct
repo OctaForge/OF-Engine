@@ -31,20 +31,6 @@ var event_map
 from std.math import floor
 from std.conv import tonumber
 
-var DMF = 16.0
-var msgid_click = msg::register(@[server,func(tp, receiver, sender, p) {
-    var btn = p.get_int()
-    var down = p.get_int() != 0
-    var x = tonumber(p.get_int()) / DMF
-    var y = tonumber(p.get_int()) / DMF
-    var z = tonumber(p.get_int()) / DMF
-    var uid = p.get_int()
-    if !ents { ents = import core.entities.ents }
-    var ent = (uid >= 0) ? ents::get(uid) : undef
-    if tonumber(capi::have_scenario_code()) == 0 { return }
-    get_ext("input_click_server")(btn, down, x, y, z, ent)
-}])
-
 @[!server] {
 /** Function: input_yaw
     An external triggered on yaw change. By default it sets the "yawing"
@@ -122,9 +108,9 @@ set_ext("input_crouch", func(down) {
     ents::get_player().crouch(down)
 })
 
-/** Function: input_click
+/** Function: input_click_ext
     Clientside click input handler. It calls another external,
-    $input_click_client, which you can override. If that external doesn't
+    $input_click, which you can override. If that external doesn't
     return a value that evaluates to true, it sends a click request to the
     server. Do not override this.
 
@@ -132,17 +118,14 @@ set_ext("input_crouch", func(down) {
         - btn - the clicked button.
         - down - whether it was pressed.
         - x, y, z - the position of the click in the world.
-        - uid - the unique ID of the entity that was clicked
-          (if any, undef otherwise).
+        - cent - the C entity of the entity that was clicked
+          (if any, null otherwise).
         - cx, cy - the cursor position.
 */
-set_ext("input_click", func(btn, down, x, y, z, cent, cx, cy) {
+set_ext("input_click_ext", func(btn, down, x, y, z, cent, cx, cy) {
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_by_centity(cent)
-    if !get_ext("input_click_client")(btn, down, x, y, z, ent, cx, cy) {
-        capi::msg_add(msgid_click, "riiiiii", btn, down ? 1 : 0, floor(x * DMF),
-            floor(y * DMF), floor(z * DMF), ent ? ent.uid : -1)
-    }
+    get_ext("input_click")(btn, down, x, y, z, ent, cx, cy)
 })
 
 /** Function: input_click_client
@@ -152,46 +135,23 @@ set_ext("input_click", func(btn, down, x, y, z, cent, cx, cy) {
     and by default returns false, which means the above external will
     trigger a server request.
 */
-set_ext("input_click_client", func(btn, down, x, y, z, uid, cx, cy) {
-    if !ents { ents = import core.entities.ents }
-    var ent
-    if uid >= 0 { ent = ents::get(uid) }
+set_ext("input_click", func(btn, down, x, y, z, ent, cx, cy) {
     if ent && ent.click {
         return ent.click(btn, down, x, y, z, cx, cy)
     }
-    return false
 })
 
 event_map = {
-    "input_yaw"         : true,
-    "input_pitch"       : true,
-    "input_move"        : true,
-    "input_strafe"      : true,
-    "input_jump"        : true,
-    "input_crouch"      : true,
-    "input_click_client": true,
-    "input_mouse_move"  : true
+    "input_yaw"       : true,
+    "input_pitch"     : true,
+    "input_move"      : true,
+    "input_strafe"    : true,
+    "input_jump"      : true,
+    "input_crouch"    : true,
+    "input_click"     : true,
+    "input_mouse_move": true
 }
 
-}
-
-@[server] {
-/** Function: input_click_server
-    Serverside external for user-defined clicks. Called assuming
-    $input_click_client returns a value that evaluates to false. By default
-    it tries to call the same method on the entity as above but on the server.
-    Return values of this one are ignored. The arguments are the same, but
-    the cursor position is not there (obviously).
-*/
-set_ext("input_click_server", func(btn, dn, x, y, z, ent) {
-    if ent && ent.click {
-        return ent.click(btn, dn, x, y, z)
-    }
-})
-
-event_map = {
-    "input_click_server": true
-}
 }
 
 /// Module: input
@@ -220,8 +180,6 @@ from std.util import assert
 M.set_event = func(en, fun) {
     if !en {
         return false
-    } else if en == "click" {
-        en = @[server,"input_click_server","input_click_client"]
     } else {
         en = "input_" ~ en
     }
@@ -251,8 +209,6 @@ M.set_event = func(en, fun) {
 M.get_event = func(en) {
     if !en {
         return undef
-    } else if en == "click" {
-        en = @[server,"input_click_server","input_click_client"]
     } else {
         en = "input_" ~ en
     }

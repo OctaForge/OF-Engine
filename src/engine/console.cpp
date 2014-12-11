@@ -872,7 +872,7 @@ void mouse##num##click() { \
     float x, y; \
     cursor_get_position(x, y); \
 \
-    assert(lua::call_external("input_click", "ibfffpff", num, down, \
+    assert(lua::call_external("input_click_ext", "ibfffpff", num, down, \
         pos.x, pos.y, pos.z, ext ? (void *)ext : (ent ? (void *)ent : NULL), x, y)); \
 } \
 COMMAND(mouse##num##click, "");
