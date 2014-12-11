@@ -99,23 +99,27 @@ set_external("physics_state_change", func(cent, loc, flevel, llevel, mat) {
 from std.environ import globals
 
 /** Function: event_text_message
-    Called on a text message event. Emits a signal of the same name with
-    the unique ID of the client and the text as arguments on the entities
-    storage table.
+    Called on a text message event. Emits a signal "text_message" on the
+    player entity with the text as an argument.
 */
 set_external("event_text_message", func(uid, text) {
     if !ents { ents = import core.entities.ents }
-    emit(ents::get_all(), "event_text_message", uid, text)
+    var ent = ents::get(uid)
+    if ent {
+        emit(ent, "text_message", text)
+    }
 })
 
 @[server] {
 /** Function: event_player_login
     Serverside. Called after a server sends all the active entities to the
-    client. Emits a signal of the same name with the unique ID of the player
-    entity as an argument on the entities storage table.
+    client. Emits a signal "login" on the player entity.
 */
 set_external("event_player_login", func(uid) {
     if !ents { ents = import core.entities.ents }
-    emit(ents::get_all(), "event_player_login", uid)
+    var ent = ents::get(uid)
+    if ent {
+        emit(ent, "login")
+    }
 })
 }

@@ -356,14 +356,6 @@ var get_ent = M.get
 
 set_external("entity_exists", func(uid) { return get_ent(uid) != undef })
 
-/**
-    Returns the whole storage. Use with care. External as `entities_get_all`.
-*/
-M.get_all = func() {
-    return storage
-}
-set_external("entities_get_all", M.get_all)
-
 /// Returns an array of entities with a common tag.
 M.get_by_tag = func(tag) {
     var r = []
@@ -1546,5 +1538,14 @@ M.send = @[server,func(cn) {
     }
 }]
 set_external("entities_send_all", M.send)
+
+M.run_frame = func(millis) {
+    for uid in 1 to highest_uid {
+        var ent = storage[uid]
+        if ent && !ent.deactivated && ent.__per_frame {
+            ent.__run(millis)
+        }
+    }
+}
 
 return M

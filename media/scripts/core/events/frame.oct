@@ -23,7 +23,7 @@ import core.externals
 
 from std.table import setmt
 
-var ents, get_ents, get_highest_uid
+var ents, run_frame
 
 /**
     Executed per frame from C++. It handles the current frame, meaning
@@ -34,7 +34,7 @@ var ents, get_ents, get_highest_uid
 M.handle_frame = func(millis, lastmillis) {
     if !ents {
         ents = import core.entities.ents
-        get_ents, get_highest_uid = ents.get_all, ents.get_highest_uid
+        run_frame = ents.run_frame
     }
 
     @[debug] log(INFO, "frame.handle_frame: New frame")
@@ -45,14 +45,7 @@ M.handle_frame = func(millis, lastmillis) {
     last_millis        = lastmillis
 
     @[debug] log(INFO, "frame.handle_frame: Acting on entities")
-
-    var storage = get_ents()
-    for uid in 1 to get_highest_uid() {
-        var ent = storage[uid]
-        if ent && !ent.deactivated && ent.__per_frame {
-            ent.__run(millis)
-        }
-    }
+    run_frame(millis)
 }
 
 externals::set("frame_handle", M.handle_frame)
