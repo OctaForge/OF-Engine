@@ -51,10 +51,14 @@ var player_entity
 var player_uid
 
 // client and server
-var highest_uid = 1
+var highest_logic_uid = 1
+var highest_dynamic_uid = 1
+var highest_static_uid = 1
 
 // basic storage for entities, keys are unique ids and values are entities
-var storage = {}
+var storage_logic = {}
+var storage_dynamic = {}
+var storage_static = {}
 
 // stores all registered entity prototypees
 var proto_storage = {}
@@ -343,33 +347,42 @@ M.get_all_prototypes = func() {
     Retrieves a logic entity, given its unique id. If not found, undef.
 */
 M.get_logic = func(uid) {
-    var r = storage[uid]
-    if r {
-        @[debug] log(DEBUG, e"ents.get: success ($uid)")
-        return r
-    } else {
-        @[debug] log(DEBUG, e"ents.get: no such entity ($uid)")
+    var r = storage_logic[uid]
+    if !r {
+        @[debug] log(DEBUG, e"ents.get_logic: no such entity ($uid)")
     }
+    return r
 }
-M.get_dynamic = M.get_logic
-M.get_static  = M.get_logic
-var get_ent = M.get_logic
+M.get_dynamic = func(uid) {
+    var r = storage_dynamic[uid]
+    if !r {
+        @[debug] log(DEBUG, e"ents.get_dynamic: no such entity ($uid)")
+    }
+    return r
+}
+M.get_static = func(uid) {
+    var r = storage_static[uid]
+    if !r {
+        @[debug] log(DEBUG, e"ents.get_static: no such entity ($uid)")
+    }
+    return r
+}
 
-set_external("entity_exists", func(uid) { return get_ent(uid) != undef })
-
-/// Returns an array of entities with a common tag.
-M.get_logic_by_tag = func(tag) {
+var get_by_tag = func(tag, stor, huid) {
     var r = []
-    for i in 1 to highest_uid {
-        var ent = storage[i]
+    for i in 1 to huid {
+        var ent = stor[i]
         if ent && ent.has_tag(tag) {
             r.push(ent)
         }
     }
     return r
 }
-M.get_dynamic_by_tag = M.get_logic_by_tag
-M.get_static_by_tag  = M.get_logic_by_tag
+
+/// Returns an array of entities with a common tag.
+M.get_logic_by_tag = func(tag) { return get_by_tag(tag, storage_logic, highest_logic_uid) }
+M.get_dynamic_by_tag = func(tag) { return get_by_tag(tag, storage_dynamic, highest_dynamic_uid) }
+M.get_static_by_tag = func(tag) { return get_by_tag(tag, storage_static, highest_static_uid) }
 
 /// Returns an array of entities with a common prototype.
 M.get_by_prototype = func(cl) {
@@ -404,53 +417,10 @@ M.get_player = @[!server,func() {
     })
 }
 
-/**
-    Finds all entities whose maximum distance from pos equals
-    max_distance. You can filter them more using optional kwargs.
-    Returns an array of entity-distance pairs.
-
-    Kwargs:
-        max_distance - the maximum distance from the given position.
-        prototype - either an actual entity prototype or a name.
-        tag - a tag the entities must have.
-        sort - by default, the resulting array is sorted by distance
-        from lowest to highest. This can be either a function (passed
-        to {{$std.array.sort}}, refer to its documentation), a boolean value
-        false (which means it won't be sorted) or undef (which means
-        it will be sorted using the default method).
-        pos_fun - a function taking an entity and returning a position
-        in form of {{$geom.Vec3}}. By default simply returns entity's position,
-        the position is do used for subtraction from the given position.
-*/
-M.get_by_distance = func(pos, kwargs) {
-    kwargs = kwargs || {}
-
-    var md = kwargs.max_distance
-    if !md { return undef }
-
-    var cl, tg, sr = kwargs.prototype, kwargs.tag, kwargs.sort
-    var fn = kwargs.pos_fun || func(e) {
-        return e.get_attr("position").copy()
-    }
-
-    if typeof cl == "table" { cl = cl.name }
-
-    var ret = []
-    for uid in 1 to highest_uid {
-        var ent = storage[uid]
-        if ent && ((!cl || cl == ent.name) && (!tg || ent.has_tag(tg)))
-        {
-            var dist = (pos - fn(ent)).magnitude()
-            if dist <= md {
-                ret.push([ ent, dist ])
-            }
-        }
-    }
-
-    if sr != false {
-        ret.sort(sr || \a, b -> a[1] < b[1])
-    }
-    return ret
+var storages = {
+    logic: storage_logic,
+    dynamic: storage_dynamic,
+    static: storage_static,
 }
 
 /**
@@ -463,8 +433,6 @@ M.get_by_distance = func(pos, kwargs) {
     file.
 */
 var add = func(cn, uid, kwargs, new) {
-    uid = uid || 1337
-
     var cl = typeof cn == "table" && cn || (proto_storage[cn]
                                         ||  proto_storage[proto_aliases[cn]])
     if !cl {
@@ -472,16 +440,33 @@ var add = func(cn, uid, kwargs, new) {
         assert(false)
     }
 
-    @[debug] log(DEBUG, e"ents.add: $(cl.name) ($uid)")
-    assert(!storage[uid])
+    var cstor = cl.__storage
+    var stor = storages[cstor]
+    assert(stor)
 
-    if uid > highest_uid {
-        highest_uid = uid
+    if cstor == "logic" {
+        uid = uid || (highest_logic_uid + 1)
+        if uid > highest_logic_uid {
+            highest_logic_uid = uid
+        }
+    } else if cstor == "dynamic" {
+        uid = uid || (highest_dynamic_uid + 1)
+        if uid > highest_dynamic_uid {
+            highest_dynamic_uid = uid
+        }
+    } else if cstor == "static" {
+        uid = uid || (highest_static_uid + 1)
+        if uid > highest_static_uid {
+            highest_static_uid = uid
+        }
     }
+
+    @[debug] log(DEBUG, e"ents.add: $(cl.name) ($uid)")
+    assert(!stor[uid])
 
     var r = cl()
     r.uid = uid
-    storage[uid] = r
+    stor[uid] = r
 
     // caching
     cl.__instances.push(r)
@@ -504,29 +489,34 @@ var add = func(cn, uid, kwargs, new) {
 M.add = add
 
 /**
-    Removes an entity of the given uid. First emits the `pre_deactivate`
-    signal on it, then deactivates it and do clears it out from both
-    storages. External as `entity_remove`.
+    Removes an entity. First emits the `pre_deactivate` signal on it, then
+    deactivates it and do clears it out from both storages.
 
     See also:
         - $remove_all
 */
-M.remove = func(uid) {
+M.remove = func(ent) {
+    var uid = ent.uid
     @[debug] log(DEBUG, e"ents.remove: $uid")
-
-    var e = storage[uid]
-    if !e {
-        log(WARNING, "ents.remove: does !exist.")
-        return
-    }
-
-    emit(e, "pre_deactivate")
-    e.__deactivate()
-    e.__proto.__instances.compact(\v -> v != e)
-    storage[uid] = undef
+    var stor = storages[ent.__storage]
+    emit(ent, "pre_deactivate")
+    ent.__deactivate()
+    ent.__proto.__instances.compact(\v -> v != ent)
+    stor[uid] = undef
 }
 var ent_remove = M.remove
-set_external("entity_remove", M.remove)
+
+set_external("entity_remove_static", func(uid) {
+    var ent = storage_static[uid]
+    if !ent { return }
+    ent_remove(ent)
+})
+
+set_external("entity_remove_dynamic", func(uid) {
+    var ent = storage_dynamic[uid]
+    if !ent { return }
+    ent_remove(ent)
+})
 
 set_external("entity_clear_actions", func(cent) {
     var ent = get_by_centity(cent)
@@ -540,6 +530,16 @@ set_external("entity_is_initialized", func(cent) {
     return ent.initialized
 })
 
+var remove_stor = func(stor, huid) {
+    for i in 1 to huid {
+        var e = stor[i]
+        if e {
+            emit(e, "pre_deactivate")
+            e.__deactivate()
+        }
+    }
+}
+
 /**
     Removes all entities from both storages. It's equivalent to looping
     over the whole storage and removing each entity individually, but
@@ -549,17 +549,15 @@ set_external("entity_is_initialized", func(cent) {
         - $remove
 */
 M.remove_all = func() {
-    for i in 1 to highest_uid {
-        var e = storage[i]
-        if e {
-            emit(e, "pre_deactivate")
-            e.__deactivate()
-        }
-    }
+    remove_stor(storage_logic, highest_logic_uid)
+    remove_stor(storage_dynamic, highest_dynamic_uid)
+    remove_stor(storage_static, highest_static_uid)
     for n, v in pairs(proto_storage) {
         v.__instances = []
     }
-    storage = {}
+    storage_logic = {}
+    storage_dynamic = {}
+    storage_static = {}
 }
 set_external("entities_remove_all", M.remove_all)
 
@@ -609,8 +607,8 @@ M.save = func() {
     var r = []
     @[debug] log(DEBUG, "ents.save: saving")
 
-    for uid in 1 to highest_uid {
-        var entity = storage[uid]
+    for uid in 1 to highest_static_uid {
+        var entity = storage_static[uid]
         if entity && entity.get_attr("persistent") {
             var en = entity.name
             @[debug] log(DEBUG, e"    $uid, $en")
@@ -622,6 +620,31 @@ M.save = func() {
     return e"[\n$(r.concat(",\n"))\n]\n"
 }
 set_external("entities_save_all", M.save)
+
+var storid = enum {
+    LOGIC: 1 << 29,
+    DYNAMIC: 1 << 30,
+    STATIC: 1 << 31
+}
+var uidmask = 0x1FFFFFFF
+
+var get_stor_uid = func(uid) {
+    var ruid = uid & uidmask
+    var sid = uid & (~uidmask)
+    if sid == storid.LOGIC {
+        return ruid, storage_logic
+    } else if sid == storid.DYNAMIC {
+        return ruid, storage_dynamic
+    } else if sid == storid.STATIC {
+        return ruid, storage_static
+    } else {
+        assert(false)
+    }
+}
+
+var make_stor_uid = func(uid, stor) {
+    return (uid & uidmask) | storid[stor.upper()]
+}
 
 /**
     The base entity prototype. Every other entity prototype inherits from this.
@@ -645,6 +668,8 @@ set_external("entities_save_all", M.save)
 */
 M.Entity = Object.clone({
     name: "Entity",
+
+    __storage: "logic",
 
     /**
         If this is true for the entity prototype, it will call the $__run method
@@ -892,13 +917,13 @@ M.Entity = Object.clone({
 
     msgid_le_cn: msg::register(@[!server,func(tp, receiver, sender, p) {
         var ocn  = p.get_int()
-        var ouid = p.get_int()
+        var ouid, stor = get_stor_uid(p.get_int())
         var oc   = p.get_string()
         var sd   = p.get_string()
         if !has_logic_sys {
             return
         }
-        var ent = get_ent(ouid)
+        var ent = stor[ouid]
         if ent == undef {
             ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)
             if ent == undef {
@@ -912,32 +937,33 @@ M.Entity = Object.clone({
         ent.set_sdata_full(sd)
         if ouid == player_uid {
             @[debug] log(DEBUG, e"initializing player with uid $ouid")
-            player_entity = storage[ouid]
+            player_entity = storage_dynamic[ouid]
             assert(player_entity)
             player_entity.controlled_here = true
         }
         capi::renderprogress(0, "receiving entities...")
     }]),
 
-    msg_le_cn_send: func(self, cn, ocn, ouid, oc, sd) {
-        capi::msg_send(cn, -1, "riiiss", self.msgid_le_cn, ocn, ouid, oc,
-                       sd || "")
+    msg_le_cn_send: func(self, cn, ocn, oc, sd) {
+        capi::msg_send(cn, -1, "riiiss", self.msgid_le_cn, ocn,
+            make_stor_uid(self.uid, self.__storage), oc, sd || "")
     },
 
     msgid_le_rem: msg::register(@[!server,func(tp, receiver, sender, p) {
-        var uid = p.get_int()
+        var uid, stor = get_stor_uid(p.get_int())
         if !has_logic_sys {
             return
         }
-        ent_remove(uid)
+        ent_remove(stor[uid])
     }]),
 
     msg_le_rem_send: func(self, cn, uid) {
-        capi::msg_send(cn, -1, "rii", self.msgid_le_rem, uid)
+        capi::msg_send(cn, -1, "rii", self.msgid_le_rem,
+            make_stor_uid(uid, self.__storage))
     },
 
     msgid_sdata_update: msg::register(@[!server,func(tp, receiver, sender, p) {
-        var uid = p.get_int()
+        var uid, stor = get_stor_uid(p.get_int())
         var kpid = p.get_int()
         var value = p.get_string()
         var ocn = p.get_int()
@@ -945,7 +971,7 @@ M.Entity = Object.clone({
         if !has_logic_sys {
             return
         }
-        var ent = storage[uid]
+        var ent = stor[uid]
         if ent {
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
@@ -955,11 +981,12 @@ M.Entity = Object.clone({
 
     msg_sdata_update_send: func(self, cn, reliable, uid, kpid, value, ocn) {
         capi::msg_send(cn, ocn, reliable ? "riiisi" : "iiisi",
-            self.msgid_sdata_update, uid, kpid, value, ocn)
+            self.msgid_sdata_update, make_stor_uid(uid, self.__storage), kpid,
+            value, ocn)
     },
 
     msgid_sdata_changereq: msg::register(@[server,func(tp, receiver, sender, p) {
-        var uid = p.get_int()
+        var uid, stor = get_stor_uid(p.get_int())
         var kpid = p.get_int()
         var value = p.get_string()
 
@@ -967,7 +994,7 @@ M.Entity = Object.clone({
 
         var auid = capi::cn_get_uid(sender)
         @[debug] log(DEBUG, e"client $auid tried to change $kpid to value $value")
-        var ent = storage[uid]
+        var ent = stor[uid]
         if ent {
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
@@ -977,7 +1004,7 @@ M.Entity = Object.clone({
 
     msg_sdata_changereq_send: func(self, reliable, uid, kpid, value) {
         capi::msg_add(self.msgid_sdata_changereq, reliable ? "riis" : "iis",
-            uid, kpid, value || "")
+            make_stor_uid(uid, self.__storage), kpid, value || "")
     },
 
     /**
@@ -1104,7 +1131,7 @@ M.Entity = Object.clone({
             var kid = names_to_ids[self.name][key]
             var wval = svar.to_wire(val)
             var acn = (svar.client_set && actor_uid && actor_uid != -1)
-                && storage[actor_uid].cn || msg.ALL_CLIENTS
+                && storage_dynamic[actor_uid].cn || msg.ALL_CLIENTS
 
             var cns = get_players().map(\p -> p.cn)
             for i, n in cns.each() {
@@ -1139,7 +1166,7 @@ M.Entity = Object.clone({
 
         var scn, sname = self.cn, self.name
         for i, n in cns.each() {
-            self.msg_le_cn_send(n, scn && scn || acn, uid, sname,
+            self.msg_le_cn_send(n, scn && scn || acn, sname,
                 self.build_sdata({ target_cn: n, compressed: true }))
         }
 
@@ -1290,8 +1317,9 @@ Entity = M.Entity
 M.get_gui_attr = func(ent, prop) {
     return ent.get_gui_attr(prop)
 }
+
 set_external("entity_get_gui_attr", func(uid, prop) {
-    return get_ent(uid).get_gui_attr(prop)
+    return storage_static[uid].get_gui_attr(prop)
 })
 
 /**
@@ -1302,7 +1330,7 @@ M.set_gui_attr = func(ent, prop, val) {
     return ent.set_gui_attr(prop, val)
 }
 set_external("entity_set_gui_attr", func(uid, prop, val) {
-    return get_ent(uid).set_gui_attr(prop, val)
+    return storage_static[uid].set_gui_attr(prop, val)
 })
 
 /**
@@ -1325,8 +1353,9 @@ set_external("entity_get_attr", func(cent, prop) {
 M.set_attr = func(ent, prop, val) {
     return ent.set_attr(prop, val)
 }
-set_external("entity_set_attr", func(uid, prop, val) {
-    var ent = storage[uid]
+
+set_external("entity_dynamic_set_attr", func(uid, prop, val) {
+    var ent = storage_dynamic[uid]
     if !ent { return undef }
     return ent.set_attr(prop, val)
 })
@@ -1367,8 +1396,8 @@ M.render = @[!server,func(tp, fpsshadow) {
     var  player = player_entity
     if !player { return }
 
-    for uid in 1 to highest_uid {
-        var entity = storage[uid]
+    for uid in 1 to highest_dynamic_uid {
+        var entity = storage_dynamic[uid]
         if entity && !entity.deactivated {
             var rd = entity.__render
             // first arg to rd is hudpass, false because we aren't rendering
@@ -1403,27 +1432,6 @@ set_external("game_render_hud", render_hud)
 
 set_external("player_set_uid", func(uid) { player_uid = uid })
 
-/**
-    Converts the protocol ID to a real key and sets the state data on the
-    entity with the given unique ID.
-
-    Arguments:
-        - uid - an unique ID.
-        - kpid - a key in protocol ID format.
-        - value - a value.
-        - auid - optional (on the server only) actor unique ID, an unique ID
-          of the client that triggered the change. When set to -1, it means
-          the server triggered it.
-*/
-M.set_sdata = func(uid, kpid, value, auid) {
-    var ent = storage[uid]
-    if ent {
-        var key = ids_to_names[ent.name][kpid]
-        @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
-        ent.set_sdata(key, value, auid)
-    }
-}
-
 set_external("entity_serialize_sdata", func(cent, x, y, z) {
     var ent = get_by_centity(cent)
     if !ent { return undef }
@@ -1450,10 +1458,24 @@ M.scene_is_ready = @[!server,func() {
     }
 
     @[debug] log(INFO, "...player ready, trying other entities.")
-    for uid in 1 to highest_uid {
-        var ent = storage[uid]
+    for uid in 1 to highest_logic_uid {
+        var ent = storage_logic[uid]
         if ent && !ent.initialized {
-            @[debug] log(INFO, e"...entity $uid !ready.")
+            @[debug] log(INFO, e"...logic entity $uid !ready.")
+            return false
+        }
+    }
+    for uid in 1 to highest_dynamic_uid {
+        var ent = storage_dynamic[uid]
+        if ent && !ent.initialized {
+            @[debug] log(INFO, e"...dynamic entity $uid !ready.")
+            return false
+        }
+    }
+    for uid in 1 to highest_static_uid {
+        var ent = storage_static[uid]
+        if ent && !ent.initialized {
+            @[debug] log(INFO, e"...static entity $uid !ready.")
             return false
         }
     }
@@ -1462,22 +1484,6 @@ M.scene_is_ready = @[!server,func() {
     return true
 }]
 set_external("scene_is_ready", M.scene_is_ready)
-
-/** Function: gen_uid
-    Generates a new entity unique ID. It's larger than the previous largest
-    by one. Serverside. External as `entity_gen_uid`.
-*/
-M.gen_uid = @[server,func() {
-    @[debug] log(DEBUG, e"Generating an UID, last highest UID: $highest_uid")
-    return highest_uid + 1
-}]
-var gen_uid = M.gen_uid
-set_external("entity_gen_uid", gen_uid)
-
-/// Returns the highest entity unique ID used.
-M.get_highest_uid = func() {
-    return highest_uid
-}
 
 /** Function: new
     Creates a new entity on the server. External as `entity_new`.
@@ -1491,8 +1497,6 @@ M.get_highest_uid = func() {
          The new entity.
 */
 M.new = @[server,func(cl, kwargs, fuid) {
-    fuid = fuid || gen_uid()
-    @[debug] log(DEBUG, e"New entity: $fuid")
     return add(cl, fuid, kwargs, true)
 }]
 var ent_new = M.new
@@ -1511,6 +1515,16 @@ set_external("entity_new_with_cn", func(cl, cn, can_edit, char_name, fuid) {
     ent.set_attr("character_name", char_name)
 })
 
+
+var send_stor = func(stor, huid, cn) {
+    var uids = []
+    for i in 1 to huid {
+        if stor[i] {
+            stor[i].send_notification_full(cn)
+        }
+    }
+}
+
 /** Function: send
     Notifies a client of the number of entities on the server and {
     send a complete notification for each of them. Takes the client number.
@@ -1518,22 +1532,28 @@ set_external("entity_new_with_cn", func(cl, cn, can_edit, char_name, fuid) {
 */
 M.send = @[server,func(cn) {
     @[debug] log(DEBUG, e"Sending active entities to $cn")
-    var uids = []
-    for uid in 1 to highest_uid {
-        if storage[uid] {
-            uids.push(uid)
-        }
-    }
-    uids.sort()
-    for i, uid in uids.each() {
-        storage[uid].send_notification_full(cn)
-    }
+    var estor = []
+    send_stor(storage_logic, highest_logic_uid, cn)
+    send_stor(storage_dynamic, highest_dynamic_uid, cn)
+    send_stor(storage_static, highest_static_uid, cn)
 }]
 set_external("entities_send_all", M.send)
 
 M.run_frame = func(millis) {
-    for uid in 1 to highest_uid {
-        var ent = storage[uid]
+    for uid in 1 to highest_logic_uid {
+        var ent = storage_logic[uid]
+        if ent && !ent.deactivated && ent.__per_frame {
+            ent.__run(millis)
+        }
+    }
+    for uid in 1 to highest_static_uid {
+        var ent = storage_static[uid]
+        if ent && !ent.deactivated && ent.__per_frame {
+            ent.__run(millis)
+        }
+    }
+    for uid in 1 to highest_dynamic_uid {
+        var ent = storage_dynamic[uid]
         if ent && !ent.deactivated && ent.__per_frame {
             ent.__run(millis)
         }

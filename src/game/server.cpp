@@ -100,7 +100,7 @@ namespace server
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
         if (lua::L && !_ci->local && uniqueId >= 0)
-            lua::call_external("entity_remove", "i", uniqueId);
+            lua::call_external("entity_remove_dynamic", "i", uniqueId);
 
         delete (clientinfo *)ci;
     }
@@ -621,7 +621,7 @@ namespace server
                     lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot remove entities");
                     break;
                 }
-                lua::call_external("entity_remove", "i", uid);
+                lua::call_external("entity_remove_static", "i", uid);
                 break;
             }
 
@@ -750,7 +750,7 @@ namespace server
         ci->isAdmin = isAdmin;
 
         if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
-            lua::call_external("entity_set_attr", "isb", ci->uniqueId,
+            lua::call_external("entity_dynamic_set_attr", "isb", ci->uniqueId,
                 "can_edit", true);
     }
 
@@ -798,19 +798,16 @@ namespace server
 
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", pcclass, cn);
 
-        int uid;
-        lua::pop_external_ret(lua::call_external_ret("entity_gen_uid", "", "i", &uid));
-
-        getUniqueId(cn) = uid;
+        getUniqueId(cn) = cn + 1;
         // Notify of uid *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
-        sendf(cn, 1, "rii", N_YOURUID, uid);
+        sendf(cn, 1, "rii", N_YOURUID, cn + 1);
 
-        ci->uniqueId = uid;
+        ci->uniqueId = cn + 1;
         ci->connected = true;
 
-        lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, uid);
-        return uid;
+        lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, cn + 1);
+        return cn + 1;
     }
 
     int clientconnect(int n, uint ip)

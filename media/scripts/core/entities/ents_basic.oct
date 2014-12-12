@@ -166,6 +166,8 @@ var get_by_centity = M.get_by_centity
 M.Character = Entity.clone({
     name: "Character",
 
+    __storage: "dynamic",
+
     // so that it isn't nonsauer
     sauer_type: -1,
 
@@ -772,6 +774,8 @@ var gen_attr = func(i, name) {
 */
 M.StaticEntity = Entity.clone({
     name: "StaticEntity",
+
+    __storage: "static",
 
     /// The icon that'll be displayed in edit mode.
     __edit_icon: "media/interface/icon/edit_generic",
