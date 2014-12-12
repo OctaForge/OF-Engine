@@ -798,16 +798,16 @@ namespace server
 
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", pcclass, cn);
 
-        getUniqueId(cn) = cn + 1;
+        getUniqueId(cn) = cn;
         // Notify of uid *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
-        sendf(cn, 1, "rii", N_YOURUID, cn + 1);
+        sendf(cn, 1, "rii", N_YOURUID, cn);
 
-        ci->uniqueId = cn + 1;
+        ci->uniqueId = cn;
         ci->connected = true;
 
-        lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, cn + 1);
-        return cn + 1;
+        lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, cn);
+        return cn;
     }
 
     int clientconnect(int n, uint ip)

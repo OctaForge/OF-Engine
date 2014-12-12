@@ -50,15 +50,10 @@ var Entity
 var player_entity
 var player_uid
 
-// client and server
-var highest_logic_uid = 1
-var highest_dynamic_uid = 1
-var highest_static_uid = 1
-
 // basic storage for entities, keys are unique ids and values are entities
-var storage_logic = {}
-var storage_dynamic = {}
-var storage_static = {}
+var storage_logic = []
+var storage_dynamic = []
+var storage_static = []
 
 // stores all registered entity prototypees
 var proto_storage = {}
@@ -368,10 +363,9 @@ M.get_static = func(uid) {
     return r
 }
 
-var get_by_tag = func(tag, stor, huid) {
+var get_by_tag = func(tag, stor) {
     var r = []
-    for i in 1 to huid {
-        var ent = stor[i]
+    for i, ent in stor.each() {
         if ent && ent.has_tag(tag) {
             r.push(ent)
         }
@@ -380,9 +374,9 @@ var get_by_tag = func(tag, stor, huid) {
 }
 
 /// Returns an array of entities with a common tag.
-M.get_logic_by_tag = func(tag) { return get_by_tag(tag, storage_logic, highest_logic_uid) }
-M.get_dynamic_by_tag = func(tag) { return get_by_tag(tag, storage_dynamic, highest_dynamic_uid) }
-M.get_static_by_tag = func(tag) { return get_by_tag(tag, storage_static, highest_static_uid) }
+M.get_logic_by_tag = func(tag) { return get_by_tag(tag, storage_logic) }
+M.get_dynamic_by_tag = func(tag) { return get_by_tag(tag, storage_dynamic) }
+M.get_static_by_tag = func(tag) { return get_by_tag(tag, storage_static) }
 
 /// Returns an array of entities with a common prototype.
 M.get_by_prototype = func(cl) {
@@ -444,21 +438,9 @@ var add = func(cn, uid, kwargs, new) {
     var stor = storages[cstor]
     assert(stor)
 
-    if cstor == "logic" {
-        uid = uid || (highest_logic_uid + 1)
-        if uid > highest_logic_uid {
-            highest_logic_uid = uid
-        }
-    } else if cstor == "dynamic" {
-        uid = uid || (highest_dynamic_uid + 1)
-        if uid > highest_dynamic_uid {
-            highest_dynamic_uid = uid
-        }
-    } else if cstor == "static" {
-        uid = uid || (highest_static_uid + 1)
-        if uid > highest_static_uid {
-            highest_static_uid = uid
-        }
+    uid = uid || stor.len()
+    if uid >= stor.len() {
+        stor.resize(uid + 1)
     }
 
     @[debug] log(DEBUG, e"ents.add: $(cl.name) ($uid)")
@@ -530,12 +512,12 @@ set_external("entity_is_initialized", func(cent) {
     return ent.initialized
 })
 
-var remove_stor = func(stor, huid) {
-    for i in 1 to huid {
-        var e = stor[i]
+var remove_stor = func(stor) {
+    for i, e in stor.each() {
         if e {
             emit(e, "pre_deactivate")
             e.__deactivate()
+            stor[i] = undef
         }
     }
 }
@@ -549,15 +531,12 @@ var remove_stor = func(stor, huid) {
         - $remove
 */
 M.remove_all = func() {
-    remove_stor(storage_logic, highest_logic_uid)
-    remove_stor(storage_dynamic, highest_dynamic_uid)
-    remove_stor(storage_static, highest_static_uid)
+    remove_stor(storage_logic)
+    remove_stor(storage_dynamic)
+    remove_stor(storage_static)
     for n, v in pairs(proto_storage) {
         v.__instances = []
     }
-    storage_logic = {}
-    storage_dynamic = {}
-    storage_static = {}
 }
 set_external("entities_remove_all", M.remove_all)
 
@@ -607,8 +586,7 @@ M.save = func() {
     var r = []
     @[debug] log(DEBUG, "ents.save: saving")
 
-    for uid in 1 to highest_static_uid {
-        var entity = storage_static[uid]
+    for uid, entity in storage_static.each() {
         if entity && entity.get_attr("persistent") {
             var en = entity.name
             @[debug] log(DEBUG, e"    $uid, $en")
@@ -935,7 +913,7 @@ M.Entity = Object.clone({
         }
         @[debug] log(DEBUG, e"updating state data with $sd")
         ent.set_sdata_full(sd)
-        if ouid == player_uid {
+        if ouid == player_uid && stor == storage_dynamic {
             @[debug] log(DEBUG, e"initializing player with uid $ouid")
             player_entity = storage_dynamic[ouid]
             assert(player_entity)
@@ -1396,8 +1374,7 @@ M.render = @[!server,func(tp, fpsshadow) {
     var  player = player_entity
     if !player { return }
 
-    for uid in 1 to highest_dynamic_uid {
-        var entity = storage_dynamic[uid]
+    for uid, entity in storage_dynamic.each() {
         if entity && !entity.deactivated {
             var rd = entity.__render
             // first arg to rd is hudpass, false because we aren't rendering
@@ -1458,22 +1435,19 @@ M.scene_is_ready = @[!server,func() {
     }
 
     @[debug] log(INFO, "...player ready, trying other entities.")
-    for uid in 1 to highest_logic_uid {
-        var ent = storage_logic[uid]
+    for uid, ent in storage_logic.each() {
         if ent && !ent.initialized {
             @[debug] log(INFO, e"...logic entity $uid !ready.")
             return false
         }
     }
-    for uid in 1 to highest_dynamic_uid {
-        var ent = storage_dynamic[uid]
+    for uid, ent in storage_dynamic.each() {
         if ent && !ent.initialized {
             @[debug] log(INFO, e"...dynamic entity $uid !ready.")
             return false
         }
     }
-    for uid in 1 to highest_static_uid {
-        var ent = storage_static[uid]
+    for uid, ent in storage_static.each() {
         if ent && !ent.initialized {
             @[debug] log(INFO, e"...static entity $uid !ready.")
             return false
@@ -1516,11 +1490,10 @@ set_external("entity_new_with_cn", func(cl, cn, can_edit, char_name, fuid) {
 })
 
 
-var send_stor = func(stor, huid, cn) {
-    var uids = []
-    for i in 1 to huid {
-        if stor[i] {
-            stor[i].send_notification_full(cn)
+var send_stor = func(stor, cn) {
+    for i, ent in stor.each() {
+        if ent {
+            ent.send_notification_full(cn)
         }
     }
 }
@@ -1533,27 +1506,24 @@ var send_stor = func(stor, huid, cn) {
 M.send = @[server,func(cn) {
     @[debug] log(DEBUG, e"Sending active entities to $cn")
     var estor = []
-    send_stor(storage_logic, highest_logic_uid, cn)
-    send_stor(storage_dynamic, highest_dynamic_uid, cn)
-    send_stor(storage_static, highest_static_uid, cn)
+    send_stor(storage_logic, cn)
+    send_stor(storage_dynamic, cn)
+    send_stor(storage_static, cn)
 }]
 set_external("entities_send_all", M.send)
 
 M.run_frame = func(millis) {
-    for uid in 1 to highest_logic_uid {
-        var ent = storage_logic[uid]
+    for uid, ent in storage_logic.each() {
         if ent && !ent.deactivated && ent.__per_frame {
             ent.__run(millis)
         }
     }
-    for uid in 1 to highest_static_uid {
-        var ent = storage_static[uid]
+    for uid, ent in storage_static.each() {
         if ent && !ent.deactivated && ent.__per_frame {
             ent.__run(millis)
         }
     }
-    for uid in 1 to highest_dynamic_uid {
-        var ent = storage_dynamic[uid]
+    for uid, ent in storage_dynamic.each() {
         if ent && !ent.deactivated && ent.__per_frame {
             ent.__run(millis)
         }
