@@ -11,7 +11,6 @@
 
 extern int enthover;
 extern int freecursor, freeeditcursor;
-extern bool finish_load_world();
 
 namespace game
 {
@@ -683,9 +682,7 @@ namespace game
             }
 
             case N_ALLACTIVEENTSSENT:
-                finish_load_world();
                 map_completely_received = true;
-                lua::call_external("gui_clear", "");
                 break;
 
             case N_INITS2C: {

@@ -546,11 +546,6 @@ static uint mapcrc = 0;
 uint getmapcrc() { return mapcrc; }
 void clearmapcrc() { mapcrc = 0; }
 
-bool finish_load_world();
-
-const char *_saved_mname = NULL;
-const char *_saved_cname = NULL;
-
 static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octaheader &ohdr, tmapheader &thdr, int &numents)
 {
     if(f->read(&hdr, 3*sizeof(int)) != 3*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
@@ -616,9 +611,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     lua::call_external("has_logic_sys_set", "b", true);
 
     setmapfilenames(mname, cname);
-
-    _saved_mname = mname;
-    _saved_cname = cname;
 
     stream *f = opengzfile(ogzname, "rb");
     if(!f) { conoutf(CON_ERROR, "could not read map %s", ogzname); return false; }
@@ -872,18 +864,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     renderprogress(0, "requesting entities...");
     logger::log(logger::DEBUG, "Requesting active entities...");
     game::addmsg(N_ACTIVEENTSREQUEST, "rs", game::curr_scenario_code); // Ask for other players, which are not part of the map proper
-
-    return true;
-}
-
-bool finish_load_world()
-{
-    renderprogress(0, "finalizing world...");
-
-    const char *mname = _saved_mname;
-    const char *cname = _saved_cname;
-
-    loadprogress = 0;
 
     preloadusedmapmodels(true);
     game::preload();
