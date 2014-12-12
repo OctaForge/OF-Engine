@@ -453,7 +453,7 @@ var add = func(cn, uid, kwargs, new) {
     // caching
     cl.__instances.push(r)
 
-    if @[server,new] {
+    if @[server,new,new && cstor == "static"] {
         var ndata
         if kwargs {
             ndata = kwargs.newent_data
@@ -557,7 +557,7 @@ set_external("entities_remove_all", M.remove_all)
         - $save
 */
 M.load = func() {
-    @[!server] { return }
+    @[server] { return }
 
     @[debug] log(DEBUG, "ents.load: reading")
     var el = capi::readfile("entities.oct")
@@ -889,7 +889,13 @@ M.Entity = Object.clone({
             self.send_notification_full(msg.ALL_CLIENTS)
             self.sent_notification_full = true
         } else {
-            self.initialized = false
+            if self.__storage == "static" {
+                var sd = kwargs && kwargs.state_data || undef
+                if sd { self.set_sdata_full(sd) }
+                self.initialized = true
+            } else {
+                self.initialized = false
+            }
         }
     },
 
@@ -1043,12 +1049,14 @@ M.Entity = Object.clone({
         var csfh = svar.custom_sync && self.controlled_here
         var cset = svar.client_set
 
+        var is_static = self.__storage == "static"
+
         var nfh = actor_uid != -1
 
         // from client-side script, send a server request unless the svar
         // is controlled here (synced using some other method)
         // if this variable is set on the client, send a notification
-        if !nfh && !csfh {
+        if !nfh && !csfh && !is_static {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
             self.msg_sdata_changereq_send(svar.reliable, self.uid,
@@ -1056,7 +1064,7 @@ M.Entity = Object.clone({
         }
 
         // from a server or set clientside, update now
-        if nfh || cset || csfh {
+        if nfh || cset || csfh || is_static {
             @[debug] log(INFO, "    var update")
             // from the server, in wire format
             if nfh {
@@ -1460,7 +1468,7 @@ M.scene_is_ready = @[!server,func() {
 set_external("scene_is_ready", M.scene_is_ready)
 
 /** Function: new
-    Creates a new entity on the server. External as `entity_new`.
+    Creates a new entity. External as `entity_new`.
 
     Arguments:
         - cl - the entity prototype.
@@ -1470,9 +1478,9 @@ set_external("scene_is_ready", M.scene_is_ready)
     Returns:
          The new entity.
 */
-M.new = @[server,func(cl, kwargs, fuid) {
+M.new = func(cl, kwargs, fuid) {
     return add(cl, fuid, kwargs, true)
-}]
+}
 var ent_new = M.new
 
 set_external("entity_new_with_sd", func(cl, x, y, z, sd, nd) {

@@ -588,43 +588,6 @@ namespace server
                break;
             }
 
-            case N_ENTREQUESTNEW: {
-                char _class[MAXTRANS];
-                getstring(_class, p);
-                float x = float(getint(p))/DMF;
-                float y = float(getint(p))/DMF;
-                float z = float(getint(p))/DMF;
-                char sdata[MAXTRANS];
-                getstring(sdata, p);
-                char newent_data[MAXTRANS];
-                getstring(newent_data, p);
-                if (!world::scenario_code[0]) break;
-                if (!server::isAdmin(sender)) {
-                    logger::log(logger::WARNING, "Non-admin tried to add an entity");
-                    lua::call_external("show_client_message", "iss", sender, "Server",
-                        "You are not an administrator, and cannot create entities");
-                    break;
-                }
-                bool b;
-                lua::pop_external_ret(lua::call_external_ret("entity_proto_exists", "s", "b", _class, &b));
-                if (!b) break;
-                logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s|%s", _class, x, y, z, sdata, newent_data);
-                lua::call_external("entity_new_with_sd", "sfffss", _class, x, y, z, sdata, newent_data);
-                break;
-            }
-
-            case N_ENTREQUESTREMOVE: {
-                int uid = getint(p);
-                if (!world::scenario_code[0]) break;
-                if (!server::isAdmin(sender)) {
-                    logger::log(logger::WARNING, "Non-admin tried to remove an entity");
-                    lua::call_external("show_client_message", "iss", sender, "Server", "You are not an administrator, and cannot remove entities");
-                    break;
-                }
-                lua::call_external("entity_remove_static", "i", uid);
-                break;
-            }
-
             case N_ACTIVEENTSREQUEST: {
                 char scenario_code[MAXTRANS];
                 getstring(scenario_code, p);
@@ -881,7 +844,6 @@ namespace server
             N_SWITCHNAME, 0, N_SWITCHMODEL, 2, N_SWITCHTEAM, 0,
             N_SERVCMD, 0,
 
-            N_ENTREQUESTNEW, 0, N_ENTREQUESTREMOVE, 0,
             N_ACTIVEENTSREQUEST, 0, N_ALLACTIVEENTSSENT, 0,
             N_LOGINREQUEST, 0, N_LOGINRESPONSE, 0,
             N_YOURUID, 0,

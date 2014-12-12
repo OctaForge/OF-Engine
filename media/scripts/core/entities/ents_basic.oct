@@ -797,7 +797,15 @@ M.StaticEntity = Entity.clone({
         kwargs = kwargs || {}
         kwargs.persistent = true
 
-        Entity::__init_svars(self, kwargs)
+        self.setup()
+        self.initialized = true
+
+        self.__centity = capi::setup_extent(self.uid, self.sauer_type)
+        M::set_centity(self.__centity, self)
+
+        self.set_attr("tags", [])
+        self.set_attr("persistent", kwargs && kwargs.persistent || false)
+
         if !kwargs.position {
             self.set_attr("position", [ 511, 512, 513 ])
         } else {
@@ -819,16 +827,17 @@ M.StaticEntity = Entity.clone({
 
         @[debug] log(DEBUG, "StaticEntity: flush")
         self.flush_queued_svar_changes()
-
+    },func(self, kwargs) {
+        if !self.__centity {
+            self.__centity = capi::setup_extent(self.uid, self.sauer_type)
+            M::set_centity(self.__centity, self)
+        }
+        Entity::__activate(self, kwargs)
         self.set_attr("position", self.get_attr("position"))
         for i in 1 to self.attr_num {
             var an = "attr" ~ i
             self.set_attr(an, self.get_attr(an))
         }
-    },func(self, kwargs) {
-        self.__centity = capi::setup_extent(self.uid, self.sauer_type)
-        M::set_centity(self.__centity, self)
-        return Entity::__activate(self, kwargs)
     }],
 
     __deactivate: func(self) {

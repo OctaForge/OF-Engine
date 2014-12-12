@@ -992,7 +992,7 @@ void delent()
 
     loopv(entgroup) entfocus(
         entgroup[i],
-        game::addmsg(N_ENTREQUESTREMOVE, "ri", e.uid)
+        lua::call_external("entity_remove_static", "i", e.uid)
     );
 
     entcancel();
@@ -1074,8 +1074,8 @@ void newent(const char *cl, const char *sd, const char *nd, vec fp)
     cp.add(fp);
 
     if (!sd || !sd[0]) sd = "{}";
-    game::addmsg(N_ENTREQUESTNEW, "rsiiiss", cl, int(cp.x*DMF), int(cp.y*DMF),
-        int(cp.z*DMF), sd, nd ? nd : "");
+    lua::call_external("entity_new_with_sd", "sfffss", cl, cp.x, cp.y, cp.z,
+        sd, nd ? nd : "");
 }
 
 #undef FAR_PLACING_FACTOR
@@ -1257,9 +1257,9 @@ void enttype(char *type, int *numargs) {
     if (*numargs >= 1) {
         groupedit(
             vec pos(e.o);
-            game::addmsg(N_ENTREQUESTREMOVE, "ri", e.uid);
-            game::addmsg(N_ENTREQUESTNEW, "rsiiiss", type, int(pos.x*DMF),
-                int(pos.y*DMF), int(pos.z*DMF), "{}", "");
+            lua::call_external("entity_remove_static", "i", e.uid);
+            lua::call_external("entity_new_with_sd", "sfffss", type, pos.x,
+                pos.y, pos.z, "{}", "");
         );
     } else entfocus(efocus, {
         const char *name;
