@@ -571,9 +571,9 @@ M.load = func() {
 
     @[debug] log(DEBUG, "ents.load: loading all entities")
     for i, e in entities.each() {
-        var uid, cn = e[0], e[1]
-        @[debug] log(DEBUG, e"    $uid, $cn")
-        add(cn, uid, { state_data: serialize(e[2]) })
+        var cn = e[0]
+        @[debug] log(DEBUG, e"    $i, $cn")
+        add(cn, undef, { state_data: serialize(e[1]) })
     }
     @[debug] log(DEBUG, "ents.load: done")
 }
@@ -590,7 +590,7 @@ M.save = func() {
         if entity && entity.get_attr("persistent") {
             var en = entity.name
             @[debug] log(DEBUG, e"    $uid, $en")
-            r.push(serialize([ uid, en, entity.build_sdata() ]))
+            r.push(serialize([ en, entity.build_sdata() ]))
         }
     }
 
