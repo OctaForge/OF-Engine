@@ -53,7 +53,7 @@ var player_uid
 // basic storage for entities, keys are unique ids and values are entities
 var storage_logic = []
 var storage_dynamic = []
-var storage_static = []
+@[!server] var storage_static = []
 
 // stores all registered entity prototypees
 var proto_storage = {}
@@ -355,13 +355,13 @@ M.get_dynamic = func(uid) {
     }
     return r
 }
-M.get_static = func(uid) {
+M.get_static = @[!server,func(uid) {
     var r = storage_static[uid]
     if !r {
         @[debug] log(DEBUG, e"ents.get_static: no such entity ($uid)")
     }
     return r
-}
+}]
 
 var get_by_tag = func(tag, stor) {
     var r = []
@@ -376,7 +376,7 @@ var get_by_tag = func(tag, stor) {
 /// Returns an array of entities with a common tag.
 M.get_logic_by_tag = func(tag) { return get_by_tag(tag, storage_logic) }
 M.get_dynamic_by_tag = func(tag) { return get_by_tag(tag, storage_dynamic) }
-M.get_static_by_tag = func(tag) { return get_by_tag(tag, storage_static) }
+M.get_static_by_tag = @[!server,func(tag) { return get_by_tag(tag, storage_static) }]
 
 /// Returns an array of entities with a common prototype.
 M.get_by_prototype = func(cl) {
@@ -414,7 +414,7 @@ M.get_player = @[!server,func() {
 var storages = {
     logic: storage_logic,
     dynamic: storage_dynamic,
-    static: storage_static,
+    static: @[!server,storage_static],
 }
 
 /**
@@ -488,11 +488,11 @@ M.remove = func(ent) {
 }
 var ent_remove = M.remove
 
-set_external("entity_remove_static", func(uid) {
+set_external("entity_remove_static", @[!server,func(uid) {
     var ent = storage_static[uid]
     if !ent { return }
     ent_remove(ent)
-})
+}])
 
 set_external("entity_remove_dynamic", func(uid) {
     var ent = storage_dynamic[uid]
@@ -533,7 +533,7 @@ var remove_stor = func(stor) {
 M.remove_all = func() {
     remove_stor(storage_logic)
     remove_stor(storage_dynamic)
-    remove_stor(storage_static)
+    @[!server] remove_stor(storage_static)
     for n, v in pairs(proto_storage) {
         v.__instances = []
     }
@@ -582,7 +582,7 @@ M.load = func() {
     Serializes all loaded entities into format that can be read by $load.
     External as `entities_save_all`.
 */
-M.save = func() {
+M.save = @[!server,func() {
     var r = []
     @[debug] log(DEBUG, "ents.save: saving")
 
@@ -596,7 +596,7 @@ M.save = func() {
 
     @[debug] log(DEBUG, "ents.save: done")
     return e"[\n$(r.concat(",\n"))\n]\n"
-}
+}]
 set_external("entities_save_all", M.save)
 
 var storid = enum {
@@ -613,8 +613,8 @@ var get_stor_uid = func(uid) {
         return ruid, storage_logic
     } else if sid == storid.DYNAMIC {
         return ruid, storage_dynamic
-    } else if sid == storid.STATIC {
-        return ruid, storage_static
+    } else if @[!server,sid == storid.STATIC] {
+        @[!server] return ruid, storage_static
     } else {
         assert(false)
     }
@@ -1304,9 +1304,9 @@ M.get_gui_attr = func(ent, prop) {
     return ent.get_gui_attr(prop)
 }
 
-set_external("entity_get_gui_attr", func(uid, prop) {
+set_external("entity_get_gui_attr", @[!server,func(uid, prop) {
     return storage_static[uid].get_gui_attr(prop)
-})
+}])
 
 /**
     See {{$Entity.set_gui_attr}}. Externally accessible as
@@ -1315,9 +1315,9 @@ set_external("entity_get_gui_attr", func(uid, prop) {
 M.set_gui_attr = func(ent, prop, val) {
     return ent.set_gui_attr(prop, val)
 }
-set_external("entity_set_gui_attr", func(uid, prop, val) {
+set_external("entity_set_gui_attr", @[!server,func(uid, prop, val) {
     return storage_static[uid].set_gui_attr(prop, val)
-})
+}])
 
 /**
     See {{$Entity.get_attr}}. Externally accessible as `entity_get_attr`
@@ -1516,7 +1516,6 @@ M.send = @[server,func(cn) {
     var estor = []
     send_stor(storage_logic, cn)
     send_stor(storage_dynamic, cn)
-    send_stor(storage_static, cn)
 }]
 set_external("entities_send_all", M.send)
 
@@ -1526,7 +1525,7 @@ M.run_frame = func(millis) {
             ent.__run(millis)
         }
     }
-    for uid, ent in storage_static.each() {
+    @[!server] for uid, ent in storage_static.each() {
         if ent && !ent.deactivated && ent.__per_frame {
             ent.__run(millis)
         }
