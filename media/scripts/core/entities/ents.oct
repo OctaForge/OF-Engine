@@ -587,7 +587,7 @@ M.save = @[!server,func() {
     @[debug] log(DEBUG, "ents.save: saving")
 
     for uid, entity in storage_static.each() {
-        if entity && entity.get_attr("persistent") {
+        if entity {
             var en = entity.name
             @[debug] log(DEBUG, e"    $uid, $en")
             r.push(serialize([ en, entity.build_sdata() ]))
@@ -640,9 +640,6 @@ var make_stor_uid = func(uid, stor) {
         - tags [{{$svars.StateArray}}] - every entity can have an unlimited
         amount of tags (they're strings). You can use tags to search for
         entities later, other use cases include e.g. marking of player starts.
-        - persistent [{{$svars.StateBooleann}}] - if the entity is persistent,
-        it will be saved during map save; if not, it's only temporary (and it
-        will disappear when the map ends)
 */
 M.Entity = Object.clone({
     name: "Entity",
@@ -663,8 +660,7 @@ M.Entity = Object.clone({
         entity prototype, do not create this table.
     */
     __properties: {
-        tags      : svars::StateArray(),
-        persistent: svars::StateBoolean()
+        tags: svars::StateArray()
     },
 
     /// Makes entity objects return their name on tostring.
@@ -846,9 +842,7 @@ M.Entity = Object.clone({
         used to set default svar values (unless `client_set`).
 
         Arguments:
-             - kwargs - used to query whether the entity is persistent (to
-               set the persistent property), in child entities it can be used
-               for more things.
+             - kwargs - extra data passed to init, unused here.
              - ndata - an array of extra newent arguments in wire format.
     */
     __init_svars: @[server,func(self, kwargs, ndata) {
@@ -857,7 +851,6 @@ M.Entity = Object.clone({
         self.entity_setup()
 
         self.set_attr("tags", [])
-        self.set_attr("persistent", kwargs && kwargs.persistent || false)
     }],
 
     /**

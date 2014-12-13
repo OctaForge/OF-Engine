@@ -767,9 +767,6 @@ var gen_attr = func(i, name) {
     invoke their `__run` method per frame. To re-enable that, set the
     `__per_frame` member to true (false by default for efficiency).
 
-    Static entities are persistent by default, so they set the `persistent`
-    inherited property to true.
-
     This entity prototype is never registered, the inherited ones are.
 
     Properties:
@@ -798,7 +795,6 @@ M.StaticEntity = Entity.clone({
         @[debug] log(DEBUG, "StaticEntity.init")
 
         kwargs = kwargs || {}
-        kwargs.persistent = true
 
         self.setup()
         self.initialized = true
@@ -807,7 +803,6 @@ M.StaticEntity = Entity.clone({
         M::set_centity(self.__centity, self)
 
         self.set_attr("tags", [])
-        self.set_attr("persistent", kwargs && kwargs.persistent || false)
 
         if !kwargs.position {
             self.set_attr("position", [ 511, 512, 513 ])
