@@ -600,20 +600,20 @@ M.save = @[!server,func() {
 set_external("entities_save_all", M.save)
 
 var storid = enum {
-    LOGIC: 1 << 29,
-    DYNAMIC: 1 << 30,
-    STATIC: 1 << 31
+    logic: 1 << 29,
+    dynamic: 1 << 30,
+    static: 1 << 31
 }
 var uidmask = 0x1FFFFFFF
 
 var get_stor_uid = func(uid) {
     var ruid = uid & uidmask
     var sid = uid & (~uidmask)
-    if sid == storid.LOGIC {
+    if sid == storid.logic {
         return ruid, storage_logic
-    } else if sid == storid.DYNAMIC {
+    } else if sid == storid.dynamic {
         return ruid, storage_dynamic
-    } else if @[!server,sid == storid.STATIC] {
+    } else if @[!server,sid == storid.static] {
         @[!server] return ruid, storage_static
     } else {
         assert(false)
@@ -621,7 +621,7 @@ var get_stor_uid = func(uid) {
 }
 
 var make_stor_uid = func(uid, stor) {
-    return (uid & uidmask) | storid[stor.upper()]
+    return (uid & uidmask) | storid[stor]
 }
 
 /**
