@@ -1029,6 +1029,8 @@ M.Entity = Object.clone({
 
         On the server it triggers a var change in the same manner.
 
+        Keep in mind that this is overridden for static entities.
+
         Arguments:
             - key - the key.
             - val - the value.
@@ -1049,14 +1051,12 @@ M.Entity = Object.clone({
         var csfh = svar.custom_sync && self.controlled_here
         var cset = svar.client_set
 
-        var is_static = self.__storage == "static"
-
         var nfh = actor_uid != -1
 
         // from client-side script, send a server request unless the svar
         // is controlled here (synced using some other method)
         // if this variable is set on the client, send a notification
-        if !nfh && !csfh && !is_static {
+        if !nfh && !csfh {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
             self.msg_sdata_changereq_send(svar.reliable, self.uid,
@@ -1064,7 +1064,7 @@ M.Entity = Object.clone({
         }
 
         // from a server or set clientside, update now
-        if nfh || cset || csfh || is_static {
+        if nfh || cset || csfh {
             @[debug] log(INFO, "    var update")
             // from the server, in wire format
             if nfh {

@@ -23,7 +23,6 @@ import core.events.actions
 import core.events.signal
 import core.entities.svars
 import core.entities.ents
-import core.network.msg
 import core.engine.cubescript as cs
 
 from std.conv import hex_to_rgb as hextorgb
@@ -841,6 +840,23 @@ M.StaticEntity = Entity.clone({
         capi::destroy_extent(self.__centity)
         self.__centity = undef
         return Entity::__deactivate(self)
+    },
+
+    /**
+        Overridden because static ents are always clientside. We ignore
+        client_set etc. for svars here.
+    */
+    set_sdata: func(self, key, val, actor_uid) {
+        @[debug] log(INFO, "    var update")
+        var svar = self[e"_SV_$key"]
+        var nfh = actor_uid != -1
+        if nfh {
+            val = svar.from_wire(val)
+        }
+        assert(svar.validate(val))
+        self.sdata_changed(svar, key, val)
+        emit(self, e"$key,changed", val, nfh)
+        self.svar_values[key] = val
     },
 
     /**
