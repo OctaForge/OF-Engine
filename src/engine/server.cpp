@@ -13,7 +13,6 @@ namespace server
     extern bool shutdown_if_empty;
     extern bool shutdown_if_idle;
     extern int  shutdown_idle_interval;
-    int& getUniqueId(int clientNumber);
 }
 bool should_quit = false;
 

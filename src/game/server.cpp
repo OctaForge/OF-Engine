@@ -41,8 +41,6 @@ namespace server
     {
         int clientnum, overflow;
 
-        int uniqueId; // Kripken: Unique ID in the current module of this client
-
         string name, team;
         bool spectator, connected, local, timesync, wantsmaster;
         int gameoffset, lastevent;
@@ -70,8 +68,6 @@ namespace server
 
         void reset()
         {
-            uniqueId = -9000;
-
             name[0] = team[0] = 0;
             connected = spectator = local = wantsmaster = false;
             position.setsize(0);
@@ -91,15 +87,8 @@ namespace server
     {
         // Delete the logic entity
         clientinfo *_ci = (clientinfo*)ci;
-        int uniqueId = _ci->uniqueId;
-
-        // If there are entities to remove, remove. For NPCs/bots, however, do not do this - we are in fact being called from there
-        // Also do not do this if the uniqueId is negative - it means we are disconnecting this client *before* a lua
-        // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
-        // between ENet connection and completing the login process).
-        if (lua::L && !_ci->local && uniqueId >= 0)
-            lua::call_external("entity_remove_dynamic", "i", uniqueId);
-
+        if (!_ci->local)
+            lua::call_external("entity_remove_dynamic", "i", _ci->clientnum);
         delete (clientinfo *)ci;
     }
 
@@ -111,16 +100,6 @@ namespace server
 //        n -= MAXCLIENTS;
 //        return bots.inrange(n) ? bots[n] : NULL;
     }
-
-    int& getUniqueId(int clientNumber)
-    {
-        clientinfo *ci = (clientinfo *)getinfo(clientNumber);
-        static int DUMMY = -1;
-        return (ci ? ci->uniqueId : DUMMY); // Kind of a hack, but we do use this to both set and get... maybe need two methods separate
-    }
-
-    CLUAICOMMAND(cn_get_uid, int, (int cn), return getUniqueId(cn););
-
 
     struct worldstate
     {
@@ -336,7 +315,7 @@ namespace server
         {
             clientinfo &ci = *clients[i];
 
-            logger::log(logger::INFO, "Processing update relaying for %d:%d", ci.clientnum, ci.uniqueId);
+            logger::log(logger::INFO, "Processing update relaying for %d", ci.clientnum);
 
 #ifdef STANDALONE
             continue;
@@ -499,7 +478,7 @@ namespace server
 
                 bool b;
                 lua::pop_external_ret(lua::call_external_ret(
-                    "event_text_message", "is", "b", ci->uniqueId, text, &b));
+                    "event_text_message", "is", "b", ci->clientnum, text, &b));
 
                 if (!b) {
                     QUEUE_INT(type);
@@ -592,7 +571,7 @@ namespace server
                 if (!world::scenario_code[0]) break;
                 assert(lua::call_external("entities_send_all", "i", sender));
                 sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
-                assert(lua::call_external("event_player_login", "i", server::getUniqueId(sender)));
+                assert(lua::call_external("event_player_login", "i", sender));
                 break;
             }
 
@@ -625,10 +604,7 @@ namespace server
 
                 logger::log(logger::DEBUG, "Creating player entity: %s, %d", pcclass, sender);
 
-                getUniqueId(sender) = sender;
                 sendf(sender, 1, "rii", N_YOURUID, sender);
-
-                ci->uniqueId = sender;
                 ci->connected = true;
 
                 lua::call_external("entity_new_with_cn", "sibs", pcclass, sender, true, "local_editor");

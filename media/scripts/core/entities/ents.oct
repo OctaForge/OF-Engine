@@ -940,13 +940,12 @@ M.Entity = Object.clone({
 
         if tonumber(capi::have_scenario_code()) == 0 { return }
 
-        var auid = capi::cn_get_uid(sender)
         @[debug] log(DEBUG, e"client $auid tried to change $kpid to value $value")
         var ent = stor[uid]
         if ent {
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
-            ent.set_sdata(key, value, auid)
+            ent.set_sdata(key, value, sender)
         }
     }]),
 
