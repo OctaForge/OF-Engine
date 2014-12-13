@@ -9,6 +9,8 @@
         See COPYING.txt.
 */
 
+@[server] return {}
+
 import core.entities.ents
 import core.entities.svars
 import core.engine.particles
@@ -25,15 +27,15 @@ var M = {}
 
 /** Table: particles.renderers
     Provides some extra renderers - "smoke", "flame" and "steam" used
-    by the effect entities. On the client only, on the server this is undef.
+    by the effect entities.
 */
-var renderers = @[!server,{
+var renderers = {
     smoke: quadrenderer("smoke", "media/particle/smoke",
         pflags.FLIP | pflags.LERP),
     flame: quadrenderer("flame", "media/particle/flames",
         pflags.HFLIP | pflags.RND4 | pflags.BRIGHT),
     steam: quadrenderer("steam", "media/particle/steam", pflags.FLIP)
-},{}]
+}
 
 var cmap = [ "x", "y", "z" ]
 

@@ -8,6 +8,8 @@
         See COPYING.txt.
 */
 
+@[server] return {}
+
 import core.entities.svars
 import core.entities.ents
 import core.engine.lights
@@ -54,13 +56,13 @@ var DynamicLight = Marker.clone({
         Overloaded to show the dynamic light. Derived dynamic light types
         need to override this accordingly.
     */
-    __run: @[!server,func(self, millis) {
+    __run: func(self, millis) {
         Marker::__run(self, millis)
         var pos = self.get_attr("position")
         light_add(pos, self.get_attr("radius"),
             self.get_attr("red") / 255, self.get_attr("green") / 255,
             self.get_attr("blue") / 255)
-    }]
+    }
 })
 M.DynamicLight = DynamicLight
 
@@ -94,12 +96,12 @@ M.FlickeringLight = DynamicLight.clone({
         self.set_attr("max_delay",   300, nd[6])
     },
 
-    __activate: @[!server,func(self, kwargs) {
+    __activate: func(self, kwargs) {
         Marker::__activate(self, kwargs)
         self.delay = 0
-    }],
+    },
 
-    __run: @[!server,func(self, millis) {
+    __run: func(self, millis) {
         var d = self.delay - millis
         if  d <= 0 {
             d = max(floor(random() * self.get_attr("max_delay")),
@@ -112,7 +114,7 @@ M.FlickeringLight = DynamicLight.clone({
             }
         }
         self.delay = d
-    }]
+    }
 })
 
 ents::register_prototype(M.FlickeringLight)

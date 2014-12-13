@@ -8,6 +8,8 @@
         See COPYING.txt.
 */
 
+@[server] return {}
+
 import core.logger as log
 import core.engine.sound
 import core.events.signal
@@ -55,10 +57,10 @@ M.Teleporter = Obstacle.clone({
         self.set_attr("sound_name", "", nd[1])
     },
 
-    __activate: @[!server,func(self, kwargs) {
+    __activate: func(self, kwargs) {
         Obstacle::__activate(self, kwargs)
         connect(self, "collision", self.on_collision)
-    }],
+    },
 
     on_collision: func(self, collider) {
         var dest = self.get_attr("destination")
