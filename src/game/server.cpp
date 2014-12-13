@@ -41,8 +41,7 @@ namespace server
     {
         int clientnum, overflow;
 
-        int         uniqueId; // Kripken: Unique ID in the current module of this client
-        bool        isAdmin; // Kripken: Whether we are admins of this map, and can edit it
+        int uniqueId; // Kripken: Unique ID in the current module of this client
 
         string name, team;
         bool spectator, connected, local, timesync, wantsmaster;
@@ -72,7 +71,6 @@ namespace server
         void reset()
         {
             uniqueId = -9000;
-            isAdmin = false; // Kripken
 
             name[0] = team[0] = 0;
             connected = spectator = local = wantsmaster = false;
@@ -609,7 +607,6 @@ namespace server
                     flushserver(true);
                     disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
                 }
-                setAdmin(sender, true);
                 createluaEntity(sender);
                 sendf(sender, 1, "ri", N_LOGINRESPONSE);
                 break;
@@ -704,26 +701,6 @@ namespace server
         clients.removeobj(ci);
     }
 
-    void setAdmin(int clientNumber, bool isAdmin)
-    {
-        logger::log(logger::DEBUG, "setAdmin for client %d", clientNumber);
-
-        clientinfo *ci = (clientinfo *)getinfo(clientNumber);
-        if (!ci) return; // May have been kicked just before now
-        ci->isAdmin = isAdmin;
-
-        if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
-            lua::call_external("entity_dynamic_set_attr", "isb", ci->uniqueId,
-                "can_edit", true);
-    }
-
-    bool isAdmin(int clientNumber)
-    {
-        clientinfo *ci = (clientinfo *)getinfo(clientNumber);
-        if (!ci) return false;
-        return ci->isAdmin;
-    }
-
     int createluaEntity(int cn, const char *_class, const char *uname)
     {
         // cn of -1 means "all of them"
@@ -769,7 +746,7 @@ namespace server
         ci->uniqueId = cn;
         ci->connected = true;
 
-        lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, ci->isAdmin, uname, cn);
+        lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, true, uname, cn);
         return cn;
     }
 
