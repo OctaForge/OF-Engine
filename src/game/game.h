@@ -188,8 +188,6 @@ namespace server
     extern int msgsizelookup(int msg);
     extern bool serveroption(const char *arg);
 
-    extern int createluaEntity(int cn, const char *_class = "", const char *uname = "local_editor");
-
     //! Clears info related to the current scenario, as a new one is being prepared
     extern void resetScenario();
 }

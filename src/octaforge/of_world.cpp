@@ -61,7 +61,6 @@ namespace world
         server::resetScenario();
         defformatstring(path, "%sSTANDALONE_READY", homedir);
         FILE *f = fopen(path, "w"); if (f) fclose(f);
-        server::createluaEntity(-1);
         sendf(-1, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, curr_map_id, scenario_code);
 #endif
 

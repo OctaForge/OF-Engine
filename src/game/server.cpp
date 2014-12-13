@@ -596,7 +596,7 @@ namespace server
                 break;
             }
 
-            case N_LOGINREQUEST:
+            case N_LOGINREQUEST: {
                 if (!world::scenario_code[0])
                 {
                     lua::call_external("show_client_message", "iss",
@@ -607,9 +607,35 @@ namespace server
                     flushserver(true);
                     disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
                 }
-                createluaEntity(sender);
+
+                assert(sender >= 0);
+                clientinfo *ci = (clientinfo *)getinfo(sender);
+                if (!ci)
+                {
+                    logger::log(logger::WARNING, "Asked to create a player entity for %d, but no clientinfo (perhaps disconnected meanwhile)", sender);
+                    return;
+                }
+
+                // Use the PC class, unless told otherwise
+                string pcclass;
+                const char *cl;
+                int n = lua::call_external_ret("entity_get_player_prototype", "", "s", &cl);
+                copystring(pcclass, cl);
+                lua::pop_external_ret(n);
+
+                logger::log(logger::DEBUG, "Creating player entity: %s, %d", pcclass, sender);
+
+                getUniqueId(sender) = sender;
+                sendf(sender, 1, "rii", N_YOURUID, sender);
+
+                ci->uniqueId = sender;
+                ci->connected = true;
+
+                lua::call_external("entity_new_with_cn", "sibs", pcclass, sender, true, "local_editor");
+
                 sendf(sender, 1, "ri", N_LOGINRESPONSE);
                 break;
+            }
 
             case N_REQUESTCURRENTSCENARIO:
                 if (!world::scenario_code[0]) break;
@@ -699,55 +725,6 @@ namespace server
         clientinfo *ci = (clientinfo *)getinfo(n);
         if(smode) smode->leavegame(ci, true);
         clients.removeobj(ci);
-    }
-
-    int createluaEntity(int cn, const char *_class, const char *uname)
-    {
-        // cn of -1 means "all of them"
-        if (cn == -1)
-        {
-            for (int i = 0; i < getnumclients(); i++)
-            {
-                clientinfo *ci = (clientinfo *)getinfo(i);
-                if (!ci) continue;
-                if (ci->local) continue;
-
-                logger::log(logger::DEBUG, "luaEntities creation: Adding %d", i);
-
-                createluaEntity(i);
-            }
-            return -1;
-        }
-
-        assert(cn >= 0);
-        clientinfo *ci = (clientinfo *)getinfo(cn);
-        if (!ci)
-        {
-            logger::log(logger::WARNING, "Asked to create a player entity for %d, but no clientinfo (perhaps disconnected meanwhile)", cn);
-            return -1;
-        }
-
-        // Use the PC class, unless told otherwise
-        string pcclass;
-        if (!_class[0]) {
-            const char *cl;
-            int n = lua::call_external_ret("entity_get_player_prototype", "", "s", &cl);
-            copystring(pcclass, cl);
-            lua::pop_external_ret(n);
-        } else copystring(pcclass, _class);
-
-        logger::log(logger::DEBUG, "Creating player entity: %s, %d", pcclass, cn);
-
-        getUniqueId(cn) = cn;
-        // Notify of uid *before* creating the entity, so when the entity is created, player realizes it is them
-        // and does initial connection correctly
-        sendf(cn, 1, "rii", N_YOURUID, cn);
-
-        ci->uniqueId = cn;
-        ci->connected = true;
-
-        lua::call_external("entity_new_with_cn", "sibsi", pcclass, cn, true, uname, cn);
-        return cn;
     }
 
     int clientconnect(int n, uint ip)
