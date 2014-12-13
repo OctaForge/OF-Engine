@@ -822,12 +822,16 @@ M.StaticEntity = Entity.clone({
         @[debug] log(DEBUG, "StaticEntity.init complete")
     },
 
+    /// Overridden because static ents are always clientside.
     __activate: func(self, kwargs) {
+        var sd = kwargs && kwargs.state_data || undef
         if !self.__centity {
             self.__centity = capi::setup_extent(self.uid, self.sauer_type)
             M::set_centity(self.__centity, self)
         }
-        Entity::__activate(self, kwargs)
+        self.setup()
+        if sd { self.set_sdata_full(sd) }
+        self.initialized = true
         self.set_attr("position", self.get_attr("position"))
         for i in 1 to self.attr_num {
             var an = "attr" ~ i

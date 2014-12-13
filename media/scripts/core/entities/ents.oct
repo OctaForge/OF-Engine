@@ -862,7 +862,7 @@ M.Entity = Object.clone({
 
     /**
         The entity activator. It's called on its creation. It calls
-        $setup.
+        $setup. Static entities use a different variant.
 
         Client note: The entity is not initialized before complete
         sdata is received.
@@ -872,30 +872,22 @@ M.Entity = Object.clone({
     */
     __activate: func(self, kwargs) {
         @[debug] log(DEBUG, "Entity.__activate")
-        @[server] {
-            self.entity_setup()
-        } else {
-            self.setup()
-        }
-
         if !self.sauer_type {
-            @[debug] log(DEBUG, e"Entity.__activate: non-sauer entity: $(self.name)")
-            @[server] self.flush_queued_svar_changes()
+            @[debug] log(DEBUG, "Entity.__activate: non-sauer entity: "
+                e"$(self.name)")
         }
-
         @[server] {
             var sd = kwargs && kwargs.state_data || undef
+            self.entity_setup()
+            if !self.sauer_type {
+                self.flush_queued_svar_changes()
+            }
             if sd { self.set_sdata_full(sd) }
             self.send_notification_full(msg.ALL_CLIENTS)
             self.sent_notification_full = true
         } else {
-            if self.__storage == "static" {
-                var sd = kwargs && kwargs.state_data || undef
-                if sd { self.set_sdata_full(sd) }
-                self.initialized = true
-            } else {
-                self.initialized = false
-            }
+            self.setup()
+            self.initialized = false
         }
     },
 
