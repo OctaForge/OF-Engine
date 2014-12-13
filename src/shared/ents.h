@@ -32,9 +32,7 @@ struct extentity : entity                       // part of the entity that doesn
     int flags;
     extentity *attached;
 
-    int uid;
-
-    extentity() : flags(0), attached(NULL), uid(-1) {}
+    extentity() : flags(0), attached(NULL) {}
 
     bool spawned() const { return (flags&EF_SPAWNED) != 0; }
     void setspawned(bool val) { if(val) flags |= EF_SPAWNED; else flags &= ~EF_SPAWNED; }

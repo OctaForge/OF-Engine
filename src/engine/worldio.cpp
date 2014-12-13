@@ -998,11 +998,13 @@ void writecollideobj(char *name)
     }
     vector<extentity *> &ents = entities::getents();
     extentity *mm = NULL;
+    int mmuid = -1;
     loopv(entgroup)
     {
         extentity &e = *ents[entgroup[i]];
         if(e.type != ET_MAPMODEL || !pointinsel(sel, e.o)) continue;
         mm = &e;
+        mmuid = entgroup[i];
         break;
     }
     if(!mm) loopv(ents)
@@ -1010,6 +1012,7 @@ void writecollideobj(char *name)
         extentity &e = *ents[i];
         if(e.type != ET_MAPMODEL || !pointinsel(sel, e.o)) continue;
         mm = &e;
+        mmuid = i;
         break;
     }
     if(!mm)
@@ -1020,7 +1023,7 @@ void writecollideobj(char *name)
     model *m = ((modelentity*)mm)->m;
     if(!m)
     {
-        conoutf(CON_ERROR, "could not get map model for entity %d", mm->uid);
+        conoutf(CON_ERROR, "could not get map model for entity %d", mmuid);
         return;
     }
 

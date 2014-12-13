@@ -799,7 +799,7 @@ M.StaticEntity = Entity.clone({
         self.setup()
         self.initialized = true
 
-        self.__centity = capi::setup_extent(self.uid, self.sauer_type)
+        self.__centity = capi::setup_extent(self.sauer_type)
         M::set_centity(self.__centity, self)
 
         self.set_attr("tags", [])
@@ -821,7 +821,7 @@ M.StaticEntity = Entity.clone({
     __activate: func(self, kwargs) {
         var sd = kwargs && kwargs.state_data || undef
         if !self.__centity {
-            self.__centity = capi::setup_extent(self.uid, self.sauer_type)
+            self.__centity = capi::setup_extent(self.sauer_type)
             M::set_centity(self.__centity, self)
         }
         self.setup()

@@ -302,7 +302,7 @@ namespace entities
         return e->attached;
     });
 
-    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type), {
+    CLUAICOMMAND(setup_extent, extentity *, (int type), {
         extentity *e;
         if (type == ET_MAPMODEL) {
             e = new modelentity;
@@ -318,7 +318,6 @@ namespace entities
 
         addentity(e);
         attachentity(*e);
-        e->uid = uid;
         return e;
     });
 

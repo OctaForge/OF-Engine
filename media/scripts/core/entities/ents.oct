@@ -488,8 +488,8 @@ M.remove = func(ent) {
 }
 var ent_remove = M.remove
 
-set_external("entity_remove_static", @[!server,func(uid) {
-    var ent = storage_static[uid]
+set_external("entity_remove_static", @[!server,func(cent) {
+    var ent = get_by_centity(cent)
     if !ent { return }
     ent_remove(ent)
 }])
@@ -1267,8 +1267,8 @@ M.get_gui_attr = func(ent, prop) {
     return ent.get_gui_attr(prop)
 }
 
-set_external("entity_get_gui_attr", @[!server,func(uid, prop) {
-    return storage_static[uid].get_gui_attr(prop)
+set_external("entity_get_gui_attr", @[!server,func(cent, prop) {
+    return get_by_centity(cent).get_gui_attr(prop)
 }])
 
 /**
@@ -1278,8 +1278,8 @@ set_external("entity_get_gui_attr", @[!server,func(uid, prop) {
 M.set_gui_attr = func(ent, prop, val) {
     return ent.set_gui_attr(prop, val)
 }
-set_external("entity_set_gui_attr", @[!server,func(uid, prop, val) {
-    return storage_static[uid].set_gui_attr(prop, val)
+set_external("entity_set_gui_attr", @[!server,func(cent, prop, val) {
+    return get_by_centity(cent).set_gui_attr(prop, val)
 }])
 
 /**
