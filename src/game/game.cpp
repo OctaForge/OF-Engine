@@ -58,12 +58,7 @@ namespace game
     }
 
     static string clientmap = "";
-    const char *getclientmap()
-    {
-        if (!world::curr_map_id[0]) return clientmap;
-        formatstring(clientmap, "map/%s/map", world::curr_map_id);
-        return clientmap;
-    }
+    const char *getclientmap() { return clientmap; }
 
     gameent *spawnstate(gameent *d)              // reset player state not persistent accross spawns
     {
@@ -343,6 +338,7 @@ namespace game
 
     void startmap(const char *name)   // called just after a map load
     {
+        copystring(clientmap, name ? name : "");
 //        if(multiplayer(false) && m_sp) { gamemode = 0; conoutf(CON_ERROR, "coop sp not supported yet"); } Kripken
 //        clearmovables();
 //        clearprojectiles();
