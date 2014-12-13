@@ -1440,12 +1440,6 @@ M.scene_is_ready = @[!server,func() {
             return false
         }
     }
-    for uid, ent in storage_static.each() {
-        if ent && !ent.initialized {
-            @[debug] log(INFO, e"...static entity $uid !ready.")
-            return false
-        }
-    }
 
     @[debug] log(INFO, "...yes!")
     return true

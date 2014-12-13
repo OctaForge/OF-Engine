@@ -827,6 +827,8 @@ M.StaticEntity = Entity.clone({
         self.setup()
         if sd { self.set_sdata_full(sd) }
         self.initialized = true
+
+        // need to do this in order to trigger C setters
         self.set_attr("position", self.get_attr("position"))
         for i in 1 to self.attr_num {
             var an = "attr" ~ i
