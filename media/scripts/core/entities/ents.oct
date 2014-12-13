@@ -540,43 +540,22 @@ M.remove_all = func() {
 }
 set_external("entities_remove_all", M.remove_all)
 
-/**
-    Serverside. Reads a file called `entities.oct` in the map directory,
-    serializes it and loads entities from it. The file contains a regular
-    OctaScript serialized table.
-
-    It also attempts to load previously queued Sauer entities. On the client
-    this function does nothing.
-
-    The server do sends the entities to all clients.
-
-    Format:
-        `{ { uid, "entity_proto", sdata }, { ... }, ... }`
-
-    See also:
-        - $save
-*/
-M.load = func() {
-    @[server] { return }
-
-    @[debug] log(DEBUG, "ents.load: reading")
-    var el = capi::readfile("entities.oct")
-
+set_external("entities_load", @[!server,func(entstr) {
     var entities = []
-    if !el {
-        @[debug] log(DEBUG, "ents.load: nothing to read")
+    if !entstr {
+        @[debug] log(DEBUG, "entities_load: nothing to read")
     } else {
-        entities = deserialize(el)
+        entities = deserialize(entstr)
     }
 
-    @[debug] log(DEBUG, "ents.load: loading all entities")
+    @[debug] log(DEBUG, "entities_load: loading all entities")
     for i, e in entities.each() {
         var cn = e[0]
         @[debug] log(DEBUG, e"    $i, $cn")
         add(cn, undef, { state_data: serialize(e[1]) })
     }
-    @[debug] log(DEBUG, "ents.load: done")
-}
+    @[debug] log(DEBUG, "entities_load: done")
+}])
 
 /**
     Serializes all loaded entities into format that can be read by $load.

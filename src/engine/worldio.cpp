@@ -856,6 +856,14 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     extern void clear_texpacks(int n = 0); clear_texpacks();
     lua::call_external("gui_clear", "");
 
+    string ebuf;
+    copystring(ebuf, world::get_mapfile_path("entities.oct"));
+    char *eloaded = loadfile(path(ebuf), NULL);
+    if (eloaded) {
+        lua::call_external("entities_load", "s", eloaded);
+        delete[] eloaded;
+    }
+
     identflags |= IDF_OVERRIDDEN;
     execfile("config/default_map_settings.cfg", false);
     if (lua::L) world::run_mapscript();
