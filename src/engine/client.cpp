@@ -216,7 +216,6 @@ void gets2c()           // get updates from the server
             break;
 
         case ENET_EVENT_TYPE_DISCONNECT:
-            extern const char *disc_reasons[10]; /* because gcc 4.2 is retarded */
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
             {
@@ -225,7 +224,12 @@ void gets2c()           // get updates from the server
             }
             else
             {
-                if(!discmillis || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reasons[event.data]);
+                if(!discmillis || event.data)
+                {
+                    const char *msg = disconnectreason(event.data);
+                    if(msg) conoutf("\f3server network error, disconnecting (%s) ...", msg);
+                    else conoutf("\f3server network error, disconnecting...");
+                }
                 disconnect();
             }
             return;

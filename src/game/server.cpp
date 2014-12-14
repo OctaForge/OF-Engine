@@ -628,7 +628,7 @@ namespace server
                 break;
 
             case -1:
-                disconnect_client(sender, DISC_TAGT);
+                disconnect_client(sender, DISC_MSGERR);
                 return;
 
             case -2:
@@ -645,7 +645,7 @@ namespace server
                     logger::log(logger::DEBUG, "Relaying Sauer protocol message: %d", type);
 
                     int size = msgsizelookup(type);
-                    if(size<=0) { disconnect_client(sender, DISC_TAGT); return; }
+                    if(size<=0) { disconnect_client(sender, DISC_MSGERR); return; }
                     loopi(size-1) getint(p);
 
                     if(ci && ci->state.state!=CS_SPECTATOR) QUEUE_MSG;

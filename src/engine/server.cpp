@@ -85,24 +85,24 @@ void logoutfv(const char *fmt, va_list args)
 }
 
 #ifdef STANDALONE
-void fatal(const char *s, ...)
+void fatal(const char *fmt, ...)
 {
-    defvformatstring(msg,s,s);
-    logoutf("%s", msg);
+    void cleanupserver();
+    cleanupserver();
+    defvformatstring(msg,fmt,fmt);
+    if(logfile) logoutf("%s", msg);
+#ifdef WIN32
+    MessageBox(NULL, msg, "OctaForge fatal error", MB_OK|MB_SYSTEMMODAL);
+#else
+    fprintf(stderr, "server error: %s\n", msg);
+#endif
+    closelogfile();
     exit(EXIT_FAILURE);
-};
+}
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
     logoutfv(fmt, args);
-}
-
-void conoutf(int type, const char *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    conoutfv(type, fmt, args);
-    va_end(args);
 }
 
 void conoutf(const char *fmt, ...)
@@ -110,6 +110,14 @@ void conoutf(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     conoutfv(CON_INFO, fmt, args);
+    va_end(args);
+}
+
+void conoutf(int type, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    conoutfv(type, fmt, args);
     va_end(args);
 }
 #endif
@@ -197,6 +205,7 @@ void process(ENetPacket *packet, int sender, int chan);
 
 int getservermtu() { return serverhost ? serverhost->mtu : -1; }
 void *getclientinfo(int i) { return !clients.inrange(i) || clients[i]->type==ST_EMPTY ? NULL : clients[i]->info; }
+ENetPeer *getclientpeer(int i) { return clients.inrange(i) && clients[i]->type==ST_TCPIP ? clients[i]->peer : NULL; }
 int getnumclients()        { return clients.length(); }
 uint getclientip(int n)    { return clients.inrange(n) && clients[n]->type==ST_TCPIP ? clients[n]->peer->address.host : 0; }
 
@@ -272,7 +281,63 @@ ENetPacket *sendf(int cn, int chan, const char *format, ...)
     return packet->referenceCount > 0 ? packet : NULL;
 }
 
-const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "message error", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };
+ENetPacket *sendfile(int cn, int chan, stream *file, const char *format, ...)
+{
+    if(cn < 0)
+    {
+#ifdef STANDALONE
+        return NULL;
+#endif
+    }
+    else if(!clients.inrange(cn)) return NULL;
+
+    int len = (int)min(file->size(), stream::offset(INT_MAX));
+    if(len <= 0 || len > 16<<20) return NULL;
+
+    packetbuf p(MAXTRANS+len, ENET_PACKET_FLAG_RELIABLE);
+    va_list args;
+    va_start(args, format);
+    while(*format) switch(*format++)
+    {
+        case 'i':
+        {
+            int n = isdigit(*format) ? *format++-'0' : 1;
+            loopi(n) putint(p, va_arg(args, int));
+            break;
+        }
+        case 's': sendstring(va_arg(args, const char *), p); break;
+        case 'l': putint(p, len); break;
+    }
+    va_end(args);
+
+    file->seek(0, SEEK_SET);
+    file->read(p.subbuf(len).buf, len);
+
+    ENetPacket *packet = p.finalize();
+    if(cn >= 0) sendpacket(cn, chan, packet, -1);
+#ifndef STANDALONE
+    else sendclientpacket(packet, chan);
+#endif
+    return packet->referenceCount > 0 ? packet : NULL;
+}
+
+const char *disconnectreason(int reason)
+{
+    switch(reason)
+    {
+        case DISC_EOP: return "end of packet";
+        case DISC_LOCAL: return "server is in local mode";
+        case DISC_KICK: return "kicked/banned";
+        case DISC_MSGERR: return "message error";
+        case DISC_IPBAN: return "ip is banned";
+        case DISC_PRIVATE: return "server is in private mode";
+        case DISC_MAXCLIENTS: return "server FULL";
+        case DISC_TIMEOUT: return "connection timed out";
+        case DISC_OVERFLOW: return "overflow";
+        case DISC_PASSWORD: return "invalid password";
+        default: return NULL;
+    }
+}
 
 void disconnect_client(int n, int reason)
 {
@@ -280,7 +345,10 @@ void disconnect_client(int n, int reason)
     enet_peer_disconnect(clients[n]->peer, reason);
     server::clientdisconnect(n);
     delclient(clients[n]);
-    defformatstring(s, "client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
+    const char *msg = disconnectreason(reason);
+    string s;
+    if(msg) formatstring(s, "client (%s) disconnected because: %s", clients[n]->hostname, msg);
+    else formatstring(s, "client (%s) disconnected", clients[n]->hostname);
     logoutf("%s", s);
     server::sendservmsg(s);
 }
@@ -323,16 +391,13 @@ static int serverinfointercept(ENetHost *host, ENetEvent *event)
     return 1;
 }
 
-int uprate = 0;
-const char *ip = "";
+VAR(serveruprate, 0, 0, INT_MAX);
+SVAR(serverip, "");
+VARF(serverport, 0, server::serverport(), 0xFFFF, { if(!serverport) serverport = server::serverport(); });
 
 #ifdef STANDALONE
 int curtime = 0, lastmillis = 0, totalmillis = 0;
 #endif
-
-VAR(serveruprate, 0, 0, INT_MAX);
-SVAR(serverip, "");
-VARF(serverport, 0, server::serverport(), 0xFFFF, { if(!serverport) serverport = server::serverport(); });
 
 uint totalsecs = 0;
 
@@ -411,6 +476,23 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
         }
     }
     if(server::sendpackets()) enet_host_flush(serverhost);
+
+    if(lastmillis && lua::L)
+        lua::call_external("frame_handle", "ii", curtime, lastmillis);
+
+    static time_t shutdown_idle_last_update = 0;
+    if (!shutdown_idle_last_update)
+         shutdown_idle_last_update = time(0);
+
+    if (server::shutdown_if_idle && (time(0) - shutdown_idle_last_update) >= (server::shutdown_idle_interval))
+    {
+        if (clients.length() <= 0)
+        {
+            extern bool should_quit;
+            should_quit = true;
+        }
+        shutdown_idle_last_update = time(0);
+    }
 }
 
 void flushserver(bool force)
@@ -461,12 +543,14 @@ void rundedicatedserver()
 
 bool servererror(bool dedicated, const char *desc)
 {
+#ifndef STANDALONE
     if(!dedicated)
     {
         conoutf(CON_ERROR, "%s", desc);
         cleanupserver();
     }
     else
+#endif
         fatal("%s", desc);
     return false;
 }
@@ -530,28 +614,6 @@ void server_init()//int argc, char* argv[])
 }
 
 void serverkeepalive();
-
-void server_runslice()
-{
-    serverslice(true, 5);
-
-    if(lastmillis && lua::L)
-        lua::call_external("frame_handle", "ii", curtime, lastmillis);
-
-    static time_t shutdown_idle_last_update = 0;
-    if (!shutdown_idle_last_update)
-         shutdown_idle_last_update = time(0);
-
-    if (server::shutdown_if_idle && (time(0) - shutdown_idle_last_update) >= (server::shutdown_idle_interval))
-    {
-        if (clients.length() <= 0)
-        {
-            extern bool should_quit;
-            should_quit = true;
-        }
-        shutdown_idle_last_update = time(0);
-    }
-}
 
 #ifdef WIN32
 int server_main(int argc, char **argv)
@@ -635,7 +697,7 @@ int main(int argc, char **argv)
     logger::log(logger::DEBUG, "Running first slice.");
     while (!should_quit)
     {
-        server_runslice();
+        serverslice(true, 5);
         if (map_asset)
         {
             logger::log(logger::DEBUG, "Setting map to %s ..", map_asset);
