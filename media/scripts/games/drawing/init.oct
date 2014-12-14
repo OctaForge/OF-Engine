@@ -159,6 +159,6 @@ day_manager::setup([ day_manager.plugins.day_night ])
             ents::get_player().next_color()
         }
     })
-} else {
-    ents::set_player_prototype("GamePlayer")
 }
+
+ents::set_player_prototype("GamePlayer")

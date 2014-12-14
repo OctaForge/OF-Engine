@@ -47,8 +47,9 @@ ents::register_prototype(GamePlayer, [
 
 day_manager::setup([ day_manager.plugins.day_night ])
 
+ents::set_player_prototype("GamePlayer")
+
 @[server] {
-    ents::set_player_prototype("GamePlayer")
     return
 }
 

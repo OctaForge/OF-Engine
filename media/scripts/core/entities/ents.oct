@@ -385,16 +385,16 @@ M.get_by_prototype = func(cl) {
 
 var player_prototype = "Player"
 
-/// Sets the player prototype (by name) on the server (invalid on the client).
-M.set_player_prototype = @[server,func(cl) {
+/// Sets the player prototype (by name).
+M.set_player_prototype = func(cl) {
     player_prototype = cl
-}]
+}
 
 var vg = cs.var_get
 
 /// Gets an array of players (all of the currently set player prototype).
 M.get_players = func() {
-    var v = proto_storage[@[server,player_prototype,player_entity.name]]
+    var v = proto_storage[player_prototype]
     return v ? v.__instances : []
 }
 var get_players = M.get_players
