@@ -48,7 +48,6 @@ var Entity
 
 // clientside only
 var player_entity
-var player_uid
 
 // basic storage for entities, keys are unique ids and values are entities
 var storage_logic = []
@@ -864,13 +863,17 @@ M.Entity = Object.clone({
     },
 
     msgid_le_cn: msg::register(@[!server,func(tp, receiver, sender, p) {
-        var ocn  = p.get_int()
+        var ocnf = p.get_int()
         var ouid, stor = get_stor_uid(p.get_int())
         var oc   = p.get_string()
         var sd   = p.get_string()
         if !has_logic_sys {
             return
         }
+        // retrieve ocn - first 7 bits only is client number
+        var ocn = ocnf & 0x7F
+        // if they differ, we're sending a player complete notification
+        var ispl = ocnf != ocn
         var ent = stor[ouid]
         if ent == undef {
             ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)
@@ -883,7 +886,7 @@ M.Entity = Object.clone({
         }
         @[debug] log(DEBUG, e"updating state data with $sd")
         ent.set_sdata_full(sd)
-        if ouid == player_uid && stor == storage_dynamic {
+        if ispl && stor == storage_dynamic {
             @[debug] log(DEBUG, e"initializing player with uid $ouid")
             player_entity = storage_dynamic[ouid]
             assert(player_entity)
@@ -893,7 +896,11 @@ M.Entity = Object.clone({
     }]),
 
     msg_le_cn_send: func(self, cn, ocn, oc, sd) {
-        capi::msg_send(cn, -1, "riiiss", self.msgid_le_cn, ocn,
+        // encode a flag that we're sending a complete notification for the
+        // player; it's the 8th bit, first 7 is the client number (maxclients
+        // is 128)
+        var pl = ((cn == ocn) ? 1 : 0) << 7
+        capi::msg_send(cn, -1, "riiiss", self.msgid_le_cn, ocn | pl,
             make_stor_uid(self.uid, self.__storage), oc, sd || "")
     },
 
@@ -1377,8 +1384,6 @@ M.render_hud = @[!server,func() {
 }]
 var render_hud = M.render_hud
 set_external("game_render_hud", render_hud)
-
-set_external("player_set_uid", func(uid) { player_uid = uid })
 
 set_external("entity_serialize_sdata", func(cent, x, y, z) {
     var ent = get_by_centity(cent)

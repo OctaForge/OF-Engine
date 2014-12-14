@@ -647,13 +647,6 @@ namespace game
                 getstring(text, p);
                 break;
 
-            case N_YOURUID: {
-                int uid = getint(p);
-                logger::log(logger::DEBUG, "Told my unique ID: %d", uid);
-                lua::call_external("player_set_uid", "i", uid);
-                break;
-            }
-
             case N_LOGINRESPONSE: {
                 conoutf("Login was successful.");
                 game::addmsg(N_REQUESTCURRENTSCENARIO, "r");

@@ -603,10 +603,7 @@ namespace server
                 lua::pop_external_ret(n);
 
                 logger::log(logger::DEBUG, "Creating player entity: %s, %d", pcclass, sender);
-
-                sendf(sender, 1, "rii", N_YOURUID, sender);
                 ci->connected = true;
-
                 lua::call_external("entity_new_with_cn", "sibs", pcclass, sender, true, "local_editor");
 
                 sendf(sender, 1, "ri", N_LOGINRESPONSE);
@@ -776,7 +773,6 @@ namespace server
 
             N_ACTIVEENTSREQUEST, 0, N_ALLACTIVEENTSSENT, 0,
             N_LOGINREQUEST, 0, N_LOGINRESPONSE, 0,
-            N_YOURUID, 0,
             N_PREPFORNEWSCENARIO, 0, N_REQUESTCURRENTSCENARIO, 0, N_NOTIFYABOUTCURRENTSCENARIO, 0,
             N_INITS2C, 0,
             N_EDITMODEC2S, 0, N_EDITMODES2C, 0,
