@@ -404,11 +404,9 @@ M.get_player = @[!server,func() {
     return player_entity
 }]
 
-@[server] {
-    set_external("entity_get_player_prototype", func() {
-        return player_prototype
-    })
-}
+set_external("entity_get_player_prototype", func() {
+    return player_prototype
+})
 
 var storages = {
     logic: storage_logic,

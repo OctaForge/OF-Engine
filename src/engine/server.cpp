@@ -477,6 +477,8 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
     }
     if(server::sendpackets()) enet_host_flush(serverhost);
 
+    if (!dedicated) return;
+
     if(lastmillis && lua::L)
         lua::call_external("frame_handle", "ii", curtime, lastmillis);
 
