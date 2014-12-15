@@ -13,6 +13,12 @@ local bc   = require("octascript.bytecode")
 local util = require("octascript.util")
 local bit  = require("bit")
 
+local ID = 0
+local genid = function()
+   ID = ID + 1
+   return '__' .. ID
+end
+
 -- constant folding for numbers
 
 local const_eval
@@ -453,7 +459,7 @@ local ExpressionRule = {
         local free = self.ctx.freereg
         local o = node.operator
         if cmpop[o] then
-            local l = util.genid()
+            local l = genid()
             self:test_emit(node, l, jreg, false, EXPR_RESULT_BOTH, dest)
             self.ctx:here(l)
         elseif dirop[o] then
@@ -502,7 +508,7 @@ local ExpressionRule = {
         --elseif o == "!" then
         --    self.ctx:op_not(dest, a)
         elseif o == "!" then
-            local l, al1, al2 = util.genid(), util.genid(), util.genid()
+            local l, al1, al2 = genid(), genid(), genid()
             self.ctx:op_comp("NE", a, "P", self.ctx:kpri(false), al1, free, false)
             self.ctx:op_load(dest, true)
             self.ctx:jump(l, jreg)
@@ -523,14 +529,14 @@ local ExpressionRule = {
     LogicalExpression = function(self, node, dest, jreg)
         local negate = (node.operator == "||")
         local lstore = store_bit(negate)
-        local l = util.genid()
+        local l = genid()
         self:test_emit(node.left, l, jreg, negate, lstore, dest)
         self:expr_toreg(node.right, dest, jreg)
         self.ctx:here(l)
     end,
 
     IfExpression = function(self, node, dest, jreg)
-        local tl, fl = util.genid(), util.genid()
+        local tl, fl = genid(), genid()
         self:test_emit(node.cond, fl, jreg, false, 0, dest)
         self:expr_toreg(node.texpr, dest, jreg)
         self.ctx:jump(tl, jreg)
@@ -548,7 +554,7 @@ local ExpressionRule = {
 
     FunctionExpression = function(self, node, dest)
         local free = self.ctx.freereg
-        local child = self.ctx:child()
+        local child = self.ctx:child(node.firstline, node.lastline)
         self.ctx = child
         for i=1, #node.params do
             if node.params[i].kind == "Vararg" then
@@ -558,11 +564,11 @@ local ExpressionRule = {
             end
         end
         self:block_emit(node.body)
-        self:close_proto()
-        self.ctx:set_line(node.firstline, node.lastline)
+        self:close_proto(node.lastline)
 
         self.ctx = self.ctx:parent()
         self.ctx.freereg = free
+        self.ctx:line(node.lastline)
         self.ctx:op_fnew(dest, child.idx)
     end,
 
@@ -809,7 +815,7 @@ local TestRule = {
             local use_imbranch = has_branch(store, negate)
             if use_imbranch then
                 local test, swap = compare_op(not negate, o)
-                local altlabel = util.genid()
+                local altlabel = genid()
                 self.ctx:op_comp(test, a, btag, b, altlabel, free, swap)
                 self.ctx:op_load(dest, negate)
                 self.ctx:jump(jmp, jreg)
@@ -841,7 +847,7 @@ local TestRule = {
         local lstore = bit.band(store, store_bit(or_operator))
         local imbranch = xor(negate, or_operator)
         if imbranch then
-            local templ = util.genid()
+            local templ = genid()
             self:test_emit(node.left, templ, jreg, not negate, lstore, dest)
             self:test_emit(node.right, jmp, jreg, negate, store, dest)
             self.ctx:here(templ)
@@ -852,7 +858,7 @@ local TestRule = {
     end,
 
     IfExpression = function(self, node, jmp, jreg, negate, store, dest)
-         local tl, fl = util.genid(), util.genid()
+         local tl, fl = genid(), genid()
          local lstore = store_bit(negate)
          self:test_emit(node.cond, fl, jreg, false, 0, dest)
          self:test_emit(node.texpr, jmp, jreg, negate, lstore, dest)
@@ -900,8 +906,13 @@ local StatementRule = {
                 self:expr_tolhs(self:lhs_expr_emit(path), enode)
             end
         else
-            self.ctx:newvar(path.name)
-            self:expr_tolhs(self:lhs_expr_emit(path), enode)
+            -- We avoid calling "lhs_expr_emit" on "path" because
+            -- it would mark the variable as mutable.
+            local vinfo = self.ctx:newvar(path.name)
+            self:expr_toreg(enode, vinfo.idx)
+            local pc = #self.ctx.code + 1
+            vinfo.startpc = pc
+            vinfo.endpc = pc
         end
     end,
 
@@ -931,7 +942,7 @@ local StatementRule = {
     DoStatement = function(self, node)
         self:block_enter()
         self:block_emit(node.body)
-        self:block_leave()
+        self:block_leave(node.body.lastline)
     end,
 
     IfStatement = function(self, node, root_exit)
@@ -939,14 +950,14 @@ local StatementRule = {
         local ncons = #node.tests
         -- Count the number of branches, including the "else" branch.
         local count = node.alternate and ncons + 1 or ncons
-        local local_exit = count > 1 and util.genid()
+        local local_exit = count > 1 and genid()
         -- Set the exit point to the extern exit if given or set to local
         -- exit (potentially false).
         local exit = root_exit or local_exit
 
         for i = 1, ncons do
             local test, block = node.tests[i], node.cons[i]
-            local next_test = util.genid()
+            local next_test = genid()
             -- Set the exit point to jump on at the end of for this block.
             -- If this is the last branch (count == 1) set to false.
             local bexit = count > 1 and exit
@@ -955,7 +966,7 @@ local StatementRule = {
 
             self:block_enter()
             self:block_emit(block, bexit)
-            self:block_leave(bexit)
+            self:block_leave(block.lastline, bexit)
 
             self.ctx:here(next_test)
             count = count - 1
@@ -964,7 +975,7 @@ local StatementRule = {
         if node.alternate then
             self:block_enter()
             self:block_emit(node.alternate)
-            self:block_leave()
+            self:block_leave(node.alternate.lastline)
         end
         if exit and exit == local_exit then
             self.ctx:here(exit)
@@ -1076,7 +1087,7 @@ local StatementRule = {
 
     WhileStatement = function(self, node)
         local free = self.ctx.freereg
-        local loop, exit, cont = util.genid(), util.genid(), util.genid()
+        local loop, exit, cont = genid(), genid(), genid()
         self:loop_enter(exit, free, cont)
         self.ctx:here(loop)
         self:test_emit(node.test, exit, free)
@@ -1085,13 +1096,13 @@ local StatementRule = {
         self.ctx:here(cont)
         self.ctx:jump(loop, free)
         self.ctx:here(exit)
-        self:loop_leave()
+        self:loop_leave(node.lastline)
         self.ctx.freereg = free
     end,
 
     RepeatStatement = function(self, node)
         local free = self.ctx.freereg
-        local loop, exit, cont = util.genid(), util.genid(), util.genid()
+        local loop, exit, cont = genid(), genid(), genid()
         self:loop_enter(exit, free, cont)
         self.ctx:here(loop)
         self.ctx:loop(exit)
@@ -1099,7 +1110,7 @@ local StatementRule = {
         self.ctx:here(cont)
         self:test_emit(node.test, loop, free)
         self.ctx:here(exit)
-        self:loop_leave()
+        self:loop_leave(node.lastline)
         self.ctx.freereg = free
     end,
 
@@ -1117,9 +1128,10 @@ local StatementRule = {
 
     ForStatement = function(self, node)
         local free = self.ctx.freereg
-        local exit, cont = util.genid(), util.genid()
+        local exit, cont = genid(), genid()
         local init = node.init
         local name = init.id.name
+        local line = node.line
 
         self:expr_tonextreg(init.value)
         self:expr_tonextreg(node.last)
@@ -1129,6 +1141,7 @@ local StatementRule = {
             self.ctx:op_load(self.ctx.freereg, 1)
             self.ctx:nextreg()
         end
+        local forivinfo = self.ctx:forivars(0x01)
         local loop = self.ctx:op_fori(free)
         self:loop_enter(exit, free, cont)
         self.ctx:newvar(name)
@@ -1136,8 +1149,10 @@ local StatementRule = {
         self:block_emit(node.body)
         self:block_leave()
         self.ctx:here(cont)
-        self:loop_leave()
+        self:loop_leave(node.body.lastline)
         self.ctx:op_forl(free, loop)
+        self.ctx:setpcline(line)
+        forivinfo.endpc = #self.ctx.code
         self.ctx:here(exit)
         self.ctx.freereg = free
     end,
@@ -1145,8 +1160,9 @@ local StatementRule = {
     ForInStatement = function(self, node)
         local free = self.ctx.freereg
         local iter = free + 3
+        local line = node.line
 
-        local loop, exit, cont = util.genid(), util.genid(), util.genid()
+        local loop, exit, cont = genid(), genid(), genid()
 
         local vars = node.namelist.names
         local iter_list = node.explist
@@ -1161,6 +1177,7 @@ local StatementRule = {
         -- func, state, ctl
         self:expr_tomultireg(iter_list[iter_count+1], 3 - iter_count)
         self.ctx:setreg(iter)
+        local forivinfo = self.ctx:forivars(0x04)
         self.ctx:jump(loop, self.ctx.freereg)
 
         self:loop_enter(exit, free, cont)
@@ -1171,13 +1188,16 @@ local StatementRule = {
             self.ctx:setreg(iter + i)
         end
 
-        local ltop = self.ctx:here(util.genid())
+        local ltop = self.ctx:here(genid())
         self:block_emit(node.body)
         self.ctx:here(cont)
-        self:loop_leave()
+        self:loop_leave(node.lastline)
         self.ctx:here(loop)
         self.ctx:op_iterc(iter, #vars)
+        self.ctx:setpcline(line)
         self.ctx:op_iterl(iter, ltop)
+        self.ctx:setpcline(line)
+        forivinfo.endpc = #self.ctx.code
         self.ctx:here(exit)
         self.ctx.freereg = free
     end,
@@ -1260,12 +1280,11 @@ local StatementRule = {
 local Generator = util.Object:clone {
     __ctor = function(self, tree, name, allowg)
         self.line = 0
-        self.main = bc.Proto.new(bc.Proto.VARARG)
+        self.main = bc.Proto.new(bc.Proto.VARARG, tree.firstline, tree.lastline)
         self.ctx = self.main
         self.globals = allowg
         self.chunkname = tree.chunkname
         self:emit(tree)
-        self.ctx:set_line(tree.firstline, tree.lastline)
         self.dump = bc.Dump.new(self.main, name)
     end,
 
@@ -1273,10 +1292,11 @@ local Generator = util.Object:clone {
         self.ctx:enter()
     end,
 
-    block_leave = function(self, exit)
+    block_leave = function(self, lastline, exit)
         self.ctx:fscope_end()
         self.ctx:close_block(self.ctx.scope.basereg, exit)
         self.ctx:leave()
+        if lastline then self.ctx:line(lastline) end
     end,
 
     loop_enter = function(self, exit, exit_reg, cont)
@@ -1284,11 +1304,13 @@ local Generator = util.Object:clone {
         self.ctx:loop_register(exit, exit_reg, cont)
     end,
 
-    loop_leave = function(self)
-        self:block_leave()
+    loop_leave = function(self, lastline)
+        self:block_leave(lastline)
     end,
 
     assign = function(self, lhs, expr)
+        local saveline = self.ctx.currline
+        self.ctx:line(lhs.line)
         if lhs.tag == "member" then
             -- SET instructions with a Primitive "P" index are not accepted.
             -- The method self:lhs_expr_emit does never generate such requests.
@@ -1304,14 +1326,15 @@ local Generator = util.Object:clone {
             lang_error("undeclared variable '" .. lhs.name .. "'", self.chunkname,
                 self.ctx.currline)
         end
+        self.ctx:line(saveline)
     end,
 
     emit = function(self, node, ...)
+        if node.line then self.ctx:line(node.line) end
         local rule = StatementRule[node.kind]
         if not rule then
             error("cannot find a statement rule for " .. node.kind)
         end
-        if node.line then self.ctx:line(node.line) end
         rule(self, node, ...)
     end,
 
@@ -1337,10 +1360,10 @@ local Generator = util.Object:clone {
     -- If "store" is not ZERO than dest should be the register
     -- destination for the result.
     test_emit = function(self, node, jmp, jreg, negate, store, dest)
+        if node.line then self.ctx:line(node.line) end
         local rule = TestRule[node.kind]
         store = store or 0
         if rule then
-            if node.line then self.ctx:line(node.line) end
             rule(self, node, jmp, jreg, negate, store, dest)
         else
             self:expr_test(node, jmp, jreg, negate, store, dest)
@@ -1391,18 +1414,17 @@ local Generator = util.Object:clone {
     -- to indicate if a tail call was used.
     -- This function always leave the freereg counter to its initial value.
     expr_toreg = function(self, node, dest, jreg, tail)
+        if node.line then self.ctx:line(node.line) end
         local const_val = const_eval(node)
         if const_val then
             self.ctx:op_load(dest, const_val)
         else
             local rule = ExpressionRule[node.kind]
             if rule then
-                if node.line then self.ctx:line(node.line) end
                 rule(self, node, dest, jreg or self.ctx.freereg)
             elseif MultiExprRule[node.kind] then
                 rule = MultiExprRule[node.kind]
                 local base = self.ctx.freereg
-                if node.line then self.ctx:line(node.line) end
                 local mres, tailcall = rule(self, node, 1, base == dest and tail)
                 mov_toreg(self.ctx, dest, base)
                 return tailcall
@@ -1433,15 +1455,17 @@ local Generator = util.Object:clone {
     -- Return two boolean values. The first indicate if it does return multi
     -- results. The second if a tail call was actually generated.
     expr_tomultireg = function(self, node, want, tail)
+        if node.line then self.ctx:line(node.line) end
         local rule = MultiExprRule[node.kind]
         if rule then
-            if node.line then self.ctx:line(node.line) end
             return rule(self, node, want, tail)
         elseif (want > 0 or want == MULTIRES) then
             local dest = self.ctx.freereg
             self:expr_toreg(node, dest, dest + 1)
+            self.ctx:maxframe(dest + 1)
             if want > 1 then
                 self.ctx:op_nils(dest + 1, want - 1)
+                self.ctx:maxframe(dest + want)
             end
             return false, false
         end
@@ -1487,6 +1511,7 @@ local Generator = util.Object:clone {
         if lhs.tag == "upval" then
             local tag, expr = self:expr_toanyreg_tagged(expr, EXPR_EMIT_VSNP)
             self.ctx:op_uset(lhs.uv, tag, expr)
+            self.ctx:setpcline(lhs.line)
         elseif lhs.tag == "local" then
             self:expr_toreg(expr, lhs.target)
         else
@@ -1497,22 +1522,20 @@ local Generator = util.Object:clone {
     end,
 
     lhs_expr_emit = function(self, node)
+        local line = self.ctx.currline
         local rule = assert(LHSExpressionRule[node.kind],
             "undefined assignment rule for node type: \"" .. node.kind .. "\"")
         if node.line then self.ctx:line(node.line) end
-        return rule(self, node)
+        local lhs = rule(self, node)
+        lhs.line = line
+        return lhs
     end,
 
-    close_proto = function(self)
-        if not self.ctx.explret then
-            self.ctx:close_uvals()
-            self.ctx:op_ret0()
-        end
-        local fixups = self.ctx.scope.goto_fixups
-        if #fixups > 0 then
-            local label = fixups[1]
-            local msg = string.format("undefined label '%s'", label.name)
-            lang_error(msg, self.chunkname, label.source_line)
+    close_proto = function(self, lastline)
+        if lastline then self.ctx:line(lastline) end
+        local err, line = self.ctx:close_proto()
+        if err then
+            lang_error(err, self.chunkname, line)
         end
     end
 }

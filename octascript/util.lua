@@ -25,12 +25,6 @@ M.Object = {
     end,
 }
 
-local ID = 0
-M.genid = function()
-   ID = ID + 1
-   return '__' .. ID
-end
-
 M.error = function(msg)
    if string.sub(msg, 1, 9) == "OFS_ERROR" then
         return false, "octascript: " .. string.sub(msg, 10)
