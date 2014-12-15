@@ -165,16 +165,22 @@ static inline int bitscan(uint mask)
 #define MAXSTRLEN 260
 typedef char string[MAXSTRLEN];
 
-inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
-inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN)
+inline void vformatstring(char *d, const char *fmt, va_list v, int len) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
+template<size_t N> inline void vformatstring(char (&d)[N], const char *fmt, va_list v) { vformatstring(d, fmt, v, N); }
+
+inline char *copystring(char *d, const char *s, size_t len)
 {
-    size_t slen = min(strlen(s)+1, len);
+    size_t slen = min(strlen(s), len-1);
     memcpy(d, s, slen);
-    d[slen-1] = 0;
+    d[slen] = 0;
     return d;
 }
-inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
-inline char *prependstring(char *d, const char *s, size_t len = MAXSTRLEN)
+template<size_t N> inline char *copystring(char (&d)[N], const char *s) { return copystring(d, s, N); }
+
+inline char *concatstring(char *d, const char *s, size_t len) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
+template<size_t N> inline char *concatstring(char (&d)[N], const char *s) { return concatstring(d, s, N); }
+
+inline char *prependstring(char *d, const char *s, size_t len)
 {
     size_t slen = min(strlen(s), len);
     memmove(&d[slen], d, min(len - slen, strlen(d) + 1));
@@ -182,6 +188,7 @@ inline char *prependstring(char *d, const char *s, size_t len = MAXSTRLEN)
     d[len-1] = 0;
     return d;
 }
+template<size_t N> inline char *prependstring(char (&d)[N], const char *s) { return prependstring(d, s, N); }
 
 inline void nformatstring(char *d, int len, const char *fmt, ...) PRINTFARGS(3, 4);
 inline void nformatstring(char *d, int len, const char *fmt, ...)
@@ -543,6 +550,15 @@ inline const char *stringptr(const char *s) { return s; }
 inline const char *stringptr(const stringslice &s) { return s.str; }
 inline int stringlen(const char *s) { return int(strlen(s)); }
 inline int stringlen(const stringslice &s) { return s.len; }
+
+inline char *copystring(char *d, const stringslice &s, size_t len)
+{
+    size_t slen = min(size_t(s.len), len-1);
+    memcpy(d, s.str, slen);
+    d[slen] = 0;
+    return d;
+}
+template<size_t N> inline char *copystring(char (&d)[N], const stringslice &s) { return copystring(d, s, N); }
 
 static inline uint memhash(const void *ptr, int len)
 {
@@ -1525,8 +1541,8 @@ extern void sendstring(const char *t, packetbuf &p);
 extern void sendstring(const char *t, vector<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, size_t len);
 template<size_t N> static inline void getstring(char (&t)[N], ucharbuf &p) { getstring(t, p, N); }
-extern void filtertext(char *dst, const char *src, bool whitespace, size_t len);
-template<size_t N> static inline void filtertext(char (&dst)[N], const char *src, bool whitespace = true) { filtertext(dst, src, whitespace, N-1); }
+extern void filtertext(char *dst, const char *src, bool whitespace, bool forcespace, size_t len);
+template<size_t N> static inline void filtertext(char (&dst)[N], const char *src, bool whitespace = true, bool forcespace = false) { filtertext(dst, src, whitespace, forcespace, N-1); }
 
 struct ipmask
 {

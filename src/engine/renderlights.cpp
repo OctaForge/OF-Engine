@@ -36,6 +36,8 @@ void setupbloom(int w, int h)
         w /= 2;
         h /= 2;
     }
+    w = max(w, 1);
+    h = max(h, 1);
     if(w == bloomw && h == bloomh) return;
     bloomw = w;
     bloomh = h;

@@ -111,69 +111,74 @@ extern int identflags;
 
 struct ident
 {
-    int type;           // one of ID_* above
+    uchar type; // one of ID_* above
+    union
+    {
+        uchar valtype; // ID_ALIAS
+        uchar numargs; // ID_COMMAND
+    };
+    ushort flags;
+    int index;   
     const char *name;
     union
     {
-        int minval;    // ID_VAR
-        float minvalf; // ID_FVAR
-        int valtype;   // ID_ALIAS
-        int numargs;   // ID_COMMAND
-    };
-    union
-    {
-        int maxval;    // ID_VAR
-        float maxvalf; // ID_FVAR
-        uint *code;    // ID_ALIAS
-    };
-    union
-    {
-        const char *args;    // ID_COMMAND
-        identval val;        // ID_ALIAS
-        identvalptr storage; // ID_VAR, ID_FVAR, ID_SVAR
-    };
-    union
-    {
-        identval overrideval; // ID_VAR, ID_FVAR, ID_SVAR
-        identstack *stack;    // ID_ALIAS
-        uint argmask;         // ID_COMMAND
+        struct // ID_VAR, ID_FVAR, ID_SVAR
+        {
+            union
+            {
+                struct { int minval, maxval; };     // ID_VAR
+                struct { float minvalf, maxvalf; }; // ID_FVAR
+            };
+            identvalptr storage;
+            identval overrideval;
+        };
+        struct // ID_ALIAS
+        {
+            uint *code;
+            identval val;
+            identstack *stack;
+        };
+        struct // ID_COMMAND
+        {
+            const char *args;
+            uint argmask;
+        };
     };
     identfun fun; // ID_VAR, ID_FVAR, ID_SVAR, ID_COMMAND
-    int flags, index;
 
     ident() {}
     // ID_VAR
     ident(int t, const char *n, int m, int x, int *s, void *f = NULL, int flags = 0)
-        : type(t), name(n), minval(m), maxval(x), fun((identfun)f), flags(flags | (m > x ? IDF_READONLY : 0))
+        : type(t), flags(flags | (m > x ? IDF_READONLY : 0)), name(n), minval(m), maxval(x), fun((identfun)f)
     { storage.i = s; }
     // ID_FVAR
     ident(int t, const char *n, float m, float x, float *s, void *f = NULL, int flags = 0)
-        : type(t), name(n), minvalf(m), maxvalf(x), fun((identfun)f), flags(flags | (m > x ? IDF_READONLY : 0))
+        : type(t), flags(flags | (m > x ? IDF_READONLY : 0)), name(n), minvalf(m), maxvalf(x), fun((identfun)f)
     { storage.f = s; }
     // ID_SVAR
     ident(int t, const char *n, char **s, void *f = NULL, int flags = 0)
-        : type(t), name(n), fun((identfun)f), flags(flags)
+        : type(t), flags(flags), name(n), fun((identfun)f)
     { storage.s = s; }
     // ID_ALIAS
     // OF: safe, trusted
     ident(int t, const char *n, char *a, int flags)
-        : type(t), name(n), valtype(VAL_STR), code(NULL), stack(NULL), flags(flags)
+        : type(t), valtype(VAL_STR), flags(flags), name(n), code(NULL), stack(NULL)
     { val.s = a; flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     ident(int t, const char *n, int a, int flags)
-        : type(t), name(n), valtype(VAL_INT), code(NULL), stack(NULL), flags(flags)
+        : type(t), valtype(VAL_INT), flags(flags), name(n), code(NULL), stack(NULL)
     { val.i = a; flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     ident(int t, const char *n, float a, int flags)
-        : type(t), name(n), valtype(VAL_FLOAT), code(NULL), stack(NULL), flags(flags)
+        : type(t), valtype(VAL_FLOAT), flags(flags), name(n), code(NULL), stack(NULL)
     { val.f = a; flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     ident(int t, const char *n, int flags)
-        : type(t), name(n), valtype(VAL_NULL), code(NULL), stack(NULL), flags(flags)
+        : type(t), valtype(VAL_NULL), flags(flags), name(n), code(NULL), stack(NULL)
     { flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     ident(int t, const char *n, const tagval &v, int flags)
-        : type(t), name(n), valtype(v.type), code(NULL), stack(NULL), flags(flags)
+        : type(t), valtype(v.type), flags(flags), name(n), code(NULL), stack(NULL)
     { val = v; flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     // ID_COMMAND
     ident(int t, const char *n, const char *args, uint argmask, int numargs, void *f = NULL, int flags = 0)
-        : type(t), name(n), numargs(numargs), args(args), argmask(argmask), fun((identfun)f), flags(flags)
+        : type(t), numargs(numargs), flags(flags), name(n), args(args), argmask(argmask), fun((identfun)f)
     {}
 
     /* OF: command.cpp */

@@ -330,7 +330,7 @@ namespace game
     void initclient()
     {
         player1 = spawnstate(new gameent);
-        filtertext(player1->name, "unnamed", false, 32);
+        filtertext(player1->name, "unnamed", false, false, 32);
         players.add(player1);
     }
 

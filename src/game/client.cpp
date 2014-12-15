@@ -518,7 +518,7 @@ namespace game
             {
                 if(!d) return;
                 getstring(text, p);
-                filtertext(text, text);
+                filtertext(text, text, true, true);
                 if (d->state != CS_SPECTATOR) {
                     const vec &o = d->abovehead();
                     lua::call_external("particle_draw_text", "sfffiifi", text,

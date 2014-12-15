@@ -90,11 +90,12 @@ struct skelbihstack
     float tmin, tmax;
 };
 
-inline void skelbih::intersect(skelmodel::skelmeshgroup *m, skelmodel::skin *s, const vec &o, const vec &ray, const vec &invray, node *curnode, float tmin, float tmax)
+inline void skelbih::intersect(skelmodel::skelmeshgroup *m, skelmodel::skin *s, const vec &o, const vec &ray, const vec &invray, node *curnode, float smin, float smax)
 {
     skelbihstack stack[128];
     int stacksize = 0;
     ivec order(ray.x>0 ? 0 : 1, ray.y>0 ? 0 : 1, ray.z>0 ? 0 : 1);
+    float tmin = smin, tmax = smax;
     for(;;)
     {
         int axis = curnode->axis();
@@ -113,12 +114,16 @@ inline void skelbih::intersect(skelmodel::skelmeshgroup *m, skelmodel::skin *s, 
                     continue;
                 }
                 else if(triintersect(m, s, curnode->childindex(faridx), o, ray))
-                    tmax = min(tmax, skelmodel::intersectdist/skelmodel::intersectscale);
+                    smax = min(smax, skelmodel::intersectdist/skelmodel::intersectscale); 
             }
         }
         else if(curnode->isleaf(nearidx))
         {
-            if(triintersect(m, s, curnode->childindex(nearidx), o, ray)) tmax = min(tmax, skelmodel::intersectdist/skelmodel::intersectscale);
+            if(triintersect(m, s, curnode->childindex(nearidx), o, ray))
+            {
+                smax = min(smax, skelmodel::intersectdist/skelmodel::intersectscale);
+                tmax = min(tmax, smax);
+            }
             if(farsplit < tmax)
             {
                 if(!curnode->isleaf(faridx))
@@ -128,7 +133,7 @@ inline void skelbih::intersect(skelmodel::skelmeshgroup *m, skelmodel::skin *s, 
                     continue;
                 }
                 else if(triintersect(m, s, curnode->childindex(faridx), o, ray))
-                    tmax = min(tmax, skelmodel::intersectdist/skelmodel::intersectscale);
+                    smax = min(smax, skelmodel::intersectdist/skelmodel::intersectscale);
             }
         }
         else
@@ -152,7 +157,10 @@ inline void skelbih::intersect(skelmodel::skelmeshgroup *m, skelmodel::skin *s, 
                     }
                 }
                 else if(triintersect(m, s, curnode->childindex(faridx), o, ray))
-                    tmax = min(tmax, skelmodel::intersectdist/skelmodel::intersectscale);
+                {
+                    smax = min(smax, skelmodel::intersectdist/skelmodel::intersectscale);
+                    tmax = min(tmax, smax);
+                }
             }
             curnode += curnode->childindex(nearidx);
             tmax = min(tmax, nearsplit);
@@ -162,7 +170,7 @@ inline void skelbih::intersect(skelmodel::skelmeshgroup *m, skelmodel::skin *s, 
         skelbihstack &restore = stack[--stacksize];
         curnode = restore.node;
         tmin = restore.tmin;
-        tmax = restore.tmax;
+        tmax = min(restore.tmax, smax);
     }
 }
 

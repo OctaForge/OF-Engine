@@ -466,8 +466,7 @@ namespace server
             case N_TEXT:
             {
                 getstring(text, p);
-                /* FIXME: hack attack - add filtering method into the string class */
-                filtertext(text, text);
+                filtertext(text, text, true, true);
 
                 if (!lua::L)
                 {

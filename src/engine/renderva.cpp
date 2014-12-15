@@ -1976,6 +1976,8 @@ void renderrefractmask()
 
         drawvatris(va, 3*va->refracttris, 3*(va->tris + va->blendtris + va->alphabacktris + va->alphafronttris));
         xtravertsva += 3*va->refracttris;
+
+        prev = va;
     }
 
     glBindBuffer_(GL_ARRAY_BUFFER, 0);
@@ -2309,6 +2311,8 @@ static void renderdecalbatches(decalrenderer &cur, int pass)
     {
         decalbatch &b = decalbatches[curbatch];
         curbatch = b.next;
+
+        if(pass && !b.slot.shader->numvariants(0)) continue;
 
         if(cur.vbuf != b.va->vbuf) changevbuf(cur, pass, b.va);
         changebatchtmus(cur, pass, b);

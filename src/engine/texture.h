@@ -571,6 +571,7 @@ struct Texture
         TRANSIENT  = 1<<9,
         COMPRESSED = 1<<10,
         ALPHA      = 1<<11,
+        MIRROR     = 1<<12,
         FLAGS      = 0xFF00
     };
 
@@ -586,7 +587,7 @@ struct Texture
 };
 
 #define SETSWIZZLE(name, tex) SETVARIANT(name, (tex) ? (tex)->swizzle() : -1, 0)
-#define SETVARIANTSWIZZLE(name, tex, row) SETVARIANT(name, ((row) >= 0 ? 1 : 0) + ((tex) ? (tex)->swizzle() : -1), row)
+#define SETVARIANTSWIZZLE(name, tex, row) SETVARIANT(name, ((row) > 0 ? 1 : 0) + ((tex) ? (tex)->swizzle() : -1), row)
 
 enum
 {

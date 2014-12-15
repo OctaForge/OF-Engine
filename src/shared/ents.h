@@ -96,6 +96,7 @@ struct physent                                  // base entity type, can be affe
         inwater = 0;
         timeinair = 0;
         eyeheight = maxheight;
+        jumping = false;
         strafe = move = crouching = 0;
         physstate = PHYS_FALL;
         vel = falling = vec(0, 0, 0);

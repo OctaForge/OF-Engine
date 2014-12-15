@@ -278,7 +278,6 @@ void glerror(const char *file, int line, GLenum error)
 VAR(amd_pf_bug, 0, 0, 1);
 VAR(amd_eal_bug, 0, 0, 1);
 VAR(mesa_texrectoffset_bug, 0, 0, 1);
-VAR(intel_texgatheroffsetcomp_bug, 0, 0, 1);
 VAR(intel_texalpha_bug, 0, 0, 1);
 VAR(intel_mapbufferrange_bug, 0, 0, 1);
 VAR(useubo, 1, 0, 0);
@@ -1049,15 +1048,13 @@ void gl_checkextensions()
                 gdepthstencil = 1;
                 gstencil = 1;
             }
-            // textureGatherOffset with component selection crashes Intel's GLSL compiler on Windows
-            intel_texgatheroffsetcomp_bug = 1;
             // sampling alpha by itself from a texture generates garbage on Intel drivers on Windows
             intel_texalpha_bug = 1;
             // MapBufferRange is buggy on older Intel drivers on Windows
             if(glversion <= 310) intel_mapbufferrange_bug = 1;
         }
     }
-    if(hasGPU5 && hasTG && !intel_texgatheroffsetcomp_bug) tqaaresolvegather = 1;
+    if(hasGPU5 && hasTG) tqaaresolvegather = 1;
 }
 
 ICOMMAND(glext, "s", (char *ext), intret(hasext(ext) ? 1 : 0));

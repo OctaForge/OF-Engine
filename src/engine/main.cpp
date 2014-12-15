@@ -169,11 +169,13 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
     gle::disable();
 }
 
+VAR(menumute, 0, 1, 1);
+
 void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool force)
 {
     if(!inbetweenframes && !force) return;
 
-    stopsounds(); // stop sounds while loading
+    if(menumute) stopsounds(); // stop sounds while loading
 
     int w = hudw, h = hudh;
     if(forceaspect) w = int(ceil(h*forceaspect));
