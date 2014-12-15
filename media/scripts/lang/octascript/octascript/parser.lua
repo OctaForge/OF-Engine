@@ -544,13 +544,14 @@ local block_follow = {
 
 local parse_construct_body = function(ls, ast)
     if ls.token.name ~= "{" then
-        return { parse_stat(ls, ast) }
+        return { parse_stat(ls, ast) }, ls.line_number
     end
     local bln = ls.line_number
     ls:get()
-    local body = parse_block(ls, ast)
+    local body = parse_block(ls, ast, bln)
+    local lline = ls.line_number
     check_match(ls, "}", "{", line)
-    return body
+    return body, lline
 end
 
 local parse_for_stat = function(ls, ast, line)
@@ -575,21 +576,21 @@ local parse_for_stat = function(ls, ast, line)
         else
             step = ast.Literal(1)
         end
-        local body = parse_construct_body(ls, ast)
+        local body, lline = parse_construct_body(ls, ast)
         return ast.ForStatement(vars[1], init, last, step, body,
-            line)
+            line, lline)
     end
     local exps = parse_expr_list(ls, ast, { exp })
-    local body = parse_construct_body(ls, ast)
-    return ast.ForInStatement(vars, exps, body, line)
+    local body, lline = parse_construct_body(ls, ast)
+    return ast.ForInStatement(vars, exps, body, line, lline)
 end
 
 local parse_repeat_stat = function(ls, ast, line)
     ls:get()
-    local body = parse_construct_body(ls, ast)
+    local body, lline = parse_construct_body(ls, ast)
     check_match(ls, "until", "repeat", line)
     local cond = parse_expr(ls, ast)
-    return ast.RepeatStatement(cond, body, line)
+    return ast.RepeatStatement(cond, body, line, lline)
 end
 
 local parse_assignment
@@ -684,8 +685,8 @@ end
 local parse_while_stat = function(ls, ast, line)
     ls:get()
     local cond = parse_expr(ls, ast)
-    local body = parse_construct_body(ls, ast)
-    return ast.WhileStatement(cond, body, line)
+    local body, lline = parse_construct_body(ls, ast)
+    return ast.WhileStatement(cond, body, line, lline)
 end
 
 local parse_if_stat = function(ls, ast, line)
@@ -779,9 +780,10 @@ local stat_opts = {
     ["while"] = parse_while_stat,
     ["{"] = function(ls, ast, line)
         ls:get()
-        local body = parse_block(ls, ast)
+        local body = parse_block(ls, ast, line)
+        local lline = ls.line_number
         check_match(ls, "}", "{", line)
-        return ast.DoStatement(body, line)
+        return ast.DoStatement(body, line, lline)
     end,
     ["for"] = parse_for_stat,
     ["repeat"] = parse_repeat_stat,
@@ -937,7 +939,7 @@ parse_body = function(ls, ast, line)
     check_match(ls, ")", "(", pline)
     local bln = ls.line_number
     assert_next(ls, "{")
-    local body = parse_block(ls, ast)
+    local body = parse_block(ls, ast, bln)
     local proto = ls.fs
     ls.fs.last_line = ls.line_number
     check_match(ls, "}", "{", bln)
@@ -945,8 +947,10 @@ parse_body = function(ls, ast, line)
     return args, body, proto
 end
 
-parse_block = function(ls, ast)
-    return (parse_chunk(ls, ast))
+parse_block = function(ls, ast, firstline)
+    local body = parse_chunk(ls, ast)
+    body.firstline, body.lastline = firstline, ls.line_number
+    return body
 end
 
 local parse = function(chunkname, input, cond_env, allow_globals)

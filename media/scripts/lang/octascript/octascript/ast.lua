@@ -247,6 +247,7 @@ M.FunctionDeclaration = Statement:clone {
         self.locald = locald
         self.firstline = firstline
         self.lastline = lastline
+        self.line = firstline
         if decname then
             table.insert(decparams, 1, M.FunctionExpression(body, params,
                 vararg, firstline, lastline))
@@ -282,6 +283,7 @@ M.FunctionExpression = Expression:clone {
         self.vararg = vararg
         self.firstline = firstline
         self.lastline = lastline
+        self.line = firstline
         Node.__ctor(self)
     end
 }
@@ -836,9 +838,10 @@ M.DoStatement = Statement:clone {
         }
     },
 
-    __ctor = function(self, body, line)
+    __ctor = function(self, body, line, lastline)
         self.body = body
         self.line = line
+        self.lastline = lastline
         Node.__ctor(self)
     end
 }
@@ -854,10 +857,11 @@ M.WhileStatement = Statement:clone {
         }
     },
 
-    __ctor = function(self, test, body, line)
+    __ctor = function(self, test, body, line, lastline)
         self.test = test
         self.body = body
         self.line = line
+        self.lastline = lastline
         Node.__ctor(self)
     end
 }
@@ -873,10 +877,11 @@ M.RepeatStatement = Statement:clone {
         }
     },
 
-    __ctor = function(self, test, body, line)
+    __ctor = function(self, test, body, line, lastline)
         self.test = test
         self.body = body
         self.line = line
+        self.lastline = lastline
         Node.__ctor(self)
     end
 }
@@ -914,12 +919,13 @@ M.ForStatement = Statement:clone {
         }
     },
 
-    __ctor = function(self, var, init, last, step, body, line)
+    __ctor = function(self, var, init, last, step, body, line, lastline)
         self.init = ForInit(var, init, line)
         self.last = last
         self.step = step
         self.body = body
         self.line = line
+        self.lastline = lastline
         Node.__ctor(self)
     end
 }
@@ -956,11 +962,12 @@ M.ForInStatement = Statement:clone {
         }
     },
 
-    __ctor = function(self, vars, exps, body, line)
+    __ctor = function(self, vars, exps, body, line, lastline)
         self.namelist = ForNames(vars, line)
         self.explist = exps
         self.body = body
         self.line = line
+        self.lastline = lastline
         Node.__ctor(self)
     end
 }
