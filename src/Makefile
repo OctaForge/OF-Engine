@@ -242,7 +242,7 @@ endif
 # client/server includes
 
 CS_INC = -I. -Ishared -Iengine -Igame
-CS_INC += -Iintensity -Ioctaforge
+CS_INC += -Ioctaforge
 CS_INC += -Ienet/include $(TARGET_XINC) $(LUAJIT_INC)
 
 ifeq ($(TARGET_SYS),Darwin)
@@ -562,7 +562,6 @@ depend:
 		-Ishared \
 		-Iengine \
 		-Igame \
-		-Iintensity \
 		-Ioctaforge \
 		-p$$\(OBJDIR\)/client/ \
 		$(subst .o,.cpp,$(CLIENT_OBJ))
@@ -571,7 +570,6 @@ depend:
 		-Ishared \
 		-Iengine \
 		-Igame \
-		-Iintensity \
 		-Ioctaforge \
 		-DSTANDALONE \
 		-p$$\(OBJDIR\)/server/ \
