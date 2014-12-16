@@ -15,9 +15,7 @@ namespace world
 
     bool set_map(const char *id);
 
-    void export_ents(const char *fname);
     const char *get_mapfile_path(const char *rpath);
-    void run_mapscript();
 } /* end namespace world */
 
 #endif

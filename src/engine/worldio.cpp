@@ -856,6 +856,13 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     extern void clear_texpacks(int n = 0); clear_texpacks();
     lua::call_external("gui_clear", "");
 
+    identflags |= IDF_OVERRIDDEN;
+    execfile("config/default_map_settings.cfg", false);
+    identflags |= IDF_SAFE;
+    execfile(world::get_mapfile_path("media.cfg"), false);
+    lua::call_external("mapscript_run", "s", world::get_mapfile_path("map.oct"));
+    identflags &= ~(IDF_OVERRIDDEN | IDF_SAFE);
+
     string ebuf;
     copystring(ebuf, world::get_mapfile_path("entities.oct"));
     char *eloaded = loadfile(path(ebuf), NULL);
@@ -863,11 +870,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         lua::call_external("entities_load", "s", eloaded);
         delete[] eloaded;
     }
-
-    identflags |= IDF_OVERRIDDEN;
-    execfile("config/default_map_settings.cfg", false);
-    if (lua::L) world::run_mapscript();
-    identflags &= ~IDF_OVERRIDDEN;
 
     renderprogress(0, "requesting entities...");
     logger::log(logger::DEBUG, "Requesting active entities...");
@@ -1100,7 +1102,30 @@ void writecollideobj(char *name)
 
 COMMAND(writecollideobj, "s");
 
-ICOMMAND(export_entities, "s", (char *fn), world::export_ents(fn));
+static void export_ents(const char *fname) {
+    defformatstring(buf, "media%cmap%c%s%c%s", PATHDIV, PATHDIV, world::curr_map_id,
+        PATHDIV, fname);
+
+    if (fileexists(buf, "r")) {
+        defformatstring(buff, "%s-%d.bak", buf, (int)time(0));
+        rename(buf, buff);
+    }
+
+    stream *f = openutf8file(buf, "w");
+    if  (!f) {
+        logger::log(logger::ERROR, "Cannot open file %s for writing.",
+            buf);
+        return;
+    }
+
+    const char *data;
+    int popn = lua::call_external_ret("entities_save_all", "", "s", &data);
+    f->putstring(data);
+    lua::pop_external_ret(popn);
+    delete f;
+}
+
+ICOMMAND(export_entities, "s", (char *fn), export_ents(fn));
 
 extern void writemediacfg(int level);
 
@@ -1116,7 +1141,7 @@ ICOMMAND(savemap, "ii", (int *skipmedia, int *medialevel), {
     save_world(game::getclientmap());
 
     renderprogress(0.4, "exporting entities...");
-    world::export_ents("entities.oct");
+    export_ents("entities.oct");
 
     if (!*skipmedia) writemediacfg(*medialevel);
 });
