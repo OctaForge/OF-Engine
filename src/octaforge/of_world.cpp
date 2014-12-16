@@ -43,7 +43,7 @@ namespace world
     bool set_map(const char *id) {
         generate_scenario_code();
 #ifdef STANDALONE
-        sendf(-1, 1, "ris", N_PREPFORNEWSCENARIO, scenario_code);
+        sendf(-1, 1, "ri", N_PREPFORNEWSCENARIO);
         flushserver(true);
 #endif
         copystring(curr_map_id, id);
@@ -61,7 +61,7 @@ namespace world
         server::resetScenario();
         defformatstring(path, "%sSTANDALONE_READY", homedir);
         FILE *f = fopen(path, "w"); if (f) fclose(f);
-        sendf(-1, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, curr_map_id, scenario_code);
+        sendf(-1, 1, "ris", N_NOTIFYABOUTCURRENTSCENARIO, curr_map_id);
 #endif
 
         return true;

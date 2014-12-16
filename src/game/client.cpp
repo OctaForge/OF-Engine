@@ -22,7 +22,6 @@ namespace game
 
     bool spectator = false;
 
-    string curr_scenario_code = "";
     static bool _scenario_started = false;
     static bool map_completely_received = false;
 
@@ -654,7 +653,6 @@ namespace game
             }
 
             case N_PREPFORNEWSCENARIO:
-                getstring(text, p);
                 assert(lua::call_external("gui_show_message", "ss", "Server",
                     "Map is being prepared on the server, please wait..."));
                 map_completely_received = false;
@@ -662,14 +660,10 @@ namespace game
                 lua::call_external("entities_remove_all", "");
                 game::haslogicsys = false;
                 lua::call_external("has_logic_sys_set", "b", false);
-                copystring(game::curr_scenario_code, text);
                 break;
 
             case N_NOTIFYABOUTCURRENTSCENARIO: {
-                char sc[MAXTRANS];
                 getstring(text, p);
-                getstring(sc, p);
-                copystring(curr_scenario_code, sc);
                 world::set_map(text);
                 break;
             }

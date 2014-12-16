@@ -565,8 +565,6 @@ namespace server
             }
 
             case N_ACTIVEENTSREQUEST: {
-                char scenario_code[MAXTRANS];
-                getstring(scenario_code, p);
                 if (!world::scenario_code[0]) break;
                 assert(lua::call_external("entities_send_all", "i", sender));
                 sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
@@ -611,7 +609,7 @@ namespace server
 
             case N_REQUESTCURRENTSCENARIO:
                 if (!world::scenario_code[0]) break;
-                sendf(-1, 1, "riss", N_NOTIFYABOUTCURRENTSCENARIO, world::curr_map_id, world::scenario_code);
+                sendf(-1, 1, "ris", N_NOTIFYABOUTCURRENTSCENARIO, world::curr_map_id);
                 break;
 
             case N_EDITMODEC2S: {

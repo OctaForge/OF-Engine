@@ -178,7 +178,6 @@ namespace game
     void gettarget(vec *pos, extentity **extent, dynent **dynent);
 
     extern bool haslogicsys;
-    extern string curr_scenario_code;
     extern bool scenario_started();
 }
 
