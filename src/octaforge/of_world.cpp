@@ -14,34 +14,8 @@
 namespace world
 {
     string curr_map_id = "";
-    string scenario_code = "";
-
-    /*
-     * Scenario code UUID (version 4) generator for OctaForge
-     * Based on a JS snippet from here
-     * 
-     * http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
-     * 
-     */
-    void generate_scenario_code() {
-        copystring(scenario_code, "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx");
-
-        int r = 0;
-        string tmp;
-
-        for (char *it = scenario_code; *it; ++it) {
-            if  (*it == '4' || *it == '-') continue;
-
-            r = (int)floor(rndscale(1) * 16);
-            formatstring(tmp, "%x", (*it == 'x') ? r : ((r&0x3)|0x8));
-            *it = tmp[0];
-        }
-    }
-
-    CLUAICOMMAND(have_scenario_code, bool, (), return scenario_code[0];);
 
     bool set_map(const char *id) {
-        generate_scenario_code();
 #ifdef STANDALONE
         sendf(-1, 1, "ri", N_PREPFORNEWSCENARIO);
         flushserver(true);

@@ -942,9 +942,6 @@ M.Entity = Object.clone({
         var uid, stor = get_stor_uid(p.get_int())
         var kpid = p.get_int()
         var value = p.get_string()
-
-        if tonumber(capi::have_scenario_code()) == 0 { return }
-
         @[debug] log(DEBUG, e"client $auid tried to change $kpid to value $value")
         var ent = stor[uid]
         if ent {

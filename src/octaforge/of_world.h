@@ -12,7 +12,6 @@
 namespace world
 {
     extern string curr_map_id;
-    extern string scenario_code;
 
     bool set_map(const char *id);
 

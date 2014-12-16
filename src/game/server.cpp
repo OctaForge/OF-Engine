@@ -565,7 +565,6 @@ namespace server
             }
 
             case N_ACTIVEENTSREQUEST: {
-                if (!world::scenario_code[0]) break;
                 assert(lua::call_external("entities_send_all", "i", sender));
                 sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
                 assert(lua::call_external("event_player_login", "i", sender));
@@ -573,17 +572,6 @@ namespace server
             }
 
             case N_LOGINREQUEST: {
-                if (!world::scenario_code[0])
-                {
-                    lua::call_external("show_client_message", "iss",
-                        sender,
-                        "Login failure",
-                        "Login failure: instance is not running a map"
-                    );
-                    flushserver(true);
-                    disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
-                }
-
                 assert(sender >= 0);
                 clientinfo *ci = (clientinfo *)getinfo(sender);
                 if (!ci)
@@ -608,13 +596,11 @@ namespace server
             }
 
             case N_REQUESTCURRENTSCENARIO:
-                if (!world::scenario_code[0]) break;
                 sendf(-1, 1, "ris", N_NOTIFYABOUTCURRENTSCENARIO, world::curr_map_id);
                 break;
 
             case N_EDITMODEC2S: {
                 int mode = getint(p);
-                if (!world::scenario_code[0]) break;
                 sendf(-1, 1, "rxiii", sender, N_EDITMODES2C, sender, mode); // Relay
                 break;
             }
