@@ -70,8 +70,6 @@ var FLAG_BELOWGROUND = 2 << 4
           it's the water material id, see $edit).
 */
 set_external("physics_state_change", func(cent, loc, flevel, llevel, mat) {
-    @[server] { return }
-
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_by_centity(cent)
     if !ent { return }

@@ -8,6 +8,8 @@
         See COPYING.txt.
 */
 
+@[server] { return {} }
+
 import capi
 import core.events.signal
 import core.network.msg
@@ -31,7 +33,6 @@ var event_map
 from std.math import floor
 from std.conv import tonumber
 
-@[!server] {
 /** Function: input_yaw
     An external triggered on yaw change. By default it sets the "yawing"
     property on the player to "dir".
@@ -150,8 +151,6 @@ event_map = {
     "input_crouch"    : true,
     "input_click"     : true,
     "input_mouse_move": true
-}
-
 }
 
 /// Module: input

@@ -1,0 +1,6 @@
+// A very basic mapscript
+
+import extra.game_manager
+import games.octacraft
+
+game_manager::setup()
