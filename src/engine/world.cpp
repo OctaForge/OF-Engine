@@ -1,12 +1,13 @@
 // world.cpp: core map management stuff
 
 #include "engine.h"
-#include "game.h"
 
 VARR(mapversion, 1, MAPVERSION, 0);
 VARNR(mapscale, worldscale, 1, 0, 0);
 VARNR(mapsize, worldsize, 1, 0, 0);
 SVARR(maptitle, "Untitled Map by Unknown");
+VARNR(emptymap, _emptymap, 1, 0, 0);
+
 VAR(octaentsize, 0, 64, 1024);
 VAR(entselradius, 0, 2, 10);
 
@@ -180,10 +181,9 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                         }
                         oe.bbmin = oe.bbmax = oe.o;
                         oe.bbmin.add(oe.size);
-                        const vector<extentity *> &ents = entities::getents();
                         loopvj(oe.mapmodels)
                         {
-                            extentity &e = *ents[oe.mapmodels[j]];
+                            extentity &e = *entities::getents()[oe.mapmodels[j]];
                             ivec eo, er;
                             if(getentboundingbox(e, eo, er))
                             {
@@ -253,6 +253,12 @@ static bool modifyoctaent(int flags, int id, extentity &e)
     return true;
 }
 
+static inline bool modifyoctaent(int flags, int id)
+{
+    vector<extentity *> &ents = entities::getents();
+    return ents.inrange(id) && modifyoctaent(flags, id, *ents[id]);
+}
+
 /* OctaForge: getentid */
 static int getentid(extentity *entity) {
     const vector<extentity *> &ents = entities::getents();
@@ -261,13 +267,9 @@ static int getentid(extentity *entity) {
     return -1;
 }
 
-static inline bool modifyoctaent(int flags, int id) {
-    return entities::getents().inrange(id) && modifyoctaent(flags, id, *entities::getents()[id]);
-}
-
-              void addentity(int id)        { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); }
-              void removeentity(int id)     { modifyoctaent(MODOE_UPDATEBB, id); }
+static inline void addentity(int id)        { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); }
 static inline void addentityedit(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB|MODOE_CHANGED, id); }
+static inline void removeentity(int id)     { modifyoctaent(MODOE_UPDATEBB, id); }
 static inline void removeentityedit(int id) { modifyoctaent(MODOE_UPDATEBB|MODOE_CHANGED, id); }
 
 /* OctaForge: extentity* versions */
@@ -396,7 +398,7 @@ undoblock *newundoent()
     loopv(entgroup)
     {
         e->i = entgroup[i];
-        e->e.attr.disown(); //points to random values; this causes problems
+        new (&(e->e)) entity(); /* OF */
         e->e = *entities::getents()[entgroup[i]];
         e++;
     }
@@ -467,6 +469,7 @@ void attachentities()
         f; \
         if(oldtype!=e.type) detachentity(e); \
         if(e.type!=ET_EMPTY) { addentityedit(n); if(oldtype!=e.type) attachentity(e); } \
+        entities::editent(n, true); \
         clearshadowcache(); \
     }, v); \
 }
@@ -501,8 +504,8 @@ undoblock *copyundoents(undoblock *u)
 void pasteundoent(int idx, const entity &ue)
 {
     if(idx < 0 || idx >= MAXENTS) return;
-    //vector<extentity *> &ents = entities::getents();
-    //while(ents.length() < idx) ents.add(entities::newentity())->type = ET_EMPTY;
+    vector<extentity *> &ents = entities::getents();
+    while(ents.length() < idx) ents.add(entities::newentity())->type = ET_EMPTY;
     int efocus = -1;
     entedit(idx, (entity &)e = ue);
 }
@@ -785,7 +788,6 @@ void renderentradius(extentity &e, bool color)
             goto attach; /* OF */
         }
 
-        /* OF */
         case ET_MAPMODEL:
         case ET_OBSTACLE:
         case ET_ORIENTED_MARKER:
@@ -1142,7 +1144,14 @@ CLUAICOMMAND(save_mouse_position, void, (), {
 });
 
 int entcopygrid;
-vector<extentity> entcopybuf;
+
+struct copyent {
+    char *name, *sdata;
+    vec o;
+    ~copyent() { delete[] name; delete[] sdata; }
+};
+
+vector<copyent> entcopybuf;
 
 void entcopy()
 {
@@ -1150,7 +1159,19 @@ void entcopy()
     entcopygrid = sel.grid;
     entcopybuf.shrink(0);
     addimplicit({
-        loopv(entgroup) entfocus(entgroup[i], entcopybuf.add(e).o.sub(vec(sel.o)));
+        loopv(entgroup) entfocus(entgroup[i], {
+            const char *name = NULL;
+            const char *sdata = NULL;
+            int n = lua::call_external_ret("entity_serialize", "pb", "ss", &e, true, &name, &sdata);
+            if (name) {
+                copyent &ce = entcopybuf.add();
+                ce.name = newstring(name);
+                ce.sdata = newstring(sdata);
+                ce.o = e.o;
+                ce.o.sub(vec(sel.o));
+            }
+            lua::pop_external_ret(n);
+        });
     });
 }
 
@@ -1161,19 +1182,10 @@ void entpaste()
     float m = float(sel.grid)/float(entcopygrid);
     loopv(entcopybuf)
     {
-        const extentity &c = entcopybuf[i];
+        const copyent &c = entcopybuf[i];
         vec o = vec(c.o).mul(m).add(vec(sel.o));
-
-        const char *cn;
-        lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
-            "p", "s", &c, &cn));
-
-        const char *sd;
-        int npop = lua::call_external_ret("entity_serialize_sdata", "pfff", "s",
-            &c, o.x, o.y, o.z, &sd);
-
-        newent(cn, sd);
-        lua::pop_external_ret(npop);
+        lua::call_external("entity_new_with_sd", "sfffss", c.name, o.x, o.y,
+            o.z, c.sdata, "");
     }
 }
 
@@ -1212,47 +1224,15 @@ void nearestent()
     if(closest >= 0) entadd(closest);
 }
 
-ICOMMAND(enthavesel, "",  (), addimplicit(intret(entgroup.length())));
-ICOMMAND(entselect,  "e", (uint *body), if(!noentedit()) addgroup(e.type != ET_EMPTY && entgroup.find(n)<0 && executebool(body)));
-ICOMMAND(entloop,    "e", (uint *body), if(!noentedit()) addimplicit(groupeditloop(((void)e, execute(body)))));
-ICOMMAND(insel,      "",  (), entfocus(efocus, intret(pointinsel(sel, e.o))));
-ICOMMAND(entgetinfo, "",  (), entfocus(efocus, string s; printent(e, s, sizeof(s)); result(s)));
-ICOMMAND(entindex,   "",  (), intret(efocus));
-COMMAND(nearestent,  "");
+ICOMMAND(enthavesel,"",  (), addimplicit(intret(entgroup.length())));
+ICOMMAND(entselect, "e", (uint *body), if(!noentedit()) addgroup(e.type != ET_EMPTY && entgroup.find(n)<0 && executebool(body)));
+ICOMMAND(entloop,   "e", (uint *body), if(!noentedit()) addimplicit(groupeditloop(((void)e, execute(body)))));
+ICOMMAND(insel,     "",  (), entfocus(efocus, intret(pointinsel(sel, e.o))));
+ICOMMAND(entgetinfo, "", (), entfocus(efocus, string s; printent(e, s, sizeof(s)); result(s)));
+ICOMMAND(entget,    "",  (), entfocus(efocus, string s; printent(e, s, sizeof(s)); result(s)));
+ICOMMAND(entindex,  "",  (), intret(efocus));
+COMMAND(nearestent, "");
 
-static string copied_class = {'\0'};
-static char copied_sdata[4096] = {'\0'};
-
-void ofentcopy()
-{
-    if (efocus < 0) {
-        copied_class[0] = copied_sdata[0] = '\0'; return;
-    }
-
-    extentity& e = *(entities::getents()[efocus]);
-
-    const char *name;
-    lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
-        "p", "s", &e, &name));
-    copystring(copied_class, name);
-
-    const char *sd;
-    int npop = lua::call_external_ret("entity_serialize_sdata", "p", "s",
-        &e, &sd);
-
-    copystring(copied_sdata, sd, sizeof(copied_sdata));
-    lua::pop_external_ret(npop);
-}
-
-void ofpasteent()
-{
-    newent(copied_class, copied_sdata);
-}
-
-COMMAND(ofentcopy, "");
-COMMAND(ofpasteent, "");
-
-/* OF */
 void enttype(char *type, int *numargs) {
     if (*numargs >= 1) {
         groupedit(
@@ -1287,25 +1267,6 @@ void entattr(char *attr, char *val, int *numargs) {
 COMMAND(enttype, "sN");
 COMMAND(entattr, "ssN");
 
-int findentity(int type, int index, int attr1, int attr2)
-{
-    const vector<extentity *> &ents = entities::getents();
-    if(index > ents.length()) index = ents.length();
-    else for(int i = index; i<ents.length(); i++)
-    {
-        extentity &e = *ents[i];
-        if(e.type==type && (attr1<0 || e.attr[0]==attr1) && (attr2<0 || e.attr[1]==attr2))
-            return i;
-    }
-    loopj(index)
-    {
-        extentity &e = *ents[j];
-        if(e.type==type && (attr1<0 || e.attr[0]==attr1) && (attr2<0 || e.attr[1]==attr2))
-            return j;
-    }
-    return -1;
-}
-
 void splitocta(cube *c, int size)
 {
     if(size <= 0x1000) return;
@@ -1331,9 +1292,7 @@ void resetmap()
     pruneundos();
     clearmapcrc();
 
-    gamespeed = 100;
-    paused = 0;
-
+    lua::call_external("entities_remove_all", "b", true);
     entities::clearents();
     outsideents.setsize(0);
     spotlights = 0;
@@ -1358,6 +1317,7 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
 
     setvar("mapscale", scale<10 ? 10 : (scale>16 ? 16 : scale), true, false);
     setvar("mapsize", 1<<worldscale, true, false);
+    setvar("emptymap", 1, true, false);
 
     texmru.shrink(0);
     freeocta(worldroot);
@@ -1405,6 +1365,7 @@ bool enlargemap(bool force)
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
     enlargeblendmap();
+
     allchanged();
 
     return true;
@@ -1446,14 +1407,15 @@ void shrinkmap()
     loopv(ents) ents[i]->o.sub(vec(offset));
 
     shrinkblendmap(octant);
+
     allchanged();
 
     conoutf("shrunk map to size %d", worldscale);
 }
 
-//void newmap(int i) { bool force = !isconnected(); if(emptymap(i, force, NULL)) game::newmap(max(i, 0)); }
+void newmap(int *i) { bool force = !isconnected(); if(force) game::forceedit(""); if(emptymap(*i, force, NULL)) game::newmap(max(*i, 0)); }
 void mapenlarge() { if(enlargemap(false)) game::newmap(-1); }
-//COMMAND(newmap, "i");
+COMMAND(newmap, "i");
 COMMAND(mapenlarge, "");
 COMMAND(shrinkmap, "");
 
@@ -1477,3 +1439,4 @@ COMMAND(finish_dragging, "");
 
 int getworldsize() { return worldsize; }
 int getmapversion() { return mapversion; }
+

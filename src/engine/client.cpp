@@ -43,14 +43,30 @@ CLUAICOMMAND(isconnected, bool, (bool attempt, bool local), {
     return isconnected(attempt, local);
 });
 
+ICOMMAND(isconnected, "bb", (int *attempt, int *local), intret(isconnected(*attempt > 0, *local != 0) ? 1 : 0));
+
 const ENetAddress *connectedpeer()
 {
     return curpeer ? &curpeer->address : NULL;
 }
 
+ICOMMAND(connectedip, "", (),
+{
+    const ENetAddress *address = connectedpeer();
+    string hostname;
+    result(address && enet_address_get_host_ip(address, hostname, sizeof(hostname)) >= 0 ? hostname : "");
+});
+
+ICOMMAND(connectedport, "", (),
+{
+    const ENetAddress *address = connectedpeer();
+    intret(address ? address->port : -1);
+});
+
 void abortconnect()
 {
     if(!connpeer) return;
+    game::connectfail();
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
     connpeer = NULL;
     if(curpeer) return;
@@ -78,6 +94,7 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
     {
         if(strcmp(servername, connectname)) setsvar("connectname", servername);
         if(serverport != connectport) setvar("connectport", serverport);
+        addserver(servername, serverport, serverpassword && serverpassword[0] ? serverpassword : NULL);
         conoutf("attempting to connect to %s:%d", servername, serverport);
         if(!resolverwait(servername, &address))
         {
@@ -108,6 +125,19 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
     enet_host_flush(clienthost);
     connmillis = totalmillis;
     connattempts = 0;
+
+    game::connectattempt(servername ? servername : "", serverpassword ? serverpassword : "", address);
+}
+
+void reconnect(const char *serverpassword)
+{
+    if(!connectname[0] || connectport <= 0)
+    {
+        conoutf(CON_ERROR, "no previous connection");
+        return;
+    }
+
+    connectserv(connectname, connectport, serverpassword);
 }
 
 void disconnect(bool async, bool cleanup)
@@ -153,6 +183,13 @@ void trydisconnect(bool local)
     else if(local && haslocalclients()) localdisconnect();
     else conoutf("not connected");
 }
+
+ICOMMAND(connect, "sis", (char *name, int *port, char *pw), connectserv(name, *port, pw));
+ICOMMAND(lanconnect, "is", (int *port, char *pw), connectserv(NULL, *port, pw));
+COMMAND(reconnect, "s");
+ICOMMAND(disconnect, "b", (int *local), trydisconnect(*local != 0));
+ICOMMAND(localconnect, "", (), { if(!isconnected()) localconnect(); });
+ICOMMAND(localdisconnect, "", (), { if(haslocalclients()) localdisconnect(); });
 
 void sendclientpacket(ENetPacket *packet, int chan)
 {

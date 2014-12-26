@@ -50,34 +50,20 @@ extern "C" {
   #define ZLIB_DLL
 #endif
 
-#ifdef __APPLE__
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_opengl.h"
-#define main SDL_main
-#else
-#include <SDL.h>
-#include <SDL_opengl.h>
-#endif
-
-#ifdef STANDALONE
-#ifdef main
-#undef main
-#endif
+#ifndef STANDALONE
+  #ifdef __APPLE__
+    #include "SDL2/SDL.h"
+    #include "SDL2/SDL_opengl.h"
+    #define main SDL_main
+  #else
+    #include <SDL.h>
+    #include <SDL_opengl.h>
+  #endif
 #endif
 
 #include <enet/enet.h>
 
 #include <zlib.h>
-
-#ifdef swap
-#undef swap
-#endif
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
 
 #include "tools.h"
 #include "geom.h"

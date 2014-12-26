@@ -5,8 +5,6 @@
 #include "game.h"
 
 #include "of_lua.h"
-#include "of_world.h"
-#include "of_localserver.h"
 
 void deleteparticles();
 void deletestains();

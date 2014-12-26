@@ -15,13 +15,14 @@ if(OF_BUILD_AMALG)
     set(SERVER_SOURCES ../shared/server_amalg)
 else()
     set(SERVER_SOURCES
+        ../shared/crypto
+        ../shared/stream
         ../shared/tools
         ../engine/command
         ../engine/server
+        ../engine/worldio
         ../game/server
-        ../shared/stream
         ../octaforge/of_lua
-        ../octaforge/of_world
         ../octaforge/of_logger)
 endif()
 

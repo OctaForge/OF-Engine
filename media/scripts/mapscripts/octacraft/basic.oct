@@ -1,6 +1,11 @@
 // A very basic mapscript
 
 import extra.game_manager
+
+import extra.entities.teleporters
+import extra.entities.lights
+import extra.entities.particles
+
 import games.octacraft
 
 game_manager::setup()

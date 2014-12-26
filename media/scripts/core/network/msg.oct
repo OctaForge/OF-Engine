@@ -89,4 +89,8 @@ M.show_client_message = @[server,func(cn, title, text) {
 }]
 setext("show_client_message", M.show_client_message)
 
+M.is_local = @[server,func() { return true },func() {
+    return capi::isconnected(false, true) && !capi::isconnected(false, false)
+}]
+
 return M

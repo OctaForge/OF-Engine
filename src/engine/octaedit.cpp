@@ -143,6 +143,7 @@ void toggleedit(bool force)
     }
     else
     {
+        game::resetgamestate();
         player->editstate = player->state;
         player->state = CS_EDITING;
     }
@@ -1137,16 +1138,6 @@ bool packundo(int op, int &inlen, uchar *&outbuf, int &outlen)
     }
 }
 
-void pasteblock(block3 &b, selinfo &sel, bool local)
-{
-    sel.s = b.s;
-    int o = sel.orient;
-    sel.orient = b.orient;
-    cube *s = b.c();
-    loopselxyz(if(!isempty(*s) || s->children || s->material != MAT_AIR) pastecube(*s, c); s++); // 'transparent'. old opaque by 'delcube; paste'
-    sel.orient = o;
-}
-
 struct prefabheader
 {
     char magic[4];
@@ -1216,6 +1207,16 @@ void saveprefab(char *name)
     conoutf("wrote prefab file %s", filename);
 }
 COMMAND(saveprefab, "s");
+
+void pasteblock(block3 &b, selinfo &sel, bool local)
+{
+    sel.s = b.s;
+    int o = sel.orient;
+    sel.orient = b.orient;
+    cube *s = b.c();
+    loopselxyz(if(!isempty(*s) || s->children || s->material != MAT_AIR) pastecube(*s, c); s++); // 'transparent'. old opaque by 'delcube; paste'
+    sel.orient = o;
+}
 
 prefab *loadprefab(const char *name, bool msg = true)
 {

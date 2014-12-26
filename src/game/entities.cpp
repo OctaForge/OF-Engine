@@ -1,18 +1,8 @@
-/*
- * of_entities.cpp, version 1
- * Entity management for OctaForge engine.
- *
- * author: q66 <quaker66@gmail.com>
- * license: see COPYING.txt
- */
-
-#include "cube.h"
-#include "engine.h"
 #include "game.h"
-#include "of_world.h"
 
 void removeentity(extentity* entity);
 void addentity(extentity* entity);
+void attachentity(extentity &e);
 
 extern int efocus;
 
@@ -38,31 +28,23 @@ int getattrnum(int type) {
 
 namespace entities
 {
-    struct Entity_Storage {
-        vector<extentity*> data;
-        Entity_Storage(): data() {}
-        ~Entity_Storage() {
-            for (int i = 0; i < data.length(); ++i) {
-                delete data[i];
-            }
-        }
-    };
-    static Entity_Storage storage;
+    using namespace game;
 
-    vector<extentity*> &getents() {
-        return storage.data;
+    vector<extentity *> ents;
+
+    vector<extentity *> &getents() { return ents; }
+
+    extentity *newentity() { return new gameentity(); }
+    void deleteentity(extentity *e) { delete (gameentity *)e; }
+
+    void clearents()
+    {
+        while(ents.length()) deleteentity(ents.pop());
     }
 
-    void clearents() {
-        while (storage.data.length())
-            delete storage.data.pop();
+    void editent(int i, bool local)
+    {
     }
-
-    CLUAICOMMAND(destroy_extent, void, (extentity *ext), {
-        if (ext->type == ET_SOUND) stopmapsound(ext);
-        removeentity(ext);
-        ext->type = ET_EMPTY;
-    });
 
     /* Entity attributes */
 
@@ -153,9 +135,9 @@ namespace entities
     });
     CLUAICOMMAND(set_attr, void, (extentity *ext, int a, int v), {
         assert(ext);
-        if (game::scenario_started()) removeentity(ext);
+        removeentity(ext);
         ext->attr[a] = v;
-        if (game::scenario_started()) addentity(ext);
+        addentity(ext);
     });
     CLUAICOMMAND(FAST_set_attr, void, (extentity *ext, int a, int v), {
         assert(ext);
@@ -319,9 +301,17 @@ namespace entities
         addentity(e);
         attachentity(*e);
         return e;
+        return NULL;
     });
 
-    CLUAICOMMAND(setup_character, physent *, (), {
-        return game::player1;
+    CLUAICOMMAND(destroy_extent, void, (extentity *ext), {
+        if (ext->type == ET_SOUND) stopmapsound(ext);
+        removeentity(ext);
+        ext->type = ET_EMPTY;
     });
-} /* end namespace entities */
+
+    CLUAICOMMAND(setup_character, physent *, (int cn), {
+        return game::getclient(cn);
+    });
+}
+

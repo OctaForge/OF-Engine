@@ -1,78 +1,23 @@
-
-// Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
-// This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
-
-#include "cube.h"
-#include "engine.h"
 #include "game.h"
-#include "of_world.h"
 
 extern float rayent(const vec &o, const vec &ray, float radius, int mode, int size, int &orient, int &ent);
 extern int enthover;
 
 namespace game
 {
-    bool haslogicsys = false;
-
-    VAR(useminimap, 0, 0, 1); // do we want the minimap? Set from JS.
-
-    int gamemode = 0;
-
-    int following = -1, followdir = 0;
+    int maptime = 0, maprealtime = 0;
+    int lastspawnattempt = 0;
 
     gameent *player1 = NULL;         // our client
     vector<gameent *> players;       // other clients
-    gameent lastplayerstate;
 
-    void follow(char *arg)
+    int following = -1;
+
+    VARFP(specmode, 0, 0, 2,
     {
-        if(arg[0] ? player1->state==CS_SPECTATOR : following>=0)
-        {
-            following = arg[0] ? parseplayer(arg) : -1;
-            if(following==player1->clientnum) following = -1;
-            followdir = 0;
-            conoutf("follow %s", following>=0 ? "on" : "off");
-        }
-    }
-
-    void nextfollow(int dir)
-    {
-        if(player1->state!=CS_SPECTATOR || players.empty())
-        {
-            stopfollowing();
-            return;
-        }
-        int cur = following >= 0 ? following : (dir < 0 ? players.length() - 1 : 0);
-        loopv(players)
-        {
-            cur = (cur + dir + players.length()) % players.length();
-            if(players[cur])
-            {
-                if(following<0) conoutf("follow on");
-                following = cur;
-                followdir = dir;
-                return;
-            }
-        }
-        stopfollowing();
-    }
-
-    static string clientmap = "";
-    const char *getclientmap() { return clientmap; }
-
-    gameent *spawnstate(gameent *d)              // reset player state not persistent accross spawns
-    {
-        d->respawn();
-        return d;
-    }
-
-    void stopfollowing()
-    {
-        if(following<0) return;
-        following = -1;
-        followdir = 0;
-        conoutf("follow off");
-    }
+        if(!specmode) stopfollowing();
+        else if(following < 0) nextfollow();
+    });
 
     gameent *followingplayer()
     {
@@ -82,9 +27,87 @@ namespace game
         return NULL;
     }
 
+    ICOMMAND(getfollow, "", (),
+    {
+        gameent *f = followingplayer();
+        intret(f ? f->clientnum : -1);
+    });
+
+    void stopfollowing()
+    {
+        if(following<0) return;
+        following = -1;
+    }
+
+    void follow(char *arg)
+    {
+        int cn = -1;
+        if(arg[0])
+        {
+            if(player1->state != CS_SPECTATOR) return;
+            cn = parseplayer(arg);
+            if(cn == player1->clientnum) cn = -1;
+        }
+        if(cn < 0 && (following < 0 || specmode)) return;
+        following = cn;
+    }
+    COMMAND(follow, "s");
+
+    void nextfollow(int dir)
+    {
+        if(player1->state!=CS_SPECTATOR) return;
+        int cur = following >= 0 ? following : (dir < 0 ? clients.length() - 1 : 0);
+        loopv(clients)
+        {
+            cur = (cur + dir + clients.length()) % clients.length();
+            if(clients[cur] && clients[cur]->state!=CS_SPECTATOR)
+            {
+                following = cur;
+                return;
+            }
+        }
+        stopfollowing();
+    }
+    ICOMMAND(nextfollow, "i", (int *dir), nextfollow(*dir < 0 ? -1 : 1));
+
+    void checkfollow()
+    {
+        if(player1->state != CS_SPECTATOR)
+        {
+            if(following >= 0) stopfollowing();
+        }
+        else
+        {
+            if(following >= 0)
+            {
+                gameent *d = clients.inrange(following) ? clients[following] : NULL;
+                if(!d || d->state == CS_SPECTATOR) stopfollowing();
+            }
+            if(following < 0 && specmode) nextfollow();
+        }
+    }
+
+    const char *getclientmap() { return clientmap; }
+
+    void resetgamestate()
+    {
+    }
+
+    gameent *spawnstate(gameent *d)              // reset player state not persistent accross spawns
+    {
+        d->respawn();
+        return d;
+    }
+
+    gameent *pointatplayer()
+    {
+        loopv(players) if(players[i] != player1 && intersect(players[i], player1->o, worldpos)) return players[i];
+        return NULL;
+    }
+
     gameent *hudplayer()
     {
-        if(thirdperson) return player1;
+        if(thirdperson || specmode > 1) return player1;
         gameent *target = followingplayer();
         return target ? target : player1;
     }
@@ -94,8 +117,8 @@ namespace game
         gameent *target = followingplayer();
         if(target)
         {
-            player1->yaw = target->yaw;    // Kripken: needed?
-            player1->pitch = target->state==CS_DEAD ? 0 : target->pitch; // Kripken: needed?
+            player1->yaw = target->yaw;
+            player1->pitch = target->state==CS_DEAD ? 0 : target->pitch;
             player1->o = target->o;
             player1->resetinterp();
         }
@@ -103,8 +126,9 @@ namespace game
 
     bool detachcamera()
     {
-        gameent *d = hudplayer();
-        return d->state==CS_DEAD;
+        gameent *d = followingplayer();
+        if(d) return specmode > 1 || d->state == CS_DEAD;
+        return player1->state == CS_DEAD;
     }
 
     bool collidecamera()
@@ -150,153 +174,105 @@ namespace game
             gameent *d = players[i];
             if(d == player1 || d->ai) continue;
 
+            if(d->state==CS_DEAD && d->ragdoll) moveragdoll(d);
+
             const int lagtime = totalmillis-d->lastupdate;
             if(!lagtime) continue;
-            if(lagtime>1000 && d->state==CS_ALIVE)
+            else if(lagtime>1000 && d->state==CS_ALIVE)
             {
                 d->state = CS_LAGGED;
                 continue;
             }
-
-            if (!d->can_move)
-                d->turn_move = d->move = d->look_updown_move = d->strafe = d->jumping = 0;
-
             if(d->state==CS_ALIVE || d->state==CS_EDITING)
             {
                 crouchplayer(d, 10, false);
                 if(smoothmove && d->smoothmillis>0) predictplayer(d, true);
                 else moveplayer(d, 1, false);
             }
-            else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 1, true);
+            else if(d->state==CS_DEAD && !d->ragdoll && lastmillis-d->lastpain<2000) moveplayer(d, 1, true);
         }
-    }
-
-    void moveControlledEntities()
-    {
-        if (player1)
-        {
-            bool b;
-            lua::pop_external_ret(lua::call_external_ret("entity_is_initialized",
-                "p", "b", player1, &b));
-            if (b)
-            {
-                // Ignore intentions to move, if immobile
-                if (!player1->can_move)
-                    player1->turn_move = player1->move = player1->look_updown_move = player1->strafe = player1->jumping = 0;
-
-//                if(player1->ragdoll && !(player1->anim&ANIM_RAGDOLL)) cleanragdoll(player1); XXX Needed? See below
-                crouchplayer(player1, 10, true);
-                moveplayer(player1, 10, true); // Disable this to stop play from moving by client command
-
-                logger::log(logger::INFO, "                              moveplayer(): %f,%f,%f.",
-                    player1->o.x,
-                    player1->o.y,
-                    player1->o.z
-                );
-
-                swayhudgun(curtime);
-            } else
-                logger::log(logger::INFO, "Player is not yet initialized, do not run moveplayer() etc.");
-        }
-        else
-            logger::log(logger::INFO, "Player does not yet exist, or scenario not started, do not run moveplayer() etc.");
     }
 
     void updateworld()        // main game update loop
     {
-        logger::log(logger::INFO, "updateworld(?, %d)", curtime);
-        INDENT_LOG(logger::INFO);
-        if(!curtime)
-        {
-            gets2c();
-            if(player1->clientnum>=0) c2sinfo();
-            return;
-        }
+        if(!maptime) { maptime = lastmillis; maprealtime = totalmillis; return; }
+        if(!curtime) { gets2c(); if(player1->clientnum>=0) c2sinfo(); return; }
 
-        bool runWorld = game::scenario_started();
-        //===================
-        // Run physics
-        //===================
-
-
-        if (runWorld)
-        {
-            physicsframe();
-            game::otherplayers(curtime); // Server doesn't need smooth interpolation of other players
-            game::moveControlledEntities();
-            loopv(game::players)
-            {
-                gameent* gameEntity = game::players[i];
-                moveragdoll(gameEntity);
-            }
-            lua::call_external("frame_handle", "ii", curtime, lastmillis);
-        }
-
-        //================================================================
-        // Get messages - *AFTER* otherplayers, which applies smoothness,
-        // and after actions, since gets2c may destroy the engine
-        //================================================================
-
+        physicsframe();
+        otherplayers(curtime);
+        moveragdolls();
+        lua::call_external("frame_handle", "ii", curtime, lastmillis);
         gets2c();
-
-        //============================================
-        // Send network updates, last for least lag
-        //============================================
-
-        // clientnum might be -1, if we have yet to get S2C telling us our clientnum, i.e., we are only partially connected
-        if(player1->clientnum>=0) c2sinfo(); //player1, // do this last, to reduce the effective frame lag
+        bool b;
+        lua::pop_external_ret(lua::call_external_ret("entity_is_initialized",
+            "p", "b", player1, &b));
+        if (b) {
+            if(player1->state == CS_DEAD)
+            {
+                if(player1->ragdoll) moveragdoll(player1);
+                else if(lastmillis-player1->lastpain<2000)
+                {
+                    player1->move = player1->strafe = 0;
+                    moveplayer(player1, 10, true);
+                }
+            }
+            else
+            {
+                if(player1->ragdoll) cleanragdoll(player1);
+                crouchplayer(player1, 10, true);
+                moveplayer(player1, 10, true);
+            }
+        }
+        if(player1->clientnum>=0) c2sinfo();   // do this last, to reduce the effective frame lag
     }
 
-    void spawnplayer(gameent *d)   // place at random spawn. also used by monsters!
+    void spawnplayer(gameent *d)   // place at random spawn
     {
         spawnstate(d);
-        d->state = spectator ? CS_SPECTATOR : (d==player1 && editmode ? CS_EDITING : CS_ALIVE);
+        if(d==player1)
+        {
+            if(editmode) d->state = CS_EDITING;
+            else if(d->state != CS_SPECTATOR) d->state = CS_ALIVE;
+        }
+        else d->state = CS_ALIVE;
+        checkfollow();
     }
+
+    VARP(spawnwait, 0, 0, 1000);
 
     // inputs
 
-    void doattack(bool on)
-    {
-    }
-
-    bool canjump()
-    {
-        return true; // Handled ourselves elsewhere
-    }
-
-    bool cancrouch()
-    {
-        return true; // Handled ourselves elsewhere
-    }
-
     bool allowmove(physent *d)
     {
-        return true; // Handled ourselves elsewhere
+        return true;
+    }
+
+    VARP(hitsound, 0, 0, 1);
+
+    void timeupdate(int secs)
+    {
     }
 
     vector<gameent *> clients;
 
     gameent *newclient(int cn)   // ensure valid entity
     {
-        logger::log(logger::DEBUG, "game::newclient: %d", cn);
-
-        if(cn < 0 || cn > max(0xFF, MAXCLIENTS)) // + MAXBOTS))
+        if(cn < 0 || cn > max(0xFF, MAXCLIENTS))
         {
             neterr("clientnum", false);
             return NULL;
         }
 
-        if(cn == player1->clientnum)
-            return player1;
+        if(cn == player1->clientnum) return player1;
 
         while(cn >= clients.length()) clients.add(NULL);
-
-        gameent *d = new gameent;
-        d->clientnum = cn;
-        assert(clients[cn] == NULL); // XXX FIXME This fails if a player logged in exactly while the server was downloading assets
-        clients[cn] = d;
-        players.add(d);
-
+        if(!clients[cn])
+        {
+            gameent *d = new gameent;
+            d->clientnum = cn;
+            clients[cn] = d;
+            players.add(d);
+        }
         return clients[cn];
     }
 
@@ -308,46 +284,77 @@ namespace game
 
     void clientdisconnected(int cn, bool notify)
     {
-        logger::log(logger::DEBUG, "game::clientdisconnected: %d", cn);
-
         if(!clients.inrange(cn)) return;
-        if(following==cn)
+        unignore(cn);
+        gameent *d = clients[cn];
+        if(d)
         {
-            if(followdir) nextfollow(followdir);
+            if(notify && d->name[0]) conoutf("\f4leave:\f7 %s", colorname(d));
+            removetrackedparticles(d);
+            removetrackeddynlights(d);
+            players.removeobj(d);
+            DELETEP(clients[cn]);
+            cleardynentcache();
+        }
+        if(following == cn)
+        {
+            if(specmode) nextfollow();
             else stopfollowing();
         }
-        gameent *d = clients[cn];
-        if(!d) return;
-        if(notify && d->name[0]) conoutf("player %s disconnected", colorname(d));
-//        removeweapons(d);
-        removetrackedparticles(d);
-        removetrackeddynlights(d);
-        players.removeobj(d);
-        DELETEP(clients[cn]);
-        cleardynentcache();
+    }
+
+    void clearclients(bool notify)
+    {
+        loopv(clients) if(clients[i]) clientdisconnected(i, notify);
     }
 
     void initclient()
     {
         player1 = spawnstate(new gameent);
-        filtertext(player1->name, "unnamed", false, false, 32);
+        filtertext(player1->name, "unnamed", false, false, MAXNAMELEN);
         players.add(player1);
     }
 
-    void preload() { }; // We use our own preloading system, but need to add the above projectiles etc.
+    VARP(showmodeinfo, 0, 1, 1);
+
+    void startgame()
+    {
+        clearragdolls();
+
+        // reset perma-state
+        loopv(players) players[i]->startgame();
+
+        maptime = maprealtime = 0;
+
+        conoutf(CON_GAMEINFO, "\f2game mode is %s", server::modeprettyname(gamemode));
+
+        const char *info = m_valid(gamemode) ? gamemodes[gamemode - STARTGAMEMODE].info : NULL;
+        if(showmodeinfo && info) conoutf(CON_GAMEINFO, "\f0%s", info);
+
+        disablezoom();
+
+        execident("mapstart");
+    }
 
     void startmap(const char *name)   // called just after a map load
     {
-        copystring(clientmap, name ? name : "");
-//        if(multiplayer(false) && m_sp) { gamemode = 0; conoutf(CON_ERROR, "coop sp not supported yet"); } Kripken
-//        clearmovables();
-//        clearprojectiles();
-//        clearbouncers();
-        spawnplayer(player1);
-        disablezoom();
-//        if(*name) conoutf(CON_GAMEINFO, "\f2game mode is %s", gameserver::modestr(gamemode));
+        logger::log(logger::DEBUG, "Requesting active entities...");
+        game::addmsg(N_ACTIVEENTSREQUEST, "r"); // Ask for other players, which are not part of the map proper
 
-        //execident("mapstart");
+        if(!m_mp(gamemode)) spawnplayer(player1);
+        copystring(clientmap, name ? name : "");
+
+        sendmapinfo();
+    }
+
+    const char *getmapinfo()
+    {
+        return showmodeinfo && m_valid(gamemode) ? gamemodes[gamemode - STARTGAMEMODE].info : NULL;
+    }
+
+    const char *getscreenshotinfo()
+    {
+        return server::modename(gamemode, NULL);
     }
 
     void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material)
@@ -356,100 +363,106 @@ namespace game
             local, floorlevel, waterlevel, material);
     }
 
-    int numdynents()
+    void dynentcollide(physent *d, physent *o, const vec &dir)
     {
-        return players.length();
-    } //+movables.length(); }
+    }
+
+    int numdynents() { return players.length(); }
 
     dynent *iterdynents(int i)
     {
         if(i<players.length()) return players[i];
-//        i -= players.length();
-//        if(i<movables.length()) return (dynent *)movables[i];
         return NULL;
     }
 
-    const char *scriptname(gameent *d)
+    bool duplicatename(gameent *d, const char *name = NULL, const char *alt = NULL)
     {
-        static string cns;
-        const char *cn;
-        int n = lua::call_external_ret("entity_get_attr", "ps", "s",
-            d, "character_name", &cn);
-        copystring(cns, cn);
-        lua::pop_external_ret(n);
-        return cns;
+        if(!name) name = d->name;
+        if(alt && d != player1 && !strcmp(name, alt)) return true;
+        loopv(players) if(d!=players[i] && !strcmp(name, players[i]->name)) return true;
+        return false;
     }
 
-    char *colorname(gameent *d, char *name, const char *prefix)
+    const char *colorname(gameent *d, const char *name, const char * alt, const char *color)
     {
-        if(!name) name = (char*)scriptname(d);
-        const char* color = (d != player1) ? "" : "\f1";
-        static string cname;
-        formatstring(cname, "%s%s", color, name);
-        return cname;
+        if(!name) name = alt && d == player1 ? alt : d->name;
+        bool dup = !name[0] || duplicatename(d, name, alt);
+        if(dup || color[0])
+        {
+            if(dup) return tempformatstring("\fs%s%s \f5(%d)\fr", color, name, d->clientnum);
+            return tempformatstring("\fs%s%s\fr", color, name);
+        }
+        return name;
     }
 
-    void drawhudmodel(gameent *d, int anim, float speed = 0, int base = 0)
+    bool needminimap() { return false; }
+
+    void drawicon(int icon, float x, float y, float sz)
     {
-        logger::log(logger::WARNING, "Rendering hudmodel is deprecated for now");
+        settexture("media/interface/hud/items.png");
+        float tsz = 0.25f, tx = tsz*(icon%4), ty = tsz*(icon/4);
+        gle::defvertex(2);
+        gle::deftexcoord0();
+        gle::begin(GL_TRIANGLE_STRIP);
+        gle::attribf(x,    y);    gle::attribf(tx,     ty);
+        gle::attribf(x+sz, y);    gle::attribf(tx+tsz, ty);
+        gle::attribf(x,    y+sz); gle::attribf(tx,     ty+tsz);
+        gle::attribf(x+sz, y+sz); gle::attribf(tx+tsz, ty+tsz);
+        gle::end();
     }
 
-    void drawhudgun()
+    float abovegameplayhud(int w, int h)
     {
-        logger::log(logger::WARNING, "Rendering hudgun is deprecated for now");
+        switch(hudplayer()->state)
+        {
+            case CS_EDITING:
+            case CS_SPECTATOR:
+                return 1;
+            default:
+                return 1650.0f/1800.0f;
+        }
     }
 
-    bool needminimap() // you have to enable the minimap inside your map script.
+    void drawhudicons(gameent *d)
     {
-        return (!mainmenu && useminimap);
-    }
-
-    float abovegameplayhud()
-    {
-        return 1650.0f/1800.0f;
     }
 
     void gameplayhud(int w, int h)
     {
-    }
+        pushhudmatrix();
+        hudmatrix.scale(h/1800.0f, h/1800.0f, 1);
+        flushhudmatrix();
 
-    void particletrack(physent *owner, vec &o, vec &d)
-    {
-        if(owner->type!=ENT_PLAYER) return;
-//        gameent *pl = (gameent *)owner;
-        float dist = o.dist(d);
-        o = vec(0,0,0); //pl->muzzle;
-        if(dist <= 0) d = o;
-        else
+        if(player1->state==CS_SPECTATOR)
         {
-            vecfromyawpitch(owner->yaw, owner->pitch, 1, 0, d);
-            float newdist = raycube(owner->o, d, dist, RAY_CLIPMAT|RAY_ALPHAPOLY);
-            d.mul(min(newdist, dist)).add(owner->o);
+            float pw, ph, tw, th, fw, fh;
+            text_boundsf("  ", pw, ph);
+            text_boundsf("SPECTATOR", tw, th);
+            th = max(th, ph);
+            gameent *f = followingplayer();
+            text_boundsf(f ? colorname(f) : " ", fw, fh);
+            fh = max(fh, ph);
+            draw_text("SPECTATOR", w*1800/h - tw - pw, 1650 - th - fh);
+            if(f)
+            {
+                int color = f->state!=CS_DEAD ? 0xFFFFFF : 0x606060;
+                if(f->privilege)
+                {
+                    color = f->privilege>=PRIV_ADMIN ? 0xFF8000 : 0x40FF80;
+                    if(f->state==CS_DEAD) color = (color>>1)&0x7F7F7F;
+                }
+                draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+            }
+            resethudshader();
         }
-    }
 
-    void newmap(int size)
-    {
-        // Generally not used, as we fork emptymap, but useful to clear and resize
-    }
+        gameent *d = hudplayer();
+        if(d->state!=CS_EDITING)
+        {
+            if(d->state!=CS_SPECTATOR) drawhudicons(d);
+        }
 
-    // any data written into this vector will get saved with the map data. Must take care to do own versioning, and endianess if applicable. Will not get called when loading maps from other games, so provide defaults.
-    void writegamedata(vector<char> &extras) {}
-    void readgamedata(vector<char> &extras) {}
-
-    const char *gameident() { return "game"; }
-    const char *defaultmap() { return "login"; }
-    const char *savedservers() { return NULL; } //"servers.cfg"; }
-
-    // Dummies
-
-    void parseoptions(vector<const char *> &args)
-    {
-    }
-
-    const char *getmapinfo()
-    {
-        return "";
+        pophudmatrix();
     }
 
     float clipconsole(float w, float h)
@@ -457,16 +470,78 @@ namespace game
         return 0;
     }
 
+    VARP(hitcrosshair, 0, 425, 1000);
+
+    const char *defaultcrosshair(int index)
+    {
+        return "media/interface/crosshair/default.png";
+    }
+
+    int selectcrosshair(vec &col)
+    {
+        return 0;
+    }
+
+    const char *mastermodecolor(int n, const char *unknown)
+    {
+        return (n>=MM_START && size_t(n-MM_START)<sizeof(mastermodecolors)/sizeof(mastermodecolors[0])) ? mastermodecolors[n-MM_START] : unknown;
+    }
+
+    const char *mastermodeicon(int n, const char *unknown)
+    {
+        return (n>=MM_START && size_t(n-MM_START)<sizeof(mastermodeicons)/sizeof(mastermodeicons[0])) ? mastermodeicons[n-MM_START] : unknown;
+    }
+
+    ICOMMAND(servinfomode, "i", (int *i), GETSERVINFOATTR(*i, 0, mode, intret(mode)));
+    ICOMMAND(servinfomodename, "i", (int *i),
+        GETSERVINFOATTR(*i, 0, mode,
+        {
+            const char *name = server::modeprettyname(mode, NULL);
+            if(name) result(name);
+        }));
+    ICOMMAND(servinfomastermode, "i", (int *i), GETSERVINFOATTR(*i, 2, mm, intret(mm)));
+    ICOMMAND(servinfomastermodename, "i", (int *i),
+        GETSERVINFOATTR(*i, 2, mm,
+        {
+            const char *name = server::mastermodename(mm, NULL);
+            if(name) stringret(newconcatstring(mastermodecolor(mm, ""), name));
+        }));
+    ICOMMAND(servinfotime, "ii", (int *i, int *raw),
+        GETSERVINFOATTR(*i, 1, secs,
+        {
+            secs = clamp(secs, 0, 59*60+59);
+            if(*raw) intret(secs);
+            else
+            {
+                int mins = secs/60;
+                secs %= 60;
+                result(tempformatstring("%d:%02d", mins, secs));
+            }
+        }));
+    ICOMMAND(servinfoicon, "i", (int *i),
+        GETSERVINFO(*i, si,
+        {
+            int mm = si->attr.inrange(2) ? si->attr[2] : MM_INVALID;
+            result(si->maxplayers > 0 && si->numplayers >= si->maxplayers ? "serverfull" : mastermodeicon(mm, "serverunk"));
+        }));
+
+    // any data written into this vector will get saved with the map data. Must take care to do own versioning, and endianess if applicable. Will not get called when loading maps from other games, so provide defaults.
+    void writegamedata(vector<char> &extras) {}
+    void readgamedata(vector<char> &extras) {}
+
+    const char *gameconfig() { return "config/game.cfg"; }
+    const char *savedconfig() { return "config/saved.cfg"; }
+    const char *restoreconfig() { return "config/restore.cfg"; }
+    const char *defaultconfig() { return "config/default.cfg"; }
+    const char *autoexec() { return "config/autoexec.cfg"; }
+    const char *savedservers() { return "config/servers.cfg"; }
+
     void loadconfigs()
     {
+        execfile("config/auth.cfg", false);
     }
 
-    bool ispaused() { return false; };
-
-    void dynlighttrack(physent *owner, vec &o, vec &hud)
-    {
-        return;
-    }
+    bool clientoption(const char *arg) { return false; }
 
     static vec targetpos;
     static extentity *targetextent = NULL;
@@ -594,6 +669,22 @@ namespace game
         v[2] = o.z;
     });
 
-    CLUAICOMMAND(player_get_cn, int, (), return player1->clientnum);
+    void particletrack(physent *owner, vec &o, vec &d)
+    {
+    }
+
+    void dynlighttrack(physent *owner, vec &o, vec &hud)
+    {
+    }
+
+    float intersectdist = 1e16f;
+
+    bool intersect(dynent *d, const vec &from, const vec &to, float margin, float &dist)   // if lineseg hits entity bounding box
+    {
+        vec bottom(d->o), top(d->o);
+        bottom.z -= d->eyeheight + margin;
+        top.z += d->aboveeye + margin;
+        return linecylinderintersect(from, to, bottom, top, d->radius + margin, dist);
+    }
 }
 

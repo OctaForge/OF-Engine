@@ -10,20 +10,20 @@ struct entity                                   // persistent map entity
     vec o;                                      // position
     smallvector<int> attr;
     uchar type;                                 // type is one of the above
+    uchar reserved;
 };
-
-struct model;
 
 enum
 {
     EF_NOVIS      = 1<<0,
     EF_NOSHADOW   = 1<<1,
     EF_NOCOLLIDE  = 1<<2,
-    EF_SHADOWMESH = 1<<3,
-    EF_OCTA       = 1<<4,
-    EF_RENDER     = 1<<5,
-    EF_SOUND      = 1<<6,
-    EF_SPAWNED    = 1<<7
+    EF_ANIM       = 1<<3,
+    EF_SHADOWMESH = 1<<4,
+    EF_OCTA       = 1<<5,
+    EF_RENDER     = 1<<6,
+    EF_SOUND      = 1<<7,
+    EF_SPAWNED    = 1<<8
 
 };
 
@@ -73,16 +73,13 @@ struct physent                                  // base entity type, can be affe
     uchar type;                                 // one of ENT_* above
     uchar collidetype;                          // one of COLLIDE_* above
 
-    bool blocked, moving;                       // used by physics to signal ai
-    physent *onplayer;
-    int lastmove, lastmoveattempt;
+    bool blocked;                               // used by physics to signal ai
 
-    physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(0), pitch(0), roll(0), maxspeed(100), crouchtime(150),
-               radius(0), eyeheight(0), maxheight(0), aboveeye(0), crouchheight(1), crouchspeed(1), jumpvel(0), gravity(0), xradius(4.1f), yradius(4.1f), zmargin(0),
+    physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(0), pitch(0), roll(0), maxspeed(100),
+               crouchtime(150), radius(4.1f), eyeheight(18), maxheight(18), aboveeye(2), crouchheight(1), crouchspeed(1), jumpvel(0), gravity(0), xradius(4.1f), yradius(4.1f), zmargin(0),
                state(CS_ALIVE), editstate(CS_ALIVE), type(ENT_PLAYER),
                collidetype(COLLIDE_ELLIPSE),
-               blocked(false), moving(true),
-               onplayer(NULL), lastmove(0), lastmoveattempt(0)
+               blocked(false)
                { reset(); }
 
     void resetinterp()
@@ -136,7 +133,6 @@ struct physent                                  // base entity type, can be affe
 #define ANIM_DIR         0xE00
 #define ANIM_SECONDARY   12
 #define ANIM_REUSE       0xFFFFFF
-#define ANIM_FLAGSHIFT   24
 #define ANIM_NOSKIN      (1<<24)
 #define ANIM_SETTIME     (1<<25)
 #define ANIM_FULLBRIGHT  (1<<26)
@@ -188,7 +184,7 @@ struct dynent : physent                         // animated characters, or chara
         reset();
     }
 
-    virtual ~dynent() // OF: virtual
+    virtual ~dynent()
     {
 #ifndef STANDALONE
         extern void cleanragdoll(dynent *d);
@@ -196,13 +192,13 @@ struct dynent : physent                         // animated characters, or chara
 #endif
     }
 
-    virtual void stopmoving() // OF: virtual
+    virtual void stopmoving()
     {
         k_left = k_right = k_up = k_down = jumping = false;
         move = strafe = crouching = 0;
     }
 
-    virtual void reset() // OF: virtual
+    virtual void reset()
     {
         physent::reset();
         stopmoving();

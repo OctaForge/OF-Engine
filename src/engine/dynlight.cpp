@@ -103,7 +103,6 @@ void removetrackeddynlights(physent *owner)
 void updatedynlights()
 {
     cleardynlights();
-    game::adddynlights();
 
     loopv(dynlight_queue)
     {

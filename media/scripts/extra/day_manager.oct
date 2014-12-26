@@ -14,6 +14,7 @@ import core.entities.ents
 import core.entities.svars
 import core.engine.lights
 import core.engine.edit
+import core.network.msg
 
 var connect, emit = signal.connect, signal.emit
 
@@ -40,18 +41,19 @@ var DayManager = Entity.clone({
         self.set_attr("day_progress", 0)
     },
 
-    __activate: @[server,func(self) {
+    __activate: func(self) {
         Entity::__activate(self)
+        if !msg::is_local() { return }
         self.day_seconds_s = self.get_attr("day_seconds")
         connect(self, "day_seconds,changed", func(self, v) {
             self.day_seconds_s = v
         })
         self.day_progress_s = 0
-    }],
+    },
 
     __run: func(self, millis) {
-        @[!server] { return }
         Entity::__run(self, millis)
+        if !msg::is_local() { return }
         var dm = self.day_seconds_s * 1000
         if dm == 0 { return }
         var dp = self.day_progress_s
@@ -82,8 +84,9 @@ get = M.get
 */
 M.setup = func(plugins) {
     ents::register_prototype(DayManager, plugins)
+    if !msg::is_local() { return }
+    dayman = ents::new("DayManager")
     @[server] {
-        dayman = ents::new("DayManager")
         return dayman
     }
 }
@@ -127,8 +130,9 @@ M.plugins = {
         by manipulating the sunlight yaw and pitch.
     */
     day_night: {
-        __activate: @[!server,func(self) {
-            var daylen
+        __activate: func(self) {
+            if !msg::is_local() { return }
+            var daylen = self.get_attr("day_seconds")
             connect(self, "day_seconds,changed", func(self, v) {
                 daylen = v
             })
@@ -141,14 +145,15 @@ M.plugins = {
                 lights::set_sunlight_scale(scale)
                 lights::set_skylight_scale(scale)
             })
-        }],
+        },
 
-        __run: @[!server,func(self) {
+        __run: func(self) {
+            if !msg::is_local() { return }
             if self.sun_changed_dir && edit::player_is_editing() {
                 lights::reset_sun()
                 self.sun_changed_dir = false
             }
-        }]
+        }
     }
 }
 

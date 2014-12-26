@@ -1385,6 +1385,7 @@ void computezoom()
 
     if(!zoom) { zoomprogress = 0; curfov = fov; curavatarfov = avatarfov; return; }
     if(zoom > 0) zoomprogress = zoominvel ? min(zoomprogress + float(elapsedtime) / zoominvel, 1.0f) : 1;
+    else
     {
         zoomprogress = zoomoutvel ? max(zoomprogress - float(elapsedtime) / zoomoutvel, 0.0f) : 0;
         if(zoomprogress <= 0) zoom = 0;
@@ -1484,6 +1485,7 @@ noturn:
 
 void mousemove(int dx, int dy)
 {
+    if(!game::allowmouselook()) return;
     float cursens = sensitivity, curaccel = mouseaccel;
     if(zoom)
     {
@@ -1717,8 +1719,7 @@ void recomputecamera()
         if(detachedcamera && shoulddetach) camera1->o = player->o;
         else
         {
-            /* OF */
-            /*if (!is_character_viewing())*/ *camera1 = *player;
+            *camera1 = *player;
             detachedcamera = shoulddetach;
         }
         camera1->reset();
@@ -2883,7 +2884,7 @@ void gl_drawhud()
             resethudshader();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             game::gameplayhud(w, h);
-            abovehud = min(abovehud, conh*game::abovegameplayhud());
+            abovehud = min(abovehud, conh*game::abovegameplayhud(w, h));
         }
 
         rendertexturepanel(w, h);
@@ -2947,7 +2948,7 @@ void gl_drawframe()
     loopi(2)
     {
         if(mainmenu) gl_drawmainmenu();
-        else if (game::scenario_started()) gl_drawview();
+        else gl_drawview();
         lua::call_external("gui_render", "");
         gl_drawhud();
         if(!ovr::enabled) break;

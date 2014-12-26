@@ -8,8 +8,8 @@
 
 #include "octa.h"
 #include "light.h"
-#include "bih.h"
 #include "texture.h"
+#include "bih.h"
 #include "model.h"
 
 extern dynent *player;
@@ -59,6 +59,7 @@ struct font
 extern font *curfont;
 extern Shader *textshader;
 extern const matrix4x3 *textmatrix;
+extern float textscale;
 
 extern font *findfont(const char *name);
 extern void reloadfonts();
@@ -175,6 +176,7 @@ extern void zerofogcolor();
 extern void resetfogcolor();
 extern float calcfogdensity(float dist);
 extern float calcfogcull();
+extern void writecrosshairs(stream *f);
 extern void renderavatar();
 
 namespace modelpreview
@@ -395,6 +397,7 @@ extern bool debugaa();
 extern void cleanupaa();
 
 // ents
+extern char *entname(entity &e);
 extern bool haveselent();
 extern undoblock *copyundoents(undoblock *u);
 extern void pasteundoent(int idx, const entity &ue);
@@ -560,7 +563,7 @@ extern void cleanupserver();
 extern void serverslice(bool dedicated, uint timeout);
 extern void updatetime();
 
-extern ENetSocket connectmaster();
+extern ENetSocket connectmaster(bool wait);
 extern void localclienttoserver(int chan, ENetPacket *);
 extern void localconnect();
 extern bool serveroption(char *opt);
@@ -580,6 +583,7 @@ extern void clientkeepalive();
 
 // command
 extern hashnameset<ident> idents;
+extern int identflags;
 
 extern void clearoverrides();
 extern void writecfg(const char *name = NULL);
@@ -588,9 +592,12 @@ extern void checksleep(int millis);
 extern void clearsleep(bool clearoverrides = true);
 
 // console
+extern float conscale;
+
 extern void processkey(int code, bool isdown);
 extern void processtextinput(const char *str, int len);
 extern float rendercommand(float x, float y, float w);
+extern float renderfullconsole(float w, float h);
 extern float renderconsole(float w, float h, float abovehud);
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
 extern void conoutf(int type, const char *s, ...) PRINTFARGS(2, 3);
@@ -651,6 +658,7 @@ extern void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll = 0)
 extern float shadowray(const vec &o, const vec &ray, float radius, int mode, extentity *t = NULL);
 
 // world
+
 extern vector<int> outsideents;
 
 extern void entcancel();

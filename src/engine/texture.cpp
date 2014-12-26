@@ -2,7 +2,7 @@
 
 #include "engine.h"
 #include "game.h"
-#include "of_world.h"
+//#include "of_world.h"
 
 #ifdef __APPLE__
   #include "SDL2_image/SDL_image.h"
@@ -655,7 +655,7 @@ VARF(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARF(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(aniso, 0, 0, 16, initwarning("texture filtering", INIT_LOAD));
 /* OF */
-VARFR(texdefscale, 1, 16, 64, if (game::scenario_started()) initwarning("texture scale", INIT_LOAD));
+VARFR(texdefscale, 1, 16, 64, if (isconnected()) initwarning("texture scale", INIT_LOAD));
 
 extern int usetexcompress;
 
@@ -1928,8 +1928,10 @@ static void dumpslotrange(stream *f, int firstslot, int nslots, int indent = 0) 
     }
 }
 
+extern string mediacfgname;
+
 void writemediacfg(int level) {
-    stream *f = openutf8file(world::get_mapfile_path("media.cfg"), "w");
+    stream *f = openutf8file(mediacfgname, "w");
     if (!f) return;
     f->printf("// generated automatically by writemediacfg\n\n");
 

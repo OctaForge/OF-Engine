@@ -136,7 +136,6 @@ extern ident *getident(const char *name);
 extern ident *newident(const char *name, int flags = 0);
 extern ident *readident(const char *name);
 extern ident *writeident(const char *name, int flags = 0);
-/* OF: flags */
 extern bool addcommand(const char *name, identfun fun, const char *narg, int type = ID_COMMAND, int flags = 0);
 extern uint *compilecode(const char *p);
 extern void keepcode(uint *p);
@@ -211,10 +210,21 @@ extern void logoutf(const char *fmt, ...) PRINTFARGS(1, 2);
 // octa
 extern int lookupmaterial(const vec &o);
 
+static inline bool insideworld(const vec &o)
+{
+    extern int worldsize;
+    return o.x>=0 && o.x<worldsize && o.y>=0 && o.y<worldsize && o.z>=0 && o.z<worldsize;
+}
+
+static inline bool insideworld(const ivec &o)
+{
+    extern int worldsize;
+    return uint(o.x)<uint(worldsize) && uint(o.y)<uint(worldsize) && uint(o.z)<uint(worldsize);
+}
+
 // world
 extern bool emptymap(int factor, bool force, const char *mname = "", bool usecfg = true);
 extern bool enlargemap(bool force);
-extern int findentity(int type, int index = 0, int attr1 = -1, int attr2 = -1);
 extern void findents(int low, int high, bool notspawned, const vec &pos, const vec &radius, vector<int> &found);
 extern vec getselpos();
 extern int getworldsize();
@@ -294,6 +304,9 @@ extern void disablezoom();
 
 extern vec calcavatarpos(const vec &pos, float dist);
 extern vec calcmodelpreviewpos(const vec &radius, float &yaw);
+
+extern void damageblend(int n);
+extern void damagecompass(int n, const vec &loc);
 
 extern vec minimapcenter, minimapradius, minimapscale;
 extern void bindminimap();
@@ -397,6 +410,7 @@ extern void setbbfrommodel(dynent *d, const char *mdl);
 extern model *loadmodel(const char *name, bool msg = false);
 extern void preloadmodel(const char *name);
 extern void flushpreloadedmodels(bool msg = true);
+extern bool matchanim(const char *name, const char *pattern);
 
 // ragdoll
 
@@ -412,7 +426,9 @@ extern int maxclients;
 enum { DISC_NONE = 0, DISC_EOP, DISC_LOCAL, DISC_KICK, DISC_MSGERR, DISC_IPBAN, DISC_PRIVATE, DISC_MAXCLIENTS, DISC_TIMEOUT, DISC_OVERFLOW, DISC_PASSWORD, DISC_NUM };
 
 extern void *getclientinfo(int i);
+extern ENetPeer *getclientpeer(int i);
 extern ENetPacket *sendf(int cn, int chan, const char *format, ...);
+extern ENetPacket *sendfile(int cn, int chan, stream *file, const char *format = "", ...);
 extern void sendpacket(int cn, int chan, ENetPacket *packet, int exclude = -1);
 extern void flushserver(bool force);
 extern int getservermtu();
@@ -425,7 +441,35 @@ extern void kicknonlocalclients(int reason = DISC_NONE);
 extern bool hasnonlocalclients();
 extern bool haslocalclients();
 extern void sendserverinforeply(ucharbuf &p);
+extern bool requestmaster(const char *req);
+extern bool requestmasterf(const char *fmt, ...) PRINTFARGS(1, 2);
 extern bool isdedicatedserver();
+
+// serverbrowser
+
+struct servinfo
+{
+    string name, map, desc;
+    int protocol, numplayers, maxplayers, ping;
+    vector<int> attr;
+
+    servinfo() : protocol(INT_MIN), numplayers(0), maxplayers(0)
+    {
+        name[0] = map[0] = desc[0] = '\0';
+    }
+};
+
+extern servinfo *getservinfo(int i);
+
+#define GETSERVINFO(idx, si, body) do { \
+    servinfo *si = getservinfo(idx); \
+    if(si) \
+    { \
+        body; \
+    } \
+} while(0)
+#define GETSERVINFOATTR(idx, aidx, aval, body) \
+    GETSERVINFO(idx, si, { if(si->attr.inrange(aidx)) { int aval = si->attr[aidx]; body; } })
 
 // client
 extern void sendclientpacket(ENetPacket *packet, int chan);
@@ -452,19 +496,4 @@ namespace ovr
 {
     extern void reset();
 }
-// ui
-struct Texture;
 
-// octa
-
-extern int worldsize;
-
-static inline bool insideworld(const vec &o)
-{
-    return o.x>=0 && o.x<worldsize && o.y>=0 && o.y<worldsize && o.z>=0 && o.z<worldsize;
-}
-
-static inline bool insideworld(const ivec &o)
-{
-    return uint(o.x)<uint(worldsize) && uint(o.y)<uint(worldsize) && uint(o.z)<uint(worldsize);
-}

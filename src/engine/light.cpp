@@ -4,7 +4,7 @@ CVAR1R(ambient, 0x191919);
 FVARR(ambientscale, 0, 1, 16);
 
 CVAR1R(skylight, 0);
-float skylightscale;
+float skylightscale = 1.0f;
 FVARFNR(skylightscale, skylightscalev, 0, 1, 16, {
     skylightscale = skylightscalev;
 });
@@ -16,7 +16,7 @@ CVAR1FR(sunlight, 0,
     cleardeferredlightshaders();
     clearshadowcache();
 });
-float sunlightscale;
+float sunlightscale = 1.0f;
 FVARFNR(sunlightscale, sunlightscalev, 0, 1, 16, {
     sunlightscale = sunlightscalev; setupsunlight();
 });

@@ -1,44 +1,47 @@
 // worldio.cpp: loading & saving of maps and savegames
 
 #include "engine.h"
-#include "game.h"
-#include "of_world.h"
 
-extern int getattrnum(int type);
-
-string ogzname, bakname, cfgname, picname;
+#ifndef STANDALONE
+string ogzname, bakname, cfgname, picname, entcfgname, entbakname, mediacfgname;
 
 VARP(savebak, 0, 2, 2);
 
 void setmapfilenames(const char *fname, const char *cname = NULL)
 {
-    formatstring(ogzname, "media/%s.ogz", fname);
-    if(savebak==1) formatstring(bakname, "media/%s.BAK", fname);
-    else
+    formatstring(ogzname, "media/map/%s/map.ogz", fname);
+    if(savebak==1) {
+        formatstring(entbakname, "media/map/%s/entities.oct.BAK", fname);
+        formatstring(bakname, "media/map/%s/map.BAK", fname);
+    } else
     {
         string baktime;
         time_t t = time(NULL);
         size_t len = strftime(baktime, sizeof(baktime), "%Y-%m-%d_%H.%M.%S", localtime(&t));
         baktime[min(len, sizeof(baktime)-1)] = '\0';
-        formatstring(bakname, "media/%s_%s.BAK", fname, baktime);
+        formatstring(entbakname, "media/map/%s/entities.oct_%s.BAK", fname, baktime);
+        formatstring(bakname, "media/map/%s/map_%s.BAK", fname, baktime);
     }
-    formatstring(cfgname, "media/%s.cfg", cname ? cname : fname);
-    formatstring(picname, "media/%s", fname);
+    formatstring(cfgname, "media/map/%s/map.oct", cname ? cname : fname);
+    formatstring(picname, "media/map/%s/preview.png", fname);
+    formatstring(entcfgname, "media/map/%s/entities.oct", fname);
+    formatstring(mediacfgname, "media/map/%s/media.cfg", fname);
 
     path(ogzname);
     path(bakname);
     path(cfgname);
     path(picname);
+    path(entcfgname);
+    path(mediacfgname);
 }
 
 void mapcfgname()
 {
     const char *mname = game::getclientmap();
-    if (!mname[0]) mname = "untitled";
+    if(!*mname) mname = "untitled";
 
-    defformatstring(cfgname, "media/%s.oct", mname);
+    defformatstring(cfgname, "media/map/%s/map.oct", mname);
     path(cfgname);
-
     result(cfgname);
 }
 
@@ -451,10 +454,25 @@ void loadvslots(stream *f, int numvslots)
     delete[] prev;
 }
 
+static void export_ents() {
+    if(savebak) backup(entcfgname, entbakname);
+    stream *f = openutf8file(entcfgname, "w");
+    if  (!f) {
+        logger::log(logger::ERROR, "Cannot open file %s for writing.",
+            entcfgname);
+        return;
+    }
+    const char *data;
+    int popn = lua::call_external_ret("entities_save_all", "", "s", &data);
+    f->putstring(data);
+    lua::pop_external_ret(popn);
+    delete f;
+}
+
 bool save_world(const char *mname, bool nolms)
 {
-    if (!mname || !mname[0]) mname = game::getclientmap();
-    setmapfilenames(mname[0] ? mname : "untitled");
+    if(!*mname) mname = game::getclientmap();
+    setmapfilenames(*mname ? mname : "untitled");
     if(savebak) backup(ogzname, bakname);
     stream *f = opengzfile(ogzname, "wb");
     if(!f) { conoutf(CON_WARN, "could not write map to %s", ogzname); return false; }
@@ -536,8 +554,10 @@ bool save_world(const char *mname, bool nolms)
     if(shouldsaveblendmap()) { renderprogress(0, "saving blendmap..."); saveblendmap(f); }
 
     delete f;
+    extern void writemediacfg(int level);
+    writemediacfg(0);
+    export_ents();
     conoutf("wrote map file %s", ogzname);
-
     return true;
 }
 
@@ -606,12 +626,8 @@ struct tessentity
 
 bool load_world(const char *mname, const char *cname)        // still supports all map formats that have existed since the earliest cube betas!
 {
-    lua::init();
-    game::haslogicsys = true;
-    lua::call_external("has_logic_sys_set", "b", true);
-
+    int loadingstart = SDL_GetTicks();
     setmapfilenames(mname, cname);
-
     stream *f = opengzfile(ogzname, "rb");
     if(!f) { conoutf(CON_ERROR, "could not read map %s", ogzname); return false; }
 
@@ -622,8 +638,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(!loadmapheader(f, ogzname, hdr, ohdr, thdr, numents)) { delete f; return false; }
 
     resetmap();
+
     Texture *mapshot = textureload(picname, 3, true, false);
     renderbackground("loading...", mapshot, mname, game::getmapinfo());
+
     setvar("mapversion", hdr.version, true, false);
 
     renderprogress(0, "clearing world...");
@@ -738,7 +756,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                 conoutf(CON_WARN, "warning: ent outside of world: enttype[%d] index %d (%f, %f, %f)", e.type, i, e.o.x, e.o.y, e.o.z);
             }
         }
-
         switch (e.type) // check if to write the entity
         {
             case 1: /* LIGHT */
@@ -854,18 +871,17 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     delete f;
 
     extern void clear_texpacks(int n = 0); clear_texpacks();
+
     lua::call_external("gui_clear", "");
 
     identflags |= IDF_OVERRIDDEN;
     execfile("config/default_map_settings.cfg", false);
     identflags |= IDF_SAFE;
-    execfile(world::get_mapfile_path("media.cfg"), false);
-    lua::call_external("mapscript_run", "s", world::get_mapfile_path("map.oct"));
+    execfile(mediacfgname, false);
+    lua::call_external("mapscript_run", "s", cfgname);
     identflags &= ~(IDF_OVERRIDDEN | IDF_SAFE);
 
-    string ebuf;
-    copystring(ebuf, world::get_mapfile_path("entities.oct"));
-    char *eloaded = loadfile(path(ebuf), NULL);
+    char *eloaded = loadfile(entcfgname, NULL);
     if (eloaded) {
         lua::call_external("entities_load", "s", eloaded);
         delete[] eloaded;
@@ -873,10 +889,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     renderprogress(0, "requesting entities...");
     logger::log(logger::DEBUG, "Requesting active entities...");
-    game::addmsg(N_ACTIVEENTSREQUEST, "r"); // Ask for other players, which are not part of the map proper
+//    game::addmsg(N_ACTIVEENTSREQUEST, "r"); // ask for players/logic entities
 
     preloadusedmapmodels(true);
-    game::preload();
     flushpreloadedmodels();
 
     entitiesinoctanodes();
@@ -884,13 +899,21 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     initlights();
     allchanged(true);
 
-    startmap(cname ? cname : mname);
+    renderbackground("loading...", mapshot, mname, game::getmapinfo());
 
     logger::log(logger::DEBUG, "load_world complete.");
     logoutf("[[MAP LOADING]] - Success.");
 
+    startmap(cname ? cname : mname);
+
     return true;
 }
+
+void savecurrentmap() { save_world(game::getclientmap()); }
+void savemap(char *mname) { save_world(mname); }
+
+COMMAND(savemap, "s");
+COMMAND(savecurrentmap, "");
 
 void writeobj(char *name)
 {
@@ -1102,50 +1125,6 @@ void writecollideobj(char *name)
 
 COMMAND(writecollideobj, "s");
 
-static void export_ents(const char *fname) {
-    defformatstring(buf, "media%cmap%c%s%c%s", PATHDIV, PATHDIV, world::curr_map_id,
-        PATHDIV, fname);
-
-    if (fileexists(buf, "r")) {
-        defformatstring(buff, "%s-%d.bak", buf, (int)time(0));
-        rename(buf, buff);
-    }
-
-    stream *f = openutf8file(buf, "w");
-    if  (!f) {
-        logger::log(logger::ERROR, "Cannot open file %s for writing.",
-            buf);
-        return;
-    }
-
-    const char *data;
-    int popn = lua::call_external_ret("entities_save_all", "", "s", &data);
-    f->putstring(data);
-    lua::pop_external_ret(popn);
-    delete f;
-}
-
-ICOMMAND(export_entities, "s", (char *fn), export_ents(fn));
-
-extern void writemediacfg(int level);
-
-ICOMMAND(savemap, "ii", (int *skipmedia, int *medialevel), {
-    renderprogress(0.1f, "compiling scripts...");
-
-    bool b;
-    lua::pop_external_ret(lua::call_external_ret("mapscript_verify", "s",
-        "b", world::get_mapfile_path("map.oct"), &b));
-    if (!b) return;
-
-    renderprogress(0.3, "generating map...");
-    save_world(game::getclientmap());
-
-    renderprogress(0.4, "exporting entities...");
-    export_ents("entities.oct");
-
-    if (!*skipmedia) writemediacfg(*medialevel);
-});
-
 LUAICOMMAND(get_all_map_names, {
     vector<char*> dirs;
 
@@ -1186,3 +1165,6 @@ LUAICOMMAND(get_all_map_names, {
 
     return 4;
 });
+
+#endif
+

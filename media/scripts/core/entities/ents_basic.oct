@@ -24,6 +24,7 @@ import core.events.signal
 import core.entities.svars
 import core.entities.ents
 import core.engine.cubescript as cs
+import core.network.msg
 
 from std.conv import hex_to_rgb as hextorgb
 
@@ -375,8 +376,18 @@ M.Character = Entity.clone({
     get_editing: @[!server,func(self) { return self.get_attr("client_state") == 4 }],
     get_lagged: @[!server,func(self) { return self.get_attr("client_state") == 3 }],
 
-    __init_svars: @[server,func(self, kwargs) {
-        Entity::__init_svars(self, kwargs)
+    __init_svars: func(self, kwargs) {
+        self.cn = kwargs && kwargs.cn || -1
+        assert(self.cn >= 0)
+
+        @[!server] {
+            self.setup()
+            self.initialized = true
+            self.__centity = capi::setup_character(self.cn)
+            M::set_centity(self.__centity, self)
+        } else {
+            Entity::__init_svars(self, kwargs)
+        }
 
         self.set_attr("model_name", "")
         self.set_attr("attachments", [])
@@ -420,25 +431,39 @@ M.Character = Entity.clone({
         self.set_attr("physics_trigger", 0)
         self.set_attr("jumping_sound", "gk/jump2.ogg")
         self.set_attr("landing_sound", "olpc/AdamKeshen/kik.wav")
-    }],
+    },
 
     __activate: @[server,func(self, kwargs) {
         self.cn = kwargs && kwargs.cn || -1
         assert(self.cn >= 0)
 
-        Entity::__activate(self, kwargs)
+        var sd = kwargs && kwargs.state_data || undef
+        self.entity_setup()
+        if sd { self.set_sdata_full(sd) }
+        self.send_notification_full(msg.ALL_CLIENTS)
+        self.sent_notification_full = true
 
         self.set_attr("model_name", self.get_attr("model_name"))
 
         self.flush_queued_svar_changes()
     },func(self, kwargs) {
-        Entity::__activate(self, kwargs)
+        self.cn = kwargs && kwargs.cn || -1
+        assert(self.cn >= 0)
 
-        self.cn = capi::player_get_cn()
-        self.__centity = capi::setup_character()
+        self.__centity = capi::setup_character(self.cn)
         M::set_centity(self.__centity, self)
 
+        self.setup()
+        if msg::is_local() {
+            self.initialized = true
+            ents::__set_player(self)
+        } else {
+            self.initialized = false
+        }
+
         self.render_args_timestamp = -1
+
+        self.set_attr("model_name", self.get_attr("model_name"))
 
         // see world.oct for field meanings
         connect(self, "physics_trigger,changed", func(self, val) {
@@ -734,12 +759,12 @@ M.Player = Character.clone({
         hud_model_name: svars::StateString()
     },
 
-    __init_svars: @[server,func(self, kwargs) {
+    __init_svars: func(self, kwargs) {
         Character::__init_svars(self, kwargs)
 
         self.set_attr("can_edit", false)
         self.set_attr("hud_model_name", "")
-    }]
+    }
 })
 
 ents::register_prototype(Character)

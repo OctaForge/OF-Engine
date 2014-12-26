@@ -1,8 +1,6 @@
 // main.cpp: initialisation & main loop
 
 #include "engine.h"
-#include "game.h"
-#include "of_localserver.h"
 
 #ifdef WIN32
 #include <direct.h>
@@ -20,17 +18,19 @@ void cleanup()
     cleargamma();
     freeocta(worldroot);
     extern void clear_texpacks(int n = 0); clear_texpacks(); /* OF */
-    extern void clear_command();  clear_command();
-    extern void clear_console();  clear_console();
-    extern void clear_models();   clear_models();
-    extern void clear_sound();    clear_sound();
+    extern void clear_command(); clear_command();
+    extern void clear_console(); clear_console();
+    extern void clear_models();  clear_models();
+    extern void clear_sound();   clear_sound();
     lua::close();
     closelogfile();
     ovr::destroy();
     #ifdef __APPLE__
         if(screen) SDL_SetWindowFullscreen(screen, 0);
     #endif
+    #ifndef __APPLE__ /* bad, temporary workaround */
     SDL_Quit();
+    #endif
 }
 
 extern void writeinitcfg();
@@ -38,7 +38,7 @@ extern void writeinitcfg();
 void quit()                     // normal exit
 {
     writeinitcfg();
-
+    writeservercfg();
     abortconnect();
     disconnect();
     localdisconnect();
@@ -148,6 +148,7 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
 {
     resethudmatrix();
     hudnotextureshader->set();
+
     gle::defvertex(2);
 
     gle::begin(GL_TRIANGLE_STRIP);
@@ -166,6 +167,7 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
         lua::call_external("background_render", "sss", caption, mapname, mapinfo);
 
     glDisable(GL_BLEND);
+
     gle::disable();
 }
 
@@ -238,6 +240,7 @@ void renderprogressview(float bar, const char *text) { // also used during loadi
 void renderprogress(float bar, const char *text)   // also used during loading
 {
     if(!inbetweenframes || drawtex) return;
+
     clientkeepalive();      // make sure our connection doesn't time out while loading maps etc.
     stopsounds();
 
@@ -481,6 +484,7 @@ void setupscreen()
 void resetgl()
 {
     lua::call_external("changes_clear", "i", CHANGE_GFX|CHANGE_SHADERS);
+
     renderbackground("resetting OpenGL");
 
     recorder::cleanup();
@@ -771,10 +775,6 @@ void swapbuffers(bool overlay)
     SDL_GL_SwapWindow(screen);
 }
 
-VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
-
-VARF(paused, 0, 0, 1, if(multiplayer()) paused = 0);
-
 VAR(menufps, 0, 60, 1000);
 VARP(maxfps, 0, 125, 1000);
 
@@ -932,6 +932,12 @@ int getclockmillis()
 
 VAR(numcpus, 1, 1, 16);
 
+#ifdef __APPLE__
+#ifdef main
+#undef main
+#endif
+#endif
+
 int main(int argc, char **argv)
 {
     #ifdef WIN32
@@ -999,6 +1005,7 @@ int main(int argc, char **argv)
                 break;
             }
             case 'g': logoutf("Setting logging level %s", &argv[i][2]); loglevel = &argv[i][2]; break;
+            case 'j': logoutf("Setting log file: %s", &argv[i][2]); setlogfile(&argv[i][2]); break;
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
             case 'w': scr_w = clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW); if(!findarg(argc, argv, "-h")) scr_h = -1; break;
             case 'h': scr_h = clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH); if(!findarg(argc, argv, "-w")) scr_w = -1; break;
@@ -1017,6 +1024,7 @@ int main(int argc, char **argv)
         }
         else gameargs.add(argv[i]);
     }
+
     /* Initialize logging at first, right after that lua. */
     logger::setlevel(loglevel);
 
@@ -1055,7 +1063,6 @@ int main(int argc, char **argv)
     SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
     #endif
     setupscreen();
-
     SDL_ShowCursor(SDL_FALSE);
     SDL_StopTextInput(); // workaround for spurious text-input events getting sent on first text input toggle?
 
@@ -1102,7 +1109,9 @@ int main(int argc, char **argv)
 
     identflags &= ~IDF_PERSIST;
 
+    initing = INIT_GAME;
     game::loadconfigs();
+
     initing = NOT_INITING;
 
     initlog("render");
@@ -1138,18 +1147,12 @@ int main(int argc, char **argv)
         int millis = getclockmillis();
         limitfps(millis, totalmillis);
         elapsedtime = millis - totalmillis;
-        if(multiplayer(false)) curtime = game::ispaused() ? 0 : elapsedtime;
-        else
-        {
-            static int timeerr = 0;
-            int scaledtime = elapsedtime*gamespeed + timeerr;
-            curtime = scaledtime/100;
-            timeerr = scaledtime%100;
-            if(curtime>200) curtime = 200;
-            if(paused || game::ispaused()) curtime = 0;
-        }
-        local_server::try_connect(); /* Try connecting if server is ready */
-
+        static int timeerr = 0;
+        int scaledtime = game::scaletime(elapsedtime) + timeerr;
+        curtime = scaledtime/100;
+        timeerr = scaledtime%100;
+        if(!multiplayer(false) && curtime>200) curtime = 200;
+        if(game::ispaused()) curtime = 0;
         lastmillis += curtime;
         totalmillis = millis;
         updatetime();
@@ -1175,10 +1178,9 @@ int main(int argc, char **argv)
 
         if(minimized) continue;
 
-        gl_setupframe(!mainmenu && game::scenario_started());
+        gl_setupframe(!mainmenu);
 
         inbetweenframes = false;
-
         gl_drawframe();
         swapbuffers();
         renderedframe = inbetweenframes = true;

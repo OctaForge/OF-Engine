@@ -35,56 +35,54 @@ if(OF_BUILD_AMALG)
     set(CLIENT_SOURCES ../shared/client_amalg)
 else()
     set(CLIENT_SOURCES
-        ../engine/blend
-        ../engine/serverbrowser
-        ../game/game
-        ../game/server
-        ../game/client
-        ../game/render
-        ../game/weapon
-        ../shared/tools
+        ../shared/crypto
         ../shared/geom
         ../shared/glemu
-        ../engine/command
+        ../shared/stream
+        ../shared/tools
+        ../shared/zip
         ../engine/aa
-        ../engine/rendertext
-        ../engine/material
-        ../engine/octaedit
+        ../engine/bih
+        ../engine/blend
+        ../engine/client
+        ../engine/command
+        ../engine/console
+        ../engine/dynlight
         ../engine/grass
+        ../engine/light
+        ../engine/main
+        ../engine/material
+        ../engine/movie
+        ../engine/normal
+        ../engine/octa
+        ../engine/octaedit
+        ../engine/octarender
         ../engine/ovr
         ../engine/physics
+        ../engine/pvs
         ../engine/rendergl
         ../engine/renderlights
-        ../engine/worldio
-        ../engine/texture
-        ../engine/console
-        ../engine/world
-        ../engine/renderva
-        ../engine/normal
         ../engine/rendermodel
-        ../engine/main
-        ../engine/bih
-        ../engine/octa
-        ../engine/light
-        ../engine/water
-        ../engine/shader
-        ../engine/rendersky
         ../engine/renderparticles
-        ../engine/octarender
+        ../engine/rendersky
+        ../engine/rendertext
+        ../engine/renderva
         ../engine/server
-        ../engine/client
-        ../engine/dynlight
-        ../engine/stain
+        ../engine/serverbrowser
+        ../engine/shader
         ../engine/sound
-        ../engine/pvs
-        ../shared/stream
-        ../shared/zip
-        ../engine/movie
-        ../octaforge/of_lua
-        ../octaforge/of_localserver
-        ../octaforge/of_world
+        ../engine/stain
+        ../engine/texture
+        ../engine/water
+        ../engine/world
+        ../engine/worldio
+        ../game/client
+        ../game/entities
+        ../game/game
+        ../game/render
+        ../game/server
         ../octaforge/of_logger
-        ../octaforge/of_entities)
+        ../octaforge/of_lua)
 endif()
 
 set(CLIENT_LIBS enet ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${EXTRA_LIBS})

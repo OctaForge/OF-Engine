@@ -158,6 +158,7 @@ capi.strftime = func(fmt) {
 }
 
 @[!server] {
+
     var dynlight_add, dynlight_add_spot in capi
 
     capi.dynlight_add = func(ox, oy, oz, radius, r, g, b, fade, peak,
@@ -278,6 +279,7 @@ capi.strftime = func(fmt) {
 
     var isconnected in capi
     capi.isconnected = func(attempt, local) {
-        return isconnected(attempt || false, local || false)
+        if local == undef { local = true }
+        return isconnected(attempt || false, local)
     }
 }

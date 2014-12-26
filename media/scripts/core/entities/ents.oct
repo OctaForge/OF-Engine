@@ -81,13 +81,6 @@ var ids_to_names = {}
 
 var is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
 
-var has_logic_sys = false
-set_external("has_logic_sys_set", func(v) { has_logic_sys = v })
-
-M.has_logic_sys = func() {
-    return has_logic_sys
-}
-
 var cent_storage = {}
 
 var iptr = ffi["typeof"]("intptr_t")
@@ -404,6 +397,8 @@ M.get_player = @[!server,func() {
     return player_entity
 }]
 
+M.__set_player = func(pl) { player_entity = pl }
+
 set_external("entity_get_player_prototype", func() {
     return player_prototype
 })
@@ -450,7 +445,7 @@ var add = func(cn, uid, kwargs, new) {
     // caching
     cl.__instances.push(r)
 
-    if @[server,new,new && cstor == "static"] {
+    if @[server,new,new && msg::is_local()] {
         var ndata
         if kwargs {
             ndata = kwargs.newent_data
@@ -509,9 +504,10 @@ set_external("entity_is_initialized", func(cent) {
     return ent.initialized
 })
 
-var remove_stor = func(stor) {
+var remove_stor = func(stor, protos) {
     for i, e in stor.each() {
         if e {
+            protos[e.name] = true
             emit(e, "pre_deactivate")
             e.__deactivate()
             stor[i] = undef
@@ -527,12 +523,16 @@ var remove_stor = func(stor) {
     See also:
         - $remove
 */
-M.remove_all = func() {
-    remove_stor(storage_logic)
-    remove_stor(storage_dynamic)
-    @[!server] remove_stor(storage_static)
-    for n, v in pairs(proto_storage) {
-        v.__instances = []
+M.remove_all = func(stat) {
+    var protos = {}
+    if (!stat) {
+        remove_stor(storage_logic, protos)
+        remove_stor(storage_dynamic, protos)
+    } else {
+        @[!server] remove_stor(storage_static, protos)
+    }
+    for nm, v in pairs(protos) {
+        proto_storage[nm].__instances = []
     }
 }
 set_external("entities_remove_all", M.remove_all)
@@ -574,6 +574,14 @@ M.save = @[!server,func() {
     return e"[\n$(r.concat(",\n"))\n]\n"
 }]
 set_external("entities_save_all", M.save)
+
+set_external("entity_serialize", func(cent, nopos) {
+    var ent = get_by_centity(cent)
+    if !ent { return }
+    var sr = ent.build_sdata()
+    if nopos { sr["position"] = undef }
+    return ent.name, serialize(sr)
+})
 
 var storid = enum {
     logic: 1 << 29,
@@ -821,13 +829,17 @@ M.Entity = Object.clone({
              - kwargs - extra data passed to init, unused here.
              - ndata - an array of extra newent arguments in wire format.
     */
-    __init_svars: @[server,func(self, kwargs, ndata) {
+    __init_svars: func(self, kwargs, ndata) {
         @[debug] log(DEBUG, "Entity.__init_svars")
-
-        self.entity_setup()
-
+        @[!server] {
+            if !msg::is_local() { return }
+            self.setup()
+            self.initialized = true
+        } else {
+            self.entity_setup()
+        }
         self.set_attr("tags", [])
-    }],
+    },
 
     /**
         The entity activator. It's called on its creation. It calls
@@ -856,7 +868,7 @@ M.Entity = Object.clone({
             self.sent_notification_full = true
         } else {
             self.setup()
-            self.initialized = false
+            self.initialized = msg::is_local()
         }
     },
 
@@ -865,9 +877,6 @@ M.Entity = Object.clone({
         var ouid, stor = get_stor_uid(p.get_int())
         var oc   = p.get_string()
         var sd   = p.get_string()
-        if !has_logic_sys {
-            return
-        }
         // retrieve ocn - first 7 bits only is client number
         var ocn = ocnf & 0x7F
         // if they differ, we're sending a player complete notification
@@ -904,9 +913,6 @@ M.Entity = Object.clone({
 
     msgid_le_rem: msg::register(@[!server,func(tp, receiver, sender, p) {
         var uid, stor = get_stor_uid(p.get_int())
-        if !has_logic_sys {
-            return
-        }
         ent_remove(stor[uid])
     }]),
 
@@ -921,9 +927,6 @@ M.Entity = Object.clone({
         var value = p.get_string()
         var ocn = p.get_int()
         @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $value")
-        if !has_logic_sys {
-            return
-        }
         var ent = stor[uid]
         if ent {
             var key = ids_to_names[ent.name][kpid]
@@ -1018,10 +1021,12 @@ M.Entity = Object.clone({
 
         var nfh = actor_uid != -1
 
+        var is_local = msg::is_local()
+
         // from client-side script, send a server request unless the svar
         // is controlled here (synced using some other method)
         // if this variable is set on the client, send a notification
-        if !nfh && !csfh {
+        if !nfh && !csfh && !is_local {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
             self.msg_sdata_changereq_send(svar.reliable, self.uid,
@@ -1029,7 +1034,7 @@ M.Entity = Object.clone({
         }
 
         // from a server or set clientside, update now
-        if nfh || cset || csfh {
+        if nfh || cset || csfh || is_local {
             @[debug] log(INFO, "    var update")
             // from the server, in wire format
             if nfh {
@@ -1447,11 +1452,15 @@ set_external("entity_new_with_sd", func(cl, x, y, z, sd, nd) {
         .format(ent.uid, cl, x, y, z))
 })
 
+var created_cns = {}
+
 set_external("entity_new_with_cn", func(cl, cn, can_edit, char_name) {
+    if created_cns[cn] { return }
     var ent = ent_new(cl, { cn: cn }, cn)
     assert(ent.cn == cn)
     if can_edit { ent.set_attr("can_edit", can_edit) }
     ent.set_attr("character_name", char_name)
+    created_cns[cn] = true
 })
 
 

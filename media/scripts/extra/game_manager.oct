@@ -17,6 +17,7 @@ import core.logger as log
 import core.events.signal
 import core.entities.svars
 import core.entities.ents
+import core.network.msg
 var connect, emit = signal.connect, signal.emit
 
 var get
@@ -52,10 +53,20 @@ M.player_plugin = {
             connect(self, "client,respawn", func(self) {
                 get().place_player(self)
             })
+            if msg::is_local() {
+                self.game_manager_respawn()
+            }
         }
     },
 
     game_manager_respawn: func(self) {
+        @[!server] {
+            if msg::is_local() {
+                self.set_attr("can_move", true)
+                emit(self, "client,respawn")
+                return
+            }
+        }
         self.set_attr("spawn_stage", 1)
     },
 
@@ -102,11 +113,12 @@ var GameManager = Entity.clone({
         team_data: svars::StateTable()
     },
 
-    __activate: @[server,func(self) {
+    __activate: func(self) {
         Entity::__activate(self)
+        if !msg::is_local() { return }
         self.add_tag("game_manager")
         self.teams = {}
-    }],
+    },
 
     get_players: @[server,func(self) {
         var players = []
@@ -132,7 +144,7 @@ var GameManager = Entity.clone({
         self.sync_team_data()
 
         for i, player in self.get_players().each() {
-            player.respawn()
+            player.game_manager_respawn()
         }
 
         emit(self, "game,start")
@@ -201,8 +213,9 @@ get = M.get
 */
 M.setup = func(plugins) {
     ents::register_prototype(GameManager, plugins)
+    if !msg::is_local() { return }
+    gameman = ents::new("GameManager")
     @[server] {
-        gameman = ents::new("GameManager")
         return gameman
     }
 }

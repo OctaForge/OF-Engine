@@ -476,12 +476,11 @@ void execbind(keym &k, bool isdown)
     if(isdown)
     {
         int state = keym::ACTION_DEFAULT;
-        if (!mainmenu)
+        if(!mainmenu)
         {
             if(editmode) state = keym::ACTION_EDITING;
             else if(player->state==CS_SPECTATOR) state = keym::ACTION_SPECTATOR;
         }
-
         char *&action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
         keyaction = action;
         keypressed = &k;
@@ -545,6 +544,7 @@ bool consolekey(int code, bool isdown)
                 int len = (int)strlen(commandbuf);
                 if(commandpos<0) break;
                 memmove(&commandbuf[commandpos], &commandbuf[commandpos+1], len - commandpos);
+                resetcomplete();
                 if(commandpos>=len-1) commandpos = -1;
                 break;
             }
@@ -554,6 +554,7 @@ bool consolekey(int code, bool isdown)
                 int len = (int)strlen(commandbuf), i = commandpos>=0 ? commandpos : len;
                 if(i<1) break;
                 memmove(&commandbuf[i-1], &commandbuf[i], len - i + 1);
+                resetcomplete();
                 if(commandpos>0) commandpos--;
                 else if(!commandpos && len<=1) commandpos = -1;
                 break;
@@ -858,11 +859,9 @@ extern void cursor_get_position(float &x, float &y);
 
 #define MOUSECLICK(num) \
 void mouse##num##click() { \
+    if (!isconnected()) return; \
     bool down = (addreleaseaction(newstring(QUOT(mouse##num##click))) != 0); \
     logger::log(logger::INFO, "mouse click: %i (down: %i)", num, down); \
-\
-    if (!(lua::L && game::scenario_started())) \
-        return; \
 \
     vec pos; \
     extentity *ext; \
@@ -886,8 +885,7 @@ bool k_turn_left, k_turn_right, k_look_up, k_look_down;
 
 #define SCRIPT_DIR(name, v, p, d, s, os) \
 ICOMMAND(name, "", (), { \
-    if (game::scenario_started()) \
-    { \
+    if (isconnected()) { \
         lua::call_external("entity_clear_actions", "p", game::player1); \
         s = (addreleaseaction(newstring(#name)) != 0); \
         lua::call_external("input_" #v, "ib", s ? d : (os ? -(d) : 0), s); \
@@ -906,8 +904,7 @@ SCRIPT_DIR(left,   strafe, strafe,  1, player->k_left, player->k_right);
 SCRIPT_DIR(right, strafe, strafe, -1, player->k_right, player->k_left);
 
 ICOMMAND(jump, "", (), {
-    if (game::scenario_started())
-    {
+    if (isconnected()) {
         lua::call_external("entity_clear_actions", "p", game::player1);
         bool down = (addreleaseaction(newstring("jump")) != 0);
         lua::call_external("input_jump", "b", down);
@@ -915,8 +912,7 @@ ICOMMAND(jump, "", (), {
 });
 
 ICOMMAND(crouch, "", (), {
-    if (game::scenario_started())
-    {
+    if (isconnected()) {
         lua::call_external("entity_clear_actions", "p", game::player1);
         bool down = (addreleaseaction(newstring("crouch")) != 0);
         lua::call_external("input_crouch", "b", down);

@@ -670,7 +670,7 @@ struct stainrenderer
 
     void genmmtris(octaentities &oe)
     {
-        const vector<extentity *> &ents = entities::getents();
+        /*const vector<extentity *> &ents = entities::getents();
         loopv(oe.mapmodels)
         {
             extentity &e = *ents[oe.mapmodels[i]];
@@ -688,7 +688,7 @@ struct stainrenderer
             int yaw = e.attr[0], pitch = e.attr[1], roll = e.attr[2];
 
             m->bih->genstaintris(this, staincenter, stainradius, e.o, yaw, pitch, roll, scale);
-        }
+        }*/
     }
     
     void gentris(cube *c, const ivec &o, int size, int escaped = 0)

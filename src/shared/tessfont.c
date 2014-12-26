@@ -269,7 +269,7 @@ static int sdist;
 static inline void searchdist(int x, int y, int cx, int cy)
 {
     int dx = cx - x, dy = cy - y, dist = dx*dx + dy*dy;
-    if(dist < sdist) sdist = dist;  
+    if(dist < sdist) sdist = dist;
 }
 
 static int sx1, ex1;
@@ -311,7 +311,7 @@ foundbelow1:
         uchar *bsrc = &src[cx>>3];
         int bx = (cx&~7) + 8, bits = *bsrc;
         if(bits==0xFF) cx = bx;
-        else 
+        else
         {
             bits <<= cx&7;
             if(bx >= ex1)
@@ -348,7 +348,7 @@ static inline int search0(int x, int y, int w, int radius, int cy, uchar *src)
         uchar *bsrc = &src[cx>>3];
         int bx = cx&~7, bits = *bsrc;
         if(!bits) cx = bx-1;
-        else 
+        else
         {
             bits >>= 7-(cx&7);
             if(bx <= sx0)
@@ -377,14 +377,14 @@ foundbelow0:
         uchar *bsrc = &src[cx>>3];
         int bx = (cx&~7) + 8, bits = *bsrc;
         if(!bits) cx = bx;
-        else 
+        else
         {
             bits <<= cx&7;
             if(bx >= ex0)
             {
                 for(; cx < ex0; cx++, bits <<= 1) if(bits&0x80) { ex0 = cx-1; searchdist(x, y, cx, cy); goto foundabove0; }
                 goto foundabove0;
-            } 
+            }
             else for(; cx < bx; cx++, bits <<= 1) if(bits&0x80) { ex0 = cx-1; searchdist(x, y, cx, cy); goto foundabove0; }
         }
         while(cx < ex0)
@@ -421,8 +421,8 @@ void gensdf(struct fontchar *c)
     {
         double total = 0;
         for(y = dy*supersample - radius; y < (dy+1)*supersample - radius; y++)
-        for(x = dx*supersample - radius; x < (dx+1)*supersample - radius; x++)             
-        {  
+        for(x = dx*supersample - radius; x < (dx+1)*supersample - radius; x++)
+        {
             int sx = imax(x - radius, 0), sy = imax(y - radius, 0), ex = imin(x + radius, w), ey = imin(y + radius, h), cy, val = 0;
             if(y >= 0 && y < h && x >= 0 && x < w)
             {
@@ -432,11 +432,11 @@ void gensdf(struct fontchar *c)
             sdist = INT_MAX;
             if(val)
             {
-                for(cy = imin(ey, y)-1, sx1 = sx, ex1 = ex, src = (uchar *)c->glyph->bitmap.buffer + cy*c->glyph->bitmap.pitch; 
+                for(cy = imin(ey, y)-1, sx1 = sx, ex1 = ex, src = (uchar *)c->glyph->bitmap.buffer + cy*c->glyph->bitmap.pitch;
                     cy >= sy && search1(x, y, w, radius, cy, src);
                     cy--, src -= c->glyph->bitmap.pitch);
                 for(cy = imax(sy, y), sx1 = sx, ex1 = ex, src = (uchar *)c->glyph->bitmap.buffer + cy*c->glyph->bitmap.pitch;
-                    cy < ey && search1(x, y, w, radius, cy, src); 
+                    cy < ey && search1(x, y, w, radius, cy, src);
                     cy++, src += c->glyph->bitmap.pitch);
                 if(y - radius < 0) searchdist(x, y, x, -1);
                 if(y + radius > h) searchdist(x, y, x, h);
@@ -454,12 +454,12 @@ void gensdf(struct fontchar *c)
             else total -= sqrt(sdist);
         }
         *dst = (uchar)iclamp((int)round(127.5 + (127.5/(supersample*supersample))*total/radius), 0, 255);
-        if(*dst) 
-        {  
-            x1 = imin(x1, dx); 
-            y1 = imin(y1, dy); 
-            x2 = imax(x2, dx); 
-            y2 = imax(y2, dy); 
+        if(*dst)
+        {
+            x1 = imin(x1, dx);
+            y1 = imin(y1, dy);
+            x2 = imax(x2, dx);
+            y2 = imax(y2, dy);
         }
         dst++;
     }
@@ -493,7 +493,7 @@ void writetexs(const char *name, struct fontchar *chars, int numchars, int numte
             src = c->sdf + c->sdfy*c->sdfpitch + c->sdfx;
             for(y = 0; y < c->sdfh; y++)
             {
-                memcpy(dst, src, c->sdfw); 
+                memcpy(dst, src, c->sdfw);
                 dst += tw;
                 src += c->sdfpitch;
             }
@@ -746,14 +746,14 @@ int main(int argc, char **argv)
         }
     }
     if(rh > 0) numtex++;
-    if(sh <= 0) sh = (int)ceil(y2 - y1); 
+    if(sh <= 0) sh = (int)ceil(y2 - y1);
     if(sw <= 0) sw = sh/3;
     endtime = time(NULL);
     writetexs(argv[2], chars, numchars, numtex, tw, th);
     writecfg(argv[2], chars, numchars, x1, y1, x2, y2, sw, sh, argc, argv);
     for(i = 0; i < numchars; i++)
     {
-        struct fontchar *c = &chars[i]; 
+        struct fontchar *c = &chars[i];
         FT_Done_Glyph((FT_Glyph)c->glyph);
         if(c->sdf) free(c->sdf);
     }
