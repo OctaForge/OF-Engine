@@ -109,12 +109,12 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     -1
 };
 
-#define TESSERACT_SERVER_PORT 42000
-#define TESSERACT_LANINFO_PORT 41998
-#define TESSERACT_MASTER_PORT 41999
-#define PROTOCOL_VERSION 2              // bump when protocol changes
+#define OCTAFORGE_SERVER_PORT 42000
+#define OCTAFORGE_LANINFO_PORT 41998
+#define OCTAFORGE_MASTER_PORT 41999
+#define PROTOCOL_VERSION 1              // bump when protocol changes
 #define DEMO_VERSION 1                  // bump when demo format changes
-#define DEMO_MAGIC "TESSERACT_DEMO\0\0"
+#define DEMO_MAGIC "OCTAFORGE_DEMO\0\0"
 
 struct demoheader
 {
