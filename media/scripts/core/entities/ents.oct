@@ -1445,9 +1445,24 @@ M.new = func(cl, kwargs, fuid) {
 }
 var ent_new = M.new
 
-set_external("entity_new_with_sd", func(cl, x, y, z, sd, nd) {
+set_external("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid) {
+    var cl = proto_storage[cn] || proto_storage[proto_aliases[cn]]
+    if !cl {
+        log(ERROR, e"no such entity prototype: $(tostring(cn))")
+        assert(false)
+    }
+    if cl.__storage != "static" {
+        log(ERROR, e"trying to create a non-static entity: $(tostring(cn))")
+        assert(false)
+    }
+    if fuid {
+        var oent = storage_static[fuid]
+        if oent {
+            ent_remove(oent)
+        }
+    }
     var ent = ent_new(cl, { position: { x: x, y: y, z: z },
-        state_data: sd, newent_data: nd })
+        state_data: sd, newent_data: nd }, fuid)
     @[debug] log(DEBUG, "Created entity: %d - %s (%f, %f, %f)"
         .format(ent.uid, cl, x, y, z))
 })
