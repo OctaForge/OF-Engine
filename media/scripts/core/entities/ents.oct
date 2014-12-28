@@ -430,6 +430,17 @@ var add = func(cn, uid, kwargs, new) {
     var stor = storages[cstor]
     assert(stor)
 
+    if !uid {
+        /* try to reuse indexes (TODO: cache unused indexes for better perf) */
+        for i, v in stor.each() {
+            if !v {
+                uid = i
+                break
+            }
+        }
+        /* no free slot, no worries - we just add new */
+    }
+
     uid = uid || stor.len()
     if uid >= stor.len() {
         stor.resize(uid + 1)
