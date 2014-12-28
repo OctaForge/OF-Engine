@@ -34,8 +34,14 @@ namespace entities
 
     vector<extentity *> &getents() { return ents; }
 
-    extentity *newentity() { return new gameentity(); }
-    void deleteentity(extentity *e) { delete (gameentity *)e; }
+    extentity *newentity() { return new extentity(); }
+
+    void deleteentity(extentity *e) {
+        if (e->type == ET_MAPMODEL)
+            delete (modelentity *)e;
+        else
+            delete e;
+    }
 
     void clearents()
     {
@@ -284,30 +290,39 @@ namespace entities
         return e->attached;
     });
 
-    CLUAICOMMAND(setup_extent, extentity *, (int type), {
+    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type), {
+        while (ents.length() < uid) ents.add(newentity())->type = ET_EMPTY;
         extentity *e;
         if (type == ET_MAPMODEL) {
             e = new modelentity;
         } else {
             e = new extentity;
         }
-        entities::getents().add(e);
-
         e->type = type;
         e->o = vec(0, 0, 0);
         int numattrs = getattrnum(type);
         for (int i = 0; i < numattrs; ++i) e->attr.add(0);
-
+        if (ents.inrange(uid)) {
+            deleteentity(ents[uid]);
+            ents[uid] = e;
+        } else {
+            ents.add(e);
+        }
         addentity(e);
         attachentity(*e);
         return e;
-        return NULL;
     });
 
-    CLUAICOMMAND(destroy_extent, void, (extentity *ext), {
-        if (ext->type == ET_SOUND) stopmapsound(ext);
-        removeentity(ext);
-        ext->type = ET_EMPTY;
+    CLUAICOMMAND(destroy_extent, void, (int uid), {
+        extentity *e = ents[uid];
+        if (e->type == ET_SOUND) stopmapsound(e);
+        removeentity(e);
+        if (e->type == ET_MAPMODEL) {
+            delete e;
+            ents[uid] = new extentity;
+            e = ents[uid];
+        }
+        e->type = ET_EMPTY;
     });
 
     CLUAICOMMAND(setup_character, physent *, (int cn), {

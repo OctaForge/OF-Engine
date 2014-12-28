@@ -16,10 +16,6 @@ enum
 #define DNF 100.0f              // for normalized vectors
 #define DVELF 1.0f              // for playerspeed based velocity vectors
 
-struct gameentity : extentity
-{
-};
-
 enum
 {
     M_EDIT       = 1<<3,
