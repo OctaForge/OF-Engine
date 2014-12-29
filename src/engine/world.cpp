@@ -1189,10 +1189,30 @@ void entpaste()
     }
 }
 
+void entreplace()
+{
+    if(noentedit() || entcopybuf.empty()) return;
+    const copyent &c = entcopybuf[0];
+    if(entgroup.length() || enthover >= 0)
+    {
+        groupedit({
+            lua::call_external("entity_new_with_sd", "sfffssi", c.name,
+                e.o.x, e.o.y, e.o.z, c.sdata, "", n);
+        });
+    }
+    else
+    {
+        vec o = vec(c.o).mul(float(sel.grid)/float(entcopygrid)).add(vec(sel.o));
+        lua::call_external("entity_new_with_sd", "sfffss", c.name,
+            o.x, o.y, o.z, c.sdata, "");
+    }
+}
+
 COMMAND(delent, "");
 COMMAND(dropent, "");
 COMMAND(entcopy, "");
 COMMAND(entpaste, "");
+COMMAND(entreplace, "");
 
 /* OF */
 void printent(extentity &e, char *buf, int len) {

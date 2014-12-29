@@ -290,25 +290,34 @@ namespace entities
         return e->attached;
     });
 
-    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type), {
+    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, extentity *ce), {
         while (ents.length() < uid) ents.add(newentity())->type = ET_EMPTY;
         extentity *e;
-        if (type == ET_MAPMODEL) {
+        if (type == ET_MAPMODEL && (!ce || ce->type != ET_MAPMODEL)) {
             e = new modelentity;
+            if (ce) {
+                delete (extentity *)ce;
+                ce = e;
+            }
+        } else if (ce) {
+            e = ce;
         } else {
             e = new extentity;
         }
         e->type = type;
         e->o = vec(0, 0, 0);
         int numattrs = getattrnum(type);
+        e->attr.setsize(0);
         for (int i = 0; i < numattrs; ++i) e->attr.add(0);
-        if (ents.inrange(uid)) {
-            deleteentity(ents[uid]);
-            ents[uid] = e;
-        } else {
-            ents.add(e);
+        if (!ce) {
+            if (ents.inrange(uid)) {
+                deleteentity(ents[uid]);
+                ents[uid] = e;
+            } else {
+                ents.add(e);
+            }
+            addentity(e);
         }
-        addentity(e);
         attachentity(*e);
         return e;
     });
