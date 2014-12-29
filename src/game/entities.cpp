@@ -26,19 +26,25 @@ int getattrnum(int type) {
         (size_t)type < (sizeof(attrnums) / sizeof(int))) ? type : 0];
 }
 
-struct modelentity: extentity {
+struct modelinfo {
     model *m, *collide;
     int anim, start_time;
     vector<modelattach> attachments;
     hashtable<const char*, entlinkpos> attachment_positions;
 
-    modelentity(): extentity(), m(NULL), collide(NULL), anim(0), start_time(0) {
+    modelinfo(): m(NULL), collide(NULL), anim(0), start_time(0) {
         attachments.add(modelattach());
     }
 
-    ~modelentity() {
+    ~modelinfo() {
         clear_attachments(attachments, attachment_positions);
     }
+};
+
+struct ofentity: extentity {
+    modelinfo *m;
+    ofentity(): extentity(), m(NULL) {}
+    ~ofentity() { delete m; }
 };
 
 namespace entities
@@ -49,14 +55,9 @@ namespace entities
 
     vector<extentity *> &getents() { return ents; }
 
-    extentity *newentity() { return new extentity(); }
+    extentity *newentity() { return new ofentity(); }
 
-    void deleteentity(extentity *e) {
-        if (e->type == ET_MAPMODEL)
-            delete (modelentity *)e;
-        else
-            delete e;
-    }
+    void deleteentity(extentity *e) { delete (ofentity *)e; }
 
     void clearents()
     {
@@ -68,38 +69,45 @@ namespace entities
     }
 
     model *getmodel(const extentity &e) {
-        if (e.type != ET_MAPMODEL) return NULL;
-        return ((const modelentity &)e).m;
+        const ofentity &oe = (const ofentity &)e;
+        if (!oe.m) return NULL;
+        return oe.m->m;
     }
 
     void setmodel(extentity &e, model *m) {
-        if (e.type != ET_MAPMODEL) return;
-        ((modelentity &)e).m = m;
+        ofentity &oe = (ofentity &)e;
+        if (!oe.m) return;
+        oe.m->m = m;
     }
 
     model *getcollidemodel(const extentity &e) {
-        if (e.type != ET_MAPMODEL) return NULL;
-        return ((const modelentity &)e).collide;
+        const ofentity &oe = (const ofentity &)e;
+        if (!oe.m) return NULL;
+        return oe.m->collide;
     }
 
     void setcollidemodel(extentity &e, model *m) {
-        if (e.type != ET_MAPMODEL) return;
-        ((modelentity &)e).collide = m;
+        ofentity &oe = (ofentity &)e;
+        if (!oe.m) return;
+        oe.m->collide = m;
     }
 
     int getanim(const extentity &e) {
-        if (e.type != ET_MAPMODEL) return 0;
-        return ((const modelentity &)e).anim;
+        const ofentity &oe = (const ofentity &)e;
+        if (!oe.m) return 0;
+        return oe.m->anim;
     }
 
     int getstarttime(const extentity &e) {
-        if (e.type != ET_MAPMODEL) return 0;
-        return ((const modelentity &)e).start_time;
+        const ofentity &oe = (const ofentity &)e;
+        if (!oe.m) return 0;
+        return oe.m->start_time;
     }
 
     modelattach *getattachments(extentity &e) {
-        if (e.type != ET_MAPMODEL) return NULL;
-        vector<modelattach> &at = ((modelentity &)e).attachments;
+        ofentity &oe = (ofentity &)e;
+        if (!oe.m) return NULL;
+        vector<modelattach> &at = oe.m->attachments;
         if (at.length() <= 1) return NULL;
         return at.getbuf();
     }
@@ -122,20 +130,26 @@ namespace entities
 
     CLUAICOMMAND(set_animation_ext, void, (extentity *ext, int anim), {
         if (!ext) return;
-        ((modelentity*)ext)->anim = anim;
-        ((modelentity*)ext)->start_time = lastmillis;
+        ofentity *oe = (ofentity *)ext;
+        if (!oe->m) return;
+        oe->m->anim = anim;
+        oe->m->start_time = lastmillis;
     });
 
     CLUAICOMMAND(get_start_time_ext, bool, (extentity *ext, int *val), {
         if (!ext) return false;
-        *val = ((modelentity*)ext)->start_time;
+        ofentity *oe = (ofentity *)ext;
+        if (!oe->m) return false;
+        *val = oe->m->start_time;
         return true;
     });
 
     CLUAICOMMAND(set_model_name, void, (extentity *ext, const char *name), {
         if (!ext) return;
+        ofentity *oe = (ofentity *)ext;
+        if (!oe->m) return;
         removeentity(ext);
-        if (name[0]) ((modelentity*)ext)->m = loadmodel(name ? name : "");
+        if (name[0]) oe->m->m = loadmodel(name ? name : "");
         addentity(ext);
     });
 
@@ -146,9 +160,10 @@ namespace entities
     });
 
     CLUAICOMMAND(set_attachments_ext, void, (extentity *ext, const char **attach), {
-        if (!ext || ext->type != ET_MAPMODEL) return;
-        modelentity *e = (modelentity*)ext;
-        set_attachments(e->attachments, e->attachment_positions, attach);
+        if (!ext) return;
+        ofentity *oe = (ofentity *)ext;
+        if (!oe->m) return;
+        set_attachments(oe->m->attachments, oe->m->attachment_positions, attach);
     });
 
     static bool get_attachment_pos(const char *tag,
@@ -168,8 +183,10 @@ namespace entities
 
     CLUAICOMMAND(get_attachment_pos_ext, bool, (extentity *ext, const char *tag,
     float *x, float *y, float *z), {
-        if (!ext || ext->type != ET_MAPMODEL) return false;
-        return get_attachment_pos(tag, ((modelentity*)ext)->attachment_positions, x, y, z);
+        if (!ext) return false;
+        ofentity *oe = (ofentity *)ext;
+        if (!oe->m) return false;
+        return get_attachment_pos(tag, oe->m->attachment_positions, x, y, z);
     });
 
     CLUAICOMMAND(get_attachment_pos_dyn, bool, (physent *ent, const char *tag,
@@ -344,17 +361,10 @@ namespace entities
 
     CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, extentity *ce), {
         while (ents.length() < uid) ents.add(newentity())->type = ET_EMPTY;
-        extentity *e;
-        if (type == ET_MAPMODEL && (!ce || ce->type != ET_MAPMODEL)) {
-            e = new modelentity;
-            if (ce) {
-                delete (extentity *)ce;
-                ce = e;
-            }
-        } else if (ce) {
-            e = ce;
-        } else {
-            e = new extentity;
+        ofentity *e = (ofentity *)(ce ? ce : newentity());
+        if (type == ET_MAPMODEL) {
+            if (e->m) delete e->m;
+            e->m = new modelinfo;
         }
         e->type = type;
         e->o = vec(0, 0, 0);
@@ -375,13 +385,12 @@ namespace entities
     });
 
     CLUAICOMMAND(destroy_extent, void, (int uid), {
-        extentity *e = ents[uid];
+        ofentity *e = (ofentity *)ents[uid];
         if (e->type == ET_SOUND) stopmapsound(e);
         removeentity(e);
-        if (e->type == ET_MAPMODEL) {
-            delete e;
-            ents[uid] = new extentity;
-            e = ents[uid];
+        if (e->m) {
+            delete e->m;
+            e->m = NULL;
         }
         e->type = ET_EMPTY;
     });
