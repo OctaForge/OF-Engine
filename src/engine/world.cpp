@@ -517,8 +517,8 @@ void pasteundoent(const undoent &ue)
     vector<extentity *> &ents = entities::getents();
     while(ents.length() < ue.i) ents.add(entities::newentity())->type = ET_EMPTY;
     int efocus = -1;
-    entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffss", ue.name,
-            0, 0, 0, ue.sdata, ""));
+    entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffssi", ue.name,
+            0.0f, 0.0f, 0.0f, ue.sdata, "", ue.i));
 }
 
 void pasteundoents(undoblock *u)
