@@ -362,7 +362,7 @@ namespace entities
         return e->attached;
     });
 
-    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, extentity *ce), {
+    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, extentity *ce, bool isnew), {
         while (ents.length() < uid) ents.add(newentity())->type = ET_EMPTY;
         ofentity *e = (ofentity *)(ce ? ce : newentity());
         if (e->m) delete e->m;
@@ -380,13 +380,15 @@ namespace entities
                 ents.add(e);
             }
             e->type = ET_EMPTY;
-            enttoggle(uid);
-            makeundoent();
+            if (isnew) {
+                enttoggle(uid);
+                makeundoent();
+            }
             e->type = type;
             addentity(e);
         }
         attachentity(*e);
-        commitchanges();
+        if (isnew) commitchanges();
         return e;
     });
 
