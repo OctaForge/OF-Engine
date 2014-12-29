@@ -362,10 +362,8 @@ namespace entities
     CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, extentity *ce), {
         while (ents.length() < uid) ents.add(newentity())->type = ET_EMPTY;
         ofentity *e = (ofentity *)(ce ? ce : newentity());
-        if (type == ET_MAPMODEL) {
-            if (e->m) delete e->m;
-            e->m = new modelinfo;
-        }
+        if (e->m) delete e->m;
+        e->m = (type == ET_MAPMODEL) ? new modelinfo : NULL;
         e->type = type;
         e->o = vec(0, 0, 0);
         int numattrs = getattrnum(type);
