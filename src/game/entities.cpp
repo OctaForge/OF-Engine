@@ -387,8 +387,10 @@ namespace entities
             e->type = type;
             addentity(e);
         }
-        attachentity(*e);
-        if (isnew) commitchanges();
+        if (isnew) {
+            attachentity(*e);
+            commitchanges();
+        }
         return e;
     });
 
