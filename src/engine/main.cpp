@@ -986,7 +986,7 @@ int main(int argc, char **argv)
 #ifdef WIN32
         dir = sethomedir("$HOME\\My Games\\OctaForge");
 #else
-        dir = sethomedir("$HOME/.octaforge_client");
+        dir = sethomedir("$HOME/.octaforge");
 #endif
     }
     if (dir) {
