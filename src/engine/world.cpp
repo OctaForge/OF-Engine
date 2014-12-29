@@ -513,11 +513,12 @@ undoblock *copyundoents(undoblock *u)
 
 void pasteundoent(const undoent &ue)
 {
-    /*if(idx < 0 || idx >= MAXENTS) return;
+    if(ue.i < 0 || ue.i >= MAXENTS) return;
     vector<extentity *> &ents = entities::getents();
-    while(ents.length() < idx) ents.add(entities::newentity())->type = ET_EMPTY;
+    while(ents.length() < ue.i) ents.add(entities::newentity())->type = ET_EMPTY;
     int efocus = -1;
-    entedit(idx, (entity &)e = ue);*/
+    entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffss", ue.name,
+            0, 0, 0, ue.sdata, ""));
 }
 
 void pasteundoents(undoblock *u)
