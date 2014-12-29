@@ -471,8 +471,7 @@ VAR(oqmm, 0, 4, 8);
 
 static inline void rendermapmodel(extentity &e)
 {
-    modelentity &em = (modelentity&)e;
-    rendermapmodel(&em, em.anim, e.o, e.attr[0], e.attr[1], e.attr[2], MDL_CULL_VFC | MDL_CULL_DIST, em.start_time, e.attr[3] > 0 ? e.attr[3]/100.0f : 1.0f); // OF
+    rendermapmodel(&e, entities::getanim(e), e.o, e.attr[0], e.attr[1], e.attr[2], MDL_CULL_VFC | MDL_CULL_DIST, entities::getstarttime(e), e.attr[3] > 0 ? e.attr[3]/100.0f : 1.0f); // OF
 }
 
 void rendermapmodels()
@@ -2574,7 +2573,7 @@ static void genshadowmeshmapmodels(shadowmesh &m, int sides, shadowdrawinfo draw
         if(!(e.flags&EF_RENDER)) continue;
         e.flags &= ~EF_RENDER;
 
-        model *mm = (e.type == ET_MAPMODEL) ? ((modelentity&)e).m : NULL;
+        model *mm = entities::getmodel(e);
         if(!mm || !mm->shadow || mm->animated() || (mm->alphashadow && mm->alphatested())) continue;
 
         matrix4x3 orient;

@@ -1999,7 +1999,7 @@ void writemediacfg(int level) {
         }
     }
     if (level >= 1) {
-        vector<modelentity*> models;
+        vector<extentity*> models;
         vector<extentity*> sounds;
         const vector<extentity*> &ents = entities::getents();
         loopv(ents) {
@@ -2007,7 +2007,7 @@ void writemediacfg(int level) {
             extentity *e = ents[i];
             switch (e->type) {
                 case ET_MAPMODEL:
-                    models.add((modelentity*)e);
+                    models.add(e);
                     break;
                 case ET_SOUND:
                     if (level <= 1) break;
@@ -2019,8 +2019,9 @@ void writemediacfg(int level) {
         f->printf("// models\n");
         loopv(models) {
             renderprogress(i / float(models.length()), "saving models...");
-            const modelentity &e = *models[i];
-            if (e.m) f->printf("preloadmodel \"%s\"\n", e.m->name);
+            const extentity &e = *models[i];
+            model *m = entities::getmodel(e);
+            if (m) f->printf("preloadmodel \"%s\"\n", m->name);
         }
 sounds:
         if (!sounds.length()) goto none;

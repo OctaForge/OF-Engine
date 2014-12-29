@@ -14,6 +14,13 @@ namespace entities
     extern void clearents();
     extern vector<extentity *> &getents();
     extern void animatemapmodel(const extentity &e, int &anim, int &basetime);
+    model *getmodel(const extentity &e);
+    void setmodel(extentity &e, model *m);
+    model *getcollidemodel(const extentity &e);
+    void setcollidemodel(extentity &e, model *m);
+    int getanim(const extentity &e);
+    int getstarttime(const extentity &e);
+    modelattach *getattachments(extentity &e);
 }
 
 namespace game

@@ -338,18 +338,18 @@ void flushpreloadedmodels(bool msg)
 
 void preloadusedmapmodels(bool msg, bool bih) {
     vector<extentity *> &ents = entities::getents();
-    vector<modelentity *> used;
+    vector<extentity *> used;
     loopv(ents) {
         extentity *e = ents[i];
-        if (e->type != ET_MAPMODEL || !((modelentity*)e)->m) continue;
-        used.add((modelentity*)e);
+        if (!entities::getmodel(*e)) continue;
+        used.add(e);
     }
 
     vector<const char *> col;
     loopv(used) {
         loadprogress = float(i + 1) / used.length();
-        modelentity &e = *used[i];
-        model *m = e.m;
+        extentity &e = *used[i];
+        model *m = entities::getmodel(e);
         if (bih)
             m->preloadBIH();
         else if (m->collide == COLLIDE_TRI && !m->collidemodel && m->bih)
@@ -427,10 +427,9 @@ void clearmodel(char *name)
     const vector<extentity *> &ents = entities::getents();
     loopv(ents) {
         extentity &e = *ents[i];
-        modelentity &em = (modelentity&)e;
-        if (e.type == ET_MAPMODEL && em.m == m) {
-            em.m = _new;
-            em.collide = NULL;
+        if (entities::getmodel(e) == m) {
+            entities::setmodel(e, _new);
+            entities::setcollidemodel(e, NULL);
         }
     }
 }
@@ -856,12 +855,12 @@ void clearbatchedmapmodels()
     }
 }
 
-void rendermapmodel(modelentity *e, int anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
+void rendermapmodel(extentity *e, int anim, const vec &o, float yaw, float pitch, float roll, int flags, int basetime, float size)
 {
     if(!e) return;
-    model *m = e->m;
+    model *m = entities::getmodel(*e);
     if(!m) return;
-    modelattach *a = e->attachments.length() > 1 ? e->attachments.getbuf() : NULL;
+    modelattach *a = entities::getattachments(*e);
 
     vec center, bbradius;
     m->boundbox(center, bbradius);

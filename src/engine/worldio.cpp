@@ -1045,7 +1045,7 @@ void writecollideobj(char *name)
         conoutf(CON_ERROR, "could not find map model in selection");
         return;
     }
-    model *m = ((modelentity*)mm)->m;
+    model *m = entities::getmodel(*mm);
     if(!m)
     {
         conoutf(CON_ERROR, "could not get map model for entity %d", mmuid);

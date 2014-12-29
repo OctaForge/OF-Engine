@@ -55,7 +55,7 @@ bool getentboundingbox(const extentity &e, ivec &o, ivec &r)
                 break;
             }
         case ET_MAPMODEL:
-            if(model *m = ((modelentity*)&e)->m)
+            if(model *m = entities::getmodel(e))
             {
                 vec center, radius;
                 mmboundbox(e, m, center, radius);
@@ -123,7 +123,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     break;
                 case ET_OBSTACLE: /* OF */
                 case ET_MAPMODEL:
-                    if(e.type == ET_OBSTACLE || ((modelentity*)&e)->m)
+                    if(e.type == ET_OBSTACLE || entities::getmodel(e))
                     {
                         if(va)
                         {
@@ -171,7 +171,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     break;
                 case ET_OBSTACLE: /* OF */
                 case ET_MAPMODEL:
-                    if(e.type == ET_OBSTACLE || ((modelentity*)&e)->m)
+                    if(e.type == ET_OBSTACLE || entities::getmodel(e))
                     {
                         oe.mapmodels.removeobj(id);
                         if(va)
@@ -544,7 +544,7 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
     extentity* _e = (extentity*)&e;
 
     model *m = NULL;
-    if(e.type == ET_MAPMODEL && (m = ((modelentity*)_e)->m))
+    if(e.type == ET_MAPMODEL && (m = entities::getmodel(*_e)))
     {
         mmcollisionbox(*_e, m, eo, es);
         es.max(entselradius);
@@ -1009,8 +1009,8 @@ bool dropentity(entity &e, int drop = -1)
     if(drop<0) drop = entdrop;
     if(e.type == ET_MAPMODEL)
     {
-        modelentity& ext = *((modelentity*)&e);
-        model *m = ext.m;
+        extentity& ext = *((extentity*)&e);
+        model *m = entities::getmodel(ext);
         if(m)
         {
             vec center;

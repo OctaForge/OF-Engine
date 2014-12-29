@@ -26,6 +26,21 @@ int getattrnum(int type) {
         (size_t)type < (sizeof(attrnums) / sizeof(int))) ? type : 0];
 }
 
+struct modelentity: extentity {
+    model *m, *collide;
+    int anim, start_time;
+    vector<modelattach> attachments;
+    hashtable<const char*, entlinkpos> attachment_positions;
+
+    modelentity(): extentity(), m(NULL), collide(NULL), anim(0), start_time(0) {
+        attachments.add(modelattach());
+    }
+
+    ~modelentity() {
+        clear_attachments(attachments, attachment_positions);
+    }
+};
+
 namespace entities
 {
     using namespace game;
@@ -50,6 +65,43 @@ namespace entities
 
     void editent(int i, bool local)
     {
+    }
+
+    model *getmodel(const extentity &e) {
+        if (e.type != ET_MAPMODEL) return NULL;
+        return ((const modelentity &)e).m;
+    }
+
+    void setmodel(extentity &e, model *m) {
+        if (e.type != ET_MAPMODEL) return;
+        ((modelentity &)e).m = m;
+    }
+
+    model *getcollidemodel(const extentity &e) {
+        if (e.type != ET_MAPMODEL) return NULL;
+        return ((const modelentity &)e).collide;
+    }
+
+    void setcollidemodel(extentity &e, model *m) {
+        if (e.type != ET_MAPMODEL) return;
+        ((modelentity &)e).collide = m;
+    }
+
+    int getanim(const extentity &e) {
+        if (e.type != ET_MAPMODEL) return 0;
+        return ((const modelentity &)e).anim;
+    }
+
+    int getstarttime(const extentity &e) {
+        if (e.type != ET_MAPMODEL) return 0;
+        return ((const modelentity &)e).start_time;
+    }
+
+    modelattach *getattachments(extentity &e) {
+        if (e.type != ET_MAPMODEL) return NULL;
+        vector<modelattach> &at = ((modelentity &)e).attachments;
+        if (at.length() <= 1) return NULL;
+        return at.getbuf();
     }
 
     /* Entity attributes */

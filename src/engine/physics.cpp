@@ -818,20 +818,21 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
     const vector<extentity *> &ents = entities::getents();
     loopv(oc.mapmodels)
     {
-        modelentity &e = *(modelentity*)ents[oc.mapmodels[i]];
+        extentity &e = *(extentity*)ents[oc.mapmodels[i]];
         if(e.flags&EF_NOCOLLIDE) continue;
         if (e.type == ET_OBSTACLE) { /* OF */
             if (areacollide(d, dir, cutoff, e)) return true;
             continue;
         }
-        model *m = e.collide;
+        model *m = entities::getcollidemodel(e);
         if(!m) {
-            if (!e.m) continue;
-            if (e.m->collidemodel) m = loadmodel(e.m->collidemodel);
-            if (!m) m = e.m;
-            e.collide = m;
+            model *om = entities::getmodel(e);
+            if (!om) continue;
+            if (om->collidemodel) m = loadmodel(om->collidemodel);
+            if (!m) m = om;
+            entities::setcollidemodel(e, m);
         }
-        int  mcol = e.m->collide;
+        int  mcol = entities::getmodel(e)->collide;
         if (!mcol) continue;
 
         vec center, radius;
