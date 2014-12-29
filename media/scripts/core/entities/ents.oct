@@ -586,12 +586,13 @@ M.save = @[!server,func() {
 }]
 set_external("entities_save_all", M.save)
 
+var srnopos = { "position": true }
 set_external("entity_serialize", func(cent, nopos) {
     var ent = get_by_centity(cent)
     if !ent { return }
-    var sr = ent.build_sdata()
-    if nopos { sr["position"] = undef }
-    return ent.name, serialize(sr)
+    var ignore = nopos ? srnopos : undef
+    var sr = ent.build_sdata({ compressed: true, ignore: ignore })
+    return ent.name, sr
 })
 
 var storid = enum {
@@ -764,13 +765,14 @@ M.Entity = Object.clone({
             tcn, comp = kwargs.target_cn || msg.ALL_CLIENTS,
                         kwargs.compressed || false
         }
+        var ignore = kwargs.ignore
 
         @[debug] log(DEBUG, e"Entity.build_sdata: $tcn, $(tostring(comp))")
 
         var r, sn = {}, self.name
         for k, svar in pairs(self.__proto) {
-            if is_svar(svar) && svar.has_history
-            && !(tcn >= 0 && !svar.should_send(self, tcn)) {
+            if is_svar(svar) && (!ignore || !ignore[svar.name])
+            && svar.has_history && !(tcn >= 0 && !svar.should_send(self, tcn)) {
                 var name = svar.name
                 var val = self.get_attr(name)
                 if val != undef {
