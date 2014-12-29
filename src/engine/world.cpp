@@ -398,8 +398,18 @@ undoblock *newundoent()
     loopv(entgroup)
     {
         e->i = entgroup[i];
-        new (&(e->e)) entity(); /* OF */
-        e->e = *entities::getents()[entgroup[i]];
+        const char *name = NULL;
+        const char *sdata = NULL;
+        const extentity *ext = entities::getents()[entgroup[i]];
+        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret("entity_serialize", "p", "ss", ext, &name, &sdata) : 0;
+        if (name) {
+            e->name = newstring(name);
+            e->sdata = newstring(sdata);
+        } else {
+            e->name = newstring("");
+            e->sdata = newstring("");
+        }
+        lua::pop_external_ret(n);
         e++;
     }
     return u;
@@ -496,24 +506,24 @@ undoblock *copyundoents(undoblock *u)
     loopi(u->numents)
         entadd(e[i].i);
     undoblock *c = newundoent();
-    loopi(u->numents) if(e[i].e.type==ET_EMPTY)
+    loopi(u->numents) if(!e[i].name[0])
         entgroup.removeobj(e[i].i);
     return c;
 }
 
-void pasteundoent(int idx, const entity &ue)
+void pasteundoent(const undoent &ue)
 {
-    if(idx < 0 || idx >= MAXENTS) return;
+    /*if(idx < 0 || idx >= MAXENTS) return;
     vector<extentity *> &ents = entities::getents();
     while(ents.length() < idx) ents.add(entities::newentity())->type = ET_EMPTY;
     int efocus = -1;
-    entedit(idx, (entity &)e = ue);
+    entedit(idx, (entity &)e = ue);*/
 }
 
 void pasteundoents(undoblock *u)
 {
     undoent *ue = u->ents();
-    loopi(u->numents) pasteundoent(ue[i].i, ue[i].e);
+    loopi(u->numents) pasteundoent(ue[i]);
 }
 
 void entflip()

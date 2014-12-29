@@ -223,7 +223,7 @@ struct editinfo
     editinfo() : copy(NULL) {}
 };
 
-struct undoent   { int i; entity e; };
+struct undoent   { int i; char *name, *sdata; };
 struct undoblock // undo header, all data sits in payload
 {
     undoblock *prev, *next;

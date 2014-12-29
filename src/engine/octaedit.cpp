@@ -638,6 +638,11 @@ void selgridmap(const selinfo &sel, uchar *g)                           // gener
 void freeundo(undoblock *u)
 {
     if(!u->numents) freeblock(u->block(), false);
+    undoent *ue = u->ents();
+    loopi(u->numents) {
+        delete[] ue[i].name;
+        delete[] ue[i].sdata;
+    }
     delete[] (uchar *)u;
 }
 
@@ -1067,11 +1072,16 @@ bool packundo(undoblock *u, int &inlen, uchar *&outbuf, int &outlen)
         undoent *ue = u->ents();
         loopi(u->numents)
         {
+            size_t nlen = strlen(ue[i].name), sdlen = strlen(ue[i].sdata);
             *(ushort *)buf.pad(2) = lilswap(ushort(ue[i].i));
-            entity &e = *(entity *)buf.pad(sizeof(entity));
-            e = ue[i].e;
-            lilswap(&e.o.x, 3);
-            lilswap(&e.attr[0], 5); 
+            if (nlen > USHRT_MAX || sdlen > USHRT_MAX) {
+                /* this will normally never happen, so it's here to catch issues */
+                assert(false);
+            }
+            *(ushort *)buf.pad(2) = lilswap(ushort(nlen));
+            buf.put((const uchar *)ue[i].name, nlen + 1);
+            *(ushort *)buf.pad(2) = lilswap(ushort(sdlen));
+            buf.put((const uchar *)ue[i].sdata, sdlen + 1);
         }
     }
     else
@@ -1101,11 +1111,13 @@ bool unpackundo(const uchar *inbuf, int inlen, int outlen)
         }
         loopi(numents)
         {
-            int idx = lilswap(*(const ushort *)buf.pad(2));
-            entity &e = *(entity *)buf.pad(sizeof(entity));
-            lilswap(&e.o.x, 3);
-            lilswap(&e.attr[0], 5);
-            pasteundoent(idx, e);
+            undoent ue;
+            ue.i = lilswap(*(const ushort *)buf.pad(2));
+            size_t nlen = lilswap(*((const ushort *)buf.pad(2)));
+            ue.name = (char *)buf.pad(nlen + 1);
+            size_t sdlen = lilswap(*((const ushort *)buf.pad(2)));
+            ue.sdata = (char *)buf.pad(sdlen + 1);
+            pasteundoent(ue);
         }
     }
     else
