@@ -517,8 +517,12 @@ void pasteundoent(const undoent &ue)
     vector<extentity *> &ents = entities::getents();
     while(ents.length() < ue.i) ents.add(entities::newentity())->type = ET_EMPTY;
     int efocus = -1;
-    entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffssi", ue.name,
-            0.0f, 0.0f, 0.0f, ue.sdata, "", ue.i));
+    if (!ue.sdata[0]) {
+        lua::call_external("entity_remove_static", "i", ue.i);
+    } else {
+        entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffssi", ue.name,
+                0.0f, 0.0f, 0.0f, ue.sdata, "", ue.i));
+    }
 }
 
 void pasteundoents(undoblock *u)
@@ -1003,10 +1007,10 @@ void delent()
 {
     if(noentedit()) return;
 
-    loopv(entgroup) entfocus(
-        entgroup[i],
-        lua::call_external("entity_remove_static", "p", &e)
-    );
+    loopv(entgroup) {
+        efocus = entgroup[i];
+        lua::call_external("entity_remove_static", "i", efocus);
+    }
 
     entcancel();
 }
@@ -1268,7 +1272,7 @@ void enttype(char *type, int *numargs) {
     if (*numargs >= 1) {
         groupedit(
             vec pos(e.o);
-            lua::call_external("entity_remove_static", "p", &e);
+            lua::call_external("entity_remove_static", "u", n);
             lua::call_external("entity_new_with_sd", "sfffss", type, pos.x,
                 pos.y, pos.z, "{}", "");
         );

@@ -1,8 +1,11 @@
+#include "engine.h"
 #include "game.h"
 
 void removeentity(extentity* entity);
 void addentity(extentity* entity);
 void attachentity(extentity &e);
+bool enttoggle(int id);
+void makeundoent();
 
 extern int efocus;
 
@@ -376,9 +379,14 @@ namespace entities
             } else {
                 ents.add(e);
             }
+            e->type = ET_EMPTY;
+            enttoggle(uid);
+            makeundoent();
+            e->type = type;
             addentity(e);
         }
         attachentity(*e);
+        commitchanges();
         return e;
     });
 

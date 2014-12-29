@@ -491,8 +491,8 @@ M.remove = func(ent) {
 }
 var ent_remove = M.remove
 
-set_external("entity_remove_static", @[!server,func(cent) {
-    var ent = get_by_centity(cent)
+set_external("entity_remove_static", @[!server,func(uid) {
+    var ent = storage_static[uid]
     if !ent { return }
     ent_remove(ent)
 }])
