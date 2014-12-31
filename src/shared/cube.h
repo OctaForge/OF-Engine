@@ -54,6 +54,9 @@ extern "C" {
   #ifdef __APPLE__
     #include "SDL2/SDL.h"
     #include "SDL2/SDL_opengl.h"
+    #ifdef OSX_USE_LAUNCHER
+      #define main SDL_main
+    #endif
   #else
     #include <SDL.h>
     #include <SDL_opengl.h>
