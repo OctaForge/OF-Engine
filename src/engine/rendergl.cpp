@@ -2799,7 +2799,10 @@ VAR(statrate, 1, 200, 1000);
 
 FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
-CLUAICOMMAND(console_scale_get, float, (), return conscale;);
+CLUAICOMMAND(console_scale_get, float, (), {
+    extern int scr_h;
+    return conscale * (float(hudh) / scr_h);
+});
 
 extern bool fullconsole;
 
@@ -2830,7 +2833,7 @@ void gl_drawhud()
     debugparticles();
 
     extern int scr_h;
-    float cscale = conscale * (hudh / scr_h);
+    float cscale = conscale * (float(hudh) / scr_h);
 
     float conw = w/cscale, conh = h/cscale, abovehud = conh - FONTH;
     if(!hidehud && !mainmenu)
