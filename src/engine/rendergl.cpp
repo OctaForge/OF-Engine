@@ -2829,13 +2829,16 @@ void gl_drawhud()
 
     debugparticles();
 
-    float conw = w/conscale, conh = h/conscale, abovehud = conh - FONTH;
+    extern int scr_h;
+    float cscale = conscale * (hudh / scr_h);
+
+    float conw = w/cscale, conh = h/cscale, abovehud = conh - FONTH;
     if(!hidehud && !mainmenu)
     {
         if(!hidestats)
         {
             pushhudmatrix();
-            hudmatrix.scale(conscale, conscale, 1);
+            hudmatrix.scale(cscale, cscale, 1);
             flushhudmatrix();
 
             int roffset = 0;
@@ -2896,7 +2899,7 @@ void gl_drawhud()
     abovehud = min(abovehud, float(conh*ahud));
 
     pushhudmatrix();
-    hudmatrix.scale(conscale, conscale, 1);
+    hudmatrix.scale(cscale, cscale, 1);
     flushhudmatrix();
     abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);
     if(!hidehud && !fullconsole) renderconsole(conw, conh, abovehud - FONTH/2);
