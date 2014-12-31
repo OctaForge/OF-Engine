@@ -28,9 +28,7 @@ void cleanup()
     #ifdef __APPLE__
         if(screen) SDL_SetWindowFullscreen(screen, 0);
     #endif
-    #ifndef __APPLE__ /* bad, temporary workaround */
     SDL_Quit();
-    #endif
 }
 
 extern void writeinitcfg();
@@ -931,12 +929,6 @@ int getclockmillis()
 }
 
 VAR(numcpus, 1, 1, 16);
-
-#ifdef __APPLE__
-#ifdef main
-#undef main
-#endif
-#endif
 
 int main(int argc, char **argv)
 {

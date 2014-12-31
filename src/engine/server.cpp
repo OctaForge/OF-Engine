@@ -1008,6 +1008,15 @@ void logoutfv(const char *fmt, va_list args)
 
 #else
 
+#if !defined(STANDALONE) && defined(__APPLE__) && defined(main)
+#undef main
+int main(int argc, char **argv)
+{
+    SDL_SetMainReady();
+    return SDL_main(argc, argv);
+}
+#endif
+
 void logoutfv(const char *fmt, va_list args)
 {
     FILE *f = getlogfile();
