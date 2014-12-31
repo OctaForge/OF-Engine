@@ -9,26 +9,6 @@ void makeundoent();
 
 extern int efocus;
 
-/* OF */
-static const int attrnums[] = {
-    0, /* ET_EMPTY */
-    0, /* ET_MARKER */
-    2, /* ET_ORIENTED_MARKER */
-    5, /* ET_LIGHT */
-    1, /* ET_SPOTLIGHT */
-    1, /* ET_ENVMAP */
-    2, /* ET_SOUND */
-    0, /* ET_PARTICLES */
-    4, /* ET_MAPMODEL */
-    7, /* ET_OBSTACLE */
-    5  /* ET_DECAL */
-};
-
-int getattrnum(int type) {
-    return attrnums[(type >= 0 &&
-        (size_t)type < (sizeof(attrnums) / sizeof(int))) ? type : 0];
-}
-
 struct modelinfo {
     model *m, *collide;
     int anim, start_time;
@@ -369,9 +349,7 @@ namespace entities
         e->m = (type == ET_MAPMODEL) ? new modelinfo : NULL;
         e->type = type;
         e->o = vec(0, 0, 0);
-        int numattrs = getattrnum(type);
-        e->attr.setsize(0);
-        for (int i = 0; i < numattrs; ++i) e->attr.add(0);
+        memset(e->attr, 0, sizeof(e->attr));
         if (!ce) {
             if (ents.inrange(uid)) {
                 deleteentity(ents[uid]);
