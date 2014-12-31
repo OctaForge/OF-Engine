@@ -2924,9 +2924,9 @@ CLUAICOMMAND(hud_get_h, int, (), return hudh;);
 
 void gl_setupframe(bool force)
 {
-    extern int scr_w, scr_h;
-    renderw = min(scr_w, screenw);
-    renderh = min(scr_h, screenh);
+    extern int fullscreen, scr_w, scr_h;
+    renderw = fullscreen ? min(scr_w, screenw) : screenw;
+    renderh = fullscreen ? min(scr_h, screenh) : screenw;
     hudw = screenw;
     hudh = screenh;
     ovr::setup();

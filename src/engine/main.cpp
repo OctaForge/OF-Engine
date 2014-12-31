@@ -478,8 +478,8 @@ void setupscreen()
     }
 
     SDL_GL_GetDrawableSize(screen, &screenw, &screenh);
-    renderw = min(scr_w, screenw);
-    renderh = min(scr_h, screenh);
+    renderw = fullscreen ? min(scr_w, screenw) : screenw;
+    renderh = fullscreen ? min(scr_h, screenh) : screenw;
     hudw = screenw;
     hudh = screenh;
 }
