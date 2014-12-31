@@ -11,32 +11,32 @@ use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 of the Software, and to permit persons to whom the Software is furnished to do
 so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
+* Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimers.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
+* Redistributions in binary form must reproduce the above copyright notice,
       this list of conditions and the following disclaimers in the
       documentation and/or other materials provided with the distribution.
 
-    * Neither the names of OctaForge developers nor any contributors may be
+* Neither the names of OctaForge developers nor any contributors may be
       used to endorse or promote products derived from this Software without
       specific prior written permission.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+**THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
 FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
 CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE
-SOFTWARE.
+SOFTWARE.**
 
 For OctaForge developers and contributors, refer to CONTRIBUTORS.txt.
 
 OctaForge contains portions of source code from other projects, including:
 
-    * OctaScript - NCSA licensed, created by Daniel "q66" Kolesa
-    * Cube 2/Sauerbraten - see src/readme_sauerbraten.txt
-    * Tesseract - created by Lee 'eihrul' Salzman, see src/readme_tesseract.txt
+* OctaScript - NCSA licensed, created by Daniel "q66" Kolesa
+* Cube 2/Sauerbraten - see src/readme_sauerbraten.txt
+* Tesseract - created by Lee 'eihrul' Salzman, see src/readme_tesseract.txt
 
 The engine is originally based on the Syntensity project by Alon "kripken"
 Zakai, but modern OctaForge no longer contains Syntensity code.
