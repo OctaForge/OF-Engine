@@ -555,8 +555,8 @@ FVARP(cursorsensitivity, 1e-4f, 1, 10000);
 static bool cursor_move(int &dx, int &dy) {
     int cmode = editmode ? freeeditcursor : freecursor;
     if (cmode >= 2 || cursor_exists) {
-        cursor_x = clamp(cursor_x + dx * cursorsensitivity / screenw, 0.0f, 1.0f);
-        cursor_y = clamp(cursor_y + dy * cursorsensitivity / screenh, 0.0f, 1.0f);
+        cursor_x = clamp(cursor_x + dx * cursorsensitivity / scr_w, 0.0f, 1.0f);
+        cursor_y = clamp(cursor_y + dy * cursorsensitivity / scr_h, 0.0f, 1.0f);
         if (cmode >= 2) {
             if (cursor_x != 1 && cursor_x != 0) dx = 0;
             if (cursor_y != 1 && cursor_y != 0) dy = 0;
