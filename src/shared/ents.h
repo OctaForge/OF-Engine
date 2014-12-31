@@ -8,7 +8,7 @@ enum { ET_EMPTY = 0, ET_MARKER, ET_ORIENTED_MARKER, ET_LIGHT, ET_SPOTLIGHT, ET_E
 struct entity                                   // persistent map entity
 {
     vec o;                                      // position
-    smallvector<int> attr;
+    smallvector<short> attr;
     uchar type;                                 // type is one of the above
     uchar reserved;
 };
