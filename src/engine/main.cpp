@@ -115,6 +115,8 @@ void writeinitcfg()
     f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
     extern int fullscreen;
     f->printf("fullscreen %d\n", fullscreen);
+    extern int retina;
+    f->printf("retina %d\n", retina);
     f->printf("screenw %d\n", scr_w);
     f->printf("screenh %d\n", scr_h);
     extern int sound, soundchans, soundfreq, soundbufferlen;
@@ -357,6 +359,8 @@ void setfullscreen(bool enable)
 
 VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
 
+VARF(retina, 0, 0, 1, initwarning("hi-dpi support"));
+
 void screenres(int w, int h)
 {
     scr_w = clamp(w, SCR_MINW, SCR_MAXW);
@@ -443,6 +447,7 @@ void setupscreen()
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         initwindowpos = true;
     }
+    if (retina) flags |= SDL_WINDOW_ALLOW_HIGHDPI;
     if(ovr::enabled) winx = winy = 0;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -472,7 +477,7 @@ void setupscreen()
         if(!glcontext) fatal("failed to create OpenGL context: %s", SDL_GetError());
     }
 
-    SDL_GetWindowSize(screen, &screenw, &screenh);
+    SDL_GL_GetDrawableSize(screen, &screenw, &screenh);
     renderw = min(scr_w, screenw);
     renderh = min(scr_h, screenh);
     hudw = screenw;
@@ -720,15 +725,18 @@ void checkinput()
                     case SDL_WINDOWEVENT_RESIZED:
                         break;
 
-                    case SDL_WINDOWEVENT_SIZE_CHANGED:
-                        SDL_GetWindowSize(screen, &screenw, &screenh);
+                    case SDL_WINDOWEVENT_SIZE_CHANGED: {
+                        SDL_GL_GetDrawableSize(screen, &screenw, &screenh);
                         if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
                         {
-                            scr_w = clamp(screenw, SCR_MINW, SCR_MAXW);
-                            scr_h = clamp(screenh, SCR_MINH, SCR_MAXH);
+                            int winw, winh;
+                            SDL_GetWindowSize(screen, &winw, &winh);
+                            scr_w = clamp(winw, SCR_MINW, SCR_MAXW);
+                            scr_h = clamp(winh, SCR_MINH, SCR_MAXH);
                         }
                         gl_resize();
                         break;
+                    }
                 }
                 break;
 
