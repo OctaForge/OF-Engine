@@ -13,7 +13,7 @@ separate OSes will be explained separately.
 For all OSes
 ============
 
-1. In all cases, you need to get source code. 
+1. **In all cases, you need to get source code.**
    You can use either release tarball or Git source versioning system to get
    source code.
    (Git will get you most recent source)
@@ -30,10 +30,10 @@ For all OSes
 Unix-like systems (including Linux, the BSDs and Mac OS X)
 ==========================================================
 
-On these OSes compilation should be really trivial. Instructions assume Linux
-with deb packaging system, with little modifications it should work everywhere.
+On these OSes, compilation should be really trivial. Instructions assume Linux
+with .deb packaging system, with little modifications it should work everywhere.
 
-Currently this includes OS X. At some point OS X will get its own instructions.
+Currently this includes OS X. At some point, OS X will get its own instructions.
 
 Supported compilers are GCC (at least 4.2), Clang and possibly others.
 
@@ -46,15 +46,19 @@ Supported compilers are GCC (at least 4.2), Clang and possibly others.
    4. LuaJIT 2.0 or higher
 
    For Linux with apt-get:
-
+   
+```
    sudo apt-get install build-essential zlib1g-dev libluajit-dev libsdl2-dev
    libsdl2-mixer-dev libsdl2-image-dev
+```
 
    For FreeBSD (compiler and zlib are included by default):
 
+```
    sudo pkg install sdl20 sdl2_mixer sdl2_image luajit pkgconf gmake
+```
 
-   For other operating systems it should be similar.
+   For other operating systems, it should be similar.
 
    For OS X you can get the official frameworks for the SDL libraries and
    install LuaJIT from Homebrew (or from source). You will need pkg-config
@@ -67,49 +71,49 @@ Supported compilers are GCC (at least 4.2), Clang and possibly others.
 
 2. Open a terminal, build OF:
 
-   .. code-block :: bash
+```
+$ cd $HOME/OctaForge_source/src
+$ make install
+```
 
-       $ cd $HOME/OctaForge_source/src
-       $ make install
+   If you have a multicore processor, you can use `-jNUMCORES+1` as make argument.
+   On some systems (like FreeBSD), you'll have to use `gmake` instead of `make`.
+   Add `VERBOSE=1` at the end of the make command for verbose builds.
 
-   If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
-   On some systems (like FreeBSD), you'll have to use "gmake" instead of "make".
-   Add VERBOSE=1 at the end of the make command for verbose builds.
-
-3. You're done, you should have binaries in OFROOT/bin_unix.
+3. You're done, you should have binaries in `OFROOT/bin_unix`.
 
 Windows
 =======
 
-On Windows, fetch the repository https://github.com/OctaForge/OF-Windows and
-place the platform_windows directory into src and contents of bin_win32/64
-to bin_win32/64.
+On Windows, fetch the repository <https://github.com/OctaForge/OF-Windows> and
+place the `platform_windows` directory into `src` and contents of `bin_win32/64`
+to `bin_win32/64`.
 
 Then just proceed with the compilation.
 
 OF supports both Win32 and Win64 binaries. The variant is deduced from the
 target compiler.
 
-Visual Studio project will be added soon.
+*Visual Studio project will be added soon.*
 
 So the steps are:
 
 1. Install latest MinGW distribution whichever way you want. You need just the
    core (C/C++ support). You can install it wherever you want, but make sure to
    change steps of this guide accordingly after that. Note that you need
-   MinGW64 to build 64bit binaries.
+   MinGW64 to build 64-bit binaries.
 
-2. Append this into your PATH environment variable. (modify path if needed)
+2. Append this into your `PATH` environment variable (modify path if needed):
 
-   .. code-block :: bash
+```
+;C:\mingw\bin
+```
 
-       ;C:\mingw\bin
+3. Open a command line (press Windows + R, then type `cmd` and press [Enter]), go to `OFROOT\src`, type:
 
-3. Open a cmd, go to OFROOT\src, type
+```
+$ mingw32-make install
+```
 
-   .. code-block :: bash
-
-       $ mingw32-make install
-
-   If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
-   Add VERBOSE=1 at the end of the make command for verbose builds.
+   If you have a multicore processor, you can use `-jNUMCORES+1` as make argument.
+   Add `VERBOSE=1` at the end of the make command for verbose builds.
