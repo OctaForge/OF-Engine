@@ -71,9 +71,7 @@ var ffi_new, ffi_cast, ffi_copy, ffi_string = ffi.new, ffi.cast, ffi.copy,
 ffi.string
 
 var ffi_move = func(dest, src, nbytes) {
-    var interm = ffi_new("unsigned char[?]", nbytes)
-    ffi_copy(interm, src, nbytes)
-    ffi_copy(dest, interm, nbytes)
+    capi::raw_move(dest, src, nbytes)
 }
 
 ffi::cdef(r"""

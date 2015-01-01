@@ -772,4 +772,5 @@ namespace lua
 
     CLUAICOMMAND(raw_alloc, void *, (size_t nbytes), return (void*) new uchar[nbytes];)
     CLUAICOMMAND(raw_free, void, (void *ptr), delete[] (uchar*)ptr;)
+    CLUAICOMMAND(raw_move, void, (void *dst, const void *src, size_t nbytes), memmove(dst, src, nbytes);)
 } /* end namespace lua */
