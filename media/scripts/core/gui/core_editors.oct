@@ -70,8 +70,13 @@ var chunksize = 256
 var ffi_new, ffi_cast, ffi_copy, ffi_string = ffi.new, ffi.cast, ffi.copy,
 ffi.string
 
+var ffi_move = func(dest, src, nbytes) {
+    var interm = ffi_new("unsigned char[?]", nbytes)
+    ffi_copy(interm, src, nbytes)
+    ffi_copy(dest, interm, nbytes)
+}
+
 ffi::cdef(r"""
-    void *memmove(void*, const void*, size_t);
     typedef struct editline_t {
         char *text;
         int len, maxlen;
@@ -117,7 +122,7 @@ var editline_MT = {
         prepend: func(self, str) {
             var slen = str.len()
             self.grow(self.len + slen)
-            C::memmove(self.text + slen, self.text, self.len + 1)
+            ffi_move(self.text + slen, self.text, self.len + 1)
             ffi_copy(self.text, str)
             self.len += slen
             return self
@@ -135,7 +140,7 @@ var editline_MT = {
             }
             if count <= 0 || start >= self.len { return self }
             if start + count > self.len { count = self.len - start - 1 }
-            C::memmove(self.text + start, self.text + start + count,
+            ffi_move(self.text + start, self.text + start + count,
                 self.len + 1 - (start + count))
             self.len -= count
             return self
@@ -151,7 +156,7 @@ var editline_MT = {
             start = clamp(start, 0, self.len)
             self.grow(self.len + count)
             if self.len == 0 { self.text[0] = 0 }
-            C::memmove(self.text + start + count, self.text + start,
+            ffi_move(self.text + start + count, self.text + start,
                 self.len - start + 1)
             ffi_copy(self.text + start, str, count)
             self.len += count
