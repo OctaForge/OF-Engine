@@ -569,6 +569,7 @@ var fields = {
                 ret = t
                 signal::connect(t, "released", func() {
                     tvar = !tvar
+                    capi::makeundoent()
                     ent.set_gui_attr(nm, tostring(tvar))
                 })
             })
@@ -579,6 +580,7 @@ var fields = {
 var field_def = func(hb, nm, ent, dv) {
     return hb.append(gui::Field({ clip_w: 0.4, value: dv }), func(ed) {
         connect(ed, "value,changed", func(ed, v) {
+            capi::makeundoent()
             ent.set_gui_attr(nm, v)
         })
     })

@@ -424,6 +424,8 @@ void makeundoent()
     if(u) addundo(u);
 }
 
+CLUACOMMAND(makeundoent, void, (), makeundoent);
+
 void detachentity(extentity &e)
 {
     if(!e.attached) return;
