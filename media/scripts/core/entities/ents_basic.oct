@@ -801,7 +801,6 @@ M.StaticEntity = Entity.clone({
     name: "StaticEntity",
 
     __storage: "static",
-    __pass_id: "uid",
 
     /// The icon that'll be displayed in edit mode.
     __edit_icon: "media/interface/icon/edit_generic",
@@ -931,6 +930,14 @@ M.StaticEntity = Entity.clone({
     */
     get_edit_drop_height: func(self) {
         return 4
+    },
+
+    __sdata_call_cb_set: func(self, f, val) {
+        f(self.uid, val)
+    },
+
+    __sdata_call_cb_get: func(self, f) {
+        return f(self.uid)
     }
 })
 var StaticEntity = M.StaticEntity
