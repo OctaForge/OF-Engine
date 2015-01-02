@@ -333,20 +333,18 @@ namespace entities
 
     CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, extentity *ce, bool isnew), {
         while (ents.length() < uid) ents.add(newentity())->type = ET_EMPTY;
-        ofentity *e = (ofentity *)(ce ? ce : newentity());
+        ofentity *e = NULL;
+        if (!ents.inrange(uid)) {
+            e = (ofentity*)newentity();
+            ents.add(e);
+        } else {
+            e = (ofentity*)(ce ? ce : ents[uid]);
+        }
         if (e->m) delete e->m;
         e->m = (type == ET_MAPMODEL) ? new modelinfo : NULL;
         e->type = type;
         e->o = vec(0, 0, 0);
         memset(e->attr, 0, sizeof(e->attr));
-        if (!ce) {
-            if (ents.inrange(uid)) {
-                deleteentity(ents[uid]);
-                ents[uid] = e;
-            } else {
-                ents.add(e);
-            }
-        }
         return e;
     });
 
