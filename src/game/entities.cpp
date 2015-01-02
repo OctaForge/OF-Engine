@@ -346,17 +346,6 @@ namespace entities
             } else {
                 ents.add(e);
             }
-            e->type = ET_EMPTY;
-            if (isnew) {
-                enttoggle(uid);
-                makeundoent();
-            }
-            e->type = type;
-            addentity(uid);
-        }
-        if (isnew) {
-            attachentity(*e);
-            commitchanges();
         }
         return e;
     });
@@ -370,6 +359,25 @@ namespace entities
             e->m = NULL;
         }
         e->type = ET_EMPTY;
+    });
+
+    CLUAICOMMAND(setup_extent_done, void, (int uid, extentity *ce, bool isnew), {
+        ofentity *e = (ofentity *)(ce ? ce : ents[uid]);
+        assert(e);
+        if (!ce) {
+            int otype = e->type;
+            e->type = ET_EMPTY;
+            if (isnew) {
+                enttoggle(uid);
+                makeundoent();
+            }
+            e->type = otype;
+            addentity(uid);
+        }
+        if (isnew) {
+            attachentity(*e);
+            commitchanges();
+        }
     });
 
     CLUAICOMMAND(setup_character, physent *, (int cn), {

@@ -471,6 +471,7 @@ var add = func(cn, uid, kwargs, new) {
     r.__activate(kwargs)
     @[debug] log(DEBUG, "ents.add: activated")
     r.__fully_created = true
+    r.__post_create_cb(!!@[server,new,new && msg::is_local()], kwargs)
     return r
 }
 M.add = add
@@ -1285,6 +1286,9 @@ M.Entity = Object.clone({
 
     __sdata_call_cb_get: func(self, f) {
         return f(self.__centity)
+    },
+
+    __post_create_cb: func(self) {
     }
 })
 Entity = M.Entity
