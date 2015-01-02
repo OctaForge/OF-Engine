@@ -641,6 +641,7 @@ M.Entity = Object.clone({
     name: "Entity",
 
     __storage: "logic",
+    __pass_id: "__centity",
 
     /**
         If this is true for the entity prototype, it will call the $__run method
@@ -988,7 +989,7 @@ M.Entity = Object.clone({
         if !sfun { return }
         if !@[server,self.svar_change_queue] {
             @[debug] log(INFO, e"Calling setter function for $name")
-            sfun(self.__centity, val)
+            sfun(self[self.__pass_id], val)
             @[debug] log(INFO, "Setter called")
 
             self.svar_values[name] = val

@@ -801,6 +801,7 @@ M.StaticEntity = Entity.clone({
     name: "StaticEntity",
 
     __storage: "static",
+    __pass_id: "uid",
 
     /// The icon that'll be displayed in edit mode.
     __edit_icon: "media/interface/icon/edit_generic",

@@ -111,29 +111,26 @@ namespace entities
         return true;
     });
 
-    CLUAICOMMAND(set_animation_ext, void, (extentity *ext, int anim), {
-        if (!ext) return;
-        ofentity *oe = (ofentity *)ext;
-        if (!oe->m) return;
+    CLUAICOMMAND(set_animation_ext, void, (int uid, int anim), {
+        ofentity *oe = (ofentity *)ents[uid];
+        if (!oe || !oe->m) return;
         oe->m->anim = anim;
         oe->m->start_time = lastmillis;
     });
 
-    CLUAICOMMAND(get_start_time_ext, bool, (extentity *ext, int *val), {
-        if (!ext) return false;
-        ofentity *oe = (ofentity *)ext;
-        if (!oe->m) return false;
+    CLUAICOMMAND(get_start_time_ext, bool, (int uid, int *val), {
+        ofentity *oe = (ofentity *)ents[uid];
+        if (!oe || !oe->m) return false;
         *val = oe->m->start_time;
         return true;
     });
 
-    CLUAICOMMAND(set_model_name, void, (extentity *ext, const char *name), {
-        if (!ext) return;
-        ofentity *oe = (ofentity *)ext;
-        if (!oe->m) return;
-        removeentity(ext);
+    CLUAICOMMAND(set_model_name, void, (int uid, const char *name), {
+        ofentity *oe = (ofentity *)ents[uid];
+        if (!oe || !oe->m) return;
+        removeentity(oe);
         if (name[0]) oe->m->m = loadmodel(name ? name : "");
-        addentity(ext);
+        addentity(oe);
     });
 
     CLUAICOMMAND(set_attachments_dyn, void, (physent *ent, const char **attach), {
@@ -142,10 +139,9 @@ namespace entities
         set_attachments(d->attachments, d->attachment_positions, attach);
     });
 
-    CLUAICOMMAND(set_attachments_ext, void, (extentity *ext, const char **attach), {
-        if (!ext) return;
-        ofentity *oe = (ofentity *)ext;
-        if (!oe->m) return;
+    CLUAICOMMAND(set_attachments_ext, void, (int uid, const char **attach), {
+        ofentity *oe = (ofentity *)ents[uid];
+        if (!oe || !oe->m) return;
         set_attachments(oe->m->attachments, oe->m->attachment_positions, attach);
     });
 
@@ -164,11 +160,10 @@ namespace entities
         return false;
     }
 
-    CLUAICOMMAND(get_attachment_pos_ext, bool, (extentity *ext, const char *tag,
+    CLUAICOMMAND(get_attachment_pos_ext, bool, (int uid, const char *tag,
     float *x, float *y, float *z), {
-        if (!ext) return false;
-        ofentity *oe = (ofentity *)ext;
-        if (!oe->m) return false;
+        ofentity *oe = (ofentity *)ents[uid];
+        if (!oe || !oe->m) return false;
         return get_attachment_pos(tag, oe->m->attachment_positions, x, y, z);
     });
 
@@ -186,23 +181,27 @@ namespace entities
 
     /* Extents */
 
-    CLUAICOMMAND(get_attr, bool, (extentity *ext, int a, int *val), {
+    CLUAICOMMAND(get_attr, bool, (int uid, int a, int *val), {
+        extentity *ext = ents[uid];
         assert(ext);
         *val = ext->attr[a];
         return true;
     });
-    CLUAICOMMAND(set_attr, void, (extentity *ext, int a, int v), {
+    CLUAICOMMAND(set_attr, void, (int uid, int a, int v), {
+        extentity *ext = ents[uid];
         assert(ext);
         removeentity(ext);
         ext->attr[a] = v;
         addentity(ext);
     });
-    CLUAICOMMAND(FAST_set_attr, void, (extentity *ext, int a, int v), {
+    CLUAICOMMAND(FAST_set_attr, void, (int uid, int a, int v), {
+        extentity *ext = ents[uid];
         assert(ext);
         ext->attr[a] = v;
     });
 
-    CLUAICOMMAND(get_extent_position, bool, (extentity *ext, double *pos), {
+    CLUAICOMMAND(get_extent_position, bool, (int uid, double *pos), {
+        extentity *ext = ents[uid];
         assert(ext);
         pos[0] = ext->o.x;
         pos[1] = ext->o.y;
@@ -210,8 +209,9 @@ namespace entities
         return true;
     });
 
-    CLUAICOMMAND(set_extent_position, void, (extentity *ext, double x, double y,
+    CLUAICOMMAND(set_extent_position, void, (int uid, double x, double y,
     double z), {
+        extentity *ext = ents[uid];
         assert(ext);
         removeentity(ext);
         ext->o.x = x;
