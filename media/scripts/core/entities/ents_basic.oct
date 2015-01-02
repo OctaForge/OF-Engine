@@ -933,7 +933,16 @@ M.StaticEntity = Entity.clone({
     },
 
     __sdata_call_cb_set: func(self, f, val) {
-        f(self.uid, val)
+        var uid = self.uid
+        if self.__fully_created {
+            capi::removeentityedit(uid)
+            f(uid, val)
+            capi::addentityedit(uid)
+        } else {
+            capi::removeentity(uid)
+            f(uid, val)
+            capi::addentity(uid)
+        }
     },
 
     __sdata_call_cb_get: func(self, f) {

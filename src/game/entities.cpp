@@ -128,9 +128,7 @@ namespace entities
     CLUAICOMMAND(set_model_name, void, (int uid, const char *name), {
         ofentity *oe = (ofentity *)ents[uid];
         if (!oe || !oe->m) return;
-        removeentity(uid);
         if (name[0]) oe->m->m = loadmodel(name ? name : "");
-        addentity(uid);
     });
 
     CLUAICOMMAND(set_attachments_dyn, void, (physent *ent, const char **attach), {
@@ -190,13 +188,6 @@ namespace entities
     CLUAICOMMAND(set_attr, void, (int uid, int a, int v), {
         extentity *ext = ents[uid];
         assert(ext);
-        removeentity(uid);
-        ext->attr[a] = v;
-        addentity(uid);
-    });
-    CLUAICOMMAND(FAST_set_attr, void, (int uid, int a, int v), {
-        extentity *ext = ents[uid];
-        assert(ext);
         ext->attr[a] = v;
     });
 
@@ -213,11 +204,9 @@ namespace entities
     double z), {
         extentity *ext = ents[uid];
         assert(ext);
-        removeentity(uid);
         ext->o.x = x;
         ext->o.y = y;
         ext->o.z = z;
-        addentity(uid);
     });
 
     /* Dynents */

@@ -452,6 +452,7 @@ var add = func(cn, uid, kwargs, new) {
     var r = cl()
     r.uid = uid
     stor[uid] = r
+    r.__fully_created = false
 
     // caching
     cl.__instances.push(r)
@@ -469,6 +470,7 @@ var add = func(cn, uid, kwargs, new) {
     @[debug] log(DEBUG, "ents.add: activate")
     r.__activate(kwargs)
     @[debug] log(DEBUG, "ents.add: activated")
+    r.__fully_created = true
     return r
 }
 M.add = add

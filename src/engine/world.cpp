@@ -264,6 +264,11 @@ void addentityedit(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB|MODOE_CHA
 void removeentity(int id)     { modifyoctaent(MODOE_UPDATEBB, id); }
 void removeentityedit(int id) { modifyoctaent(MODOE_UPDATEBB|MODOE_CHANGED, id); }
 
+CLUACOMMAND(addentity, void, (int), addentity);
+CLUACOMMAND(addentityedit, void, (int), addentityedit);
+CLUACOMMAND(removeentity, void, (int), removeentity);
+CLUACOMMAND(removeentityedit, void, (int), removeentityedit);
+
 void freeoctaentities(cube &c)
 {
     if(!c.ext) return;
