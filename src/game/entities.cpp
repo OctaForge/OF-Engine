@@ -1,8 +1,8 @@
 #include "engine.h"
 #include "game.h"
 
-void removeentity(extentity* entity);
-void addentity(extentity* entity);
+void removeentity(int id);
+void addentity(int id);
 void attachentity(extentity &e);
 bool enttoggle(int id);
 void makeundoent();
@@ -128,9 +128,9 @@ namespace entities
     CLUAICOMMAND(set_model_name, void, (int uid, const char *name), {
         ofentity *oe = (ofentity *)ents[uid];
         if (!oe || !oe->m) return;
-        removeentity(oe);
+        removeentity(uid);
         if (name[0]) oe->m->m = loadmodel(name ? name : "");
-        addentity(oe);
+        addentity(uid);
     });
 
     CLUAICOMMAND(set_attachments_dyn, void, (physent *ent, const char **attach), {
@@ -190,9 +190,9 @@ namespace entities
     CLUAICOMMAND(set_attr, void, (int uid, int a, int v), {
         extentity *ext = ents[uid];
         assert(ext);
-        removeentity(ext);
+        removeentity(uid);
         ext->attr[a] = v;
-        addentity(ext);
+        addentity(uid);
     });
     CLUAICOMMAND(FAST_set_attr, void, (int uid, int a, int v), {
         extentity *ext = ents[uid];
@@ -213,11 +213,11 @@ namespace entities
     double z), {
         extentity *ext = ents[uid];
         assert(ext);
-        removeentity(ext);
+        removeentity(uid);
         ext->o.x = x;
         ext->o.y = y;
         ext->o.z = z;
-        addentity(ext);
+        addentity(uid);
     });
 
     /* Dynents */
@@ -363,7 +363,7 @@ namespace entities
                 makeundoent();
             }
             e->type = type;
-            addentity(e);
+            addentity(uid);
         }
         if (isnew) {
             attachentity(*e);
@@ -375,7 +375,7 @@ namespace entities
     CLUAICOMMAND(destroy_extent, void, (int uid), {
         ofentity *e = (ofentity *)ents[uid];
         if (e->type == ET_SOUND) stopmapsound(e);
-        removeentity(e);
+        removeentity(uid);
         if (e->m) {
             delete e->m;
             e->m = NULL;

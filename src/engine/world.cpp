@@ -259,22 +259,10 @@ static inline bool modifyoctaent(int flags, int id)
     return ents.inrange(id) && modifyoctaent(flags, id, *ents[id]);
 }
 
-/* OctaForge: getentid */
-static int getentid(extentity *entity) {
-    const vector<extentity *> &ents = entities::getents();
-    loopv(ents) if (ents[i] == entity) return i;
-    assert(false);
-    return -1;
-}
-
-static inline void addentity(int id)        { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); }
-static inline void addentityedit(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB|MODOE_CHANGED, id); }
-static inline void removeentity(int id)     { modifyoctaent(MODOE_UPDATEBB, id); }
-static inline void removeentityedit(int id) { modifyoctaent(MODOE_UPDATEBB|MODOE_CHANGED, id); }
-
-/* OctaForge: extentity* versions */
-void addentity(extentity* entity) { addentity(getentid(entity)); }
-void removeentity(extentity *entity) { removeentity(getentid(entity)); }
+void addentity(int id)        { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); }
+void addentityedit(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB|MODOE_CHANGED, id); }
+void removeentity(int id)     { modifyoctaent(MODOE_UPDATEBB, id); }
+void removeentityedit(int id) { modifyoctaent(MODOE_UPDATEBB|MODOE_CHANGED, id); }
 
 void freeoctaentities(cube &c)
 {
