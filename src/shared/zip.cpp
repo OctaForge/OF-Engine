@@ -227,17 +227,17 @@ static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mount
             }
             break;
         }
-        const char *foundogz = strstr(f.name, ".ogz");
-        if(foundogz)
+        const char *foundofm = strstr(f.name, ".ofm");
+        if(foundofm)
         {
-            const char *ogzdir = foundogz;
-            while(--ogzdir >= f.name && *ogzdir != PATHDIV);
-            if(ogzdir < f.name || checkprefix(files, f.name, ogzdir + 1 - f.name))
+            const char *ofmdir = foundofm;
+            while(--ofmdir >= f.name && *ofmdir != PATHDIV);
+            if(ofmdir < f.name || checkprefix(files, f.name, ofmdir + 1 - f.name))
             {
-                if(ogzdir >= f.name)
+                if(ofmdir >= f.name)
                 {
                     stripdir = f.name;
-                    striplen = ogzdir + 1 - f.name;
+                    striplen = ofmdir + 1 - f.name;
                 }
                 if(!mountdir) mountdir = "media/map/";
                 break;

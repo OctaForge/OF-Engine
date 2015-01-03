@@ -1567,7 +1567,7 @@ namespace game
                 string oldname;
                 copystring(oldname, getclientmap());
                 defformatstring(mname, "getmap_%d", lastmillis);
-                defformatstring(fname, "media/map/%s.ogz", mname);
+                defformatstring(fname, "media/map/%s.ofm", mname);
                 stream *map = openrawfile(path(fname), "wb");
                 if(!map) return;
                 conoutf("received map");
@@ -1654,7 +1654,7 @@ namespace game
         conoutf("sending map...");
         defformatstring(mname, "sendmap_%d", lastmillis);
         save_world(mname, true);
-        defformatstring(fname, "media/map/%s.ogz", mname);
+        defformatstring(fname, "media/map/%s.ofm", mname);
         stream *map = openrawfile(path(fname), "rb");
         if(map)
         {

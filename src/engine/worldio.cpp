@@ -3,12 +3,13 @@
 #include "engine.h"
 
 #ifndef STANDALONE
-string ogzname, bakname, cfgname, picname, entcfgname, entbakname, mediacfgname;
+string ofmname, ogzname, bakname, cfgname, picname, entcfgname, entbakname, mediacfgname;
 
 VARP(savebak, 0, 2, 2);
 
 void setmapfilenames(const char *fname, const char *cname = NULL)
 {
+    formatstring(ofmname, "media/map/%s/map.ofm", fname);
     formatstring(ogzname, "media/map/%s/map.ogz", fname);
     if(savebak==1) {
         formatstring(entbakname, "media/map/%s/entities.oct.BAK", fname);
@@ -27,6 +28,7 @@ void setmapfilenames(const char *fname, const char *cname = NULL)
     formatstring(entcfgname, "media/map/%s/entities.oct", fname);
     formatstring(mediacfgname, "media/map/%s/media.cfg", fname);
 
+    path(ofmname);
     path(ogzname);
     path(bakname);
     path(cfgname);
@@ -473,9 +475,9 @@ bool save_world(const char *mname, bool nolms)
 {
     if(!*mname) mname = game::getclientmap();
     setmapfilenames(*mname ? mname : "untitled");
-    if(savebak) backup(ogzname, bakname);
-    stream *f = opengzfile(ogzname, "wb");
-    if(!f) { conoutf(CON_WARN, "could not write map to %s", ogzname); return false; }
+    if(savebak) backup(ofmname, bakname);
+    stream *f = opengzfile(ofmname, "wb");
+    if(!f) { conoutf(CON_WARN, "could not write map to %s", ofmname); return false; }
 
     int numvslots = vslots.length();
     if(!nolms && !multiplayer(false))
@@ -557,7 +559,7 @@ bool save_world(const char *mname, bool nolms)
     extern void writemediacfg(int level);
     writemediacfg(0);
     export_ents();
-    conoutf("wrote map file %s", ogzname);
+    conoutf("wrote map file %s", ofmname);
     return true;
 }
 
@@ -566,25 +568,25 @@ static uint mapcrc = 0;
 uint getmapcrc() { return mapcrc; }
 void clearmapcrc() { mapcrc = 0; }
 
-static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octaheader &ohdr, tmapheader &thdr, int &numents)
+static bool loadmapheader(stream *f, const char *mapname, mapheader &hdr, octaheader &ohdr, tmapheader &thdr, int &numents)
 {
-    if(f->read(&hdr, 3*sizeof(int)) != 3*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+    if(f->read(&hdr, 3*sizeof(int)) != 3*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
     lilswap(&hdr.version, 2);
 
     if(!memcmp(hdr.magic, "OFMF", 4))
     {
-        if(hdr.version>MAPVERSION) { conoutf(CON_ERROR, "map %s requires a newer version of OctaForge", ogzname); return false; }
-        if(f->read(&hdr.worldsize, 5*sizeof(int)) != 5*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(hdr.version>MAPVERSION) { conoutf(CON_ERROR, "map %s requires a newer version of OctaForge", mapname); return false; }
+        if(f->read(&hdr.worldsize, 5*sizeof(int)) != 5*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
         lilswap(&hdr.worldsize, 5);
-        if(hdr.worldsize <= 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(hdr.worldsize <= 0) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
         numents = 0;
     }
     else if(!memcmp(hdr.magic, "TMAP", 4))
     {
-        if(hdr.version>TMAPVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version (Tesseract)", ogzname); return false; }
-        if(f->read(&thdr.worldsize, 6*sizeof(int)) != 6*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(hdr.version>TMAPVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version (Tesseract)", mapname); return false; }
+        if(f->read(&thdr.worldsize, 6*sizeof(int)) != 6*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
         lilswap(&thdr.worldsize, 6);
-        if(thdr.worldsize <= 0|| thdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(thdr.worldsize <= 0|| thdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
         memcpy(hdr.magic, "OFMF", 4);
         hdr.version = 1;
         hdr.headersize = sizeof(hdr);
@@ -597,10 +599,10 @@ static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octahe
     }
     else if(!memcmp(hdr.magic, "OCTA", 4))
     {
-        if(hdr.version!=OCTAVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version (Sauerbraten)", ogzname); return false; }
-        if(f->read(&ohdr.worldsize, 7*sizeof(int)) != 7*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(hdr.version!=OCTAVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version (Sauerbraten)", mapname); return false; }
+        if(f->read(&ohdr.worldsize, 7*sizeof(int)) != 7*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
         lilswap(&ohdr.worldsize, 7);
-        if(ohdr.worldsize <= 0|| ohdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); return false; }
+        if(ohdr.worldsize <= 0|| ohdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
         memcpy(hdr.magic, "OFMF", 4);
         hdr.version = 0;
         hdr.headersize = sizeof(hdr);
@@ -611,7 +613,7 @@ static bool loadmapheader(stream *f, const char *ogzname, mapheader &hdr, octahe
         hdr.numvslots = ohdr.numvslots;
         numents = ohdr.numents;
     }
-    else { conoutf(CON_ERROR, "map %s uses an unsupported map type", ogzname); return false; }
+    else { conoutf(CON_ERROR, "map %s uses an unsupported map type", mapname); return false; }
 
     return true;
 }
@@ -628,14 +630,16 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 {
     int loadingstart = SDL_GetTicks();
     setmapfilenames(mname, cname);
-    stream *f = opengzfile(ogzname, "rb");
-    if(!f) { conoutf(CON_ERROR, "could not read map %s", ogzname); return false; }
+    const char *mapname = ofmname;
+    stream *f = opengzfile(mapname, "rb");
+    if(!f) { mapname = ogzname; f = opengzfile(mapname, "rb"); }
+    if(!f) { conoutf(CON_ERROR, "could not read map %s", ofmname); return false; }
 
     mapheader hdr;
     octaheader ohdr;
     tmapheader thdr;
     int numents;
-    if(!loadmapheader(f, ogzname, hdr, ohdr, thdr, numents)) { delete f; return false; }
+    if(!loadmapheader(f, mapname, hdr, ohdr, thdr, numents)) { delete f; return false; }
 
     resetmap();
 
