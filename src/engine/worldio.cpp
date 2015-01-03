@@ -860,7 +860,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     extern void clear_texpacks(int n = 0); clear_texpacks();
 
+    lua::reset(); // temporary reset
     lua::call_external("gui_clear", "");
+    extern int cursor_exists;
+    cursor_exists = 0;
 
     identflags |= IDF_OVERRIDDEN;
     execfile("config/default_map_settings.cfg", false);
