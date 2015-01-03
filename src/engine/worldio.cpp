@@ -533,14 +533,6 @@ bool save_world(const char *mname, bool nolms)
 
     if(dbgvars) conoutf(CON_DEBUG, "wrote %d vars", hdr.numvars);
 
-    f->putchar((int)strlen(game::gameident()));
-    f->write(game::gameident(), (int)strlen(game::gameident())+1);
-    f->putlil<ushort>(0);
-    vector<char> extras;
-    game::writegamedata(extras);
-    f->putlil<ushort>(extras.length());
-    f->write(extras.getbuf(), extras.length());
-
     f->putlil<ushort>(texmru.length());
     loopv(texmru) f->putlil<ushort>(texmru[i]);
 
@@ -568,10 +560,12 @@ static uint mapcrc = 0;
 uint getmapcrc() { return mapcrc; }
 void clearmapcrc() { mapcrc = 0; }
 
-static bool loadmapheader(stream *f, const char *mapname, mapheader &hdr, octaheader &ohdr, tmapheader &thdr, int &numents)
+static bool loadmapheader(stream *f, const char *mapname, mapheader &hdr, octaheader &ohdr, tmapheader &thdr, int &numents, bool &foreign)
 {
     if(f->read(&hdr, 3*sizeof(int)) != 3*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
     lilswap(&hdr.version, 2);
+
+    foreign = true;
 
     if(!memcmp(hdr.magic, "OFMF", 4))
     {
@@ -580,6 +574,7 @@ static bool loadmapheader(stream *f, const char *mapname, mapheader &hdr, octahe
         lilswap(&hdr.worldsize, 5);
         if(hdr.worldsize <= 0) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
         numents = 0;
+        foreign = false;
     }
     else if(!memcmp(hdr.magic, "TMAP", 4))
     {
@@ -639,7 +634,8 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     octaheader ohdr;
     tmapheader thdr;
     int numents;
-    if(!loadmapheader(f, mapname, hdr, ohdr, thdr, numents)) { delete f; return false; }
+    bool foreign;
+    if(!loadmapheader(f, mapname, hdr, ohdr, thdr, numents, foreign)) { delete f; return false; }
 
     resetmap();
 
@@ -715,22 +711,13 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     }
     if(dbgvars) conoutf(CON_DEBUG, "read %d vars", hdr.numvars);
 
-    string gametype;
-    copystring(gametype, "game");
-    bool samegame = true;
-    int len = f->getchar();
-    if (len >= 0) f->read(gametype, len+1);
-    gametype[max(len, 0)] = '\0';
-    if(strcmp(gametype, game::gameident())!=0)
-    {
-        samegame = false;
-        conoutf(CON_WARN, "WARNING: loading map from %s game", gametype);
+    int eif = 0;
+    if (foreign) {
+        int len = f->getchar();
+        if (len >= 0) f->seek(len + 1, SEEK_CUR);
+        eif = f->getlil<ushort>();
+        f->seek(f->getlil<ushort>(), SEEK_CUR);
     }
-    int eif = f->getlil<ushort>();
-    int extrasize = f->getlil<ushort>();
-    vector<char> extras;
-    f->read(extras.pad(extrasize), extrasize);
-    if(samegame) game::readgamedata(extras);
 
     texmru.shrink(0);
     ushort nummru = f->getlil<ushort>();
@@ -748,10 +735,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         lilswap(&e.o.x, 3);
         lilswap(e.attr, 5);
 
-        if (!samegame)
-        {
-            if(eif > 0) f->seek(eif, SEEK_CUR);
-        }
+        if(eif > 0) f->seek(eif, SEEK_CUR);
         if(!insideworld(e.o))
         {
             /* LIGHT and SPOTLIGHT */
@@ -838,7 +822,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(numents > MAXENTS)
     {
         conoutf(CON_WARN, "warning: map has %d entities", numents);
-        f->seek((numents-MAXENTS)*(samegame ? sizeof(entity) : eif), SEEK_CUR);
+        f->seek((numents-MAXENTS)*eif, SEEK_CUR);
     }
 
     renderprogress(0, "loading slots...");
