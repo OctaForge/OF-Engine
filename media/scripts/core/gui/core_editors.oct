@@ -67,8 +67,8 @@ var gen_ed_setter = func(name) {
 }
 
 var chunksize = 256
-var ffi_new, ffi_cast, ffi_copy, ffi_string = ffi.new, ffi.cast, ffi.copy,
-ffi.string
+var ffi_new, ffi_cast, ffi_copy, ffi_string, ffi_gc = ffi.new, ffi.cast,
+ffi.copy, ffi.string, ffi.gc
 
 var ffi_move = func(dest, src, nbytes) {
     capi::raw_move(dest, src, nbytes)
@@ -83,106 +83,96 @@ ffi::cdef(r"""
 """)
 var C = ffi.C
 
-var editline_MT = {
-    __new: func(self, x) {
-        return ffi_new(self).set(x || "")
-    },
-    __tostring: func(self) {
-        return ffi_string(self.text, self.len)
-    },
-    __gc: func(self) {
-        self.clear()
-    },
-    __index: {
-        empty: func(self) { return self.len <= 0 },
-        clear: func(self) {
-            capi::raw_free(self.text)
-            self.text = undef
-            self.len, self.maxlen = 0, 0
-        },
-        grow: func(self, total, nocopy) {
-            if total + 1 <= self.maxlen { return false }
-            self.maxlen = (total + chunksize) - total % chunksize
-            var newtext = ffi_cast("char*", capi::raw_alloc(self.maxlen))
-            if !nocopy {
-                ffi_copy(newtext, self.text, self.len + 1)
-            }
-            capi::raw_free(self.text)
-            self.text = newtext
-            return true
-        },
-        set: func(self, str) {
-            self.grow(str.len(), true)
-            ffi_copy(self.text, str)
-            self.len = str.len()
-            return self
-        },
-        prepend: func(self, str) {
-            var slen = str.len()
-            self.grow(self.len + slen)
-            ffi_move(self.text + slen, self.text, self.len + 1)
-            ffi_copy(self.text, str)
-            self.len += slen
-            return self
-        },
-        append: func(self, str) {
-            self.grow(self.len + str.len())
-            ffi_copy(self.text + self.len, str)
-            self.len += str.len()
-            return self
-        },
-        del: func(self, start, count) {
-            if !self.text { return self }
-            if start < 0 {
-                count, start = count + start, 0
-            }
-            if count <= 0 || start >= self.len { return self }
-            if start + count > self.len { count = self.len - start - 1 }
-            ffi_move(self.text + start, self.text + start + count,
-                self.len + 1 - (start + count))
-            self.len -= count
-            return self
-        },
-        chop: func(self, newlen) {
-            if !self.text { return self }
-            self.len = clamp(newlen, 0, self.len)
-            self.text[self.len] = 0
-            return self
-        },
-        insert: func(self, str, start, count) {
-            if !count || count <= 0 { count = str.len() }
-            start = clamp(start, 0, self.len)
-            self.grow(self.len + count)
-            if self.len == 0 { self.text[0] = 0 }
-            ffi_move(self.text + start + count, self.text + start,
-                self.len - start + 1)
-            ffi_copy(self.text + start, str, count)
-            self.len += count
-            return self
-        },
-        combine_lines: func(self, src) {
-            if src.empty() { self.set("")
-            } else { for i, v in src.each() {
-                if i != 0 { self.append("\n") }
-                if i == 0 { self.set(v.text, v.len)
-                } else { self.insert(v.text, self.len, v.len) }
-            } }
-            return self
-        },
-        calc_bounds: func(self, maxw) {
-            var w, h = text_get_bounds(tostring(self), maxw)
-            self.w, self.h = w, h
-            return w, h
-        },
-        get_bounds: func(self) {
-            return self.w, self.h
-        },
-        len: func(self) {
-            return self.len
-        }
+var editline_grow = func(self, total, nocopy) {
+    if total + 1 <= self.maxlen { return false }
+    self.maxlen = (total + chunksize) - total % chunksize
+    var newtext = ffi_cast("char*", capi::raw_alloc(self.maxlen))
+    if !nocopy {
+        ffi_copy(newtext, self.text, self.len + 1)
     }
+    capi::raw_free(self.text)
+    self.text = newtext
+    return true
 }
-var editline = ffi::metatype("editline_t", editline_MT)
+
+var editline_set = func(self, str) {
+    editline_grow(self, str.len(), true)
+    ffi_copy(self.text, str)
+    self.len = str.len()
+    return self
+}
+
+var editline_insert = func(self, str, start, count) {
+    if !count || count <= 0 { count = str.len() }
+    start = clamp(start, 0, self.len)
+    editline_grow(self, self.len + count)
+    if self.len == 0 { self.text[0] = 0 }
+    ffi_move(self.text + start + count, self.text + start,
+        self.len - start + 1)
+    ffi_copy(self.text + start, str, count)
+    self.len += count
+    return self
+}
+
+var editline_prepend = func(self, str) {
+    var slen = str.len()
+    editline_grow(self, self.len + slen)
+    ffi_move(self.text + slen, self.text, self.len + 1)
+    ffi_copy(self.text, str)
+    self.len += slen
+    return self
+}
+
+var editline_append = func(self, str) {
+    editline_grow(self, self.len + str.len())
+    ffi_copy(self.text + self.len, str)
+    self.len += str.len()
+    return self
+}
+
+var editline_combine_lines = func(self, src) {
+    if src.len <= 0 { editline_set(self, "")
+    } else { for i, v in src.each() {
+        if i != 0 { editline_append(self, "\n") }
+        if i == 0 { editline_set(self, v.text, v.len)
+        } else { editline_insert(self, v.text, self.len, v.len) }
+    } }
+    return self
+}
+
+var editline_chop = func(self, newlen) {
+    if !self.text { return self }
+    self.len = clamp(newlen, 0, self.len)
+    self.text[self.len] = 0
+    return self
+}
+
+var editline_del = func(self, start, count) {
+    if !self.text { return self }
+    if start < 0 {
+        count, start = count + start, 0
+    }
+    if count <= 0 || start >= self.len { return self }
+    if start + count > self.len { count = self.len - start - 1 }
+    ffi_move(self.text + start, self.text + start + count,
+        self.len + 1 - (start + count))
+    self.len -= count
+    return self
+}
+
+var editline_gc = func(self) {
+    capi::raw_free(self.text)
+    self.text = undef
+    self.len, self.maxlen = 0, 0
+}
+
+var editline_tostr = func(self) {
+    return ffi_string(self.text, self.len)
+}
+
+var editline_new = func(x) {
+    return editline_set(ffi_gc(ffi_new("editline_t"), editline_gc), x || "")
+}
 
 var get_aw = func(self) { return self.w - self.pad_l - self.pad_r }
 
@@ -268,7 +258,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         self.line_wrap = kwargs.line_wrap || false
 
         // must always contain at least one line
-        self.lines = [ editline(kwargs.value) ]
+        self.lines = [ editline_new(kwargs.value) ]
 
         self._needs_calc = true
         self._needs_offset = false
@@ -286,10 +276,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var lines = self.lines
         var mline = self.multiline
         for line in stream.lines() {
-            lines.push(editline(line))
+            lines.push(editline_new(line))
             if mline { break }
         }
-        if lines.empty() { lines.push(editline()) }
+        if lines.empty() { lines.push(editline_new()) }
     },
 
     /**
@@ -389,7 +379,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
     /// Returns all contents of the editor as a string.
     to_string: func(self) {
-        return tostring(editline().combine_lines(self.lines))
+        return editline_tostr(editline_combine_lines(editline_new(), self.lines))
     },
 
     /**
@@ -402,7 +392,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
         for i in 1 to 1 + ey - sy {
             var y = sy + i - 1
-            var line = tostring(self.lines[y])
+            var line = editline_tostr(self.lines[y])
             var len  = line.len()
             if y == sy { line = line.sub(sx) }
             buf.push(line)
@@ -440,7 +430,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var cond = strlines.len() != lines.len()
         if !cond {
             for i, strl in strlines.each() {
-                if strl != tostring(lines[i]) {
+                if strl != editline_tostr(lines[i]) {
                     cond = true
                     break
                 }
@@ -491,7 +481,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         if sy == ey {
             if sx == 0 && ex == self.lines[ey].len {
                 self.remove_lines(sy + 1, 1)
-            } else { self.lines[sy].del(sx, ex - sx)
+            } else { editline_del(self.lines[sy], sx, ex - sx)
             }
         } else {
             if ey > sy + 1 {
@@ -502,23 +492,23 @@ M.TextEditor = register_type("TextEditor", Widget, {
             if ex == self.lines[ey].len {
                 self.remove_lines(ey + 1, 1)
             } else {
-                self.lines[ey].del(0, ex)
+                editline_del(self.lines[ey], 0, ex)
             }
 
             if sx == 0 {
                 self.remove_lines(sy + 1, 1)
             } else {
-                self.lines[sy].del(sx, self.lines[sy].len - sx)
+                editline_del(self.lines[sy], sx, self.lines[sy].len - sx)
             }
         }
 
-        if self.lines.empty() { self.lines = [ editline() ] }
+        if self.lines.empty() { self.lines = [ editline_new() ] }
         self.mark()
         self.cx, self.cy = sx, sy
 
         var current = self.current_line()
         if self.cx > current.len && self.cy < self.lines.len() - 1 {
-            current.append(tostring(self.lines[self.cy + 1]))
+            editline_append(current, editline_tostr(self.lines[self.cy + 1]))
             self.remove_lines(self.cy + 2, 1)
         }
 
@@ -544,17 +534,17 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
         if ch == "\n" {
             if self.multiline {
-                var newline = editline(tostring(current).sub(self.cx))
-                current.chop(self.cx)
+                var newline = editline_new(editline_tostr(current).sub(self.cx))
+                editline_chop(current, self.cx)
                 self.cy = min(self.lines.len(), self.cy + 1)
                 self.lines.insert(self.cy, newline)
             } else {
-                current.chop(self.cx)
+                editline_chop(current, self.cx)
             }
             self.cx = 0
         } else {
             if self.cx <= current.len {
-                current.insert(ch, self.cx, 1)
+                editline_insert(current, ch, self.cx, 1)
                 self.cx = self.cx + 1
             }
         }
@@ -679,8 +669,8 @@ M.TextEditor = register_type("TextEditor", Widget, {
             if typeof init != "array" {
                 init = init.split("\n")
             }
-            for i, v in init.each() { lines.push(editline(v)) }
-            if lines.empty() { lines.push(editline()) }
+            for i, v in init.each() { lines.push(editline_new(v)) }
+            if lines.empty() { lines.push(editline_new()) }
             self.lines = lines
         }
     },
@@ -737,7 +727,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         if code == key.UP {
             self.movement_mark()
             if self.line_wrap {
-                var str = tostring(self.current_line())
+                var str = editline_tostr(self.current_line())
                 text_font_push()
                 text_font_set(self.font)
                 var pw = floor(get_aw(self) / self.draw_scale())
@@ -756,7 +746,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         } else if code == key.DOWN {
             self.movement_mark()
             if self.line_wrap {
-                var str = tostring(self.current_line())
+                var str = editline_tostr(self.current_line())
                 text_font_push()
                 text_font_set(self.font)
                 var pw = floor(get_aw(self) / self.draw_scale())
@@ -834,10 +824,10 @@ M.TextEditor = register_type("TextEditor", Widget, {
                 self._needs_calc = true
                 var current = self.current_line()
                 if self.cx < current.len {
-                    current.del(self.cx, 1)
+                    editline_del(current, self.cx, 1)
                 } else if self.cy < self.lines.len() - 1 {
                     // combine with next line
-                    current.append(tostring(self.lines[self.cy + 1]))
+                    editline_append(current, editline_tostr(self.lines[self.cy + 1]))
                     self.remove_lines(self.cy + 2, 1)
                 }
             }
@@ -847,12 +837,12 @@ M.TextEditor = register_type("TextEditor", Widget, {
                 self._needs_calc = true
                 var current = self.current_line()
                 if self.cx > 0 {
-                    current.del(self.cx - 1, 1)
+                    editline_del(current, self.cx - 1, 1)
                     self.cx = self.cx - 1
                 } else if self.cy > 0 {
                     // combine with previous line
                     self.cx = self.lines[self.cy - 1].len
-                    self.lines[self.cy - 1].append(tostring(current))
+                    editline_append(self.lines[self.cy - 1], editline_tostr(current))
                     self.remove_lines(self.cy, 1)
                     self.cy = self.cy - 1
                 }
@@ -861,7 +851,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         } else if code == key.RETURN {
             // maintain indentation
             self._needs_calc = true
-            var str = tostring(self.current_line())
+            var str = editline_tostr(self.current_line())
             self.insert("\n")
             for c in str.gmatch(".") { if c == " " || c == "\t" {
                 self.insert(c) } else { break
@@ -875,23 +865,23 @@ M.TextEditor = register_type("TextEditor", Widget, {
                     if input_is_modifier_pressed(mod.SHIFT) {
                         var rem = 0
                         for j in 1 to min(4, self.lines[i].len) {
-                            if tostring(self.lines[i]).sub(j - 1, j) == " "
+                            if editline_tostr(self.lines[i]).sub(j - 1, j) == " "
                             {
                                 rem = rem + 1
                             } else {
-                                if tostring(self.lines[i]).sub(j - 1, j)
+                                if editline_tostr(self.lines[i]).sub(j - 1, j)
                                 == "\t" && j == 0 {
                                     rem = rem + 1
                                 }
                                 break
                             }
                         }
-                        self.lines[i].del(0, rem)
+                        editline_del(self.lines[i], 0, rem)
                         if i == self.my { self.mx = self.mx
                             - (rem > self.mx && self.mx || rem) }
                         if i == self.cy { self.cx = self.cx -  rem }
                     } else {
-                        self.lines[i].prepend("\t")
+                        editline_prepend(self.lines[i], "\t")
                         if i == self.my { self.mx = self.mx + 1 }
                         if i == self.cy { self.cx = self.cx + 1 }
                     }
@@ -901,13 +891,13 @@ M.TextEditor = register_type("TextEditor", Widget, {
                     self._needs_calc = true
                     var cy = self.cy
                     var lines = self.lines
-                    if tostring(lines[cy]).sub(0, 1) == "\t" {
-                        lines[cy].del(0, 1)
+                    if editline_tostr(lines[cy]).sub(0, 1) == "\t" {
+                        editline_del(lines[cy], 0, 1)
                         self.cx = self.cx - 1
                     } else {
-                        for j in 1 to min(4, lines[cy].len()) {
-                            if tostring(lines[cy]).sub(0, 1) == " " {
-                                lines[cy].del(0, 1)
+                        for j in 1 to min(4, lines[cy].len) {
+                            if editline_tostr(lines[cy]).sub(0, 1) == " " {
+                                editline_del(lines[cy], 0, 1)
                                 self.cx = self.cx - 1
                             }
                         }
@@ -957,8 +947,8 @@ M.TextEditor = register_type("TextEditor", Widget, {
             hitx, hity = (hitx + self.offset_h) / k, hity / k
             for i in fd - 1 to self.lines.len() {
                 if h > ph { break }
-                var linestr = tostring(self.lines[i])
-                var width, height = self.lines[i].get_bounds()
+                var linestr = editline_tostr(self.lines[i])
+                var width, height = self.lines[i].w, self.lines[i].h
                 if hity >= h && hity <= h + height {
                     var x = text_is_visible(linestr, hitx, hity - h,
                         max_width)
@@ -1064,7 +1054,8 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var k = self.draw_scale()
         maxw -= (self.pad_l + self.pad_r) / k
         for i, line in self.lines.each() {
-            var tw, th = line.calc_bounds(maxw)
+            var tw, th = text_get_bounds(editline_tostr(line), maxw)
+            line.w, line.h = tw, th
             w, h = max(w, tw), h + th
         }
         w, h = w * k, h * k
@@ -1075,7 +1066,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     get_first_drawable_line: func(self) {
         var ov = self.offset_v / self.draw_scale()
         for i, line in self.lines.each() {
-            var tw, th = line.get_bounds()
+            var tw, th = line.w, line.h
             ov -= th
             if ov < 0 { return i + 1 }
         }
@@ -1084,7 +1075,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     get_last_drawable_line: func(self) {
         var ov = (self.offset_v + self.h) / self.draw_scale()
         for i, line in self.lines.each() {
-            var tw, th = line.get_bounds()
+            var tw, th = line.w, line.h
             ov -= th
             if ov <= 0 { return i + 1 }
         }
@@ -1092,7 +1083,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
     fix_h_offset: func(self, k, maxw, del) {
         var fontw = text_font_get_w() * k
-        var x, y = text_get_position(tostring(self.lines[self.cy]),
+        var x, y = text_get_position(editline_tostr(self.lines[self.cy]),
             self.cx, maxw)
 
         x *= k
@@ -1114,7 +1105,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
         var yoff = 0
         for i in 0 to cy {
-            var tw, th = lines[i].get_bounds()
+            var tw, th = lines[i].w, lines[i].h
             yoff += th
         }
 
@@ -1143,7 +1134,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
         if ml {
             ph = self.clip_h / k
         } else {
-            var w, h = text_get_bounds(tostring(self.lines[0]),
+            var w, h = text_get_bounds(editline_tostr(self.lines[0]),
                 lw && pw || -1)
             ph = h
         }
@@ -1179,9 +1170,9 @@ M.TextEditor = register_type("TextEditor", Widget, {
         var pw, ph = floor(get_aw(self) / k), floor(self.h / k)
         var max_width = self.line_wrap && pw || -1
         // convert from cursor coords into pixel coords
-        var psx, psy = text_get_position(tostring(self.lines[sy]), sx,
+        var psx, psy = text_get_position(editline_tostr(self.lines[sy]), sx,
             max_width)
-        var pex, pey = text_get_position(tostring(self.lines[ey]), ex,
+        var pex, pey = text_get_position(editline_tostr(self.lines[ey]), ex,
             max_width)
         var maxy = self.lines.len()
         var h = 0
@@ -1191,7 +1182,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
                 maxy = i
                 break
             }
-            var width, height = text_get_bounds(tostring(self.lines[i - 1]),
+            var width, height = text_get_bounds(editline_tostr(self.lines[i - 1]),
                 max_width)
             if i == sy + 1 {
                 psy = psy + h
@@ -1303,7 +1294,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
             var fonth = text_font_get_h()
             var tc = self.text_color
             for i in fd to self.lines.len() {
-                var line = tostring(self.lines[i - 1])
+                var line = editline_tostr(self.lines[i - 1])
                 var width, height = text_get_bounds(line,
                     max_width)
                 if h >= ph { break }
@@ -1341,7 +1332,7 @@ M.Field = register_type("Field", TextEditor, {
 
     commit: func(self) {
         TextEditor::commit(self)
-        var val = tostring(self.lines[0])
+        var val = editline_tostr(self.lines[0])
         self.value = val
         // trigger changed signal
         emit(self, "value,changed", val)
