@@ -628,18 +628,16 @@ namespace lua
     })
 
     void reset() {
+/*
 #ifndef STANDALONE
         deleteparticles();
         deletestains();
         clearanims();
 #endif
-        external_handler = LUA_REFNIL;
-        lua_close(L);
-        L = NULL;
-        init();
+        call_external("state_restore", "");
 #ifndef STANDALONE
         lua::execfile("config/ui.oct");
-#endif
+#endif*/
     }
 
     void close() {

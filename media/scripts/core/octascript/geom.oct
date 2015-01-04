@@ -11,7 +11,6 @@
 
 import capi
 import std.ffi
-import core.logger as log
 
 from std.table import rawget, rawset, pairs
 from std.math import sin, cos, abs, min, max, sqrt, floor, atan2, asin, deg
@@ -978,7 +977,6 @@ var gen_vec_surrogate = func(name, base, ltable) {
     surrtbl = {
         name: name,
         new: func(self, ent, svar) {
-            @[debug] log::log(log.INFO, name ~ ": new: " ~ svar.name)
             var rawt = { entity: ent, variable: svar }
             rawt.rawt = rawt
             var ret = newproxy(true)

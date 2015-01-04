@@ -21,6 +21,7 @@ import capi
 
 import std
 import std.gc
+import std.ffi
 import std.package
 from std.table import pairs, copy
 
@@ -35,19 +36,28 @@ var std_restore = func() {
     for k, v in pairs(std_snapshot) {
         var cp = copy(v)
         std[k] = cp
-        loaded[k] = cp
+        loaded["std." ~ k] = cp
     }
+    // restore ffi separately
+    loaded["std.ffi"] = ffi
 }
 
 M.restore = func() {
     var loaded = package.loaded
-    // go over loaded, erase everything, but spare capi and std
-    var capi, std = loaded["capi"], loaded["std"]
+    // go over loaded, erase everything except some
+    var capi, std, lstate = loaded["capi"], loaded["std"], loaded["luastate"]
+    var geom = loaded["core.octascript.geom"]
+    var parts = loaded["core.engine.particles"]
+    var edit = loaded["core.engine.edit"]
     for k, v in pairs(loaded) {
         loaded[k] = undef
     }
     loaded["capi"] = capi
     loaded["std"] = std
+    loaded["luastate"] = lstate
+    loaded["core.octascript.geom"] = geom
+    loaded["core.engine.particles"] = parts
+    loaded["core.engine.edit"] = edit
     // cleanup std contents (in case something injected extra stuff in there)
     for k, v in pairs(std) {
         std[k] = undef

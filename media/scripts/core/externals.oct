@@ -10,6 +10,7 @@
 */
 
 import capi
+import luastate
 
 /// Module: externals
 var M = {}
@@ -37,5 +38,12 @@ M.set = func(name, fun) {
 }
 
 capi::external_hook(M.get)
+
+// we need the state restore external here so that it gets cleaned up with
+// the rest
+
+externals["state_restore"] = func() {
+    luastate::restore()
+}
 
 return M

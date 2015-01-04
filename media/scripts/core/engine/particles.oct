@@ -18,8 +18,6 @@ import std.ffi
 
 from std.util import assert
 
-var ents
-
 ffi::cdef(r"""
     typedef struct particle_t {
         vec3f_t position, direction;
@@ -33,9 +31,8 @@ ffi::cdef(r"""
 var particle = ffi::metatype("particle_t", {
     __index: {
         get_owner: func(self) {
-            if !ents { ents = import core.entities.ents }
             assert(self != undef)
-            return ents::get_by_centity(capi::particle_get_owner(self))
+            return capi::particle_get_owner(self)
         },
         set_owner: func(self, ent) {
             assert(self != undef)
