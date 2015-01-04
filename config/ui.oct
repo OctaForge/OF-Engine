@@ -161,12 +161,7 @@ root.new_window("main", gui.Window, func(win) {
                         color: 0x88FF88 }),
                     gui::Filler({ min_h: 0.01, clamp_h: true }),
                     gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
-                    gui::Label({ text: "&& others",  scale: 0.8 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: "And Syntensity created by:",
-                        color: 0x88FF88 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: 'Alon \f1"kripken"\f7 Zakai' }),
+                    gui::Label({ text: "and others",  scale: 0.8 }),
                     gui::Filler({ min_h: 0.01, clamp_h: true }),
                     gui::Label({ text: "The original Cube 2 engine:",
                         color: 0x88FF88 }),
@@ -174,7 +169,13 @@ root.new_window("main", gui.Window, func(win) {
                     gui::Label({ text: 'Wouter \f1"aardappel"\f7 van '
                         ~ 'Oortmerssen' }),
                     gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
-                    gui::Label({ text: "and others",  scale: 0.8 }))))
+                    gui::Label({ text: "and others",  scale: 0.8 }),
+                    gui::Filler({ min_h: 0.01, clamp_h: true }),
+                    gui::Label({ text: "Formerely based on Syntensity created by:",
+                        color: 0x88FF88 }),
+                    gui::Filler({ min_h: 0.01, clamp_h: true }),
+                    gui::Label({ text: 'Alon \f1"kripken"\f7 Zakai' }),
+                    gui::Filler({ min_h: 0.01, clamp_h: true }))))
         })
     })
 })
