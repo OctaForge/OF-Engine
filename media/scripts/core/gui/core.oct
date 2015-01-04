@@ -11,7 +11,6 @@
         See COPYING.txt.
 */
 
-import std.ffi
 import capi
 import core.engine.cubescript as cs
 import core.events.signal
@@ -461,41 +460,33 @@ var Projection = Object.clone({
     }
 })
 
-var ffi_new = ffi.new
-
-ffi::cdef(r"""
-    typedef struct color_t {
-        uchar r, g, b, a;
-    } color_t;
-""")
-
 var color_ctors = {
-    0: func(self) { return ffi_new(self, 0xFF, 0xFF, 0xFF, 0xFF) },
+    0: func(self) { self.r, self.g, self.b, self.a = 0xFF, 0xFF, 0xFF, 0xFF },
     1: func(self, c) {
         c = c || 0xFFFFFFFF
         var a = c >> 24
-        return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
-            (a == 0) && 0xFF || a)
+        self.r, self.g, self.b, self.a = (c >> 16) & 0xFF, (c >> 8) & 0xFF,
+            c & 0xFF, (a == 0) && 0xFF || a
     },
     2: func(self, c, a) {
         c = c || 0xFFFFFF
-        return ffi_new(self, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF,
-            a || 0xFF)
+        self.r, self.g, self.b, self.a = (c >> 16) & 0xFF, (c >> 8) & 0xFF,
+            c & 0xFF, a || 0xFF
     },
     3: func(self, r, g, b) {
-        return ffi_new(self, r || 0xFF, g || 0xFF, b || 0xFF, 0xFF)
+        self.r, self.g, self.b, self.a = r || 0xFF, g || 0xFF, b || 0xFF, 0xFF
     }
 }
 
 var color_defctor = func(self, r, g, b, a) {
-    return ffi_new(self, r || 0xFF, g || 0xFF, b || 0xFF, a || 0xFF)
+    self.r, self.g, self.b, self.a = r || 0xFF, g || 0xFF, b || 0xFF, a || 0xFF
 }
 
 /**
     A color structure used for color attributes in all widgets that support
     them. Has fields r, g, b, a ranging from 0 to 255.
 */
-M.Color = ffi::metatype("color_t", {
+M.Color = Object.clone({
     /**
         Depending on the number of arguments, this initializes the color.
 
@@ -515,34 +506,32 @@ M.Color = ffi::metatype("color_t", {
         The set_(r|g|b|a) methods emit the "(r|g|b|a),changed" signals
         on this structure, passing the new value to the emit call.
     */
-    __new: func(self, ...) {
-        var nargs = select("#", ...)
-        return (color_ctors[nargs] || color_defctor)(self, ...)
+    __ctor: func(self, ...) {
+        var nargs = select("#", ...);
+        (color_ctors[nargs] || color_defctor)(self, ...)
     },
 
-    __index: {
-        /// Sets the color (like glColor4f).
-        init: func(self) {
-            gle_color4ub(self.r, self.g, self.b, self.a)
-        },
+    /// Sets the color (like glColor4f).
+    init: func(self) {
+        gle_color4ub(self.r, self.g, self.b, self.a)
+    },
 
-        /// Like above, but used as an attribute.
-        attrib: func(self) {
-            gle_attrib4ub(self.r, self.g, self.b, self.a)
-        },
+    /// Like above, but used as an attribute.
+    attrib: func(self) {
+        gle_attrib4ub(self.r, self.g, self.b, self.a)
+    },
 
-        /// Defines the color attribute as 4 unsigned bytes.
-        def: func() { gle_defcolorub(4) },
+    /// Defines the color attribute as 4 unsigned bytes.
+    def: func() { gle_defcolorub(4) },
 
-        /// Function: set_r
-        set_r: gen_setter("r"),
-        /// Function: set_g
-        set_g: gen_setter("g"),
-        /// Function: set_b
-        set_b: gen_setter("b"),
-        /// Function: set_a
-        set_a: gen_setter("a")
-    }
+    /// Function: set_r
+    set_r: gen_setter("r"),
+    /// Function: set_g
+    set_g: gen_setter("g"),
+    /// Function: set_b
+    set_b: gen_setter("b"),
+    /// Function: set_a
+    set_a: gen_setter("a")
 })
 
 /** Variable: uitextrows
