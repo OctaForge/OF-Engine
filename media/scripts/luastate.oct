@@ -46,14 +46,12 @@ M.restore = func() {
     var loaded = package.loaded
     // go over loaded, erase everything except some
     var capi, std, lstate = loaded["capi"], loaded["std"], loaded["luastate"]
-    var edit = loaded["core.engine.edit"]
     for k, v in pairs(loaded) {
         loaded[k] = undef
     }
     loaded["capi"] = capi
     loaded["std"] = std
     loaded["luastate"] = lstate
-    loaded["core.engine.edit"] = edit
     // cleanup std contents (in case something injected extra stuff in there)
     for k, v in pairs(std) {
         std[k] = undef

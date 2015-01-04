@@ -210,46 +210,50 @@ M.cube_push_corner = capi.edit_cube_push_corner
 */
 M.remip = capi.edit_raw_remip
 
-ffi::cdef(r"""
-    typedef struct selinfo_t {
-        int corner;
-        int cx, cxs, cy, cys;
-        struct { int x, y, z; } position, selection;
-        int grid_size, orientation;
-    } selinfo_t;
+var hadtypes = true
+if !(try ffi["typeof"]("selinfo_t")) {
+    ffi::cdef(r"""
+        typedef struct selinfo_t {
+            int corner;
+            int cx, cxs, cy, cys;
+            struct { int x, y, z; } position, selection;
+            int grid_size, orientation;
+        } selinfo_t;
 
-    typedef struct vslot_t {
-        int flags;
-        int rotation;
-        int offset_x, offset_y;
-        float scroll_s, scroll_t;
-        float scale;
-        int layer, decal;
-        float alpha_front, alpha_back;
-        __rt_vec3f_t color; // we're touching internals here
-        float refract_scale;
-        __rt_vec3f_t refract_color;
-    } vslot_t;
+        typedef struct vslot_t {
+            int flags;
+            int rotation;
+            int offset_x, offset_y;
+            float scroll_s, scroll_t;
+            float scale;
+            int layer, decal;
+            float alpha_front, alpha_back;
+            __rt_vec3f_t color; // we're touching internals here
+            float refract_scale;
+            __rt_vec3f_t refract_color;
+        } vslot_t;
 
-    /* fields with double underscores are private and to be used at your
-     * own risk only (you most likely won't need these at all)
-     */
-    typedef struct cube_t {
-        cube_t *__children;
-        void *__ext; /* not to be used */
-        union {
-            uchar __edges[12];
-            uint __faces[3];
-        };
-        ushort texture[6];
-        ushort material;
-        uchar __merged;
-        union {
-            uchar __escaped;
-            uchar __visible;
-        };
-    } cube_t;
-""")
+        /* fields with double underscores are private and to be used at your
+         * own risk only (you most likely won't need these at all)
+         */
+        typedef struct cube_t {
+            cube_t *__children;
+            void *__ext; /* not to be used */
+            union {
+                uchar __edges[12];
+                uint __faces[3];
+            };
+            ushort texture[6];
+            ushort material;
+            uchar __merged;
+            union {
+                uchar __escaped;
+                uchar __visible;
+            };
+        } cube_t;
+    """)
+    hadtypes = false
+}
 
 var edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
 edit_raw_edit_material, edit_raw_flip, edit_raw_rotate, edit_raw_edit_vslot,
@@ -281,7 +285,7 @@ from std.math import clamp
           - 4 - down
           - 5 - up
 */
-M.Selection = ffi::metatype("selinfo_t", {
+M.Selection = hadtypes ? ffi["typeof"]("selinfo_t") : ffi::metatype("selinfo_t", {
     __eq: func(self, other) {
         var pos, sel = self.position, self.selection
         var opos, osel = other.position, other.selection
@@ -452,7 +456,7 @@ M.vslot_flags = enum {
         - alpha_front, alpha_back, r, g, b - floats.
         - refract_scale, refract_r, refract_g, refract_b - flots.
 */
-M.VSlot = ffi::metatype("vslot_t", {
+M.VSlot = hadtypes ? ffi["typeof"]("vslot_t") : ffi::metatype("vslot_t", {
     __index: {
     }
 })
