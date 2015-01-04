@@ -84,12 +84,15 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
     __tostring: func(self) {
         return "Vec2 <%f, %f>".format(self.x, self.y)
     },
-    __eq: func(self, o) { return self.x == o.x && self.y == o.y },
+    __eq: func(self, o) { return self.equals(o) },
     __mul: func(self, o) { return self.mul_new(o) },
     __div: func(self, o) { return self.div_new(o) },
     __add: func(self, o) { return self.add_new(o) },
     __sub: func(self, o) { return self.sub_new(o) },
     __index: {
+        equals: func(self, o) {
+            return self.x == o.x && self.y == o.y
+        },
         from_array: func(self, o) {
             return ffi_new(self, o[0], o[1])
         },
@@ -248,14 +251,15 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
     __tostring: func(self) {
         return "Vec3 <%f, %f, %f>".format(self.x, self.y, self.z)
     },
-    __eq: func(self, o) {
-        return self.x == o.x && self.y == o.y && self.z == o.z
-    },
+    __eq: func(self, o) { return self.equals(o) },
     __mul: func(self, o) { return self.mul_new(o) },
     __div: func(self, o) { return self.div_new(o) },
     __add: func(self, o) { return self.add_new(o) },
     __sub: func(self, o) { return self.sub_new(o) },
     __index: {
+        equals: func(self, o) {
+            return self.x == o.x && self.y == o.y && self.z == o.z
+        },
         from_array: func(self, o) {
             return ffi_new(self, o[0], o[1], o[2])
         },
@@ -705,15 +709,16 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
     __tostring: func(self) {
         return "Vec3 <%f, %f, %f, %f>".format(self.x, self.y, self.z, self.w)
     },
-    __eq: func(self, o) {
-        return self.x == o.x && self.y == o.y
-            && self.z == o.z && self.w == o.w
-    },
+    __eq: func(self, o) { return self.equals(o) },
     __mul: func(self, o) { return self.mul_new(o) },
     __div: func(self, o) { return self.div_new(o) },
     __add: func(self, o) { return self.add_new(o) },
     __sub: func(self, o) { return self.sub_new(o) },
     __index: {
+        equals: func(self, o) {
+            return self.x == o.x && self.y == o.y
+                && self.z == o.z && self.w == o.w
+        },
         from_array: func(self, o) {
             return ffi_new(self, o[0], o[1], o[2], o[3])
         },
@@ -972,6 +977,20 @@ var ntoi2 = { x: 0, y: 1 }
 var ntoi3 = { x: 0, y: 1, z: 2, r: 0, g: 1, b: 2 }
 var ntoi4 = { x: 0, y: 1, z: 2, w: 3, r: 0, g: 1, b: 2, a: 3 }
 
+var disallow = {
+    from_array: true,
+    from_vec2: true,
+    from_vec3: true,
+    from_yaw_pitch: true,
+    from_hex_color: true
+}
+
+var surr_eq = func(self, o) { return self.equals(o) }
+var surr_mul = func(self, o) { return self.mul_new(o) }
+var surr_div = func(self, o) { return self.div_new(o) }
+var surr_add = func(self, o) { return self.add_new(o) }
+var surr_sub = func(self, o) { return self.sub_new(o) }
+
 var gen_vec_surrogate = func(name, base, ltable) {
     var surrtbl
     surrtbl = {
@@ -985,7 +1004,7 @@ var gen_vec_surrogate = func(name, base, ltable) {
             mt.__index    = setmt(rawt, self)
             mt.__newindex = self.__newindex
             mt.__eq, mt.__mul, mt.__div, mt.__add, mt.__sub
-                = base.__eq, base.__mul, base.__div, base.__add, base.__sub
+                = surr_eq, surr_mul, surr_div, surr_add, surr_sub
             return ret
         },
         __tostring: (ltable.w && func(self) {
@@ -999,7 +1018,7 @@ var gen_vec_surrogate = func(name, base, ltable) {
         __index: func(self, n) {
             var i = ltable[n]
             if i { return self.variable.get_item(self.entity, i) }
-            return surrtbl[n] || rawget(self.rawt, n)
+            return (!disallow[n] ? base[n] : undef) || surrtbl[n] || rawget(self.rawt, n)
         },
         __newindex: func(self, n, val) {
             var i = ltable[n]
@@ -1007,15 +1026,12 @@ var gen_vec_surrogate = func(name, base, ltable) {
             rawset(self.rawt, n, val)
         }
     }
-    for k, v in pairs(base.__index) {
-        if !k.find_match("^from_.+$") { surrtbl[k] = v }
-    }
     return surrtbl
 }
 
-M.Vec2_Surrogate = gen_vec_surrogate("Vec2_Surrogate", Vec2_mt, ntoi2)
-M.Vec3_Surrogate = gen_vec_surrogate("Vec3_Surrogate", Vec3_mt, ntoi3)
-M.Vec4_Surrogate = gen_vec_surrogate("Vec4_Surrogate", Vec4_mt, ntoi4)
+M.Vec2_Surrogate = gen_vec_surrogate("Vec2_Surrogate", Vec2, ntoi2)
+M.Vec3_Surrogate = gen_vec_surrogate("Vec3_Surrogate", Vec3, ntoi3)
+M.Vec4_Surrogate = gen_vec_surrogate("Vec4_Surrogate", Vec4, ntoi4)
 
 var sincos360 = [
     Vec2( 1.00000000,  0.00000000), Vec2( 0.99984770,  0.01745241), Vec2( 0.99939083,  0.03489950), Vec2( 0.99862953,  0.05233596), Vec2( 0.99756405,  0.06975647), Vec2( 0.99619470,  0.08715574), // 0

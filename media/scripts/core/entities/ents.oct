@@ -31,8 +31,6 @@ import core.engine.model
 
 from core.externals import set as set_external
 
-from core.octascript.geom import Vec3
-
 var emit = signal.emit
 
 from std.object import Object
