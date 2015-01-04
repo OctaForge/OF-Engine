@@ -9,6 +9,7 @@ local std = require("octascript.std")
 local rt = require("octascript.rt")
 
 require("octascript.std.native")
+require("octascript.std.native.geom")
 
 local compile = std.eval.compile
 local assert_run = function(ok, err)
