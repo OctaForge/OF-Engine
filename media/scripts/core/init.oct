@@ -9,6 +9,8 @@
         See COPYING.txt.
 */
 
+import luastate
+
 import std.table
 import std.debug
 

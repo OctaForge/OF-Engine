@@ -10,12 +10,14 @@
 
 import capi
 import std.ffi
+import luastate
 var ents, get_by_centity
 
 var ffi_new = ffi.new
 
 from std.conv import tostring, tonumber
 from std.array import from_table
+from std.table import pairs
 
 var gen_getwrap = func(fun, tp) {
     var tpnm = tp ~ "[1]"
@@ -23,6 +25,18 @@ var gen_getwrap = func(fun, tp) {
         var stor = ffi_new(tpnm)
         if !fun(ent, stor) { return undef }
         return stor[0]
+    }
+}
+
+// take a snapshot of capi for later restore
+
+var capi_snapshot = {}
+for k, v in pairs(capi) {
+    capi_snapshot[k] = v
+}
+luastate.capi_restore = func() {
+    for k, v in pairs(capi_snapshot) {
+        capi[k] = v
     }
 }
 

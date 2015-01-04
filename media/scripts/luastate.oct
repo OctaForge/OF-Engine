@@ -1,0 +1,62 @@
+/**<
+    Takes care of state consistency and refreshing.
+    The capi patcher also injects "capi_restore" here, used to restore
+    the C API table to its original state (so that it can be re-patched
+    from scratch).
+
+    Author:
+        q66 <quaker66@gmail.com>
+
+    License:
+        See COPYING.txt.
+*/
+
+var M = {}
+
+// first thing we do: make a snapshot of the entire standard library
+// shallow is enough (modules with deep structure, such as std.package,
+// are not allowed within sandbox)
+
+import capi
+
+import std
+import std.gc
+import std.package
+from std.table import pairs, copy
+
+var std_snapshot = {}
+for k, v in pairs(std) {
+    std_snapshot[k] = copy(v)
+}
+
+// restore from a copy of snapshot
+var std_restore = func() {
+    var loaded = package.loaded
+    for k, v in pairs(std_snapshot) {
+        var cp = copy(v)
+        std[k] = cp
+        loaded[k] = cp
+    }
+}
+
+M.restore = func() {
+    var loaded = package.loaded
+    // go over loaded, erase everything, but spare capi and std
+    var capi, std = loaded["capi"], loaded["std"]
+    for k, v in pairs(loaded) {
+        loaded[k] = undef
+    }
+    loaded["capi"] = capi
+    loaded["std"] = std
+    // cleanup std contents (in case something injected extra stuff in there)
+    for k, v in pairs(std) {
+        std[k] = undef
+    }
+    std_restore()
+    M::capi_restore()
+    capi::reload_core()
+    // erase any remains of old stuff
+    gc.collect()
+}
+
+return M

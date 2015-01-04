@@ -623,6 +623,10 @@ namespace lua
         load_module("init");
     }
 
+    CLUAICOMMAND(reload_core, void, (), {
+        load_module("init");
+    })
+
     void reset() {
 #ifndef STANDALONE
         deleteparticles();
