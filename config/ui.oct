@@ -8,93 +8,141 @@ from std.table import len
 
 import std.math
 
-var connect = signal.connect
-
 var root = gui::get_root()
 
 var var_get = cs.var_get
 var cs_execute = cs.execute
 
-var gen_map_list = func(img, vb) {
-    var glob, loc = capi::get_all_map_names()
-    vb.append(gui::Spacer({ pad_v: 0.005 }))
-    vb.append(gui::Label({ text: "Global maps", color: 0x88FF88 }))
-    vb.append(gui::Spacer({ pad_v: 0.002 }))
-    var current_preview
-    for i, map in glob.each() {
-        vb.append(gui::Button({ label: map, clamp_h: true,
-            variant: "nobg", min_w: 0.2
-        }), func(btn) {
-            signal::connect(btn, "hovering", func() {
-                if map != current_preview {
-                    current_preview = map
-                    img.set_tex("media/map/" ~ map ~ "/preview")
-                }
-            })
-            signal::connect(btn, "leaving", func() {
-                current_preview = undef
-                img.set_tex(undef)
-            })
-            signal::connect(btn, "clicked", func() {
-                cs_execute("map " ~ map)
-            })
-        })
-    }
-    if glob.len() == 0 {
-        vb.append(gui::Label({ text: "(None available)", color: 0xFF6666, scale: 0.8 }))
-    }
-    vb.append(gui::Spacer({ pad_v: 0.005 }))
-    vb.append(gui::Label({ text: "Local maps", color: 0x8888FF }))
-    vb.append(gui::Spacer({ pad_v: 0.002 }))
-    for i, map in loc.each() {
-        vb.append(gui::Button({ label: map, clamp_h: true,
-            variant: "nobg", min_w: 0.2
-        }), func(btn) {
-            signal::connect(btn, "hovering", func() {
-                if map != current_preview {
-                    current_preview = map
-                    img.set_tex("media/map/" ~ map ~ "/preview")
-                }
-            })
-            signal::connect(btn, "leaving", func() {
-                current_preview = undef
-                img.set_tex(undef)
-            })
-            signal::connect(btn, "clicked", func() {
-                cs_execute("map " ~ map)
-            })
-        })
-    }
-    if loc.len() == 0 {
-        vb.append(gui::Label({ text: "(None available)", color: 0xFF6666, scale: 0.8 }))
-    }
+/* Main menu */
+
+var gen_menu_default = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox(), func(vb) {
+        vb.append(gui::Label({ text: "Welcome to OctaForge!", scale: 1.5,
+            color: 0x88FF88
+        }))
+        vb.append(gui::Label({ text: "Please start by clicking one of the "
+            "menu items." }))
+    })
+    return r
 }
 
-var gen_map_load = func() {
+var gen_map_list = func(img, vb) {
+    var glob, loc = capi::get_all_map_names()
+    var current_preview
+
+    var ml_section = func(lbl, arr) {
+        vb.append(gui::Filler({ min_h: 0.005 }))
+        vb.append(gui::Label({ text: lbl, color: 0x88FF88 }))
+        vb.append(gui::Filler({ min_h: 0.002 }))
+
+        for i, map in arr.each() {
+            vb.append(gui::Button({ label: map, clamp_h: true,
+                variant: "nobg", min_w: 0.2
+            }), func(btn) {
+                signal::connect(btn, "hovering", func() {
+                    if map != current_preview {
+                        current_preview = map
+                        img.set_tex("media/map/" ~ map ~ "/preview")
+                    }
+                })
+                signal::connect(btn, "leaving", func() {
+                    current_preview = undef
+                    img.set_tex(undef)
+                })
+                signal::connect(btn, "clicked", func() {
+                    cs_execute("map " ~ map)
+                })
+            })
+        }
+        if arr.empty() {
+            vb.append(gui::Label({ text: "(None available)", color: 0xFF6666,
+                scale: 0.8 }))
+        }
+    }
+
+    ml_section("Global maps", glob)
+    ml_section("Local maps", loc)
+}
+
+var gen_menu_map_load = func() {
     var s
-    return gui::HBox(undef,
-        gui::Outline({ __init: func(o) {
-            o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
-                sp.append(gui::Scroller({ clip_w: 0.6, clip_h: 0.5 }), func(sc) {
-                    s = sc
-                    sc.append(gui::HBox({ padding: 0.01 }), func(hb) {
-                        var im
-                        hb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02 },
-                            gui::Image({ min_w: 0.3, min_h: 0.3,
-                                __init: func(img) { im = img } },
-                                gui::Outline({ clamp: true, color: 0x303030 }))))
-                        hb.append(gui::VBox(), func(vb) {
-                            vb.align(0, -1)
-                            gen_map_list(im, vb)
-                        })
+    var r = gui::HBox()
+    r.append(gui::Outline({ color: 0x303030 }), func(o) {
+        o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+            sp.append(gui::Scroller({ clip_w: 0.6, clip_h: 0.5 }), func(sc) {
+                s = sc
+                sc.append(gui::HBox({ padding: 0.01 }), func(hb) {
+                    var im
+                    hb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02 },
+                        gui::Image({ min_w: 0.3, min_h: 0.3,
+                            __init: func(img) { im = img } },
+                            gui::Outline({ clamp: true, color: 0x303030 }))))
+                    hb.append(gui::VBox(), func(vb) {
+                        vb.align(0, -1)
+                        gen_map_list(im, vb)
                     })
                 })
             })
-        }, color: 0x303030 }),
-        gui::VScrollbar({ clamp_v: true, __init: func(sb) {
-            sb.append(gui::ScrollButton())
-            sb.bind_scroller(s)
-        } }))
+        })
+    })
+    return r
+}
+
+var gen_menu_options = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox(), func(vb) {
+        vb.append(gui::Label({ text: "Coming soon", scale: 1.5,
+            color: 0x88FF88 }))
+        vb.append(gui::Label({ text: "No options for now :)" }))
+    })
+    return r
+}
+
+var gen_menu_credits = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox(undef,
+        gui::Label({ text: "OctaForge is brought to you by:",
+            color: 0x88FF88 }),
+        gui::Filler({ min_h: 0.01, clamp_h: true }),
+        gui::Label({ text: 'Daniel \f1"q66"\f7 Kolesa' }),
+        gui::Label({ text: "project leader and main programmer",
+            scale: 0.8 }),
+        gui::Filler({ min_h: 0.008, clamp_h: true }),
+        gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
+        gui::Label({ text: 'David \f1"dkreuter"\f7 Kreuter' }),
+        gui::Label({ text: 'Dale \f1"graphitemaster"\f7 Weiler' }),
+        gui::Label({ text: "code contributors", scale: 0.8 }),
+        gui::Filler({ min_h: 0.01, clamp_h: true }),
+        gui::Label({ text: "Based on Tesseract created by:",
+            color: 0x88FF88 }),
+        gui::Filler({ min_h: 0.01, clamp_h: true }),
+        gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
+        gui::Label({ text: "and others",  scale: 0.8 }),
+        gui::Filler({ min_h: 0.01, clamp_h: true }),
+        gui::Label({ text: "The original Cube 2 engine:",
+            color: 0x88FF88 }),
+        gui::Filler({ min_h: 0.01, clamp_h: true }),
+        gui::Label({ text: 'Wouter \f1"aardappel"\f7 van '
+            ~ 'Oortmerssen' }),
+        gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
+        gui::Label({ text: "and others",  scale: 0.8 }),
+        gui::Filler({ min_h: 0.01, clamp_h: true }),
+        gui::Label({ text: "Formerely based on Syntensity created by:",
+            color: 0x88FF88 }),
+        gui::Filler({ min_h: 0.01, clamp_h: true }),
+        gui::Label({ text: 'Alon \f1"kripken"\f7 Zakai' }),
+        gui::Filler({ min_h: 0.01, clamp_h: true })
+    ))
+    return r
+}
+
+var gen_menu_btn = func(b, lbl, cb) {
+    b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
+        func(btn) {
+            signal::connect(btn, "clicked", cb)
+        }
+    )
 }
 
 root.new_window("main", gui.Window, func(win) {
@@ -104,87 +152,29 @@ root.new_window("main", gui.Window, func(win) {
     win.append(gui::HBox({ clamp_h: true }), func(b) {
         var stat
         b.append(gui::VBox(), func(b) {
-            b.append(gui::Button({ label: "Load map", clamp_h: true,
-                variant: "nobg"
-            }), func(btn) {
-                connect(btn, "clicked", func() { stat.set_state("load_map") })
-            })
-            b.append(gui::Button({ label: "Options", clamp_h: true,
-                variant: "nobg"
-            }), func(btn) {
-                connect(btn, "clicked", func() { stat.set_state("options") })
-            })
-            b.append(gui::Button({ label: "Credits", clamp_h: true,
-                variant: "nobg"
-            }), func(btn) {
-                connect(btn, "clicked", func() { stat.set_state("credits") })
-            })
-            b.append(gui::Button({ label: "Quit", clamp_h: true,
-                variant: "nobg"
-            }), func(btn) {
-                connect(btn, "clicked", func() { cs_execute("quit") })
-            })
+            gen_menu_btn(b, "Load map", \-> stat.set_state("load_map"))
+            gen_menu_btn(b, "Options", \-> stat.set_state("options"))
+            gen_menu_btn(b, "Credits", \-> stat.set_state("credits"))
+            gen_menu_btn(b, "Quit", \-> cs_execute("quit"))
         })
         b.append(gui::Filler({ min_w: 0.005, clamp_v: true }))
         b.append(gui::State({ state: "default" }), func(st) {
             stat = st
-            st.update_state("default", gui::Outline({ min_w: 0.6, min_h: 0.5,
-                color: 0x303030 }, gui::VBox(undef,
-                    gui::Label({ text: "Welcome to OctaForge!", scale: 1.5,
-                        color: 0x88FF88
-                    }),
-                    gui::Label({ text: "Please start by clicking one of the "
-                        "menu items." }))))
-            st.update_state("load_map", gen_map_load())
-            st.update_state("options", gui::Outline({ min_w: 0.6, min_h: 0.5,
-                color: 0x303030 }, gui::VBox(undef,
-                    gui::Label({ text: "Coming soon", scale: 1.5,
-                        color: 0x88FF88 }),
-                    gui::Label({ text: "No options for now :)" }))))
-            st.update_state("credits", gui::Outline({
-                min_w: 0.6, min_h: 0.5,
-                color: 0x303030 },
-                gui::VBox(undef,
-                    gui::Label({ text: "OctaForge is brought to you by:",
-                        color: 0x88FF88 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: 'Daniel \f1"q66"\f7 Kolesa' }),
-                    gui::Label({ text: "project leader and main programmer",
-                        scale: 0.8 }),
-                    gui::Filler({ min_h: 0.008, clamp_h: true }),
-                    gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
-                    gui::Label({ text: 'David \f1"dkreuter"\f7 Kreuter' }),
-                    gui::Label({ text: 'Dale \f1"graphitemaster"\f7 Weiler' }),
-                    gui::Label({ text: "code contributors", scale: 0.8 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: "Based on Tesseract created by:",
-                        color: 0x88FF88 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
-                    gui::Label({ text: "and others",  scale: 0.8 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: "The original Cube 2 engine:",
-                        color: 0x88FF88 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: 'Wouter \f1"aardappel"\f7 van '
-                        ~ 'Oortmerssen' }),
-                    gui::Label({ text: 'Lee \f1"eihrul"\f7 Salzman' }),
-                    gui::Label({ text: "and others",  scale: 0.8 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: "Formerely based on Syntensity created by:",
-                        color: 0x88FF88 }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }),
-                    gui::Label({ text: 'Alon \f1"kripken"\f7 Zakai' }),
-                    gui::Filler({ min_h: 0.01, clamp_h: true }))))
+            st.update_state("default" , gen_menu_default())
+            st.update_state("load_map", gen_menu_map_load())
+            st.update_state("options" , gen_menu_options())
+            st.update_state("credits" , gen_menu_credits())
         })
     })
 })
+
+/* Console and editing */
 
 root.new_window("fullconsole", gui.Overlay, func(win) {
     win.clamp(true, true, false, false)
     win.align(0, -1)
     capi::console_full_show(true)
-    connect(win, "destroy", \-> capi::console_full_show(false))
+    signal::connect(win, "destroy", \-> capi::console_full_show(false))
     win.append(gui::Console({
         min_h: \-> var_get("fullconsize") / 100
     }), func(con) {
@@ -202,6 +192,9 @@ root.new_window("editstats", gui.Overlay, func(win) {
         })
     })
 })
+
+/* 2048 game, OctaForge edition
+ * Just for testing/fun */
 
 var genblock = \val, color, tcolor -> \-> gui::ColorFiller({
     color: color, min_w: 0.18, min_h: 0.18 },
@@ -321,10 +314,10 @@ var guimovetile = func(grid, i, j, step, hdir, vdir) {
         move_dist_x: dx, move_dist_y: dy
     }, o), func(m) {
         m.clamp(true, true, true, true)
-        connect(m, "anim,start", func() {
+        signal::connect(m, "anim,start", func() {
             pendinganims += 1
         })
-        connect(m, "anim,end", func() {
+        signal::connect(m, "anim,end", func() {
             m.set_visible(false)
             cleanup.push(m)
             grid.remove(i - 1)
@@ -415,7 +408,7 @@ root.new_window("2048", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("2048 (score: 0)")
-    connect(win, "destroy", func() { totalscore = 0 })
+    signal::connect(win, "destroy", func() { totalscore = 0 })
     win.append(gui::ColorFiller({ color: 0xBBADA0 }), func(cf) {
         cf.clamp(true, true, true, true)
         win.append(gui::Spacer({ pad_h: 0.025, pad_v: 0.025 }), func(sp) {
