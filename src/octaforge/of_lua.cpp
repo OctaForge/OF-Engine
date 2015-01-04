@@ -628,7 +628,7 @@ namespace lua
     })
 
     void reset() {
-/*
+
 #ifndef STANDALONE
         deleteparticles();
         deletestains();
@@ -637,7 +637,7 @@ namespace lua
         call_external("state_restore", "");
 #ifndef STANDALONE
         lua::execfile("config/ui.oct");
-#endif*/
+#endif
     }
 
     void close() {

@@ -18,29 +18,6 @@ import std.ffi
 
 from std.util import assert
 
-ffi::cdef(r"""
-    typedef struct particle_t {
-        vec3f_t position, direction;
-        int gravity, fade, millis;
-        vec3f_t color;
-        uchar flags;
-        float size, val;
-    } particle_t;
-""")
-
-var particle = ffi::metatype("particle_t", {
-    __index: {
-        get_owner: func(self) {
-            assert(self != undef)
-            return capi::particle_get_owner(self)
-        },
-        set_owner: func(self, ent) {
-            assert(self != undef)
-            capi::particle_set_owner(self, ent.__centity)
-        }
-    }
-})
-
 /**
     The flags available during particle renderer registration. Use bitwise
     OR to combine them. They include MOD (multiplied), RND4 (picks one of
@@ -192,8 +169,8 @@ M.register_renderer_meter = capi.particle_register_renderer_meter
 */
 M.get_renderer = capi.particle_get_renderer
 
-/**
-    Spawns a new generic particle.
+/*
+    Spawns a new generic particle. DISABLED
 
     Arguments:
         - tp - the renderer id.
@@ -208,12 +185,12 @@ M.get_renderer = capi.particle_get_renderer
 
     Returns:
         The particle object on which you can further set properties.
-*/
+
 M.new = func(tp, o, d, r, g, b, fade, size, gravity, owner) {
     return capi::particle_new(tp, o.x, o.y, o.z,
         d.x, d.y, d.z, r, g, b, fade, size, gravity || 0,
         owner && owner.__centity || null)
-}
+}*/
 
 /**
     Spawns a splash particle effect.

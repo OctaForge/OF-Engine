@@ -47,7 +47,6 @@ M.restore = func() {
     // go over loaded, erase everything except some
     var capi, std, lstate = loaded["capi"], loaded["std"], loaded["luastate"]
     var geom = loaded["core.octascript.geom"]
-    var parts = loaded["core.engine.particles"]
     var edit = loaded["core.engine.edit"]
     for k, v in pairs(loaded) {
         loaded[k] = undef
@@ -56,7 +55,6 @@ M.restore = func() {
     loaded["std"] = std
     loaded["luastate"] = lstate
     loaded["core.octascript.geom"] = geom
-    loaded["core.engine.particles"] = parts
     loaded["core.engine.edit"] = edit
     // cleanup std contents (in case something injected extra stuff in there)
     for k, v in pairs(std) {
@@ -66,7 +64,7 @@ M.restore = func() {
     M::capi_restore()
     capi::reload_core()
     // erase any remains of old stuff
-    gc.collect()
+    gc::collect()
 }
 
 return M
