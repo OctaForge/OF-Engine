@@ -39,25 +39,24 @@ M.register = func(receiver) {
 import std.ffi
 import capi
 
-ffi::metatype("ucharbuf", {
-    __index: {
-        get_int: func(self) {
-            return tonumber(capi::ucharbuf_getint(self))
-        },
-        get_uint: func(self) {
-            return tonumber(capi::ucharbuf_getuint(self))
-        },
-        get_float: func(self) {
-            return tonumber(capi::ucharbuf_getfloat(self))
-        },
-        get_string: func(self, n) {
-            n = n || 5000 // our MAXTRANS value
-            var buf = ffi::new("char[?]", n)
-            capi::ucharbuf_getstring(self, buf, n)
-            return ffi::string(buf)
-        }
-    }
-})
+M.buf_get_int = func(self) {
+    return tonumber(capi::ucharbuf_getint(self))
+}
+
+M.buf_get_uint = func(self) {
+    return tonumber(capi::ucharbuf_getuint(self))
+}
+
+M.buf_get_float = func(self) {
+    return tonumber(capi::ucharbuf_getfloat(self))
+}
+
+M.buf_get_string = func(self, n) {
+    n = n || 5000 // our MAXTRANS value
+    var buf = ffi::new("char[?]", n)
+    capi::ucharbuf_getstring(self, buf, n)
+    return ffi::string(buf)
+}
 
 var ubuft = ffi["typeof"]("ucharbuf &")
 
@@ -72,8 +71,8 @@ setext("message_receive", func(tp, receiver, sender, p) {
 })
 
 var psnid = M::register(@[!server,func(tp, receiver, sender, p) {
-    var title = p.get_string()
-    var content = p.get_string()
+    var title = M::buf_get_string()
+    var content = M::buf_get_string()
     // TODO: show message
 }])
 
