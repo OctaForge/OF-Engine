@@ -226,9 +226,9 @@ ffi::cdef(r"""
         float scale;
         int layer, decal;
         float alpha_front, alpha_back;
-        vec3f_t color;
+        __rt_vec3f_t color; // we're touching internals here
         float refract_scale;
-        vec3f_t refract_color;
+        __rt_vec3f_t refract_color;
     } vslot_t;
 
     /* fields with double underscores are private and to be used at your

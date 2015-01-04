@@ -20,7 +20,7 @@ var DEBUG = logging.DEBUG
 var INFO  = logging.INFO
 
 import core.events.frame
-import core.octascript.geom
+import core.octascript.geom as ogeom
 
 from std.object import Object
 from std.table import rawget, rawset
@@ -649,29 +649,29 @@ StateArrayFloat = M.StateArrayFloat
 
 /**
     A specialization of StateArrayFloat, providing its own surrogate,
-    {{$geom.Vec2_Surrogate}}. Other than that, no changes are made.
+    {{$ogeom.Vec2_Surrogate}}. Other than that, no changes are made.
 */
 M.StateVec2 = StateArrayFloat.clone({
     name: "StateVec2",
-    surrogate: geom.Vec2_Surrogate
+    surrogate: ogeom.Vec2_Surrogate
 })
 
 /**
     A specialization of StateArrayFloat, providing its own surrogate,
-    {{$geom.Vec3_Surrogate}}. Other than that, no changes are made.
+    {{$ogeom.Vec3_Surrogate}}. Other than that, no changes are made.
 */
 M.StateVec3 = StateArrayFloat.clone({
     name: "StateVec3",
-    surrogate: geom.Vec3_Surrogate
+    surrogate: ogeom.Vec3_Surrogate
 })
 
 /**
     A specialization of StateArrayFloat, providing its own surrogate,
-    {{$geom.Vec4_Surrogate}}. Other than that, no changes are made.
+    {{$ogeom.Vec4_Surrogate}}. Other than that, no changes are made.
 */
 M.StateVec4 = StateArrayFloat.clone({
     name: "StateVec4",
-    surrogate: geom.Vec4_Surrogate
+    surrogate: ogeom.Vec4_Surrogate
 })
 
 /**
