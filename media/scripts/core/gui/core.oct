@@ -272,48 +272,38 @@ M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj) {
 }
 var loop_in_children_r = M.loop_in_children_r
 
-ffi::cdef(r"""
-    typedef struct clip_area_t {
-        float x1, y1, x2, y2;
-    } clip_area_t;
-""")
-
-var ffi_new = ffi.new
-
 /**
     Represents a clip area defined by four points, x1, y1, x2, y2. The latter
     refer to x1+w and y1+h respectively.
 */
-M.ClipArea = ffi::metatype("clip_area_t", {
-    __new: func(self, x, y, w, h) {
-        return ffi_new("clip_area_t", x, y, x + w, y + h)
+M.ClipArea = Object.clone({
+    __ctor: func(self, x, y, w, h) {
+        self.x1, self.y1, self.x2, self.y2 = x, y, x + w, y + h
     },
 
-    __index: {
-        /**
-            Intersects the clip area with another one. Writes into self.
-        */
-        intersect: func(self, c) {
-            self.x1 = max(self.x1, c.x1)
-            self.y1 = max(self.y1, c.y1)
-            self.x2 = max(self.x1, min(self.x2, c.x2))
-            self.y2 = max(self.y1, min(self.y2, c.y2))
-        },
+    /**
+        Intersects the clip area with another one. Writes into self.
+    */
+    intersect: func(self, c) {
+        self.x1 = max(self.x1, c.x1)
+        self.y1 = max(self.y1, c.y1)
+        self.x2 = max(self.x1, min(self.x2, c.x2))
+        self.y2 = max(self.y1, min(self.y2, c.y2))
+    },
 
-        /**
-            Given x, y, w, h, checks if the area specified by the coordinates
-            is fully clipped by the clip area.
-        */
-        is_fully_clipped: func(self, x, y, w, h) {
-            return self.x1 == self.x2 || self.y1 == self.y2 || x >= self.x2 ||
-                   y >= self.y2 || (x + w) <= self.x1 || (y + h) <= self.y1
-        },
+    /**
+        Given x, y, w, h, checks if the area specified by the coordinates
+        is fully clipped by the clip area.
+    */
+    is_fully_clipped: func(self, x, y, w, h) {
+        return self.x1 == self.x2 || self.y1 == self.y2 || x >= self.x2 ||
+               y >= self.y2 || (x + w) <= self.x1 || (y + h) <= self.y1
+    },
 
-        scissor: func(self, root) {
-            var sx1, sy1, sx2, sy2 = root.get_projection()
-                .calc_scissor(self.x1, self.y1, self.x2, self.y2)
-            gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
-        }
+    scissor: func(self, root) {
+        var sx1, sy1, sx2, sy2 = root.get_projection()
+            .calc_scissor(self.x1, self.y1, self.x2, self.y2)
+        gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
     }
 })
 var ClipArea = M.ClipArea
@@ -470,6 +460,8 @@ var Projection = Object.clone({
         return 1 - (self.obj.y * self.ss_y + self.so_y)
     }
 })
+
+var ffi_new = ffi.new
 
 ffi::cdef(r"""
     typedef struct color_t {
