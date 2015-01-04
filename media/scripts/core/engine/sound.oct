@@ -14,7 +14,7 @@ import capi
 
 var play = capi.sound_play
 
-from core.octascript.geom import Vec3
+from std.geom import Vec3
 
 /// Module: sound
 return {

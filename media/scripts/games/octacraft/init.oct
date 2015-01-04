@@ -19,7 +19,6 @@ import core.engine.cubescript as cs
 import core.events.signal
 import core.entities.svars
 import core.entities.ents
-import core.octascript.geom
 
 import extra.game_manager
 import extra.day_manager

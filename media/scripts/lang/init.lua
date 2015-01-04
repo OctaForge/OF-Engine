@@ -31,6 +31,7 @@ local bc = require("octascript.bytecode")
 bc.Alloc.set(capi.raw_alloc, capi.raw_free)
 
 require("octascript.std.native")
+require("octascript.std.native.geom")
 
 capi.log(1, "OctaScript initialization complete.")
 
