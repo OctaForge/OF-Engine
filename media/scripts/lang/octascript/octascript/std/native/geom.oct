@@ -75,12 +75,15 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
     __tostring: func(self) {
         return "Vec2 <%f, %f>".format(self.x, self.y)
     },
-    __eq: func(self, o) { return self.x == o.x && self.y == o.y },
+    __eq: func(self, o) { return self.equals(o) },
     __mul: func(self, o) { return self.mul_new(o) },
     __div: func(self, o) { return self.div_new(o) },
     __add: func(self, o) { return self.add_new(o) },
     __sub: func(self, o) { return self.sub_new(o) },
     __index: {
+        equals: func(self, o) {
+            return self.x == o.x && self.y == o.y
+        },
         from_array: func(self, o) {
             return ffi_new(self, o[0], o[1])
         },
@@ -239,14 +242,15 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
     __tostring: func(self) {
         return "Vec3 <%f, %f, %f>".format(self.x, self.y, self.z)
     },
-    __eq: func(self, o) {
-        return self.x == o.x && self.y == o.y && self.z == o.z
-    },
+    __eq: func(self, o) { return self.equals(o) },
     __mul: func(self, o) { return self.mul_new(o) },
     __div: func(self, o) { return self.div_new(o) },
     __add: func(self, o) { return self.add_new(o) },
     __sub: func(self, o) { return self.sub_new(o) },
     __index: {
+        equals: func(self, o) {
+            return self.x == o.x && self.y == o.y && self.z == o.z
+        },
         from_array: func(self, o) {
             return ffi_new(self, o[0], o[1], o[2])
         },
@@ -660,15 +664,16 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
     __tostring: func(self) {
         return "Vec3 <%f, %f, %f, %f>".format(self.x, self.y, self.z, self.w)
     },
-    __eq: func(self, o) {
-        return self.x == o.x && self.y == o.y
-            && self.z == o.z && self.w == o.w
-    },
+    __eq: func(self, o) { return self.equals(o) },
     __mul: func(self, o) { return self.mul_new(o) },
     __div: func(self, o) { return self.div_new(o) },
     __add: func(self, o) { return self.add_new(o) },
     __sub: func(self, o) { return self.sub_new(o) },
     __index: {
+        equals: func(self, o) {
+            return self.x == o.x && self.y == o.y
+                && self.z == o.z && self.w == o.w
+        },
         from_array: func(self, o) {
             return ffi_new(self, o[0], o[1], o[2], o[3])
         },
