@@ -17,7 +17,9 @@ var cs_execute = cs.execute
 
 var gen_map_list = func(img, vb) {
     var glob, loc = capi::get_all_map_names()
+    vb.append(gui::Spacer({ pad_v: 0.005 }))
     vb.append(gui::Label({ text: "Global maps", color: 0x88FF88 }))
+    vb.append(gui::Spacer({ pad_v: 0.002 }))
     var current_preview
     for i, map in glob.each() {
         vb.append(gui::Button({ label: map, clamp_h: true,
@@ -26,7 +28,7 @@ var gen_map_list = func(img, vb) {
             signal::connect(btn, "hovering", func() {
                 if map != current_preview {
                     current_preview = map
-                    img.set_tex("media/map/" ~ map ~ "/map")
+                    img.set_tex("media/map/" ~ map ~ "/preview")
                 }
             })
             signal::connect(btn, "leaving", func() {
@@ -38,7 +40,12 @@ var gen_map_list = func(img, vb) {
             })
         })
     }
+    if glob.len() == 0 {
+        vb.append(gui::Label({ text: "(None available)", color: 0xFF6666, scale: 0.8 }))
+    }
+    vb.append(gui::Spacer({ pad_v: 0.005 }))
     vb.append(gui::Label({ text: "Local maps", color: 0x8888FF }))
+    vb.append(gui::Spacer({ pad_v: 0.002 }))
     for i, map in loc.each() {
         vb.append(gui::Button({ label: map, clamp_h: true,
             variant: "nobg", min_w: 0.2
@@ -46,7 +53,7 @@ var gen_map_list = func(img, vb) {
             signal::connect(btn, "hovering", func() {
                 if map != current_preview {
                     current_preview = map
-                    img.set_tex("media/map/" ~ map ~ "/map")
+                    img.set_tex("media/map/" ~ map ~ "/preview")
                 }
             })
             signal::connect(btn, "leaving", func() {
@@ -57,6 +64,9 @@ var gen_map_list = func(img, vb) {
                 cs_execute("map " ~ map)
             })
         })
+    }
+    if loc.len() == 0 {
+        vb.append(gui::Label({ text: "(None available)", color: 0xFF6666, scale: 0.8 }))
     }
 }
 
@@ -74,6 +84,7 @@ var gen_map_load = func() {
                                 __init: func(img) { im = img } },
                                 gui::Outline({ clamp: true, color: 0x303030 }))))
                         hb.append(gui::VBox(), func(vb) {
+                            vb.align(0, -1)
                             gen_map_list(im, vb)
                         })
                     })

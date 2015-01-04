@@ -1130,7 +1130,7 @@ LUAICOMMAND(get_all_map_names, {
         delete[] dir;
         ++j;
     }
-    lua_pushinteger(L, dirs.length());
+    lua_pushinteger(L, j);
 
     dirs.setsize(0);
 
@@ -1152,7 +1152,7 @@ LUAICOMMAND(get_all_map_names, {
         delete[] dir;
         ++j;
     }
-    lua_pushinteger(L, dirs.length());
+    lua_pushinteger(L, j);
 
     return 4;
 });
