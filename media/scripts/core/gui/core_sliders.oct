@@ -10,10 +10,12 @@
 
 import capi
 import core.events.signal
+import core.engine.cubescript as cs
 
 var get_millis in capi
 
 from std.math import min, max, abs, clamp, round
+from std.conv import tonumber
 
 var emit = signal.emit
 
@@ -67,6 +69,10 @@ M.Slider = register_type("Slider", Widget, {
 
         self.last_step = 0
         self.arrow_dir = 0
+
+        if kwargs.variable {
+            self.setup_from_var(kwargs.variable)
+        }
 
         return Widget::__ctor(self, kwargs, ...)
     },
@@ -180,6 +186,29 @@ M.Slider = register_type("Slider", Widget, {
     },
 
     move_button: func(self, o, fromx, fromy, tox, toy) { },
+
+    /// Set up a slider from a Cubescript variable of a given name.
+    setup_from_var: func(self, varn) {
+        var minv, maxv, curv = tonumber(cs::var_get_min(varn)),
+                               tonumber(cs::var_get_max(varn)),
+                               tonumber(cs::var_get(varn))
+        if !minv || !maxv || !curv { return }
+        self.set_min_value(minv)
+        self.set_max_value(maxv)
+        self.set_value(curv)
+        var fromhere = false
+        var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
+            if !fromhere { self.set_value(tonumber(v)) }
+            fromhere = false
+        })
+        signal::connect(self, "destroy", func() {
+            signal::disconnect(cs, varn ~ ",changed", cid)
+        })
+        signal::connect(self, "value,changed", func(self, v) {
+            fromhere = true
+            cs::var_set(varn, v)
+        })
+    },
 
     /// Function: set_min_value
     set_min_value: gen_setter("min_value"),

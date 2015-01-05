@@ -3,7 +3,7 @@ import core.events.signal
 import core.gui.core as gui
 import core.engine.cubescript as cs
 
-from std.conv import tostring
+from std.conv import tostring, tonumber
 from std.table import len
 
 import std.math
@@ -165,7 +165,22 @@ var gen_opts_game = func() {
 
 var gen_opts_edit = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
-    r.append(gui::VBox())
+    r.append(gui::VBox(), func(vb) {
+        vb.clamp(true, true, true, true)
+        vb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02 }), func(sp) {
+            sp.clamp(true, true, true, true)
+            sp.append(gui::HBox({ padding: 0.02, expand: true }), func(hb) {
+                hb.clamp(true, true, true, true)
+                hb.append(gui::Label({ text: "Shift floatspeed" }))
+                hb.append(gui::HSlider({ variable: "editfloatspeed" }), func(sl) {
+                    sl.clamp(true, true, true, true)
+                    sl.append(gui::SliderButton(), func(sb) {
+                        sb.append(gui::EvalLabel({ callback: \-> sl.value, scale: 0.6 }))
+                    })
+                })
+            })
+        })
+    })
     return r
 }
 
