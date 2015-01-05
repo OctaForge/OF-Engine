@@ -89,16 +89,6 @@ var gen_menu_map_load = func() {
     return r
 }
 
-var gen_menu_options = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
-    r.append(gui::VBox(), func(vb) {
-        vb.append(gui::Label({ text: "Coming soon", scale: 1.5,
-            color: 0x88FF88 }))
-        vb.append(gui::Label({ text: "No options for now :)" }))
-    })
-    return r
-}
-
 var gen_menu_credits = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
     r.append(gui::VBox(undef,
@@ -153,7 +143,7 @@ root.new_window("main", gui.Window, func(win) {
         var stat
         b.append(gui::VBox(), func(b) {
             gen_menu_btn(b, "Load map", \-> stat.set_state("load_map"))
-            gen_menu_btn(b, "Options", \-> stat.set_state("options"))
+            gen_menu_btn(b, "Options", \-> root.show_window("options"))
             gen_menu_btn(b, "Credits", \-> stat.set_state("credits"))
             gen_menu_btn(b, "Quit", \-> cs_execute("quit"))
         })
@@ -162,11 +152,73 @@ root.new_window("main", gui.Window, func(win) {
             stat = st
             st.update_state("default" , gen_menu_default())
             st.update_state("load_map", gen_menu_map_load())
-            st.update_state("options" , gen_menu_options())
             st.update_state("credits" , gen_menu_credits())
         })
     })
 })
+
+var gen_opts_game = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_opts_edit = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_opts_graphics = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_opts_display = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_opts_resolution = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_opts_audio = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+root.new_window("options", gui.Window, func(win) {
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("Options")
+    win.append(gui::HBox({ clamp_h: true }), func(b) {
+        var stat
+        b.append(gui::VBox(), func(b) {
+            gen_menu_btn(b, "Game"      , \-> stat.set_state("game"))
+            gen_menu_btn(b, "Edit"      , \-> stat.set_state("edit"))
+            gen_menu_btn(b, "Graphics"  , \-> stat.set_state("graphics"))
+            gen_menu_btn(b, "Display"   , \-> stat.set_state("display"))
+            gen_menu_btn(b, "Resolution", \-> stat.set_state("resolution"))
+            gen_menu_btn(b, "Audio"     , \-> stat.set_state("audio"))
+        })
+        b.append(gui::Filler({ min_w: 0.005, clamp_v: true }))
+        b.append(gui::State({ state: "game" }), func(st) {
+            stat = st
+            st.update_state("game"      , gen_opts_game())
+            st.update_state("edit"      , gen_opts_edit())
+            st.update_state("graphics"  , gen_opts_graphics())
+            st.update_state("display"   , gen_opts_display())
+            st.update_state("resolution", gen_opts_resolution())
+            st.update_state("audio"     , gen_opts_audio())
+        })
+    })
+});
 
 /* Console and editing */
 
