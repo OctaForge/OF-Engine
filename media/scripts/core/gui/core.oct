@@ -2073,8 +2073,15 @@ M.Root = register_type("Root", Widget, {
     /**
         Hides a window - that is, destroys it. It can be re-built anytime
         later. Returns true if it actually destroyed anything, false otherwise.
+        If the given argument is the boolean value "true" rather than a window
+        name, this hides the topmost window that grabs input.
     */
     hide_window: func(self, name) {
+        if name == true {
+            var twin = self.children.last()
+            if !twin || !twin.grabs_input() { return false }
+            name = twin.obj_name
+        }
         var old = self.find_child(Window.type, name, false)
         if old { self.remove(old) }
         var win = self.windows[name]
