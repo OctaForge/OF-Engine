@@ -281,6 +281,38 @@ root.new_window("editstats", gui.Overlay, func(win) {
     })
 })
 
+var editvars = [ "allfaces", "entselsnap", "entediting", "fullbright", "showmat", "nompedit" ]
+
+import core.network.msg
+
+var vicon_cb = func(self) {
+    var varn = self.varn
+    if cs::var_get(varn) == 1 {
+        self.color.a = 0xFF
+        return self.cvarn
+    } else {
+        self.color.a = 0x80
+        return varn
+    }
+}
+
+root.new_window("varicons", gui.Overlay, func(win) {
+    win.align(1, 1)
+    var is_local = msg::is_local()
+    win.append(gui::Spacer({ pad_h: 0.01, pad_v: 0.1 }), func(sp) {
+        sp.append(gui::VBox(), func(vb) {
+            for i, v in editvars.each() {
+                if is_local && i == (editvars.len() - 1) { break }
+                vb.append(gui::EvalLabel({ callback: vicon_cb, font: "default_outline", scale: -1 }), func(lbl) {
+                    lbl.align(1, 0)
+                    lbl.varn = v
+                    lbl.cvarn = "\f8" ~ v
+                })
+            }
+        })
+    })
+})
+
 /* 2048 game, OctaForge edition
  * Just for testing/fun */
 
