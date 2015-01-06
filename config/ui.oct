@@ -165,22 +165,25 @@ var gen_opts_game = func() {
 
 var gen_opts_edit = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
-    r.append(gui::VBox(), func(vb) {
-        vb.clamp(true, true, true, true)
-        vb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02 }), func(sp) {
-            sp.clamp(true, true, true, true)
-            sp.append(gui::HBox({ padding: 0.02, expand: true }), func(hb) {
-                hb.clamp(true, true, true, true)
-                hb.append(gui::Label({ text: "Shift floatspeed" }))
-                hb.append(gui::HSlider({ variable: "editfloatspeed" }), func(sl) {
-                    sl.clamp(true, true, true, true)
-                    sl.append(gui::SliderButton(), func(sb) {
-                        sb.append(gui::EvalLabel({ callback: \-> sl.value, scale: 0.6 }))
-                    })
-                })
-            })
-        })
-    })
+    r.append(gui::VBox({ clamp: true }),
+        func(vb) {
+            vb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }),
+                func(sp) {
+                    sp.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
+                        func(hb) {
+                            hb.append(gui::Label({ text: "Shift floatspeed" }))
+                            hb.append(gui::HSlider({ variable: "editfloatspeed", clamp: true }),
+                                func(sl) {
+                                    sl.append(gui::SliderButton(undef, gui::EvalLabel({
+                                        callback: \-> sl.value, scale: 0.6 })))
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+        }
+    )
     return r
 }
 
@@ -264,10 +267,8 @@ root.new_window("fullconsole", gui.Overlay, func(win) {
     capi::console_full_show(true)
     signal::connect(win, "destroy", \-> capi::console_full_show(false))
     win.append(gui::Console({
-        min_h: \-> var_get("fullconsize") / 100
-    }), func(con) {
-        con.clamp(true, true, false, false)
-    })
+        min_h: \-> var_get("fullconsize") / 100, clamp: true
+    }))
 })
 
 root.new_window("editstats", gui.Overlay, func(win) {
@@ -431,9 +432,9 @@ var guimovetile = func(grid, i, j, step, hdir, vdir) {
     }
     grid.parent.append(gui::Animator({
         move_func: dirn, move_speed: mspeed,
-        move_dist_x: dx, move_dist_y: dy
+        move_dist_x: dx, move_dist_y: dy,
+        clamp: true
     }, o), func(m) {
-        m.clamp(true, true, true, true)
         signal::connect(m, "anim,start", func() {
             pendinganims += 1
         })
@@ -529,8 +530,7 @@ root.new_window("2048", gui.Window, func(win) {
     win.set_variant("movable")
     win.set_title("2048 (score: 0)")
     signal::connect(win, "destroy", func() { totalscore = 0 })
-    win.append(gui::ColorFiller({ color: 0xBBADA0 }), func(cf) {
-        cf.clamp(true, true, true, true)
+    win.append(gui::ColorFiller({ color: 0xBBADA0, clamp: true }), func(cf) {
         win.append(gui::Spacer({ pad_h: 0.025, pad_v: 0.025 }), func(sp) {
             sp.append(gui::Grid({ columns: 4, padding: 0.025 }), func(grid) {
                 cf.key = func(self, code, isdown) {
