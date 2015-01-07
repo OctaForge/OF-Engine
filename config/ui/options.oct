@@ -1,0 +1,114 @@
+import core.events.signal
+import core.gui.core as gui
+
+var root = gui::get_root()
+
+var gen_opts_game = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_opts_edit = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox({ clamp: true }),
+        func(vb) {
+            vb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }),
+                func(sp) {
+                    sp.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
+                        func(hb) {
+                            hb.append(gui::Label({ text: "Shift floatspeed" }))
+                            hb.append(gui::HSlider({ variable: "editfloatspeed", clamp: true }),
+                                func(sl) {
+                                    sl.append(gui::SliderButton(undef, gui::EvalLabel({
+                                        callback: \-> sl.value, scale: 0.6 })))
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+        }
+    )
+    return r
+}
+
+var gen_opts_graphics = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_opts_display = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var aspect_ratios = [ "4:3", "5:4", "16:9", "16:10", "custom" ]
+
+var resolutions = {
+    "4:3": [
+        "640x480", "800x600", "1024x768", "1152x864", "1280x960",
+        "1400x1050", "1600x1200", "1920x1440", "2560x1920"
+    ],
+    "5:4": [
+        "800x640", "960x768", "1280x1024", "1440x1152", "1600x1280",
+        "1920x1536", "2560x2048"
+    ],
+    "16:9": [
+        "800x450", "1024x600", "1280x720", "1366x768", "1600x900",
+        "1920x1080", "2048x1152", "2560x1440", "3840x2160"
+    ],
+    "16:10": [
+        "768x480", "1024x640", "1280x800", "1440x900", "1680x1050",
+        "1920x1200", "2560x1600"
+    ]
+}
+
+var gen_opts_resolution = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_opts_audio = func() {
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    r.append(gui::VBox())
+    return r
+}
+
+var gen_menu_btn = func(b, lbl, cb) {
+    b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
+        func(btn) {
+            signal::connect(btn, "clicked", cb)
+        }
+    )
+}
+
+root.new_window("options", gui.Window, func(win) {
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("Options")
+    win.append(gui::HBox({ clamp_h: true }), func(b) {
+        var stat
+        b.append(gui::VBox(), func(b) {
+            gen_menu_btn(b, "Game"      , \-> stat.set_state("game"))
+            gen_menu_btn(b, "Edit"      , \-> stat.set_state("edit"))
+            gen_menu_btn(b, "Graphics"  , \-> stat.set_state("graphics"))
+            gen_menu_btn(b, "Display"   , \-> stat.set_state("display"))
+            gen_menu_btn(b, "Resolution", \-> stat.set_state("resolution"))
+            gen_menu_btn(b, "Audio"     , \-> stat.set_state("audio"))
+        })
+        b.append(gui::Filler({ min_w: 0.005, clamp_v: true }))
+        b.append(gui::State({ state: "game" }), func(st) {
+            stat = st
+            st.update_state("game"      , gen_opts_game())
+            st.update_state("edit"      , gen_opts_edit())
+            st.update_state("graphics"  , gen_opts_graphics())
+            st.update_state("display"   , gen_opts_display())
+            st.update_state("resolution", gen_opts_resolution())
+            st.update_state("audio"     , gen_opts_audio())
+        })
+    })
+})

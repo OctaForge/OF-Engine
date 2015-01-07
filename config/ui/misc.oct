@@ -1,0 +1,59 @@
+import capi
+import core.events.signal
+import core.gui.core as gui
+from core.engine.cubescript import var_get, execute
+
+var root = gui::get_root()
+
+root.new_window("fullconsole", gui.Overlay, func(win) {
+    win.clamp(true, true, false, false)
+    win.align(0, -1)
+    capi::console_full_show(true)
+    signal::connect(win, "destroy", \-> capi::console_full_show(false))
+    win.append(gui::Console({
+        min_h: \-> var_get("fullconsize") / 100, clamp: true
+    }))
+})
+
+root.new_window("editstats", gui.Overlay, func(win) {
+    win.align(-1, 1)
+    win.set_above_hud(true)
+    win.append(gui::Filler({ variant: "edithud" }), func(fl) {
+        fl.append(gui::Spacer({ pad_h: 0.015, pad_v: 0.01 }), func(sp) {
+            sp.append(gui::EvalLabel({ scale: -1,
+                callback: \-> execute("getedithud") })).align(-1, 0)
+        })
+    })
+})
+
+var editvars = [ "allfaces", "entselsnap", "entediting", "fullbright", "showmat", "nompedit" ]
+
+import core.network.msg
+
+var vicon_cb = func(self) {
+    var varn = self.varn
+    if var_get(varn) == 1 {
+        self.color.a = 0xFF
+        return self.cvarn
+    } else {
+        self.color.a = 0x80
+        return varn
+    }
+}
+
+root.new_window("varicons", gui.Overlay, func(win) {
+    win.align(1, 1)
+    var is_local = msg::is_local()
+    win.append(gui::Spacer({ pad_h: 0.01, pad_v: 0.1 }), func(sp) {
+        sp.append(gui::VBox(), func(vb) {
+            for i, v in editvars.each() {
+                if is_local && i == (editvars.len() - 1) { break }
+                vb.append(gui::EvalLabel({ callback: vicon_cb, font: "default_outline", scale: -1 }), func(lbl) {
+                    lbl.align(1, 0)
+                    lbl.varn = v
+                    lbl.cvarn = "\f8" ~ v
+                })
+            }
+        })
+    })
+})
