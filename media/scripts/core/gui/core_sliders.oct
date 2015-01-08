@@ -189,7 +189,7 @@ M.Slider = register_type("Slider", Widget, {
 
     move_button: func(self, o, fromx, fromy, tox, toy) { },
 
-    /// Set up a slider from a Cubescript variable of a given name.
+    /// Set up a slider from a Cubescript variable of the given name.
     setup_from_var: func(self, varn) {
         var minv, maxv, curv = tonumber(cs::var_get_min(varn)),
                                tonumber(cs::var_get_max(varn)),

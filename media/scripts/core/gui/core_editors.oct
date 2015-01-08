@@ -11,6 +11,7 @@
 import capi
 import core.octascript.stream
 import core.events.signal
+import core.engine.cubescript as cs
 import std.ffi
 
 var clipboard_set_text, clipboard_get_text, clipboard_has_text, text_draw,
@@ -24,7 +25,7 @@ text_font_get_w, text_font_get_h in capi
 var emit = signal.emit
 
 from std.math import min, max, abs, clamp, floor
-from std.conv import tostring
+from std.conv import tostring, tonumber
 from std.util import select, assert
 
 /// Module: core
@@ -1329,7 +1330,10 @@ M.Field = register_type("Field", TextEditor, {
     __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         kwargs.multiline = kwargs.multiline || false
-        return TextEditor::__ctor(self, kwargs, ...)
+        TextEditor::__ctor(self, kwargs, ...)
+        if kwargs.variable {
+            self.setup_from_var(kwargs.variable)
+        }
     },
 
     commit: func(self) {
@@ -1338,6 +1342,27 @@ M.Field = register_type("Field", TextEditor, {
         self.value = val
         // trigger changed signal
         emit(self, "value,changed", val)
+    },
+
+    /// Set up a field from a Cubescript variable of the given name.
+    setup_from_var: func(self, varn) {
+        var curv = cs::var_get(varn)
+        if !curv { return false }
+        self.set_value(curv)
+        var confunc = ((typeof curv) == "string") ? tostring : tonumber
+        var fromhere = false
+        var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
+            if !fromhere { self.set_value(v) }
+            fromhere = false
+        })
+        signal::connect(self, "destroy", func() {
+            signal::disconnect(cs, varn ~ ",changed", cid)
+        })
+        signal::connect(self, "value,changed", func(self, v) {
+            fromhere = true
+            cs::var_set(varn, confunc(v))
+        })
+        return true
     }
 })
 
