@@ -72,6 +72,8 @@ M.Slider = register_type("Slider", Widget, {
 
         if kwargs.variable {
             self.setup_from_var(kwargs.variable)
+        } else if kwargs.list {
+            self.setup_from_list(kwargs.list)
         }
 
         return Widget::__ctor(self, kwargs, ...)
@@ -192,7 +194,7 @@ M.Slider = register_type("Slider", Widget, {
         var minv, maxv, curv = tonumber(cs::var_get_min(varn)),
                                tonumber(cs::var_get_max(varn)),
                                tonumber(cs::var_get(varn))
-        if !minv || !maxv || !curv { return }
+        if !minv || !maxv || !curv { return false }
         self.set_min_value(minv)
         self.set_max_value(maxv)
         self.set_value(curv)
@@ -208,6 +210,70 @@ M.Slider = register_type("Slider", Widget, {
             fromhere = true
             cs::var_set(varn, v)
         })
+        return true
+    },
+
+    /// Set up a slider from an array
+    setup_from_list: func(self, list, current_idx, use_val) {
+        // build a reverse mapping (used later anyway)
+        var rm = {}
+        for i, v in list.each() {
+            rm[v] = i
+        }
+        var minv, maxv, curv = 0, list.len() - 1, use_val ? rm[current_idx] :
+            current_idx
+        if !curv || !list[curv] { return false }
+        self.set_min_value(minv)
+        self.set_max_value(maxv)
+        self.set_value(curv)
+        self.__list = list
+        self.__rmap = rm
+        return true
+    },
+
+    /// Function: get_list_min_value
+    get_list_min_value: func(self) {
+        if !self.__list { return undef }
+        return self.__list[self.min_value]
+    },
+
+    /// Function: get_list_max_value
+    get_list_max_value: func(self) {
+        if !self.__list { return undef }
+        return self.__list[self.max_value]
+    },
+
+    /// Function: get_list_value
+    get_list_value: func(self) {
+        if !self.__list { return undef }
+        return self.__list[self.value]
+    },
+
+    /// Function: set_list_min_value
+    set_list_min_value: func(self, val) {
+        if !self.__rmap { return }
+        var idx = self.__rmap[val]
+        if !idx { return }
+        self.min_value = idx
+        emit(self, "list_min_value,changed", val, idx)
+    },
+
+    /// Function: set_list_max_value
+    set_list_max_value: func(self, val) {
+        if !self.__rmap { return }
+        var idx = self.__rmap[val]
+        if !idx { return }
+        self.max_value = idx
+        emit(self, "list_max_value,changed", val, idx)
+    },
+
+    /// Function: set_list_value
+    set_list_value: func(self, val) {
+        if !self.__rmap { return }
+        var idx = self.__rmap[val]
+        if !idx { return }
+        self.value = idx
+        emit(self, "list_value,changed", val, idx)
     },
 
     /// Function: set_min_value
