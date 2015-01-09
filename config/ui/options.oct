@@ -163,7 +163,7 @@ var gen_opts_display = func() {
                 vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
                     func(hb) {
                         hb.append(gui::Label({ text: "Anisotropic filtering" }))
-                        var mb = hb.append(gui::MenuButton({ variant: "visible",
+                        var mb = hb.append(gui::MenuButton({ variant: "combobox",
                             min_w: 0.13 }))
                         setup_var_widget(mb, "aniso", "label", aniso_cb)
                         var am = gen_aniso_menu()

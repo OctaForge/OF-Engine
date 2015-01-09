@@ -31,7 +31,7 @@ var btnv_init_clone = func(self, btn) {
     connect(btn, "label,changed", func(b, t) { lbl.set_text(t) })
 }
 
-var btn_build_variant = \color -> gui::Gradient({
+var btn_build_variant = \color, ic -> gui::Gradient({
     color: 0x202020, color2: 0x101010, clamp_h: true,
     init_clone: func(self, btn) {
         self.set_min_w(btn.min_w || 0)
@@ -40,7 +40,8 @@ var btn_build_variant = \color -> gui::Gradient({
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     } }, gui::Outline({
         color: color, clamp_h: true }, gui::Spacer({
-            pad_h: 0.01, pad_v: 0.005, init_clone: btnv_init_clone
+            pad_h: 0.01, pad_v: 0.005, clamp_h: true,
+            init_clone: ic || btnv_init_clone
         })))
 
 var btn_build_variant_nobg = \-> gui::Filler({
@@ -61,12 +62,13 @@ btnvb["default"     ] = btn_build_variant_nobg()
 btnvb["hovering"    ] = btn_build_variant(0x404040)
 btnvb["clicked_left"] = btn_build_variant(0x303030)
 
-var mbtnv, vmbtnv, smbtnv =
+var mbtnv, vmbtnv, smbtnv, cbtnv =
+    { __properties: btnp },
     { __properties: btnp },
     { __properties: btnp },
     { __properties: btnp }
 gui.MenuButton.__variants = { default: mbtnv, visible: vmbtnv,
-    submenu: smbtnv }
+    submenu: smbtnv, combobox: cbtnv }
 
 mbtnv["default"     ] = btn_build_variant_nobg()
 mbtnv["hovering"    ] = btn_build_variant_nobg()
@@ -82,6 +84,23 @@ smbtnv["default"     ] = btn_build_variant_nobg()
 smbtnv["hovering"    ] = btn_build_variant(0x404040)
 smbtnv["menu"        ] = btn_build_variant(0x404040)
 smbtnv["clicked_left"] = btn_build_variant(0x404040)
+
+var cbox_init_clone = \col -> func(self, btn) {
+    var lbl
+    self.append(gui::HBox({ clamp_h: true }), func(bx) {
+        lbl = bx.append(gui::Label({ text: btn.label }))
+        bx.append(gui::Triangle({ style: gui.Triangle.OUTLINE,
+            color: col, min_w: 0.015, min_h: 0.015, angle: 180
+        }, gui::Triangle({ color: col, min_w: 0.015, min_h: 0.015,
+            angle: 180 })))
+    })
+    connect(btn, "label,changed", func(b, t) { lbl.set_text(t) })
+}
+
+cbtnv["default"     ] = btn_build_variant(0x303030, cbox_init_clone(0x404040))
+cbtnv["hovering"    ] = btn_build_variant(0x505050, cbox_init_clone(0x606060))
+cbtnv["menu"        ] = btn_build_variant(0x404040, cbox_init_clone(0x404040))
+cbtnv["clicked_left"] = btn_build_variant(0x404040, cbox_init_clone(0x404040))
 
 // (v)slot viewer buttons
 
