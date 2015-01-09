@@ -1,6 +1,8 @@
 import core.events.signal
+import core.engine.cubescript as cs
 import core.gui.core as gui
 from std.table import pairs
+from std.conv import tonumber
 
 var root = gui::get_root()
 
@@ -40,7 +42,7 @@ var gen_opts_graphics = func() {
     return r
 }
 
-var aspect_ratios = [ "4:3", "5:4", "16:9", "16:10", "custom" ]
+var aspect_ratios = [ "4:3", "5:4", "16:9", "16:10" ]
 
 var resolutions = {
     "4:3": [
@@ -68,6 +70,38 @@ for aspect, resl in pairs(resolutions) {
     }
 }
 
+var gen_res_submenu = func(ar) {
+    var r = gui::Filler({ variant: "menu", min_w: 0.2 })
+    r.append(gui::VBox({ clamp: true }), func(vb) {
+        for i, res in resolutions[ar].each() {
+            var mb = vb.append(gui::MenuButton({ variant: "submenu",
+                label: res, clamp_h: true }))
+            signal::connect(mb, "clicked", func(mb) {
+                var w, h = res.find_match("(%d+)x(%d+)")
+                cs::var_set("screenw", tonumber(w))
+                cs::var_set("screenh", tonumber(h))
+                root.clear_menus()
+            })
+        }
+    })
+    return r
+}
+
+var gen_res_menu = func() {
+    var r = gui::Filler({ variant: "menu", min_w: 0.2 })
+    r.append(gui::VBox({ clamp: true }), func(vb) {
+        for i, aspect in aspect_ratios.each() {
+            var mb = vb.append(gui::MenuButton({ variant: "submenu",
+                label: aspect, clamp_h: true }))
+            var sm = gen_res_submenu(aspect)
+            signal::connect(mb, "hovering", func(mb) {
+                mb.show_menu(sm)
+            })
+        }
+    })
+    return r
+}
+
 var gen_opts_display = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
     r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
@@ -78,8 +112,14 @@ var gen_opts_display = func() {
                 vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
                     func(hb) {
                         hb.append(gui::Label({ text: "Resolution" }))
-                        sw = hb.append(gui::Field({ variable: "screenw", clip_w: 0.2 }))
-                        sh = hb.append(gui::Field({ variable: "screenh", clip_w: 0.2 }))
+                        sw = hb.append(gui::Field({ variable: "screenw", clip_w: 0.13 }))
+                        sh = hb.append(gui::Field({ variable: "screenh", clip_w: 0.13 }))
+                        var mb = hb.append(gui::MenuButton({ variant: "visible",
+                            label: "Use preset" }))
+                        var resm = gen_res_menu()
+                        signal::connect(mb, "clicked", func(mb) {
+                            mb.show_menu(resm)
+                        })
                     }
                 )
                 vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),

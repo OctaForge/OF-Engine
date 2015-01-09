@@ -500,7 +500,6 @@ root.new_window("changes", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("Changes")
-    connect(win, "destroy", \-> changes::clear())
     win.append(gui::VBox(), func(b) {
         b.append(gui::Spacer({ pad_h: 0.01, pad_v: 0 },
             gui::Label({ text: "The following settings have changed:" })))

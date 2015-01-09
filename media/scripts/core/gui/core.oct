@@ -2262,8 +2262,13 @@ M.Root = register_type("Root", Widget, {
         }
     },
 
+    /// Clears currently shown menus.
+    clear_menus: func(self) {
+        self._menus_drop()
+    },
+
     _menu_init: func(self, o, op, at_cursor, clear_on_drop) {
-        if self._menu_nhov < 0 {
+        if self._menu_nhov && self._menu_nhov < 0 {
             self._menus_drop()
         }
 
@@ -2309,7 +2314,7 @@ M.Root = register_type("Root", Widget, {
         // ow/h: menu w/h, opw/h: menu parent w/h (e.g. menubutton)
         var ow, oh, opw, oph = o.w, o.h, op.w * fw, op.h * fh
 
-        var cx, cy = self.cusror_x, self.cursor_y
+        var cx, cy = self.cursor_x, self.cursor_y
 
         // when spawning menus right on the cursor
         if at_cursor {
@@ -2516,7 +2521,7 @@ M.Root = register_type("Root", Widget, {
             if self._hovering {
                 var msl = ms.len()
                 if msl > 0 && nhov >= 0 && (msl - 1) > nhov {
-                    self._menus_drop(msl - nhov + 1)
+                    self._menus_drop(msl - nhov - 1)
                 }
                 self._menu_nhov = nhov
                 self._hovering.hovering(self._hover_x, self._hover_y)
