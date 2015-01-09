@@ -1782,10 +1782,16 @@ M.Widget = register_type("Widget", Object, {
 
     /**
         If the given parameter is true, this widget gets the focus within
-        the root.
+        the root. If it's a non-true value, the widget gets unfocused
+        assuming it's currently focused.
     */
     set_focused: func(self, foc) {
-        if foc { self.get_root()._focused = self }
+        var root = self.get_root()
+        if foc {
+            root._focused = self
+        } else if root._focused == self {
+            root._focused = undef
+        }
     },
 
     /**

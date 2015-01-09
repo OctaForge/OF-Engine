@@ -1,5 +1,6 @@
 import core.events.signal
 import core.gui.core as gui
+from std.table import pairs
 
 var root = gui::get_root()
 
@@ -39,12 +40,6 @@ var gen_opts_graphics = func() {
     return r
 }
 
-var gen_opts_display = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
-    r.append(gui::VBox())
-    return r
-}
-
 var aspect_ratios = [ "4:3", "5:4", "16:9", "16:10", "custom" ]
 
 var resolutions = {
@@ -66,9 +61,40 @@ var resolutions = {
     ]
 }
 
-var gen_opts_resolution = func() {
+var res_to_aspect = {}
+for aspect, resl in pairs(resolutions) {
+    for i, res in resl.each() {
+        res_to_aspect[res] = aspect
+    }
+}
+
+var gen_opts_display = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
-    r.append(gui::VBox())
+    r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
+        sp.append(gui::VBox({ clamp_h: true, padding: 0.02 }),
+            func(vb) {
+                vb.align(0, -1)
+                var sw, sh
+                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
+                    func(hb) {
+                        hb.append(gui::Label({ text: "Resolution" }))
+                        sw = hb.append(gui::Field({ variable: "screenw", clip_w: 0.2 }))
+                        sh = hb.append(gui::Field({ variable: "screenh", clip_w: 0.2 }))
+                    }
+                )
+                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
+                    func(hb) {
+                        hb.append(gui::Label({ text: "Aspect ratio" }))
+                        hb.append(gui::EvalLabel({ callback: func(self) {
+                            var v = res_to_aspect[sw.value ~ "x" ~ sh.value]
+                            if !v { v = "custom" }
+                            return "\f8" ~ v
+                        } }))
+                    }
+                )
+            }
+        )
+    })
     return r
 }
 
@@ -97,7 +123,6 @@ root.new_window("options", gui.Window, func(win) {
             gen_menu_btn(b, "Edit"      , \-> stat.set_state("edit"))
             gen_menu_btn(b, "Graphics"  , \-> stat.set_state("graphics"))
             gen_menu_btn(b, "Display"   , \-> stat.set_state("display"))
-            gen_menu_btn(b, "Resolution", \-> stat.set_state("resolution"))
             gen_menu_btn(b, "Audio"     , \-> stat.set_state("audio"))
         })
         b.append(gui::Filler({ min_w: 0.005, clamp_v: true }))
@@ -107,7 +132,6 @@ root.new_window("options", gui.Window, func(win) {
             st.update_state("edit"      , gen_opts_edit())
             st.update_state("graphics"  , gen_opts_graphics())
             st.update_state("display"   , gen_opts_display())
-            st.update_state("resolution", gen_opts_resolution())
             st.update_state("audio"     , gen_opts_audio())
         })
     })
