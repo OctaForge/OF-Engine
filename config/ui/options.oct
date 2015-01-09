@@ -2,9 +2,23 @@ import core.events.signal
 import core.engine.cubescript as cs
 import core.gui.core as gui
 from std.table import pairs
-from std.conv import tonumber
+from std.conv import tonumber, tostring
 
 var root = gui::get_root()
+
+var default_lblcb = \lbl -> tostring(lbl)
+var setup_var_widget = func(self, varn, propn, lblcb) {
+    lblcb = lblcb || default_lblcb
+    var curv = cs::var_get(varn)
+    if !curv { return false }
+    self["set_" ~ propn](self, lblcb(curv))
+    var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
+        self["set_" ~ propn](self, lblcb(v))
+    })
+    signal::connect(self, "destroy", func() {
+        signal::disconnect(cs, varn ~ ",changed", cid)
+    })
+}
 
 var gen_opts_game = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
@@ -102,6 +116,25 @@ var gen_res_menu = func() {
     return r
 }
 
+var aniso_names = { 0: "off", 2: "2x", 4: "4x", 8: "8x", 16: "16x" }
+var aniso_vals  = [ 0, 2, 4, 8, 16 ]
+
+var gen_aniso_menu = func() {
+    var r = gui::Filler({ variant: "menu", min_w: 0.2 })
+    r.append(gui::VBox({ clamp: true }), func(vb) {
+        for i, av in aniso_vals.each() {
+            var mb = vb.append(gui::MenuButton({ variant: "submenu",
+                label: aniso_names[av], clamp_h: true }))
+            signal::connect(mb, "clicked", func(mb) {
+                cs::var_set("aniso", av)
+                root.clear_menus()
+            })
+        }
+    })
+    return r
+}
+var aniso_cb = \av -> aniso_names[av]
+
 var gen_opts_display = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
     r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
@@ -120,10 +153,22 @@ var gen_opts_display = func() {
                             return "\f8" ~ v
                         } }))
                         var mb = hb.append(gui::MenuButton({ variant: "visible",
-                            label: "Use preset" }))
+                            label: "Use preset", min_w: 0.13 }))
                         var resm = gen_res_menu()
                         signal::connect(mb, "clicked", func(mb) {
                             mb.show_menu(resm)
+                        })
+                    }
+                )
+                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
+                    func(hb) {
+                        hb.append(gui::Label({ text: "Anisotropic filtering" }))
+                        var mb = hb.append(gui::MenuButton({ variant: "visible",
+                            min_w: 0.13 }))
+                        setup_var_widget(mb, "aniso", "label", aniso_cb)
+                        var am = gen_aniso_menu()
+                        signal::connect(mb, "clicked", func(mb) {
+                            mb.show_menu(am)
                         })
                     }
                 )

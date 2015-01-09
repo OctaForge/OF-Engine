@@ -62,9 +62,9 @@ btnvb["hovering"    ] = btn_build_variant(0x404040)
 btnvb["clicked_left"] = btn_build_variant(0x303030)
 
 var mbtnv, vmbtnv, smbtnv =
-    { __properties: [ "label" ] },
-    { __properties: [ "label" ] },
-    { __properties: [ "label" ] }
+    { __properties: btnp },
+    { __properties: btnp },
+    { __properties: btnp }
 gui.MenuButton.__variants = { default: mbtnv, visible: vmbtnv,
     submenu: smbtnv }
 
