@@ -267,7 +267,7 @@ var gen_opts_audio = func() {
 }
 
 var gen_menu_btn = func(b, lbl, cb) {
-    b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
+    return b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
         func(btn) {
             signal::connect(btn, "clicked", cb)
         }
@@ -280,21 +280,27 @@ root.new_window("options", gui.Window, func(win) {
     win.set_title("Options")
     win.append(gui::HBox({ clamp_h: true }), func(b) {
         var stat
+        var btns = []
         b.append(gui::VBox(), func(b) {
-            gen_menu_btn(b, "Game"      , \-> stat.set_state("game"))
-            gen_menu_btn(b, "Edit"      , \-> stat.set_state("edit"))
-            gen_menu_btn(b, "Graphics"  , \-> stat.set_state("graphics"))
-            gen_menu_btn(b, "Display"   , \-> stat.set_state("display"))
-            gen_menu_btn(b, "Audio"     , \-> stat.set_state("audio"))
+            btns.push([ "game"    , gen_menu_btn(b, "Game"    , \-> stat.set_state("game"    )) ])
+            btns.push([ "edit"    , gen_menu_btn(b, "Edit"    , \-> stat.set_state("edit"    )) ])
+            btns.push([ "graphics", gen_menu_btn(b, "Graphics", \-> stat.set_state("graphics")) ])
+            btns.push([ "display" , gen_menu_btn(b, "Display" , \-> stat.set_state("display" )) ])
+            btns.push([ "audio"   , gen_menu_btn(b, "Audio"   , \-> stat.set_state("audio"   )) ])
         })
         b.append(gui::Filler({ min_w: 0.005, clamp_v: true }))
         b.append(gui::State({ state: "game" }), func(st) {
             stat = st
-            st.update_state("game"      , gen_opts_game())
-            st.update_state("edit"      , gen_opts_edit())
-            st.update_state("graphics"  , gen_opts_graphics())
-            st.update_state("display"   , gen_opts_display())
-            st.update_state("audio"     , gen_opts_audio())
+            st.update_state("game"    , gen_opts_game())
+            st.update_state("edit"    , gen_opts_edit())
+            st.update_state("graphics", gen_opts_graphics())
+            st.update_state("display" , gen_opts_display())
+            st.update_state("audio"   , gen_opts_audio())
+            signal::connect(st, "state,changed", func(self, nstate) {
+                for i, btn in btns.each() {
+                    btn[1].set_variant((btn[0] == nstate) ? "default" : "nobg", true)
+                }
+            })
         })
     })
 })

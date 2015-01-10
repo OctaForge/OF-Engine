@@ -120,7 +120,7 @@ var gen_menu_credits = func() {
 }
 
 var gen_menu_btn = func(b, lbl, cb) {
-    b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
+    return b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
         func(btn) {
             signal::connect(btn, "clicked", cb)
         }
@@ -133,11 +133,12 @@ root.new_window("main", gui.Window, func(win) {
     win.set_title("Main menu")
     win.append(gui::HBox({ clamp_h: true }), func(b) {
         var stat
+        var btn_lm, btn_cr
         b.append(gui::VBox(), func(b) {
-            gen_menu_btn(b, "Load map", \-> stat.set_state("load_map"))
-            gen_menu_btn(b, "Options", \-> root.show_window("options"))
-            gen_menu_btn(b, "Credits", \-> stat.set_state("credits"))
-            gen_menu_btn(b, "Quit", \-> execute("quit"))
+            btn_lm = gen_menu_btn(b, "Load map", \-> stat.set_state("load_map"))
+                     gen_menu_btn(b, "Options",  \-> root.show_window("options"))
+            btn_cr = gen_menu_btn(b, "Credits",  \-> stat.set_state("credits"))
+                     gen_menu_btn(b, "Quit",     \-> execute("quit"))
         })
         b.append(gui::Filler({ min_w: 0.005, clamp_v: true }))
         b.append(gui::State({ state: "default" }), func(st) {
@@ -145,6 +146,10 @@ root.new_window("main", gui.Window, func(win) {
             st.update_state("default" , gen_menu_default())
             st.update_state("load_map", gen_menu_map_load())
             st.update_state("credits" , gen_menu_credits())
+            signal::connect(st, "state,changed", func(self, nstate) {
+                btn_lm.set_variant((nstate == "load_map") ? "default" : "nobg", true)
+                btn_cr.set_variant((nstate == "credits" ) ? "default" : "nobg", true)
+            })
         })
     })
 })
