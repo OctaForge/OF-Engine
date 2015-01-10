@@ -836,8 +836,11 @@ M.Widget = register_type("Widget", Object, {
         if old_vchildren { for i, v in old_vchildren.each() {
             v.clear()
         } }
+        var saved_vals = {}
         var manprops = self.managed_properties
         for i, v in manprops.each_r() {
+            saved_vals[v] = self[v]
+            self["set_" ~ v] = undef
             self[v] = undef
             manprops.pop()
         }
@@ -849,6 +852,20 @@ M.Widget = register_type("Widget", Object, {
         var variants = rawget(self.__proto, "__variants")
         var dstates = variants[variant || "default"]
         if dstates {
+            var props = dstates.__properties
+            if props { for i, v in props.each() {
+                var nm = "set_" ~ v
+                if !disable_asserts {
+                    assert(v.sub(0, 1) != "_", "invalid property " ~ v)
+                    assert(!self[nm] && self[v] == undef,
+                        "cannot override existing property " ~ v)
+                }
+                self[nm] = gen_setter(v)
+                if saved_vals[v] != undef {
+                    self[v] = saved_vals[v]
+                }
+                manprops.push(v)
+            } }
             var notvariants = {
                 "__properties": true, "__init": true,
                 "__children": true
@@ -870,16 +887,6 @@ M.Widget = register_type("Widget", Object, {
                 cl.parent = self
                 cl._root  = self._root
                 if ic { ic(cl, self) }
-            } }
-            var props = dstates.__properties
-            if props { for i, v in props.each() {
-                var nm = "set_" ~ v
-                if !disable_asserts {
-                    assert(v.sub(0, 1) != "_", "invalid property " ~ v)
-                    assert(!self[nm], "cannot override existing property " ~ v)
-                }
-                self[nm] = gen_setter(v)
-                manprops.push(nm)
             } }
             var init = dstates.__init
             if init { init(self) }
