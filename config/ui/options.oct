@@ -262,7 +262,48 @@ var gen_opts_display = func() {
 
 var gen_opts_audio = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
-    r.append(gui::VBox())
+    r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
+        sp.append(gui::VBox({ clamp_h: true, padding: 0.01 }),
+            func(vb) {
+                vb.align(0, -1)
+                var svl = gui::HSlider({ variable: "soundvol", clamp: true })
+                var mvl = gui::HSlider({ variable: "musicvol", clamp: true })
+                var mbl = gen_checkbox("mumble")
+                var svlbl = gui::Label({ text: "Sound volume", align_h: -1 })
+                var mvlbl = gui::Label({ text: "Music volume", align_h: -1 })
+                var mblbl = gui::Label({ text: "Mumble positional audio" })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Enable audio" }))
+                    hb.append(gen_checkbox("sound", func(toggled) {
+                       svl.disabled = mvl.disabled = mbl.disabled = !toggled
+                       svlbl.color.set_a(toggled ? 0xFF : 0x50)
+                       mvlbl.color.set_a(toggled ? 0xFF : 0x50)
+                       mblbl.color.set_a(toggled ? 0xFF : 0x50)
+                    }))
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Filler({ min_w: 0.15 }, svlbl))
+                    hb.append(svl, func(sl) {
+                        sl.append(gui::SliderButton(undef,
+                            gui::Filler({ min_w: 0.08, clamp: true },
+                                gui::EvalLabel({ callback: \-> sl.value }))))
+                    })
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Filler({ min_w: 0.15 }, mvlbl))
+                    hb.append(mvl, func(sl) {
+                        sl.append(gui::SliderButton(undef,
+                            gui::Filler({ min_w: 0.08, clamp: true },
+                                gui::EvalLabel({ callback: \-> sl.value }))))
+                    })
+                })
+                add_box(vb, func(hb) {
+                    hb.append(mblbl)
+                    hb.append(mbl)
+                })
+            }
+        )
+    })
     return r
 }
 
