@@ -156,19 +156,19 @@ M.loop_children = func(self, fun) {
         var  w = st[s] || st["default"]
         if !w { w = vr[s] || vr["default"] }
         if w {
-            var a, b = fun(w)
-            if a != undef { return a, b }
+            var a, b, fret = fun(w)
+            if fret || a != undef { return a, b }
         }
     }
 
     for i, o in vc.each() {
-        var a, b = fun(o)
-        if  a != undef { return a, b }
+        var a, b, fret = fun(o)
+        if fret || a != undef { return a, b }
     }
 
     for i, o in ch.each() {
-        var a, b = fun(o)
-        if  a != undef { return a, b }
+        var a, b, fret = fun(o)
+        if fret || a != undef { return a, b }
     }
 }
 var loop_children = M.loop_children
@@ -189,13 +189,13 @@ M.loop_children_r = func(self, fun) {
     var st = self.states
 
     for i, o in ch.each_r() {
-        var a, b = fun(o)
-        if  a != undef { return a, b }
+        var a, b, fret = fun(o)
+        if fret || a != undef { return a, b }
     }
 
     for i, o in vc.each_r() {
-        var a, b = fun(o)
-        if  a != undef { return a, b }
+        var a, b, fret = fun(o)
+        if fret || a != undef { return a, b }
     }
 
     var s = self.choose_state()
@@ -203,8 +203,8 @@ M.loop_children_r = func(self, fun) {
         var  w = st[s] || st["default"]
         if !w { w = vr[s] || vr["default"] }
         if w {
-            var a, b = fun(w)
-            if a != undef { return a, b }
+            var a, b, fret = fun(w)
+            if fret || a != undef { return a, b }
         }
     }
 }
@@ -243,8 +243,8 @@ M.loop_in_children = func(self, cx, cy, fun, ins, useproj) {
             ox, oy = cx - o.x, cy - o.y
         }
         if ins == false || (ox >= 0 && ox < o.w && oy >= 0 && oy < o.h) {
-            var a, b = fun(o, ox, oy)
-            if    a != undef { return a, b }
+            var a, b, fret = fun(o, ox, oy)
+            if fret || a != undef { return a, b, true }
         }
     })
 }
@@ -264,8 +264,8 @@ M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj) {
             ox, oy = cx - o.x, cy - o.y
         }
         if ins == false || (ox >= 0 && ox < o.w && oy >= 0 && oy < o.h) {
-            var a, b = fun(o, ox, oy)
-            if    a != undef { return a, b }
+            var a, b, fret = fun(o, ox, oy)
+            if fret || a != undef { return a, b, true }
         }
     })
 }
@@ -1242,7 +1242,7 @@ M.Widget = register_type("Widget", Object, {
                 w._hover_x = ox
                 w._hover_y = oy
             }
-            if isw || c { return c }
+            if isw || c { return c, undef, true }
         }, true, isw)
     },
 
@@ -1298,7 +1298,7 @@ M.Widget = register_type("Widget", Object, {
                 w._click_x = ox
                 w._click_y = oy
             }
-            if isw || c { return c }
+            if isw || c { return c, undef, true }
         }, true, isw)
     },
 
