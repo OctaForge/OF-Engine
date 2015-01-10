@@ -238,6 +238,34 @@ var gen_opts_display = func() {
                         hb.append(gen_combobox("msaa", aniso_names, aniso_vals))
                     }
                 )
+                vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
+                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
+                    func(hb) {
+                        hb.append(gui::Label({ text: "Gamma" }))
+                        hb.append(gui::HSlider({ variable: "gamma", clamp: true }),
+                            func(sl) {
+                                sl.append(gui::SliderButton(undef,
+                                    gui::Filler({ min_w: 0.08, clamp: true },
+                                        gui::EvalLabel({ callback: \-> sl.value }))))
+                            }
+                        )
+                    }
+                )
+                vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
+                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
+                    func(hb) {
+                        hb.append(gui::Label({ text: "Vertical sync" }))
+                        hb = hb.append(gui::HBox({ padding: 0.02 }))
+                        var lbl = gui::Label({ text: "Tear" })
+                        var tcb = gen_checkbox("vsynctear")
+                        hb.append(gen_checkbox("vsync", func(toggled) {
+                            tcb.disabled = !toggled
+                            lbl.color.set_a(toggled ? 0xFF : 0x50)
+                        }))
+                        hb.append(lbl)
+                        hb.append(tcb)
+                    }
+                )
             }
         )
     })
