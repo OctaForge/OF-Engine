@@ -195,12 +195,14 @@ var gen_opts_display = func() {
                         })
                     }
                 )
+                vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
                 vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
                     func(hb) {
                         hb.append(gui::Label({ text: "Anisotropic filtering" }))
                         hb.append(gen_combobox("aniso", aniso_names, aniso_vals))
                     }
                 )
+                vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
                 vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
                     func(hb) {
                         hb.append(gui::Label({ text: "Morphological AA" }))
