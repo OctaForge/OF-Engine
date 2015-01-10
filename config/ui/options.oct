@@ -298,7 +298,7 @@ root.new_window("options", gui.Window, func(win) {
             st.update_state("audio"   , gen_opts_audio())
             signal::connect(st, "state,changed", func(self, nstate) {
                 for i, btn in btns.each() {
-                    btn[1].set_variant((btn[0] == nstate) ? "default" : "nobg", true)
+                    btn[1].set_variant((btn[0] == nstate) ? "default" : "nobg")
                 }
             })
         })

@@ -876,8 +876,7 @@ M.Widget = register_type("Widget", Object, {
                 var nm = "set_" ~ v
                 if !disable_asserts {
                     assert(v.sub(0, 1) != "_", "invalid property " ~ v)
-                    assert(!self[nm] && self[v] == undef,
-                        "cannot override existing property " ~ v)
+                    assert(!self[nm], "cannot override existing property " ~ v)
                 }
                 self[nm] = gen_setter(v)
                 manprops.push(nm)
