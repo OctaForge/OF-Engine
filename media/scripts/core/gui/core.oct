@@ -679,6 +679,7 @@ M.Widget = register_type("Widget", Object, {
 
         self.floating = kwargs.floating || false
         self.visible  = (kwargs.visible != false) && true || false
+        self.disabled = kwargs.disabled || false
 
         self.align(align_h, align_v)
         self.clamp(clamp_l, clamp_r, clamp_b, clamp_t)
@@ -1076,7 +1077,7 @@ M.Widget = register_type("Widget", Object, {
     */
     target: func(self, cx, cy) {
         return loop_in_children_r(self, cx, cy, func(o, ox, oy) {
-            var c = o.visible && o.target(ox, oy) || undef
+            var c = o.visible && !o.disabled && o.target(ox, oy) || undef
             if c { return c }
         })
     },
@@ -1103,7 +1104,7 @@ M.Widget = register_type("Widget", Object, {
             return true
         }
         return loop_children_r(self, func(o) {
-            if o.visible && o.key(code, isdown) { return true }
+            if o.visible && !o.disabled &&  o.key(code, isdown) { return true }
         }) || false
     },
 
@@ -1121,7 +1122,7 @@ M.Widget = register_type("Widget", Object, {
     */
     key_raw: func(self, code, isdown) {
         return loop_children_r(self, func(o) {
-            if o.visible && o.key_raw(code, isdown) { return true }
+            if o.visible && !o.disabled && o.key_raw(code, isdown) { return true }
         }) || false
     },
 
@@ -1137,7 +1138,7 @@ M.Widget = register_type("Widget", Object, {
     */
     text_input: func(self, str) {
         return loop_children_r(self, func(o) {
-            if o.visible && o.text_input(str) { return true }
+            if o.visible && !o.disabled && o.text_input(str) { return true }
         }) || false
     },
 
@@ -1237,7 +1238,7 @@ M.Widget = register_type("Widget", Object, {
         var w = self.get_root()
         var isw = (self == w)
         return loop_in_children_r(self, cx, cy, func(o, ox, oy) {
-            var c  = o.visible && o.hover(ox, oy) || undef
+            var c  = (o.visible && !o.disabled) && o.hover(ox, oy) || undef
             if    c == o {
                 w._hover_x = ox
                 w._hover_y = oy
@@ -1273,7 +1274,7 @@ M.Widget = register_type("Widget", Object, {
     hold: func(self, cx, cy, obj) {
         return loop_in_children_r(self, cx, cy, func(o, ox, oy) {
             if o == obj { return ox, oy }
-            if o.visible { return o.hold(ox, oy, obj) }
+            if o.visible && !o.disabled { return o.hold(ox, oy, obj) }
         }, false, self == root)
     },
 
@@ -1293,7 +1294,7 @@ M.Widget = register_type("Widget", Object, {
         var w = self.get_root()
         var isw = (self == w)
         return loop_in_children_r(self, cx, cy, func(o, ox, oy) {
-            var c  = o.visible && o.click(ox, oy, code) || undef
+            var c  = (o.visible && !o.disabled) && o.click(ox, oy, code) || undef
             if    c == o {
                 w._click_x = ox
                 w._click_y = oy
@@ -1576,6 +1577,9 @@ M.Widget = register_type("Widget", Object, {
 
     /// Function: set_visible
     set_visible: gen_setter("visible"),
+
+    /// Function: set disabled
+    set_disabled: gen_setter("disabled"),
 
     /// Returns the previous container, erases its parent and root, but doesn't
     /// destroy it.
@@ -2604,7 +2608,7 @@ var mousebuttons = {
 }
 
 set_external("input_keypress", func(code, isdown) {
-    if !root.cursor_exists() || !root.visible {
+    if !root.cursor_exists() || !root.visible || root.disabled {
         return false
     }
     if root.key_raw(code, isdown) {
