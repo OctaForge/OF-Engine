@@ -244,11 +244,11 @@ var sb_buildh = \lac, rac, sl -> gui::Outline({
 gui::Filler({ min_w: sl ? 0.03 : 0.02, min_h: sl ? 0.03 : 0.02, align_h: -1 },
     gui::Triangle({ style: gui.Triangle.OUTLINE,
         color: lac, min_w: sl ? 0.015 : 0.01, min_h: sl ? 0.015 : 0.01, angle: 90
-    })),
+    }, sl ? gui::Triangle({ color: lac, min_w: 0.015, min_h: 0.015, angle: 90 }) : undef)),
 gui::Filler({ min_w: sl ? 0.03 : 0.02, min_h: sl ? 0.03 : 0.02, align_h: 1 },
     gui::Triangle({ style: gui.Triangle.OUTLINE,
         color: rac, min_w: sl ? 0.015 : 0.01, min_h: sl ? 0.015 : 0.01, angle: -90
-    })
+    }, sl ? gui::Triangle({ color: rac, min_w: 0.015, min_h: 0.015, angle: -90 }) : undef)
 ))
 
 var sb_buildv = \lac, rac, sl -> gui::Filler({
@@ -256,11 +256,11 @@ var sb_buildv = \lac, rac, sl -> gui::Filler({
 }, gui::Filler({ min_w: sl ? 0.03 : 0.02, min_h: sl ? 0.03 : 0.02, align_v: -1 },
     gui::Triangle({ style: gui.Triangle.OUTLINE,
         color: lac, min_w: sl ? 0.015 : 0.01, min_h: sl ? 0.015 : 0.01
-    })),
+    }, sl ? gui::Triangle({ color: lac, min_w: 0.015, min_h: 0.015 }) : undef)),
 gui::Filler({ min_w: sl ? 0.03 : 0.02, min_h: sl ? 0.03 : 0.02, align_v: 1 },
     gui::Triangle({ style: gui.Triangle.OUTLINE,
         color: rac, min_w: sl ? 0.015 : 0.01, min_h: sl ? 0.015 : 0.01, angle: 180
-    })
+    }, sl ? gui::Triangle({ color: rac, min_w: 0.015, min_h: 0.015, angle: 180 }) : undef)
 ))
 
 gui.ScrollButton.__variants = {
