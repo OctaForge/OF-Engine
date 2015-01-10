@@ -377,6 +377,22 @@ gui.VProgressBar.__variants = {
     }
 }
 
+// Separators
+
+gui.Line.__variants = {
+    separator: {
+        __init: func(self) { self.set_color(0x303030) }
+    }
+}
+
+// Outlines
+
+gui.Outline.__variants = {
+    normal: {
+        __init: func(self) { self.set_color(0x303030) }
+    }
+}
+
 // windows
 
 var window_build_titlebar = \-> gui::Gradient({

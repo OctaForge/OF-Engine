@@ -8,7 +8,7 @@ var root = gui::get_root()
 /* Main menu */
 
 var gen_menu_default = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox(), func(vb) {
         vb.append(gui::Label({ text: "Welcome to OctaForge!", scale: 1.5,
             color: 0x88FF88
@@ -60,7 +60,7 @@ var gen_map_list = func(img, vb) {
 var gen_menu_map_load = func() {
     var s
     var r = gui::HBox()
-    r.append(gui::Outline({ color: 0x303030 }), func(o) {
+    r.append(gui::Outline({ variant: "normal" }), func(o) {
         o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
             sp.append(gui::Scroller({ clip_w: 0.6, clip_h: 0.5 }), func(sc) {
                 s = sc
@@ -69,7 +69,7 @@ var gen_menu_map_load = func() {
                     hb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02 },
                         gui::Image({ min_w: 0.3, min_h: 0.3,
                             __init: func(img) { im = img } },
-                            gui::Outline({ clamp: true, color: 0x303030 }))))
+                            gui::Outline({ clamp: true, variant: "normal" }))))
                     hb.append(gui::VBox(), func(vb) {
                         vb.align(0, -1)
                         gen_map_list(im, vb)
@@ -82,7 +82,7 @@ var gen_menu_map_load = func() {
 }
 
 var gen_menu_credits = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox(undef,
         gui::Label({ text: "OctaForge is brought to you by:",
             color: 0x88FF88 }),

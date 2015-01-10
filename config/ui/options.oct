@@ -66,13 +66,13 @@ var gen_checkbox = func(varn, vcfun) {
 }
 
 var gen_opts_game = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox())
     return r
 }
 
 var gen_opts_edit = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox({ clamp: true }),
         func(vb) {
             vb.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }),
@@ -97,7 +97,7 @@ var gen_opts_edit = func() {
 }
 
 var gen_opts_graphics = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox())
     return r
 }
@@ -173,7 +173,7 @@ var add_box = func(vb, fun) {
 }
 
 var gen_opts_display = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
         sp.append(gui::VBox({ clamp_h: true, padding: 0.01 }),
             func(vb) {
@@ -197,12 +197,12 @@ var gen_opts_display = func() {
                         })
                     }
                 )
-                vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
+                vb.append(gui::Line({ clamp_h: true, variant: "separator" }))
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Anisotropic filtering" }))
                     hb.append(gen_combobox("aniso", aniso_names, aniso_vals))
                 })
-                vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
+                vb.append(gui::Line({ clamp_h: true, variant: "separator" }))
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Morphological AA" }))
                     hb = hb.append(gui::HBox({ padding: 0.02 }))
@@ -230,7 +230,7 @@ var gen_opts_display = func() {
                     hb.append(gui::Label({ text: "Multisample AA" }))
                     hb.append(gen_combobox("msaa", aniso_names, aniso_vals))
                 })
-                vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
+                vb.append(gui::Line({ clamp_h: true, variant: "separator" }))
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Gamma" }))
                     hb.append(gui::HSlider({ variable: "gamma", clamp: true }),
@@ -241,7 +241,7 @@ var gen_opts_display = func() {
                         }
                     )
                 })
-                vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
+                vb.append(gui::Line({ clamp_h: true, variant: "separator" }))
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Vertical sync" }))
                     hb = hb.append(gui::HBox({ padding: 0.02 }))
@@ -261,7 +261,7 @@ var gen_opts_display = func() {
 }
 
 var gen_opts_audio = func() {
-    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
+    var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox())
     return r
 }
