@@ -43,6 +43,7 @@ var clicked_states = {
 */
 M.Button = register_type("Button", Widget, {
     choose_state: func(self) {
+        if self.disabled { return "disabled" }
         return clicked_states[self.is_clicked()] ||
             (self.is_hovering() && "hovering" || "default")
     },
@@ -69,6 +70,7 @@ var Button = M.Button
 */
 M.MenuButton = register_type("MenuButton", Button, {
     choose_state: func(self) {
+        if self.disabled { return "disabled" }
         return self.get_menu() != undef && "menu" || Button::choose_state(self)
     }
 })
@@ -91,8 +93,16 @@ M.Toggle = register_type("Toggle", Button, {
     },
 
     choose_state: func(self) {
+        var cond = self.condition && self.condition()
+        if self.disabled {
+            if cond {
+                return "toggled_disabled"
+            } else {
+                return "default_disabled"
+            }
+        }
         var h, f = self.is_hovering(), self.is_focused()
-        return (self.condition && self.condition() &&
+        return (cond &&
             (h && "toggled_hovering" || (f && "toggled_focused"
                 || "toggled")) ||
             (h && "default_hovering" || (f && "default_focused"

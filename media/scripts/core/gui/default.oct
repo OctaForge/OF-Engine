@@ -25,42 +25,44 @@ var btnv  = { __properties: btnp }
 var btnvb = { __properties: btnp }
 gui.Button.__variants = { default: btnv, nobg: btnvb }
 
-var btnv_init_clone = func(self, btn) {
-    var lbl = gui::Label({ text: btn.label })
+var btnv_init_clone = \dis -> func(self, btn) {
+    var lbl = gui::Label({ text: btn.label, color: dis ? 0x50FFFFFF : 0xFFFFFF })
     self.append(lbl)
     connect(btn, "label,changed", func(b, t) { lbl.set_text(t) })
 }
 
-var btn_build_variant = \color, ic -> gui::Gradient({
-    color: 0x202020, color2: 0x101010, clamp_h: true,
-    init_clone: func(self, btn) {
+var btn_build_variant = \color, ic, dis -> gui::Gradient({
+    color: dis ? 0x50202020 : 0x202020, color2: dis ? 0x50101010 : 0x101010,
+    clamp_h: true, init_clone: func(self, btn) {
         self.set_min_w(btn.min_w || 0)
         self.set_min_h(btn.min_h || 0)
         connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     } }, gui::Outline({
-        color: color, clamp_h: true }, gui::Spacer({
+        color: (dis ? (0x50 << 24) : 0) | color, clamp_h: true }, gui::Spacer({
             pad_h: 0.01, pad_v: 0.005, clamp_h: true,
-            init_clone: ic || btnv_init_clone
+            init_clone: ic || btnv_init_clone(dis)
         })))
 
-var btn_build_variant_nobg = \-> gui::Filler({
+var btn_build_variant_nobg = \dis -> gui::Filler({
     clamp_h: true, init_clone: func(self, btn) {
         self.set_min_w(btn.min_w || 0)
         self.set_min_h(btn.min_h || 0)
         connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     } }, gui::Spacer({
-        pad_h: 0.01, pad_v: 0.005, init_clone: btnv_init_clone
+        pad_h: 0.01, pad_v: 0.005, init_clone: btnv_init_clone(dis)
     }))
 
 btnv["default"     ] = btn_build_variant(0x303030)
 btnv["hovering"    ] = btn_build_variant(0x505050)
 btnv["clicked_left"] = btn_build_variant(0x404040)
+btnv["disabled"    ] = btn_build_variant(0x303030, undef, true)
 
 btnvb["default"     ] = btn_build_variant_nobg()
 btnvb["hovering"    ] = btn_build_variant(0x404040)
 btnvb["clicked_left"] = btn_build_variant(0x303030)
+btnvb["disabled"    ] = btn_build_variant_nobg(true)
 
 var mbtnv, vmbtnv, smbtnv, cbtnv =
     { __properties: btnp },
@@ -74,21 +76,25 @@ mbtnv["default"     ] = btn_build_variant_nobg()
 mbtnv["hovering"    ] = btn_build_variant_nobg()
 mbtnv["menu"        ] = btn_build_variant(0x404040)
 mbtnv["clicked_left"] = btn_build_variant(0x404040)
+mbtnv["disabled"    ] = btn_build_variant_nobg(true)
 
 vmbtnv["default"     ] = btn_build_variant(0x303030)
 vmbtnv["hovering"    ] = btn_build_variant(0x505050)
 vmbtnv["menu"        ] = btn_build_variant(0x404040)
 vmbtnv["clicked_left"] = btn_build_variant(0x404040)
+vmbtnv["disabled"    ] = btn_build_variant(0x303030, undef, true)
 
 smbtnv["default"     ] = btn_build_variant_nobg()
 smbtnv["hovering"    ] = btn_build_variant(0x404040)
 smbtnv["menu"        ] = btn_build_variant(0x404040)
 smbtnv["clicked_left"] = btn_build_variant(0x404040)
+smbtnv["disabled"    ] = btn_build_variant_nobg(true)
 
-var cbox_init_clone = \col -> func(self, btn) {
+var cbox_init_clone = \col, dis -> func(self, btn) {
     var lbl
     self.append(gui::HBox({ clamp_h: true }), func(bx) {
-        lbl = bx.append(gui::Label({ text: btn.label }))
+        lbl = bx.append(gui::Label({ text: btn.label,
+            color: dis ? 0x50FFFFFF : 0xFFFFFF }))
         bx.append(gui::Triangle({ style: gui.Triangle.OUTLINE,
             color: col, min_w: 0.015, min_h: 0.015, angle: 180
         }, gui::Triangle({ color: col, min_w: 0.015, min_h: 0.015,
@@ -101,6 +107,8 @@ cbtnv["default"     ] = btn_build_variant(0x303030, cbox_init_clone(0x404040))
 cbtnv["hovering"    ] = btn_build_variant(0x505050, cbox_init_clone(0x606060))
 cbtnv["menu"        ] = btn_build_variant(0x404040, cbox_init_clone(0x404040))
 cbtnv["clicked_left"] = btn_build_variant(0x404040, cbox_init_clone(0x404040))
+cbtnv["disabled"    ] = btn_build_variant(0x303030, cbox_init_clone(0x404040,
+    true), true)
 
 // (v)slot viewer buttons
 
