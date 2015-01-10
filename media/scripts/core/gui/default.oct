@@ -188,24 +188,25 @@ gui.Filler.__variants = {
 
 // checkboxes, radioboxes
 
-var ckbox_build_variant = \color, tgl -> gui::ColorFiller({
-    color: 0x202020, min_w: 0.02, min_h: 0.02
+var ckbox_build_variant = \color, tgl, dis -> gui::ColorFiller({
+    color: dis ? 0x50202020 : 0x202020, min_w: 0.02, min_h: 0.02
 }, gui::Outline({
-    color: color, clamp: true
+    color: (dis ? (0x50 << 24) : 0) | color, clamp: true
 }, tgl && gui::Spacer({
     pad_h: 0.005, pad_v: 0.005, clamp: true
 }, gui::ColorFiller({
-    clamp: true, color: 0xC0C0C0
+    clamp: true, color: dis ? 0x50C0C0C0 : 0xC0C0C0
 }, gui::Outline({ color: color, clamp: true }))) || undef))
 
-var rdbtn_build_variant = \color, tgl -> gui::Circle({
-    color: 0x202020, min_w: 0.02, min_h: 0.02
+var rdbtn_build_variant = \color, tgl, dis -> gui::Circle({
+    color: dis ? 0x50202020 : 0x202020, min_w: 0.02, min_h: 0.02
 }, gui::Circle({
-    style: gui.Circle.OUTLINE, color: color, clamp: true,
+    style: gui.Circle.OUTLINE, color: (dis ? (0x50 << 24) : 0) | color,
+    clamp: true,
 }, tgl && gui::Spacer({
     pad_h: 0.005, pad_v: 0.005, clamp: true
 }, gui::Circle({
-    clamp: true, color: 0xC0C0C0
+    clamp: true, color: dis ? 0x50C0C0C0 : 0xC0C0C0
 }, gui::Circle({
     style: gui.Circle.OUTLINE, color: color,
     clamp: true
@@ -221,15 +222,19 @@ gui.Toggle.__variants = {
 ckboxv["default"         ] = ckbox_build_variant(0x303030)
 ckboxv["default_hovering"] = ckbox_build_variant(0x505050)
 ckboxv["default_focused" ] = ckbox_build_variant(0x606060)
+ckboxv["default_disabled"] = ckbox_build_variant(0x303030, false, true)
 ckboxv["toggled"         ] = ckbox_build_variant(0x404040, true)
 ckboxv["toggled_hovering"] = ckbox_build_variant(0x505050, true)
 ckboxv["toggled_focused" ] = ckbox_build_variant(0x606060, true)
+ckboxv["toggled_disabled"] = ckbox_build_variant(0x404040, true, true)
 rdbtnv["default"         ] = rdbtn_build_variant(0x303030)
 rdbtnv["default_hovering"] = rdbtn_build_variant(0x505050)
 rdbtnv["default_focused" ] = rdbtn_build_variant(0x606060)
+rdbtnv["default_disabled"] = rdbtn_build_variant(0x303030, false, true)
 rdbtnv["toggled"         ] = rdbtn_build_variant(0x404040, true)
 rdbtnv["toggled_hovering"] = rdbtn_build_variant(0x505050, true)
 rdbtnv["toggled_focused" ] = rdbtn_build_variant(0x606060, true)
+rdbtnv["toggled_disabled"] = rdbtn_build_variant(0x404040, true, true)
 
 // scrollbars
 
