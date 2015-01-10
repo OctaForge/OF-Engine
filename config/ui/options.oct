@@ -37,8 +37,9 @@ var gen_opts_edit = func() {
                             hb.append(gui::Label({ text: "Shift floatspeed" }))
                             hb.append(gui::HSlider({ variable: "editfloatspeed", clamp: true }),
                                 func(sl) {
-                                    sl.append(gui::SliderButton(undef, gui::EvalLabel({
-                                        callback: \-> sl.value, scale: 0.6 })))
+                                    sl.append(gui::SliderButton(undef,
+                                        gui::Filler({ min_w: 0.08, clamp: true },
+                                            gui::EvalLabel({ callback: \-> sl.value }))))
                                 }
                             )
                         }
@@ -213,7 +214,8 @@ var gen_opts_display = func() {
                 )
                 vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
                     func(hb) {
-                        hb.append(gui::Label({ text: "Temporal AA" }))
+                        hb.append(gui::Spacer({ pad_v: 0.005 },
+                            gui::Label({ text: "Temporal AA" })))
                         hb.append(gen_checkbox("tqaa"))
                     }
                 )
