@@ -20,6 +20,51 @@ var setup_var_widget = func(self, varn, propn, lblcb) {
     })
 }
 
+var gen_combobox = func(varn, names, vals) {
+    // generate vals from var if not given
+    if !vals {
+        vals = []
+        var minv = cs::var_get_min(varn)
+        var maxv = cs::var_get_max(varn)
+        for i in minv to maxv {
+            vals.push(i)
+        }
+    }
+    var r = gui::MenuButton({ variant: "combobox", min_w: 0.13 })
+    var mn = gui::Filler({ variant: "menu", min_w: 0.2 })
+    mn.append(gui::VBox({ clamp: true }), func(vb) {
+        for i, val in vals.each() {
+            var mb = vb.append(gui::MenuButton({ variant: "submenu",
+                label: names[val] || "unknown", clamp_h: true }))
+            signal::connect(mb, "clicked", func(mb) {
+                cs::var_set(varn, val)
+                root.clear_menus()
+            })
+        }
+    })
+    setup_var_widget(r, varn, "label", \v -> names[v] || "unknown")
+    signal::connect(r, "clicked", func(mb) {
+        mb.show_menu(mn)
+    })
+    return r
+}
+
+var gen_checkbox = func(varn, vcfun) {
+    var curv = cs::var_get(varn)
+    if !curv { return undef }
+    var r = gui::Toggle({ variant: "checkbox", condition: \-> curv != 0 })
+    if vcfun { vcfun(curv != 0) }
+    var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
+        curv = v
+        if vcfun { vcfun(curv != 0) }
+    })
+    signal::connect(r, "destroy", func() {
+        signal::disconnect(cs, varn ~ ",changed", cid)
+    })
+    signal::connect(r, "released", \-> cs::var_set(varn, (curv != 0) ? 0 : 1))
+    return r
+}
+
 var gen_opts_game = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
     r.append(gui::VBox())
@@ -56,8 +101,6 @@ var gen_opts_graphics = func() {
     r.append(gui::VBox())
     return r
 }
-
-var aspect_ratios = [ "4:3", "5:4", "16:9", "16:10" ]
 
 var resolutions = {
     "4:3": [
@@ -105,7 +148,7 @@ var gen_res_submenu = func(ar) {
 var gen_res_menu = func() {
     var r = gui::Filler({ variant: "menu", min_w: 0.2 })
     r.append(gui::VBox({ clamp: true }), func(vb) {
-        for i, aspect in aspect_ratios.each() {
+        for i, aspect in [ "4:3", "5:4", "16:9", "16:10" ].each() {
             var mb = vb.append(gui::MenuButton({ variant: "submenu",
                 label: aspect, clamp_h: true }))
             var sm = gen_res_submenu(aspect)
@@ -117,51 +160,6 @@ var gen_res_menu = func() {
     return r
 }
 
-var gen_combobox = func(varn, names, vals) {
-    // generate vals from var if not given
-    if !vals {
-        vals = []
-        var minv = cs::var_get_min(varn)
-        var maxv = cs::var_get_max(varn)
-        for i in minv to maxv {
-            vals.push(i)
-        }
-    }
-    var r = gui::MenuButton({ variant: "combobox", min_w: 0.13 })
-    var mn = gui::Filler({ variant: "menu", min_w: 0.2 })
-    mn.append(gui::VBox({ clamp: true }), func(vb) {
-        for i, val in vals.each() {
-            var mb = vb.append(gui::MenuButton({ variant: "submenu",
-                label: names[val] || "unknown", clamp_h: true }))
-            signal::connect(mb, "clicked", func(mb) {
-                cs::var_set(varn, val)
-                root.clear_menus()
-            })
-        }
-    })
-    setup_var_widget(r, varn, "label", \v -> names[v] || "unknown")
-    signal::connect(r, "clicked", func(mb) {
-        mb.show_menu(mn)
-    })
-    return r
-}
-
-var gen_checkbox = func(varn, vcfun) {
-    var curv = cs::var_get(varn)
-    if !curv { return undef }
-    var r = gui::Toggle({ variant: "checkbox", condition: \-> curv != 0 })
-    if vcfun { vcfun(curv != 0) }
-    var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
-        curv = v
-        if vcfun { vcfun(curv != 0) }
-    })
-    signal::connect(r, "destroy", func() {
-        signal::disconnect(cs, varn ~ ",changed", cid)
-    })
-    signal::connect(r, "released", \-> cs::var_set(varn, (curv != 0) ? 0 : 1))
-    return r
-}
-
 var aniso_names = { 0: "off", 2: "2x", 4: "4x", 8: "8x", 16: "16x" }
 var aniso_vals  = [ 0, 2, 4, 8, 16 ]
 
@@ -169,6 +167,10 @@ var aa_names = [ "low", "medium", "high", "ultra" ]
 
 var msaa_names = { 0: "off", 2: "2x", 4: "4x", 8: "8x", 16: "16x" }
 var msaa_vals  = [ 0, 2, 4, 8, 16 ]
+
+var add_box = func(vb, fun) {
+    vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }), fun)
+}
 
 var gen_opts_display = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, color: 0x303030 })
@@ -196,76 +198,62 @@ var gen_opts_display = func() {
                     }
                 )
                 vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
-                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
-                    func(hb) {
-                        hb.append(gui::Label({ text: "Anisotropic filtering" }))
-                        hb.append(gen_combobox("aniso", aniso_names, aniso_vals))
-                    }
-                )
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Anisotropic filtering" }))
+                    hb.append(gen_combobox("aniso", aniso_names, aniso_vals))
+                })
                 vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
-                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
-                    func(hb) {
-                        hb.append(gui::Label({ text: "Morphological AA" }))
-                        hb = hb.append(gui::HBox({ padding: 0.02 }))
-                        var cbox = gen_combobox("smaaquality", aa_names)
-                        hb.append(gen_checkbox("smaa", func(toggled) {
-                            cbox.disabled = !toggled
-                        }))
-                        hb.append(cbox)
-                    }
-                )
-                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
-                    func(hb) {
-                        hb.append(gui::Spacer({ pad_v: 0.005 },
-                            gui::Label({ text: "Temporal AA" })))
-                        hb.append(gen_checkbox("tqaa"))
-                    }
-                )
-                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
-                    func(hb) {
-                        hb.append(gui::Label({ text: "FXAA" }))
-                        hb = hb.append(gui::HBox({ padding: 0.02 }))
-                        var cbox = gen_combobox("fxaaquality", aa_names)
-                        hb.append(gen_checkbox("fxaa", func(toggled) {
-                            cbox.disabled = !toggled
-                        }))
-                        hb.append(cbox)
-                    }
-                )
-                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
-                    func(hb) {
-                        hb.append(gui::Label({ text: "Multisample AA" }))
-                        hb.append(gen_combobox("msaa", aniso_names, aniso_vals))
-                    }
-                )
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Morphological AA" }))
+                    hb = hb.append(gui::HBox({ padding: 0.02 }))
+                    var cbox = gen_combobox("smaaquality", aa_names)
+                    hb.append(gen_checkbox("smaa", func(toggled) {
+                        cbox.disabled = !toggled
+                    }))
+                    hb.append(cbox)
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Spacer({ pad_v: 0.005 },
+                        gui::Label({ text: "Temporal AA" })))
+                    hb.append(gen_checkbox("tqaa"))
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "FXAA" }))
+                    hb = hb.append(gui::HBox({ padding: 0.02 }))
+                    var cbox = gen_combobox("fxaaquality", aa_names)
+                    hb.append(gen_checkbox("fxaa", func(toggled) {
+                        cbox.disabled = !toggled
+                    }))
+                    hb.append(cbox)
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Multisample AA" }))
+                    hb.append(gen_combobox("msaa", aniso_names, aniso_vals))
+                })
                 vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
-                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
-                    func(hb) {
-                        hb.append(gui::Label({ text: "Gamma" }))
-                        hb.append(gui::HSlider({ variable: "gamma", clamp: true }),
-                            func(sl) {
-                                sl.append(gui::SliderButton(undef,
-                                    gui::Filler({ min_w: 0.08, clamp: true },
-                                        gui::EvalLabel({ callback: \-> sl.value }))))
-                            }
-                        )
-                    }
-                )
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Gamma" }))
+                    hb.append(gui::HSlider({ variable: "gamma", clamp: true }),
+                        func(sl) {
+                            sl.append(gui::SliderButton(undef,
+                                gui::Filler({ min_w: 0.08, clamp: true },
+                                    gui::EvalLabel({ callback: \-> sl.value }))))
+                        }
+                    )
+                })
                 vb.append(gui::Line({ clamp_h: true, color: 0x303030 }))
-                vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }),
-                    func(hb) {
-                        hb.append(gui::Label({ text: "Vertical sync" }))
-                        hb = hb.append(gui::HBox({ padding: 0.02 }))
-                        var lbl = gui::Label({ text: "Tear" })
-                        var tcb = gen_checkbox("vsynctear")
-                        hb.append(gen_checkbox("vsync", func(toggled) {
-                            tcb.disabled = !toggled
-                            lbl.color.set_a(toggled ? 0xFF : 0x50)
-                        }))
-                        hb.append(lbl)
-                        hb.append(tcb)
-                    }
-                )
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Vertical sync" }))
+                    hb = hb.append(gui::HBox({ padding: 0.02 }))
+                    var lbl = gui::Label({ text: "Tear" })
+                    var tcb = gen_checkbox("vsynctear")
+                    hb.append(gen_checkbox("vsync", func(toggled) {
+                        tcb.disabled = !toggled
+                        lbl.color.set_a(toggled ? 0xFF : 0x50)
+                    }))
+                    hb.append(lbl)
+                    hb.append(tcb)
+                })
             }
         )
     })
