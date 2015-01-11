@@ -25,8 +25,8 @@ var slots_populate = func(gr, slotlist) {
 
 var gen_slot_combo = func(packs, gr) {
     var packmap = {}
-    var r = gui::MenuButton({ variant: "combobox", label: "all", min_w: 0.2 })
-    var mn = gui::Filler({ variant: "menu", min_w: 0.2 })
+    var r = gui::MenuButton({ variant: "combobox", label: "all", min_w: 0.25 })
+    var mn = gui::Filler({ variant: "menu", min_w: 0.25 })
     mn.append(gui::VBox({ clamp: true }), func(vb) {
         var mb = vb.append(gui::MenuButton({ variant: "submenu",
             label: "all", clamp_h: true }))
