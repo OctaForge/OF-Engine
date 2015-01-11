@@ -141,11 +141,12 @@ gui.Button.__variants.slot = {
 
 gui.TextEditor.__variants = {
     default: {
-        __children: [
-            gui::ColorFiller({
-                color: 0x80202020, clamp: true
-            }, gui::Outline({ clamp: true, color: 0x303030 }))
-        ],
+        default: gui::ColorFiller({
+            color: 0x80202020, clamp: true
+        }, gui::Outline({ clamp: true, color: 0x303030 })),
+        disabled: gui::ColorFiller({
+            color: 0x40202020, clamp: true
+        }, gui::Outline({ clamp: true, color: 0x50303030 })),
         __init: func(ed) {
             ed.set_pad_l(0.005)
             ed.set_pad_r(0.005)

@@ -269,6 +269,11 @@ M.TextEditor = register_type("TextEditor", Widget, {
         return Widget::__ctor(self, kwargs, ...)
     },
 
+    choose_state: func(self, dis) {
+        if dis { return "disabled" }
+        return "default"
+    },
+
     /**
         Given a readable stream, this loads its contents into the editor.
         It doesn't close the stream and it clears the editor beforehand.
