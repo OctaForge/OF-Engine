@@ -20,7 +20,7 @@ var setup_var_widget = func(self, varn, propn, lblcb) {
     })
 }
 
-var gen_combobox = func(varn, names, vals) {
+var gen_combobox = func(varn, names, vals, vcb, mw) {
     // generate vals from var if not given
     if !vals {
         vals = []
@@ -30,19 +30,20 @@ var gen_combobox = func(varn, names, vals) {
             vals.push(i)
         }
     }
-    var r = gui::MenuButton({ variant: "combobox", min_w: 0.13 })
+    var r = gui::MenuButton({ variant: "combobox", min_w: mw || 0.13 })
     var mn = gui::Filler({ variant: "menu", min_w: 0.2 })
     mn.append(gui::VBox({ clamp: true }), func(vb) {
         for i, val in vals.each() {
             var mb = vb.append(gui::MenuButton({ variant: "submenu",
-                label: names[val] || "unknown", clamp_h: true }))
+                label: names[val] || "custom", clamp_h: true }))
             signal::connect(mb, "clicked", func(mb) {
                 cs::var_set(varn, val)
+                if vcb { vcb(mb, val) }
                 root.clear_menus()
             })
         }
     })
-    setup_var_widget(r, varn, "label", \v -> names[v] || "unknown")
+    setup_var_widget(r, varn, "label", \v -> names[v] || "custom")
     signal::connect(r, "clicked", func(mb) {
         mb.show_menu(mn)
     })
@@ -96,9 +97,124 @@ var gen_opts_edit = func() {
     return r
 }
 
+var add_box = func(vb, fun) {
+    vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }), fun)
+}
+
+var sr_names = { 11: "low", 12: "medium", 13: "high" }
+var sr_vals  = [ 11, 12, 13 ]
+var sf_names = [ "low", "medium", "high", "ultra" ]
+var rh_names = { 12: "low", 20: "medium", 32: "high" }
+var rh_vals  = [ 12, 20, 32 ]
+var ao_names = { 5: "low", 8: "medium", 12: "high" }
+var ao_vals  = [ 5, 8, 12 ]
+var vl_names = { 12: "low", 16: "medium", 24: "high" }
+var vl_vals  = [ 12, 16, 24 ]
+var st_names = { 2: "instant-fade", 15: "quick-fade", 30: "moderate-fade", 60: "slow-fade" }
+var st_vals  = [ 2, 15, 30, 60 ]
+var gr_names = { 128: "quick-fade", 256: "moderate-fade", 512: "slow-fade", 1024: "slower-fade" }
+var gr_vals  = [ 128, 256, 512, 1024 ]
+
 var gen_opts_graphics = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
-    r.append(gui::VBox())
+    r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
+        sp.append(gui::VBox({ clamp_h: true, padding: 0.01 }),
+            func(vb) {
+                vb.align(0, -1)
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Shadow resolution" }))
+                    hb.append(gen_combobox("smsize", sr_names, sr_vals))
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Shadow filtering" }))
+                    hb.append(gen_combobox("smfilter", sf_names))
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Global illumination" }))
+                    hb = hb.append(gui::HBox({ padding: 0.02 }))
+                    var cbox = gen_combobox("rhtaps", rh_names, rh_vals)
+                    hb.append(gen_checkbox("gi", func(toggled) {
+                        cbox.set_disabled(!toggled)
+                    }))
+                    hb.append(cbox)
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "SSAO" }))
+                    hb = hb.append(gui::HBox({ padding: 0.02 }))
+                    var cbox = gen_combobox("aotaps", ao_names, ao_vals, func(cb, v) {
+                        cs::var_set("aobilateral", (v >= 8) ? 4 : 3)
+                    })
+                    hb.append(gen_checkbox("ao", func(toggled) {
+                        cbox.set_disabled(!toggled)
+                    }))
+                    hb.append(cbox)
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Volumetric lighting" }))
+                    hb = hb.append(gui::HBox({ padding: 0.02 }))
+                    var cbox = gen_combobox("volsteps", vl_names, vl_vals, func(cb, v) {
+                        cs::var_set("volbilateral", (v >= 16) ? 2 : 1)
+                    })
+                    hb.append(gen_checkbox("volumetric", func(toggled) {
+                        cbox.set_disabled(!toggled)
+                    }))
+                    hb.append(cbox)
+                })
+                add_box(vb, func(hb) {
+                    var sp = hb.append(gui::Spacer({ pad_v: 0.005 }))
+                    sp.align(0, -1)
+                    sp.append(gui::Label({ text: "Water" })).align(0, -1)
+                    var vvb = hb.append(gui::VBox({ padding: 0.01 }))
+                    var hhb = vvb.append(gui::HBox({ padding: 0.01 }))
+                    hhb.append(gui::Spacer({ pad_v: 0.005 },
+                        gui::Label({ text: "reflection" })))
+                    hhb.append(gen_checkbox("waterreflect"))
+                    hhb.append(gui::Spacer({ pad_v: 0.005 },
+                        gui::Label({ text: "caustics" })))
+                    hhb.append(gen_checkbox("caustics"))
+                    hhb = vvb.append(gui::HBox({ padding: 0.01 }))
+                    hhb.align(1, 0)
+                    hhb.append(gui::Label({ text: "animation" }))
+                    hhb.append(gen_checkbox("vertwater"))
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Spacer({ pad_v: 0.005 },
+                        gui::Label({ text: "Soft particles" })))
+                    hb.append(gen_checkbox("softparticles"))
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Stains" }))
+                    hb = hb.append(gui::HBox({ padding: 0.02 }))
+                    var triscb = func(o, v) {
+                        v = tonumber(v)
+                        if !v { return }
+                        cs::var_set("maxstaintris", (v >= 15) ? 8192 : 2048)
+                    }
+                    var cbox = gen_combobox("stainfade", st_names, st_vals, triscb, 0.185)
+                    var fld = hb.append(gui::Field({ variable: "stainfade", clip_w: 0.08 }))
+                    signal::connect(fld, "value,changed", triscb)
+                    hb.append(gen_checkbox("stains", func(toggled) {
+                        cbox.set_disabled(!toggled)
+                        fld.set_disabled(!toggled)
+                    }))
+                    hb.append(cbox)
+                    hb.append(fld)
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "3D grass" }))
+                    hb = hb.append(gui::HBox({ padding: 0.02 }))
+                    var cbox = gen_combobox("grassdist", gr_names, gr_vals, undef, 0.185)
+                    var fld = hb.append(gui::Field({ variable: "grassdist", clip_w: 0.08 }))
+                    hb.append(gen_checkbox("grass", func(toggled) {
+                        cbox.set_disabled(!toggled)
+                        fld.set_disabled(!toggled)
+                    }))
+                    hb.append(cbox)
+                    hb.append(fld)
+                })
+            }
+        )
+    })
     return r
 }
 
@@ -167,10 +283,6 @@ var aa_names = [ "low", "medium", "high", "ultra" ]
 
 var msaa_names = { 0: "off", 2: "2x", 4: "4x", 8: "8x", 16: "16x" }
 var msaa_vals  = [ 0, 2, 4, 8, 16 ]
-
-var add_box = func(vb, fun) {
-    vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }), fun)
-}
 
 var gen_opts_display = func() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
