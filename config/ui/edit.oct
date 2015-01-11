@@ -17,7 +17,7 @@ root.new_window("texture", gui.Window, func(win) {
     win.set_title("Textures")
     win.append(gui::HBox(), func(hb) {
         var s
-        hb.append(gui::Outline(), func(o) {
+        hb.append(gui::Outline({ variant: "normal" }), func(o) {
             o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
                 sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
                     sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {

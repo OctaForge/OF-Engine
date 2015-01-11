@@ -2859,6 +2859,11 @@ CLUAICOMMAND(slot_set, void, (int n), {
     filltexlist();
     edittex(n);
 });
+CLUAICOMMAND(slot_get_tex, int, (int n), {
+    if (n <0 || !slots.inrange(n)) { return -1; }
+    Slot &slot = lookupslot(n, false);
+    return slot.variants->index;
+})
 
 CLUAICOMMAND(slot_texmru_num, int, (), {
     filltexlist();
