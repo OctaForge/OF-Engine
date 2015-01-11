@@ -1,7 +1,10 @@
 import capi
+import std.ffi
 import core.events.signal
 import core.gui.core as gui
-from core.engine.cubescript import var_get, execute
+import core.engine.cubescript as cs
+import core.engine.changes
+from std.math import min
 
 var root = gui::get_root()
 
@@ -11,7 +14,7 @@ root.new_window("fullconsole", gui.Overlay, func(win) {
     capi::console_full_show(true)
     signal::connect(win, "destroy", \-> capi::console_full_show(false))
     win.append(gui::Console({
-        min_h: \-> var_get("fullconsize") / 100, clamp: true
+        min_h: \-> cs::var_get("fullconsize") / 100, clamp: true
     }))
 })
 
@@ -21,7 +24,7 @@ root.new_window("editstats", gui.Overlay, func(win) {
     win.append(gui::Filler({ variant: "edithud" }), func(fl) {
         fl.append(gui::Spacer({ pad_h: 0.015, pad_v: 0.01 }), func(sp) {
             sp.append(gui::EvalLabel({ scale: -1,
-                callback: \-> execute("getedithud") })).align(-1, 0)
+                callback: \-> cs::execute("getedithud") })).align(-1, 0)
         })
     })
 })
@@ -32,7 +35,7 @@ import core.network.msg
 
 var vicon_cb = func(self) {
     var varn = self.varn
-    if var_get(varn) == 1 {
+    if cs::var_get(varn) == 1 {
         self.color.a = 0xFF
         return self.cvarn
     } else {
@@ -55,5 +58,146 @@ root.new_window("varicons", gui.Overlay, func(win) {
                 })
             }
         })
+    })
+})
+
+// some default windows
+
+var progress_bar, progress_label
+var progress_win = gui::Window({ __init: func(win) {
+    win.append(gui::VBox(), func(b) {
+        b.append(gui::Spacer({ pad_h: 0.01, pad_v: 0.01 }), func(sp) {
+            progress_label = sp.append(gui::Label())
+        })
+        b.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.01 }), func(sp) {
+            progress_bar = sp.append(gui::HProgressBar({ min_w: 0.4,
+                min_h: 0.03 }))
+        })
+    })
+} })
+
+from core.externals import set as set_ext
+
+set_ext("progress_render", func(v, text) {
+    progress_bar.set_value(v)
+    progress_label.set_text(text)
+    gui::__draw_window(progress_win)
+})
+
+var bg_win = func(mapname, mapinfo, mapshot, caption) {
+    var win = gui::Window()
+    win.set_input_grab(false)
+    win.align(0, 1)
+    win.append(gui::VBox(), func(b) {
+        if mapname {
+            b.append(gui::Label({ text: mapname, scale: 1.5 }))
+        }
+        if mapinfo { b.append(gui::Label({ text: mapinfo })) }
+        if mapshot {
+            b.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02 }), func(sp) {
+                sp.append(gui::Image({ min_w: 0.2, min_h: 0.2 }),
+                    func(img) { img.texture = mapshot })
+            })
+        }
+        if caption {
+            b.append(gui::Label({ text: caption, scale: 1.5 }))
+        }
+        b.append(gui::Filler({ min_h: 0.05 }))
+    })
+    return win
+}
+
+var hw_tex_size = 0
+var max_tex_size = cs::var_get("maxtexsize")
+
+signal::connect(cs, "maxtexsize,changed", func(self, val) { max_tex_size = val })
+
+var get_logo = func(root, win) {
+    if  hw_tex_size == 0 {
+        hw_tex_size = cs::var_get("hwtexsize")
+    }
+    var sz = ((max_tex_size != 0) && min(max_tex_size, hw_tex_size)
+                                     || hw_tex_size)
+    var w, h = root.get_pixel_w(), root.get_pixel_h()
+    var logo
+    if (sz >= 1024) && ((w > 1280) || (h > 800)) {
+        logo = "<premul>media/interface/logo_1024"
+    } else {
+        logo = "<premul>media/interface/logo"
+    }
+    win.x, win.y, win.parent, win._root = 0, 0, root, root
+    var proj = win.get_projection()
+    proj.calc()
+    var lw = min(proj.pw, proj.ph)
+    return logo, lw, lw / 2
+}
+
+var bg_under = func(root) {
+    var win = gui::Overlay()
+    var logo, lw, lh = get_logo(root, win)
+    win.append(gui::Image({ file: "media/interface/background",
+        min_w: 1/0, min_h: 1/0 }))
+    win.append(gui::Image({ file: "media/interface/shadow",
+        min_w: 1/0, min_h: 1/0 }))
+    win.append(gui::Image({ file: logo, min_w: lw, min_h: lh,
+                            align_v: -1 }))
+    return win
+}
+
+set_ext("background_render", func(caption, mapname, mapinfo, mapshot) {
+    var root = gui::get_root()
+    root.calc_text_scale()
+    root.layout_dim()
+    gui::__draw_window(bg_under(root))
+    gui::__draw_window(bg_win(mapname, mapinfo, mapshot
+        && ffi::cast("Texture*", mapshot) || undef, caption))
+})
+
+/** Variable: applydialog
+    An engine variable that controls whether the "apply" dialog will show
+    on changes that need restart of some engine subsystem. Defaults to 1.
+*/
+cs::var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
+    cs.var_flags.PERSIST)
+cs::var_new("hidechanges", cs.var_type.int, 0, 0, 1)
+
+signal::connect(changes, "add", func(self, ctype, desc) {
+    if cs::var_get("applydialog") == 0 { return }
+    changes::add(ctype, desc)
+    if cs::var_get("hidechanges") == 0 {
+        root.show_window("changes")
+    }
+})
+
+signal::connect(root, "reset", \-> cs::var_set("hidechanges", 0))
+
+root.new_window("changes", gui.Window, func(win) {
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("Changes")
+    win.append(gui::VBox(), func(b) {
+        b.append(gui::Spacer({ pad_h: 0.01, pad_v: 0 },
+            gui::Label({ text: "The following settings have changed:" })))
+        b.append(gui::Spacer({ pad_v: 0.01, pad_h: 0.005, clamp_h: true },
+            gui::Line({ clamp_h: true, color: 0x303030 })))
+        for i, v in changes::get().each() {
+            b.append(gui::Label({ text: v }))
+        }
+        b.append(gui::Filler({ clamp_h: true, min_h: 0.01 }))
+        b.append(gui::Spacer({ pad_v: 0.005, pad_h: 0.005, clamp_h: true },
+            gui::HBox({ padding: 0.01 },
+                gui::Button({ label: "OK", min_w: 0.15,
+                    signals: { clicked: func() {
+                        changes::apply()
+                        root.hide_window("changes")
+                    } }
+                }),
+                gui::Button({ label: "Cancel", min_w: 0.15,
+                    signals: { clicked: func() {
+                        root.hide_window("changes")
+                    } }
+                })
+            )
+        ))
     })
 })

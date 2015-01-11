@@ -1,0 +1,176 @@
+import capi
+import core.engine.edit
+import core.engine.input
+import core.entities.ents
+import core.entities.svars
+import core.events.signal
+import core.gui.core as gui
+
+from std.table import pairs
+from std.conv import tostring
+
+var root = gui::get_root()
+
+root.new_window("texture", gui.Window, func(win) {
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("Textures")
+    win.append(gui::HBox(), func(hb) {
+        var s
+        hb.append(gui::Outline(), func(o) {
+            o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+                sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
+                    sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {
+                        for i in 1 to capi::slot_texmru_num() {
+                            var mru = capi::slot_texmru(i - 1)
+                            gr.append(gui::Button({ variant: "vslot",
+                                index: mru, min_w: 0.095, min_h: 0.095
+                            }), func(b) {
+                                signal::connect(b, "clicked", \-> capi::slot_set(mru))
+                            })
+                        }
+                    })
+                    s = sc
+                })
+            })
+        })
+        hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
+            sb.append(gui::ScrollButton())
+            sb.bind_scroller(s)
+        })
+    })
+})
+
+var fields = {
+    (svars.StateBoolean): func(hb, nm, ent, dv) {
+        var tvar = (dv == "true")
+        var ret
+        hb.append(gui::Filler({ min_w: 0.4 }), func(f) {
+            f.append(gui::Toggle({ variant: "checkbox", condition: \-> tvar,
+                align_h: -1
+            }), func(t) {
+                ret = t
+                signal::connect(t, "released", func() {
+                    tvar = !tvar
+                    capi::makeundoent()
+                    ent.set_gui_attr(nm, tostring(tvar))
+                })
+            })
+        })
+        return ret
+    }
+}
+var field_def = func(hb, nm, ent, dv) {
+    return hb.append(gui::Field({ clip_w: 0.4, value: dv }), func(ed) {
+        signal::connect(ed, "value,changed", func(ed, v) {
+            capi::makeundoent()
+            ent.set_gui_attr(nm, v)
+        })
+    })
+}
+
+root.new_window("entity", gui.Window, func(win) {
+    win.set_floating(true)
+    win.set_variant("movable")
+    var  ent = capi::get_selected_entity()
+    if !ent {
+        ent = ents::get_player()
+    }
+    if !ent {
+        win.set_title("Entity editing: none")
+        win.append(gui::Spacer({ pad_h: 0.04, pad_v: 0.03 },
+            gui::Label({ text: "No selected entity" })))
+        return
+    }
+    win.set_title("Entity editing: %s (%d)".format(ent.name, ent.uid))
+    var props = []
+    var sdata = []
+    var sdata_raw = ent.build_sdata()
+
+    var prefix = "_SV_"
+    for k, v in pairs(sdata_raw) {
+        var sv = ent[prefix ~ k]
+        var gn = sv.gui_name
+        if gn != false {
+            sdata[k] = [ gn || k, v, sv ]
+            props.push(k)
+        }
+    }
+    props.sort()
+
+    win.append(gui::HBox(), func(hb) {
+        var s
+        hb.append(gui::Outline({ color: 0x303030 }), func(o) {
+            o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+                sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
+                    sc.append(gui::VBox(), func(vb) {
+                        var fpf, pf
+                        for i, nm in props.each() {
+                            var sd = sdata[nm]
+                            var gn, dv, sv = sd[0], sd[1], sd[2]
+                            vb.append(gui::HBox({ align_h: 1 }), func(hb) {
+                                hb.append(gui::Label({ text: " " ~ sd[0]
+                                    ~ ": " }))
+                                var fld = fields[sv.__proto] || field_def
+                                var fd = fld(hb, gn, ent, dv)
+                                if pf { pf.set_tab_next(fd) }
+                                pf = fd
+                                if !fpf { fpf = fd }
+                            })
+                            if fpf && pf && pf != fpf {
+                                pf.set_tab_next(fpf)
+                            }
+                        }
+                    })
+                    s = sc
+                })
+            })
+        })
+        hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
+            sb.append(gui::ScrollButton())
+            sb.bind_scroller(s)
+        })
+    })
+})
+
+root.new_window("entity_new", gui.Window, func(win) {
+    input::save_mouse_position()
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("New entity")
+
+    var cnames = []
+    for k, v in pairs(ents::get_all_prototypes()) {
+        if v.is_a(ents.StaticEntity) {
+            cnames.push(k)
+        }
+    }
+    cnames.sort()
+
+    win.append(gui::HBox(), func(hb) {
+        var s
+        hb.append(gui::Outline({ color: 0x303030 }), func(o) {
+            o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+                sp.append(gui::Scroller({ clip_w: 0.6, clip_h: 0.6 }), func(sc) {
+                    sc.append(gui::VBox(), func(vb) {
+                        for i, n in cnames.each() {
+                            vb.append(gui::Button({
+                                variant: "nobg", min_w: 0.3, label: n
+                            }), func(btn) {
+                                signal::connect(btn, "clicked", func() {
+                                    edit::new_entity(n)
+                                    root.hide_window("entity_new")
+                                })
+                            })
+                        }
+                    })
+                    s = sc
+                })
+            })
+        })
+        hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
+            sb.append(gui::ScrollButton())
+            sb.bind_scroller(s)
+        })
+    })
+})

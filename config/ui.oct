@@ -157,5 +157,6 @@ root.new_window("main", gui.Window, func(win) {
 from std.eval import dofile
 
 dofile("config/ui/options.oct")
+dofile("config/ui/edit.oct")
 dofile("config/ui/misc.oct")
 dofile("config/ui/2048.oct")
