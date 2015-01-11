@@ -25,8 +25,8 @@ var btnv  = { __properties: btnp }
 var btnvb = { __properties: btnp }
 gui.Button.__variants = { default: btnv, nobg: btnvb }
 
-var btnv_init_clone = \dis -> func(self, btn) {
-    var lbl = gui::Label({ text: btn.label, color: dis ? 0x50FFFFFF : 0xFFFFFF })
+var btnv_init_clone = func(self, btn) {
+    var lbl = gui::Label({ text: btn.label })
     self.append(lbl)
     connect(btn, "label,changed", func(b, t) { lbl.set_text(t) })
 }
@@ -41,7 +41,7 @@ var btn_build_variant = \color, ic, dis -> gui::Gradient({
     } }, gui::Outline({
         color: (dis ? (0x50 << 24) : 0) | color, clamp_h: true }, gui::Spacer({
             pad_h: 0.01, pad_v: 0.005, clamp_h: true,
-            init_clone: ic || btnv_init_clone(dis)
+            init_clone: ic || btnv_init_clone
         })))
 
 var btn_build_variant_nobg = \dis -> gui::Filler({
@@ -51,7 +51,7 @@ var btn_build_variant_nobg = \dis -> gui::Filler({
         connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     } }, gui::Spacer({
-        pad_h: 0.01, pad_v: 0.005, init_clone: btnv_init_clone(dis)
+        pad_h: 0.01, pad_v: 0.005, init_clone: btnv_init_clone
     }))
 
 btnv["default"     ] = btn_build_variant(0x303030)
@@ -90,11 +90,10 @@ smbtnv["menu"        ] = btn_build_variant(0x404040)
 smbtnv["clicked_left"] = btn_build_variant(0x404040)
 smbtnv["disabled"    ] = btn_build_variant_nobg(true)
 
-var cbox_init_clone = \col, dis -> func(self, btn) {
+var cbox_init_clone = \col -> func(self, btn) {
     var lbl
     self.append(gui::HBox({ clamp_h: true }), func(bx) {
-        lbl = bx.append(gui::Label({ text: btn.label,
-            color: dis ? 0x50FFFFFF : 0xFFFFFF }))
+        lbl = bx.append(gui::Label({ text: btn.label }))
         bx.append(gui::Triangle({ style: gui.Triangle.OUTLINE,
             color: col, min_w: 0.015, min_h: 0.015, angle: 180
         }, gui::Triangle({ color: col, min_w: 0.015, min_h: 0.015,
@@ -107,8 +106,7 @@ cbtnv["default"     ] = btn_build_variant(0x303030, cbox_init_clone(0x404040))
 cbtnv["hovering"    ] = btn_build_variant(0x505050, cbox_init_clone(0x606060))
 cbtnv["menu"        ] = btn_build_variant(0x404040, cbox_init_clone(0x404040))
 cbtnv["clicked_left"] = btn_build_variant(0x404040, cbox_init_clone(0x404040))
-cbtnv["disabled"    ] = btn_build_variant(0x303030, cbox_init_clone(0x404040,
-    true), true)
+cbtnv["disabled"    ] = btn_build_variant(0x303030, cbox_init_clone(0x404040), true)
 
 // (v)slot viewer buttons
 
@@ -392,6 +390,16 @@ gui.Outline.__variants = {
         __init: func(self) { self.set_color(0x303030) }
     }
 }
+
+// Labels
+
+var dis_lbl_cb = func(self, r, g, b, a) { return r, g, b, (a * 0x50) / 0xFF }
+gui.Label.__variants = {
+    default: {
+        __init: func(self) { self.disabled_color_cb = dis_lbl_cb }
+    }
+}
+gui.EvalLabel.__variants = gui.Label.__variants
 
 // windows
 

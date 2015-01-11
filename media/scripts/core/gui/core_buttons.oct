@@ -42,8 +42,8 @@ var clicked_states = {
     anything).
 */
 M.Button = register_type("Button", Widget, {
-    choose_state: func(self) {
-        if self.disabled { return "disabled" }
+    choose_state: func(self, dis) {
+        if dis { return "disabled" }
         return clicked_states[self.is_clicked()] ||
             (self.is_hovering() && "hovering" || "default")
     },
@@ -69,8 +69,8 @@ var Button = M.Button
     opened using this button.
 */
 M.MenuButton = register_type("MenuButton", Button, {
-    choose_state: func(self) {
-        if self.disabled { return "disabled" }
+    choose_state: func(self, dis) {
+        if dis { return "disabled" }
         return self.get_menu() != undef && "menu" || Button::choose_state(self)
     }
 })
@@ -92,9 +92,9 @@ M.Toggle = register_type("Toggle", Button, {
         return Button::__ctor(self, kwargs, ...)
     },
 
-    choose_state: func(self) {
+    choose_state: func(self, dis) {
         var cond = self.condition && self.condition()
-        if self.disabled {
+        if dis {
             if cond {
                 return "toggled_disabled"
             } else {

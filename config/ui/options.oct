@@ -208,7 +208,7 @@ var gen_opts_display = func() {
                     hb = hb.append(gui::HBox({ padding: 0.02 }))
                     var cbox = gen_combobox("smaaquality", aa_names)
                     hb.append(gen_checkbox("smaa", func(toggled) {
-                        cbox.disabled = !toggled
+                        cbox.set_disabled(!toggled)
                     }))
                     hb.append(cbox)
                 })
@@ -222,7 +222,7 @@ var gen_opts_display = func() {
                     hb = hb.append(gui::HBox({ padding: 0.02 }))
                     var cbox = gen_combobox("fxaaquality", aa_names)
                     hb.append(gen_checkbox("fxaa", func(toggled) {
-                        cbox.disabled = !toggled
+                        cbox.set_disabled(!toggled)
                     }))
                     hb.append(cbox)
                 })
@@ -248,8 +248,8 @@ var gen_opts_display = func() {
                     var lbl = gui::Label({ text: "Tear" })
                     var tcb = gen_checkbox("vsynctear")
                     hb.append(gen_checkbox("vsync", func(toggled) {
-                        tcb.disabled = !toggled
-                        lbl.color.set_a(toggled ? 0xFF : 0x50)
+                        tcb.set_disabled(!toggled)
+                        lbl.set_disabled(!toggled)
                     }))
                     hb.append(lbl)
                     hb.append(tcb)
@@ -275,10 +275,12 @@ var gen_opts_audio = func() {
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Enable audio" }))
                     hb.append(gen_checkbox("sound", func(toggled) {
-                       svl.disabled = mvl.disabled = mbl.disabled = !toggled
-                       svlbl.color.set_a(toggled ? 0xFF : 0x50)
-                       mvlbl.color.set_a(toggled ? 0xFF : 0x50)
-                       mblbl.color.set_a(toggled ? 0xFF : 0x50)
+                       svl.set_disabled(!toggled)
+                       mvl.set_disabled(!toggled)
+                       mbl.set_disabled(!toggled)
+                       svlbl.set_disabled(!toggled)
+                       mvlbl.set_disabled(!toggled)
+                       mblbl.set_disabled(!toggled)
                     }))
                 })
                 add_box(vb, func(hb) {

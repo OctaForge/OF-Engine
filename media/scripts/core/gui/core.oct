@@ -150,24 +150,31 @@ M.loop_children = func(self, fun) {
     var vc = self.vchildren
     var vr = self.vstates
     var st = self.states
+    var dis = self.disabled || self.__disabled
 
-    var s = self.choose_state()
+    var s = self.choose_state(dis)
     if s != undef {
         var  w = st[s] || st["default"]
         if !w { w = vr[s] || vr["default"] }
         if w {
+            if dis { w.__disabled = true }
             var a, b, fret = fun(w)
+            w.__disabled = undef
             if fret || a != undef { return a, b }
         }
     }
 
     for i, o in vc.each() {
+        if dis { o.__disabled = true }
         var a, b, fret = fun(o)
+        o.__disabled = undef
         if fret || a != undef { return a, b }
     }
 
     for i, o in ch.each() {
+        if dis { o.__disabled = true }
         var a, b, fret = fun(o)
+        o.__disabled = undef
         if fret || a != undef { return a, b }
     }
 }
@@ -187,23 +194,30 @@ M.loop_children_r = func(self, fun) {
     var vc = self.vchildren
     var vr = self.vstates
     var st = self.states
+    var dis = self.disabled || self.__disabled
 
     for i, o in ch.each_r() {
+        if dis { o.__disabled = true }
         var a, b, fret = fun(o)
+        o.__disabled = undef
         if fret || a != undef { return a, b }
     }
 
     for i, o in vc.each_r() {
+        if dis { o.__disabled = true }
         var a, b, fret = fun(o)
+        o.__disabled = undef
         if fret || a != undef { return a, b }
     }
 
-    var s = self.choose_state()
+    var s = self.choose_state(dis)
     if s != undef {
         var  w = st[s] || st["default"]
         if !w { w = vr[s] || vr["default"] }
         if w {
+            if dis { w.__disabled = true }
             var a, b, fret = fun(w)
+            w.__disabled = undef
             if fret || a != undef { return a, b }
         }
     }
