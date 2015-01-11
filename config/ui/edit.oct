@@ -88,8 +88,9 @@ var gen_tex_listed = func() {
 
     var hb = r.append(gui::HBox())
     var s
-    hb.append(gui::Outline({ variant: "normal" }), func(o) {
+    hb.append(gui::Outline({ variant: "normal", min_w: 0.84, min_h: 0.6 }), func(o) {
         o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+            sp.align(-1, -1)
             sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
                 sc.append(gr, func(gr) {
                     var slotl = []
@@ -112,8 +113,9 @@ var gen_tex_listed = func() {
 var gen_tex_utilized = func() {
     var hb = gui::HBox()
     var s
-    hb.append(gui::Outline({ variant: "normal" }), func(o) {
+    hb.append(gui::Outline({ variant: "normal", min_w: 0.84, min_h: 0.6 }), func(o) {
         o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+            sp.align(-1, -1)
             sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
                 sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {
                     for i in 1 to capi::slot_texmru_num() {
