@@ -11,32 +11,77 @@ from std.conv import tostring
 
 var root = gui::get_root()
 
+var gen_tex_listed = func() {
+    var hb = gui::HBox()
+    var s
+    hb.append(gui::Outline({ variant: "normal" }), func(o) {
+        o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+            sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
+                sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {
+                    for i in 1 to capi::slot_get_count() {
+                        gr.append(gui::Button({ variant: "slot",
+                            index: i, min_w: 0.095, min_h: 0.095
+                        }), func(b) {
+                            signal::connect(b, "clicked", \-> capi::slot_set(
+                                capi::slot_get_tex(i)))
+                        })
+                    }
+                })
+                s = sc
+            })
+        })
+    })
+    hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
+        sb.append(gui::ScrollButton())
+        sb.bind_scroller(s)
+    })
+    return hb
+}
+
+var gen_tex_utilized = func() {
+    var hb = gui::HBox()
+    var s
+    hb.append(gui::Outline({ variant: "normal" }), func(o) {
+        o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+            sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
+                sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {
+                    for i in 1 to capi::slot_texmru_num() {
+                        var mru = capi::slot_texmru(i - 1)
+                        gr.append(gui::Button({ variant: "vslot",
+                            index: mru, min_w: 0.095, min_h: 0.095
+                        }), func(b) {
+                            signal::connect(b, "clicked", \-> capi::slot_set(mru))
+                        })
+                    }
+                })
+                s = sc
+            })
+        })
+    })
+    hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
+        sb.append(gui::ScrollButton())
+        sb.bind_scroller(s)
+    })
+    return hb
+}
+
 root.new_window("texture", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
-    win.set_title("Textures")
-    win.append(gui::HBox(), func(hb) {
-        var s
-        hb.append(gui::Outline({ variant: "normal" }), func(o) {
-            o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
-                sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
-                    sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {
-                        for i in 1 to capi::slot_texmru_num() {
-                            var mru = capi::slot_texmru(i - 1)
-                            gr.append(gui::Button({ variant: "vslot",
-                                index: mru, min_w: 0.095, min_h: 0.095
-                            }), func(b) {
-                                signal::connect(b, "clicked", \-> capi::slot_set(mru))
-                            })
-                        }
-                    })
-                    s = sc
-                })
-            })
-        })
-        hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
-            sb.append(gui::ScrollButton())
-            sb.bind_scroller(s)
+    var ttl = gui::HBox({ padding: 0.005 })
+    var stat
+    var lbtn = ttl.append(gui::Button({ variant: "nobg", label: "Listed", min_w: 0.14 }))
+    var ubtn = ttl.append(gui::Button({ variant: "default", label: "Utilized", min_w: 0.14 }))
+    signal::connect(lbtn, "clicked", \-> stat.set_state("listed"))
+    signal::connect(ubtn, "clicked", \-> stat.set_state("utilized"))
+    win.set_title(ttl)
+    win.append(gui::State({ state: "utilized" }), func(st) {
+        stat = st
+        st.update_state("listed"  , gen_tex_listed())
+        st.update_state("utilized", gen_tex_utilized())
+        signal::connect(st, "state,changed", func(self, nstate) {
+            lbtn.set_variant((nstate == "listed") ? "default" : "nobg")
+            ubtn.set_variant((nstate != "listed") ? "default" : "nobg")
         })
     })
 })
