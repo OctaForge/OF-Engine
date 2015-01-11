@@ -397,15 +397,24 @@ gui.EvalLabel.__variants = gui.Label.__variants
 
 // windows
 
+var build_tlabel = func(win, t) {
+    if typeof t == "string" {
+        win.replace("title", gui::Label({ text: t }))
+        return
+    }
+    win.replace("title", t)
+}
+
 var window_build_titlebar = \-> gui::Gradient({
     color: 0xF0202020, color2: 0xF0101010, clamp_h: true
 }, gui::Spacer({
-    pad_h: 0.004, pad_v: 0.004,
+    pad_h: 0.004, pad_v: 0.004, clamp_h: true,
     init_clone: func(self, win) {
-        var lbl = gui::Label({ text: win.title || win.obj_name })
-        self.append(lbl)
+        var tg = gui::Tag({ name: "title", clamp_h: true })
+        self.append(tg)
+        build_tlabel(win, win.title || win.obj_name)
         connect(win, "title,changed", func(w, t) {
-            lbl.set_text(t || w.obj_name) })
+            build_tlabel(win, t || win.obj_name) })
     }
 }))
 

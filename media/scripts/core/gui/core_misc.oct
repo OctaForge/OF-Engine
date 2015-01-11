@@ -82,13 +82,10 @@ M.Mover = register_type("Mover", Widget, {
         return Widget::__ctor(self, kwargs, ...)
     },
 
-    hover: func(self, cx, cy) {
-        return self.target(cx, cy) && self
-    },
-
     click: func(self, cx, cy, code) {
-        if code != key.MOUSELEFT {
-            return Widget::click(self, cx, cy, code)
+        var o = Widget::click(self, cx, cy, code)
+        if o || code != key.MOUSELEFT {
+            return o
         }
         var  w = self.window
         if !w { return self.target(cx, cy) && self }
