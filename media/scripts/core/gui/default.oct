@@ -15,7 +15,7 @@ var Color = gui.Color
 var connect = signal.connect
 
 from std.conv import tostring
-from std.math import min
+from std.math import min, floor
 from std.table import pairs
 
 // buttons
@@ -139,7 +139,7 @@ gui.Button.__variants.slot = {
 
 // editors
 
-var dis_ed_cb = func(self, r, g, b, a) { return r, g, b, (a * 0x50) / 0xFF }
+var dis_ed_cb = func(self, r, g, b, a) { return r, g, b, floor((a * 0x50) / 0xFF) }
 gui.TextEditor.__variants = {
     default: {
         default: gui::ColorFiller({
@@ -396,7 +396,7 @@ gui.Outline.__variants = {
 
 // Labels
 
-var dis_lbl_cb = func(self, r, g, b, a) { return r, g, b, (a * 0x50) / 0xFF }
+var dis_lbl_cb = func(self, r, g, b, a) { return r, g, b, floor((a * 0x50) / 0xFF) }
 gui.Label.__variants = {
     default: {
         __init: func(self) { self.disabled_color_cb = dis_lbl_cb }
