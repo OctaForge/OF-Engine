@@ -100,7 +100,7 @@ root.new_window("entity", gui.Window, func(win) {
 
     win.append(gui::HBox(), func(hb) {
         var s
-        hb.append(gui::Outline({ color: 0x303030 }), func(o) {
+        hb.append(gui::Outline({ variant: "normal" }), func(o) {
             o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
                 sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
                     sc.append(gui::VBox(), func(vb) {
@@ -149,7 +149,7 @@ root.new_window("entity_new", gui.Window, func(win) {
 
     win.append(gui::HBox(), func(hb) {
         var s
-        hb.append(gui::Outline({ color: 0x303030 }), func(o) {
+        hb.append(gui::Outline({ variant: "normal" }), func(o) {
             o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
                 sp.append(gui::Scroller({ clip_w: 0.6, clip_h: 0.6 }), func(sc) {
                     sc.append(gui::VBox(), func(vb) {

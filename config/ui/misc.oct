@@ -179,7 +179,7 @@ root.new_window("changes", gui.Window, func(win) {
         b.append(gui::Spacer({ pad_h: 0.01, pad_v: 0 },
             gui::Label({ text: "The following settings have changed:" })))
         b.append(gui::Spacer({ pad_v: 0.01, pad_h: 0.005, clamp_h: true },
-            gui::Line({ clamp_h: true, color: 0x303030 })))
+            gui::Line({ clamp_h: true, variant: "separator" })))
         for i, v in changes::get().each() {
             b.append(gui::Label({ text: v }))
         }
