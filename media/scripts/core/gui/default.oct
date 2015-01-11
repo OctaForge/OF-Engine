@@ -106,7 +106,7 @@ cbtnv["default"     ] = btn_build_variant(0x303030, cbox_init_clone(0x404040))
 cbtnv["hovering"    ] = btn_build_variant(0x505050, cbox_init_clone(0x606060))
 cbtnv["menu"        ] = btn_build_variant(0x404040, cbox_init_clone(0x404040))
 cbtnv["clicked_left"] = btn_build_variant(0x404040, cbox_init_clone(0x404040))
-cbtnv["disabled"    ] = btn_build_variant(0x303030, cbox_init_clone(0x404040), true)
+cbtnv["disabled"    ] = btn_build_variant(0x303030, cbox_init_clone(0x50404040), true)
 
 // (v)slot viewer buttons
 
