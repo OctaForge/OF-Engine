@@ -1457,6 +1457,13 @@ void mapname()
 
 COMMAND(mapname, "");
 
+LUAICOMMAND(get_map_name, {
+    const char *map = game::getclientmap();
+    if (!map || !map[0]) return 0;
+    lua_pushstring(L, map);
+    return 1;
+})
+
 void finish_dragging() {
     groupeditpure(
         const vec& o = e.o;
