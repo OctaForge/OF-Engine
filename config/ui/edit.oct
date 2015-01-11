@@ -11,21 +11,92 @@ from std.conv import tostring
 
 var root = gui::get_root()
 
+var slots_populate = func(gr, slotlist) {
+    gr.destroy_children()
+    for i, slot in slotlist.each() {
+        gr.append(gui::Button({ variant: "slot",
+            index: slot, min_w: 0.095, min_h: 0.095
+        }), func(b) {
+            signal::connect(b, "clicked", \-> capi::slot_set(
+                capi::slot_get_tex(slot)))
+        })
+    }
+}
+
+var gen_slot_combo = func(packs, gr) {
+    var packmap = {}
+    var r = gui::MenuButton({ variant: "combobox", label: "all", min_w: 0.2 })
+    var mn = gui::Filler({ variant: "menu", min_w: 0.2 })
+    mn.append(gui::VBox({ clamp: true }), func(vb) {
+        var mb = vb.append(gui::MenuButton({ variant: "submenu",
+            label: "all", clamp_h: true }))
+        signal::connect(mb, "clicked", func(mb) {
+            var slotl = []
+            for i in 0 to capi::slot_get_count() - 1 {
+                slotl.push(i)
+            }
+            slots_populate(gr, slotl)
+            r.set_label("all")
+            root.clear_menus()
+        })
+        var otherslots = []
+        for i in 0 to capi::slot_get_count() - 1 {
+            otherslots.push(i)
+        }
+        for i, val in packs.each() {
+            var mb = vb.append(gui::MenuButton({ variant: "submenu",
+                label: val[0], clamp_h: true }))
+            var slotl = []
+            for i in val[1] to val[1] + val[2] - 1 {
+                otherslots[i] = undef
+                slotl.push(i)
+            }
+            signal::connect(mb, "clicked", func(mb) {
+                slots_populate(gr, slotl)
+                r.set_label(val[0])
+                root.clear_menus()
+            })
+        }
+        otherslots.compact(\v -> v)
+        if otherslots.len() > 0 {
+            var mb = vb.append(gui::MenuButton({ variant: "submenu",
+                label: "other", clamp_h: true }))
+            signal::connect(mb, "clicked", func(mb) {
+                slots_populate(gr, otherslots)
+                r.set_label("other")
+                root.clear_menus()
+            })
+        }
+    })
+    signal::connect(r, "clicked", func(mb) {
+        mb.show_menu(mn)
+    })
+    return r
+}
+
 var gen_tex_listed = func() {
-    var hb = gui::HBox()
+    var r = gui::VBox()
+
+    var gr = gui::Grid({ columns: 8, padding: 0.01 })
+    var packs = capi::texture_get_packs()
+    if packs.len() > 0 {
+        var sp = r.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }))
+        var hb = sp.append(gui::HBox({ padding: 0.02 }))
+        hb.append(gui::Label({ text: "Filter by pack:" }))
+        hb.append(gen_slot_combo(packs, gr))
+    }
+
+    var hb = r.append(gui::HBox())
     var s
     hb.append(gui::Outline({ variant: "normal" }), func(o) {
         o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
             sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
-                sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {
-                    for i in 1 to capi::slot_get_count() {
-                        gr.append(gui::Button({ variant: "slot",
-                            index: i, min_w: 0.095, min_h: 0.095
-                        }), func(b) {
-                            signal::connect(b, "clicked", \-> capi::slot_set(
-                                capi::slot_get_tex(i)))
-                        })
+                sc.append(gr, func(gr) {
+                    var slotl = []
+                    for i in 0 to capi::slot_get_count() - 1 {
+                        slotl.push(i)
                     }
+                    slots_populate(gr, slotl)
                 })
                 s = sc
             })
@@ -35,7 +106,7 @@ var gen_tex_listed = func() {
         sb.append(gui::ScrollButton())
         sb.bind_scroller(s)
     })
-    return hb
+    return r
 }
 
 var gen_tex_utilized = func() {
