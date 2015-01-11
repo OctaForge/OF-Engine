@@ -545,7 +545,22 @@ M.Color = Object.clone({
     /// Function: set_b
     set_b: gen_setter("b"),
     /// Function: set_a
-    set_a: gen_setter("a")
+    set_a: gen_setter("a"),
+
+    unpack: func(self) {
+        return self.r, self.g, self.b, self.a
+    },
+
+    get_final_rgba: func(self, o) {
+        if !o.disabled && !o.__disabled {
+            return self.unpack()
+        }
+        var cb = o.disabled_color_cb
+        if cb {
+            return cb(o, self.unpack())
+        }
+        return self.unpack()
+    }
 })
 
 /** Variable: uitextrows

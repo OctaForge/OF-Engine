@@ -1430,11 +1430,7 @@ M.Label = register_type("Label", Widget, {
 
         var w = self.wrap
         var text = tostring(self.text)
-        var color = self.color
-        var r, g, b, a = color.r, color.g, color.b, color.a
-        if (self.disabled || self.__disabled) && self.disabled_color_cb {
-            r, g, b, a = self.disabled_color_cb(r, g, b, a)
-        }
+        var r, g, b, a = self.color.get_final_rgba(self)
         text_draw(text, sx / k, sy / k, r, g, b, a, -1, w <= 0 && -1 || w / k)
 
         gle_color4f(1, 1, 1, 1)
@@ -1523,11 +1519,7 @@ M.EvalLabel = register_type("EvalLabel", Widget, {
 
         var w = self.wrap
         var text = tostring(val) || ""
-        var color = self.color
-        var r, g, b, a = color.r, color.g, color.b, color.a
-        if (self.disabled || self.__disabled) && self.disabled_color_cb {
-            r, g, b, a = self.disabled_color_cb(r, g, b, a)
-        }
+        var r, g, b, a = self.color.get_final_rgba(self)
         text_draw(text, sx / k, sy / k, r, g, b, a, -1, w <= 0 && -1 || w / k)
 
         gle_color4f(1, 1, 1, 1)
