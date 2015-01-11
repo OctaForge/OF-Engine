@@ -1300,13 +1300,13 @@ M.TextEditor = register_type("TextEditor", Widget, {
 
             var h = 0
             var fonth = text_font_get_h()
-            var tc = self.text_color
+            var tr, tg, tb, ta = self.text_color.get_final_rgba(self)
             for i in fd to self.lines.len() {
                 var line = editline_tostr(self.lines[i - 1])
                 var width, height = text_get_bounds(line,
                     max_width)
                 if h >= ph { break }
-                text_draw(line, txof, h, tc.r, tc.g, tc.b, tc.a,
+                text_draw(line, txof, h, tr, tg, tb, ta,
                     (hit && (self.cy == i - 1)) && self.cx || -1, max_width)
 
                 if height > fonth { self.draw_line_wrap(h, height) }

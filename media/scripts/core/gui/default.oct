@@ -139,6 +139,7 @@ gui.Button.__variants.slot = {
 
 // editors
 
+var dis_ed_cb = func(self, r, g, b, a) { return r, g, b, (a * 0x50) / 0xFF }
 gui.TextEditor.__variants = {
     default: {
         default: gui::ColorFiller({
@@ -150,6 +151,7 @@ gui.TextEditor.__variants = {
         __init: func(ed) {
             ed.set_pad_l(0.005)
             ed.set_pad_r(0.005)
+            ed.disabled_color_cb = dis_ed_cb
         }
     }
 }
