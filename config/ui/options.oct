@@ -266,42 +266,35 @@ var gen_opts_audio = func() {
         sp.append(gui::VBox({ clamp_h: true, padding: 0.01 }),
             func(vb) {
                 vb.align(0, -1)
-                var svl = gui::HSlider({ variable: "soundvol", clamp: true })
-                var mvl = gui::HSlider({ variable: "musicvol", clamp: true })
-                var mbl = gen_checkbox("mumble")
-                var svlbl = gui::Label({ text: "Sound volume", align_h: -1 })
-                var mvlbl = gui::Label({ text: "Music volume", align_h: -1 })
-                var mblbl = gui::Label({ text: "Mumble positional audio" })
+                var ivb = gui::VBox({ clamp_h: true, padding: 0.01 })
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Enable audio" }))
                     hb.append(gen_checkbox("sound", func(toggled) {
-                       svl.set_disabled(!toggled)
-                       mvl.set_disabled(!toggled)
-                       mbl.set_disabled(!toggled)
-                       svlbl.set_disabled(!toggled)
-                       mvlbl.set_disabled(!toggled)
-                       mblbl.set_disabled(!toggled)
+                       ivb.set_disabled(!toggled)
                     }))
                 })
-                add_box(vb, func(hb) {
-                    hb.append(gui::Filler({ min_w: 0.15 }, svlbl))
-                    hb.append(svl, func(sl) {
+                vb.append(ivb)
+                add_box(ivb, func(hb) {
+                    hb.append(gui::Filler({ min_w: 0.15 },
+                        gui::Label({ text: "Sound volume", align_h: -1 })))
+                    hb.append(gui::HSlider({ variable: "soundvol", clamp: true }), func(sl) {
                         sl.append(gui::SliderButton(undef,
                             gui::Filler({ min_w: 0.08, clamp: true },
                                 gui::EvalLabel({ callback: \-> sl.value }))))
                     })
                 })
-                add_box(vb, func(hb) {
-                    hb.append(gui::Filler({ min_w: 0.15 }, mvlbl))
-                    hb.append(mvl, func(sl) {
+                add_box(ivb, func(hb) {
+                    hb.append(gui::Filler({ min_w: 0.15 },
+                        gui::Label({ text: "Music volume", align_h: -1 })))
+                    hb.append(gui::HSlider({ variable: "musicvol", clamp: true }), func(sl) {
                         sl.append(gui::SliderButton(undef,
                             gui::Filler({ min_w: 0.08, clamp: true },
                                 gui::EvalLabel({ callback: \-> sl.value }))))
                     })
                 })
-                add_box(vb, func(hb) {
-                    hb.append(mblbl)
-                    hb.append(mbl)
+                add_box(ivb, func(hb) {
+                    hb.append(gui::Label({ text: "Mumble positional audio" }))
+                    hb.append(gen_checkbox("mumble"))
                 })
             }
         )
