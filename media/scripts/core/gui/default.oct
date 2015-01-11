@@ -16,13 +16,13 @@ var btnv  = { __properties: btnp }
 var btnvb = { __properties: btnp }
 gui.Button.__variants = { default: btnv, nobg: btnvb }
 
-var btnv_init_clone = func(self, btn) {
-    var lbl = gui::Label({ text: btn.label })
+var btnv_init_clone = \ah -> func(self, btn) {
+    var lbl = gui::Label({ text: btn.label, align_h: ah || 0 })
     self.append(lbl)
     connect(btn, "label,changed", func(b, t) { lbl.set_text(t) })
 }
 
-var btn_build_variant = \color, ic, dis -> gui::Gradient({
+var btn_build_variant = \color, ic, dis, ah -> gui::Gradient({
     color: dis ? 0x50202020 : 0x202020, color2: dis ? 0x50101010 : 0x101010,
     clamp_h: true, init_clone: func(self, btn) {
         self.set_min_w(btn.min_w || 0)
@@ -32,17 +32,17 @@ var btn_build_variant = \color, ic, dis -> gui::Gradient({
     } }, gui::Outline({
         color: (dis ? (0x50 << 24) : 0) | color, clamp_h: true }, gui::Spacer({
             pad_h: 0.01, pad_v: 0.005, clamp_h: true,
-            init_clone: ic || btnv_init_clone
+            init_clone: ic || btnv_init_clone(ah)
         })))
 
-var btn_build_variant_nobg = \dis -> gui::Filler({
+var btn_build_variant_nobg = \dis, ah -> gui::Filler({
     clamp_h: true, init_clone: func(self, btn) {
         self.set_min_w(btn.min_w || 0)
         self.set_min_h(btn.min_h || 0)
         connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
         connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
     } }, gui::Spacer({
-        pad_h: 0.01, pad_v: 0.005, init_clone: btnv_init_clone
+        pad_h: 0.01, pad_v: 0.005, clamp_h: true, init_clone: btnv_init_clone(ah)
     }))
 
 btnv["default"     ] = btn_build_variant(0x303030)
@@ -75,11 +75,11 @@ vmbtnv["menu"        ] = btn_build_variant(0x404040)
 vmbtnv["clicked_left"] = btn_build_variant(0x404040)
 vmbtnv["disabled"    ] = btn_build_variant(0x303030, undef, true)
 
-smbtnv["default"     ] = btn_build_variant_nobg()
-smbtnv["hovering"    ] = btn_build_variant(0x404040)
-smbtnv["menu"        ] = btn_build_variant(0x404040)
-smbtnv["clicked_left"] = btn_build_variant(0x404040)
-smbtnv["disabled"    ] = btn_build_variant_nobg(true)
+smbtnv["default"     ] = btn_build_variant_nobg(false, -1)
+smbtnv["hovering"    ] = btn_build_variant(0x404040, undef, false, -1)
+smbtnv["menu"        ] = btn_build_variant(0x404040, undef, false, -1)
+smbtnv["clicked_left"] = btn_build_variant(0x404040, undef, false, -1)
+smbtnv["disabled"    ] = btn_build_variant_nobg(true, -1)
 
 var cbox_init_clone = \col -> func(self, btn) {
     var lbl
