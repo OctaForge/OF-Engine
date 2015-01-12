@@ -23,14 +23,18 @@ var slots_populate = func(gr, slotlist) {
     }
 }
 
+var last_filter
+
 var gen_slot_combo = func(packs, gr) {
     var packmap = {}
     var r = gui::MenuButton({ variant: "combobox", label: "all", min_w: 0.25 })
     var mn = gui::Filler({ variant: "menu", min_w: 0.25 })
+    var pcbs = {}
     mn.append(gui::VBox({ clamp: true }), func(vb) {
         var mb = vb.append(gui::MenuButton({ variant: "submenu",
             label: "all", clamp_h: true }))
-        signal::connect(mb, "clicked", func(mb) {
+
+        var allcb = func() {
             var slotl = []
             for i in 0 to capi::slot_get_count() - 1 {
                 slotl.push(i)
@@ -38,11 +42,16 @@ var gen_slot_combo = func(packs, gr) {
             slots_populate(gr, slotl)
             r.set_label("all")
             root.clear_menus()
-        })
+            last_filter = "all"
+        }
+        pcbs["all"] = allcb
+        signal::connect(mb, "clicked", allcb)
+
         var otherslots = []
         for i in 0 to capi::slot_get_count() - 1 {
             otherslots.push(i)
         }
+
         for i, val in packs.each() {
             var mb = vb.append(gui::MenuButton({ variant: "submenu",
                 label: val[0], clamp_h: true }))
@@ -51,27 +60,34 @@ var gen_slot_combo = func(packs, gr) {
                 otherslots[i] = undef
                 slotl.push(i)
             }
-            signal::connect(mb, "clicked", func(mb) {
+            var fcb = func() {
                 slots_populate(gr, slotl)
                 r.set_label(val[0])
                 root.clear_menus()
-            })
+                last_filter = val[0]
+            }
+            pcbs[val[0]] = fcb
+            signal::connect(mb, "clicked", fcb)
         }
+
         otherslots.compact(\v -> v)
         if otherslots.len() > 0 {
             var mb = vb.append(gui::MenuButton({ variant: "submenu",
                 label: "other", clamp_h: true }))
-            signal::connect(mb, "clicked", func(mb) {
+            var ocb = func() {
                 slots_populate(gr, otherslots)
                 r.set_label("other")
                 root.clear_menus()
-            })
+                last_filter = "other"
+            }
+            pcbs["other"] = ocb
+            signal::connect(mb, "clicked", ocb)
         }
     })
     signal::connect(r, "clicked", func(mb) {
         mb.show_menu(mn)
     })
-    return r
+    return r, pcbs
 }
 
 var gen_tex_listed = func() {
@@ -79,11 +95,14 @@ var gen_tex_listed = func() {
 
     var gr = gui::Grid({ columns: 8, padding: 0.01 })
     var packs = capi::texture_get_packs()
+    var pcbs
     if packs.len() > 0 {
+        var cbx
         var sp = r.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }))
         var hb = sp.append(gui::HBox({ padding: 0.02 }))
         hb.append(gui::Label({ text: "Filter by pack:" }))
-        hb.append(gen_slot_combo(packs, gr))
+        cbx, pcbs = gen_slot_combo(packs, gr)
+        hb.append(cbx)
     }
 
     var hb = r.append(gui::HBox())
@@ -93,11 +112,22 @@ var gen_tex_listed = func() {
             sp.align(-1, -1)
             sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
                 sc.append(gr, func(gr) {
-                    var slotl = []
-                    for i in 0 to capi::slot_get_count() - 1 {
-                        slotl.push(i)
+                    if pcbs {
+                        var cb
+                        if last_filter { cb = pcbs[last_filter] }
+                        if !cb {
+                            cb = pcbs["all"]
+                            last_filter = undef
+                        }
+                        cb()
+                    } else {
+                        var slotl = []
+                        for i in 0 to capi::slot_get_count() - 1 {
+                            slotl.push(i)
+                        }
+                        slots_populate(gr, slotl)
+                        last_filter = undef
                     }
-                    slots_populate(gr, slotl)
                 })
                 s = sc
             })
@@ -138,21 +168,25 @@ var gen_tex_utilized = func() {
     return hb
 }
 
+var laststate
 root.new_window("texture", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     var ttl = gui::HBox({ padding: 0.005 })
     var stat
-    var lbtn = ttl.append(gui::Button({ variant: "nobg", label: "Listed", min_w: 0.14 }))
-    var ubtn = ttl.append(gui::Button({ variant: "default", label: "Utilized", min_w: 0.14 }))
+    var lbtn = ttl.append(gui::Button({ label: "Listed", min_w: 0.14 }))
+    var ubtn = ttl.append(gui::Button({ label: "Utilized", min_w: 0.14 }))
     signal::connect(lbtn, "clicked", \-> stat.set_state("listed"))
     signal::connect(ubtn, "clicked", \-> stat.set_state("utilized"))
     win.set_title(ttl)
-    win.append(gui::State({ state: "utilized" }), func(st) {
+    win.append(gui::State({ state: laststate || "utilized" }), func(st) {
         stat = st
         st.update_state("listed"  , gen_tex_listed())
         st.update_state("utilized", gen_tex_utilized())
+        lbtn.set_variant((st.state == "listed") ? "default" : "nobg")
+        ubtn.set_variant((st.state != "listed") ? "default" : "nobg")
         signal::connect(st, "state,changed", func(self, nstate) {
+            laststate = nstate
             lbtn.set_variant((nstate == "listed") ? "default" : "nobg")
             ubtn.set_variant((nstate != "listed") ? "default" : "nobg")
         })
