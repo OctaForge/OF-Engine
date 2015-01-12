@@ -1,6 +1,7 @@
 import capi
 import core.events.signal
 import core.gui.core as gui
+import core.engine.cubescript as cs
 
 var root = gui::get_root()
 
@@ -175,6 +176,14 @@ gui.Filler.__variants = {
                     lbl.set_text(t) })
             }
         }))) ]
+    },
+    console: {
+        __children: [
+           gui::ColorFiller({ color: 0xF0101010, clamp: true },
+                gui::Outline({ color: 0x303030, clamp: true },
+                    gui::Console({ min_h: \-> cs::var_get("fullconsize") / 100,
+                        clamp: true })))
+        ]
     }
 }
 

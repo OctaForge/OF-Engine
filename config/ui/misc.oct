@@ -13,9 +13,7 @@ root.new_window("fullconsole", gui.Overlay, func(win) {
     win.align(0, -1)
     capi::console_full_show(true)
     signal::connect(win, "destroy", \-> capi::console_full_show(false))
-    win.append(gui::Console({
-        min_h: \-> cs::var_get("fullconsize") / 100, clamp: true
-    }))
+    win.append(gui::Filler({ variant: "console", clamp: true }))
 })
 
 root.new_window("editstats", gui.Overlay, func(win) {
