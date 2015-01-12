@@ -70,39 +70,47 @@ var gen_slot_filters = func(packs, gr) {
     return pcbs, pcbl
 }
 
-var gen_slot_combo = func(pcbs, pcbl) {
-    var r = gui::MenuButton({ variant: "combobox", label: "all", min_w: 0.25 })
-    var mn = gui::Filler({ variant: "menu", min_w: 0.25 })
-    mn.append(gui::VBox({ clamp: true }), func(vb) {
-        for i, pname in pcbl.each() {
-            var mb = vb.append(gui::MenuButton({ variant: "submenu",
-                label: pname, clamp_h: true }))
-            signal::connect(mb, "clicked", func() {
-                pcbs[pname]()
-                r.set_label(pname)
-                root.clear_menus()
-            })
-        }
-    })
-    signal::connect(r, "clicked", func(mb) {
-        mb.show_menu(mn)
-    })
-    if pcbl.len() == 0 {
-        r.set_disabled(true)
-    }
-    return r
-}
-
 var gen_tex_listed = func() {
     var r = gui::VBox()
 
     var gr = gui::Grid({ columns: 8, padding: 0.01 })
-    var pcbs, pcbl = gen_slot_filters(capi::texture_get_packs(), gr)
-
     var sp = r.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }))
     var hb = sp.append(gui::HBox({ padding: 0.02 }))
     hb.append(gui::Label({ text: "Filter by pack:" }))
-    hb.append(gen_slot_combo(pcbs, pcbl))
+
+    var cbx = hb.append(gui::MenuButton({ variant: "combobox", min_w: 0.25 }))
+    var mnc = gui::Filler({ variant: "menu", min_w: 0.25 })
+    var mn = mnc.append(gui::VBox({ clamp: true }))
+    signal::connect(cbx, "clicked", func(mb) {
+        mb.show_menu(mnc)
+    })
+
+    var grid_load = func() {
+        var pcbs, pcbl = gen_slot_filters(capi::texture_get_packs(), gr)
+        mn.destroy_children()
+        for i, pname in pcbl.each() {
+            var mb = mn.append(gui::MenuButton({ variant: "submenu",
+                label: pname, clamp_h: true }))
+            signal::connect(mb, "clicked", func() {
+                pcbs[pname]()
+                cbx.set_label(pname)
+                root.clear_menus()
+            })
+        }
+        cbx.set_disabled(pcbl.len() == 0)
+        var cb
+        if last_filter { cb = pcbs[last_filter] }
+        if !cb {
+            cb = pcbs["all"]
+            last_filter = undef
+        }
+        cbx.set_label(last_filter || "all")
+        cb()
+    }
+    var cid = signal::connect(edit, "texpacks,changed", grid_load)
+    signal::connect(r, "destroy", func() {
+        signal::disconnect(edit, "texpacks,changed", cid)
+    })
 
     var hb = r.append(gui::HBox())
     var s
@@ -110,15 +118,7 @@ var gen_tex_listed = func() {
         o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
             sp.align(-1, -1)
             sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
-                sc.append(gr, func(gr) {
-                    var cb
-                    if last_filter { cb = pcbs[last_filter] }
-                    if !cb {
-                        cb = pcbs["all"]
-                        last_filter = undef
-                    }
-                    cb()
-                })
+                sc.append(gr, grid_load)
                 s = sc
             })
         })

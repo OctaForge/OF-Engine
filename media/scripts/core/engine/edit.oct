@@ -10,6 +10,7 @@
 
 import capi
 import std.ffi
+import core.externals
 
 var ffi_new = ffi.new
 
@@ -19,6 +20,12 @@ var M = {}
 @[server] {
     return M
 }
+
+import core.events.signal
+
+externals::set("texpacks_changed", func() {
+    signal::emit(M, "texpacks,changed")
+})
 
 // undocumented, not exposed for the time being
 var matf = enum {

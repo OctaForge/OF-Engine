@@ -1724,6 +1724,7 @@ static void texpackload(const char *pack, uint *body = NULL) {
     } else lasttexpack = tp;
     if (!firsttexpack) firsttexpack = tp;
     texpacks.access(tp->name, tp);
+    lua::call_external("texpacks_changed", "");
     intret(true);
 }
 
@@ -1778,6 +1779,7 @@ static void texpackunload(const char *pack, texpack *tp) {
     for (tp = ntp; tp; tp = tp->next) {
         tp->firstslot -= ncleared;
     }
+    lua::call_external("texpacks_changed", "");
 }
 
 ICOMMAND(texpackunload, "s", (const char *pack), {
