@@ -25,85 +25,84 @@ var slots_populate = func(gr, slotlist) {
 
 var last_filter
 
-var gen_slot_combo = func(packs, gr) {
-    var packmap = {}
+var gen_slot_filters = func(packs, gr) {
+    var pcbs, pcbl = {}, []
+
+    pcbs["all"] = func() {
+        var slotl = []
+        for i in 0 to capi::slot_get_count() - 1 {
+            slotl.push(i)
+        }
+        slots_populate(gr, slotl)
+        last_filter = "all"
+    }
+    pcbl.push("all")
+
+    var otherslots = []
+    for i in 0 to capi::slot_get_count() - 1 {
+        otherslots.push(i)
+    }
+
+    for i, val in packs.each() {
+        var slotl = []
+        for i in val[1] to val[1] + val[2] - 1 {
+            otherslots[i] = undef
+            slotl.push(i)
+        }
+        var fcb = func() {
+            slots_populate(gr, slotl)
+            last_filter = val[0]
+        }
+        pcbs[val[0]] = fcb
+        pcbl.push(val[0])
+    }
+
+    otherslots.compact(\v -> v)
+    if otherslots.len() > 0 {
+        var ocb = func() {
+            slots_populate(gr, otherslots)
+            last_filter = "other"
+        }
+        pcbs["other"] = ocb
+        pcbl.push("other")
+    }
+
+    return pcbs, pcbl
+}
+
+var gen_slot_combo = func(pcbs, pcbl) {
     var r = gui::MenuButton({ variant: "combobox", label: "all", min_w: 0.25 })
     var mn = gui::Filler({ variant: "menu", min_w: 0.25 })
-    var pcbs = {}
     mn.append(gui::VBox({ clamp: true }), func(vb) {
-        var mb = vb.append(gui::MenuButton({ variant: "submenu",
-            label: "all", clamp_h: true }))
-
-        var allcb = func() {
-            var slotl = []
-            for i in 0 to capi::slot_get_count() - 1 {
-                slotl.push(i)
-            }
-            slots_populate(gr, slotl)
-            r.set_label("all")
-            root.clear_menus()
-            last_filter = "all"
-        }
-        pcbs["all"] = allcb
-        signal::connect(mb, "clicked", allcb)
-
-        var otherslots = []
-        for i in 0 to capi::slot_get_count() - 1 {
-            otherslots.push(i)
-        }
-
-        for i, val in packs.each() {
+        for i, pname in pcbl.each() {
             var mb = vb.append(gui::MenuButton({ variant: "submenu",
-                label: val[0], clamp_h: true }))
-            var slotl = []
-            for i in val[1] to val[1] + val[2] - 1 {
-                otherslots[i] = undef
-                slotl.push(i)
-            }
-            var fcb = func() {
-                slots_populate(gr, slotl)
-                r.set_label(val[0])
+                label: pname, clamp_h: true }))
+            signal::connect(mb, "clicked", func() {
+                pcbs[pname]()
+                r.set_label(pname)
                 root.clear_menus()
-                last_filter = val[0]
-            }
-            pcbs[val[0]] = fcb
-            signal::connect(mb, "clicked", fcb)
-        }
-
-        otherslots.compact(\v -> v)
-        if otherslots.len() > 0 {
-            var mb = vb.append(gui::MenuButton({ variant: "submenu",
-                label: "other", clamp_h: true }))
-            var ocb = func() {
-                slots_populate(gr, otherslots)
-                r.set_label("other")
-                root.clear_menus()
-                last_filter = "other"
-            }
-            pcbs["other"] = ocb
-            signal::connect(mb, "clicked", ocb)
+            })
         }
     })
     signal::connect(r, "clicked", func(mb) {
         mb.show_menu(mn)
     })
-    return r, pcbs
+    if pcbl.len() == 0 {
+        r.set_disabled(true)
+    }
+    return r
 }
 
 var gen_tex_listed = func() {
     var r = gui::VBox()
 
     var gr = gui::Grid({ columns: 8, padding: 0.01 })
-    var packs = capi::texture_get_packs()
-    var pcbs
-    if packs.len() > 0 {
-        var cbx
-        var sp = r.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }))
-        var hb = sp.append(gui::HBox({ padding: 0.02 }))
-        hb.append(gui::Label({ text: "Filter by pack:" }))
-        cbx, pcbs = gen_slot_combo(packs, gr)
-        hb.append(cbx)
-    }
+    var pcbs, pcbl = gen_slot_filters(capi::texture_get_packs(), gr)
+
+    var sp = r.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }))
+    var hb = sp.append(gui::HBox({ padding: 0.02 }))
+    hb.append(gui::Label({ text: "Filter by pack:" }))
+    hb.append(gen_slot_combo(pcbs, pcbl))
 
     var hb = r.append(gui::HBox())
     var s
@@ -112,22 +111,13 @@ var gen_tex_listed = func() {
             sp.align(-1, -1)
             sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
                 sc.append(gr, func(gr) {
-                    if pcbs {
-                        var cb
-                        if last_filter { cb = pcbs[last_filter] }
-                        if !cb {
-                            cb = pcbs["all"]
-                            last_filter = undef
-                        }
-                        cb()
-                    } else {
-                        var slotl = []
-                        for i in 0 to capi::slot_get_count() - 1 {
-                            slotl.push(i)
-                        }
-                        slots_populate(gr, slotl)
+                    var cb
+                    if last_filter { cb = pcbs[last_filter] }
+                    if !cb {
+                        cb = pcbs["all"]
                         last_filter = undef
                     }
+                    cb()
                 })
                 s = sc
             })
