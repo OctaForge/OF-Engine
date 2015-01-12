@@ -422,6 +422,7 @@ var gen_menu_btn = func(b, lbl, cb) {
     )
 }
 
+var laststate
 root.new_window("options", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
@@ -437,14 +438,18 @@ root.new_window("options", gui.Window, func(win) {
             btns.push([ "audio"   , gen_menu_btn(b, "Audio"   , \-> stat.set_state("audio"   )) ])
         })
         b.append(gui::Filler({ min_w: 0.005, clamp_v: true }))
-        b.append(gui::State({ state: "game" }), func(st) {
+        b.append(gui::State({ state: laststate || "game" }), func(st) {
             stat = st
             st.update_state("game"    , gen_opts_game())
             st.update_state("edit"    , gen_opts_edit())
             st.update_state("graphics", gen_opts_graphics())
             st.update_state("display" , gen_opts_display())
             st.update_state("audio"   , gen_opts_audio())
+            for i, btn in btns.each() {
+                btn[1].set_variant((btn[0] == laststate) ? "default" : "nobg")
+            }
             signal::connect(st, "state,changed", func(self, nstate) {
+                laststate = nstate
                 for i, btn in btns.each() {
                     btn[1].set_variant((btn[0] == nstate) ? "default" : "nobg")
                 }
