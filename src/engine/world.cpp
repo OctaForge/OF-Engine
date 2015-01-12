@@ -1363,7 +1363,6 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     {
         identflags |= IDF_OVERRIDDEN;
         execfile("config/default_map_settings.cfg", false);
-        execfile("config/default_newmap_settings.cfg", false);
         identflags &= ~IDF_OVERRIDDEN;
     }
 
