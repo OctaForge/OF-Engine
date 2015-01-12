@@ -724,8 +724,13 @@ namespace lua
 
     static int load_string(lua_State *L, const char *str, const char *ch) {
         lua_getfield(L, LUA_REGISTRYINDEX, "octascript_compile");
-        lua_pushstring(L, str);
-        lua_pushvalue(L, -1);
+        if (!ch || !ch[0]) {
+            lua_pushstring(L, str);
+            lua_pushvalue(L, -1);
+        } else {
+            lua_pushstring(L, ch);
+            lua_pushstring(L, str);
+        }
         int ret = lua_pcall(L, 2, 1, 0);
         if (ret) return ret;
         reads rd;
