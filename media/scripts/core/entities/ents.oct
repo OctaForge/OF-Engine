@@ -1474,11 +1474,11 @@ set_external("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid) {
     var cl = proto_storage[cn] || proto_storage[proto_aliases[cn]]
     if !cl {
         log(ERROR, e"no such entity prototype: $(tostring(cn))")
-        assert(false)
+        return
     }
     if cl.__storage != "static" {
         log(ERROR, e"trying to create a non-static entity: $(tostring(cn))")
-        assert(false)
+        return
     }
     var cent
     if fuid {

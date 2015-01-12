@@ -25,6 +25,7 @@ std.package.cond_env = { debug = capi.should_log(1), server = SERVER }
 local compile = std.eval.compile
 M.compile = compile
 M.env = require("octascript.rt").env
+M.traceback = debug.traceback
 
 -- plug in custom allocator for better performance
 local bc = require("octascript.bytecode")

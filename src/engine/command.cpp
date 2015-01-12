@@ -4343,14 +4343,24 @@ void clearsleep_(int *clearoverrides)
 COMMANDN(clearsleep, clearsleep_, "i");
 
 ICOMMAND(lua, "s", (char *str), {
+    lua_getfield(lua::L, LUA_REGISTRYINDEX, "octascript_traceback");
     if (lua::load_string(str)) {
-        lua_error(lua::L);
+        lua_pushfstring(lua::L, "error in call to the Lua API (%s)",
+            lua_tostring(lua::L, -2));
+        lua_call(lua::L, 1, 1);
+        logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
+        lua_pop(lua::L, 1);
+        return;
     }
-    lua_call(lua::L, 0, 1);
+    if (lua_pcall(lua::L, 0, 1, -2)) {
+        logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
+        lua_pop(lua::L, 2);
+        return;
+    }
     if (lua_isnumber(lua::L, -1)) {
         int a = lua_tointeger(lua::L, -1);
         float b = lua_tonumber(lua::L, -1);
-        lua_pop(lua::L, 1);
+        lua_pop(lua::L, 2);
         if ((float)a == b) {
             intret(a);
         } else {
@@ -4358,14 +4368,14 @@ ICOMMAND(lua, "s", (char *str), {
         }
     } else if (lua_isstring(lua::L, -1)) {
         const char *s = lua_tostring(lua::L, -1);
-        lua_pop(lua::L, 1);
+        lua_pop(lua::L, 2);
         result(s);
     } else if (lua_isboolean(lua::L, -1)) {
         bool b = lua_toboolean(lua::L, -1);
-        lua_pop(lua::L, 1);
+        lua_pop(lua::L, 2);
         intret(b);
     } else {
-        lua_pop(lua::L, 1);
+        lua_pop(lua::L, 2);
     }
 })
 

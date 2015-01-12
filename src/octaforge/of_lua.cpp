@@ -18,8 +18,10 @@ namespace lua
     static string mod_dir = "";
 
     static int panic(lua_State *L) {
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
         lua_pushfstring(L, "error in call to the Lua API (%s)",
-            lua_tostring(L, -1));
+            lua_tostring(L, -2));
+        lua_call(L, 1, 1);
         fatal("%s", lua_tostring(L, -1));
         return 0;
     }
@@ -85,7 +87,14 @@ namespace lua
             }
         }
         int n1 = lua_gettop(L) - nargs - 1;
-        lua_call(L, nargs, retn);
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+        lua_insert(L, -nargs - 2);
+        if (lua_pcall(L, nargs, retn, -nargs - 2)) {
+            logger::log(logger::ERROR, "%s", lua_tostring(L, -1));
+            lua_pop(L, 2);
+            return -1;
+        }
+        lua_remove(L, n1 - lua_gettop(L) - 1);
         return lua_gettop(L) - n1;
     }
 
@@ -516,9 +525,11 @@ namespace lua
         defformatstring(p, "%s/%s.oct", mod_dir, name);
         path(p);
         logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
-        if (load_file(L, p) || lua_pcall(L, 0, 0, 0)) {
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+        if (load_file(L, p) || lua_pcall(L, 0, 0, -2)) {
             fatal("%s", lua_tostring(L, -1));
         }
+        lua_pop(L, 1);
     }
 
     static int capi_tostring(lua_State *L) {
@@ -618,6 +629,8 @@ namespace lua
         lua_setfield(L, LUA_REGISTRYINDEX, "octascript_compile");
         lua_getfield(L, -1, "env");
         lua_setfield(L, LUA_REGISTRYINDEX, "octascript_env");
+        lua_getfield(L, -1, "traceback");
+        lua_setfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
         lua_pop(L, 2);
 
         load_module("init");
@@ -765,14 +778,16 @@ namespace lua
             return false;
         }
         defformatstring(chunk, "@%s", cfgfile);
-        if (lua::load_string(buf,  chunk) || lua_pcall(lua::L, 0, 0, 0)) {
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+        if (lua::load_string(buf,  chunk) || lua_pcall(lua::L, 0, 0, -2)) {
             if (msg) {
-                logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
+                fatal("%s", lua_tostring(lua::L, -1));
             }
-            lua_pop(lua::L, 1);
+            lua_pop(lua::L, 2);
             delete[] buf;
             return false;
         }
+        lua_pop(L, 1);
         delete[] buf;
         return true;
     }
