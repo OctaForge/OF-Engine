@@ -173,13 +173,12 @@ root.new_window("texture", gui.Window, func(win) {
         stat = st
         st.update_state("listed"  , gen_tex_listed())
         st.update_state("utilized", gen_tex_utilized())
-        lbtn.set_variant((st.state == "listed") ? "default" : "nobg")
-        ubtn.set_variant((st.state != "listed") ? "default" : "nobg")
         signal::connect(st, "state,changed", func(self, nstate) {
             laststate = nstate
             lbtn.set_variant((nstate == "listed") ? "default" : "nobg")
             ubtn.set_variant((nstate != "listed") ? "default" : "nobg")
         })
+        signal::emit(st, "state,changed", st.state)
     })
 })
 

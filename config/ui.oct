@@ -147,13 +147,12 @@ root.new_window("main", gui.Window, func(win) {
             st.update_state("default" , gen_menu_default())
             st.update_state("load_map", gen_menu_map_load())
             st.update_state("credits" , gen_menu_credits())
-            btn_lm.set_variant((laststate == "load_map") ? "default" : "nobg")
-            btn_cr.set_variant((laststate == "credits" ) ? "default" : "nobg")
             signal::connect(st, "state,changed", func(self, nstate) {
                 laststate = nstate
                 btn_lm.set_variant((nstate == "load_map") ? "default" : "nobg")
                 btn_cr.set_variant((nstate == "credits" ) ? "default" : "nobg")
             })
+            signal::emit(st, "state,changed", st.state)
         })
     })
 })
