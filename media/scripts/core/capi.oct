@@ -291,6 +291,18 @@ capi.strftime = func(fmt) {
         return w, h, t
     }
 
+    var texture_draw_slot, texture_draw_vslot in capi
+    capi.texture_draw_slot = func(idx, w, h, x, y) {
+        var stor = ffi_new("int[2]")
+        texture_draw_slot(idx, w, h, x, y, stor, stor + 1)
+        return tonumber(stor[0]), tonumber(stor[1])
+    }
+    capi.texture_draw_vslot = func(idx, w, h, x, y) {
+        var stor = ffi_new("int[2]")
+        texture_draw_vslot(idx, w, h, x, y, stor, stor + 1)
+        return tonumber(stor[0]), tonumber(stor[1])
+    }
+
     var isconnected in capi
     capi.isconnected = func(attempt, local) {
         if local == undef { local = true }

@@ -4465,13 +4465,17 @@ static void quad(float x, float y, float w, float h, const vec2 tc[4])
     gle::end();
 }
 
-static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float x, float y) {
+static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float x, float y, int *tw, int *th) {
     if (slot.sts.empty()) return;
     VSlot *layer = NULL, *detail = NULL;
     Texture *t = NULL, *glowtex = NULL, *layertex = NULL, *detailtex = NULL;
+    *tw = 0;
+    *th = 0;
     if (slot.loaded) {
         t = slot.sts[0].t;
         if (t == notexture) return;
+        *tw = t->w;
+        *th = t->h;
         Slot &slot = *vslot.slot;
         if (slot.texmask&(1<<TEX_GLOW)) {
             loopvj(slot.sts) if (slot.sts[j].type==TEX_GLOW) {
@@ -4492,8 +4496,11 @@ static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float x, float 
             slot.loadthumbnail();
             lastthumbnail = totalmillis;
         }
-        if (slot.thumbnail != notexture) t = slot.thumbnail;
-        else return;
+        if (slot.thumbnail != notexture) {
+            t = slot.thumbnail;
+            *tw = t->w;
+            *th = t->h;
+        } else return;
     }
     SETSHADER(hudrgb);
     vec2 tc[4] = { vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1) };
@@ -4539,14 +4546,14 @@ static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float x, float 
     hudshader->set();
 }
 
-CLUAICOMMAND(texture_draw_slot, void, (int idx, float w, float h, float x, float y), {
+CLUAICOMMAND(texture_draw_slot, void, (int idx, float w, float h, float x, float y, int *tw, int *th), {
     Slot &slot = lookupslot(idx, false);
-    drawslot(slot, *slot.variants, w, h, x, y);
+    drawslot(slot, *slot.variants, w, h, x, y, tw, th);
 });
 
-CLUAICOMMAND(texture_draw_vslot, void, (int idx, float w, float h, float x, float y), {
+CLUAICOMMAND(texture_draw_vslot, void, (int idx, float w, float h, float x, float y, int *tw, int *th), {
     VSlot &vslot = lookupvslot(idx, false);
-    drawslot(*vslot.slot, vslot, w, h, x, y);
+    drawslot(*vslot.slot, vslot, w, h, x, y, tw, th);
 });
 
 CLUAICOMMAND(thumbnail_load, Texture*, (const char *p, bool force), {

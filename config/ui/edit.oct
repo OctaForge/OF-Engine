@@ -14,11 +14,15 @@ var root = gui::get_root()
 var slots_populate = func(gr, slotlist) {
     gr.destroy_children()
     for i, slot in slotlist.each() {
+        var ttip = gui::Outline({ variant: "normal" }, gui::SlotViewer({
+            index: slot, min_w: 0.2, min_h: 0.2
+        }))
         gr.append(gui::Button({ variant: "slot",
             index: slot, min_w: 0.095, min_h: 0.095
         }), func(b) {
             signal::connect(b, "clicked", \-> capi::slot_set(
                 capi::slot_get_tex(slot)))
+            signal::connect(b, "hovering", \self -> self.show_tooltip(ttip))
         })
     }
 }
@@ -140,10 +144,14 @@ var gen_tex_utilized = func() {
                 sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {
                     for i in 1 to capi::slot_texmru_num() {
                         var mru = capi::slot_texmru(i - 1)
+                        var ttip = gui::Outline({ variant: "normal" },
+                            gui::VSlotViewer({ index: mru, min_w: 0.2, min_h: 0.2 })
+                        )
                         gr.append(gui::Button({ variant: "vslot",
                             index: mru, min_w: 0.095, min_h: 0.095
                         }), func(b) {
                             signal::connect(b, "clicked", \-> capi::slot_set(mru))
+                            signal::connect(b, "hovering", \self -> self.show_tooltip(ttip))
                         })
                     }
                 })

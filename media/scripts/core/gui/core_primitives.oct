@@ -1033,6 +1033,7 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
     __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.index = kwargs.index || 0
+        self.tex_w, self.tex_h = 0, 0
 
         return Filler::__ctor(self, kwargs, ...)
     },
@@ -1043,7 +1044,7 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
 
     draw: func(self, sx, sy) {
         self.change_draw(M.changes.SHADER | M.changes.COLOR)
-        texture_draw_slot(self.index, self.w, self.h, sx, sy)
+        self.tex_w, self.tex_h = texture_draw_slot(self.index, self.w, self.h, sx, sy)
         return Widget::draw(self, sx, sy)
     },
 
@@ -1057,7 +1058,7 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
 M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
     draw: func(self, sx, sy) {
         self.change_draw(M.changes.SHADER | M.changes.COLOR)
-        texture_draw_vslot(self.index, self.w, self.h, sx, sy)
+        self.tex_w, self.tex_h = texture_draw_vslot(self.index, self.w, self.h, sx, sy)
         return Widget::draw(self, sx, sy)
     }
 })
