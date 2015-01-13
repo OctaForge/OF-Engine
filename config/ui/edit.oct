@@ -17,12 +17,19 @@ var slots_populate = func(gr, slotlist) {
         var ttip = gui::Outline({ variant: "normal" }, gui::SlotViewer({
             index: slot, min_w: 0.2, min_h: 0.2
         }))
-        gr.append(gui::Button({ variant: "slot",
+        var vb = gr.append(gui::VBox())
+        var btn = vb.append(gui::Button({ variant: "slot",
             index: slot, min_w: 0.095, min_h: 0.095
         }), func(b) {
             signal::connect(b, "clicked", \-> capi::slot_set(
                 capi::slot_get_tex(slot)))
             signal::connect(b, "hovering", \self -> self.show_tooltip(ttip))
+        })
+        var lbl = vb.append(gui::Label({
+            tex: "0x0", scale: 0.7, align_h: -1, color: 0x50FFFFFF
+        }))
+        signal::connect(btn, "tex_size,changed", func(o, tw, th) {
+            lbl.set_text(tw ~ "x" ~ th)
         })
     }
 }
@@ -147,11 +154,18 @@ var gen_tex_utilized = func() {
                         var ttip = gui::Outline({ variant: "normal" },
                             gui::VSlotViewer({ index: mru, min_w: 0.2, min_h: 0.2 })
                         )
-                        gr.append(gui::Button({ variant: "vslot",
+                        var vb = gr.append(gui::VBox())
+                        var btn = vb.append(gui::Button({ variant: "vslot",
                             index: mru, min_w: 0.095, min_h: 0.095
                         }), func(b) {
                             signal::connect(b, "clicked", \-> capi::slot_set(mru))
                             signal::connect(b, "hovering", \self -> self.show_tooltip(ttip))
+                        })
+                        var lbl = vb.append(gui::Label({
+                            tex: "0x0", scale: 0.7, align_h: -1, color: 0x50FFFFFF
+                        }))
+                        signal::connect(btn, "tex_size,changed", func(o, tw, th) {
+                            lbl.set_text(tw ~ "x" ~ th)
                         })
                     }
                 })

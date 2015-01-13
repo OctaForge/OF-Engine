@@ -1044,8 +1044,15 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
 
     draw: func(self, sx, sy) {
         self.change_draw(M.changes.SHADER | M.changes.COLOR)
-        self.tex_w, self.tex_h = texture_draw_slot(self.index, self.w, self.h, sx, sy)
+        self.__update_dimensions(texture_draw_slot(self.index, self.w, self.h, sx, sy))
         return Widget::draw(self, sx, sy)
+    },
+
+    __update_dimensions: func(self, tw, th) {
+        if self.tex_w != tw || self.tex_h != th {
+            self.tex_w, self.tex_h = tw, th
+            emit(self, "tex_size,changed", tw, th)
+        }
     },
 
     /// Function: set_index
@@ -1058,7 +1065,7 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
 M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
     draw: func(self, sx, sy) {
         self.change_draw(M.changes.SHADER | M.changes.COLOR)
-        self.tex_w, self.tex_h = texture_draw_vslot(self.index, self.w, self.h, sx, sy)
+        self.__update_dimensions(texture_draw_vslot(self.index, self.w, self.h, sx, sy))
         return Widget::draw(self, sx, sy)
     }
 })

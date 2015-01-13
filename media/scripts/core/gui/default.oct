@@ -7,6 +7,7 @@ var root = gui::get_root()
 
 var Color = gui.Color
 var connect = signal.connect
+var emit = signal.emit
 
 from std.math import floor
 
@@ -106,6 +107,11 @@ var slotbtn_init_clone = func(self, btn) {
     self.set_min_w(btn.min_w || 0)
     self.set_min_h(btn.min_h || 0)
     self.set_index(btn.index || 0)
+    btn.tex_w, btn.tex_h = self.tex_w, self.tex_h
+    connect(self, "tex_size,changed", func(o, tw, th) {
+        btn.tex_w, btn.tex_h = tw, th
+        emit(btn, "tex_size,changed", tw, th)
+    })
     connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
     connect(btn, "min_h,changed", \b, v -> self.set_min_h(v))
     connect(btn, "index,changed", \b, v -> self.set_index(v))
