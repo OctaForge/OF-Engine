@@ -84,6 +84,23 @@ var gen_slot_filters = func(packs, gr) {
     return pcbs, pcbl
 }
 
+var gen_tex_layout = func(bx, gr, grid_load) {
+    var s
+    bx.append(gui::Outline({ variant: "normal", min_w: 0.84, min_h: 0.6 }), func(o) {
+        o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+            sp.align(-1, -1)
+            sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
+                sc.append(gr, grid_load)
+                s = sc
+            })
+        })
+    })
+    bx.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
+        sb.append(gui::ScrollButton())
+        sb.bind_scroller(s)
+    })
+}
+
 var gen_tex_listed = func() {
     var r = gui::VBox()
 
@@ -127,26 +144,12 @@ var gen_tex_listed = func() {
     })
 
     var hb = r.append(gui::HBox())
-    var s
-    hb.append(gui::Outline({ variant: "normal", min_w: 0.84, min_h: 0.6 }), func(o) {
-        o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
-            sp.align(-1, -1)
-            sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
-                sc.append(gr, grid_load)
-                s = sc
-            })
-        })
-    })
-    hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
-        sb.append(gui::ScrollButton())
-        sb.bind_scroller(s)
-    })
+    gen_tex_layout(hb, gr, grid_load)
     return r
 }
 
 var gen_tex_utilized = func() {
     var hb = gui::HBox()
-    var s
 
     var gr = gui::Grid({ columns: 8, padding: 0.01 })
     var grid_load = func() {
@@ -161,19 +164,7 @@ var gen_tex_utilized = func() {
         signal::disconnect(edit, "texpacks,changed", cid)
     })
 
-    hb.append(gui::Outline({ variant: "normal", min_w: 0.84, min_h: 0.6 }), func(o) {
-        o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
-            sp.align(-1, -1)
-            sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
-                sc.append(gr, grid_load)
-                s = sc
-            })
-        })
-    })
-    hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
-        sb.append(gui::ScrollButton())
-        sb.bind_scroller(s)
-    })
+    gen_tex_layout(hb, gr, grid_load)
     return hb
 }
 
