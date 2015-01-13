@@ -147,17 +147,25 @@ var gen_tex_listed = func() {
 var gen_tex_utilized = func() {
     var hb = gui::HBox()
     var s
+
+    var gr = gui::Grid({ columns: 8, padding: 0.01 })
+    var grid_load = func() {
+        var slotl = []
+        for i in 0 to capi::slot_texmru_num() - 1 {
+            slotl.push(capi::slot_texmru(i))
+        }
+        slots_populate(gr, slotl, true)
+    }
+    var cid = signal::connect(edit, "texpacks,changed", grid_load)
+    signal::connect(hb, "destroy", func() {
+        signal::disconnect(edit, "texpacks,changed", cid)
+    })
+
     hb.append(gui::Outline({ variant: "normal", min_w: 0.84, min_h: 0.6 }), func(o) {
         o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
             sp.align(-1, -1)
             sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
-                sc.append(gui::Grid({ columns: 8, padding: 0.01 }), func(gr) {
-                    var slotl = []
-                    for i in 0 to capi::slot_texmru_num() - 1 {
-                        slotl.push(capi::slot_texmru(i))
-                    }
-                    slots_populate(gr, slotl, true)
-                })
+                sc.append(gr, grid_load)
                 s = sc
             })
         })
