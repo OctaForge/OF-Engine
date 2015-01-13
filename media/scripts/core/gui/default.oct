@@ -439,12 +439,17 @@ var window_build_regular = \mov -> gui::Filler({ clamp: true },
         states: {
             default: gui::ColorFiller({ min_w: 0.05, min_h: 0.07 })
         }
-    }, gui::Filler({ clamp_h: true },
-        mov && gui::Mover({ clamp_h: true,
-            init_clone: func(self, win) {
-                self.set_window(win)
-        } }, window_build_titlebar()) || window_build_titlebar(),
-        gui::Spacer({ pad_h: 0.009, align_h: 1 },
+    }, gui::Filler({ clamp_h: true, __init: func(fl) {
+        if mov {
+            fl.append(gui::Mover({ clamp_h: true,
+                init_clone: func(self, win) {
+                    self.set_window(win)
+            } }, window_build_titlebar()))
+        } else {
+            fl.append(window_build_titlebar())
+        }
+        var sp = fl.append(gui::Spacer({ pad_h: 0.009, align_h: 1, clamp_v: true }))
+        sp.append(gui::Filler({ clamp: true },
             gui::Button({
                 variant: false, states: {
                     default: gui::ColorFiller({
@@ -464,8 +469,8 @@ var window_build_regular = \mov -> gui::Filler({ clamp: true },
                     connect(self, "clicked", \-> win.hide())
                 }
             })
-        )
-    ), gui::ColorFiller({
+        ))
+    } }), gui::ColorFiller({
         color: 0xF0101010, clamp: true
     }, gui::Spacer({
         pad_h: 0.005, pad_v: 0.005, init_clone: func(self, win) {
