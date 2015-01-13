@@ -14,9 +14,12 @@ var root = gui::get_root()
 var slots_populate = func(gr, slotlist) {
     gr.destroy_children()
     for i, slot in slotlist.each() {
-        var ttip = gui::Outline({ variant: "normal" }, gui::SlotViewer({
-            index: slot, min_w: 0.2, min_h: 0.2
-        }))
+        var ttip = gui::Outline({ variant: "normal" },
+            gui::ColorFiller({ color: 0x151515, min_w: 0.225, min_h: 0.225 },
+            gui::SlotViewer({
+                index: slot, min_w: 0.22, min_h: 0.22
+            })
+        ))
         var vb = gr.append(gui::VBox())
         var btn = vb.append(gui::Button({ variant: "slot",
             index: slot, min_w: 0.095, min_h: 0.095
@@ -152,8 +155,9 @@ var gen_tex_utilized = func() {
                     for i in 1 to capi::slot_texmru_num() {
                         var mru = capi::slot_texmru(i - 1)
                         var ttip = gui::Outline({ variant: "normal" },
-                            gui::VSlotViewer({ index: mru, min_w: 0.2, min_h: 0.2 })
-                        )
+                            gui::ColorFiller({ color: 0x151515, min_w: 0.225, min_h: 0.225 },
+                            gui::VSlotViewer({ index: mru, min_w: 0.22, min_h: 0.22 })
+                        ))
                         var vb = gr.append(gui::VBox())
                         var btn = vb.append(gui::Button({ variant: "vslot",
                             index: mru, min_w: 0.095, min_h: 0.095
