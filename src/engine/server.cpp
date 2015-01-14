@@ -1154,7 +1154,7 @@ vector<const char *> gameargs;
 int main(int argc, char **argv)
 {
     setlogfile(NULL);
-    if(enet_initialize()<0) fatal("Unable to initialise network module");
+    if(enet_initialize()<0) fatal("Unable to initialize network module");
     atexit(enet_deinitialize);
     enet_time_set(0);
     for(int i = 1; i<argc; i++) if(argv[i][0]!='-' || !serveroption(argv[i])) gameargs.add(argv[i]);

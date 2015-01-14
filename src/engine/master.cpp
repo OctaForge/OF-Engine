@@ -672,7 +672,7 @@ void reloadsignal(int signum)
 
 int main(int argc, char **argv)
 {
-    if(enet_initialize()<0) fatal("Unable to initialise network module");
+    if(enet_initialize()<0) fatal("Unable to initialize network module");
     atexit(enet_deinitialize);
 
     const char *dir = "", *ip = NULL;

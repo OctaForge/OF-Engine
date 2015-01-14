@@ -21,6 +21,7 @@ VARN(numargs, _numargs, MAXARGS, 0, 0);
 void ident::changed() {
     if (fun) fun(this);
     if (!(flags&IDF_SIGNAL)) return;
+#ifndef MASTER
     switch (type) {
         case ID_VAR:
             lua::call_external("var_emit_changed", "siiii", name,
@@ -48,6 +49,7 @@ void ident::changed() {
         }
         default: lua::call_external("var_emit_changed", "s", name); break;
     }
+#endif
 }
 
 static inline void freearg(tagval &v)
@@ -4245,8 +4247,6 @@ void strsplice(const char *s, const char *vals, int *skip, int *count)
 }
 COMMAND(strsplice, "ssii");
 
-ICOMMAND(getmillis, "i", (int *total), intret(*total ? totalmillis : lastmillis));
-
 /* OF: lua sleep functions, var API and other things */
 
 ICOMMAND(trusted, "e", (uint *body), {
@@ -4255,6 +4255,9 @@ ICOMMAND(trusted, "e", (uint *body), {
     executeret(body, *commandret);
     identflags = flags;
 })
+
+#ifndef MASTER
+ICOMMAND(getmillis, "i", (int *total), intret(*total ? totalmillis : lastmillis));
 
 CLUAICOMMAND(get_millis, int, (bool total), {
     return total ? totalmillis : lastmillis;
@@ -4546,6 +4549,7 @@ CLUAICOMMAND(var_make_emit, bool, (const char *name, bool v), {
     else   id->flags &= ~IDF_SIGNAL;
     return ret;
 })
+#endif
 
 #undef ICOMMANDNAME
 #define ICOMMANDNAME(name) _icmd_##name

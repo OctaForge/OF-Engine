@@ -1047,7 +1047,7 @@ int main(int argc, char **argv)
     }
 
     initlog("net");
-    if(enet_initialize()<0) fatal("Unable to initialise network module");
+    if(enet_initialize()<0) fatal("Unable to initialize network module");
     atexit(enet_deinitialize);
     enet_time_set(0);
 

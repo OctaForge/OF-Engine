@@ -46,6 +46,9 @@ CLIENT_XCXXFLAGS ?=
 # C++ compiler flags for OF server
 SERVER_XCXXFLAGS ?=
 
+# C++ compiler flags for OF master
+MASTER_XCXXFLAGS ?=
+
 # C compiler flags for ENet
 ENET_XCFLAGS ?=
 
@@ -186,9 +189,11 @@ endif
 ifneq ($(TARGET_SYS),Windows)
 	CLIENT_BIN = client_$(TARGET_BINOS)_$(TARGET_BINARCH)
 	SERVER_BIN = server_$(TARGET_BINOS)_$(TARGET_BINARCH)
+	MASTER_BIN = master_$(TARGET_BINOS)_$(TARGET_BINARCH)
 else
 	CLIENT_BIN = client_$(TARGET_BINOS)_$(TARGET_BINARCH).exe
 	SERVER_BIN = server_$(TARGET_BINOS)_$(TARGET_BINARCH).exe
+	MASTER_BIN = master_$(TARGET_BINOS)_$(TARGET_BINARCH).exe
 endif
 
 # do not strip on debug
@@ -385,7 +390,7 @@ ifeq ($(TARGET_ARCH),x64)
 	SERVER_LDFLAGS += -pagezero_size 10000 -image_base 100000000
 endif
 else
-	SERVER_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl2-config --cflags`
+	SERVER_CXXFLAGS += $(CS_INC)
 	SERVER_LDFLAGS += -lz
 	ifeq ($(TARGET_SYS),Linux)
 		SERVER_LDFLAGS += -ldl
@@ -405,6 +410,47 @@ SERVER_OBJ = \
 	octaforge/of_logger.o
 
 SERVER_OBJB = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
+
+####################
+# OctaForge master #
+####################
+
+MASTER_CXXFLAGS := $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(MASTER_X CXXFLAGS) \
+	-fsigned-char -fno-exceptions -fno-rtti -DSTANDALONE -DMASTER \
+	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS) \
+	-DBINARY_ARCH_STR=\"$(TARGET_BINARCH)\" -DBINARY_OS_STR=\"$(TARGET_BINOS)\"
+
+MASTER_LDFLAGS = $(TARGET_XLIB)
+
+ifeq ($(TARGET_SYS),Windows)
+	MASTER_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
+ifeq ($(TARGET_ARCH),x64)
+	MASTER_CXXFLAGS += -DWIN64
+endif
+	MASTER_CXXFLAGS += $(CS_INC)
+	MASTER_LDFLAGS += -lzlib1 -lopengl32 -lws2_32 -lwinmm
+	MASTER_LDFLAGS += -static-libgcc -static-libstdc++
+else
+ifeq ($(TARGET_SYS),Darwin)
+	MASTER_CXXFLAGS += $(CS_INC)
+	MASTER_LDFLAGS += -lz
+else
+	MASTER_CXXFLAGS += $(CS_INC)
+	MASTER_LDFLAGS += -lz
+	ifeq ($(TARGET_SYS),Linux)
+		MASTER_LDFLAGS += -ldl
+	endif
+endif
+endif
+
+MASTER_OBJ = \
+	shared/crypto.o \
+	shared/stream.o \
+	shared/tools.o \
+	engine/command.o \
+	engine/master.o
+
+MASTER_OBJB = $(addprefix $(OBJDIR)/master/, $(MASTER_OBJ))
 
 ########
 # ENet #
@@ -500,6 +546,26 @@ server: $(ENET_OBJB) $(SERVER_OBJB)
 	$(WINDRES_RES) $(ENET_OBJB) $(SERVER_OBJB) $(SERVER_LDFLAGS) $(LDFLAGS)
 endif
 
+# OctaForge - master
+
+$(OBJDIR)/master/%.o: %.cpp $$(@D)/.stamp
+	$(E) " CC (master) $(subst $(OBJDIR)/master/,,$@)"
+	$(Q) $(TARGET_CXX) $(MASTER_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
+	$(subst .o,.cpp,$(subst $(OBJDIR)/master/,,$@))
+
+ifneq ($(TARGET_SYS),Windows)
+master: $(ENET_OBJB) $(MASTER_OBJB)
+	$(E) " LD (master) $(MASTER_BIN)"
+	$(Q) $(TARGET_CXX) $(MASTER_CXXFLAGS) $(CXXFLAGS) -o $(MASTER_BIN) \
+	$(ENET_OBJB) $(MASTER_OBJB) $(MASTER_LDFLAGS) $(LDFLAGS)
+else
+master: $(ENET_OBJB) $(MASTER_OBJB)
+	$(E) " LD (master) $(MASTER_BIN)"
+	$(Q) $(TARGET_WINDRES) $(WINDRES_CMDLINE)
+	$(Q) $(TARGET_CXX) $(MASTER_CXXFLAGS) $(CXXFLAGS) -o $(MASTER_BIN) \
+	$(WINDRES_RES) $(ENET_OBJB) $(MASTER_OBJB) $(MASTER_LDFLAGS) $(LDFLAGS)
+endif
+
 $(OBJDIR)/tessfont.o: shared/tessfont.c
 	$(E) " CC tessfont.o"
 	$(Q) $(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) \
@@ -514,12 +580,12 @@ tessfont: $(OBJDIR)/tessfont.o
 all: client server
 
 clean:
-	$(E) " CLEAN ($(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN))"
+	$(E) " CLEAN ($(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN) $(MASTER_BIN))"
 ifneq ($(HOST_FLAV),windows)
-	$(Q) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
+	$(Q) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN) $(MASTER_BIN)
 else
 	$(Q) -rmdir //s //f //q $(OBJDIR)
-	$(Q) -del //s //f //q $(CLIENT_BIN) $(SERVER_BIN)
+	$(Q) -del //s //f //q $(CLIENT_BIN) $(SERVER_BIN) $(MASTER_BIN)
 endif
 
 install: client server
@@ -558,6 +624,14 @@ depend:
 		-DSTANDALONE \
 		-p$$\(OBJDIR\)/server/ \
 		$(subst .o,.cpp,$(SERVER_OBJ))
+
+	makedepend -a -Y -w 65536 \
+		-Ishared \
+		-Iengine \
+		-Igame \
+		-DSTANDALONE \
+		-p$$\(OBJDIR\)/master/ \
+		$(subst .o,.cpp,$(MASTER_OBJ))
 
 	makedepend -a -Y -w 65536 \
 		-Ienet/include \
@@ -624,6 +698,12 @@ $(OBJDIR)/server/engine/worldio.o: engine/engine.h shared/cube.h shared/tools.h 
 $(OBJDIR)/server/game/server.o: game/game.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h
 $(OBJDIR)/server/octaforge/of_lua.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h engine/engine.h engine/world.h game/game.h
 $(OBJDIR)/server/octaforge/of_logger.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h octaforge/of_logger.h octaforge/of_lua.h engine/engine.h engine/world.h
+
+$(OBJDIR)/master/shared/crypto.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h
+$(OBJDIR)/master/shared/stream.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h
+$(OBJDIR)/master/shared/tools.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h
+$(OBJDIR)/master/engine/command.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h engine/world.h
+$(OBJDIR)/master/engine/master.o: shared/cube.h shared/tools.h shared/geom.h shared/ents.h shared/command.h shared/iengine.h shared/igame.h
 
 $(OBJDIR)/enet/callbacks.o: enet/include/enet/enet.h enet/include/enet/unix.h enet/include/enet/types.h enet/include/enet/protocol.h enet/include/enet/list.h enet/include/enet/callbacks.h
 $(OBJDIR)/enet/compress.o: enet/include/enet/enet.h enet/include/enet/unix.h enet/include/enet/types.h enet/include/enet/protocol.h enet/include/enet/list.h enet/include/enet/callbacks.h
