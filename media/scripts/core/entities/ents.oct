@@ -314,11 +314,6 @@ M.get_prototype = func(cn) {
     }
     return t
 }
-var get_prototype = M.get_prototype
-
-set_external("entity_proto_exists", func(cn) {
-    return !!get_prototype(cn)
-})
 
 /**
     Returns the internal entity prototype storage (name->prototype mapping),
@@ -1334,12 +1329,6 @@ set_external("entity_get_attr", func(cent, prop) {
 M.set_attr = func(ent, prop, val) {
     return ent.set_attr(prop, val)
 }
-
-set_external("entity_dynamic_set_attr", func(uid, prop, val) {
-    var ent = storage_dynamic[uid]
-    if !ent { return undef }
-    return ent.set_attr(prop, val)
-})
 
 set_external("entity_draw_attached", func(cent) {
     var fent = get_by_centity(cent)
