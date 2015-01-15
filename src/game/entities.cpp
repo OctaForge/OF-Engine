@@ -6,6 +6,7 @@ void addentity(int id);
 void attachentity(extentity &e);
 bool enttoggle(int id);
 void makeundoent();
+bool dropentity(entity &e, int drop = -1);
 
 extern int efocus;
 
@@ -364,6 +365,9 @@ namespace entities
         assert(e);
         if (!ce) {
             int otype = e->type;
+            if (isnew && e->o.x < 0) {
+                dropentity(*e);
+            }
             e->type = ET_EMPTY;
             if (isnew) {
                 enttoggle(uid);

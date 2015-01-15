@@ -285,7 +285,6 @@ root.new_window("entity", gui.Window, func(win) {
 })
 
 root.new_window("entity_new", gui.Window, func(win) {
-    input::save_mouse_position()
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("New entity")

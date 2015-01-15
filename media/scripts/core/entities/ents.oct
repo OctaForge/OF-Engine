@@ -1493,6 +1493,7 @@ set_external("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid) {
         state_data: sd, newent_data: nd, c_entity: cent }, fuid)
     @[debug] log(DEBUG, "Created entity: %d - %s (%f, %f, %f)"
         .format(ent.uid, cl, x, y, z))
+    return ent.uid
 })
 
 var created_cns = {}

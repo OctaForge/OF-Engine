@@ -27,11 +27,5 @@ return {
     */
     get_target_position: frame::cache_by_frame(func() {
         return Vec3(capi::gettargetpos())
-    }),
-
-    /** Function: save_mouse_position
-        Saves the mouse position in an internal storage. That's later
-        useful while editing (e.g. when inserting an entity).
-    */
-    save_mouse_position: capi.save_mouse_position
+    })
 }

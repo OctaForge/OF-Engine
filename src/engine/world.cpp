@@ -1074,27 +1074,16 @@ void attachent()
 
 COMMAND(attachent, "");
 
-vec saved_pos;
-
-#define FAR_PLACING_FACTOR 0.9
-
-void newent(const char *cl, const char *sd, const char *nd, vec fp)
+extentity *newent(const char *cl, const char *sd, const char *nd, vec o = vec(-1))
 {
-    fp.mul(FAR_PLACING_FACTOR);
-    vec cp = player->o;
-    cp.mul(1 - FAR_PLACING_FACTOR);
-    cp.add(fp);
-
     if (!sd || !sd[0]) sd = "{}";
-    lua::call_external("entity_new_with_sd", "sfffss", cl, cp.x, cp.y, cp.z,
-        sd, nd ? nd : "");
+    int uid = -1;
+    lua::pop_external_ret(lua::call_external_ret("entity_new_with_sd",
+        "sfffss", "i", cl, o.x, o.y, o.z, sd, nd ? nd : "", &uid));
+    if (uid < 0) return NULL;
+    return entities::getents()[uid];
 }
 
-#undef FAR_PLACING_FACTOR
-
-void newent(const char *cl, const char *sd) {
-    newent(cl, sd, NULL, saved_pos);
-}
 
 ICOMMAND(newent, "V", (tagval *args, int numargs), {
     const char *cl = args[0].getstr();
@@ -1112,7 +1101,7 @@ ICOMMAND(newent, "V", (tagval *args, int numargs), {
     }
     buf.add(']');
     buf.add('\0');
-    newent(cl, NULL, buf.getbuf(), worldpos);
+    newent(cl, NULL, buf.getbuf());
 });
 
 ICOMMAND(newentpos, "V", (tagval *args, int numargs), {
@@ -1137,20 +1126,15 @@ ICOMMAND(newentpos, "V", (tagval *args, int numargs), {
 })
 
 LUAICOMMAND(new_entity, {
-    vec pos = saved_pos;
-    if (!lua_isnoneornil(L, 3)) {
+    bool haspos = !lua_isnoneornil(L, 3);
+    vec pos(-1);
+    if (haspos) {
         pos.x = luaL_optnumber(L, 3, 0);
         pos.y = luaL_optnumber(L, 4, 0);
         pos.z = luaL_optnumber(L, 5, 0);
     }
     newent(luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), NULL, pos);
     return 0;
-});
-
-ICOMMAND(save_mouse_position, "", (), saved_pos = worldpos);
-
-CLUAICOMMAND(save_mouse_position, void, (), {
-    saved_pos = worldpos;
 });
 
 int entcopygrid;
