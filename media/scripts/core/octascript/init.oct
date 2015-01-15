@@ -1,5 +1,3 @@
-from core.externals import set as ext_set
-
 import core.logger as log
 
 log::log(log.DEBUG, ":::: OctaScript extensions: streams")
@@ -10,8 +8,3 @@ import core.octascript.geom as undef
 
 log::log(log.DEBUG, ":::: Environment support.")
 import core.octascript.env as undef
-
-from std.conv import serialize, deserialize
-
-ext_set("table_serialize", serialize)
-ext_set("table_deserialize", deserialize)
