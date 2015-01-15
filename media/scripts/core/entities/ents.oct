@@ -1410,18 +1410,6 @@ M.render_hud = @[!server,func() {
 var render_hud = M.render_hud
 set_external("game_render_hud", render_hud)
 
-set_external("entity_serialize_sdata", func(cent, x, y, z) {
-    var ent = get_by_centity(cent)
-    if !ent { return undef }
-    var sd = ent.build_sdata()
-    if !x {
-        sd.position = undef
-    } else {
-        sd.position = "[%f|%f|%f]".format(x, y, z)
-    }
-    return serialize(sd) || "{}"
-})
-
 /** Function: scene_is_ready
     On the client, used to check if the current scene is ready and we can
     actually start (checks whether the player exists and whether all the
