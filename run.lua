@@ -14,7 +14,7 @@ require("octascript.std.native.geom")
 local compile = std.eval.compile
 local assert_run = function(ok, err)
     if not ok then
-        io.stderr:write(ret, "\n")
+        io.stderr:write(err, "\n")
         os.exit(1)
     end
     return ok

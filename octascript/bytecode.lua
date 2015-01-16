@@ -688,7 +688,18 @@ function Proto.__index:kpri(val)
     else error('Invalid primitive value: '..val) end
 end
 function Proto.__index:const(val)
-    if type(val) == 'string' then
+    -- nan can't be a table key, so encode it as a boolean
+    -- a boolean is never a kcache key otherwise
+    if val ~= val then
+        local item = self.kcache[true]
+        if not item then
+            item = KNum.new(val)
+            item.idx = #self.knum
+            self.kcache[true] = item
+            self.knum[#self.knum + 1] = item
+        end
+        return item.idx
+    elseif type(val) == 'string' then
         if not self.kcache[val] then
             local item = KObj.new(val)
             item.idx = #self.kobj
