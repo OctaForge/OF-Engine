@@ -29,6 +29,8 @@ import core.entities.svars
 import core.engine.cubescript as cs
 import core.engine.model
 
+from core.octascript.messagepack import pack as mp_pack, unpack as mp_unpack
+
 from core.externals import set as set_external
 
 var emit = signal.emit
@@ -556,7 +558,7 @@ set_external("entities_load", @[!server,func(entstr) {
     for i, e in entities.each() {
         var cn = e[0]
         @[debug] log(DEBUG, e"    $i, $cn")
-        add(cn, undef, { state_data: serialize(e[1]) })
+        add(cn, undef, { state_data: mp_pack(e[1]) })
     }
     @[debug] log(DEBUG, "entities_load: done")
 }])
@@ -787,17 +789,16 @@ M.Entity = Object.clone({
             return r
         }
 
-        r = serialize(r)
-        @[debug] log(DEBUG, e"Entity.build_sdata compressed: $r")
-        return r.sub(1, r.len() - 1)
+        r = mp_pack(r)
+        @[debug] log(DEBUG, e"Entity.build_sdata compressed done")
+        return r
     },
 
     /// Updates the complete state data on an entity from serialized input.
     set_sdata_full: func(self, sdata) {
         @[debug] log(DEBUG, e"Entity.set_sdata_full: $(self.uid), $sdata")
 
-        sdata = sdata.sub(0, 1) != "{" && e"{$sdata}" || sdata
-        var raw = deserialize(sdata)
+        var raw = sdata.sub(0, 1) != "{" ? mp_unpack(sdata) : deserialize(sdata)
         assert(typeof raw == "table")
 
         self.initialized = true
