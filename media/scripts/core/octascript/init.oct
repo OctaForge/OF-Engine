@@ -6,5 +6,8 @@ import core.octascript.stream as undef
 log::log(log.DEBUG, ":::: OctaScript extensions: geom")
 import core.octascript.geom as undef
 
+log::log(log.DEBUG, ":::: OctaScript extensions: messagepack")
+import core.octascript.messagepack as undef
+
 log::log(log.DEBUG, ":::: Environment support.")
 import core.octascript.env as undef

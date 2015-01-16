@@ -1,0 +1,589 @@
+/**<
+    MessagePack binary serialization for OctaScript.
+
+    Not finished (missing support for extensions, needs better API),
+    mostly for internal usage right now.
+
+    Implemented with Francois Perrad's lua-messagepack as a reference.
+
+    Author:
+        q66 <quaker66@gmail.com>
+
+    License:
+        See COPYING.txt.
+*/
+
+from std.table import setmt, pairs
+from std.string import char
+from std.math import floor, frexp, ldexp, huge
+from std.conv import tostring
+
+var M = {}
+
+var packers
+
+var pack_len = func(packn, buf, len, fixlen, fixval, val8, val16, val32) {
+    if fixlen {
+        if len <= fixlen {
+            buf.push(char(fixval + len))
+            return
+        }
+    }
+    if len <= 0xFF && val8 { // len8
+        buf.push(char(val8, len))
+        return
+    }
+    if len <= 0xFFFF && val16 { // len16
+        buf.push(char(val16, floor(len / 0x100), len % 0x100))
+        return
+    }
+    if len <= 0xFFFFFFFF && val32 { // len32
+        buf.push(char(val32, floor(len / 0x1000000),
+                             floor(len / 0x10000) % 0x100,
+                             floor(len / 0x100) % 0x100,
+                             len % 0x100))
+        return
+    }
+    raise e"overflow in pack '$packn'", 0
+}
+
+var pack_n32 = func(n) {
+    return floor(n / 0x1000000),
+           floor(n / 0x10000) % 0x100,
+           floor(n / 0x100) % 0x100,
+           n % 0x100
+}
+
+var pack_n64 = func(n, v) {
+    return v, floor(n / 0x1000000000000) % 0x100,
+              floor(n / 0x10000000000) % 0x100,
+              floor(n / 0x100000000) % 0x100,
+              floor(n / 0x1000000) % 0x100,
+              floor(n / 0x10000) % 0x100,
+              floor(n / 0x100) % 0x100,
+              n % 0x100
+}
+
+packers = setmt({
+    "undef": func(buf) {
+        buf.push(char(0xC0))
+    },
+
+    "boolean": func(buf, v) {
+        buf.push(char(v ? 0xC3 : 0xC2))
+    },
+
+    "string": func(buf, v) {
+        // fixstr, str8, str16, str32
+        pack_len("string", buf, v.len(), 0x1F, 0xA0, 0xD9, 0xDA, 0xDB)
+        buf.push(v)
+    },
+
+    "binary": func(buf, v) {
+        // bin8, bin16, bin32
+        pack_len("binary", buf, v.len(), undef, undef, 0xC4, 0xC5, 0xC6)
+        buf.push(v)
+    },
+
+    "table": func(buf, v, opts) {
+        var n = 0
+        for k, v in pairs(v) { n += 1 }
+        // fixmap, map16, map32
+        pack_len("table", buf, n, 0x0F, 0x80, undef, 0xDE, 0xDF)
+        for k, v in pairs(v) {
+            packers[typeof k](buf, k, opts)
+            packers[typeof v](buf, v, opts)
+        }
+    },
+
+    "array": func(buf, v, opts) {
+        // fixarray, array16, array32
+        pack_len("array", buf, v.len(), 0x0F, 0x90, undef, 0xDC, 0xDD)
+        for i, v in v.each() {
+            packers[typeof v](buf, v, opts)
+        }
+    },
+
+    "unsigned": func(buf, n) {
+        if n >= 0 {
+            if n <= 0x7F {
+                buf.push(char(n)) // fixnum_pos
+            } else if n <= 0xFF {
+                buf.push(char(0xCC, n)) // uint8
+            } else if n <= 0xFFFF {
+                buf.push(char(0xCD, floor(n / 0x100), n % 0x100)) // uint16
+            } else if n <= 0xFFFFFFFF {
+                buf.push(char(0xCE, pack_n32(n))) // uint32
+            } else {
+                buf.push(char(0xCF, 0, pack_n64(n, 0x0))) // uint64
+            }
+        } else {
+            if n >= -0x20 {
+                buf.push(char(0x100 + n)) // fixnum_neg
+            } else if n >= -0x80 {
+                buf.push(char(0xD0, 0x100 + n)) // int8
+            } else if n >= -0x8000 {
+                n += 0x10000
+                buf.push(char(0xD1, floor(n / 0x100), n % 0x100)) // int16
+            } else if n >= -0x80000000 {
+                n += 0x100000000
+                buf.push(char(0xD2, pack_n32(n))) // int32
+            } else {
+                buf.push(char(0xD3, 0xFF, pack_n64(n, 0xFF))) // int64
+            }
+        }
+    },
+
+    "signed": func(buf, n) {
+        if n >= 0 {
+            if n <= 0x7F {
+                buf.push(char(n)) // fixnum_pos
+            } else if n <= 0x7FFF {
+                buf.push(char(0xD1, floor(n / 0x100), n % 0x100)) // int16
+            } else if n <= 0x7FFFFFFF {
+                buf.push(char(0xD2, pack_n32(n))) // int32
+            } else {
+                buf.push(char(0xD3, pack_n64(n, 0x0))) // uint64
+            }
+        } else {
+            if n >= -0x20 {
+                buf.push(char(0xE0 + 0x20 + n)) // fixnum_neg
+            } else if n >= -0x80 {
+                buf.push(char(0xD0, 0x100 + n)) // int8
+            } else if n >= -0x8000 {
+                n += 0x10000
+                buf.push(char(0xD1, floor(n / 0x100), n % 0x100)) // int16
+            } else if n >= -0x80000000 {
+                n += 0x100000000
+                buf.push(char(0xD2, pack_n32(n))) // int32
+            } else {
+                buf.push(char(0xD3, pack_n64(n, 0xFF))) // int64
+            }
+        }
+    },
+
+    "integer": func(buf, n, opts) {
+        return packers[opts["integer"] || "signed"](buf, n, opts)
+    },
+
+    "float": func(buf, n) {
+        var sign = 0
+        if n < 0 {
+            sign = 0x80
+            n = -n
+        }
+        var mt, ex = frexp(n)
+        if mt != mt {
+            buf.push(char(0xCA, 0xFF, 0x88, 0x00, 0x00)) // nan
+        } else if mt == huge || ex > 0x80 {
+            if sign == 0 {
+                buf.push(char(0xCA, 0x7F, 0x80, 0x00, 0x00)) // inf
+            } else {
+                buf.push(char(0xCA, 0xFF, 0x80, 0x00, 0x00)) // -inf
+            }
+        } else if (mt == 0 && ex == 0) || ex < -0x7E {
+            buf.push(char(0xCA, sign, 0x00, 0x00, 0x00)) // zero
+        } else {
+            ex = ex + 0x7E
+            mt = (mt * 2 - 1) * ldexp(0.5, 24)
+            buf.push(char(0xCA, sign + floor(ex / 0x2),
+                                (ex % 0x2) * 0x80 + floor(mt / 0x10000),
+                                floor(mt / 0x100) % 0x100,
+                                mt % 0x100))
+        }
+    },
+
+    "double": func(buf, n) {
+        var sign = 0
+        if n < 0 {
+            sign = 0x80
+            n = -n
+        }
+        var mt, ex = frexp(n)
+        if mt != mt {
+            buf.push(char(0xCB, 0xFF, 0xF8, 0x00, 0x00, 0x00, 0x00,
+                                0x00, 0x00)) // nan
+        } else if mt == huge {
+            if sign == 0 {
+                buf.push(char(0xCB, 0x7F, 0xF0, 0x00, 0x00, 0x00, 0x00,
+                                    0x00, 0x00)) // inf
+            } else {
+                buf.push(char(0xCB, 0xFF, 0xF0, 0x00, 0x00, 0x00, 0x00,
+                                    0x00, 0x00)) // -inf
+            }
+        } else if mt == 0 && ex == 0 {
+            buf.push(char(0xCB, sign, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                0x00, 0x00)) // zero
+        } else {
+            ex = ex + 0x3FE
+            mt = (mt * 2 - 1) * ldexp(0.5, 53)
+            buf.push(char(0xCB, sign + floor(ex / 0x10),
+                                (ex % 0x10) * 0x10 + floor(mt / 0x1000000000000),
+                                 floor(mt / 0x10000000000) % 0x100,
+                                 floor(mt / 0x100000000) % 0x100,
+                                 floor(mt / 0x1000000) % 0x100,
+                                 floor(mt / 0x10000) % 0x100,
+                                 floor(mt / 0x100) % 0x100,
+                                mt % 0x100))
+        }
+    },
+
+    "number": func(buf, n, opts) {
+        if floor(n) != n || n != n || n == huge || n == -huge {
+            return packers[opts["number"] || "double"](buf, n, opts)
+        } else {
+            return packers["integer"](buf, n, opts)
+        }
+    }
+}, {
+    __index: func(self, k) { raise e"pack '$k' is not implemented", 0 }
+})
+
+var defopts = {}
+M.pack = func(data, packopts) {
+    var buf = []
+    var opts = packopts || defopts
+    packers[typeof data](buf, data, packopts || defopts)
+    return buf.concat()
+}
+
+var types_map = setmt({
+    0xC0: "undef",
+    0xC2: "false",
+    0xC3: "true",
+    0xC4: "bin8",
+    0xC5: "bin16",
+    0xC6: "bin32",
+    0xCA: "float",
+    0xCB: "double",
+    0xCC: "uint8",
+    0xCD: "uint16",
+    0xCE: "uint32",
+    0xCF: "uint64",
+    0xD0: "int8",
+    0xD1: "int16",
+    0xD2: "int32",
+    0xD3: "int64",
+    0xD9: "str8",
+    0xDA: "str16",
+    0xDB: "str32",
+    0xDC: "array16",
+    0xDD: "array32",
+    0xDE: "map16",
+    0xDF: "map32"
+}, {
+    __index: func(self, k) {
+        if k < 0xC0 {
+            if k < 0x80 {
+                return "fixnum_pos"
+            } else if k < 0x90 {
+                return "fixmap"
+            } else if k < 0xA0 {
+                return "fixarray"
+            } else {
+                return "fixstr"
+            }
+        } else if k > 0xDF {
+            return "fixnum_neg"
+        } else {
+            return "reserved" ~ tostring(k)
+        }
+    }
+})
+
+var unpackers
+
+var unpack_array = func(c, n) {
+    var t = []
+    var decode = unpackers["any"]
+    for i in 1 to n {
+        t.push(decode(c))
+    }
+    return t
+}
+
+var unpack_map = func(c, n) {
+    var t = {}
+    var decode = unpackers["any"]
+    for i in 1 to n {
+        t[decode(c)] = decode(c)
+    }
+    return t
+}
+
+var do_underflow = func(c, nb) {
+    var s, i, j = c.s, c.i, c.j
+    if (i + nb) > j {
+        c.underflow(i + nb)
+        s, i, j = c.s, c.i, c.j
+    }
+    return s, i, j
+}
+
+var get_bytes = func(s, i, nb) {
+    return s.sub(i, i + nb).byte(0, nb)
+}
+
+unpackers = setmt({
+    "any": func(c) {
+        var s, i, j = do_underflow(c, 1)
+        var val = get_bytes(s, i, 1)
+        c.i = i + 1
+        return unpackers[types_map[val]](c, val)
+    },
+
+    "undef": func() { return undef },
+    "false": func() { return false },
+    "true" : func() { return true  },
+
+    "float": func(c) {
+        var s, i, j = do_underflow(c, 4)
+        var b1, b2, b3, b4 = get_bytes(s, i, 4)
+        var sign = b1 > 0x7F
+        var ex = (b1 % 0x80) * 0x2 + floor(b2 / 0x80)
+        var mt = ((b2 % 0x80) * 0x100 + b3) * 0x100 + b4
+        sign = sign ? -1 : 1
+        var n
+        if mt == 0 && ex == 0 {
+            n = sign
+        } else if ex == 0xFF {
+            if mt == 0 {
+                n = sign * huge
+            } else {
+                n = 0 / 0
+            }
+        } else {
+            n = sign * ldexp(1 + mt / 0x800000, ex - 0x7F)
+        }
+        c.i = i + 4
+        return n
+    },
+
+    "double": func(c) {
+        var s, i, j = do_underflow(c, 8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(s, i, 8)
+        var sign = b1 > 0x7F
+        var ex = (b1 % 0x80) * 0x10 + floor(b2 / 0x10)
+        var mt = ((((((b2 % 0x10) * 0x100 + b3) * 0x100 + b4) * 0x100 + b5)
+                    * 0x100 + b6) * 0x100 + b7) * 0x100 + b8
+        sign = sign ? -1 : 1
+        var n
+        if mt == 0 && ex == 0 {
+            n = sign
+        } else if ex == 0x7FF {
+            if mt == 0 {
+                n = sign * huge
+            } else {
+                n = 0 / 0
+            }
+        } else {
+            n = sign * ldexp(1 + mt / 0x10000000000000, ex - 0x3FF)
+        }
+        c.i = i + 8
+        return n
+    },
+
+    "fixnum_pos": func(c, v) {
+        return v
+    },
+
+    "uint8": func(c) {
+        var s, i, j = do_underflow(c, 1)
+        var b1 = get_bytes(s, i, 1)
+        c.i = i + 1
+        return b1
+    },
+
+    "uint16": func(c) {
+        var s, i, j = do_underflow(c, 2)
+        var b1, b2 = get_bytes(s, i, 2)
+        c.i = i + 2
+        return b1 * 0x100 + b2
+    },
+
+    "uint32": func(c) {
+        var s, i, j = do_underflow(c, 4)
+        var b1, b2, b3, b4 = get_bytes(s, i, 4)
+        c.i = i + 4
+        return ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4
+    },
+
+    "uint64": func(c) {
+        var s, i, j = do_underflow(c, 8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(s, i, 8)
+        c.i = i + 8
+        return ((((((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4) * 0x100 + b5)
+                        * 0x100 + b6) * 0x100 + b7) * 0x100 + b8
+    },
+
+    "fixnum_neg": func(c, v) {
+        return v - 0x100
+    },
+
+    "int8": func(c) {
+        var s, i, j = do_underflow(c, 1)
+        var b1 = get_bytes(s, i, 1)
+        c.i = i + 1
+        return (b1 < 0x80) ? b1 : (b1 - 0x100)
+    },
+
+    "int16": func(c) {
+        var s, i, j = do_underflow(c, 2)
+        var b1, b2 = get_bytes(s, i, 2)
+        c.i = i + 2
+        return (b1 < 0x80) ? (b1 * 0x100 + b2)
+                           : (((b1 - 0xFF) * 0x100 + (b2 - 0xFF)) - 1)
+    },
+
+    "int32": func(c) {
+        var s, i, j = do_underflow(c, 4)
+        var b1, b2, b3, b4 = get_bytes(s, i, 4)
+        c.i = i + 4
+        return (b1 < 0x80) ? (((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
+                           : (((((b1 - 0xFF) * 0x100 + (b2 - 0xFF)) * 0x100
+                               + (b3 - 0xFF)) * 0x100 + (b4 - 0xFF)) - 1)
+    },
+
+    "int64": func(c) {
+        var s, i, j = do_underflow(c, 8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(s, i, 8)
+        c.i = i + 8
+        return (b1 < 0x80) ? (((((((b1 * 0x100 + b2) * 0x100 + b3)
+                                * 0x100 + b4) * 0x100 + b5) * 0x100 + b6)
+                                * 0x100 + b7) * 0x100 + b8)
+                           : (((((((((b1 - 0xFF) * 0x100 + (b2 - 0xFF))
+                                * 0x100 + (b3 - 0xFF)) * 0x100 + (b4 - 0xFF))
+                                * 0x100 + (b5 - 0xFF)) * 0x100 + (b6 - 0xFF))
+                                * 0x100 + (b7 - 0xFF)) * 0x100 + (b8 - 0xFF))
+                                    - 1)
+    },
+
+    "fixstr": func(c, v) {
+        var s, i, j = c.s, c.i, c.j
+        var n = v % 0x20
+        var e = i + n
+        if e > j {
+            c.underflow(e)
+            s, i, j = c.s, c.i, c.j
+            e = i + n
+        }
+        c.i = i + n
+        return s.sub(i, e)
+    },
+
+    "str8": func(c, v) {
+        var s, i, j = do_underflow(c, 1)
+        var n = get_bytes(s, i, 1)
+        i += 1
+        c.i = i
+        var e = i + n
+        if e > j {
+            c.underflow(e)
+            s, i, j = c.s, c.i, c.j
+            e = i + n
+        }
+        c.i = i + n
+        return s.sub(i, e)
+    },
+
+    "str16": func(c, v) {
+        var s, i, j = do_underflow(c, 2)
+        var b1, b2 = get_bytes(s, i, 2)
+        i += 2
+        c.i = i
+        var n = b1 * 0x100 + b2
+        var e = i + n
+        if e > j {
+            c.underflow(e)
+            s, i, j = c.s, c.i, c.j
+            e = i + n
+        }
+        c.i = i + n
+        return s.sub(i, e)
+    },
+
+    "str32": func(c, v) {
+        var s, i, j = do_underflow(c, 4)
+        var b1, b2, b3, b4 = get_bytes(s, i, 4)
+        i += 4
+        c.i = i
+        var n = ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4
+        var e = i + n
+        if e > j {
+            c.underflow(e)
+            s, i, j = c.s, c.i, c.j
+            e = i + n
+        }
+        c.i = i + n
+        return s.sub(i, e)
+    },
+
+    "fixarray": func(c, v) {
+        return unpack_array(c, v % 0x10)
+    },
+
+    "array16": func(c) {
+        var s, i, j = do_underflow(c, 2)
+        var b1, b2 = get_bytes(s, i, 2)
+        c.i = i + 2
+        return unpack_array(c, b1 * 0x100 + b2)
+    },
+
+    "array32": func(c) {
+        var s, i, j = do_underflow(c, 4)
+        var b1, b2, b3, b4 = get_bytes(s, i, 4)
+        c.i = i + 4
+        return unpack_array(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
+    },
+
+    "fixmap": func(c, v) {
+        return unpack_map(c, v % 0x10)
+    },
+
+    "map16": func(c) {
+        var s, i, j = do_underflow(c, 2)
+        var b1, b2 = get_bytes(s, i, 2)
+        c.i = i + 2
+        return unpack_map(c, b1 * 0x100 + b2)
+    },
+
+    "map32": func(c) {
+        var s, i, j = do_underflow(c, 4)
+        var b1, b2, b3, b4 = get_bytes(s, i, 4)
+        c.i = i + 4
+        return unpack_map(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
+    }
+}, {
+    __index: func(self, k) { raise e"unpack '$k' is not implemented", 0 }
+})
+
+unpackers["bin8"] = unpackers["str8"]
+unpackers["bin16"] = unpackers["str16"]
+unpackers["bin32"] = unpackers["str32"]
+
+var str_underflow = func(self) {
+    raise "missing bytes", 0
+}
+var cursor_string = func(str) {
+    return { s: str, i: 0, j: str.len(), underflow: str_underflow }
+}
+
+M.unpack = func(s) {
+    var cur = cursor_string(s)
+    var data = unpackers["any"](cur)
+    if cur.i < (cur.j - 1) {
+        raise "extra bytes", 0
+    }
+    return data
+}
+
+M.unpacker = func(s) {
+    var cur = cursor_string(s)
+    return func() {
+        if cur.i <= (cur.j - 1) {
+            return cur.i, unpackers["any"](cur)
+        }
+    }
+}
+
+return M
