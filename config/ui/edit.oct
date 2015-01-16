@@ -111,6 +111,7 @@ var gen_tex_listed = func() {
 
     var cbx = hb.append(gui::MenuButton({ variant: "combobox", min_w: 0.25 }))
     var mnc = gui::Filler({ variant: "menu", min_w: 0.25 })
+    mnc.parent = cbx
     var mn = mnc.append(gui::VBox({ clamp: true }))
     signal::connect(cbx, "clicked", func(mb) {
         mb.show_menu(mnc)
