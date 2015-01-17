@@ -807,6 +807,8 @@ M.Entity = Object.clone({
         for k, v in pairs(raw) {
             k = tonumber(k) && ids_to_names[sn][k] || k
             @[debug] log(DEBUG, e"    $k = $(tostring(v))")
+            var sv = self["_SV_" ~ k]
+            v = sv.from_wire(v)
             self.set_sdata(k, v, undef, true)
             @[debug] log(DEBUG, "    ... done.")
         }
@@ -941,7 +943,8 @@ M.Entity = Object.clone({
         if ent {
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
-            ent.set_sdata(key, value)
+            var sv = ent["_SV_" ~ key]
+            ent.set_sdata(key, sv.from_wire(value))
         }
     }]),
 
@@ -960,7 +963,8 @@ M.Entity = Object.clone({
         if ent {
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
-            ent.set_sdata(key, value, sender)
+            var sv = ent["_SV_" ~ key]
+            ent.set_sdata(key, sv.from_wire(value), sender)
         }
     }]),
 
@@ -1046,10 +1050,6 @@ M.Entity = Object.clone({
         // from a server or set clientside, update now
         if nfh || cset || csfh || is_local {
             @[debug] log(INFO, "    var update")
-            // from the server, in wire format
-            if nfh {
-                val = svar.from_wire(val)
-            }
             // TODO: avoid assertions
             assert(svar.validate(val))
             self.sdata_changed(svar, key, val)
@@ -1068,14 +1068,11 @@ M.Entity = Object.clone({
         }
 
         if actor_uid && actor_uid != -1 {
-            val = svar.from_wire(val)
             if !svar.client_write {
                 log(ERROR, "Entity.set_sdata: client $actor_uid tried to"
                     e" change $key")
                 return
             }
-        } else if iop {
-            val = svar.from_wire(val)
         }
 
         self.sdata_changed(svar, key, val)

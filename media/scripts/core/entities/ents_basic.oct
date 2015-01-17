@@ -879,13 +879,9 @@ M.StaticEntity = Entity.clone({
     set_sdata: func(self, key, val, actor_uid) {
         @[debug] log(INFO, "    var update")
         var svar = self[e"_SV_$key"]
-        var nfh = actor_uid != -1
-        if nfh {
-            val = svar.from_wire(val)
-        }
         assert(svar.validate(val))
         self.sdata_changed(svar, key, val)
-        emit(self, e"$key,changed", val, nfh)
+        emit(self, e"$key,changed", val, actor_uid != -1)
         self.svar_values[key] = val
     },
 
