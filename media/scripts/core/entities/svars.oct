@@ -257,34 +257,31 @@ M.StateVariable = Object.clone({
     },
 
     /**
-        Converts the given value to wire format for this state variable.
-        It's a string meant for final network transmission. On the other
-        side it's simply converted back to the original format using
-        $from_wire. By default simply converts to string.
+        Converts the given value to data format for this state variable.
+        It's a string that is user readable. By default it simply converts
+        the value to a string.
     */
-    to_wire: func(self, val) {
-        return tostring(val)
-    },
-
-    /// Like $to_wire, but always in readable format (for UIs etc).
     to_data: func(self, val) {
         return tostring(val)
     },
 
     /**
-        Converts the given value in wire format back to the original
-        format. See $to_wire. By default simply returns a string.
+        Converts the given value in data format back to the original
+        format. See $to_data. By default simply returns a string.
     */
-    from_wire: func(self, val) {
-        return tostring(val)
-    },
-
-    /// Like $from_wire, but always in readable format (for UIs etc).
     from_data: func(self, val) {
         return tostring(val)
     },
 
-    /// Convert to a value that can be easily serialized.
+    /**
+        Converts the given value to an easily serializable format (i.e.
+        a format that can be serialized with builtin language types).
+        It must be possible to set the result as state data value.
+
+        By default this simply returns the input value (as most state
+        variable types represent primitives) but can be overridden
+        for more complex types.
+    */
     to_serializable: func(self, val) {
         return val
     }
@@ -292,46 +289,33 @@ M.StateVariable = Object.clone({
 StateVariable = M.StateVariable
 
 /**
-    Specialization of $StateVariable for integer values. Overrides
-    to_ and from_ wire appropriately, to_wire converts to a string,
-    from_wire converts to an integer.
+    Specialization of $StateVariable for integer values.
 */
 M.StateInteger = StateVariable.clone({
     name: "StateInteger",
 
-    to_wire  : func(self, val) { return tostring(val) },
-    from_wire: func(self, val) { return floor(tonumber(val)) },
     to_data  : func(self, val) { return tostring(val) },
     from_data: func(self, val) { return floor(tonumber(val)) }
 })
 StateInteger = M.StateInteger
 
 /**
-    Specialization of $StateVariable for float values. Overrides
-    to_ and from_ wire appropriately, to_wire converts to a string
-    (with max two places past the floating point represented in the
-    string), from_wire converts to a float.
+    Specialization of $StateVariable for float values.
 */
 M.StateFloat = StateVariable.clone({
     name: "StateFloat",
 
-    to_wire  : func(self, val) { return tostring(round(val, 2)) },
-    from_wire: func(self, val) { return tonumber(val) },
     to_data  : func(self, val) { return tostring(round(val, 2)) },
     from_data: func(self, val) { return tonumber(val) }
 })
 StateFloat = M.StateFloat
 
 /**
-    Specialization of $StateVariable for boolean values. Overrides
-    to_ and from_ wire appropriately, to_wire converts to a string,
-    from_wire converts to a boolean.
+    Specialization of $StateVariable for boolean values.
 */
 M.StateBoolean = StateVariable.clone({
     name: "StateBoolean",
 
-    to_wire  : func(self, val) { return tostring(val) },
-    from_wire: func(self, val) { return val == "true" && true || false },
     to_data  : func(self, val) { return tostring(val) },
     from_data: func(self, val) { return val == "true" && true || false }
 })
@@ -340,24 +324,18 @@ StateBoolean = M.StateBoolean
 from std.conv import serialize as ts, deserialize as td
 
 /**
-    Specialization of $StateVariable for table values. Overrides
-    to_ and from_ wire appropriately, to_wire serializes the given
-    table, from_wire deserializes it.
+    Specialization of $StateVariable for table values.
 */
 M.StateTable = StateVariable.clone({
     name: "StateTable",
 
-    to_wire  : func(self, val) { return ts(val) },
-    from_wire: func(self, val) { return td(val) },
     to_data  : func(self, val) { return ts(val) },
     from_data: func(self, val) { return td(val) }
 })
 StateTable = M.StateTable
 
 /**
-    Specialization of $StateVariable for string values. Doesn't
-    override to_ and from_wire, because the defaults already work
-    with strings.
+    Specialization of $StateVariable for string values.
 */
 M.StateString = StateVariable.clone({
     name: "StateString"
@@ -485,14 +463,12 @@ ArraySurrogate = M.ArraySurrogate
 /**
     Specialization of <StateVariable> for arrays. Uses $ArraySurrogate
     to provide an array-like "interface". The surrogate is required to
-    properly reflect array element changes. This is the first state
-    variable object that requires more complex to_wire and from_wire
-    functions.
+    properly reflect array element changes.
 */
 M.StateArray = StateVariable.clone({
     name: "StateArray",
 
-    /// An element separator used by the wire format. Defaults to "|".
+    /// An element separator used by the data format. Defaults to "|".
     separator: "|",
 
     /**
@@ -502,7 +478,7 @@ M.StateArray = StateVariable.clone({
     surrogate: ArraySurrogate,
 
     /**
-        Instead of returning the raw value in non-wire format, this
+        Instead of returning the raw value in non-data format, this
         overriden getter returns the appropriate $surrogate. It
         does not create a new surrogate each time; it's cached
         for performance reasons. Performs read tests.
@@ -536,49 +512,38 @@ M.StateArray = StateVariable.clone({
             val.to_array && val.to_array() || val.copy(), -1)
     },
 
-    /** Function: to_wire_item
+    /** Function: to_data_item
         This is not a regular method, it has no self. It's called by
-        $to_wire for each value of the array before including it in
+        $to_data for each value of the array before including it in
         the result.
     */
-    to_wire_item: tostring,
     to_data_item: tostring,
 
-    /** Function: from_wire_item
+    /** Function: from_data_item
         This is not a regular method, it has no self. It's called by
-        $from_wire for each value of the array before including it in
+        $from_data for each value of the array before including it in
         the result.
     */
-    from_wire_item: tostring,
     from_data_item: tostring,
 
     /**
-        Returns the contents of the state array in a wire format. It
+        Returns the contents of the state array in a data format. It
         starts with a "[", followed by a list of items separated by
         $separator. It ends with a "]". The value can be either an
         array or an array surrogate.
     */
-    to_wire: func(self, val) {
-        return "[" ~ (val.to_array && val.to_array() || val)
-            .map(self.to_wire_item).concat(self.separator) ~ "]"
-    },
-
     to_data: func(self, val) {
         return "[" ~ (val.to_array && val.to_array() || val)
             .map(self.to_data_item).concat(self.separator) ~ "]"
     },
 
-    /// Converts a string in a format given by $to_wire back to a table.
-    from_wire: func(self, val) {
-        return (val == "[]") && [] || val.sub(1, val.len() - 1)
-            .split(self.separator).map(self.from_wire_item)
-    },
-
+    /// Converts a string in a format given by $to_data back to a table.
     from_data: func(self, val) {
         return (val == "[]") && [] || val.sub(1, val.len() - 1)
             .split(self.separator).map(self.from_data_item)
     },
 
+    /// Overridden to return a plain array in all cases.
     to_serializable: func(self, val) {
         return val.to_array && val.to_array() || val
     },
@@ -660,31 +625,22 @@ M.StateArray = StateVariable.clone({
 StateArray = M.StateArray
 
 /**
-    A variant of $StateArray for integer contents. Overrides to_wire_item,
-    which converts a value to a string and from_wire_item, which converts
-    it back to an integer.
+    A variant of $StateArray for integer contents.
 */
 M.StateArrayInteger = StateArray.clone({
     name: "StateArrayInteger",
 
-    to_wire_item  : tostring,
-    from_wire_item: func(v) { return floor(tonumber(v)) },
     to_data_item  : tostring,
     from_data_item: func(v) { return floor(tonumber(v)) }
 })
 StateArrayInteger = M.StateArrayInteger
 
 /**
-    A variant of $StateArray for floating point contents. Overrides
-    to_wire_item, which converts a value to a string (with max two places
-    past the floating point represented in the string) and from_wire_item,
-    which converts it back to a float.
+    A variant of $StateArray for floating point contents.
 */
 M.StateArrayFloat = StateArray.clone({
     name: "StateArrayFloat",
 
-    to_wire_item  : func(v) { return tostring(round(v, 2)) },
-    from_wire_item: tonumber,
     to_data_item  : func(v) { return tostring(round(v, 2)) },
     from_data_item: tonumber
 })
