@@ -1022,9 +1022,7 @@ M.Entity = Object.clone({
               doesn't use a custom syncing method, this sends a notification
               to the server.
             - iop - on the server, a boolean value, if it's true it makes
-              this an internal server operaton; that always forces the value
-              to convert from wire format (otherwise converts only when setting
-              on a specific client number).
+              this an internal server operaton (won't send to clients).
     */
     set_sdata: @[!server,func(self, key, val, actor_uid) {
         @[debug] log(DEBUG, e"Entity.set_sdata: $key = $(serialize(val)) for $(self.uid)")
