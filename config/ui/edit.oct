@@ -244,7 +244,7 @@ root.new_window("entity", gui.Window, func(win) {
         var sv = ent[prefix ~ k]
         var gn = sv.gui_name
         if gn != false {
-            sdata[k] = [ gn || k, v, sv ]
+            sdata[k] = [ gn || k, sv.to_data(v), sv ]
             props.push(k)
         }
     }

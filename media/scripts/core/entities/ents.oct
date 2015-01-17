@@ -547,11 +547,12 @@ M.remove_all = func(stat) {
 set_external("entities_remove_all", M.remove_all)
 
 set_external("entities_load", @[!server,func(entstr) {
-    var entities = []
+    var entities, err = []
     if !entstr {
         @[debug] log(DEBUG, "entities_load: nothing to read")
     } else {
-        entities = deserialize(entstr)
+        entities, err = deserialize(entstr)
+        print "ERROR", err
     }
 
     @[debug] log(DEBUG, "entities_load: loading all entities")
@@ -774,7 +775,7 @@ M.Entity = Object.clone({
                 var name = svar.name
                 var val = self.get_attr(name)
                 if val != undef {
-                    var wval = svar.to_wire(val)
+                    var wval = svar.to_serializable(val)
                     @[debug] log(DEBUG, e"    adding $name: $wval")
                     var key = (!comp) && name
                         || tonumber(names_to_ids[sn][name])
@@ -808,7 +809,6 @@ M.Entity = Object.clone({
             k = tonumber(k) && ids_to_names[sn][k] || k
             @[debug] log(DEBUG, e"    $k = $(tostring(v))")
             var sv = self["_SV_" ~ k]
-            v = sv.from_wire(v)
             self.set_sdata(k, v, undef, true)
             @[debug] log(DEBUG, "    ... done.")
         }

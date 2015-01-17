@@ -282,6 +282,11 @@ M.StateVariable = Object.clone({
     /// Like $from_wire, but always in readable format (for UIs etc).
     from_data: func(self, val) {
         return tostring(val)
+    },
+
+    /// Convert to a value that can be easily serialized.
+    to_serializable: func(self, val) {
+        return val
     }
 })
 StateVariable = M.StateVariable
@@ -572,6 +577,10 @@ M.StateArray = StateVariable.clone({
     from_data: func(self, val) {
         return (val == "[]") && [] || val.sub(1, val.len() - 1)
             .split(self.separator).map(self.from_data_item)
+    },
+
+    to_serializable: func(self, val) {
+        return val.to_array && val.to_array() || val
     },
 
     /**
