@@ -283,7 +283,7 @@ M.StateVariable = Object.clone({
         for more complex types.
     */
     to_serializable: func(self, val) {
-        return tostring(val)
+        return tostring(val) || ""
     }
 })
 StateVariable = M.StateVariable
@@ -297,7 +297,7 @@ M.StateInteger = StateVariable.clone({
     to_data  : func(self, val) { return tostring(val) },
     from_data: func(self, val) { return floor(tonumber(val)) },
 
-    to_serializable: func(self, val) { return floor(tonumber(val)) }
+    to_serializable: func(self, val) { return floor(tonumber(val)) || 0 }
 })
 StateInteger = M.StateInteger
 
@@ -310,7 +310,7 @@ M.StateFloat = StateVariable.clone({
     to_data  : func(self, val) { return tostring(round(val, 2)) },
     from_data: func(self, val) { return tonumber(val) },
 
-    to_serializable: func(self, val) { return tonumber(val) }
+    to_serializable: func(self, val) { return tonumber(val) || 0 }
 })
 StateFloat = M.StateFloat
 
@@ -547,12 +547,22 @@ M.StateArray = StateVariable.clone({
 
     /// Converts a string in a format given by $to_data back to a table.
     from_data: func(self, val) {
-        return td(val)
+        var v = td(val)
+        if typeof v != "array" {
+            return []
+        }
+        return v.map(self.from_data_item)
     },
 
     /// Overridden to return a plain array in all cases.
     to_serializable: func(self, val) {
-        return val.to_array && val.to_array() || val
+        if typeof val == "array" {
+            return val
+        }
+        if val.to_array {
+            return val.to_array()
+        }
+        return []
     },
 
     /**
