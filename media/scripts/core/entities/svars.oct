@@ -468,6 +468,9 @@ ArraySurrogate = M.ArraySurrogate
 M.StateArray = StateVariable.clone({
     name: "StateArray",
 
+    /// An element separator used by the data format. Defaults to "|".
+    separator: "|",
+
     /**
         Specifies the surrogate used by the state variable. By default
         it's $ArraySurrogate, but may be overriden.
@@ -524,17 +527,20 @@ M.StateArray = StateVariable.clone({
     from_data_item: tostring,
 
     /**
-        Returns the contents of the state array in a data format. The value
-        can be either an array or an array surrogate.
+        Returns the contents of the state array in a data format. It
+        starts with a "[", followed by a list of items separated by
+        $separator. It ends with a "]". The value can be either an
+        array or an array surrogate.
     */
     to_data: func(self, val) {
-        return ts(self.to_serializable(val).map(
-            \v -> self::from_data_item(self::to_data_item(v))))
+        return "[" ~ (val.to_array && val.to_array() || val)
+            .map(self.to_data_item).concat(self.separator) ~ "]"
     },
 
     /// Converts a string in a format given by $to_data back to a table.
     from_data: func(self, val) {
-        return td(val)
+        return (val == "[]") && [] || val.sub(1, val.len() - 1)
+            .split(self.separator).map(self.from_data_item)
     },
 
     /// Overridden to return a plain array in all cases.
@@ -589,6 +595,14 @@ M.StateArray = StateVariable.clone({
         return self.get_raw(ent)[idx]
     },
 
+    _get_raw_common: func(self, ent, val) {
+        var a = self.get_raw(ent)
+        if typeof val == "string" {
+            assert(!val.find("%" ~ self.separator))
+        }
+        return a
+    },
+
     /**
         Sets an element in the state array. Used by the surrogate. Performs
         an update on all clients by setting the state data on the entity.
@@ -596,14 +610,14 @@ M.StateArray = StateVariable.clone({
     set_item: func(self, ent, idx, val) {
         @[debug] log(INFO, "StateArray: set_item: " ~ idx ~ ", "
             ~ tostring(val))
-        var a = self.get_raw(ent)
+        var a = self._get_raw_common(ent, val)
         a[idx] = val
         ent.set_sdata(self.name, a, -1)
     },
 
     push_item: func(self, ent, val) {
         @[debug] log(INFO, "StateArray: push: " ~ tostring(val))
-        var a = self.get_raw(ent)
+        var a = self._get_raw_common(ent, val)
         a.push(val)
         ent.set_sdata(self.name, a, -1)
     }

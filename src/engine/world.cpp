@@ -1458,7 +1458,7 @@ LUAICOMMAND(get_map_name, {
 void finish_dragging() {
     groupeditpure(
         const vec& o = e.o;
-        defformatstring(pos, "[%f,%f,%f]", o.x, o.y, o.z);
+        defformatstring(pos, "[%f|%f|%f]", o.x, o.y, o.z);
         lua::call_external("entity_set_gui_attr", "pss", &e,
             "position", pos);
     );
