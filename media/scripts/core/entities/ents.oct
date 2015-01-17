@@ -552,7 +552,6 @@ set_external("entities_load", @[!server,func(entstr) {
         @[debug] log(DEBUG, "entities_load: nothing to read")
     } else {
         entities, err = deserialize(entstr)
-        print "ERROR", err
     }
 
     @[debug] log(DEBUG, "entities_load: loading all entities")
@@ -591,7 +590,7 @@ set_external("entity_serialize", func(cent, nopos) {
     if !ent { return }
     var ignore = nopos ? srnopos : undef
     var sr = ent.build_sdata({ compressed: true, ignore: ignore })
-    return ent.name, sr
+    return ent.name, sr, sr.len()
 })
 
 var storid = enum {
@@ -944,7 +943,7 @@ M.Entity = Object.clone({
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
             var sv = ent["_SV_" ~ key]
-            ent.set_sdata(key, sv.from_wire(value))
+            ent.set_sdata(key, mp_unpack(value))
         }
     }]),
 
@@ -964,7 +963,7 @@ M.Entity = Object.clone({
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
             var sv = ent["_SV_" ~ key]
-            ent.set_sdata(key, sv.from_wire(value), sender)
+            ent.set_sdata(key, mp_unpack(value), sender)
         }
     }]),
 
@@ -1044,7 +1043,8 @@ M.Entity = Object.clone({
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
             self.msg_sdata_changereq_send(svar.reliable, self.uid,
-                tonumber(names_to_ids[self.name][svar.name]), svar.to_wire(val))
+                tonumber(names_to_ids[self.name][svar.name]),
+                mp_pack(svar.to_serializable(val)))
         }
 
         // from a server or set clientside, update now
@@ -1092,7 +1092,7 @@ M.Entity = Object.clone({
             }
 
             var kid = names_to_ids[self.name][key]
-            var wval = svar.to_wire(val)
+            var wval = mp_pack(svar.to_serializable(val))
             var acn = (svar.client_set && actor_uid && actor_uid != -1)
                 && storage_dynamic[actor_uid].cn || msg.ALL_CLIENTS
 

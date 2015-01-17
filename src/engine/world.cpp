@@ -393,14 +393,18 @@ undoblock *newundoent()
         e->i = entgroup[i];
         const char *name = NULL;
         const char *sdata = NULL;
+        int sdlen = 0;
         const extentity *ext = entities::getents()[entgroup[i]];
-        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret("entity_serialize", "p", "ss", ext, &name, &sdata) : 0;
+        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret("entity_serialize", "p", "ssd", ext, &name, &sdata, &sdlen) : 0;
         if (name) {
             e->name = newstring(name);
-            e->sdata = newstring(sdata);
+            e->sdata = new char[sdlen];
+            memcpy(e->sdata, sdata, sdlen);
+            e->sdlen = sdlen;
         } else {
-            e->name = newstring("");
-            e->sdata = newstring("");
+            e->name = NULL;
+            e->sdata = NULL;
+            e->sdlen = 0;
         }
         lua::pop_external_ret(n);
         e++;
@@ -501,7 +505,7 @@ undoblock *copyundoents(undoblock *u)
     loopi(u->numents)
         entadd(e[i].i);
     undoblock *c = newundoent();
-    loopi(u->numents) if(!e[i].name[0])
+    loopi(u->numents) if(!e[i].name)
         entgroup.removeobj(e[i].i);
     return c;
 }
@@ -512,11 +516,11 @@ void pasteundoent(const undoent &ue)
     vector<extentity *> &ents = entities::getents();
     while(ents.length() < ue.i) ents.add(entities::newentity())->type = ET_EMPTY;
     int efocus = -1;
-    if (!ue.sdata[0]) {
+    if (!ue.name) {
         lua::call_external("entity_remove_static", "i", ue.i);
     } else {
-        entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffssi", ue.name,
-                0.0f, 0.0f, 0.0f, ue.sdata, "", ue.i));
+        entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffSsi", ue.name,
+                0.0f, 0.0f, 0.0f, ue.sdata, ue.sdlen, "", ue.i));
     }
 }
 
@@ -1142,6 +1146,7 @@ int entcopygrid;
 struct copyent {
     char *name, *sdata;
     vec o;
+    int sdlen;
     ~copyent() { delete[] name; delete[] sdata; }
 };
 
@@ -1156,11 +1161,14 @@ void entcopy()
         loopv(entgroup) entfocus(entgroup[i], {
             const char *name = NULL;
             const char *sdata = NULL;
-            int n = lua::call_external_ret("entity_serialize", "pb", "ss", &e, true, &name, &sdata);
+            int sdlen = 0;
+            int n = lua::call_external_ret("entity_serialize", "pb", "ssd", &e, true, &name, &sdata, &sdlen);
             if (name) {
                 copyent &ce = entcopybuf.add();
                 ce.name = newstring(name);
-                ce.sdata = newstring(sdata);
+                ce.sdata = new char[sdlen];
+                memcpy(ce.sdata, sdata, sdlen);
+                ce.sdlen = sdlen;
                 ce.o = e.o;
                 ce.o.sub(vec(sel.o));
             }
@@ -1178,8 +1186,8 @@ void entpaste()
     {
         const copyent &c = entcopybuf[i];
         vec o = vec(c.o).mul(m).add(vec(sel.o));
-        lua::call_external("entity_new_with_sd", "sfffss", c.name, o.x, o.y,
-            o.z, c.sdata, "");
+        lua::call_external("entity_new_with_sd", "sfffSs", c.name, o.x, o.y,
+            o.z, c.sdata, c.sdlen, "");
     }
 }
 
@@ -1190,15 +1198,15 @@ void entreplace()
     if(entgroup.length() || enthover >= 0)
     {
         groupedit({
-            lua::call_external("entity_new_with_sd", "sfffssi", c.name,
-                e.o.x, e.o.y, e.o.z, c.sdata, "", n);
+            lua::call_external("entity_new_with_sd", "sfffSsi", c.name,
+                e.o.x, e.o.y, e.o.z, c.sdata, c.sdlen, "", n);
         });
     }
     else
     {
         vec o = vec(c.o).mul(float(sel.grid)/float(entcopygrid)).add(vec(sel.o));
-        lua::call_external("entity_new_with_sd", "sfffss", c.name,
-            o.x, o.y, o.z, c.sdata, "");
+        lua::call_external("entity_new_with_sd", "sfffSs", c.name,
+            o.x, o.y, o.z, c.sdata, c.sdlen, "");
     }
 }
 

@@ -1072,16 +1072,16 @@ bool packundo(undoblock *u, int &inlen, uchar *&outbuf, int &outlen)
         undoent *ue = u->ents();
         loopi(u->numents)
         {
-            size_t nlen = strlen(ue[i].name), sdlen = strlen(ue[i].sdata);
+            size_t nlen = ue[i].name ? strlen(ue[i].name) : 0, sdlen = ue[i].sdlen;
             *(ushort *)buf.pad(2) = lilswap(ushort(ue[i].i));
             if (nlen > USHRT_MAX || sdlen > USHRT_MAX) {
                 /* this will normally never happen, so it's here to catch issues */
                 assert(false);
             }
             *(ushort *)buf.pad(2) = lilswap(ushort(nlen));
-            buf.put((const uchar *)ue[i].name, nlen + 1);
+            if (nlen) buf.put((const uchar *)ue[i].name, nlen + 1);
             *(ushort *)buf.pad(2) = lilswap(ushort(sdlen));
-            buf.put((const uchar *)ue[i].sdata, sdlen + 1);
+            if (sdlen) buf.put((const uchar *)ue[i].sdata, sdlen);
         }
     }
     else
@@ -1114,9 +1114,9 @@ bool unpackundo(const uchar *inbuf, int inlen, int outlen)
             undoent ue;
             ue.i = lilswap(*(const ushort *)buf.pad(2));
             size_t nlen = lilswap(*((const ushort *)buf.pad(2)));
-            ue.name = (char *)buf.pad(nlen + 1);
+            ue.name = (char *)(nlen ? buf.pad(nlen + 1) : NULL);
             size_t sdlen = lilswap(*((const ushort *)buf.pad(2)));
-            ue.sdata = (char *)buf.pad(sdlen + 1);
+            ue.sdata = (char *)(sdlen ? buf.pad(sdlen) : NULL);
             pasteundoent(ue);
         }
     }
