@@ -460,13 +460,13 @@ var partition = func(tbl, l, r, pidx, fun) {
 }
 
 var insertion_sort = func(tbl, l, r, fun) {
-    for i in l to r {
-        var j, v = i, tbl[i]
-        while j > 1 && !fun(tbl[j - 1], v) {
-            tbl[j] = tbl[j - 1]
+    for i in l + 1 to r {
+        var j, v = i - 1, tbl[i]
+        while j >= l && !fun(tbl[j], v) {
+            tbl[j + 1] = tbl[j]
             j = j - 1
         }
-        tbl[j] = v
+        tbl[j + 1] = v
     }
 }
 
