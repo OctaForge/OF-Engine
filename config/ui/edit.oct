@@ -244,8 +244,9 @@ root.new_window("entity", gui.Window, func(win) {
         var sv = ent[prefix ~ k]
         var gn = sv.gui_name
         if gn != false {
-            sdata[k] = [ gn || k, sv.to_data(v), sv ]
-            props.push(k)
+            var nm = gn || k
+            sdata[nm] = [ sv.to_data(v), sv ]
+            props.push(nm)
         }
     }
     props.sort()
@@ -259,12 +260,12 @@ root.new_window("entity", gui.Window, func(win) {
                         var fpf, pf
                         for i, nm in props.each() {
                             var sd = sdata[nm]
-                            var gn, dv, sv = sd[0], sd[1], sd[2]
+                            var dv, sv = sd[0], sd[1]
                             vb.append(gui::HBox({ align_h: 1 }), func(hb) {
-                                hb.append(gui::Label({ text: " " ~ sd[0]
+                                hb.append(gui::Label({ text: " " ~ nm
                                     ~ ": " }))
                                 var fld = fields[sv.__proto] || field_def
-                                var fd = fld(hb, gn, ent, dv)
+                                var fd = fld(hb, nm, ent, dv)
                                 if pf { pf.set_tab_next(fd) }
                                 pf = fd
                                 if !fpf { fpf = fd }
