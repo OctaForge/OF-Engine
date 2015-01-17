@@ -2199,7 +2199,7 @@ static void changevbuf(decalrenderer &cur, int pass, vtxarray *va)
 
     vertex *vdata = (vertex *)0;
     gle::vertexpointer(sizeof(vertex), vdata->pos.v);
-    gle::normalpointer(sizeof(vertex), vdata->norm.v, GL_BYTE);
+    gle::normalpointer(sizeof(vertex), vdata->norm.v, GL_BYTE, 4);
     gle::texcoord0pointer(sizeof(vertex), vdata->tc.v, GL_FLOAT, 3);
     gle::tangentpointer(sizeof(vertex), vdata->tangent.v, GL_BYTE);
 }
