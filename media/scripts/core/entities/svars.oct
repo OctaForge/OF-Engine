@@ -283,7 +283,7 @@ M.StateVariable = Object.clone({
         for more complex types.
     */
     to_serializable: func(self, val) {
-        return val
+        return tostring(val)
     }
 })
 StateVariable = M.StateVariable
@@ -295,7 +295,9 @@ M.StateInteger = StateVariable.clone({
     name: "StateInteger",
 
     to_data  : func(self, val) { return tostring(val) },
-    from_data: func(self, val) { return floor(tonumber(val)) }
+    from_data: func(self, val) { return floor(tonumber(val)) },
+
+    to_serializable: func(self, val) { return floor(tonumber(val)) }
 })
 StateInteger = M.StateInteger
 
@@ -306,7 +308,9 @@ M.StateFloat = StateVariable.clone({
     name: "StateFloat",
 
     to_data  : func(self, val) { return tostring(round(val, 2)) },
-    from_data: func(self, val) { return tonumber(val) }
+    from_data: func(self, val) { return tonumber(val) },
+
+    to_serializable: func(self, val) { return tonumber(val) }
 })
 StateFloat = M.StateFloat
 
@@ -317,7 +321,9 @@ M.StateBoolean = StateVariable.clone({
     name: "StateBoolean",
 
     to_data  : func(self, val) { return tostring(val) },
-    from_data: func(self, val) { return val == "true" && true || false }
+    from_data: func(self, val) { return val == "true" && true || false },
+
+    to_serializable: func(self, val) { return !!val }
 })
 StateBoolean = M.StateBoolean
 
@@ -330,7 +336,14 @@ M.StateTable = StateVariable.clone({
     name: "StateTable",
 
     to_data  : func(self, val) { return ts(val) },
-    from_data: func(self, val) { return td(val) }
+    from_data: func(self, val) { return td(val) },
+
+    to_serializable: func(self, val) {
+        if typeof val == "table" {
+            return val
+        }
+        return {}
+    }
 })
 StateTable = M.StateTable
 
