@@ -30,6 +30,7 @@ import core.engine.cubescript as cs
 import core.engine.model
 
 from core.octascript.messagepack import pack as mp_pack, unpack as mp_unpack
+var mp_opts = { "number": "float" }
 
 from core.externals import set as set_external
 
@@ -558,7 +559,7 @@ set_external("entities_load", @[!server,func(entstr) {
     for i, e in entities.each() {
         var cn = e[0]
         @[debug] log(DEBUG, e"    $i, $cn")
-        add(cn, undef, { state_data: mp_pack(e[1]) })
+        add(cn, undef, { state_data: mp_pack(e[1], mp_opts) })
     }
     @[debug] log(DEBUG, "entities_load: done")
 }])
@@ -789,7 +790,7 @@ M.Entity = Object.clone({
             return r
         }
 
-        r = mp_pack(r)
+        r = mp_pack(r, mp_opts)
         @[debug] log(DEBUG, e"Entity.build_sdata compressed done")
         return r
     },
@@ -1044,7 +1045,7 @@ M.Entity = Object.clone({
             // TODO: supress sending of the same val, at least for some SVs
             self.msg_sdata_changereq_send(svar.reliable, self.uid,
                 tonumber(names_to_ids[self.name][svar.name]),
-                mp_pack(svar.to_serializable(val)))
+                mp_pack(svar.to_serializable(val), mp_opts))
         }
 
         // from a server or set clientside, update now
@@ -1092,7 +1093,7 @@ M.Entity = Object.clone({
             }
 
             var kid = names_to_ids[self.name][key]
-            var wval = mp_pack(svar.to_serializable(val))
+            var wval = mp_pack(svar.to_serializable(val), mp_opts)
             var acn = (svar.client_set && actor_uid && actor_uid != -1)
                 && storage_dynamic[actor_uid].cn || msg.ALL_CLIENTS
 
