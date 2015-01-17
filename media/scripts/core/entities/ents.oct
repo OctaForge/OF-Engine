@@ -1193,7 +1193,7 @@ M.Entity = Object.clone({
         if !svar || !svar.has_history { return undef }
         var val = self.get_attr(svar.name)
         if val != undef {
-            return svar.to_wire(val)
+            return svar.to_data(val)
         }
     },
 
@@ -1210,7 +1210,7 @@ M.Entity = Object.clone({
                 var name = svar.name
                 var val = self.get_attr(name)
                 if val != undef {
-                    r.push([ svar.gui_name || name, svar.to_wire(val) ])
+                    r.push([ svar.gui_name || name, svar.to_data(val) ])
                 }
             }
         }
@@ -1229,7 +1229,7 @@ M.Entity = Object.clone({
     set_gui_attr: func(self, prop, val) {
         var svar = self[e"_SV_GUI_$prop"]
         if !svar || !svar.has_history { return }
-        self.set_attr(svar.name, svar.from_wire(val))
+        self.set_attr(svar.name, svar.from_data(val))
     },
 
     /**
@@ -1263,7 +1263,7 @@ M.Entity = Object.clone({
         if nd {
             var svar = self[e"_SV_$prop"]
             if svar {
-                var nw = svar.from_wire(nd)
+                var nw = svar.from_data(nd)
                 if nw != undef { val = nw }
             }
         }
