@@ -916,7 +916,7 @@ M.StaticEntity = Entity.clone({
         works with.
     */
     get_attached_entity: func(self) {
-        return capi::get_attached_entity(self.__centity)
+        return capi::get_attached_entity(self)
     },
 
     /**
