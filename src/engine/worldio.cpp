@@ -3,7 +3,7 @@
 #include "engine.h"
 
 #ifndef STANDALONE
-string ofmname, ogzname, bakname, cfgname, picname, entcfgname, entbakname, mediacfgname;
+string ofmname, ogzname, bakname, picname, entcfgname, entbakname, mediacfgname;
 
 VARP(savebak, 0, 2, 2);
 
@@ -23,7 +23,6 @@ void setmapfilenames(const char *fname, const char *cname = NULL)
         formatstring(entbakname, "media/map/%s/entities.oct_%s.BAK", fname, baktime);
         formatstring(bakname, "media/map/%s/map_%s.BAK", fname, baktime);
     }
-    formatstring(cfgname, "media/map/%s/map.oct", cname ? cname : fname);
     formatstring(picname, "media/map/%s/preview.png", fname);
     formatstring(entcfgname, "media/map/%s/entities.oct", fname);
     formatstring(mediacfgname, "media/map/%s/media.cfg", fname);
@@ -31,23 +30,10 @@ void setmapfilenames(const char *fname, const char *cname = NULL)
     path(ofmname);
     path(ogzname);
     path(bakname);
-    path(cfgname);
     path(picname);
     path(entcfgname);
     path(mediacfgname);
 }
-
-void mapcfgname()
-{
-    const char *mname = game::getclientmap();
-    if(!*mname) mname = "untitled";
-
-    defformatstring(cfgname, "media/map/%s/map.oct", mname);
-    path(cfgname);
-    result(cfgname);
-}
-
-COMMAND(mapcfgname, "");
 
 void backup(const char *name, const char *backupname)
 {
@@ -621,6 +607,8 @@ struct tessentity
     uchar reserved;
 };
 
+SVARNP(game, usegame, "");
+
 bool load_world(const char *mname, const char *cname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     int loadingstart = SDL_GetTicks();
@@ -869,7 +857,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     execfile("config/default_map_settings.cfg", false);
     identflags |= IDF_SAFE;
     execfile(mediacfgname, false);
-    lua::call_external("mapscript_run", "s", cfgname);
+    if (usegame && usegame[0]) {
+        defformatstring(mapimport, "mapscripts.%s", usegame);
+        lua::call_external("mapscript_run", "s", mapimport);
+    }
     identflags &= ~(IDF_OVERRIDDEN | IDF_SAFE);
 
     char *eloaded = loadfile(entcfgname, NULL);

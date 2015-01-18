@@ -1355,7 +1355,13 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     {
         identflags |= IDF_OVERRIDDEN;
         execfile("config/default_map_settings.cfg", false);
-        identflags &= ~IDF_OVERRIDDEN;
+        identflags |= IDF_SAFE;
+        extern const char *usegame;
+        if (usegame && usegame[0]) {
+            defformatstring(mapimport, "mapscripts.%s", usegame);
+            lua::call_external("mapscript_run", "s", mapimport);
+        }
+        identflags &= ~(IDF_OVERRIDDEN | IDF_SAFE);
     }
 
     initlights();
