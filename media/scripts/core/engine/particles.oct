@@ -48,12 +48,15 @@ M.flags = enum {
     FLIP    : HFLIP | VFLIP | ROT
 }
 
+var iconrd = capi::particle_register_renderer_icon("icon")
+var textrd = capi::particle_register_renderer_text("text")
+
 /**
     Contains two predefined renderers that are mandatory - "text" and "icon".
 */
 var renderers = {
-    text: capi::particle_register_renderer_text("text"),
-    icon: capi::particle_register_renderer_icon("icon")
+    text: textrd,
+    icon: iconrd
 }
 M.renderers = renderers
 

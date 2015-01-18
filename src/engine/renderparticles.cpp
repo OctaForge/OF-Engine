@@ -1486,7 +1486,7 @@ int density, float scale, float speed, int gravity, physent *owner), {
     return true;
 });
 
-enum { PART_TEXT = 0, PART_ICON };
+enum { PART_ICON = 0, PART_TEXT };
 
 static void makeparticles(const extentity &e) {
     lua::call_external("particle_entity_emit", "p", &e);
