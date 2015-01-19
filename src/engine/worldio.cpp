@@ -546,7 +546,7 @@ static uint mapcrc = 0;
 uint getmapcrc() { return mapcrc; }
 void clearmapcrc() { mapcrc = 0; }
 
-static bool loadmapheader(stream *f, const char *mapname, mapheader &hdr, octaheader &ohdr, tmapheader &thdr, int &numents, bool &foreign)
+static bool loadmapheader(stream *f, const char *mapname, mapheader &hdr, tmapheader &thdr, int &numents, bool &foreign)
 {
     if(f->read(&hdr, 3*sizeof(int)) != 3*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
     lilswap(&hdr.version, 2);
@@ -578,22 +578,6 @@ static bool loadmapheader(stream *f, const char *mapname, mapheader &hdr, octahe
         hdr.numvslots = thdr.numvslots;
         numents = thdr.numents;
     }
-    else if(!memcmp(hdr.magic, "OCTA", 4))
-    {
-        if(hdr.version!=OCTAVERSION) { conoutf(CON_ERROR, "map %s uses an unsupported map format version (Sauerbraten)", mapname); return false; }
-        if(f->read(&ohdr.worldsize, 7*sizeof(int)) != 7*sizeof(int)) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
-        lilswap(&ohdr.worldsize, 7);
-        if(ohdr.worldsize <= 0|| ohdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", mapname); return false; }
-        memcpy(hdr.magic, "OFMF", 4);
-        hdr.version = 0;
-        hdr.headersize = sizeof(hdr);
-        hdr.worldsize = ohdr.worldsize;
-        hdr.numpvs = ohdr.numpvs;
-        hdr.blendmap = ohdr.blendmap;
-        hdr.numvars = ohdr.numvars;
-        hdr.numvslots = ohdr.numvslots;
-        numents = ohdr.numents;
-    }
     else { conoutf(CON_ERROR, "map %s uses an unsupported map type", mapname); return false; }
 
     return true;
@@ -619,11 +603,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(!f) { conoutf(CON_ERROR, "could not read map %s", ofmname); return false; }
 
     mapheader hdr;
-    octaheader ohdr;
     tmapheader thdr;
     int numents;
     bool foreign;
-    if(!loadmapheader(f, mapname, hdr, ohdr, thdr, numents, foreign)) { delete f; return false; }
+    if(!loadmapheader(f, mapname, hdr, thdr, numents, foreign)) { delete f; return false; }
 
     resetmap();
 
@@ -826,19 +809,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     if(!failed)
     {
-        if(mapversion <= 0) loopi(ohdr.lightmaps)
-        {
-            int type = f->getchar();
-            if(type&0x80)
-            {
-                f->getlil<ushort>();
-                f->getlil<ushort>();
-            }
-            int bpp = 3;
-            if(type&(1<<4) && (type&0x0F)!=2) bpp = 4;
-            f->seek(bpp*LM_PACKW*LM_PACKH, SEEK_CUR);
-        }
-
         if(hdr.numpvs > 0) loadpvs(f, hdr.numpvs);
         if(hdr.blendmap) loadblendmap(f, hdr.blendmap);
     }

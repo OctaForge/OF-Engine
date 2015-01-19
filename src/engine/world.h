@@ -6,22 +6,6 @@ enum                            // hardcoded texture numbers
     NUMDEFAULTSLOTS
 };
 
-#define OCTAVERSION 33
-
-struct octaheader
-{
-    char magic[4];              // "OCTA"
-    int version;                // any >8bit quantity is little endian
-    int headersize;             // sizeof(header)
-    int worldsize;
-    int numents;
-    int numpvs;
-    int lightmaps;
-    int blendmap;
-    int numvars;
-    int numvslots;
-};
-
 #define TMAPVERSION 1
 
 struct tmapheader
