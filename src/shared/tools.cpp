@@ -256,4 +256,5 @@ CLUAICOMMAND(ucharbuf_getfloat, int, (ucharbuf &p), return getfloat(p));
 CLUAICOMMAND(ucharbuf_getstring, void, (ucharbuf &p, char *buf, size_t n), {
     getstring(buf, p, n);
 });
+CLUAICOMMAND(ucharbuf_getuchar, int, (ucharbuf &p), return p.get());
 #endif

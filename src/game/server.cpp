@@ -2498,6 +2498,11 @@ namespace server
                 loopi(n) putfloat(p, (float)va_arg(args, double));
                 break;
             }
+            case 'b': {
+                uint n = (int)va_arg(args, double);
+                const uchar *buf = va_arg(args, const uchar *);
+                for (uint i = 0; i < n; ++i) p.put(buf[i]);
+            }
             case 's': sendstring(va_arg(args, const char *), p); break;
         }
         va_end(args);

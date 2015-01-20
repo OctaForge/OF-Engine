@@ -1,5 +1,7 @@
 #include "game.h"
 
+extern bool gamechanged;
+
 namespace game
 {
     VARP(minradarscale, 0, 384, 10000);
@@ -709,6 +711,11 @@ namespace game
                     numf += n;
                     break;
                 }
+                case 'b': {
+                    uint n = (int)va_arg(args, double);
+                    const uchar *buf = va_arg(args, const uchar *);
+                    for (uint i = 0; i < n; ++i) p.put(buf[i]);
+                }
                 case 's': sendstring(va_arg(args, const char *), p); nums++; break;
             }
             va_end(args);
@@ -764,7 +771,6 @@ namespace game
         }
         lua::call_external("entities_remove_all", "b", false);
         lua::reset();
-        extern bool gamechanged;
         gamechanged = true;
     }
 

@@ -799,8 +799,13 @@ M.Entity = Object.clone({
     set_sdata_full: func(self, sdata) {
         @[debug] log(DEBUG, e"Entity.set_sdata_full: $(self.uid), $sdata")
 
-        var raw = sdata.sub(0, 1) != "{" ? mp_unpack(sdata) : deserialize(sdata)
-        assert(typeof raw == "table")
+        var raw
+        if typeof sdata == "table" {
+            raw = sdata
+        } else {
+            raw = sdata.sub(0, 1) != "{" ? mp_unpack(sdata) : deserialize(sdata)
+            assert(typeof raw == "table")
+        }
 
         self.initialized = true
 
@@ -888,7 +893,7 @@ M.Entity = Object.clone({
         var ocnf = msg::buf_get_int(p)
         var ouid, stor = get_stor_uid(msg::buf_get_int(p))
         var oc   = msg::buf_get_string(p)
-        var sd   = msg::buf_get_string(p)
+        var sd   = msg::buf_get_msgpack(p)
         // retrieve ocn - first 7 bits only is client number
         var ocn = ocnf & 0x7F
         // if they differ, we're sending a player complete notification
@@ -903,7 +908,7 @@ M.Entity = Object.clone({
         } else {
             @[debug] log(DEBUG, e"existing entity $ouid, no need to create")
         }
-        @[debug] log(DEBUG, e"updating state data with $sd")
+        @[debug] log(DEBUG, e"updating state data with $(tostring(sd))")
         ent.set_sdata_full(sd)
         if ispl && stor == storage_dynamic {
             @[debug] log(DEBUG, e"initializing player with uid $ouid")
@@ -919,8 +924,9 @@ M.Entity = Object.clone({
         // player; it's the 8th bit, first 7 is the client number (maxclients
         // is 128)
         var pl = ((cn == ocn) ? 1 : 0) << 7
-        capi::msg_send(cn, -1, "riiiss", self.msgid_le_cn, ocn | pl,
-            make_stor_uid(self.uid, self.__storage), oc, sd || "")
+        assert(sd.len() > 0)
+        capi::msg_send(cn, -1, "riiisb", self.msgid_le_cn, ocn | pl,
+            make_stor_uid(self.uid, self.__storage), oc, sd.len(), sd)
     },
 
     msgid_le_rem: msg::register(@[!server,func(tp, receiver, sender, p) {
@@ -936,41 +942,44 @@ M.Entity = Object.clone({
     msgid_sdata_update: msg::register(@[!server,func(tp, receiver, sender, p) {
         var uid, stor = get_stor_uid(msg::buf_get_int(p))
         var kpid = msg::buf_get_int(p)
-        var value = msg::buf_get_string(p)
+        var value = msg::buf_get_msgpack(p)
         var ocn = msg::buf_get_int(p)
-        @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $value")
+        @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $(tostring(value))")
         var ent = stor[uid]
         if ent {
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
             var sv = ent["_SV_" ~ key]
-            ent.set_sdata(key, mp_unpack(value))
+            ent.set_sdata(key, value)
         }
     }]),
 
     msg_sdata_update_send: func(self, cn, reliable, uid, kpid, value, ocn) {
-        capi::msg_send(cn, ocn, reliable ? "riiisi" : "iiisi",
+        assert(value.len() > 0)
+        capi::msg_send(cn, ocn, reliable ? "riiibi" : "iiibi",
             self.msgid_sdata_update, make_stor_uid(uid, self.__storage), kpid,
-            value, ocn)
+            value.len(), value, ocn)
     },
 
     msgid_sdata_changereq: msg::register(@[server,func(tp, receiver, sender, p) {
         var uid, stor = get_stor_uid(msg::buf_get_int(p))
         var kpid = msg::buf_get_int(p)
-        var value = msg::buf_get_string(p)
-        @[debug] log(DEBUG, e"client $auid tried to change $kpid to value $value")
+        var value = msg::buf_get_msgpack(p)
+        @[debug] log(DEBUG, e"client $auid tried to change $kpid to value "
+            e"$(tostring(value))")
         var ent = stor[uid]
         if ent {
             var key = ids_to_names[ent.name][kpid]
             @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
             var sv = ent["_SV_" ~ key]
-            ent.set_sdata(key, mp_unpack(value), sender)
+            ent.set_sdata(key, value, sender)
         }
     }]),
 
     msg_sdata_changereq_send: func(self, reliable, uid, kpid, value) {
-        capi::msg_add(self.msgid_sdata_changereq, reliable ? "riis" : "iis",
-            make_stor_uid(uid, self.__storage), kpid, value || "")
+        assert(value.len() > 0)
+        capi::msg_add(self.msgid_sdata_changereq, reliable ? "riib" : "iib",
+            make_stor_uid(uid, self.__storage), kpid, value.len(), value)
     },
 
     /**

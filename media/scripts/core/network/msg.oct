@@ -13,7 +13,10 @@ var M = {}
 
 from std.util import assert
 from std.conv import tonumber
+from std.string import char
 from core.externals import set as setext
+
+from core.octascript.messagepack import unpack as mp_unpack
 
 import capi
 
@@ -56,6 +59,22 @@ M.buf_get_string = func(self, n) {
     var buf = ffi::new("char[?]", n)
     capi::ucharbuf_getstring(self, buf, n)
     return ffi::string(buf)
+}
+
+
+var msg_underflow = func(c, n) {
+    var rarr = [ c.s ]
+    for i in 1 to n { rarr.push(char(tonumber(capi::ucharbuf_getuchar(c.p)))) }
+    c.j += n
+    c.s = rarr.concat()
+}
+
+var cursor_msg = func(p) {
+    return { s: "", i: 0, j: 0, p: p, underflow: msg_underflow }
+}
+
+M.buf_get_msgpack = func(self) {
+    return mp_unpack(cursor_msg(self))
 }
 
 var ubuft = ffi["typeof"]("ucharbuf &")

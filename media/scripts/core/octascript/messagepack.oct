@@ -569,7 +569,7 @@ var cursor_string = func(str) {
 }
 
 M.unpack = func(s) {
-    var cur = cursor_string(s)
+    var cur = (typeof s == "string") ? cursor_string(s) : s
     var data = unpackers["any"](cur)
     if cur.i < (cur.j - 1) {
         raise "extra bytes", 0
