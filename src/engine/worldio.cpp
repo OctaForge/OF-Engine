@@ -591,7 +591,7 @@ struct tessentity
     uchar reserved;
 };
 
-static bool gamechanged = false;
+bool gamechanged = true;
 static string oldgame = "";
 SVARFNP(game, usegame, "", {
     if (strcmp(oldgame, usegame)) {

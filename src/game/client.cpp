@@ -764,6 +764,8 @@ namespace game
         }
         lua::call_external("entities_remove_all", "b", false);
         lua::reset();
+        extern bool gamechanged;
+        gamechanged = true;
     }
 
     void toserver(char *text) { conoutf(CON_CHAT, "%s: %s", colorname(player1), text); addmsg(N_TEXT, "rcs", player1, text); }
