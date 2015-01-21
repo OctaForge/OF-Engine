@@ -311,25 +311,9 @@ var unpack_map = func(c, n) {
     return t
 }
 
-var get_string = func(c, n) {
-    if (c.i + n) > c.j {
-        c.underflow(c.i + n)
-    }
-    c.i += n
-    return c.s.sub(c.i - n, c.i)
-}
-
-var get_bytes = func(c, nb) {
-    if (c.i + nb) > c.j {
-        c.underflow(c.i + nb)
-    }
-    c.i += nb
-    return c.s.sub(c.i - nb, c.i).byte(0, nb)
-}
-
 unpackers = setmt({
     "any": func(c) {
-        var val = get_bytes(c, 1)
+        var val = c.get_bytes(1)
         return unpackers[types_map[val]](c, val)
     },
 
@@ -338,7 +322,7 @@ unpackers = setmt({
     "true" : func() { return true  },
 
     "float": func(c) {
-        var b1, b2, b3, b4 = get_bytes(c, 4)
+        var b1, b2, b3, b4 = c.get_bytes(4)
         var sign = b1 > 0x7F
         var ex = (b1 % 0x80) * 0x2 + floor(b2 / 0x80)
         var mt = ((b2 % 0x80) * 0x100 + b3) * 0x100 + b4
@@ -359,7 +343,7 @@ unpackers = setmt({
     },
 
     "double": func(c) {
-        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(c, 8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = c.get_bytes(8)
         var sign = b1 > 0x7F
         var ex = (b1 % 0x80) * 0x10 + floor(b2 / 0x10)
         var mt = ((((((b2 % 0x10) * 0x100 + b3) * 0x100 + b4) * 0x100 + b5)
@@ -385,21 +369,21 @@ unpackers = setmt({
     },
 
     "uint8": func(c) {
-        return get_bytes(c, 1)
+        return c.get_bytes(1)
     },
 
     "uint16": func(c) {
-        var b1, b2 = get_bytes(c, 2)
+        var b1, b2 = c.get_bytes(2)
         return b1 * 0x100 + b2
     },
 
     "uint32": func(c) {
-        var b1, b2, b3, b4 = get_bytes(c, 4)
+        var b1, b2, b3, b4 = c.get_bytes(4)
         return ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4
     },
 
     "uint64": func(c) {
-        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(c, 8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = c.get_bytes(8)
         return ((((((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4) * 0x100 + b5)
                         * 0x100 + b6) * 0x100 + b7) * 0x100 + b8
     },
@@ -409,25 +393,25 @@ unpackers = setmt({
     },
 
     "int8": func(c) {
-        var b1 = get_bytes(c, 1)
+        var b1 = c.get_bytes(1)
         return (b1 < 0x80) ? b1 : (b1 - 0x100)
     },
 
     "int16": func(c) {
-        var b1, b2 = get_bytes(c, 2)
+        var b1, b2 = c.get_bytes(2)
         return (b1 < 0x80) ? (b1 * 0x100 + b2)
                            : (((b1 - 0xFF) * 0x100 + (b2 - 0xFF)) - 1)
     },
 
     "int32": func(c) {
-        var b1, b2, b3, b4 = get_bytes(c, 4)
+        var b1, b2, b3, b4 = c.get_bytes(4)
         return (b1 < 0x80) ? (((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
                            : (((((b1 - 0xFF) * 0x100 + (b2 - 0xFF)) * 0x100
                                + (b3 - 0xFF)) * 0x100 + (b4 - 0xFF)) - 1)
     },
 
     "int64": func(c) {
-        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(c, 8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = c.get_bytes(8)
         return (b1 < 0x80) ? (((((((b1 * 0x100 + b2) * 0x100 + b3)
                                 * 0x100 + b4) * 0x100 + b5) * 0x100 + b6)
                                 * 0x100 + b7) * 0x100 + b8)
@@ -439,21 +423,21 @@ unpackers = setmt({
     },
 
     "fixstr": func(c, v) {
-        return get_string(c, v % 0x20)
+        return c.get_string(v % 0x20)
     },
 
     "str8": func(c, v) {
-        return get_string(c, get_bytes(c, 1))
+        return c.get_string(c.get_bytes(1))
     },
 
     "str16": func(c, v) {
-        var b1, b2 = get_bytes(c, 2)
-        return get_string(c, b1 * 0x100 + b2)
+        var b1, b2 = c.get_bytes(2)
+        return c.get_string(b1 * 0x100 + b2)
     },
 
     "str32": func(c, v) {
-        var b1, b2, b3, b4 = get_bytes(c, 4)
-        return get_string(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
+        var b1, b2, b3, b4 = c.get_bytes(4)
+        return c.get_string(((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     },
 
     "fixarray": func(c, v) {
@@ -461,12 +445,12 @@ unpackers = setmt({
     },
 
     "array16": func(c) {
-        var b1, b2 = get_bytes(c, 2)
+        var b1, b2 = c.get_bytes(2)
         return unpack_array(c, b1 * 0x100 + b2)
     },
 
     "array32": func(c) {
-        var b1, b2, b3, b4 = get_bytes(c, 4)
+        var b1, b2, b3, b4 = c.get_bytes(4)
         return unpack_array(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     },
 
@@ -475,12 +459,12 @@ unpackers = setmt({
     },
 
     "map16": func(c) {
-        var b1, b2 = get_bytes(c, 2)
+        var b1, b2 = c.get_bytes(2)
         return unpack_map(c, b1 * 0x100 + b2)
     },
 
     "map32": func(c) {
-        var b1, b2, b3, b4 = get_bytes(c, 4)
+        var b1, b2, b3, b4 = c.get_bytes(4)
         return unpack_map(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     }
 }, {
@@ -491,29 +475,42 @@ unpackers["bin8"] = unpackers["str8"]
 unpackers["bin16"] = unpackers["str16"]
 unpackers["bin32"] = unpackers["str32"]
 
-var str_underflow = func(self) {
-    raise "missing bytes", 0
+var str_get_string = func(c, n) {
+    if (c.i + n) > c.j {
+        raise "missing bytes", 0
+    }
+    c.i += n
+    return c.s.sub(c.i - n, c.i)
 }
+
+var str_get_bytes = func(c, nb) {
+    if (c.i + nb) > c.j {
+        raise "missing bytes", 0
+    }
+    c.i += nb
+    return c.s.sub(c.i - nb, c.i).byte(0, nb)
+}
+
+var str_finalize = func(c) {
+    if c.i < (c.j - 1) {
+        raise "extra bytes", 0
+    }
+}
+
 var cursor_string = func(str) {
-    return { s: str, i: 0, j: str.len(), underflow: str_underflow }
+    return {
+        s: str, i: 0, j: str.len(),
+        get_bytes: str_get_bytes,
+        get_string: str_get_string,
+        finalize: str_finalize
+    }
 }
 
 M.unpack = func(s) {
     var cur = (typeof s == "string") ? cursor_string(s) : s
     var data = unpackers["any"](cur)
-    if cur.i < (cur.j - 1) {
-        raise "extra bytes", 0
-    }
+    if cur.finalize { cur.finalize() }
     return data
-}
-
-M.unpacker = func(s) {
-    var cur = cursor_string(s)
-    return func() {
-        if cur.i <= (cur.j - 1) {
-            return cur.i, unpackers["any"](cur)
-        }
-    }
 }
 
 return M

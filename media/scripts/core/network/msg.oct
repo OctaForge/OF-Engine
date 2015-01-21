@@ -61,16 +61,38 @@ M.buf_get_string = func(self, n) {
     return ffi::string(buf)
 }
 
+var get_byte = func(c) {
+    return tonumber(capi::ucharbuf_getuchar(c.p))
+}
 
-var msg_underflow = func(c, n) {
-    var rarr = [ c.s ]
-    for i in 1 to n { rarr.push(char(tonumber(capi::ucharbuf_getuchar(c.p)))) }
-    c.j += n
-    c.s = rarr.concat()
+var bfuncs = {
+    1: get_byte,
+    2: func(c) { return get_byte(c), get_byte(c) },
+    4: func(c) { return get_byte(c), get_byte(c), get_byte(c), get_byte(c) },
+    8: func(c) { return get_byte(c), get_byte(c), get_byte(c), get_byte(c),
+                        get_byte(c), get_byte(c), get_byte(c), get_byte(c)
+    }
+}
+
+var msg_get_bytes = func(c, nb) {
+    var bf = bfuncs[nb]
+    if !bf { raise "bad number of bytes" }
+    return bf(c)
+}
+
+var msg_get_string = func(c, n) {
+    var rarr = []
+    for i in 1 to n {
+        rarr.push(char(get_byte(c)))
+    }
+    return rarr.concat()
 }
 
 var cursor_msg = func(p) {
-    return { s: "", i: 0, j: 0, p: p, underflow: msg_underflow }
+    return { p: p,
+        get_bytes: msg_get_bytes,
+        get_string: msg_get_string
+    }
 }
 
 M.buf_get_msgpack = func(self) {
