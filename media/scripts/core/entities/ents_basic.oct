@@ -934,6 +934,7 @@ M.StaticEntity = Entity.clone({
             capi::removeentityedit(uid)
             f(uid, val)
             capi::addentityedit(uid)
+            capi::editent(uid)
         } else {
             f(uid, val)
         }
@@ -945,6 +946,9 @@ M.StaticEntity = Entity.clone({
 
     __post_create_cb: func(self, new, kwargs) {
         capi::setup_extent_done(self.uid, kwargs.c_entity, new)
+        if new && !kwargs.synced {
+            capi::editent(self.uid)
+        }
     }
 })
 var StaticEntity = M.StaticEntity

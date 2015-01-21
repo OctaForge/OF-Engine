@@ -490,10 +490,11 @@ M.remove = func(ent) {
 }
 var ent_remove = M.remove
 
-set_external("entity_remove_static", @[!server,func(uid) {
+set_external("entity_remove_static", @[!server,func(uid, synced) {
     var ent = storage_static[uid]
     if !ent { return }
     ent_remove(ent)
+    if !synced { capi::editent(uid) }
 }])
 
 set_external("entity_remove_dynamic", func(uid) {
@@ -1453,7 +1454,7 @@ M.new = func(cl, kwargs, fuid) {
 }
 var ent_new = M.new
 
-set_external("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid) {
+set_external("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
     var cl = proto_storage[cn] || proto_storage[proto_aliases[cn]]
     if !cl {
         log(ERROR, e"no such entity prototype: $(tostring(cn))")
@@ -1473,7 +1474,7 @@ set_external("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid) {
         }
     }
     var ent = ent_new(cl, { position: { x: x, y: y, z: z },
-        state_data: sd, newent_data: nd, c_entity: cent }, fuid)
+        state_data: sd, newent_data: nd, c_entity: cent, synced: synced }, fuid)
     @[debug] log(DEBUG, "Created entity: %d - %s (%f, %f, %f)"
         .format(ent.uid, cl, x, y, z))
     return ent.uid

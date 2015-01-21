@@ -673,6 +673,12 @@ namespace game
                     numf += n;
                     break;
                 }
+                case 'b': {
+                    uint n = va_arg(args, uint);
+                    const uchar *buf = va_arg(args, const uchar *);
+                    for (uint i = 0; i < n; ++i) p.put(buf[i]);
+                    break;
+                }
                 case 's': sendstring(va_arg(args, const char *), p); nums++; break;
             }
             va_end(args);
@@ -715,6 +721,7 @@ namespace game
                     uint n = (int)va_arg(args, double);
                     const uchar *buf = va_arg(args, const uchar *);
                     for (uint i = 0; i < n; ++i) p.put(buf[i]);
+                    break;
                 }
                 case 's': sendstring(va_arg(args, const char *), p); nums++; break;
             }
@@ -1342,7 +1349,27 @@ namespace game
                 conoutf("%s calced lights", colorname(d));
                 mpcalclight(false);
                 break;
-
+            case N_EDITENT:            // coop edit of ent
+            {
+                if(!d) return;
+                int i = getint(p);
+                getstring(text, p);
+                string name;
+                filtertext(name, text, false);
+                if (!name[0]) {
+                    lua::call_external("entity_remove_static", "ib", i, true);
+                } else {
+                    float x = getint(p)/DMF, y = getint(p)/DMF, z = getint(p)/DMF;
+                    int sdlen = getint(p);
+                    if (sdlen <= 0) break;
+                    char *buf = new char[sdlen];
+                    loopk(sdlen) buf[k] = (char)p.get();
+                    lua::call_external("entity_new_with_sd", "sfffSsib", name,
+                        x, y, z, buf, sdlen, "", i, true);
+                    delete[] buf;
+                }
+                break;
+            }
             case N_EDITVAR:
             {
                 if(!d) return;

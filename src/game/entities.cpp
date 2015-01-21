@@ -385,5 +385,23 @@ namespace entities
     CLUAICOMMAND(setup_character, physent *, (int cn), {
         return game::getclient(cn);
     });
+
+    CLUAICOMMAND(editent, void, (int i), {
+        const extentity &e = *ents[i];
+        if (e.type == ET_EMPTY) {
+            addmsg(N_EDITENT, "ris", i, "");
+            return;
+        }
+        const char *name = NULL;
+        const char *sdata = NULL;
+        int sdlen = 0;
+        int n = lua::call_external_ret("entity_serialize", "pb", "ssd", &e,
+            true, &name, &sdata, &sdlen);
+        if (name) {
+            addmsg(N_EDITENT, "risi3ib", i, name, (int)(e.o.x*DMF),
+                (int)(e.o.y*DMF), (int)(e.o.z*DMF), sdlen, sdlen, sdata);
+        }
+        lua::pop_external_ret(n);
+    });
 }
 

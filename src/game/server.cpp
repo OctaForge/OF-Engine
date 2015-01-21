@@ -990,7 +990,7 @@ namespace server
         }
 
         uchar operator[](int msg) const { return msg >= 0 && msg < NUMMSG ? msgmask[msg] : 0; }
-    } msgfilter(-1, N_CONNECT, N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPCHANGE, N_SERVMSG, N_SPAWNSTATE, N_FORCEDEATH, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_CLIENT, N_AUTHCHAL, N_DEMOPACKET, -2, N_CALCLIGHT, N_REMIP, N_NEWMAP, N_GETMAP, N_SENDMAP, N_CLIPBOARD, -3, N_EDITF, N_EDITT, N_EDITM, N_FLIP, N_COPY, N_PASTE, N_ROTATE, N_REPLACE, N_DELCUBE, N_EDITVAR, N_EDITVSLOT, N_UNDO, N_REDO, -4, N_POS, NUMMSG),
+    } msgfilter(-1, N_CONNECT, N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPCHANGE, N_SERVMSG, N_SPAWNSTATE, N_FORCEDEATH, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_CLIENT, N_AUTHCHAL, N_DEMOPACKET, -2, N_CALCLIGHT, N_REMIP, N_NEWMAP, N_GETMAP, N_SENDMAP, N_CLIPBOARD, -3, N_EDITENT, N_EDITF, N_EDITT, N_EDITM, N_FLIP, N_COPY, N_PASTE, N_ROTATE, N_REPLACE, N_DELCUBE, N_EDITVAR, N_EDITVSLOT, N_UNDO, N_REDO, -4, N_POS, NUMMSG),
       connectfilter(-1, N_CONNECT, -2, N_AUTHANS, -3, N_PING, NUMMSG);
 
     int checktype(int type, clientinfo *ci)
@@ -2098,6 +2098,21 @@ namespace server
                 break;
             }
 
+            case N_EDITENT:
+            {
+                getint(p);
+                getstring(text, p);
+                filtertext(text, text, false);
+                if (text[0]) {
+                    loopk(3) getint(p);
+                    int sdlen = getint(p);
+                    loopk(sdlen) p.get();
+                }
+                if(!ci || ci->state.state==CS_SPECTATOR) break;
+                QUEUE_MSG;
+                break;
+            }
+
             case N_EDITVAR:
             {
                 int type = getint(p);
@@ -2502,6 +2517,7 @@ namespace server
                 uint n = (int)va_arg(args, double);
                 const uchar *buf = va_arg(args, const uchar *);
                 for (uint i = 0; i < n; ++i) p.put(buf[i]);
+                break;
             }
             case 's': sendstring(va_arg(args, const char *), p); break;
         }
