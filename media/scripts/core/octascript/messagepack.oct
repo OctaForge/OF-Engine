@@ -311,24 +311,25 @@ var unpack_map = func(c, n) {
     return t
 }
 
-var do_underflow = func(c, nb) {
-    var s, i, j = c.s, c.i, c.j
-    if (i + nb) > j {
-        c.underflow(i + nb)
-        s, i, j = c.s, c.i, c.j
+var get_string = func(c, n) {
+    if (c.i + n) > c.j {
+        c.underflow(c.i + n)
     }
-    return s, i, j
+    c.i += n
+    return c.s.sub(c.i - n, c.i)
 }
 
-var get_bytes = func(s, i, nb) {
-    return s.sub(i, i + nb).byte(0, nb)
+var get_bytes = func(c, nb) {
+    if (c.i + nb) > c.j {
+        c.underflow(c.i + nb)
+    }
+    c.i += nb
+    return c.s.sub(c.i - nb, c.i).byte(0, nb)
 }
 
 unpackers = setmt({
     "any": func(c) {
-        var s, i, j = do_underflow(c, 1)
-        var val = get_bytes(s, i, 1)
-        c.i = i + 1
+        var val = get_bytes(c, 1)
         return unpackers[types_map[val]](c, val)
     },
 
@@ -337,8 +338,7 @@ unpackers = setmt({
     "true" : func() { return true  },
 
     "float": func(c) {
-        var s, i, j = do_underflow(c, 4)
-        var b1, b2, b3, b4 = get_bytes(s, i, 4)
+        var b1, b2, b3, b4 = get_bytes(c, 4)
         var sign = b1 > 0x7F
         var ex = (b1 % 0x80) * 0x2 + floor(b2 / 0x80)
         var mt = ((b2 % 0x80) * 0x100 + b3) * 0x100 + b4
@@ -355,13 +355,11 @@ unpackers = setmt({
         } else {
             n = sign * ldexp(1 + mt / 0x800000, ex - 0x7F)
         }
-        c.i = i + 4
         return n
     },
 
     "double": func(c) {
-        var s, i, j = do_underflow(c, 8)
-        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(s, i, 8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(c, 8)
         var sign = b1 > 0x7F
         var ex = (b1 % 0x80) * 0x10 + floor(b2 / 0x10)
         var mt = ((((((b2 % 0x10) * 0x100 + b3) * 0x100 + b4) * 0x100 + b5)
@@ -379,7 +377,6 @@ unpackers = setmt({
         } else {
             n = sign * ldexp(1 + mt / 0x10000000000000, ex - 0x3FF)
         }
-        c.i = i + 8
         return n
     },
 
@@ -388,30 +385,21 @@ unpackers = setmt({
     },
 
     "uint8": func(c) {
-        var s, i, j = do_underflow(c, 1)
-        var b1 = get_bytes(s, i, 1)
-        c.i = i + 1
-        return b1
+        return get_bytes(c, 1)
     },
 
     "uint16": func(c) {
-        var s, i, j = do_underflow(c, 2)
-        var b1, b2 = get_bytes(s, i, 2)
-        c.i = i + 2
+        var b1, b2 = get_bytes(c, 2)
         return b1 * 0x100 + b2
     },
 
     "uint32": func(c) {
-        var s, i, j = do_underflow(c, 4)
-        var b1, b2, b3, b4 = get_bytes(s, i, 4)
-        c.i = i + 4
+        var b1, b2, b3, b4 = get_bytes(c, 4)
         return ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4
     },
 
     "uint64": func(c) {
-        var s, i, j = do_underflow(c, 8)
-        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(s, i, 8)
-        c.i = i + 8
+        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(c, 8)
         return ((((((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4) * 0x100 + b5)
                         * 0x100 + b6) * 0x100 + b7) * 0x100 + b8
     },
@@ -421,33 +409,25 @@ unpackers = setmt({
     },
 
     "int8": func(c) {
-        var s, i, j = do_underflow(c, 1)
-        var b1 = get_bytes(s, i, 1)
-        c.i = i + 1
+        var b1 = get_bytes(c, 1)
         return (b1 < 0x80) ? b1 : (b1 - 0x100)
     },
 
     "int16": func(c) {
-        var s, i, j = do_underflow(c, 2)
-        var b1, b2 = get_bytes(s, i, 2)
-        c.i = i + 2
+        var b1, b2 = get_bytes(c, 2)
         return (b1 < 0x80) ? (b1 * 0x100 + b2)
                            : (((b1 - 0xFF) * 0x100 + (b2 - 0xFF)) - 1)
     },
 
     "int32": func(c) {
-        var s, i, j = do_underflow(c, 4)
-        var b1, b2, b3, b4 = get_bytes(s, i, 4)
-        c.i = i + 4
+        var b1, b2, b3, b4 = get_bytes(c, 4)
         return (b1 < 0x80) ? (((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
                            : (((((b1 - 0xFF) * 0x100 + (b2 - 0xFF)) * 0x100
                                + (b3 - 0xFF)) * 0x100 + (b4 - 0xFF)) - 1)
     },
 
     "int64": func(c) {
-        var s, i, j = do_underflow(c, 8)
-        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(s, i, 8)
-        c.i = i + 8
+        var b1, b2, b3, b4, b5, b6, b7, b8 = get_bytes(c, 8)
         return (b1 < 0x80) ? (((((((b1 * 0x100 + b2) * 0x100 + b3)
                                 * 0x100 + b4) * 0x100 + b5) * 0x100 + b6)
                                 * 0x100 + b7) * 0x100 + b8)
@@ -459,63 +439,21 @@ unpackers = setmt({
     },
 
     "fixstr": func(c, v) {
-        var s, i, j = c.s, c.i, c.j
-        var n = v % 0x20
-        var e = i + n
-        if e > j {
-            c.underflow(e)
-            s, i, j = c.s, c.i, c.j
-            e = i + n
-        }
-        c.i = i + n
-        return s.sub(i, e)
+        return get_string(c, v % 0x20)
     },
 
     "str8": func(c, v) {
-        var s, i, j = do_underflow(c, 1)
-        var n = get_bytes(s, i, 1)
-        i += 1
-        c.i = i
-        var e = i + n
-        if e > j {
-            c.underflow(e)
-            s, i, j = c.s, c.i, c.j
-            e = i + n
-        }
-        c.i = i + n
-        return s.sub(i, e)
+        return get_string(c, get_bytes(c, 1))
     },
 
     "str16": func(c, v) {
-        var s, i, j = do_underflow(c, 2)
-        var b1, b2 = get_bytes(s, i, 2)
-        i += 2
-        c.i = i
-        var n = b1 * 0x100 + b2
-        var e = i + n
-        if e > j {
-            c.underflow(e)
-            s, i, j = c.s, c.i, c.j
-            e = i + n
-        }
-        c.i = i + n
-        return s.sub(i, e)
+        var b1, b2 = get_bytes(c, 2)
+        return get_string(c, b1 * 0x100 + b2)
     },
 
     "str32": func(c, v) {
-        var s, i, j = do_underflow(c, 4)
-        var b1, b2, b3, b4 = get_bytes(s, i, 4)
-        i += 4
-        c.i = i
-        var n = ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4
-        var e = i + n
-        if e > j {
-            c.underflow(e)
-            s, i, j = c.s, c.i, c.j
-            e = i + n
-        }
-        c.i = i + n
-        return s.sub(i, e)
+        var b1, b2, b3, b4 = get_bytes(c, 4)
+        return get_string(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     },
 
     "fixarray": func(c, v) {
@@ -523,16 +461,12 @@ unpackers = setmt({
     },
 
     "array16": func(c) {
-        var s, i, j = do_underflow(c, 2)
-        var b1, b2 = get_bytes(s, i, 2)
-        c.i = i + 2
+        var b1, b2 = get_bytes(c, 2)
         return unpack_array(c, b1 * 0x100 + b2)
     },
 
     "array32": func(c) {
-        var s, i, j = do_underflow(c, 4)
-        var b1, b2, b3, b4 = get_bytes(s, i, 4)
-        c.i = i + 4
+        var b1, b2, b3, b4 = get_bytes(c, 4)
         return unpack_array(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     },
 
@@ -541,16 +475,12 @@ unpackers = setmt({
     },
 
     "map16": func(c) {
-        var s, i, j = do_underflow(c, 2)
-        var b1, b2 = get_bytes(s, i, 2)
-        c.i = i + 2
+        var b1, b2 = get_bytes(c, 2)
         return unpack_map(c, b1 * 0x100 + b2)
     },
 
     "map32": func(c) {
-        var s, i, j = do_underflow(c, 4)
-        var b1, b2, b3, b4 = get_bytes(s, i, 4)
-        c.i = i + 4
+        var b1, b2, b3, b4 = get_bytes(c, 4)
         return unpack_map(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     }
 }, {
