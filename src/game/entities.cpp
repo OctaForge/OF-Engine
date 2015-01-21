@@ -360,16 +360,16 @@ namespace entities
         e->type = ET_EMPTY;
     });
 
-    CLUAICOMMAND(setup_extent_done, void, (int uid, extentity *ce, bool isnew), {
+    CLUAICOMMAND(setup_extent_done, void, (int uid, extentity *ce, bool isnew, bool synced), {
         ofentity *e = (ofentity *)(ce ? ce : ents[uid]);
         assert(e);
         if (!ce) {
             int otype = e->type;
-            if (isnew && e->o.x < 0) {
+            if (isnew && !synced && e->o.x < 0) {
                 dropentity(*e);
             }
             e->type = ET_EMPTY;
-            if (isnew) {
+            if (isnew && !synced) {
                 enttoggle(uid);
                 makeundoent();
             }
