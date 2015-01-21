@@ -484,11 +484,7 @@ var str_get_string = func(c, n) {
 }
 
 var str_get_bytes = func(c, nb) {
-    if (c.i + nb) > c.j {
-        raise "missing bytes", 0
-    }
-    c.i += nb
-    return c.s.sub(c.i - nb, c.i).byte(0, nb)
+    return str_get_string(c, nb).byte(0, nb)
 }
 
 var str_finalize = func(c) {
