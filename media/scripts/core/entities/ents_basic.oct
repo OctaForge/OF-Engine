@@ -868,7 +868,8 @@ M.StaticEntity = Entity.clone({
             capi::destroy_extent(self.uid)
             self.__centity = undef
         }
-        return Entity::__deactivate(self)
+        self.clear_actions()
+        self.deactivated = true
     },
 
     /**

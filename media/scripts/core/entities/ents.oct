@@ -453,7 +453,7 @@ var add = func(cn, uid, kwargs, new) {
     // caching
     cl.__instances.push(r)
 
-    if @[server,new,new && msg::is_local()] {
+    if new && msg::is_local() {
         var ndata
         if kwargs {
             ndata = kwargs.newent_data
@@ -467,7 +467,7 @@ var add = func(cn, uid, kwargs, new) {
     r.__activate(kwargs)
     @[debug] log(DEBUG, "ents.add: activated")
     r.__fully_created = true
-    r.__post_create_cb(!!@[server,new,new && msg::is_local()], kwargs)
+    r.__post_create_cb(!!(new && msg::is_local()), kwargs)
     return r
 }
 M.add = add
@@ -691,7 +691,7 @@ M.Entity = Object.clone({
     __deactivate: func(self) {
         self.clear_actions()
         self.deactivated = true
-        @[server] {
+        if msg::is_local() {
             self.msg_le_rem_send(msg.ALL_CLIENTS, self.uid)
         }
     },
@@ -855,7 +855,7 @@ M.Entity = Object.clone({
         }
         self.setup()
         self.initialized = msg::is_local()
-        @[server] {
+        if msg::is_local() {
             var sd = kwargs && kwargs.state_data || undef
             if sd { self.set_sdata_full(sd) }
             self.send_notification_full(msg.ALL_CLIENTS)
@@ -935,7 +935,7 @@ M.Entity = Object.clone({
             value.len(), value, ocn)
     },
 
-    msgid_sdata_changereq: msg::register(@[server,func(tp, receiver, sender, p) {
+    msgid_sdata_changereq: msg::register(func(tp, receiver, sender, p) {
         var uid, stor = get_stor_uid(msg::buf_get_int(p))
         var kpid = msg::buf_get_int(p)
         var value = msg::buf_get_msgpack(p)
@@ -948,7 +948,7 @@ M.Entity = Object.clone({
             var sv = ent["_SV_" ~ key]
             ent.set_sdata(key, value, sender)
         }
-    }]),
+    }),
 
     msg_sdata_changereq_send: func(self, reliable, uid, kpid, value) {
         assert(value.len() > 0)
@@ -1094,7 +1094,7 @@ M.Entity = Object.clone({
         On the server, sends a full notification to a specific client
         or all clients.
     */
-    send_notification_full: @[server,func(self, cn) {
+    send_notification_full: func(self, cn) {
         var acn = msg.ALL_CLIENTS
         cn = cn || acn
 
@@ -1110,7 +1110,7 @@ M.Entity = Object.clone({
         }
 
         @[debug] log(DEBUG, "Entity.send_notification_full: done")
-    }],
+    },
 
     /**
         Returns the next attached entity. This implementation doesn't {
@@ -1445,12 +1445,12 @@ var send_stor = func(stor, cn) {
     send a complete notification for each of them. Takes the client number.
     Works only serverside. External as `entities_send_all`.
 */
-M.send = @[server,func(cn) {
+M.send = func(cn) {
     @[debug] log(DEBUG, e"Sending active entities to $cn")
     var estor = []
     send_stor(storage_logic, cn)
     send_stor(storage_dynamic, cn)
-}]
+}
 set_external("entities_send_all", M.send)
 
 M.run_frame = func(millis) {
