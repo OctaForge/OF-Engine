@@ -945,7 +945,7 @@ M.StaticEntity = Entity.clone({
     },
 
     __post_create_cb: func(self, new, kwargs) {
-        capi::setup_extent_done(self.uid, kwargs.c_entity, new, kwargs.synced)
+        capi::setup_extent_done(self.uid, kwargs.c_entity, new, !!kwargs.synced)
         if new && !kwargs.synced {
             capi::editent(self.uid)
         }
