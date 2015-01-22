@@ -821,24 +821,6 @@ M.Entity = Object.clone({
         @[debug] log(DEBUG, "Entity.set_sdata_full: complete")
     },
 
-    /** Function: entity_setup
-        Takes care of a proper entity setup (calls $setup, inits the change
-        queue and makes the entity initialized). Called by $__init_svars and
-        $__activate.
-    */
-    entity_setup: @[server,func(self) {
-        if !self.initialized {
-            @[debug] log(DEBUG, "Entity.entity_setup: setup")
-            self.setup()
-
-            self.svar_change_queue = {}
-            self.svar_change_queue_complete = false
-
-            self.initialized = true
-            @[debug] log(DEBUG, "Entity.entity_setup: setup complete")
-        }
-    }],
-
     /** Function: __init_svars
         Initializes the entity before activation on the server. It's
         used to set default svar values (unless `client_set`).
@@ -849,13 +831,9 @@ M.Entity = Object.clone({
     */
     __init_svars: func(self, kwargs, ndata) {
         @[debug] log(DEBUG, "Entity.__init_svars")
-        @[!server] {
-            if !msg::is_local() { return }
-            self.setup()
-            self.initialized = true
-        } else {
-            self.entity_setup()
-        }
+        @[!server] if !msg::is_local() { return }
+        self.setup()
+        self.initialized = true
         self.set_attr("tags", [])
     },
 
@@ -875,18 +853,13 @@ M.Entity = Object.clone({
             @[debug] log(DEBUG, "Entity.__activate: non-sauer entity: "
                 e"$(self.name)")
         }
+        self.setup()
+        self.initialized = msg::is_local()
         @[server] {
             var sd = kwargs && kwargs.state_data || undef
-            self.entity_setup()
-            if !self.sauer_type {
-                self.flush_queued_svar_changes()
-            }
             if sd { self.set_sdata_full(sd) }
             self.send_notification_full(msg.ALL_CLIENTS)
             self.sent_notification_full = true
-        } else {
-            self.setup()
-            self.initialized = msg::is_local()
         }
     },
 
@@ -986,8 +959,7 @@ M.Entity = Object.clone({
     /**
         Triggered automatically right before the `,changed` signal. It first
         checks if there is a setter function for the given svar and does
-        nothing if there isn't. Triggers a setter call on the client or on the
-        server when there is no change queue and queues a change otherwise.
+        nothing if there isn't, otherwise triggers the setter.
 
         Arguments:
             - svar - the state variable.
@@ -997,16 +969,11 @@ M.Entity = Object.clone({
     sdata_changed: func(self, svar, name, val) {
         var sfun = svar.setter_fun
         if !sfun { return }
-        if !@[server,self.svar_change_queue] {
-            @[debug] log(INFO, e"Calling setter function for $name")
-            self.__sdata_call_cb_set(sfun, val)
-            @[debug] log(INFO, "Setter called")
-
-            self.svar_values[name] = val
-            self.svar_value_timestamps[name] = frame::get_frame()
-        } else {
-            self.queue_svar_change(name, val)
-        }
+        @[debug] log(INFO, e"Calling setter function for $name")
+        self.__sdata_call_cb_set(sfun, val)
+        @[debug] log(INFO, "Setter called")
+        self.svar_values[name] = val
+        self.svar_value_timestamps[name] = frame::get_frame()
     },
 
     /** Function: set_sdata
@@ -1143,33 +1110,6 @@ M.Entity = Object.clone({
         }
 
         @[debug] log(DEBUG, "Entity.send_notification_full: done")
-    }],
-
-    /** Function: queue_svar_change
-        Queues a svar change (Happens before full update, when the
-        entity is being created). Server only.
-    */
-    queue_svar_change: @[server,func(self, key, val) {
-        self.svar_change_queue[key] = val
-    }],
-
-    /** Function: flush_queued_svar_changes
-        Flushes the SV change queue (applies all the changes). After this,
-        there is no change queue anymore.
-    */
-    flush_queued_svar_changes: @[server,func(self) {
-        var changes = self.svar_change_queue
-        if !changes { return }
-        self.svar_change_queue = undef
-
-        for k, v in pairs(changes) {
-            var rv = self.svar_values[k]
-            @[debug] log(DEBUG, e"Entity: flushing queued svar change: $k == "
-                e"$(tostring(v)) (real: $(tostring(rv)))")
-            self.set_attr(k, rv)
-        }
-
-        self.svar_change_queue_complete = true
     }],
 
     /**
