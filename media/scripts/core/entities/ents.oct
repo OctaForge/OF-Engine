@@ -831,7 +831,7 @@ M.Entity = Object.clone({
     */
     __init_svars: func(self, kwargs, ndata) {
         @[debug] log(DEBUG, "Entity.__init_svars")
-        @[!server] if !msg::is_local() { return }
+        if !msg::is_local() { return }
         self.setup()
         self.initialized = true
         self.set_attr("tags", [])
