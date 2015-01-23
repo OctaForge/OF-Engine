@@ -456,6 +456,11 @@ M.Character = Entity.clone({
             self.initialized = false
         }
 
+        if msg::is_local() {
+            self.send_notification_full(msg.ALL_CLIENTS)
+            self.sent_notification_full = true
+        }
+
         self.render_args_timestamp = -1
 
         self.set_attr("model_name", self.get_attr("model_name"))

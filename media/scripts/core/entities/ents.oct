@@ -1104,6 +1104,7 @@ M.Entity = Object.clone({
 
         var scn, sname = self.cn, self.name
         for i, n in cns.each() {
+            @[!server] if n == scn { continue }
             self.msg_le_cn_send(n, scn && scn || acn, sname,
                 self.build_sdata({ target_cn: n, compressed: true }))
         }
