@@ -435,10 +435,8 @@ M.Character = Entity.clone({
         self.cn = kwargs && kwargs.cn || -1
         assert(self.cn >= 0)
 
-        var sd = kwargs && kwargs.state_data || undef
         self.setup()
         self.initialized = true
-        if sd { self.set_sdata_full(sd) }
         self.send_notification_full(msg.ALL_CLIENTS)
         self.sent_notification_full = true
 
