@@ -380,13 +380,11 @@ M.Character = Entity.clone({
         self.cn = kwargs && kwargs.cn || -1
         assert(self.cn >= 0)
 
+        Entity::__init_svars(self, kwargs)
+
         @[!server] {
-            self.setup()
-            self.initialized = true
             self.__centity = capi::setup_character(self.cn)
             M::set_centity(self.__centity, self)
-        } else {
-            Entity::__init_svars(self, kwargs)
         }
 
         self.set_attr("model_name", "")
