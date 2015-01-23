@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE language SYSTEM "language.dtd">
-<!-- Author: q66 <quaker66@gmail.com> -->
+<!-- Author: q66 <daniel@octaforge.org> -->
 <!-- bits taken from javascript.xml and python.xml -->
 <language name="OctaScript" version="1.0" kateversion="2.4" section="Scripts" extensions="*.oct"
                     mimetype="text/x-octascript;application/x-octascript" indenter="cstyle"

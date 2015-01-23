@@ -1,6 +1,6 @@
 /* replutil.c - a collection of REPL related utilities for Octascript
  *
- * Copyright (C) 2014 Daniel "q66" Kolesa <quaker66@gmail.com>
+ * Copyright (C) 2014 Daniel "q66" Kolesa <daniel@octaforge.org>
  *
  * NCSA licensed
  */
