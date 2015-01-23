@@ -1,7 +1,7 @@
 # OctaForge makefile
 # written for FreeBSD, Linux, Mac OS X and Windows
 #
-# author: Daniel 'q66' Kolesa <quaker66@gmail.com>
+# author: Daniel 'q66' Kolesa <daniel@octaforge.org>
 # license: MIT
 
 CC ?= cc

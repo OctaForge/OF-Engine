@@ -3,10 +3,10 @@
     used by OctaForge for scripting.
 
     This is an OctaForge project that also lives within its own repository
-    on the OctaForge Git as well as on GitHub mirror (quaker66/octascript).
+    on the OctaForge Git as well as on GitHub mirror (OctaForge/OctaScript).
 
     Author:
-        q66 <quaker66@gmail.com>
+        q66 <daniel@octaforge.org>
 
     License:
         See COPYING.txt.

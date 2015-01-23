@@ -2,7 +2,7 @@
  * of_logger.cpp, version 1
  * Logging facilities for OctaForge.
  *
- * author: q66 <quaker66@gmail.com>
+ * author: q66 <daniel@octaforge.org>
  * license: see COPYING.txt
  */
 

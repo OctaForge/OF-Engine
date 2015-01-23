@@ -1,5 +1,5 @@
 #!/bin/sh
-# ENet cflags detection for unix by Daniel 'q66' Kolesa <quaker66@gmail.com>
+# ENet cflags detection for unix by Daniel 'q66' Kolesa <daniel@octaforge.org>
 # I hereby put this file into public domain, use as you wish
 
 CC=$*
