@@ -898,7 +898,7 @@ M.Entity = Object.clone({
         // is 128)
         var pl = ((cn == ocn) ? 1 : 0) << 7
         assert(sd.len() > 0)
-        capi::msg_send(cn, -1, "riiisb", self.msgid_le_cn, ocn | pl,
+        capi::msg_send(cn, ocn, "riiisb", self.msgid_le_cn, ocn | pl,
             make_stor_uid(self.uid, self.__storage), oc, sd.len(), sd)
     },
 
@@ -975,6 +975,44 @@ M.Entity = Object.clone({
         self.svar_value_timestamps[name] = frame::get_frame()
     },
 
+    set_sdata_server: func(self, svar, csfh, key, val, actor_uid, iop) {
+        if actor_uid && actor_uid != -1 && !svar.client_write {
+            log(ERROR, e"Entity.set_sdata: client $actor_uid tried to"
+                e" change $key")
+            return
+        }
+
+        self.sdata_changed(svar, key, val)
+        emit(self, e"$key,changed", val, actor_uid)
+        if self.sdata_update_cancel {
+            self.sdata_update_cancel = undef
+            return
+        }
+
+        self.svar_values[key] = val
+        @[debug] log(INFO, e"Entity.set_sdata: new sdata: $(tostring(val))")
+
+        if !iop && svar.client_read && !csfh {
+            if !self.sent_notification_full {
+                return
+            }
+
+            var kid = names_to_ids[self.name][key]
+            var wval = mp_pack(svar.to_serializable(val), mp_opts)
+            var acn = (svar.client_set && actor_uid && actor_uid != -1)
+                && storage_dynamic[actor_uid].cn || (player_entity
+                    && player_entity.cn || msg.ALL_CLIENTS)
+
+            var cns = get_players().map(\p -> p.cn)
+            for i, n in cns.each() {
+                if svar.should_send(self, n) {
+                    self.msg_sdata_update_send(n, svar.reliable, self.uid,
+                        tonumber(kid), wval, acn)
+                }
+            }
+        }
+    },
+
     /** Function: set_sdata
         The entity state data setter. Has different variants for the client
         and the server.
@@ -1000,21 +1038,27 @@ M.Entity = Object.clone({
             - iop - on the server, a boolean value, if it's true it makes
               this an internal server operaton (won't send to clients).
     */
-    set_sdata: @[!server,func(self, key, val, actor_uid) {
+    set_sdata: func(self, key, val, actor_uid, iop) {
         @[debug] log(DEBUG, e"Entity.set_sdata: $key = $(serialize(val)) for $(self.uid)")
 
         var svar = self[e"_SV_$key"]
+        if !svar {
+            log(WARNING, "Entity.set_sdata: ignoring sdata setting"
+                e" for an unknown variable $key")
+            return
+        }
+
         var csfh = svar.custom_sync && self.controlled_here
-        var cset = svar.client_set
 
-        var nfh = actor_uid != -1
-
-        var is_local = msg::is_local()
+        // either server or local client (in which case, behave like server)
+        if msg::is_local() {
+            return self.set_sdata_server(svar, csfh, key, val, actor_uid, iop)
+        }
 
         // from client-side script, send a server request unless the svar
         // is controlled here (synced using some other method)
         // if this variable is set on the client, send a notification
-        if !nfh && !csfh && !is_local {
+        if actor_uid == -1 && !csfh {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
             self.msg_sdata_changereq_send(svar.reliable, self.uid,
@@ -1023,63 +1067,15 @@ M.Entity = Object.clone({
         }
 
         // from a server or set clientside, update now
-        if nfh || cset || csfh || is_local {
+        if actor_uid != -1 || svar.client_set || csfh {
             @[debug] log(INFO, "    var update")
             // TODO: avoid assertions
             assert(svar.validate(val))
             self.sdata_changed(svar, key, val)
-            emit(self, e"$key,changed", val, nfh)
+            emit(self, e"$key,changed", val, actor_uid != -1)
             self.svar_values[key] = val
         }
-    },func(self, key, val, actor_uid, iop) {
-        @[debug] log(DEBUG, e"Entity.set_sdata: $key = $(serialize(val)) for $(self.uid)")
-
-        var svar = self[e"_SV_$key"]
-        var csfh = svar.custom_sync && self.controlled_here
-
-        if !svar {
-            log(WARNING, "Entity.set_sdata: ignoring sdata setting"
-                e" for an unknown variable $key")
-            return
-        }
-
-        if actor_uid && actor_uid != -1 {
-            if !svar.client_write {
-                log(ERROR, "Entity.set_sdata: client $actor_uid tried to"
-                    e" change $key")
-                return
-            }
-        }
-
-        self.sdata_changed(svar, key, val)
-        emit(self, e"$key,changed", val, actor_uid)
-        if self.sdata_update_cancel {
-            self.sdata_update_cancel = undef
-            return
-        }
-
-        self.svar_values[key] = val
-        @[debug] log(INFO, e"Entity.set_sdata: new sdata: $(tostring(val))")
-
-        if !iop && svar.client_read && !csfh {
-            if !self.sent_notification_full {
-                return
-            }
-
-            var kid = names_to_ids[self.name][key]
-            var wval = mp_pack(svar.to_serializable(val), mp_opts)
-            var acn = (svar.client_set && actor_uid && actor_uid != -1)
-                && storage_dynamic[actor_uid].cn || msg.ALL_CLIENTS
-
-            var cns = get_players().map(\p -> p.cn)
-            for i, n in cns.each() {
-                if svar.should_send(self, n) {
-                    self.msg_sdata_update_send(n, svar.reliable, self.uid,
-                        tonumber(kid), wval, acn)
-                }
-            }
-        }
-    }],
+    },
 
     /**
         Cancels a state data update (on the server). Useful when called
@@ -1103,9 +1099,9 @@ M.Entity = Object.clone({
         @[debug] log(DEBUG, e"Entity.send_notification_full: $cn, $uid")
 
         var scn, sname = self.cn, self.name
+        var ecn = player_entity && player_entity.cn || acn
         for i, n in cns.each() {
-            @[!server] if n == scn { continue }
-            self.msg_le_cn_send(n, scn && scn || acn, sname,
+            self.msg_le_cn_send(n, scn && scn || ecn, sname,
                 self.build_sdata({ target_cn: n, compressed: true }))
         }
 

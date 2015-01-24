@@ -2497,6 +2497,7 @@ namespace server
     int protocolversion() { return PROTOCOL_VERSION; }
 
     CLUAICOMMAND(msg_send, void, (int cn, int exclude, const char *fmt, ...), {
+        if (cn == exclude) return;
         bool reliable = false;
         va_list args;
         va_start(args, fmt);
