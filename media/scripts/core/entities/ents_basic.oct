@@ -463,8 +463,6 @@ M.Character = Entity.clone({
 
         self.render_args_timestamp = -1
 
-        self.set_attr("model_name", self.get_attr("model_name"))
-
         // see world.oct for field meanings
         connect(self, "physics_trigger,changed", func(self, val) {
             if val == 0 { return }
