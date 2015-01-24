@@ -451,7 +451,7 @@ M.Character = Entity.clone({
         self.setup()
         if msg::is_local() {
             self.initialized = true
-            ents::__set_player(self)
+            if self.cn == 0 { ents::__set_player(self) }
         } else {
             self.initialized = false
         }

@@ -898,7 +898,8 @@ M.Entity = Object.clone({
         // is 128)
         var pl = ((cn == ocn) ? 1 : 0) << 7
         assert(sd.len() > 0)
-        capi::msg_send(cn, ocn, "riiisb", self.msgid_le_cn, ocn | pl,
+        var excl = player_entity && player_entity.cn || -1
+        capi::msg_send(cn, excl, "riiisb", self.msgid_le_cn, ocn | pl,
             make_stor_uid(self.uid, self.__storage), oc, sd.len(), sd)
     },
 
@@ -929,7 +930,8 @@ M.Entity = Object.clone({
 
     msg_sdata_update_send: func(self, cn, reliable, uid, kpid, value, ocn) {
         assert(value.len() > 0)
-        capi::msg_send(cn, ocn, reliable ? "riiibi" : "iiibi",
+        var excl = player_entity && player_entity.cn || -1
+        capi::msg_send(cn, excl, reliable ? "riiibi" : "iiibi",
             self.msgid_sdata_update, make_stor_uid(uid, self.__storage), kpid,
             value.len(), value, ocn)
     },
@@ -1000,8 +1002,7 @@ M.Entity = Object.clone({
             var kid = names_to_ids[self.name][key]
             var wval = mp_pack(svar.to_serializable(val), mp_opts)
             var acn = (svar.client_set && actor_uid && actor_uid != -1)
-                && storage_dynamic[actor_uid].cn || (player_entity
-                    && player_entity.cn || msg.ALL_CLIENTS)
+                && storage_dynamic[actor_uid].cn || msg.ALL_CLIENTS
 
             var cns = get_players().map(\p -> p.cn)
             for i, n in cns.each() {
@@ -1099,9 +1100,8 @@ M.Entity = Object.clone({
         @[debug] log(DEBUG, e"Entity.send_notification_full: $cn, $uid")
 
         var scn, sname = self.cn, self.name
-        var ecn = player_entity && player_entity.cn || acn
         for i, n in cns.each() {
-            self.msg_le_cn_send(n, scn && scn || ecn, sname,
+            self.msg_le_cn_send(n, scn && scn || acn, sname,
                 self.build_sdata({ target_cn: n, compressed: true }))
         }
 
