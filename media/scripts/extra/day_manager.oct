@@ -131,7 +131,7 @@ M.plugins = {
     */
     day_night: {
         __activate: func(self) {
-            if !msg::is_local() { return }
+            @[server] { return }
             var daylen = self.get_attr("day_seconds")
             connect(self, "day_seconds,changed", func(self, v) {
                 daylen = v
@@ -148,7 +148,7 @@ M.plugins = {
         },
 
         __run: func(self) {
-            if !msg::is_local() { return }
+            @[server] { return }
             if self.sun_changed_dir && edit::player_is_editing() {
                 lights::reset_sun()
                 self.sun_changed_dir = false
