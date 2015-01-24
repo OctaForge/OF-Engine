@@ -35,7 +35,11 @@ namespace lua
         lua_rawgeti(L, LUA_REGISTRYINDEX, external_handler);
         lua_pushstring(L, name);
         lua_call(L, 1, 1);
-        return !lua_isnil(L, -1);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            return false;
+        }
+        return true;
     }
 
     struct va_ref { va_list ap; };
