@@ -435,7 +435,7 @@ namespace server
         clientinfo *_ci = (clientinfo*)ci;
         if (!_ci->local)
             lua::call_external("entity_remove_dynamic", "i", _ci->clientnum);
-    delete _ci;
+        delete _ci;
     }
 
     clientinfo *getinfo(int n)
@@ -1923,6 +1923,16 @@ namespace server
                         ci->connectauth = disc;
                     }
                     else connected(ci);
+
+                    const char *cl = NULL;
+                    int n = lua::call_external_ret("entity_get_player_prototype", "", "s", &cl);
+                    if (n > 0) {
+                        string pcclass;
+                        copystring(pcclass, cl);
+                        lua::pop_external_ret(n);
+                        lua::call_external("entity_new_with_cn", "sibs", pcclass, ci->clientnum, true, ci->name);
+                    }
+
                     break;
                 }
 
@@ -2416,13 +2426,6 @@ namespace server
                 assert(lua::call_external("entities_send_all", "i", sender));
                 sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
                 assert(lua::call_external("event_player_login", "i", sender));
-#else
-                string pcclass;
-                const char *cl;
-                int n = lua::call_external_ret("entity_get_player_prototype", "", "s", &cl);
-                copystring(pcclass, cl);
-                lua::pop_external_ret(n);
-                lua::call_external("entity_new_with_cn", "sibs", pcclass, game::player1->clientnum, true, game::player1->name);
 #endif
                 break;
             }
