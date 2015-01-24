@@ -2422,11 +2422,9 @@ namespace server
             }
 
             case N_ACTIVEENTSREQUEST: {
-#ifdef STANDALONE
                 assert(lua::call_external("entities_send_all", "i", sender));
                 sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
                 assert(lua::call_external("event_player_login", "i", sender));
-#endif
                 break;
             }
 

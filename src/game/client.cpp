@@ -1103,6 +1103,7 @@ namespace game
             case N_WELCOME:
             {
                 connected = true;
+                game::addmsg(N_ACTIVEENTSREQUEST, "r");
                 break;
             }
 

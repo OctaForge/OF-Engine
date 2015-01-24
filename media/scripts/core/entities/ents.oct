@@ -871,6 +871,9 @@ M.Entity = Object.clone({
         var ocn = ocnf & 0x7F
         // if they differ, we're sending a player complete notification
         var ispl = ocnf != ocn
+        if ispl && stor == storage_dynamic && player_entity {
+            return
+        }
         var ent = stor[ouid]
         if ent == undef {
             ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)

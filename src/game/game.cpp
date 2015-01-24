@@ -338,9 +338,6 @@ namespace game
 
     void startmap(const char *name)   // called just after a map load
     {
-        logger::log(logger::DEBUG, "Requesting active entities...");
-        game::addmsg(N_ACTIVEENTSREQUEST, "r"); // Ask for other players, which are not part of the map proper
-
         if(!m_mp(gamemode)) spawnplayer(player1);
         copystring(clientmap, name ? name : "");
 
