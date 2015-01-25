@@ -933,9 +933,14 @@ M.StaticEntity = Entity.clone({
             capi::removeentityedit(uid)
             f(uid, val)
             capi::addentityedit(uid)
-            capi::editent(uid)
         } else {
             f(uid, val)
+        }
+    },
+
+    __sdata_post_call_cb_set: func(self) {
+        if self.__fully_created {
+            capi::editent(self.uid)
         }
     },
 

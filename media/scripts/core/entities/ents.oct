@@ -980,6 +980,7 @@ M.Entity = Object.clone({
         @[debug] log(INFO, "Setter called")
         self.svar_values[name] = val
         self.svar_value_timestamps[name] = frame::get_frame()
+        self.__sdata_post_call_cb_set()
     },
 
     set_sdata_server: func(self, svar, csfh, key, val, actor_uid, iop) {
@@ -1223,6 +1224,9 @@ M.Entity = Object.clone({
 
     __sdata_call_cb_set: func(self, f, val) {
         f(self.__centity, val)
+    },
+
+    __sdata_post_call_cb_set: func(self) {
     },
 
     __sdata_call_cb_get: func(self, f) {
