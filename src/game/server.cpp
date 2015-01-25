@@ -508,17 +508,15 @@ namespace server
         return false;
     }
 
-    void serverinit()
+    void serverinit(bool dedicated)
     {
         smapname[0] = '\0';
         resetitems();
-#ifdef STANDALONE
-        if (!usegame[0]) return;
+        if (!dedicated || !usegame[0]) return;
         defformatstring(mapimport, "mapscripts.%s", usegame);
         identflags |= IDF_SAFE;
         lua::call_external("mapscript_run", "s", mapimport);
         identflags &= ~IDF_SAFE;
-#endif
     }
 
     int numclients(int exclude = -1, bool nospec = true, bool noai = true, bool priv = false)

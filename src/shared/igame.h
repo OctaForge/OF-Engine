@@ -86,7 +86,7 @@ namespace server
 {
     extern void *newclientinfo();
     extern void deleteclientinfo(void *ci);
-    extern void serverinit();
+    extern void serverinit(bool dedicated);
     extern int reserveclients();
     extern int numchannels();
     extern void clientdisconnect(int n);

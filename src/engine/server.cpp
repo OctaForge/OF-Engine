@@ -1094,7 +1094,7 @@ void initserver(bool listen, bool dedicated)
 
     if(listen) setuplistenserver(dedicated);
 
-    server::serverinit();
+    server::serverinit(dedicated);
 
     if(listen)
     {
