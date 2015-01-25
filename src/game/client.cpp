@@ -1108,9 +1108,9 @@ namespace game
                 lua::call_external("gui_clear", "");
                 cursor_exists = 0;
                 if (text[0]) {
-                    defformatstring(mapimport, "mapscripts.%s", text);
+                    defformatstring(mapimport, "gamescripts.%s", text);
                     identflags |= IDF_SAFE;
-                    lua::call_external("mapscript_run", "s", mapimport);
+                    lua::call_external("gamescript_run", "s", mapimport);
                     identflags &= ~IDF_SAFE;
                 }
                 game::addmsg(N_ACTIVEENTSREQUEST, "r");

@@ -79,16 +79,14 @@ get = M.get
 /**
     Sets up the day manager. You should call this in your map script before
     {{$ents.load}}. You can provide various plugins. This module implements
-    a handful of plugins that you can use. On the server this returns the
-    entity.
+    a handful of plugins that you can use. On the server (or local client)
+    this returns the entity.
 */
 M.setup = func(plugins) {
     ents::register_prototype(DayManager, plugins)
-    if !msg::is_local() { return }
+    if !msg::is_local() { return undef }
     dayman = ents::new("DayManager")
-    @[server] {
-        return dayman
-    }
+    return dayman
 }
 
 var getsunscale = func(dayprog) {

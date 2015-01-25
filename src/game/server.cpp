@@ -513,9 +513,9 @@ namespace server
         smapname[0] = '\0';
         resetitems();
         if (!dedicated || !usegame[0]) return;
-        defformatstring(mapimport, "mapscripts.%s", usegame);
+        defformatstring(mapimport, "gamescripts.%s", usegame);
         identflags |= IDF_SAFE;
-        lua::call_external("mapscript_run", "s", mapimport);
+        lua::call_external("gamescript_run", "s", mapimport);
         identflags &= ~IDF_SAFE;
     }
 

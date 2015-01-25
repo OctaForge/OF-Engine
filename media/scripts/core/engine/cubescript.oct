@@ -50,7 +50,7 @@ M.var_type = enum {
     PERSIST (the variable will be saved in the configuration file), OVERRIDE
     (a mapvar, will be reset after the map ends) and READONLY.
 
-    In a "safe" environment (run within a mapscript), PERSIST has no effect,
+    In a "safe" environment (run within a gamescript), PERSIST has no effect,
     OVERRIDE is implicit and HEX and READONLY will still work.
 */
 M.var_flags = enum {

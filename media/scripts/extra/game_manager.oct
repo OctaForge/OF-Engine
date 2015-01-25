@@ -208,16 +208,14 @@ M.get = func() {
 get = M.get
 
 /**
-    Sets up the game manager. You should call this in your mapscript before
-    {{$ents.load}}. On the server, this returns the entity.
+    Sets up the game manager. You should call this in your gamescript.
+    On the server (or local client), this returns the entity.
 */
 M.setup = func(plugins) {
     ents::register_prototype(GameManager, plugins)
-    if !msg::is_local() { return }
+    if !msg::is_local() { return undef }
     gameman = ents::new("GameManager")
-    @[server] {
-        return gameman
-    }
+    return gameman
 }
 
 return M
