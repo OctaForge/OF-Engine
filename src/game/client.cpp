@@ -1,6 +1,6 @@
 #include "game.h"
 
-extern bool gamechanged;
+extern int cursor_exists;
 
 namespace game
 {
@@ -778,7 +778,6 @@ namespace game
         }
         lua::call_external("entities_remove_all", "b", false);
         lua::reset();
-        gamechanged = true;
     }
 
     void toserver(char *text) { conoutf(CON_CHAT, "%s: %s", colorname(player1), text); addmsg(N_TEXT, "rcs", player1, text); }
@@ -1103,6 +1102,17 @@ namespace game
             case N_WELCOME:
             {
                 connected = true;
+                getstring(text, p);
+                filtertext(text, text, true, true);
+                lua::reset();
+                lua::call_external("gui_clear", "");
+                cursor_exists = 0;
+                if (text[0]) {
+                    defformatstring(mapimport, "mapscripts.%s", text);
+                    identflags |= IDF_SAFE;
+                    lua::call_external("mapscript_run", "s", mapimport);
+                    identflags &= ~IDF_SAFE;
+                }
                 game::addmsg(N_ACTIVEENTSREQUEST, "r");
                 break;
             }

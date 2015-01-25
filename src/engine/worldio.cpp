@@ -591,15 +591,6 @@ struct tessentity
     uchar reserved;
 };
 
-bool gamechanged = true;
-static string oldgame = "";
-SVARFNP(game, usegame, "", {
-    if (strcmp(oldgame, usegame)) {
-        gamechanged = true;
-    }
-    copystring(oldgame, usegame);
-});
-
 bool load_world(const char *mname, const char *cname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     int loadingstart = SDL_GetTicks();
@@ -825,23 +816,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     extern void clear_texpacks(int n = 0); clear_texpacks();
 
-    if (gamechanged) {
-        lua::reset(); // temporary reset
-        lua::call_external("gui_clear", "");
-        extern int cursor_exists;
-        cursor_exists = 0;
-    }
-
     identflags |= IDF_OVERRIDDEN;
     execfile("config/default_map_settings.cfg", false);
-    identflags |= IDF_SAFE;
     execfile(mediacfgname, false);
-    if (gamechanged && usegame && usegame[0]) {
-        defformatstring(mapimport, "mapscripts.%s", usegame);
-        lua::call_external("mapscript_run", "s", mapimport);
-    }
-    identflags &= ~(IDF_OVERRIDDEN | IDF_SAFE);
-    gamechanged = false;
+    identflags &= ~IDF_OVERRIDDEN;
 
     char *eloaded = loadfile(entcfgname, NULL);
     if (eloaded) {

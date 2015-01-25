@@ -201,6 +201,8 @@ namespace server
     int mastermode = MM_OPEN, mastermask = MM_PRIVSERV;
     stream *mapdata = NULL;
 
+    SVARNP(game, usegame, "");
+
     vector<uint> allowedips;
     vector<ban> bannedips;
 
@@ -510,6 +512,13 @@ namespace server
     {
         smapname[0] = '\0';
         resetitems();
+#ifdef STANDALONE
+        if (!usegame[0]) return;
+        defformatstring(mapimport, "mapscripts.%s", usegame);
+        identflags |= IDF_SAFE;
+        lua::call_external("mapscript_run", "s", mapimport);
+        identflags &= ~IDF_SAFE;
+#endif
     }
 
     int numclients(int exclude = -1, bool nospec = true, bool noai = true, bool priv = false)
@@ -1241,6 +1250,7 @@ namespace server
     int welcomepacket(packetbuf &p, clientinfo *ci)
     {
         putint(p, N_WELCOME);
+        sendstring(usegame, p);
         putint(p, N_MAPCHANGE);
         sendstring(smapname, p);
         putint(p, gamemode);
