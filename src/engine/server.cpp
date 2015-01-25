@@ -1088,6 +1088,7 @@ void initserver(bool listen, bool dedicated)
 #ifdef WIN32
         setupwindow("OctaForge server");
 #endif
+        lua::init(true);
     }
 
     execfile("config/server-init.cfg", false);
@@ -1159,7 +1160,6 @@ int main(int argc, char **argv)
     enet_time_set(0);
     for(int i = 1; i<argc; i++) if(argv[i][0]!='-' || !serveroption(argv[i])) gameargs.add(argv[i]);
     game::parseoptions(gameargs);
-    lua::init();
     initserver(true, true);
     lua::close();
     return EXIT_SUCCESS;

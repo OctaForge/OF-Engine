@@ -26,7 +26,7 @@ namespace lua
         return 0;
     }
 
-    void setup_binds();
+    void setup_binds(bool dedicated);
 
     static int external_handler = LUA_REFNIL;
 
@@ -457,7 +457,7 @@ namespace lua
         { NULL,         NULL}
     };
 
-    void init(const char *dir)
+    void init(bool dedicated, const char *dir)
     {
         if (L) return;
         copystring(mod_dir, dir);
@@ -521,7 +521,7 @@ namespace lua
         luaL_register    (L, NULL, streamlib);
         lua_pop          (L, 1);
 
-        setup_binds();
+        setup_binds(dedicated);
     }
 
     void load_module(const char *name)
@@ -581,13 +581,9 @@ namespace lua
         lua_replace(L, -2);
     }
 
-    void setup_binds()
+    void setup_binds(bool dedicated)
     {
-#ifndef STANDALONE
-        lua_pushboolean(L, false);
-#else
-        lua_pushboolean(L, true);
-#endif
+        lua_pushboolean(L, dedicated);
         lua_setglobal(L, "SERVER");
 
         assert(funs);

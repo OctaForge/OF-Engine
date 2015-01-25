@@ -1028,10 +1028,6 @@ int main(int argc, char **argv)
     /* Initialize logging at first, right after that lua. */
     logger::setlevel(loglevel);
 
-    initlog("lua");
-    lua::init();
-    if (!lua::L) fatal("cannot initialize lua script engine");
-
     numcpus = clamp(SDL_GetCPUCount(), 1, 16);
 
     if(dedicated <= 1)
@@ -1055,6 +1051,11 @@ int main(int argc, char **argv)
     game::parseoptions(gameargs);
     initserver(dedicated>0, dedicated>1);  // never returns if dedicated
     ASSERT(dedicated <= 1);
+
+    initlog("lua");
+    lua::init(false);
+    if (!lua::L) fatal("cannot initialize lua script engine");
+
     game::initclient();
 
     initlog("video");
