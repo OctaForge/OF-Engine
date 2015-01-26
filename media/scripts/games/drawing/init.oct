@@ -115,7 +115,7 @@ var GamePlayer = Player.clone({
         var newb =  marks.empty() || !marks[marks.len() - 2]
         var conb = !marks.empty() &&  marks[marks.len() - 2]
 
-        if conb && !self.stop_batch {
+        if conb && !self.stop_batch && self == ents::get_player() {
             var mark = marks[marks.len() - 2]
             var r, g, b = hextorgb(mark.w)
             splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
