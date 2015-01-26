@@ -460,12 +460,8 @@ M.Character = Entity.clone({
         M::set_centity(self.__centity, self)
 
         self.setup()
-        if msg::is_server() {
-            self.initialized = true
-            if self.cn == 0 && !msg::is_server_only() { ents::__set_player(self) }
-        } else {
-            self.initialized = false
-        }
+        self.initialized = msg::is_server()
+        if capi::isplayer(self.cn) { ents::__set_player(self) }
 
         if msg::is_server() {
             self.send_notification_full(msg.ALL_CLIENTS)

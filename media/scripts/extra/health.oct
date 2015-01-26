@@ -323,6 +323,7 @@ M.plugins = {
     */
     player_hud: {
         __activate: @[!server,func(self) {
+            if self != ents::get_player() { return }
             gui::get_hud().append(gui::Spacer({ pad_h: 0.1, pad_v: 0.1,
                 align_h: 1, align_v: 1
             }), func(sp) {
@@ -349,6 +350,7 @@ M.plugins = {
         }],
 
         __deactivate: @[!server,func(self) {
+            if self != ents::get_player() { return }
             self.health_hud_status.destroy()
         }]
     },

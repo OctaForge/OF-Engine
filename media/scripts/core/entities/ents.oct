@@ -394,7 +394,10 @@ M.get_player = @[!server,func() {
     return player_entity
 }]
 
-M.__set_player = func(pl) { player_entity = pl }
+M.__set_player = func(pl) {
+    player_entity = pl
+    pl.controlled_here = true
+}
 
 set_external("entity_get_player_prototype", func() {
     return player_prototype
@@ -888,12 +891,6 @@ M.Entity = Object.clone({
         }
         @[debug] log(DEBUG, e"updating state data with $(tostring(sd))")
         ent.set_sdata_full(sd)
-        if ispl && stor == storage_dynamic {
-            @[debug] log(DEBUG, e"initializing player with uid $ouid")
-            player_entity = storage_dynamic[ouid]
-            assert(player_entity)
-            player_entity.controlled_here = true
-        }
         capi::renderprogress(0, "receiving entities...")
     }]),
 
@@ -1317,7 +1314,7 @@ set_external("entity_get_proto_name", func(cent) {
 */
 M.render = @[!server,func(tp, fpsshadow) {
     @[debug] log(INFO, "game_render")
-    var  player = player_entity
+    var player = player_entity
     if !player { return }
 
     for uid, entity in storage_dynamic.each() {

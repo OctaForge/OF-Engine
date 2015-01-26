@@ -403,5 +403,7 @@ namespace entities
         }
         lua::pop_external_ret(n);
     });
+
+    CLUAICOMMAND(isplayer, bool, (int cn), return cn == player1->clientnum;);
 }
 
