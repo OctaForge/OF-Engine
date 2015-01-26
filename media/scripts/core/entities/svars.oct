@@ -205,21 +205,15 @@ M.StateVariable = Object.clone({
 
         var fr = frame::get_frame()
 
-        if !svar.getter_fun
-            || @[server,self.svar_change_queue]
-            || self.svar_value_timestamps[vn] == fr
-        {
+        if !svar.getter_fun || self.svar_value_timestamps[vn] == fr {
             return self.svar_values[vn]
         }
 
         @[debug] log(INFO, "StateVariable: getter: getter function")
 
         var val = self.__sdata_call_cb_get(svar.getter_fun)
-
-        if @[server,self.svar_change_queue_complete,true] {
-            self.svar_values[vn] = val
-            self.svar_value_timestamps[vn] = fr
-        }
+        self.svar_values[vn] = val
+        self.svar_value_timestamps[vn] = fr
 
         return val
     },
@@ -581,19 +575,15 @@ M.StateArray = StateVariable.clone({
 
         var fr = frame::get_frame()
 
-        if @[server,ent.svar_change_queue] || ent.svar_value_timestamps[vn] == fr
-        {
+        if ent.svar_value_timestamps[vn] == fr {
             return ent.svar_values[vn]
         }
 
         @[debug] log(INFO, "StateArray: get_raw: getter function")
 
         var val = ent.__sdata_call_cb_get(self.getter_fun)
-
-        if @[server,ent.svar_change_queue_complete,true] {
-            ent.svar_values[vn] = val
-            ent.svar_value_timestamps[vn] = fr
-        }
+        ent.svar_values[vn] = val
+        ent.svar_value_timestamps[vn] = fr
 
         return val
     },
