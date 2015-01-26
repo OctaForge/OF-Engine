@@ -72,7 +72,7 @@ var GamePlayer = Player.clone({
     },
 
     reset_mark: func(self) {
-        self.set_attr("new_mark", [ -1, -1, -1 ])
+        self.set_attr("new_mark", [ -1, -1, -1, -1 ])
         self.stop_batch = true
     },
 
@@ -86,8 +86,8 @@ var GamePlayer = Player.clone({
         self.color_id = 0
         self.color    = colors[0]
         connect(self, "new_mark,changed", func(self, nm) {
-            if nm.len() == 3 {
-                nm = Vec4(nm[0], nm[1], nm[2], self.color)
+            if nm.len() == 4 {
+                nm = Vec4(nm[0], nm[1], nm[2], nm[3])
             } else {
                 nm = undef
             }
@@ -112,8 +112,8 @@ var GamePlayer = Player.clone({
             last = mark
         }
 
-        var newb =     marks.empty() || !marks[marks.len() - 2]
-        var conb = !marks.empty() &&    marks[marks.len() - 2]
+        var newb =  marks.empty() || !marks[marks.len() - 2]
+        var conb = !marks.empty() &&  marks[marks.len() - 2]
 
         if conb && !self.stop_batch {
             var mark = marks[marks.len() - 2]
@@ -126,7 +126,9 @@ var GamePlayer = Player.clone({
             var topl = self.get_attr("position").sub_new(newp)
             newp.add(topl.normalize())
             if newb || marks[marks.len() - 2].dist(newp) > 5 {
-                self.set_attr("new_mark", newp.to_array())
+                var p = newp.to_array()
+                p.push(self.color)
+                self.set_attr("new_mark", p)
             }
         }
     }]

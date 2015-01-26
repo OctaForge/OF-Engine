@@ -20,6 +20,7 @@ import core.engine.model
 import core.engine.edit
 import core.entities.svars
 import core.entities.ents
+import core.network.msg
 
 import extra.events.actions as eactions
 
@@ -111,12 +112,13 @@ M.player_plugin = {
         Overrides the serverside spawn stage 4. In addition to the default
         behavior it restores the player's health.
     */
-    game_manager_spawn_stage_4: @[server,func(self, auid) {
+    game_manager_spawn_stage_4: func(self, auid) {
+        if !msg::is_server() { return }
         self.set_attr("health", self.get_attr("max_health"))
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
         self.cancel_sdata_update()
-    }],
+    },
 
     get_animation: func(self) {
         var ret = self.__parent_ent_proto::get_animation(self)
