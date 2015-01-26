@@ -61,7 +61,8 @@ M.player_plugin = {
 
     game_manager_respawn: func(self) {
         @[!server] {
-            if msg::is_server() {
+            if !msg::is_server() { return }
+            if !msg::is_server_only() {
                 self.set_attr("can_move", true)
                 emit(self, "client,respawn")
                 return
