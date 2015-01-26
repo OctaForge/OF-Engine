@@ -191,10 +191,11 @@ M.Character = Entity.clone({
 
     __properties: {
         animation: svars::StateInteger({
-            setter: @[!server,capi.set_animation_dyn], client_set: true
+            setter: @[!server,capi.set_animation_dyn], client_set: true,
+            client_cb: true
         }),
         start_time : svars::StateInteger({
-            getter: @[!server,capi.get_start_time_dyn]
+            getter: @[!server,capi.get_start_time_dyn], client_cb: true
         }),
         model_name : svars::StateString(),
         attachments: svars::StateArray({
@@ -202,7 +203,7 @@ M.Character = Entity.clone({
                 var arr = ffi::new("const char *[?]", val.len() + 1)
                 for i, v in val.each() { arr[i] = v }
                 set_attachments_dyn(self, arr)
-            }]
+            }], client_cb: true
         }),
 
         character_name: svars::StateString(),
@@ -210,132 +211,142 @@ M.Character = Entity.clone({
 
         movement_speed: svars::StateFloat({
             getter: @[!server,capi.get_maxspeed],
-            setter: @[!server,capi.set_maxspeed]
+            setter: @[!server,capi.set_maxspeed],
+            client_cb: true
         }),
         yaw: svars::StateFloat({
             getter: @[!server,capi.get_yaw],
             setter: @[!server,capi.set_yaw],
-            custom_sync: true
+            custom_sync: true, client_cb: true
         }),
         pitch: svars::StateFloat({
             getter: @[!server,capi.get_pitch],
             setter: @[!server,capi.set_pitch],
-            custom_sync: true
+            custom_sync: true, client_cb: true
         }),
         roll: svars::StateFloat({
             getter: @[!server,capi.get_roll],
             setter: @[!server,capi.set_roll],
-            custom_sync: true
+            custom_sync: true, client_cb: true
         }),
         move: svars::StateInteger({
             getter: @[!server,capi.get_move],
             setter: @[!server,capi.set_move],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         strafe: svars::StateInteger({
             getter: @[!server,capi.get_strafe],
             setter: @[!server,capi.set_strafe],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         yawing: svars::StateInteger({
             getter: @[!server,capi.get_yawing],
             setter: @[!server,capi.set_yawing],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         pitching: svars::StateInteger({
             getter: @[!server,capi.get_pitching],
             setter: @[!server,capi.set_pitching],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         crouching: svars::StateInteger({
             getter: @[!server,capi.get_crouching],
             setter: @[!server,capi.set_crouching],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         jumping: svars::StateBoolean({
             getter: @[!server,capi.get_jumping],
             setter: @[!server,capi.set_jumping],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         position: svars::StateVec3({
             getter: @[!server,capi.get_dynent_position],
             setter: @[!server,capi.set_dynent_position],
-            custom_sync: true
+            custom_sync: true, client_cb: true
         }),
         velocity: svars::StateVec3({
             getter: @[!server,capi.get_dynent_velocity],
             setter: @[!server,capi.set_dynent_velocity],
-            custom_sync: true
+            custom_sync: true, client_cb: true
         }),
         falling: svars::StateVec3({
             getter: @[!server,capi.get_dynent_falling],
             setter: @[!server,capi.set_dynent_falling],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         radius: svars::StateFloat({
             getter: @[!server,capi.get_radius],
-            setter: @[!server,capi.set_radius]
+            setter: @[!server,capi.set_radius],
+            client_cb: true
         }),
         above_eye: svars::StateFloat({
             getter: @[!server,capi.get_aboveeye],
-            setter: @[!server,capi.set_aboveeye]
+            setter: @[!server,capi.set_aboveeye],
+            client_cb: true
         }),
         eye_height: svars::StateFloat({
             getter: @[!server,capi.get_eyeheight],
-            setter: @[!server,capi.set_eyeheight]
+            setter: @[!server,capi.set_eyeheight],
+            client_cb: true
         }),
         max_height: svars::StateFloat({
             getter: @[!server,capi.get_maxheight],
-            setter: @[!server,capi.set_maxheight]
+            setter: @[!server,capi.set_maxheight],
+            client_cb: true
         }),
         crouch_height: svars::StateFloat({
             getter: @[!server,capi.get_crouchheight],
-            setter: @[!server,capi.set_crouchheight]
+            setter: @[!server,capi.set_crouchheight],
+            client_cb: true
         }),
         crouch_speed: svars::StateFloat({
             getter: @[!server,capi.get_crouchspeed],
-            setter: @[!server,capi.set_crouchspeed]
+            setter: @[!server,capi.set_crouchspeed],
+            client_cb: true
         }),
         crouch_time: svars::StateInteger({
             getter: @[!server,capi.get_crouchtime],
-            setter: @[!server,capi.set_crouchtime]
+            setter: @[!server,capi.set_crouchtime],
+            client_cb: true
         }),
         jump_velocity: svars::StateFloat({
             getter: @[!server,capi.get_jumpvel],
-            setter: @[!server,capi.set_jumpvel]
+            setter: @[!server,capi.set_jumpvel],
+            client_cb: true
         }),
         gravity: svars::StateFloat({
             getter: @[!server,capi.get_gravity],
-            setter: @[!server,capi.set_gravity]
+            setter: @[!server,capi.set_gravity],
+            client_cb: true
         }),
         blocked: svars::StateBoolean({
             getter: @[!server,capi.get_blocked],
             setter: @[!server,capi.set_blocked],
-            gui_name: false
+            gui_name: false, client_cb: true
         }),
         can_move: svars::StateBoolean({
             setter: @[!server,capi.set_can_move],
-            client_set: true
+            client_set: true, client_cb: true
         }),
         client_state: svars::StateInteger({
             getter: @[!server,capi.get_clientstate],
             setter: @[!server,capi.set_clientstate],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         physical_state: svars::StateInteger({
             getter: @[!server,capi.get_physstate],
             setter: @[!server,capi.set_physstate],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         in_liquid: svars::StateInteger({
             getter: @[!server,capi.get_inwater],
             setter: @[!server,capi.set_inwater],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
         time_in_air: svars::StateInteger({
             getter: @[!server,capi.get_timeinair],
             setter: @[!server,capi.set_timeinair],
-            custom_sync: true, gui_name: false
+            custom_sync: true, gui_name: false, client_cb: true
         }),
 
         physics_trigger: svars::StateInteger({ gui_name: false }),
@@ -382,7 +393,7 @@ M.Character = Entity.clone({
 
         Entity::__init_svars(self, kwargs)
 
-        @[!server] {
+        if !msg::is_server_only() {
             self.__centity = capi::setup_character(self.cn)
             M::set_centity(self.__centity, self)
         }
@@ -451,7 +462,7 @@ M.Character = Entity.clone({
         self.setup()
         if msg::is_server() {
             self.initialized = true
-            if self.cn == 0 { ents::__set_player(self) }
+            if self.cn == 0 && !msg::is_server_only() { ents::__set_player(self) }
         } else {
             self.initialized = false
         }
@@ -492,7 +503,7 @@ M.Character = Entity.clone({
     }],
 
     __deactivate: func(self) {
-        @[!server] {
+        if !msg::is_server_only() {
             M::set_centity(self.__centity, undef)
             self.__centity = undef
         }

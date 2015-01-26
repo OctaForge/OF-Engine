@@ -120,4 +120,8 @@ M.is_server = @[server,func() { return true },func() {
     return capi::islistenserver() || is_loc()
 }]
 
+M.is_server_only = @[server,func() { return true },func() {
+    return capi::islistenserver() && !capi::isconnected(false, true)
+}]
+
 return M

@@ -975,6 +975,8 @@ M.Entity = Object.clone({
     sdata_changed: func(self, svar, name, val) {
         var sfun = svar.setter_fun
         if !sfun { return }
+        var srv = svar.client_cb && msg::is_server_only()
+        if srv { return }
         @[debug] log(INFO, e"Calling setter function for $name")
         self.__sdata_call_cb_set(sfun, val)
         @[debug] log(INFO, "Setter called")

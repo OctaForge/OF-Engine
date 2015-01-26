@@ -21,6 +21,7 @@ var INFO  = logging.INFO
 
 import core.events.frame
 import core.octascript.geom as ogeom
+import core.network.msg
 
 from std.object import Object
 from std.table import rawget, rawset
@@ -107,6 +108,7 @@ M.StateVariable = Object.clone({
         self.client_write   = (kwargs.client_write != undef) ? kwargs.client_write : true
         self.client_set     = kwargs.client_set     || false
         self.client_private = kwargs.client_private || false
+        self.client_cb      = kwargs.client_cb      || false
 
         self.custom_sync = kwargs.custom_sync || false
 
@@ -205,7 +207,8 @@ M.StateVariable = Object.clone({
 
         var fr = frame::get_frame()
 
-        if !svar.getter_fun || self.svar_value_timestamps[vn] == fr {
+        var srv = svar.client_cb && msg::is_server_only()
+        if srv || !svar.getter_fun || self.svar_value_timestamps[vn] == fr {
             return self.svar_values[vn]
         }
 
@@ -569,7 +572,8 @@ M.StateArray = StateVariable.clone({
         var vn = self.name
         @[debug] log(INFO, "StateArray: get_raw: " ~ vn)
 
-        if !self.getter_fun {
+        var srv = self.client_cb && msg::is_server_only()
+        if srv || !self.getter_fun {
             return ent.svar_values[vn] || []
         }
 
