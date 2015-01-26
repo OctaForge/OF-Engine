@@ -454,7 +454,7 @@ var add = func(cn, uid, kwargs, new) {
     // caching
     cl.__instances.push(r)
 
-    var enew = !!(new && (msg::is_local() || stor == storage_static))
+    var enew = !!(new && (msg::is_server() || stor == storage_static))
     if  enew {
         var ndata
         if kwargs {
@@ -693,7 +693,7 @@ M.Entity = Object.clone({
     __deactivate: func(self) {
         self.clear_actions()
         self.deactivated = true
-        if msg::is_local() {
+        if msg::is_server() {
             self.msg_le_rem_send(msg.ALL_CLIENTS, self.uid)
         }
     },
@@ -855,8 +855,8 @@ M.Entity = Object.clone({
                 e"$(self.name)")
         }
         self.setup()
-        self.initialized = msg::is_local()
-        if msg::is_local() {
+        self.initialized = msg::is_server()
+        if msg::is_server() {
             var sd = kwargs && kwargs.state_data || undef
             if sd { self.set_sdata_full(sd) }
             self.send_notification_full(msg.ALL_CLIENTS)
@@ -1058,7 +1058,7 @@ M.Entity = Object.clone({
         var csfh = svar.custom_sync && self.controlled_here
 
         // either server or local client (in which case, behave like server)
-        if msg::is_local() {
+        if msg::is_server() {
             return self.set_sdata_server(svar, csfh, key, val, actor_uid, iop)
         }
 

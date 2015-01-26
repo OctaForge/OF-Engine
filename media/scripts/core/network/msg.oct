@@ -114,5 +114,10 @@ setext("message_receive", func(tp, receiver, sender, p) {
 M.is_local = @[server,func() { return true },func() {
     return capi::isconnected(false, true) && !capi::isconnected(false, false)
 }]
+var is_loc = M.is_local
+
+M.is_server = @[server,func() { return true },func() {
+    return capi::islistenserver() || is_loc()
+}]
 
 return M

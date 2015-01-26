@@ -43,7 +43,7 @@ var DayManager = Entity.clone({
 
     __activate: func(self) {
         Entity::__activate(self)
-        if !msg::is_local() { return }
+        if !msg::is_server() { return }
         self.day_seconds_s = self.get_attr("day_seconds")
         connect(self, "day_seconds,changed", func(self, v) {
             self.day_seconds_s = v
@@ -53,7 +53,7 @@ var DayManager = Entity.clone({
 
     __run: func(self, millis) {
         Entity::__run(self, millis)
-        if !msg::is_local() { return }
+        if !msg::is_server() { return }
         var dm = self.day_seconds_s * 1000
         if dm == 0 { return }
         var dp = self.day_progress_s
@@ -84,7 +84,7 @@ get = M.get
 */
 M.setup = func(plugins) {
     ents::register_prototype(DayManager, plugins)
-    if !msg::is_local() { return undef }
+    if !msg::is_server() { return undef }
     dayman = ents::new("DayManager")
     return dayman
 }

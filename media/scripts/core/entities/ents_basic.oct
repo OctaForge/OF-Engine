@@ -449,14 +449,14 @@ M.Character = Entity.clone({
         M::set_centity(self.__centity, self)
 
         self.setup()
-        if msg::is_local() {
+        if msg::is_server() {
             self.initialized = true
             if self.cn == 0 { ents::__set_player(self) }
         } else {
             self.initialized = false
         }
 
-        if msg::is_local() {
+        if msg::is_server() {
             self.send_notification_full(msg.ALL_CLIENTS)
             self.sent_notification_full = true
         }

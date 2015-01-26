@@ -1019,6 +1019,7 @@ void logoutfv(const char *fmt, va_list args)
 static bool dedicatedserver = false;
 
 bool isdedicatedserver() { return dedicatedserver; }
+CLUAICOMMAND(islistenserver, bool, (), return serverhost != NULL;);
 
 void rundedicatedserver()
 {
