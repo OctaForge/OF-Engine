@@ -43,19 +43,19 @@ M.player_plugin = {
 
     __activate: func(self) {
         connect(self, "spawn_stage,changed", self.game_manager_on_spawn_stage)
-        @[server] {
+        if msg::is_server() {
             get().pick_team(self)
             connect(self, "pre_deactivate", func(self) {
                 get().leave_team(self)
             })
-            self.game_manager_respawn()
-        } else {
+        }
+        @[!server] {
             connect(self, "client,respawn", func(self) {
                 get().place_player(self)
             })
-            if msg::is_server() {
-                self.game_manager_respawn()
-            }
+        }
+        if msg::is_server() {
+            self.game_manager_respawn()
         }
     },
 
@@ -72,29 +72,33 @@ M.player_plugin = {
 
     game_manager_spawn_stage_0: func(self, auid) { },
 
-    game_manager_spawn_stage_1: @[!server,func(self, auid) {
+    game_manager_spawn_stage_1: func(self, auid) {
+        if msg::is_server() { return }
         self.set_attr("spawn_stage", 2)
-    },func(self, auid) { }],
+    },
 
-    game_manager_spawn_stage_2: @[server,func(self, auid) {
+    game_manager_spawn_stage_2: func(self, auid) {
+        if !msg::is_server() { return }
         if auid == self.uid {
             self.set_attr("spawn_stage", 3)
         }
         self.cancel_sdata_update()
-    },func(self, auid) { }],
+    },
 
-    game_manager_spawn_stage_3: @[!server,func(self, auid) {
+    game_manager_spawn_stage_3: func(self, auid) {
+        if msg::is_server() { return }
         if self == ents::get_player() {
             emit(self, "client,respawn")
             self.set_attr("spawn_stage", 4)
         }
-    },func(self, auid) { }],
+    },
 
-    game_manager_spawn_stage_4: @[server,func(self, auid) {
+    game_manager_spawn_stage_4: func(self, auid) {
+        if !msg::is_server() { return }
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
         self.cancel_sdata_update()
-    },func(self, auid) { }],
+    },
 
     game_manager_on_spawn_stage: func(self, stage, auid) {
         self["game_manager_spawn_stage_" ~ stage](self, auid)
@@ -120,7 +124,8 @@ var GameManager = Entity.clone({
         self.teams = {}
     },
 
-    get_players: @[server,func(self) {
+    get_players: func(self) {
+        if !msg::is_server() { return undef }
         var players = []
         for i, team in pairs(self.teams) {
             for i, v in team.player_list.each() {
@@ -128,9 +133,10 @@ var GameManager = Entity.clone({
             }
         }
         return players
-    }],
+    },
 
-    start_game: @[server,func(self) {
+    start_game: func(self) {
+        if !msg::is_server() { return }
         var players = self.get_players()
 
         for i, team in pairs(self.teams) {
@@ -149,27 +155,29 @@ var GameManager = Entity.clone({
 
         emit(self, "game,start")
         self.game_running = true
-    }],
+    },
 
-    end_game: @[server,func(self) {
+    end_game: func(self) {
+        if !msg::is_server() { return }
         self.game_running = false
         emit(self, "game,end")
-    }],
+    },
 
-    sync_team_data: @[server,func(self) {
+    sync_team_data: func(self) {
+        if !msg::is_server() { return }
         if !self.deactivated {
             self.set_attr("team_data", self.teams)
         }
-    }],
+    },
 
-    pick_team: @[server,func(self, player, sync) {
-    }],
+    pick_team: func(self, player, sync) {
+    },
 
-    set_player_team: @[server,func(self, player, team, sync) {
-    }],
+    set_player_team: func(self, player, team, sync) {
+    },
 
-    leave_team: @[server,func(self, player, sync) {
-    }],
+    leave_team: func(self, player, sync) {
+    },
 
     place_player: func(self, player) {
         var team = player.get_attr("team")
