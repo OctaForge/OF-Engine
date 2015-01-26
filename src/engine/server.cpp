@@ -1079,6 +1079,7 @@ bool setuplistenserver(bool dedicated)
     }
     if(lansock == ENET_SOCKET_NULL) conoutf(CON_WARN, "WARNING: could not create LAN server info socket");
     else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
+    server::listenserverinit();
     return true;
 }
 
@@ -1096,7 +1097,7 @@ void initserver(bool listen, bool dedicated)
 
     if(listen) setuplistenserver(dedicated);
 
-    server::serverinit(dedicated);
+    server::serverinit();
 
     if(listen)
     {
