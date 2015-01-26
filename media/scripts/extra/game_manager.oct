@@ -63,7 +63,7 @@ M.player_plugin = {
         @[!server] {
             if !msg::is_server() { return }
             if !msg::is_server_only() {
-                self.set_attr("can_move", true)
+                self.set_attr("spawn_stage", 4)
                 emit(self, "client,respawn")
                 return
             }

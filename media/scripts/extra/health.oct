@@ -57,9 +57,10 @@ M.PainAction = PainAction
 /**
     Derives from a regular Action. Represents player death and the default
     duration is 5 seconds. Like pain, it cannot be used more than once at
-     a time and it's not cancelable. It only exists on the server.
+    a time and it's not cancelable. Used on the server (either local or
+    remote) - on the client it does nothing.
 */
-var DeathAction = @[server,actions.Action.clone({
+var DeathAction = actions.Action.clone({
     name          : "DeathAction",
     allow_multiple: false,
     cancelable    : false,
@@ -71,6 +72,7 @@ var DeathAction = @[server,actions.Action.clone({
         emits the "killed" signal on the player.
     */
     __start: func(self) {
+        if !msg::is_server() { return }
         var actor = self.actor
         actor.set_attr("can_move", false)
         actor.clear_actions()
@@ -79,9 +81,10 @@ var DeathAction = @[server,actions.Action.clone({
 
     /// Triggers a respawn.
     __finish: func(self) {
+        if !msg::is_server() { return }
         self.actor.game_manager_respawn()
     }
-})]
+})
 M.DeathAction = DeathAction
 
 /**
@@ -102,6 +105,7 @@ M.player_plugin = {
     __init_svars: func(self) {
         self.set_attr("health", 100)
         self.set_attr("max_health", 100)
+        self.old_health = self.get_attr("health")
     },
 
     __activate: func(self) {
@@ -115,6 +119,7 @@ M.player_plugin = {
     game_manager_spawn_stage_4: func(self, auid) {
         if !msg::is_server() { return }
         self.set_attr("health", self.get_attr("max_health"))
+        self.old_health = self.get_attr("health")
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
         self.cancel_sdata_update()
@@ -190,13 +195,14 @@ M.player_plugin = {
             - diff - the difference from the old health state.
             - server_orig - true if the change originated on the server.
     */
-    health_changed: @[server,func(self, health, diff, server_orig) {
-        if health <= 0 { self.enqueue_action(DeathAction()) }
-    },func(self, health, diff, server_orig) {
-        if diff <= -5 && health > 0 {
+    health_changed: func(self, health, diff, server_orig) {
+        if !msg::is_server_only() && diff <= -5 && health > 0 {
             self.enqueue_action(PainAction())
         }
-    }],
+        if msg::is_server() && health <= 0 {
+            self.enqueue_action(DeathAction())
+        }
+    },
 
     /**
         Adds to player's health. If the provided amount is zero, it does
@@ -226,7 +232,7 @@ var is_valid_target = func(ent) {
     if cs == 3 || cs == 4 { return false } // editing, lagged
 
     var health, sstage = ent.get_attr("health"     ) || 0,
-                            ent.get_attr("spawn_stage") || 0
+                         ent.get_attr("spawn_stage") || 0
 
     return health > 0 && sstage == 0
 }
