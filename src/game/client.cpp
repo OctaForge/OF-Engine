@@ -1381,6 +1381,17 @@ namespace game
                 }
                 break;
             }
+            case N_TEXPACKLOAD:
+            case N_TEXPACKUNLOAD:
+            case N_TEXPACKRELOAD:
+            {
+                if(!d) return;
+                getstring(text, p);
+                string pack;
+                filtertext(pack, text, false);
+                texpackloadsync(type, pack);
+                break;
+            }
             case N_EDITVAR:
             {
                 if(!d) return;

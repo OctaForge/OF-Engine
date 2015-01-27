@@ -1690,7 +1690,14 @@ void clear_texpacks(int n) {
     if (!lasttexpack) firsttexpack = NULL;
 }
 
-static void texpackload(const char *pack, uint *body = NULL) {
+extern int worldloading;
+
+static bool texpackload(const char *pack, uint *body = NULL, bool changed = true, bool sync = true) {
+    if (texpacks.access(pack)) {
+        conoutf("texture pack '%s' already loaded", pack);
+        return false;
+    }
+
     defformatstring(ppath, "media/texture/%s.tex", pack);
     int first = slots.length();
     bool oldloading = texpackloading;
@@ -1704,8 +1711,7 @@ static void texpackload(const char *pack, uint *body = NULL) {
     if (!body && !execfile(path(ppath), false)) {
         conoutf("could not load texture pack '%s'", pack);
         texpackloading = oldloading;
-        intret(false);
-        return;
+        return false;
     } else if (body) execute(body);
 
     texpackloading = oldloading;
@@ -1713,8 +1719,7 @@ static void texpackload(const char *pack, uint *body = NULL) {
 
     if (slots.length() == first) {
         conoutf("texture pack '%s' contains no slots", pack);
-        intret(false);
-        return;
+        return false;
     }
     texpack *tp = new texpack(pack, first);
     if (lasttexpack) {
@@ -1724,25 +1729,17 @@ static void texpackload(const char *pack, uint *body = NULL) {
     } else lasttexpack = tp;
     if (!firsttexpack) firsttexpack = tp;
     texpacks.access(tp->name, tp);
-    lua::call_external("texpacks_changed", "");
-    intret(true);
+    if (changed) lua::call_external("texpacks_changed", "");
+    if (!worldloading && sync) game::addmsg(N_TEXPACKLOAD, "rs", pack);
+    return true;
 }
 
 ICOMMAND(texpack, "se", (char *pack, uint *body), {
-    if (texpackloading) return;
-    if (texpacks.access(pack)) {
-        conoutf("texture pack '%s' already loaded", pack);
-        return;
-    }
-    texpackload(pack, body);
+    intret(texpackloading ? 0 : texpackload(pack, body, true, false));
 })
 
 ICOMMAND(texpackload, "s", (const char *pack), {
-    if (texpacks.access(pack)) {
-        conoutf("texture pack '%s' already loaded", pack);
-        return;
-    }
-    texpackload(pack);
+    intret(texpackload(pack));
 });
 
 static vector<VSlot*> saved_vslots;
@@ -1764,7 +1761,11 @@ static void clearslotrange(int firstslot, int nslots) {
     slots.setsize(tnslots - nslots);
 }
 
-static void texpackunload(const char *pack, texpack *tp) {
+static bool texpackunload(const char *pack, bool changed = true, bool sync = true) {
+    texpack **tpp = texpacks.access(pack);
+    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return false; }
+    texpack *tp = *tpp;
+
     int ncleared = tp->nslots;
     texpack *ntp = tp->next;
 
@@ -1779,21 +1780,44 @@ static void texpackunload(const char *pack, texpack *tp) {
     for (tp = ntp; tp; tp = tp->next) {
         tp->firstslot -= ncleared;
     }
-    lua::call_external("texpacks_changed", "");
+    if (changed) lua::call_external("texpacks_changed", "");
+    if (!worldloading && sync) game::addmsg(N_TEXPACKUNLOAD, "rs", pack);
+    return true;
+}
+
+static bool texpackreload(const char *pack, bool changed = true, bool sync = true) {
+    texpack **tpp = texpacks.access(pack);
+    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return false; }
+    if (!texpackunload(pack, false, false)) return false;
+    if (!texpackload(pack, NULL, false, false)) return false;
+    if (changed) lua::call_external("texpacks_changed", "");
+    if (!worldloading && sync) game::addmsg(N_TEXPACKRELOAD, "rs", pack);
+    return true;
 }
 
 ICOMMAND(texpackunload, "s", (const char *pack), {
-    texpack **tpp = texpacks.access(pack);
-    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
-    texpackunload(pack, *tpp);
+    intret(texpackunload(pack));
 });
 
 ICOMMAND(texpackreload, "s", (const char *pack), {
-    texpack **tpp = texpacks.access(pack);
-    if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return; }
-    texpackunload(pack, *tpp);
-    texpackload(pack);
+    intret(texpackreload(pack));
 });
+
+void texpackloadsync(int msg, const char *pack) {
+    switch (msg) {
+        case N_TEXPACKLOAD:
+            texpackload(pack, NULL, true, false);
+            break;
+        case N_TEXPACKUNLOAD:
+            texpackunload(pack, true, false);
+            break;
+        case N_TEXPACKRELOAD:
+            texpackreload(pack, true, false);
+            break;
+        default:
+            break;
+    }
+}
 
 LUAICOMMAND(texture_get_packs, {
     lua_createtable(L, texpacks.numelems, 0);

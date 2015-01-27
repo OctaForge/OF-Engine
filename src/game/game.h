@@ -77,6 +77,7 @@ enum
     N_DEMOPACKET,
 
     N_ACTIVEENTSREQUEST, N_ALLACTIVEENTSSENT,
+    N_TEXPACKLOAD, N_TEXPACKUNLOAD, N_TEXPACKRELOAD,
 
     NUMMSG
 };
@@ -101,6 +102,7 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     N_DEMOPACKET, 0,
 
     N_ACTIVEENTSREQUEST, 0, N_ALLACTIVEENTSSENT, 0,
+    N_TEXPACKLOAD, 0, N_TEXPACKUNLOAD, 0, N_TEXPACKRELOAD, 0,
 
     -1
 };

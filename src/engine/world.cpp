@@ -1299,8 +1299,11 @@ void splitocta(cube *c, int size)
     }
 }
 
+VAR(worldloading, 1, 0, 0);
+
 void resetmap()
 {
+    worldloading = true;
     clearoverrides();
     stopmapsounds();
     resetblendmap();
@@ -1325,6 +1328,7 @@ void startmap(const char *name)
 {
     game::startmap(name);
     ovr::reset();
+    worldloading = false;
 }
 
 bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main empty world creation routine
