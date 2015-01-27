@@ -1613,15 +1613,47 @@ namespace game
                 string oldname;
                 copystring(oldname, getclientmap());
                 defformatstring(mname, "getmap_%d", lastmillis);
-                defformatstring(fname, "media/map/%s/map.ofm", mname);
-                stream *map = openrawfile(path(fname), "wb");
-                if(!map) return;
+
+                defformatstring(mapfname, "media/map/%s/map.ofm", mname);
+                defformatstring(entfname, "media/map/%s/entities.oct", mname);
+                defformatstring(medfname, "media/map/%s/media.cfg", mname);
+
+                stream *mapf = openrawfile(path(mapfname), "wb");
+                if (!mapf) return;
+                stream *entf = openrawfile(path(entfname), "wb");
+                stream *medf = openrawfile(path(medfname), "wb");
+
+                uint len = lilswap(*(const uint *)p.pad(4));
+                ucharbuf b = p.subbuf(len);
+                mapf->write(b.buf, len);
+                delete mapf;
+
+                len = lilswap(*(const uint *)p.pad(4));
+                if (len > 0) {
+                    if (!entf) {
+                        delete medf;
+                        goto endread;
+                    }
+                    ucharbuf b = p.subbuf(len);
+                    entf->write(b.buf, len);
+                }
+                delete entf;
+
+                len = lilswap(*(const uint *)p.pad(4));
+                if (len > 0) {
+                    if (!medf) goto endread;
+                    ucharbuf b = p.subbuf(len);
+                    medf->write(b.buf, len);
+                }
+                delete medf;
+
                 conoutf("received map");
-                ucharbuf b = p.subbuf(p.remaining());
-                map->write(b.buf, b.maxlen);
-                delete map;
+
                 load_world(mname, oldname[0] ? oldname : NULL);
-                remove(findfile(fname, "rb"));
+endread:
+                remove(findfile(mapfname, "rb"));
+                remove(findfile(entfname, "rb"));
+                remove(findfile(medfname, "rb"));
                 break;
             }
         }
@@ -1694,28 +1726,63 @@ namespace game
     }
     COMMAND(listdemos, "");
 
+    static stream *trymapfile(const char *fname, stream::offset &len) {
+        stream *mf = openrawfile(fname, "rb");
+        if (!mf) return NULL;
+        stream::offset flen = mf->size();
+        if (flen <= 0) {
+            delete mf;
+            return NULL;
+        }
+        len = flen;
+        return mf;
+    }
+
     void sendmap()
     {
         if(!m_edit || (player1->state==CS_SPECTATOR && remote && !player1->privilege)) { conoutf(CON_ERROR, "\"sendmap\" only works in coop edit mode"); return; }
         conoutf("sending map...");
         defformatstring(mname, "sendmap_%d", lastmillis);
         save_world(mname, true);
-        defformatstring(fname, "media/map/%s/map.ofm", mname);
-        stream *map = openrawfile(path(fname), "rb");
-        if(map)
-        {
-            stream::offset len = map->size();
-            if(len > 4*1024*1024) conoutf(CON_ERROR, "map is too large");
-            else if(len <= 0) conoutf(CON_ERROR, "could not read map");
-            else
-            {
-                sendfile(-1, 2, map);
-                if(needclipboard >= 0) needclipboard++;
+
+        defformatstring(mapfname, "media/map/%s/map.ofm", mname);
+        defformatstring(entfname, "media/map/%s/entities.oct", mname);
+        defformatstring(medfname, "media/map/%s/media.cfg", mname);
+
+        stream::offset mapflen = 0;
+        stream *mapf = trymapfile(path(mapfname), mapflen);
+        stream::offset entflen = 0;
+        stream *entf = trymapfile(path(entfname), entflen);
+        stream::offset medflen = 0;
+        stream *medf = trymapfile(path(medfname), medflen);
+
+        stream::offset totallen = mapflen + entflen + medflen;
+        if (totallen > 4*1024*1024) {
+            conoutf(CON_ERROR, "map is too large");
+        } else if (mapflen <= 0) {
+            conoutf(CON_ERROR, "could not read map");
+        } else {
+            packetbuf p(MAXTRANS + totallen + 12, ENET_PACKET_FLAG_RELIABLE);
+            *(uint *)p.pad(4) = lilswap(uint(mapflen));
+            mapf->read(p.subbuf(mapflen).buf, mapflen);
+            *(uint *)p.pad(4) = lilswap(uint(entflen));
+            if (entflen > 0) {
+                entf->read(p.subbuf(entflen).buf, entflen);
             }
-            delete map;
+            *(uint *)p.pad(4) = lilswap(uint(medflen));
+            if (medflen > 0) {
+                medf->read(p.subbuf(medflen).buf, medflen);
+            }
+            sendclientpacket(p.finalize(), 2);
+            if(needclipboard >= 0) needclipboard++;
         }
-        else conoutf(CON_ERROR, "could not read map");
-        remove(findfile(fname, "rb"));
+
+        delete mapf;
+        delete entf;
+        delete medf;
+        remove(findfile(mapfname, "rb"));
+        remove(findfile(entfname, "rb"));
+        remove(findfile(medfname, "rb"));
     }
     COMMAND(sendmap, "");
 
