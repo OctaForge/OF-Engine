@@ -378,6 +378,15 @@ bool createdir(const char *path)
 #endif
 }
 
+bool removedir(const char *path)
+{
+#ifdef WIN32
+    return RemoveDirectory(path) != 0;
+#else
+    return rmdir(path) == 0;
+#endif
+}
+
 size_t fixpackagedir(char *dir)
 {
     path(dir);

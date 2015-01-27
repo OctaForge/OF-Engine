@@ -1614,9 +1614,10 @@ namespace game
                 copystring(oldname, getclientmap());
                 defformatstring(mname, "getmap_%d", lastmillis);
 
-                defformatstring(mapfname, "media/map/%s/map.ofm", mname);
-                defformatstring(entfname, "media/map/%s/entities.oct", mname);
-                defformatstring(medfname, "media/map/%s/media.cfg", mname);
+                defformatstring(dirname, "media/map/%s", mname);
+                defformatstring(mapfname, "%s/map.ofm", dirname);
+                defformatstring(entfname, "%s/entities.oct", dirname);
+                defformatstring(medfname, "%s/media.cfg", dirname);
 
                 stream *mapf = openrawfile(path(mapfname), "wb");
                 if (!mapf) return;
@@ -1654,6 +1655,7 @@ endread:
                 remove(findfile(mapfname, "rb"));
                 remove(findfile(entfname, "rb"));
                 remove(findfile(medfname, "rb"));
+                removedir(findfile(dirname, "d"));
                 break;
             }
         }
@@ -1745,9 +1747,10 @@ endread:
         defformatstring(mname, "sendmap_%d", lastmillis);
         save_world(mname, true);
 
-        defformatstring(mapfname, "media/map/%s/map.ofm", mname);
-        defformatstring(entfname, "media/map/%s/entities.oct", mname);
-        defformatstring(medfname, "media/map/%s/media.cfg", mname);
+        defformatstring(dirname, "media/map/%s", mname);
+        defformatstring(mapfname, "%s/map.ofm", dirname);
+        defformatstring(entfname, "%s/entities.oct", dirname);
+        defformatstring(medfname, "%s/media.cfg", dirname);
 
         stream::offset mapflen = 0;
         stream *mapf = trymapfile(path(mapfname), mapflen);
@@ -1783,6 +1786,7 @@ endread:
         remove(findfile(mapfname, "rb"));
         remove(findfile(entfname, "rb"));
         remove(findfile(medfname, "rb"));
+        removedir(findfile(dirname, "d"));
     }
     COMMAND(sendmap, "");
 
