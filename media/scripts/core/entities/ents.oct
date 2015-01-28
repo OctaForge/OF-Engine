@@ -1280,6 +1280,11 @@ set_external("entity_get_attr", func(cent, prop) {
 M.set_attr = func(ent, prop, val) {
     return ent.set_attr(prop, val)
 }
+set_external("entity_set_attr", func(cent, prop, val) {
+    var ent = get_by_centity(cent)
+    if !ent { return undef }
+    return ent.set_attr(prop, val)
+})
 
 set_external("entity_draw_attached", func(cent) {
     var fent = get_by_centity(cent)

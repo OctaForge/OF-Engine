@@ -10,6 +10,8 @@
   #include "SDL_image.h"
 #endif
 
+extern int nompedit;
+
 template<int S>
 static void halvetexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
 {
@@ -1730,15 +1732,18 @@ static bool texpackload(const char *pack, uint *body = NULL, bool changed = true
     if (!firsttexpack) firsttexpack = tp;
     texpacks.access(tp->name, tp);
     if (changed) lua::call_external("texpacks_changed", "");
+    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_TEXPACKLOAD, "rs", pack);
     return true;
 }
 
 ICOMMAND(texpack, "se", (char *pack, uint *body), {
+    if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) { intret(false); return; }
     intret(texpackloading ? 0 : texpackload(pack, body, true, false));
 })
 
 ICOMMAND(texpackload, "s", (const char *pack), {
+    if(nompedit && multiplayer()) return;
     intret(texpackload(pack));
 });
 
@@ -1781,6 +1786,7 @@ static bool texpackunload(const char *pack, bool changed = true, bool sync = tru
         tp->firstslot -= ncleared;
     }
     if (changed) lua::call_external("texpacks_changed", "");
+    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_TEXPACKUNLOAD, "rs", pack);
     return true;
 }
@@ -1791,15 +1797,20 @@ static bool texpackreload(const char *pack, bool changed = true, bool sync = tru
     if (!texpackunload(pack, false, false)) return false;
     if (!texpackload(pack, NULL, false, false)) return false;
     if (changed) lua::call_external("texpacks_changed", "");
+    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_TEXPACKRELOAD, "rs", pack);
     return true;
 }
 
 ICOMMAND(texpackunload, "s", (const char *pack), {
+    extern int nompedit;
+    if(nompedit && multiplayer()) return;
     intret(texpackunload(pack));
 });
 
 ICOMMAND(texpackreload, "s", (const char *pack), {
+    extern int nompedit;
+    if(nompedit && multiplayer()) return;
     intret(texpackreload(pack));
 });
 
@@ -1807,21 +1818,31 @@ static bool matpackload(const char *pack, bool sync = true) {
     defformatstring(path, "media/texture/material/%s.mat", pack);
     bool r = execfile(path);
     if (!r) return false;
+    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_MATPACKLOAD, "rs", pack);
     return true;
 }
 
-ICOMMAND(matpackload, "s", (const char *pack), intret(matpackload(pack)));
+ICOMMAND(matpackload, "s", (const char *pack), {
+    extern int nompedit;
+    if(nompedit && multiplayer()) return;
+    intret(matpackload(pack));
+});
 
 static bool decalpackload(const char *pack, bool sync = true) {
     defformatstring(path, "media/decal/%s.dec", pack);
     bool r = execfile(path);
     if (!r) return false;
+    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_DECALPACKLOAD, "rs", pack);
     return true;
 }
 
-ICOMMAND(decalpackload, "s", (const char *pack), intret(decalpackload(pack)));
+ICOMMAND(decalpackload, "s", (const char *pack), {
+    extern int nompedit;
+    if(nompedit && multiplayer()) return;
+    intret(decalpackload(pack));
+});
 
 void texpackloadsync(int msg, const char *pack) {
     switch (msg) {
@@ -4626,3 +4647,55 @@ finalize:
     lastthumbnail = totalmillis;
     return t;
 })
+
+static void decalcull() {
+    extern int nompedit;
+    if(nompedit && multiplayer()) return;
+    defslot = NULL;
+
+    vector<extentity *> &ents = entities::getents();
+    vector<extentity *> dents; // all decal ents assigned to valid decalslot
+    vector<int> dslotnums; // used decal slot indexes
+
+    loopv(ents) {
+        if (ents[i]->type != ET_DECAL) continue;
+        int di = ents[i]->attr[0];
+        if (di >= decalslots.length()) continue; // filter out invalid decalents
+        dslotnums.add(di);
+        dents.add(ents[i]);
+    }
+
+    if (!dslotnums.length()) { // no used, equivalent to decalreset
+        decalslots.deletecontents();
+        return;
+    }
+
+    dslotnums.sort(); // need sorted indexes
+
+    hashtable<int, int> dslotmap; // stores mapping from old index to new remapped index
+    vector<DecalSlot *> dslots2; // new storage for decals
+
+    int prevslot = -1;
+    loopv(dslotnums) {
+        if (prevslot >= 0 && dslotnums[i] == prevslot) continue; // dslotnums might contain dups
+        prevslot = dslotnums[i];
+        DecalSlot *ds = decalslots[prevslot];
+        dslotmap.access(((Slot *)ds)->index, dslots2.length());
+        ((Slot *)ds)->index = dslots2.length(); // remap index
+        dslots2.add(ds);
+    }
+
+    // delete slots which are now unused
+    loopv(decalslots) {
+        if (dslots2.inrange(((Slot *)decalslots[i])->index)) continue;
+        delete decalslots[i];
+    }
+    decalslots.setsize(0);
+    decalslots.move(dslots2); // swap buffers (old buf will be deleted with dtor)
+
+    loopv(dents) {
+        lua::call_external("entity_set_attr", "psd", dents[i], "slot",
+            dslotmap[dents[i]->attr[0]]); // remap entity attrs
+    }
+}
+COMMAND(decalcull, "");
