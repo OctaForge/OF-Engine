@@ -1803,6 +1803,26 @@ ICOMMAND(texpackreload, "s", (const char *pack), {
     intret(texpackreload(pack));
 });
 
+static bool matpackload(const char *pack, bool sync = true) {
+    defformatstring(path, "media/texture/material/%s.mat", pack);
+    bool r = execfile(path);
+    if (!r) return false;
+    if (!worldloading && sync) game::addmsg(N_MATPACKLOAD, "rs", pack);
+    return true;
+}
+
+ICOMMAND(matpackload, "s", (const char *pack), intret(matpackload(pack)));
+
+static bool decalpackload(const char *pack, bool sync = true) {
+    defformatstring(path, "media/decal/%s.dec", pack);
+    bool r = execfile(path);
+    if (!r) return false;
+    if (!worldloading && sync) game::addmsg(N_DECALPACKLOAD, "rs", pack);
+    return true;
+}
+
+ICOMMAND(decalpackload, "s", (const char *pack), intret(decalpackload(pack)));
+
 void texpackloadsync(int msg, const char *pack) {
     switch (msg) {
         case N_TEXPACKLOAD:
@@ -1813,6 +1833,12 @@ void texpackloadsync(int msg, const char *pack) {
             break;
         case N_TEXPACKRELOAD:
             texpackreload(pack, true, false);
+            break;
+        case N_MATPACKLOAD:
+            matpackload(pack, false);
+            break;
+        case N_DECALPACKLOAD:
+            decalpackload(pack, false);
             break;
         default:
             break;
