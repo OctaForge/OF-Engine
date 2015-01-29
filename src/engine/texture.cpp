@@ -10,8 +10,6 @@
   #include "SDL_image.h"
 #endif
 
-extern int nompedit;
-
 template<int S>
 static void halvetexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
 {
@@ -1732,7 +1730,6 @@ static bool texpackload(const char *pack, uint *body = NULL, bool changed = true
     if (!firsttexpack) firsttexpack = tp;
     texpacks.access(tp->name, tp);
     if (changed) lua::call_external("texpacks_changed", "");
-    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_TEXPACKLOAD, "rs", pack);
     return true;
 }
@@ -1743,7 +1740,6 @@ ICOMMAND(texpack, "se", (char *pack, uint *body), {
 })
 
 ICOMMAND(texpackload, "s", (const char *pack), {
-    if(nompedit && multiplayer()) return;
     intret(texpackload(pack));
 });
 
@@ -1786,7 +1782,6 @@ static bool texpackunload(const char *pack, bool changed = true, bool sync = tru
         tp->firstslot -= ncleared;
     }
     if (changed) lua::call_external("texpacks_changed", "");
-    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_TEXPACKUNLOAD, "rs", pack);
     return true;
 }
@@ -1797,20 +1792,15 @@ static bool texpackreload(const char *pack, bool changed = true, bool sync = tru
     if (!texpackunload(pack, false, false)) return false;
     if (!texpackload(pack, NULL, false, false)) return false;
     if (changed) lua::call_external("texpacks_changed", "");
-    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_TEXPACKRELOAD, "rs", pack);
     return true;
 }
 
 ICOMMAND(texpackunload, "s", (const char *pack), {
-    extern int nompedit;
-    if(nompedit && multiplayer()) return;
     intret(texpackunload(pack));
 });
 
 ICOMMAND(texpackreload, "s", (const char *pack), {
-    extern int nompedit;
-    if(nompedit && multiplayer()) return;
     intret(texpackreload(pack));
 });
 
@@ -1818,14 +1808,11 @@ static bool matpackload(const char *pack, bool sync = true) {
     defformatstring(path, "media/texture/material/%s.mat", pack);
     bool r = execfile(path);
     if (!r) return false;
-    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_MATPACKLOAD, "rs", pack);
     return true;
 }
 
 ICOMMAND(matpackload, "s", (const char *pack), {
-    extern int nompedit;
-    if(nompedit && multiplayer()) return;
     intret(matpackload(pack));
 });
 
@@ -1833,14 +1820,11 @@ static bool decalpackload(const char *pack, bool sync = true) {
     defformatstring(path, "media/decal/%s.dec", pack);
     bool r = execfile(path);
     if (!r) return false;
-    if(nompedit && multiplayer()) return true;
     if (!worldloading && sync) game::addmsg(N_DECALPACKLOAD, "rs", pack);
     return true;
 }
 
 ICOMMAND(decalpackload, "s", (const char *pack), {
-    extern int nompedit;
-    if(nompedit && multiplayer()) return;
     intret(decalpackload(pack));
 });
 
