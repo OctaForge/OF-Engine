@@ -4648,6 +4648,10 @@ finalize:
     return t;
 })
 
+static bool entslotsort(extentity *a, extentity *b) {
+    return a->attr[0] < b->attr[0];
+}
+
 static void decalcull() {
     extern int nompedit;
     if(nompedit && multiplayer()) return;
@@ -4655,47 +4659,48 @@ static void decalcull() {
 
     vector<extentity *> &ents = entities::getents();
     vector<extentity *> dents; // all decal ents assigned to valid decalslot
-    vector<int> dslotnums; // used decal slot indexes
+
+    if (!decalslots.length()) // no decals
+        return;
 
     loopv(ents) {
-        if (ents[i]->type != ET_DECAL) continue;
-        int di = ents[i]->attr[0];
-        if (di >= decalslots.length()) continue; // filter out invalid decalents
-        dslotnums.add(di);
+        if (ents[i]->type != ET_DECAL || !decalslots.inrange(ents[i]->attr[0]))
+            continue;
         dents.add(ents[i]);
     }
 
-    if (!dslotnums.length()) { // no used, equivalent to decalreset
+    if (!dents.length()) { // no used, equivalent to decalreset
         decalslots.deletecontents();
         return;
     }
 
-    dslotnums.sort(); // need sorted indexes
+    dents.sort(entslotsort); // need sorted indexes
 
-    hashtable<int, int> dslotmap; // stores mapping from old index to new remapped index
-    vector<DecalSlot *> dslots2; // new storage for decals
+    vector<DecalSlot *> dslots2;
 
-    int prevslot = -1;
-    loopv(dslotnums) {
-        if (prevslot >= 0 && dslotnums[i] == prevslot) continue; // dslotnums might contain dups
-        prevslot = dslotnums[i];
-        DecalSlot *ds = decalslots[prevslot];
-        dslotmap.access(((Slot *)ds)->index, dslots2.length());
-        ((Slot *)ds)->index = dslots2.length(); // remap index
-        dslots2.add(ds);
+    int prevslot = -1, ni;
+    loopv(dents) {
+        extentity *e = dents[i];
+        if (prevslot < 0 || e->attr[0] != prevslot) {
+            prevslot = e->attr[0];
+            ni = dslots2.length();
+            // using a negative index (minus 1, to eliminate zeros), mark the slot
+            ((Slot *)dslots2.add(decalslots[prevslot]))->index = -ni - 1;
+        }
+        if (e->attr[0] != ni)
+            lua::call_external("entity_set_attr", "psd", dents[i], "slot", ni);
     }
 
     // delete slots which are now unused
     loopv(decalslots) {
-        if (dslots2.inrange(((Slot *)decalslots[i])->index)) continue;
+        Slot *s = (Slot *)decalslots[i];
+        if (s->index < 0) {
+            s->index = -s->index - 1; // restore slot index and do not delete
+            continue;
+        }
         delete decalslots[i];
     }
     decalslots.setsize(0);
     decalslots.move(dslots2); // swap buffers (old buf will be deleted with dtor)
-
-    loopv(dents) {
-        lua::call_external("entity_set_attr", "psd", dents[i], "slot",
-            dslotmap[dents[i]->attr[0]]); // remap entity attrs
-    }
 }
 COMMAND(decalcull, "");
