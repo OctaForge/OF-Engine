@@ -386,11 +386,12 @@ namespace entities
         return game::getclient(cn);
     });
 
-    CLUAICOMMAND(editent, void, (int i), {
+    LUAICOMMAND(editent, {
+        int i = luaL_checkinteger(L, 1);
         const extentity &e = *ents[i];
         if (e.type == ET_EMPTY) {
             addmsg(N_EDITENT, "ris", i, "");
-            return;
+            return 0;
         }
         const char *name = NULL;
         const char *sdata = NULL;
@@ -402,6 +403,7 @@ namespace entities
                 (int)(e.o.y*DMF), (int)(e.o.z*DMF), sdlen, sdlen, sdata);
         }
         lua::pop_external_ret(n);
+        return 0;
     });
 
     CLUAICOMMAND(isplayer, bool, (int cn), return cn == player1->clientnum;);
