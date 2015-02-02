@@ -16,3 +16,6 @@ src/build/
 src/platform_windows/
 bin_win*/LICENSE*
 *.core
+*.diff
+*.patch
+*.out
