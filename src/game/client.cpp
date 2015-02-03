@@ -690,49 +690,54 @@ namespace game
         return true;
     }
 
-    CLUAICOMMAND(msg_add, bool, (int type, const char *fmt, ...), {
+    LUAICOMMAND(msg_add, {
+        int argn = 0;
+        int type = luaL_checkinteger(L, ++argn);
         logger::log(logger::INFO, "client: addmsg: adding a scripting message of type %d", type);
-        if (!connected) return false;
+        if (!connected) {
+            lua_pushboolean(L, false);
+            return 1;
+        }
         static uchar buf[MAXTRANS];
         ucharbuf p(buf, sizeof(buf));
         putint(p, type);
+        const char *fmt = NULL;
+        if (!lua_isnoneornil(L, ++argn)) {
+            fmt = luaL_checkstring(L, argn);
+        }
         int numi = 1;
         int numf = 0;
         int nums = 0;
         bool reliable = false;
-        if (fmt) {
-            va_list args;
-            va_start(args, fmt);
-            while (*fmt) switch (*fmt++) {
-                case 'r': reliable = true; break;
-                case 'i': {
-                    int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                    loopi(n) putint(p, (int)va_arg(args, double));
-                    numi += n;
-                    break;
-                }
-                case 'f': {
-                    int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                    loopi(n) putfloat(p, (float)va_arg(args, double));
-                    numf += n;
-                    break;
-                }
-                case 'b': {
-                    uint n = (int)va_arg(args, double);
-                    const uchar *buf = va_arg(args, const uchar *);
-                    for (uint i = 0; i < n; ++i) p.put(buf[i]);
-                    break;
-                }
-                case 's': sendstring(va_arg(args, const char *), p); nums++; break;
+        if (fmt) while (*fmt) switch (*fmt++) {
+            case 'r': reliable = true; break;
+            case 'i': {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putint(p, luaL_checkinteger(L, ++argn));
+                numi += n;
+                break;
             }
-            va_end(args);
+            case 'f': {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putfloat(p, luaL_checknumber(L, ++argn));
+                numf += n;
+                break;
+            }
+            case 'b': {
+                size_t n = 0;
+                const uchar *buf = (uchar *)luaL_checklstring(L, ++argn, &n);
+                for (uint i = 0; i < n; ++i) p.put(buf[i]);
+                break;
+            }
+            case 's': sendstring(luaL_checkstring(L, ++argn), p); nums++; break;
         }
         int num = nums || numf ? 0 : numi;
         int msgsize = server::msgsizelookup(type);
         if ((type & 0xFF) == type && msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
         if (reliable) messagereliable = true;
         messages.put(buf, p.length());
-        return true;
+        lua_pushboolean(L, true);
+        return 1;
     });
 
     void connectattempt(const char *name, const char *password, const ENetAddress &address)

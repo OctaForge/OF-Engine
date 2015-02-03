@@ -902,7 +902,7 @@ M.Entity = Object.clone({
         assert(sd.len() > 0)
         var excl = player_entity && player_entity.cn || -1
         capi::msg_send(cn, excl, "riiisb", self.msgid_le_cn, ocn | pl,
-            make_stor_uid(self.uid, self.__storage), oc, sd.len(), sd)
+            make_stor_uid(self.uid, self.__storage), oc, sd)
     },
 
     msgid_le_rem: msg::register(@[!server,func(tp, receiver, sender, p) {
@@ -935,7 +935,7 @@ M.Entity = Object.clone({
         var excl = player_entity && player_entity.cn || -1
         capi::msg_send(cn, excl, reliable ? "riiibi" : "iiibi",
             self.msgid_sdata_update, make_stor_uid(uid, self.__storage), kpid,
-            value.len(), value, ocn)
+            value, ocn)
     },
 
     msgid_sdata_changereq: msg::register(func(tp, receiver, sender, p) {
@@ -956,7 +956,7 @@ M.Entity = Object.clone({
     msg_sdata_changereq_send: func(self, reliable, uid, kpid, value) {
         assert(value.len() > 0)
         capi::msg_add(self.msgid_sdata_changereq, reliable ? "riib" : "iib",
-            make_stor_uid(uid, self.__storage), kpid, value.len(), value)
+            make_stor_uid(uid, self.__storage), kpid, value)
     },
 
     /**

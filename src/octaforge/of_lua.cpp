@@ -636,8 +636,9 @@ namespace lua
         load_module("init");
     }
 
-    CLUAICOMMAND(reload_core, void, (), {
+    LUAICOMMAND(reload_core, {
         load_module("init");
+        return 0;
     })
 
     void reset() {

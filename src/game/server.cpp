@@ -2526,37 +2526,39 @@ namespace server
 
     int protocolversion() { return PROTOCOL_VERSION; }
 
-    CLUAICOMMAND(msg_send, void, (int cn, int exclude, const char *fmt, ...), {
-        if (cn == exclude && exclude != -1) return;
+    LUAICOMMAND(msg_send, {
+        int argn = 0;
+        int cn = luaL_checkinteger(L, ++argn);
+        int exclude = luaL_checkinteger(L, ++argn);
+        if (cn == exclude && exclude != -1) return 0;
+        const char *fmt = luaL_checkstring(L, ++argn);
         bool reliable = false;
-        va_list args;
-        va_start(args, fmt);
         if (*fmt == 'r') { reliable = true; ++fmt; }
         packetbuf p(MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
         while (*fmt) switch (*fmt++) {
             case 'i': {
                 int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putint(p, (int)va_arg(args, double));
+                loopi(n) putint(p, luaL_checkinteger(L, ++argn));
                 break;
             }
             case 'f': {
                 int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putfloat(p, (float)va_arg(args, double));
+                loopi(n) putfloat(p, luaL_checknumber(L, ++argn));
                 break;
             }
             case 'b': {
-                uint n = (int)va_arg(args, double);
-                const uchar *buf = va_arg(args, const uchar *);
+                size_t n = 0;
+                const uchar *buf = (uchar *)luaL_checklstring(L, ++argn, &n);
                 for (uint i = 0; i < n; ++i) p.put(buf[i]);
                 break;
             }
-            case 's': sendstring(va_arg(args, const char *), p); break;
+            case 's': sendstring(luaL_checkstring(L, ++argn), p); break;
         }
-        va_end(args);
         ENetPacket *packet = p.finalize();
         p.packet = NULL;
         sendpacket(cn, 1, packet, exclude);
         if(!packet->referenceCount) enet_packet_destroy(packet);
+        return 0;
     })
 }
 
