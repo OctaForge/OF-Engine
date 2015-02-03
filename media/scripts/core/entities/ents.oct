@@ -911,7 +911,8 @@ M.Entity = Object.clone({
     }]),
 
     msg_le_rem_send: func(self, cn, uid) {
-        capi::msg_send(cn, -1, "rii", self.msgid_le_rem,
+        var excl = player_entity && player_entity.cn || -1
+        capi::msg_send(cn, excl, "rii", self.msgid_le_rem,
             make_stor_uid(uid, self.__storage))
     },
 

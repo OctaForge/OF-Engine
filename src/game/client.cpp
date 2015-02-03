@@ -1596,7 +1596,7 @@ namespace game
                 lua::pop_external_ret(lua::call_external_ret("message_receive", "iiip",
                     "b", type, game::player1->clientnum, cn, (void*)&p, &hashandler));
                 if (!hashandler) {
-                    logger::log(logger::DEBUG, "No scripting handler for message %d from %d", type, cn);
+                    logger::log(logger::ERROR, "No scripting handler for message %d from %d", type, cn);
                     neterr("type", cn < 0);
                     return;
                 }
