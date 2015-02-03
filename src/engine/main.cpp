@@ -277,7 +277,10 @@ void renderprogress(float bar, const char *text)   // also used during loading
     swapbuffers(false);
 }
 
-CLUACOMMAND(renderprogress, void, (float, const char *), renderprogress);
+LUAICOMMAND(renderprogress, {
+    renderprogress(luaL_checknumber(L, 1), luaL_checkstring(L, 2));
+    return 0;
+});
 
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
 

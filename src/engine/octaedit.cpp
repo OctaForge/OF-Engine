@@ -2950,7 +2950,11 @@ CLUAICOMMAND(edit_raw_delete_cube, void, (selinfo_t &sel, bool local), {
     mpdelcube(sel, local);
 });
 
-CLUACOMMAND(edit_cube_delete, bool, (int, int, int, int), edit_cube_delete);
+LUAICOMMAND(edit_cube_delete, {
+    lua_pushboolean(L, edit_cube_delete(luaL_checkinteger(L, 1),
+        luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), luaL_checkinteger(L, 4)));
+    return 1;
+})
 
 CLUAICOMMAND(edit_map_erase, void, (), {
     int hs = getworldsize() / 2;
