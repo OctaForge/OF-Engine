@@ -2900,7 +2900,11 @@ CLUAICOMMAND(slot_check_vslot, bool, (int idx), {
     return vslot.slot->sts.length() && (vslot.slot->loaded || vslot.slot->thumbnail);
 });
 
-CLUAICOMMAND(edit_cube_create, bool, (int x, int y, int z, int gs), {
+LUAICOMMAND(edit_cube_create, {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    int z = luaL_checkinteger(L, 3);
+    int gs = luaL_checkinteger(L, 4);
     logger::log(logger::DEBUG, "edit_cube_create: %d, %d, %d (%d)",
         x, y, z, gs);
 
@@ -2913,15 +2917,20 @@ CLUAICOMMAND(edit_cube_create, bool, (int x, int y, int z, int gs), {
         sel.o = ivec(x, y, z + gs);
         sel.orient = 4; /* down */
     } else {
-        return false;
+        lua_pushboolean(L, false);
+        return 1;
     }
 
     sel.s = ivec(1, 1, 1);
     sel.grid = gs;
 
-    if (!sel.validate()) return false;
+    if (!sel.validate()) {
+        lua_pushboolean(L, false);
+        return 1;
+    }
     mpeditface(-1, 1, sel, true);
-    return true;
+    lua_pushboolean(L, true);
+    return 1;
 });
 
 typedef selinfo selinfo_t;
@@ -2956,17 +2965,26 @@ LUAICOMMAND(edit_cube_delete, {
     return 1;
 })
 
-CLUAICOMMAND(edit_map_erase, void, (), {
+LUAICOMMAND(edit_map_erase, {
     int hs = getworldsize() / 2;
     loopi(2) loopj(2) loopk(2) edit_cube_delete(i * hs, j * hs, k * hs, hs);
+    return 0;
 });
 
-CLUAICOMMAND(edit_cube_set_texture, bool, (int x, int y, int z, int gs,
-int face, int tex), {
+LUAICOMMAND(edit_cube_set_texture, {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    int z = luaL_checkinteger(L, 3);
+    int gs = luaL_checkinteger(L, 4);
+    int face = luaL_checkinteger(L, 5);
+    int tex = luaL_checkinteger(L, 6);
     logger::log(logger::DEBUG, "edit_cube_set_texture: %d, %d, %d (%d, %d, %d)",
         x, y, z, gs, face, tex);
 
-    if (face < -1 || face > 5) return false;
+    if (face < -1 || face > 5) {
+        lua_pushboolean(L, false);
+        return 1;
+    }
 
     selinfo sel;
     sel.o = ivec(x, y, z);
@@ -2975,9 +2993,13 @@ int face, int tex), {
 
     sel.orient = face != -1 ? face : 5;
 
-    if (!sel.validate()) return false;
+    if (!sel.validate()) {
+        lua_pushboolean(L, false);
+        return 1;
+    }
     mpedittex(tex, face == -1, sel, true);
-    return true;
+    lua_pushboolean(L, true);
+    return 1;
 });
 
 CLUAICOMMAND(edit_raw_edit_texture, void, (int tex, bool allfaces,
@@ -2985,8 +3007,12 @@ selinfo_t &sel, bool local), {
     mpedittex(tex, allfaces, sel, local);
 });
 
-CLUAICOMMAND(edit_cube_set_material, bool, (int x, int y, int z, int gs,
-int mat), {
+LUAICOMMAND(edit_cube_set_material, {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    int z = luaL_checkinteger(L, 3);
+    int gs = luaL_checkinteger(L, 4);
+    int mat = luaL_checkinteger(L, 5);
     logger::log(logger::DEBUG, "edit_cube_set_material: %d, %d, %d (%d, %d)",
         x, y, z, gs, mat);
 
@@ -2995,9 +3021,13 @@ int mat), {
     sel.s = ivec(1, 1, 1);
     sel.grid = gs;
 
-    if (!sel.validate()) return false;
+    if (!sel.validate()) {
+        lua_pushboolean(L, false);
+        return 1;
+    }
     mpeditmat(mat, 0, sel, true);
-    return true;
+    lua_pushboolean(L, true);
+    return 1;
 });
 
 CLUAICOMMAND(edit_raw_edit_material, void, (int mat, selinfo_t &sel,
