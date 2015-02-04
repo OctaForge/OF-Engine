@@ -561,6 +561,11 @@ set_external("entities_load", @[!server,func(entstr) {
         entities, err = deserialize(entstr)
     }
 
+    if !entities {
+        log(ERROR, e"error deserializing entities: $err")
+        return
+    }
+
     @[debug] log(DEBUG, "entities_load: loading all entities")
     for i, e in entities.each() {
         var cn = e[0]
