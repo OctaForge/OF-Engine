@@ -210,8 +210,37 @@ var fields = {
             })
         })
         return ret
+    },
+    (svars.StateInteger): func(hb, nm, ent, dv) {
+        var ed = hb.append(gui::Field({ clip_w: 0.35, value: dv }), func(ed) {
+            signal::connect(ed, "value,changed", func(ed, v) {
+                capi::makeundoent()
+                ent.set_gui_attr(nm, v)
+            })
+        })
+        var lstep = 0
+        var addstep = func(f) {
+            var tmillis = capi::get_millis(true)
+            if lstep + 50 > tmillis { return }
+            lstep = tmillis
+            ed.value = tostring(f(ent, nm))
+            ed.reset_value()
+        }
+        var bprops = \lbl -> { label: lbl, label_scale: 0.8,
+            label_pad_h: 0.005, label_pad_v: 0.002,
+            min_w: 0.025, min_h: 0.025
+        }
+        hb.append(gui::Button(bprops("+")), func(btn) {
+            signal::connect(btn, "holding", \-> addstep(ent.add_attr))
+        })
+        hb.append(gui::Button(bprops("-")), func(btn) {
+            signal::connect(btn, "holding", \-> addstep(ent.sub_attr))
+        })
+        return ed
     }
 }
+fields[svars.StateFloat] = fields[svars.StateInteger]
+
 var field_def = func(hb, nm, ent, dv) {
     return hb.append(gui::Field({ clip_w: 0.4, value: dv }), func(ed) {
         signal::connect(ed, "value,changed", func(ed, v) {

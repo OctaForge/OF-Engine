@@ -13,15 +13,21 @@ from std.math import floor
 
 // buttons
 
-var btnp  = [ "label", "min_w", "min_h" ]
+var btnp  = [ "label", "label_scale", "label_pad_h", "label_pad_v", "min_w", "min_h" ]
 var btnv  = { __properties: btnp }
 var btnvb = { __properties: btnp }
 gui.Button.__variants = { default: btnv, nobg: btnvb }
 
 var btnv_init_clone = \ah -> func(self, btn) {
-    var lbl = gui::Label({ text: btn.label, align_h: ah || 0 })
+    var ph, pv = btn.label_pad_h, btn.label_pad_v
+    var lbl = gui::Label({ text: btn.label, scale: btn.label_scale, align_h: ah || 0 })
     self.append(lbl)
+    if ph { self.set_pad_h(ph) }
+    if pv { self.set_pad_v(pv) }
     connect(btn, "label,changed", func(b, t) { lbl.set_text(t) })
+    connect(btn, "label_scale,changed", func(b, v) { lbl.set_scale(v) })
+    connect(btn, "label_pad_h,changed", func(b, v) { self.set_pad_h(v) })
+    connect(btn, "label_pad_v,changed", func(b, v) { self.set_pad_h(v) })
 }
 
 var btn_build_variant = \color, ic, dis, ah -> gui::Gradient({

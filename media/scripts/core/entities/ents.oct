@@ -1246,9 +1246,16 @@ M.Entity = Object.clone({
 
         var sfun = self[e"__set_$prop"]
         if !sfun { return undef }
-        sfun(val + step)
+        sfun(self, val + step)
 
         return gfun(self), val
+    },
+
+    /// Like $add_attr, but subtracts.
+    sub_attr: func(self, prop, step) {
+        var svar = self[e"_SV_$prop"]
+        if !svar { return undef }
+        return self.add_attr(prop, -(step || svar.add_step || 1))
     },
 
     __sdata_call_cb_set: func(self, f, val) {
