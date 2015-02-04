@@ -1227,6 +1227,30 @@ M.Entity = Object.clone({
         return fun && fun(self, val) || undef
     },
 
+    /**
+        Increments an attribute by step. If step is not given, it uses
+        either step defined by the state variable or 1 as a fallback.
+
+        Returns undef on error (when it's not possible to increment) and
+        the new value and the old value on success.
+    */
+    add_attr: func(self, prop, step) {
+        var svar = self[e"_SV_$prop"]
+        if !svar { return undef }
+        var step = step || svar.add_step || 1
+
+        var gfun = self[e"__get_$prop"]
+        if !gfun { return undef }
+        var val = gfun(self)
+        if typeof val != "number" { return undef }
+
+        var sfun = self[e"__set_$prop"]
+        if !sfun { return undef }
+        sfun(val + step)
+
+        return gfun(self), val
+    },
+
     __sdata_call_cb_set: func(self, f, val) {
         f(self.__centity, val)
     },
