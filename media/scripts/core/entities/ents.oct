@@ -652,6 +652,8 @@ M.Entity = Object.clone({
 
     __storage: "logic",
 
+    __attr_names: [],
+
     /**
         If this is true for the entity prototype, it will call the $__run method
         every frame. That is often convenient, but in most static entities
@@ -1145,6 +1147,7 @@ M.Entity = Object.clone({
             - $set_gui_attr
     */
     get_gui_attr: func(self, prop) {
+        prop = self.attrnum_to_name(prop)
         var svar = self[e"_SV_GUI_$prop"]
         if !svar || !svar.has_history { return undef }
         var val = self.get_attr(svar.name)
@@ -1183,6 +1186,7 @@ M.Entity = Object.clone({
             - $get_gui_attr
     */
     set_gui_attr: func(self, prop, val) {
+        prop = self.attrnum_to_name(prop)
         var svar = self[e"_SV_GUI_$prop"]
         if !svar || !svar.has_history { return }
         self.set_attr(svar.name, svar.from_data(val))
@@ -1196,6 +1200,7 @@ M.Entity = Object.clone({
             - $get_gui_attr
     */
     get_attr: func(self, prop) {
+        prop = self.attrnum_to_name(prop)
         var fun = self[e"__get_$prop"]
         if fun { return fun(self) }
         return undef
@@ -1216,6 +1221,7 @@ M.Entity = Object.clone({
             - $set_gui_attr
     */
     set_attr: func(self, prop, val, nd) {
+        prop = self.attrnum_to_name(prop)
         if nd {
             var svar = self[e"_SV_$prop"]
             if svar {
@@ -1235,6 +1241,7 @@ M.Entity = Object.clone({
         the new value and the old value on success.
     */
     add_attr: func(self, prop, step) {
+        prop = self.attrnum_to_name(prop)
         var svar = self[e"_SV_$prop"]
         if !svar { return undef }
         var step = step || svar.add_step || 1
@@ -1253,6 +1260,7 @@ M.Entity = Object.clone({
 
     /// Like $add_attr, but subtracts.
     sub_attr: func(self, prop, step) {
+        prop = self.attrnum_to_name(prop)
         var svar = self[e"_SV_$prop"]
         if !svar { return undef }
         return self.add_attr(prop, -(step || svar.add_step || 1))
@@ -1270,6 +1278,12 @@ M.Entity = Object.clone({
     },
 
     __post_create_cb: func(self) {
+    },
+
+    /// Translates an attribute index (entity specific) to name.
+    /// Returns the input unchanged if it's not a suitable index.
+    attrnum_to_name: func(self, n) {
+        return self.__attr_names[n] || n
     }
 })
 Entity = M.Entity
@@ -1321,6 +1335,16 @@ set_external("entity_set_attr", func(cent, prop, val) {
     var ent = get_by_centity(cent)
     if !ent { return undef }
     return ent.set_attr(prop, val)
+})
+
+set_external("entity_add_attr", func(cent, prop, add) {
+    var ent = get_by_centity(cent)
+    if !ent { return }
+    if add {
+        ent.add_attr(prop)
+    } else {
+        ent.sub_attr(prop)
+    }
 })
 
 set_external("entity_draw_attached", func(cent) {

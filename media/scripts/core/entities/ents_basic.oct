@@ -1043,6 +1043,8 @@ M.OrientedMarker = StaticEntity.clone({
     sauer_type: 2,
     attr_num  : 2,
 
+    __attr_names: [ "yaw", "pitch" ],
+
     __properties: {
         attr1: gen_attr(1, "yaw"),
         attr2: gen_attr(2, "pitch")
@@ -1104,6 +1106,8 @@ M.Light = StaticEntity.clone({
     sauer_type: 3,
     attr_num  : 5,
 
+    __attr_names: [ "red", "green", "blue", "radius", "shadow" ],
+
     __properties: {
         attr1: gen_attr(1, "radius"),
         attr2: gen_attr(2, "red"),
@@ -1151,6 +1155,8 @@ M.SpotLight = StaticEntity.clone({
     sauer_type: 4,
     attr_num  : 1,
 
+    __attr_names: [ "radius" ],
+
     __properties: {
         attr1: gen_attr(1, "radius")
     },
@@ -1189,6 +1195,8 @@ M.Envmap = StaticEntity.clone({
     sauer_type: 5,
     attr_num  : 1,
 
+    __attr_names: [ "radius" ],
+
     __properties: {
         attr1: gen_attr(1, "radius")
     },
@@ -1221,6 +1229,8 @@ M.SoundEffect = StaticEntity.clone({
 
     sauer_type: 6,
     attr_num  : 2,
+
+    __attr_names: [ "radius", "size" ],
 
     __properties: {
         attr1: gen_attr(1, "radius"),
@@ -1274,6 +1284,8 @@ M.AmbientSound = SoundEffect.clone({
         volume: svars::StateInteger(),
         sound_name: svars::StateString()
     },
+
+    __attr_names: [ "volume", "radius", "size" ],
 
     __init_svars: func(self, kwargs, nd) {
         SoundEffect::__init_svars(self, kwargs, [ nd[2], nd[3] ])
@@ -1362,6 +1374,8 @@ M.Mapmodel = StaticEntity.clone({
 
     sauer_type: 8,
     attr_num  : 4,
+
+    __attr_names: [ "yaw", "pitch", "roll", "scale" ],
 
     __properties: {
         animation: svars::StateInteger({
@@ -1454,6 +1468,8 @@ M.Obstacle = StaticEntity.clone({
     sauer_type: 9,
     attr_num  : 7,
 
+    __attr_names: [ "a", "b", "c", "yaw", "pitch", "roll" ],
+
     __properties: {
         attr1: gen_attr(1, "yaw"),
         attr2: gen_attr(2, "pitch"),
@@ -1505,6 +1521,8 @@ M.Decal = StaticEntity.clone({
 
     sauer_type: 10,
     attr_num  : 5,
+
+    __attr_names: [ "slot", "size", "yaw", "pitch", "roll" ],
 
     __properties: {
         attr1: gen_attr(1, "slot"),

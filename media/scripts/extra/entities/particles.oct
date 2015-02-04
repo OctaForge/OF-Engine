@@ -71,6 +71,8 @@ var SMOKE, FLAME = renderers.smoke, renderers.flame
 M.FireEffect = ParticleEffect.clone({
     name: "FireEffect",
 
+    __attr_names: [ "radius", "height", "red", "green", "blue" ],
+
     __properties: {
         radius: svars::StateFloat(),
         height: svars::StateFloat(),
@@ -124,6 +126,8 @@ var STEAM = renderers.steam
 */
 M.SteamEffect = ParticleEffect.clone({
     name: "SteamEffect",
+
+    __attr_names: [ "direction" ],
 
     __properties: {
         direction: svars::StateInteger()

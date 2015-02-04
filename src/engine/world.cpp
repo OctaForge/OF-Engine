@@ -1292,6 +1292,13 @@ void entattr(char *attr, char *val, int *numargs) {
 COMMAND(enttype, "sN");
 COMMAND(entattr, "ssN");
 
+ICOMMAND(entproperty, "ii", (int *attr, int *diff), {
+    if (!*diff) return;
+    groupedit(
+        lua::call_external("entity_add_attr", "pib", &e, *attr, *diff > 0);
+    );
+})
+
 void splitocta(cube *c, int size)
 {
     if(size <= 0x1000) return;
