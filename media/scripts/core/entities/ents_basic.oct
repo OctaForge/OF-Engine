@@ -964,6 +964,18 @@ M.StaticEntity = Entity.clone({
 })
 var StaticEntity = M.StaticEntity
 
+set_external("entity_set_pos", func(cent, x, y, z) {
+    var ent = get_by_centity(cent)
+    if !ent { return }
+    // bypass any sort of sync or update here...
+    var arr = ent.svar_values["position"]
+    arr[0], arr[1], arr[2] = x, y, z
+    var uid = ent.uid
+    capi::removeentityedit(uid)
+    capi::set_extent_position(uid, arr)
+    capi::addentityedit(uid)
+})
+
 /** Function: entity_get_edit_info
     An external. Returns `ent.__edit_icon`,
     `ent:{{$StaticEntity.__get_edit_color|__get_edit_color}}()` where `ent`

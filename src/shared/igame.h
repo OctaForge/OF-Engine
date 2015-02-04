@@ -21,6 +21,7 @@ namespace entities
     int getanim(const extentity &e);
     int getstarttime(const extentity &e);
     modelattach *getattachments(extentity &e);
+    void entpos(int i);
 }
 
 namespace game

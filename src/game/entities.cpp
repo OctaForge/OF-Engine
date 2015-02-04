@@ -406,6 +406,15 @@ namespace entities
         return 0;
     });
 
+    void entpos(int i) {
+        const extentity &e = *entities::getents()[i];
+        if (e.type == ET_EMPTY) return;
+        lua::call_external("entity_set_pos", "pfff", &e,
+            e.o.x, e.o.y, e.o.z);
+        game::addmsg(N_ENTPOS, "ri4", i, (int)(e.o.x*DMF),
+            (int)(e.o.y*DMF), (int)(e.o.z*DMF));
+    }
+
     CLUAICOMMAND(isplayer, bool, (int cn), return cn == player1->clientnum;);
 }
 

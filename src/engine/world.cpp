@@ -623,7 +623,10 @@ void entdrag(const vec &ray)
     );
 
     if(entmoving==1) makeundoent();
-    groupeditpure(e.o[R[d]] += r; e.o[C[d]] += c);
+    groupeditpure({
+        e.o[R[d]] += r; e.o[C[d]] += c;
+        entities::entpos(n);
+    });
     entmoving = 2;
 }
 
@@ -1458,17 +1461,6 @@ LUAICOMMAND(get_map_name, {
     lua_pushstring(L, map);
     return 1;
 })
-
-void finish_dragging() {
-    groupeditpure(
-        const vec& o = e.o;
-        defformatstring(pos, "[%f,%f,%f]", o.x, o.y, o.z);
-        lua::call_external("entity_set_gui_attr", "pss", &e,
-            "position", pos);
-    );
-}
-
-COMMAND(finish_dragging, "");
 
 int getworldsize() { return worldsize; }
 int getmapversion() { return mapversion; }

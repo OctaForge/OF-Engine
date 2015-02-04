@@ -1,6 +1,7 @@
 #include "game.h"
 
 extern int cursor_exists;
+extern void clearshadowcache();
 
 namespace game
 {
@@ -1365,7 +1366,7 @@ namespace game
                 conoutf("%s calced lights", colorname(d));
                 mpcalclight(false);
                 break;
-            case N_EDITENT:            // coop edit of ent
+            case N_EDITENT: // coop edit of ent
             {
                 if(!d) return;
                 int i = getint(p);
@@ -1384,6 +1385,17 @@ namespace game
                         x, y, z, buf, sdlen, "", i, true);
                     delete[] buf;
                 }
+                break;
+            }
+            case N_ENTPOS: // position update of ent
+            {
+                if (!d) return;
+                int i = getint(p);
+                float x = getint(p)/DMF, y = getint(p)/DMF, z = getint(p)/DMF;
+                vector<extentity *> &ents = entities::getents();
+                if (!ents.inrange(i) || ents[i]->type == ET_EMPTY) return;
+                lua::call_external("entity_set_pos", "pfff", ents[i], x, y, z);
+                clearshadowcache();
                 break;
             }
             case N_TEXPACKLOAD:
