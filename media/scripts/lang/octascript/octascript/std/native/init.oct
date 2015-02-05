@@ -346,6 +346,11 @@ parse = func(ls) {
         var v = ls.tval
         lex_get(ls)
         return v
+    } else if tok == "-" {
+        lex_get(ls)
+        var v = ls.tval
+        assert_tok(ls, "<number>")
+        return -v
     } else if tok == "true"  { lex_get(ls) return true
     } else if tok == "false" { lex_get(ls) return false
     } else if tok == "undef" { lex_get(ls) return undef
