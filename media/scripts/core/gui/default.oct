@@ -166,18 +166,17 @@ gui.KeyField.__variants = gui.TextEditor.__variants
 
 gui.Filler.__variants = {
     menu: {
-        __children: [ gui::ColorFiller({ color: 0xF0101010, clamp: true },
+        __children: [ gui::ColorFiller({ color: 0x101010, clamp: true },
             gui::Outline({ color: 0x303030, clamp: true })) ]
     },
     edithud: {
-        __children: [ gui::Gradient({ color: 0xF0303030, color2: 0xF0101010,
-            clamp: true,
-        }, gui::Outline({ color: 0x404040, clamp: true })) ]
+        __children: [ gui::ColorFiller({ color: 0xF0202020, clamp: true },
+            gui::Outline({ color: 0x404040, clamp: true })) ]
     },
     tooltip: {
         __properties: [ "label" ],
         __children: [ gui::Gradient({
-            color: 0xF0202020, color2: 0xF0101010
+            color: 0x202020, color2: 0x101010
         }, gui::Outline({
             color: 0x303030, clamp: true
         }, gui::Spacer({
@@ -254,38 +253,38 @@ rdbtnv["toggled_disabled"] = rdbtn_build_variant(0x404040, true, true)
 var sb_buildh = \lac, rac, sl -> gui::Outline({
     clamp_h: true, color: 0x303030
 },
-gui::Filler({ min_w: sl ? 0.03 : 0.02, min_h: sl ? 0.03 : 0.02, align_h: -1 },
+gui::Filler({ min_w: 0.03, min_h: 0.03, align_h: -1 },
     gui::Triangle({ style: gui.Triangle.OUTLINE,
-        color: lac, min_w: sl ? 0.015 : 0.01, min_h: sl ? 0.015 : 0.01, angle: 90
+        color: lac, min_w: 0.015, min_h: 0.015, angle: 90
     }, sl ? gui::Triangle({ color: lac, min_w: 0.015, min_h: 0.015, angle: 90 }) : undef)),
-gui::Filler({ min_w: sl ? 0.03 : 0.02, min_h: sl ? 0.03 : 0.02, align_h: 1 },
+gui::Filler({ min_w: 0.03, min_h: 0.03, align_h: 1 },
     gui::Triangle({ style: gui.Triangle.OUTLINE,
-        color: rac, min_w: sl ? 0.015 : 0.01, min_h: sl ? 0.015 : 0.01, angle: -90
+        color: rac, min_w: 0.015, min_h: 0.015, angle: -90
     }, sl ? gui::Triangle({ color: rac, min_w: 0.015, min_h: 0.015, angle: -90 }) : undef)
 ))
 
 var sb_buildv = \lac, rac, sl -> gui::Filler({
     clamp_v: true
-}, gui::Filler({ min_w: sl ? 0.03 : 0.02, min_h: sl ? 0.03 : 0.02, align_v: -1 },
+}, gui::Filler({ min_w: 0.03, min_h: 0.03, align_v: -1 },
     gui::Triangle({ style: gui.Triangle.OUTLINE,
-        color: lac, min_w: sl ? 0.015 : 0.01, min_h: sl ? 0.015 : 0.01
+        color: lac, min_w: 0.015, min_h: 0.015
     }, sl ? gui::Triangle({ color: lac, min_w: 0.015, min_h: 0.015 }) : undef)),
-gui::Filler({ min_w: sl ? 0.03 : 0.02, min_h: sl ? 0.03 : 0.02, align_v: 1 },
+gui::Filler({ min_w: 0.03, min_h: 0.03, align_v: 1 },
     gui::Triangle({ style: gui.Triangle.OUTLINE,
-        color: rac, min_w: sl ? 0.015 : 0.01, min_h: sl ? 0.015 : 0.01, angle: 180
+        color: rac, min_w: 0.015, min_h: 0.015, angle: 180
     }, sl ? gui::Triangle({ color: rac, min_w: 0.015, min_h: 0.015, angle: 180 }) : undef)
 ))
 
 gui.ScrollButton.__variants = {
     default: {
         default: gui::ColorFiller({
-            color: 0x181818, clamp: true, min_w: 0.015, min_h: 0.015 },
+            color: 0x181818, clamp: true, min_w: 0.022, min_h: 0.022 },
             gui::Outline({ clamp: true, color: 0x404040 })),
         hovering: gui::ColorFiller({
-            color: 0x181818, clamp: true, min_w: 0.015, min_h: 0.015 },
+            color: 0x181818, clamp: true, min_w: 0.022, min_h: 0.022 },
             gui::Outline({ clamp: true, color: 0x606060 })),
         clicked_left: gui::ColorFiller({
-            color: 0x181818, clamp: true, min_w: 0.015, min_h: 0.015 },
+            color: 0x181818, clamp: true, min_w: 0.022, min_h: 0.022 },
             gui::Outline({ clamp: true, color: 0x505050 }))
     }
 }
@@ -297,7 +296,7 @@ gui.HScrollbar.__variants = {
         left_clicked_left : sb_buildh(0x505050, 0x404040),
         right_hovering    : sb_buildh(0x404040, 0x606060),
         right_clicked_left: sb_buildh(0x404040, 0x505050),
-        __init: func(self) { self.set_arrow_size(0.02) }
+        __init: func(self) { self.set_arrow_size(0.03) }
     }
 }
 
@@ -308,7 +307,7 @@ gui.VScrollbar.__variants = {
         up_clicked_left  : sb_buildv(0x505050, 0x404040),
         down_hovering    : sb_buildv(0x404040, 0x606060),
         down_clicked_left: sb_buildv(0x404040, 0x505050),
-        __init: func(self) { self.set_arrow_size(0.02) }
+        __init: func(self) { self.set_arrow_size(0.03) }
     }
 }
 
@@ -354,10 +353,10 @@ gui.VSlider.__variants = {
 
 gui.HProgressBar.__variants = {
     default: {
-        __children: [ gui::ColorFiller({ color: 0xF0101010, clamp: true,
+        __children: [ gui::ColorFiller({ color: 0x101010, clamp: true,
             init_clone: func(self, pb) {
-                var bar = gui::Gradient({ color: 0xF0353535,
-                    color2: 0xF0252525, clamp_v: true
+                var bar = gui::Gradient({ color: 0x353535,
+                    color2: 0x252525, clamp_v: true
                 }, gui::Outline({ color: 0x404040, clamp: true }))
                 var lbl = gui::Label({ text: pb.gen_label(), scale: 0.8 })
                 pb.set_bar(bar)
@@ -373,10 +372,10 @@ gui.HProgressBar.__variants = {
 
 gui.VProgressBar.__variants = {
     default: {
-        __children: [ gui::ColorFiller({ color: 0xF0101010, clamp: true,
+        __children: [ gui::ColorFiller({ color: 0x101010, clamp: true,
             init_clone: func(self, pb) {
-                var bar = gui::Gradient({ color: 0xF0353535,
-                    color2: 0xF0252525, clamp_h: true, horizontal: true
+                var bar = gui::Gradient({ color: 0x353535,
+                    color2: 0x252525, clamp_h: true, horizontal: true
                 }, gui::Outline({ color: 0x404040, clamp: true }))
                 var lbl = gui::Label({ text: pb.gen_label(), scale: 0.8 })
                 pb.set_bar(bar)
@@ -427,7 +426,7 @@ var build_tlabel = func(win, t) {
 }
 
 var window_build_titlebar = \-> gui::Gradient({
-    color: 0xF0202020, color2: 0xF0101010, clamp_h: true
+    color: 0x202020, color2: 0x101010, clamp_h: true
 }, gui::Spacer({
     pad_h: 0.004, pad_v: 0.004, clamp_h: true,
     init_clone: func(self, win) {
@@ -477,7 +476,7 @@ var window_build_regular = \mov -> gui::Filler({ clamp: true },
             })
         ))
     } }), gui::ColorFiller({
-        color: 0xF0101010, clamp: true
+        color: 0x101010, clamp: true
     }, gui::Spacer({
         pad_h: 0.005, pad_v: 0.005, init_clone: func(self, win) {
             win.set_container(self)
@@ -489,7 +488,7 @@ var window_build_regular = \mov -> gui::Filler({ clamp: true },
 gui.Window.__variants = {
     borderless: {
         __children: [ gui::ColorFiller({
-            color: 0xF0101010, clamp: true
+            color: 0x101010, clamp: true
         }, gui::Outline({ color: 0x303030, clamp: true
         }, gui::Spacer({
             pad_h: 0.005, pad_v: 0.005, init_clone: func(self, win) {
