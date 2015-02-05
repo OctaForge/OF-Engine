@@ -44,7 +44,7 @@ ents::register_prototype(GamePlayer, [
 @[!server] ents::register_prototype(ents.Obstacle, [ health.plugins.area ],
     "HealthArea")
 
-day_manager::setup([ day_manager.plugins.day_night ])
+//day_manager::setup([ day_manager.plugins.day_night ])
 
 ents::set_player_prototype("GamePlayer")
 
