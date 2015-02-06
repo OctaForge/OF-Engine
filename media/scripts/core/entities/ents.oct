@@ -883,7 +883,7 @@ M.Entity = Object.clone({
         if typeof sdata == "table" {
             raw = sdata
         } else {
-            raw = sdata.sub(0, 1) != "{" ? mp_unpack(sdata) : deserialize(sdata)
+            raw = mp_unpack(sdata)
             assert(typeof raw == "table")
         }
 
