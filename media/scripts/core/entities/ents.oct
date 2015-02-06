@@ -631,17 +631,10 @@ var make_stor_uid = func(uid, stor) {
 }
 
 var msgid_le_cn = msg::register(@[!server,func(tp, receiver, sender, p) {
-    var ocnf = msg::buf_get_int(p)
+    var ocn = msg::buf_get_int(p)
     var ouid, stor = get_stor_uid(msg::buf_get_int(p))
     var oc   = msg::buf_get_string(p)
     var sd   = msg::buf_get_msgpack(p)
-    // retrieve ocn - first 7 bits only is client number
-    var ocn = ocnf & 0x7F
-    // if they differ, we're sending a player complete notification
-    var ispl = ocnf != ocn
-    if ispl && stor == storage_dynamic && player_entity {
-        return
-    }
     var ent = stor[ouid]
     if ent == undef {
         ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)
@@ -658,13 +651,9 @@ var msgid_le_cn = msg::register(@[!server,func(tp, receiver, sender, p) {
 }])
 
 var msg_le_cn_send = func(self, cn, ocn, oc, sd) {
-    // encode a flag that we're sending a complete notification for the
-    // player; it's the 8th bit, first 7 is the client number (maxclients
-    // is 128)
-    var pl = ((cn == ocn) ? 1 : 0) << 7
     assert(sd.len() > 0)
     var excl = player_entity && player_entity.cn || -1
-    capi::msg_send(cn, excl, "riiisb", msgid_le_cn, ocn | pl,
+    capi::msg_send(cn, excl, "riiisb", msgid_le_cn, ocn,
         make_stor_uid(self.uid, self.__storage), oc, sd)
 }
 
@@ -1106,6 +1095,10 @@ M.Entity = Object.clone({
     send_notification_full: func(self, cn) {
         var acn = msg.ALL_CLIENTS
         cn = cn || acn
+
+        if cn != acn && self.cn == cn && self.sent_notification_full {
+            return
+        }
 
         var cns = (cn == acn) && get_players().map(\p -> p.cn) || [ cn ]
 
