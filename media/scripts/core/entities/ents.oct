@@ -605,29 +605,14 @@ set_external("entity_serialize", func(cent, nopos) {
     return ent.name, sr, sr.len()
 })
 
-var storid = enum {
-    logic: 1 << 29,
-    dynamic: 1 << 30,
-    static: 1 << 31
-}
-var uidmask = 0x1FFFFFFF
-
 var get_stor_uid = func(uid) {
-    var ruid = uid & uidmask
-    var sid = uid & (~uidmask)
-    if sid == storid.logic {
-        return ruid, storage_logic
-    } else if sid == storid.dynamic {
-        return ruid, storage_dynamic
-    } else if @[!server,sid == storid.static] {
-        @[!server] return ruid, storage_static
-    } else {
-        assert(false)
-    }
+    if uid < 0 { return -uid - 1, storage_dynamic }
+    return uid, storage_logic
 }
 
 var make_stor_uid = func(uid, stor) {
-    return (uid & uidmask) | storid[stor]
+    if stor == "dynamic" { return -uid - 1 }
+    return uid
 }
 
 var msgid_le_cn = msg::register(@[!server,func(tp, receiver, sender, p) {
