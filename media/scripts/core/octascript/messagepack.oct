@@ -240,8 +240,8 @@ packers = setmt({
 })
 
 var defopts = {}
-M.pack = func(data, packopts) {
-    var buf = []
+M.pack = func(data, packopts, buf) {
+    buf = buf || []
     var opts = packopts || defopts
     packers[typeof data](buf, data, packopts || defopts)
     return buf.concat()

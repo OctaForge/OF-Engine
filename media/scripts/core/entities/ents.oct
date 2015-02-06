@@ -630,6 +630,99 @@ var make_stor_uid = func(uid, stor) {
     return (uid & uidmask) | storid[stor]
 }
 
+var msgid_le_cn = msg::register(@[!server,func(tp, receiver, sender, p) {
+    var ocnf = msg::buf_get_int(p)
+    var ouid, stor = get_stor_uid(msg::buf_get_int(p))
+    var oc   = msg::buf_get_string(p)
+    var sd   = msg::buf_get_msgpack(p)
+    // retrieve ocn - first 7 bits only is client number
+    var ocn = ocnf & 0x7F
+    // if they differ, we're sending a player complete notification
+    var ispl = ocnf != ocn
+    if ispl && stor == storage_dynamic && player_entity {
+        return
+    }
+    var ent = stor[ouid]
+    if ent == undef {
+        ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)
+        if ent == undef {
+            log(ERROR, "received an entity that cannot be created")
+            return
+        }
+    } else {
+        @[debug] log(DEBUG, e"existing entity $ouid, no need to create")
+    }
+    @[debug] log(DEBUG, e"updating state data with $(tostring(sd))")
+    ent.set_sdata_full(sd)
+    capi::renderprogress(0, "receiving entities...")
+}])
+
+var msg_le_cn_send = func(self, cn, ocn, oc, sd) {
+    // encode a flag that we're sending a complete notification for the
+    // player; it's the 8th bit, first 7 is the client number (maxclients
+    // is 128)
+    var pl = ((cn == ocn) ? 1 : 0) << 7
+    assert(sd.len() > 0)
+    var excl = player_entity && player_entity.cn || -1
+    capi::msg_send(cn, excl, "riiisb", msgid_le_cn, ocn | pl,
+        make_stor_uid(self.uid, self.__storage), oc, sd)
+}
+
+var msgid_le_rem = msg::register(@[!server,func(tp, receiver, sender, p) {
+    var uid, stor = get_stor_uid(msg::buf_get_int(p))
+    ent_remove(stor[uid])
+}])
+
+var msg_le_rem_send = func(self, cn, uid) {
+    var excl = player_entity && player_entity.cn || -1
+    capi::msg_send(cn, excl, "rii", msgid_le_rem,
+        make_stor_uid(uid, self.__storage))
+}
+
+var msgid_sdata_update = msg::register(@[!server,func(tp, receiver, sender, p) {
+    var uid, stor = get_stor_uid(msg::buf_get_int(p))
+    var kpid = msg::buf_get_int(p)
+    var value = msg::buf_get_msgpack(p)
+    var ocn = msg::buf_get_int(p)
+    @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $(tostring(value))")
+    var ent = stor[uid]
+    if ent {
+        var key = ids_to_names[ent.name][kpid]
+        @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
+        var sv = ent["_SV_" ~ key]
+        ent.set_sdata(key, value)
+    }
+}])
+
+var msg_sdata_update_send = func(self, cn, reliable, uid, kpid, value, ocn) {
+    assert(value.len() > 0)
+    var excl = player_entity && player_entity.cn || -1
+    capi::msg_send(cn, excl, reliable ? "riiibi" : "iiibi",
+        msgid_sdata_update, make_stor_uid(uid, self.__storage), kpid,
+        value, ocn)
+}
+
+var msgid_sdata_changereq = msg::register(func(tp, receiver, sender, p) {
+    var uid, stor = get_stor_uid(msg::buf_get_int(p))
+    var kpid = msg::buf_get_int(p)
+    var value = msg::buf_get_msgpack(p)
+    @[debug] log(DEBUG, e"client $auid tried to change $kpid to value "
+        e"$(tostring(value))")
+    var ent = stor[uid]
+    if ent {
+        var key = ids_to_names[ent.name][kpid]
+        @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
+        var sv = ent["_SV_" ~ key]
+        ent.set_sdata(key, value, sender)
+    }
+})
+
+var msg_sdata_changereq_send = func(self, reliable, uid, kpid, value) {
+    assert(value.len() > 0)
+    capi::msg_add(msgid_sdata_changereq, reliable ? "riib" : "iib",
+        make_stor_uid(uid, self.__storage), kpid, value)
+}
+
 /**
     The base entity prototype. Every other entity prototype inherits from this.
     This prototype is fully functional, but it has no physical form (it's only
@@ -704,7 +797,7 @@ M.Entity = Object.clone({
         self.clear_actions()
         self.deactivated = true
         if msg::is_server() {
-            self.msg_le_rem_send(msg.ALL_CLIENTS, self.uid)
+            msg_le_rem_send(self, msg.ALL_CLIENTS, self.uid)
         }
     },
 
@@ -874,99 +967,6 @@ M.Entity = Object.clone({
         }
     },
 
-    msgid_le_cn: msg::register(@[!server,func(tp, receiver, sender, p) {
-        var ocnf = msg::buf_get_int(p)
-        var ouid, stor = get_stor_uid(msg::buf_get_int(p))
-        var oc   = msg::buf_get_string(p)
-        var sd   = msg::buf_get_msgpack(p)
-        // retrieve ocn - first 7 bits only is client number
-        var ocn = ocnf & 0x7F
-        // if they differ, we're sending a player complete notification
-        var ispl = ocnf != ocn
-        if ispl && stor == storage_dynamic && player_entity {
-            return
-        }
-        var ent = stor[ouid]
-        if ent == undef {
-            ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)
-            if ent == undef {
-                log(ERROR, "received an entity that cannot be created")
-                return
-            }
-        } else {
-            @[debug] log(DEBUG, e"existing entity $ouid, no need to create")
-        }
-        @[debug] log(DEBUG, e"updating state data with $(tostring(sd))")
-        ent.set_sdata_full(sd)
-        capi::renderprogress(0, "receiving entities...")
-    }]),
-
-    msg_le_cn_send: func(self, cn, ocn, oc, sd) {
-        // encode a flag that we're sending a complete notification for the
-        // player; it's the 8th bit, first 7 is the client number (maxclients
-        // is 128)
-        var pl = ((cn == ocn) ? 1 : 0) << 7
-        assert(sd.len() > 0)
-        var excl = player_entity && player_entity.cn || -1
-        capi::msg_send(cn, excl, "riiisb", self.msgid_le_cn, ocn | pl,
-            make_stor_uid(self.uid, self.__storage), oc, sd)
-    },
-
-    msgid_le_rem: msg::register(@[!server,func(tp, receiver, sender, p) {
-        var uid, stor = get_stor_uid(msg::buf_get_int(p))
-        ent_remove(stor[uid])
-    }]),
-
-    msg_le_rem_send: func(self, cn, uid) {
-        var excl = player_entity && player_entity.cn || -1
-        capi::msg_send(cn, excl, "rii", self.msgid_le_rem,
-            make_stor_uid(uid, self.__storage))
-    },
-
-    msgid_sdata_update: msg::register(@[!server,func(tp, receiver, sender, p) {
-        var uid, stor = get_stor_uid(msg::buf_get_int(p))
-        var kpid = msg::buf_get_int(p)
-        var value = msg::buf_get_msgpack(p)
-        var ocn = msg::buf_get_int(p)
-        @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $(tostring(value))")
-        var ent = stor[uid]
-        if ent {
-            var key = ids_to_names[ent.name][kpid]
-            @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
-            var sv = ent["_SV_" ~ key]
-            ent.set_sdata(key, value)
-        }
-    }]),
-
-    msg_sdata_update_send: func(self, cn, reliable, uid, kpid, value, ocn) {
-        assert(value.len() > 0)
-        var excl = player_entity && player_entity.cn || -1
-        capi::msg_send(cn, excl, reliable ? "riiibi" : "iiibi",
-            self.msgid_sdata_update, make_stor_uid(uid, self.__storage), kpid,
-            value, ocn)
-    },
-
-    msgid_sdata_changereq: msg::register(func(tp, receiver, sender, p) {
-        var uid, stor = get_stor_uid(msg::buf_get_int(p))
-        var kpid = msg::buf_get_int(p)
-        var value = msg::buf_get_msgpack(p)
-        @[debug] log(DEBUG, e"client $auid tried to change $kpid to value "
-            e"$(tostring(value))")
-        var ent = stor[uid]
-        if ent {
-            var key = ids_to_names[ent.name][kpid]
-            @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
-            var sv = ent["_SV_" ~ key]
-            ent.set_sdata(key, value, sender)
-        }
-    }),
-
-    msg_sdata_changereq_send: func(self, reliable, uid, kpid, value) {
-        assert(value.len() > 0)
-        capi::msg_add(self.msgid_sdata_changereq, reliable ? "riib" : "iib",
-            make_stor_uid(uid, self.__storage), kpid, value)
-    },
-
     /**
         Triggered automatically right before the `,changed` signal. It first
         checks if there is a setter function for the given svar and does
@@ -1020,7 +1020,7 @@ M.Entity = Object.clone({
             var cns = get_players().map(\p -> p.cn)
             for i, n in cns.each() {
                 if svar.should_send(self, n) {
-                    self.msg_sdata_update_send(n, svar.reliable, self.uid,
+                    msg_sdata_update_send(self, n, svar.reliable, self.uid,
                         tonumber(kid), wval, acn)
                 }
             }
@@ -1075,7 +1075,7 @@ M.Entity = Object.clone({
         if actor_uid == -1 && !csfh {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
-            self.msg_sdata_changereq_send(svar.reliable, self.uid,
+            msg_sdata_changereq_send(self, svar.reliable, self.uid,
                 tonumber(names_to_ids[self.name][svar.name]),
                 mp_pack(svar.to_serializable(val), mp_opts))
         }
@@ -1114,7 +1114,7 @@ M.Entity = Object.clone({
 
         var scn, sname = self.cn, self.name
         for i, n in cns.each() {
-            self.msg_le_cn_send(n, scn && scn || acn, sname,
+            msg_le_cn_send(self, n, scn && scn || acn, sname,
                 self.build_sdata({ target_cn: n, compressed: true }))
         }
 
