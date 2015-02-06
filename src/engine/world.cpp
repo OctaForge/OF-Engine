@@ -519,8 +519,8 @@ void pasteundoent(const undoent &ue)
     if (!ue.name) {
         lua::call_external("entity_remove_static", "i", ue.i);
     } else {
-        entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffSsi", ue.name,
-                0.0f, 0.0f, 0.0f, ue.sdata, ue.sdlen, "", ue.i));
+        entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffSni", ue.name,
+                0.0f, 0.0f, 0.0f, ue.sdata, ue.sdlen, ue.i));
     }
 }
 
@@ -1081,12 +1081,16 @@ void attachent()
 
 COMMAND(attachent, "");
 
-extentity *newent(const char *cl, const char *sd, const char *nd, vec o = vec(-1))
+extentity *newent(const char *cl, const char *nd, vec o = vec(-1))
 {
-    if (!sd || !sd[0]) sd = "{}";
     int uid = -1;
-    lua::pop_external_ret(lua::call_external_ret("entity_new_with_sd",
-        "sfffss", "i", cl, o.x, o.y, o.z, sd, nd ? nd : "", &uid));
+    if (nd) {
+        lua::pop_external_ret(lua::call_external_ret("entity_new_with_sd",
+            "sfffns", "i", cl, o.x, o.y, o.z, nd, &uid));
+    } else {
+        lua::pop_external_ret(lua::call_external_ret("entity_new_with_sd",
+            "sfff", "i", cl, o.x, o.y, o.z, &uid));
+    }
     if (uid < 0) return NULL;
     return entities::getents()[uid];
 }
@@ -1108,7 +1112,7 @@ ICOMMAND(newent, "V", (tagval *args, int numargs), {
     }
     buf.add(']');
     buf.add('\0');
-    newent(cl, NULL, buf.getbuf());
+    newent(cl, buf.getbuf());
 });
 
 ICOMMAND(newentpos, "V", (tagval *args, int numargs), {
@@ -1129,20 +1133,8 @@ ICOMMAND(newentpos, "V", (tagval *args, int numargs), {
     }
     buf.add(']');
     buf.add('\0');
-    newent(cl, NULL, buf.getbuf(), pos);
+    newent(cl, buf.getbuf(), pos);
 })
-
-LUAICOMMAND(new_entity, {
-    bool haspos = !lua_isnoneornil(L, 3);
-    vec pos(-1);
-    if (haspos) {
-        pos.x = luaL_optnumber(L, 3, 0);
-        pos.y = luaL_optnumber(L, 4, 0);
-        pos.z = luaL_optnumber(L, 5, 0);
-    }
-    newent(luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), NULL, pos);
-    return 0;
-});
 
 int entcopygrid;
 
@@ -1189,8 +1181,8 @@ void entpaste()
     {
         const copyent &c = entcopybuf[i];
         vec o = vec(c.o).mul(m).add(vec(sel.o));
-        lua::call_external("entity_new_with_sd", "sfffSs", c.name, o.x, o.y,
-            o.z, c.sdata, c.sdlen, "");
+        lua::call_external("entity_new_with_sd", "sfffS", c.name, o.x, o.y,
+            o.z, c.sdata, c.sdlen);
     }
 }
 
@@ -1201,15 +1193,15 @@ void entreplace()
     if(entgroup.length() || enthover >= 0)
     {
         groupedit({
-            lua::call_external("entity_new_with_sd", "sfffSsi", c.name,
-                e.o.x, e.o.y, e.o.z, c.sdata, c.sdlen, "", n);
+            lua::call_external("entity_new_with_sd", "sfffSni", c.name,
+                e.o.x, e.o.y, e.o.z, c.sdata, c.sdlen, n);
         });
     }
     else
     {
         vec o = vec(c.o).mul(float(sel.grid)/float(entcopygrid)).add(vec(sel.o));
-        lua::call_external("entity_new_with_sd", "sfffSs", c.name,
-            o.x, o.y, o.z, c.sdata, c.sdlen, "");
+        lua::call_external("entity_new_with_sd", "sfffS", c.name,
+            o.x, o.y, o.z, c.sdata, c.sdlen);
     }
 }
 
@@ -1263,8 +1255,7 @@ void enttype(char *type, int *numargs) {
         groupedit(
             vec pos(e.o);
             lua::call_external("entity_remove_static", "u", n);
-            lua::call_external("entity_new_with_sd", "sfffss", type, pos.x,
-                pos.y, pos.z, "{}", "");
+            lua::call_external("entity_new_with_sd", "sfff", type, pos.x, pos.y, pos.z);
         );
     } else entfocus(efocus, {
         const char *name;

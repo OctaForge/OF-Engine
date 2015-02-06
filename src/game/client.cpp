@@ -1381,8 +1381,8 @@ namespace game
                     if (sdlen <= 0) break;
                     char *buf = new char[sdlen];
                     loopk(sdlen) buf[k] = (char)p.get();
-                    lua::call_external("entity_new_with_sd", "sfffSsib", name,
-                        x, y, z, buf, sdlen, "", i, true);
+                    lua::call_external("entity_new_with_sd", "sfffSnib", name,
+                        x, y, z, buf, sdlen, i, true);
                     delete[] buf;
                 }
                 break;
