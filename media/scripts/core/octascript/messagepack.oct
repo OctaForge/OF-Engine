@@ -311,17 +311,35 @@ var unpack_map = func(c, n) {
     return t
 }
 
+var bfuncs = {
+    1: func(c) { return c.get_byte() },
+    2: func(c) { return c.get_byte(), c.get_byte() },
+    4: func(c) { return c.get_byte(), c.get_byte(), c.get_byte(), c.get_byte() },
+    8: func(c) { return c.get_byte(), c.get_byte(), c.get_byte(), c.get_byte(),
+                        c.get_byte(), c.get_byte(), c.get_byte(), c.get_byte()
+    }
+}
+
+var c_get_bytes = func(c, n) {
+    if c.get_bytes {
+        return c.get_bytes(n)
+    }
+    var bf = bfuncs[n]
+    if !bf { raise "bad number of bytes" }
+    return bf(c)
+}
+
 var str_get_fallback = func(c, n) {
     var rarr = []
     for i in 1 to n {
-        rarr.push(char(c.get_bytes(1)))
+        rarr.push(char(c_get_bytes(c, 1)))
     }
     return rarr.concat()
 }
 
 unpackers = setmt({
     "any": func(c) {
-        var val = c.get_bytes(1)
+        var val = c_get_bytes(c, 1)
         return unpackers[types_map[val]](c, val)
     },
 
@@ -330,7 +348,7 @@ unpackers = setmt({
     "true" : func() { return true  },
 
     "float": func(c) {
-        var b1, b2, b3, b4 = c.get_bytes(4)
+        var b1, b2, b3, b4 = c_get_bytes(c, 4)
         var sign = b1 > 0x7F
         var ex = (b1 % 0x80) * 0x2 + floor(b2 / 0x80)
         var mt = ((b2 % 0x80) * 0x100 + b3) * 0x100 + b4
@@ -351,7 +369,7 @@ unpackers = setmt({
     },
 
     "double": func(c) {
-        var b1, b2, b3, b4, b5, b6, b7, b8 = c.get_bytes(8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = c_get_bytes(c, 8)
         var sign = b1 > 0x7F
         var ex = (b1 % 0x80) * 0x10 + floor(b2 / 0x10)
         var mt = ((((((b2 % 0x10) * 0x100 + b3) * 0x100 + b4) * 0x100 + b5)
@@ -377,21 +395,21 @@ unpackers = setmt({
     },
 
     "uint8": func(c) {
-        return c.get_bytes(1)
+        return c_get_bytes(c, 1)
     },
 
     "uint16": func(c) {
-        var b1, b2 = c.get_bytes(2)
+        var b1, b2 = c_get_bytes(c, 2)
         return b1 * 0x100 + b2
     },
 
     "uint32": func(c) {
-        var b1, b2, b3, b4 = c.get_bytes(4)
+        var b1, b2, b3, b4 = c_get_bytes(c, 4)
         return ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4
     },
 
     "uint64": func(c) {
-        var b1, b2, b3, b4, b5, b6, b7, b8 = c.get_bytes(8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = c_get_bytes(c, 8)
         return ((((((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4) * 0x100 + b5)
                         * 0x100 + b6) * 0x100 + b7) * 0x100 + b8
     },
@@ -401,25 +419,25 @@ unpackers = setmt({
     },
 
     "int8": func(c) {
-        var b1 = c.get_bytes(1)
+        var b1 = c_get_bytes(c, 1)
         return (b1 < 0x80) ? b1 : (b1 - 0x100)
     },
 
     "int16": func(c) {
-        var b1, b2 = c.get_bytes(2)
+        var b1, b2 = c_get_bytes(c, 2)
         return (b1 < 0x80) ? (b1 * 0x100 + b2)
                            : (((b1 - 0xFF) * 0x100 + (b2 - 0xFF)) - 1)
     },
 
     "int32": func(c) {
-        var b1, b2, b3, b4 = c.get_bytes(4)
+        var b1, b2, b3, b4 = c_get_bytes(c, 4)
         return (b1 < 0x80) ? (((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
                            : (((((b1 - 0xFF) * 0x100 + (b2 - 0xFF)) * 0x100
                                + (b3 - 0xFF)) * 0x100 + (b4 - 0xFF)) - 1)
     },
 
     "int64": func(c) {
-        var b1, b2, b3, b4, b5, b6, b7, b8 = c.get_bytes(8)
+        var b1, b2, b3, b4, b5, b6, b7, b8 = c_get_bytes(c, 8)
         return (b1 < 0x80) ? (((((((b1 * 0x100 + b2) * 0x100 + b3)
                                 * 0x100 + b4) * 0x100 + b5) * 0x100 + b6)
                                 * 0x100 + b7) * 0x100 + b8)
@@ -435,16 +453,16 @@ unpackers = setmt({
     },
 
     "str8": func(c, v) {
-        return (c.get_string || str_get_fallback)(c, c.get_bytes(1))
+        return (c.get_string || str_get_fallback)(c, c_get_bytes(c, 1))
     },
 
     "str16": func(c, v) {
-        var b1, b2 = c.get_bytes(2)
+        var b1, b2 = c_get_bytes(c, 2)
         return (c.get_string || str_get_fallback)(c, b1 * 0x100 + b2)
     },
 
     "str32": func(c, v) {
-        var b1, b2, b3, b4 = c.get_bytes(4)
+        var b1, b2, b3, b4 = c_get_bytes(c, 4)
         return (c.get_string || str_get_fallback)(c,
             ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     },
@@ -454,12 +472,12 @@ unpackers = setmt({
     },
 
     "array16": func(c) {
-        var b1, b2 = c.get_bytes(2)
+        var b1, b2 = c_get_bytes(c, 2)
         return unpack_array(c, b1 * 0x100 + b2)
     },
 
     "array32": func(c) {
-        var b1, b2, b3, b4 = c.get_bytes(4)
+        var b1, b2, b3, b4 = c_get_bytes(c, 4)
         return unpack_array(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     },
 
@@ -468,12 +486,12 @@ unpackers = setmt({
     },
 
     "map16": func(c) {
-        var b1, b2 = c.get_bytes(2)
+        var b1, b2 = c_get_bytes(c, 2)
         return unpack_map(c, b1 * 0x100 + b2)
     },
 
     "map32": func(c) {
-        var b1, b2, b3, b4 = c.get_bytes(4)
+        var b1, b2, b3, b4 = c_get_bytes(c, 4)
         return unpack_map(c, ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     }
 }, {

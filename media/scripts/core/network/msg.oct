@@ -33,23 +33,8 @@ var get_byte = func(c) {
     return tonumber(capi::ucharbuf_getuchar(c.p))
 }
 
-var bfuncs = {
-    1: get_byte,
-    2: func(c) { return get_byte(c), get_byte(c) },
-    4: func(c) { return get_byte(c), get_byte(c), get_byte(c), get_byte(c) },
-    8: func(c) { return get_byte(c), get_byte(c), get_byte(c), get_byte(c),
-                        get_byte(c), get_byte(c), get_byte(c), get_byte(c)
-    }
-}
-
-var msg_get_bytes = func(c, nb) {
-    var bf = bfuncs[nb]
-    if !bf { raise "bad number of bytes" }
-    return bf(c)
-}
-
 var cursor_msg = func(p) {
-    return { p: p, get_bytes: msg_get_bytes }
+    return { p: p, get_byte: get_byte }
 }
 
 M.buf_get_msgpack = func(self) {
