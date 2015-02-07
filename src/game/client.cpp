@@ -685,61 +685,11 @@ namespace game
             va_end(args);
         }
         int num = nums || numf ? 0 : numi, msgsize = server::msgsizelookup(type);
-        if((type & 0xFF) == type && msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
+        if(msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
         if(reliable) messagereliable = true;
         messages.put(buf, p.length());
         return true;
     }
-
-    LUAICOMMAND(msg_add, {
-        int argn = 0;
-        int type = luaL_checkinteger(L, ++argn);
-        logger::log(logger::INFO, "client: addmsg: adding a scripting message of type %d", type);
-        if (!connected) {
-            lua_pushboolean(L, false);
-            return 1;
-        }
-        static uchar buf[MAXTRANS];
-        ucharbuf p(buf, sizeof(buf));
-        putint(p, type);
-        const char *fmt = NULL;
-        if (!lua_isnoneornil(L, ++argn)) {
-            fmt = luaL_checkstring(L, argn);
-        }
-        int numi = 1;
-        int numf = 0;
-        int nums = 0;
-        bool reliable = false;
-        if (fmt) while (*fmt) switch (*fmt++) {
-            case 'r': reliable = true; break;
-            case 'i': {
-                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putint(p, luaL_checkinteger(L, ++argn));
-                numi += n;
-                break;
-            }
-            case 'f': {
-                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putfloat(p, luaL_checknumber(L, ++argn));
-                numf += n;
-                break;
-            }
-            case 'b': {
-                size_t n = 0;
-                const uchar *buf = (uchar *)luaL_checklstring(L, ++argn, &n);
-                for (uint i = 0; i < n; ++i) p.put(buf[i]);
-                break;
-            }
-            case 's': sendstring(luaL_checkstring(L, ++argn), p); nums++; break;
-        }
-        int num = nums || numf ? 0 : numi;
-        int msgsize = server::msgsizelookup(type);
-        if ((type & 0xFF) == type && msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
-        if (reliable) messagereliable = true;
-        messages.put(buf, p.length());
-        lua_pushboolean(L, true);
-        return 1;
-    });
 
     void connectattempt(const char *name, const char *password, const ENetAddress &address)
     {
@@ -1614,18 +1564,8 @@ namespace game
                 break;
 
             default:
-            {
-                logger::log(logger::INFO, "Client: Handling a non-typical message: %d", type);
-                bool hashandler = false;
-                lua::pop_external_ret(lua::call_external_ret("message_receive", "iiip",
-                    "b", type, game::player1->clientnum, cn, (void*)&p, &hashandler));
-                if (!hashandler) {
-                    logger::log(logger::ERROR, "No scripting handler for message %d from %d", type, cn);
-                    neterr("type", cn < 0);
-                    return;
-                }
-                break;
-            }
+                neterr("type", cn < 0);
+                return;
         }
     }
 
@@ -1857,5 +1797,10 @@ endread:
         player1->resetinterp();
     }
     COMMAND(gotosel, "");
+
+    CLUAICOMMAND(msg_sdata_changereq_send, void, (bool reliable, int uid,
+    int kpid, const char *value, int vlen), {
+        addmsg(N_ENTSDATAUPREQ, reliable ? "riib" : "iib", uid, kpid, vlen, value);
+    })
 }
 

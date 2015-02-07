@@ -20,24 +20,11 @@ from core.octascript.messagepack import unpack as mp_unpack
 
 import capi
 
-var message_types = {}
-// scripting messages start after the first byte
-var current_mid = 256
-
 /**
     A constant (value -1) used when sending messages. Specifying this constant
     means that the message will be sent to all clients.
 */
 M.ALL_CLIENTS = -1
-
-/**
-    Registers a message receiver and returns its ID.
-*/
-M.register = func(receiver) {
-    message_types[current_mid] = receiver
-    current_mid += 1
-    return current_mid - 1
-}
 
 import std.ffi
 import capi
@@ -98,18 +85,6 @@ var cursor_msg = func(p) {
 M.buf_get_msgpack = func(self) {
     return mp_unpack(cursor_msg(self))
 }
-
-var ubuft = ffi["typeof"]("ucharbuf &")
-
-setext("message_receive", func(tp, receiver, sender, p) {
-    tp = tonumber(tp)
-    var recv = message_types[tp]
-    if  recv == undef {
-        return false
-    }
-    recv(tp, tonumber(receiver), tonumber(sender), ffi::cast(ubuft, p))
-    return true
-})
 
 M.is_local = @[server,func() { return true },func() {
     return capi::isconnected(false, true) && !capi::isconnected(false, false)

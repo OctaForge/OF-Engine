@@ -652,6 +652,7 @@ var msg_le_rem_send = func(self, cn) {
 }
 
 set_external("msg_sdata_update", @[!server,func(p) {
+    p = ffi::cast(ubuft, p)
     var uid, stor = get_stor_uid(msg::buf_get_int(p))
     var ocn = msg::buf_get_int(p)
     var kpid = msg::buf_get_int(p)
@@ -673,7 +674,8 @@ var msg_sdata_update_send = func(self, cn, reliable, kpid, value, ocn) {
         ocn, kpid, value, value.len())
 }
 
-var msgid_sdata_changereq = msg::register(func(tp, receiver, sender, p) {
+set_external("msg_sdata_changereq", func(sender, p) {
+    p = ffi::cast(ubuft, p)
     var uid, stor = get_stor_uid(msg::buf_get_int(p))
     var kpid = msg::buf_get_int(p)
     var value = msg::buf_get_msgpack(p)
@@ -690,8 +692,9 @@ var msgid_sdata_changereq = msg::register(func(tp, receiver, sender, p) {
 
 var msg_sdata_changereq_send = func(self, reliable, kpid, value) {
     assert(value.len() > 0)
-    capi::msg_add(msgid_sdata_changereq, reliable ? "riib" : "iib",
-        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, kpid, value)
+    capi::msg_sdata_changereq_send(reliable,
+        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, kpid,
+        value, value.len())
 }
 
 /**

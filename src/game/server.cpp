@@ -2465,6 +2465,11 @@ namespace server
                 break;
             }
 
+            case N_ENTSDATAUPREQ: {
+                lua::call_external("msg_sdata_changereq", "ip", sender, (void*)&p);
+                break;
+            }
+
             case N_SERVCMD:
                 getstring(text, p);
                 break;
@@ -2479,23 +2484,13 @@ namespace server
 
             default: genericmsg:
             {
-                logger::log(logger::DEBUG, "Server: Handling a non-typical message: %d", type);
-                bool hashandler = false;
-                lua::pop_external_ret(lua::call_external_ret("message_receive", "iiip",
-                    "b", type, -1, sender, (void*)&p, &hashandler));
-                if (!hashandler) {
-                    logger::log(logger::DEBUG, "Relaying Sauer protocol message: %d", type);
-
-                    int size = server::msgsizelookup(type);
-                    if(size<=0) { disconnect_client(sender, DISC_MSGERR); return; }
-                    loopi(size-1) getint(p);
-                    if(ci) switch(msgfilter[type])
-                    {
-                        case 2: case 3: if(ci->state.state != CS_SPECTATOR) QUEUE_MSG; break;
-                        default: if(cq && (ci != cq || ci->state.state!=CS_SPECTATOR)) { QUEUE_AI; QUEUE_MSG; } break;
-                    }
-
-                    logger::log(logger::DEBUG, "Relaying complete");
+                int size = server::msgsizelookup(type);
+                if(size<=0) { disconnect_client(sender, DISC_MSGERR); return; }
+                loopi(size-1) getint(p);
+                if(ci) switch(msgfilter[type])
+                {
+                    case 2: case 3: if(ci->state.state != CS_SPECTATOR) QUEUE_MSG; break;
+                    default: if(cq && (ci != cq || ci->state.state!=CS_SPECTATOR)) { QUEUE_AI; QUEUE_MSG; } break;
                 }
                 break;
             }
