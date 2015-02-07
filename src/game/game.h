@@ -113,9 +113,9 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     -1
 };
 
-#define OCTAFORGE_SERVER_PORT 42000
-#define OCTAFORGE_LANINFO_PORT 41998
-#define OCTAFORGE_MASTER_PORT 41999
+#define OCTAFORGE_SERVER_PORT 46000
+#define OCTAFORGE_LANINFO_PORT 45998
+#define OCTAFORGE_MASTER_PORT 45999
 #define PROTOCOL_VERSION 1              // bump when protocol changes
 #define DEMO_VERSION 1                  // bump when demo format changes
 #define DEMO_MAGIC "OCTAFORGE_DEMO\0\0"

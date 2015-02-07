@@ -676,7 +676,7 @@ int main(int argc, char **argv)
     atexit(enet_deinitialize);
 
     const char *dir = "", *ip = NULL;
-    int port = 41999;
+    int port = 45999;
     if(argc>=2) dir = argv[1];
     if(argc>=3) port = atoi(argv[2]);
     if(argc>=4) ip = argv[3];
