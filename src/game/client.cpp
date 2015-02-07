@@ -1605,6 +1605,10 @@ namespace game
                 lua::call_external("msg_le_rem", "i", getint(p));
                 break;
 
+            case N_ENTSDATAUP:
+                lua::call_external("msg_sdata_update", "p", (void*)&p);
+                break;
+
             case N_SERVCMD:
                 getstring(text, p);
                 break;

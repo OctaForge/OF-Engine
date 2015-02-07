@@ -651,7 +651,7 @@ var msg_le_rem_send = func(self, cn) {
         (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid)
 }
 
-var msgid_sdata_update = msg::register(@[!server,func(tp, receiver, sender, p) {
+set_external("msg_sdata_update", @[!server,func(p) {
     var uid, stor = get_stor_uid(msg::buf_get_int(p))
     var ocn = msg::buf_get_int(p)
     var kpid = msg::buf_get_int(p)
@@ -668,10 +668,9 @@ var msgid_sdata_update = msg::register(@[!server,func(tp, receiver, sender, p) {
 
 var msg_sdata_update_send = func(self, cn, reliable, kpid, value, ocn) {
     assert(value.len() > 0)
-    var excl = player_entity && player_entity.cn || -1
-    capi::msg_send(cn, excl, reliable ? "riiiib" : "iiiib", msgid_sdata_update,
-        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, ocn, kpid,
-        value)
+    capi::msg_sdata_update_send(cn, player_entity && player_entity.cn || -1,
+        reliable, (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid,
+        ocn, kpid, value, value.len())
 }
 
 var msgid_sdata_changereq = msg::register(func(tp, receiver, sender, p) {

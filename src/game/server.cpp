@@ -2534,41 +2534,6 @@ namespace server
 
     int protocolversion() { return PROTOCOL_VERSION; }
 
-    LUAICOMMAND(msg_send, {
-        int argn = 0;
-        int cn = luaL_checkinteger(L, ++argn);
-        int exclude = luaL_checkinteger(L, ++argn);
-        if (cn == exclude && exclude != -1) return 0;
-        const char *fmt = luaL_checkstring(L, ++argn);
-        bool reliable = false;
-        if (*fmt == 'r') { reliable = true; ++fmt; }
-        packetbuf p(MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
-        while (*fmt) switch (*fmt++) {
-            case 'i': {
-                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putint(p, luaL_checkinteger(L, ++argn));
-                break;
-            }
-            case 'f': {
-                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putfloat(p, luaL_checknumber(L, ++argn));
-                break;
-            }
-            case 'b': {
-                size_t n = 0;
-                const uchar *buf = (uchar *)luaL_checklstring(L, ++argn, &n);
-                for (uint i = 0; i < n; ++i) p.put(buf[i]);
-                break;
-            }
-            case 's': sendstring(luaL_checkstring(L, ++argn), p); break;
-        }
-        ENetPacket *packet = p.finalize();
-        p.packet = NULL;
-        sendpacket(cn, 1, packet, exclude);
-        if(!packet->referenceCount) enet_packet_destroy(packet);
-        return 0;
-    })
-
     CLUAICOMMAND(msg_le_cn_send, void, (int cn, int excl, int ocn, int uid,
     const char *oc, const char *sd, int sdlen), {
         if (excl != -1 && cn == excl) return;
@@ -2579,5 +2544,12 @@ namespace server
         if (excl != -1 && cn == excl) return;
         sendf(cn, 1, "ri2x", N_ENTREM, uid, excl);
     })
+
+    CLUAICOMMAND(msg_sdata_update_send, void, (int cn, int excl, bool reliable,
+    int uid, int ocn, int kpid, const char *value, int vlen), {
+        if (excl != -1 && cn == excl) return;
+        sendf(cn, 1, reliable ? "ri4mx" : "i4mx", N_ENTSDATAUP, uid, ocn,
+            kpid, vlen, value);
+    });
 }
 
