@@ -48,19 +48,8 @@ var msg_get_bytes = func(c, nb) {
     return bf(c)
 }
 
-var msg_get_string = func(c, n) {
-    var rarr = []
-    for i in 1 to n {
-        rarr.push(char(get_byte(c)))
-    }
-    return rarr.concat()
-}
-
 var cursor_msg = func(p) {
-    return { p: p,
-        get_bytes: msg_get_bytes,
-        get_string: msg_get_string
-    }
+    return { p: p, get_bytes: msg_get_bytes }
 }
 
 M.buf_get_msgpack = func(self) {

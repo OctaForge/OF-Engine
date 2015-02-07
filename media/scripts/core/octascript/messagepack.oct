@@ -311,6 +311,14 @@ var unpack_map = func(c, n) {
     return t
 }
 
+var str_get_fallback = func(c, n) {
+    var rarr = []
+    for i in 1 to n {
+        rarr.push(char(c.get_bytes(1)))
+    }
+    return rarr.concat()
+}
+
 unpackers = setmt({
     "any": func(c) {
         var val = c.get_bytes(1)
@@ -423,21 +431,22 @@ unpackers = setmt({
     },
 
     "fixstr": func(c, v) {
-        return c.get_string(v % 0x20)
+        return (c.get_string || str_get_fallback)(c, v % 0x20)
     },
 
     "str8": func(c, v) {
-        return c.get_string(c.get_bytes(1))
+        return (c.get_string || str_get_fallback)(c, c.get_bytes(1))
     },
 
     "str16": func(c, v) {
         var b1, b2 = c.get_bytes(2)
-        return c.get_string(b1 * 0x100 + b2)
+        return (c.get_string || str_get_fallback)(c, b1 * 0x100 + b2)
     },
 
     "str32": func(c, v) {
         var b1, b2, b3, b4 = c.get_bytes(4)
-        return c.get_string(((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
+        return (c.get_string || str_get_fallback)(c,
+            ((b1 * 0x100 + b2) * 0x100 + b3) * 0x100 + b4)
     },
 
     "fixarray": func(c, v) {
