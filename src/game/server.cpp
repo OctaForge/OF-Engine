@@ -2468,7 +2468,10 @@ namespace server
             case N_ENTSDATAUPREQ: {
                 int uid = getint(p);
                 int kpid = getint(p);
-                lua::call_external("msg_sdata_changereq", "iiip", sender, uid, kpid, (void*)&p);
+                int n = lua::call_external_ret("buf_get_msgpack", "p", "v", (void*)&p);
+                int tidx = lua_gettop(lua::L);
+                lua::call_external("msg_sdata_changereq", "iiiv", sender, uid, kpid, tidx);
+                lua::pop_external_ret(n);
                 break;
             }
 

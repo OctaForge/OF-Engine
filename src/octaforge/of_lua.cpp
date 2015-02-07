@@ -155,6 +155,9 @@ namespace lua
                 case 'b':
                     *va_arg(ar->ap, bool*) = lua_toboolean(L, -idx--);
                     break;
+                case 'v':
+                    idx--;
+                    break;
                 default:
                     assert(false);
                     break;

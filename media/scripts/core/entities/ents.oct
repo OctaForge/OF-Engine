@@ -610,12 +610,8 @@ var get_stor_uid = func(uid) {
     return uid, storage_logic
 }
 
-var ubuft = ffi["typeof"]("ucharbuf &")
-
-set_external("msg_le_cn", @[!server,func(ocn, uid, oc, p) {
-    p = ffi::cast(ubuft, p)
+set_external("msg_le_cn", @[!server,func(ocn, uid, oc, sd) {
     var uid, stor = get_stor_uid(uid)
-    var sd = msg::buf_get_msgpack(p)
     var ent = stor[uid]
     if ent == undef {
         ent = add(oc, uid, (ocn >= 0) && { cn: ocn } || undef)
@@ -649,10 +645,8 @@ var msg_le_rem_send = func(self, cn) {
         (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid)
 }
 
-set_external("msg_sdata_update", @[!server,func(uid, ocn, kpid, p) {
-    p = ffi::cast(ubuft, p)
+set_external("msg_sdata_update", @[!server,func(uid, ocn, kpid, value) {
     var uid, stor = get_stor_uid(uid)
-    var value = msg::buf_get_msgpack(p)
     @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $(tostring(value))")
     var ent = stor[uid]
     if ent {
@@ -670,10 +664,8 @@ var msg_sdata_update_send = func(self, cn, reliable, kpid, value, ocn) {
         ocn, kpid, value, value.len())
 }
 
-set_external("msg_sdata_changereq", func(sender, uid, kpid, p) {
-    p = ffi::cast(ubuft, p)
+set_external("msg_sdata_changereq", func(sender, uid, kpid, value) {
     var uid, stor = get_stor_uid(uid)
-    var value = msg::buf_get_msgpack(p)
     @[debug] log(DEBUG, e"client $auid tried to change $kpid to value "
         e"$(tostring(value))")
     var ent = stor[uid]
