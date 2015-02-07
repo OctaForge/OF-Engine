@@ -610,25 +610,20 @@ var get_stor_uid = func(uid) {
     return uid, storage_logic
 }
 
-var make_stor_uid = func(uid, stor) {
-    if stor == "dynamic" { return -uid - 1 }
-    return uid
-}
-
 var msgid_le_cn = msg::register(@[!server,func(tp, receiver, sender, p) {
     var ocn = msg::buf_get_int(p)
-    var ouid, stor = get_stor_uid(msg::buf_get_int(p))
+    var uid, stor = get_stor_uid(msg::buf_get_int(p))
     var oc   = msg::buf_get_string(p)
     var sd   = msg::buf_get_msgpack(p)
-    var ent = stor[ouid]
+    var ent = stor[uid]
     if ent == undef {
-        ent = add(oc, ouid, (ocn >= 0) && { cn: ocn } || undef)
+        ent = add(oc, uid, (ocn >= 0) && { cn: ocn } || undef)
         if ent == undef {
             log(ERROR, "received an entity that cannot be created")
             return
         }
     } else {
-        @[debug] log(DEBUG, e"existing entity $ouid, no need to create")
+        @[debug] log(DEBUG, e"existing entity $uid, no need to create")
     }
     @[debug] log(DEBUG, e"updating state data with $(tostring(sd))")
     ent.set_sdata_full(sd)
@@ -639,7 +634,7 @@ var msg_le_cn_send = func(self, cn, ocn, oc, sd) {
     assert(sd.len() > 0)
     var excl = player_entity && player_entity.cn || -1
     capi::msg_send(cn, excl, "riiisb", msgid_le_cn, ocn,
-        make_stor_uid(self.uid, self.__storage), oc, sd)
+        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, oc, sd)
 }
 
 var msgid_le_rem = msg::register(@[!server,func(tp, receiver, sender, p) {
@@ -647,17 +642,17 @@ var msgid_le_rem = msg::register(@[!server,func(tp, receiver, sender, p) {
     ent_remove(stor[uid])
 }])
 
-var msg_le_rem_send = func(self, cn, uid) {
+var msg_le_rem_send = func(self, cn) {
     var excl = player_entity && player_entity.cn || -1
     capi::msg_send(cn, excl, "rii", msgid_le_rem,
-        make_stor_uid(uid, self.__storage))
+        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid)
 }
 
 var msgid_sdata_update = msg::register(@[!server,func(tp, receiver, sender, p) {
     var uid, stor = get_stor_uid(msg::buf_get_int(p))
+    var ocn = msg::buf_get_int(p)
     var kpid = msg::buf_get_int(p)
     var value = msg::buf_get_msgpack(p)
-    var ocn = msg::buf_get_int(p)
     @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $(tostring(value))")
     var ent = stor[uid]
     if ent {
@@ -668,12 +663,12 @@ var msgid_sdata_update = msg::register(@[!server,func(tp, receiver, sender, p) {
     }
 }])
 
-var msg_sdata_update_send = func(self, cn, reliable, uid, kpid, value, ocn) {
+var msg_sdata_update_send = func(self, cn, reliable, kpid, value, ocn) {
     assert(value.len() > 0)
     var excl = player_entity && player_entity.cn || -1
-    capi::msg_send(cn, excl, reliable ? "riiibi" : "iiibi",
-        msgid_sdata_update, make_stor_uid(uid, self.__storage), kpid,
-        value, ocn)
+    capi::msg_send(cn, excl, reliable ? "riiiib" : "iiiib", msgid_sdata_update,
+        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, ocn, kpid,
+        value)
 }
 
 var msgid_sdata_changereq = msg::register(func(tp, receiver, sender, p) {
@@ -691,10 +686,10 @@ var msgid_sdata_changereq = msg::register(func(tp, receiver, sender, p) {
     }
 })
 
-var msg_sdata_changereq_send = func(self, reliable, uid, kpid, value) {
+var msg_sdata_changereq_send = func(self, reliable, kpid, value) {
     assert(value.len() > 0)
     capi::msg_add(msgid_sdata_changereq, reliable ? "riib" : "iib",
-        make_stor_uid(uid, self.__storage), kpid, value)
+        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, kpid, value)
 }
 
 /**
@@ -771,7 +766,7 @@ M.Entity = Object.clone({
         self.clear_actions()
         self.deactivated = true
         if msg::is_server() {
-            msg_le_rem_send(self, msg.ALL_CLIENTS, self.uid)
+            msg_le_rem_send(self, msg.ALL_CLIENTS)
         }
     },
 
@@ -994,7 +989,7 @@ M.Entity = Object.clone({
             var cns = get_players().map(\p -> p.cn)
             for i, n in cns.each() {
                 if svar.should_send(self, n) {
-                    msg_sdata_update_send(self, n, svar.reliable, self.uid,
+                    msg_sdata_update_send(self, n, svar.reliable,
                         tonumber(kid), wval, acn)
                 }
             }
@@ -1049,7 +1044,7 @@ M.Entity = Object.clone({
         if actor_uid == -1 && !csfh {
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
-            msg_sdata_changereq_send(self, svar.reliable, self.uid,
+            msg_sdata_changereq_send(self, svar.reliable,
                 tonumber(names_to_ids[self.name][svar.name]),
                 mp_pack(svar.to_serializable(val), mp_opts))
         }
