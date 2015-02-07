@@ -610,7 +610,10 @@ var get_stor_uid = func(uid) {
     return uid, storage_logic
 }
 
-var msgid_le_cn = msg::register(@[!server,func(tp, receiver, sender, p) {
+var ubuft = ffi["typeof"]("ucharbuf &")
+
+set_external("msg_le_cn", @[!server,func(p) {
+    p = ffi::cast(ubuft, p)
     var ocn = msg::buf_get_int(p)
     var uid, stor = get_stor_uid(msg::buf_get_int(p))
     var oc   = msg::buf_get_string(p)
@@ -632,20 +635,19 @@ var msgid_le_cn = msg::register(@[!server,func(tp, receiver, sender, p) {
 
 var msg_le_cn_send = func(self, cn, ocn, oc, sd) {
     assert(sd.len() > 0)
-    var excl = player_entity && player_entity.cn || -1
-    capi::msg_send(cn, excl, "riiisb", msgid_le_cn, ocn,
-        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, oc, sd)
+    capi::msg_le_cn_send(cn, player_entity && player_entity.cn || -1, ocn,
+        (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, oc, sd,
+        sd.len())
 }
 
-set_external("msg_le_rem", func(uid) {
+set_external("msg_le_rem", @[!server,func(uid) {
     var uid, stor = get_stor_uid(uid)
     if !stor[uid] { return }
     ent_remove(stor[uid])
-})
+}])
 
 var msg_le_rem_send = func(self, cn) {
-    var excl = player_entity && player_entity.cn || -1
-    capi::msg_le_rem_send(cn, excl,
+    capi::msg_le_rem_send(cn, player_entity && player_entity.cn || -1,
         (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid)
 }
 

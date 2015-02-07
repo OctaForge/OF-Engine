@@ -2569,7 +2569,14 @@ namespace server
         return 0;
     })
 
+    CLUAICOMMAND(msg_le_cn_send, void, (int cn, int excl, int ocn, int uid,
+    const char *oc, const char *sd, int sdlen), {
+        if (excl != -1 && cn == excl) return;
+        sendf(cn, 1, "ri3smx", N_ENTCN, ocn, uid, oc, sdlen, sd, excl);
+    })
+
     CLUAICOMMAND(msg_le_rem_send, void, (int cn, int excl, int uid), {
+        if (excl != -1 && cn == excl) return;
         sendf(cn, 1, "ri2x", N_ENTREM, uid, excl);
     })
 }
