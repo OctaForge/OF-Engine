@@ -2518,9 +2518,8 @@ namespace server
         putint(p, PROTOCOL_VERSION);
         putint(p, numclients(-1, false, true));
         putint(p, maxclients);
-        putint(p, gamepaused || gamespeed != 100 ? 5 : 3); // number of attrs following
+        putint(p, gamepaused || gamespeed != 100 ? 4 : 2); // number of attrs following
         putint(p, gamemode);
-        putint(p, 0);
         putint(p, serverpass[0] ? MM_PASSWORD : (!m_mp(gamemode) ? MM_PRIVATE : (mastermode || mastermask&MM_AUTOAPPROVE ? mastermode : MM_AUTH)));
         if(gamepaused || gamespeed != 100)
         {
