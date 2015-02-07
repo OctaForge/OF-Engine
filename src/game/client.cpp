@@ -1547,17 +1547,25 @@ namespace game
             case N_ALLACTIVEENTSSENT:
                 break;
 
-            case N_ENTCN:
-                lua::call_external("msg_le_cn", "p", (void*)&p);
+            case N_ENTCN: {
+                int uid = getint(p);
+                int ocn = getint(p);
+                getstring(text, p);
+                lua::call_external("msg_le_cn", "iisp", ocn, uid, text, (void*)&p);
                 break;
+            }
 
             case N_ENTREM:
                 lua::call_external("msg_le_rem", "i", getint(p));
                 break;
 
-            case N_ENTSDATAUP:
-                lua::call_external("msg_sdata_update", "p", (void*)&p);
+            case N_ENTSDATAUP: {
+                int uid = getint(p);
+                int ocn = getint(p);
+                int kpid = getint(p);
+                lua::call_external("msg_sdata_update", "iiip", uid, ocn, kpid, (void*)&p);
                 break;
+            }
 
             case N_SERVCMD:
                 getstring(text, p);

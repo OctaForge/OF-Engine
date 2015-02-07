@@ -2466,7 +2466,9 @@ namespace server
             }
 
             case N_ENTSDATAUPREQ: {
-                lua::call_external("msg_sdata_changereq", "ip", sender, (void*)&p);
+                int uid = getint(p);
+                int kpid = getint(p);
+                lua::call_external("msg_sdata_changereq", "iiip", sender, uid, kpid, (void*)&p);
                 break;
             }
 
@@ -2532,7 +2534,7 @@ namespace server
     CLUAICOMMAND(msg_le_cn_send, void, (int cn, int excl, int ocn, int uid,
     const char *oc, const char *sd, int sdlen), {
         if (excl != -1 && cn == excl) return;
-        sendf(cn, 1, "ri3smx", N_ENTCN, ocn, uid, oc, sdlen, sd, excl);
+        sendf(cn, 1, "ri3smx", N_ENTCN, uid, ocn, oc, sdlen, sd, excl);
     })
 
     CLUAICOMMAND(msg_le_rem_send, void, (int cn, int excl, int uid), {

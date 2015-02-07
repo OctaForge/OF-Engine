@@ -29,25 +29,6 @@ M.ALL_CLIENTS = -1
 import std.ffi
 import capi
 
-M.buf_get_int = func(self) {
-    return tonumber(capi::ucharbuf_getint(self))
-}
-
-M.buf_get_uint = func(self) {
-    return tonumber(capi::ucharbuf_getuint(self))
-}
-
-M.buf_get_float = func(self) {
-    return tonumber(capi::ucharbuf_getfloat(self))
-}
-
-M.buf_get_string = func(self, n) {
-    n = n || 5000 // our MAXTRANS value
-    var buf = ffi::new("char[?]", n)
-    capi::ucharbuf_getstring(self, buf, n)
-    return ffi::string(buf)
-}
-
 var get_byte = func(c) {
     return tonumber(capi::ucharbuf_getuchar(c.p))
 }
