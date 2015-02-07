@@ -637,14 +637,15 @@ var msg_le_cn_send = func(self, cn, ocn, oc, sd) {
         (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, oc, sd)
 }
 
-var msgid_le_rem = msg::register(@[!server,func(tp, receiver, sender, p) {
-    var uid, stor = get_stor_uid(msg::buf_get_int(p))
+set_external("msg_le_rem", func(uid) {
+    var uid, stor = get_stor_uid(uid)
+    if !stor[uid] { return }
     ent_remove(stor[uid])
-}])
+})
 
 var msg_le_rem_send = func(self, cn) {
     var excl = player_entity && player_entity.cn || -1
-    capi::msg_send(cn, excl, "rii", msgid_le_rem,
+    capi::msg_le_rem_send(cn, excl,
         (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid)
 }
 

@@ -1597,6 +1597,10 @@ namespace game
             case N_ALLACTIVEENTSSENT:
                 break;
 
+            case N_ENTREM:
+                lua::call_external("msg_le_rem", "i", getint(p));
+                break;
+
             case N_SERVCMD:
                 getstring(text, p);
                 break;
