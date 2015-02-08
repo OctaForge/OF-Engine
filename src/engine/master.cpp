@@ -14,6 +14,7 @@
 #define PING_RETRY 5
 #define KEEPALIVE_TIME (65*60*1000)
 #define SERVER_LIMIT (10*1024)
+#define SERVER_DUP_LIMIT 10
 
 FILE *logfile = NULL;
 
@@ -291,15 +292,23 @@ void gengbanlist()
 void addgameserver(client &c)
 {
     if(gameservers.length() >= SERVER_LIMIT) return;
+    int dups = 0;
     loopv(gameservers)
     {
         gameserver &s = *gameservers[i];
-        if(s.address.host == c.address.host && s.port == c.servport)
+        if(s.address.host != c.address.host) continue; 
+        ++dups; 
+        if(s.port == c.servport)
         {
             s.lastping = 0;
             s.numpings = 0;
             return;
         }
+    }
+    if(dups >= SERVER_DUP_LIMIT)
+    {
+        outputf(c, "failreg too many servers on ip\n");
+        return;
     }
     string hostname;
     if(enet_address_get_host_ip(&c.address, hostname, sizeof(hostname)) < 0)

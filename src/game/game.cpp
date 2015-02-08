@@ -201,10 +201,10 @@ namespace game
         physicsframe();
         otherplayers(curtime);
         moveragdolls();
-        lua::call_external("frame_handle", "ii", curtime, lastmillis);
+        if (connected) lua::call_external("frame_handle", "ii", curtime, lastmillis);
         gets2c();
-        bool b;
-        lua::pop_external_ret(lua::call_external_ret("entity_is_initialized",
+        bool b = false;
+        if (connected) lua::pop_external_ret(lua::call_external_ret("entity_is_initialized",
             "p", "b", player1, &b));
         if (b) {
             if(player1->state == CS_DEAD)
