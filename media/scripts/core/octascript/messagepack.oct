@@ -104,36 +104,6 @@ packers = setmt({
         }
     },
 
-    "unsigned": func(buf, n) {
-        if n >= 0 {
-            if n <= 0x7F {
-                buf.push(char(n)) // fixnum_pos
-            } else if n <= 0xFF {
-                buf.push(char(0xCC, n)) // uint8
-            } else if n <= 0xFFFF {
-                buf.push(char(0xCD, floor(n / 0x100), n % 0x100)) // uint16
-            } else if n <= 0xFFFFFFFF {
-                buf.push(char(0xCE, pack_n32(n))) // uint32
-            } else {
-                buf.push(char(0xCF, 0, pack_n64(n, 0x0))) // uint64
-            }
-        } else {
-            if n >= -0x20 {
-                buf.push(char(0x100 + n)) // fixnum_neg
-            } else if n >= -0x80 {
-                buf.push(char(0xD0, 0x100 + n)) // int8
-            } else if n >= -0x8000 {
-                n += 0x10000
-                buf.push(char(0xD1, floor(n / 0x100), n % 0x100)) // int16
-            } else if n >= -0x80000000 {
-                n += 0x100000000
-                buf.push(char(0xD2, pack_n32(n))) // int32
-            } else {
-                buf.push(char(0xD3, 0xFF, pack_n64(n, 0xFF))) // int64
-            }
-        }
-    },
-
     "signed": func(buf, n) {
         if n >= 0 {
             if n <= 0x7F {
@@ -147,7 +117,7 @@ packers = setmt({
             }
         } else {
             if n >= -0x20 {
-                buf.push(char(0xE0 + 0x20 + n)) // fixnum_neg
+                buf.push(char(0x100 + n)) // fixnum_neg
             } else if n >= -0x80 {
                 buf.push(char(0xD0, 0x100 + n)) // int8
             } else if n >= -0x8000 {
@@ -160,6 +130,22 @@ packers = setmt({
                 buf.push(char(0xD3, pack_n64(n, 0xFF))) // int64
             }
         }
+    },
+
+    "unsigned": func(buf, n) {
+        if n >= 0 {
+            if n <= 0x7F {
+                buf.push(char(n)) // fixnum_pos
+            } else if n <= 0xFF {
+                buf.push(char(0xCC, n)) // uint8
+            } else if n <= 0xFFFF {
+                buf.push(char(0xCD, floor(n / 0x100), n % 0x100)) // uint16
+            } else if n <= 0xFFFFFFFF {
+                buf.push(char(0xCE, pack_n32(n))) // uint32
+            } else {
+                buf.push(char(0xCF, 0, pack_n64(n, 0x0))) // uint64
+            }
+        } else packers["signed"](buf, n)
     },
 
     "integer": func(buf, n, opts) {
