@@ -1944,7 +1944,7 @@ namespace server
                         string pcclass;
                         copystring(pcclass, cl);
                         lua::pop_external_ret(n);
-                        lua::call_external("entity_new_with_cn", "sibs", pcclass, ci->clientnum, true, ci->name);
+                        lua::call_external("entity_new_with_cn", "sib", pcclass, ci->clientnum, true);
                     }
 
                     break;
@@ -2110,6 +2110,16 @@ namespace server
                 filtertext(text, text, true, true);
                 QUEUE_STR(text);
                 if(isdedicatedserver() && cq) logoutf("%s: %s", colorname(cq), text);
+                break;
+            }
+
+            case N_SWITCHNAME:
+            {
+                QUEUE_MSG;
+                getstring(text, p);
+                filtertext(ci->name, text, false, false, MAXNAMELEN);
+                if(!ci->name[0]) copystring(ci->name, "unnamed");
+                QUEUE_STR(ci->name);
                 break;
             }
 

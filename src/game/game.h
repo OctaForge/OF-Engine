@@ -73,6 +73,7 @@ enum
     N_AUTHTRY, N_AUTHKICK, N_AUTHCHAL, N_AUTHANS, N_REQAUTH,
     N_PAUSEGAME, N_GAMESPEED,
     N_MAPCRC, N_CHECKMAPS,
+    N_SWITCHNAME,
     N_SERVCMD,
     N_DEMOPACKET,
 
@@ -101,6 +102,7 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     N_AUTHTRY, 0, N_AUTHKICK, 0, N_AUTHCHAL, 0, N_AUTHANS, 0, N_REQAUTH, 0,
     N_PAUSEGAME, 0, N_GAMESPEED, 0,
     N_MAPCRC, 0, N_CHECKMAPS, 1,
+    N_SWITCHNAME, 0,
     N_SERVCMD, 0,
     N_DEMOPACKET, 0,
 

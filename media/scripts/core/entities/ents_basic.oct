@@ -206,7 +206,20 @@ M.Character = Entity.clone({
             }], client_cb: true
         }),
 
-        character_name: svars::StateString(),
+        character_name: svars::StateString({
+            getter: func(cent) {
+                var ret
+                if msg::is_server_only() {
+                    //ret = capi::get_client_name_server(cent)
+                } else {
+                    ret = capi::get_client_name(cent)
+                }
+                if ret { return ffi::string(ret) }
+                return undef
+            },
+            client_write: false, client_private: true,
+            custom_sync: true
+        }),
         facing_speed  : svars::StateInteger(),
 
         movement_speed: svars::StateFloat({
@@ -404,7 +417,6 @@ M.Character = Entity.clone({
         self.set_attr("start_time", 0) // so that server has some value
 
         self.cn = kwargs && kwargs.cn || -1
-        self.set_attr("character_name", "none")
         self.set_attr("model_name", "player")
         self.set_attr("eye_height", 18.0)
         self.set_attr("max_height", 18.0)

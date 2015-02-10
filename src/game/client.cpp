@@ -56,6 +56,24 @@ namespace game
     int sessionid = 0, mastermode = MM_OPEN, gamespeed = 100;
     string servdesc = "", servauth = "", connectpass = "";
 
+    void switchname(const char *name)
+    {
+        filtertext(player1->name, name, false, false, MAXNAMELEN);
+        if(!player1->name[0]) copystring(player1->name, "unnamed");
+        addmsg(N_SWITCHNAME, "rs", player1->name);
+    }
+    void printname()
+    {
+        conoutf("your name is: %s", colorname(player1));
+    }
+    ICOMMAND(name, "sN", (char *s, int *numargs),
+    {
+        if(*numargs > 0) switchname(s);
+        else if(!*numargs) printname();
+        else result(colorname(player1));
+    });
+    ICOMMAND(getname, "", (), result(player1->name));
+
     struct authkey
     {
         char *name, *key, *desc;
@@ -162,6 +180,11 @@ namespace game
         return d ? d->name : "";
     }
     ICOMMAND(getclientname, "i", (int *cn), result(getclientname(*cn)));
+
+    CLUAICOMMAND(get_client_name, const char *, (physent *pl), {
+        gameent *d = (gameent *)pl;
+        return d ? d->name : "";
+    })
 
     bool ismaster(int cn)
     {
@@ -1175,6 +1198,20 @@ namespace game
                 getint(p);
                 break;
             }
+
+            case N_SWITCHNAME:
+                getstring(text, p);
+                if(d)
+                {
+                    filtertext(text, text, false, false, MAXNAMELEN);
+                    if(!text[0]) copystring(text, "unnamed");
+                    if(strcmp(text, d->name))
+                    {
+                        if(!isignored(d->clientnum)) conoutf("%s is now known as %s", colorname(d), colorname(d, text));
+                        copystring(d->name, text, MAXNAMELEN+1);
+                    }
+                }
+                break;
 
             case N_CDIS:
                 clientdisconnected(getint(p));
