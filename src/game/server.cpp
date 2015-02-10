@@ -2558,5 +2558,10 @@ namespace server
         sendf(cn, 1, reliable ? "ri4mx" : "i4mx", N_ENTSDATAUP, uid, ocn,
             kpid, vlen, value);
     });
+
+    CLUAICOMMAND(get_client_name_server, const char *, (int cn), {
+        clientinfo *ci = (clientinfo *)getclientinfo(cn);
+        return ci ? ci->name : "";
+    })
 }
 

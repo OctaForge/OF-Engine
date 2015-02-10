@@ -210,7 +210,7 @@ M.Character = Entity.clone({
             getter: func(cent) {
                 var ret
                 if msg::is_server_only() {
-                    //ret = capi::get_client_name_server(cent)
+                    ret = capi::get_client_name_server(cent)
                 } else {
                     ret = capi::get_client_name(cent)
                 }
