@@ -1232,14 +1232,14 @@ M.Entity = Object.clone({
     },
 
     __sdata_call_cb_set: func(self, f, val) {
-        f(self.__centity, val)
+        f(self.uid, val)
     },
 
     __sdata_post_call_cb_set: func(self) {
     },
 
     __sdata_call_cb_get: func(self, f) {
-        return f(self.__centity)
+        return f(self.uid)
     },
 
     __post_create_cb: func(self) {

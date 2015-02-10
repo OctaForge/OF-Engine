@@ -98,16 +98,16 @@ namespace entities
 
     /* Entity attributes */
 
-    CLUAICOMMAND(set_animation_dyn, void, (physent *ent, int anim), {
-        if (!ent) return;
-        gameent *d = (gameent*)ent;
+    CLUAICOMMAND(set_animation_dyn, void, (int cn, int anim), {
+        gameent *d = getclient(cn);
+        if (!d) return;
         d->anim = anim;
         d->start_time = lastmillis;
     });
 
-    CLUAICOMMAND(get_start_time_dyn, bool, (physent *ent, int *val), {
-        if (!ent) return false;
-        gameent *d = (gameent*)ent;
+    CLUAICOMMAND(get_start_time_dyn, bool, (int cn, int *val), {
+        gameent *d = getclient(cn);
+        if (!d) return false;
         *val = d->start_time;
         return true;
     });
@@ -132,9 +132,9 @@ namespace entities
         if (name[0]) oe->m->m = loadmodel(name ? name : "");
     });
 
-    CLUAICOMMAND(set_attachments_dyn, void, (physent *ent, const char **attach), {
-        if (!ent) return;
-        gameent *d = (gameent*)ent;
+    CLUAICOMMAND(set_attachments_dyn, void, (int cn, const char **attach), {
+        gameent *d = getclient(cn);
+        if (!d) return;
         set_attachments(d->attachments, d->attachment_positions, attach);
     });
 
@@ -166,15 +166,16 @@ namespace entities
         return get_attachment_pos(tag, oe->m->attachment_positions, x, y, z);
     });
 
-    CLUAICOMMAND(get_attachment_pos_dyn, bool, (physent *ent, const char *tag,
+    CLUAICOMMAND(get_attachment_pos_dyn, bool, (int cn, const char *tag,
     float *x, float *y, float *z), {
-        if (!ent) return false;
-        return get_attachment_pos(tag, ((gameent*)ent)->attachment_positions, x, y, z);
+        gameent *d = getclient(cn);
+        if (!d) return false;
+        return get_attachment_pos(tag, d->attachment_positions, x, y, z);
     });
 
-    CLUAICOMMAND(set_can_move, void, (physent *ent, bool b), {
-        if (!ent) return;
-        gameent *d = (gameent*)ent;
+    CLUAICOMMAND(set_can_move, void, (int cn, bool b), {
+        gameent *d = getclient(cn);
+        if (!d) return;
         d->can_move = b;
     });
 
@@ -213,14 +214,14 @@ namespace entities
     /* Dynents */
 
     #define DYNENT_ACCESSORS(n, t, an) \
-    CLUAICOMMAND(get_##n, bool, (physent *ent, t *val), { \
-        gameent *d = (gameent*)ent; \
+    CLUAICOMMAND(get_##n, bool, (int cn, t *val), { \
+        gameent *d = getclient(cn); \
         assert(d); \
         *val = d->an; \
         return true; \
     }); \
-    CLUAICOMMAND(set_##n, void, (physent *ent, t v), { \
-        gameent *d = (gameent*)ent; \
+    CLUAICOMMAND(set_##n, void, (int cn, t v), { \
+        gameent *d = getclient(cn); \
         assert(d); \
         d->an = v; \
     });
@@ -251,8 +252,8 @@ namespace entities
     DYNENT_ACCESSORS(timeinair, int, timeinair)
     #undef DYNENT_ACCESSORS
 
-    CLUAICOMMAND(get_dynent_position, bool, (physent *ent, double *pos), {
-        gameent *d = (gameent*)ent;
+    CLUAICOMMAND(get_dynent_position, bool, (int cn, double *pos), {
+        gameent *d = getclient(cn);
         assert(d);
         pos[0] = d->o.x;
         pos[1] = d->o.y;
@@ -260,9 +261,9 @@ namespace entities
         return true;
     });
 
-    CLUAICOMMAND(set_dynent_position, void, (physent *ent, double x, double y,
+    CLUAICOMMAND(set_dynent_position, void, (int cn, double x, double y,
     double z), {
-        gameent *d = (gameent*)ent;
+        gameent *d = getclient(cn);
         assert(d);
 
         d->o.x = x;
@@ -276,8 +277,8 @@ namespace entities
         d->resetinterp();
     });
 
-    CLUAICOMMAND(get_dynent_position, bool, (physent *ent, double *pos), {
-        gameent *d = (gameent*)ent;
+    CLUAICOMMAND(get_dynent_position, bool, (int cn, double *pos), {
+        gameent *d = getclient(cn);
         assert(d);
         pos[0] = d->o.x;
         pos[1] = d->o.y;
@@ -286,17 +287,17 @@ namespace entities
     });
 
     #define DYNENTVEC(name, prop) \
-        CLUAICOMMAND(get_dynent_##name, bool, (physent *ent, double *val), { \
-            gameent *d = (gameent*)ent; \
+        CLUAICOMMAND(get_dynent_##name, bool, (int cn, double *val), { \
+            gameent *d = getclient(cn); \
             assert(d); \
             val[0] = d->o.x; \
             val[1] = d->o.y; \
             val[2] = d->o.z; \
             return true; \
         }); \
-        CLUAICOMMAND(set_dynent_##name, void, (physent *ent, double x, \
+        CLUAICOMMAND(set_dynent_##name, void, (int cn, double x, \
         double y, double z), { \
-            gameent *d = (gameent*)ent; \
+            gameent *d = getclient(cn); \
             assert(d); \
             d->prop.x = x; \
             d->prop.y = y; \
@@ -307,15 +308,15 @@ namespace entities
     DYNENTVEC(falling, falling)
     #undef DYNENTVEC
 
-    CLUAICOMMAND(get_plag, bool, (physent *d, int *val), {
-        gameent *p = (gameent*)d;
+    CLUAICOMMAND(get_plag, bool, (int cn, int *val), {
+        gameent *p = getclient(cn);
         assert(p);
         *val = p->plag;
         return true;
     });
 
-    CLUAICOMMAND(get_ping, bool, (physent *d, int *val), {
-        gameent *p = (gameent*)d;
+    CLUAICOMMAND(get_ping, bool, (int cn, int *val), {
+        gameent *p = getclient(cn);
         assert(p);
         *val = p->ping;
         return true;

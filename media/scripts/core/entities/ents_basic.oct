@@ -395,8 +395,8 @@ M.Character = Entity.clone({
         }
     },
 
-    get_plag: @[!server,func(self) { return capi::get_plag(self.__centity) }],
-    get_ping: @[!server,func(self) { return capi::get_ping(self.__centity) }],
+    get_plag: @[!server,func(self) { return capi::get_plag(self.cn) }],
+    get_ping: @[!server,func(self) { return capi::get_ping(self.cn) }],
     get_editing: @[!server,func(self) { return self.get_attr("client_state") == 4 }],
     get_lagged: @[!server,func(self) { return self.get_attr("client_state") == 3 }],
 

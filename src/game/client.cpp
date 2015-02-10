@@ -181,9 +181,8 @@ namespace game
     }
     ICOMMAND(getclientname, "i", (int *cn), result(getclientname(*cn)));
 
-    CLUAICOMMAND(get_client_name, const char *, (physent *pl), {
-        gameent *d = (gameent *)pl;
-        return d ? d->name : "";
+    CLUAICOMMAND(get_client_name, const char *, (int cn), {
+        return getclientname(cn);
     })
 
     bool ismaster(int cn)
