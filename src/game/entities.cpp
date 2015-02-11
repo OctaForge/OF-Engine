@@ -399,7 +399,7 @@ namespace entities
         const char *name = NULL;
         const char *sdata = NULL;
         int sdlen = 0;
-        int n = lua::call_external_ret("entity_serialize", "pb", "ssd", &e,
+        int n = lua::call_external_ret("entity_serialize", "ib", "ssd", i,
             true, &name, &sdata, &sdlen);
         if (name) {
             addmsg(N_EDITENT, "risi3ib", i, name, (int)(e.o.x*DMF),

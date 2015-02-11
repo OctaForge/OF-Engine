@@ -205,7 +205,7 @@ namespace game
         gets2c();
         bool b = false;
         if (connected) lua::pop_external_ret(lua::call_external_ret("entity_is_initialized",
-            "p", "b", player1, &b));
+            "i", "b", player1->clientnum, &b));
         if (b) {
             if(player1->state == CS_DEAD)
             {

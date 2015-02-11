@@ -508,14 +508,14 @@ set_external("entity_remove_dynamic", func(uid) {
     ent_remove(ent)
 })
 
-set_external("entity_clear_actions", func(cent) {
-    var ent = get_by_centity(cent)
+set_external("entity_clear_actions", func(cn) {
+    var ent = storage_dynamic[cn]
     if !ent { return }
     ent.clear_actions()
 })
 
-set_external("entity_is_initialized", func(cent) {
-    var ent = get_by_centity(cent)
+set_external("entity_is_initialized", func(cn) {
+    var ent = storage_dynamic[cn]
     if !ent { return false }
     return ent.initialized
 })
@@ -597,8 +597,8 @@ M.save = @[!server,func() {
 set_external("entities_save_all", M.save)
 
 var srnopos = { "position": true }
-set_external("entity_serialize", func(cent, nopos) {
-    var ent = get_by_centity(cent)
+set_external("entity_serialize", func(uid, nopos) {
+    var ent = storage_static[uid]
     if !ent { return }
     var ignore = nopos ? srnopos : undef
     var sr = ent.build_sdata({ compressed: true, ignore: ignore })
@@ -1261,8 +1261,8 @@ M.get_gui_attr = func(ent, prop) {
     return ent.get_gui_attr(prop)
 }
 
-set_external("entity_get_gui_attr", @[!server,func(cent, prop) {
-    return get_by_centity(cent).get_gui_attr(prop)
+set_external("entity_get_gui_attr", @[!server,func(uid, prop) {
+    return storage_static[uid].get_gui_attr(prop)
 }])
 
 /**
@@ -1272,8 +1272,8 @@ set_external("entity_get_gui_attr", @[!server,func(cent, prop) {
 M.set_gui_attr = func(ent, prop, val) {
     return ent.set_gui_attr(prop, val)
 }
-set_external("entity_set_gui_attr", @[!server,func(cent, prop, val) {
-    return get_by_centity(cent).set_gui_attr(prop, val)
+set_external("entity_set_gui_attr", @[!server,func(uid, prop, val) {
+    return storage_static[uid].set_gui_attr(prop, val)
 }])
 
 /**
@@ -1283,8 +1283,15 @@ set_external("entity_set_gui_attr", @[!server,func(cent, prop, val) {
 M.get_attr = func(ent, prop) {
     return ent.get_attr(prop)
 }
-set_external("entity_get_attr", func(cent, prop) {
-    var ent = get_by_centity(cent)
+
+
+set_external("entity_get_attr_dyn", func(cn, prop) {
+    var ent = storage_dynamic[cn]
+    if !ent { return undef }
+    return ent.get_attr(prop)
+})
+set_external("entity_get_attr_ext", func(uid, prop) {
+    var ent = storage_static[uid]
     if !ent { return undef }
     return ent.get_attr(prop)
 })
@@ -1296,14 +1303,14 @@ set_external("entity_get_attr", func(cent, prop) {
 M.set_attr = func(ent, prop, val) {
     return ent.set_attr(prop, val)
 }
-set_external("entity_set_attr", func(cent, prop, val) {
-    var ent = get_by_centity(cent)
+set_external("entity_set_attr", func(uid, prop, val) {
+    var ent = storage_static[uid]
     if !ent { return undef }
     return ent.set_attr(prop, val)
 })
 
-set_external("entity_add_attr", func(cent, prop, add) {
-    var ent = get_by_centity(cent)
+set_external("entity_add_attr", func(uid, prop, add) {
+    var ent = storage_static[uid]
     if !ent { return }
     if add {
         ent.add_attr(prop)
@@ -1312,8 +1319,8 @@ set_external("entity_add_attr", func(cent, prop, add) {
     }
 })
 
-set_external("entity_draw_attached", func(cent) {
-    var fent = get_by_centity(cent)
+set_external("entity_draw_attached", func(uid) {
+    var fent = storage_static[uid]
     if !fent { return undef }
     var ents = [ fent.get_attached_next() ]
     if !ents.empty() {
@@ -1333,8 +1340,8 @@ set_external("entity_draw_attached", func(cent) {
 /** Function: entity_get_proto_name
     An external that returns the name of the prototype of the given entity.
 */
-set_external("entity_get_proto_name", func(cent) {
-    var ent = get_by_centity(cent)
+set_external("entity_get_proto_name", func(uid) {
+    var ent = storage_static[uid]
     if !ent { return undef }
     return ent.name
 })

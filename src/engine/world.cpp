@@ -395,7 +395,7 @@ undoblock *newundoent()
         const char *sdata = NULL;
         int sdlen = 0;
         const extentity *ext = entities::getents()[entgroup[i]];
-        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret("entity_serialize", "p", "ssd", ext, &name, &sdata, &sdlen) : 0;
+        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret("entity_serialize", "i", "ssd", entgroup[i], &name, &sdata, &sdlen) : 0;
         if (name) {
             e->name = newstring(name);
             e->sdata = new char[sdlen];
@@ -829,7 +829,7 @@ void renderentradius(extentity &e, bool color)
         default:
         attach:
             if (color) gle::colorf(0, 1, 1);
-            lua::call_external("entity_draw_attached", "p", &e);
+            lua::call_external("entity_draw_attached", "i", e.uid);
             break;
     }
 }
@@ -1160,7 +1160,7 @@ void entcopy()
             const char *name = NULL;
             const char *sdata = NULL;
             int sdlen = 0;
-            int n = lua::call_external_ret("entity_serialize", "pb", "ssd", &e, true, &name, &sdata, &sdlen);
+            int n = lua::call_external_ret("entity_serialize", "ib", "ssd", entgroup[i], true, &name, &sdata, &sdlen);
             if (name) {
                 copyent &ce = entcopybuf.add();
                 ce.name = newstring(name);
@@ -1262,8 +1262,9 @@ void enttype(char *type, int *numargs) {
         );
     } else entfocus(efocus, {
         const char *name;
+        (void)e;
         lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
-            "p", "s", &e, &name));
+            "i", "s", n, &name));
         result(name ? name : "");
     })
 }
@@ -1272,12 +1273,13 @@ void enttype(char *type, int *numargs) {
 void entattr(char *attr, char *val, int *numargs) {
     if (*numargs >= 2) {
         groupedit(
-            lua::call_external("entity_set_gui_attr", "pss", &e, attr, val);
+            lua::call_external("entity_set_gui_attr", "iss", n, attr, val);
         );
     } else entfocus(efocus, {
         const char *str;
-        int npop = lua::call_external_ret("entity_get_gui_attr", "ps", "s",
-            &e, attr, &str);
+        (void)e;
+        int npop = lua::call_external_ret("entity_get_gui_attr", "is", "s",
+            n, attr, &str);
         result(str ? str : "");
         lua::pop_external_ret(npop);
     });
@@ -1289,7 +1291,7 @@ COMMAND(entattr, "ssN");
 ICOMMAND(entproperty, "ii", (int *attr, int *diff), {
     if (!*diff) return;
     groupedit(
-        lua::call_external("entity_add_attr", "pib", &e, *attr, *diff > 0);
+        lua::call_external("entity_add_attr", "iib", n, *attr, *diff > 0);
     );
 })
 

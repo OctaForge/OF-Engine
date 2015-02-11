@@ -871,8 +871,8 @@ void mouse##num##click() { \
     float x, y; \
     cursor_get_position(x, y); \
 \
-    assert(lua::call_external("input_click_ext", "ibfffpff", num, down, \
-        pos.x, pos.y, pos.z, ext ? (void *)ext : (ent ? (void *)ent : NULL), x, y)); \
+    assert(lua::call_external("input_click_ext", "ibfffiiff", num, down, \
+        pos.x, pos.y, pos.z, ext ? ext->uid : -1, ent ? ent->clientnum : -1, x, y)); \
 } \
 COMMAND(mouse##num##click, "");
 
@@ -886,7 +886,7 @@ bool k_turn_left, k_turn_right, k_look_up, k_look_down;
 #define SCRIPT_DIR(name, v, p, d, s, os) \
 ICOMMAND(name, "", (), { \
     if (isconnected()) { \
-        lua::call_external("entity_clear_actions", "p", game::player1); \
+        lua::call_external("entity_clear_actions", "i", game::player1->clientnum); \
         s = (addreleaseaction(newstring(#name)) != 0); \
         lua::call_external("input_" #v, "ib", s ? d : (os ? -(d) : 0), s); \
     } \
@@ -905,7 +905,7 @@ SCRIPT_DIR(right, strafe, strafe, -1, player->k_right, player->k_left);
 
 ICOMMAND(jump, "", (), {
     if (isconnected()) {
-        lua::call_external("entity_clear_actions", "p", game::player1);
+        lua::call_external("entity_clear_actions", "i", game::player1->clientnum);
         bool down = (addreleaseaction(newstring("jump")) != 0);
         lua::call_external("input_jump", "b", down);
     }
@@ -913,7 +913,7 @@ ICOMMAND(jump, "", (), {
 
 ICOMMAND(crouch, "", (), {
     if (isconnected()) {
-        lua::call_external("entity_clear_actions", "p", game::player1);
+        lua::call_external("entity_clear_actions", "i", game::player1->clientnum);
         bool down = (addreleaseaction(newstring("crouch")) != 0);
         lua::call_external("input_crouch", "b", down);
     }

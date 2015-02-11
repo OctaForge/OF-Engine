@@ -123,9 +123,10 @@ set_ext("input_crouch", func(down) {
           (if any, null otherwise).
         - cx, cy - the cursor position.
 */
-set_ext("input_click_ext", func(btn, down, x, y, z, cent, cx, cy) {
+set_ext("input_click_ext", func(btn, down, x, y, z, uid, cn, cx, cy) {
     if !ents { ents = import core.entities.ents }
-    var ent = ents::get_by_centity(cent)
+    var ent = (uid >= 0) ? ents::get_static(uid)
+            : ((cn >= 0) ? ents::get_dynamic(cn) : undef)
     get_ext("input_click")(btn, down, x, y, z, ent, cx, cy)
 })
 

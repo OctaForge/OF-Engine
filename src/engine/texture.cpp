@@ -2088,8 +2088,8 @@ sounds:
             lua_pushvalue(lua::L, -1);
             const extentity &e = *sounds[i];
             const char *sn;
-            int n = lua::call_external_ret("entity_get_attr", "ps", "s", &e,
-                "sound_name", &sn);
+            int n = lua::call_external_ret("entity_get_attr_ext", "is", "s",
+                e.uid, "sound_name", &sn);
             f->printf("preloadmapsound \"%s\" %d\n", sn, e.attr[2]);
             lua::pop_external_ret(n);
         }
@@ -4672,7 +4672,7 @@ static void decalcull() {
             ((Slot *)dslots2.add(decalslots[prevslot]))->index = -ni - 1;
         }
         if (e->attr[0] != ni)
-            lua::call_external("entity_set_attr", "psd", dents[i], "slot", ni);
+            lua::call_external("entity_set_attr", "isd", dents[i]->uid, "slot", ni);
     }
 
     // delete slots which are now unused
