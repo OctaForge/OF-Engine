@@ -51,10 +51,10 @@ namespace lua
         while (*args) {
             switch (*args++) {
                 case 's':
-                    lua_pushstring(L, va_arg(ar->ap, const char*));
+                    lua_pushstring(L, va_arg(ar->ap, const char *));
                     ++nargs; break;
                 case 'S': {
-                    const char *str = va_arg(ar->ap, const char*);
+                    const char *str = va_arg(ar->ap, const char *);
                     lua_pushlstring(L, str, va_arg(ar->ap, int));
                     ++nargs; break;
                 }
@@ -68,7 +68,7 @@ namespace lua
                     lua_pushboolean(L, va_arg(ar->ap, int));
                     ++nargs; break;
                 case 'p':
-                    lua_pushlightuserdata(L, va_arg(ar->ap, void*));
+                    lua_pushlightuserdata(L, va_arg(ar->ap, void *));
                     ++nargs; break;
                 case 'c':
                     lua_pushcfunction(L, va_arg(ar->ap, lua_CFunction));
@@ -84,6 +84,21 @@ namespace lua
                     ++nargs; break;
                 case 'v':
                     lua_pushvalue(L, va_arg(ar->ap, int));
+                    ++nargs; break;
+                case 'm':
+                    lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+                    if (!push_external(L, "buf_get_msgpack")) {
+                        lua_pushnil(L);
+                    } else {
+                        lua_pushlightuserdata(L, va_arg(ar->ap, void *));
+                        if (lua_pcall(L, 1, 1, -3)) {
+                            logger::log(logger::ERROR, "%s", lua_tostring(L, -1));
+                            lua_pop(L, 2);
+                            lua_pushnil(L); // dummy result (nil)
+                        } else {
+                            lua_remove(L, -2);
+                        }
+                    }
                     ++nargs; break;
                 default:
                     assert(false);

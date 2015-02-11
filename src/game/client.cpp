@@ -1587,10 +1587,7 @@ namespace game
                 int uid = getint(p);
                 int ocn = getint(p);
                 getstring(text, p);
-                int n = lua::call_external_ret("buf_get_msgpack", "p", "v", (void*)&p);
-                int tidx = lua_gettop(lua::L);
-                lua::call_external("msg_le_cn", "iisv", ocn, uid, text, tidx);
-                lua::pop_external_ret(n);
+                lua::call_external("msg_le_cn", "iism", ocn, uid, text, &p);
                 break;
             }
 
@@ -1602,10 +1599,7 @@ namespace game
                 int uid = getint(p);
                 int ocn = getint(p);
                 int kpid = getint(p);
-                int n = lua::call_external_ret("buf_get_msgpack", "p", "v", (void*)&p);
-                int tidx = lua_gettop(lua::L);
-                lua::call_external("msg_sdata_update", "iiiv", uid, ocn, kpid, tidx);
-                lua::pop_external_ret(n);
+                lua::call_external("msg_sdata_update", "iiim", uid, ocn, kpid, &p);
                 break;
             }
 
