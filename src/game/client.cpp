@@ -1380,7 +1380,7 @@ namespace game
                 float x = getint(p)/DMF, y = getint(p)/DMF, z = getint(p)/DMF;
                 vector<extentity *> &ents = entities::getents();
                 if (!ents.inrange(i) || ents[i]->type == ET_EMPTY) return;
-                lua::call_external("entity_set_pos", "pfff", ents[i], x, y, z);
+                lua::call_external("entity_set_pos", "ifff", i, x, y, z);
                 clearshadowcache();
                 break;
             }

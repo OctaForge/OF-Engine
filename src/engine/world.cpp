@@ -1217,7 +1217,7 @@ COMMAND(entreplace, "");
 /* OF */
 void printent(extentity &e, char *buf, int len) {
     const char *name, *info;
-    int npop = lua::call_external_ret("entity_get_edit_info", "p", "ss", &e,
+    int npop = lua::call_external_ret("entity_get_edit_info", "i", "ss", e.uid,
         &name, &info);
     if (!info || !info[0]) nformatstring(buf, len, "%s", name);
     else nformatstring(buf, len, "%s\n\f7%s", info, name);

@@ -83,21 +83,6 @@ var ids_to_names = {}
 
 var is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
 
-var cent_storage = {}
-
-var iptr = ffi["typeof"]("intptr_t")
-var cent_to_addr = func(cent) {
-    return tonumber(ffi::cast(iptr, cent))
-}
-
-M.get_by_centity = func(cent) {
-    return cent_storage[cent_to_addr(cent)]
-}
-M.set_centity = func(cent, ent) {
-    cent_storage[cent_to_addr(cent)] = ent
-}
-var get_by_centity = M.get_by_centity
-
 /**
     Generates the required network data for an entity prototype. You pass the
     entity prototype name and an array of state variable names to generate network

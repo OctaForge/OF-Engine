@@ -82,7 +82,6 @@ var mrender = @[!server,model.render]
 
 /// Module: ents
 var M = ents
-var get_by_centity = M.get_by_centity
 
 /**
     Represents the base prototype for any character (NPC, player etc.). Players
@@ -408,7 +407,6 @@ M.Character = Entity.clone({
 
         if !msg::is_server_only() {
             self.__centity = capi::setup_character(self.cn)
-            M::set_centity(self.__centity, self)
         }
 
         self.set_attr("model_name", "")
@@ -469,7 +467,6 @@ M.Character = Entity.clone({
         assert(self.cn >= 0)
 
         self.__centity = capi::setup_character(self.cn)
-        M::set_centity(self.__centity, self)
 
         self.setup()
         self.initialized = msg::is_server()
@@ -512,7 +509,6 @@ M.Character = Entity.clone({
 
     __deactivate: func(self) {
         if !msg::is_server_only() {
-            M::set_centity(self.__centity, undef)
             self.__centity = undef
         }
         Entity::__deactivate(self)
@@ -747,15 +743,15 @@ var Character = M.Character
     one as an argument. The client we're testing collisions against gets the
     first emit.
 */
-set_external("physics_collide_client", func(cl1, cl2, dx, dy, dz) {
-    cl1, cl2 = get_by_centity(cl1), get_by_centity(cl2)
+set_external("physics_collide_client", func(cn1, cn2, dx, dy, dz) {
+    var cl1, cl2 = ents::get_dynamic(cn1), ents::get_dynamic(cn2)
     if !cl1 || !cl2 { return }
     emit(cl1, "collision", cl2, dx, dy, dz)
     emit(cl2, "collision", cl1, dx, dy, dz)
 })
 
-set_external("entity_set_local_animation", func(cent, anim) {
-    var ent = get_by_centity(cent)
+set_external("entity_set_local_animation", func(cn, anim) {
+    var ent = ents::get_dynamic(cn)
     if !ent { return }
     ent.set_local_animation(anim)
 })
@@ -842,7 +838,6 @@ M.StaticEntity = Entity.clone({
         self.initialized = true
 
         self.__centity = capi::setup_extent(self.uid, self.sauer_type, true)
-        M::set_centity(self.__centity, self)
 
         self.set_attr("tags", [])
 
@@ -864,7 +859,6 @@ M.StaticEntity = Entity.clone({
         var sd = kwargs && kwargs.state_data || undef
         if !self.__centity {
             self.__centity = capi::setup_extent(self.uid, self.sauer_type, false)
-            M::set_centity(self.__centity, self)
         }
         self.setup()
         if sd { self.set_sdata_full(sd) }
@@ -880,7 +874,6 @@ M.StaticEntity = Entity.clone({
 
     __deactivate: func(self) {
         if self.__centity {
-            M::set_centity(self.__centity, undef)
             capi::destroy_extent(self.uid)
             self.__centity = undef
         }
@@ -975,8 +968,8 @@ M.StaticEntity = Entity.clone({
 })
 var StaticEntity = M.StaticEntity
 
-set_external("entity_set_pos", func(cent, x, y, z) {
-    var ent = get_by_centity(cent)
+set_external("entity_set_pos", func(uid, x, y, z) {
+    var ent = ents::get_static(uid)
     if !ent { return }
     // bypass any sort of sync or update here...
     var arr = ent.svar_values["position"]
@@ -992,8 +985,8 @@ set_external("entity_set_pos", func(cent, x, y, z) {
     `ent:{{$StaticEntity.__get_edit_color|__get_edit_color}}()` where `ent`
     is the entity with unique id `uid`.
 */
-set_external("entity_get_edit_icon_info", func(cent) {
-    var ent = get_by_centity(cent)
+set_external("entity_get_edit_icon_info", func(uid) {
+    var ent = ents::get_static(uid)
     if !ent { return }
     return ent.__edit_icon, ent.__get_edit_color()
 })
@@ -1002,8 +995,8 @@ set_external("entity_get_edit_icon_info", func(cent) {
     An external. Returns the entity name and the return value of
     {{$StaticEntity.__get_edit_info}}.
 */
-set_external("entity_get_edit_info", func(cent) {
-    var ent = get_by_centity(cent)
+set_external("entity_get_edit_info", func(uid) {
+    var ent = ents::get_static(uid)
     if !ent { return }
     return ent.name, ent.__get_edit_info()
 })
@@ -1011,8 +1004,8 @@ set_external("entity_get_edit_info", func(cent) {
 /** Function: entity_get_edit_drop_height
     An external, see {{$StaticEntity.get_edit_drop_height}}. Takes the entity.
 */
-set_external("entity_get_edit_drop_height", func(cent) {
-    var ent = get_by_centity(cent)
+set_external("entity_get_edit_drop_height", func(uid) {
+    var ent = ents::get_static(uid)
     if !ent { return }
     return ent.get_edit_drop_height()
 })
@@ -1322,8 +1315,8 @@ M.AmbientSound = SoundEffect.clone({
     }
 })
 
-set_external("sound_play_map", func(cent) {
-    var ent = get_by_centity(cent)
+set_external("sound_play_map", func(uid) {
+    var ent = ents::get_static(uid)
     if !ent { return }
     ent.__play_sound()
 })
@@ -1351,8 +1344,8 @@ M.ParticleEffect = StaticEntity.clone({
     __emit_particles: func(self) { }
 })
 
-set_external("particle_entity_emit", func(cent) {
-    var ent = get_by_centity(cent)
+set_external("particle_entity_emit", func(uid) {
+    var ent = ents::get_static(uid)
     if !ent { return }
     ent.__emit_particles()
 })
@@ -1450,12 +1443,12 @@ M.Mapmodel = StaticEntity.clone({
 
 /** Function: physics_collide_mapmodel
     An external called when a client collides with a mapmodel. Takes the
-    collider entity (the client) and the mapmodel entity. By default emits the
-    `collision` signal on both entities, passing the other one as an argument.
-    The mapmodel takes precedence.
+    collider entity (the client) and the mapmodel entity ids. By default emits
+    the `collision` signal on both entities, passing the other one as an
+    argument. The mapmodel takes precedence.
 */
-set_external("physics_collide_mapmodel", func(collider, entity) {
-    collider, entity = get_by_centity(collider), get_by_centity(entity)
+set_external("physics_collide_mapmodel", func(cn, uid) {
+    var collider, entity = ents::get_dynamic(cn), ents::get_static(uid)
     if !collider || !entity { return }
     emit(entity, "collision", collider)
     emit(collider, "collision", entity)
@@ -1568,12 +1561,12 @@ M.Decal = StaticEntity.clone({
 
 /** Function: physics_collide_area
     An external called when a client collides with an area. Takes the
-    collider entity (the client) and the area entity. By default emits
+    collider entity (the client) and the area entity ids. By default emits
     the `collision` signal on both entities, passing the other one as an
     argument. The obstacle takes precedence.
 */
-set_external("physics_collide_area", func(collider, entity) {
-    collider, entity = get_by_centity(collider), get_by_centity(entity)
+set_external("physics_collide_area", func(cn, uid) {
+    var collider, entity = ents::get_dynamic(cn), ents::get_static(uid)
     if !collider || !entity { return }
     emit(entity, "collision", collider)
     emit(collider, "collision", entity)
