@@ -334,14 +334,14 @@ namespace entities
         return e->attached;
     });
 
-    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, extentity *ce, bool isnew), {
+    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, bool isnew), {
         while (ents.length() < uid) ents.add(newentity())->type = ET_EMPTY;
         ofentity *e = NULL;
         if (!ents.inrange(uid)) {
             e = (ofentity*)newentity();
             ents.add(e);
         } else {
-            e = (ofentity*)(ce ? ce : ents[uid]);
+            e = (ofentity*)ents[uid];
         }
         if (e->m) delete e->m;
         e->m = (type == ET_MAPMODEL) ? new modelinfo : NULL;
@@ -362,10 +362,10 @@ namespace entities
         e->type = ET_EMPTY;
     });
 
-    CLUAICOMMAND(setup_extent_done, void, (int uid, extentity *ce, bool isnew, bool synced), {
-        ofentity *e = (ofentity *)(ce ? ce : ents[uid]);
+    CLUAICOMMAND(setup_extent_done, void, (int uid, bool prevce, bool isnew, bool synced), {
+        ofentity *e = (ofentity *)ents[uid];
         assert(e);
-        if (!ce) {
+        if (!prevce) {
             int otype = e->type;
             if (isnew && !synced && e->o.x < 0) {
                 dropentity(*e);

@@ -688,9 +688,11 @@ float z, int vol), {
     }
 });
 
-CLUAICOMMAND(sound_play_map, bool, (extentity *ent, const char *name, int vol,
+CLUAICOMMAND(sound_play_map, bool, (int uid, const char *name, int vol,
 int loops), {
-    if (!ent) return false;
+    vector<extentity *> &ents = entities::getents();
+    extentity *ent = ents.inrange(uid) ? ents[uid] : NULL;
+    if (!ent || ent->type != ET_SOUND) return false;
     return playsound(name, NULL, ent, vol, SND_MAP, loops, 0, -1, 0, -1) >= 0;
 })
 
@@ -704,8 +706,10 @@ CLUAICOMMAND(sound_stop, void, (const char *s, int vol), {
     }
 });
 
-CLUAICOMMAND(sound_stop_map, bool, (extentity *ent), {
-    if (!ent) return false;
+CLUAICOMMAND(sound_stop_map, bool, (int uid), {
+    vector<extentity *> &ents = entities::getents();
+    extentity *ent = ents.inrange(uid) ? ents[uid] : NULL;
+    if (!ent || ent->type != ET_SOUND) return false;
     stopmapsound(ent);
     return true;
 });

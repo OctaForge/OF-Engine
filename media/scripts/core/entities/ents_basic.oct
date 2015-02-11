@@ -841,8 +841,7 @@ M.StaticEntity = Entity.clone({
         self.setup()
         self.initialized = true
 
-        self.__centity = capi::setup_extent(self.uid, self.sauer_type,
-            kwargs.c_entity, true)
+        self.__centity = capi::setup_extent(self.uid, self.sauer_type, true)
         M::set_centity(self.__centity, self)
 
         self.set_attr("tags", [])
@@ -864,8 +863,7 @@ M.StaticEntity = Entity.clone({
     __activate: func(self, kwargs) {
         var sd = kwargs && kwargs.state_data || undef
         if !self.__centity {
-            self.__centity = capi::setup_extent(self.uid, self.sauer_type,
-                kwargs.c_entity, false)
+            self.__centity = capi::setup_extent(self.uid, self.sauer_type, false)
             M::set_centity(self.__centity, self)
         }
         self.setup()
@@ -968,7 +966,8 @@ M.StaticEntity = Entity.clone({
     },
 
     __post_create_cb: func(self, new, kwargs) {
-        capi::setup_extent_done(self.uid, kwargs.c_entity, new, !!kwargs.synced)
+        capi::setup_extent_done(self.uid, !!kwargs.prev_c_entity, new,
+            !!kwargs.synced)
         if new && !kwargs.synced {
             capi::editent(self.uid)
         }
@@ -1263,12 +1262,12 @@ M.SoundEffect = StaticEntity.clone({
 
     /** Stop all sounds currently assigned to the entity. */
     sound_stop: func(self) {
-        capi::sound_stop_map(self.__centity)
+        capi::sound_stop_map(self.uid)
     },
 
     /** Play a sound on this entity. The last loops parameter is optional. */
     sound_play: func(self, name, volume, loops) {
-        capi::sound_play_map(self.__centity, name, volume, loops || -1)
+        capi::sound_play_map(self.uid, name, volume, loops || -1)
     },
 
     /** Override to play sounds. */
