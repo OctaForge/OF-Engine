@@ -1914,9 +1914,9 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     pl->inwater = water ? material&MATF_VOLUME : MAT_AIR;
 
     if (material&MAT_DEATH)
-        lua::call_external("physics_in_deadly", "pi", pl, material&MATF_VOLUME);
+        lua::call_external("physics_in_deadly", "ii", ((gameent *)pl)->clientnum, material&MATF_VOLUME);
     else if (pl->o.z < 0)
-        lua::call_external("physics_off_map", "p", pl);
+        lua::call_external("physics_off_map", "i", ((gameent *)pl)->clientnum);
     return true;
 }
 

@@ -21,11 +21,11 @@ var ents
     changes its state). By default emits the `off_map` signal on the client.
 
     Arguments:
-        - cent - the client entity.
+        - cn - the client entity number.
 */
-set_external("physics_off_map", func(cent) {
+set_external("physics_off_map", func(cn) {
     if !ents { ents = import core.entities.ents }
-    var ent = ents::get_by_centity(cent)
+    var ent = ents::get_dynamic(cn)
     if !ent { return }
     emit(ent, "off_map")
 })
@@ -36,12 +36,12 @@ set_external("physics_off_map", func(cent) {
     an extra argument.
 
     Arguments:
-        - cent - the client entity.
+        - cn - the client entity number.
         - mat - the material id (see $edit).
 */
-set_external("physics_in_deadly", func(cent, mat) {
+set_external("physics_in_deadly", func(cn, mat) {
     if !ents { ents = import core.entities.ents }
-    var ent = ents::get_by_centity(cent)
+    var ent = ents::get_dynamic(cn)
     if !ent { return }
     emit(ent, "in_deadly", mat)
 })
@@ -61,7 +61,7 @@ var FLAG_BELOWGROUND = 2 << 4
     (see {{$ents.Character}}).
 
     Arguments:
-        - cent - the C entity.
+        - cn - the client entity number.
         - loc - fale for multiplayer prediction.
         - flevel - the floor level specifying a delta from the previous state,
           1 when the client went up, 0 when stayed the same, -1 when down.
@@ -69,9 +69,9 @@ var FLAG_BELOWGROUND = 2 << 4
         - mat - the material id (fore xample when jumping out of/into water,
           it's the water material id, see $edit).
 */
-set_external("physics_state_change", func(cent, loc, flevel, llevel, mat) {
+set_external("physics_state_change", func(cn, loc, flevel, llevel, mat) {
     if !ents { ents = import core.entities.ents }
-    var ent = ents::get_by_centity(cent)
+    var ent = ents::get_dynamic(cn)
     if !ent { return }
 
     var flags = 0
