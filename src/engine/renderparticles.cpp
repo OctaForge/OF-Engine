@@ -144,12 +144,12 @@ struct particle {
 
 typedef particle particle_t;
 
-CLUAICOMMAND(particle_get_owner, physent *, (particle_t *part), {
-    return part->owner;
+CLUAICOMMAND(particle_get_owner, int, (particle_t *part), {
+    return part->owner ? ((gameent *)part->owner)->clientnum : -1;
 })
 
-CLUAICOMMAND(particle_set_owner, void, (particle_t *part, physent *owner), {
-    part->owner = owner;
+CLUAICOMMAND(particle_set_owner, void, (particle_t *part, int owner), {
+    part->owner = game::getclient(owner);
 })
 
 struct partvert

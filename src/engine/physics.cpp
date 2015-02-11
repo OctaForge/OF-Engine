@@ -2081,24 +2081,4 @@ CLUAICOMMAND(ray_floor, float, (float x, float y, float z, float radius), {
     return rayfloor(vec(x, y, z), floor, 0, radius);
 });
 
-CLUAICOMMAND(iscolliding, bool, (float x, float y, float z, float r, physent *ignore), {
-    physent tester;
-    tester.reset();
-    tester.type = ENT_BOUNCE;
-    tester.o    = vec(x, y, z);
-    tester.radius    = tester.xradius = tester.yradius = r;
-    tester.eyeheight = tester.aboveeye  = r;
-    if (collide(&tester, vec(0))) {
-        if (ignore && ignore == collideplayer) {
-            vec save = ignore->o;
-            avoidcollision(ignore, vec(1), &tester, 0.1f);
-            bool ret = collide(&tester, vec(0));
-            ignore->o = save;
-            return ret;
-        }
-        return true;
-    }
-    return false;
-});
-
 CLUAICOMMAND(setgravity, void, (float grav), GRAVITY = grav;);
