@@ -1435,8 +1435,8 @@ set_external("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
     if fuid {
         var oent = storage_static[fuid]
         if oent {
-            cent = !!oent.__centity
-            oent.__centity = undef
+            cent = !!oent.__has_centity
+            oent.__has_centity = false
             ent_remove(oent)
         }
     }

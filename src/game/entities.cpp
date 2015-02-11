@@ -334,7 +334,7 @@ namespace entities
         return e->attached->uid;
     });
 
-    CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, bool isnew), {
+    CLUAICOMMAND(setup_extent, bool, (int uid, int type, bool isnew), {
         while (ents.length() < uid) ents.add(newentity())->type = ET_EMPTY;
         ofentity *e = NULL;
         if (!ents.inrange(uid)) {
@@ -349,7 +349,7 @@ namespace entities
         e->uid = uid;
         e->o = vec(0, 0, 0);
         memset(e->attr, 0, sizeof(e->attr));
-        return e;
+        return e->type != ET_EMPTY;
     });
 
     CLUAICOMMAND(destroy_extent, void, (int uid), {
@@ -385,8 +385,8 @@ namespace entities
         }
     });
 
-    CLUAICOMMAND(setup_character, physent *, (int cn), {
-        return game::getclient(cn);
+    CLUAICOMMAND(setup_character, bool, (int cn), {
+        return !!game::getclient(cn);
     });
 
     LUAICOMMAND(editent, {
