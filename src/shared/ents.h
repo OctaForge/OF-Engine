@@ -29,10 +29,10 @@ enum
 
 struct extentity : entity                       // part of the entity that doesn't get saved to disk
 {
-    int flags;
+    int flags, uid;
     extentity *attached;
 
-    extentity() : flags(0), attached(NULL) {}
+    extentity() : flags(0), uid(-1), attached(NULL) {}
 
     bool spawned() const { return (flags&EF_SPAWNED) != 0; }
     void setspawned(bool val) { if(val) flags |= EF_SPAWNED; else flags &= ~EF_SPAWNED; }

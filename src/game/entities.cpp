@@ -331,9 +331,7 @@ namespace entities
     CLUAICOMMAND(get_attached_entity, int, (int uid), {
         extentity *e = ents.inrange(uid) ? ents[uid] : NULL;
         if (!e || !e->attached) return -1;
-        /* TODO: remove loop */
-        loopv(ents) if (ents[i] == e->attached) return i;
-        return -1;
+        return e->attached->uid;
     });
 
     CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, bool isnew), {
@@ -348,6 +346,7 @@ namespace entities
         if (e->m) delete e->m;
         e->m = (type == ET_MAPMODEL) ? new modelinfo : NULL;
         e->type = type;
+        e->uid = uid;
         e->o = vec(0, 0, 0);
         memset(e->attr, 0, sizeof(e->attr));
         return e;
