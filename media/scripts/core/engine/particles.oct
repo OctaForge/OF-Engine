@@ -191,7 +191,7 @@ M.get_renderer = capi.particle_get_renderer
 M.new = func(tp, o, d, r, g, b, fade, size, gravity, owner) {
     return capi::particle_new(tp, o.x, o.y, o.z,
         d.x, d.y, d.z, r, g, b, fade, size, gravity || 0,
-        owner && owner.__centity || null)
+        owner && owner.cn || -1)
 }*/
 
 /**
@@ -217,8 +217,7 @@ M.new = func(tp, o, d, r, g, b, fade, size, gravity, owner) {
 M.splash = func(tp, o, rad, num, r, g, b, fade, size, gravity, delay,
 owner, un) {
     return capi::particle_splash(tp, o.x, o.y, o.z, rad, num, r, g, b, fade,
-        size, gravity || 0, delay || 0, owner && owner.__centity || null,
-        un || false)
+        size, gravity || 0, delay || 0, owner && owner.cn || -1, un || false)
 }
 
 /**
@@ -239,7 +238,7 @@ owner, un) {
 */
 M.trail = func(tp, o, d, r, g, b, fade, size, gravity, owner) {
     return capi::particle_trail(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b,
-        fade, size, gravity || 0, owner && owner.__centity || null)
+        fade, size, gravity || 0, owner && owner.cn || -1)
 }
 
 /**
@@ -260,7 +259,7 @@ M.trail = func(tp, o, d, r, g, b, fade, size, gravity, owner) {
 */
 M.text = func(tp, o, text, r, g, b, fade, size, gravity, owner) {
     return capi::particle_text(tp, o.x, o.y, o.z, text, text.len(), r, g, b, fade,
-        size, gravity || 0, owner && owner.__centity || null)
+        size, gravity || 0, owner && owner.cn || -1)
 }
 
 /**
@@ -282,7 +281,7 @@ M.text = func(tp, o, text, r, g, b, fade, size, gravity, owner) {
 */
 M.icon_generic = func(tp, o, ix, iy, r, g, b, fade, size, gravity, owner) {
     return capi::particle_icon_generic(tp, o.x, o.y, o.z, ix, iy, r, g, b,
-        fade, size, gravity || 0, owner && owner.__centity || null)
+        fade, size, gravity || 0, owner && owner.cn || -1)
 }
 
 /**
@@ -303,7 +302,7 @@ M.icon_generic = func(tp, o, ix, iy, r, g, b, fade, size, gravity, owner) {
 */
 M.icon = func(tp, o, itex, r, g, b, fade, size, gravity, owner) {
     return capi::particle_icon(tp, o.x, o.y, o.z, itex, r, g, b, fade, size,
-        gravity || 0, owner && owner.__centity || null)
+        gravity || 0, owner && owner.cn || -1)
 }
 
 /**
@@ -323,7 +322,7 @@ M.icon = func(tp, o, itex, r, g, b, fade, size, gravity, owner) {
 */
 M.meter = func(tp, o, val, r, g, b, fade, size, owner) {
     return capi::particle_meter(tp, o.x, o.y, o.z, val, r, g, b, 0, 0, 0,
-        fade, size, owner && owner.__centity || null)
+        fade, size, owner && owner.cn || -1)
 }
 
 /**
@@ -332,7 +331,7 @@ M.meter = func(tp, o, val, r, g, b, fade, size, owner) {
 */
 M.meter_vs = func(tp, o, val, r, g, b, r2, g2, b2, fade, size, owner) {
     return capi::particle_meter(tp, o.x, o.y, o.z, val, r, g, b, r2, g2, b2,
-        fade, size, owner && owner.__centity || null)
+        fade, size, owner && owner.cn || -1)
 }
 
 /**
@@ -352,7 +351,7 @@ M.meter_vs = func(tp, o, val, r, g, b, r2, g2, b2, fade, size, owner) {
 */
 M.flare = func(tp, o, d, r, g, b, fade, size, owner) {
     return capi::particle_flare(tp, o.x, o.y, o.z, d.x, d.y, d.z, r, g, b,
-        fade, size, owner && owner.__centity || null)
+        fade, size, owner && owner.cn || -1)
 }
 
 /**
@@ -372,7 +371,7 @@ M.flare = func(tp, o, d, r, g, b, fade, size, owner) {
 */
 M.fireball = func(tp, o, r, g, b, fade, size, msize, owner) {
     return capi::particle_fireball(tp, o.x, o.y, o.z, r, g, b, fade, size,
-        msize, owner && owner.__centity || null)
+        msize, owner && owner.cn || -1)
 }
 
 /**
@@ -422,7 +421,7 @@ M.lens_flare = func(tp, o, sun, sparkle, r, g, b) {
 */
 M.shape = func(tp, o, rad, dir, num, r, g, b, fade, size, grav, vel, owner) {
     return capi::particle_shape(tp, o.x, o.y, o.z, rad, dir, num, r, g, b, fade,
-        size, grav || 0, vel || 200, owner && owner.__centity || null)
+        size, grav || 0, vel || 200, owner && owner.cn || -1)
 }
 
 /**
@@ -447,7 +446,7 @@ M.shape = func(tp, o, rad, dir, num, r, g, b, fade, size, grav, vel, owner) {
 M.flame = func(tp, o, rad, h, r, g, b, fade, dens, sc, speed, grav, owner) {
     return capi::particle_flame(tp, o.x, o.y, o.z, rad, h, r, g, b, fade || 600,
         dens || 3, sc || 2, speed || 200, grav || -15,
-        owner && owner.__centity || null)
+        owner && owner.cn || -1)
 }
 
 return M

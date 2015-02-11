@@ -1188,12 +1188,12 @@ bool canaddparticles() { return !minimized; }
 
 CLUAICOMMAND(particle_new, particle_t*, (int type, float ox, float oy, float oz,
 float dx, float dy, float dz, float r, float g, float b, int fade,
-float size, int gravity, physent *owner), {
+float size, int gravity, int ocn), {
     if (!canaddparticles()) return NULL;
     if (!parts.inrange(type) || parts[type]->type&PT_SPECIAL) return NULL;
     particle *part = newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade, type,
         vec(r, g, b), size, gravity);
-    part->owner = owner;
+    part->owner = game::getclient(ocn);
     return part;
 });
 
@@ -1226,12 +1226,12 @@ static void splash(int type, const vec &color, int radius, int num, int fade, co
 
 CLUAICOMMAND(particle_splash, bool, (int type, float ox, float oy, float oz,
 int radius, int num, float r, float g, float b, int fade, float size,
-int gravity, int delay, physent *owner, bool unbounded), {
+int gravity, int delay, int ocn, bool unbounded), {
     if (!parts.inrange(type)) return false;
     if ((!unbounded && !canemitparticles()) || (delay > 0 && rnd(delay) != 0))
         return true;
     splash(type, vec(r, g, b), radius, num, fade, vec(ox, oy, oz), size,
-        gravity, owner);
+        gravity, game::getclient(ocn));
     return true;
 });
 
@@ -1239,9 +1239,10 @@ VARP(maxtrail, 1, 500, 10000);
 
 CLUAICOMMAND(particle_trail, bool, (int type, float ox, float oy, float oz,
 float dx, float dy, float dz, float r, float g, float b, int fade,
-float size, int gravity, physent *owner), {
+float size, int gravity, int ocn), {
     if (!parts.inrange(type)) return false;
     if (!canaddparticles()) return true;
+    physent *owner = game::getclient(ocn);
     vec s(ox, oy, oz);
     vec e(dx, dy, dz);
     vec v;
@@ -1272,7 +1273,7 @@ void particle_textcopy(const vec &s, const char *t, int type, int fade, const ve
 
 CLUAICOMMAND(particle_text, bool, (int type, float ox, float oy, float oz,
 const char *text, size_t slen, float r, float g, float b, int fade,
-float size, int gravity, physent *owner), {
+float size, int gravity, int ocn), {
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_TEXT)
         return false;
 
@@ -1284,39 +1285,39 @@ float size, int gravity, physent *owner), {
     textparticle *p = (textparticle*)newparticle(s, vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
     p->text = newstring(text, slen);
-    p->owner = owner;
+    p->owner = game::getclient(ocn);
     return true;
 });
 
 CLUAICOMMAND(particle_icon_generic, bool, (int type, float ox, float oy,
 float oz, int ix, int iy, float r, float g, float b, int fade, float size,
-int gravity, physent *owner), {
+int gravity, int ocn), {
     if (!parts.inrange(type) || !(parts[type]->type&PT_ICONGRID))
         return false;
     if (!canaddparticles()) return true;
     particle *p = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
     p->flags |= ix | (iy<<2);
-    p->owner = owner;
+    p->owner = game::getclient(ocn);
     return true;
 });
 
 CLUAICOMMAND(particle_icon, bool, (int type, float ox, float oy, float oz,
 const char *icon, float r, float g, float b, int fade, float size,
-int gravity, physent *owner), {
+int gravity, int ocn), {
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_ICON)
         return false;
     if (!canaddparticles()) return true;
     particle *part = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade, type,
         vec(r, g, b), size, gravity);
-    part->owner = owner;
+    part->owner = game::getclient(ocn);
     ((iconparticle*)part)->tex = textureload(icon);
     return true;
 });
 
 CLUAICOMMAND(particle_meter, bool, (int type, float ox, float oy, float oz,
 int val, float r, float g, float b, int r2, int g2, int b2, int fade,
-float size, physent *owner), {
+float size, int ocn), {
     if (!parts.inrange(type) || !(parts[type]->type&(PT_METER|PT_METERVS)))
         return false;
     if (!canaddparticles()) return true;
@@ -1324,23 +1325,23 @@ float size, physent *owner), {
         vec(0, 0, 1), fade, type, vec(r, g, b), size);
     p->color2 = vec(r2, g2, b2);
     p->progress = clamp(val, 0, 100);
-    p->owner = owner;
+    p->owner = game::getclient(ocn);
     return true;
 });
 
 CLUAICOMMAND(particle_flare, bool, (int type, float ox, float oy, float oz,
 float dx, float dy, float dz, float r, float g, float b, int fade,
-float size, physent *owner), {
+float size, int ocn), {
     if (!parts.inrange(type)) return false;
     if (!canaddparticles()) return true;
     newparticle(vec(ox, oy, oz), vec(dx, dy, dz), fade,
-        type, vec(r, g, b), size)->owner = owner;
+        type, vec(r, g, b), size)->owner = game::getclient(ocn);
     return true;
 });
 
 CLUAICOMMAND(particle_fireball, bool, (int type, float ox, float oy,
 float oz, float r, float g, float b, int fade, float size, float maxsize,
-physent *owner), {
+int ocn), {
     if (!parts.inrange(type) || (parts[type]->type&0xFF) != PT_FIREBALL)
         return false;
     if (!canaddparticles()) return true;
@@ -1349,7 +1350,7 @@ physent *owner), {
     particle *part = newparticle(vec(ox, oy, oz), vec(0, 0, 1), fade,
         type, vec(r, g, b), size);
     part->val = growth;
-    part->owner = owner;
+    part->owner = game::getclient(ocn);
     return true;
 });
 
@@ -1376,9 +1377,10 @@ float oz, bool sun, bool sparkle, float r, float g, float b), {
  */
 CLUAICOMMAND(particle_shape, bool, (int type, float ox, float oy, float oz,
 int radius, int dir, int num, float r, float g, float b, int fade,
-float size, int gravity, int vel, physent *owner), {
+float size, int gravity, int vel, int ocn), {
     if (!parts.inrange(type)) return false;
     if (!canaddparticles() || !canemitparticles()) return true;
+    physent *owner = game::getclient(ocn);
     vec p(ox, oy, oz);
     int basetype = parts[type]->type&0xFF;
     bool flare = (basetype == PT_TAPE) || (basetype == PT_LIGHTNING);
@@ -1469,9 +1471,10 @@ float size, int gravity, int vel, physent *owner), {
 
 CLUAICOMMAND(particle_flame, bool, (int type, float ox, float oy, float oz,
 float radius, float height, float r, float g, float b, int fade,
-int density, float scale, float speed, int gravity, physent *owner), {
+int density, float scale, float speed, int gravity, int ocn), {
     if (!parts.inrange(type)) return false;
     if (!canaddparticles() || !canemitparticles()) return true;
+    physent *owner = game::getclient(ocn);
 
     float size = scale * min(radius, height);
     vec v(0, 0, min(1.0f, height) * speed);
