@@ -322,16 +322,18 @@ namespace entities
         return true;
     });
 
-    CLUAICOMMAND(get_selected_entity, extentity *, (), {
+    CLUAICOMMAND(get_selected_entity, int, (), {
         const vector<extentity *> &ents = entities::getents();
-        if (!ents.inrange(efocus)) return NULL;
-        return ents[efocus];
+        if (!ents.inrange(efocus)) return -1;
+        return efocus;
     });
 
-    CLUAICOMMAND(get_attached_entity, extentity *, (int uid), {
+    CLUAICOMMAND(get_attached_entity, int, (int uid), {
         extentity *e = ents.inrange(uid) ? ents[uid] : NULL;
-        if (!e || !e->attached) return NULL;
-        return e->attached;
+        if (!e || !e->attached) return -1;
+        /* TODO: remove loop */
+        loopv(ents) if (ents[i] == e->attached) return i;
+        return -1;
     });
 
     CLUAICOMMAND(setup_extent, extentity *, (int uid, int type, bool isnew), {

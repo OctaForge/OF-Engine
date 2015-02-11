@@ -539,6 +539,7 @@ namespace game
     static vec targetpos;
     static extentity *targetextent = NULL;
     static dynent *targetdynent = NULL;
+    static int targetextentid = -1;
 
     static void target_intersect_dynamic(vec &from, vec &to, physent *targeter,
     float &dist, dynent *&target) {
@@ -581,6 +582,7 @@ namespace game
         const vector<extentity *> &ents = entities::getents();
         if (ents.inrange(enthover)) {
             dist = from.dist(ents[enthover]->o);
+            targetextentid = enthover;
             targetextent = ents[enthover];
             targetdynent = NULL;
             return;
@@ -607,6 +609,7 @@ namespace game
         if (!editmode && !force) {
             targetdynent = NULL;
             targetextent = NULL;
+            targetextentid = -1;
             targetpos = worldpos;
             has_mouse_target = 0;
         } else {
@@ -643,15 +646,20 @@ namespace game
         if (dynent) *dynent = targetdynent;
     }
 
-    CLUAICOMMAND(gettargetent, void *, (), {
+    CLUAICOMMAND(gettargetent, bool, (int *extid, int *dynid), {
         extentity *ext;
         gameent *ent;
         game::determinetarget(true, NULL, &ext, (dynent**)&ent);
-        if (ext)
-            return (void*)ext;
-        else if (ent)
-            return (void*)ent;
-        return NULL;
+        if (ext) {
+            *extid = targetextentid;
+            *dynid = -1;
+            return true;
+        } else if (ent) {
+            *extid = -1;
+            *dynid = ent->clientnum;
+            return true;
+        }
+        return false;
     });
 
     CLUAICOMMAND(gettargetpos, void, (float *v), {
