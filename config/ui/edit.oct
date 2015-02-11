@@ -6,6 +6,8 @@ import core.entities.svars
 import core.events.signal
 import core.gui.core as gui
 
+from core.engine.cubescript import execute as cs_execute
+
 from std.table import pairs
 from std.conv import tostring
 
@@ -339,7 +341,7 @@ root.new_window("entity_new", gui.Window, func(win) {
                                 variant: "nobg", min_w: 0.3, label: n
                             }), func(btn) {
                                 signal::connect(btn, "clicked", func() {
-                                    edit::new_entity(n)
+                                    cs_execute(e"newent $n")
                                     root.hide_window("entity_new")
                                 })
                             })

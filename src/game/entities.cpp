@@ -328,7 +328,8 @@ namespace entities
         return ents[efocus];
     });
 
-    CLUAICOMMAND(get_attached_entity, extentity *, (extentity *e), {
+    CLUAICOMMAND(get_attached_entity, extentity *, (int uid), {
+        extentity *e = ents.inrange(uid) ? ents[uid] : NULL;
         if (!e || !e->attached) return NULL;
         return e->attached;
     });

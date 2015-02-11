@@ -834,7 +834,10 @@ void renderentradius(extentity &e, bool color)
     }
 }
 
-CLUAICOMMAND(entity_draw_attachment, void, (extentity *e1, extentity *e2), {
+CLUAICOMMAND(entity_draw_attachment, void, (int uid1, int uid2), {
+    vector<extentity *> &ents = entities::getents();
+    extentity *e1 = ents.inrange(uid1) ? ents[uid1] : NULL;
+    extentity *e2 = ents.inrange(uid2) ? ents[uid2] : NULL;
     if (!e1 || !e2) return;
     renderentattachment(*e1, e2);
 });

@@ -1318,14 +1318,14 @@ set_external("entity_draw_attached", func(cent) {
     var ents = [ fent.get_attached_next() ]
     if !ents.empty() {
         for i, ent in ents.each() {
-            capi::entity_draw_attachment(fent.__centity, ent.__centity)
+            capi::entity_draw_attachment(fent.uid, ent.uid)
         }
         return
     }
     ents = [ fent.get_attached_prev() ]
     if !ents.empty() {
         for i, ent in ents.each() {
-            capi::entity_draw_attachment(ent.__centity, fent.__centity)
+            capi::entity_draw_attachment(ent.uid, fent.uid)
         }
     }
 })

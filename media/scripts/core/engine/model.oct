@@ -149,7 +149,7 @@ btime, trans) {
     if trans {
         r, g, b, a = trans.r, trans.g, trans.b, trans.a
     }
-    mrender(ent.__centity, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll,
+    mrender(ent.cn || -1, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll,
         flags, btime, r, g, b, a)
 }
 

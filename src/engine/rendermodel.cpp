@@ -1102,10 +1102,10 @@ int preparerd(lua_State *L, int &anim, gameent *fp) {
     return anim;
 }
 
-CLUAICOMMAND(model_render, void, (physent *ent, const char *name, int anim,
+CLUAICOMMAND(model_render, void, (int cn, const char *name, int anim,
 float x, float y, float z, float yaw, float pitch, float roll, int flags,
 int basetime, float r, float g, float b, float a), {
-    gameent *fp = (gameent*)ent;
+    gameent *fp = game::getclient(cn);
     anim = preparerd(lua::L, anim, fp);
     rendermodel(name, anim, vec(x, y, z), yaw, pitch, roll, flags, fp,
         fp ? fp->attachments.getbuf() : NULL, basetime, 0, 1, vec4(r, g, b, a));

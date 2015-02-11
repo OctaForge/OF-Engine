@@ -59,7 +59,7 @@ luastate.capi_restore = func() {
             ents = import core.entities.ents
             get_by_centity = ents.get_by_centity
         }
-        return get_by_centity(get_attached_entity(ent.__centity))
+        return get_by_centity(get_attached_entity(ent.uid))
     }
 
     var gettargetent in capi
@@ -179,14 +179,14 @@ capi.strftime = func(fmt) {
     flags, initrad, ir, ig, ib, ent) {
         return dynlight_add(ox, oy, oz, radius, r, g, b, fade || 0, peak || 0,
             flags || 0, initrad || 0, ir || 0, ig || 0, ib || 0,
-            ent && ent.__centity || null)
+            ent && ent.cn || -1)
     }
 
     capi.dynlight_add_spot = func(ox, oy, oz, dx, dy, dz, radius, spot,
     r, g, b, fade, peak, flags, initrad, ir, ig, ib, ent) {
         return dynlight_add_spot(ox, oy, oz, dx, dy, dz, radius, r, g, b,
             fade || 0, peak || 0, flags || 0, initrad || 0, ir || 0, ig || 0,
-            ib || 0, ent && ent.__centity || null)
+            ib || 0, ent && ent.cn || -1)
     }
 
     var getfps in capi
