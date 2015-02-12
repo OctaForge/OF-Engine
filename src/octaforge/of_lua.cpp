@@ -30,7 +30,7 @@ namespace lua
 
     static int external_handler = LUA_REFNIL;
 
-    static bool push_external(lua_State *L, const char *name) {
+    static bool push_external(const char *name) {
         if (external_handler == LUA_REFNIL) return false;
         lua_rawgeti(L, LUA_REGISTRYINDEX, external_handler);
         lua_pushstring(L, name);
@@ -44,9 +44,9 @@ namespace lua
 
     struct va_ref { va_list ap; };
 
-    static int vcall_external_i(lua_State *L, const char *name,
-    const char *args, int retn, va_ref *ar) {
-        if (!push_external(L, name)) return -1;
+    static int vcall_external(const char *name, const char *args, int retn,
+    va_ref *ar) {
+        if (!push_external(name)) return -1;
         int nargs = 0;
         while (*args) {
             switch (*args++) {
@@ -87,7 +87,7 @@ namespace lua
                     ++nargs; break;
                 case 'm':
                     lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
-                    if (!push_external(L, "buf_get_msgpack")) {
+                    if (!push_external("buf_get_msgpack")) {
                         lua_pushnil(L);
                     } else {
                         lua_pushlightuserdata(L, va_arg(ar->ap, void *));
@@ -117,40 +117,22 @@ namespace lua
         return lua_gettop(L) - n1;
     }
 
-    static bool vcall_external(lua_State *L, const char *name,
-    const char *args, va_ref *ar) {
-        return vcall_external_i(L, name, args, 0, ar) >= 0;
-    }
-
-    static bool vcall_external(const char *name, const char *args,
-    va_ref *ar) {
-        return vcall_external(L, name, args, ar) >= 0;
-    }
-
-    bool call_external(lua_State *L, const char *name, const char *args, ...) {
-        va_ref ar;
-        va_start(ar.ap, args);
-        bool ret = vcall_external(L, name, args, &ar);
-        va_end(ar.ap);
-        return ret;
-    }
-
     bool call_external(const char *name, const char *args, ...) {
         va_ref ar;
         va_start(ar.ap, args);
-        bool ret = vcall_external(name, args, &ar);
+        bool ret = vcall_external(name, args, 0, &ar) >= 0;
         va_end(ar.ap);
         return ret;
     }
 
-    static int vcall_external_ret(lua_State *L, const char *name,
-    const char *args, const char *retargs, va_ref *ar) {
+    static int vcall_external_ret(const char *name, const char *args,
+    const char *retargs, va_ref *ar) {
         int nr = LUA_MULTRET;
         if (retargs && *retargs == 'N') {
             ++retargs;
             nr = va_arg(ar->ap, int);
         }
-        int nrets = vcall_external_i(L, name, args, nr, ar);
+        int nrets = vcall_external(name, args, nr, ar);
         if (nrets < 0) return -1;
         int idx = nrets;
         if (retargs) while (*retargs) {
@@ -188,20 +170,6 @@ namespace lua
         return nrets;
     }
 
-    static int vcall_external_ret(const char *name, const char *args,
-    const char *retargs, va_ref *ar) {
-        return vcall_external_ret(L, name, args, retargs, ar);
-    }
-
-    int call_external_ret(lua_State *L, const char *name, const char *args,
-    const char *retargs, ...) {
-        va_ref ar;
-        va_start(ar.ap, retargs);
-        int ret = vcall_external_ret(L, name, args, retargs, &ar);
-        va_end(ar.ap);
-        return ret;
-    }
-
     int call_external_ret(const char *name, const char *args,
     const char *retargs, ...) {
         va_ref ar;
@@ -211,8 +179,7 @@ namespace lua
         return ret;
     }
 
-    void pop_external_ret(lua_State *L, int n) { if (n > 0) lua_pop(L, n); }
-    void pop_external_ret(int n) { pop_external_ret(L, n); }
+    void pop_external_ret(int n) { if (n > 0) lua_pop(L, n); }
 
     LUAICOMMAND(external_hook, {
         lua_pushvalue(L, 1);

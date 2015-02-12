@@ -11,15 +11,9 @@ namespace lua
     void close     ();
     int load_string(const char *str, const char *ch = NULL);
 
-    bool call_external(lua_State *L, const char *name, const char *args, ...);
-    bool call_external(              const char *name, const char *args, ...);
-
-    int call_external_ret(lua_State *L, const char *name, const char *args,
+    bool call_external(const char *name, const char *args, ...);
+    int call_external_ret(const char *name, const char *args,
         const char *retargs, ...);
-    int call_external_ret(              const char *name, const char *args,
-        const char *retargs, ...);
-
-    void pop_external_ret(lua_State *L, int n);
     void pop_external_ret(int n);
 
     bool execfile(const char *cfgfile, bool msg = true);
