@@ -1699,8 +1699,8 @@ bool droptofloor(vec &o, float radius, float height)
 /* OF */
 float dropheight(entity &e) {
     float ret;
-    lua::pop_external_ret(lua::call_external_ret("entity_get_edit_drop_height",
-        "i", "f", ((extentity &)e).uid, &ret));
+    lua::call_external_ret("entity_get_edit_drop_height", "i", "f",
+        ((extentity &)e).uid, &ret);
     return ret;
 }
 

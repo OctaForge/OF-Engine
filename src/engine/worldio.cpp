@@ -451,7 +451,7 @@ static void export_ents() {
         return;
     }
     const char *data;
-    int popn = lua::call_external_ret("entities_save_all", "", "s", &data);
+    int popn = lua::call_external_ret_nopop("entities_save_all", "", "s", &data);
     f->putstring(data);
     lua::pop_external_ret(popn);
     delete f;

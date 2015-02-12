@@ -2087,7 +2087,7 @@ sounds:
             renderprogress(i / float(sounds.length()), "saving sounds...");
             const extentity &e = *sounds[i];
             const char *sn;
-            int n = lua::call_external_ret("entity_get_attr_ext", "is", "s",
+            int n = lua::call_external_ret_nopop("entity_get_attr_ext", "is", "s",
                 e.uid, "sound_name", &sn);
             f->printf("preloadmapsound \"%s\" %d\n", sn, e.attr[2]);
             lua::pop_external_ret(n);

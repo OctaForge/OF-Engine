@@ -170,13 +170,23 @@ namespace lua
         return nrets;
     }
 
-    int call_external_ret(const char *name, const char *args,
+    int call_external_ret_nopop(const char *name, const char *args,
     const char *retargs, ...) {
         va_ref ar;
         va_start(ar.ap, retargs);
         int ret = vcall_external_ret(name, args, retargs, &ar);
         va_end(ar.ap);
         return ret;
+    }
+
+    bool call_external_ret(const char *name, const char *args,
+    const char *retargs, ...) {
+        va_ref ar;
+        va_start(ar.ap, retargs);
+        int ret = vcall_external_ret(name, args, retargs, &ar);
+        if (ret > 0) lua_pop(L, ret);
+        va_end(ar.ap);
+        return ret >= 0;
     }
 
     void pop_external_ret(int n) { if (n > 0) lua_pop(L, n); }

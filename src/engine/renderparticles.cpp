@@ -1567,7 +1567,7 @@ void updateparticles()
         {
             extentity &e = *ents[entgroup[i]];
             const char *cn;
-            lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name", "i", "s", entgroup[i], &cn));
+            lua::call_external_ret("entity_get_proto_name", "i", "s", entgroup[i], &cn);
             if (!cn) continue;
             particle_textcopy(e.o, cn, PART_TEXT, 1, vec(1.0f, 0.3f, 0.1f), 2.0f, 0);
         }
@@ -1575,13 +1575,12 @@ void updateparticles()
         {
             extentity &e = *ents[i];
             const char *name;
-            lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name", "i", "s", i, &name));
+            lua::call_external_ret("entity_get_proto_name", "i", "s", i, &name);
             if (!name) continue;
 
             const char *icon;
             float r, g, b;
-            lua::pop_external_ret(lua::call_external_ret("entity_get_edit_icon_info",
-                "i", "sfff", i, &icon, &r, &g, &b));
+            lua::call_external_ret("entity_get_edit_icon_info", "i", "sfff", i, &icon, &r, &g, &b);
 
             particle_textcopy(e.o, name, PART_TEXT, 1, vec(0.12f, 0.78f, 0.31f), 2.0f, 0);
             ((iconparticle*)newparticle(e.o, vec(0, 0, 0), 0, PART_ICON,

@@ -12,7 +12,9 @@ namespace lua
     int load_string(const char *str, const char *ch = NULL);
 
     bool call_external(const char *name, const char *args, ...);
-    int call_external_ret(const char *name, const char *args,
+    bool call_external_ret(const char *name, const char *args,
+        const char *retargs, ...);
+    int call_external_ret_nopop(const char *name, const char *args,
         const char *retargs, ...);
     void pop_external_ret(int n);
 

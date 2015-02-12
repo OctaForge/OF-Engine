@@ -1431,7 +1431,7 @@ void modifyorient(float yaw, float pitch)
 {
     // OF: Let scripts customize mousemoving
     float ryaw, rpitch;
-    int n = lua::call_external_ret("input_mouse_move", "ff", "ff", yaw,
+    int n = lua::call_external_ret_nopop("input_mouse_move", "ff", "ff", yaw,
         pitch, &ryaw, &rpitch);
     if (n < 0) {
         camera1->yaw   += yaw;
@@ -1461,8 +1461,8 @@ void modifyedgeturn(int curtime) {
 
     if (cursor_exists) goto noturn;
 
-    lua::pop_external_ret(lua::call_external_ret("entity_get_attr_dyn", "is",
-        "f", game::player1->clientnum, "facing_speed", &fs));
+    lua::call_external_ret("entity_get_attr_dyn", "is", "f",
+        game::player1->clientnum, "facing_speed", &fs);
 
     if (fp->turn_move || fabs(x - 0.5) > 0.495)
     {
@@ -2897,8 +2897,7 @@ void gl_drawhud()
     }
 
     float ahud;
-    lua::pop_external_ret(lua::call_external_ret("gui_above_hud", "", "f",
-        &ahud));
+    lua::call_external_ret("gui_above_hud", "", "f", &ahud);
     abovehud = min(abovehud, float(conh*ahud));
 
     pushhudmatrix();

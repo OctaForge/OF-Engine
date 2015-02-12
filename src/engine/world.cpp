@@ -395,7 +395,7 @@ undoblock *newundoent()
         const char *sdata = NULL;
         int sdlen = 0;
         const extentity *ext = entities::getents()[entgroup[i]];
-        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret("entity_serialize", "i", "ssd", entgroup[i], &name, &sdata, &sdlen) : 0;
+        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret_nopop("entity_serialize", "i", "ssd", entgroup[i], &name, &sdata, &sdlen) : 0;
         if (name) {
             e->name = newstring(name);
             e->sdata = new char[sdlen];
@@ -1088,11 +1088,11 @@ extentity *newent(const char *cl, const char *nd, vec o = vec(-1))
 {
     int uid = -1;
     if (nd) {
-        lua::pop_external_ret(lua::call_external_ret("entity_new_with_sd",
-            "sfffns", "i", cl, o.x, o.y, o.z, nd, &uid));
+        lua::call_external_ret("entity_new_with_sd", "sfffns", "i", cl,
+            o.x, o.y, o.z, nd, &uid);
     } else {
-        lua::pop_external_ret(lua::call_external_ret("entity_new_with_sd",
-            "sfff", "i", cl, o.x, o.y, o.z, &uid));
+        lua::call_external_ret("entity_new_with_sd", "sfff", "i", cl,
+            o.x, o.y, o.z, &uid);
     }
     if (uid < 0) return NULL;
     return entities::getents()[uid];
@@ -1160,7 +1160,7 @@ void entcopy()
             const char *name = NULL;
             const char *sdata = NULL;
             int sdlen = 0;
-            int n = lua::call_external_ret("entity_serialize", "ib", "ssd", entgroup[i], true, &name, &sdata, &sdlen);
+            int n = lua::call_external_ret_nopop("entity_serialize", "ib", "ssd", entgroup[i], true, &name, &sdata, &sdlen);
             if (name) {
                 copyent &ce = entcopybuf.add();
                 ce.name = newstring(name);
@@ -1217,7 +1217,7 @@ COMMAND(entreplace, "");
 /* OF */
 void printent(extentity &e, char *buf, int len) {
     const char *name, *info;
-    int npop = lua::call_external_ret("entity_get_edit_info", "i", "ss", e.uid,
+    int npop = lua::call_external_ret_nopop("entity_get_edit_info", "i", "ss", e.uid,
         &name, &info);
     if (!info || !info[0]) nformatstring(buf, len, "%s", name);
     else nformatstring(buf, len, "%s\n\f7%s", info, name);
@@ -1263,8 +1263,7 @@ void enttype(char *type, int *numargs) {
     } else entfocus(efocus, {
         const char *name;
         (void)e;
-        lua::pop_external_ret(lua::call_external_ret("entity_get_proto_name",
-            "i", "s", n, &name));
+        lua::call_external_ret("entity_get_proto_name", "i", "s", n, &name);
         result(name ? name : "");
     })
 }
@@ -1278,7 +1277,7 @@ void entattr(char *attr, char *val, int *numargs) {
     } else entfocus(efocus, {
         const char *str;
         (void)e;
-        int npop = lua::call_external_ret("entity_get_gui_attr", "is", "s",
+        int npop = lua::call_external_ret_nopop("entity_get_gui_attr", "is", "s",
             n, attr, &str);
         result(str ? str : "");
         lua::pop_external_ret(npop);

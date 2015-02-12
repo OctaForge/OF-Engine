@@ -388,8 +388,7 @@ struct hline
                 execute(buf + 1);
             else {
                 string err = { '\0' };
-                lua::pop_external_ret(lua::call_external_ret("console_oct_run",
-                    "s", "S", buf + 2, err));
+                lua::call_external_ret("console_oct_run", "s", "S", buf + 2, err);
                 if (err[0]) conoutf(CON_ERROR, "%s", err);
             }
         } else if (action) {
@@ -625,8 +624,7 @@ bool consolekey(int code, bool isdown)
 void processtextinput(const char *str, int len)
 {
     bool b;
-    lua::pop_external_ret(lua::call_external_ret("input_text", "S", "b",
-        str, len, &b));
+    lua::call_external_ret("input_text", "S", "b", str, len, &b);
     if(!b) consoleinput(str, len);
 }
 
@@ -637,8 +635,7 @@ void processkey(int code, bool isdown)
         execbind(*haskey, isdown); // allow pressed keys to release
     } else {
         bool b;
-        lua::pop_external_ret(lua::call_external_ret("input_keypress", "ib",
-            "b", code, isdown, &b));
+        lua::call_external_ret("input_keypress", "ib", "b", code, isdown, &b);
         if (!b) { // gui mouse button intercept
             if(!consolekey(code, isdown))
             {

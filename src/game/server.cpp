@@ -1939,7 +1939,7 @@ namespace server
                     else connected(ci);
 
                     string pcclass = { '\0' };
-                    lua::pop_external_ret(lua::call_external_ret("entity_get_player_prototype", "", "S", pcclass));
+                    lua::call_external_ret("entity_get_player_prototype", "", "S", pcclass);
                     if (pcclass[0])
                         lua::call_external("entity_new_with_cn", "sib", pcclass, ci->clientnum, true);
 
