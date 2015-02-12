@@ -15,34 +15,27 @@ import core.logger as log
 import core.engine.input
 import core.events.input as inputev
 import core.engine.cubescript as cs
-import core.events.signal
 import core.entities.svars
 import core.entities.ents
 import core.engine.particles
 
-var splash, flare = particles.splash, particles.flare
-var quadrenderer, taperenderer = particles.register_renderer_quad,
-    particles.register_renderer_tape
+from core.events.signal import connect
 
-from std.conv import hex_to_rgb as hextorgb
+from std.conv import hex_to_rgb
+from std.geom import Vec4
 
 import extra.game_manager
 import extra.day_manager
 import extra.health
 
-var connect = signal.connect
-from std.geom import Vec4
-
 var colors = [
     0xFFFFFF, 0xFF0000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF
 ]
 
-var Player = ents.Player
-
-@[!server] var SPARK = quadrenderer("spark", "media/particle/spark",
-        particles.flags.FLIP | particles.flags.BRIGHT)
-@[!server] var STREAK = taperenderer("streak", "media/particle/flare",
-        particles.flags.BRIGHT)
+@[!server] var SPARK = particles::register_renderer_quad("spark",
+    "media/particle/spark", particles.flags.FLIP | particles.flags.BRIGHT)
+@[!server] var STREAK = particles::register_renderer_tape("streak",
+    "media/particle/flare", particles.flags.BRIGHT)
 
 /** Object: GamePlayer
     This serves as a base for our player. It defines all the basic entry
@@ -52,7 +45,7 @@ var Player = ents.Player
         - new_mark - contains mark data. It's required because it has to sync
           over the server (e.g. in coop).
 */
-var GamePlayer = Player.clone({
+var GamePlayer = ents.Player.clone({
     name: "GamePlayer",
 
     __properties: {
@@ -62,11 +55,7 @@ var GamePlayer = Player.clone({
     },
 
     next_color: func(self) {
-        if  self.color_id < (colors.len() - 1) {
-            self.color_id += 1
-        } else {
-            self.color_id = 0
-        }
+        self.color_id = (self.color_id + 1) % colors.len()
         self.color = colors[self.color_id]
         log::echo("color switch: 0x%.6X".format(self.color))
     },
@@ -81,8 +70,8 @@ var GamePlayer = Player.clone({
         change of new_mark.
     */
     __activate: @[!server,func(self, kwargs) {
-        Player::__activate(self, kwargs)
-        self.marks = []
+        ents.Player::__activate(self, kwargs)
+        self.marks    = []
         self.color_id = 0
         self.color    = colors[0]
         connect(self, "new_mark,changed", func(self, nm) {
@@ -99,15 +88,18 @@ var GamePlayer = Player.clone({
         Called every frame. It goes over the marks and draws everything.
     */
     __run: @[!server,func(self, millis) {
-        Player::__run(self, millis)
-        var last = undef
+        ents.Player::__run(self, millis)
+
+        var last  = undef
         var marks = self.marks
 
         for i, mark in marks.each() {
             if last && mark && mark.x >= 0 && last.x >= 0 {
-                var r, g, b = hextorgb(mark.w)
-                flare(STREAK, mark, last, r / 255, g / 255, b / 255, 0, 1)
-                flare(STREAK, last, mark, r / 255, g / 255, b / 255, 0, 1)
+                var r, g, b = hex_to_rgb(mark.w)
+                particles::flare(STREAK, mark, last, r / 255, g / 255, b / 255,
+                    0, 1)
+                particles::flare(STREAK, last, mark, r / 255, g / 255, b / 255,
+                    0, 1)
             }
             last = mark
         }
@@ -117,15 +109,16 @@ var GamePlayer = Player.clone({
 
         if conb && !self.stop_batch && self == ents::get_player() {
             var mark = marks[marks.len() - 2]
-            var r, g, b = hextorgb(mark.w)
-            splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255, 150, 1, 1)
+            var r, g, b = hex_to_rgb(mark.w)
+            particles::splash(SPARK, mark, 25, 10, r / 255, g / 255, b / 255,
+                150, 1, 1)
         }
 
         if self.pressing {
             var newp = input::get_target_position()
             var topl = self.get_attr("position").sub_new(newp)
             newp.add(topl.normalize())
-            if newb || marks[marks.len() - 2].dist(newp) > 5 {
+            if newb || (marks[marks.len() - 2].dist(newp) > 5) {
                 var p = newp.to_array()
                 p.push(self.color)
                 self.set_attr("new_mark", p)
