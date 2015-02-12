@@ -387,11 +387,10 @@ struct hline
             if (buf[1] != '/')
                 execute(buf + 1);
             else {
-                const char *err;
-                int npop = lua::call_external_ret("console_oct_run", "s", "s",
-                    buf + 2, &err);
-                if (err) conoutf(CON_ERROR, "%s", err);
-                lua::pop_external_ret(npop);
+                string err = { '\0' };
+                lua::pop_external_ret(lua::call_external_ret("console_oct_run",
+                    "s", "S", buf + 2, err));
+                if (err[0]) conoutf(CON_ERROR, "%s", err);
             }
         } else if (action) {
             alias("commandbuf", buf);

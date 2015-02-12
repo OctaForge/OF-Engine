@@ -2085,7 +2085,6 @@ sounds:
         f->printf("\n// sounds\n");
         loopv(sounds) {
             renderprogress(i / float(sounds.length()), "saving sounds...");
-            lua_pushvalue(lua::L, -1);
             const extentity &e = *sounds[i];
             const char *sn;
             int n = lua::call_external_ret("entity_get_attr_ext", "is", "s",

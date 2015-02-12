@@ -1056,8 +1056,7 @@ int main(int argc, char **argv)
     ASSERT(dedicated <= 1);
 
     initlog("lua");
-    lua::init(false);
-    if (!lua::L) fatal("cannot initialize lua script engine");
+    if (!lua::init(false)) fatal("cannot initialize lua script engine");
 
     game::initclient();
 

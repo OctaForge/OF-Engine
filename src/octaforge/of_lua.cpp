@@ -155,20 +155,27 @@ namespace lua
         int idx = nrets;
         if (retargs) while (*retargs) {
             switch (*retargs++) {
+                case 'S': {
+                    const char *lstr = lua_tostring(L, -(idx--));
+                    char *fstr = va_arg(ar->ap, char *);
+                    if  (!lstr) fstr[0] = '\0';
+                    else memcpy(fstr, lstr, strlen(lstr) + 1);
+                    break;
+                }
                 case 's':
-                    *va_arg(ar->ap, const char**) = lua_tostring(L, -(idx--));
+                    *va_arg(ar->ap, const char **) = lua_tostring(L, -(idx--));
                     break;
                 case 'd': case 'i':
-                    *va_arg(ar->ap, int*) = lua_tointeger(L, -idx--);
+                    *va_arg(ar->ap, int *) = lua_tointeger(L, -idx--);
                     break;
                 case 'f':
-                    *va_arg(ar->ap, float*) = lua_tonumber(L, -idx--);
+                    *va_arg(ar->ap, float *) = lua_tonumber(L, -idx--);
                     break;
                 case 'F':
-                    *va_arg(ar->ap, double*) = lua_tonumber(L, -idx--);
+                    *va_arg(ar->ap, double *) = lua_tonumber(L, -idx--);
                     break;
                 case 'b':
-                    *va_arg(ar->ap, bool*) = lua_toboolean(L, -idx--);
+                    *va_arg(ar->ap, bool *) = lua_toboolean(L, -idx--);
                     break;
                 case 'v':
                     idx--;
@@ -475,12 +482,13 @@ namespace lua
         { NULL,         NULL}
     };
 
-    void init(bool dedicated, const char *dir)
+    bool init(bool dedicated, const char *dir)
     {
-        if (L) return;
+        if (L) return true;
         copystring(mod_dir, dir);
 
         L = luaL_newstate();
+        if (!L) return false;
         lua_atpanic(L, panic);
         luaL_openlibs(L);
 
@@ -540,6 +548,7 @@ namespace lua
         lua_pop          (L, 1);
 
         setup_binds(dedicated);
+        return true;
     }
 
     void load_module(const char *name)
@@ -796,11 +805,11 @@ namespace lua
         }
         defformatstring(chunk, "@%s", cfgfile);
         lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
-        if (lua::load_string(buf,  chunk) || lua_pcall(lua::L, 0, 0, -2)) {
+        if (lua::load_string(buf,  chunk) || lua_pcall(L, 0, 0, -2)) {
             if (msg) {
-                fatal("%s", lua_tostring(lua::L, -1));
+                fatal("%s", lua_tostring(L, -1));
             }
-            lua_pop(lua::L, 2);
+            lua_pop(L, 2);
             delete[] buf;
             return false;
         }

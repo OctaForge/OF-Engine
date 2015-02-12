@@ -710,7 +710,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
 
     if (!dedicated) return;
 
-    if(lastmillis && lua::L)
+    if(lastmillis)
         lua::call_external("frame_handle", "ii", curtime, lastmillis);
 }
 
@@ -1090,7 +1090,7 @@ void initserver(bool listen, bool dedicated)
 #ifdef WIN32
         setupwindow("OctaForge server");
 #endif
-        lua::init(true);
+        if (!lua::init(true)) fatal("cannot initialize lua script engine");
     }
 
     execfile("config/server-init.cfg", false);

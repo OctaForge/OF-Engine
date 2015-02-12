@@ -1085,7 +1085,7 @@ VARP(ragdoll, 0, 1, 1);
 
 static int oldtp = -1;
 
-int preparerd(lua_State *L, int &anim, gameent *fp) {
+int preparerd(int &anim, gameent *fp) {
     if (!fp) return anim;
     if (anim&ANIM_RAGDOLL) {
         if (fp == game::player1 && !thirdperson && oldtp < 0) {
@@ -1106,7 +1106,7 @@ CLUAICOMMAND(model_render, void, (int cn, const char *name, int anim,
 float x, float y, float z, float yaw, float pitch, float roll, int flags,
 int basetime, float r, float g, float b, float a), {
     gameent *fp = game::getclient(cn);
-    anim = preparerd(lua::L, anim, fp);
+    anim = preparerd(anim, fp);
     rendermodel(name, anim, vec(x, y, z), yaw, pitch, roll, flags, fp,
         fp ? fp->attachments.getbuf() : NULL, basetime, 0, 1, vec4(r, g, b, a));
 });

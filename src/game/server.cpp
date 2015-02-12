@@ -1938,14 +1938,10 @@ namespace server
                     }
                     else connected(ci);
 
-                    const char *cl = NULL;
-                    int n = lua::call_external_ret("entity_get_player_prototype", "", "s", &cl);
-                    if (n > 0) {
-                        string pcclass;
-                        copystring(pcclass, cl);
-                        lua::pop_external_ret(n);
+                    string pcclass = { '\0' };
+                    lua::pop_external_ret(lua::call_external_ret("entity_get_player_prototype", "", "S", pcclass));
+                    if (pcclass[0])
                         lua::call_external("entity_new_with_cn", "sib", pcclass, ci->clientnum, true);
-                    }
 
                     break;
                 }
