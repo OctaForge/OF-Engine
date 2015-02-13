@@ -1117,6 +1117,7 @@ bool unpackundo(const uchar *inbuf, int inlen, int outlen)
             ue.name = (char *)(nlen ? buf.pad(nlen + 1) : NULL);
             size_t sdlen = lilswap(*((const ushort *)buf.pad(2)));
             ue.sdata = (char *)(sdlen ? buf.pad(sdlen) : NULL);
+            ue.sdlen = sdlen;
             pasteundoent(ue);
         }
     }
