@@ -4347,61 +4347,6 @@ void clearsleep_(int *clearoverrides)
 
 COMMANDN(clearsleep, clearsleep_, "i");
 
-ICOMMAND(lua, "s", (char *str), {
-    lua_getfield(lua::L, LUA_REGISTRYINDEX, "octascript_traceback");
-    if (lua::load_string(str)) {
-        lua_pushfstring(lua::L, "error in call to the Lua API (%s)",
-            lua_tostring(lua::L, -2));
-        lua_call(lua::L, 1, 1);
-        logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
-        lua_pop(lua::L, 1);
-        return;
-    }
-    if (lua_pcall(lua::L, 0, 1, -2)) {
-        logger::log(logger::ERROR, "%s", lua_tostring(lua::L, -1));
-        lua_pop(lua::L, 2);
-        return;
-    }
-    if (lua_isnumber(lua::L, -1)) {
-        int a = lua_tointeger(lua::L, -1);
-        float b = lua_tonumber(lua::L, -1);
-        lua_pop(lua::L, 2);
-        if ((float)a == b) {
-            intret(a);
-        } else {
-            floatret(b);
-        }
-    } else if (lua_isstring(lua::L, -1)) {
-        const char *s = lua_tostring(lua::L, -1);
-        lua_pop(lua::L, 2);
-        result(s);
-    } else if (lua_isboolean(lua::L, -1)) {
-        bool b = lua_toboolean(lua::L, -1);
-        lua_pop(lua::L, 2);
-        intret(b);
-    } else {
-        lua_pop(lua::L, 2);
-    }
-})
-
-LUAICOMMAND(cubescript, {
-    tagval v;
-    executeret(luaL_checkstring(L, 1), v);
-    switch (v.type) {
-        case VAL_INT:
-            lua_pushinteger(L, v.getint());
-        case VAL_FLOAT:
-            lua_pushnumber(L, v.getfloat());
-        case VAL_STR:
-            lua_pushstring(L, v.getstr());
-        default:
-            const char *str = v.getstr();
-            if (str && str[0]) lua_pushstring(L, str);
-            else lua_pushnil(L);
-    }
-    return 1;
-})
-
 CLUAICOMMAND(var_reset, void, (const char *name), {
     resetvar((char*)name);
 });

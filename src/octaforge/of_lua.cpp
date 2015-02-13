@@ -798,4 +798,59 @@ namespace lua
     CLUAICOMMAND(raw_alloc, void *, (size_t nbytes), return (void*) new uchar[nbytes];)
     CLUAICOMMAND(raw_free, void, (void *ptr), delete[] (uchar*)ptr;)
     CLUAICOMMAND(raw_move, void, (void *dst, const void *src, size_t nbytes), memmove(dst, src, nbytes);)
+
+    ICOMMAND(lua, "s", (char *str), {
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+        if (load_string(str)) {
+            lua_pushfstring(L, "error in call to the Lua API (%s)",
+                lua_tostring(L, -2));
+            lua_call(L, 1, 1);
+            logger::log(logger::ERROR, "%s", lua_tostring(L, -1));
+            lua_pop(L, 1);
+            return;
+        }
+        if (lua_pcall(L, 0, 1, -2)) {
+            logger::log(logger::ERROR, "%s", lua_tostring(L, -1));
+            lua_pop(L, 2);
+            return;
+        }
+        if (lua_isnumber(L, -1)) {
+            int a = lua_tointeger(L, -1);
+            float b = lua_tonumber(L, -1);
+            lua_pop(L, 2);
+            if ((float)a == b) {
+                intret(a);
+            } else {
+                floatret(b);
+            }
+        } else if (lua_isstring(L, -1)) {
+            const char *s = lua_tostring(L, -1);
+            lua_pop(L, 2);
+            result(s);
+        } else if (lua_isboolean(L, -1)) {
+            bool b = lua_toboolean(L, -1);
+            lua_pop(L, 2);
+            intret(b);
+        } else {
+            lua_pop(L, 2);
+        }
+    })
+
+    LUAICOMMAND(cubescript, {
+        tagval v;
+        executeret(luaL_checkstring(L, 1), v);
+        switch (v.type) {
+            case VAL_INT:
+                lua_pushinteger(L, v.getint());
+            case VAL_FLOAT:
+                lua_pushnumber(L, v.getfloat());
+            case VAL_STR:
+                lua_pushstring(L, v.getstr());
+            default:
+                const char *str = v.getstr();
+                if (str && str[0]) lua_pushstring(L, str);
+                else lua_pushnil(L);
+        }
+        return 1;
+    })
 } /* end namespace lua */

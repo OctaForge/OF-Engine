@@ -3,7 +3,6 @@
 
 namespace lua
 {
-    extern lua_State *L;
     bool reg_fun   (const char *name, lua_CFunction fun);
     bool reg_cfun  (const char *name, const char *sig, void *fun);
     bool init      (bool dedicated, const char *dir = "media/scripts/core");
