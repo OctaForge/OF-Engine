@@ -14,7 +14,7 @@ namespace lua
 {
     static int load_file(lua_State *L, const char *fname);
 
-    lua_State *L = NULL;
+    static lua_State *L = NULL;
     static string mod_dir = "";
 
     static int panic(lua_State *L) {
@@ -26,7 +26,7 @@ namespace lua
         return 0;
     }
 
-    void setup_binds(bool dedicated);
+    static void setup_binds(bool dedicated);
 
     static int external_handler = LUA_REFNIL;
 
@@ -583,7 +583,7 @@ namespace lua
         lua_replace(L, -2);
     }
 
-    void setup_binds(bool dedicated)
+    static void setup_binds(bool dedicated)
     {
         lua_pushboolean(L, dedicated);
         lua_setglobal(L, "SERVER");
