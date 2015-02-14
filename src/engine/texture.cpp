@@ -3245,6 +3245,7 @@ Texture *Slot::loadthumbnail()
         {
             if(vslot.colorscale != vec(1, 1, 1)) texmad(s, vslot.colorscale, vec(0, 0, 0));
             int xs = s.w, ys = s.h;
+            texw = s.w; texh = s.h;
             if(s.w > 128 || s.h > 128) scaleimage(s, min(s.w, 128), min(s.h, 128));
             if(g.data)
             {
@@ -4552,8 +4553,8 @@ static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float x, float 
         }
         if (slot.thumbnail != notexture) {
             t = slot.thumbnail;
-            *tw = t->w;
-            *th = t->h;
+            *tw = slot.texw;
+            *th = slot.texh;
         } else return;
     }
     SETSHADER(hudrgb);

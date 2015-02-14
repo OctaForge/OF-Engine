@@ -684,7 +684,7 @@ struct Slot
         Tex() : t(NULL), combined(-1) {}
     };
 
-    int index, smooth;
+    int index, smooth, texw, texh;
     vector<Tex> sts;
     Shader *shader;
     vector<SlotShaderParam> params;
@@ -725,6 +725,7 @@ struct Slot
         group = NULL;
         grasstex = NULL;
         thumbnail = NULL;
+        texw = texh = 0;
     }
 
     void cleanup()
