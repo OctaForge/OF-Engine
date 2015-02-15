@@ -28,13 +28,12 @@ namespace lua
 
     static void setup_binds(bool dedicated);
 
-    static int external_handler = LUA_REFNIL;
+    static int externals = LUA_REFNIL;
 
     static bool push_external(const char *name) {
-        if (external_handler == LUA_REFNIL) return false;
-        lua_rawgeti(L, LUA_REGISTRYINDEX, external_handler);
-        lua_pushstring(L, name);
-        lua_call(L, 1, 1);
+        if (externals == LUA_REFNIL) return false;
+        lua_rawgeti(L, LUA_REGISTRYINDEX, externals);
+        lua_getfield(L, -1, name);
         if (lua_isnil(L, -1)) {
             lua_pop(L, 1);
             return false;
@@ -193,7 +192,7 @@ namespace lua
 
     LUAICOMMAND(external_hook, {
         lua_pushvalue(L, 1);
-        external_handler = luaL_ref(L, LUA_REGISTRYINDEX);
+        externals = luaL_ref(L, LUA_REGISTRYINDEX);
         return 0;
     })
 
