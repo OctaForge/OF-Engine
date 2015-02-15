@@ -35,9 +35,10 @@ namespace lua
         lua_rawgeti(L, LUA_REGISTRYINDEX, externals);
         lua_getfield(L, -1, name);
         if (lua_isnil(L, -1)) {
-            lua_pop(L, 1);
+            lua_pop(L, 2);
             return false;
         }
+        lua_replace(L, -2);
         return true;
     }
 
