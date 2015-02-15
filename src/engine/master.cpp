@@ -1,3 +1,11 @@
+#ifdef WIN32
+#define FD_SETSIZE 4096
+#else
+#include <sys/types.h>
+#undef __FD_SETSIZE
+#define __FD_SETSIZE 4096
+#endif
+
 #include "cube.h"
 #include <signal.h>
 #include <enet/time.h>
@@ -8,12 +16,12 @@
 #define AUTH_TIME (30*1000)
 #define AUTH_LIMIT 100
 #define AUTH_THROTTLE 1000
-#define CLIENT_LIMIT 8192
+#define CLIENT_LIMIT 4096
 #define DUP_LIMIT 16
 #define PING_TIME 3000
 #define PING_RETRY 5
 #define KEEPALIVE_TIME (65*60*1000)
-#define SERVER_LIMIT (10*1024)
+#define SERVER_LIMIT 4096
 #define SERVER_DUP_LIMIT 10
 
 FILE *logfile = NULL;

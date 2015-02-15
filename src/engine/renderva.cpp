@@ -1086,6 +1086,7 @@ struct renderstate
     float alphascale;
     float refractscale;
     vec refractcolor;
+    bool blend;
     int blendx, blendy;
     int globals, tmu;
     GLuint textures[7];
@@ -1094,7 +1095,7 @@ struct renderstate
     vec2 texgenscroll;
     int texgenorient, texgenmillis;
 
-    renderstate() : colormask(true), depthmask(true), alphaing(0), vbuf(0), vattribs(false), vquery(false), colorscale(1, 1, 1), alphascale(0), refractscale(0), refractcolor(1, 1, 1), blendx(-1), blendy(-1), globals(-1), tmu(-1), slot(NULL), texgenslot(NULL), vslot(NULL), texgenvslot(NULL), texgenscroll(0, 0), texgenorient(-1), texgenmillis(lastmillis)
+    renderstate() : colormask(true), depthmask(true), alphaing(0), vbuf(0), vattribs(false), vquery(false), colorscale(1, 1, 1), alphascale(0), refractscale(0), refractcolor(1, 1, 1), blend(false), blendx(-1), blendy(-1), globals(-1), tmu(-1), slot(NULL), texgenslot(NULL), vslot(NULL), texgenvslot(NULL), texgenscroll(0, 0), texgenorient(-1), texgenmillis(lastmillis)
     {
         loopk(4) color[k] = 1;
         loopk(7) textures[k] = 0;
@@ -1318,14 +1319,29 @@ static void changebatchtmus(renderstate &cur, int pass, geombatch &b)
             glBindTexture(GL_TEXTURE_CUBE_MAP, cur.textures[TEX_ENVMAP] = emtex);
         }
     }
-    if(b.es.layer&LAYER_BOTTOM && (cur.blendx != (b.va->o.x&~0xFFF) || cur.blendy != (b.va->o.y&~0xFFF)))
+
+    if(b.es.layer&LAYER_BOTTOM)
     {
-        cur.tmu = 7;
-        glActiveTexture_(GL_TEXTURE7);
-        bindblendtexture(b.va->o);
-        cur.blendx = b.va->o.x&~0xFFF;
-        cur.blendy = b.va->o.y&~0xFFF;
+        if(!cur.blend)
+        {
+            cur.blend = true;
+            cur.vslot = NULL;
+        }
+        if((cur.blendx != (b.va->o.x&~0xFFF) || cur.blendy != (b.va->o.y&~0xFFF)))
+        {
+            cur.tmu = 7;
+            glActiveTexture_(GL_TEXTURE7);
+            bindblendtexture(b.va->o);
+            cur.blendx = b.va->o.x&~0xFFF;
+            cur.blendy = b.va->o.y&~0xFFF;
+        }
     }
+    else if(cur.blend)
+    {
+        cur.blend = false;
+        cur.vslot = NULL;
+    }
+
     if(cur.tmu != 0)
     {
         cur.tmu = 0;
