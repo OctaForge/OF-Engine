@@ -712,6 +712,8 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
 
     if(lastmillis)
         lua::call_external("frame_handle", "ii", curtime, lastmillis);
+
+    lua::assert_stack();
 }
 
 void flushserver(bool force)

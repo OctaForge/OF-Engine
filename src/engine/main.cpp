@@ -1190,6 +1190,8 @@ int main(int argc, char **argv)
 
         extern void modifyedgeturn(int curtime);
         modifyedgeturn(curtime);
+
+        lua::assert_stack();
     }
 
     ASSERT(0);

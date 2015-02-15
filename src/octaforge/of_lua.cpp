@@ -662,6 +662,10 @@ namespace lua
         delete cfuns;
     }
 
+    void assert_stack() {
+        assert(!lua_gettop(L));
+    }
+
     struct reads {
         const char *str;
         size_t size;

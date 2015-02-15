@@ -3,11 +3,12 @@
 
 namespace lua
 {
-    bool reg_fun   (const char *name, lua_CFunction fun);
-    bool reg_cfun  (const char *name, const char *sig, void *fun);
-    bool init      (bool dedicated, const char *dir = "media/scripts/core");
-    void reset     ();
-    void close     ();
+    bool reg_fun     (const char *name, lua_CFunction fun);
+    bool reg_cfun    (const char *name, const char *sig, void *fun);
+    bool init        (bool dedicated, const char *dir = "media/scripts/core");
+    void reset       ();
+    void close       ();
+    void assert_stack();
     int load_string(const char *str, const char *ch = NULL);
 
     bool call_external(const char *name, const char *args, ...);
