@@ -398,12 +398,12 @@ namespace entities
         }
         const char *name = NULL;
         const char *sdata = NULL;
-        int sdlen = 0;
-        int n = lua::call_external_ret_nopop("entity_serialize", "ib", "ssd", i,
+        size_t sdlen = 0;
+        int n = lua::call_external_ret_nopop("entity_serialize", "ib", "sm", i,
             true, &name, &sdata, &sdlen);
         if (name) {
             addmsg(N_EDITENT, "risi3ib", i, name, (int)(e.o.x*DMF),
-                (int)(e.o.y*DMF), (int)(e.o.z*DMF), sdlen, sdlen, sdata);
+                (int)(e.o.y*DMF), (int)(e.o.z*DMF), (int)sdlen, (int)sdlen, sdata);
         }
         lua::pop_external_ret(n);
         return 0;

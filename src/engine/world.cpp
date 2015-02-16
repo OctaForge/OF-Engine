@@ -393,14 +393,14 @@ undoblock *newundoent()
         e->i = entgroup[i];
         const char *name = NULL;
         const char *sdata = NULL;
-        int sdlen = 0;
+        size_t sdlen = 0;
         const extentity *ext = entities::getents()[entgroup[i]];
-        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret_nopop("entity_serialize", "i", "ssd", entgroup[i], &name, &sdata, &sdlen) : 0;
+        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret_nopop("entity_serialize", "i", "sm", entgroup[i], &name, &sdata, &sdlen) : 0;
         if (name) {
             e->name = newstring(name);
             e->sdata = new char[sdlen];
             memcpy(e->sdata, sdata, sdlen);
-            e->sdlen = sdlen;
+            e->sdlen = (int)sdlen;
         } else {
             e->name = NULL;
             e->sdata = NULL;
@@ -1159,14 +1159,14 @@ void entcopy()
         loopv(entgroup) entfocus(entgroup[i], {
             const char *name = NULL;
             const char *sdata = NULL;
-            int sdlen = 0;
-            int n = lua::call_external_ret_nopop("entity_serialize", "ib", "ssd", entgroup[i], true, &name, &sdata, &sdlen);
+            size_t sdlen = 0;
+            int n = lua::call_external_ret_nopop("entity_serialize", "ib", "sm", entgroup[i], true, &name, &sdata, &sdlen);
             if (name) {
                 copyent &ce = entcopybuf.add();
                 ce.name = newstring(name);
                 ce.sdata = new char[sdlen];
                 memcpy(ce.sdata, sdata, sdlen);
-                ce.sdlen = sdlen;
+                ce.sdlen = (int)sdlen;
                 ce.o = e.o;
                 ce.o.sub(vec(sel.o));
             }

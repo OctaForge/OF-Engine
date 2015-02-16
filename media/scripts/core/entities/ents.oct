@@ -587,7 +587,7 @@ set_external("entity_serialize", func(uid, nopos) {
     if !ent { return }
     var ignore = nopos ? srnopos : undef
     var sr = ent.build_sdata({ compressed: true, ignore: ignore })
-    return ent.name, sr, sr.len()
+    return ent.name, sr
 })
 
 var get_stor_uid = func(uid) {

@@ -138,14 +138,14 @@ namespace lua
         if (retargs) while (*retargs) {
             switch (*retargs++) {
                 case 'S': {
-                    const char *lstr = lua_tostring(L, -(idx--));
+                    const char *lstr = lua_tostring(L, -idx--);
                     char *fstr = va_arg(ar->ap, char *);
                     if  (!lstr) fstr[0] = '\0';
                     else memcpy(fstr, lstr, strlen(lstr) + 1);
                     break;
                 }
                 case 's':
-                    *va_arg(ar->ap, const char **) = lua_tostring(L, -(idx--));
+                    *va_arg(ar->ap, const char **) = lua_tostring(L, -idx--);
                     break;
                 case 'd': case 'i':
                     *va_arg(ar->ap, int *) = lua_tointeger(L, -idx--);
@@ -159,6 +159,12 @@ namespace lua
                 case 'b':
                     *va_arg(ar->ap, bool *) = lua_toboolean(L, -idx--);
                     break;
+                case 'm': {
+                    const char **r = va_arg(ar->ap, const char **);
+                    size_t *l = va_arg(ar->ap, size_t *);
+                    *r = lua_tolstring(L, -idx--, l);
+                    break;
+                }
                 case 'v':
                     idx--;
                     break;
