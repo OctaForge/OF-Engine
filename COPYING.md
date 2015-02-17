@@ -2,7 +2,7 @@ OctaForge as whole is licensed under the University of Illinois/NCSA Open Source
 License, a permissive, non-copyleft, BSD style license. The license text goes as
 follows:
 
-Copyright (c) 2011-2013 OctaForge developers. All rights reserved.
+Copyright (c) 2011-2015 OctaForge developers. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal with
@@ -35,8 +35,8 @@ For OctaForge developers and contributors, refer to CONTRIBUTORS.txt.
 OctaForge contains portions of source code from other projects, including:
 
 * OctaScript - NCSA licensed, created by Daniel "q66" Kolesa
-* Cube 2/Sauerbraten - see src/readme_sauerbraten.txt
 * Tesseract - created by Lee 'eihrul' Salzman, see src/readme_tesseract.txt
+* Cube 2/Sauerbraten - see src/readme_sauerbraten.txt
 
 The engine is originally based on the Syntensity project by Alon "kripken"
 Zakai, but modern OctaForge no longer contains Syntensity code.
