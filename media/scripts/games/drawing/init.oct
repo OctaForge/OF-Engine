@@ -18,6 +18,7 @@ import core.engine.cubescript as cs
 import core.entities.svars
 import core.entities.ents
 import core.engine.particles
+import core.network.msg
 
 from core.events.signal import connect
 
@@ -69,8 +70,10 @@ var GamePlayer = ents.Player.clone({
         Called on entity activation. Connects a callback to state data
         change of new_mark.
     */
-    __activate: @[!server,func(self, kwargs) {
+    __activate: func(self, kwargs) {
         ents.Player::__activate(self, kwargs)
+        if msg::is_server_only() { return }
+
         self.marks    = []
         self.color_id = 0
         self.color    = colors[0]
@@ -82,13 +85,14 @@ var GamePlayer = ents.Player.clone({
             }
             self.marks.push(nm)
         })
-    }],
+    },
 
     /** Function: __run
         Called every frame. It goes over the marks and draws everything.
     */
-    __run: @[!server,func(self, millis) {
+    __run: func(self, millis) {
         ents.Player::__run(self, millis)
+        if msg::is_server_only() { return }
 
         var last  = undef
         var marks = self.marks
@@ -124,7 +128,7 @@ var GamePlayer = ents.Player.clone({
                 self.set_attr("new_mark", p)
             }
         }
-    }]
+    }
 })
 
 ents::register_prototype(GamePlayer, [
