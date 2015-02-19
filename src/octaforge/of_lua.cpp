@@ -206,6 +206,7 @@ namespace lua
     struct Reg {
         const char *name;
         lua_CFunction fun;
+        Reg(const char *n, lua_CFunction f): name(n), fun(f) {};
     };
     typedef vector<Reg> apifuns;
     static apifuns *funs = NULL;
@@ -213,19 +214,20 @@ namespace lua
     struct CReg {
         const char *name, *sig;
         void *fun;
+        CReg(const char *n, const char *s, void *f): name(n), sig(s), fun(f) {};
     };
     typedef vector<CReg> capifuns;
     static capifuns *cfuns = NULL;
 
     bool reg_fun(const char *name, lua_CFunction fun) {
         if (!funs) funs = new apifuns;
-        funs->add((Reg){ name, fun });
+        funs->add(Reg(name, fun));
         return true;
     }
 
     bool reg_cfun(const char *name, const char *sig, void *fun) {
         if (!cfuns) cfuns = new capifuns;
-        cfuns->add((CReg){ name, sig, fun });
+        cfuns->add(CReg(name, sig, fun));
         return true;
     }
 

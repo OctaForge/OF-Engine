@@ -4267,14 +4267,16 @@ CLUAICOMMAND(get_millis, int, (bool total), {
 
 CLUAICOMMAND(get_curtime, int, (), return curtime;);
 
-CLUAICOMMAND(get_current_time, int, (), {
 #ifdef STANDALONE
+CLUAICOMMAND(get_current_time, int, (), {
     return enet_time_get();
+});
 #else
+CLUAICOMMAND(get_current_time, int, (), {
     extern int clockrealbase;
     return SDL_GetTicks() - clockrealbase;
-#endif
 });
+#endif
 
 static time_t walltime = 0;
 CLUAICOMMAND(strftime, bool, (char *buf, size_t max, const char *fmt), {
