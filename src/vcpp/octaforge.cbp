@@ -33,6 +33,7 @@
 					<Add directory="..\vcpp" />
 					<Add directory="..\game" />
 					<Add directory="..\octaforge" />
+					<Add directory="../platform_windows\include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="..\vcpp" />
@@ -48,7 +49,6 @@
 					<Add library="SDL2_mixer" />
 					<Add library="zlib1" />
 					<Add library="opengl32" />
-					<Add library="enet" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
 					<Add library="lua51" />
@@ -85,6 +85,7 @@
 					<Add directory="..\vcpp" />
 					<Add directory="..\game" />
 					<Add directory="..\octaforge" />
+					<Add directory="../platform_windows\include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="..\vcpp" />
@@ -100,7 +101,6 @@
 					<Add library="SDL2_mixer" />
 					<Add library="zlib1" />
 					<Add library="opengl32" />
-					<Add library="enet" />
 					<Add library="ws2_32" />
 					<Add library="winmm" />
 					<Add library="lua51" />
