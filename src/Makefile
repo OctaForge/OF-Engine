@@ -584,8 +584,8 @@ clean:
 ifneq ($(HOST_FLAV),windows)
 	$(Q) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN) $(MASTER_BIN)
 else
-	$(Q) -rmdir //s //f //q $(OBJDIR)
-	$(Q) -del //s //f //q $(CLIENT_BIN) $(SERVER_BIN) $(MASTER_BIN)
+	$(Q) -rmdir /s /q $(OBJDIR)
+	$(Q) -del /s /f /q $(CLIENT_BIN) $(SERVER_BIN) $(MASTER_BIN)
 endif
 
 install: client server
