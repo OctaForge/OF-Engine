@@ -302,7 +302,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="tesseract.rc" />
+    <ResourceCompile Include="octaforge.rc" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="enet">
