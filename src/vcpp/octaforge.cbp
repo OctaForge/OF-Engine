@@ -12,7 +12,7 @@
 				<Option object_output=".objs\client64" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option parameters="-f0 -w640 -h480 -uhome" />
+				<Option parameters="-f0 -uhome" />
 				<Compiler>
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-O2" />
@@ -27,13 +27,12 @@
 					<Add option="-DWINDOWS" />
 					<Add option="-DNO_STDIO_REDIRECT" />
 					<Add directory="..\enet\include" />
-					<Add directory="..\include" />
+					<Add directory="..\platform_windows\include" />
 					<Add directory="..\engine" />
 					<Add directory="..\shared" />
 					<Add directory="..\vcpp" />
 					<Add directory="..\game" />
 					<Add directory="..\octaforge" />
-					<Add directory="../platform_windows\include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="..\vcpp" />
@@ -64,7 +63,7 @@
 				<Option object_output=".objs\client32" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option parameters="-f0 -w640 -h480 -uhome" />
+				<Option parameters="-f0 -uhome" />
 				<Compiler>
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-O2" />
@@ -79,13 +78,12 @@
 					<Add option="-DWINDOWS" />
 					<Add option="-DNO_STDIO_REDIRECT" />
 					<Add directory="..\enet\include" />
-					<Add directory="..\include" />
+					<Add directory="..\platform_windows\include" />
 					<Add directory="..\engine" />
 					<Add directory="..\shared" />
 					<Add directory="..\vcpp" />
 					<Add directory="..\game" />
 					<Add directory="..\octaforge" />
-					<Add directory="../platform_windows\include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="..\vcpp" />
