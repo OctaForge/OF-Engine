@@ -10,6 +10,11 @@ systems.
 For different platforms, compilation instructions might differ a bit, so
 separate OSes will be explained separately.
 
+Keep in mind that nightly prebuilt snapshots for Linux and Windows are
+provided on
+
+https://ftp.octaforge.org/snapshots/
+
 For all OSes
 ============
 
@@ -89,31 +94,51 @@ On Windows, fetch the repository <https://github.com/OctaForge/OF-Windows> and
 place the `platform_windows` directory into `src` and contents of `bin_win32/64`
 to `bin_win32/64`.
 
-Then just proceed with the compilation.
+Then you have 3 options:
 
-OF supports both Win32 and Win64 binaries. The variant is deduced from the
-target compiler.
+1. Use MinGW or TDM-gcc to build.
 
-*Visual Studio project will be added soon.*
-
-So the steps are:
-
-1. Install latest MinGW distribution whichever way you want. You need just the
-   core (C/C++ support). You can install it wherever you want, but make sure to
-   change steps of this guide accordingly after that. Note that you need
-   MinGW64 to build 64-bit binaries.
-
-2. Append this into your `PATH` environment variable (modify path if needed):
+   In that case the procedure is similar to Unix-like systems. You need to
+   have a command line with PATH set properly so that it can find the MinGW
+   (or TDM-GCC) binaries. Then, you just simply do:
 
 ```
-;C:\mingw\bin
+   mingw32-make install
 ```
 
-3. Open a command line (press Windows + R, then type `cmd` and press [Enter]), go to `OFROOT\src`, type:
+   This also gives you a separate server executable in addition to the client
+   and you can build the master server with it, by using the `master` target.
 
-```
-$ mingw32-make install
-```
+   You can also speed up compilation by using the `-jN` argument for multiple
+   threads. Please refer to the appropriate documentation.
 
-   If you have a multicore processor, you can use `-jNUMCORES+1` as make argument.
-   Add `VERBOSE=1` at the end of the make command for verbose builds.
+   This option is suitable for developers and advanced users who are used to
+   using a command line environment.
+
+2. Use a code::blocks project file.
+
+   A code::blocks project file is provided in `src/vcpp/octaforge.cbp`. You
+   need the MinGW compiler for code::blocks installed. Then you can simply
+   build OctaForge, nothing else should be necessary.
+
+   This option will only give you a client executable. You can launch a
+   dedicated server using the `-d2` option for the client. That is completely
+   functionally identical to using a separate server executable. The actual
+   server executable is most suitable for headless systems (which Windows
+   isn't) - for example remote servers with ssh only access.
+
+   Both 32-bit and 64-bit executables are supported.
+
+3. Use a Visual Studio project file.
+
+   In that case you should be using `src/vcpp/octaforge.sln`. Just like above,
+   it only builds a client (in either 32-bit or 64-bit version, debug, release
+   or profile), just like the code::blocks project file. Use `-d2` to launch
+   a dedicated server, if needed.
+
+   Unlike the two options above, this builds OctaForge using Microsoft's
+   C++ compiler, against Microsoft runtime, which is the preferable option
+   if you're packaging the engine.
+
+You can also cross-compile OctaForge for Windows from a Linux, FreeBSD or
+some other Unix-like system using MinGW.
