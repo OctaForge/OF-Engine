@@ -52,16 +52,16 @@ Supported compilers are GCC (at least 4.2), Clang and possibly others.
 
    For Linux with apt-get:
    
-```
-   sudo apt-get install build-essential zlib1g-dev libluajit-dev libsdl2-dev
-   libsdl2-mixer-dev libsdl2-image-dev
-```
+   ```
+      sudo apt-get install build-essential zlib1g-dev libluajit-dev libsdl2-dev
+      libsdl2-mixer-dev libsdl2-image-dev
+   ```
 
    For FreeBSD (compiler and zlib are included by default):
 
-```
-   sudo pkg install sdl20 sdl2_mixer sdl2_image luajit pkgconf gmake
-```
+   ```
+      sudo pkg install sdl20 sdl2_mixer sdl2_image luajit pkgconf gmake
+   ```
 
    For other operating systems, it should be similar.
 
@@ -76,10 +76,10 @@ Supported compilers are GCC (at least 4.2), Clang and possibly others.
 
 2. Open a terminal, build OF:
 
-```
-$ cd $HOME/OctaForge_source/src
-$ make install
-```
+   ```
+      $ cd $HOME/OctaForge_source/src
+      $ make install
+   ```
 
    If you have a multicore processor, you can use `-jNUMCORES+1` as make argument.
    On some systems (like FreeBSD), you'll have to use `gmake` instead of `make`.
@@ -102,9 +102,9 @@ Then you have 3 options:
    have a command line with PATH set properly so that it can find the MinGW
    (or TDM-GCC) binaries. Then, you just simply do:
 
-```
-   mingw32-make install
-```
+   ```
+      mingw32-make install
+   ```
 
    This also gives you a separate server executable in addition to the client
    and you can build the master server with it, by using the `master` target.
