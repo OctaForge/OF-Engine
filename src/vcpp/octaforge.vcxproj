@@ -36,7 +36,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>octaforge</ProjectName>
-    <ProjectGuid>{06594C6D-6DA9-49DC-9A91-8F47221DDCFD}</ProjectGuid>
+    <ProjectGuid>{7252208C-BAF1-49D4-8770-B831E7E68947}</ProjectGuid>
     <RootNamespace>octaforge</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -155,9 +155,6 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)cube.pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -204,9 +201,6 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)cube.pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -245,9 +239,6 @@
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)cube.pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -283,9 +274,6 @@
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)cube.pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -328,9 +316,6 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)cube.pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -373,9 +358,6 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>cube.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>$(IntDir)cube.pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -402,15 +384,15 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include=="..\enet\include\enet\callbacks.h" />
-    <ClInclude Include=="..\enet\include\enet\enet.h" />
-    <ClInclude Include=="..\enet\include\enet\list.h" />
-    <ClInclude Include=="..\enet\include\enet\protocol.h" />
-    <ClInclude Include=="..\enet\include\enet\time.h" />
-    <ClInclude Include=="..\enet\include\enet\types.h" />
-    <ClInclude Include=="..\enet\include\enet\unix.h" />
-    <ClInclude Include=="..\enet\include\enet\utility.h" />
-    <ClInclude Include=="..\enet\include\enet\win32.h" />
+    <ClInclude Include="..\enet\include\enet\callbacks.h" />
+    <ClInclude Include="..\enet\include\enet\enet.h" />
+    <ClInclude Include="..\enet\include\enet\list.h" />
+    <ClInclude Include="..\enet\include\enet\protocol.h" />
+    <ClInclude Include="..\enet\include\enet\time.h" />
+    <ClInclude Include="..\enet\include\enet\types.h" />
+    <ClInclude Include="..\enet\include\enet\unix.h" />
+    <ClInclude Include="..\enet\include\enet\utility.h" />
+    <ClInclude Include="..\enet\include\enet\win32.h" />
     <ClInclude Include="..\engine\animmodel.h" />
     <ClInclude Include="..\engine\bih.h" />
     <ClInclude Include="..\engine\engine.h" />
@@ -446,728 +428,63 @@
     <ClInclude Include="..\shared\tools.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\engine\pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\engine\blend.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\light.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\normal.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\octa.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\octaedit.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\octarender.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\ovr.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\physics.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\pvs.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\world.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\worldio.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\client.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\server.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\serverbrowser.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\aa.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\bih.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\dynlight.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\grass.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\material.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\rendergl.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderlights.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\rendermodel.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderparticles.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\rendersky.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\rendertext.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\renderva.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\shader.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\texture.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\ui.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\water.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\command.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\console.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\main.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\menus.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\movie.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\sound.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\engine\stain.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">engine.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)engine.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
+    <ClCompile Include="..\enet\callbacks.c" />
+    <ClCompile Include="..\enet\compress.c" />
+    <ClCompile Include="..\enet\host.c" />
+    <ClCompile Include="..\enet\list.c" />
+    <ClCompile Include="..\enet\packet.c" />
+    <ClCompile Include="..\enet\peer.c" />
+    <ClCompile Include="..\enet\protocol.c" />
+    <ClCompile Include="..\enet\unix.c" />
+    <ClCompile Include="..\enet\win32.c" />
+    <ClCompile Include="..\engine\aa.cpp" />
+    <ClCompile Include="..\engine\bih.cpp" />
+    <ClCompile Include="..\engine\blend.cpp" />
+    <ClCompile Include="..\engine\client.cpp" />
+    <ClCompile Include="..\engine\command.cpp" />
+    <ClCompile Include="..\engine\console.cpp" />
+    <ClCompile Include="..\engine\dynlight.cpp" />
+    <ClCompile Include="..\engine\grass.cpp" />
+    <ClCompile Include="..\engine\light.cpp" />
+    <ClCompile Include="..\engine\main.cpp" />
+    <ClCompile Include="..\engine\material.cpp" />
+    <ClCompile Include="..\engine\movie.cpp" />
+    <ClCompile Include="..\engine\normal.cpp" />
+    <ClCompile Include="..\engine\octa.cpp" />
+    <ClCompile Include="..\engine\octaedit.cpp" />
+    <ClCompile Include="..\engine\octarender.cpp" />
+    <ClCompile Include="..\engine\ovr.cpp" />
+    <ClCompile Include="..\engine\physics.cpp" />
+    <ClCompile Include="..\engine\pvs.cpp" />
+    <ClCompile Include="..\engine\rendergl.cpp" />
+    <ClCompile Include="..\engine\renderlights.cpp" />
+    <ClCompile Include="..\engine\rendermodel.cpp" />
+    <ClCompile Include="..\engine\renderparticles.cpp" />
+    <ClCompile Include="..\engine\rendersky.cpp" />
+    <ClCompile Include="..\engine\rendertext.cpp" />
+    <ClCompile Include="..\engine\renderva.cpp" />
+    <ClCompile Include="..\engine\server.cpp" />
+    <ClCompile Include="..\engine\serverbrowser.cpp" />
+    <ClCompile Include="..\engine\shader.cpp" />
+    <ClCompile Include="..\engine\sound.cpp" />
+    <ClCompile Include="..\engine\stain.cpp" />
+    <ClCompile Include="..\engine\texture.cpp" />
+    <ClCompile Include="..\engine\water.cpp" />
+    <ClCompile Include="..\engine\world.cpp" />
+    <ClCompile Include="..\engine\worldio.cpp" />
+    <ClCompile Include="..\game\client.cpp" />
+    <ClCompile Include="..\game\entities.cpp" />
+    <ClCompile Include="..\game\game.cpp" />
+    <ClCompile Include="..\game\render.cpp" />
+    <ClCompile Include="..\game\server.cpp" />
+    <ClCompile Include="..\octaforge\of_logger.cpp" />
+    <ClCompile Include="..\octaforge\of_lua.cpp" />
     <ClCompile Include="..\shared\crypto.cpp" />
     <ClCompile Include="..\shared\geom.cpp" />
     <ClCompile Include="..\shared\glemu.cpp" />
-    <ClCompile Include="..\shared\pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\shared\stream.cpp" />
     <ClCompile Include="..\shared\tools.cpp" />
     <ClCompile Include="..\shared\zip.cpp" />
-    <ClCompile Include="..\game\ai.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\game\client.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\game\entities.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\game\game.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\game\pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)2.obj</ObjectFileName>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)%(Filename)2.obj</ObjectFileName>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)2.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\game\render.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\game\scoreboard.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\game\server.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\game\waypoint.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="..\game\weapon.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">game.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)game.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="octaforge.rc" />

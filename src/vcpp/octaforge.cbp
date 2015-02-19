@@ -139,10 +139,7 @@
 		<Unit filename="..\engine\command.cpp" />
 		<Unit filename="..\engine\console.cpp" />
 		<Unit filename="..\engine\dynlight.cpp" />
-		<Unit filename="..\engine\engine.h">
-			<Option compile="1" />
-			<Option weight="0" />
-		</Unit>
+		<Unit filename="..\engine\engine.h" />
 		<Unit filename="..\engine\explosion.h" />
 		<Unit filename="..\engine\grass.cpp" />
 		<Unit filename="..\engine\hitzone.h" />
@@ -192,10 +189,7 @@
 		<Unit filename="..\game\client.cpp" />
 		<Unit filename="..\game\entities.cpp" />
 		<Unit filename="..\game\game.cpp" />
-		<Unit filename="..\game\game.h">
-			<Option compile="1" />
-			<Option weight="0" />
-		</Unit>
+		<Unit filename="..\game\game.h" />
 		<Unit filename="..\game\render.cpp" />
 		<Unit filename="..\game\server.cpp" />
 		<Unit filename="..\platform_windows\include\GL\glext.h" />
@@ -269,10 +263,7 @@
 		<Unit filename="..\octaforge\of_lua.h" />
 		<Unit filename="..\shared\command.h" />
 		<Unit filename="..\shared\crypto.cpp" />
-		<Unit filename="..\shared\cube.h">
-			<Option compile="1" />
-			<Option weight="0" />
-		</Unit>
+		<Unit filename="..\shared\cube.h" />
 		<Unit filename="..\shared\ents.h" />
 		<Unit filename="..\shared\geom.cpp" />
 		<Unit filename="..\shared\geom.h" />

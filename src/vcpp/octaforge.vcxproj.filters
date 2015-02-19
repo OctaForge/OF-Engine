@@ -1,11 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="..\enet\callbacks.c">
+      <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\enet\compress.c">
+      <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\enet\host.c">
+      <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\enet\list.c">
+      <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\enet\packet.c">
+      <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\enet\peer.c">
+      <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\enet\protocol.c">
+      <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\enet\unix.c">
+      <Filter>enet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\enet\win32.c">
+      <Filter>enet</Filter>
+    </ClCompile>
     <ClCompile Include="..\engine\aa.cpp">
       <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\ai.cpp">
-      <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\bih.cpp">
       <Filter>engine</Filter>
@@ -16,32 +40,14 @@
     <ClCompile Include="..\engine\client.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\game\client.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\command.cpp">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\console.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\crypto.cpp">
-      <Filter>shared</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\dynlight.cpp">
       <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\entities.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\game.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\geom.cpp">
-      <Filter>shared</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\glemu.cpp">
-      <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\grass.cpp">
       <Filter>engine</Filter>
@@ -53,9 +59,6 @@
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\material.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\menus.cpp">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\movie.cpp">
@@ -76,22 +79,10 @@
     <ClCompile Include="..\engine\ovr.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\game\pch.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\pch.cpp">
-      <Filter>shared</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\pch.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\physics.cpp">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\pvs.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\render.cpp">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\rendergl.cpp">
@@ -100,13 +91,13 @@
     <ClCompile Include="..\engine\renderlights.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\rendersky.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\rendermodel.cpp">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\renderparticles.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\rendersky.cpp">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\rendertext.cpp">
@@ -115,14 +106,8 @@
     <ClCompile Include="..\engine\renderva.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\game\scoreboard.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\server.cpp">
       <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\server.cpp">
-      <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\serverbrowser.cpp">
       <Filter>engine</Filter>
@@ -136,26 +121,11 @@
     <ClCompile Include="..\engine\stain.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\stream.cpp">
-      <Filter>shared</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\texture.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\shared\tools.cpp">
-      <Filter>shared</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\ui.cpp">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\water.cpp">
       <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\waypoint.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game\weapon.cpp">
-      <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\world.cpp">
       <Filter>engine</Filter>
@@ -163,16 +133,73 @@
     <ClCompile Include="..\engine\worldio.cpp">
       <Filter>engine</Filter>
     </ClCompile>
+    <ClCompile Include="..\game\client.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\entities.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\game.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\render.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game\server.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\octaforge\of_logger.cpp">
+      <Filter>octaforge</Filter>
+    </ClCompile>
+    <ClCompile Include="..\octaforge\of_lua.cpp">
+      <Filter>octaforge</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\crypto.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\geom.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\glemu.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\stream.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\tools.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\zip.cpp">
       <Filter>shared</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\game\ai.h">
-      <Filter>game</Filter>
+    <ClInclude Include="..\enet\include\enet\callbacks.h">
+      <Filter>enet</Filter>
     </ClInclude>
-    <ClInclude Include="..\game\aiman.h">
-      <Filter>game</Filter>
+    <ClInclude Include="..\enet\include\enet\enet.h">
+      <Filter>enet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\enet\include\enet\list.h">
+      <Filter>enet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\enet\include\enet\protocol.h">
+      <Filter>enet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\enet\include\enet\time.h">
+      <Filter>enet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\enet\include\enet\types.h">
+      <Filter>enet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\enet\include\enet\unix.h">
+      <Filter>enet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\enet\include\enet\utility.h">
+      <Filter>enet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\enet\include\enet\win32.h">
+      <Filter>enet</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\animmodel.h">
       <Filter>engine</Filter>
@@ -180,47 +207,14 @@
     <ClInclude Include="..\engine\bih.h">
       <Filter>engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\shared\command.h">
-      <Filter>shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\game\ctf.h">
-      <Filter>game</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\cube.h">
-      <Filter>shared</Filter>
-    </ClInclude>
     <ClInclude Include="..\engine\engine.h">
       <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\ents.h">
-      <Filter>shared</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\explosion.h">
       <Filter>engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\game\extinfo.h">
-      <Filter>game</Filter>
-    </ClInclude>
-    <ClInclude Include="..\game\game.h">
-      <Filter>game</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\geom.h">
-      <Filter>shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\glemu.h">
-      <Filter>shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\glexts.h">
-      <Filter>shared</Filter>
-    </ClInclude>
     <ClInclude Include="..\engine\hitzone.h">
       <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\iengine.h">
-      <Filter>shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\igame.h">
-      <Filter>shared</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\iqm.h">
       <Filter>engine</Filter>
@@ -232,9 +226,6 @@
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\lightning.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\engine\md2.h">
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\md3.h">
@@ -258,23 +249,14 @@
     <ClInclude Include="..\engine\ragdoll.h">
       <Filter>engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\engine\scale.h">
+    <ClInclude Include="..\engine\skelmodel.h">
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\smd.h">
       <Filter>engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\engine\skelmodel.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\engine\textedit.h">
-      <Filter>engine</Filter>
-    </ClInclude>
     <ClInclude Include="..\engine\texture.h">
       <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\tools.h">
-      <Filter>shared</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\vertmodel.h">
       <Filter>engine</Filter>
@@ -282,19 +264,61 @@
     <ClInclude Include="..\engine\world.h">
       <Filter>engine</Filter>
     </ClInclude>
+    <ClInclude Include="..\game\game.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\octaforge\of_logger.h">
+      <Filter>octaforge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\octaforge\of_lua.h">
+      <Filter>octaforge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\command.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\cube.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\ents.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\geom.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\glemu.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\glexts.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\iengine.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\igame.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\tools.h">
+      <Filter>shared</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tesseract.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="shared">
-      <UniqueIdentifier>{31e3d751-04b0-4c38-94f9-eddd8ef4c42a}</UniqueIdentifier>
+    <Filter Include="enet">
+      <UniqueIdentifier>{5dc2de9e-82bf-477b-8a1c-f56762f981c1}</UniqueIdentifier>
     </Filter>
     <Filter Include="engine">
-      <UniqueIdentifier>{37ef9828-d87f-413d-93ee-effc029b6a73}</UniqueIdentifier>
+      <UniqueIdentifier>{75a72683-6237-4cbb-83a2-4af8f4fe6183}</UniqueIdentifier>
     </Filter>
     <Filter Include="game">
-      <UniqueIdentifier>{9b7a70df-c8ed-4662-8380-4ffe119eb216}</UniqueIdentifier>
+      <UniqueIdentifier>{b8f82053-e330-41d8-a4d2-3492d5fb38ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="octaforge">
+      <UniqueIdentifier>{fc9a50b8-c706-4c14-88b6-d7d85965d8c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shared">
+      <UniqueIdentifier>{67e4968d-e5fa-4a4f-b220-de690f6eadf0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
