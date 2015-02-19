@@ -148,9 +148,9 @@ ifeq ($(TARGET_SYS),Windows)
 		TARGET_XLIB += -L../bin_win32
 		override TARGET_WINDRES += -F pe-i386
 	endif
-	WINDRES_RC = platform_windows/vcpp/mingw.rc
-	WINDRES_RES = platform_windows/vcpp/mingw.res
-	WINDRES_CMDLINE = -I platform_windows/vcpp -i $(WINDRES_RC) -J rc \
+	WINDRES_RC = vcpp/mingw.rc
+	WINDRES_RES = vcpp/mingw.res
+	WINDRES_CMDLINE = -I vcpp -i $(WINDRES_RC) -J rc \
 	-o $(WINDRES_RES) -O coff
 else
 ifeq ($(TARGET_SYS),Linux)
