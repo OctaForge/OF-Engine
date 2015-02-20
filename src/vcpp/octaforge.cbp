@@ -12,7 +12,6 @@
 				<Option object_output=".objs\client64" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option parameters="-f0 -uhome" />
 				<Compiler>
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-O2" />
@@ -63,7 +62,6 @@
 				<Option object_output=".objs\client32" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option parameters="-f0 -uhome" />
 				<Compiler>
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-O2" />
