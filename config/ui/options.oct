@@ -311,6 +311,16 @@ var gen_opts_display = func() {
                     }
                 )
                 add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Scaling factor" }))
+                    hb.append(gui::HSlider({ variable: "gscale", clamp: true }),
+                        func(sl) {
+                            sl.append(gui::SliderButton(undef,
+                                gui::Filler({ min_w: 0.08, clamp: true },
+                                    gui::EvalLabel({ callback: \-> sl.value }))))
+                        }
+                    )
+                })
+                add_box(vb, func(hb) {
                     hb.append(gui::Spacer({ pad_v: 0.005 },
                         gui::Label({ text: "Hi-DPI scaling" })))
                     hb.append(gen_checkbox("retina"))
