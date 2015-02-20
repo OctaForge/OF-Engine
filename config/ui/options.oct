@@ -3,6 +3,7 @@ import core.engine.cubescript as cs
 import core.gui.core as gui
 from std.table import pairs
 from std.conv import tonumber, tostring
+from std.jit import os as jit_os
 
 var root = gui::get_root()
 
@@ -309,6 +310,12 @@ var gen_opts_display = func() {
                         })
                     }
                 )
+                add_box(vb, func(hb) {
+                    hb.append(gui::Spacer({ pad_v: 0.005 },
+                        gui::Label({ text: "Hi-DPI scaling" })))
+                    hb.append(gen_checkbox("retina"))
+                    hb.set_disabled(jit_os != "OSX")
+                })
                 vb.append(gui::Line({ clamp_h: true, variant: "separator" }))
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Anisotropic filtering" }))
