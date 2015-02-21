@@ -15,6 +15,8 @@ var log = logging.log
 var DEBUG = logging.DEBUG
 var ERROR = logging.ERROR
 
+import core.externals
+
 import core.engine.camera
 import core.engine.sound
 import core.engine.model
@@ -29,8 +31,6 @@ import core.network.msg
 from std.conv import hex_to_rgb as hextorgb
 
 var var_get = cs.var_get
-
-from core.externals import set as set_external
 
 var Entity = ents.Entity
 
@@ -741,14 +741,14 @@ var Character = M.Character
     one as an argument. The client we're testing collisions against gets the
     first emit.
 */
-set_external("physics_collide_client", func(cn1, cn2, dx, dy, dz) {
+externals::set("physics_collide_client", func(cn1, cn2, dx, dy, dz) {
     var cl1, cl2 = ents::get_dynamic(cn1), ents::get_dynamic(cn2)
     if !cl1 || !cl2 { return }
     emit(cl1, "collision", cl2, dx, dy, dz)
     emit(cl2, "collision", cl1, dx, dy, dz)
 })
 
-set_external("entity_set_local_animation", func(cn, anim) {
+externals::set("entity_set_local_animation", func(cn, anim) {
     var ent = ents::get_dynamic(cn)
     if !ent { return }
     ent.set_local_animation(anim)
@@ -965,7 +965,7 @@ M.StaticEntity = Entity.clone({
 })
 var StaticEntity = M.StaticEntity
 
-set_external("entity_set_pos", func(uid, x, y, z) {
+externals::set("entity_set_pos", func(uid, x, y, z) {
     var ent = ents::get_static(uid)
     if !ent { return }
     // bypass any sort of sync or update here...
@@ -982,7 +982,7 @@ set_external("entity_set_pos", func(uid, x, y, z) {
     `ent:{{$StaticEntity.__get_edit_color|__get_edit_color}}()` where `ent`
     is the entity with unique id `uid`.
 */
-set_external("entity_get_edit_icon_info", func(uid) {
+externals::set("entity_get_edit_icon_info", func(uid) {
     var ent = ents::get_static(uid)
     if !ent { return }
     return ent.__edit_icon, ent.__get_edit_color()
@@ -992,7 +992,7 @@ set_external("entity_get_edit_icon_info", func(uid) {
     An external. Returns the entity name and the return value of
     {{$StaticEntity.__get_edit_info}}.
 */
-set_external("entity_get_edit_info", func(uid) {
+externals::set("entity_get_edit_info", func(uid) {
     var ent = ents::get_static(uid)
     if !ent { return }
     return ent.name, ent.__get_edit_info()
@@ -1001,7 +1001,7 @@ set_external("entity_get_edit_info", func(uid) {
 /** Function: entity_get_edit_drop_height
     An external, see {{$StaticEntity.get_edit_drop_height}}. Takes the entity.
 */
-set_external("entity_get_edit_drop_height", func(uid) {
+externals::set("entity_get_edit_drop_height", func(uid) {
     var ent = ents::get_static(uid)
     if !ent { return }
     return ent.get_edit_drop_height()
@@ -1312,7 +1312,7 @@ M.AmbientSound = SoundEffect.clone({
     }
 })
 
-set_external("sound_play_map", func(uid) {
+externals::set("sound_play_map", func(uid) {
     var ent = ents::get_static(uid)
     if !ent { return }
     ent.__play_sound()
@@ -1341,7 +1341,7 @@ M.ParticleEffect = StaticEntity.clone({
     __emit_particles: func(self) { }
 })
 
-set_external("particle_entity_emit", func(uid) {
+externals::set("particle_entity_emit", func(uid) {
     var ent = ents::get_static(uid)
     if !ent { return }
     ent.__emit_particles()
@@ -1444,7 +1444,7 @@ M.Mapmodel = StaticEntity.clone({
     the `collision` signal on both entities, passing the other one as an
     argument. The mapmodel takes precedence.
 */
-set_external("physics_collide_mapmodel", func(cn, uid) {
+externals::set("physics_collide_mapmodel", func(cn, uid) {
     var collider, entity = ents::get_dynamic(cn), ents::get_static(uid)
     if !collider || !entity { return }
     emit(entity, "collision", collider)
@@ -1562,7 +1562,7 @@ M.Decal = StaticEntity.clone({
     the `collision` signal on both entities, passing the other one as an
     argument. The obstacle takes precedence.
 */
-set_external("physics_collide_area", func(cn, uid) {
+externals::set("physics_collide_area", func(cn, uid) {
     var collider, entity = ents::get_dynamic(cn), ents::get_static(uid)
     if !collider || !entity { return }
     emit(entity, "collision", collider)

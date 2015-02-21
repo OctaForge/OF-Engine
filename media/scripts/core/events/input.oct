@@ -25,8 +25,7 @@ var ents
 */
 var input_mouse_move
 
-import core.externals as ext
-var get_ext, set_ext, unset_ext = ext.get, ext.set, ext.unset
+import core.externals
 
 var event_map
 
@@ -41,7 +40,7 @@ from std.conv import tonumber
         - dir - the yawing direction.
         - down - whether the key was pressed.
 */
-set_ext("input_yaw", func(dir, down) {
+externals::set("input_yaw", func(dir, down) {
     if !ents { ents = import core.entities.ents }
     ents::get_player().set_attr("yawing", dir)
 })
@@ -54,7 +53,7 @@ set_ext("input_yaw", func(dir, down) {
         - dir - the pitching direction.
         - down - whether the key was pressed.
 */
-set_ext("input_pitch", func(dir, down) {
+externals::set("input_pitch", func(dir, down) {
     if !ents { ents = import core.entities.ents }
     ents::get_player().set_attr("pitching", dir)
 })
@@ -67,7 +66,7 @@ set_ext("input_pitch", func(dir, down) {
         - dir - the move direction.
         - down - whether the key was pressed.
 */
-set_ext("input_move", func(dir, down) {
+externals::set("input_move", func(dir, down) {
     if !ents { ents = import core.entities.ents }
     ents::get_player().set_attr("move", dir)
 })
@@ -80,7 +79,7 @@ set_ext("input_move", func(dir, down) {
         - dir - the strafe direction.
         - down - whether the key was pressed.
 */
-set_ext("input_strafe", func(dir, down) {
+externals::set("input_strafe", func(dir, down) {
     if !ents { ents = import core.entities.ents }
     ents::get_player().set_attr("strafe", dir)
 })
@@ -92,7 +91,7 @@ set_ext("input_strafe", func(dir, down) {
     Arguments:
         - down - whether the key was pressed.
 */
-set_ext("input_jump", func(down) {
+externals::set("input_jump", func(down) {
     if !ents { ents = import core.entities.ents }
     ents::get_player().jump(down)
 })
@@ -104,7 +103,7 @@ set_ext("input_jump", func(down) {
     Arguments:
         - down - whether the key was pressed.
 */
-set_ext("input_crouch", func(down) {
+externals::set("input_crouch", func(down) {
     if !ents { ents = import core.entities.ents }
     ents::get_player().crouch(down)
 })
@@ -123,11 +122,11 @@ set_ext("input_crouch", func(down) {
           (if any, null otherwise).
         - cx, cy - the cursor position.
 */
-set_ext("input_click_ext", func(btn, down, x, y, z, uid, cn, cx, cy) {
+externals::set("input_click_ext", func(btn, down, x, y, z, uid, cn, cx, cy) {
     if !ents { ents = import core.entities.ents }
     var ent = (uid >= 0) ? ents::get_static(uid)
             : ((cn >= 0) ? ents::get_dynamic(cn) : undef)
-    get_ext("input_click")(btn, down, x, y, z, ent, cx, cy)
+    externals::get("input_click")(btn, down, x, y, z, ent, cx, cy)
 })
 
 /** Function: input_click_client
@@ -137,7 +136,7 @@ set_ext("input_click_ext", func(btn, down, x, y, z, uid, cn, cx, cy) {
     and by default returns false, which means the above external will
     trigger a server request.
 */
-set_ext("input_click", func(btn, down, x, y, z, ent, cx, cy) {
+externals::set("input_click", func(btn, down, x, y, z, ent, cx, cy) {
     if ent && ent.click {
         return ent.click(btn, down, x, y, z, cx, cy)
     }
@@ -187,18 +186,18 @@ M.set_event = func(en, fun) {
     if !old { return false }
     if fun == undef {
         if en == "input_mouse_move" {
-            unset_ext(en)
+            externals::unset(en)
             return true
         }
         if old == true { return true }
-        set_ext(en, old)
+        externals::set(en, old)
         event_map[en] = true
         return true
     }
     assert(typeof fun == "function")
-    var ret = get_ext(en)
+    var ret = externals::get(en)
     if old == true && en != "input_mouse_move" { event_map[en] = ret }
-    set_ext(en, fun)
+    externals::set(en, fun)
     return ret
 }
 
@@ -213,7 +212,7 @@ M.get_event = func(en) {
         en = "input_" ~ en
     }
     if !event_map[en] { return undef }
-    return get_ext(en)
+    return externals::get(en)
 }
 
 return M

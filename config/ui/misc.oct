@@ -74,9 +74,9 @@ var progress_win = gui::Window({ __init: func(win) {
     })
 } })
 
-from core.externals import set as set_ext
+import core.externals
 
-set_ext("progress_render", func(v, text) {
+externals::set("progress_render", func(v, text) {
     progress_bar.set_value(v)
     progress_label.set_text(text)
     gui::__draw_window(progress_win)
@@ -142,7 +142,7 @@ var bg_under = func(root) {
     return win
 }
 
-set_ext("background_render", func(caption, mapname, mapinfo, mapshot) {
+externals::set("background_render", func(caption, mapname, mapinfo, mapshot) {
     var root = gui::get_root()
     root.calc_text_scale()
     root.layout_dim()

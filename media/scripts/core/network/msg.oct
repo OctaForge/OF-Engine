@@ -14,7 +14,8 @@ var M = {}
 from std.util import assert
 from std.conv import tonumber
 from std.string import char
-from core.externals import set as setext
+
+import core.externals
 
 from core.octascript.messagepack import unpack as mp_unpack
 
@@ -52,7 +53,7 @@ var cursor_msg = func(p) {
     return { p: p, get_byte: get_byte }
 }
 var ubuft = ffi["typeof"]("ucharbuf &")
-setext("buf_get_msgpack", func(p) {
+externals::set("buf_get_msgpack", func(p) {
     return mp_unpack(cursor_msg(ffi::cast(ubuft, p)))
 })
 

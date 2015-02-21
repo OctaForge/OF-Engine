@@ -11,7 +11,7 @@
 import core.engine.edit
 import core.events.signal
 
-from core.externals import set as set_external
+import core.externals
 
 var emit = signal.emit
 var ents
@@ -23,7 +23,7 @@ var ents
     Arguments:
         - cn - the client entity number.
 */
-set_external("physics_off_map", func(cn) {
+externals::set("physics_off_map", func(cn) {
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_dynamic(cn)
     if !ent { return }
@@ -39,7 +39,7 @@ set_external("physics_off_map", func(cn) {
         - cn - the client entity number.
         - mat - the material id (see $edit).
 */
-set_external("physics_in_deadly", func(cn, mat) {
+externals::set("physics_in_deadly", func(cn, mat) {
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_dynamic(cn)
     if !ent { return }
@@ -69,7 +69,7 @@ var FLAG_BELOWGROUND = 2 << 4
         - mat - the material id (fore xample when jumping out of/into water,
           it's the water material id, see $edit).
 */
-set_external("physics_state_change", func(cn, loc, flevel, llevel, mat) {
+externals::set("physics_state_change", func(cn, loc, flevel, llevel, mat) {
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_dynamic(cn)
     if !ent { return }
@@ -100,7 +100,7 @@ from std.environ import globals
     Called on a text message event. Emits a signal "text_message" on the
     player entity with the text as an argument.
 */
-set_external("event_text_message", func(uid, text) {
+externals::set("event_text_message", func(uid, text) {
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_dynamic(uid)
     if ent {
@@ -112,7 +112,7 @@ set_external("event_text_message", func(uid, text) {
     Serverside. Called after a server sends all the active entities to the
     client. Emits a signal "login" on the player entity.
 */
-set_external("event_player_login", func(uid) {
+externals::set("event_player_login", func(uid) {
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_dynamic(uid)
     if ent {

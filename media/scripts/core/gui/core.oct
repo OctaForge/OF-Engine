@@ -15,6 +15,7 @@ import capi
 import core.engine.cubescript as cs
 import core.events.signal
 import core.logger
+import core.externals
 
 from std.geom import Vec2
 
@@ -25,8 +26,6 @@ shader_hud_set, hud_get_w, hud_get_h, hud_get_ss_x, hud_get_ss_y, hud_get_so_x,
 hud_get_so_y, isconnected, text_get_res, text_font_get_h, aspect_get,
 editing_get, console_scale_get, input_get_free_cursor, input_cursor_get_x,
 input_cursor_get_y, input_cursor_exists_update in capi
-
-from core.externals import set as set_external
 
 var var_get, var_set = cs.var_get, cs.var_set
 
@@ -2642,7 +2641,7 @@ var mousebuttons = {
     (key.MOUSEBACK): true, (key.MOUSEFORWARD): true
 }
 
-set_external("input_keypress", func(code, isdown) {
+externals::set("input_keypress", func(code, isdown) {
     if !root.cursor_exists() || !root.visible || root.disabled {
         return false
     }
@@ -2701,7 +2700,7 @@ set_external("input_keypress", func(code, isdown) {
     return root.key(code, isdown)
 })
 
-set_external("input_text", func(str) {
+externals::set("input_text", func(str) {
     return root.text_input(str)
 })
 
@@ -2712,7 +2711,7 @@ signal::connect(cs, "mainmenu,changed", func(self, v) {
     mmenu = v
 })
 
-set_external("gui_clear", func() {
+externals::set("gui_clear", func() {
     root.reset()
     if mmenu != 0 && isconnected() {
         var_set("mainmenu", 0, true, false)
@@ -2723,7 +2722,7 @@ set_external("gui_clear", func() {
     }
 })
 
-set_external("gui_update", func() {
+externals::set("gui_update", func() {
     if mmenu != 0 && !root.window_visible("main") &&
     !isconnected(true) {
         root.show_window("main")
@@ -2756,7 +2755,7 @@ M.__draw_window = func(win) {
     root.set_projection(undef)
 }
 
-set_external("gui_render", func() {
+externals::set("gui_render", func() {
     var w = root
     if draw_hud || (w.visible && !w.children.empty()) {
         w.draw()
@@ -2765,7 +2764,7 @@ set_external("gui_render", func() {
     }
 })
 
-set_external("gui_above_hud", func() {
+externals::set("gui_above_hud", func() {
     return root.above_hud()
 })
 

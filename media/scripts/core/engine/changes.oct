@@ -11,7 +11,7 @@
 import core.engine.cubescript as cs
 import core.events.signal
 
-from core.externals import set as set_external
+import core.externals
 
 var needsapply = []
 
@@ -27,7 +27,7 @@ M.change = enum {
 }
 var change = M.change
 
-set_external("change_add", func(desc, ctype) {
+externals::set("change_add", func(desc, ctype) {
     signal::emit(M, "add", ctype, desc)
 })
 
@@ -61,7 +61,7 @@ M.clear = func(ctype) {
         return true
     })
 }
-set_external("changes_clear", M.clear)
+externals::set("changes_clear", M.clear)
 
 /**
     Applies all queued changes.
