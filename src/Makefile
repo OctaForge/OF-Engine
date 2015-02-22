@@ -228,6 +228,10 @@ endif
 
 # LuaJIT detection
 
+ifeq ($(TARGET_SYS),Darwin)
+	LUAJIT_INC =
+	LUAJIT_LIB =
+else
 ifneq ($(TARGET_SYS),Windows)
 	ifeq (,$(LUAJIT_LOCAL))
 		LUAJIT_INC := $(shell PKG_CONFIG_PATH="$(LUAJIT_PKGCONF_PATH)" \
@@ -243,6 +247,7 @@ ifneq ($(TARGET_SYS),Windows)
 else
 	LUAJIT_LIB = -llua51
 endif
+endif
 
 # client/server includes
 
@@ -254,8 +259,9 @@ ifeq ($(TARGET_SYS),Darwin)
 	CS_OSX_INC = -I$(OSX_FRAMEWORKS)/SDL2.framework/Headers
 	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL2_image.framework/Headers
 	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL2_mixer.framework/Headers
+	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/LuaJIT.framework/Headers
 	CS_OSX_LIB = -F$(OSX_FRAMEWORKS) -framework SDL2 \
-		-framework SDL2_image -framework SDL2_mixer
+		-framework SDL2_image -framework SDL2_mixer -framework LuaJIT
 	CS_OSX_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(CS_OSX_INC)
 	CS_OSX_CFLAGS += -Wno-import
 	CS_OSX_CXXFLAGS = $(CS_OSX_CFLAGS) -fno-exceptions -fno-rtti

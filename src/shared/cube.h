@@ -27,9 +27,15 @@
 #include <time.h>
 
 extern "C" {
-    #include "lua.h"
-    #include "lualib.h"
-    #include "lauxlib.h"
+#ifdef __APPLE__
+  #include "LuaJIT/lua.h"
+  #include "LuaJIT/lualib.h"
+  #include "LuaJIT/lauxlib.h"
+#else
+  #include "lua.h"
+  #include "lualib.h"
+  #include "lauxlib.h"
+#endif
 }
 
 #ifdef WIN32
