@@ -90,9 +90,13 @@ Supported compilers are GCC (at least 4.2), Clang and possibly others.
 Windows
 =======
 
-On Windows, fetch the repository <https://github.com/OctaForge/OF-Windows> and
-place the `platform_windows` directory into `src` and contents of `bin_win32/64`
-to `bin_win32/64`.
+On Windows, fetch the repository with dependencies and place the `platform_windows`
+directory into `src` and contents of `bin_win32/64` to `bin_win32/64`.
+
+There are two locations where you can grab a copy of the repository:
+
+https://git.octaforge.org/build/libs_win.git
+https://github.com/OctaForge/OF-Windows
 
 Then you have 3 options:
 
