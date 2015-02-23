@@ -1006,7 +1006,14 @@ int main(int argc, char **argv)
 #ifdef WIN32
         dir = sethomedir("$HOME\\My Games\\OctaForge");
 #else
+#ifdef __APPLE__
+        extern char *mac_get_homedir(const char *projname);
+        char *ret = mac_get_homedir("OctaForge");
+        dir = sethomedir(ret ? ret : "$HOME/.octaforge");
+        free(ret);
+#else
         dir = sethomedir("$HOME/.octaforge");
+#endif
 #endif
     }
     if (dir) {
