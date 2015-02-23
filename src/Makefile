@@ -507,10 +507,22 @@ endif
 
 # ENet
 
-$(OBJDIR)/%.o: %.c $$(@D)/.stamp
+$(OBJDIR)/enet/%.o: enet/%.c $$(@D)/.stamp
 	$(E) " CC (enet)   $(subst $(OBJDIR)/,,$@)"
 	$(Q) $(TARGET_CC) $(CFLAGS) $(ENET_CFLAGS) -c -o $@ \
 	$(subst .o,.c,$(subst $(OBJDIR)/,,$@))
+
+# macutils
+
+$(OBJDIR)/xcode/%.o: xcode/%.m  $$(@D)/.stamp
+	$(E) " CC (objc)   $(subst $(OBJDIR)/,,$@)"
+	$(Q) $(TARGET_CC) $(CFLAGS) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -c -o $@ \
+	$(subst .o,.c,$(subst $(OBJDIR)/,,$@))
+
+ifeq ($(TARGET_SYS),Darwin)
+	EXTRA_OBJ = xcode/macutils.o
+	EXTRA_OBJB = $(addprefix $(OBJDIR)/, $(EXTRA_OBJ))
+endif
 
 # OctaForge - client
 
@@ -520,10 +532,10 @@ $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
 	$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
 ifneq ($(TARGET_SYS),Windows)
-client: $(ENET_OBJB) $(CLIENT_OBJB)
+client: $(ENET_OBJB) $(CLIENT_OBJB) $(EXTRA_OBJB)
 	$(E) " LD (client) $(CLIENT_BIN)"
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -o $(CLIENT_BIN) \
-	$(ENET_OBJB) $(CLIENT_OBJB) $(CLIENT_LDFLAGS) $(LDFLAGS)
+	$(ENET_OBJB) $(CLIENT_OBJB) $(EXTRA_OBJB) $(CLIENT_LDFLAGS) $(LDFLAGS)
 else
 client: $(ENET_OBJB) $(CLIENT_OBJB)
 	$(E) " LD (client) $(CLIENT_BIN)"
