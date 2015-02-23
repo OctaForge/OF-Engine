@@ -261,7 +261,8 @@ ifeq ($(TARGET_SYS),Darwin)
 	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL2_mixer.framework/Headers
 	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/LuaJIT.framework/Headers
 	CS_OSX_LIB = -F$(OSX_FRAMEWORKS) -framework SDL2 \
-		-framework SDL2_image -framework SDL2_mixer -framework LuaJIT
+		-framework SDL2_image -framework SDL2_mixer -framework LuaJIT \
+		-framework Cocoa
 	CS_OSX_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(CS_OSX_INC)
 	CS_OSX_CFLAGS += -Wno-import
 	CS_OSX_CXXFLAGS = $(CS_OSX_CFLAGS) -fno-exceptions -fno-rtti
@@ -391,7 +392,7 @@ endif
 else
 ifeq ($(TARGET_SYS),Darwin)
 	SERVER_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
-	SERVER_LDFLAGS += -lz
+	SERVER_LDFLAGS += -lz -framework LuaJIT
 ifeq ($(TARGET_ARCH),x64)
 	SERVER_LDFLAGS += -pagezero_size 10000 -image_base 100000000
 endif
@@ -517,8 +518,10 @@ $(OBJDIR)/enet/%.o: enet/%.c $$(@D)/.stamp
 $(OBJDIR)/xcode/%.o: xcode/%.m  $$(@D)/.stamp
 	$(E) " CC (objc)   $(subst $(OBJDIR)/,,$@)"
 	$(Q) $(TARGET_CC) $(CFLAGS) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -c -o $@ \
-	$(subst .o,.c,$(subst $(OBJDIR)/,,$@))
+	$(subst .o,.m,$(subst $(OBJDIR)/,,$@))
 
+EXTRA_OBJ =
+EXTRA_OBJB =
 ifeq ($(TARGET_SYS),Darwin)
 	EXTRA_OBJ = xcode/macutils.o
 	EXTRA_OBJB = $(addprefix $(OBJDIR)/, $(EXTRA_OBJ))

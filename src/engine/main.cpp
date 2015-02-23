@@ -6,6 +6,13 @@
 #include <direct.h>
 #endif
 
+#ifdef __APPLE__
+extern "C" {
+    char *mac_get_homedir();
+    void  mac_set_datapath();
+}
+#endif
+
 extern void cleargamma();
 
 void cleanup()
@@ -979,7 +986,6 @@ int main(int argc, char **argv)
     initing = INIT_RESET;
 
 #ifdef __APPLE__
-    extern void mac_set_datapath();
     mac_set_datapath();
 #else
 #ifdef WIN32
@@ -1012,8 +1018,9 @@ int main(int argc, char **argv)
         dir = sethomedir("$HOME\\My Games\\OctaForge");
 #else
 #ifdef __APPLE__
-        extern void mac_set_homedir();
-        mac_set_homedir();
+        char *hdir = mac_get_homedir();
+        dir = sethomedir(hdir);
+        free(hdir);
 #else
         dir = sethomedir("$HOME/.octaforge");
 #endif

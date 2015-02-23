@@ -3,24 +3,23 @@
  * tesseract launcher code used for reference
  */
 
+#include <stdio.h>
 #include <unistd.h>
 #import <Cocoa/Cocoa.h>
-
-extern const char *sethomedir(const char *dir);
 
 #define BUNDLE_NAME @"OctaForge"
 #define HOME_FALLBACK "$HOME/.octaforge"
 
-void mac_set_homedir() {
+char *mac_get_homedir() {
+    NSFileManager *fm = [NSFileManager defaultManager];
     NSArray *supports = [fm URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask];
     if ([supports count]) {
         NSString *path = [[supports objectAtIndex:0] path];
         path = [path stringByAppendingPathComponent:BUNDLE_NAME];
         if (![fm fileExistsAtPath:path]) [fm createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:nil]; // ensure it exists
-        sethomedir([path UTF8String]);
-    } else {
-        sethomedir(HOME_FALLBACK);
+        return strdup([path UTF8String]);
     }
+    return strdup(HOME_FALLBACK);
 }
 
 void mac_set_datapath() {
@@ -58,5 +57,4 @@ void mac_set_datapath() {
             }
         }
     }
-    return NULL;
 }
