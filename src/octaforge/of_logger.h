@@ -16,6 +16,11 @@
 #undef ERROR
 #endif
 
+/* Mac */
+#ifdef DEBUG
+#undef DEBUG
+#endif
+
 namespace logger
 {
     #define LEVELNUM 6
