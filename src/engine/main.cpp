@@ -784,7 +784,7 @@ void checkinput()
                     if (!strcmp(ext + 1, "ofm")) {
                         game::changemap(mname);
                     } else if (!strcmp(ext + 1, "dmo")) {
-                        game::changemap(mname, -1);
+                        game::changemap(fname, -1);
                     }
                 }
                 SDL_free(fname);
