@@ -39,6 +39,7 @@ namespace game
     extern void toserver(char *text);
     extern void changemap(const char *name);
     extern void forceedit(const char *name);
+    extern void changemap(const char *name, int mode);
     extern bool ispaused();
     extern int scaletime(int t);
     extern bool allowmouselook();

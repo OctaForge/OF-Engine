@@ -773,6 +773,23 @@ void checkinput()
                 if(event.wheel.y > 0) { processkey(-4, true); processkey(-4, false); }
                 else if(event.wheel.y < 0) { processkey(-5, true); processkey(-5, false); }
                 break;
+
+            case SDL_DROPFILE: {
+                char *fname = event.drop.file;
+                char *mname = strrchr(fname, PATHDIV);
+                mname = mname ? (mname + 1) : fname;
+                char *ext = strrchr(mname, '.');
+                if (ext) {
+                    *ext = '\0';
+                    if (!strcmp(ext + 1, "ofm")) {
+                        game::changemap(mname);
+                    } else if (!strcmp(ext + 1, "dmo")) {
+                        game::changemap(mname, -1);
+                    }
+                }
+                SDL_free(fname);
+                break;
+            }
         }
     }
     if(mousemoved) resetmousemotion();
@@ -1143,6 +1160,8 @@ int main(int argc, char **argv)
 
     inputgrab(grabinput = true);
     ignoremousemotion();
+
+    SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 
     for(;;)
     {
