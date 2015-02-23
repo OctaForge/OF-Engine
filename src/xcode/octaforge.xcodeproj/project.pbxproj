@@ -381,7 +381,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 1F7233741A9BCB830096362F /* Build configuration list for PBXProject "OctaForge" */;
+			buildConfigurationList = 1F7233741A9BCB830096362F /* Build configuration list for PBXProject "octaforge" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -661,7 +661,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1F7233741A9BCB830096362F /* Build configuration list for PBXProject "OctaForge" */ = {
+		1F7233741A9BCB830096362F /* Build configuration list for PBXProject "octaforge" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1F7233941A9BCB840096362F /* Debug */,

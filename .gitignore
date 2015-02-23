@@ -19,3 +19,6 @@ bin_win*/LICENSE*
 *.diff
 *.patch
 *.out
+xcuserdata/
+octaforge.xcworkspace/
+*.xcuserstate
