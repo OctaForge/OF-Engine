@@ -978,6 +978,10 @@ int main(int argc, char **argv)
 
     initing = INIT_RESET;
 
+#ifdef __APPLE__
+    extern void mac_set_datapath();
+    mac_set_datapath();
+#else
 #ifdef WIN32
 #define OF_CHDIR _chdir
 #else
@@ -988,6 +992,7 @@ int main(int argc, char **argv)
         if (OF_CHDIR("..")) fatal("unable to change directory!");
     }
 #undef OF_CHDIR
+#endif
 
     char *loglevel = (char*)"WARNING";
     const char *dir = NULL;
@@ -1007,10 +1012,8 @@ int main(int argc, char **argv)
         dir = sethomedir("$HOME\\My Games\\OctaForge");
 #else
 #ifdef __APPLE__
-        extern char *mac_get_homedir(const char *projname);
-        char *ret = mac_get_homedir("OctaForge");
-        dir = sethomedir(ret ? ret : "$HOME/.octaforge");
-        free(ret);
+        extern void mac_set_homedir();
+        mac_set_homedir();
 #else
         dir = sethomedir("$HOME/.octaforge");
 #endif
