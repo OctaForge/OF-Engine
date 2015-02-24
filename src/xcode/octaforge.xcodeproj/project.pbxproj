@@ -76,6 +76,7 @@
 		1F7DEDF41A9BFBEA00017C35 /* CONTRIBUTORS.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */; };
 		1F7DEDF51A9BFBEA00017C35 /* COPYING.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDED1A9BFBD400017C35 /* COPYING.md */; };
 		1F7DEDF61A9BFBEA00017C35 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEE1A9BFBD400017C35 /* README.md */; };
+		1F7DEDF81A9C032800017C35 /* octaforge.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDF71A9C032800017C35 /* octaforge.icns */; };
 		1FBF72091A9BE2AF006F918A /* macutils.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FBF72081A9BE2AF006F918A /* macutils.m */; };
 		1FC763E11A9BD39B00B93722 /* LuaJIT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763DD1A9BD39B00B93722 /* LuaJIT.framework */; };
 		1FC763E21A9BD39B00B93722 /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763DE1A9BD39B00B93722 /* SDL2_image.framework */; };
@@ -207,6 +208,7 @@
 		1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = CONTRIBUTORS.md; path = ../../CONTRIBUTORS.md; sourceTree = "<group>"; };
 		1F7DEDED1A9BFBD400017C35 /* COPYING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = COPYING.md; path = ../../COPYING.md; sourceTree = "<group>"; };
 		1F7DEDEE1A9BFBD400017C35 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
+		1F7DEDF71A9C032800017C35 /* octaforge.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = octaforge.icns; sourceTree = "<group>"; };
 		1FBF72081A9BE2AF006F918A /* macutils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = macutils.m; sourceTree = "<group>"; };
 		1FC763DD1A9BD39B00B93722 /* LuaJIT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LuaJIT.framework; path = Frameworks/LuaJIT.framework; sourceTree = "<group>"; };
 		1FC763DE1A9BD39B00B93722 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
@@ -240,6 +242,7 @@
 				1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */,
 				1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */,
 				1F7DEDED1A9BFBD400017C35 /* COPYING.md */,
+				1F7DEDF71A9C032800017C35 /* octaforge.icns */,
 				1F7DEDEE1A9BFBD400017C35 /* README.md */,
 				1FBF72081A9BE2AF006F918A /* macutils.m */,
 				1F6D8FEE1A9BE20800365C8C /* command.h */,
@@ -441,6 +444,7 @@
 				1F7DEDF41A9BFBEA00017C35 /* CONTRIBUTORS.md in Resources */,
 				1F7DEDF51A9BFBEA00017C35 /* COPYING.md in Resources */,
 				1F7DEDF61A9BFBEA00017C35 /* README.md in Resources */,
+				1F7DEDF81A9C032800017C35 /* octaforge.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
