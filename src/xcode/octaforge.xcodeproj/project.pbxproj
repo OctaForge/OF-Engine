@@ -64,19 +64,42 @@
 		1F6D90011A9BE20800365C8C /* stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8FFA1A9BE20800365C8C /* stream.cpp */; };
 		1F6D90021A9BE20800365C8C /* tools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8FFB1A9BE20800365C8C /* tools.cpp */; };
 		1F6D90031A9BE20800365C8C /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8FFD1A9BE20800365C8C /* zip.cpp */; };
+		1F7DEDE71A9BFA1F00017C35 /* LuaJIT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1FC763DD1A9BD39B00B93722 /* LuaJIT.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1F7DEDE81A9BFA1F00017C35 /* SDL2_image.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1FC763DE1A9BD39B00B93722 /* SDL2_image.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1F7DEDE91A9BFA1F00017C35 /* SDL2_mixer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1FC763DF1A9BD39B00B93722 /* SDL2_mixer.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1F7DEDEA1A9BFA1F00017C35 /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1FC763E01A9BD39B00B93722 /* SDL2.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1F7DEDEF1A9BFBD400017C35 /* CHANGELOG.md in Sources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */; };
+		1F7DEDF01A9BFBD400017C35 /* CONTRIBUTORS.md in Sources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */; };
+		1F7DEDF11A9BFBD400017C35 /* COPYING.md in Sources */ = {isa = PBXBuildFile; fileRef = 1F7DEDED1A9BFBD400017C35 /* COPYING.md */; };
+		1F7DEDF21A9BFBD400017C35 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEE1A9BFBD400017C35 /* README.md */; };
+		1F7DEDF31A9BFBEA00017C35 /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */; };
+		1F7DEDF41A9BFBEA00017C35 /* CONTRIBUTORS.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */; };
+		1F7DEDF51A9BFBEA00017C35 /* COPYING.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDED1A9BFBD400017C35 /* COPYING.md */; };
+		1F7DEDF61A9BFBEA00017C35 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEE1A9BFBD400017C35 /* README.md */; };
 		1FBF72091A9BE2AF006F918A /* macutils.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FBF72081A9BE2AF006F918A /* macutils.m */; };
 		1FC763E11A9BD39B00B93722 /* LuaJIT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763DD1A9BD39B00B93722 /* LuaJIT.framework */; };
 		1FC763E21A9BD39B00B93722 /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763DE1A9BD39B00B93722 /* SDL2_image.framework */; };
 		1FC763E31A9BD39B00B93722 /* SDL2_mixer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763DF1A9BD39B00B93722 /* SDL2_mixer.framework */; };
 		1FC763E41A9BD39B00B93722 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763E01A9BD39B00B93722 /* SDL2.framework */; };
-		1FC763E51A9BD3BC00B93722 /* LuaJIT.framework in Resources */ = {isa = PBXBuildFile; fileRef = 1FC763DD1A9BD39B00B93722 /* LuaJIT.framework */; };
-		1FC763E61A9BD3BC00B93722 /* SDL2_image.framework in Resources */ = {isa = PBXBuildFile; fileRef = 1FC763DE1A9BD39B00B93722 /* SDL2_image.framework */; };
-		1FC763E71A9BD3BC00B93722 /* SDL2_mixer.framework in Resources */ = {isa = PBXBuildFile; fileRef = 1FC763DF1A9BD39B00B93722 /* SDL2_mixer.framework */; };
-		1FC763E81A9BD3BC00B93722 /* SDL2.framework in Resources */ = {isa = PBXBuildFile; fileRef = 1FC763E01A9BD39B00B93722 /* SDL2.framework */; };
 		1FC763EA1A9BD55800B93722 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763E91A9BD55800B93722 /* OpenGL.framework */; };
 		1FC763EC1A9BD57200B93722 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763EB1A9BD57200B93722 /* Cocoa.framework */; };
-		1FD65E2A1A9BE0730062A3C5 /* octaforge.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1FD65E291A9BE0730062A3C5 /* octaforge.plist */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1F7DEDE61A9BF9F500017C35 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				1F7DEDE71A9BFA1F00017C35 /* LuaJIT.framework in CopyFiles */,
+				1F7DEDE81A9BFA1F00017C35 /* SDL2_image.framework in CopyFiles */,
+				1F7DEDE91A9BFA1F00017C35 /* SDL2_mixer.framework in CopyFiles */,
+				1F7DEDEA1A9BFA1F00017C35 /* SDL2.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1F6D8F671A9BE1BC00365C8C /* callbacks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = callbacks.c; path = ../enet/callbacks.c; sourceTree = "<group>"; };
@@ -180,6 +203,10 @@
 		1F6D8FFC1A9BE20800365C8C /* tools.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = tools.h; path = ../shared/tools.h; sourceTree = "<group>"; };
 		1F6D8FFD1A9BE20800365C8C /* zip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = zip.cpp; path = ../shared/zip.cpp; sourceTree = "<group>"; };
 		1F7233791A9BCB840096362F /* OctaForge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OctaForge.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = CHANGELOG.md; path = ../../CHANGELOG.md; sourceTree = "<group>"; };
+		1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = CONTRIBUTORS.md; path = ../../CONTRIBUTORS.md; sourceTree = "<group>"; };
+		1F7DEDED1A9BFBD400017C35 /* COPYING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = COPYING.md; path = ../../COPYING.md; sourceTree = "<group>"; };
+		1F7DEDEE1A9BFBD400017C35 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
 		1FBF72081A9BE2AF006F918A /* macutils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = macutils.m; sourceTree = "<group>"; };
 		1FC763DD1A9BD39B00B93722 /* LuaJIT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LuaJIT.framework; path = Frameworks/LuaJIT.framework; sourceTree = "<group>"; };
 		1FC763DE1A9BD39B00B93722 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
@@ -210,6 +237,10 @@
 		1F7233701A9BCB830096362F = {
 			isa = PBXGroup;
 			children = (
+				1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */,
+				1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */,
+				1F7DEDED1A9BFBD400017C35 /* COPYING.md */,
+				1F7DEDEE1A9BFBD400017C35 /* README.md */,
 				1FBF72081A9BE2AF006F918A /* macutils.m */,
 				1F6D8FEE1A9BE20800365C8C /* command.h */,
 				1F6D8FEF1A9BE20800365C8C /* crypto.cpp */,
@@ -357,6 +388,8 @@
 				1F7233751A9BCB840096362F /* Sources */,
 				1F7233761A9BCB840096362F /* Frameworks */,
 				1F7233771A9BCB840096362F /* Resources */,
+				1F7DEDE61A9BF9F500017C35 /* CopyFiles */,
+				1F0DB7001A9BF1F60087804F /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -404,15 +437,30 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1FC763E51A9BD3BC00B93722 /* LuaJIT.framework in Resources */,
-				1FD65E2A1A9BE0730062A3C5 /* octaforge.plist in Resources */,
-				1FC763E61A9BD3BC00B93722 /* SDL2_image.framework in Resources */,
-				1FC763E71A9BD3BC00B93722 /* SDL2_mixer.framework in Resources */,
-				1FC763E81A9BD3BC00B93722 /* SDL2.framework in Resources */,
+				1F7DEDF31A9BFBEA00017C35 /* CHANGELOG.md in Resources */,
+				1F7DEDF41A9BFBEA00017C35 /* CONTRIBUTORS.md in Resources */,
+				1F7DEDF51A9BFBEA00017C35 /* COPYING.md in Resources */,
+				1F7DEDF61A9BFBEA00017C35 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1F0DB7001A9BF1F60087804F /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "# partially taken from tesseract\ncd \"$TARGET_BUILD_DIR\"\n\nrm -f OctaForge.dmg\n\nOFPKG=`mktemp -d /tmp/ofpkg.XXXXXX` || exit 1\n\nCpMac -r \"$TARGET_BUILD_DIR/OctaForge.app\" \"$OFPKG/OctaForge.app\"\nstrip -u -r \"$OFPKG/OctaForge.app/Contents/MacOS/OctaForge\"\n\nGAMEDIR=\"$OFPKG/OctaForge.app/Contents/gamedata\"\nmkdir \"$GAMEDIR\"\n\nCpMac -r \"$SRCROOT/../../README.md\" \"$OFPKG/README.md\"\nCpMac -r \"$SRCROOT/../../COPYING.md\" \"$OFPKG/COPYING.md\"\nCpMac -r \"$SRCROOT/../../CHANGELOG.md\" \"$OFPKG/CHANGELOG.md\"\nCpMac -r \"$SRCROOT/../../CONTRIBUTORS.md\" \"$OFPKG/CONTRIBUTORS.md\"\nCpMac -r \"$SRCROOT/../../config\" \"$GAMEDIR/\"\nCpMac -r \"$SRCROOT/../../media\" \"$GAMEDIR/\"\nfind \"$OFPKG\" -name \".DS_Store\" -exec rm -f {} \\\\;\n\necho creating dmg\nhdiutil create -srcfolder \"$OFPKG\" -volname OctaForge OctaForge.dmg\nhdiutil internet-enable -yes OctaForge.dmg\n\nrm -rf \"$OFPKG\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1F7233751A9BCB840096362F /* Sources */ = {
@@ -423,6 +471,7 @@
 				1F6D8FD11A9BE1DC00365C8C /* rendersky.cpp in Sources */,
 				1F6D8F731A9BE1BC00365C8C /* list.c in Sources */,
 				1F6D8FC81A9BE1DC00365C8C /* octaedit.cpp in Sources */,
+				1F7DEDF21A9BFBD400017C35 /* README.md in Sources */,
 				1F6D8FD31A9BE1DC00365C8C /* renderva.cpp in Sources */,
 				1F6D8F701A9BE1BC00365C8C /* callbacks.c in Sources */,
 				1F6D8FCB1A9BE1DC00365C8C /* physics.cpp in Sources */,
@@ -433,11 +482,14 @@
 				1F6D8FC21A9BE1DC00365C8C /* light.cpp in Sources */,
 				1F6D8FEC1A9BE1F400365C8C /* of_logger.cpp in Sources */,
 				1F6D8F721A9BE1BC00365C8C /* host.c in Sources */,
+				1F7DEDF11A9BFBD400017C35 /* COPYING.md in Sources */,
 				1F6D8FC51A9BE1DC00365C8C /* movie.cpp in Sources */,
+				1F7DEDEF1A9BFBD400017C35 /* CHANGELOG.md in Sources */,
 				1F6D8FC71A9BE1DC00365C8C /* octa.cpp in Sources */,
 				1F6D8FBC1A9BE1DC00365C8C /* blend.cpp in Sources */,
 				1F6D8FCE1A9BE1DC00365C8C /* renderlights.cpp in Sources */,
 				1F6D8F751A9BE1BC00365C8C /* peer.c in Sources */,
+				1F7DEDF01A9BFBD400017C35 /* CONTRIBUTORS.md in Sources */,
 				1F6D8FDA1A9BE1DC00365C8C /* water.cpp in Sources */,
 				1F6D8FCA1A9BE1DC00365C8C /* ovr.cpp in Sources */,
 				1F6D90001A9BE20800365C8C /* glemu.cpp in Sources */,
@@ -567,6 +619,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -618,7 +671,9 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Frameworks",
