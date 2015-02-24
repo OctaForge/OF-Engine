@@ -77,13 +77,13 @@
 		1F7DEDF51A9BFBEA00017C35 /* COPYING.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDED1A9BFBD400017C35 /* COPYING.md */; };
 		1F7DEDF61A9BFBEA00017C35 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDEE1A9BFBD400017C35 /* README.md */; };
 		1F7DEDF81A9C032800017C35 /* octaforge.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1F7DEDF71A9C032800017C35 /* octaforge.icns */; };
+		1F97D0541A9D60470039F958 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F97D0531A9D60470039F958 /* Cocoa.framework */; };
 		1FBF72091A9BE2AF006F918A /* macutils.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FBF72081A9BE2AF006F918A /* macutils.m */; };
 		1FC763E11A9BD39B00B93722 /* LuaJIT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763DD1A9BD39B00B93722 /* LuaJIT.framework */; };
 		1FC763E21A9BD39B00B93722 /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763DE1A9BD39B00B93722 /* SDL2_image.framework */; };
 		1FC763E31A9BD39B00B93722 /* SDL2_mixer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763DF1A9BD39B00B93722 /* SDL2_mixer.framework */; };
 		1FC763E41A9BD39B00B93722 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763E01A9BD39B00B93722 /* SDL2.framework */; };
 		1FC763EA1A9BD55800B93722 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763E91A9BD55800B93722 /* OpenGL.framework */; };
-		1FC763EC1A9BD57200B93722 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FC763EB1A9BD57200B93722 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -204,11 +204,12 @@
 		1F6D8FFC1A9BE20800365C8C /* tools.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = tools.h; path = ../shared/tools.h; sourceTree = "<group>"; };
 		1F6D8FFD1A9BE20800365C8C /* zip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = zip.cpp; path = ../shared/zip.cpp; sourceTree = "<group>"; };
 		1F7233791A9BCB840096362F /* OctaForge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OctaForge.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = CHANGELOG.md; path = ../../CHANGELOG.md; sourceTree = "<group>"; };
-		1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = CONTRIBUTORS.md; path = ../../CONTRIBUTORS.md; sourceTree = "<group>"; };
-		1F7DEDED1A9BFBD400017C35 /* COPYING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = COPYING.md; path = ../../COPYING.md; sourceTree = "<group>"; };
-		1F7DEDEE1A9BFBD400017C35 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
+		1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = CHANGELOG.md; path = ../../../CHANGELOG.md; sourceTree = "<group>"; };
+		1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = CONTRIBUTORS.md; path = ../../../CONTRIBUTORS.md; sourceTree = "<group>"; };
+		1F7DEDED1A9BFBD400017C35 /* COPYING.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = COPYING.md; path = ../../../COPYING.md; sourceTree = "<group>"; };
+		1F7DEDEE1A9BFBD400017C35 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../../README.md; sourceTree = "<group>"; };
 		1F7DEDF71A9C032800017C35 /* octaforge.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = octaforge.icns; sourceTree = "<group>"; };
+		1F97D0531A9D60470039F958 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		1FBF72081A9BE2AF006F918A /* macutils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = macutils.m; sourceTree = "<group>"; };
 		1FC763DD1A9BD39B00B93722 /* LuaJIT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LuaJIT.framework; path = Frameworks/LuaJIT.framework; sourceTree = "<group>"; };
 		1FC763DE1A9BD39B00B93722 /* SDL2_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_image.framework; path = Frameworks/SDL2_image.framework; sourceTree = "<group>"; };
@@ -224,7 +225,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1FC763EC1A9BD57200B93722 /* Cocoa.framework in Frameworks */,
+				1F97D0541A9D60470039F958 /* Cocoa.framework in Frameworks */,
 				1FC763EA1A9BD55800B93722 /* OpenGL.framework in Frameworks */,
 				1FC763E11A9BD39B00B93722 /* LuaJIT.framework in Frameworks */,
 				1FC763E21A9BD39B00B93722 /* SDL2_image.framework in Frameworks */,
@@ -239,11 +240,8 @@
 		1F7233701A9BCB830096362F = {
 			isa = PBXGroup;
 			children = (
-				1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */,
-				1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */,
-				1F7DEDED1A9BFBD400017C35 /* COPYING.md */,
+				1F97D0531A9D60470039F958 /* Cocoa.framework */,
 				1F7DEDF71A9C032800017C35 /* octaforge.icns */,
-				1F7DEDEE1A9BFBD400017C35 /* README.md */,
 				1FBF72081A9BE2AF006F918A /* macutils.m */,
 				1F6D8FEE1A9BE20800365C8C /* command.h */,
 				1F6D8FEF1A9BE20800365C8C /* crypto.cpp */,
@@ -375,6 +373,10 @@
 		1F72337C1A9BCB840096362F /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				1F7DEDEB1A9BFBD400017C35 /* CHANGELOG.md */,
+				1F7DEDEC1A9BFBD400017C35 /* CONTRIBUTORS.md */,
+				1F7DEDED1A9BFBD400017C35 /* COPYING.md */,
+				1F7DEDEE1A9BFBD400017C35 /* README.md */,
 				1FD65E291A9BE0730062A3C5 /* octaforge.plist */,
 			);
 			name = "Supporting Files";
@@ -622,6 +624,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
+				CLANG_LINK_OBJC_RUNTIME = NO;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CODE_SIGN_IDENTITY = "";
@@ -634,10 +637,14 @@
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					_DEBUG,
 				);
+				GCC_REUSE_STRINGS = YES;
 				GCC_STRICT_ALIASING = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -677,6 +684,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
+				CLANG_LINK_OBJC_RUNTIME = NO;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CODE_SIGN_IDENTITY = "";
@@ -689,8 +697,11 @@
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
-				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_REUSE_STRINGS = YES;
 				GCC_STRICT_ALIASING = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;

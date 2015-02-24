@@ -32,13 +32,11 @@ For all OSes
    a GUI client such as TortoiseGit more convenient than the command line
    client.
 
-Unix-like systems (including Linux, the BSDs and Mac OS X)
+Unix-like systems (including Linux and the BSDs)
 ==========================================================
 
 On these OSes, compilation should be really trivial. Instructions assume Linux
 with .deb packaging system, with little modifications it should work everywhere.
-
-Currently this includes OS X. At some point, OS X will get its own instructions.
 
 Supported compilers are GCC (at least 4.2), Clang and possibly others.
 
@@ -86,6 +84,30 @@ Supported compilers are GCC (at least 4.2), Clang and possibly others.
    Add `VERBOSE=1` at the end of the make command for verbose builds.
 
 3. You're done, you should have binaries in `OFROOT/bin_unix`.
+
+OS X
+====
+
+First, fetch the repository with dependencies and place the `Frameworks` directory
+into `src/xcode`.
+
+There are two locations where you can grab a copy of the repository:
+
+https://git.octaforge.org/build/libs_mac.git  
+https://github.com/OctaForge/OF-Mac
+
+Then you have 3 options:
+
+1. Use the standard Unix way of building. In that case, just follow the
+instructions above. This option is good for development, but not for deployment.
+
+2. Use the Xcode project file. Just open `src/xcode/octaforge.xcodeproj` and
+build like any Xcode project. Aditionally, the Archive step deploys the
+distribution (includes creation of a final release dmg file)
+
+3. Use the Xcode project file via xcodebuild.
+
+All options work and are fully supported. Select the one that suits you the best.
 
 Windows
 =======
