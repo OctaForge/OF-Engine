@@ -63,8 +63,6 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2015 OctaForge developers. Available under the terms of the University of Illinois/NCSA Open Source license.</string>
-	<key>NSMainNibFile</key>
-	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>SDLApplication</string>
 </dict>
