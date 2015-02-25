@@ -38,7 +38,7 @@ CXX_WARN = $(CC_WARN)
 OBJDIR ?= build
 
 # Mac OS X framework path
-OSX_FRAMEWORKS = /Library/Frameworks
+OSX_FRAMEWORKS = xcode/Frameworks
 
 # C++ compiler flags for OF client
 CLIENT_XCXXFLAGS ?=
