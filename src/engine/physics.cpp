@@ -636,9 +636,8 @@ bool plcollide(physent *d, const vec &dir)    // collide with player
             gameent *pl2 = (gameent *)o;
             if (pl1->lastclientcollide != lastmillis || pl2->lastclientcollide != lastmillis) {
                 lua::call_external("physics_collide_client", "iifff",
-                    pl1->clientnum, pl1->clientnum, collidewall.x, collidewall.y, collidewall.z);
-                pl1->lastclientcollide = lastmillis;
-                pl2->lastclientcollide = lastmillis;
+                    pl1->clientnum, pl2->clientnum, collidewall.x, collidewall.y, collidewall.z);
+                pl1->lastclientcollide = pl2->lastclientcollide = lastmillis;
             }
             return true;
         }
