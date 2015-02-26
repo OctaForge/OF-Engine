@@ -632,8 +632,12 @@ bool plcollide(physent *d, const vec &dir)    // collide with player
                 default: continue;
             }
             collideplayer = o;
-            lua::call_external("physics_collide_client", "iifff",
-                ((gameent *)d)->clientnum, ((gameent *)o)->clientnum, collidewall.x, collidewall.y, collidewall.z);
+            static int collidemillis = -1;
+            if (collidemillis != lastmillis) {
+                collidemillis = lastmillis;
+                lua::call_external("physics_collide_client", "iifff",
+                    ((gameent *)d)->clientnum, ((gameent *)o)->clientnum, collidewall.x, collidewall.y, collidewall.z);
+            }
             return true;
         }
     }
@@ -807,7 +811,11 @@ bool areacollide(physent *d, const vec &dir, float cutoff, const extentity &e) {
     }
     return false;
 collision:
-    lua::call_external("physics_collide_area", "ii", ((gameent *)d)->clientnum, e.uid);
+    static int collidemillis = -1;
+    if (collidemillis != lastmillis) {
+        collidemillis = lastmillis;
+        lua::call_external("physics_collide_area", "ii", ((gameent *)d)->clientnum, e.uid);
+    }
     return e.attr[6];
 }
 
@@ -888,7 +896,11 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         /* OF - collision handling; "return false" replaced with gotos above */
         continue;
 collision:
-        lua::call_external("physics_collide_mapmodel", "ii", ((gameent *)d)->clientnum, e.uid);
+        static int collidemillis = -1;
+        if (collidemillis != lastmillis) {
+            collidemillis = lastmillis;
+            lua::call_external("physics_collide_mapmodel", "ii", ((gameent *)d)->clientnum, e.uid);
+        }
         return true;
     }
     return false;
