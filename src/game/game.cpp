@@ -193,6 +193,39 @@ namespace game
         }
     }
 
+    struct dynentcollision {
+        int pl, cn;
+        vec wall;
+        dynentcollision(int a, int b, const vec &w): pl(a), cn(b), wall(w) {}
+    };
+
+    struct extentcollision {
+        int pl, uid;
+        extentcollision(int a, int b): pl(a), uid(b) {}
+    };
+
+    static vector<dynentcollision> dcolcache;
+    static vector<extentcollision> ecolcache;
+
+    extern void collidedynent(int pl, int cn, const vec &wall) {
+        loopv(dcolcache) {
+            const dynentcollision &c = dcolcache[i];
+            if ((c.pl == pl && c.cn == cn) || (c.cn == pl && c.pl == cn)) {
+                return;
+            }
+        }
+        dcolcache.add(dynentcollision(pl, cn, wall));
+    }
+    extern void collideextent(int pl, int uid) {
+        loopv(ecolcache) {
+            const extentcollision &e = ecolcache[i];
+            if (e.pl == pl && e.uid == uid) {
+                return;
+            }
+        }
+        ecolcache.add(extentcollision(pl, uid));
+    }
+
     void updateworld()        // main game update loop
     {
         if(!maptime) { maptime = lastmillis; maprealtime = totalmillis; return; }
@@ -201,7 +234,24 @@ namespace game
         physicsframe();
         otherplayers(curtime);
         moveragdolls();
-        if (connected) lua::call_external("frame_handle", "ii", curtime, lastmillis);
+        if (connected) {
+            loopv(dcolcache) {
+                const dynentcollision &c = dcolcache[i];
+                lua::call_external("physics_collide_client", "iifff",
+                    c.pl, c.cn, c.wall.x, c.wall.y, c.wall.z);
+            }
+            loopv(ecolcache) {
+                const extentcollision &e = ecolcache[i];
+                if ((entities::getents()[e.uid])->type == ET_OBSTACLE) {
+                    lua::call_external("physics_collide_area", "ii", e.pl, e.uid);
+                } else {
+                    lua::call_external("physics_collide_mapmodel", "ii", e.pl, e.uid);
+                }
+            }
+            lua::call_external("frame_handle", "ii", curtime, lastmillis);
+        }
+        dcolcache.setsize(0);
+        ecolcache.setsize(0);
         gets2c();
         bool b = false;
         if (connected) lua::call_external_ret("entity_is_initialized", "i", "b",
@@ -320,6 +370,8 @@ namespace game
     void startgame()
     {
         clearragdolls();
+        dcolcache.setsize(0);
+        ecolcache.setsize(0);
 
         // reset perma-state
         loopv(players) players[i]->startgame();

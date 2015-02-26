@@ -632,13 +632,7 @@ bool plcollide(physent *d, const vec &dir)    // collide with player
                 default: continue;
             }
             collideplayer = o;
-            gameent *pl1 = (gameent *)d;
-            gameent *pl2 = (gameent *)o;
-            if (pl1->lastclientcollide != lastmillis || pl2->lastclientcollide != lastmillis) {
-                lua::call_external("physics_collide_client", "iifff",
-                    pl1->clientnum, pl2->clientnum, collidewall.x, collidewall.y, collidewall.z);
-                pl1->lastclientcollide = pl2->lastclientcollide = lastmillis;
-            }
+            game::collidedynent(((gameent *)d)->clientnum, ((gameent *)o)->clientnum, collidewall);
             return true;
         }
     }
@@ -812,11 +806,7 @@ bool areacollide(physent *d, const vec &dir, float cutoff, const extentity &e) {
     }
     return false;
 collision:
-    gameent *pl = (gameent *)d;
-    if (pl->lastareacollide != lastmillis) {
-        lua::call_external("physics_collide_area", "ii", pl->clientnum, e.uid);
-        pl->lastareacollide = lastmillis;
-    }
+    game::collideextent(((gameent *)d)->clientnum, e.uid);
     return e.attr[6];
 }
 
@@ -897,11 +887,7 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         /* OF - collision handling; "return false" replaced with gotos above */
         continue;
 collision:
-        gameent *pl = (gameent *)d;
-        if (pl->lastmodelcollide != lastmillis) {
-            lua::call_external("physics_collide_mapmodel", "ii", pl->clientnum, e.uid);
-            pl->lastmodelcollide = lastmillis;
-        }
+        game::collideextent(((gameent *)d)->clientnum, e.uid);
         return true;
     }
     return false;
