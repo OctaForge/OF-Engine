@@ -136,6 +136,7 @@ struct gameent : dynent
     int clientnum, privilege, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int lastpain;
+    int lastareacollide, lastmodelcollide, lastclientcollide;
     editinfo *edit;
     float deltayaw, deltapitch, deltaroll, newyaw, newpitch, newroll;
     int smoothmillis;
@@ -152,7 +153,7 @@ struct gameent : dynent
     hashtable<const char*, entlinkpos> attachment_positions;
 #endif
 
-    gameent() : weight(100), clientnum(-1), privilege(PRIV_NONE), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), anim(0), start_time(0), can_move(false), ai(NULL)
+    gameent() : weight(100), clientnum(-1), privilege(PRIV_NONE), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), lastareacollide(0), lastmodelcollide(0), lastclientcollide(0), edit(NULL), smoothmillis(-1), anim(0), start_time(0), can_move(false), ai(NULL)
     {
         name[0] = 0;
 #ifndef STANDALONE

@@ -632,11 +632,13 @@ bool plcollide(physent *d, const vec &dir)    // collide with player
                 default: continue;
             }
             collideplayer = o;
-            static int collidemillis = -1;
-            if (collidemillis != lastmillis) {
-                collidemillis = lastmillis;
+            gameent *pl1 = (gameent *)d;
+            gameent *pl2 = (gameent *)o;
+            if (pl1->lastclientcollide != lastmillis || pl2->lastclientcollide != lastmillis) {
                 lua::call_external("physics_collide_client", "iifff",
-                    ((gameent *)d)->clientnum, ((gameent *)o)->clientnum, collidewall.x, collidewall.y, collidewall.z);
+                    pl1->clientnum, pl1->clientnum, collidewall.x, collidewall.y, collidewall.z);
+                pl1->lastclientcollide = lastmillis;
+                pl2->lastclientcollide = lastmillis;
             }
             return true;
         }
@@ -811,10 +813,10 @@ bool areacollide(physent *d, const vec &dir, float cutoff, const extentity &e) {
     }
     return false;
 collision:
-    static int collidemillis = -1;
-    if (collidemillis != lastmillis) {
-        collidemillis = lastmillis;
-        lua::call_external("physics_collide_area", "ii", ((gameent *)d)->clientnum, e.uid);
+    gameent *pl = (gameent *)d;
+    if (pl->lastareacollide != lastmillis) {
+        lua::call_external("physics_collide_area", "ii", pl->clientnum, e.uid);
+        pl->lastareacollide = lastmillis;
     }
     return e.attr[6];
 }
@@ -896,10 +898,10 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         /* OF - collision handling; "return false" replaced with gotos above */
         continue;
 collision:
-        static int collidemillis = -1;
-        if (collidemillis != lastmillis) {
-            collidemillis = lastmillis;
-            lua::call_external("physics_collide_mapmodel", "ii", ((gameent *)d)->clientnum, e.uid);
+        gameent *pl = (gameent *)d;
+        if (pl->lastmodelcollide != lastmillis) {
+            lua::call_external("physics_collide_mapmodel", "ii", pl->clientnum, e.uid);
+            pl->lastmodelcollide = lastmillis;
         }
         return true;
     }
