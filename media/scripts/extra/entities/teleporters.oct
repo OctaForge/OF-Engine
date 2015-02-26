@@ -59,7 +59,7 @@ M.Teleporter = Obstacle.clone({
 
     __activate: func(self, kwargs) {
         Obstacle::__activate(self, kwargs)
-        connect(self, "collision", self.on_collision)
+        connect(self, "collision,start", self.on_collision)
     },
 
     on_collision: func(self, collider) {

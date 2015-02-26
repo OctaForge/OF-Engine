@@ -204,25 +204,37 @@ namespace game
         extentcollision(int a, int b): pl(a), uid(b) {}
     };
 
-    static vector<dynentcollision> dcolcache;
-    static vector<extentcollision> ecolcache;
+    static vector<dynentcollision> dcolcache, prevdcolcache;
+    static vector<extentcollision> ecolcache, prevecolcache;
 
-    extern void collidedynent(int pl, int cn, const vec &wall) {
-        loopv(dcolcache) {
-            const dynentcollision &c = dcolcache[i];
+    static bool checkdynentcolcache(vector<dynentcollision> &cache, int pl, int cn, bool unset = false) {
+        loopv(cache) {
+            dynentcollision &c = cache[i];
             if ((c.pl == pl && c.cn == cn) || (c.cn == pl && c.pl == cn)) {
-                return;
+                if (unset) c.pl = -1;
+                return true;
             }
         }
+        return false;
+    }
+
+    static bool checkextentcolcache(vector<extentcollision> &cache, int pl, int uid, bool unset = false) {
+        loopv(cache) {
+            extentcollision &e = cache[i];
+            if (e.pl == pl && e.uid == uid) {
+                if (unset) e.pl = -1;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    extern void collidedynent(int pl, int cn, const vec &wall) {
+        if (checkdynentcolcache(dcolcache, pl, cn)) return;
         dcolcache.add(dynentcollision(pl, cn, wall));
     }
     extern void collideextent(int pl, int uid) {
-        loopv(ecolcache) {
-            const extentcollision &e = ecolcache[i];
-            if (e.pl == pl && e.uid == uid) {
-                return;
-            }
-        }
+        if (checkextentcolcache(ecolcache, pl, uid)) return;
         ecolcache.add(extentcollision(pl, uid));
     }
 
@@ -237,21 +249,40 @@ namespace game
         if (connected) {
             loopv(dcolcache) {
                 const dynentcollision &c = dcolcache[i];
-                lua::call_external("physics_collide_client", "iifff",
-                    c.pl, c.cn, c.wall.x, c.wall.y, c.wall.z);
+                int cont = checkdynentcolcache(prevdcolcache, c.pl, c.cn, true);
+                lua::call_external("physics_collide_client", "iiifff",
+                    c.pl, c.cn, cont, c.wall.x, c.wall.y, c.wall.z);
             }
             loopv(ecolcache) {
                 const extentcollision &e = ecolcache[i];
+                int cont = checkextentcolcache(prevecolcache, e.pl, e.uid, true);
                 if ((entities::getents()[e.uid])->type == ET_OBSTACLE) {
-                    lua::call_external("physics_collide_area", "ii", e.pl, e.uid);
+                    lua::call_external("physics_collide_area", "iii", e.pl, e.uid, cont);
                 } else {
-                    lua::call_external("physics_collide_mapmodel", "ii", e.pl, e.uid);
+                    lua::call_external("physics_collide_mapmodel", "iii", e.pl, e.uid, cont);
+                }
+            }
+            loopv(prevdcolcache) {
+                const dynentcollision &c = prevdcolcache[i];
+                if (c.pl < 0) continue;
+                lua::call_external("physics_collide_client", "iiifff",
+                    c.pl, c.cn, -1, c.wall.x, c.wall.y, c.wall.z);
+            }
+            loopv(prevecolcache) {
+                const extentcollision &e = prevecolcache[i];
+                if (e.pl < 0) continue;
+                if ((entities::getents()[e.uid])->type == ET_OBSTACLE) {
+                    lua::call_external("physics_collide_area", "iii", e.pl, e.uid, -1);
+                } else {
+                    lua::call_external("physics_collide_mapmodel", "iii", e.pl, e.uid, -1);
                 }
             }
             lua::call_external("frame_handle", "ii", curtime, lastmillis);
         }
-        dcolcache.setsize(0);
-        ecolcache.setsize(0);
+        prevdcolcache.setsize(0);
+        prevecolcache.setsize(0);
+        prevdcolcache.move(dcolcache);
+        prevecolcache.move(ecolcache);
         gets2c();
         bool b = false;
         if (connected) lua::call_external_ret("entity_is_initialized", "i", "b",
@@ -372,6 +403,8 @@ namespace game
         clearragdolls();
         dcolcache.setsize(0);
         ecolcache.setsize(0);
+        prevdcolcache.setsize(0);
+        prevecolcache.setsize(0);
 
         // reset perma-state
         loopv(players) players[i]->startgame();
