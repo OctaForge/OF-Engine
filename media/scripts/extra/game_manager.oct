@@ -22,6 +22,20 @@ var connect, emit = signal.connect, signal.emit
 
 var get
 
+if !msg::is_server_only() {
+    /**
+        A player start entity type. Inherits all properties of OrientedMarker.
+    */
+    M.PlayerStart = ents.OrientedMarker.clone({
+        name: "PlayerStart",
+
+        // TODO: icon for playerstart
+        __edit_icon: "media/interface/icon/edit_marker"
+    })
+
+    ents::register_prototype(M.PlayerStart)
+}
+
 /**
     Player-side game manager functionality. If you want to use the game
     game manager, you need to set up your player entity prototype with this
@@ -182,19 +196,14 @@ var GameManager = Entity.clone({
 
     place_player: func(self, player) {
         var team = player.get_attr("team")
-        var st
-        if team == "" {
-            st = "player_start"
-        } else {
-            st = "player_start_" ~ team
-        }
-        var starts = ents::get_static_by_tag(st)
-        if starts && starts.len() > 0 {
+        var tname = (team != "") ? ("team_" ~ team) : undef
+        var starts = ents::get_by_prototype("PlayerStart")
+            .filter(\ent -> tname ? ent.has_tag(tname) : true)
+        if starts.len() > 0 {
             starts[rand(0, starts.len())].place_entity(player)
             return
         }
-        log::log(log.WARNING, 'player start !found (\"%s\"), '
-                              'placing player elsewhere'.format(st))
+        log::log(log.WARNING, 'player start not found, placing elsewhere')
         player.set_attr("position", [ 512, 512, 571 ])
     },
 
