@@ -807,7 +807,7 @@ bool areacollide(physent *d, const vec &dir, float cutoff, const extentity &e) {
     }
     return false;
 collision:
-    lua::call_external("physics_collide_area", "pp", ((gameent *)d)->clientnum, e.uid);
+    lua::call_external("physics_collide_area", "ii", ((gameent *)d)->clientnum, e.uid);
     return e.attr[6];
 }
 
