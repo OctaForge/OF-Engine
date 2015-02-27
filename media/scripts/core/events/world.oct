@@ -69,7 +69,7 @@ var FLAG_BELOWGROUND = 2 << 4
         - mat - the material id (fore xample when jumping out of/into water,
           it's the water material id, see $edit).
 */
-externals::set("physics_state_change", func(cn, loc, flevel, llevel, mat) {
+externals::set("physics_state_change", func(tp, cn, loc, flevel, llevel, mat) {
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_dynamic(cn)
     if !ent { return }

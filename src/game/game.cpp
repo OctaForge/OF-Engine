@@ -441,7 +441,7 @@ namespace game
 
     void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material)
     {
-        lua::call_external("physics_state_change", "ibiii", ((gameent *)d)->clientnum,
+        lua::call_external("physics_state_change", "iibiii", d->type, ((gameent *)d)->clientnum,
             local, floorlevel, waterlevel, material);
     }
 
