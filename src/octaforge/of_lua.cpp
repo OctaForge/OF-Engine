@@ -86,10 +86,11 @@ namespace lua
                     lua_pushvalue(L, va_arg(ar->ap, int));
                     ++nargs; break;
                 case 'm':
-                    lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
                     if (!push_external("buf_get_msgpack")) {
                         lua_pushnil(L);
                     } else {
+                        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+                        lua_insert(L, -2);
                         lua_pushlightuserdata(L, va_arg(ar->ap, void *));
                         if (lua_pcall(L, 1, 1, -3)) {
                             logger::log(logger::ERROR, "%s", lua_tostring(L, -1));
@@ -848,20 +849,52 @@ namespace lua
         }
     })
 
+    ICOMMAND(scriptaction, "sV", (tagval *args, int nargs), {
+        if (nargs <= 0) return;
+        const char *actname = args[0].getstr();
+        if (!push_external("input_action_call")) return;
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+        lua_insert(L, -2);
+        lua_pushstring(L, actname);
+        for (int i = 1; i < nargs; ++i) {
+            tagval &v = args[i];
+            switch (v.type) {
+                case VAL_INT:
+                    lua_pushinteger(L, v.getint()); break;
+                case VAL_FLOAT:
+                    lua_pushnumber(L, v.getfloat()); break;
+                case VAL_STR:
+                    lua_pushstring(L, v.getstr()); break;
+                default:
+                    const char *str = v.getstr();
+                    if (str && str[0]) lua_pushstring(L, str);
+                    else lua_pushnil(L);
+                    break;
+            }
+        }
+        if (lua_pcall(L, nargs, 0, -nargs - 2)) {
+            logger::log(logger::ERROR, "%s", lua_tostring(L, -1));
+            lua_pop(L, 2);
+        } else {
+            lua_pop(L, 1);
+        }
+    })
+
     LUAICOMMAND(cubescript, {
         tagval v;
         executeret(luaL_checkstring(L, 1), v);
         switch (v.type) {
             case VAL_INT:
-                lua_pushinteger(L, v.getint());
+                lua_pushinteger(L, v.getint()); break;
             case VAL_FLOAT:
-                lua_pushnumber(L, v.getfloat());
+                lua_pushnumber(L, v.getfloat()); break;
             case VAL_STR:
-                lua_pushstring(L, v.getstr());
+                lua_pushstring(L, v.getstr()); break;
             default:
                 const char *str = v.getstr();
                 if (str && str[0]) lua_pushstring(L, str);
                 else lua_pushnil(L);
+                break;
         }
         return 1;
     })

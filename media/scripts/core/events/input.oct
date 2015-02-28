@@ -211,4 +211,37 @@ M.get_event = func(en) {
     return externals::get(en)
 }
 
+var actions = {}
+
+/**
+    Sets a new external action. Takes the action name and a callback. These
+    actions can then be called from other parts of the engine. This is mainly
+    used to deal with external keybindings for games.
+*/
+M.set_action = func(an, af) {
+    var old = actions[an]
+    actions[an] = af
+    return old
+}
+
+/**
+    Gets an external action. See $set_action.
+*/
+M.get_action = func(an) {
+    return actions[an]
+}
+
+/**
+    Unsets an external action. See $set_action.
+*/
+M.unset_action = func(an) {
+    actions[an] = undef
+}
+
+externals::set("input_action_call", func(an, ...) {
+    var f = actions[an]
+    if !f { return }
+    f(...)
+})
+
 return M
