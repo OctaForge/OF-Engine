@@ -728,7 +728,7 @@ void renderentcone(const extentity &e, const vec &dir, float radius, float angle
     xtraverts += gle::end();
 }
 
-void renderentbox(const extentity &e, const vec &center, const vec &radius, int yaw, int pitch, int roll)
+void renderentbox(const extentity &e, const vec &center, const vec &radius, int yaw, int pitch, int roll, bool frontcross = true)
 {
     matrix4x3 orient;
     orient.identity();
@@ -753,10 +753,12 @@ void renderentbox(const extentity &e, const vec &center, const vec &radius, int 
     xtraverts += gle::end();
 
     gle::begin(GL_LINES);
-    gle::attrib(front[0]);
+    if (frontcross) {
+        gle::attrib(front[0]);
         gle::attrib(front[2]);
-    gle::attrib(front[1]);
+        gle::attrib(front[1]);
         gle::attrib(front[3]);
+    }
     loopi(4)
     {
         gle::attrib(front[i]);
@@ -813,6 +815,9 @@ void renderentradius(extentity &e, bool color)
             vec dir;
             vecfromyawpitch(e.attr[0], e.attr[1], 1, 0, dir);
             renderentarrow(e, dir, 4);
+            if (e.type == ET_OBSTACLE) {
+                renderentbox(e, vec(0, 0, 0), vec(e.attr[3], e.attr[4], e.attr[5]), e.attr[0], e.attr[1], e.attr[2], false);
+            }
             goto attach;
         }
 
