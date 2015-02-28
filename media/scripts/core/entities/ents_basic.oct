@@ -34,7 +34,7 @@ var var_get = cs.var_get
 
 var Entity = ents.Entity
 
-from std.conv import tonumber
+from std.conv import tonumber, tostring
 from std.math import abs, min, max, clamp
 
 var connect, emit = signal.connect, signal.emit
@@ -893,7 +893,9 @@ M.StaticEntity = Entity.clone({
     set_sdata: func(self, key, val, actor_uid) {
         @[debug] log(INFO, "    var update")
         var svar = self[e"_SV_$key"]
-        assert(svar.validate(val))
+        if !svar.validate(val) {
+            raise e"received invalid value for svar $key ($(tostring(val)))"
+        }
         self.sdata_changed(svar, key, val)
         emit(self, e"$key,changed", val, actor_uid != -1)
         self.svar_values[key] = val

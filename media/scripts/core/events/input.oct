@@ -156,8 +156,6 @@ event_map = {
 /// Module: input
 var M = {}
 
-from std.util import assert
-
 /**
     Sets an event callback. If the callback is not provided, the default
     callback is used (as before overriding).
@@ -177,11 +175,10 @@ from std.util import assert
         - fun - the callback.
 */
 M.set_event = func(en, fun) {
-    if !en {
+    if typeof fun != "function" || !en {
         return false
-    } else {
-        en = "input_" ~ en
     }
+    en = "input_" ~ en
     var old = event_map[en]
     if !old { return false }
     if fun == undef {
@@ -194,7 +191,6 @@ M.set_event = func(en, fun) {
         event_map[en] = true
         return true
     }
-    assert(typeof fun == "function")
     var ret = externals::get(en)
     if old == true && en != "input_mouse_move" { event_map[en] = ret }
     externals::set(en, fun)

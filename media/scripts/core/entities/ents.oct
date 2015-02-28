@@ -134,7 +134,9 @@ var register_plugins = func(cl, plugins, name) {
     var clname = cl.name
     for i, slot in clmeths.each() {
         var slotname = modprefix ~ clname ~ slot
-        assert(!cl[slotname])
+        if cl[slotname] {
+            raise e"reserved field used: $slotname"
+        }
 
         var cltbl = [ cl[slot] ]
         for j, plugin in plugins.each() {
@@ -156,7 +158,9 @@ var register_plugins = func(cl, plugins, name) {
         for name, elem in pairs(plugin) {
             if !clmethset[name] {
                 if name == "__properties" {
-                    assert(typeof elem == "table")
+                    if typeof elem != "table" {
+                        raise "properties field must be a table"
+                    }
                     if !properties {
                         properties = elem
                     } else {
@@ -225,12 +229,15 @@ M.register_prototype = func(cl, plugins, name) {
             name = cl.name
         }
     }
-    assert(name)
+    if !name {
+        raise "attempt to register an unnamed entity prototype"
+    }
 
     @[debug] log(DEBUG, e"ents.register_prototype: $name")
 
-    assert(!proto_storage[name],
-        "an entity prototype with the same name already exists")
+    if proto_storage[name] {
+        raise e"entity prototype already exists: $name"
+    }
 
     if plugins {
         cl = register_plugins(cl, plugins, name)
@@ -407,13 +414,14 @@ var add = func(cn, uid, kwargs, new) {
     var cl = typeof cn == "table" && cn || (proto_storage[cn]
                                         ||  proto_storage[proto_aliases[cn]])
     if !cl {
-        log(ERROR, e"ents.add: no such entity prototype: $(tostring(cn))")
-        assert(false)
+        raise e"ents.add: no such entity prototype: $(tostring(cn))"
     }
 
     var cstor = cl.__storage
     var stor = storages[cstor]
-    assert(stor)
+    if !stor {
+        raise e"invalid entity storage: $cstor"
+    }
 
     if !uid {
         /* try to reuse indexes (TODO: cache unused indexes for better perf) */
@@ -432,7 +440,9 @@ var add = func(cn, uid, kwargs, new) {
     }
 
     @[debug] log(DEBUG, e"ents.add: $(cl.name) ($uid)")
-    assert(!stor[uid])
+    if stor[uid] {
+        raise e"attempt to recreate uid $uid in $cstor storage"
+    }
 
     var r = cl()
     r.uid = uid
@@ -856,7 +866,10 @@ M.Entity = Object.clone({
             raw = sdata
         } else {
             raw = mp_unpack(sdata)
-            assert(typeof raw == "table")
+            var tp = typeof raw
+            if tp != "table" {
+                raise "invalid full sdata received (table expected, got $tp)"
+            }
         }
 
         self.initialized = true
@@ -1029,8 +1042,9 @@ M.Entity = Object.clone({
         // from a server or set clientside, update now
         if actor_uid != -1 || svar.client_set || csfh {
             @[debug] log(INFO, "    var update")
-            // TODO: avoid assertions
-            assert(svar.validate(val))
+            if !svar.validate(val) {
+                raise e"received invalid value for svar $key ($(tostring(val)))"
+            }
             self.sdata_changed(svar, key, val)
             emit(self, e"$key,changed", val, actor_uid != -1)
             self.svar_values[key] = val

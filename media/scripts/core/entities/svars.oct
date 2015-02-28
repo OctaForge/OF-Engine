@@ -165,7 +165,9 @@ M.StateVariable = Object.clone({
         assertion if on the client and client_read is false.
     */
     read_tests: func(self, ent) {
-        assert(self.client_read || @[server,true,false])
+        if !(self.client_read || @[server,true,false]) {
+            raise e"read tests for svar $(self.name) failed"
+        }
     },
 
     /**
@@ -176,13 +178,12 @@ M.StateVariable = Object.clone({
     */
     write_tests: func(self, ent) {
         if ent.deactivated {
-            assert(false, "Writing a field " ~ self.name ~
-                 " of a deactivated entity " ~ ent.name ~
-                 "(" ~ ent.uid ~ ")")
+            raise e"writing a field $(self.name) of a deactivated entity "
+                  e"$(ent.name) ($(ent.uid))"
         }
-
-        assert(self.client_write || @[server,true,false])
-        assert(ent.initialized)
+        if !(self.client_write || @[server,true,false]) || !ent.initialized {
+            raise e"write tests for svar $(self.name) failed"
+        }
     },
 
     /**
