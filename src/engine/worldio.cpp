@@ -3,7 +3,7 @@
 #include "engine.h"
 
 #ifndef STANDALONE
-string ofmname, ogzname, bakname, picname, entcfgname, entbakname, mediacfgname;
+string ofmname, ogzname, bakname, picname, entcfgname, entbakname, mediacfgname, mediabakname;
 
 VARP(savebak, 0, 2, 2);
 
@@ -12,6 +12,7 @@ void setmapfilenames(const char *fname, const char *cname = NULL)
     formatstring(ofmname, "media/map/%s/map.ofm", fname);
     formatstring(ogzname, "media/map/%s/map.ogz", fname);
     if(savebak==1) {
+        formatstring(mediabakname, "media/map/%s/media.cfg.BAK", fname);
         formatstring(entbakname, "media/map/%s/entities.oct.BAK", fname);
         formatstring(bakname, "media/map/%s/map.BAK", fname);
     } else
@@ -20,6 +21,7 @@ void setmapfilenames(const char *fname, const char *cname = NULL)
         time_t t = time(NULL);
         size_t len = strftime(baktime, sizeof(baktime), "%Y-%m-%d_%H.%M.%S", localtime(&t));
         baktime[min(len, sizeof(baktime)-1)] = '\0';
+        formatstring(mediabakname, "media/map/%s/media.cfg_%s.BAK", fname, baktime);
         formatstring(entbakname, "media/map/%s/entities.oct_%s.BAK", fname, baktime);
         formatstring(bakname, "media/map/%s/map_%s.BAK", fname, baktime);
     }
@@ -33,6 +35,7 @@ void setmapfilenames(const char *fname, const char *cname = NULL)
     path(picname);
     path(entcfgname);
     path(mediacfgname);
+    path(mediabakname);
 }
 
 void backup(const char *name, const char *backupname)

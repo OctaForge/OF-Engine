@@ -1985,9 +1985,12 @@ static void dumpslotrange(stream *f, int firstslot, int nslots, int indent = 0) 
     }
 }
 
-extern string mediacfgname;
+extern string mediacfgname, mediabakname;
+extern int savebak;
+extern void backup(const char *name, const char *backupname);
 
 void writemediacfg(int level) {
+    if(savebak) backup(mediacfgname, mediabakname);
     stream *f = openutf8file(mediacfgname, "w");
     if (!f) return;
     f->printf("// generated automatically by writemediacfg\n\n");
