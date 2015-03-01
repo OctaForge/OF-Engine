@@ -2428,7 +2428,7 @@ static VSlot *emptyvslot(Slot &owner)
 {
     int offset = 0;
     loopvrev(slots) if(slots[i]->variants) { offset = slots[i]->variants->index + 1; break; }
-    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) return reassignvslot(owner, vslots[i]);
+    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed && !vslots[i]->slot) return reassignvslot(owner, vslots[i]);
     return vslots.add(new VSlot(&owner, vslots.length()));
 }
 
