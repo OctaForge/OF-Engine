@@ -2053,10 +2053,10 @@ struct platformcollision
 };
 
 template<class E, class O>
-static inline bool platformcollide(physent *d, const vec &dir, physent *o, float margin)
+static inline bool platformcollide(physent *d, const vec &dir, physent *o)
 {
     E entvol(d);
-    O obvol(o, margin);
+    O obvol(o);
     vec cp;
     if(mpr::collide(entvol, obvol, NULL, NULL, &cp))
     {
@@ -2066,16 +2066,26 @@ static inline bool platformcollide(physent *d, const vec &dir, physent *o, float
     return false;
 }
 
-bool platformcollide(physent *d, physent *o, const vec &dir, float margin = 0)
+bool platformcollidebase(physent *d, physent *o, const vec &dir)
 {
     if(d->collidetype == COLLIDE_ELLIPSE)
     {
-        if(o->collidetype == COLLIDE_ELLIPSE) return ellipsecollide(d, dir, o->o, vec(0, 0, 0), o->yaw, o->xradius, o->yradius, o->aboveeye, o->eyeheight + margin);
-        else return ellipseboxcollide(d, dir, o->o, vec(0, 0, 0), o->yaw, o->xradius, o->yradius, o->aboveeye, o->eyeheight + margin);
+        if(o->collidetype == COLLIDE_ELLIPSE) return ellipsecollide(d, dir, o->o, vec(0, 0, 0), o->yaw, o->xradius, o->yradius, o->aboveeye, o->eyeheight);
+        else return ellipseboxcollide(d, dir, o->o, vec(0, 0, 0), o->yaw, o->xradius, o->yradius, o->aboveeye, o->eyeheight);
     }
-    else if(o->collidetype == COLLIDE_ELLIPSE) return platformcollide<mpr::EntOBB, mpr::EntCylinder>(d, dir, o, margin);
-    else return platformcollide<mpr::EntOBB, mpr::EntOBB>(d, dir, o, margin);
+    else if(o->collidetype == COLLIDE_ELLIPSE) return platformcollide<mpr::EntOBB, mpr::EntCylinder>(d, dir, o);
+    else return platformcollide<mpr::EntOBB, mpr::EntOBB>(d, dir, o);
 }
+
+bool platformcollide(physent *d, physent *o, const vec &dir, float margin = 0)
+{
+    float eh = o->eyeheight;
+    o->eyeheight += margin;
+    bool ret = platformcollidebase(d, o, dir);
+    o->eyeheight = eh;
+    return ret;
+}
+
 
 bool moveplatform(physent *p, const vec &dir)
 {
