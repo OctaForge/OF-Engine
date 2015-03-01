@@ -1207,9 +1207,8 @@ void entreplace()
     }
     else
     {
-        vec o = vec(c.o).mul(float(sel.grid)/float(entcopygrid)).add(vec(sel.o));
         lua::call_external("entity_new_with_sd", "sfffS", c.name,
-            o.x, o.y, o.z, c.sdata, c.sdlen);
+            -1.0f, -1.0f, -1.0f, c.sdata, c.sdlen);
     }
 }
 
