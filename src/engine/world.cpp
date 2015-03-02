@@ -855,6 +855,10 @@ void renderentradius(extentity &e, bool color)
             } else if (e.type == ET_MAPMODEL && (m = entities::getmodel(e)) && m->collide != COLLIDE_TRI) {
                 vec eo, es;
                 m->collisionbox(eo, es);
+                if (e.attr[3] > 0) {
+                    float scale = e.attr[3] / 100.0f;
+                    eo.mul(scale); es.mul(scale);
+                }
                 if (m->collide == COLLIDE_ELLIPSE) {
                     renderentcylinder(e, eo, es, e.attr[0], e.attr[1], e.attr[2]);
                 } else {
