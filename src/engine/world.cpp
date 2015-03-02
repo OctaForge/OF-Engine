@@ -771,6 +771,40 @@ void renderentbox(const extentity &e, const vec &center, const vec &radius, int 
     xtraverts += gle::end();
 }
 
+void renderentcylinder(const extentity &e, const vec &center, const vec &radius, int yaw, int pitch, int roll) {
+    matrix4x3 orient;
+    orient.identity();
+    orient.settranslation(e.o);
+    if(yaw) orient.rotate_around_z(sincosmod360(yaw));
+    if(pitch) orient.rotate_around_x(sincosmod360(pitch));
+    if(roll) orient.rotate_around_y(sincosmod360(-roll));
+    orient.translate(center);
+
+    gle::defvertex();
+
+    vec top[12], bot[12];
+    loopi(12) {
+        const vec2 &sc = sincos360[i * (360 / 12)];
+        top[i] = orient.transform(vec(radius.x * sc.x, radius.y * sc.y,  radius.z));
+        bot[i] = orient.transform(vec(radius.x * sc.x, radius.y * sc.y, -radius.z));
+    }
+
+    gle::begin(GL_LINE_LOOP);
+    loopi(12) gle::attrib(top[i]);
+    xtraverts += gle::end();
+
+    gle::begin(GL_LINES);
+    loopi(12) {
+        gle::attrib(top[i]);
+        gle::attrib(bot[i]);
+    }
+    xtraverts += gle::end();
+
+    gle::begin(GL_LINE_LOOP);
+    loopi(12) gle::attrib(bot[i]);
+    xtraverts += gle::end();
+}
+
 void renderentradius(extentity &e, bool color)
 {
     switch(e.type)
@@ -818,10 +852,14 @@ void renderentradius(extentity &e, bool color)
             renderentarrow(e, dir, 4);
             if (e.type == ET_OBSTACLE) {
                 renderentbox(e, vec(0, 0, 0), vec(e.attr[3], e.attr[4], e.attr[5]), e.attr[0], e.attr[1], e.attr[2], false);
-            } else if (e.type == ET_MAPMODEL && (m = entities::getmodel(e)) && m->collide == COLLIDE_OBB) {
+            } else if (e.type == ET_MAPMODEL && (m = entities::getmodel(e)) && m->collide != COLLIDE_TRI) {
                 vec eo, es;
                 m->collisionbox(eo, es);
-                renderentbox(e, eo, es, e.attr[0], e.attr[1], e.attr[2], false);
+                if (m->collide == COLLIDE_ELLIPSE) {
+                    renderentcylinder(e, eo, es, e.attr[0], e.attr[1], e.attr[2]);
+                } else {
+                    renderentbox(e, eo, es, e.attr[0], e.attr[1], e.attr[2], false);
+                }
             }
             goto attach;
         }
