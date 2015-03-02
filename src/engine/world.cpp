@@ -812,11 +812,16 @@ void renderentradius(extentity &e, bool color)
         case ET_ORIENTED_MARKER:
         {
             if(color) gle::colorf(0, 1, 1);
+            model *m = NULL;
             vec dir;
             vecfromyawpitch(e.attr[0], e.attr[1], 1, 0, dir);
             renderentarrow(e, dir, 4);
             if (e.type == ET_OBSTACLE) {
                 renderentbox(e, vec(0, 0, 0), vec(e.attr[3], e.attr[4], e.attr[5]), e.attr[0], e.attr[1], e.attr[2], false);
+            } else if (e.type == ET_MAPMODEL && (m = entities::getmodel(e)) && m->collide == COLLIDE_OBB) {
+                vec eo, es;
+                m->collisionbox(eo, es);
+                renderentbox(e, eo, es, e.attr[0], e.attr[1], e.attr[2], false);
             }
             goto attach;
         }
