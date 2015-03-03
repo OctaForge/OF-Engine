@@ -1,0 +1,15 @@
+/**<
+    API utilities to abstract away all the nasty FFI stuff.
+
+    Author:
+        q66 <daniel@octaforge.org>
+
+    License:
+        See COPYING.txt.
+*/
+
+var M = {}
+
+import std.ffi
+
+return M
