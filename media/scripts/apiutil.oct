@@ -12,8 +12,12 @@ var M = {}
 
 import std.ffi
 
-M.make_string = func(n) {
+M.make_strbuf = func(n) {
     return ffi::new("char[?]", n)
+}
+
+M.make_string = func(s) {
+    return ffi::string(s)
 }
 
 M.make_bytearray = func(n) {

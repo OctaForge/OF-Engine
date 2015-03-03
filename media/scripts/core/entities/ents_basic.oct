@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-import std.ffi
+import apiutil
 import capi
 import core.logger as logging
 var log = logging.log
@@ -199,7 +199,7 @@ M.Character = Entity.clone({
         model_name : svars::StateString(),
         attachments: svars::StateArray({
             setter: @[!server,func(self, val) {
-                var arr = ffi::new("const char *[?]", val.len() + 1)
+                var arr = apiutil::make_strarray(val.len() + 1)
                 for i, v in val.each() { arr[i] = v }
                 set_attachments_dyn(self, arr)
             }], client_cb: true
@@ -213,7 +213,7 @@ M.Character = Entity.clone({
                 } else {
                     ret = capi::get_client_name(cent)
                 }
-                if ret { return ffi::string(ret) }
+                if ret { return apiutil::make_string(ret) }
                 return undef
             },
             client_write: false, client_private: true,
@@ -1400,7 +1400,7 @@ M.Mapmodel = StaticEntity.clone({
         }),
         attachments: svars::StateArray({
             setter: func(self, val) {
-                var arr = ffi::new("const char *[?]", val.len() + 1)
+                var arr = apiutil::make_strarray(val.len() + 1)
                 for i, v in val.each() { arr[i] = v }
                 set_attachments_ext(self, arr)
             }

@@ -10,8 +10,6 @@
         See COPYING.txt.
 */
 
-import std.ffi
-
 import capi
 import core.logger as logging
 
