@@ -9,7 +9,7 @@
 */
 
 import capi
-import std.ffi
+import apiutil
 import std.geom
 import core.engine.model
 import core.engine.cubescript as cs
@@ -35,8 +35,6 @@ from std.table import len
 var Vec2 = geom.Vec2
 var sincosmod360 = geom.sin_cos_mod_360
 var sincos360 = geom.sin_cos_360
-
-var ffi_new = ffi.new
 
 /// Module: core
 import core.gui.core as M
@@ -1085,6 +1083,22 @@ var view_end_draw = func(self) {
     if csl { gl_scissor_enable() }
 }
 
+var build_attachments = func(self) {
+    var att = self.attachments
+    if att == self._last_attachments {
+        return self._c_attachments, att.len() * 2
+    }
+    var n = att.len() * 2
+    var stor = apiutil::make_strarray(n)
+    for i in 0 to att.len() - 1 {
+        var at = att[i]
+        stor[i * 2], stor[i * 2 + 1] = at[0], at[1]
+    }
+    self._c_attachments = stor
+    self._last_attachments = att
+    return stor, n
+}
+
 /**
     Derived from $Filler. Represents a 3D model preview.
 
@@ -1103,23 +1117,6 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
         return Filler::__ctor(self, kwargs, ...)
     },
 
-    // turn the table into a ffi-friendly array
-    build_attachments: func(self) {
-        var att = self.attachments
-        if att == self._last_attachments {
-            return self._c_attachments, att.len() * 2
-        }
-        var n = att.len() * 2
-        var stor = ffi_new("const char*[?]", n)
-        for i in 0 to att.len() - 1 {
-            var at = att[i]
-            stor[i * 2], stor[i * 2 + 1] = at[0], at[1]
-        }
-        self._c_attachments = stor
-        self._last_attachments = att
-        return stor, n
-    },
-
     start_draw: view_start_draw,
     end_draw: view_end_draw,
 
@@ -1132,7 +1129,7 @@ M.ModelViewer = register_type("ModelViewer", Filler, {
             sx + w, sy + h, true)
         model_preview_start(sx1, sy1, sx2 - sx1, sy2 - sy1, csl)
         var anim = self.anim
-        model_preview(self.model, anim, self.build_attachments())
+        model_preview(self.model, anim, build_attachments(self))
         if csl { root.clip_scissor() }
         model_preview_end()
         return Widget::draw(self, sx, sy)

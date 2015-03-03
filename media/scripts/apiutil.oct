@@ -12,4 +12,16 @@ var M = {}
 
 import std.ffi
 
+M.make_string = func(n) {
+    return ffi::new("char[?]", n)
+}
+
+M.make_bytearray = func(n) {
+    return ffi::new("unsigned char[?]", n)
+}
+
+M.make_strarray = func(n) {
+    return ffi::new("const char *[?]", n)
+}
+
 return M
