@@ -347,6 +347,10 @@ namespace lua
             setup_binds(dedicated);
         }
 
+        ~State() {
+            lua_close(state);
+        }
+
         void setup_ffi() {
             lua_getglobal(state, "require");
             lua_pushliteral(state, "ffi");
@@ -693,13 +697,8 @@ namespace lua
         return true;
     }
 
-    void load_module(const char *name)
-    {
-        L->load_module(name);
-    }
-
     LUAICOMMAND(reload_core, {
-        load_module("init");
+        L->load_module("init");
         return 0;
     })
 
@@ -717,9 +716,7 @@ namespace lua
     }
 
     void close() {
-        lua_close(L->state);
         delete L;
-        L = NULL;
         delete funs;
         delete cfuns;
     }

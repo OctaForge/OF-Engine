@@ -11,21 +11,139 @@
 var M = {}
 
 import std.ffi
+import capi
+
+var ffi_new, ffi_cast, ffi_copy, ffi_string, ffi_gc = ffi.new, ffi.cast,
+ffi.copy, ffi.string, ffi.gc
 
 M.make_strbuf = func(n) {
-    return ffi::new("char[?]", n)
+    return ffi_new("char[?]", n)
 }
 
 M.make_string = func(s) {
-    return ffi::string(s)
+    return ffi_string(s)
 }
 
 M.make_bytearray = func(n) {
-    return ffi::new("unsigned char[?]", n)
+    return ffi_new("unsigned char[?]", n)
 }
 
 M.make_strarray = func(n) {
-    return ffi::new("const char *[?]", n)
+    return ffi_new("const char *[?]", n)
+}
+
+// line buffer
+
+from std.math import clamp
+
+var chunksize = 256
+
+var ffi_move = func(dest, src, nbytes) {
+    capi::raw_move(dest, src, nbytes)
+}
+
+if !(try ffi["typeof"]("linebuf_t")) {
+    ffi::cdef(r"""
+        typedef struct linebuf_t {
+            char *text;
+            int len, maxlen;
+            int w, h;
+        } linebuf_t;
+    """)
+}
+var C = ffi.C
+
+var linebuf_grow = func(self, total, nocopy) {
+    if total + 1 <= self.maxlen { return false }
+    self.maxlen = (total + chunksize) - total % chunksize
+    var newtext = ffi_cast("char*", capi::raw_alloc(self.maxlen))
+    if !nocopy {
+        ffi_copy(newtext, self.text, self.len + 1)
+    }
+    capi::raw_free(self.text)
+    self.text = newtext
+    return true
+}
+
+var linebuf_set = func(self, str) {
+    linebuf_grow(self, str.len(), true)
+    ffi_copy(self.text, str)
+    self.len = str.len()
+    return self
+}
+
+var linebuf_insert = func(self, str, start, count) {
+    if !count || count <= 0 { count = str.len() }
+    start = clamp(start, 0, self.len)
+    linebuf_grow(self, self.len + count)
+    if self.len == 0 { self.text[0] = 0 }
+    ffi_move(self.text + start + count, self.text + start,
+        self.len - start + 1)
+    ffi_copy(self.text + start, str, count)
+    self.len += count
+    return self
+}
+M.linebuf_insert = linebuf_insert
+
+M.linebuf_prepend = func(self, str) {
+    var slen = str.len()
+    linebuf_grow(self, self.len + slen)
+    ffi_move(self.text + slen, self.text, self.len + 1)
+    ffi_copy(self.text, str)
+    self.len += slen
+    return self
+}
+
+var linebuf_append = func(self, str) {
+    linebuf_grow(self, self.len + str.len())
+    ffi_copy(self.text + self.len, str)
+    self.len += str.len()
+    return self
+}
+M.linebuf_append = linebuf_append
+
+M.linebuf_combine_lines = func(self, src) {
+    if src.len <= 0 { linebuf_set(self, "")
+    } else { for i, v in src.each() {
+        if i != 0 { linebuf_append(self, "\n") }
+        if i == 0 { linebuf_set(self, v.text, v.len)
+        } else { linebuf_insert(self, v.text, self.len, v.len) }
+    } }
+    return self
+}
+
+M.linebuf_chop = func(self, newlen) {
+    if !self.text { return self }
+    self.len = clamp(newlen, 0, self.len)
+    self.text[self.len] = 0
+    return self
+}
+
+M.linebuf_del = func(self, start, count) {
+    if !self.text { return self }
+    if start < 0 {
+        count, start = count + start, 0
+    }
+    if count <= 0 || start >= self.len { return self }
+    if start + count > self.len { count = self.len - start - 1 }
+    ffi_move(self.text + start, self.text + start + count,
+        self.len + 1 - (start + count))
+    self.len -= count
+    return self
+}
+
+var linebuf_gc = func(self) {
+    capi::raw_free(self.text)
+    self.text = undef
+    self.len, self.maxlen = 0, 0
+}
+
+M.linebuf_tostr = func(self) {
+    return ffi_string(self.text, self.len)
+}
+
+M.linebuf_new = func(x) {
+    return linebuf_set(ffi_gc(ffi_new("linebuf_t"), linebuf_gc), x || "")
 }
 
 return M
