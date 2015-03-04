@@ -697,7 +697,7 @@ namespace lua
         return true;
     }
 
-    LUAICOMMAND(reload_core, {
+    LUAICOMMANDN(reload_core, LL, {
         L->load_module("init");
         return 0;
     })
