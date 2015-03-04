@@ -12,230 +12,15 @@ void clearanims();
 
 namespace lua
 {
+    /* some initial stuff */
+
     static int load_file(lua_State *L, const char *fname);
 
     static string mod_dir = "";
 
-    static void setup_binds(bool dedicated);
-
     static int externals = LUA_REFNIL;
 
     struct va_ref { va_list ap; };
-
-    struct State {
-        lua_State *state;
-
-        static int panic(lua_State *L) {
-            lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
-            lua_pushfstring(L, "error in call to the Lua API (%s)",
-                lua_tostring(L, -2));
-            lua_call(L, 1, 1);
-            fatal("%s", lua_tostring(L, -1));
-            return 0;
-        }
-
-        bool push_external(const char *name) {
-            if (externals == LUA_REFNIL) return false;
-            lua_rawgeti(state, LUA_REGISTRYINDEX, externals);
-            lua_getfield(state, -1, name);
-            if (lua_isnil(state, -1)) {
-                lua_pop(state, 2);
-                return false;
-            }
-            lua_replace(state, -2);
-            return true;
-        }
-
-        int vcall_external(const char *name, const char *args, int retn, va_ref *ar) {
-            if (!push_external(name)) return -1;
-            int nargs = 0;
-            while (*args) {
-                switch (*args++) {
-                    case 's':
-                        lua_pushstring(state, va_arg(ar->ap, const char *));
-                        ++nargs; break;
-                    case 'S': {
-                        const char *str = va_arg(ar->ap, const char *);
-                        lua_pushlstring(state, str, va_arg(ar->ap, int));
-                        ++nargs; break;
-                    }
-                    case 'd': case 'i':
-                        lua_pushinteger(state, va_arg(ar->ap, int));
-                        ++nargs; break;
-                    case 'f':
-                        lua_pushnumber(state, va_arg(ar->ap, double));
-                        ++nargs; break;
-                    case 'b':
-                        lua_pushboolean(state, va_arg(ar->ap, int));
-                        ++nargs; break;
-                    case 'p':
-                        lua_pushlightuserdata(state, va_arg(ar->ap, void *));
-                        ++nargs; break;
-                    case 'c':
-                        lua_pushcfunction(state, va_arg(ar->ap, lua_CFunction));
-                        ++nargs; break;
-                    case 'C': {
-                        lua_CFunction cf = va_arg(ar->ap, lua_CFunction);
-                        int nups = va_arg(ar->ap, int);
-                        lua_pushcclosure(state, cf, nups);
-                        nargs -= nups - 1; break;
-                    }
-                    case 'n':
-                        lua_pushnil(state);
-                        ++nargs; break;
-                    case 'v':
-                        lua_pushvalue(state, va_arg(ar->ap, int));
-                        ++nargs; break;
-                    case 'm':
-                        if (!push_external("buf_get_msgpack")) {
-                            lua_pushnil(state);
-                        } else {
-                            lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
-                            lua_insert(state, -2);
-                            lua_pushlightuserdata(state, va_arg(ar->ap, void *));
-                            if (lua_pcall(state, 1, 1, -3)) {
-                                logger::log(logger::ERROR, "%s", lua_tostring(state, -1));
-                                lua_pop(state, 2);
-                                lua_pushnil(state); // dummy result (nil)
-                            } else {
-                                lua_remove(state, -2);
-                            }
-                        }
-                        ++nargs; break;
-                    default:
-                        assert(false);
-                        break;
-                }
-            }
-            int n1 = lua_gettop(state) - nargs - 1;
-            lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
-            lua_insert(state, -nargs - 2);
-            if (lua_pcall(state, nargs, retn, -nargs - 2)) {
-                logger::log(logger::ERROR, "%s", lua_tostring(state, -1));
-                lua_pop(state, 2);
-                return -1;
-            }
-            lua_remove(state, n1 - lua_gettop(state) - 1);
-            return lua_gettop(state) - n1;
-        }
-
-        bool call_external(const char *name, const char *args, ...) {
-            va_ref ar;
-            va_start(ar.ap, args);
-            bool ret = vcall_external(name, args, 0, &ar) >= 0;
-            va_end(ar.ap);
-            return ret;
-        }
-
-        int vcall_external_ret(const char *name, const char *args,
-        const char *retargs, va_ref *ar) {
-            int nr = LUA_MULTRET;
-            if (retargs && *retargs == 'N') {
-                ++retargs;
-                nr = va_arg(ar->ap, int);
-            }
-            int nrets = vcall_external(name, args, nr, ar);
-            if (nrets < 0) return -1;
-            int idx = nrets;
-            if (retargs) while (*retargs) {
-                switch (*retargs++) {
-                    case 'S': {
-                        const char *lstr = lua_tostring(state, -idx--);
-                        char *fstr = va_arg(ar->ap, char *);
-                        if  (!lstr) fstr[0] = '\0';
-                        else memcpy(fstr, lstr, strlen(lstr) + 1);
-                        break;
-                    }
-                    case 's':
-                        *va_arg(ar->ap, const char **) = lua_tostring(state, -idx--);
-                        break;
-                    case 'd': case 'i':
-                        *va_arg(ar->ap, int *) = lua_tointeger(state, -idx--);
-                        break;
-                    case 'f':
-                        *va_arg(ar->ap, float *) = lua_tonumber(state, -idx--);
-                        break;
-                    case 'F':
-                        *va_arg(ar->ap, double *) = lua_tonumber(state, -idx--);
-                        break;
-                    case 'b':
-                        *va_arg(ar->ap, bool *) = lua_toboolean(state, -idx--);
-                        break;
-                    case 'm': {
-                        const char **r = va_arg(ar->ap, const char **);
-                        size_t *l = va_arg(ar->ap, size_t *);
-                        *r = lua_tolstring(state, -idx--, l);
-                        break;
-                    }
-                    case 'v':
-                        idx--;
-                        break;
-                    default:
-                        assert(false);
-                        break;
-                }
-            }
-            return nrets;
-        }
-
-        int call_external_ret_nopop(const char *name, const char *args,
-        const char *retargs, ...) {
-            va_ref ar;
-            va_start(ar.ap, retargs);
-            int ret = vcall_external_ret(name, args, retargs, &ar);
-            va_end(ar.ap);
-            return ret;
-        }
-
-        bool call_external_ret(const char *name, const char *args,
-        const char *retargs, ...) {
-            va_ref ar;
-            va_start(ar.ap, retargs);
-            int ret = vcall_external_ret(name, args, retargs, &ar);
-            if (ret > 0) lua_pop(state, ret);
-            va_end(ar.ap);
-            return ret >= 0;
-        }
-
-        void pop_external_ret(int n) { if (n > 0) lua_pop(state, n); }
-    };
-
-    static State *L = NULL;
-
-    bool call_external(const char *name, const char *args, ...) {
-        va_ref ar;
-        va_start(ar.ap, args);
-        bool ret = L->vcall_external(name, args, 0, &ar) >= 0;
-        va_end(ar.ap);
-        return ret;
-    }
-
-    int call_external_ret_nopop(const char *name, const char *args,
-    const char *retargs, ...) {
-        va_ref ar;
-        va_start(ar.ap, retargs);
-        int ret = L->vcall_external_ret(name, args, retargs, &ar);
-        va_end(ar.ap);
-        return ret;
-    }
-
-    bool call_external_ret(const char *name, const char *args,
-    const char *retargs, ...) {
-        va_ref ar;
-        va_start(ar.ap, retargs);
-        int ret = L->vcall_external_ret(name, args, retargs, &ar);
-        if (ret > 0) lua_pop(L->state, ret);
-        va_end(ar.ap);
-        return ret >= 0;
-    }
-
-    void pop_external_ret(int n) { L->pop_external_ret(n); }
-
-    LUAICOMMAND(external_hook, {
-        lua_pushvalue(L, 1);
-        externals = luaL_ref(L, LUA_REGISTRYINDEX);
-        return 0;
-    })
 
     struct Reg {
         const char *name;
@@ -253,17 +38,7 @@ namespace lua
     typedef vector<CReg> capifuns;
     static capifuns *cfuns = NULL;
 
-    bool reg_fun(const char *name, lua_CFunction fun) {
-        if (!funs) funs = new apifuns;
-        funs->add(Reg(name, fun));
-        return true;
-    }
-
-    bool reg_cfun(const char *name, const char *sig, void *fun) {
-        if (!cfuns) cfuns = new capifuns;
-        cfuns->add(CReg(name, sig, fun));
-        return true;
-    }
+    /* stream API */
 
     /* streams! */
 
@@ -501,184 +276,426 @@ namespace lua
         { NULL,         NULL}
     };
 
+    /* actual state */
+
+    struct State {
+        lua_State *state;
+
+        State(bool dedicated, const char *dir) {
+            copystring(mod_dir, dir);
+
+            state = luaL_newstate();
+            if (!state) return;
+            lua_atpanic(state, State::panic);
+            luaL_openlibs(state);
+
+            lua_getglobal(state, "package");
+
+            /* home directory paths */
+#ifndef WIN32
+            lua_pushfstring(state, ";%smedia/?/init.oct", homedir);
+            lua_pushfstring(state, ";%smedia/?/init.lua", homedir);
+            lua_pushfstring(state, ";%smedia/?.oct", homedir);
+            lua_pushfstring(state, ";%smedia/?.lua", homedir);
+            lua_pushfstring(state, ";%smedia/scripts/lang/octascript/?/init.oct", homedir);
+            lua_pushfstring(state, ";%smedia/scripts/lang/octascript/?/init.lua", homedir);
+            lua_pushfstring(state, ";%smedia/scripts/lang/octascript/?.oct", homedir);
+            lua_pushfstring(state, ";%smedia/scripts/lang/octascript/?.lua", homedir);
+            lua_pushfstring(state, ";%smedia/scripts/?/init.oct", homedir);
+            lua_pushfstring(state, ";%smedia/scripts/?/init.lua", homedir);
+            lua_pushfstring(state, ";%smedia/scripts/?.oct", homedir);
+            lua_pushfstring(state, ";%smedia/scripts/?.lua", homedir);
+#else
+            lua_pushfstring(state, ";%smedia\\?\\init.oct", homedir);
+            lua_pushfstring(state, ";%smedia\\?\\init.lua", homedir);
+            lua_pushfstring(state, ";%smedia\\?.oct", homedir);
+            lua_pushfstring(state, ";%smedia\\?.lua", homedir);
+            lua_pushfstring(state, ";%smedia\\scripts\\lang\\octascript\\?\\init.oct", homedir);
+            lua_pushfstring(state, ";%smedia\\scripts\\lang\\octascript\\?\\init.lua", homedir);
+            lua_pushfstring(state, ";%smedia\\scripts\\lang\\octascript\\?.oct", homedir);
+            lua_pushfstring(state, ";%smedia\\scripts\\lang\\octascript\\?.lua", homedir);
+            lua_pushfstring(state, ";%smedia\\scripts\\?\\init.oct", homedir);
+            lua_pushfstring(state, ";%smedia\\scripts\\?\\init.lua", homedir);
+            lua_pushfstring(state, ";%smedia\\scripts\\?.oct", homedir);
+            lua_pushfstring(state, ";%smedia\\scripts\\?.lua", homedir);
+#endif
+
+            /* root paths */
+            lua_pushliteral(state, ";./media/?/init.oct");
+            lua_pushliteral(state, ";./media/?/init.lua");
+            lua_pushliteral(state, ";./media/?.oct");
+            lua_pushliteral(state, ";./media/?.lua");
+            lua_pushliteral(state, ";./media/scripts/lang/octascript/?/init.oct");
+            lua_pushliteral(state, ";./media/scripts/lang/octascript/?/init.lua");
+            lua_pushliteral(state, ";./media/scripts/lang/octascript/?.oct");
+            lua_pushliteral(state, ";./media/scripts/lang/octascript/?.lua");
+            lua_pushliteral(state, ";./media/scripts/?/init.oct");
+            lua_pushliteral(state, ";./media/scripts/?/init.lua");
+            lua_pushliteral(state, ";./media/scripts/?.oct");
+            lua_pushliteral(state, ";./media/scripts/?.lua");
+
+            lua_concat  (state, 24);
+            lua_setfield(state, -2, "path"); lua_pop(state, 1);
+
+            /* stream functions */
+            luaL_newmetatable(state, "Stream");
+            lua_pushvalue    (state, -1);
+            lua_setfield     (state, -2, "__index");
+            luaL_register    (state, NULL, streamlib);
+            lua_pop          (state, 1);
+
+            setup_binds(dedicated);
+        }
+
+        void setup_ffi() {
+            lua_getglobal(state, "require");
+            lua_pushliteral(state, "ffi");
+            lua_call(state, 1, 1);
+            lua_getfield(state, -1, "cdef");
+            lua_pushliteral(state, "typedef unsigned char uchar;\n"
+                "typedef unsigned short ushort;\n"
+                "typedef unsigned int uint;\n"
+                "typedef signed long long int llong;\n"
+                "typedef unsigned long long int ullong;\n"
+                "typedef struct Texture {\n"
+                "    char *name;\n"
+                "    int type, w, h, xs, ys, bpp, clamp;\n"
+                "    bool mipmap, canreduce;\n"
+                "    uint32_t id;\n"
+                "    uchar *alphamask;\n"
+                "} Texture;\n"
+                "struct particle_t; typedef struct particle_t particle_t;\n"
+                "struct selinfo_t; typedef struct selinfo_t selinfo_t;\n"
+                "struct vslot_t; typedef struct vslot_t vslot_t;\n"
+                "struct cube_t; typedef struct cube_t cube_t;\n"
+                "struct ucharbuf; typedef struct ucharbuf ucharbuf;\n");
+            lua_call(state, 1, 0);
+            lua_getfield(state, -1, "cast");
+            lua_replace(state, -2);
+        }
+
+        static int capi_tostring(lua_State *L) {
+            lua_pushfstring(L, "C API: %d entries",
+                    lua_tointeger(L, lua_upvalueindex(1)));
+            return 1;
+        }
+
+        static int capi_newindex(lua_State *L) {
+            luaL_error(L, "attempt to write into the C API (%s)", lua_tostring(L, 2));
+            return 0;
+        }
+
+        static int capi_get(lua_State *L) {
+            lua_pushvalue(L, lua_upvalueindex(1));
+            return 1;
+        }
+
+        void setup_binds(bool dedicated)
+        {
+            lua_pushboolean(state, dedicated);
+            lua_setglobal(state, "SERVER");
+
+            assert(funs);
+            lua_getfield(state, LUA_REGISTRYINDEX, "_PRELOAD");
+            int numfields = funs->length();
+            int numcfields = cfuns ? cfuns->length() : 0;
+            int tnf = numfields + numcfields;
+            lua_createtable(state, tnf, 0);
+            for (int i = 0; i < numfields; ++i) {
+                const Reg &reg = (*funs)[i];
+                lua_pushcfunction(state, reg.fun);
+                lua_setfield(state, -2, reg.name);
+            }
+            setup_ffi();
+            for (int i = 0; i < numcfields; ++i) {
+                const CReg &reg = (*cfuns)[i];     /* cast */
+                lua_pushvalue(state, -1);              /* cast, cast */
+                lua_pushstring(state, reg.sig);        /* cast, cast, sig */
+                lua_pushlightuserdata(state, reg.fun); /* cast, cast, sig, udata */
+                lua_call(state, 2, 1);                 /* cast, fptr */
+                lua_setfield(state, -3, reg.name);     /* cast */
+            }
+            lua_pop(state, 1);
+            lua_createtable(state, 0, 2);              /* _C, C_mt */
+            lua_pushinteger(state, tnf);               /* _C, C_mt, C_num */
+            lua_pushcclosure(state, capi_tostring, 1); /* _C, C_mt, C_tostring */
+            lua_setfield(state, -2, "__tostring");     /* _C, C_mt */
+            lua_pushcfunction(state, capi_newindex);   /* _C, C_mt, C_newindex */
+            lua_setfield(state, -2, "__newindex");     /* _C, C_mt */
+            lua_pushboolean(state, false);             /* _C, C_mt, C_metatable */
+            lua_setfield(state, -2, "__metatable");    /* _C, C_mt */
+            lua_setmetatable(state, -2);               /* _C */
+            lua_pushcclosure(state, capi_get, 1);      /* C_get */
+            lua_setfield(state, -2, "capi");
+            lua_pop(state, 1); /* _PRELOAD */
+
+            /* load octascript early on */
+            lua_getfield(state, LUA_REGISTRYINDEX, "_LOADED");
+            lua_getglobal(state, "require");
+            lua_pushliteral(state, "lang");
+            lua_call(state, 1, 1);
+            lua_getfield(state, -1, "compile");
+            lua_setfield(state, LUA_REGISTRYINDEX, "octascript_compile");
+            lua_getfield(state, -1, "env");
+            lua_setfield(state, LUA_REGISTRYINDEX, "octascript_env");
+            lua_getfield(state, -1, "traceback");
+            lua_setfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
+            lua_pop(state, 2);
+
+            load_module("init");
+        }
+
+        static int panic(lua_State *L) {
+            lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+            lua_pushfstring(L, "error in call to the Lua API (%s)",
+                lua_tostring(L, -2));
+            lua_call(L, 1, 1);
+            fatal("%s", lua_tostring(L, -1));
+            return 0;
+        }
+
+        bool push_external(const char *name) {
+            if (externals == LUA_REFNIL) return false;
+            lua_rawgeti(state, LUA_REGISTRYINDEX, externals);
+            lua_getfield(state, -1, name);
+            if (lua_isnil(state, -1)) {
+                lua_pop(state, 2);
+                return false;
+            }
+            lua_replace(state, -2);
+            return true;
+        }
+
+        int vcall_external(const char *name, const char *args, int retn, va_ref *ar) {
+            if (!push_external(name)) return -1;
+            int nargs = 0;
+            while (*args) {
+                switch (*args++) {
+                    case 's':
+                        lua_pushstring(state, va_arg(ar->ap, const char *));
+                        ++nargs; break;
+                    case 'S': {
+                        const char *str = va_arg(ar->ap, const char *);
+                        lua_pushlstring(state, str, va_arg(ar->ap, int));
+                        ++nargs; break;
+                    }
+                    case 'd': case 'i':
+                        lua_pushinteger(state, va_arg(ar->ap, int));
+                        ++nargs; break;
+                    case 'f':
+                        lua_pushnumber(state, va_arg(ar->ap, double));
+                        ++nargs; break;
+                    case 'b':
+                        lua_pushboolean(state, va_arg(ar->ap, int));
+                        ++nargs; break;
+                    case 'p':
+                        lua_pushlightuserdata(state, va_arg(ar->ap, void *));
+                        ++nargs; break;
+                    case 'c':
+                        lua_pushcfunction(state, va_arg(ar->ap, lua_CFunction));
+                        ++nargs; break;
+                    case 'C': {
+                        lua_CFunction cf = va_arg(ar->ap, lua_CFunction);
+                        int nups = va_arg(ar->ap, int);
+                        lua_pushcclosure(state, cf, nups);
+                        nargs -= nups - 1; break;
+                    }
+                    case 'n':
+                        lua_pushnil(state);
+                        ++nargs; break;
+                    case 'v':
+                        lua_pushvalue(state, va_arg(ar->ap, int));
+                        ++nargs; break;
+                    case 'm':
+                        if (!push_external("buf_get_msgpack")) {
+                            lua_pushnil(state);
+                        } else {
+                            lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
+                            lua_insert(state, -2);
+                            lua_pushlightuserdata(state, va_arg(ar->ap, void *));
+                            if (lua_pcall(state, 1, 1, -3)) {
+                                logger::log(logger::ERROR, "%s", lua_tostring(state, -1));
+                                lua_pop(state, 2);
+                                lua_pushnil(state); // dummy result (nil)
+                            } else {
+                                lua_remove(state, -2);
+                            }
+                        }
+                        ++nargs; break;
+                    default:
+                        assert(false);
+                        break;
+                }
+            }
+            int n1 = lua_gettop(state) - nargs - 1;
+            lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
+            lua_insert(state, -nargs - 2);
+            if (lua_pcall(state, nargs, retn, -nargs - 2)) {
+                logger::log(logger::ERROR, "%s", lua_tostring(state, -1));
+                lua_pop(state, 2);
+                return -1;
+            }
+            lua_remove(state, n1 - lua_gettop(state) - 1);
+            return lua_gettop(state) - n1;
+        }
+
+        bool call_external(const char *name, const char *args, ...) {
+            va_ref ar;
+            va_start(ar.ap, args);
+            bool ret = vcall_external(name, args, 0, &ar) >= 0;
+            va_end(ar.ap);
+            return ret;
+        }
+
+        int vcall_external_ret(const char *name, const char *args,
+        const char *retargs, va_ref *ar) {
+            int nr = LUA_MULTRET;
+            if (retargs && *retargs == 'N') {
+                ++retargs;
+                nr = va_arg(ar->ap, int);
+            }
+            int nrets = vcall_external(name, args, nr, ar);
+            if (nrets < 0) return -1;
+            int idx = nrets;
+            if (retargs) while (*retargs) {
+                switch (*retargs++) {
+                    case 'S': {
+                        const char *lstr = lua_tostring(state, -idx--);
+                        char *fstr = va_arg(ar->ap, char *);
+                        if  (!lstr) fstr[0] = '\0';
+                        else memcpy(fstr, lstr, strlen(lstr) + 1);
+                        break;
+                    }
+                    case 's':
+                        *va_arg(ar->ap, const char **) = lua_tostring(state, -idx--);
+                        break;
+                    case 'd': case 'i':
+                        *va_arg(ar->ap, int *) = lua_tointeger(state, -idx--);
+                        break;
+                    case 'f':
+                        *va_arg(ar->ap, float *) = lua_tonumber(state, -idx--);
+                        break;
+                    case 'F':
+                        *va_arg(ar->ap, double *) = lua_tonumber(state, -idx--);
+                        break;
+                    case 'b':
+                        *va_arg(ar->ap, bool *) = lua_toboolean(state, -idx--);
+                        break;
+                    case 'm': {
+                        const char **r = va_arg(ar->ap, const char **);
+                        size_t *l = va_arg(ar->ap, size_t *);
+                        *r = lua_tolstring(state, -idx--, l);
+                        break;
+                    }
+                    case 'v':
+                        idx--;
+                        break;
+                    default:
+                        assert(false);
+                        break;
+                }
+            }
+            return nrets;
+        }
+
+        int call_external_ret_nopop(const char *name, const char *args,
+        const char *retargs, ...) {
+            va_ref ar;
+            va_start(ar.ap, retargs);
+            int ret = vcall_external_ret(name, args, retargs, &ar);
+            va_end(ar.ap);
+            return ret;
+        }
+
+        bool call_external_ret(const char *name, const char *args,
+        const char *retargs, ...) {
+            va_ref ar;
+            va_start(ar.ap, retargs);
+            int ret = vcall_external_ret(name, args, retargs, &ar);
+            if (ret > 0) lua_pop(state, ret);
+            va_end(ar.ap);
+            return ret >= 0;
+        }
+
+        void pop_external_ret(int n) { if (n > 0) lua_pop(state, n); }
+
+        void load_module(const char *name)  {
+            defformatstring(p, "%s/%s.oct", mod_dir, name);
+            path(p);
+            logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
+            lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
+            if (load_file(state, p) || lua_pcall(state, 0, 0, -2)) {
+                fatal("%s", lua_tostring(state, -1));
+            }
+            lua_pop(state, 1);
+        }
+    };
+
+    static State *L = NULL;
+
+    bool call_external(const char *name, const char *args, ...) {
+        va_ref ar;
+        va_start(ar.ap, args);
+        bool ret = L->vcall_external(name, args, 0, &ar) >= 0;
+        va_end(ar.ap);
+        return ret;
+    }
+
+    int call_external_ret_nopop(const char *name, const char *args,
+    const char *retargs, ...) {
+        va_ref ar;
+        va_start(ar.ap, retargs);
+        int ret = L->vcall_external_ret(name, args, retargs, &ar);
+        va_end(ar.ap);
+        return ret;
+    }
+
+    bool call_external_ret(const char *name, const char *args,
+    const char *retargs, ...) {
+        va_ref ar;
+        va_start(ar.ap, retargs);
+        int ret = L->vcall_external_ret(name, args, retargs, &ar);
+        if (ret > 0) lua_pop(L->state, ret);
+        va_end(ar.ap);
+        return ret >= 0;
+    }
+
+    void pop_external_ret(int n) { L->pop_external_ret(n); }
+
+    LUAICOMMAND(external_hook, {
+        lua_pushvalue(L, 1);
+        externals = luaL_ref(L, LUA_REGISTRYINDEX);
+        return 0;
+    })
+
+    bool reg_fun(const char *name, lua_CFunction fun) {
+        if (!funs) funs = new apifuns;
+        funs->add(Reg(name, fun));
+        return true;
+    }
+
+    bool reg_cfun(const char *name, const char *sig, void *fun) {
+        if (!cfuns) cfuns = new capifuns;
+        cfuns->add(CReg(name, sig, fun));
+        return true;
+    }
+
+
     bool init(bool dedicated, const char *dir)
     {
         if (L) return true;
-        copystring(mod_dir, dir);
-
-        L = new State;
-        L->state = luaL_newstate();
-        if (!L->state) return false;
-        lua_atpanic(L->state, State::panic);
-        luaL_openlibs(L->state);
-
-        lua_getglobal(L->state, "package");
-
-        /* home directory paths */
-#ifndef WIN32
-        lua_pushfstring(L->state, ";%smedia/?/init.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia/?/init.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia/?.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia/?.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia/scripts/lang/octascript/?/init.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia/scripts/lang/octascript/?/init.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia/scripts/lang/octascript/?.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia/scripts/lang/octascript/?.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia/scripts/?/init.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia/scripts/?/init.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia/scripts/?.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia/scripts/?.lua", homedir);
-#else
-        lua_pushfstring(L->state, ";%smedia\\?\\init.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia\\?\\init.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia\\?.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia\\?.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia\\scripts\\lang\\octascript\\?\\init.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia\\scripts\\lang\\octascript\\?\\init.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia\\scripts\\lang\\octascript\\?.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia\\scripts\\lang\\octascript\\?.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia\\scripts\\?\\init.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia\\scripts\\?\\init.lua", homedir);
-        lua_pushfstring(L->state, ";%smedia\\scripts\\?.oct", homedir);
-        lua_pushfstring(L->state, ";%smedia\\scripts\\?.lua", homedir);
-#endif
-
-        /* root paths */
-        lua_pushliteral(L->state, ";./media/?/init.oct");
-        lua_pushliteral(L->state, ";./media/?/init.lua");
-        lua_pushliteral(L->state, ";./media/?.oct");
-        lua_pushliteral(L->state, ";./media/?.lua");
-        lua_pushliteral(L->state, ";./media/scripts/lang/octascript/?/init.oct");
-        lua_pushliteral(L->state, ";./media/scripts/lang/octascript/?/init.lua");
-        lua_pushliteral(L->state, ";./media/scripts/lang/octascript/?.oct");
-        lua_pushliteral(L->state, ";./media/scripts/lang/octascript/?.lua");
-        lua_pushliteral(L->state, ";./media/scripts/?/init.oct");
-        lua_pushliteral(L->state, ";./media/scripts/?/init.lua");
-        lua_pushliteral(L->state, ";./media/scripts/?.oct");
-        lua_pushliteral(L->state, ";./media/scripts/?.lua");
-
-        lua_concat  (L->state, 24);
-        lua_setfield(L->state, -2, "path"); lua_pop(L->state, 1);
-
-        /* stream functions */
-        luaL_newmetatable(L->state, "Stream");
-        lua_pushvalue    (L->state, -1);
-        lua_setfield     (L->state, -2, "__index");
-        luaL_register    (L->state, NULL, streamlib);
-        lua_pop          (L->state, 1);
-
-        setup_binds(dedicated);
+        L = new State(dedicated, dir);
+        if (!L->state) {
+            delete L;
+            L = NULL;
+            return false;
+        }
         return true;
     }
 
     void load_module(const char *name)
     {
-        defformatstring(p, "%s/%s.oct", mod_dir, name);
-        path(p);
-        logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
-        lua_getfield(L->state, LUA_REGISTRYINDEX, "octascript_traceback");
-        if (load_file(L->state, p) || lua_pcall(L->state, 0, 0, -2)) {
-            fatal("%s", lua_tostring(L->state, -1));
-        }
-        lua_pop(L->state, 1);
-    }
-
-    static int capi_tostring(lua_State *L) {
-        lua_pushfstring(L, "C API: %d entries",
-                lua_tointeger(L, lua_upvalueindex(1)));
-        return 1;
-    }
-
-    static int capi_newindex(lua_State *L) {
-        luaL_error(L, "attempt to write into the C API (%s)", lua_tostring(L, 2));
-        return 0;
-    }
-
-    static int capi_get(lua_State *L) {
-        lua_pushvalue(L, lua_upvalueindex(1));
-        return 1;
-    }
-
-    static void setup_ffi(lua_State *L) {
-        lua_getglobal(L, "require");
-        lua_pushliteral(L, "ffi");
-        lua_call(L, 1, 1);
-        lua_getfield(L, -1, "cdef");
-        lua_pushliteral(L, "typedef unsigned char uchar;\n"
-            "typedef unsigned short ushort;\n"
-            "typedef unsigned int uint;\n"
-            "typedef signed long long int llong;\n"
-            "typedef unsigned long long int ullong;\n"
-            "typedef struct Texture {\n"
-            "    char *name;\n"
-            "    int type, w, h, xs, ys, bpp, clamp;\n"
-            "    bool mipmap, canreduce;\n"
-            "    uint32_t id;\n"
-            "    uchar *alphamask;\n"
-            "} Texture;\n"
-            "struct particle_t; typedef struct particle_t particle_t;\n"
-            "struct selinfo_t; typedef struct selinfo_t selinfo_t;\n"
-            "struct vslot_t; typedef struct vslot_t vslot_t;\n"
-            "struct cube_t; typedef struct cube_t cube_t;\n"
-            "struct ucharbuf; typedef struct ucharbuf ucharbuf;\n");
-        lua_call(L, 1, 0);
-        lua_getfield(L, -1, "cast");
-        lua_replace(L, -2);
-    }
-
-    static void setup_binds(bool dedicated)
-    {
-        lua_pushboolean(L->state, dedicated);
-        lua_setglobal(L->state, "SERVER");
-
-        assert(funs);
-        lua_getfield(L->state, LUA_REGISTRYINDEX, "_PRELOAD");
-        int numfields = funs->length();
-        int numcfields = cfuns ? cfuns->length() : 0;
-        int tnf = numfields + numcfields;
-        lua_createtable(L->state, tnf, 0);
-        for (int i = 0; i < numfields; ++i) {
-            const Reg &reg = (*funs)[i];
-            lua_pushcfunction(L->state, reg.fun);
-            lua_setfield(L->state, -2, reg.name);
-        }
-        setup_ffi(L->state);
-        for (int i = 0; i < numcfields; ++i) {
-            const CReg &reg = (*cfuns)[i];     /* cast */
-            lua_pushvalue(L->state, -1);              /* cast, cast */
-            lua_pushstring(L->state, reg.sig);        /* cast, cast, sig */
-            lua_pushlightuserdata(L->state, reg.fun); /* cast, cast, sig, udata */
-            lua_call(L->state, 2, 1);                 /* cast, fptr */
-            lua_setfield(L->state, -3, reg.name);     /* cast */
-        }
-        lua_pop(L->state, 1);
-        lua_createtable(L->state, 0, 2);              /* _C, C_mt */
-        lua_pushinteger(L->state, tnf);               /* _C, C_mt, C_num */
-        lua_pushcclosure(L->state, capi_tostring, 1); /* _C, C_mt, C_tostring */
-        lua_setfield(L->state, -2, "__tostring");     /* _C, C_mt */
-        lua_pushcfunction(L->state, capi_newindex);   /* _C, C_mt, C_newindex */
-        lua_setfield(L->state, -2, "__newindex");     /* _C, C_mt */
-        lua_pushboolean(L->state, false);             /* _C, C_mt, C_metatable */
-        lua_setfield(L->state, -2, "__metatable");    /* _C, C_mt */
-        lua_setmetatable(L->state, -2);               /* _C */
-        lua_pushcclosure(L->state, capi_get, 1);      /* C_get */
-        lua_setfield(L->state, -2, "capi");
-        lua_pop(L->state, 1); /* _PRELOAD */
-
-        /* load octascript early on */
-        lua_getfield(L->state, LUA_REGISTRYINDEX, "_LOADED");
-        lua_getglobal(L->state, "require");
-        lua_pushliteral(L->state, "lang");
-        lua_call(L->state, 1, 1);
-        lua_getfield(L->state, -1, "compile");
-        lua_setfield(L->state, LUA_REGISTRYINDEX, "octascript_compile");
-        lua_getfield(L->state, -1, "env");
-        lua_setfield(L->state, LUA_REGISTRYINDEX, "octascript_env");
-        lua_getfield(L->state, -1, "traceback");
-        lua_setfield(L->state, LUA_REGISTRYINDEX, "octascript_traceback");
-        lua_pop(L->state, 2);
-
-        load_module("init");
+        L->load_module(name);
     }
 
     LUAICOMMAND(reload_core, {
