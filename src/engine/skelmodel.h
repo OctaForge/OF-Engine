@@ -1514,7 +1514,6 @@ struct skelmodel : animmodel
 
         skelpart(animmodel *model, int index = 0) : part(model, index), buildingpartmask(NULL), partmask(NULL)
         {
-            disablepitch();
         }
 
         virtual ~skelpart()
@@ -1661,6 +1660,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!mdl.meshes) conoutf("could not load %s", filename);
         else
         {
+            if(mdl.meshes && ((meshgroup *)mdl.meshes)->skel->numbones > 0) mdl.disablepitch();  
             mdl.initanimparts();
             mdl.initskins();
         }
