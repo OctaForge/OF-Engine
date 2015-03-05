@@ -1729,7 +1729,7 @@ static bool texpackload(const char *pack, uint *body = NULL, bool changed = true
     } else lasttexpack = tp;
     if (!firsttexpack) firsttexpack = tp;
     texpacks.access(tp->name, tp);
-    if (changed) lua::call_external("texpacks_changed", "");
+    if (changed) lua::L->call_external("texpacks_changed", "");
     if (!worldloading && sync) game::addmsg(N_TEXPACKLOAD, "rs", pack);
     return true;
 }
@@ -1781,7 +1781,7 @@ static bool texpackunload(const char *pack, bool changed = true, bool sync = tru
     for (tp = ntp; tp; tp = tp->next) {
         tp->firstslot -= ncleared;
     }
-    if (changed) lua::call_external("texpacks_changed", "");
+    if (changed) lua::L->call_external("texpacks_changed", "");
     if (!worldloading && sync) game::addmsg(N_TEXPACKUNLOAD, "rs", pack);
     return true;
 }
@@ -1791,7 +1791,7 @@ static bool texpackreload(const char *pack, bool changed = true, bool sync = tru
     if (!tpp) { conoutf("texture pack '%s' is not loaded", pack); return false; }
     if (!texpackunload(pack, false, false)) return false;
     if (!texpackload(pack, NULL, false, false)) return false;
-    if (changed) lua::call_external("texpacks_changed", "");
+    if (changed) lua::L->call_external("texpacks_changed", "");
     if (!worldloading && sync) game::addmsg(N_TEXPACKRELOAD, "rs", pack);
     return true;
 }
@@ -2090,10 +2090,10 @@ sounds:
             renderprogress(i / float(sounds.length()), "saving sounds...");
             const extentity &e = *sounds[i];
             const char *sn;
-            int n = lua::call_external_ret_nopop("entity_get_attr_ext", "is", "s",
+            int n = lua::L->call_external_ret_nopop("entity_get_attr_ext", "is", "s",
                 e.uid, "sound_name", &sn);
             f->printf("preloadmapsound \"%s\" %d\n", sn, e.attr[2]);
-            lua::pop_external_ret(n);
+            lua::L->pop_external_ret(n);
         }
 none:
         delete f;
@@ -4675,7 +4675,7 @@ static void decalcull() {
             ((Slot *)dslots2.add(decalslots[prevslot]))->index = -ni - 1;
         }
         if (e->attr[0] != ni)
-            lua::call_external("entity_set_attr", "isd", dents[i]->uid, "slot", ni);
+            lua::L->call_external("entity_set_attr", "isd", dents[i]->uid, "slot", ni);
     }
 
     // delete slots which are now unused

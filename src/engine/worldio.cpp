@@ -454,9 +454,9 @@ static void export_ents() {
         return;
     }
     const char *data;
-    int popn = lua::call_external_ret_nopop("entities_save_all", "", "s", &data);
+    int popn = lua::L->call_external_ret_nopop("entities_save_all", "", "s", &data);
     f->putstring(data);
-    lua::pop_external_ret(popn);
+    lua::L->pop_external_ret(popn);
     delete f;
 }
 
@@ -826,7 +826,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     char *eloaded = loadfile(entcfgname, NULL);
     if (eloaded) {
-        lua::call_external("entities_load", "s", eloaded);
+        lua::L->call_external("entities_load", "s", eloaded);
         delete[] eloaded;
     }
 

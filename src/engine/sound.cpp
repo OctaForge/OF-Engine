@@ -365,7 +365,7 @@ void checkmapsounds()
         if(camera1->o.dist(e.o) < e.attr[0])
         {
             if(!(e.flags&EF_SOUND))
-                lua::call_external("sound_play_map", "i", i);
+                lua::L->call_external("sound_play_map", "i", i);
         }
         else if(e.flags&EF_SOUND) stopmapsound(&e);
     }
@@ -531,7 +531,7 @@ void stopsounds()
 
 void resetsound()
 {
-    lua::call_external("changes_clear", "i", CHANGE_SOUND);
+    lua::L->call_external("changes_clear", "i", CHANGE_SOUND);
     if(!nosound)
     {
         gamesounds.cleanupsamples();

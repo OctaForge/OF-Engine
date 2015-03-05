@@ -24,30 +24,30 @@ void ident::changed() {
 #ifndef MASTER
     switch (type) {
         case ID_VAR:
-            lua::call_external("var_emit_changed", "siiii", name,
+            lua::L->call_external("var_emit_changed", "siiii", name,
                 *(storage.i), minval, overrideval.i, maxval);
             break;
         case ID_FVAR:
-            lua::call_external("var_emit_changed", "sffff", name,
+            lua::L->call_external("var_emit_changed", "sffff", name,
                 *(storage.f), minvalf, overrideval.f, maxvalf);
             break;
         case ID_SVAR:
-            lua::call_external("var_emit_changed", "sss", name,
+            lua::L->call_external("var_emit_changed", "sss", name,
                 *(storage.s), overrideval.s);
             break;
         case ID_ALIAS: switch (valtype) {
             case VAL_INT:
-                lua::call_external("var_emit_changed", "si", name, val.i);
+                lua::L->call_external("var_emit_changed", "si", name, val.i);
                 break;
             case VAL_FLOAT:
-                lua::call_external("var_emit_changed", "sf", name, val.f);
+                lua::L->call_external("var_emit_changed", "sf", name, val.f);
                 break;
             case VAL_STR:
-                lua::call_external("var_emit_changed", "ss", name, val.s);
+                lua::L->call_external("var_emit_changed", "ss", name, val.s);
                 break;
-            default: lua::call_external("var_emit_changed", "s", name); break;
+            default: lua::L->call_external("var_emit_changed", "s", name); break;
         }
-        default: lua::call_external("var_emit_changed", "s", name); break;
+        default: lua::L->call_external("var_emit_changed", "s", name); break;
     }
 #endif
 }

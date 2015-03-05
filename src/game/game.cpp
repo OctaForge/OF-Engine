@@ -250,34 +250,34 @@ namespace game
             loopv(dcolcache) {
                 const dynentcollision &c = dcolcache[i];
                 int cont = checkdynentcolcache(prevdcolcache, c.pl, c.cn, true);
-                lua::call_external("physics_collide_client", "iiifff",
+                lua::L->call_external("physics_collide_client", "iiifff",
                     c.pl, c.cn, cont, c.wall.x, c.wall.y, c.wall.z);
             }
             loopv(ecolcache) {
                 const extentcollision &e = ecolcache[i];
                 int cont = checkextentcolcache(prevecolcache, e.pl, e.uid, true);
                 if ((entities::getents()[e.uid])->type == ET_OBSTACLE) {
-                    lua::call_external("physics_collide_area", "iii", e.pl, e.uid, cont);
+                    lua::L->call_external("physics_collide_area", "iii", e.pl, e.uid, cont);
                 } else {
-                    lua::call_external("physics_collide_mapmodel", "iii", e.pl, e.uid, cont);
+                    lua::L->call_external("physics_collide_mapmodel", "iii", e.pl, e.uid, cont);
                 }
             }
             loopv(prevdcolcache) {
                 const dynentcollision &c = prevdcolcache[i];
                 if (c.pl < 0) continue;
-                lua::call_external("physics_collide_client", "iiifff",
+                lua::L->call_external("physics_collide_client", "iiifff",
                     c.pl, c.cn, -1, c.wall.x, c.wall.y, c.wall.z);
             }
             loopv(prevecolcache) {
                 const extentcollision &e = prevecolcache[i];
                 if (e.pl < 0) continue;
                 if ((entities::getents()[e.uid])->type == ET_OBSTACLE) {
-                    lua::call_external("physics_collide_area", "iii", e.pl, e.uid, -1);
+                    lua::L->call_external("physics_collide_area", "iii", e.pl, e.uid, -1);
                 } else {
-                    lua::call_external("physics_collide_mapmodel", "iii", e.pl, e.uid, -1);
+                    lua::L->call_external("physics_collide_mapmodel", "iii", e.pl, e.uid, -1);
                 }
             }
-            lua::call_external("frame_handle", "ii", curtime, lastmillis);
+            lua::L->call_external("frame_handle", "ii", curtime, lastmillis);
         }
         prevdcolcache.setsize(0);
         prevecolcache.setsize(0);
@@ -285,7 +285,7 @@ namespace game
         prevecolcache.move(ecolcache);
         gets2c();
         bool b = false;
-        if (connected) lua::call_external_ret("entity_is_initialized", "i", "b",
+        if (connected) lua::L->call_external_ret("entity_is_initialized", "i", "b",
             player1->clientnum, &b);
         if (b) {
             if(player1->state == CS_DEAD)
@@ -441,7 +441,7 @@ namespace game
 
     void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material)
     {
-        lua::call_external("physics_state_change", "iibiii", d->type, ((gameent *)d)->clientnum,
+        lua::L->call_external("physics_state_change", "iibiii", d->type, ((gameent *)d)->clientnum,
             local, floorlevel, waterlevel, material);
     }
 

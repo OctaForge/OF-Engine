@@ -754,7 +754,7 @@ namespace game
             nextmode = gamemode = INT_MAX;
             clientmap[0] = '\0';
         }
-        lua::call_external("entities_remove_all", "b", false);
+        lua::L->call_external("entities_remove_all", "b", false);
         lua::reset();
     }
 
@@ -1083,12 +1083,12 @@ namespace game
                 getstring(text, p);
                 filtertext(text, text, true, true);
                 lua::reset();
-                lua::call_external("gui_clear", "");
+                lua::L->call_external("gui_clear", "");
                 cursor_exists = 0;
                 if (text[0]) {
                     defformatstring(mapimport, "gamescripts.%s", text);
                     identflags |= IDF_SAFE;
-                    lua::call_external("gamescript_run", "s", mapimport);
+                    lua::L->call_external("gamescript_run", "s", mapimport);
                     identflags &= ~IDF_SAFE;
                 }
                 game::addmsg(N_ACTIVEENTSREQUEST, "r");
@@ -1135,7 +1135,7 @@ namespace game
                 if(isignored(d->clientnum)) break;
                 if (d->state != CS_SPECTATOR) {
                     const vec &o = d->abovehead();
-                    lua::call_external("particle_draw_text", "sfffiifi", text,
+                    lua::L->call_external("particle_draw_text", "sfffiifi", text,
                         o.x, o.y, o.z, 0x32FF64, 2000, 4.0f, -8);
                 }
                 if (chat_sound[0])
@@ -1360,14 +1360,14 @@ namespace game
                 string name;
                 filtertext(name, text, false);
                 if (!name[0]) {
-                    lua::call_external("entity_remove_static", "ib", i, true);
+                    lua::L->call_external("entity_remove_static", "ib", i, true);
                 } else {
                     float x = getint(p)/DMF, y = getint(p)/DMF, z = getint(p)/DMF;
                     int sdlen = getint(p);
                     if (sdlen <= 0) break;
                     char *buf = new char[sdlen];
                     loopk(sdlen) buf[k] = (char)p.get();
-                    lua::call_external("entity_new_with_sd", "sfffSnib", name,
+                    lua::L->call_external("entity_new_with_sd", "sfffSnib", name,
                         x, y, z, buf, sdlen, i, true);
                     delete[] buf;
                 }
@@ -1380,7 +1380,7 @@ namespace game
                 float x = getint(p)/DMF, y = getint(p)/DMF, z = getint(p)/DMF;
                 vector<extentity *> &ents = entities::getents();
                 if (!ents.inrange(i) || ents[i]->type == ET_EMPTY) return;
-                lua::call_external("entity_set_pos", "ifff", i, x, y, z);
+                lua::L->call_external("entity_set_pos", "ifff", i, x, y, z);
                 clearshadowcache();
                 break;
             }
@@ -1587,19 +1587,19 @@ namespace game
                 int uid = getint(p);
                 int ocn = getint(p);
                 getstring(text, p);
-                lua::call_external("msg_le_cn", "iism", ocn, uid, text, &p);
+                lua::L->call_external("msg_le_cn", "iism", ocn, uid, text, &p);
                 break;
             }
 
             case N_ENTREM:
-                lua::call_external("msg_le_rem", "i", getint(p));
+                lua::L->call_external("msg_le_rem", "i", getint(p));
                 break;
 
             case N_ENTSDATAUP: {
                 int uid = getint(p);
                 int ocn = getint(p);
                 int kpid = getint(p);
-                lua::call_external("msg_sdata_update", "iiim", uid, ocn, kpid, &p);
+                lua::L->call_external("msg_sdata_update", "iiim", uid, ocn, kpid, &p);
                 break;
             }
 

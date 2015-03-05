@@ -399,20 +399,20 @@ namespace entities
         const char *name = NULL;
         const char *sdata = NULL;
         size_t sdlen = 0;
-        int n = lua::call_external_ret_nopop("entity_serialize", "ib", "sm", i,
+        int n = lua::L->call_external_ret_nopop("entity_serialize", "ib", "sm", i,
             true, &name, &sdata, &sdlen);
         if (name) {
             addmsg(N_EDITENT, "risi3ib", i, name, (int)(e.o.x*DMF),
                 (int)(e.o.y*DMF), (int)(e.o.z*DMF), (int)sdlen, (int)sdlen, sdata);
         }
-        lua::pop_external_ret(n);
+        lua::L->pop_external_ret(n);
         return 0;
     });
 
     void entpos(int i) {
         const extentity &e = *entities::getents()[i];
         if (e.type == ET_EMPTY) return;
-        lua::call_external("entity_set_pos", "ifff", i,
+        lua::L->call_external("entity_set_pos", "ifff", i,
             e.o.x, e.o.y, e.o.z);
         game::addmsg(N_ENTPOS, "ri4", i, (int)(e.o.x*DMF),
             (int)(e.o.y*DMF), (int)(e.o.z*DMF));

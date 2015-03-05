@@ -43,12 +43,12 @@ namespace game
     void rendergame()
     {
         bool tp = isthirdperson();
-        lua::call_external("game_render", "bb", tp, !tp && playerfpsshadow);
+        lua::L->call_external("game_render", "bb", tp, !tp && playerfpsshadow);
     }
 
     void renderavatar()
     {
-        lua::call_external("game_render_hud", "");
+        lua::L->call_external("game_render_hud", "");
     }
 }
 

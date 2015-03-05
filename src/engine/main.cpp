@@ -98,7 +98,7 @@ bool initwarning(const char *desc, int level, int type)
 {
     if(initing < level)
     {
-        lua::call_external("change_add", "si", desc, type);
+        lua::L->call_external("change_add", "si", desc, type);
         return true;
     }
     return false;
@@ -169,9 +169,9 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
     hudshader->set();
 
     if (mapshot)
-        lua::call_external("background_render", "sssp", caption, mapname, mapinfo, mapshot);
+        lua::L->call_external("background_render", "sssp", caption, mapname, mapinfo, mapshot);
     else
-        lua::call_external("background_render", "sss", caption, mapname, mapinfo);
+        lua::L->call_external("background_render", "sss", caption, mapname, mapinfo);
 
     glDisable(GL_BLEND);
 
@@ -240,7 +240,7 @@ void restorebackground(int w, int h)
 float loadprogress = 0;
 
 void renderprogressview(float bar, const char *text) { // also used during loading
-    lua::call_external("progress_render", "fs", bar, text ? text : "");
+    lua::L->call_external("progress_render", "fs", bar, text ? text : "");
     gle::disable();
 }
 
@@ -496,7 +496,7 @@ void setupscreen()
 
 void resetgl()
 {
-    lua::call_external("changes_clear", "i", CHANGE_GFX|CHANGE_SHADERS);
+    lua::L->call_external("changes_clear", "i", CHANGE_GFX|CHANGE_SHADERS);
 
     renderbackground("resetting OpenGL");
 
@@ -1198,7 +1198,7 @@ int main(int argc, char **argv)
 
         checkinput();
         ovr::update();
-        lua::call_external("gui_update", "");
+        lua::L->call_external("gui_update", "");
         tryedit();
 
         if(lastmillis) game::updateworld();

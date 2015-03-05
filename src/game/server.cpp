@@ -436,7 +436,7 @@ namespace server
     void deleteclientinfo(void *ci) {
         clientinfo *_ci = (clientinfo*)ci;
         if (!_ci->local)
-            lua::call_external("entity_remove_dynamic", "i", _ci->clientnum);
+            lua::L->call_external("entity_remove_dynamic", "i", _ci->clientnum);
         delete _ci;
     }
 
@@ -517,7 +517,7 @@ namespace server
         if (!usegame[0]) return;
         defformatstring(mapimport, "gamescripts.%s", usegame);
         identflags |= IDF_SAFE;
-        lua::call_external("gamescript_run", "s", mapimport);
+        lua::L->call_external("gamescript_run", "s", mapimport);
         identflags &= ~IDF_SAFE;
     }
 
@@ -1939,9 +1939,9 @@ namespace server
                     else connected(ci);
 
                     string pcclass = { '\0' };
-                    lua::call_external_ret("entity_get_player_prototype", "", "S", pcclass);
+                    lua::L->call_external_ret("entity_get_player_prototype", "", "S", pcclass);
                     if (pcclass[0])
-                        lua::call_external("entity_new_with_cn", "sib", pcclass, ci->clientnum, true);
+                        lua::L->call_external("entity_new_with_cn", "sib", pcclass, ci->clientnum, true);
 
                     break;
                 }
@@ -2463,16 +2463,16 @@ namespace server
             }
 
             case N_ACTIVEENTSREQUEST: {
-                assert(lua::call_external("entities_send_all", "i", sender));
+                assert(lua::L->call_external("entities_send_all", "i", sender));
                 sendf(sender, 1, "ri", N_ALLACTIVEENTSSENT);
-                assert(lua::call_external("event_player_login", "i", sender));
+                assert(lua::L->call_external("event_player_login", "i", sender));
                 break;
             }
 
             case N_ENTSDATAUPREQ: {
                 int uid = getint(p);
                 int kpid = getint(p);
-                lua::call_external("msg_sdata_changereq", "iiim", sender, uid, kpid, &p);
+                lua::L->call_external("msg_sdata_changereq", "iiim", sender, uid, kpid, &p);
                 break;
             }
 

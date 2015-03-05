@@ -1579,7 +1579,7 @@ void reloadshaders()
 
 void resetshaders()
 {
-    lua::call_external("changes_clear", "i", CHANGE_SHADERS);
+    lua::L->call_external("changes_clear", "i", CHANGE_SHADERS);
     cleanuplights();
     cleanupmodels();
     cleanupshaders();

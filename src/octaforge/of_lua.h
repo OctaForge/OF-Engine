@@ -3,6 +3,44 @@
 
 namespace lua
 {
+    struct va_ref { va_list ap; };
+
+    struct State {
+        lua_State *state;
+
+        State(bool dedicated, const char *dir);
+        ~State();
+
+        bool push_external(const char *name);
+
+        bool call_external(const char *name, const char *args, ...);
+
+        int call_external_ret_nopop(const char *name, const char *args,
+        const char *retargs, ...);
+
+        bool call_external_ret(const char *name, const char *args,
+        const char *retargs, ...);
+
+        void pop_external_ret(int n);
+
+        void load_module(const char *name);
+
+    private:
+        static int capi_tostring(lua_State *L);
+        static int capi_newindex(lua_State *L);
+        static int capi_get(lua_State *L);
+        static int panic(lua_State *L);
+
+        void setup_ffi();
+        void setup_binds(bool dedicated);
+
+        int vcall_external(const char *name, const char *args, int retn, va_ref *ar);
+        int vcall_external_ret(const char *name, const char *args,
+        const char *retargs, va_ref *ar);
+    };
+
+    extern State *L;
+
     bool reg_fun     (const char *name, lua_CFunction fun);
     bool reg_cfun    (const char *name, const char *sig, void *fun);
     bool init        (bool dedicated, const char *dir = "media/scripts/core");
@@ -10,13 +48,6 @@ namespace lua
     void close       ();
     void assert_stack();
     int load_string(const char *str, const char *ch = NULL);
-
-    bool call_external(const char *name, const char *args, ...);
-    bool call_external_ret(const char *name, const char *args,
-        const char *retargs, ...);
-    int call_external_ret_nopop(const char *name, const char *args,
-        const char *retargs, ...);
-    void pop_external_ret(int n);
 
     bool execfile(const char *cfgfile, bool msg = true);
 }

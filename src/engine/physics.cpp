@@ -1698,7 +1698,7 @@ bool droptofloor(vec &o, float radius, float height)
 /* OF */
 float dropheight(entity &e) {
     float ret;
-    lua::call_external_ret("entity_get_edit_drop_height", "i", "f",
+    lua::L->call_external_ret("entity_get_edit_drop_height", "i", "f",
         ((extentity &)e).uid, &ret);
     return ret;
 }
@@ -1917,9 +1917,9 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     pl->inwater = water ? material&MATF_VOLUME : MAT_AIR;
 
     if (material&MAT_DEATH)
-        lua::call_external("physics_in_deadly", "ii", ((gameent *)pl)->clientnum, material&MATF_VOLUME);
+        lua::L->call_external("physics_in_deadly", "ii", ((gameent *)pl)->clientnum, material&MATF_VOLUME);
     else if (pl->o.z < 0)
-        lua::call_external("physics_off_map", "i", ((gameent *)pl)->clientnum);
+        lua::L->call_external("physics_off_map", "i", ((gameent *)pl)->clientnum);
     return true;
 }
 

@@ -388,7 +388,7 @@ struct hline
                 execute(buf + 1);
             else {
                 string err = { '\0' };
-                lua::call_external_ret("console_oct_run", "s", "S", buf + 2, err);
+                lua::L->call_external_ret("console_oct_run", "s", "S", buf + 2, err);
                 if (err[0]) conoutf(CON_ERROR, "%s", err);
             }
         } else if (action) {
@@ -624,7 +624,7 @@ bool consolekey(int code, bool isdown)
 void processtextinput(const char *str, int len)
 {
     bool b;
-    lua::call_external_ret("input_text", "S", "b", str, len, &b);
+    lua::L->call_external_ret("input_text", "S", "b", str, len, &b);
     if(!b) consoleinput(str, len);
 }
 
@@ -635,7 +635,7 @@ void processkey(int code, bool isdown)
         execbind(*haskey, isdown); // allow pressed keys to release
     } else {
         bool b;
-        lua::call_external_ret("input_keypress", "ib", "b", code, isdown, &b);
+        lua::L->call_external_ret("input_keypress", "ib", "b", code, isdown, &b);
         if (!b) { // gui mouse button intercept
             if(!consolekey(code, isdown))
             {
@@ -867,7 +867,7 @@ void mouse##num##click() { \
     float x, y; \
     cursor_get_position(x, y); \
 \
-    assert(lua::call_external("input_click_ext", "ibfffiiff", num, down, \
+    assert(lua::L->call_external("input_click_ext", "ibfffiiff", num, down, \
         pos.x, pos.y, pos.z, ext ? ext->uid : -1, ent ? ent->clientnum : -1, x, y)); \
 } \
 COMMAND(mouse##num##click, "");
@@ -882,9 +882,9 @@ bool k_turn_left, k_turn_right, k_look_up, k_look_down;
 #define SCRIPT_DIR(name, v, p, d, s, os) \
 ICOMMAND(name, "", (), { \
     if (isconnected()) { \
-        lua::call_external("entity_clear_actions", "i", game::player1->clientnum); \
+        lua::L->call_external("entity_clear_actions", "i", game::player1->clientnum); \
         s = (addreleaseaction(newstring(#name)) != 0); \
-        lua::call_external("input_" #v, "ib", s ? d : (os ? -(d) : 0), s); \
+        lua::L->call_external("input_" #v, "ib", s ? d : (os ? -(d) : 0), s); \
     } \
 });
 
@@ -901,17 +901,17 @@ SCRIPT_DIR(right, strafe, strafe, -1, player->k_right, player->k_left);
 
 ICOMMAND(jump, "", (), {
     if (isconnected()) {
-        lua::call_external("entity_clear_actions", "i", game::player1->clientnum);
+        lua::L->call_external("entity_clear_actions", "i", game::player1->clientnum);
         bool down = (addreleaseaction(newstring("jump")) != 0);
-        lua::call_external("input_jump", "b", down);
+        lua::L->call_external("input_jump", "b", down);
     }
 });
 
 ICOMMAND(crouch, "", (), {
     if (isconnected()) {
-        lua::call_external("entity_clear_actions", "i", game::player1->clientnum);
+        lua::L->call_external("entity_clear_actions", "i", game::player1->clientnum);
         bool down = (addreleaseaction(newstring("crouch")) != 0);
-        lua::call_external("input_crouch", "b", down);
+        lua::L->call_external("input_crouch", "b", down);
     }
 });
 

@@ -395,7 +395,7 @@ undoblock *newundoent()
         const char *sdata = NULL;
         size_t sdlen = 0;
         const extentity *ext = entities::getents()[entgroup[i]];
-        int n = (ext->type != ET_EMPTY) ? lua::call_external_ret_nopop("entity_serialize", "i", "sm", entgroup[i], &name, &sdata, &sdlen) : 0;
+        int n = (ext->type != ET_EMPTY) ? lua::L->call_external_ret_nopop("entity_serialize", "i", "sm", entgroup[i], &name, &sdata, &sdlen) : 0;
         if (name) {
             e->name = newstring(name);
             e->sdata = new char[sdlen];
@@ -406,7 +406,7 @@ undoblock *newundoent()
             e->sdata = NULL;
             e->sdlen = 0;
         }
-        lua::pop_external_ret(n);
+        lua::L->pop_external_ret(n);
         e++;
     }
     return u;
@@ -517,9 +517,9 @@ void pasteundoent(const undoent &ue)
     while(ents.length() < ue.i) ents.add(entities::newentity())->type = ET_EMPTY;
     int efocus = -1;
     if (!ue.name) {
-        lua::call_external("entity_remove_static", "i", ue.i);
+        lua::L->call_external("entity_remove_static", "i", ue.i);
     } else {
-        entedit(ue.i, lua::call_external("entity_new_with_sd", "sfffSni", ue.name,
+        entedit(ue.i, lua::L->call_external("entity_new_with_sd", "sfffSni", ue.name,
                 0.0f, 0.0f, 0.0f, ue.sdata, ue.sdlen, ue.i));
     }
 }
@@ -881,7 +881,7 @@ void renderentradius(extentity &e, bool color)
         default:
         attach:
             if (color) gle::colorf(0, 1, 1);
-            lua::call_external("entity_draw_attached", "i", e.uid);
+            lua::L->call_external("entity_draw_attached", "i", e.uid);
             break;
     }
 }
@@ -1066,7 +1066,7 @@ void delent()
 
     loopv(entgroup) {
         efocus = entgroup[i];
-        lua::call_external("entity_remove_static", "i", efocus);
+        lua::L->call_external("entity_remove_static", "i", efocus);
     }
 
     entcancel();
@@ -1140,10 +1140,10 @@ extentity *newent(const char *cl, const char *nd, vec o = vec(-1))
 {
     int uid = -1;
     if (nd) {
-        lua::call_external_ret("entity_new_with_sd", "sfffns", "i", cl,
+        lua::L->call_external_ret("entity_new_with_sd", "sfffns", "i", cl,
             o.x, o.y, o.z, nd, &uid);
     } else {
-        lua::call_external_ret("entity_new_with_sd", "sfff", "i", cl,
+        lua::L->call_external_ret("entity_new_with_sd", "sfff", "i", cl,
             o.x, o.y, o.z, &uid);
     }
     if (uid < 0) return NULL;
@@ -1212,7 +1212,7 @@ void entcopy()
             const char *name = NULL;
             const char *sdata = NULL;
             size_t sdlen = 0;
-            int n = lua::call_external_ret_nopop("entity_serialize", "ib", "sm", entgroup[i], true, &name, &sdata, &sdlen);
+            int n = lua::L->call_external_ret_nopop("entity_serialize", "ib", "sm", entgroup[i], true, &name, &sdata, &sdlen);
             if (name) {
                 copyent &ce = entcopybuf.add();
                 ce.name = newstring(name);
@@ -1222,7 +1222,7 @@ void entcopy()
                 ce.o = e.o;
                 ce.o.sub(vec(sel.o));
             }
-            lua::pop_external_ret(n);
+            lua::L->pop_external_ret(n);
         });
     });
 }
@@ -1236,7 +1236,7 @@ void entpaste()
     {
         const copyent &c = entcopybuf[i];
         vec o = vec(c.o).mul(m).add(vec(sel.o));
-        lua::call_external("entity_new_with_sd", "sfffS", c.name, o.x, o.y,
+        lua::L->call_external("entity_new_with_sd", "sfffS", c.name, o.x, o.y,
             o.z, c.sdata, c.sdlen);
     }
 }
@@ -1248,13 +1248,13 @@ void entreplace()
     if(entgroup.length() || enthover >= 0)
     {
         groupedit({
-            lua::call_external("entity_new_with_sd", "sfffSni", c.name,
+            lua::L->call_external("entity_new_with_sd", "sfffSni", c.name,
                 e.o.x, e.o.y, e.o.z, c.sdata, c.sdlen, n);
         });
     }
     else
     {
-        lua::call_external("entity_new_with_sd", "sfffS", c.name,
+        lua::L->call_external("entity_new_with_sd", "sfffS", c.name,
             -1.0f, -1.0f, -1.0f, c.sdata, c.sdlen);
     }
 }
@@ -1268,11 +1268,11 @@ COMMAND(entreplace, "");
 /* OF */
 void printent(extentity &e, char *buf, int len) {
     const char *name, *info;
-    int npop = lua::call_external_ret_nopop("entity_get_edit_info", "i", "ss", e.uid,
+    int npop = lua::L->call_external_ret_nopop("entity_get_edit_info", "i", "ss", e.uid,
         &name, &info);
     if (!info || !info[0]) nformatstring(buf, len, "%s", name);
     else nformatstring(buf, len, "%s\n\f7%s", info, name);
-    lua::pop_external_ret(npop);
+    lua::L->pop_external_ret(npop);
 }
 
 void nearestent()
@@ -1308,13 +1308,13 @@ void enttype(char *type, int *numargs) {
     if (*numargs >= 1) {
         groupedit(
             vec pos(e.o);
-            lua::call_external("entity_remove_static", "u", n);
-            lua::call_external("entity_new_with_sd", "sfff", type, pos.x, pos.y, pos.z);
+            lua::L->call_external("entity_remove_static", "u", n);
+            lua::L->call_external("entity_new_with_sd", "sfff", type, pos.x, pos.y, pos.z);
         );
     } else entfocus(efocus, {
         const char *name;
         (void)e;
-        lua::call_external_ret("entity_get_proto_name", "i", "s", n, &name);
+        lua::L->call_external_ret("entity_get_proto_name", "i", "s", n, &name);
         result(name ? name : "");
     })
 }
@@ -1323,15 +1323,15 @@ void enttype(char *type, int *numargs) {
 void entattr(char *attr, char *val, int *numargs) {
     if (*numargs >= 2) {
         groupedit(
-            lua::call_external("entity_set_gui_attr", "iss", n, attr, val);
+            lua::L->call_external("entity_set_gui_attr", "iss", n, attr, val);
         );
     } else entfocus(efocus, {
         const char *str;
         (void)e;
-        int npop = lua::call_external_ret_nopop("entity_get_gui_attr", "is", "s",
+        int npop = lua::L->call_external_ret_nopop("entity_get_gui_attr", "is", "s",
             n, attr, &str);
         result(str ? str : "");
-        lua::pop_external_ret(npop);
+        lua::L->pop_external_ret(npop);
     });
 }
 
@@ -1341,7 +1341,7 @@ COMMAND(entattr, "ssN");
 ICOMMAND(entproperty, "ii", (int *attr, int *diff), {
     if (!*diff) return;
     groupedit(
-        lua::call_external("entity_add_attr", "iib", n, *attr, *diff > 0);
+        lua::L->call_external("entity_add_attr", "iib", n, *attr, *diff > 0);
     );
 })
 
@@ -1373,7 +1373,7 @@ void resetmap()
     pruneundos();
     clearmapcrc();
 
-    lua::call_external("entities_remove_all", "b", true);
+    lua::L->call_external("entities_remove_all", "b", true);
     entities::clearents();
     outsideents.setsize(0);
     spotlights = 0;
@@ -1409,7 +1409,7 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
     extern void clear_texpacks(int n = 0); clear_texpacks();
-    lua::call_external("gui_clear", "");
+    lua::L->call_external("gui_clear", "");
 
     if (usecfg)
     {
