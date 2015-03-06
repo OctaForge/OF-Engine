@@ -29,14 +29,6 @@ namespace lua
         bool exec_file  (const char *cfgfile, bool msg = true);
 
     private:
-        static int capi_tostring(lua_State *L);
-        static int capi_newindex(lua_State *L);
-        static int capi_get(lua_State *L);
-        static int panic(lua_State *L);
-
-        void setup_ffi();
-        void setup_binds(bool dedicated);
-
         int vcall_external(const char *name, const char *args, int retn, va_ref *ar);
         int vcall_external_ret(const char *name, const char *args,
         const char *retargs, va_ref *ar);

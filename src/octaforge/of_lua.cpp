@@ -274,12 +274,40 @@ namespace lua
 
     /* actual state */
 
+    static void setup_binds(State *s, bool dedicated);
+
+    static int capi_tostring(lua_State *L) {
+        lua_pushfstring(L, "C API: %d entries",
+                lua_tointeger(L, lua_upvalueindex(1)));
+        return 1;
+    }
+
+    static int capi_newindex(lua_State *L) {
+        luaL_error(L, "attempt to write into the C API (%s)", lua_tostring(L, 2));
+        return 0;
+    }
+
+    static int capi_get(lua_State *L) {
+        lua_pushvalue(L, lua_upvalueindex(1));
+        return 1;
+    }
+
+    static int lua_panic(lua_State *L) {
+        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
+        lua_pushfstring(L, "error in call to the Lua API (%s)",
+            lua_tostring(L, -2));
+        lua_call(L, 1, 1);
+        fatal("%s", lua_tostring(L, -1));
+        return 0;
+    }
+
+
     State::State(bool dedicated, const char *dir) {
         copystring(mod_dir, dir);
 
         state = luaL_newstate();
         if (!state) return;
-        lua_atpanic(state, State::panic);
+        lua_atpanic(state, lua_panic);
         luaL_openlibs(state);
 
         lua_getglobal(state, "package");
@@ -337,19 +365,19 @@ namespace lua
         luaL_register    (state, NULL, streamlib);
         lua_pop          (state, 1);
 
-        setup_binds(dedicated);
+        setup_binds(this, dedicated);
     }
 
     State::~State() {
         lua_close(state);
     }
 
-    void State::setup_ffi() {
-        lua_getglobal(state, "require");
-        lua_pushliteral(state, "ffi");
-        lua_call(state, 1, 1);
-        lua_getfield(state, -1, "cdef");
-        lua_pushliteral(state, "typedef unsigned char uchar;\n"
+    static void setup_ffi(lua_State *L) {
+        lua_getglobal(L, "require");
+        lua_pushliteral(L, "ffi");
+        lua_call(L, 1, 1);
+        lua_getfield(L, -1, "cdef");
+        lua_pushliteral(L, "typedef unsigned char uchar;\n"
             "typedef unsigned short ushort;\n"
             "typedef unsigned int uint;\n"
             "typedef signed long long int llong;\n"
@@ -366,89 +394,63 @@ namespace lua
             "struct vslot_t; typedef struct vslot_t vslot_t;\n"
             "struct cube_t; typedef struct cube_t cube_t;\n"
             "struct ucharbuf; typedef struct ucharbuf ucharbuf;\n");
-        lua_call(state, 1, 0);
-        lua_getfield(state, -1, "cast");
-        lua_replace(state, -2);
+        lua_call(L, 1, 0);
+        lua_getfield(L, -1, "cast");
+        lua_replace(L, -2);
     }
 
-    int State::capi_tostring(lua_State *L) {
-        lua_pushfstring(L, "C API: %d entries",
-                lua_tointeger(L, lua_upvalueindex(1)));
-        return 1;
-    }
-
-    int State::capi_newindex(lua_State *L) {
-        luaL_error(L, "attempt to write into the C API (%s)", lua_tostring(L, 2));
-        return 0;
-    }
-
-    int State::capi_get(lua_State *L) {
-        lua_pushvalue(L, lua_upvalueindex(1));
-        return 1;
-    }
-
-    void State::setup_binds(bool dedicated)
-    {
-        lua_pushboolean(state, dedicated);
-        lua_setglobal(state, "SERVER");
+    static void setup_binds(State *s, bool dedicated) {
+        lua_pushboolean(s->state, dedicated);
+        lua_setglobal(s->state, "SERVER");
 
         assert(funs);
-        lua_getfield(state, LUA_REGISTRYINDEX, "_PRELOAD");
+        lua_getfield(s->state, LUA_REGISTRYINDEX, "_PRELOAD");
         int numfields = funs->length();
         int numcfields = cfuns ? cfuns->length() : 0;
         int tnf = numfields + numcfields;
-        lua_createtable(state, tnf, 0);
+        lua_createtable(s->state, tnf, 0);
         for (int i = 0; i < numfields; ++i) {
             const Reg &reg = (*funs)[i];
-            lua_pushcfunction(state, reg.fun);
-            lua_setfield(state, -2, reg.name);
+            lua_pushcfunction(s->state, reg.fun);
+            lua_setfield(s->state, -2, reg.name);
         }
-        setup_ffi();
+        setup_ffi(s->state);
         for (int i = 0; i < numcfields; ++i) {
             const CReg &reg = (*cfuns)[i];     /* cast */
-            lua_pushvalue(state, -1);              /* cast, cast */
-            lua_pushstring(state, reg.sig);        /* cast, cast, sig */
-            lua_pushlightuserdata(state, reg.fun); /* cast, cast, sig, udata */
-            lua_call(state, 2, 1);                 /* cast, fptr */
-            lua_setfield(state, -3, reg.name);     /* cast */
+            lua_pushvalue(s->state, -1);              /* cast, cast */
+            lua_pushstring(s->state, reg.sig);        /* cast, cast, sig */
+            lua_pushlightuserdata(s->state, reg.fun); /* cast, cast, sig, udata */
+            lua_call(s->state, 2, 1);                 /* cast, fptr */
+            lua_setfield(s->state, -3, reg.name);     /* cast */
         }
-        lua_pop(state, 1);
-        lua_createtable(state, 0, 2);              /* _C, C_mt */
-        lua_pushinteger(state, tnf);               /* _C, C_mt, C_num */
-        lua_pushcclosure(state, capi_tostring, 1); /* _C, C_mt, C_tostring */
-        lua_setfield(state, -2, "__tostring");     /* _C, C_mt */
-        lua_pushcfunction(state, capi_newindex);   /* _C, C_mt, C_newindex */
-        lua_setfield(state, -2, "__newindex");     /* _C, C_mt */
-        lua_pushboolean(state, false);             /* _C, C_mt, C_metatable */
-        lua_setfield(state, -2, "__metatable");    /* _C, C_mt */
-        lua_setmetatable(state, -2);               /* _C */
-        lua_pushcclosure(state, capi_get, 1);      /* C_get */
-        lua_setfield(state, -2, "capi");
-        lua_pop(state, 1); /* _PRELOAD */
+        lua_pop(s->state, 1);
+        lua_createtable(s->state, 0, 2);              /* _C, C_mt */
+        lua_pushinteger(s->state, tnf);               /* _C, C_mt, C_num */
+        lua_pushcclosure(s->state, capi_tostring, 1); /* _C, C_mt, C_tostring */
+        lua_setfield(s->state, -2, "__tostring");     /* _C, C_mt */
+        lua_pushcfunction(s->state, capi_newindex);   /* _C, C_mt, C_newindex */
+        lua_setfield(s->state, -2, "__newindex");     /* _C, C_mt */
+        lua_pushboolean(s->state, false);             /* _C, C_mt, C_metatable */
+        lua_setfield(s->state, -2, "__metatable");    /* _C, C_mt */
+        lua_setmetatable(s->state, -2);               /* _C */
+        lua_pushcclosure(s->state, capi_get, 1);      /* C_get */
+        lua_setfield(s->state, -2, "capi");
+        lua_pop(s->state, 1); /* _PRELOAD */
 
         /* load octascript early on */
-        lua_getfield(state, LUA_REGISTRYINDEX, "_LOADED");
-        lua_getglobal(state, "require");
-        lua_pushliteral(state, "lang");
-        lua_call(state, 1, 1);
-        lua_getfield(state, -1, "compile");
-        lua_setfield(state, LUA_REGISTRYINDEX, "octascript_compile");
-        lua_getfield(state, -1, "env");
-        lua_setfield(state, LUA_REGISTRYINDEX, "octascript_env");
-        lua_getfield(state, -1, "traceback");
-        lua_setfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
-        lua_pop(state, 2);
+        lua_getfield(s->state, LUA_REGISTRYINDEX, "_LOADED");
+        lua_getglobal(s->state, "require");
+        lua_pushliteral(s->state, "lang");
+        lua_call(s->state, 1, 1);
+        lua_getfield(s->state, -1, "compile");
+        lua_setfield(s->state, LUA_REGISTRYINDEX, "octascript_compile");
+        lua_getfield(s->state, -1, "env");
+        lua_setfield(s->state, LUA_REGISTRYINDEX, "octascript_env");
+        lua_getfield(s->state, -1, "traceback");
+        lua_setfield(s->state, LUA_REGISTRYINDEX, "octascript_traceback");
+        lua_pop(s->state, 2);
 
-        load_module("init");
-    }
-
-    int State::panic(lua_State *L) {
-        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_traceback");
-        lua_pushfstring(L, "error in call to the Lua API (%s)",
-            lua_tostring(L, -2));
-        lua_call(L, 1, 1);
-        fatal("%s", lua_tostring(L, -1));
-        return 0;
+        s->load_module("init");
     }
 
     bool State::push_external(const char *name) {
