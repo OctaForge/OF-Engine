@@ -465,59 +465,60 @@ namespace lua
         return true;
     }
 
-    int State::vcall_external(const char *name, const char *args, int retn, va_ref *ar) {
-        if (!push_external(name)) return -1;
+    static int vcall_external(State *s, const char *name, const char *args,
+    int retn, va_ref *ar) {
+        if (!s->push_external(name)) return -1;
         int nargs = 0;
         while (*args) {
             switch (*args++) {
                 case 's':
-                    lua_pushstring(state, va_arg(ar->ap, const char *));
+                    lua_pushstring(s->state, va_arg(ar->ap, const char *));
                     ++nargs; break;
                 case 'S': {
                     const char *str = va_arg(ar->ap, const char *);
-                    lua_pushlstring(state, str, va_arg(ar->ap, int));
+                    lua_pushlstring(s->state, str, va_arg(ar->ap, int));
                     ++nargs; break;
                 }
                 case 'd': case 'i':
-                    lua_pushinteger(state, va_arg(ar->ap, int));
+                    lua_pushinteger(s->state, va_arg(ar->ap, int));
                     ++nargs; break;
                 case 'f':
-                    lua_pushnumber(state, va_arg(ar->ap, double));
+                    lua_pushnumber(s->state, va_arg(ar->ap, double));
                     ++nargs; break;
                 case 'b':
-                    lua_pushboolean(state, va_arg(ar->ap, int));
+                    lua_pushboolean(s->state, va_arg(ar->ap, int));
                     ++nargs; break;
                 case 'p':
-                    lua_pushlightuserdata(state, va_arg(ar->ap, void *));
+                    lua_pushlightuserdata(s->state, va_arg(ar->ap, void *));
                     ++nargs; break;
                 case 'c':
-                    lua_pushcfunction(state, va_arg(ar->ap, lua_CFunction));
+                    lua_pushcfunction(s->state, va_arg(ar->ap, lua_CFunction));
                     ++nargs; break;
                 case 'C': {
                     lua_CFunction cf = va_arg(ar->ap, lua_CFunction);
                     int nups = va_arg(ar->ap, int);
-                    lua_pushcclosure(state, cf, nups);
+                    lua_pushcclosure(s->state, cf, nups);
                     nargs -= nups - 1; break;
                 }
                 case 'n':
-                    lua_pushnil(state);
+                    lua_pushnil(s->state);
                     ++nargs; break;
                 case 'v':
-                    lua_pushvalue(state, va_arg(ar->ap, int));
+                    lua_pushvalue(s->state, va_arg(ar->ap, int));
                     ++nargs; break;
                 case 'm':
-                    if (!push_external("buf_get_msgpack")) {
-                        lua_pushnil(state);
+                    if (!s->push_external("buf_get_msgpack")) {
+                        lua_pushnil(s->state);
                     } else {
-                        lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
-                        lua_insert(state, -2);
-                        lua_pushlightuserdata(state, va_arg(ar->ap, void *));
-                        if (lua_pcall(state, 1, 1, -3)) {
-                            logger::log(logger::ERROR, "%s", lua_tostring(state, -1));
-                            lua_pop(state, 2);
-                            lua_pushnil(state); // dummy result (nil)
+                        lua_getfield(s->state, LUA_REGISTRYINDEX, "octascript_traceback");
+                        lua_insert(s->state, -2);
+                        lua_pushlightuserdata(s->state, va_arg(ar->ap, void *));
+                        if (lua_pcall(s->state, 1, 1, -3)) {
+                            logger::log(logger::ERROR, "%s", lua_tostring(s->state, -1));
+                            lua_pop(s->state, 2);
+                            lua_pushnil(s->state); // dummy result (nil)
                         } else {
-                            lua_remove(state, -2);
+                            lua_remove(s->state, -2);
                         }
                     }
                     ++nargs; break;
@@ -526,64 +527,64 @@ namespace lua
                     break;
             }
         }
-        int n1 = lua_gettop(state) - nargs - 1;
-        lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
-        lua_insert(state, -nargs - 2);
-        if (lua_pcall(state, nargs, retn, -nargs - 2)) {
-            logger::log(logger::ERROR, "%s", lua_tostring(state, -1));
-            lua_pop(state, 2);
+        int n1 = lua_gettop(s->state) - nargs - 1;
+        lua_getfield(s->state, LUA_REGISTRYINDEX, "octascript_traceback");
+        lua_insert(s->state, -nargs - 2);
+        if (lua_pcall(s->state, nargs, retn, -nargs - 2)) {
+            logger::log(logger::ERROR, "%s", lua_tostring(s->state, -1));
+            lua_pop(s->state, 2);
             return -1;
         }
-        lua_remove(state, n1 - lua_gettop(state) - 1);
-        return lua_gettop(state) - n1;
+        lua_remove(s->state, n1 - lua_gettop(s->state) - 1);
+        return lua_gettop(s->state) - n1;
     }
 
     bool State::call_external(const char *name, const char *args, ...) {
         va_ref ar;
         va_start(ar.ap, args);
-        bool ret = vcall_external(name, args, 0, &ar) >= 0;
+        bool ret = vcall_external(this, name, args, 0, &ar) >= 0;
         va_end(ar.ap);
         return ret;
     }
 
-    int State::vcall_external_ret(const char *name, const char *args,
-    const char *retargs, va_ref *ar) {
+    static int vcall_external_ret(State *s, const char *name,
+    const char *args, const char *retargs, va_ref *ar) {
         int nr = LUA_MULTRET;
         if (retargs && *retargs == 'N') {
             ++retargs;
             nr = va_arg(ar->ap, int);
         }
-        int nrets = vcall_external(name, args, nr, ar);
+        int nrets = vcall_external(s, name, args, nr, ar);
         if (nrets < 0) return -1;
         int idx = nrets;
         if (retargs) while (*retargs) {
             switch (*retargs++) {
                 case 'S': {
-                    const char *lstr = lua_tostring(state, -idx--);
+                    const char *lstr = lua_tostring(s->state, -idx--);
                     char *fstr = va_arg(ar->ap, char *);
                     if  (!lstr) fstr[0] = '\0';
                     else memcpy(fstr, lstr, strlen(lstr) + 1);
                     break;
                 }
                 case 's':
-                    *va_arg(ar->ap, const char **) = lua_tostring(state, -idx--);
+                    *va_arg(ar->ap, const char **) = lua_tostring(s->state, -idx--);
                     break;
                 case 'd': case 'i':
-                    *va_arg(ar->ap, int *) = lua_tointeger(state, -idx--);
+                    *va_arg(ar->ap, int *) = lua_tointeger(s->state, -idx--);
                     break;
                 case 'f':
-                    *va_arg(ar->ap, float *) = lua_tonumber(state, -idx--);
+                    *va_arg(ar->ap, float *) = lua_tonumber(s->state, -idx--);
                     break;
                 case 'F':
-                    *va_arg(ar->ap, double *) = lua_tonumber(state, -idx--);
+                    *va_arg(ar->ap, double *) = lua_tonumber(s->state, -idx--);
                     break;
                 case 'b':
-                    *va_arg(ar->ap, bool *) = lua_toboolean(state, -idx--);
+                    *va_arg(ar->ap, bool *) = lua_toboolean(s->state, -idx--);
                     break;
                 case 'm': {
                     const char **r = va_arg(ar->ap, const char **);
                     size_t *l = va_arg(ar->ap, size_t *);
-                    *r = lua_tolstring(state, -idx--, l);
+                    *r = lua_tolstring(s->state, -idx--, l);
                     break;
                 }
                 case 'v':
@@ -601,7 +602,7 @@ namespace lua
     const char *retargs, ...) {
         va_ref ar;
         va_start(ar.ap, retargs);
-        int ret = vcall_external_ret(name, args, retargs, &ar);
+        int ret = vcall_external_ret(this, name, args, retargs, &ar);
         va_end(ar.ap);
         return ret;
     }
@@ -610,7 +611,7 @@ namespace lua
     const char *retargs, ...) {
         va_ref ar;
         va_start(ar.ap, retargs);
-        int ret = vcall_external_ret(name, args, retargs, &ar);
+        int ret = vcall_external_ret(this, name, args, retargs, &ar);
         if (ret > 0) lua_pop(state, ret);
         va_end(ar.ap);
         return ret >= 0;

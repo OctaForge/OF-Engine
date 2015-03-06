@@ -27,11 +27,6 @@ namespace lua
         int  load_file  (const char *fname);
         int  load_string(const char *str, const char *ch = NULL);
         bool exec_file  (const char *cfgfile, bool msg = true);
-
-    private:
-        int vcall_external(const char *name, const char *args, int retn, va_ref *ar);
-        int vcall_external_ret(const char *name, const char *args,
-        const char *retargs, va_ref *ar);
     };
 
     extern State *L;
