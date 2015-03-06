@@ -24,6 +24,9 @@ namespace lua
         void pop_external_ret(int n);
 
         void load_module(const char *name);
+        int  load_file  (const char *fname);
+        int  load_string(const char *str, const char *ch = NULL);
+        bool exec_file  (const char *cfgfile, bool msg = true);
 
     private:
         static int capi_tostring(lua_State *L);
@@ -47,9 +50,6 @@ namespace lua
     void reset       ();
     void close       ();
     void assert_stack();
-    int load_string(const char *str, const char *ch = NULL);
-
-    bool execfile(const char *cfgfile, bool msg = true);
 }
 
 #define LUACOMMAND(name, fun) \

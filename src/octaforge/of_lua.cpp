@@ -14,8 +14,6 @@ namespace lua
 {
     /* some initial stuff */
 
-    static int load_file(lua_State *L, const char *fname);
-
     static string mod_dir = "";
 
     static int externals = LUA_REFNIL;
@@ -623,10 +621,139 @@ namespace lua
         path(p);
         logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
         lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
-        if (load_file(state, p) || lua_pcall(state, 0, 0, -2)) {
+        if (load_file(p) || lua_pcall(state, 0, 0, -2)) {
             fatal("%s", lua_tostring(state, -1));
         }
         lua_pop(state, 1);
+    }
+
+    struct reads {
+        const char *str;
+        size_t size;
+    };
+
+    static const char *read_str(lua_State *L, void *data, size_t *size) {
+        reads *rd = (reads*)data;
+        (void)L;
+        if (rd->size == 0) return NULL;
+        *size = rd->size;
+        rd->size = 0;
+        return rd->str;
+    }
+
+    static int err_file(lua_State *L, const char *what, int fnameidx) {
+        const char *errstr = strerror(errno);
+        const char *fname = lua_tostring(L, fnameidx) + 1;
+        lua_pushfstring(L, "cannot %s %s: %s", what, fname, errstr);
+        lua_remove(L, fnameidx);
+        return LUA_ERRFILE;
+    }
+
+    int State::load_file(const char *fname) {
+        int fnameidx = lua_gettop(state) + 1;
+        vector<char> buf;
+        if (!fname) {
+            lua_pushliteral(state, "=stdin");
+            char buff[1024];
+            size_t nread;
+            while ((nread = fread(buff, 1, sizeof(buff), stdin))) {
+                buf.reserve(nread);
+                memcpy(buf.getbuf() + buf.length(), buff, nread);
+                buf.advance(nread);
+            }
+        } else {
+            lua_pushfstring(state, "@%s", fname);
+            stream *f = openfile(fname, "rb");
+            if (!f) return err_file(state, "open", fnameidx);
+            size_t size = f->size();
+            if (size <= 0) {
+                delete f;
+                return err_file(state, "read", fnameidx);
+            }
+            buf.growbuf(size);
+            size_t asize = f->read(buf.getbuf(), size);
+            if (size != asize) {
+                delete f;
+                return err_file(state, "read", fnameidx);
+            }
+            buf.advance(asize);
+            delete f;
+        }
+        lua_getfield(state, LUA_REGISTRYINDEX, "octascript_compile");
+        lua_pushvalue(state, fnameidx);
+        lua_pushlstring(state, buf.getbuf(), buf.length());
+        int ret = lua_pcall(state, 2, 1, 0);
+        if (ret) return ret;
+        reads rd;
+        const char *lstr = lua_tolstring(state, -1, &rd.size);
+        char *dups = new char[rd.size];
+        rd.str = dups;
+        memcpy(dups, lstr, rd.size);
+        size_t s;
+        const char *fnl = lua_tolstring(state, fnameidx, &s);
+        const char *fn = newstring(fnl, s);
+        lua_pop(state, 2);
+        ret = lua_load(state, read_str, &rd, fn);
+        if (!ret) {
+            lua_getfield(state, LUA_REGISTRYINDEX, "octascript_env");
+            lua_setfenv(state, -2);
+        }
+        delete[] dups;
+        delete[] fn;
+        return ret;
+    }
+
+    int State::load_string(const char *str, const char *ch) {
+        lua_getfield(state, LUA_REGISTRYINDEX, "octascript_compile");
+        if (!ch || !ch[0]) {
+            lua_pushstring(state, str);
+            lua_pushvalue(state, -1);
+        } else {
+            lua_pushstring(state, ch);
+            lua_pushstring(state, str);
+        }
+        int ret = lua_pcall(state, 2, 1, 0);
+        if (ret) return ret;
+        reads rd;
+        const char *lstr = lua_tolstring(state, -1, &rd.size);
+        char *dups = new char[rd.size];
+        rd.str = dups;
+        memcpy(dups, lstr, rd.size);
+        lua_pop(state, 1);
+        ret = lua_load(state, read_str, &rd, ch ? ch : rd.str);
+        if (!ret) {
+            lua_getfield(state, LUA_REGISTRYINDEX, "octascript_env");
+            lua_setfenv(state, -2);
+        }
+        delete[] dups;
+        return ret;
+    }
+
+    bool State::exec_file(const char *cfgfile, bool msg)
+    {
+        string s;
+        copystring(s, cfgfile);
+        char *buf = loadfile(path(s), NULL);
+        if(!buf)
+        {
+            if(msg) {
+                logger::log(logger::ERROR, "could not read \"%s\"", cfgfile);
+            }
+            return false;
+        }
+        defformatstring(chunk, "@%s", cfgfile);
+        lua_getfield(state, LUA_REGISTRYINDEX, "octascript_traceback");
+        if (load_string(buf, chunk) || lua_pcall(state, 0, 0, -2)) {
+            if (msg) {
+                fatal("%s", lua_tostring(state, -1));
+            }
+            lua_pop(state, 2);
+            delete[] buf;
+            return false;
+        }
+        lua_pop(state, 1);
+        delete[] buf;
+        return true;
     }
 
     /* Other external stuff */
@@ -678,7 +805,7 @@ namespace lua
 #endif
         L->call_external("state_restore", "");
 #ifndef STANDALONE
-        lua::execfile("config/ui.oct");
+        L->exec_file("config/ui.oct");
 #endif
     }
 
@@ -692,146 +819,13 @@ namespace lua
         assert(!lua_gettop(L->state));
     }
 
-    struct reads {
-        const char *str;
-        size_t size;
-    };
-
-    static const char *read_str(lua_State *L, void *data, size_t *size) {
-        reads *rd = (reads*)data;
-        (void)L;
-        if (rd->size == 0) return NULL;
-        *size = rd->size;
-        rd->size = 0;
-        return rd->str;
-    }
-
-    static int err_file(lua_State *L, const char *what, int fnameidx) {
-        const char *errstr = strerror(errno);
-        const char *fname = lua_tostring(L, fnameidx) + 1;
-        lua_pushfstring(L, "cannot %s %s: %s", what, fname, errstr);
-        lua_remove(L, fnameidx);
-        return LUA_ERRFILE;
-    }
-
-    static int load_file(lua_State *L, const char *fname) {
-        int fnameidx = lua_gettop(L) + 1;
-        vector<char> buf;
-        if (!fname) {
-            lua_pushliteral(L, "=stdin");
-            char buff[1024];
-            size_t nread;
-            while ((nread = fread(buff, 1, sizeof(buff), stdin))) {
-                buf.reserve(nread);
-                memcpy(buf.getbuf() + buf.length(), buff, nread);
-                buf.advance(nread);
-            }
-        } else {
-            lua_pushfstring(L, "@%s", fname);
-            stream *f = openfile(fname, "rb");
-            if (!f) return err_file(L, "open", fnameidx);
-            size_t size = f->size();
-            if (size <= 0) {
-                delete f;
-                return err_file(L, "read", fnameidx);
-            }
-            buf.growbuf(size);
-            size_t asize = f->read(buf.getbuf(), size);
-            if (size != asize) {
-                delete f;
-                return err_file(L, "read", fnameidx);
-            }
-            buf.advance(asize);
-            delete f;
-        }
-        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_compile");
-        lua_pushvalue(L, fnameidx);
-        lua_pushlstring(L, buf.getbuf(), buf.length());
-        int ret = lua_pcall(L, 2, 1, 0);
-        if (ret) return ret;
-        reads rd;
-        const char *lstr = lua_tolstring(L, -1, &rd.size);
-        char *dups = new char[rd.size];
-        rd.str = dups;
-        memcpy(dups, lstr, rd.size);
-        size_t s;
-        const char *fnl = lua_tolstring(L, fnameidx, &s);
-        const char *fn = newstring(fnl, s);
-        lua_pop(L, 2);
-        ret = lua_load(L, read_str, &rd, fn);
-        if (!ret) {
-            lua_getfield(L, LUA_REGISTRYINDEX, "octascript_env");
-            lua_setfenv(L, -2);
-        }
-        delete[] dups;
-        delete[] fn;
-        return ret;
-    }
-
-    static int load_string(lua_State *L, const char *str, const char *ch) {
-        lua_getfield(L, LUA_REGISTRYINDEX, "octascript_compile");
-        if (!ch || !ch[0]) {
-            lua_pushstring(L, str);
-            lua_pushvalue(L, -1);
-        } else {
-            lua_pushstring(L, ch);
-            lua_pushstring(L, str);
-        }
-        int ret = lua_pcall(L, 2, 1, 0);
-        if (ret) return ret;
-        reads rd;
-        const char *lstr = lua_tolstring(L, -1, &rd.size);
-        char *dups = new char[rd.size];
-        rd.str = dups;
-        memcpy(dups, lstr, rd.size);
-        lua_pop(L, 1);
-        ret = lua_load(L, read_str, &rd, ch ? ch : rd.str);
-        if (!ret) {
-            lua_getfield(L, LUA_REGISTRYINDEX, "octascript_env");
-            lua_setfenv(L, -2);
-        }
-        delete[] dups;
-        return ret;
-    }
-
-    int load_string(const char *str, const char *ch) {
-        return load_string(L->state, str, ch);
-    }
-
-    bool execfile(const char *cfgfile, bool msg)
-    {
-        string s;
-        copystring(s, cfgfile);
-        char *buf = loadfile(path(s), NULL);
-        if(!buf)
-        {
-            if(msg) {
-                logger::log(logger::ERROR, "could not read \"%s\"", cfgfile);
-            }
-            return false;
-        }
-        defformatstring(chunk, "@%s", cfgfile);
-        lua_getfield(L->state, LUA_REGISTRYINDEX, "octascript_traceback");
-        if (lua::load_string(buf,  chunk) || lua_pcall(L->state, 0, 0, -2)) {
-            if (msg) {
-                fatal("%s", lua_tostring(L->state, -1));
-            }
-            lua_pop(L->state, 2);
-            delete[] buf;
-            return false;
-        }
-        lua_pop(L->state, 1);
-        delete[] buf;
-        return true;
-    }
-
     CLUAICOMMAND(raw_alloc, void *, (size_t nbytes), return (void*) new uchar[nbytes];)
     CLUAICOMMAND(raw_free, void, (void *ptr), delete[] (uchar*)ptr;)
     CLUAICOMMAND(raw_move, void, (void *dst, const void *src, size_t nbytes), memmove(dst, src, nbytes);)
 
     ICOMMAND(lua, "s", (char *str), {
         lua_getfield(L->state, LUA_REGISTRYINDEX, "octascript_traceback");
-        if (load_string(str)) {
+        if (L->load_string(str)) {
             lua_pushfstring(L->state, "error in call to the Lua API (%s)",
                 lua_tostring(L->state, -2));
             lua_call(L->state, 1, 1);
