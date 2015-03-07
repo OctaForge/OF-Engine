@@ -257,7 +257,7 @@ namespace entities
         assert(d);
         pos[0] = d->o.x;
         pos[1] = d->o.y;
-        pos[2] = d->o.z - d->eyeheight/* - d->aboveeye*/;
+        pos[2] = d->o.z;
         return true;
     });
 
@@ -268,22 +268,13 @@ namespace entities
 
         d->o.x = x;
         d->o.y = y;
-        d->o.z = z + d->eyeheight;/* + d->aboveeye; */
+        d->o.z = z;
 
         /* also set newpos, otherwise this change may get overwritten */
         d->newpos = d->o;
 
         /* no need to interpolate to the last position - just jump */
         d->resetinterp();
-    });
-
-    CLUAICOMMAND(get_dynent_position, bool, (int cn, double *pos), {
-        gameent *d = getclient(cn);
-        assert(d);
-        pos[0] = d->o.x;
-        pos[1] = d->o.y;
-        pos[2] = d->o.z - d->eyeheight/* - d->aboveeye*/;
-        return true;
     });
 
     #define DYNENTVEC(name, prop) \

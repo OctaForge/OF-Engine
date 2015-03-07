@@ -128,8 +128,7 @@ var M = ents
           when up, 0 when not.
         - jumping [{{$svars.StateBoolean}}] - true when the character has
           jumped, false otherwise.
-        - position [{{$svars.StateVec3}}] - the current position. Defaults to
-          { 512, 512, 550 }.
+        - position [{{$svars.StateVec3}}] - the current position (head position).
         - velocity [{{$svars.StateVec3}}] - the current velocity.
         - falling [{{$svars.StateVec3}}] - the character's gravity falling.
         - radius [{{$svars.StateFloat}}] - the character's bounding box
@@ -555,7 +554,7 @@ M.Character = Entity.clone({
         var yaw, pitch, roll = self.get_attr("yaw"),
             self.get_attr("pitch"),
             self.get_attr("roll")
-        var o = self.get_attr("position").copy()
+        var o = self.get_feet_position()
 
         if hudpass && needhud && self.hud_model_offset {
             o.add(self.hud_model_offset)
@@ -701,7 +700,7 @@ M.Character = Entity.clone({
     */
     get_center: func(self) {
         var r = self.get_attr("position").copy()
-        r.z = r.z + self.get_attr("eye_height") * 0.75
+        r.z = r.z - self.get_attr("eye_height") * 0.25
         return r
     },
 
@@ -731,6 +730,28 @@ M.Character = Entity.clone({
     set_local_model_name: func(self, mname) {
         capi::set_model_name(self.uid, mname)
         self.svar_values["model_name"] = mname
+    },
+
+    /**
+        Places the character at the given position. This accounts for
+        eye height (i.e. the given position refers to feet position).
+    */
+    place_at: func(self, pos) {
+        self.set_attr("position", pos.copy().add_z(self.get_attr("eye_height")))
+    },
+
+    /**
+        Gets the feet position of the cahracter.
+    */
+    get_feet_position: func(self) {
+        return self.get_attr("position").copy().sub_z(self.get_attr("eye_height"))
+    },
+
+    /**
+        Gets the head position of the cahracter.
+    */
+    get_head_position: func(self) {
+        return self.get_attr("position").copy()
     }
 })
 var Character = M.Character
@@ -971,6 +992,13 @@ M.StaticEntity = Entity.clone({
         if new && !kwargs.synced {
             capi::editent(self.uid)
         }
+    },
+
+    /**
+        Places the entity at the given position.
+    */
+    place_at: func(self, pos) {
+        self.set_attr("position", pos)
     }
 })
 var StaticEntity = M.StaticEntity
@@ -1030,7 +1058,7 @@ M.Marker = StaticEntity.clone({
 
     /// Places the given entity on this marker's position.
     place_entity: func(self, ent) {
-        ent.set_attr("position", self.get_attr("position"))
+        ent.place_at(self.get_attr("position"))
     }
 })
 var Marker = M.Marker
@@ -1069,7 +1097,7 @@ M.OrientedMarker = StaticEntity.clone({
 
     /// Places the given entity on this marker's position, using yaw and pitch.
     place_entity: func(self, ent) {
-        ent.set_attr("position", self.get_attr("position"))
+        ent.place_at(self.get_attr("position"))
         ent.set_attr("yaw", self.get_attr("yaw"))
         ent.set_attr("pitch", self.get_attr("pitch"))
     },
