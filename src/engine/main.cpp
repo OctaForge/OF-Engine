@@ -1070,13 +1070,7 @@ int main(int argc, char **argv)
     if(dedicated <= 1)
     {
         initlog("sdl");
-
-        int par = 0;
-        #ifdef _DEBUG
-        par = SDL_INIT_NOPARACHUTE;
-        #endif
-
-        if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO|par)<0) fatal("Unable to initialize SDL: %s", SDL_GetError());
+        if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO)<0) fatal("Unable to initialize SDL: %s", SDL_GetError());
     }
 
     initlog("net");

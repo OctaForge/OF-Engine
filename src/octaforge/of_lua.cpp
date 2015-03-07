@@ -14,8 +14,6 @@ namespace lua
 {
     /* some initial stuff */
 
-    static string mod_dir = "";
-
     static int externals = LUA_REFNIL;
 
     struct Reg {

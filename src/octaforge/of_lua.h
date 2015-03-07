@@ -7,6 +7,7 @@ namespace lua
 
     struct State {
         lua_State *state;
+        string     mod_dir;
 
         State(bool dedicated, const char *dir);
         ~State();
