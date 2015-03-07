@@ -1931,8 +1931,8 @@ static void dumpslot(stream *f, const Slot &s, int index, bool decal, int indent
         }
         f->printf(" \"%s\"", st.name);
         if (st.type == TEX_DIFFUSE) {
-            f->printf(" %d %d %d %f", vs.rotation, vs.offset.x, vs.offset.y,
-                vs.scale);
+            f->printf(" %d %d %d %f %f", vs.rotation, vs.offset.x, vs.offset.y,
+                vs.scale.x, vs.scale.y);
             if (index >= 0)
                 f->printf(" // %d\n", index);
             else
@@ -2379,7 +2379,7 @@ static void mergevslot(VSlot &dst, const VSlot &src, int diff, Slot *slot = NULL
     }
     if(diff & (1<<VSLOT_SCALE))
     {
-        dst.scale = clamp(dst.scale*src.scale, 1/8.0f, 8.0f);
+        dst.scale.mul(src.scale).clamp(1/8.0f, 8.0f);
     }
     if(diff & (1<<VSLOT_ROTATION))
     {
@@ -2507,7 +2507,8 @@ void packvslot(vector<uchar> &buf, const VSlot &src)
     if(src.changed & (1<<VSLOT_SCALE))
     {
         buf.put(VSLOT_SCALE);
-        putfloat(buf, src.scale);
+        putfloat(buf, src.scale.x);
+        putfloat(buf, src.scale.y);
     }
     if(src.changed & (1<<VSLOT_ROTATION))
     {
@@ -2590,9 +2591,11 @@ bool unpackvslot(ucharbuf &buf, VSlot &dst, bool delta)
                 break;
             }
             case VSLOT_SCALE:
-                dst.scale = getfloat(buf);
-                if(dst.scale <= 0) dst.scale = 1;
-                else if(!delta) dst.scale = clamp(dst.scale, 1/8.0f, 8.0f);
+                dst.scale.x = getfloat(buf);
+                dst.scale.y = getfloat(buf);
+                if(dst.scale.x <= 0) dst.scale.x = 1;
+                if(dst.scale.y <= 0) dst.scale.y = 1;
+                if(!delta) dst.scale.clamp(1/8.0f, 8.0f);
                 break;
             case VSLOT_ROTATION:
                 dst.rotation = getint(buf);
@@ -2757,7 +2760,7 @@ ICOMMAND(texgroup, "se", (char *name, uint *body), {
     curtexgroup = oldgroup;
 });
 
-void texture(const char *type, const char *name, int *rot, int *xoffset, int *yoffset, float *scale)
+void texture(const char *type, const char *name, int *rot, int *xoffset, int *yoffset, float *xscale, float *yscale)
 {
     int matslot  = findmaterial(type);
     bool isdecal = !strcmp(type, "decal");
@@ -2767,13 +2770,13 @@ void texture(const char *type, const char *name, int *rot, int *xoffset, int *yo
         buf[1] = '\0';
         if (type[0] == 'c' || type[0] == '0') {
             buf[0] = (type++)[0];
-            texture(buf, name, rot, xoffset, yoffset, scale);
+            texture(buf, name, rot, xoffset, yoffset, xscale, yscale);
         }
         while (*type) {
             buf[0] = (type++)[0];
             /* the last 4 arguments will always be unused */
             if (buf[0] != 'c' && buf[0] != '0')
-                texture(buf, "", NULL, NULL, NULL, NULL);
+                texture(buf, "", NULL, NULL, NULL, NULL, NULL);
         }
         return;
     }
@@ -2824,7 +2827,8 @@ void texture(const char *type, const char *name, int *rot, int *xoffset, int *yo
         vs->reset();
         vs->rotation = clamp(*rot, 0, 5);
         vs->offset = ivec2(*xoffset, *yoffset).max(0);
-        vs->scale = *scale <= 0 ? 1 : *scale;
+        vs->scale.x = *xscale <= 0 ? 1 : *xscale;
+        vs->scale.y = *yscale <= 0 ? vs->scale.x : *yscale;
         /* OF */
         if (matslot < 0 && !isdecal && !saved_vslots.empty()) {
             VSlot *svs = saved_vslots.pop();
@@ -2845,7 +2849,7 @@ void texture(const char *type, const char *name, int *rot, int *xoffset, int *yo
     }
 }
 
-COMMAND(texture, "ssiiif");
+COMMAND(texture, "ssiiiff");
 
 void texgrass(char *name)
 {
@@ -2883,14 +2887,15 @@ void texrotate_(int *rot)
 }
 COMMANDN(texrotate, texrotate_, "i");
 
-void texscale(float *scale)
+void texscale(float *xscale, float *yscale)
 {
     if(!defslot) return;
     Slot &s = *defslot;
-    s.variants->scale = *scale <= 0 ? 1 : *scale;
+    s.variants->scale.x = *xscale <= 0 ? 1 : *xscale;
+    s.variants->scale.y = *yscale <= 0 ? s.variants->scale.x : *yscale;
     propagatevslot(s.variants, 1<<VSLOT_SCALE);
 }
-COMMAND(texscale, "f");
+COMMAND(texscale, "ff");
 
 void texlayer(int *layer)
 {

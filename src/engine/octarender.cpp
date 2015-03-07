@@ -780,10 +780,11 @@ void addgrasstri(int face, vertex *verts, int numv, ushort texture, int layer)
 static inline void calctexgen(VSlot &vslot, int orient, vec4 &sgen, vec4 &tgen)
 {
     Texture *tex = vslot.slot->sts.empty() ? notexture : vslot.slot->sts[0].t;
-    float k = TEX_SCALE/vslot.scale,
+    float xk = TEX_SCALE/vslot.scale.x, yk = TEX_SCALE/vslot.scale.y,
           xs = vslot.rotation>=2 && vslot.rotation<=4 ? -tex->xs : tex->xs,
           ys = (vslot.rotation>=1 && vslot.rotation<=2) || vslot.rotation==5 ? -tex->ys : tex->ys,
-          sk = k/xs, tk = k/ys,
+          sk = ((vslot.rotation&5)==1 ? yk : xk)/xs,
+          tk = ((vslot.rotation&5)==1 ? xk : yk)/ys,
           soff = -((vslot.rotation&5)==1 ? vslot.offset.y : vslot.offset.x)/xs,
           toff = -((vslot.rotation&5)==1 ? vslot.offset.x : vslot.offset.y)/ys;
     sgen = vec4(0, 0, 0, soff);

@@ -317,7 +317,11 @@ void savevslot(stream *f, VSlot &vs, int prev)
             loopk(4) f->putlil<float>(p.val[k]);
         }
     }
-    if(vs.changed & (1<<VSLOT_SCALE)) f->putlil<float>(vs.scale);
+    if(vs.changed & (1<<VSLOT_SCALE))
+    {
+        f->putlil<float>(vs.scale.x);
+        f->putlil<float>(vs.scale.y);
+    }
     if(vs.changed & (1<<VSLOT_ROTATION)) f->putlil<int>(vs.rotation);
     if(vs.changed & (1<<VSLOT_OFFSET))
     {
@@ -375,7 +379,7 @@ void savevslots(stream *f, int numvslots)
     delete[] prev;
 }
 
-void loadvslot(stream *f, VSlot &vs, int changed)
+void loadvslot(stream *f, VSlot &vs, int changed, int version)
 {
     vs.changed = changed;
     if(vs.changed & (1<<VSLOT_SHPARAM))
@@ -394,7 +398,11 @@ void loadvslot(stream *f, VSlot &vs, int changed)
             loopk(4) p.val[k] = f->getlil<float>();
         }
     }
-    if(vs.changed & (1<<VSLOT_SCALE)) vs.scale = f->getlil<float>();
+    if(vs.changed & (1<<VSLOT_SCALE))
+    {
+        if(version <= 1) vs.scale.x = vs.scale.y = f->getlil<float>();
+        else loopk(2) vs.scale[k] = f->getlil<float>();
+    }
     if(vs.changed & (1<<VSLOT_ROTATION)) vs.rotation = f->getlil<int>();
     if(vs.changed & (1<<VSLOT_OFFSET))
     {
@@ -422,7 +430,7 @@ void loadvslot(stream *f, VSlot &vs, int changed)
     if(vs.changed & (1<<VSLOT_DETAIL)) vs.detail = f->getlil<int>();
 }
 
-void loadvslots(stream *f, int numvslots)
+void loadvslots(stream *f, int numvslots, int version)
 {
     int *prev = new int[numvslots];
     memset(prev, -1, numvslots*sizeof(int));
@@ -437,7 +445,7 @@ void loadvslots(stream *f, int numvslots)
         else
         {
             prev[vslots.length()] = f->getlil<int>();
-            loadvslot(f, *vslots.add(new VSlot(NULL, vslots.length())), changed);
+            loadvslot(f, *vslots.add(new VSlot(NULL, vslots.length())), changed, version);
             numvslots--;
         }
     }
@@ -798,7 +806,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     }
 
     renderprogress(0, "loading slots...");
-    loadvslots(f, hdr.numvslots);
+    loadvslots(f, hdr.numvslots, hdr.version);
 
     renderprogress(0, "loading octree...");
     bool failed = false;

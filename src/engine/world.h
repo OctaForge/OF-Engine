@@ -21,7 +21,7 @@ struct tmapheader
     int numvslots;
 };
 
-#define MAPVERSION 1            // bump if map format changes, see worldio.cpp
+#define MAPVERSION 2            // bump if map format changes, see worldio.cpp
 
 struct mapheader
 {

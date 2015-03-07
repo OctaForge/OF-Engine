@@ -626,7 +626,7 @@ struct VSlot
     int index, changed;
     vector<SlotShaderParam> params;
     bool linked;
-    float scale;
+    vec2 scale;
     int rotation;
     ivec2 offset;
     vec2 scroll;
@@ -649,7 +649,7 @@ struct VSlot
     {
         params.setsize(0);
         linked = false;
-        scale = 1;
+        scale = vec2(0, 0);
         rotation = 0;
         offset = ivec2(0, 0);
         scroll = vec2(0, 0);
