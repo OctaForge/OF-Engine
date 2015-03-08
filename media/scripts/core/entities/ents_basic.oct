@@ -777,12 +777,6 @@ externals::set("physics_collide_client", func(cn1, cn2, cont, dx, dy, dz) {
     emit(cl2, sig, cl1, dx, dy, dz)
 })
 
-externals::set("entity_set_local_animation", func(cn, anim) {
-    var ent = ents::get_dynamic(cn)
-    if !ent { return }
-    ent.set_local_animation(anim)
-})
-
 /**
     The default entity prototype for player. Inherits from $Character. Adds
     two new properties.
