@@ -897,8 +897,6 @@ namespace game
         packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         putint(p, N_CONNECT);
         sendstring(player1->name, p);
-        putint(p, 0);
-        putint(p, 0);
         string hash = "";
         if(connectpass[0])
         {
@@ -1039,9 +1037,6 @@ namespace game
         {
             if(d==player1) getint(p);
             else d->state = getint(p);
-            getint(p);
-            getint(p);
-            getint(p);
         }
         d->lifesequence = getint(p);
     }
@@ -1170,15 +1165,8 @@ namespace game
             {
                 int cn = getint(p);
                 gameent *d = newclient(cn);
-                if(!d)
-                {
-                    getstring(text, p);
-                    getstring(text, p);
-                    getint(p);
-                    getint(p);
-                    break;
-                }
                 getstring(text, p);
+                if(!d) break;
                 filtertext(text, text, false, false, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unnamed");
                 if(d->name[0])          // already connected
@@ -1192,9 +1180,6 @@ namespace game
                     if(needclipboard >= 0) needclipboard++;
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
-                getint(p);
-                getint(p);
-                getint(p);
                 break;
             }
 

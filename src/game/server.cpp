@@ -1230,9 +1230,6 @@ namespace server
         putint(p, N_INITCLIENT);
         putint(p, ci->clientnum);
         sendstring(ci->name, p);
-        putint(p, 0);
-        putint(p, 0);
-        putint(p, 0);
     }
 
     void welcomeinitclient(packetbuf &p, int exclude = -1)
@@ -1320,9 +1317,6 @@ namespace server
                 if(ci && oi->clientnum==ci->clientnum) continue;
                 putint(p, oi->clientnum);
                 putint(p, oi->state.state);
-                putint(p, 0);
-                putint(p, 0);
-                putint(p, 0);
                 sendstate(oi->state, p);
             }
             putint(p, -1);
@@ -1919,8 +1913,6 @@ namespace server
                     filtertext(text, text, false, false, MAXNAMELEN);
                     if(!text[0]) copystring(text, "unnamed");
                     copystring(ci->name, text, MAXNAMELEN+1);
-                    getint(p);
-                    getint(p);
 
                     string password, authdesc, authname;
                     getstring(password, p, sizeof(password));
