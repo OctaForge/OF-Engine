@@ -232,7 +232,7 @@ if !(try ffi["typeof"]("selinfo_t")) {
             int rotation;
             int offset_x, offset_y;
             float scroll_s, scroll_t;
-            float scale_x, scale_y;
+            float scale;
             int layer, decal;
             float alpha_front, alpha_back;
             __rt_vec3f_t color; // we're touching internals here

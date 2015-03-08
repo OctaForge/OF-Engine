@@ -2221,16 +2221,15 @@ void vscroll(float *s, float *t)
 }
 COMMAND(vscroll, "ff");
 
-void vscale(float *xscale, float *yscale)
+void vscale(float *scale)
 {
     if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_SCALE;
-    ds.scale.x = *xscale <= 0 ? 1 : (usevdelta ? *xscale : clamp(*xscale, 1/8.0f, 8.0f));
-    ds.scale.y = *yscale <= 0 ? ds.scale.x : (usevdelta ? *yscale : clamp(*yscale, 1/8.0f, 8.0f));
+    ds.scale = *scale <= 0 ? 1 : (usevdelta ? *scale : clamp(*scale, 1/8.0f, 8.0f));
     mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
-COMMAND(vscale, "ff");
+COMMAND(vscale, "f");
 
 void vlayer(int *n)
 {
@@ -3020,7 +3019,7 @@ struct vslot_t {
     int rotation;
     int offset_x, offset_y;
     float scroll_s, scroll_t;
-    float xscale, yscale;
+    float scale;
     int layer, detail;
     float alpha_front, alpha_back;
     float r, g, b;
@@ -3050,10 +3049,8 @@ selinfo_t &sel, bool local), {
         ds.offset = ivec2(v.offset_x, v.offset_y).max(0);
     if (ds.changed & VFLAG_SCROLL)
         ds.scroll = vec2(v.scroll_s / 1000.0f, v.scroll_t / 1000.0f);
-    if (ds.changed & VFLAG_SCALE) {
-        ds.scale.x = v.xscale <= 0 ? 1 : clamp(v.xscale, 1 / 8.0f, 8.0f);
-        ds.scale.y = v.yscale <= 0 ? 1 : clamp(v.yscale, 1 / 8.0f, 8.0f);
-    }
+    if (ds.changed & VFLAG_SCALE)
+        ds.scale = v.scale <= 0 ? 1 : clamp(v.scale, 1 / 8.0f, 8.0f);
     if (ds.changed & VFLAG_LAYER)
         ds.layer = vslots.inrange(v.layer) ? v.layer : 0;
     if (ds.changed & VFLAG_DETAIL)
@@ -3129,14 +3126,13 @@ int face, float s, float t), {
 });
 
 CLUAICOMMAND(edit_cube_vscale, bool, (int x, int y, int z, int gs,
-int face, float xscale, float yscale), {
-    logger::log(logger::DEBUG, "edit_cube_vscale: %d, %d, %d (%d, %d) (%f, %f)",
-        x, y, z, gs, face, xscale, yscale);
+int face, float scale), {
+    logger::log(logger::DEBUG, "edit_cube_vscale: %d, %d, %d (%d, %d) (%f)",
+        x, y, z, gs, face, scale);
     VSELHDR
     VSlot ds;
     ds.changed = 1 << VSLOT_SCALE;
-    ds.scale.x = xscale <= 0 ? 1 : clamp(xscale, 1 / 8.0f, 8.0f);
-    ds.scale.y = yscale <= 0 ? ds.scale.x : clamp(yscale, 1 / 8.0f, 8.0f);
+    ds.scale = scale <= 0 ? 1 : clamp(scale, 1 / 8.0f, 8.0f);
     VSELFTR
 });
 

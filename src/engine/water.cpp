@@ -498,8 +498,8 @@ void renderlava()
         if(lavasurfs[k].length())
         {
             Texture *tex = lslot.sts.inrange(0) ? lslot.sts[0].t: notexture;
-            wxscale = TEX_SCALE/(tex->xs*lslot.scale.x);
-            wyscale = TEX_SCALE/(tex->ys*lslot.scale.y);
+            wxscale = TEX_SCALE/(tex->xs*lslot.scale);
+            wyscale = TEX_SCALE/(tex->ys*lslot.scale);
             wscroll = lastmillis/1000.0f;
 
             glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -522,8 +522,8 @@ void renderlava()
             s *= 8 - fabs(s)*16;
             wfwave = vertwater ? WATER_AMPLITUDE*s-WATER_OFFSET : -WATER_OFFSET;
             wfscroll = 16.0f*lastmillis/3000.0f;
-            wfxscale = TEX_SCALE/(tex->xs*lslot.scale.x);
-            wfyscale = TEX_SCALE/(tex->ys*lslot.scale.y);
+            wfxscale = TEX_SCALE/(tex->xs*lslot.scale);
+            wfyscale = TEX_SCALE/(tex->ys*lslot.scale);
 
             glBindTexture(GL_TEXTURE_2D, tex->id);
             glActiveTexture_(GL_TEXTURE1);
@@ -556,8 +556,8 @@ void renderwaterfalls()
         s *= 8 - fabs(s)*16;
         wfwave = vertwater ? WATER_AMPLITUDE*s-WATER_OFFSET : -WATER_OFFSET;
         wfscroll = 16.0f*lastmillis/1000.0f;
-        wfxscale = TEX_SCALE/(tex->xs*wslot.scale.x);
-        wfyscale = TEX_SCALE/(tex->ys*wslot.scale.y);
+        wfxscale = TEX_SCALE/(tex->xs*wslot.scale);
+        wfyscale = TEX_SCALE/(tex->ys*wslot.scale);
 
         bvec color = getwaterfallcolor(k), refractcolor = getwaterfallrefractcolor(k);
         if(color.iszero()) color = getwatercolor(k);
@@ -601,8 +601,8 @@ void renderwater()
         MatSlot &wslot = lookupmaterialslot(MAT_WATER+k);
 
         Texture *tex = wslot.sts.inrange(0) ? wslot.sts[0].t: notexture;
-        wxscale = TEX_SCALE/(tex->xs*wslot.scale.x);
-        wyscale = TEX_SCALE/(tex->ys*wslot.scale.y);
+        wxscale = TEX_SCALE/(tex->xs*wslot.scale);
+        wyscale = TEX_SCALE/(tex->ys*wslot.scale);
         wscroll = 0.0f;
 
         glBindTexture(GL_TEXTURE_2D, tex->id);

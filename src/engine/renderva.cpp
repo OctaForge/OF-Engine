@@ -1375,9 +1375,8 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 
             if(slot.shader->type&SHADER_TRIPLANAR)
             {
-                float xscale = TEX_SCALE/vslot.scale.x,
-                      yscale = TEX_SCALE/vslot.scale.y;
-                GLOBALPARAMF(texgenscale, xscale/diffuse->xs, yscale/diffuse->ys);
+                float scale = TEX_SCALE/vslot.scale;
+                GLOBALPARAMF(texgenscale, scale/diffuse->xs, scale/diffuse->ys);
             }
         }
     }
@@ -1437,9 +1436,8 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
                 case TEX_DIFFUSE:
                     if(slot.shader->type&SHADER_TRIPLANAR)
                     {
-                        float xscale = TEX_SCALE/detail.scale.x,
-                              yscale = TEX_SCALE/detail.scale.y;
-                        GLOBALPARAMF(detailscale, xscale/t.t->xs, yscale/t.t->ys);
+                        float scale = TEX_SCALE/detail.scale;
+                        GLOBALPARAMF(detailscale, scale/t.t->xs, scale/t.t->ys);
                     }
                     // fall-through
                 case TEX_NORMAL:
