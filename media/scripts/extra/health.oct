@@ -74,6 +74,7 @@ var DeathAction = actions.Action.clone({
     __start: func(self) {
         if !msg::is_server() { return }
         var actor = self.actor
+        actor.set_attr("client_state", actor.State.DEAD)
         actor.set_attr("can_move", false)
         actor.clear_actions()
         emit(actor, "killed")
@@ -122,6 +123,7 @@ M.player_plugin = {
         self.old_health = self.get_attr("health")
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
+        self.set_attr("client_state", self.State.ALIVE)
         self.cancel_sdata_update()
     },
 

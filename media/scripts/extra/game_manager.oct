@@ -112,6 +112,7 @@ M.player_plugin = {
         if !msg::is_server() { return }
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
+        self.set_attr("client_state", self.State.ALIVE)
         self.cancel_sdata_update()
     },
 
