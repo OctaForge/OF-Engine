@@ -74,7 +74,6 @@ var DeathAction = actions.Action.clone({
     __start: func(self) {
         if !msg::is_server() { return }
         var actor = self.actor
-        actor.set_attr("client_state", actor.State.DEAD)
         actor.set_attr("can_move", false)
         actor.clear_actions()
         emit(actor, "killed")
@@ -201,8 +200,11 @@ M.player_plugin = {
         if !msg::is_server_only() && diff <= -5 && health > 0 {
             self.enqueue_action(PainAction())
         }
-        if msg::is_server() && health <= 0 {
-            self.enqueue_action(DeathAction())
+        if health <= 0 {
+            if msg::is_server() {
+                self.enqueue_action(DeathAction())
+            }
+            self.set_attr("client_state", self.State.DEAD)
         }
     },
 

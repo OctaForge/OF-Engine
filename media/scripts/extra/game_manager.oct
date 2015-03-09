@@ -82,6 +82,7 @@ M.player_plugin = {
                 return
             }
         }
+        self.set_attr("client_state", self.State.SPAWNING)
         self.set_attr("spawn_stage", 1)
     },
 
@@ -104,6 +105,7 @@ M.player_plugin = {
         if msg::is_server() { return }
         if self == ents::get_player() {
             emit(self, "client,respawn")
+            self.set_attr("client_state", self.State.ALIVE)
             self.set_attr("spawn_stage", 4)
         }
     },
