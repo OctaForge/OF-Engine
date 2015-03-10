@@ -1364,6 +1364,7 @@ namespace server
             ci->mapchange();
             ci->state.lasttimeplayed = lastmillis;
             if(m_mp(gamemode) && ci->state.state!=CS_SPECTATOR) sendspawn(ci);
+            lua::L->call_external("server_map_change", "i", ci->clientnum);
         }
 
         if(m_demo)

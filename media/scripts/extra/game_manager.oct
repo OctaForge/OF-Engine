@@ -214,6 +214,14 @@ var GameManager = Entity.clone({
     set_local_animation_flags: func(self) { }
 })
 
+import core.externals
+
+externals::set("server_map_change", func(cn) {
+    var pl = ents::get_dynamic(cn)
+    if !pl { return }
+    pl.game_manager_respawn()
+})
+
 from std.util import assert
 
 var gameman
