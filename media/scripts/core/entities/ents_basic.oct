@@ -340,9 +340,21 @@ M.Character = Entity.clone({
             client_set: true, client_cb: true
         }),
         client_state: svars::StateInteger({
-            getter: @[!server,capi.get_clientstate],
-            setter: @[!server,capi.set_clientstate],
-            custom_sync: true, gui_name: false, client_cb: true
+            getter: func(cn) {
+                if !msg::is_server_only() {
+                    return capi::get_clientstate(cn)
+                }
+                return capi::get_server_clientstate(cn)
+            },
+            setter: func(cn, v) {
+                if !msg::is_server_only() {
+                    capi::set_clientstate(cn, v)
+                }
+                if msg::is_server() {
+                    capi::set_server_clientstate(cn, v)
+                }
+            },
+            custom_sync: true, gui_name: false
         }),
         physical_state: svars::StateInteger({
             getter: @[!server,capi.get_physstate],

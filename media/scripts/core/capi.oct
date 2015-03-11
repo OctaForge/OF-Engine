@@ -169,6 +169,8 @@ luastate.capi_restore = func() {
     capi.get_plag = gen_getwrap(capi.get_plag, "int")
 }
 
+capi.get_server_clientstate = gen_getwrap(capi.get_server_clientstate, "int")
+
 var ffi_str = ffi.string
 
 var strftime in capi

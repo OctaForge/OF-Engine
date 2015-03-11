@@ -2537,5 +2537,19 @@ namespace server
         clientinfo *ci = (clientinfo *)getclientinfo(cn);
         return ci ? ci->name : "";
     })
+
+    CLUAICOMMAND(get_server_clientstate, bool, (int cn, int *val), {
+        clientinfo *ci = getinfo(cn);
+        assert(ci);
+        *val = ci->state.state;
+        return true;
+    })
+
+    CLUAICOMMAND(set_server_clientstate, bool, (int cn, int val), {
+        clientinfo *ci = getinfo(cn);
+        assert(ci);
+        ci->state.state = val;
+        return true;
+    })
 }
 
