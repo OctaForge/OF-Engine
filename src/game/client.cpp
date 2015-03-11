@@ -1146,21 +1146,6 @@ namespace game
                 if(!getint(p)) senditemstoserver = false;
                 break;
 
-            case N_FORCEDEATH:
-            {
-                int cn = getint(p);
-                gameent *d = cn==player1->clientnum ? player1 : newclient(cn);
-                if(!d) break;
-                if(d==player1)
-                {
-                    if(editmode) toggleedit();
-                }
-                else d->resetinterp();
-                d->state = CS_DEAD;
-                checkfollow();
-                break;
-            }
-
             case N_INITCLIENT:            // another client either connected or changed name
             {
                 int cn = getint(p);
