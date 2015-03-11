@@ -317,16 +317,18 @@ M.plugins = {
             }
         },
 
-        __activate: @[!server,func(self) {
+        __activate: func(self) {
+            if msg::is_server_only() { return }
             signal::connect(self, "collision", self.health_area_on_collision)
-        }]
+        }
     },
 
     /**
         Displays a simple HUD health status on the player.
     */
     player_hud: {
-        __activate: @[!server,func(self) {
+        __activate: func(self) {
+            if msg::is_server_only() { return }
             if self != ents::get_player() { return }
             gui::get_hud().append(gui::Spacer({ pad_h: 0.1, pad_v: 0.1,
                 align_h: 1, align_v: 1
@@ -351,22 +353,24 @@ M.plugins = {
                     }
                 })
             })
-        }],
+        },
 
-        __deactivate: @[!server,func(self) {
+        __deactivate: func(self) {
+            if msg::is_server_only() { return }
             if self != ents::get_player() { return }
             self.health_hud_status.destroy()
-        }]
+        }
     },
 
     /// Kills the player when he falls off the map.
     player_off_map: {
-        __activate: @[!server,func(self) {
+        __activate: func(self) {
+            if msg::is_server_only() { return }
             connect(self, "off_map", func(ent) {
                 if !is_valid_target(ent) { return }
                 ent.set_attr("health", 0)
             })
-        }]
+        }
     },
 
     /**
@@ -374,7 +378,8 @@ M.plugins = {
         material and gradually when in lava.
     */
     player_in_deadly_material: {
-        __activate: @[!server,func(self) {
+        __activate: func(self) {
+            if msg::is_server_only() { return }
             connect(self, "in_deadly", func(ent, mat) {
                 if !is_valid_target(ent) { return }
                 if mat == edit.material.LAVA {
@@ -383,7 +388,7 @@ M.plugins = {
                     ent.set_attr("health", 0)
                 }
             })
-        }]
+        }
     }
 }
 

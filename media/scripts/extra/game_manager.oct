@@ -63,7 +63,7 @@ M.player_plugin = {
                 get().leave_team(self)
             })
         }
-        @[!server] {
+        if !msg::is_server_only() {
             connect(self, "client,respawn", func(self) {
                 get().place_player(self)
             })
