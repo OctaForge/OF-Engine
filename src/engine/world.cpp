@@ -1409,7 +1409,6 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
     extern void clear_texpacks(int n = 0); clear_texpacks();
-    lua::L->call_external("gui_clear", "");
 
     if (usecfg)
     {
