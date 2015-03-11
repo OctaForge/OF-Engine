@@ -208,6 +208,8 @@ var GameManager = Entity.clone({
         }
         log::log(log.WARNING, 'player start not found, placing elsewhere')
         player.set_attr("position", [ 512, 512, 571 ])
+        // just to make sure
+        player.place_in_map(true)
     },
 
     set_local_animation: func(self) { },

@@ -2234,6 +2234,12 @@ bool entinmap(dynent *d, bool avoidplayers)        // brute force but effective 
 
 /* OF */
 
+CLUAICOMMAND(entinmap, bool, (int cn, bool avoidpl), {
+    gameent *d = game::getclient(cn);
+    if (!d) return false;
+    return entinmap(d, avoidpl);
+});
+
 CLUAICOMMAND(ray_los, bool, (float x, float y, float z,
 float dx, float dy, float dz), {
     vec target(0);
