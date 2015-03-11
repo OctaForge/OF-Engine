@@ -2063,18 +2063,6 @@ namespace server
                 checkmaps(sender);
                 break;
 
-            case N_TRYSPAWN:
-                if(!ci || !cq || cq->state.state!=CS_DEAD || cq->state.lastspawn>=0) break;
-                if(!ci->clientmap[0] && !ci->mapcrc)
-                {
-                    ci->mapcrc = -1;
-                    checkmaps();
-                    if(ci == cq) { if(ci->state.state != CS_DEAD) break; }
-                    else if(cq->ownernum != ci->clientnum) { cq = NULL; break; }
-                }
-                sendspawn(cq);
-                break;
-
             case N_SPAWN:
             {
                 int ls = getint(p);
