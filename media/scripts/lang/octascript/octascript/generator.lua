@@ -1283,6 +1283,39 @@ local StatementRule = {
         end
     end,
 
+    ExportStatement = function(self, node)
+        if node.stat then self:emit(node.stat) end
+
+        local names = node.names
+        local free = self.ctx.freereg
+
+        gen_rt(self, "module", free)
+        self.ctx:nextreg()
+
+        local lhs = {}
+        for i = 1, #names do
+            local name = names[i]
+            if type(name) ~= "string" then name = name.name end
+            local kt, k = self:property_tagged(name)
+            lhs[i] = { tag = "member", target = free, key = k, key_type = kt }
+        end
+
+        local exps = {}
+        for i = 1, #names do
+            local name = names[i]
+            if type(name) ~= "string" then name = name.name end
+            exps[i] = self.ctx.freereg
+            gen_ident(self, name, exps[i])
+            self.ctx:nextreg()
+        end
+
+        for i = #names, 1, -1 do
+            self:assign(lhs[i], exps[i])
+        end
+
+        self.ctx.freereg = free
+    end,
+
     Chunk = function(self, node, name)
         self:block_emit(node.body)
         self:close_proto()
