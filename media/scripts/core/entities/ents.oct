@@ -1459,10 +1459,9 @@ externals::set("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
     return ent.uid
 })
 
-externals::set("entity_new_with_cn", func(cl, cn, can_edit) {
+externals::set("entity_new_with_cn", func(cl, cn) {
     var ent = ent_new(cl, { cn: cn }, cn)
     assert(ent.cn == cn)
-    if can_edit { ent.set_attr("can_edit", can_edit) }
 })
 
 

@@ -807,21 +807,17 @@ externals::set("physics_collide_client", func(cn1, cn2, cont, dx, dy, dz) {
     two new properties.
 
     Properties:
-        - can_edit [false] - if player can edit, it's true (private edit mode).
         - hud_model_name [""] - the first person model to use for the player.
 */
 M.Player = Character.clone({
     name: "Player",
 
     __properties: {
-        can_edit: svars::StateBoolean(),
         hud_model_name: svars::StateString()
     },
 
     __init_svars: func(self, kwargs) {
         Character::__init_svars(self, kwargs)
-
-        self.set_attr("can_edit", false)
         self.set_attr("hud_model_name", "")
     }
 })

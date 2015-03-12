@@ -1934,7 +1934,7 @@ namespace server
                     string pcclass = { '\0' };
                     lua::L->call_external_ret("entity_get_player_prototype", "", "S", pcclass);
                     if (pcclass[0])
-                        lua::L->call_external("entity_new_with_cn", "sib", pcclass, ci->clientnum, true);
+                        lua::L->call_external("entity_new_with_cn", "si", pcclass, ci->clientnum);
 
                     break;
                 }
