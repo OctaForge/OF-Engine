@@ -23,7 +23,7 @@ color brightwhite "\<[[:alpha:]_][[:alnum:]_]*\>"
 color green "[[:<:]](__add|__call|__concat|__div|__eq|__index|__le|__lt|__metatable|__mode|__mul|__newindex|__pairs|__pow|__sub|__tostring|__unm)[[:>:]]"
 color brightgreen "[[:<:]](false|null|true|undef)[[:>:]]"
 color brightgreen "[[:<:]](self|typeof)[[:>:]]"
-color brightcyan "[[:<:]](as|by|else|enum|for|from|if|import|in|raise|rec|to|try|until|var|while)[[:>:]]"
+color brightcyan "[[:<:]](as|by|else|enum|export|for|from|if|import|in|raise|rec|to|try|until|var|while)[[:>:]]"
 color brightcyan "[[:<:]](goto|continue|break|return|print)[[:>:]]"
 
 # Numbers

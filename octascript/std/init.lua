@@ -533,15 +533,16 @@ rt.import = function(modname, loaded)
     if not loader then
         error(err, 2)
     end
-    local ret = loader(modname)
+    local fv = {}
+    -- pre-write: for circular imports
+    loaded[modname] = fv
+    local ret = loader(modname, fv)
     if ret ~= nil then
+        -- abandon previous table
         loaded[modname] = ret
         return ret
-    elseif loaded[modname] == nil then
-        loaded[modname] = true
-        return true
     end
-    return loaded[modname]
+    return fv
 end
 
 local pcall = pcall

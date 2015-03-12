@@ -775,6 +775,34 @@ local parse_from_stat = function(ls, ast, line)
     return ast.ImportStatement(nil, table.concat(modname, "."), fnames, line)
 end
 
+local parse_export_stat = function(ls, ast, line, decn, params)
+    ls:get()
+    local tok = ls.token.name
+    if tok == "func" then
+        ls:get()
+        assert_tok(ls, "<name>")
+        local id = ast.Identifier(ls.token.value)
+        ls:get()
+        local args, body, proto = parse_body(ls, ast, line)
+        return ast.ExportStatement({ id.name }, ast.FunctionDeclaration(id, body,
+            args, proto.varargs, false, decn, params, line, proto.first_line,
+            proto.last_line), line)
+    elseif tok == "rec" then
+        local func = parse_rec(ls, ast, ls.line_number, decn, params)
+        return ast.ExportStatement({ func.id.name }, func, line)
+    elseif tok == "var" then
+        local decls = parse_local(ls, ast, ls.line_number)
+        return ast.ExportStatement(decls.names, decls, line)
+    end
+    local vl = {}
+    repeat
+        assert_tok(ls, "<name>")
+        vl[#vl + 1] = ls.token.value
+        ls:get()
+    until not test_next(ls, ",")
+    return ast.ExportStatement(vl, nil, line)
+end
+
 local stat_opts = {
     ["if"] = parse_if_stat,
     ["while"] = parse_while_stat,
@@ -802,6 +830,7 @@ local stat_opts = {
     ["goto"] = parse_goto_stat,
     ["import"] = parse_import_stat,
     ["from"] = parse_from_stat,
+    ["export"] = parse_export_stat,
     ["#"] = parse_label,
     ["@["] = function(ls, ast)
         local line = ls.line_number
@@ -899,6 +928,8 @@ local gen_rt = function(ls, ast)
         gen_memb(ast, "null"), gen_memb(ast, "print"),
         gen_memb(ast, "array")
     })
+    ret[#ret + 1] = ast.LocalDeclaration(ast, { "__rt_modname", "__rt_module" },
+        { ast.Vararg() })
     return ret
 end
 
@@ -960,7 +991,6 @@ local parse = function(chunkname, input, cond_env, allow_globals)
     ls:get()
     ls.cond_env = cond_env
     ls.fs = { varargs = true }
-    local args = { ast.Vararg() }
     local chunk = parse_chunk(ls, ast, true)
     return chunk
 end

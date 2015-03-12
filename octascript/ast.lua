@@ -311,6 +311,28 @@ M.Chunk = Node:clone {
     end
 }
 
+M.ExportStatement = Statement:clone {
+    kind = "ExportStatement",
+
+    properties = {
+        names = {
+            type = "list",
+            kind = "string",
+        },
+        stat = {
+            type = "node",
+            kind = "Statement",
+            optional = true
+        }
+    },
+
+    __ctor = function(self, names, stat, line)
+        self.names = names
+        self.stat = stat
+        Node.__ctor(self)
+    end
+}
+
 M.LocalDeclaration = Statement:clone {
     kind = "LocalDeclaration",
 

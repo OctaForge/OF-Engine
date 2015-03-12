@@ -7,10 +7,10 @@ Digits = [[ (?:0x|0X)[0-9a-fA-F]+|\d*[\.\_]?\d+(?:[eE][\-\+]\d+)?[lLuUbfdm]* ]]
 
 Keywords = {
     { Id = 1, List = {
-        "as", "break", "by", "continue", "else", "enum", "false", "for", "from",
-        "func", "goto", "if", "import", "in", "null", "print", "raise", "rec",
-        "repeat", "return", "self", "to", "true", "try", "typeof", "undef",
-        "until", "var", "while"
+        "as", "break", "by", "continue", "else", "enum", "export", "false",
+        "for", "from", "func", "goto", "if", "import", "in", "null", "print",
+        "raise", "rec", "repeat", "return", "self", "to", "true", "try",
+        "typeof", "undef", "until", "var", "while"
     } },
     { Id = 2, Regex = [[@\w+]], },
     { Id = 2, List = {

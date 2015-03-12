@@ -37,14 +37,14 @@ end
 local Keywords = {
     ["as"      ] = true, ["break"   ] = true, ["by"      ] = true,
     ["continue"] = true, ["else"    ] = true, ["enum"    ] = true,
-    ["false"   ] = true, ["for"     ] = true, ["from"    ] = true,
-    ["func"    ] = true, ["goto"    ] = true, ["if"      ] = true,
-    ["import"  ] = true, ["in"      ] = true, ["match"   ] = true,
-    ["null"    ] = true, ["print"   ] = true, ["raise"   ] = true,
-    ["rec"     ] = true, ["repeat"  ] = true, ["return"  ] = true,
-    ["to"      ] = true, ["true"    ] = true, ["try"     ] = true,
-    ["typeof"  ] = true, ["undef"   ] = true, ["until"   ] = true,
-    ["var"     ] = true, ["while"   ] = true
+    ["export"  ] = true, ["false"   ] = true, ["for"     ] = true,
+    ["from"    ] = true, ["func"    ] = true, ["goto"    ] = true,
+    ["if"      ] = true, ["import"  ] = true, ["in"      ] = true,
+    ["match"   ] = true, ["null"    ] = true, ["print"   ] = true,
+    ["raise"   ] = true, ["rec"     ] = true, ["repeat"  ] = true,
+    ["return"  ] = true, ["to"      ] = true, ["true"    ] = true,
+    ["try"     ] = true, ["typeof"  ] = true, ["undef"   ] = true,
+    ["until"   ] = true, ["var"     ] = true, ["while"   ] = true
 }
 
 -- protected from the gc

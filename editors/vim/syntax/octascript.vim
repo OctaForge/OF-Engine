@@ -18,7 +18,7 @@ endif
 
 syn match     octaScriptOperator     /[-=!+/*<>%&|^~?:.,;#\\@]/
 
-syn keyword   octaScriptKeyword var import from as
+syn keyword   octaScriptKeyword var import from export as
 syn keyword   octaScriptKeyword func
 syn keyword   octaScriptKeyword if else
 syn keyword   octaScriptKeyword in to by
