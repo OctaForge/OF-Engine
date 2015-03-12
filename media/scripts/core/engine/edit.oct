@@ -14,14 +14,10 @@ import core.externals
 
 var ffi_new = ffi.new
 
-/// Module: edit
-var M = {}
-
-@[server] {
-    return M
-}
+@[server] { return }
 
 import core.events.signal
+import core.engine.edit as M // self-import
 
 externals::set("texpacks_changed", func() {
     signal::emit(M, "texpacks,changed")
@@ -44,7 +40,7 @@ var matf = enum {
     Represents material ids present in the engine. Contains values AIR,
     WATER, LAVA, GLASS, NOCLIP, CLIP, GAMECLIP, DEATH and ALPHA.
 */
-M.material = enum {
+export var material = enum {
     AIR     : 0,
     WATER   : 1 << matf.VOLUME_SHIFT,
     LAVA    : 2 << matf.VOLUME_SHIFT,
@@ -61,19 +57,19 @@ M.material = enum {
 /** Function: player_is_editing
     Returns true if player is editing, false otherwise.
 */
-M.player_is_editing = func() { return capi::editing_get() != 0 }
+export var player_is_editing = func() { return capi::editing_get() != 0 }
 
 /** Function: new_entity
     Creates a new entity on the position where the edit cursor is aiming.
     Takes the entity prototype name as an argument. Also callable from cubescript
     as newent. Clientside.
 */
-M.new_entity = capi.new_entity
+export var new_entity = capi.new_entity
 
 /** Function: map_erase
     Clears all the map geometry.
 */
-M.map_erase = capi.edit_map_erase
+export var map_erase = capi.edit_map_erase
 
 /** Function: cube_create
     Creates a cube with the given parameters. Please note that not all
@@ -96,13 +92,13 @@ M.map_erase = capi.edit_map_erase
         - gs - the grid size.
 
 */
-M.cube_create = capi.edit_cube_create
+export var cube_create = capi.edit_cube_create
 
 /** Function: cube_delete
     Parameters and rules are the same as for $cube_create, but it actually
     deletes cubes instead of creating.
 */
-M.cube_delete = capi.edit_cube_delete
+export var cube_delete = capi.edit_cube_delete
 
 /** Function: cube_set_texture
     Sets the texture of a cube face or all faces.
@@ -125,7 +121,7 @@ M.cube_delete = capi.edit_cube_delete
         4 - bottom of the cube
         5 - top of the cube
 */
-M.cube_set_texture = capi.edit_cube_set_texture
+export var cube_set_texture = capi.edit_cube_set_texture
 
 /** Function: cube_set_material
     Sets the cube material.
@@ -134,70 +130,70 @@ M.cube_set_texture = capi.edit_cube_set_texture
         - x, y, z, gs - see $cube_create.
         - mat - the material index, see $material.
 */
-M.cube_set_material = capi.edit_cube_set_material
+export var cube_set_material = capi.edit_cube_set_material
 
 /** Function: cube_vrotate
     Like vrotate, arguments are x, y, z, gridsize, face followed
     by vrotate arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_vrotate = capi.cube_vrotate
+export var cube_vrotate = capi.cube_vrotate
 
 /** Function: cube_voffset
     Like voffset, arguments are x, y, z, gridsize, face followed
     by voffset arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_voffset = capi.cube_voffset
+export var cube_voffset = capi.cube_voffset
 
 /** Function: cube_vscroll
     Like vscroll, arguments are x, y, z, gridsize, face followed
     by vscroll arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_vscroll = capi.cube_vscroll
+export var cube_vscroll = capi.cube_vscroll
 
 /** Function: cube_vscale
     Like vscale, arguments are x, y, z, gridsize, face followed
     by vscale arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_vscale = capi.cube_vscale
+export var cube_vscale = capi.cube_vscale
 
 /** Function: cube_vlayer
     Like vlayer, arguments are x, y, z, gridsize, face followed
     by vlayer arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_vlayer = capi.cube_vlayer
+export var cube_vlayer = capi.cube_vlayer
 
 /** Function: cube_vdetail
     Like vdetail, arguments are x, y, z, gridsize, face followed
     by vdetail arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_vdetail = capi.cube_vdetail
+export var cube_vdetail = capi.cube_vdetail
 
 /** Function: cube_valpha
     Like valpha, arguments are x, y, z, gridsize, face followed
     by valpha arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_valpha = capi.cube_valpha
+export var cube_valpha = capi.cube_valpha
 
 /** Function: cube_vcolor
     Like vcolor, arguments are x, y, z, gridsize, face followed
     by vcolor arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_vcolor = capi.cube_vcolor
+export var cube_vcolor = capi.cube_vcolor
 
 /** Function: cube_vrefract
     Like vrefract, arguments are x, y, z, gridsize, face followed
     by vrefract arguments. The face argument follows the semantics
     of $cube_set_texture.
 */
-M.cube_vrefract = capi.cube_vrefract
+export var cube_vrefract = capi.cube_vrefract
 
 /** Function: cube_push_corner
     Pushes a cube's corner.
@@ -210,12 +206,12 @@ M.cube_vrefract = capi.cube_vrefract
           (when we see the texture in the right orientation).
         - dir - the direction (1 is into the cube, -1 is from the cube).
 */
-M.cube_push_corner = capi.edit_cube_push_corner
+export var cube_push_corner = capi.edit_cube_push_corner
 
 /** Function: remip
     Remips the map.
 */
-M.remip = capi.edit_raw_remip
+export var remip = capi.edit_raw_remip
 
 var hadtypes = true
 if !(try ffi["typeof"]("selinfo_t")) {
@@ -292,7 +288,7 @@ from std.math import clamp
           - 4 - down
           - 5 - up
 */
-M.Selection = hadtypes ? ffi["typeof"]("selinfo_t") : ffi::metatype("selinfo_t", {
+export var Selection = hadtypes ? ffi["typeof"]("selinfo_t") : ffi::metatype("selinfo_t", {
     __eq: func(self, other) {
         var pos, sel = self.position, self.selection
         var opos, osel = other.position, other.selection
@@ -435,7 +431,7 @@ M.Selection = hadtypes ? ffi["typeof"]("selinfo_t") : ffi::metatype("selinfo_t",
     ALPHA, COLOR, REFRACTION and DECAL, mapping to the respective vcommand
     actions.
 */
-M.vslot_flags = enum {
+export var vslot_flags = enum {
     SCALE     : 1 << 1,
     ROTATION  : 1 << 2,
     OFFSET    : 1 << 3,
@@ -463,7 +459,7 @@ M.vslot_flags = enum {
         - alpha_front, alpha_back, r, g, b - floats.
         - refract_scale, refract_r, refract_g, refract_b - flots.
 */
-M.VSlot = hadtypes ? ffi["typeof"]("vslot_t") : ffi::metatype("vslot_t", {
+export var VSlot = hadtypes ? ffi["typeof"]("vslot_t") : ffi::metatype("vslot_t", {
     __index: {
     }
 })
@@ -483,7 +479,7 @@ var edit_lookup_cube, edit_lookup_texture in capi
     Note that this is a raw function. You most likely want to use the two
     below, $lookup_material and $lookup_texture.
 */
-M.lookup_cube = func(x, y, z, ts) {
+export var lookup_cube = func(x, y, z, ts) {
     var r = ffi_new("int[4]");
     var c = edit_lookup_cube(x, y, z, ts, r + 0, r + 1, r + 2, r + 3)
     return c, r[0], r[1], r[2], r[3]
@@ -494,13 +490,13 @@ M.lookup_cube = func(x, y, z, ts) {
     represented by the origin position (x, y, z), the size and the face
     (see $cube_set_texture).
 */
-M.lookup_texture = capi.edit_lookup_texture
+export var lookup_texture = capi.edit_lookup_texture
 
 /** Function: lookup_material
     Returns the material of a cube represented by the origin position (x, y, z)
     and the size. There is also $get_material for a safe, general version.
 */
-M.lookup_material = capi.edit_lookup_material
+export var lookup_material = capi.edit_lookup_material
 
 /** Function: get_material
     Returns what material is on the position given by the arguments (x, y, z).
@@ -508,11 +504,9 @@ M.lookup_material = capi.edit_lookup_material
     is not an origin position of a cube - it's a real world position, not
     limited in any way.
 */
-M.get_material = capi.edit_get_material
+export var get_material = capi.edit_get_material
 
 /** Function: get_world_size
     Retrieves the current world size in cube units.
 */
-M.get_world_size = edit_get_world_size
-
-return M
+export var get_world_size = edit_get_world_size

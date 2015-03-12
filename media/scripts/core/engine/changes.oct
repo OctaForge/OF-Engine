@@ -8,6 +8,7 @@
         See COPYING.txt.
 */
 
+import core.engine.changes as M // self-import
 import core.engine.cubescript as cs
 import core.events.signal
 
@@ -15,17 +16,14 @@ import core.externals
 
 var needsapply = []
 
-var M = {}
-
 /**
     Specifies the change type, can be GFX, SOUND or SHADERS.
 */
-M.change = enum {
+export var change = enum {
     GFX    : 1 << 0,
     SOUND  : 1 << 1,
     SHADERS: 1 << 2
 }
-var change = M.change
 
 externals::set("change_add", func(desc, ctype) {
     signal::emit(M, "add", ctype, desc)
@@ -35,7 +33,7 @@ externals::set("change_add", func(desc, ctype) {
     Adds a change of the given type and description to the queue assuming
     a change of the same description doesn't already exist.
 */
-M.add = func(ctype, desc) {
+export var add = func(ctype, desc) {
     for i, v in needsapply.each() {
         if v.desc == desc { return }
     }
@@ -47,7 +45,7 @@ M.add = func(ctype, desc) {
 /**
     Clears out changes of the given type. If not given, clears out all.
 */
-M.clear = func(ctype) {
+export var clear = func(ctype) {
     ctype = ctype || (change.GFX | change.SOUND | change.SHADERS)
 
     needsapply = needsapply.filter(func(v) {
@@ -61,12 +59,12 @@ M.clear = func(ctype) {
         return true
     })
 }
-externals::set("changes_clear", M.clear)
+externals::set("changes_clear", clear)
 
 /**
     Applies all queued changes.
 */
-M.apply = func() {
+export var apply = func() {
     var changetypes = 0
     for i, v in needsapply.each() {
         changetypes |= v.ctype
@@ -85,8 +83,6 @@ M.apply = func() {
 /**
     Returns a table of all queued changes' descriptions.
 */
-M.get = func() {
+export var get = func() {
     return needsapply.map(\v -> v.desc)
 }
-
-return M

@@ -15,33 +15,30 @@ import core.events.signal
 
 var emit = signal.emit
 
-/// Module: cubescript
-var M = {
-    __connect: func(self, name) {
+export var __connect = func(self, name) {
+    var  vn = name.find_match("(.+),changed$")
+    if !vn { return }
+    capi::var_make_emit(vn, true)
+}
+
+export var __disconnect = func(self, name, id, scount) {
+    if scount == 0 {
         var  vn = name.find_match("(.+),changed$")
         if !vn { return }
-        capi::var_make_emit(vn, true)
-    },
-
-    __disconnect: func(self, name, id, scount) {
-        if scount == 0 {
-            var  vn = name.find_match("(.+),changed$")
-            if !vn { return }
-            capi::var_make_emit(vn, false)
-        }
+        capi::var_make_emit(vn, false)
     }
 }
 
 /**
     Runs a cubescript string. Returns the string return value (if possible).
 */
-M.execute = capi.cubescript
+export var execute = capi.cubescript
 
 /**
     Defines cubescript/engine variable types. Contains "int", "float"
     and "string".
 */
-M.var_type = enum {
+export var var_type = enum {
     int: 0, float: 1, string: 2
 }
 
@@ -53,7 +50,7 @@ M.var_type = enum {
     In a "safe" environment (run within a gamescript), PERSIST has no effect,
     OVERRIDE is implicit and HEX and READONLY will still work.
 */
-M.var_flags = enum {
+export var var_flags = enum {
     PERSIST : 1 << 0,
     OVERRIDE: 1 << 1,
     HEX     : 1 << 2,
@@ -63,7 +60,7 @@ M.var_flags = enum {
 /**
     Resets an engine variable of the given name.
 */
-M.var_reset = capi.var_reset
+export var var_reset = capi.var_reset
 
 /**
     Creates an engine variable using the given arguments. The number of
@@ -79,7 +76,7 @@ M.var_reset = capi.var_reset
     See also:
         - $var_new_checked
 */
-M.var_new = capi.var_new
+export var var_new = capi.var_new
 
 /**
     Same as above, but checks for the variable existence. If it exists, it
@@ -88,7 +85,7 @@ M.var_new = capi.var_new
     See also:
         - $var_new
 */
-M.var_new_checked = func(varn, ...) {
+export var var_new_checked = func(varn, ...) {
     if !capi::var_exists(varn) {
         capi::var_new(varn, ...)
         return true
@@ -108,7 +105,7 @@ M.var_new_checked = func(varn, ...) {
           defaults to true and specifies whether to clamp the value within
           the variable's bounds.
 */
-M.var_set = capi.var_set
+export var var_set = capi.var_set
 
 /**
     Given a variable name, this returns its value (or nothing if it doesn't
@@ -119,7 +116,7 @@ M.var_set = capi.var_set
         - $var_get_max
         - $var_get_def
 */
-M.var_get = capi.var_get
+export var var_get = capi.var_get
 
 /**
     See above, returns the minimum value.
@@ -129,7 +126,7 @@ M.var_get = capi.var_get
         - $var_get_max
         - $var_get_def
 */
-M.var_get_min = capi.var_get_min
+export var var_get_min = capi.var_get_min
 
 /**
     See above, returns the maximum value.
@@ -139,7 +136,7 @@ M.var_get_min = capi.var_get_min
         - $var_get_min
         - $var_get_def
 */
-M.var_get_max = capi.var_get_max
+export var var_get_max = capi.var_get_max
 
 /**
     See above, returns the default value.
@@ -149,19 +146,19 @@ M.var_get_max = capi.var_get_max
         - $var_get_min
         - $var_get_max
 */
-M.var_get_def = capi.var_get_def
+export var var_get_def = capi.var_get_def
 
 /// Given a variable name, this returns its type.
-M.var_get_type = capi.var_get_type
+export var var_get_type = capi.var_get_type
 
 /// Checks if the engine variable of the given name is hex.
-M.var_is_hex = capi.var_is_hex
+export var var_is_hex = capi.var_is_hex
 
 /// Checks for existence of an engine variable.
-M.var_exists = capi.var_exists
+export var var_exists = capi.var_exists
+
+import core.engine.cubescript as M // self-import
 
 externals::set("var_emit_changed", func(name, ...) {
     emit(M, name ~ ",changed", ...)
 })
-
-return M
