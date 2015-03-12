@@ -255,7 +255,7 @@ var field_def = func(hb, nm, ent, dv) {
 root.new_window("entity", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
-    var  ent = capi::get_selected_entity()
+    var  ent = ents::get_static(capi::get_selected_entity())
     if !ent {
         ent = ents::get_player()
     }
