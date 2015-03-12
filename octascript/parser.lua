@@ -930,6 +930,9 @@ local gen_rt = function(ls, ast)
     })
     ret[#ret + 1] = ast.LocalDeclaration(ast, { "__rt_modname", "__rt_module" },
         { ast.Vararg() })
+    ret[#ret + 1] = ast.AssignmentStatement({ ast.Identifier("__rt_module") },
+        { ast.BinaryExpression("||", ast.Identifier("__rt_module"),
+            ast.Table({}, {}, {})) })
     return ret
 end
 
