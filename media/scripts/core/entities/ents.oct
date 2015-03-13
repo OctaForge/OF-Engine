@@ -40,9 +40,6 @@ from std.math import max, floor
 from std.conv import tonumber, tostring, serialize, deserialize
 from std.util import assert
 
-/// Module: ents
-var M = {}
-
 var Entity
 
 // clientside only
@@ -86,7 +83,7 @@ var is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
     entity prototype name and an array of state variable names to generate network
     data for.
 */
-M.gen_network_data = func(cn, names) {
+export func gen_network_data(cn, names) {
     @[debug] log(DEBUG, e"ents.generate_network_data: $cn")
     names.sort()
 
@@ -97,13 +94,12 @@ M.gen_network_data = func(cn, names) {
 
     names_to_ids[cn], ids_to_names[cn] = ntoi, iton
 }
-var gen_network_data = M.gen_network_data
 
 /**
     If an entity prototype name is provided, clears the network data generated
     by $gen_network_data for the entity prototype. Otherwise clears it all.
 */
-M.clear_network_data = func(cn) {
+export func clear_network_data(cn) {
     if cn == undef {
         @[debug] log(DEBUG, "ents.clear_network_data")
         names_to_ids, ids_to_names = {}, {}
@@ -219,7 +215,7 @@ var register_plugins = func(cl, plugins, name) {
           field of the entity prototype name is used; it can also be the second
           argument if you are not providing plugins.
 */
-M.register_prototype = func(cl, plugins, name) {
+export func register_prototype(cl, plugins, name) {
     if !name {
         if typeof plugins == "string" {
             name, plugins = plugins, undef
@@ -301,7 +297,7 @@ M.register_prototype = func(cl, plugins, name) {
     Use with caution!See $register_prototype for the possible dangers of
     using this. It's still useful sometimes, so it's in the API.
 */
-M.get_prototype = func(cn) {
+export func get_prototype(cn) {
     var  t = proto_storage[cn] || proto_storage[proto_aliases[cn]]
     if !t {
         log(ERROR, e"ents.get_prototype: invalid prototype $cn")
@@ -313,28 +309,28 @@ M.get_prototype = func(cn) {
     Returns the internal entity prototype storage (name->prototype mapping),
     use with care.
 */
-M.get_all_prototypes = func() {
+export func get_all_prototypes() {
     return proto_storage
 }
 
 /**
     Retrieves a logic entity, given its unique id. If not found, undef.
 */
-M.get_logic = func(uid) {
+export func get_logic(uid) {
     var r = storage_logic[uid]
     if !r {
         @[debug] log(DEBUG, e"ents.get_logic: no such entity ($uid)")
     }
     return r
 }
-M.get_dynamic = func(uid) {
+export func get_dynamic(uid) {
     var r = storage_dynamic[uid]
     if !r {
         @[debug] log(DEBUG, e"ents.get_dynamic: no such entity ($uid)")
     }
     return r
 }
-M.get_static = @[!server,func(uid) {
+export var get_static = @[!server,func(uid) {
     var r = storage_static[uid]
     if !r {
         @[debug] log(DEBUG, e"ents.get_static: no such entity ($uid)")
@@ -342,7 +338,7 @@ M.get_static = @[!server,func(uid) {
     return r
 }]
 
-var get_by_tag = func(tag, stor) {
+func get_by_tag(tag, stor) {
     var r = []
     for i, ent in stor.each() {
         if ent && ent.has_tag(tag) {
@@ -353,12 +349,12 @@ var get_by_tag = func(tag, stor) {
 }
 
 /// Returns an array of entities with a common tag.
-M.get_logic_by_tag = func(tag) { return get_by_tag(tag, storage_logic) }
-M.get_dynamic_by_tag = func(tag) { return get_by_tag(tag, storage_dynamic) }
-M.get_static_by_tag = @[!server,func(tag) { return get_by_tag(tag, storage_static) }]
+export func get_logic_by_tag(tag) { return get_by_tag(tag, storage_logic) }
+export func get_dynamic_by_tag(tag) { return get_by_tag(tag, storage_dynamic) }
+export var get_static_by_tag = @[!server,func(tag) { return get_by_tag(tag, storage_static) }]
 
 /// Returns an array of entities with a common prototype.
-M.get_by_prototype = func(cl) {
+export func get_by_prototype(cl) {
     var v = proto_storage[cl]
     return v ? v.__instances : []
 }
@@ -366,25 +362,22 @@ M.get_by_prototype = func(cl) {
 var player_prototype = "Player"
 
 /// Sets the player prototype (by name).
-M.set_player_prototype = func(cl) {
+export func set_player_prototype(cl) {
     player_prototype = cl
 }
 
-var vg = cs.var_get
-
 /// Gets an array of players (all of the currently set player prototype).
-M.get_players = func() {
+export func get_players() {
     var v = proto_storage[player_prototype]
     return v ? v.__instances : []
 }
-var get_players = M.get_players
 
 /// Gets the current player, clientside only.
-M.get_player = @[!server,func() {
+export var get_player = @[!server,func() {
     return player_entity
 }]
 
-M.__set_player = func(pl) {
+export func __set_player(pl) {
     player_entity = pl
     pl.controlled_here = true
 }
@@ -408,7 +401,7 @@ var storages = {
     we don't want this behavior, for example when loading an entity from a
     file.
 */
-var add = func(cn, uid, kwargs, new) {
+export func add(cn, uid, kwargs, new) {
     var cl = typeof cn == "table" && cn || (proto_storage[cn]
                                         ||  proto_storage[proto_aliases[cn]])
     if !cl {
@@ -468,7 +461,6 @@ var add = func(cn, uid, kwargs, new) {
     r.__post_create_cb(enew, kwargs)
     return r
 }
-M.add = add
 
 /**
     Removes an entity. First emits the `pre_deactivate` signal on it, then
@@ -477,7 +469,7 @@ M.add = add
     See also:
         - $remove_all
 */
-M.remove = func(ent) {
+export func remove(ent) {
     var uid = ent.uid
     @[debug] log(DEBUG, e"ents.remove: $uid")
     var stor = storages[ent.__storage]
@@ -486,19 +478,18 @@ M.remove = func(ent) {
     ent.__proto.__instances.compact(\v -> v != ent)
     stor[uid] = undef
 }
-var ent_remove = M.remove
 
 externals::set("entity_remove_static", @[!server,func(uid, synced) {
     var ent = storage_static[uid]
     if !ent { return }
-    ent_remove(ent)
+    remove(ent)
     if !synced { capi::editent(uid) }
 }])
 
 externals::set("entity_remove_dynamic", func(uid) {
     var ent = storage_dynamic[uid]
     if !ent { return }
-    ent_remove(ent)
+    remove(ent)
 })
 
 externals::set("entity_clear_actions", func(cn) {
@@ -532,7 +523,7 @@ var remove_stor = func(stor, protos) {
     See also:
         - $remove
 */
-M.remove_all = func(stat) {
+export func remove_all(stat) {
     var protos = {}
     if (!stat) {
         remove_stor(storage_logic, protos)
@@ -544,7 +535,7 @@ M.remove_all = func(stat) {
         proto_storage[nm].__instances = []
     }
 }
-externals::set("entities_remove_all", M.remove_all)
+externals::set("entities_remove_all", remove_all)
 
 externals::set("entities_load", @[!server,func(entstr) {
     var entities, err = []
@@ -572,7 +563,7 @@ externals::set("entities_load", @[!server,func(entstr) {
     Serializes all loaded entities into format that can be read by $load.
     External as `entities_save_all`.
 */
-M.save = @[!server,func() {
+export var save = @[!server,func() {
     var r = []
     @[debug] log(DEBUG, "ents.save: saving")
 
@@ -587,7 +578,7 @@ M.save = @[!server,func() {
     @[debug] log(DEBUG, "ents.save: done")
     return e"[\n$(r.concat(",\n"))\n]\n"
 }]
-externals::set("entities_save_all", M.save)
+externals::set("entities_save_all", save)
 
 var srnopos = { "position": true }
 externals::set("entity_serialize", func(uid, nopos) {
@@ -630,7 +621,7 @@ var msg_le_cn_send = func(self, cn, ocn, oc, sd) {
 externals::set("msg_le_rem", @[!server,func(uid) {
     var uid, stor = get_stor_uid(uid)
     if !stor[uid] { return }
-    ent_remove(stor[uid])
+    remove(stor[uid])
 }])
 
 var msg_le_rem_send = func(self, cn) {
@@ -694,7 +685,7 @@ var msg_sdata_changereq_send = func(self, reliable, kpid, value) {
         amount of tags (they're strings). You can use tags to search for
         entities later, other use cases include e.g. marking of player starts.
 */
-M.Entity = Object.clone({
+Entity = Object.clone({
     name: "Entity",
 
     __storage: "logic",
@@ -1248,39 +1239,15 @@ M.Entity = Object.clone({
         return self.__attr_names[n] || n
     }
 })
-Entity = M.Entity
-
-/**
-    See {{$Entity.get_gui_attr}}. Externally accessible as
-    `entity_get_gui_attr` (using uid). See also $set_gui_attr.
-*/
-M.get_gui_attr = func(ent, prop) {
-    return ent.get_gui_attr(prop)
-}
+export Entity
 
 externals::set("entity_get_gui_attr", @[!server,func(uid, prop) {
     return storage_static[uid].get_gui_attr(prop)
 }])
 
-/**
-    See {{$Entity.set_gui_attr}}. Externally accessible as
-    `entity_set_gui_attr` (using uid). See also $get_gui_attr.
-*/
-M.set_gui_attr = func(ent, prop, val) {
-    return ent.set_gui_attr(prop, val)
-}
 externals::set("entity_set_gui_attr", @[!server,func(uid, prop, val) {
     return storage_static[uid].set_gui_attr(prop, val)
 }])
-
-/**
-    See {{$Entity.get_attr}}. Externally accessible as `entity_get_attr`
-    (using the uid). See also $set_attr.
-*/
-M.get_attr = func(ent, prop) {
-    return ent.get_attr(prop)
-}
-
 
 externals::set("entity_get_attr_dyn", func(cn, prop) {
     var ent = storage_dynamic[cn]
@@ -1293,13 +1260,6 @@ externals::set("entity_get_attr_ext", func(uid, prop) {
     return ent.get_attr(prop)
 })
 
-/**
-    See {{$Entity.set_attr}}. Externally accessible as `entity_set_attr`
-    (using the uid). See also $get_attr.
-*/
-M.set_attr = func(ent, prop, val) {
-    return ent.set_attr(prop, val)
-}
 externals::set("entity_set_attr", func(uid, prop, val) {
     var ent = storage_static[uid]
     if !ent { return undef }
@@ -1347,7 +1307,7 @@ externals::set("entity_get_proto_name", func(uid) {
     Main render hook. External as `game_render`. Calls individual `render`
     method on each entity (if defined). Clientside only. See also $render_hud.
 */
-M.render = @[!server,func(tp, fpsshadow) {
+export var render = @[!server,func(tp, fpsshadow) {
     @[debug] log(INFO, "game_render")
     var player = player_entity
     if !player { return }
@@ -1366,14 +1326,13 @@ M.render = @[!server,func(tp, fpsshadow) {
         }
     }
 }]
-var render = M.render
 externals::set("game_render", render)
 
 /** Function: render_hud
     Renders the player HUD model if needed. External as `game_render_hud`.
     Clientside only. See also $render.
 */
-M.render_hud = @[!server,func() {
+export var render_hud = @[!server,func() {
     @[debug] log(INFO, "game_render_hud")
     var  player = player_entity
     if !player { return }
@@ -1382,40 +1341,7 @@ M.render_hud = @[!server,func() {
         player.__render(true, true, false)
     }
 }]
-var render_hud = M.render_hud
 externals::set("game_render_hud", render_hud)
-
-/** Function: scene_is_ready
-    On the client, used to check if the current scene is ready and we can
-    actually start (checks whether the player exists and whether all the
-    entities are initialized). External as `scene_is_ready`.
-*/
-M.scene_is_ready = @[!server,func() {
-    @[debug] log(INFO, "Scene ready?")
-
-    if player_entity == undef {
-        @[debug] log(INFO, "...!ready, player entity missing.")
-        return false
-    }
-
-    @[debug] log(INFO, "...player ready, trying other entities.")
-    for uid, ent in storage_logic.each() {
-        if ent && !ent.initialized {
-            @[debug] log(INFO, e"...logic entity $uid !ready.")
-            return false
-        }
-    }
-    for uid, ent in storage_dynamic.each() {
-        if ent && !ent.initialized {
-            @[debug] log(INFO, e"...dynamic entity $uid !ready.")
-            return false
-        }
-    }
-
-    @[debug] log(INFO, "...yes!")
-    return true
-}]
-externals::set("scene_is_ready", M.scene_is_ready)
 
 /** Function: new
     Creates a new entity. External as `entity_new`.
@@ -1428,10 +1354,9 @@ externals::set("scene_is_ready", M.scene_is_ready)
     Returns:
          The new entity.
 */
-M.new = func(cl, kwargs, fuid) {
+export func new(cl, kwargs, fuid) {
     return add(cl, fuid, kwargs, true)
 }
-var ent_new = M.new
 
 externals::set("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
     var cl = proto_storage[cn] || proto_storage[proto_aliases[cn]]
@@ -1449,10 +1374,10 @@ externals::set("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
         if oent {
             cent = !!oent.__has_centity
             oent.__has_centity = false
-            ent_remove(oent)
+            remove(oent)
         }
     }
-    var ent = ent_new(cl, { position: { x: x, y: y, z: z },
+    var ent = new(cl, { position: { x: x, y: y, z: z },
         state_data: sd, newent_data: nd, prev_c_entity: cent, synced: synced }, fuid)
     @[debug] log(DEBUG, "Created entity: %d - %s (%f, %f, %f)"
         .format(ent.uid, cl, x, y, z))
@@ -1460,7 +1385,7 @@ externals::set("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
 })
 
 externals::set("entity_new_with_cn", func(cl, cn) {
-    var ent = ent_new(cl, { cn: cn }, cn)
+    var ent = new(cl, { cn: cn }, cn)
     assert(ent.cn == cn)
 })
 
@@ -1478,15 +1403,15 @@ var send_stor = func(stor, cn) {
     send a complete notification for each of them. Takes the client number.
     Works only serverside. External as `entities_send_all`.
 */
-M.send = func(cn) {
+export func send(cn) {
     @[debug] log(DEBUG, e"Sending active entities to $cn")
     var estor = []
     send_stor(storage_logic, cn)
     send_stor(storage_dynamic, cn)
 }
-externals::set("entities_send_all", M.send)
+externals::set("entities_send_all", send)
 
-M.run_frame = func(millis) {
+export func run_frame(millis) {
     for uid, ent in storage_logic.each() {
         if ent && !ent.deactivated && ent.__per_frame {
             ent.__run(millis)
@@ -1503,5 +1428,3 @@ M.run_frame = func(millis) {
         }
     }
 }
-
-return M
