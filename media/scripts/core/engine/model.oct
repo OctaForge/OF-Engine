@@ -12,7 +12,7 @@
 
 import capi
 
-var ran = capi.model_register_anim
+from capi import model_register_anim as ran
 
 /**
     An enumeration of all basic (pre-defined) animations available in the
@@ -31,7 +31,8 @@ export var anims = {
 }
 
 var variants = [ "N", "NE", "E", "SE", "S", "SW", "W", "NW" ]
-var gen_anim_variants = func(bname, onlysuffix) {
+
+func gen_anim_variants(bname, onlysuffix) {
     if !onlysuffix { anims[bname] = ran(bname) }
     for i, v in variants.each() {
         var nm = bname ~ "_" ~ v
@@ -124,7 +125,7 @@ export var clear = capi.model_clear
 */
 export var preload = capi.model_preload
 
-var mrender = capi.model_render
+from capi import model_render as mrender
 
 /**
     Renders a model.

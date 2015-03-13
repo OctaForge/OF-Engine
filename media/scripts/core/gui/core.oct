@@ -467,10 +467,6 @@ var color_ctors = {
     }
 }
 
-var color_defctor = func(self, r, g, b, a) {
-    self.r, self.g, self.b, self.a = r || 0xFF, g || 0xFF, b || 0xFF, a || 0xFF
-}
-
 /**
     A color structure used for color attributes in all widgets that support
     them. Has fields r, g, b, a ranging from 0 to 255.
@@ -497,7 +493,11 @@ export var Color = Object.clone({
     */
     __ctor: func(self, ...) {
         var nargs = select("#", ...);
-        (color_ctors[nargs] || color_defctor)(self, ...)
+        var ctor = color_ctors[nargs]
+        if ctor { return ctor(self, ...) }
+        var r, g, b, a = ...
+        self.r, self.g, self.b, self.a = r || 0xFF, g || 0xFF,
+                                         b || 0xFF, a || 0xFF
     },
 
     /// Sets the color (like glColor4f).

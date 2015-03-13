@@ -59,11 +59,11 @@ var gen_setter = M.gen_setter
 
 var Filler = M.Filler
 
-var init_color = func(col) {
+func init_color(col) {
     return col && (typeof col == "number" && Color(col) || col) || Color()
 }
 
-var gen_color_setter = func(name) {
+func gen_color_setter(name) {
     var sname = name ~ ",changed"
     return func(self, val) {
         self[name] = init_color(val)

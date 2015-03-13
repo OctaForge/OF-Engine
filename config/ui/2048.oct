@@ -8,13 +8,12 @@ from std.conv import tostring
 
 import std.math
 
-var root = gui::get_root()
-
-var genblock = \val, color, tcolor -> \-> gui::ColorFiller({
+func genblock(val, color, tcolor) { return \-> gui::ColorFiller({
     color: color, min_w: 0.18, min_h: 0.18 },
     gui::Label({
         text: tostring(val), scale: 3.5, color: tcolor
     }))
+}
 
 var blocktypes = {
     0: \-> gui::ColorFiller({
@@ -40,11 +39,11 @@ var cleanup = []
 var totalscore = 0
 var gamestate  = 0
 
-var cleanuptiles = func() {
+func cleanuptiles() {
     for i, v in cleanup.each() { v.destroy() }
 }
 
-var seedtiles = func() {
+func seedtiles() {
     var t1, t2 = math::random(0, 16)
     repeat { t2 = math::random(0, 16) } until t2 != t1
     var vals = [ 2, 4 ]
@@ -61,7 +60,7 @@ var seedtiles = func() {
     }
 }
 
-var randtile = func(grid) {
+func randtile(grid) {
     var emptyfields = []
     for i in 0 to 15 {
         if tiles[i] == 0 { emptyfields.push(i) }
@@ -109,7 +108,7 @@ var randtile = func(grid) {
 
 var pendinganims = 0
 
-var guimovetile = func(grid, i, j, step, hdir, vdir) {
+func guimovetile(grid, i, j, step, hdir, vdir) {
     var o = grid.remove(j - 1, true)
     var oadj = o.adjust
     grid.insert(j - 1, blocktypes[0]())
@@ -149,7 +148,7 @@ var guimovetile = func(grid, i, j, step, hdir, vdir) {
     o.adjust   = 0
 }
 
-var movetile = func(grid, off, hdir, vdir) {
+func movetile(grid, off, hdir, vdir) {
     var dir = (hdir != 0) && hdir || (vdir * 4)
     var lbeg, lend, lstart
     if dir < 0 {
@@ -195,7 +194,7 @@ var movetile = func(grid, off, hdir, vdir) {
     }
 }
 
-var movetiles = func(grid, h, v) {
+func movetiles(grid, h, v) {
     if h != 0 {
         movetile(grid, 0,  h, 0)
         movetile(grid, 4,  h, 0)
@@ -218,7 +217,8 @@ var gamestates = {
 }
 
 var seededtiles = false
-root.new_window("2048", gui.Window, func(win) {
+
+gui::get_root().new_window("2048", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("2048 (score: 0)")

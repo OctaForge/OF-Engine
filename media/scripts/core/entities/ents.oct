@@ -115,7 +115,7 @@ var plugin_slots = [
 
 var modprefix = "_PLUGINS_"
 
-var register_plugins = func(cl, plugins, name) {
+func register_plugins(cl, plugins, name) {
     @[debug] log(DEBUG, "ents.register_prototype: registering plugins")
     var cldata = {}
     var properties
@@ -502,7 +502,7 @@ externals::set("entity_is_initialized", func(cn) {
     return ent.initialized
 })
 
-var remove_stor = func(stor, protos) {
+func remove_stor(stor, protos) {
     for i, e in stor.each() {
         if e {
             protos[e.name] = true
@@ -587,7 +587,7 @@ externals::set("entity_serialize", func(uid, nopos) {
     return ent.name, sr
 })
 
-var get_stor_uid = func(uid) {
+func get_stor_uid(uid) {
     if uid < 0 { return -uid - 1, storage_dynamic }
     return uid, storage_logic
 }
@@ -609,7 +609,7 @@ externals::set("msg_le_cn", @[!server,func(ocn, uid, oc, sd) {
     capi::renderprogress(0, "receiving entities...")
 }])
 
-var msg_le_cn_send = func(self, cn, ocn, oc, sd) {
+func msg_le_cn_send(self, cn, ocn, oc, sd) {
     assert(sd.len() > 0)
     capi::msg_le_cn_send(cn, player_entity && player_entity.cn || -1, ocn,
         (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, oc, sd,
@@ -622,7 +622,7 @@ externals::set("msg_le_rem", @[!server,func(uid) {
     remove(stor[uid])
 }])
 
-var msg_le_rem_send = func(self, cn) {
+func msg_le_rem_send(self, cn) {
     capi::msg_le_rem_send(cn, player_entity && player_entity.cn || -1,
         (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid)
 }
@@ -639,7 +639,7 @@ externals::set("msg_sdata_update", @[!server,func(uid, ocn, kpid, value) {
     }
 }])
 
-var msg_sdata_update_send = func(self, cn, reliable, kpid, value, ocn) {
+func msg_sdata_update_send(self, cn, reliable, kpid, value, ocn) {
     assert(value.len() > 0)
     capi::msg_sdata_update_send(cn, player_entity && player_entity.cn || -1,
         reliable, (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid,
@@ -659,7 +659,7 @@ externals::set("msg_sdata_changereq", func(sender, uid, kpid, value) {
     }
 })
 
-var msg_sdata_changereq_send = func(self, reliable, kpid, value) {
+func msg_sdata_changereq_send(self, reliable, kpid, value) {
     assert(value.len() > 0)
     capi::msg_sdata_changereq_send(reliable,
         (self.__storage == "dynamic") ? (-self.uid - 1) : self.uid, kpid,
@@ -1373,7 +1373,7 @@ externals::set("entity_new_with_cn", func(cl, cn) {
 })
 
 
-var send_stor = func(stor, cn) {
+func send_stor(stor, cn) {
     for i, ent in stor.each() {
         if ent {
             ent.send_notification_full(cn)

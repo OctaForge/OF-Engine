@@ -1,14 +1,14 @@
 import core.events.signal
 import core.engine.cubescript as cs
 import core.gui.core as gui
+
 from std.table import pairs
 from std.conv import tonumber, tostring
 from std.jit import os as jit_os
 
-var root = gui::get_root()
+func default_lblcb(lbl) { return tostring(lbl) }
 
-var default_lblcb = \lbl -> tostring(lbl)
-var setup_var_widget = func(self, varn, propn, lblcb) {
+func setup_var_widget(self, varn, propn, lblcb) {
     lblcb = lblcb || default_lblcb
     var curv = cs::var_get(varn)
     if !curv { return false }
@@ -21,7 +21,7 @@ var setup_var_widget = func(self, varn, propn, lblcb) {
     })
 }
 
-var gen_combobox = func(varn, names, vals, vcb, mw) {
+func gen_combobox(varn, names, vals, vcb, mw) {
     // generate vals from var if not given
     if !vals {
         vals = []
@@ -40,7 +40,7 @@ var gen_combobox = func(varn, names, vals, vcb, mw) {
             signal::connect(mb, "clicked", func(mb) {
                 cs::var_set(varn, val)
                 if vcb { vcb(mb, val) }
-                root.clear_menus()
+                gui::get_root().clear_menus()
             })
         }
     })
@@ -51,7 +51,7 @@ var gen_combobox = func(varn, names, vals, vcb, mw) {
     return r
 }
 
-var gen_checkbox = func(varn, vcfun) {
+func gen_checkbox(varn, vcfun) {
     var curv = cs::var_get(varn)
     if !curv { return undef }
     var r = gui::Toggle({ variant: "checkbox", condition: \-> curv != 0 })
@@ -67,13 +67,13 @@ var gen_checkbox = func(varn, vcfun) {
     return r
 }
 
-var gen_opts_game = func() {
+func gen_opts_game() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox())
     return r
 }
 
-var gen_opts_edit = func() {
+func gen_opts_edit() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox({ clamp: true }),
         func(vb) {
@@ -98,7 +98,7 @@ var gen_opts_edit = func() {
     return r
 }
 
-var add_box = func(vb, fun) {
+func add_box(vb, fun) {
     vb.append(gui::HBox({ padding: 0.02, expand: true, clamp: true }), fun)
 }
 
@@ -116,7 +116,7 @@ var st_vals  = [ 2, 15, 30, 60 ]
 var gr_names = { 128: "quick-fade", 256: "moderate-fade", 512: "slow-fade", 1024: "slower-fade" }
 var gr_vals  = [ 128, 256, 512, 1024 ]
 
-var gen_opts_graphics = func() {
+func gen_opts_graphics() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
         sp.append(gui::VBox({ clamp_h: true, padding: 0.01 }),
@@ -239,13 +239,14 @@ var resolutions = {
 }
 
 var res_to_aspect = {}
+
 for aspect, resl in pairs(resolutions) {
     for i, res in resl.each() {
         res_to_aspect[res] = aspect
     }
 }
 
-var gen_res_submenu = func(ar) {
+func gen_res_submenu(ar) {
     var r = gui::Filler({ variant: "menu", min_w: 0.2 })
     r.append(gui::VBox({ clamp: true }), func(vb) {
         for i, res in resolutions[ar].each() {
@@ -255,14 +256,14 @@ var gen_res_submenu = func(ar) {
                 var w, h = res.find_match("(%d+)x(%d+)")
                 cs::var_set("screenw", tonumber(w))
                 cs::var_set("screenh", tonumber(h))
-                root.clear_menus()
+                gui::get_root().clear_menus()
             })
         }
     })
     return r
 }
 
-var gen_res_menu = func() {
+func gen_res_menu() {
     var r = gui::Filler({ variant: "menu", min_w: 0.2 })
     r.append(gui::VBox({ clamp: true }), func(vb) {
         for i, aspect in [ "4:3", "5:4", "16:9", "16:10" ].each() {
@@ -285,7 +286,7 @@ var aa_names = [ "low", "medium", "high", "ultra" ]
 var msaa_names = { 0: "off", 2: "2x", 4: "4x", 8: "8x", 16: "16x" }
 var msaa_vals  = [ 0, 2, 4, 8, 16 ]
 
-var gen_opts_display = func() {
+func gen_opts_display() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
         sp.append(gui::VBox({ clamp_h: true, padding: 0.01 }),
@@ -389,7 +390,7 @@ var gen_opts_display = func() {
     return r
 }
 
-var gen_opts_audio = func() {
+func gen_opts_audio() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02, clamp: true }), func(sp) {
         sp.append(gui::VBox({ clamp_h: true, padding: 0.01 }),
@@ -431,7 +432,7 @@ var gen_opts_audio = func() {
     return r
 }
 
-var gen_menu_btn = func(b, lbl, cb) {
+func gen_menu_btn(b, lbl, cb) {
     return b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
         func(btn) {
             signal::connect(btn, "clicked", cb)
@@ -440,7 +441,8 @@ var gen_menu_btn = func(b, lbl, cb) {
 }
 
 var laststate
-root.new_window("options", gui.Window, func(win) {
+
+gui::get_root().new_window("options", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("Options")

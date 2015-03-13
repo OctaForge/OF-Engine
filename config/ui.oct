@@ -3,11 +3,9 @@ import core.events.signal
 import core.gui.core as gui
 from core.engine.cubescript import execute
 
-var root = gui::get_root()
-
 /* Main menu */
 
-var gen_menu_default = func() {
+func gen_menu_default() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox(), func(vb) {
         vb.append(gui::Label({ text: "Welcome to OctaForge!", scale: 1.5,
@@ -19,7 +17,7 @@ var gen_menu_default = func() {
     return r
 }
 
-var gen_map_list = func(img, vb) {
+func gen_map_list(img, vb) {
     var glob, loc = capi::get_all_map_names()
     var current_preview
 
@@ -57,7 +55,7 @@ var gen_map_list = func(img, vb) {
     ml_section("Local maps", loc)
 }
 
-var gen_menu_map_load = func() {
+func gen_menu_map_load() {
     var s
     var r = gui::HBox()
     r.append(gui::Outline({ variant: "normal" }), func(o) {
@@ -81,7 +79,7 @@ var gen_menu_map_load = func() {
     return r
 }
 
-var gen_menu_credits = func() {
+func gen_menu_credits() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
     r.append(gui::VBox(undef,
         gui::Label({ text: "OctaForge is brought to you by:",
@@ -119,7 +117,7 @@ var gen_menu_credits = func() {
     return r
 }
 
-var gen_menu_btn = func(b, lbl, cb) {
+func gen_menu_btn(b, lbl, cb) {
     return b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
         func(btn) {
             signal::connect(btn, "clicked", cb)
@@ -128,13 +126,15 @@ var gen_menu_btn = func(b, lbl, cb) {
 }
 
 var laststate
-root.new_window("main", gui.Window, func(win) {
+
+gui::get_root().new_window("main", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("Main menu")
     win.append(gui::HBox({ clamp_h: true }), func(b) {
         var stat
         var btn_lm, btn_cr
+        var root = gui::get_root()
         b.append(gui::VBox(), func(b) {
             btn_lm = gen_menu_btn(b, "Load map", \-> stat.set_state("load_map"))
                      gen_menu_btn(b, "Options",  \-> root.show_window("options"))

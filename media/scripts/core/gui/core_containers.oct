@@ -32,10 +32,11 @@ var gen_setter = M.gen_setter
 var adjust = M.adjust
 
 var CLAMP_LEFT, CLAMP_RIGHT, CLAMP_TOP, CLAMP_BOTTOM in adjust
-var clampsv = func(adj) {
+
+func clampsv(adj) {
     return ((adj & CLAMP_TOP) != 0) && ((adj & CLAMP_BOTTOM) != 0)
 }
-var clampsh = func(adj) {
+func clampsh(adj) {
     return ((adj & CLAMP_LEFT) != 0) && ((adj & CLAMP_RIGHT) != 0)
 }
 

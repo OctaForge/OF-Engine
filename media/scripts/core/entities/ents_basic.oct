@@ -832,7 +832,7 @@ ents::register_prototype(M.Player)
 var c_get_attr = capi.get_attr
 var c_set_attr = capi.set_attr
 
-var gen_attr = func(i, name) {
+func gen_attr(i, name) {
     i = i - 1
     return svars::StateInteger({
         getter: func(ent) {      return c_get_attr(ent, i)      },
