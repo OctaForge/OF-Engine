@@ -82,7 +82,7 @@ export get
 export func setup(plugins) {
     ents::register_prototype(DayManager, plugins)
     if !msg::is_server() { return undef }
-    dayman = ents::new("DayManager")
+    dayman = ents::add("DayManager")
     return dayman
 }
 

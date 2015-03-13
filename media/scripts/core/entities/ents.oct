@@ -395,13 +395,11 @@ var storages = {
 /**
     Inserts an entity of the given prototype or prototype name into the storage.
     The entity will get assigned an uid and activated. Kwargs will be passed
-    to the activation calls and init call on the server. If `new` is true,
-    `__init_svars` method will be called on the server on the entity instead
-    of just assigning an uid. That means it's a newly created entity. Sometimes
-    we don't want this behavior, for example when loading an entity from a
-    file.
+    to the activation calls and init call on the server. If `notnew` is true,
+    `__init_svars` method will be not called on the server. That is mainly
+    for when loading entities from complete serialized data.
 */
-export func add(cn, uid, kwargs, new) {
+export func add(cn, kwargs, uid, notnew) {
     var cl = typeof cn == "table" && cn || (proto_storage[cn]
                                         ||  proto_storage[proto_aliases[cn]])
     if !cl {
@@ -443,7 +441,7 @@ export func add(cn, uid, kwargs, new) {
     // caching
     cl.__instances.push(r)
 
-    var enew = !!(new && (msg::is_server() || stor == storage_static))
+    var enew = !!(!notnew && (msg::is_server() || stor == storage_static))
     if  enew {
         var ndata
         if kwargs {
@@ -554,7 +552,7 @@ externals::set("entities_load", @[!server,func(entstr) {
     for i, e in entities.each() {
         var cn = e[0]
         @[debug] log(DEBUG, e"    $i, $cn")
-        add(cn, undef, { state_data: mp_pack(e[1], mp_opts) })
+        add(cn, { state_data: mp_pack(e[1], mp_opts) }, undef, true)
     }
     @[debug] log(DEBUG, "entities_load: done")
 }])
@@ -598,7 +596,7 @@ externals::set("msg_le_cn", @[!server,func(ocn, uid, oc, sd) {
     var uid, stor = get_stor_uid(uid)
     var ent = stor[uid]
     if ent == undef {
-        ent = add(oc, uid, (ocn >= 0) && { cn: ocn } || undef)
+        ent = add(oc, (ocn >= 0) && { cn: ocn } || undef, uid, true)
         if ent == undef {
             log(ERROR, "received an entity that cannot be created")
             return
@@ -1343,21 +1341,6 @@ export var render_hud = @[!server,func() {
 }]
 externals::set("game_render_hud", render_hud)
 
-/** Function: new
-    Creates a new entity. External as `entity_new`.
-
-    Arguments:
-        - cl - the entity prototype.
-        - kwargs - passed directly to $add.
-        - fuid - optional forced unique ID, otherwise $gen_uid.
-
-    Returns:
-         The new entity.
-*/
-export func new(cl, kwargs, fuid) {
-    return add(cl, fuid, kwargs, true)
-}
-
 externals::set("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
     var cl = proto_storage[cn] || proto_storage[proto_aliases[cn]]
     if !cl {
@@ -1377,7 +1360,7 @@ externals::set("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
             remove(oent)
         }
     }
-    var ent = new(cl, { position: { x: x, y: y, z: z },
+    var ent = add(cl, { position: { x: x, y: y, z: z },
         state_data: sd, newent_data: nd, prev_c_entity: cent, synced: synced }, fuid)
     @[debug] log(DEBUG, "Created entity: %d - %s (%f, %f, %f)"
         .format(ent.uid, cl, x, y, z))
@@ -1385,7 +1368,7 @@ externals::set("entity_new_with_sd", func(cn, x, y, z, sd, nd, fuid, synced) {
 })
 
 externals::set("entity_new_with_cn", func(cl, cn) {
-    var ent = new(cl, { cn: cn }, cn)
+    var ent = add(cl, { cn: cn }, cn)
     assert(ent.cn == cn)
 })
 

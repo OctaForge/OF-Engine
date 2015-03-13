@@ -244,6 +244,6 @@ export get
 export func setup(plugins) {
     ents::register_prototype(GameManager, plugins)
     if !msg::is_server() { return undef }
-    gameman = ents::new("GameManager")
+    gameman = ents::add("GameManager")
     return gameman
 }
