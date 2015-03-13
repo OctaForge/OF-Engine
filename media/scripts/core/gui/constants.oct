@@ -9,9 +9,6 @@
         See COPYING.txt.
 */
 
-/// Module: constants
-var M = {}
-
 /**
     Contains a list of OpenGL constants used by (and useful in) the GUI.
     Their meaning matches the one in OpenGL (with the GL_ prefix). This table
@@ -32,7 +29,7 @@ var M = {}
     TEXTURE_SWIZZLE_R, TEXTURE_WRAP_R, TEXTURE_WRAP_S, TEXTURE_WRAP_T,
     TRIANGLES, TRIANGLE_FAN, TRIANGLE_STRIP, ZERO.
 */
-M.gl = enum {
+export var gl = enum {
     ALPHA: 0x1906,
     ALWAYS: 0x0207,
     BLUE: 0x1905,
@@ -110,7 +107,7 @@ var scancode_to_keycode = func(x) { return (x | (1 << 30)) }
 /** Enum: scancode
     Contains a list of key scan codes. Not meant for direct use. Use $key.
 */
-M.scancode = {
+export var scancode = {
     UNKNOWN: 0,
     A: 4,
     B: 5,
@@ -365,14 +362,13 @@ M.scancode = {
     APP1: 283,
     APP2: 284,
 }
-var scancode = M.scancode
 
 /** Enum: key
     Contains a list of key constants. Matches SDLK_* with the addition of
     mouse buttons (MOUSELEFT, MOUSEMIDDLE, MOUSERIGHT, MOUSEWHEELUP,
     MOUSEWHEELDOWN, MOUSEBACK, MOUSEFORWARD).
 */
-M.key = {
+export var key = {
     MOUSELEFT     : -1,
     MOUSEMIDDLE   : -2,
     MOUSERIGHT    : -3,
@@ -644,7 +640,7 @@ M.key = {
 }
 
 /// Contains a list of key modifier constants mapping to SDL's KMOD_*.
-M.mod = enum {
+export var mod = enum {
     NONE    : 0x0000,
     LSHIFT  : 0x0001,
     RSHIFT  : 0x0002,
@@ -663,5 +659,3 @@ M.mod = enum {
     ALT     : LALT   | RALT,
     GUI     : LGUI   | RGUI
 }
-
-return M

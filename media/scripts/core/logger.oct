@@ -10,20 +10,17 @@
 
 import capi
 
-/// Module: logger
-var M = {}
-
 /// The INFO logging level, use for very verbose output.
-M.INFO = 0
+export var INFO = 0
 
 /// The DEBUG logging level.
-M.DEBUG = 1
+export var DEBUG = 1
 
 /// The WARNING logging level, displayed by default.
-M.WARNING = 2
+export var WARNING = 2
 
 /// The ERROR logging level, always printed (incl. the in-engine console).
-M.ERROR = 3
+export var ERROR = 3
 
 /** Function: log
     Logs some text into the console with the given level. By default, OF
@@ -39,7 +36,7 @@ M.ERROR = 3
         - $WARNING
         - $ERROR
 */
-M.log = capi.log
+export var log = capi.log
 
 /** Function: echo
     Displays some text into both consoles (in-engine and terminal).
@@ -47,7 +44,7 @@ M.log = capi.log
     Arguments:
         - text - the text to be printed.
 */
-M.echo = capi.echo
+export var echo = capi.echo
 
 /** Function: should_log
     Returns whether the given logging level should be logged.
@@ -58,6 +55,4 @@ M.echo = capi.echo
     Returns:
         Either true or false.
 */
-M.should_log = capi.should_log
-
-return M
+export var should_log = capi.should_log

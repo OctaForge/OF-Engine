@@ -12,8 +12,6 @@ import core.logger as logging
 var log = logging.log
 var INFO = logging.INFO
 
-var M = {}
-
 var current_frame      = 0
 var current_time       = 0
 var current_frame_time = 0
@@ -31,7 +29,7 @@ var ents, run_frame
     $get_frame_time, $get_last_millis) and do runs on all available
     activated entities. External as "frame_handle".
 */
-M.handle_frame = func(millis, lastmillis) {
+export func handle_frame(millis, lastmillis) {
     if !ents {
         ents = import core.entities.ents
         run_frame = ents.run_frame
@@ -48,24 +46,24 @@ M.handle_frame = func(millis, lastmillis) {
     run_frame(millis)
 }
 
-externals::set("frame_handle", M.handle_frame)
+externals::set("frame_handle", handle_frame)
 
 var tocalltable = func(v) {
     return setmt({}, { __call: func(_, ...) { return v(...) } })
 }
 
 /// Returns the current OctaScript frame count.
-M.get_frame = func() {
+export func get_frame() {
     return current_frame
 }
 
 /// Returns the number of milliseconds elapsed since the scripting system init.
-M.get_time = func() {
+export func get_time() {
     return current_time
 }
 
 /// Returns the current frame time in milliseconds.
-M.get_frame_time = func() {
+export func get_frame_time() {
     return current_frame_time
 }
 
@@ -73,7 +71,7 @@ M.get_frame_time = func() {
     Returns the number of milliseconds since the last counter reset.
     If you want the total time, see $get_time.
 */
-M.get_last_millis = func() {
+export func get_last_millis() {
     return last_millis
 }
 
@@ -92,7 +90,7 @@ M.get_last_millis = func() {
     See also:
         - $cache_by_frame
 */
-M.cache_by_delay = func(fun, delay) {
+export func cache_by_delay(fun, delay) {
     if typeof fun == "function" {
         fun = tocalltable(fun)
     }
@@ -126,7 +124,7 @@ M.cache_by_delay = func(fun, delay) {
     See also:
         - $cache_by_delay
 */
-M.cache_by_frame = func(fun) {
+export func cache_by_frame(fun) {
     if typeof fun == "function" {
         fun = tocalltable(fun)
     }
@@ -143,5 +141,3 @@ M.cache_by_frame = func(fun) {
         return fun.last_cached_val
     }
 }
-
-return M

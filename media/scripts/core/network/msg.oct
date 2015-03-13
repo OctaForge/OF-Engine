@@ -8,9 +8,6 @@
         See COPYING.txt.
 */
 
-/// Module: msg
-var M = {}
-
 from std.util import assert
 from std.conv import tonumber
 from std.string import char
@@ -25,20 +22,19 @@ import capi
     A constant (value -1) used when sending messages. Specifying this constant
     means that the message will be sent to all clients.
 */
-M.ALL_CLIENTS = -1
+export var ALL_CLIENTS = -1
 
 import capi
 
-M.is_local = @[server,func() { return true },func() {
+export var is_local = @[server,func() { return true },func() {
     return capi::isconnected(false, true) && !capi::isconnected(false, false)
 }]
-var is_loc = M.is_local
 
-M.is_server = @[server,func() { return true },func() {
-    return capi::islistenserver() || is_loc()
+export var is_server = @[server,func() { return true },func() {
+    return capi::islistenserver() || is_local()
 }]
 
-M.is_server_only = @[server,func() { return true },func() {
+export var is_server_only = @[server,func() { return true },func() {
     return capi::islistenserver() && !capi::isconnected(false, true)
 }]
 
@@ -46,15 +42,13 @@ M.is_server_only = @[server,func() { return true },func() {
 
 import std.ffi
 
-var get_byte = func(c) {
+func get_byte(c) {
     return tonumber(capi::ucharbuf_getuchar(c.p))
 }
-var cursor_msg = func(p) {
+func cursor_msg(p) {
     return { p: p, get_byte: get_byte }
 }
 var ubuft = ffi["typeof"]("ucharbuf &")
 externals::set("buf_get_msgpack", func(p) {
     return mp_unpack(cursor_msg(ffi::cast(ubuft, p)))
 })
-
-return M

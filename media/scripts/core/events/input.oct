@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-@[server] { return {} }
+@[server] { return }
 
 import capi
 import core.events.signal
@@ -153,9 +153,6 @@ event_map = {
     "input_mouse_move": true
 }
 
-/// Module: input
-var M = {}
-
 /**
     Sets an event callback. If the callback is not provided, the default
     callback is used (as before overriding).
@@ -174,7 +171,7 @@ var M = {}
         - en - the event name.
         - fun - the callback.
 */
-M.set_event = func(en, fun) {
+export func set_event(en, fun) {
     if typeof fun != "function" || !en {
         return false
     }
@@ -201,7 +198,7 @@ M.set_event = func(en, fun) {
     Gets an event callback. For naming, see $set_event. Returns undef if the
     name is invalid or the callback doesn't exist and the callback otherwise.
 */
-M.get_event = func(en) {
+export func get_event(en) {
     if !en {
         return undef
     } else {
@@ -218,7 +215,7 @@ var actions = {}
     actions can then be called from other parts of the engine. This is mainly
     used to deal with external keybindings for games.
 */
-M.set_action = func(an, af) {
+export func set_action(an, af) {
     var old = actions[an]
     actions[an] = af
     return old
@@ -227,14 +224,14 @@ M.set_action = func(an, af) {
 /**
     Gets an external action. See $set_action.
 */
-M.get_action = func(an) {
+export func get_action(an) {
     return actions[an]
 }
 
 /**
     Unsets an external action. See $set_action.
 */
-M.unset_action = func(an) {
+export func unset_action(an) {
     actions[an] = undef
 }
 
@@ -243,5 +240,3 @@ externals::set("input_action_call", func(an, ...) {
     if !f { return }
     f(...)
 })
-
-return M

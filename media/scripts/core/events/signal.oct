@@ -13,9 +13,6 @@ import core.logger as log
 from std.table import rawget, rawset
 from std.math import clamp
 
-/// Module: signal
-var M = {}
-
 /**
     Connects a signal to a slot inside a table. The callback has to be a
     function.
@@ -46,7 +43,7 @@ var M = {}
         The id for the slot, you can later use that to $disconnect the
         slot, it also returns the number of currently connected slots.
 */
-M.connect = func(self, name, callback) {
+export func connect(self, name, callback) {
     if typeof callback != "function" {
         log::log(log.ERROR, "Not connecting non-function callback: " ~ name)
         return undef
@@ -87,7 +84,7 @@ M.connect = func(self, name, callback) {
         The number of connected slots after disconnect (or undef if nothing
         could be disconnected).
 */
-M.disconnect = func(self, name, id) {
+export func disconnect(self, name, id) {
     var clistn = "_sig_conn_" ~ name
     var clist  = rawget(self, clistn)
     var cb     = rawget(self, "__disconnect")
@@ -125,7 +122,7 @@ M.disconnect = func(self, name, id) {
         - name - the signal name.
         - ... - any further arguments passed to each callback.
 */
-M.emit = func(self, name, ...) {
+export func emit(self, name, ...) {
     var clistn = "_sig_conn_" ~ name
     var clist  = rawget(self, clistn)
     if !clist {
@@ -142,5 +139,3 @@ M.emit = func(self, name, ...) {
 
     return ncalled
 }
-
-return M

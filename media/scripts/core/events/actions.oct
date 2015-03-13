@@ -21,9 +21,6 @@ var WARNING = logging.WARNING
 from std.conv import tostring
 from std.object import Object
 
-/// Module: actions
-var M = {}
-
 /**
     Provides the base action object other actions can inherit from.
     Takes care of the basic action infrastructure. It doesn't really
@@ -53,7 +50,7 @@ var M = {}
           as soon as the other action does). Useful for e.g. animations that
           run in parallel.
 */
-M.Action = Object.clone({
+export var Action = Object.clone({
     name: "Action",
 
     /**
@@ -207,12 +204,11 @@ M.Action = Object.clone({
         }
     }
 })
-var Action = M.Action
 
 /**
     An action that never ends.
 */
-M.InfiniteAction = Action.clone({
+export var InfiniteAction = Action.clone({
     name: "InfiniteAction",
 
     /**
@@ -231,7 +227,7 @@ M.InfiniteAction = Action.clone({
         - parent - the parent entity of this action queue.
         - actions - an array of actions.
 */
-M.ActionQueue = Object.clone({
+export var ActionQueue = Object.clone({
     name: "ActionQueue",
 
     /**
@@ -299,5 +295,3 @@ M.ActionQueue = Object.clone({
         }
     }
 })
-
-return M

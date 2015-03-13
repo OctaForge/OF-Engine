@@ -29,24 +29,7 @@ from std.math import abs, round, floor
 from std.conv import tonumber, tostring
 from std.util import assert
 
-/// Module: svars
-var M = {}
-
-var StateVariable, StateVariableAlias, StateInteger, StateFloat,
-      StateBoolean, StateTable, StateString, ArraySurrogate, StateArray,
-      StateArrayInteger, StateArrayFloat
-
-/// Checks whether the given value is a state variable.
-M.is_svar = func(v) {
-    return (typeof v == "table" && v.is_a) && v.is_a(StateVariable)
-}
-
-/// Checks whether the given value is a state variable alias.
-M.is_svar_alias = func(v) {
-    return (typeof v == "table" && v.is_a) && v.is_a(StateVariableAlias)
-}
-
-var define_accessors = func(cl, n, gf, sf, d) {
+func define_accessors(cl, n, gf, sf, d) {
     cl["__get_" ~ n] = func(self) {
         return gf(self, d)
     }
@@ -90,7 +73,7 @@ var define_accessors = func(cl, n, gf, sf, d) {
           the value will be cached for better performance (so we don't always
           have to query).
 */
-M.StateVariable = Object.clone({
+export var StateVariable = Object.clone({
     name: "StateVariable",
 
     /// Makes svar objects return their name on tostring.
@@ -285,12 +268,16 @@ M.StateVariable = Object.clone({
         return tostring(val) || ""
     }
 })
-StateVariable = M.StateVariable
+
+/// Checks whether the given value is a state variable.
+export func is_svar(v) {
+    return (typeof v == "table" && v.is_a) && v.is_a(StateVariable)
+}
 
 /**
     Specialization of $StateVariable for integer values.
 */
-M.StateInteger = StateVariable.clone({
+export var StateInteger = StateVariable.clone({
     name: "StateInteger",
 
     to_data  : func(self, val) { return tostring(val) },
@@ -298,12 +285,11 @@ M.StateInteger = StateVariable.clone({
 
     to_serializable: func(self, val) { return floor(tonumber(val)) || 0 }
 })
-StateInteger = M.StateInteger
 
 /**
     Specialization of $StateVariable for float values.
 */
-M.StateFloat = StateVariable.clone({
+export var StateFloat = StateVariable.clone({
     name: "StateFloat",
 
     to_data  : func(self, val) { return tostring(round(val, 2)) },
@@ -311,12 +297,11 @@ M.StateFloat = StateVariable.clone({
 
     to_serializable: func(self, val) { return tonumber(val) || 0 }
 })
-StateFloat = M.StateFloat
 
 /**
     Specialization of $StateVariable for boolean values.
 */
-M.StateBoolean = StateVariable.clone({
+export var StateBoolean = StateVariable.clone({
     name: "StateBoolean",
 
     to_data  : func(self, val) { return tostring(val) },
@@ -324,14 +309,13 @@ M.StateBoolean = StateVariable.clone({
 
     to_serializable: func(self, val) { return !!val }
 })
-StateBoolean = M.StateBoolean
 
 from std.conv import serialize as ts, deserialize as td
 
 /**
     Specialization of $StateVariable for table values.
 */
-M.StateTable = StateVariable.clone({
+export var StateTable = StateVariable.clone({
     name: "StateTable",
 
     to_data  : func(self, val) { return ts(val) },
@@ -344,20 +328,20 @@ M.StateTable = StateVariable.clone({
         return {}
     }
 })
-StateTable = M.StateTable
 
 /**
     Specialization of $StateVariable for string values.
 */
-M.StateString = StateVariable.clone({
+export var StateString = StateVariable.clone({
     name: "StateString"
 })
-StateString = M.StateString
 
 from std.table import getmt, setmt
 from std.util import proxy as newproxy
 
 import std.array
+
+var ArraySurrogate
 
 /**
     Represents a "surrogate" for an array. Behaves like a regular
@@ -372,7 +356,7 @@ import std.array
     prototypal system. They're manually managed with metatables and
     proxies in order to more closely emulate the appropriate semantics.
 */
-M.ArraySurrogate = {
+ArraySurrogate = {
     name: "ArraySurrogate",
 
     /**
@@ -470,14 +454,15 @@ M.ArraySurrogate = {
     last: array.last,
     empty: array.empty
 }
-ArraySurrogate = M.ArraySurrogate
+
+export ArraySurrogate
 
 /**
     Specialization of <StateVariable> for arrays. Uses $ArraySurrogate
     to provide an array-like "interface". The surrogate is required to
     properly reflect array element changes.
 */
-M.StateArray = StateVariable.clone({
+export var StateArray = StateVariable.clone({
     name: "StateArray",
 
     /**
@@ -627,35 +612,32 @@ M.StateArray = StateVariable.clone({
         ent.set_sdata(self.name, a, -1)
     }
 })
-StateArray = M.StateArray
 
 /**
     A variant of $StateArray for integer contents.
 */
-M.StateArrayInteger = StateArray.clone({
+export var StateArrayInteger = StateArray.clone({
     name: "StateArrayInteger",
 
     to_data_item  : tostring,
     from_data_item: func(v) { return floor(tonumber(v)) }
 })
-StateArrayInteger = M.StateArrayInteger
 
 /**
     A variant of $StateArray for floating point contents.
 */
-M.StateArrayFloat = StateArray.clone({
+export var StateArrayFloat = StateArray.clone({
     name: "StateArrayFloat",
 
     to_data_item  : func(v) { return tostring(round(v, 2)) },
     from_data_item: tonumber
 })
-StateArrayFloat = M.StateArrayFloat
 
 /**
     A specialization of StateArrayFloat, providing its own surrogate,
     {{$ogeom.Vec2_Surrogate}}. Other than that, no changes are made.
 */
-M.StateVec2 = StateArrayFloat.clone({
+export var StateVec2 = StateArrayFloat.clone({
     name: "StateVec2",
     surrogate: ogeom.Vec2_Surrogate
 })
@@ -664,7 +646,7 @@ M.StateVec2 = StateArrayFloat.clone({
     A specialization of StateArrayFloat, providing its own surrogate,
     {{$ogeom.Vec3_Surrogate}}. Other than that, no changes are made.
 */
-M.StateVec3 = StateArrayFloat.clone({
+export var StateVec3 = StateArrayFloat.clone({
     name: "StateVec3",
     surrogate: ogeom.Vec3_Surrogate
 })
@@ -673,7 +655,7 @@ M.StateVec3 = StateArrayFloat.clone({
     A specialization of StateArrayFloat, providing its own surrogate,
     {{$ogeom.Vec4_Surrogate}}. Other than that, no changes are made.
 */
-M.StateVec4 = StateArrayFloat.clone({
+export var StateVec4 = StateArrayFloat.clone({
     name: "StateVec4",
     surrogate: ogeom.Vec4_Surrogate
 })
@@ -683,7 +665,7 @@ M.StateVec4 = StateArrayFloat.clone({
     the variables they alias are already registered. They provide alternative
     getters and setters.
 */
-StateVariableAlias = StateVariable.clone({
+export var StateVariableAlias = StateVariable.clone({
     name: "StateVariableAlias",
 
     /**
@@ -713,6 +695,8 @@ StateVariableAlias = StateVariable.clone({
         define_accessors(cl, name, self.getter, self.setter, self)
     }
 })
-M.StateVariableAlias = StateVariableAlias
 
-return M
+/// Checks whether the given value is a state variable alias.
+export func is_svar_alias(v) {
+    return (typeof v == "table" && v.is_a) && v.is_a(StateVariableAlias)
+}

@@ -12,18 +12,15 @@
 import capi
 import luastate
 
-/// Module: externals
-var M = {}
-
 var externals = {}
 
 /// Retrieves the external of the given name.
-M.get = func(name) {
+export func get(name) {
     return externals[name]
 }
 
 /// Unsets the external of the given name, returns the previous value or undef.
-M.unset = func(name) {
+export func unset(name) {
     var old = externals[name]
     if old == undef { return undef }
     externals[name] = undef
@@ -31,7 +28,7 @@ M.unset = func(name) {
 }
 
 /// Sets the external of the given name, returns the previous value or undef.
-M.set = func(name, fun) {
+export func set(name, fun) {
     var old = externals[name]
     externals[name] = fun
     return old
@@ -45,5 +42,3 @@ capi::external_hook(externals)
 externals["state_restore"] = func() {
     luastate::restore()
 }
-
-return M
