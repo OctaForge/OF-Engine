@@ -8,24 +8,21 @@
         See COPYING.txt.
 */
 
-@[server] { return {} }
+@[server] { return }
 
 import capi
 import core.events.frame
 
 from std.geom import Vec3
 
-/// Module: input
-return {
-    /** Function: get_target_entity
-        Returns the entity you're targeting.
-    */
-    get_target_entity: frame::cache_by_frame(capi.gettargetent),
+/** Function: get_target_entity
+    Returns the entity you're targeting.
+*/
+export var get_target_entity = frame::cache_by_frame(capi.gettargetent)
 
-    /** Function: get_target_position
-        Returns the position in the world you're targeting.
-    */
-    get_target_position: frame::cache_by_frame(func() {
-        return Vec3(capi::gettargetpos())
-    })
-}
+/** Function: get_target_position
+    Returns the position in the world you're targeting.
+*/
+export var get_target_position = frame::cache_by_frame(func() {
+    return Vec3(capi::gettargetpos())
+})

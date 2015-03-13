@@ -11,62 +11,59 @@
 
 import capi
 
-@[server] { return {} }
+@[server] { return }
 
 from std.geom import Vec3
 
-var camera_get, camera_get_position in capi
+from capi import camera_get, camera_get_position
 
-/// Module: camera
-return {
-    /**
-        Gets information about the camera.
+/**
+    Gets information about the camera.
 
-        Returns:
-            The camera position (as a vec3) followed by yaw, pitch and roll
-            (as multiple return values).
-    */
-    get: func() {
-        var x, y, z, yaw, pitch, roll = camera_get()
-        return Vec3(x, y, z), yaw, pitch, roll
-    },
-
-    /// Returns the camera position (as a vec3).
-    get_position: func() {
-        return Vec3(camera_get_position())
-    },
-
-    /// Returns the camera yaw.
-    get_yaw: capi.camera_get_yaw,
-
-    /// Returns the camera pitch.
-    get_pitch: capi.camera_get_pitch,
-
-    /// Returns the camera roll.
-    get_roll: capi.camear_get_roll,
-
-    /**
-        Forces the camera.
-
-        Arguments:
-            - x, y, z - the position.
-            - yaw, pitch, roll - the resulting camera yaw, pitch and roll.
-            - fov - the camera fov, which is optional.
-    */
-    force: capi.camera_force,
-
-    /// Forces the camera position. Takes x, y, z.
-    force_position: capi.camera_force_position,
-
-    /// Forces the camera yaw.
-    force_yaw: capi.camera_force_yaw,
-
-    /// Forces the camera pitch.
-    force_pitch: capi.camera_force_pitch,
-
-    /// Forces the camera roll.
-    force_roll: capi.camera_force_roll,
-
-    /// Forces the camera field of view.
-    force_fov: capi.camera_force_fov
+    Returns:
+        The camera position (as a vec3) followed by yaw, pitch and roll
+        (as multiple return values).
+*/
+export func get() {
+    var x, y, z, yaw, pitch, roll = camera_get()
+    return Vec3(x, y, z), yaw, pitch, roll
 }
+
+/// Returns the camera position (as a vec3).
+export func get_position() {
+    return Vec3(camera_get_position())
+}
+
+/// Returns the camera yaw.
+export var get_yaw = capi.camera_get_yaw
+
+/// Returns the camera pitch.
+export var get_pitch = capi.camera_get_pitch
+
+/// Returns the camera roll.
+export var get_roll = capi.camear_get_roll
+
+/**
+    Forces the camera.
+
+    Arguments:
+        - x, y, z - the position.
+        - yaw, pitch, roll - the resulting camera yaw, pitch and roll.
+        - fov - the camera fov, which is optional.
+*/
+export var force = capi.camera_force
+
+/// Forces the camera position. Takes x, y, z.
+export var force_position = capi.camera_force_position
+
+/// Forces the camera yaw.
+export var force_yaw = capi.camera_force_yaw
+
+/// Forces the camera pitch.
+export var force_pitch = capi.camera_force_pitch
+
+/// Forces the camera roll.
+export var force_roll = capi.camera_force_roll
+
+/// Forces the camera field of view.
+export var force_fov = capi.camera_force_fov

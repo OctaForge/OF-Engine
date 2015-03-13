@@ -8,67 +8,62 @@
         See COPYING.txt.
 */
 
-@[server] { return {} }
+@[server] { return }
 
 import capi
 
-var play = capi.sound_play
-
 from std.geom import Vec3
 
-/// Module: sound
-return {
-    /**
-        Plays a sound.
+/**
+    Plays a sound.
 
-        Arguments:
-            - name - the sound name.
-            - pos - the sound position (a value with x, y, z, defaults to
-              0, 0, 0).
-            - vol - an optional volume that defaults to 100.
-    */
-    play: func(name, pos, vol) {
-        if !name { return }
-        pos = pos || Vec3(0)
-        play(name, pos.x, pos.y, pos.z, vol || 100)
-    },
+    Arguments:
+        - name - the sound name.
+        - pos - the sound position (a value with x, y, z, defaults to
+          0, 0, 0).
+        - vol - an optional volume that defaults to 100.
+*/
+export func play(name, pos, vol) {
+    if !name { return }
+    pos = pos || Vec3(0)
+    capi::sound_play(name, pos.x, pos.y, pos.z, vol || 100)
+}
 
-    /**
-        Stops a sound.
+/**
+    Stops a sound.
 
-        Arguments:
-            - name - the sound name.
-            - vol - an optional volume that defaults to 100.
-    */
-    stop: func(name, vol) { capi::sound_stop(name, vol || 100) },
+    Arguments:
+        - name - the sound name.
+        - vol - an optional volume that defaults to 100.
+*/
+export func stop(name, vol) { capi::sound_stop(name, vol || 100) }
 
-    /** Function: preload_map
-        Preloads a map sound so that it doesn't have to be loaded on the fly
-        later. That leads to better performance.
+/** Function: preload_map
+    Preloads a map sound so that it doesn't have to be loaded on the fly
+    later. That leads to better performance.
 
-        Arguments:
-            - name - the sound name.
-            - vol - an optional volume that defaults to 100.
+    Arguments:
+        - name - the sound name.
+        - vol - an optional volume that defaults to 100.
 
-        See also:
-            - $preload_game
-    */
-    preload_map: func(name, vol) {
-        return capi::sound_preload_map(name, vol || 100)
-    },
+    See also:
+        - $preload_game
+*/
+export func preload_map(name, vol) {
+    return capi::sound_preload_map(name, vol || 100)
+}
 
-    /** Function: preload_game
-        Preloads a game sound so that it doesn't have to be loaded on the fly
-        later. That leads to better performance.
+/** Function: preload_game
+    Preloads a game sound so that it doesn't have to be loaded on the fly
+    later. That leads to better performance.
 
-        Arguments:
-            - name - the sound name.
-            - vol - an optional volume that defaults to 100.
+    Arguments:
+        - name - the sound name.
+        - vol - an optional volume that defaults to 100.
 
-        See also:
-            - $preload_map
-    */
-    preload_game: func(name, vol) {
-        return capi::sound_preload_game(name, vol || 100)
-    }
+    See also:
+        - $preload_map
+*/
+export func preload_game(name, vol) {
+    return capi::sound_preload_game(name, vol || 100)
 }

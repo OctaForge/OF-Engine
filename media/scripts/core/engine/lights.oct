@@ -12,102 +12,99 @@
 
 import capi
 
-/// Module: lights
-return {
-    /**
-        Provides the available flags for $add and $add_spot. Includes
-        SHRINK (shrinking light), EXPAND (expanding light) and FLASH
-        (flashing light).
-    */
-    flags: enum {
-        SHRINK: 1 << 8,
-        EXPAND: 1 << 9,
-        FLASH : 1 << 10
-    },
+/**
+    Provides the available flags for $add and $add_spot. Includes
+    SHRINK (shrinking light), EXPAND (expanding light) and FLASH
+    (flashing light).
+*/
+export var flags = enum {
+    SHRINK: 1 << 8,
+    EXPAND: 1 << 9,
+    FLASH : 1 << 10
+}
 
-    /**
-        Creates a light with the given parameters, for one frame unless
-        you specify the extended parameters.
+/**
+    Creates a light with the given parameters, for one frame unless
+    you specify the extended parameters.
 
-        Arguments:
-            - pos - the light position (any value with x, y, z).
-            - rad - the light radius.
-            - r, g, b - the light color (floats typically from 0 to 1,
-              can go outside this range).
-            - fade - optional fadeout time in milliseconds.
-            - peak - optional peak time (in milliseconds).
-            - flags - see $flags (optional).
-            - irad - optional initial light radius.
-            - ir, ig, ib - optional initial light color.
-            - own - optional light owner (a reference to an entity, used
-              for tracking on e.g. gun lights).
+    Arguments:
+        - pos - the light position (any value with x, y, z).
+        - rad - the light radius.
+        - r, g, b - the light color (floats typically from 0 to 1,
+          can go outside this range).
+        - fade - optional fadeout time in milliseconds.
+        - peak - optional peak time (in milliseconds).
+        - flags - see $flags (optional).
+        - irad - optional initial light radius.
+        - ir, ig, ib - optional initial light color.
+        - own - optional light owner (a reference to an entity, used
+          for tracking on e.g. gun lights).
 
-        See also:
-            - $add_spot
-    */
-    add: func(pos, rad, r, g, b, fade, peak, flags, irad, ir, ig, ib, own) {
-        capi::dynlight_add(pos.x, pos.y, pos.z, rad, r, g, b, fade, peak,
-            flags, irad, ir, ig, ib, own)
-    },
+    See also:
+        - $add_spot
+*/
+export func add(pos, rad, r, g, b, fade, peak, flags, irad, ir, ig, ib, own) {
+    capi::dynlight_add(pos.x, pos.y, pos.z, rad, r, g, b, fade, peak,
+        flags, irad, ir, ig, ib, own)
+}
 
-    /**
-        Creates a spotlight that works similarly as above.
+/**
+    Creates a spotlight that works similarly as above.
 
-        Arguments:
-            - pos - the light origin position (any value with x, y, z).
-            - dir - the light direction vector (any value with x, y, z).
-            - rad - the light radius.
-            - spot - the spotlight angle (angle of the wedge).
-            - r, g, b - the light color (floats typically from 0 to 1,
-              can go outside this range).
-            - fade - optional fadeout time in milliseconds.
-            - peak - optional peak time (in milliseconds).
-            - flags - see $flags (optional).
-            - irad - optional initial light radius.
-            - ir, ig, ib - optional initial light color.
-            - own - optional light owner (a reference to an entity, used
-              for tracking on e.g. gun lights).
+    Arguments:
+        - pos - the light origin position (any value with x, y, z).
+        - dir - the light direction vector (any value with x, y, z).
+        - rad - the light radius.
+        - spot - the spotlight angle (angle of the wedge).
+        - r, g, b - the light color (floats typically from 0 to 1,
+          can go outside this range).
+        - fade - optional fadeout time in milliseconds.
+        - peak - optional peak time (in milliseconds).
+        - flags - see $flags (optional).
+        - irad - optional initial light radius.
+        - ir, ig, ib - optional initial light color.
+        - own - optional light owner (a reference to an entity, used
+          for tracking on e.g. gun lights).
 
-        See also:
-            - $add
-    */
-    add_spot: func(o, dir, rad, spot, r, g, b, fade, peak, flags, irad,
-    ir, ig, ib, own) {
-        capi::dynlight_add_spot(o.x, o.y, o.z, dir.x, dir.y, dir.z,
-            rad, spot, r, g, b, fade, peak, flags, irad, ir, ig, ib, own)
-    },
+    See also:
+        - $add
+*/
+export func add_spot(o, dir, rad, spot, r, g, b, fade, peak, flags, irad,
+ir, ig, ib, own) {
+    capi::dynlight_add_spot(o.x, o.y, o.z, dir.x, dir.y, dir.z,
+        rad, spot, r, g, b, fade, peak, flags, irad, ir, ig, ib, own)
+}
 
-    /**
-        Temporarily sets the sun light yaw and pitch (doesn't manipulate
-        the map variables). Any change to these map variables restores the
-        sunlight.
+/**
+    Temporarily sets the sun light yaw and pitch (doesn't manipulate
+    the map variables). Any change to these map variables restores the
+    sunlight.
 
-        Arguments:
-            - yaw - sunlight yaw, from 0 to 360, defaulting to 0.
-            - pitch - sunlight pitch, from -90 to 90, defaulting to 0.
-    */
-    set_sun_yaw_pitch: func(yaw, pitch) {
-        capi::sunlight_set_yaw_pitch(yaw || 0, pitch || 0)
-    },
+    Arguments:
+        - yaw - sunlight yaw, from 0 to 360, defaulting to 0.
+        - pitch - sunlight pitch, from -90 to 90, defaulting to 0.
+*/
+export func set_sun_yaw_pitch(yaw, pitch) {
+    capi::sunlight_set_yaw_pitch(yaw || 0, pitch || 0)
+}
 
-    /**
-        Sets the sunlight scale temporarily.
-    */
-    set_sunlight_scale: func(s) {
-        capi::sunlight_set_scale(s || 0)
-    },
+/**
+    Sets the sunlight scale temporarily.
+*/
+export func set_sunlight_scale(s) {
+    capi::sunlight_set_scale(s || 0)
+}
 
-    /**
-        Sets the skylight scale temporarily.
-    */
-    set_skylight_scale: func(s) {
-        capi::skylight_set_scale(s || 0)
-    },
+/**
+    Sets the skylight scale temporarily.
+*/
+export func set_skylight_scale(s) {
+    capi::skylight_set_scale(s || 0)
+}
 
-    /**
-        Resets the sun light yaw, pitch and scale back to variable values.
-    */
-    reset_sun: func() {
-        capi::sunlight_reset()
-    }
+/**
+    Resets the sun light yaw, pitch and scale back to variable values.
+*/
+export func reset_sun() {
+    capi::sunlight_reset()
 }

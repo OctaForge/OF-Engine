@@ -37,34 +37,28 @@ from std.util import select
 from std.math import min, max, clamp, floor, ceil
 from std.util import assert
 
-/// Module: core
-var M = {}
-
 import core.gui.constants as consts
 
 /** Enum: gl
     Forwarded from the "constants" module.
 */
-M.gl = consts.gl
-var gl = M.gl
+export var gl = consts.gl
 
 /** Enum: key
     Forwarded from the "constants" module.
 */
-M.key = consts.key
-var key = M.key
+export var key = consts.key
 
 /** Enum: mod
     Forwarded from the "constants" module.
 */
-M.mod = consts.mod
-var mod = M.mod
+export var mod = consts.mod
 
 // initialized after Root is created
 var root
 var clicked_code
 
-var adjust = enum {
+export var adjust = enum {
     ALIGN_HMASK: 0x3,
     ALIGN_VMASK: 0xC,
     ALIGN_MASK : ALIGN_HMASK | ALIGN_VMASK,
@@ -91,7 +85,6 @@ var adjust = enum {
     CLAMP_TOP    : 1 << 6,
     CLAMP_BOTTOM : 1 << 7,
 }
-M.adjust = adjust
 
 var wtypes_by_name = {}
 var wtypes_by_type = {}
@@ -107,7 +100,7 @@ var lastwtype = 0
         - obj - the body with custom contents.
         - ftype - the "type" field, by default it just assigns is a new type.
 */
-M.register_type = func(name, base, obj, ftype) {
+export func register_type(name, base, obj, ftype) {
     if !ftype {
         lastwtype = lastwtype + 1
         ftype = lastwtype
@@ -121,20 +114,18 @@ M.register_type = func(name, base, obj, ftype) {
     wtypes_by_type[ftype] = obj
     return obj
 }
-var register_type = M.register_type
 
 /**
     Given either a name or type, this function returns the widget type
     with that name or type.
 */
-M.get_type = func(n) {
+export func get_type(n) {
     if typeof n == "string" {
         return wtypes_by_name[n]
     } else {
         return wtypes_by_type[n]
     }
 }
-var get_type = M.get_type
 
 /**
     Loops widget children, executing the function given in the second
@@ -144,7 +135,7 @@ var get_type = M.get_type
 
     See also $loop_children_r.
 */
-M.loop_children = func(self, fun) {
+export func loop_children(self, fun) {
     var ch = self.children
     var vc = self.vchildren
     var vr = self.vstates
@@ -177,7 +168,6 @@ M.loop_children = func(self, fun) {
         if fret || a != undef { return a, b }
     }
 }
-var loop_children = M.loop_children
 
 /**
     Loops widget children in reverse order, executing the function
@@ -188,7 +178,7 @@ var loop_children = M.loop_children
 
     See also $loop_children.
 */
-M.loop_children_r = func(self, fun) {
+export func loop_children_r(self, fun) {
     var ch = self.children
     var vc = self.vchildren
     var vr = self.vstates
@@ -221,7 +211,6 @@ M.loop_children_r = func(self, fun) {
         }
     }
 }
-var loop_children_r = M.loop_children_r
 
 /**
     Similar to $loop_children, takes some extra assumptions - executes only
@@ -246,7 +235,7 @@ var loop_children_r = M.loop_children_r
     See also:
         - $loop_in_children_r
 */
-M.loop_in_children = func(self, cx, cy, fun, ins, useproj) {
+export func loop_in_children(self, cx, cy, fun, ins, useproj) {
     return loop_children(self, func(o) {
         var ox, oy
         if useproj {
@@ -261,13 +250,12 @@ M.loop_in_children = func(self, cx, cy, fun, ins, useproj) {
         }
     })
 }
-var loop_in_children = M.loop_in_children
 
 /**
     See $loop_in_children and $loop_children_r. This is equal to above,
     just using $loop_children_r instead.
 */
-M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj) {
+export func loop_in_children_r(self, cx, cy, fun, ins, useproj) {
     return loop_children_r(self, func(o) {
         var ox, oy
         if useproj {
@@ -282,13 +270,12 @@ M.loop_in_children_r = func(self, cx, cy, fun, ins, useproj) {
         }
     })
 }
-var loop_in_children_r = M.loop_in_children_r
 
 /**
     Represents a clip area defined by four points, x1, y1, x2, y2. The latter
     refer to x1+w and y1+h respectively.
 */
-M.ClipArea = Object.clone({
+export var ClipArea = Object.clone({
     __ctor: func(self, x, y, w, h) {
         self.x1, self.y1, self.x2, self.y2 = x, y, x + w, y + h
     },
@@ -318,83 +305,72 @@ M.ClipArea = Object.clone({
         gl_scissor(sx1, sy1, sx2 - sx1, sy2 - sy1)
     }
 })
-var ClipArea = M.ClipArea
 
 /**
     An utility function for drawing quads, takes x, y, w, h and optionally
     tx, ty, tw, th (defaulting to 0, 0, 1, 1).
 */
-M.draw_quad = func(x, y, w, h, tx, ty, tw, th) {
+export func draw_quad(x, y, w, h, tx, ty, tw, th) {
     tx, ty, tw, th = tx || 0, ty || 0, tw || 1, th || 1
     gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
     gle_attrib2f(x + w, y)     gle_attrib2f(tx + tw, ty)
     gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
     gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
 }
-var quad = M.draw_quad
 
 /**
     An utility function for drawing quads, takes x, y, w, h and optionally
     tx, ty, tw, th (defaulting to 0, 0, 1, 1). Used with triangle strip.
 */
-M.draw_quadtri = func(x, y, w, h, tx, ty, tw, th) {
+export func draw_quadtri(x, y, w, h, tx, ty, tw, th) {
     tx, ty, tw, th = tx || 0, ty || 0, tw || 1, th || 1
     gle_attrib2f(x,     y)     gle_attrib2f(tx,      ty)
     gle_attrib2f(x + w, y)     gle_attrib2f(tx + tw, ty)
     gle_attrib2f(x,     y + h) gle_attrib2f(tx,      ty + th)
     gle_attrib2f(x + w, y + h) gle_attrib2f(tx + tw, ty + th)
 }
-var quadtri = M.draw_quadtri
 
-var gen_setter = func(name) {
+export func gen_setter(name) {
     var sname = name ~ ",changed"
     return func(self, val) {
         self[name] = val
         emit(self, sname, val)
     }
 }
-M.gen_setter = gen_setter
 
 /// Defines the possible orientations on widgets - HORIZONTAL and VERTICAL.
-M.orient = enum {
+export var orient = enum {
     HORIZONTAL: 0, VERTICAL: 1
 }
-var orient = M.orient
 
-var changes = enum {
+export var changes = enum {
     SHADER: 1 << 0,
     COLOR : 1 << 1,
     BLEND : 1 << 2
 }
-M.changes = changes
 
 var changed = 0
 
-var blend = enum {
+export var blend = enum {
     ALPHA, MOD
 }
-M.blend = blend
 
 var blendtype = blend.ALPHA
 
-var blend_change = func(type, src, dst) {
+export func blend_change(type, src, dst) {
     if blendtype != type {
         blendtype = type
         gl_blend_func(src, dst)
     }
 }
 
-var blend_reset = func() {
+export func blend_reset() {
     blend_change(blend.ALPHA, gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
-var blend_mod = func() {
+export func blend_mod() {
     blend_change(blend.MOD, gl.ZERO, gl.SRC_COLOR)
 }
-
-M.blend_change = blend_change
-M.blend_reset  = blend_reset
-M.blend_mod    = blend_mod
 
 var Projection = Object.clone({
     __ctor: func(self, obj) {
@@ -499,7 +475,7 @@ var color_defctor = func(self, r, g, b, a) {
     A color structure used for color attributes in all widgets that support
     them. Has fields r, g, b, a ranging from 0 to 255.
 */
-M.Color = Object.clone({
+export var Color = Object.clone({
     /**
         Depending on the number of arguments, this initializes the color.
 
@@ -575,7 +551,7 @@ signal::connect(cs, "uitextrows,changed", func(self, n) {
     uitextrows = n
 })
 
-var Widget, Window, Tag
+var Tag
 
 /**
     The basic widget type every other derives from. Provides everything
@@ -657,7 +633,7 @@ var Widget, Window, Tag
         - variants, states - See above.
         - container - see above.
 */
-M.Widget = register_type("Widget", Object, {
+export var Widget = register_type("Widget", Object, {
     /**
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting
@@ -1869,7 +1845,6 @@ M.Widget = register_type("Widget", Object, {
         return proj
     }
 })
-Widget = M.Widget
 
 /**
     Named widgets are regular widgets thave have a name that is specific
@@ -1878,7 +1853,7 @@ Widget = M.Widget
     Properties:
         - obj_name - can be passed in kwargs as "name".
 */
-M.NamedWidget = register_type("NamedWidget", Widget, {
+export var NamedWidget = register_type("NamedWidget", Widget, {
     __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         self.obj_name = kwargs.name
@@ -1888,7 +1863,6 @@ M.NamedWidget = register_type("NamedWidget", Widget, {
     /// Function: set_obj_name
     set_obj_name: gen_setter("obj_name")
 })
-var NamedWidget = M.NamedWidget
 
 /**
     Tags are special named widgets. They can contain more widgets. They're
@@ -1896,8 +1870,8 @@ var NamedWidget = M.NamedWidget
     replacing something inside without having to iterate through and finding
     it manually.
 */
-M.Tag = register_type("Tag", NamedWidget)
-Tag = M.Tag
+Tag = register_type("Tag", NamedWidget)
+export Tag
 
 /**
     This is a regular window. It's nothing more than a special case of named
@@ -1910,7 +1884,7 @@ Tag = M.Tag
           input. If it's false, the window takes input only in free cursor
           mode.
 */
-M.Window = register_type("Window", NamedWidget, {
+export var Window = register_type("Window", NamedWidget, {
     __ctor: func(self, kwargs, ...) {
         kwargs = kwargs || {}
         var ig = kwargs.input_grab
@@ -1932,7 +1906,6 @@ M.Window = register_type("Window", NamedWidget, {
     /// Function: set_above_hud
     set_above_hud: gen_setter("above_hud")
 })
-Window = M.Window
 
 /**
     Overlays are windows that take no input under no circumstances. There is no
@@ -1945,14 +1918,13 @@ Window = M.Window
     freely append into it. It gets cleared everytime you leave the map and it
     doesn't display when mainmenu is active.
 */
-M.Overlay = register_type("Overlay", Window, {
+export var Overlay = register_type("Overlay", Window, {
     grabs_input: func(self) { return false },
 
     target: func() { },
     hover : func() { },
     click : func() { }
 }, Window.type)
-var Overlay = M.Overlay
 
 /**
     A root is a structure that derives from $Widget and holds windows.
@@ -1963,7 +1935,7 @@ var Overlay = M.Overlay
     roots for different purposes (e.g. in-game GUI on a surface) but
     that is not supported at this point.
 */
-M.Root = register_type("Root", Widget, {
+export var Root = register_type("Root", Widget, {
     __ctor: func(self) {
         self.windows     = {}
         self.cursor_x    = 0.499
@@ -2620,7 +2592,6 @@ M.Root = register_type("Root", Widget, {
         emit(self, "reset")
     }
 })
-var Root = M.Root
 
 root = Root()
 
@@ -2632,7 +2603,7 @@ var hud = Overlay({ name: "hud" })
 hud._root = root
 
 /// Returns the HUD overlay.
-M.get_hud = func() {
+export func get_hud() {
     return hud
 }
 
@@ -2744,7 +2715,7 @@ externals::set("gui_update", func() {
     }
 })
 
-M.__draw_window = func(win) {
+export func __draw_window(win) {
     // draw on main root
     win.x, win.y, win.parent, win._root = 0, 0, root, root
     var proj = root.set_projection(win.get_projection())
@@ -2769,8 +2740,6 @@ externals::set("gui_above_hud", func() {
 })
 
 /// Gets the default GUI root widget.
-M.get_root = func() {
+export func get_root() {
     return root
 }
-
-return M
