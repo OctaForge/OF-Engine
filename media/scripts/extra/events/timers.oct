@@ -8,9 +8,6 @@
         See COPYING.txt.
 */
 
-/// Module: timers
-var M = {}
-
 from std.object import Object
 
 /**
@@ -18,7 +15,7 @@ from std.object import Object
     it yourself using the provided methods. That makes it flexible for various
     scenarios (where the timing is not managed by the general event loop).
 */
-M.Timer = Object:clone {
+export var Timer = Object:clone {
     name = "Timer",
 
     /**
@@ -66,5 +63,3 @@ M.Timer = Object:clone {
         self.sum = self.interval
     }
 }
-
-return M

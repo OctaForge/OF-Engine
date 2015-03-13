@@ -18,8 +18,6 @@ from std.string import char
 from std.math import floor, frexp, ldexp, huge
 from std.conv import tostring
 
-var M = {}
-
 var packers
 
 var pack_len = func(packn, buf, len, fixlen, fixval, val8, val16, val32) {
@@ -226,7 +224,7 @@ packers = setmt({
 })
 
 var defopts = {}
-M.pack = func(data, packopts, buf) {
+export func pack(data, packopts, buf) {
     buf = buf || []
     var opts = packopts || defopts
     packers[typeof data](buf, data, packopts || defopts)
@@ -515,11 +513,9 @@ var cursor_string = func(str) {
     }
 }
 
-M.unpack = func(s) {
+export func unpack(s) {
     var cur = (typeof s == "string") ? cursor_string(s) : s
     var data = unpackers["any"](cur)
     if cur.finalize { cur.finalize() }
     return data
 }
-
-return M

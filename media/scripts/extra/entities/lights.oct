@@ -8,16 +8,13 @@
         See COPYING.txt.
 */
 
-@[server] return {}
+@[server] { return }
 
 import core.entities.svars
 import core.entities.ents
 import core.engine.lights
 
 var light_add = lights.add
-
-/// Module: lights
-var M = {}
 
 var Marker = ents.Marker
 
@@ -31,7 +28,7 @@ var Marker = ents.Marker
     Properties overlap with the core Light entity type (but it lacks flags)
     including newent properties.
 */
-var DynamicLight = Marker.clone({
+export var DynamicLight = Marker.clone({
     name: "DynamicLight",
 
     __attr_names: [ "red", "green", "blue", "radius" ],
@@ -66,7 +63,6 @@ var DynamicLight = Marker.clone({
             self.get_attr("blue") / 255)
     }
 })
-M.DynamicLight = DynamicLight
 
 from std.math import max, random, floor
 
@@ -82,7 +78,7 @@ var flash_flag = lights.flags.FLASH
         - min_delay - the minimal flicker delay (defaults to 100).
         - max_delay - the maximal flicker delay (defaults to 300).
 */
-M.FlickeringLight = DynamicLight.clone({
+export var FlickeringLight = DynamicLight.clone({
     name: "FlickeringLight",
 
     __attr_names: [
@@ -124,6 +120,4 @@ M.FlickeringLight = DynamicLight.clone({
     }
 })
 
-ents::register_prototype(M.FlickeringLight)
-
-return M
+ents::register_prototype(FlickeringLight)

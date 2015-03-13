@@ -9,9 +9,6 @@
         See COPYING.txt.
 */
 
-/// Module: health
-var M = {}
-
 import core.gui.core as gui
 import core.events.frame
 import core.events.actions
@@ -33,12 +30,11 @@ var connect, emit = signal.connect, signal.emit
     This module adds three new animations, "dead", "dying" and "pain",
     on the client. They're stored in this enumeration.
 */
-var anims = @[!server,enum {
+export var anims = @[!server,enum {
     dead : model::register_anim("dead"),
     dying: model::register_anim("dying"),
     pain : model::register_anim("pain")
 }]
-M.anims = anims
 
 /**
     Derives from {{$actions.LocalAnimationAction}} and is queued as a pain
@@ -46,13 +42,12 @@ M.anims = anims
     previously defined PAIN animation. It also cannot be used more than
     once at a time. It only exists on the client.
 */
-var PainAction = @[!server,eactions.LocalAnimationAction.clone({
+export var PainAction = @[!server,eactions.LocalAnimationAction.clone({
     name           : "PainAction",
     millis_left    : 600,
     local_animation: anims.pain,
     allow_multiple : false
 })]
-M.PainAction = PainAction
 
 /**
     Derives from a regular Action. Represents player death and the default
@@ -60,7 +55,7 @@ M.PainAction = PainAction
     a time and it's not cancelable. Used on the server (either local or
     remote) - on the client it does nothing.
 */
-var DeathAction = actions.Action.clone({
+export var DeathAction = actions.Action.clone({
     name          : "DeathAction",
     allow_multiple: false,
     cancelable    : false,
@@ -85,7 +80,6 @@ var DeathAction = actions.Action.clone({
         self.actor.game_manager_respawn()
     }
 })
-M.DeathAction = DeathAction
 
 /**
     The player plugin - use it when baking your player entity prototype. Must be
@@ -96,7 +90,7 @@ M.DeathAction = DeathAction
         - health - the player's current health.
         - max_health - the maximum health a player can have.
 */
-M.player_plugin = {
+export var player_plugin = {
     __properties: {
         health: svars::StateInteger({ client_set: true }),
         max_health: svars::StateInteger({ client_set: true })
@@ -229,7 +223,7 @@ M.player_plugin = {
     or lagged, its health must be higher than 0 and it must be already
     spawned (the spawn stage must be 0).
 */
-var is_valid_target = func(ent) {
+export func is_valid_target(ent) {
     if !ent || ent.deactivated { return false }
 
     var cs = ent.get_attr("client_state")
@@ -240,7 +234,6 @@ var is_valid_target = func(ent) {
 
     return health > 0 && sstage == 0
 }
-M.is_valid_target = is_valid_target
 
 var HealthAction = actions.Action.clone({
     cancelable: false,
@@ -265,7 +258,7 @@ var gethcolor = func(v, maxv) {
 /**
     A bunch of example uses of the code included in this module.
 */
-M.plugins = {
+export var plugins = {
     /**
         A plugin that turns an entity (colliding one) into a "health area". It
         hooks a collision signal to the entity that changes the collider's
@@ -391,5 +384,3 @@ M.plugins = {
         }
     }
 }
-
-return M

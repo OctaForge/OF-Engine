@@ -9,7 +9,7 @@
         See COPYING.txt.
 */
 
-@[server] return {}
+@[server] { return }
 
 import core.entities.ents
 import core.entities.svars
@@ -21,9 +21,6 @@ var flame, splash = particles.flame, particles.splash
 var pflags = particles.flags
 var quadrenderer = particles.register_renderer_quad
 var ParticleEffect = ents.ParticleEffect
-
-/// Module: particles
-var M = {}
 
 /** Table: particles.renderers
     Provides some extra renderers - "smoke", "flame" and "steam" used
@@ -50,12 +47,11 @@ var cmap = [ "x", "y", "z" ]
         - dir - a direction (0 to 5 where 0 is up).
         - dist - a distance.
 */
-var offset_vec = func(v, dir, dist) {
+export func offset_vec(v, dir, dist) {
     var e = cmap[((2 + dir) % 3)]
     v[e] = v[e] + ((dir > 2) && -dist || dist)
     return v
 }
-M.offset_vec = offset_vec
 
 var SMOKE, FLAME = renderers.smoke, renderers.flame
 
@@ -68,7 +64,7 @@ var SMOKE, FLAME = renderers.smoke, renderers.flame
         - height - the fire height, defaults to 0.5.
         - red, green, blue - the color values (they default to 0x903020).
 */
-M.FireEffect = ParticleEffect.clone({
+export var FireEffect = ParticleEffect.clone({
     name: "FireEffect",
 
     __attr_names: [ "radius", "height", "red", "green", "blue" ],
@@ -124,7 +120,7 @@ var STEAM = renderers.steam
     Properties:
         - direction - see $offset_vec.
 */
-M.SteamEffect = ParticleEffect.clone({
+export var SteamEffect = ParticleEffect.clone({
     name: "SteamEffect",
 
     __attr_names: [ "direction" ],
@@ -151,7 +147,5 @@ M.SteamEffect = ParticleEffect.clone({
     }
 })
 
-ents::register_prototype(M.FireEffect)
-ents::register_prototype(M.SteamEffect)
-
-return M
+ents::register_prototype(FireEffect)
+ents::register_prototype(SteamEffect)

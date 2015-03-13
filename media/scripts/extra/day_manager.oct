@@ -6,9 +6,6 @@
     The controller entity runs in the background.
 */
 
-/// Module: day_manager
-var M = {}
-
 import core.events.signal
 import core.entities.ents
 import core.entities.svars
@@ -65,7 +62,7 @@ var DayManager = Entity.clone({
 var dayman
 
 /// Gets the day manager instance.
-M.get = func() {
+get = func() {
     if !dayman {
         dayman = ents::get_by_prototype("DayManager").first()
     }
@@ -74,7 +71,7 @@ M.get = func() {
     }
     return dayman
 }
-get = M.get
+export get
 
 /**
     Sets up the day manager. You should call this in your map script before
@@ -82,7 +79,7 @@ get = M.get
     a handful of plugins that you can use. On the server (or local client)
     this returns the entity.
 */
-M.setup = func(plugins) {
+export func setup(plugins) {
     ents::register_prototype(DayManager, plugins)
     if !msg::is_server() { return undef }
     dayman = ents::new("DayManager")
@@ -122,7 +119,7 @@ var getsunparams = func(daytime, daylen) {
 /**
     Various plugins for the day manager.
 */
-M.plugins = {
+export var plugins = {
     /**
         A plugin that adds day/night cycles to the day manager. It works
         by manipulating the sunlight yaw and pitch.
@@ -154,5 +151,3 @@ M.plugins = {
         }
     }
 }
-
-return M

@@ -11,8 +11,6 @@
         See COPYING.txt.
 */
 
-var M = {}
-
 // first thing we do: make a snapshot of the entire standard library
 // shallow is enough (modules with deep structure, such as std.package,
 // are not allowed within sandbox)
@@ -42,7 +40,9 @@ var std_restore = func() {
     loaded["std.ffi"] = ffi
 }
 
-M.restore = func() {
+import luastate as M
+
+export func restore() {
     var loaded = package.loaded
     // go over loaded, erase everything except some
     var capi, std, lstate = loaded["capi"], loaded["std"], loaded["luastate"]
@@ -62,5 +62,3 @@ M.restore = func() {
     // erase any remains of old stuff
     gc::collect()
 }
-
-return M

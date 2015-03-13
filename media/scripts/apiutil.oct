@@ -8,27 +8,25 @@
         See COPYING.txt.
 */
 
-var M = {}
-
 import std.ffi
 import capi
 
 var ffi_new, ffi_cast, ffi_copy, ffi_string, ffi_gc = ffi.new, ffi.cast,
 ffi.copy, ffi.string, ffi.gc
 
-M.make_strbuf = func(n) {
+export func make_strbuf(n) {
     return ffi_new("char[?]", n)
 }
 
-M.make_string = func(s) {
+export func make_string(s) {
     return ffi_string(s)
 }
 
-M.make_bytearray = func(n) {
+export func make_bytearray(n) {
     return ffi_new("unsigned char[?]", n)
 }
 
-M.make_strarray = func(n) {
+export func make_strarray(n) {
     return ffi_new("const char *[?]", n)
 }
 
@@ -72,7 +70,7 @@ var linebuf_set = func(self, str) {
     return self
 }
 
-var linebuf_insert = func(self, str, start, count) {
+export func linebuf_insert(self, str, start, count) {
     if !count || count <= 0 { count = str.len() }
     start = clamp(start, 0, self.len)
     linebuf_grow(self, self.len + count)
@@ -83,9 +81,8 @@ var linebuf_insert = func(self, str, start, count) {
     self.len += count
     return self
 }
-M.linebuf_insert = linebuf_insert
 
-M.linebuf_prepend = func(self, str) {
+export func linebuf_prepend(self, str) {
     var slen = str.len()
     linebuf_grow(self, self.len + slen)
     ffi_move(self.text + slen, self.text, self.len + 1)
@@ -94,15 +91,14 @@ M.linebuf_prepend = func(self, str) {
     return self
 }
 
-var linebuf_append = func(self, str) {
+export func linebuf_append(self, str) {
     linebuf_grow(self, self.len + str.len())
     ffi_copy(self.text + self.len, str)
     self.len += str.len()
     return self
 }
-M.linebuf_append = linebuf_append
 
-M.linebuf_combine_lines = func(self, src) {
+export func linebuf_combine_lines(self, src) {
     if src.len <= 0 { linebuf_set(self, "")
     } else { for i, v in src.each() {
         if i != 0 { linebuf_append(self, "\n") }
@@ -112,14 +108,14 @@ M.linebuf_combine_lines = func(self, src) {
     return self
 }
 
-M.linebuf_chop = func(self, newlen) {
+export func linebuf_chop(self, newlen) {
     if !self.text { return self }
     self.len = clamp(newlen, 0, self.len)
     self.text[self.len] = 0
     return self
 }
 
-M.linebuf_del = func(self, start, count) {
+export func linebuf_del(self, start, count) {
     if !self.text { return self }
     if start < 0 {
         count, start = count + start, 0
@@ -138,12 +134,10 @@ var linebuf_gc = func(self) {
     self.len, self.maxlen = 0, 0
 }
 
-M.linebuf_tostr = func(self) {
+export func linebuf_tostr(self) {
     return ffi_string(self.text, self.len)
 }
 
-M.linebuf_new = func(x) {
+export func linebuf_new(x) {
     return linebuf_set(ffi_gc(ffi_new("linebuf_t"), linebuf_gc), x || "")
 }
-
-return M

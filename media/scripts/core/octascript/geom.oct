@@ -13,8 +13,6 @@ import capi
 from std.geom import Vec2, Vec3, Vec4
 from std.math import min, max
 
-var M = {}
-
 /**
     Returns the distance to the floor below some given position.
 
@@ -24,7 +22,7 @@ var M = {}
         - lowest - if true, finds the lowest floor instead of highest
           floor, optional.
 */
-M.floor_distance = func(self, max_dist, radius, lowest) {
+export func floor_distance(self, max_dist, radius, lowest) {
     var rt = capi::ray_floor(self.x, self.y, self.z, max_dist)
     if !radius { return rt }
 
@@ -47,7 +45,7 @@ M.floor_distance = func(self, max_dist, radius, lowest) {
     Returns true is the line between two given positions is clear
     (if there are no obstructions). Returns false otherwise.
 */
-M.is_los = func(self, d) {
+export func is_los(self, d) {
     return capi::ray_los(self.x, self.y, self.z, d.x, d.y, d.z)
 }
 
@@ -111,8 +109,6 @@ var gen_vec_surrogate = func(name, base, ltable) {
     return surrtbl
 }
 
-M.Vec2_Surrogate = gen_vec_surrogate("Vec2_Surrogate", Vec2, ntoi2)
-M.Vec3_Surrogate = gen_vec_surrogate("Vec3_Surrogate", Vec3, ntoi3)
-M.Vec4_Surrogate = gen_vec_surrogate("Vec4_Surrogate", Vec4, ntoi4)
-
-return M
+export var Vec2_Surrogate = gen_vec_surrogate("Vec2_Surrogate", Vec2, ntoi2)
+export var Vec3_Surrogate = gen_vec_surrogate("Vec3_Surrogate", Vec3, ntoi3)
+export var Vec4_Surrogate = gen_vec_surrogate("Vec4_Surrogate", Vec4, ntoi4)

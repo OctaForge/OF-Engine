@@ -8,7 +8,7 @@
         See COPYING.txt.
 */
 
-@[server] return {}
+@[server] { return }
 
 import core.logger as log
 import core.engine.sound
@@ -22,9 +22,6 @@ var play = sound.play
 var connect = signal.connect
 
 from std.math import random as rand
-
-/// Module: teleporters
-var M = {}
 
 var Obstacle = ents.Obstacle
 
@@ -43,7 +40,7 @@ var Obstacle = ents.Obstacle
         - sound_name - name of the sound to play on teleportation, empty
           by default.
 */
-M.Teleporter = Obstacle.clone({
+export var Teleporter = Obstacle.clone({
     name: "Teleporter",
 
     __properties: {
@@ -82,6 +79,4 @@ M.Teleporter = Obstacle.clone({
     }
 })
 
-ents::register_prototype(M.Teleporter)
-
-return M
+ents::register_prototype(Teleporter)

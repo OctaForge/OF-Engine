@@ -9,9 +9,6 @@
         See COPYING.txt.
 */
 
-/// Module: game_manager
-var M = {}
-
 import core.logger as log
 
 import core.events.signal
@@ -26,14 +23,14 @@ if !msg::is_server_only() {
     /**
         A player start entity type. Inherits all properties of OrientedMarker.
     */
-    M.PlayerStart = ents.OrientedMarker.clone({
+    export var PlayerStart = ents.OrientedMarker.clone({
         name: "PlayerStart",
 
         // TODO: icon for playerstart
         __edit_icon: "media/interface/icon/edit_marker"
     })
 
-    ents::register_prototype(M.PlayerStart)
+    ents::register_prototype(PlayerStart)
 }
 
 /**
@@ -45,7 +42,7 @@ if !msg::is_server_only() {
         - team - the player's current team. Defaults to an empty string.
         - spawn_stage - the current spawn stage the player is going through.
 */
-M.player_plugin = {
+export var player_plugin = {
     __properties: {
         team       : svars::StateString(),
         spawn_stage: svars::StateInteger()
@@ -229,7 +226,7 @@ from std.util import assert
 var gameman
 
 /// Gets the current game manager instance.
-M.get = func() {
+get = func() {
     if !gameman {
         gameman = ents::get_by_prototype("GameManager").first()
     }
@@ -238,17 +235,15 @@ M.get = func() {
     }
     return gameman
 }
-get = M.get
+export get
 
 /**
     Sets up the game manager. You should call this in your gamescript.
     On the server (or local client), this returns the entity.
 */
-M.setup = func(plugins) {
+export func setup(plugins) {
     ents::register_prototype(GameManager, plugins)
     if !msg::is_server() { return undef }
     gameman = ents::new("GameManager")
     return gameman
 }
-
-return M
