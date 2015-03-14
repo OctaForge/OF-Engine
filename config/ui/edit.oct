@@ -364,9 +364,13 @@ var make_varfield = func(hb, nm) {
     var dis = (flg & vfs.READONLY) != 0
     var hex = (flg & vfs.HEX     ) != 0
     var col = (flg & vfs.COLOR   ) != 0
+    var per = (flg & vfs.PERSIST ) != 0
+    var map = (flg & vfs.OVERRIDE) != 0
     var dv  = hex ? (col ? "0x%.6X" : "0x%X").format(cs::var_get(nm))
                   : tostring(cs::var_get(nm))
-    hb.append(gui::Label({ text: " " ~ nm ~ ": " }))
+    hb.append(gui::Label({ text: " " ~ nm ~ ":" }))
+    hb.append(gui::Filler({ min_w: 0.03 },
+        gui::Label({ text: per ? "\f3P" : (map ? "\f2M" : "") })))
     return hb.append(gui::Field({ clip_w: 0.4, value: dv, disabled: dis }),
         func(ed) {
             if dis { return }
@@ -386,7 +390,7 @@ var vtypes = {
 root.new_window("variables", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
-    win.set_title("Engine variables")
+    win.set_title("Engine variables (P: persistent, M: mapvar)")
 
     var vnames = cs::var_get_all_names()
 
