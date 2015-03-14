@@ -363,7 +363,9 @@ var make_varfield = func(hb, nm) {
     var flg = cs::var_get_flags(nm)
     var dis = (flg & vfs.READONLY) != 0
     var hex = (flg & vfs.HEX     ) != 0
-    var dv  = hex ? "0x%X".format(cs::var_get(nm)) : tostring(cs::var_get(nm))
+    var col = (flg & vfs.COLOR   ) != 0
+    var dv  = hex ? (col ? "0x%.6X" : "0x%X").format(cs::var_get(nm))
+                  : tostring(cs::var_get(nm))
     hb.append(gui::Label({ text: " " ~ nm ~ ": " }))
     return hb.append(gui::Field({ clip_w: 0.4, value: dv, disabled: dis }),
         func(ed) {
@@ -392,10 +394,14 @@ root.new_window("variables", gui.Window, func(win) {
     vnames.sort(func(va, vb) {
         var ta, tb = cs::var_get_type(va), cs::var_get_type(vb)
         if ta == tb {
-            var hxa, hxb = (cs::var_get_flags(va) & vfs.HEX),
-                           (cs::var_get_flags(vb) & vfs.HEX)
+            var fla, flb = cs::var_get_flags(va), cs::var_get_flags(vb)
+            var hxa, hxb = fla & vfs.HEX, flb & vfs.HEX
             if hxa == hxb {
-                return va < vb
+                var cla, clb = fla & vfs.COLOR, flb & vfs.COLOR
+                if cla == clb {
+                    return va < vb
+                }
+                return cla < clb
             }
             return hxa < hxb
         }
@@ -408,14 +414,27 @@ root.new_window("variables", gui.Window, func(win) {
             o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
                 sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
                     sc.append(gui::VBox(), func(vb) {
-                        var fpf, pf, ptp
+                        var fpf, pf, ptp, phx, pcl
                         for i, varn in vnames.each() {
                             var dis = false
                             var tp = cs::var_get_type(varn)
+                            var fl = cs::var_get_flags(varn)
+                            var hx = fl & vfs.HEX
+                            var cl = fl & vfs.COLOR
                             if tp != ptp {
-                                vb.append(gui::Spacer({ pad_h: 0.01, pad_v: 0.01 },
-                                    gui::Label({ text: vtypes[tp], scale: 1.05 })))
+                                vb.append(gui::Spacer({ pad_h: 0.0075, pad_v: 0.0075 },
+                                    gui::Label({ text: vtypes[tp] })))
                                 ptp = tp
+                            }
+                            if hx != 0 && hx != phx {
+                                vb.append(gui::Spacer({ pad_h: 0.0075, pad_v: 0.0075 },
+                                    gui::Label({ text: "\f1Hex variables", scale: 0.75 })))
+                                phx = hx
+                            }
+                            if cl != 0 && cl != pcl {
+                                vb.append(gui::Spacer({ pad_h: 0.0075, pad_v: 0.0075 },
+                                    gui::Label({ text: "\f1Color variables", scale: 0.75 })))
+                                pcl = cl
                             }
                             vb.append(gui::HBox({ align_h: 1 }), func(hb) {
                                 var fd = make_varfield(hb, varn)
