@@ -364,6 +364,7 @@ var make_varfield = func(hb, nm) {
     var dis = (flg & vfs.READONLY) != 0
     var hex = (flg & vfs.HEX     ) != 0
     var dv  = hex ? "0x%X".format(cs::var_get(nm)) : tostring(cs::var_get(nm))
+    hb.append(gui::Label({ text: " " ~ nm ~ ": " }))
     return hb.append(gui::Field({ clip_w: 0.4, value: dv, disabled: dis }),
         func(ed) {
             if dis { return }
@@ -374,13 +375,32 @@ var make_varfield = func(hb, nm) {
     )
 }
 
+var vtypes = {
+    0: "\f0Integer variables",
+    1: "\f0Floating point variables",
+    2: "\f0String variables"
+}
+
 root.new_window("variables", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("Engine variables")
 
     var vnames = cs::var_get_all_names()
-    vnames.sort()
+
+    var vfs = cs.var_flags
+    vnames.sort(func(va, vb) {
+        var ta, tb = cs::var_get_type(va), cs::var_get_type(vb)
+        if ta == tb {
+            var hxa, hxb = (cs::var_get_flags(va) & vfs.HEX),
+                           (cs::var_get_flags(vb) & vfs.HEX)
+            if hxa == hxb {
+                return va < vb
+            }
+            return hxa < hxb
+        }
+        return ta < tb
+    })
 
     win.append(gui::HBox(), func(hb) {
         var s
@@ -388,12 +408,16 @@ root.new_window("variables", gui.Window, func(win) {
             o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
                 sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
                     sc.append(gui::VBox(), func(vb) {
-                        var fpf, pf
+                        var fpf, pf, ptp
                         for i, varn in vnames.each() {
                             var dis = false
+                            var tp = cs::var_get_type(varn)
+                            if tp != ptp {
+                                vb.append(gui::Spacer({ pad_h: 0.01, pad_v: 0.01 },
+                                    gui::Label({ text: vtypes[tp], scale: 1.05 })))
+                                ptp = tp
+                            }
                             vb.append(gui::HBox({ align_h: 1 }), func(hb) {
-                                hb.append(gui::Label({ text: " " ~ varn
-                                    ~ ": " }))
                                 var fd = make_varfield(hb, varn)
                                 if fd.disabled {
                                     dis = true
