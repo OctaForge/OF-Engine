@@ -4474,6 +4474,12 @@ LUAICOMMAND(var_get_type, {
     return 1;
 });
 
+LUAICOMMAND(var_get_flags, {
+    ident *id = getident(luaL_checkstring(L, 1));
+    lua_pushinteger(L, id ? id->flags : 0);
+    return 1;
+});
+
 CLUAICOMMAND(var_exists, bool, (const char *name), {
     ident *id = getident(name);
     return id && (id->type <= ID_SVAR);
@@ -4497,6 +4503,20 @@ CLUAICOMMAND(var_make_emit, bool, (const char *name, bool v), {
     if (v) id->flags |=  IDF_SIGNAL;
     else   id->flags &= ~IDF_SIGNAL;
     return ret;
+})
+
+LUAICOMMAND(var_get_all_names, {
+    lua_createtable(L, 0, 0);
+    int vi = 0;
+    enumerate(idents, ident, val, {
+        if (val.type != ID_VAR && val.type != ID_FVAR && val.type != ID_SVAR) {
+            continue;
+        }
+        lua_pushstring(L, val.name);
+        lua_rawseti(L, -2, vi++);
+    });
+    lua_pushinteger(L, vi);
+    return 2;
 })
 #endif
 

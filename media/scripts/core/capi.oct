@@ -265,9 +265,9 @@ capi.strftime = func(fmt) {
     var texture_get_packs in capi
     capi.texture_get_packs = func() {
         var t, s = texture_get_packs()
-        from_table(t, s)
+        t = from_table(t, s)
         for i, v in t.each() {
-            from_table(v)
+            t[i] = from_table(v)
         }
         return t
     }

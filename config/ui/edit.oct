@@ -6,7 +6,7 @@ import core.entities.svars
 import core.events.signal
 import core.gui.core as gui
 
-from core.engine.cubescript import execute as cs_execute
+import core.engine.cubescript as cs
 
 from std.table import pairs
 from std.conv import tostring
@@ -341,10 +341,68 @@ root.new_window("entity_new", gui.Window, func(win) {
                                 variant: "nobg", min_w: 0.3, label: n
                             }), func(btn) {
                                 signal::connect(btn, "clicked", func() {
-                                    cs_execute(e"newent $n")
+                                    cs::execute(e"newent $n")
                                     root.hide_window("entity_new")
                                 })
                             })
+                        }
+                    })
+                    s = sc
+                })
+            })
+        })
+        hb.append(gui::VScrollbar({ clamp_v: true }), func(sb) {
+            sb.append(gui::ScrollButton())
+            sb.bind_scroller(s)
+        })
+    })
+})
+
+var make_varfield = func(hb, nm) {
+    var dis = (cs::var_get_flags(nm) & cs.var_flags.READONLY) != 0
+    var dv = tostring(cs::var_get(nm))
+    return hb.append(gui::Field({ clip_w: 0.4, value: dv, disabled: dis }),
+        func(ed) {
+            if dis { return }
+            signal::connect(ed, "value,changed", func(ed, v) {
+                cs::var_set(nm, v)
+            })
+        }
+    )
+}
+
+root.new_window("variables", gui.Window, func(win) {
+    win.set_floating(true)
+    win.set_variant("movable")
+    win.set_title("Engine variables")
+
+    var vnames = cs::var_get_all_names()
+    vnames.sort()
+
+    win.append(gui::HBox(), func(hb) {
+        var s
+        hb.append(gui::Outline({ variant: "normal" }), func(o) {
+            o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
+                sp.append(gui::Scroller({ clip_w: 0.9, clip_h: 0.6 }), func(sc) {
+                    sc.append(gui::VBox(), func(vb) {
+                        var fpf, pf
+                        for i, varn in vnames.each() {
+                            var dis = false
+                            vb.append(gui::HBox({ align_h: 1 }), func(hb) {
+                                hb.append(gui::Label({ text: " " ~ varn
+                                    ~ ": " }))
+                                var fd = make_varfield(hb, varn)
+                                if fd.disabled {
+                                    dis = true
+                                } else {
+                                    if pf { pf.set_tab_next(fd) }
+                                    pf = fd
+                                    if !fpf { fpf = fd }
+                                }
+                            })
+                            if !dis && fpf && pf && pf != fpf {
+                                pf.set_tab_next(fpf)
+                            }
                         }
                     })
                     s = sc

@@ -151,11 +151,21 @@ export var var_get_def = capi.var_get_def
 /// Given a variable name, this returns its type.
 export var var_get_type = capi.var_get_type
 
+/// Given a variable name, this returns its flags.
+export var var_get_flags = capi.var_get_flags
+
 /// Checks if the engine variable of the given name is hex.
 export var var_is_hex = capi.var_is_hex
 
 /// Checks for existence of an engine variable.
 export var var_exists = capi.var_exists
+
+from std.array import from_table
+
+/// Gets the names of all vars
+export func var_get_all_names() {
+    return from_table(capi::var_get_all_names())
+}
 
 import core.engine.cubescript as M // self-import
 
