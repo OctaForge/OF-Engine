@@ -9,7 +9,7 @@ import core.gui.core as gui
 import core.engine.cubescript as cs
 
 from std.table import pairs
-from std.conv import tostring
+from std.conv import tostring, tonumber
 
 var root = gui::get_root()
 
@@ -359,13 +359,16 @@ root.new_window("entity_new", gui.Window, func(win) {
 })
 
 var make_varfield = func(hb, nm) {
-    var dis = (cs::var_get_flags(nm) & cs.var_flags.READONLY) != 0
-    var dv = tostring(cs::var_get(nm))
+    var vfs = cs.var_flags
+    var flg = cs::var_get_flags(nm)
+    var dis = (flg & vfs.READONLY) != 0
+    var hex = (flg & vfs.HEX     ) != 0
+    var dv  = hex ? "0x%X".format(cs::var_get(nm)) : tostring(cs::var_get(nm))
     return hb.append(gui::Field({ clip_w: 0.4, value: dv, disabled: dis }),
         func(ed) {
             if dis { return }
             signal::connect(ed, "value,changed", func(ed, v) {
-                cs::var_set(nm, v)
+                cs::var_set(nm, hex ? tonumber(v) : v)
             })
         }
     )
