@@ -789,7 +789,7 @@ void setvarchecked(ident *id, int val)
 static inline void setvarchecked(ident *id, tagval *args, int numargs)
 {
     int val = forceint(args[0]);
-    if(id->flags&IDF_HEX && numargs > 1)
+    if(id->flags&IDF_COLOR && numargs > 1)
     {
         val = (val << 16) | (forceint(args[1])<<8);
         if(numargs > 2) val |= forceint(args[2]);
@@ -2065,7 +2065,7 @@ void freecode(uint *code)
 void printvar(ident *id, int i)
 {
     if(i < 0) conoutf("%s = %d", id->name, i);
-    else if(id->flags&IDF_HEX && id->maxval==0xFFFFFF)
+    else if(id->flags&IDF_COLOR)
         conoutf("%s = 0x%.6X (%d, %d, %d)", id->name, i, (i>>16)&0xFF, (i>>8)&0xFF, i&0xFF);
     else
         conoutf(id->flags&IDF_HEX ? "%s = 0x%X" : "%s = %d", id->name, i);
@@ -4488,6 +4488,11 @@ CLUAICOMMAND(var_exists, bool, (const char *name), {
 CLUAICOMMAND(var_is_hex, bool, (const char *name), {
     ident *id = getident(name);
     return id && (id->flags&IDF_HEX);
+});
+
+CLUAICOMMAND(var_is_color, bool, (const char *name), {
+    ident *id = getident(name);
+    return id && (id->flags&IDF_COLOR);
 });
 
 CLUAICOMMAND(var_emits, bool, (const char *name), {

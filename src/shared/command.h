@@ -45,11 +45,11 @@ enum
 
 enum { ID_VAR, ID_FVAR, ID_SVAR, ID_COMMAND, ID_ALIAS, ID_LOCAL, ID_DO, ID_DOARGS, ID_IF, ID_RESULT, ID_NOT, ID_AND, ID_OR };
 
-/* OF: IDF_ALLOC, IDF_SIGNAL, IDF_SAFE, IDF_TRUSTED */
-enum { IDF_PERSIST  = 1<<0, IDF_OVERRIDE   = 1<<1, IDF_HEX     = 1<<2,
-       IDF_READONLY = 1<<3, IDF_OVERRIDDEN = 1<<4, IDF_UNKNOWN = 1<<5,
-       IDF_ARG      = 1<<6, IDF_ALLOC      = 1<<7, IDF_SIGNAL  = 1<<8,
-       IDF_SAFE     = 1<<9, IDF_TRUSTED    = 1<<10 };
+/* OF: IDF_COLOR, IDF_ALLOC, IDF_SIGNAL, IDF_SAFE, IDF_TRUSTED */
+enum { IDF_PERSIST  = 1<<0, IDF_OVERRIDE   = 1<<1 , IDF_HEX        = 1<<2,
+       IDF_COLOR    = 1<<3, IDF_READONLY   = 1<<4 , IDF_OVERRIDDEN = 1<<5,
+       IDF_UNKNOWN  = 1<<6, IDF_ARG        = 1<<7 , IDF_ALLOC      = 1<<8,
+       IDF_SIGNAL   = 1<<9, IDF_SAFE       = 1<<10, IDF_TRUSTED    = 1<<11 };
 
 struct ident;
 
@@ -363,7 +363,7 @@ inline void ident::getcval(tagval &v) const
 #define HVARFNP(name, global, min, cur, max, body) _HVARF(name, global, min, cur, max, body, IDF_PERSIST)
 #define HVARFNR(name, global, min, cur, max, body) _HVARF(name, global, min, cur, max, body, IDF_OVERRIDE)
 
-#define _CVAR(name, cur, init, body, persist) bvec name = bvec::hexcolor(cur); _HVARF(name, _##name, 0, cur, 0xFFFFFF, { init; name = bvec::hexcolor(_##name); body; }, persist)
+#define _CVAR(name, cur, init, body, persist) bvec name = bvec::hexcolor(cur); _HVARF(name, _##name, 0, cur, 0xFFFFFF, { init; name = bvec::hexcolor(_##name); body; }, persist | IDF_COLOR)
 #define CVARP(name, cur) _CVAR(name, cur, , , IDF_PERSIST)
 #define CVARR(name, cur) _CVAR(name, cur, , , IDF_OVERRIDE)
 #define CVARFP(name, cur, body) _CVAR(name, cur, , body, IDF_PERSIST)
