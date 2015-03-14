@@ -160,6 +160,8 @@ var M = ents
           liquid material id (water, lava).
         - time_in_air [{{$svars.StateInteger}}] - time in milliseconds spent
           in the air (TODO: unsigned).
+        - spawn_stage [{{$svars.StateInteger}}] - an integer specifying
+          the current spawn stage of the character.
 */
 M.Character = Entity.clone({
     name: "Character",
@@ -352,6 +354,23 @@ M.Character = Entity.clone({
                 }
                 if msg::is_server() {
                     capi::set_server_clientstate(cn, v)
+                }
+            },
+            custom_sync: true, gui_name: false
+        }),
+        spawn_stage: svars::StateInteger({
+            getter: func(cn) {
+                if !msg::is_server_only() {
+                    return capi::get_lifesequence(cn)
+                }
+                return capi::get_server_lifesequence(cn)
+            },
+            setter: func(cn, v) {
+                if !msg::is_server_only() {
+                    capi::set_lifesequence(cn, v)
+                }
+                if msg::is_server() {
+                    capi::set_server_lifesequence(cn, v)
                 }
             },
             custom_sync: true, gui_name: false

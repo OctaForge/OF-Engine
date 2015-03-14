@@ -250,6 +250,7 @@ namespace entities
     DYNENT_ACCESSORS(physstate, int, physstate)
     DYNENT_ACCESSORS(inwater, int, inwater)
     DYNENT_ACCESSORS(timeinair, int, timeinair)
+    DYNENT_ACCESSORS(lifesequence, int, lifesequence)
     #undef DYNENT_ACCESSORS
 
     CLUAICOMMAND(get_dynent_position, bool, (int cn, double *pos), {

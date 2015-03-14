@@ -110,6 +110,7 @@ luastate.capi_restore = func() {
     capi.get_physstate = gen_getwrap(capi.get_physstate, "int")
     capi.get_inwater = gen_getwrap(capi.get_inwater, "int")
     capi.get_timeinair = gen_getwrap(capi.get_timeinair, "int")
+    capi.get_lifesequence = gen_getwrap(capi.get_lifesequence, "int")
 
     var get_dynent_position, set_dynent_position in capi
 
@@ -152,6 +153,7 @@ luastate.capi_restore = func() {
 }
 
 capi.get_server_clientstate = gen_getwrap(capi.get_server_clientstate, "int")
+capi.get_server_lifesequence = gen_getwrap(capi.get_server_lifesequence, "int")
 
 var ffi_str = ffi.string
 

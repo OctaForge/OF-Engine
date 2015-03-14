@@ -40,12 +40,10 @@ if !msg::is_server_only() {
 
     Properties:
         - team - the player's current team. Defaults to an empty string.
-        - spawn_stage - the current spawn stage the player is going through.
 */
 export var player_plugin = {
     __properties: {
-        team       : svars::StateString(),
-        spawn_stage: svars::StateInteger()
+        team: svars::StateString()
     },
 
     __init_svars: func(self) {

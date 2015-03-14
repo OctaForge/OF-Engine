@@ -2551,5 +2551,19 @@ namespace server
         ci->state.state = val;
         return true;
     })
+
+    CLUAICOMMAND(get_server_lifesequence, bool, (int cn, int *val), {
+        clientinfo *ci = getinfo(cn);
+        assert(ci);
+        *val = ci->state.lifesequence;
+        return true;
+    })
+
+    CLUAICOMMAND(set_server_lifesequence, bool, (int cn, int val), {
+        clientinfo *ci = getinfo(cn);
+        assert(ci);
+        ci->state.lifesequence = val;
+        return true;
+    })
 }
 
