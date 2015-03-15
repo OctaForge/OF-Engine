@@ -740,7 +740,7 @@ namespace game
         messages.setsize(0);
         messagereliable = false;
         messagecn = -1;
-        player1->respawn();
+        player1->reset();
         player1->lifesequence = 0;
         player1->state = CS_ALIVE;
         player1->privilege = PRIV_NONE;
@@ -1185,38 +1185,6 @@ namespace game
             case N_CDIS:
                 clientdisconnected(getint(p));
                 break;
-
-            case N_SPAWN:
-            {
-                if(d)
-                {
-                    if(d->state==CS_DEAD && d->lastpain) saveragdoll(d);
-                    d->respawn();
-                }
-                parsestate(d, p);
-                if(!d) break;
-                d->state = CS_SPAWNING;
-                checkfollow();
-                break;
-            }
-
-            case N_SPAWNSTATE:
-            {
-                int scn = getint(p);
-                gameent *s = getclient(scn);
-                if(!s) { parsestate(NULL, p); break; }
-                if(s->state==CS_DEAD && s->lastpain) saveragdoll(s);
-                if(s==player1)
-                {
-                    if(editmode) toggleedit();
-                }
-                s->respawn();
-                parsestate(s, p);
-                s->state = CS_ALIVE;
-                checkfollow();
-                addmsg(N_SPAWN, "rcii", s, s->lifesequence, 0);
-                break;
-            }
 
             case N_RESUME:
             {

@@ -60,7 +60,6 @@ enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_AUTH, PRIV_ADMIN };
 enum
 {
     N_CONNECT = 0, N_SERVINFO, N_WELCOME, N_INITCLIENT, N_POS, N_TEXT, N_CDIS,
-    N_SPAWNSTATE, N_SPAWN,
     N_MAPCHANGE, N_MAPVOTE,
     N_PING, N_PONG, N_CLIENTPING,
     N_TIMEUP, N_FORCEINTERMISSION,
@@ -89,7 +88,6 @@ enum
 static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
     N_CONNECT, 0, N_SERVINFO, 0, N_WELCOME, 1, N_INITCLIENT, 0, N_POS, 0, N_TEXT, 0, N_CDIS, 2,
-    N_SPAWNSTATE, 3, N_SPAWN, 3,
     N_MAPCHANGE, 0, N_MAPVOTE, 0,
     N_PING, 2, N_PONG, 2, N_CLIENTPING, 2,
     N_TIMEUP, 2, N_FORCEINTERMISSION, 1,
@@ -134,7 +132,7 @@ struct gameent : dynent
 {
     int weight;                         // affects the effectiveness of hitpush
     int clientnum, privilege, lastupdate, plag, ping;
-    int lifesequence;                   // sequence id for each respawn, used in damage test
+    int lifesequence;
     int lastpain;
     editinfo *edit;
     float deltayaw, deltapitch, deltaroll, newyaw, newpitch, newroll;
@@ -158,7 +156,7 @@ struct gameent : dynent
 #ifndef STANDALONE
         attachments.add(modelattach());
 #endif
-        respawn();
+        reset();
     }
     ~gameent()
     {
@@ -166,11 +164,6 @@ struct gameent : dynent
 #ifndef STANDALONE
         clear_attachments(attachments, attachment_positions);
 #endif
-    }
-
-    void respawn()
-    {
-        dynent::reset();
     }
 
     void startgame()
@@ -218,7 +211,6 @@ namespace game
     extern int maptime, maprealtime;
     extern gameent *player1;
     extern vector<gameent *> players, clients;
-    extern int lastspawnattempt;
     extern int following;
     extern int smoothmove, smoothdist;
 
@@ -235,7 +227,6 @@ namespace game
     extern void clientdisconnected(int cn, bool notify = true);
     extern void clearclients(bool notify = true);
     extern void startgame();
-    extern void spawnplayer(gameent *);
     extern void timeupdate(int timeremain);
     extern void drawicon(int icon, float x, float y, float sz = 120);
     const char *mastermodecolor(int n, const char *unknown);

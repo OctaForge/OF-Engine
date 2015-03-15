@@ -25,7 +25,7 @@ namespace server
     {
         vec o;
         int state, editstate;
-        int lastspawn, lifesequence;
+        int lifesequence;
         int lasttimeplayed, timeplayed;
 
         servstate() : state(CS_DEAD), editstate(CS_DEAD), lifesequence(0) {}
@@ -42,7 +42,6 @@ namespace server
         void respawn()
         {
             o = vec(-1e10f, -1e10f, -1e10f);
-            lastspawn = -1;
         }
 
         void reassign()
@@ -1003,7 +1002,7 @@ namespace server
         }
 
         uchar operator[](int msg) const { return msg >= 0 && msg < NUMMSG ? msgmask[msg] : 0; }
-    } msgfilter(-1, N_CONNECT, N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPCHANGE, N_SERVMSG, N_SPAWNSTATE, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_CLIENT, N_AUTHCHAL, N_DEMOPACKET, N_ENTCN, N_ENTREM, N_ENTSDATAUP, -2, N_CALCLIGHT, N_REMIP, N_NEWMAP, N_GETMAP, N_SENDMAP, N_CLIPBOARD, -3, N_EDITENT, N_ENTPOS, N_EDITF, N_EDITT, N_EDITM, N_FLIP, N_COPY, N_PASTE, N_ROTATE, N_REPLACE, N_DELCUBE, N_EDITVAR, N_EDITVSLOT, N_UNDO, N_REDO, N_TEXPACKLOAD, N_TEXPACKUNLOAD, N_TEXPACKRELOAD, N_MATPACKLOAD, N_DECALPACKLOAD, -4, N_POS, NUMMSG),
+    } msgfilter(-1, N_CONNECT, N_SERVINFO, N_INITCLIENT, N_WELCOME, N_MAPCHANGE, N_SERVMSG, N_TIMEUP, N_CDIS, N_CURRENTMASTER, N_PONG, N_RESUME, N_SENDDEMOLIST, N_SENDDEMO, N_DEMOPLAYBACK, N_SENDMAP, N_CLIENT, N_AUTHCHAL, N_DEMOPACKET, N_ENTCN, N_ENTREM, N_ENTSDATAUP, -2, N_CALCLIGHT, N_REMIP, N_NEWMAP, N_GETMAP, N_SENDMAP, N_CLIPBOARD, -3, N_EDITENT, N_ENTPOS, N_EDITF, N_EDITT, N_EDITM, N_FLIP, N_COPY, N_PASTE, N_ROTATE, N_REPLACE, N_DELCUBE, N_EDITVAR, N_EDITVSLOT, N_UNDO, N_REDO, N_TEXPACKLOAD, N_TEXPACKUNLOAD, N_TEXPACKRELOAD, N_MATPACKLOAD, N_DECALPACKLOAD, -4, N_POS, NUMMSG),
       connectfilter(-1, N_CONNECT, -2, N_AUTHANS, -3, N_PING, NUMMSG);
 
     int checktype(int type, clientinfo *ci)
@@ -1204,20 +1203,6 @@ namespace server
         putint(p, gs.lifesequence);
     }
 
-    void spawnstate(clientinfo *ci)
-    {
-        servstate &gs = ci->state;
-        gs.lifesequence = (gs.lifesequence + 1)&0x7F;
-    }
-
-    void sendspawn(clientinfo *ci)
-    {
-        servstate &gs = ci->state;
-        spawnstate(ci);
-        sendf(ci->ownernum, 1, "riii", N_SPAWNSTATE, ci->clientnum, gs.lifesequence);
-        gs.lastspawn = gamemillis;
-    }
-
     void sendwelcome(clientinfo *ci)
     {
         packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -1292,15 +1277,6 @@ namespace server
             putint(p, gamespeed);
             putint(p, -1);
         }
-        if(ci && (m_demo || m_mp(gamemode)) && ci->state.state!=CS_SPECTATOR)
-        {
-            servstate &gs = ci->state;
-            spawnstate(ci);
-            putint(p, N_SPAWNSTATE);
-            putint(p, ci->clientnum);
-            sendstate(gs, p);
-            gs.lastspawn = gamemillis;
-        }
         if(ci && ci->state.state==CS_SPECTATOR)
         {
             putint(p, N_SPECTATOR);
@@ -1363,7 +1339,6 @@ namespace server
             clientinfo *ci = clients[i];
             ci->mapchange();
             ci->state.lasttimeplayed = lastmillis;
-            if(m_mp(gamemode) && ci->state.state!=CS_SPECTATOR) sendspawn(ci);
             lua::L->call_external("server_map_change", "i", ci->clientnum);
         }
 
@@ -2063,22 +2038,6 @@ namespace server
                 checkmaps(sender);
                 break;
 
-            case N_SPAWN:
-            {
-                int ls = getint(p);
-                getint(p);
-                if(!cq || (cq->state.state!=CS_ALIVE && cq->state.state!=CS_DEAD) || ls!=cq->state.lifesequence || cq->state.lastspawn<0) break;
-                cq->state.lastspawn = -1;
-                cq->state.state = CS_ALIVE;
-                cq->exceeded = 0;
-                QUEUE_AI;
-                QUEUE_BUF({
-                    putint(cm->messages, N_SPAWN);
-                    sendstate(cq->state, cm->messages);
-                });
-                break;
-            }
-
             case N_TEXT:
             {
                 QUEUE_AI;
@@ -2564,6 +2523,12 @@ namespace server
         assert(ci);
         ci->state.lifesequence = val;
         return true;
+    })
+
+    CLUAICOMMAND(client_reset_exceeded, void, (int cn), {
+        clientinfo *ci = getinfo(cn);
+        assert(ci);
+        ci->exceeded = 0;
     })
 }
 

@@ -6,7 +6,6 @@ extern int enthover;
 namespace game
 {
     int maptime = 0, maprealtime = 0;
-    int lastspawnattempt = 0;
 
     gameent *player1 = NULL;         // our client
     vector<gameent *> players;       // other clients
@@ -91,12 +90,6 @@ namespace game
 
     void resetgamestate()
     {
-    }
-
-    gameent *spawnstate(gameent *d)              // reset player state not persistent accross spawns
-    {
-        d->respawn();
-        return d;
     }
 
     gameent *pointatplayer()
@@ -307,20 +300,6 @@ namespace game
         if(player1->clientnum>=0) c2sinfo();   // do this last, to reduce the effective frame lag
     }
 
-    void spawnplayer(gameent *d)   // place at random spawn
-    {
-        spawnstate(d);
-        if(d==player1)
-        {
-            if(editmode) d->state = CS_EDITING;
-            else if(d->state != CS_SPECTATOR) d->state = CS_ALIVE;
-        }
-        else d->state = CS_ALIVE;
-        checkfollow();
-    }
-
-    VARP(spawnwait, 0, 0, 1000);
-
     // inputs
 
     bool allowmove(physent *d)
@@ -391,7 +370,8 @@ namespace game
 
     void initclient()
     {
-        player1 = spawnstate(new gameent);
+        player1 = new gameent;
+        player1->reset();
         filtertext(player1->name, "unnamed", false, false, MAXNAMELEN);
         players.add(player1);
     }
@@ -423,9 +403,7 @@ namespace game
 
     void startmap(const char *name)   // called just after a map load
     {
-        if(!m_mp(gamemode)) spawnplayer(player1);
         copystring(clientmap, name ? name : "");
-
         sendmapinfo();
     }
 
@@ -769,5 +747,11 @@ namespace game
         top.z += d->aboveeye + margin;
         return linecylinderintersect(from, to, bottom, top, d->radius + margin, dist);
     }
+
+    CLUAICOMMAND(client_reset, void, (int cn), {
+        gameent *cl = getclient(cn);
+        if (!cl) return;
+        cl->reset();
+    })
 }
 

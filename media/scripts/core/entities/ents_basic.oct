@@ -796,6 +796,17 @@ M.Character = Entity.clone({
     */
     place_in_map: func(self, avoidpl) {
         return capi::entinmap(self.cn, avoidpl || false)
+    },
+
+    reset: func(self) {
+        capi::client_reset(self.uid)
+    },
+
+    reset_exceeded: func(self) {
+        if !msg::is_server() {
+            return
+        }
+        capi::client_reset_exceeded(self.uid)
     }
 })
 var Character = M.Character

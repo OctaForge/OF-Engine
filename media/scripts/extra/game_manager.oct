@@ -111,6 +111,7 @@ export var player_plugin = {
         self.set_attr("spawn_stage", 0)
         self.set_attr("client_state", self.State.ALIVE)
         self.cancel_sdata_update()
+        self.reset_exceeded()
     },
 
     game_manager_on_spawn_stage: func(self, stage, auid) {
@@ -195,6 +196,7 @@ var GameManager = Entity.clone({
     place_player: func(self, player) {
         var team = player.get_attr("team")
         var tname = (team != "") ? ("team_" ~ team) : undef
+        player.reset()
         var starts = ents::get_by_prototype("PlayerStart")
             .filter(\ent -> tname ? ent.has_tag(tname) : true)
         if starts.len() > 0 {
