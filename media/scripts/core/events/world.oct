@@ -116,6 +116,7 @@ externals::set("event_player_login", func(uid) {
     if !ents { ents = import core.entities.ents }
     var ent = ents::get_dynamic(uid)
     if ent {
+        ent.respawn()
         emit(ent, "login")
     }
 })

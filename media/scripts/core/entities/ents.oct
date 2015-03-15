@@ -648,7 +648,7 @@ func msg_sdata_update_send(self, cn, reliable, kpid, value, ocn) {
 
 externals::set("msg_sdata_changereq", func(sender, uid, kpid, value) {
     var uid, stor = get_stor_uid(uid)
-    @[debug] log(DEBUG, e"client $auid tried to change $kpid to value "
+    @[debug] log(DEBUG, e"client $uid tried to change $kpid to value "
         e"$(tostring(value))")
     var ent = stor[uid]
     if ent {
@@ -825,7 +825,7 @@ Entity = Object.clone({
                 var val = self.get_attr(name)
                 if val != undef {
                     var wval = svar.to_serializable(val)
-                    @[debug] log(DEBUG, e"    adding $name: $wval")
+                    @[debug] log(DEBUG, e"    adding $name: $(tostring(wval))")
                     var key = (!comp) && name
                         || tonumber(names_to_ids[sn][name])
                     r[key] = wval

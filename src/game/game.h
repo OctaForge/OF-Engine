@@ -168,7 +168,6 @@ struct gameent : dynent
 
     void startgame()
     {
-        lifesequence = -1;
     }
 
     virtual void reset() // OF: virtual

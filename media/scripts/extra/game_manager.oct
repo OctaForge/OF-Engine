@@ -62,9 +62,6 @@ export var player_plugin = {
                 get().place_player(self)
             })
         }
-        if msg::is_server() {
-            self.respawn()
-        }
     }
 }
 

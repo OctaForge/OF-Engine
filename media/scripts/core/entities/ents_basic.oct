@@ -14,6 +14,7 @@ import core.logger as logging
 var log = logging.log
 var DEBUG = logging.DEBUG
 var ERROR = logging.ERROR
+var INFO  = logging.INFO
 
 import core.externals
 
@@ -373,7 +374,7 @@ M.Character = Entity.clone({
                     capi::set_server_lifesequence(cn, v)
                 }
             },
-            custom_sync: true, gui_name: false
+            gui_name: false
         }),
         physical_state: svars::StateInteger({
             getter: @[!server,capi.get_physstate],
@@ -472,8 +473,8 @@ M.Character = Entity.clone({
         self.set_attr("position", [ 512, 512, 550 ])
         self.set_attr("velocity", [ 0, 0, 0 ])
         self.set_attr("falling", [ 0, 0, 0 ])
-        self.set_attr("client_state", 0)
-        self.set_attr("physical_state", 0)
+        self.set_attr("client_state", self.State.DEAD)
+        self.set_attr("physical_state", self.PhysicalState.FALLING)
         self.set_attr("in_liquid", 0)
         self.set_attr("time_in_air", 0)
 
@@ -861,14 +862,7 @@ M.Character = Entity.clone({
         "server,respawn" signal.
     */
     respawn: func(self) {
-        @[!server] {
-            if !msg::is_server() { return }
-            if !msg::is_server_only() {
-                self.set_attr("spawn_stage", 4)
-                emit(self, "client,respawn")
-                return
-            }
-        }
+        if !msg::is_server() { return }
         self.set_attr("client_state", self.State.SPAWNING)
         self.set_attr("spawn_stage", 1)
     },
@@ -876,20 +870,26 @@ M.Character = Entity.clone({
     spawn_stage_0: func(self, auid) { },
 
     spawn_stage_1: func(self, auid) {
-        if msg::is_server() { return }
+        if msg::is_server() {
+            if msg::is_server_only() { return }
+            if self != ents::get_player() { return }
+        }
         self.set_attr("spawn_stage", 2)
     },
 
     spawn_stage_2: func(self, auid) {
         if !msg::is_server() { return }
-        if auid == self.uid {
+        if auid == -1 || auid == self.uid {
             self.set_attr("spawn_stage", 3)
         }
         self.cancel_sdata_update()
     },
 
     spawn_stage_3: func(self, auid) {
-        if msg::is_server() { return }
+        if msg::is_server() {
+            if msg::is_server_only() { return }
+            if self != ents::get_player() { return }
+        }
         if self == ents::get_player() {
             self.set_attr("client_state", self.State.ALIVE)
             emit(self, "client,respawn")
