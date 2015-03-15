@@ -77,7 +77,7 @@ export var DeathAction = actions.Action.clone({
     /// Triggers a respawn.
     __finish: func(self) {
         if !msg::is_server() { return }
-        self.actor.game_manager_respawn()
+        self.actor.respawn()
     }
 })
 
@@ -104,20 +104,11 @@ export var player_plugin = {
 
     __activate: func(self) {
         connect(self, "health,changed", self.health_on_health)
-    },
-
-    /**
-        Overrides the serverside spawn stage 4. In addition to the default
-        behavior it restores the player's health.
-    */
-    game_manager_spawn_stage_4: func(self, auid) {
         if !msg::is_server() { return }
-        self.set_attr("health", self.get_attr("max_health"))
-        self.old_health = self.get_attr("health")
-        self.set_attr("can_move", true)
-        self.set_attr("spawn_stage", 0)
-        self.set_attr("client_state", self.State.ALIVE)
-        self.cancel_sdata_update()
+        connect(self, "server,respawn", func(self) {
+            self.set_attr("health", self.get_attr("max_health"))
+            self.old_health = self.get_attr("health")
+        })
     },
 
     get_animation: func(self) {

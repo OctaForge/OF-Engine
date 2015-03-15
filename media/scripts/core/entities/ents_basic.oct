@@ -536,6 +536,10 @@ M.Character = Entity.clone({
             }
         })
 
+        connect(self, "spawn_stage,changed", func(self, stage, auid) {
+            self["spawn_stage_" ~ stage](self, auid)
+        })
+
         if !msg::is_server_only() {
             // just to make sure
             self.place_in_map(true)
@@ -827,6 +831,80 @@ M.Character = Entity.clone({
             return
         }
         capi::client_update_lastdeath(self.uid)
+    },
+
+    /**
+        Respawns the character. Serverside. The spawn system is multi-stage.
+        This first triggers stage 1 (and sets the client state to SPAWNING).
+
+        Keep in mind that this is a generic system and does no placement of
+        the character; that's up to extensions to handle via signals.
+
+        There are 4 stages.
+
+        Stage 0 - this is the value of $spawn_stage when not spawning.
+
+        Stage 1 - clientside ($spawn_stage_1 method) - called right after
+        server requests respawn. This normally only increments spawn stage.
+
+        Stage 2 - serverside, after the client has agreed on spawn. Called for
+        each client. The client to which this message is relevant then increments
+        its spawn stage (other clients ignore it).
+
+        Stage 3 - clientside. This checks if it's being called on the client
+        the client represents. If not, the callback simply returns. If yes,
+        client state is set to ALIVE, the "client,respawn" signal is emitted
+        and spawn stage is requested to be set to 4.
+
+        Stage 4, serverside. Fianlizes the sequence. Allows the client to move,
+        sets spawn stage to 0 and client state to ALIVE. Then emits the
+        "server,respawn" signal.
+    */
+    respawn: func(self) {
+        @[!server] {
+            if !msg::is_server() { return }
+            if !msg::is_server_only() {
+                self.set_attr("spawn_stage", 4)
+                emit(self, "client,respawn")
+                return
+            }
+        }
+        self.set_attr("client_state", self.State.SPAWNING)
+        self.set_attr("spawn_stage", 1)
+    },
+
+    spawn_stage_0: func(self, auid) { },
+
+    spawn_stage_1: func(self, auid) {
+        if msg::is_server() { return }
+        self.set_attr("spawn_stage", 2)
+    },
+
+    spawn_stage_2: func(self, auid) {
+        if !msg::is_server() { return }
+        if auid == self.uid {
+            self.set_attr("spawn_stage", 3)
+        }
+        self.cancel_sdata_update()
+    },
+
+    spawn_stage_3: func(self, auid) {
+        if msg::is_server() { return }
+        if self == ents::get_player() {
+            self.set_attr("client_state", self.State.ALIVE)
+            emit(self, "client,respawn")
+            self.set_attr("spawn_stage", 4)
+        }
+    },
+
+    spawn_stage_4: func(self, auid) {
+        if !msg::is_server() { return }
+        self.set_attr("can_move", true)
+        self.set_attr("spawn_stage", 0)
+        self.set_attr("client_state", self.State.ALIVE)
+        emit(self, "server,respawn")
+        self.cancel_sdata_update()
+        self.reset_exceeded()
     }
 })
 var Character = M.Character

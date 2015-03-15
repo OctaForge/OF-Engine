@@ -51,7 +51,6 @@ export var player_plugin = {
     },
 
     __activate: func(self) {
-        connect(self, "spawn_stage,changed", self.game_manager_on_spawn_stage)
         if msg::is_server() {
             get().pick_team(self)
             connect(self, "pre_deactivate", func(self) {
@@ -64,58 +63,8 @@ export var player_plugin = {
             })
         }
         if msg::is_server() {
-            self.game_manager_respawn()
+            self.respawn()
         }
-    },
-
-    game_manager_respawn: func(self) {
-        @[!server] {
-            if !msg::is_server() { return }
-            if !msg::is_server_only() {
-                self.set_attr("spawn_stage", 4)
-                emit(self, "client,respawn")
-                return
-            }
-        }
-        self.set_attr("client_state", self.State.SPAWNING)
-        self.set_attr("spawn_stage", 1)
-    },
-
-    game_manager_spawn_stage_0: func(self, auid) { },
-
-    game_manager_spawn_stage_1: func(self, auid) {
-        if msg::is_server() { return }
-        self.set_attr("spawn_stage", 2)
-    },
-
-    game_manager_spawn_stage_2: func(self, auid) {
-        if !msg::is_server() { return }
-        if auid == self.uid {
-            self.set_attr("spawn_stage", 3)
-        }
-        self.cancel_sdata_update()
-    },
-
-    game_manager_spawn_stage_3: func(self, auid) {
-        if msg::is_server() { return }
-        if self == ents::get_player() {
-            emit(self, "client,respawn")
-            self.set_attr("client_state", self.State.ALIVE)
-            self.set_attr("spawn_stage", 4)
-        }
-    },
-
-    game_manager_spawn_stage_4: func(self, auid) {
-        if !msg::is_server() { return }
-        self.set_attr("can_move", true)
-        self.set_attr("spawn_stage", 0)
-        self.set_attr("client_state", self.State.ALIVE)
-        self.cancel_sdata_update()
-        self.reset_exceeded()
-    },
-
-    game_manager_on_spawn_stage: func(self, stage, auid) {
-        self["game_manager_spawn_stage_" ~ stage](self, auid)
     }
 }
 
@@ -164,7 +113,7 @@ var GameManager = Entity.clone({
         self.sync_team_data()
 
         for i, player in self.get_players().each() {
-            player.game_manager_respawn()
+            player.respawn()
         }
 
         emit(self, "game,start")
@@ -218,7 +167,7 @@ import core.externals
 externals::set("server_map_change", func(cn) {
     var pl = ents::get_dynamic(cn)
     if !pl { return }
-    pl.game_manager_respawn()
+    pl.respawn()
 })
 
 from std.util import assert
