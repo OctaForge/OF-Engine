@@ -493,6 +493,10 @@ M.Character = Entity.clone({
         self.sent_notification_full = true
 
         self.set_attr("model_name", self.get_attr("model_name"))
+
+        connect(self, "spawn_stage,changed", func(self, stage, auid) {
+            self["spawn_stage_" ~ stage](self, auid)
+        })
     },func(self, kwargs) {
         self.cn = kwargs && kwargs.cn || -1
         assert(self.cn >= 0)

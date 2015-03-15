@@ -33,9 +33,11 @@ var colors = [
     0xFFFFFF, 0xFF0000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF
 ]
 
-@[!server] var SPARK = particles::register_renderer_quad("spark",
+var SPARK, STREAK
+
+@[!server] SPARK = particles::register_renderer_quad("spark",
     "media/particle/spark", particles.flags.FLIP | particles.flags.BRIGHT)
-@[!server] var STREAK = particles::register_renderer_tape("streak",
+@[!server] STREAK = particles::register_renderer_tape("streak",
     "media/particle/flare", particles.flags.BRIGHT)
 
 /** Object: GamePlayer
