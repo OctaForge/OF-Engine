@@ -798,15 +798,35 @@ M.Character = Entity.clone({
         return capi::entinmap(self.cn, avoidpl || false)
     },
 
+    /**
+        Resets internal entity information. Clientside, used during spawn.
+    */
     reset: func(self) {
+        if msg::is_server_only() {
+            return
+        }
         capi::client_reset(self.uid)
     },
 
+    /**
+        Used on spawn by the server, resets the exceeded counter.
+    */
     reset_exceeded: func(self) {
         if !msg::is_server() {
             return
         }
         capi::client_reset_exceeded(self.uid)
+    },
+
+    /**
+        Updates the engine about when the character last died. Used for
+        ragdoll simulation. Clientside.
+    */
+    update_lastdeath: func(self) {
+        if msg::is_server_only() {
+            return
+        }
+        capi::client_update_lastdeath(self.uid)
     }
 })
 var Character = M.Character

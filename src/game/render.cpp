@@ -10,9 +10,9 @@ namespace game
 
     void saveragdoll(gameent *d)
     {
-        if(!d->ragdoll || !ragdollmillis || (!ragdollfade && lastmillis > d->lastpain + ragdollmillis)) return;
+        if(!d->ragdoll || !ragdollmillis || (!ragdollfade && lastmillis > d->lastdeath + ragdollmillis)) return;
         gameent *r = new gameent(*d);
-        r->lastupdate = ragdollfade && lastmillis > d->lastpain + max(ragdollmillis - ragdollfade, 0) ? lastmillis - max(ragdollmillis - ragdollfade, 0) : d->lastpain;
+        r->lastupdate = ragdollfade && lastmillis > d->lastdeath + max(ragdollmillis - ragdollfade, 0) ? lastmillis - max(ragdollmillis - ragdollfade, 0) : d->lastdeath;
         r->edit = NULL;
         r->ai = NULL;
         ragdolls.add(r);

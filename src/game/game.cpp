@@ -182,7 +182,7 @@ namespace game
                 if(smoothmove && d->smoothmillis>0) predictplayer(d, true);
                 else moveplayer(d, 1, false);
             }
-            else if(d->state==CS_DEAD && !d->ragdoll && lastmillis-d->lastpain<2000) moveplayer(d, 1, true);
+            else if(d->state==CS_DEAD && !d->ragdoll && lastmillis-d->lastdeath<2000) moveplayer(d, 1, true);
         }
     }
 
@@ -284,7 +284,7 @@ namespace game
             if(player1->state == CS_DEAD)
             {
                 if(player1->ragdoll) moveragdoll(player1);
-                else if(lastmillis-player1->lastpain<2000)
+                else if(lastmillis-player1->lastdeath<2000)
                 {
                     player1->move = player1->strafe = 0;
                     moveplayer(player1, 10, true);
@@ -749,9 +749,15 @@ namespace game
     }
 
     CLUAICOMMAND(client_reset, void, (int cn), {
-        gameent *cl = getclient(cn);
-        if (!cl) return;
-        cl->reset();
-    })
+        gameent *d = getclient(cn);
+        assert(d);
+        d->reset();
+    });
+
+    CLUAICOMMAND(client_update_lastdeath, void, (int cn), {
+        gameent *d = getclient(cn);
+        assert(d);
+        d->lastdeath = lastmillis;
+    });
 }
 

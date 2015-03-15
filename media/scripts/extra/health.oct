@@ -199,6 +199,7 @@ export var player_plugin = {
                 self.enqueue_action(DeathAction())
             }
             self.set_attr("client_state", self.State.DEAD)
+            self.update_lastdeath()
         }
     },
 
