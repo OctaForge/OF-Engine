@@ -254,7 +254,6 @@ namespace game
     extern bool intersect(dynent *d, const vec &from, const vec &to, float margin = 0, float &dist = intersectdist);
 
     // render
-    extern void saveragdoll(gameent *d);
     extern void clearragdolls();
     extern void moveragdolls();
 

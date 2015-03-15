@@ -8,24 +8,32 @@ namespace game
 
     vector<gameent *> ragdolls;
 
-    void saveragdoll(gameent *d)
-    {
-        if(!d->ragdoll || !ragdollmillis || (!ragdollfade && lastmillis > d->lastdeath + ragdollmillis)) return;
+    CLUAICOMMAND(ragdoll_save, bool, (int cn), {
+        gameent *d = getclient(cn);
+        assert(d);
+        if(!d->ragdoll || !ragdollmillis || (!ragdollfade && lastmillis > d->lastdeath + ragdollmillis)) return false;
         gameent *r = new gameent(*d);
         r->lastupdate = ragdollfade && lastmillis > d->lastdeath + max(ragdollmillis - ragdollfade, 0) ? lastmillis - max(ragdollmillis - ragdollfade, 0) : d->lastdeath;
         r->edit = NULL;
         r->ai = NULL;
         ragdolls.add(r);
         d->ragdoll = NULL;
-    }
+        return true;
+    });
 
-    void clearragdolls()
-    {
+    CLUAICOMMAND(ragdoll_clean, void, (int cn), {
+        gameent *d = getclient(cn);
+        assert(d);
+        if (d->ragdoll) cleanragdoll(d);
+    })
+
+    void clearragdolls() {
         ragdolls.deletecontents();
     }
 
-    void moveragdolls()
-    {
+    CLUAICOMMAND(ragdolls_clear, void, (), clearragdolls(););
+
+    void moveragdolls() {
         loopv(ragdolls)
         {
             gameent *d = ragdolls[i];
@@ -37,6 +45,8 @@ namespace game
             moveragdoll(d);
         }
     }
+
+    CLUAICOMMAND(ragdolls_move, void, (), moveragdolls(););
 
     VARP(playerfpsshadow, 0, 1, 1);
 
