@@ -250,5 +250,5 @@ int ipmask::print(char *buf) const
 }
 
 #ifndef MASTER
-CLUAICOMMAND(ucharbuf_getuchar, int, (ucharbuf &p), return p.get());
+CLUAICOMMAND(ucharbuf_getuchar, int, (void *p), return ((ucharbuf *)p)->get());
 #endif

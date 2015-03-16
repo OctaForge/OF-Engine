@@ -8,14 +8,6 @@
         See COPYING.txt.
 */
 
-from std.util import assert
-from std.conv import tonumber
-from std.string import char
-
-import core.externals
-
-from core.octascript.messagepack import unpack as mp_unpack
-
 import capi
 
 /**
@@ -40,15 +32,14 @@ export var is_server_only = @[server,func() { return true },func() {
 
 // low level stuff, unexposed
 
-import std.ffi
+from std.conv import tonumber
+
+import core.externals
+from core.octascript.messagepack import unpack as mp_unpack
 
 func get_byte(c) {
     return tonumber(capi::ucharbuf_getuchar(c.p))
 }
-func cursor_msg(p) {
-    return { p: p, get_byte: get_byte }
-}
-var ubuft = ffi["typeof"]("ucharbuf &")
 externals::set("buf_get_msgpack", func(p) {
-    return mp_unpack(cursor_msg(ffi::cast(ubuft, p)))
+    return mp_unpack({ p: p, get_byte: get_byte })
 })
