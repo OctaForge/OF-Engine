@@ -27,10 +27,6 @@ M.compile = compile
 M.env = require("octascript.rt").env
 M.traceback = debug.traceback
 
--- plug in custom allocator for better performance
-local bc = require("octascript.bytecode")
-bc.Alloc.set(capi.raw_alloc, capi.raw_free)
-
 require("octascript.std.native")
 require("octascript.std.native.geom")
 
