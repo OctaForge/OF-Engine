@@ -147,11 +147,11 @@ static void getbackgroundres(int &w, int &h)
 }
 
 string backgroundcaption = "";
-Texture *backgroundmapshot = NULL;
+string backgroundpicname = "";
 string backgroundmapname = "";
 char *backgroundmapinfo = NULL;
 
-void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo)
+void renderbackgroundview(int w, int h, const char *caption, const char *picname, const char *mapname, const char *mapinfo)
 {
     resethudmatrix();
     hudnotextureshader->set();
@@ -168,8 +168,8 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
 
     hudshader->set();
 
-    if (mapshot)
-        lua::L->call_external("background_render", "sssp", caption, mapname, mapinfo, mapshot);
+    if (picname && picname[0])
+        lua::L->call_external("background_render", "ssss", caption, mapname, mapinfo, picname);
     else
         lua::L->call_external("background_render", "sss", caption, mapname, mapinfo);
 
@@ -180,7 +180,7 @@ void renderbackgroundview(int w, int h, const char *caption, Texture *mapshot, c
 
 VAR(menumute, 0, 1, 1);
 
-void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool force)
+void renderbackground(const char *caption, const char *picname, const char *mapname, const char *mapinfo, bool force)
 {
     if(!inbetweenframes && !force) return;
 
@@ -193,7 +193,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
     if(force)
     {
-        renderbackgroundview(w, h, caption, mapshot, mapname, mapinfo);
+        renderbackgroundview(w, h, caption, picname, mapname, mapinfo);
         return;
     }
 
@@ -210,20 +210,20 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
                     glViewport(0, 0, hudw, hudh);
                     glClearColor(0, 0, 0, 0);
                     glClear(GL_COLOR_BUFFER_BIT);
-                    renderbackgroundview(w, h, caption, mapshot, mapname, mapinfo);
+                    renderbackgroundview(w, h, caption, picname, mapname, mapinfo);
                 }
                 ovr::warp();
             }
             viewidx = 0;
             hudx = 0;
         }
-        else renderbackgroundview(w, h, caption, mapshot, mapname, mapinfo);
+        else renderbackgroundview(w, h, caption, picname, mapname, mapinfo);
         swapbuffers(false);
     }
 
     renderedframe = false;
     copystring(backgroundcaption, caption ? caption : "");
-    backgroundmapshot = mapshot;
+    copystring(backgroundpicname, picname ? picname : "");
     copystring(backgroundmapname, mapname ? mapname : "");
     if(mapinfo != backgroundmapinfo)
     {
@@ -234,7 +234,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
 void restorebackground(int w, int h)
 {
-    renderbackgroundview(w, h, backgroundcaption[0] ? backgroundcaption : NULL, backgroundmapshot, backgroundmapname[0] ? backgroundmapname : NULL, backgroundmapinfo);
+    renderbackgroundview(w, h, backgroundcaption[0] ? backgroundcaption : NULL, backgroundpicname[0] ? backgroundpicname : NULL, backgroundmapname[0] ? backgroundmapname : NULL, backgroundmapinfo);
 }
 
 float loadprogress = 0;

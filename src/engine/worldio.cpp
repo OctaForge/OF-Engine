@@ -611,8 +611,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     resetmap();
 
-    Texture *mapshot = textureload(picname, 3, true, false);
-    renderbackground("loading...", mapshot, mname, game::getmapinfo());
+    renderbackground("loading...", picname, mname, game::getmapinfo());
 
     setvar("mapversion", hdr.version, true, false);
 
@@ -842,7 +841,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     initlights();
     allchanged(true);
 
-    renderbackground("loading...", mapshot, mname, game::getmapinfo());
+    renderbackground("loading...", picname, mname, game::getmapinfo());
 
     logger::log(logger::DEBUG, "load_world complete.");
     logoutf("[[MAP LOADING]] - Success.");

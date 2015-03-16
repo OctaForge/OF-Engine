@@ -1,5 +1,4 @@
 import capi
-import std.ffi
 import core.events.signal
 import core.gui.core as gui
 import core.engine.cubescript as cs
@@ -82,7 +81,7 @@ externals::set("progress_render", func(v, text) {
     gui::__draw_window(progress_win)
 })
 
-var bg_win = func(mapname, mapinfo, mapshot, caption) {
+var bg_win = func(mapname, mapinfo, picname, caption) {
     var win = gui::Window()
     win.set_input_grab(false)
     win.align(0, 1)
@@ -91,10 +90,9 @@ var bg_win = func(mapname, mapinfo, mapshot, caption) {
             b.append(gui::Label({ text: mapname, scale: 1.5 }))
         }
         if mapinfo { b.append(gui::Label({ text: mapinfo })) }
-        if mapshot {
+        if picname {
             b.append(gui::Spacer({ pad_h: 0.02, pad_v: 0.02 }), func(sp) {
-                sp.append(gui::Image({ min_w: 0.2, min_h: 0.2 }),
-                    func(img) { img.texture = mapshot })
+                sp.append(gui::Image({ min_w: 0.2, min_h: 0.2, file: picname }))
             })
         }
         if caption {
@@ -142,13 +140,12 @@ var bg_under = func(root) {
     return win
 }
 
-externals::set("background_render", func(caption, mapname, mapinfo, mapshot) {
+externals::set("background_render", func(caption, mapname, mapinfo, picname) {
     var root = gui::get_root()
     root.calc_text_scale()
     root.layout_dim()
     gui::__draw_window(bg_under(root))
-    gui::__draw_window(bg_win(mapname, mapinfo, mapshot
-        && ffi::cast("Texture*", mapshot) || undef, caption))
+    gui::__draw_window(bg_win(mapname, mapinfo, picname, caption))
 })
 
 /** Variable: applydialog
