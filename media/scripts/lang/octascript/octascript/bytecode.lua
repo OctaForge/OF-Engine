@@ -187,72 +187,32 @@ local FOR_GEN   = "(for generator)";
 local FOR_STATE = "(for state)";
 local FOR_CTL   = "(for control)";
 
-ffi.cdef[[
-    typedef struct Buf {
-        unsigned int size;
-        unsigned int offs;
-        uint8_t *data;
-    } Buf;
-]]
-
--- fallback memory allocator (uses luajit gc)
-local alloc_refs = {}
-local mem_alloc = function(nbytes)
-    local v = ffi.new("uint8_t[?]", nbytes)
-    alloc_refs[tonumber(ffi.cast("intptr_t", v))] = v
-    return v
-end
-local mem_free = function(v)
-    alloc_refs[tonumber(ffi.cast("intptr_t", v))] = nil
-end
-
--- memory allocator interface, defaults to fallback
--- if you set custom, do it early on (before loading anything)
-Alloc = { new = mem_alloc, free = mem_free }
-Alloc.set = function(new, del)
-    if next(alloc_refs) ~= nil then
-        error("allocator changed after use", 2)
-    end
-    Alloc.new  = new
-    Alloc.free = del
-end
-Alloc.reset = function()
-    Alloc.new  = mem_alloc
-    Alloc.free = mem_free
-end
-
 local function num_is_int32(x)
     return x % 1 == 0 and x >= -2^31 and x < 2^31
 end
 
 Buf = {}
 Buf.new = function(size)
-    if not size then
-        size = 2048
-    end
-    local self = ffi.new('Buf', size)
-    self.data  = Alloc.new(size)
-    self.offs  = 0
-    return self
+    size = size or 2048
+    local self = {
+        data = ffi.new('char[?]', size),
+        size = size,
+        offs = 0,
+    }
+    return setmetatable(self, Buf)
 end
-Buf.__gc = function(self)
-    Alloc.free(self.data)
-    self.data = nil
-end
+
 Buf.__index = {}
 Buf.__index.need = function(self, size)
-    local curr_size = self.size
     local need_size = self.offs + size
-    if curr_size <= need_size then
-        local new_size  = curr_size
-        while new_size <= need_size do
-            new_size = new_size * 2
+    if self.size <= need_size then
+        local prev_size = self.size
+        while self.size <= need_size do
+            self.size = self.size * 2
         end
-        self.size = new_size
-        local nd, od = Alloc.new(new_size), self.data
-        ffi.copy(nd, od, curr_size)
-        Alloc.free(od)
-        self.data = nd
+        local new_data = ffi.new('char[?]', self.size)
+        ffi.copy(new_data, self.data, prev_size)
+        self.data = new_data
     end
 end
 Buf.__index.put = function(self, v)
@@ -360,8 +320,6 @@ Buf.__index.put_number = function(self, v)
     end
     return offs
 end
-
-ffi.metatype('Buf', Buf)
 
 Ins = {}
 Ins.__index = {}
