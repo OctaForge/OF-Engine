@@ -157,13 +157,6 @@ capi.get_server_lifesequence = gen_getwrap(capi.get_server_lifesequence, "int")
 
 var ffi_str = ffi.string
 
-var strftime in capi
-capi.strftime = func(fmt) {
-    var buf = ffi_new("char[512]")
-    if !strftime(buf, 512, fmt) { return undef }
-    return ffi_str(buf)
-}
-
 @[!server] {
 
     var dynlight_add, dynlight_add_spot in capi

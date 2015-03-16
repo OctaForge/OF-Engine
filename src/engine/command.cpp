@@ -4278,22 +4278,6 @@ CLUAICOMMAND(get_current_time, int, (), {
 });
 #endif
 
-static time_t walltime = 0;
-CLUAICOMMAND(strftime, bool, (char *buf, size_t max, const char *fmt), {
-    if (!walltime) {
-        walltime = time(NULL) - totalmillis / 1000;
-        if (!walltime) {
-            walltime++;
-        }
-    }
-    time_t walloffset = walltime + totalmillis / 1000;
-    struct tm *localvals = localtime(&walloffset);
-    if (localvals && strftime(buf, max, fmt, localvals)) {
-        return true;
-    }
-    return false;
-});
-
 struct sleepcmd
 {
     int delay, millis, flags;
