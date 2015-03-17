@@ -36,7 +36,7 @@ from std.math import clamp
 
 var chunksize = 256
 
-var ffi_move = func(dest, src, nbytes) {
+func ffi_move(dest, src, nbytes) {
     capi::raw_move(dest, src, nbytes)
 }
 
@@ -51,7 +51,7 @@ if !(try ffi["typeof"]("linebuf_t")) {
 }
 var C = ffi.C
 
-var linebuf_grow = func(self, total, nocopy) {
+func linebuf_grow(self, total, nocopy) {
     if total + 1 <= self.maxlen { return false }
     self.maxlen = (total + chunksize) - total % chunksize
     var newtext = ffi_cast("char*", capi::raw_alloc(self.maxlen))
@@ -63,7 +63,7 @@ var linebuf_grow = func(self, total, nocopy) {
     return true
 }
 
-var linebuf_set = func(self, str) {
+func linebuf_set(self, str) {
     linebuf_grow(self, str.len(), true)
     ffi_copy(self.text, str)
     self.len = str.len()
@@ -128,7 +128,7 @@ export func linebuf_del(self, start, count) {
     return self
 }
 
-var linebuf_gc = func(self) {
+func linebuf_gc(self) {
     capi::raw_free(self.text)
     self.text = undef
     self.len, self.maxlen = 0, 0

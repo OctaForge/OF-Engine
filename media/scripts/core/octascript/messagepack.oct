@@ -20,7 +20,7 @@ from std.conv import tostring
 
 var packers
 
-var pack_len = func(packn, buf, len, fixlen, fixval, val8, val16, val32) {
+func pack_len(packn, buf, len, fixlen, fixval, val8, val16, val32) {
     if fixlen {
         if len <= fixlen {
             buf.push(char(fixval + len))
@@ -45,14 +45,14 @@ var pack_len = func(packn, buf, len, fixlen, fixval, val8, val16, val32) {
     raise e"overflow in pack '$packn'", 0
 }
 
-var pack_n32 = func(n) {
+func pack_n32(n) {
     return floor(n / 0x1000000),
            floor(n / 0x10000) % 0x100,
            floor(n / 0x100) % 0x100,
            n % 0x100
 }
 
-var pack_n64 = func(n, v) {
+func pack_n64(n, v) {
     return v, floor(n / 0x1000000000000) % 0x100,
               floor(n / 0x10000000000) % 0x100,
               floor(n / 0x100000000) % 0x100,
@@ -277,7 +277,7 @@ var types_map = setmt({
 
 var unpackers
 
-var unpack_array = func(c, n) {
+func unpack_array(c, n) {
     var t = []
     var decode = unpackers["any"]
     for i in 1 to n {
@@ -286,7 +286,7 @@ var unpack_array = func(c, n) {
     return t
 }
 
-var unpack_map = func(c, n) {
+func unpack_map(c, n) {
     var t = {}
     var decode = unpackers["any"]
     for i in 1 to n {
@@ -304,7 +304,7 @@ var bfuncs = {
     }
 }
 
-var c_get_bytes = func(c, n) {
+func c_get_bytes(c, n) {
     if c.get_bytes {
         return c.get_bytes(n)
     }
@@ -313,7 +313,7 @@ var c_get_bytes = func(c, n) {
     return bf(c)
 }
 
-var str_get_fallback = func(c, n) {
+func str_get_fallback(c, n) {
     var rarr = []
     for i in 1 to n {
         rarr.push(char(c_get_bytes(c, 1)))
@@ -486,7 +486,7 @@ unpackers["bin8"] = unpackers["str8"]
 unpackers["bin16"] = unpackers["str16"]
 unpackers["bin32"] = unpackers["str32"]
 
-var str_get_string = func(c, n) {
+func str_get_string(c, n) {
     if (c.i + n) > c.j {
         raise "missing bytes", 0
     }
@@ -494,17 +494,17 @@ var str_get_string = func(c, n) {
     return c.s.sub(c.i - n, c.i)
 }
 
-var str_get_bytes = func(c, nb) {
+func str_get_bytes(c, nb) {
     return str_get_string(c, nb).byte(0, nb)
 }
 
-var str_finalize = func(c) {
+func str_finalize(c) {
     if c.i < (c.j - 1) {
         raise "extra bytes", 0
     }
 }
 
-var cursor_string = func(str) {
+func cursor_string(str) {
     return {
         s: str, i: 0, j: str.len(),
         get_bytes: str_get_bytes,

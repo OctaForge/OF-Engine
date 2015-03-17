@@ -162,14 +162,14 @@ var ffi_str = ffi.string
 
     var dynlight_add, dynlight_add_spot in capi
 
-    capi.dynlight_add = func(ox, oy, oz, radius, r, g, b, fade, peak,
+    func capi.dynlight_add(ox, oy, oz, radius, r, g, b, fade, peak,
     flags, initrad, ir, ig, ib, ent) {
         return dynlight_add(ox, oy, oz, radius, r, g, b, fade || 0, peak || 0,
             flags || 0, initrad || 0, ir || 0, ig || 0, ib || 0,
             ent && ent.cn || -1)
     }
 
-    capi.dynlight_add_spot = func(ox, oy, oz, dx, dy, dz, radius, spot,
+    func capi.dynlight_add_spot(oy, oz, dx, dy, dz, radius, spot,
     r, g, b, fade, peak, flags, initrad, ir, ig, ib, ent) {
         return dynlight_add_spot(ox, oy, oz, dx, dy, dz, radius, r, g, b,
             fade || 0, peak || 0, flags || 0, initrad || 0, ir || 0, ig || 0,
@@ -178,7 +178,7 @@ var ffi_str = ffi.string
 
     var getfps in capi
 
-    capi.getfps = func() {
+    func capi.getfps() {
         var stor = ffi_new("int[3]")
         getfps(stor)
         return stor[0], stor[1], stor[2]
@@ -186,26 +186,26 @@ var ffi_str = ffi.string
 
     var slot_get_name in capi
 
-    capi.slot_get_name = func(idx, subslot) {
+    func capi.slot_get_name(idx, subslot) {
         var str = slot_get_name(idx, subslot)
         if str != undef { return ffi_str(str) }
     }
 
     var input_get_key_name in capi
 
-    capi.input_get_key_name = func(n) {
+    func capi.input_get_key_name(n) {
         return ffi_str(input_get_key_name(n))
     }
 
     var camera_get_position, camera_get in capi
 
-    capi.camera_get_position = func() {
+    func capi.camera_get_position() {
         var stor = ffi_new("float[3]")
         camera_get_position(stor)
         return stor[0], stor[1], stor[2]
     }
 
-    capi.camera_get = func() {
+    func capi.camera_get() {
         var stor = ffi_new("float[6]")
         camera_get(stor)
         return stor[0], stor[1], stor[2], stor[3], stor[4], stor[5]
@@ -213,7 +213,7 @@ var ffi_str = ffi.string
 
     var text_get_res in capi
 
-    capi.text_get_res = func(w, h) {
+    func capi.text_get_res(w, h) {
         var stor = ffi_new("int[2]")
         text_get_res(w, h, stor)
         return stor[0], stor[1]
@@ -221,13 +221,13 @@ var ffi_str = ffi.string
 
     var text_get_bounds, text_get_boundsf in capi
 
-    capi.text_get_bounds = func(text, maxw) {
+    func capi.text_get_bounds(text, maxw) {
         var stor = ffi_new("int[2]")
         text_get_bounds(tostring(text), maxw, stor)
         return stor[0], stor[1]
     }
 
-    capi.text_get_boundsf = func(text, maxw) {
+    func capi.text_get_boundsf(text, maxw) {
         var stor = ffi_new("float[2]")
         text_get_boundsf(tostring(text), maxw, stor)
         return stor[0], stor[1]
@@ -235,31 +235,31 @@ var ffi_str = ffi.string
 
     var text_get_position, text_get_positionf in capi
 
-    capi.text_get_position = func(text, cursor, maxw) {
+    func capi.text_get_position(text, cursor, maxw) {
         var stor = ffi_new("int[2]")
         text_get_position(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
     }
 
-    capi.text_get_positionf = func(text, cursor, maxw) {
+    func capi.text_get_positionf(text, cursor, maxw) {
         var stor = ffi_new("float[2]")
         text_get_positionf(tostring(text), cursor, maxw, stor)
         return stor[0], stor[1]
     }
 
     var get_all_map_names in capi
-    capi.get_all_map_names = func() {
+    func capi.get_all_map_names() {
         var t1, s1, t2, s2 = get_all_map_names()
         return from_table(t1, s1), from_table(t2, s2)
     }
 
     var findanims in capi
-    capi.findanims = func(pattern) {
+    func capi.findanims(pattern) {
         return from_table(findanims(pattern))
     }
 
     var texture_get_packs in capi
-    capi.texture_get_packs = func() {
+    func capi.texture_get_packs() {
         var t, s = texture_get_packs()
         t = from_table(t, s)
         for i, v in t.each() {
@@ -269,7 +269,7 @@ var ffi_str = ffi.string
     }
 
     var texture_get_data in capi
-    capi.texture_get_data = func(fn) {
+    func capi.texture_get_data(fn) {
         var w, h, t = texture_get_data(fn)
         from_table(t, w)
         for i, v in t.each() {
@@ -279,19 +279,19 @@ var ffi_str = ffi.string
     }
 
     var texture_draw_slot, texture_draw_vslot in capi
-    capi.texture_draw_slot = func(idx, w, h, x, y) {
+    func capi.texture_draw_slot(idx, w, h, x, y) {
         var stor = ffi_new("int[2]")
         texture_draw_slot(idx, w, h, x, y, stor, stor + 1)
         return tonumber(stor[0]), tonumber(stor[1])
     }
-    capi.texture_draw_vslot = func(idx, w, h, x, y) {
+    func capi.texture_draw_vslot(idx, w, h, x, y) {
         var stor = ffi_new("int[2]")
         texture_draw_vslot(idx, w, h, x, y, stor, stor + 1)
         return tonumber(stor[0]), tonumber(stor[1])
     }
 
     var isconnected in capi
-    capi.isconnected = func(attempt, local) {
+    func capi.isconnected(attempt, local) {
         if local == undef { local = true }
         return isconnected(attempt || false, local)
     }

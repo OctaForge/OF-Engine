@@ -65,13 +65,13 @@ var disallow = {
     from_hex_color: true
 }
 
-var surr_eq = func(self, o) { return self.equals(o) }
-var surr_mul = func(self, o) { return self.mul_new(o) }
-var surr_div = func(self, o) { return self.div_new(o) }
-var surr_add = func(self, o) { return self.add_new(o) }
-var surr_sub = func(self, o) { return self.sub_new(o) }
+func surr_eq (self, o) { return self.equals (o) }
+func surr_mul(self, o) { return self.mul_new(o) }
+func surr_div(self, o) { return self.div_new(o) }
+func surr_add(self, o) { return self.add_new(o) }
+func surr_sub(self, o) { return self.sub_new(o) }
 
-var gen_vec_surrogate = func(name, base, ltable) {
+func gen_vec_surrogate(name, base, ltable) {
     var surrtbl
     surrtbl = {
         name: name,

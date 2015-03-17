@@ -86,7 +86,7 @@ export func setup(plugins) {
     return dayman
 }
 
-var getsunscale = func(dayprog) {
+func getsunscale(dayprog) {
     // the numbers here are very approximate, in reality they'd depend
     // on the which part of the year it is - here the sun is at the horizon
     // by 6 AM and 6 PM respectively (equally long night and day) so we need
@@ -104,7 +104,7 @@ var getsunscale = func(dayprog) {
     return (dayprog - d1) / (d2 - d1)
 }
 
-var getsunparams = func(daytime, daylen) {
+func getsunparams(daytime, daylen) {
     var mid = daylen / 2
     var yaw = 360 - (daytime / daylen) * 360
     var pitch

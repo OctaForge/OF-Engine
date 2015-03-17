@@ -240,7 +240,7 @@ var HealthAction = actions.Action.clone({
     }
 })
 
-var gethcolor = func(v, maxv) {
+func gethcolor(v, maxv) {
     var mid = maxv / 2
     var r = 1 - max(v - mid, 0) * (1 / mid)
     var g = min(v, mid) * (1 / mid)
@@ -323,7 +323,7 @@ export var plugins = {
                 }), func(st) {
                     var curh = self.get_attr("health")
                     var maxh = self.get_attr("max_health")
-                    var updatehud = func() {
+                    func updatehud() {
                         st.set_text(tostring(curh))
                         st.set_color(gethcolor(curh, maxh))
                     }

@@ -29,7 +29,7 @@ for k, v in pairs(std) {
 }
 
 // restore from a copy of snapshot
-var std_restore = func() {
+func std_restore() {
     var loaded = package.loaded
     for k, v in pairs(std_snapshot) {
         var cp = copy(v)
