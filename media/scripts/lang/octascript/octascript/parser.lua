@@ -675,7 +675,11 @@ local parse_function_stat = function(ls, ast, line, decn, params)
     local ov = v
     ls:get()
     while ls.token.name == "." do
-        v = parse_expr_field(ls, ast, v)
+        ls:get()
+        assert_tok(ls, "<name>")
+        local key = ast.Identifier(ls.token.value)
+        ls:get()
+        v = ast.MemberExpression(v, key, false)
     end
     local args, body, proto = parse_body(ls, ast, line)
     return ast.FunctionDeclaration(v, body, args, proto.varargs, false,
