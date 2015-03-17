@@ -109,7 +109,7 @@ cbtnv["disabled"    ] = btn_build_variant(0x303030, cbox_init_clone(0x50404040),
 
 // (v)slot viewer buttons
 
-var slotbtn_init_clone = func(self, btn) {
+func slotbtn_init_clone(self, btn) {
     self.set_min_w(btn.min_w || 0)
     self.set_min_h(btn.min_h || 0)
     self.set_index(btn.index || 0)
@@ -143,7 +143,7 @@ gui.Button.__variants.slot = {
 
 // editors
 
-var dis_ed_cb = func(self, r, g, b, a) { return r, g, b, floor((a * 0x50) / 0xFF) }
+func dis_ed_cb(self, r, g, b, a) { return r, g, b, floor((a * 0x50) / 0xFF) }
 gui.TextEditor.__variants = {
     default: {
         default: gui::ColorFiller({
@@ -407,7 +407,7 @@ gui.Outline.__variants = {
 
 // Labels
 
-var dis_lbl_cb = func(self, r, g, b, a) { return r, g, b, floor((a * 0x50) / 0xFF) }
+func dis_lbl_cb(self, r, g, b, a) { return r, g, b, floor((a * 0x50) / 0xFF) }
 gui.Label.__variants = {
     default: {
         __init: func(self) { self.disabled_color_cb = dis_lbl_cb }
@@ -417,7 +417,7 @@ gui.EvalLabel.__variants = gui.Label.__variants
 
 // windows
 
-var build_tlabel = func(win, t) {
+func build_tlabel(win, t) {
     if typeof t == "string" {
         win.replace("title", gui::Label({ text: t }))
         return

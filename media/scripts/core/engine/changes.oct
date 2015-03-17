@@ -33,7 +33,7 @@ externals::set("change_add", func(desc, ctype) {
     Adds a change of the given type and description to the queue assuming
     a change of the same description doesn't already exist.
 */
-export var add = func(ctype, desc) {
+export func add(ctype, desc) {
     for i, v in needsapply.each() {
         if v.desc == desc { return }
     }
@@ -45,7 +45,7 @@ export var add = func(ctype, desc) {
 /**
     Clears out changes of the given type. If not given, clears out all.
 */
-export var clear = func(ctype) {
+export func clear(ctype) {
     ctype = ctype || (change.GFX | change.SOUND | change.SHADERS)
 
     needsapply = needsapply.filter(func(v) {
@@ -64,7 +64,7 @@ externals::set("changes_clear", clear)
 /**
     Applies all queued changes.
 */
-export var apply = func() {
+export func apply() {
     var changetypes = 0
     for i, v in needsapply.each() {
         changetypes |= v.ctype
@@ -83,6 +83,6 @@ export var apply = func() {
 /**
     Returns a table of all queued changes' descriptions.
 */
-export var get = func() {
+export func get() {
     return needsapply.map(\v -> v.desc)
 }

@@ -15,13 +15,13 @@ import core.events.signal
 
 var emit = signal.emit
 
-export var __connect = func(self, name) {
+export func __connect(self, name) {
     var  vn = name.find_match("(.+),changed$")
     if !vn { return }
     capi::var_make_emit(vn, true)
 }
 
-export var __disconnect = func(self, name, id, scount) {
+export func __disconnect(self, name, id, scount) {
     if scount == 0 {
         var  vn = name.find_match("(.+),changed$")
         if !vn { return }
@@ -86,7 +86,7 @@ export var var_new = capi.var_new
     See also:
         - $var_new
 */
-export var var_new_checked = func(varn, ...) {
+export func var_new_checked(varn, ...) {
     if !capi::var_exists(varn) {
         capi::var_new(varn, ...)
         return true

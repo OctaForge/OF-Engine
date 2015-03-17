@@ -186,7 +186,7 @@ func gen_opts_graphics() {
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Stains" }))
                     hb = hb.append(gui::HBox({ padding: 0.02 }))
-                    var triscb = func(o, v) {
+                    func triscb(o, v) {
                         v = tonumber(v)
                         if !v { return }
                         cs::var_set("maxstaintris", (v >= 15) ? 8192 : 2048)

@@ -226,7 +226,7 @@ gui::get_root().new_window("2048", gui.Window, func(win) {
     win.append(gui::ColorFiller({ color: 0xBBADA0, clamp: true }), func(cf) {
         win.append(gui::Spacer({ pad_h: 0.025, pad_v: 0.025 }), func(sp) {
             sp.append(gui::Grid({ columns: 4, padding: 0.025 }), func(grid) {
-                cf.key = func(self, code, isdown) {
+                func cf.key(self, code, isdown) {
                     if isdown {
                         if code == gui.key.LEFT {
                             movetiles(grid, -1,  0)

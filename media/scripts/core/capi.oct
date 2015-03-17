@@ -19,7 +19,7 @@ from std.conv import tostring, tonumber
 from std.array import from_table
 from std.table import pairs
 
-var gen_getwrap = func(fun, tp) {
+func gen_getwrap(fun, tp) {
     var tpnm = tp ~ "[1]"
     return func(ent) {
         var stor = ffi_new(tpnm)
@@ -34,7 +34,8 @@ var capi_snapshot = {}
 for k, v in pairs(capi) {
     capi_snapshot[k] = v
 }
-luastate.capi_restore = func() {
+
+func luastate.capi_restore() {
     for k, v in pairs(capi_snapshot) {
         capi[k] = v
     }
@@ -45,7 +46,7 @@ luastate.capi_restore = func() {
     capi.get_start_time_ext = gen_getwrap(capi.get_start_time_ext, "int")
 
     var gettargetent in capi
-    capi.gettargetent = func() {
+    func capi.gettargetent() {
         if !ents {
             ents = import core.entities.ents
             get_static = ents.get_static
@@ -61,14 +62,14 @@ luastate.capi_restore = func() {
     }
 
     var gettargetpos in capi
-    capi.gettargetpos = func() {
+    func capi.gettargetpos() {
         var stor = ffi_new("float[3]")
         gettargetpos(stor)
         return tonumber(stor[0]), tonumber(stor[1]), tonumber(stor[2])
     }
 
     var get_attr in capi
-    capi.get_attr = func(ent, id) {
+    func capi.get_attr(ent, id) {
         var stor = ffi_new("int[1]")
         if !get_attr(ent, id, stor) { return undef }
         return stor[0]
@@ -76,13 +77,13 @@ luastate.capi_restore = func() {
 
     var get_extent_position, set_extent_position in capi
 
-    capi.get_extent_position = func(ent) {
+    func capi.get_extent_position(ent) {
         var stor = ffi_new("double[3]")
         if !get_extent_position(ent, stor) { return undef }
         return [ stor[0], stor[1], stor[2] ]
     }
 
-    capi.set_extent_position = func(ent, pos) {
+    func capi.set_extent_position(ent, pos) {
         set_extent_position(ent, pos[0], pos[1], pos[2])
     }
 
@@ -114,37 +115,37 @@ luastate.capi_restore = func() {
 
     var get_dynent_position, set_dynent_position in capi
 
-    capi.get_dynent_position = func(ent) {
+    func capi.get_dynent_position(ent) {
         var stor = ffi_new("double[3]")
         if !get_dynent_position(ent, stor) { return undef }
         return [ stor[0], stor[1], stor[2] ]
     }
 
-    capi.set_dynent_position = func(ent, pos) {
+    func capi.set_dynent_position(ent, pos) {
         set_dynent_position(ent, pos[0], pos[1], pos[2])
     }
 
     var get_dynent_velocity, set_dynent_velocity in capi
 
-    capi.get_dynent_velocity = func(ent) {
+    func capi.get_dynent_velocity(ent) {
         var stor = ffi_new("double[3]")
         if !get_dynent_velocity(ent, stor) { return undef }
         return [ stor[0], stor[1], stor[2] ]
     }
 
-    capi.set_dynent_velocity = func(ent, vel) {
+    func capi.set_dynent_velocity(ent, vel) {
         set_dynent_velocity(ent, vel[0], vel[1], vel[2])
     }
 
     var get_dynent_falling, set_dynent_falling in capi
 
-    capi.get_dynent_falling = func(ent) {
+    func capi.get_dynent_falling(ent) {
         var stor = ffi_new("double[3]")
         if !get_dynent_falling(ent, stor) { return undef }
         return [ stor[0], stor[1], stor[2] ]
     }
 
-    capi.set_dynent_falling = func(ent, fl) {
+    func capi.set_dynent_falling(ent, fl) {
         set_dynent_falling(ent, fl[0], fl[1], fl[2])
     }
 

@@ -30,7 +30,7 @@ var editvars = [ "allfaces", "entselsnap", "entediting", "fullbright", "showmat"
 
 import core.network.msg
 
-var vicon_cb = func(self) {
+func vicon_cb(self) {
     var varn = self.varn
     if cs::var_get(varn) == 1 {
         self.color.a = 0xFF
@@ -81,7 +81,7 @@ externals::set("progress_render", func(v, text) {
     gui::__draw_window(progress_win)
 })
 
-var bg_win = func(mapname, mapinfo, picname, caption) {
+func bg_win(mapname, mapinfo, picname, caption) {
     var win = gui::Window()
     win.set_input_grab(false)
     win.align(0, 1)
@@ -108,7 +108,7 @@ var max_tex_size = cs::var_get("maxtexsize")
 
 signal::connect(cs, "maxtexsize,changed", func(self, val) { max_tex_size = val })
 
-var get_logo = func(root, win) {
+func get_logo(root, win) {
     if  hw_tex_size == 0 {
         hw_tex_size = cs::var_get("hwtexsize")
     }
@@ -128,7 +128,7 @@ var get_logo = func(root, win) {
     return logo, lw, lw / 2
 }
 
-var bg_under = func(root) {
+func bg_under(root) {
     var win = gui::Overlay()
     var logo, lw, lh = get_logo(root, win)
     win.append(gui::Image({ file: "media/interface/background",

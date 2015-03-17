@@ -13,7 +13,7 @@ from std.conv import tostring, tonumber
 
 var root = gui::get_root()
 
-var slots_populate = func(gr, slotlist, isv) {
+func slots_populate(gr, slotlist, isv) {
     gr.destroy_children()
     for i, slot in slotlist.each() {
         var ttip = gui::Outline({ variant: "normal" },
@@ -41,7 +41,7 @@ var slots_populate = func(gr, slotlist, isv) {
 
 var last_filter
 
-var gen_slot_filters = func(packs, gr) {
+func gen_slot_filters(packs, gr) {
     var pcbs, pcbl = {}, []
 
     pcbs["all"] = func() {
@@ -65,7 +65,7 @@ var gen_slot_filters = func(packs, gr) {
             otherslots[i] = undef
             slotl.push(i)
         }
-        var fcb = func() {
+        func fcb() {
             slots_populate(gr, slotl)
             last_filter = val[0]
         }
@@ -75,7 +75,7 @@ var gen_slot_filters = func(packs, gr) {
 
     otherslots.compact(\v -> v)
     if otherslots.len() > 0 {
-        var ocb = func() {
+        func ocb() {
             slots_populate(gr, otherslots)
             last_filter = "other"
         }
@@ -86,7 +86,7 @@ var gen_slot_filters = func(packs, gr) {
     return pcbs, pcbl
 }
 
-var gen_tex_layout = func(bx, gr, grid_load) {
+func gen_tex_layout(bx, gr, grid_load) {
     var s
     bx.append(gui::Outline({ variant: "normal", min_w: 0.84, min_h: 0.6 }), func(o) {
         o.append(gui::Spacer({ pad_h: 0.005, pad_v: 0.005 }), func(sp) {
@@ -103,7 +103,7 @@ var gen_tex_layout = func(bx, gr, grid_load) {
     })
 }
 
-var gen_tex_listed = func() {
+func gen_tex_listed() {
     var r = gui::VBox()
 
     var gr = gui::Grid({ columns: 8, padding: 0.01 })
@@ -119,7 +119,7 @@ var gen_tex_listed = func() {
         mb.show_menu(mnc)
     })
 
-    var grid_load = func() {
+    func grid_load() {
         var pcbs, pcbl = gen_slot_filters(capi::texture_get_packs(), gr)
         mn.destroy_children()
         for i, pname in pcbl.each() {
@@ -151,11 +151,11 @@ var gen_tex_listed = func() {
     return r
 }
 
-var gen_tex_utilized = func() {
+func gen_tex_utilized() {
     var hb = gui::HBox()
 
     var gr = gui::Grid({ columns: 8, padding: 0.01 })
-    var grid_load = func() {
+    func grid_load() {
         var slotl = []
         for i in 0 to capi::slot_texmru_num() - 1 {
             slotl.push(capi::slot_texmru(i))
@@ -221,7 +221,7 @@ var fields = {
             })
         })
         var lstep = 0
-        var addstep = func(f) {
+        func addstep(f) {
             var tmillis = capi::get_millis(true)
             if lstep + 50 > tmillis { return }
             lstep = tmillis
@@ -243,7 +243,7 @@ var fields = {
 }
 fields[svars.StateFloat] = fields[svars.StateInteger]
 
-var field_def = func(hb, nm, ent, dv) {
+func field_def(hb, nm, ent, dv) {
     return hb.append(gui::Field({ clip_w: 0.4, value: dv }), func(ed) {
         signal::connect(ed, "value,changed", func(ed, v) {
             capi::makeundoent()
@@ -358,7 +358,7 @@ root.new_window("entity_new", gui.Window, func(win) {
     })
 })
 
-var make_varfield = func(hb, nm) {
+func make_varfield(hb, nm) {
     var vfs = cs.var_flags
     var flg = cs::var_get_flags(nm)
     var dis = (flg & vfs.READONLY) != 0

@@ -148,7 +148,7 @@ export var Action = Object.clone({
         always at the end of your custom "__run", like this:
 
         ```
-        Foo.__run = func(self, millis) {
+        func Foo.__run(self, millis) {
             echo("run")
             return self.__proto.__proto::__run(self, millis)
         }

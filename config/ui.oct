@@ -21,7 +21,7 @@ func gen_map_list(img, vb) {
     var glob, loc = capi::get_all_map_names()
     var current_preview
 
-    var ml_section = func(lbl, arr) {
+    func ml_section(lbl, arr) {
         vb.append(gui::Filler({ min_h: 0.005 }))
         vb.append(gui::Label({ text: lbl, color: 0x88FF88 }))
         vb.append(gui::Filler({ min_h: 0.002 }))

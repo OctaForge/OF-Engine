@@ -140,8 +140,7 @@ from capi import model_render as mrender
         - btime - the base time (start_time of an entity) for animations.
         - color - any value with r, g, b, a (for example a vec4).
 */
-export var render = func(ent, mdl, anim, pos, yaw, pitch, roll, flags,
-btime, trans) {
+export func render(ent, mdl, anim, pos, yaw, pitch, roll, flags, btime, trans) {
     var r, g, b, a = 1, 1, 1, 1
     if trans {
         r, g, b, a = trans.r, trans.g, trans.b, trans.a
@@ -153,13 +152,13 @@ btime, trans) {
 from std.geom import Vec3
 
 /// Returns the bounding box of the given model as two vec3, center and radius.
-export var get_bounding_box = func(name) {
+export func get_bounding_box(name) {
     var cx, cy, cz, rx, ry, rz = capi::model_get_boundbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
 }
 
 /// See $get_bounding_box - for collision box.
-export var get_collision_box = func(name) {
+export func get_collision_box(name) {
     var cx, cy, cz, rx, ry, rz = capi::model_get_collisionbox(name)
     return Vec3(cx, cy, cz), Vec3(rx, ry, rz)
 }

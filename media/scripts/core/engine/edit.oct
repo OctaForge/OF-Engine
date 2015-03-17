@@ -57,7 +57,7 @@ export var material = enum {
 /** Function: player_is_editing
     Returns true if player is editing, false otherwise.
 */
-export var player_is_editing = func() { return capi::editing_get() != 0 }
+export func player_is_editing() { return capi::editing_get() != 0 }
 
 /** Function: new_entity
     Creates a new entity on the position where the edit cursor is aiming.
@@ -479,7 +479,7 @@ var edit_lookup_cube, edit_lookup_texture in capi
     Note that this is a raw function. You most likely want to use the two
     below, $lookup_material and $lookup_texture.
 */
-export var lookup_cube = func(x, y, z, ts) {
+export func lookup_cube(x, y, z, ts) {
     var r = ffi_new("int[4]");
     var c = edit_lookup_cube(x, y, z, ts, r + 0, r + 1, r + 2, r + 3)
     return c, r[0], r[1], r[2], r[3]

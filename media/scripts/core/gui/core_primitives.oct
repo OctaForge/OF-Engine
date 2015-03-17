@@ -251,7 +251,7 @@ M.Outline = register_type("Outline", Filler, {
     set_color: gen_color_setter("color")
 })
 
-var check_alpha_mask = func(tex, x, y) {
+func check_alpha_mask(tex, x, y) {
     if tex.alphamask == undef {
         if texture_load_alpha_mask(tex) == undef {
             return true
@@ -480,7 +480,7 @@ M.Texture = register_type("Texture", Filler, {
     }
 })
 
-var get_border_size = func(tex, size, vert) {
+func get_border_size(tex, size, vert) {
     if size >= 0 {
         return size
     }
@@ -1068,7 +1068,7 @@ M.VSlotViewer = register_type("VSlotViewer", M.SlotViewer, {
     }
 })
 
-var view_start_draw = func(self) {
+func view_start_draw(self) {
     gl_blend_disable()
     gle_disable()
     var root = self.get_root()
@@ -1076,14 +1076,14 @@ var view_start_draw = func(self) {
     if csl { gl_scissor_disable() }
 }
 
-var view_end_draw = func(self) {
+func view_end_draw(self) {
     gl_blend_enable()
     var root = self.get_root()
     var csl = !root._clip_stack.empty()
     if csl { gl_scissor_enable() }
 }
 
-var build_attachments = func(self) {
+func build_attachments(self) {
     var att = self.attachments
     if att == self._last_attachments {
         return self._c_attachments, att.len() * 2
