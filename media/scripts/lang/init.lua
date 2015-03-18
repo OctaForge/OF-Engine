@@ -31,4 +31,24 @@ require("octascript.stdcore.native")
 
 capi.log(1, "OctaScript initialization complete.")
 
+local oldloader = std.package.loaders[1]
+
+local octfile_read = function(path)
+    local file, err = capi.stream_open(path, "r")
+    if not file then return nil, err end
+    local tp = file:read("*all")
+    file:close()
+    return tp
+end
+
+std.package.loaders[1] = function(modname, ppath)
+    return oldloader(modname, ppath, capi.search_oct_path, octfile_read)
+end
+
+std.package.path = "media/?/init.oct;"
+                .. "media/?.oct;"
+                .. "media/scripts/lang/octascript/octascript/stdlib/?.oct;"
+                .. "media/scripts/?/init.oct;"
+                .. "media/scripts/?.oct"
+
 return M
