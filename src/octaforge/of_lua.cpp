@@ -313,29 +313,19 @@ namespace lua
         /* home directory paths */
 #ifndef WIN32
         lua_pushfstring(state, ";%smedia/?/init.oct", homedir);
-        lua_pushfstring(state, ";%smedia/?/init.lua", homedir);
         lua_pushfstring(state, ";%smedia/?.oct", homedir);
-        lua_pushfstring(state, ";%smedia/?.lua", homedir);
         lua_pushfstring(state, ";%smedia/scripts/?/init.oct", homedir);
-        lua_pushfstring(state, ";%smedia/scripts/?/init.lua", homedir);
         lua_pushfstring(state, ";%smedia/scripts/?.oct", homedir);
-        lua_pushfstring(state, ";%smedia/scripts/?.lua", homedir);
 #else
         lua_pushfstring(state, ";%smedia\\?\\init.oct", homedir);
-        lua_pushfstring(state, ";%smedia\\?\\init.lua", homedir);
         lua_pushfstring(state, ";%smedia\\?.oct", homedir);
-        lua_pushfstring(state, ";%smedia\\?.lua", homedir);
         lua_pushfstring(state, ";%smedia\\scripts\\?\\init.oct", homedir);
-        lua_pushfstring(state, ";%smedia\\scripts\\?\\init.lua", homedir);
         lua_pushfstring(state, ";%smedia\\scripts\\?.oct", homedir);
-        lua_pushfstring(state, ";%smedia\\scripts\\?.lua", homedir);
 #endif
 
         /* root paths */
         lua_pushliteral(state, ";./media/?/init.oct");
-        lua_pushliteral(state, ";./media/?/init.lua");
         lua_pushliteral(state, ";./media/?.oct");
-        lua_pushliteral(state, ";./media/?.lua");
         lua_pushliteral(state, ";./media/scripts/lang/octascript/?/init.oct");
         lua_pushliteral(state, ";./media/scripts/lang/octascript/?/init.lua");
         lua_pushliteral(state, ";./media/scripts/lang/octascript/?.oct");
@@ -346,7 +336,7 @@ namespace lua
         lua_pushliteral(state, ";./media/scripts/?.oct");
         lua_pushliteral(state, ";./media/scripts/?.lua");
 
-        lua_concat  (state, 21);
+        lua_concat  (state, 15);
         lua_setfield(state, -2, "path"); lua_pop(state, 1);
 
         /* stream functions */
