@@ -438,6 +438,14 @@ std.eval.compile = compile
 local io_open, load, error = io.open, load, error
 local spath = package.searchpath
 
+local octfile_read = function(path)
+    local file, err = io_open(path, "rb")
+    if not file then return nil, err end
+    local tp = file:read("*all")
+    file:close()
+    return tp
+end
+
 pkg.loaders = setmt({
     [0] = function(modname)
         local v = pkg.preload[modname]
@@ -446,19 +454,13 @@ pkg.loaders = setmt({
         end
         return v
     end,
-    function(modname, ppath)
-        local  fname, err = spath(modname, ppath or pkg.path)
+    function(modname, ppath, spfunc, stfunc)
+        local  fname, err = (spfunc or spath)(modname, ppath or pkg.path)
         if not fname then return err end
-        local file = io_open(fname, "rb")
-        local toparse = file:read("*all")
-        file:close()
+        local tp, err = (stfunc or octfile_read)(fname)
+        if not tp then return err end
         local chunkname = "@" .. fname
-        local f, err
-        if fname:sub(#fname - 4) == ".lua" then
-            f, err = load(toparse, chunkname)
-        else
-            f, err = load(compile(chunkname, toparse), chunkname, "b", rt_env)
-        end
+        local f, err = load(compile(chunkname, tp), chunkname, "b", rt_env)
         if not f then
             error("error loading module '" .. modname .. "' from file '"
                 .. fname .. "':\n" .. err, 2)
