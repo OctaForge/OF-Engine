@@ -23,6 +23,8 @@ import std.ffi
 import std.package
 from std.table import pairs, copy
 
+import std.geom
+
 var std_snapshot = {}
 for k, v in pairs(std) {
     std_snapshot[k] = copy(v)
@@ -38,6 +40,8 @@ func std_restore() {
     }
     // restore ffi separately
     loaded["std.ffi"] = ffi
+    // restore geom separately
+    loaded["std.geom"] = geom
 }
 
 import luastate as M

@@ -169,7 +169,7 @@ var ffi_str = ffi.string
             ent && ent.cn || -1)
     }
 
-    func capi.dynlight_add_spot(oy, oz, dx, dy, dz, radius, spot,
+    func capi.dynlight_add_spot(ox, oy, oz, dx, dy, dz, radius, spot,
     r, g, b, fade, peak, flags, initrad, ir, ig, ib, ent) {
         return dynlight_add_spot(ox, oy, oz, dx, dy, dz, radius, r, g, b,
             fade || 0, peak || 0, flags || 0, initrad || 0, ir || 0, ig || 0,

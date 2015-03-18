@@ -16,7 +16,7 @@ local capi = require("capi")
 
 capi.log(1, "Initializing OctaScript.")
 
-local std = require("octascript.std")
+local std = require("octascript.stdcore")
 
 local M = {}
 
@@ -27,8 +27,7 @@ M.compile = compile
 M.env = require("octascript.rt").env
 M.traceback = debug.traceback
 
-require("octascript.std.native")
-require("octascript.std.native.geom")
+require("octascript.stdcore.native")
 
 capi.log(1, "OctaScript initialization complete.")
 
