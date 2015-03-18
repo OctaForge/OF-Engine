@@ -554,7 +554,7 @@ LUAICOMMAND(search_oct_path, {
                 return 1;
             }
             if (!nnotfound) {
-                lua_pushstring(L, "\n");
+                lua_pushliteral(L, "\n");
                 ++nnotfound;
             }
             lua_pushfstring(L, "\tno file '%s'\n", expanded);

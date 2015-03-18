@@ -16,6 +16,11 @@ local capi = require("capi")
 
 capi.log(1, "Initializing OctaScript.")
 
+package.path = package.path
+            .. ";media/scripts/lang/octascript/?/init.oct"
+            .. ";media/scripts/lang/octascript/?/init.lua"
+            .. ";media/scripts/lang/octascript/?.lua"
+
 local std = require("octascript.stdcore")
 
 local M = {}
@@ -45,10 +50,10 @@ std.package.loaders[1] = function(modname, ppath)
     return oldloader(modname, ppath, capi.search_oct_path, octfile_read)
 end
 
-std.package.path = "media/?/init.oct;"
-                .. "media/?.oct;"
-                .. "media/scripts/lang/octascript/octascript/stdlib/?.oct;"
-                .. "media/scripts/?/init.oct;"
-                .. "media/scripts/?.oct"
+std.package.path =  "media/?/init.oct"
+                .. ";media/?.oct"
+                .. ";media/scripts/lang/octascript/octascript/stdlib/?.oct"
+                .. ";media/scripts/?/init.oct"
+                .. ";media/scripts/?.oct"
 
 return M

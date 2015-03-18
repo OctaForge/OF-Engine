@@ -308,15 +308,10 @@ namespace lua
         lua_atpanic(state, lua_panic);
         luaL_openlibs(state);
 
-        lua_getglobal(state, "package");
-
-        lua_pushliteral(state, ";./media/scripts/lang/octascript/?/init.oct");
-        lua_pushliteral(state, ";./media/scripts/lang/octascript/?/init.lua");
-        lua_pushliteral(state, ";./media/scripts/lang/octascript/?.lua");
-        lua_pushliteral(state, ";./media/scripts/?/init.lua");
-
-        lua_concat  (state, 4);
-        lua_setfield(state, -2, "path"); lua_pop(state, 1);
+        lua_getglobal  (state, "package");
+        lua_pushliteral(state, "media/scripts/?/init.lua");
+        lua_setfield   (state, -2, "path");
+        lua_pop        (state,  1);
 
         /* stream functions */
         luaL_newmetatable(state, "Stream");
