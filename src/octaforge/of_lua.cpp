@@ -299,7 +299,6 @@ namespace lua
         return 0;
     }
 
-
     State::State(bool dedicated, const char *dir) {
         copystring(mod_dir, dir);
 
@@ -307,11 +306,6 @@ namespace lua
         if (!state) return;
         lua_atpanic(state, lua_panic);
         luaL_openlibs(state);
-
-        lua_getglobal  (state, "package");
-        lua_pushliteral(state, "media/scripts/?/init.lua");
-        lua_setfield   (state, -2, "path");
-        lua_pop        (state,  1);
 
         /* stream functions */
         luaL_newmetatable(state, "Stream");
@@ -393,17 +387,19 @@ namespace lua
         lua_pop(s->state, 1); /* _PRELOAD */
 
         /* load octascript early on */
-        lua_getfield(s->state, LUA_REGISTRYINDEX, "_LOADED");
-        lua_getglobal(s->state, "require");
-        lua_pushliteral(s->state, "lang");
-        lua_call(s->state, 1, 1);
+        string lang;
+        copystring(lang, "media/scripts/lang/init.lua");
+        path(lang);
+        if (luaL_loadfile(s->state, lang) || lua_pcall(s->state, 0, 1, 0)) {
+            fatal("%s", lua_tostring(s->state, -1));
+        }
         lua_getfield(s->state, -1, "compile");
         lua_setfield(s->state, LUA_REGISTRYINDEX, "octascript_compile");
         lua_getfield(s->state, -1, "env");
         lua_setfield(s->state, LUA_REGISTRYINDEX, "octascript_env");
         lua_getfield(s->state, -1, "traceback");
         lua_setfield(s->state, LUA_REGISTRYINDEX, "octascript_traceback");
-        lua_pop(s->state, 2);
+        lua_pop(s->state, 1);
 
         s->load_module("init");
     }
