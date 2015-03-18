@@ -53,6 +53,6 @@ std.package.path = "media/?/init.oct;"
                 .. "media/?.oct;"
                 .. "media/scripts/lang/octascript/octascript/stdlib/?.oct;"
                 .. "media/scripts/?/init.oct;"
-                .. ";media/scripts/?.oct"
+                .. "media/scripts/?.oct"
 
 return M
