@@ -5,11 +5,12 @@ package.path = "./?.oct;./?/init.oct;./?/init.lua;" .. package.path
 
 local bcsave = require("jit.bcsave")
 
-local std = require("octascript.std")
+local std = require("octascript.stdcore")
 local rt = require("octascript.rt")
 
-require("octascript.std.native")
-require("octascript.std.native.geom")
+require("octascript.stdcore.native")
+
+std.package.path = std.package.path .. ";./octascript/stdlib/?.oct"
 
 local compile = std.eval.compile
 local assert_run = function(ok, err)

@@ -1,12 +1,9 @@
-import std
-import std.package
-
 import std.ffi
 
 from std.table import rawget, rawset, pairs
 from std.math import sin, cos, abs, min, max, sqrt, floor, atan2, asin, deg
 
-var gen_vec2 = func(tp, sf, mt) {
+func gen_vec2(tp, sf, mt) {
     ffi::cdef(r"""
         typedef struct __rt_vec2%s_t {
             %s x, y;
@@ -15,7 +12,7 @@ var gen_vec2 = func(tp, sf, mt) {
     return ffi::metatype("__rt_vec2" ~ sf ~ "_t", mt), mt
 }
 
-var gen_vec3 = func(tp, sf, mt) {
+func gen_vec3(tp, sf, mt) {
     ffi::cdef(r"""
         typedef union __rt_vec3%s_t {
             struct { %s x, y, z; };
@@ -25,7 +22,7 @@ var gen_vec3 = func(tp, sf, mt) {
     return ffi::metatype("__rt_vec3" ~ sf ~ "_t", mt), mt
 }
 
-var gen_vec4 = func(tp, sf, mt) {
+func gen_vec4(tp, sf, mt) {
     ffi::cdef(r"""
         typedef union __rt_vec4%s_t {
             struct { %s x, y, z, w; };
@@ -36,13 +33,11 @@ var gen_vec4 = func(tp, sf, mt) {
 }
 
 var ffi_new = ffi.new
-var clamp = func(v, l, h) {
+func clamp(v, l, h) {
     return max(l, min(v, h))
 }
 
 var iton = { 0: "x", 1: "y", 2: "z" }
-
-var M = {}
 
 /**
     Normalizes an angle to be within +-180 degrees of some value.
@@ -53,12 +48,11 @@ var M = {}
     For example, for angle 100 and rel_to 300, this function returns 460
     (as 460 is within 180 degrees of 300, but 100 isn't).
 */
-var normalize_angle = func(angle, rel_to) {
+export func normalize_angle(angle, rel_to) {
     while angle < (rel_to - 180.0) { angle = angle + 360.0 }
     while angle > (rel_to + 180.0) { angle = angle - 360.0 }
     return angle
 }
-M.normalize_angle = normalize_angle
 
 var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
     __new: func(self, x, y) {
@@ -240,7 +234,7 @@ var Vec2, Vec2_mt; Vec2, Vec2_mt = gen_vec2("float", "f", {
         }
     }
 })
-M.Vec2 = Vec2
+export Vec2
 
 var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
     __new: func(self, x, y, z) {
@@ -705,7 +699,7 @@ var Vec3, Vec3_mt; Vec3, Vec3_mt = gen_vec3("float", "f", {
         }
     }
 })
-M.Vec3 = Vec3
+export Vec3
 
 var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
     __new: func(self, x, y, z, w) {
@@ -1005,7 +999,7 @@ var Vec4, Vec4_mt; Vec4, Vec4_mt = gen_vec4("float", "f", {
         }
     }
 })
-M.Vec4 = Vec4
+export Vec4
 
 var sincos360 = [
     Vec2( 1.00000000,  0.00000000), Vec2( 0.99984770,  0.01745241), Vec2( 0.99939083,  0.03489950), Vec2( 0.99862953,  0.05233596), Vec2( 0.99756405,  0.06975647), Vec2( 0.99619470,  0.08715574), // 0
@@ -1130,11 +1124,12 @@ var sincos360 = [
     Vec2( 0.99452190, -0.10452846), Vec2( 0.99619470, -0.08715574), Vec2( 0.99756405, -0.06975647), Vec2( 0.99862953, -0.05233596), Vec2( 0.99939083, -0.03489950), Vec2( 0.99984770, -0.01745241), // 714
     Vec2( 1.00000000,  0.00000000) // 720
 ]
-M.sin_cos_360 = func(angle) {
+
+export func sin_cos_360(angle) {
     return sincos360[angle]
 }
 
-var mod_360 = func(angle) {
+export func mod_360(angle) {
     if angle < 0 {
         angle = 360 + ((angle <= -360) && -((-angle) % 360) || angle)
     } else if angle >= 360 {
@@ -1142,29 +1137,25 @@ var mod_360 = func(angle) {
     }
     return angle
 }
-M.mod_360 = mod_360
 
-M.sin_cos_mod_360 = func(angle) {
+export func sin_cos_mod_360(angle) {
     return sincos360[mod_360(angle)]
 }
 
-M.cos_360 = func(angle) {
+export func cos_360(angle) {
     return sincos360[angle].x
 }
 
-M.sin_360 = func(angle) {
+export func sin_360(angle) {
     return sincos360[angle].y
 }
 
-M.tan_360 = func(angle) {
+export func tan_360(angle) {
     var sc = sincos360[angle]
     return sc.y / sc.x
 }
 
-M.cotan_360 = func(angle) {
+export func cotan_360(angle) {
     var sc = sincos360[angle]
     return sc.x / sc.y
 }
-
-package.loaded["std.geom"] = M
-std["geom"] = M
