@@ -494,6 +494,78 @@ const char *findfile(const char *filename, const char *mode)
     return filename;
 }
 
+/* OF */
+LUAICOMMAND(search_oct_path, {
+    const char *modname = luaL_checkstring(L, 1);
+    const char *path = luaL_checkstring(L, 2);
+
+    string mnpath;
+    int mnlen = strlen(modname);
+    memcpy(mnpath, modname, mnlen + 1);
+    char   *dot = mnpath;
+    while ((dot = strchr(dot, '.'))) *(dot++) = PATHDIV;
+
+    int nnotfound = 0;
+    lua_pushnil(L);
+
+    string expanded;
+    while (path) {
+        string curpath;
+        const char *semi = strchr(path, ';');
+        copystring(curpath, path, semi ? (semi - path + 1) : sizeof(curpath));
+        if (curpath[0]) {
+            const char *qmark = strchr(curpath, '?');
+            if (!qmark) {
+                copystring(expanded, curpath);
+            } else {
+                const char *curpt = curpath;
+                char *curp = expanded;
+                while (qmark) {
+                    memcpy(curp, curpt, qmark - curpt); curp += qmark - curpt;
+                    memcpy(curp, mnpath, mnlen       ); curp += mnlen;
+                    qmark++;
+                    const char   *nqmark = strchr(qmark, '?');
+                    int restlen = nqmark ? (nqmark - qmark) : strlen(qmark);
+                    memcpy(curp, qmark, restlen);
+                    curp += restlen;
+                    if (!nqmark) {
+                        *curp = '\0';
+                        break;
+                    } else {
+                        curpt = qmark + 1;
+                        qmark = nqmark;
+                    }
+                }
+            }
+#ifndef STANDALONE
+            if (findzipfile(expanded)) {
+                lua_pop(L, nnotfound + 1);
+                lua_pushstring(L, expanded);
+                return 1;
+            }
+#endif
+            const char *found = findfile(expanded, "r");
+            if (found == expanded) {
+                if (!fileexists(expanded, "r")) found = NULL;
+            }
+            if (found) {
+                lua_pop(L, nnotfound + 1);
+                lua_pushstring(L, expanded);
+                return 1;
+            }
+            if (!nnotfound) {
+                lua_pushstring(L, "\n");
+                ++nnotfound;
+            }
+            lua_pushfstring(L, "\tno file '%s'\n", expanded);
+            ++nnotfound;
+        }
+        path = semi ? (semi + 1) : NULL;
+    }
+    lua_concat(L, nnotfound);
+    return 2;
+});
+
 /* OF: added filter, flags to listdir, listfiles + FTYPE_* and LIST_* */
 bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &files, int filter)
 {
