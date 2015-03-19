@@ -42,7 +42,7 @@ func slots_populate(gr, slotlist, isv) {
 var last_filter
 
 func gen_slot_filters(packs, gr) {
-    var pcbs, pcbl = {}, []
+    var pcbs, pcbf, pcbl = {}, {}, []
 
     pcbs["all"] = func() {
         var slotl = []
@@ -51,6 +51,11 @@ func gen_slot_filters(packs, gr) {
         }
         slots_populate(gr, slotl)
         last_filter = "all"
+    }
+    pcbf["all"] = func() {
+        for i, val in packs.each() {
+            cs::execute(e"texpackreload \"$(val[0])\"")
+        }
     }
     pcbl.push("all")
 
@@ -65,11 +70,13 @@ func gen_slot_filters(packs, gr) {
             otherslots[i] = undef
             slotl.push(i)
         }
-        func fcb() {
+        pcbs[val[0]] = func() {
             slots_populate(gr, slotl)
             last_filter = val[0]
         }
-        pcbs[val[0]] = fcb
+        pcbf[val[0]] = func() {
+            cs::execute(e"texpackreload \"$(val[0])\"")
+        }
         pcbl.push(val[0])
     }
 
@@ -83,7 +90,7 @@ func gen_slot_filters(packs, gr) {
         pcbl.push("other")
     }
 
-    return pcbs, pcbl
+    return pcbs, pcbf, pcbl
 }
 
 func gen_tex_layout(bx, gr, grid_load) {
@@ -119,13 +126,20 @@ func gen_tex_listed() {
         mb.show_menu(mnc)
     })
 
+    var curreload
+    var rbtn = hb.append(gui::Button({ label: "Reload" }))
+    signal::connect(rbtn, "clicked", func(bt) {
+        if curreload { curreload() }
+    })
+
     func grid_load() {
-        var pcbs, pcbl = gen_slot_filters(capi::texture_get_packs(), gr)
+        var pcbs, pcbf, pcbl = gen_slot_filters(capi::texture_get_packs(), gr)
         mn.destroy_children()
         for i, pname in pcbl.each() {
             var mb = mn.append(gui::MenuButton({ variant: "submenu",
                 label: pname, clamp_h: true }))
             signal::connect(mb, "clicked", func() {
+                curreload = pcbf[pname]
                 pcbs[pname]()
                 cbx.set_label(pname)
                 root.clear_menus()
@@ -139,6 +153,7 @@ func gen_tex_listed() {
             last_filter = undef
         }
         cbx.set_label(last_filter || "all")
+        curreload = pcbf[last_filter || "all"]
         cb()
     }
     var cid = signal::connect(edit, "texpacks,changed", grid_load)
