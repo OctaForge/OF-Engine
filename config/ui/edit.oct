@@ -143,6 +143,8 @@ func gen_tex_listed() {
                 pcbs[pname]()
                 cbx.set_label(pname)
                 root.clear_menus()
+                rbtn.set_disabled(pname == "other")
+                rbtn.set_label((pname == "all") ? "Reload all" : "Reload")
             })
         }
         cbx.set_disabled(pcbl.len() == 0)
@@ -152,8 +154,11 @@ func gen_tex_listed() {
             cb = pcbs["all"]
             last_filter = undef
         }
-        cbx.set_label(last_filter || "all")
-        curreload = pcbf[last_filter || "all"]
+        var lf = last_filter || "all"
+        cbx.set_label(lf)
+        curreload = pcbf[lf]
+        rbtn.set_disabled(lf == "other")
+        rbtn.set_label((lf == "all") ? "Reload all" : "Reload")
         cb()
     }
     var cid = signal::connect(edit, "texpacks,changed", grid_load)
