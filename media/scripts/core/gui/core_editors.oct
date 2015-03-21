@@ -1247,13 +1247,22 @@ M.Field = register_type("Field", TextEditor, {
 
     /// Set up a field from a Cubescript variable of the given name.
     setup_from_var: func(self, varn) {
+        var vfs = cs.var_flags
+        var flg = cs::var_get_flags(varn)
+        var hex = (flg & vfs.HEX  ) != 0
+        var col = (flg & vfs.COLOR) != 0
         var curv = cs::var_get(varn)
         if !curv { return false }
-        self.set_value(curv)
-        var confunc = ((typeof curv) == "string") ? tostring : tonumber
+        var confunc = (cs::var_get_type(varn) == cs.var_type.string) ? tostring
+                                                                     : tonumber
+        self.set_value(hex ? (col ? "0x%.6X" : "0x%X").format(confunc(curv))
+              : tostring(curv))
         var fromhere = false
         var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
-            if !fromhere { self.set_value(v) }
+            if !fromhere {
+                self.set_value(hex ? (col ? "0x%.6X" : "0x%X")
+                    .format(confunc(v)) : tostring(v))
+            }
             fromhere = false
         })
         signal::connect(self, "destroy", func() {
