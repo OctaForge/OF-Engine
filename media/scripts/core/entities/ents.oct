@@ -1394,7 +1394,7 @@ export func send(cn) {
 }
 externals::set("entities_send_all", send)
 
-export func run_frame(millis) {
+frame::add_callback(func(millis) {
     for uid, ent in storage_logic.each() {
         if ent && !ent.deactivated && ent.__per_frame {
             ent.__run(millis)
@@ -1410,4 +1410,4 @@ export func run_frame(millis) {
             ent.__run(millis)
         }
     }
-}
+})

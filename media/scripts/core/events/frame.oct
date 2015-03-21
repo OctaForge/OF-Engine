@@ -21,7 +21,15 @@ import core.externals
 
 from std.table import setmt
 
-var ents, run_frame
+var gcbs = []
+
+/**
+    Adds a callback to be run at the end of scripting frame. The callback
+    is called with millis as an argument.
+*/
+export func add_callback(f) {
+    gcbs.push(f)
+}
 
 /**
     Executed per frame from C++. It handles the current frame, meaning
@@ -30,11 +38,6 @@ var ents, run_frame
     activated entities. External as "frame_handle".
 */
 export func handle_frame(millis, lastmillis) {
-    if !ents {
-        ents = import core.entities.ents
-        run_frame = ents.run_frame
-    }
-
     @[debug] log(INFO, "frame.handle_frame: New frame")
     current_frame = current_frame + 1
 
@@ -43,7 +46,9 @@ export func handle_frame(millis, lastmillis) {
     last_millis        = lastmillis
 
     @[debug] log(INFO, "frame.handle_frame: Acting on entities")
-    run_frame(millis)
+    for i, cb in gcbs.each() {
+        cb(millis)
+    }
 }
 
 externals::set("frame_handle", handle_frame)
