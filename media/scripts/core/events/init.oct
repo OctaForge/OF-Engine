@@ -9,8 +9,5 @@ import core.events.signal as undef
 log::log(log.DEBUG, ":::: Action system.")
 import core.events.actions as undef
 
-log::log(log.DEBUG, ":::: World events.")
-import core.events.world as undef
-
 log::log(log.DEBUG, ":::: Input events.")
 import core.events.input as undef

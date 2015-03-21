@@ -18,6 +18,7 @@ var INFO  = logging.INFO
 
 import core.externals
 
+import core.engine.edit
 import core.engine.camera
 import core.engine.sound
 import core.engine.model
@@ -956,6 +957,104 @@ M.Player = Character.clone({
 
 ents::register_prototype(Character)
 ents::register_prototype(M.Player)
+
+/** Function: physics_off_map
+    Called when a client falls off the map (keeps calling until the client
+    changes its state). By default emits the `off_map` signal on the client.
+
+    Arguments:
+        - cn - the client entity number.
+*/
+externals::set("physics_off_map", func(cn) {
+    var ent = ents::get_dynamic(cn)
+    if !ent { return }
+    emit(ent, "off_map")
+})
+
+/** Function: physics_in_deadly
+    Called when a client is in a deadly material (lava or death). By default
+    emits the `in_deadly` signal on the client, passing the material ID as
+    an extra argument.
+
+    Arguments:
+        - cn - the client entity number.
+        - mat - the material id (see $edit).
+*/
+externals::set("physics_in_deadly", func(cn, mat) {
+    var ent = ents::get_dynamic(cn)
+    if !ent { return }
+    emit(ent, "in_deadly", mat)
+})
+
+// flags for physics_state_change
+var FLAG_WATER = 1 << 0
+var FLAG_LAVA  = 2 << 0
+var FLAG_ABOVELIQUID = 1 << 2
+var FLAG_BELOWLIQUID = 2 << 2
+var FLAG_ABOVEGROUND = 1 << 4
+var FLAG_BELOWGROUND = 2 << 4
+
+/** Function: physics_state_change
+    Called when a client changes their physical state.
+
+    By default this activates physics trigger state var on the client
+    (see {{$ents.Character}}).
+
+    Arguments:
+        - cn - the client entity number.
+        - loc - fale for multiplayer prediction.
+        - flevel - the floor level specifying a delta from the previous state,
+          1 when the client went up, 0 when stayed the same, -1 when down.
+        - llevel - the liquid level.
+        - mat - the material id (fore xample when jumping out of/into water,
+          it's the water material id, see $edit).
+*/
+externals::set("physics_state_change", func(tp, cn, loc, flevel, llevel, mat) {
+    var ent = ents::get_dynamic(cn)
+    if !ent { return }
+
+    var flags = 0
+    if mat == edit.material.WATER {
+        flags |= FLAG_WATER
+    } else if mat == edit.material.LAVA {
+        flags |= FLAG_LAVA
+    }
+
+    if llevel > 0 { // liquid level
+        flags |= FLAG_ABOVELIQUID
+    } else if llevel < 0 {
+        flags |= FLAG_BELOWLIQUID
+    }
+    if flevel > 0 { // floor level
+        flags |= FLAG_ABOVEGROUND
+    } else if flevel < 0 {
+        flags |= FLAG_BELOWGROUND
+    }
+    if flags != 0 { ent.set_attr("physics_trigger", flags) }
+})
+
+/** Function: event_text_message
+    Called on a text message event. Emits a signal "text_message" on the
+    player entity with the text as an argument.
+*/
+externals::set("event_text_message", func(uid, text) {
+    var ent = ents::get_dynamic(uid)
+    if ent {
+        emit(ent, "text_message", text)
+    }
+})
+
+/** Function: event_player_login
+    Serverside. Called after a server sends all the active entities to the
+    client. Emits a signal "login" on the player entity.
+*/
+externals::set("event_player_login", func(uid) {
+    var ent = ents::get_dynamic(uid)
+    if ent {
+        ent.respawn()
+        emit(ent, "login")
+    }
+})
 
 // STATIC ENTS ARE CLIENT ONLY
 
