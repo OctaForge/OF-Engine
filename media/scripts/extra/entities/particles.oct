@@ -11,16 +11,13 @@
 
 @[server] { return }
 
-import core.entities.ents
 import core.entities.svars
-import core.engine.particles
+
+from core.entities.ents import ParticleEffect, register_prototype
+from core.engine.particles import flame, splash, flags as pflags,
+    register_renderer_quad as quadrenderer
 
 from std.math import min, random as rand
-
-var flame, splash = particles.flame, particles.splash
-var pflags = particles.flags
-var quadrenderer = particles.register_renderer_quad
-var ParticleEffect = ents.ParticleEffect
 
 /** Table: particles.renderers
     Provides some extra renderers - "smoke", "flame" and "steam" used
@@ -147,5 +144,5 @@ export var SteamEffect = ParticleEffect.clone({
     }
 })
 
-ents::register_prototype(FireEffect)
-ents::register_prototype(SteamEffect)
+register_prototype(FireEffect)
+register_prototype(SteamEffect)

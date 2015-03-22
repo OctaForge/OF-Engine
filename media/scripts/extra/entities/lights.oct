@@ -11,12 +11,9 @@
 @[server] { return }
 
 import core.entities.svars
-import core.entities.ents
-import core.engine.lights
 
-var light_add = lights.add
-
-var Marker = ents.Marker
+from core.entities.ents import Marker, register_prototype
+from core.engine.lights import add as light_add, flags
 
 /** Object: lights.DynamicLight
     A generic "dynamic light" entity prototype. It's not registered by default
@@ -66,8 +63,6 @@ export var DynamicLight = Marker.clone({
 
 from std.math import max, random, floor
 
-var flash_flag = lights.flags.FLASH
-
 /** Object: lights.FlickeringLight
     A flickering light entity type derived from $DynamicLight. This one
     is registered. Delays are in milliseconds. It adds probability, min delay
@@ -113,11 +108,11 @@ export var FlickeringLight = DynamicLight.clone({
                 var pos = self.get_attr("position")
                 light_add(pos, self.get_attr("radius"),
                     self.get_attr("red") / 255, self.get_attr("green") / 255,
-                    self.get_attr("blue") / 255, d, 0, flash_flag)
+                    self.get_attr("blue") / 255, d, 0, flags.FLASH)
             }
         }
         self.delay = d
     }
 })
 
-ents::register_prototype(FlickeringLight)
+register_prototype(FlickeringLight)

@@ -24,12 +24,10 @@ import extra.game_manager
 import extra.day_manager
 import extra.health
 
-var Player = ents.Player
-
 /** Object: GamePlayer
     This serves as a base for our player.
 */
-var GamePlayer = Player.clone({
+var GamePlayer = ents.Player.clone({
     name: "GamePlayer"
 })
 

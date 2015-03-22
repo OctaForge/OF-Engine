@@ -15,7 +15,6 @@ import core.events.signal
 import core.entities.svars
 import core.entities.ents
 import core.network.msg
-var connect, emit = signal.connect, signal.emit
 
 var get
 
@@ -53,12 +52,12 @@ export var player_plugin = {
     __activate: func(self) {
         if msg::is_server() {
             get().pick_team(self)
-            connect(self, "pre_deactivate", func(self) {
+            signal::connect(self, "pre_deactivate", func(self) {
                 get().leave_team(self)
             })
         }
         if !msg::is_server_only() {
-            connect(self, "client,respawn", func(self) {
+            signal::connect(self, "client,respawn", func(self) {
                 get().place_player(self)
             })
         }
@@ -113,14 +112,14 @@ var GameManager = Entity.clone({
             player.respawn()
         }
 
-        emit(self, "game,start")
+        signal::emit(self, "game,start")
         self.game_running = true
     },
 
     end_game: func(self) {
         if !msg::is_server() { return }
         self.game_running = false
-        emit(self, "game,end")
+        signal::emit(self, "game,end")
     },
 
     sync_team_data: func(self) {

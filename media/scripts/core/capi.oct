@@ -8,11 +8,10 @@
         See COPYING.txt.
 */
 
-import capi
-import std.ffi
-import luastate
+from std.ffi import new as ffi_new, string as ffi_str
 
-var ffi_new = ffi.new
+import capi
+import luastate
 
 from std.conv import tostring, tonumber
 from std.array import from_table
@@ -145,8 +144,6 @@ func luastate.capi_restore() {
 
 capi.get_server_clientstate = gen_getwrap(capi.get_server_clientstate, "int")
 capi.get_server_lifesequence = gen_getwrap(capi.get_server_lifesequence, "int")
-
-var ffi_str = ffi.string
 
 @[!server] {
 

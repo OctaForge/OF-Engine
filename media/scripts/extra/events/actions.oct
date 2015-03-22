@@ -8,11 +8,9 @@
         See COPYING.txt.
 */
 
-import core.events.actions
-import core.events.input
+from core.events.actions import Action, ActionQueue
 
-var Action = actions.Action
-var ActionQueue = actions.ActionQueue
+import core.events.input
 
 from std.table import pairs
 

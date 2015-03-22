@@ -11,19 +11,13 @@
 @[server] { return }
 
 import core.logger as log
-import core.engine.sound
 import core.events.signal
 import core.entities.svars
-import core.entities.ents
 
-from core.entities.ents import get_static_by_tag
-
-var play = sound.play
-var connect = signal.connect
+from core.entities.ents import Obstacle, register_prototype, get_static_by_tag
+from core.engine.sound import play
 
 from std.math import random as rand
-
-var Obstacle = ents.Obstacle
 
 /** Object: teleporters.Teleporter
     A regular invisible teleporter. Derives from {{$ents.Obstacle}}. Properties
@@ -56,7 +50,7 @@ export var Teleporter = Obstacle.clone({
 
     __activate: func(self, kwargs) {
         Obstacle::__activate(self, kwargs)
-        connect(self, "collision,start", self.on_collision)
+        signal::connect(self, "collision,start", self.on_collision)
     },
 
     on_collision: func(self, collider) {
@@ -79,4 +73,4 @@ export var Teleporter = Obstacle.clone({
     }
 })
 
-ents::register_prototype(Teleporter)
+register_prototype(Teleporter)

@@ -24,8 +24,6 @@ import extra.events.actions as eactions
 from std.conv import tostring
 from std.math import min, max, floor
 
-var connect, emit = signal.connect, signal.emit
-
 /**
     This module adds three new animations, "dead", "dying" and "pain",
     on the client. They're stored in this enumeration.
@@ -71,7 +69,7 @@ export var DeathAction = actions.Action.clone({
         var actor = self.actor
         actor.set_attr("can_move", false)
         actor.clear_actions()
-        emit(actor, "killed")
+        signal::emit(actor, "killed")
     },
 
     /// Triggers a respawn.
@@ -103,9 +101,9 @@ export var player_plugin = {
     },
 
     __activate: func(self) {
-        connect(self, "health,changed", self.health_on_health)
+        signal::connect(self, "health,changed", self.health_on_health)
         if !msg::is_server() { return }
-        connect(self, "server,respawn", func(self) {
+        signal::connect(self, "server,respawn", func(self) {
             self.set_attr("health", self.get_attr("max_health"))
             self.old_health = self.get_attr("health")
         })
@@ -327,10 +325,10 @@ export var plugins = {
                         st.set_text(tostring(curh))
                         st.set_color(gethcolor(curh, maxh))
                     }
-                    connect(self, "max_health,changed", func(self, v) {
+                    signal::connect(self, "max_health,changed", func(self, v) {
                         maxh = v; if curh { updatehud() }
                     })
-                    connect(self, "health,changed", func(self, v) {
+                    signal::connect(self, "health,changed", func(self, v) {
                         curh = v; if maxh { updatehud() }
                     })
                     if curh && maxh {
@@ -351,7 +349,7 @@ export var plugins = {
     player_off_map: {
         __activate: func(self) {
             if msg::is_server_only() { return }
-            connect(self, "off_map", func(ent) {
+            signal::connect(self, "off_map", func(ent) {
                 if !is_valid_target(ent) { return }
                 ent.set_attr("health", 0)
             })
@@ -365,7 +363,7 @@ export var plugins = {
     player_in_deadly_material: {
         __activate: func(self) {
             if msg::is_server_only() { return }
-            connect(self, "in_deadly", func(ent, mat) {
+            signal::connect(self, "in_deadly", func(ent, mat) {
                 if !is_valid_target(ent) { return }
                 if mat == edit.material.LAVA {
                     ent.health_add(-1)

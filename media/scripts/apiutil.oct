@@ -11,8 +11,8 @@
 import std.ffi
 import capi
 
-var ffi_new, ffi_cast, ffi_copy, ffi_string, ffi_gc = ffi.new, ffi.cast,
-ffi.copy, ffi.string, ffi.gc
+from std.ffi import new as ffi_new, cast as ffi_cast, copy as ffi_copy,
+    string as ffi_string, gc as ffi_gc, C
 
 export func make_strbuf(n) {
     return ffi_new("char[?]", n)
@@ -49,7 +49,6 @@ if !(try ffi["typeof"]("linebuf_t")) {
         } linebuf_t;
     """)
 }
-var C = ffi.C
 
 func linebuf_grow(self, total, nocopy) {
     if total + 1 <= self.maxlen { return false }
