@@ -12,33 +12,31 @@ import capi
 import core.events.signal
 import core.engine.cubescript as cs
 
-var get_millis in capi
+from capi import get_millis
 
 from std.math import min, max, abs, clamp, round
 from std.conv import tonumber
-
-var emit = signal.emit
 
 /// Module: core
 import core.gui.core as M
 
 // consts
-var key = M.key
+from core.gui.core import key
 
 // widget types
-var register_type = M.register_type
+from core.gui.core import register_type
 
 // base widgets
 var Widget = M::get_type("Widget")
 
 // setters
-var gen_setter = M.gen_setter
+from core.gui.core import gen_setter
 
 // orientation
-var orient = M.orient
+from core.gui.core import orient
 
 // alignment/clamping
-var adjust = M.adjust
+from core.gui.core import adjust
 
 var SliderButton
 
@@ -89,7 +87,7 @@ M.Slider = register_type("Slider", Widget, {
 
         var val = min(mx, mn) + newstep * ss
         self.value = val
-        emit(self, "value,changed", val)
+        signal::emit(self, "value,changed", val)
     },
 
     /// Sets the nth step.
@@ -101,7 +99,7 @@ M.Slider = register_type("Slider", Widget, {
 
         var val = min(mx, mn) + newstep * ss
         self.value = val
-        emit(self, "value,changed", val)
+        signal::emit(self, "value,changed", val)
     },
 
     /**
@@ -255,7 +253,7 @@ M.Slider = register_type("Slider", Widget, {
         var idx = self.__rmap[val]
         if !idx { return }
         self.min_value = idx
-        emit(self, "list_min_value,changed", val, idx)
+        signal::emit(self, "list_min_value,changed", val, idx)
     },
 
     /// Function: set_list_max_value
@@ -264,7 +262,7 @@ M.Slider = register_type("Slider", Widget, {
         var idx = self.__rmap[val]
         if !idx { return }
         self.max_value = idx
-        emit(self, "list_max_value,changed", val, idx)
+        signal::emit(self, "list_max_value,changed", val, idx)
     },
 
     /// Function: set_list_value
@@ -273,7 +271,7 @@ M.Slider = register_type("Slider", Widget, {
         var idx = self.__rmap[val]
         if !idx { return }
         self.value = idx
-        emit(self, "list_value,changed", val, idx)
+        signal::emit(self, "list_value,changed", val, idx)
     },
 
     /// Function: set_min_value

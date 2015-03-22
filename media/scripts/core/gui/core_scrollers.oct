@@ -11,34 +11,32 @@
 import capi
 import core.events.signal
 
-var get_curtime = capi.get_curtime
+from capi import get_curtime
 
 from std.math import min, max, clamp
-
-var emit  = signal.emit
 
 /// Module: core
 import core.gui.core as M
 
 // consts
-var key = M.key
+from core.gui.core import key
 
 // widget types
-var register_type = M.register_type
+from core.gui.core import register_type
 
 // base widgets
 var Widget = M::get_type("Widget")
 
 // setters
-var gen_setter = M.gen_setter
+from core.gui.core import gen_setter
 
 // orientation
-var orient = M.orient
+from core.gui.core import orient
 
 // alignment/clamping
-var adjust = M.adjust
+from core.gui.core import adjust
 
-var Clipper = M.Clipper
+var Clipper = M::get_type("Clipper")
 
 /**
     Derived from $Clipper. Provides a scrollable area without scrollbars.
@@ -213,13 +211,13 @@ M.Scroller = register_type("Scroller", Clipper, {
     */
     set_h_scroll: func(self, hs) {
         self.offset_h = clamp(hs, 0, self.get_h_limit())
-        emit(self, "h_scroll,changed", self.get_h_offset())
+        signal::emit(self, "h_scroll,changed", self.get_h_offset())
     },
 
     /// See $set_h_scroll.
     set_v_scroll: func(self, vs) {
         self.offset_v = clamp(vs, 0, self.get_v_limit())
-        emit(self, "v_scroll,changed", self.get_v_offset())
+        signal::emit(self, "v_scroll,changed", self.get_v_offset())
     },
 
     /**

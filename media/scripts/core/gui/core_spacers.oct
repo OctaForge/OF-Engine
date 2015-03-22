@@ -17,16 +17,16 @@ import core.gui.core as M
 import capi
 
 // widget types
-var register_type = M.register_type
+from core.gui.core import register_type
 
 // children iteration
-var loop_children, loop_children_r = M.loop_children, M.loop_children_r
+from core.gui.core import loop_children, loop_children_r
 
 // base widgets
 var Widget = M::get_type("Widget")
 
 // setters
-var gen_setter = M.gen_setter
+from core.gui.core import gen_setter
 
 /**
     A spacer will give a widget some padding.

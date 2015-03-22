@@ -10,54 +10,50 @@
 
 import capi
 import apiutil
-import std.geom
 import core.engine.model
 import core.engine.cubescript as cs
 import core.events.signal
 
-var gl_blend_func, shader_hudnotexture_set, shader_hud_set, gl_bind_texture,
-gl_texture_param, shader_hud_set_variant, gle_begin, gle_end, gle_defvertexf,
-gle_deftexcoord0f, gle_color4f, gle_attrib2f, texture_load,
+from capi import gl_blend_func, shader_hudnotexture_set, shader_hud_set,
+gl_bind_texture, gl_texture_param, shader_hud_set_variant, gle_begin, gle_end,
+gle_defvertexf, gle_deftexcoord0f, gle_color4f, gle_attrib2f, texture_load,
 texture_load_alpha_mask, texture_get_notexture, thumbnail_load,
 texture_draw_slot, texture_draw_vslot, gl_blend_disable, gl_blend_enable,
 gl_scissor_disable, gl_scissor_enable, gle_disable, model_preview_start,
 model_preview, model_preview_end, hudmatrix_push, hudmatrix_scale,
 hudmatrix_flush, hudmatrix_pop, hudmatrix_translate, text_draw,
 text_get_bounds, text_font_push, text_font_pop, text_font_set,
-console_render_full, text_font_get_w, text_font_get_h, prefab_preview in capi
-
-var emit = signal.emit
+console_render_full, text_font_get_w, text_font_get_h, prefab_preview
 
 from std.conv import tostring
 from std.math import min, max, abs, clamp, floor, ceil, huge
 from std.table import len
 
-var Vec2 = geom.Vec2
-var sincosmod360 = geom.sin_cos_mod_360
-var sincos360 = geom.sin_cos_360
+from std.geom import Vec2, sin_cos_mod_360 as sincosmod360,
+    sin_cos_360 as sincos360
 
 /// Module: core
 import core.gui.core as M
 
 // consts
-var gl = M.gl
+from core.gui.core import gl
 
 // widget types
-var register_type = M.register_type
+from core.gui.core import register_type
 
 // primitive drawing
-var quad, quadtri = M.draw_quad, M.draw_quadtri
+from core.gui.core import draw_quad as quad, draw_quadtri as quadtri
 
 // color
-var Color = M.Color
+from core.gui.core import Color
 
 // base widgets
 var Widget = M::get_type("Widget")
 
 // setters
-var gen_setter = M.gen_setter
+from core.gui.core import gen_setter
 
-var Filler = M.Filler
+var Filler = M::get_type("Filler")
 
 func init_color(col) {
     return col && (typeof col == "number" && Color(col) || col) || Color()
@@ -67,7 +63,7 @@ func gen_color_setter(name) {
     var sname = name ~ ",changed"
     return func(self, val) {
         self[name] = init_color(val)
-        emit(self, sname, val)
+        signal::emit(self, sname, val)
     }
 }
 
@@ -567,28 +563,28 @@ M.CroppedImage = register_type("CroppedImage", Image, {
     set_crop_x: func(self, cx) {
         cx = get_border_size(self.texture, cx, false)
         self.crop_x = cx
-        emit(self, "crop_x,changed", cx)
+        signal::emit(self, "crop_x,changed", cx)
     },
 
     ///
     set_crop_y: func(self, cy) {
         cy = get_border_size(self.texture, cy, true)
         self.crop_y = cy
-        emit(self, "crop_y,changed", cy)
+        signal::emit(self, "crop_y,changed", cy)
     },
 
     ///
     set_crop_w: func(self, cw) {
         cw = get_border_size(self.texture, cw, false)
         self.crop_w = cw
-        emit(self, "crop_w,changed", cw)
+        signal::emit(self, "crop_w,changed", cw)
     },
 
     ///
     set_crop_h: func(self, ch) {
         ch = get_border_size(self.texture, ch, true)
         self.crop_h = ch
-        emit(self, "crop_h,changed", ch)
+        signal::emit(self, "crop_h,changed", ch)
     }
 })
 
@@ -826,7 +822,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
     set_tex_border: func(self, tb) {
         tb = get_border_size(self.texture, tb)
         self.tex_border = tb
-        emit(self, "tex_border,changed", tb)
+        signal::emit(self, "tex_border,changed", tb)
     },
 
     /// Function: set_screen_border
@@ -1049,7 +1045,7 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
     __update_dimensions: func(self, tw, th) {
         if self.tex_w != tw || self.tex_h != th {
             self.tex_w, self.tex_h = tw, th
-            emit(self, "tex_size,changed", tw, th)
+            signal::emit(self, "tex_size,changed", tw, th)
         }
     },
 
