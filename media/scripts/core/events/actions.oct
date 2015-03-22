@@ -13,10 +13,8 @@
 */
 
 import capi
-import core.logger as logging
-var log = logging.log
-var INFO = logging.INFO
-var WARNING = logging.WARNING
+
+from core.logger import log, INFO, WARNING
 
 from std.conv import tostring
 from std.object import Object

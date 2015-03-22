@@ -13,11 +13,7 @@
 
 import capi
 
-import core.logger as logging
-
-var log = logging.log
-var DEBUG = logging.DEBUG
-var INFO  = logging.INFO
+from core.logger import log, DEBUG, INFO
 
 import core.events.frame
 import core.octascript.geom as ogeom

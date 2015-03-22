@@ -11,13 +11,8 @@
 */
 
 import capi
-import core.logger as logging
 
-var log = logging.log
-var DEBUG   = logging.DEBUG
-var INFO    = logging.INFO
-var ERROR   = logging.ERROR
-var WARNING = logging.WARNING
+from core.logger import log, DEBUG, INFO, ERROR, WARNING
 
 import core.network.msg
 import core.events.frame
@@ -31,8 +26,6 @@ from core.octascript.messagepack import pack as mp_pack, unpack as mp_unpack
 var mp_opts = { "number": "float" }
 
 import core.externals
-
-var emit = signal.emit
 
 from std.object import Object
 from std.table import pairs
@@ -75,8 +68,6 @@ var names_to_ids = {}
 
 // see above, used for back-translation
 var ids_to_names = {}
-
-var is_svar, is_svar_alias = svars.is_svar, svars.is_svar_alias
 
 /**
     Generates the required network data for an entity prototype. You pass the
@@ -266,10 +257,10 @@ export func register_prototype(cl, plugins, name) {
     }
 
     sv_names.sort(func(n, m) {
-        if is_svar_alias(pt[n]) && !is_svar_alias(pt[m]) {
+        if svars::is_svar_alias(pt[n]) && !svars::is_svar_alias(pt[m]) {
             return false
         }
-        if !is_svar_alias(pt[n]) && is_svar_alias(pt[m]) {
+        if !svars::is_svar_alias(pt[n]) && svars::is_svar_alias(pt[m]) {
             return true
         }
         return n < m
@@ -482,7 +473,7 @@ export func remove(ent) {
     var uid = ent.uid
     @[debug] log(DEBUG, e"ents.remove: $uid")
     var stor = storages[ent.__storage]
-    emit(ent, "pre_deactivate")
+    signal::emit(ent, "pre_deactivate")
     ent.__deactivate()
     ent.__proto.__instances.compact(\v -> v != ent)
     stor[uid] = undef
@@ -517,7 +508,7 @@ func remove_stor(stor, protos) {
     for i, e in stor.each() {
         if e {
             protos[e.name] = true
-            emit(e, "pre_deactivate")
+            signal::emit(e, "pre_deactivate")
             e.__deactivate()
             stor[i] = undef
         }
@@ -830,7 +821,7 @@ Entity = Object.clone({
 
         var r, sn = {}, self.name
         for k, svar in pairs(self.__proto) {
-            if is_svar(svar) && (!ignore || !ignore[svar.name])
+            if svars::is_svar(svar) && (!ignore || !ignore[svar.name])
             && svar.has_history && !(tcn >= 0 && !svar.should_send(self, tcn)) {
                 var name = svar.name
                 var val = self.get_attr(name)
@@ -955,7 +946,7 @@ Entity = Object.clone({
         }
 
         self.sdata_changed(svar, key, val)
-        emit(self, e"$key,changed", val, actor_uid)
+        signal::emit(self, e"$key,changed", val, actor_uid)
         if self.sdata_update_cancel {
             self.sdata_update_cancel = undef
             return
@@ -1044,7 +1035,7 @@ Entity = Object.clone({
                 raise e"received invalid value for svar $key ($(tostring(val)))"
             }
             self.sdata_changed(svar, key, val)
-            emit(self, e"$key,changed", val, actor_uid != -1)
+            signal::emit(self, e"$key,changed", val, actor_uid != -1)
             self.svar_values[key] = val
         }
     },
@@ -1127,7 +1118,8 @@ Entity = Object.clone({
         if sortattrs == undef { sortattrs = true }
         var r = []
         for k, svar in pairs(self) {
-            if is_svar(svar) && svar.has_history && svar.gui_name != false {
+            if svars::is_svar(svar) && svar.has_history
+            && svar.gui_name != false {
                 var name = svar.name
                 var val = self.get_attr(name)
                 if val != undef {

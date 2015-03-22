@@ -12,8 +12,6 @@ import capi
 import std.ffi
 import core.externals
 
-var ffi_new = ffi.new
-
 @[server] { return }
 
 import core.events.signal
@@ -258,9 +256,9 @@ if !(try ffi["typeof"]("selinfo_t")) {
     hadtypes = false
 }
 
-var edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
+from capi import edit_raw_edit_face, edit_raw_delete_cube, edit_raw_edit_texture,
 edit_raw_edit_material, edit_raw_flip, edit_raw_rotate, edit_raw_edit_vslot,
-edit_get_world_size in capi
+edit_get_world_size
 
 from std.util import assert
 from std.math import clamp
@@ -464,7 +462,7 @@ export var VSlot = hadtypes ? ffi["typeof"]("vslot_t") : ffi::metatype("vslot_t"
     }
 })
 
-var edit_lookup_cube, edit_lookup_texture in capi
+from capi import edit_lookup_cube, edit_lookup_texture
 
 /**
     Looks up a cube at the given origin position with the given size and
@@ -480,7 +478,7 @@ var edit_lookup_cube, edit_lookup_texture in capi
     below, $lookup_material and $lookup_texture.
 */
 export func lookup_cube(x, y, z, ts) {
-    var r = ffi_new("int[4]");
+    var r = ffi::new("int[4]");
     var c = edit_lookup_cube(x, y, z, ts, r + 0, r + 1, r + 2, r + 3)
     return c, r[0], r[1], r[2], r[3]
 }

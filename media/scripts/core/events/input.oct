@@ -14,7 +14,6 @@ import capi
 import core.events.signal
 import core.network.msg
 
-var emit = signal.emit
 var ents
 
 /** Function: input_mouse_move

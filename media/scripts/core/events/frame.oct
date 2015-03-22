@@ -8,9 +8,7 @@
         See COPYING.txt.
 */
 
-import core.logger as logging
-var log = logging.log
-var INFO = logging.INFO
+from core.logger import log, INFO
 
 var current_frame      = 0
 var current_time       = 0
