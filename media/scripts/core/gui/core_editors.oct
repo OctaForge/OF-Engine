@@ -18,15 +18,13 @@ from apiutil import linebuf_insert, linebuf_prepend, linebuf_append,
                     linebuf_combine_lines, linebuf_chop, linebuf_del,
                     linebuf_tostr, linebuf_new
 
-var clipboard_set_text, clipboard_get_text, clipboard_has_text, text_draw,
-text_get_bounds, text_get_position, text_is_visible, input_is_modifier_pressed,
-input_textinput, input_keyrepeat, input_get_key_name, hudmatrix_push,
-hudmatrix_translate, hudmatrix_flush, hudmatrix_scale, hudmatrix_pop,
-shader_hudnotexture_set, shader_hud_set, gle_color4ub, gle_defvertexf,
-gle_begin, gle_end, gle_attrib2f, text_font_push, text_font_pop, text_font_set,
-text_font_get_w, text_font_get_h in capi
-
-var emit = signal.emit
+from capi import clipboard_set_text, clipboard_get_text, clipboard_has_text,
+text_draw, text_get_bounds, text_get_position, text_is_visible,
+input_is_modifier_pressed, input_textinput, input_keyrepeat,
+input_get_key_name, hudmatrix_push, hudmatrix_translate, hudmatrix_flush,
+hudmatrix_scale, hudmatrix_pop, shader_hudnotexture_set, shader_hud_set,
+gle_color4ub, gle_defvertexf, gle_begin, gle_end, gle_attrib2f, text_font_push,
+text_font_pop, text_font_set, text_font_get_w, text_font_get_h
 
 from std.math import min, max, abs, clamp, floor
 from std.conv import tostring, tonumber
@@ -39,16 +37,16 @@ import core.gui.core as M
 var gl, key = M.gl, M.key
 
 // widget types
-var register_type = M.register_type
+from core.gui.core import register_type
 
 // color
-var Color = M.Color
+from core.gui.core import Color
 
 // base widgets
 var Widget = M::get_type("Widget")
 
 // setters
-var gen_setter = M.gen_setter
+from core.gui.core import gen_setter
 
 from core.gui.constants import mod
 
@@ -67,7 +65,7 @@ func gen_ed_setter(name) {
     return func(self, val) {
         self._needs_calc = true
         self[name] = val
-        emit(self, sname, val)
+        signal::emit(self, sname, val)
     }
 }
 
@@ -83,7 +81,7 @@ func gen_color_setter(name) {
     var sname = name ~ ",changed"
     return func(self, val) {
         self[name] = init_color(val)
-        emit(self, sname, val)
+        signal::emit(self, sname, val)
     }
 }
 
@@ -507,13 +505,13 @@ M.TextEditor = register_type("TextEditor", Widget, {
     ///
     set_h_scroll: func(self, hs) {
         self.offset_h = clamp(hs, 0, self.get_h_limit())
-        emit(self, "h_scroll,changed", self.get_h_offset())
+        signal::emit(self, "h_scroll,changed", self.get_h_offset())
     },
 
     ///
     set_v_scroll: func(self, vs) {
         self.offset_v = clamp(vs, 0, self.get_v_limit())
-        emit(self, "v_scroll,changed", self.get_v_offset())
+        signal::emit(self, "v_scroll,changed", self.get_v_offset())
     },
 
     ///
@@ -543,7 +541,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     set_value: func(self, val) {
         val = tostring(val)
         self.value = val
-        emit(self, "value,changed", val)
+        signal::emit(self, "value,changed", val)
         self.reset_value()
     },
 
@@ -1242,7 +1240,7 @@ M.Field = register_type("Field", TextEditor, {
         var val = linebuf_tostr(self.lines[0])
         self.value = val
         // trigger changed signal
-        emit(self, "value,changed", val)
+        signal::emit(self, "value,changed", val)
     },
 
     /// Set up a field from a Cubescript variable of the given name.

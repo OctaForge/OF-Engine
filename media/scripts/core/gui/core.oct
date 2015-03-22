@@ -19,17 +19,14 @@ import core.externals
 
 from std.geom import Vec2
 
-var gl_scissor_enable, gl_scissor_disable, gl_scissor, gl_blend_enable,
-gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f, gle_color4ub,
-gle_attrib4ub, gle_defcolorub, gle_disable, hudmatrix_ortho, hudmatrix_reset,
-shader_hud_set, hud_get_w, hud_get_h, hud_get_ss_x, hud_get_ss_y, hud_get_so_x,
-hud_get_so_y, isconnected, text_get_res, text_font_get_h, aspect_get,
-editing_get, console_scale_get, input_get_free_cursor, input_cursor_get_x,
-input_cursor_get_y, input_cursor_exists_update in capi
-
-var var_get, var_set = cs.var_get, cs.var_set
-
-var emit = signal.emit
+from capi import gl_scissor_enable, gl_scissor_disable, gl_scissor,
+gl_blend_enable, gl_blend_disable, gl_blend_func, gle_attrib2f, gle_color3f,
+gle_color4ub, gle_attrib4ub, gle_defcolorub, gle_disable, hudmatrix_ortho,
+hudmatrix_reset, shader_hud_set, hud_get_w, hud_get_h, hud_get_ss_x,
+hud_get_ss_y, hud_get_so_x, hud_get_so_y, isconnected, text_get_res,
+text_font_get_h, aspect_get, editing_get, console_scale_get,
+input_get_free_cursor, input_cursor_get_x, input_cursor_get_y,
+input_cursor_exists_update
 
 from std.object import Object
 from std.table import rawget, rawset, pairs
@@ -334,7 +331,7 @@ export func gen_setter(name) {
     var sname = name ~ ",changed"
     return func(self, val) {
         self[name] = val
-        emit(self, sname, val)
+        signal::emit(self, sname, val)
     }
 }
 
@@ -546,7 +543,7 @@ export var Color = Object.clone({
 cs::var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     cs.var_flags.PERSIST)
 
-var uitextrows = var_get("uitextrows")
+var uitextrows = cs::var_get("uitextrows")
 signal::connect(cs, "uitextrows,changed", func(self, n) {
     uitextrows = n
 })
@@ -775,7 +772,7 @@ export var Widget = register_type("Widget", Object, {
         for k, v in pairs(mobjs) { v.clear() }
         self.container = undef
 
-        emit(self, "destroy")
+        signal::emit(self, "destroy")
         var insts = rawget(self.__proto, "__instances")
         if insts {
             insts[self] = undef
@@ -1268,7 +1265,7 @@ export var Widget = register_type("Widget", Object, {
              - $holding
     */
     hovering: func(self, cx, cy) {
-        emit(self, "hovering", cx, cy)
+        signal::emit(self, "hovering", cx, cy)
     },
 
     /**
@@ -1278,7 +1275,7 @@ export var Widget = register_type("Widget", Object, {
         passing those arguments to it.
     */
     leaving: func(self, cx, cy) {
-        emit(self, "leaving", cx, cy)
+        signal::emit(self, "leaving", cx, cy)
     },
 
     hold: func(self, cx, cy, obj) {
@@ -1293,7 +1290,7 @@ export var Widget = register_type("Widget", Object, {
         is being held.
     */
     holding: func(self, cx, cy, code) {
-        emit(self, "holding", cx, cy, code)
+        signal::emit(self, "holding", cx, cy, code)
     },
 
     /**
@@ -1323,7 +1320,7 @@ export var Widget = register_type("Widget", Object, {
             - $released
     */
     clicked: func(self, cx, cy, code) {
-        emit(self, "clicked", cx, cy, code)
+        signal::emit(self, "clicked", cx, cy, code)
     },
 
     /**
@@ -1332,7 +1329,7 @@ export var Widget = register_type("Widget", Object, {
         the time of button release, so they're up to date.
     */
     released: func(self, cx, cy, code) {
-        emit(self, "released", cx, cy, code)
+        signal::emit(self, "released", cx, cy, code)
     },
 
     /**
@@ -1517,7 +1514,7 @@ export var Widget = register_type("Widget", Object, {
             o.clear()
         }
         self.children = []
-        emit(self, "children,destroy")
+        signal::emit(self, "children,destroy")
     },
 
     /**
@@ -1604,7 +1601,7 @@ export var Widget = register_type("Widget", Object, {
             val.parent = self
             val._root  = self.get_root()
         }
-        emit(self, "container,changed", val)
+        signal::emit(self, "container,changed", val)
         return orig
     },
 
@@ -2168,7 +2165,7 @@ export var Root = register_type("Root", Widget, {
             self.cursor_y * self.h) != undef
         if bce != cec {
             self.has_cursor = cec
-            emit(self, "__has_cursor,changed", cec)
+            signal::emit(self, "__has_cursor,changed", cec)
         }
         return cec
     },
@@ -2589,7 +2586,7 @@ export var Root = register_type("Root", Widget, {
         }
         self._tooltip = undef
         self._menus_drop()
-        emit(self, "reset")
+        signal::emit(self, "reset")
     }
 })
 
@@ -2677,7 +2674,7 @@ externals::set("input_text", func(str) {
 
 var draw_hud = false
 
-var mmenu = var_get("mainmenu")
+var mmenu = cs::var_get("mainmenu")
 signal::connect(cs, "mainmenu,changed", func(self, v) {
     mmenu = v
 })
@@ -2685,7 +2682,7 @@ signal::connect(cs, "mainmenu,changed", func(self, v) {
 externals::set("gui_clear", func() {
     root.reset()
     if mmenu != 0 && isconnected() {
-        var_set("mainmenu", 0, true, false)
+        cs::var_set("mainmenu", 0, true, false)
     }
     if draw_hud {
         hud.destroy_children()

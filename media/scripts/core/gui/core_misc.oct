@@ -11,29 +11,27 @@
 import capi
 import core.events.signal
 
-var emit = signal.emit
-
 from std.math import min, max, abs, sin, pi
 
-var get_curtime = capi.get_curtime
+from capi import get_curtime
 
 /// Module: core
 import core.gui.core as M
 
 // widget types
-var register_type = M.register_type
+from core.gui.core import register_type
 
 // base widgets
 var Widget = M::get_type("Widget")
 
 // setters
-var gen_setter = M.gen_setter
+from core.gui.core import gen_setter
 
 // adjustment
-var adjust = M.adjust
+from core.gui.core import adjust
 
 // keys
-var key = M.key
+from core.gui.core import key
 
 var ALIGN_MASK = adjust.ALIGN_MASK
 
@@ -140,7 +138,7 @@ M.Mover = register_type("Mover", Widget, {
     set_window: gen_setter("window")
 })
 
-var Filler = M.Filler
+var Filler = M::get_type("Filler")
 
 /**
     A base widget type for progress bars. Not useful alone. For working
@@ -283,7 +281,7 @@ M.Animator = register_type("Animator", Widget, {
         var prog = self.get_progress()
         if prog >= 1.0 {
             self.started = false
-            emit(self, "anim,end")
+            signal::emit(self, "anim,end")
             return Widget::layout(self)
         }
 
@@ -301,11 +299,11 @@ M.Animator = register_type("Animator", Widget, {
     start: func(self) {
         self.started = true
         self.reset()
-        emit(self, "anim,start")
+        signal::emit(self, "anim,start")
     },
 
     stop: func(self) {
         self.started = false
-        emit(self, "anim,stop")
+        signal::emit(self, "anim,stop")
     }
 })

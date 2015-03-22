@@ -13,19 +13,17 @@ import core.events.signal
 /// Module: core
 import core.gui.core as M
 
-var emit = signal.emit
-
 // widget types
-var register_type = M.register_type
+from core.gui.core import register_type
 
 // base widgets
 var Widget = M::get_type("Widget")
 
 // setters
-var gen_setter = M.gen_setter
+from core.gui.core import gen_setter
 
 // keys
-var key = M.key
+from core.gui.core import key
 
 var clicked_states = {
     (key.MOUSELEFT   ): "clicked_left",
@@ -111,7 +109,7 @@ M.Toggle = register_type("Toggle", Button, {
 
     key: func(self, code, isdown) {
         if self.is_focused() && code == key.SPACE {
-            emit(self, isdown && "clicked" || "released", -1, -1, code)
+            signal::emit(self, isdown && "clicked" || "released", -1, -1, code)
             return true
         }
         return Widget::key(self, code, isdown)
