@@ -15,11 +15,6 @@ import core.events.frame
 
 from std.geom import Vec3
 
-/** Function: get_target_entity
-    Returns the entity you're targeting.
-*/
-export var get_target_entity = frame::cache_by_frame(capi.gettargetent)
-
 /** Function: get_target_position
     Returns the position in the world you're targeting.
 */

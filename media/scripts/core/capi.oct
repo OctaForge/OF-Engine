@@ -11,7 +11,6 @@
 import capi
 import std.ffi
 import luastate
-var ents, get_static, get_dynamic
 
 var ffi_new = ffi.new
 
@@ -47,18 +46,9 @@ func luastate.capi_restore() {
 
     var gettargetent in capi
     func capi.gettargetent() {
-        if !ents {
-            ents = import core.entities.ents
-            get_static = ents.get_static
-            get_dynamic = ents.get_dynamic
-        }
         var stor = ffi_new("int[2]")
         if !gettargetent(stor, stor + 1) { return undef }
-        if stor[0] >= 0 {
-            return get_static(tonumber(stor[0]))
-        } else {
-            return get_dynamic(tonumber(stor[1]))
-        }
+        return tonumber(stor[0]), tonumber(stor[1])
     }
 
     var gettargetpos in capi

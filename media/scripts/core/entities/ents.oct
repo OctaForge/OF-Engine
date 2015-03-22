@@ -338,6 +338,17 @@ export var get_static = @[!server,func(uid) {
     return r
 }]
 
+/**
+    Returns the currently targeted entity.
+*/
+export func get_targeted() {
+    var suid, duid = capi::gettargetent()
+    if suid >= 0 {
+        return get_static(suid)
+    }
+    return get_dynamic(duid)
+}
+
 func get_by_tag(tag, stor) {
     var r = []
     for i, ent in stor.each() {
