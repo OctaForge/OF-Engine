@@ -15,7 +15,7 @@ from std.object import Object
     it yourself using the provided methods. That makes it flexible for various
     scenarios (where the timing is not managed by the general event loop).
 */
-export var Timer = Object:clone {
+export var Timer = Object.clone({
     name = "Timer",
 
     /**
@@ -62,4 +62,4 @@ export var Timer = Object:clone {
     prime: func(self) {
         self.sum = self.interval
     }
-}
+})
