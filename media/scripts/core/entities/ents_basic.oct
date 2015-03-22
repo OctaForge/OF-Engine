@@ -10,11 +10,8 @@
 
 import apiutil
 import capi
-import core.logger as logging
-var log = logging.log
-var DEBUG = logging.DEBUG
-var ERROR = logging.ERROR
-var INFO  = logging.INFO
+
+from core.logger import log, DEBUG, ERROR, INFO
 
 import core.externals
 
@@ -30,20 +27,15 @@ import core.entities.ents
 import core.engine.cubescript as cs
 import core.network.msg
 
-from std.conv import hex_to_rgb as hextorgb
+from core.entities.ents import Entity
+from core.engine.model import anim_control as animctl, anims
 
-var var_get = cs.var_get
-
-var Entity = ents.Entity
-
-from std.conv import tonumber, tostring
+from std.conv import tonumber, tostring, hex_to_rgb as hextorgb
 from std.math import abs, min, max, clamp
-
-var connect, emit = signal.connect, signal.emit
 
 from std.util import assert
 
-var set_attachments_dyn, set_attachments_ext in capi
+from capi import set_attachments_dyn, set_attachments_ext
 
 // physics state flags
 var MASK_MAT = 0x3
@@ -55,9 +47,6 @@ var FLAG_BELOWLIQUID = 2 << 2
 var MASK_GROUND = 0x30
 var FLAG_ABOVEGROUND = 1 << 4
 var FLAG_BELOWGROUND = 2 << 4
-
-var animctl = model.anim_control
-var anims = model.anims
 
 var anim_dirs, anim_jump, anim_run
 @[!server] {
@@ -79,8 +68,6 @@ var anim_dirs, anim_jump, anim_run
         (anims.run_E): true, (anims.run_W ): true
     }
 }
-
-var mrender = @[!server,model.render]
 
 /// Module: ents
 var M = ents
@@ -495,7 +482,7 @@ M.Character = Entity.clone({
 
         self.set_attr("model_name", self.get_attr("model_name"))
 
-        connect(self, "spawn_stage,changed", func(self, stage, auid) {
+        signal::connect(self, "spawn_stage,changed", func(self, stage, auid) {
             self["spawn_stage_" ~ stage](self, auid)
         })
     },func(self, kwargs) {
@@ -516,7 +503,7 @@ M.Character = Entity.clone({
         self.render_args_timestamp = -1
 
         // see world.oct for field meanings
-        connect(self, "physics_trigger,changed", func(self, val) {
+        signal::connect(self, "physics_trigger,changed", func(self, val) {
             if val == 0 { return }
             self.set_attr("physics_trigger", 0)
 
@@ -542,7 +529,7 @@ M.Character = Entity.clone({
             }
         })
 
-        connect(self, "spawn_stage,changed", func(self, stage, auid) {
+        signal::connect(self, "spawn_stage,changed", func(self, stage, auid) {
             self["spawn_stage_" ~ stage](self, auid)
         })
 
@@ -623,7 +610,7 @@ M.Character = Entity.clone({
 
         var flags = self.get_render_flags(hudpass, needhud)
 
-        mrender(self, mdn, anim, o, yaw, pitch, roll, flags, bt)
+        model::render(self, mdn, anim, o, yaw, pitch, roll, flags, bt)
     }],
 
     /** Function: get_render_flags
@@ -897,7 +884,7 @@ M.Character = Entity.clone({
         }
         if self == ents::get_player() {
             self.set_attr("client_state", self.State.ALIVE)
-            emit(self, "client,respawn")
+            signal::emit(self, "client,respawn")
             self.set_attr("spawn_stage", 4)
         }
     },
@@ -907,7 +894,7 @@ M.Character = Entity.clone({
         self.set_attr("can_move", true)
         self.set_attr("spawn_stage", 0)
         self.set_attr("client_state", self.State.ALIVE)
-        emit(self, "server,respawn")
+        signal::emit(self, "server,respawn")
         self.cancel_sdata_update()
         self.reset_exceeded()
     }
@@ -931,8 +918,8 @@ externals::set("physics_collide_client", func(cn1, cn2, cont, dx, dy, dz) {
     var cl1, cl2 = ents::get_dynamic(cn1), ents::get_dynamic(cn2)
     if !cl1 || !cl2 { return }
     var sig = collidesignals[cont]
-    emit(cl1, sig, cl2, dx, dy, dz)
-    emit(cl2, sig, cl1, dx, dy, dz)
+    signal::emit(cl1, sig, cl2, dx, dy, dz)
+    signal::emit(cl2, sig, cl1, dx, dy, dz)
 })
 
 /**
@@ -968,7 +955,7 @@ ents::register_prototype(M.Player)
 externals::set("physics_off_map", func(cn) {
     var ent = ents::get_dynamic(cn)
     if !ent { return }
-    emit(ent, "off_map")
+    signal::emit(ent, "off_map")
 })
 
 /** Function: physics_in_deadly
@@ -983,7 +970,7 @@ externals::set("physics_off_map", func(cn) {
 externals::set("physics_in_deadly", func(cn, mat) {
     var ent = ents::get_dynamic(cn)
     if !ent { return }
-    emit(ent, "in_deadly", mat)
+    signal::emit(ent, "in_deadly", mat)
 })
 
 // flags for physics_state_change
@@ -1040,7 +1027,7 @@ externals::set("physics_state_change", func(tp, cn, loc, flevel, llevel, mat) {
 externals::set("event_text_message", func(uid, text) {
     var ent = ents::get_dynamic(uid)
     if ent {
-        emit(ent, "text_message", text)
+        signal::emit(ent, "text_message", text)
     }
 })
 
@@ -1052,7 +1039,7 @@ externals::set("event_player_login", func(uid) {
     var ent = ents::get_dynamic(uid)
     if ent {
         ent.respawn()
-        emit(ent, "login")
+        signal::emit(ent, "login")
     }
 })
 
@@ -1060,14 +1047,11 @@ externals::set("event_player_login", func(uid) {
 
 @[!server] {
 
-var c_get_attr = capi.get_attr
-var c_set_attr = capi.set_attr
-
 func gen_attr(i, name) {
     i = i - 1
     return svars::StateInteger({
-        getter: func(ent) {      return c_get_attr(ent, i)      },
-        setter: func(ent, val) { return c_set_attr(ent, i, val) },
+        getter: func(ent) {      return capi::get_attr(ent, i)      },
+        setter: func(ent, val) { return capi::set_attr(ent, i, val) },
         gui_name: name, alt_name: name
     })
 }
@@ -1164,7 +1148,7 @@ M.StaticEntity = Entity.clone({
             raise e"received invalid value for svar $key ($(tostring(val)))"
         }
         self.sdata_changed(svar, key, val)
-        emit(self, e"$key,changed", val, actor_uid != -1)
+        signal::emit(self, e"$key,changed", val, actor_uid != -1)
         self.svar_values[key] = val
     },
 
@@ -1360,7 +1344,8 @@ from std.table import setmt
 var lightflags = setmt({
     0: "dynamic (0)",
     1: "none (1)",
-    2: "static (2)"
+    2: "static (2)",
+    4: "volumetric (4)"
 }, {
     __index: func(self, i) {
         return "invalid (%d)".format(i)
@@ -1530,8 +1515,8 @@ M.SoundEffect = StaticEntity.clone({
 
     __activate: func(self, ...) {
         StaticEntity::__activate(self, ...)
-        connect(self, "radius,changed", self.sound_stop)
-        connect(self, "size,changed", self.sound_stop)
+        signal::connect(self, "radius,changed", self.sound_stop)
+        signal::connect(self, "size,changed", self.sound_stop)
     },
 
     /** Stop all sounds currently assigned to the entity. */
@@ -1580,8 +1565,8 @@ M.AmbientSound = SoundEffect.clone({
 
     __activate: func(self, ...) {
         SoundEffect::__activate(self, ...)
-        connect(self, "sound_name,changed", self.sound_stop)
-        connect(self, "volume,changed", self.sound_stop)
+        signal::connect(self, "sound_name,changed", self.sound_stop)
+        signal::connect(self, "volume,changed", self.sound_stop)
     },
 
     __get_edit_info: func(self) {
@@ -1733,8 +1718,8 @@ externals::set("physics_collide_mapmodel", func(cn, uid, cont) {
     var collider, entity = ents::get_dynamic(cn), ents::get_static(uid)
     if !collider || !entity { return }
     var sig = collidesignals[cont]
-    emit(entity, sig, collider)
-    emit(collider, sig, entity)
+    signal::emit(entity, sig, collider)
+    signal::emit(collider, sig, entity)
 })
 
 /**
@@ -1853,8 +1838,8 @@ externals::set("physics_collide_area", func(cn, uid, cont) {
     var collider, entity = ents::get_dynamic(cn), ents::get_static(uid)
     if !collider || !entity { return }
     var sig = collidesignals[cont]
-    emit(entity, sig, collider)
-    emit(collider, sig, entity)
+    signal::emit(entity, sig, collider)
+    signal::emit(collider, sig, entity)
 })
 
 ents::register_prototype(M.Marker)
