@@ -1,6 +1,5 @@
 /**<
-    Vector math, matrix math and geometry utilities. Roughly equivalent
-    to geom.h in the core engine plus extensions.
+    Geometry utilities.
 
     Author:
         q66 <daniel@octaforge.org>
@@ -48,57 +47,3 @@ export func floor_distance(self, max_dist, radius, lowest) {
 export func is_los(self, d) {
     return capi::ray_los(self.x, self.y, self.z, d.x, d.y, d.z)
 }
-
-
-from std.table import getmt, setmt, rawget, rawset
-
-var ntoi2 = { x: 0, y: 1 }
-var ntoi3 = { x: 0, y: 1, z: 2, r: 0, g: 1, b: 2 }
-var ntoi4 = { x: 0, y: 1, z: 2, w: 3, r: 0, g: 1, b: 2, a: 3 }
-
-var disallow = {
-    from_array: true,
-    from_vec2: true,
-    from_vec3: true,
-    from_yaw_pitch: true,
-    from_hex_color: true,
-    __OCT_actually_is_array: true
-}
-
-func gen_vec_surrogate(name, base, ltable) {
-    var surrtbl
-    surrtbl = {
-        name: name,
-        new: func(self, ent, svar) {
-            return setmt({ entity: ent, variable: svar }, self)
-        },
-        __eq: func(self, o) { return self.equals (o) },
-        __mul: func(self, o) { return self.mul_new(o) },
-        __div: func(self, o) { return self.div_new(o) },
-        __add: func(self, o) { return self.add_new(o) },
-        __sub: func(self, o) { return self.sub_new(o) },
-        __tostring: (ltable.w && func(self) {
-            return "%s <%f, %f, %f, %f>".format(name, self.x, self.y,
-                self.z, self.w)
-        } || (ltable.z && func(self) {
-            return "%s <%f, %f, %f>".format(name, self.x, self.y, self.z)
-        } || func(self) {
-            return "%s <%f, %f>".format(name, self.x, self.y)
-        })),
-        __index: func(self, n) {
-            var i = (n == 0 || n == 1 || n == 2 || n == 3) ? n : ltable[n]
-            if i { return self.variable.get_item(self.entity, i) }
-            return (!disallow[n] ? base[n] : undef) || surrtbl[n] || rawget(self, n)
-        },
-        __newindex: func(self, n, val) {
-            var i = ltable[n]
-            if i { return self.variable.set_item(self.entity, i, val) }
-            rawset(self, n, val)
-        }
-    }
-    return surrtbl
-}
-
-export var Vec2_Surrogate = gen_vec_surrogate("Vec2_Surrogate", Vec2, ntoi2)
-export var Vec3_Surrogate = gen_vec_surrogate("Vec3_Surrogate", Vec3, ntoi3)
-export var Vec4_Surrogate = gen_vec_surrogate("Vec4_Surrogate", Vec4, ntoi4)

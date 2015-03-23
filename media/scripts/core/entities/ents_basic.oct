@@ -770,7 +770,8 @@ M.Character = Entity.clone({
         eye height (i.e. the given position refers to feet position).
     */
     place_at: func(self, pos) {
-        self.set_attr("position", pos.copy().add_z(self.get_attr("eye_height")))
+        self.set_attr("position", Vec3.from_array(pos)
+            .add_z(self.get_attr("eye_height")))
     },
 
     /**

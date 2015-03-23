@@ -622,30 +622,24 @@ export var StateArrayFloat = StateArray.clone({
 })
 
 /**
-    A specialization of StateArrayFloat, providing its own surrogate,
-    {{$ogeom.Vec2_Surrogate}}. Other than that, no changes are made.
+    A specialization of StateArrayFloat.
 */
 export var StateVec2 = StateArrayFloat.clone({
-    name: "StateVec2",
-    surrogate: ogeom.Vec2_Surrogate
+    name: "StateVec2"
 })
 
 /**
-    A specialization of StateArrayFloat, providing its own surrogate,
-    {{$ogeom.Vec3_Surrogate}}. Other than that, no changes are made.
+    A specialization of StateArrayFloat.
 */
 export var StateVec3 = StateArrayFloat.clone({
-    name: "StateVec3",
-    surrogate: ogeom.Vec3_Surrogate
+    name: "StateVec3"
 })
 
 /**
-    A specialization of StateArrayFloat, providing its own surrogate,
-    {{$ogeom.Vec4_Surrogate}}. Other than that, no changes are made.
+    A specialization of StateArrayFloat.
 */
 export var StateVec4 = StateArrayFloat.clone({
-    name: "StateVec4",
-    surrogate: ogeom.Vec4_Surrogate
+    name: "StateVec4"
 })
 
 /**
