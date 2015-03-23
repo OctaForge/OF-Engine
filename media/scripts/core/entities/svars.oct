@@ -333,7 +333,6 @@ export var StateString = StateVariable.clone({
 })
 
 from std.table import getmt, setmt
-from std.util import proxy as newproxy
 
 import std.array
 
@@ -361,14 +360,7 @@ ArraySurrogate = {
     */
     new: func(self, ent, svar) {
         @[debug] log(INFO, "ArraySurrogate: new: " ~ svar.name)
-        var rawt = { entity: ent, variable: svar }
-        rawt.rawt = rawt // yay!cycles!
-        var ret = newproxy(true)
-        var mt  = getmt(ret)
-        mt.__tostring = self.__tostring
-        mt.__index    = setmt(rawt, self)
-        mt.__newindex = self.__newindex
-        return ret
+        return setmt({ entity: ent, variable: svar }, self)
     },
 
     /// Makes surrogate objects return their names on tostring.
@@ -388,11 +380,11 @@ ArraySurrogate = {
         }
         var n = tonumber(name)
         if !n {
-            return ArraySurrogate[name] || rawget(self.rawt, name)
+            return ArraySurrogate[name] || rawget(self, name)
         }
         var i = floor(n)
         if i != n {
-            return ArraySurrogate[name] || rawget(self.rawt, name)
+            return ArraySurrogate[name] || rawget(self, name)
         }
 
         var v = self.variable
@@ -408,9 +400,9 @@ ArraySurrogate = {
     */
     __newindex: func(self, name, val) {
         var n = tonumber(name)
-        if !n { return rawset(self.rawt, name, val) }
+        if !n { return rawset(self, name, val) }
         var i = floor(n)
-        if i != n { return rawset(self.rawt, name, val) }
+        if i != n { return rawset(self, name, val) }
 
         var v = self.variable
         v.set_item(self.entity, i, val)

@@ -51,7 +51,6 @@ export func is_los(self, d) {
 
 
 from std.table import getmt, setmt, rawget, rawset
-from std.util import proxy as newproxy
 
 var ntoi2 = { x: 0, y: 1 }
 var ntoi3 = { x: 0, y: 1, z: 2, r: 0, g: 1, b: 2 }
@@ -62,31 +61,22 @@ var disallow = {
     from_vec2: true,
     from_vec3: true,
     from_yaw_pitch: true,
-    from_hex_color: true
+    from_hex_color: true,
+    __OCT_actually_is_array: true
 }
-
-func surr_eq (self, o) { return self.equals (o) }
-func surr_mul(self, o) { return self.mul_new(o) }
-func surr_div(self, o) { return self.div_new(o) }
-func surr_add(self, o) { return self.add_new(o) }
-func surr_sub(self, o) { return self.sub_new(o) }
 
 func gen_vec_surrogate(name, base, ltable) {
     var surrtbl
     surrtbl = {
         name: name,
         new: func(self, ent, svar) {
-            var rawt = { entity: ent, variable: svar }
-            rawt.rawt = rawt
-            var ret = newproxy(true)
-            var mt = getmt(ret)
-            mt.__tostring = self.__tostring
-            mt.__index    = setmt(rawt, self)
-            mt.__newindex = self.__newindex
-            mt.__eq, mt.__mul, mt.__div, mt.__add, mt.__sub
-                = surr_eq, surr_mul, surr_div, surr_add, surr_sub
-            return ret
+            return setmt({ entity: ent, variable: svar }, self)
         },
+        __eq: func(self, o) { return self.equals (o) },
+        __mul: func(self, o) { return self.mul_new(o) },
+        __div: func(self, o) { return self.div_new(o) },
+        __add: func(self, o) { return self.add_new(o) },
+        __sub: func(self, o) { return self.sub_new(o) },
         __tostring: (ltable.w && func(self) {
             return "%s <%f, %f, %f, %f>".format(name, self.x, self.y,
                 self.z, self.w)
@@ -98,12 +88,12 @@ func gen_vec_surrogate(name, base, ltable) {
         __index: func(self, n) {
             var i = ltable[n]
             if i { return self.variable.get_item(self.entity, i) }
-            return (!disallow[n] ? base[n] : undef) || surrtbl[n] || rawget(self.rawt, n)
+            return (!disallow[n] ? base[n] : undef) || surrtbl[n] || rawget(self, n)
         },
         __newindex: func(self, n, val) {
             var i = ltable[n]
             if i { return self.variable.set_item(self.entity, i, val) }
-            rawset(self.rawt, n, val)
+            rawset(self, n, val)
         }
     }
     return surrtbl
