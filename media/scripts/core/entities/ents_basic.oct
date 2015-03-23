@@ -32,8 +32,8 @@ from core.engine.model import anim_control as animctl, anims
 
 from std.conv import tonumber, tostring, hex_to_rgb as hextorgb
 from std.math import abs, min, max, clamp
-
 from std.util import assert
+from std.geom import Vec3
 
 from capi import set_attachments_dyn, set_attachments_ext
 
@@ -508,7 +508,7 @@ M.Character = Entity.clone({
             self.set_attr("physics_trigger", 0)
 
             var pos = (self != ents::get_player())
-                && self.get_attr("position") || undef
+                && Vec3.from_array(self.get_attr("position")) || undef
 
             var lst = val & MASK_LIQUID
             if lst == FLAG_ABOVELIQUID {
@@ -597,8 +597,8 @@ M.Character = Entity.clone({
         var iw = self.get_attr("in_liquid")
         var mv, sf = self.get_attr("move"), self.get_attr("strafe")
 
-        var vel, fall = self.get_attr("velocity").copy(),
-            self.get_attr("falling").copy()
+        var vel, fall = Vec3.from_array(self.get_attr("velocity")),
+            Vec3.from_array(self.get_attr("falling"))
         var tia = self.get_attr("time_in_air")
 
         var cr = self.get_attr("crouching")
@@ -732,7 +732,7 @@ M.Character = Entity.clone({
         non-standard. By default it's 0.75 * eye_height above feet.
     */
     get_center: func(self) {
-        var r = self.get_attr("position").copy()
+        var r = Vec3.from_array(self.get_attr("position"))
         r.z = r.z - self.get_attr("eye_height") * 0.25
         return r
     },
@@ -777,14 +777,15 @@ M.Character = Entity.clone({
         Gets the feet position of the cahracter.
     */
     get_feet_position: func(self) {
-        return self.get_attr("position").copy().sub_z(self.get_attr("eye_height"))
+        return Vec3.from_array(self.get_attr("position"))
+            .sub_z(self.get_attr("eye_height"))
     },
 
     /**
         Gets the head position of the cahracter.
     */
     get_head_position: func(self) {
-        return self.get_attr("position").copy()
+        return Vec3.from_array(self.get_attr("position"))
     },
 
     /**
@@ -1157,7 +1158,7 @@ M.StaticEntity = Entity.clone({
         May be overloaded for other entity types.
     */
     get_center: func(self) {
-        return self.get_attr("position").copy()
+        return Vec3.from_array(self.get_attr("position"))
     },
 
     /**

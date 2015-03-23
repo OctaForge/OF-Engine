@@ -773,7 +773,7 @@ Entity = Object.clone({
     */
     add_tag: func(self, tag) {
         if !self.has_tag(tag) {
-            self.get_attr("tags").push(tag)
+            self["_SV_tags"].push_item(self, tag)
         }
     },
 

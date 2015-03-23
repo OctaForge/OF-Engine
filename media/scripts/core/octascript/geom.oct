@@ -86,7 +86,7 @@ func gen_vec_surrogate(name, base, ltable) {
             return "%s <%f, %f>".format(name, self.x, self.y)
         })),
         __index: func(self, n) {
-            var i = ltable[n]
+            var i = (n == 0 || n == 1 || n == 2 || n == 3) ? n : ltable[n]
             if i { return self.variable.get_item(self.entity, i) }
             return (!disallow[n] ? base[n] : undef) || surrtbl[n] || rawget(self, n)
         },
