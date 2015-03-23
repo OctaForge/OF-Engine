@@ -76,7 +76,7 @@ var MouseAction = actions.Action.clone({
     try_block: func(self) {
         var pl = self.player
         var tg = input::get_target_position()
-        var pos = pl.get_attr("position").copy()
+        var pos = pl.get_attr("position")
         var bf
         if self.button == 1 {
             tg.add((tg - pos).normalize())

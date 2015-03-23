@@ -24,6 +24,7 @@ from std.table import rawget, rawset
 from std.math import abs, round, floor
 from std.conv import tonumber, tostring
 from std.util import assert
+from std.geom import Vec2, Vec3, Vec4
 
 func define_accessors(cl, n, gf, sf, d) {
     cl["__get_" ~ n] = func(self) {
@@ -195,7 +196,7 @@ export var StateVariable = Object.clone({
 
         @[debug] log(INFO, "StateVariable: getter: getter function")
 
-        var val = self.__sdata_call_cb_get(svar.getter_fun)
+        var val = svar.to_storage(self.__sdata_call_cb_get(svar.getter_fun))
         self.svar_values[vn] = val
         self.svar_value_timestamps[vn] = fr
 
@@ -262,6 +263,14 @@ export var StateVariable = Object.clone({
     */
     to_serializable: func(self, val) {
         return tostring(val) || ""
+    },
+
+    /**
+        Convers the given value to a format suitable for storage.
+        By default calls $to_serializable.
+    */
+    to_storage: func(self, val) {
+        return self.to_serializable(val)
     }
 })
 
@@ -336,163 +345,11 @@ from std.table import getmt, setmt
 
 import std.array
 
-var ArraySurrogate
-
 /**
-    Represents a "surrogate" for an array. Behaves like a regular
-    array, but does not actually contain anything; it merely serves
-    as an interface for state variables like $StateArray.
-
-    You can manipulate this like a regular array (check its length,
-    index it, assign indexes) but many of the functions from the
-    table library likely won't work.
-
-    Note that surrogates are not regular objects created using the
-    prototypal system. They're manually managed with metatables and
-    proxies in order to more closely emulate the appropriate semantics.
-*/
-ArraySurrogate = {
-    name: "ArraySurrogate",
-
-    /**
-        Constructs the array surrogate. Defines its members "entity"
-        and "variable", assigned using the provided arguments.
-    */
-    new: func(self, ent, svar) {
-        @[debug] log(INFO, "ArraySurrogate: new: " ~ svar.name)
-        return setmt({ entity: ent, variable: svar }, self)
-    },
-
-    /// Makes surrogate objects return their names on tostring.
-    __tostring: func(self) {
-        return self.name
-    },
-
-    /**
-        Called each time you index an array surrogate. It checks
-        the validity of the given index by converting it to a number
-        and flooring it. On invalid indexes, it simply fallbacks to
-        regular indexing.
-    */
-    __index: func(self, name) {
-        if name == "__size" {
-            return self.len()
-        }
-        var n = tonumber(name)
-        if !n {
-            return ArraySurrogate[name] || rawget(self, name)
-        }
-        var i = floor(n)
-        if i != n {
-            return ArraySurrogate[name] || rawget(self, name)
-        }
-
-        var v = self.variable
-        return v.get_item(self.entity, i)
-    },
-
-    /**
-        Called each time you set an index on an array surrogate. It checks
-        the validity of the given index by converting it to a number and
-        flooring it. If the given index is not an integer, this fallbacks
-        to regular setting. Otherwise sets the corresponding element using
-        the state variable.
-    */
-    __newindex: func(self, name, val) {
-        var n = tonumber(name)
-        if !n { return rawset(self, name, val) }
-        var i = floor(n)
-        if i != n { return rawset(self, name, val) }
-
-        var v = self.variable
-        v.set_item(self.entity, i, val)
-    },
-
-    /// Returns the length of the "array" represented by the state variable.
-    len: func(self) {
-        var v = self.variable
-        return v.get_length(self.entity)
-    },
-
-    /// Returns a raw array of values stored using the state variable.
-    to_array: func(self) {
-        var l = self.len()
-        var r = []
-        for i in 0 to l - 1 {
-            r.push(self[i])
-        }
-        return r
-    },
-
-    /// Appends an element. For convenience only.
-    push: func(self, v) {
-        self.variable.push_item(self.entity, v)
-    },
-
-    map: array.map,
-    merge: array.merge,
-    filter: array.filter,
-    find: array.find,
-    find_r: array.find_r,
-    foldr: array.foldr,
-    foldl: array.foldl,
-    each: array.each,
-    each_r: array.each_r,
-    first: array.first,
-    last: array.last,
-    empty: array.empty
-}
-
-export ArraySurrogate
-
-/**
-    Specialization of <StateVariable> for arrays. Uses $ArraySurrogate
-    to provide an array-like "interface". The surrogate is required to
-    properly reflect array element changes.
+    Specialization of $StateVariable for arrays.
 */
 export var StateArray = StateVariable.clone({
     name: "StateArray",
-
-    /**
-        Specifies the surrogate used by the state variable. By default
-        it's $ArraySurrogate, but may be overriden.
-    */
-    surrogate: ArraySurrogate,
-
-    /**
-        Instead of returning the raw value in non-data format, this
-        overriden getter returns the appropriate $surrogate. It
-        does not create a new surrogate each time; it's cached
-        for performance reasons. Performs read tests.
-
-        See also:
-            - {{$StateVariable.getter}}
-    */
-    getter: func(self, svar) {
-        svar.read_tests(self)
-
-        if !svar.get_raw(self) { return undef }
-
-        var n = "__as_" ~ svar.name
-        if !self[n] { self[n] = svar.surrogate.new(self, svar) }
-        return self[n]
-    },
-
-    /**
-        Works the same as the default setter, but if a surrogate is
-        given, then it converts it to a raw array and if a table
-        is given, it copies the table before setting it.
-
-        See also:
-            - {{$StateVariable.setter}}
-    */
-    setter: func(self, val, svar) {
-        @[debug] log(INFO, "StateArray: setter: " ~ tostring(val))
-        svar.write_tests(self)
-
-        self.set_sdata(svar.name,
-            val.to_array && val.to_array() || val.copy(), -1)
-    },
 
     /** Function: to_data_item
         This is not a regular method, it has no self. It's called by
@@ -508,10 +365,6 @@ export var StateArray = StateVariable.clone({
     */
     from_data_item: tostring,
 
-    /**
-        Returns the contents of the state array in a data format. The value
-        can be either an array or an array surrogate.
-    */
     to_data: func(self, val) {
         return ts(self.to_serializable(val).map(
             \v -> self::from_data_item(self::to_data_item(v))))
@@ -535,69 +388,6 @@ export var StateArray = StateVariable.clone({
             return val.to_array()
         }
         return []
-    },
-
-    /**
-        Returns the raw array of state data. Retrieved from var storage
-        without syncing assuming there is either no existing getter function
-        or a sufficient cached value. Otherwise returns the result of a
-        getter function call and caches it.
-    */
-    get_raw: func(self, ent) {
-        var vn = self.name
-        @[debug] log(INFO, "StateArray: get_raw: " ~ vn)
-
-        var srv = self.client_cb && msg::is_server_only()
-        if srv || !self.getter_fun {
-            return ent.svar_values[vn] || []
-        }
-
-        var fr = frame::get_frame()
-
-        if ent.svar_value_timestamps[vn] == fr {
-            return ent.svar_values[vn]
-        }
-
-        @[debug] log(INFO, "StateArray: get_raw: getter function")
-
-        var val = ent.__sdata_call_cb_get(self.getter_fun)
-        ent.svar_values[vn] = val
-        ent.svar_value_timestamps[vn] = fr
-
-        return val
-    },
-
-    /// Retrieves the state array length. Used by the surrogate.
-    get_length: func(self, ent) {
-        return self.get_raw(ent).len()
-    },
-
-    /**
-        Retrieves a specific element from the state array. Used by
-        the surrogate.
-    */
-    get_item: func(self, ent, idx) {
-        @[debug] log(INFO, "StateArray: get_item: " ~ idx)
-        return self.get_raw(ent)[idx]
-    },
-
-    /**
-        Sets an element in the state array. Used by the surrogate. Performs
-        an update on all clients by setting the state data on the entity.
-    */
-    set_item: func(self, ent, idx, val) {
-        @[debug] log(INFO, "StateArray: set_item: " ~ idx ~ ", "
-            ~ tostring(val))
-        var a = self.get_raw(ent)
-        a[idx] = val
-        ent.set_sdata(self.name, a, -1)
-    },
-
-    push_item: func(self, ent, val) {
-        @[debug] log(INFO, "StateArray: push: " ~ tostring(val))
-        var a = self.get_raw(ent)
-        a.push(val)
-        ent.set_sdata(self.name, a, -1)
     }
 })
 
@@ -625,21 +415,42 @@ export var StateArrayFloat = StateArray.clone({
     A specialization of StateArrayFloat.
 */
 export var StateVec2 = StateArrayFloat.clone({
-    name: "StateVec2"
+    name: "StateVec2",
+
+    to_storage: func(self, v) {
+        if typeof v == "array" {
+            return Vec2.from_array(v)
+        }
+        return v.copy()
+    }
 })
 
 /**
     A specialization of StateArrayFloat.
 */
 export var StateVec3 = StateArrayFloat.clone({
-    name: "StateVec3"
+    name: "StateVec3",
+
+    to_storage: func(self, v) {
+        if typeof v == "array" {
+            return Vec3.from_array(v)
+        }
+        return v.copy()
+    }
 })
 
 /**
     A specialization of StateArrayFloat.
 */
 export var StateVec4 = StateArrayFloat.clone({
-    name: "StateVec4"
+    name: "StateVec4",
+
+    to_storage: func(self, v) {
+        if typeof v == "array" {
+            return Vec4.from_array(v)
+        }
+        return v.copy()
+    }
 })
 
 /**

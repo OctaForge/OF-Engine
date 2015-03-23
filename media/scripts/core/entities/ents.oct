@@ -773,7 +773,8 @@ Entity = Object.clone({
     */
     add_tag: func(self, tag) {
         if !self.has_tag(tag) {
-            self["_SV_tags"].push_item(self, tag)
+            self.get_attr("tags").push(tag)
+            self.update_attr("tags")
         }
     },
 
@@ -791,7 +792,7 @@ Entity = Object.clone({
     */
     has_tag: func(self, tag) {
         @[debug] log(DEBUG, e"Entity: has_tag ($tag)")
-        return self.get_attr("tags").to_array().find(tag) != undef
+        return self.get_attr("tags").find(tag) != undef
     },
 
     /**
@@ -931,6 +932,7 @@ Entity = Object.clone({
         var srv = svar.client_cb && msg::is_server_only()
         if srv { return }
         @[debug] log(INFO, e"Calling setter function for $name")
+        val = svar.to_storage(val)
         self.__sdata_call_cb_set(sfun, val)
         @[debug] log(INFO, "Setter called")
         self.svar_values[name] = val
@@ -952,7 +954,7 @@ Entity = Object.clone({
             return
         }
 
-        self.svar_values[key] = val
+        self.svar_values[key] = svar.to_storage(val)
         @[debug] log(INFO, e"Entity.set_sdata: new sdata: $(tostring(val))")
 
         if !iop && svar.client_read && !csfh {
@@ -1036,7 +1038,7 @@ Entity = Object.clone({
             }
             self.sdata_changed(svar, key, val)
             signal::emit(self, e"$key,changed", val, actor_uid != -1)
-            self.svar_values[key] = val
+            self.svar_values[key] = svar.to_storage(val)
         }
     },
 
@@ -1185,6 +1187,13 @@ Entity = Object.clone({
         }
         var fun = self[e"__set_$prop"]
         return fun && fun(self, val) || undef
+    },
+
+    /// Updates an attribute.
+    update_attr: func(self, prop) {
+        var gf, sf = self[e"__get_$prop"], self[e"__set_$prop"]
+        if !gf || !sf { return }
+        sf(self, gf(self))
     },
 
     /**

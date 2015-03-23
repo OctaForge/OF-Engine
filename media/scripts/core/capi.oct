@@ -73,7 +73,7 @@ func luastate.capi_restore() {
     }
 
     func capi.set_extent_position(ent, pos) {
-        set_extent_position(ent, pos[0], pos[1], pos[2])
+        set_extent_position(ent, pos.x, pos.y, pos.z)
     }
 
     capi.get_maxspeed = gen_getwrap(capi.get_maxspeed, "float")
@@ -111,7 +111,7 @@ func luastate.capi_restore() {
     }
 
     func capi.set_dynent_position(ent, pos) {
-        set_dynent_position(ent, pos[0], pos[1], pos[2])
+        set_dynent_position(ent, pos.x, pos.y, pos.z)
     }
 
     var get_dynent_velocity, set_dynent_velocity in capi
@@ -123,7 +123,7 @@ func luastate.capi_restore() {
     }
 
     func capi.set_dynent_velocity(ent, vel) {
-        set_dynent_velocity(ent, vel[0], vel[1], vel[2])
+        set_dynent_velocity(ent, vel.x, vel.y, vel.z)
     }
 
     var get_dynent_falling, set_dynent_falling in capi
@@ -135,7 +135,7 @@ func luastate.capi_restore() {
     }
 
     func capi.set_dynent_falling(ent, fl) {
-        set_dynent_falling(ent, fl[0], fl[1], fl[2])
+        set_dynent_falling(ent, fl.x, fl.y, fl.z)
     }
 
     capi.get_ping = gen_getwrap(capi.get_ping, "int")

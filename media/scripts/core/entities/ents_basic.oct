@@ -508,7 +508,7 @@ M.Character = Entity.clone({
             self.set_attr("physics_trigger", 0)
 
             var pos = (self != ents::get_player())
-                && Vec3.from_array(self.get_attr("position")) || undef
+                && self.get_attr("position") || undef
 
             var lst = val & MASK_LIQUID
             if lst == FLAG_ABOVELIQUID {
@@ -597,8 +597,8 @@ M.Character = Entity.clone({
         var iw = self.get_attr("in_liquid")
         var mv, sf = self.get_attr("move"), self.get_attr("strafe")
 
-        var vel, fall = Vec3.from_array(self.get_attr("velocity")),
-            Vec3.from_array(self.get_attr("falling"))
+        var vel, fall = self.get_attr("velocity").copy(),
+            self.get_attr("falling").copy()
         var tia = self.get_attr("time_in_air")
 
         var cr = self.get_attr("crouching")
@@ -732,7 +732,7 @@ M.Character = Entity.clone({
         non-standard. By default it's 0.75 * eye_height above feet.
     */
     get_center: func(self) {
-        var r = Vec3.from_array(self.get_attr("position"))
+        var r = self.get_attr("position").copy()
         r.z = r.z - self.get_attr("eye_height") * 0.25
         return r
     },
@@ -770,15 +770,14 @@ M.Character = Entity.clone({
         eye height (i.e. the given position refers to feet position).
     */
     place_at: func(self, pos) {
-        self.set_attr("position", Vec3.from_array(pos)
-            .add_z(self.get_attr("eye_height")))
+        self.set_attr("position", pos.copy().add_z(self.get_attr("eye_height")))
     },
 
     /**
         Gets the feet position of the cahracter.
     */
     get_feet_position: func(self) {
-        return Vec3.from_array(self.get_attr("position"))
+        return self.get_attr("position").copy()
             .sub_z(self.get_attr("eye_height"))
     },
 
@@ -786,7 +785,7 @@ M.Character = Entity.clone({
         Gets the head position of the cahracter.
     */
     get_head_position: func(self) {
-        return Vec3.from_array(self.get_attr("position"))
+        return self.get_attr("position").copy()
     },
 
     /**
@@ -1124,7 +1123,7 @@ M.StaticEntity = Entity.clone({
         self.initialized = true
 
         // need to do this in order to trigger C setters
-        self.set_attr("position", self.get_attr("position"))
+        self.update_attr("position")
         for i in 1 to self.attr_num {
             var an = "attr" ~ i
             self.set_attr(an, self.get_attr(an))
@@ -1149,6 +1148,7 @@ M.StaticEntity = Entity.clone({
         if !svar.validate(val) {
             raise e"received invalid value for svar $key ($(tostring(val)))"
         }
+        val = svar.to_storage(val)
         self.sdata_changed(svar, key, val)
         signal::emit(self, e"$key,changed", val, actor_uid != -1)
         self.svar_values[key] = val
@@ -1159,7 +1159,7 @@ M.StaticEntity = Entity.clone({
         May be overloaded for other entity types.
     */
     get_center: func(self) {
-        return Vec3.from_array(self.get_attr("position"))
+        return self.get_attr("position").copy()
     },
 
     /**
@@ -1240,7 +1240,7 @@ externals::set("entity_set_pos", func(uid, x, y, z) {
     if !ent { return }
     // bypass any sort of sync or update here...
     var arr = ent.svar_values["position"]
-    arr[0], arr[1], arr[2] = x, y, z
+    arr.x, arr.y, arr.z = x, y, z
     var uid = ent.uid
     capi::removeentityedit(uid)
     capi::set_extent_position(uid, arr)

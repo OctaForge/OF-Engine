@@ -122,7 +122,7 @@ var GamePlayer = ents.Player.clone({
 
         if self.pressing {
             var newp = input::get_target_position()
-            var topl = Vec3.from_array(self.get_attr("position")).sub(newp)
+            var topl = self.get_attr("position").sub_new(newp)
             newp.add(topl.normalize())
             if newb || (marks[marks.len() - 2].dist(newp) > 5) {
                 var p = newp.to_array()
