@@ -1,4 +1,4 @@
-import capi
+import core.engine.edit
 import core.events.signal
 import core.gui.core as gui
 from core.engine.cubescript import execute
@@ -18,7 +18,7 @@ func gen_menu_default() {
 }
 
 func gen_map_list(img, vb) {
-    var glob, loc = capi::get_all_map_names()
+    var glob, loc = edit::get_all_map_names()
     var current_preview
 
     func ml_section(lbl, arr) {

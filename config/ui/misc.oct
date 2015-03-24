@@ -1,6 +1,6 @@
-import capi
 import core.events.signal
 import core.gui.core as gui
+import core.engine.edit
 import core.engine.cubescript as cs
 import core.engine.changes
 from std.math import min
@@ -10,8 +10,8 @@ var root = gui::get_root()
 root.new_window("fullconsole", gui.Overlay, func(win) {
     win.clamp(true, true, false, false)
     win.align(0, -1)
-    capi::console_full_show(true)
-    signal::connect(win, "destroy", \-> capi::console_full_show(false))
+    cs::var_set("fullconsole", 1)
+    signal::connect(win, "destroy", \-> cs::var_set("fullconsole", 0))
     win.append(gui::Filler({ variant: "console", clamp: true }))
 })
 
@@ -206,7 +206,7 @@ root.new_window("savemap", gui.Window, func(win) {
             gui::Label({ text: "Map name (\f8/savemap <mapname>\f7):" })))
         b.append(gui::Spacer({ pad_v: 0.01, pad_h: 0.005, clamp_h: true },
             gui::Line({ clamp_h: true, variant: "separator" })))
-        var ed = b.append(gui::Field({ clip_w: 0.35, value: capi::get_map_name() }))
+        var ed = b.append(gui::Field({ clip_w: 0.35, value: edit::get_current_map_name() }))
         b.append(gui::Filler({ clamp_h: true, min_h: 0.01 }))
         b.append(gui::Spacer({ pad_v: 0.005, pad_h: 0.005, clamp_h: true },
             gui::HBox({ padding: 0.01 },

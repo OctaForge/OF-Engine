@@ -77,9 +77,7 @@ HVARP(fullconfilter, 0, 0xFFFFFF, 0xFFFFFF);
 HVARP(miniconfilter, 0, 0, 0xFFFFFF);
 
 int conskip = 0, miniconskip = 0;
-bool fullconsole = false;
-
-CLUAICOMMAND(console_full_show, void, (bool v), fullconsole = v);
+VAR(fullconsole, 0, 0, 1);
 
 void setconskip(int &skip, int filter, int n)
 {

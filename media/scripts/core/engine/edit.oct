@@ -508,3 +508,9 @@ export var get_material = capi.edit_get_material
     Retrieves the current world size in cube units.
 */
 export var get_world_size = edit_get_world_size
+
+/// Returns the list of global and local map names.
+export var get_all_map_names = capi.get_all_map_names
+
+/// Returns the current map name.
+export var get_current_map_name = capi.get_map_name
