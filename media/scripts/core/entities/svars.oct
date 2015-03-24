@@ -26,15 +26,6 @@ from std.conv import tonumber, tostring
 from std.util import assert
 from std.geom import Vec2, Vec3, Vec4
 
-func define_accessors(cl, n, gf, sf, d) {
-    cl["__get_" ~ n] = func(self) {
-        return gf(self, d)
-    }
-    cl["__set_" ~ n] = func(self, v) {
-        return sf(self, v, d)
-    }
-}
-
 /**
     Provides a base object for a state variable. Specialized svar types
     clone this and define their own methods. Fields can be initialized via
@@ -124,14 +115,10 @@ export var StateVariable = Object.clone({
         assert(self.getter)
         assert(self.setter)
 
-        @[debug] log(DEBUG, "StateVariable: register: getter/setter")
-        define_accessors(cl, name, self.getter, self.setter, self)
-
         var an = self.alt_name
         if an {
             @[debug] log(DEBUG, "StateVariable: register: alt g/s")
             cl["_SV_" ~ an] = self
-            define_accessors(cl, an, self.getter, self.setter, self)
         }
         var gn = self.gui_name
         if gn != false {
@@ -483,9 +470,6 @@ export var StateVariableAlias = StateVariable.clone({
         self.name = name
         var tg = cl["_SV_" ~ self.target_name]
         cl["_SV_" ~ name] = tg
-
-        @[debug] log(DEBUG, "StateVariableAlias: register: getter/setter")
-        define_accessors(cl, name, self.getter, self.setter, self)
     }
 })
 

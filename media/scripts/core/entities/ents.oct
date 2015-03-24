@@ -1157,9 +1157,9 @@ Entity = Object.clone({
     */
     get_attr: func(self, prop) {
         prop = self.attrnum_to_name(prop)
-        var fun = self[e"__get_$prop"]
-        if fun { return fun(self) }
-        return undef
+        var svar = self[e"_SV_$prop"]
+        if !svar { return undef }
+        return svar::getter(self, svar)
     },
 
     /** Function: set_attr
@@ -1178,22 +1178,20 @@ Entity = Object.clone({
     */
     set_attr: func(self, prop, val, nd) {
         prop = self.attrnum_to_name(prop)
-        if nd {
-            var svar = self[e"_SV_$prop"]
-            if svar {
-                var nw = svar.from_data(nd)
-                if nw != undef { val = nw }
-            }
+        var svar = self[e"_SV_$prop"]
+        if !svar { return }
+        if nd != undef {
+            var nw = svar.from_data(nd)
+            if nw != undef { val = nw }
         }
-        var fun = self[e"__set_$prop"]
-        return fun && fun(self, val) || undef
+        svar::setter(self, val, svar)
     },
 
     /// Updates an attribute.
     update_attr: func(self, prop) {
-        var gf, sf = self[e"__get_$prop"], self[e"__set_$prop"]
-        if !gf || !sf { return }
-        sf(self, gf(self))
+        var svar = self[e"_SV_$prop"]
+        if !svar { return }
+        svar::setter(self, svar::getter(self, svar), svar)
     },
 
     /**
@@ -1209,16 +1207,11 @@ Entity = Object.clone({
         if !svar { return undef }
         var step = step || svar.add_step || 1
 
-        var gfun = self[e"__get_$prop"]
-        if !gfun { return undef }
-        var val = gfun(self)
+        var val = svar::getter(self, svar)
         if typeof val != "number" { return undef }
 
-        var sfun = self[e"__set_$prop"]
-        if !sfun { return undef }
-        sfun(self, val + step)
-
-        return gfun(self), val
+        svar::setter(self, val + step, svar)
+        return svar::getter(self, svar), val
     },
 
     /// Like $add_attr, but subtracts.
