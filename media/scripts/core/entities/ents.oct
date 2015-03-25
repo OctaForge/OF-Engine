@@ -969,6 +969,9 @@ Entity = Object.clone({
 
             var cns = get_players().map(\p -> p.cn)
             for i, n in cns.each() {
+                if actor_uid == n && svar.client_set {
+                    continue
+                }
                 if svar.should_send(self, n) {
                     msg_sdata_update_send(self, n, svar.reliable,
                         tonumber(kid), wval, acn)
