@@ -8,7 +8,6 @@
 
 #ifdef __APPLE__
 extern "C" {
-    char *mac_get_homedir();
     void  mac_set_datapath();
 }
 #endif
@@ -965,6 +964,31 @@ int getclockmillis()
 
 VAR(numcpus, 1, 1, 16);
 
+static const char *determinehomedir() {
+    static string hdir = { '\0' };
+#ifdef WIN32
+    copystring(hdir, "$HOME\\My Games\\OctaForge");
+#else
+#ifdef __APPLE__
+    /* SDL_GetPrefPath is nasty and doesn't allow us to omit the org... */
+    char *shdir = SDL_GetPrefPath("", "");
+    if (!shdir) {
+        return NULL;
+    } else {
+        /* We find a way around that manually */
+        const char appn[] = "OctaForge";
+        int len = strlen(shdir);
+        memcpy(hdir, shdir, len - 2);
+        memcpy(hdir + len - 2, "OctaForge", sizeof(appn));
+        SDL_free(shdir);
+    }
+#else
+    copystring(hdir, "$HOME/.octaforge");
+#endif
+#endif
+    return hdir;
+}
+
 int main(int argc, char **argv)
 {
     #ifdef WIN32
@@ -1014,17 +1038,8 @@ int main(int argc, char **argv)
         }
     }
     if (!dir) {
-#ifdef WIN32
-        dir = sethomedir("$HOME\\My Games\\OctaForge");
-#else
-#ifdef __APPLE__
-        char *hdir = mac_get_homedir();
-        dir = sethomedir(hdir);
-        free(hdir);
-#else
-        dir = sethomedir("$HOME/.octaforge");
-#endif
-#endif
+        const char *hdir = determinehomedir();
+        if (hdir) dir = sethomedir(hdir);
     }
     if (dir) {
         logoutf("Using home directory: %s", dir);

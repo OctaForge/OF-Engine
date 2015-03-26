@@ -8,19 +8,6 @@
 #import <Cocoa/Cocoa.h>
 
 #define BUNDLE_NAME @"OctaForge"
-#define HOME_FALLBACK "$HOME/.octaforge"
-
-char *mac_get_homedir() {
-    NSFileManager *fm = [NSFileManager defaultManager];
-    NSArray *supports = [fm URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask];
-    if ([supports count]) {
-        NSString *path = [[supports objectAtIndex:0] path];
-        path = [path stringByAppendingPathComponent:BUNDLE_NAME];
-        if (![fm fileExistsAtPath:path]) [fm createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:nil]; // ensure it exists
-        return strdup([path UTF8String]);
-    }
-    return strdup(HOME_FALLBACK);
-}
 
 void mac_set_datapath() {
     NSString *path = [[NSBundle mainBundle] bundlePath];
