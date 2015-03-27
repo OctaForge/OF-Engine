@@ -964,8 +964,7 @@ int getclockmillis()
 
 VAR(numcpus, 1, 1, 16);
 
-static const char *determinehomedir() {
-    static string hdir = { '\0' };
+static const char *determinehomedir(string &hdir) {
 #ifdef WIN32
     copystring(hdir, "$HOME\\My Games\\OctaForge");
 #else
@@ -1038,7 +1037,8 @@ int main(int argc, char **argv)
         }
     }
     if (!dir) {
-        const char *hdir = determinehomedir();
+        string hdirbuf;
+        const char *hdir = determinehomedir(hdirbuf);
         if (hdir) dir = sethomedir(hdir);
     }
     if (dir) {
