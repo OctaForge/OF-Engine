@@ -978,7 +978,7 @@ static const char *determinehomedir(string &hdir) {
         const char appn[] = "OctaForge";
         int len = strlen(shdir);
         memcpy(hdir, shdir, len - 2);
-        memcpy(hdir + len - 2, "OctaForge", sizeof(appn));
+        memcpy(hdir + len - 2, appn, sizeof(appn));
         SDL_free(shdir);
     }
 #else
