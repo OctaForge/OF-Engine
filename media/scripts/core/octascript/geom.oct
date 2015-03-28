@@ -9,7 +9,7 @@
 */
 
 import capi
-from std.geom import Vec2, Vec3, Vec4
+from std.geom import Vec3
 from std.math import min, max
 
 /**
@@ -26,10 +26,7 @@ export func floor_distance(self, max_dist, radius, lowest) {
     if !radius { return rt }
 
     var tbl = [ -radius / 2, 0, radius / 2 ]
-
-    var f = min
-    if lowest { f = max }
-
+    var f = lowest ? max : min
     for x in 0 to tbl.len() - 1 {
         for y in 0 to tbl.len() - 1 {
             var o = self.add_new(Vec3(tbl[x], tbl[y], 0))
