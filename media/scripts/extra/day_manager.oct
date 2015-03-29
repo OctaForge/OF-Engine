@@ -6,7 +6,6 @@
     The controller entity runs in the background.
 */
 
-import core.events.signal
 import core.entities.ents
 import core.entities.svars
 import core.engine.lights
@@ -38,7 +37,7 @@ var DayManager = Entity.clone({
         Entity::__activate(self)
         if !msg::is_server() { return }
         self.day_seconds_s = self.get_attr("day_seconds")
-        signal::connect(self, "day_seconds,changed", func(self, v) {
+        self.connect("day_seconds,changed", func(self, v) {
             self.day_seconds_s = v
         })
         self.day_progress_s = 0
@@ -126,10 +125,10 @@ export var plugins = {
         __activate: func(self) {
             if msg::is_server_only() { return }
             var daylen = self.get_attr("day_seconds")
-            signal::connect(self, "day_seconds,changed", func(self, v) {
+            self.connect("day_seconds,changed", func(self, v) {
                 daylen = v
             })
-            signal::connect(self, "day_progress,changed", func(self, v) {
+            self.connect("day_progress,changed", func(self, v) {
                 if !daylen { return }
                 if edit::player_is_editing() { return }
                 self.sun_changed_dir = true

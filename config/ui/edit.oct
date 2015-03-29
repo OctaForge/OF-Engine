@@ -3,11 +3,11 @@ import core.engine.edit
 import core.engine.input
 import core.entities.ents
 import core.entities.svars
-import core.events.signal
 import core.gui.core as gui
 
 import core.engine.cubescript as cs
 
+from std.object import Object
 from std.table import pairs
 from std.conv import tostring, tonumber
 
@@ -26,14 +26,14 @@ func slots_populate(gr, slotlist, isv) {
         var btn = vb.append(gui::Button({ variant: isv ? "vslot" : "slot",
             index: slot, min_w: 0.095, min_h: 0.095
         }), func(b) {
-            signal::connect(b, "clicked", \-> capi::slot_set(
+            b.connect("clicked", \-> capi::slot_set(
                 isv ? slot : capi::slot_get_tex(slot)))
-            signal::connect(b, "hovering", \self -> self.show_tooltip(ttip))
+            b.connect("hovering", \self -> self.show_tooltip(ttip))
         })
         var lbl = vb.append(gui::Label({
             tex: "0x0", scale: 0.7, align_h: -1, color: 0x50FFFFFF
         }))
-        signal::connect(btn, "tex_size,changed", func(o, tw, th) {
+        btn.connect("tex_size,changed", func(o, tw, th) {
             lbl.set_text(tw ~ "x" ~ th)
         })
     }
@@ -122,13 +122,13 @@ func gen_tex_listed() {
     var mnc = gui::Filler({ variant: "menu", min_w: 0.25 })
     mnc.parent = cbx
     var mn = mnc.append(gui::VBox({ clamp: true }))
-    signal::connect(cbx, "clicked", func(mb) {
+    cbx.connect("clicked", func(mb) {
         mb.show_menu(mnc)
     })
 
     var curreload
     var rbtn = hb.append(gui::Button({ label: "Reload" }))
-    signal::connect(rbtn, "clicked", func(bt) {
+    rbtn.connect("clicked", func(bt) {
         if curreload { curreload() }
     })
 
@@ -138,7 +138,7 @@ func gen_tex_listed() {
         for i, pname in pcbl.each() {
             var mb = mn.append(gui::MenuButton({ variant: "submenu",
                 label: pname, clamp_h: true }))
-            signal::connect(mb, "clicked", func() {
+            mb.connect("clicked", func() {
                 curreload = pcbf[pname]
                 pcbs[pname]()
                 cbx.set_label(pname)
@@ -161,9 +161,9 @@ func gen_tex_listed() {
         rbtn.set_label((lf == "all") ? "Reload all" : "Reload")
         cb()
     }
-    var cid = signal::connect(edit, "texpacks,changed", grid_load)
-    signal::connect(r, "destroy", func() {
-        signal::disconnect(edit, "texpacks,changed", cid)
+    var cid = Object::connect(edit, "texpacks,changed", grid_load)
+    r.connect("destroy", func() {
+        Object::disconnect(edit, "texpacks,changed", cid)
     })
 
     var hb = r.append(gui::HBox())
@@ -182,9 +182,9 @@ func gen_tex_utilized() {
         }
         slots_populate(gr, slotl, true)
     }
-    var cid = signal::connect(edit, "texpacks,changed", grid_load)
-    signal::connect(hb, "destroy", func() {
-        signal::disconnect(edit, "texpacks,changed", cid)
+    var cid = Object::connect(edit, "texpacks,changed", grid_load)
+    hb.connect("destroy", func() {
+        Object::disconnect(edit, "texpacks,changed", cid)
     })
 
     gen_tex_layout(hb, gr, grid_load)
@@ -199,19 +199,19 @@ root.new_window("texture", gui.Window, func(win) {
     var stat
     var lbtn = ttl.append(gui::Button({ label: "Listed", min_w: 0.14 }))
     var ubtn = ttl.append(gui::Button({ label: "Utilized", min_w: 0.14 }))
-    signal::connect(lbtn, "clicked", \-> stat.set_state("listed"))
-    signal::connect(ubtn, "clicked", \-> stat.set_state("utilized"))
+    lbtn.connect("clicked", \-> stat.set_state("listed"))
+    ubtn.connect("clicked", \-> stat.set_state("utilized"))
     win.set_title(ttl)
     win.append(gui::State({ state: laststate || "utilized" }), func(st) {
         stat = st
         st.update_state("listed"  , gen_tex_listed())
         st.update_state("utilized", gen_tex_utilized())
-        signal::connect(st, "state,changed", func(self, nstate) {
+        st.connect("state,changed", func(self, nstate) {
             laststate = nstate
             lbtn.set_variant((nstate == "listed") ? "default" : "nobg")
             ubtn.set_variant((nstate != "listed") ? "default" : "nobg")
         })
-        signal::emit(st, "state,changed", st.state)
+        st.emit("state,changed", st.state)
     })
 })
 
@@ -224,7 +224,7 @@ var fields = {
                 align_h: -1
             }), func(t) {
                 ret = t
-                signal::connect(t, "released", func() {
+                t.connect("released", func() {
                     tvar = !tvar
                     capi::makeundoent()
                     ent.set_gui_attr(nm, tostring(tvar))
@@ -235,7 +235,7 @@ var fields = {
     },
     (svars.StateInteger): func(hb, nm, ent, dv) {
         var ed = hb.append(gui::Field({ clip_w: 0.35, value: dv }), func(ed) {
-            signal::connect(ed, "value,changed", func(ed, v) {
+            ed.connect("value,changed", func(ed, v) {
                 capi::makeundoent()
                 ent.set_gui_attr(nm, v)
             })
@@ -253,10 +253,10 @@ var fields = {
             min_w: 0.025, min_h: 0.025
         }
         hb.append(gui::Button(bprops("+")), func(btn) {
-            signal::connect(btn, "holding", \-> addstep(ent.add_attr))
+            btn.connect("holding", \-> addstep(ent.add_attr))
         })
         hb.append(gui::Button(bprops("-")), func(btn) {
-            signal::connect(btn, "holding", \-> addstep(ent.sub_attr))
+            btn.connect("holding", \-> addstep(ent.sub_attr))
         })
         return ed
     }
@@ -265,7 +265,7 @@ fields[svars.StateFloat] = fields[svars.StateInteger]
 
 func field_def(hb, nm, ent, dv) {
     return hb.append(gui::Field({ clip_w: 0.4, value: dv }), func(ed) {
-        signal::connect(ed, "value,changed", func(ed, v) {
+        ed.connect("value,changed", func(ed, v) {
             capi::makeundoent()
             ent.set_gui_attr(nm, v)
         })
@@ -360,7 +360,7 @@ root.new_window("entity_new", gui.Window, func(win) {
                             vb.append(gui::Button({
                                 variant: "nobg", min_w: 0.3, label: n
                             }), func(btn) {
-                                signal::connect(btn, "clicked", func() {
+                                btn.connect("clicked", func() {
                                     cs::execute(e"newent $n")
                                     root.hide_window("entity_new")
                                 })

@@ -10,7 +10,6 @@
 
 import capi
 import core.octascript.stream
-import core.events.signal
 import core.engine.cubescript as cs
 import std.jit
 
@@ -26,6 +25,7 @@ hudmatrix_scale, hudmatrix_pop, shader_hudnotexture_set, shader_hud_set,
 gle_color4ub, gle_defvertexf, gle_begin, gle_end, gle_attrib2f, text_font_push,
 text_font_pop, text_font_set, text_font_get_w, text_font_get_h
 
+from std.object import Object
 from std.math import min, max, abs, clamp, floor
 from std.conv import tostring, tonumber
 from std.util import select, assert
@@ -65,7 +65,7 @@ func gen_ed_setter(name) {
     return func(self, val) {
         self._needs_calc = true
         self[name] = val
-        signal::emit(self, sname, val)
+        self.emit(sname, val)
     }
 }
 
@@ -81,7 +81,7 @@ func gen_color_setter(name) {
     var sname = name ~ ",changed"
     return func(self, val) {
         self[name] = init_color(val)
-        signal::emit(self, sname, val)
+        self.emit(sname, val)
     }
 }
 
@@ -505,13 +505,13 @@ M.TextEditor = register_type("TextEditor", Widget, {
     ///
     set_h_scroll: func(self, hs) {
         self.offset_h = clamp(hs, 0, self.get_h_limit())
-        signal::emit(self, "h_scroll,changed", self.get_h_offset())
+        self.emit("h_scroll,changed", self.get_h_offset())
     },
 
     ///
     set_v_scroll: func(self, vs) {
         self.offset_v = clamp(vs, 0, self.get_v_limit())
-        signal::emit(self, "v_scroll,changed", self.get_v_offset())
+        self.emit("v_scroll,changed", self.get_v_offset())
     },
 
     ///
@@ -541,7 +541,7 @@ M.TextEditor = register_type("TextEditor", Widget, {
     set_value: func(self, val) {
         val = tostring(val)
         self.value = val
-        signal::emit(self, "value,changed", val)
+        self.emit("value,changed", val)
         self.reset_value()
     },
 
@@ -1240,7 +1240,7 @@ M.Field = register_type("Field", TextEditor, {
         var val = linebuf_tostr(self.lines[0])
         self.value = val
         // trigger changed signal
-        signal::emit(self, "value,changed", val)
+        self.emit("value,changed", val)
     },
 
     /// Set up a field from a Cubescript variable of the given name.
@@ -1256,17 +1256,17 @@ M.Field = register_type("Field", TextEditor, {
         self.set_value(hex ? (col ? "0x%.6X" : "0x%X").format(confunc(curv))
               : tostring(curv))
         var fromhere = false
-        var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
+        var cid = Object::connect(cs, varn ~ ",changed", func(cs, v) {
             if !fromhere {
                 self.set_value(hex ? (col ? "0x%.6X" : "0x%X")
                     .format(confunc(v)) : tostring(v))
             }
             fromhere = false
         })
-        signal::connect(self, "destroy", func() {
-            signal::disconnect(cs, varn ~ ",changed", cid)
+        self.connect("destroy", func() {
+            Object::disconnect(cs, varn ~ ",changed", cid)
         })
-        signal::connect(self, "value,changed", func(self, v) {
+        self.connect("value,changed", func(self, v) {
             fromhere = true
             cs::var_set(varn, confunc(v))
         })

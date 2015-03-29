@@ -8,8 +8,6 @@
         See COPYING.txt.
 */
 
-import core.events.signal
-
 /// Module: core
 import core.gui.core as M
 
@@ -109,7 +107,7 @@ M.Toggle = register_type("Toggle", Button, {
 
     key: func(self, code, isdown) {
         if self.is_focused() && code == key.SPACE {
-            signal::emit(self, isdown && "clicked" || "released", -1, -1, code)
+            self.emit(isdown && "clicked" || "released", -1, -1, code)
             return true
         }
         return Widget::key(self, code, isdown)

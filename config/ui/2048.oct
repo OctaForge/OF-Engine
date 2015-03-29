@@ -1,7 +1,6 @@
 /* 2048 game, OctaForge edition
  * Just for testing/fun */
 
-import core.events.signal
 import core.gui.core as gui
 
 from std.conv import tostring
@@ -127,10 +126,10 @@ func guimovetile(grid, i, j, step, hdir, vdir) {
         move_dist_x: dx, move_dist_y: dy,
         clamp: true
     }, o), func(m) {
-        signal::connect(m, "anim,start", func() {
+        m.connect("anim,start", func() {
             pendinganims += 1
         })
-        signal::connect(m, "anim,end", func() {
+        m.connect("anim,end", func() {
             m.set_visible(false)
             cleanup.push(m)
             grid.remove(i - 1)
@@ -222,7 +221,7 @@ gui::get_root().new_window("2048", gui.Window, func(win) {
     win.set_floating(true)
     win.set_variant("movable")
     win.set_title("2048 (score: 0)")
-    signal::connect(win, "destroy", func() { totalscore = 0 })
+    win.connect("destroy", func() { totalscore = 0 })
     win.append(gui::ColorFiller({ color: 0xBBADA0, clamp: true }), func(cf) {
         win.append(gui::Spacer({ pad_h: 0.025, pad_v: 0.025 }), func(sp) {
             sp.append(gui::Grid({ columns: 4, padding: 0.025 }), func(grid) {

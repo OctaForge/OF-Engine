@@ -3,9 +3,6 @@ import core.logger as log
 log::log(log.DEBUG, ":::: Frame handling.")
 import core.events.frame as undef
 
-log::log(log.DEBUG, ":::: Signal system.")
-import core.events.signal as undef
-
 log::log(log.DEBUG, ":::: Action system.")
 import core.events.actions as undef
 

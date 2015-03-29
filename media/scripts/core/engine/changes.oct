@@ -8,9 +8,10 @@
         See COPYING.txt.
 */
 
+from std.object import Object
+
 import core.engine.changes as M // self-import
 import core.engine.cubescript as cs
-import core.events.signal
 
 import core.externals
 
@@ -26,7 +27,7 @@ export var change = enum {
 }
 
 externals::set("change_add", func(desc, ctype) {
-    signal::emit(M, "add", ctype, desc)
+    Object::emit(M, "add", ctype, desc)
 })
 
 /**

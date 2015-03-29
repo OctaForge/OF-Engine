@@ -9,7 +9,6 @@
 */
 
 import capi
-import core.events.signal
 
 from capi import get_curtime
 
@@ -211,13 +210,13 @@ M.Scroller = register_type("Scroller", Clipper, {
     */
     set_h_scroll: func(self, hs) {
         self.offset_h = clamp(hs, 0, self.get_h_limit())
-        signal::emit(self, "h_scroll,changed", self.get_h_offset())
+        self.emit("h_scroll,changed", self.get_h_offset())
     },
 
     /// See $set_h_scroll.
     set_v_scroll: func(self, vs) {
         self.offset_v = clamp(vs, 0, self.get_v_limit())
-        signal::emit(self, "v_scroll,changed", self.get_v_offset())
+        self.emit("v_scroll,changed", self.get_v_offset())
     },
 
     /**

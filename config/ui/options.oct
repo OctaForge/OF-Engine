@@ -1,7 +1,7 @@
-import core.events.signal
 import core.engine.cubescript as cs
 import core.gui.core as gui
 
+from std.object import Object
 from std.table import pairs
 from std.conv import tonumber, tostring
 from std.jit import os as jit_os
@@ -13,11 +13,11 @@ func setup_var_widget(self, varn, propn, lblcb) {
     var curv = cs::var_get(varn)
     if !curv { return false }
     self["set_" ~ propn](self, lblcb(curv))
-    var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
+    var cid = Object::connect(cs, varn ~ ",changed", func(cs, v) {
         self["set_" ~ propn](self, lblcb(v))
     })
-    signal::connect(self, "destroy", func() {
-        signal::disconnect(cs, varn ~ ",changed", cid)
+    self.connect("destroy", func() {
+        Object::disconnect(cs, varn ~ ",changed", cid)
     })
 }
 
@@ -37,7 +37,7 @@ func gen_combobox(varn, names, vals, vcb, mw) {
         for i, val in vals.each() {
             var mb = vb.append(gui::MenuButton({ variant: "submenu",
                 label: names[val] || "custom", clamp_h: true }))
-            signal::connect(mb, "clicked", func(mb) {
+            mb.connect("clicked", func(mb) {
                 cs::var_set(varn, val)
                 if vcb { vcb(mb, val) }
                 gui::get_root().clear_menus()
@@ -45,7 +45,7 @@ func gen_combobox(varn, names, vals, vcb, mw) {
         }
     })
     setup_var_widget(r, varn, "label", \v -> names[v] || "custom")
-    signal::connect(r, "clicked", func(mb) {
+    r.connect("clicked", func(mb) {
         mb.show_menu(mn)
     })
     return r
@@ -56,14 +56,14 @@ func gen_checkbox(varn, vcfun) {
     if !curv { return undef }
     var r = gui::Toggle({ variant: "checkbox", condition: \-> curv != 0 })
     if vcfun { vcfun(curv != 0) }
-    var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
+    var cid = Object::connect(cs, varn ~ ",changed", func(cs, v) {
         curv = v
         if vcfun { vcfun(curv != 0) }
     })
-    signal::connect(r, "destroy", func() {
-        signal::disconnect(cs, varn ~ ",changed", cid)
+    r.connect("destroy", func() {
+        Object::disconnect(cs, varn ~ ",changed", cid)
     })
-    signal::connect(r, "released", \-> cs::var_set(varn, (curv != 0) ? 0 : 1))
+    r.connect("released", \-> cs::var_set(varn, (curv != 0) ? 0 : 1))
     return r
 }
 
@@ -193,7 +193,7 @@ func gen_opts_graphics() {
                     }
                     var cbox = gen_combobox("stainfade", st_names, st_vals, triscb, 0.185)
                     var fld = hb.append(gui::Field({ variable: "stainfade", clip_w: 0.08 }))
-                    signal::connect(fld, "value,changed", triscb)
+                    fld.connect("value,changed", triscb)
                     hb.append(gen_checkbox("stains", func(toggled) {
                         cbox.set_disabled(!toggled)
                         fld.set_disabled(!toggled)
@@ -252,7 +252,7 @@ func gen_res_submenu(ar) {
         for i, res in resolutions[ar].each() {
             var mb = vb.append(gui::MenuButton({ variant: "submenu",
                 label: res, clamp_h: true }))
-            signal::connect(mb, "clicked", func(mb) {
+            mb.connect("clicked", func(mb) {
                 var w, h = res.find_match("(%d+)x(%d+)")
                 cs::var_set("screenw", tonumber(w))
                 cs::var_set("screenh", tonumber(h))
@@ -270,7 +270,7 @@ func gen_res_menu() {
             var mb = vb.append(gui::MenuButton({ variant: "submenu",
                 label: aspect, clamp_h: true }))
             var sm = gen_res_submenu(aspect)
-            signal::connect(mb, "hovering", func(mb) {
+            mb.connect("hovering", func(mb) {
                 mb.show_menu(sm)
             })
         }
@@ -306,7 +306,7 @@ func gen_opts_display() {
                         var mb = hb.append(gui::MenuButton({ variant: "visible",
                             label: "Use preset", min_w: 0.13 }))
                         var resm = gen_res_menu()
-                        signal::connect(mb, "clicked", func(mb) {
+                        mb.connect("clicked", func(mb) {
                             mb.show_menu(resm)
                         })
                     }
@@ -435,7 +435,7 @@ func gen_opts_audio() {
 func gen_menu_btn(b, lbl, cb) {
     return b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
         func(btn) {
-            signal::connect(btn, "clicked", cb)
+            btn.connect("clicked", cb)
         }
     )
 }
@@ -464,13 +464,13 @@ gui::get_root().new_window("options", gui.Window, func(win) {
             st.update_state("graphics", gen_opts_graphics())
             st.update_state("display" , gen_opts_display())
             st.update_state("audio"   , gen_opts_audio())
-            signal::connect(st, "state,changed", func(self, nstate) {
+            st.connect("state,changed", func(self, nstate) {
                 laststate = nstate
                 for i, btn in btns.each() {
                     btn[1].set_variant((btn[0] == nstate) ? "default" : "nobg")
                 }
             })
-            signal::emit(st, "state,changed", st.state)
+            st.emit("state,changed", st.state)
         })
     })
 })

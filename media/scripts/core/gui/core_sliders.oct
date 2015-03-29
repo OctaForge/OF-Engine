@@ -9,11 +9,11 @@
 */
 
 import capi
-import core.events.signal
 import core.engine.cubescript as cs
 
 from capi import get_millis
 
+from std.object import Object
 from std.math import min, max, abs, clamp, round
 from std.conv import tonumber
 
@@ -87,7 +87,7 @@ M.Slider = register_type("Slider", Widget, {
 
         var val = min(mx, mn) + newstep * ss
         self.value = val
-        signal::emit(self, "value,changed", val)
+        self.emit("value,changed", val)
     },
 
     /// Sets the nth step.
@@ -99,7 +99,7 @@ M.Slider = register_type("Slider", Widget, {
 
         var val = min(mx, mn) + newstep * ss
         self.value = val
-        signal::emit(self, "value,changed", val)
+        self.emit("value,changed", val)
     },
 
     /**
@@ -197,14 +197,14 @@ M.Slider = register_type("Slider", Widget, {
         self.set_max_value(maxv)
         self.set_value(curv)
         var fromhere = false
-        var cid = signal::connect(cs, varn ~ ",changed", func(cs, v) {
+        var cid = Object::connect(cs, varn ~ ",changed", func(cs, v) {
             if !fromhere { self.set_value(tonumber(v)) }
             fromhere = false
         })
-        signal::connect(self, "destroy", func() {
-            signal::disconnect(cs, varn ~ ",changed", cid)
+        self.connect("destroy", func() {
+            Object::disconnect(cs, varn ~ ",changed", cid)
         })
-        signal::connect(self, "value,changed", func(self, v) {
+        self.connect("value,changed", func(self, v) {
             fromhere = true
             cs::var_set(varn, v)
         })
@@ -253,7 +253,7 @@ M.Slider = register_type("Slider", Widget, {
         var idx = self.__rmap[val]
         if !idx { return }
         self.min_value = idx
-        signal::emit(self, "list_min_value,changed", val, idx)
+        self.emit("list_min_value,changed", val, idx)
     },
 
     /// Function: set_list_max_value
@@ -262,7 +262,7 @@ M.Slider = register_type("Slider", Widget, {
         var idx = self.__rmap[val]
         if !idx { return }
         self.max_value = idx
-        signal::emit(self, "list_max_value,changed", val, idx)
+        self.emit("list_max_value,changed", val, idx)
     },
 
     /// Function: set_list_value
@@ -271,7 +271,7 @@ M.Slider = register_type("Slider", Widget, {
         var idx = self.__rmap[val]
         if !idx { return }
         self.value = idx
-        signal::emit(self, "list_value,changed", val, idx)
+        self.emit("list_value,changed", val, idx)
     },
 
     /// Function: set_min_value

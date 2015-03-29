@@ -13,7 +13,6 @@
 
 import capi
 import core.engine.cubescript as cs
-import core.events.signal
 import core.logger
 import core.externals
 
@@ -331,7 +330,7 @@ export func gen_setter(name) {
     var sname = name ~ ",changed"
     return func(self, val) {
         self[name] = val
-        signal::emit(self, sname, val)
+        self.emit(sname, val)
     }
 }
 
@@ -544,7 +543,7 @@ cs::var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     cs.var_flags.PERSIST)
 
 var uitextrows = cs::var_get("uitextrows")
-signal::connect(cs, "uitextrows,changed", func(self, n) {
+Object::connect(cs, "uitextrows,changed", func(self, n) {
     uitextrows = n
 })
 
@@ -687,7 +686,7 @@ export var Widget = register_type("Widget", Object, {
 
         if kwargs.signals {
             for k, v in pairs(kwargs.signals) {
-                signal::connect(self, k, v)
+                self.connect(k, v)
             }
         }
 
@@ -772,7 +771,7 @@ export var Widget = register_type("Widget", Object, {
         for k, v in pairs(mobjs) { v.clear() }
         self.container = undef
 
-        signal::emit(self, "destroy")
+        self.emit("destroy")
         var insts = rawget(self.__proto, "__instances")
         if insts {
             insts[self] = undef
@@ -1265,7 +1264,7 @@ export var Widget = register_type("Widget", Object, {
              - $holding
     */
     hovering: func(self, cx, cy) {
-        signal::emit(self, "hovering", cx, cy)
+        self.emit("hovering", cx, cy)
     },
 
     /**
@@ -1275,7 +1274,7 @@ export var Widget = register_type("Widget", Object, {
         passing those arguments to it.
     */
     leaving: func(self, cx, cy) {
-        signal::emit(self, "leaving", cx, cy)
+        self.emit("leaving", cx, cy)
     },
 
     hold: func(self, cx, cy, obj) {
@@ -1290,7 +1289,7 @@ export var Widget = register_type("Widget", Object, {
         is being held.
     */
     holding: func(self, cx, cy, code) {
-        signal::emit(self, "holding", cx, cy, code)
+        self.emit("holding", cx, cy, code)
     },
 
     /**
@@ -1320,7 +1319,7 @@ export var Widget = register_type("Widget", Object, {
             - $released
     */
     clicked: func(self, cx, cy, code) {
-        signal::emit(self, "clicked", cx, cy, code)
+        self.emit("clicked", cx, cy, code)
     },
 
     /**
@@ -1329,7 +1328,7 @@ export var Widget = register_type("Widget", Object, {
         the time of button release, so they're up to date.
     */
     released: func(self, cx, cy, code) {
-        signal::emit(self, "released", cx, cy, code)
+        self.emit("released", cx, cy, code)
     },
 
     /**
@@ -1514,7 +1513,7 @@ export var Widget = register_type("Widget", Object, {
             o.clear()
         }
         self.children = []
-        signal::emit(self, "children,destroy")
+        self.emit("children,destroy")
     },
 
     /**
@@ -1601,7 +1600,7 @@ export var Widget = register_type("Widget", Object, {
             val.parent = self
             val._root  = self.get_root()
         }
-        signal::emit(self, "container,changed", val)
+        self.emit("container,changed", val)
         return orig
     },
 
@@ -2165,7 +2164,7 @@ export var Root = register_type("Root", Widget, {
             self.cursor_y * self.h) != undef
         if bce != cec {
             self.has_cursor = cec
-            signal::emit(self, "__has_cursor,changed", cec)
+            self.emit("__has_cursor,changed", cec)
         }
         return cec
     },
@@ -2586,13 +2585,13 @@ export var Root = register_type("Root", Widget, {
         }
         self._tooltip = undef
         self._menus_drop()
-        signal::emit(self, "reset")
+        self.emit("reset")
     }
 })
 
 root = Root()
 
-signal::connect(root, "__has_cursor,changed", func(self, val) {
+root.connect("__has_cursor,changed", func(self, val) {
     input_cursor_exists_update(val)
 })
 
@@ -2675,7 +2674,7 @@ externals::set("input_text", func(str) {
 var draw_hud = false
 
 var mmenu = cs::var_get("mainmenu")
-signal::connect(cs, "mainmenu,changed", func(self, v) {
+Object::connect(cs, "mainmenu,changed", func(self, v) {
     mmenu = v
 })
 

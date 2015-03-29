@@ -9,7 +9,6 @@
 */
 
 import capi
-import core.events.signal
 
 from std.math import min, max, abs, sin, pi
 
@@ -281,7 +280,7 @@ M.Animator = register_type("Animator", Widget, {
         var prog = self.get_progress()
         if prog >= 1.0 {
             self.started = false
-            signal::emit(self, "anim,end")
+            self.emit("anim,end")
             return Widget::layout(self)
         }
 
@@ -299,11 +298,11 @@ M.Animator = register_type("Animator", Widget, {
     start: func(self) {
         self.started = true
         self.reset()
-        signal::emit(self, "anim,start")
+        self.emit("anim,start")
     },
 
     stop: func(self) {
         self.started = false
-        signal::emit(self, "anim,stop")
+        self.emit("anim,stop")
     }
 })

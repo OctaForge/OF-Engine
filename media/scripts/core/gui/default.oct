@@ -1,5 +1,4 @@
 import capi
-import core.events.signal
 import core.gui.core as gui
 import core.engine.cubescript as cs
 
@@ -20,10 +19,10 @@ var btnv_init_clone = \ah -> func(self, btn) {
     self.append(lbl)
     if ph { self.set_pad_h(ph) }
     if pv { self.set_pad_v(pv) }
-    signal::connect(btn, "label,changed", func(b, t) { lbl.set_text(t) })
-    signal::connect(btn, "label_scale,changed", func(b, v) { lbl.set_scale(v) })
-    signal::connect(btn, "label_pad_h,changed", func(b, v) { self.set_pad_h(v) })
-    signal::connect(btn, "label_pad_v,changed", func(b, v) { self.set_pad_h(v) })
+    btn.connect("label,changed", func(b, t) { lbl.set_text(t) })
+    btn.connect("label_scale,changed", func(b, v) { lbl.set_scale(v) })
+    btn.connect("label_pad_h,changed", func(b, v) { self.set_pad_h(v) })
+    btn.connect("label_pad_v,changed", func(b, v) { self.set_pad_h(v) })
 }
 
 var btn_build_variant = \color, ic, dis, ah -> gui::Gradient({
@@ -31,8 +30,8 @@ var btn_build_variant = \color, ic, dis, ah -> gui::Gradient({
     clamp_h: true, init_clone: func(self, btn) {
         self.set_min_w(btn.min_w || 0)
         self.set_min_h(btn.min_h || 0)
-        signal::connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
-        signal::connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
+        btn.connect("min_w,changed", \b, v -> self.set_min_w(v))
+        btn.connect("min_h,changed", \b, v -> self.set_min_w(v))
     } }, gui::Outline({
         color: (dis ? (0x50 << 24) : 0) | color, clamp_h: true }, gui::Spacer({
             pad_h: 0.01, pad_v: 0.005, clamp_h: true,
@@ -43,8 +42,8 @@ var btn_build_variant_nobg = \dis, ah -> gui::Filler({
     clamp_h: true, init_clone: func(self, btn) {
         self.set_min_w(btn.min_w || 0)
         self.set_min_h(btn.min_h || 0)
-        signal::connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
-        signal::connect(btn, "min_h,changed", \b, v -> self.set_min_w(v))
+        btn.connect("min_w,changed", \b, v -> self.set_min_w(v))
+        btn.connect("min_h,changed", \b, v -> self.set_min_w(v))
     } }, gui::Spacer({
         pad_h: 0.01, pad_v: 0.005, clamp_h: true, init_clone: btnv_init_clone(ah)
     }))
@@ -94,7 +93,7 @@ var cbox_init_clone = \col -> func(self, btn) {
         }, gui::Triangle({ color: col, min_w: 0.015, min_h: 0.015,
             angle: 180 })))
     })
-    signal::connect(btn, "label,changed", func(b, t) { lbl.set_text(t) })
+    btn.connect("label,changed", func(b, t) { lbl.set_text(t) })
 }
 
 cbtnv["default"     ] = btn_build_variant(0x303030, cbox_init_clone(0x404040))
@@ -110,13 +109,13 @@ func slotbtn_init_clone(self, btn) {
     self.set_min_h(btn.min_h || 0)
     self.set_index(btn.index || 0)
     btn.tex_w, btn.tex_h = self.tex_w, self.tex_h
-    signal::connect(self, "tex_size,changed", func(o, tw, th) {
+    self.connect("tex_size,changed", func(o, tw, th) {
         btn.tex_w, btn.tex_h = tw, th
-        signal::emit(btn, "tex_size,changed", tw, th)
+        btn.emit("tex_size,changed", tw, th)
     })
-    signal::connect(btn, "min_w,changed", \b, v -> self.set_min_w(v))
-    signal::connect(btn, "min_h,changed", \b, v -> self.set_min_h(v))
-    signal::connect(btn, "index,changed", \b, v -> self.set_index(v))
+    btn.connect("min_w,changed", \b, v -> self.set_min_w(v))
+    btn.connect("min_h,changed", \b, v -> self.set_min_h(v))
+    btn.connect("index,changed", \b, v -> self.set_index(v))
 }
 
 gui.Button.__variants.vslot = {
@@ -179,8 +178,7 @@ gui.Filler.__variants = {
             pad_h: 0.01, pad_v: 0.005, init_clone: func(self, ttip) {
                 var lbl = gui::Label({ text: ttip.label })
                 self.append(lbl)
-                signal::connect(ttip, "label,changed", func(o, t) {
-                    lbl.set_text(t) })
+                ttip.connect("label,changed", func(o, t) { lbl.set_text(t) })
             }
         }))) ]
     },
@@ -358,7 +356,7 @@ gui.HProgressBar.__variants = {
                 pb.set_bar(bar)
                 self.append(bar)
                 self.append(lbl)
-                signal::connect(pb, "value,changed", func(o, v) {
+                pb.connect("value,changed", func(o, v) {
                     lbl.set_text(pb.gen_label())
                 })
             } }, gui::Outline({ color: 0x404040, clamp: true }))
@@ -377,7 +375,7 @@ gui.VProgressBar.__variants = {
                 pb.set_bar(bar)
                 self.append(bar)
                 self.append(lbl)
-                signal::connect(pb, "value,changed", func(o, v) {
+                pb.connect("value,changed", func(o, v) {
                     lbl.set_text(pb.gen_label())
                 })
             } }, gui::Outline({ color: 0x404040, clamp: true }))
@@ -429,7 +427,7 @@ var window_build_titlebar = \-> gui::Gradient({
         var tg = gui::Tag({ name: "title", clamp_h: true })
         self.append(tg)
         build_tlabel(win, win.title || win.obj_name)
-        signal::connect(win, "title,changed", func(w, t) {
+        win.connect("title,changed", func(w, t) {
             build_tlabel(win, t || win.obj_name) })
     }
 }))
@@ -467,7 +465,7 @@ var window_build_regular = \mov -> gui::Filler({ clamp: true },
                     }, gui::Outline({ clamp: true, color: 0x707070 }))
                 },
                 init_clone: func(self, win) {
-                    signal::connect(self, "clicked", \-> win.hide())
+                    self.connect("clicked", \-> win.hide())
                 }
             })
         ))

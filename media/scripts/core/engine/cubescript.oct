@@ -11,7 +11,7 @@
 
 import capi
 import core.externals
-import core.events.signal
+from std.object import Object
 
 export func __connect(self, name) {
     var  vn = name.find_match("(.+),changed$")
@@ -169,5 +169,5 @@ export func var_get_all_names() {
 import core.engine.cubescript as M // self-import
 
 externals::set("var_emit_changed", func(name, ...) {
-    signal::emit(M, name ~ ",changed", ...)
+    Object::emit(M, name ~ ",changed", ...)
 })

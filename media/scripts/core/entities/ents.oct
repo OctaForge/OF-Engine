@@ -17,7 +17,6 @@ from core.logger import log, DEBUG, INFO, ERROR, WARNING
 import core.network.msg
 import core.events.frame
 import core.events.actions
-import core.events.signal
 import core.entities.svars
 import core.engine.cubescript as cs
 import core.engine.model
@@ -473,7 +472,7 @@ export func remove(ent) {
     var uid = ent.uid
     @[debug] log(DEBUG, e"ents.remove: $uid")
     var stor = storages[ent.__storage]
-    signal::emit(ent, "pre_deactivate")
+    ent.emit("pre_deactivate")
     ent.__deactivate()
     ent.__proto.__instances.compact(\v -> v != ent)
     stor[uid] = undef
@@ -508,7 +507,7 @@ func remove_stor(stor, protos) {
     for i, e in stor.each() {
         if e {
             protos[e.name] = true
-            signal::emit(e, "pre_deactivate")
+            e.emit("pre_deactivate")
             e.__deactivate()
             stor[i] = undef
         }
@@ -948,7 +947,7 @@ Entity = Object.clone({
         }
 
         self.sdata_changed(svar, key, val)
-        signal::emit(self, e"$key,changed", val, actor_uid)
+        self.emit(e"$key,changed", val, actor_uid)
         if self.sdata_update_cancel {
             self.sdata_update_cancel = undef
             return
@@ -1040,7 +1039,7 @@ Entity = Object.clone({
                 raise e"received invalid value for svar $key ($(tostring(val)))"
             }
             self.sdata_changed(svar, key, val)
-            signal::emit(self, e"$key,changed", val, actor_uid != -1)
+            self.emit(e"$key,changed", val, actor_uid != -1)
             self.svar_values[key] = svar.to_storage(val)
         }
     },

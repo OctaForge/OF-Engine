@@ -1,5 +1,4 @@
 import core.engine.edit
-import core.events.signal
 import core.gui.core as gui
 from core.engine.cubescript import execute
 
@@ -30,17 +29,17 @@ func gen_map_list(img, vb) {
             vb.append(gui::Button({ label: map, clamp_h: true,
                 variant: "nobg", min_w: 0.2
             }), func(btn) {
-                signal::connect(btn, "hovering", func() {
+                btn.connect("hovering", func() {
                     if map != current_preview {
                         current_preview = map
                         img.set_tex("media/map/" ~ map ~ "/preview")
                     }
                 })
-                signal::connect(btn, "leaving", func() {
+                btn.connect("leaving", func() {
                     current_preview = undef
                     img.set_tex(undef)
                 })
-                signal::connect(btn, "clicked", func() {
+                btn.connect("clicked", func() {
                     execute("map " ~ map)
                 })
             })
@@ -120,7 +119,7 @@ func gen_menu_credits() {
 func gen_menu_btn(b, lbl, cb) {
     return b.append(gui::Button({ label: lbl, clamp_h: true, variant: "nobg" }),
         func(btn) {
-            signal::connect(btn, "clicked", cb)
+            btn.connect("clicked", cb)
         }
     )
 }
@@ -147,12 +146,12 @@ gui::get_root().new_window("main", gui.Window, func(win) {
             st.update_state("default" , gen_menu_default())
             st.update_state("load_map", gen_menu_map_load())
             st.update_state("credits" , gen_menu_credits())
-            signal::connect(st, "state,changed", func(self, nstate) {
+            st.connect("state,changed", func(self, nstate) {
                 laststate = nstate
                 btn_lm.set_variant((nstate == "load_map") ? "default" : "nobg")
                 btn_cr.set_variant((nstate == "credits" ) ? "default" : "nobg")
             })
-            signal::emit(st, "state,changed", st.state)
+            st.emit("state,changed", st.state)
         })
     })
 })

@@ -14,11 +14,11 @@ import core.externals
 
 @[server] { return }
 
-import core.events.signal
+from std.object import Object
 import core.engine.edit as M // self-import
 
 externals::set("texpacks_changed", func() {
-    signal::emit(M, "texpacks,changed")
+    Object::emit(M, "texpacks,changed")
 })
 
 // undocumented, not exposed for the time being

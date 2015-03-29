@@ -12,7 +12,6 @@ import capi
 import apiutil
 import core.engine.model
 import core.engine.cubescript as cs
-import core.events.signal
 
 from capi import gl_blend_func, shader_hudnotexture_set, shader_hud_set,
 gl_bind_texture, gl_texture_param, shader_hud_set_variant, gle_begin, gle_end,
@@ -63,7 +62,7 @@ func gen_color_setter(name) {
     var sname = name ~ ",changed"
     return func(self, val) {
         self[name] = init_color(val)
-        signal::emit(self, sname, val)
+        self.emit(sname, val)
     }
 }
 
@@ -563,28 +562,28 @@ M.CroppedImage = register_type("CroppedImage", Image, {
     set_crop_x: func(self, cx) {
         cx = get_border_size(self.texture, cx, false)
         self.crop_x = cx
-        signal::emit(self, "crop_x,changed", cx)
+        self.emit("crop_x,changed", cx)
     },
 
     ///
     set_crop_y: func(self, cy) {
         cy = get_border_size(self.texture, cy, true)
         self.crop_y = cy
-        signal::emit(self, "crop_y,changed", cy)
+        self.emit("crop_y,changed", cy)
     },
 
     ///
     set_crop_w: func(self, cw) {
         cw = get_border_size(self.texture, cw, false)
         self.crop_w = cw
-        signal::emit(self, "crop_w,changed", cw)
+        self.emit("crop_w,changed", cw)
     },
 
     ///
     set_crop_h: func(self, ch) {
         ch = get_border_size(self.texture, ch, true)
         self.crop_h = ch
-        signal::emit(self, "crop_h,changed", ch)
+        self.emit("crop_h,changed", ch)
     }
 })
 
@@ -822,7 +821,7 @@ M.BorderedImage = register_type("BorderedImage", Image, {
     set_tex_border: func(self, tb) {
         tb = get_border_size(self.texture, tb)
         self.tex_border = tb
-        signal::emit(self, "tex_border,changed", tb)
+        self.emit("tex_border,changed", tb)
     },
 
     /// Function: set_screen_border
@@ -1045,7 +1044,7 @@ M.SlotViewer = register_type("SlotViewer", Filler, {
     __update_dimensions: func(self, tw, th) {
         if self.tex_w != tw || self.tex_h != th {
             self.tex_w, self.tex_h = tw, th
-            signal::emit(self, "tex_size,changed", tw, th)
+            self.emit("tex_size,changed", tw, th)
         }
     },
 
