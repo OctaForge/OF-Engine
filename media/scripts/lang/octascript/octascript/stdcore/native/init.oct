@@ -516,7 +516,7 @@ var object = {}
 package.loaded["std.object"] = object
 std["object"] = object
 
-from std.table import setmt
+from std.table import setmt, rawget, rawset
 
 /**
     Provides the basis for any object in OF. It implements a simple prototypal
@@ -581,5 +581,96 @@ object.Object = {
     */
     __tostring: func(self) {
         return "Object: %s".format(self.name || "unnamed")
+    },
+
+    /**
+        Connects a callback to a signal. The callback has to be a function and
+        the signal has to be a string (name).
+
+        The callback takes at least one argument (self) + anything that was
+        further passed to emit.
+
+        Returns the id for the callback (which you can later use to disconnect)
+        and the number of currently connected callbacks on the signal.
+    */
+    connect: func(self, name, callback) {
+        if typeof callback != "function" {
+            return undef
+        }
+        var clistn = "_sig_conn_" ~ name
+
+        var  clist = rawget(self, clistn)
+        if !clist {
+               clist = []
+               // nasty, as this should be just an array... we can still
+               // do this though, and we're trying to keep things contained
+               clist.slotcount = 0
+               rawset(self, clistn, clist)
+        }
+
+        var id = clist.len()
+        clist.push(callback)
+
+        clist.slotcount = clist.slotcount + 1
+
+        var cb = rawget(self, "__connect")
+        if  cb { cb (self, name, callback) }
+
+        return id, clist.slotcount
+    },
+
+    /**
+        Disconnects a previously connected ćallback. Needs the signal name
+        and the id returned by $connect. Returns the number of connected
+        callbacks on the signal after the disconnect or nothing.
+    */
+    disconnect: func(self, name, id) {
+        var clistn = "_sig_conn_" ~ name
+        var clist  = rawget(self, clistn)
+        var cb     = rawget(self, "__disconnect")
+        if clist {
+            if !id {
+                rawset(self, clistn, undef)
+                if cb { cb(self, name) }
+                return 0
+            }
+            if typeof id != "number" {
+                for i, v in clist.each() {
+                    if v == id {
+                        id = i
+                        break
+                    }
+                }
+            }
+            if id && id < clist.len() {
+                var scnt = clist.slotcount - 1
+                clist.slotcount = scnt
+                clist[id] = false
+                if cb { cb(self, name, id, scnt) }
+                return scnt
+            }
+        }
+    },
+
+    /**
+        Emits a signal, calling all callbacks associated with it in order
+        of connection, passing all extra arguments to it (besides "self").
+    */
+    emit: func(self, name, ...) {
+        var clistn = "_sig_conn_" ~ name
+        var clist  = rawget(self, clistn)
+        if !clist {
+            return 0
+        }
+
+        var ncalled = 0
+        for i, cb in clist.each() {
+            if cb {
+                ncalled = ncalled + 1
+                cb(self, ...)
+            }
+        }
+
+        return ncalled
     }
 }
