@@ -197,12 +197,12 @@ M.Slider = register_type("Slider", Widget, {
         self.set_max_value(maxv)
         self.set_value(curv)
         var fromhere = false
-        var cid = Object::connect(cs, varn ~ ",changed", func(cs, v) {
+        var vcb = cs::add_callback(varn, func(v) {
             if !fromhere { self.set_value(tonumber(v)) }
             fromhere = false
         })
         self.connect("destroy", func() {
-            Object::disconnect(cs, varn ~ ",changed", cid)
+            cs::del_callback(varn, vcb)
         })
         self.connect("value,changed", func(self, v) {
             fromhere = true

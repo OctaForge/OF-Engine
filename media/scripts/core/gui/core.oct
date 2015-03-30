@@ -543,7 +543,7 @@ cs::var_new_checked("uitextrows", cs.var_type.int, 1, 40, 200,
     cs.var_flags.PERSIST)
 
 var uitextrows = cs::var_get("uitextrows")
-Object::connect(cs, "uitextrows,changed", func(self, n) {
+cs::add_callback("uitextrows", func(n) {
     uitextrows = n
 })
 
@@ -2674,7 +2674,7 @@ externals::set("input_text", func(str) {
 var draw_hud = false
 
 var mmenu = cs::var_get("mainmenu")
-Object::connect(cs, "mainmenu,changed", func(self, v) {
+cs::add_callback("mainmenu", func(v) {
     mmenu = v
 })
 

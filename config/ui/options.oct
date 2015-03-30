@@ -13,11 +13,11 @@ func setup_var_widget(self, varn, propn, lblcb) {
     var curv = cs::var_get(varn)
     if !curv { return false }
     self["set_" ~ propn](self, lblcb(curv))
-    var cid = Object::connect(cs, varn ~ ",changed", func(cs, v) {
+    var vcb = cs::add_callback(varn, func(v) {
         self["set_" ~ propn](self, lblcb(v))
     })
     self.connect("destroy", func() {
-        Object::disconnect(cs, varn ~ ",changed", cid)
+        cs::del_callback(varn, vcb)
     })
 }
 
@@ -56,12 +56,12 @@ func gen_checkbox(varn, vcfun) {
     if !curv { return undef }
     var r = gui::Toggle({ variant: "checkbox", condition: \-> curv != 0 })
     if vcfun { vcfun(curv != 0) }
-    var cid = Object::connect(cs, varn ~ ",changed", func(cs, v) {
+    var vcb = cs::add_callback(varn, func(v) {
         curv = v
         if vcfun { vcfun(curv != 0) }
     })
     r.connect("destroy", func() {
-        Object::disconnect(cs, varn ~ ",changed", cid)
+        cs::del_callback(varn, vcb)
     })
     r.connect("released", \-> cs::var_set(varn, (curv != 0) ? 0 : 1))
     return r

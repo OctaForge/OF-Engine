@@ -13,19 +13,42 @@ import capi
 import core.externals
 from std.object import Object
 
-export func __connect(self, name) {
-    var  vn = name.find_match("(.+),changed$")
-    if !vn { return }
-    capi::var_make_emit(vn, true)
+var var_cbs = {}
+
+export func add_callback(varn, fun) {
+    var cbs = var_cbs[varn]
+    if !cbs {
+        cbs = []
+        var_cbs[varn] = cbs
+    }
+    cbs.push(fun)
+    capi::var_make_emit(varn, true)
+    return fun
 }
 
-export func __disconnect(self, name, id, scount) {
-    if scount == 0 {
-        var  vn = name.find_match("(.+),changed$")
-        if !vn { return }
-        capi::var_make_emit(vn, false)
+export func del_callback(varn, fun) {
+    var cbs = var_cbs[varn]
+    if !cbs { return fun }
+    for i, cb in cbs.each() {
+        if fun == cb {
+            cbs.remove(i)
+            break
+        }
     }
+    if cbs.empty() {
+        capi::var_make_emit(varn, false)
+    }
+    return fun
 }
+
+externals::set("var_emit_changed", func(varn, ...) {
+    var cbs = var_cbs[varn]
+    if cbs {
+        for i, cb in cbs.each() {
+            cb(...)
+        }
+    }
+})
 
 /**
     Runs a cubescript string. Returns the string return value (if possible).
@@ -165,9 +188,3 @@ from std.array import from_table
 export func var_get_all_names() {
     return from_table(capi::var_get_all_names())
 }
-
-import core.engine.cubescript as M // self-import
-
-externals::set("var_emit_changed", func(name, ...) {
-    Object::emit(M, name ~ ",changed", ...)
-})

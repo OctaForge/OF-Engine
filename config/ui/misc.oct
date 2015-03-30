@@ -106,7 +106,7 @@ func bg_win(mapname, mapinfo, picname, caption) {
 var hw_tex_size = 0
 var max_tex_size = cs::var_get("maxtexsize")
 
-Object::connect(cs, "maxtexsize,changed", func(self, val) { max_tex_size = val })
+cs::add_callback("maxtexsize", func(val) { max_tex_size = val })
 
 func get_logo(root, win) {
     if  hw_tex_size == 0 {

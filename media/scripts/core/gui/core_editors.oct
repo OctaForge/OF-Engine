@@ -1256,7 +1256,7 @@ M.Field = register_type("Field", TextEditor, {
         self.set_value(hex ? (col ? "0x%.6X" : "0x%X").format(confunc(curv))
               : tostring(curv))
         var fromhere = false
-        var cid = Object::connect(cs, varn ~ ",changed", func(cs, v) {
+        var vcb = cs::add_callback(varn, func(v) {
             if !fromhere {
                 self.set_value(hex ? (col ? "0x%.6X" : "0x%X")
                     .format(confunc(v)) : tostring(v))
@@ -1264,7 +1264,7 @@ M.Field = register_type("Field", TextEditor, {
             fromhere = false
         })
         self.connect("destroy", func() {
-            Object::disconnect(cs, varn ~ ",changed", cid)
+            cs::del_callback(varn, vcb)
         })
         self.connect("value,changed", func(self, v) {
             fromhere = true
