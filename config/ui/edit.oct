@@ -1,4 +1,5 @@
 import capi
+import core.externals
 import core.engine.edit
 import core.engine.input
 import core.entities.ents
@@ -93,6 +94,13 @@ func gen_slot_filters(packs, gr) {
     return pcbs, pcbf, pcbl
 }
 
+var texpack_cbs = []
+externals::set("texpacks_changed", func() {
+    for i, f in texpack_cbs.each() {
+        f()
+    }
+})
+
 func gen_tex_layout(bx, gr, grid_load) {
     var s
     bx.append(gui::Outline({ variant: "normal", min_w: 0.84, min_h: 0.6 }), func(o) {
@@ -161,9 +169,14 @@ func gen_tex_listed() {
         rbtn.set_label((lf == "all") ? "Reload all" : "Reload")
         cb()
     }
-    var cid = Object::connect(edit, "texpacks,changed", grid_load)
+    texpack_cbs.push(grid_load)
     r.connect("destroy", func() {
-        Object::disconnect(edit, "texpacks,changed", cid)
+        for i, f in texpack_cbs.each() {
+            if f == grid_load {
+                texpack_cbs.remove(i)
+                break
+            }
+        }
     })
 
     var hb = r.append(gui::HBox())
@@ -182,9 +195,14 @@ func gen_tex_utilized() {
         }
         slots_populate(gr, slotl, true)
     }
-    var cid = Object::connect(edit, "texpacks,changed", grid_load)
+    texpack_cbs.push(grid_load)
     hb.connect("destroy", func() {
-        Object::disconnect(edit, "texpacks,changed", cid)
+        for i, f in texpack_cbs.each() {
+            if f == grid_load {
+                texpack_cbs.remove(i)
+                break
+            }
+        }
     })
 
     gen_tex_layout(hb, gr, grid_load)

@@ -10,7 +10,6 @@
 
 from std.object import Object
 
-import core.engine.changes as M // self-import
 import core.engine.cubescript as cs
 
 import core.externals
@@ -25,10 +24,6 @@ export var change = enum {
     SOUND  : 1 << 1,
     SHADERS: 1 << 2
 }
-
-externals::set("change_add", func(desc, ctype) {
-    Object::emit(M, "add", ctype, desc)
-})
 
 /**
     Adds a change of the given type and description to the queue assuming

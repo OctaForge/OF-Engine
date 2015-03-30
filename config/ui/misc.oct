@@ -156,7 +156,7 @@ cs::var_new_checked("applydialog", cs.var_type.int, 0, 1, 1,
     cs.var_flags.PERSIST)
 cs::var_new("hidechanges", cs.var_type.int, 0, 0, 1)
 
-Object::connect(changes, "add", func(self, ctype, desc) {
+externals::set("change_add", func(desc, ctype) {
     if cs::var_get("applydialog") == 0 { return }
     changes::add(ctype, desc)
     if cs::var_get("hidechanges") == 0 {
