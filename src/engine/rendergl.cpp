@@ -2804,7 +2804,7 @@ CLUAICOMMAND(console_scale_get, float, (), {
     return conscale * (float(hudh) / scr_h);
 });
 
-extern bool fullconsole;
+extern int fullconsole;
 
 void resethudshader()
 {
