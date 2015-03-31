@@ -495,7 +495,7 @@ const char *findfile(const char *filename, const char *mode)
 }
 
 /* OF */
-LUAICOMMAND(search_oct_path, {
+static int search_oct_path(lua_State *L) {
     const char *modname = luaL_checkstring(L, 1);
     const char *path = luaL_checkstring(L, 2);
 
@@ -564,7 +564,8 @@ LUAICOMMAND(search_oct_path, {
     }
     lua_concat(L, nnotfound);
     return 2;
-});
+}
+LUACOMMAND(search_oct_path, search_oct_path);
 
 /* OF: added filter, flags to listdir, listfiles + FTYPE_* and LIST_* */
 bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &files, int filter)
