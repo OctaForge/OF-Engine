@@ -243,8 +243,7 @@ local gen_ident = function(self, name, dest)
         else
             mov_toreg(self.ctx, dest, var.idx)
         end
-    elseif name == "__rt_core" or self.globals == true
-    or (self.globals and self.globals[name]) then
+    elseif name == "__rt_core" then
         self.ctx:op_gget(dest, name)
     else
         lang_error("undeclared variable '" .. name .. "'", self.chunkname,
@@ -1323,11 +1322,10 @@ local StatementRule = {
 }
 
 local Generator = util.Object:clone {
-    __ctor = function(self, tree, name, allowg)
+    __ctor = function(self, tree, name)
         self.line = 0
         self.main = bc.Proto.new(bc.Proto.VARARG, tree.firstline, tree.lastline)
         self.ctx = self.main
-        self.globals = allowg
         self.chunkname = tree.chunkname
         self:emit(tree)
         self.dump = bc.Dump.new(self.main, name)
@@ -1365,8 +1363,6 @@ local Generator = util.Object:clone {
             self.ctx:op_uset(lhs.uv, "V", expr)
         elseif lhs.tag == "local" then
             mov_toreg(self.ctx, lhs.target, expr)
-        elseif self.globals == true or (self.globals and self.globals[lhs.name]) then
-            self.ctx:op_gset(expr, lhs.name)
         else
             lang_error("undeclared variable '" .. lhs.name .. "'", self.chunkname,
                 self.ctx.currline)
@@ -1585,6 +1581,6 @@ local Generator = util.Object:clone {
     end
 }
 
-return function(tree, name, allowg)
-    return Generator(tree, name, allowg).dump:pack()
+return function(tree, name)
+    return Generator(tree, name).dump:pack()
 end

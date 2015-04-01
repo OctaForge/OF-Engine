@@ -426,10 +426,10 @@ end
 
 loaded["std"] = std
 
-local compile = function(fname, src, allowg)
+local compile = function(fname, src)
     local succ, tree = pcall(parser.parse, fname, src, pkg.cond_env)
     if not succ then error(select(2, util.error(tree))) end
-    local succ, bcode = pcall(generator, tree, fname, allowg)
+    local succ, bcode = pcall(generator, tree, fname)
     if not succ then error(select(2, util.error(bcode))) end
     return bcode
 end
@@ -554,7 +554,7 @@ local isbcode = function(s)
     return s:sub(1, 3) == "\x1B\x4C\x4A"
 end
 
-std.eval.load = function(ld, chunkname, mode, env, allowg)
+std.eval.load = function(ld, chunkname, mode, env)
     env = env or rt_env
     if type(ld) ~= "string" then
         local buf = {}
@@ -571,7 +571,7 @@ std.eval.load = function(ld, chunkname, mode, env, allowg)
     if mode ~= "t" and isbcode(ld) then
         return load(ld, chunkname, mode, env)
     else
-        local ret, parsed = pcall(compile, chunkname, ld, allowg)
+        local ret, parsed = pcall(compile, chunkname, ld)
         if not ret then return nil, parsed end
         return load(parsed, chunkname, "b", env)
     end
@@ -588,22 +588,22 @@ local read_file = function(fname)
     return cont, "@" .. fname
 end
 
-local loadfile_f = function(fname, mode, env, allowg)
+local loadfile_f = function(fname, mode, env)
     env = env or rt_env
     local  file, chunkname = read_file(fname)
     if not file then return file, chunkname end
     if mode ~= "t" and isbcode(file) then
         return load(file, chunkname, mode, env)
     else
-        local ret, parsed = pcall(compile, chunkname, file, allowg)
+        local ret, parsed = pcall(compile, chunkname, file)
         if not ret then return nil, parsed end
         return load(parsed, chunkname, "b", env)
     end
 end
 std.eval.loadfile = loadfile_f
 
-std.eval.dofile = function(fname, mode, env, allowg)
-    local  func, err = loadfile_f(fname, mode, env, allowg)
+std.eval.dofile = function(fname, mode, env)
+    local  func, err = loadfile_f(fname, mode, env)
     if not func then error(err, 0) end
     return func()
 end
