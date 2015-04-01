@@ -381,18 +381,13 @@ struct hline
 
     void run()
     {
-        if (flags&CF_EXECUTE && buf[0] == '/') {
-            if (buf[1] != '/')
-                execute(buf + 1);
-            else {
-                string err = { '\0' };
-                lua::L->call_external_ret("console_oct_run", "s", "S", buf + 2, err);
-                if (err[0]) conoutf(CON_ERROR, "%s", err);
-            }
-        } else if (action) {
+        if(flags&CF_EXECUTE && buf[0]=='/') execute(buf+1);
+        else if(action)
+        {
             alias("commandbuf", buf);
             execute(action);
-        } else game::toserver(buf);
+        }
+        else game::toserver(buf);
     }
 };
 vector<hline *> history;
