@@ -346,7 +346,6 @@ local std = {
         stderr  = io.stderr
     },
     jit = require("jit"),
-    bit = require("bit"),
     package = {
         cond_env   = {},
         loaded     = {
@@ -395,23 +394,15 @@ local std = {
     os     = require("os"),
     string = std_string,
     conv   = std_conv,
-    environ = {
-        get = getfenv,
-        set = setfenv,
-        globals = rt_env
-    },
     eval = {},
     gc = {
-        collect = collectgarbage,
-        info    = gcinfo
+        collect = collectgarbage
     },
     util = {
-        _LUA_VERSION = _VERSION,
-        _VERSION     = "OctaScript 0.1",
-        proxy        = newproxy,
-        rawequal     = rawequal,
-        assert       = assert,
-        select       = select
+        _VERSION = "OctaScript 0.1",
+        rawequal = rawequal,
+        assert   = assert,
+        select   = select
     },
     ["jit.opt"] = require("jit.opt"),
     ["jit.util"] = require("jit.util")
