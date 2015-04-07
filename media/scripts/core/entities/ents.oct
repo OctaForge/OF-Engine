@@ -49,56 +49,6 @@ var proto_storage = {}
 // aliases
 var proto_aliases = {}
 
-/*
-    Stores mapping of state variable names and the associated ids, which
-    are used for network transfers; numbers take less space than names,
-    so they take less time to transfer.
-    {
-        entity_proto_name1 = {
-            state_variable_name1 = id1,
-            state_variable_name2 = id2,
-            state_variable_namen = idn
-        },
-        entity_proto_name2 = ...
-        entity_proto_namen = ...
-    }
-*/
-var names_to_ids = {}
-
-// see above, used for back-translation
-var ids_to_names = {}
-
-/**
-    Generates the required network data for an entity prototype. You pass the
-    entity prototype name and an array of state variable names to generate network
-    data for.
-*/
-export func gen_network_data(cn, names) {
-    @[debug] log(DEBUG, e"ents.generate_network_data: $cn")
-    names.sort()
-
-    var ntoi, iton = {}, {}
-    for id, name in names.each() {
-        ntoi[name], iton[id + 1] = tostring(id + 1), name
-    }
-
-    names_to_ids[cn], ids_to_names[cn] = ntoi, iton
-}
-
-/**
-    If an entity prototype name is provided, clears the network data generated
-    by $gen_network_data for the entity prototype. Otherwise clears it all.
-*/
-export func clear_network_data(cn) {
-    if cn == undef {
-        @[debug] log(DEBUG, "ents.clear_network_data")
-        names_to_ids, ids_to_names = {}, {}
-    } else {
-        @[debug] log(DEBUG, e"ents.clear_network_data: $cn")
-        names_to_ids[cn], ids_to_names[cn] = undef, undef
-    }
-}
-
 var plugin_slots = [
     "__init_svars", "__activate", "__deactivate", "__run", "__render"
 ]
@@ -268,14 +218,15 @@ export func register_prototype(cl, plugins, name) {
     @[debug] log(DEBUG, "ents.register_prototype: generating protocol data for "
         e"{ $(sv_names.concat(', ')) }")
 
-    gen_network_data(name, sv_names)
-
     @[debug] log(DEBUG, "ents.register_prototype: registering state variables")
+    var pnames = []
     for i, name in sv_names.each() {
         var svar = pt[name]
         @[debug] log(DEBUG, e"    $name ($(svar.name))")
-        svar.register(name, cl)
+        svar.register(name, cl, i)
+        pnames.push(name)
     }
+    cl.__property_names = pnames
 
     cl.__instances = []
 }
@@ -633,7 +584,7 @@ externals::set("msg_sdata_update", @[!server,func(uid, ocn, kpid, value) {
     @[debug] log(DEBUG, e"sdata_update: $uid, $kpid, $(tostring(value))")
     var ent = stor[uid]
     if ent {
-        var key = ids_to_names[ent.name][kpid]
+        var key = ent.__property_names[kpid]
         @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
         var sv = ent["_SV_" ~ key]
         ent.set_sdata(key, value)
@@ -653,7 +604,7 @@ externals::set("msg_sdata_changereq", func(sender, uid, kpid, value) {
         e"$(tostring(value))")
     var ent = stor[uid]
     if ent {
-        var key = ids_to_names[ent.name][kpid]
+        var key = ent.__property_names[kpid]
         @[debug] log(DEBUG, e"set_sdata: $uid, $kpid, $key")
         var sv = ent["_SV_" ~ key]
         ent.set_sdata(key, value, sender)
@@ -828,8 +779,7 @@ Entity = Object.clone({
                 if val != undef {
                     var wval = svar.to_serializable(val)
                     @[debug] log(DEBUG, e"    adding $name: $(tostring(wval))")
-                    var key = (!comp) && name
-                        || tonumber(names_to_ids[sn][name])
+                    var key = (!comp) && name || svar.index
                     r[key] = wval
                     @[debug] log(DEBUG, e"    currently $(serialize(r))")
                 }
@@ -865,7 +815,8 @@ Entity = Object.clone({
 
         var sn = self.name
         for k, v in pairs(raw) {
-            k = tonumber(k) && ids_to_names[sn][k] || k
+            var kpid = tonumber(k)
+            k = kpid && self.__property_names[kpid] || k
             @[debug] log(DEBUG, e"    $k = $(tostring(v))")
             var sv = self["_SV_" ~ k]
             self.set_sdata(k, v, undef, true)
@@ -961,7 +912,7 @@ Entity = Object.clone({
                 return
             }
 
-            var kid = names_to_ids[self.name][key]
+            var kid = svar.index
             var wval = mp_pack(svar.to_serializable(val), mp_opts)
             var acn = (svar.client_set && actor_uid && actor_uid != -1)
                 && storage_dynamic[actor_uid].cn || msg.ALL_CLIENTS
@@ -973,7 +924,7 @@ Entity = Object.clone({
                 }
                 if svar.should_send(self, n) {
                     msg_sdata_update_send(self, n, svar.reliable,
-                        tonumber(kid), wval, acn)
+                        kid, wval, acn)
                 }
             }
         }
@@ -1028,8 +979,7 @@ Entity = Object.clone({
             @[debug] log(DEBUG, "    sending server request/notification.")
             // TODO: supress sending of the same val, at least for some SVs
             msg_sdata_changereq_send(self, svar.reliable,
-                tonumber(names_to_ids[self.name][svar.name]),
-                mp_pack(svar.to_serializable(val), mp_opts))
+                svar.index, mp_pack(svar.to_serializable(val), mp_opts))
         }
 
         // from a server or set clientside, update now

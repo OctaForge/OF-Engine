@@ -104,12 +104,14 @@ export var StateVariable = Object.clone({
         Arguments:
             - name - the state var name.
             - cl - the entity prototype.
+            - idx - the svar index in the entity prototype.
     */
-    register: func(self, name, cl) {
+    register: func(self, name, cl, idx) {
         @[debug] log(DEBUG, "StateVariable: register(" ~ name
             ~ ", " ~ cl.name ~ ")")
 
         self.name = name
+        self.index = idx
         cl["_SV_" ~ name] = self
 
         assert(self.getter)
