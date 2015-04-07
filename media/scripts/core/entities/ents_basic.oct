@@ -1151,6 +1151,7 @@ M.StaticEntity = Entity.clone({
         self.sdata_changed(svar, key, val)
         self.emit(e"$key,changed", val, actor_uid != -1)
         self.svar_values[key] = val
+        self.__sdata_post_call_cb_set()
     },
 
     /**
