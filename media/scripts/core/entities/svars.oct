@@ -470,7 +470,7 @@ export var StateVariableAlias = StateVariable.clone({
             ~ ", " ~ cl.name ~ ")")
 
         self.name = name
-        self.index = index
+        self.index = idx
         var tg = cl["_SV_" ~ self.target_name]
         cl["_SV_" ~ name] = tg
     }
