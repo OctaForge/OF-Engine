@@ -104,14 +104,12 @@ export var StateVariable = Object.clone({
         Arguments:
             - name - the state var name.
             - cl - the entity prototype.
-            - idx - the svar index in the entity prototype.
     */
-    register: func(self, name, cl, idx) {
+    register: func(self, name, cl) {
         @[debug] log(DEBUG, "StateVariable: register(" ~ name
             ~ ", " ~ cl.name ~ ")")
 
         self.name = name
-        self.index = idx
         cl["_SV_" ~ name] = self
 
         assert(self.getter)
@@ -465,12 +463,11 @@ export var StateVariableAlias = StateVariable.clone({
         getter and setter. It also creates the _SV_ prefixed raw accessor
         pointing to the target var. See {{$StateVariable.register}}.
     */
-    register: func(self, name, cl, idx) {
+    register: func(self, name, cl) {
         @[debug] log(DEBUG, "StateVariableAlias: register(" ~ name
             ~ ", " ~ cl.name ~ ")")
 
         self.name = name
-        self.index = idx
         var tg = cl["_SV_" ~ self.target_name]
         cl["_SV_" ~ name] = tg
     }
