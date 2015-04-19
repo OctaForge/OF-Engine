@@ -91,18 +91,19 @@ var MouseAction = actions.Action.clone({
 })
 
 inputev::set_event("click", func(btn, down, x, y, z, ent, cx, cy) {
+    var pl = ents::get_player()
+    if !pl || pl.get_editing() { return }
     if ent && ent.click {
         return ent.click(btn, down, x, y, z, cx, cy)
     }
     var gm = game_manager::get()
     if down {
-        var pl = ents::get_player()
         var mact = MouseAction()
         mact.button = btn
         mact.player = pl
         gm.mouse_action = mact
         gm.enqueue_action(mact)
-    } else {
+    } else if gm.mouse_action {
         gm.mouse_action.cancel()
         gm.mouse_action = undef
     }

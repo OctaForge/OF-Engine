@@ -146,16 +146,18 @@ ents::register_prototype(GamePlayer, [
 
 @[!server] {
     inputev::set_event("click", func(btn, down, x, y, z, ent, cx, cy) {
+        var pl = ents::get_player()
+        if !pl || pl.get_editing() { return }
         if ent && ent.click {
             return ent.click(btn, down, x, y, z, cx, cy)
         }
         if btn == 1 {
-            ents::get_player().pressing   = down
-            ents::get_player().stop_batch = false
+            pl.pressing   = down
+            pl.stop_batch = false
         } else if btn == 2 && down {
-            ents::get_player().reset_mark()
+            pl.reset_mark()
         } else if btn == 3 && down {
-            ents::get_player().next_color()
+            pl.next_color()
         }
     })
 }
