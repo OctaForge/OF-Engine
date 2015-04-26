@@ -265,7 +265,7 @@ ifeq ($(TARGET_SYS),Darwin)
 		-framework Cocoa
 	CS_OSX_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(CS_OSX_INC)
 	CS_OSX_CFLAGS += -Wno-import
-	CS_OSX_CXXFLAGS = $(CS_OSX_CFLAGS) -fno-exceptions -fno-rtti
+	CS_OSX_CXXFLAGS = $(CS_OSX_CFLAGS) -fno-exceptions -fno-rtti -std=c++11
 endif
 
 ####################
@@ -273,7 +273,7 @@ endif
 ####################
 
 CLIENT_CXXFLAGS := $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti \
+	-fsigned-char -fno-exceptions -fno-rtti -std=c++11 \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS) \
 	-DBINARY_ARCH_STR=\"$(TARGET_BINARCH)\" -DBINARY_OS_STR=\"$(TARGET_BINOS)\"
 
@@ -375,7 +375,7 @@ CLIENT_OBJB = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 ####################
 
 SERVER_CXXFLAGS := $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti -DSTANDALONE \
+	-fsigned-char -fno-exceptions -fno-rtti -std=c++11 -DSTANDALONE \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS) \
 	-DBINARY_ARCH_STR=\"$(TARGET_BINARCH)\" -DBINARY_OS_STR=\"$(TARGET_BINOS)\"
 
@@ -423,7 +423,7 @@ SERVER_OBJB = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
 ####################
 
 MASTER_CXXFLAGS := $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(MASTER_X CXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti -DSTANDALONE -DMASTER \
+	-fsigned-char -fno-exceptions -fno-rtti -std=c++11 -DSTANDALONE -DMASTER \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS) \
 	-DBINARY_ARCH_STR=\"$(TARGET_BINARCH)\" -DBINARY_OS_STR=\"$(TARGET_BINOS)\"
 

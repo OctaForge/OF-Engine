@@ -1,5 +1,5 @@
 Compiling OctaForge
-********************
+*******************
 
 Officially supported platforms for OctaForge (those which include/will include
 binaries) are currently Linux, FreeBSD, Windows and OS X (experimental).
@@ -32,8 +32,21 @@ For all OSes
    a GUI client such as TortoiseGit more convenient than the command line
    client.
 
+Compiler requirements
+=====================
+
+For Unix-like operating systems, you will need GCC 4.8 or newer, Clang 3.3
+or newer or an equivalent compiler (must support C++11).
+
+For Windows, you will need a GCC/Clang distribution (such as MinGW or TDM-GCC)
+that is equivalent in version to the above (i.e. GCC 4.8+, Clang 3.3+) or MS
+Visual Studio 2015 or newer.
+
+OctaForge might not compile on older versions of those compilers because of
+the C++11 requirement.
+
 Unix-like systems (including Linux and the BSDs)
-==========================================================
+================================================
 
 On these OSes, compilation should be really trivial. Instructions assume Linux
 with .deb packaging system, with little modifications it should work everywhere.
