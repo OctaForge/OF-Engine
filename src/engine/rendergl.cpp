@@ -1411,8 +1411,8 @@ FVAR(smoothcamera, 0, 0.2, 100.0);
  * on the player).
  */
 FVAR(thirdpersonavoid, 0, 0.33, 1);
-FVAR(thirdpersondistance, 0, 50, 200);
-FVAR(thirdpersonup, -50, 10, 50);
+FVAR(thirdpersondistance, 0, 70, 200);
+FVAR(thirdpersonup, -50, 8, 50);
 FVAR(thirdpersonside, -25, 0, 25);
 physent *camera1 = NULL;
 bool detachedcamera = false;

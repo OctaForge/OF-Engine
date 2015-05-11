@@ -76,7 +76,7 @@ struct physent                                  // base entity type, can be affe
     bool blocked;                               // used by physics to signal ai
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(0), pitch(0), roll(0), maxspeed(100),
-               crouchtime(150), radius(4.1f), eyeheight(18), maxheight(18), aboveeye(2), crouchheight(1), crouchspeed(1), jumpvel(0), gravity(0), xradius(4.1f), yradius(4.1f), zmargin(0),
+               crouchtime(150), radius(4.1f), eyeheight(22), maxheight(22), aboveeye(2), crouchheight(1), crouchspeed(1), jumpvel(0), gravity(0), xradius(4.1f), yradius(4.1f), zmargin(0),
                state(CS_ALIVE), editstate(CS_ALIVE), type(ENT_PLAYER),
                collidetype(COLLIDE_ELLIPSE),
                blocked(false)

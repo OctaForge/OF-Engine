@@ -124,9 +124,9 @@ var M = ents
         - above_eye [{{$svars.StateFloat}}] - the height of the character
           above its eyes. Defaults to 2.0.
         - eye_height [{{$svars.StateFloat}}] - the distance from the ground to
-          the eye position. Defaults to 18.0.
+          the eye position. Defaults to 22.0.
         - max_height [{{$svars.StateFloat}}] - the maximum distance from the
-          ground to the eye position. Defaults to 18.0. Used when crouching.
+          ground to the eye position. Defaults to 22.0. Used when crouching.
         - crouch_height [{{$svars.StateFloat}}] - the fraction of max_height
           to use when crouched, defaults to 0.75.
         - crouch_speed [{{$svars.StateFloat}}] - the fraction of regular
@@ -434,8 +434,8 @@ M.Character = Entity.clone({
 
         self.cn = kwargs && kwargs.cn || -1
         self.set_attr("model_name", "player")
-        self.set_attr("eye_height", 18.0)
-        self.set_attr("max_height", 18.0)
+        self.set_attr("eye_height", 22.0)
+        self.set_attr("max_height", 22.0)
         self.set_attr("crouch_height", 0.75)
         self.set_attr("crouch_speed", 0.4)
         self.set_attr("crouch_time", 200)
