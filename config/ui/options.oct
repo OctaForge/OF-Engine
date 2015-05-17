@@ -115,6 +115,15 @@ var st_names = { 2: "instant-fade", 15: "quick-fade", 30: "moderate-fade", 60: "
 var st_vals  = [ 2, 15, 30, 60 ]
 var gr_names = { 128: "quick-fade", 256: "moderate-fade", 512: "slow-fade", 1024: "slower-fade" }
 var gr_vals  = [ 128, 256, 512, 1024 ]
+var tr_names = { 0: "high (0)", 1: "medium (1)", 2: "low (2)", 3: "very low (3)" }
+var tr_vals  = [ 0, 1, 2, 3 ]
+var ts_names = { 0: "no limit", 512: "512x512", 1024: "1024x1024", 1536: "1536x1536", 2048: "2048x2048" }
+var ts_vals  = [ 0, 512, 1024, 2048 ]
+var tc_names = {
+    0: "ultra quality", 1536: "high quality", 1024: "medium quality",
+    512: "low quality", 256: "lowest quality"
+}
+var tc_vals  = [ 0, 1536, 1024, 512, 256 ]
 
 func gen_opts_graphics() {
     var r = gui::Outline({ min_w: 0.6, min_h: 0.5, variant: "normal" })
@@ -122,6 +131,28 @@ func gen_opts_graphics() {
         sp.append(gui::VBox({ clamp_h: true, padding: 0.01 }),
             func(vb) {
                 vb.align(0, -1)
+                add_box(vb, func(hb) {
+                    var ttip = gui::Filler({ variant: "tooltip",
+                        label: "Affects texture quality by scaling down\n"
+                               "in-game textures with (W and H)/(2^quality)\n"
+                               "(such as 512x256 to 256x128 with medium)"
+                    })
+                    hb.append(gui::Label({ text: "Texture reduce" }))
+                    var cb = hb.append(gen_combobox("texreduce", tr_names, tr_vals, undef, 0.2))
+                    cb.connect("hovering", \self -> self.show_tooltip(ttip))
+                })
+                add_box(vb, func(hb) {
+                    hb.append(gui::Label({ text: "Texture compression" }))
+                    hb.append(gen_combobox("texcompress", tc_names, tc_vals, undef, 0.2))
+                })
+                add_box(vb, func(hb) {
+                    var ttip = gui::Filler({ variant: "tooltip",
+                        label: "Use with caution, affects ALL textures\n"
+                               "(even user interface, HUD and fonts)" })
+                    hb.append(gui::Label({ text: "Maximum texture size" }))
+                    var cb = hb.append(gen_combobox("maxtexsize", ts_names, ts_vals, undef, 0.2))
+                    cb.connect("hovering", \self -> self.show_tooltip(ttip))
+                })
                 add_box(vb, func(hb) {
                     hb.append(gui::Label({ text: "Shadow resolution" }))
                     hb.append(gen_combobox("smsize", sr_names, sr_vals))
