@@ -142,7 +142,7 @@ struct animmodel : model
             if(color.r < 0) LOCALPARAM(colorscale, colorscale);
             else LOCALPARAMF(colorscale, color.r, color.g, color.b, colorscale.a);
 
-            if(fullbright) LOCALPARAMF(fullbright, 0.0f, fullbright);
+            if(fullbright) LOCALPARAMF(fullbright, 1.0f, fullbright);
             else LOCALPARAMF(fullbright, 1.0f, as->cur.anim&ANIM_FULLBRIGHT ? 0.5f*fullbrightmodels/100.0f : 0.0f);
 
             float curglow = glow;
