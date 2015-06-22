@@ -30,7 +30,6 @@ void cleanup()
     extern void clear_sound();   clear_sound();
     lua::close();
     closelogfile();
-    ovr::destroy();
     #ifdef __APPLE__
         if(screen) SDL_SetWindowFullscreen(screen, 0);
     #endif
@@ -198,25 +197,7 @@ void renderbackground(const char *caption, const char *picname, const char *mapn
 
     loopi(3)
     {
-        if(ovr::enabled)
-        {
-            aspect = forceaspect ? forceaspect : hudw/float(hudh);
-            for(viewidx = 0; viewidx < 2; viewidx++, hudx += hudw)
-            {
-                if(!i)
-                {
-                    glBindFramebuffer_(GL_FRAMEBUFFER, ovr::lensfbo[viewidx]);
-                    glViewport(0, 0, hudw, hudh);
-                    glClearColor(0, 0, 0, 0);
-                    glClear(GL_COLOR_BUFFER_BIT);
-                    renderbackgroundview(w, h, caption, picname, mapname, mapinfo);
-                }
-                ovr::warp();
-            }
-            viewidx = 0;
-            hudx = 0;
-        }
-        else renderbackgroundview(w, h, caption, picname, mapname, mapinfo);
+        renderbackgroundview(w, h, caption, picname, mapname, mapinfo);
         swapbuffers(false);
     }
 
@@ -259,27 +240,8 @@ void renderprogress(float bar, const char *text)   // also used during loading
     getbackgroundres(w, h);
     gettextres(w, h);
 
-    if(ovr::enabled)
-    {
-        aspect = forceaspect ? forceaspect : hudw/float(hudh);
-        for(viewidx = 0; viewidx < 2; viewidx++, hudx += hudw)
-        {
-            glBindFramebuffer_(GL_FRAMEBUFFER, ovr::lensfbo[viewidx]);
-            glViewport(0, 0, hudw, hudh);
-            glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
-            restorebackground(w, h);
-            renderprogressview(bar, text);
-            ovr::warp();
-        }
-        viewidx = 0;
-        hudx = 0;
-    }
-    else
-    {
-        restorebackground(w, h);
-        renderprogressview(bar, text);
-    }
+    restorebackground(w, h);
+    renderprogressview(bar, text);
     swapbuffers(false);
 }
 
@@ -359,7 +321,6 @@ void setfullscreen(bool enable)
         if(initwindowpos)
         {
             int winx = SDL_WINDOWPOS_CENTERED, winy = SDL_WINDOWPOS_CENTERED;
-            if(ovr::enabled) winx = winy = 0;
             SDL_SetWindowPosition(screen, winx, winy);
             initwindowpos = false;
         }
@@ -457,7 +418,6 @@ void setupscreen()
         initwindowpos = true;
     }
     if (retina) flags |= SDL_WINDOW_ALLOW_HIGHDPI;
-    if(ovr::enabled) winx = winy = 0;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
@@ -1206,7 +1166,6 @@ int main(int argc, char **argv)
         updatetime();
 
         checkinput();
-        ovr::update();
         lua::L->call_external("gui_update", "");
         tryedit();
 

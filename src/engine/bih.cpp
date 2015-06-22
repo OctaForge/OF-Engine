@@ -477,11 +477,7 @@ static inline bool triboxoverlap(const vec &radius, const vec &a, const vec &b, 
 template<>
 inline void BIH::tricollide<COLLIDE_ELLIPSE>(const mesh &m, int tidx, physent *d, const vec &dir, float cutoff, const vec &center, const vec &radius, const matrix4x3 &orient, float &dist, const ivec &bo, const ivec &br)
 {
-    const tribb &bb = m.tribbs[tidx];
-    if(abs(bo.x - bb.center.x) > br.x + bb.radius.x ||
-       abs(bo.y - bb.center.y) > br.y + bb.radius.y ||
-       abs(bo.z - bb.center.z) > br.z + bb.radius.z)
-        return;
+    if(m.tribbs[tidx].outside(bo, br)) return; 
 
     const tri &t = m.tris[tidx];
     vec a = m.getpos(t.vert[0]), b = m.getpos(t.vert[1]), c = m.getpos(t.vert[2]),
@@ -514,11 +510,7 @@ inline void BIH::tricollide<COLLIDE_ELLIPSE>(const mesh &m, int tidx, physent *d
 template<>
 inline void BIH::tricollide<COLLIDE_OBB>(const mesh &m, int tidx, physent *d, const vec &dir, float cutoff, const vec &center, const vec &radius, const matrix4x3 &orient, float &dist, const ivec &bo, const ivec &br)
 {
-    const tribb &bb = m.tribbs[tidx];
-    if(abs(bo.x - bb.center.x) > br.x + bb.radius.x ||
-       abs(bo.y - bb.center.y) > br.y + bb.radius.y ||
-       abs(bo.z - bb.center.z) > br.z + bb.radius.z)
-        return;
+    if(m.tribbs[tidx].outside(bo, br)) return;
 
     const tri &t = m.tris[tidx];
     vec a = orient.transform(m.getpos(t.vert[0])), b = orient.transform(m.getpos(t.vert[1])), c = orient.transform(m.getpos(t.vert[2]));
@@ -698,11 +690,7 @@ bool BIH::boxcollide(physent *d, const vec &dir, float cutoff, const vec &o, int
 
 inline void BIH::genstaintris(stainrenderer *s, const mesh &m, int tidx, const vec &center, float radius, const matrix4x3 &orient, const ivec &bo, const ivec &br)
 {
-    const tribb &bb = m.tribbs[tidx];
-    if(abs(bo.x - bb.center.x) > br.x + bb.radius.x ||
-       abs(bo.y - bb.center.y) > br.y + bb.radius.y ||
-       abs(bo.z - bb.center.z) > br.z + bb.radius.z)
-        return;
+    if(m.tribbs[tidx].outside(bo, br)) return;
 
     const tri &t = m.tris[tidx];
     vec v[3] =

@@ -32,7 +32,6 @@
 		1F6D8FC71A9BE1DC00365C8C /* octa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8F9D1A9BE1DC00365C8C /* octa.cpp */; };
 		1F6D8FC81A9BE1DC00365C8C /* octaedit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8F9F1A9BE1DC00365C8C /* octaedit.cpp */; };
 		1F6D8FC91A9BE1DC00365C8C /* octarender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8FA01A9BE1DC00365C8C /* octarender.cpp */; };
-		1F6D8FCA1A9BE1DC00365C8C /* ovr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8FA11A9BE1DC00365C8C /* ovr.cpp */; };
 		1F6D8FCB1A9BE1DC00365C8C /* physics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8FA21A9BE1DC00365C8C /* physics.cpp */; };
 		1F6D8FCC1A9BE1DC00365C8C /* pvs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8FA31A9BE1DC00365C8C /* pvs.cpp */; };
 		1F6D8FCD1A9BE1DC00365C8C /* rendergl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F6D8FA51A9BE1DC00365C8C /* rendergl.cpp */; };
@@ -152,7 +151,6 @@
 		1F6D8F9E1A9BE1DC00365C8C /* octa.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = octa.h; path = ../engine/octa.h; sourceTree = "<group>"; };
 		1F6D8F9F1A9BE1DC00365C8C /* octaedit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = octaedit.cpp; path = ../engine/octaedit.cpp; sourceTree = "<group>"; };
 		1F6D8FA01A9BE1DC00365C8C /* octarender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = octarender.cpp; path = ../engine/octarender.cpp; sourceTree = "<group>"; };
-		1F6D8FA11A9BE1DC00365C8C /* ovr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ovr.cpp; path = ../engine/ovr.cpp; sourceTree = "<group>"; };
 		1F6D8FA21A9BE1DC00365C8C /* physics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = physics.cpp; path = ../engine/physics.cpp; sourceTree = "<group>"; };
 		1F6D8FA31A9BE1DC00365C8C /* pvs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pvs.cpp; path = ../engine/pvs.cpp; sourceTree = "<group>"; };
 		1F6D8FA41A9BE1DC00365C8C /* ragdoll.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = ragdoll.h; path = ../engine/ragdoll.h; sourceTree = "<group>"; };
@@ -300,7 +298,6 @@
 				1F6D8F9E1A9BE1DC00365C8C /* octa.h */,
 				1F6D8F9F1A9BE1DC00365C8C /* octaedit.cpp */,
 				1F6D8FA01A9BE1DC00365C8C /* octarender.cpp */,
-				1F6D8FA11A9BE1DC00365C8C /* ovr.cpp */,
 				1F6D8FA21A9BE1DC00365C8C /* physics.cpp */,
 				1F6D8FA31A9BE1DC00365C8C /* pvs.cpp */,
 				1F6D8FA41A9BE1DC00365C8C /* ragdoll.h */,
@@ -497,7 +494,6 @@
 				1F6D8F751A9BE1BC00365C8C /* peer.c in Sources */,
 				1F7DEDF01A9BFBD400017C35 /* CONTRIBUTORS.md in Sources */,
 				1F6D8FDA1A9BE1DC00365C8C /* water.cpp in Sources */,
-				1F6D8FCA1A9BE1DC00365C8C /* ovr.cpp in Sources */,
 				1F6D90001A9BE20800365C8C /* glemu.cpp in Sources */,
 				1F6D8F781A9BE1BC00365C8C /* win32.c in Sources */,
 				1F6D8FDC1A9BE1DC00365C8C /* worldio.cpp in Sources */,

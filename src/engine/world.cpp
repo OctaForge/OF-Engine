@@ -1383,7 +1383,6 @@ void resetmap()
 void startmap(const char *name)
 {
     game::startmap(name);
-    ovr::reset();
     worldloading = false;
 }
 

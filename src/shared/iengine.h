@@ -478,9 +478,3 @@ extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<ch
 extern void freechallenge(void *answer);
 extern bool checkchallenge(const char *answerstr, void *correct);
 
-// ovr
-namespace ovr
-{
-    extern void reset();
-}
-

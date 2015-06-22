@@ -459,7 +459,6 @@
     <ClCompile Include="..\engine\octa.cpp" />
     <ClCompile Include="..\engine\octaedit.cpp" />
     <ClCompile Include="..\engine\octarender.cpp" />
-    <ClCompile Include="..\engine\ovr.cpp" />
     <ClCompile Include="..\engine\physics.cpp" />
     <ClCompile Include="..\engine\pvs.cpp" />
     <ClCompile Include="..\engine\rendergl.cpp" />

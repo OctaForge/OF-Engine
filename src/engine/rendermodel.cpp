@@ -733,7 +733,7 @@ void rendermodelbatches()
             renderbatchedmodel(b.m, bm);
         }
         if(rendered) b.m->endrender();
-        if(b.flags&MDL_CULL_QUERY && !viewidx)
+        if(b.flags&MDL_CULL_QUERY)
         {
             bool queried = false;
             for(int j = b.batched; j >= 0;)
@@ -777,7 +777,7 @@ void rendertransparentmodelbatches(int stencil)
                 rendered = true;
                 setaamask(true);
             }
-            if(bm.flags&MDL_CULL_QUERY && !viewidx)
+            if(bm.flags&MDL_CULL_QUERY)
             {
                 bm.d->query = newquery(bm.d);
                 if(bm.d->query)
@@ -955,7 +955,7 @@ hasboundbox:
         int culled = cullmodel(m, center, radius, flags, d);
         if(culled)
         {
-            if(culled&(MDL_CULL_OCCLUDED|MDL_CULL_QUERY) && flags&MDL_CULL_QUERY && !viewidx)
+            if(culled&(MDL_CULL_OCCLUDED|MDL_CULL_QUERY) && flags&MDL_CULL_QUERY)
             {
                 enablecullmodelquery();
                 rendercullmodelquery(m, d, center, radius);
@@ -964,7 +964,7 @@ hasboundbox:
             return;
         }
         enableaamask();
-        if(flags&MDL_CULL_QUERY && !viewidx)
+        if(flags&MDL_CULL_QUERY)
         {
             d->query = newquery(d);
             if(d->query) startquery(d->query);
@@ -974,7 +974,7 @@ hasboundbox:
         if(flags&MDL_FULLBRIGHT) anim |= ANIM_FULLBRIGHT;
         m->render(anim, basetime, basetime2, o, yaw, pitch, roll, d, a, size, color);
         m->endrender();
-        if(flags&MDL_CULL_QUERY && !viewidx && d->query) endquery(d->query);
+        if(flags&MDL_CULL_QUERY && d->query) endquery(d->query);
         disableaamask();
         return;
     }

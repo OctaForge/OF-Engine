@@ -493,21 +493,16 @@ void rendermapmodels()
             if(!rendered)
             {
                 rendered = true;
-                if(!viewidx)
-                {
-                    oe->query = doquery && oe->distance>0 && !(++skipoq%oqmm) ? newquery(oe) : NULL;
-                    if(oe->query) startmodelquery(oe->query);
-                }
+                oe->query = doquery && oe->distance>0 && !(++skipoq%oqmm) ? newquery(oe) : NULL;
+                if(oe->query) startmodelquery(oe->query);
             }
             rendermapmodel(e);
             e.flags &= ~EF_RENDER;
         }
-        if(rendered && !viewidx && oe->query) endmodelquery();
+        if(rendered && oe->query) endmodelquery();
     }
     rendermapmodelbatches();
     clearbatchedmapmodels();
-
-    if(viewidx) return;
 
     bool queried = false;
     for(octaentities *oe = visiblemms; oe; oe = oe->next) if(oe->distance<0)
@@ -531,7 +526,7 @@ void rendermapmodels()
 
 static inline bool bbinsideva(const ivec &bo, const ivec &br, vtxarray *va)
 {
-    return bo.x >= va->bbmin.x && bo.y >= va->bbmin.y && va->o.z >= va->bbmin.z &&
+    return bo.x >= va->bbmin.x && bo.y >= va->bbmin.y && bo.z >= va->bbmin.z &&
         br.x <= va->bbmax.x && br.y <= va->bbmax.y && br.z <= va->bbmax.z;
 }
 
@@ -1696,23 +1691,7 @@ void rendergeom()
     renderstate cur;
 
     int blends = 0;
-    if(viewidx)
-    {
-        setupgeom(cur);
-        resetbatches();
-        for(vtxarray *va = visibleva; va; va = va->next) if(va->texs && va->occluded < OCCLUDE_GEOM)
-        {
-            if(pvsoccluded(va->geommin, va->geommax))
-            {
-                va->occluded = OCCLUDE_GEOM;
-                continue;
-            }
-            blends += va->blends;
-            renderva(cur, va, RENDERPASS_GBUFFER);
-        }
-        if(geombatches.length()) renderbatches(cur, RENDERPASS_GBUFFER);
-    }
-    else if(doOQ)
+    if(doOQ)
     {
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs)
         {
@@ -1831,7 +1810,7 @@ void rendergeom()
 
     cleanupgeom(cur);
 
-    if(viewidx || !doOQ)
+    if(!doOQ)
     {
         glFlush();
         if(cur.colormask) { cur.colormask = false; glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); }

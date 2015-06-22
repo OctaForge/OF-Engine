@@ -991,14 +991,11 @@ namespace game
                 d->strafe = (physstate>>6)&2 ? -1 : (physstate>>6)&1;
                 d->crouching = (flags&(1<<8))!=0 ? -1 : abs(d->crouching);
                 vec oldpos(d->o);
-                if(allowmove(d))
-                {
-                    d->o = o;
-                    d->o.z += d->eyeheight;
-                    d->vel = vel;
-                    d->falling = falling;
-                    d->physstate = physstate&7;
-                }
+                d->o = o;
+                d->o.z += d->eyeheight;
+                d->vel = vel;
+                d->falling = falling;
+                d->physstate = physstate&7;
                 updatephysstate(d);
                 updatepos(d);
                 if(smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < smoothdist)
