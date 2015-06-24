@@ -19,8 +19,7 @@ void *operator new[](size_t size)
 #ifndef _MSC_VER
 #define NOEXCEPT noexcept
 #else
-#include <yvals.h>
-#define NOEXCEPT _NOEXCEPT
+#define NOEXCEPT
 #endif
 
 void operator delete(void *p) NOEXCEPT { if (p) free(p); }
