@@ -16,9 +16,15 @@ void *operator new[](size_t size)
     return p;
 }
 
-void operator delete(void *p) noexcept { if(p) free(p); }
+#ifndef _MSC_VER
+#define NOEXCEPT noexcept
+#else
+#define NOEXCEPT
+#endif
 
-void operator delete[](void *p) noexcept { if(p) free(p); }
+void operator delete(void *p) NOEXCEPT { if (p) free(p); }
+
+void operator delete[](void *p) NOEXCEPT { if (p) free(p); }
 
 ////////////////////////// strings ////////////////////////////////////////
 
