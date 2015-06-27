@@ -39,8 +39,9 @@ For Unix-like operating systems, you will need GCC 4.8 or newer, Clang 3.3
 or newer or an equivalent compiler (must support C++11).
 
 For Windows, you will need a GCC/Clang distribution (such as MinGW or TDM-GCC)
-that is equivalent in version to the above (i.e. GCC 4.8+, Clang 3.3+) or MS
-Visual Studio 2015 or newer.
+that is equivalent in version to the above (i.e. GCC 4.8+, Clang 3.3+). Visual
+Studio builds are currently not supported - the C++11 support is lacking. You
+can use the Code::Blocks project file for a more friendly build process.
 
 OctaForge might not compile on older versions of those compilers because of
 the C++11 requirement.
@@ -101,6 +102,8 @@ Supported compilers are GCC (at least 4.2), Clang and possibly others.
 OS X
 ====
 
+**SUPPORTED, BUT CURRENTLY BROKEN - FIX PENDING**
+
 First, fetch the repository with dependencies and place the `Frameworks` directory
 into `src/xcode`.
 
@@ -133,7 +136,7 @@ There are two locations where you can grab a copy of the repository:
 https://git.octaforge.org/build/libs_win.git  
 https://github.com/OctaForge/OF-Windows
 
-Then you have 3 options:
+Then you have 2 options:
 
 1. Use MinGW or TDM-gcc to build.
 
@@ -168,7 +171,7 @@ Then you have 3 options:
 
    Both 32-bit and 64-bit executables are supported.
 
-3. Use a Visual Studio project file.
+3. Use a Visual Studio project file (**currently unsupported and broken**).
 
    In that case you should be using `src/vcpp/octaforge.sln`. Just like above,
    it only builds a client (in either 32-bit or 64-bit version, debug, release

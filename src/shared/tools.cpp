@@ -2,30 +2,6 @@
 
 #include "cube.h"
 
-void *operator new(size_t size)
-{
-    void *p = malloc(size);
-    if(!p) abort();
-    return p;
-}
-
-void *operator new[](size_t size)
-{
-    void *p = malloc(size);
-    if(!p) abort();
-    return p;
-}
-
-#ifndef _MSC_VER
-#define NOEXCEPT noexcept
-#else
-#define NOEXCEPT
-#endif
-
-void operator delete(void *p) NOEXCEPT { if (p) free(p); }
-
-void operator delete[](void *p) NOEXCEPT { if (p) free(p); }
-
 ////////////////////////// strings ////////////////////////////////////////
 
 static string tmpstr[4];

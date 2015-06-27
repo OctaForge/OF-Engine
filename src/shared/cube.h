@@ -26,6 +26,8 @@
 #include <assert.h>
 #include <time.h>
 
+#include "octa/new.h"
+
 extern "C" {
 #ifdef __APPLE__
   #include "LuaJIT/lua.h"
