@@ -33,47 +33,10 @@ typedef unsigned long long int ullong;
 #define UNUSED
 #endif
 
-#ifdef swap
-#undef swap
-#endif
-template<class T>
-static inline void swap(T &a, T &b)
-{
-    T t = a;
-    a = b;
-    b = t;
-}
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
-template<class T>
-static inline T max(T a, T b)
-{
-    return a > b ? a : b;
-}
-template<class T>
-static inline T max(T a, T b, T c)
-{
-    return max(max(a, b), c);
-}
-template<class T>
-static inline T min(T a, T b)
-{
-    return a < b ? a : b;
-}
-template<class T>
-static inline T min(T a, T b, T c)
-{
-    return min(min(a, b), c);
-}
-template<class T, class U>
-static inline T clamp(T a, U b, U c)
-{
-    return max(T(b), min(a, T(c)));
-}
+using octa::swap;
+using octa::min;
+using octa::max;
+using octa::clamp;
 
 #ifdef __GNUC__
 #define bitscan(mask) (__builtin_ffs(mask)-1)
@@ -693,7 +656,7 @@ template <class T> struct vector
     void growbuf(int sz)
     {
         int olen = alen;
-        if(!alen) alen = max(MINSIZE, sz);
+        if(!alen) alen = octa::max(int(MINSIZE), sz);
         else while(alen < sz) alen += alen/2;
         if(alen <= olen) return;
         uchar *newbuf = new uchar[alen*sizeof(T)];

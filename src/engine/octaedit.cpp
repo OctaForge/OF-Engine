@@ -162,7 +162,7 @@ bool noedit(bool view, bool msg)
     vec o(sel.o), s(sel.s);
     s.mul(sel.grid / 2.0f);
     o.add(s);
-    float r = max(s.x, s.y, s.z);
+    float r = max({ s.x, s.y, s.z });
     bool viewable = (isvisiblesphere(r, o) != VFC_NOT_VISIBLE);
     if(!viewable && msg) conoutf(CON_ERROR, "selection not in view");
     return !viewable;
