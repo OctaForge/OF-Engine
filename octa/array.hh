@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_ARRAY_H
-#define OCTA_ARRAY_H
+#ifndef OCTA_ARRAY_HH
+#define OCTA_ARRAY_HH
 
 #include <stddef.h>
 

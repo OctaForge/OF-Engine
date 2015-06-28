@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_ALGORITHM_H
-#define OCTA_ALGORITHM_H
+#ifndef OCTA_ALGORITHM_HH
+#define OCTA_ALGORITHM_HH
 
 #include <math.h>
 

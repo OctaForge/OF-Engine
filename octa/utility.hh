@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_UTILITY_H
-#define OCTA_UTILITY_H
+#ifndef OCTA_UTILITY_HH
+#define OCTA_UTILITY_HH
 
 #include <stddef.h>
 

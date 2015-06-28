@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_ATOMIC_H
-#define OCTA_ATOMIC_H
+#ifndef OCTA_ATOMIC_HH
+#define OCTA_ATOMIC_HH
 
 #include <stdint.h>
 #include <stddef.h>

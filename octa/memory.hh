@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_MEMORY_H
-#define OCTA_MEMORY_H
+#ifndef OCTA_MEMORY_HH
+#define OCTA_MEMORY_HH
 
 #include <stddef.h>
 

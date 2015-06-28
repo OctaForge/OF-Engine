@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_INTERNAL_HASHTABLE_H
-#define OCTA_INTERNAL_HASHTABLE_H
+#ifndef OCTA_INTERNAL_HASHTABLE_HH
+#define OCTA_INTERNAL_HASHTABLE_HH
 
 #include <string.h>
 

@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_FUNCTIONAL_H
-#define OCTA_FUNCTIONAL_H
+#ifndef OCTA_FUNCTIONAL_HH
+#define OCTA_FUNCTIONAL_HH
 
 #include "octa/platform.hh"
 #include "octa/new.hh"

@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_MAP_H
-#define OCTA_MAP_H
+#ifndef OCTA_MAP_HH
+#define OCTA_MAP_HH
 
 #include "octa/types.hh"
 #include "octa/utility.hh"
