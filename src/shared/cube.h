@@ -26,9 +26,9 @@
 #include <assert.h>
 #include <time.h>
 
-#include "octa/types.h"
-#include "octa/new.h"
-#include "octa/algorithm.h"
+#include "octa/types.hh"
+#include "octa/new.hh"
+#include "octa/algorithm.hh"
 
 extern "C" {
 #ifdef __APPLE__
