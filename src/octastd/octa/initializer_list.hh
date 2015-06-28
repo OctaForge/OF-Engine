@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_INITIALIZER_LIST_H
-#define OCTA_INITIALIZER_LIST_H
+#ifndef OCTA_INITIALIZER_LIST_HH
+#define OCTA_INITIALIZER_LIST_HH
 
 #include <stddef.h>
 

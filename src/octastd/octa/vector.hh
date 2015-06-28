@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_VECTOR_H
-#define OCTA_VECTOR_H
+#ifndef OCTA_VECTOR_HH
+#define OCTA_VECTOR_HH
 
 #include <string.h>
 #include <stddef.h>

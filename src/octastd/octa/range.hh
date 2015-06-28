@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_RANGE_H
-#define OCTA_RANGE_H
+#ifndef OCTA_RANGE_HH
+#define OCTA_RANGE_HH
 
 #include <stddef.h>
 

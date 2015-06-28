@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_PLATFORM_H
-#define OCTA_PLATFORM_H
+#ifndef OCTA_PLATFORM_HH
+#define OCTA_PLATFORM_HH
 
 #include <stdint.h>
 

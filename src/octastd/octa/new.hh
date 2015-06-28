@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_NEW_H
-#define OCTA_NEW_H
+#ifndef OCTA_NEW_HH
+#define OCTA_NEW_HH
 
 #ifndef OCTA_ALLOW_CXXSTD
 #include "octa/types.hh"

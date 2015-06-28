@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_STRING_H
-#define OCTA_STRING_H
+#ifndef OCTA_STRING_HH
+#define OCTA_STRING_HH
 
 #include <stdio.h>
 #include <stddef.h>

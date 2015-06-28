@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_STREAM_H
-#define OCTA_STREAM_H
+#ifndef OCTA_STREAM_HH
+#define OCTA_STREAM_HH
 
 #include <stdio.h>
 #include <sys/types.h>

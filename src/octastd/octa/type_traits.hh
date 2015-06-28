@@ -3,8 +3,8 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_TYPE_TRAITS_H
-#define OCTA_TYPE_TRAITS_H
+#ifndef OCTA_TYPE_TRAITS_HH
+#define OCTA_TYPE_TRAITS_HH
 
 #include <stddef.h>
 
