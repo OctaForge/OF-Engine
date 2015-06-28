@@ -9,9 +9,9 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include "octa/utility.h"
-#include "octa/range.h"
-#include "octa/vector.h"
+#include "octa/utility.hh"
+#include "octa/range.hh"
+#include "octa/vector.hh"
 
 namespace octa {
 static constexpr octa::Size npos = -1;

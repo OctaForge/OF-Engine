@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <string.h>
-#include "octa/vector.h"
-#include "octa/string.h"
+#include "octa/vector.hh"
+#include "octa/string.hh"
 
 using namespace octa;
 

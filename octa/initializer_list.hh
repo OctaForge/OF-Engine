@@ -8,7 +8,7 @@
 
 #include <stddef.h>
 
-#include "octa/range.h"
+#include "octa/range.hh"
 
 #ifndef OCTA_ALLOW_CXXSTD
 /* must be in std namespace otherwise the compiler won't know about it */

@@ -7,7 +7,7 @@
 #define OCTA_NEW_H
 
 #ifndef OCTA_ALLOW_CXXSTD
-#include "octa/types.h"
+#include "octa/types.hh"
 
 inline void *operator new     (octa::Size, void *p) { return p; }
 inline void *operator new   [](octa::Size, void *p) { return p; }

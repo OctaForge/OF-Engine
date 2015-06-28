@@ -8,9 +8,9 @@
 
 #include <stddef.h>
 
-#include "octa/new.h"
-#include "octa/utility.h"
-#include "octa/type_traits.h"
+#include "octa/new.hh"
+#include "octa/utility.hh"
+#include "octa/type_traits.hh"
 
 namespace octa {
 /* address of */
