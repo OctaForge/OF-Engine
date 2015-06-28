@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 
-#include "octa/types.h"
+#include "octa/types.hh"
 
 void *operator new(octa::Size size) {
     void  *p = malloc(size);

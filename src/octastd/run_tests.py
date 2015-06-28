@@ -14,7 +14,7 @@ CXXFLAGS = [
 ]
 COLORS = (osname != "nt")
 TESTDIR = "tests"
-SRCEXT = ".cpp"
+SRCEXT = ".cc"
 
 # don't modify past these lines
 

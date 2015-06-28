@@ -8,7 +8,7 @@
 
 #include <stddef.h>
 
-#include "octa/type_traits.h"
+#include "octa/type_traits.hh"
 
 namespace octa {
 

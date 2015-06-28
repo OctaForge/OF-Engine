@@ -8,9 +8,9 @@
 
 #include <stddef.h>
 
-#include "octa/algorithm.h"
-#include "octa/range.h"
-#include "octa/string.h"
+#include "octa/algorithm.hh"
+#include "octa/range.hh"
+#include "octa/string.hh"
 
 namespace octa {
 

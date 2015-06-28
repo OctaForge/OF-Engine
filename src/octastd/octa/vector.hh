@@ -9,12 +9,12 @@
 #include <string.h>
 #include <stddef.h>
 
-#include "octa/type_traits.h"
-#include "octa/utility.h"
-#include "octa/range.h"
-#include "octa/algorithm.h"
-#include "octa/initializer_list.h"
-#include "octa/memory.h"
+#include "octa/type_traits.hh"
+#include "octa/utility.hh"
+#include "octa/range.hh"
+#include "octa/algorithm.hh"
+#include "octa/initializer_list.hh"
+#include "octa/memory.hh"
 
 namespace octa {
 

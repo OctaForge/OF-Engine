@@ -9,10 +9,10 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#include "octa/types.h"
-#include "octa/range.h"
-#include "octa/string.h"
-#include "octa/type_traits.h"
+#include "octa/types.hh"
+#include "octa/range.hh"
+#include "octa/string.hh"
+#include "octa/type_traits.hh"
 
 namespace octa {
 

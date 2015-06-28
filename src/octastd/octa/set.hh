@@ -6,13 +6,13 @@
 #ifndef OCTA_SET_H
 #define OCTA_SET_H
 
-#include "octa/types.h"
-#include "octa/utility.h"
-#include "octa/memory.h"
-#include "octa/functional.h"
-#include "octa/initializer_list.h"
+#include "octa/types.hh"
+#include "octa/utility.hh"
+#include "octa/memory.hh"
+#include "octa/functional.hh"
+#include "octa/initializer_list.hh"
 
-#include "octa/internal/hashtable.h"
+#include "octa/internal/hashtable.hh"
 
 namespace octa {
 

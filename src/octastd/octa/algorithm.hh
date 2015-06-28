@@ -8,10 +8,10 @@
 
 #include <math.h>
 
-#include "octa/functional.h"
-#include "octa/range.h"
-#include "octa/utility.h"
-#include "octa/initializer_list.h"
+#include "octa/functional.hh"
+#include "octa/range.hh"
+#include "octa/utility.hh"
+#include "octa/initializer_list.hh"
 
 namespace octa {
 

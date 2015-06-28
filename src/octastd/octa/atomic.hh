@@ -9,8 +9,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "octa/types.h"
-#include "octa/type_traits.h"
+#include "octa/types.hh"
+#include "octa/type_traits.hh"
 
 namespace octa {
 

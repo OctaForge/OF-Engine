@@ -6,11 +6,11 @@
 #ifndef OCTA_FUNCTIONAL_H
 #define OCTA_FUNCTIONAL_H
 
-#include "octa/platform.h"
-#include "octa/new.h"
-#include "octa/memory.h"
-#include "octa/utility.h"
-#include "octa/type_traits.h"
+#include "octa/platform.hh"
+#include "octa/new.hh"
+#include "octa/memory.hh"
+#include "octa/utility.hh"
+#include "octa/type_traits.hh"
 
 namespace octa {
 

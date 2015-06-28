@@ -8,7 +8,7 @@
 
 #include <stddef.h>
 
-#include "octa/types.h"
+#include "octa/types.hh"
 
 namespace octa {
 /* forward declarations */
