@@ -74,14 +74,11 @@ namespace detail {
         SetImpl(SetImpl &&m): Base(octa::move(m)) {}
         SetImpl(SetImpl &&m, const A &alloc): Base(octa::move(m), alloc) {}
 
-        template<typename R>
-        SetImpl(R range, octa::Size size = 0, const H &hf = H(),
-            const C &eqf = C(), const A &alloc = A(),
-            octa::EnableIf<
-                octa::IsInputRange<R>::value &&
-                octa::IsConvertible<RangeReference<R>, Value>::value,
-                bool
-            > = true
+        template<typename R, typename = octa::EnableIf<
+            octa::IsInputRange<R>::value &&
+            octa::IsConvertible<RangeReference<R>, Value>::value
+        >> SetImpl(R range, octa::Size size = 0, const H &hf = H(),
+            const C &eqf = C(), const A &alloc = A()
         ): Base(size ? size : octa::detail::estimate_hrsize(range),
                    hf, eqf, alloc) {
             for (; !range.empty(); range.pop_front())
@@ -118,12 +115,10 @@ namespace detail {
             return *this;
         }
 
-        template<typename R>
-        octa::EnableIf<
+        template<typename R, typename = octa::EnableIf<
             octa::IsInputRange<R>::value &&
-            octa::IsConvertible<RangeReference<R>, Value>::value,
-            SetImpl &
-        > operator=(R range) {
+            octa::IsConvertible<RangeReference<R>, Value>::value
+        >> SetImpl &operator=(R range) {
             Base::assign_range(range);
             return *this;
         }

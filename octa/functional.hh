@@ -176,7 +176,7 @@ template<typename T> T from_big_endian(T x) { return FromBigEndian<T>()(x); }
 /* hash */
 
 template<typename T> struct ToHash {
-    using Argument = const T &;
+    using Argument = T;
     using Result = octa::Size;
 
     octa::Size operator()(const T &v) const {
@@ -700,10 +700,9 @@ struct Function<R(Args...)>: octa::detail::FunctionBase<R, Args...> {
         f.p_stor.manager->call_copyf(p_stor, f.p_stor);
     }
 
-    template<typename T>
-    Function(T f, EnableIf<
-        octa::detail::IsValidFunctor<T, R(Args...)>::value, bool
-    > = true) {
+    template<typename T, typename = octa::EnableIf<
+        octa::detail::IsValidFunctor<T, R(Args...)>::value
+    >> Function(T f) {
         if (func_is_null(f)) {
             init_empty();
             return;
@@ -747,10 +746,9 @@ struct Function<R(Args...)>: octa::detail::FunctionBase<R, Args...> {
         initialize(f, AA(a));
     }
 
-    template<typename A, typename T>
-    Function(octa::AllocatorArg, const A &a, T f, EnableIf<
-        octa::detail::IsValidFunctor<T, R(Args...)>::value, bool
-    > = true) {
+    template<typename A, typename T, typename = octa::EnableIf<
+        octa::detail::IsValidFunctor<T, R(Args...)>::value
+    >> Function(octa::AllocatorArg, const A &a, T f) {
         if (func_is_null(f)) {
             init_empty();
             return;

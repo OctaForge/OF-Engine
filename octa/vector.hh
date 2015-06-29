@@ -161,13 +161,10 @@ public:
     Vector(InitializerList<T> v, const A &a = A()):
         Vector(v.begin(), v.size(), a) {}
 
-    template<typename R> Vector(R range, const A &a = A(),
-        octa::EnableIf<
-            octa::IsInputRange<R>::value &&
-            octa::IsConvertible<RangeReference<R>, Value>::value,
-            bool
-        > = true
-    ): Vector(a) {
+    template<typename R, typename = octa::EnableIf<
+        octa::IsInputRange<R>::value &&
+        octa::IsConvertible<RangeReference<R>, Value>::value
+    >> Vector(R range, const A &a = A()): Vector(a) {
         ctor_from_range(range);
     }
 
@@ -231,12 +228,10 @@ public:
         return *this;
     }
 
-    template<typename R>
-    octa::EnableIf<
+    template<typename R, typename = octa::EnableIf<
         octa::IsInputRange<R>::value &&
-        octa::IsConvertible<RangeReference<R>, Value>::value,
-        Vector &
-    > operator=(R range) {
+        octa::IsConvertible<RangeReference<R>, Value>::value
+    >> Vector &operator=(R range) {
         clear();
         ctor_from_range(range);
         return *this;
@@ -288,8 +283,14 @@ public:
     T &operator[](Size i) { return p_buf.first()[i]; }
     const T &operator[](Size i) const { return p_buf.first()[i]; }
 
-    T &at(Size i) { return p_buf.first()[i]; }
-    const T &at(Size i) const { return p_buf.first()[i]; }
+    T *at(Size i) {
+        if (!in_range(i)) return nullptr;
+        return &p_buf.first()[i];
+    }
+    const T *at(Size i) const {
+        if (!in_range(i)) return nullptr;
+        return &p_buf.first()[i];
+    }
 
     T &push(const T &v) {
         if (p_len == p_cap) reserve(p_len + 1);

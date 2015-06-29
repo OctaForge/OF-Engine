@@ -29,8 +29,14 @@ struct Array {
     T &operator[](Size i) { return p_buf[i]; }
     const T &operator[](Size i) const { return p_buf[i]; }
 
-    T &at(Size i) { return p_buf[i]; }
-    const T &at(Size i) const { return p_buf[i]; }
+    T *at(Size i) {
+        if (!in_range(i)) return nullptr;
+        return &p_buf[i];
+    }
+    const T *at(Size i) const {
+        if (!in_range(i)) return nullptr;
+        return &p_buf[i];
+    }
 
     T &front() { return p_buf[0]; }
     const T &front() const { return p_buf[0]; }
