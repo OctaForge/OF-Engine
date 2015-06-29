@@ -1116,14 +1116,14 @@ using CommonType = typename octa::detail::CommonTypeBase<T, U, V...>::Type;
 
 namespace detail {
     template<octa::Size N> struct AlignedTest {
-        union type {
+        union Type {
             octa::uchar data[N];
             octa::MaxAlign align;
         };
     };
 
     template<octa::Size N, octa::Size A> struct AlignedStorageBase {
-        struct type {
+        struct Type {
             alignas(A) octa::uchar data[N];
         };
     };

@@ -19,14 +19,14 @@ class initializer_list {
     const T *p_buf;
     octa::Size p_len;
 
-    initializer_list(const T *v, octa::Size n): p_buf(v), p_len(n) {}
+    constexpr initializer_list(const T *v, octa::Size n): p_buf(v), p_len(n) {}
 public:
-    initializer_list(): p_buf(nullptr), p_len(0) {}
+    constexpr initializer_list(): p_buf(nullptr), p_len(0) {}
 
-    octa::Size size() const { return p_len; }
+    constexpr octa::Size size() const { return p_len; }
 
-    const T *begin() const { return p_buf; }
-    const T *end() const { return p_buf + p_len; }
+    constexpr const T *begin() const { return p_buf; }
+    constexpr const T *end() const { return p_buf + p_len; }
 };
 
 }

@@ -14,8 +14,8 @@ int main() {
     assert(x[0] == 2);
     assert(x[2] == 8);
 
-    assert(x.at(0) == x[0]);
-    assert(x.at(3) == x[3]);
+    assert(*(x.at(0)) == x[0]);
+    assert(*(x.at(3)) == x[3]);
 
     assert(x.size() == 5);
 

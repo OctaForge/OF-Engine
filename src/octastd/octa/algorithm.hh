@@ -418,7 +418,7 @@ private:
     octa::FunctionMakeDefaultConstructible<F> p_func;
 
 public:
-    MapRange(): p_range(), p_func() {}
+    MapRange() = delete;
     MapRange(const T &range, const F &func):
         p_range(range), p_func(func) {}
     MapRange(const MapRange &it):
@@ -514,8 +514,7 @@ private:
     }
 
 public:
-    FilterRange(): p_range(), p_pred() {}
-
+    FilterRange() = delete;
     template<typename P>
     FilterRange(const T &range, const P &pred): p_range(range),
     p_pred(pred) {

@@ -22,7 +22,7 @@ template<typename T>
 struct StringRangeBase: InputRange<
     StringRangeBase<T>, FiniteRandomAccessRangeTag, T
 > {
-    StringRangeBase(): p_beg(nullptr), p_end(nullptr) {}
+    StringRangeBase() = delete;
     StringRangeBase(T *beg, T *end): p_beg(beg), p_end(end) {}
     StringRangeBase(T *beg, octa::Size n): p_beg(beg), p_end(beg + n) {}
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
@@ -30,10 +30,10 @@ struct StringRangeBase: InputRange<
     StringRangeBase(const StringBase<T> &s): p_beg(s.data()),
         p_end(s.data() + s.size()) {}
 
-    template<typename U>
-    StringRangeBase(const StringRangeBase<U> &v, octa::EnableIf<
-        octa::IsConvertible<U *, T *>::value, bool
-    > = true): p_beg(&v[0]), p_end(&v[v.size()]) {}
+    template<typename U, typename = octa::EnableIf<
+        octa::IsConvertible<U *, T *>::value
+    >> StringRangeBase(const StringRangeBase<U> &v):
+        p_beg(&v[0]), p_end(&v[v.size()]) {}
 
     StringRangeBase &operator=(const StringRangeBase &v) {
         p_beg = v.p_beg; p_end = v.p_end; return *this;
@@ -177,13 +177,10 @@ public:
     StringBase(const Value *v, Size n, const A &a = A()):
         p_buf(ConstRange(v, n), a) {}
 
-    template<typename R> StringBase(R range, const A &a = A(),
-        octa::EnableIf<
-            octa::IsInputRange<R>::value &&
-            octa::IsConvertible<RangeReference<R>, Value>::value,
-            bool
-        > = true
-    ): p_buf(range, a) {
+    template<typename R, typename = octa::EnableIf<
+        octa::IsInputRange<R>::value &&
+        octa::IsConvertible<RangeReference<R>, Value>::value
+    >> StringBase(R range, const A &a = A()): p_buf(range, a) {
         terminate();
     }
 
@@ -201,12 +198,10 @@ public:
         p_buf = ConstRange(v, strlen(v) + 1);
         return *this;
     }
-    template<typename R>
-    octa::EnableIf<
+    template<typename R, typename = octa::EnableIf<
         octa::IsInputRange<R>::value &&
-        octa::IsConvertible<RangeReference<R>, Value>::value,
-        StringBase &
-    > operator=(const R &r) {
+        octa::IsConvertible<RangeReference<R>, Value>::value
+    >> StringBase &operator=(const R &r) {
         p_buf = r;
         terminate();
         return *this;

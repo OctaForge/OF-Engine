@@ -63,12 +63,12 @@ template<typename T>
 struct StreamRange<T, true>: InputRange<
     StreamRange<T>, octa::InputRangeTag, T, T, octa::Size, StreamOffset
 > {
-    StreamRange(): p_stream(), p_size(0) {}
+    StreamRange() = delete;
     StreamRange(Stream &s): p_stream(&s), p_size(s.size()) {}
     StreamRange(const StreamRange &r): p_stream(r.p_stream), p_size(r.p_size) {}
 
     bool empty() const {
-        return p_stream->tell() == p_size;
+        return (p_size - p_stream->tell()) < StreamOffset(sizeof(T));
     }
 
     bool pop_front() {

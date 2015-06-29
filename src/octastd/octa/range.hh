@@ -8,6 +8,7 @@
 
 #include <stddef.h>
 
+#include "octa/new.hh"
 #include "octa/types.hh"
 #include "octa/utility.hh"
 #include "octa/type_traits.hh"
@@ -188,17 +189,24 @@ namespace detail {
     template<typename T>
     struct RangeIterator {
         RangeIterator(): p_range() {}
-        explicit RangeIterator(const T &range): p_range(range) {}
+        explicit RangeIterator(const T &range) {
+            ::new(&get_ref()) T(range);
+        }
+        explicit RangeIterator(T &&range) {
+            ::new(&get_ref()) T(octa::move(range));
+        }
         RangeIterator &operator++() {
-            p_range.pop_front();
+            get_ref().pop_front();
             return *this;
         }
         RangeReference<T> operator*() const {
-            return p_range.front();
+            return get_ref().front();
         }
-        bool operator!=(RangeIterator) const { return !p_range.empty(); }
+        bool operator!=(RangeIterator) const { return !get_ref().empty(); }
     private:
-        T p_range;
+        T &get_ref() { return *((T *)&p_range); }
+        const T &get_ref() const { return *((T *)&p_range); }
+        octa::AlignedStorage<sizeof(T), alignof(T)> p_range;
     };
 }
 
@@ -246,14 +254,14 @@ private:
 public:
     using Range = T;
 
-    RangeHalf(): p_range() {}
-
+    RangeHalf() = delete;
     RangeHalf(const T &range): p_range(range) {}
 
-    template<typename U> RangeHalf(const RangeHalf<U> &half,
-        octa::EnableIf<octa::IsConvertible<U, T>::value, bool> = true
-    ): p_range(half.p_range) {}
+    template<typename U, typename = octa::EnableIf<
+        octa::IsConvertible<U, T>::value
+    >> RangeHalf(const RangeHalf<U> &half): p_range(half.p_range) {}
 
+    RangeHalf(const RangeHalf &half): p_range(half.p_range) {}
     RangeHalf(RangeHalf &&half): p_range(octa::move(half.p_range)) {}
 
     RangeHalf &operator=(const RangeHalf &half) {
@@ -473,14 +481,18 @@ template<typename V, typename R = V &, typename S = octa::Size,
 
 template<typename T>
 struct HalfRange: InputRange<HalfRange<T>,
-    RangeCategory<T>, RangeValue<T>, RangeReference<T>, RangeSize<T>,
-    RangeDifference<T>
+    RangeCategory<typename T::Range>,
+    RangeValue<typename T::Range>,
+    RangeReference<typename T::Range>,
+    RangeSize<typename T::Range>,
+    RangeDifference<typename T::Range>
 > {
 private:
+    using Rtype = typename T::Range;
     T p_beg;
     T p_end;
 public:
-    HalfRange(): p_beg(), p_end() {}
+    HalfRange() = delete;
     HalfRange(const HalfRange &range): p_beg(range.p_beg),
         p_end(range.p_end) {}
     HalfRange(HalfRange &&range): p_beg(octa::move(range.p_beg)),
@@ -519,8 +531,8 @@ public:
         return p_end.next();
     }
 
-    RangeReference<T> front() const { return *p_beg; }
-    RangeReference<T> back() const { return *(p_end - 1); }
+    RangeReference<Rtype> front() const { return *p_beg; }
+    RangeReference<Rtype> back() const { return *(p_end - 1); }
 
     bool equals_front(const HalfRange &range) const {
         return p_beg == range.p_beg;
@@ -529,27 +541,28 @@ public:
         return p_end == range.p_end;
     }
 
-    RangeDifference<T> distance_front(const HalfRange &range) const {
+    RangeDifference<Rtype> distance_front(const HalfRange &range) const {
         return range.p_beg - p_beg;
     }
-    RangeDifference<T> distance_back(const HalfRange &range) const {
+    RangeDifference<Rtype> distance_back(const HalfRange &range) const {
         return range.p_end - p_end;
     }
 
-    RangeSize<T> size() const { return p_end - p_beg; }
+    RangeSize<Rtype> size() const { return p_end - p_beg; }
 
-    HalfRange<T> slice(RangeSize<T> start, RangeSize<T> p_end) const {
-        return HalfRange<T>(p_beg + start, p_beg + p_end);
+    HalfRange<Rtype>
+    slice(RangeSize<Rtype> start, RangeSize<Rtype> p_end) const {
+        return HalfRange<Rtype>(p_beg + start, p_beg + p_end);
     }
 
-    RangeReference<T> operator[](RangeSize<T> idx) const {
+    RangeReference<Rtype> operator[](RangeSize<Rtype> idx) const {
         return p_beg[idx];
     }
 
-    void put(const RangeValue<T> &v) {
+    void put(const RangeValue<Rtype> &v) {
         p_beg.range().put(v);
     }
-    void put(RangeValue<T> &&v) {
+    void put(RangeValue<Rtype> &&v) {
         p_beg.range().put(octa::move(v));
     }
 };
@@ -566,12 +579,9 @@ private:
     T p_range;
 
 public:
-    ReverseRange(): p_range() {}
-
+    ReverseRange() = delete;
     ReverseRange(const T &range): p_range(range) {}
-
     ReverseRange(const ReverseRange &it): p_range(it.p_range) {}
-
     ReverseRange(ReverseRange &&it): p_range(octa::move(it.p_range)) {}
 
     ReverseRange &operator=(const ReverseRange &v) {
@@ -644,12 +654,9 @@ private:
     T p_range;
 
 public:
-    MoveRange(): p_range() {}
-
+    MoveRange() = delete;
     MoveRange(const T &range): p_range(range) {}
-
     MoveRange(const MoveRange &it): p_range(it.p_range) {}
-
     MoveRange(MoveRange &&it): p_range(octa::move(it.p_range)) {}
 
     MoveRange &operator=(const MoveRange &v) {
@@ -713,7 +720,7 @@ public:
 
 template<typename T>
 struct NumberRange: InputRange<NumberRange<T>, ForwardRangeTag, T, T> {
-    NumberRange(): p_a(0), p_b(0), p_step(0) {}
+    NumberRange() = delete;
     NumberRange(const NumberRange &it): p_a(it.p_a), p_b(it.p_b),
         p_step(it.p_step) {}
     NumberRange(T a, T b, T step = T(1)): p_a(a), p_b(b),
@@ -745,14 +752,14 @@ NumberRange<T> range(T v) {
 
 template<typename T>
 struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> {
-    PointerRange(): p_beg(nullptr), p_end(nullptr) {}
+    PointerRange() = delete;
     PointerRange(T *beg, T *end): p_beg(beg), p_end(end) {}
     PointerRange(T *beg, octa::Size n): p_beg(beg), p_end(beg + n) {}
 
-    template<typename U>
-    PointerRange(const PointerRange<U> &v, octa::EnableIf<
-        octa::IsConvertible<U *, T *>::value, bool
-    > = true): p_beg(&v[0]), p_end(&v[v.size()]) {}
+    template<typename U, typename = octa::EnableIf<
+        octa::IsConvertible<U *, T *>::value
+    >> PointerRange(const PointerRange<U> &v):
+        p_beg(&v[0]), p_end(&v[v.size()]) {}
 
     PointerRange &operator=(const PointerRange &v) {
         p_beg = v.p_beg;
@@ -876,7 +883,7 @@ private:
     Rsize p_index;
 
 public:
-    EnumeratedRange(): p_range(), p_index(0) {}
+    EnumeratedRange() = delete;
 
     EnumeratedRange(const T &range): p_range(range), p_index(0) {}
 
@@ -946,7 +953,7 @@ private:
     T p_range;
     RangeSize<T> p_remaining;
 public:
-    TakeRange(): p_range(), p_remaining(0) {}
+    TakeRange() = delete;
     TakeRange(const T &range, RangeSize<T> rem): p_range(range),
         p_remaining(rem) {}
     TakeRange(const TakeRange &it): p_range(it.p_range),
@@ -1000,7 +1007,7 @@ private:
     T p_range;
     RangeSize<T> p_chunksize;
 public:
-    ChunksRange(): p_range(), p_chunksize(0) {}
+    ChunksRange() = delete;
     ChunksRange(const T &range, RangeSize<T> chs): p_range(range),
         p_chunksize(chs) {}
     ChunksRange(const ChunksRange &it): p_range(it.p_range),
