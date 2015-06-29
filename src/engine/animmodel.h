@@ -113,10 +113,10 @@ struct animmodel : model
         part *owner;
         Texture *tex, *decal, *masks, *envmap, *normalmap;
         Shader *shader, *rsmshader;
-        bool cullface;
+        int cullface;
         shaderparamskey *key;
 
-        skin() : owner(0), tex(notexture), decal(NULL), masks(notexture), envmap(NULL), normalmap(NULL), shader(NULL), rsmshader(NULL), cullface(true), key(NULL) {}
+        skin() : owner(0), tex(notexture), decal(NULL), masks(notexture), envmap(NULL), normalmap(NULL), shader(NULL), rsmshader(NULL), cullface(0), key(NULL) {}
 
         bool masked() const { return masks != notexture; }
         bool envmapped() const { return envmapmax>0; }
@@ -223,8 +223,11 @@ struct animmodel : model
 
         void bind(mesh &b, const animstate *as)
         {
-            if(!cullface && enablecullface) { glDisable(GL_CULL_FACE); enablecullface = false; }
-            else if(cullface && !enablecullface) { glEnable(GL_CULL_FACE); enablecullface = true; }
+            if(cullface > 0)
+            {
+                if(!enablecullface) { glEnable(GL_CULL_FACE); enablecullface = true; }
+            }
+            else if(enablecullface) { glDisable(GL_CULL_FACE); enablecullface = false; }
 
             if(as->cur.anim&ANIM_NOSKIN)
             {
@@ -1550,7 +1553,7 @@ struct animmodel : model
         loopv(parts) loopvj(parts[i]->skins) parts[i]->skins[j].fullbright = fullbright;
     }
 
-    void setcullface(bool cullface)
+    void setcullface(int cullface)
     {
         if(parts.empty()) loaddefaultparts();
         loopv(parts) loopvj(parts[i]->skins) parts[i]->skins[j].cullface = cullface;
@@ -1757,7 +1760,7 @@ template<class MDL, class MESH> struct modelcommands
 
     static void setcullface(char *meshname, int *cullface)
     {
-        loopskins(meshname, s, s.cullface = *cullface!=0);
+        loopskins(meshname, s, s.cullface = *cullface);
     }
 
     static void setcolor(char *meshname, float *r, float *g, float *b)
