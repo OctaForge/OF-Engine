@@ -554,10 +554,10 @@ template<typename T> struct Allocator {
     Size max_size() const { return Size(~0) / sizeof(T); }
 
     Pointer allocate(Size n, Allocator<void>::ConstPointer = nullptr) {
-        return (Pointer) ::new octa::uchar[n * sizeof(T)];
+        return (Pointer) ::new octa::byte[n * sizeof(T)];
     }
 
-    void deallocate(Pointer p, Size) { ::delete[] (octa::uchar *) p; }
+    void deallocate(Pointer p, Size) { ::delete[] (octa::byte *) p; }
 
     template<typename U, typename ...A>
     void construct(U *p, A &&...args) {
@@ -588,10 +588,10 @@ template<typename T> struct Allocator<const T> {
     Size max_size() const { return Size(~0) / sizeof(T); }
 
     Pointer allocate(Size n, Allocator<void>::ConstPointer = nullptr) {
-        return (Pointer) ::new octa::uchar[n * sizeof(T)];
+        return (Pointer) ::new octa::byte[n * sizeof(T)];
     }
 
-    void deallocate(Pointer p, Size) { ::delete[] (octa::uchar *) p; }
+    void deallocate(Pointer p, Size) { ::delete[] (octa::byte *) p; }
 
     template<typename U, typename ...A>
     void construct(U *p, A &&...args) {

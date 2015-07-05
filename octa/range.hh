@@ -7,6 +7,7 @@
 #define OCTA_RANGE_HH
 
 #include <stddef.h>
+#include <string.h>
 
 #include "octa/new.hh"
 #include "octa/types.hh"
@@ -166,7 +167,7 @@ struct IsInfiniteRandomAccessRange: IntegralConstant<bool,
 namespace detail {
     template<typename T, typename P>
     struct OutputRangeTest {
-        template<typename U, void (U::*)(P)> struct Test {};
+        template<typename U, bool (U::*)(P)> struct Test {};
         template<typename U> static char test(Test<U, &U::put> *);
         template<typename U> static  int test(...);
         static constexpr bool value = (sizeof(test<T>(0)) == sizeof(char));
@@ -177,7 +178,8 @@ template<typename T, bool = (octa::IsConvertible<
     RangeCategory<T>, OutputRangeTag
 >::value || (IsInputRange<T>::value &&
     (octa::detail::OutputRangeTest<T, const RangeValue<T>  &>::value ||
-     octa::detail::OutputRangeTest<T,       RangeValue<T> &&>::value)
+     octa::detail::OutputRangeTest<T,       RangeValue<T> &&>::value ||
+     octa::detail::OutputRangeTest<T,       RangeValue<T>   >::value)
 ))> struct IsOutputRange: False {};
 
 template<typename T>
@@ -452,6 +454,35 @@ template<typename B, typename C, typename V, typename R = V &,
     RangeHalf<B> half() const {
         return RangeHalf<B>(iter());
     }
+
+    Size put_n(const Value *p, Size n) {
+        B &r = *((B *)this);
+        Size on = n;
+        for (; n && r.put(*p++); --n);
+        return (on - n);
+    }
+
+    template<typename OR,
+        typename = octa::EnableIf<octa::IsOutputRange<OR>::value
+    >> Size copy(OR &&orange, Size n = -1) {
+        B r(*((B *)this));
+        Size on = n;
+        for (; n && !r.empty(); --n) {
+            orange.put(r.front());
+            r.pop_front();
+        }
+        return (on - n);
+    }
+
+    Size copy(octa::RemoveCv<Value> *p, Size n = -1) {
+        B r(*((B *)this));
+        Size on = n;
+        for (; n && !r.empty(); --n) {
+            *p++ = r.front();
+            r.pop_front();
+        }
+        return (on - n);
+    }
 };
 
 template<typename T>
@@ -469,14 +500,21 @@ auto citer(const T &r) -> decltype(r.iter()) {
     return r.iter();
 }
 
-template<typename V, typename R = V &, typename S = octa::Size,
-         typename D = octa::Ptrdiff
+template<typename B, typename V, typename R = V &,
+         typename S = octa::Size, typename D = octa::Ptrdiff
 > struct OutputRange {
     using Category = OutputRangeTag;
     using Size = S;
     using Difference = D;
     using Value = V;
     using Reference = R;
+
+    Size put_n(const Value *p, Size n) {
+        B &r = *((B *)this);
+        Size on = n;
+        for (; n && r.put(*p++); --n);
+        return (on - n);
+    }
 };
 
 template<typename T>
@@ -559,11 +597,11 @@ public:
         return p_beg[idx];
     }
 
-    void put(const RangeValue<Rtype> &v) {
-        p_beg.range().put(v);
+    bool put(const RangeValue<Rtype> &v) {
+        return p_beg.range().put(v);
     }
-    void put(RangeValue<Rtype> &&v) {
-        p_beg.range().put(octa::move(v));
+    bool put(RangeValue<Rtype> &&v) {
+        return p_beg.range().put(octa::move(v));
     }
 };
 
@@ -714,8 +752,8 @@ public:
         return MoveRange<T>(p_range.slice(start, end));
     }
 
-    void put(const Rval &v) { p_range.put(v); }
-    void put(Rval &&v) { p_range.put(octa::move(v)); }
+    bool put(const Rval &v) { return p_range.put(v); }
+    bool put(Rval &&v) { return p_range.put(octa::move(v)); }
 };
 
 template<typename T>
@@ -847,11 +885,42 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
     T &operator[](octa::Size i) const { return p_beg[i]; }
 
     /* satisfy OutputRange */
-    void put(const T &v) {
+    bool put(const T &v) {
+        if (empty()) return false;
         *(p_beg++) = v;
+        return true;
     }
-    void put(T &&v) {
+    bool put(T &&v) {
+        if (empty()) return false;
         *(p_beg++) = octa::move(v);
+        return true;
+    }
+
+    octa::Size put_n(const T *p, octa::Size n) {
+        octa::Size ret = size();
+        if (n < ret) ret = n;
+        if (octa::IsPod<T>()) {
+            memcpy(p_beg, p, ret * sizeof(T));
+            p_beg += ret;
+            return ret;
+        }
+        for (octa::Size i = ret; i; --i)
+            *p_beg++ = *p++;
+        return ret;
+    }
+
+    template<typename R,
+        typename = octa::EnableIf<octa::IsOutputRange<R>::value
+    >> octa::Size copy(R &&orange, octa::Size n = -1) {
+        octa::Size c = size();
+        if (n < c) c = n;
+        return orange.put_n(p_beg, c);
+    }
+
+    octa::Size copy(octa::RemoveCv<T> *p, octa::Size n = -1) {
+        octa::Size c = size();
+        if (n < c) c = n;
+        return copy(PointerRange(p, c), c);
     }
 
 private:
@@ -861,6 +930,11 @@ private:
 template<typename T, octa::Size N>
 PointerRange<T> iter(T (&array)[N]) {
     return PointerRange<T>(array, N);
+}
+
+template<typename T, octa::Size N>
+PointerRange<const T> iter(const T (&array)[N]) {
+    return PointerRange<const T>(array, N);
 }
 
 template<typename T, typename S>
@@ -1041,6 +1115,68 @@ public:
 template<typename T>
 ChunksRange<T> chunks(const T &it, RangeSize<T> chs) {
     return ChunksRange<T>(it, chs);
+}
+
+template<typename T>
+struct AppenderRange: OutputRange<AppenderRange<T>, typename T::Value,
+    typename T::Reference, typename T::Size, typename T::Difference> {
+    AppenderRange(): p_data() {}
+    AppenderRange(const T &v): p_data(v) {}
+    AppenderRange(T &&v): p_data(octa::move(v)) {}
+    AppenderRange(const AppenderRange &v): p_data(v.p_data) {}
+    AppenderRange(AppenderRange &&v): p_data(octa::move(v.p_data)) {}
+
+    AppenderRange &operator=(const AppenderRange &v) {
+        p_data = v.p_data;
+        return *this;
+    }
+
+    AppenderRange &operator=(AppenderRange &&v) {
+        p_data = octa::move(v.p_data);
+        return *this;
+    }
+
+    AppenderRange &operator=(const T &v) {
+        p_data = v;
+        return *this;
+    }
+
+    AppenderRange &operator=(T &&v) {
+        p_data = octa::move(v);
+        return *this;
+    }
+
+    void clear() { p_data.clear(); }
+
+    void reserve(typename T::Size cap) { p_data.reserve(cap); }
+    void resize(typename T::Size len) { p_data.resize(len); }
+
+    typename T::Size size() const { return p_data.size(); }
+    typename T::Size capacity() const { return p_data.capacity(); }
+
+    bool put(typename T::ConstReference v) {
+        p_data.push(v);
+        return true;
+    }
+
+    bool put(typename T::Value &&v) {
+        p_data.push(octa::move(v));
+        return true;
+    }
+
+    T &get() { return p_data; }
+private:
+    T p_data;
+};
+
+template<typename T>
+AppenderRange<T> appender() {
+    return AppenderRange<T>();
+}
+
+template<typename T>
+AppenderRange<T> appender(T &&v) {
+    return AppenderRange<T>(octa::forward<T>(v));
 }
 
 // range of
