@@ -281,8 +281,10 @@
 		<Unit filename="..\octastd\octa\array.hh" />
 		<Unit filename="..\octastd\octa\atomic.hh" />
 		<Unit filename="..\octastd\octa\functional.hh" />
+		<Unit filename="..\octastd\octa\format.hh" />
 		<Unit filename="..\octastd\octa\initializer_list.hh" />
 		<Unit filename="..\octastd\octa\internal\hashtable.hh" />
+		<Unit filename="..\octastd\octa\io.hh" />
 		<Unit filename="..\octastd\octa\map.hh" />
 		<Unit filename="..\octastd\octa\memory.hh" />
 		<Unit filename="..\octastd\octa\new.hh" />
