@@ -27,7 +27,9 @@ struct StringRangeBase: InputRange<
     StringRangeBase(T *beg, octa::Size n): p_beg(beg), p_end(beg + n) {}
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
     StringRangeBase(T *beg): p_beg(beg), p_end(beg + strlen(beg)) {}
-    StringRangeBase(const StringBase<T> &s): p_beg(s.data()),
+
+    template<typename A>
+    StringRangeBase(const StringBase<T, A> &s): p_beg(s.data()),
         p_end(s.data() + s.size()) {}
 
     template<typename U, typename = octa::EnableIf<
@@ -38,7 +40,9 @@ struct StringRangeBase: InputRange<
     StringRangeBase &operator=(const StringRangeBase &v) {
         p_beg = v.p_beg; p_end = v.p_end; return *this;
     }
-    StringRangeBase &operator=(const StringBase<T> &s) {
+
+    template<typename A>
+    StringRangeBase &operator=(const StringBase<T, A> &s) {
         p_beg = s.data(); p_end = s.data() + s.size(); return *this;
     }
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
@@ -114,8 +118,10 @@ struct StringRangeBase: InputRange<
 
     T &operator[](octa::Size i) const { return p_beg[i]; }
 
-    void put(T v) {
+    bool put(T v) {
+        if (empty()) return false;
         *(p_beg++) = v;
+        return true;
     }
 
     /* non-range methods */
@@ -155,6 +161,9 @@ public:
     using Allocator = A;
 
     StringBase(const A &a = A()): p_buf(1, '\0', a) {}
+
+    StringBase(Size n, const T &val = T(), const A &al = A()):
+        p_buf(n + 1, val, al) {}
 
     StringBase(const StringBase &s): p_buf(s.p_buf) {}
     StringBase(const StringBase &s, const A &a):
@@ -240,6 +249,11 @@ public:
         return p_buf.capacity() - 1;
     }
 
+    octa::Size length() const {
+        /* TODO: unicode */
+        return size();
+    }
+
     bool empty() const { return (size() == 0); }
 
     void push(T v) {
@@ -314,6 +328,10 @@ public:
         return ConstRange(p_buf.data(), size());
     }
 
+    Range iter_cap() {
+        return Range(p_buf.data(), capacity());
+    }
+
     void swap(StringBase &v) {
         p_buf.swap(v.p_buf);
     }
@@ -331,29 +349,44 @@ using String = StringBase<char>;
 using StringRange = StringRangeBase<char>;
 using ConstStringRange = StringRangeBase<const char>;
 
-static inline bool operator==(const String &lhs, const String &rhs) {
+template<typename A> using AnyString = StringBase<char, A>;
+
+template<typename T, typename A>
+static inline bool operator==(const StringBase<T, A> &lhs,
+                              const StringBase<T, A> &rhs) {
     return !lhs.compare(rhs);
 }
-static inline bool operator==(const String &lhs, const char *rhs) {
+template<typename T, typename A>
+static inline bool operator==(const StringBase<T, A> &lhs,
+                              const char *rhs) {
     return !lhs.compare(rhs);
 }
-static inline bool operator==(const char *lhs, const String &rhs) {
+template<typename T, typename A>
+static inline bool operator==(const char *lhs,
+                              const StringBase<T, A> &rhs) {
     return !rhs.compare(lhs);
 }
 
-static inline bool operator!=(const String &lhs, const String &rhs) {
+template<typename T, typename A>
+static inline bool operator!=(const StringBase<T, A> &lhs,
+                              const StringBase<T, A> &rhs) {
     return !!lhs.compare(rhs);
 }
-static inline bool operator!=(const String &lhs, const char *rhs) {
+template<typename T, typename A>
+static inline bool operator!=(const StringBase<T, A> &lhs,
+                              const char *rhs) {
     return !!lhs.compare(rhs);
 }
-static inline bool operator!=(const char *lhs, const String &rhs) {
+template<typename T, typename A>
+static inline bool operator!=(const char *lhs,
+                              const StringBase<T, A> &rhs) {
     return !!rhs.compare(lhs);
 }
 
-template<typename T, typename F>
-String concat(const T &v, const String &sep, F func) {
-    String ret;
+template<typename T, typename F, typename S = const char *,
+         typename A = typename String::Allocator>
+AnyString<A> concat(const T &v, const S &sep, F func) {
+    AnyString<A> ret;
     auto range = octa::iter(v);
     if (range.empty()) return ret;
     for (;;) {
@@ -365,9 +398,10 @@ String concat(const T &v, const String &sep, F func) {
     return ret;
 }
 
-template<typename T>
-String concat(const T &v, const String &sep = " ") {
-    String ret;
+template<typename T, typename S = const char *,
+         typename A = typename String::Allocator>
+AnyString<A> concat(const T &v, const S &sep = " ") {
+    AnyString<A> ret;
     auto range = octa::iter(v);
     if (range.empty()) return ret;
     for (;;) {
@@ -379,13 +413,15 @@ String concat(const T &v, const String &sep = " ") {
     return ret;
 }
 
-template<typename T, typename F>
-String concat(std::initializer_list<T> v, const String &sep, F func) {
+template<typename T, typename F, typename S = const char *,
+         typename A = typename String::Allocator>
+AnyString<A> concat(std::initializer_list<T> v, const S &sep, F func) {
     return concat(octa::iter(v), sep, func);
 }
 
-template<typename T>
-String concat(std::initializer_list<T> v, const String &sep = " ") {
+template<typename T, typename S = const char *,
+         typename A = typename String::Allocator>
+AnyString<A> concat(std::initializer_list<T> v, const S &sep = " ") {
     return concat(octa::iter(v), sep);
 }
 
@@ -416,9 +452,13 @@ template<typename T> struct ToString {
             !octa::IsScalar<U>::value, bool> = true
     ) {
         String ret("{");
-        ret += concat(octa::iter(v), ", ", ToString<octa::RangeReference<
-            decltype(octa::iter(v))
-        >>());
+        ret += concat(octa::iter(v), ", ", ToString<
+            octa::RemoveCv<
+                octa::RemoveReference<
+                    octa::RangeReference<decltype(octa::iter(v))>
+                >
+            >
+        >());
         ret += "}";
         return ret;
     }
@@ -432,9 +472,7 @@ template<typename T> struct ToString {
     }
 
     String operator()(const T &v) const {
-        return to_str<octa::RemoveCv<
-            octa::RemoveReference<T>
-        >>(v);
+        return to_str(v);
     }
 };
 
@@ -486,12 +524,14 @@ template<> struct ToString<T> { \
     } \
 };
 
+OCTA_TOSTR_NUM(octa::sbyte, "%d")
 OCTA_TOSTR_NUM(int, "%d")
 OCTA_TOSTR_NUM(int &, "%d")
 OCTA_TOSTR_NUM(long, "%ld")
 OCTA_TOSTR_NUM(float, "%f")
 OCTA_TOSTR_NUM(double, "%f")
 
+OCTA_TOSTR_NUM(octa::byte, "%u")
 OCTA_TOSTR_NUM(octa::uint, "%u")
 OCTA_TOSTR_NUM(octa::ulong, "%lu")
 OCTA_TOSTR_NUM(octa::llong, "%lld")
@@ -511,40 +551,37 @@ template<typename T> struct ToString<T *> {
 };
 
 template<> struct ToString<String> {
-    using Argument = const String &;
+    using Argument = String;
     using Result = String;
-    String operator()(Argument s) {
+    String operator()(const Argument &s) {
         return s;
     }
 };
 
 template<> struct ToString<StringRange> {
-    using Argument = const StringRange &;
+    using Argument = StringRange;
     using Result = String;
-    String operator()(Argument s) {
+    String operator()(const Argument &s) {
         return String(s);
     }
 };
 
 template<typename T, typename U> struct ToString<octa::Pair<T, U>> {
-    using Argument = const octa::Pair<T, U> &;
+    using Argument = octa::Pair<T, U>;
     using Result = String;
-    String operator()(Argument v) {
+    String operator()(const Argument &v) {
         String ret("{");
-        ret += ToString<octa::RemoveCv<octa::RemoveReference<T>>>()
-            (v.first);
+        ret += ToString<T>()(v.first);
         ret += ", ";
-        ret += ToString<octa::RemoveCv<octa::RemoveReference<U>>>()
-            (v.second);
+        ret += ToString<U>()(v.second);
         ret += "}";
         return ret;
     }
 };
 
-template<typename T>
+template<typename T, typename = decltype(ToString<T>()(octa::declval<T>()))>
 String to_string(const T &v) {
-    return ToString<octa::RemoveCv<octa::RemoveReference<T>>>
-        ()(v);
+    return ToString<T>()(v);
 }
 
 template<typename T>

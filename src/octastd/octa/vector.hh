@@ -38,25 +38,21 @@ class Vector {
 
     template<typename R>
     void ctor_from_range(R &range, octa::EnableIf<
-        octa::IsFiniteRandomAccessRange<R>::value, bool
+        octa::IsFiniteRandomAccessRange<R>::value &&
+        octa::IsPod<T>::value &&
+        octa::IsSame<T, octa::RemoveCv<octa::RangeValue<R>>>::value, bool
     > = true) {
         octa::RangeSize<R> l = range.size();
         reserve(l);
         p_len = l;
-        if (octa::IsPod<T>() && octa::IsSame<T, octa::RangeValue<R>>()) {
-            memcpy(p_buf.first(), &range.front(), range.size());
-            return;
-        }
-        for (octa::Size i = 0; !range.empty(); range.pop_front()) {
-            octa::allocator_construct(p_buf.second(),
-                &p_buf.first()[i], range.front());
-            ++i;
-        }
+        range.copy(p_buf.first(), l);
     }
 
     template<typename R>
     void ctor_from_range(R &range, EnableIf<
-        !octa::IsFiniteRandomAccessRange<R>::value, bool
+        !octa::IsFiniteRandomAccessRange<R>::value ||
+        !octa::IsPod<T>::value ||
+        !octa::IsSame<T, octa::RemoveCv<octa::RangeValue<R>>>::value, bool
     > = true) {
         octa::Size i = 0;
         for (; !range.empty(); range.pop_front()) {
@@ -299,6 +295,13 @@ public:
         return p_buf.first()[p_len++];
     }
 
+    T &push(T &&v) {
+        if (p_len == p_cap) reserve(p_len + 1);
+        octa::allocator_construct(p_buf.second(),
+            &p_buf.first()[p_len], octa::move(v));
+        return p_buf.first()[p_len++];
+    }
+
     T &push() {
         if (p_len == p_cap) reserve(p_len + 1);
         octa::allocator_construct(p_buf.second(), &p_buf.first()[p_len]);
@@ -394,6 +397,10 @@ public:
     }
     ConstRange citer() const {
         return ConstRange(p_buf.first(), p_buf.first() + p_len);
+    }
+
+    Range iter_cap() {
+        return Range(p_buf.first(), p_buf.first() + p_cap);
     }
 
     void swap(Vector &v) {

@@ -98,8 +98,8 @@ namespace detail {
     template<> struct IsIntegralBase<int   >: True {};
     template<> struct IsIntegralBase<long  >: True {};
 
-    template<> struct IsIntegralBase<octa::uchar >: True {};
-    template<> struct IsIntegralBase<octa::schar >: True {};
+    template<> struct IsIntegralBase<octa::sbyte >: True {};
+    template<> struct IsIntegralBase<octa::byte  >: True {};
     template<> struct IsIntegralBase<octa::ushort>: True {};
     template<> struct IsIntegralBase<octa::uint  >: True {};
     template<> struct IsIntegralBase<octa::ulong >: True {};
@@ -303,13 +303,29 @@ struct IsPolymorphic: IntegralConstant<bool, __is_polymorphic(T)> {};
 
 /* is signed */
 
+namespace detail {
+    template<typename T>
+    struct IsSignedBase: IntegralConstant<bool, T(-1) < T(0)> {};
+}
+
+template<typename T, bool = octa::IsArithmetic<T>::value>
+struct IsSigned: False {};
+
 template<typename T>
-struct IsSigned: IntegralConstant<bool, T(-1) < T(0)> {};
+struct IsSigned<T, true>: octa::detail::IsSignedBase<T> {};
 
 /* is unsigned */
 
+namespace detail {
+    template<typename T>
+    struct IsUnsignedBase: IntegralConstant<bool, T(0) < T(-1)> {};
+}
+
+template<typename T, bool = octa::IsArithmetic<T>::value>
+struct IsUnsigned: False {};
+
 template<typename T>
-struct IsUnsigned: IntegralConstant<bool, T(0) < T(-1)> {};
+struct IsUnsigned<T, true>: octa::detail::IsUnsignedBase<T> {};
 
 /* is standard layout */
 
@@ -868,13 +884,13 @@ namespace detail {
         ~TlNat() = delete;
     };
 
-    using Stypes = TypeList<octa::schar,
+    using Stypes = TypeList<octa::sbyte,
                    TypeList<short,
                    TypeList<int,
                    TypeList<long,
                    TypeList<octa::llong, TlNat>>>>>;
 
-    using Utypes = TypeList<octa::uchar,
+    using Utypes = TypeList<octa::byte,
                    TypeList<octa::ushort,
                    TypeList<octa::uint,
                    TypeList<octa::ulong,
@@ -953,8 +969,8 @@ namespace detail {
     template<> struct MakeSigned<int   , true> { using Type = int; };
     template<> struct MakeSigned<long  , true> { using Type = long; };
 
-    template<> struct MakeSigned<octa::schar , true> { using Type = octa::schar; };
-    template<> struct MakeSigned<octa::uchar , true> { using Type = octa::schar; };
+    template<> struct MakeSigned<octa::sbyte , true> { using Type = octa::sbyte; };
+    template<> struct MakeSigned<octa::byte  , true> { using Type = octa::sbyte; };
     template<> struct MakeSigned<octa::ushort, true> { using Type = short;       };
     template<> struct MakeSigned<octa::uint  , true> { using Type = int;         };
     template<> struct MakeSigned<octa::ulong , true> { using Type = long;        };
@@ -966,8 +982,8 @@ namespace detail {
     template<> struct MakeUnsigned<int   , true> { using Type = octa::uint; };
     template<> struct MakeUnsigned<long  , true> { using Type = octa::ulong; };
 
-    template<> struct MakeUnsigned<octa::schar , true> { using Type = octa::uchar;  };
-    template<> struct MakeUnsigned<octa::uchar , true> { using Type = octa::uchar;  };
+    template<> struct MakeUnsigned<octa::sbyte , true> { using Type = octa::byte;   };
+    template<> struct MakeUnsigned<octa::byte  , true> { using Type = octa::byte;   };
     template<> struct MakeUnsigned<octa::ushort, true> { using Type = octa::ushort; };
     template<> struct MakeUnsigned<octa::uint  , true> { using Type = octa::uint;   };
     template<> struct MakeUnsigned<octa::ulong , true> { using Type = octa::ulong;  };
@@ -1117,14 +1133,14 @@ using CommonType = typename octa::detail::CommonTypeBase<T, U, V...>::Type;
 namespace detail {
     template<octa::Size N> struct AlignedTest {
         union Type {
-            octa::uchar data[N];
+            octa::byte data[N];
             octa::MaxAlign align;
         };
     };
 
     template<octa::Size N, octa::Size A> struct AlignedStorageBase {
         struct Type {
-            alignas(A) octa::uchar data[N];
+            alignas(A) octa::byte data[N];
         };
     };
 }
@@ -1157,7 +1173,7 @@ namespace detail {
             = AlignMax<alignof(T)...>::value;
 
         struct type {
-            alignas(alignment_value) octa::uchar data[AlignMax<N,
+            alignas(alignment_value) octa::byte data[AlignMax<N,
                 sizeof(T)...>::value];
         };
     };

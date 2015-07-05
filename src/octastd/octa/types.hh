@@ -13,8 +13,8 @@ namespace octa {
 
 /* "builtin" types */
 
-using schar = signed char;
-using uchar = unsigned char;
+using sbyte = signed char;
+using byte = unsigned char;
 using ushort = unsigned short;
 using uint = unsigned int;
 using ulong = unsigned long;
