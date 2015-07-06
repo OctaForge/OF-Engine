@@ -2852,7 +2852,7 @@ void texgrass(char *name)
     if(!defslot) return;
     Slot &s = *defslot;
     DELETEA(s.grass);
-    s.grass = name[0] ? newstring(makerelpath("media/texture", name)) : NULL;
+    s.grass = name[0] ? newstring(name) : NULL;
 }
 COMMAND(texgrass, "s");
 

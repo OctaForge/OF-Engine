@@ -201,7 +201,8 @@ static void gengrassquads(vtxarray *va)
         if(!s.grasstex)
         {
             if(!s.grass) continue;
-            s.grasstex = textureload(s.grass, 2);
+            defformatstring(gname, "%s/%s", s.texturedir(), s.grass);
+            s.grasstex = textureload(gname, 2);
         }
 
         grassgroup *group = NULL;
