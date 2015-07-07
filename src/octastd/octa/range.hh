@@ -41,7 +41,7 @@ namespace detail { \
     }; \
 } \
 template<typename T> \
-using Range##Name = typename octa::detail::Range##Name##Base<T>::Type;
+using Range##Name = typename detail::Range##Name##Base<T>::Type;
 
 OCTA_RANGE_TRAIT(Category)
 OCTA_RANGE_TRAIT(Size)
@@ -70,7 +70,7 @@ namespace detail {
 // is input range
 
 namespace detail {
-    template<typename T, bool = octa::IsConvertible<
+    template<typename T, bool = IsConvertible<
         RangeCategory<T>, InputRangeTag
     >::value> struct IsInputRangeBase: False {};
 
@@ -78,16 +78,16 @@ namespace detail {
     struct IsInputRangeBase<T, true>: True {};
 }
 
-template<typename T, bool = octa::detail::IsRangeTest<T>::value>
+template<typename T, bool = detail::IsRangeTest<T>::value>
 struct IsInputRange: False {};
 
 template<typename T>
-struct IsInputRange<T, true>: octa::detail::IsInputRangeBase<T>::Type {};
+struct IsInputRange<T, true>: detail::IsInputRangeBase<T>::Type {};
 
 // is forward range
 
 namespace detail {
-    template<typename T, bool = octa::IsConvertible<
+    template<typename T, bool = IsConvertible<
         RangeCategory<T>, ForwardRangeTag
     >::value> struct IsForwardRangeBase: False {};
 
@@ -95,16 +95,16 @@ namespace detail {
     struct IsForwardRangeBase<T, true>: True {};
 }
 
-template<typename T, bool = octa::detail::IsRangeTest<T>::value>
+template<typename T, bool = detail::IsRangeTest<T>::value>
 struct IsForwardRange: False {};
 
 template<typename T>
-struct IsForwardRange<T, true>: octa::detail::IsForwardRangeBase<T>::Type {};
+struct IsForwardRange<T, true>: detail::IsForwardRangeBase<T>::Type {};
 
 // is bidirectional range
 
 namespace detail {
-    template<typename T, bool = octa::IsConvertible<
+    template<typename T, bool = IsConvertible<
         RangeCategory<T>, BidirectionalRangeTag
     >::value> struct IsBidirectionalRangeBase: False {};
 
@@ -112,17 +112,17 @@ namespace detail {
     struct IsBidirectionalRangeBase<T, true>: True {};
 }
 
-template<typename T, bool = octa::detail::IsRangeTest<T>::value>
+template<typename T, bool = detail::IsRangeTest<T>::value>
 struct IsBidirectionalRange: False {};
 
 template<typename T>
 struct IsBidirectionalRange<T, true>:
-    octa::detail::IsBidirectionalRangeBase<T>::Type {};
+    detail::IsBidirectionalRangeBase<T>::Type {};
 
 // is random access range
 
 namespace detail {
-    template<typename T, bool = octa::IsConvertible<
+    template<typename T, bool = IsConvertible<
         RangeCategory<T>, RandomAccessRangeTag
     >::value> struct IsRandomAccessRangeBase: False {};
 
@@ -130,17 +130,17 @@ namespace detail {
     struct IsRandomAccessRangeBase<T, true>: True {};
 }
 
-template<typename T, bool = octa::detail::IsRangeTest<T>::value>
+template<typename T, bool = detail::IsRangeTest<T>::value>
 struct IsRandomAccessRange: False {};
 
 template<typename T>
 struct IsRandomAccessRange<T, true>:
-    octa::detail::IsRandomAccessRangeBase<T>::Type {};
+    detail::IsRandomAccessRangeBase<T>::Type {};
 
 // is finite random access range
 
 namespace detail {
-    template<typename T, bool = octa::IsConvertible<
+    template<typename T, bool = IsConvertible<
         RangeCategory<T>, FiniteRandomAccessRangeTag
     >::value> struct IsFiniteRandomAccessRangeBase: False {};
 
@@ -148,12 +148,12 @@ namespace detail {
     struct IsFiniteRandomAccessRangeBase<T, true>: True {};
 }
 
-template<typename T, bool = octa::detail::IsRangeTest<T>::value>
+template<typename T, bool = detail::IsRangeTest<T>::value>
 struct IsFiniteRandomAccessRange: False {};
 
 template<typename T>
 struct IsFiniteRandomAccessRange<T, true>:
-    octa::detail::IsFiniteRandomAccessRangeBase<T>::Type {};
+    detail::IsFiniteRandomAccessRangeBase<T>::Type {};
 
 // is infinite random access range
 
@@ -174,12 +174,12 @@ namespace detail {
     };
 }
 
-template<typename T, bool = (octa::IsConvertible<
+template<typename T, bool = (IsConvertible<
     RangeCategory<T>, OutputRangeTag
 >::value || (IsInputRange<T>::value &&
-    (octa::detail::OutputRangeTest<T, const RangeValue<T>  &>::value ||
-     octa::detail::OutputRangeTest<T,       RangeValue<T> &&>::value ||
-     octa::detail::OutputRangeTest<T,       RangeValue<T>   >::value)
+    (detail::OutputRangeTest<T, const RangeValue<T>  &>::value ||
+     detail::OutputRangeTest<T,       RangeValue<T> &&>::value ||
+     detail::OutputRangeTest<T,       RangeValue<T>   >::value)
 ))> struct IsOutputRange: False {};
 
 template<typename T>
@@ -195,7 +195,7 @@ namespace detail {
             ::new(&get_ref()) T(range);
         }
         explicit RangeIterator(T &&range) {
-            ::new(&get_ref()) T(octa::move(range));
+            ::new(&get_ref()) T(move(range));
         }
         RangeIterator &operator++() {
             get_ref().pop_front();
@@ -208,7 +208,7 @@ namespace detail {
     private:
         T &get_ref() { return *((T *)&p_range); }
         const T &get_ref() const { return *((T *)&p_range); }
-        octa::AlignedStorage<sizeof(T), alignof(T)> p_range;
+        AlignedStorage<sizeof(T), alignof(T)> p_range;
     };
 }
 
@@ -259,12 +259,12 @@ public:
     RangeHalf() = delete;
     RangeHalf(const T &range): p_range(range) {}
 
-    template<typename U, typename = octa::EnableIf<
-        octa::IsConvertible<U, T>::value
+    template<typename U, typename = EnableIf<
+        IsConvertible<U, T>::value
     >> RangeHalf(const RangeHalf<U> &half): p_range(half.p_range) {}
 
     RangeHalf(const RangeHalf &half): p_range(half.p_range) {}
-    RangeHalf(RangeHalf &&half): p_range(octa::move(half.p_range)) {}
+    RangeHalf(RangeHalf &&half): p_range(move(half.p_range)) {}
 
     RangeHalf &operator=(const RangeHalf &half) {
         p_range = half.p_range;
@@ -272,7 +272,7 @@ public:
     }
 
     RangeHalf &operator=(RangeHalf &&half) {
-        p_range = octa::move(half.p_range);
+        p_range = move(half.p_range);
         return *this;
     }
 
@@ -287,10 +287,10 @@ public:
     }
 
     RangeDifference<T> add_n(RangeDifference<T> n) {
-        return octa::detail::RangeAdd<RangeHalf<T>>::add_n(*this, n);
+        return detail::RangeAdd<RangeHalf<T>>::add_n(*this, n);
     }
     RangeDifference<T> sub_n(RangeDifference<T> n) {
-        return octa::detail::RangeAdd<RangeHalf<T>>::sub_n(*this, n);
+        return detail::RangeAdd<RangeHalf<T>>::sub_n(*this, n);
     }
 
     RangeReference<T> get() const {
@@ -408,7 +408,7 @@ template<typename> struct ReverseRange;
 template<typename> struct MoveRange;
 
 template<typename B, typename C, typename V, typename R = V &,
-         typename S = octa::Size, typename D = octa::Ptrdiff
+         typename S = Size, typename D = Ptrdiff
 > struct InputRange {
     using Category = C;
     using Size = S;
@@ -416,27 +416,27 @@ template<typename B, typename C, typename V, typename R = V &,
     using Value = V;
     using Reference = R;
 
-    octa::detail::RangeIterator<B> begin() const {
-        return octa::detail::RangeIterator<B>((const B &)*this);
+    detail::RangeIterator<B> begin() const {
+        return detail::RangeIterator<B>((const B &)*this);
     }
-    octa::detail::RangeIterator<B> end() const {
-        return octa::detail::RangeIterator<B>();
+    detail::RangeIterator<B> end() const {
+        return detail::RangeIterator<B>();
     }
 
     Size pop_front_n(Size n) {
-        return octa::detail::pop_front_n<B>(*((B *)this), n);
+        return detail::pop_front_n<B>(*((B *)this), n);
     }
 
     Size pop_back_n(Size n) {
-        return octa::detail::pop_back_n<B>(*((B *)this), n);
+        return detail::pop_back_n<B>(*((B *)this), n);
     }
 
     Size push_front_n(Size n) {
-        return octa::detail::push_front_n<B>(*((B *)this), n);
+        return detail::push_front_n<B>(*((B *)this), n);
     }
 
     Size push_back_n(Size n) {
-        return octa::detail::push_back_n<B>(*((B *)this), n);
+        return detail::push_back_n<B>(*((B *)this), n);
     }
 
     B iter() const {
@@ -463,8 +463,8 @@ template<typename B, typename C, typename V, typename R = V &,
     }
 
     template<typename OR,
-        typename = octa::EnableIf<octa::IsOutputRange<OR>::value
-    >> Size copy(OR &&orange, Size n = -1) {
+        typename = EnableIf<IsOutputRange<OR>::value>
+    > Size copy(OR &&orange, Size n = -1) {
         B r(*((B *)this));
         Size on = n;
         for (; n && !r.empty(); --n) {
@@ -474,7 +474,7 @@ template<typename B, typename C, typename V, typename R = V &,
         return (on - n);
     }
 
-    Size copy(octa::RemoveCv<Value> *p, Size n = -1) {
+    Size copy(RemoveCv<Value> *p, Size n = -1) {
         B r(*((B *)this));
         Size on = n;
         for (; n && !r.empty(); --n) {
@@ -501,7 +501,7 @@ auto citer(const T &r) -> decltype(r.iter()) {
 }
 
 template<typename B, typename V, typename R = V &,
-         typename S = octa::Size, typename D = octa::Ptrdiff
+         typename S = Size, typename D = Ptrdiff
 > struct OutputRange {
     using Category = OutputRangeTag;
     using Size = S;
@@ -533,12 +533,12 @@ public:
     HalfRange() = delete;
     HalfRange(const HalfRange &range): p_beg(range.p_beg),
         p_end(range.p_end) {}
-    HalfRange(HalfRange &&range): p_beg(octa::move(range.p_beg)),
-        p_end(octa::move(range.p_end)) {}
+    HalfRange(HalfRange &&range): p_beg(move(range.p_beg)),
+        p_end(move(range.p_end)) {}
     HalfRange(const T &beg, const T &end): p_beg(beg),
         p_end(end) {}
-    HalfRange(T &&beg, T &&end): p_beg(octa::move(beg)),
-        p_end(octa::move(end)) {}
+    HalfRange(T &&beg, T &&end): p_beg(move(beg)),
+        p_end(move(end)) {}
 
     HalfRange &operator=(const HalfRange &range) {
         p_beg = range.p_beg;
@@ -547,8 +547,8 @@ public:
     }
 
     HalfRange &operator=(HalfRange &&range) {
-        p_beg = octa::move(range.p_beg);
-        p_end = octa::move(range.p_end);
+        p_beg = move(range.p_beg);
+        p_end = move(range.p_end);
         return *this;
     }
 
@@ -601,7 +601,7 @@ public:
         return p_beg.range().put(v);
     }
     bool put(RangeValue<Rtype> &&v) {
-        return p_beg.range().put(octa::move(v));
+        return p_beg.range().put(move(v));
     }
 };
 
@@ -620,14 +620,14 @@ public:
     ReverseRange() = delete;
     ReverseRange(const T &range): p_range(range) {}
     ReverseRange(const ReverseRange &it): p_range(it.p_range) {}
-    ReverseRange(ReverseRange &&it): p_range(octa::move(it.p_range)) {}
+    ReverseRange(ReverseRange &&it): p_range(move(it.p_range)) {}
 
     ReverseRange &operator=(const ReverseRange &v) {
         p_range = v.p_range;
         return *this;
     }
     ReverseRange &operator=(ReverseRange &&v) {
-        p_range = octa::move(v.p_range);
+        p_range = move(v.p_range);
         return *this;
     }
     ReverseRange &operator=(const T &v) {
@@ -635,7 +635,7 @@ public:
         return *this;
     }
     ReverseRange &operator=(T &&v) {
-        p_range = octa::move(v);
+        p_range = move(v);
         return *this;
     }
 
@@ -695,14 +695,14 @@ public:
     MoveRange() = delete;
     MoveRange(const T &range): p_range(range) {}
     MoveRange(const MoveRange &it): p_range(it.p_range) {}
-    MoveRange(MoveRange &&it): p_range(octa::move(it.p_range)) {}
+    MoveRange(MoveRange &&it): p_range(move(it.p_range)) {}
 
     MoveRange &operator=(const MoveRange &v) {
         p_range = v.p_range;
         return *this;
     }
     MoveRange &operator=(MoveRange &&v) {
-        p_range = octa::move(v.p_range);
+        p_range = move(v.p_range);
         return *this;
     }
     MoveRange &operator=(const T &v) {
@@ -710,7 +710,7 @@ public:
         return *this;
     }
     MoveRange &operator=(T &&v) {
-        p_range = octa::move(v);
+        p_range = move(v);
         return *this;
     }
 
@@ -743,17 +743,17 @@ public:
     Rsize push_front_n(Rsize n) { return p_range.push_front_n(n); }
     Rsize push_back_n(Rsize n) { return p_range.push_back_n(n); }
 
-    Rref front() const { return octa::move(p_range.front()); }
-    Rref back() const { return octa::move(p_range.back()); }
+    Rref front() const { return move(p_range.front()); }
+    Rref back() const { return move(p_range.back()); }
 
-    Rref operator[](Rsize i) const { return octa::move(p_range[i]); }
+    Rref operator[](Rsize i) const { return move(p_range[i]); }
 
     MoveRange<T> slice(Rsize start, Rsize end) const {
         return MoveRange<T>(p_range.slice(start, end));
     }
 
     bool put(const Rval &v) { return p_range.put(v); }
-    bool put(Rval &&v) { return p_range.put(octa::move(v)); }
+    bool put(Rval &&v) { return p_range.put(move(v)); }
 };
 
 template<typename T>
@@ -792,10 +792,10 @@ template<typename T>
 struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> {
     PointerRange() = delete;
     PointerRange(T *beg, T *end): p_beg(beg), p_end(end) {}
-    PointerRange(T *beg, octa::Size n): p_beg(beg), p_end(beg + n) {}
+    PointerRange(T *beg, Size n): p_beg(beg), p_end(beg + n) {}
 
-    template<typename U, typename = octa::EnableIf<
-        octa::IsConvertible<U *, T *>::value
+    template<typename U, typename = EnableIf<
+        IsConvertible<U *, T *>::value
     >> PointerRange(const PointerRange<U> &v):
         p_beg(&v[0]), p_end(&v[v.size()]) {}
 
@@ -817,8 +817,8 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
         --p_beg; return true;
     }
 
-    octa::Size pop_front_n(octa::Size n) {
-        octa::Size olen = p_end - p_beg;
+    Size pop_front_n(Size n) {
+        Size olen = p_end - p_beg;
         p_beg += n;
         if (p_beg > p_end) {
             p_beg = p_end;
@@ -827,7 +827,7 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
         return n;
     }
 
-    octa::Size push_front_n(octa::Size n) {
+    Size push_front_n(Size n) {
         p_beg -= n; return true;
     }
 
@@ -837,7 +837,7 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
         return p_beg == range.p_beg;
     }
 
-    octa::Ptrdiff distance_front(const PointerRange &range) const {
+    Ptrdiff distance_front(const PointerRange &range) const {
         return range.p_beg - p_beg;
     }
 
@@ -851,8 +851,8 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
         ++p_end; return true;
     }
 
-    octa::Size pop_back_n(octa::Size n) {
-        octa::Size olen = p_end - p_beg;
+    Size pop_back_n(Size n) {
+        Size olen = p_end - p_beg;
         p_end -= n;
         if (p_end < p_beg) {
             p_end = p_beg;
@@ -861,7 +861,7 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
         return n;
     }
 
-    octa::Size push_back_n(octa::Size n) {
+    Size push_back_n(Size n) {
         p_end += n; return true;
     }
 
@@ -871,18 +871,18 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
         return p_end == range.p_end;
     }
 
-    octa::Ptrdiff distance_back(const PointerRange &range) const {
+    Ptrdiff distance_back(const PointerRange &range) const {
         return range.p_end - p_end;
     }
 
     /* satisfy FiniteRandomAccessRange */
-    octa::Size size() const { return p_end - p_beg; }
+    Size size() const { return p_end - p_beg; }
 
-    PointerRange slice(octa::Size start, octa::Size end) const {
+    PointerRange slice(Size start, Size end) const {
         return PointerRange(p_beg + start, p_beg + end);
     }
 
-    T &operator[](octa::Size i) const { return p_beg[i]; }
+    T &operator[](Size i) const { return p_beg[i]; }
 
     /* satisfy OutputRange */
     bool put(const T &v) {
@@ -892,33 +892,33 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
     }
     bool put(T &&v) {
         if (empty()) return false;
-        *(p_beg++) = octa::move(v);
+        *(p_beg++) = move(v);
         return true;
     }
 
-    octa::Size put_n(const T *p, octa::Size n) {
-        octa::Size ret = size();
+    Size put_n(const T *p, Size n) {
+        Size ret = size();
         if (n < ret) ret = n;
-        if (octa::IsPod<T>()) {
+        if (IsPod<T>()) {
             memcpy(p_beg, p, ret * sizeof(T));
             p_beg += ret;
             return ret;
         }
-        for (octa::Size i = ret; i; --i)
+        for (Size i = ret; i; --i)
             *p_beg++ = *p++;
         return ret;
     }
 
     template<typename R,
-        typename = octa::EnableIf<octa::IsOutputRange<R>::value
-    >> octa::Size copy(R &&orange, octa::Size n = -1) {
-        octa::Size c = size();
+        typename = EnableIf<IsOutputRange<R>::value
+    >> Size copy(R &&orange, Size n = -1) {
+        Size c = size();
         if (n < c) c = n;
         return orange.put_n(p_beg, c);
     }
 
-    octa::Size copy(octa::RemoveCv<T> *p, octa::Size n = -1) {
-        octa::Size c = size();
+    Size copy(RemoveCv<T> *p, Size n = -1) {
+        Size c = size();
         if (n < c) c = n;
         return copy(PointerRange(p, c), c);
     }
@@ -927,12 +927,12 @@ private:
     T *p_beg, *p_end;
 };
 
-template<typename T, octa::Size N>
+template<typename T, Size N>
 PointerRange<T> iter(T (&array)[N]) {
     return PointerRange<T>(array, N);
 }
 
-template<typename T, octa::Size N>
+template<typename T, Size N>
 PointerRange<const T> iter(const T (&array)[N]) {
     return PointerRange<const T>(array, N);
 }
@@ -965,7 +965,7 @@ public:
         p_range(it.p_range), p_index(it.p_index) {}
 
     EnumeratedRange(EnumeratedRange &&it):
-        p_range(octa::move(it.p_range)), p_index(it.p_index) {}
+        p_range(move(it.p_range)), p_index(it.p_index) {}
 
     EnumeratedRange &operator=(const EnumeratedRange &v) {
         p_range = v.p_range;
@@ -973,7 +973,7 @@ public:
         return *this;
     }
     EnumeratedRange &operator=(EnumeratedRange &&v) {
-        p_range = octa::move(v.p_range);
+        p_range = move(v.p_range);
         p_index = v.p_index;
         return *this;
     }
@@ -983,7 +983,7 @@ public:
         return *this;
     }
     EnumeratedRange &operator=(T &&v) {
-        p_range = octa::move(v);
+        p_range = move(v);
         p_index = 0;
         return *this;
     }
@@ -1032,14 +1032,14 @@ public:
         p_remaining(rem) {}
     TakeRange(const TakeRange &it): p_range(it.p_range),
         p_remaining(it.p_remaining) {}
-    TakeRange(TakeRange &&it): p_range(octa::move(it.p_range)),
+    TakeRange(TakeRange &&it): p_range(move(it.p_range)),
         p_remaining(it.p_remaining) {}
 
     TakeRange &operator=(const TakeRange &v) {
         p_range = v.p_range; p_remaining = v.p_remaining; return *this;
     }
     TakeRange &operator=(TakeRange &&v) {
-        p_range = octa::move(v.p_range);
+        p_range = move(v.p_range);
         p_remaining = v.p_remaining;
         return *this;
     }
@@ -1086,14 +1086,14 @@ public:
         p_chunksize(chs) {}
     ChunksRange(const ChunksRange &it): p_range(it.p_range),
         p_chunksize(it.p_chunksize) {}
-    ChunksRange(ChunksRange &&it): p_range(octa::move(it.p_range)),
+    ChunksRange(ChunksRange &&it): p_range(move(it.p_range)),
         p_chunksize(it.p_chunksize) {}
 
     ChunksRange &operator=(const ChunksRange &v) {
         p_range = v.p_range; p_chunksize = v.p_chunksize; return *this;
     }
     ChunksRange &operator=(ChunksRange &&v) {
-        p_range = octa::move(v.p_range);
+        p_range = move(v.p_range);
         p_chunksize = v.p_chunksize;
         return *this;
     }
@@ -1122,9 +1122,9 @@ struct AppenderRange: OutputRange<AppenderRange<T>, typename T::Value,
     typename T::Reference, typename T::Size, typename T::Difference> {
     AppenderRange(): p_data() {}
     AppenderRange(const T &v): p_data(v) {}
-    AppenderRange(T &&v): p_data(octa::move(v)) {}
+    AppenderRange(T &&v): p_data(move(v)) {}
     AppenderRange(const AppenderRange &v): p_data(v.p_data) {}
-    AppenderRange(AppenderRange &&v): p_data(octa::move(v.p_data)) {}
+    AppenderRange(AppenderRange &&v): p_data(move(v.p_data)) {}
 
     AppenderRange &operator=(const AppenderRange &v) {
         p_data = v.p_data;
@@ -1132,7 +1132,7 @@ struct AppenderRange: OutputRange<AppenderRange<T>, typename T::Value,
     }
 
     AppenderRange &operator=(AppenderRange &&v) {
-        p_data = octa::move(v.p_data);
+        p_data = move(v.p_data);
         return *this;
     }
 
@@ -1142,7 +1142,7 @@ struct AppenderRange: OutputRange<AppenderRange<T>, typename T::Value,
     }
 
     AppenderRange &operator=(T &&v) {
-        p_data = octa::move(v);
+        p_data = move(v);
         return *this;
     }
 
@@ -1160,7 +1160,7 @@ struct AppenderRange: OutputRange<AppenderRange<T>, typename T::Value,
     }
 
     bool put(typename T::Value &&v) {
-        p_data.push(octa::move(v));
+        p_data.push(move(v));
         return true;
     }
 
@@ -1176,11 +1176,11 @@ AppenderRange<T> appender() {
 
 template<typename T>
 AppenderRange<T> appender(T &&v) {
-    return AppenderRange<T>(octa::forward<T>(v));
+    return AppenderRange<T>(forward<T>(v));
 }
 
 // range of
-template<typename T> using RangeOf = decltype(octa::iter(octa::declval<T>()));
+template<typename T> using RangeOf = decltype(iter(declval<T>()));
 
 } /* namespace octa */
 

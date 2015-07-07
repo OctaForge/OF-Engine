@@ -14,17 +14,17 @@
 
 namespace octa {
 
-template<typename T, octa::Size N>
+template<typename T, Size N>
 struct Array {
-    using Size = octa::Size;
-    using Difference = octa::Ptrdiff;
+    using Size = Size;
+    using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
     using ConstReference = const T &;
     using Pointer = T *;
     using ConstPointer = const T *;
-    using Range = octa::PointerRange<T>;
-    using ConstRange = octa::PointerRange<const T>;
+    using Range = PointerRange<T>;
+    using ConstRange = PointerRange<const T>;
 
     T &operator[](Size i) { return p_buf[i]; }
     const T &operator[](Size i) const { return p_buf[i]; }

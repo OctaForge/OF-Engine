@@ -14,9 +14,9 @@
 #include "octa/vector.hh"
 
 namespace octa {
-static constexpr octa::Size npos = -1;
+static constexpr Size npos = -1;
 
-template<typename T, typename A = octa::Allocator<T>> class StringBase;
+template<typename T, typename A = Allocator<T>> class StringBase;
 
 template<typename T>
 struct StringRangeBase: InputRange<
@@ -24,7 +24,7 @@ struct StringRangeBase: InputRange<
 > {
     StringRangeBase() = delete;
     StringRangeBase(T *beg, T *end): p_beg(beg), p_end(end) {}
-    StringRangeBase(T *beg, octa::Size n): p_beg(beg), p_end(beg + n) {}
+    StringRangeBase(T *beg, Size n): p_beg(beg), p_end(beg + n) {}
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
     StringRangeBase(T *beg): p_beg(beg), p_end(beg + strlen(beg)) {}
 
@@ -32,8 +32,8 @@ struct StringRangeBase: InputRange<
     StringRangeBase(const StringBase<T, A> &s): p_beg(s.data()),
         p_end(s.data() + s.size()) {}
 
-    template<typename U, typename = octa::EnableIf<
-        octa::IsConvertible<U *, T *>::value
+    template<typename U, typename = EnableIf<
+        IsConvertible<U *, T *>::value
     >> StringRangeBase(const StringRangeBase<U> &v):
         p_beg(&v[0]), p_end(&v[v.size()]) {}
 
@@ -59,8 +59,8 @@ struct StringRangeBase: InputRange<
     }
     bool push_front() { --p_beg; return true; }
 
-    octa::Size pop_front_n(octa::Size n) {
-        octa::Size olen = p_end - p_beg;
+    Size pop_front_n(Size n) {
+        Size olen = p_end - p_beg;
         p_beg += n;
         if (p_beg > p_end) {
             p_beg = p_end;
@@ -69,7 +69,7 @@ struct StringRangeBase: InputRange<
         return n;
     }
 
-    octa::Size push_front_n(octa::Size n) { p_beg -= n; return true; }
+    Size push_front_n(Size n) { p_beg -= n; return true; }
 
     T &front() const { return *p_beg; }
 
@@ -77,7 +77,7 @@ struct StringRangeBase: InputRange<
         return p_beg == range.p_beg;
     }
 
-    octa::Ptrdiff distance_front(const StringRangeBase &range) const {
+    Ptrdiff distance_front(const StringRangeBase &range) const {
         return range.p_beg - p_beg;
     }
 
@@ -88,8 +88,8 @@ struct StringRangeBase: InputRange<
     }
     bool push_back() { ++p_end; return true; }
 
-    octa::Size pop_back_n(octa::Size n) {
-        octa::Size olen = p_end - p_beg;
+    Size pop_back_n(Size n) {
+        Size olen = p_end - p_beg;
         p_end -= n;
         if (p_end < p_beg) {
             p_end = p_beg;
@@ -98,7 +98,7 @@ struct StringRangeBase: InputRange<
         return n;
     }
 
-    octa::Size push_back_n(octa::Size n) { p_end += n; return true; }
+    Size push_back_n(Size n) { p_end += n; return true; }
 
     T &back() const { return *(p_end - 1); }
 
@@ -106,17 +106,17 @@ struct StringRangeBase: InputRange<
         return p_end == range.p_end;
     }
 
-    octa::Ptrdiff distance_back(const StringRangeBase &range) const {
+    Ptrdiff distance_back(const StringRangeBase &range) const {
         return range.p_end - p_end;
     }
 
-    octa::Size size() const { return p_end - p_beg; }
+    Size size() const { return p_end - p_beg; }
 
-    StringRangeBase slice(octa::Size start, octa::Size end) const {
+    StringRangeBase slice(Size start, Size end) const {
         return StringRangeBase(p_beg + start, p_beg + end);
     }
 
-    T &operator[](octa::Size i) const { return p_beg[i]; }
+    T &operator[](Size i) const { return p_beg[i]; }
 
     bool put(T v) {
         if (empty()) return false;
@@ -128,7 +128,7 @@ struct StringRangeBase: InputRange<
     T *data() { return p_beg; }
     const T *data() const { return p_beg; }
 
-    octa::Size to_hash() const {
+    Size to_hash() const {
         const T *d = data();
         Size h = 5381, len = size();
         for (Size i = 0; i < len; ++i)
@@ -142,22 +142,22 @@ private:
 
 template<typename T, typename A>
 class StringBase {
-    octa::Vector<T, A> p_buf;
+    Vector<T, A> p_buf;
 
     void terminate() {
         if (p_buf.empty() || (p_buf.back() != '\0')) p_buf.push('\0');
     }
 
 public:
-    using Size = octa::Size;
-    using Difference = octa::Ptrdiff;
+    using Size = Size;
+    using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
     using ConstReference = const T &;
-    using Pointer = octa::AllocatorPointer<A>;
-    using ConstPointer = octa::AllocatorConstPointer<A>;
-    using Range = octa::StringRangeBase<T>;
-    using ConstRange = octa::StringRangeBase<const T>;
+    using Pointer = AllocatorPointer<A>;
+    using ConstPointer = AllocatorConstPointer<A>;
+    using Range = StringRangeBase<T>;
+    using ConstRange = StringRangeBase<const T>;
     using Allocator = A;
 
     StringBase(const A &a = A()): p_buf(1, '\0', a) {}
@@ -168,11 +168,11 @@ public:
     StringBase(const StringBase &s): p_buf(s.p_buf) {}
     StringBase(const StringBase &s, const A &a):
         p_buf(s.p_buf, a) {}
-    StringBase(StringBase &&s): p_buf(octa::move(s.p_buf)) {}
+    StringBase(StringBase &&s): p_buf(move(s.p_buf)) {}
     StringBase(StringBase &&s, const A &a):
-        p_buf(octa::move(s.p_buf), a) {}
+        p_buf(move(s.p_buf), a) {}
 
-    StringBase(const StringBase &s, octa::Size pos, octa::Size len = npos,
+    StringBase(const StringBase &s, Size pos, Size len = npos,
     const A &a = A()):
         p_buf(s.p_buf.iter().slice(pos,
             (len == npos) ? s.p_buf.size() : (pos + len)), a) {
@@ -186,9 +186,9 @@ public:
     StringBase(const Value *v, Size n, const A &a = A()):
         p_buf(ConstRange(v, n), a) {}
 
-    template<typename R, typename = octa::EnableIf<
-        octa::IsInputRange<R>::value &&
-        octa::IsConvertible<RangeReference<R>, Value>::value
+    template<typename R, typename = EnableIf<
+        IsInputRange<R>::value &&
+        IsConvertible<RangeReference<R>, Value>::value
     >> StringBase(R range, const A &a = A()): p_buf(range, a) {
         terminate();
     }
@@ -200,37 +200,37 @@ public:
         return *this;
     }
     StringBase &operator=(StringBase &&v) {
-        p_buf.operator=(octa::move(v));
+        p_buf.operator=(move(v));
         return *this;
     }
     StringBase &operator=(const Value *v) {
         p_buf = ConstRange(v, strlen(v) + 1);
         return *this;
     }
-    template<typename R, typename = octa::EnableIf<
-        octa::IsInputRange<R>::value &&
-        octa::IsConvertible<RangeReference<R>, Value>::value
+    template<typename R, typename = EnableIf<
+        IsInputRange<R>::value &&
+        IsConvertible<RangeReference<R>, Value>::value
     >> StringBase &operator=(const R &r) {
         p_buf = r;
         terminate();
         return *this;
     }
 
-    void resize(octa::Size n, T v = T()) {
+    void resize(Size n, T v = T()) {
         p_buf.pop();
         p_buf.resize(n, v);
         terminate();
     }
 
-    void reserve(octa::Size n) {
+    void reserve(Size n) {
         p_buf.reserve(n + 1);
     }
 
-    T &operator[](octa::Size i) { return p_buf[i]; }
-    const T &operator[](octa::Size i) const { return p_buf[i]; }
+    T &operator[](Size i) { return p_buf[i]; }
+    const T &operator[](Size i) const { return p_buf[i]; }
 
-    T &at(octa::Size i) { return p_buf[i]; }
-    const T &at(octa::Size i) const { return p_buf[i]; }
+    T &at(Size i) { return p_buf[i]; }
+    const T &at(Size i) const { return p_buf[i]; }
 
     T &front() { return p_buf[0]; }
     const T &front() const { return p_buf[0]; };
@@ -241,15 +241,15 @@ public:
     Value *data() { return p_buf.data(); }
     const Value *data() const { return p_buf.data(); }
 
-    octa::Size size() const {
+    Size size() const {
         return p_buf.size() - 1;
     }
 
-    octa::Size capacity() const {
+    Size capacity() const {
         return p_buf.capacity() - 1;
     }
 
-    octa::Size length() const {
+    Size length() const {
         /* TODO: unicode */
         return size();
     }
@@ -267,7 +267,7 @@ public:
         return *this;
     }
 
-    StringBase &append(const StringBase &s, octa::Size idx, octa::Size len) {
+    StringBase &append(const StringBase &s, Size idx, Size len) {
         p_buf.pop();
         p_buf.insert_range(p_buf.size(), Range(&s[idx],
             (len == npos) ? (s.size() - idx) : len));
@@ -282,9 +282,9 @@ public:
         return *this;
     }
 
-    StringBase &append(octa::Size n, T c) {
+    StringBase &append(Size n, T c) {
         p_buf.pop();
-        for (octa::Size i = 0; i < n; ++i) p_buf.push(c);
+        for (Size i = 0; i < n; ++i) p_buf.push(c);
         p_buf.push('\0');
         return *this;
     }
@@ -441,23 +441,21 @@ template<typename T> struct ToString {
 
     template<typename U>
     static String to_str(const U &v,
-        octa::EnableIf<octa::detail::ToStringTest<U>::value, bool> = true
+        EnableIf<detail::ToStringTest<U>::value, bool> = true
     ) {
         return v.to_string();
     }
 
     template<typename U>
     static String to_str(const U &v,
-        octa::EnableIf<!octa::detail::ToStringTest<U>::value &&
-            !octa::IsScalar<U>::value, bool> = true
+        EnableIf<!detail::ToStringTest<U>::value &&
+            !IsScalar<U>::value, bool> = true
     ) {
         String ret("{");
         ret += concat(octa::iter(v), ", ", ToString<
-            octa::RemoveCv<
-                octa::RemoveReference<
-                    octa::RangeReference<decltype(octa::iter(v))>
-                >
-            >
+            RemoveCv<RemoveReference<
+                RangeReference<decltype(octa::iter(v))>
+            >>
         >());
         ret += "}";
         return ret;
@@ -465,8 +463,8 @@ template<typename T> struct ToString {
 
     template<typename U>
     static String to_str(const U &v,
-        octa::EnableIf<!octa::detail::ToStringTest<U>::value &&
-            octa::IsScalar<U>::value, bool> = true
+        EnableIf<!detail::ToStringTest<U>::value &&
+            IsScalar<U>::value, bool> = true
     ) {
         return ToString<U>()(v);
     }
@@ -478,7 +476,7 @@ template<typename T> struct ToString {
 
 namespace detail {
     template<typename T>
-    void str_printf(octa::Vector<char> *s, const char *fmt, T v) {
+    void str_printf(Vector<char> *s, const char *fmt, T v) {
         char buf[256];
         int n = snprintf(buf, sizeof(buf), fmt, v);
         s->clear();
@@ -491,7 +489,7 @@ namespace detail {
             n = 0;
             *(s->data()) = '\0';
         }
-        *((octa::Size *)s) = n + 1;
+        *((Size *)s) = n + 1;
     }
 }
 
@@ -519,24 +517,24 @@ template<> struct ToString<T> { \
     using Result = String; \
     String operator()(T v) { \
         String ret; \
-        octa::detail::str_printf((octa::Vector<char> *)&ret, fmt, v); \
+        detail::str_printf((Vector<char> *)&ret, fmt, v); \
         return ret; \
     } \
 };
 
-OCTA_TOSTR_NUM(octa::sbyte, "%d")
+OCTA_TOSTR_NUM(sbyte, "%d")
 OCTA_TOSTR_NUM(int, "%d")
 OCTA_TOSTR_NUM(int &, "%d")
 OCTA_TOSTR_NUM(long, "%ld")
 OCTA_TOSTR_NUM(float, "%f")
 OCTA_TOSTR_NUM(double, "%f")
 
-OCTA_TOSTR_NUM(octa::byte, "%u")
-OCTA_TOSTR_NUM(octa::uint, "%u")
-OCTA_TOSTR_NUM(octa::ulong, "%lu")
-OCTA_TOSTR_NUM(octa::llong, "%lld")
-OCTA_TOSTR_NUM(octa::ullong, "%llu")
-OCTA_TOSTR_NUM(octa::ldouble, "%Lf")
+OCTA_TOSTR_NUM(byte, "%u")
+OCTA_TOSTR_NUM(uint, "%u")
+OCTA_TOSTR_NUM(ulong, "%lu")
+OCTA_TOSTR_NUM(llong, "%lld")
+OCTA_TOSTR_NUM(ullong, "%llu")
+OCTA_TOSTR_NUM(ldouble, "%Lf")
 
 #undef OCTA_TOSTR_NUM
 
@@ -545,7 +543,7 @@ template<typename T> struct ToString<T *> {
     using Result = String;
     String operator()(Argument v) {
         String ret;
-        octa::detail::str_printf((octa::Vector<char> *)&ret, "%p", v);
+        detail::str_printf((Vector<char> *)&ret, "%p", v);
         return ret;
     }
 };
@@ -566,8 +564,8 @@ template<> struct ToString<StringRange> {
     }
 };
 
-template<typename T, typename U> struct ToString<octa::Pair<T, U>> {
-    using Argument = octa::Pair<T, U>;
+template<typename T, typename U> struct ToString<Pair<T, U>> {
+    using Argument = Pair<T, U>;
     using Result = String;
     String operator()(const Argument &v) {
         String ret("{");
@@ -579,7 +577,7 @@ template<typename T, typename U> struct ToString<octa::Pair<T, U>> {
     }
 };
 
-template<typename T, typename = decltype(ToString<T>()(octa::declval<T>()))>
+template<typename T, typename = decltype(ToString<T>()(declval<T>()))>
 String to_string(const T &v) {
     return ToString<T>()(v);
 }

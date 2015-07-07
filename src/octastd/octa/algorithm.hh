@@ -42,25 +42,25 @@ bool is_partitioned(R range, P pred) {
 namespace detail {
     template<typename R, typename C>
     void insort(R range, C compare) {
-        octa::RangeSize<R> rlen = range.size();
-        for (octa::RangeSize<R> i = 1; i < rlen; ++i) {
-            octa::RangeSize<R> j = i;
-            octa::RangeValue<R> v(octa::move(range[i]));
+        RangeSize<R> rlen = range.size();
+        for (RangeSize<R> i = 1; i < rlen; ++i) {
+            RangeSize<R> j = i;
+            RangeValue<R> v(move(range[i]));
             while (j > 0 && !compare(range[j - 1], v)) {
                 range[j] = range[j - 1];
                 --j;
             }
-            range[j] = octa::move(v);
+            range[j] = move(v);
         }
     }
 
     template<typename R, typename C>
-    void hs_sift_down(R range, octa::RangeSize<R> s,
-    octa::RangeSize<R> e, C compare) {
-        octa::RangeSize<R> r = s;
+    void hs_sift_down(R range, RangeSize<R> s,
+    RangeSize<R> e, C compare) {
+        RangeSize<R> r = s;
         while ((r * 2 + 1) <= e) {
-            octa::RangeSize<R> ch = r * 2 + 1;
-            octa::RangeSize<R> sw = r;
+            RangeSize<R> ch = r * 2 + 1;
+            RangeSize<R> sw = r;
             if (compare(range[sw], range[ch]))
                 sw = ch;
             if (((ch + 1) <= e) && compare(range[sw], range[ch + 1]))
@@ -74,32 +74,32 @@ namespace detail {
 
     template<typename R, typename C>
     void heapsort(R range, C compare) {
-        octa::RangeSize<R> len = range.size();
-        octa::RangeSize<R> st = (len - 2) / 2;
+        RangeSize<R> len = range.size();
+        RangeSize<R> st = (len - 2) / 2;
         for (;;) {
-            octa::detail::hs_sift_down(range, st, len - 1, compare);
+            detail::hs_sift_down(range, st, len - 1, compare);
             if (st-- == 0) break;
         }
-        octa::RangeSize<R> e = len - 1;
+        RangeSize<R> e = len - 1;
         while (e > 0) {
             octa::swap(range[e], range[0]);
             --e;
-            octa::detail::hs_sift_down(range, 0, e, compare);
+            detail::hs_sift_down(range, 0, e, compare);
         }
     }
 
     template<typename R, typename C>
     void introloop(R range, C compare, RangeSize<R> depth) {
         if (range.size() <= 10) {
-            octa::detail::insort(range, compare);
+            detail::insort(range, compare);
             return;
         }
         if (depth == 0) {
-            octa::detail::heapsort(range, compare);
+            detail::heapsort(range, compare);
             return;
         }
         octa::swap(range[range.size() / 2], range.back());
-        octa::RangeSize<R> pi = 0;
+        RangeSize<R> pi = 0;
         R pr = range;
         pr.pop_back();
         for (; !pr.empty(); pr.pop_front()) {
@@ -107,26 +107,26 @@ namespace detail {
                 octa::swap(pr.front(), range[pi++]);
         }
         octa::swap(range[pi], range.back());
-        octa::detail::introloop(range.slice(0, pi), compare, depth - 1);
-        octa::detail::introloop(range.slice(pi + 1, range.size()), compare,
+        detail::introloop(range.slice(0, pi), compare, depth - 1);
+        detail::introloop(range.slice(pi + 1, range.size()), compare,
             depth - 1);
     }
 
     template<typename R, typename C>
     void introsort(R range, C compare) {
-        octa::detail::introloop(range, compare, octa::RangeSize<R>(2
+        detail::introloop(range, compare, RangeSize<R>(2
             * (log(range.size()) / log(2))));
     }
 } /* namespace detail */
 
 template<typename R, typename C>
 void sort(R range, C compare) {
-    octa::detail::introsort(range, compare);
+    detail::introsort(range, compare);
 }
 
 template<typename R>
 void sort(R range) {
-    sort(range, octa::Less<RangeValue<R>>());
+    sort(range, Less<RangeValue<R>>());
 }
 
 /* min/max(_element) */
@@ -220,7 +220,7 @@ template<typename R, typename F>
 F for_each(R range, F func) {
     for (; !range.empty(); range.pop_front())
         func(range.front());
-    return octa::move(func);
+    return move(func);
 }
 
 template<typename R, typename P>
@@ -333,7 +333,7 @@ R2 copy_if_not(R1 irange, R2 orange, P pred) {
 template<typename R1, typename R2>
 R2 move(R1 irange, R2 orange) {
     for (; !irange.empty(); irange.pop_front())
-        orange.put(octa::move(irange.front()));
+        orange.put(move(irange.front()));
     return orange;
 }
 
@@ -366,7 +366,7 @@ void generate(R range, F gen) {
 }
 
 template<typename R1, typename R2>
-octa::Pair<R1, R2> swap_ranges(R1 range1, R2 range2) {
+Pair<R1, R2> swap_ranges(R1 range1, R2 range2) {
     while (!range1.empty() && !range2.empty()) {
         octa::swap(range1.front(), range2.front());
         range1.pop_front();
@@ -411,11 +411,11 @@ T foldr(R range, T init, F func) {
 
 template<typename T, typename F, typename R>
 struct MapRange: InputRange<
-    MapRange<T, F, R>, octa::RangeCategory<T>, R, R, octa::RangeSize<T>
+    MapRange<T, F, R>, RangeCategory<T>, R, R, RangeSize<T>
 > {
 private:
     T p_range;
-    octa::FunctionMakeDefaultConstructible<F> p_func;
+    FunctionMakeDefaultConstructible<F> p_func;
 
 public:
     MapRange() = delete;
@@ -438,7 +438,7 @@ public:
     }
 
     bool empty() const { return p_range.empty(); }
-    octa::RangeSize<T> size() const { return p_range.size(); }
+    RangeSize<T> size() const { return p_range.size(); }
 
     bool equals_front(const MapRange &r) const {
         return p_range.equals_front(r.p_range);
@@ -447,10 +447,10 @@ public:
         return p_range.equals_front(r.p_range);
     }
 
-    octa::RangeDifference<T> distance_front(const MapRange &r) const {
+    RangeDifference<T> distance_front(const MapRange &r) const {
         return p_range.distance_front(r.p_range);
     }
-    octa::RangeDifference<T> distance_back(const MapRange &r) const {
+    RangeDifference<T> distance_back(const MapRange &r) const {
         return p_range.distance_back(r.p_range);
     }
 
@@ -460,54 +460,51 @@ public:
     bool push_front() { return p_range.pop_front(); }
     bool push_back() { return p_range.push_back(); }
 
-    octa::RangeSize<T> pop_front_n(octa::RangeSize<T> n) {
+    RangeSize<T> pop_front_n(RangeSize<T> n) {
         p_range.pop_front_n(n);
     }
-    octa::RangeSize<T> pop_back_n(octa::RangeSize<T> n) {
+    RangeSize<T> pop_back_n(RangeSize<T> n) {
         p_range.pop_back_n(n);
     }
 
-    octa::RangeSize<T> push_front_n(octa::RangeSize<T> n) {
+    RangeSize<T> push_front_n(RangeSize<T> n) {
         return p_range.push_front_n(n);
     }
-    octa::RangeSize<T> push_back_n(octa::RangeSize<T> n) {
+    RangeSize<T> push_back_n(RangeSize<T> n) {
         return p_range.push_back_n(n);
     }
 
     R front() const { return p_func(p_range.front()); }
     R back() const { return p_func(p_range.back()); }
 
-    R operator[](octa::RangeSize<T> idx) const {
+    R operator[](RangeSize<T> idx) const {
         return p_func(p_range[idx]);
     }
 
-    MapRange slice(octa::RangeSize<T> start,
-                           octa::RangeSize<T> end) {
+    MapRange slice(RangeSize<T> start, RangeSize<T> end) {
         return MapRange(p_range.slice(start, end), p_func);
     }
 };
 
 namespace detail {
     template<typename R, typename F> using MapReturnType
-        = decltype(declval<F>()(octa::declval<octa::RangeReference<R>>()));
+        = decltype(declval<F>()(declval<RangeReference<R>>()));
 }
 
 template<typename R, typename F>
-MapRange<R, F, octa::detail::MapReturnType<R, F>> map(R range,
-                                                      F func) {
-    return octa::MapRange<R, F, octa::detail::MapReturnType<R, F>>(range,
+MapRange<R, F, detail::MapReturnType<R, F>> map(R range, F func) {
+    return MapRange<R, F, detail::MapReturnType<R, F>>(range,
         func);
 }
 
 template<typename T, typename F>
 struct FilterRange: InputRange<
-    FilterRange<T, F>, octa::CommonType<octa::RangeCategory<T>,
-                                     octa::ForwardRangeTag>,
-    octa::RangeValue<T>, octa::RangeReference<T>, octa::RangeSize<T>
+    FilterRange<T, F>, CommonType<RangeCategory<T>, ForwardRangeTag>,
+    RangeValue<T>, RangeReference<T>, RangeSize<T>
 > {
 private:
     T p_range;
-    octa::FunctionMakeDefaultConstructible<F> p_pred;
+    FunctionMakeDefaultConstructible<F> p_pred;
 
     void advance_valid() {
         while (!p_range.empty() && !p_pred(front())) p_range.pop_front();
@@ -554,22 +551,19 @@ public:
         return ret;
     }
 
-    octa::RangeReference<T> front() const { return p_range.front(); }
+    RangeReference<T> front() const { return p_range.front(); }
 };
 
 namespace detail {
     template<typename R, typename P> using FilterPred
-        = octa::EnableIf<IsSame<
-            decltype(octa::declval<P>()(octa::declval<
-                octa::RangeReference<R>
-            >())),
-            bool
+        = EnableIf<IsSame<
+            decltype(declval<P>()(declval<RangeReference<R>>())), bool
         >::value, P>;
 }
 
 template<typename R, typename P>
-FilterRange<R, octa::detail::FilterPred<R, P>> filter(R range, P pred) {
-    return octa::FilterRange<R, P>(range, pred);
+FilterRange<R, detail::FilterPred<R, P>> filter(R range, P pred) {
+    return FilterRange<R, P>(range, pred);
 }
 
 } /* namespace octa */

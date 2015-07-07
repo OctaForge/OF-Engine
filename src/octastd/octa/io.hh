@@ -39,7 +39,7 @@ struct FileStream: Stream {
     }
 
     template<typename A>
-    FileStream(const octa::AnyString<A> &path, StreamMode mode): p_f() {
+    FileStream(const AnyString<A> &path, StreamMode mode): p_f() {
         open(path, mode);
     }
 
@@ -56,13 +56,13 @@ struct FileStream: Stream {
 
     bool open(const char *path, StreamMode mode) {
         if (p_f) return false;
-        p_f = fopen(path, octa::detail::filemodes[octa::Size(mode)]);
+        p_f = fopen(path, detail::filemodes[Size(mode)]);
         p_owned = true;
         return is_open();
     }
 
     template<typename A>
-    bool open(const octa::AnyString<A> &path, StreamMode mode) {
+    bool open(const AnyString<A> &path, StreamMode mode) {
         return open(path.data(), mode);
     }
 
@@ -104,11 +104,11 @@ struct FileStream: Stream {
 
     bool flush() { return !fflush(p_f); }
 
-    octa::Size read_bytes(void *buf, octa::Size count) {
+    Size read_bytes(void *buf, Size count) {
         return fread(buf, 1, count, p_f);
     }
 
-    octa::Size write_bytes(const void *buf, octa::Size count) {
+    Size write_bytes(const void *buf, Size count) {
         return fwrite(buf, 1, count, p_f);
     }
 
@@ -147,46 +147,46 @@ static inline void write(const char *s) {
 }
 
 template<typename A>
-static inline void write(const octa::AnyString<A> &s) {
+static inline void write(const AnyString<A> &s) {
     fwrite(s.data(), 1, s.size(), ::stdout);
 }
 
 template<typename T>
 static inline void write(const T &v) {
-    octa::write(octa::to_string(v));
+    write(octa::to_string(v));
 }
 
 template<typename T, typename ...A>
 static inline void write(const T &v, const A &...args) {
-    octa::write(v);
+    write(v);
     write(args...);
 }
 
 static inline void writeln(const char *s) {
-    octa::write(s);
+    write(s);
     putc('\n', ::stdout);
 }
 
 template<typename A>
-static inline void writeln(const octa::AnyString<A> &s) {
-    octa::write(s);
+static inline void writeln(const AnyString<A> &s) {
+    write(s);
     putc('\n', ::stdout);
 }
 
 template<typename T>
 static inline void writeln(const T &v) {
-    octa::writeln(octa::to_string(v));
+    writeln(octa::to_string(v));
 }
 
 template<typename T, typename ...A>
 static inline void writeln(const T &v, const A &...args) {
-    octa::write(v);
+    write(v);
     write(args...);
     putc('\n', ::stdout);
 }
 
 namespace detail {
-    struct UnsafeWritefRange: octa::OutputRange<UnsafeWritefRange, char> {
+    struct UnsafeWritefRange: OutputRange<UnsafeWritefRange, char> {
         UnsafeWritefRange(char *p): p_ptr(p) {}
         bool put(char c) {
             *p_ptr++ = c;
@@ -199,21 +199,21 @@ namespace detail {
 template<typename ...A>
 static inline void writef(const char *fmt, const A &...args) {
     char buf[512];
-    octa::Ptrdiff need = octa::format(octa::detail::FormatOutRange<
-        sizeof(buf)>(buf), fmt, args...);
+    Ptrdiff need = format(detail::FormatOutRange<sizeof(buf)>(buf),
+        fmt, args...);
     if (need < 0) return;
-    else if (octa::Size(need) < sizeof(buf)) {
+    else if (Size(need) < sizeof(buf)) {
         fwrite(buf, 1, need, ::stdout);
         return;
     }
-    octa::Vector<char> s;
+    Vector<char> s;
     s.reserve(need);
-    octa::format(octa::detail::UnsafeWritefRange(s.data()), fmt, args...);
+    format(detail::UnsafeWritefRange(s.data()), fmt, args...);
     fwrite(s.data(), 1, need, ::stdout);
 }
 
 template<typename AL, typename ...A>
-static inline void writef(const octa::AnyString<AL> &fmt,
+static inline void writef(const AnyString<AL> &fmt,
                           const A &...args) {
     writef(fmt.data(), args...);
 }
@@ -225,7 +225,7 @@ static inline void writefln(const char *fmt, const A &...args) {
 }
 
 template<typename AL, typename ...A>
-static inline void writefln(const octa::AnyString<AL> &fmt,
+static inline void writefln(const AnyString<AL> &fmt,
                             const A &...args) {
     writef(fmt, args...);
     putc('\n', ::stdout);

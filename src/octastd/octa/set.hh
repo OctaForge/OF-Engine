@@ -30,56 +30,56 @@ namespace detail {
     };
 
     template<typename T, typename H, typename C, typename A, bool IsMultihash>
-    struct SetImpl: octa::detail::Hashtable<
-        octa::detail::SetBase<T, A>, T, T, T, H, C, A, IsMultihash
+    struct SetImpl: detail::Hashtable<
+        detail::SetBase<T, A>, T, T, T, H, C, A, IsMultihash
     > {
     private:
-        using Base = octa::detail::Hashtable<
-            octa::detail::SetBase<T, A>, T, T, T, H, C, A, IsMultihash
+        using Base = detail::Hashtable<
+            detail::SetBase<T, A>, T, T, T, H, C, A, IsMultihash
         >;
 
     public:
         using Key = T;
-        using Size = octa::Size;
-        using Difference = octa::Ptrdiff;
+        using Size = Size;
+        using Difference = Ptrdiff;
         using Hasher = H;
         using KeyEqual = C;
         using Value = T;
         using Reference = Value &;
-        using Pointer = octa::AllocatorPointer<A>;
-        using ConstPointer = octa::AllocatorConstPointer<A>;
-        using Range = octa::HashRange<T>;
-        using ConstRange = octa::HashRange<const T>;
-        using LocalRange = octa::BucketRange<T>;
-        using ConstLocalRange = octa::BucketRange<const T>;
+        using Pointer = AllocatorPointer<A>;
+        using ConstPointer = AllocatorConstPointer<A>;
+        using Range = HashRange<T>;
+        using ConstRange = HashRange<const T>;
+        using LocalRange = BucketRange<T>;
+        using ConstLocalRange = BucketRange<const T>;
         using Allocator = A;
 
-        explicit SetImpl(octa::Size size, const H &hf = H(),
+        explicit SetImpl(Size size, const H &hf = H(),
             const C &eqf = C(), const A &alloc = A()
         ): Base(size, hf, eqf, alloc) {}
 
         SetImpl(): SetImpl(0) {}
         explicit SetImpl(const A &alloc): SetImpl(0, H(), C(), alloc) {}
 
-        SetImpl(octa::Size size, const A &alloc):
+        SetImpl(Size size, const A &alloc):
             SetImpl(size, H(), C(), alloc) {}
-        SetImpl(octa::Size size, const H &hf, const A &alloc):
+        SetImpl(Size size, const H &hf, const A &alloc):
             SetImpl(size, hf, C(), alloc) {}
 
         SetImpl(const SetImpl &m): Base(m,
-            octa::allocator_container_copy(m.get_alloc())) {}
+            allocator_container_copy(m.get_alloc())) {}
 
         SetImpl(const SetImpl &m, const A &alloc): Base(m, alloc) {}
 
-        SetImpl(SetImpl &&m): Base(octa::move(m)) {}
-        SetImpl(SetImpl &&m, const A &alloc): Base(octa::move(m), alloc) {}
+        SetImpl(SetImpl &&m): Base(move(m)) {}
+        SetImpl(SetImpl &&m, const A &alloc): Base(move(m), alloc) {}
 
-        template<typename R, typename = octa::EnableIf<
-            octa::IsInputRange<R>::value &&
-            octa::IsConvertible<RangeReference<R>, Value>::value
-        >> SetImpl(R range, octa::Size size = 0, const H &hf = H(),
+        template<typename R, typename = EnableIf<
+            IsInputRange<R>::value &&
+            IsConvertible<RangeReference<R>, Value>::value
+        >> SetImpl(R range, Size size = 0, const H &hf = H(),
             const C &eqf = C(), const A &alloc = A()
-        ): Base(size ? size : octa::detail::estimate_hrsize(range),
+        ): Base(size ? size : detail::estimate_hrsize(range),
                    hf, eqf, alloc) {
             for (; !range.empty(); range.pop_front())
                 Base::emplace(range.front());
@@ -87,23 +87,23 @@ namespace detail {
         }
 
         template<typename R>
-        SetImpl(R range, octa::Size size, const A &alloc)
+        SetImpl(R range, Size size, const A &alloc)
         : SetImpl(range, size, H(), C(), alloc) {}
 
         template<typename R>
-        SetImpl(R range, octa::Size size, const H &hf, const A &alloc)
+        SetImpl(R range, Size size, const H &hf, const A &alloc)
         : SetImpl(range, size, hf, C(), alloc) {}
 
-        SetImpl(octa::InitializerList<Value> init, octa::Size size = 0,
+        SetImpl(InitializerList<Value> init, Size size = 0,
             const H &hf = H(), const C &eqf = C(), const A &alloc = A()
-        ): SetImpl(octa::iter(init), size, hf, eqf, alloc) {}
+        ): SetImpl(iter(init), size, hf, eqf, alloc) {}
 
-        SetImpl(octa::InitializerList<Value> init, octa::Size size, const A &alloc)
-        : SetImpl(octa::iter(init), size, H(), C(), alloc) {}
+        SetImpl(InitializerList<Value> init, Size size, const A &alloc)
+        : SetImpl(iter(init), size, H(), C(), alloc) {}
 
-        SetImpl(octa::InitializerList<Value> init, octa::Size size, const H &hf,
+        SetImpl(InitializerList<Value> init, Size size, const H &hf,
             const A &alloc
-        ): SetImpl(octa::iter(init), size, hf, C(), alloc) {}
+        ): SetImpl(iter(init), size, hf, C(), alloc) {}
 
         SetImpl &operator=(const SetImpl &m) {
             Base::operator=(m);
@@ -111,13 +111,13 @@ namespace detail {
         }
 
         SetImpl &operator=(SetImpl &&m) {
-            Base::operator=(octa::move(m));
+            Base::operator=(move(m));
             return *this;
         }
 
-        template<typename R, typename = octa::EnableIf<
-            octa::IsInputRange<R>::value &&
-            octa::IsConvertible<RangeReference<R>, Value>::value
+        template<typename R, typename = EnableIf<
+            IsInputRange<R>::value &&
+            IsConvertible<RangeReference<R>, Value>::value
         >> SetImpl &operator=(R range) {
             Base::assign_range(range);
             return *this;
@@ -136,17 +136,17 @@ namespace detail {
 
 template<
     typename T,
-    typename H = octa::ToHash<T>,
-    typename C = octa::Equal<T>,
-    typename A = octa::Allocator<T>
-> using Set = octa::detail::SetImpl<T, H, C, A, false>;
+    typename H = ToHash<T>,
+    typename C = Equal<T>,
+    typename A = Allocator<T>
+> using Set = detail::SetImpl<T, H, C, A, false>;
 
 template<
     typename T,
-    typename H = octa::ToHash<T>,
-    typename C = octa::Equal<T>,
-    typename A = octa::Allocator<T>
-> using Multiset = octa::detail::SetImpl<T, H, C, A, true>;
+    typename H = ToHash<T>,
+    typename C = Equal<T>,
+    typename A = Allocator<T>
+> using Multiset = detail::SetImpl<T, H, C, A, true>;
 
 } /* namespace octa */
 

@@ -39,13 +39,13 @@ namespace octa {
 template<typename T> using InitializerList = std::initializer_list<T>;
 
 template<typename T>
-octa::PointerRange<const T> iter(std::initializer_list<T> init) {
-    return octa::PointerRange<const T>(init.begin(), init.end());
+PointerRange<const T> iter(std::initializer_list<T> init) {
+    return PointerRange<const T>(init.begin(), init.end());
 }
 
 template<typename T>
-octa::PointerRange<const T> citer(std::initializer_list<T> init) {
-    return octa::PointerRange<const T>(init.begin(), init.end());
+PointerRange<const T> citer(std::initializer_list<T> init) {
+    return PointerRange<const T>(init.begin(), init.end());
 }
 
 }

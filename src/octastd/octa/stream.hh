@@ -30,16 +30,16 @@ enum class StreamSeek {
     set = SEEK_SET
 };
 
-template<typename T = char, bool = octa::IsPod<T>::value>
+template<typename T = char, bool = IsPod<T>::value>
 struct StreamRange;
 
 namespace detail {
-    template<octa::Size N>
-    struct FormatOutRange: octa::OutputRange<FormatOutRange<N>, char> {
+    template<Size N>
+    struct FormatOutRange: OutputRange<FormatOutRange<N>, char> {
         FormatOutRange(char *buf): buf(buf), idx(0) {}
         FormatOutRange(const FormatOutRange &r): buf(r.buf), idx(r.idx) {}
         char *buf;
-        octa::Size idx;
+        Size idx;
         bool put(char v) {
             if (idx < N) {
                 buf[idx++] = v;
@@ -74,30 +74,30 @@ struct Stream {
 
     virtual bool flush() { return true; }
 
-    virtual octa::Size read_bytes(void *, octa::Size) { return 0; }
-    virtual octa::Size write_bytes(const void *, octa::Size) { return 0; }
+    virtual Size read_bytes(void *, Size) { return 0; }
+    virtual Size write_bytes(const void *, Size) { return 0; }
 
     virtual int getchar() {
-        octa::byte c;
+        byte c;
         return (read_bytes(&c, 1) == 1) ? c : -1;
     }
 
     virtual bool putchar(int c) {
-        octa::byte wc = octa::byte(c);
+        byte wc = byte(c);
         return write_bytes(&wc, 1) == 1;
     }
 
     virtual bool write(const char *s) {
-        octa::Size len = strlen(s);
+        Size len = strlen(s);
         return write_bytes(s, len) == len;
     }
 
-    virtual bool write(const octa::String &s) {
+    virtual bool write(const String &s) {
         return write_bytes(s.data(), s.size()) == s.size();
     }
 
     template<typename T> bool write(const T &v) {
-        return write(octa::to_string(v));
+        return write(to_string(v));
     }
 
     template<typename T, typename ...A>
@@ -105,7 +105,7 @@ struct Stream {
         return write(v) && write(args...);
     }
 
-    virtual bool writeln(const octa::String &s) {
+    virtual bool writeln(const String &s) {
         return write(s) && putchar('\n');
     }
 
@@ -125,19 +125,19 @@ struct Stream {
     template<typename ...A>
     bool writef(const char *fmt, const A &...args) {
         char buf[512];
-        octa::Size need = octa::format(octa::detail::FormatOutRange<
-            sizeof(buf)>(buf), fmt, args...);
+        Size need = format(detail::FormatOutRange<sizeof(buf)>(buf),
+            fmt, args...);
         if (need < sizeof(buf))
             return write_bytes(buf, need) == need;
-        octa::String s;
+        String s;
         s.reserve(need);
         s[need] = '\0';
-        octa::format(s.iter(), fmt, args...);
+        format(s.iter(), fmt, args...);
         return write_bytes(s.data(), need) == need;
     }
 
     template<typename ...A>
-    bool writef(const octa::String &fmt, const A &...args) {
+    bool writef(const String &fmt, const A &...args) {
         return writef(fmt.data(), args...);
     }
 
@@ -147,14 +147,14 @@ struct Stream {
     }
 
     template<typename ...A>
-    bool writefln(const octa::String &fmt, const A &...args) {
+    bool writefln(const String &fmt, const A &...args) {
         return writefln(fmt.data(), args...);
     }
 
     template<typename T = char>
     StreamRange<T> iter();
 
-    template<typename T> octa::Size put(const T *v, octa::Size count) {
+    template<typename T> Size put(const T *v, Size count) {
         return write_bytes(v, count * sizeof(T)) / sizeof(T);
     }
 
@@ -162,7 +162,7 @@ struct Stream {
         return write_bytes(&v, sizeof(T)) == sizeof(T);
     }
 
-    template<typename T> octa::Size get(T *v, octa::Size count) {
+    template<typename T> Size get(T *v, Size count) {
         return read_bytes(v, count * sizeof(T)) / sizeof(T);
     }
 
@@ -178,7 +178,7 @@ struct Stream {
 
 template<typename T>
 struct StreamRange<T, true>: InputRange<
-    StreamRange<T>, octa::InputRangeTag, T, T, octa::Size, StreamOffset
+    StreamRange<T>, InputRangeTag, T, T, Size, StreamOffset
 > {
     StreamRange() = delete;
     StreamRange(Stream &s): p_stream(&s), p_size(s.size()) {}
@@ -205,17 +205,17 @@ struct StreamRange<T, true>: InputRange<
     }
 
     bool put(T val) {
-        octa::Size v = p_stream->write_bytes(&val, sizeof(T));
+        Size v = p_stream->write_bytes(&val, sizeof(T));
         p_size += v;
         return (v == sizeof(T));
     }
 
-    octa::Size put_n(const T *p, octa::Size n) {
+    Size put_n(const T *p, Size n) {
         return p_stream->put(p, n);
     }
 
-    octa::Size copy(octa::RemoveCv<T> *p, octa::Size n = -1) {
-        if (n == octa::Size(-1)) {
+    Size copy(RemoveCv<T> *p, Size n = -1) {
+        if (n == Size(-1)) {
             n = p_stream->size() / sizeof(T);
         }
         return p_stream->get(p, n);
